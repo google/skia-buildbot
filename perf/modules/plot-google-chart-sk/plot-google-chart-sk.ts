@@ -167,6 +167,9 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ attribute: false })
   private showResetButton = false;
 
+  @property({ attribute: false })
+  private yAxisTitle = '';
+
   // The slots to place in the templated icons for anomalies.
   private slots = {
     untriage: createRef<HTMLSlotElement>(),
@@ -303,6 +306,8 @@ export class PlotGoogleChartSk extends LitElement {
       this.updateDataView(this.data);
     } else if (changedProperties.has('data')) {
       this.updateDataView(this.data);
+    } else if (changedProperties.has('yAxisTitle')) {
+      this.updateOptions();
     }
   }
 
@@ -343,11 +348,9 @@ export class PlotGoogleChartSk extends LitElement {
     }
 
     plot.view = view;
-    this.updateOptions();
 
-    // update the y axis in isolation to the updateOptions() call so that it can
-    // reuse the returned value of mainChartOptions.
     this.setYAxisTitle(this.getAllTraces());
+    this.updateOptions();
   }
 
   // if new domain is commit, convert from date to commit and vice-versa
@@ -394,11 +397,12 @@ export class PlotGoogleChartSk extends LitElement {
     const begin = this.selectedRange?.begin;
     const end = this.selectedRange?.end;
     const commitScale = this.domain === 'commit';
-
     options.hAxis!.viewWindow = {
       min: commitScale ? begin : (new Date(begin! * 1000) as any),
       max: commitScale ? end : (new Date(end! * 1000) as any),
     };
+
+    options.vAxis!.title = this.yAxisTitle;
 
     options.colors = [];
     // Get internal indices of visible columns.
@@ -420,18 +424,7 @@ export class PlotGoogleChartSk extends LitElement {
    * setYAxisTitle sets the Y axis title on the chart.
    */
   setYAxisTitle(traceNames: string[]) {
-    const plot = this.plotElement.value;
-    if (!plot || !plot.options) {
-      return;
-    }
-
-    const opts = plot.options as google.visualization.LineChartOptions;
-    if (!opts.vAxis) {
-      return;
-    }
-
-    opts.vAxis.title = this.determineYAxisTitle(traceNames);
-    plot.options = opts;
+    this.yAxisTitle = this.determineYAxisTitle(traceNames);
   }
 
   /**
@@ -606,7 +599,7 @@ export class PlotGoogleChartSk extends LitElement {
     );
   }
 
-  // When a point is hovered/selected, return row and column values from
+  // When a point is hovered, return row and column values from
   // underlying data table.
   private onChartMouseOver(e: CustomEvent) {
     if (this.navigationMode === 'deltaY' || this.navigationMode === 'dragToZoom') {
@@ -633,7 +626,7 @@ export class PlotGoogleChartSk extends LitElement {
     );
   }
 
-  // When a point is hovered, return row and column values from
+  // When a point is selected, return row and column values from
   // underlying data table.
   private onChartSelect(e: CustomEvent) {
     if (this.navigationMode === 'deltaY' || this.navigationMode === 'dragToZoom') {
@@ -649,6 +642,10 @@ export class PlotGoogleChartSk extends LitElement {
     const plot = this.plotElement.value;
     const tableRowIndex = plot!.view!.getTableRowIndex(selection.row);
     const tableColumnIndex = plot!.view!.getTableColumnIndex(selection.column);
+
+    // dynamically update the y-axis upon data selection
+    const traceName = this.getTraceName(tableColumnIndex);
+    this.setYAxisTitle([traceName]);
 
     this.dispatchEvent(
       new CustomEvent<PlotShowTooltipEventDetails>('plot-data-select', {
@@ -1135,7 +1132,12 @@ export class PlotGoogleChartSk extends LitElement {
    * Unselect all selections on the chart.
    */
   unselectAll(): void {
-    this.chart!.setSelection([]);
+    if (this.chart === null) {
+      return;
+    }
+    this.chart.setSelection([]);
+    // reset the y-axis title
+    this.setYAxisTitle(this.getAllTraces());
   }
 }
 

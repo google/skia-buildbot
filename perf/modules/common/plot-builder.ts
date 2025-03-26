@@ -185,13 +185,10 @@ export function mainChartOptions(
     backgroundColor: style.getPropertyValue('--plot-background-color-sk'),
     series: {},
     crosshair: {
-      trigger: 'both',
+      // TODO(sunxiaodi@): crosshair works on selection
+      trigger: 'focus',
       focused: {
         opacity: 0.35,
-      },
-      selected: {
-        opacity: 1.0,
-        color: 'white',
       },
     },
   };

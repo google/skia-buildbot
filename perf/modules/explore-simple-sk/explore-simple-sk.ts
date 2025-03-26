@@ -1126,7 +1126,6 @@ export class ExploreSimpleSk extends ElementSk {
     const index = e.detail;
     const commitPos: CommitNumber = chart.getCommitPosition(index.tableRow);
     const traceName = chart.getTraceName(index.tableCol);
-    chart.setYAxisTitle([traceName]);
     const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPos) || null;
     this.selectedAnomaly = anomaly;
     const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
@@ -1220,17 +1219,19 @@ export class ExploreSimpleSk extends ElementSk {
   // if the tooltip is opened and the user is not shift-clicking,
   // close it when clicking on the chart
   // i.e. clicking away from the tooltip closes it
+  // One edge case this implementation does not address is if the user
+  // tries to click onto another data point while the tooltip is open.
+  // This action is treated as onChartMouseDown and not as
+  // onChartSelect so the tooltip only closes.
   private onChartMouseDown(): void {
-    const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
-    this.tooltipSelected = false;
-    tooltipElem?.moveTo(null);
+    this.closeTooltip();
   }
 
   // Close the tooltip when moving away while hovering.
+  // Tooltip stays if the data point has been selected (clicked-on)
   private onChartMouseOut(): void {
-    const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
     if (!this.tooltipSelected) {
-      tooltipElem?.moveTo(null);
+      this.closeTooltip();
     }
   }
 
@@ -1407,7 +1408,7 @@ export class ExploreSimpleSk extends ElementSk {
           if (anomalyCommit) {
             toastText.textContent = `Anomaly Nudge Moved (${displayIndex}) to ${anomalyCommit}`;
             // Since anomaly is moving, close tooltip.
-            this.disableTooltip();
+            this.closeTooltip();
           } else {
             // If no anomaly commit was found, then the nudge failed.
             toastText.textContent = `Anomaly Nudge Failed (${displayIndex}) to ${startRevision}!`;
@@ -1616,10 +1617,10 @@ export class ExploreSimpleSk extends ElementSk {
         this.zoomRightKey();
         break;
       case `Escape`:
-        this.disableTooltip();
+        this.closeTooltip();
         break;
       case `Esc`:
-        this.disableTooltip();
+        this.closeTooltip();
         break;
       default:
         break;
@@ -2103,17 +2104,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
     const closeBtnAction = fixTooltip
       ? () => {
-          this.tooltipSelected = false;
-          tooltipElem!.moveTo(null);
-
-          // unselect all selected item on the chart
-          this.googleChartPlot.value?.unselectAll();
-          this.plotSimple.value!.highlight = [];
-          this.plotSimple.value!.xbar = -1;
-          this.plotSummary.value!.selectedTrace = '';
-
-          // unset the y axis on tooltip close
-          this.googleChartPlot.value?.setYAxisTitle([]);
+          this.closeTooltip();
         }
       : () => {};
 
@@ -2190,18 +2181,24 @@ export class ExploreSimpleSk extends ElementSk {
   // if the user's cursor leaves the graph, close the tooltip
   // unless the tooltip is 'fixed', meaning the user has anchored it.
   mouseLeave(): void {
-    if (this.tooltipSelected) {
-      return;
+    if (!this.tooltipSelected) {
+      this.closeTooltip();
     }
-
-    this.disableTooltip();
   }
 
   /** Hides the tooltip. Generally called when mouse moves out of the graph */
-  disableTooltip(): void {
+  closeTooltip(): void {
     const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
     tooltipElem!.moveTo(null);
     tooltipElem!.bug_id = 0;
+    this.tooltipSelected = false;
+
+    // unselect all selected item on the chart
+    this.googleChartPlot.value?.unselectAll();
+    if (this.plotSummary.value?.selectedTrace) {
+      this.plotSummary.value!.selectedTrace = '';
+    }
+
     this._render();
   }
 
@@ -3082,7 +3079,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.tracesRendered = false;
     this.graphTitle!.set(null, 0);
     this.tooltipSelected = false;
-    this.disableTooltip();
+    this.closeTooltip();
     this.dispatchEvent(new CustomEvent('remove-all', { bubbles: true }));
     // force unset autorefresh so that it doesn't re-appear when we remove all the chart.
     // the removeAll button from "remove all" or "X" will call invoke removeAll()
