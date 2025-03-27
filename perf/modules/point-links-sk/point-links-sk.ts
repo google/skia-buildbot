@@ -36,6 +36,9 @@ import { CommitDetailsRequest, CommitNumber, ingest } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
 
+import '@material/web/icon/icon.js';
+import '@material/web/iconbutton/outlined-icon-button.js';
+
 export class PointLinksSk extends ElementSk {
   constructor() {
     super(PointLinksSk.template);
@@ -46,14 +49,15 @@ export class PointLinksSk extends ElementSk {
   // Contains the urls to be displayed.
   displayUrls: { [key: string]: string } = {};
 
-  // Contains the texts for the urls to be displayed.
+  // Contains texts to be displayed.
+  // TODO(sunxiaodi@): remove display texts
   displayTexts: { [key: string]: string } = {};
 
   private static template = (ele: PointLinksSk) =>
     html`<div class="point-links" ?hidden=${Object.keys(ele.displayUrls || {}).length === 0}>
       <ul class="table">
         ${ele.renderLinks()}
-        <a href="/u/?rev=${ele.commitPosition}" target="_blank">Regressions</a>
+        <li><a href="/u/?rev=${ele.commitPosition}" target="_blank">Regressions</a></li>
       </ul>
     </div>`;
 
@@ -66,11 +70,26 @@ export class PointLinksSk extends ElementSk {
     const keys = Object.keys(this.displayUrls);
     const getHtml = (key: string): TemplateResult => {
       const link = this.displayUrls![key];
-      // TODO(b/398878559): Strip after 'Git' string until json keys are ready.
-      const linkText: string = key.split(' Git')[0];
-      return html` <a href="${link}" target="_blank">${linkText}</a>`;
+      if (link.includes('https://')) {
+        // TODO(b/398878559): Strip after 'Git' string until json keys are ready.
+        const linkText: string = key.split(' Git')[0];
+        return html` <li><a href="${link}" target="_blank">${linkText}</a></li>`;
+      }
+      // generate text contents
+      return html`
+        <li>
+          <a title="${link}" style="cursor: pointer;">${key}</a>
+          <md-icon-button @click=${() => this.copyToClipboard(link)}>
+            <md-icon id="copy-icon">content_copy</md-icon>
+          </md-icon-button>
+        </li>
+      `;
     };
     return keys.map(getHtml);
+  }
+
+  private copyToClipboard(text: string): void {
+    navigator.clipboard.writeText(text);
   }
 
   // load and display the links for the given commit and trace.
@@ -119,12 +138,13 @@ export class PointLinksSk extends ElementSk {
         }
       });
     }
-    if (keysForUsefulLinks !== null) {
-      for (const key in currentLinks) {
-        if (keysForUsefulLinks.includes(key)) {
-          this.displayTexts[key] = 'Link';
-          this.displayUrls[key] = currentLinks[key];
-        }
+    if (keysForUsefulLinks === null) {
+      this._render();
+      return;
+    }
+    for (const key in currentLinks) {
+      if (keysForUsefulLinks.includes(key)) {
+        this.displayUrls[key] = currentLinks[key];
       }
     }
     this._render();
