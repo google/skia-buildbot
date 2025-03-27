@@ -106,6 +106,7 @@
     "culprits.by_revision",
     "favorites.by_user_id",
     "paramsets.by_tile_number",
+    "postings.by_trace_id2",
     "postings.by_trace_id",
     "postings.by_key_value",
     "regressions2.by_commit_alert",

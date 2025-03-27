@@ -117,6 +117,7 @@ CREATE TABLE IF NOT EXISTS Postings (
   trace_id BYTES,
   PRIMARY KEY (tile_number, key_value, trace_id),
   INDEX by_trace_id (tile_number, trace_id, key_value),
+  INDEX by_trace_id2 (tile_number, trace_id),
   INDEX by_key_value (tile_number, key_value)
 );
 CREATE TABLE IF NOT EXISTS Regressions (
@@ -373,6 +374,7 @@ CREATE INDEX IF NOT EXISTS by_revision on Culprits (revision, host, project, ref
 CREATE INDEX IF NOT EXISTS by_user_id on Favorites (user_id);
 CREATE INDEX IF NOT EXISTS by_tile_number on ParamSets (tile_number DESC);
 CREATE INDEX IF NOT EXISTS by_trace_id on Postings (tile_number, trace_id, key_value);
+CREATE INDEX IF NOT EXISTS by_trace_id2 on Postings (tile_number, trace_id);
 CREATE INDEX IF NOT EXISTS by_key_value on Postings (tile_number, key_value);
 CREATE INDEX IF NOT EXISTS by_alert_id on Regressions2 (alert_id);
 CREATE INDEX IF NOT EXISTS by_commit_alert on Regressions2 (commit_number, alert_id);

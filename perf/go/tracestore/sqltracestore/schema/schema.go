@@ -50,3 +50,8 @@ type PostingsSchema struct {
 	byTraceIDIndex2 struct{}         `sql:"INDEX by_trace_id2 (tile_number, trace_id)"`
 	byKeyValueIndex struct{}         `sql:"INDEX by_key_value (tile_number, key_value)"`
 }
+
+type MetadataSchema struct {
+	SourceFileId int64             `sql:"source_file_id INT PRIMARY KEY"`
+	Links        map[string]string `sql:"links JSONB"`
+}

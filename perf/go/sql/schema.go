@@ -57,6 +57,10 @@ CREATE TABLE IF NOT EXISTS GraphsShortcuts (
   id TEXT UNIQUE NOT NULL PRIMARY KEY,
   graphs TEXT
 );
+CREATE TABLE IF NOT EXISTS Metadata (
+  source_file_id INT PRIMARY KEY,
+  links JSONB
+);
 CREATE TABLE IF NOT EXISTS ParamSets (
   tile_number INT,
   param_key STRING,
@@ -215,6 +219,11 @@ var Favorites = []string{
 var GraphsShortcuts = []string{
 	"id",
 	"graphs",
+}
+
+var Metadata = []string{
+	"source_file_id",
+	"links",
 }
 
 var ParamSets = []string{

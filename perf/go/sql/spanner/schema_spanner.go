@@ -64,6 +64,11 @@ CREATE TABLE IF NOT EXISTS GraphsShortcuts (
   graphs TEXT,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
+CREATE TABLE IF NOT EXISTS Metadata (
+  source_file_id INT PRIMARY KEY,
+  links JSONB,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS ParamSets (
   tile_number INT,
   param_key TEXT,
@@ -236,6 +241,11 @@ var Favorites = []string{
 var GraphsShortcuts = []string{
 	"id",
 	"graphs",
+}
+
+var Metadata = []string{
+	"source_file_id",
+	"links",
 }
 
 var ParamSets = []string{

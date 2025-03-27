@@ -38,26 +38,33 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
-    CREATE INDEX IF NOT EXISTS by_trace_id2 on Postings (tile_number, trace_id);
+    CREATE TABLE IF NOT EXISTS Metadata (
+		source_file_id INT PRIMARY KEY,
+		links JSONB
+	);
 `
 
 // Same as above, but will be used when doing schema migration for spanner databases.
 // Some statements can be different for CDB v/s Spanner, hence splitting into
 // separate variables.
 var FromLiveToNextSpanner = `
-	CREATE INDEX IF NOT EXISTS by_trace_id2 on Postings (tile_number, trace_id);
+	CREATE TABLE IF NOT EXISTS Metadata (
+		source_file_id INT PRIMARY KEY,
+		links JSONB,
+		createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+	) TTL INTERVAL '1095 days' ON createdat;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-    DROP INDEX IF EXISTS by_trace_id2 CASCADE;
+    DROP TABLE IF EXISTS Metadata;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLiveSpanner = `
-	DROP INDEX IF EXISTS by_trace_id2;
+	DROP TABLE IF EXISTS Metadata;
 `
 
 // This function will check whether there's a new schema checked-in,

@@ -27,6 +27,7 @@ type Tables struct {
 	Culprits        []culpritschema.CulpritSchema
 	Favorites       []favoriteschema.FavoriteSchema
 	GraphsShortcuts []graphsshortcutschema.GraphsShortcutSchema
+	Metadata        []traceschema.MetadataSchema
 	ParamSets       []traceschema.ParamSetsSchema
 	Postings        []traceschema.PostingsSchema
 	Regressions     []regressionschema.RegressionSchema

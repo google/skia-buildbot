@@ -129,6 +129,7 @@
     "graphsshortcuts.PRIMARY_KEY",
     "paramsets.by_tile_number",
     "paramsets.PRIMARY_KEY",
+    "postings.by_trace_id2",
     "postings.by_trace_id",
     "postings.by_key_value",
     "postings.PRIMARY_KEY",
