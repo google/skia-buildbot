@@ -8,8 +8,7 @@
  *
  * @example
  */
-import { html, css, LitElement } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { html } from 'lit';
 import { createRef, ref } from 'lit/directives/ref.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -36,56 +35,6 @@ import {
   TryJobPreloadParams,
 } from '../pinpoint-try-job-dialog-sk/pinpoint-try-job-dialog-sk';
 import { defaultColors } from '../common/plot-builder';
-
-@customElement('commit-info-sk')
-export class CommitInfoSk extends LitElement {
-  static styles = css`
-    ul.table {
-      display: table;
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 16px;
-      li {
-        display: table-row;
-        b {
-          display: table-cell;
-          text-align: left;
-          padding-right: 1em;
-        }
-      }
-      a {
-        color: var(--primary);
-      }
-    }
-  `;
-
-  @property({ attribute: false })
-  commitInfo: Commit | null = null;
-
-  // render generates commit information into a list. note that this does not
-  // include the header.
-  render() {
-    if (!this.commitInfo) {
-      return;
-    }
-
-    return html`
-      <ul class="table">
-        <li>
-          <b>Author:</b>
-          ${this.commitInfo.author.split('(')[0]}
-        </li>
-        <li>
-          <b>Message:</b>
-          ${this.commitInfo.message}
-        </li>
-      </ul>
-    `;
-  }
-}
 
 export class ChartTooltipSk extends ElementSk {
   constructor() {
