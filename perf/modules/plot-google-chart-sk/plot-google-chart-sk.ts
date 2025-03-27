@@ -198,10 +198,6 @@ export class PlotGoogleChartSk extends LitElement {
   // Index to keep track of which colors we've used so far.
   private colorIndex = 0;
 
-  // The value distance when moving by 1px on the screen.
-  // Commits and dates operate on different scales, so adjust accordingly.
-  private valueDelta = { commit: 1, date: 1000 };
-
   private cachedChartArea = { left: 0, top: 0, width: 0, height: 0 };
 
   // Whether we are interacting with the chart that takes higher prioritiy than navigations.
@@ -724,7 +720,11 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onWindowMouseMove(e: MouseEvent) {
-    const layout = this.chart!.getChartLayoutInterface();
+    // prevents errors while chart is loading up
+    if (this.chart === null) {
+      return;
+    }
+    const layout = this.chart.getChartLayoutInterface();
     if (this.navigationMode === 'deltaY') {
       e.preventDefault(); // disable system events
       const deltaRangeBox = this.deltaRangeBox.value!;
@@ -750,8 +750,9 @@ export class PlotGoogleChartSk extends LitElement {
     }
 
     if (this.navigationMode === 'pan') {
-      const valueDelta = this.domain === 'commit' ? this.valueDelta.commit : this.valueDelta.date;
-      const deltaX = (this.lastMouse.x - e.x) * valueDelta;
+      let deltaX = layout.getHAxisValue(this.lastMouse.x) - layout.getHAxisValue(e.x);
+      // if date, scale by 1000 to adjust for timescale
+      deltaX = this.domain === 'commit' ? deltaX : deltaX / 1000;
       this.lastMouse.x = e.x;
 
       this.selectedRange!.begin += deltaX;
