@@ -3,6 +3,7 @@
   "allowed_hosts": [
     "status.skia.org"
   ],
+  "ga_measurement_id": "G-63V7BNJW03",
   "contact": "https://bugs.skia.org",
   "trace_sample_proportion": 0.01,
   "notify_config": {

@@ -1,5 +1,6 @@
 {
   "URL": "https://v8-perf.corp.goog",
+  "ga_measurement_id": "G-7016RCYYFV",
   "landing_page_rel_path": "/m/",
   "contact": "https://bugs.chromium.org/p/v8/issues/list?q=component%3ATools&can=2",
   "trace_sample_proportion": 0.01,

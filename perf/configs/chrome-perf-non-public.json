@@ -1,7 +1,7 @@
 {
     "URL": "https://chrome-perf.corp.goog",
     "landing_page_rel_path": "/m/",
-    "ga_measurement_id": "G-LEQSJH1GXP",
+    "ga_measurement_id": "G-PFC9BX9411",
     "allowed_hosts": [],
     "backend_host_url": "perf-be-chrome-non-public.perf.svc.cluster.local:8000",
     "contact": "browser-perf-engprod@google.com",

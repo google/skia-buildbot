@@ -1,6 +1,7 @@
 {
   "URL": "https://fuchsia-perf.corp.goog",
   "landing_page_rel_path": "/m/",
+  "ga_measurement_id": "G-8CM4NHWZ72",
   "allowed_hosts": [],
   "contact": "browser-perf-engprod@google.com",
   "chat_url": "http://go/berf-skia-chat",

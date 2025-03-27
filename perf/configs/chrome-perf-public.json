@@ -1,7 +1,7 @@
 {
     "URL": "https://perf.luci.app",
     "landing_page_rel_path": "/m/",
-    "ga_measurement_id": "G-ZR01MG8PGX",
+    "ga_measurement_id": "G-JBCDDZBVFF",
     "allowed_hosts": [],
     "instance_name": "chrome-public-cockroach",
     "trace_sample_proportion": 0.2,

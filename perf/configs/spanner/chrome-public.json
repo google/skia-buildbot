@@ -1,7 +1,7 @@
 {
     "URL": "https://perf.luci.app",
     "landing_page_rel_path": "/m/",
-    "ga_measurement_id": "G-ZR01MG8PGX",
+    "ga_measurement_id": "G-JBCDDZBVFF",
     "allowed_hosts": [],
     "backend_host_url": "perf-be-chrome-public.perf.svc.cluster.local:8000",
     "instance_name": "chrome-public-spanner",
