@@ -142,7 +142,7 @@ export class ChartTooltipSk extends ElementSk {
   // TODO(b/338440689) - make commit number a link to gitiles
   private static template = (ele: ChartTooltipSk) => html`
     <div class="container" ${ref(ele.containerDiv)}>
-      <md-elevation style="--md-elevation-level: 3"></md-elevation>
+      <md-elevation></md-elevation>
       <button id="closeIcon" @click=${ele._close_button_action} ?hidden=${!ele._tooltip_fixed}>
         <close-icon-sk></close-icon-sk>
       </button>
@@ -154,29 +154,32 @@ export class ChartTooltipSk extends ElementSk {
       </h3>
       <ul class="table">
         <li>
-          <b>Date:</b>
+          <span id="tooltip-key">Date</span>
           ${ele.date_value.toDateString()} ${ele.date_value.toTimeString()}
         </li>
         <li>
-          <b>Value:</b>
+          <span id="tooltip-key">Value</span>
           ${ele.y_value} ${ele.unit_type}
         </li>
         <li>
-          <b>Change:</b>
+          <span id="tooltip-key">Change</span>
           <commit-range-sk id="tooltip-commit-range-link"></commit-range-sk>
         </li>
         ${ele._tooltip_fixed && !ele._is_range
           ? html` <li>
-                <b>Author:</b>
+                <span id="tooltip-key">Author</span>
                 ${ele.commitInfo?.author.split('(')[0]}
               </li>
               <li>
-                <b>Message:</b>
+                <span id="tooltip-key">Message</span>
                 ${ele.commitInfo?.message}
               </li>`
           : html``}
       </ul>
-      ${ele._tooltip_fixed ? ele.anomalyTemplate() : ele.seeMoreText()}
+      <point-links-sk
+        id="tooltip-point-links"
+        .commitPosition=${ele.commit_position}></point-links-sk>
+      ${ele._tooltip_fixed ? ele.anomalyTemplate() : ''}
       <triage-menu-sk
         id="triage-menu"
         ?hidden=${!(ele._tooltip_fixed && ele.anomaly && ele.anomaly!.bug_id === 0)}>
@@ -200,10 +203,7 @@ export class ChartTooltipSk extends ElementSk {
       </div>
       <bisect-dialog-sk id="bisect-dialog-sk"></bisect-dialog-sk>
       <pinpoint-try-job-dialog-sk id="pinpoint-try-job-dialog-sk"></pinpoint-try-job-dialog-sk>
-      <point-links-sk
-        id="tooltip-point-links"
-        .commitPosition=${ele.commit_position}
-        ?hidden=${!ele._tooltip_fixed}></point-links-sk>
+      ${!ele._tooltip_fixed ? ele.seeMoreText() : ''}
     </div>
   `;
 
@@ -292,16 +292,16 @@ export class ChartTooltipSk extends ElementSk {
     return html`
       <ul class="table" id="anomaly-details">
         <li>
-          <b>Anomaly:</b>
+          <span id="tooltip-key">Anomaly</span>
           ${this.anomalyType()}
         </li>
         <li>
-          <b>Median:</b>
+          <span id="tooltip-key">Median</span>
           ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)}
           ${this.unit_type.split(' ')[0]}
         </li>
         <li>
-          <b>Previous:</b>
+          <span id="tooltip-key">Previous</span>
           <span
             >${AnomalySk.formatNumber(this.anomaly!.median_before_anomaly)}
             [${this.anomalyChange()}%]</span
@@ -309,7 +309,7 @@ export class ChartTooltipSk extends ElementSk {
         </li>
         ${this.anomaly!.bug_id
           ? html` <li>
-              <b>Bug Id:</b>
+              <span id="tooltip-key">Bug ID</span>
               ${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)}
               <close-icon-sk
                 id="unassociate-bug-button"
@@ -387,7 +387,7 @@ export class ChartTooltipSk extends ElementSk {
     );
 
     return html`<div>
-      <b>Pinpoint Jobs:</b>
+      <span id="tooltip-key">Pinpoint Jobs</span>
       ${links.map((link, index) => html`${link}${index < links.length - 1 ? ', ' : ''}`)}
     </div>`;
   }

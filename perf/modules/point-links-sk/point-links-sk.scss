@@ -1,29 +1,10 @@
 point-links-sk {
   div.point-links {
-    ul.table {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      flex-wrap: wrap;
-      justify-content: space-evenly;
-
-      li {
-        width: 45%;
-        display: flex;
-        align-items: center;
-
-        a {
-          display: inline-flex;
-          align-items: center;
-        }
-
-        md-icon-button {
-          --md-icon-button-icon-size: 20px;
-          --md-icon-button-state-layer-height: 25px;
-          --md-icon-button-state-layer-width: 25px;
-          --md-sys-shape-corner-full: 0px;
-        }
-      }
+    md-icon-button {
+      --md-icon-button-icon-size: 20px;
+      --md-icon-button-state-layer-height: 25px;
+      --md-icon-button-state-layer-width: 25px;
+      --md-sys-shape-corner-full: 0px;
     }
   }
 

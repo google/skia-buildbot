@@ -9,13 +9,13 @@ chart-tooltip-sk {
     opacity: 90%;
     position: absolute;
     z-index: 1;
-    width: 300px;
-    margin: 10px;
+    max-width: 360px;
+    max-height: 480px;
+    margin: 20px;
     padding: 4px;
-    overflow: hidden;
+    overflow: scroll;
     word-wrap: break-word;
     background: var(--surface-2dp);
-    --md-elevation-level: 3;
     md-elevation {
       transition-duration: 0.3s;
     }
@@ -50,12 +50,6 @@ chart-tooltip-sk {
       border-collapse: collapse;
       li {
         display: table-row;
-        b {
-          display: table-cell;
-          text-align: left;
-          padding-right: 1em;
-          width: 80px;
-        }
         .regression {
           color: #e36041;
         }
@@ -99,6 +93,17 @@ chart-tooltip-sk {
     #bisect {
       float: left;
       position: relative;
+    }
+
+    #tooltip-key {
+      font-weight: bold;
+      display: table-cell;
+      text-align: left;
+      padding-right: 1em;
+      width: 100px;
+      :after {
+        content: ':';
+      }
     }
   }
 }

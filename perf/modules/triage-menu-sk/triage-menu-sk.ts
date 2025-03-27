@@ -71,6 +71,7 @@ export class TriageMenuSk extends ElementSk {
     html`<div>
       <new-bug-dialog-sk></new-bug-dialog-sk>
       <existing-bug-dialog-sk></existing-bug-dialog-sk>
+      ${ele._anomalies.length === 0 ? '' : ele.generateNudgeButtons()}
       <div class="buttons">
         <button id="new-bug" @click=${ele.openNewBugDialog}>New Bug</button>
         <button id="existing-bug" @click=${ele.openExistingBugDialog}>Existing Bug</button>
@@ -78,7 +79,6 @@ export class TriageMenuSk extends ElementSk {
           Ignore
         </button>
       </div>
-      ${ele._anomalies.length === 0 ? '' : ele.generateNudgeButtons()}
     </div>`;
 
   connectedCallback(): void {

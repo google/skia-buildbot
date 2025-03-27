@@ -57,7 +57,10 @@ export class PointLinksSk extends ElementSk {
     html`<div class="point-links" ?hidden=${Object.keys(ele.displayUrls || {}).length === 0}>
       <ul class="table">
         ${ele.renderLinks()}
-        <li><a href="/u/?rev=${ele.commitPosition}" target="_blank">Regressions</a></li>
+        <li>
+          <span id="tooltip-key">Revisions</span>
+          <a href="/u/?rev=${ele.commitPosition}" target="_blank">${ele.commitPosition}</a>
+        </li>
       </ul>
     </div>`;
 
@@ -70,20 +73,16 @@ export class PointLinksSk extends ElementSk {
     const keys = Object.keys(this.displayUrls);
     const getHtml = (key: string): TemplateResult => {
       const link = this.displayUrls![key];
-      if (link.includes('https://')) {
-        // TODO(b/398878559): Strip after 'Git' string until json keys are ready.
-        const linkText: string = key.split(' Git')[0];
-        return html` <li><a href="${link}" target="_blank">${linkText}</a></li>`;
-      }
-      // generate text contents
-      return html`
-        <li>
-          <a title="${link}" style="cursor: pointer;">${key}</a>
-          <md-icon-button @click=${() => this.copyToClipboard(link)}>
-            <md-icon id="copy-icon">content_copy</md-icon>
-          </md-icon-button>
-        </li>
-      `;
+      // TODO(b/398878559): Strip after 'Git' string until json keys are ready.
+      const keyText: string = key.split(' Git')[0];
+      const linkText = this.displayTexts![key];
+      return html` <li>
+        <span id="tooltip-key">${keyText}</span>
+        <a href="${link}" target="_blank" style="cursor: pointer;"> ${linkText} </a>
+        <md-icon-button @click=${() => this.copyToClipboard(link)}>
+          <md-icon id="copy-icon">content_copy</md-icon>
+        </md-icon-button>
+      </li>`;
     };
     return keys.map(getHtml);
   }
