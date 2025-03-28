@@ -256,7 +256,6 @@ export class PlotGoogleChartSk extends LitElement {
           type="line"
           .events=${['onmouseover', 'onmouseout']}
           @mousedown=${this.onChartMouseDown}
-          @mouseup=${this.onChartMouseUp}
           @google-chart-select=${this.onChartSelect}
           @google-chart-onmouseover=${this.onChartMouseOver}
           @google-chart-onmouseout=${this.onChartMouseOut}

@@ -38,6 +38,6 @@ fetchMock.post('/_/details/?results=false', (_url, request) => {
 window.customElements.whenDefined('point-links-sk').then(() => {
   const links1 = document.getElementById('different-commits') as PointLinksSk;
   const links2 = document.getElementById('same-commits') as PointLinksSk;
-  links1.load(CommitNumber(12), CommitNumber(11), 'foo', ['V8 Git Hash'], ['Build Page']);
-  links2.load(CommitNumber(10), CommitNumber(11), 'foo', ['V8 Git Hash'], ['Build Page']);
+  links1.load(CommitNumber(12), CommitNumber(11), 'foo', ['V8 Git Hash'], ['Build Page'], []);
+  links2.load(CommitNumber(10), CommitNumber(11), 'foo', ['V8 Git Hash'], ['Build Page'], []);
 });

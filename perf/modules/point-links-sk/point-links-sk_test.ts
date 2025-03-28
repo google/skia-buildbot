@@ -1,7 +1,7 @@
 import './index';
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
-import { PointLinksSk } from './point-links-sk';
+import { CommitLinks, PointLinksSk } from './point-links-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { CommitNumber } from '../json';
@@ -13,6 +13,17 @@ describe('point-links-sk', () => {
   beforeEach(() => {});
 
   describe('Load links for a commit.', () => {
+    const commitLinks: CommitLinks = {
+      cid: CommitNumber(4),
+      traceid: 'my trace',
+      displayUrls: {
+        key4: 'https://commit/link1',
+      },
+      displayTexts: {
+        key4: 'Commit Link',
+      },
+    };
+
     beforeEach(() => {
       element = newInstance();
       fetchMock.reset();
@@ -28,10 +39,61 @@ describe('point-links-sk', () => {
         prevCommitId,
         'my trace',
         keysForCommitRange,
-        keysForUsefulLinks
+        keysForUsefulLinks,
+        []
       );
       assert.isEmpty(element.displayUrls, 'No display urls expected.');
       assert.isEmpty(element.displayTexts, 'No display texts expected.');
+    });
+
+    it('With links already stored.', () => {
+      const currentCommitId = CommitNumber(4);
+      const prevCommitId = CommitNumber(3);
+      const keysForCommitRange: string[] = [];
+      const keysForUsefulLinks: string[] = [];
+      const expectedLinks = {
+        key4: 'https://commit/link1',
+      };
+
+      element.load(
+        currentCommitId,
+        prevCommitId,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks,
+        [commitLinks]
+      );
+      assert.deepEqual(expectedLinks, element.displayUrls);
+    });
+
+    it('With links already stored, but no matching commit number.', async () => {
+      const keysForCommitRange = ['key1', 'key2'];
+      const keysForUsefulLinks = [''];
+      const returnLinks = {
+        key1: 'https://commit/link1',
+        key2: 'https://commit/link2',
+      };
+      fetchMock.post('/_/details/?results=false', {
+        version: 1,
+        links: returnLinks,
+      });
+
+      const currentCommitId = CommitNumber(3);
+      const prevCommitId = CommitNumber(2);
+
+      const expectedLinks = {
+        key1: 'https://commit/link1',
+        key2: 'https://commit/link2',
+      };
+      await element.load(
+        currentCommitId,
+        prevCommitId,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks,
+        [commitLinks]
+      );
+      assert.deepEqual(expectedLinks, element.displayUrls);
     });
 
     it('With all eligible links but no range.', async () => {
@@ -50,15 +112,16 @@ describe('point-links-sk', () => {
       const prevCommitId = CommitNumber(3);
 
       const expectedLinks = {
-        'key1 Commit': 'https://commit/link1',
-        'key2 Commit': 'https://commit/link2',
+        key1: 'https://commit/link1',
+        key2: 'https://commit/link2',
       };
       await element.load(
         currentCommitId,
         prevCommitId,
         'my trace',
         keysForCommitRange,
-        keysForUsefulLinks
+        keysForUsefulLinks,
+        []
       );
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
@@ -98,11 +161,12 @@ describe('point-links-sk', () => {
         prevCommitId,
         'my trace',
         keysForCommitRange,
-        keysForUsefulLinks
+        keysForUsefulLinks,
+        []
       );
       const expectedLinks = {
-        'key1 Range': 'https://repoHost/repo1/+log/preLink..curLink',
-        'key2 Range': 'https://repoHost/repo2/+log/preLink..curLink',
+        key1: 'https://repoHost/repo1/+log/preLink..curLink',
+        key2: 'https://repoHost/repo2/+log/preLink..curLink',
       };
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
@@ -145,11 +209,12 @@ describe('point-links-sk', () => {
         prevCommitId,
         'my trace',
         keysForCommitRange,
-        keysForUsefulLinks
+        keysForUsefulLinks,
+        []
       );
       const expectedLinks = {
-        'key1 Commit': 'https://repoHost/repo1/+/curLink',
-        'key2 Range': 'https://repoHost/repo2/+log/preLink..curLink',
+        key1: 'https://repoHost/repo1/+/curLink',
+        key2: 'https://repoHost/repo2/+log/preLink..curLink',
         buildKey: 'https://luci/builder/build1',
         traceKey: 'https://traceViewer/trace',
       };

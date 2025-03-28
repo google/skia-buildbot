@@ -39,11 +39,19 @@ import { errorMessage } from '../errorMessage';
 import '@material/web/icon/icon.js';
 import '@material/web/iconbutton/outlined-icon-button.js';
 
+export interface CommitLinks {
+  traceid: string;
+  cid: number;
+  displayUrls: { [key: string]: string } | null;
+  displayTexts: { [key: string]: string } | null;
+}
+
 export class PointLinksSk extends ElementSk {
   constructor() {
     super(PointLinksSk.template);
   }
 
+  // The point links for the current commit.
   commitPosition: CommitNumber | null = null;
 
   // Contains the urls to be displayed.
@@ -56,11 +64,7 @@ export class PointLinksSk extends ElementSk {
   private static template = (ele: PointLinksSk) =>
     html`<div class="point-links" ?hidden=${Object.keys(ele.displayUrls || {}).length === 0}>
       <ul class="table">
-        ${ele.renderLinks()}
-        <li>
-          <span id="tooltip-key">Revisions</span>
-          <a href="/u/?rev=${ele.commitPosition}" target="_blank">${ele.commitPosition}</a>
-        </li>
+        ${ele.renderPointLinks()} ${ele.renderRevisionLink()}
       </ul>
     </div>`;
 
@@ -69,22 +73,49 @@ export class PointLinksSk extends ElementSk {
     this._render();
   }
 
-  renderLinks(): TemplateResult[] {
+  renderPointLinks(): TemplateResult[] {
+    if (Object.keys(this.displayTexts).length === 0 || Object.keys(this.displayUrls).length === 0) {
+      return [];
+    }
     const keys = Object.keys(this.displayUrls);
     const getHtml = (key: string): TemplateResult => {
       const link = this.displayUrls![key];
       // TODO(b/398878559): Strip after 'Git' string until json keys are ready.
       const keyText: string = key.split(' Git')[0];
-      const linkText = this.displayTexts![key];
+      const linkText = this.displayTexts![key] || 'Link';
+
+      // generate text contents
       return html` <li>
-        <span id="tooltip-key">${keyText}</span>
-        <a href="${link}" target="_blank" style="cursor: pointer;"> ${linkText} </a>
-        <md-icon-button @click=${() => this.copyToClipboard(link)}>
-          <md-icon id="copy-icon">content_copy</md-icon>
-        </md-icon-button>
+        <span id="tooltip-link">${keyText}</span>
+        <span id="tooltip-text">
+          <a href="${link}" title="${linkText}" style="cursor: pointer;" target="_blank"
+            >${linkText}</a
+          >
+          <md-icon-button @click=${() => this.copyToClipboard(link)}>
+            <md-icon id="copy-icon">content_copy</md-icon>
+          </md-icon-button>
+        </span>
       </li>`;
     };
     return keys.map(getHtml);
+  }
+
+  renderRevisionLink() {
+    if (this.commitPosition === null) {
+      return html``;
+    }
+    const link = `/u/?rev=${this.commitPosition}`;
+    return html` <li>
+      <span id="tooltip-link">Revisions</span>
+      <span id="tooltip-text">
+        <a href="${link}" title="${this.commitPosition}" style="cursor: pointer;" target="_blank"
+          >${this.commitPosition}</a
+        >
+        <md-icon-button @click=${() => this.copyToClipboard(link)}>
+          <md-icon id="copy-icon">content_copy</md-icon>
+        </md-icon-button>
+      </span>
+    </li>`;
   }
 
   private copyToClipboard(text: string): void {
@@ -97,12 +128,34 @@ export class PointLinksSk extends ElementSk {
     prev_cid: CommitNumber,
     traceid: string,
     keysForCommitRange: string[],
-    keysForUsefulLinks: string[]
-  ): Promise<void> {
-    // Clear any existing links first.
-    this.displayUrls = {};
-    this.displayTexts = {};
-    const currentLinks = await this.getLinksForPoint(cid, traceid);
+    keysForUsefulLinks: string[],
+    commitLinks: (CommitLinks | null)[]
+  ): Promise<(CommitLinks | null)[]> {
+    this.commitPosition = cid;
+    if (commitLinks.length > 0) {
+      commitLinks.forEach((commitLink) => {
+        if (commitLink && commitLink.cid === cid && commitLink.traceid === traceid) {
+          // Commit and TraceID have already been loaded, reuse links.
+          this.displayUrls = commitLink.displayUrls || {};
+          this.displayTexts = commitLink.displayTexts || {};
+        }
+      });
+      if (Object.keys(this.displayUrls).length > 0 || Object.keys(this.displayTexts).length > 0) {
+        this._render();
+        return commitLinks; // Return the commitLinks object
+      }
+    }
+
+    const currentLinks: { [key: string]: string } | null = await this.getLinksForPoint(
+      cid,
+      traceid
+    );
+
+    if (currentLinks === null) {
+      this._render();
+      return commitLinks; // Return the commitLinks object as is.
+    }
+
     if (keysForCommitRange !== null) {
       const prevLinks = await this.getLinksForPoint(prev_cid, traceid);
       keysForCommitRange.forEach((key) => {
@@ -113,18 +166,17 @@ export class PointLinksSk extends ElementSk {
           currentCommitUrl !== ''
         ) {
           const prevCommitUrl = prevLinks[key];
-          const currentCommitId = this.getCommitIdFromCommitUrl(currentCommitUrl).substring(0, 7);
-          const prevCommitId = this.getCommitIdFromCommitUrl(prevCommitUrl).substring(0, 7);
+          const currentCommitId = this.getCommitIdFromCommitUrl(currentCommitUrl).substring(0, 8);
+          const prevCommitId = this.getCommitIdFromCommitUrl(prevCommitUrl).substring(0, 8);
 
           // The links should be different depending on whether the
           // commits are the same. If the commits are the same, simply point to
           // the commit. If they're not, point to the log list.
+          const displayKey = `${key}`;
           if (currentCommitId === prevCommitId) {
-            const displayKey = `${key} Commit`;
             this.displayTexts[displayKey] = `${currentCommitId} (No Change)`;
             this.displayUrls[displayKey] = currentCommitUrl;
           } else {
-            const displayKey = `${key} Range`;
             this.displayTexts[displayKey] = this.getFormattedCommitRangeText(
               prevCommitId,
               currentCommitId
@@ -137,16 +189,28 @@ export class PointLinksSk extends ElementSk {
         }
       });
     }
+    const commitLink: CommitLinks = {
+      cid: cid,
+      traceid: traceid,
+      displayUrls: this.displayUrls,
+      displayTexts: this.displayTexts,
+    };
+
     if (keysForUsefulLinks === null) {
       this._render();
-      return;
+      commitLinks.push(commitLink);
+      return commitLinks; // Return the commitLinks object
     }
-    for (const key in currentLinks) {
+    Object.keys(currentLinks).forEach((key) => {
       if (keysForUsefulLinks.includes(key)) {
         this.displayUrls[key] = currentLinks[key];
       }
-    }
+    });
+    // Extra links found, add them to the displayUrls.
+    commitLink.displayUrls = this.displayUrls;
     this._render();
+    commitLinks.push(commitLink);
+    return commitLinks;
   }
 
   /** Clear Point Links */
@@ -213,9 +277,8 @@ export class PointLinksSk extends ElementSk {
       const format = json as ingest.Format;
       return format.links!;
     } catch (error) {
-      await errorMessage(error as string);
+      errorMessage(error as string);
     }
-
     return {};
   }
 }

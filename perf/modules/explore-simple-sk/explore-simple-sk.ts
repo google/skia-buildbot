@@ -150,6 +150,7 @@ import { getLegend, getTitle, isSingleTrace, legendFormatter } from '../datafram
 import { BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
 import { TryJobPreloadParams } from '../pinpoint-try-job-dialog-sk/pinpoint-try-job-dialog-sk';
 import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
+import { CommitLinks } from '../point-links-sk/point-links-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -566,6 +567,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private showPickerBox: boolean = false;
 
+  private commitLinks: (CommitLinks | null)[] = [];
+
   chartTooltip: ChartTooltipSk | null = null;
 
   useTestPicker: boolean = false;
@@ -807,8 +810,6 @@ export class ExploreSimpleSk extends ElementSk {
           ${ref(ele.googleChartPlot)}
           @plot-data-select=${ele.onChartSelect}
           @plot-data-mouseover=${ele.onChartOver}
-          @plot-chart-mousedown=${ele.onChartMouseDown}
-          @plot-chart-mouseout=${ele.onChartMouseOut}
           @selection-changing=${ele.OnSelectionRange}
           @selection-changed=${ele.OnSelectionRange}>
           <md-icon slot="untriage">help</md-icon>
@@ -1143,7 +1144,6 @@ export class ExploreSimpleSk extends ElementSk {
     const traceName = chart.getTraceName(index.tableCol);
     const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPos) || null;
     this.selectedAnomaly = anomaly;
-    const prevCommitPos = this.getPreviousCommit(index.tableRow, traceName);
 
     fetch('/_/cid/', {
       method: 'POST',
@@ -1181,8 +1181,6 @@ export class ExploreSimpleSk extends ElementSk {
         } else {
           this.bugId = '';
         }
-        this.startCommit = prevCommitPos?.toString() || '';
-        this.endCommit = commitPos.toString();
         // The purpose of this dict is to ensure that
         // we're not needing to re-fetch the information.
         this.pointToCommitDetailMap.set(key, json.commitSlice![0]);
@@ -1199,16 +1197,6 @@ export class ExploreSimpleSk extends ElementSk {
           json.commitSlice![0],
           true
         );
-
-        const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
-        tooltipElem!.loadPointLinks(
-          commitPos,
-          prevCommitPos,
-          traceName,
-          window.perf.keys_for_commit_range!,
-          window.perf.keys_for_useful_links!
-        );
-
         this.tooltipSelected = true;
       })
       .catch(errorMessage);
@@ -2056,9 +2044,10 @@ export class ExploreSimpleSk extends ElementSk {
     const header = this.dfRepo.value?.header || null;
     const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
     const prevCommitPos = this.getPreviousCommit(x, traceName);
-
     const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPosition) || null;
     const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
+    this.startCommit = prevCommitPos?.toString() || '';
+    this.endCommit = commitPosition.toString();
 
     // TODO(b/370804498): To be refactored into google plot / dataframe.
     // The anomaly data is indirectly referenced from simple-plot, and the anomaly data gets
@@ -2168,13 +2157,19 @@ export class ExploreSimpleSk extends ElementSk {
     commitRangeSk!.commitIndex = x;
     commitRangeSk!.header = header;
 
-    tooltipElem!.loadPointLinks(
-      commitPosition,
-      prevCommitPos,
-      traceName,
-      window.perf.keys_for_commit_range!,
-      window.perf.keys_for_useful_links!
-    );
+    tooltipElem!
+      .loadPointLinks(
+        commitPosition,
+        prevCommitPos,
+        traceName,
+        window.perf.keys_for_commit_range!,
+        window.perf.keys_for_useful_links!,
+        this.commitLinks
+      )
+      .then((links) => {
+        this.commitLinks = links;
+      })
+      .catch(errorMessage);
 
     tooltipElem!.setBisectInputParams(preloadBisectInputs);
     tooltipElem!.setTryJobInputParams(preloadTryJobInputs);
@@ -2203,6 +2198,11 @@ export class ExploreSimpleSk extends ElementSk {
     if (!this.tooltipSelected) {
       this.closeTooltip();
     }
+  }
+
+  clearTooltip(): void {
+    const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+    tooltipElem?.reset();
   }
 
   /** Hides the tooltip. Generally called when mouse moves out of the graph */
@@ -2366,16 +2366,7 @@ export class ExploreSimpleSk extends ElementSk {
         const hasValidTooltipPos = detail.xPos !== undefined && detail.yPos !== undefined;
         if (tooltipEnabled && hasValidTooltipPos) {
           this.tooltipSelected = true;
-
           this.enableTooltip(detail, json.commitSlice![0], true);
-          const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
-          tooltipElem!.loadPointLinks(
-            commit,
-            prevCommit,
-            detail.name,
-            window.perf.keys_for_commit_range!,
-            window.perf.keys_for_useful_links!
-          );
         }
       })
       .catch(errorMessage);

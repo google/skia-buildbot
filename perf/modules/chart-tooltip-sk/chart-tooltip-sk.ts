@@ -28,7 +28,7 @@ import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/check-icon-sk';
 import '@material/web/elevation/elevation.js';
 import { removeSpecialFunctions } from '../paramtools';
-import { PointLinksSk } from '../point-links-sk/point-links-sk';
+import { PointLinksSk, CommitLinks } from '../point-links-sk/point-links-sk';
 import { BisectDialogSk, BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
 import {
   PinpointTryJobDialogSk,
@@ -462,17 +462,19 @@ export class ChartTooltipSk extends ElementSk {
     prev_commit_position: CommitNumber | null,
     trace_id: string,
     keysForCommitRange: string[],
-    keysForUsefulLinks: string[]
-  ) {
+    keysForUsefulLinks: string[],
+    commitLinks: (CommitLinks | null)[]
+  ): Promise<(CommitLinks | null)[]> {
     if (commit_position === null || prev_commit_position === null) {
-      return;
+      return Promise.resolve(commitLinks);
     }
-    this.pointLinks!.load(
+    return this.pointLinks!.load(
       commit_position,
       prev_commit_position,
       trace_id,
       keysForCommitRange!,
-      keysForUsefulLinks!
+      keysForUsefulLinks!,
+      commitLinks
     );
   }
 

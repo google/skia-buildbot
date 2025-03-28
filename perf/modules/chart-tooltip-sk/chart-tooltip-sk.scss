@@ -7,6 +7,8 @@ chart-tooltip-sk {
   > div.container {
     display: none;
     opacity: 90%;
+    font-size: 12px;
+    font-family: var(--font-family);
     position: absolute;
     z-index: 1;
     max-width: 360px;
@@ -104,6 +106,18 @@ chart-tooltip-sk {
       :after {
         content: ':';
       }
+    }
+    #tooltip-link {
+      font-weight: bold;
+      display: table-cell;
+      text-align: left;
+      padding-right: 1em;
+      max-width: 200px;
+    }
+    #tooltip-text {
+      display: table-cell;
+      text-align: left;
+      padding-right: 1em;
     }
   }
 }
