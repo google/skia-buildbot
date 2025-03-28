@@ -67,7 +67,9 @@ func (c *CachedParamSetRefresher) populateChildLevel(ctx context.Context, parent
 	for _, value := range childLevelValues {
 		if slices.Contains(availableValues, value) {
 			qValues := url.Values{parentKey: []string{parentValue}, childLevelKey: []string{value}}
-			c.psRefresher.UpdateQueryValueWithDefaults(qValues)
+			if c.psRefresher.experiments != (config.Experiments{}) && !c.psRefresher.experiments.RemoveDefaultStatValue {
+				c.psRefresher.UpdateQueryValueWithDefaults(qValues)
+			}
 			lv2Query, err := query.New(qValues)
 			if err != nil {
 				sklog.Errorf("Can not parse child query values")
@@ -76,7 +78,7 @@ func (c *CachedParamSetRefresher) populateChildLevel(ctx context.Context, parent
 
 			count, filteredPS, err := c.psRefresher.dfBuilder.PreflightQuery(ctx, lv2Query, paramSet)
 			if err != nil {
-				sklog.Error("Error on preflight query on level 2 key: %s", err.Error())
+				sklog.Errorf("Error on preflight query on level 2 key: %s", err.Error())
 				return err
 			}
 			sklog.Infof("Child level Preflightquery returns count: %d", count)
@@ -118,7 +120,9 @@ func (c *CachedParamSetRefresher) populateLevels(ctx context.Context, levelKey s
 		// If the provided value is actually available in the paramset.
 		if slices.Contains(availableValues, value) {
 			qValues := url.Values{levelKey: []string{value}}
-			c.psRefresher.UpdateQueryValueWithDefaults(qValues)
+			if c.psRefresher.experiments != (config.Experiments{}) && !c.psRefresher.experiments.RemoveDefaultStatValue {
+				c.psRefresher.UpdateQueryValueWithDefaults(qValues)
+			}
 			query, err := query.New(qValues)
 			if err != nil {
 				sklog.Errorf("Can not parse query values: %v", err)
@@ -191,9 +195,11 @@ func (c *CachedParamSetRefresher) GetParamSetForQuery(ctx context.Context, query
 func (c *CachedParamSetRefresher) getParamSetForQueryInternal(ctx context.Context, query *query.Query, q url.Values) (int64, paramtools.ParamSet, error) {
 	sklog.Debugf("GetParamSetForQuery on values: %s", q)
 	qlen := len(q)
-	if len(c.psRefresher.qConfig.DefaultParamSelections) > 0 {
-		sklog.Debugf("Found default params: %s: ", c.psRefresher.qConfig.DefaultParamSelections)
-		qlen -= len(c.psRefresher.qConfig.DefaultParamSelections)
+	if c.psRefresher.experiments != (config.Experiments{}) && !c.psRefresher.experiments.RemoveDefaultStatValue {
+		if len(c.psRefresher.qConfig.DefaultParamSelections) > 0 {
+			sklog.Debugf("Found default params: %s: ", c.psRefresher.qConfig.DefaultParamSelections)
+			qlen -= len(c.psRefresher.qConfig.DefaultParamSelections)
+		}
 	}
 	key := ""
 	ok := false

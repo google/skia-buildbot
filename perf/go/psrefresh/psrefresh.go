@@ -42,18 +42,20 @@ type defaultParamSetRefresher struct {
 	numParamSets int
 	dfBuilder    dataframe.DataFrameBuilder
 	qConfig      config.QueryConfig
+	experiments  config.Experiments
 
 	mutex sync.Mutex // protects ps.
 	ps    paramtools.ReadOnlyParamSet
 }
 
 // NewDefaultParamSetRefresher builds a new *ParamSetRefresher.
-func NewDefaultParamSetRefresher(traceStore OPSProvider, numParamSets int, dfBuilder dataframe.DataFrameBuilder, qconfig config.QueryConfig) *defaultParamSetRefresher {
+func NewDefaultParamSetRefresher(traceStore OPSProvider, numParamSets int, dfBuilder dataframe.DataFrameBuilder, qconfig config.QueryConfig, experiments config.Experiments) *defaultParamSetRefresher {
 	return &defaultParamSetRefresher{
 		traceStore:   traceStore,
 		numParamSets: numParamSets,
 		dfBuilder:    dfBuilder,
 		qConfig:      qconfig,
+		experiments:  experiments,
 		ps:           paramtools.ReadOnlyParamSet{},
 	}
 }

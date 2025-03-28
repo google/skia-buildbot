@@ -1292,11 +1292,13 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 		// that don't appear in a tile, which means the query won't work on this
 		// tile, but it may still work on other tiles, so we just don't return
 		// any results for this tile.
+		sklog.Infof("QueryPlan takes %v returns error: %v", ps, err.Error())
 		close(outParams)
 		return outParams, nil
 	}
 	if len(plan) == 0 {
 		// We won't match anything in this tile.
+		sklog.Info("QueryPlan returns an empty list")
 		close(outParams)
 		return outParams, nil
 	}
@@ -1311,6 +1313,7 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 	traceIDRestriction, skipKey, planDisposition := s.restrictByCounting(ctx, tileNumber, plan)
 	if planDisposition == skippable {
 		// We know this query won't match any traces in this tile.
+		sklog.Info("restrictByCounting returns an skippable planDisposition")
 		close(outParams)
 		return outParams, nil
 	}

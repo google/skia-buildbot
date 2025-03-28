@@ -116,7 +116,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 			dfbuilder.Filtering(instanceConfig.FilterParentTraces),
 			instanceConfig.QueryConfig.CommitChunkSize,
 			instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
-		psRefresher := psrefresh.NewDefaultParamSetRefresher(traceStore, 2, dfBuilder, instanceConfig.QueryConfig)
+		psRefresher := psrefresh.NewDefaultParamSetRefresher(traceStore, 2, dfBuilder, instanceConfig.QueryConfig, instanceConfig.Experiments)
 		err = psRefresher.Start(time.Hour)
 		if err != nil {
 			return skerr.Wrapf(err, "Error starting paramset refreshser.")

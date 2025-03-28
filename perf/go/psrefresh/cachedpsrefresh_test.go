@@ -207,7 +207,7 @@ func getPsRefresher(ps *paramtools.ReadOnlyParamSet, cacheConfig *config.QueryCa
 	qConfig := config.QueryConfig{
 		CacheConfig: *cacheConfig,
 	}
-	pf := NewDefaultParamSetRefresher(op, 1, dfbMock, qConfig)
+	pf := NewDefaultParamSetRefresher(op, 1, dfbMock, qConfig, config.Experiments{})
 	_ = pf.Start(time.Minute)
 	return pf
 }

@@ -101,6 +101,15 @@
       "title": "Duration",
       "description": "A golang time.Duration serialized as a string."
     },
+    "Experiments": {
+      "properties": {
+        "remove_default_stat_value": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "Favorites": {
       "properties": {
         "sections": {
@@ -337,6 +346,9 @@
         },
         "optimize_sqltracestore": {
           "type": "boolean"
+        },
+        "experiments": {
+          "$ref": "#/$defs/Experiments"
         }
       },
       "additionalProperties": false,

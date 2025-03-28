@@ -891,6 +891,11 @@ type QueryConfig struct {
 	MaxEmptyTilesForQuery int `json:"max_empty_tiles,omitempty"`
 }
 
+// Experiments contains experiment flags for the instance.
+type Experiments struct {
+	RemoveDefaultStatValue bool `json:"remove_default_stat_value,omitempty"`
+}
+
 type CacheType string
 
 const (
@@ -1003,6 +1008,8 @@ type InstanceConfig struct {
 
 	// Whether or not to use experimental sqltracestore concurrency optimization.
 	OptimizeSQLTraceStore bool `json:"optimize_sqltracestore,omitempty"`
+	// Experiment flags
+	Experiments Experiments `json:"experiments,omitempty"`
 }
 
 // Config is the currently running config.

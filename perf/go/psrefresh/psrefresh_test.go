@@ -41,7 +41,7 @@ func TestRefresher_TwoTiles_Success(t *testing.T) {
 
 	dfbMock := &dfb.DataFrameBuilder{}
 
-	pf := NewDefaultParamSetRefresher(op, 2, dfbMock, qConfig)
+	pf := NewDefaultParamSetRefresher(op, 2, dfbMock, qConfig, config.Experiments{})
 	err := pf.Start(time.Minute)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"565", "8888", "gles"}, pf.GetAll()["config"])
@@ -55,7 +55,7 @@ func TestRefresher_GetLatestTileReturnsError_ReturnsError(t *testing.T) {
 	op.On("GetLatestTile", testutils.AnyContext).Return(tileNumber, errMyMockError)
 
 	dfbMock := &dfb.DataFrameBuilder{}
-	pf := NewDefaultParamSetRefresher(op, 2, dfbMock, qConfig)
+	pf := NewDefaultParamSetRefresher(op, 2, dfbMock, qConfig, config.Experiments{})
 	err := pf.Start(time.Minute)
 	assert.Error(t, err)
 	op.AssertExpectations(t)
@@ -73,7 +73,7 @@ func TestRefresher_MulitpleTiles_Success(t *testing.T) {
 	op.On("GetParamSet", testutils.AnyContext, mock.Anything).Return(ps1, nil).Times(3)
 
 	dfbMock := &dfb.DataFrameBuilder{}
-	pf := NewDefaultParamSetRefresher(op, 3, dfbMock, qConfig)
+	pf := NewDefaultParamSetRefresher(op, 3, dfbMock, qConfig, config.Experiments{})
 	err := pf.Start(time.Minute)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"565", "8888"}, pf.GetAll()["config"])
@@ -94,7 +94,7 @@ func TestRefresher_MulitpleTilesFirstTileOKSecondTileFails_Success(t *testing.T)
 	op.On("GetParamSet", testutils.AnyContext, tileNumber2).Return(ps1, errMyMockError)
 
 	dfbMock := &dfb.DataFrameBuilder{}
-	pf := NewDefaultParamSetRefresher(op, 2, dfbMock, qConfig)
+	pf := NewDefaultParamSetRefresher(op, 2, dfbMock, qConfig, config.Experiments{})
 	err := pf.Start(time.Minute)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"565", "8888"}, pf.GetAll()["config"])
@@ -113,7 +113,7 @@ func TestRefresher_FailsFirstTile_ReturnsError(t *testing.T) {
 	op.On("GetParamSet", testutils.AnyContext, tileNumber).Return(ps1, errMyMockError)
 
 	dfbMock := &dfb.DataFrameBuilder{}
-	pf := NewDefaultParamSetRefresher(op, 2, dfbMock, qConfig)
+	pf := NewDefaultParamSetRefresher(op, 2, dfbMock, qConfig, config.Experiments{})
 	err := pf.Start(time.Minute)
 	assert.Error(t, err)
 	op.AssertExpectations(t)

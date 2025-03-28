@@ -454,7 +454,7 @@ func (f *Frontend) initialize() {
 
 	sklog.Info("About to build paramset refresher.")
 
-	paramsetRefresher := psrefresh.NewDefaultParamSetRefresher(f.traceStore, f.flags.NumParamSetsForQueries, f.dfBuilder, config.Config.QueryConfig)
+	paramsetRefresher := psrefresh.NewDefaultParamSetRefresher(f.traceStore, f.flags.NumParamSetsForQueries, f.dfBuilder, config.Config.QueryConfig, config.Config.Experiments)
 	if config.Config.QueryConfig.CacheConfig.Enabled {
 		cache, err := builders.GetCacheFromConfig(ctx, *config.Config)
 		if err != nil {
