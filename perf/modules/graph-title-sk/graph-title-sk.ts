@@ -88,9 +88,10 @@ export class GraphTitleSk extends ElementSk {
 
       if (value !== '' && key !== '') {
         // Crop value if it's too long and add '...'.
+        let displayValue = value;
         if (value.length > 25) {
-          value = value.substring(0, 25);
-          value += '...';
+          displayValue = value.substring(0, 25);
+          displayValue += '...';
         }
         if (key.length > 25) {
           key = key.substring(0, 25);
@@ -100,7 +101,7 @@ export class GraphTitleSk extends ElementSk {
         const elem = html`
           <div class="column">
             <div class="param">${key}</div>
-            <div class="value">${value}</div>
+            <div class="hover-to-show-text" title=${value}>${displayValue}</div>
           </div>
         `;
         elems.push(elem);
