@@ -94,17 +94,24 @@
     },
     "data_point_config": {
         "keys_for_useful_links": [
-          "ATI Page",
-          "Trace Iteration 0",
-          "Trace Iteration 1",
-          "Trace Iteration 2",
-          "Trace Iteration 3",
-          "Trace Iteration 4",
-          "Trace Iteration 5",
-          "Trace Iteration 6",
-          "Trace Iteration 7",
-          "Trace Iteration 8",
-          "Trace Iteration 9"
+            "ART mainline version",
+            "ATI Page",
+            "Build ID",
+            "Device fingerprint",
+            "Profiling Traces and Test Artifacts",
+            "Trace",
+            "Trace Iteration 0",
+            "Trace Iteration 1",
+            "Trace Iteration 2",
+            "Trace Iteration 3",
+            "Trace Iteration 4",
+            "Trace Iteration 5",
+            "Trace Iteration 6",
+            "Trace Iteration 7",
+            "Trace Iteration 8",
+            "Trace Iteration 9",
+            "appApkSha256",
+            "testApkSha256"
       ]
     }
 }
