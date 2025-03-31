@@ -28,7 +28,7 @@ go_library(
 go_test(
     name = "validate_test",
     srcs = ["validate_test.go"],
-    data = glob(["testdata/**"]) + ["//perf:configs"],
+    data = glob(["testdata/**"]) + ["//perf:configs"] + ["//perf:configs_spanner"],
     embed = [":validate"],
     deps = [
         "//go/testutils",
