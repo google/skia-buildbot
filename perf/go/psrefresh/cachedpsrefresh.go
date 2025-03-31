@@ -195,7 +195,7 @@ func (c *CachedParamSetRefresher) GetParamSetForQuery(ctx context.Context, query
 func (c *CachedParamSetRefresher) getParamSetForQueryInternal(ctx context.Context, query *query.Query, q url.Values) (int64, paramtools.ParamSet, error) {
 	sklog.Debugf("GetParamSetForQuery on values: %s", q)
 	qlen := len(q)
-	if c.psRefresher.experiments != (config.Experiments{}) && !c.psRefresher.experiments.RemoveDefaultStatValue {
+	if c.psRefresher.experiments == (config.Experiments{}) || !c.psRefresher.experiments.RemoveDefaultStatValue {
 		if len(c.psRefresher.qConfig.DefaultParamSelections) > 0 {
 			sklog.Debugf("Found default params: %s: ", c.psRefresher.qConfig.DefaultParamSelections)
 			qlen -= len(c.psRefresher.qConfig.DefaultParamSelections)
