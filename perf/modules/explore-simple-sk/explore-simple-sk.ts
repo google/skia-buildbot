@@ -1119,6 +1119,21 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
+  // Use commit and trace number to find the previous commit in the trace.
+  private getPreviousCommit(index: number, traceName: string): CommitNumber | null {
+    // First the previous commit that has data.
+    let prevIndex: number = index - 1;
+    const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
+    while (prevIndex > -1 && trace[prevIndex] === MISSING_DATA_SENTINEL) {
+      prevIndex = prevIndex - 1;
+    }
+    const previousCommit = this.dfRepo.value?.header[prevIndex]?.offset || null;
+    if (previousCommit === null) {
+      return null;
+    }
+    return previousCommit;
+  }
+
   // onChartSelect shows the tooltip whenever a user clicks on a data
   // point and the tooltip will lock in place until it is closed.
   private onChartSelect(e: CustomEvent) {
@@ -1128,13 +1143,7 @@ export class ExploreSimpleSk extends ElementSk {
     const traceName = chart.getTraceName(index.tableCol);
     const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPos) || null;
     this.selectedAnomaly = anomaly;
-    const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
-    // First the previous commit that has data.
-    let prevIndex: number = index.tableRow - 1;
-    while (prevIndex > -1 && trace[prevIndex] === MISSING_DATA_SENTINEL) {
-      prevIndex = prevIndex - 1;
-    }
-    const prevCommitPos = this.dfRepo.value?.header[prevIndex]?.offset || null;
+    const prevCommitPos = this.getPreviousCommit(index.tableRow, traceName);
 
     fetch('/_/cid/', {
       method: 'POST',
@@ -2046,6 +2055,8 @@ export class ExploreSimpleSk extends ElementSk {
     const traceName = pointDetails.name;
     const header = this.dfRepo.value?.header || null;
     const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
+    const prevCommitPos = this.getPreviousCommit(x, traceName);
+
     const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPosition) || null;
     const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
 
@@ -2156,6 +2167,14 @@ export class ExploreSimpleSk extends ElementSk {
     commitRangeSk!.trace = trace;
     commitRangeSk!.commitIndex = x;
     commitRangeSk!.header = header;
+
+    tooltipElem!.loadPointLinks(
+      commitPosition,
+      prevCommitPos,
+      traceName,
+      window.perf.keys_for_commit_range!,
+      window.perf.keys_for_useful_links!
+    );
 
     tooltipElem!.setBisectInputParams(preloadBisectInputs);
     tooltipElem!.setTryJobInputParams(preloadTryJobInputs);
