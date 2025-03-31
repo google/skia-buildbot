@@ -16,7 +16,6 @@ go_library(
         "//perf/go/config",
         "//perf/go/file",
         "//perf/go/ingest/format",
-        "//perf/go/ingest/splitter",
         "//perf/go/types",
         "@io_opencensus_go//trace",
     ],

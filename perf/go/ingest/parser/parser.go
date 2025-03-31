@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/format"
-	"go.skia.org/infra/perf/go/ingest/splitter"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -29,19 +28,12 @@ var (
 	ErrFileShouldBeSkipped = errors.New("File should be skipped.")
 )
 
-// maxResultsPerfFile is the max number of results in a given file.
-// This is to be used to determine whether to split a large input file
-// into smaller manageable files (if this feature is enabled in config).
-const maxResultsPerFile = 2500
-
 // Parser parses file.Files contents into a form suitable for writing to trace.Store.
 type Parser struct {
 	parseCounter          metrics2.Counter
 	parseFailCounter      metrics2.Counter
 	branchNames           map[string]bool
 	invalidParamCharRegex *regexp.Regexp
-	splitLargeFiles       bool
-	splitter              *splitter.IngestionDataSplitter
 }
 
 // New creates a new instance of Parser for the given branch names
@@ -67,14 +59,6 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig) (parser *Pa
 		ret.branchNames[branchName] = true
 	}
 
-	ret.splitLargeFiles = instanceConfig.IngestionConfig.SplitLargeFiles
-	if ret.splitLargeFiles {
-		splitter, err := splitter.NewIngestionDataSplitter(ctx, maxResultsPerFile, instanceConfig.IngestionConfig.SecondaryGCSPath, nil)
-		if err != nil {
-			return nil, err
-		}
-		ret.splitter = splitter
-	}
 	return ret, nil
 }
 
@@ -247,18 +231,6 @@ func (p *Parser) extractFromVersion1File(ctx context.Context, r io.Reader, filen
 	if err != nil {
 		sklog.Warningf("Failed to parse the version one file: %s, got error: %s", filename, err)
 		return nil, nil, "", nil, true, err
-	}
-
-	if p.splitLargeFiles && len(f.Results) > maxResultsPerFile {
-		err = p.splitter.SplitAndPublishFormattedData(ctx, f, filename)
-		if err != nil {
-			// Error while splitting, so let's log the error and fall back to processing
-			// the large file.
-			sklog.Errorf("Error while splitting and publishing file %s: %v", filename, err)
-		} else {
-			// The split and publish was done successfully. No more action needed.
-			return nil, nil, "", nil, false, nil
-		}
 	}
 	params, values := getParamsAndValuesFromVersion1Format(f, p.invalidParamCharRegex)
 	return params, values, f.GitHash, f.Key, true, nil

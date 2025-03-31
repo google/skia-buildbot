@@ -283,17 +283,6 @@ type IngestionConfig struct {
 	// of events when a file is ingested.
 	FileIngestionTopicName string `json:"file_ingestion_pubsub_topic_name"`
 
-	// SplitLargeFiles indicates whether large files encountered during ingestion
-	// should be split into smaller files and written to a secondary GCS bucket.
-	SplitLargeFiles bool `json:"split_large_files,omitempty"`
-
-	// SecondaryGCSPath provides a GCS path for writing input files when large
-	// files are encountered from the primary ingestion bucket.
-	//
-	// A secondary ingestion service needs to be set up to ingest data from this
-	// bucket as we don't want to add load to the main ingestion service.
-	SecondaryGCSPath string `json:"secondary_gcs_path,omitempty"`
-
 	// Should param values be inlined into the TraceValues table, on column per param?
 	// Turning this on is experimental, leave off by default.
 	TraceValuesTableInlineParams bool `json:"tracevalues_table_inline_params,omitempty"`

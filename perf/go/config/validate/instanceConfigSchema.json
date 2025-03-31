@@ -222,12 +222,6 @@
         "file_ingestion_pubsub_topic_name": {
           "type": "string"
         },
-        "split_large_files": {
-          "type": "boolean"
-        },
-        "secondary_gcs_path": {
-          "type": "string"
-        },
         "tracevalues_table_inline_params": {
           "type": "boolean"
         }
