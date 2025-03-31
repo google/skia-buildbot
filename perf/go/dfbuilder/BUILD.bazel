@@ -17,6 +17,7 @@ go_library(
         "//perf/go/dataframe",
         "//perf/go/git",
         "//perf/go/progress",
+        "//perf/go/tracecache",
         "//perf/go/tracefilter",
         "//perf/go/tracesetbuilder",
         "//perf/go/tracestore",
@@ -41,6 +42,7 @@ go_test(
     # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
     flaky = True,
     deps = [
+        "//go/cache/local",
         "//go/paramtools",
         "//go/query",
         "//perf/go/config",
@@ -49,6 +51,7 @@ go_test(
         "//perf/go/git/gittest",
         "//perf/go/progress",
         "//perf/go/sql/sqltest",
+        "//perf/go/tracecache",
         "//perf/go/tracestore",
         "//perf/go/tracestore/sqltracestore",
         "//perf/go/types",

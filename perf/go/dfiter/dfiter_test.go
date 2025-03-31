@@ -89,7 +89,7 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, perf
 
 	instanceConfig.DataStoreConfig.TileSize = testTileSize
 	require.NoError(t, err)
-	dfb := dfbuilder.NewDataFrameBuilderFromTraceStore(g, store, 2, false, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
+	dfb := dfbuilder.NewDataFrameBuilderFromTraceStore(g, store, nil, 2, false, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 	return ctx, dfb, g, lastTimeStamp
 }
 

@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/progress"
+	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracefilter"
 	"go.skia.org/infra/perf/go/tracesetbuilder"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -50,6 +51,9 @@ const (
 
 	// Do not filter parent traces
 	doNotFilterParentTraces Filtering = false
+
+	// Max no of traceIds to store in a single cache entry.
+	maxTraceIdsInCache = 200
 )
 
 // builder implements DataFrameBuilder using TraceStore.
@@ -61,6 +65,7 @@ type builder struct {
 	filterParentTraces   Filtering
 	QueryCommitChunkSize int
 	maxEmptyTiles        int
+	tracecache           *tracecache.TraceCache
 	mux                  *sync.Mutex
 
 	newTimer                      metrics2.Float64SummaryMetric
@@ -74,13 +79,14 @@ type builder struct {
 }
 
 // NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
-func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceStore, numPreflightTiles int, filterParentTraces Filtering, queryCommitChunkSize int, maxEmptyTiles int) dataframe.DataFrameBuilder {
+func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceStore, traceCache *tracecache.TraceCache, numPreflightTiles int, filterParentTraces Filtering, queryCommitChunkSize int, maxEmptyTiles int) dataframe.DataFrameBuilder {
 	if maxEmptyTiles <= 0 {
 		maxEmptyTiles = newNMaxSearch
 	}
 	return &builder{
 		git:                           git,
 		store:                         store,
+		tracecache:                    traceCache,
 		numPreflightTiles:             numPreflightTiles,
 		tileSize:                      store.TileSize(),
 		filterParentTraces:            filterParentTraces,
@@ -149,7 +155,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 	// TODO tickle progress as each Go routine completes.
 	defer timer.NewWithSummary("perfserver_dfbuilder_new", b.newTimer).Stop()
 	// Determine which tiles we are querying over, and how each tile maps into our results.
-	mapper := sliceOfTileNumbersFromCommits(indices, b.store)
+	tilesToQuery := sliceOfTileNumbersFromCommits(indices, b.store)
 
 	commitNumberToOutputIndex := map[types.CommitNumber]int32{}
 	for i, c := range indices {
@@ -165,12 +171,12 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 		mutex.Lock()
 		defer mutex.Unlock()
 		tilesCompleted++
-		progress.Message("Tiles", fmt.Sprintf("%d/%d", tilesCompleted, len(mapper)))
+		progress.Message("Tiles", fmt.Sprintf("%d/%d", tilesCompleted, len(tilesToQuery)))
 	}
 
 	var g errgroup.Group
 	// For each tile.
-	for _, tileNumber := range mapper {
+	for _, tileNumber := range tilesToQuery {
 		tileNumber := tileNumber
 		// TODO(jcgregorio) If we query across a large number of tiles N then this will spawn N*8 Go routines
 		// all hitting the backend at the same time. Maybe we need a worker pool if this becomes a problem.
@@ -652,11 +658,16 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 				return
 			}
 			var tileOneCount int64
+			traceIdsForTile := []paramtools.Params{}
 			for p := range out {
 				tileOneCount++
 				doAddParams(p)
+				traceIdsForTile = append(traceIdsForTile, p)
 			}
 			doUpdateCount(tileOneCount)
+			// At this point we have all the traces gathered. Let's add them
+			// to the cache if there is a cache configured for the instance.
+			b.cacheTraceIdsIfNeeded(ctx, iterateTileNumber, q, traceIdsForTile)
 		}(tileNumber)
 
 		// Now move to the previous tile.
@@ -778,6 +789,16 @@ func filterParentTraces(traceSet types.TraceSet) types.TraceSet {
 
 	sklog.Infof("Filtered trace set length: %d, original trace set length: %d", len(filteredTraceSet), len(traceSet))
 	return filteredTraceSet
+}
+
+// cacheTraceIdsIfNeeded adds the given trace ids to the cache if it is configured.
+func (b *builder) cacheTraceIdsIfNeeded(ctx context.Context, tileNumber types.TileNumber, q *query.Query, traceIds []paramtools.Params) {
+	if b.tracecache != nil && len(traceIds) <= maxTraceIdsInCache {
+		err := b.tracecache.CacheTraceIds(ctx, tileNumber, q, traceIds)
+		if err != nil {
+			sklog.Warningf("Error caching traceIds: %v", err)
+		}
+	}
 }
 
 // Validate that *builder faithfully implements the DataFrameBuidler interface.

@@ -292,6 +292,17 @@ func (q *Query) String() string {
 	return strings.Join(ret, "")
 }
 
+// KeyValueString returns a string in the form of key=[v1, v2]
+// representing the query.
+func (q *Query) KeyValueString() string {
+	sb := strings.Builder{}
+	for _, p := range q.params {
+		sb.WriteString(fmt.Sprintf("%s%s", p.keyMatch[1:], p.values))
+	}
+
+	return sb.String()
+}
+
 // NewFromString creates a Query from the given string, which is formatted as a URL query.
 func NewFromString(s string) (*Query, error) {
 	values, err := url.ParseQuery(s)

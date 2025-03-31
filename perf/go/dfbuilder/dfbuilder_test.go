@@ -2,12 +2,14 @@ package dfbuilder
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/cache/local"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/perf/go/config"
@@ -16,6 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/sql/sqltest"
+	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
 	"go.skia.org/infra/perf/go/types"
@@ -75,7 +78,7 @@ func TestBuildNew(t *testing.T) {
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first and second tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
@@ -253,7 +256,7 @@ func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
@@ -280,7 +283,7 @@ func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
@@ -323,7 +326,7 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
@@ -372,7 +375,7 @@ func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 	q, err := query.NewFromString("")
 	require.NoError(t, err)
 	_, err = builder.NumMatches(ctx, q)
@@ -389,7 +392,7 @@ func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
@@ -418,7 +421,7 @@ func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCounts
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the latest tile.
 	err = addValuesAtIndex(store, types.CommitNumber(instanceConfig.DataStoreConfig.TileSize+1), map[string]float32{
@@ -444,4 +447,101 @@ func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCounts
 	count, err := builder.NumMatches(ctx, q)
 	require.NoError(t, err)
 	assert.Equal(t, int64(3), count)
+}
+
+func TestPreflightQuery_Cache_Success(t *testing.T) {
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	require.NoError(t, err)
+
+	instanceConfig.DataStoreConfig.TileSize = 6
+
+	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
+	require.NoError(t, err)
+	cache, err := local.New(10)
+	require.NoError(t, err)
+
+	traceCache := tracecache.New(cache)
+
+	builder := NewDataFrameBuilderFromTraceStore(g, store, traceCache, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
+
+	// Add some points to the first tile.
+	err = addValuesAtIndex(store, 0, map[string]float32{
+		",arch=x86,config=8888,": 1.2,
+		",arch=x86,config=565,":  2.1,
+		",arch=arm,config=8888,": 100.5,
+	}, "gs://foo.json", time.Now())
+	assert.NoError(t, err)
+
+	// Create a query that will match two of the points.
+	q, err := query.NewFromString("config=8888")
+	require.NoError(t, err)
+
+	// The referenceParamSet contains values that should not appear in the
+	// returned ParamSet, and some that get retained.
+	referenceParamSet := paramtools.ReadOnlyParamSet{
+		"arch":   {"x86", "arm", "should-disappear"},
+		"config": {"565", "8888", "should-be-retained"},
+		// 'should-be-retained' is retained because 'config' is in the query and
+		// so all 'config' values should be returned in the ParamSet.
+	}
+	count, ps, err := builder.PreflightQuery(ctx, q, referenceParamSet)
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), count)
+
+	expectedParamSet := paramtools.ParamSet{
+		"arch":   {"arm", "x86"},
+		"config": {"565", "8888", "should-be-retained"},
+	}
+	assert.Equal(t, expectedParamSet, ps)
+
+	traceIds, err := traceCache.GetTraceIds(ctx, 0, q)
+	require.NoError(t, err)
+	assert.NotEmpty(t, traceIds)
+	assert.Equal(t, 2, len(traceIds))
+}
+
+func TestPreflightQuery_Cache_TooManyTraces_Success(t *testing.T) {
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	require.NoError(t, err)
+
+	instanceConfig.DataStoreConfig.TileSize = 256
+
+	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
+	require.NoError(t, err)
+	cache, err := local.New(10)
+	require.NoError(t, err)
+
+	traceCache := tracecache.New(cache)
+
+	builder := NewDataFrameBuilderFromTraceStore(g, store, traceCache, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
+
+	// Add more than the limit no of points to the first tile.
+	traceCount := maxTraceIdsInCache + 2
+	for i := 0; i < traceCount; i++ {
+		err = addValuesAtIndex(store, types.CommitNumber(i), map[string]float32{
+			fmt.Sprintf(",arch=x86,config=8888,index=%d,", i): 1.0}, "gs://foo.json", time.Now())
+		assert.NoError(t, err)
+	}
+
+	// Create a query that will match two of the points.
+	q, err := query.NewFromString("config=8888")
+	require.NoError(t, err)
+
+	// The referenceParamSet contains values that should not appear in the
+	// returned ParamSet, and some that get retained.
+	referenceParamSet := paramtools.ReadOnlyParamSet{
+		"arch":   {"x86", "arm", "should-disappear"},
+		"config": {"565", "8888", "should-be-retained"},
+		// 'should-be-retained' is retained because 'config' is in the query and
+		// so all 'config' values should be returned in the ParamSet.
+	}
+	count, _, err := builder.PreflightQuery(ctx, q, referenceParamSet)
+	require.NoError(t, err)
+	assert.Equal(t, int64(traceCount), count)
+
+	traceIds, err := traceCache.GetTraceIds(ctx, 0, q)
+	require.NoError(t, err)
+	assert.Nil(t, traceIds)
 }

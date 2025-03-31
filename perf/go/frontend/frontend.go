@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/baseapp"
+	infraCache "go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -58,6 +59,7 @@ import (
 	"go.skia.org/infra/perf/go/regression/continuous"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/subscription"
+	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracing"
 	"go.skia.org/infra/perf/go/trybot/results"
@@ -150,6 +152,8 @@ type Frontend struct {
 	paramsetRefresher psrefresh.ParamSetRefresher
 
 	dfBuilder dataframe.DataFrameBuilder
+
+	traceCache *tracecache.TraceCache
 
 	trybotResultsLoader results.Loader
 
@@ -441,12 +445,23 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
 	}
 
+	var infraCache infraCache.Cache
+	if config.Config.QueryConfig.CacheConfig.Enabled {
+		var err error
+		infraCache, err = builders.GetCacheFromConfig(ctx, *config.Config)
+		if err != nil {
+			sklog.Fatalf("Error creating cache from the config : %v", err)
+		}
+
+		f.traceCache = tracecache.New(infraCache)
+	}
 	sklog.Info("About to build dfbuilder.")
 
 	sklog.Info("Filter parent traces: %s", config.Config.FilterParentTraces)
 	f.dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(
 		f.perfGit,
 		f.traceStore,
+		f.traceCache,
 		f.flags.NumParamSetsForQueries,
 		dfbuilder.Filtering(config.Config.FilterParentTraces),
 		config.Config.QueryConfig.CommitChunkSize,
@@ -456,11 +471,7 @@ func (f *Frontend) initialize() {
 
 	paramsetRefresher := psrefresh.NewDefaultParamSetRefresher(f.traceStore, f.flags.NumParamSetsForQueries, f.dfBuilder, config.Config.QueryConfig, config.Config.Experiments)
 	if config.Config.QueryConfig.CacheConfig.Enabled {
-		cache, err := builders.GetCacheFromConfig(ctx, *config.Config)
-		if err != nil {
-			sklog.Fatalf("Error creating cache from the config : %v", err)
-		}
-		f.paramsetRefresher = psrefresh.NewCachedParamSetRefresher(paramsetRefresher, cache)
+		f.paramsetRefresher = psrefresh.NewCachedParamSetRefresher(paramsetRefresher, infraCache)
 	} else {
 		f.paramsetRefresher = paramsetRefresher
 	}
@@ -958,7 +969,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewRegressionsApi(f.loginProvider, f.configProvider, f.alertStore, f.regStore, f.perfGit, f.anomalyApiClient, f.urlProvider, f.graphsShortcutStore, f.alertGroupClient, f.progressTracker, f.shortcutStore, f.dfBuilder, f.paramsetRefresher),
 		api.NewQueryApi(f.paramsetRefresher),
 		api.NewShortCutsApi(f.shortcutStore, f.graphsShortcutStore),
-		api.NewGraphApi(f.flags.NumParamSetsForQueries, config.Config.QueryConfig.CommitChunkSize, config.Config.QueryConfig.MaxEmptyTilesForQuery, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
+		api.NewGraphApi(f.flags.NumParamSetsForQueries, config.Config.QueryConfig.CommitChunkSize, config.Config.QueryConfig.MaxEmptyTilesForQuery, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.traceCache, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
 		api.NewPinpointApi(f.loginProvider, f.pinpoint),
 		api.NewSheriffConfigApi(f.loginProvider),
 		api.NewTriageApi(f.loginProvider, f.chromeperfClient, f.anomalyStore, f.issuetracker),

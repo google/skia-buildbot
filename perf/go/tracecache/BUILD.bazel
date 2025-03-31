@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tracecache",
+    srcs = ["traceCache.go"],
+    importpath = "go.skia.org/infra/perf/go/tracecache",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cache",
+        "//go/paramtools",
+        "//go/query",
+        "//perf/go/types",
+    ],
+)

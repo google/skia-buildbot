@@ -58,6 +58,7 @@ go_library(
         "//perf/go/shortcut",
         "//perf/go/subscription:store",
         "//perf/go/subscription/proto/v1",
+        "//perf/go/tracecache",
         "//perf/go/tracestore",
         "//perf/go/types",
         "//perf/go/ui/frame",

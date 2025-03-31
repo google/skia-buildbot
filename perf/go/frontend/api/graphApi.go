@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
+	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
@@ -36,6 +37,7 @@ import (
 // graphApi provides a struct to handle api requests related to graph plots.
 type graphApi struct {
 	loginProvider alogin.Login
+	traceCache    *tracecache.TraceCache
 	dfBuilder     dataframe.DataFrameBuilder
 	perfGit       perfgit.Git
 	traceStore    tracestore.TraceStore
@@ -81,7 +83,7 @@ func (api graphApi) RegisterHandlers(router *chi.Mux) {
 }
 
 // NewGraphApi returns a new instance of the graphApi struct.
-func NewGraphApi(numParamSetsForQueries int, queryCommitChunkSize int, maxEmptyTiles int, loginProvider alogin.Login, dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, traceStore tracestore.TraceStore, shortcutStore shortcut.Store, anomalyStore anomalies.Store, progressTracker progress.Tracker, ingestedFS fs.FS) graphApi {
+func NewGraphApi(numParamSetsForQueries int, queryCommitChunkSize int, maxEmptyTiles int, loginProvider alogin.Login, dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, traceStore tracestore.TraceStore, traceCache *tracecache.TraceCache, shortcutStore shortcut.Store, anomalyStore anomalies.Store, progressTracker progress.Tracker, ingestedFS fs.FS) graphApi {
 	return graphApi{
 		numParamSetsForQueries:      numParamSetsForQueries,
 		queryCommitChunkSize:        queryCommitChunkSize,
@@ -90,6 +92,7 @@ func NewGraphApi(numParamSetsForQueries int, queryCommitChunkSize int, maxEmptyT
 		dfBuilder:                   dfBuilder,
 		perfGit:                     perfGit,
 		traceStore:                  traceStore,
+		traceCache:                  traceCache,
 		shortcutStore:               shortcutStore,
 		anomalyStore:                anomalyStore,
 		progressTracker:             progressTracker,
@@ -143,6 +146,7 @@ func (api graphApi) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(
 			api.perfGit,
 			api.traceStore,
+			api.traceCache,
 			api.numParamSetsForQueries,
 			dfbuilder.Filtering(false),
 			api.queryCommitChunkSize,

@@ -112,6 +112,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 		dfBuilder := dfbuilder.NewDataFrameBuilderFromTraceStore(
 			g,
 			traceStore,
+			nil, // setting trace cache to nil so that we don't cache it in maintenance service.
 			2,
 			dfbuilder.Filtering(instanceConfig.FilterParentTraces),
 			instanceConfig.QueryConfig.CommitChunkSize,
