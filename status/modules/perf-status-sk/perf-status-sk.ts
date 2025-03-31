@@ -18,7 +18,7 @@ export class PerfStatusSk extends ElementSk {
     <div class="table">
       <a
         class="tr"
-        href="https://perf.skia.org/t/?filter=cat%3AProd"
+        href="https://skia-perf.luci.app/t/?filter=cat%3AProd"
         target="_blank"
         rel="noopener noreferrer"
         title="Active Perf Alerts">
@@ -41,7 +41,7 @@ export class PerfStatusSk extends ElementSk {
   }
 
   private refresh() {
-    fetch('https://perf.skia.org/_/alerts/', { method: 'GET' })
+    fetch('https://skia-perf.luci.app/_/alerts/', { method: 'GET' })
       .then(jsonOrThrow)
       .then((json: AlertsStatus) => {
         this.resp = json;

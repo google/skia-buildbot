@@ -11,7 +11,7 @@ describe('perf-status-sk', () => {
 
   let element: PerfStatusSk;
   beforeEach(async () => {
-    fetchMock.getOnce('https://perf.skia.org/_/alerts/', <AlertsStatus>{
+    fetchMock.getOnce('https://skia-perf.luci.app/_/alerts/', <AlertsStatus>{
       alerts: 5,
     });
     element = newInstance();

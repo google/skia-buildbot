@@ -37,7 +37,7 @@ describe('status-sk', () => {
       ]),
     });
     fetchMock.getOnce('path:/loginstatus/', {});
-    fetchMock.getOnce('https://perf.skia.org/_/alerts/', <AlertsStatus>{
+    fetchMock.getOnce('https://skia-perf.luci.app/_/alerts/', <AlertsStatus>{
       alerts: 5,
     });
     fetchMock.get('https://gold.skia.org/json/v2/trstatus', <StatusResponse>{
