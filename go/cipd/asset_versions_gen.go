@@ -108,6 +108,11 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/tools/luci-auth/${platform}",
 		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
 	},
+	"infra/tools/luci/docker-credential-luci/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/tools/luci/docker-credential-luci/${platform}",
+		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+	},
 	"infra/tools/luci/git-credential-luci/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/git-credential-luci/${platform}",

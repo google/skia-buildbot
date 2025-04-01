@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/cas/rbe",
         "//go/cipd",
+        "//go/util",
         "//task_scheduler/go/specs",
     ],
 )

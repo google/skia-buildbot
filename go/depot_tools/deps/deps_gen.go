@@ -117,6 +117,11 @@ var deps = deps_parser.DepsEntries{
 		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
 		Path:    "cipd_bin_packages",
 	},
+	"infra/tools/luci/docker-credential-luci": {
+		Id:      "infra/tools/luci/docker-credential-luci",
+		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Path:    "cipd_bin_packages",
+	},
 	"infra/tools/luci/git-credential-luci": {
 		Id:      "infra/tools/luci/git-credential-luci",
 		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",

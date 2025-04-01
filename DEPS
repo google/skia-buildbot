@@ -48,6 +48,10 @@ deps = {
         'version': Var('luci_tools_version'),
       },
       {
+        'package': 'infra/tools/luci/docker-credential-luci/${{platform}}',
+        'version': Var('luci_tools_version'),
+      },
+      {
         'package': 'infra/tools/luci/git-credential-luci/${{platform}}',
         'version': Var('luci_tools_version'),
       },

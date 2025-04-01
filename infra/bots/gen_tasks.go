@@ -11,10 +11,12 @@ package main
 import (
 	"fmt"
 	"path"
+	"sort"
 	"strings"
 
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
@@ -25,7 +27,7 @@ const (
 	casEmpty           = "empty" // TODO(borenet): It'd be nice if this wasn't necessary.
 	casWholeRepo       = "whole-repo"
 
-	defaultOSLinux   = "Debian-10.3"
+	defaultOSLinux   = "Ubuntu-24.04"
 	defaultOSWindows = "Windows-Server-17763"
 
 	// machineTypeMedium refers to a 16-core machine
@@ -54,32 +56,6 @@ var (
 	cqWithDefaults = specs.CommitQueueJobConfig{}
 	// noCQ means this job will not appear on the CQ
 	noCQ *specs.CommitQueueJobConfig = nil
-
-	goCaches = []*specs.Cache{
-		{
-			Name: "go_cache",
-			Path: "cache/go_cache",
-		},
-		{
-			Name: "gopath",
-			Path: "cache/gopath",
-		},
-	}
-
-	vpythonCaches = []*specs.Cache{
-		{
-			Name: "vpython",
-			Path: "cache/vpython",
-		},
-	}
-
-	cipdPlatforms = []string{
-		"--platform", "@io_bazel_rules_go//go/toolchain:darwin_amd64=mac-amd64",
-		"--platform", "@io_bazel_rules_go//go/toolchain:darwin_arm64=mac-arm64",
-		"--platform", "@io_bazel_rules_go//go/toolchain:linux_amd64=linux-amd64",
-		"--platform", "@io_bazel_rules_go//go/toolchain:linux_arm64=linux-arm64",
-		"--platform", "@io_bazel_rules_go//go/toolchain:windows_amd64=windows-amd64",
-	}
 )
 
 // Dimensions for Linux GCE instances.
@@ -90,31 +66,41 @@ func linuxGceDimensions(machineType string) []string {
 		"gpu:none",
 		"cpu:x86-64-Haswell_GCE",
 		fmt.Sprintf("machine_type:%s", machineType),
-		"docker_installed:true",
 	}
 }
 
-// Dimensions for Windows GCE instances.
-func winGceDimensions(machineType string) []string {
-	return []string{
-		"pool:Skia",
-		fmt.Sprintf("os:%s", defaultOSWindows),
-		"gpu:none",
-		"cpu:x86-64-Haswell_GCE",
-		fmt.Sprintf("machine_type:%s", machineType),
+// envPrefixes appends the given values to the given environment variable for
+// the task.
+func envPrefixes(t *specs.TaskSpec, key string, values ...string) {
+	if t.EnvPrefixes == nil {
+		t.EnvPrefixes = map[string][]string{}
 	}
+	for _, value := range values {
+		if !util.In(value, t.EnvPrefixes[key]) {
+			t.EnvPrefixes[key] = append(t.EnvPrefixes[key], value)
+		}
+	}
+	sort.Strings(t.EnvPrefixes[key])
 }
 
 func usesBazelisk(b *specs.TasksCfgBuilder, t *specs.TaskSpec) {
 	t.CipdPackages = append(t.CipdPackages, b.MustGetCipdPackageFromAsset("bazelisk"))
-	if t.EnvPrefixes == nil {
-		t.EnvPrefixes = map[string][]string{}
-	}
-	t.EnvPrefixes["PATH"] = append(t.EnvPrefixes["PATH"], "bazelisk")
+	envPrefixes(t, "PATH", "bazelisk")
 	if t.Environment == nil {
 		t.Environment = map[string]string{}
 	}
 	t.Environment["USE_BAZEL_FALLBACK_VERSION"] = "error"
+}
+
+func usesDocker(t *specs.TaskSpec) {
+	t.CipdPackages = append(t.CipdPackages, cipd.MustGetPackage("infra/tools/luci/docker-credential-luci/${platform}"))
+	envPrefixes(t, "PATH", "cipd_bin_packages")
+}
+
+func usesLUCIAuth(t *specs.TaskSpec) {
+	t.CipdPackages = append(t.CipdPackages, cipd.MustGetPackage("infra/tools/luci-auth/${platform}"))
+	envPrefixes(t, "PATH", "cipd_bin_packages", "cipd_bin_packages/bin")
+	t.Command = append([]string{"luci-auth", "context"}, t.Command...)
 }
 
 // buildTaskDrivers generates the task which compiles the task driver code to run on the specified
@@ -166,7 +152,6 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		"--patch_set", specs.PLACEHOLDER_PATCHSET,
 		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 		"--bazel_cache_dir", "/dev/shm/bazel_cache",
-		"--bazel_repo_cache_dir", "/mnt/pd0/bazel_repo_cache",
 	}
 
 	t := &specs.TaskSpec{
@@ -183,9 +168,10 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	}
 	// To iterate on the presubmit task driver, comment out the
 	// call to usePreBuiltTaskDrivers.
-	usesPreBuiltTaskDrivers(b, t)
+	usesPreBuiltTaskDrivers(t)
 	usesBazelisk(b, t)
 	usesWrapperTaskDriver(b, name, true, t)
+	usesLUCIAuth(t)
 	b.MustAddTask(name, t)
 	return name
 }
@@ -193,7 +179,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 // usesPreBuiltTaskDrivers changes the task to use pre-built task
 // drivers for efficiency. If you want to iterate on the task driver
 // itself, just comment out the line where this is called.
-func usesPreBuiltTaskDrivers(b *specs.TasksCfgBuilder, t *specs.TaskSpec) {
+func usesPreBuiltTaskDrivers(t *specs.TaskSpec) {
 	// Determine which task driver we want.
 	tdName := path.Base(t.Command[0])
 
@@ -254,7 +240,6 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
 		"--patch_set", specs.PLACEHOLDER_PATCHSET,
 		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 		"--bazel_cache_dir", bazelCacheDir,
-		"--bazel_repo_cache_dir", "/mnt/pd0/bazel_repo_cache",
 	}
 
 	t := &specs.TaskSpec{
@@ -271,9 +256,11 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
 
 	// To iterate on the bazel_build_all task driver, comment out the
 	// call to usePreBuiltTaskDrivers.
-	usesPreBuiltTaskDrivers(b, t)
+	usesPreBuiltTaskDrivers(t)
 	usesBazelisk(b, t)
+	usesDocker(t)
 	usesWrapperTaskDriver(b, name, true, t)
+	usesLUCIAuth(t)
 	b.MustAddTask(name, t)
 	return name
 }
@@ -295,7 +282,6 @@ func bazelTest(b *specs.TasksCfgBuilder, name string) string {
 		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 		"--buildbucket_build_id", specs.PLACEHOLDER_BUILDBUCKET_BUILD_ID,
 		"--bazel_cache_dir", "/dev/shm/bazel_cache",
-		"--bazel_repo_cache_dir", "/mnt/pd0/bazel_repo_cache",
 	}
 
 	t := &specs.TaskSpec{
@@ -311,11 +297,13 @@ func bazelTest(b *specs.TasksCfgBuilder, name string) string {
 		},
 		ServiceAccount: compileServiceAccount,
 	}
-	// To iterate on the bazel_build_all task driver, comment out the
+	// To iterate on the bazel_test_all task driver, comment out the
 	// call to usePreBuiltTaskDrivers.
-	usesPreBuiltTaskDrivers(b, t)
+	usesPreBuiltTaskDrivers(t)
 	usesBazelisk(b, t)
+	usesDocker(t)
 	usesWrapperTaskDriver(b, name, true, t)
+	usesLUCIAuth(t)
 	b.MustAddTask(name, t)
 	return name
 }

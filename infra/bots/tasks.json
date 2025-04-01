@@ -38,12 +38,19 @@
       "casSpec": "empty",
       "cipd_packages": [
         {
+          "name": "infra/tools/luci-auth/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788"
+        },
+        {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
           "version": "git_revision:ea6c2eb82fae317172800c778ce176699e9d9ebc"
         }
       ],
       "command": [
+        "luci-auth",
+        "context",
         "./task_drivers/command_wrapper",
         "--project_id",
         "skia-swarming-bots",
@@ -85,25 +92,23 @@
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
         "--bazel_cache_dir",
-        "/dev/shm/bazel_cache",
-        "--bazel_repo_cache_dir",
-        "/mnt/pd0/bazel_repo_cache"
+        "/dev/shm/bazel_cache"
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Debian-10.3",
+        "os:Ubuntu-24.04",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16",
-        "docker_installed:true"
+        "machine_type:n1-standard-16"
       ],
       "environment": {
         "USE_BAZEL_FALLBACK_VERSION": "error"
       },
       "env_prefixes": {
         "PATH": [
+          "bazelisk",
           "cipd_bin_packages",
-          "bazelisk"
+          "cipd_bin_packages/bin"
         ]
       },
       "max_attempts": 1,
@@ -138,11 +143,10 @@
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Debian-10.3",
+        "os:Ubuntu-24.04",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16",
-        "docker_installed:true"
+        "machine_type:n1-standard-16"
       ],
       "environment": {
         "USE_BAZEL_FALLBACK_VERSION": "error"
@@ -184,11 +188,10 @@
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Debian-10.3",
+        "os:Ubuntu-24.04",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16",
-        "docker_installed:true"
+        "machine_type:n1-standard-16"
       ],
       "environment": {
         "USE_BAZEL_FALLBACK_VERSION": "error"
@@ -230,11 +233,10 @@
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Debian-10.3",
+        "os:Ubuntu-24.04",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16",
-        "docker_installed:true"
+        "machine_type:n1-standard-16"
       ],
       "environment": {
         "USE_BAZEL_FALLBACK_VERSION": "error"
@@ -251,12 +253,19 @@
       "casSpec": "empty",
       "cipd_packages": [
         {
+          "name": "infra/tools/luci-auth/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788"
+        },
+        {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
           "version": "git_revision:ea6c2eb82fae317172800c778ce176699e9d9ebc"
         }
       ],
       "command": [
+        "luci-auth",
+        "context",
         "./task_drivers/command_wrapper",
         "--project_id",
         "skia-swarming-bots",
@@ -276,6 +285,8 @@
         "task_drivers:skia/tools/bazel_build_all/${platform}@git_revision:ea6c2eb82fae317172800c778ce176699e9d9ebc",
         "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
+        "--cipd",
+        "cipd_bin_packages:infra/tools/luci/docker-credential-luci/${platform}@git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
         "--command-is-task-driver",
         "--",
         "./task_drivers/bazel_build_all",
@@ -298,25 +309,23 @@
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
         "--bazel_cache_dir",
-        "/dev/shm/bazel_cache",
-        "--bazel_repo_cache_dir",
-        "/mnt/pd0/bazel_repo_cache"
+        "/dev/shm/bazel_cache"
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Debian-10.3",
+        "os:Ubuntu-24.04",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highcpu-64",
-        "docker_installed:true"
+        "machine_type:n1-highcpu-64"
       ],
       "environment": {
         "USE_BAZEL_FALLBACK_VERSION": "error"
       },
       "env_prefixes": {
         "PATH": [
+          "bazelisk",
           "cipd_bin_packages",
-          "bazelisk"
+          "cipd_bin_packages/bin"
         ]
       },
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
@@ -325,12 +334,19 @@
       "casSpec": "empty",
       "cipd_packages": [
         {
+          "name": "infra/tools/luci-auth/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788"
+        },
+        {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
           "version": "git_revision:ea6c2eb82fae317172800c778ce176699e9d9ebc"
         }
       ],
       "command": [
+        "luci-auth",
+        "context",
         "./task_drivers/command_wrapper",
         "--project_id",
         "skia-swarming-bots",
@@ -352,6 +368,8 @@
         "task_drivers:skia/tools/bazel_test_all/${platform}@git_revision:ea6c2eb82fae317172800c778ce176699e9d9ebc",
         "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
+        "--cipd",
+        "cipd_bin_packages:infra/tools/luci/docker-credential-luci/${platform}@git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
         "--command-is-task-driver",
         "--",
         "./task_drivers/bazel_test_all",
@@ -376,25 +394,23 @@
         "--buildbucket_build_id",
         "<(BUILDBUCKET_BUILD_ID)",
         "--bazel_cache_dir",
-        "/dev/shm/bazel_cache",
-        "--bazel_repo_cache_dir",
-        "/mnt/pd0/bazel_repo_cache"
+        "/dev/shm/bazel_cache"
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Debian-10.3",
+        "os:Ubuntu-24.04",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highcpu-64",
-        "docker_installed:true"
+        "machine_type:n1-highcpu-64"
       ],
       "environment": {
         "USE_BAZEL_FALLBACK_VERSION": "error"
       },
       "env_prefixes": {
         "PATH": [
+          "bazelisk",
           "cipd_bin_packages",
-          "bazelisk"
+          "cipd_bin_packages/bin"
         ]
       },
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
