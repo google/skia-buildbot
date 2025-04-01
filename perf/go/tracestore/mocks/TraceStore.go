@@ -14,6 +14,8 @@ import (
 
 	time "time"
 
+	tracecache "go.skia.org/infra/perf/go/tracecache"
+
 	tracestore "go.skia.org/infra/perf/go/tracestore"
 
 	types "go.skia.org/infra/perf/go/types"
@@ -206,9 +208,9 @@ func (_m *TraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) in
 	return r0
 }
 
-// QueryTraces provides a mock function with given fields: ctx, tileNumber, q
-func (_m *TraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, []provider.Commit, error) {
-	ret := _m.Called(ctx, tileNumber, q)
+// QueryTraces provides a mock function with given fields: ctx, tileNumber, q, cache
+func (_m *TraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query, cache *tracecache.TraceCache) (types.TraceSet, []provider.Commit, error) {
+	ret := _m.Called(ctx, tileNumber, q, cache)
 
 	if len(ret) == 0 {
 		panic("no return value specified for QueryTraces")
@@ -217,27 +219,27 @@ func (_m *TraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumb
 	var r0 types.TraceSet
 	var r1 []provider.Commit
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, *query.Query) (types.TraceSet, []provider.Commit, error)); ok {
-		return rf(ctx, tileNumber, q)
+	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, *query.Query, *tracecache.TraceCache) (types.TraceSet, []provider.Commit, error)); ok {
+		return rf(ctx, tileNumber, q, cache)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, *query.Query) types.TraceSet); ok {
-		r0 = rf(ctx, tileNumber, q)
+	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, *query.Query, *tracecache.TraceCache) types.TraceSet); ok {
+		r0 = rf(ctx, tileNumber, q, cache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(types.TraceSet)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber, *query.Query) []provider.Commit); ok {
-		r1 = rf(ctx, tileNumber, q)
+	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber, *query.Query, *tracecache.TraceCache) []provider.Commit); ok {
+		r1 = rf(ctx, tileNumber, q, cache)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).([]provider.Commit)
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, types.TileNumber, *query.Query) error); ok {
-		r2 = rf(ctx, tileNumber, q)
+	if rf, ok := ret.Get(2).(func(context.Context, types.TileNumber, *query.Query, *tracecache.TraceCache) error); ok {
+		r2 = rf(ctx, tileNumber, q, cache)
 	} else {
 		r2 = ret.Error(2)
 	}

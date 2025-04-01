@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -50,7 +51,7 @@ type TraceStore interface {
 
 	// QueryTraces returns a map of trace keys to a slice of floats for
 	// all traces that match the given query.
-	QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, []provider.Commit, error)
+	QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query, cache *tracecache.TraceCache) (types.TraceSet, []provider.Commit, error)
 
 	// QueryTracesIDOnly returns a stream of ParamSets that match the
 	// given query.

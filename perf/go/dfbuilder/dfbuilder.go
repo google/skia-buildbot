@@ -186,7 +186,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			// Query for matching traces in the given tile.
 			queryContext, cancel := context.WithTimeout(ctx, singleTileQueryTimeout)
 			defer cancel()
-			traces, commits, err := b.store.QueryTraces(queryContext, tileNumber, q)
+			traces, commits, err := b.store.QueryTraces(queryContext, tileNumber, q, b.tracecache)
 			if err != nil {
 				return err
 			}

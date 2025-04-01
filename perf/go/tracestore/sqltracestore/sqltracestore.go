@@ -169,6 +169,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/sync/errgroup"
@@ -1045,12 +1046,26 @@ func (s *SQLTraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) 
 }
 
 // QueryTraces implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, []provider.Commit, error) {
+func (s *SQLTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query, traceCache *tracecache.TraceCache) (types.TraceSet, []provider.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.QueryTraces")
 	defer span.End()
 
 	traceNames := make(chan string, queryTracesIDOnlyByIndexChannelSize)
-	pChan, err := s.QueryTracesIDOnly(ctx, tileNumber, q)
+
+	var pChan <-chan paramtools.Params
+	var err error
+	if traceCache != nil {
+		sklog.Infof("Trace cache is enabled.")
+		pChan, err = s.getTraceIdChannelFromCache(ctx, traceCache, tileNumber, q)
+		if err != nil {
+			// If there is an error getting data from cache, log it and fall back to the regular db search.
+			sklog.Errorf("Error retrieving trace id params from cache %v. Falling back to db search.", err)
+			pChan, err = s.QueryTracesIDOnly(ctx, tileNumber, q)
+		}
+	} else {
+		pChan, err = s.QueryTracesIDOnly(ctx, tileNumber, q)
+	}
+
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "Failed to get list of traceIDs matching query.")
 	}
@@ -2109,6 +2124,30 @@ func (s *SQLTraceStore) deleteCommit(ctx context.Context, commitNumber types.Com
 		return skerr.Fmt("Failed to delete the commit %v", commitNumber)
 	}
 	return nil
+}
+
+// getTraceIdChannelFromCache returns a params channel containing the trace params retrieved from the cache.
+func (s *SQLTraceStore) getTraceIdChannelFromCache(ctx context.Context, traceCache *tracecache.TraceCache, tileNumber types.TileNumber, query *query.Query) (<-chan paramtools.Params, error) {
+	traceIdsFromCache, err := traceCache.GetTraceIds(ctx, tileNumber, query)
+	if err != nil {
+		return nil, err
+	}
+
+	traceIdsChannel := make(chan paramtools.Params, queryTracesIDOnlyByIndexChannelSize)
+	if traceIdsFromCache != nil {
+		sklog.Infof("Retrieved %d trace ids from cache for tile %d and query %v", len(traceIdsFromCache), tileNumber, query)
+		go func() {
+			for _, traceId := range traceIdsFromCache {
+				traceIdsChannel <- traceId
+			}
+			close(traceIdsChannel)
+		}()
+		return traceIdsChannel, nil
+	} else {
+		// Make sure the channel is closed in the case where there is a cache miss.
+		close(traceIdsChannel)
+		return nil, skerr.Fmt("No traceIds found in the cache.")
+	}
 }
 
 // Confirm that *SQLTraceStore fulfills the tracestore.TraceStore interface.

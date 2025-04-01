@@ -645,7 +645,7 @@ func (app) TracesList(store tracestore.TraceStore, queryString string, tileNumbe
 	if err != nil {
 		return err
 	}
-	ts, _, err := store.QueryTraces(context.Background(), tileNumber, q)
+	ts, _, err := store.QueryTraces(context.Background(), tileNumber, q, nil)
 	if err != nil {
 		return err
 	}

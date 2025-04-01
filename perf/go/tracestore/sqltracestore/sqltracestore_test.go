@@ -3,21 +3,26 @@ package sqltracestore
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"testing"
 	"text/template"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	mockCache "go.skia.org/infra/go/cache/mock"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/sql/sqltest"
+	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -56,7 +61,7 @@ func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTr
 	return ctx, store
 }
 
-func commonTestSetupWithCommits(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore) {
+func commonTestSetupWithCommits(t *testing.T) (context.Context, *SQLTraceStore) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	_, err := git.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
@@ -96,7 +101,7 @@ func assertCommitNumbersMatch(t *testing.T, commits []provider.Commit, commitNum
 }
 
 func TestReadTraces(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -121,7 +126,7 @@ func TestReadTraces(t *testing.T) {
 }
 
 func TestReadTraces_InvalidKey_AreIngored(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	keys := []string{
 		",arch=x86,config='); DROP TABLE TraceValues,",
@@ -137,7 +142,7 @@ func TestReadTraces_InvalidKey_AreIngored(t *testing.T) {
 }
 
 func TestReadTraces_NoResults(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	keys := []string{
 		",arch=unknown,",
@@ -153,7 +158,7 @@ func TestReadTraces_NoResults(t *testing.T) {
 }
 
 func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -171,7 +176,7 @@ func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
 }
 
 func TestReadTracesForCommitRange_OneCommit_Success(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -188,7 +193,7 @@ func TestReadTracesForCommitRange_OneCommit_Success(t *testing.T) {
 }
 
 func TestReadTracesForCommitRange_TwoCommits_Success(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -346,12 +351,12 @@ func TestQueryTracesIDOnly_MatchesTwoTraces(t *testing.T) {
 }
 
 func TestQueryTraces_MatchesOneTrace(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
 	assert.NoError(t, err)
-	ts, commits, err := s.QueryTraces(ctx, 0, q)
+	ts, commits, err := s.QueryTraces(ctx, 0, q, nil)
 	assert.NoError(t, err)
 	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 	assert.Equal(t, ts, types.TraceSet{
@@ -360,12 +365,12 @@ func TestQueryTraces_MatchesOneTrace(t *testing.T) {
 }
 
 func TestQueryTraces_NegativeQuery(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	// Query with a negative match that matches one trace.
 	q, err := query.NewFromString("config=!565")
 	require.NoError(t, err)
-	ts, commits, err := s.QueryTraces(ctx, 0, q)
+	ts, commits, err := s.QueryTraces(ctx, 0, q, nil)
 	require.NoError(t, err)
 	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 	assert.Equal(t, types.TraceSet{
@@ -374,12 +379,12 @@ func TestQueryTraces_NegativeQuery(t *testing.T) {
 }
 
 func TestQueryTraces_MatchesOneTraceInTheSecondTile(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	// Query that matches one trace second tile.
 	q, err := query.NewFromString("config=565")
 	assert.NoError(t, err)
-	ts, commits, err := s.QueryTraces(ctx, 1, q)
+	ts, commits, err := s.QueryTraces(ctx, 1, q, nil)
 	assert.NoError(t, err)
 	assertCommitNumbersMatch(t, commits, []types.CommitNumber{8, 9, 10, 11, 12, 13, 14, 15})
 	assert.Equal(t, ts, types.TraceSet{
@@ -388,12 +393,12 @@ func TestQueryTraces_MatchesOneTraceInTheSecondTile(t *testing.T) {
 }
 
 func TestQueryTraces_MatchesTwoTraces(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	// Query that matches two traces.
 	q, err := query.NewFromString("arch=x86")
 	assert.NoError(t, err)
-	ts, commits, err := s.QueryTraces(ctx, 0, q)
+	ts, commits, err := s.QueryTraces(ctx, 0, q, nil)
 	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 	assert.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
@@ -403,27 +408,77 @@ func TestQueryTraces_MatchesTwoTraces(t *testing.T) {
 }
 
 func TestQueryTraces_QueryHasUnknownParamReturnsNoError(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	// Query that has no matching params in the given tile.
 	q, err := query.NewFromString("arch=unknown")
 	assert.NoError(t, err)
-	ts, commits, err := s.QueryTraces(ctx, 0, q)
+	ts, commits, err := s.QueryTraces(ctx, 0, q, nil)
 	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 	assert.NoError(t, err)
 	assert.Empty(t, ts)
 }
 
 func TestQueryTraces_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, false)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	// Query that has no Postings for the given tile.
 	q, err := query.NewFromString("arch=unknown")
 	assert.NoError(t, err)
-	ts, commits, err := s.QueryTraces(ctx, 2, q)
+	ts, commits, err := s.QueryTraces(ctx, 2, q, nil)
 	assert.NoError(t, err)
 	assertCommitNumbersMatch(t, commits, []types.CommitNumber{16, 17, 18, 19, 20, 21, 22, 23})
 	assert.Empty(t, ts)
+}
+
+func TestQueryTraces_WithTraceCache_Success(t *testing.T) {
+	ctx, s := commonTestSetupWithCommits(t)
+
+	// Query that matches two traces.
+	q, err := query.NewFromString("arch=x86")
+	assert.NoError(t, err)
+	cache := mockCache.NewCache(t)
+	traceCache := tracecache.New(cache)
+
+	// Configure the cache to return the below params.
+	params := []paramtools.Params{
+		paramtools.NewParams(",arch=x86,config=565,"),
+		paramtools.NewParams(",arch=x86,config=8888,"),
+	}
+	b, err := json.Marshal(params)
+	assert.NoError(t, err)
+	cache.On("GetValue", testutils.AnyContext, mock.Anything).Return(string(b), nil)
+
+	ts, commits, err := s.QueryTraces(ctx, 0, q, traceCache)
+	assert.NoError(t, err)
+	cache.AssertExpectations(t)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
+	assert.Equal(t, ts, types.TraceSet{
+		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
+		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
+	})
+}
+
+func TestQueryTraces_WithTraceCache_Miss_Success(t *testing.T) {
+	ctx, s := commonTestSetupWithCommits(t)
+
+	// Query that matches two traces.
+	q, err := query.NewFromString("arch=x86")
+	assert.NoError(t, err)
+	cache := mockCache.NewCache(t)
+	traceCache := tracecache.New(cache)
+	// Make the cache return nil.
+	cache.On("GetValue", testutils.AnyContext, mock.Anything).Return("", nil)
+
+	ts, commits, err := s.QueryTraces(ctx, 0, q, traceCache)
+	assert.NoError(t, err)
+	// Makes sure the cache GetValue function was invoked.
+	cache.AssertExpectations(t)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
+	assert.Equal(t, ts, types.TraceSet{
+		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
+		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
+	})
 }
 
 func TestTraceCount(t *testing.T) {
@@ -508,7 +563,7 @@ func TestGetParamSet_CacheEntriesAreWrittenForParamSets(t *testing.T) {
 }
 
 func TestGetParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	tileNumber := types.TileNumber(0)
 	assert.False(t, s.orderedParamSetCache.Contains(tileNumber))
@@ -747,7 +802,7 @@ func TestGetTraceIDsBySource_LookForSourceThatDoesNotExist_ReturnsEmptySlice(t *
 }
 
 func TestWriteTraces_InsertDifferentValueAndFile_OverwriteExistingTraceValues(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 	traceName1 := ",arch=x86,config=8888,"
 	sourceFile, err := s.GetSource(ctx, types.CommitNumber(1), traceName1)
 	assert.NoError(t, err)
@@ -805,7 +860,7 @@ func TestWriteTraces_InsertDifferentValueAndFile_OverwriteExistingTraceValues(t 
 }
 
 func TestReadTraces_WithDiscontinueCommitNumbers_Succeed(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, true)
+	ctx, s := commonTestSetupWithCommits(t)
 
 	keys := []string{
 		",arch=x86,config=8888,",
