@@ -38,7 +38,10 @@
     },
     "query_config": {
         "default_url_values": {
-            "show_google_plot": "true"
+            "show_google_plot": "true",
+            "plotSummary": "true",
+            "enable_chart_tooltip": "true",
+            "use_titles": "true"
         }
     },
     "optimize_sqltracestore": true

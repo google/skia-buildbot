@@ -90,7 +90,8 @@
         "useTestPicker": "true",
         "showZero": "true",
         "enable_chart_tooltip": "true",
-        "show_google_plot": "true"
+        "show_google_plot": "true",
+        "use_titles": "true"
       },
       "query_commit_chunk_size": 7000
     },
