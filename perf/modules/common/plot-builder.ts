@@ -154,7 +154,6 @@ export function mainChartOptions(
     dataOpacity: 0.7,
     titleTextStyle: { color: style.color },
     hAxis: {
-      title: domain === 'commit' ? 'Commit Position' : 'Date',
       titleTextStyle: {
         color: style.getPropertyValue('--plot-axes-title-color'),
       },
@@ -179,9 +178,12 @@ export function mainChartOptions(
       },
       viewWindowMode: 'maximized',
     },
+    // define clearance to prevent axis labels and data from getting clipped
     chartArea: {
-      width: '90%',
-      height: '85%',
+      left: 50,
+      right: 10,
+      top: 5,
+      bottom: 25,
     },
     colors: defaultColors,
     legend: {
@@ -229,8 +231,8 @@ export function SummaryChartOptions(
     },
     chartArea: {
       width: '100%',
-      bottom: 24,
-      top: 24,
+      bottom: 25, // prevents commit positions from being clipped
+      top: 0,
       backgroundColor: {
         stroke: 'black',
         strokeWidth: 1,

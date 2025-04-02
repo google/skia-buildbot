@@ -9,18 +9,20 @@ export const style = css`
     display: flex;
     position: relative;
     width: 100%;
-    height: 120px;
+    height: 100%;
 
     --md-icon-button-state-layer-shape: 6px;
     --md-icon-button-icon-size: 24px;
     --md-icon-button-icon-color: var(--md-sys-color-on-surface-variant);
 
-    align-items: center;
     gap: 6px;
   }
   .load-btn {
+    position: relative;
     width: 20px;
-    height: 74px;
+    top: 0px;
+    margin-bottom: 25px; /* aligns the button with the bottom of the google chart */
+    height: auto !important; /* overrides md-icon heights */
   }
   .overlay {
     position: absolute;
@@ -42,8 +44,8 @@ export const style = css`
   }
   h-resizable-box-sk {
     position: absolute;
-    top: 22px;
-    height: 80px;
+    top: 0px;
+    bottom: 25px; /* aligns the box with the bottom of the google chart */
     width: 100%;
   }
   .loader {

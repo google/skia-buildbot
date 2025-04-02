@@ -12,16 +12,16 @@ describe('plot-summary-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
-    // only show three summary bar, don't show the events as they might be flaky.
-    await testBed.page.setViewport({ width: 400, height: 600 });
+    // Show the four summary bars. Don't show the events as they might be flaky.
+    await testBed.page.setViewport({ width: 400, height: 1000 });
     return testBed.page.waitForFunction(
       () => document.querySelector('#events')?.textContent === 'ready',
       { timeout: 5000 }
     );
   });
 
-  // y position for three plots.
-  const plots = [120, 230, 370, 490];
+  // y position for four plots.
+  const plots = [100, 300, 500, 700];
   const select = async (x: number, offset: number, plot: number) => {
     await testBed.page.mouse.move(x, plots[plot]);
     await testBed.page.mouse.down();
