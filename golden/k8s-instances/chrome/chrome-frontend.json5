@@ -1,10 +1,12 @@
 {
   authorized_users: [
-    "google.com", "chrome-gpu-gold@chops-service-accounts.iam.gserviceaccount.com",
+    "google.com",
+    "chrome-gpu-gold@chops-service-accounts.iam.gserviceaccount.com",
     "chrome-gold-internal@chops-service-accounts.iam.gserviceaccount.com",
     "chrome-gold@chops-service-accounts.iam.gserviceaccount.com",
     "chromium-tester@chops-service-accounts.iam.gserviceaccount.com",
     "chrome-tester@chops-service-accounts.iam.gserviceaccount.com",
+    "chromeos-tester@chops-service-accounts.iam.gserviceaccount.com",
     // Chromium ChromeOS tests running in Skylab.
     "fleet-chromium-cq@chromeos-service-accounts-dev.iam.gserviceaccount.com",
     "skylab-drone@chromeos-service-accounts.iam.gserviceaccount.com"
