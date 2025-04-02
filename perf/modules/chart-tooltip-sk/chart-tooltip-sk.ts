@@ -63,7 +63,7 @@ export class ChartTooltipSk extends ElementSk {
   // usually curated through explore-simple-sk._dataframe.header[x].
   private _commit_position: CommitNumber | null = null;
 
-  commitInfo: Commit | null = null;
+  private _commit_info: Commit | null = null;
 
   // Anomaly information, set only when the data point is an anomaly.
   // Usually determined by content in anomaly map referenced against the result
@@ -89,7 +89,7 @@ export class ChartTooltipSk extends ElementSk {
 
   private preloadTryJobInputs: TryJobPreloadParams | null = null;
 
-  _tooltip_fixed: boolean = false;
+  private _is_tooltip_fixed: boolean = false;
 
   _is_range: boolean = false;
 
@@ -143,7 +143,7 @@ export class ChartTooltipSk extends ElementSk {
   private static template = (ele: ChartTooltipSk) => html`
     <div class="container" ${ref(ele.containerDiv)}>
       <md-elevation></md-elevation>
-      <button id="closeIcon" @click=${ele._close_button_action} ?hidden=${!ele._tooltip_fixed}>
+      <button id="closeIcon" @click=${ele._close_button_action} ?hidden=${!ele.tooltip_fixed}>
         <close-icon-sk></close-icon-sk>
       </button>
       <h3>
@@ -155,7 +155,7 @@ export class ChartTooltipSk extends ElementSk {
       <ul class="table">
         <li>
           <span id="tooltip-key">Date</span>
-          ${ele.date_value.toDateString()} ${ele.date_value.toTimeString()}
+          ${ele.date_value.toUTCString()}
         </li>
         <li>
           <span id="tooltip-key">Value</span>
@@ -165,45 +165,47 @@ export class ChartTooltipSk extends ElementSk {
           <span id="tooltip-key">Change</span>
           <commit-range-sk id="tooltip-commit-range-link"></commit-range-sk>
         </li>
-        ${ele._tooltip_fixed && !ele._is_range
-          ? html` <li>
-                <span id="tooltip-key">Author</span>
-                ${ele.commitInfo?.author.split('(')[0]}
-              </li>
-              <li>
-                <span id="tooltip-key">Message</span>
-                ${ele.commitInfo?.message}
-              </li>`
-          : html``}
       </ul>
       <point-links-sk
         id="tooltip-point-links"
         .commitPosition=${ele.commit_position}></point-links-sk>
-      ${ele._tooltip_fixed ? ele.anomalyTemplate() : ''}
+      ${ele.tooltip_fixed && !ele._is_range
+        ? html` <ul class="table">
+            <li>
+              <span id="tooltip-key">Author</span>
+              ${ele.commit_info?.author.split('(')[0]}
+            </li>
+            <li>
+              <span id="tooltip-key">Message</span>
+              ${ele.commit_info?.message}
+            </li>
+          </ul>`
+        : html``}
+      ${ele.tooltip_fixed ? ele.anomalyTemplate() : ''}
       <triage-menu-sk
         id="triage-menu"
-        ?hidden=${!(ele._tooltip_fixed && ele.anomaly && ele.anomaly!.bug_id === 0)}>
+        ?hidden=${!(ele.tooltip_fixed && ele.anomaly && ele.anomaly!.bug_id === 0)}>
       </triage-menu-sk>
       <div class="buttons">
         <button
           id="bisect"
           @click=${ele.openBisectDialog}
-          ?hidden=${!ele._tooltip_fixed || !ele._show_pinpoint_buttons}>
+          ?hidden=${!ele.tooltip_fixed || !ele._show_pinpoint_buttons}>
           Bisect
         </button>
         <button
           id="try-job"
           @click=${ele.openTryJobDialog}
-          ?hidden=${!ele._tooltip_fixed || !ele._show_pinpoint_buttons}>
+          ?hidden=${!ele.tooltip_fixed || !ele._show_pinpoint_buttons}>
           Request Debug Trace
         </button>
         <user-issue-sk
           id="tooltip-user-issue-sk"
-          ?hidden=${!ele._tooltip_fixed || ele.anomaly}></user-issue-sk>
+          ?hidden=${!ele.tooltip_fixed || ele.anomaly}></user-issue-sk>
       </div>
       <bisect-dialog-sk id="bisect-dialog-sk"></bisect-dialog-sk>
       <pinpoint-try-job-dialog-sk id="pinpoint-try-job-dialog-sk"></pinpoint-try-job-dialog-sk>
-      ${!ele._tooltip_fixed ? ele.seeMoreText() : ''}
+      ${!ele.tooltip_fixed ? ele.seeMoreText() : ''}
     </div>
   `;
 
@@ -263,7 +265,7 @@ export class ChartTooltipSk extends ElementSk {
   }
 
   private seeMoreText() {
-    if (this.commitInfo !== null) {
+    if (!this.tooltip_fixed) {
       return;
     }
 
@@ -405,7 +407,7 @@ export class ChartTooltipSk extends ElementSk {
     const details = json.commitSlice![0];
 
     // Setter will re-render component.
-    this.commitInfo = details;
+    this.commit_info = details;
   };
 
   // load function sets the value of the fields minimally required to display
@@ -436,9 +438,9 @@ export class ChartTooltipSk extends ElementSk {
     this._bug_id = bug_id;
     this._anomaly = anomaly;
     this._nudgeList = nudgeList;
-    this._tooltip_fixed = tooltipFixed;
     this._close_button_action = closeButtonAction;
-    this.commitInfo = commit;
+    this.tooltip_fixed = tooltipFixed;
+    this.commit_info = commit;
 
     if (commitRange && this.commitRangeSk) {
       this.commitRangeSk.showLinks = tooltipFixed;
@@ -519,6 +521,7 @@ export class ChartTooltipSk extends ElementSk {
   }
 
   get test_name(): string {
+    // TODO(seawardt): Separate long paths.
     return this._test_name;
   }
 
@@ -589,6 +592,24 @@ export class ChartTooltipSk extends ElementSk {
 
   set bug_id(val: number) {
     this._bug_id = val;
+    this._render();
+  }
+
+  get commit_info(): Commit | null {
+    return this._commit_info;
+  }
+
+  set commit_info(val: Commit | null) {
+    this._commit_info = val;
+    this._render();
+  }
+
+  get tooltip_fixed(): boolean {
+    return this._is_tooltip_fixed;
+  }
+
+  set tooltip_fixed(val: boolean) {
+    this._is_tooltip_fixed = val;
     this._render();
   }
 }

@@ -11,11 +11,12 @@ chart-tooltip-sk {
     font-family: var(--font-family);
     position: absolute;
     z-index: 1;
+    min-width: 300px;
     max-width: 360px;
     max-height: 480px;
     margin: 20px;
     padding: 4px;
-    overflow: scroll;
+    overflow-y: auto;
     word-wrap: break-word;
     background: var(--surface-2dp);
     md-elevation {
@@ -49,6 +50,7 @@ chart-tooltip-sk {
       display: table;
       list-style: none;
       padding: 0;
+      margin: 0;
       border-collapse: collapse;
       li {
         display: table-row;
@@ -101,8 +103,10 @@ chart-tooltip-sk {
       font-weight: bold;
       display: table-cell;
       text-align: left;
-      padding-right: 1em;
-      width: 100px;
+      padding-right: 0.5em;
+      padding-top: 0.5em;
+      min-width: 80px;
+      max-width: 100px;
       :after {
         content: ':';
       }
@@ -112,6 +116,7 @@ chart-tooltip-sk {
       display: table-cell;
       text-align: left;
       padding-right: 1em;
+      min-width: 80px;
       max-width: 200px;
     }
     #tooltip-text {

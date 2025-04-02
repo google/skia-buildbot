@@ -1144,62 +1144,22 @@ export class ExploreSimpleSk extends ElementSk {
     const traceName = chart.getTraceName(index.tableCol);
     const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPos) || null;
     this.selectedAnomaly = anomaly;
+    const position = chart.getPositionByIndex(index);
+    const key = JSON.stringify([chart.getTraceName(index.tableCol), commitPos]);
+    const commit = this.pointToCommitDetailMap.get(key) || null;
 
-    fetch('/_/cid/', {
-      method: 'POST',
-      body: JSON.stringify([commitPos]),
-      headers: {
-        'Content-Type': 'application/json',
+    this.enableTooltip(
+      {
+        x: index.tableRow - (this.selectedRange?.begin || 0),
+        y: chart.getYValue(index),
+        xPos: position.x,
+        yPos: position.y,
+        name: traceName,
       },
-    })
-      .then(jsonOrThrow)
-      .then((json: CIDHandlerResponse) => {
-        const key = JSON.stringify([traceName, commitPos]);
-        // Extract story (subtest) information.
-        const params: { [key: string]: string } = fromKey(traceName);
-        this.story = this.getLastSubtest(params);
-
-        // Construct the testPath, similar to how it's done in traceSelected.
-        const parts: string[] = [];
-        if (params.master) {
-          parts.push(params.master);
-        }
-        if (params.bot) {
-          parts.push(params.bot);
-        }
-        if (params.benchmark) {
-          parts.push(params.benchmark);
-        }
-        if (params.test) {
-          parts.push(params.test);
-        }
-        parts.push(this.story);
-        this.testPath = parts.join('/');
-
-        if (anomaly !== null && anomaly.bug_id > 0) {
-          this.bugId = anomaly.bug_id.toString();
-        } else {
-          this.bugId = '';
-        }
-        // The purpose of this dict is to ensure that
-        // we're not needing to re-fetch the information.
-        this.pointToCommitDetailMap.set(key, json.commitSlice![0]);
-        const position = chart.getPositionByIndex(index);
-
-        this.enableTooltip(
-          {
-            x: index.tableRow - (this.selectedRange?.begin || 0),
-            y: chart.getYValue(index),
-            xPos: position.x,
-            yPos: position.y,
-            name: traceName,
-          },
-          json.commitSlice![0],
-          true
-        );
-        this.tooltipSelected = true;
-      })
-      .catch(errorMessage);
+      commit,
+      true
+    );
+    this.tooltipSelected = true;
 
     // If traces are rendered and summary bar is enabled, show
     // summary for the trace clicked on the graph.
@@ -2030,6 +1990,8 @@ export class ExploreSimpleSk extends ElementSk {
     // clicking on
     const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
     tooltipElem?.reset();
+    tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });
+
     const x = (this.selectedRange?.begin || 0) + pointDetails.x;
 
     let commitDate = new Date();
@@ -2189,7 +2151,50 @@ export class ExploreSimpleSk extends ElementSk {
       commitRangeSk,
       closeBtnAction
     );
-    tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });
+    if (commit === null) {
+      fetch('/_/cid/', {
+        method: 'POST',
+        body: JSON.stringify([commitPosition]),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(jsonOrThrow)
+        .then((json: CIDHandlerResponse) => {
+          const key = JSON.stringify([traceName, commitPosition]);
+          this.pointToCommitDetailMap.set(key, json.commitSlice![0]);
+          if (tooltipElem) {
+            tooltipElem.commit_info = json.commitSlice![0];
+          }
+          // Extract story (subtest) information
+          const params: { [key: string]: string } = fromKey(traceName);
+          this.story = this.getLastSubtest(params);
+
+          // Construct the testPath
+          const parts: string[] = [];
+          if (params.master) {
+            parts.push(params.master);
+          }
+          if (params.bot) {
+            parts.push(params.bot);
+          }
+          if (params.benchmark) {
+            parts.push(params.benchmark);
+          }
+          if (params.test) {
+            parts.push(params.test);
+          }
+          parts.push(this.story);
+          this.testPath = parts.join('/');
+
+          if (anomaly !== null && anomaly.bug_id > 0) {
+            this.bugId = anomaly.bug_id.toString();
+          } else {
+            this.bugId = '';
+          }
+        })
+        .catch(errorMessage);
+    }
   }
 
   // if the user's cursor leaves the graph, close the tooltip

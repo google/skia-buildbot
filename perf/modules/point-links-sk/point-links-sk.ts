@@ -101,15 +101,19 @@ export class PointLinksSk extends ElementSk {
   }
 
   renderRevisionLink() {
+    // TODO(seawardt@): Disabling until proper usage is identified.
+    if (true) {
+      return html``;
+    }
     if (this.commitPosition === null) {
       return html``;
     }
     const link = `/u/?rev=${this.commitPosition}`;
     return html` <li>
-      <span id="tooltip-link">Revisions</span>
+      <span id="tooltip-link">Related</span>
       <span id="tooltip-text">
         <a href="${link}" title="${this.commitPosition}" style="cursor: pointer;" target="_blank"
-          >${this.commitPosition}</a
+          >Anomalies</a
         >
         <md-icon-button @click=${() => this.copyToClipboard(link)}>
           <md-icon id="copy-icon">content_copy</md-icon>
@@ -151,7 +155,8 @@ export class PointLinksSk extends ElementSk {
       traceid
     );
 
-    if (currentLinks === null) {
+    if (currentLinks === null || currentLinks === undefined) {
+      // No links found for the current commit, return with no change.
       this._render();
       return commitLinks; // Return the commitLinks object as is.
     }
