@@ -104,52 +104,52 @@ var deps = deps_parser.DepsEntries{
 	},
 	"infra/tools/cipd/${os}-${arch}": {
 		Id:      "infra/tools/cipd/${os}-${arch}",
-		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Version: "git_revision:962d2d09531737b7b6323bae032ba948e3601e4f",
 		Path:    "",
 	},
 	"infra/tools/git": {
 		Id:      "infra/tools/git",
-		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Version: "git_revision:962d2d09531737b7b6323bae032ba948e3601e4f",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/tools/luci-auth": {
 		Id:      "infra/tools/luci-auth",
-		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Version: "git_revision:962d2d09531737b7b6323bae032ba948e3601e4f",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/tools/luci/docker-credential-luci": {
 		Id:      "infra/tools/luci/docker-credential-luci",
-		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Version: "git_revision:962d2d09531737b7b6323bae032ba948e3601e4f",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/tools/luci/git-credential-luci": {
 		Id:      "infra/tools/luci/git-credential-luci",
-		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Version: "git_revision:962d2d09531737b7b6323bae032ba948e3601e4f",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/tools/luci/isolate": {
 		Id:      "infra/tools/luci/isolate",
-		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Version: "git_revision:962d2d09531737b7b6323bae032ba948e3601e4f",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/tools/luci/kitchen": {
 		Id:      "infra/tools/luci/kitchen",
-		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Version: "git_revision:962d2d09531737b7b6323bae032ba948e3601e4f",
 		Path:    "",
 	},
 	"infra/tools/luci/lucicfg": {
 		Id:      "infra/tools/luci/lucicfg",
-		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Version: "git_revision:962d2d09531737b7b6323bae032ba948e3601e4f",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/tools/luci/swarming": {
 		Id:      "infra/tools/luci/swarming",
-		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Version: "git_revision:962d2d09531737b7b6323bae032ba948e3601e4f",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/tools/luci/vpython3": {
 		Id:      "infra/tools/luci/vpython3",
-		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Version: "git_revision:962d2d09531737b7b6323bae032ba948e3601e4f",
 		Path:    "cipd_bin_packages",
 	},
 	"skia/bots/gsutil": {
@@ -179,7 +179,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"skia/tools/goldctl": {
 		Id:      "skia/tools/goldctl",
-		Version: "git_revision:5296858d1e5c6081fb2eacadcc6bb42248e08788",
+		Version: "git_revision:962d2d09531737b7b6323bae032ba948e3601e4f",
 		Path:    "cipd_bin_packages",
 	},
 	"skia/tools/presubmit": {
