@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/url"
 	"sort"
-	"strings"
 	"time"
 
 	"go.opencensus.io/trace"
@@ -31,8 +30,6 @@ import (
 // RequestType distinguishes the domain of the traces returned in a
 // FrameResponse.
 type RequestType int
-type empty struct {
-}
 
 const (
 	// Values for FrameRequest.RequestType.
@@ -134,7 +131,7 @@ type frameRequestProcess struct {
 // It does not return until all the work is complete.
 //
 // The finished results are stored in the FrameRequestProcess.Progress.Results.
-func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, anomalyStore anomalies.Store, searchAnomaliesTimeBased bool, filterOutAvg bool) error {
+func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, anomalyStore anomalies.Store, searchAnomaliesTimeBased bool) error {
 	numKeys := 0
 	if req.Keys != "" {
 		numKeys = 1
@@ -153,7 +150,7 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit
 
 	// Do not truncate pivot requests.
 	truncate := req.Pivot == nil || req.Pivot.Valid() != nil
-	resp, err := ResponseFromDataFrame(ctx, req.Pivot, df, ret.perfGit, truncate, ret.request.Progress, filterOutAvg)
+	resp, err := ResponseFromDataFrame(ctx, req.Pivot, df, ret.perfGit, truncate, ret.request.Progress)
 	if err != nil {
 		return ret.reportError(err, "Failed to get skps.")
 	}
@@ -278,10 +275,9 @@ func getSkps(ctx context.Context, headers []*dataframe.ColumnHeader, perfGit per
 // ResponseFromDataFrame fills out the rest of a FrameResponse for the given DataFrame.
 //
 // If truncate is true then the number of traces returned is limited.
-// If filterOutAvg is true then all the _avg keys are dropped.
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
-func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df *dataframe.DataFrame, perfGit perfgit.Git, truncate bool, progress progress.Progress, filterOutAvg bool) (*FrameResponse, error) {
+func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df *dataframe.DataFrame, perfGit perfgit.Git, truncate bool, progress progress.Progress) (*FrameResponse, error) {
 	if len(df.Header) == 0 {
 		return nil, fmt.Errorf("No commits matched that time range.")
 	}
@@ -290,32 +286,6 @@ func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df 
 	skps, err := getSkps(ctx, df.Header, perfGit)
 	if err != nil {
 		sklog.Errorf("Failed to load skps: %s", err)
-	}
-
-	// TODO(b/318738818): Remove this after no _avg traces in "stat=value" query.
-	// Filter out "_avg" keys if filterOutAvg is True
-	if filterOutAvg {
-		dropOutCandidates := make(map[string]interface{})
-		for key := range df.TraceSet {
-			paramSet := paramtools.NewParamSet()
-			paramSet.AddParamsFromKey(key)
-			if values, ok := paramSet["test"]; ok {
-				for _, str := range values {
-					if strings.Contains(str, "_avg") {
-						dropOutCandidates[key] = empty{}
-						break
-					}
-				}
-			}
-		}
-
-		newTraceSet := types.TraceSet{}
-		for key := range df.TraceSet {
-			if _, ok := dropOutCandidates[key]; !ok {
-				newTraceSet[key] = df.TraceSet[key]
-			}
-		}
-		df.TraceSet = newTraceSet
 	}
 
 	// Truncate the result if it's too large.

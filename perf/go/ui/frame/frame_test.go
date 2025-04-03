@@ -158,49 +158,12 @@ func TestProcessFrameRequest_InvalidQuery_ReturnsError(t *testing.T) {
 		Queries:  []string{"http://[::1]a"}, // A known query that will fail to parse.
 		Progress: progress.New(),
 	}
-	err := ProcessFrameRequest(context.Background(), fr, nil, nil, nil, nil, false, false)
+	err := ProcessFrameRequest(context.Background(), fr, nil, nil, nil, nil, false)
 	require.Error(t, err)
 	var b bytes.Buffer
 	err = fr.Progress.JSON(&b)
 	require.NoError(t, err)
 	assert.Equal(t, `{"status":"Running","messages":[{"key":"Loading","value":"Queries"}],"url":""}`, strings.TrimSpace(b.String()))
-}
-
-func frameDropoutRequestForTest(t *testing.T) (*mocks.DataFrameBuilder, *dataframe.DataFrame, *frameRequestProcess) {
-	t.Helper()
-	dfbMock := &mocks.DataFrameBuilder{}
-	ssMock := &shortcutStoreMock.Store{}
-
-	fr := &frameRequestProcess{
-		request: &FrameRequest{
-			Queries:     []string{"arch=x86"},
-			RequestType: REQUEST_COMPACT,
-			Progress:    progress.New(),
-			NumCommits:  10,
-		},
-		dfBuilder:     dfbMock,
-		shortcutStore: ssMock,
-	}
-
-	df := dataframe.NewEmpty()
-	df.TraceSet[",arch=x86,config=8888,"] = types.Trace{1, 2, 3}
-	df.TraceSet[",arch=x86,config=565,"] = types.Trace{2, 4, 6}
-	df.TraceSet[",arch=x86,config=777,test=metric_avg,"] = types.Trace{3, 6, 9}
-	const numHeaders = 3
-	df.Header = make([]*dataframe.ColumnHeader, numHeaders)
-	for i := 0; i < numHeaders; i++ {
-		df.Header[i] = &dataframe.ColumnHeader{
-			Offset:    types.CommitNumber(i + 1),
-			Timestamp: dataframe.TimestampSeconds(testTimeBegin.Unix() + int64(i)),
-		}
-	}
-	df.BuildParamSet()
-
-	t.Cleanup(func() {
-		dfbMock.AssertExpectations(t)
-	})
-
-	return dfbMock, df, fr
 }
 
 // frameRequestForTest returns a mock DataFrameBuilder, a frameRequestProcess,
@@ -491,20 +454,9 @@ func TestRun_KeysAndThenPivot_ReturnsPivotedDataFrame(t *testing.T) {
 	require.Equal(t, actualDf.TraceSet[",config=8888,"], types.Trace{1, 2, 3})
 }
 
-func TestResponseFromDataFrame_WithDropOut_ReturnsWithTraceDropped(t *testing.T) {
-	_, df, _ := frameDropoutRequestForTest(t)
-	resp, err := ResponseFromDataFrame(context.Background(), nil, df, nil, false, progress.New(), true)
-	require.NoError(t, err)
-	var empty types.Trace = nil
-	require.Equal(t, types.Trace{1, 2, 3}, resp.DataFrame.TraceSet[",arch=x86,config=8888,"])
-	require.Equal(t, types.Trace{2, 4, 6}, resp.DataFrame.TraceSet[",arch=x86,config=565,"])
-	require.Equal(t, empty, resp.DataFrame.TraceSet[",arch=x86,config=777,test=metric_avg,"])
-
-}
-
 func TestResponseFromDataFrame_NullPivot_ReturnsDisplayModePlot(t *testing.T) {
 	_, df, _ := frameRequestForTest(t)
-	resp, err := ResponseFromDataFrame(context.Background(), nil, df, nil, false, progress.New(), false)
+	resp, err := ResponseFromDataFrame(context.Background(), nil, df, nil, false, progress.New())
 	require.NoError(t, err)
 	require.Equal(t, DisplayPlot, resp.DisplayMode)
 }
@@ -515,7 +467,7 @@ func TestResponseFromDataFrame_ValidPivotRequestForPlot_ReturnsDisplayModePivotP
 		GroupBy:   []string{"config"},
 		Operation: pivot.Sum,
 	}
-	resp, err := ResponseFromDataFrame(context.Background(), pivotRequest, df, nil, false, progress.New(), false)
+	resp, err := ResponseFromDataFrame(context.Background(), pivotRequest, df, nil, false, progress.New())
 	require.NoError(t, err)
 	require.Equal(t, DisplayPivotPlot, resp.DisplayMode)
 }
@@ -527,7 +479,7 @@ func TestResponseFromDataFrame_ValidPivotRequestForPivotTable_ReturnsDisplayMode
 		Operation: pivot.Sum,
 		Summary:   []pivot.Operation{pivot.Avg},
 	}
-	resp, err := ResponseFromDataFrame(context.Background(), pivotRequest, df, nil, false, progress.New(), false)
+	resp, err := ResponseFromDataFrame(context.Background(), pivotRequest, df, nil, false, progress.New())
 	require.NoError(t, err)
 	require.Equal(t, DisplayPivotTable, resp.DisplayMode)
 }
@@ -572,7 +524,7 @@ func buildResponse(t *testing.T) *FrameResponse {
 		GroupBy:   []string{"config"},
 		Operation: pivot.Sum,
 	}
-	resp, err := ResponseFromDataFrame(context.Background(), pivotRequest, df, nil, false, progress.New(), false)
+	resp, err := ResponseFromDataFrame(context.Background(), pivotRequest, df, nil, false, progress.New())
 	require.NoError(t, err)
 	return resp
 }
