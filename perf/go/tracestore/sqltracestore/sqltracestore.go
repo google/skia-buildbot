@@ -866,7 +866,8 @@ func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.Ti
 		if err := rows.Scan(&key, &value); err != nil {
 			return nil, skerr.Wrapf(err, "Failed scanning row - tileNumber=%d", tileNumber)
 		}
-		ps.AddParams(paramtools.Params{key: value})
+		// This is safe because the paramsets table enforces uniqueness already
+		ps[key] = append(ps[key], value)
 	}
 	ps.Normalize()
 	ret := ps.Freeze()
