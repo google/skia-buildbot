@@ -2108,9 +2108,12 @@ export class ExploreSimpleSk extends ElementSk {
         ? this.dfRepo.value.data.getColumnIndex(traceName) - 2
         : -1;
     const getLegendData = getLegend(this.dfRepo.value!.data);
+    let testName = legendFormatter(getLegendData)[legendIndex];
 
     // Get index of legend and remove unit to display in tooltip.
-    const testName = legendFormatter(getLegendData)[legendIndex].replace('/' + unitValue, '');
+    if (unitValue.length > 0) {
+      testName = testName.replace('/' + unitValue, '');
+    }
 
     // Populate the commit-range-sk element.
     // Backwards compatibility to tooltip load() function.
