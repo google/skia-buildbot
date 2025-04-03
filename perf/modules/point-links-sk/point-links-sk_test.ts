@@ -171,6 +171,34 @@ describe('point-links-sk', () => {
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
 
+    it('When return link in Fuchsia isntance.', async () => {
+      const keysForCommitRange = [''];
+      const keysForUsefulLinks = ['Build Log'];
+      const returnLinks = {
+        'Test stdio': '[Build Log](https://commit/link1)',
+      };
+      fetchMock.post('/_/details/?results=false', {
+        version: 1,
+        links: returnLinks,
+      });
+
+      const currentCommitId = CommitNumber(4);
+      const prevCommitId = CommitNumber(3);
+
+      const expectedLinks = {
+        'Build Log': 'https://commit/link1',
+      };
+      await element.load(
+        currentCommitId,
+        prevCommitId,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks,
+        []
+      );
+      assert.deepEqual(expectedLinks, element.displayUrls);
+    });
+
     it('With all eligible links and mixed links and ranges.', async () => {
       const keysForCommitRange = ['key1', 'key2'];
       const keysForUsefulLinks = ['buildKey', 'traceKey'];

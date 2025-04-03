@@ -61,6 +61,10 @@ export class PointLinksSk extends ElementSk {
   // TODO(sunxiaodi@): remove display texts
   displayTexts: { [key: string]: string } = {};
 
+  private buildLogText = 'Build Log';
+
+  private fuchsiaBuildLogKey = 'Test stdio';
+
   private static template = (ele: PointLinksSk) =>
     html`<div class="point-links" ?hidden=${Object.keys(ele.displayUrls || {}).length === 0}>
       <ul class="table">
@@ -270,6 +274,7 @@ export class PointLinksSk extends ElementSk {
       traceid: traceId,
     };
     const url = '/_/details/?results=false';
+    let response: { [key: string]: string } = {};
     try {
       const resp = await fetch(url, {
         method: 'POST',
@@ -280,11 +285,29 @@ export class PointLinksSk extends ElementSk {
       });
       const json = await jsonOrThrow(resp);
       const format = json as ingest.Format;
-      return format.links!;
+      response = format.links!;
+      // Currently in fuchsia json response, the key-value pair is not "Build Log": "url".
+      // For example, the key-value format for fuchsia instance is:
+      // Test stdio: '[Build Log](https://ci.chromium.org/b/8719307892946930401)'
+      if (format.links && format.links![this.fuchsiaBuildLogKey]) {
+        const val = this.extractUrlFromStringForFuchsia(format.links![this.fuchsiaBuildLogKey]);
+        response[this.buildLogText] = val;
+        return response;
+      }
     } catch (error) {
       errorMessage(error as string);
     }
-    return {};
+    return response;
+  }
+
+  // Extract url from string such as: "[Build Log](url)"
+  private extractUrlFromStringForFuchsia(value: string): string {
+    const expression = /\[[^\]]+\]\((.*?)\)/;
+    const match = value.match(expression);
+    if (match && match[1]) {
+      return match[1];
+    }
+    return '';
   }
 }
 
