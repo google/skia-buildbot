@@ -56,4 +56,15 @@ report-page-sk {
       margin: 0;
     }
   }
+
+  // shrink the size of the graphs so multiple graphs
+  // can be on the page side by side
+  div.chart-container {
+    height: 200px;
+    padding-bottom: 4px; // introduce a small gap between the main chart and the summary bar
+  }
+
+  plot-summary-sk {
+    height: 60px !important; // override explore-simple-sk chart height to account for multigraph
+  }
 }
