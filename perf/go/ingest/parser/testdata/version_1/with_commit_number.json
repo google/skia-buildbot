@@ -43,5 +43,8 @@
         ]
       }
     }
-  ]
+  ],
+  "links": {
+    "link1": "www.google.com"
+  }
 }

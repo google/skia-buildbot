@@ -173,6 +173,16 @@ func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 	return sqltracestore.New(db, instanceConfig.DataStoreConfig)
 }
 
+// NewMetadataStoreFromConfig creates a new MetadataStore from the InstanceConfig.
+func NewMetadataStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (tracestore.MetadataStore, error) {
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return sqltracestore.NewSQLMetadataStore(db), nil
+}
+
 // NewAlertStoreFromConfig creates a new alerts.Store from the InstanceConfig.
 func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (alerts.Store, error) {
 	db, err := getDBPool(ctx, instanceConfig)

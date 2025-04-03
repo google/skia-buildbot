@@ -226,14 +226,14 @@ func (p *Parser) extractFromLegacyFile(r io.Reader) ([]paramtools.Params, []floa
 	return params, values, benchData.Hash, benchData.Key, nil
 }
 
-func (p *Parser) extractFromVersion1File(ctx context.Context, r io.Reader, filename string) ([]paramtools.Params, []float32, string, map[string]string, bool, error) {
+func (p *Parser) extractFromVersion1File(r io.Reader, filename string) ([]paramtools.Params, []float32, string, map[string]string, map[string]string, bool, error) {
 	f, err := format.Parse(r)
 	if err != nil {
 		sklog.Warningf("Failed to parse the version one file: %s, got error: %s", filename, err)
-		return nil, nil, "", nil, true, err
+		return nil, nil, "", nil, nil, true, err
 	}
 	params, values := getParamsAndValuesFromVersion1Format(f, p.invalidParamCharRegex)
-	return params, values, f.GitHash, f.Key, true, nil
+	return params, values, f.GitHash, f.Key, f.Links, true, nil
 }
 
 // Parse the given file.File contents.
@@ -245,7 +245,7 @@ func (p *Parser) extractFromVersion1File(ctx context.Context, r io.Reader, filen
 // processed any further.
 //
 // The File.Contents will be closed when this func returns.
-func (p *Parser) Parse(ctx context.Context, file file.File) ([]paramtools.Params, []float32, string, error) {
+func (p *Parser) Parse(ctx context.Context, file file.File) ([]paramtools.Params, []float32, string, map[string]string, error) {
 	_, span := trace.StartSpan(ctx, "ingest.parser.Parse")
 	defer span.End()
 
@@ -259,17 +259,17 @@ func (p *Parser) Parse(ctx context.Context, file file.File) ([]paramtools.Params
 	sklog.Infof("Finished readall.")
 	if err != nil {
 		p.parseFailCounter.Inc(1)
-		return nil, nil, "", skerr.Wrap(err)
+		return nil, nil, "", nil, skerr.Wrap(err)
 	}
 	r := bytes.NewReader(b)
 
 	// Expect the file to be in format.FileFormat.
 	sklog.Info("About to extract")
-	params, values, hash, commonKeys, proceed, err := p.extractFromVersion1File(ctx, r, file.Name)
+	params, values, hash, commonKeys, links, proceed, err := p.extractFromVersion1File(r, file.Name)
 	if err != nil {
 		// Fallback to the legacy format.
 		if _, err := r.Seek(0, io.SeekStart); err != nil {
-			return nil, nil, "", skerr.Wrap(err)
+			return nil, nil, "", nil, skerr.Wrap(err)
 		}
 		sklog.Info("About to extract from legacy.")
 		params, values, hash, commonKeys, err = p.extractFromLegacyFile(r)
@@ -278,22 +278,22 @@ func (p *Parser) Parse(ctx context.Context, file file.File) ([]paramtools.Params
 		p.parseFailCounter.Inc(1)
 	}
 	if err != nil {
-		return nil, nil, "", err
+		return nil, nil, "", nil, err
 	}
 	if !proceed {
-		return nil, nil, "", nil
+		return nil, nil, "", nil, nil
 	}
 
 	branch, ok := p.checkBranchName(commonKeys)
 	if !ok {
-		return nil, nil, "", ErrFileShouldBeSkipped
+		return nil, nil, "", nil, ErrFileShouldBeSkipped
 	}
 	if len(params) == 0 {
 		metrics2.GetCounter("perf_ingest_parser_no_data_in_file", map[string]string{"branch": branch}).Inc(1)
 		sklog.Infof("No data in: %q", file.Name)
-		return nil, nil, "", ErrFileShouldBeSkipped
+		return nil, nil, "", nil, ErrFileShouldBeSkipped
 	}
-	return params, values, hash, nil
+	return params, values, hash, links, nil
 }
 
 // ParseTryBot extracts the issue and patch identifiers from the file.File.

@@ -78,6 +78,7 @@ type workerInfo struct {
 	dlEnabled            bool
 	p                    *parser.Parser
 	store                tracestore.TraceStore
+	metadataStore        tracestore.MetadataStore
 	g                    git.Git
 	pubSubClient         *pubsub.Client
 	instanceConfig       *config.InstanceConfig
@@ -95,6 +96,7 @@ func newWorker(
 	dlEnabled bool,
 	p *parser.Parser,
 	store tracestore.TraceStore,
+	metadataStore tracestore.MetadataStore,
 	g git.Git,
 	pubSubClient *pubsub.Client,
 	instanceConfig *config.InstanceConfig,
@@ -110,6 +112,7 @@ func newWorker(
 		dlEnabled:            dlEnabled,
 		p:                    p,
 		store:                store,
+		metadataStore:        metadataStore,
 		g:                    g,
 		pubSubClient:         pubSubClient,
 		instanceConfig:       instanceConfig,
@@ -128,7 +131,7 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 	w.filesReceived.Inc(1)
 
 	// Parse the file.
-	params, values, gitHash, err := w.p.Parse(ctx, f)
+	params, values, gitHash, fileLinks, err := w.p.Parse(ctx, f)
 	if err != nil {
 		if err == parser.ErrFileShouldBeSkipped {
 			sklog.Debugf("File should be skipped %v: %s", f, err)
@@ -256,11 +259,18 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 		}
 	}
 
+	if fileLinks != nil {
+		err := w.metadataStore.InsertMetadata(ctx, f.Name, fileLinks)
+		if err != nil {
+			// log the error and continue.
+			sklog.Errorf("Error inserting the links metadata into the database: %v", err)
+		}
+	}
 	return nil
 }
 
 // worker ingests files that arrive on the given 'ch' channel.
-func worker(ctx context.Context, wg *sync.WaitGroup, g git.Git, store tracestore.TraceStore, ch <-chan file.File, pubSubClient *pubsub.Client, instanceConfig *config.InstanceConfig) {
+func worker(ctx context.Context, wg *sync.WaitGroup, g git.Git, store tracestore.TraceStore, metadataStore tracestore.MetadataStore, ch <-chan file.File, pubSubClient *pubsub.Client, instanceConfig *config.InstanceConfig) {
 	// Metrics.
 	filesReceived := metrics2.GetCounter("perfserver_ingest_files_received")
 	failedToParse := metrics2.GetCounter("perfserver_ingest_failed_to_parse")
@@ -279,7 +289,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g git.Git, store tracestore
 		return
 	}
 
-	workerInfo := newWorker(filesReceived, failedToParse, skipped, badGitHash, failedToWrite, successfulWrite, successfulWriteCount, dlEnabled, p, store, g, pubSubClient, instanceConfig)
+	workerInfo := newWorker(filesReceived, failedToParse, skipped, badGitHash, failedToWrite, successfulWrite, successfulWriteCount, dlEnabled, p, store, metadataStore, g, pubSubClient, instanceConfig)
 
 	for f := range ch {
 		if err := ctx.Err(); err != nil {
@@ -332,6 +342,11 @@ func Start(ctx context.Context, local bool, numParallelIngesters int, instanceCo
 		return skerr.Wrap(err)
 	}
 
+	metadataStore, err := builders.NewMetadataStoreFromConfig(ctx, instanceConfig)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
 	// New perfgit.Git.
 	sklog.Infof("Cloning repo %q into %q", instanceConfig.GitRepoConfig.URL, instanceConfig.GitRepoConfig.Dir)
 	g, err := builders.NewPerfGitFromConfig(ctx, local, instanceConfig)
@@ -347,7 +362,7 @@ func Start(ctx context.Context, local bool, numParallelIngesters int, instanceCo
 
 	for i := 0; i < numParallelIngesters; i++ {
 		wg.Add(1)
-		go worker(ctx, &wg, g, store, ch, pubSubClient, instanceConfig)
+		go worker(ctx, &wg, g, store, metadataStore, ch, pubSubClient, instanceConfig)
 	}
 	wg.Wait()
 

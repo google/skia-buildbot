@@ -816,7 +816,7 @@ func (app) IngestValidate(inputFile string, verbose bool) error {
 		if err != nil {
 			return fmt.Errorf("Failed to create parser: %s", skerr.Unwrap(err))
 		}
-		p, v, hash, err := parser.Parse(ctx, f)
+		p, v, hash, links, err := parser.Parse(ctx, f)
 		if err != nil {
 			return fmt.Errorf("Parse Failed: %s", skerr.Unwrap(err))
 		}
@@ -831,17 +831,13 @@ func (app) IngestValidate(inputFile string, verbose bool) error {
 		}
 
 		fmt.Printf("Links:\n")
-		var decoded format.Format
-		if err := json.Unmarshal(b, &decoded); err != nil {
-			return fmt.Errorf("Failed to parse: %s", err)
-		}
-		keys := make([]string, 0, len(decoded.Links))
-		for k := range decoded.Links {
+		keys := make([]string, 0, len(links))
+		for k := range links {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
 		for _, key := range keys {
-			fmt.Printf("  %s: %s\n", key, decoded.Links[key])
+			fmt.Printf("  %s: %s\n", key, links[key])
 		}
 		return nil
 	})
