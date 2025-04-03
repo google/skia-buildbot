@@ -78,7 +78,7 @@ export class PointLinksSk extends ElementSk {
   }
 
   renderPointLinks(): TemplateResult[] {
-    if (Object.keys(this.displayTexts).length === 0 || Object.keys(this.displayUrls).length === 0) {
+    if (Object.keys(this.displayTexts).length === 0 && Object.keys(this.displayUrls).length === 0) {
       return [];
     }
     const keys = Object.keys(this.displayUrls);
@@ -87,14 +87,18 @@ export class PointLinksSk extends ElementSk {
       // TODO(b/398878559): Strip after 'Git' string until json keys are ready.
       const keyText: string = key.split(' Git')[0];
       const linkText = this.displayTexts![key] || 'Link';
-
+      const htmlUrl = html`<a
+        href="${link}"
+        title="${linkText}"
+        style="cursor: pointer;"
+        target="_blank"
+        >${linkText}</a
+      >`;
       // generate text contents
       return html` <li>
         <span id="tooltip-link">${keyText}</span>
         <span id="tooltip-text">
-          <a href="${link}" title="${linkText}" style="cursor: pointer;" target="_blank"
-            >${linkText}</a
-          >
+          ${link.startsWith('http') ? htmlUrl : link}
           <md-icon-button @click=${() => this.copyToClipboard(link)}>
             <md-icon id="copy-icon">content_copy</md-icon>
           </md-icon-button>

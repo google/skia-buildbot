@@ -96,7 +96,7 @@ describe('point-links-sk', () => {
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
 
-    it('With all eligible links but no range.', async () => {
+    it('With all eligible links but single commit.', async () => {
       const keysForCommitRange = ['key1', 'key2'];
       const keysForUsefulLinks = [''];
       const returnLinks = {
@@ -168,6 +168,37 @@ describe('point-links-sk', () => {
         key1: 'https://repoHost/repo1/+log/preLink..curLink',
         key2: 'https://repoHost/repo2/+log/preLink..curLink',
       };
+      assert.deepEqual(expectedLinks, element.displayUrls);
+    });
+
+    it('With only useful links.', async () => {
+      const keysForCommitRange = [''];
+      const keysForUsefulLinks = ['buildKey', 'traceKey'];
+      const returnLinks = {
+        buildKey: 'https://luci/builder/build1',
+        traceKey: 'https://traceViewer/trace',
+      };
+
+      fetchMock.post('/_/details/?results=false', {
+        version: 1,
+        links: returnLinks,
+      });
+
+      const currentCommitId = CommitNumber(4);
+      const prevCommitId = CommitNumber(3);
+
+      const expectedLinks = {
+        buildKey: 'https://luci/builder/build1',
+        traceKey: 'https://traceViewer/trace',
+      };
+      await element.load(
+        currentCommitId,
+        prevCommitId,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks,
+        []
+      );
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
 
