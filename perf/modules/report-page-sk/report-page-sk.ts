@@ -277,7 +277,7 @@ export class ReportPageSk extends ElementSk {
         <div class="common-commits">
           <h3>Common Commits</h3>
           <div class="scroll-commits">
-            <ul id="all-commits-scroll">
+            <ul class="table" id="all-commits-scroll">
               ${Array.from(this.commitList)
                 .slice(0, 10)
                 .map((commit) => {

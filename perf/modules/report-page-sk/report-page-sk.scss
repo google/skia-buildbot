@@ -15,7 +15,6 @@ report-page-sk {
       right: 0;
       top: 0;
       margin: 0;
-      margin-top: 10px;
       margin-right: 11px;
       border: none;
       padding: 5px;
@@ -32,13 +31,8 @@ report-page-sk {
     }
   }
 
-  #commit-message {
-    background-color: #d9d9db;
-    color: black; // (Set to work in light and dark themes with background)
-  }
-
   .common-commits {
-    padding: 16px;
+    padding-bottom: 16px;
     h3 {
       margin-bottom: 10px;
     }
@@ -49,18 +43,31 @@ report-page-sk {
       border-top: 1px solid #ccc;
       padding-top: 10px;
     }
+  }
 
-    #all-commits-scroll {
-      list-style-type: none;
-      padding: 0;
-      margin: 0;
+  ul.table {
+    display: table;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-collapse: collapse;
+    li {
+      display: table-row;
+      #commit-message {
+        color: var(--on-background);
+      }
+      a {
+        color: var(--primary);
+        display: table-cell;
+        padding-right: 1em;
+      }
     }
   }
 
   // shrink the size of the graphs so multiple graphs
   // can be on the page side by side
   div.chart-container {
-    height: 200px;
+    height: 250px;
     padding-bottom: 4px; // introduce a small gap between the main chart and the summary bar
   }
 
