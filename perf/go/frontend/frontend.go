@@ -282,6 +282,7 @@ type SkPerfConfig struct {
 	KeysForUsefulLinks         []string           `json:"keys_for_useful_links"`           // The link keys for useful information of individual points i.e. build page, tracing.
 	SkipCommitDetailDisplay    bool               `json:"skip_commit_detail_display"`      // Do not display commit detail
 	ImageTag                   string             `json:"image_tag"`                       // The image tag that the running instance is built from, typically a git commit hash.
+	RemoveDefaultStatValue     bool               `json:"remove_default_stat_value"`       // experimental flag to remove the default stat=value on queries.
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -313,6 +314,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		KeysForUsefulLinks:         config.Config.DataPointConfig.KeysForUsefulLinks,
 		SkipCommitDetailDisplay:    config.Config.DataPointConfig.SkipCommitDetailDisplay,
 		ImageTag:                   os.Getenv("IMAGE_TAG"),
+		RemoveDefaultStatValue:     config.Config.Experiments.RemoveDefaultStatValue,
 	}
 	b, err := json.MarshalIndent(pc, "", "  ")
 	if err != nil {

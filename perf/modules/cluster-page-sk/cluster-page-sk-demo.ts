@@ -127,4 +127,5 @@ window.perf = {
   keys_for_useful_links: [],
   skip_commit_detail_display: false,
   image_tag: 'fake-tag',
+  remove_default_stat_value: false,
 };

@@ -36,6 +36,7 @@ import '../explore-simple-sk';
 import '../favorites-dialog-sk';
 import '../test-picker-sk';
 import '../../../golden/modules/pagination-sk/pagination-sk';
+import '../window/window';
 
 import { $$ } from '../../../infra-sk/modules/dom';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
@@ -326,10 +327,11 @@ export class ExploreMultiSk extends ElementSk {
       this.useTestPicker = true;
       this.addGraphButton!.classList.add('hidden');
       this.testPicker!.classList.remove('hidden');
-      this.testPicker!.initializeTestPicker(
-        testPickerParams!,
-        this.defaults?.default_param_selections ?? {}
-      );
+      let defaultParams = this.defaults?.default_param_selections ?? {};
+      if (window.perf.remove_default_stat_value) {
+        defaultParams = {};
+      }
+      this.testPicker!.initializeTestPicker(testPickerParams!, defaultParams);
 
       // Event listener to remove the explore object from the list if the user
       // close it in a Multiview window.

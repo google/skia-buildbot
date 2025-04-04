@@ -3009,9 +3009,13 @@ export class ExploreSimpleSk extends ElementSk {
   // take a query string, and update the parameters with default values if needed
   private applyDefaultsToQuery(queryString: string): string {
     const paramSet = toParamSet(queryString);
-    for (const defaultParamKey in this._defaults?.default_param_selections) {
+    let defaultParams = this._defaults?.default_param_selections ?? {};
+    if (window.perf.remove_default_stat_value) {
+      defaultParams = {};
+    }
+    for (const defaultParamKey in defaultParams) {
       if (!(defaultParamKey in paramSet)) {
-        paramSet[defaultParamKey] = this._defaults!.default_param_selections![defaultParamKey]!;
+        paramSet[defaultParamKey] = defaultParams![defaultParamKey]!;
       }
     }
 

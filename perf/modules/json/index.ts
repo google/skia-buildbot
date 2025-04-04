@@ -358,6 +358,7 @@ export interface SkPerfConfig {
 	keys_for_useful_links: string[] | null;
 	skip_commit_detail_display: boolean;
 	image_tag: string;
+	remove_default_stat_value: boolean;
 }
 
 export interface TriageRequest {
