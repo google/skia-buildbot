@@ -65,7 +65,16 @@ func (s *SQLMetadataStore) InsertMetadata(ctx context.Context, sourceFileName st
 }
 
 // GetMetadata returns the metadata for the given source file.
-func (s *SQLMetadataStore) GetMetadata(ctx context.Context, sourceFileId int) (map[string]string, error) {
+func (s *SQLMetadataStore) GetMetadata(ctx context.Context, sourceFileName string) (map[string]string, error) {
+	var sourceFileId int
+	sourceFileRow := s.db.QueryRow(ctx, sqlstatements[getsourcefileid], sourceFileName)
+	if err := sourceFileRow.Scan(&sourceFileId); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, skerr.Wrapf(err, "Source file %s does not exist in the database.", sourceFileName)
+		}
+		return nil, skerr.Wrap(err)
+	}
+
 	row := s.db.QueryRow(ctx, sqlstatements[read], sourceFileId)
 	var links map[string]string
 	if err := row.Scan(&links); err != nil {

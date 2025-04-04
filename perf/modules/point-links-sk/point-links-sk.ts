@@ -277,7 +277,7 @@ export class PointLinksSk extends ElementSk {
       cid: cid,
       traceid: traceId,
     };
-    const url = '/_/details/?results=false';
+    const url = '/_/links/';
     let response: { [key: string]: string } = {};
     try {
       const resp = await fetch(url, {

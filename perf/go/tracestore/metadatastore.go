@@ -8,5 +8,5 @@ type MetadataStore interface {
 	InsertMetadata(ctx context.Context, sourceFileName string, links map[string]string) error
 
 	// GetMetadata returns the metadata for the given source file.
-	GetMetadata(ctx context.Context, sourceFileId int) (map[string]string, error)
+	GetMetadata(ctx context.Context, sourceFileName string) (map[string]string, error)
 }

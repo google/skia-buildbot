@@ -115,7 +115,8 @@
         "Trace Iteration 9",
         "appApkSha256",
         "testApkSha256"
-      ]
+      ],
+      "enable_point_links": true
     },
     "optimize_sqltracestore": true
 }

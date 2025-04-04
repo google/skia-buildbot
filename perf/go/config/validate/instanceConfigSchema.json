@@ -62,6 +62,9 @@
         },
         "skip_commit_detail_display": {
           "type": "boolean"
+        },
+        "enable_point_links": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

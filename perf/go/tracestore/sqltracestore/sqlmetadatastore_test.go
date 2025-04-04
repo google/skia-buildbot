@@ -39,13 +39,27 @@ func TestInsertMetadata_Success(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Get the links from db.
-	linksFromDb, err := store.GetMetadata(ctx, sourceFileId)
+	linksFromDb, err := store.GetMetadata(ctx, sourceFileName)
 	assert.NoError(t, err)
 	assert.Equal(t, links, linksFromDb)
 
 	// Try to get an invalid link from db.
-	linksFromDb, err = store.GetMetadata(ctx, 0)
+	linksFromDb, err = store.GetMetadata(ctx, "IDontExist.json")
+	assert.Error(t, err)
+	assert.Nil(t, linksFromDb)
+}
+
+func TestGetMetadata_ValidSourceFile_NoMetadata(t *testing.T) {
+	store := createMetadataStoreForTests(t)
+
+	sourceFileName := "testSourceFile"
+	ctx := context.Background()
+	err := insertSourceFile(ctx, store.db, sourceFileName, 1)
 	assert.NoError(t, err)
+	// Get the links from db. Since the metadata table is not populated
+	// for the source file this should return empty.
+	linksFromDb, err := store.GetMetadata(ctx, sourceFileName)
+	assert.Nil(t, err)
 	assert.Nil(t, linksFromDb)
 }
 

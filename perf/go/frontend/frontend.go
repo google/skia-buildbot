@@ -145,6 +145,8 @@ type Frontend struct {
 
 	traceStore tracestore.TraceStore
 
+	metadataStore tracestore.MetadataStore
+
 	userIssueStore userissue.Store
 
 	dryrunRequests *dryrun.Requests
@@ -430,12 +432,16 @@ func (f *Frontend) initialize() {
 	sklog.Info("About to build trace store.")
 
 	f.traceStore, err = builders.NewTraceStoreFromConfig(ctx, f.flags.Local, config.Config)
+	if err != nil {
+		sklog.Fatalf("Failed to build TraceStore: %s", err)
+	}
 	if !f.flags.DisableMetricsUpdate {
 		go f.traceStore.StartBackgroundMetricsGathering()
 	}
 
+	f.metadataStore, err = builders.NewMetadataStoreFromConfig(ctx, config.Config)
 	if err != nil {
-		sklog.Fatalf("Failed to build TraceStore: %s", err)
+		sklog.Fatalf("Failed to build MetadataStore: %s", err)
 	}
 
 	sklog.Info("About to build perfgit.")
@@ -969,7 +975,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewRegressionsApi(f.loginProvider, f.configProvider, f.alertStore, f.regStore, f.perfGit, f.anomalyApiClient, f.urlProvider, f.graphsShortcutStore, f.alertGroupClient, f.progressTracker, f.shortcutStore, f.dfBuilder, f.paramsetRefresher),
 		api.NewQueryApi(f.paramsetRefresher),
 		api.NewShortCutsApi(f.shortcutStore, f.graphsShortcutStore),
-		api.NewGraphApi(f.flags.NumParamSetsForQueries, config.Config.QueryConfig.CommitChunkSize, config.Config.QueryConfig.MaxEmptyTilesForQuery, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.traceCache, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
+		api.NewGraphApi(f.flags.NumParamSetsForQueries, config.Config.QueryConfig.CommitChunkSize, config.Config.QueryConfig.MaxEmptyTilesForQuery, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.metadataStore, f.traceCache, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
 		api.NewPinpointApi(f.loginProvider, f.pinpoint),
 		api.NewSheriffConfigApi(f.loginProvider),
 		api.NewTriageApi(f.loginProvider, f.chromeperfClient, f.anomalyStore, f.issuetracker),

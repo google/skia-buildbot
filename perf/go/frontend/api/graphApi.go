@@ -41,6 +41,7 @@ type graphApi struct {
 	dfBuilder     dataframe.DataFrameBuilder
 	perfGit       perfgit.Git
 	traceStore    tracestore.TraceStore
+	metadataStore tracestore.MetadataStore
 	shortcutStore shortcut.Store
 	anomalyStore  anomalies.Store
 	// progressTracker tracks long running web requests.
@@ -78,12 +79,13 @@ func (api graphApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/frame/start", api.frameStartHandler)
 	router.Post("/_/cid/", api.cidHandler)
 	router.Post("/_/details/", api.detailsHandler)
+	router.Post("/_/links/", api.linksHandler)
 	router.Post("/_/shift/", api.shiftHandler)
 	router.Post("/_/cidRange/", api.cidRangeHandler)
 }
 
 // NewGraphApi returns a new instance of the graphApi struct.
-func NewGraphApi(numParamSetsForQueries int, queryCommitChunkSize int, maxEmptyTiles int, loginProvider alogin.Login, dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, traceStore tracestore.TraceStore, traceCache *tracecache.TraceCache, shortcutStore shortcut.Store, anomalyStore anomalies.Store, progressTracker progress.Tracker, ingestedFS fs.FS) graphApi {
+func NewGraphApi(numParamSetsForQueries int, queryCommitChunkSize int, maxEmptyTiles int, loginProvider alogin.Login, dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, traceStore tracestore.TraceStore, metadataStore tracestore.MetadataStore, traceCache *tracecache.TraceCache, shortcutStore shortcut.Store, anomalyStore anomalies.Store, progressTracker progress.Tracker, ingestedFS fs.FS) graphApi {
 	return graphApi{
 		numParamSetsForQueries:      numParamSetsForQueries,
 		queryCommitChunkSize:        queryCommitChunkSize,
@@ -92,6 +94,7 @@ func NewGraphApi(numParamSetsForQueries int, queryCommitChunkSize int, maxEmptyT
 		dfBuilder:                   dfBuilder,
 		perfGit:                     perfGit,
 		traceStore:                  traceStore,
+		metadataStore:               metadataStore,
 		traceCache:                  traceCache,
 		shortcutStore:               shortcutStore,
 		anomalyStore:                anomalyStore,
@@ -222,6 +225,66 @@ func (api graphApi) cidHandler(w http.ResponseWriter, r *http.Request) {
 type CommitDetailsRequest struct {
 	CommitNumber types.CommitNumber `json:"cid"`
 	TraceID      string             `json:"traceid"`
+}
+
+// linksHandler returns the links for a trace at a commit number.
+func (api graphApi) linksHandler(w http.ResponseWriter, r *http.Request) {
+	// With point specific links, we need to read the original json file.
+	// Fall back to the process in detailsHandler.
+	if config.Config.DataPointConfig.EnablePointSpecificLinks {
+		api.detailsHandler(w, r)
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
+	dr := &CommitDetailsRequest{}
+	if err := json.NewDecoder(r.Body).Decode(dr); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		return
+	}
+
+	// If the trace is really a calculation then don't provide any details, but
+	// also don't generate an error.
+	if !query.IsValid(dr.TraceID) {
+		ret := format.Format{
+			Version: 0, // Specifying an unacceptable version of the format causes the control to be hidden.
+		}
+		if err := json.NewEncoder(w).Encode(ret); err != nil {
+			sklog.Errorf("writing detailsHandler error response: %s", err)
+		}
+		return
+	}
+
+	filename, err := api.traceStore.GetSource(ctx, dr.CommitNumber, dr.TraceID)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to load details", http.StatusInternalServerError)
+		return
+	}
+
+	links, err := api.metadataStore.GetMetadata(ctx, filename)
+	if err != nil {
+		// This is potentially a data point before Metadata table was populated.
+		// Try using the details handler.
+		sklog.Warningf("Error ")
+		api.detailsHandler(w, r)
+		return
+	}
+
+	responseObj := format.Format{
+		Links: links,
+	}
+
+	b, err := json.MarshalIndent(responseObj, "", "  ")
+	if err != nil {
+		sklog.Errorf("Failed to encode response object to JSON: %v", err)
+		return
+	}
+	if _, err := w.Write(b); err != nil {
+		sklog.Errorf("Failed to write JSON response object: %v", err)
+		return
+	}
 }
 
 // detailsHandler returns commit details for the selected data point.

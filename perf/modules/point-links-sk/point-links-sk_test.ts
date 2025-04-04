@@ -73,7 +73,7 @@ describe('point-links-sk', () => {
         key1: 'https://commit/link1',
         key2: 'https://commit/link2',
       };
-      fetchMock.post('/_/details/?results=false', {
+      fetchMock.post('/_/links/', {
         version: 1,
         links: returnLinks,
       });
@@ -103,7 +103,7 @@ describe('point-links-sk', () => {
         key1: 'https://commit/link1',
         key2: 'https://commit/link2',
       };
-      fetchMock.post('/_/details/?results=false', {
+      fetchMock.post('/_/links/', {
         version: 1,
         links: returnLinks,
       });
@@ -132,7 +132,7 @@ describe('point-links-sk', () => {
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
 
-      fetchMock.post('/_/details/?results=false', (_url, request) => {
+      fetchMock.post('/_/links/', (_url, request) => {
         const requestObj = JSON.parse(request.body!.toString());
         switch (requestObj.cid) {
           case currentCommitId:
@@ -179,7 +179,7 @@ describe('point-links-sk', () => {
         traceKey: 'https://traceViewer/trace',
       };
 
-      fetchMock.post('/_/details/?results=false', {
+      fetchMock.post('/_/links/', {
         version: 1,
         links: returnLinks,
       });
@@ -208,7 +208,7 @@ describe('point-links-sk', () => {
       const returnLinks = {
         'Test stdio': '[Build Log](https://commit/link1)',
       };
-      fetchMock.post('/_/details/?results=false', {
+      fetchMock.post('/_/links/', {
         version: 1,
         links: returnLinks,
       });
@@ -236,7 +236,7 @@ describe('point-links-sk', () => {
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
 
-      fetchMock.post('/_/details/?results=false', (_url, request) => {
+      fetchMock.post('/_/links/', (_url, request) => {
         const requestObj = JSON.parse(request.body!.toString());
         switch (requestObj.cid) {
           case currentCommitId:

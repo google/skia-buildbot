@@ -848,6 +848,12 @@ type DataPointConfig struct {
 
 	// If set to true, do not display commit detail in the pop-up for the data point.
 	SkipCommitDetailDisplay bool `json:"skip_commit_detail_display,omitempty"`
+
+	// If set to true, get links for specific data points than just the links
+	// for the relevant commit. This is relevant only if the ingested files have
+	// links specified for individual data points and not just the common links
+	// section in the json file.
+	EnablePointSpecificLinks bool `json:"enable_point_links,omitempty"`
 }
 
 // QueryConfig contains query customization info for the instance.
