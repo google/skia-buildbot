@@ -93,8 +93,6 @@ run_local_periodictasks_cdb:
 		--config=./k8s-instances/local/local-periodictasks.json5 \
 		--local
 
-
-
 run_local_gitiles_follower: run-spanner-emulator
 	$(BAZEL) build --config=mayberemote -c dbg //golden/...
 	go run ./go/local --database_url="postgresql://localhost:5432/gold?sslmode=disable" --spanner
@@ -108,3 +106,17 @@ run_local_gitiles_follower_cdb:
 	../_bazel_bin/golden/cmd/gitilesfollower/gitilesfollower_/gitilesfollower \
 		--common_instance_config=./k8s-instances/local/local-cdb.json5 \
 		--config=./k8s-instances/local/local-gitilesfollower.json5
+
+run_local_gold_ingestion: run-spanner-emulator
+	$(BAZEL) build --config=mayberemote -c dbg //golden/...
+	go run ./go/local --database_url="postgresql://localhost:5432/gold?sslmode=disable" --spanner
+	../_bazel_bin/golden/cmd/gold_ingestion/gold_ingestion_/gold_ingestion \
+		--common_instance_config=./k8s-instances/local/local.json5 \
+		--config=./k8s-instances/local/local-ingestion.json5
+
+run_local_gold_ingestion_cdb:
+	$(BAZEL) build --config=mayberemote -c dbg //golden/...
+	go run ./go/local
+	../_bazel_bin/golden/cmd/gold_ingestion/gold_ingestion_/gold_ingestion \
+		--common_instance_config=./k8s-instances/local/local-cdb.json5 \
+		--config=./k8s-instances/local/local-ingestion.json5

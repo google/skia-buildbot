@@ -39,9 +39,16 @@ func New(db *pgxpool.Pool) *sqlStore {
 //	themselves will write to this table) and WasIngested to target the SourceFiles table.
 func (s *sqlStore) SetIngested(ctx context.Context, fileName string, ts time.Time) error {
 	sourceID := md5.Sum([]byte(fileName))
-	_, err := s.db.Exec(ctx, `
-UPSERT INTO DeprecatedIngestedFiles (source_file_id, source_file, last_ingested)
-VALUES ($1, $2, $3)`, sourceID[:], fileName, ts)
+	const statement = `
+		INSERT INTO DeprecatedIngestedFiles (source_file_id, source_file, last_ingested)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (source_file_id) -- Conflict on the primary key
+		DO UPDATE SET                -- Set ALL columns for Spanner PGAdapter compatibility
+			source_file_id = excluded.source_file_id,
+			source_file = excluded.source_file,
+			last_ingested = excluded.last_ingested
+	`
+	_, err := s.db.Exec(ctx, statement, sourceID[:], fileName, ts)
 	if err != nil {
 		return skerr.Wrapf(err, "Marking %s as ingested", fileName)
 	}
