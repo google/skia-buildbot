@@ -84,3 +84,17 @@ run_local_periodictasks: run-spanner-emulator
 		--common_instance_config=./k8s-instances/local/local.json5 \
 		--config=./k8s-instances/local/local-periodictasks.json5 \
 		--local
+
+run_local_gitiles_follower: run-spanner-emulator
+	$(BAZEL) build --config=mayberemote -c dbg //golden/...
+	go run ./go/local --database_url="postgresql://localhost:5432/gold?sslmode=disable" --spanner
+	../_bazel_bin/golden/cmd/gitilesfollower/gitilesfollower_/gitilesfollower \
+		--common_instance_config=./k8s-instances/local/local.json5 \
+		--config=./k8s-instances/local/local-gitilesfollower.json5
+
+run_local_gitiles_follower_cdb:
+	$(BAZEL) build --config=mayberemote -c dbg //golden/...
+	go run ./go/local
+	../_bazel_bin/golden/cmd/gitilesfollower/gitilesfollower_/gitilesfollower \
+		--common_instance_config=./k8s-instances/local/local-cdb.json5 \
+		--config=./k8s-instances/local/local-gitilesfollower.json5

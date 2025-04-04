@@ -42,7 +42,10 @@ func RawBuilder() databuilder.TablesBuilder {
 		Insert("0000000103", "0103010301030103010301030103010301030103", UserFour, "no data 103", "2020-12-06T01:00:00Z").
 		Insert("0000000104", "0104010401040104010401040104010401040104", UserFour, "no data 104", "2020-12-06T02:00:00Z").
 		Insert("0000000105", "0105010501050105010501050105010501050105", UserFour, "no data 105", "2020-12-06T03:00:00Z").
-		Insert("0000000111", "0111011101110111011101110111011101110111", UserFour, "no data 111", "2020-12-12T12:00:00Z")
+		// This commit has the highest commit id, out of the ones listed here and above. We use an actual commit hash
+		// because most recent commit gets "special treatment" in the gitilesfollower code. Having a non-existent commit
+		// hash results in a crash.
+		Insert("0000000111", "acb4c0deaa115916044699809a363d539cf725da", UserFour, "no data 111", "2020-12-12T12:00:00Z")
 
 	b.SetDigests(map[rune]types.Digest{
 		// by convention, upper case are positively triaged, lowercase
@@ -737,7 +740,7 @@ const (
 	//"7bdc929af0c52a997bb6d5ccadbe86ddc532a25a",
 	//"0b1a16e767f3accd50da5acfbf953ce0c66a0183",
 	//"f4412901bfb130a8774c0c719450d1450845f471",
-	//"0111011101110111011101110111011101110111",
+	//"acb4c0deaa115916044699809a363d539cf725da",
 
 	OldestCommitID = schema.CommitID("0000000098")
 

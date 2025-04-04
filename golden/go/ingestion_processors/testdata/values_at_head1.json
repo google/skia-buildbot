@@ -1,6 +1,6 @@
 {
   "description": "This file has data from two traces. One trace exists in the primary branch already of datakitchensink, the other does not. This data is for the latest commit.",
-  "gitHash" : "0111011101110111011101110111011101110111",
+  "gitHash" : "acb4c0deaa115916044699809a363d539cf725da",
   "key" : {
     "os": "Android",
     "device": "taimen"

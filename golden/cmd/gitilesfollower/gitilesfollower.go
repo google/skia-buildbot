@@ -216,7 +216,6 @@ func updateCycle(ctx context.Context, db *pgxpool.Pool, client GitilesLogger, rf
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-
 	previousHash, previousID, err := getPreviousCommitFromDB(ctx, db)
 	if err != nil {
 		return skerr.Wrapf(err, "getting recent commits from DB")
@@ -226,6 +225,7 @@ func updateCycle(ctx context.Context, db *pgxpool.Pool, client GitilesLogger, rf
 		sklog.Infof("no updates - latest seen commit %s", previousHash)
 		return nil
 	}
+
 	if previousHash == "" {
 		previousHash = rfc.InitialCommit
 		previousID = initialID
@@ -307,9 +307,10 @@ func storeCommits(ctx context.Context, db *pgxpool.Pool, lastCommitID int64, com
 	defer span.End()
 	commitID := lastCommitID + 1
 	// batchSize is only really relevant in the initial load. But we need it to avoid going over
-	// the 65k limit of placeholder indexes.
-	const batchSize = 1000
-	const statement = `UPSERT INTO GitCommits (git_hash, commit_id, commit_time, author_email, subject) VALUES `
+	// the 950 limit of placeholder indexes.
+	const batchSize = 150
+	const columns = "(git_hash, commit_id, commit_time, author_email, subject)"
+	const primaryKey = "(git_hash)"
 	const valuesPerRow = 5
 	err := util.ChunkIter(len(commits), batchSize, func(startIdx int, endIdx int) error {
 		chunk := commits[startIdx:endIdx]
@@ -320,7 +321,8 @@ func storeCommits(ctx context.Context, db *pgxpool.Pool, lastCommitID int64, com
 			commitID++
 		}
 		vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(chunk))
-		if _, err := db.Exec(ctx, statement+vp, arguments...); err != nil {
+		statement := fmt.Sprintf("INSERT INTO GitCommits %s VALUES %s ON CONFLICT %s DO NOTHING", columns, vp, primaryKey)
+		if _, err := db.Exec(ctx, statement, arguments...); err != nil {
 			return skerr.Wrap(err)
 		}
 		return nil
@@ -423,7 +425,11 @@ func checkForLandedCycle(ctx context.Context, db *pgxpool.Pool, client GitilesLo
 		}
 		sklog.Infof("Commit %s landed at %s", c.Hash[:12], c.Timestamp)
 	}
-	_, err = db.Exec(ctx, `UPSERT INTO TrackingCommits (repo, last_git_hash) VALUES ($1, $2)`, m.RepoURL, latestHash)
+	_, err = db.Exec(ctx, `
+			INSERT INTO TrackingCommits (repo, last_git_hash)
+			VALUES ($1, $2)
+			ON CONFLICT (repo) DO UPDATE SET repo = excluded.repo, last_git_hash = excluded.last_git_hash`,
+		m.RepoURL, latestHash)
 	return skerr.Wrap(err)
 }
 
