@@ -660,13 +660,22 @@ func bulkWriteExpectations(ctx context.Context, db *pgxpool.Pool, recordID uuid.
 		if len(batch) == 0 {
 			return nil
 		}
-		statement := `UPSERT INTO Expectations (grouping_id, digest, label, expectation_record_id) VALUES `
+		const insertCols = "(grouping_id, digest, label, expectation_record_id)"
+		const conflictTarget = "(grouping_id, digest)"
+		const updateSet = `SET
+								grouping_id = excluded.grouping_id,
+								digest = excluded.digest,
+								label = excluded.label,
+								expectation_record_id = excluded.expectation_record_id`
 		const valuesPerRow = 4
-		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
+		vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement := fmt.Sprintf("INSERT INTO Expectations %s VALUES %s ON CONFLICT %s DO UPDATE %s",
+			insertCols, vp, conflictTarget, updateSet)
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.GroupingID, row.Digest, row.LabelAfter, recordID)
 		}
+		// Execute the statement within a transaction
 		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
 			return err // Don't wrap - crdbpgx might retry

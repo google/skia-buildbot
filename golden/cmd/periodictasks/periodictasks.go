@@ -409,7 +409,7 @@ func (g *diffWorkGatherer) addNewGroupingsForProcessing(ctx context.Context, gro
 	statement := `INSERT INTO PrimaryBranchDiffCalculationWork (grouping_id, last_calculated_ts, calculation_lease_ends) VALUES`
 	const valuesPerRow = 3
 	vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(groupings))
-	statement = statement + vp + ` ON CONFLICT DO NOTHING`
+	statement = statement + vp + ` ON CONFLICT (grouping_id) DO NOTHING`
 	args := make([]interface{}, 0, valuesPerRow*len(groupings))
 	// This time will make sure we compute diffs for this soon.
 	beginningOfTime := time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC)
@@ -1204,6 +1204,7 @@ func runCachingTasks(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.P
 // Runs the caching tasks related to the search functionality.
 func populateSearchCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool, cache cache.Cache) {
 	searchCacheManager := searchCache.New(cache, db, ptc.CachingCorpora, ptc.WindowSize)
+	searchCacheManager.SetDatabaseType(ptc.SQLDatabaseType)
 	err := searchCacheManager.RunCachePopulation(ctx)
 	if err != nil {
 		sklog.Fatalf("Error running search cache population: %v", err)
