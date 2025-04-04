@@ -30,7 +30,7 @@ import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { QueryConfig } from '../json';
+import { QueryConfig, RequestType } from '../json';
 
 import '../explore-simple-sk';
 import '../favorites-dialog-sk';
@@ -57,6 +57,8 @@ class State {
   dots: boolean = true;
 
   numCommits: number = 250;
+
+  request_type: RequestType = 1;
 
   summary: boolean = false;
 
@@ -419,7 +421,7 @@ export class ExploreMultiSk extends ElementSk {
       summary: this.state.summary,
       xbaroffset: explore.state.xbaroffset,
       autoRefresh: explore.state.autoRefresh,
-      requestType: explore.state.requestType,
+      requestType: this.state.request_type,
       pivotRequest: explore.state.pivotRequest,
       sort: explore.state.sort,
       selected: explore.state.selected,

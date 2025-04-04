@@ -18,6 +18,8 @@ import '../anomalies-table-sk/anomalies-table-sk';
 import { lookupCids } from '../cid/cid';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 
+const weekInSeconds = 7 * 24 * 60 * 60;
+
 // Data point for anomalies tracking the actual anomaly object.
 // Inclusive of:
 // * whether it's been checked.
@@ -251,8 +253,16 @@ export class ReportPageSk extends ElementSk {
       ...state,
       queries: [query],
       highlight_anomalies: [String(anomaly.id)],
-      begin: timerange.begin,
-      end: timerange.end,
+      // show 1 week's worth of data before and after
+      // showing more data helps users determine
+      // if a regression has already been mitigated
+      begin: timerange.begin - weekInSeconds,
+      end: timerange.end + weekInSeconds,
+      // the requestType controls how many data points to query.
+      // 0 means to query data points between the begin and end timestamps
+      // 1 means to query State().numCommits number of data points
+      // Set to 0 to promote symmetry.
+      requestType: 0,
     };
     this._render();
 

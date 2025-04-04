@@ -23,6 +23,7 @@ import { errorMessage } from '../errorMessage';
 import { updateShortcut } from '../explore-simple-sk/explore-simple-sk';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 
+const weekInSeconds = 7 * 24 * 60 * 60;
 class AnomalyGroup {
   anomalies: Anomaly[] = [];
 
@@ -516,8 +517,13 @@ export class AnomaliesTableSk extends ElementSk {
   // openMultiGraphLink generates a multi-graph url for the given parameters
   private async openMultiGraphUrl(anomaly: Anomaly) {
     await this.fetchGroupReportApi(String(anomaly.id));
-    const begin = this.getGroupReportResponse?.timerange_map![anomaly.id].begin.toString() || '';
-    const end = this.getGroupReportResponse?.timerange_map![anomaly.id].end.toString() || '';
+    const begin = this.getGroupReportResponse?.timerange_map![anomaly.id].begin;
+    const end = this.getGroupReportResponse?.timerange_map![anomaly.id].end;
+
+    // generate data one week ahead and one week behind to make it easier
+    // for user to discern trends
+    const rangeBegin = begin ? (begin - weekInSeconds).toString() : '';
+    const rangeEnd = end ? (end + weekInSeconds).toString() : '';
 
     const graphConfigs = [] as GraphConfig[];
 
@@ -538,9 +544,12 @@ export class AnomaliesTableSk extends ElementSk {
       })
       .catch(errorMessage);
 
+    // request_type=0 only selects data points for within the range
+    // rather than show 250 data points by default
     const url =
       `${window.location.protocol}//${window.location.host}` +
-      `/m/?begin=${begin}&end=${end}&shortcut=${this.shortcutUrl}&totalGraphs=1`;
+      `/m/?begin=${rangeBegin}&end=${rangeEnd}` +
+      `&request_type=0&shortcut=${this.shortcutUrl}&totalGraphs=1`;
     window.open(url, '_blank');
   }
 
