@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/cache/local"
 	mockCache "go.skia.org/infra/go/cache/mock"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
@@ -469,6 +470,7 @@ func TestQueryTraces_WithTraceCache_Miss_Success(t *testing.T) {
 	traceCache := tracecache.New(cache)
 	// Make the cache return nil.
 	cache.On("GetValue", testutils.AnyContext, mock.Anything).Return("", nil)
+	cache.On("SetValue", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil)
 
 	ts, commits, err := s.QueryTraces(ctx, 0, q, traceCache)
 	assert.NoError(t, err)
@@ -479,6 +481,32 @@ func TestQueryTraces_WithTraceCache_Miss_Success(t *testing.T) {
 		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
 		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
 	})
+}
+
+func TestQueryTraces_WithTraceCache_Local_Success(t *testing.T) {
+	ctx, s := commonTestSetupWithCommits(t)
+
+	// Query that matches two traces.
+	q, err := query.NewFromString("arch=x86")
+	assert.NoError(t, err)
+
+	// Let's use an actual local cache
+	cache, err := local.New(10)
+	assert.NoError(t, err)
+	traceCache := tracecache.New(cache)
+
+	ts, commits, err := s.QueryTraces(ctx, 0, q, traceCache)
+	assert.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
+	assert.Equal(t, ts, types.TraceSet{
+		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
+		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
+	})
+	// Let's verify that the local cache was populated.
+	traceIds, err := traceCache.GetTraceIds(ctx, 0, q)
+	assert.NoError(t, err)
+	assert.NotNil(t, traceIds)
+	assert.Equal(t, 2, len(traceIds))
 }
 
 func TestTraceCount(t *testing.T) {

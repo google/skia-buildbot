@@ -218,6 +218,9 @@ const (
 	// guess, some testing should be done to validate the right size for this
 	// const.
 	countOptimizationThreshold = 10000
+
+	// Max no of traceIds to store in a single cache entry.
+	maxTraceIdsInCache = 200
 )
 
 type orderedParamSetCacheEntry struct {
@@ -1055,13 +1058,15 @@ func (s *SQLTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNu
 
 	var pChan <-chan paramtools.Params
 	var err error
+	cacheTraceIds := false
 	if traceCache != nil {
 		sklog.Infof("Trace cache is enabled.")
 		pChan, err = s.getTraceIdChannelFromCache(ctx, traceCache, tileNumber, q)
 		if err != nil {
 			// If there is an error getting data from cache, log it and fall back to the regular db search.
-			sklog.Errorf("Error retrieving trace id params from cache %v. Falling back to db search.", err)
+			sklog.Infof("Error retrieving trace id params from cache %v. Falling back to db search.", err)
 			pChan, err = s.QueryTracesIDOnly(ctx, tileNumber, q)
+			cacheTraceIds = true
 		}
 	} else {
 		pChan, err = s.QueryTracesIDOnly(ctx, tileNumber, q)
@@ -1075,7 +1080,11 @@ func (s *SQLTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNu
 	// those trace names into the traceNames channel.
 	go func() {
 		defer timer.New("QueryTracesIDOnly - Complete").Stop()
+		traceIdsToCache := []paramtools.Params{}
 		for p := range pChan {
+			if cacheTraceIds {
+				traceIdsToCache = append(traceIdsToCache, p)
+			}
 			traceName, err := query.MakeKey(p)
 			if err != nil {
 				sklog.Warningf("Invalid trace name found in query response: %s", err)
@@ -1084,6 +1093,14 @@ func (s *SQLTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNu
 			traceNames <- traceName
 		}
 		close(traceNames)
+		if cacheTraceIds && len(traceIdsToCache) > 0 && len(traceIdsToCache) <= maxTraceIdsInCache {
+			sklog.Infof("Adding %d traceIds to the cache for query %v", len(traceIdsToCache), q)
+			err := traceCache.CacheTraceIds(ctx, tileNumber, q, traceIdsToCache)
+			if err != nil {
+				// Log the error and continue.
+				sklog.Errorf("Error adding traceIds to the cache for query %v: %v", q, err)
+			}
+		}
 	}()
 
 	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)

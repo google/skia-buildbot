@@ -56,6 +56,7 @@ go_test(
     # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
     flaky = True,
     deps = [
+        "//go/cache/local",
         "//go/cache/mock",
         "//go/now",
         "//go/paramtools",
