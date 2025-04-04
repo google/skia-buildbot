@@ -88,10 +88,10 @@ func (c *CachedParamSetRefresher) populateChildLevel(ctx context.Context, parent
 				sklog.Errorf("Error converting paramset to json: %v", err)
 				return err
 			}
-			psCacheKey, ok := paramSetKey(qValues, []string{parentKey, childLevelKey})
-			if !ok {
-				sklog.Errorf("Error creating child psCacheKey for %s, %s for values %v", parentKey, childLevelKey, qValues)
-				return skerr.Fmt("Error creating psCacheKey for %s, %s for values %v", parentKey, childLevelKey, qValues)
+			psCacheKey, err := paramSetKey(qValues, []string{parentKey, childLevelKey})
+			if err != nil {
+				sklog.Errorf("Error creating child psCacheKey for %s, %s for values %v: %v", parentKey, childLevelKey, qValues, err)
+				return skerr.Fmt("Error creating psCacheKey for %s, %s for values %v: %v", parentKey, childLevelKey, qValues, err)
 			}
 
 			sklog.Infof("Adding %s: %s to child cache", psCacheKey, cacheValue)
@@ -141,9 +141,9 @@ func (c *CachedParamSetRefresher) populateLevels(ctx context.Context, levelKey s
 				return
 			}
 
-			psCacheKey, ok := paramSetKey(qValues, []string{levelKey})
-			if !ok {
-				sklog.Errorf("Error creating psCacheKey for %s for values %v", levelKey, qValues)
+			psCacheKey, err := paramSetKey(qValues, []string{levelKey})
+			if err != nil {
+				sklog.Errorf("Error creating psCacheKey for %s for values %v: %v", levelKey, qValues, err)
 				return
 			}
 			c.addToCache(ctx, psCacheKey, cacheValue, count)
@@ -192,7 +192,7 @@ func (c *CachedParamSetRefresher) GetParamSetForQuery(ctx context.Context, query
 	return count, filteredPS, err
 }
 
-func (c *CachedParamSetRefresher) getParamSetForQueryInternal(ctx context.Context, query *query.Query, q url.Values) (int64, paramtools.ParamSet, error) {
+func (c *CachedParamSetRefresher) getParamSetKey(q url.Values) (string, error) {
 	sklog.Debugf("GetParamSetForQuery on values: %s", q)
 	qlen := len(q)
 	if c.psRefresher.experiments == (config.Experiments{}) || !c.psRefresher.experiments.RemoveDefaultStatValue {
@@ -202,19 +202,30 @@ func (c *CachedParamSetRefresher) getParamSetForQueryInternal(ctx context.Contex
 		}
 	}
 	key := ""
-	ok := false
+	var err error
 	switch qlen {
 	case 1:
-		key, ok = paramSetKey(q, []string{c.psRefresher.qConfig.CacheConfig.Level1Key})
-		if !ok {
-			return 0, nil, nil
+		key, err = paramSetKey(q, []string{c.psRefresher.qConfig.CacheConfig.Level1Key})
+		if err != nil {
+			return key, err
 		}
 	case 2:
-		key, ok = paramSetKey(q, []string{c.psRefresher.qConfig.CacheConfig.Level1Key, c.psRefresher.qConfig.CacheConfig.Level2Key})
-		if !ok {
-			return 0, nil, nil
+		key, err = paramSetKey(q, []string{c.psRefresher.qConfig.CacheConfig.Level1Key, c.psRefresher.qConfig.CacheConfig.Level2Key})
+		if err != nil {
+			return key, err
 		}
-	default:
+	}
+	// Cache does not service when there are more key present than level1key and level2key,
+	// return "", nil to indicates a db query instead.
+	return key, nil
+}
+
+func (c *CachedParamSetRefresher) getParamSetForQueryInternal(ctx context.Context, query *query.Query, q url.Values) (int64, paramtools.ParamSet, error) {
+	key, err := c.getParamSetKey(q)
+	if err != nil {
+		return 0, nil, err
+	}
+	if key == "" {
 		// We don't cache query results with more than 2 parameters,
 		// so let's do a full search instead.
 		return c.psRefresher.GetParamSetForQuery(ctx, query, q)
@@ -267,18 +278,19 @@ func (c *CachedParamSetRefresher) StartRefreshRoutine(refreshPeriod time.Duratio
 }
 
 // paramSetKey returns a string key to be used for paramset data in the cache.
-func paramSetKey(q url.Values, paramKeys []string) (string, bool) {
+func paramSetKey(q url.Values, paramKeys []string) (string, error) {
 	paramSetStrings := []string{}
 	for _, key := range paramKeys {
 		paramVal, ok := q[key]
 		if !ok {
-			sklog.Errorf("Key %s not present in query values %v", key, q)
-			return "", ok
+			err := skerr.Fmt("Key %s not present in query values %v", key, q)
+			sklog.Error(err)
+			return "", err
 		}
 		paramSetStrings = append(paramSetStrings, fmt.Sprintf("%s=%s", key, paramVal))
 	}
 
-	return strings.Join(paramSetStrings, "&"), true
+	return strings.Join(paramSetStrings, "&"), nil
 }
 
 // countKey returns a key to store the count value in the cache.

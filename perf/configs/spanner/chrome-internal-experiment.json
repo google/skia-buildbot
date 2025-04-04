@@ -16,11 +16,6 @@
     "notify_config": {
         "notifications": "anomalygroup"
     },
-    "issue_tracker_config": {
-        "notification_type": "issuetracker",
-        "issue_tracker_api_key_secret_project": "skia-infra-public",
-        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
-    },
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"
     },
@@ -59,8 +54,8 @@
         "include_params": [
             "benchmark",
             "bot",
-            "stat",
             "test",
+            "stat",
             "subtest_1",
             "subtest_2",
             "subtest_3"

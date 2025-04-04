@@ -156,6 +156,93 @@ func TestPopulateAndRetrieveLocalCacheOnly1Level_Success(t *testing.T) {
 	assertCacheMiss(t, ctx, cache, l2CacheKey2)
 }
 
+func TestGetParamSetKey_Success_OnOneKey_OnRemoveDefault(t *testing.T) {
+	pf := getPsRefresher(nil, nil, nil)
+	cache := mockCache.NewCache(t)
+	refresher := NewCachedParamSetRefresher(pf, cache)
+	refresher.psRefresher.experiments = (config.Experiments{})
+	refresher.psRefresher.qConfig.DefaultParamSelections = map[string][]string{"stat": {"value"}}
+	refresher.psRefresher.qConfig.CacheConfig.Level1Key = "benchmark"
+	refresher.psRefresher.qConfig.CacheConfig.Level2Key = "bot"
+	q := url.Values{"benchmark": []string{"abc"}, "stat": []string{"value"}}
+	key, err := refresher.getParamSetKey(q)
+	assert.Nil(t, err)
+	assert.Equal(t, "benchmark=[abc]", key)
+}
+
+func TestGetParamSetKey_Success_OnTwoKeys_OnRemoveDefault(t *testing.T) {
+	pf := getPsRefresher(nil, nil, nil)
+	cache := mockCache.NewCache(t)
+	refresher := NewCachedParamSetRefresher(pf, cache)
+	refresher.psRefresher.experiments = (config.Experiments{})
+	refresher.psRefresher.qConfig.DefaultParamSelections = map[string][]string{"stat": {"value"}}
+	refresher.psRefresher.qConfig.CacheConfig.Level1Key = "benchmark"
+	refresher.psRefresher.qConfig.CacheConfig.Level2Key = "bot"
+	q := url.Values{"benchmark": []string{"abc"}, "stat": []string{"value"}, "bot": []string{"def"}}
+	key, err := refresher.getParamSetKey(q)
+	assert.Nil(t, err)
+	assert.Equal(t, "benchmark=[abc]&bot=[def]", key)
+}
+
+func TestGetParamSetKey_Fail(t *testing.T) {
+	pf := getPsRefresher(nil, nil, nil)
+	cache := mockCache.NewCache(t)
+	refresher := NewCachedParamSetRefresher(pf, cache)
+	refresher.psRefresher.experiments = (config.Experiments{})
+	refresher.psRefresher.qConfig.DefaultParamSelections = map[string][]string{"stat": {"value"}}
+	refresher.psRefresher.experiments.RemoveDefaultStatValue = true
+	refresher.psRefresher.qConfig.CacheConfig.Level1Key = "benchmark"
+	refresher.psRefresher.qConfig.CacheConfig.Level2Key = "bot"
+	q := url.Values{"benchmark": []string{"abc"}, "stat": []string{"value"}}
+	_, err := refresher.getParamSetKey(q)
+	assert.NotNil(t, err, "Key bot not present in query values %v", q)
+}
+
+func TestGetParamSetKey_Success_OnOneKey(t *testing.T) {
+	pf := getPsRefresher(nil, nil, nil)
+	cache := mockCache.NewCache(t)
+	refresher := NewCachedParamSetRefresher(pf, cache)
+	refresher.psRefresher.experiments = (config.Experiments{})
+	refresher.psRefresher.qConfig.DefaultParamSelections = map[string][]string{"stat": {"value"}}
+	refresher.psRefresher.experiments.RemoveDefaultStatValue = true
+	refresher.psRefresher.qConfig.CacheConfig.Level1Key = "benchmark"
+	refresher.psRefresher.qConfig.CacheConfig.Level2Key = "bot"
+	q := url.Values{"benchmark": []string{"abc"}}
+	key, err := refresher.getParamSetKey(q)
+	assert.Nil(t, err)
+	assert.Equal(t, "benchmark=[abc]", key)
+}
+
+func TestGetParamSetKey_Success_OnTwoKeys(t *testing.T) {
+	pf := getPsRefresher(nil, nil, nil)
+	cache := mockCache.NewCache(t)
+	refresher := NewCachedParamSetRefresher(pf, cache)
+	refresher.psRefresher.experiments = (config.Experiments{})
+	refresher.psRefresher.qConfig.DefaultParamSelections = map[string][]string{"stat": {"value"}}
+	refresher.psRefresher.experiments.RemoveDefaultStatValue = true
+	refresher.psRefresher.qConfig.CacheConfig.Level1Key = "benchmark"
+	refresher.psRefresher.qConfig.CacheConfig.Level2Key = "bot"
+	q := url.Values{"benchmark": []string{"abc"}, "bot": []string{"def"}}
+	key, err := refresher.getParamSetKey(q)
+	assert.Nil(t, err)
+	assert.Equal(t, "benchmark=[abc]&bot=[def]", key)
+}
+
+func TestGetParamSetKey_Success_OnMoreThanTwoKeys(t *testing.T) {
+	pf := getPsRefresher(nil, nil, nil)
+	cache := mockCache.NewCache(t)
+	refresher := NewCachedParamSetRefresher(pf, cache)
+	refresher.psRefresher.experiments = (config.Experiments{})
+	refresher.psRefresher.qConfig.DefaultParamSelections = map[string][]string{"stat": {"value"}}
+	refresher.psRefresher.experiments.RemoveDefaultStatValue = true
+	refresher.psRefresher.qConfig.CacheConfig.Level1Key = "benchmark"
+	refresher.psRefresher.qConfig.CacheConfig.Level2Key = "bot"
+	q := url.Values{"benchmark": []string{"abc"}, "bot": []string{"def"}, "stat": []string{"value"}}
+	key, err := refresher.getParamSetKey(q)
+	assert.Nil(t, err)
+	assert.Equal(t, "", key)
+}
+
 func assertCacheHit(t *testing.T, ctx context.Context, cache *local.Cache, psCacheKey string, expectedCount int) {
 	val, err := cache.GetValue(ctx, psCacheKey)
 	assert.Nil(t, err)
