@@ -6,9 +6,29 @@ json-source-sk {
     border-width: 4px;
   }
 
-  #controls {
+  button {
     display: flex;
-    align-items: center;
+    text-align: center;
+    /* Ensure it can behave like a block or inline-block for text-align */
+    display: inline-block;
+    align-items: baseline;
+    width: auto;
+    align-content: center;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+  }
+
+  #controls {
+    display: inline-flex;
+    text-align: center;
+    /* Ensure it can behave like a block or inline-block for text-align */
+    display: inline-block;
+    align-items: baseline;
+    width: auto;
+    align-content: center;
+    flex-direction: row;
+    flex-wrap: nowrap;
   }
 
   #controls[hidden] {
@@ -20,8 +40,28 @@ json-source-sk {
     padding: 8px;
   }
 
-  md-outlined-button {
-    --md-outlined-button-container-shape: 4px;
-    margin-right: 8px;
+  #json-dialog {
+    position: relative;
+    border: solid var(--on-background) 1px;
+    color: var(--on-background);
+    background: var(--background);
+
+    #closeIcon {
+      position: sticky;
+      display: block;
+      z-index: 2; /* Ensure it's above the content*/
+      float: right;
+      padding: 0;
+      border: none;
+      cursor: pointer;
+    }
+
+    #json-source {
+      position: relative;
+      overflow: auto;
+      top: 12px;
+      width: 45%;
+      padding: 10px;
+    }
   }
 }

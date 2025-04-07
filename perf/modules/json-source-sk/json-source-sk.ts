@@ -30,6 +30,8 @@ export class JSONSourceSk extends ElementSk {
 
   private _spinner: SpinnerSk | null = null;
 
+  private showJsonDialog: HTMLDialogElement | null = null;
+
   constructor() {
     super(JSONSourceSk.template);
     this._json = '';
@@ -38,19 +40,23 @@ export class JSONSourceSk extends ElementSk {
 
   private static template = (ele: JSONSourceSk) => html`
     <div id="controls" ?hidden=${!ele.validTraceID()}>
-      <md-outlined-button @click=${ele._loadSource}>View Source File</md-outlined-button>
-      <md-outlined-button @click=${ele._loadSourceSmall}
-        >View Source File Without Results</md-outlined-button
-      >
-      <spinner-sk id="spinner"></spinner-sk>
+      <button id="view-source" @click=${ele._loadSource}>View Json FIle</button>
+      <button id="load-source" @click=${ele._loadSourceSmall}>View Short Json File</button>
     </div>
-    <pre>${ele._json}</pre>
+    <dialog id="json-dialog">
+      <button id="closeIcon" @click=${ele.closeJsonDialog}>
+        <close-icon-sk></close-icon-sk>
+      </button>
+      <spinner-sk id="spinner"></spinner-sk>
+      ${ele.jsonFile()}
+    </dialog>
   `;
 
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this._spinner = $$('#spinner', this);
+    this.showJsonDialog = this.querySelector('#json-dialog');
   }
 
   private validTraceID(): boolean {
@@ -79,15 +85,17 @@ export class JSONSourceSk extends ElementSk {
     this._render();
   }
 
-  private _loadSource() {
+  private async _loadSource() {
     this._loadSourceImpl(false);
+    this.openJsonDialog();
   }
 
-  private _loadSourceSmall() {
+  private async _loadSourceSmall() {
     this._loadSourceImpl(true);
+    this.openJsonDialog();
   }
 
-  private _loadSourceImpl(isSmall: boolean) {
+  private async _loadSourceImpl(isSmall: boolean) {
     if (this._spinner!.active === true) {
       return;
     }
@@ -106,7 +114,7 @@ export class JSONSourceSk extends ElementSk {
     if (isSmall) {
       url += '?results=false';
     }
-    fetch(url, {
+    await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -114,15 +122,33 @@ export class JSONSourceSk extends ElementSk {
       body: JSON.stringify(body),
     })
       .then(jsonOrThrow)
-      .then((json) => {
-        this._spinner!.active = false;
+      .then(async (json) => {
         this._json = JSON.stringify(json, null, '  ');
+        this._spinner!.active = false;
         this._render();
       })
       .catch((e) => {
         this._spinner!.active = false;
         errorMessage(e);
       });
+  }
+
+  private jsonFile() {
+    if (this._json! !== '') {
+      return html` <div id="json-source">
+        <pre>${this._json}</pre>
+      </div>`;
+    }
+  }
+
+  private openJsonDialog() {
+    this._render();
+    this.showJsonDialog!.showModal();
+  }
+
+  private closeJsonDialog(): void {
+    this._json = '';
+    this.showJsonDialog!.close();
   }
 }
 

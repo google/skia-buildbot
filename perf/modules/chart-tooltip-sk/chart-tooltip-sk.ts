@@ -35,6 +35,7 @@ import {
   TryJobPreloadParams,
 } from '../pinpoint-try-job-dialog-sk/pinpoint-try-job-dialog-sk';
 import { defaultColors } from '../common/plot-builder';
+import { JSONSourceSk } from '../json-source-sk/json-source-sk';
 
 export class ChartTooltipSk extends ElementSk {
   constructor() {
@@ -117,6 +118,11 @@ export class ChartTooltipSk extends ElementSk {
   // for an example of the configuration.
   private pointLinks: PointLinksSk | null = null;
 
+  // dialog for displaying JSON source if configured for the instance.
+  // See "data_point_config" in chrome-perf-non-public.json
+  // for an example of the configuration.
+  private jsonSourceDialog: JSONSourceSk | null = null;
+
   // Bisect Dialog.
   bisectDialog: BisectDialogSk | null = null;
 
@@ -140,6 +146,8 @@ export class ChartTooltipSk extends ElementSk {
   //   are needed to calculate both the trace and header for commit-range.
   //
   // TODO(b/338440689) - make commit number a link to gitiles
+  // TODO(b/408558084) - remove div when adding a new field to determine
+  // displaying json moodule or not
   private static template = (ele: ChartTooltipSk) => html`
     <div class="container" ${ref(ele.containerDiv)}>
       <md-elevation></md-elevation>
@@ -201,7 +209,10 @@ export class ChartTooltipSk extends ElementSk {
         </button>
         <user-issue-sk
           id="tooltip-user-issue-sk"
-          ?hidden=${!ele.tooltip_fixed || ele.anomaly}></user-issue-sk>
+          ?hidden=${!ele.tooltip_fixed || !ele.anomaly}></user-issue-sk>
+      </div>
+      <div id="json-source-dialog" ?hidden=${!ele.tooltip_fixed}>
+        <json-source-sk id="json-source-sk"></json-source-sk>
       </div>
       <bisect-dialog-sk id="bisect-dialog-sk"></bisect-dialog-sk>
       <pinpoint-try-job-dialog-sk id="pinpoint-try-job-dialog-sk"></pinpoint-try-job-dialog-sk>
@@ -345,6 +356,7 @@ export class ChartTooltipSk extends ElementSk {
     this.pointLinks = this.querySelector('#tooltip-point-links');
     this.bisectDialog = this.querySelector('#bisect-dialog-sk');
     this.tryJobDialog = this.querySelector('#pinpoint-try-job-dialog-sk');
+    this.jsonSourceDialog = this.querySelector('#json-source-sk');
 
     this.addEventListener('anomaly-changed', () => {
       this._render();
@@ -478,6 +490,14 @@ export class ChartTooltipSk extends ElementSk {
       keysForUsefulLinks!,
       commitLinks
     );
+  }
+
+  loadJsonResource(commit_position: CommitNumber | null, trace_id: string) {
+    if (this.jsonSourceDialog === null || commit_position === null || trace_id === null) {
+      return;
+    }
+    this.jsonSourceDialog!.cid = commit_position;
+    this.jsonSourceDialog!.traceid = trace_id;
   }
 
   /** Clear Point Links */

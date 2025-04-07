@@ -2154,6 +2154,7 @@ export class ExploreSimpleSk extends ElementSk {
       commitRangeSk,
       closeBtnAction
     );
+    tooltipElem!.loadJsonResource(commitPosition, traceName);
     if (commit === null) {
       fetch('/_/cid/', {
         method: 'POST',
