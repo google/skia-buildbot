@@ -232,19 +232,19 @@ func (f *Frontend) loadTemplatesImpl() {
 	for _, filename := range templateFilenames {
 		contents, err := fileContentsFromFileSystem(f.distFileSystem, filename)
 		if err != nil {
-			sklog.Fatal(err)
+			sklog.Fatalf("Fail in fileContentsFromFileSystem: %v", err)
 		}
 		f.templates = f.templates.New(filename).Delims("{%", "%}").Option("missingkey=error")
 		_, err = f.templates.Parse(contents)
 		if err != nil {
-			sklog.Fatal(err)
+			sklog.Fatalf("Fail in Parse: %v", err)
 		}
 	}
 	for name, snippet := range map[string]string{"googleanalytics": googleAnalyticsSnippet, "cookieconsent": cookieConsentSnippet} {
 		f.templates = f.templates.New(name).Delims("{%", "%}").Option("missingkey=error")
 		_, err := f.templates.Parse(snippet)
 		if err != nil {
-			sklog.Fatal(err)
+			sklog.Fatalf("Fail in Parse: %v", err)
 		}
 	}
 }
@@ -338,7 +338,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 			// Look in //machine/pages/BUILD.bazel for where the nonce templates are injected.
 			"Nonce": secure.CSPNonce(r.Context()),
 		}); err != nil {
-			sklog.Error("Failed to expand template:", err)
+			sklog.Errorf("Failed to expand template: %v", err)
 		}
 	}
 }
@@ -386,7 +386,7 @@ func (f *Frontend) initialize() {
 
 	// Load the config file.
 	if err := validate.LoadAndValidate(f.flags.ConfigFilename); err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Fail in LoadAndValidate: %v", err)
 	}
 	if f.flags.ConnectionString != "" {
 		config.Config.DataStoreConfig.ConnectionString = f.flags.ConnectionString
@@ -402,7 +402,7 @@ func (f *Frontend) initialize() {
 
 	u, err := url.Parse(cfg.URL)
 	if err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Fail in Parse: %v", err)
 	}
 	f.host = u.Host
 
@@ -491,32 +491,32 @@ func (f *Frontend) initialize() {
 	if config.Config.FetchChromePerfAnomalies {
 		f.anomalyApiClient, err = chromeperf.NewAnomalyApiClient(ctx, f.perfGit)
 		if err != nil {
-			sklog.Fatal("Failed to build chrome anomaly api client: %s", err)
+			sklog.Fatalf("Failed to build chrome anomaly api client: %s", err)
 		}
 		f.anomalyStore, err = cache.New(f.anomalyApiClient)
 		if err != nil {
-			sklog.Fatal("Failed to build anomalies.Store: %s", err)
+			sklog.Fatalf("Failed to build anomalies.Store: %s", err)
 		}
 
 		f.pinpoint, err = pinpoint.New(ctx)
 		if err != nil {
-			sklog.Fatal("Failed to build pinpoint.Client: %s", err)
+			sklog.Fatalf("Failed to build pinpoint.Client: %s", err)
 		}
 
 		f.alertGroupClient, err = chromeperf.NewAlertGroupApiClient(ctx)
 		if err != nil {
-			sklog.Fatal("Failed to build alert group client: %s", err)
+			sklog.Fatalf("Failed to build alert group client: %s", err)
 		}
 
 		f.chromeperfClient, err = chromeperf.NewChromePerfClient(ctx, "", true)
 		if err != nil {
-			sklog.Fatal("Failed to build chromeperf client: %s", err)
+			sklog.Fatalf("Failed to build chromeperf client: %s", err)
 		}
 
 		if cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretProject != "" && cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretName != "" {
 			f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig)
 			if err != nil {
-				sklog.Fatal("Failed to build issuetracker client: %s", err)
+				sklog.Fatalf("Failed to build issuetracker client: %s", err)
 			}
 		}
 	}
@@ -531,15 +531,15 @@ func (f *Frontend) initialize() {
 	sklog.Info("About to build alertStore.")
 	f.alertStore, err = builders.NewAlertStoreFromConfig(ctx, f.flags.Local, config.Config)
 	if err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Fail to NewAlertStoreFromConfig: %v", err)
 	}
 	f.shortcutStore, err = builders.NewShortcutStoreFromConfig(ctx, f.flags.Local, config.Config)
 	if err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Fail to NewShortcutStoreFromConfig: %v", err)
 	}
 	f.graphsShortcutStore, err = builders.NewGraphsShortcutStoreFromConfig(ctx, f.flags.Local, config.Config)
 	if err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Fail to NewGraphsShortcutStoreFromConfig: %v", err)
 	}
 
 	if f.flags.NoEmail {
@@ -547,7 +547,7 @@ func (f *Frontend) initialize() {
 	}
 	f.notifier, err = notify.New(ctx, &config.Config.NotifyConfig, &config.Config.IssueTrackerConfig, config.Config.URL, f.flags.CommitRangeURL, f.traceStore, f.ingestedFS)
 	if err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Failed to create issue tracker: %v", err)
 	}
 
 	f.configProvider, err = alerts.NewConfigProvider(ctx, f.alertStore, 600)
@@ -617,7 +617,7 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 			Context:                      context,
 		}
 		if err := f.templates.ExecuteTemplate(w, "help.html", templateContext); err != nil {
-			sklog.Error("Failed to expand template:", err)
+			sklog.Errorf("Failed to expand template: %v", err)
 		}
 	}
 }
