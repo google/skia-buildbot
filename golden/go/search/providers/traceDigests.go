@@ -229,9 +229,9 @@ func (s *TraceDigestsProvider) GetTracesForGroupingAndDigest(ctx context.Context
 		tableName = "TiledTraceDigests"
 	}
 	statement := fmt.Sprintf(`SELECT trace_id FROM %s
-WHERE tile_id >= $1 AND grouping_id = $2 AND digest = $3
+WHERE grouping_id = $1 AND digest = $2
 `, tableName)
-	rows, err := s.db.Query(ctx, statement, common.GetFirstTileID(ctx), groupingID, digestBytes)
+	rows, err := s.db.Query(ctx, statement, groupingID, digestBytes)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
