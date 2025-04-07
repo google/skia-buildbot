@@ -317,6 +317,7 @@ export class PointLinksSk extends ElementSk {
       if (format.links && format.links![this.fuchsiaBuildLogKey]) {
         const val = this.extractUrlFromStringForFuchsia(format.links![this.fuchsiaBuildLogKey]);
         response[this.buildLogText] = val;
+        delete response[this.fuchsiaBuildLogKey];
         return response;
       }
     } catch (error) {
