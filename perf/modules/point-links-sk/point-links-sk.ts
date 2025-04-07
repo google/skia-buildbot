@@ -273,11 +273,32 @@ export class PointLinksSk extends ElementSk {
     cid: CommitNumber,
     traceId: string
   ): Promise<{ [key: string]: string }> {
+    let url = '/_/links/';
+    let response = await this.invokeLinksForPointApi(cid, traceId, url);
+    if (!response) {
+      url = '/_/details/?results=false';
+      response = await this.invokeLinksForPointApi(cid, traceId, url);
+    }
+
+    return response;
+  }
+
+  /**
+   * Invoke the api with the given url to get links for the data point.
+   * @param cid Commit id
+   * @param traceId Trace id
+   * @param url Url of the api
+   * @returns Links relevant to the commit id and trace id.
+   */
+  private async invokeLinksForPointApi(
+    cid: CommitNumber,
+    traceId: string,
+    url: string
+  ): Promise<{ [key: string]: string }> {
     const body: CommitDetailsRequest = {
       cid: cid,
       traceid: traceId,
     };
-    const url = '/_/links/';
     let response: { [key: string]: string } = {};
     try {
       const resp = await fetch(url, {
