@@ -817,6 +817,7 @@ export class ExploreSimpleSk extends ElementSk {
           <md-icon slot="improvement">check_circle</md-icon>
           <md-icon slot="ignored">report_off</md-icon>
           <md-icon slot="issue">chat_bubble</md-icon>
+          <md-text slot="xbar">|</md-text>
         </plot-google-chart-sk>
         <plot-simple-sk
         style="${!ele._state.show_google_plot ? '' : 'display: none'}"
@@ -2799,11 +2800,13 @@ export class ExploreSimpleSk extends ElementSk {
     if (plot) {
       plot.bands = bands;
     }
+    const googleChart = this.googleChartPlot.value;
 
     // Populate the xbar if present.
     if (this._state.xbaroffset !== -1) {
       const xbaroffset = this._state.xbaroffset;
       let xbar = -1;
+
       mergedDataframe.header!.forEach((h, i) => {
         if (h!.offset === xbaroffset) {
           xbar = i;
@@ -2813,9 +2816,16 @@ export class ExploreSimpleSk extends ElementSk {
       if (plot) {
         plot.xbar = xbar;
       }
+      if (googleChart) {
+        // Set offset value to be used for Xbar, not index.
+        googleChart.xbar = this._state.xbaroffset;
+      }
     } else {
       if (plot) {
         plot.xbar = -1;
+      }
+      if (googleChart) {
+        googleChart.xbar = -1;
       }
     }
     if (this.state.use_titles) {

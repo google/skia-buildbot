@@ -319,7 +319,7 @@ export class ClusterSummary2Sk extends ElementSk {
     const detail: ClusterSummary2SkOpenKeysEventDetail = {
       shortcut: this.summary.shortcut,
       begin: this.frame!.dataframe!.header![0]!.timestamp,
-      end: this.frame!.dataframe!.header![this.frame!.dataframe!.header!.length - 1]!.timestamp + 1,
+      end: Math.floor(Date.now() / 1000),
       xbar: this.summary.step_point!,
     };
     this.dispatchEvent(

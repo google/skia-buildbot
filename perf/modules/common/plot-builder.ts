@@ -149,6 +149,9 @@ export function mainChartOptions(
     // for selectionMode: single, this should be none, such that we only allow
     // one tooltip per seelction
     aggregationTarget: 'none',
+    annotations: {
+      style: 'line',
+    },
     tooltip: { trigger: 'none' },
     pointSize: 3,
     dataOpacity: 0.7,
@@ -162,7 +165,7 @@ export function mainChartOptions(
         color: style.color,
       },
       gridlines: {
-        color: style.getPropertyValue('--md-sys-color-primary-container'),
+        color: style.getPropertyValue('--md-sys-color-outline'),
       },
       format: format,
     },
@@ -174,7 +177,7 @@ export function mainChartOptions(
       textPosition: 'out',
       textStyle: { color: style.color },
       gridlines: {
-        color: style.getPropertyValue('--md-sys-color-primary-container'),
+        color: style.getPropertyValue('--md-sys-color-outline'),
       },
       viewWindowMode: 'maximized',
     },

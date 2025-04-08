@@ -64,7 +64,9 @@ export class PlotGoogleChartSk extends LitElement {
     .plot {
       height: 100%;
       flex-grow: 1;
+      z-index: 1;
     }
+
     .anomaly {
       position: absolute;
       top: 0px;
@@ -109,6 +111,19 @@ export class PlotGoogleChartSk extends LitElement {
       md-icon.issue {
         background: var(--background);
         border: white 1px solid;
+      }
+    }
+
+    .xbar {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+
+      md-text {
+        font-weight: bolder;
+        transform: translate(-50%, -50%);
+        font-size: 60px;
+        color: var(--error);
       }
     }
 
@@ -174,6 +189,7 @@ export class PlotGoogleChartSk extends LitElement {
     improvement: createRef<HTMLSlotElement>(),
     ignored: createRef<HTMLSlotElement>(),
     issue: createRef<HTMLSlotElement>(),
+    xbar: createRef<HTMLSlotElement>(),
   };
 
   // Modes for chart interaction with mouse.
@@ -189,6 +205,10 @@ export class PlotGoogleChartSk extends LitElement {
   // Vertical zoom by default
   @property({ attribute: false })
   isHorizontalZoom = false;
+
+  // The location of the XBar. See the xbar property.
+  @property({ attribute: false })
+  xbar: number = -1;
 
   private lastMouse = { x: 0, y: 0 };
 
@@ -227,6 +247,9 @@ export class PlotGoogleChartSk extends LitElement {
   // The div container for the legend
   private sidePanel = createRef<SidePanelSk>();
 
+  // The div container for anomaly overlays.
+  private xbarDiv = createRef<HTMLDivElement>();
+
   constructor() {
     super();
     this.addEventListeners();
@@ -264,6 +287,7 @@ export class PlotGoogleChartSk extends LitElement {
         ${when(this.loading, () => html`<md-linear-progress indeterminate></md-linear-progress>`)}
         <div class="anomaly" ${ref(this.anomalyDiv)}></div>
         <div class="userissue" ${ref(this.userIssueDiv)}></div>
+        <div class="xbar" ${ref(this.xbarDiv)}></div>
         <v-resizable-box-sk ${ref(this.deltaRangeBox)}} @mouseup=${this.onChartMouseUp}>
         </v-resizable-box-sk>
         <drag-to-zoom-box-sk ${ref(this.zoomRangeBox)}} @mouseup=${this.onChartMouseUp}>
@@ -284,6 +308,7 @@ export class PlotGoogleChartSk extends LitElement {
       <slot name="improvement" ${ref(this.slots.improvement)}></slot>
       <slot name="ignored" ${ref(this.slots.ignored)}></slot>
       <slot name="issue" ${ref(this.slots.issue)}></slot>
+      <slot name="xbar" ${ref(this.slots.xbar)}></slot>
     `;
   }
 
@@ -965,11 +990,65 @@ export class PlotGoogleChartSk extends LitElement {
     userIssueDiv.replaceChildren(...allDivs);
   }
 
+  private drawXbar(chart: google.visualization.CoreChartBase) {
+    const layout = chart.getChartLayoutInterface();
+    if (this.xbar === -1) {
+      return;
+    }
+
+    const xbarDiv = this.xbarDiv.value;
+    if (!xbarDiv) {
+      return;
+    }
+
+    const chartRect = layout.getChartAreaBoundingBox();
+    const left = chartRect.left,
+      top = chartRect.top;
+    const right = left + chartRect.width,
+      bottom = top + chartRect.height;
+    const allDivs: Node[] = [];
+
+    // Clone from the given template icons in the named slots.
+    const slots = this.slots;
+    const cloneSlot = (name: 'xbar') => {
+      const assigned = slots[name].value!.assignedElements();
+      if (!assigned || assigned.length === 0) {
+        console.warn('could not find xbar template at ${commit} of ${row}');
+        return null;
+      }
+      if (assigned.length > 1) {
+        console.warn('multiple clones found at ${commit} of ${row}');
+      }
+      const cloned = assigned[0].cloneNode(true) as HTMLElement;
+      cloned.className = `${name}`;
+      return cloned;
+    };
+
+    // Every 10px mark a new line.
+    for (let y = top; y < bottom; y += 10) {
+      const x = layout.getXLocation(this.xbar);
+      // Ensure line can be drawn on visible canvas.
+      if (x >= left && x <= right && y >= top && y <= bottom) {
+        const cloned: HTMLElement | null = cloneSlot('xbar');
+
+        if (cloned) {
+          cloned.style.top = `${y}px`;
+          cloned.style.left = `${x}px`;
+          allDivs.push(cloned);
+        }
+      }
+    }
+    if (allDivs.length > 0) {
+      xbarDiv.replaceChildren(...allDivs);
+    }
+  }
+
   private onChartReady(e: CustomEvent) {
     this.chart = e.detail.chart as google.visualization.CoreChartBase;
     // Only draw the anomaly when the chart is ready.
     this.drawAnomaly(this.chart);
     this.drawUserIssues(this.chart);
+    this.drawXbar(this.chart);
 
     const layout = this.chart.getChartLayoutInterface();
     const area = layout.getChartAreaBoundingBox();
