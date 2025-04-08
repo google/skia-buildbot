@@ -6706,8 +6706,7 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnPrimary_PublicView_NoTracesMat
 	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 	_, err = s.GetDigestDetails(ctx, inputGrouping, dks.DigestC02Pos, "", "")
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "No results found")
+	require.NoError(t, err)
 }
 
 func TestGetDigestDetails_InvalidDigestAndGroupingOnPrimary_ReturnsPartialResult(t *testing.T) {
@@ -6978,8 +6977,7 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnCL_PublicView_NoTracesMatchPub
 	})
 
 	_, err = s.GetDigestDetails(ctx, inputGrouping, dks.DigestC02Pos, dks.ChangelistIDThatAttemptsToFixIOS, dks.GerritCRS)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "No results found")
+	require.NoError(t, err)
 }
 
 func TestGetDigestDetails_ValidDigestAndGroupingOnCL_OnePatchsetWithMultipleDatapointsOnSameTrace_Success(t *testing.T) {

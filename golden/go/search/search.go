@@ -3113,6 +3113,11 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 
 	if s.isPublicView {
 		digestWithTraceAndGrouping = s.applyPublicFilterToDigestWithTraceAndGrouping(digestWithTraceAndGrouping)
+		// If public filtering has removed all items from digests list,
+		// return an empty response. No error since this is a valid scenario.
+		if len(digestWithTraceAndGrouping) == 0 {
+			return frontend.DigestDetails{}, nil
+		}
 	}
 
 	// Lookup the closest diffs to the given digests. This returns a subset according to the
