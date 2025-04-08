@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/du"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
@@ -107,6 +108,13 @@ func main() {
 			sklog.Fatalf("Failed to create %s: %s", os.TempDir(), err)
 		}
 	}
+
+	// Periodically log disk usage of the working directory.
+	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
+		if err := du.PrintJSONReport(ctx, *workdir, 2, true); err != nil {
+			sklog.Errorf("Failed to generate disk usage report: %s", err)
+		}
+	})
 
 	// Set up token source and authenticated API clients.
 	var tokenSource oauth2.TokenSource

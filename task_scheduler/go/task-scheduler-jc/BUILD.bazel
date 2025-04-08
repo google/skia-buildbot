@@ -11,6 +11,7 @@ go_library(
         "//go/cleanup",
         "//go/common",
         "//go/depot_tools",
+        "//go/du",
         "//go/gerrit",
         "//go/gitauth",
         "//go/gitstore/bt_gitstore",
