@@ -26,7 +26,6 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	ttlcache "github.com/patrickmn/go-cache"
 	"go.opencensus.io/trace"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/roles"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
@@ -191,7 +190,6 @@ func (wh *Handlers) cheapLimitForGerritPlugin(r *http.Request) error {
 // ByBlameHandler takes the response from the SQL backend's GetBlamesForUntriagedDigests and
 // converts it into the same format that the legacy version (v1) produced.
 func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
@@ -245,7 +243,6 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 // ChangelistsHandler returns the list of code_review.Changelists that have
 // uploaded results to Gold (via TryJobs).
 func (wh *Handlers) ChangelistsHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
 	ctx, span := trace.StartSpan(r.Context(), "web_ChangelistsHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
@@ -433,7 +430,6 @@ ORDER BY Patchsets.patchset_id
 // SearchHandler searches the data in the new SQL backend. It times out after 3 minutes, to prevent
 // outstanding requests from growing unbounded.
 func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
@@ -572,7 +568,6 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 // ListIgnoreRules2 returns the current ignore rules in JSON format and the counts of
 // how many traces they affect.
 func (wh *Handlers) ListIgnoreRules2(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
 	ctx, span := trace.StartSpan(r.Context(), "web_ListIgnoreRules2", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 
@@ -1506,7 +1501,6 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 // ListTestsHandler returns all the tests in the given corpus and a count of how many digests
 // have been seen for that.
 func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
 	ctx, span := trace.StartSpan(r.Context(), "web_ListTestsHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	if err := wh.limitForAnonUsers(r); err != nil {
@@ -1530,7 +1524,6 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 
 // TriageLogHandler returns what has been triaged recently.
 func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
 	ctx, span := trace.StartSpan(r.Context(), "web_TriageLogHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {

@@ -13,7 +13,6 @@ go_library(
         "//go/alogin",
         "//go/httputils",
         "//go/human",
-        "//go/metrics2",
         "//go/now",
         "//go/paramtools",
         "//go/roles",
