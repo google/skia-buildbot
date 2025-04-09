@@ -10,25 +10,34 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/dustin/go-humanize"
 	"go.skia.org/infra/go/skerr"
 )
 
+const (
+	// blockSize is the size in bytes of disk blocks on modern hard drives.
+	blockSize = 512
+)
+
 // File represents a single file and its size in bytes.
 type File struct {
-	Name string
-	Size uint64
+	Name   string
+	Size   uint64
+	Blocks uint64
 }
 
 // Dir represents a directory and all of its files and subdirectories, along
 // with their total counts and sizes.
 type Dir struct {
-	Name       string
-	Dirs       []*Dir
-	Files      []*File
-	TotalSize  uint64
-	TotalFiles uint64
+	Name        string
+	Dirs        []*Dir
+	Files       []*File
+	TotalSize   uint64
+	TotalFiles  uint64
+	Blocks      uint64
+	TotalBlocks uint64
 }
 
 // Usage produces a report of disk usage within the given directory.
@@ -52,11 +61,13 @@ func Usage(ctx context.Context, rootPath string) (*Dir, error) {
 			return skerr.Wrap(err)
 		}
 
+		stat := info.Sys().(*syscall.Stat_t)
 		if info.IsDir() {
 			dirEntry := &Dir{
-				Dirs:      []*Dir{},
-				Files:     []*File{},
-				TotalSize: uint64(info.Size()),
+				Dirs:        []*Dir{},
+				Files:       []*File{},
+				Blocks:      uint64(stat.Blocks),
+				TotalBlocks: uint64(stat.Blocks),
 			}
 			dirsByPath[path] = dirEntry
 			if path == rootPath || path == "" {
@@ -88,11 +99,13 @@ func Usage(ctx context.Context, rootPath string) (*Dir, error) {
 			return skerr.Fmt("no directory entry found for %q", parentPath)
 		}
 		parent.Files = append(parent.Files, &File{
-			Name: base,
-			Size: uint64(info.Size()),
+			Name:   base,
+			Size:   uint64(info.Size()),
+			Blocks: uint64(stat.Blocks),
 		})
 		return nil
 	})
+
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -104,12 +117,13 @@ func Usage(ctx context.Context, rootPath string) (*Dir, error) {
 		for _, subdir := range dir.Dirs {
 			genSummaries(subdir)
 			dir.TotalFiles += subdir.TotalFiles
-			dir.TotalSize += subdir.TotalSize
+			dir.TotalBlocks += subdir.TotalBlocks
 		}
 		for _, file := range dir.Files {
 			dir.TotalFiles++
-			dir.TotalSize += file.Size
+			dir.TotalBlocks += file.Blocks
 		}
+		dir.TotalSize = dir.TotalBlocks * blockSize
 		sort.Sort(DirSlice(dir.Dirs))
 		sort.Sort(FileSlice(dir.Files))
 	}
@@ -122,7 +136,7 @@ func Usage(ctx context.Context, rootPath string) (*Dir, error) {
 // directory. maxDepth controls how many directory levels are displayed;
 // if zero, there is no maximum depth. human causes the report to use human-
 // readable units instead of raw bytes.
-func GenerateReport(ctx context.Context, rootDir *Dir, rootPath string, maxDepth int, human bool) (string, error) {
+func GenerateReport(ctx context.Context, rootDir *Dir, maxDepth int, human bool) (string, error) {
 	var buf strings.Builder
 	var print func(dir *Dir, parentPath string, depth int) error
 	print = func(dir *Dir, parentPath string, depth int) error {
@@ -136,7 +150,7 @@ func GenerateReport(ctx context.Context, rootDir *Dir, rootPath string, maxDepth
 		}
 		var err error
 		if human {
-			_, err = fmt.Fprintf(&buf, "%s\t%s\n", humanize.Bytes(uint64(dir.TotalSize)), dirPath)
+			_, err = fmt.Fprintf(&buf, "%s\t%s\n", humanize.IBytes(uint64(dir.TotalSize)), dirPath)
 		} else {
 			_, err = fmt.Fprintf(&buf, "%d\t%s\n", dir.TotalSize, dirPath)
 		}
@@ -146,7 +160,7 @@ func GenerateReport(ctx context.Context, rootDir *Dir, rootPath string, maxDepth
 		return nil
 	}
 
-	if err := print(rootDir, rootPath, 0); err != nil {
+	if err := print(rootDir, "", 0); err != nil {
 		return "", skerr.Wrap(err)
 	}
 	return strings.TrimRight(buf.String(), "\n"), nil
@@ -161,7 +175,7 @@ func PrintReport(ctx context.Context, rootPath string, maxDepth int, human bool)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	report, err := GenerateReport(ctx, rootDir, rootPath, maxDepth, human)
+	report, err := GenerateReport(ctx, rootDir, maxDepth, human)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -173,7 +187,7 @@ func PrintReport(ctx context.Context, rootPath string, maxDepth int, human bool)
 // the given directory. maxDepth controls how many directory levels are
 // displayed; if zero, there is no maximum depth. human causes the report to use
 // human-readable units instead of raw bytes.
-func GenerateJSONReport(ctx context.Context, rootDir *Dir, rootPath string, maxDepth int, human bool) (string, error) {
+func GenerateJSONReport(ctx context.Context, rootDir *Dir, maxDepth int, human bool) (string, error) {
 	type node struct {
 		Name string  `json:"name"`
 		Dirs []*node `json:"dirs,omitempty"`
@@ -192,14 +206,14 @@ func GenerateJSONReport(ctx context.Context, rootDir *Dir, rootPath string, maxD
 			}
 		}
 		if human {
-			n.Size = humanize.Bytes(uint64(dir.TotalSize))
+			n.Size = humanize.IBytes(uint64(dir.TotalSize))
 		} else {
 			n.Size = strconv.FormatUint(dir.TotalSize, 10)
 		}
 		return n
 	}
 
-	tree := mkTree(rootDir, rootPath, 0)
+	tree := mkTree(rootDir, "", 0)
 	b, err := json.Marshal(tree)
 	if err != nil {
 		return "", skerr.Wrap(err)
@@ -216,7 +230,7 @@ func PrintJSONReport(ctx context.Context, rootPath string, maxDepth int, human b
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	report, err := GenerateJSONReport(ctx, rootDir, rootPath, maxDepth, human)
+	report, err := GenerateJSONReport(ctx, rootDir, maxDepth, human)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
