@@ -326,17 +326,19 @@ func (api graphApi) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	defer util.Close(reader)
 	formattedData, err := format.Parse(reader)
 	if err != nil {
-		httputils.ReportError(w, err, "Error parsing source file format.", http.StatusInternalServerError)
-		return
+		// This is because the file being read is in the legacy format that does not provide links.
+		// We can ignore this error since anyway there are no links to return in the file.
+		formattedData = format.Format{}
+	} else {
+		pointLinks := formattedData.GetLinksForMeasurement(dr.TraceID)
+
+		if !includeResults {
+			formattedData.Results = nil
+		}
+
+		formattedData.Links = pointLinks
 	}
 
-	pointLinks := formattedData.GetLinksForMeasurement(dr.TraceID)
-
-	if !includeResults {
-		formattedData.Results = nil
-	}
-
-	formattedData.Links = pointLinks
 	b, err := json.MarshalIndent(formattedData, "", "  ")
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to re-encode JSON source file", http.StatusInternalServerError)
