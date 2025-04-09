@@ -869,7 +869,7 @@ export class PlotGoogleChartSk extends LitElement {
         for (const cp in anomalies) {
           const offset = Number(cp);
           const rows = data.getFilteredRows([{ column: 0, value: offset }]);
-          if (rows.length < 0) {
+          if (rows.length === 0) {
             console.warn('anomaly data is out of existing dataframe, ignored.');
             continue;
           }
