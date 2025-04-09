@@ -384,13 +384,27 @@ func (q *jobQueue) Enqueue(job *types.Job) {
 	sklog.Infof("Enqueued job %s (build %d) for %+v, %d others in queue", job.Id, job.BuildbucketBuildId, job.RepoState, len(q.queue))
 }
 
-func (q *jobQueue) Dequeue() *types.Job {
+func (q *jobQueue) Peek() *types.Job {
 	q.mtx.Lock()
 	defer q.mtx.Unlock()
-	rv := q.queue[0]
-	q.queue = q.queue[1:]
+	return q.queue[0]
+}
+
+func (q *jobQueue) Dequeue(removeJob *types.Job) {
+	q.mtx.Lock()
+	defer q.mtx.Unlock()
+	removeIndex := -1
+	for idx, job := range q.queue {
+		if job.Id == removeJob.Id {
+			removeIndex = idx
+			break
+		}
+	}
+	if removeIndex < 0 {
+		sklog.Errorf("Failed to dequeue Job %s; no longer in queue", removeJob.Id)
+	}
+	q.queue = append(q.queue[:removeIndex], q.queue[removeIndex+1:]...)
 	q.m.Update(int64(len(q.queue)))
-	return rv
 }
 
 func (q *jobQueue) Len() int {
@@ -419,12 +433,12 @@ func (q *jobQueues) Enqueue(job *types.Job) {
 	if !ok {
 		go func() {
 			for {
-				job := jobQueue.Dequeue()
+				job := jobQueue.Peek()
 				// workFn modifies the RepoState to set the actual commit hash
 				// after syncing. We need to grab a copy of it pre-modification
 				// so that we can delete the correct queue when finished.
 				rs := job.RepoState
-				sklog.Infof("Dequeue job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
+				sklog.Infof("Peek job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 				q.workFn(job)
 
 				// Lock the outer mutex before the inner one, to ensure that
@@ -433,6 +447,7 @@ func (q *jobQueues) Enqueue(job *types.Job) {
 				// will just add a new one, but re-adding the queue after we're
 				// done is fine.
 				q.mtx.Lock()
+				jobQueue.Dequeue(job)
 				if jobQueue.Len() == 0 {
 					sklog.Infof("Deleting empty queue for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, rs)
 					delete(q.queues, rs)
