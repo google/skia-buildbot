@@ -1926,6 +1926,7 @@ export class ExploreSimpleSk extends ElementSk {
     if (this.plotSummary.value) {
       this.plotSummary.value.selectedValueRange = detail.value;
     }
+    this.closeTooltip();
   }
 
   private updateSelectedRangeWithUpdatedDataframe(
