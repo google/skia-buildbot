@@ -504,6 +504,7 @@ export class ChartTooltipSk extends ElementSk {
   reset(): void {
     this.commitRangeSk?.reset();
     this.pointLinks?.reset();
+    this.userIssueSk!._text_input_active = false;
     this._render();
   }
 

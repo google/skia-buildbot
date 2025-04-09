@@ -64,7 +64,6 @@ export class PlotGoogleChartSk extends LitElement {
     .plot {
       height: 100%;
       flex-grow: 1;
-      z-index: 1;
     }
 
     .anomaly {
@@ -120,6 +119,7 @@ export class PlotGoogleChartSk extends LitElement {
       left: 0px;
 
       md-text {
+        pointer-events: none;
         font-weight: bolder;
         transform: translate(-50%, -50%);
         font-size: 60px;

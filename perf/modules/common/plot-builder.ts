@@ -135,6 +135,8 @@ export function mainChartOptions(
 ): google.visualization.LineChartOptions {
   // The X axis can support either commit, or dates. Change the format
   // based on the current chart's format.
+  const gridlineColor = style.getPropertyValue('--md-sys-color-inverse-on-surface');
+
   const format = domain === 'commit' ? '#' : 'MM/dd/yy';
   return {
     // interpolateNulls will continue a line from the last known point to the
@@ -165,7 +167,10 @@ export function mainChartOptions(
         color: style.color,
       },
       gridlines: {
-        color: style.getPropertyValue('--md-sys-color-outline'),
+        color: gridlineColor,
+      },
+      minorGridlines: {
+        color: gridlineColor,
       },
       format: format,
     },
@@ -177,7 +182,10 @@ export function mainChartOptions(
       textPosition: 'out',
       textStyle: { color: style.color },
       gridlines: {
-        color: style.getPropertyValue('--md-sys-color-outline'),
+        color: gridlineColor,
+      },
+      minorGridlines: {
+        color: gridlineColor,
       },
       viewWindowMode: 'maximized',
     },

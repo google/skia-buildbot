@@ -1,10 +1,12 @@
 point-links-sk {
   div.point-links {
+    padding-top: 4px;
     md-icon-button {
       --md-icon-button-icon-size: 20px;
       --md-icon-button-state-layer-height: 25px;
       --md-icon-button-state-layer-width: 25px;
       --md-sys-shape-corner-full: 0px;
+      display: table-cell;
     }
   }
 

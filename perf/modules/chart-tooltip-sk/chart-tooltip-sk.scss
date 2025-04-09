@@ -13,10 +13,8 @@ chart-tooltip-sk {
     z-index: 1;
     min-width: 300px;
     max-width: 360px;
-    max-height: 480px;
     margin: 20px;
     padding: 4px;
-    overflow-y: auto;
     word-wrap: break-word;
     background: var(--surface-2dp);
     md-elevation {
@@ -39,6 +37,7 @@ chart-tooltip-sk {
 
     h3 {
       margin-bottom: 4px;
+      padding-right: 20px;
     }
 
     h4 {
