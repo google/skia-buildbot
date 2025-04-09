@@ -344,6 +344,7 @@ export class ExploreMultiSk extends ElementSk {
           (elem) => elem !== exploreElem
         );
         this.state.totalGraphs--;
+        this.updateChartHeights();
         e.stopPropagation();
       });
 
@@ -405,7 +406,16 @@ export class ExploreMultiSk extends ElementSk {
       this.addStateToExplore(elem, graphConfig);
     });
 
+    this.updateChartHeights();
     this._render();
+  }
+
+  private updateChartHeights(): void {
+    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
+    graphs.forEach((graph) => {
+      const height = graphs.length === 1 ? '500px' : '250px';
+      (graph as ExploreSimpleSk).updateChartHeight(height);
+    });
   }
 
   private addStateToExplore(explore: ExploreSimpleSk, graphConfig: GraphConfig) {

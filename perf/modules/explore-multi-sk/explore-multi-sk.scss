@@ -17,15 +17,6 @@ explore-multi-sk {
     width: 100px;
   }
 
-  div#graphContainer div.chart-container {
-    height: 250px;
-    padding-bottom: 4px; // introduce a small gap between the main chart and the summary bar
-  }
-
-  div#graphContainer plot-summary-sk {
-    height: 60px;
-  }
-
   label > input {
     color: var(--on-surface);
     background: var(--surface-1dp);

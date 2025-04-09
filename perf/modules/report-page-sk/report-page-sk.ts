@@ -264,6 +264,7 @@ export class ReportPageSk extends ElementSk {
       // Set to 0 to promote symmetry.
       requestType: 0,
     };
+    this.updateChartHeights();
     this._render();
 
     return explore;
@@ -279,6 +280,15 @@ export class ReportPageSk extends ElementSk {
       this.anomalyTracker.unsetGraph(anomaly.id);
       this.graphDiv!.removeChild(graph);
     }
+    this.updateChartHeights();
+  }
+
+  private updateChartHeights(): void {
+    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
+    graphs.forEach((graph) => {
+      const height = graphs.length === 1 ? '500px' : '250px';
+      (graph as ExploreSimpleSk).updateChartHeight(height);
+    });
   }
 
   private showAllCommitsTemplate() {

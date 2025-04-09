@@ -1434,6 +1434,13 @@ export class ExploreSimpleSk extends ElementSk {
     this._stateHasChanged();
   }
 
+  // updates the chart height using a string input.
+  // typically 500px for a single chart and 250px for multiple charts
+  updateChartHeight(height: string) {
+    const chart = this.querySelector('div.chart-container');
+    (chart as HTMLElement).style.height = height;
+  }
+
   // Call this anytime something in private state is changed. Will be replaced
   // with the real function once stateReflector has been setup.
   // eslint-disable-next-line @typescript-eslint/no-empty-function

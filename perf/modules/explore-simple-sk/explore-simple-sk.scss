@@ -143,7 +143,7 @@ explore-simple-sk {
 
   .chart-container {
     display: block;
-    height: 600px;
+    height: 600px; // will be overwritten by updateChartHeight() if multiple graphs
     width: 100%;
     padding-bottom: 10px; // introduce a gap between the main chart and the summary bar
   }
@@ -151,6 +151,7 @@ explore-simple-sk {
   plot-simple-sk,
   plot-google-chart-sk {
     display: block;
+    // use chart-container to set the height as height will not update if chart is loading
     height: 100%;
     width: 100%;
   }
