@@ -2724,8 +2724,8 @@ export class ExploreSimpleSk extends ElementSk {
     const googleChart = this.googleChartPlot.value;
 
     // Populate the xbar if present.
-    if (this._state.xbaroffset !== -1) {
-      const xbaroffset = this._state.xbaroffset;
+    if (this.state.xbaroffset !== -1) {
+      const xbaroffset = this.state.xbaroffset;
       let xbar = -1;
 
       mergedDataframe.header!.forEach((h, i) => {
@@ -2739,7 +2739,7 @@ export class ExploreSimpleSk extends ElementSk {
       }
       if (googleChart) {
         // Set offset value to be used for Xbar, not index.
-        googleChart.xbar = this._state.xbaroffset;
+        googleChart.xbar = this.state.xbaroffset;
       }
     } else {
       if (plot) {

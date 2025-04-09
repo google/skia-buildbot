@@ -81,6 +81,8 @@ class State {
   use_titles: boolean = false;
 
   show_google_plot = false;
+
+  xbaroffset: number = -1;
 }
 
 export class ExploreMultiSk extends ElementSk {

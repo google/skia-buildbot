@@ -1051,9 +1051,7 @@ export class PlotGoogleChartSk extends LitElement {
         }
       }
     }
-    if (allDivs.length > 0) {
-      xbarDiv.replaceChildren(...allDivs);
-    }
+    xbarDiv.replaceChildren(...allDivs);
   }
 
   private onChartReady(e: CustomEvent) {
