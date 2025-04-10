@@ -1196,11 +1196,14 @@ export class ExploreSimpleSk extends ElementSk {
   // onChartOver shows the tooltip whenever a user hovers their mouse
   // over a data point in the google chart
   private async onChartOver({ detail }: CustomEvent<PlotShowTooltipEventDetails>): Promise<void> {
+    const chart = this.googleChartPlot!.value!;
+    // Highlight the paramset corresponding to the trace being hovered on.
+    this.paramset!.highlight = fromKey(chart.getTraceName(detail.tableCol));
+
     // do not show tooltip if tooltip is selected
     if (this.tooltipSelected) {
       return;
     }
-    const chart = this.googleChartPlot!.value!;
     const index = detail;
     const commitPos = chart.getCommitPosition(index.tableRow);
     const position = chart.getPositionByIndex(index);
