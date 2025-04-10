@@ -155,6 +155,27 @@ message Culprit {
  	CombinedCommit culprit = 2; // the culprit commit
 }
 
+// CASReference is the address to objects stored in Content-Addressable Storage (CAS)
+// CAS content in Pinpoint includes build isolates and benchmark results. Build
+// isolates can be used as the input to a Pinpoint job.
+// Copied from the swarming v2 proto definitions at:
+// https://chromium.googlesource.com/infra/luci/luci-go/+/refs/heads/main/swarming/proto/
+// api_v2/swarming.proto#275
+message CASReference {
+	// Full name of RBE-CAS instance. `projects/{project_id}/instances/{instance}`.
+	// For Chrome, this is typically projects/chromium-swarm/instances/default_instance
+	string cas_instance = 1;
+
+	// CASDigest is the directory where the content is stored within the instance
+	// CAS Digest consists of hash and size bytes.
+	message Digest {
+		string hash = 1;
+		int32 size_bytes = 2;
+	}
+
+	Digest digest = 2;
+}
+
 message BisectExecution {
 	string job_id = 1;
 
@@ -180,6 +201,7 @@ message BisectExecution {
 // TODO(b/346836299): Add user-facing try job request params to this request.
 // i.e. extra-browser-args
 message SchedulePairwiseRequest {
+	// The start and end git hashes. See start_build and end_build as alternative inputs.
 	CombinedCommit start_commit = 1;
 	CombinedCommit end_commit = 2;
 
@@ -214,6 +236,11 @@ message SchedulePairwiseRequest {
 	// The improvement direction of the measurement.
 	// Is either Up, Down, or Unknown.
 	string improvement_direction = 12 [json_name = "improvement_dir"];
+
+	// Rather than input a start and end commit, a user can feed a completed
+	// build isolate directly to Pinpoint with the CAS address.
+	CASReference start_build = 13;
+	CASReference end_build = 14;
 }
 
 message PairwiseExecution {
