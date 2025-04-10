@@ -1218,6 +1218,14 @@ export class ExploreSimpleSk extends ElementSk {
         this.triageResultToast?.hide();
         return;
       }
+      const toastText = document.getElementById('triage-result-text')! as HTMLSpanElement;
+      // Display error passed in from event, do not attempt to change anomalies.
+      if (detail.error) {
+        toastText.textContent = `${detail.error}`;
+        this.triageResultToast?.show();
+        return;
+      }
+
       const anomalies: Anomaly[] = detail.anomalies;
       const traceNames: string[] = detail.traceNames;
       if (anomalies.length === 0 || traceNames.length === 0) {
@@ -1258,7 +1266,6 @@ export class ExploreSimpleSk extends ElementSk {
         const bugId = detail.bugId;
         const displayIndex = detail.displayIndex;
         const editAction = detail.editAction;
-        const toastText = document.getElementById('triage-result-text')! as HTMLSpanElement;
         const toastLink = document.getElementById('triage-result-link')! as HTMLAnchorElement;
         toastLink.innerText = ``;
         // BugId dictates that a bug is tied to the anomaly. (New or Existing).
