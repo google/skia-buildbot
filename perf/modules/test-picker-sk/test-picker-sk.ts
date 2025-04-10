@@ -133,7 +133,7 @@ export class TestPickerSk extends ElementSk {
 
       this._render();
     };
-    this.callNextParamList(handler);
+    this.callNextParamList(null, handler);
   }
 
   /**
@@ -221,14 +221,19 @@ export class TestPickerSk extends ElementSk {
    *
    * @param handler
    */
-  private callNextParamList(handler: (json: NextParamListHandlerResponse) => void) {
+  private callNextParamList(
+    index: number | null,
+    handler: (json: NextParamListHandlerResponse) => void
+  ) {
     this.updateCount(-1);
     this._requestInProgress = true;
     this.setReadOnly(true);
     this._render();
 
+    const fieldData =
+      index !== null ? this.createQueryFromIndex(index) : this.createQueryFromFieldData();
     const body: NextParamListHandlerRequest = {
-      q: this.createQueryFromFieldData(),
+      q: fieldData,
     };
 
     fetch('/_/nextParamList/', {
@@ -268,11 +273,11 @@ export class TestPickerSk extends ElementSk {
   private fetchOptions(index: number) {
     const fieldInfo = this._fieldData[index];
     const field = fieldInfo.field;
-    const param = field!.label;
+    const param = fieldInfo.param;
 
     const handler = (json: NextParamListHandlerResponse) => {
       if (param in json.paramset && json.paramset[param] !== null) {
-        const options = json.paramset[field!.label];
+        const options = json.paramset[param];
         field!.options = options;
         this.updateCount(json.count);
         field!.focus();
@@ -282,7 +287,7 @@ export class TestPickerSk extends ElementSk {
         this._render();
       }
     };
-    this.callNextParamList(handler);
+    this.callNextParamList(index, handler);
   }
 
   /**
@@ -298,7 +303,7 @@ export class TestPickerSk extends ElementSk {
       this._render();
     };
 
-    this.callNextParamList(handler);
+    this.callNextParamList(null, handler);
   }
 
   private onPlotButtonClick() {
@@ -329,38 +334,82 @@ export class TestPickerSk extends ElementSk {
    * @param query
    * @param params
    */
-  populateFieldDataFromQuery(query: string, params: string[]) {
-    const paramSet = toParamSet(query);
-
-    this.initializeFieldData(params);
+  populateFieldDataFromQuery(query: string, params: string[], paramSet: ParamSet) {
+    const selectedParams: ParamSet = toParamSet(query);
+    if (paramSet) {
+      const paramKeys: string[] = Object.keys(paramSet).filter((key) => key in selectedParams);
+      this.initializeFieldData(paramKeys);
+    } else {
+      this.initializeFieldData(params);
+    }
 
     for (let i = 0; i < this._fieldData.length; i++) {
       const fieldInfo = this._fieldData[i];
       const param = fieldInfo.param;
 
-      if (!(param in paramSet)) {
-        break;
-      }
-
       const field: PickerFieldSk = new PickerFieldSk(param);
       fieldInfo.field = field;
       this._containerDiv!.appendChild(field);
       this._currentIndex += 1;
-
-      if (paramSet[param][0] === '') {
-        this.addValueChangedEventToField(i);
-        this.fetchOptions(i);
-        break;
+      if (param in selectedParams) {
+        fieldInfo.value = selectedParams[param][0];
+        field!.options = [fieldInfo.value];
+        field.setValue(fieldInfo.value);
+        field!.focus();
+        this._render();
+        this.addValueUpdatedEventToField(i);
       }
-
-      fieldInfo.value = paramSet[param][0];
-      field.options = [fieldInfo.value];
-      field.setValue(fieldInfo.value);
-
-      this.addValueChangedEventToField(i);
     }
 
-    this.fetchCount();
+    for (let i = 0; i < this._fieldData.length; i++) {
+      this.fetchExtraOptions(i);
+    }
+  }
+
+  private addValueUpdatedEventToField(index: number) {
+    const fieldInfo = this._fieldData[index];
+    fieldInfo.field!.addEventListener('value-changed', (e) => {
+      const value = (e as CustomEvent).detail.value;
+      fieldInfo.value = value;
+      for (let i = index; i < this._fieldData.length; i++) {
+        this.fetchExtraOptions(i);
+      }
+    });
+  }
+
+  /**
+   * Fetches the values for a given field.
+   *
+   * When creating a new field, we need to talk to the backend to
+   * figure out which options the field can provide as valid options in
+   * its dropdown menu.
+   *
+   * Once options are fetched, the field will be populated. Its dropdown
+   * menu will be automatically opened, unless it is the first field.
+   * The match count is also updated.
+   *
+   * @param index
+   */
+  private fetchExtraOptions(index: number) {
+    const handler = (json: NextParamListHandlerResponse) => {
+      const param = Object.keys(json.paramset)[0];
+      if (param !== undefined && json.count > 0) {
+        for (let i = 0; i < this._fieldData.length; i++) {
+          const fieldInfo = this._fieldData[i];
+          if (fieldInfo.param === param) {
+            fieldInfo.field!.options = json.paramset[param];
+            fieldInfo.field!.focus();
+            this._render();
+            break;
+          }
+        }
+      }
+      if (index === this._fieldData.length - 1) {
+        this.updateCount(json.count);
+        this._render();
+      }
+    };
+    this.callNextParamList(index, handler);
   }
 
   /**
@@ -378,6 +427,40 @@ export class TestPickerSk extends ElementSk {
         paramSet[fieldInfo.param] = [fieldInfo.value];
       }
     });
+
+    // If all fields are empty, don't add any defaults, which can potentially
+    // make the query slow. An empty query should be a fast retrieval.
+    if (Object.keys(paramSet).length === 0) {
+      return '';
+    }
+
+    // Apply default values.
+    for (const defaultParamKey in this._defaultParams) {
+      if (!(defaultParamKey in paramSet)) {
+        paramSet[defaultParamKey] = this._defaultParams![defaultParamKey]!;
+      }
+    }
+
+    return fromParamSet(paramSet);
+  }
+
+  /**
+   * Reads the values currently selected and transforms them to
+   * query format. Add default values from _defaultParams.
+   *
+   * This is necessary to make calls to /_/nextParamList/.
+   *
+   * @returns value selection in query format.
+   */
+  createQueryFromIndex(index: number): string {
+    const paramSet: ParamSet = {};
+
+    for (let i = 0; i <= index; i++) {
+      const fieldInfo = this._fieldData[i];
+      if (fieldInfo.value !== '') {
+        paramSet[fieldInfo.param] = [fieldInfo.value];
+      }
+    }
 
     // If all fields are empty, don't add any defaults, which can potentially
     // make the query slow. An empty query should be a fast retrieval.

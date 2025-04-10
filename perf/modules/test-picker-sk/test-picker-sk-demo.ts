@@ -85,7 +85,7 @@ $$('#populate-query')?.addEventListener('click', () => {
     subtest1: ['link_invalidation_document_rules.html'],
     subtest2: ['AdsDoubleClickAsyncAds_cold'],
   };
-  ele.populateFieldDataFromQuery(fromParamSet(query), params);
+  ele.populateFieldDataFromQuery(fromParamSet(query), params, {});
 });
 
 $$('#populate-partial-query')?.addEventListener('click', () => {
@@ -99,7 +99,7 @@ $$('#populate-partial-query')?.addEventListener('click', () => {
     subtest1: [''],
     subtest2: ['AdsAdSenseAsyncAds_warm'],
   };
-  ele.populateFieldDataFromQuery(fromParamSet(query), params);
+  ele.populateFieldDataFromQuery(fromParamSet(query), params, {});
 });
 
 fetchMock.post('/_/nextParamList/', async (_, opts) => {

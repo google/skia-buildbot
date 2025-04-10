@@ -368,7 +368,12 @@ export class ExploreMultiSk extends ElementSk {
       // trace.
       this.addEventListener('populate-query', (e) => {
         const trace_key = (e as CustomEvent).detail.key;
-        this.testPicker!.populateFieldDataFromQuery(queryFromKey(trace_key), testPickerParams!);
+        const paramSet = (e as CustomEvent).detail.paramSet;
+        this.testPicker!.populateFieldDataFromQuery(
+          queryFromKey(trace_key),
+          testPickerParams!,
+          paramSet
+        );
         this.testPicker!.scrollIntoView();
       });
     }

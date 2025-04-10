@@ -572,6 +572,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   useTestPicker: boolean = false;
 
+  enable_copy_query: boolean = false;
+
   private summaryOptionsField: Ref<PickerFieldSk> = createRef();
 
   // Map with displayed summary bar option as key and trace key
@@ -629,6 +631,13 @@ export class ExploreSimpleSk extends ElementSk {
 
     <div id=chartHeader class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
       <graph-title-sk id=graphTitle style="flex-grow:  1;"></graph-title-sk>
+      <md-icon-button
+        ?disabled=${!ele.enable_copy_query}
+        @click=${() => {
+          ele.populateTestPicker();
+        }}>
+        <md-icon id="icon">north_west</md-icon>
+      </md-icon-button>
       <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
       <md-icon-button
         ?disabled=${!ele._state!.enable_favorites}
@@ -993,6 +1002,28 @@ export class ExploreSimpleSk extends ElementSk {
     await d!.open();
   };
 
+  // Get primary trace from googleChart and pass along traceid and paramset
+  // to the test picker to be used with multi chart.
+  private populateTestPicker = async () => {
+    const googleChart = this.googleChartPlot.value;
+    // Check that data is fully loaded before triggering event.
+    if (googleChart && googleChart.data) {
+      const trace: string | null = googleChart.getAllTraces()[0];
+      const detail = {
+        key: trace,
+        paramSet: this.query?.paramset,
+      };
+      if (trace) {
+        this.dispatchEvent(
+          new CustomEvent('populate-query', {
+            detail: detail,
+            bubbles: true,
+          })
+        );
+      }
+    }
+  };
+
   private closeExplore() {
     this.removeAll(false);
     // Remove the explore object from the list in `explore-multi-sk.ts`.
@@ -1159,6 +1190,9 @@ export class ExploreSimpleSk extends ElementSk {
     this.bisectButton = this.querySelector('#bisect-button');
     this.collapseButton = this.querySelector('#collapseButton');
     this.graphTitle = this.querySelector<GraphTitleSk>('#graphTitle');
+
+    // Enable button only on Multi Chart view.
+    this.enable_copy_query = document.querySelector('explore-multi-sk') ? true : false;
 
     // material UI stuff
     this.settingsDialog = this.querySelector<MdDialog>('#settings-dialog');
