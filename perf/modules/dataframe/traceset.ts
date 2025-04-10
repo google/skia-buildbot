@@ -269,7 +269,7 @@ export function findTracesForParam(
     return null;
   }
   // A matching trace will contain the key value pair in the form 'key=value'
-  const expectedLabelContent = paramKey + '=' + paramValue;
+  const expectedLabelContent = ',' + paramKey + '=' + paramValue + ',';
   const numCols = dt!.getNumberOfColumns();
   const traces: string[] = [];
   // skip the first two columns since they are domains (commit position / date)
