@@ -184,7 +184,7 @@ export class BisectDialogSk extends ElementSk {
       project: 'chromium',
       bug_id: bugId.value,
       user: this.user,
-      alert_ids: this.anomalyId,
+      alert_ids: '[' + this.anomalyId + ']',
     };
     fetch('/_/bisect/create', {
       method: 'POST',
