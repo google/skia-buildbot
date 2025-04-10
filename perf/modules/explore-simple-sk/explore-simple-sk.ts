@@ -716,6 +716,7 @@ export class ExploreSimpleSk extends ElementSk {
         <plot-google-chart-sk
           style="${ele._state.show_google_plot ? '' : 'display: none'}"
           ${ref(ele.googleChartPlot)}
+          .highlightAnomalies=${ele._state.highlight_anomalies}
           @plot-data-select=${ele.onChartSelect}
           @plot-data-mouseover=${ele.onChartOver}
           @selection-changing=${ele.OnSelectionRange}

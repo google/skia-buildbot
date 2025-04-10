@@ -92,6 +92,10 @@ export class PlotGoogleChartSk extends LitElement {
       md-icon.ignored {
         background-color: rgba(100, 100, 100, 0.8); /* grey */
       }
+      md-icon.highlighted {
+        outline: 3px solid var(--warning);
+        outline-offset: 2px;
+      }
     }
 
     .userissue {
@@ -181,6 +185,9 @@ export class PlotGoogleChartSk extends LitElement {
 
   @property({ attribute: false })
   private showResetButton = false;
+
+  @property({ type: Array })
+  highlightAnomalies: string[] = [];
 
   // The slots to place in the templated icons for anomalies.
   private slots = {
@@ -830,7 +837,8 @@ export class PlotGoogleChartSk extends LitElement {
     const cloneSlot = (
       name: 'untriage' | 'improvement' | 'regression' | 'ignored',
       traceKey: string,
-      commit: number
+      commit: number,
+      highlight: boolean
     ) => {
       const assigned = slots[name].value!.assignedElements();
       if (!assigned) {
@@ -848,6 +856,9 @@ export class PlotGoogleChartSk extends LitElement {
       }
       const cloned = assigned[0].cloneNode(true) as HTMLElement;
       cloned.className = `anomaly ${name}`;
+      if (highlight) {
+        cloned.className = `${cloned.className} highlighted`;
+      }
       return cloned;
     };
 
@@ -875,15 +886,17 @@ export class PlotGoogleChartSk extends LitElement {
 
           const anomaly = anomalies[offset];
           let cloned: HTMLElement | null;
+          const highlight =
+            this.highlightAnomalies && this.highlightAnomalies.includes(anomaly.id.toString());
           if (anomaly.is_improvement) {
-            cloned = cloneSlot('improvement', key, offset);
+            cloned = cloneSlot('improvement', key, offset, highlight);
           } else if (anomaly.bug_id === 0) {
             // no bug assigned, untriaged anomaly
-            cloned = cloneSlot('untriage', key, offset);
+            cloned = cloneSlot('untriage', key, offset, highlight);
           } else if (anomaly.bug_id < 0) {
-            cloned = cloneSlot('ignored', key, offset);
+            cloned = cloneSlot('ignored', key, offset, highlight);
           } else {
-            cloned = cloneSlot('regression', key, offset);
+            cloned = cloneSlot('regression', key, offset, highlight);
           }
 
           if (cloned) {
