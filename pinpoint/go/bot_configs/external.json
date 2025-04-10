@@ -20,6 +20,27 @@
     "repository": "chromium",
     "swarming_server": "https://chromium-swarm.appspot.com"
   },
+  "android-pixel-tangor-perf": {
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "bucket": "luci.chrome.try",
+    "builder": "Android arm64 High End Compile Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "device_type",
+        "value": "tangorpro"
+      },
+      {
+        "key": "device_os",
+        "value": "A"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+   },
   "android-pixel2-perf": {
     "browser": "android-chrome-64-bundle",
     "bucket": "luci.chrome.try",
