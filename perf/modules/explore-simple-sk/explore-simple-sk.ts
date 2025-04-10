@@ -1018,18 +1018,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.graphTitle.showShortTitles();
   }
 
-  private onSummaryPickerChanged(e: CustomEvent) {
-    const selectedTrace = e.detail.value;
-    this.traceKeyForSummary = this.summaryOptionTraceMap.get(selectedTrace) || '';
-
-    const plot = this.plotSummary.value;
-    if (plot) {
-      // we don't update the y axis label here because selecting the summary picker
-      // only targets the summary bar. The viz on main chart remains the same.
-      plot.selectedTrace = this.traceKeyForSummary;
-    }
-  }
-
   // Use commit and trace number to find the previous commit in the trace.
   private getPreviousCommit(index: number, traceName: string): CommitNumber | null {
     // First the previous commit that has data.
@@ -1212,7 +1200,6 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Add an event listener for when a new bug is filed or an existing bug is submitted in the tooltip.
     this.addEventListener('anomaly-changed', (e) => {
-      this.plotSimple.value?.redrawOverlayCanvas();
       const detail = (e as CustomEvent).detail;
       if (!detail) {
         this.triageResultToast?.hide();
@@ -2310,12 +2297,6 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   private clearSelectedState() {
-    const plot = this.plotSimple.value;
-    if (plot) {
-      plot.highlight = [];
-      plot.xbar = -1;
-    }
-
     // Switch back to the params tab since we are about to hide the details tab.
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.commitsTab!.disabled = true;
@@ -2726,36 +2707,11 @@ export class ExploreSimpleSk extends ElementSk {
         bands.push(i);
       }
     });
-    const plot = this.plotSimple.value;
-    if (plot) {
-      plot.bands = bands;
-    }
     const googleChart = this.googleChartPlot.value;
-
-    // Populate the xbar if present.
-    if (this.state.xbaroffset !== -1) {
-      const xbaroffset = this.state.xbaroffset;
-      let xbar = -1;
-
-      mergedDataframe.header!.forEach((h, i) => {
-        if (h!.offset === xbaroffset) {
-          xbar = i;
-        }
-      });
-
-      if (plot) {
-        plot.xbar = xbar;
-      }
-      if (googleChart) {
-        // Set offset value to be used for Xbar, not index.
+    if (googleChart) {
+      // Populate the xbar if present.
+      if (this.state.xbaroffset !== -1) {
         googleChart.xbar = this.state.xbaroffset;
-      }
-    } else {
-      if (plot) {
-        plot.xbar = -1;
-      }
-      if (googleChart) {
-        googleChart.xbar = -1;
       }
     }
     if (this.state.use_titles) {
@@ -3189,11 +3145,6 @@ export class ExploreSimpleSk extends ElementSk {
       }
     });
 
-    const plot = this.plotSimple.value;
-    if (plot) {
-      plot.deleteLines(keysToRemove);
-      plot.highlight = [];
-    }
     if (!this.hasData()) {
       this.displayMode = 'display_query_only';
       this._render();
