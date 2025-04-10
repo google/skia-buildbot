@@ -254,16 +254,19 @@ func (api anomaliesApi) GetGroupReportLegacy(w http.ResponseWriter, r *http.Requ
 			ctx, fmt.Sprintf("alerts/skia/group_id/%s", groupReportRequest.AnomalyGroupID), "", url.Values{"host": []string{host}}, groupReportResponse)
 	} else {
 		httputils.ReportError(w, errors.New("Invalid Request"), fmt.Sprintf("Group report request does not have valid parameters: %v", groupReportRequest), http.StatusBadRequest)
+		sklog.Debug("[SkiaTriage] Group report request does not have valid parameters")
 		return
 	}
 
 	if err != nil {
 		httputils.ReportError(w, err, "Anomaly group report request failed due to an internal server error. Please try again.", http.StatusInternalServerError)
+		sklog.Debugf("[SkiaTriage] Anomaly group report request failed due to an internal server error: %v", err)
 		return
 	}
 
 	if groupReportResponse.Error != "" {
 		httputils.ReportError(w, errors.New(groupReportResponse.Error), fmt.Sprintf("Error when getting the anomaly report group. Please double check each request parameter, and try again: %v", groupReportResponse.Error), http.StatusBadRequest)
+		sklog.Debugf("[SkiaTriage] Error when getting the anomaly report group: %v", groupReportResponse.Error)
 		return
 	}
 
@@ -272,6 +275,7 @@ func (api anomaliesApi) GetGroupReportLegacy(w http.ResponseWriter, r *http.Requ
 		groupReportResponse.Anomalies[i].TestPath, err = cleanTestName(groupReportResponse.Anomalies[i].TestPath)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to clean up test name by regex.", http.StatusInternalServerError)
+			sklog.Debugf("[SkiaTriage] Failed to clean up test name by regex: %v", err)
 			return
 		}
 	}
@@ -279,16 +283,16 @@ func (api anomaliesApi) GetGroupReportLegacy(w http.ResponseWriter, r *http.Requ
 	groupReportResponse.TimerangeMap, err = api.getTimerangeMap(ctx, groupReportResponse.Anomalies)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get timerange map.", http.StatusInternalServerError)
+		sklog.Debugf("[SkiaTriage] Failed to get timerange map: %v", err)
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(groupReportResponse); err != nil {
 		httputils.ReportError(w, err, "Failed to write anomaly report response.", http.StatusInternalServerError)
+		sklog.Debugf("[SkiaTriage] Failed to write anomaly report response: %v", err)
 		return
 	}
 	sklog.Debugf("[SkiaTriage] %d anomalies are received from anomaly report group.", len(groupReportResponse.Anomalies))
-
-	return
 }
 
 // GetSheriffListSkia handles requests to retrieve the list of sheriffs from the Skia internal store.
@@ -408,12 +412,14 @@ func (api anomaliesApi) getTimerangeMap(ctx context.Context, anomalies []chromep
 		anomaly := &anomalies[i]
 		startCommit, err := api.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(anomaly.StartRevision))
 		if err != nil {
+			sklog.Debugf("[SkiaTriage] CommitFromCommitNumber returns err: %v", err)
 			return nil, err
 		}
 		startTime := int64(startCommit.Timestamp)
 
 		endCommit, err := api.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(anomaly.EndRevision))
 		if err != nil {
+			sklog.Debugf("[SkiaTriage] CommitFromCommitNumber returns err: %v", err)
 			return nil, err
 		}
 
