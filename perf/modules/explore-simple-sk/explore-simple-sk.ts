@@ -117,7 +117,6 @@ import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
 import { fromKey, paramsToParamSet, removeSpecialFunctions } from '../paramtools';
-import { dataFrameToCSV } from '../csv';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
@@ -626,97 +625,6 @@ export class ExploreSimpleSk extends ElementSk {
         @click=${ele.openQuery}>
         Query
       </button>
-      <div id=traceButtons class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
-        <md-outlined-button
-          ?disabled=${!(
-            ele.plotSimple.value &&
-            ele.plotSimple.value!.highlight.length &&
-            ele.useTestPicker
-          )}
-          @click=${ele.queryHighlighted}>
-          Query Highlighted
-        </md-outlined-button>
-        <md-outlined-button
-          @click=${ele.removeHighlighted}
-          ?disabled=${!(ele.plotSimple.value && ele.plotSimple.value!.highlight.length)}>
-          Remove Highlighted
-        </md-outlined-button>
-        <md-outlined-button
-          @click=${ele.highlightedOnly}
-          ?disabled=${!(ele.plotSimple.value && ele.plotSimple.value!.highlight.length)}>
-          Highlighted Only
-        </md-outlined-button>
-
-        <span
-          title='Number of commits skipped between each point displayed.'
-          ?hidden=${ele.isZero(ele._dataframe.skip)}
-          id=skip>
-            ${ele._dataframe.skip}
-        </span>
-
-        <md-outlined-button
-          ?hidden=${!ele.showRemoveAll}
-          @click=${() => ele.closeExplore()}>
-          Remove All
-        </md-outlined-button>
-        <div
-          id=calcButtons
-          class="hide_on_query_only">
-          <md-outlined-button
-            @click=${() => ele.applyFuncToTraces('norm')}>
-            Normalize
-          </md-outlined-button>
-          <md-outlined-button
-            @click=${() => ele.applyFuncToTraces('scale_by_avg')}>
-            Scale By Avg
-          </md-outlined-button>
-          <md-outlined-button
-            @click=${() => {
-              ele.applyFuncToTraces('iqrr');
-            }}>
-            Remove outliers
-          </md-outlined-button>
-          <md-outlined-button
-            @click=${ele.csv}>
-            CSV
-          </md-outlined-button>
-          <a href='' target=_blank download='traces.csv' id=csv_download></a>
-          <md-outlined-button
-            ?hidden=${!window.perf.fetch_chrome_perf_anomalies}
-            @click=${ele.openBisect}>
-            Bisect
-          </md-outlined-button>
-          <div id="zoomPan" ?hidden=${ele.plotSummary}>
-            <h3>Zoom/Pan:</h3>
-            <div id="btnContainer">
-              <button
-                class=navigation
-                @click=${ele.zoomInKey}
-                title='Zoom In'>
-                <span class=icon-sk>add</span>
-              </button>
-              <button
-                class=navigation
-                @click=${ele.zoomOutKey}
-                title='Zoom Out'>
-                <span class=icon-sk>remove</span>
-              </button>
-              <button
-                class=navigation
-                @click=${ele.zoomLeftKey}
-                title='Pan Left'>
-                <span class=icon-sk>arrow_back</span>
-              </button>
-              <button
-                class=navigation
-                @click=${ele.zoomRightKey}
-                title='Pan Right'>
-                <span class=icon-sk>arrow_forward</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div id=chartHeader class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
@@ -1765,13 +1673,6 @@ export class ExploreSimpleSk extends ElementSk {
     if (this._state.queries.length > 0) {
       this.queryCount!.current_query = this.applyDefaultsToQuery(this.query!.current_query);
     }
-  }
-
-  /** Open the bisect dialog box. */
-  private openBisect() {
-    this._render();
-    this._dialogOn = true;
-    this.bisectDialog!.showModal();
   }
 
   private paramsetChanged(e: CustomEvent<ParamSet>) {
@@ -3184,49 +3085,6 @@ export class ExploreSimpleSk extends ElementSk {
       .catch(errorMessage);
   }
 
-  /**
-   * Create a shortcut for all of the traces currently being displayed.
-   *
-   * Returns the Promise that's creating the shortcut, or undefined if
-   * there isn't a shortcut to create.
-   */
-  private shortcutAll(): Promise<void> | undefined {
-    const toShortcut: string[] = [];
-
-    Object.keys(this._dataframe.traceset).forEach((key) => {
-      if (key[0] === ',') {
-        toShortcut.push(key);
-      }
-    });
-
-    return this.reShortCut(toShortcut);
-  }
-
-  private async applyFuncToTraces(funcName: string) {
-    // Move all non-formula traces into a shortcut.
-    await this.shortcutAll();
-
-    // Apply the func to the shortcut traces.
-    let updatedFormulas: string[] = [];
-    if (this._state.keys !== '') {
-      updatedFormulas.push(`${funcName}(shortcut("${this._state.keys}"))`);
-    }
-
-    // Remove the existing user issues from the plot.
-    this.plotSimple.value!.userIssueMap = {};
-
-    // Also apply the func to any existing formulas.
-    updatedFormulas = updatedFormulas.concat(this._state.formulas.map((f) => `${funcName}(${f})`));
-
-    this.removeAll(true);
-    this._state.formulas = updatedFormulas;
-    this._stateHasChanged();
-
-    await this.requestFrame(this.requestFrameBodyFullFromState(), (json) => {
-      this.addTraces(json, false);
-    });
-  }
-
   public createGraphConfigs(traceSet: TraceSet, attribute?: string): GraphConfig[] {
     const graphConfigs = [] as GraphConfig[];
     Object.keys(traceSet).forEach((key) => {
@@ -3297,18 +3155,6 @@ export class ExploreSimpleSk extends ElementSk {
     );
   }
 
-  private queryHighlighted() {
-    const detail = {
-      key: this.plotSimple.value!.highlight[0],
-    };
-    this.dispatchEvent(new CustomEvent('populate-query', { detail: detail, bubbles: true }));
-  }
-
-  private removeHighlighted() {
-    const ids = this.plotSimple.value!.highlight;
-    this.removeKeys(ids, true);
-  }
-
   private removeKeys(keysToRemove: string[], updateShortcut: boolean) {
     const toShortcut: string[] = [];
     Object.keys(this._dataframe.traceset).forEach((key) => {
@@ -3345,51 +3191,6 @@ export class ExploreSimpleSk extends ElementSk {
     if (updateShortcut) {
       this.reShortCut(toShortcut);
     }
-  }
-
-  private highlightedOnly() {
-    const plot = this.plotSimple.value!;
-    const ids = plot.highlight;
-    const toremove: string[] = [];
-    const toShortcut: string[] = [];
-
-    let totalNonSpecialKeys = 0;
-    Object.keys(this._dataframe.traceset).forEach((key) => {
-      if (!key.startsWith('special')) {
-        totalNonSpecialKeys++;
-      }
-
-      if (ids.indexOf(key) === -1 && !key.startsWith('special')) {
-        // Detect if it is a formula being removed.
-        if (this._state.formulas.indexOf(key) !== -1) {
-          this._state.formulas.splice(this._state.formulas.indexOf(key), 1);
-        } else {
-          toremove.push(key);
-        }
-        return;
-      }
-      if (key[0] === ',') {
-        toShortcut.push(key);
-      }
-    });
-
-    if (toremove.length === totalNonSpecialKeys) {
-      errorMessage("At least one trace much be selected for 'Highlighted Only' to work.");
-      return;
-    }
-
-    // Remove the traces from the traceset so they don't reappear.
-    toremove.forEach((key) => {
-      delete this._dataframe.traceset[key];
-    });
-
-    plot.deleteLines(toremove);
-    plot.highlight = [];
-    if (!this.hasData()) {
-      this.displayMode = 'display_query_only';
-      this._render();
-    }
-    this.reShortCut(toShortcut);
   }
 
   /**
@@ -3515,24 +3316,6 @@ export class ExploreSimpleSk extends ElementSk {
       errorMessage(msg);
     }
     cb(finishedProg.results as FrameResponse);
-  }
-
-  // Download all the displayed data as a CSV file.
-  private csv() {
-    if (this._csvBlobURL) {
-      URL.revokeObjectURL(this._csvBlobURL);
-      this._csvBlobURL = '';
-    }
-    const csvBody = dataFrameToCSV(this._dataframe);
-    const blob = new Blob([csvBody], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    this.csvDownload!.href = url;
-    this._csvBlobURL = url;
-    this.csvDownload!.click();
-  }
-
-  private isZero(n: number) {
-    return n === 0;
   }
 
   get state(): State {

@@ -8,7 +8,6 @@ import {
   TimestampSeconds,
   Trace,
   TraceSet,
-  progress,
 } from '../json';
 import { deepCopy } from '../../../infra-sk/modules/object';
 import {
@@ -92,6 +91,7 @@ describe('calculateRangeChange', () => {
   });
 });
 
+// this function is needed to support other unit tests
 describe('applyFuncToTraces', () => {
   window.perf = {
     radius: 2,
@@ -122,34 +122,6 @@ describe('applyFuncToTraces', () => {
   // Create a common element-sk to be used by all the tests.
   const explore = document.createElement('explore-simple-sk') as ExploreSimpleSk;
   document.body.appendChild(explore);
-
-  const finishedBody: progress.SerializedProgress = {
-    status: 'Finished',
-    messages: [],
-    results: {},
-    url: '',
-  };
-
-  it('applies the func to existing formulas', async () => {
-    const startURL = '/_/frame/start';
-
-    // We mock out a response that returns a Progress that is Finished
-    // so we don't have to mock out any more responses, we are just checking
-    // on what explore-sk sends in the POST request.
-    fetchMock.post(startURL, finishedBody);
-
-    // Add a formula we expect to be wrapped.
-    explore['state'].formulas = ['shortcut("Xfoo")'];
-    await explore['applyFuncToTraces']('iqrr');
-
-    // Confirm we hit the mock.
-    assert.isTrue(fetchMock.done());
-
-    // Confirm the formula is wrapped in iqrr().
-    const body = JSON.parse(fetchMock.lastOptions(startURL)?.body as unknown as string) as any;
-    assert.deepEqual(body.formulas, ['iqrr(shortcut("Xfoo"))']);
-    fetchMock.restore();
-  });
 });
 
 describe('addGraphCoordinatesToUserIssues', () => {
