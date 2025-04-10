@@ -135,6 +135,14 @@ export class SidePanelSk extends LitElement {
   @property({ attribute: false, reflect: true })
   private legendToLabelMap: { [key: string]: string } = {};
 
+  /**
+   * A map that maps legend to label.
+   * The legend is the legend of the trace,
+   * The label is the label of the column in the dataframe.
+   */
+  @property({ attribute: false, reflect: true })
+  private labelToLegendMap: { [key: string]: string } = {};
+
   @property({ attribute: false, reflect: true })
   private legendKeysFormat = '';
 
@@ -215,6 +223,41 @@ export class SidePanelSk extends LitElement {
   }
 
   /**
+   * Sets the checkbox state for the given trace id.
+   * @param checked Whether the boxed is checked or not.
+   * @param traceId The trace id.
+   */
+  public SetCheckboxForTrace(checked: boolean, traceId: string) {
+    const items = this.getLegend();
+    // The legend values are in the form of a/b/c/d while traceId is
+    // ,k1=a,k2=b,k3=c,k4=d. The labelToLegendMap contains this
+    // mapping so we first get the value on the legend to be updated.
+    const legendVal = this.labelToLegendMap[traceId];
+    let index = -1;
+    // Now let's find the index of the value to be updated.
+    for (let i = 0; i < items.length; i++) {
+      if (items[i] === legendVal) {
+        index = i;
+        break;
+      }
+    }
+    // Set the checkbox state on the index if item exists.
+    if (index > -1) {
+      this.setCheckbox(checked, index);
+    }
+  }
+
+  /**
+   * Sets all the checkboxes in the panel to the given checked state.
+   * @param checked The state of checkboxes.
+   */
+  public SetAllBoxes(checked: boolean) {
+    for (let index = 0; index < this.getLegend().length; index++) {
+      this.setCheckbox(checked, index);
+    }
+  }
+
+  /**
    * Sets the checkbox and tracks checked items in a list.
    */
   private setCheckbox(checked: boolean, index: number) {
@@ -264,6 +307,7 @@ export class SidePanelSk extends LitElement {
       for (let i = 2; i < numCols; i++) {
         const k = this.data!.getColumnLabel(i);
         this.legendToLabelMap[legendList[i - 2]] = k;
+        this.labelToLegendMap[k] = legendList[i - 2];
       }
       return legendList;
     }

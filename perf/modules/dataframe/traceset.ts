@@ -252,3 +252,32 @@ export function findTraceByLabel(dt: DataTable | undefined, legendTraceId: strin
   }
   return null;
 }
+
+/**
+ * Finds traces that contain the given key value param pair.
+ * @param dt DataTable or undefined dataframe
+ * @param paramKey Param key
+ * @param paramValue Param value
+ * @returns List of trace labels containing the key value pair.
+ */
+export function findTracesForParam(
+  dt: DataTable | undefined,
+  paramKey: string,
+  paramValue: string
+): string[] | null {
+  if (!dt) {
+    return null;
+  }
+  // A matching trace will contain the key value pair in the form 'key=value'
+  const expectedLabelContent = paramKey + '=' + paramValue;
+  const numCols = dt!.getNumberOfColumns();
+  const traces: string[] = [];
+  // skip the first two columns since they are domains (commit position / date)
+  for (let i = 2; i < numCols; i++) {
+    const label = dt!.getColumnLabel(i);
+    if (label.includes(expectedLabelContent)) {
+      traces.push(label);
+    }
+  }
+  return traces;
+}

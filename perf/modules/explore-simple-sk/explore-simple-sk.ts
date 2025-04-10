@@ -2449,29 +2449,37 @@ export class ExploreSimpleSk extends ElementSk {
    * @param e Checkbox click event
    */
   private paramsetCheckboxClick(e: CustomEvent<ParamSetSkCheckboxClickEventDetail>) {
-    if (!e.detail.selected) {
-      // Find the matching traces and remove them from the dataframe's traceset.
-      const keys: string[] = [];
-      Object.keys(this._dataframe.traceset).forEach((key) => {
-        if (_matches(key, e.detail.key, e.detail.value!)) {
-          keys.push(key);
-        }
-      });
-      this.removeKeys(keys, false);
+    if (this._state.show_google_plot) {
+      this.googleChartPlot.value?.updateChartForParam(
+        e.detail.key,
+        e.detail.value,
+        e.detail.selected
+      );
     } else {
-      // Adding is slightly more involved. The current dataframe may have matching traces removed,
-      // so we need to look at the original trace set to find matching traces. If we find any
-      // match, we add it to the current dataframe and then add the lines to the rendered plot.
-      const traceSet = TraceSet({});
-      Object.keys(this.originalTraceSet).forEach((key) => {
-        if (_matches(key, e.detail.key, e.detail.value!)) {
-          if (!(key in this._dataframe.traceset)) {
-            this._dataframe.traceset[key] = this.originalTraceSet[key];
+      if (!e.detail.selected) {
+        // Find the matching traces and remove them from the dataframe's traceset.
+        const keys: string[] = [];
+        Object.keys(this._dataframe.traceset).forEach((key) => {
+          if (_matches(key, e.detail.key, e.detail.value!)) {
+            keys.push(key);
           }
-          traceSet[key] = this.originalTraceSet[key];
-        }
-      });
-      this.AddPlotLines(traceSet, []);
+        });
+        this.removeKeys(keys, false);
+      } else {
+        // Adding is slightly more involved. The current dataframe may have matching traces removed,
+        // so we need to look at the original trace set to find matching traces. If we find any
+        // match, we add it to the current dataframe and then add the lines to the rendered plot.
+        const traceSet = TraceSet({});
+        Object.keys(this.originalTraceSet).forEach((key) => {
+          if (_matches(key, e.detail.key, e.detail.value!)) {
+            if (!(key in this._dataframe.traceset)) {
+              this._dataframe.traceset[key] = this.originalTraceSet[key];
+            }
+            traceSet[key] = this.originalTraceSet[key];
+          }
+        });
+        this.AddPlotLines(traceSet, []);
+      }
     }
   }
 

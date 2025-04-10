@@ -29,7 +29,7 @@ import {
   dataTableContext,
   UserIssueMap,
 } from '../dataframe/dataframe_context';
-import { findTraceByLabel, isSingleTrace } from '../dataframe/traceset';
+import { findTraceByLabel, findTracesForParam, isSingleTrace } from '../dataframe/traceset';
 import { range } from '../dataframe/index';
 import { VResizableBoxSk } from './v-resizable-box-sk';
 import { SidePanelCheckboxClickDetails, SidePanelSk } from './side-panel-sk';
@@ -1123,6 +1123,42 @@ export class PlotGoogleChartSk extends LitElement {
 
   // TODO(b/362831653): deprecate this, no longer needed
   public updateChartData(_chartData: any) {}
+
+  /**
+   * Updates the chart based on the param value provided in the arguments.
+   * @param key param key
+   * @param val param value
+   * @param selected True if the param is selected, else False.
+   */
+  public updateChartForParam(key: string, val: string, selected: boolean) {
+    const tracesForParams = findTracesForParam(this.data, key, val);
+    if (selected) {
+      // We want only these traces to be visible, so add all others into the removed cache.
+      this.removedLabelsCache = this.removedLabelsCache.filter(
+        (trace) => !tracesForParams!.includes(trace)
+      );
+    } else {
+      // Params were unselected, so add all the matching traces to the removed cache.
+      this.removedLabelsCache = this.removedLabelsCache.concat(tracesForParams!);
+    }
+
+    // Update the side panel checkboxes to reflect the state.
+    this.updateSidePanel();
+  }
+
+  /**
+   * Update the side panel checkboxes based on the removed labels cache.
+   * This in turn automatically updates the graph data.
+   */
+  private updateSidePanel() {
+    // Take a copy of the labels to remove since the setallboxes can cause the
+    // removedlabelscache to update itself.
+    const removedLabels = this.removedLabelsCache;
+    this.sidePanel.value?.SetAllBoxes(true);
+    removedLabels.forEach((label) => {
+      this.sidePanel.value?.SetCheckboxForTrace(false, label);
+    });
+  }
 
   /**
    * Get the (x,y) position in the chart given row and column
