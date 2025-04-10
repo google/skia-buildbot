@@ -45,16 +45,21 @@ type Syncer struct {
 	repos         repograph.Map
 	queue         chan func(int)
 	workdir       string
+	tmpDir        string
 }
 
 // New returns a Syncer instance.
-func New(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int) *Syncer {
+func New(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int) (*Syncer, error) {
 	queue := make(chan func(int))
 	s := &Syncer{
 		depotToolsDir: depotToolsDir,
 		queue:         queue,
 		repos:         repos,
 		workdir:       workdir,
+		tmpDir:        filepath.Join(os.TempDir(), "task-scheduler-syncer"),
+	}
+	if err := s.cleanupTempDirs(ctx); err != nil {
+		return nil, skerr.Wrap(err)
 	}
 	for i := 0; i < numWorkers; i++ {
 		go func(i int) {
@@ -63,12 +68,26 @@ func New(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string
 			}
 		}(i)
 	}
-	return s
+	return s, nil
 }
 
 // Close frees up resources used by the Syncer.
 func (s *Syncer) Close() error {
 	close(s.queue)
+	return nil
+}
+
+// cleanupTempDirs cleans up any pre-existing temporary directories in the
+// working directory.
+func (s *Syncer) cleanupTempDirs(ctx context.Context) error {
+	sklog.Infof("Cleaning up temp dir %s", s.tmpDir)
+	if err := os.RemoveAll(s.tmpDir); err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := os.MkdirAll(s.tmpDir, os.ModePerm); err != nil {
+		return skerr.Wrap(err)
+	}
+	sklog.Infof("Finished cleaning up temp dir %s", s.tmpDir)
 	return nil
 }
 
@@ -102,7 +121,7 @@ func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, fn func(*g
 		defer func() {
 			m.Update(0)
 		}()
-		tmp, err2 := os.MkdirTemp("", "")
+		tmp, err2 := os.MkdirTemp(s.tmpDir, "")
 		if err2 != nil {
 			rvErr <- err2
 			return

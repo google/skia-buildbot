@@ -79,10 +79,14 @@ func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommit
 	// Create caches.
 	jCache, err := cache.NewJobCache(ctx, d, w, nil)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "fFailed to create JobCache")
+		return nil, skerr.Wrapf(err, "failed to create JobCache")
 	}
 
-	sc := syncer.New(ctx, repos, depotTools, workdir, numSyncWorkers)
+	sc, err := syncer.New(ctx, repos, depotTools, workdir, numSyncWorkers)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create Syncer")
+	}
+
 	chr := cacher.New(sc, taskCfgCache, rbe)
 
 	tryjobs, err := tryjobs.NewTryJobIntegrator(ctx, buildbucketProject, buildbucketTarget, buildbucketBucket, host, c, d, jCache, projectRepoMapping, repos, taskCfgCache, chr, gerrit, pubsubClient)
