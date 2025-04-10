@@ -104,5 +104,6 @@
     "help_url_override": "http://go/chrome-perf-user-doc",
     "trace_format": "chrome",
     "need_alert_action": true,
-    "optimize_sqltracestore": true
+    "optimize_sqltracestore": true,
+    "new_alerts_page": true
 }
