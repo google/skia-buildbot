@@ -854,6 +854,9 @@ type DataPointConfig struct {
 	// links specified for individual data points and not just the common links
 	// section in the json file.
 	EnablePointSpecificLinks bool `json:"enable_point_links,omitempty"`
+
+	// If set to true, display commit detail in the pop-up for the data point.
+	ShowJsonResourceDisplay bool `json:"show_json_file_display,omitempty"`
 }
 
 // QueryConfig contains query customization info for the instance.

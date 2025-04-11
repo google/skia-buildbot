@@ -40,6 +40,7 @@ describe('chart-tooltip-sk', () => {
       skip_commit_detail_display: false,
       image_tag: 'fake-tag',
       remove_default_stat_value: false,
+      show_json_file_display: false,
     };
 
     element = newInstance();
@@ -123,6 +124,32 @@ describe('chart-tooltip-sk', () => {
       assert.equal(element.commit_position, commit_position);
       assert.equal(element.bug_id, bugId);
       assert.isNotNull(element.anomaly);
+    });
+
+    it('should be true when show_json_file_display is true', () => {
+      window.perf.show_json_file_display = true;
+      element = newInstance();
+      element.load(
+        1,
+        test_name,
+        '',
+        'ms',
+        y_value,
+        new Date(),
+        commit_position,
+        0,
+        dummyAnomaly(12345),
+        null,
+        null,
+        false,
+        null,
+        () => {}
+      );
+      element.loadJsonResource(commit_position, test_name);
+
+      assert.isTrue(element.json_source);
+      assert.equal(element.jsonSourceDialog!.cid, commit_position);
+      assert.equal(element.jsonSourceDialog!.traceid, test_name);
     });
   });
 });

@@ -121,7 +121,10 @@ export class ChartTooltipSk extends ElementSk {
   // dialog for displaying JSON source if configured for the instance.
   // See "data_point_config" in chrome-perf-non-public.json
   // for an example of the configuration.
-  private jsonSourceDialog: JSONSourceSk | null = null;
+  jsonSourceDialog: JSONSourceSk | null = null;
+
+  // Whether to display of json source dialog.
+  private _show_json_source: boolean = window.perf ? window.perf.show_json_file_display : false;
 
   // Bisect Dialog.
   bisectDialog: BisectDialogSk | null = null;
@@ -211,7 +214,7 @@ export class ChartTooltipSk extends ElementSk {
           id="tooltip-user-issue-sk"
           ?hidden=${!ele.tooltip_fixed || !ele.anomaly}></user-issue-sk>
       </div>
-      <div id="json-source-dialog" ?hidden=${!ele.tooltip_fixed}>
+      <div id="json-source-dialog" ?hidden=${!ele.tooltip_fixed || !ele._show_json_source}>
         <json-source-sk id="json-source-sk"></json-source-sk>
       </div>
       <bisect-dialog-sk id="bisect-dialog-sk"></bisect-dialog-sk>
@@ -631,6 +634,15 @@ export class ChartTooltipSk extends ElementSk {
 
   set tooltip_fixed(val: boolean) {
     this._is_tooltip_fixed = val;
+    this._render();
+  }
+
+  get json_source(): boolean {
+    return this._show_json_source;
+  }
+
+  set json_source(val: boolean) {
+    this._show_json_source = val;
     this._render();
   }
 }

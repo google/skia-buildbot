@@ -25,6 +25,7 @@ window.perf = {
   skip_commit_detail_display: false,
   image_tag: 'fake-tag@tag:git-123456789',
   remove_default_stat_value: false,
+  show_json_file_display: false,
 };
 
 document.querySelector('.component-goes-here')!.innerHTML = `

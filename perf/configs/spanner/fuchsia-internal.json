@@ -69,7 +69,8 @@
     },
     "data_point_config": {
       "keys_for_useful_links": ["Build Log"],
-      "skip_commit_detail_display": true
+      "skip_commit_detail_display": true,
+      "show_json_file_display": true
     },
     "optimize_sqltracestore": true
   }

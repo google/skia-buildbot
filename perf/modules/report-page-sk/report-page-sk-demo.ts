@@ -33,6 +33,7 @@ window.perf = {
   skip_commit_detail_display: false,
   image_tag: 'fake-tag',
   remove_default_stat_value: false,
+  show_json_file_display: false,
 };
 
 const anomaly_table = [

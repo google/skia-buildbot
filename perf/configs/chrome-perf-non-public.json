@@ -91,7 +91,8 @@
     "data_point_config": {
         "keys_for_commit_range": ["V8", "WebRTC", "V8 Git Hash", "WebRTC Git Hash"],
         "keys_for_useful_links": ["Build Page", "Tracing uri"],
-        "skip_commit_detail_display": true
+        "skip_commit_detail_display": true,
+        "show_json_file_display": false
     },
     "temporal_config": {
         "host_port": "temporal.temporal:7233",

@@ -65,6 +65,9 @@
         },
         "enable_point_links": {
           "type": "boolean"
+        },
+        "show_json_file_display": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

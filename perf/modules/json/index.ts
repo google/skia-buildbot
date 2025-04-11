@@ -359,6 +359,7 @@ export interface SkPerfConfig {
 	skip_commit_detail_display: boolean;
 	image_tag: string;
 	remove_default_stat_value: boolean;
+	show_json_file_display: boolean;
 }
 
 export interface TriageRequest {

@@ -40,7 +40,7 @@ export class JSONSourceSk extends ElementSk {
 
   private static template = (ele: JSONSourceSk) => html`
     <div id="controls" ?hidden=${!ele.validTraceID()}>
-      <button id="view-source" @click=${ele._loadSource}>View Json FIle</button>
+      <button id="view-source" @click=${ele._loadSource}>View Json File</button>
       <button id="load-source" @click=${ele._loadSourceSmall}>View Short Json File</button>
     </div>
     <dialog id="json-dialog">

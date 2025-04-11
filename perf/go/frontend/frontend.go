@@ -283,6 +283,7 @@ type SkPerfConfig struct {
 	SkipCommitDetailDisplay    bool               `json:"skip_commit_detail_display"`      // Do not display commit detail
 	ImageTag                   string             `json:"image_tag"`                       // The image tag that the running instance is built from, typically a git commit hash.
 	RemoveDefaultStatValue     bool               `json:"remove_default_stat_value"`       // experimental flag to remove the default stat=value on queries.
+	ShowJsonResourceDisplay    bool               `json:"show_json_file_display"`          // Boolean to display commit detail or not
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -315,6 +316,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		SkipCommitDetailDisplay:    config.Config.DataPointConfig.SkipCommitDetailDisplay,
 		ImageTag:                   os.Getenv("IMAGE_TAG"),
 		RemoveDefaultStatValue:     config.Config.Experiments.RemoveDefaultStatValue,
+		ShowJsonResourceDisplay:    config.Config.DataPointConfig.ShowJsonResourceDisplay,
 	}
 	b, err := json.MarshalIndent(pc, "", "  ")
 	if err != nil {

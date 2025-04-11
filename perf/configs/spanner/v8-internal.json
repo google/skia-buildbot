@@ -74,7 +74,8 @@
   },
   "data_point_config": {
     "keys_for_commit_range": ["V8", "WebRTC", "V8 Git Hash", "WebRTC Git Hash"],
-    "keys_for_useful_links": ["Build Page"]
+    "keys_for_useful_links": ["Build Page"],
+    "show_json_file_display": false
   },
   "new_alerts_page": true,
   "optimize_sqltracestore": true,
