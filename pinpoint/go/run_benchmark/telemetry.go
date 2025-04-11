@@ -2,6 +2,7 @@ package run_benchmark
 
 import (
 	"fmt"
+	"regexp"
 
 	"go.skia.org/infra/go/util"
 )
@@ -97,9 +98,9 @@ func (t *telemetryTest) GetTelemetryExtraArgs() []string {
 	}
 
 	if t.story != "" {
-		// TODO(b/40635221): Note that usage of "--story-filter"
-		// can be replaced with --story=<story> (no regex needed). See crrev/c/1869800.
-		cmd = append(cmd, "--story-filter", fmt.Sprintf("^%s$", t.story))
+		// story-filter is preferred over --story since stories can sometimes use
+		// mismatched characters like ":" or "_"
+		cmd = append(cmd, "--story-filter", fmt.Sprintf("^%s$", replaceNonAlphaNumeric(t.story)))
 	}
 
 	if t.storyTags != "" {
@@ -115,4 +116,15 @@ func (t *telemetryTest) GetTelemetryExtraArgs() []string {
 	cmd = append(cmd, "--results-label", t.commit[:7])
 
 	return cmd
+}
+
+// replaceNonAlphaNumeric replaces all non alpha-numeric characters
+// in a string with ".". In the story-filter arg, the string passed
+// needs to be a regex. Periods are treated as any character in regex.
+// Story names can sometimes have ambiguous names like browse:media or
+// browse_media so this removes this ambiguity.
+// This replacement matches behavior in legacy Pinpoint
+func replaceNonAlphaNumeric(s string) string {
+	var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]`)
+	return nonAlphanumericRegex.ReplaceAllString(s, ".")
 }

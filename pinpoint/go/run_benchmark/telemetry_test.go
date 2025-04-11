@@ -48,3 +48,30 @@ func TestGetCommand_NonWaterfallEnabledGTest_TestCommand(t *testing.T) {
 	assert.Contains(t, cmd, "--benchmarks")
 	assert.Contains(t, cmd, "random_test")
 }
+
+func TestReplaceNonAlphaNumeric_WorksAsIntended(t *testing.T) {
+	test := func(name, story string, expected string) {
+		t.Run(story, func(t *testing.T) {
+			storyRegex := replaceNonAlphaNumeric(story)
+			assert.Equal(t, expected, storyRegex)
+		})
+	}
+	story := "Speedometer2"
+	test("alpha numeric only stays the same", story, story)
+
+	story = "browse:media:tiktok_infinite_scroll:2021"
+	expected := "browse.media.tiktok.infinite.scroll.2021"
+	test("example story - non alpha numeric characters replaced", story, expected)
+
+	story = "mse.html?media=aac_audio.mp4"
+	expected = "mse.html.media.aac.audio.mp4"
+	test("example story 2 - non alpha numeric characters replaced", story, expected)
+
+	story = "._:/?=&"
+	expected = "......."
+	test("known non alpha numeric characters that appear in stories are replaced", story, expected)
+
+	story = "!@#$%^&*()-=+[]{}./,`~_:?"
+	expected = "........................."
+	test("random non alpha numberic characters are covered", story, expected)
+}
