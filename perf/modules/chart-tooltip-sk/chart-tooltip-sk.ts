@@ -205,7 +205,7 @@ export class ChartTooltipSk extends ElementSk {
           id="try-job"
           @click=${ele.openTryJobDialog}
           ?hidden=${!ele.tooltip_fixed || !ele._show_pinpoint_buttons}>
-          Request Debug Trace
+          Request Trace
         </button>
         <user-issue-sk
           id="tooltip-user-issue-sk"
@@ -323,7 +323,7 @@ export class ChartTooltipSk extends ElementSk {
         ${this.anomaly!.bug_id
           ? html` <li>
               <span id="tooltip-key">Bug ID</span>
-              ${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)}
+              <span> ${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)} </span>
               <close-icon-sk
                 id="unassociate-bug-button"
                 @click=${this.unassociateBug}

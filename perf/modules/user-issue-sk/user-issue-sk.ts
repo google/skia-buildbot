@@ -174,7 +174,14 @@ export class UserIssueSk extends LitElement {
     if (this._text_input_active) {
       return html`
         <div class="new-issue-text-container">
-          <input placeholder="eg: 91345" type="number" min="0" @input=${this.changeHandler} />
+          <span class="new-issue">
+            <input
+              style="width: 100px;"
+              placeholder="eg: 3368155"
+              type="number"
+              min="0"
+              @input=${this.changeHandler} />
+          </span>
           <span>
             <check-icon-sk
               @click=${() => {
