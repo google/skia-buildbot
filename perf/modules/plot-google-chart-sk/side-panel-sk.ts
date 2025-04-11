@@ -99,6 +99,12 @@ export class SidePanelSk extends LitElement {
       font-size: 15px;
       margin-block-start: 3px;
     }
+    .default {
+      border-style: none;
+    }
+    .highlight {
+      border-style: solid;
+    }
   `;
 
   // Manages the state of the side panel as collapsed or open.
@@ -145,6 +151,9 @@ export class SidePanelSk extends LitElement {
 
   @property({ attribute: false, reflect: true })
   private legendKeysFormat = '';
+
+  @property({ attribute: false, reflect: true })
+  private highlightedTraceIndices: number[] = [];
 
   constructor() {
     super();
@@ -202,17 +211,21 @@ export class SidePanelSk extends LitElement {
                 headerCheckbox.checked = false;
               }
             };
+            let labelClass = 'default';
+            if (this.highlightedTraceIndices.includes(index)) {
+              labelClass = 'highlight';
+            }
             return html`
               <li style="color: ${defaultColors[index % defaultColors.length]}">
-                <label>
+                <label class="${labelClass}">
                   <input
                     type="checkbox"
                     id="id-${index}"
                     @click=${handleCheck}
                     ?checked=${this.checkedColList.has(item)}
                     title="Select/Unselect this value from the graph" />
-                  ${item}</label
-                >
+                  ${item}
+                </label>
               </li>
             `;
           })}
@@ -255,6 +268,15 @@ export class SidePanelSk extends LitElement {
     for (let index = 0; index < this.getLegend().length; index++) {
       this.setCheckbox(checked, index);
     }
+  }
+
+  /**
+   * Highlight the traces on the given indices on the panel.
+   * @param traceIndices Indices of the traces to highlight.
+   */
+  public HighlightTraces(traceIndices: number[]) {
+    this.highlightedTraceIndices = traceIndices;
+    this.render();
   }
 
   /**

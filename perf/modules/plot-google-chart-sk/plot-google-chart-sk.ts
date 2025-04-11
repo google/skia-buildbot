@@ -665,6 +665,9 @@ export class PlotGoogleChartSk extends LitElement {
     const tableRowIndex = plot!.view!.getTableRowIndex(selection.row);
     const tableColumnIndex = plot!.view!.getTableColumnIndex(selection.column);
 
+    // Subtract 2 from the table column index since the first two columns
+    // are commit position and date.
+    this.sidePanel.value!.HighlightTraces([tableColumnIndex - 2]);
     this.dispatchEvent(
       new CustomEvent<PlotShowTooltipEventDetails>('plot-data-select', {
         bubbles: true,
@@ -1264,6 +1267,7 @@ export class PlotGoogleChartSk extends LitElement {
       return;
     }
     this.chart.setSelection([]);
+    this.sidePanel.value?.HighlightTraces([]);
   }
 }
 
