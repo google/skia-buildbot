@@ -212,7 +212,7 @@ export class ChartTooltipSk extends ElementSk {
         </button>
         <user-issue-sk
           id="tooltip-user-issue-sk"
-          ?hidden=${!ele.tooltip_fixed || !ele.anomaly}></user-issue-sk>
+          ?hidden=${!ele.tooltip_fixed || ele.anomaly}></user-issue-sk>
       </div>
       <div id="json-source-dialog" ?hidden=${!ele.tooltip_fixed || !ele._show_json_source}>
         <json-source-sk id="json-source-sk"></json-source-sk>
