@@ -281,11 +281,11 @@ export class PointLinksSk extends ElementSk {
     const chroimumUrl = 'https://chromium.googlesource.com/';
     Object.keys(response).forEach((key) => {
       if (key === 'V8' && !response[key].startsWith('http')) {
-        const v8Url = 'v8/v8/';
+        const v8Url = 'v8/v8/+/';
         response[key] = chroimumUrl.concat(v8Url).concat(response[key]);
       }
       if (key === 'WebRTC' && !response[key].startsWith('http')) {
-        const webrtcUrl = 'external/webrtc';
+        const webrtcUrl = 'external/webrtc/+/';
         response[key] = chroimumUrl.concat(webrtcUrl).concat(response[key]);
       }
     });
