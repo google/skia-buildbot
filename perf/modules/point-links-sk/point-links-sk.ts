@@ -97,12 +97,10 @@ export class PointLinksSk extends ElementSk {
       // generate text contents
       return html` <li>
         <span id="tooltip-link">${keyText}</span>
-        <span id="tooltip-text">
-          ${link.startsWith('http') ? htmlUrl : link}
-          <md-icon-button @click=${() => this.copyToClipboard(link)}>
-            <md-icon id="copy-icon">content_copy</md-icon>
-          </md-icon-button>
-        </span>
+        <span id="tooltip-text"> ${link.startsWith('http') ? htmlUrl : link} </span>
+        <md-icon-button @click=${() => this.copyToClipboard(link)}>
+          <md-icon id="copy-icon">content_copy</md-icon>
+        </md-icon-button>
       </li>`;
     };
     return keys.map(getHtml);
