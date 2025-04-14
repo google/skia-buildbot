@@ -164,7 +164,7 @@ const SPECIAL_TRACE_NAMES = [ZERO_NAME];
 const REFRESH_TIMEOUT = 30 * 1000; // milliseconds
 
 // The default query range in seconds.
-export const DEFAULT_RANGE_S = 24 * 60 * 60; // 2 days in seconds.
+export const DEFAULT_RANGE_S = 2 * 7 * 24 * 60 * 60; // 2 weeks in seconds.
 
 // The index of the params tab.
 const PARAMS_TAB_INDEX = 0;
