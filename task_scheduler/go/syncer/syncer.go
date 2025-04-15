@@ -275,9 +275,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	env := []string{
 		"DEPOT_TOOLS_METRICS=0",
 		"DEPOT_TOOLS_UPDATE=0",
-		// TODO(borenet): Re-enable caches after ensuring that removing them
-		// doesn't help.
-		//fmt.Sprintf("GIT_CACHE_PATH=%s", gitCacheDir),
+		fmt.Sprintf("GIT_CACHE_PATH=%s", gitCacheDir),
 		fmt.Sprintf("HOME=%s", tmp),
 		fmt.Sprintf("INFRA_GIT_WRAPPER_HOME=%s", tmp),
 		fmt.Sprintf("PATH=%s", strings.Join(paths, ":")),
