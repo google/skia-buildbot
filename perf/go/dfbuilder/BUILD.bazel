@@ -43,8 +43,10 @@ go_test(
     flaky = True,
     deps = [
         "//go/cache/local",
+        "//go/cache/mock",
         "//go/paramtools",
         "//go/query",
+        "//go/testutils",
         "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/git",
@@ -53,9 +55,11 @@ go_test(
         "//perf/go/sql/sqltest",
         "//perf/go/tracecache",
         "//perf/go/tracestore",
+        "//perf/go/tracestore/mocks",
         "//perf/go/tracestore/sqltracestore",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],
 )

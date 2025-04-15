@@ -455,6 +455,11 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
 	}
 
+	// If running locally, lets force the service to use a local cache since
+	// redis cannot be used outside GCP.
+	if f.flags.Local && config.Config.QueryConfig.CacheConfig.Enabled {
+		config.Config.QueryConfig.CacheConfig.Type = config.LocalCache
+	}
 	var infraCache infraCache.Cache
 	if config.Config.QueryConfig.CacheConfig.Enabled {
 		var err error

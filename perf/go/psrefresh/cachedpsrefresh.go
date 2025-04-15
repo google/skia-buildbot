@@ -260,10 +260,6 @@ func (c *CachedParamSetRefresher) getParamSetForQueryInternal(ctx context.Contex
 // Start the refresher.
 func (c *CachedParamSetRefresher) Start(period time.Duration) error {
 	err := c.psRefresher.Start(period)
-	if c.psRefresher.qConfig.CacheConfig.Type == config.LocalCache {
-		sklog.Infof("Starting the refresh routine on %v", period)
-		c.StartRefreshRoutine(period)
-	}
 	return err
 }
 

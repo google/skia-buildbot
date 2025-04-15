@@ -52,8 +52,8 @@ const (
 	// Do not filter parent traces
 	doNotFilterParentTraces Filtering = false
 
-	// Max no of traceIds to store in a single cache entry.
-	maxTraceIdsInCache = 200
+	// Size of the channel to return when getting traceids from the cache.
+	traceIdCacheChannelSize = 10000
 )
 
 // builder implements DataFrameBuilder using TraceStore.
@@ -651,7 +651,7 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 			defer wg.Done()
 
 			// Count the matches and sum the params in the tile.
-			out, err := b.store.QueryTracesIDOnly(queryContext, iterateTileNumber, q)
+			cacheMiss, out, err := b.getTraceIds(queryContext, iterateTileNumber, q)
 			if err != nil {
 				queryTraceError = err
 				sklog.Errorf("failed to query traces at tile %d with error: %s", iterateTileNumber, err)
@@ -667,7 +667,9 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 			doUpdateCount(tileOneCount)
 			// At this point we have all the traces gathered. Let's add them
 			// to the cache if there is a cache configured for the instance.
-			b.cacheTraceIdsIfNeeded(ctx, iterateTileNumber, q, traceIdsForTile)
+			if cacheMiss {
+				b.cacheTraceIdsIfNeeded(ctx, iterateTileNumber, q, traceIdsForTile)
+			}
 		}(tileNumber)
 
 		// Now move to the previous tile.
@@ -793,12 +795,48 @@ func filterParentTraces(traceSet types.TraceSet) types.TraceSet {
 
 // cacheTraceIdsIfNeeded adds the given trace ids to the cache if it is configured.
 func (b *builder) cacheTraceIdsIfNeeded(ctx context.Context, tileNumber types.TileNumber, q *query.Query, traceIds []paramtools.Params) {
-	if b.tracecache != nil && len(traceIds) <= maxTraceIdsInCache {
+	if b.tracecache != nil {
 		err := b.tracecache.CacheTraceIds(ctx, tileNumber, q, traceIds)
 		if err != nil {
 			sklog.Warningf("Error caching traceIds: %v", err)
 		}
 	}
+}
+
+// getTraceIds returns the traceIds matching the query in the given tile number.
+// This function will first attempt to get this information from the cache. If the
+// cache does not return any data or if cache is not configured for the instance,
+// it will perform a database search for the trace ids.
+// The first return param is true if there was a cache miss and/or a db query was done.
+func (b *builder) getTraceIds(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (bool, <-chan paramtools.Params, error) {
+	if b.tracecache != nil {
+		traceIdsFromCache, err := b.tracecache.GetTraceIds(ctx, tileNumber, q)
+		if err != nil {
+			sklog.Errorf("Error retrieving trace ids from cache: %v", err)
+			return true, nil, err
+		}
+		// Check if any trace data was found in cache. If not, fall back to the database search.
+		if traceIdsFromCache == nil {
+			sklog.Infof("No trace ids were found in cache for tile: %d, query: %v", tileNumber, q)
+			paramsChannel, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
+			return true, paramsChannel, err
+		} else {
+			traceIdsChannel := make(chan paramtools.Params, traceIdCacheChannelSize)
+			sklog.Infof("Retrieved %d trace ids from cache for tile %d and query %v", len(traceIdsFromCache), tileNumber, q)
+			go func() {
+				for _, traceId := range traceIdsFromCache {
+					traceIdsChannel <- traceId
+				}
+				close(traceIdsChannel)
+			}()
+			return false, traceIdsChannel, nil
+		}
+	}
+
+	// Cache is not configured, so let's do a database query.
+	sklog.Infof("Cache is not enabled, performing database query.")
+	paramsChannel, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
+	return true, paramsChannel, err
 }
 
 // Validate that *builder faithfully implements the DataFrameBuidler interface.
