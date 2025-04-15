@@ -9,5 +9,6 @@ go_library(
         "//go/exec",
         "//go/git",
         "//go/skerr",
+        "//go/sklog",
     ],
 )
