@@ -488,6 +488,7 @@ type FrontendFlags struct {
 	Interesting                    float64
 	KeyOrder                       string
 	Local                          bool
+	LocalToProd                    bool
 	NumContinuous                  int
 	NumContinuousParallel          int
 	NumShift                       int
@@ -581,6 +582,12 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Name:        "local",
 			Value:       false,
 			Usage:       "Running locally if true. As opposed to in production.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.LocalToProd,
+			Name:        "localToProd",
+			Value:       false,
+			Usage:       "Running locally connected to production data if true.",
 		},
 		&cli.IntFlag{
 			Destination: &flags.NumContinuous,

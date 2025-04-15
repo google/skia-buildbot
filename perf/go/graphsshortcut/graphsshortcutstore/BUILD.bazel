@@ -3,10 +3,14 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "graphsshortcutstore",
-    srcs = ["graphsshortcutstore.go"],
+    srcs = [
+        "cachegraphsshortcutstore.go",
+        "graphsshortcutstore.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/graphsshortcut/graphsshortcutstore",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/cache",
         "//go/skerr",
         "//go/sql/pool",
         "//perf/go/graphsshortcut",

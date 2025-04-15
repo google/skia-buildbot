@@ -116,7 +116,7 @@ func TestProvider_GroupReport_InvalidParam(t *testing.T) {
 
 func getPerfGit(t *testing.T) perfgit.Git {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	git, err := perfgit.New(ctx, true, db, instanceConfig)
+	git, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 	return git
 }

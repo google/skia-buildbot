@@ -64,7 +64,7 @@ func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTr
 
 func commonTestSetupWithCommits(t *testing.T) (context.Context, *SQLTraceStore) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	_, err := git.New(ctx, true, db, instanceConfig)
+	_, err := git.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	store, err := New(db, cfg)

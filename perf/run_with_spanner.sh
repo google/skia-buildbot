@@ -38,6 +38,7 @@ sudo docker run -d -p 127.0.0.1:5432:5432 \
 bazelisk build --config=mayberemote -c dbg //perf/...
 ../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
 		--local \
+		--localToProd \
 		--do_clustering=false \
 		--port=:8002 \
 		--prom_port=:20001 \

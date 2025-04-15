@@ -135,7 +135,7 @@ func TestSlice(t *testing.T) {
 
 func TestFromTimeRange_Success(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	columnHeaders, commitNumbers, _, err := FromTimeRange(ctx, g, gittest.StartTime, gittest.StartTime.Add(2*time.Minute), false)
@@ -155,7 +155,7 @@ func TestFromTimeRange_Success(t *testing.T) {
 
 func TestFromTimeRange_EmptySlicesIfNothingInTimeRange(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	// Query outside the time of any commit.

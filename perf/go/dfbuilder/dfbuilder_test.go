@@ -74,7 +74,7 @@ func TestBuildNew(t *testing.T) {
 	ctx := context.Background()
 
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.DataStoreConfig.TileSize = 6
@@ -216,7 +216,7 @@ func TestBuildNew(t *testing.T) {
 
 func TestFromIndexRange_Success(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	columnHeaders, commitNumbers, _, err := fromIndexRange(ctx, g, types.CommitNumber(0), types.CommitNumber(2))
@@ -240,7 +240,7 @@ func TestFromIndexRange_Success(t *testing.T) {
 
 func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	columnHeaders, commitNumbers, _, err := fromIndexRange(ctx, g, types.BadCommitNumber, types.BadCommitNumber)
@@ -252,7 +252,7 @@ func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
 
 func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.DataStoreConfig.TileSize = 6
@@ -279,7 +279,7 @@ func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 
 func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.DataStoreConfig.TileSize = 6
@@ -322,7 +322,7 @@ func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 
 func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetReflectsBothTiles(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.DataStoreConfig.TileSize = 6
@@ -371,7 +371,7 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 
 func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.DataStoreConfig.TileSize = 6
@@ -388,7 +388,7 @@ func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 
 func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.DataStoreConfig.TileSize = 6
@@ -417,7 +417,7 @@ func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 
 func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCountsIsReturned(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.DataStoreConfig.TileSize = 6
@@ -455,7 +455,7 @@ func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCounts
 
 func TestPreflightQuery_Cache_Success(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.DataStoreConfig.TileSize = 6
@@ -507,7 +507,7 @@ func TestPreflightQuery_Cache_Success(t *testing.T) {
 
 func TestPreflightQuery_Cache_Query_Success(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	store := mockTraceStore.NewTraceStore(t)

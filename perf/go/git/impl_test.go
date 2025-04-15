@@ -22,7 +22,7 @@ func TestCockroachDB(t *testing.T) {
 	for name, subTest := range subTests {
 		t.Run(name, func(t *testing.T) {
 			ctx, db, gb, hashes, _, instanceConfig := gittest.NewForTest(t)
-			g, err := New(ctx, true, db, instanceConfig)
+			g, err := New(ctx, false, db, instanceConfig)
 			require.NoError(t, err)
 
 			subTest(t, ctx, g, gb, hashes)
@@ -414,7 +414,7 @@ func TestGetCommitNumberFromGitLog(t *testing.T) {
 	for name, subTest := range getCommitNumberSubTests {
 		t.Run(name, func(t *testing.T) {
 			ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-			g, err := New(ctx, true, db, instanceConfig)
+			g, err := New(ctx, false, db, instanceConfig)
 			require.NoError(t, err)
 
 			g.commitNumberRegex = regexp.MustCompile("Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}")

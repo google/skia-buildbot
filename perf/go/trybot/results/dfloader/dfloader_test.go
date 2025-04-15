@@ -30,7 +30,7 @@ const e = vec32.MissingDataSentinel
 func setupForTest(t *testing.T) (context.Context, perfgit.Git, []string) {
 	ctx, db, _, hashes, _, instanceConfig := gittest.NewForTest(t)
 	instanceConfig.DataStoreConfig.TileSize = testTileSize
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 	return ctx, g, hashes
 }

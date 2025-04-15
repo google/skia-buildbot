@@ -51,6 +51,7 @@ import (
 	userissue_store "go.skia.org/infra/perf/go/userissue/sqluserissuestore"
 
 	gcp_redis "cloud.google.com/go/redis/apiv1"
+	"go.skia.org/infra/go/cache/local"
 	localCache "go.skia.org/infra/go/cache/local"
 	redisCache "go.skia.org/infra/go/cache/redis"
 )
@@ -144,7 +145,7 @@ func NewDBPoolFromConfig(ctx context.Context, instanceConfig *config.InstanceCon
 //
 // The instance created does not poll by default, callers need to call
 // StartBackgroundPolling().
-func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (perfgit.Git, error) {
+func NewPerfGitFromConfig(ctx context.Context, localToProd bool, instanceConfig *config.InstanceConfig) (perfgit.Git, error) {
 	if instanceConfig.DataStoreConfig.ConnectionString == "" {
 		return nil, skerr.Fmt("A connection_string must always be supplied.")
 	}
@@ -154,7 +155,7 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	g, err := perfgit.New(ctx, local, db, instanceConfig)
+	g, err := perfgit.New(ctx, localToProd, db, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -221,7 +222,14 @@ func NewShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig 
 
 // NewShortcutStoreFromConfig creates a new shortcut.Store from the
 // InstanceConfig.
-func NewGraphsShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (graphsshortcut.Store, error) {
+func NewGraphsShortcutStoreFromConfig(ctx context.Context, localToProd bool, instanceConfig *config.InstanceConfig) (graphsshortcut.Store, error) {
+	if localToProd {
+		cache, err := local.New(100)
+		if err != nil {
+			return nil, err
+		}
+		return graphsshortcutstore.NewCacheGraphsShortcutStore(cache), nil
+	}
 	db, err := getDBPool(ctx, instanceConfig)
 	if err != nil {
 		return nil, err

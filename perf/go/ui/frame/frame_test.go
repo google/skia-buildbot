@@ -95,7 +95,7 @@ var ctx = context.Background()
 
 func TestGetSkps_Success(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.GitRepoConfig.FileChangeMarker = "bar.txt"
@@ -115,7 +115,7 @@ func TestGetSkps_Success(t *testing.T) {
 
 func TestGetSkps_SuccessIfFileChangeMarkerNotSet(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.GitRepoConfig.FileChangeMarker = ""
@@ -135,7 +135,7 @@ func TestGetSkps_SuccessIfFileChangeMarkerNotSet(t *testing.T) {
 
 func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.GitRepoConfig.FileChangeMarker = "bar.txt"

@@ -211,7 +211,7 @@ type Impl struct {
 //
 // The instance created does not poll by default, callers need to call
 // StartBackgroundPolling().
-func New(ctx context.Context, local bool, db pool.Pool, instanceConfig *config.InstanceConfig) (*Impl, error) {
+func New(ctx context.Context, localToProd bool, db pool.Pool, instanceConfig *config.InstanceConfig) (*Impl, error) {
 	cache, err := lru.New(commitCacheSize)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -251,8 +251,12 @@ func New(ctx context.Context, local bool, db pool.Pool, instanceConfig *config.I
 		commitNumberMissingFromGitLog:                         metrics2.GetCounter("perf_git_commit_number_missing_from_git_log"),
 	}
 
-	if err := ret.Update(ctx); err != nil {
-		return nil, skerr.Wrapf(err, "Failed first update step for config %v", *instanceConfig)
+	// If we are running a local instance against prod database, we do not want
+	// to do any git updates.
+	if !localToProd {
+		if err := ret.Update(ctx); err != nil {
+			return nil, skerr.Wrapf(err, "Failed first update step for config %v", *instanceConfig)
+		}
 	}
 
 	return ret, nil

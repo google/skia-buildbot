@@ -450,7 +450,7 @@ func (f *Frontend) initialize() {
 
 	sklog.Info("About to build perfgit.")
 
-	f.perfGit, err = builders.NewPerfGitFromConfig(ctx, f.flags.Local, config.Config)
+	f.perfGit, err = builders.NewPerfGitFromConfig(ctx, f.flags.LocalToProd, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
 	}
@@ -544,7 +544,7 @@ func (f *Frontend) initialize() {
 	if err != nil {
 		sklog.Fatalf("Fail to NewShortcutStoreFromConfig: %v", err)
 	}
-	f.graphsShortcutStore, err = builders.NewGraphsShortcutStoreFromConfig(ctx, f.flags.Local, config.Config)
+	f.graphsShortcutStore, err = builders.NewGraphsShortcutStoreFromConfig(ctx, f.flags.LocalToProd, config.Config)
 	if err != nil {
 		sklog.Fatalf("Fail to NewGraphsShortcutStoreFromConfig: %v", err)
 	}

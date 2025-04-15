@@ -46,7 +46,7 @@ func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, key
 
 func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, perfgit.Git, time.Time) {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
 	cfg := config.DataStoreConfig{
