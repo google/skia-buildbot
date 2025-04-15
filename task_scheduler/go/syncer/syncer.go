@@ -283,7 +283,6 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		fmt.Sprintf("PATH=%s", strings.Join(paths, ":")),
 		// Incase we need to download topics.
 		"SKIP_GCE_AUTH_FOR_GIT=1",
-		fmt.Sprintf("GIT_COOKIES_PATH=%s", types.GitCookiesPath),
 	}
 
 	spec := fmt.Sprintf("solutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", projectName, rs.Repo)

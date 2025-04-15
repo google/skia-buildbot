@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
@@ -91,9 +90,6 @@ func main() {
 	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, auth.ScopeReadWrite, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE, compute.CloudPlatformScope /* TODO(borenet): No! */)
 	if err != nil {
 		sklog.Fatalf("Failed to create token source: %s", err)
-	}
-	if _, err := gitauth.New(ctx, tokenSource, types.GitCookiesPath, true, ""); err != nil {
-		sklog.Fatalf("Failed to create git cookie updater: %s", err)
 	}
 	cas, err := rbe.NewClient(ctx, *rbeInstance, tokenSource)
 	if err != nil {

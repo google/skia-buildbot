@@ -20,9 +20,9 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
+	depot_tools_auth "go.skia.org/infra/go/depot_tools/auth"
 	"go.skia.org/infra/go/du"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
@@ -38,7 +38,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/syncer"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
-	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
@@ -126,8 +125,10 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create RBE-CAS client: %s", err)
 	}
-	if _, err := gitauth.New(ctx, tokenSource, types.GitCookiesPath, true, ""); err != nil {
-		sklog.Fatalf("Failed to create git cookie updater: %s", err)
+	if !*local {
+		if err := depot_tools_auth.GitConfig(ctx); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// Authenticated HTTP client.

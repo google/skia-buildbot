@@ -12,7 +12,6 @@ go_library(
         "//go/common",
         "//go/gcs/gcsclient",
         "//go/git/repograph",
-        "//go/gitauth",
         "//go/gitstore/bt_gitstore",
         "//go/gitstore/pubsub",
         "//go/httputils",
