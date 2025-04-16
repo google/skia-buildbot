@@ -112,8 +112,11 @@ func (t *telemetryTest) GetTelemetryExtraArgs() []string {
 
 	// For results2 to differentiate between runs, we need to add the
 	// Telemetry parameter `--results-label <change>` to the runs.
-	// TODO(jeffyoon@) deprecate this label once the UI is no longer dependant on this.
-	cmd = append(cmd, "--results-label", t.commit[:7])
+	// If the commit is less than 7 char, that implies the results2 are not used
+	// TODO(b/411136326) deprecate this label once the UI is no longer dependant on this.
+	if len(t.commit) >= 7 {
+		cmd = append(cmd, "--results-label", t.commit[:7])
+	}
 
 	return cmd
 }

@@ -2,6 +2,7 @@ package internal
 
 import (
 	"github.com/google/uuid"
+	swarming_pb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
@@ -12,6 +13,23 @@ import (
 )
 
 func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpoint_proto.PairwiseExecution, error) {
+	if p.Request.StartBuild == nil && p.Request.StartCommit == nil {
+		return nil, skerr.Fmt("Base build and commit are empty.")
+	}
+	if p.Request.EndBuild == nil && p.Request.EndCommit == nil {
+		return nil, skerr.Fmt("Experiment build and commit are empty.")
+	}
+
+	leftCas, err := convertCas(p.Request.StartBuild)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "start build is invalid")
+	}
+
+	rightCas, err := convertCas(p.Request.EndBuild)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "end build is invalid")
+	}
+
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 
@@ -39,6 +57,8 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 			AggregationMethod: p.Request.AggregationMethod,
 			Iterations:        p.GetInitialAttempt(),
 		},
+		LeftCAS:     leftCas,
+		RightCAS:    rightCas,
 		LeftCommit:  (*common.CombinedCommit)(p.Request.StartCommit),
 		RightCommit: (*common.CombinedCommit)(p.Request.EndCommit),
 	}
@@ -81,5 +101,21 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 			TreatmentMedian:          res.YMedian,
 		},
 		Culprit: culprit,
+	}, nil
+}
+
+func convertCas(pinpointCas *pinpoint_proto.CASReference) (*swarming_pb.CASReference, error) {
+	if pinpointCas == nil {
+		return nil, nil
+	}
+	if pinpointCas.Digest == nil {
+		return nil, skerr.Fmt("cas digest cannot be nil: %v", pinpointCas)
+	}
+	return &swarming_pb.CASReference{
+		CasInstance: pinpointCas.CasInstance,
+		Digest: &swarming_pb.Digest{
+			Hash:      pinpointCas.Digest.Hash,
+			SizeBytes: pinpointCas.Digest.SizeBytes,
+		},
 	}, nil
 }

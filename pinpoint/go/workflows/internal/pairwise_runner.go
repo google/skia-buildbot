@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math/rand"
 
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/common"
@@ -16,6 +17,11 @@ import (
 // PairwiseCommitsRunnerParams defines the parameters for PairwiseCommitsRunner workflow.
 type PairwiseCommitsRunnerParams struct {
 	SingleCommitRunnerParams
+
+	// LeftBuild and RightBuild supplies the CasReference to build.
+	// If provided, skips build step for that commit.
+	// Use either the builds or the commits.
+	LeftCAS, RightCAS *apipb.CASReference
 
 	// LeftCommit and RightCommit specify the two commits the pairwise runner will compare.
 	// SingleCommitRunnerParams includes a field for only one commit.
@@ -202,16 +208,29 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	wg := workflow.NewWaitGroup(ctx)
 	wg.Add(int(pc.Iterations))
 
-	// TODO(b/332391612): viditchitkara@ Build chrome for leftBuild and rightBuild in parallel
-	// to save time.
-	leftBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.LeftCommit)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.LeftCommit.Main.String())
+	var leftBuild, rightBuild *workflows.Build
+	var err error
+	// TODO(b/332391612): Build leftBuild and rightBuild in parallel to save time.
+	if pc.LeftCAS == nil {
+		leftBuild, err = buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.LeftCommit)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.LeftCommit.Main.String())
+		}
+	} else {
+		leftBuild = &workflows.Build{
+			CAS: pc.LeftCAS,
+		}
 	}
 
-	rightBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.RightCommit)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.RightCommit.Main.String())
+	if pc.RightCAS == nil {
+		rightBuild, err = buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.RightCommit)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.RightCommit.Main.String())
+		}
+	} else {
+		rightBuild = &workflows.Build{
+			CAS: pc.RightCAS,
+		}
 	}
 
 	// Pairwise workflow compares the performance of two versions of Chrome against each other.

@@ -17,6 +17,17 @@ import (
 
 const mockChart = "chart"
 
+var mockCommit = pinpoint_proto.CombinedCommit{
+	Main: common.NewChromiumCommit("fake-commit"),
+}
+var mockBuild = pinpoint_proto.CASReference{
+	CasInstance: "projects/chromium-swarm/instances/default_instance",
+	Digest: &pinpoint_proto.CASReference_Digest{
+		Hash:      "98f6b9deb73c81bd80f63149e66446547fa1fd332c382d358a6f6f1afb1b1ebb",
+		SizeBytes: 732,
+	},
+}
+
 func TestPairwiseWorkflow_GivenUnsuccessfulWorkflow_ReturnsError(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -26,7 +37,9 @@ func TestPairwiseWorkflow_GivenUnsuccessfulWorkflow_ReturnsError(t *testing.T) {
 
 	env.ExecuteWorkflow(PairwiseWorkflow, &workflows.PairwiseParams{
 		Request: &pinpoint_proto.SchedulePairwiseRequest{
-			Chart: mockChart,
+			StartCommit: &mockCommit,
+			EndCommit:   &mockCommit,
+			Chart:       mockChart,
 		},
 	})
 	require.True(t, env.IsWorkflowCompleted())
@@ -73,7 +86,9 @@ func TestPairwiseWorkflow_GivenSuccessfulWorkflow_ReturnsCorrectPValues(t *testi
 
 	env.ExecuteWorkflow(PairwiseWorkflow, &workflows.PairwiseParams{
 		Request: &pinpoint_proto.SchedulePairwiseRequest{
-			Chart: mockChart,
+			StartCommit: &mockCommit,
+			EndCommit:   &mockCommit,
+			Chart:       mockChart,
 		},
 	})
 	require.True(t, env.IsWorkflowCompleted())
@@ -123,10 +138,9 @@ func TestPairwiseWorkflow_GivenSuccessfulWorkflowWithCulprit_ReturnsCulprit(t *t
 
 	env.ExecuteWorkflow(PairwiseWorkflow, &workflows.PairwiseParams{
 		Request: &pinpoint_proto.SchedulePairwiseRequest{
-			Chart: mockChart,
-			EndCommit: &pinpoint_proto.CombinedCommit{
-				Main: common.NewChromiumCommit("fake-commit"),
-			},
+			Chart:      mockChart,
+			StartBuild: &mockBuild,
+			EndCommit:  &mockCommit,
 		},
 		CulpritVerify: true,
 	})
@@ -139,5 +153,71 @@ func TestPairwiseWorkflow_GivenSuccessfulWorkflowWithCulprit_ReturnsCulprit(t *t
 	assert.NotEmpty(t, pe.JobId)
 	assert.Equal(t, statResults.PValue, pe.Statistic.PValue)
 	assert.Equal(t, "fake-commit", pe.Culprit.Main.GitHash)
+	env.AssertExpectations(t)
+}
+
+func TestPairwiseWorkflow_GivenNoStartBuild_ReturnsError(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	env.RegisterWorkflowWithOptions(PairwiseCommitsRunnerWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseCommitsRunner})
+
+	env.ExecuteWorkflow(PairwiseWorkflow, &workflows.PairwiseParams{
+		Request: &pinpoint_proto.SchedulePairwiseRequest{
+			Chart: mockChart,
+		},
+	})
+	require.True(t, env.IsWorkflowCompleted())
+	require.Error(t, env.GetWorkflowError())
+	require.ErrorContains(t, env.GetWorkflowError(), "Base build and commit are empty")
+
+	var pe *pinpoint_proto.PairwiseExecution
+	require.Error(t, env.GetWorkflowResult(&pe))
+	assert.Nil(t, pe)
+	env.AssertExpectations(t)
+}
+
+func TestPairwiseWorkflow_GivenNoEndBuild_ReturnsError(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	env.RegisterWorkflowWithOptions(PairwiseCommitsRunnerWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseCommitsRunner})
+
+	env.ExecuteWorkflow(PairwiseWorkflow, &workflows.PairwiseParams{
+		Request: &pinpoint_proto.SchedulePairwiseRequest{
+			StartBuild: &mockBuild,
+			Chart:      mockChart,
+		},
+	})
+	require.True(t, env.IsWorkflowCompleted())
+	require.Error(t, env.GetWorkflowError())
+	require.ErrorContains(t, env.GetWorkflowError(), "Experiment build and commit are empty")
+
+	var pe *pinpoint_proto.PairwiseExecution
+	require.Error(t, env.GetWorkflowResult(&pe))
+	assert.Nil(t, pe)
+	env.AssertExpectations(t)
+}
+
+func TestPairwiseWorkflow_GivenBadCas_ReturnsError(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	env.RegisterWorkflowWithOptions(PairwiseCommitsRunnerWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseCommitsRunner})
+
+	env.ExecuteWorkflow(PairwiseWorkflow, &workflows.PairwiseParams{
+		Request: &pinpoint_proto.SchedulePairwiseRequest{
+			StartBuild: &mockBuild,
+			EndBuild:   &pinpoint_proto.CASReference{},
+			Chart:      mockChart,
+		},
+	})
+	require.True(t, env.IsWorkflowCompleted())
+	require.Error(t, env.GetWorkflowError())
+	require.ErrorContains(t, env.GetWorkflowError(), "end build is invalid")
+
+	var pe *pinpoint_proto.PairwiseExecution
+	require.Error(t, env.GetWorkflowResult(&pe))
+	assert.Nil(t, pe)
 	env.AssertExpectations(t)
 }

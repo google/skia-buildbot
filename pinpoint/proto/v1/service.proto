@@ -170,7 +170,7 @@ message CASReference {
 	// CAS Digest consists of hash and size bytes.
 	message Digest {
 		string hash = 1;
-		int32 size_bytes = 2;
+		int64 size_bytes = 2;
 	}
 
 	Digest digest = 2;

@@ -142,20 +142,29 @@ func triggerPairwiseRunner(c client.Client) (*internal.PairwiseRun, error) {
 	return pr, nil
 }
 
+// based off of https://pinpoint-dot-chromeperf.appspot.com/job/2e79457b-4d19-4e3b-9553-7baf1fd9a0e1
 func triggerPairwiseWorkflow(c client.Client) (*pb.PairwiseExecution, error) {
 	ctx := context.Background()
 	p := &workflows.PairwiseParams{
 		Request: &pb.SchedulePairwiseRequest{
-			StartCommit: &pb.CombinedCommit{
-				Main: common.NewChromiumCommit("b4378eb24acedae3c2ad6d7c06dea6a2ddee89b0"),
+			StartBuild: &pb.CASReference{
+				CasInstance: "projects/chrome-swarming/instances/default_instance",
+				Digest: &pb.CASReference_Digest{
+					Hash:      "34fafa444871df71a72f4ec70aa1f879493c5ab64cf6a3e295adfc51c7690e45",
+					SizeBytes: 811,
+				},
 			},
-			EndCommit: &pb.CombinedCommit{
-				Main: common.NewChromiumCommit("61adb993e8a46e38caac98dcb80c306391692079"),
+			EndBuild: &pb.CASReference{
+				CasInstance: "projects/chrome-swarming/instances/default_instance",
+				Digest: &pb.CASReference_Digest{
+					Hash:      "b7691e1cba44f4c569ccaa78d5fce76fe5e31f13e0706f40570514356b17b6e1",
+					SizeBytes: 811,
+				},
 			},
-			Configuration:        "mac-m2-pro-perf",
-			Benchmark:            "v8.browsing_desktop",
-			Story:                "browse:search:google:2020",
-			Chart:                "memory:chrome:renderer_processes:reported_by_chrome:blink_gc:allocated_objects_size",
+			Configuration:        "android-pixel4-perf",
+			Benchmark:            "system_health.memory_mobile",
+			Story:                "browse:chrome:omnibox:2019",
+			Chart:                "memory:chrome:all_processes:reported_by_chrome:cc:effective_size",
 			AggregationMethod:    "mean",
 			InitialAttemptCount:  "30",
 			ImprovementDirection: "DOWN",

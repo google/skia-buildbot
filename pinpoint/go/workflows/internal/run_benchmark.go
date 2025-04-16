@@ -295,7 +295,17 @@ func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *
 		return "", skerr.Wrap(err)
 	}
 
-	taskIds, err := run_benchmark.Run(ctx, sc, rbp.Commit.GetMainGitHash(), rbp.BotConfig, rbp.Benchmark, rbp.Story, rbp.StoryTags, rbp.JobID, rbp.BuildCAS, 1, rbp.Dimensions)
+	var commit string
+	// if we are using CAS, we still need to provide a string to allow for
+	// results filtering in telemetry.go
+	// TODO(b/411136326): deprecate this label once the UI is no longer dependant on this
+	if rbp.Commit == nil && rbp.BuildCAS != nil {
+		commit = ""
+	} else {
+		commit = rbp.Commit.GetMainGitHash()
+	}
+
+	taskIds, err := run_benchmark.Run(ctx, sc, commit, rbp.BotConfig, rbp.Benchmark, rbp.Story, rbp.StoryTags, rbp.JobID, rbp.BuildCAS, 1, rbp.Dimensions)
 	if err != nil {
 		return "", err
 	}
