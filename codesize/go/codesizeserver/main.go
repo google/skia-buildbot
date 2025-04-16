@@ -118,7 +118,7 @@ func new() (baseapp.App, error) {
 	// expiration policy to shorten the time until unused subscriptions are garbage-collected after
 	// redeploying the service.
 	expirationPolicy := time.Hour * 24 * 7
-	subscription, err := sub.NewWithSubNameProviderAndExpirationPolicy(ctx, *baseapp.Local, gcpProjectName, pubSubTopic, sub.NewBroadcastNameProvider(*baseapp.Local, pubSubTopic), &expirationPolicy, 1)
+	subscription, err := sub.NewWithSubNameProviderAndExpirationPolicy(ctx, gcpProjectName, pubSubTopic, sub.NewBroadcastNameProvider(*baseapp.Local, pubSubTopic), &expirationPolicy, 1)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to subscribe to PubSub topic")
 	}

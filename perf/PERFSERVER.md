@@ -56,7 +56,7 @@ The main web UI.
 
 **--key_order**="": The order that keys should be presented in for searching. All keys that don't appear here will appear after. (default: build_flavor,name,sub_result,source_type)
 
-**--local**: Running locally if true. As opposed to in production.
+**--dev**: Running in developer mode if true. As opposed to in production.
 
 **--noemail**: Do not send emails.
 

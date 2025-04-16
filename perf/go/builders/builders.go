@@ -166,7 +166,7 @@ func NewPerfGitFromConfig(ctx context.Context, localToProd bool, instanceConfig 
 // NewTraceStoreFromConfig creates a new TraceStore from the InstanceConfig.
 //
 // If local is true then we aren't running in production.
-func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (tracestore.TraceStore, error) {
+func NewTraceStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (tracestore.TraceStore, error) {
 	db, err := getDBPool(ctx, instanceConfig)
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func NewMetadataStoreFromConfig(ctx context.Context, instanceConfig *config.Inst
 }
 
 // NewAlertStoreFromConfig creates a new alerts.Store from the InstanceConfig.
-func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (alerts.Store, error) {
+func NewAlertStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (alerts.Store, error) {
 	db, err := getDBPool(ctx, instanceConfig)
 	if err != nil {
 		return nil, err
@@ -197,7 +197,7 @@ func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 // the InstanceConfig.
 //
 // If local is true then we aren't running in production.
-func NewRegressionStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig, alertsConfigProvider alerts.ConfigProvider) (regression.Store, error) {
+func NewRegressionStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig, alertsConfigProvider alerts.ConfigProvider) (regression.Store, error) {
 	db, err := getDBPool(ctx, instanceConfig)
 	if err != nil {
 		return nil, err
@@ -212,7 +212,7 @@ func NewRegressionStoreFromConfig(ctx context.Context, local bool, instanceConfi
 
 // NewShortcutStoreFromConfig creates a new shortcut.Store from the
 // InstanceConfig.
-func NewShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (shortcut.Store, error) {
+func NewShortcutStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (shortcut.Store, error) {
 	db, err := getDBPool(ctx, instanceConfig)
 	if err != nil {
 		return nil, err
@@ -240,10 +240,10 @@ func NewGraphsShortcutStoreFromConfig(ctx context.Context, localToProd bool, ins
 // NewSourceFromConfig creates a new file.Source from the InstanceConfig.
 //
 // If local is true then we aren't running in production.
-func NewSourceFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig, local bool) (file.Source, error) {
+func NewSourceFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (file.Source, error) {
 	switch instanceConfig.IngestionConfig.SourceConfig.SourceType {
 	case config.GCSSourceType:
-		return gcssource.New(ctx, instanceConfig, local)
+		return gcssource.New(ctx, instanceConfig)
 	case config.DirSourceType:
 		n := len(instanceConfig.IngestionConfig.SourceConfig.Sources)
 		if n != 1 {
@@ -259,16 +259,16 @@ func NewSourceFromConfig(ctx context.Context, instanceConfig *config.InstanceCon
 // provides access to ingested files.
 //
 // If local is true then we aren't running in production.
-func NewIngestedFSFromConfig(ctx context.Context, cfg *config.InstanceConfig, local bool) (fs.FS, error) {
+func NewIngestedFSFromConfig(ctx context.Context, cfg *config.InstanceConfig) (fs.FS, error) {
 	switch cfg.IngestionConfig.SourceConfig.SourceType {
 	case config.GCSSourceType:
-		return gcs.New(ctx, local)
+		return gcs.New(ctx)
 	case config.DirSourceType:
 		return localfilestore.New(cfg.IngestionConfig.SourceConfig.Sources[0])
 	}
 	// We currently default to Google Cloud Storage, but Config options could be
 	// added to use other systems, such as S3.
-	return gcs.New(ctx, local)
+	return gcs.New(ctx)
 }
 
 // NewAnomalyGroupStoreFromConfig creates a new anomalygroup.Store from the

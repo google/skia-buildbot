@@ -34,17 +34,17 @@ func (_m *Application) ConfigCreatePubSubTopicsAndSubscriptions(instanceConfig *
 	return r0
 }
 
-// DatabaseBackupAlerts provides a mock function with given fields: local, instanceConfig, outputFile
-func (_m *Application) DatabaseBackupAlerts(local bool, instanceConfig *config.InstanceConfig, outputFile string) error {
-	ret := _m.Called(local, instanceConfig, outputFile)
+// DatabaseBackupAlerts provides a mock function with given fields: instanceConfig, outputFile
+func (_m *Application) DatabaseBackupAlerts(instanceConfig *config.InstanceConfig, outputFile string) error {
+	ret := _m.Called(instanceConfig, outputFile)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DatabaseBackupAlerts")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(bool, *config.InstanceConfig, string) error); ok {
-		r0 = rf(local, instanceConfig, outputFile)
+	if rf, ok := ret.Get(0).(func(*config.InstanceConfig, string) error); ok {
+		r0 = rf(instanceConfig, outputFile)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -70,17 +70,17 @@ func (_m *Application) DatabaseBackupRegressions(local bool, instanceConfig *con
 	return r0
 }
 
-// DatabaseBackupShortcuts provides a mock function with given fields: local, instanceConfig, outputFile
-func (_m *Application) DatabaseBackupShortcuts(local bool, instanceConfig *config.InstanceConfig, outputFile string) error {
-	ret := _m.Called(local, instanceConfig, outputFile)
+// DatabaseBackupShortcuts provides a mock function with given fields: instanceConfig, outputFile
+func (_m *Application) DatabaseBackupShortcuts(instanceConfig *config.InstanceConfig, outputFile string) error {
+	ret := _m.Called(instanceConfig, outputFile)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DatabaseBackupShortcuts")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(bool, *config.InstanceConfig, string) error); ok {
-		r0 = rf(local, instanceConfig, outputFile)
+	if rf, ok := ret.Get(0).(func(*config.InstanceConfig, string) error); ok {
+		r0 = rf(instanceConfig, outputFile)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -88,17 +88,17 @@ func (_m *Application) DatabaseBackupShortcuts(local bool, instanceConfig *confi
 	return r0
 }
 
-// DatabaseRestoreAlerts provides a mock function with given fields: local, instanceConfig, inputFile
-func (_m *Application) DatabaseRestoreAlerts(local bool, instanceConfig *config.InstanceConfig, inputFile string) error {
-	ret := _m.Called(local, instanceConfig, inputFile)
+// DatabaseRestoreAlerts provides a mock function with given fields: instanceConfig, inputFile
+func (_m *Application) DatabaseRestoreAlerts(instanceConfig *config.InstanceConfig, inputFile string) error {
+	ret := _m.Called(instanceConfig, inputFile)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DatabaseRestoreAlerts")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(bool, *config.InstanceConfig, string) error); ok {
-		r0 = rf(local, instanceConfig, inputFile)
+	if rf, ok := ret.Get(0).(func(*config.InstanceConfig, string) error); ok {
+		r0 = rf(instanceConfig, inputFile)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -106,17 +106,17 @@ func (_m *Application) DatabaseRestoreAlerts(local bool, instanceConfig *config.
 	return r0
 }
 
-// DatabaseRestoreRegressions provides a mock function with given fields: local, instanceConfig, inputFile
-func (_m *Application) DatabaseRestoreRegressions(local bool, instanceConfig *config.InstanceConfig, inputFile string) error {
-	ret := _m.Called(local, instanceConfig, inputFile)
+// DatabaseRestoreRegressions provides a mock function with given fields: instanceConfig, inputFile
+func (_m *Application) DatabaseRestoreRegressions(instanceConfig *config.InstanceConfig, inputFile string) error {
+	ret := _m.Called(instanceConfig, inputFile)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DatabaseRestoreRegressions")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(bool, *config.InstanceConfig, string) error); ok {
-		r0 = rf(local, instanceConfig, inputFile)
+	if rf, ok := ret.Get(0).(func(*config.InstanceConfig, string) error); ok {
+		r0 = rf(instanceConfig, inputFile)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -124,17 +124,17 @@ func (_m *Application) DatabaseRestoreRegressions(local bool, instanceConfig *co
 	return r0
 }
 
-// DatabaseRestoreShortcuts provides a mock function with given fields: local, instanceConfig, inputFile
-func (_m *Application) DatabaseRestoreShortcuts(local bool, instanceConfig *config.InstanceConfig, inputFile string) error {
-	ret := _m.Called(local, instanceConfig, inputFile)
+// DatabaseRestoreShortcuts provides a mock function with given fields: instanceConfig, inputFile
+func (_m *Application) DatabaseRestoreShortcuts(instanceConfig *config.InstanceConfig, inputFile string) error {
+	ret := _m.Called(instanceConfig, inputFile)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DatabaseRestoreShortcuts")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(bool, *config.InstanceConfig, string) error); ok {
-		r0 = rf(local, instanceConfig, inputFile)
+	if rf, ok := ret.Get(0).(func(*config.InstanceConfig, string) error); ok {
+		r0 = rf(instanceConfig, inputFile)
 	} else {
 		r0 = ret.Error(0)
 	}

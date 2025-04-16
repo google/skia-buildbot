@@ -71,7 +71,7 @@ type GCSSource struct {
 }
 
 // New returns a new *GCSSource
-func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool) (*GCSSource, error) {
+func New(ctx context.Context, instanceConfig *config.InstanceConfig) (*GCSSource, error) {
 	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadOnly, pubsub.ScopePubSub)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -84,12 +84,12 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool)
 
 	subName := instanceConfig.IngestionConfig.SourceConfig.Subscription
 	if subName == "" {
-		subName, err = sub.NewRoundRobinNameProvider(local, instanceConfig.IngestionConfig.SourceConfig.Topic).SubName()
+		subName, err = sub.NewRoundRobinNameProvider(false, instanceConfig.IngestionConfig.SourceConfig.Topic).SubName()
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 	}
-	sub, err := sub.NewWithSubName(ctx, local, instanceConfig.IngestionConfig.SourceConfig.Project, instanceConfig.IngestionConfig.SourceConfig.Topic, subName, maxParallelReceives)
+	sub, err := sub.NewWithSubName(ctx, instanceConfig.IngestionConfig.SourceConfig.Project, instanceConfig.IngestionConfig.SourceConfig.Topic, subName, maxParallelReceives)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

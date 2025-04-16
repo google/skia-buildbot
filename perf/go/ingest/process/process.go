@@ -327,7 +327,7 @@ func Start(ctx context.Context, local bool, numParallelIngesters int, instanceCo
 	}
 
 	// New file.Source.
-	source, err := builders.NewSourceFromConfig(ctx, instanceConfig, local)
+	source, err := builders.NewSourceFromConfig(ctx, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -337,7 +337,7 @@ func Start(ctx context.Context, local bool, numParallelIngesters int, instanceCo
 	}
 
 	// New TraceStore.
-	store, err := builders.NewTraceStoreFromConfig(ctx, local, instanceConfig)
+	store, err := builders.NewTraceStoreFromConfig(ctx, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

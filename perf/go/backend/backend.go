@@ -112,7 +112,7 @@ func (b *Backend) initialize(
 	sklog.Debug("Creating regression store.")
 	if regressionStore == nil {
 		sklog.Debug("Creating alertStore.")
-		alertStore, err := builders.NewAlertStoreFromConfig(ctx, false, config.Config)
+		alertStore, err := builders.NewAlertStoreFromConfig(ctx, config.Config)
 		if err != nil {
 			sklog.Fatal(err)
 			return err
@@ -125,7 +125,7 @@ func (b *Backend) initialize(
 			return err
 		}
 
-		regressionStore, err = builders.NewRegressionStoreFromConfig(ctx, false, config.Config, configProvider)
+		regressionStore, err = builders.NewRegressionStoreFromConfig(ctx, config.Config, configProvider)
 		if err != nil {
 			sklog.Errorf("Error creating regression store. %s", err)
 			return err

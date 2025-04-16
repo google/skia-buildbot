@@ -22,7 +22,7 @@ func TestNewWithSubNameProviderAndExpirationPolicy(t *testing.T) {
 
 	const numGoroutines = 5
 	expirationPolicy := time.Hour * 24 * 7
-	sub, err := NewWithSubNameProviderAndExpirationPolicy(ctx, true, project, topicName, NewConstNameProvider(mySubscriptionName), &expirationPolicy, numGoroutines)
+	sub, err := NewWithSubNameProviderAndExpirationPolicy(ctx, project, topicName, NewConstNameProvider(mySubscriptionName), &expirationPolicy, numGoroutines)
 	require.NoError(t, err)
 
 	assert.Equal(t, numGoroutines, sub.ReceiveSettings.NumGoroutines)

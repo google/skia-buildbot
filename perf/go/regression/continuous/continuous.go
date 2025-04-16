@@ -250,7 +250,7 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 	}
 
 	ctx := context.Background()
-	return sub.New(ctx, c.flags.Local, c.instanceConfig.IngestionConfig.SourceConfig.Project, c.instanceConfig.IngestionConfig.FileIngestionTopicName, maxParallelReceives)
+	return sub.New(ctx, false, c.instanceConfig.IngestionConfig.SourceConfig.Project, c.instanceConfig.IngestionConfig.FileIngestionTopicName, maxParallelReceives)
 }
 
 func (c *Continuous) callProvider(ctx context.Context) ([]*alerts.Alert, error) {

@@ -27,7 +27,7 @@ type filesystem struct {
 }
 
 // New returns an instance of *filesystem.
-func New(ctx context.Context, local bool) (*filesystem, error) {
+func New(ctx context.Context) (*filesystem, error) {
 	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadOnly)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get TokenSource")

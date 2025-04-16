@@ -250,7 +250,7 @@ func (f *Frontend) loadTemplatesImpl() {
 }
 
 func (f *Frontend) loadTemplates() {
-	if f.flags.Local {
+	if f.flags.DevMode {
 		f.loadTemplatesImpl()
 		return
 	}
@@ -398,7 +398,7 @@ func (f *Frontend) initialize() {
 	}
 	cfg := config.Config
 
-	if err := tracing.Init(f.flags.Local, cfg); err != nil {
+	if err := tracing.Init(f.flags.DevMode, cfg); err != nil {
 		sklog.Fatalf("Failed to start tracing: %s", err)
 	}
 
@@ -425,7 +425,7 @@ func (f *Frontend) initialize() {
 	f.distFileSystem = http.Dir(f.flags.ResourcesDir)
 
 	sklog.Info("About to init GCS.")
-	f.ingestedFS, err = builders.NewIngestedFSFromConfig(ctx, config.Config, f.flags.Local)
+	f.ingestedFS, err = builders.NewIngestedFSFromConfig(ctx, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to authenicate to storage provider: %s", err)
 	}
@@ -435,7 +435,7 @@ func (f *Frontend) initialize() {
 
 	sklog.Info("About to build trace store.")
 
-	f.traceStore, err = builders.NewTraceStoreFromConfig(ctx, f.flags.Local, config.Config)
+	f.traceStore, err = builders.NewTraceStoreFromConfig(ctx, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build TraceStore: %s", err)
 	}
@@ -457,7 +457,7 @@ func (f *Frontend) initialize() {
 
 	// If running locally, lets force the service to use a local cache since
 	// redis cannot be used outside GCP.
-	if f.flags.Local && config.Config.QueryConfig.CacheConfig.Enabled {
+	if f.flags.DevMode && config.Config.QueryConfig.CacheConfig.Enabled {
 		config.Config.QueryConfig.CacheConfig.Type = config.LocalCache
 	}
 	var infraCache infraCache.Cache
@@ -536,11 +536,11 @@ func (f *Frontend) initialize() {
 	alerts.DefaultSparse = f.flags.DefaultSparse
 
 	sklog.Info("About to build alertStore.")
-	f.alertStore, err = builders.NewAlertStoreFromConfig(ctx, f.flags.Local, config.Config)
+	f.alertStore, err = builders.NewAlertStoreFromConfig(ctx, config.Config)
 	if err != nil {
 		sklog.Fatalf("Fail to NewAlertStoreFromConfig: %v", err)
 	}
-	f.shortcutStore, err = builders.NewShortcutStoreFromConfig(ctx, f.flags.Local, config.Config)
+	f.shortcutStore, err = builders.NewShortcutStoreFromConfig(ctx, config.Config)
 	if err != nil {
 		sklog.Fatalf("Fail to NewShortcutStoreFromConfig: %v", err)
 	}
@@ -562,7 +562,7 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to create alerts configprovider: %s", err)
 	}
 
-	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, cfg, f.configProvider)
+	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, cfg, f.configProvider)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
 	}
@@ -909,7 +909,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 
 	local := true
 	if f.flags != nil {
-		local = f.flags.Local
+		local = f.flags.DevMode
 	}
 	router.Use(baseapp.SecurityMiddleware(ah, local, nil))
 
@@ -1006,7 +1006,7 @@ func (f *Frontend) Serve() {
 
 	var h http.Handler = f.GetHandler(config.Config.AllowedHosts)
 	h = httputils.LoggingGzipRequestResponse(h)
-	if !f.flags.Local {
+	if !f.flags.DevMode {
 		h = httputils.HealthzAndHTTPS(h)
 		// add liveness handler after https routing since these are applied in
 		// reverse order to ensure k8 pod can access the endpoint without

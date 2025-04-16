@@ -314,7 +314,7 @@ func main() {
 
 	// Setup pubsub.
 	ctx := context.Background()
-	sub, err := sub.NewWithSubName(ctx, *local, *project, td.PubsubTopicLogs, subscriptionName, subscriptionGoroutines)
+	sub, err := sub.NewWithSubName(ctx, *project, td.PubsubTopicLogs, subscriptionName, subscriptionGoroutines)
 	if err != nil {
 		sklog.Fatal(err)
 	}

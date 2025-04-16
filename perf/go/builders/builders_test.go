@@ -34,8 +34,7 @@ func TestNewSourceFromConfig_DirSource_Success(t *testing.T) {
 			},
 		},
 	}
-	local := true
-	source, err := NewSourceFromConfig(ctx, instanceConfig, local)
+	source, err := NewSourceFromConfig(ctx, instanceConfig)
 	require.NoError(t, err)
 	assert.IsType(t, &dirsource.DirSource{}, source)
 }
@@ -55,8 +54,7 @@ func TestNewSourceFromConfig_MissingSourceForDirSourceIsError(t *testing.T) {
 			},
 		},
 	}
-	local := true
-	_, err = NewSourceFromConfig(ctx, instanceConfig, local)
+	_, err = NewSourceFromConfig(ctx, instanceConfig)
 	assert.Error(t, err)
 }
 
@@ -89,7 +87,7 @@ func newDBConfigForTest(t *testing.T) (context.Context, *config.InstanceConfig) 
 func TestNewTraceStoreFromConfig_Success(t *testing.T) {
 	ctx, instanceConfig := newDBConfigForTest(t)
 
-	store, err := NewTraceStoreFromConfig(ctx, true, instanceConfig)
+	store, err := NewTraceStoreFromConfig(ctx, instanceConfig)
 	require.NoError(t, err)
 	err = store.WriteTraces(ctx, types.CommitNumber(0), []paramtools.Params{{"config": "8888"}}, []float32{1.2}, nil, "gs://foobar", time.Now())
 	assert.NoError(t, err)
@@ -101,7 +99,7 @@ func TestNewTraceStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
 	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
 
-	_, err := NewTraceStoreFromConfig(ctx, true, instanceConfig)
+	_, err := NewTraceStoreFromConfig(ctx, instanceConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
 }
@@ -112,7 +110,7 @@ func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
 	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
 
-	_, err := NewAlertStoreFromConfig(ctx, true, instanceConfig)
+	_, err := NewAlertStoreFromConfig(ctx, instanceConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
 }
@@ -120,7 +118,7 @@ func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 func TestNewRegressionStoreFromConfig_CochroachDB_Success(t *testing.T) {
 	ctx, instanceConfig := newDBConfigForTest(t)
 
-	store, err := NewRegressionStoreFromConfig(ctx, false, instanceConfig, nil)
+	store, err := NewRegressionStoreFromConfig(ctx, instanceConfig, nil)
 	require.NoError(t, err)
 
 	regressiontest.SetLowAndTriage(t, store)
@@ -132,7 +130,7 @@ func TestNewRegressionStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
 	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
 
-	_, err := NewRegressionStoreFromConfig(ctx, false, instanceConfig, nil)
+	_, err := NewRegressionStoreFromConfig(ctx, instanceConfig, nil)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
 }
@@ -140,7 +138,7 @@ func TestNewRegressionStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) 
 func TestNewShortcutStoreFromConfig_Success(t *testing.T) {
 	ctx, instanceConfig := newDBConfigForTest(t)
 
-	store, err := NewShortcutStoreFromConfig(ctx, false, instanceConfig)
+	store, err := NewShortcutStoreFromConfig(ctx, instanceConfig)
 	require.NoError(t, err)
 
 	shortcuttest.InsertGet(t, store)
@@ -152,7 +150,7 @@ func TestNewShortcutStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
 	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
 
-	_, err := NewShortcutStoreFromConfig(ctx, false, instanceConfig)
+	_, err := NewShortcutStoreFromConfig(ctx, instanceConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
 }

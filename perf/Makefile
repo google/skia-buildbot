@@ -165,7 +165,7 @@ demo_word-cloud-sk:
 # change without restarting the golang server.
 run-local-instance:
 	go run ./go/perfserver -- frontend \
-		--local \
+		--dev_mode \
 		--do_clustering=false \
 		--port=:8001 \
 		--noemail \
@@ -180,7 +180,7 @@ run-local-instance:
 
 run-flutter-instance:
 	go run ./go/perfserver -- frontend \
-		--local \
+		--dev_mode \
 		--do_clustering=false \
 		--port=:8001 \
 		--noemail \
@@ -202,12 +202,12 @@ run-demo-instance-cdb:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
-		--local \
+		--dev_mode \
 		--config_filename=./configs/demo.json \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
 
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
-		--local \
+		--dev_mode \
 		--do_clustering=false \
 		--port=:8002 \
 		--prom_port=:20001 \
@@ -230,7 +230,7 @@ ingest_demo:
 
 run_frontend:
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
-		--local \
+		--dev_mode \
 		--do_clustering=false \
 		--port=:8002 \
 		--prom_port=:20001 \
@@ -244,7 +244,7 @@ run-demo-instance-db-persist: initdemo run_frontend
 
 run_maintenance:
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver maintenance \
-		--local \
+		--dev_mode \
 		--config_filename=./configs/demo_spanner.json \
 		--connection_string=postgresql://root@127.0.0.1:5432/demo?sslmode=disable \
 		--migrate_regressions \
@@ -261,11 +261,11 @@ run-demo-maintenance-cdb:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
-		--local \
+		--dev_mode \
 		--config_filename=./configs/demo.json \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver maintenance \
-		--local \
+		--dev_mode \
 		--config_filename=./configs/demo.json \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable \
 		--migrate_regressions \
@@ -285,12 +285,12 @@ run-demo-chromeperf:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
-		--local \
+		--dev_mode \
 		--config_filename=./configs/demo.json \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
 
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
-		--local \
+		--dev_mode \
 		--do_clustering=false \
 		--port=:8002 \
 		--prom_port=:20001 \
@@ -305,12 +305,12 @@ run-demo-cluster:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
-		--local \
+		--dev_mode \
 		--config_filename=./configs/demo.json \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
 
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver cluster \
-	    --local \
+	    --dev_mode \
 	    --prom_port=:20000 \
         --config_filename=./configs/demo.json \
         --num_continuous=50 \
@@ -353,7 +353,7 @@ run-chrome-ingest-demo-instance:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo -- --databasename=chrome_pub
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
-		--local \
+		--dev_mode \
 		--num_parallel_ingesters=1 \
 		--config_filename=./configs/chrome-perf-public.json \
 		--connection_string=postgresql://root@127.0.0.1:26257/chrome_pub?sslmode=disable

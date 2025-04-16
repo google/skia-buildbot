@@ -137,7 +137,7 @@ func TestStart_ReceiveOneFileFilterOneFileViaSources(t *testing.T) {
 	sendPubSubMessages(ctx, t, pubsubClient, instanceConfig)
 
 	// Create source and call Start.
-	source, err := New(ctx, instanceConfig, true)
+	source, err := New(ctx, instanceConfig)
 	require.NoError(t, err)
 	ch, err := source.Start(ctx)
 	require.NoError(t, err)
@@ -164,7 +164,7 @@ func TestStart_ReceiveOneFileFilterOneFileViaFilter(t *testing.T) {
 	sendPubSubMessages(ctx, t, pubsubClient, instanceConfig)
 
 	// Create source and call Start.
-	source, err := New(ctx, instanceConfig, true)
+	source, err := New(ctx, instanceConfig)
 	require.NoError(t, err)
 	ch, err := source.Start(ctx)
 	require.NoError(t, err)
@@ -185,7 +185,7 @@ func TestStart_SecondCallToStartFails(t *testing.T) {
 	_, instanceConfig := setupPubSubClient(t)
 
 	// Create source and call Start.
-	source, err := New(ctx, instanceConfig, true)
+	source, err := New(ctx, instanceConfig)
 	require.NoError(t, err)
 	_, err = source.Start(ctx)
 	require.NoError(t, err)
@@ -202,7 +202,7 @@ func TestReceiveSingleEvent_Success(t *testing.T) {
 	_, instanceConfig := setupPubSubClient(t)
 
 	// Create source.
-	source, err := New(ctx, instanceConfig, true)
+	source, err := New(ctx, instanceConfig)
 
 	// Swap out channel for one we control.
 	ch := make(chan file.File, 1)
@@ -237,7 +237,7 @@ func TestReceiveSingleEvent_FileDoesntExist(t *testing.T) {
 	_, instanceConfig := setupPubSubClient(t)
 
 	// Create source.
-	source, err := New(ctx, instanceConfig, true)
+	source, err := New(ctx, instanceConfig)
 	require.NoError(t, err)
 
 	// Create an encoded message that points to a non-existent GCS file.
@@ -259,7 +259,7 @@ func TestReceiveSingleEvent_InvalidJSONInMessage(t *testing.T) {
 	_, instanceConfig := setupPubSubClient(t)
 
 	// Create source.
-	source, err := New(ctx, instanceConfig, true)
+	source, err := New(ctx, instanceConfig)
 	require.NoError(t, err)
 
 	// Send a message that isn't valid JSON.

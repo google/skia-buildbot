@@ -41,12 +41,12 @@ import (
 // Application contains the high level functions needed by perf-tool.
 type Application interface {
 	ConfigCreatePubSubTopicsAndSubscriptions(instanceConfig *config.InstanceConfig) error
-	DatabaseBackupAlerts(local bool, instanceConfig *config.InstanceConfig, outputFile string) error
-	DatabaseBackupShortcuts(local bool, instanceConfig *config.InstanceConfig, outputFile string) error
+	DatabaseBackupAlerts(instanceConfig *config.InstanceConfig, outputFile string) error
+	DatabaseBackupShortcuts(instanceConfig *config.InstanceConfig, outputFile string) error
 	DatabaseBackupRegressions(local bool, instanceConfig *config.InstanceConfig, outputFile, backupTo string) error
-	DatabaseRestoreAlerts(local bool, instanceConfig *config.InstanceConfig, inputFile string) error
-	DatabaseRestoreShortcuts(local bool, instanceConfig *config.InstanceConfig, inputFile string) error
-	DatabaseRestoreRegressions(local bool, instanceConfig *config.InstanceConfig, inputFile string) error
+	DatabaseRestoreAlerts(instanceConfig *config.InstanceConfig, inputFile string) error
+	DatabaseRestoreShortcuts(instanceConfig *config.InstanceConfig, inputFile string) error
+	DatabaseRestoreRegressions(instanceConfig *config.InstanceConfig, inputFile string) error
 	TilesLast(store tracestore.TraceStore) error
 	TilesList(store tracestore.TraceStore, num int) error
 	TracesList(store tracestore.TraceStore, queryString string, tileNumber types.TileNumber) error
@@ -175,7 +175,7 @@ const (
 )
 
 // DatabaseBackupAlerts backs up alerts from the database.
-func (app) DatabaseBackupAlerts(local bool, instanceConfig *config.InstanceConfig, outputFile string) error {
+func (app) DatabaseBackupAlerts(instanceConfig *config.InstanceConfig, outputFile string) error {
 	ctx := context.Background()
 
 	f, err := os.Create(outputFile)
@@ -185,7 +185,7 @@ func (app) DatabaseBackupAlerts(local bool, instanceConfig *config.InstanceConfi
 	defer util.Close(f)
 	z := zip.NewWriter(f)
 
-	alertStore, err := builders.NewAlertStoreFromConfig(ctx, local, instanceConfig)
+	alertStore, err := builders.NewAlertStoreFromConfig(ctx, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -220,7 +220,7 @@ type shortcutWithID struct {
 }
 
 // DatabaseBackupShortcuts backs up shortcuts from the database.
-func (app) DatabaseBackupShortcuts(local bool, instanceConfig *config.InstanceConfig, outputFile string) error {
+func (app) DatabaseBackupShortcuts(instanceConfig *config.InstanceConfig, outputFile string) error {
 	ctx := context.Background()
 	f, err := os.Create(outputFile)
 	if err != nil {
@@ -236,7 +236,7 @@ func (app) DatabaseBackupShortcuts(local bool, instanceConfig *config.InstanceCo
 	}
 	shortcutsEncoder := gob.NewEncoder(shortcutsZipWriter)
 
-	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, local, instanceConfig)
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -310,7 +310,7 @@ func (app) DatabaseBackupRegressions(local bool, instanceConfig *config.Instance
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	regressionStore, err := getRegressionStore(ctx, local, instanceConfig)
+	regressionStore, err := getRegressionStore(ctx, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -380,7 +380,7 @@ func (app) DatabaseBackupRegressions(local bool, instanceConfig *config.Instance
 		return skerr.Wrap(err)
 	}
 	shortcutsEncoder := gob.NewEncoder(shortcutsZipWriter)
-	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, local, instanceConfig)
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -433,7 +433,7 @@ func findFileInZip(filename string, z *zip.ReadCloser) (io.ReadCloser, error) {
 }
 
 // DatabaseRestoreAlerts restores Alerts to the database.
-func (app) DatabaseRestoreAlerts(local bool, instanceConfig *config.InstanceConfig, inputFile string) error {
+func (app) DatabaseRestoreAlerts(instanceConfig *config.InstanceConfig, inputFile string) error {
 	ctx := context.Background()
 
 	z, err := zip.OpenReader(inputFile)
@@ -442,7 +442,7 @@ func (app) DatabaseRestoreAlerts(local bool, instanceConfig *config.InstanceConf
 	}
 	defer util.Close(z)
 
-	alertStore, err := builders.NewAlertStoreFromConfig(ctx, local, instanceConfig)
+	alertStore, err := builders.NewAlertStoreFromConfig(ctx, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -470,7 +470,7 @@ func (app) DatabaseRestoreAlerts(local bool, instanceConfig *config.InstanceConf
 }
 
 // DatabaseRestoreShortcuts restores shortcuts to the database.
-func (app) DatabaseRestoreShortcuts(local bool, instanceConfig *config.InstanceConfig, inputFile string) error {
+func (app) DatabaseRestoreShortcuts(instanceConfig *config.InstanceConfig, inputFile string) error {
 	ctx := context.Background()
 
 	z, err := zip.OpenReader(inputFile)
@@ -480,7 +480,7 @@ func (app) DatabaseRestoreShortcuts(local bool, instanceConfig *config.InstanceC
 	defer util.Close(z)
 
 	// Restore shortcuts.
-	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, local, instanceConfig)
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -519,7 +519,7 @@ func (app) DatabaseRestoreShortcuts(local bool, instanceConfig *config.InstanceC
 }
 
 // DatabaseRestoreRegressions restores Regressions to the database.
-func (app) DatabaseRestoreRegressions(local bool, instanceConfig *config.InstanceConfig, inputFile string) error {
+func (app) DatabaseRestoreRegressions(instanceConfig *config.InstanceConfig, inputFile string) error {
 	ctx := context.Background()
 	z, err := zip.OpenReader(inputFile)
 	if err != nil {
@@ -528,13 +528,13 @@ func (app) DatabaseRestoreRegressions(local bool, instanceConfig *config.Instanc
 	defer util.Close(z)
 
 	// Restore Regressions
-	regressionStore, err := getRegressionStore(ctx, local, instanceConfig)
+	regressionStore, err := getRegressionStore(ctx, instanceConfig)
 	if err != nil {
 		return err
 	}
 
 	// Also re-create the shortcuts in each regression.
-	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, local, instanceConfig)
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -927,8 +927,8 @@ func (app) TrybotReference(local bool, store tracestore.TraceStore, instanceConf
 	})
 }
 
-func getRegressionStore(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (regression.Store, error) {
-	alertStore, err := builders.NewAlertStoreFromConfig(ctx, local, instanceConfig)
+func getRegressionStore(ctx context.Context, instanceConfig *config.InstanceConfig) (regression.Store, error) {
+	alertStore, err := builders.NewAlertStoreFromConfig(ctx, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -936,7 +936,7 @@ func getRegressionStore(ctx context.Context, local bool, instanceConfig *config.
 	if err != nil {
 		sklog.Fatalf("Failed to create alerts configprovider: %s", err)
 	}
-	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, local, instanceConfig, alertConfigProvider)
+	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, instanceConfig, alertConfigProvider)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

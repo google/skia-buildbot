@@ -129,7 +129,7 @@ func (c ConstNameProvider) SubName() (string, error) {
 // subscription are created if they don't already exist, which requires the
 // "PubSub Admin" role.
 func New(ctx context.Context, local bool, project string, topicName string, numGoRoutines int) (*pubsub.Subscription, error) {
-	return NewWithSubNameProviderAndExpirationPolicy(ctx, local, project, topicName, NewRoundRobinNameProvider(local, topicName), nil, numGoRoutines)
+	return NewWithSubNameProviderAndExpirationPolicy(ctx, project, topicName, NewRoundRobinNameProvider(local, topicName), nil, numGoRoutines)
 }
 
 // NewWithSubName returns a new *pubsub.Subscription.
@@ -149,8 +149,8 @@ func New(ctx context.Context, local bool, project string, topicName string, numG
 //
 // The topic and subscription are created if they don't already exist, which
 // requires the "PubSub Admin" role.
-func NewWithSubName(ctx context.Context, local bool, project string, topicName string, subName string, numGoRoutines int) (*pubsub.Subscription, error) {
-	return NewWithSubNameProviderAndExpirationPolicy(ctx, local, project, topicName, NewConstNameProvider(subName), nil, numGoRoutines)
+func NewWithSubName(ctx context.Context, project string, topicName string, subName string, numGoRoutines int) (*pubsub.Subscription, error) {
+	return NewWithSubNameProviderAndExpirationPolicy(ctx, project, topicName, NewConstNameProvider(subName), nil, numGoRoutines)
 }
 
 // NewWithSubNameProvider returns a new *pubsub.Subscription.
@@ -170,8 +170,8 @@ func NewWithSubName(ctx context.Context, local bool, project string, topicName s
 //
 // The topic and subscription are created if they don't already exist, which
 // requires the "PubSub Admin" role.
-func NewWithSubNameProvider(ctx context.Context, local bool, project string, topicName string, subNameProvider SubNameProvider, numGoRoutines int) (*pubsub.Subscription, error) {
-	return NewWithSubNameProviderAndExpirationPolicy(ctx, local, project, topicName, subNameProvider, nil, numGoRoutines)
+func NewWithSubNameProvider(ctx context.Context, project string, topicName string, subNameProvider SubNameProvider, numGoRoutines int) (*pubsub.Subscription, error) {
+	return NewWithSubNameProviderAndExpirationPolicy(ctx, project, topicName, subNameProvider, nil, numGoRoutines)
 }
 
 // NewWithSubNameProviderAndExpirationPolicy returns a new *pubsub.Subscription.
@@ -195,7 +195,7 @@ func NewWithSubNameProvider(ctx context.Context, local bool, project string, top
 //
 // The topic and subscription are created if they don't already exist, which
 // requires the "PubSub Admin" role.
-func NewWithSubNameProviderAndExpirationPolicy(ctx context.Context, local bool, project string, topicName string, subNameProvider SubNameProvider, expirationPolicy *time.Duration, numGoRoutines int) (*pubsub.Subscription, error) {
+func NewWithSubNameProviderAndExpirationPolicy(ctx context.Context, project string, topicName string, subNameProvider SubNameProvider, expirationPolicy *time.Duration, numGoRoutines int) (*pubsub.Subscription, error) {
 	subName, err := subNameProvider.SubName()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get subscription name.")

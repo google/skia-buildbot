@@ -79,7 +79,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 
 	if instanceConfig.EnableSheriffConfig && instanceConfig.InstanceName != "" {
 
-		alertStore, err := builders.NewAlertStoreFromConfig(ctx, flags.Local, instanceConfig)
+		alertStore, err := builders.NewAlertStoreFromConfig(ctx, instanceConfig)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to build AlertStore.")
 		}
@@ -104,7 +104,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 
 	if flags.RefreshQueryCache {
 		sklog.Info("Creating Redis Client.")
-		traceStore, err := builders.NewTraceStoreFromConfig(ctx, flags.Local, instanceConfig)
+		traceStore, err := builders.NewTraceStoreFromConfig(ctx, instanceConfig)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to build TraceStore.")
 		}

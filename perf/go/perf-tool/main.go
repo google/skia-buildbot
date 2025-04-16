@@ -190,8 +190,7 @@ func getStore(c *cli.Context) (tracestore.TraceStore, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	local := c.Bool(localFlagName)
-	return builders.NewTraceStoreFromConfig(context.Background(), local, instanceConfig)
+	return builders.NewTraceStoreFromConfig(context.Background(), instanceConfig)
 }
 
 func main() {
@@ -403,7 +402,7 @@ func actualMain(app application.Application) {
 									if err != nil {
 										return skerr.Wrap(err)
 									}
-									return app.DatabaseBackupAlerts(c.Bool(localFlagName), instanceConfig, c.String(outputFilenameFlagName))
+									return app.DatabaseBackupAlerts(instanceConfig, c.String(outputFilenameFlagName))
 								},
 							},
 							{
@@ -420,7 +419,7 @@ func actualMain(app application.Application) {
 										return skerr.Wrap(err)
 									}
 
-									return app.DatabaseBackupShortcuts(c.Bool(localFlagName), instanceConfig, c.String(outputFilenameFlagName))
+									return app.DatabaseBackupShortcuts(instanceConfig, c.String(outputFilenameFlagName))
 								},
 							},
 							{
@@ -472,7 +471,7 @@ using the same input file for both restores.
 									if err != nil {
 										return skerr.Wrap(err)
 									}
-									return app.DatabaseRestoreAlerts(c.Bool(localFlagName), instanceConfig, c.String(inputFilenameFlagName))
+									return app.DatabaseRestoreAlerts(instanceConfig, c.String(inputFilenameFlagName))
 								},
 							},
 							{
@@ -490,7 +489,7 @@ using the same input file for both restores.
 										return skerr.Wrap(err)
 									}
 
-									return app.DatabaseRestoreShortcuts(c.Bool(localFlagName), instanceConfig, c.String(inputFilenameFlagName))
+									return app.DatabaseRestoreShortcuts(instanceConfig, c.String(inputFilenameFlagName))
 								},
 							},
 							{
@@ -508,7 +507,7 @@ using the same input file for both restores.
 										return skerr.Wrap(err)
 									}
 
-									return app.DatabaseRestoreRegressions(c.Bool(localFlagName), instanceConfig, c.String(inputFilenameFlagName))
+									return app.DatabaseRestoreRegressions(instanceConfig, c.String(inputFilenameFlagName))
 								},
 							},
 						},

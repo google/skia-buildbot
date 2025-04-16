@@ -95,7 +95,7 @@ deactivate
 
 sleep 10
 perf_cmd="../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
-		--local \
+		--dev_mode \
 		--localToProd \
 		--do_clustering=false \
 		--port=:8002 \

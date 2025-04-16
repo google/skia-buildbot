@@ -481,13 +481,13 @@ type FrontendFlags struct {
 	ConfigFilename                 string
 	ConnectionString               string
 	CommitRangeURL                 string
+	DevMode                        bool
 	DefaultSparse                  bool
 	DoClustering                   bool
 	NoEmail                        bool
 	EventDrivenRegressionDetection bool
 	Interesting                    float64
 	KeyOrder                       string
-	Local                          bool
 	LocalToProd                    bool
 	NumContinuous                  int
 	NumContinuousParallel          int
@@ -578,10 +578,10 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Usage:       "The order that keys should be presented in for searching. All keys that don't appear here will appear after.",
 		},
 		&cli.BoolFlag{
-			Destination: &flags.Local,
-			Name:        "local",
+			Destination: &flags.DevMode,
+			Name:        "dev_mode",
 			Value:       false,
-			Usage:       "Running locally if true. As opposed to in production.",
+			Usage:       "Running in development mode if true. As opposed to in production.",
 		},
 		&cli.BoolFlag{
 			Destination: &flags.LocalToProd,
