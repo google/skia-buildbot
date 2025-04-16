@@ -69,7 +69,7 @@ export class PerfScaffoldSk extends ElementSk {
     </header>
     <aside id=sidebar>
       <div id=links>
-        <a href="/e/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Home</span></a>
+        <a href="/e/" tab-index=0 ><home-icon-sk></home-icon-sk><span>New Query</span></a>
         <a href="/f/" tab-index=0 ><favorite-icon-sk></favorite-icon-sk><span>Favorites</span></a>
         <a href="/m/" tab-index=0 >
           <multiline-chart-icon-sk></multiline-chart-icon-sk><span>MultiGraph</span>
