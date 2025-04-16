@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -243,7 +242,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	defer metrics2.FuncTimer().Stop()
 
 	// Prepend git binary to PATH.
-	gitPath, _, _, err := git_common.FindGit(ctx)
+	gitPath, err := git.Executable(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -319,7 +318,11 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	// Copy the global git config file into the temporary directory.
 	// bot_update modifies this file, which causes problems when there are
 	// multiple instances running at once.
-	if err := util.WithReadFile(filepath.Join(os.Getenv("HOME"), ".gitconfig"), func(r io.Reader) error {
+	gitconfig, err := git.ConfigFilePath(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to find .gitconfig")
+	}
+	if err := util.WithReadFile(gitconfig, func(r io.Reader) error {
 		return util.WithWriteFile(filepath.Join(tmp, ".gitconfig"), func(w io.Writer) error {
 			_, err := io.Copy(w, r)
 			return err

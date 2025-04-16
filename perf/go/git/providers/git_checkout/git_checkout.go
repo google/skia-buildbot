@@ -14,7 +14,7 @@ import (
 
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -54,7 +54,7 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig) (*Impl, err
 	}
 
 	// Find the path to the git executable, which might be relative to working dir.
-	gitFullPath, _, _, err := git_common.FindGit(ctx)
+	gitFullPath, err := git.Executable(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to find git.")
 	}

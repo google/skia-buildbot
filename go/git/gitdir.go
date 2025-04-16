@@ -43,8 +43,7 @@ func (bl BranchList) Swap(a, b int)      { bl[a], bl[b] = bl[b], bl[a] }
 
 // Executable returns the path to Git.
 func Executable(ctx context.Context) (string, error) {
-	git, _, _, err := git_common.FindGit(ctx)
-	return git, err
+	return git_common.Executable(ctx)
 }
 
 // GitDir is a directory in which one may run Git commands.
@@ -306,7 +305,7 @@ func gitRunner_IsAncestor(ctx context.Context, g gitRunner, a, b string) (bool, 
 
 // Version returns the Git version.
 func gitRunner_Version(ctx context.Context) (int, int, error) {
-	_, maj, min, err := git_common.FindGit(ctx)
+	maj, min, _, err := git_common.Version(ctx)
 	return maj, min, skerr.Wrap(err)
 }
 

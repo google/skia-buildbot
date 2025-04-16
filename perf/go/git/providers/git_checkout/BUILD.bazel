@@ -8,7 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/auth",
-        "//go/git/git_common",
+        "//go/git",
         "//go/gitauth",
         "//go/skerr",
         "//go/sklog",

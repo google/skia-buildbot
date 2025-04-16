@@ -47,7 +47,7 @@ func GitInitWithDefaultBranch(t sktest.TestingT, ctx context.Context, defaultBra
 // GitBuilder to manage it. Call Cleanup to remove the temporary directory. The
 // current branch will be the main branch.
 func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir, defaultBranch string) *GitBuilder {
-	gitExec, _, _, err := git_common.FindGit(ctx)
+	gitExec, err := git_common.Executable(ctx)
 	require.NoError(t, err)
 
 	g := &GitBuilder{
@@ -229,7 +229,7 @@ func (g *GitBuilder) CheckoutBranch(ctx context.Context, name string) {
 func (g *GitBuilder) MergeBranchAt(ctx context.Context, name string, ts time.Time) string {
 	require.NotEqual(g.t, g.branch, name, "Can't merge a branch into itself.")
 	args := []string{"merge", name}
-	_, major, minor, err := git_common.FindGit(ctx)
+	major, minor, _, err := git_common.Version(ctx)
 	require.NoError(g.t, err)
 	if (major == 2 && minor >= 9) || major > 2 {
 		args = append(args, "--allow-unrelated-histories")

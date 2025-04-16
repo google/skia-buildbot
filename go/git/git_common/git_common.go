@@ -6,7 +6,6 @@ package git_common
 
 import (
 	"context"
-	"fmt"
 	osexec "os/exec"
 	"regexp"
 	"strconv"
@@ -40,9 +39,10 @@ const (
 )
 
 var (
-	gitVersionRegex = regexp.MustCompile("git version (\\d+)\\.(\\d+)\\..*")
+	gitVersionRegex = regexp.MustCompile(`git version (\d+)\.(\d+)\..*`)
 	gitVersionMajor = 0
 	gitVersionMinor = 0
+	gitIsWrapper    = false
 	git             = ""
 	mtx             sync.Mutex // Protects git, gitVersionMajor, and gitVersionMinor.
 )
@@ -77,8 +77,8 @@ func WithGitFinder(ctx context.Context, finder func() (string, error)) context.C
 }
 
 // FindGit returns the path to the Git executable and the major and minor
-// version numbers, or any error which occurred.
-func FindGit(ctx context.Context) (string, int, int, error) {
+// version numbers, and whether the git wrapper is being used.
+func FindGit(ctx context.Context) (string, int, int, bool, error) {
 	mtx.Lock()
 	defer mtx.Unlock()
 	if git != "" && !hasGitFinderOverride(ctx) {
@@ -86,15 +86,15 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 		// Since the override is primarily used by tests, we do not want to cache the results and
 		// have test behavior depend on the order tests were executed (e.g. if one test uses
 		// mockGitA and another uses mockGitB, caching would make both use A or both use B).
-		return git, gitVersionMajor, gitVersionMinor, nil
+		return git, gitVersionMajor, gitVersionMinor, gitIsWrapper, nil
 	}
 	gitPath, err := findGitPath(ctx)
 	if err != nil {
-		return "", 0, 0, skerr.Wrapf(err, "Failed to find git")
+		return "", 0, 0, false, skerr.Wrapf(err, "Failed to find git")
 	}
-	maj, min, err := Version(ctx, gitPath)
+	maj, min, isWrapper, err := FindGitVersion(ctx, gitPath)
 	if err != nil {
-		return "", 0, 0, skerr.Wrapf(err, "Failed to obtain git version")
+		return "", 0, 0, false, skerr.Wrapf(err, "Failed to obtain git version")
 	}
 	sklog.Infof("Git is %s; version %d.%d", gitPath, maj, min)
 	isFromCIPD := IsFromCIPD(gitPath)
@@ -106,7 +106,8 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 	git = gitPath
 	gitVersionMajor = maj
 	gitVersionMinor = min
-	return git, gitVersionMajor, gitVersionMinor, nil
+	gitIsWrapper = isWrapper
+	return git, gitVersionMajor, gitVersionMinor, gitIsWrapper, nil
 }
 
 // IsFromCIPD returns a bool indicating whether or not the given version of Git
@@ -118,7 +119,7 @@ func IsFromCIPD(git string) bool {
 // EnsureGitIsFromCIPD returns an error if the version of Git in PATH does not
 // appear to be obtained via CIPD.
 func EnsureGitIsFromCIPD(ctx context.Context) error {
-	git, _, _, err := FindGit(ctx)
+	git, _, _, _, err := FindGit(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -128,29 +129,46 @@ func EnsureGitIsFromCIPD(ctx context.Context) error {
 	return nil
 }
 
-// Version returns the installed Git version, in the form:
-// (major, minor), or an error if it could not be determined.
-func Version(ctx context.Context, git string) (int, int, error) {
+// Executable returns the path to Git.
+func Executable(ctx context.Context) (string, error) {
+	git, _, _, _, err := FindGit(ctx)
+	return git, err
+}
+
+// Version returns the major and minor version of Git, and indicates whether it
+// is a git wrapper.
+func Version(ctx context.Context) (int, int, bool, error) {
+	_, major, minor, isWrapper, err := FindGit(ctx)
+	return major, minor, isWrapper, err
+}
+
+// FindGitVersion returns the major and minor version of the Git executable at the
+// given path, and indicates whether it is a git wrapper.
+func FindGitVersion(ctx context.Context, git string) (int, int, bool, error) {
 	out, err := exec.RunCwd(ctx, ".", git, "--version")
 	if err != nil {
-		return -1, -1, err
+		return -1, -1, false, err
 	}
 	m := gitVersionRegex.FindStringSubmatch(out)
 	if m == nil {
-		return -1, -1, fmt.Errorf("Failed to parse the git version from output: %q", out)
+		return -1, -1, false, skerr.Fmt("failed to parse the git version from output: %q", out)
 	}
 	if len(m) != 3 {
-		return -1, -1, fmt.Errorf("Failed to parse the git version from output: %q", out)
+		return -1, -1, false, skerr.Fmt("failed to parse the git version from output: %q", out)
 	}
 	major, err := strconv.Atoi(m[1])
 	if err != nil {
-		return -1, -1, fmt.Errorf("Failed to parse the git version from output: %q", out)
+		return -1, -1, false, skerr.Fmt("failed to parse the git version from output: %q", out)
 	}
 	minor, err := strconv.Atoi(m[2])
 	if err != nil {
-		return -1, -1, fmt.Errorf("Failed to parse the git version from output: %q", out)
+		return -1, -1, false, skerr.Fmt("failed to parse the git version from output: %q", out)
 	}
-	return major, minor, nil
+	// Example output:
+	// $ git --version
+	// git version 2.45.2.chromium.11 / Infra wrapper (infra/tools/git/linux-amd64 @ EpkL_3RTtPZV2hGJqsC6xZ4SBj_KCQmdl3Vy2amJ4MAC)
+	isWrapper := strings.Contains(strings.ToLower(out), "wrapper")
+	return major, minor, isWrapper, nil
 }
 
 // MocksForFindGit returns a DelegateRun func which can be passed to

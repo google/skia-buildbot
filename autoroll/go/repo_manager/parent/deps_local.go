@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -47,7 +46,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		return nil, skerr.Wrap(err)
 	}
 
-	gitPath, _, _, err := git_common.FindGit(ctx)
+	gitPath, err := git.Executable(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

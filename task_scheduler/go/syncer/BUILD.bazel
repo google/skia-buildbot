@@ -12,7 +12,6 @@ go_library(
         "//bazel/go/bazel",
         "//go/exec",
         "//go/git",
-        "//go/git/git_common",
         "//go/git/repograph",
         "//go/metrics2",
         "//go/skerr",

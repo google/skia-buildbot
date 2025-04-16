@@ -20,12 +20,13 @@ func TestFindGit(t *testing.T) {
 	ctx := git_common.WithGitFinder(context.Background(), gitFinder)
 
 	check := func() {
-		git, major, minor, err := git_common.FindGit(ctx)
+		git, major, minor, isWrapper, err := git_common.FindGit(ctx)
 		require.NoError(t, err)
 		require.NotEqual(t, "", git)
 		require.NotEqual(t, "git", git)
 		require.NotEqual(t, 0, major)
 		require.NotEqual(t, 0, minor)
+		require.False(t, isWrapper)
 		require.True(t, git_common.IsFromCIPD(git))
 	}
 	check()

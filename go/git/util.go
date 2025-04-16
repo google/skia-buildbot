@@ -354,3 +354,22 @@ func IsFullCommitHash(s string) bool {
 func IsCommitHash(s string) bool {
 	return commitHashRegex.MatchString(s) && len(s) >= 4 && len(s) <= 40
 }
+
+// ConfigFilePath returns the path to the global .gitconfig file.
+func ConfigFilePath(ctx context.Context) (string, error) {
+	home := os.Getenv("HOME")
+
+	// If the process runs through luci-auth, the INFRA_GIT_WRAPPER_HOME
+	// variable is set. When the git wrapper is used, it overrides HOME.
+	_, _, isWrapper, err := git_common.Version(ctx)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	if isWrapper {
+		if homeOverride := os.Getenv("INFRA_GIT_WRAPPER_HOME"); homeOverride != "" {
+			home = homeOverride
+		}
+
+	}
+	return filepath.Join(home, ".gitconfig"), nil
+}
