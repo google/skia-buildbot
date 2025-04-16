@@ -140,6 +140,11 @@ CREATE TABLE IF NOT EXISTS Subscriptions (
   PRIMARY KEY(name, revision),
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS TraceParams (
+  trace_id BYTEA PRIMARY KEY,
+  params JSONB,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
 CREATE TABLE IF NOT EXISTS TraceValues (
   trace_id BYTEA,
   commit_number INT,
@@ -311,6 +316,11 @@ var Subscriptions = []string{
 	"bug_cc_emails",
 	"contact_email",
 	"is_active",
+}
+
+var TraceParams = []string{
+	"trace_id",
+	"params",
 }
 
 var TraceValues = []string{

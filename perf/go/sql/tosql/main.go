@@ -41,6 +41,7 @@ func main() {
 		"Alerts",
 		"Favorites",
 		"Subscriptions",
+		"TraceParams",
 	}
 	generatedText := exporter.GenerateSQL(sql.Tables{}, packageName, exporter.SchemaAndColumnNames, schemaTargetDB, ttlExcludeTables)
 	out := filepath.Join(packagePath, outputFileName)

@@ -83,6 +83,8 @@
     "subscriptions.is_active": "boolean def: nullable:YES",
     "subscriptions.name": "text def: nullable:NO",
     "subscriptions.revision": "text def: nullable:NO",
+    "traceparams.params": "jsonb def: nullable:YES",
+    "traceparams.trace_id": "bytea def: nullable:NO",
     "tracevalues.commit_number": "bigint def: nullable:NO",
     "tracevalues.source_file_id": "bigint def: nullable:YES",
     "tracevalues.trace_id": "bytea def: nullable:NO",

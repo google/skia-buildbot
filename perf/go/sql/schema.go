@@ -130,6 +130,10 @@ CREATE TABLE IF NOT EXISTS Subscriptions (
   is_active BOOL,
   PRIMARY KEY(name, revision)
 );
+CREATE TABLE IF NOT EXISTS TraceParams (
+  trace_id BYTES PRIMARY KEY,
+  params JSONB
+);
 CREATE TABLE IF NOT EXISTS TraceValues (
   trace_id BYTES,
   commit_number INT,
@@ -289,6 +293,11 @@ var Subscriptions = []string{
 	"bug_cc_emails",
 	"contact_email",
 	"is_active",
+}
+
+var TraceParams = []string{
+	"trace_id",
+	"params",
 }
 
 var TraceValues = []string{

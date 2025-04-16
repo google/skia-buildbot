@@ -36,6 +36,7 @@ type Tables struct {
 	Shortcuts       []shortcutschema.ShortcutSchema
 	SourceFiles     []traceschema.SourceFilesSchema
 	Subscriptions   []subscriptionschema.SubscriptionSchema
+	TraceParams     []traceschema.TraceParamsSchema
 	TraceValues     []traceschema.TraceValuesSchema
 	TraceValues2    []traceschema.TraceValues2Schema
 	UserIssues      []userissuesschema.UserIssueSchema

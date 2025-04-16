@@ -38,9 +38,9 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
-    CREATE TABLE IF NOT EXISTS Metadata (
-		source_file_id INT PRIMARY KEY,
-		links JSONB
+    CREATE TABLE IF NOT EXISTS TraceParams (
+		trace_id BYTES PRIMARY KEY,
+		params JSONB
 	);
 `
 
@@ -48,23 +48,23 @@ var FromLiveToNext = `
 // Some statements can be different for CDB v/s Spanner, hence splitting into
 // separate variables.
 var FromLiveToNextSpanner = `
-	CREATE TABLE IF NOT EXISTS Metadata (
-		source_file_id INT PRIMARY KEY,
-		links JSONB,
+	CREATE TABLE IF NOT EXISTS TraceParams (
+		trace_id BYTEA PRIMARY KEY,
+		params JSONB,
 		createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-	) TTL INTERVAL '1095 days' ON createdat;
+	);
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-    DROP TABLE IF EXISTS Metadata;
+    DROP TABLE IF EXISTS TraceParams;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLiveSpanner = `
-	DROP TABLE IF EXISTS Metadata;
+	DROP TABLE IF EXISTS TraceParams;
 `
 
 // This function will check whether there's a new schema checked-in,

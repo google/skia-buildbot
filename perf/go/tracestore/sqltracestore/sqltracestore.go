@@ -720,6 +720,8 @@ type SQLTraceStore struct {
 	// This is set to true if the datastore is Spanner.
 	isSpanner bool
 
+	traceParamStore tracestore.TraceParamStore
+
 	// metrics
 	writeTracesMetric                      metrics2.Float64SummaryMetric
 	writeTracesMetricSQL                   metrics2.Float64SummaryMetric
@@ -736,7 +738,7 @@ type SQLTraceStore struct {
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db pool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceStore, error) {
+func New(db pool.Pool, datastoreConfig config.DataStoreConfig, traceParamStore tracestore.TraceParamStore) (*SQLTraceStore, error) {
 	unpreparedStatements := map[statement]*template.Template{}
 	queryTemplates := templates
 	if datastoreConfig.DataStoreType == config.SpannerDataStoreType {
@@ -776,6 +778,7 @@ func New(db pool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceStore, 
 		orderedParamSetCache:                   paramSetCache,
 		enableFollowerReads:                    datastoreConfig.EnableFollowerReads,
 		isSpanner:                              datastoreConfig.DataStoreType == config.SpannerDataStoreType,
+		traceParamStore:                        traceParamStore,
 		writeTracesMetric:                      metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces"),
 		writeTracesMetricSQL:                   metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces_sql"),
 		buildTracesContextsMetric:              metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_build_traces_context"),
@@ -1899,6 +1902,7 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 	valuesTemplateContext := make([]insertIntoTraceValuesContext, 0, len(params))
 	postingsTemplateContext := []insertIntoPostingsContext{} // We have no idea how long this will be.
 
+	traceParams := map[string]paramtools.Params{}
 	for i, p := range params {
 		traceName, err := query.MakeKey(p)
 		if err != nil {
@@ -1906,6 +1910,7 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 			continue
 		}
 		traceID := traceIDForSQLFromTraceName(traceName)
+		traceParams[string(traceID)] = p
 		valuesTemplateContext = append(valuesTemplateContext, insertIntoTraceValuesContext{
 			MD5HexTraceID: traceID,
 			CommitNumber:  commitNumber,
@@ -1978,6 +1983,13 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 		}
 	}
 
+	sklog.Infof("Writing %d trace params entries", len(traceParams))
+	traceParamsError := s.traceParamStore.WriteTraceParams(ctx, traceParams)
+	if traceParamsError != nil {
+		// Log and ignore this error while we release and test this feature.
+		// TODO(ashwinpv): Return the error once we have fully tested.
+		sklog.Infof("Error writing trace params: %v", traceParamsError)
+	}
 	sklog.Infof("About to format %d trace values", len(valuesTemplateContext))
 
 	if s.isSpanner {

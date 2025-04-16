@@ -14,6 +14,7 @@ import (
 	mockCache "go.skia.org/infra/go/cache/mock"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -37,13 +38,15 @@ var (
 	}
 )
 
-func TestBuildTraceMapper(t *testing.T) {
-
-	db := sqltest.NewSpannerDBForTests(t, "dfbuilder")
-
-	store, err := sqltracestore.New(db, cfg.DataStoreConfig)
+func getSqlTraceStore(t *testing.T, db pool.Pool, cfg config.DataStoreConfig) *sqltracestore.SQLTraceStore {
+	traceParamStore := sqltracestore.NewTraceParamStore(db)
+	store, err := sqltracestore.New(db, cfg, traceParamStore)
 	require.NoError(t, err)
-
+	return store
+}
+func TestBuildTraceMapper(t *testing.T) {
+	db := sqltest.NewSpannerDBForTests(t, "dfbuilder")
+	store := getSqlTraceStore(t, db, cfg.DataStoreConfig)
 	tileMap := sliceOfTileNumbersFromCommits([]types.CommitNumber{0, 1, 255, 256, 257}, store)
 	expected := []types.TileNumber{0, 1}
 	assert.Equal(t, expected, tileMap)
@@ -79,8 +82,7 @@ func TestBuildNew(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
-	require.NoError(t, err)
+	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
@@ -257,8 +259,7 @@ func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
-	require.NoError(t, err)
+	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
@@ -284,8 +285,7 @@ func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
-	require.NoError(t, err)
+	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
@@ -327,8 +327,7 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
-	require.NoError(t, err)
+	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
@@ -376,8 +375,7 @@ func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
-	require.NoError(t, err)
+	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 	q, err := query.NewFromString("")
@@ -393,8 +391,7 @@ func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
-	require.NoError(t, err)
+	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
@@ -422,8 +419,7 @@ func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCounts
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
-	require.NoError(t, err)
+	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
@@ -460,8 +456,7 @@ func TestPreflightQuery_Cache_Success(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
-	require.NoError(t, err)
+	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 	cache, err := local.New(10)
 	require.NoError(t, err)
 

@@ -4,6 +4,7 @@ go_library(
     name = "tracestore",
     srcs = [
         "metadatastore.go",
+        "traceparamstore.go",
         "tracestore.go",
     ],
     importpath = "go.skia.org/infra/perf/go/tracestore",

@@ -5,5 +5,8 @@ go_library(
     srcs = ["schema.go"],
     importpath = "go.skia.org/infra/perf/go/tracestore/sqltracestore/schema",
     visibility = ["//visibility:public"],
-    deps = ["//perf/go/types"],
+    deps = [
+        "//go/paramtools",
+        "//perf/go/types",
+    ],
 )

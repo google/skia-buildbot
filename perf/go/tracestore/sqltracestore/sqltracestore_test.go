@@ -51,8 +51,9 @@ var (
 func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore) {
 	ctx := context.Background()
 	db := sqltest.NewSpannerDBForTests(t, "tracestore")
+	traceParamStore := NewTraceParamStore(db)
 
-	store, err := New(db, cfg)
+	store, err := New(db, cfg, traceParamStore)
 	require.NoError(t, err)
 
 	if populateTraces {
@@ -67,7 +68,8 @@ func commonTestSetupWithCommits(t *testing.T) (context.Context, *SQLTraceStore) 
 	_, err := git.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
-	store, err := New(db, cfg)
+	traceParamStore := NewTraceParamStore(db)
+	store, err := New(db, cfg, traceParamStore)
 	require.NoError(t, err)
 
 	populatedTestDB(t, ctx, store)

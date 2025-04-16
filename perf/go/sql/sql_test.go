@@ -21,6 +21,7 @@ const DropTables = `
 	DROP TABLE IF EXISTS Culprits;
 	DROP TABLE IF EXISTS Favorites;
 	DROP TABLE IF EXISTS GraphsShortcuts;
+  DROP TABLE IF EXISTS Metadata;
 	DROP TABLE IF EXISTS ParamSets;
 	DROP TABLE IF EXISTS Postings;
 	DROP TABLE IF EXISTS Regressions;
@@ -29,6 +30,7 @@ const DropTables = `
 	DROP TABLE IF EXISTS Shortcuts;
 	DROP TABLE IF EXISTS SourceFiles;
 	DROP TABLE IF EXISTS Subscriptions;
+  DROP TABLE IF EXISTS TraceParams;
 	DROP TABLE IF EXISTS TraceValues;
 	DROP TABLE IF EXISTS TraceValues2;
 	DROP TABLE IF EXISTS UserIssues;
@@ -103,6 +105,10 @@ CREATE TABLE IF NOT EXISTS Favorites (
 CREATE TABLE IF NOT EXISTS GraphsShortcuts (
   id TEXT UNIQUE NOT NULL PRIMARY KEY,
   graphs TEXT
+);
+CREATE TABLE IF NOT EXISTS Metadata (
+  source_file_id INT PRIMARY KEY,
+  links JSONB
 );
 CREATE TABLE IF NOT EXISTS ParamSets (
   tile_number INT,
@@ -266,6 +272,11 @@ CREATE TABLE IF NOT EXISTS Favorites (
 CREATE TABLE IF NOT EXISTS GraphsShortcuts (
   id TEXT  NOT NULL PRIMARY KEY,
   graphs TEXT,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
+CREATE TABLE IF NOT EXISTS Metadata (
+  source_file_id INT PRIMARY KEY,
+  links JSONB,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS ParamSets (

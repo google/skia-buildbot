@@ -7,6 +7,7 @@ go_library(
         "intersect.go",
         "spanner.go",
         "sqlmetadatastore.go",
+        "sqltraceparamstore.go",
         "sqltracestore.go",
     ],
     importpath = "go.skia.org/infra/perf/go/tracestore/sqltracestore",
@@ -42,6 +43,7 @@ go_test(
     srcs = [
         "intersect_test.go",
         "sqlmetadatastore_test.go",
+        "sqltraceparamstore_test.go",
         "sqltracestore_test.go",
     ],
     data = ["//perf/migrations:cockroachdb"],

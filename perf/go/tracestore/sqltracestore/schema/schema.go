@@ -1,6 +1,9 @@
 package schema
 
-import "go.skia.org/infra/perf/go/types"
+import (
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/perf/go/types"
+)
 
 // TraceValuesSchema describes the SQL schema of the TraceValues table.
 type TraceValuesSchema struct {
@@ -54,4 +57,9 @@ type PostingsSchema struct {
 type MetadataSchema struct {
 	SourceFileId int64             `sql:"source_file_id INT PRIMARY KEY"`
 	Links        map[string]string `sql:"links JSONB"`
+}
+
+type TraceParamsSchema struct {
+	TraceID []byte            `sql:"trace_id BYTES PRIMARY KEY"`
+	Params  paramtools.Params `sql:"params JSONB"`
 }

@@ -46,6 +46,7 @@ go_test(
         "//go/cache/mock",
         "//go/paramtools",
         "//go/query",
+        "//go/sql/pool",
         "//go/testutils",
         "//perf/go/config",
         "//perf/go/dataframe",

@@ -171,7 +171,11 @@ func NewTraceStoreFromConfig(ctx context.Context, instanceConfig *config.Instanc
 	if err != nil {
 		return nil, err
 	}
-	return sqltracestore.New(db, instanceConfig.DataStoreConfig)
+	traceParamStore, err := NewTraceParamStore(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
+	}
+	return sqltracestore.New(db, instanceConfig.DataStoreConfig, traceParamStore)
 }
 
 // NewMetadataStoreFromConfig creates a new MetadataStore from the InstanceConfig.
@@ -182,6 +186,16 @@ func NewMetadataStoreFromConfig(ctx context.Context, instanceConfig *config.Inst
 	}
 
 	return sqltracestore.NewSQLMetadataStore(db), nil
+}
+
+// NewTraceParamStore returns a new TraceParamStore from the instance config.
+func NewTraceParamStore(ctx context.Context, instanceConfig *config.InstanceConfig) (tracestore.TraceParamStore, error) {
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return sqltracestore.NewTraceParamStore(db), nil
 }
 
 // NewAlertStoreFromConfig creates a new alerts.Store from the InstanceConfig.
