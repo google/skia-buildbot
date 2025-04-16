@@ -13,6 +13,7 @@ import (
 //
 // Note: This requires `git-credential-luci` to be present and in PATH.
 func GitConfig(ctx context.Context) error {
+	sklog.Infof("Setting git configuration for depot tools auth...")
 	gitExec, err := git.Executable(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -25,5 +26,11 @@ func GitConfig(ctx context.Context) error {
 		// if the setting doesn't exist and therefore couldn't be removed.
 		sklog.Warning("'git config --unset http.cookiefile' exited with non-zero code. Ignoring.")
 	}
+	// Read back gitconfig.
+	out, err := exec.RunCwd(ctx, ".", gitExec, "config", "--list", "--show-origin")
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to read git config: %s", out)
+	}
+	sklog.Infof("Created git configuration:\n%s", out)
 	return nil
 }
