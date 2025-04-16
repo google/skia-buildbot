@@ -126,6 +126,10 @@ export class ChartTooltipSk extends ElementSk {
   // Whether to display of json source dialog.
   private _show_json_source: boolean = window.perf ? window.perf.show_json_file_display : false;
 
+  private _always_show_commit_info: boolean = window.perf
+    ? window.perf.always_show_commit_info
+    : false;
+
   // Bisect Dialog.
   bisectDialog: BisectDialogSk | null = null;
 
@@ -176,22 +180,11 @@ export class ChartTooltipSk extends ElementSk {
           <span id="tooltip-key">Change</span>
           <commit-range-sk id="tooltip-commit-range-link"></commit-range-sk>
         </li>
+        ${ele.getCommitInfo()}
       </ul>
       <point-links-sk
         id="tooltip-point-links"
         .commitPosition=${ele.commit_position}></point-links-sk>
-      ${ele.tooltip_fixed && !ele._is_range
-        ? html` <ul class="table">
-            <li>
-              <span id="tooltip-key">Author</span>
-              ${ele.commit_info?.author.split('(')[0]}
-            </li>
-            <li>
-              <span id="tooltip-key">Message</span>
-              ${ele.commit_info?.message}
-            </li>
-          </ul>`
-        : html``}
       ${ele.tooltip_fixed ? ele.anomalyTemplate() : ''}
       <triage-menu-sk
         id="triage-menu"
@@ -284,6 +277,27 @@ export class ChartTooltipSk extends ElementSk {
     }
 
     return html`<span class="see-more-text">Click for more details</span>`;
+  }
+
+  private getCommitInfo() {
+    if ((this.tooltip_fixed && !this._is_range) || this._always_show_commit_info) {
+      return html` <li>
+          <span id="tooltip-key">Author</span>
+          <span id="tooltip-text"> ${this.commit_info?.author.split('(')[0]} </span>
+        </li>
+        <li>
+          <span id="tooltip-key">Message</span>
+          <span id="tooltip-text"> ${this.commit_info?.message} </span>
+        </li>
+        <li>
+          <span id="tooltip-key">Commit</span>
+          <span id="tooltip-text">
+            <a href="${this.commit_info?.url}" target="_blank">${this.commit_info?.hash}</a>
+          </span>
+        </li>`;
+    } else {
+      return html``;
+    }
   }
 
   // HTML template for Anomaly information, only shown when the data
@@ -507,7 +521,9 @@ export class ChartTooltipSk extends ElementSk {
   reset(): void {
     this.commitRangeSk?.reset();
     this.pointLinks?.reset();
-    this.userIssueSk!._text_input_active = false;
+    if (this.userIssueSk) {
+      this.userIssueSk._text_input_active = false;
+    }
     this._render();
   }
 

@@ -68,6 +68,9 @@
         },
         "show_json_file_display": {
           "type": "boolean"
+        },
+        "always_show_commit_info": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

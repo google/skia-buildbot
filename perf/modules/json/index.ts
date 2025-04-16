@@ -360,6 +360,7 @@ export interface SkPerfConfig {
 	image_tag: string;
 	remove_default_stat_value: boolean;
 	show_json_file_display: boolean;
+	always_show_commit_info: boolean;
 }
 
 export interface TriageRequest {

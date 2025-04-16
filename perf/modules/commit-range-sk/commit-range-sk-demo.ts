@@ -31,6 +31,7 @@ window.perf = {
   image_tag: 'fake-tag',
   remove_default_stat_value: false,
   show_json_file_display: false,
+  always_show_commit_info: false,
 };
 
 // The response to a POST of [64809, 64811] to /_/cid/.

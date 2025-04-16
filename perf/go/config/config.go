@@ -864,6 +864,9 @@ type DataPointConfig struct {
 
 	// If set to true, display commit detail in the pop-up for the data point.
 	ShowJsonResourceDisplay bool `json:"show_json_file_display,omitempty"`
+
+	// If set to true, display commit author and hash in the tooltip.
+	AlwaysShowCommitInfo bool `json:"always_show_commit_info,omitempty"`
 }
 
 // QueryConfig contains query customization info for the instance.

@@ -29,6 +29,7 @@ window.perf = {
   image_tag: 'fake-tag',
   remove_default_stat_value: false,
   show_json_file_display: false,
+  always_show_commit_info: false,
 };
 
 const dummyAnomaly = (bugId: number): Anomaly => ({
