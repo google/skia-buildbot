@@ -151,12 +151,12 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 					sklog.Infof("Found Low regression at %s. StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
 					// TODO(crbug.com/393606957) Move the logic to a helper function to
 					// use for both SetLow and SetHigh calls.
+					isRegressionFound = true
 					notificationID, _ = c.store.GetNotificationId(ctx, commitNumber, key)
 					if notificationID != "" {
 						cl.NotificationID = notificationID
 						isNewRegression = false
 					} else {
-						isRegressionFound = true
 						isNew, regressionID, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
 						if err != nil {
 							sklog.Errorf("Failed to save newly found cluster: %s", err)
@@ -183,12 +183,12 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 				}
 				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.UP || cfg.DirectionAsString == alerts.BOTH) {
 					sklog.Infof("Found High regression at %s. StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
+					isRegressionFound = true
 					notificationID, _ = c.store.GetNotificationId(ctx, commitNumber, key)
 					if notificationID != "" {
 						cl.NotificationID = notificationID
 						isNewRegression = false
 					} else {
-						isRegressionFound = true
 						isNew, regressionID, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
 						if err != nil {
 							sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
