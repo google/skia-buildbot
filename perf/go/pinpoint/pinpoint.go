@@ -262,6 +262,9 @@ func buildBisectRequestURL(createBisectRequest CreateBisectRequest) string {
 	}
 	if createBisectRequest.BugId != "" {
 		params.Set("bug_id", createBisectRequest.BugId)
+	} else {
+		// Pinpoint requires the presence of bug_id param.
+		params.Set("bug_id", "null")
 	}
 	if createBisectRequest.User != "" {
 		params.Set("user", createBisectRequest.User)
