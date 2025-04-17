@@ -191,7 +191,7 @@ export function mainChartOptions(
     },
     // define clearance to prevent axis labels and data from getting clipped
     chartArea: {
-      left: 50,
+      left: 100,
       right: 10,
       top: 5,
       bottom: 25,
