@@ -345,6 +345,8 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		Env:        env,
 		InheritEnv: true,
 		Timeout:    syncTimeout,
+		LogStdout:  true,
+		LogStderr:  true,
 	})
 	dur := t.Stop()
 	if err != nil {
