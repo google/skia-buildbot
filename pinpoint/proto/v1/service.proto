@@ -31,6 +31,7 @@ message ScheduleBisectRequest {
 	// https://chromium.googlesource.com/catapult.git/+/e8367e6/telemetry
 	// The story is usually a test case that runs a set of actions in a certain scenario, and
 	// collects performance histogram data to analyze.
+	// Users can run jobs with either story, story tags, or both story and story tags.
 	string story = 6;
 	string chart = 7;
 	// TODO(b/322202740) This field is used by catapult and should eventually be deprecated.
@@ -59,6 +60,7 @@ message ScheduleBisectRequest {
 
 	// StoryTags is a comma delimited string of tags to pass for the story.
 	// For example, "all", "representative_win_desktop" or "2019,2018".
+	// Users can run jobs with either story, story tags, or both story and story tags.
 	string story_tags = 15;
 
 	// The minimum number of test iterations run.
@@ -215,6 +217,7 @@ message SchedulePairwiseRequest {
 	// https://chromium.googlesource.com/catapult.git/+/e8367e6/telemetry
 	// The story is usually a test case that runs a set of actions in a certain scenario, and
 	// collects performance histogram data to analyze.
+	// Users can run jobs with either story, story tags, or both story and story tags.
 	string story = 5;
 	string chart = 6 [json_name = "measurement"];
 	// The mechanism in which benchmark measurements are aggregated by.
@@ -241,6 +244,11 @@ message SchedulePairwiseRequest {
 	// build isolate directly to Pinpoint with the CAS address.
 	CASReference start_build = 13;
 	CASReference end_build = 14;
+
+	// StoryTags is a comma delimited string of tags to pass for the story.
+	// For example, "all", "representative_win_desktop" or "2019,2018".
+	// Users can run jobs with either story, story tags, or both story and story tags.
+	string story_tags = 15;
 }
 
 message PairwiseExecution {

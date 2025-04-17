@@ -54,6 +54,7 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 			Benchmark:         p.Request.Benchmark,
 			Chart:             p.Request.Chart,
 			Story:             p.Request.Story,
+			StoryTags:         p.Request.StoryTags,
 			AggregationMethod: p.Request.AggregationMethod,
 			Iterations:        p.GetInitialAttempt(),
 		},
