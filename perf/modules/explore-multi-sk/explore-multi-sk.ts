@@ -58,7 +58,7 @@ class State {
 
   numCommits: number = 250;
 
-  request_type: RequestType = 0;
+  request_type: RequestType = 1;
 
   summary: boolean = false;
 
