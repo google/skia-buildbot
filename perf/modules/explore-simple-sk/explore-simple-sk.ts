@@ -2605,6 +2605,10 @@ export class ExploreSimpleSk extends ElementSk {
         errorMessage('Failed to find any matching traces.');
         return;
       }
+      if (json.dataframe?.traceset && Object.keys(json.dataframe.traceset).length === 0) {
+        errorMessage('No data found for the given query.');
+        return;
+      }
       this.dfRepo.value
         ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
         .then(() => {

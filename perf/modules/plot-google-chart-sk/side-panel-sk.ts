@@ -327,6 +327,10 @@ export class SidePanelSk extends LitElement {
   private getLegend() {
     if (this.data) {
       const getLegendData = getLegend(this.data);
+      if (getLegendData.length === 0) {
+        return [];
+      }
+      // The legend is a list of strings that are the legend values.
       const legendList = legendFormatter(getLegendData);
       this.legendKeysFormat = getLegendKeysTitle(getLegendData[0]);
       const numCols = this.data!.getNumberOfColumns();
