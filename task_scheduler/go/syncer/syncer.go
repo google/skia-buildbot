@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -283,9 +284,11 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	}
 
 	spec := fmt.Sprintf("solutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", projectName, rs.Repo)
+	cmd := []string{vpythonBinary, "-u", gclientPath, "config", fmt.Sprintf("--spec=%s", spec)}
+	sklog.Infof("Executing: %s %s", strings.Join(env, " "), strings.Join(cmd, " "))
 	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Name: vpythonBinary,
-		Args: []string{"-u", gclientPath, "config", fmt.Sprintf("--spec=%s", spec)},
+		Name: cmd[0],
+		Args: cmd[1:],
 		Dir:  tmp,
 		Env:  env,
 	}); err != nil {
@@ -298,7 +301,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		patchRepo = rs.PatchRepo
 		patchRepoName = strings.TrimSuffix(path.Base(rs.PatchRepo), ".git")
 	}
-	cmd := []string{
+	cmd = []string{
 		vpythonBinary, "-u", gclientPath, "sync",
 		"--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision),
 		"--reset", "--force", "--ignore_locks", "--nohooks", "--noprehooks",
@@ -337,7 +340,22 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	t := metrics2.NewTimer("gclient_sync", map[string]string{
 		"patchRepo": patchRepo,
 	})
-	sklog.Infof("Executing: %s", strings.Join(cmd, " "))
+
+	// Construct the full environment so we can print out a copy/pasteable
+	// command.
+	fullEnv := make([]string, len(env))
+	copy(fullEnv, env)
+	existing := make(map[string]bool, len(env))
+	for _, s := range env {
+		existing[strings.SplitN(s, "=", 2)[0]] = true
+	}
+	for _, s := range os.Environ() {
+		if !existing[strings.SplitN(s, "=", 2)[0]] {
+			fullEnv = append(fullEnv, s)
+		}
+	}
+	sort.Strings(fullEnv)
+	sklog.Infof("Executing: %s %s", strings.Join(fullEnv, " "), strings.Join(cmd, " "))
 	out, err := exec.RunCommand(ctx, &exec.Command{
 		Name:       cmd[0],
 		Args:       cmd[1:],
