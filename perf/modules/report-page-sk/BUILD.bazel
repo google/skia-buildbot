@@ -16,6 +16,7 @@ sk_element(
         "//elements-sk/modules/spinner-sk",
         "//perf/modules/anomalies-table-sk",
         "//perf/modules/explore-simple-sk",
+        "//elements-sk/modules/icons/camera-roll-icon-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",
@@ -44,7 +45,9 @@ sk_page(
         "//elements-sk/modules/styles:table_sass_lib",
     ],
     scss_entry_point = "report-page-sk-demo.scss",
-    sk_element_deps = [":report-page-sk"],
+    sk_element_deps = [
+        ":report-page-sk",
+    ],
     ts_deps = [
         "//:node_modules/fetch-mock",
         "//infra-sk/modules:dom_ts_lib",

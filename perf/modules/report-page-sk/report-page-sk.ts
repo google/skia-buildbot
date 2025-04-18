@@ -17,6 +17,7 @@ import '../../../elements-sk/modules/spinner-sk';
 import '../anomalies-table-sk/anomalies-table-sk';
 import { lookupCids } from '../cid/cid';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
+import '../../../elements-sk/modules/icons/camera-roll-icon-sk';
 
 const weekInSeconds = 7 * 24 * 60 * 60;
 
@@ -117,9 +118,11 @@ export class ReportPageSk extends ElementSk {
 
   private defaults: QueryConfig | null = null;
 
-  private commitList: Commit[] = [];
+  private commitMap: Map<Commit, boolean> = new Map();
 
   private allCommitsDialog: HTMLDialogElement | null = null;
+
+  private commitUrlprefix = window.perf.git_repo_url + '/+show/';
 
   constructor() {
     super(ReportPageSk.template);
@@ -223,11 +226,11 @@ export class ReportPageSk extends ElementSk {
       }
 
       const json = await lookupCids(commits);
-      const response: Commit[] = json.commitSlice!;
+      const commitSlice: Commit[] = json.commitSlice!;
       const commitUrlSet = new Set<string>();
-      response.forEach((commit) => {
+      commitSlice.forEach((commit) => {
         if (!commitUrlSet.has(commit.url)) {
-          this.commitList!.push(commit);
+          this.checkCommitMessageStartsWithRoll(commit);
         }
         commitUrlSet.add(commit.url);
       });
@@ -292,18 +295,19 @@ export class ReportPageSk extends ElementSk {
   }
 
   private showAllCommitsTemplate() {
-    if (this.commitList.length !== 0) {
+    if (this.commitMap.size !== 0) {
       return html`
         <div class="common-commits">
           <h3>Common Commits</h3>
           <div class="scroll-commits">
             <ul class="table" id="all-commits-scroll">
-              ${Array.from(this.commitList)
+              ${Array.from(this.commitMap.keys())
                 .slice(0, 10)
                 .map((commit) => {
                   return html` <li>
                     <a href="${commit.url}" target="_blank">${commit.hash.substring(0, 7)}</a>
                     <span id="commit-message">${commit.message}</span>
+                    ${this.addIconForRollCommit(commit)}
                   </li>`;
                 })}
             </ul>
@@ -311,6 +315,89 @@ export class ReportPageSk extends ElementSk {
         </div>
       `;
     }
+  }
+
+  private checkCommitMessageStartsWithRoll(commit: Commit) {
+    if (commit.message.startsWith('Roll')) {
+      this.commitMap.set(commit, true);
+    } else {
+      this.commitMap.set(commit, false);
+    }
+  }
+
+  private addIconForRollCommit(commit: Commit) {
+    if (this.commitMap.get(commit)) {
+      return html`
+        <button
+          id="roll-commits-link"
+          @click=${() => {
+            this.openUnderlyingCommitUrl(commit);
+          }}>
+          <camera-roll-icon-sk></camera-roll-icon-sk>
+        </button>
+      `;
+    } else {
+      return ``;
+    }
+  }
+
+  private async openUnderlyingCommitUrl(commit: Commit) {
+    const json = await lookupCids([commit.offset]);
+    const logEntry = json.logEntry;
+    let url = '';
+    if (this.checkIfCommitMessageFollowsRollPattern(commit.message)) {
+      url = this.findInternalCommitUrl(logEntry);
+    } else {
+      url = this.findParentUrl(logEntry);
+    }
+    if (url !== '') {
+      window.open(url, '_blank');
+    } else {
+      window.open(commit.url, '_blank');
+    }
+  }
+
+  // Using Regular Expressions to check whether the commit message
+  // follows the pattern, e.g: "Roll repo from hash to hash"
+  private checkIfCommitMessageFollowsRollPattern(message: string) {
+    const regex = /^Roll (.*?) from (.*?) to (.*?) \(.*?\)$/;
+    // Execute the regex against the input string
+    const match = regex.exec(message);
+    return match ? true : false;
+  }
+
+  private findInternalCommitUrl(log: string) {
+    const regex = /^Body (.*)$/m;
+    const match = log.match(regex);
+
+    // If a match is found, match[1] contains the captured group
+    // (the text after "Body ")
+    if (match && match[1]) {
+      for (const line of match[1].split('\n')) {
+        // Extract the internal log url
+        // e,g: 'https://skia.googlesource.com/skia.git/+log/3ad6f8f84edd..dead00a73fb1'
+        if (line.startsWith('https')) {
+          console.info('internal url in the body log: ' + line);
+          // If a line starts with "https", return this line
+          return line;
+        }
+      }
+    }
+    return '';
+  }
+
+  // When the initial commit message does not follow "Roll"
+  private findParentUrl(log: string) {
+    const regex = /^Parent (.*)$/m;
+    const match = log.match(regex);
+    // If a match is found, match[1] contains the captured group (the text after "Parent ")
+    if (match && match[1]) {
+      // Return parent url with window perf git url prefix
+      // Parent url starts after 'Parent '
+      // e,g: 'db2e77d1decc3cae2172a7b72c931aa20b4b1d37'
+      return this.commitUrlprefix + match[1];
+    }
+    return '';
   }
 }
 

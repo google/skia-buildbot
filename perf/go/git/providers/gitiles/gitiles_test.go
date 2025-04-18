@@ -30,6 +30,7 @@ const (
 
 var (
 	errMock = errors.New("this is my mock test error")
+	parents = []string{"parent"}
 
 	commitDetailsForZeroCommits = []*vcsinfo.LongCommit{}
 
@@ -42,6 +43,7 @@ var (
 			},
 			Body:      body,
 			Timestamp: time.Time{},
+			Parents:   parents,
 		},
 	}
 
@@ -81,7 +83,8 @@ func TestLogEntry_HappyPath(t *testing.T) {
 	}
 	entry, err := gp.LogEntry(context.Background(), gitHash)
 	require.NoError(t, err)
-	expected := "commit abc123\nAuthor somebody@example.org\nDate 01 Jan 01 00:00 +0000\n\nSome fix for a bug.\n\nThis is the body"
+	expected := "commit abc123\nParent parent\nSubject Some fix for a bug.\nAuthor somebody@example.org" +
+		"\nDate 01 Jan 01 00:00 +0000\nBody This is the body"
 	require.Equal(t, expected, entry)
 }
 

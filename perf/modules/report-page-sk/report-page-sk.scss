@@ -43,6 +43,11 @@ report-page-sk {
       border-top: 1px solid #ccc;
       padding-top: 10px;
     }
+    #roll-commits-link {
+      color: rgb(87, 120, 211);
+      cursor: pointer;
+      display: contents;
+    }
   }
 
   ul.table {

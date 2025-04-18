@@ -1,4 +1,4 @@
-// Package gitiles imlements provider.Provider using the Gitiles API.
+// ckage gitiles imlements provider.Provider using the Gitiles API.
 package gitiles
 
 import (
@@ -112,13 +112,14 @@ func (g *Gitiles) LogEntry(ctx context.Context, gitHash string) (string, error) 
 		return "", skerr.Fmt("received %d log entries when expecting 1", len(lc))
 	}
 	commit := lc[0]
+	sklog.Debugf("[gitiles] Fetch logEntry %s by githash: %s ", commit, gitHash)
 	return fmt.Sprintf(`commit %s
+Parent %s
+Subject %s
 Author %s
 Date %s
-
-%s
-
-%s`, commit.Hash, commit.Author, commit.Timestamp.Format(time.RFC822Z), commit.Subject, commit.Body), nil
+Body %s`, commit.Hash, commit.Parents[0], commit.Subject, commit.Author,
+		commit.Timestamp.Format(time.RFC822Z), commit.Body), nil
 }
 
 // Update implements provider.Provider.
