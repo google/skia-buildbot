@@ -143,13 +143,10 @@ class AlertsPageSk extends ElementSk {
     if (window.perf.notifications !== 'markdown_issuetracker') {
       return item.alert;
     }
-    /* eslint-disable lit/attribute-value-entities */
-    return html`<a
-      href="https://issuetracker.google.com/issues?
-      q=status:open%20componentid:${item.issue_tracker_component}
-      &s=created_time:desc">
-      ${item.issue_tracker_component}
-    </a>`;
+    const issueTracker = html`https://issuetracker.google.com/issues?q=status:open%20componentid:`;
+    return html`<a href="${issueTracker}${item.issue_tracker_component}%26s=created_time:desc"
+      >${item.issue_tracker_component}</a
+    >`;
   }
 
   private static alertOrComponentHeader() {
