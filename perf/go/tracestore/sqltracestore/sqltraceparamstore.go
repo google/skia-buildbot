@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/tracestore"
 )
 
@@ -15,6 +16,9 @@ const (
 	writeTraceParams int = iota
 	readTraceParams
 )
+
+const traceParamInsertChunkSize = 100
+const traceParamInsertParallelPoolSize = 5
 
 var stmts = map[int]string{
 
@@ -99,6 +103,31 @@ func (s *SQLTraceParamStore) ReadParams(ctx context.Context, traceIds []string) 
 // traceParams is the traceId (hex-encoded form of the md5 hash of the trace name)
 // and the value is the corresponding params.
 func (s *SQLTraceParamStore) WriteTraceParams(ctx context.Context, traceParams map[string]paramtools.Params) error {
+	// If the traceParams list is small enough, write it directly.
+	if len(traceParams) <= traceParamInsertChunkSize {
+		return s.writeTraceParamsChunk(ctx, traceParams)
+	}
+
+	keys := []string{}
+	for key := range traceParams {
+		keys = append(keys, key)
+	}
+
+	// Since this is a big list, we will write it in chunks in parallel.
+	err := util.ChunkIterParallelPool(ctx, len(traceParams), traceParamInsertChunkSize, traceParamInsertParallelPoolSize, func(ctx context.Context, startIdx, endIdx int) error {
+		chunkKeys := keys[startIdx:endIdx]
+		filteredTraceParams := map[string]paramtools.Params{}
+		for _, key := range chunkKeys {
+			filteredTraceParams[key] = traceParams[key]
+		}
+		return s.writeTraceParamsChunk(ctx, filteredTraceParams)
+	})
+
+	return err
+}
+
+// writeTraceParamsChunk writes the given chunk of traceParams to the traceparams table.
+func (s *SQLTraceParamStore) writeTraceParamsChunk(ctx context.Context, traceParams map[string]paramtools.Params) error {
 	paramList := make([]interface{}, len(traceParams))
 	i := 0
 	insertContext := traceParamsContext{}

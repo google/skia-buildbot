@@ -60,6 +60,7 @@ go_test(
     deps = [
         "//go/cache/local",
         "//go/cache/mock",
+        "//go/deepequal/assertdeep",
         "//go/now",
         "//go/paramtools",
         "//go/query",

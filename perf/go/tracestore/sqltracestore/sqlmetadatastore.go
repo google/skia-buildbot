@@ -21,7 +21,8 @@ const (
 var sqlstatements = map[sqlstatement]string{
 	insert: `INSERT INTO
 		Metadata
-		VALUES ($1,$2)`,
+		VALUES ($1,$2)
+		ON CONFLICT (source_file_id) DO NOTHING`,
 
 	read: `SELECT links FROM Metadata WHERE source_file_id=$1`,
 	getsourcefileid: `
