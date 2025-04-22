@@ -294,20 +294,16 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 		if leftRuns[i].CAS == nil || rightRuns[i].CAS == nil {
 			continue
 		}
-		var lv []float64
-		if err := workflow.ExecuteActivity(ctx, CollectValuesActivity, leftRuns[i], pc.Benchmark, pc.Chart, pc.AggregationMethod).Get(ctx, &lv); err != nil {
+		var lv map[string][]float64
+		if err := workflow.ExecuteActivity(ctx, CollectAllValuesActivity, leftRuns[i], pc.Benchmark, pc.AggregationMethod).Get(ctx, &lv); err != nil {
 			return nil, skerr.Wrapf(err, "leftRuns failed %v", *leftRuns[i])
 		}
-		leftRuns[i].Values = map[string][]float64{
-			pc.Chart: lv,
-		}
-		var rv []float64
-		if err := workflow.ExecuteActivity(ctx, CollectValuesActivity, rightRuns[i], pc.Benchmark, pc.Chart, pc.AggregationMethod).Get(ctx, &rv); err != nil {
+		leftRuns[i].Values = lv
+		var rv map[string][]float64
+		if err := workflow.ExecuteActivity(ctx, CollectAllValuesActivity, rightRuns[i], pc.Benchmark, pc.AggregationMethod).Get(ctx, &rv); err != nil {
 			return nil, skerr.Wrapf(err, "rightRuns failed %v", *rightRuns[i])
 		}
-		rightRuns[i].Values = map[string][]float64{
-			pc.Chart: rv,
-		}
+		rightRuns[i].Values = rv
 	}
 
 	return &PairwiseRun{

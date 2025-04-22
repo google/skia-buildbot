@@ -244,3 +244,12 @@ func CollectValuesActivity(ctx context.Context, run *workflows.TestRun, benchmar
 	}
 	return client.ReadValuesByChart(ctx, benchmark, chart, []*apipb.CASReference{run.CAS}, aggMethod)
 }
+
+// CollectAllValuesActivity is an activity to collect all sampled values from a single test run.
+func CollectAllValuesActivity(ctx context.Context, run *workflows.TestRun, benchmark, aggMethod string) (map[string][]float64, error) {
+	client, err := read_values.DialRBECAS(ctx, run.CAS.CasInstance)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to dial rbe client")
+	}
+	return client.ReadValuesForAllCharts(ctx, benchmark, []*apipb.CASReference{run.CAS}, aggMethod)
+}

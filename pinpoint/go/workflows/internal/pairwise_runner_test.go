@@ -30,7 +30,7 @@ func generateSingleValueByChart(chart string, values float64) map[string][]float
 // generatePairwiseTestRuns generates mock test runs data for PairwiseRunner
 //
 // It returns the expected runs, and a channel that was buffered to send to mocked workflow.
-func generatePairwiseTestRuns(chart string, chartExpectedValues []float64, pairOrder []workflows.PairwiseOrder) ([]*workflows.PairwiseTestRun, chan *workflows.PairwiseTestRun) {
+func generatePairwiseTestRuns(chartExpectedValues map[string][]float64, pairOrder []workflows.PairwiseOrder) ([]*workflows.PairwiseTestRun, chan *workflows.PairwiseTestRun) {
 	iterations := len(pairOrder)
 	rc := make(chan *workflows.PairwiseTestRun, iterations)
 	ptrs := make([]*workflows.PairwiseTestRun, iterations)
@@ -58,16 +58,12 @@ func generatePairwiseTestRuns(chart string, chartExpectedValues []float64, pairO
 		{
 			Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED),
 			CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "3f2f2f849ece00d5df0d03871c8d1a14df2c1b75edd3888d7c34db12e7461c76", SizeBytes: 180}},
-			Values: map[string][]float64{
-				chart: chartExpectedValues,
-			},
+			Values: chartExpectedValues,
 		},
 		{
 			Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED),
 			CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "6e1b133c5400c3e429e822252cb8e2cbe54c072ee75a2f732a1ec9bf0671b61a", SizeBytes: 810}},
-			Values: map[string][]float64{
-				chart: chartExpectedValues,
-			},
+			Values: chartExpectedValues,
 		},
 	}
 	for i := 1; i < iterations; i++ {
@@ -354,9 +350,11 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 		CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6", SizeBytes: 810}},
 	}
 
-	fakeChartValues := []float64{1, 2, 3, 4}
+	fakeChartValues := map[string][]float64{
+		p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+	}
 	pairwiseOrder := generatePairOrderIndices(seed, int(p.Iterations))
-	ptrs, rc := generatePairwiseTestRuns(p.SingleCommitRunnerParams.Chart, fakeChartValues, pairwiseOrder)
+	ptrs, rc := generatePairwiseTestRuns(fakeChartValues, pairwiseOrder)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -372,7 +370,7 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 		// return the channel with all of the data
 		return <-rc, nil
 	}).Times(int(p.Iterations))
-	env.OnActivity(CollectValuesActivity, mock.Anything, mock.Anything, p.Benchmark, p.Chart, p.AggregationMethod).Return(fakeChartValues, nil).Times(2 * (int(p.Iterations) - 1))
+	env.OnActivity(CollectAllValuesActivity, mock.Anything, mock.Anything, p.Benchmark, p.AggregationMethod).Return(fakeChartValues, nil).Times(2 * (int(p.Iterations) - 1))
 
 	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, p)
 	require.True(t, env.IsWorkflowCompleted())
@@ -434,9 +432,11 @@ func TestPairwiseCommitRunner_GivenCASInputs_ShouldSkipBuildStep(t *testing.T) {
 		"build59-h7--device2",
 	}
 
-	fakeChartValues := []float64{1, 2, 3, 4}
+	fakeChartValues := map[string][]float64{
+		p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+	}
 	pairwiseOrder := generatePairOrderIndices(seed, int(p.Iterations))
-	ptrs, rc := generatePairwiseTestRuns(p.SingleCommitRunnerParams.Chart, fakeChartValues, pairwiseOrder)
+	ptrs, rc := generatePairwiseTestRuns(fakeChartValues, pairwiseOrder)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -448,7 +448,7 @@ func TestPairwiseCommitRunner_GivenCASInputs_ShouldSkipBuildStep(t *testing.T) {
 		// return the channel with all of the data
 		return <-rc, nil
 	}).Times(int(p.Iterations))
-	env.OnActivity(CollectValuesActivity, mock.Anything, mock.Anything, p.Benchmark, p.Chart, p.AggregationMethod).Return(fakeChartValues, nil).Times(2 * (int(p.Iterations) - 1))
+	env.OnActivity(CollectAllValuesActivity, mock.Anything, mock.Anything, p.Benchmark, p.AggregationMethod).Return(fakeChartValues, nil).Times(2 * (int(p.Iterations) - 1))
 
 	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, p)
 	require.True(t, env.IsWorkflowCompleted())
