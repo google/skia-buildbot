@@ -41,11 +41,11 @@ type Store interface {
 	// return a list of regressions.
 	GetByIDs(ctx context.Context, ids []string) ([]*Regression, error)
 
-	// GetNotificationId returns the notificationId for the regression at the given commit number for the alert.
-	GetNotificationId(ctx context.Context, commitNumber types.CommitNumber, alertID string) (string, error)
-
 	// GetOldestCommit returns the commit with the lowest commit number
 	GetOldestCommit(ctx context.Context) (*types.CommitNumber, error)
+
+	// GetRegression returns the regression info at the given commit for specific alert.
+	GetRegression(ctx context.Context, commitNumber types.CommitNumber, alertID string) (*Regression, error)
 
 	// DeleteByCommit deletes a regression from the Regression table via the CommitNumber.
 	// Use with caution.

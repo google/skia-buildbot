@@ -211,23 +211,9 @@ func (s *SQLRegressionStore) TriageHigh(ctx context.Context, commitNumber types.
 	})
 }
 
-// GetNotificationId returns the notificationID for the regression at the given commit for specific alert.
-func (s *SQLRegressionStore) GetNotificationId(ctx context.Context, commitNumber types.CommitNumber, alertID string) (string, error) {
-	regression, err := s.read(ctx, commitNumber, alertID)
-	if err != nil {
-		return "", err
-	}
-
-	// The notification id is stored in the High/Low cluster summary of the regression object.
-	if regression.High != nil && regression.High.NotificationID != "" {
-		return regression.High.NotificationID, nil
-	}
-
-	if regression.Low != nil && regression.Low.NotificationID != "" {
-		return regression.Low.NotificationID, nil
-	}
-
-	return "", nil
+// GetRegression returns the regression info at the given commit for specific alert.
+func (s *SQLRegressionStore) GetRegression(ctx context.Context, commitNumber types.CommitNumber, alertID string) (*regression.Regression, error) {
+	return s.read(ctx, commitNumber, alertID)
 }
 
 // Write implements the regression.Store interface.

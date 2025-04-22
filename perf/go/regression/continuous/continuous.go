@@ -20,9 +20,11 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/regression"
@@ -142,84 +144,13 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 
 			// Update database if regression at the midpoint is found.
 			if cl.StepPoint.Offset == commitNumber {
-				// TODO(jcgregorio) Also load existing stored regressions and if
-				// the detected regression has gone away then also send a
-				// follow-up email.
-				var isNewRegression, isRegressionFound bool
-				var notificationID string
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.DOWN || cfg.DirectionAsString == alerts.BOTH) {
 					sklog.Infof("Found Low regression at %s. StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
-					// TODO(crbug.com/393606957) Move the logic to a helper function to
-					// use for both SetLow and SetHigh calls.
-					isRegressionFound = true
-					notificationID, _ = c.store.GetNotificationId(ctx, commitNumber, key)
-					if notificationID != "" {
-						cl.NotificationID = notificationID
-						isNewRegression = false
-					} else {
-						isNew, regressionID, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
-						if err != nil {
-							sklog.Errorf("Failed to save newly found cluster: %s", err)
-							continue
-						}
-						sklog.Infof("Regression is detected by SetLow: %s. IsNew: %s", regressionID, isNew)
-						isNewRegression = isNew
-						if isNew {
-							c.regressionCounter.Inc(1)
-							notificationID, err = c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl, resp.Frame, regressionID)
-							if err != nil {
-								sklog.Errorf("Failed to send notification: %s", err)
-							}
-							cl.NotificationID = notificationID
-						}
-					}
-					if notificationID != "" {
-						_, _, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
-						if err != nil {
-							sklog.Errorf("save cluster with notification: %s", err)
-						}
-						sklog.Infof("SetLow successful! NotificationID:%s, isNew:%b", notificationID, isNewRegression)
-					}
+					c.updateStoreAndNotification(ctx, resp, cfg, commitNumber, cl, details, previousCommitDetails, key, true)
 				}
 				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.UP || cfg.DirectionAsString == alerts.BOTH) {
 					sklog.Infof("Found High regression at %s. StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
-					isRegressionFound = true
-					notificationID, _ = c.store.GetNotificationId(ctx, commitNumber, key)
-					if notificationID != "" {
-						cl.NotificationID = notificationID
-						isNewRegression = false
-					} else {
-						isNew, regressionID, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
-						if err != nil {
-							sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
-							continue
-						}
-						sklog.Infof("Regression is detected by SetHigh: %s. IsNew: %s", regressionID, isNew)
-						isNewRegression = isNew
-						if isNew {
-							c.regressionCounter.Inc(1)
-							notificationID, err = c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl, resp.Frame, regressionID)
-							if err != nil {
-								sklog.Errorf("Failed to send notification: %s", err)
-							}
-							cl.NotificationID = notificationID
-						}
-					}
-					if notificationID != "" {
-						_, _, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
-						if err != nil {
-							sklog.Errorf("save cluster with notification: %s", err)
-						}
-						sklog.Infof("SetHigh successful! NotificationID:%s, isNew:%b", notificationID, isNewRegression)
-					}
-				}
-
-				if !isNewRegression && isRegressionFound && notificationID != "" {
-					err = c.notifier.UpdateNotification(ctx, details, previousCommitDetails, cfg, cl, resp.Frame, notificationID)
-					if err != nil {
-						sklog.Errorf("Error updating notification with id %s: %v", notificationID, err)
-					}
-					sklog.Infof("Notification updated! NotificationID:%s", notificationID)
+					c.updateStoreAndNotification(ctx, resp, cfg, commitNumber, cl, details, previousCommitDetails, key, false)
 				}
 			}
 		}
@@ -379,6 +310,66 @@ func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan c
 	return ret
 }
 
+func (c *Continuous) updateStoreAndNotification(ctx context.Context, resp *regression.RegressionDetectionResponse, cfg *alerts.Alert, commitNumber types.CommitNumber,
+	cl *clustering2.ClusterSummary, details provider.Commit, previousCommitDetails provider.Commit, key string, isLow bool) {
+	updateNotification := true
+	regression, err := c.store.GetRegression(ctx, commitNumber, key)
+	if err != nil {
+		sklog.Errorf("Failed to retrieve the regression! commitNumber=%s, key=%s, err=%s", commitNumber, key, err)
+		return
+	}
+	notificationID := getNotificationId(regression)
+	if notificationID != "" {
+		cl.NotificationID = notificationID
+		// Do not update the notification if the regression direction is the same.
+		if (isLow && regression.Low != nil) || (!isLow && regression.High != nil) {
+			updateNotification = false
+		}
+	} else {
+		var isNew bool
+		var regressionID string
+		if isLow {
+			isNew, regressionID, err = c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
+		} else {
+			isNew, regressionID, err = c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
+		}
+		if err != nil {
+			sklog.Errorf("Failed to save newly found cluster: %s", err)
+			return
+		}
+		sklog.Infof("Regression is detected! isLow:%s, regressionID: %s. IsNew: %s", isLow, regressionID, isNew)
+		if isNew {
+			c.regressionCounter.Inc(1)
+			notificationID, err = c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl, resp.Frame, regressionID)
+			if err != nil {
+				sklog.Errorf("Failed to send notification: %s", err)
+			}
+			cl.NotificationID = notificationID
+			updateNotification = false
+		}
+	}
+	if notificationID != "" {
+		if isLow {
+			_, _, err = c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
+		} else {
+			_, _, err = c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
+		}
+		if err != nil {
+			sklog.Errorf("Failed to save cluster with notification: %s", err)
+		} else {
+			sklog.Infof("Updated store! isLow:%s, NotificationID:%s, updateNotification:%b", isLow, notificationID, updateNotification)
+		}
+		if updateNotification {
+			err = c.notifier.UpdateNotification(ctx, details, previousCommitDetails, cfg, cl, resp.Frame, notificationID)
+			if err != nil {
+				sklog.Errorf("Error updating notification with id %s: %v", notificationID, err)
+			} else {
+				sklog.Infof("Notification updated! NotificationID:%s", notificationID)
+			}
+		}
+	}
+}
+
 // matchingConfigsFromTraceIDs returns a slice of Alerts that match at least one
 // trace from the given traceIDs slice.
 //
@@ -416,6 +407,19 @@ func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) con
 		}
 	}
 	return matchingConfigs
+}
+
+func getNotificationId(regression *regression.Regression) string {
+	// The notification id is stored in the High/Low cluster summary of the regression object.
+	if regression != nil && regression.High != nil && regression.High.NotificationID != "" {
+		return regression.High.NotificationID
+	}
+
+	if regression != nil && regression.Low != nil && regression.Low.NotificationID != "" {
+		return regression.Low.NotificationID
+	}
+
+	return ""
 }
 
 func getConfigQueryForTrace(config *alerts.Alert, traceID string) (string, error) {

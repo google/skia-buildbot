@@ -280,7 +280,7 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneRegressionStoredAndN
 	// Returns true to indicate that this is a newly found regression. Note that
 	// this is called twice, first to store the regression since it's new, then
 	// called again to store the notification ID.
-	allMocks.regressionStore.On("GetNotificationId", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString).Return("", nil)
+	allMocks.regressionStore.On("GetRegression", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString).Return(nil, nil)
 	allMocks.regressionStore.On("SetLow", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString, resp[0].Frame, resp[0].Summary.Clusters[0]).Return(true, "", nil).Twice()
 	allMocks.notifier.On("RegressionFound", testutils.AnyContext, commitAtStep, previousCommit, cfg, resp[0].Summary.Clusters[0], resp[0].Frame, mock.Anything).Return(notificationID, nil)
 
@@ -429,11 +429,11 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneHighRegressionFoundA
 	// Returns true to indicate that this is a newly found regression. Note that
 	// this is called twice, first to store the regression since it's new, then
 	// called again to store the notification ID.
-	allMocks.regressionStore.On("GetNotificationId", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString).Return("", nil).Once()
+	allMocks.regressionStore.On("GetRegression", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString).Return(nil, nil).Once()
 	allMocks.regressionStore.On("SetLow", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString, resp[0].Frame, resp[0].Summary.Clusters[0]).Return(true, "", nil).Twice()
 	allMocks.notifier.On("RegressionFound", testutils.AnyContext, commitAtStep, previousCommit, cfg, resp[0].Summary.Clusters[0], resp[0].Frame, mock.Anything).Return(notificationID, nil)
 
-	allMocks.regressionStore.On("GetNotificationId", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString).Return("", nil).Once()
+	allMocks.regressionStore.On("GetRegression", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString).Return(nil, nil).Once()
 	allMocks.regressionStore.On("SetHigh", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString, resp[1].Frame, resp[1].Summary.Clusters[0]).Return(false, "", nil)
 	allMocks.notifier.On("RegressionFound", testutils.AnyContext, commitAtStep, previousCommit, cfg, resp[0].Summary.Clusters[0], resp[0].Frame, mock.Anything).Return(notificationID, nil)
 

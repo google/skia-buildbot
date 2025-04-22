@@ -254,8 +254,8 @@ func (s *SQLRegression2Store) TriageHigh(ctx context.Context, commitNumber types
 }
 
 // No Op for SQLRegression2Store.
-func (s *SQLRegression2Store) GetNotificationId(ctx context.Context, commitNumber types.CommitNumber, alertID string) (string, error) {
-	return "", nil
+func (s *SQLRegression2Store) GetRegression(ctx context.Context, commitNumber types.CommitNumber, alertID string) (*regression.Regression, error) {
+	return nil, nil
 }
 
 // GetOldestCommit implements regression.Store interface
