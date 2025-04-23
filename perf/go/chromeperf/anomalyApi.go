@@ -462,6 +462,7 @@ func traceNameToTestPath(traceName string) (string, string, error) {
 func (cp *anomalyApiClientImpl) getAnomalyMapFromChromePerfResult(ctx context.Context, getAnomaliesResp *GetAnomaliesResponse, testPathTraceNameMap map[string]string) AnomalyMap {
 	result := AnomalyMap{}
 	for testPath, anomalyArr := range getAnomaliesResp.Anomalies {
+		sklog.Debugf("Received Anomalies on testPath: %v, with anomalyArr: %v", testPath, anomalyArr)
 		if traceName, ok := testPathTraceNameMap[testPath]; !ok {
 			sklog.Errorf("Got unknown test path %s from chrome perf for testPathTraceNameMap: %s", testPath, testPathTraceNameMap)
 		} else {
@@ -481,6 +482,7 @@ func (cp *anomalyApiClientImpl) getAnomalyMapFromChromePerfResult(ctx context.Co
 
 			}
 			result[traceName] = commitNumberAnomalyMap
+			sklog.Debugf("Logged traceName: %v, with commitNumberAnomalyMap: %v", traceName, commitNumberAnomalyMap)
 		}
 	}
 

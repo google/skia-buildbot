@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"golang.org/x/exp/slices"
 	"golang.org/x/oauth2/google"
 )
@@ -93,6 +94,7 @@ func (client *chromePerfClientImpl) SendPostRequest(ctx context.Context, apiName
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create chrome perf request.")
 	}
+	sklog.Debugf("Sending Post request to chromePerf: %s", requestBodyJSONStr)
 
 	httpResponse, err := httputils.PostWithContext(
 		ctx,

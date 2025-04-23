@@ -160,6 +160,7 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit
 	} else {
 		addRevisionBasedAnomaliesToResponse(ctx, resp, anomalyStore, ret.perfGit)
 	}
+	sklog.Debugf("Resp has AnomalyMap: %v", resp.AnomalyMap)
 
 	ret.request.Progress.Results(resp)
 	return nil
