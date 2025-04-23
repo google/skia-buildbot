@@ -50,11 +50,29 @@ export function fromKey(structuredKey: string, attribute?: string): Params {
 export function removeSpecialFunctions(key: string): string {
   const funcKeyRegex = new RegExp(/\w+\(,.*,\)/);
   const isFuncKey = key.match(funcKeyRegex);
-  if (!isFuncKey) {
-    return key;
+  // If the key matches the pattern, e.g: norm(,a=1,b=2,c=3,), then extract strings inside
+  // the paranthesis
+  if (isFuncKey) {
+    const keyRegex = new RegExp(/(?<=\()(.*?)(?=\))/);
+    extractNonKeyValuePairsInKey(key.match(keyRegex)![0]);
   }
-  const keyRegex = new RegExp(/(?<=\()(.*?)(?=\))/);
-  return key.match(keyRegex)![0];
+  return extractNonKeyValuePairsInKey(key);
+}
+
+function extractNonKeyValuePairsInKey(key: string): string {
+  const removeSpecialZeroKey = key
+    .split(',')
+    .map((item) => {
+      const equalsIndex = item.indexOf('=');
+      // Check if '=' exists
+      if (equalsIndex > 0 && equalsIndex < item.length - 1) {
+        return `${item.substring(0, equalsIndex)}=${item.substring(equalsIndex + 1)}`;
+      }
+      // If the item doesn't match the pattern, return null
+      return null;
+    })
+    .filter((result): result is string => result !== null);
+  return ',' + removeSpecialZeroKey.join(',') + ',';
 }
 
 /** Checks that the trace id isn't a calculation or special_* trace. */

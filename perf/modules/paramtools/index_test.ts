@@ -40,6 +40,10 @@ describe('paramtooms', () => {
       assert.equal(removeSpecialFunctions('norm(,a=1,b=2,c=3,)'), ',a=1,b=2,c=3,');
     });
 
+    it('removes speical zero if present', () => {
+      assert.equal(removeSpecialFunctions('norm(,a=1,b=2,c=3,special_zero)'), ',a=1,b=2,c=3,');
+    });
+
     it('returns key as is if function not present', () => {
       assert.equal(removeSpecialFunctions(',a=1,b=2,c=3,'), ',a=1,b=2,c=3,');
     });

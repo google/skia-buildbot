@@ -990,10 +990,9 @@ export class PlotSimpleSk extends ElementSk {
   getLineNames(): string[] {
     const ret: string[] = [];
     this.lineData.forEach((line) => {
-      if (line.name.startsWith(SPECIAL)) {
-        return;
+      if (!line.name.startsWith(SPECIAL)) {
+        ret.push(line.name);
       }
-      ret.push(line.name);
     });
     return ret;
   }

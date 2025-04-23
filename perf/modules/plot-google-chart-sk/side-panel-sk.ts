@@ -155,11 +155,17 @@ export class SidePanelSk extends LitElement {
   @property({ attribute: false, reflect: true })
   private highlightedTraceIndices: number[] = [];
 
+  @property({ reflect: true })
+  legendListCache: string[] = [];
+
   constructor() {
     super();
   }
 
   render() {
+    if (this.legendListCache.length === 0) {
+      this.legendListCache = this.getLegend();
+    }
     return html`
       <div
         class="show-hide-bar"
@@ -182,7 +188,7 @@ export class SidePanelSk extends LitElement {
         </div>
         <div id="rows">
           <ul>
-          ${this.getLegend().map((item, index) => {
+          ${this.legendListCache.map((item, index) => {
             if (this.legendLoaded) {
               const checkbox = this.renderRoot.querySelector(`#id-${index}`) as HTMLInputElement;
               checkbox.checked = this.checkedColList.has(item);
@@ -205,7 +211,7 @@ export class SidePanelSk extends LitElement {
               const headerCheckbox = this.renderRoot.querySelector(
                 `#header-checkbox`
               ) as HTMLInputElement;
-              if (this.getLegend().length === this.checkedColList.size) {
+              if (this.legendListCache.length === this.checkedColList.size) {
                 headerCheckbox.checked = true;
               } else {
                 headerCheckbox.checked = false;
@@ -265,7 +271,7 @@ export class SidePanelSk extends LitElement {
    * @param checked The state of checkboxes.
    */
   public SetAllBoxes(checked: boolean) {
-    for (let index = 0; index < this.getLegend().length; index++) {
+    for (let index = 0; index < this.legendListCache.length; index++) {
       this.setCheckbox(checked, index);
     }
   }
@@ -300,7 +306,7 @@ export class SidePanelSk extends LitElement {
 
   private toggleAllCheckboxes() {
     const headerCheckbox = this.renderRoot.querySelector(`#header-checkbox`) as HTMLInputElement;
-    for (let index = 0; index < this.getLegend().length; index++) {
+    for (let index = 0; index < this.legendListCache.length; index++) {
       this.setCheckbox(headerCheckbox.checked, index);
     }
   }

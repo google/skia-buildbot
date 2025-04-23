@@ -308,7 +308,7 @@ export class State {
 
   xbaroffset: number = -1; // The offset of the commit in the repo.
 
-  showZero: boolean = true;
+  showZero: boolean = false;
 
   dots: boolean = true; // Whether to show dots when plotting traces.
 
