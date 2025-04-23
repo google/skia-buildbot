@@ -124,10 +124,9 @@ export class PlotGoogleChartSk extends LitElement {
 
       md-text {
         pointer-events: none;
-        font-weight: bolder;
         transform: translate(-50%, -50%);
-        font-size: 60px;
-        color: var(--error);
+        font-size: 20px;
+        color: var(--error-container);
       }
     }
 
