@@ -277,18 +277,20 @@ export class PointLinksSk extends ElementSk {
       url = '/_/details/?results=false';
       response = await this.invokeLinksForPointApi(cid, traceId, url);
     }
-    // Workaround for b/410254837 until data is fixed.
-    const chroimumUrl = 'https://chromium.googlesource.com/';
-    Object.keys(response).forEach((key) => {
-      if (key === 'V8' && !response[key].startsWith('http')) {
-        const v8Url = 'v8/v8/+/';
-        response[key] = chroimumUrl.concat(v8Url).concat(response[key]);
-      }
-      if (key === 'WebRTC' && !response[key].startsWith('http')) {
-        const webrtcUrl = 'external/webrtc/+/';
-        response[key] = chroimumUrl.concat(webrtcUrl).concat(response[key]);
-      }
-    });
+    if (response) {
+      // Workaround for b/410254837 until data is fixed.
+      const chromiumUrl = 'https://chromium.googlesource.com/';
+      Object.keys(response).forEach((key) => {
+        if (key === 'V8' && !response[key].startsWith('http')) {
+          const v8Url = 'v8/v8/+/';
+          response[key] = chromiumUrl.concat(v8Url).concat(response[key]);
+        }
+        if (key === 'WebRTC' && !response[key].startsWith('http')) {
+          const webrtcUrl = 'external/webrtc/+/';
+          response[key] = chromiumUrl.concat(webrtcUrl).concat(response[key]);
+        }
+      });
+    }
     return response;
   }
 
