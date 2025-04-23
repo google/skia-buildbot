@@ -30,6 +30,9 @@
         "tile_size": 8192,
         "min_db_connections": 5
     },
+    "experiments": {
+	    "remove_default_stat_value": true
+    },
     "ingestion_config": {
         "source_config": {
             "source_type": "gcs",
@@ -83,6 +86,7 @@
             "benchmark",
             "bot",
             "test",
+	    "stat",
             "subtest_1",
             "subtest_2",
             "subtest_3"
