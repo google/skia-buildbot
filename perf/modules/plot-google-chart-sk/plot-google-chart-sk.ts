@@ -411,6 +411,12 @@ export class PlotGoogleChartSk extends LitElement {
     };
   }
 
+  // Set the current selected value range.
+  set selectedValueRange(range: range) {
+    this.selectedRange = range;
+    this.updateOptions();
+  }
+
   private updateOptions() {
     const plot = this.plotElement.value;
     if (!plot) {

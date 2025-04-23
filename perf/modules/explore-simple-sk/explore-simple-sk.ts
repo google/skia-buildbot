@@ -1842,6 +1842,15 @@ export class ExploreSimpleSk extends ElementSk {
         this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
       });
     }
+
+    // If in multi-graph view, sync all graphs.
+    // This event listener will not work on the alerts page
+    this.dispatchEvent(
+      new CustomEvent('selection-changing-in-multi', {
+        bubbles: true,
+        detail: detail,
+      })
+    );
   }
 
   private extendRange(range: range) {
@@ -1865,6 +1874,28 @@ export class ExploreSimpleSk extends ElementSk {
 
     if (this.plotSummary.value) {
       this.plotSummary.value.selectedValueRange = detail.value;
+    }
+    this.closeTooltip();
+
+    // If in multi-graph view, sync all graphs.
+    // This event listener will not work on the alerts page
+    this.dispatchEvent(
+      new CustomEvent('selection-changing-in-multi', {
+        bubbles: true,
+        detail: detail,
+      })
+    );
+  }
+
+  // updateSelectedRangeWithPlotSummary is used to synchronize
+  // multiple explore-simple-sks on a explore-multi page
+  // This function syncs google chart panning and plot-summary selection + panning
+  public updateSelectedRangeWithPlotSummary(range: range) {
+    if (this.plotSummary.value) {
+      this.plotSummary.value.selectedValueRange = range;
+    }
+    if (this.googleChartPlot.value) {
+      this.googleChartPlot.value.selectedValueRange = range;
     }
     this.closeTooltip();
   }
