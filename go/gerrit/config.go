@@ -6,9 +6,6 @@ var (
 		SelfApproveLabels: map[string]int{
 			LabelCodeReview: LabelCodeReviewSelfApprove,
 		},
-		DisapproveLabels: map[string]int{
-			LabelCodeReview: LabelCodeReviewExtraDisapprove,
-		},
 		HasCq: true,
 		SetCqLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
@@ -52,9 +49,6 @@ var (
 	// the service account does not have CR+2 access.
 	ConfigAndroidNoCR = &Config{
 		SelfApproveLabels: map[string]int{
-			LabelCodeReview: LabelCodeReviewNone,
-		},
-		DisapproveLabels: map[string]int{
 			LabelCodeReview: LabelCodeReviewNone,
 		},
 		HasCq: true,
@@ -102,9 +96,6 @@ var (
 		SelfApproveLabels: map[string]int{
 			LabelCodeReview: LabelCodeReviewNone,
 		},
-		DisapproveLabels: map[string]int{
-			LabelCodeReview: LabelCodeReviewNone,
-		},
 		HasCq: true,
 		SetCqLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
@@ -146,9 +137,6 @@ var (
 		SelfApproveLabels: map[string]int{
 			LabelCodeReview: LabelCodeReviewSelfApprove,
 		},
-		DisapproveLabels: map[string]int{
-			LabelCodeReview: LabelCodeReviewExtraDisapprove,
-		},
 		HasCq: true,
 		SetCqLabels: map[string]int{
 			LabelCommitQueue: LabelCommitQueueSubmit,
@@ -177,9 +165,6 @@ var (
 	ConfigChromium = &Config{
 		SelfApproveLabels: map[string]int{
 			LabelCodeReview: LabelCodeReviewApprove,
-		},
-		DisapproveLabels: map[string]int{
-			LabelCodeReview: LabelCodeReviewDisapprove,
 		},
 		HasCq: true,
 		SetCqLabels: map[string]int{
@@ -211,9 +196,6 @@ var (
 		SelfApproveLabels: map[string]int{
 			LabelBotCommit: LabelBotCommitApproved,
 		},
-		DisapproveLabels: map[string]int{
-			LabelBotCommit: LabelBotCommitNone,
-		},
 		HasCq: true,
 		SetCqLabels: map[string]int{
 			LabelCommitQueue: LabelCommitQueueSubmit,
@@ -244,7 +226,6 @@ var (
 	// where the service account is not allowed to approve its own changes.
 	ConfigChromiumNoCR = &Config{
 		SelfApproveLabels: map[string]int{},
-		DisapproveLabels:  map[string]int{},
 		HasCq:             true,
 		SetCqLabels: map[string]int{
 			LabelCommitQueue: LabelCommitQueueSubmit,
@@ -275,9 +256,6 @@ var (
 		SelfApproveLabels: map[string]int{
 			LabelCodeReview: LabelCodeReviewApprove,
 		},
-		DisapproveLabels: map[string]int{
-			LabelCodeReview: LabelCodeReviewDisapprove,
-		},
 		HasCq:           false,
 		SetCqLabels:     map[string]int{},
 		SetDryRunLabels: map[string]int{},
@@ -300,9 +278,6 @@ var (
 		SelfApproveLabels: map[string]int{
 			LabelBotCommit: LabelBotCommitApproved,
 		},
-		DisapproveLabels: map[string]int{
-			LabelCodeReview: LabelBotCommitNone,
-		},
 		HasCq:           false,
 		SetCqLabels:     map[string]int{},
 		SetDryRunLabels: map[string]int{},
@@ -323,9 +298,6 @@ var (
 	ConfigLibAssistant = &Config{
 		SelfApproveLabels: map[string]int{
 			LabelCodeReview: LabelCodeReviewSelfApprove,
-		},
-		DisapproveLabels: map[string]int{
-			LabelCodeReview: LabelCodeReviewExtraDisapprove,
 		},
 		HasCq: true,
 		SetCqLabels: map[string]int{
@@ -368,8 +340,6 @@ type Config struct {
 	// Labels to set to self-approve a change. For some projects this is the
 	// same as a normal approval.
 	SelfApproveLabels map[string]int
-	// Labels to set to disapprove a change.
-	DisapproveLabels map[string]int
 
 	// Whether or not this project has a Commit Queue.
 	HasCq bool

@@ -60,8 +60,6 @@ const (
 
 	// LabelCodeReview is the label used for code review.
 	LabelCodeReview = "Code-Review"
-	// LabelCodeReviewExtraDisapprove indicates code review disapproval.
-	LabelCodeReviewExtraDisapprove = -2
 	// LabelCodeReviewDisapprove indicates code review disapproval.
 	LabelCodeReviewDisapprove = -1
 	// LabelCodeReviewNone indicates that the change has not been code reviewed.

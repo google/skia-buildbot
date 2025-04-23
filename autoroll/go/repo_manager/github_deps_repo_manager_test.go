@@ -246,7 +246,7 @@ func TestGithubDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	// Create a roll, assert that it's at tip of tree.
 	mockGithubDEPSRequests(t, urlMock)
 	mockGithubRefRequests(t, urlMock, cfg.GetDepsLocalGithubParent().ForkRepoUrl)
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, false, fakeCommitMsg)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
 }
@@ -289,7 +289,7 @@ func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	// Create a roll, assert that it's at tip of tree.
 	mockGithubDEPSRequests(t, urlMock)
 	mockGithubRefRequests(t, urlMock, cfg.GetDepsLocalGithubParent().ForkRepoUrl)
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, false, fakeCommitMsg)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
 }
@@ -314,7 +314,7 @@ func TestGithubDEPSRepoManagerPreUploadSteps(t *testing.T) {
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubDEPSRequests(t, urlMock)
 	mockGithubRefRequests(t, urlMock, parentCfg.ForkRepoUrl)
-	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, false, fakeCommitMsg)
+	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, createErr)
 	require.True(t, ran)
 }
@@ -340,7 +340,7 @@ func TestGithubDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubDEPSRequests(t, urlMock)
-	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, false, fakeCommitMsg)
+	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.Error(t, expectedErr, createErr)
 	require.True(t, ran)
 }

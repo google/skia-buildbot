@@ -401,7 +401,7 @@ func (r *androidRepoManager) getChangeForHash(hash string) (*gerrit.ChangeInfo, 
 }
 
 // See documentation for RepoManager interface.
-func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun, canary bool, commitMsg string) (int64, error) {
+func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
@@ -623,9 +623,7 @@ third_party {
 
 	// Set labels.
 	labels := gerrit.MergeLabels(r.g.Config().SelfApproveLabels, r.g.Config().SetCqLabels)
-	if canary {
-		labels = gerrit.MergeLabels(r.g.Config().SetDryRunLabels, r.g.Config().DisapproveLabels)
-	} else if dryRun {
+	if dryRun {
 		labels = r.g.Config().SetDryRunLabels
 	}
 	if err = r.g.SetReview(ctx, change, "Roller setting labels to auto-land change.", labels, rollEmails, "", nil, "", 0, nil); err != nil {

@@ -15,7 +15,7 @@ import (
 // SetChangeLabels sets the necessary labels on the given change, marking it
 // ready for review and starting the commit queue (or submitting the change
 // outright, if there is no configured commit queue).
-func SetChangeLabels(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo, emails []string, dryRun, canary bool) error {
+func SetChangeLabels(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo, emails []string, dryRun bool) error {
 	// Mark the change as ready for review, if necessary.
 	if err := UnsetWIP(ctx, g, ci, 0); err != nil {
 		return skerr.Wrapf(err, "failed to unset WIP")
@@ -23,9 +23,7 @@ func SetChangeLabels(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.C
 
 	// Set the CQ bit as appropriate.
 	labels := g.Config().SetCqLabels
-	if canary {
-		labels = gerrit.MergeLabels(g.Config().SetDryRunLabels, g.Config().DisapproveLabels)
-	} else if dryRun {
+	if dryRun {
 		labels = g.Config().SetDryRunLabels
 	}
 	labels = gerrit.MergeLabels(labels, g.Config().SelfApproveLabels)

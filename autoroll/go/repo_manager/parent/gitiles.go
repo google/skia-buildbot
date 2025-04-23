@@ -99,7 +99,7 @@ func (p *gitilesParent) Update(ctx context.Context) (string, error) {
 }
 
 // See documentation for Parent interface.
-func (p *gitilesParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun, canary bool, commitMsg string) (int64, error) {
+func (p *gitilesParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
 	p.baseCommitMtx.Lock()
 	defer p.baseCommitMtx.Unlock()
 
@@ -117,7 +117,7 @@ func (p *gitilesParent) CreateNewRoll(ctx context.Context, from, to *revision.Re
 		}
 	}
 
-	return CreateNewGerritRoll(ctx, p.gerrit, p.gerritConfig.Project, p.Branch(), commitMsg, p.baseCommit, nextRollChanges, emails, dryRun, canary)
+	return CreateNewGerritRoll(ctx, p.gerrit, p.gerritConfig.Project, p.Branch(), commitMsg, p.baseCommit, nextRollChanges, emails, dryRun)
 }
 
 // handleExternalChangeId handles the specified externalChangeId as a CL
@@ -149,7 +149,7 @@ func handleExternalChangeId(ctx context.Context, changes map[string]string, exte
 
 // CreateNewGerritRoll uploads a Gerrit CL with the given changes and returns
 // the issue number or any error which occurred.
-func CreateNewGerritRoll(ctx context.Context, g gerrit.GerritInterface, project, branch, commitMsg, baseCommit string, changes map[string]string, emails []string, dryRun, canary bool) (int64, error) {
+func CreateNewGerritRoll(ctx context.Context, g gerrit.GerritInterface, project, branch, commitMsg, baseCommit string, changes map[string]string, emails []string, dryRun bool) (int64, error) {
 	// Create the change.
 	const baseChangeID = ""
 
@@ -175,7 +175,7 @@ func CreateNewGerritRoll(ctx context.Context, g gerrit.GerritInterface, project,
 		}
 		return 0, err
 	}
-	if err := gerrit_common.SetChangeLabels(ctx, g, ci, emails, dryRun, canary); err != nil {
+	if err := gerrit_common.SetChangeLabels(ctx, g, ci, emails, dryRun); err != nil {
 		return 0, skerr.Wrap(err)
 	}
 	return ci.Issue, nil

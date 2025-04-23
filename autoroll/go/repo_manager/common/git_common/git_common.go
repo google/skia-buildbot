@@ -137,12 +137,12 @@ type CreateRollFunc func(context.Context, git.Checkout, *revision.Revision, *rev
 
 // UploadRollFunc uploads a CL using the given commit hash and
 // returns its ID.
-type UploadRollFunc func(context.Context, git.Checkout, string, string, []string, bool, bool, string) (int64, error)
+type UploadRollFunc func(context.Context, git.Checkout, string, string, []string, bool, string) (int64, error)
 
 // CreateNewRoll uploads a new roll using the given createRoll and uploadRoll
 // functions.
 // See documentation for the Parent interface for more details.
-func (c *Checkout) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun, canary bool, commitMsg string, createRoll CreateRollFunc, uploadRoll UploadRollFunc) (int64, error) {
+func (c *Checkout) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string, createRoll CreateRollFunc, uploadRoll UploadRollFunc) (int64, error) {
 	// Create the roll branch.
 	_, upstreamBranch, err := c.Update(ctx)
 	if err != nil {
@@ -183,7 +183,7 @@ func (c *Checkout) CreateNewRoll(ctx context.Context, from, to *revision.Revisio
 	}
 
 	// Upload the CL.
-	return uploadRoll(ctx, c.Checkout, upstreamBranch, hash, emails, dryRun, canary, commitMsg)
+	return uploadRoll(ctx, c.Checkout, upstreamBranch, hash, emails, dryRun, commitMsg)
 }
 
 // Clone clones the given repo into the given destination and syncs it to the
