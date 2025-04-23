@@ -460,7 +460,7 @@ export class ChartTooltipSk extends ElementSk {
     this._index = index;
     this._test_name = test_name;
     this._trace_name = trace_name;
-    this._unit_type = unit_type;
+    this._unit_type = unit_type.replace('_', ' ');
     this._y_value = y_value;
     this._date_value = date_value;
     this._commit_position = commit_position;

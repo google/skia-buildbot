@@ -2040,7 +2040,7 @@ export class ExploreSimpleSk extends ElementSk {
     let unitValue: string = '';
     traceName.split(',').forEach((test) => {
       if (test.startsWith('unit')) {
-        unitValue = test.split('=')[1].replace('_', ' ');
+        unitValue = test.split('=')[1];
       }
     });
 
