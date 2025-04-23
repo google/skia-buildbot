@@ -82,6 +82,7 @@
         "metric",
         "stat",
         "device_name",
+        "branch_name",
         "os_version"
       ],
       "default_param_selections": {},

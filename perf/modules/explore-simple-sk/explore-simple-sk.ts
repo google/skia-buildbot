@@ -3249,11 +3249,9 @@ export class ExploreSimpleSk extends ElementSk {
     // that means that they all share a value in common and we can add this to the title.
     params!.forEach((param) => {
       const uniqueValues = new Set(Object.keys(traceset).map((traceId) => fromKey(traceId)[param]));
-      if (uniqueValues.size === 1) {
-        const value = uniqueValues.values().next().value;
-        if (value) {
-          titleEntries.set(param, value);
-        }
+      const value = uniqueValues.values().next().value;
+      if (value) {
+        titleEntries.set(param, value);
       }
     });
 
