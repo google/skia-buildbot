@@ -42,8 +42,8 @@ type CodeReview interface {
 	Client() interface{}
 }
 
-// gerritCodeReview is a CodeReview backed by Gerrit.
-type gerritCodeReview struct {
+// GerritCodeReview is a CodeReview backed by Gerrit.
+type GerritCodeReview struct {
 	cfg            *config.GerritConfig
 	client         *http.Client
 	fullHistoryUrl string
@@ -55,13 +55,13 @@ type gerritCodeReview struct {
 }
 
 // NewGerrit returns a gerritCodeReview instance.
-func NewGerrit(cfg *config.GerritConfig, gerritClient gerrit.GerritInterface, client *http.Client) (CodeReview, error) {
+func NewGerrit(cfg *config.GerritConfig, gerritClient gerrit.GerritInterface, client *http.Client) (*GerritCodeReview, error) {
 	userEmail, err := gerritClient.GetUserEmail(context.TODO())
 	if err != nil {
 		return nil, err
 	}
 	userName := strings.SplitN(userEmail, "@", 2)[0]
-	return &gerritCodeReview{
+	return &GerritCodeReview{
 		cfg:            cfg,
 		client:         client,
 		fullHistoryUrl: cfg.Url + "/q/owner:" + userEmail,
@@ -73,32 +73,32 @@ func NewGerrit(cfg *config.GerritConfig, gerritClient gerrit.GerritInterface, cl
 }
 
 // GetIssueUrlBase implements CodeReview.
-func (c *gerritCodeReview) GetIssueUrlBase() string {
+func (c *GerritCodeReview) GetIssueUrlBase() string {
 	return c.issueUrlBase
 }
 
 // GetFullHistoryUrl implements CodeReview.
-func (c *gerritCodeReview) GetFullHistoryUrl() string {
+func (c *GerritCodeReview) GetFullHistoryUrl() string {
 	return c.fullHistoryUrl
 }
 
 // RetrieveRoll implements CodeReview.
-func (c *gerritCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, rollingFrom *revision.Revision, rollingTo *revision.Revision, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
+func (c *GerritCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, rollingFrom *revision.Revision, rollingTo *revision.Revision, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
 	return newGerritRoll(ctx, c.cfg, issue, c.gerritClient, c.client, recent, c.issueUrlBase, rollingFrom, rollingTo, finishedCallback)
 }
 
 // UserEmail implements CodeReview.
-func (c *gerritCodeReview) UserEmail() string {
+func (c *GerritCodeReview) UserEmail() string {
 	return c.userEmail
 }
 
 // UserName implements CodeReview.
-func (c *gerritCodeReview) UserName() string {
+func (c *GerritCodeReview) UserName() string {
 	return c.userName
 }
 
 // Client implements CodeReview.
-func (c *gerritCodeReview) Client() interface{} {
+func (c *GerritCodeReview) Client() interface{} {
 	return c.gerritClient
 }
 
