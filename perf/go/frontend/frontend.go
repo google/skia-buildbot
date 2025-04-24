@@ -37,7 +37,6 @@ import (
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/anomalies"
-	"go.skia.org/infra/perf/go/anomalies/cache"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
@@ -502,7 +501,7 @@ func (f *Frontend) initialize() {
 		if err != nil {
 			sklog.Fatalf("Failed to build chrome anomaly api client: %s", err)
 		}
-		f.anomalyStore, err = cache.New(f.anomalyApiClient)
+		f.anomalyStore, err = anomalies.New(f.anomalyApiClient)
 		if err != nil {
 			sklog.Fatalf("Failed to build anomalies.Store: %s", err)
 		}

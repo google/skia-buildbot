@@ -148,8 +148,6 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 	}
 	sklog.Debugf("[SkiaTriage] b/%s is created.", chromeperfResponse.BugId)
 
-	api.markTracesForCacheInvalidation(ctx, fileBugRequest.TraceNames)
-
 	return
 }
 
@@ -223,8 +221,6 @@ func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 
 	sklog.Debugf("[SkiaTriage] Anomalies (%d) are updated with: action: %s, start_revision: %d, end_revision: %d", editAnomaliesRequest.Keys, editAnomaliesRequest.Action, editAnomaliesRequest.StartRevision, editAnomaliesRequest.EndRevision)
 
-	api.markTracesForCacheInvalidation(ctx, editAnomaliesRequest.TraceNames)
-
 	return
 }
 
@@ -270,8 +266,6 @@ func (api triageApi) AssociateAlerts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sklog.Debugf("[SkiaTriage] Alerts are associated with existing bug.")
-
-	api.markTracesForCacheInvalidation(ctx, associateBugRequest.TraceNames)
 }
 
 func (api triageApi) ListIssues(w http.ResponseWriter, r *http.Request) {
@@ -317,12 +311,4 @@ func (api triageApi) ListIssues(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to write bug id to ListIssuesResponse.", http.StatusInternalServerError)
 		return
 	}
-}
-
-// For each trace name, mark it as invalidated in the anomalystore's tests cache.
-func (api triageApi) markTracesForCacheInvalidation(ctx context.Context, traceNames []string) {
-	for _, traceName := range traceNames {
-		api.anomalyStore.InvalidateTestsCacheForTraceName(ctx, traceName)
-	}
-	sklog.Debugf("[SkiaTriage] The following traces in cache are marked invalidated: %s", traceNames)
 }

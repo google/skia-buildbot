@@ -26,7 +26,6 @@ go_library(
         "//go/sklog/sklogimpl",
         "//perf/go/alerts",
         "//perf/go/anomalies",
-        "//perf/go/anomalies/cache",
         "//perf/go/builders",
         "//perf/go/chromeperf",
         "//perf/go/config",
