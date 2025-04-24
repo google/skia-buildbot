@@ -1401,9 +1401,9 @@ export class ExploreSimpleSk extends ElementSk {
 
   private switchZoom(target: MdSwitch | null) {
     if (target!.selected) {
-      this.state.horizontal_zoom = true;
-    } else {
       this.state.horizontal_zoom = false;
+    } else {
+      this.state.horizontal_zoom = true;
     }
     const detail = {
       key: this.state.horizontal_zoom,
