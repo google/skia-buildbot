@@ -4,6 +4,15 @@ import { makeKey } from '../paramtools';
 
 import '../window/window';
 
+const STATISTIC_SUFFIX_TO_VALUE_MAP = new Map<string, string>([
+  ['avg', 'value'],
+  ['count', 'count'],
+  ['max', 'max'],
+  ['min', 'min'],
+  ['std', 'error'],
+  ['sum', 'sum'],
+]);
+
 // TraceFormatter provides an interface to format trace details.
 export interface TraceFormatter {
   // formatTrace returns a formatted string for the given param set
@@ -60,6 +69,29 @@ export class ChromeTraceFormatter implements TraceFormatter {
     for (let i = 0; i < parts.length; i++) {
       if (i < this.keys.length) {
         paramSet[this.keys[i]] = [parts[i]];
+      }
+    }
+    // We are using Chromeperf's test path to generate a query for Skia traces.
+    // If default stat value is removed from the query, we should add the stat value in
+    // paramset to avoid loading 6x traces. E.g., when the trace's 'test' value has no
+    // stat suffix, it will have six 'stat' values. Those 'stat' values will be used in
+    // the future Skia. But in the context of Chromeperf, it means the average, and thus
+    // we should add the 'stat' value for trace query.
+    // This ad hoc logic is specific to the Chromeperf style test_path used in
+    // Chromeperf anomalies. It is no longer needed when Chromeperf is deprecated.
+    if (window.perf.remove_default_stat_value) {
+      const testValue = paramSet['test'][0];
+      const testParts = testValue.split('_');
+      const suffix = testParts.pop();
+      if (suffix !== undefined) {
+        if (STATISTIC_SUFFIX_TO_VALUE_MAP.has(suffix)) {
+          // use the suffix to decide the stat value, and use the trimmed test name.
+          paramSet['test'] = [testParts.join('_')];
+          paramSet['stat'] = [STATISTIC_SUFFIX_TO_VALUE_MAP.get(suffix)!];
+        } else {
+          // apply the default stat value.
+          paramSet['stat'] = ['value'];
+        }
       }
     }
     return fromParamSet(paramSet);

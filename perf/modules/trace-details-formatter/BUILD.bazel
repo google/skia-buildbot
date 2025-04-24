@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
 
 ts_library(
     name = "traceformatter_ts_lib",
@@ -9,5 +9,15 @@ ts_library(
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "traceformatter_test",
+    src = "traceformatter_test.ts",
+    deps = [
+        ":traceformatter_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
     ],
 )
