@@ -10,7 +10,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/httputils"
 )
+
+// newChromePerfClientWithoutTokenSource creates a new instance of ChromePerfClient without a tokenSource.
+func newChromePerfClientWithoutTokenSource(urlOverride string, directCall bool) (ChromePerfClient, error) {
+	return &chromePerfClientImpl{
+		httpClient:       httputils.DefaultClientConfig().Client(),
+		urlOverride:      urlOverride,
+		directCallLegacy: directCall,
+	}, nil
+}
 
 func TestSendRegression_RequestIsValid_Success(t *testing.T) {
 	anomalyResponse := &ReportRegressionResponse{
@@ -23,7 +33,7 @@ func TestSendRegression_RequestIsValid_Success(t *testing.T) {
 	}))
 
 	ctx := context.Background()
-	cpClient, err := NewChromePerfClient(context.Background(), ts.URL, false)
+	cpClient, err := newChromePerfClientWithoutTokenSource(ts.URL, false)
 	assert.Nil(t, err, "No error expected when creating a new client.")
 	anomalyClient := newAnomalyApiClient(cpClient, nil)
 	response, err := anomalyClient.ReportRegression(ctx, "/some/path", 1, 10, "proj", false, "bot", false, 5, 10)
@@ -39,7 +49,7 @@ func TestSendRegression_ServerReturnsError_ReturnsError(t *testing.T) {
 
 	defer ts.Close()
 	ctx := context.Background()
-	cpClient, err := NewChromePerfClient(context.Background(), ts.URL, false)
+	cpClient, err := newChromePerfClientWithoutTokenSource(ts.URL, false)
 	assert.Nil(t, err, "No error expected when creating a new client.")
 	anomalyClient := newAnomalyApiClient(cpClient, nil)
 	response, err := anomalyClient.ReportRegression(ctx, "/some/path", 1, 10, "proj", false, "bot", false, 5, 10)
@@ -141,7 +151,7 @@ func TestGetAnomaly_Success(t *testing.T) {
 	}))
 
 	ctx := context.Background()
-	cpClient, err := NewChromePerfClient(context.Background(), ts.URL, false)
+	cpClient, err := newChromePerfClientWithoutTokenSource(ts.URL, false)
 	assert.Nil(t, err, "No error expected when creating a new client.")
 	anomalyClient := newAnomalyApiClient(cpClient, nil)
 	params, anomalyResp, err := anomalyClient.GetAnomalyFromUrlSafeKey(ctx, "someKey")
@@ -183,7 +193,7 @@ func TestGetAnomaly_InvalidChar_Success(t *testing.T) {
 	}))
 
 	ctx := context.Background()
-	cpClient, err := NewChromePerfClient(context.Background(), ts.URL, false)
+	cpClient, err := newChromePerfClientWithoutTokenSource(ts.URL, false)
 	assert.Nil(t, err, "No error expected when creating a new client.")
 	anomalyClient := newAnomalyApiClient(cpClient, nil)
 
@@ -191,4 +201,21 @@ func TestGetAnomaly_InvalidChar_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(resp))
 	assert.Equal(t, "mysubtest_withinvalidchar", resp[0].Params["subtest_1"][0])
+}
+
+func TestDedupStringSlice(t *testing.T) {
+	var subTests = map[string]struct {
+		input    []string
+		expected []string
+	}{
+		"TestDedupStringSlice_empty":      {[]string{}, []string{}},
+		"TestDedupStringSlice_no_dup":     {[]string{"abc", "def"}, []string{"abc", "def"}},
+		"TestDedupStringSlice_remove_dup": {[]string{"abc", "abc", "def", "abc"}, []string{"abc", "def"}},
+	}
+	for name, subTest := range subTests {
+		t.Run(name, func(t *testing.T) {
+			got := DedupStringSlice(subTest.input)
+			assert.Equal(t, got, subTest.expected)
+		})
+	}
 }

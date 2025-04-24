@@ -289,6 +289,24 @@ func (cp *anomalyApiClientImpl) GetAnomalyFromUrlSafeKey(ctx context.Context, ke
 	return queryParams, anomaly, nil
 }
 
+// Returns a de-duplicated slice from a slice input.
+func DedupStringSlice(s []string) []string {
+	if len(s) == 0 {
+		return []string{}
+	}
+
+	seen := make(map[string]interface{}) // Map to store seen strings
+	result := []string{}                 // Slice to store unique strings
+
+	for _, item := range s {
+		if _, exists := seen[item]; !exists {
+			seen[item] = struct{}{}
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
 // GetAnomalies implements AnomalyApiClient, it calls chrome perf API to fetch anomlies.
 func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (AnomalyMap, error) {
 	testPathes := make([]string, 0)
@@ -303,6 +321,8 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 			testPathTraceNameMap[testPath] = traceName
 		}
 	}
+	// Dedup testPaths to remove duplicate efforts
+	testPathes = DedupStringSlice(testPathes)
 
 	if len(testPathes) > 0 {
 		cp.getAnomaliesCalled.Inc(1)
@@ -327,7 +347,7 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 func (cp *anomalyApiClientImpl) GetAnomaliesTimeBased(ctx context.Context, traceNames []string, startTime time.Time, endTime time.Time) (AnomalyMap, error) {
 	ctx, span := trace.StartSpan(ctx, "chromeperf.anomalyApiClientImpl.GetAnomaliesTimeBased")
 	defer span.End()
-	testPaths := make([]string, 0)
+	testPathes := make([]string, 0)
 	testPathTraceNameMap := make(map[string]string)
 	for _, traceName := range traceNames {
 		// Build chrome perf test_path from skia perf traceName
@@ -335,16 +355,18 @@ func (cp *anomalyApiClientImpl) GetAnomaliesTimeBased(ctx context.Context, trace
 		if err != nil {
 			sklog.Errorf("Failed to build chrome perf test path from trace name %q: %s", traceName, err)
 		} else if stat == "value" { // We will only show anomalies for the traces of the 'value' stat.
-			testPaths = append(testPaths, testPath)
+			testPathes = append(testPathes, testPath)
 			testPathTraceNameMap[testPath] = traceName
 		}
 	}
+	// Dedup testPaths to remove duplicate efforts
+	testPathes = DedupStringSlice(testPathes)
 
-	if len(testPaths) > 0 {
+	if len(testPathes) > 0 {
 		cp.getAnomaliesCalled.Inc(1)
 		// Call Chrome Perf API to fetch anomalies.
 		request := &GetAnomaliesTimeBasedRequest{
-			Tests:     testPaths,
+			Tests:     testPathes,
 			StartTime: startTime,
 			EndTime:   endTime,
 		}
