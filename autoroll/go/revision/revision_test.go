@@ -11,6 +11,7 @@ import (
 func TestCopyRevision(t *testing.T) {
 	v := &Revision{
 		Id:               "abc123",
+		IsGit:            true,
 		Checksum:         "def456",
 		ExternalChangeId: "xyz123",
 		Author:           "me@google.com",

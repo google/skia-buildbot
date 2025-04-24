@@ -182,7 +182,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, false, fakeCommitMsg)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, false, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
 }
@@ -211,7 +211,7 @@ func TestCreateNewAndroidRollWithExternalChangeId(t *testing.T) {
 	// Add ExternalChangeId to the revision.
 	tipRev.ExternalChangeId = testTopicName
 
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, false, fakeCommitMsg)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, false, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
 }
@@ -244,7 +244,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, false, fakeCommitMsg)
+	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, false, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.True(t, ran)
 }

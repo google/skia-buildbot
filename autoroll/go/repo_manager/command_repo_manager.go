@@ -200,8 +200,8 @@ func (rm *CommandRepoManager) LogRevisions(ctx context.Context, from, to *revisi
 }
 
 // CreateNewRoll implements RepoManager.
-func (rm *CommandRepoManager) CreateNewRoll(ctx context.Context, rollingFrom *revision.Revision, rollingTo *revision.Revision, revisions []*revision.Revision, reviewers []string, dryRun bool, commitMsg string) (int64, error) {
-	return rm.co.CreateNewRoll(ctx, rollingFrom, rollingTo, revisions, reviewers, dryRun, commitMsg, rm.createRoll, rm.uploadRoll)
+func (rm *CommandRepoManager) CreateNewRoll(ctx context.Context, rollingFrom *revision.Revision, rollingTo *revision.Revision, revisions []*revision.Revision, reviewers []string, dryRun, canary bool, commitMsg string) (int64, error) {
+	return rm.co.CreateNewRoll(ctx, rollingFrom, rollingTo, revisions, reviewers, dryRun, canary, commitMsg, rm.createRoll, rm.uploadRoll)
 }
 
 // commandRepoManager implements RepoManager.

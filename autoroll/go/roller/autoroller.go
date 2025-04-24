@@ -581,7 +581,7 @@ func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revis
 		return nil, skerr.Wrap(err)
 	}
 	sklog.Infof("Creating new roll with commit message: \n%s", commitMsg)
-	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, revs, emails, dryRun, commitMsg)
+	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, revs, emails, dryRun, canary, commitMsg)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -1017,6 +1017,18 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 		return nil
 	}
 
+	failManualRoll := func(req *manual.ManualRollRequest, err error) error {
+		req.Status = manual.STATUS_COMPLETE
+		req.Result = manual.RESULT_FAILURE
+		req.ResultDetails = err.Error()
+		sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
+		r.notifier.SendManualRollCreationFailed(ctx, req.Requester, req.Revision, err)
+		if err := r.manualRollDB.Put(req); err != nil {
+			return skerr.Wrapf(err, "Failed to update manual roll request")
+		}
+		return nil
+	}
+
 	sklog.Infof("Searching manual roll requests for %s", r.cfg.RollerName)
 	reqs, err := r.manualRollDB.GetIncomplete(r.cfg.RollerName)
 	if err != nil {
@@ -1032,13 +1044,8 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			to, err = r.getRevision(ctx, req.Revision)
 			if err != nil {
 				err := skerr.Wrapf(err, "failed to resolve revision %q", req.Revision)
-				req.Status = manual.STATUS_COMPLETE
-				req.Result = manual.RESULT_FAILURE
-				req.ResultDetails = err.Error()
-				sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
-				r.notifier.SendManualRollCreationFailed(ctx, req.Requester, req.Revision, err)
-				if err := r.manualRollDB.Put(req); err != nil {
-					return skerr.Wrapf(err, "Failed to update manual roll request")
+				if err := failManualRoll(req, err); err != nil {
+					return skerr.Wrap(err)
 				}
 				continue
 			}
@@ -1051,16 +1058,27 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			// Avoid creating rolls to the current revision.
 			if to.Id == from.Id {
 				err := skerr.Fmt("Already at revision %q", from.Id)
-				req.Status = manual.STATUS_COMPLETE
-				req.Result = manual.RESULT_FAILURE
-				req.ResultDetails = err.Error()
-				sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
-				r.notifier.SendManualRollCreationFailed(ctx, req.Requester, req.Revision, err)
-				if err := r.manualRollDB.Put(req); err != nil {
-					return skerr.Wrapf(err, "Failed to update manual roll request")
+				if err := failManualRoll(req, err); err != nil {
+					return skerr.Wrap(err)
 				}
 				continue
 			}
+
+			// It is possible to request a manual roll to a CL which has not
+			// been submitted. Ensure that the Canary bit is set in this case,
+			// to ensure that the roller does not allow the roll to land.
+			notSubmittedReason, err := isRevisionNotSubmitted(ctx, req, to, r.client)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			if notSubmittedReason != "" && !req.Canary {
+				err := skerr.Fmt("Revision %s is not submitted (%s), and Canary is not set", to.URL, notSubmittedReason)
+				if err := failManualRoll(req, err); err != nil {
+					return skerr.Wrap(err)
+				}
+				continue
+			}
+
 			emails := []string{}
 			if !req.NoEmail {
 				emails = r.GetEmails()
@@ -1068,19 +1086,13 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 					emails = append(emails, req.Requester)
 				}
 			}
-			var err error
 			sklog.Infof("Creating manual roll to %s as requested by %s...", req.Revision, req.Requester)
 
 			issue, err = r.createNewRoll(ctx, from, to, emails, req.DryRun, req.Canary, req.Requester)
 			if err != nil {
 				err := skerr.Wrapf(err, "failed to create manual roll for %s", req.Id)
-				req.Status = manual.STATUS_COMPLETE
-				req.Result = manual.RESULT_FAILURE
-				req.ResultDetails = err.Error()
-				sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
-				r.notifier.SendManualRollCreationFailed(ctx, req.Requester, req.Revision, err)
-				if err := r.manualRollDB.Put(req); err != nil {
-					return skerr.Wrapf(err, "Failed to update manual roll request")
+				if err := failManualRoll(req, err); err != nil {
+					return skerr.Wrap(err)
 				}
 				continue
 			}
@@ -1131,6 +1143,45 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+// isRevisionNotSubmitted attempts to determine whether the requested revision
+// has been submitted. If not, it returns a string indicating the reason it came
+// to that conclusion.
+func isRevisionNotSubmitted(ctx context.Context, req *manual.ManualRollRequest, to *revision.Revision, client *http.Client) (string, error) {
+	// These two bits are set for canary requests, so we can skip the below if
+	// they're set.
+	if req.NoResolveRevision {
+		return "NoResolveRevision is set", nil
+	} else if req.Canary {
+		return "Canary is set", nil
+	}
+
+	// CL submission is only a concept for Git revisions. In other cases we're
+	// typically rolling assets which are generated by automated processes.
+	if !to.IsGit {
+		return "", nil
+	}
+
+	// Find the Gerrit CL associated with the requested revision. Check whether
+	// it has been merged.
+	changeID, err := gerrit.ParseChangeId(to.Details)
+	if err != nil {
+		return "Revision is not a Gerrit change; cannot verify that it has been reviewed and submitted", nil
+	}
+	gerritURL := strings.Replace(to.URL, ".googlesource.com", "-review.googlesource.com", 1)
+	g, err := gerrit.NewGerrit(gerritURL, client)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to create Gerrit client for revision %q", to.Id)
+	}
+	ci, err := g.GetChange(ctx, changeID)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to retrieve Gerrit CL for change ID %q", changeID)
+	}
+	if !ci.IsMerged() {
+		return fmt.Sprintf("CL %s is not merged", g.Url(ci.Issue)), nil
+	}
+	return "", nil
 }
 
 // getRevision retrieves the Revision with the given ID, attempting to avoid

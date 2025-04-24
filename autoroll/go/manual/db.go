@@ -186,6 +186,9 @@ func (r *ManualRollRequest) Validate() error {
 	} else if r.Id != "" && util.TimeIsZero(r.DbModified) {
 		return errors.New("Request has an ID but has a zero DbModified timestamp.")
 	}
+	if r.Canary && !r.DryRun {
+		return errors.New("Canary implies DryRun.")
+	}
 	return nil
 }
 

@@ -28,6 +28,9 @@ type Revision struct {
 	// the only required field.
 	Id string `json:"id"`
 
+	// IsGit indicates whether this is a Git revision.
+	IsGit bool `json:"isGit"`
+
 	// Checksum is used to verify the contents of a Revision. Not all use cases
 	// will need this, and its exact definition is implementation-dependent.
 	// Child should set this whenever possible, and Parent should make it clear
@@ -90,6 +93,7 @@ func (r *Revision) Copy() *Revision {
 	}
 	return &Revision{
 		Id:               r.Id,
+		IsGit:            r.IsGit,
 		Checksum:         r.Checksum,
 		ExternalChangeId: r.ExternalChangeId,
 		Author:           r.Author,
@@ -127,6 +131,7 @@ func FromLongCommit(revLinkTmpl, defaultBugProject string, c *vcsinfo.LongCommit
 	}
 	return &Revision{
 		Id:          c.Hash,
+		IsGit:       true,
 		Checksum:    c.Hash, // Git commit hashes are checksums.
 		Author:      author,
 		Bugs:        bugsFromCommitMsg(c.Body, defaultBugProject),

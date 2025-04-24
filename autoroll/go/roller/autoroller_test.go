@@ -3,6 +3,7 @@ package roller
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,7 +21,9 @@ import (
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gerrit"
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
+	gerrit_testutils "go.skia.org/infra/go/gerrit/testutils"
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -269,4 +272,61 @@ func TestRepoManagerInitFailed(t *testing.T) {
 	gerritClient.AssertExpectations(t)
 	require.True(t, urlmock.Empty())
 	cleanupDB.AssertExpectations(t)
+}
+
+func TestIsRevisionNotSubmitted(t *testing.T) {
+	test := func(name, expect string, req *manual.ManualRollRequest, rev *revision.Revision, ci *gerrit.ChangeInfo) {
+		t.Run(name, func(t *testing.T) {
+			mockGerrit := gerrit_testutils.NewGerrit(t)
+			if ci != nil {
+				mockGerrit.MockGetIssueProperties(ci)
+			}
+			actual, err := isRevisionNotSubmitted(context.Background(), req, rev, mockGerrit.Mock.Client())
+			require.NoError(t, err)
+			require.Equal(t, expect, actual)
+		})
+	}
+
+	test("NoResolveRevision", "NoResolveRevision is set", &manual.ManualRollRequest{
+		NoResolveRevision: true,
+	}, nil, nil)
+
+	test("Canary", "Canary is set", &manual.ManualRollRequest{
+		Canary: true,
+	}, nil, nil)
+
+	test("Not a Git revision", "", &manual.ManualRollRequest{}, &revision.Revision{}, nil)
+
+	test("Not a Gerrit change", "Revision is not a Gerrit change; cannot verify that it has been reviewed and submitted", &manual.ManualRollRequest{}, &revision.Revision{
+		Id:      "fake-commit",
+		IsGit:   true,
+		Details: "some commit message with no footers",
+	}, nil)
+
+	test("Not merged", fmt.Sprintf("CL %s/c/12345 is not merged", gerrit_testutils.FakeGerritURL), &manual.ManualRollRequest{}, &revision.Revision{
+		Id:    "fake-commit",
+		IsGit: true,
+		Details: `some commit message
+
+Change-Id: 12345
+`,
+		URL: strings.Replace(gerrit_testutils.FakeGerritURL, "-review", "", 1),
+	}, &gerrit.ChangeInfo{
+		Issue:    12345,
+		ChangeId: "12345",
+	})
+
+	test("Merged", "", &manual.ManualRollRequest{}, &revision.Revision{
+		Id:    "fake-commit",
+		IsGit: true,
+		Details: `some commit message
+
+Change-Id: 56789
+`,
+		URL: strings.Replace(gerrit_testutils.FakeGerritURL, "-review", "", 1),
+	}, &gerrit.ChangeInfo{
+		Issue:    56789,
+		ChangeId: "56789",
+		Status:   gerrit.ChangeStatusMerged,
+	})
 }

@@ -21,7 +21,7 @@ import (
 // GitCheckoutUploadGerritRollFunc returns a GitCheckoutUploadRollFunc which
 // uploads a CL to Gerrit.
 func GitCheckoutUploadGerritRollFunc(g gerrit.GerritInterface) git_common.UploadRollFunc {
-	return func(ctx context.Context, co git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
+	return func(ctx context.Context, co git.Checkout, upstreamBranch, hash string, emails []string, dryRun, canary bool, commitMsg string) (int64, error) {
 		// Find the change ID in the commit message.
 		out, err := co.Git(ctx, "log", "-n1", hash)
 		if err != nil {
@@ -45,7 +45,7 @@ func GitCheckoutUploadGerritRollFunc(g gerrit.GerritInterface) git_common.Upload
 		// message; instead, we should edit the CL to use the passed-in
 		// commitMsg.
 
-		if err := gerrit_common.SetChangeLabels(ctx, g, ci, emails, dryRun); err != nil {
+		if err := gerrit_common.SetChangeLabels(ctx, g, ci, emails, dryRun, canary); err != nil {
 			return 0, skerr.Wrap(err)
 		}
 

@@ -300,6 +300,7 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, &revision.Revision{
 		Id:          instanceTag,
+		IsGit:       true,
 		Checksum:    "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
 		Author:      "you@google.com",
 		Bugs:        map[string][]string{},
@@ -603,6 +604,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	require.NoError(t, err)
 	expectNextRollRev := &revision.Revision{
 		Id:          instanceTag,
+		IsGit:       true,
 		Checksum:    "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
 		Author:      "you@google.com",
 		Bugs:        map[string][]string{},
@@ -613,6 +615,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	}
 	expectMiddleRevA := &revision.Revision{
 		Id:            gitRevTag(middleCommitA.Hash),
+		IsGit:         true,
 		Checksum:      "",
 		Author:        "you@google.com",
 		Bugs:          map[string][]string{},
@@ -624,6 +627,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	}
 	expectMiddleRevB := &revision.Revision{
 		Id:            gitRevTag(middleCommitB.Hash),
+		IsGit:         true,
 		Checksum:      "",
 		Author:        "you@google.com",
 		Bugs:          map[string][]string{},
