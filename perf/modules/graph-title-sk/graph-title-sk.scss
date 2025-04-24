@@ -6,12 +6,12 @@
   }
 
   .column {
-    flex: 0 0 auto;
+    flex: auto auto auto;
     display: inline-block;
     margin-right: 10px;
     margin-bottom: 10px;
     min-width: 75px;
-    max-width: 300px;
+    max-width: 600px;
   }
 
   .param {
