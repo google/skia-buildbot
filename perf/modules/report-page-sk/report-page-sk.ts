@@ -230,7 +230,7 @@ export class ReportPageSk extends ElementSk {
       const commitUrlSet = new Set<string>();
       commitSlice.forEach((commit) => {
         if (!commitUrlSet.has(commit.url)) {
-          this.checkCommitMessageStartsWithRoll(commit);
+          this.checkCommitIsRollout(commit);
         }
         commitUrlSet.add(commit.url);
       });
@@ -324,8 +324,8 @@ export class ReportPageSk extends ElementSk {
     }
   }
 
-  private checkCommitMessageStartsWithRoll(commit: Commit) {
-    if (commit.message.startsWith('Roll')) {
+  private checkCommitIsRollout(commit: Commit) {
+    if (commit.message.includes('Roll' || 'roll')) {
       this.commitMap.set(commit, true);
     } else {
       this.commitMap.set(commit, false);
