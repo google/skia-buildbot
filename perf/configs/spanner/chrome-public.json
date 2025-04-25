@@ -31,7 +31,7 @@
         "min_db_connections": 5
     },
     "experiments": {
-	    "remove_default_stat_value": true
+        "remove_default_stat_value": true
     },
     "ingestion_config": {
         "source_config": {
@@ -86,7 +86,7 @@
             "benchmark",
             "bot",
             "test",
-	    "stat",
+            "stat",
             "subtest_1",
             "subtest_2",
             "subtest_3"
