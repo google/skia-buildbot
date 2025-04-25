@@ -330,3 +330,12 @@ Change-Id: 56789
 		Status:   gerrit.ChangeStatusMerged,
 	})
 }
+
+func TestCommitURLToGerritURL(t *testing.T) {
+	test := func(inp, expect string) {
+		actual, err := commitURLToGerritURL(inp)
+		require.NoError(t, err)
+		require.Equal(t, expect, actual)
+	}
+	test("https://skia.googlesource.com/skia.git/+show/16fe2a7fa5c404b7dac7bc83e28cb8fd9a1cc42e", "https://skia-review.googlesource.com")
+}

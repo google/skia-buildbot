@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -1169,7 +1170,10 @@ func isRevisionNotSubmitted(ctx context.Context, req *manual.ManualRollRequest, 
 	if err != nil {
 		return "Revision is not a Gerrit change; cannot verify that it has been reviewed and submitted", nil
 	}
-	gerritURL := strings.Replace(to.URL, ".googlesource.com", "-review.googlesource.com", 1)
+	gerritURL, err := commitURLToGerritURL(to.URL)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to build Gerrit URL for revision %s", to.Id)
+	}
 	g, err := gerrit.NewGerrit(gerritURL, client)
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to create Gerrit client for revision %q", to.Id)
@@ -1273,4 +1277,15 @@ func (r *AutoRoller) DeleteLocalData(ctx context.Context) error {
 		return skerr.Wrap(err)
 	}
 	return nil
+}
+
+// commitURLToGerritURL converts a Gitiles URL for a commit to a Gerrit host URL.
+func commitURLToGerritURL(commitURL string) (string, error) {
+	u, err := url.Parse(commitURL)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to parse url %q", commitURL)
+	}
+	u.Host = strings.Replace(u.Host, ".googlesource.com", "-review.googlesource.com", 1)
+	u.Path = ""
+	return u.String(), nil
 }
