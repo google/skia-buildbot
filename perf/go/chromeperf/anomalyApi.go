@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -23,6 +24,15 @@ const (
 	FindTimeFuncName = "find_time"
 	GetFuncName      = "get"
 )
+
+var statToSuffixMap = map[string]string{
+	"error":   "std",
+	"max":     "max",
+	"min":     "min",
+	"sum":     "sum",
+	"count":   "count",
+	"average": "avg",
+}
 
 var invalidChars = []string{"?"}
 
@@ -201,6 +211,7 @@ type AnomalyApiClient interface {
 type anomalyApiClientImpl struct {
 	chromeperfClient   ChromePerfClient
 	perfGit            perfgit.Git
+	config             *config.InstanceConfig
 	sendAnomalyCalled  metrics2.Counter
 	sendAnomalyFailed  metrics2.Counter
 	getAnomaliesCalled metrics2.Counter
@@ -208,19 +219,20 @@ type anomalyApiClientImpl struct {
 }
 
 // NewAnomalyApiClient returns a new AnomalyApiClient instance.
-func NewAnomalyApiClient(ctx context.Context, git perfgit.Git) (AnomalyApiClient, error) {
+func NewAnomalyApiClient(ctx context.Context, git perfgit.Git, config *config.InstanceConfig) (AnomalyApiClient, error) {
 	cpClient, err := NewChromePerfClient(ctx, "", false)
 	if err != nil {
 		return nil, err
 	}
 
-	return newAnomalyApiClient(cpClient, git), nil
+	return newAnomalyApiClient(cpClient, git, config), nil
 }
 
-func newAnomalyApiClient(cpClient ChromePerfClient, git perfgit.Git) AnomalyApiClient {
+func newAnomalyApiClient(cpClient ChromePerfClient, git perfgit.Git, config *config.InstanceConfig) AnomalyApiClient {
 	return &anomalyApiClientImpl{
 		chromeperfClient:   cpClient,
 		perfGit:            git,
+		config:             config,
 		sendAnomalyCalled:  metrics2.GetCounter("chrome_perf_send_anomaly_called"),
 		sendAnomalyFailed:  metrics2.GetCounter("chrome_perf_send_anomaly_failed"),
 		getAnomaliesCalled: metrics2.GetCounter("chrome_perf_get_anomalies_called"),
@@ -313,10 +325,10 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 	testPathTraceNameMap := make(map[string]string)
 	for _, traceName := range traceNames {
 		// Build chrome perf test_path from skia perf traceName
-		testPath, stat, err := traceNameToTestPath(traceName)
+		testPath, err := traceNameToTestPath(traceName, cp.config.Experiments.RemoveDefaultStatValue)
 		if err != nil {
 			sklog.Errorf("Failed to build chrome perf test path from trace name %q: %s", traceName, err)
-		} else if stat == "value" { // We will only show anomalies for the traces of the 'value' stat.
+		} else {
 			testPathes = append(testPathes, testPath)
 			testPathTraceNameMap[testPath] = traceName
 		}
@@ -351,13 +363,14 @@ func (cp *anomalyApiClientImpl) GetAnomaliesTimeBased(ctx context.Context, trace
 	testPathTraceNameMap := make(map[string]string)
 	for _, traceName := range traceNames {
 		// Build chrome perf test_path from skia perf traceName
-		testPath, stat, err := traceNameToTestPath(traceName)
+		testPath, err := traceNameToTestPath(traceName, cp.config.EnableSheriffConfig)
 		if err != nil {
 			sklog.Errorf("Failed to build chrome perf test path from trace name %q: %s", traceName, err)
-		} else if stat == "value" { // We will only show anomalies for the traces of the 'value' stat.
+		} else {
 			testPathes = append(testPathes, testPath)
 			testPathTraceNameMap[testPath] = traceName
 		}
+
 	}
 	// Dedup testPaths to remove duplicate efforts
 	testPathes = DedupStringSlice(testPathes)
@@ -423,11 +436,10 @@ func (cp *anomalyApiClientImpl) GetAnomaliesAroundRevision(ctx context.Context, 
 // subtest_2=222,...subtest_7=777,unit=microsecond,improvement_direction=up,"
 // test path will be: "ChromiumPerf/MacM1/Blazor/timeToFirstContentfulPaint_avg
 // /111/222/.../777"
-// It also returns the trace statistics like 'value', 'sum', 'max', 'min' or 'error'
-func traceNameToTestPath(traceName string) (string, string, error) {
+func traceNameToTestPath(traceName string, statToSuffixRequired bool) (string, error) {
 	keyValueEquations := strings.Split(traceName, ",")
 	if len(keyValueEquations) == 0 {
-		return "", "", fmt.Errorf("Cannot build test path from trace name: %q.", traceName)
+		return "", fmt.Errorf("cannot build test path from trace name: %q", traceName)
 	}
 
 	paramKeyValueMap := map[string]string{}
@@ -447,25 +459,54 @@ func traceNameToTestPath(traceName string) (string, string, error) {
 	if val, ok := paramKeyValueMap["master"]; ok {
 		testPath += val
 	} else {
-		return "", "", fmt.Errorf("Cannot get master from trace name: %q.", traceName)
+		return "", fmt.Errorf("cannot get master from trace name: %q", traceName)
 	}
 
 	if val, ok := paramKeyValueMap["bot"]; ok {
 		testPath += "/" + val
 	} else {
-		return "", "", fmt.Errorf("Cannot get bot from trace name: %q.", traceName)
+		return "", fmt.Errorf("cannot get bot from trace name: %q", traceName)
 	}
 
 	if val, ok := paramKeyValueMap["benchmark"]; ok {
 		testPath += "/" + val
 	} else {
-		return "", "", fmt.Errorf("Cannot get benchmark from trace name: %q.", traceName)
+		return "", fmt.Errorf("cannot get benchmark from trace name: %q", traceName)
 	}
 
 	if val, ok := paramKeyValueMap["test"]; ok {
+		if statToSuffixRequired {
+			// Due to historical reasons, for a Chromeperf test path like .../testName_max/...,
+			// we may have three possible data in a paramset in Skia perf:
+			//   1. test=testName_max,stat=value
+			//   2. test=testName_max,stat=max
+			//   3. test=testName,stat=max
+			// For either of the above, we want to have the same test path.
+			// Except that:
+			//   We don't have a good way to handle when stat value is 'value'. The original test_path
+			// can be .../testName/... or .../testName_avg/...
+			// In favor of the existing customers, we will use _avg to load anomalies.
+			// The value of "average" is put here as a place holder that we can tell the difference if we decide
+			// to use different stat value for testName and testName_avg.
+			// As a result, anomalies detected with the 'test' as 'testName' will NOT be able to be loaded.
+			sklog.Debugf("Test value before suffix handling: %s", val)
+			// If the test value has stat suffix already (case #1, #2), we don't need to do anything.
+			// Otherwise, attach the correct stat suffix to the test value.
+			if !hasSuffixInTestValue(val, statToSuffixMap) {
+				suffix, ok := statToSuffixMap[statistics]
+				if ok {
+					val += "_" + suffix
+				} else if statistics == "value" {
+					val += "_" + "avg"
+				} else {
+					sklog.Warningf("Unexpected value for statistics in paramset: %s", statistics)
+				}
+			}
+			sklog.Debugf("Test value after suffix handling: %s", val)
+		}
 		testPath += "/" + val
 	} else {
-		return "", "", fmt.Errorf("Cannot get test from trace name: %q.", traceName)
+		return "", fmt.Errorf("cannot get test from trace name: %q", traceName)
 	}
 
 	for i := 1; i <= 7; i++ {
@@ -478,7 +519,18 @@ func traceNameToTestPath(traceName string) (string, string, error) {
 		}
 	}
 
-	return testPath, statistics, nil
+	return testPath, nil
+}
+
+func hasSuffixInTestValue(testValue string, statToSuffixMap map[string]string) bool {
+	testParts := strings.Split(testValue, "_")
+	suffix := testParts[len(testParts)-1]
+	for _, value := range statToSuffixMap {
+		if suffix == value {
+			return true
+		}
+	}
+	return false
 }
 
 func (cp *anomalyApiClientImpl) getAnomalyMapFromChromePerfResult(ctx context.Context, getAnomaliesResp *GetAnomaliesResponse, testPathTraceNameMap map[string]string) AnomalyMap {

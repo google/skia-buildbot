@@ -18,6 +18,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "//perf/go/config",
         "//perf/go/git",
         "//perf/go/types",
         "@io_opencensus_go//trace",
@@ -36,6 +37,7 @@ go_test(
     embed = [":chromeperf"],
     deps = [
         "//go/httputils",
+        "//perf/go/config",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],
