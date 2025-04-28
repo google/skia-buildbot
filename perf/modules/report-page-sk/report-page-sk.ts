@@ -152,7 +152,7 @@ export class ReportPageSk extends ElementSk {
     </div>
     <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
     ${ele.showAllCommitsTemplate()}
-    <div id="graph-container"></div>
+    <div id="graph-container" @x-axis-toggled=${ele.syncXAxisLabel}></div>
   `;
 
   async fetchAnomalies() {
@@ -291,6 +291,13 @@ export class ReportPageSk extends ElementSk {
     graphs.forEach((graph) => {
       const height = graphs.length === 1 ? '500px' : '250px';
       (graph as ExploreSimpleSk).updateChartHeight(height);
+    });
+  }
+
+  private syncXAxisLabel(e: CustomEvent): void {
+    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
+    graphs.forEach((graph) => {
+      (graph as ExploreSimpleSk).switchXAxis(e.detail);
     });
   }
 

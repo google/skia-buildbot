@@ -1347,16 +1347,15 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   switchXAxis(target: MdSwitch | null) {
-    // TODO(b/362831653): It's probably better to toggle the domain
-    // with an event listener than to interact with the chart elements
-    const googleChart = this.googleChartPlot.value;
-    const plotSummary = this.plotSummary.value;
-    if (plotSummary) {
-      plotSummary.domain = target!.selected ? 'commit' : 'date';
+    const googleChart = this.googleChartPlot.value!;
+    const plotSummary = this.plotSummary.value!;
+    const domain = target!.selected ? 'commit' : 'date';
+    // implies there is no domain change
+    if (googleChart.domain === domain) {
+      return;
     }
-    if (googleChart) {
-      googleChart.domain = target!.selected ? 'commit' : 'date';
-    }
+    googleChart.domain = target!.selected ? 'commit' : 'date';
+    plotSummary.domain = target!.selected ? 'commit' : 'date';
     const plot = this.plotSimple.value;
     if (!plot) {
       return;
@@ -1372,6 +1371,8 @@ export class ExploreSimpleSk extends ElementSk {
     this.AddPlotLines(this._dataframe.traceset, this.getLabels(this._dataframe.header!));
     plot.anomalyDataMap = anomalyMap;
     this._stateHasChanged();
+
+    this.dispatchEvent(new CustomEvent('x-axis-toggled', { detail: target, bubbles: true }));
   }
 
   // updates the chart height using a string input.

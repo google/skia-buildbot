@@ -271,7 +271,10 @@ export class ExploreMultiSk extends ElementSk {
           title="The number of charts per page." />
       </label>
       <button @click=${ele.loadAllCharts}>Load All Charts</button>
-      <div id="graphContainer" @selection-changing-in-multi=${ele.syncChartSelection}></div>
+      <div
+        id="graphContainer"
+        @selection-changing-in-multi=${ele.syncChartSelection}
+        @x-axis-toggled=${ele.syncXAxisLabel}></div>
       <pagination-sk
         offset=${ele.state.pageOffset}
         page_size=${ele.state.pageSize}
@@ -429,6 +432,13 @@ export class ExploreMultiSk extends ElementSk {
     const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
     graphs.forEach((graph) => {
       (graph as ExploreSimpleSk).updateSelectedRangeWithPlotSummary(e.detail.value);
+    });
+  }
+
+  private syncXAxisLabel(e: CustomEvent): void {
+    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
+    graphs.forEach((graph) => {
+      (graph as ExploreSimpleSk).switchXAxis(e.detail);
     });
   }
 
