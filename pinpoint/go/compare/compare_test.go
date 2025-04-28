@@ -1,6 +1,7 @@
 package compare
 
 import (
+	"math"
 	"sort"
 	"testing"
 
@@ -252,4 +253,65 @@ func TestComparePairwise_GivenNegativeNumbers_ThrowsError(t *testing.T) {
 	result, err := ComparePairwise(x, y, Up)
 	require.Error(t, err)
 	assert.Nil(t, result)
+}
+
+func TestComparePairwise_AEqualsB_ReturnsSame(t *testing.T) {
+	x := []float64{1, 2, 3, 4}
+	y := []float64{1, 2, 3, 4}
+
+	expected := &ComparePairwiseResult{
+		Verdict: Same,
+		PairwiseWilcoxonSignedRankedTestResult: stats.PairwiseWilcoxonSignedRankedTestResult{
+			Estimate: 0.0,
+			LowerCi:  0.0,
+			UpperCi:  0.0,
+			PValue:   1,
+			XMedian:  median(x),
+			YMedian:  median(y),
+		},
+	}
+
+	result, err := ComparePairwise(x, y, UnknownDir)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
+}
+
+func TestComparePairwise_AllSameValues_ReturnsSame(t *testing.T) {
+	x := []float64{2.2, 2.2, 2.2, 2.2}
+	y := []float64{2.2, 2.2, 2.2, 2.2}
+
+	expected := &ComparePairwiseResult{
+		Verdict: Same,
+		PairwiseWilcoxonSignedRankedTestResult: stats.PairwiseWilcoxonSignedRankedTestResult{
+			Estimate: 0.0,
+			LowerCi:  0.0,
+			UpperCi:  0.0,
+			PValue:   1,
+			XMedian:  median(x),
+			YMedian:  median(y),
+		},
+	}
+
+	result, err := ComparePairwise(x, y, UnknownDir)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
+}
+
+func TestComparePairwise_SameValues_ReturnsEstimate(t *testing.T) {
+	valuesA := []float64{3, 3, 3, 3, 3, 3, 3, 3}
+	valuesB := []float64{8, 8, 8, 8, 8, 8, 8, 8}
+
+	// demonstrate edge case
+	transform := stats.LogTransform
+	edgeResult, err := stats.PairwiseWilcoxonSignedRankedTest(valuesB, valuesA, stats.TwoSided, transform)
+	require.NoError(t, err)
+	require.True(t, math.IsNaN(edgeResult.LowerCi))
+	require.True(t, math.IsNaN(edgeResult.UpperCi))
+
+	valuesB = handlePairwiseEdgeCase(valuesA, valuesB)
+	expected, err := stats.PairwiseWilcoxonSignedRankedTest(valuesB, valuesA, stats.TwoSided, transform)
+
+	result, err := ComparePairwise(valuesA, valuesB, UnknownDir)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result.PairwiseWilcoxonSignedRankedTestResult)
 }

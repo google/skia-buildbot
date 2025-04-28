@@ -177,45 +177,10 @@ func TestCompareActivity_FunctionalSame_ReturnsPerformance(t *testing.T) {
 	assert.Equal(t, Performance, actual.ResultType)
 }
 
-func TestComparePairwise_GivenSimpleValues_ReturnsResult(t *testing.T) {
+func TestComparePairwise_GivenSameValues_ReturnsResult(t *testing.T) {
 	valuesA := []float64{8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008}
 	valuesB := []float64{14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408}
 
-	// demonstrate the edge case
-	nanPerf, err := compare.ComparePairwise(valuesA, valuesB, compare.UnknownDir)
-	require.NoError(t, err)
-	require.True(t, math.IsNaN(nanPerf.PairwiseWilcoxonSignedRankedTestResult.LowerCi))
-	require.True(t, math.IsNaN(nanPerf.PairwiseWilcoxonSignedRankedTestResult.UpperCi))
-
-	valuesB = handlePairwiseEdgeCase(valuesA, valuesB)
-	expectedPerf, err := compare.ComparePairwise(valuesA, valuesB, compare.UnknownDir)
-	require.NoError(t, err)
-	require.False(t, math.IsNaN(expectedPerf.PairwiseWilcoxonSignedRankedTestResult.LowerCi))
-	require.False(t, math.IsNaN(expectedPerf.PairwiseWilcoxonSignedRankedTestResult.UpperCi))
-
-	testSuite := &testsuite.WorkflowTestSuite{}
-	env := testSuite.NewTestActivityEnvironment()
-	env.RegisterActivity(ComparePairwiseActivity)
-	res, err := env.ExecuteActivity(ComparePairwiseActivity, valuesA, valuesB, compare.UnknownDir)
-	require.NoError(t, err)
-
-	var actual *compare.ComparePairwiseResult
-	err = res.Get(&actual)
-	require.NoError(t, err)
-	assert.Equal(t, expectedPerf, actual)
-}
-
-func TestComparePairwise_GivenAllSameValues_ReturnsResult(t *testing.T) {
-	valuesA := []float64{8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008}
-	valuesB := []float64{14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408}
-
-	// demonstrate the edge case
-	nanPerf, err := compare.ComparePairwise(valuesA, valuesB, compare.UnknownDir)
-	require.NoError(t, err)
-	require.True(t, math.IsNaN(nanPerf.PairwiseWilcoxonSignedRankedTestResult.LowerCi))
-	require.True(t, math.IsNaN(nanPerf.PairwiseWilcoxonSignedRankedTestResult.UpperCi))
-
-	valuesB = handlePairwiseEdgeCase(valuesA, valuesB)
 	expectedPerf, err := compare.ComparePairwise(valuesA, valuesB, compare.UnknownDir)
 	require.NoError(t, err)
 	require.False(t, math.IsNaN(expectedPerf.PairwiseWilcoxonSignedRankedTestResult.LowerCi))

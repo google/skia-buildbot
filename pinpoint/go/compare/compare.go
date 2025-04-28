@@ -32,6 +32,7 @@ package compare
 
 import (
 	"math"
+	"slices"
 	"sort"
 
 	"go.skia.org/infra/go/skerr"
@@ -94,6 +95,25 @@ func almostEqual(a, b float64) bool {
 	return math.Abs(a-b) <= float64EqualityThreshold
 }
 
+func median(arr []float64) float64 {
+	sortedArr := make([]float64, len(arr))
+	copy(sortedArr, arr)
+
+	sort.Float64s(sortedArr)
+
+	var median float64
+	l := len(sortedArr)
+	if l == 0 {
+		return 0
+	} else if l%2 == 0 {
+		median = (sortedArr[l/2-1] + sortedArr[l/2]) / 2
+	} else {
+		median = sortedArr[l/2]
+	}
+
+	return median
+}
+
 func mean(arr []float64) float64 {
 	if len(arr) == 0 {
 		return 0
@@ -122,6 +142,28 @@ type ComparePairwiseResult struct {
 
 // ComparePairwise wraps PairwiseWilcoxonSignedRankedTest.
 func ComparePairwise(valuesA, valuesB []float64, dir ImprovementDir) (*ComparePairwiseResult, error) {
+	// if valuesA equals valuesB, then return 0 result or this will return
+	// a non-serializable NaN from the wilcoxon signed rank test.
+	if slices.Equal(valuesA, valuesB) {
+		sklog.Warningf("All pairs in values in A and B are identical. Return neutral result.", valuesA, valuesB)
+
+		return &ComparePairwiseResult{
+			Verdict: Same,
+			PairwiseWilcoxonSignedRankedTestResult: stats.PairwiseWilcoxonSignedRankedTestResult{
+				Estimate: 0.0,
+				LowerCi:  0.0,
+				UpperCi:  0.0,
+				PValue:   1,
+				XMedian:  median(valuesA),
+				YMedian:  median(valuesB),
+			},
+		}, nil
+	}
+	// address edge case where valuesA is equal and valuesB is equal but
+	// valuesA != valuesB i.e. A = [3,3,3]; B = [4,4,4]
+	// when this happens, the wilcoxon will return a useful result but will
+	// calculate NaN for the confidence intervals.
+	valuesB = handlePairwiseEdgeCase(valuesA, valuesB)
 	// check if there are negative values in the input arrays.
 	// We do not expect benchmark data to return negative values.
 	// Also check if there are small numbers or zeros, as logarithms
@@ -326,4 +368,31 @@ func compare(valuesA, valuesB []float64, LowThreshold, HighThreshold float64, di
 		HighThreshold: HighThreshold,
 		MeanDiff:      meanDiff,
 	}, nil
+}
+
+// if every value in valuesA is identicial and every value in valuesB is identical,
+// pairwise comparison will fail to return a confidence interval because the
+// wilcoxon_signed_rank.go runs into an error:
+// "cannot compute confidence interval when all observations are zero or tied"
+// This edge case can happen for some very consistent, near-deterministic benchmark runs.
+// However, this does not mean that the data collected is not useful. Only one data point
+// needs to be nudged to return a confidence interval. Here we manipulate the data
+// on a significant figure that should not have any adverse affect on the overall sample
+func handlePairwiseEdgeCase(valuesA, valuesB []float64) []float64 {
+	allSameA := allSameValues(valuesA)
+	allSameB := allSameValues(valuesB)
+	if allSameA && allSameB {
+		sklog.Warningf("all values in A are identical and all values in B are identical. Nudging one element by %v in valuesB. ValuesA: %v; ValuesB: %v", valuesB[0]*float64EqualityThreshold, valuesA, valuesB)
+		valuesB[0] += valuesB[0] * float64EqualityThreshold
+	}
+	return valuesB
+}
+
+func allSameValues(values []float64) bool {
+	for i := 1; i < len(values); i++ {
+		if values[i] != values[0] {
+			return false
+		}
+	}
+	return true
 }
