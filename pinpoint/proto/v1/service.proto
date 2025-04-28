@@ -267,6 +267,9 @@ message PairwiseExecution {
 	// The culprit is only populated on culprit verification workflows
 	// and if the result is significant
 	CombinedCommit culprit = 4;
+
+	// The Wilcoxon statistical result of every single chart
+	map<string, WilcoxonResult> results = 5;
 }
 
 // ScheduleCulpritFinderRequest contains the input to schedule an E2E anomaly to culprits
