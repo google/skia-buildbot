@@ -6,12 +6,12 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
 	"cloud.google.com/go/datastore"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/leasing/go/types"
 	"google.golang.org/api/iterator"
@@ -27,7 +27,7 @@ func populateRunningTask(newState, botId string, k *datastore.Key, t *types.Task
 	// Add the start and end lease times.
 	durationHrs, err := strconv.Atoi(t.InitialDurationHrs)
 	if err != nil {
-		return fmt.Errorf("Failed to parse %s", t.InitialDurationHrs)
+		return skerr.Wrapf(err, "Failed to parse %s", t.InitialDurationHrs)
 	}
 	t.LeaseStartTime = time.Now()
 	t.LeaseEndTime = time.Now().Add(time.Hour * time.Duration(durationHrs))
@@ -35,12 +35,14 @@ func populateRunningTask(newState, botId string, k *datastore.Key, t *types.Task
 	// Inform the requester that the task has been picked up
 	threadingReference, err := SendStartEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.TaskIdForIsolates)
 	if err != nil {
-		return fmt.Errorf("Error sending start email: %s", err)
+		sklog.Errorf("Error sending start email: %s", err)
+	} else {
+		// Store threadingReference in datastore for threading followup emails.
+		t.EmailThreadingReference = threadingReference
 	}
-	// Store threadingReference in datastore for threading followup emails.
-	t.EmailThreadingReference = threadingReference
+
 	if _, err := UpdateDSTask(k, t); err != nil {
-		return fmt.Errorf("Error updating task in datastore: %v", err)
+		return skerr.Wrapf(err, "Error updating task in datastore")
 	}
 
 	return nil
@@ -51,12 +53,12 @@ func expireTask(k *datastore.Key, t *types.Task) error {
 	t.Done = true
 	t.SwarmingTaskState = getCompletedStateStr(false)
 	if _, err := UpdateDSTask(k, t); err != nil {
-		return fmt.Errorf("Error updating task in datastore: %v", err)
+		return skerr.Wrapf(err, "Error updating task in datastore")
 	}
 	sklog.Infof("Marked as expired task %v in the datastore with key %d", t, k.ID)
 	// Inform the requester that the task has completed.
 	if err := SendCompletionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.EmailThreadingReference); err != nil {
-		return fmt.Errorf("Error sending completion email: %s", err)
+		return skerr.Wrapf(err, "Error sending completion email")
 	}
 	return nil
 }
@@ -64,11 +66,11 @@ func expireTask(k *datastore.Key, t *types.Task) error {
 // taskExpiringSoon sends a warning email and updates the WarningSent field in the Task struct.
 func taskExpiringSoon(k *datastore.Key, t *types.Task) error {
 	if err := SendWarningEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.EmailThreadingReference); err != nil {
-		return fmt.Errorf("Error sending 15m warning email: %s", err)
+		return skerr.Wrapf(err, "Error sending 15m warning email")
 	}
 	t.WarningSent = true
 	if _, err := UpdateDSTask(k, t); err != nil {
-		return fmt.Errorf("Error updating task in datastore: %v", err)
+		return skerr.Wrapf(err, "Error updating task in datastore")
 	}
 	return nil
 }
@@ -80,7 +82,7 @@ func taskCancelled(k *datastore.Key, t *types.Task) error {
 	t.LeaseStartTime = time.Now()
 	t.LeaseEndTime = time.Now()
 	if _, err := UpdateDSTask(k, t); err != nil {
-		return fmt.Errorf("Error updating task in datastore: %v", err)
+		return skerr.Wrapf(err, "Error updating task in datastore")
 	}
 	return nil
 }
@@ -116,12 +118,12 @@ func checkForUnexpectedStates(newState apipb.TaskState, failure bool, k *datasto
 			t.LeaseEndTime = time.Now()
 
 			if _, err := UpdateDSTask(k, t); err != nil {
-				return fmt.Errorf("Error updating task in datastore: %v", err)
+				return skerr.Wrapf(err, "Error updating task in datastore")
 			}
 
 			// Inform the requester that something went wrong.
 			if err := SendFailureEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.SwarmingTaskState, t.EmailThreadingReference); err != nil {
-				return fmt.Errorf("Error sending failure email: %s", err)
+				return skerr.Wrapf(err, "Error sending failure email")
 			}
 			break
 		}
@@ -140,7 +142,7 @@ func pollSwarmingTasks(ctx context.Context) error {
 		if err == iterator.Done {
 			break
 		} else if err != nil {
-			return fmt.Errorf("Failed to retrieve list of tasks: %s", err)
+			return skerr.Wrapf(err, "Failed to retrieve list of tasks")
 		}
 
 		if t.SwarmingTaskId == "" {
@@ -151,7 +153,7 @@ func pollSwarmingTasks(ctx context.Context) error {
 		// Get the swarming task from swarming server.
 		swarmingTask, err := GetSwarmingTask(ctx, t.SwarmingPool, t.SwarmingTaskId)
 		if err != nil {
-			return fmt.Errorf("Failed to retrieve swarming task %s: %s", t.SwarmingTaskId, err)
+			return skerr.Wrapf(err, "Failed to retrieve swarming task %s: %s", t.SwarmingTaskId, err)
 		}
 
 		if swarmingTask.State == apipb.TaskState_PENDING {
@@ -160,7 +162,7 @@ func pollSwarmingTasks(ctx context.Context) error {
 		} else if swarmingTask.State == apipb.TaskState_CANCELED {
 			// If the swarming task has been cancelled then mark it as such in the DS.
 			if err := taskCancelled(k, t); err != nil {
-				return fmt.Errorf("Failed to mark task as cancelled: %s", err)
+				return skerr.Wrapf(err, "Failed to mark task as cancelled")
 			}
 			continue
 		}
@@ -179,21 +181,21 @@ func pollSwarmingTasks(ctx context.Context) error {
 			// The previous task state was pending but this has now changed.
 			// Populate the datastore with running task values.
 			if err := populateRunningTask(swarmingTask.State.String(), swarmingTask.BotId, k, t); err != nil {
-				return fmt.Errorf("Error populating running task: %s", err)
+				return skerr.Wrapf(err, "Error populating running task")
 			}
 		} else if t.LeaseEndTime.Before(time.Now()) /* Check 2*/ {
 			// The task has expired.
 			if err := expireTask(k, t); err != nil {
-				return fmt.Errorf("Error when expiring task: %s", err)
+				return skerr.Wrapf(err, "Error when expiring task")
 			}
 		} else if swarmingTask.State == apipb.TaskState_RUNNING && !t.WarningSent && t.LeaseEndTime.Before(time.Now().Add(time.Minute*15)) /* Check 3 */ {
 			if err := taskExpiringSoon(k, t); err != nil {
-				return fmt.Errorf("Error when warning task expiring soon: %s", err)
+				return skerr.Wrapf(err, "Error when warning task expiring soon")
 			}
 		} else /* Check 4 */ {
 
 			if err := checkForUnexpectedStates(swarmingTask.State, swarmingTask.Failure, k, t); err != nil {
-				return fmt.Errorf("Error when warning task expiring soon: %s", err)
+				return skerr.Wrapf(err, "Error when warning task expiring soon")
 			}
 		}
 	}
