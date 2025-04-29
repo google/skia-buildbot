@@ -472,7 +472,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 		}
 	}
 
-	if r.projectMetadataFileConfig != nil {
+	if r.projectMetadataFileConfig != nil && !canary {
 		// Populate the METADATA file.
 		d := time.Now()
 		metadataContents := fmt.Sprintf(`name: "%s"
