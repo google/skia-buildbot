@@ -650,12 +650,12 @@ export class ExploreSimpleSk extends ElementSk {
         @click=${ele.showSettingsDialog}>
           <md-icon id="icon">settings</md-icon>
       </md-icon-button>
-      <button
+      <md-icon-button
         id="removeAll"
         @click=${() => ele.closeExplore()}
         title='Remove all the traces.'>
         <close-icon-sk></close-icon-sk>
-      </button>
+      </md-icon-button>
       <md-dialog
         aria-label='Settings dialog'
         id='settings-dialog'>
