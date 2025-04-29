@@ -152,10 +152,11 @@ type RevisionInfo struct {
 // 1. Revision: Retrieves anomalies around that revision number.
 // 2. Tests-MinRevision-MaxRevision: Retrieves anomalies for the given set of tests between the min and max revisions
 type GetAnomaliesRequest struct {
-	Tests       []string `json:"tests,omitempty"`
-	MaxRevision string   `json:"max_revision,omitempty"`
-	MinRevision string   `json:"min_revision,omitempty"`
-	Revision    int      `json:"revision,omitempty"`
+	Tests           []string `json:"tests,omitempty"`
+	MaxRevision     string   `json:"max_revision,omitempty"`
+	MinRevision     string   `json:"min_revision,omitempty"`
+	Revision        int      `json:"revision,omitempty"`
+	NeedAggregation bool     `json:"need_aggregation,omitempty"`
 }
 
 type GetAnomaliesTimeBasedRequest struct {
@@ -343,6 +344,10 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 			Tests:       testPathes,
 			MaxRevision: strconv.Itoa(endCommitPosition),
 			MinRevision: strconv.Itoa(startCommitPosition),
+		}
+		if cp.config.Experiments.RemoveDefaultStatValue {
+			// This triggers aggregation on testname_avg traces to also include query on testname without suffix.
+			request.NeedAggregation = true
 		}
 		getAnomaliesResp := &GetAnomaliesResponse{}
 		err := cp.chromeperfClient.SendPostRequest(ctx, AnomalyAPIName, FindFuncName, *request, getAnomaliesResp, []int{200})
