@@ -315,8 +315,7 @@ func (c *Continuous) updateStoreAndNotification(ctx context.Context, resp *regre
 	updateNotification := true
 	regression, err := c.store.GetRegression(ctx, commitNumber, key)
 	if err != nil {
-		sklog.Errorf("Failed to retrieve the regression! commitNumber=%s, key=%s, err=%s", commitNumber, key, err)
-		return
+		sklog.Warningf("Regression not found or failed to retrieve! commitNumber=%s, key=%s, err=%s", commitNumber, key, err)
 	}
 	notificationID := getNotificationId(regression)
 	if notificationID != "" {
