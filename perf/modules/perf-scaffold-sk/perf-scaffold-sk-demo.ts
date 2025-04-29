@@ -2,6 +2,7 @@ import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 window.perf = {
+  instance_url: '',
   commit_range_url: '',
   key_order: ['config'],
   demo: true,

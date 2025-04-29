@@ -8,6 +8,7 @@ import { setUpExploreDemoEnv } from '../common/test-util';
 setUpExploreDemoEnv();
 
 window.perf = {
+  instance_url: '',
   commit_range_url: '',
   key_order: ['config'],
   demo: true,

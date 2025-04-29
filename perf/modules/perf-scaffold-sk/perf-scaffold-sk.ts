@@ -64,6 +64,7 @@ export class PerfScaffoldSk extends ElementSk {
     <header id=topbar>
       <h1 class=name>Perf</h1>
       <div class=spacer></div>
+      <div class="instance">${ele.instanceTitleTemplate()}</div>
       <alogin-sk url=/_/login/status></alogin-sk>
       <theme-chooser-sk></theme-chooser-sk>
     </header>
@@ -125,6 +126,26 @@ export class PerfScaffoldSk extends ElementSk {
       ],
       () => html`<a>Build: No Tag</a>`
     )}`;
+  }
+
+  private instanceTitleTemplate() {
+    if (window.perf.instance_url) {
+      return html`<a>Instance: ${this.extractInstanceNameFromUrl(window.perf.instance_url)}</a>`;
+    }
+  }
+
+  // Extract the string between "https://" and the first "." in a URL,
+  // such as "https://androidx2-perf.luci.app"
+  private extractInstanceNameFromUrl(url: string): string {
+    const regex = /^https:\/\/(.*?)\./;
+    const match = url.match(regex);
+
+    // If a match is found, the captured group (the part between https:// and .)
+    // will be at index 1 of the match array.
+    if (match && match[1]) {
+      return match[1];
+    }
+    return '';
   }
 
   connectedCallback(): void {

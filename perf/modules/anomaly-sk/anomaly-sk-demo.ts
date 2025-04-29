@@ -5,6 +5,7 @@ import { Anomaly } from '../json';
 import { AnomalySk } from './anomaly-sk';
 
 window.perf = {
+  instance_url: '',
   commit_range_url: 'http://example.com/range/{begin}/{end}',
   key_order: ['config'],
   demo: true,

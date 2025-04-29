@@ -4,6 +4,7 @@ import '../../../elements-sk/modules/error-toast-sk';
 import { AnomaliesTableSk } from './anomalies-table-sk';
 
 window.perf = {
+  instance_url: '',
   commit_range_url: 'http://example.com/range/{begin}/{end}',
   key_order: ['config'],
   demo: true,

@@ -10,6 +10,7 @@ fetchMock.post('/_/group_report', async () => {
 });
 
 window.perf = {
+  instance_url: '',
   commit_range_url: 'http://example.com/range/{begin}/{end}',
   key_order: ['config'],
   demo: true,

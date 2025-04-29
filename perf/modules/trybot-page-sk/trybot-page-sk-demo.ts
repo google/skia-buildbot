@@ -8,6 +8,7 @@ import { CommitDetailPickerSk } from '../commit-detail-picker-sk/commit-detail-p
 import { QuerySk } from '../../../infra-sk/modules/query-sk/query-sk';
 
 window.perf = {
+  instance_url: '',
   commit_range_url: '',
   key_order: ['config'],
   demo: true,

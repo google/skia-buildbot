@@ -21,6 +21,7 @@
  *    <header>
  *      <h1>Hello App</h1>
  *      <div class=spacer></div>
+ *      <div class=instance>Instance: instance-name</div>
  *      <alogin-sk></alogin-sk>
  *    </header>
  *    <aside>

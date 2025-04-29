@@ -94,6 +94,7 @@ describe('calculateRangeChange', () => {
 // this function is needed to support other unit tests
 describe('applyFuncToTraces', () => {
   window.perf = {
+    instance_url: '',
     radius: 2,
     key_order: null,
     num_shift: 50,

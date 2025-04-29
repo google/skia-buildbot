@@ -9,6 +9,7 @@ import { GetSheriffListResponse, GetAnomaliesResponse } from '../json';
 
 describe('regressions-page-sk', () => {
   window.perf = {
+    instance_url: '',
     commit_range_url: 'http://example.com/range/{begin}/{end}',
     key_order: ['config'],
     demo: true,
