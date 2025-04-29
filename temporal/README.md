@@ -46,7 +46,15 @@ You need to redo steps 3-5 if you want to run your latest local changes.
    `kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233`
 3. Create a new terminal and run the worker. Make sure the taskqueue and namespace are correct:<br>
    `bazelisk run //pinpoint/go/workflows/worker -- --namespace perf-internal`
-4. (if needed) Change workflow parameters in `sample/main.go`
+   <br><br>
+   Note for Pinpoint runs, you will need to comment out a few lines in
+   [worker/main.go](/pinpoint/go/workflows/worker/main.go):
+   ```
+   if err := tracing.InitializeOtel(); err != nil {
+   	sklog.Fatalf("Failed to init tracing: %s", err)
+   }
+   ```
+4. (if needed) Change workflow parameters in [sample/main.go](/pinpoint/go/workflows/sample/main.go)
 5. Create a new terminal and trigger the workflow:<br>
    `bazelisk run  //pinpoint/go/workflows/sample -- --namespace=perf-internal --[flag]=true`
 6. Check the workflow status on the dev deployment
@@ -69,7 +77,7 @@ skia-infra-breakglass-policy:2h`
    - `./kube/attach.sh skia-infra-public`
 3. Connect to the service at localhost 7233:<br>
    `kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233`
-4. (if needed) Change workflow parameters in `sample/sample.go`
+4. (if needed) Change workflow parameters in [sample/main.go](/pinpoint/go/workflows/sample/main.go)
 5. Create a new terminal and trigger the workflow.
    Make sure the taskqueue and namespace are correct:<br>
    `bazelisk run  //pinpoint/go/workflows/sample -- --namespace=perf-internal
