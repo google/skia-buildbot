@@ -36,7 +36,7 @@ func (_m *GCSClient) AllFilesInDirectory(ctx context.Context, prefix string, cal
 	return r0
 }
 
-// Bucket provides a mock function with given fields:
+// Bucket provides a mock function with no fields
 func (_m *GCSClient) Bucket() string {
 	ret := _m.Called()
 

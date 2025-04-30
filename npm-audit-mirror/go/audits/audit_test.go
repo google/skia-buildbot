@@ -157,7 +157,7 @@ func Test_FakeExe_NPM_Audit_ReturnsTwoHighIssues(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fmt.Printf(string(auditResp))
+	fmt.Println(string(auditResp))
 	os.Exit(0) // exit 0 prevents golang from outputting test stuff like "=== RUN", "---Fail".
 }
 
@@ -186,7 +186,7 @@ func Test_FakeExe_NPM_Audit_ReturnsTwoHighDevIssues(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fmt.Printf(string(auditResp))
+	fmt.Println(string(auditResp))
 	os.Exit(0) // exit 0 prevents golang from outputting test stuff like "=== RUN", "---Fail".
 }
 
@@ -211,6 +211,6 @@ func Test_FakeExe_NPM_Audit_ReturnsNoHighIssues(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fmt.Printf(string(auditResp))
+	fmt.Println(string(auditResp))
 	os.Exit(0) // exit 0 prevents golang from outputting test stuff like "=== RUN", "---Fail".
 }

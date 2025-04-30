@@ -238,7 +238,7 @@ func allRequestsFromBaseRequest(req *RegressionDetectionRequest, ps paramtools.R
 func (p *regressionDetectionProcess) reportError(err error, message string) error {
 	sklog.Warningf("RegressionDetectionRequest failed: %#v %s: %s", *(p.request), message, err)
 	p.request.Progress.Message("Warning", fmt.Sprintf("RegressionDetectionRequest failed: %#v %s: %s", *(p.request), message, err))
-	return skerr.Wrapf(err, message)
+	return skerr.Wrapf(err, "%s", message)
 }
 
 // progress records the progress of a RegressionDetectionProcess.

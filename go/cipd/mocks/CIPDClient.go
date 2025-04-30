@@ -514,7 +514,7 @@ func (_m *CIPDClient) ModifyACL(ctx context.Context, prefix string, changes []cl
 	return r0
 }
 
-// Options provides a mock function with given fields:
+// Options provides a mock function with no fields
 func (_m *CIPDClient) Options() clientcipd.ClientOptions {
 	ret := _m.Called()
 

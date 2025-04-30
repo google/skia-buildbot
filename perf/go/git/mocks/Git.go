@@ -363,7 +363,7 @@ func (_m *Git) PreviousGitHashFromCommitNumber(ctx context.Context, commitNumber
 	return r0, r1
 }
 
-// RepoSuppliedCommitNumber provides a mock function with given fields:
+// RepoSuppliedCommitNumber provides a mock function with no fields
 func (_m *Git) RepoSuppliedCommitNumber() bool {
 	ret := _m.Called()
 

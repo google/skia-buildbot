@@ -164,8 +164,8 @@ func findUncommittedChanges(ctx context.Context) []string {
 	cmd := exec.CommandContext(ctx, "git", "diff-index", "HEAD")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, string(output)+"\n")
-		logf(ctx, err.Error()+"\n")
+		log(ctx, string(output)+"\n")
+		log(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
 	return extractFilesWithDiffs(string(output))
@@ -195,8 +195,8 @@ func findUntrackedFiles(ctx context.Context) []string {
 	cmd := exec.CommandContext(ctx, "git", "ls-files", "--others", "--exclude-standard")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, string(output)+"\n")
-		logf(ctx, err.Error()+"\n")
+		log(ctx, string(output)+"\n")
+		log(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
 	return strings.Split(string(output), "\n")
@@ -216,8 +216,8 @@ func findBranchBase(ctx context.Context, upstream string) string {
 		`--format=%D`+refSeperator+`%P`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, string(output)+"\n")
-		logf(ctx, err.Error()+"\n")
+		log(ctx, string(output)+"\n")
+		log(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
 	return extractBranchBase(string(output))
@@ -315,8 +315,8 @@ func computeDiffFiles(ctx context.Context, branchBase string) ([]fileWithChanges
 		"--no-color")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, string(output)+"\n")
-		logf(ctx, err.Error()+"\n")
+		log(ctx, string(output)+"\n")
+		log(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
 	return extractChangedAndDeletedFiles(string(output))
@@ -651,8 +651,8 @@ func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithC
 	cmd := exec.CommandContext(ctx, buildifierPath, args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, string(output))
-		logf(ctx, "Buildifier linting errors detected!\n")
+		log(ctx, string(output))
+		log(ctx, "Buildifier linting errors detected!\n")
 		return false
 	}
 
@@ -666,8 +666,17 @@ func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithC
 // runGoimports runs goimports on any changed golang files. It returns false if goimports fails or
 // produces any diffs.
 func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot, branchBaseCommit string) bool {
+	// `goimports` shells out to `go`, so we need to ensure that `go` exists.
+	goCmd := exec.CommandContext(ctx, "bazelisk", "run", "--config=mayberemote", "//:go", "--", "version")
+	if output, err := goCmd.CombinedOutput(); err != nil {
+		logf(ctx, "go failed with: %s", output)
+		return false
+	}
+
 	// -w means "write", as in, modify the files that need formatting.
-	args := []string{"run", "--config=mayberemote", "//:goimports", "--run_under=cd " + workspaceRoot + " &&", "--", "-w"}
+	bazelGoPath := "_bazel_bin/bazel/tools/go/go.runfiles/go_sdk/bin"
+	runUnderCmd := fmt.Sprintf("cd %s && export PATH=\"$(pwd)/%s:$PATH\" &&", workspaceRoot, bazelGoPath)
+	args := []string{"run", "--config=mayberemote", "//:goimports", "--run_under=" + runUnderCmd, "--", "-w"}
 	foundAny := false
 	for _, f := range files {
 		if filepath.Ext(f.fileName) == ".go" {
@@ -681,8 +690,8 @@ func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot, b
 	cmd := exec.CommandContext(ctx, "bazelisk", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, string(output))
-		logf(ctx, "goimports failed!\n")
+		log(ctx, string(output))
+		log(ctx, "goimports failed!\n")
 		return false
 	}
 
@@ -698,8 +707,8 @@ func runNpmCi(ctx context.Context) bool {
 	cmd := exec.CommandContext(ctx, "bazelisk", "run", "--config=mayberemote", "//:npm", "--", "ci")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, "Command \"npm ci\" failed. Output:\n")
-		logf(ctx, string(output))
+		log(ctx, "Command \"npm ci\" failed. Output:\n")
+		log(ctx, string(output))
 		return false
 	}
 	return true
@@ -723,8 +732,8 @@ func runESLint(ctx context.Context, files []fileWithChanges, workspaceRoot, bran
 	cmd := exec.CommandContext(ctx, "bazelisk", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, string(output))
-		logf(ctx, "eslint failed!\n")
+		log(ctx, string(output))
+		log(ctx, "eslint failed!\n")
 		return false
 	}
 
@@ -742,8 +751,8 @@ func runPrettier(ctx context.Context, files []fileWithChanges, workspaceRoot, br
 	cmd := exec.CommandContext(ctx, "bazelisk", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, string(output))
-		logf(ctx, "prettier failed!\n")
+		log(ctx, string(output))
+		log(ctx, "prettier failed!\n")
 		return false
 	}
 
@@ -772,8 +781,8 @@ func runGofmt(ctx context.Context, files []fileWithChanges, branchBaseCommit str
 	cmd := exec.CommandContext(ctx, "bazelisk", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, string(output))
-		logf(ctx, "gofmt failed!\n")
+		log(ctx, string(output))
+		log(ctx, "gofmt failed!\n")
 		return false
 	}
 
@@ -790,8 +799,8 @@ func runGoVet(ctx context.Context, files []fileWithChanges, branchBaseCommit str
 	cmd := exec.CommandContext(ctx, "bazelisk", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, string(output))
-		logf(ctx, "go vet failed!\n")
+		log(ctx, string(output))
+		log(ctx, "go vet failed!\n")
 		return false
 	}
 
@@ -836,8 +845,8 @@ func runGazelle(ctx context.Context, changedFiles []fileWithChanges, deletedFile
 			"-from_file=go.mod", "-to_macro=go_repositories.bzl%go_repositories")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			logf(ctx, string(output))
-			logf(ctx, "Could not regenerate go_repositories.bzl!\n")
+			log(ctx, string(output))
+			log(ctx, "Could not regenerate go_repositories.bzl!\n")
 			return false
 		}
 	}
@@ -853,18 +862,18 @@ func runGazelle(ctx context.Context, changedFiles []fileWithChanges, deletedFile
 	cmd := exec.CommandContext(ctx, "bazelisk", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logf(ctx, string(output))
-		logf(ctx, "Could not regenerate BUILD.bazel changedFiles using gazelle!\n")
+		log(ctx, string(output))
+		log(ctx, "Could not regenerate BUILD.bazel changedFiles using gazelle!\n")
 		return false
 	}
 
 	if newChangedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(changedFiles, newChangedFiles) {
-		logf(ctx, "Gazelle caused changes. Please inspect them (git diff) and commit if ok.\n")
+		log(ctx, "Gazelle caused changes. Please inspect them (git diff) and commit if ok.\n")
 		return false
 	}
 	for _, f := range findUntrackedFiles(ctx) {
 		if filepath.Base(f) == "BUILD.bazel" {
-			logf(ctx, "Gazelle created new BUILD.bazel files. Please inspect these and check them in.\n")
+			log(ctx, "Gazelle created new BUILD.bazel files. Please inspect these and check them in.\n")
 			return false
 		}
 	}
@@ -894,11 +903,18 @@ func withOutputWriter(ctx context.Context, w io.Writer) context.Context {
 // unit tests to intercept logged output if necessary. It panics if a writer was not registered
 // using withOutputWriter.
 func logf(ctx context.Context, format string, args ...interface{}) {
+	log(ctx, fmt.Sprintf(format, args...))
+}
+
+// log takes the writer on the context and writes the string to it. This allows
+// unit tests to intercept logged output if necessary. It panics if a writer was
+// not registered using withOutputWriter.
+func log(ctx context.Context, msg string) {
 	w, ok := ctx.Value(outputWriterKey).(io.Writer)
 	if !ok {
 		panic("Must set outputWriter on ctx")
 	}
-	_, err := fmt.Fprintf(w, format, args...)
+	_, err := fmt.Fprint(w, msg)
 	if err != nil {
 		panic("Error while logging " + err.Error())
 	}

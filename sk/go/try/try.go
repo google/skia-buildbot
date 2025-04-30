@@ -140,7 +140,7 @@ func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool, o
 
 	jobsToTrigger := filteredJobs
 	if !triggerWithoutPrompt {
-		fmt.Printf("Do you want to trigger these jobs? (y/n or i for interactive): ")
+		fmt.Println("Do you want to trigger these jobs? (y/n or i for interactive): ")
 		reader := bufio.NewReader(stdin)
 		read, err := reader.ReadString('\n')
 		if err != nil {
@@ -154,7 +154,7 @@ func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool, o
 			jobsToTrigger = map[string][]string{}
 			for bucket, jobList := range filteredJobs {
 				for _, job := range jobList {
-					fmt.Printf("Trigger %s? (y/n): ", job)
+					fmt.Printf("Trigger %s? (y/n):\n", job)
 					trigger, err := reader.ReadString('\n')
 					if err != nil {
 						return err

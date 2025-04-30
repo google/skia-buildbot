@@ -92,12 +92,12 @@ func (_m *Topic) Exists(ctx context.Context) (bool, error) {
 	return r0, r1
 }
 
-// Flush provides a mock function with given fields:
+// Flush provides a mock function with no fields
 func (_m *Topic) Flush() {
 	_m.Called()
 }
 
-// IAM provides a mock function with given fields:
+// IAM provides a mock function with no fields
 func (_m *Topic) IAM() *iam.Handle {
 	ret := _m.Called()
 
@@ -117,7 +117,7 @@ func (_m *Topic) IAM() *iam.Handle {
 	return r0
 }
 
-// ID provides a mock function with given fields:
+// ID provides a mock function with no fields
 func (_m *Topic) ID() string {
 	ret := _m.Called()
 
@@ -160,12 +160,12 @@ func (_m *Topic) ResumePublish(orderingKey string) {
 	_m.Called(orderingKey)
 }
 
-// Stop provides a mock function with given fields:
+// Stop provides a mock function with no fields
 func (_m *Topic) Stop() {
 	_m.Called()
 }
 
-// String provides a mock function with given fields:
+// String provides a mock function with no fields
 func (_m *Topic) String() string {
 	ret := _m.Called()
 

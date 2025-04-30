@@ -18,7 +18,7 @@ func (_m *ProjectMirror) AddToDownloadedPackageTarballs(packageTarballName strin
 	_m.Called(packageTarballName)
 }
 
-// GetDownloadedPackageNames provides a mock function with given fields:
+// GetDownloadedPackageNames provides a mock function with no fields
 func (_m *ProjectMirror) GetDownloadedPackageNames() ([]string, error) {
 	ret := _m.Called()
 
@@ -48,7 +48,7 @@ func (_m *ProjectMirror) GetDownloadedPackageNames() ([]string, error) {
 	return r0, r1
 }
 
-// GetProjectName provides a mock function with given fields:
+// GetProjectName provides a mock function with no fields
 func (_m *ProjectMirror) GetProjectName() string {
 	ret := _m.Called()
 

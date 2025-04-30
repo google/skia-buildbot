@@ -182,12 +182,12 @@ func (_m *Pool) BeginTxFunc(ctx context.Context, txOptions pgx.TxOptions, f func
 	return r0
 }
 
-// Close provides a mock function with given fields:
+// Close provides a mock function with no fields
 func (_m *Pool) Close() {
 	_m.Called()
 }
 
-// Config provides a mock function with given fields:
+// Config provides a mock function with no fields
 func (_m *Pool) Config() *pgxpool.Config {
 	ret := _m.Called()
 

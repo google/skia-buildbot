@@ -159,7 +159,7 @@ func (_m *Store) GetMedia(fiddleHash string, media store.Media) ([]byte, string,
 	return r0, r1, r2, r3
 }
 
-// ListAllNames provides a mock function with given fields:
+// ListAllNames provides a mock function with no fields
 func (_m *Store) ListAllNames() ([]store.Named, error) {
 	ret := _m.Called()
 

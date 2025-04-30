@@ -32,7 +32,7 @@ func (_m *Snapshot) Delete(ctx context.Context) error {
 	return r0
 }
 
-// ID provides a mock function with given fields:
+// ID provides a mock function with no fields
 func (_m *Snapshot) ID() string {
 	ret := _m.Called()
 

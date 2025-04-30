@@ -14,7 +14,7 @@ type APIClient struct {
 	mock.Mock
 }
 
-// GetAlerts provides a mock function with given fields:
+// GetAlerts provides a mock function with no fields
 func (_m *APIClient) GetAlerts() ([]incident.Incident, error) {
 	ret := _m.Called()
 
@@ -44,7 +44,7 @@ func (_m *APIClient) GetAlerts() ([]incident.Incident, error) {
 	return r0, r1
 }
 
-// GetSilences provides a mock function with given fields:
+// GetSilences provides a mock function with no fields
 func (_m *APIClient) GetSilences() ([]silence.Silence, error) {
 	ret := _m.Called()
 

@@ -297,11 +297,11 @@ func (b *TablesBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr strin
 				}
 				ld, err := sql.DigestToBytes(leftDigest)
 				if err != nil {
-					logAndPanic(err.Error())
+					logAndPanic("%s", err.Error())
 				}
 				rd, err := sql.DigestToBytes(rightDigest)
 				if err != nil {
-					logAndPanic(err.Error())
+					logAndPanic("%s", err.Error())
 				}
 				b.diffMetrics = append(b.diffMetrics, schema.DiffMetricRow{
 					LeftDigest:        ld,
@@ -353,7 +353,7 @@ func openNRGBAFromDisk(basePath string, digest types.Digest) *image.NRGBA {
 		return nil
 	})
 	if err != nil {
-		logAndPanic(err.Error())
+		logAndPanic("%s", err.Error())
 	}
 	return img
 }

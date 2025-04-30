@@ -26,7 +26,7 @@ go_library(
         "@org_chromium_go_luci//swarming/proto/api_v2",
         "@org_golang_google_api//compute/v0.beta:v0_beta",
         "@org_golang_google_api//workflowexecutions/v1:workflowexecutions",
-        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//:grpc",
         "@org_golang_google_grpc//credentials/oauth",
         "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_oauth2//google",

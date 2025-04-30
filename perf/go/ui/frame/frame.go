@@ -170,7 +170,7 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit
 // reportError records the reason a FrameRequestProcess failed.
 func (p *frameRequestProcess) reportError(err error, message string) error {
 	sklog.Errorf("FrameRequest failed: %#v %s: %s", *(p.request), message, err)
-	return skerr.Wrapf(err, message)
+	return skerr.Wrapf(err, "%s", message)
 }
 
 // searchInc records the progress of a FrameRequestProcess as it completes each

@@ -13,7 +13,7 @@ type TimeTicker struct {
 	mock.Mock
 }
 
-// C provides a mock function with given fields:
+// C provides a mock function with no fields
 func (_m *TimeTicker) C() <-chan time.Time {
 	ret := _m.Called()
 
@@ -38,7 +38,7 @@ func (_m *TimeTicker) Reset(d time.Duration) {
 	_m.Called(d)
 }
 
-// Stop provides a mock function with given fields:
+// Stop provides a mock function with no fields
 func (_m *TimeTicker) Stop() {
 	_m.Called()
 }

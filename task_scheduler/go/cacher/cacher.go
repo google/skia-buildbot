@@ -99,7 +99,7 @@ func (c *CacherImpl) GetOrCacheRepoState(ctx context.Context, rs types.RepoState
 		return nil, skerr.Wrap(err)
 	}
 	if cv.Err != "" {
-		return nil, &CachedError{err: skerr.Fmt(cv.Err)}
+		return nil, &CachedError{err: skerr.Fmt("%s", cv.Err)}
 	}
 	return cv.Cfg, nil
 }

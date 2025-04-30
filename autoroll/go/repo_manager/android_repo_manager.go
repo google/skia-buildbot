@@ -2,6 +2,7 @@ package repo_manager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -569,7 +570,7 @@ third_party {
 			msg += fmt.Sprintf("\n- %s", f)
 		}
 		util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
-		return 0, skerr.Fmt(msg)
+		return 0, skerr.Wrap(errors.New(msg))
 	}
 
 	// Upload the CL to Gerrit.

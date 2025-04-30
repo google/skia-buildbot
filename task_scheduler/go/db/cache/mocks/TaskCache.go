@@ -219,7 +219,7 @@ func (_m *TaskCache) KnownTaskName(repo string, name string) bool {
 	return r0
 }
 
-// UnfinishedTasks provides a mock function with given fields:
+// UnfinishedTasks provides a mock function with no fields
 func (_m *TaskCache) UnfinishedTasks() ([]*types.Task, error) {
 	ret := _m.Called()
 

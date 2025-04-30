@@ -503,7 +503,7 @@ func (_m *ApiClient) RetryTask(ctx context.Context, t *v1.SwarmingRpcsTaskReques
 	return r0, r1
 }
 
-// SwarmingService provides a mock function with given fields:
+// SwarmingService provides a mock function with no fields
 func (_m *ApiClient) SwarmingService() *v1.Service {
 	ret := _m.Called()
 

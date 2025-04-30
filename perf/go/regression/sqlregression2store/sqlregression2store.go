@@ -462,7 +462,7 @@ func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitN
 					errorMsg = "Failed reading regression data."
 				}
 				rollbackTransaction(ctx, tx)
-				return "", skerr.Wrapf(err, errorMsg)
+				return "", skerr.Wrapf(err, "%s", errorMsg)
 			}
 		}
 

@@ -9,6 +9,6 @@ go_library(
         "//go/coverage/coveragestore",
         "//go/coverage/proto/v1",
         "//go/sklog",
-        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//:grpc",
     ],
 )

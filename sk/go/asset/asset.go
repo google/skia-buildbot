@@ -457,10 +457,7 @@ func cmdSetVersion(ctx context.Context, name string, version int, local bool) er
 		return skerr.Wrap(err)
 	}
 	if _, ok := instances[version]; !ok {
-		errMsg := fmt.Sprintf("Version %d not found. Available versions:\n", version)
-		errMsg += printVersions(instances)
-		errMsg += "\n\n"
-		return skerr.Fmt(errMsg)
+		return skerr.Fmt("Version %d not found. Available versions:\n%s\n\n", version, printVersions(instances))
 	}
 
 	// Update the version file for the asset.

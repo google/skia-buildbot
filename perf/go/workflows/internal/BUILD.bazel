@@ -52,6 +52,6 @@ go_test(
         "@com_github_stretchr_testify//require",
         "@io_temporal_go_sdk//testsuite",
         "@io_temporal_go_sdk//workflow",
-        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//:grpc",
     ],
 )

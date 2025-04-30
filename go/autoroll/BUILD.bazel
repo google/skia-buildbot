@@ -13,7 +13,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@com_github_golang_protobuf//ptypes",
         "@org_chromium_go_luci//buildbucket/proto",
     ],
 )
@@ -26,7 +26,7 @@ go_test(
         "//go/comment",
         "//go/deepequal/assertdeep",
         "//go/github",
-        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@com_github_golang_protobuf//ptypes",
         "@com_github_golang_protobuf//ptypes/timestamp",
         "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//buildbucket/proto",

@@ -554,7 +554,7 @@ func (_m *GitilesRepo) Tags(ctx context.Context) (map[string]string, error) {
 	return r0, r1
 }
 
-// URL provides a mock function with given fields:
+// URL provides a mock function with no fields
 func (_m *GitilesRepo) URL() string {
 	ret := _m.Called()
 

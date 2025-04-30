@@ -9,7 +9,7 @@ type Allow struct {
 	mock.Mock
 }
 
-// Emails provides a mock function with given fields:
+// Emails provides a mock function with no fields
 func (_m *Allow) Emails() []string {
 	ret := _m.Called()
 

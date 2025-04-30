@@ -108,7 +108,7 @@ func (s *AnomalyGroupStore) LoadById(
 	// Sanity checks
 	if _, err := uuid.Parse(group_id); err != nil {
 		err_msg := fmt.Sprintf("group id is not a valid uuid: %s.", group_id)
-		return nil, skerr.Wrapf(err, err_msg)
+		return nil, skerr.Wrapf(err, "%s", err_msg)
 	}
 
 	statement := `
@@ -129,7 +129,7 @@ func (s *AnomalyGroupStore) LoadById(
 	var benchmark_name string
 	if err := s.db.QueryRow(ctx, statement, group_id).Scan(&loaded_group_id, &action, &anomaly_ids, &culprit_ids, &subscription_name, &subscription_revision, &benchmark_name); err != nil {
 		err_msg := fmt.Sprintf("failed to load the anomaly group: %s", group_id)
-		return nil, skerr.Wrapf(err, err_msg)
+		return nil, skerr.Wrapf(err, "%s", err_msg)
 	}
 
 	return &pb.AnomalyGroup{
@@ -291,7 +291,7 @@ func (s *AnomalyGroupStore) FindExistingGroup(
 			"failed when finding related groups. Params: %s, %s, %s, %s, %s, %d, %d",
 			action, subscription_name, subscription_revision, domain_name, benchmark_name,
 			end_commit, start_commit)
-		return nil, skerr.Wrapf(err, err_msg)
+		return nil, skerr.Wrapf(err, "%s", err_msg)
 	}
 	var groups []*pb.AnomalyGroup
 	for rows.Next() {
@@ -303,7 +303,7 @@ func (s *AnomalyGroupStore) FindExistingGroup(
 			err_msg := fmt.Sprintf(
 				"error parsing the returned group values: %s, %s, %s, %s",
 				loaded_group_id, loaded_action, anomaly_ids, culprit_ids)
-			return nil, skerr.Wrapf(err, err_msg)
+			return nil, skerr.Wrapf(err, "%s", err_msg)
 		} else {
 			groups = append(groups, &pb.AnomalyGroup{
 				GroupId:     loaded_group_id,

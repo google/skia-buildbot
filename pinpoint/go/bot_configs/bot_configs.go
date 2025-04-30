@@ -19,6 +19,7 @@ package bot_configs
 import (
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"sync"
@@ -106,7 +107,7 @@ func GetBotConfig(bot string, externalOnly bool) (BotConfig, error) {
 		} else {
 			errMsg = fmt.Sprintf("bot %s was not found in internal and external bot configuration data", bot)
 		}
-		return BotConfig{}, fmt.Errorf(errMsg)
+		return BotConfig{}, errors.New(errMsg)
 	}
 	alias := cfg.Alias
 	if alias != "" {

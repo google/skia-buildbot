@@ -124,7 +124,7 @@ func (_m *Subscription) Exists(ctx context.Context) (bool, error) {
 	return r0, r1
 }
 
-// IAM provides a mock function with given fields:
+// IAM provides a mock function with no fields
 func (_m *Subscription) IAM() *iam.Handle {
 	ret := _m.Called()
 
@@ -144,7 +144,7 @@ func (_m *Subscription) IAM() *iam.Handle {
 	return r0
 }
 
-// ID provides a mock function with given fields:
+// ID provides a mock function with no fields
 func (_m *Subscription) ID() string {
 	ret := _m.Called()
 
@@ -216,7 +216,7 @@ func (_m *Subscription) SeekToTime(ctx context.Context, t time.Time) error {
 	return r0
 }
 
-// String provides a mock function with given fields:
+// String provides a mock function with no fields
 func (_m *Subscription) String() string {
 	ret := _m.Called()
 

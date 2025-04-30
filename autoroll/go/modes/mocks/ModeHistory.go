@@ -32,7 +32,7 @@ func (_m *ModeHistory) Add(ctx context.Context, mode string, user string, messag
 	return r0
 }
 
-// CurrentMode provides a mock function with given fields:
+// CurrentMode provides a mock function with no fields
 func (_m *ModeHistory) CurrentMode() *modes.ModeChange {
 	ret := _m.Called()
 

@@ -24,7 +24,7 @@ type RBEClient struct {
 	mock.Mock
 }
 
-// Close provides a mock function with given fields:
+// Close provides a mock function with no fields
 func (_m *RBEClient) Close() error {
 	ret := _m.Called()
 

@@ -32,7 +32,7 @@ func (_m *StrategyHistory) Add(ctx context.Context, s string, user string, messa
 	return r0
 }
 
-// CurrentStrategy provides a mock function with given fields:
+// CurrentStrategy provides a mock function with no fields
 func (_m *StrategyHistory) CurrentStrategy() *strategy.StrategyChange {
 	ret := _m.Called()
 

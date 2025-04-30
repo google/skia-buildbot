@@ -66,7 +66,7 @@ func (_m *GCSClient) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 	return r0
 }
 
-// Options provides a mock function with given fields:
+// Options provides a mock function with no fields
 func (_m *GCSClient) Options() storage.GCSClientOptions {
 	ret := _m.Called()
 

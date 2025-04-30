@@ -9,7 +9,7 @@ type Port struct {
 	mock.Mock
 }
 
-// Close provides a mock function with given fields:
+// Close provides a mock function with no fields
 func (_m *Port) Close() error {
 	ret := _m.Called()
 
@@ -27,7 +27,7 @@ func (_m *Port) Close() error {
 	return r0
 }
 
-// Flush provides a mock function with given fields:
+// Flush provides a mock function with no fields
 func (_m *Port) Flush() error {
 	ret := _m.Called()
 

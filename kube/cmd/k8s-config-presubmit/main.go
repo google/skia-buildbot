@@ -171,7 +171,7 @@ func checkDiffs(ctx context.Context, script string, args []string, suffixes []st
 	if len(newDiffs) > 0 {
 		logf(ctx, "%s caused changes. Please inspect them (git diff) and commit if ok.\n", script)
 		for _, diff := range newDiffs {
-			logf(ctx, diff+"\n")
+			log(ctx, diff+"\n")
 		}
 		return false
 	}
@@ -362,7 +362,7 @@ func validateContainer(ctx context.Context, container corev1.Container) bool {
 		if err != nil {
 			errStr += ": " + err.Error()
 		}
-		logf(ctx, errStr+"\n")
+		log(ctx, errStr+"\n")
 		ok = false
 	}
 	return ok
@@ -382,8 +382,8 @@ bazel run //cmd/presubmit --run_under="cd $PWD &&"
 func findUncommittedChanges(ctx context.Context) (filesWithDiffs []string, untrackedFiles []string) {
 	output, err := git(ctx, "diff", "--name-status", "HEAD")
 	if err != nil {
-		logf(ctx, string(output)+"\n")
-		logf(ctx, err.Error()+"\n")
+		log(ctx, string(output)+"\n")
+		log(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
 	filesWithDiffs = extractFilesWithDiffs(string(output))
@@ -392,8 +392,8 @@ func findUncommittedChanges(ctx context.Context) (filesWithDiffs []string, untra
 	// This will list all untracked, unignored files on their own lines
 	output, err = git(ctx, "ls-files", "--others", "--exclude-standard")
 	if err != nil {
-		logf(ctx, string(output)+"\n")
-		logf(ctx, err.Error()+"\n")
+		log(ctx, string(output)+"\n")
+		log(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
 	return filesWithDiffs, strings.Split(string(output), "\n")
@@ -426,8 +426,8 @@ func findBranchBase(ctx context.Context, upstream string) string {
 		// %P means the parent hash
 		`--format=%D`+refSeperator+`%P`)
 	if err != nil {
-		logf(ctx, string(output)+"\n")
-		logf(ctx, err.Error()+"\n")
+		log(ctx, string(output)+"\n")
+		log(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
 	return extractBranchBase(string(output))
@@ -524,8 +524,8 @@ func computeDiffFiles(ctx context.Context, branchBase string) ([]fileWithChanges
 		"--patch-with-raw",
 		"--no-color")
 	if err != nil {
-		logf(ctx, string(output)+"\n")
-		logf(ctx, err.Error()+"\n")
+		log(ctx, string(output)+"\n")
+		log(ctx, err.Error()+"\n")
 		panic(gitErrorMessage)
 	}
 	return extractChangedAndDeletedFiles(string(output))
@@ -633,11 +633,18 @@ func withOutputWriter(ctx context.Context, w io.Writer) context.Context {
 // unit tests to intercept logged output if necessary. It panics if a writer was not registered
 // using withOutputWriter.
 func logf(ctx context.Context, format string, args ...interface{}) {
+	log(ctx, fmt.Sprintf(format, args...))
+}
+
+// log takes the writer on the context and writes the string to it. This allows
+// unit tests to intercept logged output if necessary. It panics if a writer was
+// not registered using withOutputWriter.
+func log(ctx context.Context, msg string) {
 	w, ok := ctx.Value(outputWriterKey).(io.Writer)
 	if !ok {
 		panic("Must set outputWriter on ctx")
 	}
-	_, err := fmt.Fprintf(w, format, args...)
+	_, err := fmt.Fprint(w, msg)
 	if err != nil {
 		panic("Error while logging " + err.Error())
 	}

@@ -125,11 +125,11 @@ func writeCreateRuntimeEffects(w io.StringWriter, node scrapNode) {
 		mustWriteStringf(w, "  // Shader %q\n", node.Name)
 	}
 	mustWriteStringf(w, "  const prog%s = `\n", node.Name)
-	mustWriteStringf(w, indentMultilineString(skslDefaultInputs, 4))
+	mustWriteStringf(w, "%s", indentMultilineString(skslDefaultInputs, 4))
 	mustWriteStringf(w, "\n")
 	writeShaderInputDefinitions(w, node, 4)
 	mustWriteStringf(w, "\n")
-	mustWriteStringf(w, indentMultilineString(node.Scrap.Body, 4))
+	mustWriteStringf(w, "%s", indentMultilineString(node.Scrap.Body, 4))
 	mustWriteStringf(w, "\n    `;\n")
 
 	mustWriteStringf(w, "  const effect%s = CanvasKit.RuntimeEffect.Make(prog%s);", node.Name, node.Name)
@@ -224,7 +224,7 @@ func putShaderOnPaintJS(node scrapNode) string {
 func deleteShadersJS(node scrapNode) string {
 	var b bytes.Buffer
 	for _, child := range node.Children {
-		mustWriteStringf(&b, deleteShadersJS(child))
+		mustWriteStringf(&b, "%s", deleteShadersJS(child))
 		mustWriteStringf(&b, "\n")
 	}
 	mustWriteStringf(&b, "    shader%s.delete();", node.Name)

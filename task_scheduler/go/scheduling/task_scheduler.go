@@ -1382,7 +1382,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine
 		for _, e := range errs {
 			rvErr += fmt.Sprintf("\n%s\n", e)
 		}
-		return skerr.Fmt(rvErr)
+		return skerr.Fmt("%s", rvErr)
 	}
 	return nil
 }

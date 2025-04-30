@@ -53,7 +53,7 @@ func TestSunnyDayGetSileces(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, silences, 3)
 
-	fmt.Printf("%#v", silences)
+	fmt.Printf("%#v\n", silences)
 
 	assert.Equal(t, []string{"skia-rpi-047"}, silences[0].ParamSet["bot"])
 	assert.Equal(t, []string{"BotUnemployed"}, silences[0].ParamSet["alertname"])

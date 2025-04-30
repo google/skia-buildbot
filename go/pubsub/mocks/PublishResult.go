@@ -41,7 +41,7 @@ func (_m *PublishResult) Get(ctx context.Context) (string, error) {
 	return r0, r1
 }
 
-// Ready provides a mock function with given fields:
+// Ready provides a mock function with no fields
 func (_m *PublishResult) Ready() <-chan struct{} {
 	ret := _m.Called()
 

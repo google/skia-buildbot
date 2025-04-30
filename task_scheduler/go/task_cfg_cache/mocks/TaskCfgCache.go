@@ -38,7 +38,7 @@ func (_m *TaskCfgCache) Cleanup(ctx context.Context, period time.Duration) error
 	return r0
 }
 
-// Close provides a mock function with given fields:
+// Close provides a mock function with no fields
 func (_m *TaskCfgCache) Close() error {
 	ret := _m.Called()
 

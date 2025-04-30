@@ -16,7 +16,7 @@ type Client struct {
 	mock.Mock
 }
 
-// Close provides a mock function with given fields:
+// Close provides a mock function with no fields
 func (_m *Client) Close() error {
 	ret := _m.Called()
 
@@ -154,7 +154,7 @@ func (_m *Client) DetachSubscription(ctx context.Context, sub string) (*gopubsub
 	return r0, r1
 }
 
-// Project provides a mock function with given fields:
+// Project provides a mock function with no fields
 func (_m *Client) Project() string {
 	ret := _m.Called()
 

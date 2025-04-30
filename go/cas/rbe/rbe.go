@@ -264,7 +264,7 @@ func (c *Client) mergeTrees(ctx context.Context, a, b *directoryNode) (*director
 		exist, ok := filesMap[file.Name]
 		if ok {
 			if err := checkFilesIdentical(file, exist); err != nil {
-				return nil, skerr.Wrapf(err, file.Name)
+				return nil, skerr.Wrapf(err, "file %s", file.Name)
 			}
 		} else {
 			filesMap[file.Name] = file
@@ -289,7 +289,7 @@ func (c *Client) mergeTrees(ctx context.Context, a, b *directoryNode) (*director
 		exist, ok := symlinksMap[symlink.Name]
 		if ok {
 			if err := checkSymlinksIdentical(symlink, exist); err != nil {
-				return nil, skerr.Wrapf(err, symlink.Name)
+				return nil, skerr.Wrapf(err, "symlink %s", symlink.Name)
 			}
 		} else {
 			symlinksMap[symlink.Name] = symlink

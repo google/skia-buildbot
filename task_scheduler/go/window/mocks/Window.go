@@ -16,7 +16,7 @@ type Window struct {
 	mock.Mock
 }
 
-// EarliestStart provides a mock function with given fields:
+// EarliestStart provides a mock function with no fields
 func (_m *Window) EarliestStart() time.Time {
 	ret := _m.Called()
 
@@ -52,7 +52,7 @@ func (_m *Window) Start(repo string) time.Time {
 	return r0
 }
 
-// StartTimesByRepo provides a mock function with given fields:
+// StartTimesByRepo provides a mock function with no fields
 func (_m *Window) StartTimesByRepo() map[string]time.Time {
 	ret := _m.Called()
 

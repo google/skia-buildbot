@@ -17,7 +17,7 @@ type CapacityClient struct {
 	mock.Mock
 }
 
-// CapacityMetrics provides a mock function with given fields:
+// CapacityMetrics provides a mock function with no fields
 func (_m *CapacityClient) CapacityMetrics() map[string]capacity.BotConfig {
 	ret := _m.Called()
 

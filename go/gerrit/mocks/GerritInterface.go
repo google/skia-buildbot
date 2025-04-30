@@ -89,7 +89,7 @@ func (_m *GerritInterface) Approve(_a0 context.Context, _a1 *gerrit.ChangeInfo, 
 	return r0
 }
 
-// Config provides a mock function with given fields:
+// Config provides a mock function with no fields
 func (_m *GerritInterface) Config() *gerrit.Config {
 	ret := _m.Called()
 
@@ -541,7 +541,7 @@ func (_m *GerritInterface) GetPatch(_a0 context.Context, _a1 int64, _a2 string, 
 	return r0, r1
 }
 
-// GetRepoUrl provides a mock function with given fields:
+// GetRepoUrl provides a mock function with no fields
 func (_m *GerritInterface) GetRepoUrl() string {
 	ret := _m.Called()
 
@@ -617,7 +617,7 @@ func (_m *GerritInterface) GetUserEmail(_a0 context.Context) (string, error) {
 	return r0, r1
 }
 
-// Initialized provides a mock function with given fields:
+// Initialized provides a mock function with no fields
 func (_m *GerritInterface) Initialized() bool {
 	ret := _m.Called()
 

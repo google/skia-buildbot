@@ -49,7 +49,7 @@ func (_m *CurrentChangesCache) Add(ctx context.Context, changeEquivalentPatchset
 	return r0, r1, r2
 }
 
-// Get provides a mock function with given fields:
+// Get provides a mock function with no fields
 func (_m *CurrentChangesCache) Get() map[string]*types.CurrentlyProcessingChange {
 	ret := _m.Called()
 

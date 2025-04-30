@@ -21,7 +21,7 @@ func (_m *JobCache) AddJobs(_a0 []*types.Job) {
 	_m.Called(_a0)
 }
 
-// GetAllCachedJobs provides a mock function with given fields:
+// GetAllCachedJobs provides a mock function with no fields
 func (_m *JobCache) GetAllCachedJobs() []*types.Job {
 	ret := _m.Called()
 
@@ -191,7 +191,7 @@ func (_m *JobCache) GetMatchingJobsFromDateRange(names []string, from time.Time,
 	return r0, r1
 }
 
-// InProgressJobs provides a mock function with given fields:
+// InProgressJobs provides a mock function with no fields
 func (_m *JobCache) InProgressJobs() ([]*types.Job, error) {
 	ret := _m.Called()
 
@@ -221,7 +221,7 @@ func (_m *JobCache) InProgressJobs() ([]*types.Job, error) {
 	return r0, r1
 }
 
-// LastUpdated provides a mock function with given fields:
+// LastUpdated provides a mock function with no fields
 func (_m *JobCache) LastUpdated() time.Time {
 	ret := _m.Called()
 
@@ -239,7 +239,7 @@ func (_m *JobCache) LastUpdated() time.Time {
 	return r0
 }
 
-// RequestedJobs provides a mock function with given fields:
+// RequestedJobs provides a mock function with no fields
 func (_m *JobCache) RequestedJobs() ([]*types.Job, error) {
 	ret := _m.Called()
 

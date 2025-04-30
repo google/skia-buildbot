@@ -16,7 +16,7 @@ type Controller struct {
 	mock.Mock
 }
 
-// DeviceIDs provides a mock function with given fields:
+// DeviceIDs provides a mock function with no fields
 func (_m *Controller) DeviceIDs() []powercycle.DeviceID {
 	ret := _m.Called()
 

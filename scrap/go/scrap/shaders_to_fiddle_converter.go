@@ -28,12 +28,12 @@ func extractBodyUniforms(body ScrapBody) ([]uniformValue, error) {
 func writeShaderProgramAsCPPStringConstant(w io.StringWriter, node scrapNode) {
 	mustWriteStringf(w, "    constexpr char prog%s[] = R\"(\n", node.Name)
 
-	mustWriteStringf(w, indentMultilineString(skslDefaultInputs, 8))
+	mustWriteStringf(w, "%s", indentMultilineString(skslDefaultInputs, 8))
 
 	mustWriteStringf(w, "\n")
 	writeShaderInputDefinitions(w, node, 8)
 	mustWriteStringf(w, "\n")
-	mustWriteStringf(w, indentMultilineString(node.Scrap.Body, 8))
+	mustWriteStringf(w, "%s", indentMultilineString(node.Scrap.Body, 8))
 
 	mustWriteStringf(w, "\n    )\";")
 }

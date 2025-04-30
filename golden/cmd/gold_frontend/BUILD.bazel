@@ -39,7 +39,7 @@ go_library(
         "@com_github_jackc_pgx_v4//pgxpool",
         "@com_github_unrolled_secure//:secure",
         "@org_golang_google_api//storage/v1:storage",
-        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//:grpc",
         "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_oauth2//google",
     ],
