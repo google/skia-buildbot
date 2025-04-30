@@ -2,6 +2,7 @@
 package workflows
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
+	"golang.org/x/exp/maps"
 )
 
 // Workflow name definitions.
@@ -84,6 +86,16 @@ type TestRun struct {
 	CAS *apipb.CASReference
 	// Values is sampled values for each benchmark story.
 	Values map[string][]float64
+}
+
+// GetAllCharts returns all charts part of a test run in alphabetical order
+func (tr *TestRun) GetAllCharts() []string {
+	if tr == nil || tr.Values == nil {
+		return nil
+	}
+	charts := maps.Keys(tr.Values)
+	slices.Sort(charts)
+	return charts
 }
 
 // IsEmptyValues checks the TestRun if there are values at that chart

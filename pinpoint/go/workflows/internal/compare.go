@@ -117,3 +117,21 @@ func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag 
 func ComparePairwiseActivity(ctx context.Context, valuesA, valuesB []float64, dir compare.ImprovementDir) (*compare.ComparePairwiseResult, error) {
 	return compare.ComparePairwise(valuesA, valuesB, dir)
 }
+
+func comparePairwiseRuns(ctx workflow.Context, pr *PairwiseRun, dir compare.ImprovementDir) (map[string]compare.ComparePairwiseResult, error) {
+	charts := pr.GetCommonCharts()
+	results := map[string]compare.ComparePairwiseResult{}
+	for _, chart := range charts {
+		pr.removeDataUntilBalanced(chart)
+
+		lValues := pr.Left.AllValues(chart)
+		rValues := pr.Right.AllValues(chart)
+		var res compare.ComparePairwiseResult
+		if err := workflow.ExecuteActivity(ctx, ComparePairwiseActivity, lValues, rValues, dir).Get(ctx, &res); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		results[chart] = res
+	}
+
+	return results, nil
+}

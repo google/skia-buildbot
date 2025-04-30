@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"math/rand"
+	"slices"
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
@@ -46,6 +48,53 @@ type PairwiseRun struct {
 	// another pair that went in the other order needs to be tossed
 	// from the data analysis to ensure balancing.
 	Order []workflows.PairwiseOrder
+}
+
+// GetCommonCharts returns charts common to both left and right commits in alphabetical order.
+// In theory, benchmark/story runs should return a deterministic set of charts.
+// However, benchmarks are known to be buggy. Rather than fail the job, we log a warning.
+func (pr *PairwiseRun) GetCommonCharts() []string {
+	lCharts := make(map[string]string)
+	rCharts := make(map[string]string)
+	for _, tr := range pr.Left.Runs {
+		for _, c := range tr.GetAllCharts() {
+			lCharts[c] = tr.TaskID // store the swarming task ID of the run for debug
+		}
+	}
+	for _, tr := range pr.Right.Runs {
+		for _, c := range tr.GetAllCharts() {
+			rCharts[c] = tr.TaskID
+		}
+	}
+
+	// return nil if the benchmark runner failed on all tasks for either commit
+	if len(lCharts) == 0 || len(rCharts) == 0 {
+		return nil
+	}
+
+	charts := []string{}
+	// find charts that show up in both left and right
+	for c, id := range lCharts {
+		if _, ok := rCharts[c]; !ok {
+			// TODO(b/414823001): Monitor this warning on a dashboard and fire an alert when the incident rate is too high
+			// Alternatively if the overall incident rate is low, escalate this log to an error.
+			sklog.Warningf("Chart %s found in left charts but not right. Implies error with benchmark runner. See swarming task %s", c, id)
+		} else {
+			charts = append(charts, c)
+		}
+	}
+
+	// double check any charts that show up in the right run but not the left
+	for c, id := range rCharts {
+		if _, ok := lCharts[c]; !ok {
+			// TODO(b/414823001): Monitor this warning on a dashboard and fire an alert when the incident rate is too high
+			// Alternatively if the overall incident rate is low, escalate this log to an error.
+			sklog.Warningf("Chart %s found in right charts but not left. Implies error with benchmark runner. See swarming task %s", c, id)
+		}
+	}
+
+	slices.Sort(charts)
+	return charts
 }
 
 // Returns true if one or both commits in the pair is missing data for the chart
@@ -290,6 +339,9 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	leftRuns := fetchAllFromChannel[*workflows.TestRun](ctx, leftRunCh)
 	rightRuns := fetchAllFromChannel[*workflows.TestRun](ctx, rightRunCh)
 	// collect values from CAS
+	// TODO(b/406763900): Benchmarks do not return a deterministic number of data points for each run
+	// so for a given pair, if one returns more data than the other, truncate data points until both
+	// commits have the same number of data points for a given iteration
 	for i := 0; i < int(pc.Iterations); i++ {
 		if leftRuns[i].CAS == nil || rightRuns[i].CAS == nil {
 			continue

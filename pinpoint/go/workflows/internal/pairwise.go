@@ -69,26 +69,36 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 		return nil, skerr.Wrap(err)
 	}
 
-	pr.removeDataUntilBalanced(p.Request.Chart)
-
-	lValues := pr.Left.AllValues(p.Request.Chart)
-	rValues := pr.Right.AllValues(p.Request.Chart)
-	var res compare.ComparePairwiseResult
-	if err := workflow.ExecuteActivity(ctx, ComparePairwiseActivity, lValues, rValues, p.GetImprovementDirection()).Get(ctx, &res); err != nil {
-		return nil, skerr.Wrap(err)
+	results, err := comparePairwiseRuns(ctx, pr, compare.UnknownDir)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to compare pairwise runs")
 	}
 
-	// significant variable is explciitly set to false.
+	// significant variable is explicitly set to false.
 	// This value is used in CulpritFinder to determine whether to bisect.
 	// Significant = true means that there's indeed a regression and it should
 	// be investigated. If significant is not explicitly set to False, we see
 	// Temporal workflows with Significant and Culprit omitted because the resolve
 	// to nil.
+	// TODO(b/406763900): Migrate this logic to culprit_finder workflow. Pairwise
+	// workflow should just return the results of all charts.
+	res := results[p.Request.Chart]
 	significant := false
 	var culprit *pinpoint_proto.CombinedCommit
 	if res.Verdict == compare.Different {
 		significant = true
 		culprit = (*pinpoint_proto.CombinedCommit)(pairwiseRunnerParams.RightCommit)
+	}
+
+	protoResults := map[string]*pinpoint_proto.PairwiseExecution_WilcoxonResult{}
+	for chart, res := range results {
+		protoResults[chart] = &pinpoint_proto.PairwiseExecution_WilcoxonResult{
+			PValue:                   res.PValue,
+			ConfidenceIntervalLower:  res.LowerCi,
+			ConfidenceIntervalHigher: res.UpperCi,
+			ControlMedian:            res.XMedian,
+			TreatmentMedian:          res.YMedian,
+		}
 	}
 
 	return &pinpoint_proto.PairwiseExecution{
@@ -102,6 +112,7 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 			TreatmentMedian:          res.YMedian,
 		},
 		Culprit: culprit,
+		Results: protoResults,
 	}, nil
 }
 

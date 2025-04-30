@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -177,23 +176,34 @@ func TestCompareActivity_FunctionalSame_ReturnsPerformance(t *testing.T) {
 	assert.Equal(t, Performance, actual.ResultType)
 }
 
-func TestComparePairwise_GivenSameValues_ReturnsResult(t *testing.T) {
+func TestComparePairwiseActivity_ReturnsSameResultAsComparePairwise(t *testing.T) {
+	test := func(name string, valuesA, valuesB []float64) {
+		t.Run(name, func(t *testing.T) {
+			expectedPerf, err := compare.ComparePairwise(valuesA, valuesB, compare.UnknownDir)
+			require.NoError(t, err)
+
+			testSuite := &testsuite.WorkflowTestSuite{}
+			env := testSuite.NewTestActivityEnvironment()
+			env.RegisterActivity(ComparePairwiseActivity)
+			res, err := env.ExecuteActivity(ComparePairwiseActivity, valuesA, valuesB, compare.UnknownDir)
+			require.NoError(t, err)
+
+			var actual *compare.ComparePairwiseResult
+			err = res.Get(&actual)
+			require.NoError(t, err)
+			assert.Equal(t, expectedPerf, actual)
+		})
+	}
+
 	valuesA := []float64{8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008}
 	valuesB := []float64{14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408}
+	test("Given same valuesA and same valuesB but valuesA != valuesB", valuesA, valuesB)
 
-	expectedPerf, err := compare.ComparePairwise(valuesA, valuesB, compare.UnknownDir)
-	require.NoError(t, err)
-	require.False(t, math.IsNaN(expectedPerf.PairwiseWilcoxonSignedRankedTestResult.LowerCi))
-	require.False(t, math.IsNaN(expectedPerf.PairwiseWilcoxonSignedRankedTestResult.UpperCi))
+	valuesA = []float64{1.23, 1.31, 2, 3, 14.084364488155064}
+	valuesB = []float64{1.23, 1.31, 2, 3, 14.084364488155064}
+	test("Given valuesA = valuesB", valuesA, valuesB)
 
-	testSuite := &testsuite.WorkflowTestSuite{}
-	env := testSuite.NewTestActivityEnvironment()
-	env.RegisterActivity(ComparePairwiseActivity)
-	res, err := env.ExecuteActivity(ComparePairwiseActivity, valuesA, valuesB, compare.UnknownDir)
-	require.NoError(t, err)
-
-	var actual *compare.ComparePairwiseResult
-	err = res.Get(&actual)
-	require.NoError(t, err)
-	assert.Equal(t, expectedPerf, actual)
+	valuesA = []float64{8491008, 8491108, 8493008, 8451008, 8691008}
+	valuesB = []float64{1422540, 1462540, 1482540, 1492540, 1422540}
+	test("Given same valuesA and same valuesB but valuesA != valuesB", valuesA, valuesB)
 }

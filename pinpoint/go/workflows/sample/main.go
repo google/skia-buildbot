@@ -147,26 +147,18 @@ func triggerPairwiseWorkflow(c client.Client) (*pb.PairwiseExecution, error) {
 	ctx := context.Background()
 	p := &workflows.PairwiseParams{
 		Request: &pb.SchedulePairwiseRequest{
-			StartBuild: &pb.CASReference{
-				CasInstance: "projects/chrome-swarming/instances/default_instance",
-				Digest: &pb.CASReference_Digest{
-					Hash:      "34fafa444871df71a72f4ec70aa1f879493c5ab64cf6a3e295adfc51c7690e45",
-					SizeBytes: 811,
-				},
+			StartCommit: &pb.CombinedCommit{
+				Main: common.NewChromiumCommit("7738f0b5892caa13c0892ae16c4d4028cadeed64"),
 			},
-			EndBuild: &pb.CASReference{
-				CasInstance: "projects/chrome-swarming/instances/default_instance",
-				Digest: &pb.CASReference_Digest{
-					Hash:      "b7691e1cba44f4c569ccaa78d5fce76fe5e31f13e0706f40570514356b17b6e1",
-					SizeBytes: 811,
-				},
+			EndCommit: &pb.CombinedCommit{
+				Main: common.NewChromiumCommit("87fa284411e182debedee793a34122a0003e5720"),
 			},
-			Configuration:        "android-pixel4-perf",
-			Benchmark:            "system_health.memory_mobile",
-			Story:                "browse:chrome:omnibox:2019",
-			Chart:                "memory:chrome:all_processes:reported_by_chrome:cc:effective_size",
+			Configuration:        "mac-m1_mini_2020-perf",
+			Benchmark:            "speedometer3",
+			Story:                "Speedometer3",
+			Chart:                "Score",
 			AggregationMethod:    "mean",
-			InitialAttemptCount:  "30",
+			InitialAttemptCount:  "10",
 			ImprovementDirection: "DOWN",
 		},
 	}

@@ -292,6 +292,132 @@ func TestPairwiseRun_balanceData_GivenValidInput_WAI(t *testing.T) {
 	assert.NotNil(t, pr.Left.Runs[2].Values[mockChart])
 }
 
+func TestPairwiseRun_GetCommonCharts_GivenValidInput_ReturnCharts(t *testing.T) {
+	pr := PairwiseRun{
+		Left: CommitRun{
+			Runs: []*workflows.TestRun{
+				{},
+				{Values: nil},
+				{
+					TaskID: "6fe23234af8e5c10",
+					Values: map[string][]float64{
+						"chart-0": {2.2},
+						"chart-1": {1.1, 2.2, 3.3},
+						"chart-2": {4.4},
+					},
+				},
+			},
+		},
+		Right: CommitRun{
+			Runs: []*workflows.TestRun{
+				{
+					TaskID: "703496231b2ba210",
+					Values: map[string][]float64{
+						"chart-1": {2.6},
+						"chart-3": {8.9},
+					},
+				},
+				{
+					TaskID: "70346e410b361b10",
+					Values: map[string][]float64{
+						"chart-2": {5.5},
+					},
+				},
+				{},
+				{Values: nil},
+			},
+		},
+	}
+	charts := pr.GetCommonCharts()
+	assert.Equal(t, []string{"chart-1", "chart-2"}, charts)
+}
+
+func TestPairwiseRun_GetCommonCharts_GivenNil_ReturnsEmpty(t *testing.T) {
+	pr := PairwiseRun{
+		Left: CommitRun{
+			Runs: []*workflows.TestRun{
+				{},
+				{Values: nil},
+			},
+		},
+		Right: CommitRun{
+			Runs: []*workflows.TestRun{
+				{},
+				{Values: nil},
+			},
+		},
+	}
+	charts := pr.GetCommonCharts()
+	assert.Empty(t, charts)
+}
+
+func TestPairwiseRun_GetCommonCharts_GivenOneSetOfCharts_ReturnsEmpty(t *testing.T) {
+	pr := PairwiseRun{
+		Left: CommitRun{
+			Runs: []*workflows.TestRun{
+				{
+					TaskID: "703496231b2ba210",
+					Values: map[string][]float64{
+						"chart-1": {2.6},
+						"chart-2": {4.4},
+						"chart-3": {8.9},
+					},
+				},
+				{
+					TaskID: "70346e410b361b10",
+					Values: map[string][]float64{
+						"chart-1": {3.1},
+						"chart-2": {4.6},
+						"chart-3": {8.9},
+					},
+				},
+			},
+		},
+		Right: CommitRun{
+			Runs: []*workflows.TestRun{
+				{Values: nil},
+				{Values: nil},
+				{Values: nil},
+			},
+		},
+	}
+	charts := pr.GetCommonCharts()
+	assert.Nil(t, charts)
+
+	// reverse the order
+	pr = PairwiseRun{
+		Left: CommitRun{
+			Runs: []*workflows.TestRun{
+				{Values: nil},
+				{Values: nil},
+				{Values: nil},
+			},
+		},
+		Right: CommitRun{
+			Runs: []*workflows.TestRun{
+				{
+					TaskID: "703496231b2ba210",
+					Values: map[string][]float64{
+						"chart-1": {2.6},
+						"chart-2": {4.4},
+						"chart-3": {8.9},
+					},
+				},
+				{
+					TaskID: "70346e410b361b10",
+					Values: map[string][]float64{
+						"chart-1": {3.1},
+						"chart-2": {4.6},
+						"chart-3": {8.9},
+					},
+				},
+			},
+		},
+	}
+	charts = pr.GetCommonCharts()
+	assert.Nil(t, charts)
+}
+
 func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	const leftCommit = "573a50658f4301465569c3faf00a145093a1fe9b"
 	const rightCommit = "a633e198b79b2e0c83c72a3006cdffe642871e22"
