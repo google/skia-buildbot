@@ -325,7 +325,7 @@ export class ReportPageSk extends ElementSk {
   }
 
   private checkCommitIsRollout(commit: Commit) {
-    if (commit.message.includes('Roll' || 'roll')) {
+    if (commit.message.startsWith('Roll') || commit.message.startsWith('Manual roll')) {
       this.commitMap.set(commit, true);
     } else {
       this.commitMap.set(commit, false);
@@ -367,20 +367,17 @@ export class ReportPageSk extends ElementSk {
   // Using Regular Expressions to check whether the commit message
   // follows the pattern, e.g: "Roll repo from hash to hash"
   private checkIfCommitMessageFollowsRollPattern(message: string) {
-    const regex = /^Roll (.*?) from (.*?) to (.*?) \(.*?\)$/;
+    const regex = /^.+? from .+? to .+? \(.+?\)$/;
     // Execute the regex against the input string
     const match = regex.exec(message);
     return match ? true : false;
   }
 
   private findInternalCommitUrl(log: string) {
-    const regex = /^Body (.*)$/m;
-    const match = log.match(regex);
-
     // If a match is found, match[1] contains the captured group
     // (the text after "Body ")
-    if (match && match[1]) {
-      for (const line of match[1].split('\n')) {
+    if (log.includes('Body')) {
+      for (const line of log.split('\n')) {
         // Extract the internal log url
         // e,g: 'https://skia.googlesource.com/skia.git/+log/3ad6f8f84edd..dead00a73fb1'
         if (line.startsWith('https')) {
