@@ -38,6 +38,7 @@ import { DragToZoomBox } from './drag-to-zoom-box-sk';
 export interface PlotSelectionEventDetails {
   value: range;
   domain: 'commit' | 'date';
+  graphNumber?: number; // optional argument used to sync multi-graphs
 }
 
 export interface PlotShowTooltipEventDetails {
@@ -228,6 +229,10 @@ export class PlotGoogleChartSk extends LitElement {
 
   // Whether we are interacting with the chart that takes higher prioritiy than navigations.
   private chartInteracting = false;
+
+  // track whether the mouse has moved. Useful for determining if a user is clicking on
+  // a data point or panning
+  private isWindowMouseMove = false;
 
   // cache the googleChart object within the module
   private chart: google.visualization.CoreChartBase | null = null;
@@ -773,6 +778,7 @@ export class PlotGoogleChartSk extends LitElement {
     }
 
     if (this.navigationMode === 'pan') {
+      this.isWindowMouseMove = true;
       let deltaX = layout.getHAxisValue(this.lastMouse.x) - layout.getHAxisValue(e.x);
       // if date, scale by 1000 to adjust for timescale
       deltaX = this.domain === 'commit' ? deltaX : deltaX / 1000;
@@ -801,7 +807,10 @@ export class PlotGoogleChartSk extends LitElement {
       this.zoomRangeBox.value?.hide();
       return;
     }
-    if (this.navigationMode === 'pan') {
+    // clicking on a data point straight up and down causes chartMouseDown and
+    // onWindowMouseUp events to trigger before onChartSelect triggers.
+    // Skip panning event listeners if a user is clicking on a data point
+    if (this.navigationMode === 'pan' && this.isWindowMouseMove) {
       this.dispatchEvent(
         new CustomEvent<PlotSelectionEventDetails>('selection-changed', {
           bubbles: true,
@@ -813,6 +822,7 @@ export class PlotGoogleChartSk extends LitElement {
         })
       );
     }
+    this.isWindowMouseMove = false;
     this.navigationMode = null;
     this.chartInteracting = false;
   }

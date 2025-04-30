@@ -1846,8 +1846,9 @@ export class ExploreSimpleSk extends ElementSk {
 
     // If in multi-graph view, sync all graphs.
     // This event listener will not work on the alerts page
+    detail.graphNumber = Array.from(this.parentNode!.children).indexOf(this);
     this.dispatchEvent(
-      new CustomEvent('selection-changing-in-multi', {
+      new CustomEvent<PlotSelectionEventDetails>('selection-changing-in-multi', {
         bubbles: true,
         detail: detail,
       })
@@ -1880,8 +1881,9 @@ export class ExploreSimpleSk extends ElementSk {
 
     // If in multi-graph view, sync all graphs.
     // This event listener will not work on the alerts page
+    detail.graphNumber = Array.from(this.parentNode!.children).indexOf(this);
     this.dispatchEvent(
-      new CustomEvent('selection-changing-in-multi', {
+      new CustomEvent<PlotSelectionEventDetails>('selection-changing-in-multi', {
         bubbles: true,
         detail: detail,
       })

@@ -40,6 +40,7 @@ export interface PlotSummarySkSelectionEventDetails {
   end: number;
   value: range;
   domain: 'commit' | 'date';
+  graphNumber?: number; // optional argument used to sync multi-graphs
 }
 
 const dayInSeconds = 60 * 60 * 24;

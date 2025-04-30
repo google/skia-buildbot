@@ -9,6 +9,7 @@ sk_element(
         "//golden/modules/pagination-sk",
         "//perf/modules/favorites-dialog-sk",
         "//infra-sk/modules/alogin-sk",
+        "//perf/modules/plot-google-chart-sk",
     ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",

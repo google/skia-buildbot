@@ -22,6 +22,7 @@ import {
   LabelMode,
   updateShortcut,
 } from '../explore-simple-sk/explore-simple-sk';
+import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 
@@ -425,10 +426,13 @@ export class ExploreMultiSk extends ElementSk {
     });
   }
 
-  private syncChartSelection(e: CustomEvent): void {
+  private syncChartSelection(e: CustomEvent<PlotSelectionEventDetails>): void {
     const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
-    graphs.forEach((graph) => {
-      (graph as ExploreSimpleSk).updateSelectedRangeWithPlotSummary(e.detail.value);
+    graphs.forEach((graph, i) => {
+      // only update graph that isn't selected
+      if (i !== e.detail.graphNumber) {
+        (graph as ExploreSimpleSk).updateSelectedRangeWithPlotSummary(e.detail.value);
+      }
     });
   }
 
