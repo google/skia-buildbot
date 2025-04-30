@@ -62,9 +62,8 @@ export class PerfScaffoldSk extends ElementSk {
   private static template = (ele: PerfScaffoldSk) => html`
   <app-sk>
     <header id=topbar>
-      <h1 class=name>Perf</h1>
+      <h1 class=name>${ele.instanceTitleTemplate()}</h1>
       <div class=spacer></div>
-      <div class="instance">${ele.instanceTitleTemplate()}</div>
       <alogin-sk url=/_/login/status></alogin-sk>
       <theme-chooser-sk></theme-chooser-sk>
     </header>
@@ -130,7 +129,7 @@ export class PerfScaffoldSk extends ElementSk {
 
   private instanceTitleTemplate() {
     if (window.perf.instance_url) {
-      return html`<a>Instance: ${this.extractInstanceNameFromUrl(window.perf.instance_url)}</a>`;
+      return html`<a>${this.extractInstanceNameFromUrl(window.perf.instance_url)}</a>`;
     }
   }
 
@@ -143,7 +142,7 @@ export class PerfScaffoldSk extends ElementSk {
     // If a match is found, the captured group (the part between https:// and .)
     // will be at index 1 of the match array.
     if (match && match[1]) {
-      return match[1];
+      return match[1].at(0)!.toUpperCase() + match[1].substring(1);
     }
     return '';
   }
