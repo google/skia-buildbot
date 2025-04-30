@@ -61,6 +61,9 @@ func NewTraceParamStore(db pool.Pool) *SQLTraceParamStore {
 
 // ReadParams reads the parameters for the given set of traceIds.
 func (s *SQLTraceParamStore) ReadParams(ctx context.Context, traceIds []string) (map[string]paramtools.Params, error) {
+	if len(traceIds) == 0 {
+		return nil, nil
+	}
 	readContext := traceParamsContext{
 		MD5HexTraceIDs: traceIds,
 	}
@@ -92,6 +95,7 @@ func (s *SQLTraceParamStore) ReadParams(ctx context.Context, traceIds []string) 
 		traceIdString := traceIDForSQLFromTraceIDAsBytes(trace_id)
 		traceParams[string(traceIdString)] = params
 	}
+
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}

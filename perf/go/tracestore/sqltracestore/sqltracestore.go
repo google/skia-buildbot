@@ -190,12 +190,13 @@ const (
 	writeTracesPostingsChunkSize  = 100
 	writeTracesParamSetsChunkSize = 100
 
-	// See writeTracesChunkSize.
-	readTracesChunkSize = 100
+	// queryTracesChunkSize is the number of traces we try to read trace values for
+	// at a time.
+	queryTracesChunkSize = 10000
 
-	// queryTraceIDsChunkSize is the number of traceids we try to resolve into
-	// Params at one time.
-	queryTraceIDsChunkSize = 10000
+	// queryTraceParamsChunkSize is the number of traces we try to convert into
+	// params in a single request.
+	queryTraceParamsChunkSize = 2000
 
 	// Number of parallel requests sent to the database when servicing a single
 	// query. 30 matches the max number of cores we use on a clustering instance.
@@ -277,7 +278,6 @@ const (
 	traceCount
 	queryTraceIDs
 	queryTraceIDsByKeyValue
-	convertTraceIDs
 	readTraces
 	getLastNSources
 	getTraceIDsBySource
@@ -311,22 +311,6 @@ var templates = map[statement]string{
             )
         {{ end }}
         `,
-	convertTraceIDs: `
-        {{ $tileNumber := .TileNumber }}
-        SELECT
-            key_value, trace_id
-        FROM
-            Postings@by_trace_id
-            {{ .AsOf }}
-        WHERE
-            tile_number = {{ $tileNumber }}
-            AND trace_id IN (
-                {{ range $index, $trace_id :=  .TraceIDs -}}
-                    {{ if $index }},{{ end -}}
-                    '{{ $trace_id }}'
-                {{ end -}}
-            )
-    `,
 	queryTraceIDs: `
         {{ $key := .Key }}
         SELECT
@@ -507,13 +491,6 @@ type queryTraceIDsByKeyValueContext struct {
 	TileNumber types.TileNumber
 	Key        string
 	Values     []string
-	AsOf       string
-}
-
-// convertTracesContext is the context for the convertTraceIDs template.
-type convertTraceIDsContext struct {
-	TileNumber types.TileNumber
-	TraceIDs   []traceIDForSQL
 	AsOf       string
 }
 
@@ -1328,7 +1305,6 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 		// that don't appear in a tile, which means the query won't work on this
 		// tile, but it may still work on other tiles, so we just don't return
 		// any results for this tile.
-		sklog.Infof("QueryPlan takes %v returns error: %v", ps, err.Error())
 		close(outParams)
 		return outParams, nil
 	}
@@ -1447,136 +1423,61 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 
 	// Now AND together the results of all the unionChannels.
 	traceIDsCh := newIntersect(ctx, unionChannels)
-	sklog.Debugf("Found %d unique trace ids for the query plan: %v", len(traceIDsCh), plan)
 
-	// And then convert the results of the AND into Params, which we sent out
-	// the channel we'll return from this function.
-	chunkChannel := make(chan []traceIDForSQL)
-	if optimizeSQLTraceStore {
-		chunkChannel = make(chan []traceIDForSQL, poolSize)
+	// traceIDsCh supplies the relevant trace ids matching the query.
+	// Now let's collect the unique traceIds from the channel and then get the params
+	// for those traces.
+	traceIdsMap := map[traceIDForSQL]bool{}
+	uniqueTraceIds := []string{}
+	for hexEncodedTraceID := range traceIDsCh {
+		if _, ok := traceIdsMap[hexEncodedTraceID]; !ok {
+			uniqueTraceIds = append(uniqueTraceIds, string(hexEncodedTraceID))
+		}
+		traceIdsMap[hexEncodedTraceID] = true
 	}
-	go func() {
-		defer close(outParams)
-
-		// Start a pool of workers.
-		g, ctx := errgroup.WithContext(ctx)
-		for i := 0; i < poolSize; i++ {
-			g.Go(func() error {
-				ctx, span := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly.convertToParamsWorker")
-				defer span.End()
-
-				for chunk := range chunkChannel {
-					if err := ctx.Err(); err != nil {
-						return skerr.Wrap(err)
-					}
-					if err := s.convertHexTraceIdsToParams(ctx, chunk, tileNumber, outParams); err != nil {
-						// Drain the channel before returning the err.
-						for range chunkChannel {
-						}
-						return skerr.Wrap(err)
-					}
-				}
-				return nil
-			})
-		}
-
-		// Now feed the pool of workers chunks to resolve.
-		currentChunk := []traceIDForSQL{}
-		for hexEncodedTraceID := range traceIDsCh {
-			currentChunk = append(currentChunk, hexEncodedTraceID)
-			if len(currentChunk) >= queryTraceIDsChunkSize {
-				chunkChannel <- currentChunk
-				currentChunk = []traceIDForSQL{}
-			}
-		}
-		// Now handle any remaining values in the currentChunk.
-		chunkChannel <- currentChunk
-
-		close(chunkChannel)
-		if err := g.Wait(); err != nil {
-			sklog.Error(err)
-		}
-	}()
+	// Populate the outParams channel with the params for the traceIds.
+	err = s.populateParamsForTraces(ctx, uniqueTraceIds, outParams)
+	if err != nil {
+		sklog.Errorf("Error converting traceIds to params: %v", err)
+		return outParams, err
+	}
 
 	return outParams, nil
 }
 
-// convertHexTraceIdsToParams queries the database for all the key=value pairs
-// that make up the currentBatch of traceIDs, build Params for each trace id,
-// and then emits those Params on the 'outParams' channel.
-func (s *SQLTraceStore) convertHexTraceIdsToParams(ctx context.Context, currentBatch []traceIDForSQL, tileNumber types.TileNumber, outParams chan paramtools.Params) error {
-	ctx, span := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly.convertHexTraceIdsToParams")
-	defer span.End()
+// populateParamsForTraces reads the params for the hex encoded traceIds and posts them on
+// the outParams channel.
+func (s *SQLTraceStore) populateParamsForTraces(ctx context.Context, traceIds []string, outParams chan paramtools.Params) error {
+	// The goroutine below handles reading of the trace params in chunks.
+	// We run this in a separate thread so that the upstream code that reads the outParams channel
+	// can start reading this information without having to wait for all the traceIds to be completely read.
+	go func() {
+		ctx, span := trace.StartSpan(ctx, "sqltracestore.ReadTraceParams")
+		defer span.End()
 
-	context := convertTraceIDsContext{
-		TileNumber: tileNumber,
-		TraceIDs:   currentBatch,
-		AsOf:       "",
-	}
-	if s.enableFollowerReads {
-		context.AsOf = followerReadsStatement
-	}
+		// Close the channel when this goroutine completes signalling end of data.
+		defer close(outParams)
 
-	// Expand the template for the SQL.
-	var b bytes.Buffer
-	if err := s.unpreparedStatements[convertTraceIDs].Execute(&b, context); err != nil {
-		return skerr.Wrapf(err, "failed to expand convertTraceIDs template")
-	}
-	sql := b.String()
-	queryCtx, querySpan := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly.convertHexTraceIdsToParams.ExecuteSQLQuery")
-	rows, err := s.db.Query(queryCtx, sql)
-	querySpan.End()
-	if err != nil {
-		return skerr.Wrapf(err, "SQL: %q", sql)
-	}
-
-	// We build up the Params for each matching trace id row-by-row. That
-	// is, each row contains the trace_id of a trace that matches the query,
-	// and a single key=value pair from the trace name.
-
-	// As we scan we keep track of the current trace_id we are on, since the
-	// query returns rows ordered by trace_id we know they are all grouped
-	// together.
-	var currentTraceID []byte
-	p := paramtools.Params{}
-	for rows.Next() {
-		var keyValue string
-		var traceIDAsBytes []byte
-		if err := rows.Scan(&keyValue, &traceIDAsBytes); err != nil {
-			sklog.Errorf("Failed to scan traceName: %s", skerr.Wrap(err))
-			return err
-		}
-		// If we hit a new trace_id then emit the current Params we have
-		// built so far and start on a fresh Params.
-		if !bytes.Equal(currentTraceID, traceIDAsBytes) {
-			// Don't emit on the first row, i.e. before we've actually done
-			// any work.
-			if currentTraceID != nil {
-				outParams <- p
-			} else {
-				currentTraceID = make([]byte, len(traceIDAsBytes))
+		span.AddAttributes(trace.Int64Attribute("trace_count", int64(len(traceIds))))
+		err := util.ChunkIterParallelPool(ctx, len(traceIds), queryTraceParamsChunkSize, poolSize, func(ctx context.Context, startIdx, endIdx int) error {
+			traceIdChunk := traceIds[startIdx:endIdx]
+			params, err := s.traceParamStore.ReadParams(ctx, traceIdChunk)
+			if err != nil {
+				sklog.Errorf("Error reading params:%v", err)
+				return err
 			}
-			p = paramtools.Params{}
-			copy(currentTraceID, traceIDAsBytes)
+
+			// Report the params for the current chunk.
+			for _, param := range params {
+				outParams <- param
+			}
+
+			return nil
+		})
+		if err != nil {
+			sklog.Errorf("Error retrieving trace ids: %v", err)
 		}
-
-		// Add to the current Params.
-		parts := strings.SplitN(keyValue, "=", 2)
-		if len(parts) != 2 {
-			sklog.Warningf("Found invalid key=value pair in Postings: %q", keyValue)
-			continue
-		}
-		p[parts[0]] = parts[1]
-	}
-	if err := rows.Err(); err != nil && err != pgx.ErrNoRows {
-		return skerr.Wrapf(err, "Failed while reading traceNames")
-	}
-
-	// Make sure to emit the last trace id.
-	if currentTraceID != nil {
-		outParams <- p
-	}
-
+	}()
 	return nil
 }
 
@@ -1679,7 +1580,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 
 		trID := traceIDForSQLFromTraceName(key)
 		currentChunk = append(currentChunk, trID)
-		if len(currentChunk) >= queryTraceIDsChunkSize {
+		if len(currentChunk) >= queryTracesChunkSize {
 			chunkChannel <- currentChunk
 			currentChunk = []traceIDForSQL{}
 		}

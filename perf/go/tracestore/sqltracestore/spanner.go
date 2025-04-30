@@ -34,22 +34,6 @@ var spannerTemplates = map[statement]string{
          SET trace_id=EXCLUDED.trace_id, commit_number=EXCLUDED.commit_number, val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id,
             benchmark=EXCLUDED.benchmark, bot=EXCLUDED.bot, test=EXCLUDED.test, subtest_1=EXCLUDED.subtest_1, subtest_2=EXCLUDED.subtest_2, subtest_3=EXCLUDED.subtest_3
         `,
-	convertTraceIDs: `
-        {{ $tileNumber := .TileNumber }}
-        SELECT
-            key_value, trace_id
-        FROM
-            Postings
-        WHERE
-            tile_number = {{ $tileNumber }}
-            AND trace_id IN (
-                {{ range $index, $trace_id :=  .TraceIDs -}}
-                    {{ if $index }},{{ end -}}
-                    '{{ $trace_id }}'
-                {{ end -}}
-            )
-        ORDER BY trace_id
-    `,
 	queryTraceIDs: `
         {{ $key := .Key }}
         SELECT
