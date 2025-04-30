@@ -323,12 +323,25 @@ func (g *Impl) Update(ctx context.Context) error {
 			}
 		}
 
+		// Check if the commit has already been inserted first. It is quite possible that
+		// multiple services/threads are calling Update at the same time and considering
+		// the git log api call can take a bit of time to return we can end up in
+		// situations where multiple insertions of the same commit occur. Thus we check
+		// first if the commit has already been inserted in the table first before adding
+		// it. The commit_number PK column auto increments when it's not repo supplied,
+		// hence the ON CONFLICT clause doesn't really provide protection.
+		commitNumber, err := g.CommitNumberFromGitHash(ctx, p.GitHash)
+		if err == nil && commitNumber != types.BadCommitNumber {
+			sklog.Infof("Commit %s already present in the database.", p.GitHash)
+			return nil
+		}
+
 		// Add p to the database starting at nextCommitNumber.
 		insertStmt := insert
 		if g.instanceConfig.DataStoreConfig.DataStoreType == config.SpannerDataStoreType {
 			insertStmt = insertSpanner
 		}
-		_, err := g.db.Exec(ctx, statements[insertStmt], nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)
+		_, err = g.db.Exec(ctx, statements[insertStmt], nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to insert commit %q into database.", p.GitHash)
 		}
