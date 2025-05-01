@@ -620,7 +620,7 @@ filegroup(
 )
 """,
     sha256 = "2dbb655dddc113eb14659e121839a9d3a5de34544ce88a1dd4dd88c23d436ae3",
-    urls = ["https://storage.googleapis.com/pgadapter-jar-releases/pgadapter.tar.gz"],
+    urls = ["https://storage.googleapis.com/pgadapter-jar-releases/pgadapter-v0.47.1.tar.gz"],
 )
 
 #################################################################################
