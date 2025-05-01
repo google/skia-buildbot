@@ -31,7 +31,8 @@
         "enable_follower_reads": true
     },
     "experiments": {
-	    "remove_default_stat_value": true
+	"remove_default_stat_value": true,
+	"enable_skia_bridge_aggregation": true
     },
     "ingestion_config": {
         "source_config": {
