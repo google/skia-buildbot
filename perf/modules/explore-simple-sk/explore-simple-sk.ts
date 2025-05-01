@@ -574,6 +574,10 @@ export class ExploreSimpleSk extends ElementSk {
 
   enable_copy_query: boolean = false;
 
+  private xAxisSwitch = false;
+
+  private zoomDirectionSwitch = false;
+
   private summaryOptionsField: Ref<PickerFieldSk> = createRef();
 
   // Map with displayed summary bar option as key and trace key
@@ -668,7 +672,7 @@ export class ExploreSimpleSk extends ElementSk {
                 <md-switch
                   form="form"
                   id="commit-switch"
-                  ?selected="${ele._state!.labelMode === LabelMode.CommitPosition}"
+                  ?selected="${ele.xAxisSwitch}"
                   @change=${(e: InputEvent) => ele.switchXAxis(e.target as MdSwitch)}></md-switch>
                 X-Axis as Commit Positions
               </label>
@@ -678,7 +682,7 @@ export class ExploreSimpleSk extends ElementSk {
                 <md-switch
                   form="form"
                   id="zoom-direction-switch"
-                  ?selected="${ele._state!.horizontal_zoom === true}"
+                  ?selected="${ele.zoomDirectionSwitch}"
                   @change=${(e: InputEvent) => ele.switchZoom(e.target as MdSwitch)}></md-switch>
                 Switch Zoom Direction
               </label>
@@ -1360,12 +1364,13 @@ export class ExploreSimpleSk extends ElementSk {
     if (!plot) {
       return;
     }
+    this.xAxisSwitch = !this.xAxisSwitch;
     if (target!.selected) {
-      this._state.labelMode = LabelMode.CommitPosition;
-    } else {
       this._state.labelMode = LabelMode.Date;
+    } else {
+      this._state.labelMode = LabelMode.CommitPosition;
     }
-
+    this.render();
     const anomalyMap = plot.anomalyDataMap;
     plot.removeAll();
     this.AddPlotLines(this._dataframe.traceset, this.getLabels(this._dataframe.header!));
@@ -1401,11 +1406,13 @@ export class ExploreSimpleSk extends ElementSk {
   };
 
   private switchZoom(target: MdSwitch | null) {
+    this.zoomDirectionSwitch = !this.zoomDirectionSwitch;
     if (target!.selected) {
-      this.state.horizontal_zoom = false;
-    } else {
       this.state.horizontal_zoom = true;
+    } else {
+      this.state.horizontal_zoom = false;
     }
+    this.render();
     const detail = {
       key: this.state.horizontal_zoom,
     };
