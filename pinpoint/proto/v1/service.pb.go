@@ -28,6 +28,76 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Swarming task statuses. These definitions have been condensed
+// down to a few categories pertaining to the Perf on CQ use case.
+// The statuses are based on swarming V2's enum definitions.
+// https://pkg.go.dev/go.chromium.org/luci/swarming/proto/api_v2#TaskState
+// BENCHMARK_FAILURE is the only status not listed amongst the swarming
+// enums.
+type SwarmingStatus int32
+
+const (
+	SwarmingStatus_UNSPECIFIED SwarmingStatus = 0
+	// COMPLETED means the swarming task succeeded and the benchmark ran.
+	SwarmingStatus_COMPLETED SwarmingStatus = 1
+	// BENCHMARK_FAILURE means that the swarming task completed but
+	// the benchmark run itself failed. If a user sees a lot of BENCHMARK_FAILUREs
+	// on their CL but none on the tip of tree during presubmit, that implies
+	// their CL could be the cause of flakiness. This status is the only one
+	// not included in swarming.
+	SwarmingStatus_BENCHMARK_FAILURE SwarmingStatus = 2
+	// FAILURE status encompass all swarming potential failures i.e.
+	// BOT_DIED, NO_RESOURCE, CANCELLED, TIMED_OUT
+	SwarmingStatus_FAILURE SwarmingStatus = 3
+	// RUNNING status encompasses PENDING and RUNNING.
+	SwarmingStatus_RUNNING SwarmingStatus = 4
+)
+
+// Enum value maps for SwarmingStatus.
+var (
+	SwarmingStatus_name = map[int32]string{
+		0: "UNSPECIFIED",
+		1: "COMPLETED",
+		2: "BENCHMARK_FAILURE",
+		3: "FAILURE",
+		4: "RUNNING",
+	}
+	SwarmingStatus_value = map[string]int32{
+		"UNSPECIFIED":       0,
+		"COMPLETED":         1,
+		"BENCHMARK_FAILURE": 2,
+		"FAILURE":           3,
+		"RUNNING":           4,
+	}
+)
+
+func (x SwarmingStatus) Enum() *SwarmingStatus {
+	p := new(SwarmingStatus)
+	*p = x
+	return p
+}
+
+func (x SwarmingStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SwarmingStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_service_proto_enumTypes[0].Descriptor()
+}
+
+func (SwarmingStatus) Type() protoreflect.EnumType {
+	return &file_service_proto_enumTypes[0]
+}
+
+func (x SwarmingStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SwarmingStatus.Descriptor instead.
+func (SwarmingStatus) EnumDescriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{0}
+}
+
 // The direct mirror of the existing bisect request in catapult.
 // https://chromium.googlesource.com/catapult.git/+/09398d/
 // dashboard/dashboard/pinpoint/models/job.py#339
@@ -715,6 +785,60 @@ func (x *CASReference) GetDigest() *CASReference_Digest {
 	return nil
 }
 
+type SwarmingTaskStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the swarming TaskID for debugging
+	TaskId string `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	// the swarming status of the task
+	Status        SwarmingStatus `protobuf:"varint,2,opt,name=status,proto3,enum=pinpoint.v1.SwarmingStatus" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SwarmingTaskStatus) Reset() {
+	*x = SwarmingTaskStatus{}
+	mi := &file_service_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SwarmingTaskStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SwarmingTaskStatus) ProtoMessage() {}
+
+func (x *SwarmingTaskStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SwarmingTaskStatus.ProtoReflect.Descriptor instead.
+func (*SwarmingTaskStatus) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SwarmingTaskStatus) GetTaskId() string {
+	if x != nil {
+		return x.TaskId
+	}
+	return ""
+}
+
+func (x *SwarmingTaskStatus) GetStatus() SwarmingStatus {
+	if x != nil {
+		return x.Status
+	}
+	return SwarmingStatus_UNSPECIFIED
+}
+
 type BisectExecution struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	JobId string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
@@ -730,7 +854,7 @@ type BisectExecution struct {
 
 func (x *BisectExecution) Reset() {
 	*x = BisectExecution{}
-	mi := &file_service_proto_msgTypes[8]
+	mi := &file_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -742,7 +866,7 @@ func (x *BisectExecution) String() string {
 func (*BisectExecution) ProtoMessage() {}
 
 func (x *BisectExecution) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[8]
+	mi := &file_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -755,7 +879,7 @@ func (x *BisectExecution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BisectExecution.ProtoReflect.Descriptor instead.
 func (*BisectExecution) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{8}
+	return file_service_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *BisectExecution) GetJobId() string {
@@ -835,7 +959,7 @@ type SchedulePairwiseRequest struct {
 
 func (x *SchedulePairwiseRequest) Reset() {
 	*x = SchedulePairwiseRequest{}
-	mi := &file_service_proto_msgTypes[9]
+	mi := &file_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -847,7 +971,7 @@ func (x *SchedulePairwiseRequest) String() string {
 func (*SchedulePairwiseRequest) ProtoMessage() {}
 
 func (x *SchedulePairwiseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[9]
+	mi := &file_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -860,7 +984,7 @@ func (x *SchedulePairwiseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchedulePairwiseRequest.ProtoReflect.Descriptor instead.
 func (*SchedulePairwiseRequest) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{9}
+	return file_service_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SchedulePairwiseRequest) GetStartCommit() *CombinedCommit {
@@ -978,14 +1102,16 @@ type PairwiseExecution struct {
 	// and if the result is significant
 	Culprit *CombinedCommit `protobuf:"bytes,4,opt,name=culprit,proto3" json:"culprit,omitempty"`
 	// The Wilcoxon statistical result of every single chart
-	Results       map[string]*PairwiseExecution_WilcoxonResult `protobuf:"bytes,5,rep,name=results,proto3" json:"results,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Results             map[string]*PairwiseExecution_WilcoxonResult `protobuf:"bytes,5,rep,name=results,proto3" json:"results,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	LeftSwarmingStatus  []*SwarmingTaskStatus                        `protobuf:"bytes,6,rep,name=left_swarming_status,json=leftSwarmingStatus,proto3" json:"left_swarming_status,omitempty"`
+	RightSwarmingStatus []*SwarmingTaskStatus                        `protobuf:"bytes,7,rep,name=right_swarming_status,json=rightSwarmingStatus,proto3" json:"right_swarming_status,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *PairwiseExecution) Reset() {
 	*x = PairwiseExecution{}
-	mi := &file_service_proto_msgTypes[10]
+	mi := &file_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -997,7 +1123,7 @@ func (x *PairwiseExecution) String() string {
 func (*PairwiseExecution) ProtoMessage() {}
 
 func (x *PairwiseExecution) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[10]
+	mi := &file_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1010,7 +1136,7 @@ func (x *PairwiseExecution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PairwiseExecution.ProtoReflect.Descriptor instead.
 func (*PairwiseExecution) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{10}
+	return file_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *PairwiseExecution) GetSignificant() bool {
@@ -1044,6 +1170,20 @@ func (x *PairwiseExecution) GetCulprit() *CombinedCommit {
 func (x *PairwiseExecution) GetResults() map[string]*PairwiseExecution_WilcoxonResult {
 	if x != nil {
 		return x.Results
+	}
+	return nil
+}
+
+func (x *PairwiseExecution) GetLeftSwarmingStatus() []*SwarmingTaskStatus {
+	if x != nil {
+		return x.LeftSwarmingStatus
+	}
+	return nil
+}
+
+func (x *PairwiseExecution) GetRightSwarmingStatus() []*SwarmingTaskStatus {
+	if x != nil {
+		return x.RightSwarmingStatus
 	}
 	return nil
 }
@@ -1089,7 +1229,7 @@ type ScheduleCulpritFinderRequest struct {
 
 func (x *ScheduleCulpritFinderRequest) Reset() {
 	*x = ScheduleCulpritFinderRequest{}
-	mi := &file_service_proto_msgTypes[11]
+	mi := &file_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1101,7 +1241,7 @@ func (x *ScheduleCulpritFinderRequest) String() string {
 func (*ScheduleCulpritFinderRequest) ProtoMessage() {}
 
 func (x *ScheduleCulpritFinderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[11]
+	mi := &file_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1114,7 +1254,7 @@ func (x *ScheduleCulpritFinderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScheduleCulpritFinderRequest.ProtoReflect.Descriptor instead.
 func (*ScheduleCulpritFinderRequest) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{11}
+	return file_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ScheduleCulpritFinderRequest) GetStartGitHash() string {
@@ -1211,7 +1351,7 @@ type CulpritProcessingCallbackParams struct {
 
 func (x *CulpritProcessingCallbackParams) Reset() {
 	*x = CulpritProcessingCallbackParams{}
-	mi := &file_service_proto_msgTypes[12]
+	mi := &file_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1223,7 +1363,7 @@ func (x *CulpritProcessingCallbackParams) String() string {
 func (*CulpritProcessingCallbackParams) ProtoMessage() {}
 
 func (x *CulpritProcessingCallbackParams) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[12]
+	mi := &file_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1236,7 +1376,7 @@ func (x *CulpritProcessingCallbackParams) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CulpritProcessingCallbackParams.ProtoReflect.Descriptor instead.
 func (*CulpritProcessingCallbackParams) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{12}
+	return file_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CulpritProcessingCallbackParams) GetAnomalyGroupId() string {
@@ -1272,7 +1412,7 @@ type CulpritFinderExecution struct {
 
 func (x *CulpritFinderExecution) Reset() {
 	*x = CulpritFinderExecution{}
-	mi := &file_service_proto_msgTypes[13]
+	mi := &file_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1284,7 +1424,7 @@ func (x *CulpritFinderExecution) String() string {
 func (*CulpritFinderExecution) ProtoMessage() {}
 
 func (x *CulpritFinderExecution) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[13]
+	mi := &file_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1297,7 +1437,7 @@ func (x *CulpritFinderExecution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CulpritFinderExecution.ProtoReflect.Descriptor instead.
 func (*CulpritFinderExecution) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{13}
+	return file_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CulpritFinderExecution) GetJobId() string {
@@ -1331,7 +1471,7 @@ type LegacyJobRequest struct {
 
 func (x *LegacyJobRequest) Reset() {
 	*x = LegacyJobRequest{}
-	mi := &file_service_proto_msgTypes[14]
+	mi := &file_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1343,7 +1483,7 @@ func (x *LegacyJobRequest) String() string {
 func (*LegacyJobRequest) ProtoMessage() {}
 
 func (x *LegacyJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[14]
+	mi := &file_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1356,7 +1496,7 @@ func (x *LegacyJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LegacyJobRequest.ProtoReflect.Descriptor instead.
 func (*LegacyJobRequest) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{14}
+	return file_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *LegacyJobRequest) GetJobId() string {
@@ -1403,7 +1543,7 @@ type LegacyJobResponse struct {
 
 func (x *LegacyJobResponse) Reset() {
 	*x = LegacyJobResponse{}
-	mi := &file_service_proto_msgTypes[15]
+	mi := &file_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1415,7 +1555,7 @@ func (x *LegacyJobResponse) String() string {
 func (*LegacyJobResponse) ProtoMessage() {}
 
 func (x *LegacyJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[15]
+	mi := &file_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1428,7 +1568,7 @@ func (x *LegacyJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LegacyJobResponse.ProtoReflect.Descriptor instead.
 func (*LegacyJobResponse) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{15}
+	return file_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *LegacyJobResponse) GetJobId() string {
@@ -1604,7 +1744,7 @@ type CASReference_Digest struct {
 
 func (x *CASReference_Digest) Reset() {
 	*x = CASReference_Digest{}
-	mi := &file_service_proto_msgTypes[16]
+	mi := &file_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1616,7 +1756,7 @@ func (x *CASReference_Digest) String() string {
 func (*CASReference_Digest) ProtoMessage() {}
 
 func (x *CASReference_Digest) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[16]
+	mi := &file_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1659,7 +1799,7 @@ type PairwiseExecution_WilcoxonResult struct {
 
 func (x *PairwiseExecution_WilcoxonResult) Reset() {
 	*x = PairwiseExecution_WilcoxonResult{}
-	mi := &file_service_proto_msgTypes[17]
+	mi := &file_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1671,7 +1811,7 @@ func (x *PairwiseExecution_WilcoxonResult) String() string {
 func (*PairwiseExecution_WilcoxonResult) ProtoMessage() {}
 
 func (x *PairwiseExecution_WilcoxonResult) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[17]
+	mi := &file_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1684,7 +1824,7 @@ func (x *PairwiseExecution_WilcoxonResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PairwiseExecution_WilcoxonResult.ProtoReflect.Descriptor instead.
 func (*PairwiseExecution_WilcoxonResult) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{10, 0}
+	return file_service_proto_rawDescGZIP(), []int{11, 0}
 }
 
 func (x *PairwiseExecution_WilcoxonResult) GetPValue() float64 {
@@ -1749,7 +1889,7 @@ type LegacyJobResponse_Argument struct {
 
 func (x *LegacyJobResponse_Argument) Reset() {
 	*x = LegacyJobResponse_Argument{}
-	mi := &file_service_proto_msgTypes[19]
+	mi := &file_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1761,7 +1901,7 @@ func (x *LegacyJobResponse_Argument) String() string {
 func (*LegacyJobResponse_Argument) ProtoMessage() {}
 
 func (x *LegacyJobResponse_Argument) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[19]
+	mi := &file_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1774,7 +1914,7 @@ func (x *LegacyJobResponse_Argument) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LegacyJobResponse_Argument.ProtoReflect.Descriptor instead.
 func (*LegacyJobResponse_Argument) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{15, 0}
+	return file_service_proto_rawDescGZIP(), []int{16, 0}
 }
 
 func (x *LegacyJobResponse_Argument) GetComparisonMode() string {
@@ -1922,7 +2062,7 @@ type LegacyJobResponse_State struct {
 
 func (x *LegacyJobResponse_State) Reset() {
 	*x = LegacyJobResponse_State{}
-	mi := &file_service_proto_msgTypes[20]
+	mi := &file_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1934,7 +2074,7 @@ func (x *LegacyJobResponse_State) String() string {
 func (*LegacyJobResponse_State) ProtoMessage() {}
 
 func (x *LegacyJobResponse_State) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[20]
+	mi := &file_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1947,7 +2087,7 @@ func (x *LegacyJobResponse_State) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LegacyJobResponse_State.ProtoReflect.Descriptor instead.
 func (*LegacyJobResponse_State) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{15, 1}
+	return file_service_proto_rawDescGZIP(), []int{16, 1}
 }
 
 func (x *LegacyJobResponse_State) GetChange() *LegacyJobResponse_State_Change {
@@ -1987,7 +2127,7 @@ type LegacyJobResponse_State_Change struct {
 
 func (x *LegacyJobResponse_State_Change) Reset() {
 	*x = LegacyJobResponse_State_Change{}
-	mi := &file_service_proto_msgTypes[22]
+	mi := &file_service_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1999,7 +2139,7 @@ func (x *LegacyJobResponse_State_Change) String() string {
 func (*LegacyJobResponse_State_Change) ProtoMessage() {}
 
 func (x *LegacyJobResponse_State_Change) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[22]
+	mi := &file_service_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2012,7 +2152,7 @@ func (x *LegacyJobResponse_State_Change) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LegacyJobResponse_State_Change.ProtoReflect.Descriptor instead.
 func (*LegacyJobResponse_State_Change) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{15, 1, 0}
+	return file_service_proto_rawDescGZIP(), []int{16, 1, 0}
 }
 
 func (x *LegacyJobResponse_State_Change) GetCommits() []*Commit {
@@ -2034,7 +2174,7 @@ type LegacyJobResponse_State_Attempt struct {
 
 func (x *LegacyJobResponse_State_Attempt) Reset() {
 	*x = LegacyJobResponse_State_Attempt{}
-	mi := &file_service_proto_msgTypes[23]
+	mi := &file_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2046,7 +2186,7 @@ func (x *LegacyJobResponse_State_Attempt) String() string {
 func (*LegacyJobResponse_State_Attempt) ProtoMessage() {}
 
 func (x *LegacyJobResponse_State_Attempt) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[23]
+	mi := &file_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2059,7 +2199,7 @@ func (x *LegacyJobResponse_State_Attempt) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LegacyJobResponse_State_Attempt.ProtoReflect.Descriptor instead.
 func (*LegacyJobResponse_State_Attempt) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{15, 1, 1}
+	return file_service_proto_rawDescGZIP(), []int{16, 1, 1}
 }
 
 func (x *LegacyJobResponse_State_Attempt) GetExecutions() []*LegacyJobResponse_State_Attempt_Execution {
@@ -2086,7 +2226,7 @@ type LegacyJobResponse_State_Comparison struct {
 
 func (x *LegacyJobResponse_State_Comparison) Reset() {
 	*x = LegacyJobResponse_State_Comparison{}
-	mi := &file_service_proto_msgTypes[24]
+	mi := &file_service_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2098,7 +2238,7 @@ func (x *LegacyJobResponse_State_Comparison) String() string {
 func (*LegacyJobResponse_State_Comparison) ProtoMessage() {}
 
 func (x *LegacyJobResponse_State_Comparison) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[24]
+	mi := &file_service_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2111,7 +2251,7 @@ func (x *LegacyJobResponse_State_Comparison) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use LegacyJobResponse_State_Comparison.ProtoReflect.Descriptor instead.
 func (*LegacyJobResponse_State_Comparison) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{15, 1, 2}
+	return file_service_proto_rawDescGZIP(), []int{16, 1, 2}
 }
 
 func (x *LegacyJobResponse_State_Comparison) GetNext() string {
@@ -2139,7 +2279,7 @@ type LegacyJobResponse_State_Attempt_Execution struct {
 
 func (x *LegacyJobResponse_State_Attempt_Execution) Reset() {
 	*x = LegacyJobResponse_State_Attempt_Execution{}
-	mi := &file_service_proto_msgTypes[25]
+	mi := &file_service_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2151,7 +2291,7 @@ func (x *LegacyJobResponse_State_Attempt_Execution) String() string {
 func (*LegacyJobResponse_State_Attempt_Execution) ProtoMessage() {}
 
 func (x *LegacyJobResponse_State_Attempt_Execution) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[25]
+	mi := &file_service_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2164,7 +2304,7 @@ func (x *LegacyJobResponse_State_Attempt_Execution) ProtoReflect() protoreflect.
 
 // Deprecated: Use LegacyJobResponse_State_Attempt_Execution.ProtoReflect.Descriptor instead.
 func (*LegacyJobResponse_State_Attempt_Execution) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{15, 1, 1, 0}
+	return file_service_proto_rawDescGZIP(), []int{16, 1, 1, 0}
 }
 
 func (x *LegacyJobResponse_State_Attempt_Execution) GetCompleted() bool {
@@ -2199,7 +2339,7 @@ type LegacyJobResponse_State_Attempt_Execution_Detail struct {
 
 func (x *LegacyJobResponse_State_Attempt_Execution_Detail) Reset() {
 	*x = LegacyJobResponse_State_Attempt_Execution_Detail{}
-	mi := &file_service_proto_msgTypes[26]
+	mi := &file_service_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2211,7 +2351,7 @@ func (x *LegacyJobResponse_State_Attempt_Execution_Detail) String() string {
 func (*LegacyJobResponse_State_Attempt_Execution_Detail) ProtoMessage() {}
 
 func (x *LegacyJobResponse_State_Attempt_Execution_Detail) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[26]
+	mi := &file_service_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2224,7 +2364,7 @@ func (x *LegacyJobResponse_State_Attempt_Execution_Detail) ProtoReflect() protor
 
 // Deprecated: Use LegacyJobResponse_State_Attempt_Execution_Detail.ProtoReflect.Descriptor instead.
 func (*LegacyJobResponse_State_Attempt_Execution_Detail) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{15, 1, 1, 0, 0}
+	return file_service_proto_rawDescGZIP(), []int{16, 1, 1, 0, 0}
 }
 
 func (x *LegacyJobResponse_State_Attempt_Execution_Detail) GetKey() string {
@@ -2312,7 +2452,10 @@ const file_service_proto_rawDesc = "" +
 	"\x06Digest\x12\x12\n" +
 	"\x04hash\x18\x01 \x01(\tR\x04hash\x12\x1d\n" +
 	"\n" +
-	"size_bytes\x18\x02 \x01(\x03R\tsizeBytes\"\xa4\x01\n" +
+	"size_bytes\x18\x02 \x01(\x03R\tsizeBytes\"b\n" +
+	"\x12SwarmingTaskStatus\x12\x17\n" +
+	"\atask_id\x18\x01 \x01(\tR\x06taskId\x123\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x1b.pinpoint.v1.SwarmingStatusR\x06status\"\xa4\x01\n" +
 	"\x0fBisectExecution\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x127\n" +
 	"\bculprits\x18\x02 \x03(\v2\x1b.pinpoint.v1.CombinedCommitR\bculprits\x12A\n" +
@@ -2336,13 +2479,15 @@ const file_service_proto_rawDesc = "" +
 	"startBuild\x126\n" +
 	"\tend_build\x18\x0e \x01(\v2\x19.pinpoint.v1.CASReferenceR\bendBuild\x12\x1d\n" +
 	"\n" +
-	"story_tags\x18\x0f \x01(\tR\tstoryTags\"\xfa\x04\n" +
+	"story_tags\x18\x0f \x01(\tR\tstoryTags\"\xa2\x06\n" +
 	"\x11PairwiseExecution\x12 \n" +
 	"\vsignificant\x18\x01 \x01(\bR\vsignificant\x12\x15\n" +
 	"\x06job_id\x18\x02 \x01(\tR\x05jobId\x12K\n" +
 	"\tstatistic\x18\x03 \x01(\v2-.pinpoint.v1.PairwiseExecution.WilcoxonResultR\tstatistic\x125\n" +
 	"\aculprit\x18\x04 \x01(\v2\x1b.pinpoint.v1.CombinedCommitR\aculprit\x12E\n" +
-	"\aresults\x18\x05 \x03(\v2+.pinpoint.v1.PairwiseExecution.ResultsEntryR\aresults\x1a\xf5\x01\n" +
+	"\aresults\x18\x05 \x03(\v2+.pinpoint.v1.PairwiseExecution.ResultsEntryR\aresults\x12Q\n" +
+	"\x14left_swarming_status\x18\x06 \x03(\v2\x1f.pinpoint.v1.SwarmingTaskStatusR\x12leftSwarmingStatus\x12S\n" +
+	"\x15right_swarming_status\x18\a \x03(\v2\x1f.pinpoint.v1.SwarmingTaskStatusR\x13rightSwarmingStatus\x1a\xf5\x01\n" +
 	"\x0eWilcoxonResult\x12\x17\n" +
 	"\ap_value\x18\x01 \x01(\x01R\x06pValue\x12:\n" +
 	"\x19confidence_interval_lower\x18\x02 \x01(\x01R\x17confidenceIntervalLower\x12<\n" +
@@ -2451,7 +2596,13 @@ const file_service_proto_rawDesc = "" +
 	"\n" +
 	"Comparison\x12\x12\n" +
 	"\x04next\x18\x01 \x01(\tR\x04next\x12\x12\n" +
-	"\x04prev\x18\x02 \x01(\tR\x04prev2\x8a\x06\n" +
+	"\x04prev\x18\x02 \x01(\tR\x04prev*a\n" +
+	"\x0eSwarmingStatus\x12\x0f\n" +
+	"\vUNSPECIFIED\x10\x00\x12\r\n" +
+	"\tCOMPLETED\x10\x01\x12\x15\n" +
+	"\x11BENCHMARK_FAILURE\x10\x02\x12\v\n" +
+	"\aFAILURE\x10\x03\x12\v\n" +
+	"\aRUNNING\x10\x042\x8a\x06\n" +
 	"\bPinpoint\x12\x8e\x01\n" +
 	"\x11ScheduleBisection\x12\".pinpoint.v1.ScheduleBisectRequest\x1a\x1c.pinpoint.v1.BisectExecution\"7\x82\xd3\xe4\x93\x021Z\x17\"\x15/pinpoint/v1/schedule\"\x16/pinpoint/v1/bisection\x12g\n" +
 	"\tCancelJob\x12\x1d.pinpoint.v1.CancelJobRequest\x1a\x1e.pinpoint.v1.CancelJobResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/pinpoint/v1/cancel\x12k\n" +
@@ -2472,86 +2623,92 @@ func file_service_proto_rawDescGZIP() []byte {
 	return file_service_proto_rawDescData
 }
 
-var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_service_proto_goTypes = []any{
-	(*ScheduleBisectRequest)(nil),                            // 0: pinpoint.v1.ScheduleBisectRequest
-	(*QueryBisectRequest)(nil),                               // 1: pinpoint.v1.QueryBisectRequest
-	(*CancelJobRequest)(nil),                                 // 2: pinpoint.v1.CancelJobRequest
-	(*CancelJobResponse)(nil),                                // 3: pinpoint.v1.CancelJobResponse
-	(*Commit)(nil),                                           // 4: pinpoint.v1.Commit
-	(*CombinedCommit)(nil),                                   // 5: pinpoint.v1.CombinedCommit
-	(*Culprit)(nil),                                          // 6: pinpoint.v1.Culprit
-	(*CASReference)(nil),                                     // 7: pinpoint.v1.CASReference
-	(*BisectExecution)(nil),                                  // 8: pinpoint.v1.BisectExecution
-	(*SchedulePairwiseRequest)(nil),                          // 9: pinpoint.v1.SchedulePairwiseRequest
-	(*PairwiseExecution)(nil),                                // 10: pinpoint.v1.PairwiseExecution
-	(*ScheduleCulpritFinderRequest)(nil),                     // 11: pinpoint.v1.ScheduleCulpritFinderRequest
-	(*CulpritProcessingCallbackParams)(nil),                  // 12: pinpoint.v1.CulpritProcessingCallbackParams
-	(*CulpritFinderExecution)(nil),                           // 13: pinpoint.v1.CulpritFinderExecution
-	(*LegacyJobRequest)(nil),                                 // 14: pinpoint.v1.LegacyJobRequest
-	(*LegacyJobResponse)(nil),                                // 15: pinpoint.v1.LegacyJobResponse
-	(*CASReference_Digest)(nil),                              // 16: pinpoint.v1.CASReference.Digest
-	(*PairwiseExecution_WilcoxonResult)(nil),                 // 17: pinpoint.v1.PairwiseExecution.WilcoxonResult
-	nil,                                                      // 18: pinpoint.v1.PairwiseExecution.ResultsEntry
-	(*LegacyJobResponse_Argument)(nil),                       // 19: pinpoint.v1.LegacyJobResponse.Argument
-	(*LegacyJobResponse_State)(nil),                          // 20: pinpoint.v1.LegacyJobResponse.State
-	nil,                                                      // 21: pinpoint.v1.LegacyJobResponse.Argument.TagsEntry
-	(*LegacyJobResponse_State_Change)(nil),                   // 22: pinpoint.v1.LegacyJobResponse.State.Change
-	(*LegacyJobResponse_State_Attempt)(nil),                  // 23: pinpoint.v1.LegacyJobResponse.State.Attempt
-	(*LegacyJobResponse_State_Comparison)(nil),               // 24: pinpoint.v1.LegacyJobResponse.State.Comparison
-	(*LegacyJobResponse_State_Attempt_Execution)(nil),        // 25: pinpoint.v1.LegacyJobResponse.State.Attempt.Execution
-	(*LegacyJobResponse_State_Attempt_Execution_Detail)(nil), // 26: pinpoint.v1.LegacyJobResponse.State.Attempt.Execution.Detail
-	(*timestamppb.Timestamp)(nil),                            // 27: google.protobuf.Timestamp
-	(*proto.GerritChange)(nil),                               // 28: cabe.v1.GerritChange
+	(SwarmingStatus)(0),                                      // 0: pinpoint.v1.SwarmingStatus
+	(*ScheduleBisectRequest)(nil),                            // 1: pinpoint.v1.ScheduleBisectRequest
+	(*QueryBisectRequest)(nil),                               // 2: pinpoint.v1.QueryBisectRequest
+	(*CancelJobRequest)(nil),                                 // 3: pinpoint.v1.CancelJobRequest
+	(*CancelJobResponse)(nil),                                // 4: pinpoint.v1.CancelJobResponse
+	(*Commit)(nil),                                           // 5: pinpoint.v1.Commit
+	(*CombinedCommit)(nil),                                   // 6: pinpoint.v1.CombinedCommit
+	(*Culprit)(nil),                                          // 7: pinpoint.v1.Culprit
+	(*CASReference)(nil),                                     // 8: pinpoint.v1.CASReference
+	(*SwarmingTaskStatus)(nil),                               // 9: pinpoint.v1.SwarmingTaskStatus
+	(*BisectExecution)(nil),                                  // 10: pinpoint.v1.BisectExecution
+	(*SchedulePairwiseRequest)(nil),                          // 11: pinpoint.v1.SchedulePairwiseRequest
+	(*PairwiseExecution)(nil),                                // 12: pinpoint.v1.PairwiseExecution
+	(*ScheduleCulpritFinderRequest)(nil),                     // 13: pinpoint.v1.ScheduleCulpritFinderRequest
+	(*CulpritProcessingCallbackParams)(nil),                  // 14: pinpoint.v1.CulpritProcessingCallbackParams
+	(*CulpritFinderExecution)(nil),                           // 15: pinpoint.v1.CulpritFinderExecution
+	(*LegacyJobRequest)(nil),                                 // 16: pinpoint.v1.LegacyJobRequest
+	(*LegacyJobResponse)(nil),                                // 17: pinpoint.v1.LegacyJobResponse
+	(*CASReference_Digest)(nil),                              // 18: pinpoint.v1.CASReference.Digest
+	(*PairwiseExecution_WilcoxonResult)(nil),                 // 19: pinpoint.v1.PairwiseExecution.WilcoxonResult
+	nil,                                                      // 20: pinpoint.v1.PairwiseExecution.ResultsEntry
+	(*LegacyJobResponse_Argument)(nil),                       // 21: pinpoint.v1.LegacyJobResponse.Argument
+	(*LegacyJobResponse_State)(nil),                          // 22: pinpoint.v1.LegacyJobResponse.State
+	nil,                                                      // 23: pinpoint.v1.LegacyJobResponse.Argument.TagsEntry
+	(*LegacyJobResponse_State_Change)(nil),                   // 24: pinpoint.v1.LegacyJobResponse.State.Change
+	(*LegacyJobResponse_State_Attempt)(nil),                  // 25: pinpoint.v1.LegacyJobResponse.State.Attempt
+	(*LegacyJobResponse_State_Comparison)(nil),               // 26: pinpoint.v1.LegacyJobResponse.State.Comparison
+	(*LegacyJobResponse_State_Attempt_Execution)(nil),        // 27: pinpoint.v1.LegacyJobResponse.State.Attempt.Execution
+	(*LegacyJobResponse_State_Attempt_Execution_Detail)(nil), // 28: pinpoint.v1.LegacyJobResponse.State.Attempt.Execution.Detail
+	(*timestamppb.Timestamp)(nil),                            // 29: google.protobuf.Timestamp
+	(*proto.GerritChange)(nil),                               // 30: cabe.v1.GerritChange
 }
 var file_service_proto_depIdxs = []int32{
-	27, // 0: pinpoint.v1.Commit.created:type_name -> google.protobuf.Timestamp
-	4,  // 1: pinpoint.v1.CombinedCommit.main:type_name -> pinpoint.v1.Commit
-	4,  // 2: pinpoint.v1.CombinedCommit.modified_deps:type_name -> pinpoint.v1.Commit
-	28, // 3: pinpoint.v1.CombinedCommit.patch:type_name -> cabe.v1.GerritChange
-	5,  // 4: pinpoint.v1.Culprit.prior:type_name -> pinpoint.v1.CombinedCommit
-	5,  // 5: pinpoint.v1.Culprit.culprit:type_name -> pinpoint.v1.CombinedCommit
-	16, // 6: pinpoint.v1.CASReference.digest:type_name -> pinpoint.v1.CASReference.Digest
-	5,  // 7: pinpoint.v1.BisectExecution.culprits:type_name -> pinpoint.v1.CombinedCommit
-	6,  // 8: pinpoint.v1.BisectExecution.detailed_culprits:type_name -> pinpoint.v1.Culprit
-	5,  // 9: pinpoint.v1.SchedulePairwiseRequest.start_commit:type_name -> pinpoint.v1.CombinedCommit
-	5,  // 10: pinpoint.v1.SchedulePairwiseRequest.end_commit:type_name -> pinpoint.v1.CombinedCommit
-	7,  // 11: pinpoint.v1.SchedulePairwiseRequest.start_build:type_name -> pinpoint.v1.CASReference
-	7,  // 12: pinpoint.v1.SchedulePairwiseRequest.end_build:type_name -> pinpoint.v1.CASReference
-	17, // 13: pinpoint.v1.PairwiseExecution.statistic:type_name -> pinpoint.v1.PairwiseExecution.WilcoxonResult
-	5,  // 14: pinpoint.v1.PairwiseExecution.culprit:type_name -> pinpoint.v1.CombinedCommit
-	18, // 15: pinpoint.v1.PairwiseExecution.results:type_name -> pinpoint.v1.PairwiseExecution.ResultsEntry
-	5,  // 16: pinpoint.v1.CulpritFinderExecution.culprits:type_name -> pinpoint.v1.CombinedCommit
-	19, // 17: pinpoint.v1.LegacyJobResponse.arguments:type_name -> pinpoint.v1.LegacyJobResponse.Argument
-	27, // 18: pinpoint.v1.LegacyJobResponse.created:type_name -> google.protobuf.Timestamp
-	27, // 19: pinpoint.v1.LegacyJobResponse.updated:type_name -> google.protobuf.Timestamp
-	27, // 20: pinpoint.v1.LegacyJobResponse.started_time:type_name -> google.protobuf.Timestamp
-	20, // 21: pinpoint.v1.LegacyJobResponse.state:type_name -> pinpoint.v1.LegacyJobResponse.State
-	17, // 22: pinpoint.v1.PairwiseExecution.ResultsEntry.value:type_name -> pinpoint.v1.PairwiseExecution.WilcoxonResult
-	21, // 23: pinpoint.v1.LegacyJobResponse.Argument.tags:type_name -> pinpoint.v1.LegacyJobResponse.Argument.TagsEntry
-	22, // 24: pinpoint.v1.LegacyJobResponse.State.change:type_name -> pinpoint.v1.LegacyJobResponse.State.Change
-	23, // 25: pinpoint.v1.LegacyJobResponse.State.attempts:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt
-	24, // 26: pinpoint.v1.LegacyJobResponse.State.comparisons:type_name -> pinpoint.v1.LegacyJobResponse.State.Comparison
-	4,  // 27: pinpoint.v1.LegacyJobResponse.State.Change.commits:type_name -> pinpoint.v1.Commit
-	25, // 28: pinpoint.v1.LegacyJobResponse.State.Attempt.executions:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt.Execution
-	26, // 29: pinpoint.v1.LegacyJobResponse.State.Attempt.Execution.details:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt.Execution.Detail
-	0,  // 30: pinpoint.v1.Pinpoint.ScheduleBisection:input_type -> pinpoint.v1.ScheduleBisectRequest
-	2,  // 31: pinpoint.v1.Pinpoint.CancelJob:input_type -> pinpoint.v1.CancelJobRequest
-	1,  // 32: pinpoint.v1.Pinpoint.QueryBisection:input_type -> pinpoint.v1.QueryBisectRequest
-	14, // 33: pinpoint.v1.Pinpoint.LegacyJobQuery:input_type -> pinpoint.v1.LegacyJobRequest
-	9,  // 34: pinpoint.v1.Pinpoint.SchedulePairwise:input_type -> pinpoint.v1.SchedulePairwiseRequest
-	11, // 35: pinpoint.v1.Pinpoint.ScheduleCulpritFinder:input_type -> pinpoint.v1.ScheduleCulpritFinderRequest
-	8,  // 36: pinpoint.v1.Pinpoint.ScheduleBisection:output_type -> pinpoint.v1.BisectExecution
-	3,  // 37: pinpoint.v1.Pinpoint.CancelJob:output_type -> pinpoint.v1.CancelJobResponse
-	8,  // 38: pinpoint.v1.Pinpoint.QueryBisection:output_type -> pinpoint.v1.BisectExecution
-	15, // 39: pinpoint.v1.Pinpoint.LegacyJobQuery:output_type -> pinpoint.v1.LegacyJobResponse
-	10, // 40: pinpoint.v1.Pinpoint.SchedulePairwise:output_type -> pinpoint.v1.PairwiseExecution
-	13, // 41: pinpoint.v1.Pinpoint.ScheduleCulpritFinder:output_type -> pinpoint.v1.CulpritFinderExecution
-	36, // [36:42] is the sub-list for method output_type
-	30, // [30:36] is the sub-list for method input_type
-	30, // [30:30] is the sub-list for extension type_name
-	30, // [30:30] is the sub-list for extension extendee
-	0,  // [0:30] is the sub-list for field type_name
+	29, // 0: pinpoint.v1.Commit.created:type_name -> google.protobuf.Timestamp
+	5,  // 1: pinpoint.v1.CombinedCommit.main:type_name -> pinpoint.v1.Commit
+	5,  // 2: pinpoint.v1.CombinedCommit.modified_deps:type_name -> pinpoint.v1.Commit
+	30, // 3: pinpoint.v1.CombinedCommit.patch:type_name -> cabe.v1.GerritChange
+	6,  // 4: pinpoint.v1.Culprit.prior:type_name -> pinpoint.v1.CombinedCommit
+	6,  // 5: pinpoint.v1.Culprit.culprit:type_name -> pinpoint.v1.CombinedCommit
+	18, // 6: pinpoint.v1.CASReference.digest:type_name -> pinpoint.v1.CASReference.Digest
+	0,  // 7: pinpoint.v1.SwarmingTaskStatus.status:type_name -> pinpoint.v1.SwarmingStatus
+	6,  // 8: pinpoint.v1.BisectExecution.culprits:type_name -> pinpoint.v1.CombinedCommit
+	7,  // 9: pinpoint.v1.BisectExecution.detailed_culprits:type_name -> pinpoint.v1.Culprit
+	6,  // 10: pinpoint.v1.SchedulePairwiseRequest.start_commit:type_name -> pinpoint.v1.CombinedCommit
+	6,  // 11: pinpoint.v1.SchedulePairwiseRequest.end_commit:type_name -> pinpoint.v1.CombinedCommit
+	8,  // 12: pinpoint.v1.SchedulePairwiseRequest.start_build:type_name -> pinpoint.v1.CASReference
+	8,  // 13: pinpoint.v1.SchedulePairwiseRequest.end_build:type_name -> pinpoint.v1.CASReference
+	19, // 14: pinpoint.v1.PairwiseExecution.statistic:type_name -> pinpoint.v1.PairwiseExecution.WilcoxonResult
+	6,  // 15: pinpoint.v1.PairwiseExecution.culprit:type_name -> pinpoint.v1.CombinedCommit
+	20, // 16: pinpoint.v1.PairwiseExecution.results:type_name -> pinpoint.v1.PairwiseExecution.ResultsEntry
+	9,  // 17: pinpoint.v1.PairwiseExecution.left_swarming_status:type_name -> pinpoint.v1.SwarmingTaskStatus
+	9,  // 18: pinpoint.v1.PairwiseExecution.right_swarming_status:type_name -> pinpoint.v1.SwarmingTaskStatus
+	6,  // 19: pinpoint.v1.CulpritFinderExecution.culprits:type_name -> pinpoint.v1.CombinedCommit
+	21, // 20: pinpoint.v1.LegacyJobResponse.arguments:type_name -> pinpoint.v1.LegacyJobResponse.Argument
+	29, // 21: pinpoint.v1.LegacyJobResponse.created:type_name -> google.protobuf.Timestamp
+	29, // 22: pinpoint.v1.LegacyJobResponse.updated:type_name -> google.protobuf.Timestamp
+	29, // 23: pinpoint.v1.LegacyJobResponse.started_time:type_name -> google.protobuf.Timestamp
+	22, // 24: pinpoint.v1.LegacyJobResponse.state:type_name -> pinpoint.v1.LegacyJobResponse.State
+	19, // 25: pinpoint.v1.PairwiseExecution.ResultsEntry.value:type_name -> pinpoint.v1.PairwiseExecution.WilcoxonResult
+	23, // 26: pinpoint.v1.LegacyJobResponse.Argument.tags:type_name -> pinpoint.v1.LegacyJobResponse.Argument.TagsEntry
+	24, // 27: pinpoint.v1.LegacyJobResponse.State.change:type_name -> pinpoint.v1.LegacyJobResponse.State.Change
+	25, // 28: pinpoint.v1.LegacyJobResponse.State.attempts:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt
+	26, // 29: pinpoint.v1.LegacyJobResponse.State.comparisons:type_name -> pinpoint.v1.LegacyJobResponse.State.Comparison
+	5,  // 30: pinpoint.v1.LegacyJobResponse.State.Change.commits:type_name -> pinpoint.v1.Commit
+	27, // 31: pinpoint.v1.LegacyJobResponse.State.Attempt.executions:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt.Execution
+	28, // 32: pinpoint.v1.LegacyJobResponse.State.Attempt.Execution.details:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt.Execution.Detail
+	1,  // 33: pinpoint.v1.Pinpoint.ScheduleBisection:input_type -> pinpoint.v1.ScheduleBisectRequest
+	3,  // 34: pinpoint.v1.Pinpoint.CancelJob:input_type -> pinpoint.v1.CancelJobRequest
+	2,  // 35: pinpoint.v1.Pinpoint.QueryBisection:input_type -> pinpoint.v1.QueryBisectRequest
+	16, // 36: pinpoint.v1.Pinpoint.LegacyJobQuery:input_type -> pinpoint.v1.LegacyJobRequest
+	11, // 37: pinpoint.v1.Pinpoint.SchedulePairwise:input_type -> pinpoint.v1.SchedulePairwiseRequest
+	13, // 38: pinpoint.v1.Pinpoint.ScheduleCulpritFinder:input_type -> pinpoint.v1.ScheduleCulpritFinderRequest
+	10, // 39: pinpoint.v1.Pinpoint.ScheduleBisection:output_type -> pinpoint.v1.BisectExecution
+	4,  // 40: pinpoint.v1.Pinpoint.CancelJob:output_type -> pinpoint.v1.CancelJobResponse
+	10, // 41: pinpoint.v1.Pinpoint.QueryBisection:output_type -> pinpoint.v1.BisectExecution
+	17, // 42: pinpoint.v1.Pinpoint.LegacyJobQuery:output_type -> pinpoint.v1.LegacyJobResponse
+	12, // 43: pinpoint.v1.Pinpoint.SchedulePairwise:output_type -> pinpoint.v1.PairwiseExecution
+	15, // 44: pinpoint.v1.Pinpoint.ScheduleCulpritFinder:output_type -> pinpoint.v1.CulpritFinderExecution
+	39, // [39:45] is the sub-list for method output_type
+	33, // [33:39] is the sub-list for method input_type
+	33, // [33:33] is the sub-list for extension type_name
+	33, // [33:33] is the sub-list for extension extendee
+	0,  // [0:33] is the sub-list for field type_name
 }
 
 func init() { file_service_proto_init() }
@@ -2564,13 +2721,14 @@ func file_service_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_service_proto_rawDesc), len(file_service_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   27,
+			NumEnums:      1,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_service_proto_goTypes,
 		DependencyIndexes: file_service_proto_depIdxs,
+		EnumInfos:         file_service_proto_enumTypes,
 		MessageInfos:      file_service_proto_msgTypes,
 	}.Build()
 	File_service_proto = out.File

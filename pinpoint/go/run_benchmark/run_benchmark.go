@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 // A RunBenchmarkRequest defines the request arguments of the performance test to swarming.
@@ -77,6 +78,18 @@ func (s State) IsTaskBenchmarkFailure() bool {
 // IsTaskSuccessful checks if a swarming task state is successful
 func (s State) IsTaskSuccessful() bool {
 	return string(s) == swarming.TASK_STATE_COMPLETED
+}
+
+// ConvertToProto
+func (s State) ConvertToProto() pinpoint_proto.SwarmingStatus {
+	if s.IsTaskSuccessful() {
+		return pinpoint_proto.SwarmingStatus_COMPLETED
+	} else if s.IsTaskBenchmarkFailure() {
+		return pinpoint_proto.SwarmingStatus_BENCHMARK_FAILURE
+	} else if !s.IsTaskFinished() {
+		return pinpoint_proto.SwarmingStatus_RUNNING
+	}
+	return pinpoint_proto.SwarmingStatus_FAILURE
 }
 
 // Run schedules a swarming task to run the RunBenchmarkRequest.

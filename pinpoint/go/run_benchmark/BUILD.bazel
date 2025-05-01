@@ -17,6 +17,7 @@ go_library(
         "//go/util",
         "//pinpoint/go/backends",
         "//pinpoint/go/bot_configs",
+        "//pinpoint/proto/v1:proto",
         "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )

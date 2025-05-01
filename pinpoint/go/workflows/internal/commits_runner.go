@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/read_values"
 	"go.skia.org/infra/pinpoint/go/workflows"
+	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -98,6 +99,18 @@ func (cr *CommitRun) AllErrorValues(chart string) []float64 {
 		vs = append(vs, v) // default append 0.0
 	}
 	return vs
+}
+
+func (cr *CommitRun) GetSwarmingStatus() []*pinpoint_proto.SwarmingTaskStatus {
+	status := []*pinpoint_proto.SwarmingTaskStatus{}
+	for _, tr := range cr.Runs {
+		s := &pinpoint_proto.SwarmingTaskStatus{
+			TaskId: tr.TaskID,
+			Status: tr.Status.ConvertToProto(),
+		}
+		status = append(status, s)
+	}
+	return status
 }
 
 func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *common.CombinedCommit) (*workflows.Build, error) {

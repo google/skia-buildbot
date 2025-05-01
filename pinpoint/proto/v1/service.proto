@@ -178,6 +178,36 @@ message CASReference {
 	Digest digest = 2;
 }
 
+// Swarming task statuses. These definitions have been condensed
+// down to a few categories pertaining to the Perf on CQ use case.
+// The statuses are based on swarming V2's enum definitions.
+// https://pkg.go.dev/go.chromium.org/luci/swarming/proto/api_v2#TaskState
+// BENCHMARK_FAILURE is the only status not listed amongst the swarming
+// enums.
+enum SwarmingStatus {
+	UNSPECIFIED = 0;
+	// COMPLETED means the swarming task succeeded and the benchmark ran.
+	COMPLETED = 1;
+	// BENCHMARK_FAILURE means that the swarming task completed but
+	// the benchmark run itself failed. If a user sees a lot of BENCHMARK_FAILUREs
+	// on their CL but none on the tip of tree during presubmit, that implies
+	// their CL could be the cause of flakiness. This status is the only one
+	// not included in swarming.
+	BENCHMARK_FAILURE = 2;
+	// FAILURE status encompass all swarming potential failures i.e.
+	// BOT_DIED, NO_RESOURCE, CANCELLED, TIMED_OUT
+	FAILURE = 3;
+	// RUNNING status encompasses PENDING and RUNNING.
+	RUNNING = 4;
+}
+
+message SwarmingTaskStatus {
+	// the swarming TaskID for debugging
+	string task_id = 1;
+	// the swarming status of the task
+	SwarmingStatus status = 2;
+}
+
 message BisectExecution {
 	string job_id = 1;
 
@@ -270,6 +300,9 @@ message PairwiseExecution {
 
 	// The Wilcoxon statistical result of every single chart
 	map<string, WilcoxonResult> results = 5;
+
+	repeated SwarmingTaskStatus left_swarming_status = 6;
+	repeated SwarmingTaskStatus right_swarming_status = 7;
 }
 
 // ScheduleCulpritFinderRequest contains the input to schedule an E2E anomaly to culprits

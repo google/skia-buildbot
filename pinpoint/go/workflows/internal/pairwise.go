@@ -101,6 +101,9 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 		}
 	}
 
+	leftStatus := pr.Left.GetSwarmingStatus()
+	rightStatus := pr.Right.GetSwarmingStatus()
+
 	return &pinpoint_proto.PairwiseExecution{
 		Significant: significant,
 		JobId:       jobID,
@@ -111,8 +114,10 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 			ControlMedian:            res.XMedian,
 			TreatmentMedian:          res.YMedian,
 		},
-		Culprit: culprit,
-		Results: protoResults,
+		Culprit:             culprit,
+		Results:             protoResults,
+		LeftSwarmingStatus:  leftStatus,
+		RightSwarmingStatus: rightStatus,
 	}, nil
 }
 

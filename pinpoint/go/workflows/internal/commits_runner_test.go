@@ -171,3 +171,24 @@ func TestGetBotDimensions_GivenInValidInput_ShouldNotReturnBotDimensions(t *test
 	gotBotDimensionsWithEmptyBotList := getBotDimension(1, 2, make([]string, 0))
 	assert.Equal(t, (map[string]string)(nil), gotBotDimensionsWithEmptyBotList)
 }
+
+func TestGetSwarmingStatus_GivenNilRuns_ReturnsEmpty(t *testing.T) {
+	test := func(name string, cr CommitRun) {
+		t.Run(name, func(t *testing.T) {
+			status := cr.GetSwarmingStatus()
+			assert.Empty(t, status)
+		})
+	}
+	var cr CommitRun
+	test("CommitRun is nil", cr)
+
+	cr = CommitRun{
+		Runs: nil,
+	}
+	test("CommitRun.Runs is nil", cr)
+
+	cr = CommitRun{
+		Runs: []*workflows.TestRun{},
+	}
+	test("CommitRun.Runs is empty", cr)
+}
