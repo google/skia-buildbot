@@ -326,7 +326,7 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 	testPathTraceNameMap := make(map[string]string)
 	for _, traceName := range traceNames {
 		// Build chrome perf test_path from skia perf traceName
-		testPath, err := traceNameToTestPath(traceName, cp.config.Experiments.RemoveDefaultStatValue)
+		testPath, err := traceNameToTestPath(traceName, cp.config.Experiments.EnableSkiaBridgeAggregation)
 		if err != nil {
 			sklog.Errorf("Failed to build chrome perf test path from trace name %q: %s", traceName, err)
 		} else {
@@ -345,7 +345,7 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 			MaxRevision: strconv.Itoa(endCommitPosition),
 			MinRevision: strconv.Itoa(startCommitPosition),
 		}
-		if cp.config.Experiments.RemoveDefaultStatValue {
+		if cp.config.Experiments.EnableSkiaBridgeAggregation {
 			// This triggers aggregation on testname_avg traces to also include query on testname without suffix.
 			request.NeedAggregation = true
 		}

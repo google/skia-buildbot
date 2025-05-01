@@ -33,6 +33,7 @@ describe('regressions-page-sk', () => {
     skip_commit_detail_display: false,
     image_tag: 'fake-tag',
     remove_default_stat_value: false,
+    enable_skia_bridge_aggregation: false,
     show_json_file_display: false,
     always_show_commit_info: false,
   };

@@ -114,6 +114,9 @@
       "properties": {
         "remove_default_stat_value": {
           "type": "boolean"
+        },
+        "enable_skia_bridge_aggregation": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

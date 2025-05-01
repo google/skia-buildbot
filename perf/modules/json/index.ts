@@ -360,6 +360,7 @@ export interface SkPerfConfig {
 	skip_commit_detail_display: boolean;
 	image_tag: string;
 	remove_default_stat_value: boolean;
+	enable_skia_bridge_aggregation: boolean;
 	show_json_file_display: boolean;
 	always_show_commit_info: boolean;
 }

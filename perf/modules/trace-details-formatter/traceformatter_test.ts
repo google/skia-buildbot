@@ -28,6 +28,7 @@ describe('traceformatter', () => {
       skip_commit_detail_display: false,
       image_tag: 'fake-tag',
       remove_default_stat_value: false,
+      enable_skia_bridge_aggregation: false,
       show_json_file_display: false,
       always_show_commit_info: false,
     };
@@ -42,7 +43,7 @@ describe('traceformatter', () => {
   });
 
   it('format no stat suffix without default', () => {
-    window.perf.remove_default_stat_value = true;
+    window.perf.enable_skia_bridge_aggregation = true;
     const tf = new ChromeTraceFormatter();
     assert.deepEqual(
       tf.formatQuery('masder/pot/pench/dest/subddest_1'),
@@ -51,7 +52,7 @@ describe('traceformatter', () => {
   });
 
   it('format stat suffix without default', () => {
-    window.perf.remove_default_stat_value = true;
+    window.perf.enable_skia_bridge_aggregation = true;
     const tf = new ChromeTraceFormatter();
     assert.deepEqual(
       tf.formatQuery('masder/pot/pench/dest_max/subddest_1'),

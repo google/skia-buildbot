@@ -79,7 +79,7 @@ export class ChromeTraceFormatter implements TraceFormatter {
     // we should add the 'stat' value for trace query.
     // This ad hoc logic is specific to the Chromeperf style test_path used in
     // Chromeperf anomalies. It is no longer needed when Chromeperf is deprecated.
-    if (window.perf.remove_default_stat_value) {
+    if (window.perf.enable_skia_bridge_aggregation) {
       const testValue = paramSet['test'][0];
       const testParts = testValue.split('_');
       const suffix = testParts.pop();

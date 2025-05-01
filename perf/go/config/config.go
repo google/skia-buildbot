@@ -901,7 +901,10 @@ type QueryConfig struct {
 
 // Experiments contains experiment flags for the instance.
 type Experiments struct {
+	// Flag to remove default stat=value value in cache.
 	RemoveDefaultStatValue bool `json:"remove_default_stat_value,omitempty"`
+	// Flag to enable aggregation in skia-bridge.
+	EnableSkiaBridgeAggregation bool `json:"enable_skia_bridge_aggregation,omitempty"`
 }
 
 type CacheType string

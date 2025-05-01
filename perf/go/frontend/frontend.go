@@ -259,32 +259,33 @@ func (f *Frontend) loadTemplates() {
 // SkPerfConfig is the configuration data that will appear
 // in Javascript under the window.perf variable.
 type SkPerfConfig struct {
-	InstanceUrl                string             `json:"instance_url"`                    // The root host url of the running instance.
-	Radius                     int                `json:"radius"`                          // The number of commits when doing clustering.
-	KeyOrder                   []string           `json:"key_order"`                       // The order of the keys to appear first in query-sk elements.
-	NumShift                   int                `json:"num_shift"`                       // The number of commits the shift navigation buttons should jump.
-	Interesting                float32            `json:"interesting"`                     // The threshold for a cluster to be interesting.
-	StepUpOnly                 bool               `json:"step_up_only"`                    // If true then only regressions that are a step up are displayed.
-	CommitRangeURL             string             `json:"commit_range_url"`                // A URI Template to be used for expanding details on a range of commits. See cluster-summary2-sk.
-	Demo                       bool               `json:"demo"`                            // True if this is a demo page, as opposed to being in production. Used to make puppeteer tests deterministic.
-	DisplayGroupBy             bool               `json:"display_group_by"`                // True if the Group By section of Alert config should be displayed.
-	HideListOfCommitsOnExplore bool               `json:"hide_list_of_commits_on_explore"` // True if the commit-detail-panel-sk element on the Explore details tab should be hidden.
-	Notifications              notifytypes.Type   `json:"notifications"`                   // The type of notifications that can be sent.
-	FetchChromePerfAnomalies   bool               `json:"fetch_chrome_perf_anomalies"`     // If true explore-sk will show the bisect button
-	FeedbackURL                string             `json:"feedback_url"`                    // The URL for the Provide Feedback link
-	ChatURL                    string             `json:"chat_url"`                        // The URL for the Ask the Team link
-	HelpURLOverride            string             `json:"help_url_override"`               // If specified, this URL will override the help link
-	TraceFormat                config.TraceFormat `json:"trace_format"`                    // Trace formatter to use
-	NeedAlertAction            bool               `json:"need_alert_action"`               // Action to take for the alert.
-	BugHostURL                 string             `json:"bug_host_url"`                    // The URL for the bug host for the instance.
-	GitRepoUrl                 string             `json:"git_repo_url"`                    // The URL for the associated git repo.
-	KeysForCommitRange         []string           `json:"keys_for_commit_range"`           // The link keys for commit range url display of individual points.
-	KeysForUsefulLinks         []string           `json:"keys_for_useful_links"`           // The link keys for useful information of individual points i.e. build page, tracing.
-	SkipCommitDetailDisplay    bool               `json:"skip_commit_detail_display"`      // Do not display commit detail
-	ImageTag                   string             `json:"image_tag"`                       // The image tag that the running instance is built from, typically a git commit hash.
-	RemoveDefaultStatValue     bool               `json:"remove_default_stat_value"`       // experimental flag to remove the default stat=value on queries.
-	ShowJsonResourceDisplay    bool               `json:"show_json_file_display"`          // Boolean to display json commit detail or not
-	AlwaysShowCommitInfo       bool               `json:"always_show_commit_info"`         // Boolean to display commit author and hash.
+	InstanceUrl                 string             `json:"instance_url"`                    // The root host url of the running instance.
+	Radius                      int                `json:"radius"`                          // The number of commits when doing clustering.
+	KeyOrder                    []string           `json:"key_order"`                       // The order of the keys to appear first in query-sk elements.
+	NumShift                    int                `json:"num_shift"`                       // The number of commits the shift navigation buttons should jump.
+	Interesting                 float32            `json:"interesting"`                     // The threshold for a cluster to be interesting.
+	StepUpOnly                  bool               `json:"step_up_only"`                    // If true then only regressions that are a step up are displayed.
+	CommitRangeURL              string             `json:"commit_range_url"`                // A URI Template to be used for expanding details on a range of commits. See cluster-summary2-sk.
+	Demo                        bool               `json:"demo"`                            // True if this is a demo page, as opposed to being in production. Used to make puppeteer tests deterministic.
+	DisplayGroupBy              bool               `json:"display_group_by"`                // True if the Group By section of Alert config should be displayed.
+	HideListOfCommitsOnExplore  bool               `json:"hide_list_of_commits_on_explore"` // True if the commit-detail-panel-sk element on the Explore details tab should be hidden.
+	Notifications               notifytypes.Type   `json:"notifications"`                   // The type of notifications that can be sent.
+	FetchChromePerfAnomalies    bool               `json:"fetch_chrome_perf_anomalies"`     // If true explore-sk will show the bisect button
+	FeedbackURL                 string             `json:"feedback_url"`                    // The URL for the Provide Feedback link
+	ChatURL                     string             `json:"chat_url"`                        // The URL for the Ask the Team link
+	HelpURLOverride             string             `json:"help_url_override"`               // If specified, this URL will override the help link
+	TraceFormat                 config.TraceFormat `json:"trace_format"`                    // Trace formatter to use
+	NeedAlertAction             bool               `json:"need_alert_action"`               // Action to take for the alert.
+	BugHostURL                  string             `json:"bug_host_url"`                    // The URL for the bug host for the instance.
+	GitRepoUrl                  string             `json:"git_repo_url"`                    // The URL for the associated git repo.
+	KeysForCommitRange          []string           `json:"keys_for_commit_range"`           // The link keys for commit range url display of individual points.
+	KeysForUsefulLinks          []string           `json:"keys_for_useful_links"`           // The link keys for useful information of individual points i.e. build page, tracing.
+	SkipCommitDetailDisplay     bool               `json:"skip_commit_detail_display"`      // Do not display commit detail
+	ImageTag                    string             `json:"image_tag"`                       // The image tag that the running instance is built from, typically a git commit hash.
+	RemoveDefaultStatValue      bool               `json:"remove_default_stat_value"`       // experimental flag to remove the default stat=value on queries.
+	EnableSkiaBridgeAggregation bool               `json:"enable_skia_bridge_aggregation"`  // experimental flag to enable aggregation at skia_bridge.
+	ShowJsonResourceDisplay     bool               `json:"show_json_file_display"`          // Boolean to display json commit detail or not
+	AlwaysShowCommitInfo        bool               `json:"always_show_commit_info"`         // Boolean to display commit author and hash.
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -294,32 +295,33 @@ type SkPerfConfig struct {
 // expansion correctly renders this as executable JS.
 func (f *Frontend) getPageContext() (template.JS, error) {
 	pc := SkPerfConfig{
-		InstanceUrl:                config.Config.URL,
-		Radius:                     f.flags.Radius,
-		KeyOrder:                   strings.Split(f.flags.KeyOrder, ","),
-		NumShift:                   f.flags.NumShift,
-		Interesting:                float32(f.flags.Interesting),
-		StepUpOnly:                 f.flags.StepUpOnly,
-		CommitRangeURL:             f.flags.CommitRangeURL,
-		Demo:                       false,
-		DisplayGroupBy:             f.flags.DisplayGroupBy,
-		HideListOfCommitsOnExplore: f.flags.HideListOfCommitsOnExplore,
-		Notifications:              config.Config.NotifyConfig.Notifications,
-		FetchChromePerfAnomalies:   config.Config.FetchChromePerfAnomalies,
-		FeedbackURL:                config.Config.FeedbackURL,
-		ChatURL:                    config.Config.ChatURL,
-		HelpURLOverride:            config.Config.HelpURLOverride,
-		TraceFormat:                config.Config.TraceFormat,
-		NeedAlertAction:            config.Config.NeedAlertAction,
-		BugHostURL:                 config.Config.BugHostUrl,
-		GitRepoUrl:                 config.Config.GitRepoConfig.URL,
-		KeysForCommitRange:         config.Config.DataPointConfig.KeysForCommitRange,
-		KeysForUsefulLinks:         config.Config.DataPointConfig.KeysForUsefulLinks,
-		SkipCommitDetailDisplay:    config.Config.DataPointConfig.SkipCommitDetailDisplay,
-		ImageTag:                   os.Getenv("IMAGE_TAG"),
-		RemoveDefaultStatValue:     config.Config.Experiments.RemoveDefaultStatValue,
-		ShowJsonResourceDisplay:    config.Config.DataPointConfig.ShowJsonResourceDisplay,
-		AlwaysShowCommitInfo:       config.Config.DataPointConfig.AlwaysShowCommitInfo,
+		InstanceUrl:                 config.Config.URL,
+		Radius:                      f.flags.Radius,
+		KeyOrder:                    strings.Split(f.flags.KeyOrder, ","),
+		NumShift:                    f.flags.NumShift,
+		Interesting:                 float32(f.flags.Interesting),
+		StepUpOnly:                  f.flags.StepUpOnly,
+		CommitRangeURL:              f.flags.CommitRangeURL,
+		Demo:                        false,
+		DisplayGroupBy:              f.flags.DisplayGroupBy,
+		HideListOfCommitsOnExplore:  f.flags.HideListOfCommitsOnExplore,
+		Notifications:               config.Config.NotifyConfig.Notifications,
+		FetchChromePerfAnomalies:    config.Config.FetchChromePerfAnomalies,
+		FeedbackURL:                 config.Config.FeedbackURL,
+		ChatURL:                     config.Config.ChatURL,
+		HelpURLOverride:             config.Config.HelpURLOverride,
+		TraceFormat:                 config.Config.TraceFormat,
+		NeedAlertAction:             config.Config.NeedAlertAction,
+		BugHostURL:                  config.Config.BugHostUrl,
+		GitRepoUrl:                  config.Config.GitRepoConfig.URL,
+		KeysForCommitRange:          config.Config.DataPointConfig.KeysForCommitRange,
+		KeysForUsefulLinks:          config.Config.DataPointConfig.KeysForUsefulLinks,
+		SkipCommitDetailDisplay:     config.Config.DataPointConfig.SkipCommitDetailDisplay,
+		ImageTag:                    os.Getenv("IMAGE_TAG"),
+		RemoveDefaultStatValue:      config.Config.Experiments.RemoveDefaultStatValue,
+		EnableSkiaBridgeAggregation: config.Config.Experiments.EnableSkiaBridgeAggregation,
+		ShowJsonResourceDisplay:     config.Config.DataPointConfig.ShowJsonResourceDisplay,
+		AlwaysShowCommitInfo:        config.Config.DataPointConfig.AlwaysShowCommitInfo,
 	}
 	b, err := json.MarshalIndent(pc, "", "  ")
 	if err != nil {

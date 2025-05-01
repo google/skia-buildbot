@@ -16,7 +16,7 @@ import (
 
 var CFG = &config.InstanceConfig{
 	Experiments: config.Experiments{
-		RemoveDefaultStatValue: false,
+		EnableSkiaBridgeAggregation: false,
 	},
 }
 
