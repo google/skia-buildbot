@@ -98,8 +98,8 @@ func TestPairwiseWorkflow_GivenSuccessfulWorkflow_ReturnsCorrectPValues(t *testi
 	require.NoError(t, env.GetWorkflowResult(&pe))
 	assert.NotNil(t, pe)
 	assert.NotEmpty(t, pe.JobId)
-	assert.Equal(t, statResults.PValue, pe.Statistic.PValue)
-	assert.Nil(t, pe.Culprit)
+	assert.Equal(t, statResults.PValue, pe.Results[mockChart].PValue)
+	assert.Nil(t, pe.CulpritCandidate)
 	env.AssertExpectations(t)
 }
 
@@ -142,7 +142,7 @@ func TestPairwiseWorkflow_GivenSuccessfulWorkflowWithCulprit_ReturnsCulprit(t *t
 			StartBuild: &mockBuild,
 			EndCommit:  &mockCommit,
 		},
-		CulpritVerify: true,
+		CulpritVerify: true, // if this is true, return the culprit
 	})
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
@@ -151,8 +151,8 @@ func TestPairwiseWorkflow_GivenSuccessfulWorkflowWithCulprit_ReturnsCulprit(t *t
 	require.NoError(t, env.GetWorkflowResult(&pe))
 	assert.NotNil(t, pe)
 	assert.NotEmpty(t, pe.JobId)
-	assert.Equal(t, statResults.PValue, pe.Statistic.PValue)
-	assert.Equal(t, "fake-commit", pe.Culprit.Main.GitHash)
+	assert.Equal(t, statResults.PValue, pe.Results[mockChart].PValue)
+	assert.Equal(t, "fake-commit", pe.CulpritCandidate.Main.GitHash)
 	env.AssertExpectations(t)
 }
 

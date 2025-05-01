@@ -46,14 +46,19 @@ func CulpritFinderWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderPar
 		return nil, skerr.Wrap(err)
 	}
 
+	res, ok := pe.Results[cfp.Request.Chart]
+	if !ok {
+		return nil, skerr.Fmt("inexistent chart %s in regression verification results", cfp.Request.Chart)
+	}
+
 	// no regression found, no bug creation necessary
-	if !pe.Significant {
+	if !res.Significant {
 		return &pinpoint_proto.CulpritFinderExecution{
 			RegressionVerified: false,
 		}, nil
 	}
 
-	magnitude := fmt.Sprintf("%f", pe.Statistic.TreatmentMedian-pe.Statistic.ControlMedian)
+	magnitude := fmt.Sprintf("%f", res.TreatmentMedian-res.ControlMedian)
 
 	bp := &workflows.BisectParams{
 		Request: &pinpoint_proto.ScheduleBisectRequest{
@@ -177,8 +182,12 @@ func verifyCulprits(ctx workflow.Context, be *pinpoint_proto.BisectExecution, cf
 
 	verifiedCulprits := []*pinpoint_proto.CombinedCommit{}
 	for _, exec := range culpritVerifyExecs {
-		if exec.Culprit != nil {
-			verifiedCulprits = append(verifiedCulprits, exec.Culprit)
+		res, ok := exec.Results[cfp.Request.Chart]
+		if !ok {
+			return nil, skerr.Fmt("inexistent chart %s in regression verification results", cfp.Request.Chart)
+		}
+		if res.Significant {
+			verifiedCulprits = append(verifiedCulprits, exec.CulpritCandidate)
 		}
 	}
 

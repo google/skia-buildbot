@@ -930,6 +930,9 @@ type SchedulePairwiseRequest struct {
 	// collects performance histogram data to analyze.
 	// Users can run jobs with either story, story tags, or both story and story tags.
 	Story string `protobuf:"bytes,5,opt,name=story,proto3" json:"story,omitempty"`
+	// DEPRECATED. Chart is not used in the legacy Pinpoint. This field
+	// was originally here to support the regression and culprit verification
+	// workflows.
 	Chart string `protobuf:"bytes,6,opt,name=chart,json=measurement,proto3" json:"chart,omitempty"`
 	// The mechanism in which benchmark measurements are aggregated by.
 	// One of sum, mean, min, max count, and std. If left blank, then
@@ -1094,19 +1097,16 @@ func (x *SchedulePairwiseRequest) GetStoryTags() string {
 
 type PairwiseExecution struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// significant regression / culprit if true
-	Significant bool                              `protobuf:"varint,1,opt,name=significant,proto3" json:"significant,omitempty"`
-	JobId       string                            `protobuf:"bytes,2,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
-	Statistic   *PairwiseExecution_WilcoxonResult `protobuf:"bytes,3,opt,name=statistic,proto3" json:"statistic,omitempty"`
-	// The culprit is only populated on culprit verification workflows
-	// and if the result is significant
-	Culprit *CombinedCommit `protobuf:"bytes,4,opt,name=culprit,proto3" json:"culprit,omitempty"`
+	JobId string                 `protobuf:"bytes,2,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
 	// The Wilcoxon statistical result of every single chart
 	Results             map[string]*PairwiseExecution_WilcoxonResult `protobuf:"bytes,5,rep,name=results,proto3" json:"results,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	LeftSwarmingStatus  []*SwarmingTaskStatus                        `protobuf:"bytes,6,rep,name=left_swarming_status,json=leftSwarmingStatus,proto3" json:"left_swarming_status,omitempty"`
 	RightSwarmingStatus []*SwarmingTaskStatus                        `protobuf:"bytes,7,rep,name=right_swarming_status,json=rightSwarmingStatus,proto3" json:"right_swarming_status,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// The culprit_candidate is the right commit (aka experiment/treatment commit)
+	// and is only returned for culprit verification jobs.
+	CulpritCandidate *CombinedCommit `protobuf:"bytes,8,opt,name=culprit_candidate,json=culpritCandidate,proto3" json:"culprit_candidate,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *PairwiseExecution) Reset() {
@@ -1139,32 +1139,11 @@ func (*PairwiseExecution) Descriptor() ([]byte, []int) {
 	return file_service_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *PairwiseExecution) GetSignificant() bool {
-	if x != nil {
-		return x.Significant
-	}
-	return false
-}
-
 func (x *PairwiseExecution) GetJobId() string {
 	if x != nil {
 		return x.JobId
 	}
 	return ""
-}
-
-func (x *PairwiseExecution) GetStatistic() *PairwiseExecution_WilcoxonResult {
-	if x != nil {
-		return x.Statistic
-	}
-	return nil
-}
-
-func (x *PairwiseExecution) GetCulprit() *CombinedCommit {
-	if x != nil {
-		return x.Culprit
-	}
-	return nil
 }
 
 func (x *PairwiseExecution) GetResults() map[string]*PairwiseExecution_WilcoxonResult {
@@ -1184,6 +1163,13 @@ func (x *PairwiseExecution) GetLeftSwarmingStatus() []*SwarmingTaskStatus {
 func (x *PairwiseExecution) GetRightSwarmingStatus() []*SwarmingTaskStatus {
 	if x != nil {
 		return x.RightSwarmingStatus
+	}
+	return nil
+}
+
+func (x *PairwiseExecution) GetCulpritCandidate() *CombinedCommit {
+	if x != nil {
+		return x.CulpritCandidate
 	}
 	return nil
 }
@@ -1793,6 +1779,7 @@ type PairwiseExecution_WilcoxonResult struct {
 	ConfidenceIntervalHigher float64                `protobuf:"fixed64,3,opt,name=confidence_interval_higher,json=confidenceIntervalHigher,proto3" json:"confidence_interval_higher,omitempty"`
 	ControlMedian            float64                `protobuf:"fixed64,4,opt,name=control_median,json=controlMedian,proto3" json:"control_median,omitempty"`
 	TreatmentMedian          float64                `protobuf:"fixed64,5,opt,name=treatment_median,json=treatmentMedian,proto3" json:"treatment_median,omitempty"`
+	Significant              bool                   `protobuf:"varint,6,opt,name=significant,proto3" json:"significant,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -1860,6 +1847,13 @@ func (x *PairwiseExecution_WilcoxonResult) GetTreatmentMedian() float64 {
 		return x.TreatmentMedian
 	}
 	return 0
+}
+
+func (x *PairwiseExecution_WilcoxonResult) GetSignificant() bool {
+	if x != nil {
+		return x.Significant
+	}
+	return false
 }
 
 type LegacyJobResponse_Argument struct {
@@ -2479,21 +2473,20 @@ const file_service_proto_rawDesc = "" +
 	"startBuild\x126\n" +
 	"\tend_build\x18\x0e \x01(\v2\x19.pinpoint.v1.CASReferenceR\bendBuild\x12\x1d\n" +
 	"\n" +
-	"story_tags\x18\x0f \x01(\tR\tstoryTags\"\xa2\x06\n" +
-	"\x11PairwiseExecution\x12 \n" +
-	"\vsignificant\x18\x01 \x01(\bR\vsignificant\x12\x15\n" +
-	"\x06job_id\x18\x02 \x01(\tR\x05jobId\x12K\n" +
-	"\tstatistic\x18\x03 \x01(\v2-.pinpoint.v1.PairwiseExecution.WilcoxonResultR\tstatistic\x125\n" +
-	"\aculprit\x18\x04 \x01(\v2\x1b.pinpoint.v1.CombinedCommitR\aculprit\x12E\n" +
+	"story_tags\x18\x0f \x01(\tR\tstoryTags\"\xe8\x05\n" +
+	"\x11PairwiseExecution\x12\x15\n" +
+	"\x06job_id\x18\x02 \x01(\tR\x05jobId\x12E\n" +
 	"\aresults\x18\x05 \x03(\v2+.pinpoint.v1.PairwiseExecution.ResultsEntryR\aresults\x12Q\n" +
 	"\x14left_swarming_status\x18\x06 \x03(\v2\x1f.pinpoint.v1.SwarmingTaskStatusR\x12leftSwarmingStatus\x12S\n" +
-	"\x15right_swarming_status\x18\a \x03(\v2\x1f.pinpoint.v1.SwarmingTaskStatusR\x13rightSwarmingStatus\x1a\xf5\x01\n" +
+	"\x15right_swarming_status\x18\a \x03(\v2\x1f.pinpoint.v1.SwarmingTaskStatusR\x13rightSwarmingStatus\x12H\n" +
+	"\x11culprit_candidate\x18\b \x01(\v2\x1b.pinpoint.v1.CombinedCommitR\x10culpritCandidate\x1a\x97\x02\n" +
 	"\x0eWilcoxonResult\x12\x17\n" +
 	"\ap_value\x18\x01 \x01(\x01R\x06pValue\x12:\n" +
 	"\x19confidence_interval_lower\x18\x02 \x01(\x01R\x17confidenceIntervalLower\x12<\n" +
 	"\x1aconfidence_interval_higher\x18\x03 \x01(\x01R\x18confidenceIntervalHigher\x12%\n" +
 	"\x0econtrol_median\x18\x04 \x01(\x01R\rcontrolMedian\x12)\n" +
-	"\x10treatment_median\x18\x05 \x01(\x01R\x0ftreatmentMedian\x1ai\n" +
+	"\x10treatment_median\x18\x05 \x01(\x01R\x0ftreatmentMedian\x12 \n" +
+	"\vsignificant\x18\x06 \x01(\bR\vsignificant\x1ai\n" +
 	"\fResultsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12C\n" +
 	"\x05value\x18\x02 \x01(\v2-.pinpoint.v1.PairwiseExecution.WilcoxonResultR\x05value:\x028\x01\"\x9e\x03\n" +
@@ -2673,42 +2666,41 @@ var file_service_proto_depIdxs = []int32{
 	6,  // 11: pinpoint.v1.SchedulePairwiseRequest.end_commit:type_name -> pinpoint.v1.CombinedCommit
 	8,  // 12: pinpoint.v1.SchedulePairwiseRequest.start_build:type_name -> pinpoint.v1.CASReference
 	8,  // 13: pinpoint.v1.SchedulePairwiseRequest.end_build:type_name -> pinpoint.v1.CASReference
-	19, // 14: pinpoint.v1.PairwiseExecution.statistic:type_name -> pinpoint.v1.PairwiseExecution.WilcoxonResult
-	6,  // 15: pinpoint.v1.PairwiseExecution.culprit:type_name -> pinpoint.v1.CombinedCommit
-	20, // 16: pinpoint.v1.PairwiseExecution.results:type_name -> pinpoint.v1.PairwiseExecution.ResultsEntry
-	9,  // 17: pinpoint.v1.PairwiseExecution.left_swarming_status:type_name -> pinpoint.v1.SwarmingTaskStatus
-	9,  // 18: pinpoint.v1.PairwiseExecution.right_swarming_status:type_name -> pinpoint.v1.SwarmingTaskStatus
-	6,  // 19: pinpoint.v1.CulpritFinderExecution.culprits:type_name -> pinpoint.v1.CombinedCommit
-	21, // 20: pinpoint.v1.LegacyJobResponse.arguments:type_name -> pinpoint.v1.LegacyJobResponse.Argument
-	29, // 21: pinpoint.v1.LegacyJobResponse.created:type_name -> google.protobuf.Timestamp
-	29, // 22: pinpoint.v1.LegacyJobResponse.updated:type_name -> google.protobuf.Timestamp
-	29, // 23: pinpoint.v1.LegacyJobResponse.started_time:type_name -> google.protobuf.Timestamp
-	22, // 24: pinpoint.v1.LegacyJobResponse.state:type_name -> pinpoint.v1.LegacyJobResponse.State
-	19, // 25: pinpoint.v1.PairwiseExecution.ResultsEntry.value:type_name -> pinpoint.v1.PairwiseExecution.WilcoxonResult
-	23, // 26: pinpoint.v1.LegacyJobResponse.Argument.tags:type_name -> pinpoint.v1.LegacyJobResponse.Argument.TagsEntry
-	24, // 27: pinpoint.v1.LegacyJobResponse.State.change:type_name -> pinpoint.v1.LegacyJobResponse.State.Change
-	25, // 28: pinpoint.v1.LegacyJobResponse.State.attempts:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt
-	26, // 29: pinpoint.v1.LegacyJobResponse.State.comparisons:type_name -> pinpoint.v1.LegacyJobResponse.State.Comparison
-	5,  // 30: pinpoint.v1.LegacyJobResponse.State.Change.commits:type_name -> pinpoint.v1.Commit
-	27, // 31: pinpoint.v1.LegacyJobResponse.State.Attempt.executions:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt.Execution
-	28, // 32: pinpoint.v1.LegacyJobResponse.State.Attempt.Execution.details:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt.Execution.Detail
-	1,  // 33: pinpoint.v1.Pinpoint.ScheduleBisection:input_type -> pinpoint.v1.ScheduleBisectRequest
-	3,  // 34: pinpoint.v1.Pinpoint.CancelJob:input_type -> pinpoint.v1.CancelJobRequest
-	2,  // 35: pinpoint.v1.Pinpoint.QueryBisection:input_type -> pinpoint.v1.QueryBisectRequest
-	16, // 36: pinpoint.v1.Pinpoint.LegacyJobQuery:input_type -> pinpoint.v1.LegacyJobRequest
-	11, // 37: pinpoint.v1.Pinpoint.SchedulePairwise:input_type -> pinpoint.v1.SchedulePairwiseRequest
-	13, // 38: pinpoint.v1.Pinpoint.ScheduleCulpritFinder:input_type -> pinpoint.v1.ScheduleCulpritFinderRequest
-	10, // 39: pinpoint.v1.Pinpoint.ScheduleBisection:output_type -> pinpoint.v1.BisectExecution
-	4,  // 40: pinpoint.v1.Pinpoint.CancelJob:output_type -> pinpoint.v1.CancelJobResponse
-	10, // 41: pinpoint.v1.Pinpoint.QueryBisection:output_type -> pinpoint.v1.BisectExecution
-	17, // 42: pinpoint.v1.Pinpoint.LegacyJobQuery:output_type -> pinpoint.v1.LegacyJobResponse
-	12, // 43: pinpoint.v1.Pinpoint.SchedulePairwise:output_type -> pinpoint.v1.PairwiseExecution
-	15, // 44: pinpoint.v1.Pinpoint.ScheduleCulpritFinder:output_type -> pinpoint.v1.CulpritFinderExecution
-	39, // [39:45] is the sub-list for method output_type
-	33, // [33:39] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	20, // 14: pinpoint.v1.PairwiseExecution.results:type_name -> pinpoint.v1.PairwiseExecution.ResultsEntry
+	9,  // 15: pinpoint.v1.PairwiseExecution.left_swarming_status:type_name -> pinpoint.v1.SwarmingTaskStatus
+	9,  // 16: pinpoint.v1.PairwiseExecution.right_swarming_status:type_name -> pinpoint.v1.SwarmingTaskStatus
+	6,  // 17: pinpoint.v1.PairwiseExecution.culprit_candidate:type_name -> pinpoint.v1.CombinedCommit
+	6,  // 18: pinpoint.v1.CulpritFinderExecution.culprits:type_name -> pinpoint.v1.CombinedCommit
+	21, // 19: pinpoint.v1.LegacyJobResponse.arguments:type_name -> pinpoint.v1.LegacyJobResponse.Argument
+	29, // 20: pinpoint.v1.LegacyJobResponse.created:type_name -> google.protobuf.Timestamp
+	29, // 21: pinpoint.v1.LegacyJobResponse.updated:type_name -> google.protobuf.Timestamp
+	29, // 22: pinpoint.v1.LegacyJobResponse.started_time:type_name -> google.protobuf.Timestamp
+	22, // 23: pinpoint.v1.LegacyJobResponse.state:type_name -> pinpoint.v1.LegacyJobResponse.State
+	19, // 24: pinpoint.v1.PairwiseExecution.ResultsEntry.value:type_name -> pinpoint.v1.PairwiseExecution.WilcoxonResult
+	23, // 25: pinpoint.v1.LegacyJobResponse.Argument.tags:type_name -> pinpoint.v1.LegacyJobResponse.Argument.TagsEntry
+	24, // 26: pinpoint.v1.LegacyJobResponse.State.change:type_name -> pinpoint.v1.LegacyJobResponse.State.Change
+	25, // 27: pinpoint.v1.LegacyJobResponse.State.attempts:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt
+	26, // 28: pinpoint.v1.LegacyJobResponse.State.comparisons:type_name -> pinpoint.v1.LegacyJobResponse.State.Comparison
+	5,  // 29: pinpoint.v1.LegacyJobResponse.State.Change.commits:type_name -> pinpoint.v1.Commit
+	27, // 30: pinpoint.v1.LegacyJobResponse.State.Attempt.executions:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt.Execution
+	28, // 31: pinpoint.v1.LegacyJobResponse.State.Attempt.Execution.details:type_name -> pinpoint.v1.LegacyJobResponse.State.Attempt.Execution.Detail
+	1,  // 32: pinpoint.v1.Pinpoint.ScheduleBisection:input_type -> pinpoint.v1.ScheduleBisectRequest
+	3,  // 33: pinpoint.v1.Pinpoint.CancelJob:input_type -> pinpoint.v1.CancelJobRequest
+	2,  // 34: pinpoint.v1.Pinpoint.QueryBisection:input_type -> pinpoint.v1.QueryBisectRequest
+	16, // 35: pinpoint.v1.Pinpoint.LegacyJobQuery:input_type -> pinpoint.v1.LegacyJobRequest
+	11, // 36: pinpoint.v1.Pinpoint.SchedulePairwise:input_type -> pinpoint.v1.SchedulePairwiseRequest
+	13, // 37: pinpoint.v1.Pinpoint.ScheduleCulpritFinder:input_type -> pinpoint.v1.ScheduleCulpritFinderRequest
+	10, // 38: pinpoint.v1.Pinpoint.ScheduleBisection:output_type -> pinpoint.v1.BisectExecution
+	4,  // 39: pinpoint.v1.Pinpoint.CancelJob:output_type -> pinpoint.v1.CancelJobResponse
+	10, // 40: pinpoint.v1.Pinpoint.QueryBisection:output_type -> pinpoint.v1.BisectExecution
+	17, // 41: pinpoint.v1.Pinpoint.LegacyJobQuery:output_type -> pinpoint.v1.LegacyJobResponse
+	12, // 42: pinpoint.v1.Pinpoint.SchedulePairwise:output_type -> pinpoint.v1.PairwiseExecution
+	15, // 43: pinpoint.v1.Pinpoint.ScheduleCulpritFinder:output_type -> pinpoint.v1.CulpritFinderExecution
+	38, // [38:44] is the sub-list for method output_type
+	32, // [32:38] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() { file_service_proto_init() }

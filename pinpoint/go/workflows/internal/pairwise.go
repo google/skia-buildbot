@@ -74,25 +74,25 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 		return nil, skerr.Wrapf(err, "failed to compare pairwise runs")
 	}
 
-	// significant variable is explicitly set to false.
-	// This value is used in CulpritFinder to determine whether to bisect.
-	// Significant = true means that there's indeed a regression and it should
-	// be investigated. If significant is not explicitly set to False, we see
-	// Temporal workflows with Significant and Culprit omitted because the resolve
-	// to nil.
-	// TODO(b/406763900): Migrate this logic to culprit_finder workflow. Pairwise
-	// workflow should just return the results of all charts.
-	res := results[p.Request.Chart]
-	significant := false
-	var culprit *pinpoint_proto.CombinedCommit
-	if res.Verdict == compare.Different {
-		significant = true
-		culprit = (*pinpoint_proto.CombinedCommit)(pairwiseRunnerParams.RightCommit)
+	// we only return the "culprit" if this is a culprit-verification run.
+	// Culprit verification workflows are run in parallel and returned via
+	// channels. So the parent culprit_finder workflow is unable to determine
+	// which completed child workflow belongs to which set of inputs. We
+	// explicitly return this commit to work around this limitation.
+	var culpritCandidate *pinpoint_proto.CombinedCommit
+	if p.CulpritVerify {
+		culpritCandidate = (*pinpoint_proto.CombinedCommit)(pairwiseRunnerParams.RightCommit)
 	}
 
 	protoResults := map[string]*pinpoint_proto.PairwiseExecution_WilcoxonResult{}
 	for chart, res := range results {
 		protoResults[chart] = &pinpoint_proto.PairwiseExecution_WilcoxonResult{
+			// Significant is used in CulpritFinder to determine whether to bisect.
+			// Significant = true means that there's indeed a regression and it should
+			// be investigated. If significant is not explicitly set to False, we see
+			// Temporal workflows with Significant and Culprit omitted because the resolve
+			// to nil.
+			Significant:              res.Verdict == compare.Different,
 			PValue:                   res.PValue,
 			ConfidenceIntervalLower:  res.LowerCi,
 			ConfidenceIntervalHigher: res.UpperCi,
@@ -101,23 +101,12 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 		}
 	}
 
-	leftStatus := pr.Left.GetSwarmingStatus()
-	rightStatus := pr.Right.GetSwarmingStatus()
-
 	return &pinpoint_proto.PairwiseExecution{
-		Significant: significant,
-		JobId:       jobID,
-		Statistic: &pinpoint_proto.PairwiseExecution_WilcoxonResult{
-			PValue:                   res.PValue,
-			ConfidenceIntervalLower:  res.LowerCi,
-			ConfidenceIntervalHigher: res.UpperCi,
-			ControlMedian:            res.XMedian,
-			TreatmentMedian:          res.YMedian,
-		},
-		Culprit:             culprit,
+		JobId:               jobID,
+		CulpritCandidate:    culpritCandidate,
 		Results:             protoResults,
-		LeftSwarmingStatus:  leftStatus,
-		RightSwarmingStatus: rightStatus,
+		LeftSwarmingStatus:  pr.Left.GetSwarmingStatus(),
+		RightSwarmingStatus: pr.Right.GetSwarmingStatus(),
 	}, nil
 }
 

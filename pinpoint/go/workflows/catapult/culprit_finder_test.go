@@ -15,6 +15,8 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+const mockChart = "RunsPerMinute"
+
 func generateCulpritFinderParams() *workflows.CulpritFinderParams {
 	return &workflows.CulpritFinderParams{
 		Request: &pinpoint_proto.ScheduleCulpritFinderRequest{
@@ -23,7 +25,7 @@ func generateCulpritFinderParams() *workflows.CulpritFinderParams {
 			Configuration:        "win-11-perf",
 			Benchmark:            "speedometer2",
 			Story:                "Speedometer2",
-			Chart:                "RunsPerMinute",
+			Chart:                mockChart,
 			Statistic:            "",
 			ComparisonMagnitude:  "1.0",
 			ImprovementDirection: "Up",
@@ -36,6 +38,18 @@ func generateCulpritFinderParams() *workflows.CulpritFinderParams {
 	}
 }
 
+func mockPairwiseExecution(significant bool) *pinpoint_proto.PairwiseExecution {
+	return &pinpoint_proto.PairwiseExecution{
+		Results: map[string]*pinpoint_proto.PairwiseExecution_WilcoxonResult{
+			mockChart: {
+				Significant:     significant,
+				ControlMedian:   0.1, // arbitrary values, difference does not imply significance
+				TreatmentMedian: 0.2,
+			},
+		},
+	}
+}
+
 func mockProcessCulprit(ctx workflow.Context, input *perf_workflow.ProcessCulpritParam) (*perf_workflow.ProcessCulpritResult, error) {
 	return nil, nil
 }
@@ -43,15 +57,12 @@ func mockProcessCulprit(ctx workflow.Context, input *perf_workflow.ProcessCulpri
 func createPairwiseExecutionChannel(fakeCulprits []*pinpoint_proto.CombinedCommit) chan *pinpoint_proto.PairwiseExecution {
 	rc := make(chan *pinpoint_proto.PairwiseExecution, len(fakeCulprits))
 	pairwiseExecutions := make([]*pinpoint_proto.PairwiseExecution, len(fakeCulprits))
-	pairwiseExecutions[0] = &pinpoint_proto.PairwiseExecution{}
-	rc <- &pinpoint_proto.PairwiseExecution{}
+	pairwiseExecutions[0] = mockPairwiseExecution(false)
+	rc <- mockPairwiseExecution(false)
 	for i := 1; i < len(fakeCulprits); i++ {
-		pairwiseExecutions[i] = &pinpoint_proto.PairwiseExecution{
-			Culprit: fakeCulprits[i],
-		}
-		rc <- &pinpoint_proto.PairwiseExecution{
-			Culprit: fakeCulprits[i],
-		}
+		pairwiseExecutions[i] = mockPairwiseExecution(true)
+		pairwiseExecutions[i].CulpritCandidate = fakeCulprits[i]
+		rc <- pairwiseExecutions[i]
 	}
 	return rc
 }
@@ -62,9 +73,7 @@ func TestCulpritFinder_NoRegression_ReturnsEarly(t *testing.T) {
 
 	env.RegisterWorkflowWithOptions(internal.PairwiseWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseWorkflow})
 
-	env.OnWorkflow(workflows.PairwiseWorkflow, mock.Anything, mock.Anything).Return(&pinpoint_proto.PairwiseExecution{
-		Significant: false,
-	}, nil).Once()
+	env.OnWorkflow(workflows.PairwiseWorkflow, mock.Anything, mock.Anything).Return(mockPairwiseExecution(false), nil).Once()
 
 	env.ExecuteWorkflow(CulpritFinderWorkflow, generateCulpritFinderParams())
 	require.True(t, env.IsWorkflowCompleted())
@@ -86,14 +95,7 @@ func TestCulpritFinder_NoCulpritsAfterBisect_ReturnsRegression(t *testing.T) {
 	env.RegisterWorkflowWithOptions(CatapultBisectWorkflow, workflow.RegisterOptions{Name: workflows.CatapultBisect})
 	env.RegisterWorkflowWithOptions(mockProcessCulprit, workflow.RegisterOptions{Name: perf_workflow.ProcessCulprit})
 
-	env.OnWorkflow(workflows.PairwiseWorkflow, mock.Anything, mock.Anything).Return(
-		&pinpoint_proto.PairwiseExecution{
-			Significant: true,
-			Statistic: &pinpoint_proto.PairwiseExecution_WilcoxonResult{
-				ControlMedian:   0.1, // arbitrary values
-				TreatmentMedian: 0.2,
-			},
-		}, nil).Once()
+	env.OnWorkflow(workflows.PairwiseWorkflow, mock.Anything, mock.Anything).Return(mockPairwiseExecution(true), nil).Once()
 	env.OnWorkflow(workflows.CatapultBisect, mock.Anything, mock.Anything).Return(&pinpoint_proto.BisectExecution{}, nil).Once()
 	env.OnWorkflow(perf_workflow.ProcessCulprit, mock.Anything, mock.Anything).Never()
 
@@ -109,7 +111,7 @@ func TestCulpritFinder_NoCulpritsAfterBisect_ReturnsRegression(t *testing.T) {
 	env.AssertExpectations(t)
 }
 
-func TestCulpritFinder_CulpritsVerified_ReturnsCulprits_NoCallback(t *testing.T) {
+func TestCulpritFinder_CulpritsVerified_GivenNoCulpritServiceURL_NoCallback(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
@@ -141,13 +143,7 @@ func TestCulpritFinder_CulpritsVerified_ReturnsCulprits_NoCallback(t *testing.T)
 	rc := createPairwiseExecutionChannel(fakeCulprits)
 
 	env.OnWorkflow(workflows.PairwiseWorkflow, mock.Anything, mock.Anything).Return(
-		&pinpoint_proto.PairwiseExecution{
-			Significant: true,
-			Statistic: &pinpoint_proto.PairwiseExecution_WilcoxonResult{
-				ControlMedian:   0.1, // arbitrary values
-				TreatmentMedian: 0.2,
-			},
-		}, nil).Once()
+		mockPairwiseExecution(true), nil).Once()
 	env.OnWorkflow(workflows.CatapultBisect, mock.Anything, mock.Anything).Return(&pinpoint_proto.BisectExecution{
 		Culprits:         fakeCulprits,
 		DetailedCulprits: fakeCulpritPairs,
@@ -171,7 +167,7 @@ func TestCulpritFinder_CulpritsVerified_ReturnsCulprits_NoCallback(t *testing.T)
 	env.AssertExpectations(t)
 }
 
-func TestCulpritFinder_CulpritsVerified_ReturnsCulprits(t *testing.T) {
+func TestCulpritFinder_CulpritsVerified_ReturnsCulpritsWithCallback(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
@@ -203,13 +199,7 @@ func TestCulpritFinder_CulpritsVerified_ReturnsCulprits(t *testing.T) {
 	rc := createPairwiseExecutionChannel(fakeCulprits)
 
 	env.OnWorkflow(workflows.PairwiseWorkflow, mock.Anything, mock.Anything).Return(
-		&pinpoint_proto.PairwiseExecution{
-			Significant: true,
-			Statistic: &pinpoint_proto.PairwiseExecution_WilcoxonResult{
-				ControlMedian:   0.1, // arbitrary values
-				TreatmentMedian: 0.2,
-			},
-		}, nil).Once()
+		mockPairwiseExecution(true), nil).Once()
 	env.OnWorkflow(workflows.CatapultBisect, mock.Anything, mock.Anything).Return(&pinpoint_proto.BisectExecution{
 		Culprits:         fakeCulprits,
 		DetailedCulprits: fakeCulpritPairs,

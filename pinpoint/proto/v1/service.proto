@@ -249,6 +249,9 @@ message SchedulePairwiseRequest {
 	// collects performance histogram data to analyze.
 	// Users can run jobs with either story, story tags, or both story and story tags.
 	string story = 5;
+	// DEPRECATED. Chart is not used in the legacy Pinpoint. This field
+	// was originally here to support the regression and culprit verification
+	// workflows.
 	string chart = 6 [json_name = "measurement"];
 	// The mechanism in which benchmark measurements are aggregated by.
 	// One of sum, mean, min, max count, and std. If left blank, then
@@ -282,27 +285,25 @@ message SchedulePairwiseRequest {
 }
 
 message PairwiseExecution {
-	// significant regression / culprit if true
-	bool significant = 1;
 	string job_id = 2;
+
 	message WilcoxonResult {
 		double p_value = 1;
 		double confidence_interval_lower = 2;
 		double confidence_interval_higher = 3;
 		double control_median = 4;
 		double treatment_median = 5;
+		bool significant = 6;
 	}
-	WilcoxonResult statistic = 3;
-
-	// The culprit is only populated on culprit verification workflows
-	// and if the result is significant
-	CombinedCommit culprit = 4;
-
 	// The Wilcoxon statistical result of every single chart
 	map<string, WilcoxonResult> results = 5;
 
 	repeated SwarmingTaskStatus left_swarming_status = 6;
 	repeated SwarmingTaskStatus right_swarming_status = 7;
+
+	// The culprit_candidate is the right commit (aka experiment/treatment commit)
+	// and is only returned for culprit verification jobs.
+	CombinedCommit culprit_candidate = 8;
 }
 
 // ScheduleCulpritFinderRequest contains the input to schedule an E2E anomaly to culprits
