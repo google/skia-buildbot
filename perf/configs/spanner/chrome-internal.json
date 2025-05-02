@@ -32,6 +32,9 @@
         "enable_follower_reads": true,
         "min_db_connections": 5
     },
+    "experiments": {
+        "enable_skia_bridge_aggregation": true
+    },
     "ingestion_config": {
         "source_config": {
             "source_type": "gcs",
