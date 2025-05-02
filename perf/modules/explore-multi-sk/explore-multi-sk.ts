@@ -341,13 +341,39 @@ export class ExploreMultiSk extends ElementSk {
       // Event listener to remove the explore object from the list if the user
       // close it in a Multiview window.
       this.addEventListener('remove-explore', (e) => {
-        const exploreElem = (e as CustomEvent).detail.elem;
-        this.graphDiv!.removeChild(exploreElem);
-        this.currentPageExploreElements = this.currentPageExploreElements.filter(
-          (elem) => elem !== exploreElem
+        const exploreElemToRemove = (e as CustomEvent).detail.elem as ExploreSimpleSk;
+        const indexToRemove = this.exploreElements.findIndex(
+          (elem) => elem === exploreElemToRemove
         );
-        this.state.totalGraphs--;
-        this.updateChartHeights();
+
+        if (indexToRemove > -1) {
+          this.exploreElements.splice(indexToRemove, 1);
+          this.graphConfigs.splice(indexToRemove, 1);
+          this.state.totalGraphs = this.exploreElements.length;
+
+          // Adjust pagination: if there are no graphs left, reset page offset to 0.
+          if (this.state.totalGraphs === 0) {
+            this.state.pageOffset = 0;
+          } else if (this.state.pageSize > 0) {
+            // If graphs remain and pageSize is valid, calculate the maximum valid page offset.
+            // This prevents being on a page that no longer exists
+            // (e.g., if the last item on the last page was removed).
+            const maxValidPageOffset = Math.max(
+              0,
+              (Math.ceil(this.state.totalGraphs / this.state.pageSize) - 1) * this.state.pageSize
+            );
+            this.state.pageOffset = Math.min(this.state.pageOffset, maxValidPageOffset);
+          }
+
+          this.updateShortcutMultiview();
+          this.addGraphsToCurrentPage();
+          this.updateButtons();
+        } else {
+          this.state.totalGraphs = this.exploreElements.length;
+          if (this.stateHasChanged) this.stateHasChanged();
+          this.addGraphsToCurrentPage();
+          this.updateButtons();
+        }
         e.stopPropagation();
       });
 
