@@ -126,6 +126,11 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 	defer cancel()
 	ctx, span := trace.StartSpan(ctx, "ingest.parser.processSingleFile")
 	defer span.End()
+	// This is also being tracked separate from trace.Span to gather the metrics
+	// in Prom.
+	processLatency := metrics2.NewTimer("ingest_processSingleFile_latency")
+	processLatency.Start()
+	defer processLatency.Stop()
 
 	sklog.Infof("Ingest received: %v", f)
 	w.filesReceived.Inc(1)
