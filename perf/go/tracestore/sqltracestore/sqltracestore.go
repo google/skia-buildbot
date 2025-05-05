@@ -1384,24 +1384,25 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 			}
 		}
 		sql := b.String()
-		queryCtx, querySpan := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly.ExecuteSQLQuery")
-		rows, err := s.db.Query(queryCtx, sql)
-		querySpan.End()
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
 		ch := make(chan traceIDForSQL)
 		if optimizeSQLTraceStore {
 			ch = make(chan traceIDForSQL, queryTracesIDOnlyByIndexChannelSize)
 		}
 		unionChannels = append(unionChannels, ch)
 
-		go func(ch chan traceIDForSQL, rows pgx.Rows) {
+		go func(ch chan traceIDForSQL, sql string) {
 			_, span := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly.PerKeyWorker")
 			defer span.End()
 
 			defer close(ch)
 
+			queryCtx, querySpan := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly.ExecuteSQLQuery")
+			rows, err := s.db.Query(queryCtx, sql)
+			querySpan.End()
+			if err != nil {
+				sklog.Infof("Error querying traceIds: %v", err)
+				return
+			}
 			for rows.Next() {
 				var traceIDAsBytes []byte
 				if err := rows.Scan(&traceIDAsBytes); err != nil {
@@ -1417,7 +1418,7 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 				}
 				ch <- traceIDForSQLFromTraceIDAsBytes(traceIDAsBytes)
 			}
-		}(ch, rows)
+		}(ch, sql)
 		i++
 	}
 
