@@ -55,11 +55,11 @@ export class PointLinksSk extends ElementSk {
   commitPosition: CommitNumber | null = null;
 
   // Contains the urls to be displayed.
-  displayUrls: { [key: string]: string } = {};
+  _displayUrls: { [key: string]: string } = {};
 
   // Contains texts to be displayed.
   // TODO(sunxiaodi@): remove display texts
-  displayTexts: { [key: string]: string } = {};
+  _displayTexts: { [key: string]: string } = {};
 
   private buildLogText = 'Build Log';
 
@@ -74,7 +74,7 @@ export class PointLinksSk extends ElementSk {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._render();
+    this.render();
   }
 
   renderPointLinks(): TemplateResult[] {
@@ -134,41 +134,46 @@ export class PointLinksSk extends ElementSk {
 
   // load and display the links for the given commit and trace.
   public async load(
-    cid: CommitNumber,
-    prev_cid: CommitNumber,
-    traceid: string,
+    commit_position: CommitNumber | null,
+    prev_commit_position: CommitNumber | null,
+    trace_id: string,
     keysForCommitRange: string[],
     keysForUsefulLinks: string[],
     commitLinks: (CommitLinks | null)[]
   ): Promise<(CommitLinks | null)[]> {
-    this.commitPosition = cid;
+    this.commitPosition = commit_position;
+    this.reset();
+    if (commit_position === null || prev_commit_position === null) {
+      return Promise.resolve(commitLinks);
+    }
     if (commitLinks.length > 0) {
-      commitLinks.forEach((commitLink) => {
-        if (commitLink && commitLink.cid === cid && commitLink.traceid === traceid) {
-          // Commit and TraceID have already been loaded, reuse links.
-          this.displayUrls = commitLink.displayUrls || {};
-          this.displayTexts = commitLink.displayTexts || {};
-        }
-      });
-      if (Object.keys(this.displayUrls).length > 0 || Object.keys(this.displayTexts).length > 0) {
-        this._render();
-        return commitLinks; // Return the commitLinks object
+      // Check if the commit and traceID have already been loaded
+      const existingLink = commitLinks.find(
+        (commitLink) =>
+          commitLink && commitLink.cid === commit_position && commitLink.traceid === trace_id
+      );
+      if (existingLink) {
+        // Reuse the existing links
+        this.displayUrls = existingLink.displayUrls || {};
+        this.displayTexts = existingLink.displayTexts || {};
+        return Promise.resolve(commitLinks);
       }
     }
 
     const currentLinks: { [key: string]: string } | null = await this.getLinksForPoint(
-      cid,
-      traceid
+      commit_position,
+      trace_id
     );
 
     if (currentLinks === null || currentLinks === undefined) {
       // No links found for the current commit, return with no change.
-      this._render();
       return commitLinks; // Return the commitLinks object as is.
     }
+    const displayTexts: { [key: string]: string } = {};
+    const displayUrls: { [key: string]: string } = {};
 
     if (keysForCommitRange !== null) {
-      const prevLinks = await this.getLinksForPoint(prev_cid, traceid);
+      const prevLinks = await this.getLinksForPoint(prev_commit_position, trace_id);
       keysForCommitRange.forEach((key) => {
         const currentCommitUrl = currentLinks[key];
         if (
@@ -179,55 +184,69 @@ export class PointLinksSk extends ElementSk {
           const prevCommitUrl = prevLinks[key];
           const currentCommitId = this.getCommitIdFromCommitUrl(currentCommitUrl).substring(0, 8);
           const prevCommitId = this.getCommitIdFromCommitUrl(prevCommitUrl).substring(0, 8);
-
+          // Workaround to ensure no duplication with links.
+          const displayKey = `${key.split(' Git')[0]}`;
           // The links should be different depending on whether the
           // commits are the same. If the commits are the same, simply point to
           // the commit. If they're not, point to the log list.
-          const displayKey = `${key}`;
+
           if (currentCommitId === prevCommitId) {
-            this.displayTexts[displayKey] = `${currentCommitId} (No Change)`;
-            this.displayUrls[displayKey] = currentCommitUrl;
+            displayTexts[displayKey] = `${currentCommitId} (No Change)`;
+            displayUrls[displayKey] = currentCommitUrl;
           } else {
-            this.displayTexts[displayKey] = this.getFormattedCommitRangeText(
+            displayTexts[displayKey] = this.getFormattedCommitRangeText(
               prevCommitId,
               currentCommitId
             );
-
             const repoUrl = this.getRepoUrlFromCommitUrl(currentCommitUrl);
             const commitRangeUrl = `${repoUrl}+log/${prevCommitId}..${currentCommitId}`;
-            this.displayUrls[displayKey] = commitRangeUrl;
+            displayUrls[displayKey] = commitRangeUrl;
           }
         }
       });
     }
-    const commitLink: CommitLinks = {
-      cid: cid,
-      traceid: traceid,
-      displayUrls: this.displayUrls,
-      displayTexts: this.displayTexts,
-    };
-
-    if (keysForUsefulLinks === null) {
-      this._render();
-      commitLinks.push(commitLink);
-      return commitLinks; // Return the commitLinks object
-    }
+    // Extra links found, add them to the displayUrls.
     Object.keys(currentLinks).forEach((key) => {
       if (keysForUsefulLinks.includes(key)) {
-        this.displayUrls[key] = currentLinks[key];
+        displayUrls[key] = currentLinks[key];
       }
     });
-    // Extra links found, add them to the displayUrls.
-    commitLink.displayUrls = this.displayUrls;
-    this._render();
-    commitLinks.push(commitLink);
+
+    const commitLink: CommitLinks = {
+      cid: commit_position,
+      traceid: trace_id,
+      displayUrls: displayUrls,
+      displayTexts: displayTexts,
+    };
+
+    if (commitLinks.indexOf(commitLink) === -1) {
+      commitLinks.push(commitLink);
+    }
+
+    this.displayTexts = displayTexts;
+    this.displayUrls = displayUrls;
+
+    // Before adding a new commit link, check if it already exists in the array.
+    // This should not be necessary, but it is a safeguard due to async calls.
+    const existingLink = commitLinks.find(
+      (commitLink) =>
+        commitLink && commitLink.cid === commit_position && commitLink.traceid === trace_id
+    );
+    if (!existingLink) {
+      commitLinks.push(commitLink);
+    }
     return commitLinks;
   }
 
   /** Clear Point Links */
   reset(): void {
+    this.commitPosition = null;
     this.displayUrls = {};
     this.displayTexts = {};
+    this.render();
+  }
+
+  render(): void {
     this._render();
   }
 
@@ -345,6 +364,22 @@ export class PointLinksSk extends ElementSk {
       return match[1];
     }
     return '';
+  }
+
+  set displayTexts(val: { [key: string]: string }) {
+    this._displayTexts = val;
+  }
+
+  get displayTexts(): { [key: string]: string } {
+    return this._displayTexts;
+  }
+
+  set displayUrls(val: { [key: string]: string }) {
+    this._displayUrls = val;
+  }
+
+  get displayUrls(): { [key: string]: string } {
+    return this._displayUrls;
   }
 }
 

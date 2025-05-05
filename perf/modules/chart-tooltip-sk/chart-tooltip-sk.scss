@@ -113,7 +113,6 @@ chart-tooltip-sk {
       font-weight: bold;
       display: table-cell;
       text-align: left;
-      padding-right: 1em;
       min-width: 80px;
       max-width: 200px;
     }
@@ -122,6 +121,8 @@ chart-tooltip-sk {
       text-align: left;
       padding-right: 1em;
       max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 }

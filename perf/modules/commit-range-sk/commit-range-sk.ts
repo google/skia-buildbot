@@ -42,6 +42,8 @@ export class CommitRangeSk extends ElementSk {
 
   private _commitIds: [CommitNumber, CommitNumber] | null = null;
 
+  private _hashes: string[] | null = null;
+
   /** Determines if text contains links. */
   showLinks: boolean = false;
 
@@ -70,6 +72,7 @@ export class CommitRangeSk extends ElementSk {
     this._url = '';
     this._text = '';
     this._commitIds = null;
+    this._hashes = null;
     this._render();
   }
 
@@ -122,11 +125,13 @@ export class CommitRangeSk extends ElementSk {
       // Show only text of commit if hover, else show full text with links.
       if (this.showLinks) {
         let url = window.perf.commit_range_url;
-        // Run the commit numbers through cid lookup to get the hashes.
-        const hashes = await this.commitNumberToHashes(this._commitIds);
+        if (!this.hashes) {
+          // Run the commit numbers through cid lookup to get the hashes.
+          this.hashes = await this.commitNumberToHashes(this._commitIds);
+        }
         // Create the URL.
-        url = url.replace('{begin}', hashes[0]);
-        url = url.replace('{end}', hashes[1]);
+        url = url.replace('{begin}', this.hashes[0]);
+        url = url.replace('{end}', this.hashes[1]);
         // Now populate link, including text and url.
         this._url = url;
         this._htmlTemplate = html`<a href="${this._url}" target="_blank">${this._text}</a>`;
@@ -166,6 +171,15 @@ export class CommitRangeSk extends ElementSk {
   set header(val: (ColumnHeader | null)[] | null) {
     this._header = val;
     this.recalcLink();
+  }
+
+  /** The hashes of the commits. */
+  get hashes(): string[] | null {
+    return this._hashes;
+  }
+
+  set hashes(val: string[] | null) {
+    this._hashes = val;
   }
 
   get url(): string {

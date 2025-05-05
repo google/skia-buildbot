@@ -1083,7 +1083,7 @@ export class ExploreSimpleSk extends ElementSk {
     const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPos) || null;
     this.selectedAnomaly = anomaly;
     const position = chart.getPositionByIndex(index);
-    const key = JSON.stringify([chart.getTraceName(index.tableCol), commitPos]);
+    const key = JSON.stringify([commitPos, chart.getTraceName(index.tableCol)]);
     const commit = this.pointToCommitDetailMap.get(key) || null;
 
     this.enableTooltip(
@@ -1144,7 +1144,7 @@ export class ExploreSimpleSk extends ElementSk {
     const index = detail;
     const commitPos = chart.getCommitPosition(index.tableRow);
     const position = chart.getPositionByIndex(index);
-    const key = JSON.stringify([chart.getTraceName(index.tableCol), commitPos]);
+    const key = JSON.stringify([commitPos, chart.getTraceName(index.tableCol)]);
     const commit = this.pointToCommitDetailMap.get(key) || null;
     this.enableTooltip(
       {
@@ -1969,7 +1969,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   enableTooltip(
     pointDetails: PlotSimpleSkTraceEventDetails,
-    commit: Commit | null,
+    commits: Commit[] | null,
     fixTooltip: boolean
   ): void {
     // explore-simple-sk is used multiple times on the multi-graph view. To
@@ -1978,11 +1978,18 @@ export class ExploreSimpleSk extends ElementSk {
     // clicking on
     const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
     tooltipElem?.reset();
-    tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });
 
     const x = (this.selectedRange?.begin || 0) + pointDetails.x;
-
     let commitDate = new Date();
+
+    // Store the hashes of the first two commits in the range.
+    // Show the commit hashes in the tooltip without having to refetch.
+    let hashes: string[] = [];
+    if (commits && commits.length > 1) {
+      hashes = [commits[0].hash, commits[1].hash];
+    }
+
+    const commit = commits ? commits[1] : null;
     if (commit === null) {
       const chart = this.googleChartPlot!.value!;
       commitDate = chart.getCommitDate(x);
@@ -1999,6 +2006,22 @@ export class ExploreSimpleSk extends ElementSk {
     this.startCommit = prevCommitPos?.toString() || '';
     this.endCommit = commitPosition.toString();
 
+    tooltipElem!
+      .loadPointLinks(
+        commitPosition,
+        prevCommitPos,
+        traceName,
+        window.perf.keys_for_commit_range!,
+        window.perf.keys_for_useful_links!,
+        this.commitLinks
+      )
+      .then((links) => {
+        this.commitLinks = links;
+        tooltipElem!.pointLinks?.render();
+      })
+      .catch((errorMessage) => {
+        console.error('Error loading point links:', errorMessage);
+      });
     // TODO(b/370804498): To be refactored into google plot / dataframe.
     // The anomaly data is indirectly referenced from simple-plot, and the anomaly data gets
     // updated in place in triage popup. This may cause the data inconsistency to manipulate
@@ -2109,21 +2132,9 @@ export class ExploreSimpleSk extends ElementSk {
     commitRangeSk!.trace = trace;
     commitRangeSk!.commitIndex = x;
     commitRangeSk!.header = header;
+    commitRangeSk!.hashes = hashes;
 
-    tooltipElem!
-      .loadPointLinks(
-        commitPosition,
-        prevCommitPos,
-        traceName,
-        window.perf.keys_for_commit_range!,
-        window.perf.keys_for_useful_links!,
-        this.commitLinks
-      )
-      .then((links) => {
-        this.commitLinks = links;
-      })
-      .catch(errorMessage);
-
+    tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });
     tooltipElem!.setBisectInputParams(preloadBisectInputs);
     tooltipElem!.setTryJobInputParams(preloadTryJobInputs);
     tooltipElem!.load(
@@ -2148,17 +2159,17 @@ export class ExploreSimpleSk extends ElementSk {
     if (commit === null) {
       fetch('/_/cid/', {
         method: 'POST',
-        body: JSON.stringify([commitPosition]),
+        body: JSON.stringify([prevCommitPos, commitPosition]),
         headers: {
           'Content-Type': 'application/json',
         },
       })
         .then(jsonOrThrow)
         .then((json: CIDHandlerResponse) => {
-          const key = JSON.stringify([traceName, commitPosition]);
-          this.pointToCommitDetailMap.set(key, json.commitSlice![0]);
+          const key = JSON.stringify([commitPosition, traceName]);
+          this.pointToCommitDetailMap.set(key, json.commitSlice!);
           if (tooltipElem) {
-            tooltipElem.commit_info = json.commitSlice![0];
+            tooltipElem.commit_info = json.commitSlice![1];
           }
           // Extract story (subtest) information
           const params: { [key: string]: string } = fromKey(traceName);
@@ -2359,13 +2370,13 @@ export class ExploreSimpleSk extends ElementSk {
         // when the commit details are loaded, add those info to
         // pointToCommitDetailMap map which can be used to fetch commit
         // info on hover without making an API call
-        this.pointToCommitDetailMap.set(JSON.stringify([detail.name, cid]), json.commitSlice![0]);
+        this.pointToCommitDetailMap.set(JSON.stringify([cid, detail.name]), json.commitSlice!);
 
         const tooltipEnabled = this._state.enable_chart_tooltip;
         const hasValidTooltipPos = detail.xPos !== undefined && detail.yPos !== undefined;
         if (tooltipEnabled && hasValidTooltipPos) {
           this.tooltipSelected = true;
-          this.enableTooltip(detail, json.commitSlice![0], true);
+          this.enableTooltip(detail, json.commitSlice, true);
         }
       })
       .catch(errorMessage);

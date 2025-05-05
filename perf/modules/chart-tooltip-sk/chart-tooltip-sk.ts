@@ -116,7 +116,7 @@ export class ChartTooltipSk extends ElementSk {
   // Point links display commit ranges for points (ie/ V8, WebRTC) if configured
   // for the instance. See "data_point_config" in chrome-perf-non-public.json
   // for an example of the configuration.
-  private pointLinks: PointLinksSk | null = null;
+  pointLinks: PointLinksSk | null = null;
 
   // dialog for displaying JSON source if configured for the instance.
   // See "data_point_config" in chrome-perf-non-public.json
@@ -170,22 +170,19 @@ export class ChartTooltipSk extends ElementSk {
       <ul class="table">
         <li>
           <span id="tooltip-key">Date</span>
-          ${ele.date_value.toUTCString()}
+          <span id="tooltip-text">${ele.date_value.toUTCString()}</span>
         </li>
         <li>
           <span id="tooltip-key">Value</span>
-          ${ele.y_value} ${ele.unit_type}
+          <span id="tooltip-text">${ele.y_value} ${ele.unit_type}</span>
         </li>
         <li>
           <span id="tooltip-key">Change</span>
           <commit-range-sk id="tooltip-commit-range-link"></commit-range-sk>
         </li>
-        ${ele.getCommitInfo()}
       </ul>
-      <point-links-sk
-        id="tooltip-point-links"
-        .commitPosition=${ele.commit_position}></point-links-sk>
-      ${ele.tooltip_fixed ? ele.anomalyTemplate() : ''}
+      <point-links-sk id="tooltip-point-links"></point-links-sk>
+      ${ele.getCommitInfo()} ${ele.tooltip_fixed ? ele.anomalyTemplate() : ''}
       <triage-menu-sk
         id="triage-menu"
         ?hidden=${!(ele.tooltip_fixed && ele.anomaly && ele.anomaly!.bug_id === 0)}>
@@ -281,20 +278,24 @@ export class ChartTooltipSk extends ElementSk {
 
   private getCommitInfo() {
     if ((this.tooltip_fixed && !this._is_range) || this._always_show_commit_info) {
-      return html` <li>
+      return html`<ul class="table">
+        <li>
           <span id="tooltip-key">Author</span>
-          <span id="tooltip-text"> ${this.commit_info?.author.split('(')[0]} </span>
+          <span id="tooltip-text">${this.commit_info?.author.split('(')[0]} </span>
         </li>
         <li>
           <span id="tooltip-key">Message</span>
-          <span id="tooltip-text"> ${this.commit_info?.message} </span>
+          <span id="tooltip-text">${this.commit_info?.message} </span>
         </li>
         <li>
           <span id="tooltip-key">Commit</span>
           <span id="tooltip-text">
-            <a href="${this.commit_info?.url}" target="_blank">${this.commit_info?.hash}</a>
+            <a href="${this.commit_info?.url}" target="_blank"
+              >${this.commit_info?.hash.substring(0, 8)}</a
+            >
           </span>
-        </li>`;
+        </li>
+      </ul>`;
     } else {
       return html``;
     }
@@ -472,11 +473,12 @@ export class ChartTooltipSk extends ElementSk {
     this.commit_info = commit;
 
     if (commitRange && this.commitRangeSk) {
+      this._is_range = this.commitRangeSk.isRange();
       this.commitRangeSk.showLinks = tooltipFixed;
+      this.commitRangeSk.hashes = commitRange.hashes;
       this.commitRangeSk.trace = commitRange.trace;
       this.commitRangeSk.commitIndex = commitRange.commitIndex;
       this.commitRangeSk.header = commitRange.header;
-      this._is_range = this.commitRangeSk.isRange();
     }
 
     if (this.userIssueSk !== null) {
@@ -496,9 +498,6 @@ export class ChartTooltipSk extends ElementSk {
     keysForUsefulLinks: string[],
     commitLinks: (CommitLinks | null)[]
   ): Promise<(CommitLinks | null)[]> {
-    if (commit_position === null || prev_commit_position === null) {
-      return Promise.resolve(commitLinks);
-    }
     return this.pointLinks!.load(
       commit_position,
       prev_commit_position,
@@ -519,6 +518,7 @@ export class ChartTooltipSk extends ElementSk {
 
   /** Clear Point Links */
   reset(): void {
+    this.commit_info = null;
     this.commitRangeSk?.reset();
     this.pointLinks?.reset();
     if (this.userIssueSk) {
