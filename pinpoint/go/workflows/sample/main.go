@@ -20,6 +20,7 @@ import (
 	"go.temporal.io/sdk/temporal"
 
 	pb "go.skia.org/infra/pinpoint/proto/v1"
+	enumspb "go.temporal.io/api/enums/v1"
 )
 
 var (
@@ -35,6 +36,7 @@ var (
 	triggerPairwiseRunnerFlag = flag.Bool("pairwise-runner", false, "toggle true to trigger pairwise commit runner workflow")
 	triggerPairwiseFlag       = flag.Bool("pairwise", false, "toggle true to trigger pairwise workflow")
 	triggerBugUpdateFlag      = flag.Bool("update-bug", false, "toggle true to trigger post bug comment workflow")
+	triggerQueryPairwiseFlag  = flag.Bool("query-pairwise", false, "toggle true to trigger querying of pairwise flows")
 )
 
 func defaultWorkflowOptions() client.StartWorkflowOptions {
@@ -241,6 +243,59 @@ func triggerBugUpdateWorkflow(c client.Client) (bool, error) {
 	return success, nil
 }
 
+func triggerQueryPairwise(c client.Client) (*pb.QueryPairwiseResponse, error) {
+	ctx := context.Background()
+	workflow_id := "45fe60b9-668e-44a9-9991-678221ba264d"
+
+	resp, err := c.DescribeWorkflowExecution(ctx, workflow_id, "")
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Unable to describe workflow")
+	}
+
+	workflowStatus := resp.GetWorkflowExecutionInfo().GetStatus()
+	fmt.Print(workflowStatus)
+	var pairwiseExecution pb.PairwiseExecution
+
+	switch workflowStatus {
+	case enumspb.WORKFLOW_EXECUTION_STATUS_COMPLETED:
+
+		workflowRun := c.GetWorkflow(ctx, workflow_id, "")
+
+		errGet := workflowRun.Get(ctx, &pairwiseExecution)
+		if errGet != nil {
+			return nil, skerr.Wrapf(errGet, "Pairwise workflow completed, but failed to get results")
+		}
+
+		return &pb.QueryPairwiseResponse{
+			Status:    pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_COMPLETED,
+			Execution: &pairwiseExecution,
+		}, nil
+
+	case enumspb.WORKFLOW_EXECUTION_STATUS_FAILED,
+		enumspb.WORKFLOW_EXECUTION_STATUS_TIMED_OUT,
+		enumspb.WORKFLOW_EXECUTION_STATUS_TERMINATED:
+
+		return &pb.QueryPairwiseResponse{
+			Status:    pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_FAILED,
+			Execution: &pairwiseExecution,
+		}, nil
+
+	case enumspb.WORKFLOW_EXECUTION_STATUS_CANCELED:
+		return &pb.QueryPairwiseResponse{
+			Status:    pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_CANCELED,
+			Execution: &pairwiseExecution,
+		}, nil
+
+	case enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING,
+		enumspb.WORKFLOW_EXECUTION_STATUS_CONTINUED_AS_NEW:
+		return &pb.QueryPairwiseResponse{
+			Status:    pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_RUNNING,
+			Execution: &pairwiseExecution,
+		}, nil
+	}
+	return nil, nil
+}
+
 // Sample client to trigger a BuildChrome workflow.
 func main() {
 	flag.Parse()
@@ -282,6 +337,9 @@ func main() {
 	}
 	if *triggerBugUpdateFlag {
 		result, err = triggerBugUpdateWorkflow(c)
+	}
+	if *triggerQueryPairwiseFlag {
+		result, err = triggerQueryPairwise(c)
 	}
 	if err != nil {
 		sklog.Errorf("Workflow failed:", err)

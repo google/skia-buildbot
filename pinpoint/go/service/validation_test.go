@@ -95,3 +95,29 @@ func TestValidatePairwiseRequest_StartAndEndCommits_ReturnError(t *testing.T) {
 	err = validatePairwiseRequest(req)
 	assert.ErrorContains(t, err, "invalid start and end commits")
 }
+
+func TestValidateQueryPairwiseRequest_MissingJobId_ReturnError(t *testing.T) {
+	req := &pb.QueryPairwiseRequest{
+		JobId: "",
+	}
+	err := validateQueryPairwiseRequest(req)
+	assert.ErrorContains(t, err, "Job ID is undefined")
+}
+
+func TestValidateQueryPairwiseRequest_ValidRequest_ReturnNil(t *testing.T) {
+	req := &pb.QueryPairwiseRequest{
+		JobId: "189ee4a7-fe14-4472-81eb-d201b17ddd9b",
+	}
+	err := validateQueryPairwiseRequest(req)
+	assert.NoError(t, err)
+}
+
+func TestValidateQueryPairwiseRequest_JobIdNotValidUUID_ReturnsError(t *testing.T) {
+	invalidJobID := "this-is-not-a-uuid"
+	req := &pb.QueryPairwiseRequest{
+		JobId: invalidJobID,
+	}
+	err := validateQueryPairwiseRequest(req)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid UUID length")
+}

@@ -284,6 +284,40 @@ message SchedulePairwiseRequest {
 	string story_tags = 15;
 }
 
+enum PairwiseJobStatus {
+	// Default value, should not be used explicitly.
+	PAIRWISE_JOB_STATUS_UNSPECIFIED = 0;
+
+	// Job is currently running.
+	PAIRWISE_JOB_STATUS_RUNNING = 1;
+
+	// Job is completed. Results are ready.
+	PAIRWISE_JOB_STATUS_COMPLETED = 2;
+
+	// Job Failed due to error, termination, or time out.
+	PAIRWISE_JOB_STATUS_FAILED = 3;
+
+	// Job was cancelled.
+	PAIRWISE_JOB_STATUS_CANCELED = 4;
+}
+
+message QueryPairwiseRequest {
+	// Job (Workflow) ID of the Pairwise run.
+	string job_id = 1;
+}
+
+message QueryPairwiseResponse {
+
+	// Status of the Pairwise Workflow Run.
+	PairwiseJobStatus status = 1;
+
+	// Execution results, will be properly populated only if status is COMPLETED.
+	// Otherwise, should be set to nil.
+	PairwiseExecution execution = 2;
+
+	// Perhaps, return error message if there is one.
+}
+
 message PairwiseExecution {
 	string job_id = 2;
 

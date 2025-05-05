@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/read_values"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
@@ -75,5 +76,18 @@ func validatePairwiseRequest(req *pb.SchedulePairwiseRequest) error {
 	case req.StartCommit == nil || req.EndCommit == nil:
 		return skerr.Fmt("invalid start and end commits")
 	}
+	return nil
+}
+
+// validateQueryPairwiseRequest returns an error if required params are missing.
+func validateQueryPairwiseRequest(req *pb.QueryPairwiseRequest) error {
+	switch {
+	case req.JobId == "":
+		return skerr.Fmt("Job ID is undefined")
+	}
+	if _, err := uuid.Parse(req.JobId); err != nil {
+		return skerr.Fmt("JobId '%s' is not a valid UUID: %w", req.JobId, err)
+	}
+
 	return nil
 }

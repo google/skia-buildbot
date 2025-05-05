@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 	tpr_client "go.skia.org/infra/temporal/go/client"
+	enumspb "go.temporal.io/api/enums/v1"
 )
 
 type server struct {
@@ -240,4 +241,66 @@ func (s *server) SchedulePairwise(ctx context.Context, req *pb.SchedulePairwiseR
 	return &pb.PairwiseExecution{
 		JobId: workflowRun.GetID(),
 	}, nil
+}
+
+func (s *server) QueryPairwise(ctx context.Context, req *pb.QueryPairwiseRequest) (*pb.QueryPairwiseResponse, error) {
+	sklog.Infof("Query Pairwise (try) request received: %v", req)
+
+	if err := validateQueryPairwiseRequest(req); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid request")
+	}
+
+	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
+	}
+
+	defer cleanUp()
+
+	resp, err := c.DescribeWorkflowExecution(ctx, req.JobId, "")
+
+	workflowStatus := resp.GetWorkflowExecutionInfo().GetStatus()
+
+	switch workflowStatus {
+	case enumspb.WORKFLOW_EXECUTION_STATUS_COMPLETED:
+
+		workflowRun := c.GetWorkflow(ctx, req.JobId, "")
+
+		var pairwiseExecution pb.PairwiseExecution
+
+		errGet := workflowRun.Get(ctx, &pairwiseExecution)
+		if errGet != nil {
+			return nil, status.Errorf(codes.Internal, "Pairwise workflow completed, but failed to get results (runID: '%s'): %v",
+				req.JobId, errGet)
+		}
+
+		return &pb.QueryPairwiseResponse{
+			Status:    pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_COMPLETED,
+			Execution: &pairwiseExecution,
+		}, nil
+
+	case enumspb.WORKFLOW_EXECUTION_STATUS_FAILED,
+		enumspb.WORKFLOW_EXECUTION_STATUS_TIMED_OUT,
+		enumspb.WORKFLOW_EXECUTION_STATUS_TERMINATED:
+
+		return &pb.QueryPairwiseResponse{
+			Status:    pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_FAILED,
+			Execution: nil,
+		}, nil
+
+	case enumspb.WORKFLOW_EXECUTION_STATUS_CANCELED:
+		return &pb.QueryPairwiseResponse{
+			Status:    pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_CANCELED,
+			Execution: nil,
+		}, nil
+
+	case enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING,
+		enumspb.WORKFLOW_EXECUTION_STATUS_CONTINUED_AS_NEW:
+		return &pb.QueryPairwiseResponse{
+			Status:    pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_RUNNING,
+			Execution: nil,
+		}, nil
+	}
+
+	return nil, status.Errorf(codes.Internal, "Pairwise workflow execution returned unknown status.")
 }

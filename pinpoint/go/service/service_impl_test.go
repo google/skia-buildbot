@@ -11,8 +11,13 @@ import (
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 	tpr_client_mock "go.skia.org/infra/temporal/go/client/mocks"
+	"go.temporal.io/api/enums/v1"
+	workflowpb "go.temporal.io/api/workflow/v1"
+	"go.temporal.io/api/workflowservice/v1"
 	temporal_mocks "go.temporal.io/sdk/mocks"
 	"golang.org/x/time/rate"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func newTemporalMock(t *testing.T) (*tpr_client_mock.TemporalProvider, *temporal_mocks.Client) {
@@ -297,4 +302,202 @@ func TestCancelJob_JobCancelled_ReturnSucceed(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, resp.JobId, "job-id")
 	assert.Equal(t, resp.State, "Cancelled")
+}
+
+func TestQueryPairwise_InvalidRequest_ReturnsInternalError(t *testing.T) {
+	tpm, _ := newTemporalMock(t)
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+	resp, err := svc.QueryPairwise(ctx, &pb.QueryPairwiseRequest{JobId: ""})
+	assert.Nil(t, resp)
+	st, ok := status.FromError(err)
+	assert.True(t, ok)
+	assert.Equal(t, codes.InvalidArgument, st.Code())
+	assert.Contains(t, st.Message(), "invalid request")
+}
+
+func TestQueryPairwise_TemporalClientError_ReturnsClientError(t *testing.T) {
+	tpm, _ := newTemporalMock(t)
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+	expectedErr := errors.New("temporal client failed")
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(nil, func() {}, expectedErr)
+
+	resp, err := svc.QueryPairwise(ctx, &pb.QueryPairwiseRequest{JobId: "189ee4a7-fe14-4472-81eb-d201b17ddd9b"})
+	assert.Nil(t, resp)
+	st, ok := status.FromError(err)
+	assert.True(t, ok)
+	assert.Equal(t, codes.Internal, st.Code())
+	assert.Contains(t, st.Message(), "Unable to connect to Temporal")
+	assert.Contains(t, st.Message(), expectedErr.Error())
+}
+
+func TestQueryPairwise_DescribeWorkflow_ReturnsInternalError(t *testing.T) {
+	tpm, tcm := newTemporalMock(t)
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+	jobID := "189ee4a7-fe14-4472-81eb-d201b17ddd9b"
+	expectedErr := errors.New("describe workflow failed")
+
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil)
+	tcm.On("DescribeWorkflowExecution", mock.Anything, jobID, "").Return(nil, expectedErr)
+
+	resp, err := svc.QueryPairwise(ctx, &pb.QueryPairwiseRequest{JobId: jobID})
+	assert.Nil(t, resp)
+	st, ok := status.FromError(err)
+	assert.True(t, ok)
+	assert.Equal(t, codes.Internal, st.Code())
+	assert.Contains(t, st.Message(), "Pairwise workflow execution returned unknown status")
+}
+
+func TestQueryPairwise_StatusCompleted_ReturnsCompleted(t *testing.T) {
+	tpm, tcm := newTemporalMock(t)
+	wfrMock := &temporal_mocks.WorkflowRun{}
+	wfrMock.Test(t)
+
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+	jobID := "189ee4a7-fe14-4472-81eb-d201b17ddd9b"
+	expectedExecution := &pb.PairwiseExecution{
+		JobId: jobID,
+		Results: map[string]*pb.PairwiseExecution_WilcoxonResult{
+			"load_time": {
+				PValue:                   0.04,
+				ConfidenceIntervalLower:  100.0,
+				ConfidenceIntervalHigher: 150.0,
+				ControlMedian:            120.0,
+				TreatmentMedian:          125.0,
+			},
+		},
+	}
+
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil)
+	describeResp := &workflowservice.DescribeWorkflowExecutionResponse{
+		WorkflowExecutionInfo: &workflowpb.WorkflowExecutionInfo{
+			Status: enums.WORKFLOW_EXECUTION_STATUS_COMPLETED,
+		},
+	}
+	tcm.On("DescribeWorkflowExecution", mock.Anything, jobID, "").Return(describeResp, nil)
+	tcm.On("GetWorkflow", mock.Anything, jobID, "").Return(wfrMock)
+
+	wfrMock.On("Get", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		arg := args.Get(1).(*pb.PairwiseExecution)
+		*arg = pb.PairwiseExecution{
+			JobId: jobID,
+			Results: map[string]*pb.PairwiseExecution_WilcoxonResult{
+				"load_time": {
+					PValue:                   0.04,
+					ConfidenceIntervalLower:  100.0,
+					ConfidenceIntervalHigher: 150.0,
+					ControlMedian:            120.0,
+					TreatmentMedian:          125.0,
+				},
+			},
+		}
+	}).Return(nil)
+
+	resp, err := svc.QueryPairwise(ctx, &pb.QueryPairwiseRequest{JobId: jobID})
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_COMPLETED, resp.Status)
+	assert.Equal(t, expectedExecution, resp.Execution)
+
+	wfrMock.AssertExpectations(t)
+}
+
+func TestQueryPairwise_StatusCompleted_ReturnsInternalError(t *testing.T) {
+	tpm, tcm := newTemporalMock(t)
+	wfrMock := &temporal_mocks.WorkflowRun{}
+	wfrMock.Test(t)
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+	jobID := "189ee4a7-fe14-4472-81eb-d201b17ddd9b"
+	getError := errors.New("failed to get workflow results")
+
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil)
+	describeResp := &workflowservice.DescribeWorkflowExecutionResponse{
+		WorkflowExecutionInfo: &workflowpb.WorkflowExecutionInfo{
+			Status: enums.WORKFLOW_EXECUTION_STATUS_COMPLETED,
+		},
+	}
+	tcm.On("DescribeWorkflowExecution", mock.Anything, jobID, "").Return(describeResp, nil)
+	tcm.On("GetWorkflow", mock.Anything, jobID, "").Return(wfrMock)
+	wfrMock.On("Get", mock.Anything, mock.Anything).Return(getError)
+
+	resp, err := svc.QueryPairwise(ctx, &pb.QueryPairwiseRequest{JobId: jobID})
+	assert.Nil(t, resp)
+	st, ok := status.FromError(err)
+	assert.True(t, ok)
+	assert.Equal(t, codes.Internal, st.Code())
+	assert.Contains(t, st.Message(), "Pairwise workflow completed, but failed to get results")
+	assert.Contains(t, st.Message(), getError.Error())
+
+	wfrMock.AssertExpectations(t)
+}
+
+func TestQueryPairwise_OtherStatuses_ReturnsCorrectJobStatus(t *testing.T) {
+	tests := []struct {
+		name           string
+		workflowStatus enums.WorkflowExecutionStatus
+		expectedStatus pb.PairwiseJobStatus
+	}{
+		{"Failed", enums.WORKFLOW_EXECUTION_STATUS_FAILED, *pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_FAILED.Enum()},
+		{"TimedOut", enums.WORKFLOW_EXECUTION_STATUS_TIMED_OUT, *pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_FAILED.Enum()},
+		{"Terminated", enums.WORKFLOW_EXECUTION_STATUS_TERMINATED, *pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_FAILED.Enum()},
+		{"Canceled", enums.WORKFLOW_EXECUTION_STATUS_CANCELED, *pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_CANCELED.Enum()},
+		{"Running", enums.WORKFLOW_EXECUTION_STATUS_RUNNING, pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_RUNNING},
+		{"ContinuedAsNew", enums.WORKFLOW_EXECUTION_STATUS_CONTINUED_AS_NEW, pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_RUNNING},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tpm, tcm := newTemporalMock(t)
+			ctx := context.Background()
+			svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+			jobID := "189ee4a7-fe14-4472-81eb-d201b17ddd9b"
+
+			tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil)
+			describeResp := &workflowservice.DescribeWorkflowExecutionResponse{
+				WorkflowExecutionInfo: &workflowpb.WorkflowExecutionInfo{
+					Status: tc.workflowStatus,
+				},
+			}
+			tcm.On("DescribeWorkflowExecution", mock.Anything, jobID, "").Return(describeResp, nil)
+
+			resp, err := svc.QueryPairwise(ctx, &pb.QueryPairwiseRequest{JobId: jobID})
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, tc.expectedStatus, resp.Status)
+			assert.Nil(t, resp.Execution)
+		})
+	}
+}
+
+func TestQueryPairwise_TemporalWorkflowStatusIsUnspecified_ReturnsInternalError(t *testing.T) {
+	tpm, tcm := newTemporalMock(t)
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+	jobID := "189ee4a7-fe14-4472-81eb-d201b17ddd9b"
+
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil)
+	describeResp := &workflowservice.DescribeWorkflowExecutionResponse{
+		WorkflowExecutionInfo: &workflowpb.WorkflowExecutionInfo{
+			Status: enums.WORKFLOW_EXECUTION_STATUS_UNSPECIFIED,
+		},
+	}
+	tcm.On("DescribeWorkflowExecution", mock.Anything, jobID, "").Return(describeResp, nil)
+
+	resp, err := svc.QueryPairwise(ctx, &pb.QueryPairwiseRequest{JobId: jobID})
+	assert.Nil(t, resp)
+	st, ok := status.FromError(err)
+	assert.True(t, ok)
+	assert.Equal(t, codes.Internal, st.Code())
+	assert.Contains(t, st.Message(), "Pairwise workflow execution returned unknown status")
 }
