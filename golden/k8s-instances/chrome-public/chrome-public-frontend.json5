@@ -48,53 +48,54 @@
     "android-vr-render-tests": {}, // Everything public for this corpus
     "gtest-pixeltests": {}, // Everything public for this corpus
     "chrome-gpu": {
-      device_id: [ // Set by desktop machines
-        "0x1050",
-        "0x1cb3",
-        "0x2184",
-        "0x3e92",
-        "0x3e9b",
-        "0x41333430",
-        "0x5912",
-        "0x6613",
-        "0x679e",
-        "0x6821",
-        "0x699f",
-        "0xa2e",
-        "0xc0de",
-        "0xd26",
-        "0xfe9",
-        "0xffff",
+      device_id: [ // Set by desktop machines most of the time and Android under certain software configurations
+        "0x1050", // ChromeOS amd64-generic VMs
+        "0x2184", // NVIDIA GTX 1660
+        "0x2783", // NVIDIA RTX 4070 Super
+        "0x3e9b", // Intel UHD 630 (2016/2019 Macbook Pro)
+        "0x41333430", // Qualcomm Adreno 680/685/690
+        "0x4680", // Intel UHD 770
+        "0x679e", // AMD HD 7870 XT (Mac Pro)
+        "0x70930000", // Fuchsia Astro/Nelson devices
+        "0x72120000", // Fuchsia Sherlock devices
+        "0x7340", // AMD RX 5500XT
+        "0x7480", // AMD RX 7600
+        "0x92020000", // Mali-G78
+        "0x92020010", // Mali-G78
+        "0x9a49", // Intel UHD (volteer-based Chromebooks)
+        "0x9bc5", // Intel UHD 630 (Comet Lake S)
+        "0xc0de", // Fuchsia emulators (QEMU)
+        "0xfe9", // NVIDIA GT 750M (2012 Macbooks)
+        "0xffff", // SwiftShader
         "None",
       ],
-      device_string: [ // Set by mobile devices
-        "ANGLE (Apple, Apple M1, OpenGL 4.1 Metal - 76.3)",
-        "ANGLE (Apple, Apple M2, OpenGL 4.1 Metal - 83.1)",
-        "ANGLE (ARM, Mali-G78, OpenGL ES 3.2 v1.r32p1-00pxl0.b7e5868a59a273f4a9f58d1657ef99de)",
-        "ANGLE (Vulkan 1.1.0(SwiftShader Device (LLVM 7.0.1) (0x0000C0DE)))",
-        "ANGLE (Vulkan 1.1.0(SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)))",
-        "ANGLE (Google, Vulkan 1.1.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), Google-5.0.0)",
-        "Adreno (TM) 330",
-        "Adreno (TM) 418",
-        "Adreno (TM) 420",
-        "Adreno (TM) 430",
-        "Adreno (TM) 540",
-        "Adreno (TM) 610",
-        "Adreno (TM) 640",
-        "Mali-G52",
-        "Mali-G78",
-        "Mali-T860",
-        "NVIDIA Tegra",
+      device_string: [ // Set by most mobile devices
+        "ANGLE Metal Renderer: Apple M1", // Apple M1
+        "ANGLE Metal Renderer: Apple M2", // Apple M2
+        "ANGLE Metal Renderer: Apple M3", // Apple M3
+        "Apple M1", // Apple M1
+        "Apple M2", // Apple M2
+        "Apple M3", // Apple M3
+        "Adreno (TM) 418", // Google Nexus 5X
+        "Adreno (TM) 540", // Google Pixel 2
+        "Adreno (TM) 619", // Samsung Galaxy A23
+        "Adreno (TM) 640", // Google Pixel 4
+        "Adreno (TM) 740", // Samsung Galaxy S23
+        "Mali-G52 MC2", // Samsung Galaxy A13
+        "Mali-G72", // jacuzzi-based Chromebooks
+        "Mali-G78", // Pixel 6
+        "NVIDIA Tegra", // NVIDIA Shield TV
         "None"
       ],
       vendor_id: [
-        "0x1002",
-        "0x10de",
-        "0x1ae0",
-        "0x1af4",
-        "0x4d4f4351",
-        "0x8086",
-        "0xffff",
+        "0x1002", // AMD
+        "0x10de", // NVIDIA
+        "0x13b5", // ARM
+        "0x1ae0", // QEMU (VM)
+        "0x1af4", // Google (VM)
+        "0x4d4f4351", // Qualcomm
+        "0x8086", // Intel
+        "0xffff", // SwiftShader
         "None",
       ],
     },
