@@ -574,6 +574,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   enable_copy_query: boolean = false;
 
+  enableRemoveButton: boolean = true;
+
   private xAxisSwitch = false;
 
   private zoomDirectionSwitch = false;
@@ -656,6 +658,7 @@ export class ExploreSimpleSk extends ElementSk {
       </md-icon-button>
       <md-icon-button
         id="removeAll"
+        ?disabled=${!ele.enableRemoveButton}
         @click=${() => ele.closeExplore()}
         title='Remove all the traces.'>
         <close-icon-sk></close-icon-sk>

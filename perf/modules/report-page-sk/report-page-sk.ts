@@ -246,6 +246,7 @@ export class ReportPageSk extends ElementSk {
     explore.defaults = this.defaults;
     explore.openQueryByDefault = false;
     explore.navOpen = false;
+    explore.enableRemoveButton = false;
 
     this.graphDiv!.prepend(explore);
 
