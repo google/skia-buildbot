@@ -49,6 +49,19 @@ func TestGetCommand_NonWaterfallEnabledGTest_TestCommand(t *testing.T) {
 	assert.Contains(t, cmd, "random_test")
 }
 
+func TestGetCommand_Crossbench_TestCommand(t *testing.T) {
+	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
+	b, err := NewBenchmarkTest(c, "win-11-perf", "release", "speedometer3.1.crossbench", "default", "")
+	assert.NoError(t, err)
+
+	cmd := b.GetCommand()
+
+	assert.Contains(t, cmd, "../../third_party/crossbench/cb.py")
+	assert.NotContains(t, cmd, "../../tools/perf/run_benchmark")
+	assert.Contains(t, cmd, "speedometer3.1.crossbench")
+	assert.Contains(t, cmd, "speedometer_3.1")
+}
+
 func TestReplaceNonAlphaNumeric_WorksAsIntended(t *testing.T) {
 	test := func(name, story string, expected string) {
 		t.Run(story, func(t *testing.T) {

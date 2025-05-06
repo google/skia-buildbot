@@ -29,6 +29,23 @@ var waterfallEnabledGtests = util.NewStringSet([]string{
 	"views_perftests",
 })
 
+// Map from benchmark display name (as shown on the dashboard) to actual
+// benchmark name used by crossbench.
+// Please keep it in sync with benchmarks defined on perf waterfall:
+// https://chromium.googlesource.com/chromium/src/+/main/tools/perf/core/bot_platforms.py
+// Also keep it in sync with legacy Pinpoint while it still exists:
+// https://chromium.googlesource.com/catapult/+/HEAD/dashboard/dashboard/pinpoint/models/quest/run_telemetry_test.py
+var crossbenchBenchmarks = map[string]string{
+	"jetstream2.crossbench":      "jetstream_2.2",
+	"motionmark1.3.crossbench":   "motionmark_1.3",
+	"speedometer2.0.crossbench":  "speedometer_2.0",
+	"speedometer2.1.crossbench":  "speedometer_2.1",
+	"speedometer3.crossbench":    "speedometer_3.0",
+	"speedometer3.1.crossbench":  "speedometer_3.1",
+	"loadline_phone.crossbench":  "loadline-phone-fast",
+	"loadline_tablet.crossbench": "loadline-tablet-fast",
+}
+
 type telemetryTest struct {
 	benchmark string
 	browser   string
@@ -61,6 +78,10 @@ func (t *telemetryTest) GetCommand() []string {
 		} else {
 			cmd = append(cmd, t.benchmark)
 		}
+	} else if benchmark, ok := crossbenchBenchmarks[t.benchmark]; ok {
+		cmd = append(cmd, "../../third_party/crossbench/cb.py")
+		cmd = append(cmd, t.GetCrossbenchExtraArgs(benchmark)...)
+		return cmd
 	} else {
 		cmd = append(cmd, "../../tools/perf/run_benchmark")
 	}
@@ -117,6 +138,17 @@ func (t *telemetryTest) GetTelemetryExtraArgs() []string {
 	if len(t.commit) >= 7 {
 		cmd = append(cmd, "--results-label", t.commit[:7])
 	}
+
+	return cmd
+}
+
+func (t *telemetryTest) GetCrossbenchExtraArgs(benchmark string) []string {
+	cmd := []string{}
+	cmd = append(cmd, "--benchmark-display-name", t.benchmark)
+	cmd = append(cmd, "--benchmarks", benchmark)
+	cmd = append(cmd, "--browser="+t.browser)
+	cmd = append(cmd, "-v")
+	cmd = append(cmd, "--isolated-script-test-output", "${ISOLATED_OUTDIR}/output.json")
 
 	return cmd
 }
