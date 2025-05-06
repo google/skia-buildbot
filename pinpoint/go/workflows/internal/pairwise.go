@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	swarming_pb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
@@ -34,6 +36,7 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 
 	jobID := uuid.New().String()
+	wkStartTime := time.Now().UnixNano()
 
 	// Benchmark runs can sometimes generate an inconsistent number of data points.
 	// So even if all benchmark runs were successful, the number of data values
@@ -63,6 +66,18 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 		LeftCommit:  (*common.CombinedCommit)(p.Request.StartCommit),
 		RightCommit: (*common.CombinedCommit)(p.Request.EndCommit),
 	}
+
+	mh := workflow.GetMetricsHandler(ctx).WithTags(map[string]string{
+		"job_id":    jobID,
+		"benchmark": p.Request.Benchmark,
+		"config":    p.Request.Configuration,
+		"story":     p.Request.Story,
+	})
+
+	defer func() {
+		duration := time.Now().UnixNano() - wkStartTime
+		mh.Timer("pairwise_duration").Record(time.Duration(duration))
+	}()
 
 	var pr *PairwiseRun
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.PairwiseCommitsRunner, pairwiseRunnerParams).Get(ctx, &pr); err != nil {
