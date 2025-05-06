@@ -56,11 +56,11 @@ func Test_ConvertPath(t *testing.T) {
 		BuilderName:  "android-go-wembley-perf",
 		MachineGroup: "ChromiumPerf",
 	}
-	assert.EqualValues(t, convertPath(ti, bi, "jetstream2"), "gs://chrome-perf-non-public/ingest/2024/05/02/02/ChromiumPerf/android-go-wembley-perf/jetstream2")
+	assert.EqualValues(t, convertPath(ti, bi, "jetstream2"), "gs://chrome-perf-public/ingest/2024/05/02/02/ChromiumPerf/android-go-wembley-perf/jetstream2")
 
 	bi = perfresults.BuildInfo{
-		BuilderName:  "linux-perf",
+		BuilderName:  "linux-r350-perf",
 		MachineGroup: "ChromiumPerf",
 	}
-	assert.EqualValues(t, convertPath(ti, bi, "speedometer3"), "gs://chrome-perf-public/ingest/2024/05/02/02/ChromiumPerf/linux-perf/speedometer3")
+	assert.EqualValues(t, convertPath(ti, bi, "speedometer3"), "gs://chrome-perf-non-public/ingest/2024/05/02/02/ChromiumPerf/linux-r350-perf/speedometer3")
 }

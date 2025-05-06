@@ -1,119 +1,5 @@
 {
-  "Mojo Linux Perf": {
-    "alias": "linux-perf-fyi"
-  },
-  "Win 10 Perf": {
-    "alias": "win-10-perf"
-  },
-  "chromium-rel-win10": {
-    "alias": "win-10-perf"
-  },
-  "linux-release": {
-    "alias": "linux-perf"
-  },
-  "android-go-wembley-perf": {
-    "browser": "android-trichrome-chrome-google-bundle",
-    "bucket": "luci.chrome.try",
-    "builder": "Android Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "wembley_2GB"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "android-go-wembley_webview-perf": {
-    "browser": "android-webview-google",
-    "bucket": "luci.chrome.try",
-    "builder": "Android Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "wembley_2GB"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "android-new-pixel-perf": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
-    "bucket": "luci.chrome.try",
-    "builder": "Android arm64 Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "panther"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "android-new-pixel-perf-pgo": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
-    "bucket": "luci.chrome.try",
-    "builder": "Android arm64 Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "panther"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "android-new-pixel-pro-perf": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
-    "bucket": "luci.chrome.try",
-    "builder": "Android arm64 Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "cheetah"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "android-new-pixel-pro-perf-pgo": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
-    "bucket": "luci.chrome.try",
-    "builder": "Android arm64 Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "cheetah"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "android-pixel-fold-perf": {
+  "android-pixel-tangor-perf-cbb": {
     "browser": "android-trichrome-chrome-google-64-32-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
@@ -124,84 +10,41 @@
       },
       {
         "key": "device_type",
-        "value": "felix"
-       }
-     ],
-     "repository": "chromium",
-     "swarming_server": "https://chrome-swarming.appspot.com"
-   },
-  "android-samsung-foldable-perf": {
-    "browser": "android-trichrome-bundle",
-    "bucket": "luci.chrome.try",
-    "builder": "Android arm64 Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "lahaina"
-      }
-    ],
-    "extra_test_args": "--compatibility-mode=dont-require-rooted-device",
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "mac-laptop_high_end-perf-pgo": {
-    "browser": "release",
-    "bucket": "luci.chrome.try",
-    "builder": "Mac Builder Perf PGO",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "mac_model",
-        "value": "MacBookPro11,5"
-      },
-      {
-        "key": "os",
-        "value": "Mac-12"
-      },
-      {
-        "key": "gpu",
-        "value": "8086:0d26-4.0.20-3.2.8"
-      },
-      {
-        "key": "synthetic_product_name",
-        "value": "MacBookPro11,5_x86-64-i7-4870HQ_AMD Radeon R8 M370X 4.0.20 [3.2.8]_Intel Haswell Iris Pro Graphics 5200 4.0.20 [3.2.8]_16384_APPLE SSD SM0512G"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "webrtc-android-tests-pixel2-oreo": {
-    "browser": "android-chrome-64-bundle",
-    "bucket": "luci.webrtc.perf",
-    "builder": "Android64 Builder arm64",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "walleye"
+        "value": "tangorpro"
       },
       {
         "key": "device_os",
-        "value": "OPM1.171019.021"
+        "value": "U"
       }
     ],
-    "repository": "webrtc",
+    "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
-  "webrtc-mac-arm64-large-tests": {
+  "linux-r350-perf": {
     "browser": "release",
-    "bucket": "luci.webrtc.perf",
-    "builder": "MacArm64 Builder",
+    "bucket": "luci.chrome.try",
+    "builder": "Linux Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "os",
+        "value": "Ubuntu-22"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "PowerEdge R350 (Dell Inc.)"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "mac-m3-pro-perf-cbb": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Mac arm Builder Perf",
     "dimensions": [
       {
         "key": "pool",
@@ -209,7 +52,11 @@
       },
       {
         "key": "mac_model",
-        "value": "Macmini9,1"
+        "value": "Mac15,3"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "Mac15,3_arm64-64-Apple_M3_apple m3_8192_APPLE SSD AP0512Z"
       },
       {
         "key": "os",
@@ -220,88 +67,63 @@
         "value": "arm"
       }
     ],
-    "repository": "webrtc",
+    "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
-  "webrtc-mac-large-tests": {
+  "win-arm64-snapdragon-elite-perf-cbb": {
     "browser": "release",
-    "bucket": "luci.webrtc.perf",
-    "builder": "Mac64 Builder",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "mac_model",
-        "value": "MacBookPro11,5"
-      },
-      {
-        "key": "os",
-        "value": "Mac-12"
-      },
-      {
-        "key": "gpu",
-        "value": "8086:0d26-4.0.20-3.2.8"
-      },
-      {
-        "key": "synthetic_product_name",
-        "value": "MacBookPro11,5_x86-64-i7-4870HQ_AMD Radeon R8 M370X 4.0.20 [3.2.8]_Intel Haswell Iris Pro Graphics 5200 4.0.20 [3.2.8]_16384_APPLE SSD SM0512G"
-      }
-    ],
-    "repository": "webrtc",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "webrtc-win-large-tests": {
-    "browser": "release",
-    "bucket": "luci.webrtc.perf",
-    "builder": "Win32 Builder (Clang)",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "synthetic_product_name",
-        "value": "OptiPlex 7050 (Dell Inc.)"
-      },
-      {
-        "key": "os",
-        "value": "Windows-10"
-      }
-    ],
-    "repository": "webrtc",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "win-10_amd_laptop-perf-pgo": {
-    "browser": "release_x64",
     "bucket": "luci.chrome.try",
-    "builder": "Win x64 Builder Perf PGO",
+    "builder": "win-arm64-builder-perf",
     "dimensions": [
+      {
+        "key": "cpu",
+        "value": "arm64-64-Snapdragon(R)_X_Elite_-_X1E80100_-_Qualcomm(R)_Oryon(TM)_CPU"
+      },
       {
         "key": "pool",
         "value": "chrome.tests.pinpoint"
       },
       {
-        "key": "os",
-        "value": "Windows-10-19043"
-      },
-      {
-        "key": "gpu",
-        "value": "1002:1638-30.0.13033.1000"
-      },
-      {
         "key": "synthetic_product_name",
-        "value": "OMEN by HP Laptop 16-c0xxx [ ] (HP)"
+        "value": "Latitude 7455 (Dell Inc.)"
+      },
+      {
+        "key": "os",
+        "value": "Windows-11"
       }
     ],
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
-  "win-10_laptop_low_end-perf-pgo": {
-    "browser": "release_x64",
+  "win-arm64-snapdragon-plus-perf-cbb": {
+    "browser": "release",
     "bucket": "luci.chrome.try",
-    "builder": "Win x64 Builder Perf PGO",
+    "builder": "win-arm64-builder-perf",
+    "dimensions": [
+      {
+        "key": "cpu",
+        "value": "arm64-64-Snapdragon(R)_X_Plus_-_X1P64100_-_Qualcomm(R)_Oryon(TM)_CPU"
+      },
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "Inspiron 14 Plus 7441 (Dell Inc.)"
+      },
+      {
+        "key": "os",
+        "value": "Windows-11"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "win-victus-perf-cbb": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Win x64 Builder Perf",
     "dimensions": [
       {
         "key": "pool",
@@ -309,15 +131,11 @@
       },
       {
         "key": "synthetic_product_name",
-        "value": "HP Laptop 15-bs1xx [Type1ProductConfigId] (HP)"
-      },
-      {
-        "key": "gpu",
-        "value": "8086:1616-20.19.15.5070"
+        "value": "Victus by HP Gaming Laptop 15-fa1xxx [ ] (HP)"
       },
       {
         "key": "os",
-        "value": "Windows-10-18363.476"
+        "value": "Windows-11"
       }
     ],
     "repository": "chromium",

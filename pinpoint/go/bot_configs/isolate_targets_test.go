@@ -20,13 +20,13 @@ func TestGetIsolateTarget_WithRegexMatching_ReturnsTarget(t *testing.T) {
 }
 
 func TestGetIsolateTarget_WithConfigUnlistedBot_ReturnsTarget(t *testing.T) {
-	target, err := GetIsolateTarget("linux-perf", "benchmark")
+	target, err := GetIsolateTarget("linux-r350-perf", "benchmark")
 	assert.Equal(t, target, "performance_test_suite")
 	assert.NoError(t, err)
 }
 
 func TestGetIsolateTarget_WithWebRTCBenchmark_ReturnsTarget(t *testing.T) {
-	target, err := GetIsolateTarget("linux-perf", "webrtc_perf_tests")
+	target, err := GetIsolateTarget("linux-r350-perf", "webrtc_perf_tests")
 	assert.Equal(t, target, "webrtc_perf_tests")
 	assert.NoError(t, err)
 }

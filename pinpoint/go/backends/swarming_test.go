@@ -132,7 +132,7 @@ func TestFetchFreeBots_NoBuildConfig_ReturnsError(t *testing.T) {
 }
 
 func TestFetchFreeBots_ForBuilder_ReturnsFreeBots(t *testing.T) {
-	const builder = "android-pixel2-perf"
+	const builder = "android-pixel9-perf"
 
 	ctx := context.Background()
 	mockClient := &mocks.SwarmingV2Client{}
@@ -146,8 +146,8 @@ func TestFetchFreeBots_ForBuilder_ReturnsFreeBots(t *testing.T) {
 		// be fetched from here: https://source.corp.google.com/h/skia/buildbot/+/main:pinpoint/go/bot_configs/external.json;l=23#:~:text=%22-,android,-%2Dpixel2%2Dperf%22
 		Dimensions: []*apipb.StringPair{
 			{Key: "pool", Value: "chrome.tests.pinpoint"},
-			{Key: "device_type", Value: "walleye"},
-			{Key: "device_os", Value: "OPM1.171019.021"},
+			{Key: "device_type", Value: "tokay"},
+			{Key: "device_os", Value: "B"},
 		},
 		Quarantined:   apipb.NullableBool_FALSE,
 		IsDead:        apipb.NullableBool_FALSE,

@@ -8,10 +8,10 @@
 // This package also runs some rudimentary validation tests. You can self
 // validate with:
 //
-//	bazelisk test //bisection/go/bot_configs/...
+//	bazelisk test //pinpoint/go/bot_configs/...
 //
 // The bot configurations are also defined [here]. They were copied over
-// on Dec 11, 2023.
+// on May 6, 2025.
 //
 // [here]: https://chromeperf.appspot.com/edit_site_config?key=bot_configurations
 package bot_configs

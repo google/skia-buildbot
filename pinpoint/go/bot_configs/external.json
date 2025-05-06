@@ -1,24 +1,56 @@
 {
-  "Win10 FYI Release XR Perf (NVIDIA)": {
-    "browser": "release",
-    "bucket": "luci.chromium.try",
-    "builder": "gpu-fyi-try-win-xr-builder",
+  "Win 10 Perf": {
+    "alias": "win-10-perf"
+  },
+  "android-go-wembley-perf": {
+    "browser": "android-trichrome-chrome-google-bundle",
+    "bucket": "luci.chrome.try",
+    "builder": "Android Compile Perf",
     "dimensions": [
       {
-        "key": "os",
-        "value": "Windows-10"
-      },
-      {
         "key": "pool",
-        "value": "Chrome-GPU"
+        "value": "chrome.tests.pinpoint"
       },
       {
-        "key": "gpu",
-        "value": "nvidia-quadro-p400-win10-stable"
+        "key": "device_type",
+        "value": "wembley_2GB"
+      },
+      {
+        "key": "os",
+        "value": "Android"
+      },
+      {
+        "key": "device_os_flavor",
+        "value": "google"
       }
     ],
     "repository": "chromium",
-    "swarming_server": "https://chromium-swarm.appspot.com"
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "android-go-wembley_webview-perf": {
+    "browser": "android-webview-google",
+    "bucket": "luci.chrome.try",
+    "builder": "Android Compile Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "device_type",
+        "value": "wembley_2GB"
+      },
+      {
+        "key": "os",
+        "value": "Android"
+      },
+      {
+        "key": "device_os_flavor",
+        "value": "google"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel-tangor-perf": {
     "browser": "android-trichrome-chrome-google-64-32-bundle",
@@ -36,48 +68,6 @@
       {
         "key": "device_os",
         "value": "A"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-   },
-  "android-pixel2-perf": {
-    "browser": "android-chrome-64-bundle",
-    "bucket": "luci.chrome.try",
-    "builder": "Android arm64 Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "walleye"
-      },
-      {
-        "key": "device_os",
-        "value": "OPM1.171019.021"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "android-pixel2_webview-perf": {
-    "browser": "android-webview-google",
-    "bucket": "luci.chrome.try",
-    "builder": "Android arm64 Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "walleye"
-      },
-      {
-        "key": "device_os",
-        "value": "OPM1.171019.021"
       }
     ],
     "repository": "chromium",
@@ -230,6 +220,72 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
+  "android-pixel9-perf": {
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "bucket": "luci.chrome.try",
+    "builder": "Android arm64 High End Compile Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "device_type",
+        "value": "tokay"
+      },
+      {
+        "key": "device_os",
+        "value": "B"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "android-pixel9-pro-perf": {
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "bucket": "luci.chrome.try",
+    "builder": "Android arm64 High End Compile Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "device_type",
+        "value": "caiman"
+      },
+      {
+        "key": "device_os",
+        "value": "B"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "android-pixel9-pro-xl-perf": {
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "bucket": "luci.chrome.try",
+    "builder": "Android arm64 High End Compile Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "device_type",
+        "value": "komodo"
+      },
+      {
+        "key": "device_os",
+        "value": "B"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "chromium-rel-win10": {
+    "alias": "win-10-perf"
+  },
   "fuchsia-perf-ast": {
     "browser": "web-engine-shell",
     "bucket": "luci.chrome.try",
@@ -377,52 +433,6 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
-  "linux-perf": {
-    "browser": "release",
-    "bucket": "luci.chrome.try",
-    "builder": "Linux Builder Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "gpu",
-        "value": "10de:1cb3-440.100"
-      },
-      {
-        "key": "os",
-        "value": "Ubuntu-18.04"
-      },
-      {
-        "key": "synthetic_product_name",
-        "value": "PowerEdge R230 (Dell Inc.)"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "linux-perf-fyi": {
-    "browser": "release",
-    "bucket": "luci.chrome.try",
-    "builder": "Linux Builder Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "gpu",
-        "value": "10de:1cb3"
-      },
-      {
-        "key": "os",
-        "value": "Ubuntu"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
   "linux-perf-pgo": {
     "browser": "release",
     "bucket": "luci.chrome.try",
@@ -443,89 +453,6 @@
       {
         "key": "synthetic_product_name",
         "value": "PowerEdge R230 (Dell Inc.)"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "mac-10_12_laptop_low_end-perf": {
-    "browser": "release",
-    "bucket": "luci.chrome.try",
-    "builder": "Mac Builder Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "mac_model",
-        "value": "MacBookAir7,2"
-      },
-      {
-        "key": "os",
-        "value": "Mac-12"
-      },
-      {
-        "key": "gpu",
-        "value": "8086:1626"
-      },
-      {
-        "key": "synthetic_product_name",
-        "value": "MacBookAir7,2_x86-64-i5-5350U_Intel Broadwell HD Graphics 6000_8192_APPLE SSD SM0128G"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "mac-10_13_laptop_high_end-perf": {
-    "browser": "release",
-    "bucket": "luci.chrome.try",
-    "builder": "Mac Builder Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "mac_model",
-        "value": "MacBookPro11,5"
-      },
-      {
-        "key": "os",
-        "value": "Mac-12"
-      },
-      {
-        "key": "gpu",
-        "value": "8086:0d26-4.0.20-3.2.8"
-      },
-      {
-        "key": "synthetic_product_name",
-        "value": "MacBookPro11,5_x86-64-i7-4870HQ_AMD Radeon R8 M370X 4.0.20 [3.2.8]_Intel Haswell Iris Pro Graphics 5200 4.0.20 [3.2.8]_16384_APPLE SSD SM0512G"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "mac-14-m1-pro-perf": {
-    "browser": "release",
-    "bucket": "luci.chrome.try",
-    "builder": "Mac arm Builder Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "mac_model",
-        "value": "MacBookPro18,3"
-      },
-      {
-        "key": "os",
-        "value": "Mac-14"
-      },
-      {
-        "key": "cpu",
-        "value": "arm"
       }
     ],
     "repository": "chromium",
@@ -555,93 +482,6 @@
       {
         "key": "synthetic_product_name",
         "value": "Macmini8,1_x86-64-i7-8700B_Intel UHD Graphics 630_65536_APPLE SSD AP1024M"
-      }
-    ],
-    "repository": "chromium",
-    "scheduler": {
-      "budget": 5.0,
-      "costs": {
-        "functional": 0.5,
-        "performance": 1.0,
-        "try": 0.3
-      }
-    },
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "mac-laptop_high_end-perf": {
-    "browser": "release",
-    "bucket": "luci.chrome.try",
-    "builder": "Mac Builder Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "mac_model",
-        "value": "MacBookPro11,5"
-      },
-      {
-        "key": "os",
-        "value": "Mac-12"
-      },
-      {
-        "key": "gpu",
-        "value": "8086:0d26-4.0.20-3.2.8"
-      },
-      {
-        "key": "synthetic_product_name",
-        "value": "MacBookPro11,5_x86-64-i7-4870HQ_AMD Radeon R8 M370X 4.0.20 [3.2.8]_Intel Haswell Iris Pro Graphics 5200 4.0.20 [3.2.8]_16384_APPLE SSD SM0512G"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "mac-laptop_low_end-perf": {
-    "browser": "release",
-    "bucket": "luci.chrome.try",
-    "builder": "Mac Builder Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "mac_model",
-        "value": "MacBookAir7,2"
-      },
-      {
-        "key": "gpu",
-        "value": "8086:1626"
-      },
-      {
-        "key": "synthetic_product_name",
-        "value": "MacBookAir7,2_x86-64-i5-5350U_Intel Broadwell HD Graphics 6000_8192_APPLE SSD SM0128G"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "mac-laptop_low_end-perf-pgo": {
-    "browser": "release",
-    "bucket": "luci.chrome.try",
-    "builder": "Mac Builder Perf PGO",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "mac_model",
-        "value": "MacBookAir7,2"
-      },
-      {
-        "key": "gpu",
-        "value": "8086:1626"
-      },
-      {
-        "key": "synthetic_product_name",
-        "value": "MacBookAir7,2_x86-64-i5-5350U_Intel Broadwell HD Graphics 6000_8192_APPLE SSD SM0128G"
       }
     ],
     "repository": "chromium",
@@ -736,6 +576,10 @@
         "value": "Mac14,7"
       },
       {
+        "key": "synthetic_product_name",
+        "value": "Mac14,7_arm64-64-Apple_M2_apple m2_8192_APPLE SSD AP0256Z"
+      },
+      {
         "key": "os",
         "value": "Mac"
       },
@@ -747,11 +591,8 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
-  "mojo-linux-perf": {
-    "alias": "linux-perf-fyi"
-  },
   "win-10-perf": {
-    "browser": "release_x64",
+    "browser": "release",
     "bucket": "luci.chrome.try",
     "builder": "Win x64 Builder Perf",
     "dimensions": [
@@ -772,7 +613,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "win-10-perf-pgo": {
-    "browser": "release_x64",
+    "browser": "release",
     "bucket": "luci.chrome.try",
     "builder": "Win x64 Builder Perf PGO",
     "dimensions": [
@@ -793,7 +634,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "win-10_amd_laptop-perf": {
-    "browser": "release_x64",
+    "browser": "release",
     "bucket": "luci.chrome.try",
     "builder": "Win x64 Builder Perf",
     "dimensions": [
@@ -803,11 +644,7 @@
       },
       {
         "key": "os",
-        "value": "Windows-10-19043"
-      },
-      {
-        "key": "gpu",
-        "value": "1002:1638-30.0.13033.1000"
+        "value": "Windows-10"
       },
       {
         "key": "synthetic_product_name",
@@ -818,7 +655,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "win-10_laptop_low_end-perf": {
-    "browser": "release_x64",
+    "browser": "release",
     "bucket": "luci.chrome.try",
     "builder": "Win x64 Builder Perf",
     "dimensions": [
@@ -832,18 +669,18 @@
       },
       {
         "key": "gpu",
-        "value": "8086:1616-20.19.15.5070"
+        "value": "8086:1616-20.19.15.5171"
       },
       {
         "key": "os",
-        "value": "Windows-10-18363.476"
+        "value": "Windows-10-19045"
       }
     ],
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "win-11-perf": {
-    "browser": "release_x64",
+    "browser": "release",
     "bucket": "luci.chrome.try",
     "builder": "Win x64 Builder Perf",
     "dimensions": [
@@ -864,7 +701,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "win-11-perf-pgo": {
-    "browser": "release_x64",
+    "browser": "release",
     "bucket": "luci.chrome.try",
     "builder": "Win x64 Builder Perf PGO",
     "dimensions": [
@@ -879,6 +716,27 @@
       {
         "key": "os",
         "value": "Windows-11"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "win-gpu-perf": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Win x64 Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "OptiPlex Micro 7010 (Dell Inc.)"
+      },
+      {
+        "key": "os",
+        "value": "Windows-10"
       }
     ],
     "repository": "chromium",

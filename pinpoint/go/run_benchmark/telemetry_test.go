@@ -24,7 +24,7 @@ func TestGetCommand_WaterfallGTest_TestCommand(t *testing.T) {
 
 func TestGetCommand_PerfBrowserTestWithStory_StoryTestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
-	b, err := NewBenchmarkTest(c, "android-pixel2_webview-perf", "", "performance_browser_tests", "story", "all")
+	b, err := NewBenchmarkTest(c, "android-pixel4_webview-perf", "", "performance_browser_tests", "story", "all")
 	assert.NoError(t, err)
 
 	cmd := b.GetCommand()
@@ -38,7 +38,7 @@ func TestGetCommand_PerfBrowserTestWithStory_StoryTestCommand(t *testing.T) {
 
 func TestGetCommand_NonWaterfallEnabledGTest_TestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
-	b, err := NewBenchmarkTest(c, "android-pixel2_webview-perf", "", "random_test", "", "")
+	b, err := NewBenchmarkTest(c, "android-pixel4_webview-perf", "", "random_test", "", "")
 	assert.NoError(t, err)
 
 	cmd := b.GetCommand()

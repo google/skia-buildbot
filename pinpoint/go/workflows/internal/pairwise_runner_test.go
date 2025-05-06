@@ -425,7 +425,7 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	p := PairwiseCommitsRunnerParams{
 		SingleCommitRunnerParams: SingleCommitRunnerParams{
 			PinpointJobID:     "179a34b2be0000",
-			BotConfig:         "linux-perf",
+			BotConfig:         "linux-r350-perf",
 			Benchmark:         "blink-perf.css",
 			Story:             "gc-mini-tree.html",
 			Chart:             "gc-mini-tree",
@@ -539,7 +539,7 @@ func TestPairwiseCommitRunner_GivenCASInputs_ShouldSkipBuildStep(t *testing.T) {
 	p := PairwiseCommitsRunnerParams{
 		SingleCommitRunnerParams: SingleCommitRunnerParams{
 			PinpointJobID:     "179a34b2be0000",
-			BotConfig:         "linux-perf",
+			BotConfig:         "linux-r350-perf",
 			Benchmark:         "blink-perf.css",
 			Story:             "gc-mini-tree.html",
 			Chart:             "gc-mini-tree",
