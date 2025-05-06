@@ -132,4 +132,5 @@ window.perf = {
   enable_skia_bridge_aggregation: false,
   show_json_file_display: false,
   always_show_commit_info: false,
+  show_triage_link: true,
 };

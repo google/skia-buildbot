@@ -110,5 +110,6 @@
     "trace_format": "chrome",
     "need_alert_action": true,
     "optimize_sqltracestore": true,
-    "new_alerts_page": true
+    "new_alerts_page": true,
+    "show_triage_link": false
 }

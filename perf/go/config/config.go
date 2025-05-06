@@ -1021,6 +1021,10 @@ type InstanceConfig struct {
 	OptimizeSQLTraceStore bool `json:"optimize_sqltracestore,omitempty"`
 	// Experiment flags
 	Experiments Experiments `json:"experiments,omitempty"`
+
+	// TODO(b/414626204 )Whether to show the 'Triage' link on side panel. Currently hide triage link for V8 and
+	// Chrome perf
+	ShowTriageLink bool `json:"show_triage_link,omitempty"`
 }
 
 // Config is the currently running config.

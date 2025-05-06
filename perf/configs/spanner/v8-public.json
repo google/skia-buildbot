@@ -46,5 +46,6 @@
     }
   },
   "new_alerts_page": true,
-  "optimize_sqltracestore": true
+  "optimize_sqltracestore": true,
+  "show_triage_link": false
 }

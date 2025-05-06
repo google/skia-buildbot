@@ -285,6 +285,7 @@ type SkPerfConfig struct {
 	RemoveDefaultStatValue      bool               `json:"remove_default_stat_value"`       // experimental flag to remove the default stat=value on queries.
 	EnableSkiaBridgeAggregation bool               `json:"enable_skia_bridge_aggregation"`  // experimental flag to enable aggregation at skia_bridge.
 	ShowJsonResourceDisplay     bool               `json:"show_json_file_display"`          // Boolean to display json commit detail or not
+	ShowTriageLink              bool               `json:"show_triage_link"`                // Boolean to display traige link on side panel or not
 	AlwaysShowCommitInfo        bool               `json:"always_show_commit_info"`         // Boolean to display commit author and hash.
 }
 
@@ -322,6 +323,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		EnableSkiaBridgeAggregation: config.Config.Experiments.EnableSkiaBridgeAggregation,
 		ShowJsonResourceDisplay:     config.Config.DataPointConfig.ShowJsonResourceDisplay,
 		AlwaysShowCommitInfo:        config.Config.DataPointConfig.AlwaysShowCommitInfo,
+		ShowTriageLink:              config.Config.ShowTriageLink,
 	}
 	b, err := json.MarshalIndent(pc, "", "  ")
 	if err != nil {

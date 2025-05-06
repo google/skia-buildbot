@@ -91,5 +91,6 @@
   },
   "new_alerts_page": true,
   "optimize_sqltracestore": true,
-  "enable_sheriff_config": true
+  "enable_sheriff_config": true,
+  "show_triage_link": false
 }

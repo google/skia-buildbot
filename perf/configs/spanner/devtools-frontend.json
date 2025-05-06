@@ -57,5 +57,6 @@
             "use_titles": "true"
         }
     },
-    "optimize_sqltracestore": true
+    "optimize_sqltracestore": true,
+    "show_triage_link": true
 }

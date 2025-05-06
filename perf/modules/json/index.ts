@@ -362,6 +362,7 @@ export interface SkPerfConfig {
 	remove_default_stat_value: boolean;
 	enable_skia_bridge_aggregation: boolean;
 	show_json_file_display: boolean;
+	show_triage_link: boolean;
 	always_show_commit_info: boolean;
 }
 

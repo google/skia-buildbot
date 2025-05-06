@@ -355,6 +355,9 @@
         },
         "experiments": {
           "$ref": "#/$defs/Experiments"
+        },
+        "show_triage_link": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

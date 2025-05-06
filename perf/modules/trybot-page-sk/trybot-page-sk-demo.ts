@@ -35,6 +35,7 @@ window.perf = {
   enable_skia_bridge_aggregation: false,
   show_json_file_display: false,
   always_show_commit_info: false,
+  show_triage_link: true,
 };
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');

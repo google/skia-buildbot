@@ -121,5 +121,6 @@
       "show_json_file_display": true,
       "always_show_commit_info": true
     },
-    "optimize_sqltracestore": true
+    "optimize_sqltracestore": true,
+    "show_triage_link": true
 }
