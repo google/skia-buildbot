@@ -3,15 +3,22 @@ BenchmarkTargets:
 BotExactTargets:
   # Each Android binary has its own target, and different bots use different
   # binaries. Mapping based off of Chromium's perf_data_generator:
-  # https://source.chromium.org/chromium/chromium/src/+/main:tools/perf/core/perf_data_generator.py;drc=64ea3a6b8a6718f71048570d5037968019c7e943;l=359
+  # https://source.chromium.org/chromium/chromium/src/+/main:
+  # tools/perf/core/perf_data_generator.py;drc=ea564cf559e05fde24a5e283ff81ebede5fdfce1;l=394
   android-go-wembley-perf: performance_test_suite_android_trichrome_chrome_google_bundle
   android-new-pixel-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-new-pixel-pro-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel-fold-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel-tangor-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
+  android-pixel-tangor-perf-cbb: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel4-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
+  android-pixel4-perf-pgo: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel6-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
+  android-pixel6-perf-pgo: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel6-pro-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
+  android-pixel9-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
+  android-pixel9-pro-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
+  android-pixel9-pro-xl-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-samsung-foldable-perf: performance_test_suite_android_trichrome_chrome_google_bundle
 BotRegexTargets:
   # This is a special-case for webview
