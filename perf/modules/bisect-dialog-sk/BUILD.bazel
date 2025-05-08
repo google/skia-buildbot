@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "bisect-dialog-sk",
@@ -12,6 +12,7 @@ sk_element(
         "//elements-sk/modules/icons/close-icon-sk",
         "//elements-sk/modules/spinner-sk",
         "//elements-sk/modules/select-sk",
+        "//elements-sk/modules/toast-sk",
     ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
@@ -28,4 +29,27 @@ sk_element(
         "bisect-dialog-sk.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "bisect-dialog-sk-demo",
+    html_file = "bisect-dialog-sk-demo.html",
+    scss_entry_point = "bisect-dialog-sk-demo.scss",
+    ts_entry_point = "bisect-dialog-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "bisect-dialog-sk_puppeteer_test",
+    src = "bisect-dialog-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":bisect-dialog-sk-demo",
 )

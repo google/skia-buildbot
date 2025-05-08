@@ -29,10 +29,12 @@ import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 
 import '../../../elements-sk/modules/icons/close-icon-sk';
+import '../../../elements-sk/modules/toast-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import '../../../infra-sk/modules/alogin-sk/alogin-sk';
+import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 
 const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
 
@@ -68,6 +70,14 @@ export class BisectDialogSk extends ElementSk {
 
   private bisectButton: HTMLButtonElement | null = null;
 
+  private jobId: string = '';
+
+  private jobUrl: string = '';
+
+  private closeBisectToastButton: HTMLButtonElement | null = null;
+
+  private bisectJobToast: ToastSk | null = null;
+
   private static template = (ele: BisectDialogSk) => html`
     <dialog id='bisect-dialog'>
       <h2>Bisect</h2>
@@ -89,11 +99,19 @@ export class BisectDialogSk extends ElementSk {
       <input id="patch" type="text"></input>
       <div class=footer>
         <spinner-sk id="dialog-spinner"></spinner-sk>
-        <button id="submit-button" type="Submit">Bisect</button>
+        <button id="submit-button" type="submit" @click=${ele.postBisect}>Bisect</button>
         <button @click=${ele.closeBisectDialog}>Close</button>
       </div>
       </form>
     </dialog>
+    <toast-sk id="bisect_toast" duration="8000">
+      <div id="bisect-url">
+        <a href=${ele.jobUrl} target="_blank">Bisect job successfully created: ${ele.jobId}</a>
+      </div>
+      <div class="close-bisect">
+        <button id="hide-bisect-toast" class="action">Close</button>
+      </div>
+    </toast-sk>
     `;
 
   constructor() {
@@ -114,10 +132,9 @@ export class BisectDialogSk extends ElementSk {
     this.spinner = this.querySelector('#dialog-spinner');
     this.bisectButton = this.querySelector('#submit-button');
     this._form = this.querySelector('#bisect-form');
-    this._form!.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.postBisect();
-    });
+    this.closeBisectToastButton = this.querySelector('#hide-bisect-toast');
+    this.bisectJobToast = this.querySelector('#bisect_toast');
+    this.closeBisectToastButton!.addEventListener('click', () => this.bisectJobToast?.hide());
 
     LoggedIn()
       .then((status: LoginStatus) => {
@@ -146,11 +163,16 @@ export class BisectDialogSk extends ElementSk {
 
   private closeBisectDialog(): void {
     this._dialog!.close();
+    this._render();
   }
 
   private postBisect(): void {
     this.spinner!.active = true;
     this.bisectButton!.disabled = true;
+    if (this.testPath === '') {
+      this._render();
+      return;
+    }
     const parameters = this.testPath.split('/');
 
     const test = parameters!.at(3);
@@ -194,10 +216,14 @@ export class BisectDialogSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then(() => {
+      .then(async (json) => {
         this.bisectButton!.disabled = false;
         this.spinner!.active = false;
+        this.jobId = json.jobId;
+        this.jobUrl = json.jobUrl;
         this.closeBisectDialog();
+        this.bisectJobToast?.show();
+        this._render();
       })
       .catch((msg: any) => {
         errorMessage(msg);
