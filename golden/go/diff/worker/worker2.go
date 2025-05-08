@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -63,6 +64,7 @@ type ImageSource interface {
 
 type WorkerImpl struct {
 	db              *pgxpool.Pool
+	dbType          config.DatabaseType
 	imageSource     ImageSource
 	badDigestsCache *ttlcache.Cache
 	windowSize      int
@@ -73,9 +75,10 @@ type WorkerImpl struct {
 }
 
 // New returns a diff worker which uses the provided ImageSource.
-func New(db *pgxpool.Pool, src ImageSource, windowSize int) *WorkerImpl {
+func New(db *pgxpool.Pool, dbType config.DatabaseType, src ImageSource, windowSize int) *WorkerImpl {
 	return &WorkerImpl{
 		db:                       db,
+		dbType:                   dbType,
 		imageSource:              src,
 		windowSize:               windowSize,
 		badDigestsCache:          ttlcache.New(badImageCooldown, 2*badImageCooldown),
@@ -150,26 +153,45 @@ func (w *WorkerImpl) getTileBounds(ctx context.Context) (schema.TileID, schema.T
 	const statement = `WITH
 RecentCommits AS (
 	SELECT tile_id, commit_id FROM CommitsWithData
-	AS OF SYSTEM TIME '-0.1s'
 	ORDER BY commit_id DESC LIMIT $1
 )
 SELECT MIN(tile_id), MAX(tile_id) FROM RecentCommits
-AS OF SYSTEM TIME '-0.1s'
 `
 	row := w.db.QueryRow(ctx, statement, w.windowSize)
-	var lc pgtype.Int4
-	var mc pgtype.Int4
-	if err := row.Scan(&lc, &mc); err != nil {
-		if err == pgx.ErrNoRows {
-			return 0, 0, nil // not enough commits seen, so start at tile 0.
+	var minTileVal, maxTileVal int64 // Use int64 as common type after scan
+	var minTileStatus, maxTileStatus pgtype.Status
+	if w.dbType == config.Spanner {
+		var lc pgtype.Int8
+		var mc pgtype.Int8
+		if err := row.Scan(&lc, &mc); err != nil {
+			if err == pgx.ErrNoRows {
+				return 0, 0, nil // not enough commits seen, so start at tile 0.
+			}
+			return 0, 0, skerr.Wrapf(err, "getting latest commit")
 		}
-		return 0, 0, skerr.Wrapf(err, "getting latest commit")
+		minTileVal = lc.Int // Already int64
+		maxTileVal = mc.Int // Already int64
+		minTileStatus = lc.Status
+		maxTileStatus = mc.Status
+	} else {
+		var lc pgtype.Int4
+		var mc pgtype.Int4
+		if err := row.Scan(&lc, &mc); err != nil {
+			if err == pgx.ErrNoRows {
+				return 0, 0, nil // not enough commits seen, so start at tile 0.
+			}
+			return 0, 0, skerr.Wrapf(err, "getting latest commit")
+		}
+		minTileVal = int64(lc.Int)
+		maxTileVal = int64(mc.Int)
+		minTileStatus = lc.Status
+		maxTileStatus = mc.Status
 	}
-	if lc.Status == pgtype.Null || mc.Status == pgtype.Null {
+	if minTileStatus == pgtype.Null || maxTileStatus == pgtype.Null {
 		// There are no commits with data, so start at tile 0.
 		return 0, 0, nil
 	}
-	return schema.TileID(lc.Int), schema.TileID(mc.Int), nil
+	return schema.TileID(minTileVal), schema.TileID(maxTileVal), nil
 }
 
 // getAllExisting returns the unique digests that were seen on the primary branch for a given
@@ -201,7 +223,6 @@ func (w *WorkerImpl) getAllExisting(ctx context.Context, beginTile, endTile sche
 	// be 10x more effective than the previous query with a join.
 	const statement = `
 SELECT DISTINCT digest FROM TiledTraceDigests
-AS OF SYSTEM TIME '-0.1s'
 WHERE tile_id = ANY($1) AND trace_id = ANY($2)`
 
 	rows, err := w.db.Query(ctx, statement, tilesInRange, tracesForGroup)
@@ -225,7 +246,6 @@ func (w *WorkerImpl) getTracesForGroup(ctx context.Context, id schema.GroupingID
 	ctx, span := trace.StartSpan(ctx, "getTracesForGroup")
 	defer span.End()
 	const statement = `SELECT trace_id FROM Traces
-AS OF SYSTEM TIME '-0.1s'
 WHERE grouping_id = $1`
 	rows, err := w.db.Query(ctx, statement, id)
 	if err != nil {
@@ -288,22 +308,30 @@ func (w *WorkerImpl) getMissingDiffs(ctx context.Context, digests []schema.Diges
 	}
 	span.AddAttributes(trace.Int64Attribute("possible_work_size", int64(len(possibleWork))))
 
-	const statement = `SELECT DISTINCT encode(left_digest, 'hex'), encode(right_digest, 'hex')
-FROM DiffMetrics AS OF SYSTEM TIME '-0.1s'
+	const statement = `SELECT DISTINCT left_digest, right_digest
+    FROM DiffMetrics
 WHERE left_digest = ANY($1) AND right_digest = ANY($1)`
+
 	rows, err := w.db.Query(ctx, statement, digests)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "executing query: %s", statement)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		if err := ctx.Err(); err != nil {
 			return nil, skerr.Wrapf(err, "context error")
 		}
-		var left, right types.Digest
-		if err := rows.Scan(&left, &right); err != nil {
+		// Scan raw bytes from the database
+		var leftBytes, rightBytes []byte
+		if err := rows.Scan(&leftBytes, &rightBytes); err != nil {
 			return nil, skerr.Wrap(err)
 		}
+
+		// Encode bytes to hex strings here in Go code
+		left := types.Digest(hex.EncodeToString(leftBytes))
+		right := types.Digest(hex.EncodeToString(rightBytes))
+
+		// Create the canonical pair using the hex strings
 		dp := newDigestPair(left, right)
 		possibleWork[dp] = false
 	}
@@ -488,31 +516,53 @@ func (w *WorkerImpl) writeMetrics(ctx context.Context, metrics []schema.DiffMetr
 	}
 	ctx, span := trace.StartSpan(ctx, "writeMetrics")
 	defer span.End()
-	const baseStatement = `UPSERT INTO DiffMetrics
+	const baseStatement = `INSERT INTO DiffMetrics
 (left_digest, right_digest, num_pixels_diff, percent_pixels_diff, max_rgba_diffs,
 max_channel_diff, combined_metric, dimensions_differ, ts) VALUES `
-	const valuesPerRow = 9
 
+	const onConflict = `
+	ON CONFLICT (left_digest, right_digest) DO UPDATE SET
+	  num_pixels_diff = excluded.num_pixels_diff,
+	  percent_pixels_diff = excluded.percent_pixels_diff,
+	  max_rgba_diffs = excluded.max_rgba_diffs,
+	  max_channel_diff = excluded.max_channel_diff,
+	  combined_metric = excluded.combined_metric,
+	  dimensions_differ = excluded.dimensions_differ,
+	  ts = excluded.ts,
+	  -- Spanner requires *all* columns from INSERT list to be in SET:
+	  left_digest = excluded.left_digest,
+	  right_digest = excluded.right_digest` // Set PK columns to excluded values
+
+	const valuesPerRow = 9
 	arguments := make([]interface{}, 0, len(metrics)*valuesPerRow*2)
 	count := 0
 	for _, r := range metrics {
-		count += 2
-		rgba := make([]int, 4)
-		copy(rgba, r.MaxRGBADiffs[:])
-		arguments = append(arguments, r.LeftDigest, r.RightDigest, r.NumPixelsDiff, r.PercentPixelsDiff, rgba,
+		// Add row for left -> right
+		count++
+		rgbaLR := make([]int, 4)
+		copy(rgbaLR, r.MaxRGBADiffs[:])
+		arguments = append(arguments, r.LeftDigest, r.RightDigest, r.NumPixelsDiff, r.PercentPixelsDiff, rgbaLR,
 			r.MaxChannelDiff, r.CombinedMetric, r.DimensionsDiffer, r.Timestamp)
-		arguments = append(arguments, r.RightDigest, r.LeftDigest, r.NumPixelsDiff, r.PercentPixelsDiff, rgba,
+
+		// Add symmetric row for right -> left
+		count++
+		rgbaRL := make([]int, 4)
+		copy(rgbaRL, r.MaxRGBADiffs[:])
+		arguments = append(arguments, r.RightDigest, r.LeftDigest, r.NumPixelsDiff, r.PercentPixelsDiff, rgbaRL,
 			r.MaxChannelDiff, r.CombinedMetric, r.DimensionsDiffer, r.Timestamp)
 	}
+
 	vp := sqlutil.ValuesPlaceholders(valuesPerRow, count)
-	_, err := w.db.Exec(ctx, baseStatement+vp, arguments...)
+	fullQuery := baseStatement + vp + onConflict
+
+	_, err := w.db.Exec(ctx, fullQuery, arguments...)
 	if err != nil {
 		return skerr.Wrapf(err, "writing %d metrics to SQL", len(metrics))
 	}
 	return nil
 }
 
-// reportProblemImage creates or updates a row in the ProblemImages table for the given digest.
+// reportProblemImage creates or updates a row in the ProblemImages table for the given digest
 func (w *WorkerImpl) reportProblemImage(ctx context.Context, imgErr *imgError) error {
 	ctx, span := trace.StartSpan(ctx, "reportProblemImage")
 	defer span.End()

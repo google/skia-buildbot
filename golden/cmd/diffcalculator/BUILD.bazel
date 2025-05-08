@@ -19,6 +19,7 @@ go_library(
         "//golden/go/diff",
         "//golden/go/diff/worker",
         "//golden/go/sql",
+        "//golden/go/sql/datakitchensink",
         "//golden/go/sql/schema",
         "//golden/go/tracing",
         "//golden/go/types",

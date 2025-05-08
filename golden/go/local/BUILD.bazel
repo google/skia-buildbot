@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/sklog",
+        "//golden/go/sql",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/schema",
         "//golden/go/sql/schema/spanner",

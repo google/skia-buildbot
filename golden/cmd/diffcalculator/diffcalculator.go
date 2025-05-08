@@ -8,7 +8,10 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"os"
 	"path"
+	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -18,6 +21,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
+	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
@@ -52,12 +56,30 @@ const (
 	groupingCacheSize = 100_000
 )
 
+// Environment variable to control image source.
+// By default images are read from GCS. But if this variable is set to "local",
+// images are read from the local file system. This is to enable local testin
+const imageSourceTypeEnvVar = "GOLD_DIFFCALC_IMAGESOURCE_TYPE"
+
 type diffCalculatorConfig struct {
 	config.Common
 
 	// HighContentionMode indicates to use fewer transactions when getting diff work. This can help
 	// for instances with high amounts of secondary branches.
 	HighContentionMode bool `json:"high_contention_mode"`
+}
+
+type localFileImageSource struct {
+	imgDir string
+}
+
+func (l *localFileImageSource) GetImage(ctx context.Context, digest types.Digest) ([]byte, error) {
+	imgPath := filepath.Join(l.imgDir, string(digest)+".png")
+	b, err := os.ReadFile(imgPath)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "reading local image %s", imgPath)
+	}
+	return b, nil
 }
 
 func main() {
@@ -98,14 +120,14 @@ func main() {
 
 	ctx := context.Background()
 	db := mustInitSQLDatabase(ctx, dcc)
-	gis := mustMakeGCSImageSource(ctx, dcc)
+	gis := mustMakeImageSource(ctx, dcc)
 	gc, err := lru.New(groupingCacheSize)
 	if err != nil {
 		sklog.Fatalf("Could not initialize cache: %s", err)
 	}
 
 	sqlProcessor := &processor{
-		calculator:         worker.New(db, gis, dcc.WindowSize),
+		calculator:         worker.New(db, dcc.SQLDatabaseType, gis, dcc.WindowSize),
 		db:                 db,
 		groupingCache:      gc,
 		primaryCounter:     metrics2.GetCounter("diffcalculator_primarybranch_processed"),
@@ -208,16 +230,47 @@ func mustInitSQLDatabase(ctx context.Context, dcc diffCalculatorConfig) *pgxpool
 	return db
 }
 
-func mustMakeGCSImageSource(ctx context.Context, dcc diffCalculatorConfig) worker.ImageSource {
+func newGCSImageSource(ctx context.Context, dcc diffCalculatorConfig) (worker.ImageSource, error) {
+	sklog.Infof("Using GCS image source bucket: %s", dcc.GCSBucket)
 	// Reads credentials from the env variable GOOGLE_APPLICATION_CREDENTIALS.
 	storageClient, err := gstorage.NewClient(ctx)
 	if err != nil {
-		sklog.Fatalf("Making GCS Image source: %s", storageClient)
+		return nil, skerr.Wrapf(err, "failed to create GCS client")
 	}
 	return &gcsImageDownloader{
 		client: storageClient,
 		bucket: dcc.GCSBucket,
+	}, nil
+}
+
+func newLocalFileImageSource() (*localFileImageSource, error) {
+	imgDir := dks.GetImgDirectory()
+	if imgDir == "" {
+		return nil, skerr.Fmt("Could not determine image directory from datakitchensink")
 	}
+	sklog.Infof("Using local file image source with directory: %s", imgDir)
+	return &localFileImageSource{imgDir: imgDir}, nil
+}
+
+// mustMakeImageSource creates an ImageSource based on environment variable.
+func mustMakeImageSource(ctx context.Context, dcc diffCalculatorConfig) worker.ImageSource {
+	sourceType := os.Getenv(imageSourceTypeEnvVar)
+	sklog.Infof("Environment variable %s=%q", imageSourceTypeEnvVar, sourceType)
+
+	if strings.ToUpper(sourceType) == "LOCAL" {
+		localSource, err := newLocalFileImageSource()
+		if err != nil {
+			sklog.Fatalf("Failed to create local file image source: %s", err)
+		}
+		return localSource
+	}
+
+	// Default to GCS
+	gcsSource, err := newGCSImageSource(ctx, dcc)
+	if err != nil {
+		sklog.Fatalf("Failed to create GCS image source: %s", err)
+	}
+	return gcsSource
 }
 
 // TODO(kjlubick) maybe deduplicate with storage.GCSClient
@@ -354,49 +407,77 @@ func (p *processor) computeDiffsForSecondaryBranch(ctx context.Context) (bool, e
 	return p.lowContentionSecondaryBranch(ctx)
 }
 
+type workItem struct {
+	branchName string
+	groupingID schema.GroupingID
+	digests    []string
+}
+
 // highContentionSecondaryBranch finds a grouping for a branch to compute that is probabilistically
 // not being worked on by another process and computes the diffs for it.
 func (p *processor) highContentionSecondaryBranch(ctx context.Context) (bool, error) {
 	ctx, span := trace.StartSpan(ctx, "highContentionSecondaryBranch")
 	defer span.End()
-	var groupingID schema.GroupingID
-	var additionalDigests []types.Digest
-	var branchName string
+	var candidates []workItem
 
 	ts := now.Now(ctx)
+	// Select up to 50 potential work items, ordered by oldest calculation time.
+	// Removed ORDER BY random() and AS OF SYSTEM TIME.
 	// By not doing the select and update below in the same transaction, we work around cases where
 	// there are many rows in SecondaryBranchDiffCalculationWork, causing the queries to take a
 	// long time and causing many retries. At the same time, we want to limit the number of workers
 	// who are wasting time by computing diffs for the same branch+grouping, so we select one of
 	// the top candidates randomly.
 	const selectStatement = `WITH
-PossibleWork AS (
-	SELECT branch_name, grouping_id, digests
-	FROM SecondaryBranchDiffCalculationWork
-	AS OF SYSTEM TIME '-0.1s'
-	WHERE calculation_lease_ends < $1 AND last_calculated_ts < last_updated_ts
-	ORDER BY last_calculated_ts ASC
-	LIMIT 50 -- We choose 50 to reduce the chance of multiple workers picking the same one.
-)
-SELECT * FROM PossibleWork
-AS OF SYSTEM TIME '-0.1s'
-ORDER BY random() LIMIT 1
-`
-	row := p.db.QueryRow(ctx, selectStatement, ts)
-	var digests []string
-	if err := row.Scan(&branchName, &groupingID, &digests); err != nil {
-		if err == pgx.ErrNoRows {
-			// We've calculated data for every CL past the "last_updated_ts" time.
-			return true, nil
+    PossibleWork AS (
+        SELECT branch_name, grouping_id, digests
+        FROM SecondaryBranchDiffCalculationWork
+        WHERE calculation_lease_ends < $1 AND last_calculated_ts < last_updated_ts
+        ORDER BY last_calculated_ts ASC
+        LIMIT 50
+    )
+    SELECT branch_name, grouping_id, digests FROM PossibleWork
+    `
+	rows, err := p.db.Query(ctx, selectStatement, ts)
+	if err != nil {
+		if err != pgx.ErrNoRows {
+			return false, skerr.Wrap(err)
 		}
+		// If it was specifically ErrNoRows from Query itself, treat as no work.
+		return true, nil
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var item workItem
+		var rawDigests []string
+		if err := rows.Scan(&item.branchName, &item.groupingID, &rawDigests); err != nil {
+			// Log or handle scan error if necessary, then return
+			return false, skerr.Wrapf(err, "scanning work item candidate")
+		}
+		item.digests = rawDigests
+		candidates = append(candidates, item)
+	}
+	if err := rows.Err(); err != nil {
 		return false, skerr.Wrap(err)
 	}
-	additionalDigests = convertType(digests)
-	if len(additionalDigests) == 0 {
+	rows.Close()
+
+	// If no candidates were found, there's no work to do.
+	if len(candidates) == 0 {
 		return true, nil
 	}
 
-	err := crdbpgx.ExecuteTx(ctx, p.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	// Randomly select one candidate from the list
+	selectedIndex := rand.Intn(len(candidates))
+	chosenWork := candidates[selectedIndex]
+
+	// Extract details from the chosen work item for subsequent steps
+	branchName := chosenWork.branchName
+	groupingID := chosenWork.groupingID
+	additionalDigests := convertType(chosenWork.digests)
+
+	err = crdbpgx.ExecuteTx(ctx, p.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		const updateStatement = `UPDATE SecondaryBranchDiffCalculationWork
 SET calculation_lease_ends = $3 WHERE branch_name = $1 AND grouping_id = $2`
 		if _, err := tx.Exec(ctx, updateStatement, branchName, groupingID, ts.Add(diffCalculationTimeout)); err != nil {

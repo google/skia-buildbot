@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/sql/databuilder"
 
 	"go.skia.org/infra/go/repo_root"
@@ -174,7 +175,7 @@ func TestWorkerImpl_CalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *t
 	sparseData := makeSparseData()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, sparseData))
 	waitForSystemTime()
-	w := New(db, &fsImageSource{root: kitchenSinkRoot(t)}, 3)
+	w := New(db, config.CockroachDB, &fsImageSource{root: kitchenSinkRoot(t)}, 3)
 
 	grouping := paramtools.Params{
 		types.CorpusField:     dks.RoundCorpus,
@@ -219,7 +220,7 @@ func TestWorkerImpl_CalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA02Pos).Return(b02, nil)
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA04Unt).Return(nil, errors.New("not found"))
 
-	w := New(db, mis, 2)
+	w := New(db, config.CockroachDB, mis, 2)
 
 	grouping := paramtools.Params{
 		types.CorpusField:     "not used",
@@ -270,7 +271,7 @@ func TestWorkerImpl_CalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA02Pos).Return(b02, nil)
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA04Unt).Return([]byte(`not a png`), nil)
 
-	w := New(db, mis, 2)
+	w := New(db, config.CockroachDB, mis, 2)
 
 	grouping := paramtools.Params{
 		types.CorpusField:     "not used",
@@ -303,7 +304,7 @@ func TestWorkerImpl_GetTriagedDigests_Success(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 	waitForSystemTime()
 
-	w := New(db, nil, 100)
+	w := New(db, config.CockroachDB, nil, 100)
 
 	squareGrouping := paramtools.Params{types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: dks.SquareTest}
 	triangleGrouping := paramtools.Params{types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: dks.TriangleTest}
@@ -336,7 +337,7 @@ func TestWorkerImpl_GetCommonAndRecentDigests_SmokeTest(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 	waitForSystemTime()
 
-	w := New(db, nil, 100)
+	w := New(db, config.CockroachDB, nil, 100)
 
 	squareGrouping := paramtools.Params{types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: dks.SquareTest}
 
@@ -350,7 +351,7 @@ func TestWorkerImpl_GetCommonAndRecentDigests_SmokeTest(t *testing.T) {
 }
 
 func newWorker2UsingImagesFromKitchenSink(t *testing.T, db *pgxpool.Pool) *WorkerImpl {
-	return New(db, &fsImageSource{root: kitchenSinkRoot(t)}, 200)
+	return New(db, config.CockroachDB, &fsImageSource{root: kitchenSinkRoot(t)}, 200)
 }
 
 var kitchenSinkData = dks.Build()
