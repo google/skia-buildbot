@@ -34,6 +34,15 @@
  *        selected: true
  *      }
  *
+ *  * @evt paramset-key-checkbox-click - Generated when the checkbox for a key in the paramset
+ *     is clicked.
+ *
+ *      {
+ *        key: "arch",
+ *        values: ["x86", "x64"],
+ *        selected: true
+ *      }
+ *
  * @evt plus-click - Generated when the plus sign is clicked. The element must
  *     have the 'clickable_plus' attribute set. The details of the event
  *     contains both the key and the values for the row, for example:
@@ -82,6 +91,7 @@ import '../../../elements-sk/modules/icons/cancel-icon-sk';
 import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/toast-sk';
 import { $$ } from '../dom';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 
 export interface ParamSetSkClickEventDetail {
   readonly key: string;
@@ -105,6 +115,12 @@ export interface ParamSetSkCheckboxClickEventDetail {
   readonly selected: boolean;
 }
 
+export interface ParamSetSkKeyCheckboxClickEventDetail {
+  readonly key: string;
+  readonly values: string[];
+  readonly selected: boolean;
+}
+
 export class ParamSetSk extends ElementSk {
   private static template = (ele: ParamSetSk) => html`
     <table @click=${ele._click} class=${ele._computeClass()}>
@@ -125,11 +141,40 @@ export class ParamSetSk extends ElementSk {
   private static rowsTemplate = (ele: ParamSetSk) =>
     ele._sortedKeys.map((key) => ParamSetSk.rowTemplate(ele, key));
 
-  private static rowTemplate = (ele: ParamSetSk, key: string) =>
-    html` <tr>
-      <th data-key=${key}>${key}</th>
-      ${ParamSetSk.paramsetValuesTemplate(ele, key)}
-    </tr>`;
+  private static rowTemplate = (ele: ParamSetSk, key: string) => {
+    if (ele.checkbox_values) {
+      // If this row contains only one value, let's disable the key checkbox.
+      let disabled = false;
+      ele._paramsets.forEach((ps) => {
+        const vals = ps[key];
+        if (vals.length <= 1) {
+          disabled = true;
+        }
+      });
+      return html`<tr>
+        <th data-key=${key}>
+          <checkbox-sk
+            id="selectAll-${key}"
+            name=""
+            @change=${(e: MouseEvent) => ele.paramsetKeySelectAllHandler(e, key)}
+            label=""
+            checked
+            ?disabled=${disabled}
+            title="Select/Unselect this value from the graph.">
+          </checkbox-sk>
+          ${key}
+        </th>
+        ${ParamSetSk.paramsetValuesTemplate(ele, key)}
+      </tr>`;
+    } else {
+      // We do not want this checkbox when the values are
+      // not going to be having checkboxes. Eg: query dialog.
+      return html`<tr>
+        <th data-key=${key}>${key}</th>
+        ${ParamSetSk.paramsetValuesTemplate(ele, key)}
+      </tr>`;
+    }
+  };
 
   private static paramsetValuesTemplate = (ele: ParamSetSk, key: string) => {
     const ret: TemplateResult[] = [];
@@ -287,6 +332,48 @@ export class ParamSetSk extends ElementSk {
     this.unchecked.set(key, set);
 
     this._render();
+  }
+
+  /**
+   * Handler to take appropriate actions when the checkbox for paramset key is changed.
+   * This is either to select or unselect all values under that key.
+   * @param e Event object.
+   * @param key The key for which the checkbox is clicked.
+   */
+  private paramsetKeySelectAllHandler(e: MouseEvent, key: string) {
+    const selectAll = (e.target! as HTMLInputElement).checked;
+    this._paramsets.forEach((p) => {
+      const vals = p[key];
+      let keepCheckedIndex = -1;
+      const valuesToUpdate: string[] = [];
+      for (let i = 0; i < vals.length; i++) {
+        const checkbox_id = `checkbox-${key}-${vals[i]}`;
+        const checkbox = document.getElementById(checkbox_id) as CheckOrRadio;
+        // If we are unselecting, we want to keep the first checked item
+        // from selected values around. This is because we would need at least
+        // one trace in the graph.
+        if (keepCheckedIndex === -1 && checkbox.checked && !selectAll) {
+          keepCheckedIndex = i;
+        } else {
+          checkbox.checked = selectAll;
+          valuesToUpdate.push(vals[i]);
+          this.fixUpDisabledStateOnRemainingCheckboxes(selectAll, key, vals[i]);
+        }
+      }
+      this._render();
+      const detail: ParamSetSkKeyCheckboxClickEventDetail = {
+        selected: selectAll,
+        key: key,
+        values: valuesToUpdate,
+      };
+      // Send the event so that the graph can be updated to match the selection.
+      this.dispatchEvent(
+        new CustomEvent<ParamSetSkKeyCheckboxClickEventDetail>('paramset-key-checkbox-click', {
+          detail,
+          bubbles: true,
+        })
+      );
+    });
   }
 
   private checkboxValueClickHandler(e: MouseEvent, key: string, value: string) {

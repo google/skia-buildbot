@@ -74,6 +74,11 @@ export class ParamSetSkPO extends PageObject {
     await th?.click();
   }
 
+  async clickKeyCheckbox(key: string): Promise<void> {
+    const checkbox = this.bySelector(`#selectAll-${key}`);
+    await checkbox?.click();
+  }
+
   async clickValue(pkv: ParamSetKeyValueTuple): Promise<void> {
     await this._forEachParamSetKeyValue(async (curPkv, valueDiv) => {
       if (

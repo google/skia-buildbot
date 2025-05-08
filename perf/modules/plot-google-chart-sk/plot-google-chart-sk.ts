@@ -1167,8 +1167,8 @@ export class PlotGoogleChartSk extends LitElement {
    * @param val param value
    * @param selected True if the param is selected, else False.
    */
-  public updateChartForParam(key: string, val: string, selected: boolean) {
-    const tracesForParams = findTracesForParam(this.data, key, val);
+  public updateChartForParam(key: string, vals: string[], selected: boolean) {
+    const tracesForParams = findTracesForParam(this.data, key, vals);
     if (selected) {
       // We want only these traces to be visible, so add all others into the removed cache.
       this.removedLabelsCache = this.removedLabelsCache.filter(

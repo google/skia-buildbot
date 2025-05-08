@@ -7,6 +7,7 @@ import { setUpElementUnderTest, eventPromise, noEventPromise } from '../test_uti
 import {
   ParamSetSk,
   ParamSetSkClickEventDetail,
+  ParamSetSkKeyCheckboxClickEventDetail,
   ParamSetSkPlusClickEventDetail,
   ParamSetSkRemoveClickEventDetail,
 } from './paramset-sk';
@@ -27,6 +28,51 @@ const paramSet2: ParamSet = {
 
 const title1 = 'foo';
 const title2 = 'bar';
+
+describe('paramset-sk with checkbox', () => {
+  const newInstance = setUpElementUnderTest<ParamSetSk>('paramset-sk');
+
+  let paramSetSk: ParamSetSk;
+  let paramSetSkPO: ParamSetSkPO;
+
+  beforeEach(() => {
+    paramSetSk = newInstance();
+    paramSetSk.checkbox_values = true;
+    paramSetSkPO = new ParamSetSkPO(paramSetSk);
+  });
+
+  describe('key checkboxes', () => {
+    beforeEach(() => {
+      paramSetSk.paramsets = [paramSet1];
+      paramSetSk.titles = [title1];
+    });
+
+    it('emits an event when the checkbox for a key is checked', async () => {
+      const event = eventPromise<CustomEvent<ParamSetSkKeyCheckboxClickEventDetail>>(
+        'paramset-key-checkbox-click'
+      );
+      await paramSetSkPO.clickKeyCheckbox('a');
+      const expectedDetail: ParamSetSkKeyCheckboxClickEventDetail = {
+        key: 'a',
+        values: ['world'], // the first value "hello" will not be emitted.
+        selected: false,
+      };
+      expect((await event).detail).to.deep.equal(expectedDetail);
+
+      // Now let's click the checkbox again.
+      const event2 = eventPromise<CustomEvent<ParamSetSkKeyCheckboxClickEventDetail>>(
+        'paramset-key-checkbox-click'
+      );
+      await paramSetSkPO.clickKeyCheckbox('a');
+      const expectedDetail2: ParamSetSkKeyCheckboxClickEventDetail = {
+        key: 'a',
+        values: ['hello', 'world'], // all values should be there.
+        selected: true,
+      };
+      expect((await event2).detail).to.deep.equal(expectedDetail2);
+    });
+  });
+});
 
 describe('paramset-sk', () => {
   const newInstance = setUpElementUnderTest<ParamSetSk>('paramset-sk');

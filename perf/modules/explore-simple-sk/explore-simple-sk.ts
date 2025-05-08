@@ -97,6 +97,7 @@ import {
   ParamSetSk,
   ParamSetSkCheckboxClickEventDetail,
   ParamSetSkClickEventDetail,
+  ParamSetSkKeyCheckboxClickEventDetail,
   ParamSetSkPlusClickEventDetail,
   ParamSetSkRemoveClickEventDetail,
 } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
@@ -947,7 +948,8 @@ export class ExploreSimpleSk extends ElementSk {
                       @paramset-key-value-click=${(e: CustomEvent<ParamSetSkClickEventDetail>) => {
                         ele.paramsetKeyValueClick(e);
                       }}
-                      @paramset-checkbox-click=${ele.paramsetCheckboxClick}>
+                      @paramset-checkbox-click=${ele.paramsetCheckboxClick}
+                      @paramset-key-checkbox-click=${ele.paramsetKeyCheckboxClick}>
                     </paramset-sk>
                   </div>
                   <div id="details">
@@ -2418,11 +2420,25 @@ export class ExploreSimpleSk extends ElementSk {
    * Handler for the event when the paramset checkbox is clicked.
    * @param e Checkbox click event
    */
+  private paramsetKeyCheckboxClick(e: CustomEvent<ParamSetSkKeyCheckboxClickEventDetail>) {
+    if (this._state.show_google_plot) {
+      this.googleChartPlot.value?.updateChartForParam(
+        e.detail.key,
+        e.detail.values,
+        e.detail.selected
+      );
+    }
+  }
+
+  /**
+   * Handler for the event when the paramset checkbox is clicked.
+   * @param e Checkbox click event
+   */
   private paramsetCheckboxClick(e: CustomEvent<ParamSetSkCheckboxClickEventDetail>) {
     if (this._state.show_google_plot) {
       this.googleChartPlot.value?.updateChartForParam(
         e.detail.key,
-        e.detail.value,
+        [e.detail.value],
         e.detail.selected
       );
     } else {
