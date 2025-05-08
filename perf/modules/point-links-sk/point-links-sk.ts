@@ -51,6 +51,8 @@ export class PointLinksSk extends ElementSk {
     super(PointLinksSk.template);
   }
 
+  private abortController: AbortController = new AbortController();
+
   // The point links for the current commit.
   commitPosition: CommitNumber | null = null;
 
@@ -141,6 +143,10 @@ export class PointLinksSk extends ElementSk {
     keysForUsefulLinks: string[],
     commitLinks: (CommitLinks | null)[]
   ): Promise<(CommitLinks | null)[]> {
+    this.abortController.abort(); // Abort any previous ongoing request
+    this.abortController = new AbortController(); // Create a new controller for the current request
+    const signal = this.abortController.signal;
+
     this.commitPosition = commit_position;
     this.reset();
     if (commit_position === null || prev_commit_position === null) {
@@ -156,86 +162,106 @@ export class PointLinksSk extends ElementSk {
         // Reuse the existing links
         this.displayUrls = existingLink.displayUrls || {};
         this.displayTexts = existingLink.displayTexts || {};
+        this.render();
         return Promise.resolve(commitLinks);
       }
     }
 
-    const currentLinks: { [key: string]: string } | null = await this.getLinksForPoint(
-      commit_position,
-      trace_id
-    );
+    try {
+      const currentLinks: { [key: string]: string } | null = await this.getLinksForPoint(
+        commit_position,
+        trace_id
+      );
 
-    if (currentLinks === null || currentLinks === undefined) {
-      // No links found for the current commit, return with no change.
-      return commitLinks; // Return the commitLinks object as is.
-    }
-    const displayTexts: { [key: string]: string } = {};
-    const displayUrls: { [key: string]: string } = {};
+      if (signal.aborted) {
+        console.log(`Request aborted for ${commit_position})`);
+        return Promise.resolve(commitLinks);
+      }
 
-    if (keysForCommitRange !== null) {
-      const prevLinks = await this.getLinksForPoint(prev_commit_position, trace_id);
-      keysForCommitRange.forEach((key) => {
-        const currentCommitUrl = currentLinks[key];
-        if (
-          currentCommitUrl !== undefined &&
-          currentCommitUrl !== null &&
-          currentCommitUrl !== ''
-        ) {
-          const prevCommitUrl = prevLinks[key];
-          const currentCommitId = this.getCommitIdFromCommitUrl(currentCommitUrl).substring(0, 8);
-          const prevCommitId = this.getCommitIdFromCommitUrl(prevCommitUrl).substring(0, 8);
-          // Workaround to ensure no duplication with links.
-          const displayKey = `${key.split(' Git')[0]}`;
-          // The links should be different depending on whether the
-          // commits are the same. If the commits are the same, simply point to
-          // the commit. If they're not, point to the log list.
+      if (currentLinks === null || currentLinks === undefined) {
+        // No links found for the current commit, return with no change.
+        return commitLinks; // Return the commitLinks object as is.
+      }
+      const displayTexts: { [key: string]: string } = {};
+      const displayUrls: { [key: string]: string } = {};
 
-          if (currentCommitId === prevCommitId) {
-            displayTexts[displayKey] = `${currentCommitId} (No Change)`;
-            displayUrls[displayKey] = currentCommitUrl;
-          } else {
-            displayTexts[displayKey] = this.getFormattedCommitRangeText(
-              prevCommitId,
-              currentCommitId
-            );
-            const repoUrl = this.getRepoUrlFromCommitUrl(currentCommitUrl);
-            const commitRangeUrl = `${repoUrl}+log/${prevCommitId}..${currentCommitId}`;
-            displayUrls[displayKey] = commitRangeUrl;
+      if (keysForCommitRange !== null) {
+        const prevLinks = await this.getLinksForPoint(prev_commit_position, trace_id);
+        if (signal.aborted) {
+          console.log(`Request aborted for ${commit_position})`);
+          return Promise.resolve(commitLinks);
+        }
+        keysForCommitRange.forEach((key) => {
+          const currentCommitUrl = currentLinks[key];
+          if (
+            currentCommitUrl !== undefined &&
+            currentCommitUrl !== null &&
+            currentCommitUrl !== ''
+          ) {
+            const prevCommitUrl = prevLinks[key];
+            const currentCommitId = this.getCommitIdFromCommitUrl(currentCommitUrl).substring(0, 8);
+            const prevCommitId = this.getCommitIdFromCommitUrl(prevCommitUrl).substring(0, 8);
+            // Workaround to ensure no duplication with links.
+            const displayKey = `${key.split(' Git')[0]}`;
+            // The links should be different depending on whether the
+            // commits are the same. If the commits are the same, simply point to
+            // the commit. If they're not, point to the log list.
+
+            if (currentCommitId === prevCommitId) {
+              displayTexts[displayKey] = `${currentCommitId} (No Change)`;
+              displayUrls[displayKey] = currentCommitUrl;
+            } else {
+              displayTexts[displayKey] = this.getFormattedCommitRangeText(
+                prevCommitId,
+                currentCommitId
+              );
+              const repoUrl = this.getRepoUrlFromCommitUrl(currentCommitUrl);
+              const commitRangeUrl = `${repoUrl}+log/${prevCommitId}..${currentCommitId}`;
+              displayUrls[displayKey] = commitRangeUrl;
+            }
           }
+        });
+      }
+      // Extra links found, add them to the displayUrls.
+      Object.keys(currentLinks).forEach((key) => {
+        if (keysForUsefulLinks.includes(key)) {
+          displayUrls[key] = currentLinks[key];
         }
       });
-    }
-    // Extra links found, add them to the displayUrls.
-    Object.keys(currentLinks).forEach((key) => {
-      if (keysForUsefulLinks.includes(key)) {
-        displayUrls[key] = currentLinks[key];
+
+      const commitLink: CommitLinks = {
+        cid: commit_position,
+        traceid: trace_id,
+        displayUrls: displayUrls,
+        displayTexts: displayTexts,
+      };
+
+      if (commitLinks.indexOf(commitLink) === -1) {
+        commitLinks.push(commitLink);
       }
-    });
 
-    const commitLink: CommitLinks = {
-      cid: commit_position,
-      traceid: trace_id,
-      displayUrls: displayUrls,
-      displayTexts: displayTexts,
-    };
+      this.displayTexts = displayTexts;
+      this.displayUrls = displayUrls;
 
-    if (commitLinks.indexOf(commitLink) === -1) {
-      commitLinks.push(commitLink);
+      // Before adding a new commit link, check if it already exists in the array.
+      // This should not be necessary, but it is a safeguard due to async calls.
+      const existingLink = commitLinks.find(
+        (commitLink) =>
+          commitLink && commitLink.cid === commit_position && commitLink.traceid === trace_id
+      );
+      if (!existingLink) {
+        commitLinks.push(commitLink);
+      }
+      this.render();
+      return commitLinks;
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.log(`Request aborted for ${commit_position})`);
+      } else {
+        console.error(`Error fetching ${commit_position}:`, error);
+      }
     }
-
-    this.displayTexts = displayTexts;
-    this.displayUrls = displayUrls;
-
-    // Before adding a new commit link, check if it already exists in the array.
-    // This should not be necessary, but it is a safeguard due to async calls.
-    const existingLink = commitLinks.find(
-      (commitLink) =>
-        commitLink && commitLink.cid === commit_position && commitLink.traceid === trace_id
-    );
-    if (!existingLink) {
-      commitLinks.push(commitLink);
-    }
-    return commitLinks;
+    return Promise.resolve(commitLinks);
   }
 
   /** Clear Point Links */

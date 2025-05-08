@@ -2017,7 +2017,6 @@ export class ExploreSimpleSk extends ElementSk {
       )
       .then((links) => {
         this.commitLinks = links;
-        tooltipElem!.pointLinks?.render();
       })
       .catch((errorMessage) => {
         console.error('Error loading point links:', errorMessage);
