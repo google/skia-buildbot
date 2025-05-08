@@ -95,6 +95,12 @@
         },
         "min_db_connections": {
           "type": "integer"
+        },
+        "traceparams_param_indexes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "additionalProperties": false,

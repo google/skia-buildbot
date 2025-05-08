@@ -54,9 +54,21 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create CockroachDB instance.")
 	}
+
 	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, instanceConfig.DataStoreConfig.DataStoreType)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to migrate schema.")
+	}
+
+	if flags.GenerateTraceParamsAdditions {
+		var traceParamsIndexes []string
+		if instanceConfig != nil {
+			traceParamsIndexes = instanceConfig.DataStoreConfig.TraceParamsParamIndexes
+		}
+		err = expectedschema.UpdateTraceParamsSchema(ctx, db, instanceConfig.DataStoreConfig.DataStoreType, traceParamsIndexes)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to update traceparams schema.")
+		}
 	}
 
 	// New perfgit.Git.

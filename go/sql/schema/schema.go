@@ -40,7 +40,7 @@ type Description struct {
 }
 
 // Query to return the typesQuery for each column in all tables.
-const typesQuery = `
+const TypesQuery = `
 SELECT
     column_name,
     CONCAT(data_type, ' def:', column_default, ' nullable:', is_nullable)
@@ -50,7 +50,7 @@ WHERE
     table_name = $1;
 `
 
-const typesQuerySpanner = `
+const TypesQuerySpanner = `
 SELECT
     column_name,
     data_type || ' def:' || COALESCE(column_default, '') || ' nullable:' || COALESCE(is_nullable, '')
@@ -58,11 +58,10 @@ FROM
     information_schema.columns
 WHERE
     table_name = $1;
-
 `
 
 // Query to return the index names for each table.
-const indexNameQuery = `
+const IndexNameQuery = `
 SELECT DISTINCT
 	index_name
 FROM
@@ -73,7 +72,7 @@ ORDER BY
 	index_name DESC
 `
 
-const spannerIndexNameQuery = `
+const SpannerIndexNameQuery = `
 SELECT DISTINCT
 	index_name
 FROM
@@ -93,9 +92,9 @@ func GetDescription(ctx context.Context, db pool.Pool, tables interface{}, datab
 	indexNames := []string{}
 	for _, tableName := range TableNames(tables) {
 		// Fill in colNameAndType.
-		typeQuery := typesQuery
+		typeQuery := TypesQuery
 		if databaseType == SpannerDBType {
-			typeQuery = typesQuerySpanner
+			typeQuery = TypesQuerySpanner
 		}
 		rows, err := db.Query(ctx, typeQuery, tableName)
 		if err != nil {
@@ -108,13 +107,18 @@ func GetDescription(ctx context.Context, db pool.Pool, tables interface{}, datab
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
+			// Temporarily exclude TraceParams generated columns
+			if tableName == "traceparams" && colName != "trace_id" &&
+				colName != "params" && colName != "createdat" {
+				continue
+			}
 			colNameAndType[tableName+"."+colName] = colType
 		}
 
 		// Fill in indexNames.
-		indexQuery := indexNameQuery
+		indexQuery := IndexNameQuery
 		if databaseType == SpannerDBType {
-			indexQuery = spannerIndexNameQuery
+			indexQuery = SpannerIndexNameQuery
 		}
 		rows, err = db.Query(ctx, indexQuery, tableName)
 		if err != nil {
@@ -136,6 +140,10 @@ func GetDescription(ctx context.Context, db pool.Pool, tables interface{}, datab
 			// us any useful information so we just ignore it regardless of the
 			// name.
 			if indexName == "primary" || indexName == tableName+"_pkey" {
+				continue
+			}
+			// Temporarily exclude TraceParams generated indexes
+			if tableName == "traceparams" && indexName != "PRIMARY_KEY" {
 				continue
 			}
 			indexNames = append(indexNames, tableName+"."+indexName)

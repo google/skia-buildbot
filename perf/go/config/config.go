@@ -189,6 +189,9 @@ type DataStoreConfig struct {
 	// MinimumConnectionsInDBPool defines the minimum number of database
 	// connections to be maintained in the connection pool.
 	MinimumConnectionsInDBPool int32 `json:"min_db_connections,omitempty"`
+
+	// Extra (generated) columns to index in TraceParams table
+	TraceParamsParamIndexes []string `json:"traceparams_param_indexes,omitempty"`
 }
 
 // SourceType determines what type of file.Source to build from a SourceConfig.
@@ -746,6 +749,7 @@ type MaintenanceFlags struct {
 	MigrateRegressions            bool
 	RefreshQueryCache             bool
 	DeleteShortcutsAndRegressions bool
+	GenerateTraceParamsAdditions  bool
 	TilesForQueryCache            int
 }
 
@@ -787,6 +791,12 @@ func (flags *MaintenanceFlags) AsCliFlags() []cli.Flag {
 			Name:        "refresh_query_cache",
 			Value:       false,
 			Usage:       "If true, periodically check the Redis cache instances.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.GenerateTraceParamsAdditions,
+			Name:        "generate_traceparams_additions",
+			Value:       false,
+			Usage:       "If true, generate columns and indexes in traceparams based on instance config.",
 		},
 		&cli.IntFlag{
 			Destination: &flags.TilesForQueryCache,

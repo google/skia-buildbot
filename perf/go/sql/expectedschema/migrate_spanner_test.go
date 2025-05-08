@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/sql/schema"
@@ -20,6 +21,8 @@ func Test_NoMigrationNeeded_Spanner(t *testing.T) {
 
 	// Newly created schema should already be up to date, so no error should pop up.
 	err := expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
+	require.NoError(t, err)
+	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{})
 	require.NoError(t, err)
 }
 
@@ -39,8 +42,9 @@ func Test_InvalidSchema_Spanner(t *testing.T) {
 
 	// Live schema doesn't match next or prev schema versions. This shouldn't happen.
 	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
-
 	require.Error(t, err)
+	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{})
+	require.NoError(t, err)
 }
 
 func Test_MigrationNeeded_Spanner(t *testing.T) {
@@ -63,8 +67,78 @@ func Test_MigrationNeeded_Spanner(t *testing.T) {
 	// Since live matches the prev schema, it should get migrated to next.
 	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
 	require.NoError(t, err)
+	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{})
+	require.NoError(t, err)
 
 	actual, err = schema.GetDescription(ctx, db, sql.Tables{}, string(config.SpannerDataStoreType))
 	require.NoError(t, err)
 	assertdeep.Equal(t, next, *actual)
+}
+
+func Test_TraceParamsAddColAndIdx_Spanner(t *testing.T) {
+	ctx := context.Background()
+	// Load DB loaded with schema from schema.go
+	db := sqltest.NewSpannerDBForTests(t, "desc")
+
+	// Insert a tilenumber and paramset to generate "bot" col from:
+	insertIntoParamSets := `
+	INSERT INTO
+		ParamSets (tile_number, param_key, param_value)
+	VALUES
+			( 176, 'bot', 'win-10-perf' )
+	ON CONFLICT (tile_number, param_key, param_value)
+	DO NOTHING`
+	_, err := db.Exec(ctx, insertIntoParamSets)
+	require.NoError(t, err)
+
+	// Specify that we should index traceparams on "bot":
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
+	require.NoError(t, err)
+	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{"bot"})
+	require.NoError(t, err)
+
+	actualCols, actualIdxs, err := expectedschema.GetTraceParamsGeneratedColsAndIdxs(ctx, db, string(config.SpannerDataStoreType))
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(actualCols))
+	assert.Equal(t, "bot", actualCols[0])
+	assert.Equal(t, 1, len(actualIdxs))
+	assert.Equal(t, "idx_traceparams_bot", actualIdxs[0])
+}
+
+func Test_TraceParamsRemoveColAndIdx_Spanner(t *testing.T) {
+	ctx := context.Background()
+	// Load DB loaded with schema from schema.go
+	db := sqltest.NewSpannerDBForTests(t, "desc")
+
+	// Insert a tilenumber and paramset to generate "bot" col from:
+	insertIntoParamSets := `
+	INSERT INTO
+		ParamSets (tile_number, param_key, param_value)
+	VALUES
+			( 176, 'bot', 'win-10-perf' )
+	ON CONFLICT (tile_number, param_key, param_value)
+	DO NOTHING`
+	_, err := db.Exec(ctx, insertIntoParamSets)
+	require.NoError(t, err)
+
+	// Specify that we should index traceparams on "bot":
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
+	require.NoError(t, err)
+	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{"bot"})
+	require.NoError(t, err)
+
+	// Remove all paramsets so no columns are generated for traceparams:
+	dropFromParamsets := `DELETE FROM ParamSets`
+	_, err = db.Exec(ctx, dropFromParamsets)
+	require.NoError(t, err)
+	// Specify that we should NO LONGER index traceparams on "bot":
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
+	require.NoError(t, err)
+	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{})
+	require.NoError(t, err)
+
+	actualCols, actualIdxs, err := expectedschema.GetTraceParamsGeneratedColsAndIdxs(ctx, db, string(config.SpannerDataStoreType))
+	require.NoError(t, err)
+	assert.Equal(t, 0, len(actualCols))
+	assert.Equal(t, 0, len(actualIdxs))
 }
