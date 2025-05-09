@@ -18,10 +18,13 @@ import (
 	"go.skia.org/infra/bazel/external/cockroachdb"
 	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/emulators/cockroachdb_instance"
+	"go.skia.org/infra/go/emulators/gcp_emulator"
+	"go.skia.org/infra/go/emulators/pgadapter"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/sql/schema"
+	"go.skia.org/infra/golden/go/sql/schema/spanner"
 )
 
 // NewCockroachDBForTests creates a randomly named database on a test CockroachDB instance (aka the
@@ -66,6 +69,35 @@ this sets up a real version of cockroachdb.
 func NewCockroachDBForTestsWithProductionSchema(ctx context.Context, t testing.TB) *pgxpool.Pool {
 	db := NewCockroachDBForTests(ctx, t)
 	_, err := db.Exec(ctx, schema.Schema)
+	require.NoError(t, err)
+	return db
+}
+
+func NewSpannerDBForTests(ctx context.Context, t testing.TB) *pgxpool.Pool {
+	// Ensure that both spanner emulator and pgadapter are running first.
+	gcp_emulator.RequireSpanner(t)
+	pgadapter.Require(t)
+
+	n, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
+	require.NoError(t, err)
+	databaseName := "for_tests" + n.String()
+
+	if len(databaseName) > 30 {
+		databaseName = databaseName[:30]
+	}
+	host := emulators.GetEmulatorHostEnvVar(emulators.PGAdapter)
+	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", host, databaseName)
+
+	conn, err := pgxpool.Connect(ctx, connectionString)
+	require.NoError(t, err)
+	return conn
+}
+
+// NewSpannerDBForTestsWithProductionSchema returns a SQL database with the production
+// schema. It will be aimed at a randomly named database.
+func NewSpannerDBForTestsWithProductionSchema(ctx context.Context, t testing.TB) *pgxpool.Pool {
+	db := NewSpannerDBForTests(ctx, t)
+	_, err := db.Exec(ctx, spanner.Schema)
 	require.NoError(t, err)
 	return db
 }
@@ -158,6 +190,11 @@ func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table refl
 	return skerr.Wrapf(err, "Inserting %d rows into table %s", numRows, name)
 }
 
+// ----------------------- WARNING ------------------------
+//
+//	INCOMPATIBLE WITH SPANNER EMULATOR
+//
+// --------------------------------------------------------
 // GetAllRows returns all rows for a given table. The passed in row param must be a pointer type
 // that implements the sqltest.Scanner interface. The passed in row may optionally implement the
 // sqltest.RowsOrder interface to specify an ordering to return the rows in (this can make for
@@ -217,6 +254,7 @@ func GetAllRows(ctx context.Context, t *testing.T, db *pgxpool.Pool, table strin
 //     prior to the update, and that the slice with new rows contains the affected row after the
 //     update.
 func GetRowChanges[T any](ctx context.Context, t *testing.T, db *pgxpool.Pool, table string, t0 time.Time) (missingRows, newRows []T) {
+
 	getRows := func(statement string) []T {
 		rows, err := db.Query(ctx, statement)
 		require.NoError(t, err)
