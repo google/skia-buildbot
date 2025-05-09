@@ -5,6 +5,25 @@ include ../kube/kube.mk
 default:
 	bazel build cmd/...
 
+# Run a spanner emulator locally.
+run_spanner_emulator:
+	docker ps -q | xargs -r docker rm -vf
+	docker run -d -p 5432:5432 gcr.io/cloud-spanner-pg-adapter/pgadapter-emulator:latest
+
+run_cockroachdb_emulators:
+	../scripts/run_emulators/run_emulators start
+
+# Requires the CockroachDB emulator to be running.
+generate_sql_schema:
+	cd ./go/sql/schema; go run ../exporter/tosql --output_file sql.go --output_pkg schema
+	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema.json
+
+# Requires the Spanner emulator to be running.
+generate_sql_schema_spanner:
+	cd ./go/sql/schema; go run ../exporter/tosql --output_file ./spanner/sql_spanner.go --output_pkg spanner --schemaTarget spanner
+	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema_spanner.json --databaseType spanner
+
+
 .PHONY: frontend
 frontend:
 	# Makes sure all the frontend pages and tests compile.
@@ -57,10 +76,6 @@ run_auth_proxy_before_local_instance:
 		--local
 
 
-# Run a spanner emulator locally.
-run-spanner-emulator:
-	docker ps -q | xargs -r docker rm -vf
-	docker run -d -p 5432:5432 gcr.io/cloud-spanner-pg-adapter/pgadapter-emulator:latest
 
 
 run_local_frontend: run-spanner-emulator
@@ -77,7 +92,9 @@ run_local_frontend_cdb:
 		--common_instance_config=./k8s-instances/local/local.json5 \
 		--config=./k8s-instances/local/local-frontend.json5
 
-run_local_periodictasks: run-spanner-emulator
+run_local_frontend: run_spanner_emulator run_local_frontend_spanner
+
+run_local_periodictasks: run_spanner_emulator
 	$(BAZEL) build --config=mayberemote -c dbg //golden/...
 	go run ./go/local --database_url="postgresql://localhost:5432/gold?sslmode=disable" --spanner
 	../_bazel_bin/golden/cmd/periodictasks/periodictasks_/periodictasks \
@@ -93,7 +110,7 @@ run_local_periodictasks_cdb:
 		--config=./k8s-instances/local/local-periodictasks.json5 \
 		--local
 
-run_local_gitiles_follower: run-spanner-emulator
+run_local_gitiles_follower: run_spanner_emulator
 	$(BAZEL) build --config=mayberemote -c dbg //golden/...
 	go run ./go/local --database_url="postgresql://localhost:5432/gold?sslmode=disable" --spanner
 	../_bazel_bin/golden/cmd/gitilesfollower/gitilesfollower_/gitilesfollower \
@@ -107,7 +124,7 @@ run_local_gitiles_follower_cdb:
 		--common_instance_config=./k8s-instances/local/local-cdb.json5 \
 		--config=./k8s-instances/local/local-gitilesfollower.json5
 
-run_local_gold_ingestion: run-spanner-emulator
+run_local_gold_ingestion: run_spanner_emulator
 	$(BAZEL) build --config=mayberemote -c dbg //golden/...
 	go run ./go/local --database_url="postgresql://localhost:5432/gold?sslmode=disable" --spanner
 	../_bazel_bin/golden/cmd/gold_ingestion/gold_ingestion_/gold_ingestion \
