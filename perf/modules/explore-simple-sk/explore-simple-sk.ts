@@ -1318,6 +1318,9 @@ export class ExploreSimpleSk extends ElementSk {
       );
       this.plotSimple.value!.userIssueMap = issues;
     });
+    this.addEventListener('plot-chart-mouseout', () => {
+      this.onChartMouseOut();
+    });
   }
 
   render(): void {
