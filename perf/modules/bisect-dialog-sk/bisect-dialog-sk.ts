@@ -231,5 +231,16 @@ export class BisectDialogSk extends ElementSk {
         this._render();
       });
   }
+
+  /** Clear Bisect Dialog fields */
+  reset(): void {
+    this.startCommit = '';
+    this.endCommit = '';
+    this.story = '';
+    this.user = '';
+    this.testPath = '';
+    this.anomalyId = '';
+    this._render();
+  }
 }
 define('bisect-dialog-sk', BisectDialogSk);

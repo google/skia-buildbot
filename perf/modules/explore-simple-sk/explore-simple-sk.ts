@@ -187,9 +187,9 @@ const MIN_ZOOM_RANGE = 0.1;
 // The max number of points a user can nudge an anomaly by.
 const NUDGE_RANGE = 2;
 
-const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
-
 const monthInSec = 30 * 24 * 60 * 60;
+
+const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
 
 // max number of charts to show on a page
 const chartsPerPage = 11;
@@ -1189,10 +1189,10 @@ export class ExploreSimpleSk extends ElementSk {
     this.commitTime = this.querySelector('#commit_time');
     this.csvDownload = this.querySelector('#csv_download');
     this.queryDialog = this.querySelector('#query-dialog');
-    this.bisectDialog = this.querySelector('#bisect-dialog');
     this.fromParamsQueryDialog = this.querySelector('#from-params-query-dialog');
     this.helpDialog = this.querySelector('#help');
     this.pinpointJobToast = this.querySelector('#pinpoint-job-toast');
+    this.bisectDialog = this.querySelector('#bisect-dialog');
     this.closePinpointToastButton = this.querySelector('#hide-pinpoint-toast');
     this.triageResultToast = this.querySelector('#triage-result-toast');
     this.closeTriageToastButton = this.querySelector('#hide-triage-toast');
@@ -2089,22 +2089,6 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
 
-    const preloadBisectInputs: BisectPreloadParams = {
-      testPath: this.testPath,
-      startCommit: this.startCommit,
-      endCommit: this.endCommit,
-      bugId: this.bugId,
-      anomalyId: this.selectedAnomaly ? String(this.selectedAnomaly.id) : '',
-      story: this.story ? this.story : '',
-    };
-
-    const preloadTryJobInputs: TryJobPreloadParams = {
-      testPath: this.testPath,
-      baseCommit: this.startCommit,
-      endCommit: this.endCommit,
-      story: this.story ? this.story : '',
-    };
-
     let unitValue: string = '';
     traceName.split(',').forEach((test) => {
       if (test.startsWith('unit')) {
@@ -2133,7 +2117,63 @@ export class ExploreSimpleSk extends ElementSk {
     commitRangeSk!.header = header;
     commitRangeSk!.hashes = hashes;
 
+    if (commit === null) {
+      fetch('/_/cid/', {
+        method: 'POST',
+        body: JSON.stringify([prevCommitPos, commitPosition]),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(jsonOrThrow)
+        .then((json: CIDHandlerResponse) => {
+          const key = JSON.stringify([commitPosition, traceName]);
+          this.pointToCommitDetailMap.set(key, json.commitSlice!);
+          if (tooltipElem) {
+            tooltipElem.commit_info = json.commitSlice![1];
+          }
+          this.constructTestPath(traceName);
+          if (anomaly !== null && anomaly.bug_id > 0) {
+            this.bugId = anomaly.bug_id.toString();
+          } else {
+            this.bugId = '';
+          }
+        })
+        .catch(errorMessage);
+    } else {
+      this.constructTestPath(traceName);
+    }
+
+    const preloadBisectInputs: BisectPreloadParams = {
+      testPath: this.testPath,
+      startCommit: this.startCommit,
+      endCommit: this.endCommit,
+      bugId: this.bugId,
+      anomalyId: this.selectedAnomaly ? String(this.selectedAnomaly.id) : '',
+      story: this.story ? this.story : '',
+    };
+    const preloadTryJobInputs: TryJobPreloadParams = {
+      testPath: this.testPath,
+      baseCommit: this.startCommit,
+      endCommit: this.endCommit,
+      story: this.story ? this.story : '',
+    };
+
     tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });
+    tooltipElem!
+      .loadPointLinks(
+        commitPosition,
+        prevCommitPos,
+        traceName,
+        window.perf.keys_for_commit_range!,
+        window.perf.keys_for_useful_links!,
+        this.commitLinks
+      )
+      .then((links) => {
+        this.commitLinks = links;
+      })
+      .catch(errorMessage);
+
     tooltipElem!.setBisectInputParams(preloadBisectInputs);
     tooltipElem!.setTryJobInputParams(preloadTryJobInputs);
     tooltipElem!.load(
@@ -2154,50 +2194,6 @@ export class ExploreSimpleSk extends ElementSk {
     );
     if (window.perf.show_json_file_display) {
       tooltipElem!.loadJsonResource(commitPosition, traceName);
-    }
-    if (commit === null) {
-      fetch('/_/cid/', {
-        method: 'POST',
-        body: JSON.stringify([prevCommitPos, commitPosition]),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then(jsonOrThrow)
-        .then((json: CIDHandlerResponse) => {
-          const key = JSON.stringify([commitPosition, traceName]);
-          this.pointToCommitDetailMap.set(key, json.commitSlice!);
-          if (tooltipElem) {
-            tooltipElem.commit_info = json.commitSlice![1];
-          }
-          // Extract story (subtest) information
-          const params: { [key: string]: string } = fromKey(traceName);
-          this.story = this.getLastSubtest(params);
-
-          // Construct the testPath
-          const parts: string[] = [];
-          if (params.master) {
-            parts.push(params.master);
-          }
-          if (params.bot) {
-            parts.push(params.bot);
-          }
-          if (params.benchmark) {
-            parts.push(params.benchmark);
-          }
-          if (params.test) {
-            parts.push(params.test);
-          }
-          parts.push(this.story);
-          this.testPath = parts.join('/');
-
-          if (anomaly !== null && anomaly.bug_id > 0) {
-            this.bugId = anomaly.bug_id.toString();
-          } else {
-            this.bugId = '';
-          }
-        })
-        .catch(errorMessage);
     }
   }
 
@@ -2415,6 +2411,31 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
     return state;
+  }
+
+  // Transfer trace name to test path that used for bisect job parameter
+  private constructTestPath(traceName: string) {
+    // Extract story (subtest) information
+    const params: { [key: string]: string } = fromKey(traceName);
+    this.story = this.getLastSubtest(params);
+
+    // Construct the testPath
+    const parts: string[] = [];
+    if (params.master) {
+      parts.push(params.master);
+    }
+    if (params.bot) {
+      parts.push(params.bot);
+    }
+    if (params.benchmark) {
+      parts.push(params.benchmark);
+    }
+    if (params.test) {
+      parts.push(params.test);
+    }
+
+    parts.push(this.story);
+    this.testPath = parts.join('/');
   }
 
   /**
