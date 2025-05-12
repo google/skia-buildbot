@@ -3,7 +3,7 @@
  * @description <h2><code>triage-menu-sk</code></h2>
  *
  * Triage Menu provides functionality to triage anomalies in bulk. These are the provided features:
- * - New Bug: Creaes a bug.
+ * - New Bug: Creates a bug.
  * - Existing Bug: Adds anomalies to an existing bug.
  * - Ignore: Marks anomalies as Ignored
  *
@@ -73,7 +73,7 @@ export class TriageMenuSk extends ElementSk {
       <existing-bug-dialog-sk></existing-bug-dialog-sk>
       ${ele._anomalies.length === 0 ? '' : ele.generateNudgeButtons()}
       <div class="buttons">
-        <button id="new-bug" @click=${ele.openNewBugDialog}>New Bug</button>
+        <button id="new-bug" @click=${ele.fileBug}>New Bug</button>
         <button id="existing-bug" @click=${ele.openExistingBugDialog}>Existing Bug</button>
         <button id="ignore" ?hidden=${ele._anomalies.length === 0} @click=${ele.ignoreAnomaly}>
           Ignore
@@ -95,6 +95,10 @@ export class TriageMenuSk extends ElementSk {
         this.existingBugDialog!.fetch_associated_bugs();
       }
     });
+  }
+
+  private fileBug() {
+    this.newBugDialog!.fileNewBug();
   }
 
   private openNewBugDialog() {
@@ -132,7 +136,7 @@ export class TriageMenuSk extends ElementSk {
 
     return html`
       <div class="buttons">
-        <b>Nudge:</b>
+        <span id="tooltip-key">Nudge</span>
         ${this._nudgeList!.map(
           (entry) => html`
             <button
