@@ -272,7 +272,10 @@ export class ExploreMultiSk extends ElementSk {
           title="The number of charts per page." />
       </label>
       <button @click=${ele.loadAllCharts}>Load All Charts</button>
-      <div id="graphContainer" @x-axis-toggled=${ele.syncXAxisLabel}></div>
+      <div
+        id="graphContainer"
+        @x-axis-toggled=${ele.syncXAxisLabel}
+        @selection-changing-in-multi=${ele.syncChartSelection}></div>
       <pagination-sk
         offset=${ele.state.pageOffset}
         page_size=${ele.state.pageSize}
