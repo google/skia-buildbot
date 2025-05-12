@@ -42,7 +42,7 @@ export class ARBTableSk extends ElementSk {
         @input="${(e: InputEvent) => {
           ele.filter = (e.target as HTMLInputElement).value;
         }}"
-        ></input>
+        autofocus></input>
   </div>
   <table>
     <tr>
