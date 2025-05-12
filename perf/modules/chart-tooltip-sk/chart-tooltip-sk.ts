@@ -92,7 +92,7 @@ export class ChartTooltipSk extends ElementSk {
 
   private _is_tooltip_fixed: boolean = false;
 
-  _is_range: boolean = false;
+  _is_range: boolean | null = null;
 
   _close_button_action: () => void = () => {};
 
@@ -182,34 +182,23 @@ export class ChartTooltipSk extends ElementSk {
         </li>
       </ul>
       <point-links-sk id="tooltip-point-links"></point-links-sk>
-      ${ele.getCommitInfo()} ${ele.tooltip_fixed ? ele.anomalyTemplate() : ''}
-      <triage-menu-sk
-        id="triage-menu"
-        ?hidden=${!(ele.tooltip_fixed && ele.anomaly && ele.anomaly!.bug_id === 0)}>
+      ${ele.getCommitInfo()} ${ele.anomalyTemplate()}
+      <triage-menu-sk id="triage-menu" ?hidden=${!(ele.anomaly && ele.anomaly!.bug_id === 0)}>
       </triage-menu-sk>
       <div class="buttons">
-        <button
-          id="bisect"
-          @click=${ele.openBisectDialog}
-          ?hidden=${!ele.tooltip_fixed || !ele._show_pinpoint_buttons}>
+        <button id="bisect" @click=${ele.openBisectDialog} ?hidden=${!ele._show_pinpoint_buttons}>
           Bisect
         </button>
-        <button
-          id="try-job"
-          @click=${ele.openTryJobDialog}
-          ?hidden=${!ele.tooltip_fixed || !ele._show_pinpoint_buttons}>
+        <button id="try-job" @click=${ele.openTryJobDialog} ?hidden=${!ele._show_pinpoint_buttons}>
           Request Trace
         </button>
-        <user-issue-sk
-          id="tooltip-user-issue-sk"
-          ?hidden=${!ele.tooltip_fixed || ele.anomaly}></user-issue-sk>
+        <user-issue-sk id="tooltip-user-issue-sk" ?hidden=${ele.anomaly}></user-issue-sk>
       </div>
-      <div id="json-source-dialog" ?hidden=${!ele.tooltip_fixed || !ele._show_json_source}>
+      <div id="json-source-dialog" ?hidden=${!ele._show_json_source}>
         <json-source-sk id="json-source-sk"></json-source-sk>
       </div>
       <bisect-dialog-sk id="bisect-dialog-sk"></bisect-dialog-sk>
       <pinpoint-try-job-dialog-sk id="pinpoint-try-job-dialog-sk"></pinpoint-try-job-dialog-sk>
-      ${!ele.tooltip_fixed ? ele.seeMoreText() : ''}
     </div>
   `;
 
@@ -277,28 +266,32 @@ export class ChartTooltipSk extends ElementSk {
   }
 
   private getCommitInfo() {
-    if ((this.tooltip_fixed && !this._is_range) || this._always_show_commit_info) {
-      return html`<ul class="table">
-        <li>
-          <span id="tooltip-key">Author</span>
-          <span id="tooltip-text">${this.commit_info?.author.split('(')[0]} </span>
-        </li>
-        <li>
-          <span id="tooltip-key">Message</span>
-          <span id="tooltip-text">${this.commit_info?.message} </span>
-        </li>
-        <li>
-          <span id="tooltip-key">Commit</span>
-          <span id="tooltip-text">
-            <a href="${this.commit_info?.url}" target="_blank"
-              >${this.commit_info?.hash.substring(0, 8)}</a
-            >
-          </span>
-        </li>
-      </ul>`;
-    } else {
+    // If commit info is a range and config is not set to always show,
+    // then do not show the commit info.
+    if (
+      this.commit_info === null ||
+      ((this._is_range || this._is_range === null) && !this._always_show_commit_info)
+    ) {
       return html``;
     }
+    return html`<ul class="table">
+      <li>
+        <span id="tooltip-key">Author</span>
+        <span id="tooltip-text">${this.commit_info?.author.split('(')[0]} </span>
+      </li>
+      <li>
+        <span id="tooltip-key">Message</span>
+        <span id="tooltip-text">${this.commit_info?.message} </span>
+      </li>
+      <li>
+        <span id="tooltip-key">Commit</span>
+        <span id="tooltip-text">
+          <a href="${this.commit_info?.url}" target="_blank"
+            >${this.commit_info?.hash.substring(0, 8)}</a
+          >
+        </span>
+      </li>
+    </ul>`;
   }
 
   // HTML template for Anomaly information, only shown when the data
@@ -306,7 +299,7 @@ export class ChartTooltipSk extends ElementSk {
   // correlated against anomaly map.
   private anomalyTemplate() {
     if (this.anomaly === null) {
-      this.triageMenu!.toggleButtons(true);
+      this.triageMenu?.toggleButtons(true);
       return html``;
     }
 
@@ -324,24 +317,28 @@ export class ChartTooltipSk extends ElementSk {
       <ul class="table" id="anomaly-details">
         <li>
           <span id="tooltip-key">Anomaly</span>
-          ${this.anomalyType()}
+          <span id="tooltip-text">${this.anomalyType()}</span>
         </li>
         <li>
           <span id="tooltip-key">Median</span>
-          ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)}
-          ${this.unit_type.split(' ')[0]}
+          <span id="tooltip-text">
+            ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)}
+            ${this.unit_type.split(' ')[0]}
+          </span>
         </li>
         <li>
           <span id="tooltip-key">Previous</span>
-          <span
-            >${AnomalySk.formatNumber(this.anomaly!.median_before_anomaly)}
-            [${this.anomalyChange()}%]</span
-          >
+          <span id="tooltip-text">
+            ${AnomalySk.formatNumber(this.anomaly!.median_before_anomaly)}
+            [${this.anomalyChange()}%]
+          </span>
         </li>
         ${this.anomaly!.bug_id
           ? html` <li>
               <span id="tooltip-key">Bug ID</span>
-              <span> ${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)} </span>
+              <span id="tooltip-text"
+                >${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)}</span
+              >
               <close-icon-sk
                 id="unassociate-bug-button"
                 @click=${this.unassociateBug}
@@ -418,10 +415,10 @@ export class ChartTooltipSk extends ElementSk {
         >`
     );
 
-    return html`<div>
-      <span id="tooltip-key">Pinpoint Jobs</span>
-      ${links.map((link, index) => html`${link}${index < links.length - 1 ? ', ' : ''}`)}
-    </div>`;
+    return html` <span id="tooltip-key">Pinpoint</span>
+      <span id="tooltip-text">
+        ${links.map((link, index) => html`${link}${index < links.length - 1 ? html`<br />` : ''}`)}
+      </span>`;
   }
 
   // fetch_details triggers an event that executes the POST /_/cid call to

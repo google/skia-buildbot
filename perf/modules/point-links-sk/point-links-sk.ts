@@ -98,7 +98,7 @@ export class PointLinksSk extends ElementSk {
       >`;
       // generate text contents
       return html` <li>
-        <span id="tooltip-link">${keyText}</span>
+        <span id="tooltip-key">${keyText}</span>
         <span id="tooltip-text"> ${link.startsWith('http') ? htmlUrl : link} </span>
         <md-icon-button @click=${() => this.copyToClipboard(link)}>
           <md-icon id="copy-icon">content_copy</md-icon>
@@ -118,7 +118,7 @@ export class PointLinksSk extends ElementSk {
     }
     const link = `/u/?rev=${this.commitPosition}`;
     return html` <li>
-      <span id="tooltip-link">Related</span>
+      <span id="tooltip-key">Related</span>
       <span id="tooltip-text">
         <a href="${link}" title="${this.commitPosition}" style="cursor: pointer;" target="_blank"
           >Anomalies</a

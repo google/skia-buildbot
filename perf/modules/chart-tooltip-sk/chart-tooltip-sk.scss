@@ -103,11 +103,8 @@ chart-tooltip-sk {
       text-align: left;
       padding-right: 0.5em;
       padding-top: 0.5em;
-      min-width: 80px;
+      min-width: 90px;
       max-width: 100px;
-      :after {
-        content: ':';
-      }
     }
     #tooltip-link {
       font-weight: bold;
