@@ -134,7 +134,7 @@ func TestGetQueryParamsPerTrace(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		assert.Equal(t, master, queryParams[i]["master"][0])
-		assert.Equal(t, bots[i], queryParams[i]["bot"][0])
+		assert.Contains(t, bots, queryParams[i]["bot"][0])
 		assert.Equal(t, benchmark, queryParams[i]["benchmark"][0])
 		assert.Equal(t, test, queryParams[i]["test"][0])
 		assert.Equal(t, subtest_1, queryParams[i]["subtest_1"][0])

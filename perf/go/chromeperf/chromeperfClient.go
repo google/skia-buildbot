@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"strings"
 
+	slices0 "slices"
+
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
@@ -60,6 +62,18 @@ func NewChromePerfClient(ctx context.Context, urlOverride string, directCall boo
 	}, nil
 }
 
+func isAllowedStatusCode(statusCode int) bool {
+	allowedSuccessCodes := []int{
+		http.StatusOK,                   // 200
+		http.StatusNoContent,            // 204
+		http.StatusPartialContent,       // 206
+		http.StatusNonAuthoritativeInfo, // 203
+		http.StatusNotModified,          // 304
+	}
+
+	return slices0.Contains(allowedSuccessCodes, statusCode)
+}
+
 // SendGetRequest sends a GET request to chromeperf api with the specified parameters.
 func (client *chromePerfClientImpl) SendGetRequest(ctx context.Context, apiName string, functionName string, queryParams url.Values, response interface{}) error {
 	targetUrl := generateTargetUrl(client.urlOverride, client.directCallLegacy, apiName, functionName)
@@ -68,6 +82,10 @@ func (client *chromePerfClientImpl) SendGetRequest(ctx context.Context, apiName 
 	httpResponse, err := httputils.GetWithContext(ctx, client.httpClient, targetUrl)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to get chrome perf response.")
+	}
+
+	if !isAllowedStatusCode(httpResponse.StatusCode) {
+		return skerr.Fmt("chrome perf request failed: %v", httpResponse.StatusCode)
 	}
 
 	respBody, err := io.ReadAll(httpResponse.Body)

@@ -36,8 +36,8 @@ go_test(
     ],
     embed = [":chromeperf"],
     deps = [
-        "//go/deepequal/assertdeep",
         "//go/httputils",
+        "//go/skerr",
         "//perf/go/config",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
