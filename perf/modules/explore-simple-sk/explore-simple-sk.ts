@@ -64,8 +64,6 @@ import '../window/window';
 
 import {
   CommitNumber,
-  CreateBisectRequest,
-  CreatePinpointResponse,
   Anomaly,
   DataFrame,
   RequestType,
@@ -540,8 +538,6 @@ export class ExploreSimpleSk extends ElementSk {
 
   private queryDialog: HTMLDialogElement | null = null;
 
-  private bisectDialog: HTMLDialogElement | null = null;
-
   private fromParamsQueryDialog: HTMLDialogElement | null = null;
 
   private helpDialog: HTMLDialogElement | null = null;
@@ -841,29 +837,6 @@ export class ExploreSimpleSk extends ElementSk {
       </tabs-panel-sk>
       <div class=footer>
         <button @click=${ele.closeQueryDialog} id='close_query_dialog'>Close</button>
-      </div>
-    </dialog>
-
-    <dialog id='bisect-dialog'>
-      <h2>Bisect</h2>
-      <button id="bisectCloseIcon" @click=${ele.closeBisectDialog}>
-        <close-icon-sk></close-icon-sk>
-      </button>
-      <h3>Test Path</h3>
-      <input id="testpath" type="text" value=${ele.testPath} readonly></input>
-      <h3>Bug ID</h3>
-      <input id="bug-id" type="text" value=${ele.bugId}></input>
-      <h3>Start Commit</h3>
-      <input id="start-commit" type="text" value=${ele.startCommit}></input>
-      <h3>End Commit</h3>
-      <input id="end-commit" type="text" value=${ele.endCommit}></input>
-      <h3>Story</h3>
-      <input id="story" type="text" value=${ele.story}></input>
-      <h3>Patch to apply to the entire job(optional)</h3>
-      <input id="patch" type="text"></input>
-      <div class=footer>
-        <button id="bisect-button" @click=${ele.postBisect}>Bisect</button>
-        <button @click=${ele.closeBisectDialog}>Close</button>
       </div>
     </dialog>
 
@@ -1427,68 +1400,6 @@ export class ExploreSimpleSk extends ElementSk {
   private closeQueryDialog(): void {
     this.queryDialog!.close();
     this._dialogOn = false;
-  }
-
-  private closeBisectDialog(): void {
-    this.bisectDialog!.close();
-    this._dialogOn = false;
-  }
-
-  private postBisect(): void {
-    this.bisectButton!.disabled = true;
-
-    const parts = this.testPath.split('/');
-    const test_parts = parts[3].split('_');
-    let chart = parts[3];
-    let statistic = '';
-
-    // Check if the last part of the chart is a known statistic.
-    const tail = test_parts.pop()!;
-    if (STATISTIC_VALUES.includes(tail)) {
-      statistic = tail;
-      chart = test_parts.join('_');
-    }
-
-    const bugId = this.querySelector('#bug-id')! as HTMLInputElement;
-    const startCommit = this.querySelector('#start-commit')! as HTMLInputElement;
-    const endCommit = this.querySelector('#end-commit')! as HTMLInputElement;
-    const story = this.querySelector('#story')! as HTMLInputElement;
-    const patch = this.querySelector('#patch')! as HTMLInputElement;
-    const req: CreateBisectRequest = {
-      comparison_mode: 'performance',
-      start_git_hash: startCommit.value,
-      end_git_hash: endCommit.value,
-      configuration: parts[1],
-      benchmark: parts[2],
-      story: story.value,
-      chart: chart,
-      statistic: statistic,
-      comparison_magnitude: '',
-      pin: patch.value,
-      project: 'chromium',
-      bug_id: bugId.value,
-      user: this.user,
-      alert_ids: JSON.stringify(this.selectedAnomaly ? [this.selectedAnomaly.id] : []),
-    };
-    fetch('/_/bisect/create', {
-      method: 'POST',
-      body: JSON.stringify(req),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((json: CreatePinpointResponse) => {
-        this.jobUrl = json.jobUrl;
-        this.jobId = json.jobId;
-        this._render();
-        this.pinpointJobToast?.show();
-      })
-      .catch(errorMessage)
-      .finally(() => {
-        this.bisectButton!.disabled = false;
-        this.closeBisectDialog();
-      });
   }
 
   keyDown(e: KeyboardEvent) {
