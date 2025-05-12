@@ -88,9 +88,9 @@ export class CommitRangeSk extends ElementSk {
    * Returns false if no commits are set.
    * @returns boolean
    */
-  isRange(): boolean {
+  isRange(): boolean | null {
     if (!this._commitIds) {
-      return false;
+      return null;
     }
     if (this._commitIds[0] >= this._commitIds[1]) {
       return false;
@@ -123,19 +123,17 @@ export class CommitRangeSk extends ElementSk {
       }
       this._htmlTemplate = html`${this._text}`;
       // Show only text of commit if hover, else show full text with links.
-      if (this.showLinks) {
-        let url = window.perf.commit_range_url;
-        if (!this.hashes) {
-          // Run the commit numbers through cid lookup to get the hashes.
-          this.hashes = await this.commitNumberToHashes(this._commitIds);
-        }
-        // Create the URL.
-        url = url.replace('{begin}', this.hashes[0]);
-        url = url.replace('{end}', this.hashes[1]);
-        // Now populate link, including text and url.
-        this._url = url;
-        this._htmlTemplate = html`<a href="${this._url}" target="_blank">${this._text}</a>`;
+      let url = window.perf.commit_range_url;
+      if (!this.hashes) {
+        // Run the commit numbers through cid lookup to get the hashes.
+        this.hashes = await this.commitNumberToHashes(this._commitIds);
       }
+      // Create the URL.
+      url = url.replace('{begin}', this.hashes[0]);
+      url = url.replace('{end}', this.hashes[1]);
+      // Now populate link, including text and url.
+      this._url = url;
+      this._htmlTemplate = html`<a href="${this._url}" target="_blank">${this._text}</a>`;
       this._render();
     } catch (error) {
       console.log(error);
