@@ -187,8 +187,6 @@ const NUDGE_RANGE = 2;
 
 const monthInSec = 30 * 24 * 60 * 60;
 
-const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
-
 // max number of charts to show on a page
 const chartsPerPage = 11;
 
@@ -1165,7 +1163,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.fromParamsQueryDialog = this.querySelector('#from-params-query-dialog');
     this.helpDialog = this.querySelector('#help');
     this.pinpointJobToast = this.querySelector('#pinpoint-job-toast');
-    this.bisectDialog = this.querySelector('#bisect-dialog');
     this.closePinpointToastButton = this.querySelector('#hide-pinpoint-toast');
     this.triageResultToast = this.querySelector('#triage-result-toast');
     this.closeTriageToastButton = this.querySelector('#hide-triage-toast');
