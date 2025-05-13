@@ -291,7 +291,7 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 
 	for i := 0; i < int(pc.Iterations); i++ {
 		first := workflows.PairwiseOrder(pairOrder[i])
-		// TODO(sunxiaodi@): Consider defining these maps directly using the key/value
+		// TODO(b/327020123): Consider defining these maps directly using the key/value
 		// pair rather than separate entries. See convertDimensions in swarming_helpers.go
 		botDimension := map[string]string{
 			"key":   "id",
@@ -339,7 +339,7 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	leftRuns := fetchAllFromChannel[*workflows.TestRun](ctx, leftRunCh)
 	rightRuns := fetchAllFromChannel[*workflows.TestRun](ctx, rightRunCh)
 	// collect values from CAS
-	// TODO(b/406763900): Benchmarks do not return a deterministic number of data points for each run
+	// TODO(b/417497693): Benchmarks do not return a deterministic number of data points for each run
 	// so for a given pair, if one returns more data than the other, truncate data points until both
 	// commits have the same number of data points for a given iteration
 	for i := 0; i < int(pc.Iterations); i++ {

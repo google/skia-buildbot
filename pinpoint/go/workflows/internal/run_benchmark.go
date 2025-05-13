@@ -81,7 +81,7 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 	// sometimes bots can die in the middle of a Pinpoint job. If a task is scheduled
 	// onto a dead bot, the swarming task will return NO_RESOURCE. In that case, reschedule
 	// the run on any other bot.
-	// TODO(sunxiaodi@): Monitor how often tasks fail with NO_RESOURCE. We want to maintain this
+	// TODO(b/346835450): Monitor how often tasks fail with NO_RESOURCE. We want to maintain this
 	// occurence below a threshold i.e. 5%.
 	for attempt := 1; canRetry(state, attempt); attempt++ {
 		if err := workflow.ExecuteActivity(ctx, rba.ScheduleTaskActivity, p).Get(ctx, &taskID); err != nil {
@@ -135,7 +135,7 @@ func canRetry(state run_benchmark.State, attempt int) bool {
 // from the same pinpoint job and other pinpoint jobs. After swarming tasks have scheduled,
 // the mutex lock can be released and the rest of the workflow can proceed. This workflow
 // will also not schedule swarming tasks until it obtains the lock on the swarming resource.
-// TODO(sunxiaodi@): Convert this workflow to accept slice and replace RunBenchmarkWorkflow
+// TODO(b/327020123): Convert this workflow to accept slice and replace RunBenchmarkWorkflow
 // with this workflow.
 func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP, secondRBP *RunBenchmarkParams, first workflows.PairwiseOrder) (*workflows.PairwiseTestRun, error) {
 	if firstRBP.Dimensions["value"] == "" || secondRBP.Dimensions["value"] == "" {

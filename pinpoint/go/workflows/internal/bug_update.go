@@ -10,7 +10,6 @@ import (
 )
 
 // ReportStatusActivity wraps the call to IssueTracker to report culprits.
-// TODO(sunxiaodi@): Update this activity for culprit verification
 func ReportStatusActivity(ctx context.Context, issueID int, culprits []*pinpoint_proto.CombinedCommit) error {
 	transport, err := backends.NewIssueTrackerTransport(ctx)
 	if err != nil {
@@ -40,7 +39,6 @@ func PostBugCommentActivity(ctx context.Context, issueID int64, comment string) 
 	return true, nil
 }
 
-// TODO(sunxiaodi): Add a unit test for this workflow
 func PostBugCommentWorkflow(ctx workflow.Context, issueID int64, comment string) (bool, error) {
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	var success bool

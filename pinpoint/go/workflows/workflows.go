@@ -209,7 +209,7 @@ func (pp *PairwiseParams) GetInitialAttempt() int32 {
 		return defaultPairwiseAttemptCount
 	}
 	attempt, err := strconv.ParseInt(pp.Request.InitialAttemptCount, 10, 32)
-	// TODO(sunxiaodi@): Cover invalid input error cases upstream of this function call
+	// TODO(b/396699175): Cover invalid input error cases upstream of this function call
 	if err != nil {
 		return defaultPairwiseAttemptCount
 	}

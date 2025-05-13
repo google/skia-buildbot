@@ -32,7 +32,6 @@ type CombinedResults struct {
 	CommitPairValues CommitPairValues
 }
 
-// TODO(sunxiaodi@): Change GetAllDataForCompareLocalActivity to a regular function
 func GetAllDataForCompareLocalActivity(ctx context.Context, lbr *BisectRun, hbr *BisectRun, chart string) (*CommitPairValues, error) {
 	return &CommitPairValues{
 		Lower:  CommitValues{lbr.Build.Commit, lbr.AllValues(chart), lbr.AllErrorValues(chart)},

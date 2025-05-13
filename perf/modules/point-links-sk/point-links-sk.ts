@@ -60,7 +60,6 @@ export class PointLinksSk extends ElementSk {
   _displayUrls: { [key: string]: string } = {};
 
   // Contains texts to be displayed.
-  // TODO(sunxiaodi@): remove display texts
   _displayTexts: { [key: string]: string } = {};
 
   private buildLogText = 'Build Log';

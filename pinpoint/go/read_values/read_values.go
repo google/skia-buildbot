@@ -72,8 +72,8 @@ func DialRBECAS(ctx context.Context, instance string) (*perfCASClient, error) {
 //	ctx := context.Background()
 //	client, err := DialRBECAS(ctx)
 //	values := client.ReadValuesByChart(ctx, benchmark, chart, digests, nil)
-//
-// TODO(sunxiaodi@): Migrate CABE backends into pinpoint/go/backends/
+
+// TODO(b/327020123): Migrate CABE backends into pinpoint/go/backends/
 func (c *perfCASClient) ReadValuesByChart(ctx context.Context, benchmark string, chart string, digests []*apipb.CASReference, agg string) ([]float64, error) {
 	aggMethod, ok := perfresults.AggregationMapping[agg]
 	if !ok && agg != "" {

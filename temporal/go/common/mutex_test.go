@@ -48,9 +48,6 @@ func TestSampleWorkflow_Success(t *testing.T) {
 	env.AssertExpectations(t)
 }
 
-// TODO(sunxiaodi@): Create unit test to test two ongoing workflows
-// vying for the same resource and verify that the lock works.
-
 func TestMutexWorkflow_Success(t *testing.T) {
 	mockNamespace := "mockNamespace"
 	mockResourceID := "mockResourceID"

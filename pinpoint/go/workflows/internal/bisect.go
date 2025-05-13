@@ -232,7 +232,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 			lower, higher := tracker.get(cr.Lower), tracker.get(cr.Higher)
 			compareResult, err := compareRuns(ctx, lower, higher, p.Request.Chart, magnitude, improvementDir)
 			// The compare fails but we continue to bisect for the remainings.
-			// TODO(sunxiaodi@): Revisit compare runs error handling. compare.ComparePerformance
+			// TODO(b/346815954): Revisit compare runs error handling. compare.ComparePerformance
 			// and compare.CompareFunctional should not return error but are written to return error.
 			// GetAllValues also does not return error, so that means there are no errors passed around
 			// these functions.
