@@ -3,6 +3,7 @@ package notify
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -57,6 +58,10 @@ type AndroidBugTemplateContext struct {
 
 	// PreviousCommitLinks contain the links for the commit data point before the regression for the trace.
 	PreviousCommitLinks map[string]string
+
+	// Contains formatted names of affected test(s). Formatted as
+	// "{{test_class}}#{{test_method}}#{{device_name}}#{{os_version}}"
+	Tests []string
 }
 
 // GetBuildIdUrlDiff returns a url that contains the diff between build ids for androidx.
@@ -176,8 +181,28 @@ func (prov *androidNotificationProvider) GetNotificationDataRegressionMissing(ct
 	}, nil
 }
 
+func formatTests(metadata common.RegressionMetadata) []string {
+	formattedTests := make([]string, 0)
+	if metadata.Frame != nil && metadata.Frame.DataFrame != nil && metadata.Frame.DataFrame.TraceSet != nil {
+		if len(metadata.Frame.DataFrame.TraceSet) > 0 {
+			for traceKey := range metadata.Frame.DataFrame.TraceSet {
+				params := paramtools.NewParams(traceKey)
+				testClass := params["test_class"]
+				testMethod := params["test_method"]
+				deviceName := params["device_name"]
+				osVersion := params["os_version"]
+				formattedString := fmt.Sprintf("%s#%s#%s#%s", testClass, testMethod, deviceName, osVersion)
+				formattedTests = append(formattedTests, formattedString)
+			}
+		}
+	}
+	sort.Strings(formattedTests)
+	return formattedTests
+}
+
 // getTemplateContext returns a template context object to be used for the bug data formatting.
 func (prov *androidNotificationProvider) getTemplateContext(metadata common.RegressionMetadata) AndroidBugTemplateContext {
+
 	return AndroidBugTemplateContext{
 		URL:                   metadata.InstanceUrl,
 		DashboardUrl:          viewOnDashboard(metadata.Cl, metadata.InstanceUrl, metadata.Frame),
@@ -190,6 +215,7 @@ func (prov *androidNotificationProvider) getTemplateContext(metadata common.Regr
 		TraceID:               metadata.TraceID,
 		RegressionCommitLinks: metadata.RegressionCommitLinks,
 		PreviousCommitLinks:   metadata.PreviousCommitLinks,
+		Tests:                 formatTests(metadata),
 	}
 }
 

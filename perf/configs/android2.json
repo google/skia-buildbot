@@ -38,6 +38,10 @@
             "```",
             "{{ range index .ParamSet \"os_version\" }} {{ . }}",
             "{{end}}```",
+            "Tests affected:",
+            "```",
+            "{{ range index .Tests }} {{ . }}",
+            "{{end}}```",
             ""
         ]
     },
