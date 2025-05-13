@@ -18,7 +18,14 @@ anomalies-table-sk {
     width: 100%;
     th,
     td {
-      text-align: center;
+      text-align: left;
+      padding-right: 10px;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      max-width: 500px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     a,
     th {

@@ -153,7 +153,7 @@ export class AnomaliesTableSk extends ElementSk {
    * intersect with B.start_revision and B.end_revision.
    */
   private groupAnomalies() {
-    const groups = [];
+    const groups: AnomalyGroup[] = [];
 
     for (let i = 0; i < this.anomalyList.length; i++) {
       let merged = false;
@@ -192,7 +192,7 @@ export class AnomaliesTableSk extends ElementSk {
             <th id="checkbox">
               <checkbox-sk id="header-checkbox" @change=${this.toggleAllCheckboxes}> </checkbox-sk>
             </th>
-            <th id="graph_header"></th>
+            <th id="graph_header">Chart</th>
             <th id="bug_id" data-key="bugid">Bug ID</th>
             <th id="revision_range" data-key="revisions" data-default="down">Revisions</th>
             <th id="master" data-key="master" data-sort-type="alpha">Main</th>
@@ -212,10 +212,10 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   private generateGroups() {
-    const groups = [];
+    const groups: TemplateResult[][] = [];
     for (let i = 0; i < this.anomalyGroups.length; i++) {
       const anomalyGroup = this.anomalyGroups[i];
-      groups.push(this.generateRows(anomalyGroup));
+      groups.push(this.generateRows(anomalyGroup) as TemplateResult[]);
     }
     return groups;
   }
@@ -272,8 +272,8 @@ export class AnomaliesTableSk extends ElementSk {
     };
   }
 
-  private generateRows(anomalyGroup: AnomalyGroup) {
-    const rows = [];
+  private generateRows(anomalyGroup: AnomalyGroup): TemplateResult[] {
+    const rows: TemplateResult[] | never = [];
     const length = anomalyGroup.anomalies.length;
 
     const anomalySortValues = this.getProcessedAnomaly(anomalyGroup.anomalies[0]);
@@ -337,7 +337,6 @@ export class AnomaliesTableSk extends ElementSk {
             </close-icon-sk>
           </td>
           <td>
-            <a href=${this.getRevisionUrl(String(anomaly.id))}>
               <span
                 >${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span
               >
@@ -370,7 +369,7 @@ export class AnomaliesTableSk extends ElementSk {
     if (bug_id === -2) {
       return html`Ignored Alert`;
     }
-    return html`<a href="/u/?bugID=${bug_id}" target="_blank">${bug_id}</a>`;
+    return html`<a href="http://b/${bug_id}" target="_blank">${bug_id}</a>`;
   }
 
   private getRowClass(index: number, anomalyGroup: AnomalyGroup) {
