@@ -32,20 +32,11 @@ export class CommitRangeSk extends ElementSk {
 
   private _header: (ColumnHeader | null)[] | null = null;
 
-  /** The calculated URL. */
-  private _url: string = '';
-
-  /** The link text to display. */
-  private _text: string = '';
-
   private _htmlTemplate = html``;
 
   private _commitIds: [CommitNumber, CommitNumber] | null = null;
 
   private _hashes: string[] | null = null;
-
-  /** Determines if text contains links. */
-  showLinks: boolean = false;
 
   // commitNumberToHashes can be replaced to make testing easier.
   private commitNumberToHashes: commitNumberToHashes = defaultcommitNumberToHashes;
@@ -69,16 +60,13 @@ export class CommitRangeSk extends ElementSk {
     this._trace = [];
     this._header = null;
     this._htmlTemplate = html``;
-    this._url = '';
-    this._text = '';
     this._commitIds = null;
     this._hashes = null;
     this._render();
   }
 
   clear(): void {
-    this._url = '';
-    this._text = '';
+    this._htmlTemplate = html``;
     this._render();
   }
 
@@ -115,26 +103,42 @@ export class CommitRangeSk extends ElementSk {
     }
 
     try {
-      this._text = `${this._commitIds[1]}`;
+      let text = `${this._commitIds[1]}`;
       // Check if there are no points between start and end.
       if (this.isRange()) {
         // Add +1 to the previous commit to only show commits after previous.
-        this._text = `${this._commitIds[0] + 1} - ${this._commitIds[1]}`;
+        text = `${this._commitIds[0] + 1} - ${this._commitIds[1]}`;
       }
-      this._htmlTemplate = html`${this._text}`;
-      // Show only text of commit if hover, else show full text with links.
-      let url = window.perf.commit_range_url;
+      this.htmlTemplate = html`${text}`;
+
       if (!this.hashes) {
         // Run the commit numbers through cid lookup to get the hashes.
         this.hashes = await this.commitNumberToHashes(this._commitIds);
       }
-      // Create the URL.
-      url = url.replace('{begin}', this.hashes[0]);
-      url = url.replace('{end}', this.hashes[1]);
-      // Now populate link, including text and url.
-      this._url = url;
-      this._htmlTemplate = html`<a href="${this._url}" target="_blank">${this._text}</a>`;
-      this._render();
+
+      // If we have the hashes, then we can build the link.
+      if (this.hashes && this.hashes.length > 1) {
+        let url = window.perf.commit_range_url;
+        url = url.replace('{begin}', this.hashes[0]);
+        if (this.isRange()) {
+          url = url.replace('{end}', this.hashes[1]);
+        } else {
+          // Split string at the first hash and remove the log to show commit directly.
+          url = url.substring(0, url.indexOf(this.hashes[0]) + this.hashes[0].length);
+          // Use +log to ensure it is the correct placeholder.
+          url = url.replace('+log', '+');
+        }
+        this.htmlTemplate = html`<a href="${url}" target="_blank">${text}</a>`;
+        // Ensure element is connected to tooltip before dispatching event.
+        if (this._connected) {
+          this.dispatchEvent(
+            new CustomEvent('commit-range-changed', {
+              bubbles: true, // Allows parent elements to catch the event.
+              composed: true, // Allows event to cross shadow DOM boundaries.
+            })
+          );
+        }
+      }
     } catch (error) {
       console.log(error);
       this.clear();
@@ -177,15 +181,19 @@ export class CommitRangeSk extends ElementSk {
   }
 
   set hashes(val: string[] | null) {
-    this._hashes = val;
+    if (val !== null && val.length > 1) {
+      // Only set the hashes if there are two hashes.
+      this._hashes = val;
+      this.recalcLink();
+    }
   }
 
-  get url(): string {
-    return this._url;
-  }
-
-  get text(): string {
-    return this._text;
+  set htmlTemplate(val: any) {
+    // If the template is the same, don't re-render.
+    if (this._htmlTemplate !== val) {
+      this._htmlTemplate = val;
+      this._render();
+    }
   }
 
   get htmlTemplate() {

@@ -381,6 +381,18 @@ export class ChartTooltipSk extends ElementSk {
       this.bug_id = (e as CustomEvent).detail.bug_id;
       this._render();
     });
+
+    if (this.commitRangeSk) {
+      this.commitRangeSk.addEventListener('commit-range-changed', this.handleCommitRangeChanged);
+    }
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    // Clean up listeners when the element is removed from the DOM
+    if (this.commitRangeSk) {
+      this.commitRangeSk.removeEventListener('commit-range-changed', this.handleCommitRangeChanged);
+    }
   }
 
   private anomalyType() {
@@ -471,7 +483,6 @@ export class ChartTooltipSk extends ElementSk {
 
     if (commitRange && this.commitRangeSk) {
       this._is_range = this.commitRangeSk.isRange();
-      this.commitRangeSk.showLinks = tooltipFixed;
       this.commitRangeSk.hashes = commitRange.hashes;
       this.commitRangeSk.trace = commitRange.trace;
       this.commitRangeSk.commitIndex = commitRange.commitIndex;
@@ -512,6 +523,11 @@ export class ChartTooltipSk extends ElementSk {
     this.jsonSourceDialog!.cid = commit_position;
     this.jsonSourceDialog!.traceid = trace_id;
   }
+
+  // Handles the event from commit-range-sk when its link is updated.
+  private handleCommitRangeChanged = () => {
+    this._render();
+  };
 
   /** Clear Point Links */
   reset(): void {
