@@ -26,6 +26,7 @@
 import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
 import '@vaadin/combo-box/theme/lumo/vaadin-combo-box.js';
 
 export class PickerFieldSk extends ElementSk {
@@ -36,6 +37,8 @@ export class PickerFieldSk extends ElementSk {
   private _options: string[] = [];
 
   private _comboBox: HTMLElement | null = null;
+
+  private _multiComboBox: HTMLElement | null = null;
 
   constructor(label: string) {
     super(PickerFieldSk.template);
@@ -68,6 +71,7 @@ export class PickerFieldSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this._comboBox = this.querySelector('vaadin-combo-box');
+    this._multiComboBox = this.querySelector('vaadin-multi-select-combo-box');
   }
 
   focus() {
