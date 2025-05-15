@@ -48,8 +48,14 @@ export function fromParamSet(o: ParamSet): string {
   const ret: string[] = [];
   const keys = Object.keys(o).sort();
   keys.forEach((key) => {
-    o[key].forEach((value) => {
-      ret.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+    o[key].forEach((value: Array<string> | string) => {
+      if (Array.isArray(value)) {
+        value.forEach((element) => {
+          ret.push(`${encodeURIComponent(key)}=${encodeURIComponent(element)}`);
+        });
+      } else {
+        ret.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+      }
     });
   });
   return ret.join('&');
