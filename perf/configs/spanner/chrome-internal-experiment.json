@@ -28,7 +28,8 @@
         "datastore_type": "spanner",
         "connection_string": "postgresql://root@localhost:5432/chrome_int_experiment?sslmode=disable",
         "tile_size": 8192,
-        "enable_follower_reads": true
+        "enable_follower_reads": true,
+        "traceparams_param_indexes": ["test", "subtest_1", "subtest_2", "benchmark", "bot", "stat"]
     },
     "experiments": {
 	"remove_default_stat_value": true,
