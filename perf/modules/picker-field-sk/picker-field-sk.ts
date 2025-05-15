@@ -28,6 +28,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
 import '@vaadin/combo-box/theme/lumo/vaadin-combo-box.js';
+import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
 
 export class PickerFieldSk extends ElementSk {
   private _label: string = '';
@@ -38,7 +39,7 @@ export class PickerFieldSk extends ElementSk {
 
   private _comboBox: HTMLElement | null = null;
 
-  private _multiComboBox: HTMLElement | null = null;
+  private _selectedItems: string[] = [];
 
   constructor(label: string) {
     super(PickerFieldSk.template);
@@ -46,22 +47,23 @@ export class PickerFieldSk extends ElementSk {
   }
 
   private static template = (ele: PickerFieldSk) => html`
-    <vaadin-combo-box
+    <vaadin-multi-select-combo-box
+      @selected-items-changed=${ele.onValueChanged}
       helper-text="${ele.helperText}"
-      placeholder="${ele.label}"
+      label="${ele.label}"
       .items=${ele.options}
-      theme="small helper-above-field"
-      clear-button-visible
-      @value-changed=${ele.onValueChanged}
-      autoselect>
-    </vaadin-combo-box>
+      auto-expand-horizontally
+      selected-items-on-top>
+    </vaadin-multi-select-combo-box>
   `;
 
   private onValueChanged(e: Event) {
+    const selectedItems = (e as CustomEvent).detail.value as string[];
+
     this.dispatchEvent(
       new CustomEvent('value-changed', {
         detail: {
-          value: (e as CustomEvent).detail.value,
+          value: selectedItems, // Forward the array of selected items
         },
       })
     );
@@ -70,8 +72,7 @@ export class PickerFieldSk extends ElementSk {
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
-    this._comboBox = this.querySelector('vaadin-combo-box');
-    this._multiComboBox = this.querySelector('vaadin-multi-select-combo-box');
+    this._comboBox = this.querySelector('vaadin-multi-select-combo-box');
   }
 
   focus() {
@@ -85,17 +86,24 @@ export class PickerFieldSk extends ElementSk {
   }
 
   disable() {
-    this._comboBox!.setAttribute('readonly', '');
-    this._render();
+    if (this._comboBox !== null) {
+      this._comboBox!.setAttribute('readonly', '');
+      this._render();
+    }
   }
 
   enable() {
-    this._comboBox!.removeAttribute('readonly');
-    this._render();
+    if (this._comboBox !== null) {
+      this._comboBox!.removeAttribute('opened');
+      this._comboBox!.removeAttribute('readonly');
+      this._render();
+    }
   }
 
   clear() {
+    this.focus();
     this.setValue('');
+    this.selectedItems = [];
   }
 
   setValue(val: string) {
@@ -122,7 +130,12 @@ export class PickerFieldSk extends ElementSk {
         maxLength = option.length;
       }
     });
-    this._comboBox!.style.setProperty('--vaadin-combo-box-overlay-width', `${maxLength + 5}ch`);
+    if (this._comboBox !== null) {
+      this._comboBox!.style.setProperty(
+        '--vaadin-multi-select-combo-box-overlay-width',
+        `${maxLength + 5}ch`
+      );
+    }
   }
 
   get options(): string[] {
@@ -141,6 +154,15 @@ export class PickerFieldSk extends ElementSk {
 
   set label(v: string) {
     this._label = v;
+    this._render();
+  }
+
+  get selectedItems(): string[] {
+    return this._selectedItems;
+  }
+
+  set selectedItems(v: string[]) {
+    this._selectedItems = v;
     this._render();
   }
 

@@ -345,7 +345,7 @@ export class ExploreMultiSk extends ElementSk {
     // Whenever the user selects a value from the split by list,
     // update the state to reflect it and then split the graphs.
     this.splitByList!.addEventListener('value-changed', (e) => {
-      const selectedSplitKey = (e as CustomEvent).detail.value;
+      const selectedSplitKey = (e as CustomEvent).detail.value[0];
       // The selectedSplitkey string will contain the split count (eg: "bot (5)"),
       // so we need to extract that out.
       const splitByParamKey = selectedSplitKey.split('(')[0].trim();
@@ -521,6 +521,25 @@ export class ExploreMultiSk extends ElementSk {
           explore.addFromQueryOrFormula(true, 'query', query, '');
           this.refreshSplitList = true;
         }
+        this.updateSplitByKeys();
+      });
+
+      // Event listener for when the Test Picker plot button is clicked.
+      // This will create a new empty Graph at the top and plot it with the
+      // selected test values.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      this.addEventListener('add-to-graph', (e) => {
+        const query = (e as CustomEvent).detail.query;
+        let explore = this.addEmptyGraph(true);
+        if (explore) {
+          if (this.currentPageExploreElements.length === 0) {
+            this.addGraphsToCurrentPage();
+          } else {
+            explore = this.currentPageExploreElements[0];
+          }
+          explore.addFromQueryOrFormula(true, 'query', query, '');
+        }
+        this.refreshSplitList = true;
         this.updateSplitByKeys();
       });
 

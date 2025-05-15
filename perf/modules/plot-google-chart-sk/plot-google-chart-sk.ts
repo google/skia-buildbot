@@ -589,6 +589,9 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onChartMouseDown(e: MouseEvent) {
+    if (this.chart === null) {
+      return;
+    }
     const layout = this.chart!.getChartLayoutInterface();
     const area = layout.getChartAreaBoundingBox();
     // if user holds down shift-click, enable delta range calculation
@@ -1260,11 +1263,14 @@ export class PlotGoogleChartSk extends LitElement {
    */
   getAllTraces(): string[] {
     const allCols: string[] = [];
-    // first two columns are always reserved for 'Commit Position' and 'Date'
-    for (let idx = 2; idx < this.data!.getNumberOfColumns(); idx++) {
-      allCols.push(this.data!.getColumnLabel(idx));
+    if (this.data) {
+      // first two columns are always reserved for 'Commit Position' and 'Date'
+      for (let idx = 2; idx < this.data!.getNumberOfColumns(); idx++) {
+        allCols.push(this.data!.getColumnLabel(idx));
+      }
+      return allCols;
     }
-    return allCols;
+    return [];
   }
 
   /**

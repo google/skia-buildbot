@@ -163,9 +163,7 @@ export class SidePanelSk extends LitElement {
   }
 
   render() {
-    if (this.legendListCache.length === 0) {
-      this.legendListCache = this.getLegend();
-    }
+    this.legendListCache = this.getLegend();
     return html`
       <div
         class="show-hide-bar"

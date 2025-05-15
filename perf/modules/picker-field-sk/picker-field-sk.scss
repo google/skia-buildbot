@@ -1,64 +1,50 @@
 @import '../themes/themes.scss';
-
 // Style reference for vaadin elements:
 // https://vaadin.com/docs/latest/components/combo-box/styling
-
 .body-sk picker-field-sk,
 picker-field-sk {
-  vaadin-combo-box {
-    --vaadin-field-default-width: 200px;
-    --vaadin-combo-box-overlay-width: 250px;
-    --vaadin-combo-box-overlay-max-height: 200px;
+  vaadin-multi-select-combo-box {
+    --vaadin-input-field-height: 30px;
+    --vaadin-input-field-icon-color: var(--lumo-secondary-text-color);
+    --vaadin-multi-select-combo-box-chip-min-width: 100px
+      --vaadin-multi-select-combo-box-overlay-width: auto;
     --lumo-text-field-size: var(--lumo-size-xs);
-    padding: 0;
+
+    padding-right: 10px;
     margin-top: 20px;
     margin-left: auto;
+    width: 300px;
   }
   input {
     border: none;
   }
-
-  vaadin-combo-box::part(items) {
-    width: 200px;
-    margin-left: 350px;
-  }
-  vaadin-combo-box::part(helper-text) {
-    width: 900px;
-    right: 0;
-    display: inline-block;
-  }
-  vaadin-combo-box::part(input-field) {
-    width: 200px;
-    right: 0;
-  }
 }
-
 .darkmode picker-field-sk {
-  vaadin-combo-box::part(label) {
+  vaadin-multi-select-combo-box::part(label) {
     transition: color 0.3s ease;
     color: var(--on-disabled);
   }
-  vaadin-combo-box::part(helper-text) {
+  vaadin-multi-select-combo-box::part(helper-text) {
     transition: color 0.3s ease;
     color: var(--on-disabled);
   }
-  vaadin-combo-box:hover::part(label) {
+  vaadin-multi-select-combo-box:hover::part(label) {
     transition: color 0.3s ease;
     color: var(--on-surface);
   }
-  vaadin-combo-box:focus-within::part(label) {
+  vaadin-multi-select-combo-box:focus-within::part(label) {
     transition: color 0.3s ease;
     color: var(--primary);
   }
-  vaadin-combo-box::part(input-field) {
+  vaadin-multi-select-combo-box::part(input-field) {
     transition: background-color 0.3s ease;
     background-color: var(--on-disabled);
   }
-  vaadin-combo-box:hover::part(input-field) {
+  vaadin-multi-select-combo-box:hover::part(input-field) {
     transition: background-color 0.3s ease;
     background-color: var(--on-surface);
   }
-  vaadin-combo-box:focus-within::part(input-field) {
+  vaadin-multi-select-combo-box:focus-within::part(input-field) {
     transition: background-color 0.3s ease;
     background-color: var(--on-surface);
   }

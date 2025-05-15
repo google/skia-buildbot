@@ -2937,7 +2937,9 @@ export class ExploreSimpleSk extends ElementSk {
    * @param plotType - The type of traces being added.
    */
   addFromQueryOrFormula(replace: boolean, plotType: addPlotType, q: string, f: string) {
-    this.queryDialog!.close();
+    if (this.queryDialog !== null) {
+      this.queryDialog!.close();
+    }
     this._dialogOn = false;
 
     if (plotType === 'query') {
@@ -2965,10 +2967,12 @@ export class ExploreSimpleSk extends ElementSk {
       errorMessage('Unknown plotType');
       return;
     }
-    this._state.begin = this.range!.state.begin;
-    this._state.end = this.range!.state.end;
-    this._state.numCommits = this.range!.state.num_commits;
-    this._state.requestType = this.range!.state.request_type;
+    if (this.range !== null) {
+      this._state.begin = this.range!.state.begin;
+      this._state.end = this.range!.state.end;
+      this._state.numCommits = this.range!.state.num_commits;
+      this._state.requestType = this.range!.state.request_type;
+    }
     this._state.sort = '';
     if (replace || plotType === 'pivot') {
       this.removeAll(true);
@@ -3406,7 +3410,9 @@ export class ExploreSimpleSk extends ElementSk {
       200,
       this.spinner!,
       (prog: progress.SerializedProgress) => {
-        this.percent!.textContent = messagesToPreString(prog.messages);
+        if (this.percent !== null) {
+          this.percent!.textContent = messagesToPreString(prog.messages);
+        }
       }
     );
     if (finishedProg.status !== 'Finished') {

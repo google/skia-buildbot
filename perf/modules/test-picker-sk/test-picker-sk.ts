@@ -30,6 +30,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ParamSet, fromParamSet, toParamSet } from '../../../infra-sk/modules/query';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 
 import { NextParamListHandlerRequest, NextParamListHandlerResponse } from '../json';
 import '../picker-field-sk';
@@ -58,11 +59,15 @@ export class TestPickerSk extends ElementSk {
 
   private _plotButton: HTMLButtonElement | null = null;
 
+  private _graphDiv: Element | null = null;
+
   private _requestInProgress: boolean = false;
 
   private _currentIndex: number = 0;
 
   private _defaultParams: { [key: string]: string[] | null } = {};
+
+  private _autoAddTrace: boolean = false;
 
   constructor() {
     super(TestPickerSk.template);
@@ -81,9 +86,15 @@ export class TestPickerSk extends ElementSk {
           @click=${ele.onPlotButtonClick}
           title="Plot a graph on selected values. Narrow down selection to ${PLOT_MAXIMUM} matches to be able to plot."
           disabled>
-          Add Graph
+          Add New Graph
         </button>
       </div>
+      <checkbox-sk
+        label="Auto Add Trace"
+        title="Auto adds when possible."
+        @change=${ele.onToggleCheckboxClick}
+        ?checked=${ele._autoAddTrace}>
+      </checkbox-sk>
     </div>
   `;
 
@@ -93,6 +104,7 @@ export class TestPickerSk extends ElementSk {
 
     this._containerDiv = this.querySelector('#fieldContainer');
     this._plotButton = this.querySelector('#plot-button');
+    this._graphDiv = document.querySelector('#graphContainer');
   }
 
   /**
@@ -122,18 +134,18 @@ export class TestPickerSk extends ElementSk {
         currentFieldInfo.field = field;
         this._containerDiv!.appendChild(field);
         this._currentIndex += 1;
-
+        field!.label = param;
         field!.options = options;
         field!.focus();
         if (currentIndex !== 0) {
           field!.openOverlay();
         }
-        this.addValueChangedEventToField(currentIndex);
+        this.addValueUpdatedEventToField(currentIndex);
       }
 
       this._render();
     };
-    this.callNextParamList(null, handler);
+    this.callNextParamList(handler);
   }
 
   /**
@@ -194,7 +206,9 @@ export class TestPickerSk extends ElementSk {
     while (this._currentIndex - 1 > index) {
       const fieldInfo = this._fieldData[this._currentIndex - 1];
       fieldInfo.value = '';
-      this._containerDiv!.removeChild(fieldInfo.field!);
+      if (fieldInfo.field !== null) {
+        this._containerDiv!.removeChild(fieldInfo.field!);
+      }
       fieldInfo.field = null;
       this._currentIndex -= 1;
     }
@@ -221,17 +235,13 @@ export class TestPickerSk extends ElementSk {
    *
    * @param handler
    */
-  private callNextParamList(
-    index: number | null,
-    handler: (json: NextParamListHandlerResponse) => void
-  ) {
+  private callNextParamList(handler: (json: NextParamListHandlerResponse) => void) {
     this.updateCount(-1);
     this._requestInProgress = true;
     this.setReadOnly(true);
     this._render();
 
-    const fieldData =
-      index !== null ? this.createQueryFromIndex(index) : this.createQueryFromFieldData();
+    const fieldData = this.createQueryFromFieldData();
     const body: NextParamListHandlerRequest = {
       q: fieldData,
     };
@@ -252,7 +262,8 @@ export class TestPickerSk extends ElementSk {
       .catch((msg: any) => {
         this._requestInProgress = false;
         this.setReadOnly(false);
-        this._render();
+        // If the request fails, we remove child fields to reset.
+        this.removeChildFields(0);
         errorMessage(msg);
       });
   }
@@ -287,7 +298,7 @@ export class TestPickerSk extends ElementSk {
         this._render();
       }
     };
-    this.callNextParamList(index, handler);
+    this.callNextParamList(handler);
   }
 
   /**
@@ -303,14 +314,20 @@ export class TestPickerSk extends ElementSk {
       this._render();
     };
 
-    this.callNextParamList(null, handler);
+    this.callNextParamList(handler);
   }
 
   private onPlotButtonClick() {
     const detail = {
       query: this.createQueryFromFieldData(),
     };
-    this.dispatchEvent(new CustomEvent('plot-button-clicked', { detail: detail, bubbles: true }));
+    this.dispatchEvent(
+      new CustomEvent('plot-button-clicked', {
+        detail: detail,
+        bubbles: true,
+      })
+    );
+    this._render();
   }
 
   /**
@@ -349,12 +366,13 @@ export class TestPickerSk extends ElementSk {
 
       const field: PickerFieldSk = new PickerFieldSk(param);
       fieldInfo.field = field;
-      this._containerDiv!.appendChild(field);
       this._currentIndex += 1;
       if (param in selectedParams) {
+        this._containerDiv!.appendChild(field);
         fieldInfo.value = selectedParams[param][0];
         field!.options = [fieldInfo.value];
         field.setValue(fieldInfo.value);
+        field!.selectedItems = [fieldInfo.value];
         field!.focus();
         this._render();
         this.addValueUpdatedEventToField(i);
@@ -362,18 +380,49 @@ export class TestPickerSk extends ElementSk {
     }
 
     for (let i = 0; i < this._fieldData.length; i++) {
-      this.fetchExtraOptions(i);
+      this.fetchExtraOptions();
+    }
+  }
+
+  private onToggleCheckboxClick(e: Event): void {
+    this._autoAddTrace = (e.target as CheckOrRadio).checked;
+    // This prevents a double event from happening.
+    e.preventDefault();
+    this._render();
+  }
+
+  private appendToGraph() {
+    if (this._autoAddTrace) {
+      if (this._graphDiv !== null && this._graphDiv.children.length > 0) {
+        const detail = {
+          query: this.createQueryFromFieldData(),
+        };
+        this.dispatchEvent(
+          new CustomEvent('add-to-graph', {
+            detail: detail,
+            bubbles: true,
+          })
+        );
+      }
     }
   }
 
   private addValueUpdatedEventToField(index: number) {
     const fieldInfo = this._fieldData[index];
+    if (fieldInfo.field === null) {
+      return;
+    }
+    // Ensure that we don't add the event listener multiple times.
+    if (fieldInfo.field.getAttribute('listener') === 'true') {
+      fieldInfo.field.removeEventListener('value-changed', () => {});
+    }
     fieldInfo.field!.addEventListener('value-changed', (e) => {
       const value = (e as CustomEvent).detail.value;
-      fieldInfo.value = value;
-      for (let i = index; i < this._fieldData.length; i++) {
-        this.fetchExtraOptions(i);
+      if (value === '') {
+        this.removeChildFields(index);
       }
+      fieldInfo.value = value;
+      this.fetchExtraOptions();
     });
   }
 
@@ -390,26 +439,31 @@ export class TestPickerSk extends ElementSk {
    *
    * @param index
    */
-  private fetchExtraOptions(index: number) {
+  private fetchExtraOptions() {
     const handler = (json: NextParamListHandlerResponse) => {
       const param = Object.keys(json.paramset)[0];
       if (param !== undefined && json.count > 0) {
         for (let i = 0; i < this._fieldData.length; i++) {
           const fieldInfo = this._fieldData[i];
           if (fieldInfo.param === param) {
+            if (fieldInfo.field === null) {
+              const field: PickerFieldSk = new PickerFieldSk(param);
+              fieldInfo.field = field;
+              this._containerDiv!.appendChild(field);
+              this._currentIndex += 1;
+            }
             fieldInfo.field!.options = json.paramset[param];
             fieldInfo.field!.focus();
+            this.addValueUpdatedEventToField(i);
             this._render();
             break;
           }
         }
       }
-      if (index === this._fieldData.length - 1) {
-        this.updateCount(json.count);
-        this._render();
-      }
+      this.updateCount(json.count);
+      this._render();
     };
-    this.callNextParamList(index, handler);
+    this.callNextParamList(handler);
   }
 
   /**
@@ -434,6 +488,10 @@ export class TestPickerSk extends ElementSk {
       return '';
     }
 
+    // If values are set in child values, but missing initial value, then exit.
+    if (this._fieldData[0].value.length === 0) {
+      return '';
+    }
     // Apply default values.
     for (const defaultParamKey in this._defaultParams) {
       if (!(defaultParamKey in paramSet)) {
@@ -501,6 +559,7 @@ export class TestPickerSk extends ElementSk {
     if (count > PLOT_MAXIMUM || count <= 0) {
       this._plotButton!.disabled = true;
     } else {
+      this.appendToGraph();
       this._plotButton!.disabled = false;
     }
   }
@@ -539,15 +598,23 @@ export class TestPickerSk extends ElementSk {
   private initializeFieldData(params: string[]) {
     this._containerDiv!.replaceChildren();
     this._currentIndex = 0;
-    this._fieldData = [];
-
-    params.forEach((param) => {
-      this._fieldData.push({
-        field: null,
-        param: param,
-        value: '',
+    if (this._fieldData.length > 0) {
+      this._fieldData.forEach((fieldInfo) => {
+        if (fieldInfo.param in params) {
+          fieldInfo.field = null;
+          fieldInfo.value = '';
+        }
       });
-    });
+    } else {
+      this._fieldData = [];
+      params.forEach((param) => {
+        this._fieldData.push({
+          field: null,
+          param: param,
+          value: '',
+        });
+      });
+    }
   }
 }
 
