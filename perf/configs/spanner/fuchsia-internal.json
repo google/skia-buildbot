@@ -5,6 +5,7 @@
     "allowed_hosts": [],
     "contact": "browser-perf-engprod@google.com",
     "chat_url": "http://go/berf-skia-chat",
+    "bug_host_url": "https://issues.chromium.org",
     "feedback_url": "http://go/berf-skia-feedback",
     "trace_sample_proportion": 0.01,
     "fetch_chrome_perf_anomalies": true,
