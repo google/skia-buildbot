@@ -51,8 +51,17 @@ export class NewBugDialogSk extends ElementSk {
 
   private INFINITY_PERCENT_CHANGE: string = 'zero-to-nonzero';
 
+  private isDragging = false;
+
+  private xOffset = 0;
+
+  private yOffset = 0;
+
   private static template = (ele: NewBugDialogSk) => html`
-    <dialog id="new-bug-dialog">
+    <dialog id="new-bug-dialog"
+    @mousedown=${ele.onmousedown}
+    @mousemove=${ele.onMouseMove}
+    @mouseup=${ele.onMouseUp}>
       <h2>File New Bug</h2>
       <button id="closeIcon" @click=${ele.closeDialog}>
         <close-icon-sk></close-icon-sk>
@@ -109,6 +118,11 @@ export class NewBugDialogSk extends ElementSk {
     this._form!.addEventListener('submit', (e) => {
       e.preventDefault();
       this.fileNewBug();
+    });
+
+    window.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      this.onMousedown(e);
     });
   }
 
@@ -439,6 +453,44 @@ export class NewBugDialogSk extends ElementSk {
 
   get opened() {
     return this._opened;
+  }
+
+  private onMouseUp(e: MouseEvent) {
+    e.preventDefault();
+    this.isDragging = false;
+  }
+
+  private onMouseMove(e: MouseEvent) {
+    if (!this.isDragging) {
+      return;
+    }
+    e.preventDefault();
+    const widthBoundary = window.innerWidth;
+    const heightBoundary = window.innerHeight;
+    // Calculate new left offset and right offset
+    const newLeft = e.clientX - this.xOffset;
+    const newTop = e.clientY - this.yOffset;
+    if (
+      widthBoundary > newLeft &&
+      widthBoundary > newLeft + Number(this._dialog!.style.width) &&
+      heightBoundary > newTop &&
+      heightBoundary > newTop + Number(this._dialog?.style.height)
+    ) {
+      this._dialog!.style.left = `${newLeft}px`;
+      this._dialog!.style.top = `${newTop}px`;
+    }
+  }
+
+  private onMousedown(e: MouseEvent) {
+    if (e.target !== this._dialog) {
+      return;
+    }
+    document.addEventListener('mousemove', this.onMouseMove);
+    document.addEventListener('mouseup', this.onMouseUp);
+    this.isDragging = true;
+    // Calculate the offset of the mouse click relative to the dialog's top-left
+    this.xOffset = e.offsetX;
+    this.yOffset = e.offsetY;
   }
 }
 
