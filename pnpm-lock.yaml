@@ -89,6 +89,9 @@ dependencies:
   '@vaadin/combo-box':
     specifier: ^23.5.1
     version: 23.5.1
+  '@vaadin/multi-select-combo-box':
+    specifier: ^24.7.6
+    version: 24.7.6
   '@webgpu/types':
     specifier: 0.1.21
     version: 0.1.21
@@ -1230,6 +1233,15 @@ packages:
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
     dev: false
 
+  /@vaadin/a11y-base@24.7.6:
+    resolution: {integrity: sha512-18mEI5Zm1ul80YLa2oklfvtIjBvMN+gKdoQS5rWLA6/rFvEiVtnYFFnyojBDTFPg1EQCCjo38RQGu6qbMoYxXw==}
+    dependencies:
+      '@open-wc/dedupe-mixin': 1.4.0
+      '@polymer/polymer': 3.4.1
+      '@vaadin/component-base': 24.7.6
+      lit: 3.2.0
+    dev: false
+
   /@vaadin/combo-box@23.5.1:
     resolution: {integrity: sha512-nax1HBG9qoaloUby2J2sFaf6jrznZYzNmcKW0oxTKKDX7NYLyNDsL/JxZVUoNKHa41r48GC8dZMtJ/HKk0uRJA==}
     dependencies:
@@ -1246,6 +1258,24 @@ packages:
       '@vaadin/vaadin-themable-mixin': 23.5.1
     dev: false
 
+  /@vaadin/combo-box@24.7.6:
+    resolution: {integrity: sha512-JcEqthsUwiP5/UI5mfxd8Dn5XD4Fn0Xl5O2a0G6xe5NZDv5/P/hq9Y+tDBCu00t7xwuNX7kKGBLpE5Cv5xQzbA==}
+    dependencies:
+      '@open-wc/dedupe-mixin': 1.4.0
+      '@polymer/polymer': 3.4.1
+      '@vaadin/a11y-base': 24.7.6
+      '@vaadin/component-base': 24.7.6
+      '@vaadin/field-base': 24.7.6
+      '@vaadin/input-container': 24.7.6
+      '@vaadin/item': 24.7.6
+      '@vaadin/lit-renderer': 24.7.6
+      '@vaadin/overlay': 24.7.6
+      '@vaadin/vaadin-lumo-styles': 24.7.6
+      '@vaadin/vaadin-material-styles': 24.7.6
+      '@vaadin/vaadin-themable-mixin': 24.7.6
+      lit: 3.2.0
+    dev: false
+
   /@vaadin/component-base@23.5.1:
     resolution: {integrity: sha512-K/beIrsgNn0ZIYkiG9rtIIu5S9Rb67x3ekrJYrWBfBErjhL0HBCfWSOtxyr2H2KB9eWFHm750+JHZ/CgfNg/Ag==}
     dependencies:
@@ -1256,6 +1286,16 @@ packages:
       lit: 2.8.0
     dev: false
 
+  /@vaadin/component-base@24.7.6:
+    resolution: {integrity: sha512-DCwSNObDgf6CZ6c3oMjEVqs2OY8qc+YgPSTdl0jiaIoKRPJW0+XAFojAmlRKS1iJfM+E4sB5XG0AIlsg7MkzJw==}
+    dependencies:
+      '@open-wc/dedupe-mixin': 1.4.0
+      '@polymer/polymer': 3.4.1
+      '@vaadin/vaadin-development-mode-detector': 2.0.7
+      '@vaadin/vaadin-usage-statistics': 2.1.2
+      lit: 3.2.0
+    dev: false
+
   /@vaadin/field-base@23.5.1:
     resolution: {integrity: sha512-zZGMys5Wl6ajrR0B2f70VkR1tPIeVjjyES9272pNTpd66g+0j+TJ2c4duwfKZ7Q6tW1T8JzPoSS1SWFrFbdrDQ==}
     dependencies:
@@ -1263,6 +1303,16 @@ packages:
       '@polymer/polymer': 3.4.1
       '@vaadin/component-base': 23.5.1
       lit: 2.8.0
+    dev: false
+
+  /@vaadin/field-base@24.7.6:
+    resolution: {integrity: sha512-AbvuGibH9Lk31zPq4eGuHzMja2zeajhkIjP6mOEPy6E6GgZWrvuk0Ws5Y+NaWfUvm6cl3HMvWFCtFGGs0T1vmg==}
+    dependencies:
+      '@open-wc/dedupe-mixin': 1.4.0
+      '@polymer/polymer': 3.4.1
+      '@vaadin/a11y-base': 24.7.6
+      '@vaadin/component-base': 24.7.6
+      lit: 3.2.0
     dev: false
 
   /@vaadin/icon@23.5.1:
@@ -1275,6 +1325,17 @@ packages:
       lit: 2.8.0
     dev: false
 
+  /@vaadin/icon@24.7.6:
+    resolution: {integrity: sha512-tH0qudszMlsgtoIw41Ai0f17LqNg33kYgxZDS/2ItUsoRo4GfJofyOuvZrcYBZkJwlfE0LLcPMEkm/U8gnwJvA==}
+    dependencies:
+      '@open-wc/dedupe-mixin': 1.4.0
+      '@polymer/polymer': 3.4.1
+      '@vaadin/component-base': 24.7.6
+      '@vaadin/vaadin-lumo-styles': 24.7.6
+      '@vaadin/vaadin-themable-mixin': 24.7.6
+      lit: 3.2.0
+    dev: false
+
   /@vaadin/input-container@23.5.1:
     resolution: {integrity: sha512-RsqPg5kj+VFlfWIQYaQllFrGPUTvT8l6fyQvBlcazPhEfiv9d3i2SYUUKmO5p563ToWbv+IHwMNSbnIK9tpw6Q==}
     dependencies:
@@ -1283,6 +1344,17 @@ packages:
       '@vaadin/vaadin-lumo-styles': 23.5.1
       '@vaadin/vaadin-material-styles': 23.5.1
       '@vaadin/vaadin-themable-mixin': 23.5.1
+    dev: false
+
+  /@vaadin/input-container@24.7.6:
+    resolution: {integrity: sha512-/8fPwlkHZkUAv/K1JuOQ9+E/VXTxb9bCB1jMBx9y/h/J+eggi/YNlajCwiaA2NCphjSzszRDi2U14xDBriSHrA==}
+    dependencies:
+      '@polymer/polymer': 3.4.1
+      '@vaadin/component-base': 24.7.6
+      '@vaadin/vaadin-lumo-styles': 24.7.6
+      '@vaadin/vaadin-material-styles': 24.7.6
+      '@vaadin/vaadin-themable-mixin': 24.7.6
+      lit: 3.2.0
     dev: false
 
   /@vaadin/item@23.5.1:
@@ -1296,10 +1368,48 @@ packages:
       '@vaadin/vaadin-themable-mixin': 23.5.1
     dev: false
 
+  /@vaadin/item@24.7.6:
+    resolution: {integrity: sha512-VvO9zO9a6tULbpUG11x7Vd1qu5tU5J9haGay4dGq7HUACbyT/cj8u+Wj4iQUDbJHpa/3fUc9JF4IOtO0vUFRaw==}
+    dependencies:
+      '@open-wc/dedupe-mixin': 1.4.0
+      '@polymer/polymer': 3.4.1
+      '@vaadin/a11y-base': 24.7.6
+      '@vaadin/component-base': 24.7.6
+      '@vaadin/vaadin-lumo-styles': 24.7.6
+      '@vaadin/vaadin-material-styles': 24.7.6
+      '@vaadin/vaadin-themable-mixin': 24.7.6
+      lit: 3.2.0
+    dev: false
+
   /@vaadin/lit-renderer@23.5.1:
     resolution: {integrity: sha512-4QsPy0v7y3uL749DNvVMLN0cF2HtUNpbuAMrdfsMUXP4mXV69kHTD79AAo20e1YFPuO5ROtJd8g6RSe3kok0hg==}
     dependencies:
       lit: 2.8.0
+    dev: false
+
+  /@vaadin/lit-renderer@24.7.6:
+    resolution: {integrity: sha512-yze8C1X8qKxf1EuP7fUovJ8Rf6iz7HJQf7lSTlkOi1DAm3xEUF9+mzkXSdq4Of5MNyLBmboBZ9yuhcrXNYREIA==}
+    dependencies:
+      lit: 3.2.0
+    dev: false
+
+  /@vaadin/multi-select-combo-box@24.7.6:
+    resolution: {integrity: sha512-GRlBZGTJVJn4kBc1NMIw8+UUQ/v3uTAuouewKiDtFc1gwvXIL+gZqCdUWgy+gz/WpoU1UaIm/D39wWJF4o6dfg==}
+    dependencies:
+      '@open-wc/dedupe-mixin': 1.4.0
+      '@polymer/polymer': 3.4.1
+      '@vaadin/a11y-base': 24.7.6
+      '@vaadin/combo-box': 24.7.6
+      '@vaadin/component-base': 24.7.6
+      '@vaadin/field-base': 24.7.6
+      '@vaadin/input-container': 24.7.6
+      '@vaadin/item': 24.7.6
+      '@vaadin/lit-renderer': 24.7.6
+      '@vaadin/overlay': 24.7.6
+      '@vaadin/vaadin-lumo-styles': 24.7.6
+      '@vaadin/vaadin-material-styles': 24.7.6
+      '@vaadin/vaadin-themable-mixin': 24.7.6
+      lit: 3.2.0
     dev: false
 
   /@vaadin/overlay@23.5.1:
@@ -1311,6 +1421,19 @@ packages:
       '@vaadin/vaadin-lumo-styles': 23.5.1
       '@vaadin/vaadin-material-styles': 23.5.1
       '@vaadin/vaadin-themable-mixin': 23.5.1
+    dev: false
+
+  /@vaadin/overlay@24.7.6:
+    resolution: {integrity: sha512-qC3oAvEgr2A1vda/eaVdB+N+oul69uV5C/ULLBkMDhChrUkCnjw91fHAcxwZAqiTmna6ierYQB137OMdXw623Q==}
+    dependencies:
+      '@open-wc/dedupe-mixin': 1.4.0
+      '@polymer/polymer': 3.4.1
+      '@vaadin/a11y-base': 24.7.6
+      '@vaadin/component-base': 24.7.6
+      '@vaadin/vaadin-lumo-styles': 24.7.6
+      '@vaadin/vaadin-material-styles': 24.7.6
+      '@vaadin/vaadin-themable-mixin': 24.7.6
+      lit: 3.2.0
     dev: false
 
   /@vaadin/vaadin-development-mode-detector@2.0.7:
@@ -1327,6 +1450,15 @@ packages:
       '@vaadin/vaadin-themable-mixin': 23.5.1
     dev: false
 
+  /@vaadin/vaadin-lumo-styles@24.7.6:
+    resolution: {integrity: sha512-1WR8gnzmWRFbQFfmRFBJ9yYTjqwA8Sp7J46lfiurZUaXf9XFYe+4kxKjsUyVmUayh0k0fSysSitmyaSECUqrgg==}
+    dependencies:
+      '@polymer/polymer': 3.4.1
+      '@vaadin/component-base': 24.7.6
+      '@vaadin/icon': 24.7.6
+      '@vaadin/vaadin-themable-mixin': 24.7.6
+    dev: false
+
   /@vaadin/vaadin-material-styles@23.5.1:
     resolution: {integrity: sha512-39Yp3DGZifmNXvqjsWjZXlxC+G+BsODvNCjUaegxKsnDNkl6BrU2i7URtT+9mDLikV+ErLBArJKkxr0/f6oqOQ==}
     dependencies:
@@ -1334,11 +1466,26 @@ packages:
       '@vaadin/vaadin-themable-mixin': 23.5.1
     dev: false
 
+  /@vaadin/vaadin-material-styles@24.7.6:
+    resolution: {integrity: sha512-zjCv1dacdG3yA5LfQCSyNuNYPMNspJh863wxt8HTnJb2kMf9rzj9S7lZj6V1DOVRPW/pP/sPA+LF3RPs6HDEfg==}
+    dependencies:
+      '@polymer/polymer': 3.4.1
+      '@vaadin/component-base': 24.7.6
+      '@vaadin/vaadin-themable-mixin': 24.7.6
+    dev: false
+
   /@vaadin/vaadin-themable-mixin@23.5.1:
     resolution: {integrity: sha512-PVP4a6TNTdRLoiUxZcXYRTDc3l+sPIfOEFWfxpQ+9Bf2qLdZxDJA2dsCeMRaPOV9j3Y8A1/+rglJs8yHznnmQg==}
     dependencies:
       '@open-wc/dedupe-mixin': 1.4.0
       lit: 2.8.0
+    dev: false
+
+  /@vaadin/vaadin-themable-mixin@24.7.6:
+    resolution: {integrity: sha512-HZzjsAnOD6aXWH2jF3zgaolyAuwjj4WnosEauJjp6UohX2Db048+eGOsWUXGUp/Br+NT3NGl2Aw/Dpgu8IGayw==}
+    dependencies:
+      '@open-wc/dedupe-mixin': 1.4.0
+      lit: 3.2.0
     dev: false
 
   /@vaadin/vaadin-usage-statistics@2.1.2:

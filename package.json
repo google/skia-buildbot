@@ -35,6 +35,7 @@
     "@typescript-eslint/eslint-plugin": "^8.5.0",
     "@typescript-eslint/parser": "^8.5.0",
     "@vaadin/combo-box": "^23.5.1",
+    "@vaadin/multi-select-combo-box": "^24.7.6",
     "@webgpu/types": "0.1.21",
     "acorn": "^8.7.0",
     "ajv": "^8.12.0",
