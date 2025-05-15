@@ -1878,11 +1878,11 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
-  enableTooltip(
+  async enableTooltip(
     pointDetails: PlotSimpleSkTraceEventDetails,
     commits: Commit[] | null,
     fixTooltip: boolean
-  ): void {
+  ): Promise<void> {
     // explore-simple-sk is used multiple times on the multi-graph view. To
     // make sure that appropriate chart-tooltip-sk element is selected, we
     // start the search from the explore-simple-sk that the user is hovering/
@@ -1917,21 +1917,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.startCommit = prevCommitPos?.toString() || '';
     this.endCommit = commitPosition.toString();
 
-    tooltipElem!
-      .loadPointLinks(
-        commitPosition,
-        prevCommitPos,
-        traceName,
-        window.perf.keys_for_commit_range!,
-        window.perf.keys_for_useful_links!,
-        this.commitLinks
-      )
-      .then((links) => {
-        this.commitLinks = links;
-      })
-      .catch((errorMessage) => {
-        console.error('Error loading point links:', errorMessage);
-      });
     // TODO(b/370804498): To be refactored into google plot / dataframe.
     // The anomaly data is indirectly referenced from simple-plot, and the anomaly data gets
     // updated in place in triage popup. This may cause the data inconsistency to manipulate
@@ -2029,7 +2014,7 @@ export class ExploreSimpleSk extends ElementSk {
     commitRangeSk!.hashes = hashes;
 
     if (commit === null) {
-      fetch('/_/cid/', {
+      await fetch('/_/cid/', {
         method: 'POST',
         body: JSON.stringify([prevCommitPos, commitPosition]),
         headers: {
@@ -2037,7 +2022,7 @@ export class ExploreSimpleSk extends ElementSk {
         },
       })
         .then(jsonOrThrow)
-        .then((json: CIDHandlerResponse) => {
+        .then(async (json: CIDHandlerResponse) => {
           const key = JSON.stringify([commitPosition, traceName]);
           this.pointToCommitDetailMap.set(key, json.commitSlice!);
           if (tooltipElem) {
