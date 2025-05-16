@@ -5,7 +5,6 @@ import { Anomaly, ColumnHeader, TraceSet } from '../json';
 
 // Google chart's default color palette, two shades down
 export const defaultColors = [
-  '#5b84d6', // rgb(91, 132, 214)
   '#e36041', // rgb(227, 96, 65)
   '#ffad32', // rgb(255, 173, 50)
   '#3fab46', // rgb(63, 171, 70)
@@ -21,6 +20,7 @@ export const defaultColors = [
   '#bbbb40', // rgb(187, 187, 64)
   '#845bd6', // rgb(132, 91, 214)
   '#eb8f32', // rgb(235, 143, 50)
+  '#5b84d6', // rgb(91, 132, 214)
   '#a23838', // rgb(162, 56, 56)
   '#5aa781', // rgb(90, 167, 129)
   '#5574A6', // rgb(85, 116, 166)
