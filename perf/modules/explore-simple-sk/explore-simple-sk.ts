@@ -672,7 +672,7 @@ export class ExploreSimpleSk extends ElementSk {
                   id="commit-switch"
                   ?selected="${ele.xAxisSwitch}"
                   @change=${(e: InputEvent) => ele.switchXAxis(e.target as MdSwitch)}></md-switch>
-                X-Axis as Commit Positions
+                X-Axis as Commit Date
               </label>
             </li>
             <li>
