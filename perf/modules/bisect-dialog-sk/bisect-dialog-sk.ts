@@ -86,7 +86,7 @@ export class BisectDialogSk extends ElementSk {
       </button>
       <form id="bisect-form">
       <h3>Test Path</h3>
-      <input id="testpath" type="text" value=${ele.testPath} readonly></input>
+      <input id="testpath" type="text" value=${ele.testPath}></input>
       <h3>Bug ID</h3>
       <input id="bug-id" type="text" value=${ele.bugId}></input>
       <h3>Start Commit</h3>

@@ -120,10 +120,7 @@ export class NewBugDialogSk extends ElementSk {
       this.fileNewBug();
     });
 
-    window.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      this.onMousedown(e);
-    });
+    document.addEventListener('mousedown', this.onMousedown);
   }
 
   /**
