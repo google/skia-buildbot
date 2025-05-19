@@ -2043,7 +2043,6 @@ export class ExploreSimpleSk extends ElementSk {
           if (tooltipElem) {
             tooltipElem.commit_info = json.commitSlice![1];
           }
-          this.constructTestPath(traceName);
           if (anomaly !== null && anomaly.bug_id > 0) {
             this.bugId = anomaly.bug_id.toString();
           } else {
@@ -2051,9 +2050,8 @@ export class ExploreSimpleSk extends ElementSk {
           }
         })
         .catch(errorMessage);
-    } else {
-      this.constructTestPath(traceName);
     }
+    this.constructTestPath(traceName);
 
     const preloadBisectInputs: BisectPreloadParams = {
       testPath: this.testPath,
