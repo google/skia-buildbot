@@ -76,10 +76,9 @@ export class PlotGoogleChartSk extends LitElement {
         transform: translate(-50%, -50%);
         border-radius: 50%;
         pointer-events: none;
-        font-weight: bolder;
-        font-size: 24px;
         color: darkblue;
-        border: darkblue 1px solid;
+        width: 16px;
+        height: 16px;
       }
       md-icon.improvement {
         background-color: rgba(0, 155, 0, 0.8); /* green */
@@ -94,7 +93,7 @@ export class PlotGoogleChartSk extends LitElement {
         background-color: rgba(100, 100, 100, 0.8); /* grey */
       }
       md-icon.highlighted {
-        outline: 3px solid var(--warning);
+        outline: 2px solid var(--warning);
         outline-offset: 2px;
       }
     }
