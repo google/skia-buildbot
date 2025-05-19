@@ -87,8 +87,8 @@ dependencies:
     specifier: ^8.5.0
     version: 8.5.0(eslint@8.57.0)(typescript@5.2.2)
   '@vaadin/combo-box':
-    specifier: ^23.5.1
-    version: 23.5.1
+    specifier: ^24.7.6
+    version: 24.7.6
   '@vaadin/multi-select-combo-box':
     specifier: ^24.7.6
     version: 24.7.6
@@ -717,12 +717,6 @@ packages:
       '@lit/reactive-element': 2.0.4
     dev: false
 
-  /@lit/reactive-element@1.6.3:
-    resolution: {integrity: sha512-QuTgnG52Poic7uM1AN5yJ09QMe0O28e10XzSvWDz02TJiiKee4stsiownEIadWm8nYzyDAyT+gKzUoZmiWQtsQ==}
-    dependencies:
-      '@lit-labs/ssr-dom-shim': 1.2.0
-    dev: false
-
   /@lit/reactive-element@2.0.4:
     resolution: {integrity: sha512-GFn91inaUa2oHLak8awSIigYz0cU0Payr1rcFsrkf5OJ5eSPxElyZfKh0f2p9FsTiZWXQdWGJeXZICEfXXYSXQ==}
     dependencies:
@@ -793,35 +787,8 @@ packages:
     resolution: {integrity: sha512-Sj7gKl1TLcDbF7B6KUhtvr+1UCxdhMbNY5KxdU5IfMFWqL8oy1ZeAcCANjoB1TL0AJTcPmcCFsCbHf8X2jGDUA==}
     dev: false
 
-  /@polymer/iron-flex-layout@3.0.1:
-    resolution: {integrity: sha512-7gB869czArF+HZcPTVSgvA7tXYFze9EKckvM95NB7SqYF+NnsQyhoXgKnpFwGyo95lUjUW9TFDLUwDXnCYFtkw==}
-    dependencies:
-      '@polymer/polymer': 3.4.1
-    dev: false
-
-  /@polymer/iron-icon@3.0.1:
-    resolution: {integrity: sha512-QLPwirk+UPZNaLnMew9VludXA4CWUCenRewgEcGYwdzVgDPCDbXxy6vRJjmweZobMQv/oVLppT2JZtJFnPxX6g==}
-    dependencies:
-      '@polymer/iron-flex-layout': 3.0.1
-      '@polymer/iron-meta': 3.0.1
-      '@polymer/polymer': 3.4.1
-    dev: false
-
-  /@polymer/iron-iconset-svg@3.0.1:
-    resolution: {integrity: sha512-XNwURbNHRw6u2fJe05O5fMYye6GSgDlDqCO+q6K1zAnKIrpgZwf2vTkBd5uCcZwsN0FyCB3mvNZx4jkh85dRDw==}
-    dependencies:
-      '@polymer/iron-meta': 3.0.1
-      '@polymer/polymer': 3.4.1
-    dev: false
-
   /@polymer/iron-jsonp-library@3.0.1:
     resolution: {integrity: sha512-JpIommURLt9DCqcaJaxsUiDWEaVWV2zoq12oJAMO65Do9Sl9TAv556bI7I4mLJcE40otPZ4wYap4kFViORMiKA==}
-    dependencies:
-      '@polymer/polymer': 3.4.1
-    dev: false
-
-  /@polymer/iron-meta@3.0.1:
-    resolution: {integrity: sha512-pWguPugiLYmWFV9UWxLWzZ6gm4wBwQdDy4VULKwdHCqR7OP7u98h+XDdGZsSlDPv6qoryV/e3tGHlTIT0mbzJA==}
     dependencies:
       '@polymer/polymer': 3.4.1
     dev: false
@@ -1242,22 +1209,6 @@ packages:
       lit: 3.2.0
     dev: false
 
-  /@vaadin/combo-box@23.5.1:
-    resolution: {integrity: sha512-nax1HBG9qoaloUby2J2sFaf6jrznZYzNmcKW0oxTKKDX7NYLyNDsL/JxZVUoNKHa41r48GC8dZMtJ/HKk0uRJA==}
-    dependencies:
-      '@open-wc/dedupe-mixin': 1.4.0
-      '@polymer/polymer': 3.4.1
-      '@vaadin/component-base': 23.5.1
-      '@vaadin/field-base': 23.5.1
-      '@vaadin/input-container': 23.5.1
-      '@vaadin/item': 23.5.1
-      '@vaadin/lit-renderer': 23.5.1
-      '@vaadin/overlay': 23.5.1
-      '@vaadin/vaadin-lumo-styles': 23.5.1
-      '@vaadin/vaadin-material-styles': 23.5.1
-      '@vaadin/vaadin-themable-mixin': 23.5.1
-    dev: false
-
   /@vaadin/combo-box@24.7.6:
     resolution: {integrity: sha512-JcEqthsUwiP5/UI5mfxd8Dn5XD4Fn0Xl5O2a0G6xe5NZDv5/P/hq9Y+tDBCu00t7xwuNX7kKGBLpE5Cv5xQzbA==}
     dependencies:
@@ -1276,16 +1227,6 @@ packages:
       lit: 3.2.0
     dev: false
 
-  /@vaadin/component-base@23.5.1:
-    resolution: {integrity: sha512-K/beIrsgNn0ZIYkiG9rtIIu5S9Rb67x3ekrJYrWBfBErjhL0HBCfWSOtxyr2H2KB9eWFHm750+JHZ/CgfNg/Ag==}
-    dependencies:
-      '@open-wc/dedupe-mixin': 1.4.0
-      '@polymer/polymer': 3.4.1
-      '@vaadin/vaadin-development-mode-detector': 2.0.7
-      '@vaadin/vaadin-usage-statistics': 2.1.2
-      lit: 2.8.0
-    dev: false
-
   /@vaadin/component-base@24.7.6:
     resolution: {integrity: sha512-DCwSNObDgf6CZ6c3oMjEVqs2OY8qc+YgPSTdl0jiaIoKRPJW0+XAFojAmlRKS1iJfM+E4sB5XG0AIlsg7MkzJw==}
     dependencies:
@@ -1296,15 +1237,6 @@ packages:
       lit: 3.2.0
     dev: false
 
-  /@vaadin/field-base@23.5.1:
-    resolution: {integrity: sha512-zZGMys5Wl6ajrR0B2f70VkR1tPIeVjjyES9272pNTpd66g+0j+TJ2c4duwfKZ7Q6tW1T8JzPoSS1SWFrFbdrDQ==}
-    dependencies:
-      '@open-wc/dedupe-mixin': 1.4.0
-      '@polymer/polymer': 3.4.1
-      '@vaadin/component-base': 23.5.1
-      lit: 2.8.0
-    dev: false
-
   /@vaadin/field-base@24.7.6:
     resolution: {integrity: sha512-AbvuGibH9Lk31zPq4eGuHzMja2zeajhkIjP6mOEPy6E6GgZWrvuk0Ws5Y+NaWfUvm6cl3HMvWFCtFGGs0T1vmg==}
     dependencies:
@@ -1313,16 +1245,6 @@ packages:
       '@vaadin/a11y-base': 24.7.6
       '@vaadin/component-base': 24.7.6
       lit: 3.2.0
-    dev: false
-
-  /@vaadin/icon@23.5.1:
-    resolution: {integrity: sha512-mfpzEEhZVSgyiGtie0+Vzy4bEw/bShzXOpuj6BX83G5d98vxRIgHbLfumyNmcTYZ2hZSUuAch5MzV7rPqoeLhg==}
-    dependencies:
-      '@polymer/polymer': 3.4.1
-      '@vaadin/component-base': 23.5.1
-      '@vaadin/vaadin-lumo-styles': 23.5.1
-      '@vaadin/vaadin-themable-mixin': 23.5.1
-      lit: 2.8.0
     dev: false
 
   /@vaadin/icon@24.7.6:
@@ -1336,16 +1258,6 @@ packages:
       lit: 3.2.0
     dev: false
 
-  /@vaadin/input-container@23.5.1:
-    resolution: {integrity: sha512-RsqPg5kj+VFlfWIQYaQllFrGPUTvT8l6fyQvBlcazPhEfiv9d3i2SYUUKmO5p563ToWbv+IHwMNSbnIK9tpw6Q==}
-    dependencies:
-      '@polymer/polymer': 3.4.1
-      '@vaadin/component-base': 23.5.1
-      '@vaadin/vaadin-lumo-styles': 23.5.1
-      '@vaadin/vaadin-material-styles': 23.5.1
-      '@vaadin/vaadin-themable-mixin': 23.5.1
-    dev: false
-
   /@vaadin/input-container@24.7.6:
     resolution: {integrity: sha512-/8fPwlkHZkUAv/K1JuOQ9+E/VXTxb9bCB1jMBx9y/h/J+eggi/YNlajCwiaA2NCphjSzszRDi2U14xDBriSHrA==}
     dependencies:
@@ -1355,17 +1267,6 @@ packages:
       '@vaadin/vaadin-material-styles': 24.7.6
       '@vaadin/vaadin-themable-mixin': 24.7.6
       lit: 3.2.0
-    dev: false
-
-  /@vaadin/item@23.5.1:
-    resolution: {integrity: sha512-HVsjRi9VUt2/+AuQlQjEp4wjIPyFG3CMtst8AQD8dAHp6ENxGwpBwueNG+sTVYk5LwCFKQ8wGjtmGK9tLc5cLA==}
-    dependencies:
-      '@open-wc/dedupe-mixin': 1.4.0
-      '@polymer/polymer': 3.4.1
-      '@vaadin/component-base': 23.5.1
-      '@vaadin/vaadin-lumo-styles': 23.5.1
-      '@vaadin/vaadin-material-styles': 23.5.1
-      '@vaadin/vaadin-themable-mixin': 23.5.1
     dev: false
 
   /@vaadin/item@24.7.6:
@@ -1379,12 +1280,6 @@ packages:
       '@vaadin/vaadin-material-styles': 24.7.6
       '@vaadin/vaadin-themable-mixin': 24.7.6
       lit: 3.2.0
-    dev: false
-
-  /@vaadin/lit-renderer@23.5.1:
-    resolution: {integrity: sha512-4QsPy0v7y3uL749DNvVMLN0cF2HtUNpbuAMrdfsMUXP4mXV69kHTD79AAo20e1YFPuO5ROtJd8g6RSe3kok0hg==}
-    dependencies:
-      lit: 2.8.0
     dev: false
 
   /@vaadin/lit-renderer@24.7.6:
@@ -1412,17 +1307,6 @@ packages:
       lit: 3.2.0
     dev: false
 
-  /@vaadin/overlay@23.5.1:
-    resolution: {integrity: sha512-4SivGc7GaT63prL7DZ+ZQHVRzxg5Oz52snxDV5wDvPx8DHY0uEEbsXVXiZNb//hrpxuzSkvBGtQDVBiVaB2NIg==}
-    dependencies:
-      '@open-wc/dedupe-mixin': 1.4.0
-      '@polymer/polymer': 3.4.1
-      '@vaadin/component-base': 23.5.1
-      '@vaadin/vaadin-lumo-styles': 23.5.1
-      '@vaadin/vaadin-material-styles': 23.5.1
-      '@vaadin/vaadin-themable-mixin': 23.5.1
-    dev: false
-
   /@vaadin/overlay@24.7.6:
     resolution: {integrity: sha512-qC3oAvEgr2A1vda/eaVdB+N+oul69uV5C/ULLBkMDhChrUkCnjw91fHAcxwZAqiTmna6ierYQB137OMdXw623Q==}
     dependencies:
@@ -1440,16 +1324,6 @@ packages:
     resolution: {integrity: sha512-9FhVhr0ynSR3X2ao+vaIEttcNU5XfzCbxtmYOV8uIRnUCtNgbvMOIcyGBvntsX9I5kvIP2dV3cFAOG9SILJzEA==}
     dev: false
 
-  /@vaadin/vaadin-lumo-styles@23.5.1:
-    resolution: {integrity: sha512-dQrQd++qcHNThjV+zeA9E/96eAuD7gKJOy3fwfeCWmw11dWCcunK5+r4CfFg9Hpv46urDIFd1VwRRrsZHA/Uug==}
-    dependencies:
-      '@polymer/iron-icon': 3.0.1
-      '@polymer/iron-iconset-svg': 3.0.1
-      '@polymer/polymer': 3.4.1
-      '@vaadin/icon': 23.5.1
-      '@vaadin/vaadin-themable-mixin': 23.5.1
-    dev: false
-
   /@vaadin/vaadin-lumo-styles@24.7.6:
     resolution: {integrity: sha512-1WR8gnzmWRFbQFfmRFBJ9yYTjqwA8Sp7J46lfiurZUaXf9XFYe+4kxKjsUyVmUayh0k0fSysSitmyaSECUqrgg==}
     dependencies:
@@ -1459,26 +1333,12 @@ packages:
       '@vaadin/vaadin-themable-mixin': 24.7.6
     dev: false
 
-  /@vaadin/vaadin-material-styles@23.5.1:
-    resolution: {integrity: sha512-39Yp3DGZifmNXvqjsWjZXlxC+G+BsODvNCjUaegxKsnDNkl6BrU2i7URtT+9mDLikV+ErLBArJKkxr0/f6oqOQ==}
-    dependencies:
-      '@polymer/polymer': 3.4.1
-      '@vaadin/vaadin-themable-mixin': 23.5.1
-    dev: false
-
   /@vaadin/vaadin-material-styles@24.7.6:
     resolution: {integrity: sha512-zjCv1dacdG3yA5LfQCSyNuNYPMNspJh863wxt8HTnJb2kMf9rzj9S7lZj6V1DOVRPW/pP/sPA+LF3RPs6HDEfg==}
     dependencies:
       '@polymer/polymer': 3.4.1
       '@vaadin/component-base': 24.7.6
       '@vaadin/vaadin-themable-mixin': 24.7.6
-    dev: false
-
-  /@vaadin/vaadin-themable-mixin@23.5.1:
-    resolution: {integrity: sha512-PVP4a6TNTdRLoiUxZcXYRTDc3l+sPIfOEFWfxpQ+9Bf2qLdZxDJA2dsCeMRaPOV9j3Y8A1/+rglJs8yHznnmQg==}
-    dependencies:
-      '@open-wc/dedupe-mixin': 1.4.0
-      lit: 2.8.0
     dev: false
 
   /@vaadin/vaadin-themable-mixin@24.7.6:
@@ -3886,14 +3746,6 @@ packages:
       lit-html: 1.3.0
     dev: false
 
-  /lit-element@3.3.3:
-    resolution: {integrity: sha512-XbeRxmTHubXENkV4h8RIPyr8lXc+Ff28rkcQzw3G6up2xg5E8Zu1IgOWIwBLEQsu3cOVFqdYwiVi0hv0SlpqUA==}
-    dependencies:
-      '@lit-labs/ssr-dom-shim': 1.2.0
-      '@lit/reactive-element': 1.6.3
-      lit-html: 2.8.0
-    dev: false
-
   /lit-element@4.1.0:
     resolution: {integrity: sha512-gSejRUQJuMQjV2Z59KAS/D4iElUhwKpIyJvZ9w+DIagIQjfJnhR20h2Q5ddpzXGS+fF0tMZ/xEYGMnKmaI/iww==}
     dependencies:
@@ -3906,24 +3758,10 @@ packages:
     resolution: {integrity: sha512-0Q1bwmaFH9O14vycPHw8C/IeHMk/uSDldVLIefu/kfbTBGIc44KGH6A8p1bDfxUfHdc8q6Ct7kQklWoHgr4t1Q==}
     dev: false
 
-  /lit-html@2.8.0:
-    resolution: {integrity: sha512-o9t+MQM3P4y7M7yNzqAyjp7z+mQGa4NS4CxiyLqFPyFWyc4O+nodLrkrxSaCTrla6M5YOLaT3RpbbqjszB5g3Q==}
-    dependencies:
-      '@types/trusted-types': 2.0.7
-    dev: false
-
   /lit-html@3.2.0:
     resolution: {integrity: sha512-pwT/HwoxqI9FggTrYVarkBKFN9MlTUpLrDHubTmW4SrkL3kkqW5gxwbxMMUnbbRHBC0WTZnYHcjDSCM559VyfA==}
     dependencies:
       '@types/trusted-types': 2.0.7
-    dev: false
-
-  /lit@2.8.0:
-    resolution: {integrity: sha512-4Sc3OFX9QHOJaHbmTMk28SYgVxLN3ePDjg7hofEft2zWlehFL3LiAuapWc4U/kYwMYJSh2hTCPZ6/LIC7ii0MA==}
-    dependencies:
-      '@lit/reactive-element': 1.6.3
-      lit-element: 3.3.3
-      lit-html: 2.8.0
     dev: false
 
   /lit@3.2.0:
