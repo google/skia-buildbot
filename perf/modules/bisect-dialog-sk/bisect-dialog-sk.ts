@@ -100,7 +100,7 @@ export class BisectDialogSk extends ElementSk {
       <div class=footer>
         <spinner-sk id="dialog-spinner"></spinner-sk>
         <button id="submit-button" type="submit" @click=${ele.postBisect}>Bisect</button>
-        <button @click=${ele.closeBisectDialog}>Close</button>
+        <button id="close-btn" @click=${ele.closeBisectDialog} type="button">Close</button>
       </div>
       </form>
     </dialog>
