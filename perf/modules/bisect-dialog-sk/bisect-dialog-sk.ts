@@ -163,7 +163,6 @@ export class BisectDialogSk extends ElementSk {
 
   private closeBisectDialog(): void {
     this._dialog!.close();
-    this._render();
   }
 
   private postBisect(): void {
