@@ -6,6 +6,7 @@ build/
 new_element/
 **/testdata/
 infra/bots/
+licenses/LICENSES.md
 _bazel*/**
 **/modules/config/config.ts
 **/modules/config/twirp.ts

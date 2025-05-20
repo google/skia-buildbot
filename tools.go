@@ -10,7 +10,7 @@ package main
 
 import (
 	_ "github.com/golang/protobuf/protoc-gen-go"
-	_ "github.com/google/go-licenses"
+	_ "github.com/google/go-licenses/v2"
 	_ "github.com/kisielk/errcheck"
 	_ "github.com/skia-dev/protoc-gen-twirp_typescript"
 	_ "github.com/twitchtv/twirp/protoc-gen-twirp"
