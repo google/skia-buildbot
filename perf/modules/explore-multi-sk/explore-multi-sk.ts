@@ -26,7 +26,7 @@ import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-c
 
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 
-import { queryFromKey } from '../paramtools';
+import { fromKey, queryFromKey } from '../paramtools';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
@@ -45,6 +45,7 @@ import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
+import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 
 class State {
   begin: number = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
@@ -84,6 +85,8 @@ class State {
   show_google_plot = false;
 
   xbaroffset: number = -1;
+
+  splitByKey: string = '';
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -99,10 +102,6 @@ export class ExploreMultiSk extends ElementSk {
 
   private _state: State = new State();
 
-  private splitGraphButton: HTMLButtonElement | null = null;
-
-  private mergeGraphsButton: HTMLButtonElement | null = null;
-
   private addGraphButton: HTMLButtonElement | null = null;
 
   private graphDiv: Element | null = null;
@@ -115,7 +114,7 @@ export class ExploreMultiSk extends ElementSk {
 
   private userEmail: string = '';
 
-  private displayFullTitles: boolean = false;
+  private splitByList: PickerFieldSk | null = null;
 
   constructor() {
     super(ExploreMultiSk.template);
@@ -127,12 +126,11 @@ export class ExploreMultiSk extends ElementSk {
     this._render();
 
     this.graphDiv = this.querySelector('#graphContainer');
-    this.splitGraphButton = this.querySelector('#split-graph-button');
-    this.mergeGraphsButton = this.querySelector('#merge-graphs-button');
     this.addGraphButton = this.querySelector('#add-graph-button');
     this.testPicker = this.querySelector('#test-picker');
 
     await this.initializeDefaults();
+    await this.initializeSplitByList();
 
     this.stateHasChanged = stateReflector(
       () => this.state as unknown as HintableObject,
@@ -172,8 +170,6 @@ export class ExploreMultiSk extends ElementSk {
         this.state = state;
         this.addGraphsToCurrentPage();
 
-        this.updateButtons();
-
         document.addEventListener('keydown', (e) => {
           this.exploreElements.forEach((exp) => {
             exp.keyDown(e);
@@ -192,17 +188,6 @@ export class ExploreMultiSk extends ElementSk {
 
   private canAddFav(): boolean {
     return this.userEmail !== null && this.userEmail !== '';
-  }
-
-  // Checks if the multi graph page has at least one explore-simple-sk element.
-  private canActivateTitles(): boolean {
-    const hasExploreElems = !(this.exploreElements === null || this.exploreElements === undefined);
-    return hasExploreElems && this.exploreElements.length > 0;
-  }
-
-  private toggleChartStyle() {
-    this.state.show_google_plot = !this.state.show_google_plot;
-    this.addGraphsToCurrentPage();
   }
 
   private openAddFavoriteDialog = async () => {
@@ -225,22 +210,7 @@ export class ExploreMultiSk extends ElementSk {
         title="Add empty graph.">
         Add Graph
       </button>
-      <button
-        id="split-graph-button"
-        @click=${() => {
-          ele.splitGraph();
-        }}
-        title="Create multiple graphs from a single graph.">
-        Split Graph
-      </button>
-      <button
-        id="merge-graphs-button"
-        @click=${() => {
-          ele.mergeGraphs();
-        }}
-        title="Merge all graphs into a single graph.">
-        Merge Graphs
-      </button>
+      <picker-field-sk id="splitby-keys"> </picker-field-sk>
       <button
         id="favBtn"
         ?disabled=${!ele.canAddFav()}
@@ -325,6 +295,99 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   /**
+   * This function initializes the split by list by populating
+   * it with the available param keys in the dropdown.
+   */
+  private async initializeSplitByList(): Promise<void> {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    await fetch(`/_/initpage/?tz=${tz}`, {
+      method: 'GET',
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        const paramKeys: string[] = Object.keys(json.dataframe.paramset);
+        this.splitByList = this.querySelector('#splitby-keys');
+        this.splitByList!.label = 'Split By';
+        this.splitByList!.options = paramKeys;
+      });
+
+    // Whenever the user selects a value from the split by list,
+    // update the state to reflect it and then split the graphs.
+    this.splitByList!.addEventListener('value-changed', (e) => {
+      const selectedSplitKey = (e as CustomEvent).detail.value;
+      this.state.splitByKey = selectedSplitKey;
+      this.splitGraphs();
+    });
+  }
+
+  /**
+   * Groups all the traces on the current multi graph view based on the
+   * key selected in the SplitBy dropdown.
+   * @returns A map where the key is the value of the split by param and
+   * the value is a list of traceIds grouped by that value.
+   */
+  private groupTracesBySplitKey(): Map<string, string[]> {
+    const splitKey = this.state.splitByKey;
+    const traceset: string[] = [];
+    this.getTracesets().forEach((ts) => {
+      traceset.push(...ts);
+    });
+
+    const groupedTraces = new Map<string, string[]>();
+    if (traceset.length > 0) {
+      traceset.forEach((key) => {
+        const traceParams = new URLSearchParams(fromKey(key));
+        const splitValue = traceParams.get(splitKey);
+        let existingGroup = groupedTraces.get(splitValue!);
+        if (existingGroup !== undefined) {
+          existingGroup.push(key);
+        } else {
+          existingGroup = [key];
+        }
+        groupedTraces.set(splitValue!, existingGroup);
+      });
+    }
+    return groupedTraces;
+  }
+
+  /**
+   * Splits the graphs based on the split by dropdown selection.
+   */
+  private splitGraphs(): void {
+    const groupedTraces = this.groupTracesBySplitKey();
+    if (groupedTraces.size === 0) {
+      return;
+    }
+
+    // It's the same graph, so let's simply return early.
+    if (groupedTraces.size === 1 && this.state.totalGraphs === 1) {
+      return;
+    }
+    this.clearGraphs();
+    let i = 0;
+    // Create the graph configs for each group.
+    groupedTraces.forEach((traces) => {
+      this.addEmptyGraph();
+      const queries: string[] = [];
+      traces.forEach((trace) => {
+        queries.push(queryFromKey(trace));
+      });
+      this.graphConfigs[i].queries = queries;
+      i++;
+      // TODO(ashwinpv): Support formulas?
+    });
+
+    this.updateShortcutMultiview();
+
+    // Upon the split action, we would want to move to the first page
+    // of the split graph set.
+    this.state.pageOffset = 0;
+
+    // Now add the graphs that have been configured to the page.
+    this.addGraphsToCurrentPage();
+  }
+
+  /**
    * Initialize TestPickerSk only if include_params has been specified.
    *
    * If so, hide the default "Add Graph" button and display the Test Picker.
@@ -370,12 +433,10 @@ export class ExploreMultiSk extends ElementSk {
 
           this.updateShortcutMultiview();
           this.addGraphsToCurrentPage();
-          this.updateButtons();
         } else {
           this.state.totalGraphs = this.exploreElements.length;
           if (this.stateHasChanged) this.stateHasChanged();
           this.addGraphsToCurrentPage();
-          this.updateButtons();
         }
         e.stopPropagation();
       });
@@ -412,7 +473,6 @@ export class ExploreMultiSk extends ElementSk {
   private clearGraphs() {
     this.exploreElements = [];
     this.graphConfigs = [];
-    this.updateButtons();
   }
 
   private emptyCurrentPage(): void {
@@ -520,8 +580,6 @@ export class ExploreMultiSk extends ElementSk {
       this.exploreElements.push(explore);
       this.graphConfigs.push(graphConfig);
     }
-    this.updateButtons();
-
     explore.addEventListener('state_changed', () => {
       const elemState = explore.state;
 
@@ -543,20 +601,6 @@ export class ExploreMultiSk extends ElementSk {
 
   public set state(v: State) {
     this._state = v;
-  }
-
-  private updateButtons() {
-    if (this.exploreElements.length === 1) {
-      this.splitGraphButton!.disabled = false;
-    } else {
-      this.splitGraphButton!.disabled = true;
-    }
-
-    if (this.exploreElements.length > 1) {
-      this.mergeGraphsButton!.disabled = false;
-    } else {
-      this.mergeGraphsButton!.disabled = true;
-    }
   }
 
   /**
@@ -607,86 +651,6 @@ export class ExploreMultiSk extends ElementSk {
       }
     });
     return tracesets;
-  }
-
-  /**
-   * Takes the traces of a single graph and create a separate graph for each of those
-   * traces.
-   *
-   * Say the displayed graphs are of the following form:
-   *
-   * [
-   *  [
-   *    ",a=1,b=2,c=3,",
-   *    ",a=1,b=2,c=4,",
-   *    ",a=1,b=2,c=5,"
-   *  ],
-   * ]
-   *
-   * The resulting Multigraph structure will be:
-   *
-   * [
-   *  [
-   *    ",a=1,b=2,c=3,"
-   *  ],
-   *  [
-   *    ",a=1,b=2,c=4,"
-   *  ],
-   *  [
-   *    ",a=1,b=2,c=5,"
-   *  ]
-   * ]
-   *
-   *
-   */
-  private async splitGraph() {
-    const traceset = this.getTracesets()[0];
-    if (!traceset) {
-      return;
-    }
-    this.clearGraphs();
-    traceset.forEach((key, i) => {
-      this.addEmptyGraph();
-      if (key[0] === ',') {
-        const queries = queryFromKey(key);
-        this.graphConfigs[i].queries = [queries];
-      } else {
-        const formulas = key;
-        this.graphConfigs[i].formulas = [formulas];
-      }
-    });
-    this.updateShortcutMultiview();
-
-    // Upon the split action, we would want to move to the first page
-    // of the split graph set.
-    this.state.pageOffset = 0;
-    this.addGraphsToCurrentPage();
-  }
-
-  /**
-   *
-   * Takes the traces of all Graphs and merges them into a single Graph.
-   *
-   * Opposite of splitGraph function.
-   */
-  private async mergeGraphs() {
-    const mergedGraphConfig = new GraphConfig();
-    this.graphConfigs.forEach((config) => {
-      config.formulas.forEach((formula) => {
-        mergedGraphConfig.formulas.push(formula);
-      });
-      config.queries.forEach((query) => {
-        mergedGraphConfig.queries.push(query);
-      });
-    });
-    this.clearGraphs();
-    this.addEmptyGraph();
-
-    this.graphConfigs[0] = mergedGraphConfig;
-    this.updateShortcutMultiview!();
-    // Upon the merge action, we would want to move to the first page.
-    this.state.pageOffset = 0;
-    this.addGraphsToCurrentPage();
   }
 
   /**
