@@ -34,10 +34,7 @@ go_test(
     ],
     deps = [
         ":expectedschema",
-        "//go/deepequal/assertdeep",
-        "//go/sql/schema",
         "//golden/go/config",
-        "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",
         "@com_github_stretchr_testify//require",
     ],
