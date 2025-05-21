@@ -223,22 +223,22 @@ func ParseKeyFast(key string) (map[string]string, error) {
 }
 
 // queryParam represents a query on a particular parameter in a key.
-type queryParam struct {
-	keyMatch    string         // The param key, including the leading "," and trailing "=".
-	keyMatchLen int            // The length of keyMatch.
-	isWildCard  bool           // True if this is a wildcard value match.
-	isRegex     bool           // True if this is a regex value match.
-	isNegative  bool           // True if this is a negative value match.
-	values      []string       // The potential matches for the value.
-	reg         *regexp.Regexp // The regexp to match against, if a regexp search.
+type QueryParam struct {
+	KeyMatch    string         // The param key, including the leading "," and trailing "=".
+	KeyMatchLen int            // The length of keyMatch.
+	IsWildCard  bool           // True if this is a wildcard value match.
+	IsRegex     bool           // True if this is a regex value match.
+	IsNegative  bool           // True if this is a negative value match.
+	Values      []string       // The potential matches for the value.
+	Reg         *regexp.Regexp // The regexp to match against, if a regexp search.
 }
 
 // Key returns the parameter key, removing the leading "," and trailing "=".
-func (q queryParam) Key() string {
-	if len(q.keyMatch) <= 2 {
+func (q QueryParam) Key() string {
+	if len(q.KeyMatch) <= 2 {
 		return ""
 	}
-	return q.keyMatch[1 : len(q.keyMatch)-1]
+	return q.KeyMatch[1 : len(q.KeyMatch)-1]
 }
 
 // Query represents a query against a key, i.e. Query.Matches can return true
@@ -279,14 +279,14 @@ func (q queryParam) Key() string {
 //	       "extra_config": []string{"*"}})
 type Query struct {
 	// These are in alphabetical order of parameter name.
-	params []queryParam
+	Params []QueryParam
 }
 
 // String returns a minimal string representation of the Query.
 func (q *Query) String() string {
 	ret := []string{}
-	for _, p := range q.params {
-		ret = append(ret, p.values...)
+	for _, p := range q.Params {
+		ret = append(ret, p.Values...)
 		ret = append(ret, " ")
 	}
 	return strings.Join(ret, "")
@@ -296,8 +296,8 @@ func (q *Query) String() string {
 // representing the query.
 func (q *Query) KeyValueString() string {
 	sb := strings.Builder{}
-	for _, p := range q.params {
-		sb.WriteString(fmt.Sprintf("%s%s", p.keyMatch[1:], p.values))
+	for _, p := range q.Params {
+		sb.WriteString(fmt.Sprintf("%s%s", p.KeyMatch[1:], p.Values))
 	}
 
 	return sb.String()
@@ -321,7 +321,7 @@ func New(q url.Values) (*Query, error) {
 	}
 	sort.Strings(keys)
 
-	params := make([]queryParam, 0, len(q))
+	params := make([]QueryParam, 0, len(q))
 	for _, key := range keys {
 		keyMatch := "," + key + "="
 		isWildCard := false
@@ -360,23 +360,23 @@ func New(q url.Values) (*Query, error) {
 				}
 			}
 		}
-		params = append(params, queryParam{
-			keyMatch:    keyMatch,
-			keyMatchLen: len(keyMatch),
-			isWildCard:  isWildCard,
-			isRegex:     isRegex,
-			isNegative:  isNegative,
-			values:      values,
-			reg:         reg,
+		params = append(params, QueryParam{
+			KeyMatch:    keyMatch,
+			KeyMatchLen: len(keyMatch),
+			IsWildCard:  isWildCard,
+			IsRegex:     isRegex,
+			IsNegative:  isNegative,
+			Values:      values,
+			Reg:         reg,
 		})
 	}
 
-	return &Query{params: params}, nil
+	return &Query{Params: params}, nil
 }
 
 // Empty returns true of the Query is empty, i.e. it will match any trace.
 func (q *Query) Empty() bool {
-	return len(q.params) == 0
+	return len(q.Params) == 0
 }
 
 // Matches returns true if the given structured key matches the query.
@@ -386,25 +386,25 @@ func (q *Query) Matches(s string) bool {
 	// order we can always search forward in the structured key, i.e. once
 	// we've matched to a certain index in the string we can shorten the string
 	// and only search the remaining chars.
-	for _, part := range q.params {
+	for _, part := range q.Params {
 		//  First find the key.
-		keyIndex := strings.Index(s, part.keyMatch)
+		keyIndex := strings.Index(s, part.KeyMatch)
 		if keyIndex == -1 {
 			return false
 		}
 		// Truncate to the key.
-		s = s[keyIndex+part.keyMatchLen:]
-		if part.isWildCard {
+		s = s[keyIndex+part.KeyMatchLen:]
+		if part.IsWildCard {
 			continue
 		}
 		// Extract the value string.
 		valueIndex := strings.Index(s, ",")
 		value := s[:valueIndex]
-		if part.isRegex {
-			if !part.reg.MatchString(value) {
+		if part.IsRegex {
+			if !part.Reg.MatchString(value) {
 				return false
 			}
-		} else if part.isNegative == util.In(value, part.values) {
+		} else if part.IsNegative == util.In(value, part.Values) {
 			return false
 		}
 		// Truncate to the value.
@@ -415,7 +415,7 @@ func (q *Query) Matches(s string) bool {
 
 // appendRegexForFilter will attach a regex to 'ret' for every value in
 // 'values' that matches the given 'filter'.
-func appendRegexForFilter(keyIndex string, values []string, part queryParam, ret *[]string, filter func(string) bool) error {
+func appendRegexForFilter(keyIndex string, values []string, part QueryParam, ret *[]string, filter func(string) bool) error {
 	toBeORd := []string{}
 	for index, value := range values {
 		if filter(value) {
@@ -430,7 +430,7 @@ func appendRegexForFilter(keyIndex string, values []string, part queryParam, ret
 }
 
 // appendValueForFilter will return the values that matches the given 'filter'.
-func appendValueForFilter(key string, values []string, part queryParam, ret *paramtools.ParamSet, filter func(string) bool) error {
+func appendValueForFilter(key string, values []string, part QueryParam, ret *paramtools.ParamSet, filter func(string) bool) error {
 	toBeORd := []string{}
 	for _, value := range values {
 		if filter(value) {
@@ -480,26 +480,26 @@ func appendValueForFilter(key string, values []string, part queryParam, ret *par
 //	}
 func (q *Query) QueryPlan(ps paramtools.ReadOnlyParamSet) (paramtools.ParamSet, error) {
 	ret := paramtools.NewParamSet()
-	for _, part := range q.params {
+	for _, part := range q.Params {
 		partKey := part.Key()
 		values, ok := ps[partKey]
 		if !ok {
 			return nil, skerr.Fmt("Unknown key for paramset: %s", partKey)
 		}
 		var err error = nil
-		if part.isWildCard {
+		if part.IsWildCard {
 			ret[partKey] = append([]string{}, ps[partKey]...)
-		} else if part.isRegex {
+		} else if part.IsRegex {
 			err = appendValueForFilter(partKey, values, part, &ret, func(value string) bool {
-				return part.reg.MatchString(value)
+				return part.Reg.MatchString(value)
 			})
-		} else if part.isNegative {
+		} else if part.IsNegative {
 			err = appendValueForFilter(partKey, values, part, &ret, func(value string) bool {
-				return !util.In(value, part.values)
+				return !util.In(value, part.Values)
 			})
 		} else {
 			err = appendValueForFilter(partKey, values, part, &ret, func(value string) bool {
-				return util.In(value, part.values)
+				return util.In(value, part.Values)
 			})
 		}
 		if err != nil {

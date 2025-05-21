@@ -203,56 +203,56 @@ func TestMakeKey(t *testing.T) {
 func TestNew(t *testing.T) {
 	q, err := New(url.Values{"config": []string{"565", "8888"}})
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(q.params))
-	assert.Equal(t, false, q.params[0].isWildCard)
+	assert.Equal(t, 1, len(q.Params))
+	assert.Equal(t, false, q.Params[0].IsWildCard)
 
 	q, err = NewFromString("config=565&config=8888")
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(q.params))
-	assert.Equal(t, false, q.params[0].isWildCard)
+	assert.Equal(t, 1, len(q.Params))
+	assert.Equal(t, false, q.Params[0].IsWildCard)
 
 	q, err = NewFromString("config=%ZZ")
 	assert.Error(t, err, "Invalid query strings are caught.")
 
 	q, err = New(url.Values{"debug": []string{"false"}, "config": []string{"565", "8888"}})
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(q.params))
-	assert.Equal(t, ",config=", q.params[0].keyMatch)
-	assert.Equal(t, ",debug=", q.params[1].keyMatch)
-	assert.Equal(t, false, q.params[0].isWildCard)
-	assert.Equal(t, false, q.params[1].isWildCard)
-	assert.Equal(t, false, q.params[0].isNegative)
-	assert.Equal(t, false, q.params[1].isNegative)
+	assert.Equal(t, 2, len(q.Params))
+	assert.Equal(t, ",config=", q.Params[0].KeyMatch)
+	assert.Equal(t, ",debug=", q.Params[1].KeyMatch)
+	assert.Equal(t, false, q.Params[0].IsWildCard)
+	assert.Equal(t, false, q.Params[1].IsWildCard)
+	assert.Equal(t, false, q.Params[0].IsNegative)
+	assert.Equal(t, false, q.Params[1].IsNegative)
 
 	q, err = New(url.Values{"debug": []string{"*"}})
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(q.params))
-	assert.Equal(t, ",debug=", q.params[0].keyMatch)
-	assert.Equal(t, true, q.params[0].isWildCard)
-	assert.Equal(t, false, q.params[0].isNegative)
+	assert.Equal(t, 1, len(q.Params))
+	assert.Equal(t, ",debug=", q.Params[0].KeyMatch)
+	assert.Equal(t, true, q.Params[0].IsWildCard)
+	assert.Equal(t, false, q.Params[0].IsNegative)
 
 	q, err = New(url.Values{"config": []string{"!565"}})
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(q.params))
-	assert.Equal(t, ",config=", q.params[0].keyMatch)
-	assert.Equal(t, false, q.params[0].isWildCard)
-	assert.Equal(t, true, q.params[0].isNegative)
+	assert.Equal(t, 1, len(q.Params))
+	assert.Equal(t, ",config=", q.Params[0].KeyMatch)
+	assert.Equal(t, false, q.Params[0].IsWildCard)
+	assert.Equal(t, true, q.Params[0].IsNegative)
 
 	q, err = New(url.Values{"config": []string{"!565", "!8888"}, "debug": []string{"*"}})
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(q.params))
-	assert.Equal(t, ",config=", q.params[0].keyMatch)
-	assert.Equal(t, "565", q.params[0].values[0])
-	assert.Equal(t, "8888", q.params[0].values[1])
-	assert.Equal(t, ",debug=", q.params[1].keyMatch)
-	assert.Equal(t, false, q.params[0].isWildCard)
-	assert.Equal(t, true, q.params[0].isNegative)
-	assert.Equal(t, true, q.params[1].isWildCard)
-	assert.Equal(t, false, q.params[1].isNegative)
+	assert.Equal(t, 2, len(q.Params))
+	assert.Equal(t, ",config=", q.Params[0].KeyMatch)
+	assert.Equal(t, "565", q.Params[0].Values[0])
+	assert.Equal(t, "8888", q.Params[0].Values[1])
+	assert.Equal(t, ",debug=", q.Params[1].KeyMatch)
+	assert.Equal(t, false, q.Params[0].IsWildCard)
+	assert.Equal(t, true, q.Params[0].IsNegative)
+	assert.Equal(t, true, q.Params[1].IsWildCard)
+	assert.Equal(t, false, q.Params[1].IsNegative)
 
 	q, err = New(url.Values{})
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(q.params))
+	assert.Equal(t, 0, len(q.Params))
 }
 
 func TestMatches(t *testing.T) {
@@ -769,9 +769,9 @@ func TestValidateParamSet(t *testing.T) {
 }
 
 func TestQueryParamKey_HappyPath(t *testing.T) {
-	require.Equal(t, "arch", queryParam{keyMatch: ",arch="}.Key())
+	require.Equal(t, "arch", QueryParam{KeyMatch: ",arch="}.Key())
 }
 
 func TestQueryParamKey_EmptyKey_ReturnsEmptyString(t *testing.T) {
-	require.Empty(t, queryParam{keyMatch: ",="}.Key())
+	require.Empty(t, QueryParam{KeyMatch: ",="}.Key())
 }
