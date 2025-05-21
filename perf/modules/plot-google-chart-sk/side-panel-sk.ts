@@ -247,7 +247,7 @@ export class SidePanelSk extends LitElement {
    * @param traceId The trace id.
    */
   public SetCheckboxForTrace(checked: boolean, traceId: string) {
-    const items = this.getLegend();
+    const items = this.legendListCache;
     // The legend values are in the form of a/b/c/d while traceId is
     // ,k1=a,k2=b,k3=c,k4=d. The labelToLegendMap contains this
     // mapping so we first get the value on the legend to be updated.
@@ -289,7 +289,7 @@ export class SidePanelSk extends LitElement {
    * Sets the checkbox and tracks checked items in a list.
    */
   private setCheckbox(checked: boolean, index: number) {
-    const item = this.getLegend()[index];
+    const item = this.legendListCache[index];
     if (checked) {
       if (!this.checkedColList.has(item)) {
         this.checkedColList.add(item);
