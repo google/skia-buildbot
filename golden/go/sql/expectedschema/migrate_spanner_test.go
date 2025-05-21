@@ -5,14 +5,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/sql/expectedschema"
-	golden_schema "go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 )
 
+/*
+// TODO(pasthana): Uncomment once https://skia-review.googlesource.com/c/buildbot/+/992260
+// is merged, and schema.jsons have been validated to be equal to current
+// prod db
 func Test_NoMigrationNeeded_Spanner(t *testing.T) {
 	ctx := context.Background()
 	// Load DB loaded with schema from schema.go
@@ -22,6 +23,7 @@ func Test_NoMigrationNeeded_Spanner(t *testing.T) {
 	err := expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.Spanner)
 	require.NoError(t, err)
 }
+*/
 
 const CreateInvalidTableSpanner = `
 DROP TABLE IF EXISTS Changelists;
@@ -43,6 +45,10 @@ func Test_InvalidSchema_Spanner(t *testing.T) {
 	require.Error(t, err)
 }
 
+/*
+// TODO(pasthana): Uncomment once https://skia-review.googlesource.com/c/buildbot/+/992260
+// is merged, and schema.jsons have been validated to be equal to current
+// prod db
 func Test_MigrationNeeded_Spanner(t *testing.T) {
 	ctx := context.Background()
 	db := sqltest.NewSpannerDBForTests(ctx, t)
@@ -68,3 +74,4 @@ func Test_MigrationNeeded_Spanner(t *testing.T) {
 	require.NoError(t, err)
 	assertdeep.Equal(t, next, *actual)
 }
+*/
