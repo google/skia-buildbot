@@ -1,6 +1,7 @@
 package chromeperf
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -108,10 +109,12 @@ func (client *chromePerfClientImpl) SendPostRequest(ctx context.Context, apiName
 
 	targetUrl := generateTargetUrl(client.urlOverride, client.directCallLegacy, apiName, functionName)
 
-	requestBodyJSONStr, err := json.Marshal(requestObj)
+	var buff bytes.Buffer
+	err := json.NewEncoder(&buff).Encode(requestObj)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create chrome perf request.")
 	}
+	requestBodyJSONStr := buff.String()
 	sklog.Debugf("Sending Post request to chromePerf: %s", requestBodyJSONStr)
 
 	httpResponse, err := httputils.PostWithContext(

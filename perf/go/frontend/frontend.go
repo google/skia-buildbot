@@ -2,6 +2,7 @@
 package frontend
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"encoding/json"
@@ -325,12 +326,16 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		AlwaysShowCommitInfo:        config.Config.DataPointConfig.AlwaysShowCommitInfo,
 		ShowTriageLink:              config.Config.ShowTriageLink,
 	}
-	b, err := json.MarshalIndent(pc, "", "  ")
+
+	var buff bytes.Buffer
+	jsonEncoder := json.NewEncoder(&buff)
+	jsonEncoder.SetIndent("", "  ")
+	err := jsonEncoder.Encode(pc)
 	if err != nil {
 		sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
 	}
 
-	return template.JS(string(b)), nil
+	return template.JS(buff.String()), nil
 }
 
 func (f *Frontend) templateHandler(name string) http.HandlerFunc {

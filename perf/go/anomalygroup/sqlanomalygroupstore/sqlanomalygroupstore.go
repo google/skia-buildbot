@@ -1,6 +1,7 @@
 package sqlanomalygroupstore
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -87,10 +88,13 @@ func (s *AnomalyGroupStore) Create(
 		"domain_name":           domain_name,
 		"benchmark_name":        benchmark_name,
 	}
-	metadata_string, err := json.Marshal(metadata)
+	var buff bytes.Buffer
+	err := json.NewEncoder(&buff).Encode(metadata)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to convert group metadata json.")
 	}
+
+	metadata_string := buff.String()
 	new_group_id := ""
 	err = s.db.QueryRow(
 		ctx, statement, metadata_string, start, end, action).Scan(&new_group_id)

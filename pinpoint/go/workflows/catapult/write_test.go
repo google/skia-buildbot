@@ -1,6 +1,7 @@
 package catapult
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"testing"
@@ -44,7 +45,8 @@ func TestNewCatapultClient_GivenStaging_ReturnsStagingClient(t *testing.T) {
 }
 
 func TestWriteBisectToCatapault_GivenValidInput_ReturnsResponse(t *testing.T) {
-	b, err := json.Marshal(mockPinpointLegacyJobResp)
+	var buff bytes.Buffer
+	err := json.NewEncoder(&buff).Encode(mockPinpointLegacyJobResp)
 	require.NoError(t, err)
 
 	expected, err := unmarshalMockDatastoreResp(mockDatastoreResp)
@@ -52,7 +54,7 @@ func TestWriteBisectToCatapault_GivenValidInput_ReturnsResponse(t *testing.T) {
 
 	ctx := context.Background()
 	m := mockhttpclient.NewURLMock()
-	mockPost := mockhttpclient.MockPostDialogue(contentType, b, []byte(mockDatastoreResp))
+	mockPost := mockhttpclient.MockPostDialogue(contentType, buff.Bytes(), []byte(mockDatastoreResp))
 	m.MockOnce(catapultStagingPostUrl, mockPost)
 
 	cc, err := NewCatapultClient(ctx, false)

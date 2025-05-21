@@ -1,6 +1,7 @@
 package graphsshortcutstore
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 
@@ -29,11 +30,12 @@ func NewCacheGraphsShortcutStore(cacheClient cache.Cache) *cacheGraphsShortcutSt
 // InsertShortcut inserts the given shortcut into the cache.
 func (s *cacheGraphsShortcutStore) InsertShortcut(ctx context.Context, shortcut *graphsshortcut.GraphsShortcut) (string, error) {
 	id := (*shortcut).GetID()
-	b, err := json.Marshal(shortcut)
+	var buff bytes.Buffer
+	err := json.NewEncoder(&buff).Encode(shortcut)
 	if err != nil {
 		return "", err
 	}
-	err = s.cacheClient.SetValue(ctx, id, string(b))
+	err = s.cacheClient.SetValue(ctx, id, buff.String())
 	if err != nil {
 		return "", err
 	}

@@ -4,6 +4,7 @@
 package sqlshortcutstore
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -92,11 +93,12 @@ func (s *SQLShortcutStore) InsertShortcut(ctx context.Context, sc *shortcut.Shor
 		}
 	}
 	id := shortcut.IDFromKeys(sc)
-	b, err := json.Marshal(sc)
+	var buff bytes.Buffer
+	err := json.NewEncoder(&buff).Encode(sc)
 	if err != nil {
 		return "", err
 	}
-	if _, err := s.db.Exec(ctx, statements[insertShortcut], id, string(b)); err != nil {
+	if _, err := s.db.Exec(ctx, statements[insertShortcut], id, buff.String()); err != nil {
 		return "", skerr.Wrap(err)
 	}
 	return id, nil

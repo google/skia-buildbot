@@ -4,6 +4,7 @@
 package sqlalertstore
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -115,9 +116,9 @@ func New(db pool.Pool, dbType config.DataStoreType) (*SQLAlertStore, error) {
 
 // Save implements the alerts.Store interface.
 func (s *SQLAlertStore) Save(ctx context.Context, req *alerts.SaveRequest) error {
-
 	cfg := req.Cfg
-	b, err := json.Marshal(cfg)
+	var b bytes.Buffer
+	err := json.NewEncoder(&b).Encode(cfg)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to serialize Alert for saving with ID=%s", cfg.IDAsString)
 	}
@@ -126,7 +127,7 @@ func (s *SQLAlertStore) Save(ctx context.Context, req *alerts.SaveRequest) error
 	if cfg.IDAsString == alerts.BadAlertIDAsAsString {
 		newID := alerts.BadAlertID
 		// Not a valid ID, so this should be an insert, not an update.
-		if err := s.db.QueryRow(ctx, s.statements[insertAlert], string(b), now, nil, nil).Scan(&newID); err != nil {
+		if err := s.db.QueryRow(ctx, s.statements[insertAlert], b.String(), now, nil, nil).Scan(&newID); err != nil {
 			return skerr.Wrapf(err, "Failed to insert alert")
 		}
 		cfg.SetIDFromInt64(newID)
@@ -140,7 +141,7 @@ func (s *SQLAlertStore) Save(ctx context.Context, req *alerts.SaveRequest) error
 			revisionOrNull.String = req.SubKey.SubRevision
 			revisionOrNull.Valid = true
 		}
-		if _, err := s.db.Exec(ctx, s.statements[updateAlert], cfg.IDAsStringToInt(), string(b), cfg.StateToInt(), now, nameOrNull, revisionOrNull); err != nil {
+		if _, err := s.db.Exec(ctx, s.statements[updateAlert], cfg.IDAsStringToInt(), b.String(), cfg.StateToInt(), now, nameOrNull, revisionOrNull); err != nil {
 			return skerr.Wrapf(err, "Failed to update Alert with ID=%s", cfg.IDAsString)
 		}
 	}
@@ -157,14 +158,17 @@ func (s *SQLAlertStore) ReplaceAll(ctx context.Context, reqs []*alerts.SaveReque
 		return skerr.Wrap(err)
 	}
 
+	var b bytes.Buffer
+	jsonEncoder := json.NewEncoder(&b)
 	for _, req := range reqs {
+		b.Reset()
 		cfg := req.Cfg
-		b, err := json.Marshal(cfg)
+		err := jsonEncoder.Encode(cfg)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
 
-		if _, err := tx.Exec(ctx, s.statements[insertAlert], string(b), now, req.SubKey.SubName, req.SubKey.SubRevision); err != nil {
+		if _, err := tx.Exec(ctx, s.statements[insertAlert], b.String(), now, req.SubKey.SubName, req.SubKey.SubRevision); err != nil {
 			return skerr.Wrap(err)
 		}
 	}

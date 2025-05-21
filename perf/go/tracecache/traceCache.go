@@ -1,6 +1,7 @@
 package tracecache
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -63,10 +64,11 @@ func traceIdCacheKey(tileNumber types.TileNumber, q query.Query) string {
 
 // toJSON creates a json string from an object.
 func toJSON(obj interface{}) (string, error) {
-	b, err := json.Marshal(obj)
+	var buffer bytes.Buffer
+	err := json.NewEncoder(&buffer).Encode(obj)
 	if err != nil {
 		return "", err
 	}
 
-	return string(b), nil
+	return buffer.String(), nil
 }

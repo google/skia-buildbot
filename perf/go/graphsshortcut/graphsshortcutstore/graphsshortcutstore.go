@@ -3,6 +3,7 @@
 package graphsshortcutstore
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 
@@ -55,11 +56,12 @@ func New(db pool.Pool) (*GraphsShortcutStore, error) {
 // InsertShortcut implements the graphsshortcut.Store interface.
 func (s *GraphsShortcutStore) InsertShortcut(ctx context.Context, sc *graphsshortcut.GraphsShortcut) (string, error) {
 	id := (*sc).GetID()
-	b, err := json.Marshal(sc)
+	var buff bytes.Buffer
+	err := json.NewEncoder(&buff).Encode(sc)
 	if err != nil {
 		return "", err
 	}
-	if _, err := s.db.Exec(ctx, statements[insertShortcut], id, string(b)); err != nil {
+	if _, err := s.db.Exec(ctx, statements[insertShortcut], id, buff.String()); err != nil {
 		return "", skerr.Wrap(err)
 	}
 	return id, nil

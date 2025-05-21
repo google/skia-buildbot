@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -276,12 +277,15 @@ func (api graphApi) linksHandler(w http.ResponseWriter, r *http.Request) {
 		Links: links,
 	}
 
-	b, err := json.MarshalIndent(responseObj, "", "  ")
+	var b bytes.Buffer
+	encoder := json.NewEncoder(&b)
+	encoder.SetIndent("", "  ")
+	err = encoder.Encode(responseObj)
 	if err != nil {
 		sklog.Errorf("Failed to encode response object to JSON: %v", err)
 		return
 	}
-	if _, err := w.Write(b); err != nil {
+	if _, err := w.Write(b.Bytes()); err != nil {
 		sklog.Errorf("Failed to write JSON response object: %v", err)
 		return
 	}
@@ -339,12 +343,15 @@ func (api graphApi) detailsHandler(w http.ResponseWriter, r *http.Request) {
 		formattedData.Links = pointLinks
 	}
 
-	b, err := json.MarshalIndent(formattedData, "", "  ")
+	var buff bytes.Buffer
+	jsonEncoder := json.NewEncoder(&buff)
+	jsonEncoder.SetIndent("", "  ")
+	err = jsonEncoder.Encode(formattedData)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to re-encode JSON source file", http.StatusInternalServerError)
 		return
 	}
-	if _, err := w.Write(b); err != nil {
+	if _, err := w.Write(buff.Bytes()); err != nil {
 		sklog.Errorf("Failed to write JSON source file: %s", err)
 	}
 }

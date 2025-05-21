@@ -55,12 +55,13 @@ func NewCatapultClient(ctx context.Context, prod bool) (*CatapultClient, error) 
 }
 
 func (cc *CatapultClient) WriteBisectToCatapult(ctx context.Context, content *pinpoint_proto.LegacyJobResponse) (*DatastoreResponse, error) {
-	b, err := json.Marshal(content)
+	var buff bytes.Buffer
+	err := json.NewEncoder(&buff).Encode(content)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to marshal content")
 	}
 
-	httpResponse, err := httputils.PostWithContext(ctx, cc.httpClient, cc.url, contentType, bytes.NewReader(b))
+	httpResponse, err := httputils.PostWithContext(ctx, cc.httpClient, cc.url, contentType, bytes.NewReader(buff.Bytes()))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get Pinpoint response")
 	}

@@ -5,6 +5,7 @@
 package sqlregressionstore
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 
@@ -236,11 +237,12 @@ func (s *SQLRegressionStore) write(ctx context.Context, commitNumber types.Commi
 	}
 	alertID := alerts.IDAsStringToInt(alertIDString)
 
-	b, err := json.Marshal(r)
+	var buff bytes.Buffer
+	err := json.NewEncoder(&buff).Encode(r)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to serialize regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
-	if _, err := s.db.Exec(ctx, s.statements[write], commitNumber, alertID, string(b)); err != nil {
+	if _, err := s.db.Exec(ctx, s.statements[write], commitNumber, alertID, buff.String()); err != nil {
 		return skerr.Wrapf(err, "Failed to write regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
 	return nil
@@ -304,7 +306,8 @@ func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber t
 
 	cb(r)
 
-	b, err := json.Marshal(r)
+	var buff bytes.Buffer
+	err = json.NewEncoder(&buff).Encode(r)
 	if err != nil {
 		if err := tx.Rollback(ctx); err != nil {
 			sklog.Errorf("Failed on rollback: %s", err)
@@ -315,7 +318,7 @@ func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber t
 	if mustExist {
 		writeStatement = s.statements[updateRegression]
 	}
-	if _, err := tx.Exec(ctx, writeStatement, commitNumber, alertID, string(b)); err != nil {
+	if _, err := tx.Exec(ctx, writeStatement, commitNumber, alertID, buff.String()); err != nil {
 		if err := tx.Rollback(ctx); err != nil {
 			sklog.Errorf("Failed on rollback: %s", err)
 		}
