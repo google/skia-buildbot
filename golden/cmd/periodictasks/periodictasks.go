@@ -39,7 +39,6 @@ import (
 	searchCache "go.skia.org/infra/golden/go/search/caching"
 	"go.skia.org/infra/golden/go/search/providers"
 	"go.skia.org/infra/golden/go/sql"
-	"go.skia.org/infra/golden/go/sql/expectedschema"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tracing"
@@ -142,10 +141,6 @@ func main() {
 
 	ctx := context.Background()
 	db := mustInitSQLDatabase(ctx, ptc)
-	err := expectedschema.ValidateAndMigrateNewSchema(ctx, db, ptc.SQLDatabaseType)
-	if err != nil {
-		sklog.Fatalf("Failed to migrate schema: %s", err)
-	}
 
 	startUpdateTracesIgnoreStatus(ctx, db, ptc)
 

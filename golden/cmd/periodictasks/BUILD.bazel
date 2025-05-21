@@ -29,7 +29,6 @@ go_library(
         "//golden/go/search/caching",
         "//golden/go/search/providers",
         "//golden/go/sql",
-        "//golden/go/sql/expectedschema",
         "//golden/go/sql/schema",
         "//golden/go/storage",
         "//golden/go/tracing",
