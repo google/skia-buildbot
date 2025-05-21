@@ -2,7 +2,6 @@
 
 set -e
 
-../kube/secrets/generate-new-key-for-service-account.sh skia-swarming-bots chromium-swarm-bots
 ../kube/secrets/generate-new-key-for-service-account.sh skia-swarming-bots-internal chrome-swarming-bots
 
 printf 'You should now run:\n'

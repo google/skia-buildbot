@@ -20,17 +20,6 @@
         internal_service_account_key_filename:
           '{{ secrets_dir.path }}/internal_key.json'
 
-    - name: Extract service account key
-      delegate_to: 127.0.0.1
-      run_once: true
-      command:
-        argv:
-          - '{{ all.repo_root }}/kube/secrets/download-service-account-key.sh'
-          - skia-swarming-bots
-          - chromium-swarm-bots
-          - '{{ service_account_key_filename }}'
-        creates: '{{ service_account_key_filename }}'
-
     - name: Extract internal service account key
       delegate_to: 127.0.0.1
       run_once: true
@@ -53,8 +42,6 @@
         params:
           # Pass the service account keys base64 encoded so they don't mess up the
           # Go compile command line.
-          SERVICE_ACCOUNT_KEY:
-            "{{ lookup('file', service_account_key_filename) | b64encode }}"
           INTERNAL_SERVICE_ACCOUNT_KEY:
             "{{ lookup('file', internal_service_account_key_filename) |
             b64encode }}"

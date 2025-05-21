@@ -4,24 +4,15 @@ KGO := CGO_ENABLED=0 GOOS=linux go build
 export VERSION:=$(shell ../bash/release_tag.sh)
 
 # This build must be launched from an Ansible playbook which will extract the
-# service account keys and base64 encode them into the SERVICE_ACCOUNT_KEY and
-# INTERNAL_SERVICE_ACCOUNT_KEY environment variables.
+# service account key and base64 encode it into the INTERNAL_SERVICE_ACCOUNT_KEY
+# environment variable.
 #
 # The directory under ./build/Linux/x86_64/ is the name of the secret where the
 # service key is stored under.
 build_metadata_server_ansible:
 	rm -rf ./build
 
-	test -n "${SERVICE_ACCOUNT_KEY}" || (echo "SERVICE_ACCOUNT_KEY must be set by Ansible playbook."; exit 1)
 	test -n "${INTERNAL_SERVICE_ACCOUNT_KEY}" || (echo "INTERNAL_SERVICE_ACCOUNT_KEY must be set by Ansible playbook."; exit 1)
-
-	CGO_ENABLED=0 \
-	GOOS=linux \
-	GOARCH=amd64 \
-	go build \
-	 -o ./build/Linux/x86_64/chromium-swarm-bots/metadata_server_ansible \
-	 -ldflags="-X 'main.Version=${VERSION}' -X 'main.Key=${SERVICE_ACCOUNT_KEY}' " \
-	 ./go/metadata_server_ansible
 
 	CGO_ENABLED=0 \
 	GOOS=linux \
@@ -88,14 +79,14 @@ release_router_backup_ansible: build_and_upload_router_backup_ansible
 # The POWERCYCLE_PASSWORD must be set in the environment for this to work correctly.
 run-local-instance-powercycle_server_ansible:
 	go install ./go/powercycle_server_ansible
-	powercycle_server_ansible --local --powercycle_config=powercycle-rack4.json5 --config=prod.json
+	powercycle_server_ansible --local --powercycle_config=powercycle-rack5.json5 --config=prod.json
 
 run-local-instance-router_backup_ansible:
 	go install ./go/router_backup_ansible
 	router_backup_ansible --local \
 	  --gce_bucket skia-backups \
       --gce_folder router_config_test_backups \
-      --remote_file_path "admin@router-rack1:/config/config.boot"
+      --remote_file_path "admin@router-rack5:/config/config.boot"
 
 # The PROMETHEUS_VERSION env variable must also be set.
 download_prometheus_x86_64_Linux:

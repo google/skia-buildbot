@@ -50,7 +50,7 @@ const (
 type connProfile struct {
 	Name            string // e.g. "skia-e-win-150 (VNC)"
 	Server          string // e.g. "skia-e-win-150:5900"
-	SSHTunnelServer string // e.g. "rack1"
+	SSHTunnelServer string // e.g. "rack5"
 }
 
 const rdpConnProfileTmpl = `[remmina]
@@ -388,7 +388,7 @@ func getMachinesByJumphost(ansibleInventoryFilePath string) (map[string][]string
 }
 
 // queryAnsibleInventory returns a list hosts that match the given Ansible pattern (e.g. "all",
-// "rack1", etc.) and the given regular expression.
+// "rack5", etc.) and the given regular expression.
 func queryAnsibleInventory(ansibleInventoryFilePath, pattern string, hostsFilter *regexp.Regexp) ([]string, error) {
 	cmd := exec.Command("ansible", "--inventory", ansibleInventoryFilePath, "--list-hosts", pattern)
 	outBytes, err := cmd.CombinedOutput()

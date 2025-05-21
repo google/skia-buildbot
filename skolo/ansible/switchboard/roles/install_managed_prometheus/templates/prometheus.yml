@@ -46,7 +46,7 @@ scrape_configs:
 {% endif %}
   - job_name: 'test_machines'
     static_configs:
-{% for hostname in hostvars['rack4']['groups'][inventory_hostname + '_machines'] %}
+{% for hostname in hostvars['rack5']['groups'][inventory_hostname + '_machines'] %}
       - targets: ['{{ hostname }}:{{ all.prometheus.monitoring.ports.test_machine_monitor }}']
         labels:
           job: 'test_machine_monitor'

@@ -39,7 +39,7 @@ You will run a command like this from //skolo/ansible, as per usual with ansible
 playbooks:
 
 ```console
-$ ansible-playbook ./switchboard/jumphosts.yml --limit rack4 \
+$ ansible-playbook ./switchboard/jumphosts.yml --limit rack5 \
   --extra-vars environment_monitor_ansible_version_override=2021-09-19T15:36:31Z-cmumford-ba7510fdcda7d3979cc2c0df21fee100e3ba4075-dirty
 ```
 
