@@ -5,7 +5,7 @@
     "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",
     "trace_sample_proportion": 0.2,
     "notify_config": {
-        "notifications": "markdown_issuetracker",
+        "notifications": "none",
         "data_provider": "android",
         "issue_tracker_api_key_secret_project": "skia-infra-public",
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey",
