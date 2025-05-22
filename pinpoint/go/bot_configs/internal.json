@@ -6,7 +6,7 @@
     "dimensions": [
       {
         "key": "pool",
-        "value": "chrome.tests.pinpoint"
+        "value": "chrome.tests.pinpoint-cbb"
       },
       {
         "key": "device_type",
@@ -14,7 +14,7 @@
       },
       {
         "key": "device_os",
-        "value": "U"
+        "value": "A"
       }
     ],
     "repository": "chromium",
@@ -48,7 +48,7 @@
     "dimensions": [
       {
         "key": "pool",
-        "value": "chrome.tests.pinpoint"
+        "value": "chrome.tests.pinpoint-cbb"
       },
       {
         "key": "mac_model",
@@ -81,7 +81,7 @@
       },
       {
         "key": "pool",
-        "value": "chrome.tests.pinpoint"
+        "value": "chrome.tests.pinpoint-cbb"
       },
       {
         "key": "synthetic_product_name",
@@ -106,7 +106,7 @@
       },
       {
         "key": "pool",
-        "value": "chrome.tests.pinpoint"
+        "value": "chrome.tests.pinpoint-cbb"
       },
       {
         "key": "synthetic_product_name",
@@ -127,7 +127,7 @@
     "dimensions": [
       {
         "key": "pool",
-        "value": "chrome.tests.pinpoint"
+        "value": "chrome.tests.pinpoint-cbb"
       },
       {
         "key": "synthetic_product_name",
