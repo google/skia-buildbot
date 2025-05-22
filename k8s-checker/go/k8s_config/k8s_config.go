@@ -8,7 +8,6 @@ import (
 	apps "k8s.io/api/apps/v1"
 	batch "k8s.io/api/batch/v1beta1"
 	core "k8s.io/api/core/v1"
-	policy "k8s.io/api/policy/v1beta1"
 	rbac "k8s.io/api/rbac/v1"
 	"sigs.k8s.io/yaml"
 )
@@ -21,7 +20,6 @@ const (
 	DaemonSetKind          = "DaemonSet"
 	DeploymentKind         = "Deployment"
 	NamespaceKind          = "Namespace"
-	PodSecurityPolicyKind  = "PodSecurityPolicy"
 	RoleBindingKind        = "RoleBinding"
 	ServiceKind            = "Service"
 	ServiceAccountKind     = "ServiceAccount"
@@ -45,7 +43,6 @@ type K8sConfigFile struct {
 	DaemonSet          []*apps.DaemonSet
 	Deployment         []*apps.Deployment
 	Namespace          []*core.Namespace
-	PodSecurityPolicy  []*policy.PodSecurityPolicy
 	RoleBinding        []*rbac.RoleBinding
 	Service            []*core.Service
 	ServiceAccount     []*core.ServiceAccount
@@ -175,13 +172,6 @@ func parseYamlDoc(yamlDoc []byte, rv *K8sConfigFile) (interface{}, error) {
 			return nil, skerr.Wrapf(err, "failed to parse config file")
 		}
 		rv.Namespace = append(rv.Namespace, v)
-		return v, nil
-	case PodSecurityPolicyKind:
-		v := new(policy.PodSecurityPolicy)
-		if err := yaml.Unmarshal(yamlDoc, v); err != nil {
-			return nil, skerr.Wrapf(err, "failed to parse config file")
-		}
-		rv.PodSecurityPolicy = append(rv.PodSecurityPolicy, v)
 		return v, nil
 	case RoleBindingKind:
 		v := new(rbac.RoleBinding)

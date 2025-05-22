@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/k8s/mocks"
 	watchmocks "go.skia.org/infra/go/k8s/watch/mocks"
+	clientmocks "go.skia.org/infra/go/sser/mocks"
 	"go.skia.org/infra/go/testutils"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,7 +46,7 @@ func buildClientSetOnPodListMocks(t *testing.T, items []v1.Pod, err error) (kube
 	coreV1 := mocks.NewCoreV1Interface(t)
 	coreV1.On("Pods", testNamespace).Return(podInterface)
 
-	clientset := mocks.NewInterface(t)
+	clientset := clientmocks.NewInterface(t)
 	clientset.On("CoreV1").Return(coreV1)
 
 	return clientset, podInterface

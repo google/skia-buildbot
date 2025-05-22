@@ -221,13 +221,6 @@ subjects:
   - kind: Group
     name: our-team@google.com
     apiGroup: rbac.authorization.k8s.io
----
-apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  name: my-psp
-spec:
-  privileged: false
 `
 
 func TestParseK8sConfigFile_Success(t *testing.T) {
@@ -251,8 +244,6 @@ func TestParseK8sConfigFile_Success(t *testing.T) {
 	require.Equal(t, &ByteRange{Start: 336, End: 1347}, lineRanges[k8sConfigs.Deployment[0]])
 
 	require.Len(t, k8sConfigs.Namespace, 1)
-
-	require.Len(t, k8sConfigs.PodSecurityPolicy, 1)
 
 	require.Len(t, k8sConfigs.RoleBinding, 1)
 
@@ -473,12 +464,6 @@ subjects:
   - kind: Group
     name: our-team@google.com
     apiGroup: rbac.authorization.k8s.io`),
-		[]byte(`apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  name: my-psp
-spec:
-  privileged: false`),
 	}, docs)
 	require.Equal(t, []*ByteRange{
 		{
@@ -516,10 +501,6 @@ spec:
 		{
 			Start: 7961,
 			End:   8236,
-		},
-		{
-			Start: 8239,
-			End:   8342,
 		},
 	}, ranges)
 }
