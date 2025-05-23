@@ -919,3 +919,22 @@ func TestReadTraces_WithDiscontinueCommitNumbers_Succeed(t *testing.T) {
 		",arch=x86,config=8888,": {3.5, e, e, e, e, e, e, e},
 	}, ts)
 }
+
+func TestGetSourceIds_Success(t *testing.T) {
+	ctx, s := commonTestSetupWithCommits(t)
+
+	traceIds := []string{
+		",arch=x86,config=8888,",
+		",arch=x86,config=565,",
+	}
+	commitNumbers := []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7}
+	sourceInfo, err := s.GetSourceIds(ctx, commitNumbers, traceIds)
+	assert.NoError(t, err)
+	assert.NotNil(t, sourceInfo)
+	for _, traceId := range traceIds {
+		sourceIdsForTrace, ok := sourceInfo[traceId]
+		assert.True(t, ok)
+		assert.NotNil(t, sourceIdsForTrace)
+		assert.True(t, len(sourceIdsForTrace) > 0)
+	}
+}

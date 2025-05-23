@@ -275,6 +275,7 @@ const (
 	getLatestTile
 	paramSetForTile
 	getSource
+	getSources
 	traceCount
 	queryTraceIDs
 	queryTraceIDsByKeyValue
@@ -374,6 +375,15 @@ var templates = map[statement]string{
         WHERE
             TraceValues.trace_id = '{{ .MD5HexTraceID }}'
             AND TraceValues.commit_number = {{ .CommitNumber }}`,
+	getSources: `
+        SELECT
+            TraceValues.commit_number, SourceFiles.source_file
+        FROM
+            TraceValues
+        INNER LOOKUP JOIN SourceFiles ON SourceFiles.source_file_id = TraceValues.source_file_id
+        WHERE
+            TraceValues.trace_id = '{{ .MD5HexTraceID }}'
+            AND TraceValues.commit_number IN ($1)`,
 	insertIntoPostings: `
         INSERT INTO
             Postings (tile_number, key_value, trace_id)
@@ -509,6 +519,14 @@ type getSourceContext struct {
 	// The MD5 sum of the trace name as a hex string, i.e.
 	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
 	// CockroachDB will use to know the string is in hex.
+	MD5HexTraceID traceIDForSQL
+}
+
+// getSourcesContext is the context for the getSourceIds template.
+type getSourcesContext struct {
+	// The MD5 sum of the trace name as a hex string, i.e.
+	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
+	// query will use to know the string is in hex.
 	MD5HexTraceID traceIDForSQL
 }
 
@@ -916,6 +934,59 @@ func (s *SQLTraceStore) GetSource(ctx context.Context, commitNumber types.Commit
 		return "", skerr.Wrapf(err, "commitNumber=%d traceName=%q traceID=%q", commitNumber, traceName, traceID)
 	}
 	return filename, nil
+}
+
+// GetSourceIds returns the source ids for the given traces and commits.
+// The returned object is a map where the key is the name of the trace and value is a map of commit number to the source file name.
+func (s *SQLTraceStore) GetSourceIds(ctx context.Context, commitNumbers []types.CommitNumber, traceNames []string) (map[string]map[types.CommitNumber]string, error) {
+	sourceInfo := map[string]map[types.CommitNumber]string{}
+	for _, traceName := range traceNames {
+		sourcesForTrace, err := s.GetSources(ctx, traceName, commitNumbers)
+		if err != nil {
+			return nil, err
+		}
+		sourceInfo[traceName] = sourcesForTrace
+	}
+
+	return sourceInfo, nil
+}
+
+// GetSources returns the source files for a given trace and list of commits.
+func (s *SQLTraceStore) GetSources(ctx context.Context, traceName string, commits []types.CommitNumber) (map[types.CommitNumber]string, error) {
+	traceID := traceIDForSQLFromTraceName(traceName)
+
+	sourceContext := getSourcesContext{
+		MD5HexTraceID: traceID,
+	}
+
+	var b bytes.Buffer
+	if err := s.unpreparedStatements[getSources].Execute(&b, sourceContext); err != nil {
+		return nil, skerr.Wrapf(err, "failed to expand get source template")
+	}
+	sql := b.String()
+
+	var sb strings.Builder
+	for _, commit := range commits {
+		sb.WriteString(fmt.Sprintf("%d,", commit))
+	}
+	commitString := sb.String()
+	sql = sql + fmt.Sprintf("(%s)", commitString[:len(commitString)-1])
+	rows, err := s.db.Query(ctx, sql)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "commitNumber=%v traceName=%q traceID=%q", commits, traceName, traceID)
+	}
+
+	sourceData := map[types.CommitNumber]string{}
+	for rows.Next() {
+		var commitNumber types.CommitNumber
+		var sourceFile string
+		if err := rows.Scan(&commitNumber, &sourceFile); err != nil {
+			return nil, err
+		}
+		sourceData[commitNumber] = sourceFile
+	}
+
+	return sourceData, nil
 }
 
 // GetLastNSources implements the tracestore.TraceStore interface.

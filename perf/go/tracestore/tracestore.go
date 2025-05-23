@@ -34,6 +34,9 @@ type TraceStore interface {
 	// GetParamSet returns the OPS for the given tile.
 	GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ReadOnlyParamSet, error)
 
+	// GetSourceIds returns the source file ids for the given traceNames at specified commit numbers.
+	GetSourceIds(ctx context.Context, commitNumbers []types.CommitNumber, traceNames []string) (map[string]map[types.CommitNumber]string, error)
+
 	// GetSource returns the full URL of the file that contained the point at
 	// 'index' of trace 'traceId'.
 	GetSource(ctx context.Context, commitNumber types.CommitNumber, traceId string) (string, error)

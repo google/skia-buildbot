@@ -2,6 +2,7 @@ package sqltracestore
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -75,4 +76,39 @@ func TestInsertMetadata_InvalidSourceFile(t *testing.T) {
 	// Source file is not present in the database.
 	err := store.InsertMetadata(ctx, sourceFileName, links)
 	assert.Error(t, err)
+}
+
+func TestGetMetadataMultiple_Success(t *testing.T) {
+	store := createMetadataStoreForTests(t)
+
+	const sourceFileCount = 10
+	ctx := context.Background()
+	sourceFileNames := []string{}
+	// Insert multiple files with metadata.
+	for i := range sourceFileCount {
+		sourceFileName := fmt.Sprintf("sourceFile_%d", i)
+		links := map[string]string{
+			"key1": fmt.Sprintf("link1_file_%s", sourceFileName),
+			"key2": fmt.Sprintf("link2_file_%s", sourceFileName),
+		}
+
+		sourceFileNames = append(sourceFileNames, sourceFileName)
+		err := insertSourceFile(ctx, store.db, sourceFileName, i)
+		assert.NoError(t, err)
+		err = store.InsertMetadata(ctx, sourceFileName, links)
+		assert.NoError(t, err)
+	}
+
+	metadatas, err := store.GetMetadataMultiple(ctx, sourceFileNames)
+	assert.NoError(t, err)
+	assert.NotNil(t, metadatas)
+	assert.Equal(t, sourceFileCount, len(metadatas))
+
+	// Verify that every source file has the expected link.
+	for _, sourceFile := range sourceFileNames {
+		metadata, ok := metadatas[sourceFile]
+		assert.True(t, ok)
+		assert.Equal(t, metadata["key1"], fmt.Sprintf("link1_file_%s", sourceFile))
+		assert.Equal(t, metadata["key2"], fmt.Sprintf("link2_file_%s", sourceFile))
+	}
 }

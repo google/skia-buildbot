@@ -160,6 +160,36 @@ func (_m *TraceStore) GetSource(ctx context.Context, commitNumber types.CommitNu
 	return r0, r1
 }
 
+// GetSourceIds provides a mock function with given fields: ctx, commitNumbers, traceNames
+func (_m *TraceStore) GetSourceIds(ctx context.Context, commitNumbers []types.CommitNumber, traceNames []string) (map[string]map[types.CommitNumber]string, error) {
+	ret := _m.Called(ctx, commitNumbers, traceNames)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSourceIds")
+	}
+
+	var r0 map[string]map[types.CommitNumber]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []types.CommitNumber, []string) (map[string]map[types.CommitNumber]string, error)); ok {
+		return rf(ctx, commitNumbers, traceNames)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []types.CommitNumber, []string) map[string]map[types.CommitNumber]string); ok {
+		r0 = rf(ctx, commitNumbers, traceNames)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]map[types.CommitNumber]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []types.CommitNumber, []string) error); ok {
+		r1 = rf(ctx, commitNumbers, traceNames)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTraceIDsBySource provides a mock function with given fields: ctx, sourceFilename, tileNumber
 func (_m *TraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename string, tileNumber types.TileNumber) ([]string, error) {
 	ret := _m.Called(ctx, sourceFilename, tileNumber)

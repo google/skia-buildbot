@@ -94,6 +94,15 @@ var spannerTemplates = map[statement]string{
         WHERE
             TraceValues.trace_id = '{{ .MD5HexTraceID }}'
             AND TraceValues.commit_number = {{ .CommitNumber }}`,
+	getSources: `
+        SELECT
+            TraceValues.commit_number, SourceFiles.source_file
+        FROM
+            TraceValues
+        INNER JOIN SourceFiles ON SourceFiles.source_file_id = TraceValues.source_file_id
+        WHERE
+            TraceValues.trace_id = '{{ .MD5HexTraceID }}'
+            AND TraceValues.commit_number IN `,
 	insertIntoPostings: `
         INSERT INTO
             Postings (tile_number, key_value, trace_id)
