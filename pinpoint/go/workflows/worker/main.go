@@ -26,6 +26,7 @@ var (
 	promPort  = flag.String("promPort", ":8000", "Prometheus port that it listens on.")
 	namespace = flag.String("namespace", "default", "The namespace the worker registered to.")
 	taskQueue = flag.String("taskQueue", "", "Task queue name registered to worker services.")
+	local     = flag.Bool("local", false, "Test run on local dev machine (skip GCP tracing).")
 )
 
 func main() {
@@ -44,8 +45,10 @@ func main() {
 		}
 	}
 
-	if err := tracing.InitializeOtel(); err != nil {
-		sklog.Fatalf("Failed to init tracing: %s", err)
+	if !*local {
+		if err := tracing.InitializeOtel(); err != nil {
+			sklog.Fatalf("Failed to init tracing: %s", err)
+		}
 	}
 
 	interceptor, err := tempotel.NewTracingInterceptor(tempotel.TracerOptions{})

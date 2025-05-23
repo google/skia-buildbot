@@ -45,15 +45,7 @@ You need to redo steps 3-5 if you want to run your latest local changes.
 2. Connect to the service at localhost 7233:<br>
    `kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233`
 3. Create a new terminal and run the worker. Make sure the taskqueue and namespace are correct:<br>
-   `bazelisk run //pinpoint/go/workflows/worker -- --namespace perf-internal`
-   <br><br>
-   Note for Pinpoint runs, you will need to comment out a few lines in
-   [worker/main.go](/pinpoint/go/workflows/worker/main.go):
-   ```
-   if err := tracing.InitializeOtel(); err != nil {
-   	sklog.Fatalf("Failed to init tracing: %s", err)
-   }
-   ```
+   `bazelisk run //pinpoint/go/workflows/worker -- --local --namespace perf-internal`
 4. (if needed) Change workflow parameters in [sample/main.go](/pinpoint/go/workflows/sample/main.go)
 5. Create a new terminal and trigger the workflow:<br>
    `bazelisk run  //pinpoint/go/workflows/sample -- --namespace=perf-internal --[flag]=true`

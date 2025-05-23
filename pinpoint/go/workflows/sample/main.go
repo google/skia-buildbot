@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os/user"
+	"strconv"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -30,6 +31,18 @@ var (
 	namespace                 = flag.String("namespace", "default", "The namespace the worker registered to.")
 	taskQueue                 = flag.String("taskQueue", "", "Task queue name registered to worker services.")
 	commit                    = flag.String("commit", "611b5a084486cd6d99a0dad63f34e320a2ebc2b3", "Git commit hash to build Chrome.")
+	startGitHash              = flag.String("start-git-hash", "c73e059a2ac54302b2951e4b4f1f7d94d92a707a", "Start git commit hash for bisect.")
+	endGitHash                = flag.String("end-git-hash", "979c9324d3c6474c15335e676ac7123312d5df82", "End git commit hash for bisect.")
+	configuration             = flag.String("configuration", "mac-m2-pro-perf", "Bot configuration to use.")
+	benchmark                 = flag.String("benchmark", "speedometer3.crossbench", "Benchmark to run.")
+	story                     = flag.String("story", "default", "Story to run.")
+	chart                     = flag.String("chart", "Score", "Chart (metric or test result) to collect.")
+	aggregationMethod         = flag.String("aggregation-method", "mean", "Aggregation method to use for bisect.")
+	comparisonMagnitude       = flag.String("comparison-magnitude", "0.1", "Comparison magnitude for bisect.")
+	improvementDirection      = flag.String("improvement-direction", "UP", "Improvement direction for bisect (UP or DOWN)")
+	jobId                     = flag.String("job-id", "123", "Pinpoint job ID to use.")
+	iterations                = flag.Int("iterations", 2, "Number of iterations to run the story.")
+	extraArg                  = flag.String("extra-arg", "", "Extra argument to pass to test.")
 	triggerBisectFlag         = flag.Bool("bisect", false, "toggle true to trigger bisect workflow")
 	triggerCulpritFinderFlag  = flag.Bool("culprit-finder", false, "toggle true to trigger culprit-finder aka sandwich verification workflow")
 	triggerSingleCommitFlag   = flag.Bool("single-commit", false, "toggle true to trigger single commit runner workflow")
@@ -57,15 +70,15 @@ func triggerCulpritFinderWorkflow(c client.Client) (*pb.CulpritFinderExecution, 
 	ctx := context.Background()
 	p := &workflows.CulpritFinderParams{
 		Request: &pb.ScheduleCulpritFinderRequest{
-			StartGitHash:         "c73e059a2ac54302b2951e4b4f1f7d94d92a707a",
-			EndGitHash:           "979c9324d3c6474c15335e676ac7123312d5df82",
-			Configuration:        "mac-m2-pro-perf",
-			Benchmark:            "system_health.common_desktop",
-			Story:                "load:games:bubbles:2020",
-			Chart:                "cpu_time_percentage",
-			AggregationMethod:    "mean",
-			ComparisonMagnitude:  "0.0504",
-			ImprovementDirection: "DOWN",
+			StartGitHash:         *startGitHash,
+			EndGitHash:           *endGitHash,
+			Configuration:        *configuration,
+			Benchmark:            *benchmark,
+			Story:                *story,
+			Chart:                *chart,
+			AggregationMethod:    *aggregationMethod,
+			ComparisonMagnitude:  *comparisonMagnitude,
+			ImprovementDirection: *improvementDirection,
 		},
 	}
 
@@ -88,16 +101,16 @@ func triggerBisectWorkflow(c client.Client) (*pb.BisectExecution, error) {
 	p := &workflows.BisectParams{
 		Request: &pb.ScheduleBisectRequest{
 			ComparisonMode:       "performance",
-			StartGitHash:         "8f2037564966f83e53701d157622dd42b931a13f", // 1266617
-			EndGitHash:           "049ab03450dd980d3afc27f13edfef9f510ed819", // 1266622
-			Configuration:        "win-11-perf",
-			Benchmark:            "system_health.memory_desktop",
-			Story:                "load:chrome:blank",
-			Chart:                "memory:chrome:all_processes:reported_by_chrome:cc:effective_size",
-			ComparisonMagnitude:  "786432.0",
-			AggregationMethod:    "mean",
+			StartGitHash:         *startGitHash,
+			EndGitHash:           *endGitHash,
+			Configuration:        *configuration,
+			Benchmark:            *benchmark,
+			Story:                *story,
+			Chart:                *chart,
+			ComparisonMagnitude:  *comparisonMagnitude,
+			AggregationMethod:    *aggregationMethod,
 			Project:              "chromium",
-			ImprovementDirection: "DOWN",
+			ImprovementDirection: *improvementDirection,
 		},
 	}
 	var be *pb.BisectExecution
@@ -118,17 +131,17 @@ func triggerPairwiseRunner(c client.Client) (*internal.PairwiseRun, error) {
 	// based off of https://pinpoint-dot-chromeperf.appspot.com/job/1372a174810000
 	p := &internal.PairwiseCommitsRunnerParams{
 		SingleCommitRunnerParams: internal.SingleCommitRunnerParams{
-			PinpointJobID:     "179a34b2be0000",
-			BotConfig:         "linux-perf",
-			Benchmark:         "v8.browsing_desktop",
-			Story:             "browse:tools:docs_scrolling",
-			Chart:             "v8:gc:cycle:main_thread:full:atomic",
-			AggregationMethod: "mean",
-			Iterations:        6,
+			PinpointJobID:     *jobId,
+			BotConfig:         *configuration,
+			Benchmark:         *benchmark,
+			Story:             *story,
+			Chart:             *chart,
+			AggregationMethod: *aggregationMethod,
+			Iterations:        int32(*iterations),
 		},
 		Seed:        54321,
-		LeftCommit:  common.NewCombinedCommit(&pb.Commit{GitHash: "6c7b055afe2bd688ee3e7d9f035191cdd1bbd0be"}),
-		RightCommit: common.NewCombinedCommit(&pb.Commit{GitHash: "1ff117b69e38d05f97872061e256a3e1225f7368"}),
+		LeftCommit:  common.NewCombinedCommit(&pb.Commit{GitHash: *startGitHash}),
+		RightCommit: common.NewCombinedCommit(&pb.Commit{GitHash: *endGitHash}),
 	}
 
 	var pr *internal.PairwiseRun
@@ -150,18 +163,18 @@ func triggerPairwiseWorkflow(c client.Client) (*pb.PairwiseExecution, error) {
 	p := &workflows.PairwiseParams{
 		Request: &pb.SchedulePairwiseRequest{
 			StartCommit: &pb.CombinedCommit{
-				Main: common.NewChromiumCommit("7738f0b5892caa13c0892ae16c4d4028cadeed64"),
+				Main: common.NewChromiumCommit(*startGitHash),
 			},
 			EndCommit: &pb.CombinedCommit{
-				Main: common.NewChromiumCommit("87fa284411e182debedee793a34122a0003e5720"),
+				Main: common.NewChromiumCommit(*endGitHash),
 			},
-			Configuration:        "mac-m1_mini_2020-perf",
-			Benchmark:            "speedometer3",
-			Story:                "Speedometer3",
-			Chart:                "Score",
-			AggregationMethod:    "mean",
-			InitialAttemptCount:  "10",
-			ImprovementDirection: "DOWN",
+			Configuration:        *configuration,
+			Benchmark:            *benchmark,
+			Story:                *story,
+			Chart:                *chart,
+			AggregationMethod:    *aggregationMethod,
+			InitialAttemptCount:  strconv.Itoa(*iterations),
+			ImprovementDirection: *improvementDirection,
 		},
 	}
 
@@ -181,14 +194,17 @@ func triggerPairwiseWorkflow(c client.Client) (*pb.PairwiseExecution, error) {
 func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 	ctx := context.Background()
 	p := &internal.SingleCommitRunnerParams{
-		PinpointJobID:     "123",
-		BotConfig:         "win-11-perf",
-		Benchmark:         "v8.browsing_desktop",
-		Story:             "browse:social:twitter_infinite_scroll:2018",
-		Chart:             "v8:gc:cycle:main_thread:young:atomic",
-		AggregationMethod: "mean",
+		PinpointJobID:     *jobId,
+		BotConfig:         *configuration,
+		Benchmark:         *benchmark,
+		Story:             *story,
+		Chart:             *chart,
+		AggregationMethod: *aggregationMethod,
 		CombinedCommit:    common.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
-		Iterations:        3,
+		Iterations:        int32(*iterations),
+	}
+	if *extraArg != "" {
+		p.ExtraArgs = []string{*extraArg}
 	}
 	var cr *internal.CommitRun
 	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.SingleCommitRunner, p)
@@ -205,9 +221,9 @@ func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 
 func triggerBuildChrome(c client.Client) *apipb.CASReference {
 	bcp := workflows.BuildParams{
-		WorkflowID: "123",
+		WorkflowID: *jobId,
 		Commit:     common.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
-		Device:     "mac-m1_mini_2020-perf",
+		Device:     *configuration,
 		Target:     "performance_test_suite",
 	}
 	we, err := c.ExecuteWorkflow(context.Background(), defaultWorkflowOptions(), workflows.BuildChrome, bcp)
