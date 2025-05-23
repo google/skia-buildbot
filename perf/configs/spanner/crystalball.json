@@ -1,0 +1,56 @@
+{
+    "URL": "https://cb-perf.corp.goog",
+    "contact": "android-crystalball-eng@google.com",
+    "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",
+    "trace_sample_proportion": 0.2,
+    "notify_config": {
+      "notifications": "none"
+    },
+    "auth_config": {
+      "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+      "datastore_type": "spanner",
+      "connection_string": "postgresql://root@localhost:5432/crystalball?sslmode=disable",
+      "tile_size": 512,
+      "min_db_connections": 5
+    },
+    "ingestion_config": {
+      "source_config": {
+        "source_type": "gcs",
+        "project": "skia-public",
+        "topic": "perf-ingestion-crystalball",
+        "subscription": "perf-ingestion-crystalball-prod",
+        "sources": [
+          "gs://crystalball-perf/ingest"
+        ]
+      },
+      "branches": [],
+      "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+      "provider": "gitiles",
+      "url": "https://android.googlesource.com/platform/superproject",
+      "dir": "/tmp/crystalball",
+      "debounce_commit_url": false,
+      "branch": "androidx-main",
+      "start_commit": "1a4c450e08d83b4f0d1fbb32b6435a718af81ce7"
+    },
+    "query_config": {
+      "default_url_values": {
+        "plotSummary": "true",
+        "useTestPicker": "true",
+        "showZero": "true",
+        "enable_chart_tooltip": "true",
+        "show_google_plot": "true",
+        "use_titles": "true"
+      }
+    },
+    "data_point_config": {
+      "enable_point_links": true,
+      "show_json_file_display": true,
+      "always_show_commit_info": true
+    },
+    "optimize_sqltracestore": true,
+    "show_triage_link": true
+}
