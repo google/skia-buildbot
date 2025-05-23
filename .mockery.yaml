@@ -355,6 +355,7 @@ packages:
   go.skia.org/infra/perf/go/tracestore:
     interfaces:
       TraceStore:
+      MetadataStore:
   go.skia.org/infra/perf/go/trybot/store:
     interfaces:
       TryBotStore:

@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
 	shortcutStoreMock "go.skia.org/infra/perf/go/shortcut/mocks"
+	traceStoreMocks "go.skia.org/infra/perf/go/tracestore/mocks"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -152,13 +153,80 @@ func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestGetMetadataForTraces_Success(t *testing.T) {
+	// The dataframe contains 3 commits 1,2,3 and 2 traces
+	//
+	//  [",arch=x86,config=8888,"] = {1, 2, 3}
+	//	[",arch=x86,config=565,"]  = {2, 4, 6}
+	_, df, _ := frameRequestForTest(t)
+	mockTracestore := traceStoreMocks.NewTraceStore(t)
+	mockMetadataStore := traceStoreMocks.NewMetadataStore(t)
+
+	config.Config = &config.InstanceConfig{
+		DataPointConfig: config.DataPointConfig{
+			KeysForUsefulLinks: []string{"link1", "link2", "link3", "link4", "link5", "link6"},
+		},
+	}
+
+	commits := []types.CommitNumber{1, 2, 3}
+	traceids := []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}
+	sourceFileIds := []string{
+		"trace0_file1",
+		"trace0_file2",
+		"trace0_file3",
+		"trace1_file1",
+		"trace1_file2",
+		"trace1_file3",
+	}
+	sourceInfo := map[string]map[types.CommitNumber]string{
+		traceids[0]: {
+			1: sourceFileIds[0],
+			2: sourceFileIds[1],
+			3: sourceFileIds[2],
+		},
+		traceids[1]: {
+			1: sourceFileIds[3],
+			2: sourceFileIds[4],
+			3: sourceFileIds[5],
+		},
+	}
+	mockTracestore.On("GetSourceIds", ctx, commits, traceids).Return(sourceInfo, nil)
+
+	sourceFileLinks := map[string]map[string]string{
+		sourceFileIds[0]: {
+			"link1": "val1",
+		},
+		sourceFileIds[1]: {
+			"link2": "val2",
+		},
+		sourceFileIds[2]: {
+			"link3": "val3",
+		},
+		sourceFileIds[3]: {
+			"link4": "val4",
+		},
+		sourceFileIds[4]: {
+			"link5": "val5",
+		},
+		sourceFileIds[5]: {
+			"link6": "val6",
+		},
+	}
+	mockMetadataStore.On("GetMetadataMultiple", ctx, mock.Anything).Return(sourceFileLinks, nil)
+	ctx := context.Background()
+	traceMetadata, err := getMetadataForTraces(ctx, df, mockTracestore, mockMetadataStore)
+	assert.NoError(t, err)
+	assert.NotNil(t, traceMetadata)
+	assert.Equal(t, len(traceids), len(traceMetadata))
+}
+
 func TestProcessFrameRequest_InvalidQuery_ReturnsError(t *testing.T) {
 
 	fr := &FrameRequest{
 		Queries:  []string{"http://[::1]a"}, // A known query that will fail to parse.
 		Progress: progress.New(),
 	}
-	err := ProcessFrameRequest(context.Background(), fr, nil, nil, nil, nil, false)
+	err := ProcessFrameRequest(context.Background(), fr, nil, nil, nil, nil, nil, nil, false)
 	require.Error(t, err)
 	var b bytes.Buffer
 	err = fr.Progress.JSON(&b)

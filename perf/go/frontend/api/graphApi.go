@@ -164,7 +164,7 @@ func (api graphApi) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		timeoutCtx, cancel := context.WithTimeout(ctx, config.QueryMaxRunTime)
 		defer cancel()
 		defer span.End()
-		err := frame.ProcessFrameRequest(timeoutCtx, fr, api.perfGit, dfBuilder, api.shortcutStore, api.anomalyStore, config.Config.GitRepoConfig.CommitNumberRegex == "")
+		err := frame.ProcessFrameRequest(timeoutCtx, fr, api.perfGit, dfBuilder, api.traceStore, api.metadataStore, api.shortcutStore, api.anomalyStore, config.Config.GitRepoConfig.CommitNumberRegex == "")
 		if err != nil {
 			fr.Progress.Error(err.Error())
 		} else {

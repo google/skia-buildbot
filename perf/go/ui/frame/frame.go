@@ -6,7 +6,9 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"slices"
 	"sort"
+	"strings"
 	"time"
 
 	"go.opencensus.io/trace"
@@ -24,6 +26,7 @@ import (
 	"go.skia.org/infra/perf/go/pivot"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
+	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -131,7 +134,7 @@ type frameRequestProcess struct {
 // It does not return until all the work is complete.
 //
 // The finished results are stored in the FrameRequestProcess.Progress.Results.
-func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, anomalyStore anomalies.Store, searchAnomaliesTimeBased bool) error {
+func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit.Git, dfBuilder dataframe.DataFrameBuilder, traceStore tracestore.TraceStore, metadataStore tracestore.MetadataStore, shortcutStore shortcut.Store, anomalyStore anomalies.Store, searchAnomaliesTimeBased bool) error {
 	numKeys := 0
 	if req.Keys != "" {
 		numKeys = 1
@@ -153,6 +156,17 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit
 	resp, err := ResponseFromDataFrame(ctx, req.Pivot, df, ret.perfGit, truncate, ret.request.Progress)
 	if err != nil {
 		return ret.reportError(err, "Failed to get skps.")
+	}
+
+	if traceStore != nil && metadataStore != nil {
+		// Get the metadata for the retrieved traces.
+		traceMetadata, err := getMetadataForTraces(ctx, df, traceStore, metadataStore)
+		if err != nil {
+			return ret.reportError(err, "Failed to get trace metadata.")
+		}
+
+		// Attach the metadata to the dataframe.
+		resp.DataFrame.TraceMetadata = traceMetadata
 	}
 
 	if searchAnomaliesTimeBased {
@@ -319,6 +333,162 @@ func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df 
 		Skps:        skps,
 		DisplayMode: displayMode,
 	}, nil
+}
+
+// getMetadataForTraces returns the metadata for the traces present in the data frame for the relevant commits.
+func getMetadataForTraces(ctx context.Context, df *dataframe.DataFrame, traceStore tracestore.TraceStore, metadataStore tracestore.MetadataStore) ([]types.TraceMetadata, error) {
+	// Extract the relevant commit numbers and trace ids from the data frame.
+	commitNumbers := make([]types.CommitNumber, len(df.Header))
+	traceIds := []string{}
+	for i := 0; i < len(df.Header); i++ {
+		commitNumbers[i] = df.Header[i].Offset
+	}
+	for traceId := range df.TraceSet {
+		traceIds = append(traceIds, traceId)
+	}
+	// The returned object is a map where the key is the name of the trace and value is a map of commit number to the source file name.
+	sourceInfo, err := traceStore.GetSourceIds(ctx, commitNumbers, traceIds)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Error getting source ids")
+	}
+
+	// Collect all the source file ids for which we will extract metadata.
+	sourceFileIds := []string{}
+	for key := range sourceInfo {
+		traceMap := sourceInfo[key]
+		for _, sourceId := range traceMap {
+			if !slices.Contains(sourceFileIds, sourceId) {
+				sourceFileIds = append(sourceFileIds, sourceId)
+			}
+		}
+	}
+
+	if len(sourceFileIds) == 0 {
+		sklog.Infof("No relevant source files found.")
+		return nil, nil
+	}
+
+	// The return value is a map where the key is the source file name and value is the map of links.
+	linkInfo, err := metadataStore.GetMetadataMultiple(ctx, sourceFileIds)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Error getting metadata")
+	}
+
+	traceMetadatas := []types.TraceMetadata{}
+	// rawLinks is a nested map that tracks links from database for a
+	// traceId->commitnum->links lookup.
+	rawLinks := map[string]map[types.CommitNumber]map[string]string{}
+	for traceId := range sourceInfo {
+		traceMetadata := types.TraceMetadata{
+			TraceID:     traceId,
+			CommitLinks: map[types.CommitNumber]map[string]types.TraceCommitLink{},
+		}
+
+		// Populate the raw links for this trace for the relevant commit numbers.
+		rawLinks[traceId] = map[types.CommitNumber]map[string]string{}
+		for commitnum := range sourceInfo[traceId] {
+			sourceFileName := sourceInfo[traceId][commitnum]
+			links := linkInfo[sourceFileName]
+			rawLinks[traceId][commitnum] = links
+		}
+		traceMetadatas = append(traceMetadatas, traceMetadata)
+	}
+
+	// Now that we have the metadata and the raw links, let's populate the commit links in
+	// the metadata objects based on instance configuration.
+	return populateTraceMetadataLinksBasedOnConfig(traceMetadatas, df.Header[0].Offset, rawLinks), nil
+}
+
+// populateTraceMetadataLinksBasedOnConfig populates the commit links for the trace metadata
+// objects based on the specifications in the instance configs.
+//
+// Links which are commits are modified to show commit ranges from prev data points for well known keys.
+// Links which are specified as useful in the instance config are added from the raw links.
+// All other links are ignored.
+func populateTraceMetadataLinksBasedOnConfig(traceCommitLinks []types.TraceMetadata, startCommitNumber types.CommitNumber, rawLinks map[string]map[types.CommitNumber]map[string]string) []types.TraceMetadata {
+	ret := []types.TraceMetadata{}
+	for _, traceCommitLink := range traceCommitLinks {
+		for currentCommit := range rawLinks[traceCommitLink.TraceID] {
+			traceCommitLink.CommitLinks[currentCommit] = map[string]types.TraceCommitLink{}
+
+			// Let's find the prev commit for this trace that has data.
+			prevCommit := currentCommit - 1
+			for prevCommit >= startCommitNumber {
+				if _, ok := rawLinks[traceCommitLink.TraceID][prevCommit]; !ok {
+					// if no data present, we move on.
+					prevCommit = prevCommit - 1
+				} else {
+					break
+				}
+			}
+			if prevCommit >= startCommitNumber {
+				// Define a func that will easily extract the commit id from a commit url.
+				getCommitIdFromCommitUrl := func(commitUrl string) string {
+					commitIdStartIdx := strings.LastIndex(commitUrl, "/")
+					return commitUrl[commitIdStartIdx+1:]
+				}
+				// Define a func that will easily extract the repo url from the commit url.
+				getRepoUrlFromCommitUrl := func(commitUrl string) string {
+					repoEndIdx := strings.Index(commitUrl, "+")
+					return commitUrl[:repoEndIdx]
+				}
+				currentCommitLinks := rawLinks[traceCommitLink.TraceID][currentCommit]
+				prevCommitLinks := rawLinks[traceCommitLink.TraceID][prevCommit]
+
+				// Let's assemble the commit range urls if specified in the config.
+				if len(config.Config.DataPointConfig.KeysForCommitRange) > 0 {
+					for _, key := range config.Config.DataPointConfig.KeysForCommitRange {
+						currentCommitidInLinks := getCommitIdFromCommitUrl(currentCommitLinks[key])
+						if currentCommitidInLinks != "" {
+							prevCommitidInLinks := getCommitIdFromCommitUrl(prevCommitLinks[key])
+							switch key {
+							case "V8":
+								currentCommitLinks[key] = "https://chromium.googlesource.com/v8/v8/+/" + currentCommitidInLinks
+								if prevCommitLinks != nil {
+									prevCommitLinks[key] = "https://chromium.googlesource.com/v8/v8/+/" + prevCommitidInLinks
+								}
+							case "WebRTC":
+								currentCommitLinks[key] = "https://chromium.googlesource.com/external/webrtc/+/" + currentCommitidInLinks
+								if prevCommitLinks != nil {
+									prevCommitLinks[key] = "https://chromium.googlesource.com/external/webrtc/+/" + prevCommitidInLinks
+								}
+							}
+							var linkValue types.TraceCommitLink
+							// There is no relevant change in the commits specified in the links.
+							if currentCommitidInLinks == prevCommitidInLinks || prevCommitidInLinks == "" {
+								linkValue = types.TraceCommitLink{
+									Text: fmt.Sprintf("%s (No Change)", currentCommitidInLinks[:8]),
+									Href: currentCommitLinks[key],
+								}
+							} else {
+								// Since the prev commit and current commit are different, show is as a commit range url.
+								commitRangeUrl := fmt.Sprintf("%s+log/%s..%s", getRepoUrlFromCommitUrl(currentCommitLinks[key]), prevCommitidInLinks, currentCommitidInLinks)
+								linkValue = types.TraceCommitLink{
+									Text: fmt.Sprintf("%s - %s", prevCommitidInLinks[:8], currentCommitidInLinks[:8]),
+									Href: commitRangeUrl,
+								}
+							}
+							traceCommitLink.CommitLinks[currentCommit][key] = linkValue
+						}
+					}
+				}
+
+				// Let's assemble the other useful links if specified in the config.
+				if len(config.Config.DataPointConfig.KeysForUsefulLinks) > 0 {
+					for key, link := range currentCommitLinks {
+						if slices.Contains(config.Config.DataPointConfig.KeysForUsefulLinks, key) {
+							traceCommitLink.CommitLinks[currentCommit][key] = types.TraceCommitLink{
+								Href: link,
+							}
+						}
+					}
+				}
+			}
+		}
+		ret = append(ret, traceCommitLink)
+	}
+
+	return ret
 }
 
 func addTimeBasedAnomaliesToResponse(ctx context.Context, response *FrameResponse, anomalyStore anomalies.Store, perfGit perfgit.Git) {
