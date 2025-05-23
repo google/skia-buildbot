@@ -76,10 +76,11 @@ type ColumnHeader struct {
 //
 // The name DataFrame was gratuitously borrowed from R.
 type DataFrame struct {
-	TraceSet types.TraceSet              `json:"traceset"`
-	Header   []*ColumnHeader             `json:"header"`
-	ParamSet paramtools.ReadOnlyParamSet `json:"paramset"`
-	Skip     int                         `json:"skip"`
+	TraceSet      types.TraceSet              `json:"traceset"`
+	Header        []*ColumnHeader             `json:"header"`
+	ParamSet      paramtools.ReadOnlyParamSet `json:"paramset"`
+	Skip          int                         `json:"skip"`
+	TraceMetadata []types.TraceMetadata       `json:"traceMetadata"`
 }
 
 // BuildParamSet rebuilds d.ParamSet from the keys of d.TraceSet.

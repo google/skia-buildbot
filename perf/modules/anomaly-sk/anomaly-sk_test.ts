@@ -66,6 +66,7 @@ describe('getAnomalyDataMap', () => {
     header: header,
     skip: 0,
     paramset: ReadOnlyParamSet({}),
+    traceMetadata: [],
   };
   const anomalyA: Anomaly = dummyAnomaly();
   const anomalyB: Anomaly = dummyAnomaly();

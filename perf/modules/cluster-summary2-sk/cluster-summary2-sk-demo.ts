@@ -121,6 +121,7 @@ const frame: FrameResponse = {
       cpu_or_gpu: ['CPU'],
     }),
     skip: 0,
+    traceMetadata: [],
   },
   skps: [],
   msg: '',

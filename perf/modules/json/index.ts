@@ -138,11 +138,22 @@ export interface Commit {
 	body: string;
 }
 
+export interface TraceCommitLink {
+	Text: string;
+	Href: string;
+}
+
+export interface TraceMetadata {
+	traceid: string;
+	commitLinks: { [key: number]: { [key: string]: TraceCommitLink } | null } | null;
+}
+
 export interface DataFrame {
 	traceset: TraceSet;
 	header: (ColumnHeader | null)[] | null;
 	paramset: ReadOnlyParamSet;
 	skip: number;
+	traceMetadata: TraceMetadata[] | null;
 }
 
 export interface Anomaly {

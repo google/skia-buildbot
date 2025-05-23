@@ -172,6 +172,7 @@ export class DataFrameRepository extends LitElement {
     header: [],
     paramset: ReadOnlyParamSet({}),
     skip: 0,
+    traceMetadata: [],
   };
 
   @provide({ context: dataTableContext })
@@ -411,6 +412,7 @@ export class DataFrameRepository extends LitElement {
       header: this._header,
       paramset: this._paramset,
       skip: 0,
+      traceMetadata: [],
     });
 
     this.anomaly = mergeAnomaly(this.anomaly, resp.anomalymap);
@@ -490,6 +492,7 @@ export class DataFrameRepository extends LitElement {
       header: this._header,
       paramset: this._paramset,
       skip: 0,
+      traceMetadata: [],
     });
 
     this.anomaly = mergeAnomaly(this.anomaly, anomaly);

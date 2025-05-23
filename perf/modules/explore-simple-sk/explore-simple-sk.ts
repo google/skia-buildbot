@@ -437,6 +437,7 @@ export class ExploreSimpleSk extends ElementSk {
     header: [],
     paramset: ReadOnlyParamSet({}),
     skip: 0,
+    traceMetadata: [],
   };
 
   // The state that does into the URL.

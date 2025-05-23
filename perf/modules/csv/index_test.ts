@@ -31,6 +31,7 @@ const df: DataFrame = {
     ',arch=riscv,os=win,': Trace([MISSING_DATA_SENTINEL, 4]),
   }),
   skip: 0,
+  traceMetadata: [],
 };
 
 describe('csv', () => {

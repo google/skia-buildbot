@@ -106,6 +106,7 @@ func main() {
 		results.TryBotRequest{},
 		results.TryBotResponse{},
 		subProto.Subscription{},
+		types.TraceMetadata{},
 	)
 
 	// TODO(jcgregorio) Switch to generator.AddMultipleUnionToNamespace().

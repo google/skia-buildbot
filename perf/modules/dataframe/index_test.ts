@@ -229,6 +229,7 @@ describe('buildParamSet', () => {
       header: [],
       paramset: ReadOnlyParamSet({}),
       skip: 0,
+      traceMetadata: [],
     };
     buildParamSet(df);
     assert.equal(0, Object.keys(df.paramset).length);
@@ -244,6 +245,7 @@ describe('buildParamSet', () => {
       header: [],
       paramset: ReadOnlyParamSet({}),
       skip: 0,
+      traceMetadata: [],
     };
     buildParamSet(df);
     assert.equal(2, Object.keys(df.paramset).length);
@@ -259,12 +261,14 @@ describe('join', () => {
       header: [],
       paramset: ReadOnlyParamSet({}),
       skip: 0,
+      traceMetadata: [],
     };
     const b: DataFrame = {
       traceset: TraceSet({}),
       header: [],
       paramset: ReadOnlyParamSet({}),
       skip: 0,
+      traceMetadata: [],
     };
     const got = join(a, b);
 
@@ -284,6 +288,7 @@ describe('join', () => {
       }),
       paramset: ReadOnlyParamSet({}),
       skip: 0,
+      traceMetadata: [],
     };
     const b: DataFrame = {
       header: [
@@ -296,6 +301,7 @@ describe('join', () => {
       }),
       paramset: ReadOnlyParamSet({}),
       skip: 0,
+      traceMetadata: [],
     };
     buildParamSet(a);
     buildParamSet(b);
@@ -317,6 +323,7 @@ describe('join', () => {
       }),
       paramset: ReadOnlyParamSet({}),
       skip: 0,
+      traceMetadata: [],
     };
     buildParamSet(expected);
 
@@ -339,6 +346,7 @@ describe('timestampBounds', () => {
       traceset: TraceSet({}),
       paramset: ReadOnlyParamSet({}),
       skip: 0,
+      traceMetadata: [],
     };
     const emptyBounds = timestampBounds(emptyDataFrame);
     assert.deepEqual([NaN, NaN], emptyBounds);
@@ -350,6 +358,7 @@ describe('timestampBounds', () => {
       traceset: TraceSet({}),
       paramset: ReadOnlyParamSet({}),
       skip: 0,
+      traceMetadata: [],
     };
     const singleElementBounds = timestampBounds(singleElementDataFrame);
     assert.deepEqual([0, 0], singleElementBounds);
@@ -366,6 +375,7 @@ describe('timestampBounds', () => {
       traceset: TraceSet({}),
       paramset: ReadOnlyParamSet({}),
       skip: 0,
+      traceMetadata: [],
     };
     const multipleElementBounds = timestampBounds(multipleElementDataFrame);
     assert.deepEqual([11, 14], multipleElementBounds);

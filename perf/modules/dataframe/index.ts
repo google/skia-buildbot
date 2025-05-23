@@ -72,6 +72,7 @@ export const generateSubDataframe = (dataframe: DataFrame, range: range): DataFr
     ) as TraceSet,
     skip: 0,
     paramset: ReadOnlyParamSet({}),
+    traceMetadata: [],
   };
 };
 
@@ -245,6 +246,7 @@ export function join(a: DataFrame, b: DataFrame): DataFrame {
   const ret: DataFrame = {
     header: header,
     traceset: {} as TraceSet,
+    traceMetadata: null,
   } as DataFrame;
   if (a.header!.length === 0) {
     a.header = b.header;
@@ -280,6 +282,8 @@ export function join(a: DataFrame, b: DataFrame): DataFrame {
       destTrace[bMap[sourceOffset]] = sourceValue;
     });
   }
+
+  ret.traceMetadata = [...(a.traceMetadata || []), ...(b.traceMetadata || [])];
 
   return ret;
 }

@@ -13,6 +13,7 @@ const df: DataFrame = {
     ',arch=arm,config=gpu,': Trace([3, Math.PI]),
   }),
   skip: 0,
+  traceMetadata: [],
 };
 const req: pivot.Request = {
   group_by: ['config', 'arch'],

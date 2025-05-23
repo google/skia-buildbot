@@ -75,6 +75,25 @@ func NewTrace(traceLen int) Trace {
 // TraceSet is a set of Trace's, keyed by trace id.
 type TraceSet map[string]Trace
 
+// TraceCommitLink contains data for a link to show for a trace data point.
+type TraceCommitLink struct {
+	// Text is the display text for the link.
+	Text string
+
+	// Href is the target url for the link.
+	Href string
+}
+
+// TraceMetadata is a struct to define metadata for a trace.
+type TraceMetadata struct {
+	// TraceID is the string id of the trace.
+	TraceID string `json:"traceid"`
+
+	// CommitLinks is a map where the key is a commit number and the value is
+	// a map containing commit links.
+	CommitLinks map[CommitNumber]map[string]TraceCommitLink `json:"commitLinks"`
+}
+
 // RegressionDetectionGrouping is how traces are grouped when regression detection is done.
 type RegressionDetectionGrouping string
 

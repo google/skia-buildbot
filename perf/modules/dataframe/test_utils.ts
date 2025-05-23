@@ -91,6 +91,7 @@ export const generateFullDataFrame = (
     ) as TraceSet,
     skip: 0,
     paramset: ReadOnlyParamSet({}),
+    traceMetadata: [],
   };
 };
 
