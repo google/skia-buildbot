@@ -46,6 +46,8 @@ type RunBenchmarkParams struct {
 	// AggregationMethod is method to aggregate sampled values.
 	// If empty, then the original values are returned.
 	AggregationMethod string
+	// Extra arguments to be passed to the benchmark runner.
+	ExtraArgs []string
 }
 
 // RunBenchmarkActivity wraps RunBenchmarkWorkflow in Activities
@@ -305,7 +307,7 @@ func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *
 		commit = rbp.Commit.GetMainGitHash()
 	}
 
-	taskIds, err := run_benchmark.Run(ctx, sc, commit, rbp.BotConfig, rbp.Benchmark, rbp.Story, rbp.StoryTags, rbp.JobID, rbp.BuildCAS, 1, rbp.Dimensions)
+	taskIds, err := run_benchmark.Run(ctx, sc, commit, rbp.BotConfig, rbp.Benchmark, rbp.Story, rbp.StoryTags, rbp.ExtraArgs, rbp.JobID, rbp.BuildCAS, 1, rbp.Dimensions)
 	if err != nil {
 		return "", err
 	}

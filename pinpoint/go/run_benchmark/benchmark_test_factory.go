@@ -15,7 +15,7 @@ type BenchmarkTest interface {
 // NewBenchmarkTest returns a BenchmarkTest based on the request parameters.
 // The Configuration (bot) is used alongside the benchmark to determine the
 // isolate target for that combination. Based on the isolate target,
-func NewBenchmarkTest(commit, botConfig, browser, benchmark, story, storyTags string) (BenchmarkTest, error) {
+func NewBenchmarkTest(commit, botConfig, browser, benchmark, story, storyTags string, extraArgs []string) (BenchmarkTest, error) {
 	config, err := bc.GetBotConfig(botConfig, false)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to fetch bot configs to create benchmark test")
@@ -34,6 +34,7 @@ func NewBenchmarkTest(commit, botConfig, browser, benchmark, story, storyTags st
 			commit:    commit,
 			story:     story,
 			storyTags: storyTags,
+			extraArgs: extraArgs,
 		}, nil
 	}
 	return nil, skerr.Fmt("Unsupported test target %s", target)

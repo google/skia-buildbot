@@ -38,9 +38,11 @@ var waterfallEnabledGtests = util.NewStringSet([]string{
 var crossbenchBenchmarks = map[string]string{
 	"jetstream2.crossbench":      "jetstream_2.2",
 	"motionmark1.3.crossbench":   "motionmark_1.3",
+	"speedometer2.crossbench":    "speedometer_2",
 	"speedometer2.0.crossbench":  "speedometer_2.0",
 	"speedometer2.1.crossbench":  "speedometer_2.1",
-	"speedometer3.crossbench":    "speedometer_3.0",
+	"speedometer3.crossbench":    "speedometer_3",
+	"speedometer3.0.crossbench":  "speedometer_3.0",
 	"speedometer3.1.crossbench":  "speedometer_3.1",
 	"loadline_phone.crossbench":  "loadline-phone-fast",
 	"loadline_tablet.crossbench": "loadline-tablet-fast",
@@ -52,6 +54,7 @@ type telemetryTest struct {
 	commit    string
 	story     string
 	storyTags string
+	extraArgs []string
 }
 
 // getCommand generates the command needed to execute Telemetry benchmark tests.
@@ -139,6 +142,8 @@ func (t *telemetryTest) GetTelemetryExtraArgs() []string {
 		cmd = append(cmd, "--results-label", t.commit[:7])
 	}
 
+	cmd = append(cmd, t.extraArgs...)
+
 	return cmd
 }
 
@@ -149,6 +154,7 @@ func (t *telemetryTest) GetCrossbenchExtraArgs(benchmark string) []string {
 	cmd = append(cmd, "--browser="+t.browser)
 	cmd = append(cmd, "-v")
 	cmd = append(cmd, "--isolated-script-test-output", "${ISOLATED_OUTDIR}/output.json")
+	cmd = append(cmd, t.extraArgs...)
 
 	return cmd
 }

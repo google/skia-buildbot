@@ -56,6 +56,9 @@ type SingleCommitRunnerParams struct {
 	// Note: This field is only used in bisect
 	FinishedIteration int32
 
+	// Extra arguments to be passed to the benchmark runner.
+	ExtraArgs []string
+
 	// Available bot list
 	BotIds []string
 }
@@ -158,6 +161,7 @@ func runBenchmark(ctx workflow.Context, cc *common.CombinedCommit, cas *apipb.CA
 		StoryTags:    scrp.StoryTags,
 		Dimensions:   dimensions,
 		IterationIdx: iteration,
+		ExtraArgs:    scrp.ExtraArgs,
 	}
 
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.RunBenchmark, rbp).Get(ctx, &tr); err != nil {

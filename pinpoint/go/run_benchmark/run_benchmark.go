@@ -93,13 +93,13 @@ func (s State) ConvertToProto() pinpoint_proto.SwarmingStatus {
 }
 
 // Run schedules a swarming task to run the RunBenchmarkRequest.
-func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark, story, storyTag string, jobID string, buildArtifact *apipb.CASReference, iter int, botID map[string]string) ([]*apipb.TaskRequestMetadataResponse, error) {
+func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark, story, storyTag string, extraArgs []string, jobID string, buildArtifact *apipb.CASReference, iter int, botID map[string]string) ([]*apipb.TaskRequestMetadataResponse, error) {
 	botConfig, err := bot_configs.GetBotConfig(bot, false)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create benchmark test object")
 	}
 
-	bt, err := NewBenchmarkTest(commit, botConfig.Bot, botConfig.Browser, benchmark, story, storyTag)
+	bt, err := NewBenchmarkTest(commit, botConfig.Bot, botConfig.Browser, benchmark, story, storyTag, extraArgs)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to prepare benchmark test for execution")
 	}

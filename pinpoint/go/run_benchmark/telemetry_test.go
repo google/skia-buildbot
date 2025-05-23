@@ -8,7 +8,7 @@ import (
 
 func TestGetCommand_WaterfallGTest_TestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
-	b, err := NewBenchmarkTest(c, "android-pixel6-perf", "", "components_perftests", "", "")
+	b, err := NewBenchmarkTest(c, "android-pixel6-perf", "", "components_perftests", "", "", nil)
 
 	assert.NoError(t, err)
 
@@ -24,7 +24,7 @@ func TestGetCommand_WaterfallGTest_TestCommand(t *testing.T) {
 
 func TestGetCommand_PerfBrowserTestWithStory_StoryTestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
-	b, err := NewBenchmarkTest(c, "android-pixel4_webview-perf", "", "performance_browser_tests", "story", "all")
+	b, err := NewBenchmarkTest(c, "android-pixel4_webview-perf", "", "performance_browser_tests", "story", "all", nil)
 	assert.NoError(t, err)
 
 	cmd := b.GetCommand()
@@ -38,7 +38,7 @@ func TestGetCommand_PerfBrowserTestWithStory_StoryTestCommand(t *testing.T) {
 
 func TestGetCommand_NonWaterfallEnabledGTest_TestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
-	b, err := NewBenchmarkTest(c, "android-pixel4_webview-perf", "", "random_test", "", "")
+	b, err := NewBenchmarkTest(c, "android-pixel4_webview-perf", "", "random_test", "", "", nil)
 	assert.NoError(t, err)
 
 	cmd := b.GetCommand()
@@ -51,7 +51,7 @@ func TestGetCommand_NonWaterfallEnabledGTest_TestCommand(t *testing.T) {
 
 func TestGetCommand_Crossbench_TestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
-	b, err := NewBenchmarkTest(c, "win-11-perf", "release", "speedometer3.1.crossbench", "default", "")
+	b, err := NewBenchmarkTest(c, "win-11-perf", "release", "speedometer3.1.crossbench", "default", "", nil)
 	assert.NoError(t, err)
 
 	cmd := b.GetCommand()
@@ -60,6 +60,20 @@ func TestGetCommand_Crossbench_TestCommand(t *testing.T) {
 	assert.NotContains(t, cmd, "../../tools/perf/run_benchmark")
 	assert.Contains(t, cmd, "speedometer3.1.crossbench")
 	assert.Contains(t, cmd, "speedometer_3.1")
+}
+
+func TestGetCommand_CrossbenchWithExtraArgs_TestCommand(t *testing.T) {
+	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
+	b, err := NewBenchmarkTest(c, "win-11-perf", "release", "speedometer3.1.crossbench", "default", "", []string{"--official-browser=safari"})
+	assert.NoError(t, err)
+
+	cmd := b.GetCommand()
+
+	assert.Contains(t, cmd, "../../third_party/crossbench/cb.py")
+	assert.NotContains(t, cmd, "../../tools/perf/run_benchmark")
+	assert.Contains(t, cmd, "speedometer3.1.crossbench")
+	assert.Contains(t, cmd, "speedometer_3.1")
+	assert.Contains(t, cmd, "--official-browser=safari")
 }
 
 func TestReplaceNonAlphaNumeric_WorksAsIntended(t *testing.T) {
