@@ -83,15 +83,15 @@ func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool, datastoreTyp
 
 	if diffNextActual != "" && diffPrevActual == "" {
 		sklog.Debugf("Next is different from live schema. Will migrate. diffNextActual: %s", diffNextActual)
-		// fromLiveToNextStmt := FromLiveToNext
-		// if datastoreType == config.Spanner {
-		// 	fromLiveToNextStmt = FromLiveToNextSpanner
-		// }
-		// _, err = db.Exec(ctx, fromLiveToNextStmt)
-		// if err != nil {
-		// 	sklog.Errorf("Failed to migrate Schema from prev to next. Prev: %s, Next: %s.", prev, next)
-		// 	return skerr.Wrapf(err, "Failed to migrate Schema")
-		// }
+		fromLiveToNextStmt := FromLiveToNext
+		if datastoreType == config.Spanner {
+			fromLiveToNextStmt = FromLiveToNextSpanner
+		}
+		_, err = db.Exec(ctx, fromLiveToNextStmt)
+		if err != nil {
+			sklog.Errorf("Failed to migrate Schema from prev to next. Prev: %s, Next: %s.", prev, next)
+			return skerr.Wrapf(err, "Failed to migrate Schema")
+		}
 
 	} else if diffNextActual != "" && diffPrevActual != "" {
 		sklog.Errorf("Live schema doesn't match next or previous checked-in schema. diffNextActual: %s, diffPrevActual: %s.", diffNextActual, diffPrevActual)

@@ -5,8 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/sql/expectedschema"
+	golden_schema "go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 )
 
@@ -40,9 +43,6 @@ func Test_InvalidSchema(t *testing.T) {
 	require.Error(t, err)
 }
 
-/*
-// TODO(pasthana): Uncomment once https://skia-review.googlesource.com/c/buildbot/+/996556
-// is merged, and migration logic is known to not break anything.
 func Test_MigrationNeeded(t *testing.T) {
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -67,4 +67,3 @@ func Test_MigrationNeeded(t *testing.T) {
 	require.NoError(t, err)
 	assertdeep.Equal(t, next, *actual)
 }
-*/
