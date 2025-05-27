@@ -482,3 +482,25 @@ describe('plotSummary', () => {
     assert.equal(plotSummaryElement, undefined);
   });
 });
+
+describe('updateBrowserURL', () => {
+  let explore: ExploreSimpleSk;
+
+  beforeEach(() => {
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+  });
+
+  afterEach(() => {
+    fetchMock.reset(); // Reset fetch mocks
+  });
+
+  it('should add begin, end, and request_type=0 params when none exist', () => {
+    explore.state.begin = 100;
+    explore.state.end = 200;
+    explore['updateBrowserURL']();
+    const pushedUrl = new URL(window.location.href as string);
+    assert.equal(pushedUrl.searchParams.get('begin'), '100');
+    assert.equal(pushedUrl.searchParams.get('end'), '200');
+    assert.equal(pushedUrl.searchParams.get('request_type'), '0');
+  });
+});

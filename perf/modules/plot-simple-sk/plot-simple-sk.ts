@@ -1190,7 +1190,7 @@ export class PlotSimpleSk extends ElementSk {
         clampToRect(pt, this.detailArea.rect);
         this.zoomRect.width = pt.x - this.zoomRect.x;
         this.zoomRect.height = pt.y - this.zoomRect.y;
-        this.drawOverlayCanvas();
+        //this.drawOverlayCanvas();
       }
     }
     this.mouseMoveRaw = null;

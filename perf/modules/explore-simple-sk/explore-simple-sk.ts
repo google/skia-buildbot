@@ -212,6 +212,8 @@ export type CommitRange = [CommitNumber, CommitNumber];
 export interface PointSelected {
   commit: CommitNumber;
   name: string;
+  tableRow?: number; // The row in the table that this point corresponds to.
+  tableCol?: number; // The column in the table that this point corresponds to.
 }
 
 export enum LabelMode {
@@ -256,6 +258,8 @@ export const selectionToEvent = (
 export const defaultPointSelected = (): PointSelected => ({
   commit: CommitNumber(0),
   name: '',
+  tableRow: -1,
+  tableCol: -1,
 });
 
 export class GraphConfig {
@@ -313,7 +317,7 @@ export class State {
 
   numCommits: number = 250;
 
-  requestType: RequestType = 1; // TODO(jcgregorio) Use constants in domain-picker-sk.
+  requestType: RequestType = 1; // 0 to use begin/end, 1 to use numCommits.
 
   pivotRequest: pivot.Request = defaultPivotRequest();
 
@@ -356,6 +360,8 @@ export class State {
 
   // boolean indicating if zoom should be horizontal or vertical
   horizontal_zoom: boolean = false;
+
+  graph_index: number = 0; // The index of the graph in the list of graphs.
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -1076,6 +1082,13 @@ export class ExploreSimpleSk extends ElementSk {
     const prevCommit = this.getCommitDetails(
       this.getPreviousCommit(currentCommitIndex!, traceName)
     );
+    this.state.selected = {
+      name: traceName,
+      commit: commitPos,
+      tableCol: index.tableCol,
+      tableRow: index.tableRow,
+    };
+
     this.enableTooltip(
       {
         x: index.tableRow - (this.selectedRange?.begin || 0),
@@ -1088,6 +1101,7 @@ export class ExploreSimpleSk extends ElementSk {
       true
     );
     this.tooltipSelected = true;
+    this.updateBrowserURL();
 
     // If traces are rendered and summary bar is enabled, show
     // summary for the trace clicked on the graph.
@@ -1770,6 +1784,7 @@ export class ExploreSimpleSk extends ElementSk {
    */
   summarySelected({ detail }: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
     this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
+    this.closeTooltip();
 
     // When summary selection is changed, fetch the comments for the new range
     // and update the plot.
@@ -1827,6 +1842,56 @@ export class ExploreSimpleSk extends ElementSk {
         detail: detail,
       })
     );
+    this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
+  }
+
+  private clearBrowserURL(): void {
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.delete('graph');
+    currentUrl.searchParams.delete('commit');
+    currentUrl.searchParams.delete('trace');
+    window.history.pushState(null, '', currentUrl.toString());
+  }
+
+  /**
+   * Updates the browser URL with the new begin and end values.
+   * This is used to reflect the current state of the graph in the URL.
+   */
+  private updateBrowserURL(): void {
+    const currentUrl = new URL(window.location.href);
+    // The tooltip is opened to a commit, so we need to update the URL to match.
+    if (this._state.selected.tableCol && this._state.selected.tableCol !== -1) {
+      currentUrl.searchParams.set('graph', this.state.graph_index.toString());
+      currentUrl.searchParams.set('commit', this.state.selected.commit.toString());
+      currentUrl.searchParams.set('trace', this._state.selected.tableCol.toString());
+    } else if (currentUrl.searchParams.has('commit') && currentUrl.searchParams.has('trace')) {
+      const commit = parseInt(currentUrl.searchParams.get('commit') ?? '');
+      const row = this.dfRepo.value?.header.findIndex((header) => header?.offset === commit) ?? -1;
+      if (row === -1) {
+        errorMessage(`Commit not found in the dataframe: ${commit}`);
+        return;
+      }
+      const column = parseInt(currentUrl.searchParams.get('trace') ?? '');
+      const graph = parseInt(currentUrl.searchParams.get('graph') ?? '0');
+      if (this.state.graph_index === graph) {
+        const googlePlot = this.googleChartPlot.value;
+        if (googlePlot) {
+          googlePlot.selectCommit(row, column);
+        }
+      }
+    }
+    try {
+      // Update the URL with the current range.
+      if (this.state.graph_index === 0) {
+        currentUrl.searchParams.set('request_type', '0');
+        currentUrl.searchParams.set('begin', this.state.begin.toString());
+        currentUrl.searchParams.set('end', this.state.end.toString());
+      }
+      window.history.pushState(null, '', currentUrl.toString());
+    } catch (error) {
+      console.error('Failed to update state to URL:', error);
+      return;
+    }
   }
 
   // updateSelectedRangeWithPlotSummary is used to synchronize
@@ -1839,6 +1904,7 @@ export class ExploreSimpleSk extends ElementSk {
     if (this.googleChartPlot.value) {
       this.googleChartPlot.value.selectedValueRange = range;
     }
+    this.updateBrowserURL();
     this.closeTooltip();
   }
 
@@ -1858,6 +1924,14 @@ export class ExploreSimpleSk extends ElementSk {
     this.selectedRange = selected;
 
     const subDataframe = generateSubDataframe(df!, selected);
+    if (!subDataframe || subDataframe.header?.length === 0) {
+      // If the subDataframe is empty, we cannot proceed.
+      errorMessage('Invalid subDataframe.');
+      return;
+    }
+    this.state.begin = subDataframe.header![0]!.timestamp;
+    this.state.end = subDataframe.header![subDataframe.header!.length - 1]!.timestamp;
+
     const anomalyMap = findAnomalyInRange(this.dfRepo.value?.anomaly || {}, {
       begin: header[Math.min(selected.begin, header.length - 1)]!.offset,
       end: header[Math.min(selected.end, header.length - 1)]!.offset,
@@ -1884,6 +1958,8 @@ export class ExploreSimpleSk extends ElementSk {
     if (replot) {
       plot.removeAll();
       this.AddPlotLines(subDataframe.traceset, this.getLabels(subDataframe.header!));
+    } else {
+      this.updateBrowserURL();
     }
 
     if (anomalyMap) {
@@ -2111,6 +2187,10 @@ export class ExploreSimpleSk extends ElementSk {
     const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
     tooltipElem!.moveTo(null);
     tooltipElem!.bug_id = 0;
+    if (this.tooltipSelected) {
+      this.clearSelectedState();
+      this.clearBrowserURL();
+    }
     this.tooltipSelected = false;
 
     // unselect all selected item on the chart
@@ -2270,7 +2350,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.commitsTab!.disabled = true;
     this.logEntry!.textContent = '';
-
     this._state.selected = defaultPointSelected();
     this._stateHasChanged();
   }

@@ -287,7 +287,7 @@ export class PlotGoogleChartSk extends LitElement {
           ${ref(this.plotElement)}
           class="plot"
           type="line"
-          .events=${['onmouseover', 'onmouseout']}
+          .events=${['onmouseover', 'onmouseout', 'select']}
           @mousedown=${this.onChartMouseDown}
           @google-chart-select=${this.onChartSelect}
           @google-chart-onmouseover=${this.onChartMouseOver}
@@ -664,15 +664,19 @@ export class PlotGoogleChartSk extends LitElement {
       return;
     }
     this.chartInteracting = true;
-
     const selection = e.detail.chart.getSelection()[0];
-    if (selection === undefined) {
+    let row: number, column: number;
+    if (selection) {
+      row = selection.row;
+      column = selection.column;
+    } else {
       return;
     }
 
     const plot = this.plotElement.value;
-    const tableRowIndex = plot!.view!.getTableRowIndex(selection.row);
-    const tableColumnIndex = plot!.view!.getTableColumnIndex(selection.column);
+
+    const tableRowIndex = plot!.view!.getTableRowIndex(row);
+    const tableColumnIndex = plot!.view!.getTableColumnIndex(column);
 
     // Subtract 2 from the table column index since the first two columns
     // are commit position and date.
@@ -1282,6 +1286,22 @@ export class PlotGoogleChartSk extends LitElement {
     }
     this.chart.setSelection([]);
     this.sidePanel.value?.HighlightTraces([]);
+  }
+
+  selectCommit(row: number, column: number): void {
+    if (this.chart === null) {
+      return;
+    }
+    google.visualization.events.addListener(this.chart, 'ready', () => {
+      if (this.chart) {
+        this.chart.setSelection([{ row: row, column: column - 1 }]);
+        google.visualization.events.trigger(this.chart, 'select', {});
+      }
+    });
+  }
+
+  getChart(): google.visualization.CoreChartBase | null {
+    return this.chart;
   }
 }
 

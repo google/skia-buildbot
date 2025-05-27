@@ -60,7 +60,7 @@ class State {
 
   numCommits: number = 250;
 
-  request_type: RequestType = 1;
+  request_type: RequestType = 0;
 
   summary: boolean = false;
 
@@ -633,6 +633,7 @@ export class ExploreMultiSk extends ElementSk {
       show_google_plot: this.state.show_google_plot,
       enable_favorites: this.canAddFav(),
       hide_paramset: true,
+      graph_index: this.exploreElements.indexOf(explore),
     };
     explore.state = newState;
   }
