@@ -142,7 +142,7 @@ func TestProvider_RegressionFound_BuildUrlDiff(t *testing.T) {
 
 func TestProvider_Android2Config_Success(t *testing.T) {
 	// Read the value from the checked in config for android2 instance.
-	android2Config := filepath.Join("..", "..", "configs", "android2.json")
+	android2Config := filepath.Join("..", "..", "configs", "spanner", "android2.json")
 	var cfg config.InstanceConfig
 	err := util.WithReadFile(android2Config, func(r io.Reader) error {
 		b, err := io.ReadAll(r)
@@ -194,7 +194,7 @@ func TestProvider_Android2Config_Success(t *testing.T) {
 
 func TestProvider_Android2Config_Format(t *testing.T) {
 	// Read the value from the checked in config for android2 instance.
-	android2Config := filepath.Join("..", "..", "configs", "android2.json")
+	android2Config := filepath.Join("..", "..", "configs", "spanner", "android2.json")
 	var cfg config.InstanceConfig
 	err := util.WithReadFile(android2Config, func(r io.Reader) error {
 		b, err := io.ReadAll(r)
@@ -248,7 +248,7 @@ func TestProvider_Android2Config_Format(t *testing.T) {
 }
 
 func TestProvider_Android2Config_MultipleTraces_Format(t *testing.T) {
-	android2Config := filepath.Join("..", "..", "configs", "android2.json")
+	android2Config := filepath.Join("..", "..", "configs", "spanner", "android2.json")
 	var cfg config.InstanceConfig
 	err := util.WithReadFile(android2Config, func(r io.Reader) error {
 		b, err := io.ReadAll(r)

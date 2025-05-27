@@ -4,17 +4,9 @@ include ../make/bazel.mk
 build: ./modules/json/index.ts
 	$(BAZEL) build --config=mayberemote //perf/...
 
-# Requires the CockroachDB emulator to be running.
-generate_sql_schema:
-	cd ./go/sql; go run ./tosql
-	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema.json
-
 generate_sql_schema_spanner:
 	cd ./go/sql; go run ./tosql --schemaTarget spanner
 	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema_spanner.json --databaseType spanner
-
-run_cockroachdb_emulators:
-	../scripts/run_emulators/run_emulators start
 
 .PHONY: docs
 docs:
@@ -155,67 +147,6 @@ demo_trybot-page-sk:
 demo_word-cloud-sk:
 	$(BAZEL) run --config=mayberemote //perf/modules/word-cloud-sk:demo_page_server
 
-# Presumes you've already run:
-#
-#    make build
-#
-#    kubectl port-forward perf-cockroachdb-0 25000:26257
-#
-# Run "bazel build //perf/..." after making any frontend changes to pick up the
-# change without restarting the golang server.
-run-local-instance:
-	go run ./go/perfserver -- frontend \
-		--dev_mode \
-		--do_clustering=false \
-		--port=:8001 \
-		--noemail \
-		--config_filename=./configs/cdb-nano.json \
-		--num_continuous_parallel=1 \
-		--display_group_by=true \
-		--disable_metrics_update \
-		--resources_dir=../_bazel_bin/perf/pages/development/ \
-		--connection_string=postgresql://root@127.0.0.1:25000/skia?sslmode=disable \
-		--commit_range_url=https://skia.googlesource.com/skia/+log/{begin}..{end}
-
-
-run-flutter-instance:
-	go run ./go/perfserver -- frontend \
-		--dev_mode \
-		--do_clustering=false \
-		--port=:8001 \
-		--noemail \
-		--config_filename=./configs/flutter-engine2.json \
-		--num_continuous_parallel=1 \
-		--display_group_by=true \
-		--resources_dir=../_bazel_bin/perf/pages/development/ \
-		--connection_string=postgresql://root@127.0.0.1:25000/flutter_engine2?sslmode=disable
-
-# Before running this target you need to have a local single-instance of
-# cockroachdb running, started like this:
-#
-#  cd /tmp cockroach start-single-node --insecure --listen-addr=127.0.0.1
-#
-# Once the local instance of Perf is running you can visit:
-#
-# 	http://localhost:8002/.
-run-demo-instance-cdb:
-	$(BAZEL) build --config=mayberemote -c dbg //perf/...
-	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
-		--dev_mode \
-		--config_filename=./configs/demo.json \
-		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
-
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
-		--dev_mode \
-		--do_clustering=false \
-		--port=:8002 \
-		--prom_port=:20001 \
-		--config_filename=./configs/demo.json \
-		--display_group_by=false \
-		--resources_dir=../_bazel_bin/perf/pages/development/ \
-		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
-
 initdemo:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo -- \
@@ -253,25 +184,6 @@ run_maintenance:
 
 run-demo-maintenance: run-spanner-emulator initdemo ingest_demo run_maintenance
 
-# Before running this target you need to have a local single-instance of
-# cockroachdb running, started like this:
-#
-#  cd /tmp cockroach start-single-node --insecure --listen-addr=127.0.0.1
-run-demo-maintenance-cdb:
-	$(BAZEL) build --config=mayberemote -c dbg //perf/...
-	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
-		--dev_mode \
-		--config_filename=./configs/demo.json \
-		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver maintenance \
-		--dev_mode \
-		--config_filename=./configs/demo.json \
-		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable \
-		--migrate_regressions \
-		--refresh_query_cache \
-		--tiles_for_query_cache=5
-
 run-demo-backend:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
@@ -280,46 +192,6 @@ run-demo-backend:
 		--port=:8005 \
 		--prom_port=:20002 \
 		--commit_range_url=https://chromium.googlesource.com/chromium/src/+log/{begin}..{end}
-
-run-demo-chromeperf:
-	$(BAZEL) build --config=mayberemote -c dbg //perf/...
-	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
-		--dev_mode \
-		--config_filename=./configs/demo.json \
-		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
-
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
-		--dev_mode \
-		--do_clustering=false \
-		--port=:8002 \
-		--prom_port=:20001 \
-		--config_filename=./configs/demo.json \
-		--display_group_by=false \
-		--resources_dir=../_bazel_bin/perf/pages/development/ \
-		--commit_range_url=https://chromium.googlesource.com/chromium/src/+log/{begin}..{end}
-		--fetch_chrome_perf_anomalies=true
-		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
-
-run-demo-cluster:
-	$(BAZEL) build --config=mayberemote -c dbg //perf/...
-	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
-		--dev_mode \
-		--config_filename=./configs/demo.json \
-		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
-
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver cluster \
-	    --dev_mode \
-	    --prom_port=:20000 \
-        --config_filename=./configs/demo.json \
-        --num_continuous=50 \
-        --num_paramsets_for_queries=20 \
-        --port=:7000 \
-		--resources_dir=../_bazel_bin/perf/pages/development/ \
-        --num_continuous_parallel=1 \
-        --do_clustering=true \
-        --event_driven_regression_detection=true
 
 run-auth-proxy-before-demo-instance:
 	bazelisk run //kube/cmd/auth-proxy -- \
@@ -341,19 +213,3 @@ run-auth-proxy-before-backend:
 		--target_port=:8005 \
 		--local \
 		--self_sign_localhost_tls
-
-# Used to test chrome-perf-public ingestion into a local CDB instance.
-#
-# Before running this target you need to have a local single-instance of
-# cockroachdb running, started like this:
-#
-#  cd /tmp cockroach start-single-node --insecure --listen-addr=127.0.0.1
-#
-run-chrome-ingest-demo-instance:
-	$(BAZEL) build --config=mayberemote -c dbg //perf/...
-	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo -- --databasename=chrome_pub
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
-		--dev_mode \
-		--num_parallel_ingesters=1 \
-		--config_filename=./configs/chrome-perf-public.json \
-		--connection_string=postgresql://root@127.0.0.1:26257/chrome_pub?sslmode=disable

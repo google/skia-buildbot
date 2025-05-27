@@ -59,7 +59,7 @@ go_test(
         "markdown_test.go",
         "notify_test.go",
     ],
-    data = ["//perf:configs"],
+    data = ["//perf:configs_spanner"],
     embed = [":notify"],
     deps = [
         "//email/go/emailclient",
