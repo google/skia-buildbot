@@ -72,7 +72,8 @@ export const generateSubDataframe = (dataframe: DataFrame, range: range): DataFr
     ) as TraceSet,
     skip: 0,
     paramset: ReadOnlyParamSet({}),
-    traceMetadata: [],
+    // Maybe we can trim this to only the commits in the range.
+    traceMetadata: dataframe.traceMetadata,
   };
 };
 

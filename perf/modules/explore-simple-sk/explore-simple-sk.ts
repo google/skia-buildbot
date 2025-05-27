@@ -84,6 +84,7 @@ import {
   ReadOnlyParamSet,
   CommitNumberAnomalyMap,
   AnomalyMap,
+  TraceMetadata,
 } from '../json';
 import {
   AnomalyData,
@@ -1851,6 +1852,8 @@ export class ExploreSimpleSk extends ElementSk {
     // Update the current dataframe to reflect the selection.
     this._dataframe.traceset = subDataframe.traceset;
     this._dataframe.header = subDataframe.header;
+    this._dataframe.traceMetadata = subDataframe.traceMetadata;
+    this.updateTracePointMetadata(subDataframe.traceMetadata!);
 
     if (!plot) {
       return;
@@ -2612,6 +2615,7 @@ export class ExploreSimpleSk extends ElementSk {
         ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
         .then(() => {
           this.addTraces(json, switchToTab);
+          this.updateTracePointMetadata(json.dataframe!.traceMetadata!);
           this._render();
           if (isValidSelection(this._state.selected)) {
             const e = selectionToEvent(this._state.selected, this._dataframe.header);
@@ -2681,6 +2685,7 @@ export class ExploreSimpleSk extends ElementSk {
         .then(() => {
           this.plotSimple.value?.removeAll();
           this.addTraces(json, switchToTab);
+          this.updateTracePointMetadata(json.dataframe!.traceMetadata!);
         });
     });
   }
@@ -2938,8 +2943,47 @@ export class ExploreSimpleSk extends ElementSk {
         ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
         .then(() => {
           this.addTraces(json, true);
+          this.updateTracePointMetadata(json.dataframe!.traceMetadata!);
         });
     });
+  }
+
+  /**
+   * updateTracePointMetadata populates the commit links from the trace metadata
+   * in the response.
+   */
+  private updateTracePointMetadata(traceMetadatas: TraceMetadata[]) {
+    for (let i = 0; i < traceMetadatas.length; i++) {
+      if (traceMetadatas[i].commitLinks !== null) {
+        Object.keys(traceMetadatas[i].commitLinks!).forEach((commitnumStr) => {
+          const displayUrls: { [key: string]: string } = {};
+          const displayTexts: { [key: string]: string } = {};
+          const commitnum = parseInt(commitnumStr);
+
+          const existingLink = this.commitLinks.find(
+            (commitLink) =>
+              commitLink &&
+              commitLink.cid === commitnum &&
+              commitLink.traceid === traceMetadatas[i].traceid
+          );
+          if (!existingLink) {
+            Object.keys(traceMetadatas[i].commitLinks![commitnum]!).forEach((linkKey) => {
+              const linkObj = traceMetadatas[i].commitLinks![commitnum]![linkKey];
+              displayTexts[linkKey] = linkObj.Text;
+              displayUrls[linkKey] = linkObj.Href;
+            });
+            const commitLink: CommitLinks = {
+              cid: commitnum,
+              traceid: traceMetadatas[i].traceid,
+              displayUrls: displayUrls,
+              displayTexts: displayTexts,
+            };
+
+            this.commitLinks.push(commitLink);
+          }
+        });
+      }
+    }
   }
 
   // take a query string, and update the parameters with default values if needed

@@ -152,10 +152,15 @@ export class PointLinksSk extends ElementSk {
       return Promise.resolve(commitLinks);
     }
     if (commitLinks.length > 0) {
-      // Check if the commit and traceID have already been loaded
+      // Check if the commit and traceID have already been loaded. Also verify that the existing
+      // link contains urls.
       const existingLink = commitLinks.find(
         (commitLink) =>
-          commitLink && commitLink.cid === commit_position && commitLink.traceid === trace_id
+          commitLink &&
+          commitLink.cid === commit_position &&
+          commitLink.traceid === trace_id &&
+          commitLink.displayUrls &&
+          Object.keys(commitLink.displayUrls).length > 0
       );
       if (existingLink) {
         // Reuse the existing links

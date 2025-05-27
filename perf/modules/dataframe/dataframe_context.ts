@@ -32,7 +32,7 @@ import { customElement } from 'lit/decorators.js';
 
 import { mergeAnomaly, removeAnomaly, range } from './index';
 import { fromParamSet } from '../../../infra-sk/modules/query';
-import { AnomalyMap, ColumnHeader, ShiftRequest, ShiftResponse } from '../json';
+import { AnomalyMap, ColumnHeader, ShiftRequest, ShiftResponse, TraceMetadata } from '../json';
 import { DataFrame, FrameRequest, FrameResponse, Trace, TraceSet, ReadOnlyParamSet } from '../json';
 import { startRequest, messageByName } from '../progress/progress';
 import { convertFromDataframe } from '../common/plot-builder';
@@ -160,6 +160,8 @@ export class DataFrameRepository extends LitElement {
 
   private _traceset = TraceSet({});
 
+  private _traceMetadata: TraceMetadata[] | null = [];
+
   private _header: (ColumnHeader | null)[] = [];
 
   // When the requests are more than this size, we slice into separate requests
@@ -239,7 +241,11 @@ export class DataFrameRepository extends LitElement {
     return this.getRange('timestamp');
   }
 
-  private addTraceset(header: (ColumnHeader | null)[], traceset: TraceSet) {
+  private addTraceInfo(
+    header: (ColumnHeader | null)[],
+    traceset: TraceSet,
+    traceMetadata: TraceMetadata[] | null
+  ) {
     if (header.length <= 0) {
       return;
     }
@@ -265,6 +271,32 @@ export class DataFrameRepository extends LitElement {
         .concat(...traceset[key])
         .concat(traceTail[key] || []) as Trace;
     });
+
+    if (traceMetadata !== null) {
+      if (this._traceMetadata === null) {
+        this._traceMetadata = [];
+      }
+      traceMetadata.forEach((traceData) => {
+        let exists = false;
+        for (let i = 0; i < this._traceMetadata!.length; i++) {
+          if (this._traceMetadata![i].traceid === traceData.traceid) {
+            exists = true;
+            Object.keys(traceData.commitLinks!).forEach((commitIdKey) => {
+              const commitId = parseInt(commitIdKey);
+              if (!(commitId in this._traceMetadata![i].commitLinks!)) {
+                // This commit is not in the existing metadata, so let's add it.
+                this._traceMetadata![i].commitLinks![commitId] = traceData.commitLinks![commitId];
+              }
+            });
+          }
+          if (!exists) {
+            // This means the trace is not present in existing metadata,
+            // so let's add the entire thing.
+            this._traceMetadata!.push(traceData);
+          }
+        }
+      });
+    }
   }
 
   // Track the current ongoing request.
@@ -379,6 +411,7 @@ export class DataFrameRepository extends LitElement {
     this.anomaly = mergeAnomaly(this.anomaly, anomalies);
     this._header = dataframe.header || [];
     this._traceset = dataframe.traceset;
+    this._traceMetadata = dataframe.traceMetadata;
 
     await this.setDataFrame(dataframe);
   }
@@ -405,6 +438,7 @@ export class DataFrameRepository extends LitElement {
     const resp = await this.requestNewRange(range);
     this._traceset = resp.dataframe?.traceset || TraceSet({});
     this._header = resp.dataframe?.header || [];
+    this._traceMetadata = resp.dataframe?.traceMetadata || [];
 
     const totalTraces = resp.dataframe?.header?.length || 0;
     await this.setDataFrame({
@@ -412,7 +446,7 @@ export class DataFrameRepository extends LitElement {
       header: this._header,
       paramset: this._paramset,
       skip: 0,
-      traceMetadata: [],
+      traceMetadata: this._traceMetadata,
     });
 
     this.anomaly = mergeAnomaly(this.anomaly, resp.anomalymap);
@@ -484,7 +518,13 @@ export class DataFrameRepository extends LitElement {
       ) as Trace;
     });
 
-    this.addTraceset(header, traceset);
+    const traceMetadata: TraceMetadata[] = [];
+    sortedResponses.map((resp) => {
+      if (resp.dataframe && resp.dataframe.traceMetadata) {
+        traceMetadata.push(...resp.dataframe.traceMetadata);
+      }
+    });
+    this.addTraceInfo(header, traceset, traceMetadata);
 
     const anomaly = sortedResponses.reduce((pre, cur) => mergeAnomaly(pre, cur.anomalymap), {});
     await this.setDataFrame({
@@ -492,7 +532,7 @@ export class DataFrameRepository extends LitElement {
       header: this._header,
       paramset: this._paramset,
       skip: 0,
-      traceMetadata: [],
+      traceMetadata: this._traceMetadata,
     });
 
     this.anomaly = mergeAnomaly(this.anomaly, anomaly);
