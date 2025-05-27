@@ -917,6 +917,8 @@ type Experiments struct {
 	EnableSkiaBridgeAggregation bool `json:"enable_skia_bridge_aggregation,omitempty"`
 	// Flag to keep traceparams in-memory for querying trace ids
 	InMemoryTraceParams bool `json:"in_memory_traceparams,omitempty"`
+	// Flag specifying whether metadata should be prefetched during the query.
+	PrefetchMetadata bool `json:"prefetch_metadata,omitempty"`
 }
 
 type CacheType string

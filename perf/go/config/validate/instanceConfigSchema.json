@@ -126,6 +126,9 @@
         },
         "in_memory_traceparams": {
           "type": "boolean"
+        },
+        "prefetch_metadata": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

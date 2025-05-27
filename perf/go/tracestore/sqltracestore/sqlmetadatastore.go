@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/tracestore"
 )
 
@@ -104,53 +105,63 @@ func (s *SQLMetadataStore) GetMetadata(ctx context.Context, sourceFileName strin
 // GetMetadataMultiple returns the metadata for the given list of source files.
 // The return value is a map where the key is the source file name and value is the map of links.
 func (s *SQLMetadataStore) GetMetadataMultiple(ctx context.Context, sourceFileNames []string) (map[string]map[string]string, error) {
-	var sb strings.Builder
-	for _, sourceFile := range sourceFileNames {
-		sb.WriteString("'" + sourceFile + "', ")
-	}
+	fileLinksAggregate := map[string]map[string]string{}
+	err := util.ChunkIterParallelPool(ctx, len(sourceFileNames), 200, 50, func(ctx context.Context, startIdx, endIdx int) error {
+		sourceFileChunk := sourceFileNames[startIdx:endIdx]
+		var sb strings.Builder
+		for _, sourceFile := range sourceFileChunk {
+			sb.WriteString("'" + sourceFile + "', ")
+		}
 
-	argString := sb.String()
-	// Trim the last 2 chars (", ")
-	argString = argString[:len(argString)-2]
-	sourceFileRows, err := s.db.Query(ctx, sqlstatements[getsourcefileidMultiple]+fmt.Sprintf("(%s)", argString))
+		argString := sb.String()
+		// Trim the last 2 chars (", ")
+		argString = argString[:len(argString)-2]
+		sourceFileRows, err := s.db.Query(ctx, sqlstatements[getsourcefileidMultiple]+fmt.Sprintf("(%s)", argString))
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				return skerr.Wrapf(err, "Source files %s do not exist in the database.", sourceFileNames)
+			}
+			return skerr.Wrap(err)
+		}
+		sourceMap := map[int]string{}
+		sourceFileIds := []string{}
+		for sourceFileRows.Next() {
+			var sourceFileName string
+			var sourceFileId int
+			if err := sourceFileRows.Scan(&sourceFileName, &sourceFileId); err != nil {
+				return skerr.Wrapf(err, "Failed to scan source file row data.")
+			}
+			sourceMap[sourceFileId] = sourceFileName
+			sourceFileIds = append(sourceFileIds, strconv.Itoa(sourceFileId))
+		}
+
+		sql := sqlstatements[readMultiple] + fmt.Sprintf("(%s)", strings.Join(sourceFileIds, ","))
+		rows, err := s.db.Query(ctx, sql)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				return nil
+			}
+			return skerr.Wrap(err)
+		}
+
+		for rows.Next() {
+			var source_file_id int
+			var links map[string]string
+			if err := rows.Scan(&source_file_id, &links); err != nil {
+				return skerr.Wrapf(err, "Failed to scan links data.")
+			}
+			fileName := sourceMap[source_file_id]
+			fileLinksAggregate[fileName] = links
+		}
+
+		return nil
+	})
+
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, skerr.Wrapf(err, "Source files %s do not exist in the database.", sourceFileNames)
-		}
-		return nil, skerr.Wrap(err)
-	}
-	sourceMap := map[int]string{}
-	sourceFileIds := []string{}
-	for sourceFileRows.Next() {
-		var sourceFileName string
-		var sourceFileId int
-		if err := sourceFileRows.Scan(&sourceFileName, &sourceFileId); err != nil {
-			return nil, skerr.Wrapf(err, "Failed to scan source file row data.")
-		}
-		sourceMap[sourceFileId] = sourceFileName
-		sourceFileIds = append(sourceFileIds, strconv.Itoa(sourceFileId))
+		return nil, err
 	}
 
-	sql := sqlstatements[readMultiple] + fmt.Sprintf("(%s)", strings.Join(sourceFileIds, ","))
-	rows, err := s.db.Query(ctx, sql)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, nil
-		}
-		return nil, skerr.Wrap(err)
-	}
-
-	fileLinks := map[string]map[string]string{}
-	for rows.Next() {
-		var source_file_id int
-		var links map[string]string
-		if err := rows.Scan(&source_file_id, &links); err != nil {
-			return nil, skerr.Wrapf(err, "Failed to scan links data.")
-		}
-		fileName := sourceMap[source_file_id]
-		fileLinks[fileName] = links
-	}
-	return fileLinks, nil
+	return fileLinksAggregate, nil
 }
 
 var _ tracestore.MetadataStore = (*SQLMetadataStore)(nil)

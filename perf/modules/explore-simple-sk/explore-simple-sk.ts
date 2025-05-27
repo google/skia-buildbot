@@ -1849,7 +1849,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._dataframe.traceset = subDataframe.traceset;
     this._dataframe.header = subDataframe.header;
     this._dataframe.traceMetadata = subDataframe.traceMetadata;
-    this.updateTracePointMetadata(subDataframe.traceMetadata!);
+    this.updateTracePointMetadata(subDataframe.traceMetadata);
 
     if (!plot) {
       return;
@@ -2611,7 +2611,7 @@ export class ExploreSimpleSk extends ElementSk {
         ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
         .then(() => {
           this.addTraces(json, switchToTab);
-          this.updateTracePointMetadata(json.dataframe!.traceMetadata!);
+          this.updateTracePointMetadata(json.dataframe!.traceMetadata);
           this._render();
           if (isValidSelection(this._state.selected)) {
             const e = selectionToEvent(this._state.selected, this._dataframe.header);
@@ -2681,7 +2681,7 @@ export class ExploreSimpleSk extends ElementSk {
         .then(() => {
           this.plotSimple.value?.removeAll();
           this.addTraces(json, switchToTab);
-          this.updateTracePointMetadata(json.dataframe!.traceMetadata!);
+          this.updateTracePointMetadata(json.dataframe!.traceMetadata);
         });
     });
   }
@@ -2939,7 +2939,7 @@ export class ExploreSimpleSk extends ElementSk {
         ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
         .then(() => {
           this.addTraces(json, true);
-          this.updateTracePointMetadata(json.dataframe!.traceMetadata!);
+          this.updateTracePointMetadata(json.dataframe!.traceMetadata);
         });
     });
   }
@@ -2948,7 +2948,11 @@ export class ExploreSimpleSk extends ElementSk {
    * updateTracePointMetadata populates the commit links from the trace metadata
    * in the response.
    */
-  private updateTracePointMetadata(traceMetadatas: TraceMetadata[]) {
+  private updateTracePointMetadata(traceMetadatas: TraceMetadata[] | null) {
+    if (traceMetadatas === null) {
+      return;
+    }
+
     for (let i = 0; i < traceMetadatas.length; i++) {
       if (traceMetadatas[i].commitLinks !== null) {
         Object.keys(traceMetadatas[i].commitLinks!).forEach((commitnumStr) => {
