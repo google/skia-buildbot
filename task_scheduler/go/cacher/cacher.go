@@ -138,6 +138,5 @@ func errorIsPermanent(err error) bool {
 		// This repo was moved, so attempts to sync it will always fail.
 		"https://skia.googlesource.com/third_party/libjpeg-turbo.git",
 		"no such file or directory",
-		"Not a valid object name",
 	)
 }
