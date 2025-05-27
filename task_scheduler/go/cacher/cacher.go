@@ -3,6 +3,7 @@ package cacher
 import (
 	"context"
 	"path/filepath"
+	"strings"
 
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/git"
@@ -82,7 +83,7 @@ func (c *CacherImpl) GetOrCacheRepoState(ctx context.Context, rs types.RepoState
 			tasksCfg = cfg
 			return nil
 		})
-		if err != nil && !specs.ErrorIsPermanent(err) {
+		if err != nil && !errorIsPermanent(err) {
 			return nil, skerr.Wrap(err)
 		}
 		errString := ""
@@ -106,3 +107,37 @@ func (c *CacherImpl) GetOrCacheRepoState(ctx context.Context, rs types.RepoState
 
 // Assert that CacherImpl implements Cacher.
 var _ Cacher = &CacherImpl{}
+
+// errorIsPermanent returns true if the given error cannot be recovered by
+// retrying. In this case, we will never be able to process the TasksCfg,
+// so we might as well cancel the jobs.
+func errorIsPermanent(err error) bool {
+	errMsg := skerr.Unwrap(err).Error()
+
+	any := func(msgs ...string) bool {
+		for _, msg := range msgs {
+			if strings.Contains(errMsg, msg) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// These indicate that the error is flaky.
+	if any("failed to refresh auth token") {
+		return false
+	}
+
+	// These indicate that the error is not flaky.
+	return any(
+		"error: Failed to merge in the changes.",
+		"Failed to apply patch",
+		"Failed to read tasks cfg: could not parse file:",
+		"Invalid TasksCfg",
+		"The \"gclient_gn_args_from\" value must be in recursedeps",
+		// This repo was moved, so attempts to sync it will always fail.
+		"https://skia.googlesource.com/third_party/libjpeg-turbo.git",
+		"no such file or directory",
+		"Not a valid object name",
+	)
+}

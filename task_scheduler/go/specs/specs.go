@@ -97,24 +97,6 @@ var (
 	PERIODIC_TRIGGERS = []string{TRIGGER_NIGHTLY, TRIGGER_WEEKLY}
 )
 
-// ErrorIsPermanent returns true if the given error cannot be recovered by
-// retrying. In this case, we will never be able to process the TasksCfg,
-// so we might as well cancel the jobs.
-// TODO(borenet): This should probably be split into two different
-// ErrorIsPermanent functions, in the syncer, and specs packages.
-func ErrorIsPermanent(err error) bool {
-	err = skerr.Unwrap(err)
-	return (strings.Contains(err.Error(), "error: Failed to merge in the changes.") ||
-		strings.Contains(err.Error(), "Failed to apply patch") ||
-		strings.Contains(err.Error(), "Failed to read tasks cfg: could not parse file:") ||
-		strings.Contains(err.Error(), "Invalid TasksCfg") ||
-		strings.Contains(err.Error(), "The \"gclient_gn_args_from\" value must be in recursedeps") ||
-		// This repo was moved, so attempts to sync it will always fail.
-		strings.Contains(err.Error(), "https://skia.googlesource.com/third_party/libjpeg-turbo.git") ||
-		strings.Contains(err.Error(), "no such file or directory") ||
-		strings.Contains(err.Error(), "Not a valid object name"))
-}
-
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
 func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	var rv TasksCfg
