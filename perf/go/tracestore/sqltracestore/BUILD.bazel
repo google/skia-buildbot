@@ -4,6 +4,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "sqltracestore",
     srcs = [
+        "inmemorytraceparams.go",
         "intersect.go",
         "spanner.go",
         "sqlmetadatastore.go",
@@ -41,6 +42,7 @@ go_library(
 go_test(
     name = "sqltracestore_test",
     srcs = [
+        "inmemorytraceparams_test.go",
         "intersect_test.go",
         "sqlmetadatastore_test.go",
         "sqltraceparamstore_test.go",

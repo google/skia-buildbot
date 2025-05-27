@@ -684,7 +684,8 @@ const followerReadsStatement = "AS OF SYSTEM TIME '-5s'"
 // SQLTraceStore implements tracestore.TraceStore backed onto an SQL database.
 type SQLTraceStore struct {
 	// db is the SQL database instance.
-	db pool.Pool
+	db                  pool.Pool
+	inMemoryTraceParams *InMemoryTraceParams
 
 	// unpreparedStatements are parsed templates that can be used to construct SQL statements.
 	unpreparedStatements map[statement]*template.Template
@@ -733,7 +734,8 @@ type SQLTraceStore struct {
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db pool.Pool, datastoreConfig config.DataStoreConfig, traceParamStore tracestore.TraceParamStore) (*SQLTraceStore, error) {
+func New(db pool.Pool, datastoreConfig config.DataStoreConfig, traceParamStore tracestore.TraceParamStore,
+	inMemoryTraceParams *InMemoryTraceParams) (*SQLTraceStore, error) {
 	unpreparedStatements := map[statement]*template.Template{}
 	queryTemplates := templates
 	if datastoreConfig.DataStoreType == config.SpannerDataStoreType {
@@ -766,6 +768,7 @@ func New(db pool.Pool, datastoreConfig config.DataStoreConfig, traceParamStore t
 
 	ret := &SQLTraceStore{
 		db:                                     db,
+		inMemoryTraceParams:                    inMemoryTraceParams,
 		unpreparedStatements:                   unpreparedStatements,
 		statements:                             statements,
 		tileSize:                               datastoreConfig.TileSize,
@@ -1360,6 +1363,11 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 	if q.Empty() {
 		close(outParams)
 		return outParams, skerr.Fmt("Can't run QueryTracesIDOnlyByIndex for the empty query.")
+	}
+
+	if s.inMemoryTraceParams != nil {
+		s.inMemoryTraceParams.QueryTraceIDs(ctx, tileNumber, q, outParams)
+		return outParams, nil
 	}
 
 	ps, err := s.GetParamSet(ctx, tileNumber)

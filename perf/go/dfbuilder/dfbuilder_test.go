@@ -40,7 +40,7 @@ var (
 
 func getSqlTraceStore(t *testing.T, db pool.Pool, cfg config.DataStoreConfig) *sqltracestore.SQLTraceStore {
 	traceParamStore := sqltracestore.NewTraceParamStore(db)
-	store, err := sqltracestore.New(db, cfg, traceParamStore)
+	store, err := sqltracestore.New(db, cfg, traceParamStore, nil)
 	require.NoError(t, err)
 	return store
 }

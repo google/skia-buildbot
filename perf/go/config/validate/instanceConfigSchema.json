@@ -123,6 +123,9 @@
         },
         "enable_skia_bridge_aggregation": {
           "type": "boolean"
+        },
+        "in_memory_traceparams": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

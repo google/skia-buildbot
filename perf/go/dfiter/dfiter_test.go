@@ -55,7 +55,7 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, perf
 	}
 
 	traceParamStore := sqltracestore.NewTraceParamStore(db)
-	store, err := sqltracestore.New(db, cfg, traceParamStore)
+	store, err := sqltracestore.New(db, cfg, traceParamStore, nil)
 	require.NoError(t, err)
 
 	ts := gittest.StartTime

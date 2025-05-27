@@ -175,7 +175,14 @@ func NewTraceStoreFromConfig(ctx context.Context, instanceConfig *config.Instanc
 	if err != nil {
 		return nil, err
 	}
-	return sqltracestore.New(db, instanceConfig.DataStoreConfig, traceParamStore)
+	var inMemoryTraceParams *sqltracestore.InMemoryTraceParams = nil
+	if instanceConfig.Experiments.InMemoryTraceParams {
+		inMemoryTraceParams, err = sqltracestore.NewInMemoryTraceParams(ctx, db)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+	return sqltracestore.New(db, instanceConfig.DataStoreConfig, traceParamStore, inMemoryTraceParams)
 }
 
 // NewMetadataStoreFromConfig creates a new MetadataStore from the InstanceConfig.
