@@ -10,20 +10,15 @@ import (
 	"go.skia.org/infra/golden/go/sql/sqltest"
 )
 
-/*
-// TODO(pasthana): Uncomment once https://skia-review.googlesource.com/c/buildbot/+/992260
-// is merged, and schema.jsons have been validated to be equal to current
-// prod db
 func Test_NoMigrationNeeded_Spanner(t *testing.T) {
 	ctx := context.Background()
 	// Load DB loaded with schema from schema.go
-	db := sqltest.NewSpannerDBForTests(ctx, t)
+	db := sqltest.NewSpannerDBForTestsWithProductionSchema(ctx, t)
 
 	// Newly created schema should already be up to date, so no error should pop up.
 	err := expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.Spanner)
 	require.NoError(t, err)
 }
-*/
 
 const CreateInvalidTableSpanner = `
 DROP TABLE IF EXISTS Changelists;
@@ -46,12 +41,10 @@ func Test_InvalidSchema_Spanner(t *testing.T) {
 }
 
 /*
-// TODO(pasthana): Uncomment once https://skia-review.googlesource.com/c/buildbot/+/992260
-// is merged, and schema.jsons have been validated to be equal to current
-// prod db
+// TODO(pasthana): Uncomment once spanner db is available in prod
 func Test_MigrationNeeded_Spanner(t *testing.T) {
 	ctx := context.Background()
-	db := sqltest.NewSpannerDBForTests(ctx, t)
+	db := sqltest.NewSpannerDBForTestsWithProductionSchema(ctx, t)
 
 	next, err := expectedschema.Load(config.Spanner)
 	require.NoError(t, err)

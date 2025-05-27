@@ -72,9 +72,9 @@ CREATE TABLE IF NOT EXISTS IgnoreRules (
   ignore_rule_id TEXT PRIMARY KEY DEFAULT spanner.generate_uuid(),
   creator_email TEXT NOT NULL,
   updated_email TEXT NOT NULL,
-  expires TIMESTAMP WITH TIME ZONE NOT NULL,
+  expires TIMESTAMP WITH TIME ZONE,
   note TEXT,
-  query JSONB NOT NULL,
+  query JSONB,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS MetadataCommits (
@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS TiledTraceDigests (
   trace_id BYTEA,
   tile_id INT8,
   digest BYTEA NOT NULL,
-  grouping_id BYTEA NOT NULL,
+  grouping_id BYTEA,
   PRIMARY KEY (trace_id, tile_id, digest),
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;

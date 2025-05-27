@@ -739,7 +739,7 @@ type TiledTraceDigestRow struct {
 	// specified by StartCommitID and by the machine (specified by TraceID).
 	Digest DigestBytes `sql:"digest BYTES NOT NULL"`
 	// GroupingID is the grouping of the trace.
-	GroupingID GroupingID `sql:"grouping_id BYTES NOT NULL"`
+	GroupingID GroupingID `sql:"grouping_id BYTES"`
 	// We generally want locality by TraceID, so that goes first in the primary key.
 	primaryKey struct{} `sql:"PRIMARY KEY (trace_id, tile_id, digest)"`
 
@@ -778,12 +778,12 @@ type IgnoreRuleRow struct {
 	// UpdatedEmail is the email address of the user who most recently updated this rule.
 	UpdatedEmail string `sql:"updated_email STRING NOT NULL"`
 	// Expires represents when this rule should be re-evaluated for validity.
-	Expires time.Time `sql:"expires TIMESTAMP WITH TIME ZONE NOT NULL"`
+	Expires time.Time `sql:"expires TIMESTAMP WITH TIME ZONE"`
 	// Note is a comment explaining this rule. It typically links to a bug.
 	Note string `sql:"note STRING"`
 	// Query is a map[string][]string that describe which traces should be ignored.
 	// Note that this can only apply to trace keys, not options.
-	Query paramtools.ReadOnlyParamSet `sql:"query JSONB NOT NULL"`
+	Query paramtools.ReadOnlyParamSet `sql:"query JSONB"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.

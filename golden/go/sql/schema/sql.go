@@ -69,9 +69,9 @@ CREATE TABLE IF NOT EXISTS IgnoreRules (
   ignore_rule_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   creator_email STRING NOT NULL,
   updated_email STRING NOT NULL,
-  expires TIMESTAMP WITH TIME ZONE NOT NULL,
+  expires TIMESTAMP WITH TIME ZONE,
   note STRING,
-  query JSONB NOT NULL
+  query JSONB
 );
 CREATE TABLE IF NOT EXISTS MetadataCommits (
   commit_id STRING PRIMARY KEY,
@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS TiledTraceDigests (
   trace_id BYTES,
   tile_id INT4,
   digest BYTES NOT NULL,
-  grouping_id BYTES NOT NULL,
+  grouping_id BYTES,
   PRIMARY KEY (trace_id, tile_id, digest),
   INDEX grouping_digest_idx (grouping_id, digest),
   INDEX tile_trace_idx (tile_id, trace_id)

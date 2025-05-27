@@ -10,20 +10,15 @@ import (
 	"go.skia.org/infra/golden/go/sql/sqltest"
 )
 
-/*
-// TODO(pasthana): Uncomment once https://skia-review.googlesource.com/c/buildbot/+/992260
-// is merged, and schema.jsons have been validated to be equal to current
-// prod db
 func Test_NoMigrationNeeded(t *testing.T) {
 	ctx := context.Background()
 	// Load DB loaded with schema from schema.go
-	db := sqltest.NewCockroachDBForTests(ctx, t)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
 	// Newly created schema should already be up to date, so no error should pop up.
 	err := expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.CockroachDB)
 	require.NoError(t, err)
 }
-*/
 
 const CreateInvalidTable = `
 DROP TABLE IF EXISTS Changelists;
@@ -46,12 +41,11 @@ func Test_InvalidSchema(t *testing.T) {
 }
 
 /*
-// TODO(pasthana): Uncomment once https://skia-review.googlesource.com/c/buildbot/+/992260
-// is merged, and schema.jsons have been validated to be equal to current
-// prod db
+// TODO(pasthana): Uncomment once https://skia-review.googlesource.com/c/buildbot/+/996556
+// is merged, and migration logic is known to not break anything.
 func Test_MigrationNeeded(t *testing.T) {
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
 	next, err := expectedschema.Load("cockroachdb")
 	require.NoError(t, err)
@@ -63,7 +57,6 @@ func Test_MigrationNeeded(t *testing.T) {
 
 	actual, err := schema.GetDescription(ctx, db, golden_schema.Tables{}, string(config.CockroachDB))
 	require.NoError(t, err)
-	// Current schema should now match prev.
 	assertdeep.Equal(t, prev, *actual)
 
 	// Since live matches the prev schema, it should get migrated to next.

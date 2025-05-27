@@ -14,6 +14,7 @@ run_cockroachdb_emulators:
 	../scripts/run_emulators/run_emulators start
 
 # Requires the CockroachDB emulator to be running.
+# `cockroach start-single-node --insecure`
 generate_sql_schema:
 	cd ./go/sql/schema; go run ../exporter/tosql --output_file sql.go --output_pkg schema
 	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema.json

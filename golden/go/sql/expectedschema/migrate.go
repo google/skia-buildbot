@@ -5,6 +5,8 @@ package expectedschema
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/skerr"
@@ -27,6 +29,8 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
+CREATE INDEX IF NOT EXISTS status_ingested_idx on Changelists (status, last_ingested_data DESC);
+CREATE INDEX IF NOT EXISTS cl_idx on Tryjobs (changelist_id);
 `
 
 // Same as above, but will be used when doing schema migration for spanner databases.
@@ -38,6 +42,8 @@ var FromLiveToNextSpanner = `
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
+DROP INDEX IF EXISTS status_ingested_idx;
+DROP INDEX IF EXISTS cl_idx;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
@@ -63,7 +69,13 @@ func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool, datastoreTyp
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-
+	// Remove expire_at columns from actual schema because they are not defined
+	// via regular schema, but are present in the prod database. See
+	// removeExpireAtColumns for more details.
+	actual, err = removeExpireAtColumns(actual)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	diffPrevActual := assertdeep.Diff(prev, *actual)
 	diffNextActual := assertdeep.Diff(next, *actual)
 	sklog.Debugf("Diff prev vs actual: %s", diffPrevActual)
@@ -71,24 +83,44 @@ func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool, datastoreTyp
 
 	if diffNextActual != "" && diffPrevActual == "" {
 		sklog.Debugf("Next is different from live schema. Will migrate. diffNextActual: %s", diffNextActual)
-		/*
-			    // TODO(pasthana): Uncomment once https://skia-review.googlesource.com/c/buildbot/+/992260
-			    // is merged, and schema.jsons have been validated to be equal to current
-			    // prod db
-					fromLiveToNextStmt := FromLiveToNext
-					if datastoreType == config.Spanner {
-						fromLiveToNextStmt = FromLiveToNextSpanner
-					}
-					_, err = db.Exec(ctx, fromLiveToNextStmt)
-					if err != nil {
-						sklog.Errorf("Failed to migrate Schema from prev to next. Prev: %s, Next: %s.", prev, next)
-						return skerr.Wrapf(err, "Failed to migrate Schema")
-					}
-		*/
+		// fromLiveToNextStmt := FromLiveToNext
+		// if datastoreType == config.Spanner {
+		// 	fromLiveToNextStmt = FromLiveToNextSpanner
+		// }
+		// _, err = db.Exec(ctx, fromLiveToNextStmt)
+		// if err != nil {
+		// 	sklog.Errorf("Failed to migrate Schema from prev to next. Prev: %s, Next: %s.", prev, next)
+		// 	return skerr.Wrapf(err, "Failed to migrate Schema")
+		// }
+
 	} else if diffNextActual != "" && diffPrevActual != "" {
 		sklog.Errorf("Live schema doesn't match next or previous checked-in schema. diffNextActual: %s, diffPrevActual: %s.", diffNextActual, diffPrevActual)
 		return skerr.Fmt("Live schema doesn't match next or previous checked-in schema.")
 	}
 
 	return nil
+}
+
+// This method iterates over the ColumnNameAndType map and removes all entries
+// where the column name ends with ".expire_at". This is done because all
+// columns named "expire_at" are not defined via regular schema, but are
+// added orthogonally by data retention policy sqls.
+func removeExpireAtColumns(inputDesc *schema.Description) (*schema.Description, error) {
+	outputDesc := &schema.Description{
+		ColumnNameAndType: make(map[string]string),
+		IndexNames:        make([]string, len(inputDesc.IndexNames)),
+	}
+	copy(outputDesc.IndexNames, inputDesc.IndexNames)
+	for key, value := range inputDesc.ColumnNameAndType {
+		parts := strings.SplitN(key, ".", 2) // Split into at most 2 parts
+		if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+			return &schema.Description{}, fmt.Errorf("invalid key format: %q in ColumnNameAndType. Key must be in 'a.b' format with non-empty parts", key)
+		}
+		columnNamePart := parts[1]
+		if columnNamePart == "expire_at" {
+			continue
+		}
+		outputDesc.ColumnNameAndType[key] = value
+	}
+	return outputDesc, nil
 }
