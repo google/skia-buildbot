@@ -1333,13 +1333,9 @@ export class ExploreSimpleSk extends ElementSk {
   switchXAxis(target: MdSwitch | null) {
     const googleChart = this.googleChartPlot.value!;
     const plotSummary = this.plotSummary.value!;
-    const domain = target!.selected ? 'commit' : 'date';
-    // implies there is no domain change
-    if (googleChart.domain === domain) {
-      return;
-    }
-    googleChart.domain = target!.selected ? 'commit' : 'date';
-    plotSummary.domain = target!.selected ? 'commit' : 'date';
+
+    googleChart.domain = target!.selected ? 'date' : 'commit';
+    plotSummary.domain = target!.selected ? 'date' : 'commit';
     const plot = this.plotSimple.value;
     if (!plot) {
       return;
