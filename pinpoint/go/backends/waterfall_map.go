@@ -30,4 +30,5 @@ var PinpointWaterfall = map[string]string{
 	"mac-laptop_high_end-perf":                "mac-laptop_high_end-perf",
 	"Win x64 Builder Perf":                    "win64-builder-perf",
 	"Win x64 Builder Perf PGO":                "win64-builder-perf-pgo",
+	"win-arm64-builder-perf":                  "win-arm64-builder-perf",
 }
