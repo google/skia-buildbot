@@ -208,7 +208,7 @@ export class ReportPageSk extends ElementSk {
   }
 
   private async listAllCommits(anomalies: Anomaly[] | undefined) {
-    if (anomalies !== undefined) {
+    if (anomalies !== undefined && anomalies.length > 0) {
       const commits: CommitNumber[] = [];
       let start = anomalies.at(0)!.start_revision;
       let end = anomalies.at(0)!.end_revision;
