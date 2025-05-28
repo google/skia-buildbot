@@ -115,18 +115,12 @@ func TestBuildNew(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 3)
-	assert.Equal(t, *df.Header[0], dataframe.ColumnHeader{
-		Offset:    0,
-		Timestamp: 1680000000,
-	}, "0")
-	assert.Equal(t, *df.Header[1], dataframe.ColumnHeader{
-		Offset:    1,
-		Timestamp: 1680000060,
-	}, "1")
-	assert.Equal(t, *df.Header[2], dataframe.ColumnHeader{
-		Offset:    7,
-		Timestamp: 1680000420,
-	}, "2")
+	assert.Equal(t, types.CommitNumber(0), df.Header[0].Offset)
+	assert.Equal(t, dataframe.TimestampSeconds(1680000000), df.Header[0].Timestamp)
+	assert.Equal(t, types.CommitNumber(1), df.Header[1].Offset)
+	assert.Equal(t, dataframe.TimestampSeconds(1680000060), df.Header[1].Timestamp)
+	assert.Equal(t, types.CommitNumber(7), df.Header[2].Offset)
+	assert.Equal(t, dataframe.TimestampSeconds(1680000420), df.Header[2].Timestamp)
 	assert.Equal(t, types.Trace{1.2, 1.3, 1}, df.TraceSet[",arch=x86,config=8888,"])
 	assert.Equal(t, types.Trace{100.5, 100.6, 101.1}, df.TraceSet[",arch=arm,config=8888,"])
 
@@ -223,20 +217,14 @@ func TestFromIndexRange_Success(t *testing.T) {
 
 	columnHeaders, commitNumbers, _, err := fromIndexRange(ctx, g, types.CommitNumber(0), types.CommitNumber(2))
 	require.NoError(t, err)
-	assert.Equal(t, []*dataframe.ColumnHeader{
-		{
-			Offset:    0,
-			Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix()),
-		},
-		{
-			Offset:    1,
-			Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Add(time.Minute).Unix()),
-		},
-		{
-			Offset:    2,
-			Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Add(2 * time.Minute).Unix()),
-		},
-	}, columnHeaders)
+	assert.Equal(t, 3, len(columnHeaders))
+	assert.Equal(t, types.CommitNumber(0), columnHeaders[0].Offset)
+	assert.Equal(t, dataframe.TimestampSeconds(gittest.StartTime.Unix()), columnHeaders[0].Timestamp)
+	assert.Equal(t, types.CommitNumber(1), columnHeaders[1].Offset)
+	assert.Equal(t, dataframe.TimestampSeconds(gittest.StartTime.Add(time.Minute).Unix()), columnHeaders[1].Timestamp)
+	assert.Equal(t, types.CommitNumber(2), columnHeaders[2].Offset)
+	assert.Equal(t, dataframe.TimestampSeconds(gittest.StartTime.Add(2*time.Minute).Unix()), columnHeaders[2].Timestamp)
+
 	assert.Equal(t, []types.CommitNumber{0, 1, 2}, commitNumbers)
 }
 

@@ -69,14 +69,26 @@ window.customElements.whenDefined('commit-range-sk').then(async () => {
     {
       offset: CommitNumber(64809),
       timestamp: TimestampSeconds(0),
+      author: '',
+      hash: '',
+      message: '',
+      url: '',
     },
     {
       offset: CommitNumber(64810),
       timestamp: TimestampSeconds(0),
+      author: '',
+      hash: '',
+      message: '',
+      url: '',
     },
     {
       offset: CommitNumber(64811),
       timestamp: TimestampSeconds(0),
+      author: '',
+      hash: '',
+      message: '',
+      url: '',
     },
   ];
   await ele.recalcLink();

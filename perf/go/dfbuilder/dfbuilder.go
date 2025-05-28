@@ -120,6 +120,10 @@ func fromIndexRange(ctx context.Context, git perfgit.Git, beginIndex, endIndex t
 		colHeader[i] = &dataframe.ColumnHeader{
 			Offset:    commit.CommitNumber,
 			Timestamp: dataframe.TimestampSeconds(commit.Timestamp),
+			Hash:      commit.GitHash,
+			Author:    commit.Author,
+			Message:   commit.Subject,
+			Url:       commit.URL,
 		}
 		commitNumbers[i] = commit.CommitNumber
 	}

@@ -544,6 +544,8 @@ func (g *Impl) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end 
 		if err := rows.Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to read row in range %v-%v", begin, end)
 		}
+
+		c.URL = urlFromParts(g.instanceConfig, c)
 		ret = append(ret, c)
 	}
 	return ret, nil

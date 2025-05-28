@@ -64,6 +64,10 @@ type TimestampSeconds int64
 type ColumnHeader struct {
 	Offset    types.CommitNumber `json:"offset"`
 	Timestamp TimestampSeconds   `json:"timestamp"`
+	Hash      string             `json:"hash"`
+	Author    string             `json:"author"`
+	Message   string             `json:"message"`
+	Url       string             `json:"url"`
 }
 
 // DataFrame stores Perf measurements in a table where each row is a Trace
@@ -303,6 +307,10 @@ func FromTimeRange(ctx context.Context, git perfgit.Git, begin, end time.Time, d
 		colHeader[i] = &ColumnHeader{
 			Offset:    commit.CommitNumber,
 			Timestamp: TimestampSeconds(commit.Timestamp),
+			Hash:      commit.GitHash,
+			Author:    commit.Author,
+			Message:   commit.Subject,
+			Url:       commit.URL,
 		}
 		commitNumbers[i] = commit.CommitNumber
 	}

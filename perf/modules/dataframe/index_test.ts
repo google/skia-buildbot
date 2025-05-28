@@ -132,20 +132,83 @@ describe('merge anomaly', () => {
 describe('mergeColumnHeaders', () => {
   it('merges simple case', () => {
     const a: ColumnHeader[] = [
-      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+      {
+        offset: CommitNumber(1),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(2),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(4),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
     ];
     const b: ColumnHeader[] = [
-      { offset: CommitNumber(3), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+      {
+        offset: CommitNumber(3),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(4),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
     ];
     const [m, aMap, bMap] = mergeColumnHeaders(a, b);
     const expected: ColumnHeader[] = [
-      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(3), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+      {
+        offset: CommitNumber(1),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(2),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(3),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(4),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
     ];
     assert.deepEqual(m, expected);
     assert.deepEqual(aMap, { 0: 0, 1: 1, 2: 3 });
@@ -154,21 +217,91 @@ describe('mergeColumnHeaders', () => {
 
   it('merges skips', () => {
     const a: ColumnHeader[] = [
-      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+      {
+        offset: CommitNumber(1),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(2),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(4),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
     ];
     const b: ColumnHeader[] = [
-      { offset: CommitNumber(5), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(7), timestamp: TimestampSeconds(0) },
+      {
+        offset: CommitNumber(5),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(7),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
     ];
     const [m, aMap, bMap] = mergeColumnHeaders(a, b);
     const expected: ColumnHeader[] = [
-      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(5), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(7), timestamp: TimestampSeconds(0) },
+      {
+        offset: CommitNumber(1),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(2),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(4),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(5),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(7),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
     ];
     assert.deepEqual(m, expected);
     assert.deepEqual(aMap, { 0: 0, 1: 1, 2: 2 });
@@ -178,15 +311,57 @@ describe('mergeColumnHeaders', () => {
   it('merges empty b', () => {
     const a: ColumnHeader[] = [];
     const b: ColumnHeader[] = [
-      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+      {
+        offset: CommitNumber(1),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(2),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(4),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
     ];
     const [m, aMap, bMap] = mergeColumnHeaders(a, b);
     const expected: ColumnHeader[] = [
-      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+      {
+        offset: CommitNumber(1),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(2),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(4),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
     ];
     assert.deepEqual(m, expected);
     assert.deepEqual(aMap, {});
@@ -195,16 +370,58 @@ describe('mergeColumnHeaders', () => {
 
   it('merges empty a', () => {
     const a: ColumnHeader[] = [
-      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+      {
+        offset: CommitNumber(1),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(2),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(4),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
     ];
     const b: ColumnHeader[] = [];
     const [m, aMap, bMap] = mergeColumnHeaders(a, b);
     const expected: ColumnHeader[] = [
-      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
-      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+      {
+        offset: CommitNumber(1),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(2),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(4),
+        timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
+      },
     ];
     assert.deepEqual(m, expected);
     assert.deepEqual(aMap, { 0: 0, 1: 1, 2: 2 });
@@ -278,9 +495,30 @@ describe('join', () => {
   it('joins two non-empty dataframes', () => {
     const a: DataFrame = {
       header: [
-        { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
-        { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
-        { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+        {
+          offset: CommitNumber(1),
+          timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
+        {
+          offset: CommitNumber(2),
+          timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
+        {
+          offset: CommitNumber(4),
+          timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
       ],
       traceset: TraceSet({
         ',config=8888,arch=x86,': Trace([0.1, 0.2, 0.4]),
@@ -292,8 +530,22 @@ describe('join', () => {
     };
     const b: DataFrame = {
       header: [
-        { offset: CommitNumber(3), timestamp: TimestampSeconds(0) },
-        { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+        {
+          offset: CommitNumber(3),
+          timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
+        {
+          offset: CommitNumber(4),
+          timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
       ],
       traceset: TraceSet({
         ',config=565,arch=x86,': Trace([3.3, 3.4]),
@@ -310,10 +562,38 @@ describe('join', () => {
 
     const expected: DataFrame = {
       header: [
-        { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
-        { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
-        { offset: CommitNumber(3), timestamp: TimestampSeconds(0) },
-        { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+        {
+          offset: CommitNumber(1),
+          timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
+        {
+          offset: CommitNumber(2),
+          timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
+        {
+          offset: CommitNumber(3),
+          timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
+        {
+          offset: CommitNumber(4),
+          timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
       ],
       traceset: TraceSet({
         ',config=8888,arch=x86,': Trace([0.1, 0.2, e, 0.4]),
@@ -354,7 +634,16 @@ describe('timestampBounds', () => {
 
   it('returns bounds for single-element DataFrame', () => {
     const singleElementDataFrame: DataFrame = {
-      header: [{ offset: CommitNumber(1), timestamp: TimestampSeconds(0) }],
+      header: [
+        {
+          offset: CommitNumber(1),
+          timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
+      ],
       traceset: TraceSet({}),
       paramset: ReadOnlyParamSet({}),
       skip: 0,
@@ -367,10 +656,38 @@ describe('timestampBounds', () => {
   it('returns bounds for multiple-element DataFrame', () => {
     const multipleElementDataFrame: DataFrame = {
       header: [
-        { offset: CommitNumber(1), timestamp: TimestampSeconds(11) },
-        { offset: CommitNumber(2), timestamp: TimestampSeconds(12) },
-        { offset: CommitNumber(3), timestamp: TimestampSeconds(13) },
-        { offset: CommitNumber(4), timestamp: TimestampSeconds(14) },
+        {
+          offset: CommitNumber(1),
+          timestamp: TimestampSeconds(11),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
+        {
+          offset: CommitNumber(2),
+          timestamp: TimestampSeconds(12),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
+        {
+          offset: CommitNumber(3),
+          timestamp: TimestampSeconds(13),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
+        {
+          offset: CommitNumber(4),
+          timestamp: TimestampSeconds(14),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
+        },
       ],
       traceset: TraceSet({}),
       paramset: ReadOnlyParamSet({}),

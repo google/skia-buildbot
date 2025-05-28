@@ -73,6 +73,10 @@ export interface StepFit {
 export interface ColumnHeader {
 	offset: CommitNumber;
 	timestamp: TimestampSeconds;
+	hash: string;
+	author: string;
+	message: string;
+	url: string;
 }
 
 export interface ClusterSummary {

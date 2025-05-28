@@ -47,14 +47,26 @@ describe('commit-range-sk', () => {
         {
           offset: CommitNumber(64809),
           timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
         },
         {
           offset: CommitNumber(64810),
           timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
         },
         {
           offset: CommitNumber(64811),
           timestamp: TimestampSeconds(0),
+          author: '',
+          hash: '',
+          message: '',
+          url: '',
         },
       ];
     });

@@ -15,10 +15,18 @@ const df: DataFrame = {
     {
       offset: CommitNumber(0),
       timestamp: TimestampSeconds(1660000000),
+      author: '',
+      hash: '',
+      message: '',
+      url: '',
     },
     {
       offset: CommitNumber(1),
       timestamp: TimestampSeconds(1660000100),
+      author: '',
+      hash: '',
+      message: '',
+      url: '',
     },
   ],
   paramset: ReadOnlyParamSet({}),

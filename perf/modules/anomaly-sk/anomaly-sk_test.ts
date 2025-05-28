@@ -47,14 +47,26 @@ describe('getAnomalyDataMap', () => {
     {
       offset: CommitNumber(99),
       timestamp: TimestampSeconds(0),
+      author: '',
+      hash: '',
+      message: '',
+      url: '',
     },
     {
       offset: CommitNumber(100),
       timestamp: TimestampSeconds(0),
+      author: '',
+      hash: '',
+      message: '',
+      url: '',
     },
     {
       offset: CommitNumber(101),
       timestamp: TimestampSeconds(0),
+      author: '',
+      hash: '',
+      message: '',
+      url: '',
     },
   ];
   const traceset = TraceSet({
@@ -100,6 +112,10 @@ describe('getAnomalyDataMap', () => {
     const columnHeader: ColumnHeader = {
       offset: CommitNumber(103),
       timestamp: TimestampSeconds(0),
+      author: '',
+      hash: '',
+      message: '',
+      url: '',
     };
     dataframe.header?.push(columnHeader);
     dataframe.traceset.traceA.push(200);

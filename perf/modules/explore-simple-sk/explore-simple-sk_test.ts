@@ -216,14 +216,26 @@ describe('PointSelected', () => {
       {
         offset: CommitNumber(99),
         timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
       },
       {
         offset: CommitNumber(100),
         timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
       },
       {
         offset: CommitNumber(101),
         timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
       },
     ];
 
@@ -243,14 +255,26 @@ describe('PointSelected', () => {
       {
         offset: CommitNumber(99),
         timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
       },
       {
         offset: CommitNumber(100),
         timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
       },
       {
         offset: CommitNumber(101),
         timestamp: TimestampSeconds(0),
+        author: '',
+        hash: '',
+        message: '',
+        url: '',
       },
     ];
 
