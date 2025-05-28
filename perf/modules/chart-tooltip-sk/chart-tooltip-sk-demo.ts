@@ -1,7 +1,7 @@
 import './index';
 import fetchMock from 'fetch-mock';
 
-import { Anomaly, Commit, CommitNumber } from '../json';
+import { Anomaly, ColumnHeader, CommitNumber, TimestampSeconds } from '../json';
 import { ChartTooltipSk } from './chart-tooltip-sk';
 
 window.perf = {
@@ -105,13 +105,12 @@ const renderTooltips = () => {
     .querySelectorAll<ChartTooltipSk>('.buganizerTooltipContainer > chart-tooltip-sk')
     .forEach((tooltip) => {
       tooltip!.moveTo({ x: 0, y: 0 });
-      const c: Commit = {
+      const c: ColumnHeader = {
         author: 'a@b.com',
-        body: 'Commit body',
         hash: 'a1b2c3',
         message: 'Commit message',
         offset: CommitNumber(12345),
-        ts: 1234566778,
+        timestamp: 1234566778 as TimestampSeconds,
         url: '',
       };
       tooltip!.load(

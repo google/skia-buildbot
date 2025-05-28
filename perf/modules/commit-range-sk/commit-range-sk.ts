@@ -38,8 +38,19 @@ export class CommitRangeSk extends ElementSk {
 
   private _hashes: string[] | null = null;
 
+  private _autoload: boolean = true;
+
   // commitNumberToHashes can be replaced to make testing easier.
-  private commitNumberToHashes: commitNumberToHashes = defaultcommitNumberToHashes;
+  private commitNumberToHashes: commitNumberToHashes = async (
+    cids: CommitNumber[]
+  ): Promise<string[]> => {
+    if (this._autoload) {
+      const hashes = await defaultcommitNumberToHashes(cids);
+      return hashes;
+    }
+
+    return [];
+  };
 
   constructor() {
     super(CommitRangeSk.template);
@@ -198,6 +209,10 @@ export class CommitRangeSk extends ElementSk {
 
   get htmlTemplate() {
     return this._htmlTemplate;
+  }
+
+  set autoload(val: boolean) {
+    this._autoload = val;
   }
 
   setCommitIds(commitIndex: number): [CommitNumber, CommitNumber] | null {

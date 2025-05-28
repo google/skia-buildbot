@@ -79,7 +79,6 @@ import {
   CIDHandlerResponse,
   QueryConfig,
   TraceSet,
-  Commit,
   Trace,
   ReadOnlyParamSet,
   CommitNumberAnomalyMap,
@@ -587,8 +586,6 @@ export class ExploreSimpleSk extends ElementSk {
   // as value. For example, {',ck1=>cv1,ck2=>cv2,k1=v1,k2=v2,' => '...k1=v1,k2=v2'}
   private traceIdSummaryOptionMap: Map<string, string> = new Map();
 
-  private pointToCommitDetailMap = new Map();
-
   // tooltipSelected tracks whether someone has turned on the tooltip
   // by selecting a data point. A new tooltip will not be created on
   // mouseover unless the current selected tooltip is closed.
@@ -1046,6 +1043,22 @@ export class ExploreSimpleSk extends ElementSk {
     return previousCommit;
   }
 
+  /**
+   * getCommitDetails returns the commit details for the given commit position
+   * from the dataframe header.
+   * @param commitPosition Commit position to query.
+   * @returns ColumnHeader object containing the details.
+   */
+  private getCommitDetails(commitPosition: CommitNumber | null): ColumnHeader | null {
+    let colHeader = this.dfRepo.value?.header.find(
+      (colHeader) => colHeader?.offset === commitPosition
+    );
+    if (colHeader === undefined) {
+      colHeader = null;
+    }
+    return colHeader;
+  }
+
   // onChartSelect shows the tooltip whenever a user clicks on a data
   // point and the tooltip will lock in place until it is closed.
   private onChartSelect(e: CustomEvent) {
@@ -1056,9 +1069,13 @@ export class ExploreSimpleSk extends ElementSk {
     const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPos) || null;
     this.selectedAnomaly = anomaly;
     const position = chart.getPositionByIndex(index);
-    const key = JSON.stringify([commitPos, chart.getTraceName(index.tableCol)]);
-    const commit = this.pointToCommitDetailMap.get(key) || null;
-
+    const commit = this.getCommitDetails(commitPos);
+    const currentCommitIndex = this.dfRepo.value?.header.findIndex(
+      (header) => header?.offset === commitPos
+    );
+    const prevCommit = this.getCommitDetails(
+      this.getPreviousCommit(currentCommitIndex!, traceName)
+    );
     this.enableTooltip(
       {
         x: index.tableRow - (this.selectedRange?.begin || 0),
@@ -1067,7 +1084,7 @@ export class ExploreSimpleSk extends ElementSk {
         yPos: position.y,
         name: traceName,
       },
-      commit,
+      [prevCommit, commit],
       true
     );
     this.tooltipSelected = true;
@@ -1117,8 +1134,14 @@ export class ExploreSimpleSk extends ElementSk {
     const index = detail;
     const commitPos = chart.getCommitPosition(index.tableRow);
     const position = chart.getPositionByIndex(index);
-    const key = JSON.stringify([commitPos, chart.getTraceName(index.tableCol)]);
-    const commit = this.pointToCommitDetailMap.get(key) || null;
+    const traceName = chart.getTraceName(index.tableCol);
+    const currentCommit = this.getCommitDetails(commitPos);
+    const currentCommitIndex = this.dfRepo.value?.header.findIndex(
+      (header) => header?.offset === commitPos
+    );
+    const prevCommit = this.getCommitDetails(
+      this.getPreviousCommit(currentCommitIndex!, traceName)
+    );
     this.enableTooltip(
       {
         x: index.tableRow - (this.selectedRange?.begin || 0),
@@ -1127,7 +1150,7 @@ export class ExploreSimpleSk extends ElementSk {
         yPos: position.y,
         name: chart.getTraceName(index.tableCol),
       },
-      commit,
+      [prevCommit, currentCommit],
       false
     );
   }
@@ -1708,21 +1731,16 @@ export class ExploreSimpleSk extends ElementSk {
   /** Reflect the focused trace in the paramset. */
   private plotTraceFocused({ detail }: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     const header = this.dfRepo.value?.dataframe.header;
-    const selected = header![(this.selectedRange?.begin || 0) + detail.x]!;
+    const index = (this.selectedRange?.begin || 0) + detail.x;
+    const selected = header![index]!;
     this.paramset!.highlight = fromKey(detail.name);
     this.commitTime!.textContent = new Date(selected.timestamp * 1000).toLocaleString();
 
     if (this._state.enable_chart_tooltip && !this.tooltipSelected) {
-      // if the commit details for a point is already loaded then
-      // show those commit details on hover
-      let c = null;
       const commitPos = selected.offset;
-      const key = JSON.stringify([detail.name, commitPos]);
-      if (this.pointToCommitDetailMap.has(key)) {
-        c = this.pointToCommitDetailMap.get(key) || null;
-      }
-
-      this.enableTooltip(detail, c, false);
+      const currentCommit = this.getCommitDetails(commitPos);
+      const prevCommit = this.getCommitDetails(this.getPreviousCommit(index, detail.name));
+      this.enableTooltip(detail, [prevCommit, currentCommit], false);
     }
   }
 
@@ -1880,7 +1898,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   enableTooltip(
     pointDetails: PlotSimpleSkTraceEventDetails,
-    commits: Commit[] | null,
+    commits: (ColumnHeader | null)[],
     fixTooltip: boolean
   ): void {
     // explore-simple-sk is used multiple times on the multi-graph view. To
@@ -1897,7 +1915,7 @@ export class ExploreSimpleSk extends ElementSk {
     // Show the commit hashes in the tooltip without having to refetch.
     let hashes: string[] = [];
     if (commits && commits.length > 1) {
-      hashes = [commits[0].hash, commits[1].hash];
+      hashes = [commits[0]!.hash, commits[1]!.hash];
     }
 
     const commit = commits ? commits[1] : null;
@@ -1905,7 +1923,7 @@ export class ExploreSimpleSk extends ElementSk {
       const chart = this.googleChartPlot!.value!;
       commitDate = chart.getCommitDate(x);
     } else {
-      commitDate = new Date(commit.ts * 1000);
+      commitDate = new Date(commit!.timestamp * 1000);
     }
 
     const traceName = pointDetails.name;
@@ -2023,33 +2041,16 @@ export class ExploreSimpleSk extends ElementSk {
     // Populate the commit-range-sk element.
     // Backwards compatibility to tooltip load() function.
     const commitRangeSk = new CommitRangeSk();
+    commitRangeSk.autoload = false;
     commitRangeSk!.trace = trace;
     commitRangeSk!.commitIndex = x;
     commitRangeSk!.header = header;
     commitRangeSk!.hashes = hashes;
 
-    if (commit === null) {
-      fetch('/_/cid/', {
-        method: 'POST',
-        body: JSON.stringify([prevCommitPos, commitPosition]),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then(jsonOrThrow)
-        .then((json: CIDHandlerResponse) => {
-          const key = JSON.stringify([commitPosition, traceName]);
-          this.pointToCommitDetailMap.set(key, json.commitSlice!);
-          if (tooltipElem) {
-            tooltipElem.commit_info = json.commitSlice![1];
-          }
-          if (anomaly !== null && anomaly.bug_id > 0) {
-            this.bugId = anomaly.bug_id.toString();
-          } else {
-            this.bugId = '';
-          }
-        })
-        .catch(errorMessage);
+    if (anomaly !== null && anomaly.bug_id > 0) {
+      this.bugId = anomaly.bug_id.toString();
+    } else {
+      this.bugId = '';
     }
     this.constructTestPath(traceName);
 
@@ -2220,7 +2221,6 @@ export class ExploreSimpleSk extends ElementSk {
         this.anomalyTable!.anomaly = selected_anomaly;
         this.anomalyTable!.bugHostUrl = window.perf.bug_host_url;
         this.detailTab!.selected = COMMIT_TAB_INDEX;
-        const cid = commits[0]!;
         const parts = [];
         this.story = this.getLastSubtest(this.simpleParamset!.paramsets[0]!)[0];
         if (
@@ -2255,18 +2255,6 @@ export class ExploreSimpleSk extends ElementSk {
           this.bugId = selected_anomaly.bug_id.toString();
         } else {
           this.bugId = '';
-        }
-
-        // when the commit details are loaded, add those info to
-        // pointToCommitDetailMap map which can be used to fetch commit
-        // info on hover without making an API call
-        this.pointToCommitDetailMap.set(JSON.stringify([cid, detail.name]), json.commitSlice!);
-
-        const tooltipEnabled = this._state.enable_chart_tooltip;
-        const hasValidTooltipPos = detail.xPos !== undefined && detail.yPos !== undefined;
-        if (tooltipEnabled && hasValidTooltipPos) {
-          this.tooltipSelected = true;
-          this.enableTooltip(detail, json.commitSlice, true);
         }
       })
       .catch(errorMessage);

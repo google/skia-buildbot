@@ -13,9 +13,8 @@ import { createRef, ref } from 'lit/directives/ref.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
-import { Anomaly, Commit, CommitNumber } from '../json';
+import { Anomaly, ColumnHeader, CommitNumber } from '../json';
 import { AnomalySk } from '../anomaly-sk/anomaly-sk';
-import { lookupCids } from '../cid/cid';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import '../window/window';
 import { TriageMenuSk, NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
@@ -64,7 +63,7 @@ export class ChartTooltipSk extends ElementSk {
   // usually curated through explore-simple-sk._dataframe.header[x].
   private _commit_position: CommitNumber | null = null;
 
-  private _commit_info: Commit | null = null;
+  private _commit_info: ColumnHeader | null = null;
 
   // Anomaly information, set only when the data point is an anomaly.
   // Usually determined by content in anomaly map referenced against the result
@@ -433,22 +432,6 @@ export class ChartTooltipSk extends ElementSk {
       </span>`;
   }
 
-  // fetch_details triggers an event that executes the POST /_/cid call to
-  // retrieve commit details and anomaly information.
-  //
-  // Note: This should be updated to trigger an event back to explore-simple-sk
-  // to determine whether the currently selected point is an anomaly
-  // (from anomaly map).
-  fetch_details = async (): Promise<void> => {
-    const cids: CommitNumber[] = [this.commit_position!];
-
-    const json = await lookupCids(cids);
-    const details = json.commitSlice![0];
-
-    // Setter will re-render component.
-    this.commit_info = details;
-  };
-
   // load function sets the value of the fields minimally required to display
   // this chart on hover.
   load(
@@ -462,7 +445,7 @@ export class ChartTooltipSk extends ElementSk {
     bug_id: number,
     anomaly: Anomaly | null,
     nudgeList: NudgeEntry[] | null,
-    commit: Commit | null,
+    commit: ColumnHeader | null,
     tooltipFixed: boolean,
     commitRange: CommitRangeSk | null,
     closeButtonAction: () => void
@@ -649,11 +632,11 @@ export class ChartTooltipSk extends ElementSk {
     this._render();
   }
 
-  get commit_info(): Commit | null {
+  get commit_info(): ColumnHeader | null {
     return this._commit_info;
   }
 
-  set commit_info(val: Commit | null) {
+  set commit_info(val: ColumnHeader | null) {
     this._commit_info = val;
     this._render();
   }
