@@ -2069,20 +2069,6 @@ export class ExploreSimpleSk extends ElementSk {
     };
 
     tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });
-    tooltipElem!
-      .loadPointLinks(
-        commitPosition,
-        prevCommitPos,
-        traceName,
-        window.perf.keys_for_commit_range!,
-        window.perf.keys_for_useful_links!,
-        this.commitLinks
-      )
-      .then((links) => {
-        this.commitLinks = links;
-      })
-      .catch(errorMessage);
-
     tooltipElem!.setBisectInputParams(preloadBisectInputs);
     tooltipElem!.setTryJobInputParams(preloadTryJobInputs);
     tooltipElem!.load(
