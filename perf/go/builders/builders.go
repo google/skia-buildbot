@@ -177,7 +177,7 @@ func NewTraceStoreFromConfig(ctx context.Context, instanceConfig *config.Instanc
 	}
 	var inMemoryTraceParams *sqltracestore.InMemoryTraceParams = nil
 	if instanceConfig.Experiments.InMemoryTraceParams {
-		inMemoryTraceParams, err = sqltracestore.NewInMemoryTraceParams(ctx, db)
+		inMemoryTraceParams, err = sqltracestore.NewInMemoryTraceParams(ctx, db, 12*60*60 /*12hr*/)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

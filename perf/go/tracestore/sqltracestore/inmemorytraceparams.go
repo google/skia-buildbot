@@ -2,6 +2,8 @@ package sqltracestore
 
 import (
 	"context"
+	"sync"
+	"time"
 
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
@@ -14,6 +16,9 @@ import (
 )
 
 type InMemoryTraceParams struct {
+	db                       pool.Pool
+	refreshIntervalInSeconds float32
+
 	// Array of column data. Each column is an array containing integer encodings
 	// of strings for a single param in the original traceparams table. The column
 	// arrays should all the be same length, and with elements in the same order,
@@ -30,19 +35,20 @@ type InMemoryTraceParams struct {
 	encoding map[string]int32
 	// Map integer encodings to strings (aka. param values)
 	rEncoding map[int32]string
+
+	// Lock around "in-memory" data. Querying takes RLock (non-exclusive),
+	// refreshing takes Lock (exclusive).
+	dataLock sync.RWMutex
 }
 
-// Create a new InMemoryTraceParams and populate it with data from traceparams table in db
-func NewInMemoryTraceParams(ctx context.Context, db pool.Pool) (*InMemoryTraceParams, error) {
-	ctx, span := trace.StartSpan(ctx, "InMemoryTraceParams.NewInMemoryTraceParams")
+func (tp *InMemoryTraceParams) refresh(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "InMemoryTraceParams.refresh")
 	defer span.End()
-
-	ret := InMemoryTraceParams{}
-	ret.traceparams = [][]int32{}
-	ret.paramCols = map[string]int32{}
-	ret.colParams = map[int32]string{}
-	ret.encoding = map[string]int32{}
-	ret.rEncoding = map[int32]string{}
+	traceparams := [][]int32{}
+	paramCols := map[string]int32{}
+	colParams := map[int32]string{}
+	encoding := map[string]int32{}
+	rEncoding := map[int32]string{}
 
 	// Get latest tilenumber
 	const getLatestTile = `
@@ -56,8 +62,8 @@ func NewInMemoryTraceParams(ctx context.Context, db pool.Pool) (*InMemoryTracePa
 			1;
 		`
 	tileNumber := types.BadTileNumber
-	if err := db.QueryRow(ctx, getLatestTile).Scan(&tileNumber); err != nil {
-		return nil, skerr.Wrap(err)
+	if err := tp.db.QueryRow(ctx, getLatestTile).Scan(&tileNumber); err != nil {
+		return skerr.Wrap(err)
 	}
 
 	// Get traceparams columns
@@ -69,26 +75,26 @@ func NewInMemoryTraceParams(ctx context.Context, db pool.Pool) (*InMemoryTracePa
 		WHERE
 			tile_number = $1 OR tile_number = $1-1;
 		`
-	paramsRows, err := db.Query(ctx, paramSetForTile, tileNumber)
+	paramsRows, err := tp.db.Query(ctx, paramSetForTile, tileNumber)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
 	var pCount int32 = 0
 	for paramsRows.Next() {
 		var key string
 		if err := paramsRows.Scan(&key); err != nil {
-			return nil, skerr.Wrapf(err, "Failed scanning row - tileNumber=%d", tileNumber)
+			return skerr.Wrapf(err, "Failed scanning row - tileNumber=%d", tileNumber)
 		}
-		ret.paramCols[key] = pCount
-		ret.colParams[pCount] = key
+		paramCols[key] = pCount
+		colParams[pCount] = key
 		pCount++
-		ret.traceparams = append(ret.traceparams, []int32{})
+		traceparams = append(traceparams, []int32{})
 	}
 
 	// Get traceparams row data
-	rows, err := db.Query(ctx, "SELECT trace_id, params FROM traceparams;")
+	rows, err := tp.db.Query(ctx, "SELECT trace_id, params FROM traceparams;")
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
 	defer rows.Close()
 	var traceIdCount int = 0
@@ -101,25 +107,71 @@ func NewInMemoryTraceParams(ctx context.Context, db pool.Pool) (*InMemoryTracePa
 			sklog.Fatal(err)
 		}
 		// Try to read the string for each column
-		for param, paramCol := range ret.paramCols {
+		for param, paramCol := range paramCols {
 			var valueE int32 = -1
 			value, ok := params[param]
 			if ok {
 				valueString := value.(string)
-				valueE, ok = ret.encoding[valueString]
+				valueE, ok = encoding[valueString]
 				if !ok {
 					// If string hasn't been encoded yet then map param values
 					// to number encoding, and back
 					valueE = eCount
-					ret.encoding[valueString] = valueE
-					ret.rEncoding[valueE] = valueString
+					encoding[valueString] = valueE
+					rEncoding[valueE] = valueString
 					eCount++
 				}
 			}
 			// Store encoded value for this row in column
-			ret.traceparams[paramCol] = append(ret.traceparams[paramCol], valueE)
+			traceparams[paramCol] = append(traceparams[paramCol], valueE)
 		}
 		traceIdCount++
+	}
+
+	tp.dataLock.Lock()
+	defer tp.dataLock.Unlock()
+	tp.traceparams = traceparams
+	tp.paramCols = paramCols
+	tp.colParams = colParams
+	tp.encoding = encoding
+	tp.rEncoding = rEncoding
+	return nil
+}
+
+func (tp *InMemoryTraceParams) startRefresher(ctx context.Context) error {
+	// Initialize
+	err := tp.refresh(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Update the cache periodically.
+	go func() {
+		// Periodically run it based on the specified duration.
+		refreshDuration := time.Second * time.Duration(tp.refreshIntervalInSeconds)
+		for range time.Tick(refreshDuration) {
+			err := tp.refresh(ctx)
+			if err != nil {
+				sklog.Errorf("Error updating alert configurations. %s", err)
+			}
+		}
+	}()
+
+	return nil
+}
+
+// Create a new InMemoryTraceParams and populate it with data from traceparams table in db
+func NewInMemoryTraceParams(ctx context.Context, db pool.Pool, refreshIntervalInSeconds float32) (*InMemoryTraceParams, error) {
+	ctx, span := trace.StartSpan(ctx, "InMemoryTraceParams.NewInMemoryTraceParams")
+	defer span.End()
+
+	ret := InMemoryTraceParams{
+		db:                       db,
+		refreshIntervalInSeconds: refreshIntervalInSeconds,
+	}
+	err := ret.startRefresher(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
 
 	return &ret, nil
@@ -133,6 +185,8 @@ func (tp *InMemoryTraceParams) QueryTraceIDs(ctx context.Context, tileNumber typ
 		ctx, span := trace.StartSpan(ctx, "InMemoryTraceParams.QueryTraceIDs")
 		defer span.End()
 		defer close(outParams)
+		tp.dataLock.RLock()
+		defer tp.dataLock.RUnlock()
 		numTraceparams := len(tp.traceparams[0])
 		const kChunkSize int = 2000
 		const kTraceIdQueryPoolSize int = 30

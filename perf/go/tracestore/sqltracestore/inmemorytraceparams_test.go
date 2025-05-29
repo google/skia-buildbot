@@ -33,7 +33,7 @@ func TestQueryTraceIDs_NoRows_Success(t *testing.T) {
 	_, err := db.Exec(ctx, insertIntoParamSets)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -77,7 +77,7 @@ func TestQueryTraceIDs_SimpleQueryOneResult_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -121,7 +121,7 @@ func TestQueryTraceIDs_SimpleQueryNoMatches_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
