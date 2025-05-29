@@ -27,8 +27,8 @@ CREATE TABLE IF NOT EXISTS DiffMetrics (
   combined_metric FLOAT4 NOT NULL,
   dimensions_differ BOOL NOT NULL,
   ts TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (left_digest, right_digest),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (left_digest, right_digest)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS ExpectationDeltas (
   expectation_record_id TEXT,
@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS ExpectationDeltas (
   digest BYTEA,
   label_before VARCHAR(1) NOT NULL,
   label_after VARCHAR(1) NOT NULL,
-  PRIMARY KEY (expectation_record_id, grouping_id, digest),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (expectation_record_id, grouping_id, digest)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS ExpectationRecords (
   expectation_record_id TEXT PRIMARY KEY DEFAULT spanner.generate_uuid(),
@@ -52,8 +52,8 @@ CREATE TABLE IF NOT EXISTS Expectations (
   digest BYTEA,
   label VARCHAR(1) NOT NULL,
   expectation_record_id TEXT,
-  PRIMARY KEY (grouping_id, digest),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (grouping_id, digest)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS GitCommits (
   git_hash TEXT PRIMARY KEY,
@@ -107,8 +107,8 @@ CREATE TABLE IF NOT EXISTS PrimaryBranchParams (
   tile_id INT8,
   key TEXT,
   value TEXT,
-  PRIMARY KEY (tile_id, key, value),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (tile_id, key, value)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS ProblemImages (
   digest TEXT PRIMARY KEY,
@@ -124,8 +124,8 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchDiffCalculationWork (
   digests TEXT[] NOT NULL,
   last_calculated_ts TIMESTAMP WITH TIME ZONE NOT NULL,
   calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (branch_name, grouping_id),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (branch_name, grouping_id)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS SecondaryBranchExpectations (
   branch_name TEXT,
@@ -133,16 +133,16 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchExpectations (
   digest BYTEA,
   label VARCHAR(1) NOT NULL,
   expectation_record_id TEXT NOT NULL,
-  PRIMARY KEY (branch_name, grouping_id, digest),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (branch_name, grouping_id, digest)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS SecondaryBranchParams (
   branch_name TEXT,
   version_name TEXT,
   key TEXT,
   value TEXT,
-  PRIMARY KEY (branch_name, version_name, key, value),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (branch_name, version_name, key, value)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS SecondaryBranchValues (
   branch_name TEXT,
@@ -153,8 +153,8 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchValues (
   options_id BYTEA NOT NULL,
   source_file_id BYTEA NOT NULL,
   tryjob_id TEXT,
-  PRIMARY KEY (branch_name, version_name, secondary_branch_trace_id, source_file_id),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (branch_name, version_name, secondary_branch_trace_id, source_file_id)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS SourceFiles (
   source_file_id BYTEA PRIMARY KEY,
@@ -167,8 +167,8 @@ CREATE TABLE IF NOT EXISTS TiledTraceDigests (
   tile_id INT8,
   digest BYTEA NOT NULL,
   grouping_id BYTEA,
-  PRIMARY KEY (trace_id, tile_id, digest),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (trace_id, tile_id, digest)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS TraceValues (
   shard INT8,
@@ -178,8 +178,8 @@ CREATE TABLE IF NOT EXISTS TraceValues (
   grouping_id BYTEA NOT NULL,
   options_id BYTEA NOT NULL,
   source_file_id BYTEA NOT NULL,
-  PRIMARY KEY (shard, commit_id, trace_id),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (shard, commit_id, trace_id)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Traces (
   trace_id BYTEA PRIMARY KEY,

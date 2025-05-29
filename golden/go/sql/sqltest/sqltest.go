@@ -234,7 +234,53 @@ func GetAllRows(ctx context.Context, t *testing.T, db *pgxpool.Pool, table strin
 		rv = reflect.Append(rv, newVal.Elem())
 	}
 	// Return the slice as type interface{}; It can be type asserted to []RowType by the caller.
-	return rv.Interface()
+	returnval := rv.Interface()
+	// Unset the CreatedAt field on all the rows. This is to ensure that the
+	// CreatedAt field does not affect the equality of the struct instances.
+	// This is important for testing purposes, where the CreatedAt field is set
+	// automatically by the underlying db, but we want to compare the other
+	// fields for equality.
+	err = UnsetCreatedAt(returnval)
+	require.NoError(t, err)
+	return returnval
+}
+
+// UnsetCreatedAt modifies the input slice directly, by setting the "CreatedAt"
+// field of each struct element to its zero value (time.Time{}).
+// It is intended to be used for testing purposes, where the "CreatedAt" field
+// should not affect the equality of the struct instances.
+// The function panics if the input is not a slice of structs or if the "CreatedAt"
+// field is not settable (i.e., unexported).
+// It is assumed that the "CreatedAt" field is of type time.Time, and input is
+// a slice of structs that have this field.
+// The function does not return any value, but it modifies the input slice in place.
+func UnsetCreatedAt(rows interface{}) error {
+	sliceVal := reflect.ValueOf(rows)
+	if sliceVal.Kind() != reflect.Slice {
+		return fmt.Errorf("input must be a slice, got %s", sliceVal.Kind())
+	}
+
+	for i := 0; i < sliceVal.Len(); i++ {
+		elemVal := sliceVal.Index(i)
+		if elemVal.Kind() != reflect.Struct {
+			continue
+		}
+
+		// Attempt to find the "CreatedAt" field.
+		createdAtField := elemVal.FieldByName("CreatedAt")
+
+		if createdAtField.IsValid() {
+			if createdAtField.CanSet() {
+				if createdAtField.Type() == reflect.TypeOf(time.Time{}) {
+					zeroTime := reflect.ValueOf(time.Time{})
+					createdAtField.Set(zeroTime)
+				}
+			} else {
+				return fmt.Errorf("field 'CreatedAt' on element at index %d is not settable", i)
+			}
+		}
+	}
+	return nil
 }
 
 // GetRowChanges compares the rows found in the given table at instant t0 against those found at
@@ -266,6 +312,8 @@ func GetRowChanges[T any](ctx context.Context, t *testing.T, db *pgxpool.Pool, t
 			require.NoError(t, any(&row).(SQLScanner).ScanFrom(rows.Scan))
 			rv = append(rv, row)
 		}
+		err = UnsetCreatedAt(rv)
+		require.NoError(t, err)
 		return rv
 	}
 

@@ -10,12 +10,14 @@ const Schema = `CREATE TABLE IF NOT EXISTS Changelists (
   owner_email STRING NOT NULL,
   subject STRING NOT NULL,
   last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   INDEX system_status_ingested_idx (system, status, last_ingested_data),
   INDEX status_ingested_idx (status, last_ingested_data DESC)
 );
 CREATE TABLE IF NOT EXISTS CommitsWithData (
   commit_id STRING PRIMARY KEY,
-  tile_id INT4 NOT NULL
+  tile_id INT4 NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS DiffMetrics (
   left_digest BYTES,
@@ -27,6 +29,7 @@ CREATE TABLE IF NOT EXISTS DiffMetrics (
   combined_metric FLOAT4 NOT NULL,
   dimensions_differ BOOL NOT NULL,
   ts TIMESTAMP WITH TIME ZONE NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (left_digest, right_digest)
 );
 CREATE TABLE IF NOT EXISTS ExpectationDeltas (
@@ -35,6 +38,7 @@ CREATE TABLE IF NOT EXISTS ExpectationDeltas (
   digest BYTES,
   label_before CHAR NOT NULL,
   label_after CHAR NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (expectation_record_id, grouping_id, digest)
 );
 CREATE TABLE IF NOT EXISTS ExpectationRecords (
@@ -43,6 +47,7 @@ CREATE TABLE IF NOT EXISTS ExpectationRecords (
   user_name STRING NOT NULL,
   triage_time TIMESTAMP WITH TIME ZONE NOT NULL,
   num_changes INT4 NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   INDEX branch_ts_idx (branch_name, triage_time)
 );
 CREATE TABLE IF NOT EXISTS Expectations (
@@ -50,6 +55,7 @@ CREATE TABLE IF NOT EXISTS Expectations (
   digest BYTES,
   label CHAR NOT NULL,
   expectation_record_id UUID,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (grouping_id, digest),
   INDEX label_idx (label)
 );
@@ -59,11 +65,13 @@ CREATE TABLE IF NOT EXISTS GitCommits (
   commit_time TIMESTAMP WITH TIME ZONE NOT NULL,
   author_email STRING NOT NULL,
   subject STRING NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   INDEX commit_idx (commit_id)
 );
 CREATE TABLE IF NOT EXISTS Groupings (
   grouping_id BYTES PRIMARY KEY,
-  keys JSONB NOT NULL
+  keys JSONB NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS IgnoreRules (
   ignore_rule_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -71,15 +79,18 @@ CREATE TABLE IF NOT EXISTS IgnoreRules (
   updated_email STRING NOT NULL,
   expires TIMESTAMP WITH TIME ZONE,
   note STRING,
-  query JSONB
+  query JSONB,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS MetadataCommits (
   commit_id STRING PRIMARY KEY,
-  commit_metadata STRING NOT NULL
+  commit_metadata STRING NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS Options (
   options_id BYTES PRIMARY KEY,
-  keys JSONB NOT NULL
+  keys JSONB NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS Patchsets (
   patchset_id STRING PRIMARY KEY,
@@ -89,25 +100,29 @@ CREATE TABLE IF NOT EXISTS Patchsets (
   git_hash STRING NOT NULL,
   commented_on_cl BOOL NOT NULL,
   created_ts TIMESTAMP WITH TIME ZONE,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   INDEX cl_order_idx (changelist_id, ps_order)
 );
 CREATE TABLE IF NOT EXISTS PrimaryBranchDiffCalculationWork (
   grouping_id BYTES PRIMARY KEY,
   last_calculated_ts TIMESTAMP WITH TIME ZONE NOT NULL,
   calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   INDEX calculated_idx (last_calculated_ts)
 );
 CREATE TABLE IF NOT EXISTS PrimaryBranchParams (
   tile_id INT4,
   key STRING,
   value STRING,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (tile_id, key, value)
 );
 CREATE TABLE IF NOT EXISTS ProblemImages (
   digest STRING PRIMARY KEY,
   num_errors INT2 NOT NULL,
   latest_error STRING NOT NULL,
-  error_ts TIMESTAMP WITH TIME ZONE NOT NULL
+  error_ts TIMESTAMP WITH TIME ZONE NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS SecondaryBranchDiffCalculationWork (
   branch_name STRING,
@@ -116,6 +131,7 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchDiffCalculationWork (
   digests STRING[] NOT NULL,
   last_calculated_ts TIMESTAMP WITH TIME ZONE NOT NULL,
   calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (branch_name, grouping_id),
   INDEX calculated_idx (last_calculated_ts)
 );
@@ -125,6 +141,7 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchExpectations (
   digest BYTES,
   label CHAR NOT NULL,
   expectation_record_id UUID NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (branch_name, grouping_id, digest)
 );
 CREATE TABLE IF NOT EXISTS SecondaryBranchParams (
@@ -132,6 +149,7 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchParams (
   version_name STRING,
   key STRING,
   value STRING,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (branch_name, version_name, key, value)
 );
 CREATE TABLE IF NOT EXISTS SecondaryBranchValues (
@@ -143,18 +161,21 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchValues (
   options_id BYTES NOT NULL,
   source_file_id BYTES NOT NULL,
   tryjob_id STRING,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (branch_name, version_name, secondary_branch_trace_id, source_file_id)
 );
 CREATE TABLE IF NOT EXISTS SourceFiles (
   source_file_id BYTES PRIMARY KEY,
   source_file STRING NOT NULL,
-  last_ingested TIMESTAMP WITH TIME ZONE NOT NULL
+  last_ingested TIMESTAMP WITH TIME ZONE NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS TiledTraceDigests (
   trace_id BYTES,
   tile_id INT4,
   digest BYTES NOT NULL,
   grouping_id BYTES,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (trace_id, tile_id, digest),
   INDEX grouping_digest_idx (grouping_id, digest),
   INDEX tile_trace_idx (tile_id, trace_id)
@@ -167,6 +188,7 @@ CREATE TABLE IF NOT EXISTS TraceValues (
   grouping_id BYTES NOT NULL,
   options_id BYTES NOT NULL,
   source_file_id BYTES NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (shard, commit_id, trace_id),
   INDEX trace_commit_idx (trace_id, commit_id) STORING (digest, options_id, grouping_id)
 );
@@ -176,13 +198,15 @@ CREATE TABLE IF NOT EXISTS Traces (
   grouping_id BYTES NOT NULL,
   keys JSONB NOT NULL,
   matches_any_ignore_rule BOOL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   INDEX grouping_ignored_idx (grouping_id, matches_any_ignore_rule),
   INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id),
   INVERTED INDEX keys_idx (keys)
 );
 CREATE TABLE IF NOT EXISTS TrackingCommits (
   repo STRING PRIMARY KEY,
-  last_git_hash STRING NOT NULL
+  last_git_hash STRING NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS Tryjobs (
   tryjob_id STRING PRIMARY KEY,
@@ -191,6 +215,7 @@ CREATE TABLE IF NOT EXISTS Tryjobs (
   patchset_id STRING NOT NULL REFERENCES Patchsets (patchset_id),
   display_name STRING NOT NULL,
   last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   INDEX cl_idx (changelist_id)
 );
 CREATE TABLE IF NOT EXISTS ValuesAtHead (
@@ -202,6 +227,7 @@ CREATE TABLE IF NOT EXISTS ValuesAtHead (
   corpus STRING AS (keys->>'source_type') STORED NOT NULL,
   keys JSONB NOT NULL,
   matches_any_ignore_rule BOOL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id),
   INDEX corpus_commit_ignore_idx (corpus, most_recent_commit_id, matches_any_ignore_rule) STORING (grouping_id, digest),
   INVERTED INDEX keys_idx (keys)
@@ -209,12 +235,14 @@ CREATE TABLE IF NOT EXISTS ValuesAtHead (
 CREATE TABLE IF NOT EXISTS DeprecatedIngestedFiles (
   source_file_id BYTES PRIMARY KEY,
   source_file STRING NOT NULL,
-  last_ingested TIMESTAMP WITH TIME ZONE NOT NULL
+  last_ingested TIMESTAMP WITH TIME ZONE NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS DeprecatedExpectationUndos (
   id SERIAL PRIMARY KEY,
   expectation_id STRING NOT NULL,
   user_id STRING NOT NULL,
-  ts TIMESTAMP WITH TIME ZONE NOT NULL
+  ts TIMESTAMP WITH TIME ZONE NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 `

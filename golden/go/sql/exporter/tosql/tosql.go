@@ -32,7 +32,10 @@ func main() {
 		"Changelists",
 		"Patchsets",
 	}
-	generatedText := exporter.GenerateSQL(schema.Tables{}, *outputPkg, exporter.SchemaOnly, schemaTargetDB, ttlExclude)
+	spannerConverter := exporter.DefaultSpannerConverter()
+	spannerConverter.TtlExcludeTables = ttlExclude
+	spannerConverter.SkipCreatedAt = true
+	generatedText := exporter.GenerateSQL(schema.Tables{}, *outputPkg, exporter.SchemaOnly, schemaTargetDB, spannerConverter)
 	out := filepath.Join(cwd, *outputFile)
 	err = os.WriteFile(out, []byte(generatedText), 0666)
 	if err != nil {

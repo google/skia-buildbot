@@ -43,7 +43,9 @@ func main() {
 		"Subscriptions",
 		"TraceParams",
 	}
-	generatedText := exporter.GenerateSQL(sql.Tables{}, packageName, exporter.SchemaAndColumnNames, schemaTargetDB, ttlExcludeTables)
+	spannerConverter := exporter.DefaultSpannerConverter()
+	spannerConverter.TtlExcludeTables = ttlExcludeTables
+	generatedText := exporter.GenerateSQL(sql.Tables{}, packageName, exporter.SchemaAndColumnNames, schemaTargetDB, spannerConverter)
 	out := filepath.Join(packagePath, outputFileName)
 	err = os.WriteFile(out, []byte(generatedText), 0666)
 	if err != nil {

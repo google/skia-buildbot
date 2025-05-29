@@ -3,6 +3,7 @@ package exporter
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -16,11 +17,15 @@ type spTableOneRow struct {
 	ColumnOne   string `sql:"column_one STRING PRIMARY KEY"`
 	ColumnTwo   int    `sql:"column_two INT8 NOT NULL"`
 	ColumnThree int    `sql:"column_three INT unique_rowid()"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }
 
 type spTableTwoRow struct {
 	CompositeKeyOne []byte `sql:"comp_one BYTES"`
 	CompositeKeyTwo []byte `sql:"comp_two BYTES"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 	// This is a test comment
 	primaryKey struct{} `sql:"PRIMARY KEY (comp_one, comp_two)"`
 	// We have this index for good reasons. Spaces are intentional to make sure they are trimmed
@@ -31,7 +36,7 @@ type spTableTwoRow struct {
 
 func TestSpanner_GenerateSQL_WellFormedInput_CorrectOutput(t *testing.T) {
 
-	gen := GenerateSQL(spannerTables{}, "test_package_one", SchemaOnly, Spanner, nil)
+	gen := GenerateSQL(spannerTables{}, "test_package_one", SchemaOnly, Spanner, &SpannerConverter{SkipCreatedAt: true})
 	// We cannot have backticks in the multistring literal, so we substitute $$ for them.
 	expectedOutput := strings.ReplaceAll(`package test_package_one
 
@@ -48,8 +53,8 @@ CREATE TABLE IF NOT EXISTS TableOne (
 CREATE TABLE IF NOT EXISTS TableTwo (
   comp_one BYTEA,
   comp_two BYTEA,
-  PRIMARY KEY (comp_one, comp_two),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (comp_one, comp_two)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE INDEX IF NOT EXISTS comp_two_desc_idx on TableTwo (comp_two DESC);
 CREATE INDEX IF NOT EXISTS comp_two_asc_idx on TableTwo (comp_two ASC);
@@ -60,8 +65,10 @@ $$
 }
 
 func TestSpanner_GenerateSQL_WellFormedInput_CorrectOutputIncludingColumnNames(t *testing.T) {
+	spannerConverter := DefaultSpannerConverter()
+	spannerConverter.SkipCreatedAt = true
 
-	gen := GenerateSQL(spannerTables{}, "test_package_one", SchemaAndColumnNames, Spanner, nil)
+	gen := GenerateSQL(spannerTables{}, "test_package_one", SchemaAndColumnNames, Spanner, spannerConverter)
 	// We cannot have backticks in the multistring literal, so we substitute $$ for them.
 	expectedOutput := strings.ReplaceAll(`package test_package_one
 
@@ -78,8 +85,8 @@ CREATE TABLE IF NOT EXISTS TableOne (
 CREATE TABLE IF NOT EXISTS TableTwo (
   comp_one BYTEA,
   comp_two BYTEA,
-  PRIMARY KEY (comp_one, comp_two),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (comp_one, comp_two)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE INDEX IF NOT EXISTS comp_two_desc_idx on TableTwo (comp_two DESC);
 CREATE INDEX IF NOT EXISTS comp_two_asc_idx on TableTwo (comp_two ASC);
@@ -89,11 +96,13 @@ var TableOne = []string{
 	"column_one",
 	"column_two",
 	"column_three",
+	"createdat",
 }
 
 var TableTwo = []string{
 	"comp_one",
 	"comp_two",
+	"createdat",
 }
 `, "$$", "`")
 
@@ -103,8 +112,10 @@ var TableTwo = []string{
 func TestSpanner_GenerateSQL_WellFormedInput_TTLExclude(t *testing.T) {
 	// This table should not have a "TTL INTERVAL" specified.
 	excludeTTLTable := []string{"TableOne"}
-
-	gen := GenerateSQL(spannerTables{}, "test_package_one", SchemaOnly, Spanner, excludeTTLTable)
+	spannerConverter := DefaultSpannerConverter()
+	spannerConverter.TtlExcludeTables = excludeTTLTable
+	spannerConverter.SkipCreatedAt = true
+	gen := GenerateSQL(spannerTables{}, "test_package_one", SchemaOnly, Spanner, spannerConverter)
 	// We cannot have backticks in the multistring literal, so we substitute $$ for them.
 	expectedOutput := strings.ReplaceAll(`package test_package_one
 
@@ -121,8 +132,8 @@ CREATE TABLE IF NOT EXISTS TableOne (
 CREATE TABLE IF NOT EXISTS TableTwo (
   comp_one BYTEA,
   comp_two BYTEA,
-  PRIMARY KEY (comp_one, comp_two),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (comp_one, comp_two)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE INDEX IF NOT EXISTS comp_two_desc_idx on TableTwo (comp_two DESC);
 CREATE INDEX IF NOT EXISTS comp_two_asc_idx on TableTwo (comp_two ASC);

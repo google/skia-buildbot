@@ -182,6 +182,8 @@ type TraceValueRow struct {
 	// SourceFileID is the MD5 hash of the source file that produced this data point. This is a
 	// foreign key into the SourceFiles table.
 	SourceFileID SourceFileID `sql:"source_file_id BYTES NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 	// By creating the primary key using the shard and the commit_id, we give some data locality
 	// to data from the same trace, but in different commits w/o overloading a single range (if
 	// commit_id were first) and w/o spreading our data too thin (if trace_id were first).
@@ -204,7 +206,7 @@ func (r TraceValueRow) GetPrimaryKeyCols() []string {
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TraceValueRow) ScanFrom(scan func(...interface{}) error) error {
 	return scan(&r.Shard, &r.TraceID, &r.CommitID, &r.Digest, &r.GroupingID,
-		&r.OptionsID, &r.SourceFileID)
+		&r.OptionsID, &r.SourceFileID, &r.CreatedAt)
 }
 
 // CommitWithDataRow represents a commit that has produced some data on the primary branch.
@@ -219,6 +221,8 @@ type CommitWithDataRow struct {
 	// It is expected that tile_id be set the first time we see data from a given commit on the
 	// primary branch and not changed after, even if the tile size used for an instance changes.
 	TileID TileID `sql:"tile_id INT4 NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -234,7 +238,7 @@ func (r CommitWithDataRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *CommitWithDataRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.CommitID, &r.TileID)
+	return scan(&r.CommitID, &r.TileID, &r.CreatedAt)
 }
 
 // RowsOrderBy implements the sqltest.RowsOrder interface to sort commits by CommitID.
@@ -254,6 +258,8 @@ type GitCommitRow struct {
 	AuthorEmail string `sql:"author_email STRING NOT NULL"`
 	// Subject is the subject line of the commit.
 	Subject string `sql:"subject STRING NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 
 	commitIDIndex struct{} `sql:"INDEX commit_idx (commit_id)"`
 }
@@ -271,7 +277,7 @@ func (r GitCommitRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *GitCommitRow) ScanFrom(scan func(...interface{}) error) error {
-	if err := scan(&r.GitHash, &r.CommitID, &r.CommitTime, &r.AuthorEmail, &r.Subject); err != nil {
+	if err := scan(&r.GitHash, &r.CommitID, &r.CommitTime, &r.AuthorEmail, &r.Subject, &r.CreatedAt); err != nil {
 		return skerr.Wrap(err)
 	}
 	r.CommitTime = r.CommitTime.UTC()
@@ -302,6 +308,8 @@ type TraceRow struct {
 	// changed. There is a background process that computes this field for any traces with this
 	// unset (i.e. NULL).
 	MatchesAnyIgnoreRule NullableBool `sql:"matches_any_ignore_rule BOOL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 
 	// This index speeds up fetching traces by grouping, e.g. when enumerating the work needed for
 	// creating diffs.
@@ -326,7 +334,7 @@ func (r TraceRow) GetPrimaryKeyCols() []string {
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TraceRow) ScanFrom(scan func(...interface{}) error) error {
 	var matches pgtype.Bool
-	if err := scan(&r.TraceID, &r.Corpus, &r.GroupingID, &r.Keys, &matches); err != nil {
+	if err := scan(&r.TraceID, &r.Corpus, &r.GroupingID, &r.Keys, &matches, &r.CreatedAt); err != nil {
 		return skerr.Wrap(err)
 	}
 	r.MatchesAnyIgnoreRule = toNullableBool(matches)
@@ -347,6 +355,8 @@ type GroupingRow struct {
 	// Keys is a JSON representation of a map[string]string. The keys and values of that
 	// map are the grouping.
 	Keys paramtools.Params `sql:"keys JSONB NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -362,7 +372,7 @@ func (r GroupingRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *GroupingRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.GroupingID, &r.Keys)
+	return scan(&r.GroupingID, &r.Keys, &r.CreatedAt)
 }
 
 type OptionsRow struct {
@@ -372,6 +382,8 @@ type OptionsRow struct {
 	// Keys is a JSON representation of a map[string]string. The keys and values of that
 	// map are the options.
 	Keys paramtools.Params `sql:"keys JSONB NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -387,7 +399,7 @@ func (r OptionsRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *OptionsRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.OptionsID, &r.Keys)
+	return scan(&r.OptionsID, &r.Keys, &r.CreatedAt)
 }
 
 type SourceFileRow struct {
@@ -399,6 +411,8 @@ type SourceFileRow struct {
 	// LastIngested is the time at which this file was most recently read in and successfully
 	// processed.
 	LastIngested time.Time `sql:"last_ingested TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -414,7 +428,7 @@ func (r SourceFileRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *SourceFileRow) ScanFrom(scan func(...interface{}) error) error {
-	if err := scan(&r.SourceFileID, &r.SourceFile, &r.LastIngested); err != nil {
+	if err := scan(&r.SourceFileID, &r.SourceFile, &r.LastIngested, &r.CreatedAt); err != nil {
 		return skerr.Wrap(err)
 	}
 	r.LastIngested = r.LastIngested.UTC()
@@ -435,11 +449,13 @@ type DeprecatedIngestedFileRow struct {
 	// LastIngested is the time at which this file was most recently read in and successfully
 	// processed.
 	LastIngested time.Time `sql:"last_ingested TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *DeprecatedIngestedFileRow) ScanFrom(scan func(...interface{}) error) error {
-	if err := scan(&r.SourceFileID, &r.SourceFile, &r.LastIngested); err != nil {
+	if err := scan(&r.SourceFileID, &r.SourceFile, &r.LastIngested, &r.CreatedAt); err != nil {
 		return skerr.Wrap(err)
 	}
 	r.LastIngested = r.LastIngested.UTC()
@@ -459,8 +475,10 @@ type ExpectationRecordRow struct {
 	TriageTime time.Time `sql:"triage_time TIMESTAMP WITH TIME ZONE NOT NULL"`
 	// NumChanges is how many digests were affected. It corresponds to the number of
 	// ExpectationDelta rows have this record as their parent. It is a denormalized field.
-	NumChanges         int      `sql:"num_changes INT4 NOT NULL"`
-	branchTriagedIndex struct{} `sql:"INDEX branch_ts_idx (branch_name, triage_time)"`
+	NumChanges int `sql:"num_changes INT4 NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt          time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
+	branchTriagedIndex struct{}  `sql:"INDEX branch_ts_idx (branch_name, triage_time)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -476,7 +494,7 @@ func (r ExpectationRecordRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *ExpectationRecordRow) ScanFrom(scan func(...interface{}) error) error {
-	err := scan(&r.ExpectationRecordID, &r.BranchName, &r.UserName, &r.TriageTime, &r.NumChanges)
+	err := scan(&r.ExpectationRecordID, &r.BranchName, &r.UserName, &r.TriageTime, &r.NumChanges, &r.CreatedAt)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -504,6 +522,8 @@ type ExpectationDeltaRow struct {
 	LabelBefore ExpectationLabel `sql:"label_before CHAR NOT NULL"`
 	// LabelAfter is the label that was applied as a result of the parent expectation event.
 	LabelAfter ExpectationLabel `sql:"label_after CHAR NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 	// In any given expectation event, a single digest in a single grouping can only be affected
 	// once, so it makes sense to use a composite primary key here. Additionally, this gives the
 	// deltas good locality for a given record.
@@ -523,7 +543,7 @@ func (r ExpectationDeltaRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *ExpectationDeltaRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.ExpectationRecordID, &r.GroupingID, &r.Digest, &r.LabelBefore, &r.LabelAfter)
+	return scan(&r.ExpectationRecordID, &r.GroupingID, &r.Digest, &r.LabelBefore, &r.LabelAfter, &r.CreatedAt)
 }
 
 // ExpectationRow contains an entry for every recent digest+grouping pair. This includes untriaged
@@ -539,8 +559,10 @@ type ExpectationRow struct {
 	Label ExpectationLabel `sql:"label CHAR NOT NULL"`
 	// ExpectationRecordID corresponds to most recent ExpectationRecordRow that set the given label.
 	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
-	primaryKey          struct{}   `sql:"PRIMARY KEY (grouping_id, digest)"`
-	labelIndex          struct{}   `sql:"INDEX label_idx (label)"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt  time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
+	primaryKey struct{}  `sql:"PRIMARY KEY (grouping_id, digest)"`
+	labelIndex struct{}  `sql:"INDEX label_idx (label)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -556,7 +578,7 @@ func (r ExpectationRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *ExpectationRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.GroupingID, &r.Digest, &r.Label, &r.ExpectationRecordID)
+	return scan(&r.GroupingID, &r.Digest, &r.Label, &r.ExpectationRecordID, &r.CreatedAt)
 }
 
 // RowsOrderBy implements the sqltest.RowsOrder interface, sorting the rows first by digest, then
@@ -595,7 +617,9 @@ type DiffMetricRow struct {
 	DimensionsDiffer bool `sql:"dimensions_differ BOOL NOT NULL"`
 	// Timestamp represents when this metric was computed or verified (i.e. still in use). This
 	// allows for us to periodically clean up this large table.
-	Timestamp  time.Time `sql:"ts TIMESTAMP WITH TIME ZONE NOT NULL"`
+	Timestamp time.Time `sql:"ts TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt  time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 	primaryKey struct{}  `sql:"PRIMARY KEY (left_digest, right_digest)"`
 }
 
@@ -615,7 +639,7 @@ func (r DiffMetricRow) GetPrimaryKeyCols() []string {
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *DiffMetricRow) ScanFrom(scan func(...interface{}) error) error {
 	err := scan(&r.LeftDigest, &r.RightDigest, &r.NumPixelsDiff, &r.PercentPixelsDiff,
-		&r.MaxRGBADiffs, &r.MaxChannelDiff, &r.CombinedMetric, &r.DimensionsDiffer, &r.Timestamp)
+		&r.MaxRGBADiffs, &r.MaxChannelDiff, &r.CombinedMetric, &r.DimensionsDiffer, &r.Timestamp, &r.CreatedAt)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -650,6 +674,8 @@ type ValueAtHeadRow struct {
 
 	// MatchesAnyIgnoreRule is true if this trace is matched by any of the ignore rules.
 	MatchesAnyIgnoreRule NullableBool `sql:"matches_any_ignore_rule BOOL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 
 	// This index makes application of all ignore rules easier.
 	ignoredGroupingIndex struct{} `sql:"INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id)"`
@@ -677,7 +703,7 @@ func (r ValueAtHeadRow) GetPrimaryKeyCols() []string {
 func (r *ValueAtHeadRow) ScanFrom(scan func(...interface{}) error) error {
 	var matches pgtype.Bool
 	err := scan(&r.TraceID, &r.MostRecentCommitID, &r.Digest, &r.OptionsID,
-		&r.GroupingID, &r.Corpus, &r.Keys, &matches)
+		&r.GroupingID, &r.Corpus, &r.Keys, &matches, &r.CreatedAt)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -701,6 +727,8 @@ type PrimaryBranchParamRow struct {
 	Key string `sql:"key STRING"`
 	// Value is the value associated with the key.
 	Value string `sql:"value STRING"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 	// We generally want locality by tile, so that goes first in the primary key.
 	primaryKey struct{} `sql:"PRIMARY KEY (tile_id, key, value)"`
 }
@@ -718,7 +746,7 @@ func (r PrimaryBranchParamRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *PrimaryBranchParamRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.TileID, &r.Key, &r.Value)
+	return scan(&r.TileID, &r.Key, &r.Value, &r.CreatedAt)
 }
 
 // RowsOrderBy implements the sqltest.RowsOrder interface.
@@ -740,6 +768,8 @@ type TiledTraceDigestRow struct {
 	Digest DigestBytes `sql:"digest BYTES NOT NULL"`
 	// GroupingID is the grouping of the trace.
 	GroupingID GroupingID `sql:"grouping_id BYTES"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 	// We generally want locality by TraceID, so that goes first in the primary key.
 	primaryKey struct{} `sql:"PRIMARY KEY (trace_id, tile_id, digest)"`
 
@@ -762,7 +792,7 @@ func (r TiledTraceDigestRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TiledTraceDigestRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.TraceID, &r.TileID, &r.Digest, &r.GroupingID)
+	return scan(&r.TraceID, &r.TileID, &r.Digest, &r.GroupingID, &r.CreatedAt)
 }
 
 // RowsOrderBy implements the sqltest.RowsOrder interface.
@@ -784,6 +814,8 @@ type IgnoreRuleRow struct {
 	// Query is a map[string][]string that describe which traces should be ignored.
 	// Note that this can only apply to trace keys, not options.
 	Query paramtools.ReadOnlyParamSet `sql:"query JSONB"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -799,7 +831,7 @@ func (r IgnoreRuleRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *IgnoreRuleRow) ScanFrom(scan func(...interface{}) error) error {
-	if err := scan(&r.IgnoreRuleID, &r.CreatorEmail, &r.UpdatedEmail, &r.Expires, &r.Note, &r.Query); err != nil {
+	if err := scan(&r.IgnoreRuleID, &r.CreatorEmail, &r.UpdatedEmail, &r.Expires, &r.Note, &r.Query, &r.CreatedAt); err != nil {
 		return skerr.Wrap(err)
 	}
 	r.Expires = r.Expires.UTC()
@@ -827,6 +859,8 @@ type ChangelistRow struct {
 	Subject string `sql:"subject STRING NOT NULL"`
 	// LastIngestedData indicates when Gold last saw data for this CL.
 	LastIngestedData time.Time `sql:"last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 
 	// This index helps query for recently updated, open CLs. Keep an eye on this index, as it could
 	// lead to hotspotting: https://www.cockroachlabs.com/docs/v20.2/indexes.html#indexing-columns
@@ -848,7 +882,7 @@ func (r ChangelistRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *ChangelistRow) ScanFrom(scan func(...interface{}) error) error {
-	if err := scan(&r.ChangelistID, &r.System, &r.Status, &r.OwnerEmail, &r.Subject, &r.LastIngestedData); err != nil {
+	if err := scan(&r.ChangelistID, &r.System, &r.Status, &r.OwnerEmail, &r.Subject, &r.LastIngestedData, &r.CreatedAt); err != nil {
 		return skerr.Wrap(err)
 	}
 	r.LastIngestedData = r.LastIngestedData.UTC()
@@ -877,6 +911,8 @@ type PatchsetRow struct {
 	// "most recent" Patchset and is provided by the CodeReviewSystem. It can be null for data that
 	// was ingested before we decided to add this (skbug.com/12093)
 	Created time.Time `sql:"created_ts TIMESTAMP WITH TIME ZONE"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 
 	clOrderIndex struct{} `sql:"INDEX cl_order_idx (changelist_id, ps_order)"`
 }
@@ -902,7 +938,7 @@ func (r PatchsetRow) GetPrimaryKeyCols() []string {
 func (r *PatchsetRow) ScanFrom(scan func(...interface{}) error) error {
 	var created pgtype.Timestamptz
 	err := scan(&r.PatchsetID, &r.System, &r.ChangelistID, &r.Order, &r.GitHash,
-		&r.CommentedOnCL, &created)
+		&r.CommentedOnCL, &created, &r.CreatedAt)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -926,6 +962,8 @@ type TryjobRow struct {
 	DisplayName string `sql:"display_name STRING NOT NULL"`
 	// LastIngestedData indicates when Gold last saw data from this Tryjob.
 	LastIngestedData time.Time `sql:"last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 
 	clOrderIndex struct{} `sql:"INDEX cl_idx (changelist_id)"`
 }
@@ -943,7 +981,7 @@ func (r TryjobRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TryjobRow) ScanFrom(scan func(...interface{}) error) error {
-	err := scan(&r.TryjobID, &r.System, &r.ChangelistID, &r.PatchsetID, &r.DisplayName, &r.LastIngestedData)
+	err := scan(&r.TryjobID, &r.System, &r.ChangelistID, &r.PatchsetID, &r.DisplayName, &r.LastIngestedData, &r.CreatedAt)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -978,6 +1016,8 @@ type SecondaryBranchValueRow struct {
 	// TryjobID corresponds to the latest tryjob (if any) that produced this data. When/if we
 	// support branches, this may be null, e.g. data coming from chrome_m86.
 	TryjobID string `sql:"tryjob_id STRING"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 	// We include source_file_id as part of the primary key in order to support multiple datapoints
 	// per patchset for the same trace. See https://skbug.com/12149.
 	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, version_name, secondary_branch_trace_id, source_file_id)"`
@@ -999,7 +1039,7 @@ func (r SecondaryBranchValueRow) GetPrimaryKeyCols() []string {
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *SecondaryBranchValueRow) ScanFrom(scan func(...interface{}) error) error {
 	return scan(&r.BranchName, &r.VersionName, &r.TraceID, &r.Digest, &r.GroupingID,
-		&r.OptionsID, &r.SourceFileID, &r.TryjobID)
+		&r.OptionsID, &r.SourceFileID, &r.TryjobID, &r.CreatedAt)
 }
 
 // SecondaryBranchParamRow corresponds to a given key/value pair that was seen in data from a
@@ -1014,6 +1054,8 @@ type SecondaryBranchParamRow struct {
 	Key string `sql:"key STRING"`
 	// Value is the value associated with the key.
 	Value string `sql:"value STRING"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 	// We generally want locality by branch_name, so that goes first in the primary key.
 	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, version_name, key, value)"`
 }
@@ -1031,7 +1073,7 @@ func (r SecondaryBranchParamRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *SecondaryBranchParamRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.BranchName, &r.VersionName, &r.Key, &r.Value)
+	return scan(&r.BranchName, &r.VersionName, &r.Key, &r.Value, &r.CreatedAt)
 }
 
 // SecondaryBranchExpectationRow responds to a new expectation rule applying to a single Changelist.
@@ -1051,7 +1093,9 @@ type SecondaryBranchExpectationRow struct {
 	// Unlike the primary branch, this can never be nil/null because we only keep track of
 	// secondary branch expectations for triaged events.
 	ExpectationRecordID uuid.UUID `sql:"expectation_record_id UUID NOT NULL"`
-	primaryKey          struct{}  `sql:"PRIMARY KEY (branch_name, grouping_id, digest)"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt  time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
+	primaryKey struct{}  `sql:"PRIMARY KEY (branch_name, grouping_id, digest)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -1067,7 +1111,7 @@ func (r SecondaryBranchExpectationRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *SecondaryBranchExpectationRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.BranchName, &r.GroupingID, &r.Digest, &r.Label, &r.ExpectationRecordID)
+	return scan(&r.BranchName, &r.GroupingID, &r.Digest, &r.Label, &r.ExpectationRecordID, &r.CreatedAt)
 }
 
 type ProblemImageRow struct {
@@ -1080,6 +1124,8 @@ type ProblemImageRow struct {
 	LatestError string `sql:"latest_error STRING NOT NULL"`
 	// ErrorTS is the last time we had an error on this digest.
 	ErrorTS time.Time `sql:"error_ts TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -1095,7 +1141,7 @@ func (r ProblemImageRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *ProblemImageRow) ScanFrom(scan func(...interface{}) error) error {
-	if err := scan(&r.Digest, &r.NumErrors, &r.LatestError, &r.ErrorTS); err != nil {
+	if err := scan(&r.Digest, &r.NumErrors, &r.LatestError, &r.ErrorTS, &r.CreatedAt); err != nil {
 		return skerr.Wrap(err)
 	}
 	r.ErrorTS = r.ErrorTS.UTC()
@@ -1115,11 +1161,13 @@ type DeprecatedExpectationUndoRow struct {
 	ExpectationID string    `sql:"expectation_id STRING NOT NULL"`
 	UserID        string    `sql:"user_id STRING NOT NULL"`
 	TS            time.Time `sql:"ts TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *DeprecatedExpectationUndoRow) ScanFrom(scan func(...interface{}) error) error {
-	if err := scan(&r.ID, &r.ExpectationID, &r.UserID, &r.TS); err != nil {
+	if err := scan(&r.ID, &r.ExpectationID, &r.UserID, &r.TS, &r.CreatedAt); err != nil {
 		return skerr.Wrap(err)
 	}
 	r.TS = r.TS.UTC()
@@ -1133,6 +1181,8 @@ type TrackingCommitRow struct {
 	Repo string `sql:"repo STRING PRIMARY KEY"`
 	// LastGitHash is the git hash of the commit that we know landed most recently.
 	LastGitHash string `sql:"last_git_hash STRING NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -1148,7 +1198,7 @@ func (r TrackingCommitRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TrackingCommitRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.Repo, &r.LastGitHash)
+	return scan(&r.Repo, &r.LastGitHash, &r.CreatedAt)
 }
 
 type MetadataCommitRow struct {
@@ -1157,6 +1207,8 @@ type MetadataCommitRow struct {
 	// CommitMetadata is an arbitrary string; For current implementations, it is a link to a GCS
 	// file that has more information about the state of the repo when the data was generated.
 	CommitMetadata string `sql:"commit_metadata STRING NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -1172,7 +1224,7 @@ func (r MetadataCommitRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *MetadataCommitRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.CommitID, &r.CommitMetadata)
+	return scan(&r.CommitID, &r.CommitMetadata, &r.CreatedAt)
 }
 
 // PrimaryBranchDiffCalculationRow represents a grouping for which we need to compute diffs using
@@ -1185,6 +1237,8 @@ type PrimaryBranchDiffCalculationRow struct {
 	// CalculationLeaseEnds is set to a future time when a worker starts computing diffs on this
 	// grouping. It allows workers to not do the same computation at the same time.
 	CalculationLeaseEnds time.Time `sql:"calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 
 	calculatedIndex struct{} `sql:"INDEX calculated_idx (last_calculated_ts)"`
 }
@@ -1202,7 +1256,7 @@ func (r PrimaryBranchDiffCalculationRow) GetPrimaryKeyCols() []string {
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *PrimaryBranchDiffCalculationRow) ScanFrom(scan func(...interface{}) error) error {
-	err := scan(&r.GroupingID, &r.LastCalculated, &r.CalculationLeaseEnds)
+	err := scan(&r.GroupingID, &r.LastCalculated, &r.CalculationLeaseEnds, &r.CreatedAt)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -1230,6 +1284,8 @@ type SecondaryBranchDiffCalculationRow struct {
 	// CalculationLeaseEnds is set to a future time when a worker starts computing diffs on this
 	// grouping. It allows workers to not do the same computation at the same time.
 	CalculationLeaseEnds time.Time `sql:"calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// CreatedAt indicates the time at which this row was created.
+	CreatedAt time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 
 	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, grouping_id)"`
 
@@ -1253,7 +1309,7 @@ func (r SecondaryBranchDiffCalculationRow) GetPrimaryKeyCols() []string {
 func (r *SecondaryBranchDiffCalculationRow) ScanFrom(scan func(...interface{}) error) error {
 	var digests []string
 	err := scan(&r.BranchName, &r.GroupingID, &r.LastUpdated, &digests,
-		&r.LastCalculated, &r.CalculationLeaseEnds)
+		&r.LastCalculated, &r.CalculationLeaseEnds, &r.CreatedAt)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
