@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/sklogimpl"
+	log "go.skia.org/infra/go/sklog/structuredlogging"
 )
 
 var (
@@ -28,6 +32,9 @@ func main() {
 		common.PrometheusOpt(promPort),
 	)
 	defer common.Defer()
+	if !*local {
+		sklogimpl.SetLogger(log.New(os.Stderr))
+	}
 
 	r := chi.NewRouter()
 	r.HandleFunc("/", mainHandler)
@@ -40,9 +47,19 @@ func main() {
 	}
 	http.Handle("/", h)
 	sklog.Infof("Ready to serve on %s", serverURL)
+	ctx := log.WithContext(context.Background(), log.Context{
+		Labels: map[string]string{
+			"key": "value",
+		},
+	})
 	go func() {
 		for range time.Tick(10 * time.Second) {
 			sklog.Infof("Still running...")
+			sklog.Infof(`some
+multiline
+
+			string`)
+			log.Infof(ctx, "blah %d", 284)
 		}
 	}()
 	sklog.Fatal(http.ListenAndServe(*port, nil))
