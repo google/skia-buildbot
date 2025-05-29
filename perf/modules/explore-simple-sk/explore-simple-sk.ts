@@ -2758,6 +2758,12 @@ export class ExploreSimpleSk extends ElementSk {
         this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit', false);
       });
     }
+
+    this.dispatchEvent(
+      new CustomEvent('data-loaded', {
+        bubbles: true,
+      })
+    );
   }
 
   // Adds x and y coordinates to the user issue points needed to be displayed

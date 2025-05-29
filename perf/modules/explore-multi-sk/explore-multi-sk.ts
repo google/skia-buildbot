@@ -116,6 +116,10 @@ export class ExploreMultiSk extends ElementSk {
 
   private splitByList: PickerFieldSk | null = null;
 
+  private paramKeys: string[] = [];
+
+  private refreshSplitList: boolean = true;
+
   constructor() {
     super(ExploreMultiSk.template);
   }
@@ -175,6 +179,14 @@ export class ExploreMultiSk extends ElementSk {
             exp.keyDown(e);
           });
         });
+
+        // Update the split by dropdown list.
+        this.updateSplitByKeys();
+        // If a key is specified (eg: directly via url), perform the split
+        if (this.state.splitByKey !== '') {
+          this.splitGraphs();
+          this.refreshSplitList = true;
+        }
       }
     );
 
@@ -295,6 +307,25 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   /**
+   * updateSplitByKeys updates the split by dropdown. Also adds the count of splits next
+   * to the respective key.
+   */
+  private updateSplitByKeys() {
+    if (this.refreshSplitList) {
+      const splitCounts = this.getSplitCountByParam();
+      if (splitCounts.size > 0) {
+        const splitList: string[] = [];
+        this.paramKeys.forEach((paramKey) => {
+          const optionText = paramKey + ' (' + splitCounts.get(paramKey) + ')';
+          splitList.push(optionText);
+        });
+        this.splitByList!.options = splitList;
+        this.refreshSplitList = false;
+      }
+    }
+  }
+
+  /**
    * This function initializes the split by list by populating
    * it with the available param keys in the dropdown.
    */
@@ -305,19 +336,46 @@ export class ExploreMultiSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((json) => {
-        const paramKeys: string[] = Object.keys(json.dataframe.paramset);
+        this.paramKeys = Object.keys(json.dataframe.paramset);
         this.splitByList = this.querySelector('#splitby-keys');
         this.splitByList!.label = 'Split By';
-        this.splitByList!.options = paramKeys;
+        this.splitByList!.options = this.paramKeys;
       });
 
     // Whenever the user selects a value from the split by list,
     // update the state to reflect it and then split the graphs.
     this.splitByList!.addEventListener('value-changed', (e) => {
       const selectedSplitKey = (e as CustomEvent).detail.value;
-      this.state.splitByKey = selectedSplitKey;
-      this.splitGraphs();
+      // The selectedSplitkey string will contain the split count (eg: "bot (5)"),
+      // so we need to extract that out.
+      const splitByParamKey = selectedSplitKey.split('(')[0].trim();
+      // Only split if the new selection is different.
+      if (this.state.splitByKey !== splitByParamKey) {
+        this.state.splitByKey = splitByParamKey;
+        this.splitGraphs();
+      }
     });
+  }
+
+  /**
+   * getSplitCountByParam returns a map where the key is the param key
+   * and the value is the number of split graphs based on the key.
+   * @returns
+   */
+  private getSplitCountByParam(): Map<string, number> {
+    const splitCountByParam = new Map<string, number>();
+    const traceset: string[] = [];
+    this.getTracesets().forEach((ts) => {
+      traceset.push(...ts);
+    });
+    if (traceset.length > 0) {
+      this.paramKeys.forEach((paramKey) => {
+        const tracesGroupedForKey = this.groupTracesByParamKey(traceset, paramKey);
+        splitCountByParam.set(paramKey, tracesGroupedForKey.size);
+      });
+    }
+
+    return splitCountByParam;
   }
 
   /**
@@ -333,16 +391,26 @@ export class ExploreMultiSk extends ElementSk {
       traceset.push(...ts);
     });
 
+    return this.groupTracesByParamKey(traceset, splitKey);
+  }
+
+  /**
+   * groupTracesByParamKey returns a map where the key is the paramValue (for the given param key)
+   * and the value is the group of traces matching that param value.
+   * @param traceset Set of traces to split.
+   * @param key Param key to base the split on.
+   */
+  private groupTracesByParamKey(traceset: string[], key: string): Map<string, string[]> {
     const groupedTraces = new Map<string, string[]>();
     if (traceset.length > 0) {
-      traceset.forEach((key) => {
-        const traceParams = new URLSearchParams(fromKey(key));
-        const splitValue = traceParams.get(splitKey);
+      traceset.forEach((traceId) => {
+        const traceParams = new URLSearchParams(fromKey(traceId));
+        const splitValue = traceParams.get(key);
         let existingGroup = groupedTraces.get(splitValue!);
         if (existingGroup !== undefined) {
-          existingGroup.push(key);
+          existingGroup.push(traceId);
         } else {
-          existingGroup = [key];
+          existingGroup = [traceId];
         }
         groupedTraces.set(splitValue!, existingGroup);
       });
@@ -451,7 +519,9 @@ export class ExploreMultiSk extends ElementSk {
           this.addGraphsToCurrentPage();
           const query = this.testPicker!.createQueryFromFieldData();
           explore.addFromQueryOrFormula(true, 'query', query, '');
+          this.refreshSplitList = true;
         }
+        this.updateSplitByKeys();
       });
 
       // Event listener for when the "Query Highlighted" button is clicked.
@@ -590,6 +660,10 @@ export class ExploreMultiSk extends ElementSk {
       graphConfig.keys = elemState.keys || '';
 
       this.updateShortcutMultiview();
+    });
+    explore.addEventListener('data-loaded', () => {
+      this.refreshSplitList = true;
+      this.updateSplitByKeys();
     });
 
     return explore;
