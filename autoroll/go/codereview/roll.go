@@ -225,7 +225,7 @@ func (r *gerritRoll) IsClosed() bool {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) IsFinished() bool {
-	return r.issue.CqFinished
+	return r.IsClosed() || r.issue.CqFinished
 }
 
 // See documentation for state_machine.RollCLImpl interface.

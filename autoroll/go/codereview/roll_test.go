@@ -292,6 +292,8 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
 	require.NoError(t, gr.SwitchToDryRun(ctx))
+	require.True(t, gr.IsClosed())
+	require.True(t, gr.IsFinished())
 	g.AssertEmpty()
 
 	// 2. SwitchToNormal
@@ -311,6 +313,8 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
 	require.NoError(t, gr.SwitchToNormal(ctx))
+	require.True(t, gr.IsClosed())
+	require.True(t, gr.IsFinished())
 	g.AssertEmpty()
 
 	// 3. Close.
@@ -335,6 +339,8 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
 	require.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "close it!"))
+	require.True(t, gr.IsClosed())
+	require.True(t, gr.IsFinished())
 	g.AssertEmpty()
 
 	// Verify that we set the correct status when abandoning a CL.
