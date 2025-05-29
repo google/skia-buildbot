@@ -960,14 +960,12 @@ func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoun
 		return err
 	}
 	resp, err := g.doRequest(req)
-	if err != nil {
+	if resp != nil && resp.StatusCode == http.StatusNotFound && notFoundError != nil {
+		return notFoundError
+	} else if err != nil {
 		return skerr.Wrapf(err, "Failed to GET %s", getURL)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		if notFoundError != nil {
-			return notFoundError
-		}
-		return skerr.Wrapf(err, "Resource not found: %s", getURL)
+	} else if resp != nil && resp.StatusCode == http.StatusNotFound {
+		return skerr.Fmt("Resource not found: %s", getURL)
 	}
 	defer util.Close(resp.Body)
 	bodyBytes, err := io.ReadAll(resp.Body)
@@ -1254,6 +1252,14 @@ func (g *Gerrit) HasOpenDependency(ctx context.Context, changeNum int64, revisio
 	return false, nil
 }
 
+func MakeGerritSearchURL(limit, skip int, terms ...*SearchTerm) string {
+	q := url.Values{}
+	q.Add("q", queryString(terms))
+	q.Add("n", strconv.Itoa(limit))
+	q.Add("S", strconv.Itoa(skip))
+	return "/changes/?" + q.Encode()
+}
+
 // Search returns a slice of Issues which fit the given criteria.
 func (g *Gerrit) Search(ctx context.Context, limit int, sortResults bool, terms ...*SearchTerm) ([]*ChangeInfo, error) {
 	var issues changeListSortable
@@ -1262,11 +1268,7 @@ func (g *Gerrit) Search(ctx context.Context, limit int, sortResults bool, terms 
 		queryLimit := util.MinInt(limit-len(issues), maxSearchResultLimit)
 		skip := len(issues)
 
-		q := url.Values{}
-		q.Add("q", queryString(terms))
-		q.Add("n", strconv.Itoa(queryLimit))
-		q.Add("S", strconv.Itoa(skip))
-		searchURL := "/changes/?" + q.Encode()
+		searchURL := MakeGerritSearchURL(queryLimit, skip, terms...)
 		err := g.get(ctx, searchURL, &data, nil)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Gerrit search failed: %s", searchURL)

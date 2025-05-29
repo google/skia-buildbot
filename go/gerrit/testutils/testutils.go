@@ -147,3 +147,17 @@ git interpret-trailers --trailer "Change-Id: %s" >> $1
 `, FakeChangeId))
 	g.Mock.MockOnce(url, mockhttpclient.MockGetDialogue(respBody))
 }
+
+// MockSearch mocks a request to search.
+func (g *MockGerrit) MockSearch(results []*gerrit.ChangeInfo, limit int, terms ...*gerrit.SearchTerm) {
+	url := fmt.Sprintf("%s/a%s", FakeGerritURL, gerrit.MakeGerritSearchURL(limit, 0, terms...))
+	serialized, err := json.Marshal(results)
+	require.NoError(g.t, err)
+	serialized = append([]byte(")]}'\n"), serialized...)
+	g.Mock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
+}
+
+/*
+https://fake-skia-review.googlesource.com/a/changes/?S=0&n=0&q=commit%3Afake-commit
+https://fake-skia-review.googlesource.com/a//changes/?S=0&n=0&q=commit%3A
+*/

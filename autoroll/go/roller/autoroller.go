@@ -1178,12 +1178,32 @@ func isRevisionNotSubmitted(ctx context.Context, req *manual.ManualRollRequest, 
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to create Gerrit client for revision %q", to.Id)
 	}
-	ci, err := g.GetChange(ctx, changeID)
+	cis, err := g.Search(ctx, 0, false, gerrit.SearchCommit(to.Id))
 	if err != nil {
-		return "", skerr.Wrapf(err, "failed to retrieve Gerrit CL for change ID %q", changeID)
+		return "", skerr.Wrapf(err, "failed to search Gerrit changes for revision %q", to.Id)
 	}
-	if !ci.IsMerged() {
-		return fmt.Sprintf("CL %s is not merged", g.Url(ci.Issue)), nil
+	var foundCL *gerrit.ChangeInfo
+	for _, ci := range cis {
+		if ci.ChangeId == changeID {
+			foundCL = ci
+			break
+		}
+	}
+	if foundCL == nil {
+		// Fall back to retrieving the change by ID.
+		ci, err := g.GetChange(ctx, changeID)
+		if err != nil {
+			if err == gerrit.ErrNotFound {
+				// Returning an error here will result in an infinite retry loop
+				// unless this is some transient problem on the Gerrit server.
+				return fmt.Sprintf("failed to retrieve Gerrit CL for change ID %q", changeID), nil
+			}
+			return "", skerr.Wrapf(err, "failed to retrieve Gerrit CL for change ID %q", changeID)
+		}
+		foundCL = ci
+	}
+	if !foundCL.IsMerged() {
+		return fmt.Sprintf("CL %s is not merged", g.Url(foundCL.Issue)), nil
 	}
 	return "", nil
 }

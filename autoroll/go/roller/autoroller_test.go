@@ -275,33 +275,34 @@ func TestRepoManagerInitFailed(t *testing.T) {
 }
 
 func TestIsRevisionNotSubmitted(t *testing.T) {
-	test := func(name, expect string, req *manual.ManualRollRequest, rev *revision.Revision, ci *gerrit.ChangeInfo) {
+	test := func(name, expect string, req *manual.ManualRollRequest, rev *revision.Revision, results ...*gerrit.ChangeInfo) {
 		t.Run(name, func(t *testing.T) {
 			mockGerrit := gerrit_testutils.NewGerrit(t)
-			if ci != nil {
-				mockGerrit.MockGetIssueProperties(ci)
+			if len(results) > 0 {
+				mockGerrit.MockSearch(results, 0, gerrit.SearchCommit(rev.Id))
 			}
 			actual, err := isRevisionNotSubmitted(context.Background(), req, rev, mockGerrit.Mock.Client())
 			require.NoError(t, err)
 			require.Equal(t, expect, actual)
+			mockGerrit.AssertEmpty()
 		})
 	}
 
 	test("NoResolveRevision", "NoResolveRevision is set", &manual.ManualRollRequest{
 		NoResolveRevision: true,
-	}, nil, nil)
+	}, nil)
 
 	test("Canary", "Canary is set", &manual.ManualRollRequest{
 		Canary: true,
-	}, nil, nil)
+	}, nil)
 
-	test("Not a Git revision", "", &manual.ManualRollRequest{}, &revision.Revision{}, nil)
+	test("Not a Git revision", "", &manual.ManualRollRequest{}, &revision.Revision{})
 
 	test("Not a Gerrit change", "Revision is not a Gerrit change; cannot verify that it has been reviewed and submitted", &manual.ManualRollRequest{}, &revision.Revision{
 		Id:      "fake-commit",
 		IsGit:   true,
 		Details: "some commit message with no footers",
-	}, nil)
+	})
 
 	test("Not merged", fmt.Sprintf("CL %s/c/12345 is not merged", gerrit_testutils.FakeGerritURL), &manual.ManualRollRequest{}, &revision.Revision{
 		Id:    "fake-commit",
@@ -328,6 +329,95 @@ Change-Id: 56789
 		Issue:    56789,
 		ChangeId: "56789",
 		Status:   gerrit.ChangeStatusMerged,
+	})
+
+	test("Ambiguous", "", &manual.ManualRollRequest{}, &revision.Revision{
+		Id:    "fake-commit",
+		IsGit: true,
+		Details: `some commit message
+
+Change-Id: 56789
+`,
+		URL: strings.Replace(gerrit_testutils.FakeGerritURL, "-review", "", 1),
+	}, &gerrit.ChangeInfo{
+		Issue:    23238732,
+		ChangeId: "wrong one",
+		Status:   gerrit.ChangeStatusMerged,
+	}, &gerrit.ChangeInfo{
+		Issue:    56789,
+		ChangeId: "56789",
+		Status:   gerrit.ChangeStatusMerged,
+	})
+
+	t.Run("Not in search but found", func(t *testing.T) {
+		mockGerrit := gerrit_testutils.NewGerrit(t)
+		req := &manual.ManualRollRequest{}
+		rev := &revision.Revision{
+			Id:    "fake-commit",
+			IsGit: true,
+			Details: `some commit message
+
+Change-Id: 56789
+`,
+			URL: strings.Replace(gerrit_testutils.FakeGerritURL, "-review", "", 1),
+		}
+		results := []*gerrit.ChangeInfo{
+			{
+				Issue:    23238732,
+				ChangeId: "wrong one",
+				Status:   gerrit.ChangeStatusMerged,
+			},
+			{
+				Issue:    3782378,
+				ChangeId: "also wrong",
+				Status:   gerrit.ChangeStatusMerged,
+			},
+		}
+		mockGerrit.MockSearch(results, 0, gerrit.SearchCommit(rev.Id))
+		mockGerrit.MockGetIssueProperties(&gerrit.ChangeInfo{
+			Issue:    56789,
+			ChangeId: "56789",
+			Status:   gerrit.ChangeStatusMerged,
+		})
+
+		actual, err := isRevisionNotSubmitted(context.Background(), req, rev, mockGerrit.Mock.Client())
+		require.NoError(t, err)
+		require.Equal(t, "", actual)
+		mockGerrit.AssertEmpty()
+	})
+
+	t.Run("Not in search and not found", func(t *testing.T) {
+		mockGerrit := gerrit_testutils.NewGerrit(t)
+		req := &manual.ManualRollRequest{}
+		rev := &revision.Revision{
+			Id:    "fake-commit",
+			IsGit: true,
+			Details: `some commit message
+
+Change-Id: 56789
+`,
+			URL: strings.Replace(gerrit_testutils.FakeGerritURL, "-review", "", 1),
+		}
+		results := []*gerrit.ChangeInfo{
+			{
+				Issue:    23238732,
+				ChangeId: "wrong one",
+				Status:   gerrit.ChangeStatusMerged,
+			},
+			{
+				Issue:    3782378,
+				ChangeId: "also wrong",
+				Status:   gerrit.ChangeStatusMerged,
+			},
+		}
+		mockGerrit.MockSearch(results, 0, gerrit.SearchCommit(rev.Id))
+		url := gerrit_testutils.FakeGerritURL + "/a" + fmt.Sprintf(gerrit.URLTmplChange, "56789")
+		mockGerrit.Mock.MockOnce(url, mockhttpclient.MockGetError("404 change not found", 404))
+
+		actual, err := isRevisionNotSubmitted(context.Background(), req, rev, mockGerrit.Mock.Client())
+		require.NoError(t, err)
+		require.Equal(t, "failed to retrieve Gerrit CL for change ID \"56789\"", actual)
+		mockGerrit.AssertEmpty()
 	})
 }
 
