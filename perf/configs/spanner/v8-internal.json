@@ -22,7 +22,8 @@
     "min_db_connections": 5
   },
   "experiments": {
-    "prefetch_metadata": true
+    "prefetch_metadata": true,
+    "in_memory_traceparams": true
   },
   "ingestion_config": {
     "source_config": {
