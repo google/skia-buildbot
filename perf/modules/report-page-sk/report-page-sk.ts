@@ -124,6 +124,8 @@ export class ReportPageSk extends ElementSk {
 
   private commitUrlprefix = window.perf.git_repo_url + '/+show/';
 
+  private commitBodyPrefix = 'Body ';
+
   constructor() {
     super(ReportPageSk.template);
     this.traceFormatter = new ChromeTraceFormatter();
@@ -376,19 +378,9 @@ export class ReportPageSk extends ElementSk {
 
   private findInternalCommitUrl(log: string) {
     // If a match is found, match[1] contains the captured group
-    // (the text after "Body ")
-    if (log.includes('Body')) {
-      for (const line of log.split('\n')) {
-        // Extract the internal log url
-        // e,g: 'https://skia.googlesource.com/skia.git/+log/3ad6f8f84edd..dead00a73fb1'
-        if (line.startsWith('https')) {
-          console.info('internal url in the body log: ' + line);
-          // If a line starts with "https", return this line
-          return line;
-        }
-      }
-    }
-    return '';
+    // split the log to each line, find the url right after "Body ")
+    const bodyLine = log.split('\n').find((line) => line.startsWith(this.commitBodyPrefix));
+    return bodyLine ? bodyLine.substring(this.commitBodyPrefix.length) : '';
   }
 
   // When the initial commit message does not follow "Roll"
