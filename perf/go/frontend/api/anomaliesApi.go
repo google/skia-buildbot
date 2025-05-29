@@ -410,22 +410,41 @@ func (api anomaliesApi) getTimerangeMap(ctx context.Context, anomalies []chromep
 	timerangeMap := make(map[int]Timerange)
 	for i := range anomalies {
 		anomaly := &anomalies[i]
-		startCommit, err := api.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(anomaly.StartRevision))
-		if err != nil {
-			sklog.Debugf("[SkiaTriage] CommitFromCommitNumber returns err: %v", err)
-			return nil, err
-		}
-		startTime := int64(startCommit.Timestamp)
+		var startTime int64
+		var endTime int64
 
-		endCommit, err := api.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(anomaly.EndRevision))
-		if err != nil {
-			sklog.Debugf("[SkiaTriage] CommitFromCommitNumber returns err: %v", err)
-			return nil, err
+		if strings.Contains(config.Config.InstanceName, "fuchsia") {
+			timestampStr := anomaly.Timestamp
+			const layout = "2006-01-02T15:04:05.999999" // Layout for "ISO Format"
+
+			timestamp, err := time.Parse(layout, timestampStr)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+
+			// Since we don't have a start and end revision to determine range, we use
+			// one day before and one day after to capture this range, although less accurately.
+			startTime = int64(timestamp.AddDate(0, 0, -1).Unix())
+			endTime = int64(timestamp.AddDate(0, 0, 1).Unix())
+		} else {
+			startCommit, err := api.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(anomaly.StartRevision))
+			if err != nil {
+				sklog.Debugf("[SkiaTriage] CommitFromCommitNumber returns err: %v", err)
+				return nil, err
+			}
+			startTime = int64(startCommit.Timestamp)
+
+			endCommit, err := api.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(anomaly.EndRevision))
+			if err != nil {
+				sklog.Debugf("[SkiaTriage] CommitFromCommitNumber returns err: %v", err)
+				return nil, err
+			}
+
+			// We will shift the end time by a day so the graph doesn't render the anomalies right at the end
+			endTime = int64(time.Unix(endCommit.Timestamp, 0).AddDate(0, 0, 1).Unix())
 		}
 
-		// We will shift the end time by a day so the graph doesn't render the anomalies right at the end
-		endTime := time.Unix(endCommit.Timestamp, 0).AddDate(0, 0, 1)
-		timerangeMap[anomaly.Id] = Timerange{Begin: startTime, End: int64(endTime.Unix())}
+		timerangeMap[anomaly.Id] = Timerange{Begin: startTime, End: endTime}
 	}
 	return timerangeMap, nil
 }

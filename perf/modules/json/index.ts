@@ -186,6 +186,7 @@ export interface Anomaly {
 	bug_labels: string[] | null;
 	bug_cc_emails: string[] | null;
 	bisect_ids: string[] | null;
+	timestamp?: string;
 }
 
 export interface FrameResponse {

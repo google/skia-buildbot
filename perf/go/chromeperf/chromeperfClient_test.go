@@ -365,6 +365,7 @@ type anomaly struct {
 	BugLabels           []string `json:"bug_labels"`
 	BugCcEmails         []string `json:"bug_cc_emails"`
 	BisectIDs           []string `json:"bisect_ids"`
+	Timestamp           string   `json:"timestamp,omitempty"`
 }
 
 // For testing purpose only.
