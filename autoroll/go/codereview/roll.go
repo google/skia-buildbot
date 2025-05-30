@@ -268,11 +268,21 @@ func (r *gerritRoll) RollingFrom() *revision.Revision {
 	return r.rollingFrom
 }
 
+func errorIfHumanIntervened(issue *autoroll.AutoRollIssue) error {
+	if issue.HumanIntervened {
+		return skerr.Fmt("refusing to make changes to this CL because a human intervened")
+	}
+	return nil
+}
+
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) SwitchToDryRun(ctx context.Context) error {
+	if err := errorIfHumanIntervened(r.issue); err != nil {
+		return skerr.Wrap(err)
+	}
 	return r.withModify(ctx, "switch the CL to dry run", func() error {
 		if err := r.g.SendToDryRun(ctx, r.ci, "Mode was changed to dry run"); err != nil {
-			return err
+			return skerr.Wrap(err)
 		}
 		r.issue.IsDryRun = true
 		return nil
@@ -281,6 +291,9 @@ func (r *gerritRoll) SwitchToDryRun(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
+	if err := errorIfHumanIntervened(r.issue); err != nil {
+		return skerr.Wrap(err)
+	}
 	return r.withModify(ctx, "switch the CL out of dry run", func() error {
 		if err := r.g.SendToCQ(ctx, r.ci, "Mode was changed to normal"); err != nil {
 			return err
@@ -332,6 +345,9 @@ func (r *gerritRoll) maybeRebaseCL(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RetryCQ(ctx context.Context) error {
+	if err := errorIfHumanIntervened(r.issue); err != nil {
+		return skerr.Wrap(err)
+	}
 	return r.withModify(ctx, "retry the CQ", func() error {
 		if err := r.maybeRebaseCL(ctx); err != nil {
 			return skerr.Wrap(err)
@@ -348,6 +364,9 @@ func (r *gerritRoll) RetryCQ(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
+	if err := errorIfHumanIntervened(r.issue); err != nil {
+		return skerr.Wrap(err)
+	}
 	return r.withModify(ctx, "retry the CQ (dry run)", func() error {
 		if err := r.maybeRebaseCL(ctx); err != nil {
 			return skerr.Wrap(err)

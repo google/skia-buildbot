@@ -540,6 +540,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_NORMAL_FAILURE, S_NORMAL_FAILURE_THROTTLED, F_NOTIFY_FAILURE_THROTTLE)
 	b.T(S_NORMAL_FAILURE, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_FAILURE_THROTTLED, F_UPDATE_ROLL)
+	b.T(S_NORMAL_FAILURE_THROTTLED, S_HUMAN_INTERVENED, F_HUMAN_INTERVENED)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_SUCCESS, F_NOOP)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_FAILURE, F_NOOP)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_ACTIVE, F_RETRY_FAILED_NORMAL)
@@ -582,9 +583,11 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_OUTDATED)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_FAILED)
+	b.T(S_DRY_RUN_FAILURE, S_HUMAN_INTERVENED, F_HUMAN_INTERVENED)
 	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_FAILURE_THROTTLED, F_NOTIFY_FAILURE_THROTTLE)
 	b.T(S_DRY_RUN_FAILURE, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_FAILURE_THROTTLED, F_UPDATE_ROLL)
+	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_HUMAN_INTERVENED, F_HUMAN_INTERVENED)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_ACTIVE, F_RETRY_FAILED_DRY_RUN)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_FAILURE, F_CLOSE_DRY_RUN_FAILED)
@@ -766,6 +769,9 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
 		}
+		if currentRoll.Result() == autoroll.ROLL_RESULT_HUMAN_INTERVENED {
+			return S_HUMAN_INTERVENED, nil
+		}
 		// The roll may have been manually submitted or abandoned.
 		if currentRoll.IsClosed() {
 			if currentRoll.IsSuccess() {
@@ -905,6 +911,9 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
 		}
+		if currentRoll.Result() == autoroll.ROLL_RESULT_HUMAN_INTERVENED {
+			return S_HUMAN_INTERVENED, nil
+		}
 		if currentRoll.Attempt() < maxRollCQAttempts-1 {
 			if err := s.a.FailureThrottle().Inc(ctx); err != nil {
 				return "", err
@@ -919,6 +928,9 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 	case S_DRY_RUN_FAILURE_THROTTLED:
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
+		}
+		if currentRoll.Result() == autoroll.ROLL_RESULT_HUMAN_INTERVENED {
+			return S_HUMAN_INTERVENED, nil
 		}
 		// The roll may have been manually submitted or abandoned.
 		if currentRoll.IsClosed() {
