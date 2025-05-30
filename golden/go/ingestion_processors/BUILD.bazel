@@ -63,6 +63,7 @@ go_test(
         "//go/now",
         "//go/paramtools",
         "//go/skerr",
+        "//go/sklog",
         "//go/testutils",
         "//go/vcsinfo",
         "//go/vcsinfo/mocks",

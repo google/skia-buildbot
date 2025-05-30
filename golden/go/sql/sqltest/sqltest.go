@@ -183,7 +183,6 @@ func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table refl
 		vp := sqlutil.ValuesPlaceholders(numCols, endIdx-startIdx)
 
 		insert := fmt.Sprintf(`INSERT INTO %s (%s) VALUES %s ON CONFLICT %s DO NOTHING`, name, strings.Join(colNames, ","), vp, keys)
-
 		_, err := db.Exec(ctx, insert, argBatch...)
 		return skerr.Wrapf(err, "batch: %d-%d (%d-%d)", startIdx, endIdx, startIdx*numCols, endIdx*numCols)
 	})

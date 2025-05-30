@@ -1,9 +1,11 @@
 package ingestion_processors
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -196,7 +198,7 @@ func (s *sqlPrimaryIngester) getCommitAndTileID(ctx context.Context, gr *jsonio.
 		if _, ok := s.commitsCache.Get(key); !ok {
 			// On a cache miss, make sure we store it to the table.
 			const statement = `INSERT INTO MetadataCommits (commit_id, commit_metadata)
-VALUES ($1, $2) ON CONFLICT DO NOTHING`
+VALUES ($1, $2) ON CONFLICT(commit_id) DO NOTHING`
 			_, err := s.db.Exec(ctx, statement, gr.CommitID, gr.CommitMetadata)
 			if err != nil {
 				return "", 0, skerr.Wrapf(err, "storing metadata commit %q : %q", gr.CommitID, gr.CommitMetadata)
@@ -232,7 +234,7 @@ func (s *sqlPrimaryIngester) getAndWriteTileIDForCommit(ctx context.Context, tar
 		// Rows in this table are immutable once written
 		_, err = tx.Exec(ctx, `
 INSERT INTO CommitsWithData (commit_id, tile_id) VALUES ($1, $2)
-ON CONFLICT DO NOTHING`, targetCommit, tileID)
+ON CONFLICT(commit_id) DO NOTHING`, targetCommit, tileID)
 		if err != nil {
 			return err // Don't wrap - crdbpgx might retry
 		}
@@ -304,8 +306,15 @@ func (s *sqlPrimaryIngester) updateCommitCache(gr *jsonio.GoldResults, key strin
 func (s *sqlPrimaryIngester) upsertSourceFile(ctx context.Context, srcID schema.SourceFileID, fileName string) error {
 	ctx, span := trace.StartSpan(ctx, "upsertSourceFile")
 	defer span.End()
-	const statement = `UPSERT INTO SourceFiles (source_file_id, source_file, last_ingested)
-VALUES ($1, $2, $3)`
+	const statement = `
+		INSERT INTO SourceFiles (source_file_id, source_file, last_ingested)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (source_file_id)
+		DO UPDATE SET
+			source_file_id = excluded.source_file_id,
+			source_file = excluded.source_file,
+			last_ingested = excluded.last_ingested
+	`
 	err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		_, err := tx.Exec(ctx, statement, srcID, fileName, now.Now(ctx))
 		return err // Don't wrap - crdbpgx might retry
@@ -455,7 +464,7 @@ func batchCreateGroupings(ctx context.Context, db crdbpgx.Conn, rows []schema.Gr
 		}
 		// ON CONFLICT DO NOTHING because if the rows already exist, then the data we are writing
 		// is immutable.
-		statement += ` ON CONFLICT DO NOTHING;`
+		statement += ` ON CONFLICT (grouping_id) DO NOTHING;`
 
 		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
@@ -500,7 +509,7 @@ func batchCreateOptions(ctx context.Context, db crdbpgx.Conn, rows []schema.Opti
 		}
 		// ON CONFLICT DO NOTHING because if the rows already exist, then the data we are writing
 		// is immutable.
-		statement += ` ON CONFLICT DO NOTHING;`
+		statement += ` ON CONFLICT (options_id) DO NOTHING;`
 
 		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
@@ -546,7 +555,7 @@ func batchCreateTraces(ctx context.Context, db crdbpgx.Conn, rows []schema.Trace
 		}
 		// ON CONFLICT DO NOTHING because if the rows already exist, then the data we are writing
 		// is immutable (we aren't writing to matches_any_ignore_rule).
-		statement += ` ON CONFLICT DO NOTHING;`
+		statement += ` ON CONFLICT (trace_id) DO NOTHING;`
 
 		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
@@ -632,7 +641,7 @@ func (s *sqlPrimaryIngester) batchCreateExpectations(ctx context.Context, rows [
 		// ON CONFLICT DO NOTHING because if the rows already exist, then we already have an
 		// expectation, either previously automatically created or changed by a user. In either
 		// case, we don't want to overwrite it.
-		statement += ` ON CONFLICT DO NOTHING;`
+		statement += ` ON CONFLICT(grouping_id, digest) DO NOTHING;`
 
 		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
@@ -654,7 +663,7 @@ func (s *sqlPrimaryIngester) batchUpdateTraceValues(ctx context.Context, rows []
 	ctx, span := trace.StartSpan(ctx, "batchUpdateTraceValues")
 	span.AddAttributes(trace.Int64Attribute("values", int64(len(rows))))
 	defer span.End()
-	const chunkSize = 200 // Arbitrarily picked
+	const chunkSize = 200
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
 		if err := ctx.Err(); err != nil {
 			return err
@@ -663,21 +672,34 @@ func (s *sqlPrimaryIngester) batchUpdateTraceValues(ctx context.Context, rows []
 		if len(batch) == 0 {
 			return nil
 		}
-		const statement = `UPSERT INTO TraceValues (shard, trace_id, commit_id, digest,
-grouping_id, options_id, source_file_id) VALUES `
 		const valuesPerRow = 7
+		valuesPlaceholders := sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement := fmt.Sprintf(`INSERT INTO TraceValues (
+		shard, trace_id, commit_id, digest, grouping_id,
+		options_id, source_file_id)
+		VALUES %s
+		ON CONFLICT (shard, commit_id, trace_id)
+		DO UPDATE SET (
+			shard, trace_id, commit_id, digest,
+			grouping_id, options_id, source_file_id
+		) = (
+			excluded.shard, excluded.trace_id, excluded.commit_id,
+			excluded.digest, excluded.grouping_id,
+			excluded.options_id, excluded.source_file_id
+		)
+		`, valuesPlaceholders)
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.Shard, row.TraceID, row.CommitID, row.Digest,
 				row.GroupingID, row.OptionsID, row.SourceFileID)
 		}
-		vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
 		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-			_, err := tx.Exec(ctx, statement+vp, arguments...)
+			_, err := tx.Exec(ctx, statement, arguments...)
 			return err // Don't wrap - crdbpgx might retry
 		})
 		return skerr.Wrap(err)
 	})
+
 	if err != nil {
 		return skerr.Wrapf(err, "storing %d trace values", len(rows))
 	}
@@ -686,46 +708,90 @@ grouping_id, options_id, source_file_id) VALUES `
 
 // batchUpdateValuesAtHead stores all the given rows, if the given most_recent_commit_id is newer
 // than the existing one in the DB.
-func (s *sqlPrimaryIngester) batchUpdateValuesAtHead(ctx context.Context, rows []schema.ValueAtHeadRow) error {
-	if len(rows) == 0 {
+func (s *sqlPrimaryIngester) batchUpdateValuesAtHead(ctx context.Context, values []schema.ValueAtHeadRow) error {
+	if len(values) == 0 {
 		return nil
 	}
 	ctx, span := trace.StartSpan(ctx, "batchUpdateValuesAtHead")
-	span.AddAttributes(trace.Int64Attribute("values", int64(len(rows))))
+	span.AddAttributes(trace.Int64Attribute("values", int64(len(values))))
 	defer span.End()
 	const chunkSize = 50 // Arbitrarily picked (smaller because more likely to contend)
-	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
+	err := util.ChunkIter(len(values), chunkSize, func(startIdx int, endIdx int) error {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		batch := rows[startIdx:endIdx]
+		batch := values[startIdx:endIdx]
 		if len(batch) == 0 {
 			return nil
 		}
-		statement := `INSERT INTO ValuesAtHead (trace_id, most_recent_commit_id, digest,
-options_id, grouping_id, keys) VALUES `
-		const valuesPerRow = 6
-		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
-		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
+
+		selectArgs := make([]interface{}, 0, len(batch))
 		for _, row := range batch {
+			selectArgs = append(selectArgs, row.TraceID)
+		}
+		query := `SELECT trace_id, most_recent_commit_id
+				FROM ValuesAtHead
+				WHERE trace_id IN (` + sqlutil.ValuesPlaceholders(1, len(batch)) + `)`
+
+		// Query existing rows
+		rows, err := s.db.Query(ctx, query, selectArgs...)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		defer rows.Close()
+
+		// Map to store existing commitids for quick lookup
+		existing := make(map[string]schema.CommitID)
+		for rows.Next() {
+			var scannedTraceID schema.TraceID
+			var scannedMostRecentCommitId schema.CommitID // Correct type for INT8 tile_id
+			if err := rows.Scan(&scannedTraceID, &scannedMostRecentCommitId); err != nil {
+				return skerr.Wrap(err)
+			}
+			existing[string(scannedTraceID)] = scannedMostRecentCommitId
+		}
+
+		// Filter rows to only include those that need an update or insert
+		var filtered []schema.ValueAtHeadRow
+		for _, row := range batch {
+			// If the row already exists, we'll update it if and only if the
+			// commit_id comes after or at the existing commit_id.
+			if existingMostRecentCommitId, ok := existing[string(row.TraceID)]; !ok || existingMostRecentCommitId <= row.MostRecentCommitID {
+				filtered = append(filtered, row)
+			}
+		}
+
+		// Proceed only if there are rows to insert or update
+		if len(filtered) == 0 {
+			return nil
+		}
+
+		statement := `INSERT INTO ValuesAtHead (
+						trace_id, most_recent_commit_id, digest,
+						options_id, grouping_id, keys) VALUES `
+		const valuesPerRow = 6
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(filtered))
+		arguments := make([]interface{}, 0, valuesPerRow*len(filtered))
+		for _, row := range filtered {
 			arguments = append(arguments, row.TraceID, row.MostRecentCommitID, row.Digest,
 				row.OptionsID, row.GroupingID, row.Keys)
 		}
-		// If the row already exists, we'll update these three fields if and only if the
-		// commit_id comes after or at the stored commit_id.
-		statement += `
-ON CONFLICT (trace_id)
-DO UPDATE SET (most_recent_commit_id, digest, options_id) =
-    (excluded.most_recent_commit_id, excluded.digest, excluded.options_id)
-WHERE excluded.most_recent_commit_id >= ValuesAtHead.most_recent_commit_id`
-		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		statement += ` ON CONFLICT (trace_id)
+		DO UPDATE SET
+			trace_id = excluded.trace_id,
+			most_recent_commit_id = excluded.most_recent_commit_id,
+			digest = excluded.digest,
+			options_id = excluded.options_id,
+			grouping_id = excluded.grouping_id,
+			keys = excluded.keys`
+		err = crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
 			return err // Don't wrap - crdbpgx might retry
 		})
 		return skerr.Wrap(err)
 	})
 	if err != nil {
-		return skerr.Wrapf(err, "updating %d values at head", len(rows))
+		return skerr.Wrapf(err, "updating %d values at head", len(values))
 	}
 	return nil
 }
@@ -772,7 +838,7 @@ func (s *sqlPrimaryIngester) batchCreatePrimaryBranchParams(ctx context.Context,
 			arguments = append(arguments, row.TileID, row.Key, row.Value)
 		}
 		// ON CONFLICT DO NOTHING because if the rows already exist, the data is immutable.
-		statement += ` ON CONFLICT DO NOTHING;`
+		statement += ` ON CONFLICT(tile_id, key, value) DO NOTHING;`
 
 		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
@@ -806,29 +872,85 @@ func (s *sqlPrimaryIngester) batchCreateTiledTraceDigests(ctx context.Context, v
 		if err := ctx.Err(); err != nil {
 			return err
 		}
+
 		batch := values[startIdx:endIdx]
 		if len(batch) == 0 {
 			return nil
 		}
+
+		selectArgs := make([]interface{}, 0, 3*len(batch))
+		for _, row := range batch {
+			selectArgs = append(selectArgs, row.TraceID, tileID, row.Digest)
+		}
+		query := ` SELECT trace_id, tile_id, digest, grouping_id
+			FROM TiledTraceDigests
+			WHERE (trace_id, tile_id, digest) IN (` + sqlutil.ValuesPlaceholders(3, len(batch)) + `)`
+
+		// Query existing rows
+		rows, err := s.db.Query(ctx, query, selectArgs...)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		defer rows.Close()
+
+		// Map to store existing grouping_ids for quick lookup
+		existing := make(map[[3]string][]byte)
+		for rows.Next() {
+			var scannedTraceID, scannedDigest, scannedGroupingID []byte
+			var scannedTileIDSchema schema.TileID // Correct type for INT8 tile_id
+			if err := rows.Scan(&scannedTraceID, &scannedTileIDSchema, &scannedDigest, &scannedGroupingID); err != nil {
+				return skerr.Wrap(err)
+			}
+			mapKey := [3]string{
+				string(scannedTraceID),
+				strconv.FormatInt(int64(scannedTileIDSchema), 10),
+				string(scannedDigest),
+			}
+			existing[mapKey] = scannedGroupingID
+		}
+
+		// Filter rows to only include those that need an update or insert
+		var filtered []schema.TraceValueRow
+		for _, row := range batch {
+			lookupKey := [3]string{
+				string(row.TraceID),
+				strconv.FormatInt(int64(tileID), 10),
+				string(row.Digest),
+			}
+			// If the row already exists, only update things if the grouping_id
+			// is different. We don't expect the grouping_id to be different
+			// often, only when a grouping is changed.
+			if existingGroupingIDBytes, ok := existing[lookupKey]; !ok || !bytes.Equal(existingGroupingIDBytes, row.GroupingID) {
+				filtered = append(filtered, row)
+			}
+		}
+
+		// Proceed only if there are rows to insert or update
+		if len(filtered) == 0 {
+			return nil
+		}
+
 		statement := `INSERT INTO TiledTraceDigests (trace_id, tile_id, digest, grouping_id) VALUES `
 		const valuesPerRow = 4
-		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
-		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
-		for _, row := range batch {
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(filtered))
+		arguments := make([]interface{}, 0, valuesPerRow*len(filtered))
+		for _, row := range filtered {
 			arguments = append(arguments, row.TraceID, tileID, row.Digest, row.GroupingID)
 		}
-		// ON CONFLICT DO NOTHING only update things if the grouping_id is different.
-		// We don't expect the grouping_id to be different often, only when a grouping is changed.
-		statement += ` ON CONFLICT (trace_id, tile_id, digest)
-DO UPDATE SET grouping_id = excluded.grouping_id
-WHERE TiledTraceDigests.grouping_id != excluded.grouping_id;`
 
-		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		statement += ` ON CONFLICT (trace_id, tile_id, digest)
+		DO UPDATE SET trace_id = excluded.trace_id,
+              tile_id = excluded.tile_id,
+              digest = excluded.digest,
+              grouping_id = excluded.grouping_id;`
+
+		err = crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
 			return err // Don't wrap - crdbpgx might retry
 		})
 		return skerr.Wrap(err)
 	})
+
 	if err != nil {
 		return skerr.Wrapf(err, "storing %d Tiled Trace Digest rows", len(values))
 	}

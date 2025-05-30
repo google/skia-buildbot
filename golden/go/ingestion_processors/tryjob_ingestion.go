@@ -398,8 +398,9 @@ func (g *goldTryjobProcessor) lookupAndCreateCL(ctx context.Context, client code
 	const statement = `
 INSERT INTO Changelists (changelist_id, system, status, owner_email, subject, last_ingested_data)
 VALUES ($1, $2, $3, $4, $5, $6)
-ON CONFLICT DO NOTHING`
+ON CONFLICT (changelist_id) DO NOTHING`
 	err = crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		sklog.Infof("Got CL %#v", cl)
 		_, err := tx.Exec(ctx, statement, qID, crs, convertFromStatusEnum(cl.Status), cl.Owner, cl.Subject, cl.Updated)
 		return err // Don't wrap - crdbpgx might retry
 	})
@@ -417,6 +418,7 @@ func (g *goldTryjobProcessor) lookupAndCreatePS(ctx context.Context, client code
 	defer span.End()
 
 	ps, err := client.GetPatchset(ctx, clID, psID, psOrder)
+	sklog.Infof("Got patchset %#v", ps)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
@@ -441,10 +443,17 @@ func (g *goldTryjobProcessor) lookupAndCreatePS(ctx context.Context, client code
 INSERT INTO Patchsets (patchset_id, system, changelist_id, ps_order, git_hash,
   commented_on_cl, created_ts)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-ON CONFLICT DO NOTHING`
+ON CONFLICT(patchset_id) DO NOTHING`
 	err = crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		// Set patchset creation time to start of epoch if it is not known
+		var psCreationTime time.Time
+		if ps.Created.IsZero() {
+			psCreationTime = time.Unix(0, 0)
+		} else {
+			psCreationTime = ps.Created
+		}
 		_, err := tx.Exec(ctx, statement, qualifiedPSID, crs, qualifiedCLID, ps.Order, ps.GitHash,
-			false, ps.Created)
+			false, psCreationTime)
 		return err // Don't wrap - crdbpgx might retry
 	})
 	if err != nil {
@@ -521,17 +530,24 @@ func (g *goldTryjobProcessor) lookupAndCreateTryjob(ctx context.Context, client 
 	if err != nil {
 		return skerr.Wrapf(err, "looking up Tryjob %s", tjID)
 	}
-
 	qID := sql.Qualify(tj.System, tj.SystemID)
 	const statement = `
-UPSERT INTO Tryjobs (tryjob_id, system, changelist_id, patchset_id, display_name, last_ingested_data)
-VALUES ($1, $2, $3, $4, $5, $6)`
+INSERT INTO Tryjobs (tryjob_id, system, changelist_id, patchset_id, display_name, last_ingested_data)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (tryjob_id) DO UPDATE SET
+  tryjob_id = EXCLUDED.tryjob_id,
+  system = EXCLUDED.system,
+  changelist_id = EXCLUDED.changelist_id,
+  patchset_id = EXCLUDED.patchset_id,
+  display_name = EXCLUDED.display_name,
+  last_ingested_data = EXCLUDED.last_ingested_data`
 	err = crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		_, err := tx.Exec(ctx, statement, qID, tj.System, clID, psID, tj.DisplayName, time.Time{})
+		epoch := time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC)
+		_, err := tx.Exec(ctx, statement, qID, tj.System, clID, psID, tj.DisplayName, epoch)
 		return err // Don't wrap - crdbpgx might retry
 	})
 	if err != nil {
-		return skerr.Wrapf(err, "Inserting tryjob %#v", tj)
+		return skerr.Wrapf(err, "inserting/updating tryjob with id %q (qualified id %q)", tj.SystemID, qID)
 	}
 	return nil
 }
@@ -637,9 +653,11 @@ func (g *goldTryjobProcessor) writeData(ctx context.Context, gr *jsonio.GoldResu
 func (g *goldTryjobProcessor) batchUpdateSecondaryBranchValues(ctx context.Context, rows []schema.SecondaryBranchValueRow) error {
 	ctx, span := trace.StartSpan(ctx, "batchUpdateSecondaryBranchValues")
 	defer span.End()
+
 	if len(rows) == 0 {
 		return nil
 	}
+
 	// Start at this chunk size for now. This table will likely receive a fair amount of data
 	// and smaller batch sizes can reduce the contention/retries.
 	const chunkSize = 300
@@ -648,15 +666,31 @@ func (g *goldTryjobProcessor) batchUpdateSecondaryBranchValues(ctx context.Conte
 		if len(batch) == 0 {
 			return nil
 		}
-		statement := `UPSERT INTO SecondaryBranchValues
-(branch_name, version_name, secondary_branch_trace_id, digest, grouping_id, options_id,
-source_file_id, tryjob_id) VALUES `
 		const valuesPerRow = 8
-		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
+		valuesPlaceholders := sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
+		statement := fmt.Sprintf(`INSERT INTO SecondaryBranchValues
+		(branch_name, version_name, secondary_branch_trace_id, digest,
+		grouping_id, options_id, source_file_id, tryjob_id)
+		VALUES %s
+		ON CONFLICT (
+			branch_name, version_name,
+			secondary_branch_trace_id, source_file_id
+		)
+		DO UPDATE SET
+		(branch_name, version_name, secondary_branch_trace_id, digest,
+		grouping_id, options_id, source_file_id, tryjob_id) =
+		(excluded.branch_name, excluded.version_name,
+		excluded.secondary_branch_trace_id, excluded.digest,
+		excluded.grouping_id, excluded.options_id, excluded.source_file_id,
+		excluded.tryjob_id)
+		`, valuesPlaceholders)
+
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, value := range batch {
-			arguments = append(arguments, value.BranchName, value.VersionName, value.TraceID,
-				value.Digest, value.GroupingID, value.OptionsID, value.SourceFileID, value.TryjobID)
+			arguments = append(arguments, value.BranchName, value.VersionName,
+				value.TraceID, // Assuming TraceID maps to secondary_branch_trace_id
+				value.Digest, value.GroupingID, value.OptionsID,
+				value.SourceFileID, value.TryjobID)
 		}
 
 		err := crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
@@ -665,8 +699,9 @@ source_file_id, tryjob_id) VALUES `
 		})
 		return skerr.Wrap(err)
 	})
+
 	if err != nil {
-		return skerr.Wrapf(err, "storing %d SecondaryBranchValues", len(rows))
+		return skerr.Wrapf(err, "storing %d SecondaryBranchValues rows using INSERT ON CONFLICT DO UPDATE", len(rows))
 	}
 	return nil
 }
@@ -714,7 +749,7 @@ func (g *goldTryjobProcessor) batchCreateSecondaryBranchParams(ctx context.Conte
 			arguments = append(arguments, row.BranchName, row.VersionName, row.Key, row.Value)
 		}
 		// ON CONFLICT DO NOTHING because if the rows already exist, the data is immutable.
-		statement += ` ON CONFLICT DO NOTHING;`
+		statement += ` ON CONFLICT (branch_name, version_name, key, value) DO NOTHING;`
 
 		err := crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
@@ -734,12 +769,19 @@ func (g *goldTryjobProcessor) batchCreateSecondaryBranchParams(ctx context.Conte
 
 // upsertSourceFile creates a row in SourceFiles for the given file or updates the existing row's
 // last_ingested timestamp with the provided time.
-func (g *goldTryjobProcessor) upsertSourceFile(ctx context.Context, srcID schema.SourceFileID, fileName string, ingestedTime time.Time) interface{} {
+func (s *goldTryjobProcessor) upsertSourceFile(ctx context.Context, srcID schema.SourceFileID, fileName string, ingestedTime time.Time) error {
 	ctx, span := trace.StartSpan(ctx, "upsertSourceFile")
 	defer span.End()
-	const statement = `UPSERT INTO SourceFiles (source_file_id, source_file, last_ingested)
-VALUES ($1, $2, $3)`
-	err := crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	const statement = `
+		INSERT INTO SourceFiles (source_file_id, source_file, last_ingested)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (source_file_id)
+		DO UPDATE SET
+			source_file_id = excluded.source_file_id,
+			source_file = excluded.source_file,
+			last_ingested = excluded.last_ingested
+	`
+	err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		_, err := tx.Exec(ctx, statement, srcID, fileName, ingestedTime)
 		return err // Don't wrap - crdbpgx might retry
 	})
