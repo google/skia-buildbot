@@ -61,6 +61,7 @@ go_test(
         "//go/testutils",
         "//golden/go/clstore",
         "//golden/go/code_review/mocks",
+        "//golden/go/config",
         "//golden/go/expectations",
         "//golden/go/ignore",
         "//golden/go/ignore/mocks",

@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/clstore"
 	mock_crs "go.skia.org/infra/golden/go/code_review/mocks"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/ignore"
 	mock_ignore "go.skia.org/infra/golden/go/ignore/mocks"
@@ -3118,7 +3119,7 @@ func TestListIgnoreRules2_WithCounts_Success(t *testing.T) {
 		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
 		HandlersConfig: HandlersConfig{
 			DB:          db,
-			IgnoreStore: sqlignorestore.New(db),
+			IgnoreStore: sqlignorestore.New(db, config.CockroachDB),
 			WindowSize:  100,
 		},
 		alogin: userIsEditor(t).alogin,

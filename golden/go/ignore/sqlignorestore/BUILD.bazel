@@ -13,6 +13,7 @@ go_library(
         "//go/paramtools",
         "//go/skerr",
         "//go/sklog",
+        "//golden/go/config",
         "//golden/go/ignore",
         "//golden/go/sql/schema",
         "@com_github_cockroachdb_cockroach_go_v2//crdb/crdbpgx",
@@ -32,6 +33,7 @@ go_test(
     embed = [":sqlignorestore"],
     deps = [
         "//go/paramtools",
+        "//golden/go/config",
         "//golden/go/ignore",
         "//golden/go/sql/databuilder",
         "//golden/go/sql/datakitchensink",

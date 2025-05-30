@@ -157,7 +157,7 @@ func main() {
 
 	publiclyViewableParams := mustMakePubliclyViewableParams(fsc)
 
-	ignoreStore := mustMakeIgnoreStore(ctx, sqlDB)
+	ignoreStore := mustMakeIgnoreStore(ctx, sqlDB, config.CockroachDB)
 
 	reviewSystems := mustInitializeReviewSystems(fsc, client)
 
@@ -312,8 +312,8 @@ func mustMakePubliclyViewableParams(fsc *frontendServerConfig) publicparams.Matc
 
 // mustMakeIgnoreStore returns a new ignore.Store and starts a monitoring routine that counts the
 // the number of expired ignore rules and exposes this as a metric.
-func mustMakeIgnoreStore(ctx context.Context, db *pgxpool.Pool) ignore.Store {
-	ignoreStore := sqlignorestore.New(db)
+func mustMakeIgnoreStore(ctx context.Context, db *pgxpool.Pool, dbType config.DatabaseType) ignore.Store {
+	ignoreStore := sqlignorestore.New(db, dbType)
 
 	if err := ignore.StartMetrics(ctx, ignoreStore, 5*time.Minute); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)

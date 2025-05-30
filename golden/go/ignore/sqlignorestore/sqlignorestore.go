@@ -12,17 +12,19 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/sql/schema"
 )
 
 type StoreImpl struct {
-	db *pgxpool.Pool
+	db     *pgxpool.Pool
+	dbType config.DatabaseType
 }
 
 // New returns a SQL based implementation of ignore.Store.
-func New(db *pgxpool.Pool) *StoreImpl {
-	return &StoreImpl{db: db}
+func New(db *pgxpool.Pool, dbType config.DatabaseType) *StoreImpl {
+	return &StoreImpl{db: db, dbType: dbType}
 }
 
 // Create implements the ignore.Store interface. It will mark all traces that match the rule as
@@ -46,24 +48,26 @@ VALUES ($1, $2, $3, $4, $5)`, rule.CreatedBy, rule.CreatedBy, rule.Expires, rule
 	// We could be updating a lot of traces and values at head here. If done as one big transaction,
 	// that could take a while to land if we are ingesting a lot of new data at the time. As such,
 	// we do it in three independent transactions
-	if err := markTracesAsIgnored(ctx, s.db, v); err != nil {
+	if err := markTracesAsIgnored(ctx, s, v); err != nil {
 		return skerr.Wrap(err)
 	}
-	if err := markValuesAtHeadAsIgnored(ctx, s.db, v); err != nil {
+	if err := markValuesAtHeadAsIgnored(ctx, s, v); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
 }
 
 // markTracesAsIgnored will update all Traces matching the given paramset as ignored.
-func markTracesAsIgnored(ctx context.Context, db *pgxpool.Pool, ps map[string][]string) error {
+func markTracesAsIgnored(ctx context.Context, store *StoreImpl, ps map[string][]string) error {
 	ctx, span := trace.StartSpan(ctx, "markTracesAsIgnored")
 	defer span.End()
-	condition, arguments := ConvertIgnoreRules([]paramtools.ParamSet{ps})
+	condition, arguments := ConvertIgnoreRules([]paramtools.ParamSet{ps}, store.dbType)
 	statement := `UPDATE Traces SET matches_any_ignore_rule = TRUE WHERE `
 	statement += condition
-	statement += ` RETURNING NOTHING`
-	err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	if store.dbType == config.CockroachDB {
+		statement += ` RETURNING NOTHING`
+	}
+	err := crdbpgx.ExecuteTx(ctx, store.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		_, err := tx.Exec(ctx, statement, arguments...)
 		return err // Don't wrap - crdbpgx might retry
 	})
@@ -71,14 +75,16 @@ func markTracesAsIgnored(ctx context.Context, db *pgxpool.Pool, ps map[string][]
 }
 
 // markValuesAtHeadAsIgnored will update all ValuesAtHead matching the given paramset as ignored.
-func markValuesAtHeadAsIgnored(ctx context.Context, db *pgxpool.Pool, ps map[string][]string) error {
+func markValuesAtHeadAsIgnored(ctx context.Context, store *StoreImpl, ps map[string][]string) error {
 	ctx, span := trace.StartSpan(ctx, "markValuesAtHeadAsIgnored")
 	defer span.End()
-	condition, arguments := ConvertIgnoreRules([]paramtools.ParamSet{ps})
+	condition, arguments := ConvertIgnoreRules([]paramtools.ParamSet{ps}, store.dbType)
 	statement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = TRUE WHERE `
 	statement += condition
-	statement += ` RETURNING NOTHING`
-	err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	if store.dbType == config.CockroachDB {
+		statement += ` RETURNING NOTHING`
+	}
+	err := crdbpgx.ExecuteTx(ctx, store.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		_, err := tx.Exec(ctx, statement, arguments...)
 		return err // Don't wrap - crdbpgx might retry
 	})
@@ -149,17 +155,17 @@ WHERE ignore_rule_id = $5`, rule.UpdatedBy, rule.Expires, rule.Note, newParamSet
 		return skerr.Wrapf(err, "getting other rules when updating %s", rule.ID)
 	}
 	// Apply those old rules to the traces that match the old paramset
-	if err := conditionallyMarkTracesAsIgnored(ctx, s.db, existingRulePS, combinedRules); err != nil {
+	if err := conditionallyMarkTracesAsIgnored(ctx, s, existingRulePS, combinedRules); err != nil {
 		return skerr.Wrap(err)
 	}
-	if err := conditionallyMarkValuesAtHeadAsIgnored(ctx, s.db, existingRulePS, combinedRules); err != nil {
+	if err := conditionallyMarkValuesAtHeadAsIgnored(ctx, s, existingRulePS, combinedRules); err != nil {
 		return skerr.Wrap(err)
 	}
 	// Apply the result of the new rules.
-	if err := markTracesAsIgnored(ctx, s.db, newParamSet); err != nil {
+	if err := markTracesAsIgnored(ctx, s, newParamSet); err != nil {
 		return skerr.Wrap(err)
 	}
-	if err := markValuesAtHeadAsIgnored(ctx, s.db, newParamSet); err != nil {
+	if err := markValuesAtHeadAsIgnored(ctx, s, newParamSet); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
@@ -167,18 +173,20 @@ WHERE ignore_rule_id = $5`, rule.UpdatedBy, rule.Expires, rule.Note, newParamSet
 
 // conditionallyMarkTracesAsIgnored applies the slice of rules to all traces that match the
 // provided PatchSet.
-func conditionallyMarkTracesAsIgnored(ctx context.Context, db *pgxpool.Pool, ps paramtools.ParamSet, rules []paramtools.ParamSet) error {
+func conditionallyMarkTracesAsIgnored(ctx context.Context, store *StoreImpl, ps paramtools.ParamSet, rules []paramtools.ParamSet) error {
 	ctx, span := trace.StartSpan(ctx, "conditionallyMarkTracesAsIgnored")
 	defer span.End()
-	matches, matchArgs := ConvertIgnoreRules(rules)
-	condition, conArgs := convertIgnoreRules([]paramtools.ParamSet{ps}, len(matchArgs)+1)
+	matches, matchArgs := ConvertIgnoreRules(rules, store.dbType)
+	condition, conArgs := convertIgnoreRules([]paramtools.ParamSet{ps}, len(matchArgs)+1, store.dbType)
 	statement := `UPDATE Traces SET matches_any_ignore_rule = `
 	statement += matches
 	statement += ` WHERE `
 	statement += condition
-	statement += ` RETURNING NOTHING`
+	if store.dbType == config.CockroachDB {
+		statement += ` RETURNING NOTHING`
+	}
 	matchArgs = append(matchArgs, conArgs...)
-	err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := crdbpgx.ExecuteTx(ctx, store.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		_, err := tx.Exec(ctx, statement, matchArgs...)
 		return err // Don't wrap - crdbpgx might retry
 	})
@@ -190,18 +198,20 @@ func conditionallyMarkTracesAsIgnored(ctx context.Context, db *pgxpool.Pool, ps 
 
 // conditionallyMarkValuesAtHeadAsIgnored applies the slice of rules to all ValuesAtHead that
 // match the provided PatchSet.
-func conditionallyMarkValuesAtHeadAsIgnored(ctx context.Context, db *pgxpool.Pool, ps paramtools.ParamSet, rules []paramtools.ParamSet) error {
+func conditionallyMarkValuesAtHeadAsIgnored(ctx context.Context, store *StoreImpl, ps paramtools.ParamSet, rules []paramtools.ParamSet) error {
 	ctx, span := trace.StartSpan(ctx, "conditionallyMarkValuesAtHeadAsIgnored")
 	defer span.End()
-	matches, matchArgs := ConvertIgnoreRules(rules)
-	condition, conArgs := convertIgnoreRules([]paramtools.ParamSet{ps}, len(matchArgs)+1)
+	matches, matchArgs := ConvertIgnoreRules(rules, store.dbType)
+	condition, conArgs := convertIgnoreRules([]paramtools.ParamSet{ps}, len(matchArgs)+1, store.dbType)
 	statement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = `
 	statement += matches
 	statement += ` WHERE `
 	statement += condition
-	statement += ` RETURNING NOTHING`
+	if store.dbType == config.CockroachDB {
+		statement += ` RETURNING NOTHING`
+	}
 	matchArgs = append(matchArgs, conArgs...)
-	err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := crdbpgx.ExecuteTx(ctx, store.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		_, err := tx.Exec(ctx, statement, matchArgs...)
 		return err // Don't wrap - crdbpgx might retry
 	})
@@ -233,10 +243,10 @@ DELETE FROM IgnoreRules WHERE ignore_rule_id = $1`, id)
 		return skerr.Wrapf(err, "getting other rules when deleting %s", id)
 	}
 	// Apply those old rules to the traces that match the old paramset
-	if err := conditionallyMarkTracesAsIgnored(ctx, s.db, existingRulePS, remainingRules); err != nil {
+	if err := conditionallyMarkTracesAsIgnored(ctx, s, existingRulePS, remainingRules); err != nil {
 		return skerr.Wrap(err)
 	}
-	if err := conditionallyMarkValuesAtHeadAsIgnored(ctx, s.db, existingRulePS, remainingRules); err != nil {
+	if err := conditionallyMarkValuesAtHeadAsIgnored(ctx, s, existingRulePS, remainingRules); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
