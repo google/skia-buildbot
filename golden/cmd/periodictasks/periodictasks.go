@@ -3,11 +3,13 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -458,6 +460,7 @@ func (g *diffWorkGatherer) gatherFromChangelists(ctx context.Context) error {
 		return skerr.Wrap(err)
 	}
 	updatedTS := now.Now(ctx)
+	sklog.Debugf("Updated timestamp is %v", updatedTS)
 	// Check all changelists updated since last cycle (or 5 days, initially).
 	clIDs, err := g.getRecentlyUpdatedChangelists(ctx)
 	if err != nil {
@@ -503,10 +506,18 @@ SELECT tile_id FROM RecentCommits ORDER BY commit_id ASC LIMIT 1
 func (g *diffWorkGatherer) getRecentlyUpdatedChangelists(ctx context.Context) ([]string, error) {
 	ctx, span := trace.StartSpan(ctx, "getRecentlyUpdatedChangelists")
 	defer span.End()
+	scanTimestamp := g.mostRecentCLScan
+	if scanTimestamp.IsZero() {
+		// Use a well-defined early timestamp instead of the absolute zero time.
+		// This is because spanner doesn't handle zero time well.
+		scanTimestamp = time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC)
+		sklog.Debugf("mostRecentCLScan was zero, using %v for querying recently updated changelists", scanTimestamp)
+	}
+	sklog.Infof("Getting recently updated changelists since %s", scanTimestamp)
 	const statement = `
 SELECT changelist_id FROM Changelists WHERE last_ingested_data >= $1
 `
-	rows, err := g.db.Query(ctx, statement, g.mostRecentCLScan)
+	rows, err := g.db.Query(ctx, statement, scanTimestamp)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -532,7 +543,7 @@ func (g *diffWorkGatherer) createDiffRowsForCL(ctx context.Context, startingTile
 	row := g.db.QueryRow(ctx, `SELECT last_ingested_data FROM ChangeLists WHERE changelist_id = $1`, cl)
 	var updatedTS time.Time
 	if err := row.Scan(&updatedTS); err != nil {
-		return skerr.Wrap(err)
+		return skerr.Wrapf(err, "getting last_ingested_data for CL %s", cl)
 	}
 	updatedTS = updatedTS.UTC()
 
@@ -550,7 +561,8 @@ func (g *diffWorkGatherer) createDiffRowsForCL(ctx context.Context, startingTile
 			AND TiledTraceDigests.tile_id >= $2
 		WHERE TiledTraceDigests.digest IS NULL
 	)
-	SELECT Groupings.grouping_id, encode(DigestsNotOnPrimaryBranch.digest, 'hex') FROM DigestsNotOnPrimaryBranch
+	SELECT Groupings.grouping_id, DigestsNotOnPrimaryBranch.digest -- Select raw bytea digest
+	FROM DigestsNotOnPrimaryBranch
 	JOIN Groupings ON DigestsNotOnPrimaryBranch.grouping_id = Groupings.grouping_id
 	ORDER BY 1, 2
 	`
@@ -563,11 +575,12 @@ func (g *diffWorkGatherer) createDiffRowsForCL(ctx context.Context, startingTile
 	var currentGroupingID schema.GroupingID
 	var workRows []schema.SecondaryBranchDiffCalculationRow
 	for rows.Next() {
-		var digest types.Digest
+		var rawDigest []byte
 		var groupingID schema.GroupingID
-		if err := rows.Scan(&groupingID, &digest); err != nil {
+		if err := rows.Scan(&groupingID, &rawDigest); err != nil {
 			return skerr.Wrap(err)
 		}
+		digest := types.Digest(hex.EncodeToString(rawDigest))
 		if currentGroupingID == nil {
 			currentGroupingID = groupingID
 		}
@@ -597,24 +610,32 @@ func (g *diffWorkGatherer) createDiffRowsForCL(ctx context.Context, startingTile
 	})
 
 	insertStatement := `INSERT INTO SecondaryBranchDiffCalculationWork
-(branch_name, grouping_id, last_updated_ts, digests, last_calculated_ts, calculation_lease_ends) VALUES `
+	(branch_name, grouping_id, last_updated_ts,
+	digests, last_calculated_ts, calculation_lease_ends) VALUES `
 	const valuesPerRow = 6
 	vp := sqlutil.ValuesPlaceholders(valuesPerRow, len(workRows))
 	insertStatement += vp
 	insertStatement += ` ON CONFLICT (branch_name, grouping_id)
-DO UPDATE SET (last_updated_ts, digests) = (excluded.last_updated_ts, excluded.digests);`
-
+	DO UPDATE SET (branch_name, grouping_id, last_updated_ts, digests
+		,last_calculated_ts, calculation_lease_ends
+	) =
+	 	(excluded.branch_name, excluded.grouping_id,
+		 excluded.last_updated_ts,excluded.digests
+		 ,SecondaryBranchDiffCalculationWork.last_calculated_ts,
+		 SecondaryBranchDiffCalculationWork.calculation_lease_ends
+		 )`
 	arguments := make([]interface{}, 0, valuesPerRow*len(workRows))
 	epoch := time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC)
 	for _, wr := range workRows {
 		arguments = append(arguments, wr.BranchName, wr.GroupingID, wr.LastUpdated, wr.DigestsNotOnPrimary,
 			epoch, epoch)
 	}
+	sklog.Debugf("Insert query = %v", insertStatement)
 	err = crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		_, err := g.db.Exec(ctx, insertStatement, arguments...)
+		_, err := tx.Exec(ctx, insertStatement, arguments...)
 		return err // may be retried
 	})
-	return skerr.Wrap(err)
+	return skerr.Wrapf(err, "inserting/updating diff work for CL %s", cl)
 }
 
 // deleteOldCLDiffWork deletes rows in the SQL DB that are "too old", that is, they belong to CLs
@@ -799,7 +820,7 @@ RecentCommits AS (
 OldestTileInWindow AS (
 	SELECT MIN(tile_id) as tile_id FROM RecentCommits
 )
-SELECT DISTINCT encode(digest, 'hex') FROM TiledTraceDigests
+SELECT DISTINCT digest FROM TiledTraceDigests
 JOIN OldestTileInWindow ON TiledTraceDigests.tile_id >= OldestTileInWindow.tile_id
 ORDER BY 1
 `
@@ -812,12 +833,17 @@ ORDER BY 1
 
 	var rv []types.Digest
 	for rows.Next() {
-		var d types.Digest
-		if err := rows.Scan(&d); err != nil {
+		var b []byte
+		if err := rows.Scan(&b); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		rv = append(rv, d)
+		rv = append(rv, types.Digest(hex.EncodeToString(b)))
+
 	}
+	// explicitly sort the final hex strings if it matters downstream,
+	sort.Slice(rv, func(i, j int) bool {
+		return rv[i] < rv[j]
+	})
 	return rv, nil
 }
 
@@ -1086,11 +1112,11 @@ GROUP BY label`
 func joinedTracesStatement(tuple summaryTuple) string {
 	statement := "JoinedTraces AS ("
 	for _, kv := range tuple.KeyValues {
-		statement += fmt.Sprintf("\nSELECT trace_id FROM Traces WHERE keys -> '%s' = '%q'",
+		statement += fmt.Sprintf("\nSELECT trace_id FROM Traces WHERE keys ->> '%s' = '%s'",
 			sql.Sanitize(kv.Key), sql.Sanitize(kv.Value))
 		statement += "\n\tINTERSECT"
 	}
-	statement += fmt.Sprintf("\nSELECT trace_id FROM Traces WHERE keys -> '%s' = '%q'",
+	statement += fmt.Sprintf("\nSELECT trace_id FROM Traces WHERE keys ->> '%s' = '%s'",
 		types.CorpusField, sql.Sanitize(tuple.Corpus))
 	return statement
 }
