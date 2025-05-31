@@ -47,7 +47,7 @@ var subTests = map[string]subTestFunction{
 	"testCommitNumberFromTime_ErrorOnTimeTooOld":                                         testCommitNumberFromTime_ErrorOnTimeTooOld,
 	"testCommitNumberFromTime_SuccessOnZeroTime":                                         testCommitNumberFromTime_SuccessOnZeroTime,
 	"testCommitSliceFromTimeRange_Success":                                               testCommitSliceFromTimeRange_Success,
-	"testCommitSliceFromTimeRange_ZeroWidthRangeReturnsZeroResults":                      testCommitSliceFromTimeRange_ZeroWidthRangeReturnsZeroResults,
+	"testCommitSliceFromTimeRange_ZeroWidthRangeReturnsOneResult":                        testCommitSliceFromTimeRange_ZeroWidthRangeReturnsOneResult,
 	"testCommitSliceFromTimeRange_NegativeWidthRangeReturnsZeroResults":                  testCommitSliceFromTimeRange_NegativeWidthRangeReturnsZeroResults,
 	"testCommitSliceFromCommitNumberRange_Success":                                       testCommitSliceFromCommitNumberRange_Success,
 	"testCommitSliceFromCommitNumberRange_ZeroWidthReturnsOneResult":                     testCommitSliceFromCommitNumberRange_ZeroWidthReturnsOneResult,
@@ -246,7 +246,7 @@ func testCommitNumberFromTime_ErrorOnTimeTooOld(t *testing.T, ctx context.Contex
 func testCommitSliceFromTimeRange_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitSliceFromTimeRange(ctx, gittest.StartTime.Add(1*time.Minute), gittest.StartTime.Add(3*time.Minute))
 	require.NoError(t, err)
-	assert.Len(t, commits, 2)
+	assert.Len(t, commits, 3)
 	assert.Equal(t, int64(1680000060), commits[0].Timestamp)
 	assert.Equal(t, types.CommitNumber(1), commits[0].CommitNumber)
 	assert.Equal(t, int64(1680000120), commits[1].Timestamp)
@@ -254,10 +254,11 @@ func testCommitSliceFromTimeRange_Success(t *testing.T, ctx context.Context, g *
 	assert.Contains(t, commits[1].URL, "+show/497e33d39ae58fa3339f67b9366f887a4c72871c")
 }
 
-func testCommitSliceFromTimeRange_ZeroWidthRangeReturnsZeroResults(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
+func testCommitSliceFromTimeRange_ZeroWidthRangeReturnsOneResult(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
 	commits, err := g.CommitSliceFromTimeRange(ctx, gittest.StartTime.Add(1*time.Minute), gittest.StartTime.Add(1*time.Minute))
 	require.NoError(t, err)
-	assert.Empty(t, commits)
+	require.Len(t, commits, 1)
+	assert.Equal(t, int64(1680000060), commits[0].Timestamp)
 }
 
 func testCommitSliceFromTimeRange_NegativeWidthRangeReturnsZeroResults(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {

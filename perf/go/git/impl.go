@@ -114,7 +114,7 @@ var statements = map[statement]string{
 			Commits
 		WHERE
 			commit_time >= $1
-			AND commit_time < $2
+			AND commit_time <= $2
 		ORDER BY
 			commit_number ASC
 		`,

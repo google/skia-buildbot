@@ -140,12 +140,12 @@ func TestFromTimeRange_Success(t *testing.T) {
 
 	columnHeaders, commitNumbers, _, err := FromTimeRange(ctx, g, gittest.StartTime, gittest.StartTime.Add(2*time.Minute), false)
 	require.NoError(t, err)
-	assert.Equal(t, 2, len(columnHeaders))
+	assert.Equal(t, 3, len(columnHeaders))
 	assert.Equal(t, types.CommitNumber(0), columnHeaders[0].Offset)
 	assert.Equal(t, TimestampSeconds(gittest.StartTime.Unix()), columnHeaders[0].Timestamp)
 	assert.Equal(t, types.CommitNumber(1), columnHeaders[1].Offset)
 	assert.Equal(t, TimestampSeconds(gittest.StartTime.Add(time.Minute).Unix()), columnHeaders[1].Timestamp)
-	assert.Equal(t, []types.CommitNumber{0, 1}, commitNumbers)
+	assert.Equal(t, []types.CommitNumber{0, 1, 2}, commitNumbers)
 }
 
 func TestFromTimeRange_EmptySlicesIfNothingInTimeRange(t *testing.T) {
