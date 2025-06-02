@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/skerr"
@@ -143,7 +144,13 @@ func (s *SQLMetadataStore) GetMetadataMultiple(ctx context.Context, sourceFileNa
 			}
 			return skerr.Wrap(err)
 		}
-
+		mutex := sync.Mutex{}
+		// Need to add a mutex to avoid concurrent map writes on fileLinksAggregate.
+		addMetadata := func(fileName string, links map[string]string) {
+			mutex.Lock()
+			defer mutex.Unlock()
+			fileLinksAggregate[fileName] = links
+		}
 		for rows.Next() {
 			var source_file_id int
 			var links map[string]string
@@ -151,7 +158,7 @@ func (s *SQLMetadataStore) GetMetadataMultiple(ctx context.Context, sourceFileNa
 				return skerr.Wrapf(err, "Failed to scan links data.")
 			}
 			fileName := sourceMap[source_file_id]
-			fileLinksAggregate[fileName] = links
+			addMetadata(fileName, links)
 		}
 
 		return nil
