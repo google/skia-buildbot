@@ -60,7 +60,7 @@ type AndroidBugTemplateContext struct {
 	PreviousCommitLinks map[string]string
 
 	// Contains formatted names of affected test(s). Formatted as
-	// "{{test_class}}#{{test_method}}#{{device_name}}#{{os_version}}"
+	// "{{test_class}}#{{test_method}} ({{device_name}} {{os_version}})"
 	Tests []string
 }
 
@@ -191,7 +191,7 @@ func formatTests(metadata common.RegressionMetadata) []string {
 				testMethod := params["test_method"]
 				deviceName := params["device_name"]
 				osVersion := params["os_version"]
-				formattedString := fmt.Sprintf("%s#%s#%s#%s", testClass, testMethod, deviceName, osVersion)
+				formattedString := fmt.Sprintf("%s#%s (%s %s)", testClass, testMethod, deviceName, osVersion)
 				formattedTests = append(formattedTests, formattedString)
 			}
 		}

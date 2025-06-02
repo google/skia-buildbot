@@ -242,7 +242,7 @@ func TestProvider_Android2Config_Format(t *testing.T) {
 		AlertConfig:      &alerts.Alert{},
 	}
 	notificationData, err := prov.GetNotificationDataRegressionFound(context.Background(), metadata)
-	assert.Contains(t, notificationData.Body, "a#b#c#d")
+	assert.Contains(t, notificationData.Body, "a#b (c d)")
 	require.NoError(t, err)
 	require.NotNil(t, notificationData)
 }
@@ -310,7 +310,7 @@ func TestProvider_Android2Config_MultipleTraces_Format(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, notificationData)
 
-	assert.Contains(t, notificationData.Body, "a#b#c#d")
-	assert.Contains(t, notificationData.Body, "h#g#f#e")
-	assert.Contains(t, notificationData.Body, "h#b#f#d")
+	assert.Contains(t, notificationData.Body, "a#b (c d)")
+	assert.Contains(t, notificationData.Body, "h#g (f e)")
+	assert.Contains(t, notificationData.Body, "h#b (f d)")
 }
