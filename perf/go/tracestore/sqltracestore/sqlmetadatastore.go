@@ -107,6 +107,7 @@ func (s *SQLMetadataStore) GetMetadata(ctx context.Context, sourceFileName strin
 // The return value is a map where the key is the source file name and value is the map of links.
 func (s *SQLMetadataStore) GetMetadataMultiple(ctx context.Context, sourceFileNames []string) (map[string]map[string]string, error) {
 	fileLinksAggregate := map[string]map[string]string{}
+	mutex := sync.Mutex{}
 	err := util.ChunkIterParallelPool(ctx, len(sourceFileNames), 200, 50, func(ctx context.Context, startIdx, endIdx int) error {
 		sourceFileChunk := sourceFileNames[startIdx:endIdx]
 		var sb strings.Builder
@@ -144,7 +145,6 @@ func (s *SQLMetadataStore) GetMetadataMultiple(ctx context.Context, sourceFileNa
 			}
 			return skerr.Wrap(err)
 		}
-		mutex := sync.Mutex{}
 		// Need to add a mutex to avoid concurrent map writes on fileLinksAggregate.
 		addMetadata := func(fileName string, links map[string]string) {
 			mutex.Lock()
