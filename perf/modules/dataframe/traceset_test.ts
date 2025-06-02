@@ -228,7 +228,7 @@ describe('getLegend', () => {
 
   it('only one key returns empty legend', async () => {
     const keys = [
-      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest=Average,test=Total,v8_mode=pgo,',
+      'benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest=Average,test=Total,v8_mode=pgo',
     ];
     const df = generateFullDataFrame(
       { begin: 90, end: 120 },

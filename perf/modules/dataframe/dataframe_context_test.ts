@@ -202,18 +202,18 @@ describe('dataframe-repository', () => {
     const obj2 = { 3: { bugId: 3453, x: 8, y: 20 }, 8: { bugId: 5345, x: 29, y: 45 } };
     const obj3 = { 5: { bugId: 5675, x: 10, y: 30 } };
     dfRepo.userIssues = {
-      ',key=0,': obj1,
-      ',key=1,': obj2,
-      ',key=2,': obj3,
+      'key=0': obj1,
+      'key=1': obj2,
+      'key=2': obj3,
     };
 
     const expected = {
-      ',key=0,': obj1,
-      ',key=1,': { 3: { bugId: 345, x: -1, y: -1 }, 8: { bugId: 5345, x: 29, y: 45 } },
-      ',key=2,': obj3,
+      'key=0': obj1,
+      'key=1': { 3: { bugId: 345, x: -1, y: -1 }, 8: { bugId: 5345, x: 29, y: 45 } },
+      'key=2': obj3,
     };
 
-    await dfRepo.updateUserIssue(',key=1,', 3, 345);
+    await dfRepo.updateUserIssue('key=1', 3, 345);
 
     assert.deepEqual(dfRepo.userIssues, expected);
   });
@@ -227,19 +227,19 @@ describe('dataframe-repository', () => {
     const obj2 = { 3: { bugId: 3453, x: 8, y: 20 }, 8: { bugId: 5345, x: 29, y: 45 } };
     const obj3 = { 5: { bugId: 5675, x: 10, y: 30 } };
     dfRepo.userIssues = {
-      ',key=0,': obj1,
-      ',key=1,': obj2,
-      ',key=2,': obj3,
+      'key=0': obj1,
+      'key=1': obj2,
+      'key=2': obj3,
     };
 
     const expected = {
-      ',key=0,': obj1,
-      ',key=1,': obj2,
-      ',key=2,': obj3,
-      ',key=3,': { 6: { bugId: 6767, x: -1, y: -1 } },
+      'key=0': obj1,
+      'key=1': obj2,
+      'key=2': obj3,
+      'key=3': { 6: { bugId: 6767, x: -1, y: -1 } },
     };
 
-    await dfRepo.updateUserIssue(',key=3,', 6, 6767);
+    await dfRepo.updateUserIssue('key=3', 6, 6767);
 
     assert.deepEqual(dfRepo.userIssues, expected);
   });
@@ -251,10 +251,10 @@ describe('dataframe-repository', () => {
     const dfRepo = newEl();
 
     const expected = {
-      ',key=k,': { 6: { bugId: 6767, x: -1, y: -1 } },
+      'key=k': { 6: { bugId: 6767, x: -1, y: -1 } },
     };
 
-    await dfRepo.updateUserIssue(',key=k,', 6, 6767);
+    await dfRepo.updateUserIssue('key=k', 6, 6767);
 
     assert.deepEqual(dfRepo.userIssues, expected);
   });

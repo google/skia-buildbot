@@ -36,7 +36,7 @@ import { AnomalyMap, ColumnHeader, ShiftRequest, ShiftResponse, TraceMetadata } 
 import { DataFrame, FrameRequest, FrameResponse, Trace, TraceSet, ReadOnlyParamSet } from '../json';
 import { startRequest, messageByName } from '../progress/progress';
 import { convertFromDataframe } from '../common/plot-builder';
-import { removeSpecialFunctions } from '../paramtools';
+import { formatSpecialFunctions } from '../paramtools';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 
 // Holds issue data for a single data point.
@@ -567,7 +567,7 @@ export class DataFrameRepository extends LitElement {
     // those functions from the traceKey. This is done to make sure
     // the user issue is reflected for the normalized, etc transformations of
     // the graph.
-    const modifiedTraceKeys = traceKeys.map((k) => removeSpecialFunctions(k));
+    const modifiedTraceKeys = traceKeys.map((k) => formatSpecialFunctions(k));
 
     const req: UserIssuesRequest = {
       trace_keys: modifiedTraceKeys,
@@ -612,7 +612,7 @@ export class DataFrameRepository extends LitElement {
     // those functions from the traceKey. This is done to make sure
     // the user issue is reflected for the normalized, etc transformations of
     // the graph.
-    const modifiedTraceKey = removeSpecialFunctions(traceKey);
+    const modifiedTraceKey = formatSpecialFunctions(traceKey);
 
     const updatedIssue = { bugId: bugId, x: -1, y: -1 };
     if (issues === null) {

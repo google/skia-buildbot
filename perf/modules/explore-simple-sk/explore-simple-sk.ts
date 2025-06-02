@@ -115,7 +115,7 @@ import {
 import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
-import { fromKey, paramsToParamSet, removeSpecialFunctions } from '../paramtools';
+import { fromKey, paramsToParamSet, formatSpecialFunctions } from '../paramtools';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
@@ -2882,7 +2882,7 @@ export class ExploreSimpleSk extends ElementSk {
     // is looked up directly from the dataframe object.
     const extractedKeyMap: { [key: string]: string } = {};
     Object.keys(df.traceset).forEach((unextractedTrace) => {
-      const extractedKey = removeSpecialFunctions(unextractedTrace);
+      const extractedKey = formatSpecialFunctions(unextractedTrace);
       extractedKeyMap[extractedKey] = unextractedTrace;
     });
 

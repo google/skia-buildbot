@@ -2,7 +2,7 @@ import '@google-web-components/google-chart';
 
 import { DataFrame } from '../json';
 import { DataTable } from './dataframe_context';
-import { removeSpecialFunctions } from '../paramtools';
+import { formatSpecialFunctions as formatSpecialFunctions } from '../paramtools';
 
 export const labelKeys = [
   'master',
@@ -111,24 +111,31 @@ export const getLegend = (dt: DataTable): object[] => {
   // skip the first two columns since they are domains
   for (let i = 2; i < numCols; i++) {
     const k = dt!.getColumnLabel(i);
-    const formattedKey = removeSpecialFunctions(k);
-    traceKeys.push(formattedKey);
+    const formattedKey = formatSpecialFunctions(k);
+    // There are special traces with no data, only "special_zero" as the trace name.
+    // They do not show any data on the graph, so we remove them.
+    if (formattedKey !== 'special_zero') {
+      traceKeys.push(formattedKey);
+    }
   }
   const pairs = convertKeysToPairs(traceKeys);
 
   const uniqKVP = [];
   // for each key, split the traceKey into key-value pairs
   // and filter for entries that do not appear across all traceKeys
-  for (const key of traceKeys) {
-    const kvp = key.split(',').filter((pair) => pair.length);
-    const uniq = kvp.filter((item) => pairs.filter((x) => x === item).length < traceKeys.length);
-    uniqKVP.push(
-      Object.fromEntries(
-        uniq.map((item) => {
-          return item.split('=');
-        })
-      )
-    );
+
+  if (traceKeys.length >= 1) {
+    for (const key of traceKeys) {
+      const kvp = key.split(',').filter((pair) => pair.length);
+      const uniq = kvp.filter((item) => pairs.filter((x) => x === item).length < traceKeys.length);
+      uniqKVP.push(
+        Object.fromEntries(
+          uniq.map((item) => {
+            return item.split('=');
+          })
+        )
+      );
+    }
   }
 
   // Get all unique keys from the objects in the array
@@ -157,7 +164,7 @@ export const getLegend = (dt: DataTable): object[] => {
 function convertKeysToPairs(traceKeys: string[]) {
   return traceKeys
     .map((key) => {
-      const formattedKey = removeSpecialFunctions(key);
+      const formattedKey = formatSpecialFunctions(key);
       return formattedKey.split(',').filter((pair) => pair.length);
     })
     .flat();

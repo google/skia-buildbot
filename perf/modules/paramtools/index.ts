@@ -16,7 +16,7 @@ export function makeKey(params: Params | { [key: string]: string }): string {
 
 /** Parse a structured key into a Params. */
 export function fromKey(structuredKey: string, attribute?: string): Params {
-  const k = removeSpecialFunctions(structuredKey);
+  const k = formatSpecialFunctions(structuredKey);
   const ret = Params({});
   k.split(',').forEach((keyValue) => {
     if (!keyValue) {
@@ -40,14 +40,16 @@ export function fromKey(structuredKey: string, attribute?: string): Params {
  *
  * transforms into
  *
- * ,a=1,b=2,c=3,
+ * a=1,b=2,c=3
+ *
+ * If the Key is sepecial_zero without key name, then
  *
  * @param {string} key - A trace key.
  *
  * @returns {string} - Trace key with the special functions removed
  * from itself.
  */
-export function removeSpecialFunctions(key: string): string {
+export function formatSpecialFunctions(key: string): string {
   const funcKeyRegex = new RegExp(/\w+\(,.*,\)/);
   const isFuncKey = key.match(funcKeyRegex);
   // If the key matches the pattern, e.g: norm(,a=1,b=2,c=3,), then extract strings inside
@@ -72,7 +74,7 @@ function extractNonKeyValuePairsInKey(key: string): string {
       return null;
     })
     .filter((result): result is string => result !== null);
-  return ',' + removeSpecialZeroKey.join(',') + ',';
+  return removeSpecialZeroKey.join(',');
 }
 
 /** Checks that the trace id isn't a calculation or special_* trace. */

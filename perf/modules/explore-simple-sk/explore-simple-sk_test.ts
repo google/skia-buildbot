@@ -133,10 +133,10 @@ describe('addGraphCoordinatesToUserIssues', () => {
   it('adds plot coordinates to user issues', () => {
     const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     const keys = [
-      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest=Average,test=Total,v8_mode=pgo,',
-      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Average,test=Total,v8_mode=default,',
-      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default,',
-      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,',
+      'benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest=Average,test=Total,v8_mode=pgo',
+      'benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Average,test=Total,v8_mode=default',
+      'benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default',
+      'benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total',
     ];
     const df = generateFullDataFrame(
       { begin: 90, end: 120 },
@@ -148,7 +148,7 @@ describe('addGraphCoordinatesToUserIssues', () => {
     );
 
     const trace =
-      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default,';
+      'benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default';
     const offset = df.header![1]?.offset || -1;
     const value = df.traceset![trace][1];
 
