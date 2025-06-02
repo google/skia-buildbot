@@ -12,7 +12,7 @@
     "data_store_config": {
       "datastore_type": "spanner",
       "connection_string": "postgresql://root@localhost:5432/crystalball?sslmode=disable",
-      "tile_size": 512,
+      "tile_size": 8192,
       "min_db_connections": 5
     },
     "ingestion_config": {
@@ -34,7 +34,7 @@
       "dir": "/tmp/crystalball",
       "debounce_commit_url": false,
       "branch": "androidx-main",
-      "start_commit": "1a4c450e08d83b4f0d1fbb32b6435a718af81ce7"
+      "start_commit": "1f0b8f89aa85265e67f4c8c9a64f404e5f964391"
     },
     "query_config": {
       "default_url_values": {
