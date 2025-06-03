@@ -5,6 +5,7 @@
 package structuredlogging
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -14,7 +15,6 @@ import (
 	"strings"
 
 	"cloud.google.com/go/logging"
-	"github.com/google/uuid"
 	"go.skia.org/infra/go/sklog/sklogimpl"
 )
 
@@ -112,20 +112,12 @@ func (s *StructuredLogger) Flush() {
 
 type LogEntry struct {
 	HTTPRequest    *LogEntryHTTPRequest    `json:"httpRequest,omitempty"`
-	JSONPayload    string                  `json:"jsonPayload,omitempty"`
-	Labels         map[string]string       `json:"labels,omitempty"`
-	Operation      *LogEntryOperation      `json:"operation,omitempty"`
+	Labels         map[string]string       `json:"logging.googleapis.com/labels,omitempty"`
+	Message        string                  `json:"message,omitempty"`
+	Operation      *LogEntryOperation      `json:"logging.googleapis.com/operation,omitempty"`
 	Severity       logging.Severity        `json:"severity,omitempty"`
-	SourceLocation *LogEntrySourceLocation `json:"sourceLocation,omitempty"`
-	Split          *LogEntrySplit          `json:"split,omitempty"`
-	TextPayload    string                  `json:"textPayload,omitempty"`
-	Trace          string                  `json:"trace,omitempty"`
-}
-
-type LogEntrySplit struct {
-	UID         string `json:"uid"`
-	Index       int    `json:"index"`
-	TotalSplits int    `json:"totalSplits"`
+	SourceLocation *LogEntrySourceLocation `json:"logging.googleapis.com/sourceLocation,omitempty"`
+	Trace          string                  `json:"logging.googleapis.com/trace,omitempty"`
 }
 
 type LogEntryHTTPRequest struct {
@@ -160,7 +152,13 @@ type LogEntrySourceLocation struct {
 }
 
 func (s *StructuredLogger) LogCtx(ctx context.Context, depth int, severity sklogimpl.Severity, tmpl string, args ...interface{}) {
-	s.emit(ctx, depth, severity, fmt.Sprintf(tmpl, args...))
+	var buf bytes.Buffer
+	if tmpl == "" {
+		fmt.Fprint(&buf, args...)
+	} else {
+		fmt.Fprintf(&buf, tmpl, args...)
+	}
+	s.emit(ctx, depth, severity, buf.String())
 	if severity == sklogimpl.Fatal {
 		trace := stacks(true)
 		s.emit(ctx, depth, severity, string(trace))
@@ -192,28 +190,18 @@ func stacks(all bool) []byte {
 func (s *StructuredLogger) emit(ctx context.Context, depth int, severity sklogimpl.Severity, msg string) {
 	loc := sourceLocation(depth)
 	c := getCtx(ctx)
-	splitMsg := splitMessage(msg)
-	for index, msg := range splitMsg {
-		entry := LogEntry{
-			Severity:       convertSeverity(severity),
-			SourceLocation: loc,
-			TextPayload:    msg,
-		}
-		if len(splitMsg) > 1 {
-			entry.Split = &LogEntrySplit{
-				UID:         uuid.New().String(),
-				Index:       index,
-				TotalSplits: len(splitMsg),
-			}
-		}
-		if c != nil {
-			entry.Labels = c.Labels
-			entry.HTTPRequest = c.HTTPRequest
-			entry.Operation = c.Operation
-		}
-		b, _ := json.Marshal(entry)
-		_, _ = s.file.Write(append(b, '\n'))
+	entry := LogEntry{
+		Message:        msg,
+		Severity:       convertSeverity(severity),
+		SourceLocation: loc,
 	}
+	if c != nil {
+		entry.Labels = c.Labels
+		entry.HTTPRequest = c.HTTPRequest
+		entry.Operation = c.Operation
+	}
+	b, _ := json.Marshal(entry)
+	_, _ = s.file.Write(append(b, '\n'))
 }
 
 func convertSeverity(severity sklogimpl.Severity) logging.Severity {
@@ -247,11 +235,6 @@ func sourceLocation(depth int) *LogEntrySourceLocation {
 		File: file,
 		Line: strconv.Itoa(line),
 	}
-}
-
-func splitMessage(msg string) []string {
-	// TODO(borenet): Split on newlines according to maximum log entry size.
-	return strings.Split(msg, "\n")
 }
 
 var (

@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"flag"
 	"net/http"
 	"os"
@@ -62,5 +64,24 @@ multiline
 			log.Infof(ctx, "blah %d", 284)
 		}
 	}()
+	go func() {
+		largeLogString := makeString(550 * 1024)
+		sklog.Info(largeLogString)
+		for range time.Tick(10 * time.Minute) {
+			sklog.Info(largeLogString)
+		}
+	}()
 	sklog.Fatal(http.ListenAndServe(*port, nil))
+}
+
+func makeString(numBytes int) string {
+	b := make([]byte, numBytes)
+	if n, err := rand.Read(b); err != nil {
+		sklog.Errorf("Failed to generate string: %s", err)
+		return ""
+	} else if n != numBytes {
+		sklog.Errorf("Failed to generate string: generated %d bytes instead of %d", n, numBytes)
+		return ""
+	}
+	return base64.StdEncoding.EncodeToString(b)
 }
