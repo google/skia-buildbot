@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "server_lib",
+    srcs = ["server.go"],
+    importpath = "go.skia.org/infra/mcp/server",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/sklog/sklogimpl",
+        "//go/sklog/stdlogging",
+        "//go/urfavecli",
+        "//mcp/common",
+        "//mcp/services/helloworld",
+        "@com_github_go_chi_chi_v5//:chi",
+        "@com_github_urfave_cli_v2//:cli",
+    ],
+)
+
+go_binary(
+    name = "server",
+    embed = [":server_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "server_test",
+    srcs = ["server_test.go"],
+    embed = [":server_lib"],
+    deps = ["@com_github_stretchr_testify//assert"],
+)

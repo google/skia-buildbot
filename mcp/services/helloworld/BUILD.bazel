@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "helloworld",
+    srcs = ["service.go"],
+    importpath = "go.skia.org/infra/mcp/services/helloworld",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "@com_github_go_chi_chi_v5//:chi",
+    ],
+)

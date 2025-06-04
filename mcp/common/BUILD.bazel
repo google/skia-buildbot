@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "common",
+    srcs = ["mcpservice.go"],
+    importpath = "go.skia.org/infra/mcp/common",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_go_chi_chi_v5//:chi"],
+)
