@@ -1,9 +1,10 @@
 package helloworld
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/invopop/jsonschema"
+	"github.com/mark3labs/mcp-go/mcp"
 	"go.skia.org/infra/mcp/common"
 )
 
@@ -21,16 +22,21 @@ func (s HelloWorldService) GetTools() []common.Tool {
 		{
 			Name:        "sayhello",
 			Description: "Says hello to the caller.",
-			InputSchema: jsonschema.Schema{
-				Type: "string",
+			Arguments: []common.ToolArgument{
+				{
+					Name:        "name",
+					Description: "Name of the user",
+					Required:    true,
+				},
+			},
+			Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+				name, err := request.RequireString("name")
+				if err != nil {
+					return mcp.NewToolResultError(err.Error()), nil
+				}
+
+				return mcp.NewToolResultText(fmt.Sprintf("Hello, %s!", name)), nil
 			},
 		},
-	}
-}
-
-// CallTool invokes the specified tool.
-func (s HelloWorldService) CallTool(request common.CallToolRequest) common.CallToolResponse {
-	return common.CallToolResponse{
-		Result: fmt.Sprintf("Hello %s", request.Arguments["user"]),
 	}
 }

@@ -11,7 +11,7 @@ func TestCreateServer_Success(t *testing.T) {
 		ServiceName: string(HelloWorld),
 	}
 
-	server, err := createMcpServer(flags)
+	server, err := createMcpSSEServer(flags)
 	assert.Nil(t, err)
 	assert.NotNil(t, server)
 }
@@ -21,7 +21,7 @@ func TestCreateServer_Invalid(t *testing.T) {
 		ServiceName: "random",
 	}
 
-	server, err := createMcpServer(flags)
+	server, err := createMcpSSEServer(flags)
 	assert.NotNil(t, err)
 	assert.Nil(t, server)
 }

@@ -1335,6 +1335,12 @@ def go_repositories():
         version = "v1.0.0",
     )
     go_repository(
+        name = "com_github_mark3labs_mcp_go",
+        importpath = "github.com/mark3labs/mcp-go",
+        sum = "h1:4UxSV8aM770OPmTvaVe/b1rA2oZAjBMhGBfUgOGut+4=",
+        version = "v0.31.0",
+    )
+    go_repository(
         name = "com_github_maruel_subcommands",
         importpath = "github.com/maruel/subcommands",
         sum = "h1:+063/UDFVMvzZcyo8qlfpPhmjeLsT9yLUq+IKgqBWHI=",
@@ -2101,6 +2107,12 @@ def go_repositories():
         importpath = "github.com/yannh/kubeconform",
         sum = "h1:lNmb/kphyzitA+GBsOxjBsagCEpjLvt3+qo3XMiEOUA=",
         version = "v0.6.3",
+    )
+    go_repository(
+        name = "com_github_yosida95_uritemplate_v3",
+        importpath = "github.com/yosida95/uritemplate/v3",
+        sum = "h1:Ed3Oyj9yrmi9087+NczuL5BwkIc4wvTb5zIM+UJPGz4=",
+        version = "v3.0.2",
     )
     go_repository(
         name = "com_github_yosuke_furukawa_json5",

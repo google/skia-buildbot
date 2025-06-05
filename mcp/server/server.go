@@ -1,14 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/mark3labs/mcp-go/server"
 	"github.com/urfave/cli/v2"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/sklogimpl"
@@ -52,12 +50,6 @@ func (flags *mcpFlags) AsCliFlags() []cli.Flag {
 	}
 }
 
-// mcpserver defines a struct to manage the running service.
-type mcpserver struct {
-	service    common.McpService
-	httpServer *http.Server
-}
-
 // Cmd execution entry point.
 func main() {
 	var mcpFlags mcpFlags
@@ -80,12 +72,13 @@ func main() {
 				Flags:       (&mcpFlags).AsCliFlags(),
 				Action: func(c *cli.Context) error {
 					urfavecli.LogFlags(c)
-					server, err := createMcpServer(&mcpFlags)
+					sseServer, err := createMcpSSEServer(&mcpFlags)
 					if err != nil {
 						return err
 					}
-					sklog.Infof("Service listening on %s", server.httpServer.Addr)
-					sklog.Fatal(server.Serve())
+					if err := sseServer.Start(":8080"); err != nil {
+						sklog.Fatalf("Error: %v", err)
+					}
 					return nil
 				},
 			},
@@ -101,7 +94,7 @@ func main() {
 
 // createMcpServer creates a new server that hosts the service based on the
 // information in the mcpFlags.
-func createMcpServer(mcpFlags *mcpFlags) (*mcpserver, error) {
+func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 	var service common.McpService
 	switch mcpFlags.ServiceName {
 	case string(HelloWorld):
@@ -109,59 +102,31 @@ func createMcpServer(mcpFlags *mcpFlags) (*mcpserver, error) {
 	}
 
 	if service == nil {
-		return nil, skerr.Fmt("Invalid service name %s specified.", mcpFlags.ServiceName)
+		return nil, skerr.Fmt("Invalid service %s", mcpFlags.ServiceName)
+	}
+	s := server.NewMCPServer(
+		"Chrome Infra",
+		"0.0.0",
+		server.WithResourceCapabilities(true, true),
+		server.WithToolCapabilities(true),
+	)
+
+	tools := service.GetTools()
+	for _, tool := range tools {
+		options := []mcp.ToolOption{mcp.WithDescription(tool.Description)}
+		for _, arg := range tool.Arguments {
+			propOptions := []mcp.PropertyOption{}
+			if arg.Required {
+				propOptions = append(propOptions, mcp.Required())
+			}
+			propOptions = append(propOptions, mcp.Description(arg.Description))
+			options = append(options, mcp.WithString(arg.Name, propOptions...))
+		}
+		mcpToolSpec := mcp.NewTool(tool.Name, options...)
+		s.AddTool(mcpToolSpec, tool.Handler)
 	}
 
-	sklog.Infof("Initializing service %s", mcpFlags.ServiceName)
-	err := service.Init(mcpFlags.ServiceArgs)
-	if err != nil {
-		return nil, err
-	}
+	sseServer := server.NewSSEServer(s, server.WithBaseURL("http://localhost:8080"), server.WithKeepAlive(true))
 
-	mcpServer := &mcpserver{
-		service: service,
-	}
-	router := chi.NewRouter()
-
-	// The endpoints below are required as a part of the mcp protocol.
-	router.Get("/tools/list", mcpServer.listToolsHandler)
-	router.Post("/tools/call", mcpServer.callToolHandler)
-
-	sklog.Info("Registered MCP api handlers.")
-	handler := httputils.LoggingGzipRequestResponse(router)
-	http.Handle("/", handler)
-
-	mcpServer.httpServer = &http.Server{
-		Addr:    ":8080",
-		Handler: handler,
-	}
-
-	return mcpServer, nil
-}
-
-// Serve starts the http server to take incoming requests.
-func (s *mcpserver) Serve() error {
-	return s.httpServer.ListenAndServe()
-}
-
-// listToolsHandler is the handler that returns a list of supported tools.
-func (s *mcpserver) listToolsHandler(w http.ResponseWriter, r *http.Request) {
-	tools := s.service.GetTools()
-	if err := json.NewEncoder(w).Encode(tools); err != nil {
-		sklog.Errorf("Error writing tools information: %v", err)
-	}
-}
-
-// callToolHandler invokes the specified tool with the given arguments.
-func (s *mcpserver) callToolHandler(w http.ResponseWriter, r *http.Request) {
-	var req common.CallToolRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusBadRequest)
-		return
-	}
-
-	response := s.service.CallTool(req)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		sklog.Errorf("Error writing tools information: %v", err)
-	}
+	return sseServer, nil
 }

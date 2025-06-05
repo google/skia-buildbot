@@ -7,6 +7,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//mcp/common",
-        "@com_github_invopop_jsonschema//:jsonschema",
+        "@com_github_mark3labs_mcp_go//mcp",
     ],
 )

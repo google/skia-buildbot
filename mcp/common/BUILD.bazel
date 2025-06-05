@@ -8,5 +8,5 @@ go_library(
     ],
     importpath = "go.skia.org/infra/mcp/common",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_invopop_jsonschema//:jsonschema"],
+    deps = ["@com_github_mark3labs_mcp_go//mcp"],
 )

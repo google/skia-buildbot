@@ -7,7 +7,4 @@ type McpService interface {
 
 	// GetTools returns all the tools supported by the McpService.
 	GetTools() []Tool
-
-	// CallTool invokes a tool based on the request.
-	CallTool(request CallToolRequest) CallToolResponse
 }

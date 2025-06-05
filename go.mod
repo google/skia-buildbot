@@ -56,6 +56,7 @@ require (
 	github.com/jcgregorio/logger v0.1.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kisielk/errcheck v1.5.0
+	github.com/mark3labs/mcp-go v0.31.0
 	github.com/miekg/dns v1.1.41
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/olekukonko/tablewriter v0.0.4
@@ -239,6 +240,7 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
+	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.29.0 // indirect
