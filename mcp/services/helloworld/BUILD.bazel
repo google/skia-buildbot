@@ -6,7 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/mcp/services/helloworld",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/sklog",
-        "@com_github_go_chi_chi_v5//:chi",
+        "//mcp/common",
+        "@com_github_invopop_jsonschema//:jsonschema",
     ],
 )

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -51,6 +52,12 @@ func (flags *mcpFlags) AsCliFlags() []cli.Flag {
 	}
 }
 
+// mcpserver defines a struct to manage the running service.
+type mcpserver struct {
+	service    common.McpService
+	httpServer *http.Server
+}
+
 // Cmd execution entry point.
 func main() {
 	var mcpFlags mcpFlags
@@ -77,8 +84,8 @@ func main() {
 					if err != nil {
 						return err
 					}
-					sklog.Infof("Service listening on %s", server.Addr)
-					sklog.Fatal(server.ListenAndServe())
+					sklog.Infof("Service listening on %s", server.httpServer.Addr)
+					sklog.Fatal(server.Serve())
 					return nil
 				},
 			},
@@ -92,9 +99,9 @@ func main() {
 	}
 }
 
-// StartMcpServer starts a new server that hosts the service based on the
+// createMcpServer creates a new server that hosts the service based on the
 // information in the mcpFlags.
-func createMcpServer(mcpFlags *mcpFlags) (*http.Server, error) {
+func createMcpServer(mcpFlags *mcpFlags) (*mcpserver, error) {
 	var service common.McpService
 	switch mcpFlags.ServiceName {
 	case string(HelloWorld):
@@ -111,15 +118,50 @@ func createMcpServer(mcpFlags *mcpFlags) (*http.Server, error) {
 		return nil, err
 	}
 
+	mcpServer := &mcpserver{
+		service: service,
+	}
 	router := chi.NewRouter()
 
-	sklog.Infof("Registering service handlers.")
-	service.RegisterHandlers(router)
+	// The endpoints below are required as a part of the mcp protocol.
+	router.Get("/tools/list", mcpServer.listToolsHandler)
+	router.Post("/tools/call", mcpServer.callToolHandler)
+
+	sklog.Info("Registered MCP api handlers.")
 	handler := httputils.LoggingGzipRequestResponse(router)
 	http.Handle("/", handler)
 
-	return &http.Server{
+	mcpServer.httpServer = &http.Server{
 		Addr:    ":8080",
 		Handler: handler,
-	}, nil
+	}
+
+	return mcpServer, nil
+}
+
+// Serve starts the http server to take incoming requests.
+func (s *mcpserver) Serve() error {
+	return s.httpServer.ListenAndServe()
+}
+
+// listToolsHandler is the handler that returns a list of supported tools.
+func (s *mcpserver) listToolsHandler(w http.ResponseWriter, r *http.Request) {
+	tools := s.service.GetTools()
+	if err := json.NewEncoder(w).Encode(tools); err != nil {
+		sklog.Errorf("Error writing tools information: %v", err)
+	}
+}
+
+// callToolHandler invokes the specified tool with the given arguments.
+func (s *mcpserver) callToolHandler(w http.ResponseWriter, r *http.Request) {
+	var req common.CallToolRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusBadRequest)
+		return
+	}
+
+	response := s.service.CallTool(req)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		sklog.Errorf("Error writing tools information: %v", err)
+	}
 }

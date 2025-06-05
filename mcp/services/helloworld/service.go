@@ -1,11 +1,10 @@
 package helloworld
 
 import (
-	"encoding/json"
-	"net/http"
+	"fmt"
 
-	"github.com/go-chi/chi/v5"
-	"go.skia.org/infra/go/sklog"
+	"github.com/invopop/jsonschema"
+	"go.skia.org/infra/mcp/common"
 )
 
 type HelloWorldService struct {
@@ -16,15 +15,22 @@ func (s HelloWorldService) Init(serviceArgs string) error {
 	return nil
 }
 
-// Register all the handlers for this service.
-func (s HelloWorldService) RegisterHandlers(router *chi.Mux) {
-	router.Get("/hello", s.hello)
+// GetTools returns the supported tools by the service.
+func (s HelloWorldService) GetTools() []common.Tool {
+	return []common.Tool{
+		{
+			Name:        "sayhello",
+			Description: "Says hello to the caller.",
+			InputSchema: jsonschema.Schema{
+				Type: "string",
+			},
+		},
+	}
 }
 
-// hello is the handler for the /hello api call.
-func (s HelloWorldService) hello(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode("Hello World"); err != nil {
-		sklog.Errorf("Failed to write JSON response: %s", err)
+// CallTool invokes the specified tool.
+func (s HelloWorldService) CallTool(request common.CallToolRequest) common.CallToolResponse {
+	return common.CallToolResponse{
+		Result: fmt.Sprintf("Hello %s", request.Arguments["user"]),
 	}
 }
