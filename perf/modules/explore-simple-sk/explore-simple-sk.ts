@@ -1800,7 +1800,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
       });
     }
-
+    this.updateBrowserURL();
     // If in multi-graph view, sync all graphs.
     // This event listener will not work on the alerts page
     detail.graphNumber = Array.from(this.parentNode!.children).indexOf(this);
@@ -1834,8 +1834,8 @@ export class ExploreSimpleSk extends ElementSk {
     if (this.plotSummary.value) {
       this.plotSummary.value.selectedValueRange = detail.value;
     }
+    this.updateBrowserURL();
     this.closeTooltip();
-
     // If in multi-graph view, sync all graphs.
     // This event listener will not work on the alerts page
     detail.graphNumber = Array.from(this.parentNode!.children).indexOf(this);
@@ -1856,6 +1856,60 @@ export class ExploreSimpleSk extends ElementSk {
     window.history.pushState(null, '', currentUrl.toString());
   }
 
+  private useBrowserURL(): void {
+    const currentUrl = new URL(window.location.href);
+    const commit = parseInt(currentUrl.searchParams.get('commit') ?? '');
+    const column = parseInt(currentUrl.searchParams.get('trace') ?? '');
+    const graph = parseInt(currentUrl.searchParams.get('graph') ?? '0');
+
+    if (this.state.graph_index === 0) {
+      const begin = parseInt(currentUrl.searchParams.get('begin') ?? '');
+      const end = parseInt(currentUrl.searchParams.get('end') ?? '');
+      if (isNaN(begin) || isNaN(end)) {
+        return;
+      }
+      const beginIndex =
+        this.dfRepo.value?.header.findIndex((header) => header?.timestamp === begin) ?? -1;
+      const endIndex =
+        this.dfRepo.value?.header.findIndex((header) => header?.timestamp === end) ?? -1;
+      if (beginIndex === -1 || endIndex === -1) {
+        errorMessage(`Timestamp(s) not found in the dataframe: ${begin}, ${end}`);
+        return;
+      }
+      const beginCommit = this.dfRepo.value?.header[beginIndex]?.offset;
+      const endCommit = this.dfRepo.value?.header[endIndex]?.offset;
+      if (beginCommit === undefined || endCommit === undefined) {
+        errorMessage(`Begin or end commit offset not found in the dataframe.`);
+        return;
+      }
+
+      const graphNumber = Array.from(this.parentNode!.children).indexOf(this);
+      const detail: PlotSummarySkSelectionEventDetails = {
+        graphNumber: graphNumber,
+        value: { begin: beginCommit, end: endCommit },
+        domain: 'commit',
+        start: 0,
+        end: 0,
+      };
+      this.plotSummary.value!.selectedValueRange = detail.value;
+      this.summarySelected(new CustomEvent('summary_selected', { detail: detail }));
+    }
+
+    if (this.state.graph_index === graph && commit && !isNaN(commit)) {
+      // If the commit is specified, we need to select it in the chart.
+      const commitIndex =
+        this.dfRepo.value?.header.findIndex((header) => header?.offset === commit) ?? -1;
+      if (commitIndex === -1) {
+        errorMessage(`Commit not found in the dataframe: ${commit}`);
+        return;
+      }
+      const googlePlot = this.googleChartPlot.value;
+      if (googlePlot) {
+        googlePlot.selectCommit(commitIndex, column);
+      }
+    }
+  }
+
   /**
    * Updates the browser URL with the new begin and end values.
    * This is used to reflect the current state of the graph in the URL.
@@ -1867,21 +1921,6 @@ export class ExploreSimpleSk extends ElementSk {
       currentUrl.searchParams.set('graph', this.state.graph_index.toString());
       currentUrl.searchParams.set('commit', this.state.selected.commit.toString());
       currentUrl.searchParams.set('trace', this._state.selected.tableCol.toString());
-    } else if (currentUrl.searchParams.has('commit') && currentUrl.searchParams.has('trace')) {
-      const commit = parseInt(currentUrl.searchParams.get('commit') ?? '');
-      const row = this.dfRepo.value?.header.findIndex((header) => header?.offset === commit) ?? -1;
-      if (row === -1) {
-        errorMessage(`Commit not found in the dataframe: ${commit}`);
-        return;
-      }
-      const column = parseInt(currentUrl.searchParams.get('trace') ?? '');
-      const graph = parseInt(currentUrl.searchParams.get('graph') ?? '0');
-      if (this.state.graph_index === graph) {
-        const googlePlot = this.googleChartPlot.value;
-        if (googlePlot) {
-          googlePlot.selectCommit(row, column);
-        }
-      }
     }
     try {
       // Update the URL with the current range.
@@ -1961,8 +2000,6 @@ export class ExploreSimpleSk extends ElementSk {
     if (replot) {
       plot.removeAll();
       this.AddPlotLines(subDataframe.traceset, this.getLabels(subDataframe.header!));
-    } else {
-      this.updateBrowserURL();
     }
 
     if (anomalyMap) {
@@ -2853,6 +2890,7 @@ export class ExploreSimpleSk extends ElementSk {
         // The data is supposed to be already loaded.
         // Let's simply make the selection on the summary.
         this.plotSummary.value?.SelectRange(selectedRange!);
+        this.useBrowserURL();
       } else {
         this.plotSummary.value?.Select(header![0]!, header[header.length - 1]!);
         this.dfRepo.value?.extendRange(-3 * monthInSec).then(() => {
@@ -2861,6 +2899,7 @@ export class ExploreSimpleSk extends ElementSk {
         });
         this.dfRepo.value?.extendRange(3 * monthInSec).then(() => {
           this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit', false);
+          this.useBrowserURL();
         });
       }
     }

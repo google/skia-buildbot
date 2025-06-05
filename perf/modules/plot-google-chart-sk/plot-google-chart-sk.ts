@@ -1299,7 +1299,10 @@ export class PlotGoogleChartSk extends LitElement {
       return;
     }
     google.visualization.events.addListener(this.chart, 'ready', () => {
-      if (this.chart) {
+      const currentUrl = new URL(window.location.href);
+      const commit = parseInt(currentUrl.searchParams.get('commit') ?? '');
+
+      if (this.chart && commit) {
         this.chart.setSelection([{ row: row, column: column - 1 }]);
         google.visualization.events.trigger(this.chart, 'select', {});
       }
