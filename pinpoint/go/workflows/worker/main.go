@@ -99,6 +99,9 @@ func main() {
 	w.RegisterActivity(internal.PostBugCommentActivity)
 	w.RegisterWorkflowWithOptions(internal.PostBugCommentWorkflow, workflow.RegisterOptions{Name: workflows.BugUpdate})
 
+	w.RegisterActivity(internal.ReadGitFileActivity)
+	w.RegisterWorkflowWithOptions(internal.CbbRunnerWorkflow, workflow.RegisterOptions{Name: workflows.CbbRunner})
+
 	// TODO(b/322203189) - Remove Catapult workflows and activities once the backwards
 	// UI compatibility is no longer needed and thus the catapult package is deprecated.
 	w.RegisterActivity(catapult.FetchTaskActivity)

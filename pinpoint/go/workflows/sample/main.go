@@ -50,6 +50,7 @@ var (
 	triggerPairwiseFlag       = flag.Bool("pairwise", false, "toggle true to trigger pairwise workflow")
 	triggerBugUpdateFlag      = flag.Bool("update-bug", false, "toggle true to trigger post bug comment workflow")
 	triggerQueryPairwiseFlag  = flag.Bool("query-pairwise", false, "toggle true to trigger querying of pairwise flows")
+	triggerCbbFlag            = flag.Bool("cbb", false, "toggle true to trigger CBB runner workflow")
 )
 
 func defaultWorkflowOptions() client.StartWorkflowOptions {
@@ -312,6 +313,31 @@ func triggerQueryPairwise(c client.Client) (*pb.QueryPairwiseResponse, error) {
 	return nil, nil
 }
 
+func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
+	ctx := context.Background()
+	p := &internal.CbbRunnerParams{
+		BotConfig: "mac-m3-pro-perf-cbb",
+		Commit:    common.NewCombinedCommit(common.NewChromiumCommit(*commit)),
+		Browser:   "chrome",
+		Channel:   "stable",
+		// For testing purposes, this is currently hardcoded to run 2 iterations of Speedometer 3.
+		// A mechanism will be added in the future to allow specifying benchmarks and iterations
+		// on the command line.
+		Benchmarks: []internal.BenchmarkRunConfig{{Benchmark: "speedometer3", Iterations: 2}},
+	}
+	var cr *internal.CommitRun
+	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.CbbRunner, p)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Unable to execute workflow")
+	}
+	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+	if err := we.Get(ctx, &cr); err != nil {
+		return nil, skerr.Wrapf(err, "Unable to get result")
+	}
+	return cr, nil
+}
+
 // Sample client to trigger a BuildChrome workflow.
 func main() {
 	flag.Parse()
@@ -356,6 +382,9 @@ func main() {
 	}
 	if *triggerQueryPairwiseFlag {
 		result, err = triggerQueryPairwise(c)
+	}
+	if *triggerCbbFlag {
+		result, err = triggerCbbRunner(c)
 	}
 	if err != nil {
 		sklog.Errorf("Workflow failed:", err)
