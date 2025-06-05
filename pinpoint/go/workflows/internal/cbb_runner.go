@@ -125,7 +125,6 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (any, error) 
 			BotConfig:      cbb.BotConfig,
 			Benchmark:      b.Benchmark + ".crossbench",
 			Story:          "default",
-			Chart:          "Score",
 			CombinedCommit: cbb.Commit,
 			Iterations:     b.Iterations,
 			ExtraArgs:      []string{browser},

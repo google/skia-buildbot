@@ -178,14 +178,21 @@ func runBenchmark(ctx workflow.Context, cc *common.CombinedCommit, cas *apipb.CA
 	}
 
 	// TODO(b/327224992): Should surface CAS errors here in case the test results don't exist.
-	var lv []float64
-	if err := workflow.ExecuteActivity(ctx, CollectValuesActivity, tr, scrp.Benchmark, scrp.Chart, scrp.AggregationMethod).Get(ctx, &lv); err != nil {
-		return nil, err
+	if scrp.Chart != "" {
+		var lv []float64
+		if err := workflow.ExecuteActivity(ctx, CollectValuesActivity, tr, scrp.Benchmark, scrp.Chart, scrp.AggregationMethod).Get(ctx, &lv); err != nil {
+			return nil, err
+		}
+
+		tr.Values = map[string][]float64{
+			scrp.Chart: lv,
+		}
+	} else {
+		if err := workflow.ExecuteActivity(ctx, CollectAllValuesActivity, tr, scrp.Benchmark, scrp.AggregationMethod).Get(ctx, &tr.Values); err != nil {
+			return nil, err
+		}
 	}
 
-	tr.Values = map[string][]float64{
-		scrp.Chart: lv,
-	}
 	return tr, nil
 }
 
