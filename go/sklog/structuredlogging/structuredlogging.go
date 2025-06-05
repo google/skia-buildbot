@@ -7,14 +7,15 @@ package structuredlogging
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
+	"iter"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"cloud.google.com/go/logging"
+	"cloud.google.com/go/logging/apiv2/loggingpb"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/sklogimpl"
 )
 
@@ -88,67 +89,48 @@ func Flush() {
 	logger.Flush()
 }
 
-var logger = New(os.Stderr)
+var logger *StructuredLogger
 
-type StructuredLogger struct {
-	file *os.File
+func init() {
+	l, err := New(context.Background(), os.Stderr)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	logger = l
 }
 
-func New(dst *os.File) *StructuredLogger {
+func Logger() *StructuredLogger {
+	return logger
+}
+
+type StructuredLogger struct {
+	logger *logging.Logger
+}
+
+func New(ctx context.Context, file *os.File) (*StructuredLogger, error) {
+	logsClient, err := logging.NewClient(
+		ctx, "fake-project-id" /* Unused with RedirectAsJSON */)
+	if err != nil {
+		return nil, err
+	}
+	logger := logsClient.Logger(
+		"fake-log-id", /* Unused with RedirectAsJSON */
+		logging.RedirectAsJSON((file)))
 	return &StructuredLogger{
-		file: dst,
+		logger: logger,
+	}, nil
+}
+
+// Flush implements sklogimpl.Logger.
+func (s *StructuredLogger) Flush() {
+	if err := s.logger.Flush(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to flush logging.Logger: %s", err)
 	}
 }
 
 // Log implements sklogimpl.Logger.
 func (s *StructuredLogger) Log(depth int, severity sklogimpl.Severity, tmpl string, args ...interface{}) {
-	s.LogCtx(context.Background(), depth, severity, tmpl, args...)
-}
-
-// flush implements sklogimpl.Logger.
-func (s *StructuredLogger) Flush() {
-	_ = s.file.Sync()
-}
-
-type LogEntry struct {
-	HTTPRequest    *LogEntryHTTPRequest    `json:"httpRequest,omitempty"`
-	Labels         map[string]string       `json:"logging.googleapis.com/labels,omitempty"`
-	Message        string                  `json:"message,omitempty"`
-	Operation      *LogEntryOperation      `json:"logging.googleapis.com/operation,omitempty"`
-	Severity       logging.Severity        `json:"severity,omitempty"`
-	SourceLocation *LogEntrySourceLocation `json:"logging.googleapis.com/sourceLocation,omitempty"`
-	Trace          string                  `json:"logging.googleapis.com/trace,omitempty"`
-}
-
-type LogEntryHTTPRequest struct {
-	RequestMethod                  string `json:"requestMethod,omitempty"`
-	RequestUrl                     string `json:"requestUrl,omitempty"`
-	RequestSize                    string `json:"requestSize,omitempty"`
-	Status                         int    `json:"status,omitempty"`
-	ResponseSize                   string `json:"responseSize,omitempty"`
-	UserAgent                      string `json:"userAgent,omitempty"`
-	RemoteIp                       string `json:"remoteIp,omitempty"`
-	ServerIp                       string `json:"serverIp,omitempty"`
-	Referer                        string `json:"referer,omitempty"`
-	Latency                        string `json:"latency,omitempty"`
-	CacheLookup                    bool   `json:"cacheLookup,omitempty"`
-	CacheHit                       bool   `json:"cacheHit,omitempty"`
-	CacheValidatedWithOriginServer bool   `json:"cacheValidatedWithOriginServer,omitempty"`
-	CacheFillBytes                 string `json:"cacheFillBytes,omitempty"`
-	Protocol                       string `json:"protocol,omitempty"`
-}
-
-type LogEntryOperation struct {
-	ID       string `json:"id,omitempty"`
-	Producer string `json:"producer,omitempty"`
-	First    bool   `json:"first,omitempty"`
-	Last     bool   `json:"last,omitempty"`
-}
-
-type LogEntrySourceLocation struct {
-	File     string `json:"file,omitempty"`
-	Line     string `json:"line,omitempty"`
-	Function string `json:"function,omitempty"`
+	s.LogCtx(context.Background(), depth+1, severity, tmpl, args...)
 }
 
 func (s *StructuredLogger) LogCtx(ctx context.Context, depth int, severity sklogimpl.Severity, tmpl string, args ...interface{}) {
@@ -190,18 +172,28 @@ func stacks(all bool) []byte {
 func (s *StructuredLogger) emit(ctx context.Context, depth int, severity sklogimpl.Severity, msg string) {
 	loc := sourceLocation(depth)
 	c := getCtx(ctx)
-	entry := LogEntry{
-		Message:        msg,
-		Severity:       convertSeverity(severity),
-		SourceLocation: loc,
+	for msg := range splitMessage(msg) {
+		entry := logging.Entry{
+			Payload:        msg,
+			Severity:       convertSeverity(severity),
+			SourceLocation: loc,
+		}
+
+		// TODO(borenet): Enable this whenever the logging API supports Split.
+		// if len(splitMsg) > 1 {
+		// 	entry.Split = &loggingpb.LogSplit{
+		// 		Uid:         uuid.New().String(),
+		// 		Index:       index,
+		// 		TotalSplits: len(splitMsg),
+		// 	}
+		// }
+		if c != nil {
+			entry.Labels = c.Labels
+			entry.HTTPRequest = c.HTTPRequest
+			entry.Operation = c.Operation
+		}
+		s.logger.Log(entry)
 	}
-	if c != nil {
-		entry.Labels = c.Labels
-		entry.HTTPRequest = c.HTTPRequest
-		entry.Operation = c.Operation
-	}
-	b, _ := json.Marshal(entry)
-	_, _ = s.file.Write(append(b, '\n'))
 }
 
 func convertSeverity(severity sklogimpl.Severity) logging.Severity {
@@ -221,8 +213,8 @@ func convertSeverity(severity sklogimpl.Severity) logging.Severity {
 	}
 }
 
-func sourceLocation(depth int) *LogEntrySourceLocation {
-	_, file, line, ok := runtime.Caller(4 + depth)
+func sourceLocation(depth int) *loggingpb.LogEntrySourceLocation {
+	_, file, line, ok := runtime.Caller(3 + depth)
 	if !ok {
 		return nil
 	} else {
@@ -231,9 +223,76 @@ func sourceLocation(depth int) *LogEntrySourceLocation {
 			file = file[slash+1:]
 		}
 	}
-	return &LogEntrySourceLocation{
+	return &loggingpb.LogEntrySourceLocation{
 		File: file,
-		Line: strconv.Itoa(line),
+		Line: int64(line),
+	}
+}
+
+// maxLogMessageBytes is presumed to be the maximum log entry message size
+// before entries start getting truncated in GKE.
+const maxLogMessageBytes = 100 * 1024
+
+func splitMessage(msg string) iter.Seq[string] {
+	if len(msg) <= maxLogMessageBytes {
+		return func(yield func(string) bool) {
+			yield(msg)
+		}
+	}
+
+	splitLine := func(line string, yield func(string) bool) bool {
+		for len(line) > maxLogMessageBytes {
+			if !yield(line[:maxLogMessageBytes]) {
+				return false
+			}
+			line = line[maxLogMessageBytes:]
+		}
+		if len(line) > 0 {
+			if !yield(line) {
+				return false
+			}
+		}
+		return true
+	}
+
+	// Split the message into multiple messages, making an effort to keep
+	// individual lines intact.
+	return func(yield func(string) bool) {
+		var b strings.Builder
+		b.Grow(maxLogMessageBytes)
+		firstLine := true
+		for line := range strings.SplitSeq(msg, "\n") {
+			if len(line) > maxLogMessageBytes {
+				// Emit any existing batched log lines.
+				if b.Len() > 0 {
+					if !yield(b.String()) {
+						return
+					}
+					b.Reset()
+				}
+				// Split the long line into smaller messages.
+				if !splitLine(line, yield) {
+					return
+				}
+			} else {
+				if b.Len()+len(line)+1 > maxLogMessageBytes {
+					// We can't add the current line to the existing batch. Emit the
+					// existing batched log lines and then add the current line to
+					// a new batch.
+					if !yield(b.String()) {
+						return
+					}
+					b.Reset()
+				} else if !firstLine {
+					b.WriteString("\n")
+				}
+				b.WriteString(line)
+			}
+			firstLine = false
+		}
+		if b.Len() > 0 {
+			yield(b.String())
+		}
 	}
 }
 
@@ -242,9 +301,9 @@ var (
 )
 
 type Context struct {
-	HTTPRequest *LogEntryHTTPRequest `json:"httpRequest,omitempty"`
+	HTTPRequest *logging.HTTPRequest `json:"httpRequest,omitempty"`
 	Labels      map[string]string
-	Operation   *LogEntryOperation `json:"operation,omitempty"`
+	Operation   *loggingpb.LogEntryOperation `json:"operation,omitempty"`
 }
 
 func getCtx(ctx context.Context) *Context {
