@@ -42,7 +42,12 @@ type CommitNumberAnomalyMap map[types.CommitNumber]Anomaly
 // AnomalyMap is a map of CommitNumberAnomalyMap, keyed by traceId.
 type AnomalyMap map[string]CommitNumberAnomalyMap
 
-// Anomaly defines the object return from Chrome Perf API.
+// Anomaly represents a performance anomaly (regression or improvement) detected
+// in a perf trace.
+//
+// TODO(ansid): now the anomaly object can also be obtained from the database
+// instead of Chrome Perf API, so chromeperf.Anomaly should be renamed to
+// something more generic.
 type Anomaly struct {
 	Id            int    `json:"id"`
 	TestPath      string `json:"test_path"`

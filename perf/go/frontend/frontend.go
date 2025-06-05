@@ -38,6 +38,7 @@ import (
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/anomalies"
+	anomalies_impl "go.skia.org/infra/perf/go/anomalies/impl"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
@@ -507,15 +508,34 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
 
-	if config.Config.FetchChromePerfAnomalies {
+	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, cfg, f.configProvider)
+	if err != nil {
+		sklog.Fatalf("Failed to build regression.Store: %s", err)
+	}
+
+	// Ongoing migration to Spanner.
+	if config.Config.FetchAnomaliesFromSql {
+		// Use new source (Spanner) for anomalies.
+		f.anomalyStore, err = anomalies_impl.NewSqlAnomaliesStore(f.regStore, f.perfGit)
+		if err != nil {
+			sklog.Fatalf("Failed to build anomalies.Store: %s", err)
+		}
+	} else if config.Config.FetchChromePerfAnomalies {
+		// Use old source (ChromePerf anomalies API) for anomalies.
 		f.anomalyApiClient, err = chromeperf.NewAnomalyApiClient(ctx, f.perfGit, config.Config)
 		if err != nil {
 			sklog.Fatalf("Failed to build chrome anomaly api client: %s", err)
 		}
-		f.anomalyStore, err = anomalies.New(f.anomalyApiClient)
+		f.anomalyStore, err = anomalies_impl.New(f.anomalyApiClient)
 		if err != nil {
 			sklog.Fatalf("Failed to build anomalies.Store: %s", err)
 		}
+	}
+
+	if config.Config.FetchChromePerfAnomalies {
+		// The option name is bit misleading here - FetchChromePerfAnomalies
+		// controls a bunch of related features that utilize the ChromePerf API.
+		// TODO(ansid): rename it or make a separate option.
 
 		f.pinpoint, err = pinpoint.New(ctx)
 		if err != nil {
@@ -572,11 +592,6 @@ func (f *Frontend) initialize() {
 	f.configProvider, err = alerts.NewConfigProvider(ctx, f.alertStore, 600)
 	if err != nil {
 		sklog.Fatalf("Failed to create alerts configprovider: %s", err)
-	}
-
-	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, cfg, f.configProvider)
-	if err != nil {
-		sklog.Fatalf("Failed to build regression.Store: %s", err)
 	}
 
 	f.subStore, err = builders.NewSubscriptionStoreFromConfig(ctx, cfg)

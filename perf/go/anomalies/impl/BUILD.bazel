@@ -1,0 +1,40 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "impl",
+    srcs = [
+        "chromeperf_impl.go",
+        "sql_impl.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/anomalies/impl",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/anomalies",
+        "//perf/go/chromeperf",
+        "//perf/go/git",
+        "//perf/go/regression",
+        "//perf/go/types",
+        "@io_opencensus_go//trace",
+    ],
+)
+
+go_test(
+    name = "impl_test",
+    srcs = ["sql_impl_test.go"],
+    embed = [":impl"],
+    deps = [
+        "//perf/go/dataframe",
+        "//perf/go/git/mocks",
+        "//perf/go/git/provider",
+        "//perf/go/regression",
+        "//perf/go/regression/mocks",
+        "//perf/go/types",
+        "//perf/go/ui/frame",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

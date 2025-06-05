@@ -1,4 +1,4 @@
-package anomalies
+package anomalies_impl
 
 import (
 	"context"

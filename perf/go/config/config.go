@@ -973,8 +973,16 @@ type InstanceConfig struct {
 	// they can never be allowed.
 	InvalidParamCharRegex string `json:"invalid_param_char_regex,omitempty"`
 
-	// FetchChromePerfAnomalies if true means fetch anomalies from Chrome Perf
+	// FetchChromePerfAnomalies if true enables a bunch of functionality:
+	// - fetch anomalies from Chrome Perf API (unless FetchAnomaliesFromSql is true)
+	// - connect to Pinpoint
+	// - alerts grouping
+	// - connect to issues tracker (if configured, depending on IssueTrackerConfig)
 	FetchChromePerfAnomalies bool `json:"fetch_chrome_perf_anomalies,omitempty"`
+
+	// FetchAnomaliesFromSql if true means fetch anomalies from SQL table instead
+	// of Chrome Perf API.
+	FetchAnomaliesFromSql bool `json:"fetch_anomalies_from_sql,omitempty"`
 
 	// Feedback URL to use for the "Provide Feedback" link
 	FeedbackURL string `json:"feedback_url,omitempty"`

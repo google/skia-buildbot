@@ -2,15 +2,8 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "anomalies",
-    srcs = [
-        "anomalies.go",
-        "impl.go",
-    ],
+    srcs = ["anomalies.go"],
     importpath = "go.skia.org/infra/perf/go/anomalies",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/sklog",
-        "//perf/go/chromeperf",
-        "@io_opencensus_go//trace",
-    ],
+    deps = ["//perf/go/chromeperf"],
 )
