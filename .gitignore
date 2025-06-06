@@ -116,3 +116,6 @@ _bazel_*
 
 # Gemini CLI
 .gemini
+
+# Dotenv
+.env

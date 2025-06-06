@@ -17,6 +17,9 @@ dependencies:
   '@google-web-components/google-chart':
     specifier: ^4.0.2
     version: 4.0.2
+  '@google/generative-ai':
+    specifier: ^0.24.1
+    version: 0.24.1
   '@lit/context':
     specifier: ^1.1.2
     version: 1.1.2
@@ -143,6 +146,9 @@ dependencies:
   d3-selection:
     specifier: ^1.4.2
     version: 1.4.2
+  dotenv:
+    specifier: ^16.5.0
+    version: 16.5.0
   eslint:
     specifier: 8.57.0
     version: 8.57.0
@@ -206,6 +212,9 @@ dependencies:
   lottie-web:
     specifier: ^5.9.6
     version: 5.9.6
+  mime:
+    specifier: ^4.0.7
+    version: 4.0.7
   mocha:
     specifier: ^9.2.2
     version: 9.2.2
@@ -628,6 +637,11 @@ packages:
     resolution: {integrity: sha512-4pqXYtXumrgji2vTnISJ7+EmumGcq6g0FFw+9Ktb+TyZuzr+0+9EkElG5N9ld997MKjzQGVY4sznWni1ObVnEQ==}
     dependencies:
       lit-element: 2.5.1
+    dev: false
+
+  /@google/generative-ai@0.24.1:
+    resolution: {integrity: sha512-MqO+MLfM6kjxcKoy0p1wRzG3b4ZZXtPI+z2IE26UogS2Cm/XHO+7gGRBh6gcJsOiIVoH93UwKvW4HdgiOZCy9Q==}
+    engines: {node: '>=18.0.0'}
     dev: false
 
   /@humanwhocodes/config-array@0.11.14:
@@ -2414,6 +2428,11 @@ packages:
       ent: 2.2.0
       extend: 3.0.2
       void-elements: 2.0.1
+    dev: false
+
+  /dotenv@16.5.0:
+    resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
+    engines: {node: '>=12'}
     dev: false
 
   /dunder-proto@1.0.1:
@@ -4222,6 +4241,12 @@ packages:
   /mime@2.6.0:
     resolution: {integrity: sha512-USPkMeET31rOMiarsBNIHZKLGgvKc/LrjofAnBlOttf5ajRvqiRA8QsenbcooctK6d6Ts6aqZXBA+XbkKthiQg==}
     engines: {node: '>=4.0.0'}
+    hasBin: true
+    dev: false
+
+  /mime@4.0.7:
+    resolution: {integrity: sha512-2OfDPL+e03E0LrXaGYOtTFIYhiuzep94NSsuhrNULq+stylcJedcHdzHtz0atMUuGwJfFYs0YL5xeC/Ca2x0eQ==}
+    engines: {node: '>=16'}
     hasBin: true
     dev: false
 
