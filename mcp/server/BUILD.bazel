@@ -25,7 +25,13 @@ go_test(
     name = "server_test",
     srcs = ["server_test.go"],
     embed = [":server_lib"],
-    deps = ["@com_github_stretchr_testify//assert"],
+    deps = [
+        "//mcp/common",
+        "//mcp/common/mocks",
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
 )
 
 go_binary(

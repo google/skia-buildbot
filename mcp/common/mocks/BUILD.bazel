@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = ["mockargumentservice.go"],
+    importpath = "go.skia.org/infra/mcp/common/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//mcp/common",
+        "@com_github_mark3labs_mcp_go//mcp",
+    ],
+)

@@ -24,6 +24,16 @@ const (
 	Perf       mcpservice = "perf"
 )
 
+// serviceFactory defines a function that creates a McpService instance.
+type serviceFactory func() common.McpService
+
+// serviceRegistry holds the mapping from service names to their factory functions.
+// This allows for easier testing by registering mock services.
+var serviceRegistry = map[string]serviceFactory{
+	string(HelloWorld): func() common.McpService { return helloworld.HelloWorldService{} },
+	string(Perf):       func() common.McpService { return perf.PerfService{} },
+}
+
 // mcpFlags provides a struct to hold data required by mcp services provided
 // via cmdline arguments.
 type mcpFlags struct {
@@ -97,17 +107,11 @@ func main() {
 // createMcpServer creates a new server that hosts the service based on the
 // information in the mcpFlags.
 func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
-	var service common.McpService
-	switch mcpFlags.ServiceName {
-	case string(HelloWorld):
-		service = helloworld.HelloWorldService{}
-	case string(Perf):
-		service = perf.PerfService{}
+	factory, ok := serviceRegistry[mcpFlags.ServiceName]
+	if !ok {
+		return nil, skerr.Fmt("Unknown service: %s", mcpFlags.ServiceName)
 	}
-
-	if service == nil {
-		return nil, skerr.Fmt("Invalid service %s", mcpFlags.ServiceName)
-	}
+	service := factory()
 
 	err := service.Init(mcpFlags.ServiceArgs)
 	if err != nil {
@@ -130,7 +134,20 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 				propOptions = append(propOptions, mcp.Required())
 			}
 			propOptions = append(propOptions, mcp.Description(arg.Description))
-			options = append(options, mcp.WithString(arg.Name, propOptions...))
+			switch arg.ArgumentType {
+			case common.StringArgument:
+				options = append(options, mcp.WithString(arg.Name, propOptions...))
+			case common.BooleanArgument:
+				options = append(options, mcp.WithBoolean(arg.Name, propOptions...))
+			case common.NumberArgument:
+				options = append(options, mcp.WithNumber(arg.Name, propOptions...))
+			case common.ObjectArgument:
+				options = append(options, mcp.WithObject(arg.Name, propOptions...))
+			case common.ArrayArgument:
+				options = append(options, mcp.WithArray(arg.Name, propOptions...))
+			default:
+				return nil, skerr.Fmt("Invalid argument type %v", arg.ArgumentType)
+			}
 		}
 		mcpToolSpec := mcp.NewTool(tool.Name, options...)
 		s.AddTool(mcpToolSpec, tool.Handler)

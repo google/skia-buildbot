@@ -14,9 +14,20 @@ type Tool struct {
 	Handler     func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error)
 }
 
+type ToolArgumentType int
+
+const (
+	StringArgument = iota
+	BooleanArgument
+	NumberArgument
+	ObjectArgument
+	ArrayArgument
+)
+
 // ToolArgument defines a struct for each argument of the tool.
 type ToolArgument struct {
-	Name        string
-	Description string
-	Required    bool
+	Name         string
+	Description  string
+	Required     bool
+	ArgumentType ToolArgumentType
 }
