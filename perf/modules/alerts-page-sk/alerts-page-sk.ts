@@ -74,7 +74,7 @@ class AlertsPageSk extends ElementSk {
     <button class="action" @click=${ele.add} ?disabled=${!ele.isEditor} title="Create a new alert.">
       New
     </button>
-    <table>
+    <table id="alerts-table">
       <tr>
         <th></th>
         <th>Name</th>

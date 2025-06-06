@@ -11,28 +11,49 @@ alerts-page-sk {
     color: var(--on-background);
   }
 
-  td {
-    padding: 0.2em 1em;
-  }
+  #alerts-table {
+    td {
+      padding: 0.2em 1em;
+    }
 
-  td > a {
-    color: var(--primary);
-  }
+    td > a {
+      color: var(--primary);
+    }
 
-  td > build-icon-sk,
-  td > create-icon-sk,
-  td > a > build-icon-sk,
-  td > delete-icon-sk {
-    padding: 0.4em;
-    cursor: pointer;
-    fill: var(--primary);
-  }
-
-  td > build-icon-sk:hover,
-  td > create-icon-sk:hover,
-  td > a > build-icon-sk:hover,
-  td > delete-icon-sk:hover {
-    background: var(--surface-1dp);
+    td > build-icon-sk,
+    td > create-icon-sk,
+    td > a > build-icon-sk,
+    td > delete-icon-sk {
+      padding: 0.4em;
+      cursor: pointer;
+      fill: var(--primary);
+    }
+    border-spacing: 0;
+    font-size: small;
+    width: 100%;
+    th,
+    td {
+      text-align: left;
+      padding-right: 10px;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      max-width: 500px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    a,
+    th {
+      // Make the header look clicky on hover.
+      cursor: pointer;
+      font-weight: bold;
+    }
+    td > build-icon-sk:hover,
+    td > create-icon-sk:hover,
+    td > a > build-icon-sk:hover,
+    td > delete-icon-sk:hover {
+      background: var(--surface-1dp);
+    }
   }
 
   create-icon-sk[disabled],
