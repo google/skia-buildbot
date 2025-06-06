@@ -15,6 +15,7 @@
     "@lottie-animation-community/lottie-specs": "^0.3.1",
     "@material/material-color-utilities": "^0.2.7",
     "@material/web": "^2.1.0",
+    "@modelcontextprotocol/sdk": "^1.12.1",
     "@puppeteer/browsers": "^1.7.1",
     "@stylistic/eslint-plugin": "^2.8.0",
     "@types/chai": "^4.2.16",
@@ -84,7 +85,8 @@
     "streamx": "^2.15.5",
     "typescript": "5.2.2",
     "ua-parser-js": "^0.7.34",
-    "vanilla-jsoneditor": "^0.23.2"
+    "vanilla-jsoneditor": "^0.23.2",
+    "zod": "^3.25.55"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -101,6 +101,7 @@ status/res/res
 status/res/imp/task_driver_sk-bundle.css
 status/res/imp/task_driver_sk-bundle.js
 gold-client/build
+mcp/services/weather/build/
 
 # gitignore template for Bazel build system
 # website: https://bazel.build/
@@ -112,3 +113,6 @@ _bazel_*
 
 # Created by rules_js (https://github.com/aspect-build/rules_js).
 .aspect
+
+# Gemini CLI
+.gemini
