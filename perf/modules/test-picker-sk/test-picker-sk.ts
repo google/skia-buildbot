@@ -39,7 +39,7 @@ import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import '../../../elements-sk/modules/spinner-sk';
 
 // The maximum number of matches before Plotting is enabled.
-const PLOT_MAXIMUM = 10;
+const PLOT_MAXIMUM = 20;
 
 // Data Structure to keep track of field information.
 class FieldInfo {
@@ -47,7 +47,9 @@ class FieldInfo {
 
   param: string = ''; // The label of the field. Must match a valid trace key in CDB.
 
-  value: string = ''; // The currently selected value in a field.
+  value: string[] = []; // The currently selected value in a field.
+
+  splitBy: string[] = []; // Split item selected.
 }
 
 export class TestPickerSk extends ElementSk {
@@ -81,20 +83,24 @@ export class TestPickerSk extends ElementSk {
           Matches: <span>${ele._count}</span
           ><spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
         </div>
+        <div id="auto-add-container">
+          <checkbox-sk
+            label="Auto Add"
+            title="Updates charts when changing test picker."
+            @change=${ele.onToggleCheckboxClick}
+            ?checked=${ele._autoAddTrace}>
+          </checkbox-sk>
+        </div>
+      </div>
+      <div id="plot-button-container" ?hidden=${ele._autoAddTrace}>
         <button
           id="plot-button"
           @click=${ele.onPlotButtonClick}
-          title="Plot a graph on selected values. Narrow down selection to ${PLOT_MAXIMUM} matches to be able to plot."
-          disabled>
-          Add New Graph
+          disabled
+          title="Plot a graph on selected values.">
+          Add Graph
         </button>
       </div>
-      <checkbox-sk
-        label="Auto Add Trace"
-        title="Auto adds when possible."
-        @change=${ele.onToggleCheckboxClick}
-        ?checked=${ele._autoAddTrace}>
-      </checkbox-sk>
     </div>
   `;
 
@@ -140,6 +146,7 @@ export class TestPickerSk extends ElementSk {
         if (currentIndex !== 0) {
           field!.openOverlay();
         }
+
         this.addValueUpdatedEventToField(currentIndex);
       }
 
@@ -205,7 +212,7 @@ export class TestPickerSk extends ElementSk {
   private removeChildFields(index: number) {
     while (this._currentIndex - 1 > index) {
       const fieldInfo = this._fieldData[this._currentIndex - 1];
-      fieldInfo.value = '';
+      fieldInfo.value = [];
       if (fieldInfo.field !== null) {
         this._containerDiv!.removeChild(fieldInfo.field!);
       }
@@ -359,28 +366,60 @@ export class TestPickerSk extends ElementSk {
     } else {
       this.initializeFieldData(params);
     }
+    for (let i = 0; i < this._fieldData.length; i++) {
+      const fieldInfo = this._fieldData[i];
+      const param = fieldInfo.param;
+      const field: PickerFieldSk = new PickerFieldSk(param);
+      fieldInfo.field = field;
+      this._containerDiv!.appendChild(field);
+      if (paramSet) {
+        if (paramSet[param] === undefined) {
+          this._containerDiv!.removeChild(field);
+          return;
+        }
+        field.options = paramSet[param];
+        const selectedValue = selectedParams[fieldInfo.param] || null;
+        if (selectedValue) {
+          field.selectedItems = selectedValue;
+        } else {
+          field.selectedItems = [];
+        }
+      } else {
+        field!.options = fieldInfo.value;
+        field!.selectedItems = fieldInfo.value;
+      }
+      field!.focus();
+      this._render();
+      this.addValueUpdatedEventToField(i);
+    }
+    for (let i = 0; i < this._fieldData.length; i++) {
+      this.fetchExtraOptions();
+    }
+  }
+
+  populateFieldDataFromParamSet(paramSets: ParamSet, paramSet: ParamSet) {
+    const selectedParams: ParamSet = paramSets;
+    const paramKeys: string[] = Object.keys(paramSet).filter((key) => key in selectedParams);
+    this.initializeFieldData(paramKeys);
 
     for (let i = 0; i < this._fieldData.length; i++) {
       const fieldInfo = this._fieldData[i];
       const param = fieldInfo.param;
-
       const field: PickerFieldSk = new PickerFieldSk(param);
       fieldInfo.field = field;
-      this._currentIndex += 1;
-      if (param in selectedParams) {
+      if (paramSet[param] !== undefined) {
+        field.options = paramSet[param];
+        const selectedValue = selectedParams[fieldInfo.param] || null;
+        if (selectedValue) {
+          field.selectedItems = selectedValue;
+          fieldInfo.value = selectedValue;
+        } else {
+          field.selectedItems = [];
+          fieldInfo.value = selectedValue;
+        }
+        this.fetchExtraOptions();
         this._containerDiv!.appendChild(field);
-        fieldInfo.value = selectedParams[param][0];
-        field!.options = [fieldInfo.value];
-        field.setValue(fieldInfo.value);
-        field!.selectedItems = [fieldInfo.value];
-        field!.focus();
-        this._render();
-        this.addValueUpdatedEventToField(i);
       }
-    }
-
-    for (let i = 0; i < this._fieldData.length; i++) {
-      this.fetchExtraOptions();
     }
   }
 
@@ -391,11 +430,16 @@ export class TestPickerSk extends ElementSk {
     this._render();
   }
 
-  private appendToGraph() {
+  private appendToGraph(param: string) {
     if (this._autoAddTrace) {
-      if (this._graphDiv !== null && this._graphDiv.children.length > 0) {
+      if (
+        this._graphDiv !== null &&
+        this._graphDiv.children.length > 0 &&
+        Number(this._count) <= PLOT_MAXIMUM
+      ) {
         const detail = {
           query: this.createQueryFromFieldData(),
+          param: param,
         };
         this.dispatchEvent(
           new CustomEvent('add-to-graph', {
@@ -417,12 +461,39 @@ export class TestPickerSk extends ElementSk {
       fieldInfo.field.removeEventListener('value-changed', () => {});
     }
     fieldInfo.field!.addEventListener('value-changed', (e) => {
+      this._currentIndex = index;
       const value = (e as CustomEvent).detail.value;
       if (value === '') {
         this.removeChildFields(index);
       }
       fieldInfo.value = value;
-      this.fetchExtraOptions();
+      if (fieldInfo.field) {
+        fieldInfo.field.selectedItems = value;
+      }
+      this.fetchExtraOptions(index);
+    });
+
+    fieldInfo.field.addEventListener('split-by-changed', (e) => {
+      const param = (e as CustomEvent).detail.param;
+      const split = (e as CustomEvent).detail.split;
+
+      for (let i = 0; i < this._fieldData.length; i++) {
+        if (this._fieldData[i].param === param) {
+          // Set split values and disable all other params
+          this._fieldData[i].field?.setSplit(split);
+          if (split) {
+            this._fieldData[i].splitBy = param;
+          } else {
+            this._fieldData[i].splitBy = [];
+          }
+        } else {
+          if (split) {
+            this._fieldData[i].field?.disableSplit();
+          } else {
+            this._fieldData[i].field?.enableSplit();
+          }
+        }
+      }
     });
   }
 
@@ -439,10 +510,11 @@ export class TestPickerSk extends ElementSk {
    *
    * @param index
    */
-  private fetchExtraOptions() {
+  private fetchExtraOptions(index: number = -1) {
     const handler = (json: NextParamListHandlerResponse) => {
       const param = Object.keys(json.paramset)[0];
-      if (param !== undefined && json.count > 0) {
+      const count: number = json.count || -1;
+      if (param !== undefined) {
         for (let i = 0; i < this._fieldData.length; i++) {
           const fieldInfo = this._fieldData[i];
           if (fieldInfo.param === param) {
@@ -450,17 +522,26 @@ export class TestPickerSk extends ElementSk {
               const field: PickerFieldSk = new PickerFieldSk(param);
               fieldInfo.field = field;
               this._containerDiv!.appendChild(field);
-              this._currentIndex += 1;
             }
             fieldInfo.field!.options = json.paramset[param];
             fieldInfo.field!.focus();
             this.addValueUpdatedEventToField(i);
-            this._render();
+            // Track the furthest index queried
+            if (this._currentIndex < i) {
+              this._currentIndex = i;
+              this.updateCount(count);
+            }
             break;
           }
         }
+      } else {
+        // No parameter, so last item. Update count.
+        this._currentIndex = this._fieldData.length - 1;
+        this.updateCount(count);
       }
-      this.updateCount(json.count);
+      if (index !== -1) {
+        this.appendToGraph(this._fieldData[index].param);
+      }
       this._render();
     };
     this.callNextParamList(handler);
@@ -476,9 +557,13 @@ export class TestPickerSk extends ElementSk {
    */
   createQueryFromFieldData(): string {
     const paramSet: ParamSet = {};
+    if (this._fieldData[0].value === null) {
+      return '';
+    }
+
     this._fieldData.forEach((fieldInfo) => {
-      if (fieldInfo.value !== '') {
-        paramSet[fieldInfo.param] = [fieldInfo.value];
+      if (fieldInfo.value !== null) {
+        paramSet[fieldInfo.param] = fieldInfo.value;
       }
     });
 
@@ -487,7 +572,6 @@ export class TestPickerSk extends ElementSk {
     if (Object.keys(paramSet).length === 0) {
       return '';
     }
-
     // If values are set in child values, but missing initial value, then exit.
     if (this._fieldData[0].value.length === 0) {
       return '';
@@ -515,8 +599,8 @@ export class TestPickerSk extends ElementSk {
 
     for (let i = 0; i <= index; i++) {
       const fieldInfo = this._fieldData[i];
-      if (fieldInfo.value !== '') {
-        paramSet[fieldInfo.param] = [fieldInfo.value];
+      if (fieldInfo.value !== null) {
+        paramSet[fieldInfo.param] = fieldInfo.value;
       }
     }
 
@@ -558,9 +642,16 @@ export class TestPickerSk extends ElementSk {
     this._count = `${count}`;
     if (count > PLOT_MAXIMUM || count <= 0) {
       this._plotButton!.disabled = true;
+      this.autoAddTrace = false;
     } else {
-      this.appendToGraph();
       this._plotButton!.disabled = false;
+    }
+  }
+
+  set autoAddTrace(autoAdd: boolean) {
+    this._autoAddTrace = autoAdd;
+    if (this._plotButton !== null) {
+      this._plotButton.disabled = !autoAdd;
     }
   }
 
@@ -602,7 +693,7 @@ export class TestPickerSk extends ElementSk {
       this._fieldData.forEach((fieldInfo) => {
         if (fieldInfo.param in params) {
           fieldInfo.field = null;
-          fieldInfo.value = '';
+          fieldInfo.value = [];
         }
       });
     } else {
@@ -611,7 +702,8 @@ export class TestPickerSk extends ElementSk {
         this._fieldData.push({
           field: null,
           param: param,
-          value: '',
+          value: [],
+          splitBy: [],
         });
       });
     }

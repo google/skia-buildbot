@@ -1,24 +1,41 @@
 @import '../themes/themes.scss';
 // Style reference for vaadin elements:
 // https://vaadin.com/docs/latest/components/combo-box/styling
-.body-sk picker-field-sk,
-picker-field-sk {
+.body-sk picker-field-sk {
+  #picker-field {
+    display: flex;
+    align-items: flex-end;
+  }
   vaadin-multi-select-combo-box {
     --vaadin-input-field-height: 30px;
     --vaadin-input-field-icon-color: var(--lumo-secondary-text-color);
-    --vaadin-multi-select-combo-box-chip-min-width: 100px
-      --vaadin-multi-select-combo-box-overlay-width: auto;
+    --vaadin-multi-select-combo-box-chip-min-width: 100px;
+    --vaadin-multi-select-combo-box-overlay-width: auto;
     --lumo-text-field-size: var(--lumo-size-xs);
-
     padding-right: 10px;
-    margin-top: 20px;
     margin-left: auto;
     width: 300px;
   }
   input {
     border: none;
   }
+  checkbox-sk label {
+    flex-flow: column-reverse;
+  }
 }
+
+#splitby-keys {
+  vaadin-multi-select-combo-box {
+    --vaadin-input-field-height: 30px;
+    --vaadin-input-field-icon-color: var(--lumo-secondary-text-color);
+    --vaadin-multi-select-combo-box-overlay-width: auto;
+    --lumo-text-field-size: var(--lumo-size-xs);
+    padding-right: 10px;
+    margin-left: auto;
+    width: 200px;
+  }
+}
+
 .darkmode picker-field-sk {
   vaadin-multi-select-combo-box::part(label) {
     transition: color 0.3s ease;

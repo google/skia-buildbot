@@ -24,6 +24,7 @@ export interface SplitChartSelectionEventDetails {
   attribute: string;
 }
 
+// DEPRECATED in favor of Split Checkboxes.
 export class SplitChartMenuSk extends LitElement {
   static styles = style;
 

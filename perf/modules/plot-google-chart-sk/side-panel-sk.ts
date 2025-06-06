@@ -189,11 +189,13 @@ export class SidePanelSk extends LitElement {
           ${this.legendListCache.map((item, index) => {
             if (this.legendLoaded) {
               const checkbox = this.renderRoot.querySelector(`#id-${index}`) as HTMLInputElement;
-              checkbox.checked = this.checkedColList.has(item);
-              if (this.checkedColList.size === 1 && this.checkedColList.has(item)) {
-                checkbox.disabled = true;
-              } else {
-                checkbox.disabled = false;
+              if (checkbox) {
+                checkbox.checked = this.checkedColList.has(item);
+                if (this.checkedColList.size === 1 && this.checkedColList.has(item)) {
+                  checkbox.disabled = true;
+                } else {
+                  checkbox.disabled = false;
+                }
               }
             } else {
               if (!this.checkedColList.has(item)) {

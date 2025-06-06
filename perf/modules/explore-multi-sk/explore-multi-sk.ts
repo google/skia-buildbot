@@ -100,7 +100,7 @@ class State {
 
   xbaroffset: number = -1;
 
-  splitByKey: string = '';
+  splitByKey: string[] = [];
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -148,7 +148,6 @@ export class ExploreMultiSk extends ElementSk {
     this.testPicker = this.querySelector('#test-picker');
 
     await this.initializeDefaults();
-    await this.initializeSplitByList();
 
     this.stateHasChanged = stateReflector(
       () => this.state as unknown as HintableObject,
@@ -156,11 +155,6 @@ export class ExploreMultiSk extends ElementSk {
         const state = hintableState as unknown as State;
 
         const numElements = this.exploreElements.length;
-
-        if (state.useTestPicker) {
-          this.initializeTestPicker();
-        }
-
         let graphConfigs: GraphConfig[] | undefined = [];
         if (state.shortcut !== '') {
           graphConfigs = await this.getConfigsFromShortcut(state.shortcut);
@@ -178,12 +172,20 @@ export class ExploreMultiSk extends ElementSk {
           this.graphDiv!.removeChild(this.graphDiv!.lastChild!);
         }
 
+        const validGraphs: GraphConfig[] | undefined = [];
         for (let i = 0; i < graphConfigs.length; i++) {
-          if (i >= numElements) {
-            this.addEmptyGraph();
+          if (
+            graphConfigs[i].formulas.length > 0 ||
+            graphConfigs[i].queries.length > 0 ||
+            graphConfigs[i].keys !== ''
+          ) {
+            if (i >= numElements) {
+              this.addEmptyGraph();
+            }
+            validGraphs.push(graphConfigs[i]);
           }
-          this.graphConfigs[i] = graphConfigs[i];
         }
+        this.graphConfigs = validGraphs;
 
         this.state = state;
         this.addGraphsToCurrentPage();
@@ -197,9 +199,12 @@ export class ExploreMultiSk extends ElementSk {
         // Update the split by dropdown list.
         this.updateSplitByKeys();
         // If a key is specified (eg: directly via url), perform the split
-        if (this.state.splitByKey !== '') {
+        if (this.state.splitByKey.length > 0) {
           this.splitGraphs();
           this.refreshSplitList = true;
+        }
+        if (state.useTestPicker) {
+          this.initializeTestPicker();
         }
       }
     );
@@ -236,16 +241,6 @@ export class ExploreMultiSk extends ElementSk {
         title="Add empty graph.">
         Add Graph
       </button>
-      <picker-field-sk id="splitby-keys"> </picker-field-sk>
-      <button
-        id="favBtn"
-        ?disabled=${!ele.canAddFav()}
-        @click=${() => {
-          ele.openAddFavoriteDialog();
-        }}>
-        Add to Favorites
-      </button>
-      <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
       <test-picker-sk id="test-picker" class="hidden"></test-picker-sk>
     </div>
     <hr />
@@ -257,17 +252,21 @@ export class ExploreMultiSk extends ElementSk {
         total=${ele.state.totalGraphs}
         @page-changed=${ele.pageChanged}>
       </pagination-sk>
-      <label>
-        <span class="prefix">Charts per page</span>
-        <input
-          @change=${ele.pageSizeChanged}
-          type="number"
-          .value="${ele.state.pageSize.toString()}"
-          min="1"
-          max="50"
-          title="The number of charts per page." />
-      </label>
-      <button @click=${ele.loadAllCharts}>Load All Charts</button>
+
+      ${ele.state.totalGraphs < 10
+        ? ``
+        : html` <label>
+              <span class="prefix">Charts per page</span>
+              <input
+                @change=${ele.pageSizeChanged}
+                type="number"
+                .value="${ele.state.pageSize.toString()}"
+                min="1"
+                max="50"
+                title="The number of charts per page." />
+            </label>
+            <button @click=${ele.loadAllCharts}>Load All Charts</button>`}
+
       <div
         id="graphContainer"
         @x-axis-toggled=${ele.syncXAxisLabel}
@@ -343,6 +342,7 @@ export class ExploreMultiSk extends ElementSk {
    * This function initializes the split by list by populating
    * it with the available param keys in the dropdown.
    */
+  // DEPRECATED: Replaced by splitting via checkboxes.
   private async initializeSplitByList(): Promise<void> {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     await fetch(`/_/initpage/?tz=${tz}`, {
@@ -362,7 +362,8 @@ export class ExploreMultiSk extends ElementSk {
       const selectedSplitKey = (e as CustomEvent).detail.value[0];
       // The selectedSplitkey string will contain the split count (eg: "bot (5)"),
       // so we need to extract that out.
-      const splitByParamKey = selectedSplitKey.split('(')[0].trim();
+      selectedSplitKey.trim();
+      const splitByParamKey = selectedSplitKey.split('(')[0] ?? '';
       // Only split if the new selection is different.
       if (this.state.splitByKey !== splitByParamKey) {
         this.state.splitByKey = splitByParamKey;
@@ -387,7 +388,7 @@ export class ExploreMultiSk extends ElementSk {
     });
     if (traceset.length > 0) {
       this.paramKeys.forEach((paramKey) => {
-        const tracesGroupedForKey = this.groupTracesByParamKey(traceset, paramKey);
+        const tracesGroupedForKey = this.groupTracesByParamKey(traceset, [paramKey]);
         splitCountByParam.set(paramKey, tracesGroupedForKey.size);
       });
     }
@@ -402,13 +403,13 @@ export class ExploreMultiSk extends ElementSk {
    * the value is a list of traceIds grouped by that value.
    */
   private groupTracesBySplitKey(): Map<string, string[]> {
-    const splitKey = this.state.splitByKey;
+    const splitKeys = this.state.splitByKey;
     const traceset: string[] = [];
     this.getTracesets().forEach((ts) => {
       traceset.push(...ts);
     });
 
-    return this.groupTracesByParamKey(traceset, splitKey);
+    return this.groupTracesByParamKey(traceset, splitKeys);
   }
 
   /**
@@ -417,19 +418,22 @@ export class ExploreMultiSk extends ElementSk {
    * @param traceset Set of traces to split.
    * @param key Param key to base the split on.
    */
-  private groupTracesByParamKey(traceset: string[], key: string): Map<string, string[]> {
+  private groupTracesByParamKey(traceset: string[], keys: string[]): Map<string, string[]> {
     const groupedTraces = new Map<string, string[]>();
+    let existingGroup: string[] = [];
     if (traceset.length > 0) {
       traceset.forEach((traceId) => {
         const traceParams = new URLSearchParams(fromKey(traceId));
-        const splitValue = traceParams.get(key);
-        let existingGroup = groupedTraces.get(splitValue!);
-        if (existingGroup !== undefined) {
-          existingGroup.push(traceId);
-        } else {
-          existingGroup = [traceId];
+        // If there are no keys, then pass in empty string to group everything.
+        if (keys.length === 0) {
+          keys = [''];
         }
-        groupedTraces.set(splitValue!, existingGroup);
+        keys.forEach((key) => {
+          const splitValue = traceParams.get(key);
+          existingGroup = groupedTraces.get(splitValue!) ?? [];
+          existingGroup.push(traceId);
+          groupedTraces.set(splitValue!, existingGroup);
+        });
       });
     }
     return groupedTraces;
@@ -524,8 +528,11 @@ export class ExploreMultiSk extends ElementSk {
       if (window.perf.remove_default_stat_value) {
         defaultParams = {};
       }
-      this.testPicker!.initializeTestPicker(testPickerParams!, defaultParams);
 
+      this.testPicker!.initializeTestPicker(testPickerParams!, defaultParams);
+      if (this.exploreElements.length > 0) {
+        this.populateTestPicker(this.exploreElements[0].getParamSet());
+      }
       // Event listener to remove the explore object from the list if the user
       // close it in a Multiview window.
       this.addEventListener('remove-explore', (e) => {
@@ -570,47 +577,114 @@ export class ExploreMultiSk extends ElementSk {
       this.addEventListener('plot-button-clicked', (e) => {
         const explore = this.addEmptyGraph(true);
         if (explore) {
-          this.addGraphsToCurrentPage();
+          this.addGraphsToCurrentPage(true);
           const query = this.testPicker!.createQueryFromFieldData();
           explore.addFromQueryOrFormula(true, 'query', query, '');
           this.refreshSplitList = true;
+          if (this.testPicker) {
+            this.testPicker.autoAddTrace = true;
+          }
         }
         this.updateSplitByKeys();
+      });
+
+      this.addEventListener('split-by-changed', (e) => {
+        const splitByParamKey: string = (e as CustomEvent).detail.param;
+        const split = (e as CustomEvent).detail.split;
+        // Only split if the new selection is different and splitting again.
+        if (splitByParamKey in this.state.splitByKey && split) {
+          return;
+        }
+        if (!split) {
+          // No longer split so remove selected param from keys.
+          this.state.splitByKey = this.state.splitByKey.filter((key) => key !== splitByParamKey);
+        } else {
+          // Split by only a single key
+          // TODO(seawardt): Enable multiple splits
+          this.state.splitByKey = [splitByParamKey];
+        }
+        if (this.stateHasChanged) {
+          this.stateHasChanged();
+        }
+        this.splitGraphs();
       });
 
       // Event listener for when the Test Picker plot button is clicked.
       // This will create a new empty Graph at the top and plot it with the
       // selected test values.
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      this.addEventListener('add-to-graph', (e) => {
+      this.addEventListener('add-to-graph', async (e) => {
         const query = (e as CustomEvent).detail.query;
-        let explore = this.addEmptyGraph(true);
-        if (explore) {
-          if (this.currentPageExploreElements.length === 0) {
-            this.addGraphsToCurrentPage();
+        let explore: ExploreSimpleSk;
+        if (this.currentPageExploreElements.length === 0) {
+          const newExplore = this.addEmptyGraph(true);
+          if (newExplore) {
+            this.addGraphsToCurrentPage(true); // Pass true to prevent immediate data query
+            explore = newExplore;
           } else {
-            explore = this.currentPageExploreElements[0];
+            return;
           }
-          explore.addFromQueryOrFormula(true, 'query', query, '');
+        } else {
+          explore = this.currentPageExploreElements[0];
+          this.currentPageExploreElements.splice(1);
+          this.currentPageGraphConfigs.splice(1);
+          this.exploreElements.splice(1);
+          this.graphConfigs.splice(1);
+          this.state.totalGraphs = this.exploreElements.length;
         }
+        await explore.addFromQueryOrFormula(true, 'query', query, '');
+        this.splitGraphs();
         this.refreshSplitList = true;
-        this.updateSplitByKeys();
       });
 
       // Event listener for when the "Query Highlighted" button is clicked.
       // It will populate the Test Picker with the keys from the highlighted
       // trace.
       this.addEventListener('populate-query', (e) => {
-        const trace_key = (e as CustomEvent).detail.key;
-        const paramSet = (e as CustomEvent).detail.paramSet;
-        this.testPicker!.populateFieldDataFromQuery(
-          queryFromKey(trace_key),
-          testPickerParams!,
-          paramSet
-        );
-        this.testPicker!.scrollIntoView();
+        this.populateTestPicker((e as CustomEvent).detail);
       });
     }
+  }
+
+  private async populateTestPicker(paramSet: { [key: string]: string[] }) {
+    const paramSets: ParamSet = ParamSet({});
+
+    let allTracesets: string[][] = [];
+    const timeoutMs = 10000; // Timeout for waiting for non-empty tracesets.
+    const pollIntervalMs = 500; // Interval to re-check.
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+      allTracesets = await this.getTracesets();
+      // Wait until there's at least one explore element processed AND
+      // at least one of those elements has yielded some trace strings.
+      if (
+        allTracesets.length === this.exploreElements.length &&
+        allTracesets.some((ts) => ts.length > 0)
+      ) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    }
+
+    if (
+      !(
+        allTracesets.length === this.exploreElements.length &&
+        allTracesets.some((ts) => ts.length > 0)
+      )
+    ) {
+      errorMessage('Getting Tracesets timed out.');
+      return;
+    }
+
+    allTracesets.forEach((traceset) => {
+      traceset.forEach((trace) => {
+        addParamsToParamSet(paramSets, fromKey(trace));
+      });
+    });
+
+    this.testPicker!.populateFieldDataFromParamSet(paramSets, paramSet);
+    this.testPicker!.scrollIntoView();
   }
 
   private clearGraphs() {
@@ -684,8 +758,8 @@ export class ExploreMultiSk extends ElementSk {
       formulas: graphConfig.formulas || [],
       queries: graphConfig.queries || [],
       keys: graphConfig.keys || '',
-      begin: this.state.begin,
-      end: this.state.end,
+      begin: explore.state.begin || this.state.begin,
+      end: explore.state.end || this.state.end,
       showZero: this.state.showZero,
       dots: this.state.dots,
       numCommits: this.state.numCommits,
@@ -789,16 +863,19 @@ export class ExploreMultiSk extends ElementSk {
       const formula_regex = new RegExp(/\((,[^)]+,)\)/);
       // Tracesets include traces from Queries and Keys. Traces
       // from formulas are wrapped around a formula string.
-      Object.keys(elem.getTraceset()!).forEach((key) => {
-        if (key[0] === ',') {
-          traceset.push(key);
-        } else {
-          const match = formula_regex.exec(key);
-          if (match) {
-            traceset.push(match[1]);
+      const elemTraceSet = elem.getTraceset();
+      if (elemTraceSet) {
+        Object.keys(elemTraceSet).forEach((key) => {
+          if (key[0] === ',') {
+            traceset.push(key);
+          } else {
+            const match = formula_regex.exec(key);
+            if (match) {
+              traceset.push(match[1]);
+            }
           }
-        }
-      });
+        });
+      }
       if (traceset.length !== 0) {
         tracesets.push(traceset);
       }

@@ -18,24 +18,21 @@
   }
 
   #queryCount {
-    .test-picker-sk-matches-container {
-      height: 30px;
-      display: flex;
-      align-items: flex-end;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
+    .test-picker-sk-matches-container {
       spinner-sk {
         margin: 0;
         margin-left: 8px;
         margin-top: 7px;
       }
     }
-
     button {
       z-index: 1;
       margin-bottom: 0;
       white-space: nowrap;
     }
-    display: grid;
-    place-items: center;
   }
 }

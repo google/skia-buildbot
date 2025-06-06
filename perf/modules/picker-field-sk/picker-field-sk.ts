@@ -30,6 +30,10 @@ import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.
 import '@vaadin/combo-box/theme/lumo/vaadin-combo-box.js';
 import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
 
+export interface SplitChartSelectionEventDetails {
+  attribute: string;
+}
+
 export class PickerFieldSk extends ElementSk {
   private _label: string = '';
 
@@ -39,7 +43,11 @@ export class PickerFieldSk extends ElementSk {
 
   private _comboBox: HTMLElement | null = null;
 
+  private _splitBox: HTMLElement | null = null;
+
   private _selectedItems: string[] = [];
+
+  private _splitBy: boolean = false;
 
   constructor(label: string) {
     super(PickerFieldSk.template);
@@ -47,14 +55,27 @@ export class PickerFieldSk extends ElementSk {
   }
 
   private static template = (ele: PickerFieldSk) => html`
-    <vaadin-multi-select-combo-box
-      @selected-items-changed=${ele.onValueChanged}
-      helper-text="${ele.helperText}"
-      label="${ele.label}"
-      .items=${ele.options}
-      auto-expand-horizontally
-      selected-items-on-top>
-    </vaadin-multi-select-combo-box>
+    <div id="picker-field">
+      <div id="split-by-container">
+        <checkbox-sk
+          title="Splits the chart by attribute."
+          name=${ele.label}
+          label="Split"
+          @change=${ele.splitOnValue}
+          ?checked=${ele._splitBy}
+          ?hidden=${ele.selectedItems.length < 2}>
+        </checkbox-sk>
+      </div>
+      <vaadin-multi-select-combo-box
+        @selected-items-changed=${ele.onValueChanged}
+        helper-text="${ele.helperText}"
+        label="${ele.label}"
+        .items=${ele.options}
+        .selectedItems=${ele.selectedItems}
+        auto-expand-horizontally
+        selected-items-on-top>
+      </vaadin-multi-select-combo-box>
+    </div>
   `;
 
   private onValueChanged(e: Event) {
@@ -69,10 +90,25 @@ export class PickerFieldSk extends ElementSk {
     );
   }
 
+  private splitOnValue() {
+    this._splitBy = !this._splitBy;
+    this.dispatchEvent(
+      new CustomEvent('split-by-changed', {
+        detail: {
+          param: this.label,
+          split: this._splitBy,
+        },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this._comboBox = this.querySelector('vaadin-multi-select-combo-box');
+    this._splitBox = this.querySelector('checkbox-sk');
   }
 
   focus() {
@@ -112,8 +148,28 @@ export class PickerFieldSk extends ElementSk {
     this._render();
   }
 
-  getValue() {
-    return this._comboBox!.getAttribute('value');
+  enableSplit() {
+    if (this._splitBox !== null) {
+      this._splitBox.removeAttribute('disabled');
+    }
+    this._render();
+  }
+
+  disableSplit() {
+    if (this._splitBox !== null) {
+      this._splitBy = false;
+      this._splitBox.setAttribute('disabled', '');
+    }
+    this._render();
+  }
+
+  setSplit(val: boolean) {
+    this._splitBy = val;
+    this._render();
+  }
+
+  reset() {
+    this.selectedItems = [];
   }
 
   /**

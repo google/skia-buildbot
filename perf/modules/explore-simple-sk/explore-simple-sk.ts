@@ -996,19 +996,12 @@ export class ExploreSimpleSk extends ElementSk {
     const googleChart = this.googleChartPlot.value;
     // Check that data is fully loaded before triggering event.
     if (googleChart && googleChart.data) {
-      const trace: string | null = googleChart.getAllTraces()[0];
-      const detail = {
-        key: trace,
-        paramSet: this.query?.paramset,
-      };
-      if (trace) {
-        this.dispatchEvent(
-          new CustomEvent('populate-query', {
-            detail: detail,
-            bubbles: true,
-          })
-        );
-      }
+      this.dispatchEvent(
+        new CustomEvent('populate-query', {
+          detail: this.getParamSet(),
+          bubbles: true,
+        })
+      );
     }
   };
 
@@ -1068,6 +1061,13 @@ export class ExploreSimpleSk extends ElementSk {
     return colHeader;
   }
 
+  private getCommitIndex(value: number, type: string = 'commit'): number {
+    if (type === 'commit') {
+      return this.dfRepo.value?.header.findIndex((header) => header?.offset === value) ?? -1;
+    }
+    return this.dfRepo.value?.header.findIndex((header) => header?.timestamp === value) ?? -1;
+  }
+
   // onChartSelect shows the tooltip whenever a user clicks on a data
   // point and the tooltip will lock in place until it is closed.
   private onChartSelect(e: CustomEvent) {
@@ -1079,12 +1079,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.selectedAnomaly = anomaly;
     const position = chart.getPositionByIndex(index);
     const commit = this.getCommitDetails(commitPos);
-    const currentCommitIndex = this.dfRepo.value?.header.findIndex(
-      (header) => header?.offset === commitPos
-    );
-    const prevCommit = this.getCommitDetails(
-      this.getPreviousCommit(currentCommitIndex!, traceName)
-    );
+    const prevCommit = this.getCommitDetails(this.getPreviousCommit(index.tableRow, traceName));
     this.state.selected = {
       name: traceName,
       commit: commitPos,
@@ -1153,12 +1148,7 @@ export class ExploreSimpleSk extends ElementSk {
     const position = chart.getPositionByIndex(index);
     const traceName = chart.getTraceName(index.tableCol);
     const currentCommit = this.getCommitDetails(commitPos);
-    const currentCommitIndex = this.dfRepo.value?.header.findIndex(
-      (header) => header?.offset === commitPos
-    );
-    const prevCommit = this.getCommitDetails(
-      this.getPreviousCommit(currentCommitIndex!, traceName)
-    );
+    const prevCommit = this.getCommitDetails(this.getPreviousCommit(index.tableRow!, traceName));
     this.enableTooltip(
       {
         x: index.tableRow - (this.selectedRange?.begin || 0),
@@ -1359,6 +1349,9 @@ export class ExploreSimpleSk extends ElementSk {
     });
     this.addEventListener('plot-chart-mouseout', () => {
       this.onChartMouseOut();
+    });
+    this.addEventListener('split-chart-selection', (e) => {
+      this.splitByAttribute(e as CustomEvent);
     });
   }
 
@@ -1787,8 +1780,6 @@ export class ExploreSimpleSk extends ElementSk {
    */
   summarySelected({ detail }: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
     this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
-    this.closeTooltip();
-
     // When summary selection is changed, fetch the comments for the new range
     // and update the plot.
     const dfRepo = this.dfRepo.value;
@@ -1810,6 +1801,10 @@ export class ExploreSimpleSk extends ElementSk {
         detail: detail,
       })
     );
+    // Only close tooltip if the point is no longer on the chart.
+    if (detail.start === 0) {
+      this.closeTooltip();
+    }
   }
 
   private extendRange(range: range) {
@@ -1858,21 +1853,24 @@ export class ExploreSimpleSk extends ElementSk {
 
   private useBrowserURL(): void {
     const currentUrl = new URL(window.location.href);
-    const commit = parseInt(currentUrl.searchParams.get('commit') ?? '');
-    const column = parseInt(currentUrl.searchParams.get('trace') ?? '');
-    const graph = parseInt(currentUrl.searchParams.get('graph') ?? '0');
+    const commit: number = parseInt(
+      currentUrl.searchParams.get('commit') ?? String(this._state.selected.commit)
+    );
+    const column: number = parseInt(
+      currentUrl.searchParams.get('trace') ?? String(this._state.selected.tableCol)
+    );
+    const graph: number = parseInt(currentUrl.searchParams.get('graph') ?? '0');
 
     if (this.state.graph_index === 0) {
       const begin = parseInt(currentUrl.searchParams.get('begin') ?? '');
       const end = parseInt(currentUrl.searchParams.get('end') ?? '');
       if (isNaN(begin) || isNaN(end)) {
+        this.updateBrowserURL();
         return;
       }
-      const beginIndex =
-        this.dfRepo.value?.header.findIndex((header) => header?.timestamp === begin) ?? -1;
-      const endIndex =
-        this.dfRepo.value?.header.findIndex((header) => header?.timestamp === end) ?? -1;
-      if (beginIndex === -1 || endIndex === -1) {
+      const beginIndex = this.getCommitIndex(begin, 'timestamp');
+      const endIndex = this.getCommitIndex(end, 'timestamp');
+      if (beginIndex === null || endIndex === null) {
         errorMessage(`Timestamp(s) not found in the dataframe: ${begin}, ${end}`);
         return;
       }
@@ -1883,23 +1881,24 @@ export class ExploreSimpleSk extends ElementSk {
         return;
       }
 
-      const graphNumber = Array.from(this.parentNode!.children).indexOf(this);
-      const detail: PlotSummarySkSelectionEventDetails = {
-        graphNumber: graphNumber,
-        value: { begin: beginCommit, end: endCommit },
-        domain: 'commit',
-        start: 0,
-        end: 0,
-      };
-      this.plotSummary.value!.selectedValueRange = detail.value;
-      this.summarySelected(new CustomEvent('summary_selected', { detail: detail }));
+      if (this.parentNode) {
+        const graphNumber = Array.from(this.parentNode!.children).indexOf(this);
+        const detail: PlotSummarySkSelectionEventDetails = {
+          graphNumber: graphNumber,
+          value: { begin: beginCommit, end: endCommit },
+          domain: 'commit',
+          start: 0,
+          end: 0,
+        };
+        this.plotSummary.value!.selectedValueRange = detail.value;
+        this.summarySelected(new CustomEvent('summary_selected', { detail: detail }));
+      }
     }
 
-    if (this.state.graph_index === graph && commit && !isNaN(commit)) {
+    if (this._state.graph_index === graph && commit && !isNaN(commit)) {
       // If the commit is specified, we need to select it in the chart.
-      const commitIndex =
-        this.dfRepo.value?.header.findIndex((header) => header?.offset === commit) ?? -1;
-      if (commitIndex === -1) {
+      const commitIndex = this.getCommitIndex(commit);
+      if (commitIndex === null) {
         errorMessage(`Commit not found in the dataframe: ${commit}`);
         return;
       }
@@ -1945,6 +1944,11 @@ export class ExploreSimpleSk extends ElementSk {
     }
     if (this.googleChartPlot.value) {
       this.googleChartPlot.value.selectedValueRange = range;
+      const currentUrl = new URL(window.location.href);
+      this.state.begin = parseInt(
+        currentUrl.searchParams.get('begin') ?? this.state.begin.toString()
+      );
+      this.state.end = parseInt(currentUrl.searchParams.get('end') ?? this.state.end.toString());
     }
     this.updateBrowserURL();
     this.closeTooltip();
@@ -2706,12 +2710,12 @@ export class ExploreSimpleSk extends ElementSk {
    * @param frameRequest Frame Request object containing the corresponding backend request.
    * @param switchToTab Whether switch should be done.
    */
-  public UpdateWithFrameResponse(
+  public async UpdateWithFrameResponse(
     frameResponse: FrameResponse,
     frameRequest: FrameRequest | null,
     switchToTab: boolean,
     selectedRange: range | null = null
-  ): void {
+  ): Promise<void> {
     if (
       frameResponse.dataframe?.traceset &&
       Object.keys(frameResponse.dataframe.traceset).length === 0
@@ -2719,28 +2723,31 @@ export class ExploreSimpleSk extends ElementSk {
       errorMessage('No data found for the given query.');
       return;
     }
-    this.dfRepo.value
-      ?.resetWithDataframeAndRequest(
-        frameResponse.dataframe!,
-        frameResponse.anomalymap,
-        frameRequest!
-      )
-      .then(() => {
-        this.addTraces(frameResponse, switchToTab, selectedRange);
-        this.updateTracePointMetadata(frameResponse.dataframe!.traceMetadata);
-        this.updateTitle();
-        this._render();
-        if (isValidSelection(this._state.selected)) {
-          const e = selectionToEvent(this._state.selected, this._dataframe.header);
-          // If the range has moved to no longer include the selected commit then
-          // clear the selection.
-          if (e.detail.x === -1) {
-            this.clearSelectedState();
-          } else {
-            this.traceSelected(e);
-          }
-        }
-      });
+    const dfRepo = this.dfRepo.value;
+    if (!dfRepo) {
+      errorMessage('DataFrameRepository is not available.');
+      return;
+    }
+    await this.dfRepo.value?.resetWithDataframeAndRequest(
+      frameResponse.dataframe!,
+      frameResponse.anomalymap,
+      frameRequest!
+    );
+    // Code previously in .then() now runs after await
+    this.addTraces(frameResponse, switchToTab, selectedRange);
+    this.updateTracePointMetadata(frameResponse.dataframe!.traceMetadata);
+    this.updateTitle();
+    this._render();
+    if (isValidSelection(this._state.selected)) {
+      const e = selectionToEvent(this._state.selected, this._dataframe.header);
+      // If the range has moved to no longer include the selected commit then
+      // clear the selection.
+      if (e.detail.x === -1) {
+        this.clearSelectedState();
+      } else {
+        this.traceSelected(e);
+      }
+    }
   }
 
   private zeroChangeHandler(target: MdSwitch | null) {
@@ -3002,7 +3009,12 @@ export class ExploreSimpleSk extends ElementSk {
    *
    * @param plotType - The type of traces being added.
    */
-  addFromQueryOrFormula(replace: boolean, plotType: addPlotType, q: string, f: string) {
+  async addFromQueryOrFormula(
+    replace: boolean,
+    plotType: addPlotType,
+    q: string,
+    f: string
+  ): Promise<void> {
     if (this.queryDialog !== null) {
       this.queryDialog!.close();
     }
@@ -3063,9 +3075,14 @@ export class ExploreSimpleSk extends ElementSk {
     this.applyQueryDefaultsIfMissing();
     this._stateHasChanged();
     const body = this.requestFrameBodyFullFromState();
-    this.requestFrame(body, (json) => {
-      this.UpdateWithFrameResponse(json, body, true);
-    });
+    try {
+      await this.requestFrame(body, (json) => {
+        return this.UpdateWithFrameResponse(json, body, true);
+      });
+    } catch (error) {
+      // errorMessage is likely already called by requestFrame or its callees.
+      console.error('Error in addFromQueryOrFormula during requestFrame:', error);
+    }
   }
 
   /**
@@ -3391,8 +3408,12 @@ export class ExploreSimpleSk extends ElementSk {
     // that means that they all share a value in common and we can add this to the title.
     params!.forEach((param) => {
       const uniqueValues = new Set(Object.keys(traceset).map((traceId) => fromKey(traceId)[param]));
-      const value = uniqueValues.values().next().value;
-      if (value) {
+      let value = uniqueValues.values().next().value;
+      if (uniqueValues.size > 1) {
+        value = 'Various';
+      }
+
+      if (value !== undefined) {
         titleEntries.set(param, value);
       }
     });
@@ -3445,22 +3466,43 @@ export class ExploreSimpleSk extends ElementSk {
    * The 'cb' callback function will be called with the decoded JSON body
    * of the response once it's available.
    */
-  private async requestFrame(body: FrameRequest, cb: RequestFrameCallback) {
+  private requestFrame(body: FrameRequest, cb: RequestFrameCallback): Promise<void> {
     if (this._requestId !== '') {
-      errorMessage('There is a pending query already running.');
-      return;
+      const err = new Error('There is a pending query already running.');
+      errorMessage(err.message);
+      return Promise.reject(err);
     }
 
     this._requestId = 'About to make request';
     this.spinning = true;
-    try {
-      await this.sendFrameRequest(body, cb);
-    } catch (msg) {
-      this.catch(msg);
-    } finally {
-      this.spinning = false;
-      this._requestId = '';
-    }
+    return new Promise<void>((resolve, reject) => {
+      this.sendFrameRequest(body, async (json) => {
+        // make this inner callback async
+        try {
+          await cb(json); // await the execution of the main callback
+          resolve();
+        } catch (e: any) {
+          // Catch errors from cb
+          errorMessage(e.message || e.toString());
+          reject(e);
+        }
+      })
+        .catch((msg: any) => {
+          // Catch errors from sendFrameRequest itself
+          if (msg) {
+            errorMessage(msg.message || msg.toString());
+          }
+          if (this.percent) {
+            // Check if percent is not null
+            this.percent.textContent = '';
+          }
+          reject(msg);
+        })
+        .finally(() => {
+          this.spinning = false;
+          this._requestId = '';
+        });
+    });
   }
 
   private async sendFrameRequest(body: FrameRequest, cb: RequestFrameCallback) {
@@ -3579,6 +3621,10 @@ export class ExploreSimpleSk extends ElementSk {
   getAnomalyMap(): AnomalyMap {
     const anomalies = this.dfRepo.value?.getAllAnomalies();
     return anomalies ?? {};
+  }
+
+  getParamSet(): { [key: string]: string[] } {
+    return this.query?.paramset ?? {};
   }
 
   set defaults(val: QueryConfig | null) {

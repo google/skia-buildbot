@@ -441,17 +441,19 @@ export class PlotGoogleChartSk extends LitElement {
 
     options.colors = [];
     // Get internal indices of visible columns.
-    const visibleColumns = plot.view!.getViewColumns();
-    for (const colIndex of visibleColumns) {
-      // skip first two indices as these are reserved.
-      if (colIndex > 1) {
-        // Translate those internal indices to indices of visible columns.
-        const tableIndex = plot.view!.getViewColumnIndex(colIndex);
-        const label = plot.view!.getColumnLabel(tableIndex);
-        options.colors.push(this.traceColorMap.get(label)!);
+    if (plot.view) {
+      const visibleColumns = plot.view!.getViewColumns();
+      for (const colIndex of visibleColumns) {
+        // skip first two indices as these are reserved.
+        if (colIndex > 1) {
+          // Translate those internal indices to indices of visible columns.
+          const tableIndex = plot.view!.getViewColumnIndex(colIndex);
+          const label = plot.view!.getColumnLabel(tableIndex);
+          options.colors.push(this.traceColorMap.get(label)!);
+        }
       }
+      plot.options = options;
     }
-    plot.options = options;
   }
 
   /**
