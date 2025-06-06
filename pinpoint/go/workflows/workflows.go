@@ -35,6 +35,7 @@ const (
 	TestAndExport                     = "perf.test_and_export"
 	CollectAndUpload                  = "perf.collect_and_upload"
 	CbbRunner                         = "perf.cbb_runner"
+	CbbNewReleaseDetector             = "perf.cbb_new_release_detector"
 )
 
 const defaultPairwiseAttemptCount int32 = 30

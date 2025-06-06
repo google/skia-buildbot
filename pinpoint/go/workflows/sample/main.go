@@ -50,7 +50,8 @@ var (
 	triggerPairwiseFlag       = flag.Bool("pairwise", false, "toggle true to trigger pairwise workflow")
 	triggerBugUpdateFlag      = flag.Bool("update-bug", false, "toggle true to trigger post bug comment workflow")
 	triggerQueryPairwiseFlag  = flag.Bool("query-pairwise", false, "toggle true to trigger querying of pairwise flows")
-	triggerCbbFlag            = flag.Bool("cbb", false, "toggle true to trigger CBB runner workflow")
+	triggerCbbRunnerFlag      = flag.Bool("cbb-runner", false, "toggle true to trigger CBB runner workflow")
+	triggerCbbNewReleaseFlag  = flag.Bool("cbb-new-release", false, "toggle true to trigger CbbNewReleaseDetectorWorkflow")
 )
 
 func defaultWorkflowOptions() client.StartWorkflowOptions {
@@ -338,6 +339,22 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 	return cr, nil
 }
 
+func triggerCbbNewReleaseDetector(c client.Client) (bool, error) {
+	ctx := context.Background()
+
+	var success bool
+	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.CbbNewReleaseDetector)
+	if err != nil {
+		return false, skerr.Wrapf(err, "Unable to execute the workflow")
+	}
+	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+	if err := we.Get(ctx, &success); err != nil {
+		return false, skerr.Wrapf(err, "Unable to write to buganizer")
+	}
+	return success, nil
+}
+
 // Sample client to trigger a BuildChrome workflow.
 func main() {
 	flag.Parse()
@@ -383,9 +400,14 @@ func main() {
 	if *triggerQueryPairwiseFlag {
 		result, err = triggerQueryPairwise(c)
 	}
-	if *triggerCbbFlag {
+	if *triggerCbbRunnerFlag {
 		result, err = triggerCbbRunner(c)
 	}
+
+	if *triggerCbbNewReleaseFlag {
+		result, err = triggerCbbNewReleaseDetector(c)
+	}
+
 	if err != nil {
 		sklog.Errorf("Workflow failed:", err)
 		return
