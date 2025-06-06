@@ -104,6 +104,12 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 	if service == nil {
 		return nil, skerr.Fmt("Invalid service %s", mcpFlags.ServiceName)
 	}
+
+	err := service.Init(mcpFlags.ServiceArgs)
+	if err != nil {
+		return nil, err
+	}
+
 	s := server.NewMCPServer(
 		"Chrome Infra",
 		"0.0.0",
