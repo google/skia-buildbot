@@ -14,12 +14,14 @@ import (
 	"go.skia.org/infra/go/urfavecli"
 	"go.skia.org/infra/mcp/common"
 	"go.skia.org/infra/mcp/services/helloworld"
+	"go.skia.org/infra/mcp/services/perf"
 )
 
 type mcpservice string
 
 const (
 	HelloWorld mcpservice = "helloworld"
+	Perf       mcpservice = "perf"
 )
 
 // mcpFlags provides a struct to hold data required by mcp services provided
@@ -99,6 +101,8 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 	switch mcpFlags.ServiceName {
 	case string(HelloWorld):
 		service = helloworld.HelloWorldService{}
+	case string(Perf):
+		service = perf.PerfService{}
 	}
 
 	if service == nil {

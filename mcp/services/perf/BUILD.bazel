@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "perf",
+    srcs = ["service.go"],
+    importpath = "go.skia.org/infra/mcp/services/perf",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//mcp/common",
+        "//mcp/services/perf/pinpoint",
+    ],
+)

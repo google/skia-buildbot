@@ -14,6 +14,7 @@ go_library(
         "//go/urfavecli",
         "//mcp/common",
         "//mcp/services/helloworld",
+        "//mcp/services/perf",
         "@com_github_mark3labs_mcp_go//mcp",
         "@com_github_mark3labs_mcp_go//server",
         "@com_github_urfave_cli_v2//:cli",
