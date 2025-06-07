@@ -143,3 +143,81 @@ func TestCreateMcpSSEServer_ServiceInitError(t *testing.T) {
 	assert.Equal(t, expectedErr, err)
 	assert.Nil(t, server)
 }
+
+func TestCreateMcpSSEServer_ToolArgumentFeatures(t *testing.T) {
+	originalServiceRegistry := make(map[string]serviceFactory)
+	for k, v := range serviceRegistry {
+		originalServiceRegistry[k] = v
+	}
+	defer func() {
+		serviceRegistry = originalServiceRegistry
+	}()
+
+	testCases := []struct {
+		name             string
+		tool             common.Tool
+		expectError      bool
+		expectedErrorMsg string
+	}{
+		{
+			name: "StringWithEnum",
+			tool: common.Tool{
+				Name:        "enumTool",
+				Description: "Tool with enum argument",
+				Arguments: []common.ToolArgument{
+					{Name: "enumArg", Description: "Enum argument", Required: true, ArgumentType: common.StringArgument, EnumValues: []string{"val1", "val2"}},
+				},
+				Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) { return nil, nil },
+			},
+			expectError: false,
+		},
+		{
+			name: "ArrayWithSchema",
+			tool: common.Tool{
+				Name:        "arrayTool",
+				Description: "Tool with array argument",
+				Arguments: []common.ToolArgument{
+					{Name: "arrayArg", Description: "Array argument", Required: true, ArgumentType: common.ArrayArgument, ArraySchema: map[string]any{"type": "string"}},
+				},
+				Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) { return nil, nil },
+			},
+			expectError: false,
+		},
+		{
+			name: "ArrayWithoutSchema",
+			tool: common.Tool{
+				Name:        "arrayNoSchemaTool",
+				Description: "Tool with array argument but no schema",
+				Arguments: []common.ToolArgument{
+					{Name: "arrayArgNoSchema", Description: "Array argument without schema", Required: true, ArgumentType: common.ArrayArgument, ArraySchema: map[string]any{}}, // Empty schema
+				},
+				Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) { return nil, nil },
+			},
+			expectError:      true,
+			expectedErrorMsg: "Array type argument arrayArgNoSchema does not have a schema defined",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockService := &mocks.MockArgumentService{CustomTools: []common.Tool{tc.tool}}
+			testServiceName := "testargfeatureservice_" + tc.name
+			serviceRegistry[testServiceName] = func() common.McpService { return mockService }
+			defer delete(serviceRegistry, testServiceName)
+
+			flags := &mcpFlags{ServiceName: testServiceName}
+			server, err := createMcpSSEServer(flags)
+
+			if tc.expectError {
+				require.Error(t, err)
+				assert.Nil(t, server)
+				if tc.expectedErrorMsg != "" {
+					assert.Contains(t, err.Error(), tc.expectedErrorMsg)
+				}
+			} else {
+				require.NoError(t, err)
+				assert.NotNil(t, server)
+			}
+		})
+	}
+}

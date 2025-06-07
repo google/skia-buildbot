@@ -30,4 +30,8 @@ type ToolArgument struct {
 	Description  string
 	Required     bool
 	ArgumentType ToolArgumentType
+	// If non-empty, restricts the argument value to one of the stored values.
+	EnumValues []string
+	// Should have at minimum a "type" set, e.g. {"type": "string"}.
+	ArraySchema map[string]any
 }

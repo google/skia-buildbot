@@ -135,6 +135,9 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 				propOptions = append(propOptions, mcp.Required())
 			}
 			propOptions = append(propOptions, mcp.Description(arg.Description))
+			if len(arg.EnumValues) != 0 {
+				propOptions = append(propOptions, mcp.Enum(arg.EnumValues...))
+			}
 			switch arg.ArgumentType {
 			case common.StringArgument:
 				options = append(options, mcp.WithString(arg.Name, propOptions...))
@@ -145,6 +148,10 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 			case common.ObjectArgument:
 				options = append(options, mcp.WithObject(arg.Name, propOptions...))
 			case common.ArrayArgument:
+				if len(arg.ArraySchema) == 0 {
+					return nil, skerr.Fmt("Array type argument %s does not have a schema defined", arg.Name)
+				}
+				propOptions = append(propOptions, mcp.Items(arg.ArraySchema))
 				options = append(options, mcp.WithArray(arg.Name, propOptions...))
 			default:
 				return nil, skerr.Fmt("Invalid argument type %v", arg.ArgumentType)
