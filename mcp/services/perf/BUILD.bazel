@@ -6,7 +6,10 @@ go_library(
     importpath = "go.skia.org/infra/mcp/services/perf",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/skerr",
         "//mcp/common",
         "//mcp/services/perf/pinpoint",
+        "//perf/go/chromeperf",
+        "@com_github_mark3labs_mcp_go//mcp",
     ],
 )

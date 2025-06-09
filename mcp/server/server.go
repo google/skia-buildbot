@@ -31,7 +31,7 @@ type serviceFactory func() common.McpService
 // This allows for easier testing by registering mock services.
 var serviceRegistry = map[string]serviceFactory{
 	string(HelloWorld): func() common.McpService { return helloworld.HelloWorldService{} },
-	string(Perf):       func() common.McpService { return perf.PerfService{} },
+	string(Perf):       func() common.McpService { return &perf.PerfService{} },
 }
 
 // mcpFlags provides a struct to hold data required by mcp services provided
