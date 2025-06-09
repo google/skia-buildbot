@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/urfavecli"
+	"go.skia.org/infra/mcp/auth"
 	"go.skia.org/infra/mcp/common"
 	"go.skia.org/infra/mcp/services/helloworld"
 	"go.skia.org/infra/mcp/services/perf"
@@ -153,7 +154,10 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 		s.AddTool(mcpToolSpec, tool.Handler)
 	}
 
-	sseServer := server.NewSSEServer(s, server.WithBaseURL("http://localhost:8080"), server.WithKeepAlive(true))
-
+	sseServer := server.NewSSEServer(
+		s,
+		server.WithBaseURL("http://localhost:8080"),
+		server.WithKeepAlive(true),
+		server.WithSSEContextFunc(auth.AuthFromRequest))
 	return sseServer, nil
 }

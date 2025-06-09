@@ -12,6 +12,7 @@ go_library(
         "//go/sklog/sklogimpl",
         "//go/sklog/stdlogging",
         "//go/urfavecli",
+        "//mcp/auth",
         "//mcp/common",
         "//mcp/services/helloworld",
         "//mcp/services/perf",
