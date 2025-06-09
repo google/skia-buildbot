@@ -294,11 +294,16 @@ export class PlotSummarySk extends LitElement {
     }
   }
 
+  // SelectRange sets the selection range on the plot summary bar.
+  public SelectRange(selectionRange: range) {
+    this.selectedValueRange = selectionRange;
+  }
+
   // Select the provided range on the plot-summary.
   public Select(begin: ColumnHeader, end: ColumnHeader) {
     const isCommitScale = this.domain === 'commit';
     const col = isCommitScale ? 'offset' : 'timestamp';
-    this.selectedValueRange = { begin: begin[col], end: end[col] };
+    this.SelectRange({ begin: begin[col], end: end[col] });
   }
 
   // Get the underlying ChartLayoutInterface.

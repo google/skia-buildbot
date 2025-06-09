@@ -26,12 +26,25 @@ import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-c
 
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 
-import { fromKey, queryFromKey } from '../paramtools';
+import { addParamsToParamSet, fromKey, queryFromKey } from '../paramtools';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { QueryConfig, RequestType } from '../json';
+import {
+  AnomalyMap,
+  ColumnHeader,
+  FrameRequest,
+  FrameResponse,
+  ParamSet,
+  QueryConfig,
+  ReadOnlyParamSet,
+  RequestType,
+  Trace,
+  TraceCommitLink,
+  TraceMetadata,
+  TraceSet,
+} from '../json';
 
 import '../explore-simple-sk';
 import '../favorites-dialog-sk';
@@ -46,6 +59,7 @@ import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
 import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
+import { CommitLinks } from '../point-links-sk/point-links-sk';
 
 class State {
   begin: number = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
@@ -352,6 +366,9 @@ export class ExploreMultiSk extends ElementSk {
       // Only split if the new selection is different.
       if (this.state.splitByKey !== splitByParamKey) {
         this.state.splitByKey = splitByParamKey;
+        if (this.stateHasChanged) {
+          this.stateHasChanged();
+        }
         this.splitGraphs();
       }
     });
@@ -431,28 +448,65 @@ export class ExploreMultiSk extends ElementSk {
     if (groupedTraces.size === 1 && this.state.totalGraphs === 1) {
       return;
     }
+    const fullTraceSet = this.getCompleteTraceset();
+    const header = this.getHeader();
+    const commitLinks = this.getAllCommitLinks();
+    const fullAnomalyMap = this.getFullAnomalyMap();
+    const selectedRange = this.exploreElements[0].getSelectedRange();
+    const frameRequests: FrameRequest[] = [];
+    const frameResponses: FrameResponse[] = [];
     this.clearGraphs();
-    let i = 0;
     // Create the graph configs for each group.
     groupedTraces.forEach((traces) => {
       this.addEmptyGraph();
       const queries: string[] = [];
+      const traceSet: TraceSet = TraceSet({});
+      const paramSet: ParamSet = ParamSet({});
       traces.forEach((trace) => {
         queries.push(queryFromKey(trace));
+        traceSet[trace] = Trace(fullTraceSet[trace]);
+        addParamsToParamSet(paramSet, fromKey(trace));
       });
-      this.graphConfigs[i].queries = queries;
-      i++;
+      const exploreRequest: FrameRequest = {
+        queries: queries,
+        request_type: this.state.request_type,
+        begin: this.state.begin,
+        end: this.state.end,
+        tz: '',
+      };
+      const exploreDataResponse: FrameResponse = {
+        dataframe: {
+          traceset: traceSet,
+          header: header,
+          paramset: ReadOnlyParamSet(paramSet),
+          skip: 0,
+          traceMetadata: this.getTraceMetadataFromCommitLinks(traces, commitLinks),
+        },
+        anomalymap: this.getAnomalyMapForTraces(fullAnomalyMap, traces),
+        display_mode: 'display_plot',
+        msg: '',
+        skps: [],
+      };
+
+      frameRequests.push(exploreRequest);
+      frameResponses.push(exploreDataResponse);
       // TODO(ashwinpv): Support formulas?
     });
-
-    this.updateShortcutMultiview();
 
     // Upon the split action, we would want to move to the first page
     // of the split graph set.
     this.state.pageOffset = 0;
 
     // Now add the graphs that have been configured to the page.
-    this.addGraphsToCurrentPage();
+    this.addGraphsToCurrentPage(true);
+    for (let i = 0; i < this.exploreElements.length; i++) {
+      this.exploreElements[i].UpdateWithFrameResponse(
+        frameResponses[i],
+        frameRequests[i],
+        false,
+        selectedRange
+      );
+    }
   }
 
   /**
@@ -572,7 +626,7 @@ export class ExploreMultiSk extends ElementSk {
     this.currentPageGraphConfigs = [];
   }
 
-  private addGraphsToCurrentPage(): void {
+  private addGraphsToCurrentPage(doNotQueryData: boolean = false): void {
     this.state.totalGraphs = this.exploreElements.length;
     this.emptyCurrentPage();
     const startIndex = this.state.pageOffset;
@@ -589,7 +643,7 @@ export class ExploreMultiSk extends ElementSk {
 
     this.currentPageExploreElements.forEach((elem, i) => {
       const graphConfig = this.currentPageGraphConfigs[i];
-      this.addStateToExplore(elem, graphConfig);
+      this.addStateToExplore(elem, graphConfig, doNotQueryData);
     });
 
     this.updateChartHeights();
@@ -621,7 +675,11 @@ export class ExploreMultiSk extends ElementSk {
     });
   }
 
-  private addStateToExplore(explore: ExploreSimpleSk, graphConfig: GraphConfig) {
+  private addStateToExplore(
+    explore: ExploreSimpleSk,
+    graphConfig: GraphConfig,
+    doNotQueryData: boolean
+  ) {
     const newState: ExploreState = {
       formulas: graphConfig.formulas || [],
       queries: graphConfig.queries || [],
@@ -653,6 +711,7 @@ export class ExploreMultiSk extends ElementSk {
       enable_favorites: this.canAddFav(),
       hide_paramset: true,
       graph_index: this.exploreElements.indexOf(explore),
+      doNotQueryData: doNotQueryData,
     };
     explore.state = newState;
   }
@@ -730,7 +789,7 @@ export class ExploreMultiSk extends ElementSk {
       const formula_regex = new RegExp(/\((,[^)]+,)\)/);
       // Tracesets include traces from Queries and Keys. Traces
       // from formulas are wrapped around a formula string.
-      Object.keys(elem.getTraceset()).forEach((key) => {
+      Object.keys(elem.getTraceset()!).forEach((key) => {
         if (key[0] === ',') {
           traceset.push(key);
         } else {
@@ -745,6 +804,110 @@ export class ExploreMultiSk extends ElementSk {
       }
     });
     return tracesets;
+  }
+
+  /**
+   * getHeader returns the columnheader header of the first explore element.
+   * @returns
+   */
+  private getHeader(): (ColumnHeader | null)[] | null {
+    return this.exploreElements[0].getHeader();
+  }
+
+  /**
+   * getCompleteTraceset returns the full traceset consisting of all the tracesets
+   * in all explore elements in the current page.
+   * @returns
+   */
+  private getCompleteTraceset(): { [key: string]: number[] } {
+    const fullTraceSet: { [key: string]: number[] } = {};
+    this.exploreElements.forEach((elem) => {
+      const exploreTraceSet = elem.getTraceset();
+      Object.keys(exploreTraceSet!).forEach((key) => {
+        fullTraceSet[key] = exploreTraceSet![key];
+      });
+    });
+
+    return fullTraceSet;
+  }
+
+  /**
+   * getAllCommitLinks returns all commit links across all explore elements.
+   * @returns
+   */
+  private getAllCommitLinks(): (CommitLinks | null)[] {
+    const commitLinks: (CommitLinks | null)[] = [];
+    this.exploreElements.forEach((elem) => {
+      const elemLinks = elem.getCommitLinks();
+      if (elemLinks.length > 0) {
+        commitLinks.push(...elemLinks);
+      }
+    });
+
+    return commitLinks;
+  }
+
+  private getFullAnomalyMap(): AnomalyMap {
+    const anomalyMap: AnomalyMap = {};
+    this.exploreElements.forEach((elem) => {
+      const anomalies = elem.getAnomalyMap();
+      Object.keys(anomalies!).forEach((traceId) => {
+        const existingEntry = anomalyMap[traceId];
+        if (!existingEntry) {
+          anomalyMap[traceId] = {};
+        }
+
+        const commitMap = anomalies![traceId];
+        Object.keys(commitMap!).forEach((commitnumber) => {
+          anomalyMap[traceId]![parseInt(commitnumber!)] = commitMap![parseInt(commitnumber!)];
+        });
+      });
+    });
+    return anomalyMap;
+  }
+
+  private getAnomalyMapForTraces(fullAnomalyMap: AnomalyMap, traces: string[]): AnomalyMap {
+    const anomalyMap: AnomalyMap = {};
+    traces.forEach((trace) => {
+      anomalyMap[trace] = fullAnomalyMap![trace];
+    });
+
+    return anomalyMap;
+  }
+
+  /**
+   * getTraceMetadataFromCommitLinks returns the traceMetadata for the given traces extracted
+   * from the commitlinks.
+   * @param traceIds TraceIds to filter for.
+   * @param commitLinks All commit links available.
+   * @returns
+   */
+  private getTraceMetadataFromCommitLinks(
+    traceIds: string[],
+    commitLinks: (CommitLinks | null)[]
+  ): TraceMetadata[] {
+    const traceMetadata: TraceMetadata[] = [];
+    const relevantLinks = commitLinks.filter((link) => traceIds.includes(link!.traceid));
+    const traceLinkMap = new Map<string, TraceMetadata>();
+    relevantLinks.forEach((link) => {
+      let metadata = traceLinkMap.get(link!.traceid);
+      if (metadata === undefined) {
+        metadata = { traceid: link!.traceid, commitLinks: {} };
+      }
+      Object.keys(link!.displayUrls!).forEach((key) => {
+        const traceCommitLink: TraceCommitLink = {
+          Href: link!.displayUrls![key],
+          Text: link!.displayTexts![key],
+        };
+        if (metadata!.commitLinks![link!.cid] === undefined) {
+          metadata!.commitLinks![link!.cid] = {};
+        }
+        metadata!.commitLinks![link!.cid]![key] = traceCommitLink;
+      });
+      traceMetadata.push(metadata);
+    });
+
+    return traceMetadata;
   }
 
   /**

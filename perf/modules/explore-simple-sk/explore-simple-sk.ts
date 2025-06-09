@@ -362,6 +362,9 @@ export class State {
   horizontal_zoom: boolean = false;
 
   graph_index: number = 0; // The index of the graph in the list of graphs.
+
+  // boolean indicating if the element should disable querying of data from backend.
+  doNotQueryData: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -2656,28 +2659,51 @@ export class ExploreSimpleSk extends ElementSk {
         errorMessage('Failed to find any matching traces.');
         return;
       }
-      if (json.dataframe?.traceset && Object.keys(json.dataframe.traceset).length === 0) {
-        errorMessage('No data found for the given query.');
-        return;
-      }
-      this.dfRepo.value
-        ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
-        .then(() => {
-          this.addTraces(json, switchToTab);
-          this.updateTracePointMetadata(json.dataframe!.traceMetadata);
-          this._render();
-          if (isValidSelection(this._state.selected)) {
-            const e = selectionToEvent(this._state.selected, this._dataframe.header);
-            // If the range has moved to no longer include the selected commit then
-            // clear the selection.
-            if (e.detail.x === -1) {
-              this.clearSelectedState();
-            } else {
-              this.traceSelected(e);
-            }
-          }
-        });
+      this.UpdateWithFrameResponse(json, body, switchToTab);
     });
+  }
+
+  /**
+   * UpdateWithFrameResponse updates the explore element with the given frame response.
+   * @param frameResponse FrameResponse object containing the data frame.
+   * @param frameRequest Frame Request object containing the corresponding backend request.
+   * @param switchToTab Whether switch should be done.
+   */
+  public UpdateWithFrameResponse(
+    frameResponse: FrameResponse,
+    frameRequest: FrameRequest | null,
+    switchToTab: boolean,
+    selectedRange: range | null = null
+  ): void {
+    if (
+      frameResponse.dataframe?.traceset &&
+      Object.keys(frameResponse.dataframe.traceset).length === 0
+    ) {
+      errorMessage('No data found for the given query.');
+      return;
+    }
+    this.dfRepo.value
+      ?.resetWithDataframeAndRequest(
+        frameResponse.dataframe!,
+        frameResponse.anomalymap,
+        frameRequest!
+      )
+      .then(() => {
+        this.addTraces(frameResponse, switchToTab, selectedRange);
+        this.updateTracePointMetadata(frameResponse.dataframe!.traceMetadata);
+        this.updateTitle();
+        this._render();
+        if (isValidSelection(this._state.selected)) {
+          const e = selectionToEvent(this._state.selected, this._dataframe.header);
+          // If the range has moved to no longer include the selected commit then
+          // clear the selection.
+          if (e.detail.x === -1) {
+            this.clearSelectedState();
+          } else {
+            this.traceSelected(e);
+          }
+        }
+      });
   }
 
   private zeroChangeHandler(target: MdSwitch | null) {
@@ -2729,13 +2755,7 @@ export class ExploreSimpleSk extends ElementSk {
     const body = this.requestFrameBodyFullFromState();
     const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
-      this.dfRepo.value
-        ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
-        .then(() => {
-          this.plotSimple.value?.removeAll();
-          this.addTraces(json, switchToTab);
-          this.updateTracePointMetadata(json.dataframe!.traceMetadata);
-        });
+      this.UpdateWithFrameResponse(json, body, switchToTab);
     });
   }
 
@@ -2755,7 +2775,7 @@ export class ExploreSimpleSk extends ElementSk {
    * otherwise replace them all with the new ones.
    * @param {Boolean} tab - If true then switch to the Params tab.
    */
-  private addTraces(json: FrameResponse, tab: boolean) {
+  private addTraces(json: FrameResponse, tab: boolean, selectedRange: range | null = null) {
     const dataframe = json.dataframe!;
     if (dataframe.traceset === null || Object.keys(dataframe.traceset).length === 0) {
       this.displayMode = 'display_query_only';
@@ -2789,9 +2809,11 @@ export class ExploreSimpleSk extends ElementSk {
     this.originalTraceSet = deepCopy(mergedDataframe.traceset);
 
     const header = dataframe.header;
-    const selectedRange = range(header![0]!.offset, header![header!.length - 1]!.offset);
+    if (selectedRange === null) {
+      selectedRange = range(header![0]!.offset, header![header!.length - 1]!.offset);
+    }
 
-    this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit');
+    this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit');
 
     // Normalize bands to be just offsets.
     const bands: number[] = [];
@@ -2822,20 +2844,25 @@ export class ExploreSimpleSk extends ElementSk {
     this.dfRepo.value
       ?.getUserIssues(Object.keys(dataframe.traceset), selectedRange.begin, selectedRange.end)
       .then((_) => {
-        this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit');
+        this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit');
       });
 
     if (this._state.plotSummary) {
       const header = dataframe.header!;
-      this.plotSummary.value?.Select(header![0]!, header[header.length - 1]!);
-
-      this.dfRepo.value?.extendRange(-3 * monthInSec).then(() => {
-        // Already plotted, just need to update the data.
-        this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit', false);
-      });
-      this.dfRepo.value?.extendRange(3 * monthInSec).then(() => {
-        this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit', false);
-      });
+      if (this.state.doNotQueryData) {
+        // The data is supposed to be already loaded.
+        // Let's simply make the selection on the summary.
+        this.plotSummary.value?.SelectRange(selectedRange!);
+      } else {
+        this.plotSummary.value?.Select(header![0]!, header[header.length - 1]!);
+        this.dfRepo.value?.extendRange(-3 * monthInSec).then(() => {
+          // Already plotted, just need to update the data.
+          this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit', false);
+        });
+        this.dfRepo.value?.extendRange(3 * monthInSec).then(() => {
+          this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit', false);
+        });
+      }
     }
 
     this.dispatchEvent(
@@ -2998,12 +3025,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._stateHasChanged();
     const body = this.requestFrameBodyFullFromState();
     this.requestFrame(body, (json) => {
-      this.dfRepo.value
-        ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
-        .then(() => {
-          this.addTraces(json, true);
-          this.updateTracePointMetadata(json.dataframe!.traceMetadata);
-        });
+      this.UpdateWithFrameResponse(json, body, true);
     });
   }
 
@@ -3465,7 +3487,9 @@ export class ExploreSimpleSk extends ElementSk {
 
     this.zeroChanged();
     this.autoRefreshChanged();
-    this.rangeChangeImpl();
+    if (!state.doNotQueryData) {
+      this.rangeChangeImpl();
+    }
   }
 
   get openQueryByDefault(): boolean {
@@ -3497,8 +3521,25 @@ export class ExploreSimpleSk extends ElementSk {
     this._render();
   }
 
-  getTraceset(): { [key: string]: number[] } {
-    return this._dataframe.traceset;
+  getTraceset(): { [key: string]: number[] } | null {
+    return this.dfRepo.value?.dataframe.traceset ?? null;
+  }
+
+  getSelectedRange(): range | null {
+    return this.googleChartPlot.value?.selectedRange ?? null;
+  }
+
+  getHeader(): (ColumnHeader | null)[] | null {
+    return this.dfRepo.value!.header;
+  }
+
+  getCommitLinks(): (CommitLinks | null)[] {
+    return this.commitLinks;
+  }
+
+  getAnomalyMap(): AnomalyMap {
+    const anomalies = this.dfRepo.value?.getAllAnomalies();
+    return anomalies ?? {};
   }
 
   set defaults(val: QueryConfig | null) {

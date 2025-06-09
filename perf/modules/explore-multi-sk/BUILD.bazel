@@ -11,6 +11,7 @@ sk_element(
         "//infra-sk/modules/alogin-sk",
         "//perf/modules/plot-google-chart-sk",
         "//perf/modules/picker-field-sk",
+        "//perf/modules/point-links-sk",
     ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",

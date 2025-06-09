@@ -380,6 +380,10 @@ export class DataFrameRepository extends LitElement {
     return (traceAnomalies && traceAnomalies![commit]) ?? null;
   }
 
+  getAllAnomalies(): AnomalyMap {
+    return this.anomaly;
+  }
+
   /**
    * Update anomaly map.
    *
