@@ -8,8 +8,8 @@ go_library(
     deps = [
         "//go/skerr",
         "//mcp/common",
+        "//mcp/services/perf/anomalies",
         "//mcp/services/perf/pinpoint",
         "//perf/go/chromeperf",
-        "@com_github_mark3labs_mcp_go//mcp",
     ],
 )

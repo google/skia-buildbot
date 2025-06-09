@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "anomalies",
+    srcs = ["tools.go"],
+    importpath = "go.skia.org/infra/mcp/services/perf/anomalies",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//mcp/common",
+        "//perf/go/alerts",
+        "//perf/go/chromeperf",
+        "//perf/go/subscription/proto/v1",
+        "@com_github_mark3labs_mcp_go//mcp",
+    ],
+)
