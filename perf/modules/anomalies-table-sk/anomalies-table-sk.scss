@@ -12,6 +12,13 @@ anomalies-table-sk {
   }
 
   #anomalies-table {
+    spinner-sk {
+      width: 24px;
+      height: 24px;
+      margin: 0;
+      padding: 0;
+      position: static;
+    }
     border-collapse: collapse;
     border-spacing: 0;
     font-size: small;
@@ -39,6 +46,7 @@ anomalies-table-sk {
     #change_direction {
       width: 50px;
     }
+
     #bug_id {
       width: 130px;
     }
@@ -52,9 +60,15 @@ anomalies-table-sk {
       text-align: center;
       width: var(--percent-changed-width, 50px);
     }
+    .center-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
     #trendingicon-link {
       color: rgb(87, 120, 211);
       cursor: pointer;
+      text-align: center;
       display: contents;
     }
   }

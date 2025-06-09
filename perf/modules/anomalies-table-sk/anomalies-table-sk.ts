@@ -22,6 +22,7 @@ import '@material/web/button/outlined-button.js';
 import { errorMessage } from '../errorMessage';
 import { updateShortcut } from '../explore-simple-sk/explore-simple-sk';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
+import '../../../elements-sk/modules/spinner-sk';
 
 const weekInSeconds = 7 * 24 * 60 * 60;
 class AnomalyGroup {
@@ -50,6 +51,8 @@ export class AnomaliesTableSk extends ElementSk {
   private shortcutUrl: string = '';
 
   private getGroupReportResponse: GetGroupReportResponse | null = null;
+
+  private loadingGraphForAnomaly: Map<number, boolean> = new Map<number, boolean>();
 
   constructor() {
     super(AnomaliesTableSk.template);
@@ -281,6 +284,7 @@ export class AnomaliesTableSk extends ElementSk {
       const anomaly = anomalyGroup.anomalies[i];
       const processedAnomaly = this.getProcessedAnomaly(anomaly);
       const anomalyClass = anomaly.is_improvement ? 'improvement' : 'regression';
+      const isLoading = this.loadingGraphForAnomaly.get(anomaly.id) || false;
       rows.push(html`
         <tr
           data-bugid="${anomalySortValues.bugId}"
@@ -317,14 +321,24 @@ export class AnomaliesTableSk extends ElementSk {
               id="anomaly-row-${anomaly.id}">
             </checkbox-sk>
           </td>
-          <td>
-            <button
-              id="trendingicon-link"
-              @click=${() => {
-                this.openMultiGraphUrl(anomaly);
-              }}>
-              <trending-up-icon-sk></trending-up-icon-sk>
-            </button>
+          <td class="center-content">
+            ${
+              isLoading
+                ? html`<spinner-sk active></spinner-sk>` // Show spinner if loading
+                : html`
+                    <button
+                      id="trendingicon-link"
+                      @click=${async () => {
+                        this.loadingGraphForAnomaly.set(anomaly.id, true);
+                        this._render();
+                        await this.openMultiGraphUrl(anomaly);
+                        this.loadingGraphForAnomaly.set(anomaly.id, false);
+                        this._render();
+                      }}>
+                      <trending-up-icon-sk></trending-up-icon-sk>
+                    </button>
+                  `
+            }
           </td>
           <td>
             ${this.getReportLinkForBugId(anomaly.bug_id)}
