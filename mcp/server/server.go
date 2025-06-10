@@ -2,11 +2,14 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/urfave/cli/v2"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/sklogimpl"
@@ -43,6 +46,9 @@ type mcpFlags struct {
 
 	// Arguments to pass on to the service.
 	ServiceArgs string
+
+	// If true, add liveness and readiness probes.
+	AddHealthChecks bool
 }
 
 // AsCliFlags provides a list of the flags supported by the mcpserver cmd.
@@ -59,6 +65,12 @@ func (flags *mcpFlags) AsCliFlags() []cli.Flag {
 			Name:        "args",
 			Value:       "",
 			Usage:       "The arguments for the service.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.AddHealthChecks,
+			Name:        "add_health_checks",
+			Value:       false,
+			Usage:       "If true, add readiness and liveness probes.",
 		},
 	}
 }
@@ -89,9 +101,17 @@ func main() {
 					if err != nil {
 						return err
 					}
+
+					if mcpFlags.AddHealthChecks {
+						// Run the health checks in a separate thread
+						// since the main thread will be hosting the mcp server.
+						go addHealthProbes()
+					}
+
 					if err := sseServer.Start(":8080"); err != nil {
 						sklog.Fatalf("Error: %v", err)
 					}
+
 					return nil
 				},
 			},
@@ -103,6 +123,19 @@ func main() {
 		fmt.Printf("\nError: %s\n", err.Error())
 		os.Exit(2)
 	}
+}
+
+// addHealthProbes adds the health check handlers required for kubernetes on a separate port.
+func addHealthProbes() {
+	router := chi.NewRouter()
+	h := httputils.LoggingGzipRequestResponse(router)
+	h = httputils.HealthzAndHTTPS(h)
+	http.Handle("/", h)
+	server := &http.Server{
+		Addr:    ":8081",
+		Handler: h,
+	}
+	sklog.Fatal(server.ListenAndServe())
 }
 
 // createMcpServer creates a new server that hosts the service based on the
