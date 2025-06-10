@@ -2,7 +2,6 @@ package chromiumbuilder
 
 // TODO(bsheedy): Refactor things so that Init and the handler just call another
 // function that takes the relevant interfaces to better facilitate testing.
-// TODO(bsheedy): Move git checkouts into the service so they can be created once
 
 import (
 	"bytes"
@@ -91,11 +90,19 @@ ci.builder(
 )`
 )
 
+type checkoutFactory = func(context.Context, string, string) (git.Checkout, error)
+
+func realCheckoutFactory(ctx context.Context, repoUrl, workdir string) (git.Checkout, error) {
+	return git.NewCheckout(ctx, repoUrl, workdir)
+}
+
 // ChromiumBuilderService is an MCP service which is capable of generating CLs
 // to add new LUCI builders to chromium/src.
 type ChromiumBuilderService struct {
-	depotToolsPath string
-	chromiumPath   string
+	chromiumPath       string
+	depotToolsPath     string
+	chromiumCheckout   git.Checkout
+	depotToolsCheckout git.Checkout
 }
 
 // Init initializes the service with the provided arguments. serviceArgs is
@@ -109,12 +116,12 @@ func (s *ChromiumBuilderService) Init(serviceArgs string) error {
 	}
 	sklog.Errorf("Parsed args %v", s)
 
-	err = s.handleDepotToolsSetup(ctx, vfs.Local("/"))
+	err = s.handleDepotToolsSetup(ctx, vfs.Local("/"), realCheckoutFactory)
 	if err != nil {
 		return err
 	}
 
-	err = s.handleChromiumSetup(ctx, vfs.Local("/"))
+	err = s.handleChromiumSetup(ctx, vfs.Local("/"), realCheckoutFactory)
 	if err != nil {
 		return err
 	}
@@ -155,22 +162,31 @@ func (s *ChromiumBuilderService) parseServiceArgs(serviceArgs string) error {
 
 // handleDepotTools ensures that a depot_tools checkout is available at the
 // stored path.
-func (s ChromiumBuilderService) handleDepotToolsSetup(ctx context.Context, fs vfs.FS) error {
+func (s *ChromiumBuilderService) handleDepotToolsSetup(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
 	// Check if depot_tools path exists.
 	depotToolsDir, err := fs.Open(ctx, s.depotToolsPath)
 	if err != nil {
-		return skerr.Fmt("depot_tools path %v does not currently exist. This service does not yet support automatically getting a copy",
-			s.depotToolsPath)
+		return s.handleMissingDepotToolsCheckout(ctx, fs, factory)
 	}
 	defer depotToolsDir.Close(ctx)
 
+	return s.handleExistingDepotToolsCheckout(ctx, fs, factory)
+}
+
+// handleMissingDepotToolsCheckout sets up a new depot_tools checkout at the
+// stored path to handle the case where there is not an existing checkout.
+func (s *ChromiumBuilderService) handleMissingDepotToolsCheckout(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
+	return skerr.Fmt("depot_tools path %s does not currently exist. This service does not yet support automatically getting a copy",
+		s.depotToolsPath)
+}
+
+// handleExistingDepotToolsCheckout ensures that an existing depot_tools
+// checkout is valid and up to date.
+func (s *ChromiumBuilderService) handleExistingDepotToolsCheckout(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
 	// Check that the provided path is actually a directory.
-	fileInfo, err := depotToolsDir.Stat(ctx)
+	err := checkIfPathIsDirectory(ctx, fs, s.depotToolsPath)
 	if err != nil {
 		return err
-	}
-	if !fileInfo.IsDir() {
-		return skerr.Fmt("depot_tools path %v is not a directory", s.depotToolsPath)
 	}
 
 	// Check that an expected tool exists.
@@ -181,32 +197,93 @@ func (s ChromiumBuilderService) handleDepotToolsSetup(ctx context.Context, fs vf
 	}
 	defer lucicfg.Close(ctx)
 
-	// TODO(bsheedy): Ensure it's an actual git repo.
+	// Check that this appears to be an actual git repo.
+	dotGitPath := filepath.Join(s.depotToolsPath, ".git")
+	err = checkIfPathIsDirectory(ctx, fs, dotGitPath)
+	if err != nil {
+		return err
+	}
+
+	// Obtain a re-usable checkout and ensure it is up to date.
+	s.depotToolsCheckout, err = factory(ctx, DepotToolsUrl, filepath.Dir(s.depotToolsPath))
+	if err != nil {
+		return err
+	}
+	err = s.updateDepotToolsCheckout(ctx)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
 // handleChromiumSetup ensures that a Chromium checkout is available at the
 // stored path.
-func (s ChromiumBuilderService) handleChromiumSetup(ctx context.Context, fs vfs.FS) error {
-	// Check if the chromium path exists.
+func (s *ChromiumBuilderService) handleChromiumSetup(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
+	// Check if the Chromium path exists.
 	chromiumDir, err := fs.Open(ctx, s.chromiumPath)
 	if err != nil {
-		return skerr.Fmt("Chromium path %v does not currently exist. This service does not yet support automatically getting a copy",
-			s.chromiumPath)
+		return s.handleMissingChromiumCheckout(ctx, fs, factory)
 	}
 	defer chromiumDir.Close(ctx)
 
+	return s.handleExistingChromiumCheckout(ctx, fs, factory)
+}
+
+// handleMissingChromiumCheckout sets up a new Chromium checkout at the stored
+// path to handle the case where there is not an existing checkout.
+func (s *ChromiumBuilderService) handleMissingChromiumCheckout(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
+	return skerr.Fmt("Chromium path %s does not currently exist. This service does not yet support automatically getting a copy",
+		s.chromiumPath)
+}
+
+// handleExistingChromiumCheckout ensures that the existing Chromium checkout is
+// valid and up to date.
+func (s *ChromiumBuilderService) handleExistingChromiumCheckout(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
 	// Check that the provided path is actually a directory.
-	fileInfo, err := chromiumDir.Stat(ctx)
+	err := checkIfPathIsDirectory(ctx, fs, s.chromiumPath)
 	if err != nil {
 		return err
 	}
-	if !fileInfo.IsDir() {
-		return skerr.Fmt("Chromium path %s is not a directory", s.chromiumPath)
+
+	// Check that this appears to be an actual git repo.
+	dotGitPath := filepath.Join(s.chromiumPath, ".git")
+	err = checkIfPathIsDirectory(ctx, fs, dotGitPath)
+	if err != nil {
+		return err
 	}
 
-	// TODO(bsheedy): Ensure it's an actual git repo.
+	// Obtain a re-usable checkout and ensure it is up to date.
+	s.chromiumCheckout, err = factory(ctx, ChromiumUrl, filepath.Dir(s.chromiumPath))
+	if err != nil {
+		return err
+	}
+	err = s.updateChromiumCheckout(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// checkIfPathIsDirectory is a helper to check if the provided path exists and
+// is a directory.
+func checkIfPathIsDirectory(ctx context.Context, fs vfs.FS, path string) error {
+	// Check if the provided path exists.
+	fileHandle, err := fs.Open(ctx, path)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	defer fileHandle.Close(ctx)
+
+	// Check if the provided path is actually a directory.
+	fileInfo, err := fileHandle.Stat(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if !fileInfo.IsDir() {
+		return skerr.Fmt("Path %s exists, but is not a directory.", path)
+	}
 
 	return nil
 }
@@ -469,17 +546,10 @@ func (s ChromiumBuilderService) updateCheckouts(ctx context.Context) error {
 // updateDepotToolsCheckout ensures that depot_tools is up to date with
 // origin/main.
 func (s ChromiumBuilderService) updateDepotToolsCheckout(ctx context.Context) error {
-	sklog.Errorf("Updating depot_tools checkout at %v", s.depotToolsPath)
-	checkout, err := git.NewCheckout(ctx, DepotToolsUrl, filepath.Dir(s.depotToolsPath))
+	err := s.depotToolsCheckout.Update(ctx)
 	if err != nil {
 		return err
 	}
-
-	err = checkout.Update(ctx)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -487,13 +557,7 @@ func (s ChromiumBuilderService) updateDepotToolsCheckout(ctx context.Context) er
 // This does *not* interact with gclient, as DEPS should not be needed for
 // interacting with //infra/config.
 func (s ChromiumBuilderService) updateChromiumCheckout(ctx context.Context) error {
-	sklog.Errorf("Updating chromium checkout at %v", s.chromiumPath)
-	checkout, err := git.NewCheckout(ctx, ChromiumUrl, filepath.Dir(s.chromiumPath))
-	if err != nil {
-		return err
-	}
-
-	err = checkout.Update(ctx)
+	err := s.chromiumCheckout.Update(ctx)
 	if err != nil {
 		return err
 	}
@@ -504,13 +568,8 @@ func (s ChromiumBuilderService) updateChromiumCheckout(ctx context.Context) erro
 // switchToTemporaryBranch creates a uniquely named branch and switches to it,
 // returning the new branch name.
 func (s ChromiumBuilderService) switchToTemporaryBranch(ctx context.Context) (string, error) {
-	checkout, err := git.NewCheckout(ctx, ChromiumUrl, filepath.Dir(s.chromiumPath))
-	if err != nil {
-		return "", err
-	}
-
 	branchName := fmt.Sprintf("%d", time.Now().UnixMilli())
-	_, err = checkout.Git(ctx, "checkout", "-b", branchName)
+	_, err := s.chromiumCheckout.Git(ctx, "checkout", "-b", branchName)
 	if err != nil {
 		return "", err
 	}
@@ -737,20 +796,15 @@ func (s ChromiumBuilderService) generateFilesFromStarlark(ctx context.Context) e
 // addAndCommitFiles adds all files under Chromium's //infra/config directory to
 // git then commits them.
 func (s ChromiumBuilderService) addAndCommitFiles(ctx context.Context, inputs ciCombinedBuilderInputs) error {
-	checkout, err := git.NewCheckout(ctx, ChromiumUrl, filepath.Dir(s.chromiumPath))
-	if err != nil {
-		return err
-	}
-
 	infraConfigPath := filepath.Join(s.chromiumPath, InfraConfigSubdirectory)
-	_, err = checkout.Git(ctx, "add", infraConfigPath)
+	_, err := s.chromiumCheckout.Git(ctx, "add", infraConfigPath)
 	if err != nil {
 		return err
 	}
 
 	clTitle := fmt.Sprintf("Add new builder %s", inputs.builderName)
 	clDescription := fmt.Sprintf("Adds a new builder %s in the %s group. This CL was auto-generated.", inputs.builderName, inputs.builderGroup)
-	_, err = checkout.Git(ctx, "commit", "-m", clTitle, "-m", clDescription)
+	_, err = s.chromiumCheckout.Git(ctx, "commit", "-m", clTitle, "-m", clDescription)
 	if err != nil {
 		return err
 	}

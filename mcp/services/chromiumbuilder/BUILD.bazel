@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "chromiumbuilder",
@@ -13,5 +14,18 @@ go_library(
         "//go/vfs",
         "//mcp/common",
         "@com_github_mark3labs_mcp_go//mcp",
+    ],
+)
+
+go_test(
+    name = "chromiumbuilder_test",
+    srcs = ["setup_test.go"],
+    embed = [":chromiumbuilder"],
+    deps = [
+        "//go/git",
+        "//go/vcsinfo",
+        "//go/vfs/mocks",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
     ],
 )
