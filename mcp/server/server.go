@@ -72,7 +72,7 @@ func (flags *mcpFlags) AsCliFlags() []cli.Flag {
 		&cli.StringFlag{
 			Destination: &flags.BaseUrl,
 			Name:        "baseurl",
-			Value:       "http://localhost",
+			Value:       "http://localhost:8080",
 			Usage:       "The base url for the server.",
 		},
 		&cli.IntFlag{
@@ -219,7 +219,7 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 
 	sseServer := server.NewSSEServer(
 		s,
-		server.WithBaseURL(fmt.Sprintf("%s:%d", mcpFlags.BaseUrl, mcpFlags.Port)),
+		server.WithBaseURL(mcpFlags.BaseUrl),
 		server.WithKeepAlive(true),
 		server.WithSSEContextFunc(auth.AuthFromRequest))
 	return sseServer, nil
