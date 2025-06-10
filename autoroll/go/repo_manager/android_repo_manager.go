@@ -227,7 +227,13 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	}
 
 	// Run repo init and sync commands.
-	initCmd := []string{"python3", r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.parentRepoURL), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch.String()}
+	initCmd := []string{
+		"python3", r.repoToolPath, "init",
+		"-u", fmt.Sprintf("%s/a/platform/manifest", r.parentRepoURL),
+		"-g", "all,-notdefault,-darwin",
+		"-b", r.parentBranch.String(),
+		"--use-superproject",
+	}
 	if _, err := exec.RunCwd(ctx, r.workdir, initCmd...); err != nil {
 		sklog.Warningf("repo init error: %s", err)
 		// Try deleting .repo in the workdir and re-initing (skbug.com/13867).
