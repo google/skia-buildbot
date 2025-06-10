@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/urfavecli"
 	"go.skia.org/infra/mcp/auth"
 	"go.skia.org/infra/mcp/common"
+	"go.skia.org/infra/mcp/services/chromiumbuilder"
 	"go.skia.org/infra/mcp/services/helloworld"
 	"go.skia.org/infra/mcp/services/perf"
 )
@@ -24,18 +25,20 @@ import (
 type mcpservice string
 
 const (
-	HelloWorld mcpservice = "helloworld"
-	Perf       mcpservice = "perf"
+	ChromiumBuilder mcpservice = "chromiumbuilder"
+	HelloWorld      mcpservice = "helloworld"
+	Perf            mcpservice = "perf"
 )
 
 // serviceFactory defines a function that creates a McpService instance.
 type serviceFactory func() common.McpService
 
 // serviceRegistry holds the mapping from service names to their factory functions.
-// This allows for easier testing by registering mock services.
+// This allows for easier testing by registering mock services.[]
 var serviceRegistry = map[string]serviceFactory{
-	string(HelloWorld): func() common.McpService { return helloworld.HelloWorldService{} },
-	string(Perf):       func() common.McpService { return &perf.PerfService{} },
+	string(ChromiumBuilder): func() common.McpService { return &chromiumbuilder.ChromiumBuilderService{} },
+	string(HelloWorld):      func() common.McpService { return helloworld.HelloWorldService{} },
+	string(Perf):            func() common.McpService { return &perf.PerfService{} },
 }
 
 // mcpFlags provides a struct to hold data required by mcp services provided

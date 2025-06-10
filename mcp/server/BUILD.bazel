@@ -15,6 +15,7 @@ go_library(
         "//go/urfavecli",
         "//mcp/auth",
         "//mcp/common",
+        "//mcp/services/chromiumbuilder",
         "//mcp/services/helloworld",
         "//mcp/services/perf",
         "@com_github_go_chi_chi_v5//:chi",

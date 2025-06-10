@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "chromiumbuilder",
+    srcs = ["service.go"],
+    importpath = "go.skia.org/infra/mcp/services/chromiumbuilder",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/exec",
+        "//go/git",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/vfs",
+        "//mcp/common",
+        "@com_github_mark3labs_mcp_go//mcp",
+    ],
+)
