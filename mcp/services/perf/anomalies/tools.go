@@ -118,8 +118,8 @@ func GetTools(chromePerfClient *chromeperf.ChromePerfClient) []common.Tool {
 				return mcp.NewToolResultError(getAnomaliesResponse.Error), nil
 			}
 			var anomalyRows []string
-			const anomalyRowFormatDescription = "RevisionStart,RevisionEnd,Bot,TestSuite,Test,ChangeDirection,Delta%,AbsoluteDelta\n\n"
-			const anomalyRowFormat = "%d,%d,'%s','%s','%s',%f,%f,%f\n"
+			const anomalyRowFormatDescription = "RevisionStart,RevisionEnd,Bot,TestSuite,Test,ChangeDirection,Delta%,AbsoluteDelta\n"
+			const anomalyRowFormat = "%d,%d,'%s','%s','%s',%f,%f,%f"
 			anomalyRows = append(anomalyRows, anomalyRowFormatDescription)
 			for _, anomaly := range (*getAnomaliesResponse).Anomalies {
 				testPathPieces := strings.Split(anomaly.TestPath, "/")
