@@ -33,7 +33,7 @@ func TestCreateServer_Invalid(t *testing.T) {
 }
 
 func TestCreateMcpSSEServer_ArgumentTypeSwitch(t *testing.T) {
-	originalServiceRegistry := make(map[string]serviceFactory)
+	originalServiceRegistry := make(map[mcpservice]serviceFactory)
 	for k, v := range serviceRegistry {
 		originalServiceRegistry[k] = v
 	}
@@ -59,9 +59,9 @@ func TestCreateMcpSSEServer_ArgumentTypeSwitch(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			mockService := &mocks.MockArgumentService{ArgTypeToTest: tc.argType}
 			testServiceName := "testargumentservice_" + tc.name
-
-			serviceRegistry[testServiceName] = func() common.McpService { return mockService }
-			defer delete(serviceRegistry, testServiceName)
+			testMcpService := mcpservice(testServiceName)
+			serviceRegistry[testMcpService] = func() common.McpService { return mockService }
+			defer delete(serviceRegistry, testMcpService)
 
 			flags := &mcpFlags{
 				ServiceName: testServiceName,
@@ -84,7 +84,7 @@ func TestCreateMcpSSEServer_ArgumentTypeSwitch(t *testing.T) {
 }
 
 func TestCreateMcpSSEServer_ToolWithNoArguments(t *testing.T) {
-	originalServiceRegistry := make(map[string]serviceFactory)
+	originalServiceRegistry := make(map[mcpservice]serviceFactory)
 	for k, v := range serviceRegistry {
 		originalServiceRegistry[k] = v
 	}
@@ -98,8 +98,9 @@ func TestCreateMcpSSEServer_ToolWithNoArguments(t *testing.T) {
 		},
 	}
 	testServiceName := "testnoargservice"
-	serviceRegistry[testServiceName] = func() common.McpService { return mockService }
-	defer delete(serviceRegistry, testServiceName)
+	testMcpService := mcpservice(testServiceName)
+	serviceRegistry[testMcpService] = func() common.McpService { return mockService }
+	defer delete(serviceRegistry, testMcpService)
 
 	flags := &mcpFlags{ServiceName: testServiceName}
 	server, err := createMcpSSEServer(flags)
@@ -108,7 +109,7 @@ func TestCreateMcpSSEServer_ToolWithNoArguments(t *testing.T) {
 }
 
 func TestCreateMcpSSEServer_ServiceWithNoTools(t *testing.T) {
-	originalServiceRegistry := make(map[string]serviceFactory)
+	originalServiceRegistry := make(map[mcpservice]serviceFactory)
 	for k, v := range serviceRegistry {
 		originalServiceRegistry[k] = v
 	}
@@ -118,8 +119,9 @@ func TestCreateMcpSSEServer_ServiceWithNoTools(t *testing.T) {
 
 	mockService := &mocks.MockArgumentService{CustomTools: []common.Tool{}} // No tools
 	testServiceName := "testnotoolservice"
-	serviceRegistry[testServiceName] = func() common.McpService { return mockService }
-	defer delete(serviceRegistry, testServiceName)
+	testMcpService := mcpservice(testServiceName)
+	serviceRegistry[testMcpService] = func() common.McpService { return mockService }
+	defer delete(serviceRegistry, testMcpService)
 
 	flags := &mcpFlags{ServiceName: testServiceName}
 	server, err := createMcpSSEServer(flags)
@@ -134,8 +136,9 @@ func TestCreateMcpSSEServer_ServiceInitError(t *testing.T) {
 	mockService := &mocks.MockArgumentService{InitError: expectedErr}
 	testServiceName := "testiniterrorservice" // This service name won't be in the default registry
 
-	serviceRegistry[testServiceName] = func() common.McpService { return mockService }
-	defer delete(serviceRegistry, testServiceName) // Clean up after test
+	testMcpService := mcpservice(testServiceName)
+	serviceRegistry[testMcpService] = func() common.McpService { return mockService }
+	defer delete(serviceRegistry, testMcpService) // Clean up after test
 
 	flags := &mcpFlags{ServiceName: testServiceName}
 	server, err := createMcpSSEServer(flags)
@@ -145,7 +148,7 @@ func TestCreateMcpSSEServer_ServiceInitError(t *testing.T) {
 }
 
 func TestCreateMcpSSEServer_ToolArgumentFeatures(t *testing.T) {
-	originalServiceRegistry := make(map[string]serviceFactory)
+	originalServiceRegistry := make(map[mcpservice]serviceFactory)
 	for k, v := range serviceRegistry {
 		originalServiceRegistry[k] = v
 	}
@@ -202,8 +205,9 @@ func TestCreateMcpSSEServer_ToolArgumentFeatures(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			mockService := &mocks.MockArgumentService{CustomTools: []common.Tool{tc.tool}}
 			testServiceName := "testargfeatureservice_" + tc.name
-			serviceRegistry[testServiceName] = func() common.McpService { return mockService }
-			defer delete(serviceRegistry, testServiceName)
+			testMcpService := mcpservice(testServiceName)
+			serviceRegistry[testMcpService] = func() common.McpService { return mockService }
+			defer delete(serviceRegistry, testMcpService)
 
 			flags := &mcpFlags{ServiceName: testServiceName}
 			server, err := createMcpSSEServer(flags)

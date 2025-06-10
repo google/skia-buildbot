@@ -35,10 +35,10 @@ type serviceFactory func() common.McpService
 
 // serviceRegistry holds the mapping from service names to their factory functions.
 // This allows for easier testing by registering mock services.[]
-var serviceRegistry = map[string]serviceFactory{
-	string(ChromiumBuilder): func() common.McpService { return &chromiumbuilder.ChromiumBuilderService{} },
-	string(HelloWorld):      func() common.McpService { return helloworld.HelloWorldService{} },
-	string(Perf):            func() common.McpService { return &perf.PerfService{} },
+var serviceRegistry = map[mcpservice]serviceFactory{
+	ChromiumBuilder: func() common.McpService { return &chromiumbuilder.ChromiumBuilderService{} },
+	HelloWorld:      func() common.McpService { return helloworld.HelloWorldService{} },
+	Perf:            func() common.McpService { return &perf.PerfService{} },
 }
 
 // mcpFlags provides a struct to hold data required by mcp services provided
@@ -46,6 +46,12 @@ var serviceRegistry = map[string]serviceFactory{
 type mcpFlags struct {
 	// Name of the service.
 	ServiceName string
+
+	// Base url for the server.
+	BaseUrl string
+
+	// Specify the port for the server.
+	Port int
 
 	// Arguments to pass on to the service.
 	ServiceArgs string
@@ -62,6 +68,18 @@ func (flags *mcpFlags) AsCliFlags() []cli.Flag {
 			Name:        "service",
 			Value:       "helloworld",
 			Usage:       "The name of the service to run.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.BaseUrl,
+			Name:        "baseurl",
+			Value:       "http://localhost",
+			Usage:       "The base url for the server.",
+		},
+		&cli.IntFlag{
+			Destination: &flags.Port,
+			Name:        "port",
+			Value:       8080,
+			Usage:       "The port for the server.",
 		},
 		&cli.StringFlag{
 			Destination: &flags.ServiceArgs,
@@ -111,7 +129,9 @@ func main() {
 						go addHealthProbes()
 					}
 
-					if err := sseServer.Start(":8080"); err != nil {
+					portSpec := fmt.Sprintf(":%d", mcpFlags.Port)
+					sklog.Infof("Running MCP server on %s", portSpec)
+					if err := sseServer.Start(portSpec); err != nil {
 						sklog.Fatalf("Error: %v", err)
 					}
 
@@ -144,7 +164,7 @@ func addHealthProbes() {
 // createMcpServer creates a new server that hosts the service based on the
 // information in the mcpFlags.
 func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
-	factory, ok := serviceRegistry[mcpFlags.ServiceName]
+	factory, ok := serviceRegistry[mcpservice(mcpFlags.ServiceName)]
 	if !ok {
 		return nil, skerr.Fmt("Unknown service: %s", mcpFlags.ServiceName)
 	}
@@ -199,7 +219,7 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 
 	sseServer := server.NewSSEServer(
 		s,
-		server.WithBaseURL("http://localhost:8080"),
+		server.WithBaseURL(fmt.Sprintf("%s:%d", mcpFlags.BaseUrl, mcpFlags.Port)),
 		server.WithKeepAlive(true),
 		server.WithSSEContextFunc(auth.AuthFromRequest))
 	return sseServer, nil
