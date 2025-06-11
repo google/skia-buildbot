@@ -1,8 +1,5 @@
 package chromiumbuilder
 
-// TODO(bsheedy): Refactor things so that Init and the handler just call another
-// function that takes the relevant interfaces to better facilitate testing.
-
 import (
 	"bytes"
 	"context"
@@ -120,19 +117,24 @@ type ChromiumBuilderService struct {
 // expected to be a comma-separated list of key-value pairs in the form
 // key=value.
 func (s *ChromiumBuilderService) Init(serviceArgs string) error {
-	ctx := context.Background()
+	return s.initImpl(context.Background(), serviceArgs, vfs.Local("/"), realCheckoutFactory, realDirectoryCreator)
+}
+
+// initImpl is the actual implementation for Init(), broken out to support
+// dependency injection.
+func (s *ChromiumBuilderService) initImpl(ctx context.Context, serviceArgs string, fs vfs.FS, cf checkoutFactory, dc directoryCreator) error {
 	err := s.parseServiceArgs(serviceArgs)
 	if err != nil {
 		return err
 	}
 	sklog.Errorf("Parsed args %v", s)
 
-	err = s.handleDepotToolsSetup(ctx, vfs.Local("/"), realCheckoutFactory, realDirectoryCreator)
+	err = s.handleDepotToolsSetup(ctx, fs, cf, dc)
 	if err != nil {
 		return err
 	}
 
-	err = s.handleChromiumSetup(ctx, vfs.Local("/"), realCheckoutFactory, realDirectoryCreator)
+	err = s.handleChromiumSetup(ctx, fs, cf, dc)
 	if err != nil {
 		return err
 	}
@@ -177,7 +179,10 @@ func (s *ChromiumBuilderService) handleDepotToolsSetup(ctx context.Context, fs v
 	// Check if depot_tools path exists.
 	depotToolsDir, err := fs.Open(ctx, s.depotToolsPath)
 	if err != nil {
-		return s.handleMissingDepotToolsCheckout(ctx, fs, cf, dc)
+		if os.IsNotExist(err) {
+			return s.handleMissingDepotToolsCheckout(ctx, fs, cf, dc)
+		}
+		return err
 	}
 	defer depotToolsDir.Close(ctx)
 
@@ -253,7 +258,10 @@ func (s *ChromiumBuilderService) handleChromiumSetup(ctx context.Context, fs vfs
 	// Check if the Chromium path exists.
 	chromiumDir, err := fs.Open(ctx, s.chromiumPath)
 	if err != nil {
-		return s.handleMissingChromiumCheckout(ctx, fs, cf, dc)
+		if os.IsNotExist(err) {
+			return s.handleMissingChromiumCheckout(ctx, fs, cf, dc)
+		}
+		return err
 	}
 	defer chromiumDir.Close(ctx)
 
@@ -445,6 +453,13 @@ func (s *ChromiumBuilderService) GetTools() []common.Tool {
 // tool, which creates a combined compile + test builder in Chromium and uploads
 // the resulting CL.
 func (s *ChromiumBuilderService) createCiCombinedBuilderHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return s.createCiCombinedBuilderHandlerImpl(ctx, request, vfs.Local("/"))
+}
+
+// createCiCombinedBuilderHandlerImpl is the actual implementation for
+// createCiCombinedBuilderHandler, broken out to support dependency injection.
+func (s *ChromiumBuilderService) createCiCombinedBuilderHandlerImpl(
+	ctx context.Context, request mcp.CallToolRequest, fs vfs.FS) (*mcp.CallToolResult, error) {
 	sklog.Infof("calling handler with data %v", s)
 	inputs, err := extractCiCombinedBuilderInputs(request)
 	if err != nil {
@@ -465,7 +480,7 @@ func (s *ChromiumBuilderService) createCiCombinedBuilderHandler(ctx context.Cont
 	}
 	// TODO(bsheedy): Clean up the created branch
 
-	err = s.addNewBuilder(ctx, inputs, vfs.Local("/"))
+	err = s.addNewBuilder(ctx, inputs, fs)
 	if err != nil {
 		sklog.Errorf("Error adding new builder: %v", err)
 		return mcp.NewToolResultError(err.Error()), nil
