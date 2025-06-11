@@ -4,7 +4,7 @@ vars = {
   'cpython_version':    'version:2@2.7.18.chromium.47',
   'cpython3_version':   'version:3@3.11.9.chromium.36',
   'luci_tools_version': 'git_revision:e5ff3a881cecc4fdc314dfc39a56c721534cc942',
-  'skia_tools_version': 'git_revision:29821d9a17aec7fa5015798d29c99af99f69d6a1',
+  'skia_tools_version': 'git_revision:80f512e1a5d1f28d7cb3da37bfb9d090a105857e',
   'tools_git_version':  'version:3@2.49.0.chromium.11',
 }
 
