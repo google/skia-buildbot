@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -90,10 +91,20 @@ ci.builder(
 )`
 )
 
+// Types used for dependency injection
 type checkoutFactory = func(context.Context, string, string) (git.Checkout, error)
 
 func realCheckoutFactory(ctx context.Context, repoUrl, workdir string) (git.Checkout, error) {
 	return git.NewCheckout(ctx, repoUrl, workdir)
+}
+
+// vfs does not have the concept of directory creation, so we need to have a
+// separate way of handling dependency injection for that. In tests, the two
+// will likely be backed by the same mock filesystem.
+type directoryCreator = func(string, os.FileMode) error
+
+func realDirectoryCreator(path string, perm os.FileMode) error {
+	return os.MkdirAll(path, perm)
 }
 
 // ChromiumBuilderService is an MCP service which is capable of generating CLs
@@ -116,12 +127,12 @@ func (s *ChromiumBuilderService) Init(serviceArgs string) error {
 	}
 	sklog.Errorf("Parsed args %v", s)
 
-	err = s.handleDepotToolsSetup(ctx, vfs.Local("/"), realCheckoutFactory)
+	err = s.handleDepotToolsSetup(ctx, vfs.Local("/"), realCheckoutFactory, realDirectoryCreator)
 	if err != nil {
 		return err
 	}
 
-	err = s.handleChromiumSetup(ctx, vfs.Local("/"), realCheckoutFactory)
+	err = s.handleChromiumSetup(ctx, vfs.Local("/"), realCheckoutFactory, realDirectoryCreator)
 	if err != nil {
 		return err
 	}
@@ -162,27 +173,46 @@ func (s *ChromiumBuilderService) parseServiceArgs(serviceArgs string) error {
 
 // handleDepotTools ensures that a depot_tools checkout is available at the
 // stored path.
-func (s *ChromiumBuilderService) handleDepotToolsSetup(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
+func (s *ChromiumBuilderService) handleDepotToolsSetup(ctx context.Context, fs vfs.FS, cf checkoutFactory, dc directoryCreator) error {
 	// Check if depot_tools path exists.
 	depotToolsDir, err := fs.Open(ctx, s.depotToolsPath)
 	if err != nil {
-		return s.handleMissingDepotToolsCheckout(ctx, fs, factory)
+		return s.handleMissingDepotToolsCheckout(ctx, fs, cf, dc)
 	}
 	defer depotToolsDir.Close(ctx)
 
-	return s.handleExistingDepotToolsCheckout(ctx, fs, factory)
+	return s.handleExistingDepotToolsCheckout(ctx, fs, cf)
 }
 
 // handleMissingDepotToolsCheckout sets up a new depot_tools checkout at the
 // stored path to handle the case where there is not an existing checkout.
-func (s *ChromiumBuilderService) handleMissingDepotToolsCheckout(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
-	return skerr.Fmt("depot_tools path %s does not currently exist. This service does not yet support automatically getting a copy",
-		s.depotToolsPath)
+func (s *ChromiumBuilderService) handleMissingDepotToolsCheckout(ctx context.Context, fs vfs.FS, cf checkoutFactory, dc directoryCreator) error {
+	// Ensure the parent directories exist.
+	err := dc(filepath.Dir(s.depotToolsPath), 0o750)
+	if err != nil {
+		return err
+	}
+
+	// git.NewCheckout() clones the repo if a checkout doesn't exist at the
+	// given directory already, so rely on that behavior.
+	s.depotToolsCheckout, err = cf(ctx, DepotToolsUrl, filepath.Dir(s.depotToolsPath))
+	if err != nil {
+		return err
+	}
+
+	// Creating the checkout creates the repo, but doesn't fetch anything. So,
+	// perform an explicit update to pull everything down.
+	err = s.updateDepotToolsCheckout(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // handleExistingDepotToolsCheckout ensures that an existing depot_tools
 // checkout is valid and up to date.
-func (s *ChromiumBuilderService) handleExistingDepotToolsCheckout(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
+func (s *ChromiumBuilderService) handleExistingDepotToolsCheckout(ctx context.Context, fs vfs.FS, cf checkoutFactory) error {
 	// Check that the provided path is actually a directory.
 	err := checkIfPathIsDirectory(ctx, fs, s.depotToolsPath)
 	if err != nil {
@@ -205,7 +235,7 @@ func (s *ChromiumBuilderService) handleExistingDepotToolsCheckout(ctx context.Co
 	}
 
 	// Obtain a re-usable checkout and ensure it is up to date.
-	s.depotToolsCheckout, err = factory(ctx, DepotToolsUrl, filepath.Dir(s.depotToolsPath))
+	s.depotToolsCheckout, err = cf(ctx, DepotToolsUrl, filepath.Dir(s.depotToolsPath))
 	if err != nil {
 		return err
 	}
@@ -219,27 +249,55 @@ func (s *ChromiumBuilderService) handleExistingDepotToolsCheckout(ctx context.Co
 
 // handleChromiumSetup ensures that a Chromium checkout is available at the
 // stored path.
-func (s *ChromiumBuilderService) handleChromiumSetup(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
+func (s *ChromiumBuilderService) handleChromiumSetup(ctx context.Context, fs vfs.FS, cf checkoutFactory, dc directoryCreator) error {
 	// Check if the Chromium path exists.
 	chromiumDir, err := fs.Open(ctx, s.chromiumPath)
 	if err != nil {
-		return s.handleMissingChromiumCheckout(ctx, fs, factory)
+		return s.handleMissingChromiumCheckout(ctx, fs, cf, dc)
 	}
 	defer chromiumDir.Close(ctx)
 
-	return s.handleExistingChromiumCheckout(ctx, fs, factory)
+	return s.handleExistingChromiumCheckout(ctx, fs, cf)
 }
 
 // handleMissingChromiumCheckout sets up a new Chromium checkout at the stored
 // path to handle the case where there is not an existing checkout.
-func (s *ChromiumBuilderService) handleMissingChromiumCheckout(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
-	return skerr.Fmt("Chromium path %s does not currently exist. This service does not yet support automatically getting a copy",
-		s.chromiumPath)
+func (s *ChromiumBuilderService) handleMissingChromiumCheckout(ctx context.Context, fs vfs.FS, cf checkoutFactory, dc directoryCreator) error {
+	// Ensure the parent directories exist.
+	err := dc(filepath.Dir(s.chromiumPath), 0o750)
+	if err != nil {
+		return err
+	}
+
+	sklog.Infof("Fetching Chromium checkout into %s. This will take a while.", s.chromiumPath)
+	fetchPath := filepath.Join(s.depotToolsPath, "fetch")
+	output := bytes.Buffer{}
+	err = exec.Run(ctx, &exec.Command{
+		Name:           fetchPath,
+		Args:           []string{"--nohooks", "chromium"},
+		CombinedOutput: &output,
+		Dir:            filepath.Dir(s.chromiumPath),
+	})
+	if err != nil {
+		return skerr.Fmt("Failed to fetch Chromium. Original error: %v Stdout: %s", err, output.String())
+	}
+	sklog.Info("Successfully fetched Chromium checkout")
+
+	// Obtain a re-usable checkout.
+	s.chromiumCheckout, err = cf(ctx, ChromiumUrl, filepath.Dir(s.chromiumPath))
+	if err != nil {
+		return err
+	}
+
+	// The checkout will already be up to date after the fetch, so no need to
+	// explicitly update here.
+
+	return nil
 }
 
 // handleExistingChromiumCheckout ensures that the existing Chromium checkout is
 // valid and up to date.
-func (s *ChromiumBuilderService) handleExistingChromiumCheckout(ctx context.Context, fs vfs.FS, factory checkoutFactory) error {
+func (s *ChromiumBuilderService) handleExistingChromiumCheckout(ctx context.Context, fs vfs.FS, cf checkoutFactory) error {
 	// Check that the provided path is actually a directory.
 	err := checkIfPathIsDirectory(ctx, fs, s.chromiumPath)
 	if err != nil {
@@ -254,7 +312,7 @@ func (s *ChromiumBuilderService) handleExistingChromiumCheckout(ctx context.Cont
 	}
 
 	// Obtain a re-usable checkout and ensure it is up to date.
-	s.chromiumCheckout, err = factory(ctx, ChromiumUrl, filepath.Dir(s.chromiumPath))
+	s.chromiumCheckout, err = cf(ctx, ChromiumUrl, filepath.Dir(s.chromiumPath))
 	if err != nil {
 		return err
 	}

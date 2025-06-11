@@ -22,6 +22,7 @@ go_test(
     srcs = ["setup_test.go"],
     embed = [":chromiumbuilder"],
     deps = [
+        "//go/exec",
         "//go/git",
         "//go/vcsinfo",
         "//go/vfs/mocks",
