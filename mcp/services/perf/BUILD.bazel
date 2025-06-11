@@ -9,6 +9,7 @@ go_library(
         "//go/skerr",
         "//mcp/common",
         "//mcp/services/perf/anomalies",
+        "//mcp/services/perf/chromeperf",
         "//mcp/services/perf/pinpoint",
         "//perf/go/chromeperf",
     ],

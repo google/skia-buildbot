@@ -2,30 +2,30 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
-    name = "pinpoint",
+    name = "chromeperf",
     srcs = [
         "client.go",
         "tools.go",
     ],
-    importpath = "go.skia.org/infra/mcp/services/perf/pinpoint",
+    importpath = "go.skia.org/infra/mcp/services/perf/chromeperf",
     visibility = ["//visibility:public"],
     deps = [
         "//go/httputils",
         "//go/skerr",
-        "//go/sklog",
         "//mcp/common",
         "//mcp/services/perf/common",
+        "//mcp/services/perf/pinpoint",
         "@com_github_mark3labs_mcp_go//mcp",
     ],
 )
 
 go_test(
-    name = "pinpoint_test",
+    name = "chromeperf_test",
     srcs = [
         "client_test.go",
         "tools_test.go",
     ],
-    embed = [":pinpoint"],
+    embed = [":chromeperf"],
     deps = [
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

@@ -4,8 +4,10 @@ import (
 	"context"
 
 	"go.skia.org/infra/go/skerr"
+
 	"go.skia.org/infra/mcp/common"
 	"go.skia.org/infra/mcp/services/perf/anomalies"
+	lcp "go.skia.org/infra/mcp/services/perf/chromeperf"
 	"go.skia.org/infra/mcp/services/perf/pinpoint"
 	"go.skia.org/infra/perf/go/chromeperf"
 )
@@ -27,5 +29,6 @@ func (s *PerfService) Init(serviceArgs string) error {
 
 // GetTools returns the supported tools by the service.
 func (s PerfService) GetTools() []common.Tool {
-	return append(pinpoint.GetTools(), anomalies.GetTools(&s.chromePerfClient)...)
+	return append(anomalies.GetTools(&s.chromePerfClient),
+		append(pinpoint.GetTools(), lcp.GetTools()...)...)
 }

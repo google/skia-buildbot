@@ -8,11 +8,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"golang.org/x/oauth2/google"
+	"go.skia.org/infra/mcp/services/perf/common"
 )
 
 const (
@@ -38,13 +37,10 @@ const (
 
 	// Endpoint for scheduling Pinpoint workflows through Temporal.
 	PinpointV1Schedule = "/pinpoint/v1/schedule"
-
-	// Content type header application/json.
-	contentType = "application/json"
 )
 
 // Pinpoint response format for newly triggered jobs.
-type PinpointResponse struct {
+type PinpointJobResponse struct {
 	// A unique identifier for the Pinpoint job triggered.
 	// A hash (in legacy) and UUID (in new)
 	JobID string `json:"jobId"`
@@ -56,6 +52,10 @@ type PinpointResponse struct {
 	JobURL string `json:"jobUrl"`
 }
 
+type PinpointConfigurationResponse struct {
+	Configurations []string `json:"configurations"`
+}
+
 // Lightweight client object.
 type PinpointClient struct {
 	targetNewPinpoint bool
@@ -64,23 +64,11 @@ type PinpointClient struct {
 	Url string
 }
 
-// defaultHttpClient returns a HTTP client handler configured w/ default
-// https://www.googleapis.com/auth/userinfo.email scope.
-func defaultHttpClient(ctx context.Context) (*http.Client, error) {
-	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to create pinpoint client.")
-	}
-
-	return httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client(), nil
-}
-
 // NewPinpointClient returns a client with the URL pointing to legacy
 // or new Pinpoint depending on the arguments provided.
 func NewPinpointClient(args map[string]any) *PinpointClient {
-	targetNewPinpoint := args[TargetNewPinpoint]
 	// default to legacy
-	if targetNewPinpoint == nil {
+	if args == nil || args[TargetNewPinpoint] == nil {
 		return &PinpointClient{
 			targetNewPinpoint: false,
 			Url:               LegacyPinpointUrl,
@@ -89,7 +77,7 @@ func NewPinpointClient(args map[string]any) *PinpointClient {
 
 	}
 
-	targetVal := targetNewPinpoint.(bool)
+	targetVal := args[TargetNewPinpoint].(bool)
 	url := LegacyPinpointUrl
 	if targetVal {
 		url = PinpointUrl
@@ -103,7 +91,7 @@ func NewPinpointClient(args map[string]any) *PinpointClient {
 
 // LegacyTryRequestUrl formulates the POST request URL to /api/new
 // for a Pinpoint job.
-func (pc *PinpointClient) LegacyRequestUrl() string {
+func (pc *PinpointClient) LegacyTryRequestUrl() string {
 	params := url.Values{}
 
 	sklog.Debug(pc.args)
@@ -136,14 +124,14 @@ func (pc *PinpointClient) LegacyRequestUrl() string {
 // TryJob curates the POST request to /api/new or /pinpoint/v1/schedule
 // based on the arguments provided and sends the request.
 // Returns a PinpointResponse, containing the JobiD and the JobURL.
-func (pc *PinpointClient) TryJob(ctx context.Context, c *http.Client) (*PinpointResponse, error) {
+func (pc *PinpointClient) TryJob(ctx context.Context, c *http.Client) (*PinpointJobResponse, error) {
 	if pc.targetNewPinpoint {
 		// TODO(fill non legacy format)
 		return nil, nil
 	}
 
-	reqUrl := pc.LegacyRequestUrl()
-	resp, err := httputils.PostWithContext(ctx, c, reqUrl, contentType, nil)
+	reqUrl := pc.LegacyTryRequestUrl()
+	resp, err := httputils.PostWithContext(ctx, c, reqUrl, common.ContentType, nil)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to execute Pinpoint call")
 	}
@@ -157,7 +145,7 @@ func (pc *PinpointClient) TryJob(ctx context.Context, c *http.Client) (*Pinpoint
 		return nil, skerr.Wrapf(err, "failed to read body of response")
 	}
 
-	res := &PinpointResponse{}
+	res := &PinpointJobResponse{}
 	err = json.Unmarshal([]byte(respBody), &res)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to parse pinpoint response body.")

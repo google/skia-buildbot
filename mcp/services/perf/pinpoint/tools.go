@@ -6,6 +6,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"go.skia.org/infra/mcp/common"
+	pcomm "go.skia.org/infra/mcp/services/perf/common"
 )
 
 // reusable identifiers for the flags.
@@ -19,29 +20,34 @@ const (
 	TargetNewPinpoint         = "target_new_pinpoint"
 )
 
+func BenchmarkArgument(required bool) common.ToolArgument {
+	return common.ToolArgument{
+		Name: BenchmarkFlagName,
+		Description: "The benchmark of interest to run. " +
+			"For example, press benchmarks commonly refer to one of \"speedometer3.crossbench\", \"jetstream2.crossbench\" or \"motionmark1.3.crossbench\". " +
+			"One job (bisect or try) can be associated with only one benchmark (and one story). " +
+			"For the full list of supported benchmarks, use the command \"perf list benchmarks\". " +
+			"This is a required field.",
+		Required: required,
+	}
+}
+
 // arguments returns the list of arguments pertaining to both
 // Pinpoint try and bisect jobs.
 func arguments() []common.ToolArgument {
 	resp := []common.ToolArgument{
 		{
 			Name: BaseGitHashFlagName,
-			Description: "The git hash SHA (either full or short form) for the base of the job. " +
+			Description: "A git hash SHA (either full or short form) of the first commit required for a Pinpoint job. " +
 				"In the context of bisection, this is the starting commit of the range you'd like to bisect. " +
-				"For try, this is the base (or A) of an A/B comparison. " +
+				"For try jobs (or A/B experiments), this is the base (also refered to the control, or A) of that A/B comparison. " +
 				"Pinpoint currently only accepts git hashes based on the Chromium repository (chromium/src) for the base. " +
 				"For example, 2d98fb0e9f9f0fdb24c78d8fd29a8a0b029852ba or 2d98fb0 for full or short form respectively from " +
 				"https://chromium.googlesource.com/chromium/src/. This is a required field.",
 			Required: true,
 		},
-		{
-			Name: BenchmarkFlagName,
-			Description: "The benchmark of interest to run. " +
-				"For example, press benchmarks commonly refer to one of \"speedometer3.crossbench\", \"jetstream2.crossbench\" or \"motionmark1.3.crossbench\". " +
-				"One job (bisect or try) can be associated with only one benchmark (and one story). " +
-				"For the full list of supported benchmarks, use the command \"perf list benchmarks\". " +
-				"This is a required field.",
-			Required: true,
-		},
+		// Reused in Chromeperf tooling
+		BenchmarkArgument(true),
 		{
 			Name: StoryFlagName,
 			Description: "A story refers to a set of actions run by the benchmark. In other words, a subset of tests run within the benchmark. " +
@@ -58,9 +64,9 @@ func arguments() []common.ToolArgument {
 		},
 		{
 			Name: ExperimentGitHashFlagName,
-			Description: "The git hash SHA (either full or short form) for the experiment of the job. " +
-				"In the context of bisection, this is the end commit of the range you'd like to bisect. " +
-				"For try, this is the experiment (or B) of an A/B comparison. " +
+			Description: "The git hash SHA (either full or short form) of the other commit for a Pinpoint job. " +
+				"In the context of bisection, this is the ending commit of the range you'd like to bisect. " +
+				"For a try job (or an A/B test), this is the experiment (also referred to as the treatment, or B). " +
 				"Pinpoint currently only accepts git hashes based on the Chromium repository (chromium/src) for the base. " +
 				"For example, 2d98fb0e9f9f0fdb24c78d8fd29a8a0b029852ba or 2d98fb0 for full or short form respectively from " +
 				"https://chromium.googlesource.com/chromium/src/. This is a required field.",
@@ -104,13 +110,13 @@ func GetTools() []common.Tool {
 		// },
 		{
 			Name: PairwiseCommandName,
-			Description: "Try (or try job) triggers a Pinpoint try job, which compares " +
-				"the performance of Chrome on a particular benchmark and platform at two different points " +
-				"in time (A/B comparison), defined by the base (A) and the experiment (B). ",
+			Description: "Try (or try job) is an (A/B test) and will trigger a Pinpoint. This try job compares " +
+				"the performance of Chrome on a particular benchmark on a particular platform at two different points " +
+				"in time, defined by the base (or control, or A) and the experiment (or the treatment, or B). ",
 			Arguments: args,
 			Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 				c := NewPinpointClient(request.GetArguments())
-				httpClient, err := defaultHttpClient(ctx)
+				httpClient, err := pcomm.DefaultHttpClient(ctx)
 				if err != nil {
 					return mcp.NewToolResultError(err.Error()), err
 				}

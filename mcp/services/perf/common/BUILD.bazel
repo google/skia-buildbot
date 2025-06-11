@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "common",
+    srcs = ["common.go"],
+    importpath = "go.skia.org/infra/mcp/services/perf/common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/httputils",
+        "//go/skerr",
+        "@org_golang_x_oauth2//google",
+    ],
+)
