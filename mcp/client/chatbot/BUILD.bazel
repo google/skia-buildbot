@@ -1,0 +1,7 @@
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "main_ts_lib",
+    srcs = ["main.ts"],
+    visibility = ["//visibility:public"],
+)
