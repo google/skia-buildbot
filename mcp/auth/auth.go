@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -47,6 +49,8 @@ func AuthFromRequest(ctx context.Context, r *http.Request) context.Context {
 	if rolesStr != "" {
 		roles = strings.Split(rolesStr, ",")
 	}
+
+	sklog.Infof("Request received for user: %s with roles %v", email, roles)
 	authData := AuthData{
 		UserEmail: email,
 		UserRoles: roles,

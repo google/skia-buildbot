@@ -5,4 +5,5 @@ go_library(
     srcs = ["auth.go"],
     importpath = "go.skia.org/infra/mcp/auth",
     visibility = ["//visibility:public"],
+    deps = ["//go/sklog"],
 )
