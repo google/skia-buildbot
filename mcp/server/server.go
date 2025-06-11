@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/mcp/auth"
 	"go.skia.org/infra/mcp/common"
 	"go.skia.org/infra/mcp/services/chromiumbuilder"
+	"go.skia.org/infra/mcp/services/crash"
 	"go.skia.org/infra/mcp/services/helloworld"
 	"go.skia.org/infra/mcp/services/perf"
 )
@@ -28,6 +29,7 @@ type mcpservice string
 
 const (
 	ChromiumBuilder mcpservice = "chromiumbuilder"
+	Crash           mcpservice = "crash"
 	HelloWorld      mcpservice = "helloworld"
 	Perf            mcpservice = "perf"
 )
@@ -39,6 +41,7 @@ type serviceFactory func() common.McpService
 // This allows for easier testing by registering mock services.[]
 var serviceRegistry = map[mcpservice]serviceFactory{
 	ChromiumBuilder: func() common.McpService { return &chromiumbuilder.ChromiumBuilderService{} },
+	Crash:           func() common.McpService { return &crash.CrashService{} },
 	HelloWorld:      func() common.McpService { return &helloworld.HelloWorldService{} },
 	Perf:            func() common.McpService { return &perf.PerfService{} },
 }

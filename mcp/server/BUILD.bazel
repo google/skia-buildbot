@@ -18,6 +18,7 @@ go_library(
         "//mcp/auth",
         "//mcp/common",
         "//mcp/services/chromiumbuilder",
+        "//mcp/services/crash",
         "//mcp/services/helloworld",
         "//mcp/services/perf",
         "@com_github_go_chi_chi_v5//:chi",

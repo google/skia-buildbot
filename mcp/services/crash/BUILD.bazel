@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "crash",
+    srcs = ["service.go"],
+    importpath = "go.skia.org/infra/mcp/services/crash",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "//mcp/common",
+        "//mcp/services/crash/proto",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_protobuf//encoding/protojson",
+    ],
+)

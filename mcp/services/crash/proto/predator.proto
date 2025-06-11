@@ -1,0 +1,115 @@
+// Protocol buffers that hold the Predator messages for Predator publisher and
+// Predator subscriber.
+
+syntax = "proto3";
+
+package crash;
+option go_package = "go.skia.org/infra/mcp/services/crash/proto";
+
+
+enum CrashIdentifiersSource {
+  SOURCE_UNKNOWN = 0;
+  SOURCE_BATCH_PROCESSOR = 1;
+  SOURCE_REALTIME_ABF = 2;
+  SOURCE_CLI_CULPRIT_ANALYZER = 3;
+}
+
+//------------------------------------------------
+// message CrashIdentifiers:
+//   Properties that are used by Predator to identify a crash analysis data.
+// Next tag: 11
+//------------------------------------------------
+message CrashIdentifiers {
+  string product = 10;  // required
+
+  // Must be one of the supported platforms. Configured at
+  // https://predator-for-me.appspot.com/config
+  string platform = 1;  // required
+
+  string version = 2;  // required
+
+  string process_type = 3;  // required
+
+  string channel = 4;  // required
+
+  string signature = 5;  // required
+
+  // Relevant sample report representing the crash. As the identifiers are
+  // passed untouched through Predator, this may be used on the subscriber to
+  // learn more about the specific crash.
+  string sample_report_id = 9;
+
+  // A list of versions that are associated with the crash.
+  // This field is only used for the response.
+  repeated string regression_range = 6 [deprecated = true];
+
+  // An UUID that is unique for each Predator request.
+  string uuid = 7;
+
+  // Source of this identifier. I.e. who created this identifier.
+  CrashIdentifiersSource source = 8;
+}
+
+//------------------------------------------------
+// message PredatorRequest:
+//   A proto that contains the data to be published to Predator.
+//
+// Next tag: 8
+//------------------------------------------------
+message PredatorRequest {
+  repeated string stack_trace = 1;  // required
+
+  // The Chrome version that produced the stack trace above.
+  string chrome_version = 2;  // required
+
+  //------------------------------------------------
+  // message CustomizedData:
+  //   Customized data provided by client.
+  //
+  // Next tag: 4
+  //------------------------------------------------
+  message CustomizedData {
+    // String representation of all possible magic signature trend types.
+    // ERROR = 'e'
+    // NEW = 'n'
+    // SPIKE = 's'
+    // UP = 'u'
+    // DOWN = 'd'
+    // FLAT = 'f'
+    string trend_type = 1;
+    string channel = 2;
+
+    //------------------------------------------------
+    // message HistoricalMetaData:
+    //   Historical data about crash per million pageloads by Chrome version.
+    //
+    // Next tag: 5
+    //------------------------------------------------
+    message HistoricalMetaData {
+      int64 crash_count = 1;
+      double cpm = 2;
+      int64 client_count = 3;
+      string chrome_version = 4;
+    }
+
+    repeated HistoricalMetaData historical_metadata = 3;
+  }
+
+  CustomizedData customized_data = 3;  // required
+
+  string platform = 4;  // required
+
+  // Identifies the sender, which controls how Predator interprets this request
+  // and how the analysis is performed.
+  // Should be one of:
+  // cracas : go/crash
+  // clusterfuzz : go/clusterfuzz
+  // uma-sampling-profiler : https://uma.googleplex.com/p/chrome/callstacks/
+  // fracas : deprecated
+  string client_id = 5;  // required
+
+  string signature = 6;  // required
+
+  CrashIdentifiers crash_identifiers = 7;  // required
+}
+
