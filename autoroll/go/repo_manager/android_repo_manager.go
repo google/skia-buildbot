@@ -363,13 +363,18 @@ func (r *androidRepoManager) LogRevisions(ctx context.Context, from, to *revisio
 
 // getLastRollRev returns the last-completed DEPS roll Revision.
 func (r *androidRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
+	remote, err := r.childRepo.Git(ctx, "remote", "-v")
+	if err != nil {
+		sklog.Errorf("Failed \"git remote -v\": %s", err)
+	}
+	sklog.Infof("Output of \"git remote -v\":\n%s", remote)
 	output, err := r.childRepo.Git(ctx, "merge-base", fmt.Sprintf("refs/remotes/remote/%s", r.childBranch), fmt.Sprintf("refs/remotes/%s/%s", r.androidRemoteName, r.parentBranch))
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "failed getLastRollRev")
 	}
 	details, err := r.childRepo.Details(ctx, strings.TrimRight(output, "\n"))
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "failed getLastRollRev")
 	}
 	return revision.FromLongCommit(r.childRevLinkTmpl, r.defaultBugProject, details), nil
 }
