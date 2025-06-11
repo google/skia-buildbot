@@ -7,5 +7,6 @@ ts_library(
     deps = [
         "//:node_modules/dotenv",
         "//mcp/client/lib:mcp-client_ts_lib",
+        "//mcp/client/lib:settings_ts_lib",
     ],
 )

@@ -54,16 +54,16 @@ describe('MCPClient', () => {
     expect(mcpClient).to.not.be.null;
   });
 
-  it('should connect to the server', async () => {
+  it('should connect to the servers', async () => {
     listToolsStub.resolves({ tools: [] });
-    await mcpClient.connectToServer('test.js');
+    await mcpClient.connectToServers({ 'test.js': { command: 'test.js' } });
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(listToolsStub.calledOnce).to.be.true;
   });
 
   it('should process a query', async () => {
     listToolsStub.resolves({ tools: [] });
-    await mcpClient.connectToServer('test.js');
+    await mcpClient.connectToServers({ 'test.js': { command: 'test.js' } });
     const response = await mcpClient.processQuery('test query');
     expect(response).to.equal('response');
   });
@@ -93,13 +93,15 @@ describe('MCPClient', () => {
       },
     });
     callToolStub.resolves({ content: 'tool response' });
-    await mcpClient.connectToServer('test.js');
+    await mcpClient.connectToServers({ 'test.js': { command: 'test.js' } });
     await mcpClient.processQuery('test query');
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(callToolStub.calledOnce).to.be.true;
   });
 
   it('should cleanup', async () => {
+    listToolsStub.resolves({ tools: [] });
+    await mcpClient.connectToServers({ 'test.js': { command: 'test.js' } });
     await mcpClient.cleanup();
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(closeStub.calledOnce).to.be.true;

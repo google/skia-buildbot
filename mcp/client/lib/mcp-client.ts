@@ -7,73 +7,78 @@ import {
 } from '@google/generative-ai';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { ServerConfig } from './settings';
 
 export class MCPClient {
-  private mcp: Client;
+  private clients: { [serverName: string]: Client } = {};
+
+  private transports: { [serverName: string]: StdioClientTransport } = {};
 
   private genAI: GoogleGenerativeAI;
 
-  private transport: StdioClientTransport | null = null;
-
   private tools: Tool[] = [];
 
-  private model: GenerativeModel | null = null;
+  model: GenerativeModel | null = null;
 
   constructor(apiKey: string) {
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY is not set');
     }
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.mcp = new Client({ name: 'mcp-client-cli', version: '1.0.0' });
   }
 
-  async connectToServer(serverScriptPath: string) {
-    try {
-      const isJs = serverScriptPath.endsWith('.js');
-      const isPy = serverScriptPath.endsWith('.py');
-      if (!isJs && !isPy) {
-        throw new Error('Server script must be a .js or .py file');
+  async connectToServers(servers: { [serverName: string]: ServerConfig }) {
+    const allFunctionDeclarations: any[] = [];
+
+    for (const serverName in servers) {
+      const serverConfig = servers[serverName];
+      try {
+        const command = serverConfig.command;
+        if (!command) {
+          console.log(`Skipping server ${serverName} because it has no command.`);
+          continue;
+        }
+
+        const transport = new StdioClientTransport({
+          command,
+          args: serverConfig.args || [],
+        });
+        this.transports[serverName] = transport;
+
+        const client = new Client({ name: `mcp-client-cli-${serverName}`, version: '1.0.0' });
+        this.clients[serverName] = client;
+        client.connect(transport);
+
+        const toolsResult = await client.listTools();
+        const functionDeclarations = toolsResult.tools.map((tool) => {
+          const { additionalProperties, $schema, ...rest } = tool.inputSchema as any;
+          return {
+            name: tool.name,
+            description: tool.description,
+            parameters: rest as FunctionDeclarationSchema,
+          };
+        });
+        allFunctionDeclarations.push(...functionDeclarations);
+
+        console.log(
+          `Connected to server ${serverName} with tools:`,
+          functionDeclarations.map((tool: any) => tool.name)
+        );
+      } catch (_e) {
+        // Failures are expected if the server is not running.
       }
-      const command = isPy
-        ? process.platform === 'win32'
-          ? 'python'
-          : 'python3'
-        : process.execPath;
-
-      this.transport = new StdioClientTransport({
-        command,
-        args: [serverScriptPath],
-      });
-      this.mcp.connect(this.transport);
-
-      const toolsResult = await this.mcp.listTools();
-      const functionDeclarations = toolsResult.tools.map((tool) => {
-        const { additionalProperties, $schema, ...rest } = tool.inputSchema as any;
-        return {
-          name: tool.name,
-          description: tool.description,
-          parameters: rest as FunctionDeclarationSchema,
-        };
-      });
-      this.tools = [{ functionDeclarations }];
-      this.model = this.genAI.getGenerativeModel({
-        model: 'gemini-2.5-pro-preview-06-05',
-        tools: this.tools,
-      });
-
-      console.log(
-        'Connected to server with tools:',
-        functionDeclarations.map((name: any) => name.name)
-      );
-    } catch (e) {
-      console.log('Failed to connect to MCP server: ', e);
-      throw e;
     }
+
+    this.tools = [{ functionDeclarations: allFunctionDeclarations }];
+    this.model = this.genAI.getGenerativeModel({
+      model: 'gemini-2.5-pro-preview-06-05',
+      tools: this.tools,
+    });
   }
 
   async processQuery(query: string) {
     if (!this.model) {
-      throw new Error('Model is not initialized. Call connectToServer first.');
+      throw new Error('Model is not initialized. Call connectToServers first.');
     }
     try {
       const chat = this.model.startChat();
@@ -92,7 +97,21 @@ export class MCPClient {
         console.log(`[Calling tools: ${functionCalls.map((fc) => fc.name).join(', ')}]`);
         const toolResults = await Promise.all(
           functionCalls.map(async (functionCall) => {
-            const result = await this.mcp.callTool({
+            let clientForTool: Client | null = null;
+            for (const serverName in this.clients) {
+              const client = this.clients[serverName];
+              const tools = await client.listTools();
+              if (tools.tools.some((tool) => tool.name === functionCall.name)) {
+                clientForTool = client;
+                break;
+              }
+            }
+
+            if (!clientForTool) {
+              throw new Error(`Could not find a client for tool ${functionCall.name}`);
+            }
+
+            const result = await clientForTool.callTool({
               name: functionCall.name,
               arguments: functionCall.args as { [k: string]: any },
             });
@@ -120,6 +139,8 @@ export class MCPClient {
   }
 
   async cleanup() {
-    await this.mcp.close();
+    for (const serverName in this.clients) {
+      await this.clients[serverName].close();
+    }
   }
 }

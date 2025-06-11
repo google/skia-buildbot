@@ -11,13 +11,15 @@ process queries using the Gemini API.
 ### Usage
 
 To use the library, import the `MCPClient` class and create a new instance. Then, call
-the `connectToServer` method with the path to the server script.
+the `connectToServers` method with the server configurations.
 
 ```typescript
 import { MCPClient } from './lib/mcp-client';
+import { readSettings } from './lib/settings';
 
 const client = new MCPClient('YOUR_API_KEY_HERE');
-await client.connectToServer('path/to/server/script.js');
+const settings = await readSettings();
+await client.connectToServers(settings.mcpServers);
 const response = await client.processQuery('What is the weather like in New York?');
 console.log(response);
 ```
@@ -44,10 +46,40 @@ The CLI provides a simple REPL to interact with the MCP.
 2.  **Configure API Key:**
     Create a `.env` file in the root of the repository. Add your Gemini API key to this
     file:
+
     ```
     GEMINI_API_KEY="YOUR_API_KEY_HERE"
     ```
+
     The client uses this file to load your API key securely.
+
+3.  **Configure Servers:**
+    The client reads a list of MCP servers to connect to from `~/.hades/settings.json`.
+    Create this file with the following format:
+
+    ```json
+    {
+      "mcpServers": {
+        "weather": {
+          "command": "node",
+          "args": ["_bazel_bin/mcp/services/weather/index.js"]
+        },
+        "mainServer": {
+          "command": "bin/mcp_server.py"
+        },
+        "anotherServer": {
+          "url": "http://another-mcp-server.com"
+        }
+      }
+    }
+    ```
+
+    The `mcpServers` object contains a map of server names to server configurations.
+    Each server configuration can have one of the following forms:
+
+    - A `url` for a remote server.
+    - A `command` for a local server.
+    - A `command` and `args` for a local server with arguments.
 
 ### Building
 
@@ -69,20 +101,17 @@ The client and any services it connects to must be compiled using Bazel.
 
 ### Running the Client
 
-To run the client, you execute its compiled script with `node` and pass the path to the
-compiled service script as a command-line argument.
+To run the client, you execute its compiled script with `node`.
 
-1.  **Start the Client and Connect to the Weather Service:**
+1.  **Start the Client:**
     Use the following command from the repository root:
 
     ```bash
-    node _bazel_bin/mcp/client/cli/main.js _bazel_bin/mcp/services/weather/index.js
+    node _bazel_bin/mcp/client/cli/main.js
     ```
 
-    - The first argument (`_bazel_bin/mcp/client/cli/main.js`) is the path to the
-      compiled client.
-    - The second argument (`_bazel_bin/mcp/services/weather/index.js`) is the path to
-      the compiled MCP service you want to connect to.
+    The client will prompt you to select a server if multiple servers are configured in
+    your `settings.json` file.
 
 2.  **Interact with the Client:**
     Once running, the client will display a list of tools available from the connected

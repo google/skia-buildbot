@@ -68,6 +68,9 @@ dependencies:
   '@types/express':
     specifier: ^4.17.21
     version: 4.17.21
+  '@types/google-apps-script':
+    specifier: ^1.0.98
+    version: 1.0.98
   '@types/google.visualization':
     specifier: 0.0.68
     version: 0.0.68
@@ -113,9 +116,6 @@ dependencies:
   chai:
     specifier: ^4.3.4
     version: 4.3.4
-  chai-as-promised:
-    specifier: ^7.1.1
-    version: 7.1.1(chai@4.3.4)
   chai-dom:
     specifier: ^1.9.0
     version: 1.9.0(chai@4.3.4)(mocha@9.2.2)
@@ -1007,6 +1007,10 @@ packages:
       '@types/serve-static': 1.13.9
     dev: false
 
+  /@types/google-apps-script@1.0.98:
+    resolution: {integrity: sha512-t9QVIbZrjhhxKp2UbQ+DCs00FkMmd4g24XRMafH5Emi1aMlWO0RArhURk8ASOPaPBXBW8FtYzRcZoaym86LUxA==}
+    dev: false
+
   /@types/google.visualization@0.0.68:
     resolution: {integrity: sha512-LkLniL1TYykhz+ZdRof3Bi8cp1OhqoK11Tj1RM2bPtGVBNexQ0eRnOrOWcWTdi80Sz9DzJ4JIG2rTlSJBVV58w==}
     dev: false
@@ -1829,15 +1833,6 @@ packages:
     engines: {node: '>= 10'}
     dependencies:
       lodash: 4.17.21
-    dev: false
-
-  /chai-as-promised@7.1.1(chai@4.3.4):
-    resolution: {integrity: sha512-azL6xMoi+uxu6z4rhWQ1jbdUhOMhis2PvscD/xjLqNMkv3BPPp2JyyuTHOrf9BOosGpNQ11v6BKv/g57RXbiaA==}
-    peerDependencies:
-      chai: '>= 2.1.2 < 5'
-    dependencies:
-      chai: 4.3.4
-      check-error: 1.0.2
     dev: false
 
   /chai-dom@1.9.0(chai@4.3.4)(mocha@9.2.2):
