@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
+        "//go/sklog",
         "//mcp/common",
         "//mcp/services/perf/anomalies",
         "//mcp/services/perf/chromeperf",

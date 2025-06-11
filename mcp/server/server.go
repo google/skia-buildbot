@@ -9,6 +9,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/urfave/cli/v2"
+	"go.skia.org/infra/go/cleanup"
+	infraCommon "go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -37,7 +39,7 @@ type serviceFactory func() common.McpService
 // This allows for easier testing by registering mock services.[]
 var serviceRegistry = map[mcpservice]serviceFactory{
 	ChromiumBuilder: func() common.McpService { return &chromiumbuilder.ChromiumBuilderService{} },
-	HelloWorld:      func() common.McpService { return helloworld.HelloWorldService{} },
+	HelloWorld:      func() common.McpService { return &helloworld.HelloWorldService{} },
 	Perf:            func() common.McpService { return &perf.PerfService{} },
 }
 
@@ -141,6 +143,8 @@ func main() {
 		},
 	}
 
+	infraCommon.InitWithMust("mcpserver")
+	defer infraCommon.Defer()
 	err := cliApp.Run(os.Args)
 	if err != nil {
 		fmt.Printf("\nError: %s\n", err.Error())
@@ -171,6 +175,7 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 	service := factory()
 
 	err := service.Init(mcpFlags.ServiceArgs)
+	registerCleanup(service)
 	if err != nil {
 		return nil, err
 	}
@@ -223,4 +228,15 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 		server.WithKeepAlive(true),
 		server.WithSSEContextFunc(auth.AuthFromRequest))
 	return sseServer, nil
+}
+
+// Adds a hook to run the shutdown procedure on the service when the
+// server is being terminated.
+func registerCleanup(service common.McpService) {
+	cleanup.AtExit(func() {
+		err := service.Shutdown()
+		if err != nil {
+			sklog.Errorf("Error performing shutdown for service: %v", err)
+		}
+	})
 }

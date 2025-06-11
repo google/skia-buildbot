@@ -40,3 +40,7 @@ func (s HelloWorldService) GetTools() []common.Tool {
 		},
 	}
 }
+
+func (s *HelloWorldService) Shutdown() error {
+	return nil
+}

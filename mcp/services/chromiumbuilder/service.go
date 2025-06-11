@@ -849,3 +849,9 @@ func (s ChromiumBuilderService) uploadCl(ctx context.Context) (string, error) {
 
 	return clLink, nil
 }
+
+func (s *ChromiumBuilderService) Shutdown() error {
+	// TODO(bsheedy): Implement the shutdown process.
+	sklog.Infof("Shutting down Chromium Builder service")
+	return nil
+}

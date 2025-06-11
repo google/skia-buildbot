@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"go.skia.org/infra/go/skerr"
-
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/mcp/common"
 	"go.skia.org/infra/mcp/services/perf/anomalies"
 	lcp "go.skia.org/infra/mcp/services/perf/chromeperf"
@@ -31,4 +31,10 @@ func (s *PerfService) Init(serviceArgs string) error {
 func (s PerfService) GetTools() []common.Tool {
 	return append(anomalies.GetTools(&s.chromePerfClient),
 		append(pinpoint.GetTools(), lcp.GetTools()...)...)
+}
+
+func (s *PerfService) Shutdown() error {
+	// TODO(jeffyoon): Perform any necessary shutdown.
+	sklog.Infof("Shutting down perf service")
+	return nil
 }

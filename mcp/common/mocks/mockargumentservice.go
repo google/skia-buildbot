@@ -45,3 +45,7 @@ func (m *MockArgumentService) GetTools() []common.Tool {
 	},
 	}
 }
+
+func (m MockArgumentService) Shutdown() error {
+	return nil
+}

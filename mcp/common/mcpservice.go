@@ -7,4 +7,7 @@ type McpService interface {
 
 	// GetTools returns all the tools supported by the McpService.
 	GetTools() []Tool
+
+	// Shutdown implements shutdown procedure for the service.
+	Shutdown() error
 }
