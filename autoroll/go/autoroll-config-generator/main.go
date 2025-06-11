@@ -18,6 +18,7 @@ import (
 
 	"github.com/protocolbuffers/txtpbfmt/parser"
 	"github.com/urfave/cli/v2"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chrome_branch"
@@ -33,9 +34,10 @@ import (
 var (
 	// FuncMap is used for executing templates.
 	FuncMap = template.FuncMap{
-		"map":      makeMap,
-		"list":     makeList,
-		"sanitize": sanitize,
+		"map":                         makeMap,
+		"list":                        makeList,
+		"sanitize":                    sanitize,
+		"truncateAndSanitizeRollerID": truncateAndSanitizeRollerID,
 	}
 )
 
@@ -420,4 +422,11 @@ func sanitize(v string) string {
 	re2 := regexp.MustCompile(`--+`)
 	v = re2.ReplaceAllString(v, "-")
 	return v
+}
+
+func truncateAndSanitizeRollerID(v string) string {
+	if len(v) < config.MaxRollerNameLength {
+		return sanitize(v)
+	}
+	return sanitize(v[:config.MaxRollerNameLength])
 }
