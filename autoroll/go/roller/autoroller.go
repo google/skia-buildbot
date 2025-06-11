@@ -153,15 +153,21 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		workdir:            workdir,
 	}
 
+	// Helper function in case we fail to create or update the RepoManager.
+	deleteLocalDataOnFailure := func(operation string, err error) error {
+		if err != nil {
+			sklog.Errorf("Failed %s; deleting local data and exiting", operation)
+			if cleanupErr := arb.DeleteLocalData(ctx); cleanupErr != nil {
+				sklog.Errorf("Failed to delete local data: %s", cleanupErr)
+			}
+			return err
+		}
+		return nil
+	}
+
 	// Create the RepoManager.
 	rm, err := repo_manager.New(ctx, c.GetRepoManagerConfig(), reg, workdir, rollerName, serverURL, c.ServiceAccount, client, cr, c.IsInternal, local)
-	if err != nil {
-		// If this failed, it's possible that we're in a broken state. Let's try
-		// deleting the local data before we fail out.
-		sklog.Errorf("RepoManager creation failed; deleting local data...")
-		if cleanupErr := arb.DeleteLocalData(ctx); cleanupErr != nil {
-			sklog.Errorf("Failed to delete local data: %s", cleanupErr)
-		}
+	if err := deleteLocalDataOnFailure("creating RepoManager", err); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	arb.rm = rm
@@ -192,8 +198,8 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 
 	sklog.Info("Running repo_manager.Update()")
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed initial repo manager update")
+	if err := deleteLocalDataOnFailure("initial RepoManager update", err); err != nil {
+		return nil, skerr.Wrap(err)
 	}
 	arb.lastRollRev = lastRollRev
 	arb.tipRev = tipRev
