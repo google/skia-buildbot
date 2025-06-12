@@ -125,6 +125,12 @@ func realConcurrentCommandRunner(command *exec.Command) (exec.Process, <-chan er
 	return exec.RunIndefinitely(command)
 }
 
+type environmentGetter = func(string) string
+
+func realEnvironmentGetter(key string) string {
+	return os.Getenv(key)
+}
+
 // ChromiumBuilderService is an MCP service which is capable of generating CLs
 // to add new LUCI builders to chromium/src.
 type ChromiumBuilderService struct {
@@ -535,13 +541,13 @@ func (s *ChromiumBuilderService) GetResources() []common.Resource {
 // tool, which creates a combined compile + test builder in Chromium and uploads
 // the resulting CL.
 func (s *ChromiumBuilderService) createCiCombinedBuilderHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	return s.createCiCombinedBuilderHandlerImpl(ctx, request, vfs.Local("/"), realConcurrentCommandRunner)
+	return s.createCiCombinedBuilderHandlerImpl(ctx, request, vfs.Local("/"), realConcurrentCommandRunner, realEnvironmentGetter)
 }
 
 // createCiCombinedBuilderHandlerImpl is the actual implementation for
 // createCiCombinedBuilderHandler, broken out to support dependency injection.
 func (s *ChromiumBuilderService) createCiCombinedBuilderHandlerImpl(
-	ctx context.Context, request mcp.CallToolRequest, fs vfs.FS, ccr concurrentCommandRunner) (*mcp.CallToolResult, error) {
+	ctx context.Context, request mcp.CallToolRequest, fs vfs.FS, ccr concurrentCommandRunner, eg environmentGetter) (*mcp.CallToolResult, error) {
 	sklog.Infof("calling handler with data %v", s)
 	inputs, err := extractCiCombinedBuilderInputs(request)
 	if err != nil {
@@ -586,7 +592,7 @@ func (s *ChromiumBuilderService) createCiCombinedBuilderHandlerImpl(
 		return mcp.NewToolResultError("Server failed to commit changes for upload. This is not actionable by the client."), nil
 	}
 
-	clLink, err := s.uploadCl(ctx, ccr)
+	clLink, err := s.uploadCl(ctx, ccr, eg)
 	if err != nil {
 		sklog.Errorf("Error uploading CL: %v", err)
 		return mcp.NewToolResultError("Server failed to upload generated CL to Gerrit. This is not actionable by the client."), nil
@@ -1066,17 +1072,24 @@ func (s *ChromiumBuilderService) addAndCommitFiles(ctx context.Context, inputs c
 
 // uploadCl uploads committed changes to Gerrit and returns the uploaded CL's
 // link.
-func (s *ChromiumBuilderService) uploadCl(ctx context.Context, ccr concurrentCommandRunner) (string, error) {
+func (s *ChromiumBuilderService) uploadCl(ctx context.Context, ccr concurrentCommandRunner, eg environmentGetter) (string, error) {
 	gitClPath := filepath.Join(s.depotToolsPath, "git_cl.py")
 
-	// TODO(bsheedy): Figure out what the best way to handle this on k8s is. It
-	// works locally, but is likely relying on depot_tools already being in PATH.
-	// Setting PATH manually via the Env argument of Run breaks authentication
-	// since git_cl doesn't have access to the SSO information anymore.
+	// git_cl.py relies on some additional tools within depot_tools, most
+	// notably vpython3. So, add depot_tools to PATH for this command. Other
+	// environment variables are inherited as-is due to InheritEnv.
+	envPath := fmt.Sprintf("PATH=%s", s.depotToolsPath)
+	existingPath := eg("PATH")
+	if existingPath != "" {
+		envPath = fmt.Sprintf("%s:%s", envPath, existingPath)
+	}
+
 	output := bytes.Buffer{}
 	err := s.runSafeCancellableCommand(&exec.Command{
 		Name:           gitClPath,
 		Args:           []string{"upload", "--skip-title", "--bypass-hooks", "--force"},
+		Env:            []string{envPath},
+		InheritEnv:     true,
 		Dir:            s.chromiumPath,
 		CombinedOutput: &output,
 		Timeout:        5 * time.Minute,
