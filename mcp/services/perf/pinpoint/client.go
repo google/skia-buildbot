@@ -3,6 +3,7 @@ package pinpoint
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/mcp/services/perf/common"
+	"go.skia.org/infra/pinpoint/go/backends"
 )
 
 const (
@@ -89,19 +91,20 @@ func NewPinpointClient(args map[string]any) *PinpointClient {
 	}
 }
 
-// LegacyTryRequestUrl formulates the POST request URL to /api/new
+// legacyRequestUrl formulates the POST request URL to /api/new
 // for a Pinpoint job.
-func (pc *PinpointClient) LegacyTryRequestUrl() string {
+func (pc *PinpointClient) legacyRequestUrl(comparisonMode string, bisectKey string) string {
 	params := url.Values{}
 
 	sklog.Debug(pc.args)
 
-	params.Set("comparison_mode", PairwiseCommandName)
-	params.Set("name", "[Test] Auto Triggered Try Job")
+	params.Set("comparison_mode", comparisonMode)
+	params.Set("name", fmt.Sprintf("[Beta] Pinpoint Job for %s", comparisonMode))
 	params.Set("tags", "{\"origin\":\"gemini\"}")
 
+	// legacy uses a different bisect key for try and bisect.
 	if pc.args[BaseGitHashFlagName] != nil {
-		params.Set("base_git_hash", pc.args[BaseGitHashFlagName].(string))
+		params.Set(bisectKey, pc.args[BaseGitHashFlagName].(string))
 	}
 	if pc.args[ExperimentGitHashFlagName] != nil {
 		params.Set("end_git_hash", pc.args[ExperimentGitHashFlagName].(string))
@@ -115,22 +118,109 @@ func (pc *PinpointClient) LegacyTryRequestUrl() string {
 	if pc.args[StoryFlagName] != nil {
 		params.Set("story", pc.args[StoryFlagName].(string))
 	}
+	if pc.args[IterationFlagName] != nil {
+		params.Set("iterations", pc.args[IterationFlagName].(string))
+	}
 
 	url := fmt.Sprintf("%s%s?%s", pc.Url, LegacyPinpointApiNew, params.Encode())
-	sklog.Debugf("Target URL for Pinpoint Try Job: %s", url)
+	sklog.Debugf("Target URL for Pinpoint Job: %s", url)
 	return url
 }
 
+// LegacyTryRequestUrl formulates the URL w/ comparison_mode: try
+func (pc *PinpointClient) LegacyTryRequestUrl() string {
+	return pc.legacyRequestUrl(PairwiseCommandName, "base_git_hash")
+}
+
+// LegacyBisectRequestUrl formulates the URL w/ comparison_mode: bisect
+func (pc *PinpointClient) LegacyBisectRequestUrl() string {
+	return pc.legacyRequestUrl("performance", "start_git_hash")
+}
+
 // TryJob curates the POST request to /api/new or /pinpoint/v1/schedule
-// based on the arguments provided and sends the request.
-// Returns a PinpointResponse, containing the JobiD and the JobURL.
+// based on the arguments provided, specific to a Try Job (meaning comparison mode
+// is try). Returns a PinpointResponse, containing the JobID and JobURL,
+// both strings.
 func (pc *PinpointClient) TryJob(ctx context.Context, c *http.Client) (*PinpointJobResponse, error) {
 	if pc.targetNewPinpoint {
 		// TODO(fill non legacy format)
-		return nil, nil
+		return nil, errors.New("tool unsupported yet for new pinpoint")
 	}
 
 	reqUrl := pc.LegacyTryRequestUrl()
+	resp, err := httputils.PostWithContext(ctx, c, reqUrl, common.ContentType, nil)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to execute Pinpoint call")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed with request %d", resp.StatusCode)
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to read body of response")
+	}
+
+	res := &PinpointJobResponse{}
+	err = json.Unmarshal([]byte(respBody), &res)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse pinpoint response body.")
+	}
+
+	return res, nil
+}
+
+// setGitHashFromRevision is a helper function to determine whether
+// git hash or revision is provided, for both base and experiment.
+// if both are provided, the git hash is used.
+// this function will modify args and return it.
+func setGitHashFromRevision(ctx context.Context, args map[string]any, crrevClient *backends.CrrevClientImpl) (map[string]any, error) {
+	isEmpty := func(key string) bool {
+		return args[key] == nil || args[key].(string) == ""
+	}
+	// base case, where both are unset.
+	if args == nil ||
+		(isEmpty(BaseGitHashFlagName) && isEmpty(BaseRevisionFlagName)) ||
+		(isEmpty(ExperimentGitHashFlagName) && isEmpty(ExperimentRevisionFlagName)) {
+		return nil, errors.New("one of git hash or revision for both base and experiment is not set")
+	}
+
+	// if git hash is not set, but revision is, use crrev to figure out the hash and set it.
+	if isEmpty(BaseGitHashFlagName) && !isEmpty(BaseRevisionFlagName) {
+		resp, err := crrevClient.GetCommitInfo(ctx, args[BaseRevisionFlagName].(string))
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to translate reivison to git hash")
+		}
+		args[BaseGitHashFlagName] = resp.GitHash
+	}
+	if isEmpty(ExperimentGitHashFlagName) && !isEmpty(ExperimentRevisionFlagName) {
+		resp, err := crrevClient.GetCommitInfo(ctx, args[ExperimentRevisionFlagName].(string))
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to translate reivison to git hash")
+		}
+		args[ExperimentGitHashFlagName] = resp.GitHash
+	}
+	return args, nil
+}
+
+// Bisect curates the POST request to /api/new or /pinpoint/v1/schedule
+// based on the arguments provided, specific to a Bisect (meaning comparison mode
+// is bisect). Returns a PinpointResponse, containing the JobID and JobURL,
+// both strings.
+func (pc *PinpointClient) Bisect(ctx context.Context, c *http.Client, crrevClient *backends.CrrevClientImpl) (*PinpointJobResponse, error) {
+	if pc.targetNewPinpoint {
+		// TODO(fill non legacy format)
+		return nil, errors.New("tool unsupported yet for new pinpoint")
+	}
+
+	updatedArgs, err := setGitHashFromRevision(ctx, pc.args, crrevClient)
+	if err != nil {
+		return nil, err
+	}
+	pc.args = updatedArgs
+
+	reqUrl := pc.LegacyBisectRequestUrl()
 	resp, err := httputils.PostWithContext(ctx, c, reqUrl, common.ContentType, nil)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to execute Pinpoint call")

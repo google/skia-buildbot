@@ -44,7 +44,7 @@ func (s *PerfService) Init(serviceArgs string) error {
 // GetTools returns the supported tools by the service.
 func (s *PerfService) GetTools() []common.Tool {
 	return append(anomalies.GetTools(&s.chromePerfClient),
-		append(pinpoint.GetTools(s.httpClient),
+		append(pinpoint.GetTools(s.httpClient, s.crrevClient),
 			append(lcp.GetTools(s.httpClient),
 				perfgit.GetTools(s.httpClient, s.crrevClient)...)...)...)
 }

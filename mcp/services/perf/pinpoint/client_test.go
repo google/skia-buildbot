@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/pinpoint/go/backends"
 )
 
 func TestPinpointClient_NoTargetNewPinpointArg_LegacyClient(t *testing.T) {
@@ -44,8 +45,8 @@ func TestTryJob_TargetingNewPinpoint_Nil(t *testing.T) {
 	c := NewPinpointClient(args)
 	resp, err := c.TryJob(ctx, nil)
 
-	assert.Nil(t, err)
 	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "tool unsupported yet for new pinpoint")
 }
 
 func TestTryJob_LegacyPinpoint_NotOK_Err(t *testing.T) {
@@ -90,4 +91,80 @@ func TestTryJob_LegacyPinpoint_OK_NoErr(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, resp.JobID, expectedJobId)
 	assert.Equal(t, resp.JobURL, expectedJobUrl)
+}
+
+func TestBisect_LegacyPinpoint_OK_NoErr(t *testing.T) {
+	args := map[string]any{
+		BaseGitHashFlagName:       "123",
+		ExperimentGitHashFlagName: "456",
+	}
+	ctx := context.Background()
+	c := NewPinpointClient(args)
+
+	expectedJobId := "12345"
+	expectedJobUrl := "http://some.url/job/12345"
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		content, err := json.Marshal(map[string]string{
+			"jobId":  expectedJobId,
+			"jobUrl": expectedJobUrl,
+		})
+		require.NoError(t, err)
+		w.Header().Add("Content-Type", "application/json")
+		_, err = w.Write(content)
+		require.NoError(t, err)
+	}))
+	c.Url = ts.URL
+	defer ts.Close()
+
+	resp, err := c.Bisect(ctx, ts.Client(), nil)
+
+	require.NoError(t, err)
+	assert.Equal(t, resp.JobID, expectedJobId)
+	assert.Equal(t, resp.JobURL, expectedJobUrl)
+}
+
+func TestSetGitHashFromRevision_IncorrectlySet_Err(t *testing.T) {
+	args := map[string]any{}
+	ctx := context.Background()
+
+	_, err := setGitHashFromRevision(ctx, args, nil)
+	assert.ErrorContains(t, err, "one of git hash or revision for both base and experiment is not set")
+
+	args = map[string]any{
+		BaseGitHashFlagName:        "",
+		ExperimentGitHashFlagName:  "foo",
+		BaseRevisionFlagName:       "",
+		ExperimentRevisionFlagName: "bar",
+	}
+	_, err = setGitHashFromRevision(ctx, args, nil)
+	assert.ErrorContains(t, err, "one of git hash or revision for both base and experiment is not set")
+}
+
+func TestSetGitHashFromRevision_FetchRevision_OK(t *testing.T) {
+	args := map[string]any{}
+	ctx := context.Background()
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		content, err := json.Marshal(map[string]string{
+			"git_sha": "12345",
+		})
+		require.NoError(t, err)
+		w.Header().Add("Content-Type", "application/json")
+		_, err = w.Write(content)
+		require.NoError(t, err)
+	}))
+	defer ts.Close()
+
+	crrevClient := backends.NewCrrevClientWithHttpClient(ts.Client())
+	_, err := setGitHashFromRevision(ctx, args, crrevClient)
+	assert.ErrorContains(t, err, "one of git hash or revision for both base and experiment is not set")
+
+	args = map[string]any{
+		BaseGitHashFlagName:        "",
+		ExperimentGitHashFlagName:  "foo",
+		BaseRevisionFlagName:       "",
+		ExperimentRevisionFlagName: "bar",
+	}
+	_, err = setGitHashFromRevision(ctx, args, nil)
+	assert.ErrorContains(t, err, "one of git hash or revision for both base and experiment is not set")
 }

@@ -15,6 +15,7 @@ go_library(
         "//go/sklog",
         "//mcp/common",
         "//mcp/services/perf/common",
+        "//pinpoint/go/backends",
         "@com_github_mark3labs_mcp_go//mcp",
     ],
 )
@@ -27,6 +28,7 @@ go_test(
     ],
     embed = [":pinpoint"],
     deps = [
+        "//pinpoint/go/backends",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

@@ -38,6 +38,12 @@ type CrrevResponse struct {
 	Repo    string `json:"repo"`
 }
 
+func NewCrrevClientWithHttpClient(httpClient *http.Client) *CrrevClientImpl {
+	return &CrrevClientImpl{
+		Client: httpClient,
+	}
+}
+
 func NewCrrevClient(ctx context.Context) (*CrrevClientImpl, error) {
 	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
