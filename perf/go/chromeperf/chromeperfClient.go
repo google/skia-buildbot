@@ -85,6 +85,9 @@ func (client *chromePerfClientImpl) SendGetRequest(ctx context.Context, apiName 
 		return skerr.Wrapf(err, "Failed to get chrome perf response.")
 	}
 
+	// Ensure the response body is closed no matter how the function exits.
+	defer httpResponse.Body.Close()
+
 	if !isAllowedStatusCode(httpResponse.StatusCode) {
 		return skerr.Fmt("chrome perf request failed: %v", httpResponse.StatusCode)
 	}
@@ -126,6 +129,10 @@ func (client *chromePerfClientImpl) SendPostRequest(ctx context.Context, apiName
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to get chrome perf response.")
 	}
+
+	// Ensure the response body is closed no matter how the function exits.
+	defer httpResponse.Body.Close()
+
 	if !slices.Contains(acceptedStatusCodes, httpResponse.StatusCode) {
 		return skerr.Fmt("Receive status %d from chromeperf", httpResponse.StatusCode)
 	}
