@@ -3,10 +3,10 @@ package pinpoint
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"go.skia.org/infra/mcp/common"
-	pcomm "go.skia.org/infra/mcp/services/perf/common"
 )
 
 // reusable identifiers for the flags.
@@ -92,14 +92,13 @@ func arguments() []common.ToolArgument {
 }
 
 // GetTools returns tools supported by Pinpoint.
-func GetTools() []common.Tool {
+func GetTools(httpClient *http.Client) []common.Tool {
 	args := arguments()
 	return []common.Tool{
-		// TODO(jeffyoon@) uncomment for bisect integration
 		// {
 		// 	Name: BisectCommandName,
-		// 	Description: "Bisect (bisection) triggers a Pinpoint bisection job, which aims to find a culprit for a " +
-		// 		"regression that occured for a particular benchmark and platform in a particular range of time, which is " +
+		// 	Description: "Bisect (bisection) aims to find a culprit for a regression (or anomaly) that was detected  for a particular " +
+		// 		"benchmark and platform in a particular range of time.which is " +
 		// 		"defined by a start (base git hash) and end (experimental git hash). It runs a binary search against the commits in the " +
 		// 		"given range, comparing the performance between potential candidates, until it finds the change that caused " +
 		// 		"the regression.",
@@ -116,10 +115,6 @@ func GetTools() []common.Tool {
 			Arguments: args,
 			Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 				c := NewPinpointClient(request.GetArguments())
-				httpClient, err := pcomm.DefaultHttpClient(ctx)
-				if err != nil {
-					return mcp.NewToolResultError(err.Error()), err
-				}
 
 				resp, err := c.TryJob(ctx, httpClient)
 				if err != nil {

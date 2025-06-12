@@ -7,6 +7,6 @@ import (
 )
 
 func TestMinimumViableSetOfRequiredFields_OK(t *testing.T) {
-	tools := GetTools()
+	tools := GetTools(nil)
 	require.Equal(t, 3, len(tools))
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func TestMinimumViableSetOfRequiredFields_OK(t *testing.T) {
-	tools := GetTools()
+	tools := GetTools(nil)
 	// 2 when bisect is enabled
 	require.Equal(t, 1, len(tools))
 }

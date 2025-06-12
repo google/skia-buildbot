@@ -3,15 +3,15 @@ package chromeperf
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"go.skia.org/infra/mcp/common"
-	pcomm "go.skia.org/infra/mcp/services/perf/common"
 	"go.skia.org/infra/mcp/services/perf/pinpoint"
 )
 
 // GetTools returns tools supported by Chromeperf.
-func GetTools() []common.Tool {
+func GetTools(httpClient *http.Client) []common.Tool {
 	return []common.Tool{
 		{
 			Name:        "List Bot Configurations",
@@ -23,10 +23,6 @@ func GetTools() []common.Tool {
 			},
 			Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 				cpc := NewChromeperfClient(request.GetArguments())
-				httpClient, err := pcomm.DefaultHttpClient(ctx)
-				if err != nil {
-					return mcp.NewToolResultError(err.Error()), err
-				}
 
 				resp, err := cpc.ListBotConfigurations(ctx, httpClient)
 				if err != nil {
@@ -47,10 +43,6 @@ func GetTools() []common.Tool {
 			Arguments:   []common.ToolArgument{},
 			Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 				cpc := NewChromeperfClient(nil)
-				httpClient, err := pcomm.DefaultHttpClient(ctx)
-				if err != nil {
-					return mcp.NewToolResultError(err.Error()), err
-				}
 
 				resp, err := cpc.ListBenchmarks(ctx, httpClient)
 				if err != nil {
@@ -73,11 +65,6 @@ func GetTools() []common.Tool {
 			},
 			Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 				cpc := NewChromeperfClient(request.GetArguments())
-
-				httpClient, err := pcomm.DefaultHttpClient(ctx)
-				if err != nil {
-					return mcp.NewToolResultError(err.Error()), err
-				}
 
 				resp, err := cpc.ListStories(ctx, httpClient)
 				if err != nil {
