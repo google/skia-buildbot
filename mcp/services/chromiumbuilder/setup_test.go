@@ -1527,3 +1527,82 @@ func TestChromiumBuilderService_handleChromiumSetup(t *testing.T) {
 		})
 	}
 }
+
+func TestChromiumBuilderService_cleanUpBranch(t *testing.T) {
+	ctx := context.Background()
+	const testBranchName = "test-branch-123"
+
+	tests := []struct {
+		name             string
+		setupService     func(s *ChromiumBuilderService)
+		setupMocks       func(t *testing.T, mockCheckout *MockCheckout)
+		expectError      bool
+		errorMsgContains string
+	}{
+		{
+			name: "happy path",
+			setupService: func(s *ChromiumBuilderService) {
+				s.shuttingDown.Store(false)
+			},
+			setupMocks: func(t *testing.T, mockCheckout *MockCheckout) {
+				mockCheckout.On("Git", ctx, []string{"checkout", "main"}).Return("", nil).Once()
+				mockCheckout.On("Git", ctx, []string{"branch", "-D", testBranchName}).Return("", nil).Once()
+			},
+			expectError: false,
+		},
+		{
+			name: "server shutting down",
+			setupService: func(s *ChromiumBuilderService) {
+				s.shuttingDown.Store(true)
+			},
+			setupMocks:       func(t *testing.T, mockCheckout *MockCheckout) {},
+			expectError:      true,
+			errorMsgContains: "Server is shutting down, not proceeding with branch cleanup",
+		},
+		{
+			name: "checkout main fails",
+			setupService: func(s *ChromiumBuilderService) {
+				s.shuttingDown.Store(false)
+			},
+			setupMocks: func(t *testing.T, mockCheckout *MockCheckout) {
+				mockCheckout.On("Git", ctx, []string{"checkout", "main"}).Return("", errors.New("checkout main failed")).Once()
+			},
+			expectError:      true,
+			errorMsgContains: "checkout main failed",
+		},
+		{
+			name: "delete branch fails",
+			setupService: func(s *ChromiumBuilderService) {
+				s.shuttingDown.Store(false)
+			},
+			setupMocks: func(t *testing.T, mockCheckout *MockCheckout) {
+				mockCheckout.On("Git", ctx, []string{"checkout", "main"}).Return("", nil).Once()
+				mockCheckout.On("Git", ctx, []string{"branch", "-D", testBranchName}).Return("", errors.New("delete branch failed")).Once()
+			},
+			expectError:      true,
+			errorMsgContains: "delete branch failed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &ChromiumBuilderService{}
+			mockCheckout := NewMockCheckout(t, "/fake/chromium/src") // workdir doesn't matter for this test
+			s.chromiumCheckout = mockCheckout
+
+			if tt.setupService != nil {
+				tt.setupService(s)
+			}
+			tt.setupMocks(t, mockCheckout)
+
+			err := s.cleanUpBranch(ctx, testBranchName)
+
+			if tt.expectError {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.errorMsgContains)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}

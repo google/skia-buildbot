@@ -161,11 +161,12 @@ func (s *ChromiumBuilderService) Init(serviceArgs string) error {
 // dependency injection.
 func (s *ChromiumBuilderService) initImpl(
 	ctx context.Context, serviceArgs string, fs vfs.FS, cf checkoutFactory, dc directoryCreator, ccr concurrentCommandRunner) error {
+	sklog.Info("Initializing Chromium builder service")
 	err := s.parseServiceArgs(serviceArgs)
 	if err != nil {
 		return err
 	}
-	sklog.Errorf("Parsed args %v", s)
+	sklog.Infof("Parsed args %v", s)
 
 	err = s.handleDepotToolsSetup(ctx, fs, cf, dc)
 	if err != nil {
@@ -177,6 +178,7 @@ func (s *ChromiumBuilderService) initImpl(
 		return err
 	}
 
+	sklog.Info("Successfully initialized Chromium builder service")
 	return nil
 }
 
@@ -387,7 +389,7 @@ func checkIfPathIsDirectory(ctx context.Context, fs vfs.FS, path string) error {
 
 // GetTools returns the tools supported by the service.
 func (s *ChromiumBuilderService) GetTools() []common.Tool {
-	sklog.Infof("Calling GetTools with service %v", s)
+	sklog.Info("Calling GetTools() for Chromium builder service")
 	return []common.Tool{
 		{
 			Name:        "create_ci_combined_builder",
@@ -508,12 +510,12 @@ func (s *ChromiumBuilderService) createCiCombinedBuilderHandlerImpl(
 		return mcp.NewToolResultError("Server had an internal error updating checkout. This is not actionable by the client."), nil
 	}
 
-	_, err = s.switchToTemporaryBranch(ctx)
+	branchName, err := s.switchToTemporaryBranch(ctx)
 	if err != nil {
 		sklog.Errorf("Error checking out temporary branch: %v", err)
 		return mcp.NewToolResultError("Server failed to check out temporary branch. This is not actionable by the client."), nil
 	}
-	// TODO(bsheedy): Clean up the created branch
+	defer s.cleanUpBranchDeferred(ctx, branchName)
 
 	err = s.addNewBuilder(ctx, inputs, fs)
 	if err != nil {
@@ -737,6 +739,40 @@ func (s *ChromiumBuilderService) switchToTemporaryBranch(ctx context.Context) (s
 	}
 
 	return branchName, nil
+}
+
+// cleanUpBranch switches back to the main branch in the Chromium checkout and
+// deletes the specified branch.
+func (s *ChromiumBuilderService) cleanUpBranch(ctx context.Context, branchName string) error {
+	sklog.Infof("Cleaning up branch %s", branchName)
+	s.chromiumCheckoutLock.Lock()
+	defer s.chromiumCheckoutLock.Unlock()
+
+	if s.shuttingDown.Load() {
+		return skerr.Fmt("Server is shutting down, not proceeding with branch cleanup")
+	}
+
+	_, err := s.chromiumCheckout.Git(ctx, "checkout", "main")
+	if err != nil {
+		return err
+	}
+
+	_, err = s.chromiumCheckout.Git(ctx, "branch", "-D", branchName)
+	if err != nil {
+		return err
+	}
+
+	sklog.Infof("Successfully cleaned up branch %s", branchName)
+	return nil
+}
+
+// cleanUpBranchDeferred is a version of cleanUpBranch that is meant to be used
+// via defer. Any errors from cleanUpBranch are logged, but not propagated.
+func (s *ChromiumBuilderService) cleanUpBranchDeferred(ctx context.Context, branchName string) {
+	err := s.cleanUpBranch(ctx, branchName)
+	if err != nil {
+		sklog.Errorf("Error when trying to clean up branch %s: %v", branchName, err)
+	}
 }
 
 // addNewBuilder goes through all the steps necessary to add a new builder
