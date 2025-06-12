@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"text/template"
 	"time"
 
@@ -104,6 +106,24 @@ func realDirectoryCreator(path string, perm os.FileMode) error {
 	return os.MkdirAll(path, perm)
 }
 
+// Similarly, vfs does not have the concept of directory removal.
+type directoryRemover = func(string) error
+
+func realDirectoryRemover(path string) error {
+	return os.RemoveAll(path)
+}
+
+// exec.RunIndefinitely() cannot be used as-is for testing like other exec.Run*
+// functions since it does not take a context, and it relies directly on
+// os/exec.Command behavior (for waiting). It would likely be possible to add
+// support for this by abstracting away the os/exec dependency, but for now,
+// just use this type for dependency injection.
+type concurrentCommandRunner = func(*exec.Command) (exec.Process, <-chan error, error)
+
+func realConcurrentCommandRunner(command *exec.Command) (exec.Process, <-chan error, error) {
+	return exec.RunIndefinitely(command)
+}
+
 // ChromiumBuilderService is an MCP service which is capable of generating CLs
 // to add new LUCI builders to chromium/src.
 type ChromiumBuilderService struct {
@@ -111,18 +131,36 @@ type ChromiumBuilderService struct {
 	depotToolsPath     string
 	chromiumCheckout   git.Checkout
 	depotToolsCheckout git.Checkout
+	// Set to true if the server is shutting down. No more git/exec operations
+	// should be performed in this case
+	shuttingDown atomic.Bool
+	// Should be locked anytime chromiumCheckout is being used or modified.
+	chromiumCheckoutLock sync.Mutex
+	// Should be locked anytime depotToolsCheckout is being used or modified.
+	depotToolsCheckoutLock sync.Mutex
+	// Should be locked when Chromium is actively being fetched.
+	chromiumFetchLock sync.Mutex
+	// Should be locked when a subprocess is being run that is safe to cancel
+	// mid-run without additional cleanup.
+	safeCancellableCommandLock sync.Mutex
+	// Should be set to to the Process currently being run via exec so it can
+	// be cancelled if necessary.
+	currentProcess exec.Process
+	// Should be locked anytime runningProcess is being used or modified.
+	currentProcessLock sync.Mutex
 }
 
 // Init initializes the service with the provided arguments. serviceArgs is
 // expected to be a comma-separated list of key-value pairs in the form
 // key=value.
 func (s *ChromiumBuilderService) Init(serviceArgs string) error {
-	return s.initImpl(context.Background(), serviceArgs, vfs.Local("/"), realCheckoutFactory, realDirectoryCreator)
+	return s.initImpl(context.Background(), serviceArgs, vfs.Local("/"), realCheckoutFactory, realDirectoryCreator, realConcurrentCommandRunner)
 }
 
 // initImpl is the actual implementation for Init(), broken out to support
 // dependency injection.
-func (s *ChromiumBuilderService) initImpl(ctx context.Context, serviceArgs string, fs vfs.FS, cf checkoutFactory, dc directoryCreator) error {
+func (s *ChromiumBuilderService) initImpl(
+	ctx context.Context, serviceArgs string, fs vfs.FS, cf checkoutFactory, dc directoryCreator, ccr concurrentCommandRunner) error {
 	err := s.parseServiceArgs(serviceArgs)
 	if err != nil {
 		return err
@@ -134,7 +172,7 @@ func (s *ChromiumBuilderService) initImpl(ctx context.Context, serviceArgs strin
 		return err
 	}
 
-	err = s.handleChromiumSetup(ctx, fs, cf, dc)
+	err = s.handleChromiumSetup(ctx, fs, cf, dc, ccr)
 	if err != nil {
 		return err
 	}
@@ -200,7 +238,7 @@ func (s *ChromiumBuilderService) handleMissingDepotToolsCheckout(ctx context.Con
 
 	// git.NewCheckout() clones the repo if a checkout doesn't exist at the
 	// given directory already, so rely on that behavior.
-	s.depotToolsCheckout, err = cf(ctx, DepotToolsUrl, filepath.Dir(s.depotToolsPath))
+	err = s.createDepotToolsCheckout(ctx, cf)
 	if err != nil {
 		return err
 	}
@@ -239,11 +277,11 @@ func (s *ChromiumBuilderService) handleExistingDepotToolsCheckout(ctx context.Co
 		return err
 	}
 
-	// Obtain a re-usable checkout and ensure it is up to date.
-	s.depotToolsCheckout, err = cf(ctx, DepotToolsUrl, filepath.Dir(s.depotToolsPath))
+	err = s.createDepotToolsCheckout(ctx, cf)
 	if err != nil {
 		return err
 	}
+
 	err = s.updateDepotToolsCheckout(ctx)
 	if err != nil {
 		return err
@@ -254,12 +292,13 @@ func (s *ChromiumBuilderService) handleExistingDepotToolsCheckout(ctx context.Co
 
 // handleChromiumSetup ensures that a Chromium checkout is available at the
 // stored path.
-func (s *ChromiumBuilderService) handleChromiumSetup(ctx context.Context, fs vfs.FS, cf checkoutFactory, dc directoryCreator) error {
+func (s *ChromiumBuilderService) handleChromiumSetup(
+	ctx context.Context, fs vfs.FS, cf checkoutFactory, dc directoryCreator, ccr concurrentCommandRunner) error {
 	// Check if the Chromium path exists.
 	chromiumDir, err := fs.Open(ctx, s.chromiumPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return s.handleMissingChromiumCheckout(ctx, fs, cf, dc)
+			return s.handleMissingChromiumCheckout(ctx, fs, cf, dc, ccr)
 		}
 		return err
 	}
@@ -270,29 +309,21 @@ func (s *ChromiumBuilderService) handleChromiumSetup(ctx context.Context, fs vfs
 
 // handleMissingChromiumCheckout sets up a new Chromium checkout at the stored
 // path to handle the case where there is not an existing checkout.
-func (s *ChromiumBuilderService) handleMissingChromiumCheckout(ctx context.Context, fs vfs.FS, cf checkoutFactory, dc directoryCreator) error {
+func (s *ChromiumBuilderService) handleMissingChromiumCheckout(
+	ctx context.Context, fs vfs.FS, cf checkoutFactory, dc directoryCreator, ccr concurrentCommandRunner) error {
 	// Ensure the parent directories exist.
 	err := dc(filepath.Dir(s.chromiumPath), 0o750)
 	if err != nil {
 		return err
 	}
 
-	sklog.Infof("Fetching Chromium checkout into %s. This will take a while.", s.chromiumPath)
-	fetchPath := filepath.Join(s.depotToolsPath, "fetch")
-	output := bytes.Buffer{}
-	err = exec.Run(ctx, &exec.Command{
-		Name:           fetchPath,
-		Args:           []string{"--nohooks", "chromium"},
-		CombinedOutput: &output,
-		Dir:            filepath.Dir(s.chromiumPath),
-	})
+	err = s.fetchChromium(ccr)
 	if err != nil {
-		return skerr.Fmt("Failed to fetch Chromium. Original error: %v Stdout: %s", err, output.String())
+		return err
 	}
-	sklog.Info("Successfully fetched Chromium checkout")
 
 	// Obtain a re-usable checkout.
-	s.chromiumCheckout, err = cf(ctx, ChromiumUrl, filepath.Dir(s.chromiumPath))
+	err = s.createChromiumCheckout(ctx, cf)
 	if err != nil {
 		return err
 	}
@@ -320,7 +351,7 @@ func (s *ChromiumBuilderService) handleExistingChromiumCheckout(ctx context.Cont
 	}
 
 	// Obtain a re-usable checkout and ensure it is up to date.
-	s.chromiumCheckout, err = cf(ctx, ChromiumUrl, filepath.Dir(s.chromiumPath))
+	err = s.createChromiumCheckout(ctx, cf)
 	if err != nil {
 		return err
 	}
@@ -453,13 +484,13 @@ func (s *ChromiumBuilderService) GetTools() []common.Tool {
 // tool, which creates a combined compile + test builder in Chromium and uploads
 // the resulting CL.
 func (s *ChromiumBuilderService) createCiCombinedBuilderHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	return s.createCiCombinedBuilderHandlerImpl(ctx, request, vfs.Local("/"))
+	return s.createCiCombinedBuilderHandlerImpl(ctx, request, vfs.Local("/"), realConcurrentCommandRunner)
 }
 
 // createCiCombinedBuilderHandlerImpl is the actual implementation for
 // createCiCombinedBuilderHandler, broken out to support dependency injection.
 func (s *ChromiumBuilderService) createCiCombinedBuilderHandlerImpl(
-	ctx context.Context, request mcp.CallToolRequest, fs vfs.FS) (*mcp.CallToolResult, error) {
+	ctx context.Context, request mcp.CallToolRequest, fs vfs.FS, ccr concurrentCommandRunner) (*mcp.CallToolResult, error) {
 	sklog.Infof("calling handler with data %v", s)
 	inputs, err := extractCiCombinedBuilderInputs(request)
 	if err != nil {
@@ -486,13 +517,13 @@ func (s *ChromiumBuilderService) createCiCombinedBuilderHandlerImpl(
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
-	err = s.formatStarlark(ctx)
+	err = s.formatStarlark(ctx, ccr)
 	if err != nil {
 		sklog.Errorf("Error formatting Starlark: %v", err)
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
-	err = s.generateFilesFromStarlark(ctx)
+	err = s.generateFilesFromStarlark(ctx, ccr)
 	if err != nil {
 		sklog.Errorf("Error generating files from Starlark: %v", err)
 		return mcp.NewToolResultError(err.Error()), nil
@@ -504,7 +535,7 @@ func (s *ChromiumBuilderService) createCiCombinedBuilderHandlerImpl(
 		return mcp.NewToolResultError("Server failed to commit changes for upload. This is not actionable by the client."), nil
 	}
 
-	clLink, err := s.uploadCl(ctx)
+	clLink, err := s.uploadCl(ctx, ccr)
 	if err != nil {
 		sklog.Errorf("Error uploading CL: %v", err)
 		return mcp.NewToolResultError("Server failed to upload generated CL to Gerrit. This is not actionable by the client."), nil
@@ -600,9 +631,43 @@ func extractCiCombinedBuilderInputs(request mcp.CallToolRequest) (ciCombinedBuil
 	return inputs, nil
 }
 
+// createDepotToolsCheckout creates and stores a re-usable reference to the
+// depot_tools checkout.
+func (s *ChromiumBuilderService) createDepotToolsCheckout(ctx context.Context, cf checkoutFactory) error {
+	s.depotToolsCheckoutLock.Lock()
+	defer s.depotToolsCheckoutLock.Unlock()
+
+	if s.shuttingDown.Load() {
+		return skerr.Fmt("Server is shutting down, not proceeding with depot_tools checkout.")
+	}
+	var err error
+	s.depotToolsCheckout, err = cf(ctx, DepotToolsUrl, filepath.Dir(s.depotToolsPath))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ChromiumBuilderService) createChromiumCheckout(ctx context.Context, cf checkoutFactory) error {
+	s.chromiumCheckoutLock.Lock()
+	defer s.chromiumCheckoutLock.Unlock()
+
+	if s.shuttingDown.Load() {
+		return skerr.Fmt("Server is shutting down, not proceeding with Chromium checkout.")
+	}
+	var err error
+	s.chromiumCheckout, err = cf(ctx, ChromiumUrl, filepath.Dir(s.chromiumPath))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // updateCheckouts ensures that both depot_tools and Chromium are up to date
 // with origin/main.
-func (s ChromiumBuilderService) updateCheckouts(ctx context.Context) error {
+func (s *ChromiumBuilderService) updateCheckouts(ctx context.Context) error {
 	err := s.updateDepotToolsCheckout(ctx)
 	if err != nil {
 		return err
@@ -618,7 +683,13 @@ func (s ChromiumBuilderService) updateCheckouts(ctx context.Context) error {
 
 // updateDepotToolsCheckout ensures that depot_tools is up to date with
 // origin/main.
-func (s ChromiumBuilderService) updateDepotToolsCheckout(ctx context.Context) error {
+func (s *ChromiumBuilderService) updateDepotToolsCheckout(ctx context.Context) error {
+	s.depotToolsCheckoutLock.Lock()
+	defer s.depotToolsCheckoutLock.Unlock()
+
+	if s.shuttingDown.Load() {
+		return skerr.Fmt("Server is shutting down, not proceeding with depot_tools update")
+	}
 	err := s.depotToolsCheckout.Update(ctx)
 	if err != nil {
 		return err
@@ -629,7 +700,14 @@ func (s ChromiumBuilderService) updateDepotToolsCheckout(ctx context.Context) er
 // updateChromiumCheckout ensures that Chromium is up to date with origin/main.
 // This does *not* interact with gclient, as DEPS should not be needed for
 // interacting with //infra/config.
-func (s ChromiumBuilderService) updateChromiumCheckout(ctx context.Context) error {
+func (s *ChromiumBuilderService) updateChromiumCheckout(ctx context.Context) error {
+	s.chromiumCheckoutLock.Lock()
+	defer s.chromiumCheckoutLock.Unlock()
+
+	if s.shuttingDown.Load() {
+		return skerr.Fmt("Server is shutting down, not proceeding with Chromium update")
+	}
+
 	err := s.chromiumCheckout.Update(ctx)
 	if err != nil {
 		return err
@@ -640,7 +718,14 @@ func (s ChromiumBuilderService) updateChromiumCheckout(ctx context.Context) erro
 
 // switchToTemporaryBranch creates a uniquely named branch and switches to it,
 // returning the new branch name.
-func (s ChromiumBuilderService) switchToTemporaryBranch(ctx context.Context) (string, error) {
+func (s *ChromiumBuilderService) switchToTemporaryBranch(ctx context.Context) (string, error) {
+	s.chromiumCheckoutLock.Lock()
+	defer s.chromiumCheckoutLock.Unlock()
+
+	if s.shuttingDown.Load() {
+		return "", skerr.Fmt("Server is shutting down, not proceeding with branch switch")
+	}
+
 	branchName := fmt.Sprintf("%d", time.Now().UnixMilli())
 	_, err := s.chromiumCheckout.Git(ctx, "checkout", "-b", branchName)
 	if err != nil {
@@ -652,7 +737,7 @@ func (s ChromiumBuilderService) switchToTemporaryBranch(ctx context.Context) (st
 
 // addNewBuilder goes through all the steps necessary to add a new builder
 // definition to the relevant Starlark file on disk.
-func (s ChromiumBuilderService) addNewBuilder(ctx context.Context, inputs ciCombinedBuilderInputs, fs vfs.FS) error {
+func (s *ChromiumBuilderService) addNewBuilder(ctx context.Context, inputs ciCombinedBuilderInputs, fs vfs.FS) error {
 	sklog.Errorf("Adding new builder with inputs %v", inputs)
 
 	starlarkFilename := fmt.Sprintf("%s.star", inputs.builderGroup)
@@ -831,16 +916,16 @@ func formatString(format string, data map[string]string) (string, error) {
 
 // formatStarlark runs lucicfg to format the Starlark files contained within
 // the Chromium checkout.
-func (s ChromiumBuilderService) formatStarlark(ctx context.Context) error {
+func (s *ChromiumBuilderService) formatStarlark(ctx context.Context, ccr concurrentCommandRunner) error {
 	lucicfgPath := filepath.Join(s.depotToolsPath, "lucicfg")
 	infraConfigPath := filepath.Join(s.chromiumPath, InfraConfigSubdirectory)
 
 	output := bytes.Buffer{}
-	err := exec.Run(ctx, &exec.Command{
+	err := s.runSafeCancellableCommand(&exec.Command{
 		Name:           lucicfgPath,
 		Args:           []string{"fmt", infraConfigPath},
 		CombinedOutput: &output,
-	})
+	}, ccr)
 	if err != nil {
 		return skerr.Fmt("Failed to format Starlark. Original error: %v Stdout: %s", err, output.String())
 	}
@@ -850,15 +935,15 @@ func (s ChromiumBuilderService) formatStarlark(ctx context.Context) error {
 
 // generateFilesFromStarlark runs Chromium's main Starlark file to generate any
 // JSON/pyl/etc. files based on any changes to Starlark files.
-func (s ChromiumBuilderService) generateFilesFromStarlark(ctx context.Context) error {
+func (s *ChromiumBuilderService) generateFilesFromStarlark(ctx context.Context, ccr concurrentCommandRunner) error {
 	starlarkMainPath := filepath.Join(s.chromiumPath, InfraConfigSubdirectory, "main.star")
 
 	output := bytes.Buffer{}
-	err := exec.Run(ctx, &exec.Command{
+	err := s.runSafeCancellableCommand(&exec.Command{
 		Name:           starlarkMainPath,
 		Args:           []string{},
 		CombinedOutput: &output,
-	})
+	}, ccr)
 	if err != nil {
 		return skerr.Fmt("Failed to generate files from Starlark. Original error: %v Stdout: %s", err, output.String())
 	}
@@ -868,7 +953,14 @@ func (s ChromiumBuilderService) generateFilesFromStarlark(ctx context.Context) e
 
 // addAndCommitFiles adds all files under Chromium's //infra/config directory to
 // git then commits them.
-func (s ChromiumBuilderService) addAndCommitFiles(ctx context.Context, inputs ciCombinedBuilderInputs) error {
+func (s *ChromiumBuilderService) addAndCommitFiles(ctx context.Context, inputs ciCombinedBuilderInputs) error {
+	s.chromiumCheckoutLock.Lock()
+	defer s.chromiumCheckoutLock.Unlock()
+
+	if s.shuttingDown.Load() {
+		return skerr.Fmt("Server is shutting down, not proceeding with adding/committing files.")
+	}
+
 	infraConfigPath := filepath.Join(s.chromiumPath, InfraConfigSubdirectory)
 	_, err := s.chromiumCheckout.Git(ctx, "add", infraConfigPath)
 	if err != nil {
@@ -887,7 +979,7 @@ func (s ChromiumBuilderService) addAndCommitFiles(ctx context.Context, inputs ci
 
 // uploadCl uploads committed changes to Gerrit and returns the uploaded CL's
 // link.
-func (s ChromiumBuilderService) uploadCl(ctx context.Context) (string, error) {
+func (s *ChromiumBuilderService) uploadCl(ctx context.Context, ccr concurrentCommandRunner) (string, error) {
 	gitClPath := filepath.Join(s.depotToolsPath, "git_cl.py")
 
 	// TODO(bsheedy): Figure out what the best way to handle this on k8s is. It
@@ -895,15 +987,15 @@ func (s ChromiumBuilderService) uploadCl(ctx context.Context) (string, error) {
 	// Setting PATH manually via the Env argument of Run breaks authentication
 	// since git_cl doesn't have access to the SSO information anymore.
 	output := bytes.Buffer{}
-	err := exec.Run(ctx, &exec.Command{
+	err := s.runSafeCancellableCommand(&exec.Command{
 		Name:           gitClPath,
 		Args:           []string{"upload", "--skip-title", "--bypass-hooks", "--force"},
 		Dir:            s.chromiumPath,
 		CombinedOutput: &output,
 		Timeout:        5 * time.Minute,
-	})
+	}, ccr)
 	if err != nil {
-		return "", err
+		return "", skerr.Fmt("Failed to upload CL to Gerrit. Original error: %v Stdout: %s", err, output.String())
 	}
 
 	outputString := output.String()
@@ -923,8 +1015,222 @@ func (s ChromiumBuilderService) uploadCl(ctx context.Context) (string, error) {
 	return clLink, nil
 }
 
+// fetchChromium fetches a Chromium checkout using the stored path.
+func (s *ChromiumBuilderService) fetchChromium(ccr concurrentCommandRunner) error {
+	// If we end up cancelling the fetch command mid-run, we will have to
+	// perform additional cleanup in order to ensure that the checkout is not
+	// in a bad state. Hence, we have our own lock and cannot use
+	// runSafeCancellableCommand().
+	sklog.Infof("Fetching Chromium checkout into %s. This will take a while.", s.chromiumPath)
+	fetchPath := filepath.Join(s.depotToolsPath, "fetch")
+	output := bytes.Buffer{}
+	cmd := exec.Command{
+		Name:           fetchPath,
+		Args:           []string{"--nohooks", "chromium"},
+		CombinedOutput: &output,
+		Dir:            filepath.Dir(s.chromiumPath),
+	}
+	err := s.runCancellableCommand(&cmd, ccr, &(s.chromiumFetchLock))
+	if err != nil {
+		return skerr.Fmt("Failed to fetch Chromium. Original error: %v Stdout: %s", err, output.String())
+	}
+	sklog.Info("Successfully fetched Chromium checkout")
+
+	return nil
+}
+
+// runSafeCancellableCommand runs the provided Command in such a way that it can
+// be cancelled mid-run. Any commands run this way must not result in bad state
+// being left on disk in the event of the command being cancelled.
+func (s *ChromiumBuilderService) runSafeCancellableCommand(cmd *exec.Command, ccr concurrentCommandRunner) error {
+	return s.runCancellableCommand(cmd, ccr, &(s.safeCancellableCommandLock))
+}
+
+// runCancellableCommand runs the provided Command in such a way that it can be
+// cancelled mid-run. The sync.Mutex argument will be locked for the duration
+// of the function to signal that some cancellable command is being run.
+func (s *ChromiumBuilderService) runCancellableCommand(cmd *exec.Command, ccr concurrentCommandRunner, lock *sync.Mutex) error {
+	lock.Lock()
+	defer lock.Unlock()
+	// This is manually unlocked later so we can release it sooner.
+	s.currentProcessLock.Lock()
+
+	if s.shuttingDown.Load() {
+		s.currentProcessLock.Unlock()
+		return skerr.Fmt("Server is shutting down, not starting cancellable command.")
+	}
+
+	process, doneChan, err := ccr(cmd)
+	s.currentProcess = process
+	s.currentProcessLock.Unlock()
+	if err != nil {
+		return err
+	}
+	err = <-doneChan
+	s.currentProcessLock.Lock()
+	s.currentProcess = nil
+	s.currentProcessLock.Unlock()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Shutdown cleanly shuts down the service. This primarly involves ensuring that
+// git operations are either allowed to finish (if they are expected to be fast)
+// or are forcibly killed and cleaned up so that no bad state is left on disk.
 func (s *ChromiumBuilderService) Shutdown() error {
-	// TODO(bsheedy): Implement the shutdown process.
+	return s.shutdownImpl(realDirectoryRemover)
+}
+
+// shutdownImpl is the actual implementation for Shutdown(), broken out to
+// support dependency injection.
+func (s *ChromiumBuilderService) shutdownImpl(dr directoryRemover) error {
 	sklog.Infof("Shutting down Chromium Builder service")
+	s.shuttingDown.Store(true)
+
+	err := s.ensureDepotToolsCheckoutNotInUse()
+	if err != nil {
+		return err
+	}
+
+	err = s.ensureChromiumCheckoutNotInUse()
+	if err != nil {
+		return err
+	}
+
+	err = s.cancelSafeCommands()
+	if err != nil {
+		return err
+	}
+
+	err = s.cancelChromiumFetch(dr)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ensureDepotToolsCheckoutNotInUse ensures that the depot_tools checkout is not
+// actively being used before continuing with shutdown. Killing the server while
+// it is in use, e.g. mid-update, could leave the checkout in an unusable state
+// which would affect the server the next time it is deployed.
+func (s *ChromiumBuilderService) ensureDepotToolsCheckoutNotInUse() error {
+	if !s.shuttingDown.Load() {
+		return skerr.Fmt("ensureDepotToolsCheckoutNotInUse() must only be called during shutdown.")
+	}
+
+	s.depotToolsCheckoutLock.Lock()
+	defer s.depotToolsCheckoutLock.Unlock()
+
+	// Both the initial checkout and updating of depot_tools is very quick, so
+	// just let them run their course. Both are handled via the git package
+	// rather than the exec package anyways, so we would not be able to cancel
+	// them mid-run.
+	return nil
+}
+
+// ensureChromiumCheckoutNotInUse ensures that the Chromium checkout is not
+// actively being used before continuing with shutdown. Killing the server while
+// it is in use, e.g. mid-update, could leave the checkout in an unusable state
+// which would affect the server the next time it is deployed.
+func (s *ChromiumBuilderService) ensureChromiumCheckoutNotInUse() error {
+	if !s.shuttingDown.Load() {
+		return skerr.Fmt("ensureChromiumCheckoutNotInUse() must only be called during shutdown.")
+	}
+
+	s.chromiumCheckoutLock.Lock()
+	defer s.chromiumCheckoutLock.Unlock()
+
+	// Initial checkout setup is handled via fetch, which can be cancelled
+	// in another shutdown helper. Updating the Chromium checkout should not
+	// take too long, and isn't cancellable anyways due to use of the git
+	// package instead of the exec package.
+	return nil
+}
+
+// cancelSafeCommands cancels any in-progress commands which are safe to cancel
+// without any additional cleanup.
+func (s *ChromiumBuilderService) cancelSafeCommands() error {
+	if !s.shuttingDown.Load() {
+		return skerr.Fmt("cancelSafeCommands() must only be called during shutdown.")
+	}
+
+	notCurrentlyRunning := s.safeCancellableCommandLock.TryLock()
+	if notCurrentlyRunning {
+		s.safeCancellableCommandLock.Unlock()
+		return nil
+	}
+
+	s.currentProcessLock.Lock()
+	defer s.currentProcessLock.Unlock()
+
+	if s.currentProcess == nil {
+		// This can happen in one of two ways:
+		//   1. We tried to acquire safeCallableCommandLock just as it was
+		//      acquired by the function running the command. In this case, we
+		//      can safely assume that the current process won't be set later
+		//      since that function will detect that the server is shutting down
+		//      and not start the process.
+		//   2. We tried to acquire safeCallableCommandLock as the function
+		//      running the command was finishing. In this case, the process has
+		//      already finished.
+		// In both cases, it is safe to not do anything else.
+		return nil
+	}
+
+	err := s.currentProcess.Kill()
+	if err != nil {
+		// We don't return this error since we want shutdown to continue. It
+		// seems likely that we are going to hit this during normal operation
+		// anyways if the process is already finished by the time we try to kill
+		// it.
+		sklog.Errorf("Got the following error when trying to kill the current running safe command: %v", err)
+	}
+	return nil
+}
+
+// cancelChromiumFetch cancels the in-progress Chromium fetch, if there is one.
+// In the event that there is an in-progress fetch, the directories potentially
+// containing checkout data will be wiped in order to ensure it is not left
+// in a bad state that will affect future deployments.
+func (s *ChromiumBuilderService) cancelChromiumFetch(dr directoryRemover) error {
+	if !s.shuttingDown.Load() {
+		return skerr.Fmt("cancelChromiumFetch() must only be called during shutdown.")
+	}
+
+	notCurrentlyFetching := s.chromiumFetchLock.TryLock()
+	if notCurrentlyFetching {
+		s.chromiumFetchLock.Unlock()
+		return nil
+	}
+
+	s.currentProcessLock.Lock()
+	defer s.currentProcessLock.Unlock()
+
+	if s.currentProcess == nil {
+		// See cancelSafeCommands for explanation on why we can safely do
+		// nothing here.
+		return nil
+	}
+
+	err := s.currentProcess.Kill()
+	if err != nil {
+		sklog.Errorf("Got the following error when trying to kill the Chromium fetch process: %v", err)
+	}
+
+	// We remove the parent directory since the stored path is to the src
+	// directory, but gclient information is stored in the directory above that.
+	// We want to wipe any gclient information as well so that the next
+	// deployment will have a clean slate.
+	err = dr(filepath.Dir(s.chromiumPath))
+	if err != nil {
+		sklog.Errorf(("Failed to delete in-progress Chromium checkout, future deployments will likely fail until " +
+			"this is cleaned up. Error: %v"), err)
+		return err
+	}
+
 	return nil
 }

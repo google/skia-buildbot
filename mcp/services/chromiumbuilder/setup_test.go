@@ -184,6 +184,29 @@ func (m *MockFileInfo) ModTime() time.Time { return m.FModTime }
 func (m *MockFileInfo) IsDir() bool        { return m.FIsDir }
 func (m *MockFileInfo) Sys() interface{}   { return nil }
 
+// MockProcess is a mock implementation of exec.Process.
+type MockProcess struct {
+	mock.Mock
+}
+
+// NewMockProcess creates a new MockProcess.
+func NewMockProcess(t mock.TestingT) *MockProcess {
+	m := &MockProcess{}
+	m.Mock.Test(t)
+	if tHelper, ok := t.(interface{ Helper() }); ok {
+		tHelper.Helper()
+	}
+	if tCleanup, ok := t.(interface{ Cleanup(func()) }); ok {
+		tCleanup.Cleanup(func() { m.AssertExpectations(t) })
+	}
+	return m
+}
+
+func (m *MockProcess) Kill() error {
+	args := m.Called()
+	return args.Error(0)
+}
+
 func TestChromiumBuilderService_handleMissingDepotToolsCheckout(t *testing.T) {
 	ctx := context.Background()
 	const testDepotToolsPath = "/path/to/depot_tools"
@@ -298,6 +321,307 @@ func TestChromiumBuilderService_handleMissingDepotToolsCheckout(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestChromiumBuilderService_shutdownImpl(t *testing.T) {
+	const testChromiumDir = "/test/chromium"
+
+	tests := []struct {
+		name             string
+		setupService     func(s *ChromiumBuilderService)
+		setupMocks       func(t *testing.T, mockDirRemover *mockDirectoryRemover, mockProcess *MockProcess)
+		expectError      bool
+		errorMsgContains string
+		expectDirRemoval bool
+	}{
+		{
+			name: "happy path - no locks held, no processes running",
+			setupService: func(s *ChromiumBuilderService) {
+				s.chromiumPath = filepath.Join(testChromiumDir, "src")
+			},
+			setupMocks: func(t *testing.T, mockDirRemover *mockDirectoryRemover, mockProcess *MockProcess) {
+				// No mocks needed as no processes should be killed or dirs removed if not fetching.
+			},
+			expectError:      false,
+			expectDirRemoval: false,
+		},
+		{
+			name: "safe command running - should be killed",
+			setupService: func(s *ChromiumBuilderService) {
+				s.chromiumPath = filepath.Join(testChromiumDir, "src")
+				s.safeCancellableCommandLock.Lock() // Simulate command running
+			},
+			setupMocks: func(t *testing.T, mockDirRemover *mockDirectoryRemover, mockProcess *MockProcess) {
+				mockProcess.On("Kill").Return(nil).Once()
+			},
+			expectError:      false,
+			expectDirRemoval: false,
+		},
+		{
+			name: "chromium fetch running - should be killed and dir removed",
+			setupService: func(s *ChromiumBuilderService) {
+				s.chromiumPath = filepath.Join(testChromiumDir, "src")
+				s.chromiumFetchLock.Lock() // Simulate fetch running
+			},
+			setupMocks: func(t *testing.T, mockDirRemover *mockDirectoryRemover, mockProcess *MockProcess) {
+				mockProcess.On("Kill").Return(nil).Once()
+				mockDirRemover.On("Execute", testChromiumDir).Return(nil).Once()
+			},
+			expectError:      false,
+			expectDirRemoval: true,
+		},
+		{
+			name: "chromium fetch running - dir removal fails",
+			setupService: func(s *ChromiumBuilderService) {
+				s.chromiumPath = filepath.Join(testChromiumDir, "src")
+				s.chromiumFetchLock.Lock() // Simulate fetch running
+			},
+			setupMocks: func(t *testing.T, mockDirRemover *mockDirectoryRemover, mockProcess *MockProcess) {
+				mockProcess.On("Kill").Return(nil).Once()
+				mockDirRemover.On("Execute", testChromiumDir).Return(errors.New("remove failed")).Once()
+			},
+			expectError:      true,
+			errorMsgContains: "remove failed",
+			expectDirRemoval: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &ChromiumBuilderService{}
+			mockProcess := NewMockProcess(t) // Create mock process
+
+			// Apply service setup, which might lock command locks
+			if tt.setupService != nil {
+				tt.setupService(s)
+			}
+
+			// Determine if currentProcess should be non-nil for the test.
+			// This simulates the state where runCancellableCommand would have set currentProcess
+			// because a command was started and its specific lock (safeCancellableCommandLock or chromiumFetchLock)
+			// is being held by runCancellableCommand.
+			var isAnyCommandIntendedToRun bool
+			if !s.safeCancellableCommandLock.TryLock() {
+				// If TryLock fails, it means setupService locked it and it's still locked.
+				// This is the state cancelSafeCommands expects if a command is running.
+				isAnyCommandIntendedToRun = true
+				// We DO NOT unlock it here. cancelSafeCommands needs to see it locked.
+			} else {
+				// TryLock succeeded, meaning setupService did NOT lock it, or it was locked and then unlocked by setupService.
+				// We must unlock it as TryLock acquired it.
+				s.safeCancellableCommandLock.Unlock()
+			}
+
+			if !s.chromiumFetchLock.TryLock() {
+				isAnyCommandIntendedToRun = true // Could be true from safe command already
+				// DO NOT unlock. cancelChromiumFetch needs to see it locked.
+			} else {
+				s.chromiumFetchLock.Unlock() // Unlock if TryLock succeeded
+			}
+
+			if isAnyCommandIntendedToRun {
+				s.currentProcess = mockProcess
+			} else {
+				s.currentProcess = nil
+			}
+
+			mockDirRemover := &mockDirectoryRemover{}
+			mockDirRemover.Test(t)
+
+			// Setup mocks for Kill or RemoveAll based on the test case
+			if tt.setupMocks != nil {
+				tt.setupMocks(t, mockDirRemover, mockProcess)
+			}
+
+			err := s.shutdownImpl(mockDirRemover.Execute)
+
+			if tt.expectError {
+				require.Error(t, err)
+				if tt.errorMsgContains != "" {
+					require.Contains(t, err.Error(), tt.errorMsgContains)
+				}
+			} else {
+				require.NoError(t, err)
+			}
+			require.True(t, s.shuttingDown.Load())
+			mockDirRemover.AssertExpectations(t)
+			mockProcess.AssertExpectations(t)
+		})
+	}
+}
+
+func TestChromiumBuilderService_ensureDepotToolsCheckoutNotInUse(t *testing.T) {
+	s := &ChromiumBuilderService{}
+
+	// Test error if not shutting down
+	s.shuttingDown.Store(false)
+	err := s.ensureDepotToolsCheckoutNotInUse()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "must only be called during shutdown")
+
+	// Test happy path when shutting down
+	s.shuttingDown.Store(true)
+	err = s.ensureDepotToolsCheckoutNotInUse()
+	require.NoError(t, err)
+
+	// Test that it waits for the lock
+	s.shuttingDown.Store(true)
+	s.depotToolsCheckoutLock.Lock()
+	done := make(chan bool)
+	go func() {
+		err = s.ensureDepotToolsCheckoutNotInUse()
+		require.NoError(t, err)
+		done <- true
+	}()
+	time.Sleep(10 * time.Millisecond) // Give goroutine a chance to block
+	s.depotToolsCheckoutLock.Unlock()
+	<-done
+}
+
+func TestChromiumBuilderService_ensureChromiumCheckoutNotInUse(t *testing.T) {
+	s := &ChromiumBuilderService{}
+
+	// Test error if not shutting down
+	s.shuttingDown.Store(false)
+	err := s.ensureChromiumCheckoutNotInUse()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "must only be called during shutdown")
+
+	// Test happy path when shutting down
+	s.shuttingDown.Store(true)
+	err = s.ensureChromiumCheckoutNotInUse()
+	require.NoError(t, err)
+
+	// Test that it waits for the lock
+	s.shuttingDown.Store(true)
+	s.chromiumCheckoutLock.Lock()
+	done := make(chan bool)
+	go func() {
+		err = s.ensureChromiumCheckoutNotInUse()
+		require.NoError(t, err)
+		done <- true
+	}()
+	time.Sleep(10 * time.Millisecond) // Give goroutine a chance to block
+	s.chromiumCheckoutLock.Unlock()
+	<-done
+}
+
+func TestChromiumBuilderService_cancelSafeCommands(t *testing.T) {
+	s := &ChromiumBuilderService{}
+	mockProcess := NewMockProcess(t)
+
+	// Test error if not shutting down
+	s.shuttingDown.Store(false)
+	err := s.cancelSafeCommands()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "must only be called during shutdown")
+
+	// Test no command running
+	s.shuttingDown.Store(true)
+	s.currentProcess = nil
+	err = s.cancelSafeCommands()
+	require.NoError(t, err)
+
+	// Test command running, currentProcess is nil (should not happen if lock is held, but test defensively)
+	s.shuttingDown.Store(true)
+	s.safeCancellableCommandLock.Lock()
+	s.currentProcess = nil
+	err = s.cancelSafeCommands()
+	s.safeCancellableCommandLock.Unlock() // Release for next test
+	require.NoError(t, err)
+
+	// Test command running, currentProcess is set
+	s.shuttingDown.Store(true)
+	s.safeCancellableCommandLock.Lock()
+	s.currentProcess = mockProcess
+	mockProcess.On("Kill").Return(nil).Once()
+	err = s.cancelSafeCommands()
+	s.safeCancellableCommandLock.Unlock()
+	require.NoError(t, err)
+	mockProcess.AssertExpectations(t)
+
+	// Test command running, Kill fails
+	s.shuttingDown.Store(true)
+	s.safeCancellableCommandLock.Lock()
+	s.currentProcess = mockProcess
+	mockProcess.On("Kill").Return(errors.New("kill failed")).Once()
+	err = s.cancelSafeCommands()
+	s.safeCancellableCommandLock.Unlock()
+	require.NoError(t, err) // Error from Kill is logged but not returned
+	mockProcess.AssertExpectations(t)
+}
+
+type mockDirectoryRemover struct {
+	mock.Mock
+}
+
+func (m *mockDirectoryRemover) Execute(path string) error {
+	args := m.Called(path)
+	return args.Error(0)
+}
+
+func TestChromiumBuilderService_cancelChromiumFetch(t *testing.T) {
+	s := &ChromiumBuilderService{chromiumPath: "/test/chromium/src"}
+	mockProcess := NewMockProcess(t)
+	mockRemover := &mockDirectoryRemover{}
+	mockRemover.Test(t)
+
+	// Test error if not shutting down
+	s.shuttingDown.Store(false)
+	err := s.cancelChromiumFetch(mockRemover.Execute)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "must only be called during shutdown")
+
+	// Test no fetch running
+	s.shuttingDown.Store(true)
+	s.currentProcess = nil
+	err = s.cancelChromiumFetch(mockRemover.Execute)
+	require.NoError(t, err)
+
+	// Test fetch running, currentProcess is nil
+	s.shuttingDown.Store(true)
+	s.chromiumFetchLock.Lock()
+	s.currentProcess = nil
+	err = s.cancelChromiumFetch(mockRemover.Execute)
+	s.chromiumFetchLock.Unlock()
+	require.NoError(t, err)
+
+	// Test fetch running, currentProcess is set, remove succeeds
+	s.shuttingDown.Store(true)
+	s.chromiumFetchLock.Lock()
+	s.currentProcess = mockProcess
+	mockProcess.On("Kill").Return(nil).Once()
+	mockRemover.On("Execute", "/test/chromium").Return(nil).Once()
+	err = s.cancelChromiumFetch(mockRemover.Execute)
+	s.chromiumFetchLock.Unlock()
+	require.NoError(t, err)
+	mockProcess.AssertExpectations(t)
+	mockRemover.AssertExpectations(t)
+
+	// Test fetch running, Kill fails
+	s.shuttingDown.Store(true)
+	s.chromiumFetchLock.Lock()
+	s.currentProcess = mockProcess
+	mockProcess.On("Kill").Return(errors.New("kill failed")).Once()
+	mockRemover.On("Execute", "/test/chromium").Return(nil).Once() // Still expect removal
+	err = s.cancelChromiumFetch(mockRemover.Execute)
+	s.chromiumFetchLock.Unlock()
+	require.NoError(t, err) // Error from Kill is logged
+	mockProcess.AssertExpectations(t)
+	mockRemover.AssertExpectations(t)
+
+	// Test fetch running, remove fails
+	s.shuttingDown.Store(true)
+	s.chromiumFetchLock.Lock()
+	s.currentProcess = mockProcess
+	mockProcess.On("Kill").Return(nil).Once()
+	mockRemover.On("Execute", "/test/chromium").Return(errors.New("remove failed")).Once()
+	err = s.cancelChromiumFetch(mockRemover.Execute)
+	s.chromiumFetchLock.Unlock()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "remove failed")
+	mockProcess.AssertExpectations(t)
+	mockRemover.AssertExpectations(t)
 }
 
 func TestChromiumBuilderService_handleExistingDepotToolsCheckout(t *testing.T) {
@@ -509,7 +833,7 @@ func TestChromiumBuilderService_handleMissingChromiumCheckout(t *testing.T) {
 
 	tests := []struct {
 		name             string
-		setupMocks       func(t *testing.T, mockCmdCollector *exec.CommandCollector, mockCheckout *MockCheckout) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error)
+		setupMocks       func(t *testing.T, mockCmdCollector *exec.CommandCollector, mockCheckout *MockCheckout) (checkoutFactory, directoryCreator, concurrentCommandRunner)
 		expectError      bool
 		expectedCheckout bool
 		errorMsgContains string
@@ -519,21 +843,26 @@ func TestChromiumBuilderService_handleMissingChromiumCheckout(t *testing.T) {
 	}{
 		{
 			name: "happy path",
-			setupMocks: func(t *testing.T, mockCmdCollector *exec.CommandCollector, mockCheckout *MockCheckout) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error) {
+			setupMocks: func(t *testing.T, mockCmdCollector *exec.CommandCollector, mockCheckout *MockCheckout) (checkoutFactory, directoryCreator, concurrentCommandRunner) {
 				dc := func(path string, perm os.FileMode) error {
 					require.Equal(t, testChromiumParentDir, path)
 					require.Equal(t, os.FileMode(0o750), perm)
 					return nil
-				}
-				execRunFn := func(ctx context.Context, cmd *exec.Command) error {
-					return nil // Simulate successful fetch
 				}
 				cf := func(c context.Context, repoUrl string, workdir string) (git.Checkout, error) {
 					require.Equal(t, ChromiumUrl, repoUrl)
 					require.Equal(t, testChromiumParentDir, workdir)
 					return mockCheckout, nil
 				}
-				return cf, dc, execRunFn
+				ccr := func(cmd *exec.Command) (exec.Process, <-chan error, error) {
+					require.NoError(t, mockCmdCollector.Run(context.Background(), cmd))
+					errCh := make(chan error, 1)
+					errCh <- nil // Simulate successful fetch
+					close(errCh)
+					mp := NewMockProcess(t)
+					return mp, errCh, nil
+				}
+				return cf, dc, ccr
 			},
 			expectError:      false,
 			expectedCheckout: true,
@@ -543,17 +872,22 @@ func TestChromiumBuilderService_handleMissingChromiumCheckout(t *testing.T) {
 		},
 		{
 			name: "directory creator fails",
-			setupMocks: func(t *testing.T, mockCmdCollector *exec.CommandCollector, mockCheckout *MockCheckout) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error) {
+			setupMocks: func(t *testing.T, mockCmdCollector *exec.CommandCollector, mockCheckout *MockCheckout) (checkoutFactory, directoryCreator, concurrentCommandRunner) {
 				dc := func(path string, perm os.FileMode) error {
 					return errors.New("mkdir failed")
-				}
-				execRunFn := func(ctx context.Context, cmd *exec.Command) error {
-					return errors.New("exec.Run should not be called")
 				}
 				cf := func(c context.Context, repoUrl string, workdir string) (git.Checkout, error) {
 					return nil, errors.New("cf should not be called")
 				}
-				return cf, dc, execRunFn
+				ccr := func(cmd *exec.Command) (exec.Process, <-chan error, error) {
+					require.NoError(t, mockCmdCollector.Run(context.Background(), cmd))
+					errCh := make(chan error, 1)
+					errCh <- errors.New("ccr should not be called if dc fails")
+					close(errCh)
+					mp := NewMockProcess(t)
+					return mp, errCh, nil
+				}
+				return cf, dc, ccr
 			},
 			expectError:      true,
 			expectedCheckout: false,
@@ -561,17 +895,22 @@ func TestChromiumBuilderService_handleMissingChromiumCheckout(t *testing.T) {
 		},
 		{
 			name: "exec.Run fails (fetch command fails)",
-			setupMocks: func(t *testing.T, mockCmdCollector *exec.CommandCollector, mockCheckout *MockCheckout) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error) {
+			setupMocks: func(t *testing.T, mockCmdCollector *exec.CommandCollector, mockCheckout *MockCheckout) (checkoutFactory, directoryCreator, concurrentCommandRunner) {
 				dc := func(path string, perm os.FileMode) error {
 					return nil
-				}
-				execRunFn := func(ctx context.Context, cmd *exec.Command) error {
-					return errors.New("fetch command failed")
 				}
 				cf := func(c context.Context, repoUrl string, workdir string) (git.Checkout, error) {
 					return nil, errors.New("cf should not be called")
 				}
-				return cf, dc, execRunFn
+				ccr := func(cmd *exec.Command) (exec.Process, <-chan error, error) {
+					require.NoError(t, mockCmdCollector.Run(context.Background(), cmd))
+					errCh := make(chan error, 1)
+					errCh <- errors.New("fetch command failed")
+					close(errCh)
+					mp := NewMockProcess(t)
+					return mp, errCh, nil
+				}
+				return cf, dc, ccr
 			},
 			expectError:      true,
 			expectedCheckout: false,
@@ -582,17 +921,23 @@ func TestChromiumBuilderService_handleMissingChromiumCheckout(t *testing.T) {
 		},
 		{
 			name: "checkout factory fails",
-			setupMocks: func(t *testing.T, mockCmdCollector *exec.CommandCollector, mockCheckout *MockCheckout) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error) {
+			setupMocks: func(t *testing.T, mockCmdCollector *exec.CommandCollector, mockCheckout *MockCheckout) (checkoutFactory, directoryCreator, concurrentCommandRunner) {
 				dc := func(path string, perm os.FileMode) error {
 					return nil
-				}
-				execRunFn := func(ctx context.Context, cmd *exec.Command) error {
-					return nil // Simulate successful fetch
 				}
 				cf := func(c context.Context, repoUrl string, workdir string) (git.Checkout, error) {
 					return nil, errors.New("checkout factory failed")
 				}
-				return cf, dc, execRunFn
+				ccr := func(cmd *exec.Command) (exec.Process, <-chan error, error) {
+					require.NoError(t, mockCmdCollector.Run(context.Background(), cmd))
+					errCh := make(chan error, 1)
+					errCh <- nil // fetch is successful
+					close(errCh)
+					mp := NewMockProcess(t)
+					return mp, errCh, nil
+				}
+
+				return cf, dc, ccr
 			},
 			expectError:      true,
 			expectedCheckout: false,
@@ -610,11 +955,9 @@ func TestChromiumBuilderService_handleMissingChromiumCheckout(t *testing.T) {
 			mockCmdCollector := &exec.CommandCollector{}
 			mockCheckout := NewMockCheckout(t, testChromiumParentDir)
 
-			cf, dc, execRunFn := tt.setupMocks(t, mockCmdCollector, mockCheckout)
-			mockCmdCollector.SetDelegateRun(execRunFn)
-			runCtx := exec.NewContext(context.Background(), mockCmdCollector.Run)
+			cf, dc, ccr := tt.setupMocks(t, mockCmdCollector, mockCheckout)
 
-			err := s.handleMissingChromiumCheckout(runCtx, mockFS, cf, dc)
+			err := s.handleMissingChromiumCheckout(context.Background(), mockFS, cf, dc, ccr)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -822,16 +1165,16 @@ func TestChromiumBuilderService_initImpl(t *testing.T) {
 	tests := []struct {
 		name             string
 		serviceArgs      string
-		setupMocks       func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error)
+		setupMocks       func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, concurrentCommandRunner)
 		expectError      bool
 		errorMsgContains string
 	}{
 		{
 			name:        "happy path - both checkouts missing and successfully created",
 			serviceArgs: validServiceArgs,
-			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error) {
-				// Depot Tools Mocks (missing checkout)
-				mockFS.On("Open", mock.AnythingOfType("*context.valueCtx"), testDepotToolsPath).Return(nil, os.ErrNotExist).Once()
+			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, concurrentCommandRunner) {
+				// Depot Tools Mocks (missing checkout) - use baseCtx for mock matching
+				mockFS.On("Open", baseCtx, testDepotToolsPath).Return(nil, os.ErrNotExist).Once()
 				dc := func(path string, perm os.FileMode) error {
 					if path == testDepotToolsParentDir {
 						require.Equal(t, os.FileMode(0o750), perm)
@@ -844,20 +1187,14 @@ func TestChromiumBuilderService_initImpl(t *testing.T) {
 					return errors.New("unexpected dc call")
 				}
 				mockDtCheckout := NewMockCheckout(t, testDepotToolsParentDir)
-				mockDtCheckout.On("Update", mock.AnythingOfType("*context.valueCtx")).Return(nil).Once()
+				mockDtCheckout.On("Update", baseCtx).Return(nil).Once()
 
 				// Chromium Mocks (missing checkout)
-				mockFS.On("Open", mock.AnythingOfType("*context.valueCtx"), testChromiumPath).Return(nil, os.ErrNotExist).Once()
-				execRunFn := func(ctx context.Context, cmd *exec.Command) error {
-					require.Equal(t, filepath.Join(testDepotToolsPath, "fetch"), cmd.Name)
-					require.Equal(t, []string{"--nohooks", "chromium"}, cmd.Args)
-					require.Equal(t, testChromiumParentDir, cmd.Dir)
-					return nil
-				}
+				mockFS.On("Open", baseCtx, testChromiumPath).Return(nil, os.ErrNotExist).Once()
 				mockCrCheckout := NewMockCheckout(t, testChromiumParentDir)
 				// No Update call needed for chromium if fetched new
 
-				cf := func(c context.Context, repoUrl string, workdir string) (git.Checkout, error) {
+				cf := func(ctx context.Context, repoUrl string, workdir string) (git.Checkout, error) {
 					if repoUrl == DepotToolsUrl && workdir == testDepotToolsParentDir {
 						return mockDtCheckout, nil
 					}
@@ -866,15 +1203,23 @@ func TestChromiumBuilderService_initImpl(t *testing.T) {
 					}
 					return nil, errors.New("unexpected cf call")
 				}
-				return cf, dc, execRunFn
+				ccr := func(cmd *exec.Command) (exec.Process, <-chan error, error) {
+					require.NoError(t, mockCmdCollector.Run(context.Background(), cmd))
+					errCh := make(chan error, 1)
+					errCh <- nil // Simulate successful fetch
+					close(errCh)
+					mp := NewMockProcess(t)
+					return mp, errCh, nil
+				}
+				return cf, dc, ccr
 			},
 			expectError: false,
 		},
 		{
 			name:        "parseServiceArgs fails - missing depot_tools_path",
 			serviceArgs: fmt.Sprintf("%s=%s", ArgChromiumPath, testChromiumPath),
-			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error) {
-				return nil, nil, nil
+			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, concurrentCommandRunner) {
+				return nil, nil, nil // ccr not relevant here
 			},
 			expectError:      true,
 			errorMsgContains: "Did not receive a depot_tools_path argument",
@@ -882,15 +1227,15 @@ func TestChromiumBuilderService_initImpl(t *testing.T) {
 		{
 			name:        "handleDepotToolsSetup fails - dc fails for missing checkout",
 			serviceArgs: validServiceArgs,
-			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error) {
-				mockFS.On("Open", mock.AnythingOfType("*context.valueCtx"), testDepotToolsPath).Return(nil, os.ErrNotExist).Once()
+			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, concurrentCommandRunner) {
+				mockFS.On("Open", baseCtx, testDepotToolsPath).Return(nil, os.ErrNotExist).Once()
 				dc := func(path string, perm os.FileMode) error {
 					if path == testDepotToolsParentDir {
 						return errors.New("dc failed for depot_tools")
 					}
 					return errors.New("unexpected dc call")
 				}
-				return nil, dc, nil // cf and execRunFn not reached
+				return nil, dc, nil // cf and ccr not reached
 			},
 			expectError:      true,
 			errorMsgContains: "dc failed for depot_tools",
@@ -898,14 +1243,14 @@ func TestChromiumBuilderService_initImpl(t *testing.T) {
 		{
 			name:        "handleChromiumSetup fails - dc fails for missing checkout",
 			serviceArgs: validServiceArgs,
-			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error) {
+			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, concurrentCommandRunner) {
 				// Depot Tools Mocks (missing checkout, success)
-				mockFS.On("Open", mock.AnythingOfType("*context.valueCtx"), testDepotToolsPath).Return(nil, os.ErrNotExist).Once()
+				mockFS.On("Open", baseCtx, testDepotToolsPath).Return(nil, os.ErrNotExist).Once()
 				mockDtCheckout := NewMockCheckout(t, testDepotToolsParentDir)
-				mockDtCheckout.On("Update", mock.AnythingOfType("*context.valueCtx")).Return(nil).Once()
+				mockDtCheckout.On("Update", baseCtx).Return(nil).Once()
 
 				// Chromium Mocks (missing checkout, dc fails)
-				mockFS.On("Open", mock.AnythingOfType("*context.valueCtx"), testChromiumPath).Return(nil, os.ErrNotExist).Once()
+				mockFS.On("Open", baseCtx, testChromiumPath).Return(nil, os.ErrNotExist).Once()
 
 				dc := func(path string, perm os.FileMode) error {
 					if path == testDepotToolsParentDir {
@@ -916,13 +1261,13 @@ func TestChromiumBuilderService_initImpl(t *testing.T) {
 					}
 					return errors.New("unexpected dc call")
 				}
-				cf := func(c context.Context, repoUrl string, workdir string) (git.Checkout, error) {
+				cf := func(ctx context.Context, repoUrl string, workdir string) (git.Checkout, error) {
 					if repoUrl == DepotToolsUrl && workdir == testDepotToolsParentDir {
 						return mockDtCheckout, nil
 					}
 					return nil, errors.New("unexpected cf call for chromium")
 				}
-				return cf, dc, nil // execRunFn not reached
+				return cf, dc, nil // ccr not reached
 			},
 			expectError:      true,
 			errorMsgContains: "dc failed for chromium",
@@ -935,11 +1280,9 @@ func TestChromiumBuilderService_initImpl(t *testing.T) {
 			mockFS := vfs_mocks.NewFS(t)
 			mockCmdCollector := &exec.CommandCollector{}
 
-			cf, dc, execRunFn := tt.setupMocks(t, mockFS, mockCmdCollector)
-			mockCmdCollector.SetDelegateRun(execRunFn)
-			runCtx := exec.NewContext(baseCtx, mockCmdCollector.Run)
+			cf, dc, ccr := tt.setupMocks(t, mockFS, mockCmdCollector)
 
-			err := s.initImpl(runCtx, tt.serviceArgs, mockFS, cf, dc) // Pass runCtx here
+			err := s.initImpl(baseCtx, tt.serviceArgs, mockFS, cf, dc, ccr)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -952,6 +1295,15 @@ func TestChromiumBuilderService_initImpl(t *testing.T) {
 				require.Equal(t, testChromiumPath, s.chromiumPath)
 				require.NotNil(t, s.depotToolsCheckout)
 				require.NotNil(t, s.chromiumCheckout)
+				if tt.name == "happy path - both checkouts missing and successfully created" {
+					commands := mockCmdCollector.Commands()
+					require.Len(t, commands, 1)
+					cmd := commands[0]
+					require.Equal(t, filepath.Join(testDepotToolsPath, "fetch"), cmd.Name)
+					require.Equal(t, []string{"--nohooks", "chromium"}, cmd.Args)
+					require.Equal(t, testChromiumParentDir, cmd.Dir)
+					require.NotNil(t, cmd.CombinedOutput) // As per fetchChromium
+				}
 			}
 		})
 	}
@@ -1069,7 +1421,7 @@ func TestChromiumBuilderService_handleChromiumSetup(t *testing.T) {
 
 	tests := []struct {
 		name              string
-		setupMocks        func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error)
+		setupMocks        func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, concurrentCommandRunner)
 		expectError       bool
 		errorMsgContains  string
 		expectCrCheckout  bool
@@ -1077,33 +1429,33 @@ func TestChromiumBuilderService_handleChromiumSetup(t *testing.T) {
 	}{
 		{
 			name: "happy path - existing checkout",
-			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error) {
-				// For the first Open in handleChromiumSetup for testChromiumPath
+			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, concurrentCommandRunner) {
+				// For the first Open in handleChromiumSetup for testChromiumPath - use baseCtx
 				crFileOpenedBySetup := vfs_mocks.NewFile(t)
-				mockFS.On("Open", mock.AnythingOfType("*context.valueCtx"), testChromiumPath).Return(crFileOpenedBySetup, nil).Once()
-				crFileOpenedBySetup.On("Close", mock.AnythingOfType("*context.valueCtx")).Return(nil).Once() // Closed by defer in handleChromiumSetup
+				mockFS.On("Open", baseCtx, testChromiumPath).Return(crFileOpenedBySetup, nil).Once()
+				crFileOpenedBySetup.On("Close", baseCtx).Return(nil).Once() // Closed by defer in handleChromiumSetup
 
 				// Mocks for handleExistingChromiumCheckout's success
 				// 1. checkIfPathIsDirectory(testChromiumPath)
 				crFileOpenedByCheck := vfs_mocks.NewFile(t)
-				mockFS.On("Open", mock.AnythingOfType("*context.valueCtx"), testChromiumPath).Return(crFileOpenedByCheck, nil).Once() // Second Open for testChromiumPath
+				mockFS.On("Open", baseCtx, testChromiumPath).Return(crFileOpenedByCheck, nil).Once() // Second Open for testChromiumPath
 				crFileInfo := &MockFileInfo{FIsDir: true}
-				crFileOpenedByCheck.On("Stat", mock.AnythingOfType("*context.valueCtx")).Return(crFileInfo, nil).Once()
-				crFileOpenedByCheck.On("Close", mock.AnythingOfType("*context.valueCtx")).Return(nil).Once()
+				crFileOpenedByCheck.On("Stat", baseCtx).Return(crFileInfo, nil).Once()
+				crFileOpenedByCheck.On("Close", baseCtx).Return(nil).Once()
 
 				// 2. checkIfPathIsDirectory for .git
 				dotGitFile := vfs_mocks.NewFile(t)
-				mockFS.On("Open", mock.AnythingOfType("*context.valueCtx"), filepath.Join(testChromiumPath, ".git")).Return(dotGitFile, nil).Once()
+				mockFS.On("Open", baseCtx, filepath.Join(testChromiumPath, ".git")).Return(dotGitFile, nil).Once()
 				dotGitFileInfo := &MockFileInfo{FIsDir: true}
-				dotGitFile.On("Stat", mock.AnythingOfType("*context.valueCtx")).Return(dotGitFileInfo, nil).Once()
-				dotGitFile.On("Close", mock.AnythingOfType("*context.valueCtx")).Return(nil).Once()
+				dotGitFile.On("Stat", baseCtx).Return(dotGitFileInfo, nil).Once()
+				dotGitFile.On("Close", baseCtx).Return(nil).Once()
 
 				mockCheckout := NewMockCheckout(t, testChromiumParentDir)
-				mockCheckout.On("Update", mock.AnythingOfType("*context.valueCtx")).Return(nil).Once()
-				cf := func(c context.Context, repoUrl string, workdir string) (git.Checkout, error) {
+				mockCheckout.On("Update", baseCtx).Return(nil).Once()
+				cf := func(ctx context.Context, repoUrl string, workdir string) (git.Checkout, error) {
 					return mockCheckout, nil
 				}
-				return cf, nil, nil
+				return cf, nil, nil // ccr not used in existing checkout path
 			},
 			expectError:       false,
 			expectCrCheckout:  true,
@@ -1111,17 +1463,24 @@ func TestChromiumBuilderService_handleChromiumSetup(t *testing.T) {
 		},
 		{
 			name: "happy path - missing checkout",
-			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error) {
-				mockFS.On("Open", mock.AnythingOfType("*context.valueCtx"), testChromiumPath).Return(nil, os.ErrNotExist).Once()
+			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, concurrentCommandRunner) {
+				mockFS.On("Open", baseCtx, testChromiumPath).Return(nil, os.ErrNotExist).Once()
 				// Mocks for handleMissingChromiumCheckout's success
 				dc := func(path string, perm os.FileMode) error { return nil }
-				execRunFn := func(ctx context.Context, cmd *exec.Command) error { return nil }
 				mockCheckout := NewMockCheckout(t, testChromiumParentDir)
 				// No Update call for new checkout
-				cf := func(c context.Context, repoUrl string, workdir string) (git.Checkout, error) {
+				cf := func(ctx context.Context, repoUrl string, workdir string) (git.Checkout, error) {
 					return mockCheckout, nil
 				}
-				return cf, dc, execRunFn
+				ccr := func(cmd *exec.Command) (exec.Process, <-chan error, error) {
+					require.NoError(t, mockCmdCollector.Run(context.Background(), cmd))
+					errCh := make(chan error, 1)
+					errCh <- nil // Simulate successful fetch
+					close(errCh)
+					mp := NewMockProcess(t)
+					return mp, errCh, nil
+				}
+				return cf, dc, ccr
 			},
 			expectError:       false,
 			expectCrCheckout:  true,
@@ -1129,9 +1488,9 @@ func TestChromiumBuilderService_handleChromiumSetup(t *testing.T) {
 		},
 		{
 			name: "error - fs.Open fails with non-NotExist error",
-			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, func(context.Context, *exec.Command) error) {
-				mockFS.On("Open", mock.AnythingOfType("*context.valueCtx"), testChromiumPath).Return(nil, errors.New("generic open error")).Once()
-				return nil, nil, nil
+			setupMocks: func(t *testing.T, mockFS *vfs_mocks.FS, mockCmdCollector *exec.CommandCollector) (checkoutFactory, directoryCreator, concurrentCommandRunner) {
+				mockFS.On("Open", baseCtx, testChromiumPath).Return(nil, errors.New("generic open error")).Once()
+				return nil, nil, nil // cf, dc, ccr not relevant
 			},
 			expectError:       true,
 			errorMsgContains:  "generic open error",
@@ -1146,11 +1505,9 @@ func TestChromiumBuilderService_handleChromiumSetup(t *testing.T) {
 			mockFS := vfs_mocks.NewFS(t)
 			mockCmdCollector := &exec.CommandCollector{}
 
-			cf, dc, execRunFn := tt.setupMocks(t, mockFS, mockCmdCollector)
-			mockCmdCollector.SetDelegateRun(execRunFn)
-			runCtx := exec.NewContext(baseCtx, mockCmdCollector.Run)
+			cf, dc, ccr := tt.setupMocks(t, mockFS, mockCmdCollector)
 
-			err := s.handleChromiumSetup(runCtx, mockFS, cf, dc)
+			err := s.handleChromiumSetup(baseCtx, mockFS, cf, dc, ccr)
 
 			if tt.expectError {
 				require.Error(t, err)
