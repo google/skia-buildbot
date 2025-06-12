@@ -10,13 +10,16 @@ import (
 	"go.skia.org/infra/mcp/services/perf/anomalies"
 	lcp "go.skia.org/infra/mcp/services/perf/chromeperf"
 	pc "go.skia.org/infra/mcp/services/perf/common"
+	"go.skia.org/infra/mcp/services/perf/perfgit"
 	"go.skia.org/infra/mcp/services/perf/pinpoint"
 	"go.skia.org/infra/perf/go/chromeperf"
+	"go.skia.org/infra/pinpoint/go/backends"
 )
 
 type PerfService struct {
 	chromePerfClient chromeperf.ChromePerfClient
 	httpClient       *http.Client
+	crrevClient      *backends.CrrevClientImpl
 }
 
 // Initialize the service with the provided arguments.
@@ -31,13 +34,19 @@ func (s *PerfService) Init(serviceArgs string) error {
 	if err != nil {
 		return skerr.Wrapf(err, "failed to create http client")
 	}
+	s.crrevClient, err = backends.NewCrrevClient(ctx)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to create CrRev client.")
+	}
 	return nil
 }
 
 // GetTools returns the supported tools by the service.
 func (s *PerfService) GetTools() []common.Tool {
 	return append(anomalies.GetTools(&s.chromePerfClient),
-		append(pinpoint.GetTools(s.httpClient), lcp.GetTools(s.httpClient)...)...)
+		append(pinpoint.GetTools(s.httpClient),
+			append(lcp.GetTools(s.httpClient),
+				perfgit.GetTools(s.httpClient, s.crrevClient)...)...)...)
 }
 
 func (s *PerfService) Shutdown() error {

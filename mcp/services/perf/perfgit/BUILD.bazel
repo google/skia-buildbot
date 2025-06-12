@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "perfgit",
+    srcs = ["tools.go"],
+    importpath = "go.skia.org/infra/mcp/services/perf/perfgit",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gitiles",
+        "//mcp/common",
+        "//pinpoint/go/backends",
+        "@com_github_mark3labs_mcp_go//mcp",
+    ],
+)

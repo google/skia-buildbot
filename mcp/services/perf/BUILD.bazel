@@ -12,7 +12,9 @@ go_library(
         "//mcp/services/perf/anomalies",
         "//mcp/services/perf/chromeperf",
         "//mcp/services/perf/common",
+        "//mcp/services/perf/perfgit",
         "//mcp/services/perf/pinpoint",
         "//perf/go/chromeperf",
+        "//pinpoint/go/backends",
     ],
 )
