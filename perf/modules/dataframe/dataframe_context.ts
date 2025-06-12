@@ -567,7 +567,11 @@ export class DataFrameRepository extends LitElement {
     // those functions from the traceKey. This is done to make sure
     // the user issue is reflected for the normalized, etc transformations of
     // the graph.
-    const modifiedTraceKeys = traceKeys.map((k) => formatSpecialFunctions(k));
+    const modifiedTraceKeys = traceKeys
+      .map((k) => formatSpecialFunctions(k))
+      .map((trace) => {
+        return ',' + trace + ',';
+      });
 
     const req: UserIssuesRequest = {
       trace_keys: modifiedTraceKeys,
