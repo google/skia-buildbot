@@ -7,22 +7,8 @@ import {
 } from '@google/generative-ai';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import readline from 'readline/promises';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  // Application specific logging, throwing an error, or other logic here
-});
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-if (!GEMINI_API_KEY) {
-  throw new Error('GEMINI_API_KEY is not set');
-}
-
-class MCPClient {
+export class MCPClient {
   private mcp: Client;
 
   private genAI: GoogleGenerativeAI;
@@ -33,8 +19,11 @@ class MCPClient {
 
   private model: GenerativeModel | null = null;
 
-  constructor() {
-    this.genAI = new GoogleGenerativeAI(GEMINI_API_KEY as string);
+  constructor(apiKey: string) {
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY is not set');
+    }
+    this.genAI = new GoogleGenerativeAI(apiKey);
     this.mcp = new Client({ name: 'mcp-client-cli', version: '1.0.0' });
   }
 
@@ -134,41 +123,3 @@ class MCPClient {
     await this.mcp.close();
   }
 }
-
-async function main() {
-  if (process.argv.length < 3) {
-    console.log('Usage: node index.ts <path_to_server_script>');
-    return;
-  }
-  const mcpClient = new MCPClient();
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  try {
-    await mcpClient.connectToServer(process.argv[2]);
-    console.log('\nMCP Client Started!');
-    console.log("Type your queries or 'quit' to exit.");
-
-    while (true) {
-      try {
-        const message = await rl.question('\nQuery: ');
-        if (message.toLowerCase() === 'quit') {
-          break;
-        }
-        const response = await mcpClient.processQuery(message);
-        console.log('\n' + response);
-      } catch (e) {
-        console.error('Error in chat loop: ', e);
-      }
-    }
-  } catch (e) {
-    console.error('An unexpected error occurred: ', e);
-  } finally {
-    rl.close();
-    await mcpClient.cleanup();
-  }
-}
-
-main();

@@ -1,0 +1,28 @@
+load("//infra-sk:index.bzl", "nodejs_test", "ts_library")
+
+ts_library(
+    name = "mcp-client_ts_lib",
+    srcs = ["mcp-client.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:node_modules/@google/generative-ai",
+        "//:node_modules/@modelcontextprotocol/sdk",
+    ],
+)
+
+nodejs_test(
+    name = "mcp-client_nodejs_test",
+    src = "mcp-client_nodejs_test.ts",
+    tags = ["local"],
+    deps = [
+        ":mcp-client_ts_lib",
+        "//:node_modules/@google/generative-ai",
+        "//:node_modules/@modelcontextprotocol/sdk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/mocha",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/mocha",
+        "//:node_modules/sinon",
+    ],
+)

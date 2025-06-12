@@ -28,6 +28,7 @@
     "@types/d3-scale": "^3.2.2",
     "@types/d3-selection": "^1.4.3",
     "@types/express": "^4.17.21",
+    "@types/google-apps-script": "^1.0.98",
     "@types/google.visualization": "0.0.68",
     "@types/howler": "^2.2.3",
     "@types/karma": "^6.3.8",

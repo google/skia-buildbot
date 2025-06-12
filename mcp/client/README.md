@@ -1,14 +1,37 @@
-# MCP Client CLI
+# MCP Client
 
-This document describes how to build and run the MCP Client CLI, a command-line interface
-for interacting with MCP-compliant services using the Gemini API.
+This document describes the MCP client, which consists of a reusable library and a CLI.
 
-## Prerequisites
+## Library
+
+The core of the MCP client is a reusable library located in `mcp/client/lib`. This
+library provides a simple way to connect to an MCP server, discover its tools, and
+process queries using the Gemini API.
+
+### Usage
+
+To use the library, import the `MCPClient` class and create a new instance. Then, call
+the `connectToServer` method with the path to the server script.
+
+```typescript
+import { MCPClient } from './lib/mcp-client';
+
+const client = new MCPClient('YOUR_API_KEY_HERE');
+await client.connectToServer('path/to/server/script.js');
+const response = await client.processQuery('What is the weather like in New York?');
+console.log(response);
+```
+
+## CLI
+
+The CLI provides a simple REPL to interact with the MCP.
+
+### Prerequisites
 
 - Node.js and npm installed.
 - A Google Gemini API Key.
 
-## Setup
+### Setup
 
 1.  **Install Dependencies:**
     From the root of the repository, run the following command to install the required
@@ -19,20 +42,21 @@ for interacting with MCP-compliant services using the Gemini API.
     ```
 
 2.  **Configure API Key:**
-    Create a `.env` file in the root of the repository. Add your Gemini API key to this file:
+    Create a `.env` file in the root of the repository. Add your Gemini API key to this
+    file:
     ```
     GEMINI_API_KEY="YOUR_API_KEY_HERE"
     ```
     The client uses this file to load your API key securely.
 
-## Building
+### Building
 
 The client and any services it connects to must be compiled using Bazel.
 
 1.  **Build the Client:**
 
     ```bash
-    bazelisk build //mcp/client:index_ts_lib
+    bazelisk build //mcp/client/cli:main_ts_lib
     ```
 
 2.  **Build the Weather Service:**
@@ -40,9 +64,10 @@ The client and any services it connects to must be compiled using Bazel.
     ```bash
     bazelisk build //mcp/services/weather:index_ts_lib
     ```
-    These commands compile the TypeScript code and place the output in the `_bazel_bin` directory.
+    These commands compile the TypeScript code and place the output in the `_bazel_bin`
+    directory.
 
-## Running the Client
+### Running the Client
 
 To run the client, you execute its compiled script with `node` and pass the path to the
 compiled service script as a command-line argument.
@@ -51,13 +76,13 @@ compiled service script as a command-line argument.
     Use the following command from the repository root:
 
     ```bash
-    node _bazel_bin/mcp/client/index.js _bazel_bin/mcp/services/weather/index.js
+    node _bazel_bin/mcp/client/cli/main.js _bazel_bin/mcp/services/weather/index.js
     ```
 
-    - The first argument (`_bazel_bin/mcp/client/index.js`) is the path to the compiled
-      client.
-    - The second argument (`_bazel_bin/mcp/services/weather/index.js`) is the path to the
-      compiled MCP service you want to connect to.
+    - The first argument (`_bazel_bin/mcp/client/cli/main.js`) is the path to the
+      compiled client.
+    - The second argument (`_bazel_bin/mcp/services/weather/index.js`) is the path to
+      the compiled MCP service you want to connect to.
 
 2.  **Interact with the Client:**
     Once running, the client will display a list of tools available from the connected
@@ -70,6 +95,6 @@ compiled service script as a command-line argument.
     The client will use the Gemini API and the connected service's tools to respond. To
     exit, type `quit`.
 
-    **Note:** The `get-forecast` tool requires latitude and longitude as input. For a more
-    seamless experience, you can connect the client to a search MCP server that can
+    **Note:** The `get-forecast` tool requires latitude and longitude as input. For a
+    more seamless experience, you can connect the client to a search MCP server that can
     provide these coordinates for a given location.
