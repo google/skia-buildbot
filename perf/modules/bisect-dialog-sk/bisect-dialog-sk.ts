@@ -106,10 +106,10 @@ export class BisectDialogSk extends ElementSk {
     </dialog>
     <toast-sk id="bisect_toast" duration="8000">
       <div id="bisect-url">
-        <a href=${ele.jobUrl} target="_blank">Bisect job successfully created: ${ele.jobId}</a>
+        <a href=${ele.jobUrl} target="_blank">Bisect job created: ${ele.jobId}</a>
       </div>
       <div class="close-bisect">
-        <button id="hide-bisect-toast" class="action">Close</button>
+        <button id="hide-bisect-toast" class="action" type="button">Close</button>
       </div>
     </toast-sk>
     `;
