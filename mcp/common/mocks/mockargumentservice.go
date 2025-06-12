@@ -49,3 +49,7 @@ func (m *MockArgumentService) GetTools() []common.Tool {
 func (m MockArgumentService) Shutdown() error {
 	return nil
 }
+
+func (s *MockArgumentService) GetResources() []common.Resource {
+	return []common.Resource{}
+}

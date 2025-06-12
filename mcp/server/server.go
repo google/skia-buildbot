@@ -190,6 +190,23 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 		server.WithToolCapabilities(true),
 	)
 
+	err = RegisterTools(s, service)
+	if err != nil {
+		return nil, err
+	}
+
+	RegisterResources(s, service)
+
+	sseServer := server.NewSSEServer(
+		s,
+		server.WithBaseURL(mcpFlags.BaseUrl),
+		server.WithKeepAlive(true),
+		server.WithSSEContextFunc(auth.AuthFromRequest))
+	return sseServer, nil
+}
+
+// RegisterTools adds the tools from the service to the MCP server.
+func RegisterTools(s *server.MCPServer, service common.McpService) error {
 	tools := service.GetTools()
 	for _, tool := range tools {
 		options := []mcp.ToolOption{mcp.WithDescription(tool.Description)}
@@ -213,24 +230,29 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 				options = append(options, mcp.WithObject(arg.Name, propOptions...))
 			case common.ArrayArgument:
 				if len(arg.ArraySchema) == 0 {
-					return nil, skerr.Fmt("Array type argument %s does not have a schema defined", arg.Name)
+					return skerr.Fmt("Array type argument %s does not have a schema defined", arg.Name)
 				}
 				propOptions = append(propOptions, mcp.Items(arg.ArraySchema))
 				options = append(options, mcp.WithArray(arg.Name, propOptions...))
 			default:
-				return nil, skerr.Fmt("Invalid argument type %v", arg.ArgumentType)
+				return skerr.Fmt("Invalid argument type %v", arg.ArgumentType)
 			}
 		}
 		mcpToolSpec := mcp.NewTool(tool.Name, options...)
 		s.AddTool(mcpToolSpec, tool.Handler)
 	}
 
-	sseServer := server.NewSSEServer(
-		s,
-		server.WithBaseURL(mcpFlags.BaseUrl),
-		server.WithKeepAlive(true),
-		server.WithSSEContextFunc(auth.AuthFromRequest))
-	return sseServer, nil
+	return nil
+}
+
+// RegisterResources registers the resources from the service to the MCP server.
+func RegisterResources(s *server.MCPServer, service common.McpService) {
+	resources := service.GetResources()
+
+	for _, resource := range resources {
+		resourceSpec := mcp.NewResource(resource.Uri, resource.Name, mcp.WithResourceDescription(resource.Description), mcp.WithMIMEType(resource.MimeType))
+		s.AddResource(resourceSpec, resource.Handler)
+	}
 }
 
 // Adds a hook to run the shutdown procedure on the service when the

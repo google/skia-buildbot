@@ -44,3 +44,23 @@ func (s HelloWorldService) GetTools() []common.Tool {
 func (s *HelloWorldService) Shutdown() error {
 	return nil
 }
+
+func (s HelloWorldService) GetResources() []common.Resource {
+	return []common.Resource{
+		{
+			Uri:         "hello://readme",
+			Name:        "Hello world readme",
+			Description: "Hello world MCP service is a sample service that showcases how to write an MCP service in chrome infra.",
+			MimeType:    "text/plain",
+			Handler: func(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+				return []mcp.ResourceContents{
+					mcp.TextResourceContents{
+						URI:      "hello://readme",
+						MIMEType: "text/plain",
+						Text:     "Hello world MCP service is a sample service that showcases how to write an MCP service in chrome infra.",
+					},
+				}, nil
+			},
+		},
+	}
+}

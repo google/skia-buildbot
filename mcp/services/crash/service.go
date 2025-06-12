@@ -76,6 +76,10 @@ func (s *CrashService) Shutdown() error {
 	return nil
 }
 
+func (s *CrashService) GetResources() []common.Resource {
+	return []common.Resource{}
+}
+
 func sendPredatorRequest(stacktrace, last_good_version, first_bad_version string) (string, error) {
 	projectID := "predator-for-me"
 	topicID := "cracas"

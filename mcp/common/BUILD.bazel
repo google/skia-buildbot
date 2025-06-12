@@ -4,6 +4,7 @@ go_library(
     name = "common",
     srcs = [
         "mcpservice.go",
+        "resources.go",
         "tools.go",
     ],
     importpath = "go.skia.org/infra/mcp/common",

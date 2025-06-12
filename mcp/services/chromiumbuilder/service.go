@@ -480,6 +480,10 @@ func (s *ChromiumBuilderService) GetTools() []common.Tool {
 	}
 }
 
+func (s *ChromiumBuilderService) GetResources() []common.Resource {
+	return []common.Resource{}
+}
+
 // createCiCombinedBuilderHandler is the handler the create_ci_combined_builder
 // tool, which creates a combined compile + test builder in Chromium and uploads
 // the resulting CL.

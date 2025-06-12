@@ -35,7 +35,7 @@ func (s *PerfService) Init(serviceArgs string) error {
 }
 
 // GetTools returns the supported tools by the service.
-func (s PerfService) GetTools() []common.Tool {
+func (s *PerfService) GetTools() []common.Tool {
 	return append(anomalies.GetTools(&s.chromePerfClient),
 		append(pinpoint.GetTools(s.httpClient), lcp.GetTools(s.httpClient)...)...)
 }
@@ -44,4 +44,8 @@ func (s *PerfService) Shutdown() error {
 	// TODO(jeffyoon): Perform any necessary shutdown.
 	sklog.Infof("Shutting down perf service")
 	return nil
+}
+
+func (s *PerfService) GetResources() []common.Resource {
+	return []common.Resource{}
 }

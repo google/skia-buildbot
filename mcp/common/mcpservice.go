@@ -10,4 +10,7 @@ type McpService interface {
 
 	// Shutdown implements shutdown procedure for the service.
 	Shutdown() error
+
+	// GetResources returns all the resources provided by the McpService.
+	GetResources() []Resource
 }
