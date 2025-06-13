@@ -3,6 +3,7 @@ package chromiumbuilder
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -213,13 +214,28 @@ func (s *ChromiumBuilderService) parseServiceArgs(serviceArgs string) error {
 	return nil
 }
 
+// isNotExistWithUnwraps is a helper function to run os.IsNotExist() on
+// possibly wrapped errors.
+func isNotExistWithUnwraps(err error) bool {
+	for true {
+		if err == nil {
+			return false
+		}
+		if os.IsNotExist(err) {
+			return true
+		}
+		err = errors.Unwrap(err)
+	}
+	return false
+}
+
 // handleDepotTools ensures that a depot_tools checkout is available at the
 // stored path.
 func (s *ChromiumBuilderService) handleDepotToolsSetup(ctx context.Context, fs vfs.FS, cf checkoutFactory, dc directoryCreator) error {
 	// Check if depot_tools path exists.
 	depotToolsDir, err := fs.Open(ctx, s.depotToolsPath)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if isNotExistWithUnwraps(err) {
 			return s.handleMissingDepotToolsCheckout(ctx, fs, cf, dc)
 		}
 		return err
@@ -299,7 +315,7 @@ func (s *ChromiumBuilderService) handleChromiumSetup(
 	// Check if the Chromium path exists.
 	chromiumDir, err := fs.Open(ctx, s.chromiumPath)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if isNotExistWithUnwraps(err) {
 			return s.handleMissingChromiumCheckout(ctx, fs, cf, dc, ccr)
 		}
 		return err
