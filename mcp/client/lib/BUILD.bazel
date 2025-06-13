@@ -17,7 +17,6 @@ nodejs_test(
     tags = ["local"],
     deps = [
         ":mcp-client_ts_lib",
-        "//:node_modules/@google/generative-ai",
         "//:node_modules/@modelcontextprotocol/sdk",
         "//:node_modules/@types/chai",
         "//:node_modules/@types/mocha",

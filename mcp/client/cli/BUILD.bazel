@@ -5,6 +5,7 @@ ts_library(
     srcs = ["main.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//:node_modules/@google/generative-ai",
         "//:node_modules/dotenv",
         "//mcp/client/lib:mcp-client_ts_lib",
         "//mcp/client/lib:settings_ts_lib",

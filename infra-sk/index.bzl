@@ -206,6 +206,7 @@ def nodejs_test(
         entry_point = src,
         deps = [src_lib],
         output = "%s_js_entry_point.js" % name,
+        external = ["eventsource-parser/stream"],
     )
 
     # See https://docs.aspect.build/rulesets/aspect_rules_js/docs/#using-binaries-published-to-npm.
