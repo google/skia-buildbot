@@ -34,10 +34,8 @@ func (s *PerfService) Init(serviceArgs string) error {
 	if err != nil {
 		return skerr.Wrapf(err, "failed to create http client")
 	}
-	s.crrevClient, err = backends.NewCrrevClient(ctx)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to create CrRev client.")
-	}
+	s.crrevClient = backends.NewCrrevClientWithHttpClient(s.httpClient)
+
 	return nil
 }
 
