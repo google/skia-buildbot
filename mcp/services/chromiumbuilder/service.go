@@ -248,6 +248,7 @@ func (s *ChromiumBuilderService) handleDepotToolsSetup(ctx context.Context, fs v
 // handleMissingDepotToolsCheckout sets up a new depot_tools checkout at the
 // stored path to handle the case where there is not an existing checkout.
 func (s *ChromiumBuilderService) handleMissingDepotToolsCheckout(ctx context.Context, fs vfs.FS, cf checkoutFactory, dc directoryCreator) error {
+	sklog.Infof("Did not find existing depot_tools checkout, cloning one at %s", s.depotToolsPath)
 	// Ensure the parent directories exist.
 	err := dc(filepath.Dir(s.depotToolsPath), 0o750)
 	if err != nil {
@@ -274,6 +275,7 @@ func (s *ChromiumBuilderService) handleMissingDepotToolsCheckout(ctx context.Con
 // handleExistingDepotToolsCheckout ensures that an existing depot_tools
 // checkout is valid and up to date.
 func (s *ChromiumBuilderService) handleExistingDepotToolsCheckout(ctx context.Context, fs vfs.FS, cf checkoutFactory) error {
+	sklog.Infof("Found existing depot_tools checkout at %s", s.depotToolsPath)
 	// Check that the provided path is actually a directory.
 	err := checkIfPathIsDirectory(ctx, fs, s.depotToolsPath)
 	if err != nil {
@@ -329,6 +331,7 @@ func (s *ChromiumBuilderService) handleChromiumSetup(
 // path to handle the case where there is not an existing checkout.
 func (s *ChromiumBuilderService) handleMissingChromiumCheckout(
 	ctx context.Context, fs vfs.FS, cf checkoutFactory, dc directoryCreator, ccr concurrentCommandRunner) error {
+	sklog.Infof("Did not find existing Chromium checkout, fetching one at %s", s.chromiumPath)
 	// Ensure the parent directories exist.
 	err := dc(filepath.Dir(s.chromiumPath), 0o750)
 	if err != nil {
@@ -355,6 +358,7 @@ func (s *ChromiumBuilderService) handleMissingChromiumCheckout(
 // handleExistingChromiumCheckout ensures that the existing Chromium checkout is
 // valid and up to date.
 func (s *ChromiumBuilderService) handleExistingChromiumCheckout(ctx context.Context, fs vfs.FS, cf checkoutFactory) error {
+	sklog.Infof("Found existing Chromium checkout at %s", s.chromiumPath)
 	// Check that the provided path is actually a directory.
 	err := checkIfPathIsDirectory(ctx, fs, s.chromiumPath)
 	if err != nil {
@@ -408,23 +412,36 @@ func (s *ChromiumBuilderService) GetTools() []common.Tool {
 	sklog.Info("Calling GetTools() for Chromium builder service")
 	return []common.Tool{
 		{
-			Name:        "create_ci_combined_builder",
-			Description: "Creates a combined compile/test LUCI builder for Chromium",
+			Name: "create_ci_combined_builder",
+			Description: ("Creates a combined compile/test LUCI builder for Chromium. This means that " +
+				"the same builder will be responsible for both compiling and triggering tests. This is " +
+				"okay for one-off builders, but adding child testers to an existing parent builder is " +
+				"more efficient if multiple testers need to compile with the same GN args. Before the " +
+				"generated CL can be submitted, the user will need to file a resource request via " +
+				"go/i-need-hw and have it granted. This is to guarantee that there will be sufficient " +
+				"GCE capacity for the builder itself as well as test capacity."),
 			Arguments: []common.ToolArgument{
 				{
-					Name:        "builder_group",
-					Description: "The builder group the builder will be a part of, e.g. chromium.fyi",
-					Required:    true,
+					Name: "builder_group",
+					Description: ("The builder group the builder will be a part of, e.g. chromium.fyi." +
+						"This affects which file the builder will be added to as well as where it will show up " +
+						"in the LUCI UI."),
+					Required: true,
 				},
 				{
-					Name:        "builder_name",
-					Description: "The name of the new builder",
-					Required:    true,
+					Name: "builder_name",
+					Description: ("The name of the new builder. It should be fairly descriptive, as this will " +
+						"be the primary identifier that humans will see. Aspects that are commonly included are " +
+						"the OS that is being compiled for as well as any uncommon traits. For example, if the builder " +
+						"will be compiling with ASan enabled, it is good to include ASan in the name."),
+					Required: true,
 				},
 				{
-					Name:        "builder_description",
-					Description: "A human-readable description of the builder. Supports HTML tags.",
-					Required:    true,
+					Name: "builder_description",
+					Description: ("A human-readable description of the builder that will be shown in the LUCI UI " +
+						"when looking at the builder. This is where more in-depth information should go that does not " +
+						"belong in the builder name. Supports HTML tags."),
+					Required: true,
 				},
 				{
 					Name:        "contact_team_email",
@@ -440,34 +457,42 @@ func (s *ChromiumBuilderService) GetTools() []common.Tool {
 					Required: true,
 				},
 				{
-					Name:        "target_os",
-					Description: "The OS the builder is compiling for, e.g. 'Linux' or 'Android'",
-					Required:    true,
-					EnumValues:  []string{TargetOsAndroid, TargetOsLinux, TargetOsMac, TargetOsWin},
+					Name: "target_os",
+					Description: ("The OS the builder is compiling for, e.g. 'Linux' or 'Android'. This is separate " +
+						"from, but should be related to, the GN args that the builder will use for compilation."),
+					Required:   true,
+					EnumValues: []string{TargetOsAndroid, TargetOsLinux, TargetOsMac, TargetOsWin},
 				},
 				{
-					Name:        "target_arch",
-					Description: "The architecture the builder is compiling for, e.g. 'Arm'",
-					Required:    true,
-					EnumValues:  []string{TargetArchArm, TargetArchIntel},
+					Name: "target_arch",
+					Description: ("The architecture the builder is compiling for, e.g. 'Arm'. This is separate " +
+						"from, but should be related to, the GN args that the builder will use for compilation."),
+					Required:   true,
+					EnumValues: []string{TargetArchArm, TargetArchIntel},
 				},
 				{
-					Name:         "target_bits",
-					Description:  "The target bitness the builder is compiling for, e.g. 32 or 64",
+					Name: "target_bits",
+					Description: ("The target bitness the builder is compiling for, e.g. 32 or 64. This is separate " +
+						"from, but should be related to, the GN args that the builder will use for compilation."),
 					Required:     true,
 					ArgumentType: common.NumberArgument,
+					// Even though we reasonably only expect 32 and 64 as values, we cannot use
+					// EnumValues since that only supports strings.
 				},
 				{
-					Name:        "build_config",
-					Description: "The target config the builder is compiling for, e.g. 'Debug' or 'Release'",
-					Required:    true,
-					EnumValues:  []string{BuilderConfigDebug, BuilderConfigRelease},
+					Name: "build_config",
+					Description: ("The target config the builder is compiling for, e.g. 'Debug' or 'Release'. This is " +
+						"separate from, but should be related to, the GN args that the builder will use for compilation."),
+					Required:   true,
+					EnumValues: []string{BuilderConfigDebug, BuilderConfigRelease},
 				},
 				{
 					Name: "gn_args",
 					Description: ("The GN arg configs for the builder to use when compiling. " +
 						"Can be any number of valid configs from " +
-						"https://source.chromium.org/chromium/chromium/src/+/main:infra/config/gn_args/gn_args.star"),
+						"https://source.chromium.org/chromium/chromium/src/+/main:infra/config/gn_args/gn_args.star. " +
+						"At the current moment, only existing GN arg configs are supported, so new ones cannot be created " +
+						"as part of this tool."),
 					Required:     true,
 					ArgumentType: common.ArrayArgument,
 					ArraySchema:  map[string]any{"type": "string"},
@@ -478,7 +503,9 @@ func (s *ChromiumBuilderService) GetTools() []common.Tool {
 						"Can be any number of individual tests from " +
 						"https://source.chromium.org/chromium/chromium/src/+/main:infra/config/targets/tests.star " +
 						"or bundles from " +
-						"https://source.chromium.org/chromium/chromium/src/+/main:infra/config/targets/bundles.star"),
+						"https://source.chromium.org/chromium/chromium/src/+/main:infra/config/targets/bundles.star. " +
+						"At the current moment, only existing tests are supported, so new ones cannot be created as " +
+						"part of this tool."),
 					Required:     true,
 					ArgumentType: common.ArrayArgument,
 					ArraySchema:  map[string]any{"type": "string"},
@@ -487,7 +514,9 @@ func (s *ChromiumBuilderService) GetTools() []common.Tool {
 					Name: "swarming_dimensions",
 					Description: ("The names of Swarming mixins to use when triggering tests. " +
 						"Can be any number of mixins from " +
-						"https://source.chromium.org/chromium/chromium/src/+/main:infra/config/targets/mixins.star"),
+						"https://source.chromium.org/chromium/chromium/src/+/main:infra/config/targets/mixins.star. " +
+						"At the current moment, only existing mixins are supported, so new ones cannot be created as " +
+						"part of this tool."),
 					Required:     true,
 					ArgumentType: common.ArrayArgument,
 					ArraySchema:  map[string]any{"type": "string"},
@@ -706,6 +735,7 @@ func (s *ChromiumBuilderService) updateCheckouts(ctx context.Context) error {
 // updateDepotToolsCheckout ensures that depot_tools is up to date with
 // origin/main.
 func (s *ChromiumBuilderService) updateDepotToolsCheckout(ctx context.Context) error {
+	sklog.Info("Updating depot_tools checkout")
 	s.depotToolsCheckoutLock.Lock()
 	defer s.depotToolsCheckoutLock.Unlock()
 
@@ -723,6 +753,7 @@ func (s *ChromiumBuilderService) updateDepotToolsCheckout(ctx context.Context) e
 // This does *not* interact with gclient, as DEPS should not be needed for
 // interacting with //infra/config.
 func (s *ChromiumBuilderService) updateChromiumCheckout(ctx context.Context) error {
+	sklog.Info("Updating Chromium checkout")
 	s.chromiumCheckoutLock.Lock()
 	defer s.chromiumCheckoutLock.Unlock()
 
