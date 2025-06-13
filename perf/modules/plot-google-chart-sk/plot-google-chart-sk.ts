@@ -47,6 +47,10 @@ export interface PlotShowTooltipEventDetails {
 }
 
 export class PlotGoogleChartSk extends LitElement {
+  private static readonly MOUSE_DOWN_HOLD_TIMEOUT = 3000; // 3 seconds
+
+  private mouseDownTimeoutId: number | null = null;
+
   // TODO(b/362831653): Adjust height to 100% once plot-summary-sk is deprecated
   static styles = css`
     :host {
@@ -590,6 +594,16 @@ export class PlotGoogleChartSk extends LitElement {
     this.updateDataView(this.data);
   }
 
+  private handleMouseDownTimeout() {
+    // Stop pan to avoid lag and endless loading.
+    // Uses MOUSE_DOWN_HOLD_TIMEOUT
+    if (this.navigationMode === 'pan') {
+      // Simulate mouse up to release the pan
+      this.onWindowMouseUp();
+    }
+    this.mouseDownTimeoutId = null;
+  }
+
   private onChartMouseDown(e: MouseEvent) {
     if (this.chart === null) {
       return;
@@ -621,6 +635,14 @@ export class PlotGoogleChartSk extends LitElement {
       this.lastMouse = { x: e.offsetX, y: e.offsetY };
       return;
     }
+    // Clear any existing timeout and start a new one for pan mode.
+    if (this.mouseDownTimeoutId) {
+      clearTimeout(this.mouseDownTimeoutId);
+    }
+    this.mouseDownTimeoutId = window.setTimeout(() => {
+      this.handleMouseDownTimeout();
+    }, PlotGoogleChartSk.MOUSE_DOWN_HOLD_TIMEOUT);
+
     // This disable system events like selecting texts.
     e.preventDefault();
     this.deltaRangeBox.value?.hide();

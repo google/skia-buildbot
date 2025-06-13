@@ -738,6 +738,7 @@ export class ExploreSimpleSk extends ElementSk {
           .highlightAnomalies=${ele._state.highlight_anomalies}
           @plot-data-select=${ele.onChartSelect}
           @plot-data-mouseover=${ele.onChartOver}
+          @plot-data-mousedown=${ele.onChartMouseDown}
           @selection-changing=${ele.OnSelectionRange}
           @selection-changed=${ele.OnSelectionRange}>
           <md-icon slot="untriage">help</md-icon>
@@ -1346,6 +1347,9 @@ export class ExploreSimpleSk extends ElementSk {
         this.dfRepo.value?.userIssues || {}
       );
       this.plotSimple.value!.userIssueMap = issues;
+    });
+    this.addEventListener('plot-chart-mousedown', () => {
+      this.onChartMouseDown();
     });
     this.addEventListener('plot-chart-mouseout', () => {
       this.onChartMouseOut();
