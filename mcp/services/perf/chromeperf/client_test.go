@@ -1,6 +1,7 @@
 package chromeperf
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -21,11 +22,14 @@ func TestListBenchmarks_OK(t *testing.T) {
 		"foo",
 		"bar",
 	}
-	content, err := json.Marshal(expectedList)
+
+	var content bytes.Buffer
+	err := json.NewEncoder(&content).Encode(expectedList)
 	require.NoError(t, err)
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		_, err = w.Write(content)
+		_, err = w.Write(content.Bytes())
 		require.NoError(t, err)
 	}))
 	c.Url = ts.URL
@@ -34,7 +38,7 @@ func TestListBenchmarks_OK(t *testing.T) {
 	resp, err := c.ListBenchmarks(ctx, ts.Client())
 
 	require.NoError(t, err)
-	assert.Equal(t, string(content), resp)
+	assert.Equal(t, content.String(), resp)
 }
 
 func TestBuildDescribeAPIUrl_EmptyBenchmark_MasterChromiumPerf(t *testing.T) {
@@ -81,7 +85,8 @@ func TestListBotConfigurations_BenchmarkSet_BotsForBenchmark(t *testing.T) {
 	expectedResponseFormat := map[string]any{
 		"bots": expectedBotList,
 	}
-	content, err := json.Marshal(expectedResponseFormat)
+	var content bytes.Buffer
+	err := json.NewEncoder(&content).Encode(expectedResponseFormat)
 	require.NoError(t, err)
 
 	// test server setup
@@ -91,7 +96,7 @@ func TestListBotConfigurations_BenchmarkSet_BotsForBenchmark(t *testing.T) {
 		targetUrl = r.URL.String()
 		targetMethod = r.Method
 		w.Header().Add("Content-Type", "application/json")
-		_, err = w.Write(content)
+		_, err = w.Write(content.Bytes())
 		require.NoError(t, err)
 	}))
 	// override the target URL to the test server URL
@@ -118,7 +123,8 @@ func TestListBotConfigurations_NoBenchmark_AllBots(t *testing.T) {
 	expectedResponseFormat := map[string]any{
 		"configurations": expectedBotList,
 	}
-	content, err := json.Marshal(expectedResponseFormat)
+	var content bytes.Buffer
+	err := json.NewEncoder(&content).Encode(expectedResponseFormat)
 	require.NoError(t, err)
 
 	// test server setup
@@ -128,7 +134,7 @@ func TestListBotConfigurations_NoBenchmark_AllBots(t *testing.T) {
 		targetUrl = r.URL.String()
 		targetMethod = r.Method
 		w.Header().Add("Content-Type", "application/json")
-		_, err = w.Write(content)
+		_, err = w.Write(content.Bytes())
 		require.NoError(t, err)
 	}))
 	// override the target URL to the test server URL
@@ -155,12 +161,13 @@ func TestListStories_OK(t *testing.T) {
 	expectedResponseFormat := map[string]any{
 		"cases": expectedStories,
 	}
-	content, err := json.Marshal(expectedResponseFormat)
+	var content bytes.Buffer
+	err := json.NewEncoder(&content).Encode(expectedResponseFormat)
 	require.NoError(t, err)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		_, err = w.Write(content)
+		_, err = w.Write(content.Bytes())
 		require.NoError(t, err)
 	}))
 	c.Url = ts.URL

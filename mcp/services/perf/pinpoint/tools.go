@@ -1,6 +1,7 @@
 package pinpoint
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -113,11 +114,12 @@ func GetTools(httpClient *http.Client, crrevClient *backends.CrrevClientImpl) []
 					return mcp.NewToolResultError(err.Error()), err
 				}
 
-				b, err := json.Marshal(resp)
+				var b bytes.Buffer
+				err = json.NewEncoder(&b).Encode(resp)
 				if err != nil {
 					return mcp.NewToolResultError(err.Error()), err
 				}
-				return mcp.NewToolResultText(string(b)), nil
+				return mcp.NewToolResultText(b.String()), nil
 			},
 		},
 		{
@@ -132,11 +134,12 @@ func GetTools(httpClient *http.Client, crrevClient *backends.CrrevClientImpl) []
 					return mcp.NewToolResultError(err.Error()), err
 				}
 
-				b, err := json.Marshal(resp)
+				var b bytes.Buffer
+				err = json.NewEncoder(&b).Encode(resp)
 				if err != nil {
 					return mcp.NewToolResultError(err.Error()), err
 				}
-				return mcp.NewToolResultText(string(b)), nil
+				return mcp.NewToolResultText(b.String()), nil
 			},
 		},
 	}

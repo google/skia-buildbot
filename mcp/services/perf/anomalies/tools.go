@@ -1,8 +1,9 @@
 package anomalies
 
 import (
+	"bytes"
 	"context"
-	"fmt"
+	"encoding/json"
 	"net/url"
 	"strings"
 
@@ -41,34 +42,23 @@ and defines the quantitative change in those Benchmarks that constitute an Anoma
 This functions returns a list of Sheriff Config Names, separated by commas.
 `
 const kGetAnomaliesDescription string = `
-Gets a table of Chrome Perf Anomalies for the given Sheriff config. A Chrome Perf Sheriff config is associated
-with a set of Chrome Perf Anomaly Configs. An Anomaly Config covers one or more benchmarks and defines what
-kind of change in that benchmark constitutes an Anomaly (ie. a perf regression).
-
-When a the change in a benchmark over times meets the criteria of an Anomaly Config, the system creates an
-Anomaly entry in the database to mark that event.
+Returns a list of ChromePerf Anomalies for the given Sherriff config. The perf system continuously measures
+the performance of Chrome, for various benchmarks across all major platforms. Sheriff configurations
+define a set of boundaries for a certain set of benchmarks, and generally map one to one with a
+performance gardening rotation. When the performance measured for a Chromium git hash falls out of
+the thresholds defined by the Sheriff Config, the system generates an Anomaly. Thus, a sheriff config is associated
+with a set of anomaly configs (the ones that define the thresholds against a set of benchmarks).
 
 This function returns a table of all "untriaged" (ie. no bug has yet been filed) Anomalies which are
 "regressions" (ie. the change direction is undesirable), which were created for Anomaly Configs, where those
 Anomly Configs are included in the given Sheriff Config.
 
-In other words: Input "Sheriff Config" Name -> Anomaly Configs -> Output "Anomalies" Table
+In other words: Input "Sheriff Config" Name -> Anomaly Configs -> Output list of Anomalies
 
-The format of the output table is CSV. The first row of the table data is the column names, these are:
-  RevisionStart,RevisionEnd,Bot,TestSuite,Test,ChangeDirection,Delta%,AbsoluteDelta
-
-RevisionStart: The revision used as the "baseline" for the comparison here.
-RevisionEnd: The revision being compared to the "baseline".
-Bot: The test runner machine configuration for this benchmark data. It will indicate the Operating System,
+start_revision: The revision used as the "baseline" for the comparison here.
+end_revision: The revision being compared to the "baseline".
+bot_name: The test runner machine configuration for this benchmark data. It will indicate the Operating System,
   and in some cases also the Device name.
-TestSuite: The name of the "Test Suite" (a collection of Tests) to which the Test containing this Benchmark
-  belongs.
-Test: The name of the Test (the actual automated test case executed on a test runner) containing this
-  Benchmark.
-ChangeDirection: If a positive number then it means the value collected for the Benchmark went down over
-  time, if a negative number then it means the value collected for the Benchmark went up.
-Delta%: The percentage change in the value collected for the Benchmark.
-AbsoluteDelta: The absolute change in the value collected for the Benchmark.
 `
 const kSheriffConfigNameArg string = "SheriffConfigName"
 
@@ -117,25 +107,14 @@ func GetTools(chromePerfClient *chromeperf.ChromePerfClient) []common.Tool {
 			if getAnomaliesResponse.Error != "" {
 				return mcp.NewToolResultError(getAnomaliesResponse.Error), nil
 			}
-			var anomalyRows []string
-			const anomalyRowFormatDescription = "RevisionStart,RevisionEnd,Bot,TestSuite,Test,ChangeDirection,Delta%,AbsoluteDelta\n"
-			const anomalyRowFormat = "%d,%d,'%s','%s','%s',%f,%f,%f"
-			anomalyRows = append(anomalyRows, anomalyRowFormatDescription)
-			for _, anomaly := range (*getAnomaliesResponse).Anomalies {
-				testPathPieces := strings.Split(anomaly.TestPath, "/")
-				bot := testPathPieces[1]
-				testsuite := testPathPieces[2]
-				test := strings.Join(testPathPieces[3:], "/")
-				startRevision := anomaly.StartRevision
-				endRevision := anomaly.EndRevision
-				direction := anomaly.MedianBeforeAnomaly - anomaly.MedianAfterAnomaly
-				difference := anomaly.MedianAfterAnomaly - anomaly.MedianBeforeAnomaly
-				delta := (100 * difference) / anomaly.MedianBeforeAnomaly
-				absDelta := difference
-				row := fmt.Sprintf(anomalyRowFormat, startRevision, endRevision, bot, testsuite, test, direction, delta, absDelta)
-				anomalyRows = append(anomalyRows, row)
+
+			var b bytes.Buffer
+			err = json.NewEncoder(&b).Encode(getAnomaliesResponse.Anomalies)
+			if err != nil {
+				return mcp.NewToolResultError(err.Error()), err
 			}
-			return mcp.NewToolResultText(strings.Join(anomalyRows, "\n")), nil
+
+			return mcp.NewToolResultText(b.String()), nil
 		},
 	}
 	return []common.Tool{getSheriffConfigNamesTool, getAnomaliesTool}

@@ -1,6 +1,7 @@
 package pinpoint
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -74,13 +75,14 @@ func TestTryJob_LegacyPinpoint_OK_NoErr(t *testing.T) {
 	expectedJobId := "12345"
 	expectedJobUrl := "http://some.url/job/12345"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		content, err := json.Marshal(map[string]string{
+		var content bytes.Buffer
+		err := json.NewEncoder(&content).Encode(map[string]string{
 			"jobId":  expectedJobId,
 			"jobUrl": expectedJobUrl,
 		})
 		require.NoError(t, err)
 		w.Header().Add("Content-Type", "application/json")
-		_, err = w.Write(content)
+		_, err = w.Write(content.Bytes())
 		require.NoError(t, err)
 	}))
 	c.Url = ts.URL
@@ -104,13 +106,14 @@ func TestBisect_LegacyPinpoint_OK_NoErr(t *testing.T) {
 	expectedJobId := "12345"
 	expectedJobUrl := "http://some.url/job/12345"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		content, err := json.Marshal(map[string]string{
+		var content bytes.Buffer
+		err := json.NewEncoder(&content).Encode(map[string]string{
 			"jobId":  expectedJobId,
 			"jobUrl": expectedJobUrl,
 		})
 		require.NoError(t, err)
 		w.Header().Add("Content-Type", "application/json")
-		_, err = w.Write(content)
+		_, err = w.Write(content.Bytes())
 		require.NoError(t, err)
 	}))
 	c.Url = ts.URL
@@ -145,12 +148,14 @@ func TestSetGitHashFromRevision_FetchRevision_OK(t *testing.T) {
 	ctx := context.Background()
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		content, err := json.Marshal(map[string]string{
+		var content bytes.Buffer
+		err := json.NewEncoder(&content).Encode(map[string]string{
 			"git_sha": "12345",
 		})
+
 		require.NoError(t, err)
 		w.Header().Add("Content-Type", "application/json")
-		_, err = w.Write(content)
+		_, err = w.Write(content.Bytes())
 		require.NoError(t, err)
 	}))
 	defer ts.Close()
