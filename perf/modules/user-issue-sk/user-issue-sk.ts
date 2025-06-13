@@ -52,60 +52,63 @@ export class UserIssueSk extends LitElement {
     .new-issue-text-container {
       display: flex;
       align-items: center;
+      padding-top: 25px;
+      flex-direction: column;
 
-      input {
-        color: var(--on-surface);
-        background: var(--surface);
-        border: solid 1px var(--on-surface);
-      }
-
-      span {
-        margin-left: 12px;
-
-        check-icon-sk {
-          fill: var(--positive);
-          cursor: pointer;
-          height: 24px;
-          width: 24px;
+      .new-issue {
+        input {
+          color: var(--on-surface);
+          background: var(--surface);
+          border: solid 1px var(--on-surface);
         }
 
-        close-icon-sk {
-          fill: var(--negative);
-          cursor: pointer;
-          height: 24px;
-          width: 24px;
+        span {
+          margin-left: 12px;
+
+          check-icon-sk {
+            fill: var(--positive);
+            cursor: pointer;
+            height: 24px;
+            width: 24px;
+          }
+
+          close-icon-sk {
+            fill: var(--negative);
+            cursor: pointer;
+            height: 24px;
+            width: 24px;
+          }
+        }
+      }
+
+      .new-bug {
+        align-items: center;
+        background: transparent;
+        border-radius: 4px;
+        border: solid 1px var(--outline);
+        box-shadow: none;
+        color: var(--primary);
+        display: inline-flex;
+        fill: var(--primary);
+        font-size: 14px;
+        height: 24px;
+        justify-content: center;
+        margin: 4px 2px;
+        min-width: auto;
+        padding: 0 4px;
+        text-align: center;
+        text-transform: none;
+
+        .icon-sk {
+          font-size: 20px;
+        }
+
+        svg {
+          width: 20px;
+          height: 20px;
         }
       }
     }
-
-    .new-bug {
-      align-items: center;
-      background: transparent;
-      border-radius: 4px;
-      border: solid 1px var(--outline);
-      box-shadow: none;
-      color: var(--primary);
-      display: inline-flex;
-      fill: var(--primary);
-      font-size: 14px;
-      height: 24px;
-      justify-content: center;
-      margin: 4px 2px;
-      min-width: auto;
-      padding: 0 4px;
-      text-align: center;
-      text-transform: none;
-
-      .icon-sk {
-        font-size: 20px;
-      }
-
-      svg {
-        width: 20px;
-        height: 20px;
-      }
-    }
-  }
   `;
 
   // Email of the logged in user. Empty string otherwise
