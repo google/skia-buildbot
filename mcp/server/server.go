@@ -177,8 +177,8 @@ func createMcpSSEServer(mcpFlags *mcpFlags) (*server.SSEServer, error) {
 	}
 	service := factory()
 
-	err := service.Init(mcpFlags.ServiceArgs)
 	registerCleanup(service)
+	err := service.Init(mcpFlags.ServiceArgs)
 	if err != nil {
 		return nil, err
 	}
