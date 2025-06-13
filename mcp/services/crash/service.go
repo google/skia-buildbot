@@ -27,22 +27,27 @@ func (s CrashService) GetTools() []common.Tool {
 	return []common.Tool{
 		{
 			Name:        "Predator",
-			Description: "Sends a Predator request.",
+			Description: "Sends a Predator request to search for culprit CLs in a regression range.",
 			Arguments: []common.ToolArgument{
 				{
-					Name:        "stacktrace",
-					Description: "The stacktrace to find a culprit for",
-					Required:    true,
+					Name: "stacktrace",
+					Description: "The stacktrace to find a culprit for." +
+						" Each frame in the stack has fields " +
+						"<frame index> <address> in <symbol> <source file>:<line number> e.g. " +
+						"#0 0x12125186c in foo() /path/to/foo.cc:12. Prepare the stacktrace in this format.",
+					Required: true,
 				},
 				{
-					Name:        "last_good_version",
-					Description: "The last Chrome version without the crash.",
-					Required:    true,
+					Name: "last_good_version",
+					Description: "The last Chrome version without the crash. Chrome versions are formatted like " +
+						"123.0.456.0.",
+					Required: true,
 				},
 				{
-					Name:        "first_bad_version",
-					Description: "The first Chrome version with the crash.",
-					Required:    true,
+					Name: "first_bad_version",
+					Description: "The first Chrome version with the crash.  Chrome versions are formatted like " +
+						"123.0.456.0.",
+					Required: true,
 				},
 			},
 			Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -50,6 +55,7 @@ func (s CrashService) GetTools() []common.Tool {
 				if err != nil {
 					return mcp.NewToolResultError(err.Error()), nil
 				}
+				stacktrace = "CRASHED [ERROR @ 0x123]\n" + stacktrace
 				last_good_version, err := request.RequireString("last_good_version")
 				if err != nil {
 					return mcp.NewToolResultError(err.Error()), nil
