@@ -231,7 +231,7 @@ func sourceLocation(depth int) *loggingpb.LogEntrySourceLocation {
 
 // maxLogMessageBytes is presumed to be the maximum log entry message size
 // before entries start getting truncated in GKE.
-const maxLogMessageBytes = 100 * 1024
+const maxLogMessageBytes = 50 * 1024
 
 func splitMessage(msg string) iter.Seq[string] {
 	if len(msg) <= maxLogMessageBytes {
