@@ -15,7 +15,7 @@ func GetTools(httpClient *http.Client) []common.Tool {
 	return []common.Tool{
 		{
 			Name:        "List Bot Configurations",
-			Description: "List all bots that Perf supports for Pinpoint execution.",
+			Description: listBotConfigurationDescription,
 			Arguments: []common.ToolArgument{
 				// Not required, because this can either provide the entire list of bots,
 				// or the subset of bots supported by the given benchmark.
@@ -39,7 +39,7 @@ func GetTools(httpClient *http.Client) []common.Tool {
 		},
 		{
 			Name:        "List Benchmarks",
-			Description: "List all benchmarks supported for a Pinpoint execution.",
+			Description: listBenchmarkDescription,
 			Arguments:   []common.ToolArgument{},
 			Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 				cpc := NewChromeperfClient(nil)
@@ -59,7 +59,7 @@ func GetTools(httpClient *http.Client) []common.Tool {
 		},
 		{
 			Name:        "List Stories",
-			Description: "List all stories available for a particular benchmark.",
+			Description: listStoryDescription,
 			Arguments: []common.ToolArgument{
 				pinpoint.BenchmarkArgument(true),
 			},

@@ -5,6 +5,7 @@ go_library(
     name = "chromeperf",
     srcs = [
         "client.go",
+        "tool_descriptions.go",
         "tools.go",
     ],
     importpath = "go.skia.org/infra/mcp/services/perf/chromeperf",
