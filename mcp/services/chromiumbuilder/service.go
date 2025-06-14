@@ -138,6 +138,13 @@ type ChromiumBuilderService struct {
 	depotToolsPath     string
 	chromiumCheckout   git.Checkout
 	depotToolsCheckout git.Checkout
+	// Must be held if the server is currently handling a tool request. We do
+	// not want multiple concurrent requests to trample on each other's work.
+	// This is not a good long-term solution, particularly since we have no way
+	// of signalling to the client that they're essentially in a queue. However,
+	// it will suffice for initial work since the service will not be handling
+	// many requests.
+	handlingToolRequestLock sync.Mutex
 	// Set to true if the server is shutting down. No more git/exec operations
 	// should be performed in this case
 	shuttingDown atomic.Bool
@@ -548,6 +555,9 @@ func (s *ChromiumBuilderService) createCiCombinedBuilderHandler(ctx context.Cont
 // createCiCombinedBuilderHandler, broken out to support dependency injection.
 func (s *ChromiumBuilderService) createCiCombinedBuilderHandlerImpl(
 	ctx context.Context, request mcp.CallToolRequest, fs vfs.FS, ccr concurrentCommandRunner, eg environmentGetter) (*mcp.CallToolResult, error) {
+	s.handlingToolRequestLock.Lock()
+	defer s.handlingToolRequestLock.Unlock()
+
 	sklog.Infof("calling handler with data %v", s)
 	inputs, err := extractCiCombinedBuilderInputs(request)
 	if err != nil {
