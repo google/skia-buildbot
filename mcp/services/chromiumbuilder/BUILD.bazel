@@ -22,7 +22,12 @@ go_library(
 
 go_test(
     name = "chromiumbuilder_test",
-    srcs = ["setup_test.go"],
+    srcs = [
+        "handlershared_test.go",
+        "setup_test.go",
+        "shutdown_test.go",
+        "testutils_test.go",
+    ],
     embed = [":chromiumbuilder"],
     deps = [
         "//go/exec",
