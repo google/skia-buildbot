@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "chromiumbuilder",
-    srcs = ["service.go"],
+    srcs = [
+        "commonargs.go",
+        "service.go",
+    ],
     importpath = "go.skia.org/infra/mcp/services/chromiumbuilder",
     visibility = ["//visibility:public"],
     deps = [

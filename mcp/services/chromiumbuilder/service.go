@@ -89,6 +89,39 @@ ci.builder(
         category = "{{.consoleViewCategory}}",
     ),
 )`
+
+	CiChildTesterTemplate string = `
+ci.thin_tester(
+    name = "{{.builderName}}",
+    description_html = "{{.builderDescription}}",
+    parent = "{{.parentBuilder}}",
+    contact_team_email = "{{.contactTeamEmail}}",
+    builder_spec = builder_config.builder_spec(
+        execution_mode = builder_config.execution_mode.TEST,
+        gclient_config = builder_config.gclient_config(
+            config = "chromium",
+        ),
+        chromium_config = builder_config.chromium_config(
+            config = "chromium",
+            apply_configs = [
+                "mb",
+            ],
+            build_config = {{.buildConfig}},
+            target_arch = {{.targetArch}},
+            target_bits = {{.targetBits}},
+            target_platform = {{.targetOs}},
+        ),
+        {{.additionalConfigs}}
+    ),
+    targets = targets.bundle(
+        targets = [{{.tests}}],
+        mixins = [{{.swarmingDimensions}}],
+    ),
+    console_view_entry = consoles.console_view_entry(
+        category = "{{.consoleViewCategory}}",
+    ),
+)
+`
 )
 
 // Types used for dependency injection
@@ -434,71 +467,15 @@ func (s *ChromiumBuilderService) GetTools() []common.Tool {
 				"go/i-need-hw and have it granted. This is to guarantee that there will be sufficient " +
 				"GCE capacity for the builder itself as well as test capacity."),
 			Arguments: []common.ToolArgument{
-				{
-					Name: "builder_group",
-					Description: ("The builder group the builder will be a part of, e.g. chromium.fyi." +
-						"This affects which file the builder will be added to as well as where it will show up " +
-						"in the LUCI UI."),
-					Required: true,
-				},
-				{
-					Name: "builder_name",
-					Description: ("The name of the new builder. It should be fairly descriptive, as this will " +
-						"be the primary identifier that humans will see. Aspects that are commonly included are " +
-						"the OS that is being compiled for as well as any uncommon traits. For example, if the builder " +
-						"will be compiling with ASan enabled, it is good to include ASan in the name."),
-					Required: true,
-				},
-				{
-					Name: "builder_description",
-					Description: ("A human-readable description of the builder that will be shown in the LUCI UI " +
-						"when looking at the builder. This is where more in-depth information should go that does not " +
-						"belong in the builder name. Supports HTML tags."),
-					Required: true,
-				},
-				{
-					Name:        "contact_team_email",
-					Description: "A valid email address for the team that will own the new builder.",
-					Required:    true,
-				},
-				{
-					Name: "console_view_category",
-					Description: ("One or more categories used to group similar builders together. Each category is separated " +
-						"by '|', with each level being progressively more nested. For example 'Linux|Asan' will " +
-						"group the builder first with all other 'Linux' machines, then with all 'Asan' machines " +
-						"are under 'Linux'."),
-					Required: true,
-				},
-				{
-					Name: "target_os",
-					Description: ("The OS the builder is compiling for, e.g. 'Linux' or 'Android'. This is separate " +
-						"from, but should be related to, the GN args that the builder will use for compilation."),
-					Required:   true,
-					EnumValues: []string{TargetOsAndroid, TargetOsLinux, TargetOsMac, TargetOsWin},
-				},
-				{
-					Name: "target_arch",
-					Description: ("The architecture the builder is compiling for, e.g. 'Arm'. This is separate " +
-						"from, but should be related to, the GN args that the builder will use for compilation."),
-					Required:   true,
-					EnumValues: []string{TargetArchArm, TargetArchIntel},
-				},
-				{
-					Name: "target_bits",
-					Description: ("The target bitness the builder is compiling for, e.g. 32 or 64. This is separate " +
-						"from, but should be related to, the GN args that the builder will use for compilation."),
-					Required:     true,
-					ArgumentType: common.NumberArgument,
-					// Even though we reasonably only expect 32 and 64 as values, we cannot use
-					// EnumValues since that only supports strings.
-				},
-				{
-					Name: "build_config",
-					Description: ("The target config the builder is compiling for, e.g. 'Debug' or 'Release'. This is " +
-						"separate from, but should be related to, the GN args that the builder will use for compilation."),
-					Required:   true,
-					EnumValues: []string{BuilderConfigDebug, BuilderConfigRelease},
-				},
+				CommonToolArgumentBuilderGroup,
+				CommonToolArgumentBuilderName,
+				CommonToolArgumentBuilderDescription,
+				CommonToolArgumentContactTeamEmail,
+				CommonToolArgumentConsoleViewCategory,
+				CommonToolArgumentTargetOs,
+				CommonToolArgumentTargetArch,
+				CommonToolArgumentTargetBits,
+				CommonToolArgumentBuildConfig,
 				{
 					Name: "gn_args",
 					Description: ("The GN arg configs for the builder to use when compiling. " +
@@ -510,32 +487,43 @@ func (s *ChromiumBuilderService) GetTools() []common.Tool {
 					ArgumentType: common.ArrayArgument,
 					ArraySchema:  map[string]any{"type": "string"},
 				},
-				{
-					Name: "tests",
-					Description: ("The names of individual tests or bundles for the builder to compile and run. " +
-						"Can be any number of individual tests from " +
-						"https://source.chromium.org/chromium/chromium/src/+/main:infra/config/targets/tests.star " +
-						"or bundles from " +
-						"https://source.chromium.org/chromium/chromium/src/+/main:infra/config/targets/bundles.star. " +
-						"At the current moment, only existing tests are supported, so new ones cannot be created as " +
-						"part of this tool."),
-					Required:     true,
-					ArgumentType: common.ArrayArgument,
-					ArraySchema:  map[string]any{"type": "string"},
-				},
-				{
-					Name: "swarming_dimensions",
-					Description: ("The names of Swarming mixins to use when triggering tests. " +
-						"Can be any number of mixins from " +
-						"https://source.chromium.org/chromium/chromium/src/+/main:infra/config/targets/mixins.star. " +
-						"At the current moment, only existing mixins are supported, so new ones cannot be created as " +
-						"part of this tool."),
-					Required:     true,
-					ArgumentType: common.ArrayArgument,
-					ArraySchema:  map[string]any{"type": "string"},
-				},
+				CommonToolArgumentTests,
+				CommonToolArgumentSwarmingDimensions,
 			},
 			Handler: s.createCiCombinedBuilderHandler,
+		},
+		{
+			Name: "create_ci_child_tester",
+			Description: ("Creates a child tester LUCI builder for Chromium. This is for the case " +
+				"where a builder already compiles with the desired GN args. Adding a child tester will " +
+				"cause that existing compile builder to compile any necessary test binaries and trigger " +
+				"the child tester when it is done. This is more efficient than using a combined " +
+				"compile/test builder since the child testers use far fewer resources than builders that " +
+				"actually compile. Before the generated CL can be submitted, the user will need to file " +
+				"a resource request via go/i-need-hw and have it granted. This is to guarantee that there " +
+				"will be sufficient GCE capacity for the builder itself as well as test capacity."),
+			Arguments: []common.ToolArgument{
+				CommonToolArgumentBuilderGroup,
+				CommonToolArgumentBuilderName,
+				CommonToolArgumentBuilderDescription,
+				CommonToolArgumentContactTeamEmail,
+				CommonToolArgumentConsoleViewCategory,
+				CommonToolArgumentTargetOs,
+				CommonToolArgumentTargetArch,
+				CommonToolArgumentTargetBits,
+				CommonToolArgumentBuildConfig,
+				CommonToolArgumentTests,
+				CommonToolArgumentSwarmingDimensions,
+				{
+					Name: "parent_builder",
+					Description: ("The name of the parent builder which will be responsible for compiling " +
+						"the test binaries used by the child tester. The parent must be a member of the same " +
+						"builder group as the child tester being added, e.g. if the new child tester is being " +
+						"added to chromium.fyi, then the parent builder must already exist in chromium.fyi."),
+					Required: true,
+				},
+			},
+			Handler: s.createCiChildTesterHandler,
 		},
 	}
 }
@@ -544,7 +532,7 @@ func (s *ChromiumBuilderService) GetResources() []common.Resource {
 	return []common.Resource{}
 }
 
-// createCiCombinedBuilderHandler is the handler the create_ci_combined_builder
+// createCiCombinedBuilderHandler is the handler for the create_ci_combined_builder
 // tool, which creates a combined compile + test builder in Chromium and uploads
 // the resulting CL.
 func (s *ChromiumBuilderService) createCiCombinedBuilderHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -557,55 +545,37 @@ func (s *ChromiumBuilderService) createCiCombinedBuilderHandlerImpl(
 	ctx context.Context, request mcp.CallToolRequest, fs vfs.FS, ccr concurrentCommandRunner, eg environmentGetter) (*mcp.CallToolResult, error) {
 	s.handlingToolRequestLock.Lock()
 	defer s.handlingToolRequestLock.Unlock()
-
-	sklog.Infof("calling handler with data %v", s)
+	sklog.Infof("Calling createCiCombinedBuilderHandlerImpl with %v", s)
 	inputs, err := extractCiCombinedBuilderInputs(request)
 	if err != nil {
 		sklog.Errorf("Error extracting inputs: %v", err)
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
-	err = s.updateCheckouts(ctx)
+	branchName, err := s.prepareCheckoutsForStarlarkModification(ctx)
 	if err != nil {
-		sklog.Errorf("Error updating checkouts: %v", err)
-		return mcp.NewToolResultError("Server had an internal error updating checkout. This is not actionable by the client."), nil
-	}
-
-	branchName, err := s.switchToTemporaryBranch(ctx)
-	if err != nil {
-		sklog.Errorf("Error checking out temporary branch: %v", err)
-		return mcp.NewToolResultError("Server failed to check out temporary branch. This is not actionable by the client."), nil
+		return mcp.NewToolResultError("Server had an internal error preparing checkouts. This is not actionable by the client."), nil
 	}
 	defer s.cleanUpBranchDeferred(ctx, branchName)
 
-	err = s.addNewBuilder(ctx, inputs, fs)
+	err = s.addNewCiCombinedBuilder(ctx, inputs, fs)
 	if err != nil {
 		sklog.Errorf("Error adding new builder: %v", err)
-		return mcp.NewToolResultError(err.Error()), nil
+		return mcp.NewToolResultError("Server encountered an error while modifying builder files. This is not actionable by the client."), nil
 	}
 
-	err = s.formatStarlark(ctx, ccr)
+	err = s.handleStarlarkFormattingAndGeneration(ctx, ccr)
 	if err != nil {
-		sklog.Errorf("Error formatting Starlark: %v", err)
-		return mcp.NewToolResultError(err.Error()), nil
+		return mcp.NewToolResultError(fmt.Sprintf(
+			"Server encountered an error while cleaning up and generating files using the provided inputs. "+
+				"This may be due to invalid inputs, e.g. a typo causing a matching test to not be found. Error: %v",
+			err.Error())), nil
 	}
 
-	err = s.generateFilesFromStarlark(ctx, ccr)
+	clLink, err := s.handleCommitAndUpload(ctx, inputs.builderName, inputs.builderGroup, ccr, eg)
 	if err != nil {
-		sklog.Errorf("Error generating files from Starlark: %v", err)
-		return mcp.NewToolResultError(err.Error()), nil
-	}
-
-	err = s.addAndCommitFiles(ctx, inputs)
-	if err != nil {
-		sklog.Errorf("Error adding and committing files: %v", err)
-		return mcp.NewToolResultError("Server failed to commit changes for upload. This is not actionable by the client."), nil
-	}
-
-	clLink, err := s.uploadCl(ctx, ccr, eg)
-	if err != nil {
-		sklog.Errorf("Error uploading CL: %v", err)
-		return mcp.NewToolResultError("Server failed to upload generated CL to Gerrit. This is not actionable by the client."), nil
+		return mcp.NewToolResultError(
+			"Server encountered an error while committing and uploading changes. This is not actionable by the client."), nil
 	}
 
 	return mcp.NewToolResultText(fmt.Sprintf("Created and uploaded CL to %s", clLink)), nil
@@ -698,6 +668,139 @@ func extractCiCombinedBuilderInputs(request mcp.CallToolRequest) (ciCombinedBuil
 	return inputs, nil
 }
 
+// createCiChildTesterHandler is the handler for the create_ci_child_tester
+// tool, which creates a child tester for an existing parent builder in Chromium
+// and uploads the resulting CL.
+func (s *ChromiumBuilderService) createCiChildTesterHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return s.createCiChildTesterHandlerImpl(ctx, request, vfs.Local("/"), realConcurrentCommandRunner, realEnvironmentGetter)
+}
+
+// createCiChildTesterHandlerImpl is the actual implementation for
+// createCiChildTesterHandler, broken out to support dependency injection.
+func (s *ChromiumBuilderService) createCiChildTesterHandlerImpl(
+	ctx context.Context, request mcp.CallToolRequest, fs vfs.FS, ccr concurrentCommandRunner, eg environmentGetter) (*mcp.CallToolResult, error) {
+	inputs, err := extractCiChildTesterInputs(request)
+	if err != nil {
+		sklog.Errorf("Error extracting inputs: %v", err)
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+
+	branchName, err := s.prepareCheckoutsForStarlarkModification(ctx)
+	if err != nil {
+		return mcp.NewToolResultError("Server had an internal error preparing checkouts. This is not actionable by the client."), nil
+	}
+	defer s.cleanUpBranchDeferred(ctx, branchName)
+
+	err = s.addNewCiChildTester(ctx, inputs, fs)
+	if err != nil {
+		sklog.Errorf("Error adding new builder: %v", err)
+		return mcp.NewToolResultError("Server encountered an error while modifying builder files. This is not actionable by the client."), nil
+	}
+
+	err = s.handleStarlarkFormattingAndGeneration(ctx, ccr)
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf(
+			"Server encountered an error while cleaning up and generating files using the provided inputs. "+
+				"This may be due to invalid inputs, e.g. a typo causing a matching test to not be found. Error: %v",
+			err.Error())), nil
+	}
+
+	clLink, err := s.handleCommitAndUpload(ctx, inputs.builderName, inputs.builderGroup, ccr, eg)
+	if err != nil {
+		return mcp.NewToolResultError(
+			"Server encountered an error while committing and uploading changes. This is not actionable by the client."), nil
+	}
+
+	return mcp.NewToolResultText(fmt.Sprintf("Created and uploaded CL to %s", clLink)), nil
+}
+
+// ciChildTesterInputs stores all MCP arguments for the create_ci_child_tester
+// tool.
+type ciChildTesterInputs struct {
+	builderGroup        string
+	builderName         string
+	builderDescription  string
+	contactTeamEmail    string
+	consoleViewCategory string
+	targetOs            string
+	targetArch          string
+	targetBits          int
+	buildConfig         string
+	tests               []string
+	swarmingDimensions  []string
+	parentBuilder       string
+}
+
+// extractCiChildTesterInputs extracts all expected arguments for the
+// create_ci_child_tester tool from the given MCP request and stores them in
+// a ciChildTesterInputs.
+func extractCiChildTesterInputs(request mcp.CallToolRequest) (ciChildTesterInputs, error) {
+	inputs := ciChildTesterInputs{}
+	var err error
+
+	inputs.builderGroup, err = request.RequireString("builder_group")
+	if err != nil {
+		return inputs, err
+	}
+
+	inputs.builderName, err = request.RequireString("builder_name")
+	if err != nil {
+		return inputs, err
+	}
+
+	inputs.builderDescription, err = request.RequireString("builder_description")
+	if err != nil {
+		return inputs, err
+	}
+
+	inputs.contactTeamEmail, err = request.RequireString("contact_team_email")
+	if err != nil {
+		return inputs, err
+	}
+
+	inputs.consoleViewCategory, err = request.RequireString("console_view_category")
+	if err != nil {
+		return inputs, err
+	}
+
+	inputs.targetOs, err = request.RequireString("target_os")
+	if err != nil {
+		return inputs, err
+	}
+
+	inputs.targetArch, err = request.RequireString("target_arch")
+	if err != nil {
+		return inputs, err
+	}
+
+	inputs.targetBits, err = request.RequireInt("target_bits")
+	if err != nil {
+		return inputs, err
+	}
+
+	inputs.buildConfig, err = request.RequireString("build_config")
+	if err != nil {
+		return inputs, err
+	}
+
+	inputs.tests, err = request.RequireStringSlice("tests")
+	if err != nil {
+		return inputs, err
+	}
+
+	inputs.swarmingDimensions, err = request.RequireStringSlice("swarming_dimensions")
+	if err != nil {
+		return inputs, err
+	}
+
+	inputs.parentBuilder, err = request.RequireString("parent_builder")
+	if err != nil {
+		return inputs, err
+	}
+
+	return inputs, nil
+}
+
 // createDepotToolsCheckout creates and stores a re-usable reference to the
 // depot_tools checkout.
 func (s *ChromiumBuilderService) createDepotToolsCheckout(ctx context.Context, cf checkoutFactory) error {
@@ -730,6 +833,28 @@ func (s *ChromiumBuilderService) createChromiumCheckout(ctx context.Context, cf 
 	}
 
 	return nil
+}
+
+// prepareCheckoutsForStarlarkModification performs all of the checkout-related
+// steps that are required between when a tool request starts being handled and
+// when local Starlark files are ready for modification. On success, it returns
+// the temporary branch name that is currently checked out. Any non-nil errors
+// are indicative of a checkout issue which is not something that the MCP client
+// can help resolve.
+func (s *ChromiumBuilderService) prepareCheckoutsForStarlarkModification(ctx context.Context) (string, error) {
+	err := s.updateCheckouts(ctx)
+	if err != nil {
+		sklog.Errorf("Error updating checkouts: %v", err)
+		return "", err
+	}
+
+	branchName, err := s.switchToTemporaryBranch(ctx)
+	if err != nil {
+		sklog.Errorf("Error checking out temporary branch: %v", err)
+		return "", err
+	}
+
+	return branchName, nil
 }
 
 // updateCheckouts ensures that both depot_tools and Chromium are up to date
@@ -838,10 +963,11 @@ func (s *ChromiumBuilderService) cleanUpBranchDeferred(ctx context.Context, bran
 	}
 }
 
-// addNewBuilder goes through all the steps necessary to add a new builder
-// definition to the relevant Starlark file on disk.
-func (s *ChromiumBuilderService) addNewBuilder(ctx context.Context, inputs ciCombinedBuilderInputs, fs vfs.FS) error {
-	sklog.Errorf("Adding new builder with inputs %v", inputs)
+// addNewCiCombinedBuilder goes through all the steps necessary to add a new
+// combined compile/test builder definition to the relevant Starlark file on
+// disk.
+func (s *ChromiumBuilderService) addNewCiCombinedBuilder(ctx context.Context, inputs ciCombinedBuilderInputs, fs vfs.FS) error {
+	sklog.Infof("Adding combined compile/test builder with inputs %v", inputs)
 
 	starlarkFilename := fmt.Sprintf("%s.star", inputs.builderGroup)
 	starlarkFilepath := filepath.Join(s.chromiumPath, BuilderStarlarkSubdirectory, starlarkFilename)
@@ -851,31 +977,31 @@ func (s *ChromiumBuilderService) addNewBuilder(ctx context.Context, inputs ciCom
 	}
 	defer starlarkFile.Close(ctx)
 
-	buildConfig, err := determineBuildConfig(inputs)
+	buildConfig, err := determineBuildConfig(inputs.buildConfig)
 	if err != nil {
 		return err
 	}
-	targetArch, err := determineTargetArch(inputs)
+	targetArch, err := determineTargetArch(inputs.targetArch)
 	if err != nil {
 		return err
 	}
-	targetOs, err := determineTargetOs(inputs)
+	targetOs, err := determineTargetOs(inputs.targetOs)
 	if err != nil {
 		return err
 	}
-	additionalConfigs, err := determineAdditionalConfigs(inputs)
+	additionalConfigs, err := determineAdditionalConfigs(inputs.targetOs)
 	if err != nil {
 		return err
 	}
-	gnArgs, err := determineGnArgs(inputs)
+	gnArgs, err := determineGnArgs(inputs.gnArgs)
 	if err != nil {
 		return err
 	}
-	tests, err := determineTests(inputs)
+	tests, err := determineTests(inputs.tests)
 	if err != nil {
 		return err
 	}
-	swarmingDimensions, err := determineSwarmingDimensions(inputs)
+	swarmingDimensions, err := determineSwarmingDimensions(inputs.swarmingDimensions)
 	if err != nil {
 		return err
 	}
@@ -918,36 +1044,112 @@ func (s *ChromiumBuilderService) addNewBuilder(ctx context.Context, inputs ciCom
 	return nil
 }
 
-// determineBuildConfig translates the string contained within
-// inputs.buildConfig to the corresponding Starlark constant.
-func determineBuildConfig(inputs ciCombinedBuilderInputs) (string, error) {
-	switch inputs.buildConfig {
+// addNewCiChildTester goes through all the steps necessary to add a new child
+// tester definition to the relevant Starlark file on disk.
+func (s *ChromiumBuilderService) addNewCiChildTester(ctx context.Context, inputs ciChildTesterInputs, fs vfs.FS) error {
+	sklog.Infof("Adding child tester with inputs %v", inputs)
+
+	starlarkFilename := fmt.Sprintf("%s.star", inputs.builderGroup)
+	starlarkFilepath := filepath.Join(s.chromiumPath, BuilderStarlarkSubdirectory, starlarkFilename)
+	starlarkFile, err := fs.Open(ctx, starlarkFilepath)
+	if err != nil {
+		return err
+	}
+	defer starlarkFile.Close(ctx)
+
+	buildConfig, err := determineBuildConfig(inputs.buildConfig)
+	if err != nil {
+		return err
+	}
+	targetArch, err := determineTargetArch(inputs.targetArch)
+	if err != nil {
+		return err
+	}
+	targetOs, err := determineTargetOs(inputs.targetOs)
+	if err != nil {
+		return err
+	}
+	additionalConfigs, err := determineAdditionalConfigs(inputs.targetOs)
+	if err != nil {
+		return err
+	}
+	tests, err := determineTests(inputs.tests)
+	if err != nil {
+		return err
+	}
+	swarmingDimensions, err := determineSwarmingDimensions(inputs.swarmingDimensions)
+	if err != nil {
+		return err
+	}
+
+	formatData := map[string]string{
+		"builderName":         inputs.builderName,
+		"builderDescription":  inputs.builderDescription,
+		"contactTeamEmail":    inputs.contactTeamEmail,
+		"buildConfig":         buildConfig,
+		"targetArch":          targetArch,
+		"targetBits":          fmt.Sprintf("%d", inputs.targetBits),
+		"targetOs":            targetOs,
+		"additionalConfigs":   additionalConfigs,
+		"tests":               tests,
+		"swarmingDimensions":  swarmingDimensions,
+		"consoleViewCategory": inputs.consoleViewCategory,
+		"parentBuilder":       inputs.parentBuilder,
+	}
+
+	builderDefinition, err := formatString(CiChildTesterTemplate, formatData)
+	if err != nil {
+		return err
+	}
+
+	wrappedFile := vfs.WithContext(ctx, starlarkFile)
+	contentBytes, err := io.ReadAll(wrappedFile)
+	if err != nil {
+		return err
+	}
+	wrappedFile.Close()
+
+	contentString := string(contentBytes[:])
+	contentString += builderDefinition
+	contentBytes = []byte(contentString)
+	err = vfs.WriteFile(ctx, fs, starlarkFilepath, contentBytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// determineBuildConfig translates the provided string to the corresponding
+// Starlark constant.
+func determineBuildConfig(buildConfig string) (string, error) {
+	switch buildConfig {
 	case BuilderConfigDebug:
 		return "builder_config.build_config.DEBUG", nil
 	case BuilderConfigRelease:
 		return "builder_config.build_config.RELEASE", nil
 	default:
-		return "", skerr.Fmt("Unhandled builder config %s", inputs.buildConfig)
+		return "", skerr.Fmt("Unhandled builder config %s", buildConfig)
 	}
 }
 
-// determineTargetArch translates the string contained within
-// inputs.targetArch to the corresponding Starlark constant.
-func determineTargetArch(inputs ciCombinedBuilderInputs) (string, error) {
-	switch inputs.targetArch {
+// determineTargetArch translates the provided string to the corresponding
+// Starlark constant.
+func determineTargetArch(targetArch string) (string, error) {
+	switch targetArch {
 	case TargetArchArm:
 		return "builder_config.target_arch.ARM", nil
 	case TargetArchIntel:
 		return "builder_config.target_arch.INTEL", nil
 	default:
-		return "", skerr.Fmt("Unhandled target architecture %s", inputs.targetArch)
+		return "", skerr.Fmt("Unhandled target architecture %s", targetArch)
 	}
 }
 
-// determineTargetOs translates the string contained within
-// inputs.targetOs to the corresponding Starlark constant.
-func determineTargetOs(inputs ciCombinedBuilderInputs) (string, error) {
-	switch inputs.targetOs {
+// determineTargetOs translates the provided string to the corresponding
+// Starlark constant.
+func determineTargetOs(targetOs string) (string, error) {
+	switch targetOs {
 	case TargetOsAndroid:
 		return "builder_config.target_platform.ANDROID", nil
 	case TargetOsLinux:
@@ -957,16 +1159,16 @@ func determineTargetOs(inputs ciCombinedBuilderInputs) (string, error) {
 	case TargetOsWin:
 		return "builder_config.target_platform.WIN", nil
 	default:
-		return "", skerr.Fmt("Unhandled target OS %s", inputs.targetOs)
+		return "", skerr.Fmt("Unhandled target OS %s", targetOs)
 	}
 }
 
 // determineAdditionalConfigs returns a string containing any additional
 // Starlark configs that should be added to the builder's builder_spec entry
-// based on the contents of the provided inputs.
-func determineAdditionalConfigs(inputs ciCombinedBuilderInputs) (string, error) {
+// based on the provided inputs.
+func determineAdditionalConfigs(targetOs string) (string, error) {
 	additionalConfigs := ""
-	if inputs.targetOs == TargetOsAndroid {
+	if targetOs == TargetOsAndroid {
 		additionalConfigs += `android_config = builder_config.android_config(config = "base_config"),`
 	}
 	return additionalConfigs, nil
@@ -982,23 +1184,22 @@ func quoteAndCommaSeparate(stringSlice []string) string {
 	return strings.Join(quotedStrings, ", ")
 }
 
-// determineGnArgs translates the string slice contained within inputs.gnArgs
-// to a string usable as the contents for a Starlark list.
-func determineGnArgs(inputs ciCombinedBuilderInputs) (string, error) {
-	return quoteAndCommaSeparate(inputs.gnArgs), nil
+// determineGnArgs translates the provided string slice containing GN arg
+// configs to a string usable as the contents for a Starlark list.
+func determineGnArgs(gnArgs []string) (string, error) {
+	return quoteAndCommaSeparate(gnArgs), nil
 }
 
-// determineTests translates the string slice contained within inputs.tests
-// to a string usable as the contents for a Starlark list.
-func determineTests(inputs ciCombinedBuilderInputs) (string, error) {
-	return quoteAndCommaSeparate(inputs.tests), nil
+// determineTests translates the provided string slice containing tests to a
+// string usable as the contents for a Starlark list.
+func determineTests(tests []string) (string, error) {
+	return quoteAndCommaSeparate(tests), nil
 }
 
-// determineSwarmingDimensions translates the string slice contained within
-// inputs.swarmingDimensions to a string usable as the contents for a Starlark
-// list.
-func determineSwarmingDimensions(inputs ciCombinedBuilderInputs) (string, error) {
-	return quoteAndCommaSeparate(inputs.swarmingDimensions), nil
+// determineSwarmingDimensions translates the provided string slice containing
+// Swarming mixins to a string usable as the contents for a Starlark list.
+func determineSwarmingDimensions(swarmingDimensions []string) (string, error) {
+	return quoteAndCommaSeparate(swarmingDimensions), nil
 }
 
 // formatString is a helper to format a given string using the provided
@@ -1015,6 +1216,29 @@ func formatString(format string, data map[string]string) (string, error) {
 		return "", err
 	}
 	return buffer.String(), nil
+}
+
+// handleStarlarkFormattingAndGeneration performs all of the Starlark-related
+// steps that are required between when Starlark files are modified and when
+// files are ready to be committed/uploaded. Non-nil errors may or may not be
+// fixable by the MCP client. An example of a fixable issue would be a a typo
+// in one of the inputs which causes Starlark file generation to fail. An
+// example of a non-fixable issue would be Starlark file generation failing due
+// to the used template being out of date.
+func (s *ChromiumBuilderService) handleStarlarkFormattingAndGeneration(ctx context.Context, ccr concurrentCommandRunner) error {
+	err := s.formatStarlark(ctx, ccr)
+	if err != nil {
+		sklog.Errorf("Error formatting Starlark: %v", err)
+		return err
+	}
+
+	err = s.generateFilesFromStarlark(ctx, ccr)
+	if err != nil {
+		sklog.Errorf("Error generating files from Starlark: %v", err)
+		return err
+	}
+
+	return nil
 }
 
 // formatStarlark runs lucicfg to format the Starlark files contained within
@@ -1054,9 +1278,30 @@ func (s *ChromiumBuilderService) generateFilesFromStarlark(ctx context.Context, 
 	return nil
 }
 
+// handleCommitAndUpload commits all local changes in the Chromium checkout and
+// uploads them as a new CL on Gerrit. On success, it returns the link to the
+// uploaded CL. Any non-nil errors are indicative of a checkout/network/Gerrit
+// issue which is not something that the MCP client can help resolve.
+func (s *ChromiumBuilderService) handleCommitAndUpload(
+	ctx context.Context, builderName, builderGroup string, ccr concurrentCommandRunner, eg environmentGetter) (string, error) {
+	err := s.addAndCommitFiles(ctx, builderName, builderGroup)
+	if err != nil {
+		sklog.Errorf("Error adding and committing files: %v", err)
+		return "", err
+	}
+
+	clLink, err := s.uploadCl(ctx, ccr, eg)
+	if err != nil {
+		sklog.Errorf("Error uploading CL: %v", err)
+		return "", err
+	}
+
+	return clLink, nil
+}
+
 // addAndCommitFiles adds all files under Chromium's //infra/config directory to
 // git then commits them.
-func (s *ChromiumBuilderService) addAndCommitFiles(ctx context.Context, inputs ciCombinedBuilderInputs) error {
+func (s *ChromiumBuilderService) addAndCommitFiles(ctx context.Context, builderName, builderGroup string) error {
 	s.chromiumCheckoutLock.Lock()
 	defer s.chromiumCheckoutLock.Unlock()
 
@@ -1070,8 +1315,8 @@ func (s *ChromiumBuilderService) addAndCommitFiles(ctx context.Context, inputs c
 		return err
 	}
 
-	clTitle := fmt.Sprintf("Add new builder %s", inputs.builderName)
-	clDescription := fmt.Sprintf("Adds a new builder %s in the %s group. This CL was auto-generated.", inputs.builderName, inputs.builderGroup)
+	clTitle := fmt.Sprintf("Add new builder %s", builderName)
+	clDescription := fmt.Sprintf("Adds a new builder %s in the %s group. This CL was auto-generated.", builderName, builderGroup)
 	_, err = s.chromiumCheckout.Git(ctx, "commit", "-m", clTitle, "-m", clDescription)
 	if err != nil {
 		return err
