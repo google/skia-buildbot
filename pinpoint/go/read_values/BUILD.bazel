@@ -11,6 +11,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//perf/go/perfresults",
+        "//pinpoint/go/workflows",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
         "@org_chromium_go_luci//swarming/proto/api_v2",
     ],

@@ -346,16 +346,22 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 		if leftRuns[i].CAS == nil || rightRuns[i].CAS == nil {
 			continue
 		}
-		var lv map[string][]float64
-		if err := workflow.ExecuteActivity(ctx, CollectAllValuesActivity, leftRuns[i], pc.Benchmark, pc.AggregationMethod).Get(ctx, &lv); err != nil {
+		var lr *workflows.TestResults
+		if err := workflow.ExecuteActivity(ctx, CollectAllValuesActivity, leftRuns[i], pc.Benchmark, pc.AggregationMethod).Get(ctx, &lr); err != nil {
 			return nil, skerr.Wrapf(err, "leftRuns failed %v", *leftRuns[i])
 		}
-		leftRuns[i].Values = lv
-		var rv map[string][]float64
-		if err := workflow.ExecuteActivity(ctx, CollectAllValuesActivity, rightRuns[i], pc.Benchmark, pc.AggregationMethod).Get(ctx, &rv); err != nil {
+		leftRuns[i].Architecture = lr.Architecture
+		leftRuns[i].OSName = lr.OSName
+		leftRuns[i].Values = lr.Values
+		leftRuns[i].Units = lr.Units
+		var rr *workflows.TestResults
+		if err := workflow.ExecuteActivity(ctx, CollectAllValuesActivity, rightRuns[i], pc.Benchmark, pc.AggregationMethod).Get(ctx, &rr); err != nil {
 			return nil, skerr.Wrapf(err, "rightRuns failed %v", *rightRuns[i])
 		}
-		rightRuns[i].Values = rv
+		rightRuns[i].Architecture = rr.Architecture
+		rightRuns[i].OSName = rr.OSName
+		rightRuns[i].Values = rr.Values
+		rightRuns[i].Units = rr.Units
 	}
 
 	return &PairwiseRun{

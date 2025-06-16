@@ -178,21 +178,21 @@ func runBenchmark(ctx workflow.Context, cc *common.CombinedCommit, cas *apipb.CA
 	}
 
 	// TODO(b/327224992): Should surface CAS errors here in case the test results don't exist.
+	var results *workflows.TestResults
 	if scrp.Chart != "" {
-		var lv []float64
-		if err := workflow.ExecuteActivity(ctx, CollectValuesActivity, tr, scrp.Benchmark, scrp.Chart, scrp.AggregationMethod).Get(ctx, &lv); err != nil {
+		if err := workflow.ExecuteActivity(ctx, CollectValuesActivity, tr, scrp.Benchmark, scrp.Chart, scrp.AggregationMethod).Get(ctx, &results); err != nil {
 			return nil, err
 		}
-
-		tr.Values = map[string][]float64{
-			scrp.Chart: lv,
-		}
 	} else {
-		if err := workflow.ExecuteActivity(ctx, CollectAllValuesActivity, tr, scrp.Benchmark, scrp.AggregationMethod).Get(ctx, &tr.Values); err != nil {
+		if err := workflow.ExecuteActivity(ctx, CollectAllValuesActivity, tr, scrp.Benchmark, scrp.AggregationMethod).Get(ctx, &results); err != nil {
 			return nil, err
 		}
 	}
 
+	tr.Architecture = results.Architecture
+	tr.OSName = results.OSName
+	tr.Values = results.Values
+	tr.Units = results.Units
 	return tr, nil
 }
 
@@ -261,7 +261,7 @@ func getBotDimension(finishedIteration int32, iteration int32, botIds []string) 
 }
 
 // CollectValuesActivity is an activity to collect sampled values from a single test run.
-func CollectValuesActivity(ctx context.Context, run *workflows.TestRun, benchmark, chart, aggMethod string) ([]float64, error) {
+func CollectValuesActivity(ctx context.Context, run *workflows.TestRun, benchmark, chart, aggMethod string) (*workflows.TestResults, error) {
 	client, err := read_values.DialRBECAS(ctx, run.CAS.CasInstance)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to dial rbe client")
@@ -270,7 +270,7 @@ func CollectValuesActivity(ctx context.Context, run *workflows.TestRun, benchmar
 }
 
 // CollectAllValuesActivity is an activity to collect all sampled values from a single test run.
-func CollectAllValuesActivity(ctx context.Context, run *workflows.TestRun, benchmark, aggMethod string) (map[string][]float64, error) {
+func CollectAllValuesActivity(ctx context.Context, run *workflows.TestRun, benchmark, aggMethod string) (*workflows.TestResults, error) {
 	client, err := read_values.DialRBECAS(ctx, run.CAS.CasInstance)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to dial rbe client")

@@ -58,7 +58,7 @@ func TestReadChart_ReadSampleValues(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			values, err := c.ReadValuesByChart(context.Background(), benchmark, chart, []*apipb.CASReference{{}}, "")
 			assert.NoError(t, err)
-			assert.EqualValues(t, expected, values)
+			assert.EqualValues(t, expected, values.Values[chart])
 		})
 	}
 
@@ -76,7 +76,7 @@ func TestReadChart_ReadAggregatedValues(t *testing.T) {
 			// Load three same CAS
 			values, err := c.ReadValuesByChart(context.Background(), benchmark, chart, []*apipb.CASReference{{}, {}, {}}, agg)
 			assert.NoError(t, err)
-			assert.EqualValues(t, expected, values)
+			assert.EqualValues(t, expected, values.Values[chart])
 		})
 	}
 
@@ -101,11 +101,17 @@ func TestReadValuesForAllCharts_HappyPath(t *testing.T) {
 	}
 	valuesByChart, err := c.ReadValuesForAllCharts(context.Background(), "rendering.desktop", []*apipb.CASReference{{}}, "")
 	require.NoError(t, err)
-	require.Equal(t, valuesByChart, map[string][]float64{
+	require.Equal(t, valuesByChart.Values, map[string][]float64{
 		"thread_total_rendering_cpu_time_per_frame": {12.9322},
 		"tasks_per_frame_browser":                   {0.3917, 0.34},
 		"empty_samples":                             nil,
 		"Compositing.Display.DrawToSwapUs":          {169.9406, 169.9406, 206.3219, 654.8641},
+	})
+	require.Equal(t, valuesByChart.Units, map[string]string{
+		"thread_total_rendering_cpu_time_per_frame": "unitless_smallerIsBetter",
+		"tasks_per_frame_browser":                   "unitless_smallerIsBetter",
+		"empty_samples":                             "unitless_smallerIsBetter",
+		"Compositing.Display.DrawToSwapUs":          "unitless_smallerIsBetter",
 	})
 }
 

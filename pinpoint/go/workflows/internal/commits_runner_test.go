@@ -21,7 +21,7 @@ import (
 // generateTestRuns generates a test runs data
 //
 // It returns the expected runs, and a channel that was buffered to send to mocked workflow.
-func generateTestRuns(chart string, c int, chartExpectedValues []float64) ([]*workflows.TestRun, chan *workflows.TestRun) {
+func generateTestRuns(chart string, c int, chartExpectedValues *workflows.TestResults) ([]*workflows.TestRun, chan *workflows.TestRun) {
 	rc := make(chan *workflows.TestRun, c)
 	trs := make([]*workflows.TestRun, c)
 	trs[0] = &workflows.TestRun{
@@ -34,7 +34,7 @@ func generateTestRuns(chart string, c int, chartExpectedValues []float64) ([]*wo
 		trs[i] = &workflows.TestRun{
 			Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED),
 			Values: map[string][]float64{
-				chart: chartExpectedValues,
+				chart: chartExpectedValues.Values[chart],
 			},
 		}
 		rc <- &workflows.TestRun{
@@ -54,7 +54,11 @@ func TestSingleCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 		Status: buildbucketpb.Status_SUCCESS,
 	}
 	const iterations, chart = 5, "fake-chart"
-	fakeChartValues := []float64{1, 2, 3, 4}
+	fakeChartValues := &workflows.TestResults{
+		Values: map[string][]float64{
+			chart: {1, 2, 3, 4},
+		},
+	}
 	trs, rc := generateTestRuns(chart, iterations, fakeChartValues)
 
 	env.RegisterWorkflowWithOptions(BuildWorkflow, workflow.RegisterOptions{Name: workflows.BuildChrome})

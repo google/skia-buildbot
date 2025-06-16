@@ -78,6 +78,17 @@ type Build struct {
 	CAS *apipb.CASReference
 }
 
+type TestResults struct {
+	// Architecture is the test bot architecture.
+	Architecture string
+	// OSName is the test bot operating system.
+	OSName string
+	// Values is sampled values for each benchmark chart.
+	Values map[string][]float64
+	// Units is the units of each benchmark chart.
+	Units map[string]string
+}
+
 // TestRun stores individual benchmark test run.
 type TestRun struct {
 	// TaskID is the swarming task ID.
@@ -86,8 +97,14 @@ type TestRun struct {
 	Status run_benchmark.State
 	// CAS is the CAS address of the test output.
 	CAS *apipb.CASReference
-	// Values is sampled values for each benchmark story.
+	// Architecture is the test bot architecture.
+	Architecture string
+	// OSName is the test bot operating system.
+	OSName string
+	// Values is sampled values for each benchmark chart.
 	Values map[string][]float64
+	// Units is the units of each benchmark chart.
+	Units map[string]string
 }
 
 // GetAllCharts returns all charts part of a test run in alphabetical order

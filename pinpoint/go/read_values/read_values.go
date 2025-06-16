@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/perfresults"
+	"go.skia.org/infra/pinpoint/go/workflows"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 )
@@ -74,13 +75,17 @@ func DialRBECAS(ctx context.Context, instance string) (*perfCASClient, error) {
 //	values := client.ReadValuesByChart(ctx, benchmark, chart, digests, nil)
 
 // TODO(b/327020123): Migrate CABE backends into pinpoint/go/backends/
-func (c *perfCASClient) ReadValuesByChart(ctx context.Context, benchmark string, chart string, digests []*apipb.CASReference, agg string) ([]float64, error) {
+func (c *perfCASClient) ReadValuesByChart(ctx context.Context, benchmark string, chart string, digests []*apipb.CASReference, agg string) (*workflows.TestResults, error) {
 	aggMethod, ok := perfresults.AggregationMapping[agg]
 	if !ok && agg != "" {
 		return nil, skerr.Fmt("unsupported aggregation method (%s).", agg)
 	}
 
 	var values []float64
+	results := workflows.TestResults{
+		Values: map[string][]float64{},
+		Units:  map[string]string{},
+	}
 	for _, digest := range digests {
 		res, err := c.provider.Fetch(ctx, digest)
 		if err != nil {
@@ -89,23 +94,35 @@ func (c *perfCASClient) ReadValuesByChart(ctx context.Context, benchmark string,
 
 		// res should be map[string]*PerfResults, right now we work around with the pointer.
 		pr := res[benchmark]
-		samples := (&pr).GetSampleValues(chart)
+		var samples []float64
+		for k, sv := range pr.Histograms {
+			if k.ChartName == chart {
+				samples = append(samples, sv.SampleValues...)
+				results.OSName = k.OSName
+				results.Architecture = k.Architecture
+				results.Units[chart] = k.Unit
+			}
+		}
 		if aggMethod != nil && samples != nil {
 			values = append(values, aggMethod(perfresults.Histogram{SampleValues: samples}))
 		} else {
 			values = append(values, samples...)
 		}
 	}
-	return values, nil
+	results.Values[chart] = values
+	return &results, nil
 }
 
-func (c *perfCASClient) ReadValuesForAllCharts(ctx context.Context, benchmark string, digests []*apipb.CASReference, agg string) (map[string][]float64, error) {
+func (c *perfCASClient) ReadValuesForAllCharts(ctx context.Context, benchmark string, digests []*apipb.CASReference, agg string) (*workflows.TestResults, error) {
 	aggMethod, ok := perfresults.AggregationMapping[agg]
 	if !ok && agg != "" {
 		return nil, skerr.Fmt("unsupported aggregation method (%s).", agg)
 	}
 
-	valuesByChart := map[string][]float64{}
+	results := workflows.TestResults{
+		Values: map[string][]float64{},
+		Units:  map[string]string{},
+	}
 	// a digest is a CAS output from one swarming task
 	for _, digest := range digests {
 		res, err := c.provider.Fetch(ctx, digest)
@@ -120,8 +137,11 @@ func (c *perfCASClient) ReadValuesForAllCharts(ctx context.Context, benchmark st
 			} else {
 				values = sv.SampleValues
 			}
-			valuesByChart[k.ChartName] = append(valuesByChart[k.ChartName], values...)
+			results.OSName = k.OSName
+			results.Architecture = k.Architecture
+			results.Values[k.ChartName] = append(results.Values[k.ChartName], values...)
+			results.Units[k.ChartName] = k.Unit
 		}
 	}
-	return valuesByChart, nil
+	return &results, nil
 }

@@ -30,7 +30,7 @@ func generateSingleValueByChart(chart string, values float64) map[string][]float
 // generatePairwiseTestRuns generates mock test runs data for PairwiseRunner
 //
 // It returns the expected runs, and a channel that was buffered to send to mocked workflow.
-func generatePairwiseTestRuns(chartExpectedValues map[string][]float64, pairOrder []workflows.PairwiseOrder) ([]*workflows.PairwiseTestRun, chan *workflows.PairwiseTestRun) {
+func generatePairwiseTestRuns(chartExpectedValues *workflows.TestResults, pairOrder []workflows.PairwiseOrder) ([]*workflows.PairwiseTestRun, chan *workflows.PairwiseTestRun) {
 	iterations := len(pairOrder)
 	rc := make(chan *workflows.PairwiseTestRun, iterations)
 	ptrs := make([]*workflows.PairwiseTestRun, iterations)
@@ -58,12 +58,12 @@ func generatePairwiseTestRuns(chartExpectedValues map[string][]float64, pairOrde
 		{
 			Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED),
 			CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "3f2f2f849ece00d5df0d03871c8d1a14df2c1b75edd3888d7c34db12e7461c76", SizeBytes: 180}},
-			Values: chartExpectedValues,
+			Values: chartExpectedValues.Values,
 		},
 		{
 			Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED),
 			CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "6e1b133c5400c3e429e822252cb8e2cbe54c072ee75a2f732a1ec9bf0671b61a", SizeBytes: 810}},
-			Values: chartExpectedValues,
+			Values: chartExpectedValues.Values,
 		},
 	}
 	for i := 1; i < iterations; i++ {
@@ -476,8 +476,10 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 		CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6", SizeBytes: 810}},
 	}
 
-	fakeChartValues := map[string][]float64{
-		p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+	fakeChartValues := &workflows.TestResults{
+		Values: map[string][]float64{
+			p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+		},
 	}
 	pairwiseOrder := generatePairOrderIndices(seed, int(p.Iterations))
 	ptrs, rc := generatePairwiseTestRuns(fakeChartValues, pairwiseOrder)
@@ -558,8 +560,10 @@ func TestPairwiseCommitRunner_GivenCASInputs_ShouldSkipBuildStep(t *testing.T) {
 		"build59-h7--device2",
 	}
 
-	fakeChartValues := map[string][]float64{
-		p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+	fakeChartValues := &workflows.TestResults{
+		Values: map[string][]float64{
+			p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+		},
 	}
 	pairwiseOrder := generatePairOrderIndices(seed, int(p.Iterations))
 	ptrs, rc := generatePairwiseTestRuns(fakeChartValues, pairwiseOrder)

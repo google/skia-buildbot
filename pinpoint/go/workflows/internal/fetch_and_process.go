@@ -110,7 +110,7 @@ func GetAllSampleValuesActivity(ctx context.Context, benchmark string, task *Tes
 	digests := []*swarming_proto.CASReference{casRef}
 	valuesByChart, err := casClient.ReadValuesForAllCharts(ctx, benchmark, digests, "")
 
-	for chart, sampleValues := range valuesByChart {
+	for chart, sampleValues := range valuesByChart.Values {
 		newTask := &TestResult{
 			WorkflowID:     task.WorkflowID,
 			Bot:            task.Bot,
