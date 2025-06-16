@@ -679,6 +679,9 @@ func (s *ChromiumBuilderService) createCiChildTesterHandler(ctx context.Context,
 // createCiChildTesterHandler, broken out to support dependency injection.
 func (s *ChromiumBuilderService) createCiChildTesterHandlerImpl(
 	ctx context.Context, request mcp.CallToolRequest, fs vfs.FS, ccr concurrentCommandRunner, eg environmentGetter) (*mcp.CallToolResult, error) {
+	s.handlingToolRequestLock.Lock()
+	defer s.handlingToolRequestLock.Unlock()
+
 	inputs, err := extractCiChildTesterInputs(request)
 	if err != nil {
 		sklog.Errorf("Error extracting inputs: %v", err)
