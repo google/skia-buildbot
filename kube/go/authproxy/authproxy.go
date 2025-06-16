@@ -220,6 +220,7 @@ type App struct {
 	authType             string
 	mockLoggedInAs       string
 	selfSignLocalhostTLS bool
+	useHttp1             bool
 	verbose              bool
 
 	target       *url.URL
@@ -243,6 +244,7 @@ func (a *App) Flagset() *flag.FlagSet {
 	fs.StringVar(&a.mockLoggedInAs, "mock_user", "", "If authtype is set to 'mocked', then always return this value for the logged in user identity")
 	fs.BoolVar(&a.selfSignLocalhostTLS, "self_sign_localhost_tls", false, "if true, serve TLS using a self-signed certificate for localhost")
 	fs.BoolVar(&a.verbose, "verbose", false, "if true, emit more logging")
+	fs.BoolVar(&a.useHttp1, "use_http1", false, "if true, only allow http1 traffic.")
 
 	return fs
 }
@@ -406,7 +408,10 @@ func genLocalhostCert() (tls.Certificate, error) {
 // Run starts the application serving, it does not return unless there is an
 // error or the passed in context is cancelled.
 func (a *App) Run(ctx context.Context) error {
-	a.proxy = newProxy(a.target, a.authProvider, a.allowPost, a.passive, a.local, a.selfSignLocalhostTLS, a.verbose)
+	// Only enable http2 traffic if there is a self signed TLS cert specified, as well as http1 traffic has not been
+	// enabled explicitly. The use_http1 flag allows us to serve http1 traffic locally over SSL.
+	useHttp2 := a.selfSignLocalhostTLS && !a.useHttp1
+	a.proxy = newProxy(a.target, a.authProvider, a.allowPost, a.passive, a.local, useHttp2, a.verbose)
 	err := a.populateAllowedRoles()
 	if err != nil {
 		return skerr.Wrap(err)
