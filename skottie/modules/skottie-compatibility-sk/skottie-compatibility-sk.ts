@@ -25,7 +25,7 @@ import {
   LottieValidator,
   LottieValidatorError,
 } from '@lottie-animation-community/lottie-specs/src/validator';
-import { sanitizeLottie, COMMON_EXPORTER_FIELDS } from './sanitize';
+import { sanitizeLottie, COMMON_EXPORTER_FIELDS, SANITIZE_KEYS_IF_SLOT } from './sanitize';
 
 type SchemaEntry = {
   name: string;
@@ -41,7 +41,7 @@ export class SkottieCompatibilitySk extends ElementSk {
 
   tabIndex = 0;
 
-  ignoreExporterFields = false;
+  ignoreExporterFields = true;
 
   private specValidator: LottieValidator;
 
@@ -150,6 +150,11 @@ export class SkottieCompatibilitySk extends ElementSk {
 
         const pathParts = error.path.split('/');
         const propName = pathParts[pathParts.length - 1];
+
+        if (pathParts[1] === 'slots' && SANITIZE_KEYS_IF_SLOT.includes(propName)) {
+          return false;
+        }
+
         return !COMMON_EXPORTER_FIELDS.includes(propName);
       });
     }

@@ -1,5 +1,6 @@
 const SANITIZE_KEYS = ['ix', 'mn', 'cix', 'np', 'l', 'td', 'cl', 'ct'];
 const SANITIZE_KEYS_IF_ROOT = ['v', 'props'];
+export const SANITIZE_KEYS_IF_SLOT = ['t'];
 const SANITIZE_KEYS_IF_NOT_LAYER = ['ind'];
 const SANITIZE_KEYS_IF_ASSET = ['fr'];
 const SANITIZE_KEYS_IF_NOT_PRECOMP = ['sr', 'st'];
@@ -28,6 +29,18 @@ export function sanitizeLottie(lottie: any) {
   }
 
   sanitizeNode(lottie);
+
+  if (lottie.slots) {
+    sanitizeSlots(lottie);
+  }
+}
+
+function sanitizeSlots(lottie: any) {
+  Object.values(lottie.slots).forEach((slot: any) => {
+    for (const key of SANITIZE_KEYS_IF_SLOT) {
+      delete slot[key];
+    }
+  });
 }
 
 function sanitizeNode(node: any) {
