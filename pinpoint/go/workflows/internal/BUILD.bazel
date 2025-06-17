@@ -35,6 +35,8 @@ go_library(
         "//go/sklog",
         "//go/swarming",
         "//go/util",
+        "//perf/go/ingest/format",
+        "//perf/go/perfresults",
         "//pinpoint/go/backends",
         "//pinpoint/go/bot_configs",
         "//pinpoint/go/clients/build",

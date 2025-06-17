@@ -299,6 +299,15 @@ func (h Histogram) Mean() float64 {
 	return h.Sum() / float64(h.Count())
 }
 
+func (h Histogram) Median() float64 {
+	slices.Sort(h.SampleValues)
+	c := h.Count()
+	if c%2 == 0 {
+		return (h.SampleValues[c/2-1] + h.SampleValues[c/2]) / 2.0
+	}
+	return h.SampleValues[c/2]
+}
+
 func (h Histogram) Stddev() float64 {
 	sum := h.Sum()
 	mean := sum / float64(h.Count())
