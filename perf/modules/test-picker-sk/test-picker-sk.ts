@@ -39,7 +39,9 @@ import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import '../../../elements-sk/modules/spinner-sk';
 
 // The maximum number of matches before Plotting is enabled.
-const PLOT_MAXIMUM = 200;
+const PLOT_MAXIMUM: number = 200;
+
+const MAX_MESSAGE = PLOT_MAXIMUM + ' Max';
 
 // Data Structure to keep track of field information.
 class FieldInfo {
@@ -55,7 +57,7 @@ class FieldInfo {
 export class TestPickerSk extends ElementSk {
   private _fieldData: FieldInfo[] = [];
 
-  private _count: string = '';
+  private _count: number = -1;
 
   private _containerDiv: Element | null = null;
 
@@ -80,8 +82,9 @@ export class TestPickerSk extends ElementSk {
       <div id="fieldContainer"></div>
       <div id="queryCount">
         <div class="test-picker-sk-matches-container">
-          Matches: <span>${ele._count}</span
-          ><spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
+          Traces: <span>${ele._count}</span>
+          <div ?hidden="${!(ele._count > PLOT_MAXIMUM)}"><i>(${MAX_MESSAGE})</i></div>
+          <spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
         </div>
         <div id="auto-add-container">
           <checkbox-sk
@@ -210,8 +213,8 @@ export class TestPickerSk extends ElementSk {
    * @param index
    */
   private removeChildFields(index: number) {
-    while (this._currentIndex - 1 > index) {
-      const fieldInfo = this._fieldData[this._currentIndex - 1];
+    while (this._currentIndex > index) {
+      const fieldInfo = this._fieldData[this._currentIndex];
       fieldInfo.value = [];
       if (fieldInfo.field !== null) {
         this._containerDiv!.removeChild(fieldInfo.field!);
@@ -435,7 +438,7 @@ export class TestPickerSk extends ElementSk {
       if (
         this._graphDiv !== null &&
         this._graphDiv.children.length > 0 &&
-        Number(this._count) <= PLOT_MAXIMUM
+        this._count <= PLOT_MAXIMUM
       ) {
         const detail = {
           query: this.createQueryFromFieldData(),
@@ -447,6 +450,9 @@ export class TestPickerSk extends ElementSk {
             bubbles: true,
           })
         );
+      } else {
+        // Show error message if there are too many traces.
+        errorMessage(MAX_MESSAGE);
       }
     }
   }
@@ -461,9 +467,8 @@ export class TestPickerSk extends ElementSk {
       fieldInfo.field.removeEventListener('value-changed', () => {});
     }
     fieldInfo.field!.addEventListener('value-changed', (e) => {
-      this._currentIndex = index;
       const value = (e as CustomEvent).detail.value;
-      if (value === '') {
+      if (value.length === 0) {
         this.removeChildFields(index);
       }
       fieldInfo.value = value;
@@ -527,7 +532,7 @@ export class TestPickerSk extends ElementSk {
             fieldInfo.field!.focus();
             this.addValueUpdatedEventToField(i);
             // Track the furthest index queried
-            if (this._currentIndex < i) {
+            if (this._currentIndex <= i) {
               this._currentIndex = i;
               this.updateCount(count);
             }
@@ -634,12 +639,12 @@ export class TestPickerSk extends ElementSk {
    */
   private updateCount(count: number) {
     if (count === -1) {
-      this._count = '';
+      this._count = 0;
       this._plotButton!.disabled = true;
       return;
     }
 
-    this._count = `${count}`;
+    this._count = count;
     if (count > PLOT_MAXIMUM || count <= 0) {
       this._plotButton!.disabled = true;
       this.autoAddTrace = false;

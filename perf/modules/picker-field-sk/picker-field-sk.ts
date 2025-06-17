@@ -60,6 +60,7 @@ export class PickerFieldSk extends ElementSk {
         <checkbox-sk
           title="Splits the chart by attribute."
           name=${ele.label}
+          id=${ele.label}
           label="Split"
           @change=${ele.splitOnValue}
           ?checked=${ele._splitBy}
@@ -90,8 +91,8 @@ export class PickerFieldSk extends ElementSk {
     );
   }
 
-  private splitOnValue() {
-    this._splitBy = !this._splitBy;
+  private splitOnValue(e: Event) {
+    this._splitBy = (e.currentTarget as HTMLInputElement).checked;
     this.dispatchEvent(
       new CustomEvent('split-by-changed', {
         detail: {
@@ -112,12 +113,16 @@ export class PickerFieldSk extends ElementSk {
   }
 
   focus() {
-    this._comboBox!.focus();
+    if (this._comboBox !== null) {
+      this._comboBox!.focus();
+    }
     this._render();
   }
 
   openOverlay() {
-    this._comboBox!.click();
+    if (this._comboBox !== null) {
+      this._comboBox!.click();
+    }
     this._render();
   }
 

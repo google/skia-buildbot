@@ -21,6 +21,7 @@ import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { escapeAndLinkifyToString } from '../../../infra-sk/modules/linkify';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 
 import '@material/web/button/outlined-button.js';
 import '@material/web/icon/icon.js';
@@ -184,6 +185,9 @@ const MIN_ZOOM_RANGE = 0.1;
 
 // The max number of points a user can nudge an anomaly by.
 const NUDGE_RANGE = 2;
+
+// Minimum amount of points to display on a graph.
+const MIN_POINTS = 100;
 
 const monthInSec = 30 * 24 * 60 * 60;
 
@@ -1911,6 +1915,26 @@ export class ExploreSimpleSk extends ElementSk {
         googlePlot.selectCommit(commitIndex, column);
       }
     }
+    // When loading the chart, look if SplitByKey is in the URL.
+    const splitKey =
+      currentUrl.searchParams.get('splitByKey') ?? String(this._state.selected.commit);
+    if (splitKey) {
+      const checkbox = document.querySelector(`checkbox-sk[id="${splitKey}"]`) as CheckOrRadio;
+      // If not checked and present, then split the loaded data.
+      if (checkbox && !checkbox.checked) {
+        checkbox.checked = true;
+        this.dispatchEvent(
+          new CustomEvent('split-by-changed', {
+            detail: {
+              param: splitKey,
+              split: splitKey,
+            },
+            bubbles: true,
+            composed: true,
+          })
+        );
+      }
+    }
   }
 
   /**
@@ -2039,7 +2063,7 @@ export class ExploreSimpleSk extends ElementSk {
     // Show the commit hashes in the tooltip without having to refetch.
     let hashes: string[] = [];
     if (commits && commits.length > 1) {
-      hashes = [commits[0]!.hash, commits[1]!.hash];
+      hashes = [commits[0]!.hash ?? 0, commits[1]!.hash ?? 0];
     }
 
     const commit = commits ? commits[1] : null;
@@ -2909,7 +2933,20 @@ export class ExploreSimpleSk extends ElementSk {
           this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit', false);
         });
         this.dfRepo.value?.extendRange(3 * monthInSec).then(() => {
+          // Ensure at least the Minimum Points are displayed.
+          if (dataframe.header && dataframe.header.length < MIN_POINTS) {
+            const header = this.dfRepo.value?.header;
+            // Check to ensure enough point exist.
+            if (header && header.length > MIN_POINTS) {
+              selectedRange = range(
+                header[header.length - MIN_POINTS]!.offset,
+                header[header.length - 1]!.offset
+              );
+            }
+          }
           this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit', false);
+          this.plotSummary.value?.SelectRange(selectedRange!);
+          // Modify the Range if URL contains different values.
           this.useBrowserURL();
         });
       }

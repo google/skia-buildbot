@@ -165,8 +165,8 @@ describe('point-links-sk', () => {
         []
       );
       const expectedLinks = {
-        key1: 'https://repoHost/repo1/+log/preLink..curLink',
-        key2: 'https://repoHost/repo2/+log/preLink..curLink',
+        key1: 'https://repoHost/repo1/+log/preLink..curLink?n=1000',
+        key2: 'https://repoHost/repo2/+log/preLink..curLink?n=1000',
       };
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
@@ -273,7 +273,7 @@ describe('point-links-sk', () => {
       );
       const expectedLinks = {
         key1: 'https://repoHost/repo1/+/curLink',
-        key2: 'https://repoHost/repo2/+log/preLink..curLink',
+        key2: 'https://repoHost/repo2/+log/preLink..curLink?n=1000',
         buildKey: 'https://luci/builder/build1',
         traceKey: 'https://traceViewer/trace',
       };

@@ -220,7 +220,8 @@ export class PointLinksSk extends ElementSk {
                 currentCommitId
               );
               const repoUrl = this.getRepoUrlFromCommitUrl(currentCommitUrl);
-              const commitRangeUrl = `${repoUrl}+log/${prevCommitId}..${currentCommitId}`;
+              // Set pagination to large value to ease skipping (1000 is arbitrary).
+              const commitRangeUrl = `${repoUrl}+log/${prevCommitId}..${currentCommitId}?n=1000`;
               displayUrls[displayKey] = commitRangeUrl;
             }
           }
