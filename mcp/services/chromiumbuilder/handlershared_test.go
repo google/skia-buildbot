@@ -1,6 +1,6 @@
 package chromiumbuilder
 
-// Tests for code in service.go that is shared by a multiple tool handlers.
+// Tests for chromiumbuilder code that is shared by a multiple tool handlers.
 
 import (
 	"context"

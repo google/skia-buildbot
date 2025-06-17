@@ -4,8 +4,16 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "chromiumbuilder",
     srcs = [
+        "cancellablecommand.go",
+        "checkoutshared.go",
         "commonargs.go",
+        "dependencyinjection.go",
+        "handlercichildtester.go",
+        "handlercicombinedbuilder.go",
+        "handlershared.go",
         "service.go",
+        "setup.go",
+        "shutdown.go",
     ],
     importpath = "go.skia.org/infra/mcp/services/chromiumbuilder",
     visibility = ["//visibility:public"],
