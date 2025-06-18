@@ -3,8 +3,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"math"
 	"net"
 	"net/http"
 	"os"
@@ -32,6 +34,7 @@ import (
 	"go.skia.org/infra/go/tracing/loggingtracer"
 
 	"go.skia.org/infra/cabe/go/analysisserver"
+	"go.skia.org/infra/cabe/go/analyzer"
 	"go.skia.org/infra/cabe/go/backends"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/grpclogging"
@@ -74,6 +77,11 @@ type App struct {
 	grpcServer *grpc.Server
 }
 
+type CQGetCabeAnalysisResults struct {
+	Benchmark string
+	Results   map[string]*cpb.Statistic
+}
+
 // FlagSet constructs a flag.FlagSet for the App.
 func (a *App) FlagSet() *flag.FlagSet {
 	fs := flag.NewFlagSet(appName, flag.ExitOnError)
@@ -110,6 +118,68 @@ func (a *App) swarmingTaskReader(ctx context.Context, pinpointJobID string) ([]*
 	return tasksResp, nil
 }
 
+func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	job_id := chi.URLParam(r, "pinpoint_job_id")
+
+	analy := analyzer.New(
+		job_id,
+		analyzer.WithSwarmingTaskReader(a.swarmingTaskReader),
+		analyzer.WithCASResultReader(a.casResultReader),
+	)
+	sklog.Infof("[POC] Pinpoint job %v GetAnalysis", job_id)
+
+	c := analyzer.NewChecker(analyzer.DefaultCheckerOpts...)
+	if err := analy.RunChecker(ctx, c); err != nil {
+		httputils.ReportError(w, err, "[POC] run checker error.", http.StatusInternalServerError)
+		return
+	}
+	sklog.Infof("[POC] checker findings: %v", c.Findings())
+
+	if _, err := analy.Run(ctx); err != nil {
+		httputils.ReportError(w, err, "[POC] error running analyzer.", http.StatusInternalServerError)
+		return
+	}
+
+	res := analy.AnalysisResults()
+	analysis_results := &CQGetCabeAnalysisResults{}
+	for _, r := range res {
+		stat := r.Statistic
+		workload := r.ExperimentSpec.Analysis.Benchmark[0].Workload[0]
+		is_significant := false
+		// TODO(wenbinzhang): replace the hardcoded condition
+		// Currently only Speedometer3 is running and only Score has improvement directly
+		// as UP.
+		is_improvement := ((stat.TreatmentMedian > stat.ControlMedian) && workload == "Score") || (stat.TreatmentMedian < stat.ControlMedian)
+		// Using the same logic as in legacy cabe service.
+		// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/sandwich_verification/main.py;l=224
+		if stat.PValue == math.NaN() {
+			if stat.Lower != math.Inf(1) && stat.Upper != math.Inf(1) && stat.Lower*stat.Upper > 0 {
+				is_significant = true
+			}
+		} else if stat.Lower == math.NaN() || stat.Upper == math.NaN() || stat.Lower == math.Inf(1) || stat.Upper == math.Inf(1) {
+			if stat.PValue < 0.05 {
+				is_significant = true
+			}
+		} else if stat.Lower*stat.Upper > 0 && stat.PValue < 0.05 {
+			is_significant = true
+		}
+		if is_significant && !is_improvement {
+			analysis_results.Results[workload] = stat
+		}
+	}
+	sklog.Debugf("[POC] cabe analysis returns %d regressions.")
+	if len(analysis_results.Results) > 0 {
+		analysis_results.Benchmark = res[0].ExperimentSpec.Analysis.Benchmark[0].Name
+	}
+	if err := json.NewEncoder(w).Encode(analysis_results); err != nil {
+		httputils.ReportError(w, err, "[POC] Failed to write results to response.", http.StatusInternalServerError)
+		return
+	}
+	sklog.Debugf("[POC] getCQCabeAnalysisHandle returning respose: %v", analysis_results)
+}
+
 // Init creates listeners for required service ports and prepares the App for serving.
 func (a *App) Init(ctx context.Context) error {
 	if a.swarmingClient == nil {
@@ -123,13 +193,14 @@ func (a *App) Init(ctx context.Context) error {
 	}
 	var err error
 
+	topLevelRouter := chi.NewRouter()
+	topLevelRouter.Get("/getanalysis/{pinpoint_job_id}", a.getCQCabeAnalysisHandler)
 	// Just testing the http healthz check to make sure envoy can
 	// connect to these processes at all. If we end up needing
 	// both the http server and the grpc server in order to satisfy envoy
 	// health checks AND serve grpc requests, we can separate the http and
 	// grpc port flags in k8s configs.
 	sklog.Infof("registering http healthz handler")
-	topLevelRouter := chi.NewRouter()
 	h := httputils.HealthzAndHTTPS(topLevelRouter)
 	httpServeMux := http.NewServeMux()
 	httpServeMux.Handle("/", h)
