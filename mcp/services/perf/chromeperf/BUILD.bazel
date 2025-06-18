@@ -14,7 +14,7 @@ go_library(
         "//go/httputils",
         "//go/skerr",
         "//mcp/common",
-        "//mcp/services/perf/common",
+        "//mcp/services/common",
         "//mcp/services/perf/pinpoint",
         "@com_github_mark3labs_mcp_go//mcp",
     ],

@@ -6,16 +6,9 @@ go_library(
     importpath = "go.skia.org/infra/mcp/services/releaseinfra",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/auth",
-        "//go/httputils",
         "//go/skerr",
-        "//go/sklog",
         "//mcp/common",
-        "@com_github_mark3labs_mcp_go//mcp",
-        "@org_chromium_go_luci//buildbucket/proto",
-        "@org_chromium_go_luci//grpc/prpc",
-        "@org_golang_google_protobuf//types/known/fieldmaskpb",
-        "@org_golang_google_protobuf//types/known/timestamppb",
-        "@org_golang_x_oauth2//google",
+        "//mcp/services/common",
+        "//mcp/services/releaseinfra/buildbucket",
     ],
 )

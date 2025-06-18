@@ -10,7 +10,7 @@ import (
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
-	pcomm "go.skia.org/infra/mcp/services/perf/common"
+	scomm "go.skia.org/infra/mcp/services/common"
 )
 
 const (
@@ -57,7 +57,7 @@ type ChromeperfDescribeResponse struct {
 // ListBenchmarks returns all available benchmarks to execute.
 func (cp *ChromeperfClient) ListBenchmarks(ctx context.Context, c *http.Client) (string, error) {
 	reqUrl := fmt.Sprintf("%s%s", cp.Url, TestSuitesAPI)
-	resp, err := httputils.PostWithContext(ctx, c, reqUrl, pcomm.ContentType, nil)
+	resp, err := httputils.PostWithContext(ctx, c, reqUrl, scomm.ContentType, nil)
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to list benchmark options")
 	}
@@ -87,7 +87,7 @@ func (cp *ChromeperfClient) buildDescribeAPIUrl(benchmark string) string {
 
 // callDescribeApi triggers the POST request and return the content body.
 func (cp *ChromeperfClient) callDescribeApi(ctx context.Context, c *http.Client, reqUrl string) (*ChromeperfDescribeResponse, error) {
-	resp, err := httputils.PostWithContext(ctx, c, reqUrl, pcomm.ContentType, nil)
+	resp, err := httputils.PostWithContext(ctx, c, reqUrl, scomm.ContentType, nil)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to list bot configurations")
 	}
@@ -124,7 +124,7 @@ func (cp *ChromeperfClient) ListBotConfigurations(ctx context.Context, c *http.C
 
 	// Otherwise, use /api/config to get the full list.
 	reqUrl := fmt.Sprintf("%s%s", cp.Url, ConfigAPI)
-	resp, err := httputils.PostWithContext(ctx, c, reqUrl, pcomm.ContentType, nil)
+	resp, err := httputils.PostWithContext(ctx, c, reqUrl, scomm.ContentType, nil)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to list bot configurations")
 	}

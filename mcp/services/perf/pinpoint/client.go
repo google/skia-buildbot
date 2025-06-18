@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/mcp/services/perf/common"
+	"go.skia.org/infra/mcp/services/common"
 	"go.skia.org/infra/pinpoint/go/backends"
 )
 

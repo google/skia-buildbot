@@ -20,7 +20,7 @@ const (
 func DefaultHttpClient(ctx context.Context) (*http.Client, error) {
 	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to create pinpoint client.")
+		return nil, skerr.Wrapf(err, "Failed to create http client.")
 	}
 
 	return httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client(), nil
