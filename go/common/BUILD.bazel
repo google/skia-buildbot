@@ -15,7 +15,6 @@ go_library(
         "//go/sklog",
         "//go/sklog/cloudlogging",
         "//go/sklog/sklogimpl",
-        "//go/sklog/structuredlogging",
         "@com_google_cloud_go_logging//:logging",
         "@org_golang_x_oauth2//google",
     ],

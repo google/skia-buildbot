@@ -2,16 +2,19 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"flag"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/sklogimpl"
 	log "go.skia.org/infra/go/sklog/structuredlogging"
-	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -29,9 +32,11 @@ func main() {
 	common.InitWithMust(
 		"test-service",
 		common.PrometheusOpt(promPort),
-		common.StructuredLogging(local),
 	)
 	defer common.Defer()
+	if !*local {
+		sklogimpl.SetLogger(log.New(os.Stderr))
+	}
 
 	r := chi.NewRouter()
 	r.HandleFunc("/", mainHandler)
@@ -60,11 +65,23 @@ multiline
 		}
 	}()
 	go func() {
-		largeLogString := util.RandomString(550 * 1024)
+		largeLogString := makeString(550 * 1024)
 		sklog.Info(largeLogString)
 		for range time.Tick(10 * time.Minute) {
 			sklog.Info(largeLogString)
 		}
 	}()
 	sklog.Fatal(http.ListenAndServe(*port, nil))
+}
+
+func makeString(numBytes int) string {
+	b := make([]byte, numBytes)
+	if n, err := rand.Read(b); err != nil {
+		sklog.Errorf("Failed to generate string: %s", err)
+		return ""
+	} else if n != numBytes {
+		sklog.Errorf("Failed to generate string: generated %d bytes instead of %d", n, numBytes)
+		return ""
+	}
+	return base64.StdEncoding.EncodeToString(b)
 }

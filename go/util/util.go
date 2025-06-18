@@ -4,7 +4,6 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/md5"
-	"crypto/rand"
 	"encoding/gob"
 	"flag"
 	"fmt"
@@ -957,16 +956,4 @@ func WordWrap(s string, lineLength int) string {
 		}
 	}
 	return strings.Join(rvLines, "\n")
-}
-
-func RandomString(numBytes int) string {
-	b := make([]byte, numBytes)
-	if n, err := rand.Read(b); err != nil {
-		sklog.Errorf("Failed to generate string: %s", err)
-		return ""
-	} else if n != numBytes {
-		sklog.Errorf("Failed to generate string: generated %d bytes instead of %d", n, numBytes)
-		return ""
-	}
-	return string(b)
 }
