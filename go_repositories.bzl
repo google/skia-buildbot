@@ -3301,6 +3301,12 @@ def go_repositories():
         version = "v1.6.8",
     )
     go_repository(
+        name = "org_golang_google_genai",
+        importpath = "google.golang.org/genai",
+        sum = "h1:MgI2JVDaIQ1YMuzKFwgPciB+K6kQ8MCBMVL9u7Oa8qw=",
+        version = "v1.11.1",
+    )
+    go_repository(
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
         sum = "h1:ToEetK57OidYuqD4Q5w+vfEnPvPpuTwedCNVohYJfNk=",

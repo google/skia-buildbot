@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "exe_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/mcp/client/go/mcpClient/exe",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//mcp/client/go/mcpClient:mcpClient_lib",
+    ],
+)
+
+go_binary(
+    name = "exe",
+    embed = [":exe_lib"],
+    visibility = ["//visibility:public"],
+)

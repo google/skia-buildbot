@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mcpClient_lib",
+    srcs = [
+        "chat.go",
+        "client.go",
+    ],
+    importpath = "go.skia.org/infra/mcp/client/go/mcpClient",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_mark3labs_mcp_go//client",
+        "@com_github_mark3labs_mcp_go//client/transport",
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@org_golang_google_genai//:genai",
+        "@org_golang_x_oauth2//google",
+    ],
+)
