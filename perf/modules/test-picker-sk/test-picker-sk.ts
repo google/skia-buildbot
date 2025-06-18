@@ -39,7 +39,7 @@ import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import '../../../elements-sk/modules/spinner-sk';
 
 // The maximum number of matches before Plotting is enabled.
-const PLOT_MAXIMUM = 20;
+const PLOT_MAXIMUM = 200;
 
 // Data Structure to keep track of field information.
 class FieldInfo {
