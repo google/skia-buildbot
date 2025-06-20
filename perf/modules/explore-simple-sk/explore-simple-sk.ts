@@ -583,6 +583,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   enable_copy_query: boolean = false;
 
+  is_anomaly_table: boolean = false;
+
   enableRemoveButton: boolean = true;
 
   private xAxisSwitch = false;
@@ -1209,6 +1211,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Enable button only on Multi Chart view.
     this.enable_copy_query = document.querySelector('explore-multi-sk') ? true : false;
+    this.is_anomaly_table = document.querySelector('anomaly-table-sk') ? true : false;
 
     // material UI stuff
     this.settingsDialog = this.querySelector<MdDialog>('#settings-dialog');
@@ -1859,6 +1862,20 @@ export class ExploreSimpleSk extends ElementSk {
     window.history.pushState(null, '', currentUrl.toString());
   }
 
+  /**
+   * Reads parameters from the browser URL and applies them to the chart.
+   * This is used to restore the state of the chart from a shared URL.
+   *
+   * It handles three main pieces of state from the URL:
+   * 1. Time Range (begin/end): Sets the visible range of the chart. It converts
+   *    the 'begin' and 'end' timestamp URL params to commit offsets and updates
+   *    the plot summary's selection.
+   * 2. Point Selection (graph/commit/trace): If the URL specifies a 'graph' that
+   *    matches this component's index, it will select the specific 'commit' and
+   *    'trace' (column) on the chart.
+   * 3. Split by Key (splitByKey): If the 'splitByKey' param is present, it will
+   *    trigger the action to split the chart by that parameter key.
+   */
   private useBrowserURL(): void {
     const currentUrl = new URL(window.location.href);
     const commit: number = parseInt(
@@ -1869,19 +1886,27 @@ export class ExploreSimpleSk extends ElementSk {
     );
     const graph: number = parseInt(currentUrl.searchParams.get('graph') ?? '0');
 
-    if (this.state.graph_index === 0) {
-      const begin = parseInt(currentUrl.searchParams.get('begin') ?? '');
-      const end = parseInt(currentUrl.searchParams.get('end') ?? '');
-      if (isNaN(begin) || isNaN(end)) {
+    const begin = parseInt(currentUrl.searchParams.get('begin') ?? '');
+    const end = parseInt(currentUrl.searchParams.get('end') ?? '');
+    if (isNaN(begin) || isNaN(end)) {
+      // When no value is found in the URL, then use the first graph to update it.
+      if (this.state.graph_index === 0) {
         this.updateBrowserURL();
-        return;
       }
-      const beginIndex = this.getCommitIndex(begin, 'timestamp');
-      const endIndex = this.getCommitIndex(end, 'timestamp');
-      if (beginIndex === null || endIndex === null) {
+      return;
+    }
+    const beginIndex = this.getCommitIndex(begin, 'timestamp');
+    const endIndex = this.getCommitIndex(end, 'timestamp');
+    if (beginIndex === -1 || endIndex === -1) {
+      // When no commit is found in the dataframe, return.
+      // Only message if not anomaly table where graphs are not synced.
+      if (!this.is_anomaly_table) {
         errorMessage(`Timestamp(s) not found in the dataframe: ${begin}, ${end}`);
-        return;
       }
+      return;
+    }
+
+    if (this.state.graph_index === 0 || this.is_anomaly_table) {
       const beginCommit = this.dfRepo.value?.header[beginIndex]?.offset;
       const endCommit = this.dfRepo.value?.header[endIndex]?.offset;
       if (beginCommit === undefined || endCommit === undefined) {
@@ -1903,7 +1928,7 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
 
-    if (this._state.graph_index === graph && commit && !isNaN(commit)) {
+    if (this.state.graph_index === graph && commit && !isNaN(commit)) {
       // If the commit is specified, we need to select it in the chart.
       const commitIndex = this.getCommitIndex(commit);
       if (commitIndex === null) {
@@ -2015,7 +2040,6 @@ export class ExploreSimpleSk extends ElementSk {
     this._dataframe.traceset = subDataframe.traceset;
     this._dataframe.header = subDataframe.header;
     this._dataframe.traceMetadata = subDataframe.traceMetadata;
-    this.updateTracePointMetadata(subDataframe.traceMetadata);
 
     if (!plot) {
       return;
@@ -2032,6 +2056,7 @@ export class ExploreSimpleSk extends ElementSk {
     if (replot) {
       plot.removeAll();
       this.AddPlotLines(subDataframe.traceset, this.getLabels(subDataframe.header!));
+      this.updateTracePointMetadata(subDataframe.traceMetadata);
     }
 
     if (anomalyMap) {
@@ -2761,9 +2786,9 @@ export class ExploreSimpleSk extends ElementSk {
       frameResponse.anomalymap,
       frameRequest!
     );
-    // Code previously in .then() now runs after await
+    // Code previously in .then() now runs after await.
     this.addTraces(frameResponse, switchToTab, selectedRange);
-    this.updateTracePointMetadata(frameResponse.dataframe!.traceMetadata);
+    await this.updateTracePointMetadata(frameResponse.dataframe!.traceMetadata);
     this.updateTitle();
     this._render();
     if (isValidSelection(this._state.selected)) {
@@ -3130,11 +3155,12 @@ export class ExploreSimpleSk extends ElementSk {
    * updateTracePointMetadata populates the commit links from the trace metadata
    * in the response.
    */
-  private updateTracePointMetadata(traceMetadatas: TraceMetadata[] | null) {
+  private async updateTracePointMetadata(traceMetadatas: TraceMetadata[] | null) {
     if (traceMetadatas === null) {
       return;
     }
 
+    const commitLinks: CommitLinks[] = [];
     for (let i = 0; i < traceMetadatas.length; i++) {
       if (traceMetadatas[i].commitLinks !== null) {
         Object.keys(traceMetadatas[i].commitLinks!).forEach((commitnumStr) => {
@@ -3161,11 +3187,12 @@ export class ExploreSimpleSk extends ElementSk {
               displayTexts: displayTexts,
             };
 
-            this.commitLinks.push(commitLink);
+            commitLinks.push(commitLink);
           }
         });
       }
     }
+    this.commitLinks = commitLinks;
   }
 
   // take a query string, and update the parameters with default values if needed

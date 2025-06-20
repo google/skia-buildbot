@@ -250,6 +250,7 @@ export class ReportPageSk extends ElementSk {
     explore.navOpen = false;
     explore.enableRemoveButton = false;
 
+    const graphIndex = this.graphDiv!.children.length;
     this.graphDiv!.prepend(explore);
 
     const query = this.getQueryFromAnomaly(anomaly);
@@ -269,6 +270,7 @@ export class ReportPageSk extends ElementSk {
       // 1 means to query State().numCommits number of data points
       // Set to 0 to promote symmetry.
       requestType: 0,
+      graph_index: graphIndex,
     };
     this.updateChartHeights();
     this._render();
