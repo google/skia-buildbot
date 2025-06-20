@@ -84,7 +84,7 @@ func getBrowserInfo(ctx workflow.Context, cbb *CbbRunnerParams) (*browserInfo, e
 	} else {
 		return nil, errors.New(fmt.Sprintf("Unable to determine platform for bot %s", cbb.BotConfig))
 	}
-	gitPath := fmt.Sprintf("tools/perf/cbb_ref_info/%s/%s/%s.json", cbb.Browser, cbb.Channel, platformName)
+	gitPath := fmt.Sprintf("testing/perf/cbb_ref_info/%s/%s/%s.json", cbb.Browser, cbb.Channel, platformName)
 
 	var content []byte
 	if err := workflow.ExecuteActivity(ctx, ReadGitFileActivity, cbb.Commit, gitPath).Get(ctx, &content); err != nil {

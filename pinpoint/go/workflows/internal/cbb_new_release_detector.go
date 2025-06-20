@@ -2,24 +2,49 @@ package internal
 
 import (
 	"log"
+	"time"
 
 	"go.skia.org/infra/go/skerr"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
+// NewReleaseWorkflowTimeout is the overall workflow timeout.
+const NewReleaseWorkflowTimeout time.Duration = 30 * time.Minute
+
+// ClSubmissionTimeout is waiting time to submit a CL.
+// It should be about 10 minutes less than the overall timeout.
+const ClSubmissionTimeout time.Duration = 20 * time.Minute
+
+var (
+	// Activity options for detecting new releases and committing build info to
+	// the chromium/src repository.
+	releaseDetectorActivityOptions = workflow.ActivityOptions{
+		StartToCloseTimeout: NewReleaseWorkflowTimeout,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 1,
+		},
+	}
+)
+
+// ChromeReleaseInfo contains the detected new Chrome release info.
+type ChromeReleaseInfo struct {
+	CommitPosition string
+	CommitHash     string
+}
+
 // CbbNewReleaseDetectorWorkflow is the most basic Workflow Defintion.
-func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) error {
-	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
+func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, error) {
+	ctx = workflow.WithActivityOptions(ctx, releaseDetectorActivityOptions)
 
-	var builds []BuildInfo
-	if err := workflow.ExecuteActivity(ctx, GetChromeReleasesInfoActivity).Get(ctx, &builds); err != nil {
-		return skerr.Wrap(err)
+	var commitInfo ChromeReleaseInfo
+	if err := workflow.ExecuteActivity(ctx, GetChromeReleasesInfoActivity).Get(ctx, &commitInfo); err != nil {
+		return nil, skerr.Wrap(err)
 	}
-	// TODO(b/388894957): Remove printing builds info.
-	for _, build := range builds {
-		log.Printf("Channel:%s, Platform:%s, Version:%s", build.Channel, build.Platform, build.Version)
+	log.Printf("commitInfo:%v", commitInfo)
+	workflowResult := &ChromeReleaseInfo{
+		CommitPosition: commitInfo.CommitPosition,
+		CommitHash:     commitInfo.CommitHash,
 	}
-
-	// TODO(b/388894957): Use Spanner to detect new releases.
-	return nil
+	return workflowResult, nil
 }

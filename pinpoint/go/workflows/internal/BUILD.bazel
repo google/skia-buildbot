@@ -29,6 +29,9 @@ go_library(
     ],
     deps = [
         "//go/auth",
+        "//go/exec",
+        "//go/gerrit",
+        "//go/git",
         "//go/gitiles",
         "//go/httputils",
         "//go/skerr",
