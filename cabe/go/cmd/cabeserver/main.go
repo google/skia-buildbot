@@ -144,6 +144,7 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 
 	res := analy.AnalysisResults()
 	analysis_results := &CQGetCabeAnalysisResults{}
+	analysis_results.Results = make(map[string]*cpb.Statistic)
 	for _, r := range res {
 		stat := r.Statistic
 		workload := r.ExperimentSpec.Analysis.Benchmark[0].Workload[0]
@@ -169,7 +170,7 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 			analysis_results.Results[workload] = stat
 		}
 	}
-	sklog.Debugf("[POC] cabe analysis returns %d regressions.")
+	sklog.Debugf("[POC] cabe analysis returns %d regressions.", len(analysis_results.Results))
 	if len(analysis_results.Results) > 0 {
 		analysis_results.Benchmark = res[0].ExperimentSpec.Analysis.Benchmark[0].Name
 	}
