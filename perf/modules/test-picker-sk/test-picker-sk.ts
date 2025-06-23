@@ -41,7 +41,7 @@ import '../../../elements-sk/modules/spinner-sk';
 // The maximum number of matches before Plotting is enabled.
 const PLOT_MAXIMUM: number = 200;
 
-const MAX_MESSAGE = PLOT_MAXIMUM + ' Max';
+const MAX_MESSAGE = 'Reduce Traces';
 
 // Data Structure to keep track of field information.
 class FieldInfo {
@@ -82,27 +82,21 @@ export class TestPickerSk extends ElementSk {
       <div id="fieldContainer"></div>
       <div id="queryCount">
         <div class="test-picker-sk-matches-container">
-          Traces: <span>${ele._count}</span>
-          <div ?hidden="${!(ele._count > PLOT_MAXIMUM)}"><i>(${MAX_MESSAGE})</i></div>
+          Traces: ${ele._count}
+          <div ?hidden="${!(ele._count > PLOT_MAXIMUM)}">
+            <span id="max-message">(${MAX_MESSAGE})</span>
+          </div>
           <spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
         </div>
-        <div id="auto-add-container">
-          <checkbox-sk
-            label="Auto Add"
-            title="Updates charts when changing test picker."
-            @change=${ele.onToggleCheckboxClick}
-            ?checked=${ele._autoAddTrace}>
-          </checkbox-sk>
+        <div id="plot-button-container">
+          <button
+            id="plot-button"
+            @click=${ele.onPlotButtonClick}
+            disabled
+            title="Plot a graph on selected values.">
+            Plot
+          </button>
         </div>
-      </div>
-      <div id="plot-button-container" ?hidden=${ele._autoAddTrace}>
-        <button
-          id="plot-button"
-          @click=${ele.onPlotButtonClick}
-          disabled
-          title="Plot a graph on selected values.">
-          Add Graph
-        </button>
       </div>
     </div>
   `;
@@ -215,6 +209,20 @@ export class TestPickerSk extends ElementSk {
   private removeChildFields(index: number) {
     while (this._currentIndex > index) {
       const fieldInfo = this._fieldData[this._currentIndex];
+      // Remove split if it was previously enabled.
+      if (fieldInfo.splitBy.length > 0) {
+        fieldInfo.field!.split = false;
+        this.dispatchEvent(
+          new CustomEvent('split-by-changed', {
+            detail: {
+              param: fieldInfo.param,
+              split: false,
+            },
+            bubbles: true,
+            composed: true,
+          })
+        );
+      }
       fieldInfo.value = [];
       if (fieldInfo.field !== null) {
         this._containerDiv!.removeChild(fieldInfo.field!);
@@ -410,9 +418,9 @@ export class TestPickerSk extends ElementSk {
       const param = fieldInfo.param;
       const field: PickerFieldSk = new PickerFieldSk(param);
       fieldInfo.field = field;
-      if (paramSet[param] !== undefined) {
-        field.options = paramSet[param];
-        const selectedValue = selectedParams[fieldInfo.param] || null;
+      if (selectedParams[param] && selectedParams[param].length > 0) {
+        field.options = selectedParams[param];
+        const selectedValue = selectedParams[param] || null;
         if (selectedValue) {
           field.selectedItems = selectedValue;
           fieldInfo.value = selectedValue;
@@ -471,6 +479,20 @@ export class TestPickerSk extends ElementSk {
       if (value.length === 0) {
         this.removeChildFields(index);
       }
+      // Field was split, but not enough values so remove split.
+      if (fieldInfo.field!.split && value.length < 2) {
+        this.setSplitFields(fieldInfo.param, false);
+        this.dispatchEvent(
+          new CustomEvent('split-by-changed', {
+            detail: {
+              param: fieldInfo.param,
+              split: false,
+            },
+            bubbles: true,
+            composed: true,
+          })
+        );
+      }
       fieldInfo.value = value;
       if (fieldInfo.field) {
         fieldInfo.field.selectedItems = value;
@@ -478,28 +500,34 @@ export class TestPickerSk extends ElementSk {
       this.fetchExtraOptions(index);
     });
 
+    // Listen for split-by-changed events when the page is loaded from URL.
     fieldInfo.field.addEventListener('split-by-changed', (e) => {
       const param = (e as CustomEvent).detail.param;
       const split = (e as CustomEvent).detail.split;
+      this.setSplitFields(param, split);
+    });
+  }
 
-      for (let i = 0; i < this._fieldData.length; i++) {
-        if (this._fieldData[i].param === param) {
-          // Set split values and disable all other params
-          this._fieldData[i].field?.setSplit(split);
-          if (split) {
-            this._fieldData[i].splitBy = param;
-          } else {
-            this._fieldData[i].splitBy = [];
-          }
+  private setSplitFields(param: string, split: boolean) {
+    for (let i = 0; i < this._fieldData.length; i++) {
+      if (this._fieldData[i].param === param) {
+        (this._fieldData[i].field as PickerFieldSk).split = split;
+        // Set split values and disable all other params
+        if (split) {
+          this._fieldData[i].splitBy = [param];
         } else {
-          if (split) {
-            this._fieldData[i].field?.disableSplit();
-          } else {
-            this._fieldData[i].field?.enableSplit();
-          }
+          this._fieldData[i].splitBy = [];
+        }
+      } else {
+        // Enable or disable the rest of the Split options to avoid multiple
+        // splits from being attempted.
+        if (split) {
+          this._fieldData[i].field?.disableSplit();
+        } else {
+          this._fieldData[i].field?.enableSplit();
         }
       }
-    });
+    }
   }
 
   /**
@@ -640,23 +668,27 @@ export class TestPickerSk extends ElementSk {
   private updateCount(count: number) {
     if (count === -1) {
       this._count = 0;
-      this._plotButton!.disabled = true;
       return;
     }
 
     this._count = count;
     if (count > PLOT_MAXIMUM || count <= 0) {
-      this._plotButton!.disabled = true;
       this.autoAddTrace = false;
+      this._plotButton!.disabled = true;
+      this._plotButton!.title = 'Plotting is disabled. Not enough traces.';
+      return;
+    }
+    if (this._graphDiv && this._graphDiv.children.length > 0) {
+      this.autoAddTrace = true;
     } else {
-      this._plotButton!.disabled = false;
+      this.autoAddTrace = false;
     }
   }
 
   set autoAddTrace(autoAdd: boolean) {
     this._autoAddTrace = autoAdd;
     if (this._plotButton !== null) {
-      this._plotButton.disabled = !autoAdd;
+      this._plotButton.disabled = autoAdd;
     }
   }
 
@@ -711,6 +743,9 @@ export class TestPickerSk extends ElementSk {
           splitBy: [],
         });
       });
+    }
+    if (this._graphDiv && this._graphDiv.children.length > 0) {
+      this.autoAddTrace = true;
     }
   }
 }

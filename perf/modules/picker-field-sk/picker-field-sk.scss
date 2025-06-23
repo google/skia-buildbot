@@ -5,16 +5,22 @@
   #picker-field {
     display: flex;
     align-items: flex-end;
+    flex-direction: column;
+    #split-by-container {
+      position: absolute;
+      display: flex;
+    }
   }
   vaadin-multi-select-combo-box {
     --vaadin-input-field-height: 30px;
     --vaadin-input-field-icon-color: var(--lumo-secondary-text-color);
-    --vaadin-multi-select-combo-box-chip-min-width: 100px;
+    --vaadin-multi-select-combo-box-chip-max-width: auto;
     --vaadin-multi-select-combo-box-overlay-width: auto;
     --lumo-text-field-size: var(--lumo-size-xs);
     padding-right: 10px;
+    margin-top: 10px;
     margin-left: auto;
-    width: 300px;
+    max-width: 300px;
   }
   input {
     border: none;
@@ -23,20 +29,7 @@
     flex-flow: column-reverse;
   }
 }
-
-#splitby-keys {
-  vaadin-multi-select-combo-box {
-    --vaadin-input-field-height: 30px;
-    --vaadin-input-field-icon-color: var(--lumo-secondary-text-color);
-    --vaadin-multi-select-combo-box-overlay-width: auto;
-    --lumo-text-field-size: var(--lumo-size-xs);
-    padding-right: 10px;
-    margin-left: auto;
-    width: 200px;
-  }
-}
-
-.darkmode picker-field-sk {
+.darkmode .darkmode picker-field-sk {
   vaadin-multi-select-combo-box::part(label) {
     transition: color 0.3s ease;
     color: var(--on-disabled);

@@ -23,6 +23,14 @@
     align-items: center;
 
     .test-picker-sk-matches-container {
+      display: flex;
+      flex-direction: column;
+      align-self: center;
+      min-width: 75px;
+      #max-message {
+        color: var(--error);
+        font-style: italic;
+      }
       spinner-sk {
         margin: 0;
         margin-left: 8px;

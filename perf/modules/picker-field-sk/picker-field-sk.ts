@@ -29,6 +29,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
 import '@vaadin/combo-box/theme/lumo/vaadin-combo-box.js';
 import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 
 export interface SplitChartSelectionEventDetails {
   attribute: string;
@@ -43,14 +44,17 @@ export class PickerFieldSk extends ElementSk {
 
   private _comboBox: HTMLElement | null = null;
 
-  private _splitBox: HTMLElement | null = null;
+  private _splitBox: CheckOrRadio | null = null;
+
+  private _allSelected: CheckOrRadio | null = null;
 
   private _selectedItems: string[] = [];
 
-  private _splitBy: boolean = false;
+  private _split: boolean = false;
 
   constructor(label: string) {
     super(PickerFieldSk.template);
+
     this._label = label;
   }
 
@@ -60,11 +64,20 @@ export class PickerFieldSk extends ElementSk {
         <checkbox-sk
           title="Splits the chart by attribute."
           name=${ele.label}
-          id=${ele.label}
+          id="split-by"
           label="Split"
           @change=${ele.splitOnValue}
-          ?checked=${ele._splitBy}
+          ?checked=${ele.split}
           ?hidden=${ele.selectedItems.length < 2}>
+        </checkbox-sk>
+        <checkbox-sk
+          title="Select All"
+          name=${ele.label}
+          id="select-all"
+          label="All"
+          @change=${ele.selectAll}
+          ?checked=${ele.selectedItems.length === ele.options.length}
+          ?hidden=${ele._options.length < 2}>
         </checkbox-sk>
       </div>
       <vaadin-multi-select-combo-box
@@ -91,13 +104,20 @@ export class PickerFieldSk extends ElementSk {
     );
   }
 
+  /**
+   * Handles the change event for the "Split By" checkbox.
+   * It updates the `_splitBy` property and dispatches a custom event
+   * to notify that the split option has changed.
+   *
+   * @param e - The event triggered by the checkbox change.
+   */
   private splitOnValue(e: Event) {
-    this._splitBy = (e.currentTarget as HTMLInputElement).checked;
+    this._split = (e.currentTarget as HTMLInputElement).checked;
     this.dispatchEvent(
       new CustomEvent('split-by-changed', {
         detail: {
           param: this.label,
-          split: this._splitBy,
+          split: this._split,
         },
         bubbles: true,
         composed: true,
@@ -105,11 +125,27 @@ export class PickerFieldSk extends ElementSk {
     );
   }
 
+  /**
+   * Selects all options if the "Select All" checkbox is checked.
+   * If it is unchecked, it clears the selection.
+   *
+   * @param e - The event triggered by the checkbox change.
+   */
+  private selectAll() {
+    if (this._allSelected)
+      if (this._allSelected.checked === true) {
+        this.selectedItems = this.options;
+      } else {
+        this.selectedItems = [];
+      }
+  }
+
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this._comboBox = this.querySelector('vaadin-multi-select-combo-box');
-    this._splitBox = this.querySelector('checkbox-sk');
+    this._splitBox = this.querySelector('checkbox-sk#split-by');
+    this._allSelected = this.querySelector('checkbox-sk#select-all');
   }
 
   focus() {
@@ -162,14 +198,9 @@ export class PickerFieldSk extends ElementSk {
 
   disableSplit() {
     if (this._splitBox !== null) {
-      this._splitBy = false;
+      this._split = false;
       this._splitBox.setAttribute('disabled', '');
     }
-    this._render();
-  }
-
-  setSplit(val: boolean) {
-    this._splitBy = val;
     this._render();
   }
 
@@ -197,6 +228,18 @@ export class PickerFieldSk extends ElementSk {
         `${maxLength + 5}ch`
       );
     }
+  }
+
+  get split(): boolean {
+    return this._split;
+  }
+
+  set split(v: boolean) {
+    this._split = v;
+    if (this._splitBox !== null) {
+      this._splitBox.checked = v;
+    }
+    this._render();
   }
 
   get options(): string[] {

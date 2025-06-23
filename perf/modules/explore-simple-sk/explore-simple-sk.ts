@@ -1940,19 +1940,20 @@ export class ExploreSimpleSk extends ElementSk {
         googlePlot.selectCommit(commitIndex, column);
       }
     }
+
     // When loading the chart, look if SplitByKey is in the URL.
-    const splitKey =
-      currentUrl.searchParams.get('splitByKey') ?? String(this._state.selected.commit);
-    if (splitKey) {
-      const checkbox = document.querySelector(`checkbox-sk[id="${splitKey}"]`) as CheckOrRadio;
+    const splitKey = currentUrl.searchParams.get('splitByKeys');
+    if (this.state.graph_index === graph && splitKey) {
+      const checkbox = document.querySelector(`checkbox-sk[name="${splitKey}"]`) as CheckOrRadio;
       // If not checked and present, then split the loaded data.
       if (checkbox && !checkbox.checked) {
         checkbox.checked = true;
+        // Dispatch the event to split the chart by the given key.
         this.dispatchEvent(
           new CustomEvent('split-by-changed', {
             detail: {
               param: splitKey,
-              split: splitKey,
+              split: true,
             },
             bubbles: true,
             composed: true,
@@ -2087,8 +2088,9 @@ export class ExploreSimpleSk extends ElementSk {
     // Store the hashes of the first two commits in the range.
     // Show the commit hashes in the tooltip without having to refetch.
     let hashes: string[] = [];
-    if (commits && commits.length > 1) {
-      hashes = [commits[0]!.hash ?? 0, commits[1]!.hash ?? 0];
+    // Ensure that at least 2 hashes exist and use null if needed.
+    if (commits && commits.length >= 2) {
+      hashes = [commits[0]?.hash ?? '', commits[1]?.hash ?? ''];
     }
 
     const commit = commits ? commits[1] : null;

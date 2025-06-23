@@ -100,7 +100,7 @@ class State {
 
   xbaroffset: number = -1;
 
-  splitByKey: string[] = [];
+  splitByKeys: string[] = [];
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -144,7 +144,6 @@ export class ExploreMultiSk extends ElementSk {
     this._render();
 
     this.graphDiv = this.querySelector('#graphContainer');
-    this.addGraphButton = this.querySelector('#add-graph-button');
     this.testPicker = this.querySelector('#test-picker');
 
     await this.initializeDefaults();
@@ -199,7 +198,7 @@ export class ExploreMultiSk extends ElementSk {
         // Update the split by dropdown list.
         this.updateSplitByKeys();
         // If a key is specified (eg: directly via url), perform the split
-        if (this.state.splitByKey.length > 0) {
+        if (this.state.splitByKeys.length > 0) {
           this.splitGraphs();
           this.refreshSplitList = true;
         }
@@ -229,18 +228,6 @@ export class ExploreMultiSk extends ElementSk {
   private static template = (ele: ExploreMultiSk) => html`
     <div id="menu">
       <h1>MultiGraph Menu</h1>
-      <button
-        id="add-graph-button"
-        @click=${() => {
-          const explore = ele.addEmptyGraph();
-          if (explore) {
-            ele.updatePageForNewExplore();
-            explore.openQuery();
-          }
-        }}
-        title="Add empty graph.">
-        Add Graph
-      </button>
       <test-picker-sk id="test-picker" class="hidden"></test-picker-sk>
     </div>
     <hr />
@@ -365,8 +352,8 @@ export class ExploreMultiSk extends ElementSk {
       selectedSplitKey.trim();
       const splitByParamKey = selectedSplitKey.split('(')[0] ?? '';
       // Only split if the new selection is different.
-      if (this.state.splitByKey !== splitByParamKey) {
-        this.state.splitByKey = splitByParamKey;
+      if (!this.state.splitByKeys.includes(splitByParamKey)) {
+        this.state.splitByKeys.push(splitByParamKey);
         if (this.stateHasChanged) {
           this.stateHasChanged();
         }
@@ -403,7 +390,7 @@ export class ExploreMultiSk extends ElementSk {
    * the value is a list of traceIds grouped by that value.
    */
   private groupTracesBySplitKey(): Map<string, string[]> {
-    const splitKeys = this.state.splitByKey;
+    const splitKeys = this.state.splitByKeys;
     const traceset: string[] = [];
     this.getTracesets().forEach((ts) => {
       traceset.push(...ts);
@@ -522,7 +509,6 @@ export class ExploreMultiSk extends ElementSk {
     const testPickerParams = this.defaults?.include_params ?? null;
     if (testPickerParams !== null) {
       this.useTestPicker = true;
-      this.addGraphButton!.classList.add('hidden');
       this.testPicker!.classList.remove('hidden');
       let defaultParams = this.defaults?.default_param_selections ?? {};
       if (window.perf.remove_default_stat_value) {
@@ -549,6 +535,7 @@ export class ExploreMultiSk extends ElementSk {
           // Adjust pagination: if there are no graphs left, reset page offset to 0.
           if (this.state.totalGraphs === 0) {
             this.state.pageOffset = 0;
+            this.testPicker!.autoAddTrace = false;
           } else if (this.state.pageSize > 0) {
             // If graphs remain and pageSize is valid, calculate the maximum valid page offset.
             // This prevents being on a page that no longer exists
@@ -591,17 +578,13 @@ export class ExploreMultiSk extends ElementSk {
       this.addEventListener('split-by-changed', (e) => {
         const splitByParamKey: string = (e as CustomEvent).detail.param;
         const split = (e as CustomEvent).detail.split;
-        // Only split if the new selection is different and splitting again.
-        if (splitByParamKey in this.state.splitByKey && split) {
-          return;
-        }
         if (!split) {
           // No longer split so remove selected param from keys.
-          this.state.splitByKey = this.state.splitByKey.filter((key) => key !== splitByParamKey);
+          this.state.splitByKeys = this.state.splitByKeys.filter((key) => key !== splitByParamKey);
         } else {
           // Split by only a single key
           // TODO(seawardt): Enable multiple splits
-          this.state.splitByKey = [splitByParamKey];
+          this.state.splitByKeys = [splitByParamKey];
         }
         if (this.stateHasChanged) {
           this.stateHasChanged();
@@ -650,7 +633,7 @@ export class ExploreMultiSk extends ElementSk {
     const paramSets: ParamSet = ParamSet({});
 
     let allTracesets: string[][] = [];
-    const timeoutMs = 10000; // Timeout for waiting for non-empty tracesets.
+    const timeoutMs = 20000; // Timeout for waiting for non-empty tracesets.
     const pollIntervalMs = 500; // Interval to re-check.
     const startTime = Date.now();
 

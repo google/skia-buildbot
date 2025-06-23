@@ -11,6 +11,7 @@ sk_element(
         "//perf/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["picker-field-sk.scss"],
+    sk_element_deps = ["//elements-sk/modules/checkbox-sk"],
     ts_deps = [
         "//:node_modules/lit",
         "//infra-sk/modules/ElementSk:index_ts_lib",
