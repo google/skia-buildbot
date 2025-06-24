@@ -2398,7 +2398,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.anomalyTable!.anomaly = selected_anomaly;
         this.anomalyTable!.bugHostUrl = window.perf.bug_host_url;
         this.detailTab!.selected = COMMIT_TAB_INDEX;
-        const parts = [];
+        const parts: string[] = [];
         this.story = this.getLastSubtest(this.simpleParamset!.paramsets[0]!)[0];
         if (
           this.simpleParamset!.paramsets[0]!.master &&
@@ -3160,39 +3160,56 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
 
-    const commitLinks: CommitLinks[] = [];
-    for (let i = 0; i < traceMetadatas.length; i++) {
-      if (traceMetadatas[i].commitLinks !== null) {
-        Object.keys(traceMetadatas[i].commitLinks!).forEach((commitnumStr) => {
-          const displayUrls: { [key: string]: string } = {};
-          const displayTexts: { [key: string]: string } = {};
-          const commitnum = parseInt(commitnumStr);
+    // Use a Map for efficient lookups of existing commit links by a composite key.
+    // The key will be a string like "cid-traceid".
+    const uniqueLinksMap = new Map<string, CommitLinks>();
 
-          const existingLink = this.commitLinks.find(
-            (commitLink) =>
-              commitLink &&
-              commitLink.cid === commitnum &&
-              commitLink.traceid === traceMetadatas[i].traceid
-          );
-          if (!existingLink) {
-            Object.keys(traceMetadatas[i].commitLinks![commitnum]!).forEach((linkKey) => {
-              const linkObj = traceMetadatas[i].commitLinks![commitnum]![linkKey];
-              displayTexts[linkKey] = linkObj.Text;
-              displayUrls[linkKey] = linkObj.Href;
-            });
+    // Populate the map with links already present in the class member this.commitLinks.
+    // This ensures we don't add duplicates from previous updates.
+    for (const link of this.commitLinks) {
+      if (link === null) continue;
+      const identifier = `${link.cid}-${link.traceid}`;
+      uniqueLinksMap.set(identifier, link);
+    }
+    // Iterate through the new traceMetadatas.
+    for (const traceMetadata of traceMetadatas) {
+      if (traceMetadata.commitLinks !== null) {
+        // Iterate through the commit links within the current traceMetadata.
+        for (const commitnumStr in traceMetadata.commitLinks) {
+          const commitnum = parseInt(commitnumStr);
+          const traceid = traceMetadata.traceid; // traceid is directly on traceMetadata
+
+          const identifier = `${commitnum}-${traceid}`;
+
+          // Check if this specific link (cid-traceid pair) already exists.
+          if (!uniqueLinksMap.has(identifier)) {
+            const displayUrls: { [key: string]: string } = {};
+            const displayTexts: { [key: string]: string } = {};
+            // Populate displayUrls and displayTexts from the current commit's links.
+            const linksForCommit = traceMetadata.commitLinks[commitnum];
+            if (linksForCommit) {
+              // Ensure linksForCommit is not null/undefined
+              for (const linkKey in linksForCommit) {
+                const linkObj = linksForCommit[linkKey];
+                displayTexts[linkKey] = linkObj.Text;
+                displayUrls[linkKey] = linkObj.Href;
+              }
+            }
             const commitLink: CommitLinks = {
               cid: commitnum,
-              traceid: traceMetadatas[i].traceid,
+              traceid: traceid,
               displayUrls: displayUrls,
               displayTexts: displayTexts,
             };
 
-            commitLinks.push(commitLink);
+            // Add the new unique link to the map.
+            uniqueLinksMap.set(identifier, commitLink);
           }
-        });
+        }
       }
     }
-    this.commitLinks = commitLinks;
+    // Replace the class member with the newly built unique list from the map's values.
+    this.commitLinks = Array.from(uniqueLinksMap.values());
   }
 
   // take a query string, and update the parameters with default values if needed
