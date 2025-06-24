@@ -4,6 +4,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { ServerConfig } from './settings';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { GoogleAuth } from 'google-auth-library';
 
 export class MCPClient {
   private client: Client;
@@ -69,7 +70,16 @@ export class MCPClient {
             e instanceof Error ? e.message : String(e)
           }. Falling back to SSE.`
         );
-        this.transport = new SSEClientTransport(new URL(serverConfig.url));
+        const auth = new GoogleAuth({
+          scopes: 'https://www.googleapis.com/auth/userinfo.email',
+        });
+        const client = await auth.getClient();
+        const headers = await client.getRequestHeaders();
+        this.transport = new SSEClientTransport(new URL(serverConfig.url), {
+          requestInit: {
+            headers: headers,
+          },
+        });
       }
     } else {
       throw new Error(`Invalid server config for ${serverName}: No command or URL provided.`);

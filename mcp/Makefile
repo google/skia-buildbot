@@ -1,14 +1,14 @@
 include ../make/bazel.mk
 
 run-auth-proxy:
-	bazelisk run //kube/cmd/auth-proxy -- \
+	bazelisk run -c dbg //kube/cmd/auth-proxy -- \
 		--prom-port=:20003 \
 		--role=editor=google.com \
 		--port=:8000 \
 		--target_port=:8080 \
 		--local \
 		--self_sign_localhost_tls \
-		--passive \
+		--authtype=oauth2 \
 		--use_http1
 
 run-perf-mcp:

@@ -8,6 +8,7 @@ ts_library(
         ":settings_ts_lib",
         "//:node_modules/@google/generative-ai",
         "//:node_modules/@modelcontextprotocol/sdk",
+        "//:node_modules/google-auth-library",
     ],
 )
 
