@@ -81,12 +81,14 @@ export class PickerFieldSk extends ElementSk {
         </checkbox-sk>
       </div>
       <vaadin-multi-select-combo-box
-        @selected-items-changed=${ele.onValueChanged}
-        helper-text="${ele.helperText}"
-        label="${ele.label}"
-        .items=${ele.options}
-        .selectedItems=${ele.selectedItems}
         auto-expand-horizontally
+        helper-text="${ele.helperText}"
+        item-label-path="name"
+        item-id-path="id"
+        .items=${ele.options}
+        label="${ele.label}"
+        .selectedItems=${ele.selectedItems}
+        @selected-items-changed=${ele.onValueChanged}
         selected-items-on-top>
       </vaadin-multi-select-combo-box>
     </div>

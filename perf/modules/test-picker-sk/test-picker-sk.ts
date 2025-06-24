@@ -383,28 +383,30 @@ export class TestPickerSk extends ElementSk {
       const field: PickerFieldSk = new PickerFieldSk(param);
       fieldInfo.field = field;
       this._containerDiv!.appendChild(field);
-      if (paramSet) {
-        if (paramSet[param] === undefined) {
-          this._containerDiv!.removeChild(field);
-          return;
-        }
+
+      // Set selected items from the query
+      const selectedValue = selectedParams[fieldInfo.param] || [];
+      field.selectedItems = selectedValue;
+      fieldInfo.value = selectedValue;
+
+      // If there are available options provided, use them.
+      if (paramSet && paramSet[param]) {
         field.options = paramSet[param];
-        const selectedValue = selectedParams[fieldInfo.param] || null;
-        if (selectedValue) {
-          field.selectedItems = selectedValue;
-        } else {
-          field.selectedItems = [];
-        }
-      } else {
-        field!.options = fieldInfo.value;
-        field!.selectedItems = fieldInfo.value;
       }
-      field!.focus();
-      this._render();
+
+      // Add event listener for value changes
       this.addValueUpdatedEventToField(i);
-    }
-    for (let i = 0; i < this._fieldData.length; i++) {
-      this.fetchExtraOptions();
+
+      // If the current field has a selected value, fetch options for the *next* field.
+      // Otherwise, fetch options for the current field.
+      if (fieldInfo.value.length > 0 && i < this._fieldData.length - 1) {
+        this.fetchExtraOptions(i + 1);
+      } else if (fieldInfo.value.length === 0) {
+        this.fetchExtraOptions(i);
+      }
+
+      field.focus();
+      this._render();
     }
   }
 
@@ -412,15 +414,16 @@ export class TestPickerSk extends ElementSk {
     const selectedParams: ParamSet = paramSets;
     const paramKeys: string[] = Object.keys(paramSet).filter((key) => key in selectedParams);
     this.initializeFieldData(paramKeys);
+    this._currentIndex = 0; // Reset current index for proper field initialization
 
     for (let i = 0; i < this._fieldData.length; i++) {
       const fieldInfo = this._fieldData[i];
-      const param = fieldInfo.param;
-      const field: PickerFieldSk = new PickerFieldSk(param);
+      const field: PickerFieldSk = new PickerFieldSk(fieldInfo.param);
+      const selectedParam = selectedParams[fieldInfo.param] || [];
       fieldInfo.field = field;
-      if (selectedParams[param] && selectedParams[param].length > 0) {
-        field.options = selectedParams[param];
-        const selectedValue = selectedParams[param] || null;
+      if (selectedParam && selectedParam.length > 0) {
+        field.options = selectedParam;
+        const selectedValue = selectedParam || null;
         if (selectedValue) {
           field.selectedItems = selectedValue;
           fieldInfo.value = selectedValue;

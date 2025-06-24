@@ -632,31 +632,37 @@ export class ExploreMultiSk extends ElementSk {
   private async populateTestPicker(paramSet: { [key: string]: string[] }) {
     const paramSets: ParamSet = ParamSet({});
 
-    let allTracesets: string[][] = [];
     const timeoutMs = 20000; // Timeout for waiting for non-empty tracesets.
     const pollIntervalMs = 500; // Interval to re-check.
-    const startTime = Date.now();
 
-    while (Date.now() - startTime < timeoutMs) {
-      allTracesets = await this.getTracesets();
-      // Wait until there's at least one explore element processed AND
-      // at least one of those elements has yielded some trace strings.
-      if (
-        allTracesets.length === this.exploreElements.length &&
-        allTracesets.some((ts) => ts.length > 0)
-      ) {
-        break;
-      }
-      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-    }
+    // Create a promise that resolves when the tracesets are ready.
+    // This checks if all explore elements have reported a traceset,
+    // and at least one of those tracesets contains actual trace strings.
+    const tracesetsReadyPromise = new Promise<string[][]>((resolve) => {
+      const checkTracesets = () => {
+        const currentTracesets = this.getTracesets();
+        if (
+          currentTracesets.length === this.exploreElements.length &&
+          currentTracesets.some((ts) => ts.length > 0)
+        ) {
+          resolve(currentTracesets);
+        } else {
+          setTimeout(checkTracesets, pollIntervalMs);
+        }
+      };
+      checkTracesets(); // Start checking immediately
+    });
 
-    if (
-      !(
-        allTracesets.length === this.exploreElements.length &&
-        allTracesets.some((ts) => ts.length > 0)
-      )
-    ) {
-      errorMessage('Getting Tracesets timed out.');
+    // Create a timeout promise.
+    const timeoutPromise = new Promise<string[][]>((_, reject) => {
+      setTimeout(() => reject(new Error('Getting Tracesets timed out.')), timeoutMs);
+    });
+
+    let allTracesets: string[][];
+    try {
+      allTracesets = await Promise.race([tracesetsReadyPromise, timeoutPromise]);
+    } catch (error: any) {
+      errorMessage(error.message || 'An unknown error occurred while getting tracesets.');
       return;
     }
 
@@ -846,7 +852,7 @@ export class ExploreMultiSk extends ElementSk {
       const formula_regex = new RegExp(/\((,[^)]+,)\)/);
       // Tracesets include traces from Queries and Keys. Traces
       // from formulas are wrapped around a formula string.
-      const elemTraceSet = elem.getTraceset();
+      const elemTraceSet = elem.getTraceset(); // This returns { [key: string]: number[] } | null
       if (elemTraceSet) {
         Object.keys(elemTraceSet).forEach((key) => {
           if (key[0] === ',') {
@@ -854,14 +860,16 @@ export class ExploreMultiSk extends ElementSk {
           } else {
             const match = formula_regex.exec(key);
             if (match) {
+              // If it's a formula, extract the base key
               traceset.push(match[1]);
             }
           }
         });
       }
-      if (traceset.length !== 0) {
-        tracesets.push(traceset);
-      }
+      // Always push the traceset for this element, even if it's empty.
+      // This ensures that the length of 'tracesets' matches the number of 'exploreElements'
+      // once all elements have reported their tracesets (even if empty).
+      tracesets.push(traceset);
     });
     return tracesets;
   }

@@ -649,7 +649,7 @@ export class ExploreSimpleSk extends ElementSk {
       <md-icon-button
         ?disabled=${!ele.enable_copy_query}
         @click=${() => {
-          ele.populateTestPicker();
+          ele.loadTestPickerFromParams();
         }}>
         <md-icon id="icon">north_west</md-icon>
       </md-icon-button>
@@ -999,7 +999,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   // Get primary trace from googleChart and pass along traceid and paramset
   // to the test picker to be used with multi chart.
-  private populateTestPicker = async () => {
+  private loadTestPickerFromParams = async () => {
     const googleChart = this.googleChartPlot.value;
     // Check that data is fully loaded before triggering event.
     if (googleChart && googleChart.data) {
@@ -2790,7 +2790,7 @@ export class ExploreSimpleSk extends ElementSk {
     );
     // Code previously in .then() now runs after await.
     this.addTraces(frameResponse, switchToTab, selectedRange);
-    await this.updateTracePointMetadata(frameResponse.dataframe!.traceMetadata);
+    this.updateTracePointMetadata(frameResponse.dataframe!.traceMetadata);
     this.updateTitle();
     this._render();
     if (isValidSelection(this._state.selected)) {
