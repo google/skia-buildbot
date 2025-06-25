@@ -40,15 +40,33 @@
     "debounce_commit_url": false
   },
   "query_config": {
+    "include_params": [
+      "benchmark",
+      "bot",
+      "test",
+      "subtest",
+      "subtest_2",
+      "aggregation",
+      "metric",
+      "unit",
+      "v8_mode",
+      "wasm_mode",
+      "js_mode"
+    ],
+    "default_param_selections": {
+      "stat": ["value"]
+    },
     "default_url_values": {
       "plotSummary": "true",
       "showZero": "false",
+      "useTestPicker": "true",
       "enable_chart_tooltip": "true",
       "use_titles": "true",
       "show_google_plot": "true"
-    }
+    },
+    "query_commit_chunk_size": 10000
   },
   "new_alerts_page": true,
   "optimize_sqltracestore": true,
-  "show_triage_link": false
+  "show_triage_link": true
 }
