@@ -1794,9 +1794,9 @@ export class ExploreSimpleSk extends ElementSk {
     // When summary selection is changed, fetch the comments for the new range
     // and update the plot.
     const dfRepo = this.dfRepo.value;
-    const begin = Math.floor(detail.value.begin);
-    const end = Math.ceil(detail.value.end);
-    const invalidRange = begin === undefined || end === undefined;
+    const begin = Math.floor(detail.value.begin) ?? 0;
+    const end = Math.ceil(detail.value.end) ?? 0;
+    const invalidRange = begin === 0 || end === 0;
     if (dfRepo !== null && dfRepo !== undefined && !invalidRange) {
       dfRepo.getUserIssues(Object.keys(dfRepo.traces), begin, end).then(() => {
         this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
@@ -1943,7 +1943,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // When loading the chart, look if SplitByKey is in the URL.
     const splitKey = currentUrl.searchParams.get('splitByKeys');
-    if (this.state.graph_index === graph && splitKey) {
+    if (this.state.graph_index === 0 && splitKey) {
       const checkbox = document.querySelector(`checkbox-sk[name="${splitKey}"]`) as CheckOrRadio;
       // If not checked and present, then split the loaded data.
       if (checkbox && !checkbox.checked) {
@@ -1982,7 +1982,9 @@ export class ExploreSimpleSk extends ElementSk {
         currentUrl.searchParams.set('begin', this.state.begin.toString());
         currentUrl.searchParams.set('end', this.state.end.toString());
       }
-      window.history.pushState(null, '', currentUrl.toString());
+      if (currentUrl.toString() !== new URL(window.location.href).toString()) {
+        window.history.pushState(null, '', currentUrl.toString());
+      }
     } catch (error) {
       console.error('Failed to update state to URL:', error);
       return;

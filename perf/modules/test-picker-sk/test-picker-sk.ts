@@ -418,21 +418,18 @@ export class TestPickerSk extends ElementSk {
 
     for (let i = 0; i < this._fieldData.length; i++) {
       const fieldInfo = this._fieldData[i];
-      const field: PickerFieldSk = new PickerFieldSk(fieldInfo.param);
-      const selectedParam = selectedParams[fieldInfo.param] || [];
-      fieldInfo.field = field;
-      if (selectedParam && selectedParam.length > 0) {
-        field.options = selectedParam;
-        const selectedValue = selectedParam || null;
-        if (selectedValue) {
-          field.selectedItems = selectedValue;
-          fieldInfo.value = selectedValue;
-        } else {
-          field.selectedItems = [];
+      const param = fieldInfo.param;
+      fieldInfo.field = new PickerFieldSk(param);
+      // Ensure values exist in paramSet before setting options.
+      if (paramSet[param] !== undefined) {
+        fieldInfo.field.options = paramSet[param] || [];
+        const selectedValue = selectedParams[param] || null;
+        if (selectedValue !== null && selectedValue.length > 0) {
+          fieldInfo.field.selectedItems = selectedValue;
           fieldInfo.value = selectedValue;
         }
         this.fetchExtraOptions();
-        this._containerDiv!.appendChild(field);
+        this._containerDiv!.appendChild(fieldInfo.field);
       }
     }
   }

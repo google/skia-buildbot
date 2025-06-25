@@ -77,16 +77,12 @@ export class PickerFieldSk extends ElementSk {
           label="All"
           @change=${ele.selectAll}
           ?checked=${ele.selectedItems.length === ele.options.length}
-          ?hidden=${ele._options.length < 2}>
+          ?hidden=${ele.options.length < 2}>
         </checkbox-sk>
       </div>
       <vaadin-multi-select-combo-box
         auto-expand-horizontally
-        helper-text="${ele.helperText}"
-        item-label-path="name"
-        item-id-path="id"
         .items=${ele.options}
-        label="${ele.label}"
         .selectedItems=${ele.selectedItems}
         @selected-items-changed=${ele.onValueChanged}
         selected-items-on-top>
@@ -102,6 +98,8 @@ export class PickerFieldSk extends ElementSk {
         detail: {
           value: selectedItems, // Forward the array of selected items
         },
+        bubbles: true,
+        composed: true,
       })
     );
   }
@@ -219,7 +217,7 @@ export class PickerFieldSk extends ElementSk {
    */
   private calculateOverlayWidth() {
     let maxLength = 0;
-    this._options.forEach((option) => {
+    this.options.forEach((option) => {
       if (option.length > maxLength) {
         maxLength = option.length;
       }
