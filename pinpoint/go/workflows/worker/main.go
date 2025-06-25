@@ -102,6 +102,7 @@ func main() {
 	// CBB workflows and activities registration.
 	w.RegisterActivity(internal.ReadGitFileActivity)
 	w.RegisterActivity(internal.GetChromeReleasesInfoActivity)
+	w.RegisterActivity(internal.UploadCbbResultsActivity)
 	w.RegisterWorkflowWithOptions(internal.CbbRunnerWorkflow, workflow.RegisterOptions{Name: workflows.CbbRunner})
 	w.RegisterWorkflowWithOptions(internal.CbbNewReleaseDetectorWorkflow, workflow.RegisterOptions{Name: workflows.CbbNewReleaseDetector})
 

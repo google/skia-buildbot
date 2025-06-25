@@ -31,6 +31,7 @@ var (
 	namespace                 = flag.String("namespace", "default", "The namespace the worker registered to.")
 	taskQueue                 = flag.String("taskQueue", "", "Task queue name registered to worker services.")
 	commit                    = flag.String("commit", "611b5a084486cd6d99a0dad63f34e320a2ebc2b3", "Git commit hash to build Chrome.")
+	commitPosition            = flag.Int("commit-position", 0, "Commit position (currently only used by CBB)")
 	startGitHash              = flag.String("start-git-hash", "c73e059a2ac54302b2951e4b4f1f7d94d92a707a", "Start git commit hash for bisect.")
 	endGitHash                = flag.String("end-git-hash", "979c9324d3c6474c15335e676ac7123312d5df82", "End git commit hash for bisect.")
 	configuration             = flag.String("configuration", "mac-m2-pro-perf", "Bot configuration to use.")
@@ -326,6 +327,7 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 		// on the command line.
 		Benchmarks: []internal.BenchmarkRunConfig{{Benchmark: "speedometer3", Iterations: 2}},
 	}
+	p.Commit.Main.CommitPosition = int32(*commitPosition)
 	var cr *internal.CommitRun
 	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.CbbRunner, p)
 	if err != nil {

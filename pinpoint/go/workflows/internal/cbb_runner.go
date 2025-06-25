@@ -3,10 +3,13 @@
 package internal
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -108,9 +111,10 @@ func setupBrowser(bi *browserInfo) string {
 	return browser
 }
 
-// Workflow to run all CBB benchmarks on a particular browser / bot config.
-// TODO(b/388894957): Upload the results.
+// Workflow to run all CBB benchmarks on a particular browser / bot config and upload the results.
 func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]*format.Format, error) {
+	startTime := time.Now()
+
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
 
@@ -139,10 +143,41 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 			return nil, skerr.Wrap(err)
 		}
 
-		results[b.Benchmark] = formatResult(cr, cbb.BotConfig, p.Benchmark)
+		r := formatResult(cr, cbb.BotConfig, p.Benchmark)
+		results[b.Benchmark] = r
+
+		var swc StringWriterCloser = StringWriterCloser{
+			builder: new(strings.Builder),
+		}
+		err = r.Write(swc)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		var gsPath string
+		err = workflow.ExecuteActivity(
+			ctx, UploadCbbResultsActivity, startTime, cbb.BotConfig, p.Benchmark, swc.builder.String()).Get(ctx, &gsPath)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		sklog.Infof("Uploaded results to %s", gsPath)
 	}
 
 	return &results, nil
+}
+
+// Provide a StringWriterCloser interface wrapper around strings.Builder,
+// required for serializing the results to a string.
+type StringWriterCloser struct {
+	builder *strings.Builder
+}
+
+func (swc StringWriterCloser) Write(p []byte) (int, error) {
+	return swc.builder.Write(p)
+}
+
+func (StringWriterCloser) Close() error {
+	return nil
 }
 
 // Taking all swarming task results for one benchmark on one bot config,
@@ -150,8 +185,9 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 func formatResult(cr *CommitRun, bot string, benchmark string) *format.Format {
 	data := format.Format{
 		Version: 1,
-		GitHash: cr.Build.Commit.Main.GitHash,
+		GitHash: fmt.Sprintf("CP:%d", cr.Build.Commit.Main.CommitPosition),
 		Key: map[string]string{
+			"master":    "ChromiumPerf",
 			"bot":       bot,
 			"benchmark": benchmark,
 		},
@@ -203,4 +239,30 @@ func formatResult(cr *CommitRun, bot string, benchmark string) *format.Format {
 	}
 
 	return &data
+}
+
+// Activity to upload CBB results to cloud storage, for import into perf dashboard.
+func UploadCbbResultsActivity(ctx context.Context, t time.Time, bot string, benchmark string, results string) (string, error) {
+	gsBucket := "chrome-perf-experiment-non-public"
+	store, err := NewStore(ctx, gsBucket, false)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	// The file path inside the GS bucket uses a pattern similar to the one used by perf waterfall.
+	datePath := fmt.Sprintf("%04d/%02d/%02d", t.Year(), t.Month(), t.Day())
+	timestamp := fmt.Sprintf("%02d%02d%02d", t.Hour(), t.Minute(), t.Second())
+	filename := fmt.Sprintf(
+		"skia_results_%s_%s_%04d_%02d_%02d_%02d_%02d_%02d.json",
+		benchmark, bot, t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(),
+	)
+	storeFilePath := path.Join("ingest", datePath, "ChromiumPerf", bot, timestamp, benchmark, filename)
+
+	err = store.WriteFile(storeFilePath, results)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	gsPath := fmt.Sprintf("gs://%s/%s", gsBucket, storeFilePath)
+	return gsPath, nil
 }
