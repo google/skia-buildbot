@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"io"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
@@ -62,6 +63,9 @@ func (s *store) GetFileContent(storeFilePath string) ([]byte, error) {
 func (s *store) WriteFile(storeFilePath string, content string) error {
 	w := s.bucket.Object(storeFilePath).NewWriter(s.ctx)
 	w.ObjectAttrs.ContentEncoding = "text/plain"
+	if strings.HasSuffix(storeFilePath, ".json") {
+		w.ObjectAttrs.ContentType = "application/json"
+	}
 	_, err := w.Write([]byte(content))
 	if err != nil {
 		_ = w.Close()
