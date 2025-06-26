@@ -9,12 +9,13 @@
   #testPicker,
   #fieldContainer {
     display: flex;
-    align-items: end;
+    align-items: flex-start;
     gap: 8px;
   }
 
   #fieldContainer {
     display: flex;
+    align-items: flex-start;
   }
 
   #queryCount {
@@ -24,7 +25,7 @@
 
     .test-picker-sk-matches-container {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-self: center;
       min-width: 75px;
       #max-message {
@@ -34,7 +35,7 @@
       spinner-sk {
         margin: 0;
         margin-left: 8px;
-        margin-top: 7px;
+        margin-top: 2px;
       }
     }
     button {

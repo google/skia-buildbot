@@ -82,6 +82,8 @@ export class PickerFieldSk extends ElementSk {
       </div>
       <vaadin-multi-select-combo-box
         auto-expand-horizontally
+        auto-expand-vertically
+        label=${ele.label}
         .items=${ele.options}
         .selectedItems=${ele.selectedItems}
         @selected-items-changed=${ele.onValueChanged}

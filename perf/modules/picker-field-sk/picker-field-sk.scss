@@ -12,25 +12,36 @@
     }
   }
   vaadin-multi-select-combo-box {
-    --vaadin-input-field-height: 30px;
     --vaadin-input-field-icon-color: var(--lumo-secondary-text-color);
-    --vaadin-multi-select-combo-box-chip-max-width: auto;
-    --vaadin-multi-select-combo-box-overlay-width: auto;
     --lumo-text-field-size: var(--lumo-size-xs);
-    padding-right: 10px;
-    padding-top: 30px;
-    margin-left: auto;
-    max-width: 300px;
+    padding-top: 0px;
+    min-width: 220px;
+    max-width: 400px;
   }
+
+  vaadin-multi-select-combo-box::part(input-field) {
+    min-height: 42px;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  vaadin-multi-select-combo-box-chip::part(label) {
+    direction: rtl;
+  }
+
   input {
+    display: none;
     border: none;
   }
-  checkbox-sk label {
-    display: flex;
-    flex-flow: row-reverse;
+  checkbox-sk {
+    margin: 0;
+    label {
+      display: flex;
+      flex-flow: row-reverse;
+    }
   }
 }
-.darkmode .darkmode picker-field-sk {
+.darkmode picker-field-sk {
   vaadin-multi-select-combo-box::part(label) {
     transition: color 0.3s ease;
     color: var(--on-disabled);

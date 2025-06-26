@@ -82,11 +82,11 @@ export class TestPickerSk extends ElementSk {
       <div id="fieldContainer"></div>
       <div id="queryCount">
         <div class="test-picker-sk-matches-container">
-          Traces: ${ele._count}
+          Traces: ${ele._requestInProgress ? '' : ele._count}
+          <spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
           <div ?hidden="${!(ele._count > PLOT_MAXIMUM)}">
             <span id="max-message">(${MAX_MESSAGE})</span>
           </div>
-          <spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
         </div>
         <div id="plot-button-container">
           <button
