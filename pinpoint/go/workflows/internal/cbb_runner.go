@@ -143,7 +143,7 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 			return nil, skerr.Wrap(err)
 		}
 
-		r := formatResult(cr, cbb.BotConfig, p.Benchmark)
+		r := formatResult(cr, cbb.BotConfig, p.Benchmark, bi)
 		results[b.Benchmark] = r
 
 		var swc StringWriterCloser = StringWriterCloser{
@@ -182,7 +182,7 @@ func (StringWriterCloser) Close() error {
 
 // Taking all swarming task results for one benchmark on one bot config,
 // and convert the results into the format required by the perf dashboard.
-func formatResult(cr *CommitRun, bot string, benchmark string) *format.Format {
+func formatResult(cr *CommitRun, bot string, benchmark string, bi *browserInfo) *format.Format {
 	data := format.Format{
 		Version: 1,
 		GitHash: fmt.Sprintf("CP:%d", cr.Build.Commit.Main.CommitPosition),
@@ -190,6 +190,9 @@ func formatResult(cr *CommitRun, bot string, benchmark string) *format.Format {
 			"master":    "ChromiumPerf",
 			"bot":       bot,
 			"benchmark": benchmark,
+		},
+		Links: map[string]string{
+			"Browser Version": bi.Version,
 		},
 	}
 
@@ -211,8 +214,9 @@ func formatResult(cr *CommitRun, bot string, benchmark string) *format.Format {
 		u := units[c]
 		r := format.Result{
 			Key: map[string]string{
-				"test": c,
-				"unit": u,
+				"test":      c,
+				"unit":      u,
+				"subtest_1": fmt.Sprintf("%s %s", bi.Browser, bi.Channel),
 			},
 			Measurements: map[string][]format.SingleMeasurement{
 				// Following the convention used in CBB v2 (bench-o-matic) and v3 (swarming-in-google3),
