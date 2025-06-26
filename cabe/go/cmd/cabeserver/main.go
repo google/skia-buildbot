@@ -152,7 +152,12 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 		// TODO(wenbinzhang): replace the hardcoded condition
 		// Currently only Speedometer3 is running and only Score has improvement directly
 		// as UP.
-		is_improvement := ((stat.TreatmentMedian > stat.ControlMedian) && workload == "Score") || (stat.TreatmentMedian < stat.ControlMedian)
+		is_improvement := true
+		if workload == "Score" {
+			is_improvement = stat.TreatmentMedian > stat.ControlMedian
+		} else {
+			is_improvement = stat.TreatmentMedian < stat.ControlMedian
+		}
 		// Using the same logic as in legacy cabe service.
 		// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/sandwich_verification/main.py;l=224
 		if stat.PValue == math.NaN() {
