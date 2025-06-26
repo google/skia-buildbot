@@ -131,12 +131,13 @@ export function ConvertData(chartData: ChartData) {
 export function mainChartOptions(
   style: CSSStyleDeclaration,
   domain: string,
-  yAxis: string | undefined
+  yAxis: string | undefined,
+  showZero: boolean = false
 ): google.visualization.LineChartOptions {
   // The X axis can support either commit, or dates. Change the format
   // based on the current chart's format.
   const gridlineColor = style.getPropertyValue('--md-sys-color-inverse-on-surface');
-
+  const minAxisValue: number | undefined = showZero ? 0 : undefined;
   const format = domain === 'commit' ? '#' : 'MM/dd/yy';
   return {
     // interpolateNulls will continue a line from the last known point to the
@@ -175,6 +176,7 @@ export function mainChartOptions(
       format: format,
     },
     vAxis: {
+      minValue: minAxisValue,
       title: yAxis,
       titleTextStyle: {
         color: style.getPropertyValue('--plot-axes-title-color'),

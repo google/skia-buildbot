@@ -192,6 +192,9 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ type: Array })
   highlightAnomalies: string[] = [];
 
+  @property({ attribute: false })
+  showZero: boolean = false;
+
   // The slots to place in the templated icons for anomalies.
   private slots = {
     untriage: createRef<HTMLSlotElement>(),
@@ -331,6 +334,8 @@ export class PlotGoogleChartSk extends LitElement {
       // If the anomalyMap is getting updated,
       // trigger the chart to redraw and plot the anomaly.
       this.plotElement.value?.redraw();
+    } else if (changedProperties.has('showZero')) {
+      this.updateOptions();
     } else if (changedProperties.has('userIssues')) {
       this.plotElement.value?.redraw();
     } else if (changedProperties.has('selectedRange')) {
@@ -433,7 +438,8 @@ export class PlotGoogleChartSk extends LitElement {
     const options = mainChartOptions(
       getComputedStyle(this),
       this.domain,
-      this.determineYAxisTitle(this.getAllTraces())
+      this.determineYAxisTitle(this.getAllTraces()),
+      this.showZero
     );
     const begin = this.selectedRange?.begin;
     const end = this.selectedRange?.end;
@@ -1142,7 +1148,8 @@ export class PlotGoogleChartSk extends LitElement {
       const options = mainChartOptions(
         getComputedStyle(this),
         this.domain,
-        this.determineYAxisTitle(this.getAllTraces())
+        this.determineYAxisTitle(this.getAllTraces()),
+        this.showZero
       );
       const newScale = this.domain === 'commit';
       const plot = this.plotElement.value;
@@ -1175,7 +1182,8 @@ export class PlotGoogleChartSk extends LitElement {
     const options = mainChartOptions(
       getComputedStyle(this),
       this.domain,
-      this.determineYAxisTitle(this.getAllTraces())
+      this.determineYAxisTitle(this.getAllTraces()),
+      this.showZero
     );
     options.hAxis!.viewWindow = {
       min: this.selectedRange?.begin,

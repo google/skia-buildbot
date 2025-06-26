@@ -80,7 +80,6 @@ import {
   CIDHandlerResponse,
   QueryConfig,
   TraceSet,
-  Trace,
   ReadOnlyParamSet,
   CommitNumberAnomalyMap,
   AnomalyMap,
@@ -647,14 +646,27 @@ export class ExploreSimpleSk extends ElementSk {
     <div id=chartHeader class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
       <graph-title-sk id=graphTitle style="flex-grow:  1;"></graph-title-sk>
       <md-icon-button
+        title="Load Test Picker with current Query"
         ?disabled=${!ele.enable_copy_query}
         @click=${() => {
           ele.loadTestPickerFromParams();
         }}>
         <md-icon id="icon">north_west</md-icon>
       </md-icon-button>
+      <md-icon-button
+        title="Show Zero on Axis"
+        @click=${() => {
+          ele.showZero();
+        }}>
+        ${
+          ele._state.showZero
+            ? html`<md-icon id="icon">radio_button_unchecked</md-icon>`
+            : html`<md-icon id="icon">hide_source</md-icon>`
+        }
+      </md-icon-button>
       <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
       <md-icon-button
+        title="Add Chart to Favorites"
         ?disabled=${!ele._state!.enable_favorites}
         @click=${() => {
           ele.openAddFavoriteDialog();
@@ -662,8 +674,9 @@ export class ExploreSimpleSk extends ElementSk {
         <md-icon id="icon">favorite</md-icon>
       </md-icon-button>
       <md-icon-button
+        title="Show Settings Dialog"
         @click=${ele.showSettingsDialog}>
-          <md-icon id="icon">settings</md-icon>
+        <md-icon id="icon">settings</md-icon>
       </md-icon-button>
       <md-icon-button
         id="removeAll"
@@ -707,17 +720,6 @@ export class ExploreSimpleSk extends ElementSk {
                   ?selected=${ele._state!.dots}
                   @change=${() => ele.toggleDotsHandler()}></md-switch>
                 Dots on graph
-              </label>
-            </li>
-            <li ?hidden=${ele._state.show_google_plot}>
-              <label>
-                <md-switch
-                  form="form"
-                  id="zero-switch"
-                  ?selected=${ele._state.showZero}
-                  @change=${(e: InputEvent) =>
-                    ele.zeroChangeHandler(e.target as MdSwitch)}></md-switch>
-                Draw against "zero" line
               </label>
             </li>
             <li ?hidden=${ele._state.show_google_plot}>
@@ -995,6 +997,12 @@ export class ExploreSimpleSk extends ElementSk {
   private openAddFavoriteDialog = async () => {
     const d = $$<FavoritesDialogSk>('#fav-dialog', this) as FavoritesDialogSk;
     await d!.open();
+  };
+
+  private showZero = () => {
+    this._state.showZero = !this._state.showZero;
+    this.googleChartPlot.value!.showZero = this._state.showZero;
+    this._render();
   };
 
   // Get primary trace from googleChart and pass along traceid and paramset
@@ -2017,6 +2025,7 @@ export class ExploreSimpleSk extends ElementSk {
   ) {
     if (this.googleChartPlot.value) {
       this.googleChartPlot.value.selectedRange = range;
+      this.googleChartPlot.value.showZero = this.state.showZero;
     }
 
     const plot = this.plotSimple.value;
@@ -2807,30 +2816,11 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
-  private zeroChangeHandler(target: MdSwitch | null) {
-    this._state.showZero = target!.selected;
-    this._stateHasChanged();
-    this.zeroChanged();
-  }
-
   private toggleDotsHandler() {
     this._state.dots = !this._state.dots;
     this._stateHasChanged();
     if (this.plotSimple.value) {
       this.plotSimple.value.dots = this._state.dots;
-    }
-  }
-
-  private zeroChanged() {
-    if (!this._dataframe.header) {
-      return;
-    }
-    if (this._state.showZero) {
-      const lines: { [key: string]: number[] } = {};
-      lines[ZERO_NAME] = Array(this._dataframe.header.length).fill(0);
-      this.AddPlotLines(lines, []);
-    } else {
-      this.plotSimple.value?.deleteLines([ZERO_NAME]);
     }
   }
 
@@ -2897,11 +2887,6 @@ export class ExploreSimpleSk extends ElementSk {
         this._state.sort
       );
       return;
-    }
-
-    // Add in the 0-trace.
-    if (this._state.showZero) {
-      dataframe.traceset[ZERO_NAME] = Trace(Array(dataframe.header!.length).fill(0));
     }
 
     const mergedDataframe = dataframe;
@@ -3496,7 +3481,11 @@ export class ExploreSimpleSk extends ElementSk {
     // For each param, we found out the unique values in each trace. If there's only 1 unique value,
     // that means that they all share a value in common and we can add this to the title.
     params!.forEach((param) => {
-      const uniqueValues = new Set(Object.keys(traceset).map((traceId) => fromKey(traceId)[param]));
+      const uniqueValues = new Set(
+        Object.keys(traceset)
+          .map((traceId) => fromKey(traceId)[param])
+          .filter((v): v is string => v !== undefined)
+      );
       let value = uniqueValues.values().next().value;
       if (uniqueValues.size > 1) {
         value = 'Various';
@@ -3655,7 +3644,6 @@ export class ExploreSimpleSk extends ElementSk {
       this.openQuery();
     }
 
-    this.zeroChanged();
     this.autoRefreshChanged();
     if (!state.doNotQueryData) {
       this.rangeChangeImpl();

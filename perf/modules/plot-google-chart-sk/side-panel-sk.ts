@@ -139,7 +139,7 @@ export class SidePanelSk extends LitElement {
    * the label is the label of the column in the dataframe.
    */
   @property({ attribute: false, reflect: true })
-  private legendToLabelMap: { [key: string]: string } = {};
+  private legendToLabelMap: { [key: string]: string[] } = {};
 
   /**
    * A map that maps legend to label.
@@ -331,17 +331,57 @@ export class SidePanelSk extends LitElement {
         return [];
       }
       // The legend is a list of strings that are the legend values.
-      const legendList = legendFormatter(getLegendData);
+      const originalLegendList = legendFormatter(getLegendData);
+      let displayLegendList = originalLegendList;
+
+      if (originalLegendList.length > 1) {
+        const splitLegends = originalLegendList.map((s) => s.split('/'));
+        const numParts = splitLegends.reduce((max, parts) => Math.max(max, parts.length), 0);
+        let distinguishingPartIndex = -1;
+
+        for (let i = 0; i < numParts; i++) {
+          // Use 'untitled_key' as a placeholder for shorter legends.
+          const partsAtIndex = splitLegends.map((parts) =>
+            parts.length > i ? parts[i] : 'untitled_key'
+          );
+          // Filter out 'untitled_key' to check for uniformity among actual values.
+          const filteredParts = partsAtIndex.filter((p) => p !== 'untitled_key');
+
+          if (filteredParts.length === 0) {
+            // All parts at this index are 'untitled_key' or missing, so it's not distinguishing.
+            continue;
+          }
+
+          const uniqueParts = new Set(filteredParts);
+          if (uniqueParts.size > 1) {
+            distinguishingPartIndex = i;
+            break;
+          }
+        }
+
+        if (distinguishingPartIndex !== -1) {
+          displayLegendList = splitLegends.map((parts) =>
+            parts.length > distinguishingPartIndex ? parts[distinguishingPartIndex] : 'untitled_key'
+          );
+        }
+      }
+
       this.legendKeysFormat = getLegendKeysTitle(getLegendData[0]);
       const numCols = this.data!.getNumberOfColumns();
+      this.legendToLabelMap = {};
+      this.labelToLegendMap = {};
       // The first two columns of the data table for the commit number/ timestamp x axis- options.
       // It converted n-2 labels to legend format and stored in the legend list.
       for (let i = 2; i < numCols; i++) {
         const k = this.data!.getColumnLabel(i);
-        this.legendToLabelMap[legendList[i - 2]] = k;
-        this.labelToLegendMap[k] = legendList[i - 2];
+        const legend = displayLegendList[i - 2];
+        if (!this.legendToLabelMap[legend]) {
+          this.legendToLabelMap[legend] = [];
+        }
+        this.legendToLabelMap[legend].push(k);
+        this.labelToLegendMap[k] = legend;
       }
-      return legendList;
+      return [...new Set(displayLegendList)];
     }
     return [];
   }
@@ -350,7 +390,10 @@ export class SidePanelSk extends LitElement {
     const labels: string[] = [];
     this.legendLoaded = true;
     legendList.forEach((legend) => {
-      labels.push(this.legendToLabelMap[legend] ? this.legendToLabelMap[legend] : '');
+      const mappedLabels = this.legendToLabelMap[legend];
+      if (mappedLabels) {
+        labels.push(...mappedLabels);
+      }
     });
     const detail: SidePanelCheckboxClickDetails = {
       selected: isSelected,
