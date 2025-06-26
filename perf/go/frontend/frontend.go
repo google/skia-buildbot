@@ -1016,6 +1016,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewSheriffConfigApi(f.loginProvider),
 		api.NewTriageApi(f.loginProvider, f.chromeperfClient, f.anomalyStore, f.issuetracker),
 		api.NewUserIssueApi(f.loginProvider, f.userIssueStore),
+		api.NewMcpApi(f.dfBuilder),
 	}
 }
 
