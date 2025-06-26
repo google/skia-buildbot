@@ -2,6 +2,7 @@ package run_benchmark
 
 import (
 	"fmt"
+	"strings"
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 )
@@ -48,10 +49,14 @@ func generateTags(jobID string, hash string, sizeBytes int64) []string {
 }
 
 func createSwarmingRequest(jobID string, command []string, casRef *apipb.CASReference, dimensions []map[string]string) *apipb.NewTaskRequest {
+	taskName := "Pinpoint bisection run benchmark task"
+	if strings.HasPrefix(jobID, "CBB ") {
+		taskName = jobID
+	}
 	return &apipb.NewTaskRequest{
 		BotPingToleranceSecs: 1200,
 		// EvaluateOnly omitted
-		Name: "Pinpoint bisection run benchmark task",
+		Name: taskName,
 		// ParentTaskId omitted
 		// PoolTaskTemplate omitted
 		Priority: 100,

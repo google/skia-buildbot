@@ -129,7 +129,10 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 	results := map[string]*format.Format{}
 
 	for _, b := range benchmarks {
+		jobId := fmt.Sprintf(
+			"CBB %s %s %s %s", bi.Browser, bi.Channel, bi.Version, b.Benchmark)
 		p := &SingleCommitRunnerParams{
+			PinpointJobID:  jobId,
 			BotConfig:      cbb.BotConfig,
 			Benchmark:      b.Benchmark + ".crossbench",
 			Story:          "default",
