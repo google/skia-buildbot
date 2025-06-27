@@ -1077,6 +1077,8 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   private getCommitIndex(value: number, type: string = 'commit'): number {
+    // Ensure the index value is an integer.
+    value = Math.round(value);
     if (type === 'commit') {
       return this.dfRepo.value?.header.findIndex((header) => header?.offset === value) ?? -1;
     }
@@ -1810,7 +1812,6 @@ export class ExploreSimpleSk extends ElementSk {
         this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
       });
     }
-    this.updateBrowserURL();
     // If in multi-graph view, sync all graphs.
     // This event listener will not work on the alerts page
     detail.graphNumber = Array.from(this.parentNode!.children).indexOf(this);
@@ -1824,19 +1825,26 @@ export class ExploreSimpleSk extends ElementSk {
     if (detail.start === 0) {
       this.closeTooltip();
     }
+    this.updateBrowserURL();
   }
 
-  private extendRange(range: range) {
+  async extendRange(range: range, offset?: number): Promise<void> {
     const dfRepo = this.dfRepo.value;
     const header = dfRepo?.dataframe?.header;
-    if (!dfRepo || !header || dfRepo.loading) {
+    if (!dfRepo || !header || header.length === 0 || dfRepo.loading) {
       return;
     }
 
+    let extendDirection = 0;
     if (range.begin < header[0]!.offset) {
-      dfRepo.extendRange(-monthInSec);
+      extendDirection = -1;
     } else if (range.end > header[header.length - 1]!.offset) {
-      dfRepo.extendRange(monthInSec);
+      extendDirection = 1;
+    }
+
+    if (extendDirection !== 0) {
+      // If a specific offset is provided, use it. Otherwise, use the calculated default.
+      dfRepo.extendRange(offset ?? extendDirection * monthInSec);
     }
   }
 
@@ -2003,16 +2011,17 @@ export class ExploreSimpleSk extends ElementSk {
   // multiple explore-simple-sks on a explore-multi page
   // This function syncs google chart panning and plot-summary selection + panning
   public updateSelectedRangeWithPlotSummary(range: range) {
-    if (this.plotSummary.value) {
-      this.plotSummary.value.selectedValueRange = range;
-    }
     if (this.googleChartPlot.value) {
       this.googleChartPlot.value.selectedValueRange = range;
-      const currentUrl = new URL(window.location.href);
-      this.state.begin = parseInt(
-        currentUrl.searchParams.get('begin') ?? this.state.begin.toString()
-      );
-      this.state.end = parseInt(currentUrl.searchParams.get('end') ?? this.state.end.toString());
+      const beginIndex = this.getCommitIndex(range.begin, 'commit');
+      const endIndex = this.getCommitIndex(range.end, 'commit');
+      const begin = this.dfRepo.value?.header[beginIndex]?.timestamp;
+      const end = this.dfRepo.value?.header[endIndex]?.timestamp;
+      this.state.begin = parseInt((begin ?? this.state.begin).toString());
+      this.state.end = parseInt((end ?? this.state.end).toString());
+    }
+    if (this.plotSummary.value) {
+      this.plotSummary.value.selectedValueRange = range;
     }
     this.updateBrowserURL();
     this.closeTooltip();

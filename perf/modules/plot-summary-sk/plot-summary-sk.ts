@@ -19,6 +19,7 @@ import { html, LitElement, PropertyValues } from 'lit';
 import { ref, createRef } from 'lit/directives/ref.js';
 import { property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
+import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 
 import { defaultColors, SummaryChartOptions } from '../common/plot-builder';
 import { ColumnHeader } from '../json';
@@ -164,6 +165,19 @@ export class PlotSummarySk extends LitElement {
     const onClickLoad = async ({ target }: Event) => {
       const btn = target as MdIconButton;
       await this.dfRepo?.extendRange(chunk * direction);
+
+      // When extending the range, we need to update other charts to match.
+      const detail: PlotSelectionEventDetails = {
+        value: this.dfRepo?.commitRange ?? range(0, 0),
+        domain: this.domain,
+        offsetInSeconds: chunk * direction,
+      };
+      this.dispatchEvent(
+        new CustomEvent<PlotSelectionEventDetails>('selection-changing-in-multi', {
+          bubbles: true,
+          detail: detail,
+        })
+      );
       btn.selected = false;
     };
 

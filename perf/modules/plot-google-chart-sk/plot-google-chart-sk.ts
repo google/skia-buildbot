@@ -39,6 +39,7 @@ export interface PlotSelectionEventDetails {
   value: range;
   domain: 'commit' | 'date';
   graphNumber?: number; // optional argument used to sync multi-graphs
+  offsetInSeconds?: number; // optional argument used to sync extended ranges
 }
 
 export interface PlotShowTooltipEventDetails {

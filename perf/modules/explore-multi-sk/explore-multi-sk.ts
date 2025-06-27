@@ -725,8 +725,12 @@ export class ExploreMultiSk extends ElementSk {
     const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
     graphs.forEach((graph, i) => {
       // only update graph that isn't selected
-      if (i !== e.detail.graphNumber) {
+      if (i !== e.detail.graphNumber && e.detail.offsetInSeconds === undefined) {
         (graph as ExploreSimpleSk).updateSelectedRangeWithPlotSummary(e.detail.value);
+      }
+      // Sync the selection by extending the range.
+      if (e.detail.offsetInSeconds !== undefined) {
+        (graph as ExploreSimpleSk).extendRange(e.detail.value, e.detail.offsetInSeconds);
       }
     });
   }

@@ -411,26 +411,25 @@ export class TestPickerSk extends ElementSk {
   }
 
   populateFieldDataFromParamSet(paramSets: ParamSet, paramSet: ParamSet) {
-    const selectedParams: ParamSet = paramSets;
-    const paramKeys: string[] = Object.keys(paramSet).filter((key) => key in selectedParams);
-    this.initializeFieldData(paramKeys);
+    const uniqueParamKeys = [...new Set([...Object.keys(paramSets), ...Object.keys(paramSet)])];
+    this.initializeFieldData(uniqueParamKeys);
     this._currentIndex = 0; // Reset current index for proper field initialization
 
     for (let i = 0; i < this._fieldData.length; i++) {
       const fieldInfo = this._fieldData[i];
       const param = fieldInfo.param;
       fieldInfo.field = new PickerFieldSk(param);
-      // Ensure values exist in paramSet before setting options.
-      if (paramSet[param] !== undefined) {
-        fieldInfo.field.options = paramSet[param] || [];
-        const selectedValue = selectedParams[param] || null;
-        if (selectedValue !== null && selectedValue.length > 0) {
-          fieldInfo.field.selectedItems = selectedValue;
-          fieldInfo.value = selectedValue;
-        }
-        this.fetchExtraOptions();
-        this._containerDiv!.appendChild(fieldInfo.field);
+      // Combine options from both paramSets and paramSet for the current param.
+      const allOptions = [
+        ...new Set([...(paramSets[param] || []), ...(paramSet[param] || [])]),
+      ].sort();
+      if (allOptions.length > 0) {
+        fieldInfo.field.options = allOptions;
+        fieldInfo.field.selectedItems = allOptions;
+        fieldInfo.value = allOptions;
       }
+      this.fetchExtraOptions();
+      this._containerDiv!.appendChild(fieldInfo.field);
     }
   }
 
@@ -708,8 +707,8 @@ export class TestPickerSk extends ElementSk {
    * is if bot is already specified in the query, then no defaults are applied.
    */
   initializeTestPicker(params: string[], defaultParams: { [key: string]: string[] | null }) {
-    this.initializeFieldData(params);
     this._defaultParams = defaultParams;
+    this.initializeFieldData(params);
     this.addChildField();
     this._render();
   }
