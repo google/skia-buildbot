@@ -104,7 +104,10 @@ func getBrowserInfo(ctx workflow.Context, cbb *CbbRunnerParams) (*browserInfo, e
 }
 
 func setupBrowser(bi *browserInfo) string {
-	browser := fmt.Sprintf("--official-browser=%s-%s", strings.ToLower(bi.Browser), strings.ToLower(bi.Channel))
+	browser := fmt.Sprintf(
+		"--official-browser=%s-%s",
+		strings.ToLower(bi.Browser),
+		strings.ToLower(strings.ReplaceAll(bi.Channel, " ", "-")))
 	if bi.Browser == "Chrome" {
 		browser = fmt.Sprintf("%s-%s", browser, bi.Version)
 	}
