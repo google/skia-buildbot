@@ -15,6 +15,7 @@ sk_element(
         "//perf/modules/triage-status-sk",
         "//elements-sk/modules/icons/close-icon-sk",
         "//elements-sk/modules/spinner-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

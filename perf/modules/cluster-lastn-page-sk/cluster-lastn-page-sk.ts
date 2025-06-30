@@ -39,6 +39,7 @@ import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triag
 import { ClusterSummary2SkOpenKeysEventDetail } from '../cluster-summary2-sk/cluster-summary2-sk';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 import { messagesToErrorString, startRequest } from '../progress/progress';
+import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 
 export class ClusterLastNPageSk extends ElementSk {
   // The range of commits over which we are clustering.
@@ -74,6 +75,9 @@ export class ClusterLastNPageSk extends ElementSk {
   private alertConfig: AlertConfigSk | null = null;
 
   private runSpinner: SpinnerSk | null = null;
+
+  // Email of the logged in user. Empty string otherwise
+  user_id: string = '';
 
   // The state of the cluster-summary2-sk dialog.
   private dialogState: Partial<TriageStatusSkStartTriageEventDetails> | null = {
@@ -295,6 +299,9 @@ ${ele.runningStatus}</pre
   connectedCallback(): void {
     super.connectedCallback();
 
+    LoggedIn().then((status) => {
+      this.user_id = status.email;
+    });
     const init = fetch('/_/initpage/')
       .then(jsonOrThrow)
       .then((json: FrameResponse) => {
@@ -351,10 +358,15 @@ ${ele.runningStatus}</pre
         this.writingAlert = false;
         this._render();
       })
-      .catch((msg) => {
+      .catch((msg: Error) => {
         this.writingAlert = false;
         this._render();
-        errorMessage(msg);
+        // This is likely a permissions issue.
+        if (this.user_id) {
+          errorMessage('Check with group admin to ensure proper permissions.');
+        } else {
+          errorMessage(msg);
+        }
       });
   }
 
