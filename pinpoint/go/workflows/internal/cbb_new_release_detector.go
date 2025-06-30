@@ -10,11 +10,12 @@ import (
 )
 
 // NewReleaseWorkflowTimeout is the overall workflow timeout.
-const NewReleaseWorkflowTimeout time.Duration = 30 * time.Minute
+// Large timeout implemented due to crbug.com/428723126
+const NewReleaseWorkflowTimeout time.Duration = 240 * time.Minute
 
 // ClSubmissionTimeout is waiting time to submit a CL.
 // It should be about 10 minutes less than the overall timeout.
-const ClSubmissionTimeout time.Duration = 20 * time.Minute
+const ClSubmissionTimeout time.Duration = 230 * time.Minute
 
 var (
 	// Activity options for detecting new releases and committing build info to
