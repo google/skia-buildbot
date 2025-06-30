@@ -723,6 +723,9 @@ export class ExploreMultiSk extends ElementSk {
 
   private syncChartSelection(e: CustomEvent<PlotSelectionEventDetails>): void {
     const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
+    if (!e.detail.value) {
+      return;
+    }
     graphs.forEach((graph, i) => {
       // only update graph that isn't selected
       if (i !== e.detail.graphNumber && e.detail.offsetInSeconds === undefined) {
@@ -895,6 +898,9 @@ export class ExploreMultiSk extends ElementSk {
     const fullTraceSet: { [key: string]: number[] } = {};
     this.exploreElements.forEach((elem) => {
       const exploreTraceSet = elem.getTraceset();
+      if (!exploreTraceSet) {
+        return;
+      }
       Object.keys(exploreTraceSet!).forEach((key) => {
         fullTraceSet[key] = exploreTraceSet![key];
       });

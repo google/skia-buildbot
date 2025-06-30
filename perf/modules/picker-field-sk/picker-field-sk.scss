@@ -21,6 +21,8 @@
 
   vaadin-multi-select-combo-box::part(input-field) {
     min-height: 42px;
+    max-height: 200px;
+    overflow: scroll;
     display: flex;
     align-items: flex-start;
   }
@@ -30,7 +32,6 @@
   }
 
   input {
-    display: none;
     border: none;
   }
   checkbox-sk {

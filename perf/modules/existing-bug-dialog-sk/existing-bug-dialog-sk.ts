@@ -83,12 +83,14 @@ export class ExistingBugDialogSk extends ElementSk {
           <close-icon-sk></close-icon-sk>
         </button>
         <form id="existing-bug-form">
+          <label for="existing-bug-dialog-select-project">Project</label>
           <select id="existing-bug-dialog-select-project" @input=${ele.projectIdToggle}>
             ${ExistingBugDialogSk.allProjectIds(ele)}
           </select>
+          <label for="bug_id">Bug ID</label>
           <input type="text"
             id="bug_id"
-            placeholder="Bug ID"
+            placeholder="123456"
             pattern="[0-9]{5,9}"
             title="Bug ID must be a number, between 5 and 9 digits."
             required autocomplete="off"></input>

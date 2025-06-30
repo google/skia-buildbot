@@ -123,6 +123,7 @@ explore-simple-sk {
     font-family: 'Roboto Mono', monospace;
     font-size: 12px;
     color: var(--on-surface);
+    text-wrap: auto;
   }
 
   #explore.display_query_only .hide_on_query_only {

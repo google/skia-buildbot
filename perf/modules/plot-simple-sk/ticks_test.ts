@@ -45,11 +45,11 @@ describe('ticks()', () => {
     ];
 
     assert.deepEqual(ticks(ts), [
-      { x: 0, text: 'Tue, 6 AM' },
-      { x: 1, text: 'Wed, 5 AM' },
-      { x: 2, text: 'Thu, 4 AM' },
-      { x: 3, text: 'Sat, 3 AM' },
-      { x: 4, text: 'Mon, 2 AM' },
+      { x: 0, text: 'Tue, 06' },
+      { x: 1, text: 'Wed, 05' },
+      { x: 2, text: 'Thu, 04' },
+      { x: 3, text: 'Sat, 03' },
+      { x: 4, text: 'Mon, 02' },
     ]);
   });
 
@@ -63,11 +63,11 @@ describe('ticks()', () => {
     ];
 
     assert.deepEqual(ticks(ts), [
-      { x: 0, text: '10 AM' },
-      { x: 1, text: '11 AM' },
-      { x: 2, text: '12 PM' },
-      { x: 3, text: '1 PM' },
-      { x: 4, text: '3 PM' },
+      { x: 0, text: '10' },
+      { x: 1, text: '11' },
+      { x: 2, text: '12' },
+      { x: 3, text: '13' },
+      { x: 4, text: '15' },
     ]);
   });
 
@@ -89,12 +89,12 @@ describe('ticks()', () => {
 
     // Also tests decimation.
     assert.deepEqual(ticks(ts), [
-      { x: 1, text: '1:02 AM' },
-      { x: 3, text: '1:04 AM' },
-      { x: 5, text: '1:06 AM' },
-      { x: 7, text: '1:08 AM' },
-      { x: 9, text: '1:10 AM' },
-      { x: 11, text: '1:12 AM' },
+      { x: 1, text: '01:02' },
+      { x: 3, text: '01:04' },
+      { x: 5, text: '01:06' },
+      { x: 7, text: '01:08' },
+      { x: 9, text: '01:10' },
+      { x: 11, text: '01:12' },
     ]);
   });
 
@@ -108,10 +108,10 @@ describe('ticks()', () => {
 
     // Also tests decimation.
     assert.deepEqual(ticks(ts), [
-      { x: 0, text: '1:01:10 AM' },
-      { x: 1, text: '1:01:11 AM' },
-      { x: 2, text: '1:01:12 AM' },
-      { x: 3, text: '1:01:13 AM' },
+      { x: 0, text: '01:01:10' },
+      { x: 1, text: '01:01:11' },
+      { x: 2, text: '01:01:12' },
+      { x: 3, text: '01:01:13' },
     ]);
   });
 });

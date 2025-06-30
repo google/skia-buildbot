@@ -36,17 +36,19 @@ const choices = [
     formatter: new Intl.DateTimeFormat('default', {
       weekday: 'short',
       hour: 'numeric',
+      hourCycle: 'h23',
     }).format,
   },
   {
     duration: 2 * 60 * 60 * 1000,
-    formatter: new Intl.DateTimeFormat('default', { hour: 'numeric' }).format,
+    formatter: new Intl.DateTimeFormat('default', { hour: 'numeric', hourCycle: 'h23' }).format,
   },
   {
     duration: 2 * 60 * 1000,
     formatter: new Intl.DateTimeFormat('default', {
       hour: 'numeric',
       minute: 'numeric',
+      hourCycle: 'h23',
     }).format,
   },
   {
@@ -55,6 +57,7 @@ const choices = [
       hour: 'numeric',
       minute: 'numeric',
       second: 'numeric',
+      hourCycle: 'h23',
     }).format,
   },
 ];

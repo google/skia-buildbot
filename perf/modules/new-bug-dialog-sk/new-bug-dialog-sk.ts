@@ -67,27 +67,26 @@ export class NewBugDialogSk extends ElementSk {
         <close-icon-sk></close-icon-sk>
       </button>
       <form id="new-bug-form">
-        <h3>Title</h3>
+        <label for="title">Title</label>
         <input
           id="title"
           type="text"
           required
           value=${ele.getBugTitle()}>
         </input>
-        <h3>Description</h3>
-          <textarea id="description" rows="10"></textarea>
-        </input>
+        <label for="description">Description</label>
+        <textarea id="description" rows="10"></textarea>
         ${ele.hasLabels() ? html`<h3>Labels</h3>` : ''}
         ${ele.getLabelCheckboxes()}
         <h3>Component</h3>
         ${ele.getComponentRadios()}
-        <h3>Assignee</h3>
+        <label for="assignee">Assignee</label>
         <input
           id="assignee"
           type="text"
           >
         </input>
-        <h3>CC's (comma-separated e-mails)</h3>
+        <label for="ccs">CC's (comma-separated e-mails)</label>
         <input
           id="ccs"
           type="text"
@@ -181,28 +180,31 @@ export class NewBugDialogSk extends ElementSk {
 
     // Check if this is the first radio created to mark it as checked.
     let isFirst = true;
+    let counter = 0;
 
     this._anomalies.forEach((anomaly) => {
       const component = anomaly.bug_component;
       // Only add the radio button if the component is not already in the Set
       if (!uniqueComponents.has(component)) {
         uniqueComponents.add(component);
+        const radioId = `component-radio-${counter}`;
         radios.push(
           html`
             <div>
               <input
                 type="radio"
                 required
-                id=${anomaly.id}
+                id=${radioId}
                 name="component"
                 ?checked=${isFirst}
                 value="${component}">
               </input>
-              <label for=${anomaly.id}>${component}</label>
+              <label for=${radioId}>${component}</label>
             </div>
           `
         );
         isFirst = false;
+        counter++;
       }
     });
     return radios;

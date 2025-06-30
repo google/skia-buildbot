@@ -331,7 +331,15 @@ export class SidePanelSk extends LitElement {
         return [];
       }
       // The legend is a list of strings that are the legend values.
-      const originalLegendList = legendFormatter(getLegendData);
+      const originalLegendList = legendFormatter(getLegendData).map((legend) => {
+        const parts = legend.split('/');
+        if (parts.length > 1) {
+          const last = parts.pop();
+          parts.unshift(last!);
+          return parts.join('/');
+        }
+        return legend;
+      });
       let displayLegendList = originalLegendList;
 
       if (originalLegendList.length > 1) {

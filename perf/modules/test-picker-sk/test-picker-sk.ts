@@ -84,11 +84,11 @@ export class TestPickerSk extends ElementSk {
         <div class="test-picker-sk-matches-container">
           Traces: ${ele._requestInProgress ? '' : ele._count}
           <spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
-          <div ?hidden="${!(ele._count > PLOT_MAXIMUM)}">
-            <span id="max-message">(${MAX_MESSAGE})</span>
-          </div>
         </div>
         <div id="plot-button-container">
+          <div ?hidden="${!(ele._count > PLOT_MAXIMUM)}">
+            <span id="max-message" style="margin-left:2px">(${MAX_MESSAGE})</span>
+          </div>
           <button
             id="plot-button"
             @click=${ele.onPlotButtonClick}
@@ -224,7 +224,7 @@ export class TestPickerSk extends ElementSk {
         );
       }
       fieldInfo.value = [];
-      if (fieldInfo.field !== null) {
+      if (fieldInfo.field !== null && this._containerDiv?.contains(fieldInfo.field!)) {
         this._containerDiv!.removeChild(fieldInfo.field!);
       }
       fieldInfo.field = null;
@@ -726,11 +726,13 @@ export class TestPickerSk extends ElementSk {
     this._containerDiv!.replaceChildren();
     this._currentIndex = 0;
     if (this._fieldData.length > 0) {
-      this._fieldData.forEach((fieldInfo) => {
-        if (fieldInfo.param in params) {
+      this._fieldData = this._fieldData.filter((fieldInfo) => {
+        if (params.includes(fieldInfo.param)) {
           fieldInfo.field = null;
           fieldInfo.value = [];
+          return true;
         }
+        return false;
       });
     } else {
       this._fieldData = [];

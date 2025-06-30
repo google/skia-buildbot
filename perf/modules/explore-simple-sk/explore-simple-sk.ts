@@ -1079,10 +1079,42 @@ export class ExploreSimpleSk extends ElementSk {
   private getCommitIndex(value: number, type: string = 'commit'): number {
     // Ensure the index value is an integer.
     value = Math.round(value);
-    if (type === 'commit') {
-      return this.dfRepo.value?.header.findIndex((header) => header?.offset === value) ?? -1;
+    const header = this.dfRepo.value?.header;
+    if (!header || header.length === 0) {
+      return -1;
     }
-    return this.dfRepo.value?.header.findIndex((header) => header?.timestamp === value) ?? -1;
+
+    const prop = type === 'commit' ? 'offset' : 'timestamp';
+
+    // First, try to find an exact match.
+    let index = header.findIndex((h) => h?.[prop] === value);
+    if (index !== -1) {
+      return index;
+    }
+
+    // If no exact match, find the index of the first element greater than value.
+    index = header.findIndex((h) => h !== undefined && h !== null && h[prop] > value);
+
+    // If no element is greater, 'value' is larger than all elements.
+    // The closest is the last one.
+    if (index === -1) {
+      return header.length - 1;
+    }
+
+    // If 'value' is smaller than all elements, the closest is the first one.
+    if (index === 0) {
+      return 0;
+    }
+
+    // We have two candidates, the one before and the one at the found index.
+    // Compare with the previous element to see which is closer.
+    const diffNext = header[index]![prop] - value;
+    const diffPrev = value - header[index - 1]![prop];
+
+    if (diffNext < diffPrev) {
+      return index;
+    }
+    return index - 1;
   }
 
   // onChartSelect shows the tooltip whenever a user clicks on a data
@@ -1765,7 +1797,9 @@ export class ExploreSimpleSk extends ElementSk {
     const index = (this.selectedRange?.begin || 0) + detail.x;
     const selected = header![index]!;
     this.paramset!.highlight = fromKey(detail.name);
-    this.commitTime!.textContent = new Date(selected.timestamp * 1000).toLocaleString();
+    this.commitTime!.textContent = new Date(selected.timestamp * 1000).toLocaleString(undefined, {
+      hourCycle: 'h23',
+    });
 
     if (this._state.enable_chart_tooltip && !this.tooltipSelected) {
       const commitPos = selected.offset;
@@ -1917,7 +1951,7 @@ export class ExploreSimpleSk extends ElementSk {
       // When no commit is found in the dataframe, return.
       // Only message if not anomaly table where graphs are not synced.
       if (!this.is_anomaly_table) {
-        errorMessage(`Timestamp(s) not found in the dataframe: ${begin}, ${end}`);
+        console.error(`Timestamp(s) not found in the dataframe: ${begin}, ${end}`);
       }
       return;
     }
@@ -1926,7 +1960,7 @@ export class ExploreSimpleSk extends ElementSk {
       const beginCommit = this.dfRepo.value?.header[beginIndex]?.offset;
       const endCommit = this.dfRepo.value?.header[endIndex]?.offset;
       if (beginCommit === undefined || endCommit === undefined) {
-        errorMessage(`Begin or end commit offset not found in the dataframe.`);
+        console.error(`Begin or end commit offset not found in the dataframe.`);
         return;
       }
 
@@ -1939,8 +1973,10 @@ export class ExploreSimpleSk extends ElementSk {
           start: 0,
           end: 0,
         };
-        this.plotSummary.value!.selectedValueRange = detail.value;
-        this.summarySelected(new CustomEvent('summary_selected', { detail: detail }));
+        if (this.plotSummary.value) {
+          this.plotSummary.value!.selectedValueRange = detail.value;
+          this.summarySelected(new CustomEvent('summary_selected', { detail: detail }));
+        }
       }
     }
 
@@ -2800,7 +2836,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
     const dfRepo = this.dfRepo.value;
     if (!dfRepo) {
-      errorMessage('DataFrameRepository is not available.');
+      console.error('DataFrameRepository is not available.');
       return;
     }
     await this.dfRepo.value?.resetWithDataframeAndRequest(

@@ -18,6 +18,11 @@
     align-items: flex-start;
   }
 
+  #max-message {
+    color: var(--error);
+    font-style: italic;
+  }
+
   #queryCount {
     display: flex;
     flex-direction: column;
@@ -28,10 +33,6 @@
       flex-direction: row;
       align-self: center;
       min-width: 75px;
-      #max-message {
-        color: var(--error);
-        font-style: italic;
-      }
       spinner-sk {
         margin: 0;
         margin-left: 8px;
