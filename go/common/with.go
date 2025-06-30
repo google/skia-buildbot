@@ -12,9 +12,11 @@ import (
 	"cloud.google.com/go/logging"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/cloudlogging"
 	"go.skia.org/infra/go/sklog/sklogimpl"
+	"go.skia.org/infra/go/sklog/structuredlogging"
 	"golang.org/x/oauth2/google"
 )
 
@@ -149,6 +151,41 @@ func (o *cloudLoggingInitOpt) init(appName string) error {
 }
 
 func (o *cloudLoggingInitOpt) order() int {
+	return 1
+}
+
+// structuredLoggingInitOpt implements Opt for structured logging.
+type structuredLoggingInitOpt struct {
+	local *bool
+}
+
+// StructuredLogging creates an Opt to initialize structured logging when passed
+// to InitWith().
+//
+// No structured logging is done if local is true.
+func StructuredLogging(local *bool) Opt {
+	return &structuredLoggingInitOpt{
+		local: local,
+	}
+}
+
+func (o *structuredLoggingInitOpt) preinit(appName string) error {
+	if *o.local {
+		return nil
+	}
+	logger, err := structuredlogging.Init()
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	sklogimpl.SetLogger(logger)
+	return nil
+}
+
+func (o *structuredLoggingInitOpt) init(appName string) error {
+	return nil
+}
+
+func (o *structuredLoggingInitOpt) order() int {
 	return 1
 }
 

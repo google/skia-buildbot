@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "structuredlogging",
@@ -6,7 +7,20 @@ go_library(
     importpath = "go.skia.org/infra/go/sklog/structuredlogging",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/skerr",
         "//go/sklog/sklogimpl",
         "@com_google_cloud_go_logging//:logging",
+        "@com_google_cloud_go_logging//apiv2/loggingpb",
+    ],
+)
+
+go_test(
+    name = "structuredlogging_test",
+    srcs = ["structuredlogging_test.go"],
+    embed = [":structuredlogging"],
+    deps = [
+        "//go/sklog/sklogimpl",
+        "//go/util",
+        "@com_github_stretchr_testify//require",
     ],
 )
