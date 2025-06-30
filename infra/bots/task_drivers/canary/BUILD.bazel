@@ -12,6 +12,7 @@ go_library(
         "//go/gerrit",
         "//go/git",
         "//go/skerr",
+        "//go/sklog",
         "//task_driver/go/lib/auth_steps",
         "//task_driver/go/lib/checkout",
         "//task_driver/go/td",
