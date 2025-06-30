@@ -341,20 +341,20 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 	return cr, nil
 }
 
-func triggerCbbNewReleaseDetector(c client.Client) (bool, error) {
+func triggerCbbNewReleaseDetector(c client.Client) (*internal.ChromeReleaseInfo, error) {
 	ctx := context.Background()
 
-	var success bool
+	var result *internal.ChromeReleaseInfo
 	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.CbbNewReleaseDetector)
 	if err != nil {
-		return false, skerr.Wrapf(err, "Unable to execute the workflow")
+		return nil, skerr.Wrapf(err, "Unable to execute the workflow")
 	}
 	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
 
-	if err := we.Get(ctx, &success); err != nil {
-		return false, skerr.Wrapf(err, "Unable to write to buganizer")
+	if err := we.Get(ctx, &result); err != nil {
+		return nil, skerr.Wrapf(err, "Unable to get results from CbbNewReleaseDetector workflow")
 	}
-	return success, nil
+	return result, nil
 }
 
 // Sample client to trigger a BuildChrome workflow.
