@@ -120,6 +120,10 @@ export const dataframeContext = createContext<DataFrame>(Symbol('dataframe-conte
 
 export const dataTableContext = createContext<DataTable>(Symbol('datatable-context'));
 
+export const traceColorMapContext = createContext<Map<string, string>>(
+  Symbol('trace-color-map-context')
+);
+
 export const dataframeAnomalyContext = createContext<AnomalyMap>(
   Symbol('dataframe-anomaly-context')
 );

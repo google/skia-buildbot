@@ -514,6 +514,8 @@ export class ChartTooltipSk extends ElementSk {
 
   /** Clear Point Links */
   reset(): void {
+    this.bug_id = 0;
+    this.index = -1;
     this.commit_info = null;
     this.commitRangeSk?.reset();
     this.pointLinks?.reset();

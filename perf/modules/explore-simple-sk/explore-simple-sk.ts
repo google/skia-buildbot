@@ -2340,14 +2340,16 @@ export class ExploreSimpleSk extends ElementSk {
   /** Hides the tooltip. Generally called when mouse moves out of the graph */
   closeTooltip(): void {
     const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+    if (!tooltipElem || tooltipElem.index === -1) {
+      return;
+    }
     tooltipElem!.moveTo(null);
-    tooltipElem!.bug_id = 0;
     if (this.tooltipSelected) {
       this.clearSelectedState();
       this.clearBrowserURL();
     }
     this.tooltipSelected = false;
-
+    tooltipElem?.reset();
     // unselect all selected item on the chart
     this.googleChartPlot.value?.unselectAll();
     if (this.plotSummary.value?.selectedTrace) {
@@ -2986,12 +2988,18 @@ export class ExploreSimpleSk extends ElementSk {
         this.plotSummary.value?.SelectRange(selectedRange!);
         this.useBrowserURL();
       } else {
+        let extendRange = 3 * monthInSec;
+        // Large amount of traces, limit the range extension.
+        if (this.dfRepo.value?.traces && Object.keys(this.dfRepo.value.traces).length > 10) {
+          extendRange = 0.5 * monthInSec;
+        }
+
         this.plotSummary.value?.Select(header![0]!, header[header.length - 1]!);
-        this.dfRepo.value?.extendRange(-3 * monthInSec).then(() => {
+        this.dfRepo.value?.extendRange(-extendRange).then(() => {
           // Already plotted, just need to update the data.
           this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit', false);
         });
-        this.dfRepo.value?.extendRange(3 * monthInSec).then(() => {
+        this.dfRepo.value?.extendRange(extendRange).then(() => {
           // Ensure at least the Minimum Points are displayed.
           if (dataframe.header && dataframe.header.length < MIN_POINTS) {
             const header = this.dfRepo.value?.header;

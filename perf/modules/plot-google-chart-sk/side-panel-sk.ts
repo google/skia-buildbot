@@ -4,7 +4,7 @@
  *
  * Element for showing the legend next to plot-google-chart-sk.
  * The side panel comes with a left bar that will close or open the
- * side panel.
+ * side panel. This component is used by plot-google-chart-sk.
  *
  * When there is only one trace in the dataframe, the legend will be empty.
  * When the legend is empty, the side panel will have no content.
@@ -13,14 +13,13 @@
  * This side panel can be adapted to also show the tooltip rather
  * than have the tooltip hover over the data point.
  */
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { consume } from '@lit/context';
 
-import { dataTableContext, DataTable } from '../dataframe/dataframe_context';
+import { dataTableContext, DataTable, traceColorMapContext } from '../dataframe/dataframe_context';
 import { legendFormatter, getLegend, getLegendKeysTitle } from '../dataframe/traceset';
-import { defaultColors } from '../common/plot-builder';
 
 import '@material/web/button/outlined-button.js';
 import '@material/web/iconbutton/icon-button.js';
@@ -47,6 +46,15 @@ export interface SidePanelToggleEventDetails {
 export interface SidePanelCheckboxClickDetails {
   readonly selected: boolean;
   readonly labels: string[];
+}
+
+interface LegendItem {
+  displayName: string;
+  // The original trace labels from the DataTable.
+  labels: string[];
+  color: string;
+  checked: boolean;
+  highlighted: boolean;
 }
 
 @customElement('side-panel-sk')
@@ -111,13 +119,6 @@ export class SidePanelSk extends LitElement {
   @property({ reflect: true, type: Boolean })
   opened = true;
 
-  // Track state if the legend has been populated initially.
-  @property({ reflect: true, type: Boolean })
-  private legendLoaded = false;
-
-  @property({ reflect: true, type: Set })
-  private checkedColList = new Set<string>();
-
   @consume({ context: dataTableContext, subscribe: true })
   @property({ attribute: false })
   private data?: DataTable;
@@ -133,37 +134,28 @@ export class SidePanelSk extends LitElement {
   @property({ reflect: true })
   showDelta = false;
 
-  /**
-   * A map that maps legend to label.
-   * The legend is the legend of the trace,
-   * the label is the label of the column in the dataframe.
-   */
-  @property({ attribute: false, reflect: true })
-  private legendToLabelMap: { [key: string]: string[] } = {};
+  @property({ attribute: false })
+  private legendItems: LegendItem[] = [];
 
-  /**
-   * A map that maps legend to label.
-   * The legend is the legend of the trace,
-   * The label is the label of the column in the dataframe.
-   */
-  @property({ attribute: false, reflect: true })
-  private labelToLegendMap: { [key: string]: string } = {};
+  @consume({ context: traceColorMapContext, subscribe: true })
+  @property({ attribute: false })
+  private traceColorMap = new Map<string, string>();
 
   @property({ attribute: false, reflect: true })
   private legendKeysFormat = '';
-
-  @property({ attribute: false, reflect: true })
-  private highlightedTraceIndices: number[] = [];
-
-  @property({ reflect: true })
-  legendListCache: string[] = [];
 
   constructor() {
     super();
   }
 
+  protected willUpdate(changedProperties: PropertyValues): void {
+    if ((changedProperties.has('data') || changedProperties.has('traceColorMap')) && this.data) {
+      this.updateLegendItems();
+    }
+  }
+
   render() {
-    this.legendListCache = this.getLegend();
+    const allItemsChecked = this.legendItems.length > 0 && this.legendItems.every((i) => i.checked);
     return html`
       <div
         class="show-hide-bar"
@@ -172,73 +164,80 @@ export class SidePanelSk extends LitElement {
         <md-icon>${this.opened ? chevronRight : chevronLeft}</md-icon>
       </div>
       <div class="info ${classMap({ closed: !this.opened })}">
-        <div class="delta-range" ?hidden=${!this.showDelta}> Delta: ${this.deltaRaw}<br/>
-        Percentage: ${this.deltaPercentage}</div>
+        <div class="delta-range" ?hidden=${!this.showDelta}>
+          Delta: ${this.deltaRaw}<br />
+          Percentage: ${this.deltaPercentage}
+        </div>
         <div class="label-key-title">
           <span>${this.legendKeysFormat}</span>
         </div>
         <div class="select-all-checkbox">
           <label>
-            <input type="checkbox" id="header-checkbox"
-            .defaultChecked=${true} .checked=${true}
-            @click=${this.toggleAllCheckboxes}> Select all</input>
+            <input
+              type="checkbox"
+              id="header-checkbox"
+              .checked=${allItemsChecked}
+              @click=${this.toggleAllCheckboxes} />
+            Select all
           </label>
         </div>
         <div id="rows">
           <ul>
-          ${this.legendListCache.map((item, index) => {
-            if (this.legendLoaded) {
-              const checkbox = this.renderRoot.querySelector(`#id-${index}`) as HTMLInputElement;
-              if (checkbox) {
-                checkbox.checked = this.checkedColList.has(item);
-                if (this.checkedColList.size === 1 && this.checkedColList.has(item)) {
-                  checkbox.disabled = true;
-                } else {
-                  checkbox.disabled = false;
-                }
-              }
-            } else {
-              if (!this.checkedColList.has(item)) {
-                this.checkedColList.add(item);
-              }
-            }
-            const handleCheck = (e: MouseEvent) => {
-              const checkEvent = e.target! as HTMLInputElement;
-              if (checkEvent) {
-                this.setCheckbox(checkEvent.checked, index);
-              }
-              // Set the header box as checked based on all boxes being checked.
-              const headerCheckbox = this.renderRoot.querySelector(
-                `#header-checkbox`
-              ) as HTMLInputElement;
-              if (this.legendListCache.length === this.checkedColList.size) {
-                headerCheckbox.checked = true;
-              } else {
-                headerCheckbox.checked = false;
-              }
-            };
-            let labelClass = 'default';
-            if (this.highlightedTraceIndices.includes(index)) {
-              labelClass = 'highlight';
-            }
-            return html`
-              <li style="color: ${defaultColors[index % defaultColors.length]}">
-                <label class="${labelClass}">
-                  <input
-                    type="checkbox"
-                    id="id-${index}"
-                    @click=${handleCheck}
-                    ?checked=${this.checkedColList.has(item)}
-                    title="Select/Unselect this value from the graph" />
-                  ${item}
-                </label>
-              </li>
-            `;
-          })}
+            ${this.legendItems.map((item, index) => {
+              const handleCheck = (e: MouseEvent) => {
+                const checkEvent = e.target! as HTMLInputElement;
+                this.toggleItemChecked(item, checkEvent.checked);
+              };
+
+              const checkedCount = this.legendItems.filter((i) => i.checked).length;
+              const isLastChecked = item.checked && checkedCount === 1;
+
+              return html`
+                <li style="color: ${item.color}">
+                  <label class="${item.highlighted ? 'highlight' : 'default'}">
+                    <input
+                      type="checkbox"
+                      id="id-${index}"
+                      @click=${handleCheck}
+                      .checked=${item.checked}
+                      ?disabled=${isLastChecked}
+                      title=${isLastChecked
+                        ? 'At least one trace must be selected.'
+                        : 'Select/Unselect this value from the graph'} />
+                    ${item.displayName}
+                  </label>
+                </li>
+              `;
+            })}
           </ul>
         </div>
       </div>
     `;
+  }
+
+  /**
+   * Toggles the checked state of a legend item and dispatches an event.
+   *
+   * @param item - The legend item to toggle.
+   * @param isChecked - The new checked state.
+   */
+  private toggleItemChecked(item: LegendItem, isChecked: boolean) {
+    const checkedCount = this.legendItems.filter((i) => i.checked).length;
+    if (!isChecked && checkedCount <= 1) {
+      // Don't allow unchecking the last item. Re-render to revert checkbox state.
+      this.requestUpdate();
+      return;
+    }
+
+    item.checked = isChecked;
+    this.checkboxDispatchHandler(isChecked, item.labels);
+
+    // Update header checkbox
+    const headerCheckbox = this.renderRoot.querySelector('#header-checkbox') as HTMLInputElement;
+    if (headerCheckbox) {
+      headerCheckbox.checked = this.legendItems.every((i) => i.checked);
+    }
+    this.requestUpdate();
   }
 
   /**
@@ -247,33 +246,46 @@ export class SidePanelSk extends LitElement {
    * @param traceId The trace id.
    */
   public SetCheckboxForTrace(checked: boolean, traceId: string) {
-    const items = this.legendListCache;
-    // The legend values are in the form of a/b/c/d while traceId is
-    // ,k1=a,k2=b,k3=c,k4=d. The labelToLegendMap contains this
-    // mapping so we first get the value on the legend to be updated.
-    const legendVal = this.labelToLegendMap[traceId];
-    let index = -1;
-    // Now let's find the index of the value to be updated.
-    for (let i = 0; i < items.length; i++) {
-      if (items[i] === legendVal) {
-        index = i;
-        break;
-      }
-    }
-    // Set the checkbox state on the index if item exists.
-    if (index > -1) {
-      this.setCheckbox(checked, index);
+    const item = this.legendItems.find((i) => i.labels.includes(traceId));
+    if (item) {
+      this.toggleItemChecked(item, checked);
     }
   }
 
   /**
    * Sets all the checkboxes in the panel to the given checked state.
-   * @param checked The state of checkboxes.
+   * @param checked The desired state of the checkboxes.
    */
   public SetAllBoxes(checked: boolean) {
-    for (let index = 0; index < this.legendListCache.length; index++) {
-      this.setCheckbox(checked, index);
+    const changedLabels: string[] = [];
+    const itemsToChange: LegendItem[] = [];
+
+    if (checked) {
+      this.legendItems.forEach((item) => {
+        if (!item.checked) {
+          itemsToChange.push(item);
+        }
+      });
+    } else {
+      // Unchecking: don't uncheck the last item.
+      const checkedItems = this.legendItems.filter((item) => item.checked);
+      if (checkedItems.length > 1) {
+        // Uncheck all but the last one.
+        for (let i = 0; i < checkedItems.length - 1; i++) {
+          itemsToChange.push(checkedItems[i]);
+        }
+      }
     }
+
+    itemsToChange.forEach((item) => {
+      item.checked = checked;
+      changedLabels.push(...item.labels);
+    });
+
+    if (changedLabels.length > 0) {
+      this.checkboxDispatchHandler(checked, changedLabels);
+    }
+    this.requestUpdate();
   }
 
   /**
@@ -281,34 +293,58 @@ export class SidePanelSk extends LitElement {
    * @param traceIndices Indices of the traces to highlight.
    */
   public HighlightTraces(traceIndices: number[]) {
-    this.highlightedTraceIndices = traceIndices;
-    this.render();
-  }
+    this.legendItems.forEach((item) => (item.highlighted = false));
 
-  /**
-   * Sets the checkbox and tracks checked items in a list.
-   */
-  private setCheckbox(checked: boolean, index: number) {
-    const item = this.legendListCache[index];
-    if (checked) {
-      if (!this.checkedColList.has(item)) {
-        this.checkedColList.add(item);
-        this.checkboxDispatchHandler(checked, [item]);
-      }
-    } else {
-      if (this.checkedColList.has(item) && this.checkedColList.size > 1) {
-        this.checkedColList.delete(item);
-        this.checkboxDispatchHandler(checked, [item]);
-      }
+    if (!this.data) {
+      return;
     }
-    this.render();
+
+    traceIndices.forEach((traceIndex) => {
+      const label = this.data!.getColumnLabel(traceIndex + 2);
+      const item = this.legendItems.find((i) => i.labels.includes(label));
+      if (item) {
+        item.highlighted = true;
+      }
+    });
+    this.requestUpdate();
   }
 
   private toggleAllCheckboxes() {
     const headerCheckbox = this.renderRoot.querySelector(`#header-checkbox`) as HTMLInputElement;
-    for (let index = 0; index < this.legendListCache.length; index++) {
-      this.setCheckbox(headerCheckbox.checked, index);
+    const isChecked = headerCheckbox.checked;
+
+    const changedLabels: string[] = [];
+    const itemsToChange: LegendItem[] = [];
+
+    if (isChecked) {
+      this.legendItems.forEach((item) => {
+        if (!item.checked) {
+          itemsToChange.push(item);
+        }
+      });
+    } else {
+      // Unchecking: don't uncheck the last item.
+      const checkedItems = this.legendItems.filter((item) => item.checked);
+      if (checkedItems.length <= 1) {
+        // Revert the checkbox state since we can't uncheck the last item.
+        headerCheckbox.checked = true;
+        return;
+      }
+      // Uncheck all but the last one.
+      for (let i = 0; i < checkedItems.length - 1; i++) {
+        itemsToChange.push(checkedItems[i]);
+      }
     }
+
+    itemsToChange.forEach((item) => {
+      item.checked = isChecked;
+      changedLabels.push(...item.labels);
+    });
+
+    if (changedLabels.length > 0) {
+      this.checkboxDispatchHandler(isChecked, changedLabels);
+    }
+    this.requestUpdate();
   }
 
   private toggleSidePanel() {
@@ -324,11 +360,12 @@ export class SidePanelSk extends LitElement {
     );
   }
 
-  private getLegend() {
+  private updateLegendItems() {
     if (this.data) {
       const getLegendData = getLegend(this.data);
       if (getLegendData.length === 0) {
-        return [];
+        this.legendItems = [];
+        return;
       }
       // The legend is a list of strings that are the legend values.
       const originalLegendList = legendFormatter(getLegendData).map((legend) => {
@@ -342,67 +379,75 @@ export class SidePanelSk extends LitElement {
       });
       let displayLegendList = originalLegendList;
 
+      // If there are multiple legends, find the common parts and remove them
+      // to make the legend more concise.
       if (originalLegendList.length > 1) {
         const splitLegends = originalLegendList.map((s) => s.split('/'));
         const numParts = splitLegends.reduce((max, parts) => Math.max(max, parts.length), 0);
-        let distinguishingPartIndex = -1;
+        const commonPartIndices = new Set<number>();
 
         for (let i = 0; i < numParts; i++) {
-          // Use 'untitled_key' as a placeholder for shorter legends.
-          const partsAtIndex = splitLegends.map((parts) =>
-            parts.length > i ? parts[i] : 'untitled_key'
-          );
-          // Filter out 'untitled_key' to check for uniformity among actual values.
-          const filteredParts = partsAtIndex.filter((p) => p !== 'untitled_key');
-
-          if (filteredParts.length === 0) {
-            // All parts at this index are 'untitled_key' or missing, so it's not distinguishing.
+          // A part at a given index is common if all legends have a part at that
+          // index and they are all identical.
+          if (splitLegends.some((parts) => parts.length <= i)) {
             continue;
           }
 
-          const uniqueParts = new Set(filteredParts);
-          if (uniqueParts.size > 1) {
-            distinguishingPartIndex = i;
-            break;
+          const partToCompare = splitLegends[0][i];
+          if (splitLegends.every((parts) => parts[i] === partToCompare)) {
+            commonPartIndices.add(i);
           }
         }
 
-        if (distinguishingPartIndex !== -1) {
+        // If all parts of the legends are common (i.e., all legends are identical),
+        // we don't filter anything to avoid displaying empty strings.
+        if (splitLegends.length > 0 && splitLegends[0].length !== commonPartIndices.size) {
           displayLegendList = splitLegends.map((parts) =>
-            parts.length > distinguishingPartIndex ? parts[distinguishingPartIndex] : 'untitled_key'
+            parts.filter((_, index) => !commonPartIndices.has(index)).join('/')
           );
         }
       }
 
       this.legendKeysFormat = getLegendKeysTitle(getLegendData[0]);
+
+      // Group labels by display name.
+      const legendToLabelsMap = new Map<string, string[]>();
       const numCols = this.data!.getNumberOfColumns();
-      this.legendToLabelMap = {};
-      this.labelToLegendMap = {};
-      // The first two columns of the data table for the commit number/ timestamp x axis- options.
-      // It converted n-2 labels to legend format and stored in the legend list.
       for (let i = 2; i < numCols; i++) {
-        const k = this.data!.getColumnLabel(i);
-        const legend = displayLegendList[i - 2];
-        if (!this.legendToLabelMap[legend]) {
-          this.legendToLabelMap[legend] = [];
+        const label = this.data!.getColumnLabel(i);
+        const displayName = displayLegendList[i - 2];
+        if (!legendToLabelsMap.has(displayName)) {
+          legendToLabelsMap.set(displayName, []);
         }
-        this.legendToLabelMap[legend].push(k);
-        this.labelToLegendMap[k] = legend;
+        legendToLabelsMap.get(displayName)!.push(label);
       }
-      return [...new Set(displayLegendList)];
+
+      const newLegendItems: LegendItem[] = [];
+      const uniqueDisplayNames = [...legendToLabelsMap.keys()];
+
+      uniqueDisplayNames.forEach((displayName) => {
+        const labels = legendToLabelsMap.get(displayName)!;
+
+        // Preserve checked and highlighted state if item already exists.
+        const existingItem = this.legendItems.find((item) => item.displayName === displayName);
+
+        // Get color from the traceColorMap. Since multiple labels can map to one
+        // display name, we just use the first label to look up the color.
+        const color = this.traceColorMap.get(labels[0]) || 'black';
+
+        newLegendItems.push({
+          displayName: displayName,
+          labels: labels,
+          color: color,
+          checked: existingItem?.checked ?? true,
+          highlighted: existingItem?.highlighted ?? false,
+        });
+      });
+      this.legendItems = newLegendItems;
     }
-    return [];
   }
 
-  checkboxDispatchHandler(isSelected: boolean, legendList: string[]): void {
-    const labels: string[] = [];
-    this.legendLoaded = true;
-    legendList.forEach((legend) => {
-      const mappedLabels = this.legendToLabelMap[legend];
-      if (mappedLabels) {
-        labels.push(...mappedLabels);
-      }
-    });
+  private checkboxDispatchHandler(isSelected: boolean, labels: string[]): void {
     const detail: SidePanelCheckboxClickDetails = {
       selected: isSelected,
       labels: labels,

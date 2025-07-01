@@ -9,10 +9,9 @@
  * @example
  */
 import '@google-web-components/google-chart';
-import '@material/web/progress/linear-progress';
+import '@material/web/progress/linear-progress.js';
 import { GoogleChart } from '@google-web-components/google-chart';
-
-import { consume } from '@lit/context';
+import { consume, provide } from '@lit/context';
 import { html, css } from 'lit';
 import { LitElement, PropertyValues } from 'lit';
 import { ref, Ref, createRef } from 'lit/directives/ref.js';
@@ -26,6 +25,7 @@ import {
   dataframeLoadingContext,
   dataframeUserIssueContext,
   DataTable,
+  traceColorMapContext,
   dataTableContext,
   UserIssueMap,
 } from '../dataframe/dataframe_context';
@@ -227,7 +227,9 @@ export class PlotGoogleChartSk extends LitElement {
   private lastMouse = { x: 0, y: 0 };
 
   // Maps a trace to a color.
-  private traceColorMap = new Map<string, string>();
+  @provide({ context: traceColorMapContext })
+  @property({ attribute: false })
+  traceColorMap = new Map<string, string>();
 
   // Index to keep track of which colors we've used so far.
   private colorIndex = 0;
@@ -365,7 +367,7 @@ export class PlotGoogleChartSk extends LitElement {
 
     // The first two columns are the commit position and the date.
     const cols = [this.domain === 'commit' ? 0 : 1];
-    const hiddenColumns = [];
+    const hiddenColumns: number[] = [];
     for (let index = 2; index < ncols; index++) {
       const label = view.getColumnLabel(index);
       cols.push(index);
