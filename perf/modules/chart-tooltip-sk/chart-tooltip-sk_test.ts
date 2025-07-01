@@ -98,7 +98,8 @@ describe('chart-tooltip-sk', () => {
         null,
         false,
         null,
-        () => {}
+        () => {},
+        undefined
       );
       assert.equal(element.test_name, test_name);
       assert.equal(element.y_value, y_value);
@@ -121,7 +122,8 @@ describe('chart-tooltip-sk', () => {
         null,
         false,
         null,
-        () => {}
+        () => {},
+        undefined
       );
       assert.equal(element.test_name, test_name);
       assert.equal(element.y_value, y_value);
@@ -147,7 +149,8 @@ describe('chart-tooltip-sk', () => {
         null,
         false,
         null,
-        () => {}
+        () => {},
+        undefined
       );
       element.loadJsonResource(commit_position, test_name);
 

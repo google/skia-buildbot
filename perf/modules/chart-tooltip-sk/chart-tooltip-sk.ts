@@ -44,6 +44,9 @@ export class ChartTooltipSk extends ElementSk {
   // Index of the trace in the dataframe.
   private _index: number = -1;
 
+  // The color of the trace.
+  private _color: string = '';
+
   // Full name (id) of the point in question (e.detail.name)
   private _test_name: string = '';
 
@@ -161,7 +164,7 @@ export class ChartTooltipSk extends ElementSk {
         <close-icon-sk></close-icon-sk>
       </button>
       <h3>
-        <span style="color:${defaultColors[ele.index % defaultColors.length]}">
+        <span style="color:${ele.color}">
           ${ele.test_name || `untitled_key`}
           <span ?hidden=${!ele.anomaly}> [Anomaly] </span>
         </span>
@@ -361,6 +364,7 @@ export class ChartTooltipSk extends ElementSk {
     upgradeProperty(this, 'bug_host_url');
     upgradeProperty(this, 'bug_id');
     upgradeProperty(this, 'preloadBisectInputs');
+    upgradeProperty(this, 'color');
     upgradeProperty(this, 'preloadTryJobInputs');
     this._render();
 
@@ -448,7 +452,8 @@ export class ChartTooltipSk extends ElementSk {
     commit: ColumnHeader | null,
     tooltipFixed: boolean,
     commitRange: CommitRangeSk | null,
-    closeButtonAction: () => void
+    closeButtonAction: () => void,
+    color?: string
   ): void {
     this._index = index;
     this._test_name = test_name;
@@ -463,6 +468,7 @@ export class ChartTooltipSk extends ElementSk {
     this._close_button_action = closeButtonAction;
     this.tooltip_fixed = tooltipFixed;
     this.commit_info = commit;
+    this.color = color || defaultColors[this._index % defaultColors.length];
 
     if (commitRange && this.commitRangeSk) {
       this._is_range = this.commitRangeSk.isRange();
@@ -556,6 +562,15 @@ export class ChartTooltipSk extends ElementSk {
 
   set index(val: number) {
     this._index = val;
+    this._render();
+  }
+
+  get color(): string {
+    return this._color;
+  }
+
+  set color(val: string) {
+    this._color = val;
     this._render();
   }
 

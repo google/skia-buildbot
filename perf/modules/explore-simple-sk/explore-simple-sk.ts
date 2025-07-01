@@ -2160,6 +2160,8 @@ export class ExploreSimpleSk extends ElementSk {
     const traceName = pointDetails.name;
     const header = this.dfRepo.value?.header || null;
     const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
+    const chart = this.googleChartPlot!.value!;
+    const color = chart.getTraceColor(traceName);
     const prevCommitPos = this.getPreviousCommit(x, traceName);
     const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPosition) || null;
     const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
@@ -2317,7 +2319,8 @@ export class ExploreSimpleSk extends ElementSk {
       commit,
       fixTooltip,
       commitRangeSk,
-      closeBtnAction
+      closeBtnAction,
+      color
     );
     if (window.perf.show_json_file_display) {
       tooltipElem!.loadJsonResource(commitPosition, traceName);

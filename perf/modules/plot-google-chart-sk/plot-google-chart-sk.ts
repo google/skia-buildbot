@@ -1293,6 +1293,14 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   /**
+   * Get the color of a trace given the trace name.
+   * @param traceName The trace name.
+   */
+  public getTraceColor(traceName: string): string | undefined {
+    return this.traceColorMap.get(traceName);
+  }
+
+  /**
    *
    * @returns All traces in string format
    */
