@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "data",
+    srcs = [
+        "perfClient.go",
+        "tools.go",
+    ],
+    importpath = "go.skia.org/infra/mcp/services/perf/data",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/httputils",
+        "//go/paramtools",
+        "//go/skerr",
+        "//mcp/common",
+        "//perf/go/dataframe",
+        "//perf/go/types",
+        "@com_github_mark3labs_mcp_go//mcp",
+    ],
+)
