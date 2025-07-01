@@ -191,7 +191,7 @@ func (c *gcsChild) getAllRevisions(ctx context.Context) ([]*revision.Revision, e
 	}); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	sort.Sort(gcsVersionSlice(versions))
+	sort.Stable(gcsVersionSlice(versions))
 	var revs []*revision.Revision
 	for _, ver := range versions {
 		revs = append(revs, revisions[ver.Id()])
