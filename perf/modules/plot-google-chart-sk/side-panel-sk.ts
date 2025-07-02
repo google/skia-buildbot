@@ -19,7 +19,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { consume } from '@lit/context';
 
 import { dataTableContext, DataTable, traceColorMapContext } from '../dataframe/dataframe_context';
-import { legendFormatter, getLegend, getLegendKeysTitle } from '../dataframe/traceset';
+import { getLegend } from '../dataframe/traceset';
 
 import '@material/web/button/outlined-button.js';
 import '@material/web/iconbutton/icon-button.js';
@@ -38,6 +38,8 @@ const chevronRight = html`<svg
   fill="currentColor">
   <path d="M8.59 7.41L10 6l6 6-6 6-1.41-1.41L13.17 12z" />
 </svg>`;
+
+const unwantedKeys = new Set(['master', 'improvement_direction', 'unit']);
 
 export interface SidePanelToggleEventDetails {
   open: boolean;
@@ -149,7 +151,7 @@ export class SidePanelSk extends LitElement {
   }
 
   protected willUpdate(changedProperties: PropertyValues): void {
-    if ((changedProperties.has('data') || changedProperties.has('traceColorMap')) && this.data) {
+    if (changedProperties.has('traceColorMap') && this.data) {
       this.updateLegendItems();
     }
   }
@@ -361,87 +363,80 @@ export class SidePanelSk extends LitElement {
   }
 
   private updateLegendItems() {
-    if (this.data) {
-      const getLegendData = getLegend(this.data);
-      if (getLegendData.length === 0) {
-        this.legendItems = [];
-        return;
-      }
-      // The legend is a list of strings that are the legend values.
-      const originalLegendList = legendFormatter(getLegendData).map((legend) => {
-        const parts = legend.split('/');
-        if (parts.length > 1) {
-          const last = parts.pop();
-          parts.unshift(last!);
-          return parts.join('/');
-        }
-        return legend;
-      });
-      let displayLegendList = originalLegendList;
-
-      // If there are multiple legends, find the common parts and remove them
-      // to make the legend more concise.
-      if (originalLegendList.length > 1) {
-        const splitLegends = originalLegendList.map((s) => s.split('/'));
-        const numParts = splitLegends.reduce((max, parts) => Math.max(max, parts.length), 0);
-        const commonPartIndices = new Set<number>();
-
-        for (let i = 0; i < numParts; i++) {
-          // A part at a given index is common if all legends have a part at that
-          // index and they are all identical.
-          if (splitLegends.some((parts) => parts.length <= i)) {
-            continue;
-          }
-
-          const partToCompare = splitLegends[0][i];
-          if (splitLegends.every((parts) => parts[i] === partToCompare)) {
-            commonPartIndices.add(i);
-          }
-        }
-
-        // If all parts of the legends are common (i.e., all legends are identical),
-        // we don't filter anything to avoid displaying empty strings.
-        if (splitLegends.length > 0 && splitLegends[0].length !== commonPartIndices.size) {
-          displayLegendList = splitLegends.map((parts) =>
-            parts.filter((_, index) => !commonPartIndices.has(index)).join('/')
-          );
-        }
-      }
-
-      this.legendKeysFormat = getLegendKeysTitle(getLegendData[0]);
-
-      // Group labels by display name.
-      const legendToLabelsMap = new Map<string, string[]>();
-      const numCols = this.data!.getNumberOfColumns();
-      for (let i = 2; i < numCols; i++) {
-        const label = this.data!.getColumnLabel(i);
-        const displayName = displayLegendList[i - 2];
-        if (!legendToLabelsMap.has(displayName)) {
-          legendToLabelsMap.set(displayName, []);
-        }
-        legendToLabelsMap.get(displayName)!.push(label);
-      }
-
-      const newLegendItems: LegendItem[] = [];
-      const uniqueDisplayNames = [...legendToLabelsMap.keys()];
-
-      uniqueDisplayNames.forEach((displayName) => {
-        const labels = legendToLabelsMap.get(displayName)!;
-
-        // Preserve state from existing items.
-        const existingItem = this.legendItems.find((item) => item.displayName === displayName);
-        const color = this.traceColorMap.get(labels[0]) || 'black';
-
-        newLegendItems.push({
-          displayName: displayName,
-          labels: labels,
-          color: color,
-          checked: existingItem?.checked ?? true,
-          highlighted: existingItem?.highlighted ?? false,
-        });
-      });
-      this.legendItems = newLegendItems;
+    if (!this.data) {
+      this.legendItems = [];
+      return;
     }
+
+    const getLegendData = getLegend(this.data);
+    if (getLegendData.length === 0) {
+      this.legendItems = [];
+      return;
+    }
+
+    // Determine the ordered list of keys to display from the first legend item.
+    // `getLegend` ensures all items have the same keys in the same sorted order.
+    const allKeys = Object.keys(getLegendData[0]);
+    const displayKeys: string[] = [];
+
+    // Special handling for 'test' key to ensure it's always first if it exists.
+    if (allKeys.includes('test')) {
+      displayKeys.push('test');
+    }
+
+    // Add remaining keys, excluding unwanted ones and 'test' (if already added).
+    allKeys.forEach((key) => {
+      if (!unwantedKeys.has(key) && key !== 'test') {
+        displayKeys.push(key);
+      }
+    });
+
+    this.legendKeysFormat = displayKeys.join('/');
+
+    // Generate the display name for each legend item using the determined key order.
+    const displayLegendList = getLegendData.map((legendEntryObj) => {
+      const legendEntry = legendEntryObj as { [key: string]: string };
+      return displayKeys
+        .map((key) => legendEntry[key])
+        .filter((value) => value && value !== 'untitled_key')
+        .join('/');
+    });
+
+    // Group trace labels by their generated display name.
+    const legendToLabelsMap = new Map<string, string[]>();
+    const numCols = this.data!.getNumberOfColumns();
+    for (let i = 2; i < numCols; i++) {
+      const label = this.data!.getColumnLabel(i);
+      const displayName = displayLegendList[i - 2];
+      if (!legendToLabelsMap.has(displayName)) {
+        legendToLabelsMap.set(displayName, []);
+      }
+      legendToLabelsMap.get(displayName)!.push(label);
+    }
+
+    // Create the final list of legend items for rendering.
+    const newLegendItems: LegendItem[] = [];
+    const uniqueDisplayNames = [...legendToLabelsMap.keys()];
+
+    uniqueDisplayNames.forEach((displayName) => {
+      const labels = legendToLabelsMap.get(displayName)!;
+
+      // Preserve state from existing items.
+      const existingItem = this.legendItems.find((item) => item.displayName === displayName);
+      const color = this.traceColorMap.get(labels[0]) || 'black';
+
+      newLegendItems.push({
+        displayName: displayName,
+        labels: labels,
+        color: color,
+        checked: existingItem?.checked ?? true,
+        highlighted: existingItem?.highlighted ?? false,
+      });
+    });
+    this.legendItems = newLegendItems.sort((a, b) => {
+      // Sort by display name, then by first label for consistent ordering.
+      return a.displayName.localeCompare(b.displayName) || a.labels[0].localeCompare(b.labels[0]);
+    });
   }
 
   private checkboxDispatchHandler(isSelected: boolean, labels: string[]): void {

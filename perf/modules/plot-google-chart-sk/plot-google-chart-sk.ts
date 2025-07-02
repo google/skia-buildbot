@@ -368,19 +368,25 @@ export class PlotGoogleChartSk extends LitElement {
     // The first two columns are the commit position and the date.
     const cols = [this.domain === 'commit' ? 0 : 1];
     const hiddenColumns: number[] = [];
+    const newTraceColorMap = new Map(this.traceColorMap);
+    let modified = false;
     for (let index = 2; index < ncols; index++) {
       const label = view.getColumnLabel(index);
       cols.push(index);
 
       // Assign a specific color to all labels.
-      if (!this.traceColorMap.has(label)) {
-        this.traceColorMap.set(label, defaultColors[this.colorIndex % defaultColors.length]);
+      if (!newTraceColorMap.has(label)) {
+        newTraceColorMap.set(label, defaultColors[this.colorIndex % defaultColors.length]);
         this.colorIndex++;
+        modified = true;
       }
 
       if (this.removedLabelsCache.includes(view.getColumnLabel(index))) {
         hiddenColumns.push(index);
       }
+    }
+    if (modified) {
+      this.traceColorMap = newTraceColorMap;
     }
     view.setColumns(cols);
 
