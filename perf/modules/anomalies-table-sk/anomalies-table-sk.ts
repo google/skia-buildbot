@@ -32,8 +32,6 @@ class AnomalyGroup {
 }
 
 export class AnomaliesTableSk extends ElementSk {
-  private bug_host_url: string = window.perf.bug_host_url;
-
   private anomalyList: Anomaly[] = [];
 
   private anomalyGroups: AnomalyGroup[] = [];
@@ -53,6 +51,10 @@ export class AnomaliesTableSk extends ElementSk {
   private getGroupReportResponse: GetGroupReportResponse | null = null;
 
   private loadingGraphForAnomaly: Map<number, boolean> = new Map<number, boolean>();
+
+  private multiChartUrlToAnomalyMap: Map<number, string> = new Map<number, string>();
+
+  private regressionsPageHost = '/a/';
 
   constructor() {
     super(AnomaliesTableSk.template);
@@ -223,6 +225,12 @@ export class AnomaliesTableSk extends ElementSk {
     return groups;
   }
 
+  private async preGenerateMultiGraphUrl() {
+    this.anomalyList.forEach(async (anomaly) => {
+      await this.generateMultiGraphUrl(anomaly);
+    });
+  }
+
   private anomalyChecked(chkbox: CheckOrRadio, a: Anomaly) {
     if (chkbox.checked === true) {
       this.checkedAnomaliesSet.add(a);
@@ -284,7 +292,6 @@ export class AnomaliesTableSk extends ElementSk {
       const anomaly = anomalyGroup.anomalies[i];
       const processedAnomaly = this.getProcessedAnomaly(anomaly);
       const anomalyClass = anomaly.is_improvement ? 'improvement' : 'regression';
-      const isLoading = this.loadingGraphForAnomaly.get(anomaly.id) || false;
       rows.push(html`
         <tr
           data-bugid="${anomalySortValues.bugId}"
@@ -322,23 +329,13 @@ export class AnomaliesTableSk extends ElementSk {
             </checkbox-sk>
           </td>
           <td class="center-content">
-            ${
-              isLoading
-                ? html`<spinner-sk active></spinner-sk>` // Show spinner if loading
-                : html`
-                    <button
-                      id="trendingicon-link"
-                      @click=${async () => {
-                        this.loadingGraphForAnomaly.set(anomaly.id, true);
-                        this._render();
-                        await this.openMultiGraphUrl(anomaly);
-                        this.loadingGraphForAnomaly.set(anomaly.id, false);
-                        this._render();
-                      }}>
-                      <trending-up-icon-sk></trending-up-icon-sk>
-                    </button>
-                  `
-            }
+            <button
+          id="trendingicon-link"
+          @click=${() => {
+            this.openMultiGraphUrl(anomaly);
+          }}>
+      <trending-up-icon-sk></trending-up-icon-sk>
+        </button>
           </td>
           <td>
             ${this.getReportLinkForBugId(anomaly.bug_id)}
@@ -428,6 +425,8 @@ export class AnomaliesTableSk extends ElementSk {
       msg.hidden = true;
       table.hidden = false;
       this.anomalyList = anomalyList;
+      this.preGenerateMultiGraphUrl();
+
       this.groupAnomalies();
       this.uncheckAllCheckbox();
       this._render();
@@ -499,6 +498,52 @@ export class AnomaliesTableSk extends ElementSk {
     this._render();
   }
 
+  private async openMultiGraphUrl(anomaly: Anomaly) {
+    // Skip pre-generating the multi-chart on the Regression page(/a/)
+    // to prevent spikes in page loading time.
+    // For example, there's a common scenario where more than 500 rows will be initially loaded
+    // when the user chooses 'V8 Javascript Perf' on the Regressions page.
+    // It would significantly increase the page loading time if it pre-generates each row's url.
+    // To prevent this, we will only pre-generate the URLs on the Report page.
+    if (window.location.pathname !== this.regressionsPageHost) {
+      const url = this.multiChartUrlToAnomalyMap.get(anomaly.id);
+      return html`<button id="trendingicon-link" @click=${() => this.openAnomalyUrl(url)}>
+        <trending-up-icon-sk></trending-up-icon-sk>
+      </button>`;
+    } else {
+      return this.loadMultigraphUrlWithSpinner(anomaly);
+    }
+  }
+
+  private loadMultigraphUrlWithSpinner(anomaly: Anomaly) {
+    const isLoading = this.loadingGraphForAnomaly.get(anomaly.id) || false;
+    return isLoading
+      ? html`<spinner-sk active></spinner-sk>` // Show spinner if loading
+      : html`
+          <button
+            id="trendingicon-link"
+            @click=${async () => {
+              this.loadingGraphForAnomaly.set(anomaly.id, true);
+              this._render();
+              await this.generateMultiGraphUrl(anomaly);
+              this.loadingGraphForAnomaly.set(anomaly.id, false);
+              this._render();
+            }}>
+            <trending-up-icon-sk></trending-up-icon-sk>
+          </button>
+        `;
+  }
+
+  //helper method to handle the async multi chart url opening
+  private async openAnomalyUrl(url: string | undefined): Promise<void> {
+    if (url) {
+      const resolvedUrl = url;
+      window.open(resolvedUrl, '_blank');
+    } else {
+      console.warn('multi chart not found');
+    }
+  }
+
   getCheckedAnomalies(): Anomaly[] {
     return Array.from(this.checkedAnomaliesSet);
   }
@@ -522,13 +567,8 @@ export class AnomaliesTableSk extends ElementSk {
       });
   }
 
-  private getRevisionUrl(anomalyID: string): string {
-    const url = `${window.location.protocol}//${window.location.host}/u/?anomalyIDs=${anomalyID}`;
-    return url;
-  }
-
   // openMultiGraphLink generates a multi-graph url for the given parameters
-  private async openMultiGraphUrl(anomaly: Anomaly) {
+  private async generateMultiGraphUrl(anomaly: Anomaly): Promise<string> {
     await this.fetchGroupReportApi(String(anomaly.id));
     const begin = this.getGroupReportResponse?.timerange_map![anomaly.id].begin;
     const end = this.getGroupReportResponse?.timerange_map![anomaly.id].end;
@@ -563,7 +603,8 @@ export class AnomaliesTableSk extends ElementSk {
       `${window.location.protocol}//${window.location.host}` +
       `/m/?begin=${rangeBegin}&end=${rangeEnd}` +
       `&request_type=0&shortcut=${this.shortcutUrl}&totalGraphs=1`;
-    window.open(url, '_blank');
+    this.multiChartUrlToAnomalyMap.set(anomaly.id, url);
+    return url;
   }
 
   private uncheckAllCheckbox() {
