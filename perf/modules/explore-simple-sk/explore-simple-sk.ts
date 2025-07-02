@@ -2974,6 +2974,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Populate the paramset element.
     this.paramset!.paramsets = [mergedDataframe.paramset as CommonSkParamSet];
+
     if (tab) {
       this.detailTab!.selected = PARAMS_TAB_INDEX;
       // Asynchronously fetch the user issues for the rendered traces.
@@ -2996,7 +2997,7 @@ export class ExploreSimpleSk extends ElementSk {
         let extendRange = 3 * monthInSec;
         // Large amount of traces, limit the range extension.
         if (this.dfRepo.value?.traces && Object.keys(this.dfRepo.value.traces).length > 10) {
-          extendRange = 0.5 * monthInSec;
+          extendRange = monthInSec;
         }
 
         this.plotSummary.value?.Select(header![0]!, header[header.length - 1]!);

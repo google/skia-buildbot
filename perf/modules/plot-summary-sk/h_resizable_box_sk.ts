@@ -96,6 +96,9 @@ export class HResizableBoxSk extends LitElement {
   // the range is relative to the element itself.
   set selectionRange(range: range | null) {
     const box = this.selection.value!;
+    if (!box) {
+      return;
+    }
     if (!range) {
       box.style.display = 'none';
       box.style.width = '0px';

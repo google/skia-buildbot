@@ -733,8 +733,9 @@ export class ExploreMultiSk extends ElementSk {
       if (i !== e.detail.graphNumber && e.detail.offsetInSeconds === undefined) {
         (graph as ExploreSimpleSk).updateSelectedRangeWithPlotSummary(e.detail.value);
       }
-      // Sync the selection by extending the range.
-      if (e.detail.offsetInSeconds !== undefined) {
+      // Sync the selection by extending the range for other graphs.
+      // If a sync is requested when only one graph then ignore.
+      if (graphs.length > 1 && e.detail.offsetInSeconds !== undefined) {
         (graph as ExploreSimpleSk).extendRange(e.detail.value, e.detail.offsetInSeconds);
       }
     });

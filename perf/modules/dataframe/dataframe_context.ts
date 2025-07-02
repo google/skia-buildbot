@@ -473,6 +473,9 @@ export class DataFrameRepository extends LitElement {
    *  the request completes.
    */
   async extendRange(offsetInSeconds: number) {
+    if (offsetInSeconds === this.chunkSize) {
+      return;
+    }
     let resolver = emptyResolver;
     const curRequest = this._requestComplete;
     this._requestComplete = new Promise((resolve) => {
