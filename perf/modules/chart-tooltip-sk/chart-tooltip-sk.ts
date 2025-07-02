@@ -453,7 +453,8 @@ export class ChartTooltipSk extends ElementSk {
     tooltipFixed: boolean,
     commitRange: CommitRangeSk | null,
     closeButtonAction: () => void,
-    color?: string
+    color?: string,
+    user_id?: string
   ): void {
     this._index = index;
     this._test_name = test_name;
@@ -479,6 +480,7 @@ export class ChartTooltipSk extends ElementSk {
     }
 
     if (this.userIssueSk !== null) {
+      this.userIssueSk.user_id = user_id || '';
       this.userIssueSk.bug_id = bug_id;
       this.userIssueSk.trace_key = formatSpecialFunctions(this._trace_name);
       const commitPos = this.commit_position?.toString() || '';

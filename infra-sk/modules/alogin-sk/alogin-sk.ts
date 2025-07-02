@@ -18,17 +18,32 @@ import { rootDomain } from '../url';
 
 export const defaultStatusURL = '/_/login/status';
 
+let loggedInPromise: Promise<Status> | null = null;
+
 /**
  * Returns a Promise that resolves when we have received the login status, and
- * rejects if there was an error retrieving the login status.
+ * rejects if there was an error retrieving the login status. The result is
+ * cached, so this will only result in a single fetch call.
  */
-export const LoggedIn = async (url: string = defaultStatusURL): Promise<Status> => {
-  const resp = await fetch(url);
-  if (!resp.ok) {
-    await errorMessage(`Failed to load login status: ${resp.statusText}`);
-    return defaultStatus;
+export const LoggedIn = (url: string = defaultStatusURL): Promise<Status> => {
+  if (loggedInPromise) {
+    return loggedInPromise;
   }
-  return resp.json();
+  loggedInPromise = (async () => {
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        await errorMessage(`Failed to load login status: ${resp.statusText}`);
+        loggedInPromise = null; // Clear cache on error to allow retries.
+        return defaultStatus;
+      }
+      return await resp.json();
+    } catch (e) {
+      loggedInPromise = null; // Clear cache on error to allow retries.
+      throw e;
+    }
+  })();
+  return loggedInPromise;
 };
 
 const defaultStatus: Status = {

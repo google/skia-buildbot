@@ -164,20 +164,26 @@ export class PlotSummarySk extends LitElement {
 
     const onClickLoad = async ({ target }: Event) => {
       const btn = target as MdIconButton;
-      await this.dfRepo?.extendRange(chunk * direction);
+      // Check if multichart is enabled.
+      const isMultiChart = document.querySelectorAll('explore-simple-sk').length > 1 ? true : false;
 
-      // When extending the range, we need to update other charts to match.
-      const detail: PlotSelectionEventDetails = {
-        value: this.dfRepo?.commitRange ?? range(0, 0),
-        domain: this.domain,
-        offsetInSeconds: chunk * direction,
-      };
-      this.dispatchEvent(
-        new CustomEvent<PlotSelectionEventDetails>('selection-changing-in-multi', {
-          bubbles: true,
-          detail: detail,
-        })
-      );
+      if (isMultiChart) {
+        // If the multi-chart is enabled, we need to update the selection in all charts.
+        // When extending the range, we need to update other charts to match.
+        const detail: PlotSelectionEventDetails = {
+          value: this.dfRepo?.commitRange ?? range(0, 0),
+          domain: this.domain,
+          offsetInSeconds: chunk * direction,
+        };
+        this.dispatchEvent(
+          new CustomEvent<PlotSelectionEventDetails>('selection-changing-in-multi', {
+            bubbles: true,
+            detail: detail,
+          })
+        );
+      } else {
+        await this.dfRepo?.extendRange(chunk * direction);
+      }
       btn.selected = false;
     };
 

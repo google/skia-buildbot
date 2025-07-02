@@ -428,11 +428,8 @@ export class SidePanelSk extends LitElement {
       uniqueDisplayNames.forEach((displayName) => {
         const labels = legendToLabelsMap.get(displayName)!;
 
-        // Preserve checked and highlighted state if item already exists.
+        // Preserve state from existing items.
         const existingItem = this.legendItems.find((item) => item.displayName === displayName);
-
-        // Get color from the traceColorMap. Since multiple labels can map to one
-        // display name, we just use the first label to look up the color.
         const color = this.traceColorMap.get(labels[0]) || 'black';
 
         newLegendItems.push({

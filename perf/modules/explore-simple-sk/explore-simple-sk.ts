@@ -84,6 +84,7 @@ import {
   CommitNumberAnomalyMap,
   AnomalyMap,
   TraceMetadata,
+  TraceCommitLink,
 } from '../json';
 import {
   AnomalyData,
@@ -493,7 +494,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private jobId: string = '';
 
-  private user: string = '';
+  user: string = '';
 
   private _defaults: QueryConfig | null = null;
 
@@ -1260,12 +1261,13 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    LoggedIn()
-      .then((status: LoginStatus) => {
-        this.user = status.email;
-      })
-      .catch(errorMessage);
-
+    if (this.user === '') {
+      LoggedIn()
+        .then((status: LoginStatus) => {
+          this.user = status.email;
+        })
+        .catch(errorMessage);
+    }
     fetch(`/_/initpage/?tz=${tz}`, {
       method: 'GET',
     })
@@ -2320,7 +2322,8 @@ export class ExploreSimpleSk extends ElementSk {
       fixTooltip,
       commitRangeSk,
       closeBtnAction,
-      color
+      color,
+      this.user
     );
     if (window.perf.show_json_file_display) {
       tooltipElem!.loadJsonResource(commitPosition, traceName);
@@ -2973,15 +2976,14 @@ export class ExploreSimpleSk extends ElementSk {
     this.paramset!.paramsets = [mergedDataframe.paramset as CommonSkParamSet];
     if (tab) {
       this.detailTab!.selected = PARAMS_TAB_INDEX;
+      // Asynchronously fetch the user issues for the rendered traces.
+      this.dfRepo.value
+        ?.getUserIssues(Object.keys(dataframe.traceset), selectedRange.begin, selectedRange.end)
+        .then((_) => {
+          this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit');
+        });
     }
     this._renderedTraces();
-
-    // Asynchronously fetch the user issues for the rendered traces.
-    this.dfRepo.value
-      ?.getUserIssues(Object.keys(dataframe.traceset), selectedRange.begin, selectedRange.end)
-      .then((_) => {
-        this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit');
-      });
 
     if (this._state.plotSummary) {
       const header = dataframe.header!;
@@ -3762,6 +3764,32 @@ export class ExploreSimpleSk extends ElementSk {
 
   set defaults(val: QueryConfig | null) {
     this._defaults = val;
+  }
+
+  public static getTraceMetadataFromCommitLinks(
+    traces: string[],
+    commitLinks: (CommitLinks | null)[]
+  ): TraceMetadata[] {
+    const traceMetadata: TraceMetadata[] = [];
+    traces.forEach((trace) => {
+      const metadata: TraceMetadata = {
+        traceid: trace,
+        commitLinks: {},
+      };
+      commitLinks.forEach((link) => {
+        if (link?.traceid === trace) {
+          const linksForCommit: { [key: string]: TraceCommitLink } = {};
+          if (link.displayTexts) {
+            for (const key in link.displayUrls) {
+              linksForCommit[key] = { Text: link.displayTexts[key], Href: link.displayUrls[key] };
+            }
+          }
+          metadata.commitLinks![link.cid] = linksForCommit;
+        }
+      });
+      traceMetadata.push(metadata);
+    });
+    return traceMetadata;
   }
 }
 

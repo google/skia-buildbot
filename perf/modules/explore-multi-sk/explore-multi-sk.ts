@@ -41,8 +41,6 @@ import {
   ReadOnlyParamSet,
   RequestType,
   Trace,
-  TraceCommitLink,
-  TraceMetadata,
   TraceSet,
 } from '../json';
 
@@ -472,7 +470,7 @@ export class ExploreMultiSk extends ElementSk {
           header: header,
           paramset: ReadOnlyParamSet(paramSet),
           skip: 0,
-          traceMetadata: this.getTraceMetadataFromCommitLinks(traces, commitLinks),
+          traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(traces, commitLinks),
         },
         anomalymap: this.getAnomalyMapForTraces(fullAnomalyMap, traces),
         display_mode: 'display_plot',
@@ -727,6 +725,8 @@ export class ExploreMultiSk extends ElementSk {
     if (!e.detail.value) {
       return;
     }
+
+    // Default behavior for non-split views or for pan/zoom actions.
     graphs.forEach((graph, i) => {
       // only update graph that isn't selected
       if (i !== e.detail.graphNumber && e.detail.offsetInSeconds === undefined) {
@@ -793,6 +793,10 @@ export class ExploreMultiSk extends ElementSk {
     explore.defaults = this.defaults;
     explore.openQueryByDefault = false;
     explore.navOpen = false;
+    // If multi chart has user email, set it for the explore.
+    if (this.userEmail) {
+      explore.user = this.userEmail;
+    }
     if (unshift) {
       this.exploreElements.unshift(explore);
       this.graphConfigs.unshift(graphConfig);
@@ -952,41 +956,6 @@ export class ExploreMultiSk extends ElementSk {
     });
 
     return anomalyMap;
-  }
-
-  /**
-   * getTraceMetadataFromCommitLinks returns the traceMetadata for the given traces extracted
-   * from the commitlinks.
-   * @param traceIds TraceIds to filter for.
-   * @param commitLinks All commit links available.
-   * @returns
-   */
-  private getTraceMetadataFromCommitLinks(
-    traceIds: string[],
-    commitLinks: (CommitLinks | null)[]
-  ): TraceMetadata[] {
-    const traceMetadata: TraceMetadata[] = [];
-    const relevantLinks = commitLinks.filter((link) => traceIds.includes(link!.traceid));
-    const traceLinkMap = new Map<string, TraceMetadata>();
-    relevantLinks.forEach((link) => {
-      let metadata = traceLinkMap.get(link!.traceid);
-      if (metadata === undefined) {
-        metadata = { traceid: link!.traceid, commitLinks: {} };
-      }
-      Object.keys(link!.displayUrls!).forEach((key) => {
-        const traceCommitLink: TraceCommitLink = {
-          Href: link!.displayUrls![key],
-          Text: link!.displayTexts![key],
-        };
-        if (metadata!.commitLinks![link!.cid] === undefined) {
-          metadata!.commitLinks![link!.cid] = {};
-        }
-        metadata!.commitLinks![link!.cid]![key] = traceCommitLink;
-      });
-      traceMetadata.push(metadata);
-    });
-
-    return traceMetadata;
   }
 
   /**

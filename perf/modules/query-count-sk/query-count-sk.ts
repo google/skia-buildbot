@@ -60,7 +60,7 @@ export class QueryCountSk extends ElementSk {
     if (!this._connected) {
       return;
     }
-    if (!this.url) {
+    if (!this.url || this.current_query === '') {
       return;
     }
 

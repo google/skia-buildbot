@@ -112,7 +112,8 @@ export class UserIssueSk extends LitElement {
   `;
 
   // Email of the logged in user. Empty string otherwise
-  _user_id: string = '';
+  @property({ attribute: true })
+  user_id: string = '';
 
   // Used for capturing number input values
   _input_val: number = 0;
@@ -136,10 +137,11 @@ export class UserIssueSk extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-
-    LoggedIn().then((status: LoginStatus) => {
-      this._user_id = status.email;
-    });
+    if (this.user_id !== '') {
+      LoggedIn().then((status: LoginStatus) => {
+        this.user_id = status.email;
+      });
+    }
   }
 
   render() {
@@ -170,7 +172,7 @@ export class UserIssueSk extends LitElement {
   // Template for showing option to add an issue on the datapoint
   // Only shown when the user is logged in
   addIssueTemplate(): TemplateResult {
-    if (this._user_id === '') {
+    if (this.user_id === '') {
       return html``;
     }
 
@@ -206,7 +208,7 @@ export class UserIssueSk extends LitElement {
   // If a bug is already associated with the data point show them the link.
   // The delete action for this bug will only be shown if the user is logged in.
   showLinkTemplate(): TemplateResult {
-    if (this._user_id === '') {
+    if (this.user_id === '') {
       return html`
         <div class="showLinkContainer">
           <span class="label">Bug:</span>
