@@ -64,6 +64,7 @@ func main() {
 	common.InitWithMust(
 		APP_NAME,
 		common.PrometheusOpt(promPort),
+		common.StructuredLogging(local),
 	)
 	defer common.Defer()
 
