@@ -42,3 +42,11 @@ from `schema/schema.go`, processes them, and writes the resulting SQL DDL to
 
 This file is **auto-generated** and should not be edited manually. It contains a Go string
 constant named `Schema` with the full `CREATE TABLE` statement for the Pinpoint database.
+
+### `jobs_store/jobs_store.go`
+
+This file provides the data access layer for interacting with the `Jobs` table in the
+Spanner database.
+
+Note that some fields in the database, like `job_name` and `submitted_by`, are populated by the
+Pinpoint frontend service.

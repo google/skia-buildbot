@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "jobs_store",
+    srcs = ["jobs_store.go"],
+    importpath = "go.skia.org/infra/pinpoint/go/sql/jobs_store",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sql/pool",
+        "//pinpoint/go/sql/schema",
+        "//pinpoint/go/workflows",
+        "//pinpoint/proto/v1:proto",
+        "@com_github_jackc_pgx_v4//:pgx",
+    ],
+)
+
+go_test(
+    name = "jobs_store_test",
+    srcs = ["jobs_store_test.go"],
+    embed = [":jobs_store"],
+    deps = [
+        "//perf/go/sql/sqltest",
+        "//pinpoint/go/common",
+        "//pinpoint/go/sql/schema/spanner",
+        "//pinpoint/go/workflows",
+        "//pinpoint/proto/v1:proto",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//buildbucket/proto",
+    ],
+)
