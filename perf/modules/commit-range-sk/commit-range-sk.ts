@@ -130,12 +130,12 @@ export class CommitRangeSk extends ElementSk {
       // If we have the hashes, then we can build the link.
       if (this.hashes && this.hashes.length > 1) {
         let url = window.perf.commit_range_url;
-        url = url.replace('{begin}', this.hashes[0]);
+        url = url.replace('{end}', this.hashes[1]);
         if (this.isRange()) {
-          url = url.replace('{end}', this.hashes[1]);
+          url = url.replace('{begin}', this.hashes[0]);
         } else {
-          // Split string at the first hash and remove the log to show commit directly.
-          url = url.substring(0, url.indexOf(this.hashes[0]) + this.hashes[0].length);
+          // Multiple hashes found, but are sequential, so use second hash only.
+          url = url.replace('{begin}..', '');
           // Use +log to ensure it is the correct placeholder.
           url = url.replace('+log', '+');
         }

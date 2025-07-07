@@ -12,7 +12,7 @@ describe('commit-range-sk', () => {
   beforeEach(() => {
     window.perf = {
       instance_url: '',
-      commit_range_url: 'http://example.com/range/{begin}/{end}',
+      commit_range_url: 'http://example.com/range/{begin}..{end}',
       key_order: ['config'],
       demo: true,
       radius: 7,
@@ -84,7 +84,7 @@ describe('commit-range-sk', () => {
       await element.recalcLink();
       assert.equal(
         element.querySelector<HTMLAnchorElement>('a')!.href,
-        'http://example.com/range/11111111111111111111111111111/33333333333333333333333333333'
+        'http://example.com/range/11111111111111111111111111111..33333333333333333333333333333'
       );
     });
   });
@@ -99,7 +99,7 @@ describe('commit-range-sk', () => {
     await element.recalcLink();
     assert.equal(
       element.querySelector<HTMLAnchorElement>('a')!.href,
-      'http://example.com/range/11111111111111111111111111111'
+      'http://example.com/range/22222222222222222222222222222'
     );
   });
 });
