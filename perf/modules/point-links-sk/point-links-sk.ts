@@ -229,7 +229,7 @@ export class PointLinksSk extends ElementSk {
       }
       // Extra links found, add them to the displayUrls.
       Object.keys(currentLinks).forEach((key) => {
-        if (keysForUsefulLinks.includes(key)) {
+        if (keysForUsefulLinks && keysForUsefulLinks.includes(key)) {
           displayUrls[key] = currentLinks[key];
         }
       });
