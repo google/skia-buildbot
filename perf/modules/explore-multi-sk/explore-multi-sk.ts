@@ -23,7 +23,7 @@ import {
   updateShortcut,
 } from '../explore-simple-sk/explore-simple-sk';
 import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
-
+import { load } from '@google-web-components/google-chart/loader';
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 
 import { addParamsToParamSet, fromKey, queryFromKey } from '../paramtools';
@@ -185,7 +185,9 @@ export class ExploreMultiSk extends ElementSk {
         this.graphConfigs = validGraphs;
 
         this.state = state;
-        this.addGraphsToCurrentPage();
+        await load();
+
+        google.charts.setOnLoadCallback(() => this.addGraphsToCurrentPage());
 
         document.addEventListener('keydown', (e) => {
           this.exploreElements.forEach((exp) => {

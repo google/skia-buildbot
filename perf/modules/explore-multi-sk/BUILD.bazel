@@ -26,6 +26,7 @@ sk_element(
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
+        "//:node_modules/@google-web-components/google-chart",
     ],
     ts_srcs = [
         "explore-multi-sk.ts",
