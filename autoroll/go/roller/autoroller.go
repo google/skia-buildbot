@@ -1199,7 +1199,7 @@ func isRevisionNotSubmitted(ctx context.Context, req *manual.ManualRollRequest, 
 		// Fall back to retrieving the change by ID.
 		ci, err := g.GetChange(ctx, changeID)
 		if err != nil {
-			if err == gerrit.ErrNotFound {
+			if err == gerrit.ErrNotFound || strings.Contains(err.Error(), "status code 404") {
 				// Returning an error here will result in an infinite retry loop
 				// unless this is some transient problem on the Gerrit server.
 				return fmt.Sprintf("failed to retrieve Gerrit CL for change ID %q", changeID), nil
