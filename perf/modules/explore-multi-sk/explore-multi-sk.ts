@@ -243,7 +243,6 @@ export class ExploreMultiSk extends ElementSk {
         : html` <label>
               <span class="prefix">Charts per page</span>
               <input
-                id="charts-per-page-input"
                 @change=${ele.pageSizeChanged}
                 type="number"
                 .value="${ele.state.pageSize.toString()}"
