@@ -1,17 +1,21 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os/user"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tracing"
+	jobstore "go.skia.org/infra/pinpoint/go/sql/jobs_store"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/catapult"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	"go.skia.org/infra/temporal/go/metrics"
+	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
 	tempotel "go.temporal.io/sdk/contrib/opentelemetry"
 	tempinter "go.temporal.io/sdk/interceptor"
@@ -22,11 +26,15 @@ import (
 const appName = "pinpoint-worker"
 
 var (
-	hostPort  = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
-	promPort  = flag.String("promPort", ":8000", "Prometheus port that it listens on.")
-	namespace = flag.String("namespace", "default", "The namespace the worker registered to.")
-	taskQueue = flag.String("taskQueue", "", "Task queue name registered to worker services.")
-	local     = flag.Bool("local", false, "Test run on local dev machine (skip GCP tracing).")
+	hostPort          = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
+	promPort          = flag.String("promPort", ":8000", "Prometheus port that it listens on.")
+	namespace         = flag.String("namespace", "default", "The namespace the worker registered to.")
+	taskQueue         = flag.String("taskQueue", "", "Task queue name registered to worker services.")
+	local             = flag.Bool("local", false, "Test run on local dev machine (skip GCP tracing).")
+	databaseWriteback = flag.Bool("databaseWriteback", false, "Write back pairwise job information into Spanner Database")
+	// TODO(natnael): Change database to a Production database in Performance Tooling Instance when migration is complete
+	pairwiseDBConnStr = flag.String("pairwise_db_conn_str", "postgresql://root@localhost:5432/natnael-test-database?sslmode=disable",
+		"The connection string for the Pairwise backend database.")
 )
 
 func main() {
@@ -72,6 +80,30 @@ func main() {
 
 	w := worker.New(c, *taskQueue, worker.Options{})
 
+	// Only register writeback activity if flag is set to true
+	// TODO(natnael) Set to always true when database is fully integrated into Pairwise Workflow
+	if *databaseWriteback {
+		// Initialize the database connection pool for Pairwise activities.
+		ctx := context.Background()
+		cfg, err := pgxpool.ParseConfig(*pairwiseDBConnStr)
+		if err != nil {
+			sklog.Fatalf("Failed to parse database config: %s", err)
+		}
+		pool, err := pgxpool.ConnectConfig(ctx, cfg)
+		if err != nil {
+			sklog.Fatalf("Failed to connect to database: %s", err)
+		}
+		js := jobstore.NewJobStore(pool)
+		jsa := internal.NewJobStoreActivities(js)
+		if err != nil {
+			sklog.Fatalf("Unable to create job store: %s", err)
+		}
+		w.RegisterActivityWithOptions(jsa.AddInitialJob, activity.RegisterOptions{Name: internal.AddInitialJob})
+		w.RegisterActivityWithOptions(jsa.UpdateJobStatus, activity.RegisterOptions{Name: internal.UpdateJobStatus})
+		w.RegisterActivityWithOptions(jsa.SetErrors, activity.RegisterOptions{Name: internal.SetErrors})
+		w.RegisterActivityWithOptions(jsa.AddResults, activity.RegisterOptions{Name: internal.AddResults})
+		w.RegisterActivityWithOptions(jsa.AddCommitRuns, activity.RegisterOptions{Name: internal.AddCommitRuns})
+	}
 	bca := &internal.BuildActivity{}
 	w.RegisterActivity(bca)
 	w.RegisterWorkflowWithOptions(internal.BuildWorkflow, workflow.RegisterOptions{Name: workflows.BuildChrome})
