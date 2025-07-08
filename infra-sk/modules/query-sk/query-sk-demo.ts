@@ -52,7 +52,9 @@ document.querySelector<HTMLButtonElement>('#swap')!.addEventListener('click', ()
 });
 
 // Set filtering on one of the demo elements.
-const activeFilter = document.querySelector<HTMLInputElement>('#activeFilter #fast')!;
+const activeFilter = document.querySelector<HTMLInputElement>(
+  '#activeFilter input[name="query-sk-filter"]'
+)!;
 activeFilter.value = 'one';
 activeFilter.dispatchEvent(new InputEvent('input'));
 

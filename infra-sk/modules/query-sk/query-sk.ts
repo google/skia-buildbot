@@ -59,7 +59,6 @@ export class QuerySk extends ElementSk {
   private static template = (ele: QuerySk) => html`
     <div class="filtering">
       <input
-        id="fast"
         @input=${ele._fastFilter}
         placeholder="Search Parameters and Values"
         name="query-sk-filter"
@@ -72,7 +71,6 @@ export class QuerySk extends ElementSk {
         <button @click=${ele._clear} class="clear_selections">Clear Selections</button>
       </div>
       <query-values-sk
-        id="values"
         class=${ele._keySelect?.selection === -1 ? 'hidden' : ''}
         @query-values-changed=${ele._valuesChanged}
         ?hide_invert=${ele.hide_invert}
@@ -127,9 +125,9 @@ export class QuerySk extends ElementSk {
     this._upgradeProperty('hide_invert');
     this._upgradeProperty('hide_regex');
     this._render();
-    this._values = this.querySelector('#values');
+    this._values = this.querySelector('query-values-sk');
     this._keySelect = this.querySelector('select-sk');
-    this._fast = this.querySelector('#fast');
+    this._fast = this.querySelector('input[name="query-sk-filter"]');
   }
 
   private _valuesChanged(e: CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>) {

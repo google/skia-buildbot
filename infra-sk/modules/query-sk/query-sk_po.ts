@@ -11,7 +11,7 @@ export class QuerySkPO extends PageObject {
   }
 
   private get filter(): PageObjectElement {
-    return this.bySelector('#fast');
+    return this.bySelector('input[name="query-sk-filter"]');
   }
 
   private get clearFiltersBtn(): PageObjectElement {
