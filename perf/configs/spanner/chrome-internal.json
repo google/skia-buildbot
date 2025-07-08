@@ -68,8 +68,7 @@
             "test",
             "subtest_1",
             "subtest_2",
-            "subtest_3",
-            "improvement_direction"
+            "subtest_3"
         ],
         "default_param_selections": {
             "stat": ["value"]
