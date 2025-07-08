@@ -106,7 +106,7 @@ interface LoadedAsset {
   player?: AudioPlayer;
 }
 
-const GOOGLE_WEB_FONTS_HOST = 'https://storage.googleapis.com/skia-cdn/google-web-fonts';
+const GOOGLE_WEB_FONTS_HOST = 'https://storage.googleapis.com/skia-world-readable/google-web-fonts';
 
 const PRODUCTION_ASSETS_PATH = '/_/a';
 

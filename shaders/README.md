@@ -16,5 +16,5 @@ Do not check in those files you copied. You may also need to copy canvaskit.d.ts
 
 ## Images
 
-Source images are stored in `gs://skia-public-shader-images` and should be make
+Source images are stored in `gs://skia-world-readable/shaders` and should be make
 world readable so the build of shaders can work from anywhere.

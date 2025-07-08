@@ -1,5 +1,5 @@
 // This list was generated from fonts located in this bucket
-// https://pantheon.corp.google.com/storage/browser/skia-cdn/google-web-fonts
+// https://pantheon.corp.google.com/storage/browser/skia-world-readable/google-web-fonts
 // In order to get this output, a scipt traverses all the font files, reads their names and:
 // - removes the extension
 // - sets fName to its resulting value
