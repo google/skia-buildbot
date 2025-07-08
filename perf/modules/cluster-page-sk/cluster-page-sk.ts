@@ -145,17 +145,23 @@ export class ClusterPageSk extends ElementSk {
     <details>
       <summary id="advanced">Advanced</summary>
       <div id="inputs">
-        <label>
+        <label for="k_input">
           K (A value of 0 means the server chooses).
-          <input .value=${ele.state.k.toString()} @input=${ele.kChange} />
+          <input id="k_input" .value=${ele.state.k.toString()} @input=${ele.kChange} />e.kChange} />
         </label>
-        <label>
+        <label for="radius_input">
           Number of commits to include on either side.
-          <input .value=${ele.state.radius.toString()} @input=${ele.radiusChange} />
+          <input
+            id="radius_input"
+            .value=${ele.state.radius.toString()}
+            @input=${ele.radiusChange} />e.radiusChange} />
         </label>
-        <label>
+        <label for="interesting_input">
           Clusters are interesting if regression score &gt;= this.
-          <input .value=${ele.state.interesting.toString()} @input=${ele.interestingChange} />
+          <input
+            id="interesting_input"
+            .value=${ele.state.interesting.toString()}
+            @input=${ele.interestingChange} />e.interestingChange} />
         </label>
         <checkbox-sk
           ?checked=${ele.state.sparse}

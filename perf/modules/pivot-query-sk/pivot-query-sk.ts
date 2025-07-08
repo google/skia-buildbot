@@ -38,21 +38,21 @@ export class PivotQuerySk extends ElementSk {
   }
 
   private static template = (ele: PivotQuerySk) => html`
-    <label>
+    <label for="group_by">
       <p>Which keys should traces be grouped by:</p>
       <multi-select-sk id="group_by" @selection-changed=${ele.groupByChanged}>
         ${ele.groupByOptions()}
       </multi-select-sk>
     </label>
 
-    <label>
+    <label for="operation">
       <p>What operation should be applied:</p>
-      <select @change=${ele.operationChanged}>
+      <select id="operation" @change=${ele.operationChanged}>
         ${ele.operationOptions()}
       </select>
     </label>
 
-    <label>
+    <label for="summary">
       <p>Optional: Choose summary statistics to calculate for each group:</p>
       <multi-select-sk id="summary" @selection-changed=${ele.summaryChanged}>
         ${ele.summaryOptions()}

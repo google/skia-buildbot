@@ -40,8 +40,10 @@ import {
   QueryConfig,
   ReadOnlyParamSet,
   RequestType,
-  Trace,
+  TraceCommitLink,
   TraceSet,
+  TraceMetadata,
+  Trace,
 } from '../json';
 
 import '../explore-simple-sk';
@@ -1010,6 +1012,42 @@ export class ExploreMultiSk extends ElementSk {
     });
 
     return anomalyMap;
+  }
+
+  /**
+   * getTraceMetadataFromCommitLinks returns the traceMetadata for the given traces extracted
+   * from the commitlinks.
+   * @param traceIds TraceIds to filter for.
+   * @param commitLinks All commit links available.
+   * @returns
+   */
+  private getTraceMetadataFromCommitLinks(
+    // eslint-disable-line no-unused-vars
+    traceIds: string[],
+    commitLinks: (CommitLinks | null)[]
+  ): TraceMetadata[] {
+    const traceMetadata: TraceMetadata[] = [];
+    const relevantLinks = commitLinks.filter((link) => traceIds.includes(link!.traceid));
+    const traceLinkMap = new Map<string, TraceMetadata>();
+    relevantLinks.forEach((link) => {
+      let metadata = traceLinkMap.get(link!.traceid);
+      if (metadata === undefined) {
+        metadata = { traceid: link!.traceid, commitLinks: {} };
+      }
+      Object.keys(link!.displayUrls!).forEach((key) => {
+        const traceCommitLink: TraceCommitLink = {
+          Href: link!.displayUrls![key],
+          Text: link!.displayTexts![key],
+        };
+        if (metadata!.commitLinks![link!.cid] === undefined) {
+          metadata!.commitLinks![link!.cid] = {};
+        }
+        metadata!.commitLinks![link!.cid]![key] = traceCommitLink;
+      });
+      traceMetadata.push(metadata);
+    });
+
+    return traceMetadata;
   }
 
   /**

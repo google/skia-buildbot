@@ -143,7 +143,7 @@ export class FavoritesDialogSk extends ElementSk {
         </div>
 
         <span class="label">
-          <label>Name*</label>
+          <label for="name">Name*</label>
         </span>
         <input
           id="name"
@@ -154,7 +154,7 @@ export class FavoritesDialogSk extends ElementSk {
         <br/>
 
         <span class="label">
-          <label>Description</label>
+          <label for="desc">Description</label>
         </span>
         <input
           id="desc"
@@ -164,7 +164,7 @@ export class FavoritesDialogSk extends ElementSk {
         <br/>
 
         <span class="label">
-          <label>URL*</label>
+          <label for="url">URL*</label>
         </span>
         <input
           id="url"
