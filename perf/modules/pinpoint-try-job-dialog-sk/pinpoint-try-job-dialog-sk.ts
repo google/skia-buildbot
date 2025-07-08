@@ -87,7 +87,7 @@ export class PinpointTryJobDialogSk extends ElementSk {
       <h3>Tracing arguments</h3>
       <p>Learn more about
         <a href="${ele.traceHelpLink}" target="_blank">
-          filter strings<md-icon id="icon">open_in_new</md-icon>
+          filter strings<md-icon>open_in_new</md-icon>
         </a>
       <p>
       <input id="trace-args" type="text" value=${ele.traceArgs}></input>
@@ -97,7 +97,7 @@ export class PinpointTryJobDialogSk extends ElementSk {
         ${
           ele.jobUrl
             ? html`<a href="${ele.jobUrl}" target="_blank">
-                Pinpoint Job Created<md-icon id="icon">open_in_new</md-icon>
+                Pinpoint Job Created<md-icon>open_in_new</md-icon>
               </a>`
             : ''
         }

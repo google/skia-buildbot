@@ -651,7 +651,7 @@ export class ExploreSimpleSk extends ElementSk {
         @click=${() => {
           ele.loadTestPickerFromParams();
         }}>
-        <md-icon id="icon">north_west</md-icon>
+        <md-icon>north_west</md-icon>
       </md-icon-button>
       <md-icon-button
         title="Show Zero on Axis"
@@ -660,8 +660,8 @@ export class ExploreSimpleSk extends ElementSk {
         }}>
         ${
           ele._state.showZero
-            ? html`<md-icon id="icon">radio_button_unchecked</md-icon>`
-            : html`<md-icon id="icon">hide_source</md-icon>`
+            ? html`<md-icon>radio_button_unchecked</md-icon>`
+            : html`<md-icon>hide_source</md-icon>`
         }
       </md-icon-button>
       <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
@@ -671,12 +671,12 @@ export class ExploreSimpleSk extends ElementSk {
         @click=${() => {
           ele.openAddFavoriteDialog();
         }}>
-        <md-icon id="icon">favorite</md-icon>
+        <md-icon>favorite</md-icon>
       </md-icon-button>
       <md-icon-button
         title="Show Settings Dialog"
         @click=${ele.showSettingsDialog}>
-        <md-icon id="icon">settings</md-icon>
+        <md-icon>settings</md-icon>
       </md-icon-button>
       <md-icon-button
         id="removeAll"
