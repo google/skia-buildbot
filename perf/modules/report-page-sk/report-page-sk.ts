@@ -197,6 +197,7 @@ export class ReportPageSk extends ElementSk {
     if (selected.length > 0) {
       this.anomaliesTable!.checkSelectedAnomalies(selected);
     }
+    this.anomaliesTable?.initialCheckAllCheckbox();
   }
 
   private async initializeDefaults() {

@@ -56,6 +56,8 @@ export class AnomaliesTableSk extends ElementSk {
 
   private regressionsPageHost = '/a/';
 
+  private isParentRow = false;
+
   constructor() {
     super(AnomaliesTableSk.template);
   }
@@ -286,6 +288,9 @@ export class AnomaliesTableSk extends ElementSk {
   private generateRows(anomalyGroup: AnomalyGroup): TemplateResult[] {
     const rows: TemplateResult[] | never = [];
     const length = anomalyGroup.anomalies.length;
+    if (length > 1) {
+      rows.push(this.generateSummaryRow(anomalyGroup));
+    }
 
     const anomalySortValues = this.getProcessedAnomaly(anomalyGroup.anomalies[0]);
     for (let i = 0; i < anomalyGroup.anomalies.length; i++) {
@@ -303,25 +308,18 @@ export class AnomaliesTableSk extends ElementSk {
           data-direction=${anomalySortValues.direction}
           data-delta="${anomalySortValues.delta}"
           data-absdelta="${anomalySortValues.absDelta}"
-          class=${this.getRowClass(i, anomalyGroup)}
-          ?hidden=${!anomalyGroup.expanded && i !== 0}>
+          class=${this.getRowClass(i + 1, anomalyGroup)}
+          ?hidden=${!anomalyGroup.expanded && !this.isParentRow}>
           <td>
-            <button
-              class="expand-button"
-              @click=${() => this.expandGroup(anomalyGroup)}
-              ?hidden=${length === 1 || i > 0}>
-              ${length}
-            </button>
           </td>
           <td>
             <checkbox-sk
               @change=${(e: Event) => {
                 // If we just need to check 1 anomaly, just mark it as checked.
-                if (i !== 0 || length === 1 || anomalyGroup.expanded) {
+                if (length === 1 || anomalyGroup.expanded) {
                   this.anomalyChecked(e.target as CheckOrRadio, anomaly);
                 } else {
-                  // If the top anomaly in a group gets checked and the
-                  // group is not expanded, check all children anomalies.
+                  // If the the summary row gets checked, check all children anomalies.
                   this.toggleChildrenCheckboxes(anomalyGroup);
                 }
               }}
@@ -370,6 +368,140 @@ export class AnomaliesTableSk extends ElementSk {
     return rows;
   }
 
+  private generateSummaryRow(anomalyGroup: AnomalyGroup): TemplateResult {
+    const firstAnomaly = anomalyGroup.anomalies[0];
+    const summary = {
+      bugId: firstAnomaly.bug_id,
+      startRevision: firstAnomaly.start_revision,
+      endRevision: firstAnomaly.end_revision,
+      master: '*',
+      bot: '*',
+      testsuite: '*',
+      test: '*',
+      delta: 0,
+    };
+
+    let sameMaster = true;
+    let sameBot = true;
+    let sameTestSuite = true;
+    const firstProcessed = this.getProcessedAnomaly(firstAnomaly);
+    summary.delta = firstProcessed.delta;
+    for (let i = 1; i < anomalyGroup.anomalies.length; i++) {
+      const processed = this.getProcessedAnomaly(anomalyGroup.anomalies[i]);
+      if (processed.master !== firstProcessed.master) {
+        sameMaster = false;
+      }
+      if (processed.bot !== firstProcessed.bot) {
+        sameBot = false;
+      }
+      if (processed.testsuite !== firstProcessed.testsuite) {
+        sameTestSuite = false;
+      }
+      if (summary.startRevision > anomalyGroup.anomalies[i].start_revision) {
+        summary.startRevision = anomalyGroup.anomalies[i].start_revision;
+      }
+      if (summary.endRevision < anomalyGroup.anomalies[i].end_revision) {
+        summary.endRevision = anomalyGroup.anomalies[i].end_revision;
+      }
+      const delta = AnomalySk.getPercentChange(
+        anomalyGroup.anomalies[i].median_before_anomaly,
+        anomalyGroup.anomalies[i].median_after_anomaly
+      );
+      if (summary.delta < delta) {
+        summary.delta = delta;
+      }
+    }
+    summary.test = this.findLongestSubTestPath(anomalyGroup.anomalies);
+
+    if (sameMaster) {
+      summary.master = firstProcessed.master;
+    }
+    if (sameBot) {
+      summary.bot = firstProcessed.bot;
+    }
+    if (sameTestSuite) {
+      summary.testsuite = firstProcessed.testsuite;
+    }
+    const anomalyForBugReportLink = this.getReportLinkForSummaryRowBugId(anomalyGroup);
+    return html`
+      <tr class="${this.getRowClass(0, anomalyGroup)}}">
+        <td>
+          <button
+            class="expand-button"
+            @click=${() => this.expandGroup(anomalyGroup)}
+            ?hidden=${anomalyGroup.anomalies.length === 1}>
+            ${anomalyGroup.anomalies.length}
+          </button>
+        </td>
+        <td>
+          <checkbox-sk
+            @change="${() => {
+              // If the summary row checkbox gets checked and the
+              // group is not expanded, check all children anomalies.
+              this.toggleChildrenCheckboxes(anomalyGroup);
+            }}"
+            id="anomaly-row-${anomalyGroup.anomalies.length}">
+          </checkbox-sk>
+        </td>
+        <td class="center-content"></td>
+        <td>
+          ${this.getReportLinkForBugId(
+            anomalyForBugReportLink ? anomalyForBugReportLink.bug_id : firstAnomaly.bug_id
+          )}
+          <close-icon-sk
+            id="btnUnassociate"
+            @click=${() => {
+              this.triageMenu!.makeEditAnomalyRequest(
+                [anomalyForBugReportLink ? anomalyForBugReportLink : firstAnomaly],
+                [],
+                'RESET'
+              );
+            }}
+            ?hidden=${anomalyForBugReportLink!.bug_id === 0}>
+          </close-icon-sk>
+        </td>
+        <td>
+          <span>${this.computeRevisionRange(summary.startRevision, summary.endRevision)}</span>
+        </td>
+        <td>${summary.master}</td>
+        <td>${summary.bot}</td>
+        <td>${summary.testsuite}</td>
+        <td>${summary.test}</td>
+        <td>*</td>
+        <td>${AnomalySk.formatPercentage(summary.delta)}%</td>
+        <td>*</td>
+      </tr>
+    `;
+  }
+
+  private findLongestSubTestPath(anomalyList: Anomaly[]): string {
+    // Check if this character exists at the same position in all other strings.
+    let longestCommonTestPath = anomalyList.at(0)!.test_path;
+
+    for (let i = 1; i < anomalyList.length; i++) {
+      const currentString = anomalyList[i].test_path;
+      while (currentString.indexOf(longestCommonTestPath) !== 0) {
+        longestCommonTestPath = longestCommonTestPath.substring(
+          0,
+          longestCommonTestPath.length - 1
+        );
+
+        if (longestCommonTestPath === '') {
+          return '*';
+        }
+      }
+    }
+
+    // Return the common test path plus '' if the paths in the grouped rows are not the same.
+    // '*' indicates where the test names differ in the collapsed rows.
+    if (longestCommonTestPath.length !== anomalyList.at(0)!.test_path.length) {
+      const testPath = longestCommonTestPath.split('/');
+      return testPath.slice(3, testPath.length).join('/') + '*';
+    }
+    // else return the original test path.
+    return anomalyList.at(0)!.test_path;
+  }
+
   private getReportLinkForBugId(bug_id: number) {
     if (bug_id === 0) {
       return html``;
@@ -383,11 +515,22 @@ export class AnomaliesTableSk extends ElementSk {
     return html`<a href="http://b/${bug_id}" target="_blank">${bug_id}</a>`;
   }
 
+  private getReportLinkForSummaryRowBugId(anomalyGroup: AnomalyGroup): Anomaly | undefined {
+    for (const anomaly of anomalyGroup.anomalies) {
+      if (anomaly.bug_id !== null && anomaly.bug_id !== 0) {
+        return anomaly;
+      }
+    }
+    return undefined;
+  }
+
   private getRowClass(index: number, anomalyGroup: AnomalyGroup) {
     if (anomalyGroup.expanded) {
       if (index === 0) {
+        this.isParentRow = true;
         return 'parent-expanded-row';
       } else {
+        this.isParentRow = false;
         return 'child-expanded-row';
       }
     }
@@ -428,7 +571,6 @@ export class AnomaliesTableSk extends ElementSk {
       this.preGenerateMultiGraphUrl();
 
       this.groupAnomalies();
-      this.uncheckAllCheckbox();
       this._render();
     } else {
       msg.hidden = false;
@@ -464,16 +606,14 @@ export class AnomaliesTableSk extends ElementSk {
    * at once by interacting with the parent checkbox.
    */
   private toggleChildrenCheckboxes(anomalyGroup: AnomalyGroup) {
-    let checked = true;
-    anomalyGroup.anomalies.forEach((anomaly, index) => {
+    const summaryRowCheckbox = this.querySelector(
+      `checkbox-sk[id="anomaly-row-${anomalyGroup.anomalies.length}"]`
+    ) as CheckOrRadio;
+    anomalyGroup.anomalies.forEach((anomaly) => {
       const checkbox = this.querySelector(
         `checkbox-sk[id="anomaly-row-${anomaly.id}"]`
       ) as CheckOrRadio;
-      if (index === 0) {
-        checked = checkbox.checked;
-      } else {
-        checkbox.checked = checked;
-      }
+      checkbox.checked = summaryRowCheckbox.checked;
       this.anomalyChecked(checkbox, anomaly);
     });
     this._render();
@@ -488,6 +628,10 @@ export class AnomaliesTableSk extends ElementSk {
     const checked = this.headerCheckbox!.checked;
     this.anomalyGroups.forEach((group) => {
       group.anomalies.forEach((anomaly) => {
+        const summaryRowCheckbox = this.querySelector(
+          `checkbox-sk[id=anomaly-row-${group.anomalies.length}]`
+        ) as CheckOrRadio;
+        summaryRowCheckbox!.checked = checked;
         const checkbox = this.querySelector(
           `checkbox-sk[id="anomaly-row-${anomaly.id}"]`
         ) as CheckOrRadio;
@@ -607,14 +751,21 @@ export class AnomaliesTableSk extends ElementSk {
     return url;
   }
 
-  private uncheckAllCheckbox() {
-    this.headerCheckbox!.checked = false;
-    this.checkedAnomaliesSet.forEach((anomaly) => {
-      const checkbox = this.querySelector(
-        `checkbox-sk[id="anomaly-row-${anomaly.id}"]`
-      ) as CheckOrRadio;
-      checkbox.checked = false;
-      this.checkedAnomaliesSet.delete(anomaly);
+  initialCheckAllCheckbox() {
+    this.headerCheckbox!.checked = true;
+
+    this.anomalyGroups.forEach((group) => {
+      group.anomalies.forEach((anomaly) => {
+        const summaryRowCheckbox = this.querySelector(
+          `checkbox-sk[id=anomaly-row-${group.anomalies.length}]`
+        ) as CheckOrRadio;
+        summaryRowCheckbox!.checked = true;
+        const checkbox = this.querySelector(
+          `checkbox-sk[id="anomaly-row-${anomaly.id}"]`
+        ) as CheckOrRadio;
+        checkbox.checked = true;
+        this.checkedAnomaliesSet.add(anomaly);
+      });
     });
   }
 }
