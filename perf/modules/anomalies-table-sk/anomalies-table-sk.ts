@@ -202,13 +202,10 @@ export class AnomaliesTableSk extends ElementSk {
             <th id="graph_header">Chart</th>
             <th id="bug_id" data-key="bugid">Bug ID</th>
             <th id="revision_range" data-key="revisions" data-default="down">Revisions</th>
-            <th id="master" data-key="master" data-sort-type="alpha">Main</th>
             <th id="bot" data-key="bot" data-sort-type="alpha">Bot</th>
             <th id="testsuite" data-key="testsuite" data-sort-type="alpha">Test Suite</th>
             <th id="test" data-key="test" data-sort-type="alpha">Test</th>
-            <th id="change_direction" data-key="direction">Change Direction</th>
             <th id="percent_changed" data-key="delta">Delta %</th>
-            <th id="absolute_delta" data-key="absdelta">Abs Delta</th>
           </tr>
           <tbody id="rows">
             ${this.generateGroups()}
@@ -261,27 +258,21 @@ export class AnomaliesTableSk extends ElementSk {
   private getProcessedAnomaly(anomaly: Anomaly) {
     const bugId = anomaly.bug_id;
     const testPathPieces = anomaly.test_path.split('/');
-    const master = testPathPieces[0];
     const bot = testPathPieces[1];
     const testsuite = testPathPieces[2];
     const test = testPathPieces.slice(3, testPathPieces.length).join('/');
     const revision = anomaly.end_revision;
-    const direction = anomaly.median_before_anomaly - anomaly.median_after_anomaly;
     const delta = AnomalySk.getPercentChange(
       anomaly.median_before_anomaly,
       anomaly.median_after_anomaly
     );
-    const absDelta = anomaly.median_after_anomaly - anomaly.median_before_anomaly;
     return {
       bugId,
       revision,
-      master,
       bot,
       testsuite,
       test,
-      direction,
       delta,
-      absDelta,
     };
   }
 
@@ -301,13 +292,10 @@ export class AnomaliesTableSk extends ElementSk {
         <tr
           data-bugid="${anomalySortValues.bugId}"
           data-revisions="${anomalySortValues.revision}"
-          data-master="${anomalySortValues.master}"
           data-bot="${anomalySortValues.bot}"
           data-testsuite="${anomalySortValues.testsuite}"
           data-test="${anomalySortValues.test}"
-          data-direction=${anomalySortValues.direction}
           data-delta="${anomalySortValues.delta}"
-          data-absdelta="${anomalySortValues.absDelta}"
           class=${this.getRowClass(i + 1, anomalyGroup)}
           ?hidden=${!anomalyGroup.expanded && !this.isParentRow}>
           <td>
@@ -351,17 +339,10 @@ export class AnomaliesTableSk extends ElementSk {
               >
             </a>
           </td>
-          <td>${processedAnomaly.master}</td>
           <td>${processedAnomaly.bot}</td>
           <td>${processedAnomaly.testsuite}</td>
           <td>${processedAnomaly.test}</td>
-          <td class=${anomalyClass}>
-            ${this.getDirectionSign(anomaly.median_before_anomaly, anomaly.median_after_anomaly)}
-          </td>
           <td class=${anomalyClass}>${AnomalySk.formatPercentage(processedAnomaly.delta)}%</td>
-          <td class=${anomalyClass}>
-            ${AnomalySk.formatNumber(processedAnomaly.absDelta)} ${anomaly.units}
-          </td>
         </tr>
       `);
     }
@@ -374,23 +355,18 @@ export class AnomaliesTableSk extends ElementSk {
       bugId: 0,
       startRevision: firstAnomaly.start_revision,
       endRevision: firstAnomaly.end_revision,
-      master: '*',
       bot: '*',
       testsuite: '*',
       test: '*',
       delta: 0,
     };
 
-    let sameMaster = true;
     let sameBot = true;
     let sameTestSuite = true;
     const firstProcessed = this.getProcessedAnomaly(firstAnomaly);
     summary.delta = firstProcessed.delta;
     for (let i = 1; i < anomalyGroup.anomalies.length; i++) {
       const processed = this.getProcessedAnomaly(anomalyGroup.anomalies[i]);
-      if (processed.master !== firstProcessed.master) {
-        sameMaster = false;
-      }
       if (processed.bot !== firstProcessed.bot) {
         sameBot = false;
       }
@@ -413,9 +389,6 @@ export class AnomaliesTableSk extends ElementSk {
     }
     summary.test = this.findLongestSubTestPath(anomalyGroup.anomalies);
 
-    if (sameMaster) {
-      summary.master = firstProcessed.master;
-    }
     if (sameBot) {
       summary.bot = firstProcessed.bot;
     }
@@ -463,13 +436,10 @@ export class AnomaliesTableSk extends ElementSk {
         <td>
           <span>${this.computeRevisionRange(summary.startRevision, summary.endRevision)}</span>
         </td>
-        <td>${summary.master}</td>
         <td>${summary.bot}</td>
         <td>${summary.testsuite}</td>
         <td>${summary.test}</td>
-        <td>*</td>
         <td>${AnomalySk.formatPercentage(summary.delta)}%</td>
-        <td>*</td>
       </tr>
     `;
   }
