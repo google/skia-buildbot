@@ -1928,7 +1928,7 @@ export class ExploreSimpleSk extends ElementSk {
    * 3. Split by Key (splitByKey): If the 'splitByKey' param is present, it will
    *    trigger the action to split the chart by that parameter key.
    */
-  private useBrowserURL(): void {
+  useBrowserURL(): void {
     const currentUrl = new URL(window.location.href);
     const commit: number = parseInt(
       currentUrl.searchParams.get('commit') ?? String(this._state.selected.commit)
@@ -1938,14 +1938,13 @@ export class ExploreSimpleSk extends ElementSk {
     );
     const graph: number = parseInt(currentUrl.searchParams.get('graph') ?? '0');
 
-    const begin = parseInt(currentUrl.searchParams.get('begin') ?? '');
-    const end = parseInt(currentUrl.searchParams.get('end') ?? '');
+    const begin = parseInt(currentUrl.searchParams.get('begin') ?? this.state.begin.toString());
+    const end = parseInt(currentUrl.searchParams.get('end') ?? this.state.end.toString());
     if (isNaN(begin) || isNaN(end)) {
       // When no value is found in the URL, then use the first graph to update it.
       if (this.state.graph_index === 0) {
         this.updateBrowserURL();
       }
-      return;
     }
     const beginIndex = this.getCommitIndex(begin, 'timestamp');
     const endIndex = this.getCommitIndex(end, 'timestamp');

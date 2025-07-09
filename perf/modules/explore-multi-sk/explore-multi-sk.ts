@@ -516,116 +516,116 @@ export class ExploreMultiSk extends ElementSk {
       }
 
       this.testPicker!.initializeTestPicker(testPickerParams!, defaultParams);
-      if (this.exploreElements.length > 0) {
-        this.populateTestPicker(this.exploreElements[0].getParamSet());
+    }
+    // Event listener to remove the explore object from the list if the user
+    // close it in a Multiview window.
+    this.addEventListener('remove-explore', (e) => {
+      const exploreElemToRemove = (e as CustomEvent).detail.elem as ExploreSimpleSk;
+      const indexToRemove = this.exploreElements.findIndex((elem) => elem === exploreElemToRemove);
+
+      if (indexToRemove > -1) {
+        this.exploreElements.splice(indexToRemove, 1);
+        this.graphConfigs.splice(indexToRemove, 1);
+        this.state.totalGraphs = this.exploreElements.length;
+
+        // Adjust pagination: if there are no graphs left, reset page offset to 0.
+        if (this.state.totalGraphs === 0) {
+          this.state.pageOffset = 0;
+          this.testPicker!.autoAddTrace = false;
+        } else if (this.state.pageSize > 0) {
+          // If graphs remain and pageSize is valid, calculate the maximum valid page offset.
+          // This prevents being on a page that no longer exists
+          // (e.g., if the last item on the last page was removed).
+          const maxValidPageOffset = Math.max(
+            0,
+            (Math.ceil(this.state.totalGraphs / this.state.pageSize) - 1) * this.state.pageSize
+          );
+          this.state.pageOffset = Math.min(this.state.pageOffset, maxValidPageOffset);
+        }
+
+        this.updateShortcutMultiview();
+        this.addGraphsToCurrentPage();
+      } else {
+        this.state.totalGraphs = this.exploreElements.length;
+        if (this.stateHasChanged) this.stateHasChanged();
+        this.addGraphsToCurrentPage();
       }
-      // Event listener to remove the explore object from the list if the user
-      // close it in a Multiview window.
-      this.addEventListener('remove-explore', (e) => {
-        const exploreElemToRemove = (e as CustomEvent).detail.elem as ExploreSimpleSk;
-        const indexToRemove = this.exploreElements.findIndex(
-          (elem) => elem === exploreElemToRemove
-        );
+      e.stopPropagation();
+    });
 
-        if (indexToRemove > -1) {
-          this.exploreElements.splice(indexToRemove, 1);
-          this.graphConfigs.splice(indexToRemove, 1);
-          this.state.totalGraphs = this.exploreElements.length;
-
-          // Adjust pagination: if there are no graphs left, reset page offset to 0.
-          if (this.state.totalGraphs === 0) {
-            this.state.pageOffset = 0;
-            this.testPicker!.autoAddTrace = false;
-          } else if (this.state.pageSize > 0) {
-            // If graphs remain and pageSize is valid, calculate the maximum valid page offset.
-            // This prevents being on a page that no longer exists
-            // (e.g., if the last item on the last page was removed).
-            const maxValidPageOffset = Math.max(
-              0,
-              (Math.ceil(this.state.totalGraphs / this.state.pageSize) - 1) * this.state.pageSize
-            );
-            this.state.pageOffset = Math.min(this.state.pageOffset, maxValidPageOffset);
-          }
-
-          this.updateShortcutMultiview();
-          this.addGraphsToCurrentPage();
-        } else {
-          this.state.totalGraphs = this.exploreElements.length;
-          if (this.stateHasChanged) this.stateHasChanged();
-          this.addGraphsToCurrentPage();
-        }
-        e.stopPropagation();
-      });
-
-      // Event listener for when the Test Picker plot button is clicked.
-      // This will create a new empty Graph at the top and plot it with the
-      // selected test values.
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      this.addEventListener('plot-button-clicked', (e) => {
-        const explore = this.addEmptyGraph(true);
-        if (explore) {
-          this.addGraphsToCurrentPage(true);
-          const query = this.testPicker!.createQueryFromFieldData();
-          explore.addFromQueryOrFormula(true, 'query', query, '');
-          this.refreshSplitList = true;
-          if (this.testPicker) {
-            this.testPicker.autoAddTrace = true;
-          }
-        }
-        this.updateSplitByKeys();
-      });
-
-      this.addEventListener('split-by-changed', (e) => {
-        const splitByParamKey: string = (e as CustomEvent).detail.param;
-        const split = (e as CustomEvent).detail.split;
-        if (!split) {
-          // No longer split so remove selected param from keys.
-          this.state.splitByKeys = this.state.splitByKeys.filter((key) => key !== splitByParamKey);
-        } else {
-          // Split by only a single key
-          // TODO(seawardt): Enable multiple splits
-          this.state.splitByKeys = [splitByParamKey];
-        }
-        if (this.stateHasChanged) {
-          this.stateHasChanged();
-        }
-        this.splitGraphs();
-      });
-
-      // Event listener for when the Test Picker plot button is clicked.
-      // This will create a new empty Graph at the top and plot it with the
-      // selected test values.
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      this.addEventListener('add-to-graph', async (e) => {
-        const query = (e as CustomEvent).detail.query;
-        let explore: ExploreSimpleSk;
-        if (this.currentPageExploreElements.length === 0) {
-          const newExplore = this.addEmptyGraph(true);
-          if (newExplore) {
-            this.addGraphsToCurrentPage(true); // Pass true to prevent immediate data query
-            explore = newExplore;
-          } else {
-            return;
-          }
-        } else {
-          explore = this.currentPageExploreElements[0];
-          this.currentPageExploreElements.splice(1);
-          this.currentPageGraphConfigs.splice(1);
-          this.exploreElements.splice(1);
-          this.graphConfigs.splice(1);
-          this.state.totalGraphs = this.exploreElements.length;
-        }
-        await explore.addFromQueryOrFormula(true, 'query', query, '');
-        this.splitGraphs();
+    // Event listener for when the Test Picker plot button is clicked.
+    // This will create a new empty Graph at the top and plot it with the
+    // selected test values.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    this.addEventListener('plot-button-clicked', (e) => {
+      const explore = this.addEmptyGraph(true);
+      if (explore) {
+        this.addGraphsToCurrentPage(true);
+        const query = this.testPicker!.createQueryFromFieldData();
+        explore.addFromQueryOrFormula(true, 'query', query, '');
         this.refreshSplitList = true;
-      });
+        if (this.testPicker) {
+          this.testPicker.autoAddTrace = true;
+        }
+      }
+      this.updateSplitByKeys();
+    });
 
-      // Event listener for when the "Query Highlighted" button is clicked.
-      // It will populate the Test Picker with the keys from the highlighted
-      // trace.
-      this.addEventListener('populate-query', (e) => {
-        this.populateTestPicker((e as CustomEvent).detail);
-      });
+    this.addEventListener('split-by-changed', (e) => {
+      const splitByParamKey: string = (e as CustomEvent).detail.param;
+      const split = (e as CustomEvent).detail.split;
+      if (!split) {
+        // No longer split so remove selected param from keys.
+        this.state.splitByKeys = this.state.splitByKeys.filter((key) => key !== splitByParamKey);
+      } else {
+        // Split by only a single key
+        // TODO(seawardt): Enable multiple splits
+        this.state.splitByKeys = [splitByParamKey];
+      }
+      if (this.stateHasChanged) {
+        this.stateHasChanged();
+      }
+      this.splitGraphs();
+    });
+
+    // Event listener for when the Test Picker plot button is clicked.
+    // This will create a new empty Graph at the top and plot it with the
+    // selected test values.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    this.addEventListener('add-to-graph', async (e) => {
+      const query = (e as CustomEvent).detail.query;
+      let explore: ExploreSimpleSk;
+      if (this.currentPageExploreElements.length === 0) {
+        const newExplore = this.addEmptyGraph(true);
+        if (newExplore) {
+          this.addGraphsToCurrentPage(true); // Pass true to prevent immediate data query
+          explore = newExplore;
+        } else {
+          return;
+        }
+      } else {
+        explore = this.currentPageExploreElements[0];
+        this.currentPageExploreElements.splice(1);
+        this.currentPageGraphConfigs.splice(1);
+        this.exploreElements.splice(1);
+        this.graphConfigs.splice(1);
+        this.state.totalGraphs = this.exploreElements.length;
+      }
+      await explore.addFromQueryOrFormula(true, 'query', query, '');
+      this.splitGraphs();
+      this.refreshSplitList = true;
+    });
+
+    // Event listener for when the "Query Highlighted" button is clicked.
+    // It will populate the Test Picker with the keys from the highlighted
+    // trace.
+    this.addEventListener('populate-query', (e) => {
+      this.populateTestPicker((e as CustomEvent).detail);
+    });
+
+    if (this.exploreElements.length > 0) {
+      await this.populateTestPicker(this.exploreElements[0].getParamSet());
+      this.exploreElements[0].useBrowserURL();
     }
   }
 
