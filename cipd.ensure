@@ -11,7 +11,7 @@ infra/tools/cipd/${os}-${arch} git_revision:922b8b65f3d1e318664755d2634bc5dd8769
 infra/tools/luci/kitchen/${platform}                git_revision:922b8b65f3d1e318664755d2634bc5dd87692877
 
 @Subdir cipd_bin_packages
-infra/3pp/tools/git/linux-amd64                     version:3@2.50.0.chromium.11
+infra/3pp/tools/git/linux-amd64                     version:3@2.50.1.chromium.11
 infra/tools/git/${platform}                         git_revision:922b8b65f3d1e318664755d2634bc5dd87692877
 infra/tools/luci-auth/${platform}                   git_revision:922b8b65f3d1e318664755d2634bc5dd87692877
 infra/tools/luci/docker-credential-luci/${platform} git_revision:922b8b65f3d1e318664755d2634bc5dd87692877
