@@ -20,9 +20,11 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"cloud.google.com/go/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/bugs-central/go/db"
 	"go.skia.org/infra/bugs-central/go/poller"
@@ -32,6 +34,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/cleanup"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/secret"
@@ -54,8 +57,9 @@ var (
 )
 
 const (
-	secretProject     = "skia-infra-public"
-	secretGithubToken = "bugs-central-github-token"
+	secretProject      = "skia-infra-public"
+	secretGithubToken  = "bugs-central-github-token"
+	issueTrackerBucket = "skia-issuetracker-details"
 )
 
 // See baseapp.Constructor.
@@ -95,8 +99,16 @@ func New() (baseapp.App, error) {
 		sklog.Fatalf("Could not write github token to tmp file: %s", err)
 	}
 
+	// Create the GCS client.
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to init storage client")
+	}
+	gcsClient := gcsclient.New(storageClient, issueTrackerBucket)
+
 	// Instantiate poller and turn it on.
-	pollerClient, err := poller.New(ctx, ts, githubTokenFile.Name(), dbClient)
+	pollerClient, err := poller.New(ctx, gcsClient, githubTokenFile.Name(), dbClient)
 	if err != nil {
 		sklog.Fatalf("Could not init poller: %s", err)
 	}

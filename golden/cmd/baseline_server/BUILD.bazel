@@ -8,7 +8,9 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/alogin/proxylogin",
+        "//go/auth",
         "//go/common",
+        "//go/gcs/gcsclient",
         "//go/httputils",
         "//go/metrics2",
         "//go/sklog",
@@ -21,7 +23,8 @@ go_library(
         "//golden/go/web/frontend",
         "@com_github_go_chi_chi_v5//:chi",
         "@com_github_jackc_pgx_v4//pgxpool",
-        "@org_golang_google_api//storage/v1:storage",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
         "@org_golang_x_oauth2//google",
     ],
 )

@@ -15,6 +15,7 @@ go_library(
         "//go/auth",
         "//go/baseapp",
         "//go/cleanup",
+        "//go/gcs/gcsclient",
         "//go/httputils",
         "//go/roles",
         "//go/secret",
@@ -23,6 +24,8 @@ go_library(
         "@com_github_go_chi_chi_v5//:chi",
         "@com_github_unrolled_secure//:secure",
         "@com_google_cloud_go_datastore//:datastore",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
         "@org_golang_x_oauth2//google",
     ],
 )

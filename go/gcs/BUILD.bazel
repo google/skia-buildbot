@@ -4,7 +4,6 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "gcs",
     srcs = [
-        "download_helper.go",
         "helpers.go",
         "types.go",
     ],
@@ -12,7 +11,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
-        "//go/sklog",
         "//go/untar",
         "//go/util",
         "@com_google_cloud_go_storage//:storage",
@@ -22,15 +20,10 @@ go_library(
 
 go_test(
     name = "gcs_test",
-    srcs = [
-        "download_helper_test.go",
-        "helpers_test.go",
-    ],
-    embed = [":gcs"],
+    srcs = ["helpers_test.go"],
     deps = [
+        ":gcs",
         "//go/gcs/mem_gcsclient",
-        "//go/testutils",
         "@com_github_stretchr_testify//require",
-        "@com_google_cloud_go_storage//:storage",
     ],
 )

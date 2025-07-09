@@ -773,8 +773,13 @@ func startKnownDigestsSync(ctx context.Context, db *pgxpool.Pool, ptc periodicTa
 		"task": "syncKnownDigests",
 	})
 
-	storageClient, err := storage.NewGCSClient(ctx, nil, storage.GCSClientOptions{
-		Bucket:             ptc.GCSBucket,
+	gstorageClient, err := gstorage.NewClient(ctx)
+	if err != nil {
+		sklog.Errorf("Could not start syncing known digests: %s", err)
+		return
+	}
+	gcsClient := gcsclient.New(gstorageClient, ptc.GCSBucket)
+	storageClient, err := storage.NewGCSClient(ctx, gcsClient, storage.GCSClientOptions{
 		KnownHashesGCSPath: ptc.KnownHashesGCSPath,
 	})
 	if err != nil {

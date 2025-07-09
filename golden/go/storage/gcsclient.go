@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/http"
 	"path"
 
 	"go.opencensus.io/trace"
@@ -15,13 +14,10 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
-	"google.golang.org/api/option"
 )
 
 // GCSClientOptions is used to define input parameters to the GCSClient.
 type GCSClientOptions struct {
-	// Bucket is the name of the GCS bucket we store to.
-	Bucket string
 	// KnownHashesGCSPath is the bucket and path for storing the list of known digests.
 	KnownHashesGCSPath string
 
@@ -53,18 +49,13 @@ const (
 
 // ClientImpl implements the GCSClient interface.
 type ClientImpl struct {
-	storageClient *gstorage.Client
+	storageClient gcs.GCSClient
 	options       GCSClientOptions
 }
 
 // NewGCSClient creates a new instance of ClientImpl. The various
 // output paths are set in GCSClientOptions.
-func NewGCSClient(ctx context.Context, client *http.Client, options GCSClientOptions) (*ClientImpl, error) {
-	storageClient, err := gstorage.NewClient(ctx, option.WithHTTPClient(client))
-	if err != nil {
-		return nil, err
-	}
-
+func NewGCSClient(ctx context.Context, storageClient gcs.GCSClient, options GCSClientOptions) (*ClientImpl, error) {
 	return &ClientImpl{
 		storageClient: storageClient,
 		options:       options,
@@ -84,7 +75,7 @@ func (g *ClientImpl) WriteKnownDigests(ctx context.Context, digests types.Digest
 		sklog.Infof("dryrun: Writing %d digests", len(digests))
 		return nil
 	}
-	writeFn := func(w *gstorage.Writer) error {
+	writeFn := func(w io.Writer) error {
 		for _, digest := range digests {
 			if _, err := w.Write([]byte(digest + "\n")); err != nil {
 				return fmt.Errorf("Error writing digests: %s", err)
@@ -99,12 +90,10 @@ func (g *ClientImpl) WriteKnownDigests(ctx context.Context, digests types.Digest
 func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 	ctx, span := trace.StartSpan(ctx, "gcsclient_LoadKnownDigests")
 	defer span.End()
-	bucketName, storagePath := gcs.SplitGSPath(g.options.KnownHashesGCSPath)
-
-	target := g.storageClient.Bucket(bucketName).Object(storagePath)
+	_, storagePath := gcs.SplitGSPath(g.options.KnownHashesGCSPath)
 
 	// If the item doesn't exist this will return gstorage.ErrObjectNotExist
-	_, err := target.Attrs(ctx)
+	_, err := g.storageClient.GetFileObjectAttrs(ctx, storagePath)
 	if err != nil {
 		// We simply assume an empty hashes file if the object was not found.
 		if err == gstorage.ErrObjectNotExist {
@@ -115,7 +104,7 @@ func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 	}
 
 	// Copy the content to the output writer.
-	reader, err := target.NewReader(ctx)
+	reader, err := g.storageClient.FileReader(ctx, storagePath)
 	if err != nil {
 		return skerr.Wrapf(err, "opening %s for reading", g.options.KnownHashesGCSPath)
 	}
@@ -126,14 +115,13 @@ func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 
 // removeForTestingOnly removes the given file. Should only be used for testing.
 func (g *ClientImpl) removeForTestingOnly(ctx context.Context, targetPath string) error {
-	bucketName, storagePath := gcs.SplitGSPath(targetPath)
-	target := g.storageClient.Bucket(bucketName).Object(storagePath)
-	return target.Delete(ctx)
+	_, storagePath := gcs.SplitGSPath(targetPath)
+	return g.storageClient.DeleteFile(ctx, storagePath)
 }
 
 // writeToPath is a generic function that allows to write data to the given
 // target path in GCS. The actual writing is done in the passed write function.
-func (g *ClientImpl) writeToPath(ctx context.Context, targetPath, contentType string, wrtFn func(w *gstorage.Writer) error) error {
+func (g *ClientImpl) writeToPath(ctx context.Context, targetPath, contentType string, wrtFn func(io.Writer) error) error {
 	bucketName, storagePath := gcs.SplitGSPath(targetPath)
 
 	// Only write the known digests if a target path was given.
@@ -141,9 +129,9 @@ func (g *ClientImpl) writeToPath(ctx context.Context, targetPath, contentType st
 		return nil
 	}
 
-	target := g.storageClient.Bucket(bucketName).Object(storagePath)
-	writer := target.NewWriter(ctx)
-	writer.ObjectAttrs.ContentType = contentType
+	writer := g.storageClient.FileWriter(ctx, storagePath, gcs.FileWriteOptions{
+		ContentType: contentType,
+	})
 
 	// Write the actual data.
 	if err := wrtFn(writer); err != nil {
@@ -164,7 +152,7 @@ func (g *ClientImpl) GetImage(ctx context.Context, digest types.Digest) ([]byte,
 	defer span.End()
 	// intentionally using path because gcs is forward slashes
 	imgPath := path.Join(imgFolder, string(digest)+".png")
-	r, err := g.storageClient.Bucket(g.options.Bucket).Object(imgPath).NewReader(ctx)
+	r, err := g.storageClient.FileReader(ctx, imgPath)
 	if err != nil {
 		// If not image not found, this error path will be taken.
 		return nil, skerr.Wrap(err)

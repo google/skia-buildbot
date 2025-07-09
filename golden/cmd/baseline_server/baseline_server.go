@@ -12,13 +12,16 @@ import (
 	"path/filepath"
 	"strings"
 
+	gstorage "cloud.google.com/go/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/oauth2/google"
-	gstorage "google.golang.org/api/storage/v1"
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/alogin/proxylogin"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -76,18 +79,23 @@ func main() {
 	)
 
 	gsClientOpt := storage.GCSClientOptions{
-		Bucket:             bsc.GCSBucket,
 		KnownHashesGCSPath: bsc.KnownHashesGCSPath,
 	}
 
-	tokenSource, err := google.DefaultTokenSource(ctx, gstorage.CloudPlatformScope)
+	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeAllCloudAPIs)
 	if err != nil {
 		sklog.Fatalf("Could not create token source: %s", err)
 	}
 
 	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 
-	gsClient, err := storage.NewGCSClient(ctx, client, gsClientOpt)
+	gstorageClient, err := gstorage.NewClient(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		sklog.Fatalf("Failed to create google storage client: %s", err)
+	}
+	gcsClient := gcsclient.New(gstorageClient, bsc.GCSBucket)
+
+	gsClient, err := storage.NewGCSClient(ctx, gcsClient, gsClientOpt)
 	if err != nil {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
 	}

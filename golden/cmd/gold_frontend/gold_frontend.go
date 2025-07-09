@@ -17,19 +17,21 @@ import (
 	"strings"
 	"time"
 
+	gstorage "cloud.google.com/go/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/unrolled/secure"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	gstorage "google.golang.org/api/storage/v1"
+	"google.golang.org/api/option"
 	"google.golang.org/grpc"
 
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -234,7 +236,7 @@ func mustStartDebugServer(fsc *frontendServerConfig) {
 func mustMakeAuthenticatedHTTPClient(local bool) *http.Client {
 	// Get the token source for the service account with access to the services
 	// we need to operate.
-	tokenSource, err := google.DefaultTokenSource(context.TODO(), auth.ScopeUserinfoEmail, gstorage.CloudPlatformScope, auth.ScopeGerrit)
+	tokenSource, err := google.DefaultTokenSource(context.TODO(), auth.ScopeUserinfoEmail, auth.ScopeAllCloudAPIs, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
@@ -276,12 +278,16 @@ func mustInitSQLDatabase(ctx context.Context, fsc *frontendServerConfig, logSQLQ
 // files.
 func mustMakeGCSClient(ctx context.Context, fsc *frontendServerConfig, client *http.Client) storage.GCSClient {
 	gsClientOpt := storage.GCSClientOptions{
-		Bucket:             fsc.GCSBucket,
 		KnownHashesGCSPath: fsc.KnownHashesGCSPath,
 		Dryrun:             !fsc.IsAuthoritative(),
 	}
 
-	gsClient, err := storage.NewGCSClient(ctx, client, gsClientOpt)
+	gstorageClient, err := gstorage.NewClient(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		sklog.Fatalf("Failed to create google storage client: %s", err)
+	}
+	gcsClient := gcsclient.New(gstorageClient, fsc.GCSBucket)
+	gsClient, err := storage.NewGCSClient(ctx, gcsClient, gsClientOpt)
 	if err != nil {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
 	}

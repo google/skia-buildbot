@@ -14,15 +14,15 @@ go_library(
         "//golden/go/types",
         "@com_google_cloud_go_storage//:storage",
         "@io_opencensus_go//trace",
-        "@org_golang_google_api//option",
     ],
 )
 
 go_test(
     name = "storage_test",
-    srcs = ["gcsclient_manual_test.go"],
+    srcs = ["gcsclient_test.go"],
     embed = [":storage"],
     deps = [
+        "//go/gcs/mem_gcsclient",
         "//golden/go/types",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

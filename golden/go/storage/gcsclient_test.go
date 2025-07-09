@@ -10,12 +10,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/golden/go/types"
 )
 
 const (
+	fakeGCSBucket = "fake-bucket"
 	// hashesGCSPath is the bucket/path combination where the test file will be written.
-	hashesGCSPath = "skia-infra-testdata/hash_files/testing-known-hashes.txt"
+	hashesGCSPath = fakeGCSBucket + "/hash_files/testing-known-hashes.txt"
 )
 
 // TestWritingHashes writes hashes to an actual GCS location, then reads from it, before
@@ -51,10 +53,10 @@ func TestWritingReadingHashes(t *testing.T) {
 func initGSClient(t *testing.T) (*ClientImpl, GCSClientOptions) {
 	timeStamp := fmt.Sprintf("%032d", time.Now().UnixNano())
 	opt := GCSClientOptions{
-		Bucket:             "skia-infra-testdata",
 		KnownHashesGCSPath: hashesGCSPath + "-" + timeStamp,
 	}
-	gsClient, err := NewGCSClient(context.Background(), nil, opt)
+	gcsClient := mem_gcsclient.New(fakeGCSBucket)
+	gsClient, err := NewGCSClient(context.Background(), gcsClient, opt)
 	require.NoError(t, err)
 	return gsClient, opt
 }

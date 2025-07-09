@@ -9,10 +9,10 @@ go_library(
     deps = [
         "//bugs-central/go/bugs",
         "//bugs-central/go/types",
+        "//go/gcs",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "@com_google_cloud_go_storage//:storage",
     ],
 )
 
@@ -22,9 +22,8 @@ go_test(
     embed = [":issuetracker"],
     deps = [
         "//bugs-central/go/bugs",
-        "//go/httputils",
+        "//go/gcs",
+        "//go/gcs/mem_gcsclient",
         "@com_github_stretchr_testify//require",
-        "@com_google_cloud_go_storage//:storage",
-        "@org_golang_google_api//option",
     ],
 )

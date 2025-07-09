@@ -8,25 +8,21 @@ import (
 	"path/filepath"
 	"time"
 
-	"cloud.google.com/go/storage"
-	"golang.org/x/oauth2"
-	"google.golang.org/api/option"
-
 	"go.skia.org/infra/bugs-central/go/bugs"
 	"go.skia.org/infra/bugs-central/go/bugs/github"
 	"go.skia.org/infra/bugs-central/go/bugs/issuetracker"
 	"go.skia.org/infra/bugs-central/go/types"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/cleanup"
+	"go.skia.org/infra/go/gcs"
 	github_lib "go.skia.org/infra/go/github"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
 // IssuesPoller will be used to poll the different issue frameworks.
 type IssuesPoller struct {
-	storageClient     *storage.Client
+	storageClient     gcs.GCSClient
 	pathToGithubToken string
 
 	dbClient   types.BugsDB
@@ -34,13 +30,7 @@ type IssuesPoller struct {
 }
 
 // New returns an instance of IssuesPoller.
-func New(ctx context.Context, ts oauth2.TokenSource, pathToGithubToken string, dbClient types.BugsDB) (*IssuesPoller, error) {
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))
-	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to init storage client")
-	}
-
+func New(ctx context.Context, storageClient gcs.GCSClient, pathToGithubToken string, dbClient types.BugsDB) (*IssuesPoller, error) {
 	if *baseapp.Local {
 		usr, err := user.Current()
 		if err != nil {

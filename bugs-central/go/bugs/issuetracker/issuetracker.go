@@ -12,17 +12,15 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/storage"
-
 	"go.skia.org/infra/bugs-central/go/bugs"
 	"go.skia.org/infra/bugs-central/go/types"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
 var (
-	issueTrackerBucket = "skia-issuetracker-details"
 	// The file that contains issuetracker search results in the above bucket.
 	resultsFileName = "results.json"
 )
@@ -39,13 +37,13 @@ type issueTrackerIssue struct {
 
 // issueTracker implements bugs.BugsFramework for github repos.
 type issueTracker struct {
-	storageClient *storage.Client
+	storageClient gcs.GCSClient
 	openIssues    *bugs.OpenIssues
 	queryConfig   *IssueTrackerQueryConfig
 }
 
 // New returns an instance of the issuetracker implementation of bugs.BugFramework.
-func New(storageClient *storage.Client, openIssues *bugs.OpenIssues, queryConfig *IssueTrackerQueryConfig) (bugs.BugFramework, error) {
+func New(storageClient gcs.GCSClient, openIssues *bugs.OpenIssues, queryConfig *IssueTrackerQueryConfig) (bugs.BugFramework, error) {
 	return &issueTracker{
 		storageClient: storageClient,
 		openIssues:    openIssues,
@@ -73,10 +71,9 @@ type IssueTrackerQueryConfig struct {
 
 // See documentation for bugs.Search interface.
 func (it *issueTracker) Search(ctx context.Context) ([]*types.Issue, *types.IssueCountsData, error) {
-	obj := it.storageClient.Bucket(issueTrackerBucket).Object(resultsFileName)
-	reader, err := obj.NewReader(ctx)
+	reader, err := it.storageClient.FileReader(ctx, resultsFileName)
 	if err != nil {
-		return nil, nil, skerr.Wrapf(err, "accessing gs://%s/%s failed", issueTrackerBucket, resultsFileName)
+		return nil, nil, skerr.Wrapf(err, "accessing gs://%s/%s failed", it.storageClient.Bucket(), resultsFileName)
 	}
 	defer util.Close(reader)
 

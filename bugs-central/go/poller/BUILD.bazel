@@ -12,12 +12,9 @@ go_library(
         "//bugs-central/go/types",
         "//go/baseapp",
         "//go/cleanup",
+        "//go/gcs",
         "//go/github",
-        "//go/httputils",
         "//go/skerr",
         "//go/sklog",
-        "@com_google_cloud_go_storage//:storage",
-        "@org_golang_google_api//option",
-        "@org_golang_x_oauth2//:oauth2",
     ],
 )
