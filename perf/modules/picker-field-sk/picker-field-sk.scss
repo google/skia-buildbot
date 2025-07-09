@@ -2,7 +2,8 @@
 // Style reference for vaadin elements:
 // https://vaadin.com/docs/latest/components/combo-box/styling
 .body-sk picker-field-sk {
-  #picker-field {
+  // Look for any div with id containing 'picker-field'
+  *[id^='picker-field-'] {
     display: flex;
     align-items: flex-end;
     flex-direction: column;

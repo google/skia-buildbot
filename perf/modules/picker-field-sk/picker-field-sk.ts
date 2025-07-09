@@ -59,7 +59,7 @@ export class PickerFieldSk extends ElementSk {
   }
 
   private static template = (ele: PickerFieldSk) => html`
-    <div id="picker-field">
+    <div id="picker-field-${ele.label}">
       <div id="split-by-container">
         <checkbox-sk
           title="Splits the chart by attribute."
@@ -81,7 +81,6 @@ export class PickerFieldSk extends ElementSk {
         </checkbox-sk>
       </div>
       <vaadin-multi-select-combo-box
-        auto-expand-horizontally
         auto-expand-vertically
         label=${ele.label}
         .items=${ele.options}
@@ -224,11 +223,10 @@ export class PickerFieldSk extends ElementSk {
         maxLength = option.length;
       }
     });
+    const width = `${maxLength + 5}ch`;
     if (this._comboBox !== null) {
-      this._comboBox!.style.setProperty(
-        '--vaadin-multi-select-combo-box-overlay-width',
-        `${maxLength + 5}ch`
-      );
+      this._comboBox!.style.setProperty('--vaadin-multi-select-combo-box-overlay-width', width);
+      this._comboBox!.style.width = width;
     }
   }
 
