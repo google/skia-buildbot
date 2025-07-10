@@ -283,8 +283,8 @@ export class AnomaliesTableSk extends ElementSk {
       rows.push(this.generateSummaryRow(anomalyGroup));
     }
 
-    const anomalySortValues = this.getProcessedAnomaly(anomalyGroup.anomalies[0]);
     for (let i = 0; i < anomalyGroup.anomalies.length; i++) {
+      const anomalySortValues = this.getProcessedAnomaly(anomalyGroup.anomalies[i]);
       const anomaly = anomalyGroup.anomalies[i];
       const processedAnomaly = this.getProcessedAnomaly(anomaly);
       const anomalyClass = anomaly.is_improvement ? 'improvement' : 'regression';
@@ -408,7 +408,14 @@ export class AnomaliesTableSk extends ElementSk {
     }
     const anomalyForBugReportLink = this.getReportLinkForSummaryRowBugId(anomalyGroup);
     return html`
-      <tr class="${this.getRowClass(0, anomalyGroup)}}">
+      <tr
+        data-bugid="${anomalyForBugReportLink ? anomalyForBugReportLink.bug_id : 0}"
+        data-revisions="${summary.endRevision}"
+        data-bot="${summary.bot}"
+        data-testsuite="${summary.testsuite}"
+        data-test="${summary.test}"
+        data-delta="${summary.delta}"
+        class="${this.getRowClass(0, anomalyGroup)}}">
         <td>
           <button
             class="expand-button"
