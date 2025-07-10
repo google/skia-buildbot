@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,8 +10,10 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
+	jobstore "go.skia.org/infra/pinpoint/go/sql/jobs_store"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
+	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
 )
@@ -28,12 +31,40 @@ var mockBuild = pinpoint_proto.CASReference{
 	},
 }
 
+func registerJobStoreActivities(env *testsuite.TestWorkflowEnvironment) {
+	env.RegisterActivityWithOptions(
+		func(context.Context, *pinpoint_proto.SchedulePairwiseRequest, string) error { return nil },
+		activity.RegisterOptions{Name: AddInitialJob},
+	)
+	env.RegisterActivityWithOptions(
+		func(context.Context, string, string, int64) error { return nil },
+		activity.RegisterOptions{Name: UpdateJobStatus},
+	)
+	env.RegisterActivityWithOptions(
+		func(context.Context, string, string) error { return nil },
+		activity.RegisterOptions{Name: SetErrors},
+	)
+	env.RegisterActivityWithOptions(
+		func(context.Context, string, map[string]*pinpoint_proto.PairwiseExecution_WilcoxonResult) error {
+			return nil
+		},
+		activity.RegisterOptions{Name: AddResults},
+	)
+	env.RegisterActivityWithOptions(
+		func(context.Context, string, *jobstore.CommitRunData, *jobstore.CommitRunData) error { return nil },
+		activity.RegisterOptions{Name: AddCommitRuns},
+	)
+}
+
 func TestPairwiseWorkflow_GivenUnsuccessfulWorkflow_ReturnsError(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-
+	registerJobStoreActivities(env)
 	env.RegisterWorkflowWithOptions(PairwiseCommitsRunnerWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseCommitsRunner})
 	env.OnWorkflow(workflows.PairwiseCommitsRunner, mock.Anything, mock.Anything).Return(nil, skerr.Fmt("some error")).Once()
+	env.OnActivity(AddInitialJob, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+	env.OnActivity(SetErrors, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+	env.OnActivity(UpdateJobStatus, mock.Anything, mock.Anything, failed, mock.Anything).Return(nil).Once()
 
 	env.ExecuteWorkflow(PairwiseWorkflow, &workflows.PairwiseParams{
 		Request: &pinpoint_proto.SchedulePairwiseRequest{
@@ -79,10 +110,15 @@ func TestPairwiseWorkflow_GivenSuccessfulWorkflow_ReturnsCorrectPValues(t *testi
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
+	registerJobStoreActivities(env)
 
 	env.RegisterWorkflowWithOptions(PairwiseCommitsRunnerWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseCommitsRunner})
 	env.OnWorkflow(workflows.PairwiseCommitsRunner, mock.Anything, mock.Anything).Return(mockResult, nil).Once()
 	env.OnActivity(ComparePairwiseActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(statResults, nil).Once()
+	env.OnActivity(AddInitialJob, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+	env.OnActivity(AddCommitRuns, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+	env.OnActivity(UpdateJobStatus, mock.Anything, mock.Anything, completed, mock.Anything).Return(nil).Once()
+	env.OnActivity(AddResults, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
 	env.ExecuteWorkflow(PairwiseWorkflow, &workflows.PairwiseParams{
 		Request: &pinpoint_proto.SchedulePairwiseRequest{
@@ -131,10 +167,15 @@ func TestPairwiseWorkflow_GivenSuccessfulWorkflowWithCulprit_ReturnsCulprit(t *t
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
+	registerJobStoreActivities(env)
 
 	env.RegisterWorkflowWithOptions(PairwiseCommitsRunnerWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseCommitsRunner})
 	env.OnWorkflow(workflows.PairwiseCommitsRunner, mock.Anything, mock.Anything).Return(mockResult, nil).Once()
 	env.OnActivity(ComparePairwiseActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(statResults, nil).Once()
+	env.OnActivity(AddInitialJob, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+	env.OnActivity(AddCommitRuns, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+	env.OnActivity(UpdateJobStatus, mock.Anything, mock.Anything, completed, mock.Anything).Return(nil).Once()
+	env.OnActivity(AddResults, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
 	env.ExecuteWorkflow(PairwiseWorkflow, &workflows.PairwiseParams{
 		Request: &pinpoint_proto.SchedulePairwiseRequest{

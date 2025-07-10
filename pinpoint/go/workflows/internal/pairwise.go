@@ -6,15 +6,26 @@ import (
 	"github.com/google/uuid"
 	swarming_pb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
+	jobstore "go.skia.org/infra/pinpoint/go/sql/jobs_store"
 	"go.skia.org/infra/pinpoint/go/workflows"
+
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
 
-func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpoint_proto.PairwiseExecution, error) {
+// TODO(natnaelal) Expand potential job statuses to include intermediate statuses
+const (
+	failed    = "FAILED"
+	completed = "COMPLETED"
+	canceled  = "CANCELED"
+)
+
+func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (pe *pinpoint_proto.PairwiseExecution, finalError error) {
 	if p.Request.StartBuild == nil && p.Request.StartCommit == nil {
 		return nil, skerr.Fmt("Base build and commit are empty.")
 	}
@@ -37,6 +48,11 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 
 	jobID := uuid.New().String()
 	wkStartTime := time.Now().UnixNano()
+	if err := workflow.ExecuteActivity(ctx, AddInitialJob, p.Request, jobID).Get(ctx, nil); err != nil {
+		// TODO(natnaelal) Convert subsequent uses of sklog to full errors once Job Store activities are
+		// more stable and fully integrated
+		sklog.Errorf("failed to add initial job info to Spanner: %s", err)
+	}
 
 	// Benchmark runs can sometimes generate an inconsistent number of data points.
 	// So even if all benchmark runs were successful, the number of data values
@@ -73,15 +89,57 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 		"config":    p.Request.Configuration,
 		"story":     p.Request.Story,
 	})
+	protoResults := map[string]*pinpoint_proto.PairwiseExecution_WilcoxonResult{}
 
 	defer func() {
 		duration := time.Now().UnixNano() - wkStartTime
 		mh.Timer("pairwise_duration").Record(time.Duration(duration))
+
+		// Final writebacks to Spanner before end of Pairwise workflow
+		if finalError != nil {
+			if temporal.IsCanceledError(finalError) {
+				if err := workflow.ExecuteActivity(ctx, UpdateJobStatus, jobID, canceled, duration).Get(ctx, nil); err != nil {
+					sklog.Errorf("couldn't update status for canceled pairwise job with this ID: %s", jobID)
+				}
+			} else {
+				// Pairwise job failed for other reasons.
+				if err := workflow.ExecuteActivity(ctx, SetErrors, jobID, finalError.Error()).Get(ctx, nil); err != nil {
+					sklog.Errorf("couldn't add error for pairwise job with this ID: %s", jobID)
+				}
+				if err := workflow.ExecuteActivity(ctx, UpdateJobStatus, jobID, failed, duration).Get(ctx, nil); err != nil {
+					sklog.Errorf("couldn't update status for pairwise job with this ID: %s", jobID)
+				}
+			}
+		} else {
+			if err := workflow.ExecuteActivity(ctx, UpdateJobStatus, jobID, completed, duration).Get(ctx, nil); err != nil {
+				sklog.Errorf("couldn't update status for pairwise job with this ID: %s", jobID)
+			}
+			// Write back to database the results of the comparision through the job store object
+			if err := workflow.ExecuteActivity(ctx, AddResults, jobID, protoResults).Get(ctx, nil); err != nil {
+				sklog.Errorf("couldn't add results for pairwise job with this ID: %s", jobID)
+			}
+		}
+
 	}()
 
 	var pr *PairwiseRun
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.PairwiseCommitsRunner, pairwiseRunnerParams).Get(ctx, &pr); err != nil {
 		return nil, skerr.Wrap(err)
+	}
+	// Store details of commit buids and test runs
+	if pr != nil {
+		leftData := &jobstore.CommitRunData{
+			Build: pr.Left.Build,
+			Runs:  pr.Left.Runs,
+		}
+		rightData := &jobstore.CommitRunData{
+			Build: pr.Right.Build,
+			Runs:  pr.Right.Runs,
+		}
+		if err := workflow.ExecuteActivity(ctx, AddCommitRuns, jobID, leftData, rightData).Get(ctx, nil); err != nil {
+			sklog.Errorf("couldn't add commit runs for pairwise job with this ID: %s", jobID)
+		}
+
 	}
 
 	results, err := comparePairwiseRuns(ctx, pr, compare.UnknownDir)
@@ -99,7 +157,6 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 		culpritCandidate = (*pinpoint_proto.CombinedCommit)(pairwiseRunnerParams.RightCommit)
 	}
 
-	protoResults := map[string]*pinpoint_proto.PairwiseExecution_WilcoxonResult{}
 	for chart, res := range results {
 		protoResults[chart] = &pinpoint_proto.PairwiseExecution_WilcoxonResult{
 			// Significant is used in CulpritFinder to determine whether to bisect.

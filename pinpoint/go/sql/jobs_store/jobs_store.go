@@ -5,7 +5,9 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"math"
 	"strconv"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/skerr"
@@ -189,6 +191,10 @@ func (js *jobStoreImpl) UpdateJobStatus(ctx context.Context, jobID string, statu
 		return nil
 	}
 
+	// These values are passed in as duration in nanoseconds, so we will convert to minutes and round
+	durationMinutes := time.Duration(workflowDuration).Minutes()
+	durationMinutesRounded := int64(math.Round(durationMinutes))
+
 	// Update duration parameter
 	tx, err := js.db.Begin(ctx)
 	if err != nil {
@@ -199,7 +205,7 @@ func (js *jobStoreImpl) UpdateJobStatus(ctx context.Context, jobID string, statu
 	if err != nil {
 		return err
 	}
-	params["duration"] = strconv.FormatInt(workflowDuration, 10)
+	params["duration"] = strconv.FormatInt(durationMinutesRounded, 10)
 
 	query := `
        UPDATE jobs SET

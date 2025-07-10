@@ -6,6 +6,7 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -154,7 +155,8 @@ func TestUpdateJobStatus(t *testing.T) {
 	require.NoError(t, err)
 
 	newStatus := "Completed"
-	err = js.UpdateJobStatus(ctx, jobID, newStatus, 10)
+	durationInNanoseconds := int64(10 * time.Minute)
+	err = js.UpdateJobStatus(ctx, jobID, newStatus, durationInNanoseconds)
 	require.NoError(t, err)
 
 	retrievedJob, err := js.GetJob(ctx, jobID)
