@@ -508,6 +508,40 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
 
+	f.urlProvider = urlprovider.New(f.perfGit)
+
+	// TODO(jcgregorio) Implement store.TryBotStore and add a reference to it here.
+	f.trybotResultsLoader = dfloader.New(f.dfBuilder, nil, f.perfGit)
+
+	alerts.DefaultSparse = f.flags.DefaultSparse
+
+	sklog.Info("About to build alertStore.")
+	f.alertStore, err = builders.NewAlertStoreFromConfig(ctx, config.Config)
+	if err != nil {
+		sklog.Fatalf("Fail to NewAlertStoreFromConfig: %v", err)
+	}
+	f.shortcutStore, err = builders.NewShortcutStoreFromConfig(ctx, config.Config)
+	if err != nil {
+		sklog.Fatalf("Fail to NewShortcutStoreFromConfig: %v", err)
+	}
+	f.graphsShortcutStore, err = builders.NewGraphsShortcutStoreFromConfig(ctx, f.flags.LocalToProd, config.Config)
+	if err != nil {
+		sklog.Fatalf("Fail to NewGraphsShortcutStoreFromConfig: %v", err)
+	}
+
+	if f.flags.NoEmail {
+		config.Config.NotifyConfig.Notifications = notifytypes.None
+	}
+	f.notifier, err = notify.New(ctx, &config.Config.NotifyConfig, &config.Config.IssueTrackerConfig, config.Config.URL, f.flags.CommitRangeURL, f.traceStore, f.ingestedFS)
+	if err != nil {
+		sklog.Fatalf("Failed to create issue tracker: %v", err)
+	}
+
+	f.configProvider, err = alerts.NewConfigProvider(ctx, f.alertStore, 600)
+	if err != nil {
+		sklog.Fatalf("Failed to create alerts configprovider: %s", err)
+	}
+
 	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, cfg, f.configProvider)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
@@ -558,40 +592,6 @@ func (f *Frontend) initialize() {
 				sklog.Fatalf("Failed to build issuetracker client: %s", err)
 			}
 		}
-	}
-
-	f.urlProvider = urlprovider.New(f.perfGit)
-
-	// TODO(jcgregorio) Implement store.TryBotStore and add a reference to it here.
-	f.trybotResultsLoader = dfloader.New(f.dfBuilder, nil, f.perfGit)
-
-	alerts.DefaultSparse = f.flags.DefaultSparse
-
-	sklog.Info("About to build alertStore.")
-	f.alertStore, err = builders.NewAlertStoreFromConfig(ctx, config.Config)
-	if err != nil {
-		sklog.Fatalf("Fail to NewAlertStoreFromConfig: %v", err)
-	}
-	f.shortcutStore, err = builders.NewShortcutStoreFromConfig(ctx, config.Config)
-	if err != nil {
-		sklog.Fatalf("Fail to NewShortcutStoreFromConfig: %v", err)
-	}
-	f.graphsShortcutStore, err = builders.NewGraphsShortcutStoreFromConfig(ctx, f.flags.LocalToProd, config.Config)
-	if err != nil {
-		sklog.Fatalf("Fail to NewGraphsShortcutStoreFromConfig: %v", err)
-	}
-
-	if f.flags.NoEmail {
-		config.Config.NotifyConfig.Notifications = notifytypes.None
-	}
-	f.notifier, err = notify.New(ctx, &config.Config.NotifyConfig, &config.Config.IssueTrackerConfig, config.Config.URL, f.flags.CommitRangeURL, f.traceStore, f.ingestedFS)
-	if err != nil {
-		sklog.Fatalf("Failed to create issue tracker: %v", err)
-	}
-
-	f.configProvider, err = alerts.NewConfigProvider(ctx, f.alertStore, 600)
-	if err != nil {
-		sklog.Fatalf("Failed to create alerts configprovider: %s", err)
 	}
 
 	f.subStore, err = builders.NewSubscriptionStoreFromConfig(ctx, cfg)
