@@ -163,6 +163,9 @@ const SPECIAL_TRACE_NAMES = [ZERO_NAME];
 // How often to refresh if the auto-refresh checkmark is checked.
 const REFRESH_TIMEOUT = 30 * 1000; // milliseconds
 
+// Amount of datapoints that is expected to begin affecting performance.
+const DATAPOINT_THRESHOLD = 10000;
+
 // The default query range in seconds.
 export const DEFAULT_RANGE_S = 24 * 60 * 60; // 2 days in seconds.
 
@@ -1273,9 +1276,6 @@ export class ExploreSimpleSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((json) => {
-        const now = Math.floor(Date.now() / 1000);
-        this._state.begin = now - 60 * 60 * 24;
-        this._state.end = now;
         this.range!.state = {
           begin: this._state.begin,
           end: this._state.end,
@@ -1850,7 +1850,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
     // If in multi-graph view, sync all graphs.
     // This event listener will not work on the alerts page
-    detail.graphNumber = Array.from(this.parentNode!.children).indexOf(this);
+    detail.graphNumber = this.state.graph_index;
     this.dispatchEvent(
       new CustomEvent<PlotSelectionEventDetails>('selection-changing-in-multi', {
         bubbles: true,
@@ -1896,7 +1896,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.closeTooltip();
     // If in multi-graph view, sync all graphs.
     // This event listener will not work on the alerts page
-    detail.graphNumber = Array.from(this.parentNode!.children).indexOf(this);
+    detail.graphNumber = this.state.graph_index;
     this.dispatchEvent(
       new CustomEvent<PlotSelectionEventDetails>('selection-changing-in-multi', {
         bubbles: true,
@@ -2083,7 +2083,7 @@ export class ExploreSimpleSk extends ElementSk {
     const subDataframe = generateSubDataframe(df!, selected);
     if (!subDataframe || subDataframe.header?.length === 0) {
       // If the subDataframe is empty, we cannot proceed.
-      errorMessage('Invalid subDataframe.');
+      errorMessage('Unable to find requested data range.');
       return;
     }
     this.state.begin = subDataframe.header![0]!.timestamp;
@@ -2523,6 +2523,19 @@ export class ExploreSimpleSk extends ElementSk {
    * which may end up giving us an inverted time range, i.e. end < begin.
    */
   private rationalizeTimeRange(state: State): State {
+    // Check if URL contains begin/end timestamps.
+    const currentUrl = new URL(window.location.href);
+    const now = Math.floor(Date.now() / 1000);
+    const beginParam = parseInt(currentUrl.searchParams.get('begin') ?? state.begin.toString());
+    state.begin =
+      beginParam !== null
+        ? parseInt((beginParam - DEFAULT_RANGE_S).toString())
+        : now - DEFAULT_RANGE_S;
+
+    const endParam = currentUrl.searchParams.get('end');
+    state.end =
+      endParam !== null ? parseInt((parseInt(endParam) + DEFAULT_RANGE_S).toString()) : now;
+
     if (state.end <= state.begin) {
       // If dense then just make sure begin is before end.
       if (state.requestType === 1) {
@@ -2926,6 +2939,9 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
 
+    if (dataframe.header!.length * Object.keys(dataframe.traceset).length > DATAPOINT_THRESHOLD) {
+      errorMessage('Large amount of data requsted, performance may be affected.');
+    }
     this.tracesRendered = true;
     this.displayMode = json.display_mode;
     this._render();

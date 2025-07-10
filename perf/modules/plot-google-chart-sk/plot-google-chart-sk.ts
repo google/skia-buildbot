@@ -739,7 +739,7 @@ export class PlotGoogleChartSk extends LitElement {
     const layout = this.chart!.getChartLayoutInterface();
     this.sidePanel.value!.showDelta = this.deltaRangeOn;
     if (this.navigationMode === 'deltaY') {
-      if (Number(this.deltaRangeBox.value!.getDelta())) {
+      if (this.deltaRangeBox.value!.getDelta()) {
         this.sidePanel.value!.deltaRaw = Number(this.deltaRangeBox.value!.getDelta()!.raw!);
         this.sidePanel.value!.deltaPercentage = Number(
           this.deltaRangeBox.value!.getDelta()!.percent

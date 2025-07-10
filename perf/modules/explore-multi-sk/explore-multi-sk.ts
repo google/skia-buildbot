@@ -76,7 +76,7 @@ class State {
 
   summary: boolean = false;
 
-  pageSize: number = 10;
+  pageSize: number = 30;
 
   pageOffset: number = 0;
 
@@ -407,18 +407,17 @@ export class ExploreMultiSk extends ElementSk {
    */
   private groupTracesByParamKey(traceset: string[], keys: string[]): Map<string, string[]> {
     const groupedTraces = new Map<string, string[]>();
-    let existingGroup: string[] = [];
     if (traceset.length > 0) {
+      // If there are no keys, then pass in empty string to group everything.
+      const keysToUse = keys.length === 0 ? [''] : keys;
       traceset.forEach((traceId) => {
         const traceParams = new URLSearchParams(fromKey(traceId));
-        // If there are no keys, then pass in empty string to group everything.
-        if (keys.length === 0) {
-          keys = [''];
-        }
-        keys.forEach((key) => {
+        keysToUse.forEach((key) => {
           const splitValue = traceParams.get(key);
-          existingGroup = groupedTraces.get(splitValue!) ?? [];
-          existingGroup.push(traceId);
+          const existingGroup = groupedTraces.get(splitValue!) ?? [];
+          if (!existingGroup.includes(traceId)) {
+            existingGroup.push(traceId);
+          }
           groupedTraces.set(splitValue!, existingGroup);
         });
       });
@@ -444,45 +443,84 @@ export class ExploreMultiSk extends ElementSk {
     const commitLinks = this.getAllCommitLinks();
     const fullAnomalyMap = this.getFullAnomalyMap();
     const selectedRange = this.exploreElements[0].getSelectedRange();
-    const frameRequests: FrameRequest[] = [];
-    const frameResponses: FrameResponse[] = [];
-    this.clearGraphs();
-    // Create the graph configs for each group.
-    groupedTraces.forEach((traces) => {
-      this.addEmptyGraph();
-      const queries: string[] = [];
-      const traceSet: TraceSet = TraceSet({});
-      const paramSet: ParamSet = ParamSet({});
-      traces.forEach((trace) => {
-        queries.push(queryFromKey(trace));
-        traceSet[trace] = Trace(fullTraceSet[trace]);
-        addParamsToParamSet(paramSet, fromKey(trace));
-      });
-      const exploreRequest: FrameRequest = {
-        queries: queries,
-        request_type: this.state.request_type,
-        begin: this.state.begin,
-        end: this.state.end,
-        tz: '',
-      };
-      const exploreDataResponse: FrameResponse = {
-        dataframe: {
-          traceset: traceSet,
-          header: header,
-          paramset: ReadOnlyParamSet(paramSet),
-          skip: 0,
-          traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(traces, commitLinks),
-        },
-        anomalymap: this.getAnomalyMapForTraces(fullAnomalyMap, traces),
-        display_mode: 'display_plot',
-        msg: '',
-        skps: [],
-      };
+    const mainParams: ParamSet = ParamSet({});
 
-      frameRequests.push(exploreRequest);
-      frameResponses.push(exploreDataResponse);
-      // TODO(ashwinpv): Support formulas?
+    Object.keys(fullTraceSet).forEach((trace) => {
+      addParamsToParamSet(mainParams, fromKey(trace));
     });
+
+    const mainRequest: FrameRequest = {
+      queries: this.graphConfigs[0].queries,
+      request_type: this.state.request_type,
+      begin: this.state.begin,
+      end: this.state.end,
+      tz: '',
+    };
+    const mainResponse: FrameResponse = {
+      dataframe: {
+        traceset: fullTraceSet as TraceSet,
+        header: header,
+        paramset: ReadOnlyParamSet(mainParams),
+        skip: 0,
+        traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(
+          Object.keys(fullTraceSet),
+          commitLinks
+        ),
+      },
+      anomalymap: this.getAnomalyMapForTraces(fullAnomalyMap, Object.keys(fullTraceSet)),
+      display_mode: 'display_plot',
+      msg: '',
+      skps: [],
+    };
+
+    const frameRequests: FrameRequest[] = [mainRequest];
+    const frameResponses: FrameResponse[] = [mainResponse];
+
+    this.clearGraphs();
+    if (groupedTraces.size > 1) {
+      // Create the graph configs for each group.
+      Array.from(groupedTraces.values()).forEach((traces, i) => {
+        this.addEmptyGraph();
+        const queries: string[] = [];
+        const traceSet: TraceSet = TraceSet({});
+        const paramSet: ParamSet = ParamSet({});
+
+        traces.forEach((trace) => {
+          queries.push(queryFromKey(trace));
+          traceSet[trace] = Trace(fullTraceSet[trace]);
+          addParamsToParamSet(paramSet, fromKey(trace));
+        });
+
+        const graphConfig = new GraphConfig();
+        graphConfig.queries = queries;
+        this.graphConfigs[i] = graphConfig;
+
+        const exploreRequest: FrameRequest = {
+          queries: queries,
+          request_type: this.state.request_type,
+          begin: this.state.begin,
+          end: this.state.end,
+          tz: '',
+        };
+        const exploreDataResponse: FrameResponse = {
+          dataframe: {
+            traceset: traceSet,
+            header: header,
+            paramset: ReadOnlyParamSet(paramSet),
+            skip: 0,
+            traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(traces, commitLinks),
+          },
+          anomalymap: this.getAnomalyMapForTraces(fullAnomalyMap, traces),
+          display_mode: 'display_plot',
+          msg: '',
+          skps: [],
+        };
+
+        frameRequests.push(exploreRequest);
+        frameResponses.push(exploreDataResponse);
+        // TODO(ashwinpv): Support formulas?
+      });
+    }
 
     // Upon the split action, we would want to move to the first page
     // of the split graph set.
@@ -491,12 +529,19 @@ export class ExploreMultiSk extends ElementSk {
     // Now add the graphs that have been configured to the page.
     this.addGraphsToCurrentPage(true);
     for (let i = 0; i < this.exploreElements.length; i++) {
+      // Graph is being split, so skip the primary graph.
+      if (this.exploreElements.length > 1 && i === 0) {
+        continue;
+      }
       this.exploreElements[i].UpdateWithFrameResponse(
         frameResponses[i],
         frameRequests[i],
         false,
         selectedRange
       );
+    }
+    if (this.stateHasChanged) {
+      this.stateHasChanged();
     }
   }
 
@@ -526,7 +571,8 @@ export class ExploreMultiSk extends ElementSk {
       if (indexToRemove > -1) {
         this.exploreElements.splice(indexToRemove, 1);
         this.graphConfigs.splice(indexToRemove, 1);
-        this.state.totalGraphs = this.exploreElements.length;
+        this.state.totalGraphs =
+          this.exploreElements.length > 1 ? this.exploreElements.length - 1 : 1;
 
         // Adjust pagination: if there are no graphs left, reset page offset to 0.
         if (this.state.totalGraphs === 0) {
@@ -546,7 +592,8 @@ export class ExploreMultiSk extends ElementSk {
         this.updateShortcutMultiview();
         this.addGraphsToCurrentPage();
       } else {
-        this.state.totalGraphs = this.exploreElements.length;
+        this.state.totalGraphs =
+          this.exploreElements.length > 1 ? this.exploreElements.length - 1 : 1;
         if (this.stateHasChanged) this.stateHasChanged();
         this.addGraphsToCurrentPage();
       }
@@ -581,9 +628,6 @@ export class ExploreMultiSk extends ElementSk {
         // Split by only a single key
         // TODO(seawardt): Enable multiple splits
         this.state.splitByKeys = [splitByParamKey];
-      }
-      if (this.stateHasChanged) {
-        this.stateHasChanged();
       }
       this.splitGraphs();
     });
@@ -632,7 +676,7 @@ export class ExploreMultiSk extends ElementSk {
   private async populateTestPicker(paramSet: { [key: string]: string[] }) {
     const paramSets: ParamSet = ParamSet({});
 
-    const timeoutMs = 20000; // Timeout for waiting for non-empty tracesets.
+    const timeoutMs = 30000; // Timeout for waiting for non-empty tracesets.
     const pollIntervalMs = 500; // Interval to re-check.
 
     // Create a promise that resolves when the tracesets are ready.
@@ -677,8 +721,8 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private clearGraphs() {
-    this.exploreElements = [];
-    this.graphConfigs = [];
+    this.exploreElements.splice(1);
+    this.graphConfigs.splice(1);
   }
 
   private emptyCurrentPage(): void {
@@ -690,21 +734,24 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private addGraphsToCurrentPage(doNotQueryData: boolean = false): void {
-    this.state.totalGraphs = this.exploreElements.length;
+    this.state.totalGraphs = this.exploreElements.length > 1 ? this.exploreElements.length - 1 : 1;
     this.emptyCurrentPage();
-    const startIndex = this.state.pageOffset;
+    let startIndex = this.state.pageOffset;
+    if (this.exploreElements.length > 1) {
+      startIndex++;
+    }
     let endIndex = startIndex + this.state.pageSize - 1;
     if (this.exploreElements.length <= endIndex) {
       endIndex = this.exploreElements.length - 1;
     }
 
     for (let i = startIndex; i <= endIndex; i++) {
-      this.graphDiv!.appendChild(this.exploreElements[i]);
       this.currentPageExploreElements.push(this.exploreElements[i]);
       this.currentPageGraphConfigs.push(this.graphConfigs[i]);
     }
 
     this.currentPageExploreElements.forEach((elem, i) => {
+      this.graphDiv!.appendChild(elem);
       const graphConfig = this.currentPageGraphConfigs[i];
       this.addStateToExplore(elem, graphConfig, doNotQueryData);
     });
@@ -722,7 +769,7 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private syncChartSelection(e: CustomEvent<PlotSelectionEventDetails>): void {
-    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
+    const graphs = this.exploreElements;
     if (!e.detail.value) {
       return;
     }
@@ -753,6 +800,11 @@ export class ExploreMultiSk extends ElementSk {
     graphConfig: GraphConfig,
     doNotQueryData: boolean
   ) {
+    let index = this.exploreElements.indexOf(explore);
+    // Splitting elements, so subtract 1 to skip main explore.
+    if (this.exploreElements.length > 1) {
+      index--;
+    }
     const newState: ExploreState = {
       formulas: graphConfig.formulas || [],
       queries: graphConfig.queries || [],
@@ -783,7 +835,7 @@ export class ExploreMultiSk extends ElementSk {
       show_google_plot: this.state.show_google_plot,
       enable_favorites: this.canAddFav(),
       hide_paramset: true,
-      graph_index: this.exploreElements.indexOf(explore),
+      graph_index: index,
       doNotQueryData: doNotQueryData,
     };
     explore.state = newState;
@@ -908,9 +960,9 @@ export class ExploreMultiSk extends ElementSk {
       if (!exploreTraceSet) {
         return;
       }
-      Object.keys(exploreTraceSet!).forEach((key) => {
-        fullTraceSet[key] = exploreTraceSet![key];
-      });
+      for (const [key, trace] of Object.entries(exploreTraceSet)) {
+        fullTraceSet[key] = trace;
+      }
     });
 
     return fullTraceSet;

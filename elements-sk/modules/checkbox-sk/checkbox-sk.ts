@@ -89,10 +89,6 @@ export class CheckOrRadio extends HTMLElement {
     this.name = this.name;
     this.label = this.label;
 
-    this._input!.checked = this.checked;
-    this._input!.disabled = this.disabled;
-    this._input!.setAttribute('name', this.getAttribute('name') || '');
-    this._label!.textContent = this.getAttribute('label');
     // TODO(jcgregorio) Do we capture and alter the 'input' and 'change' events generated
     // by the input element so that the evt.target points to 'this'?
     this._input!.addEventListener('change', (e) => {
@@ -113,8 +109,7 @@ export class CheckOrRadio extends HTMLElement {
   }
 
   set checked(val: boolean) {
-    const isTrue = !!val;
-    this._input!.checked = isTrue;
+    // The attribute is the source of truth, not the property.
     if (val) {
       this.setAttribute('checked', '');
     } else {
@@ -127,9 +122,7 @@ export class CheckOrRadio extends HTMLElement {
   }
 
   set disabled(val: boolean) {
-    const isTrue = !!val;
-    this._input!.disabled = isTrue;
-    if (isTrue) {
+    if (val) {
       this.setAttribute('disabled', '');
     } else {
       this.removeAttribute('disabled');
@@ -145,7 +138,6 @@ export class CheckOrRadio extends HTMLElement {
       return;
     }
     this.setAttribute('name', val);
-    this._input!.setAttribute('name', val);
   }
 
   get label(): string {
@@ -159,13 +151,13 @@ export class CheckOrRadio extends HTMLElement {
     this.setAttribute('label', val);
   }
 
-  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+  attributeChangedCallback(name: string, _oldValue: string | null, newValue: string | null): void {
     if (!this._input) {
       return;
     }
     // Strictly check for null since an empty string doesn't mean false
     // for a boolean attribute.
-    const isTrue = newValue != null;
+    const isTrue = newValue !== null;
     switch (name) {
       case 'checked':
         this._input.checked = isTrue;
@@ -177,7 +169,9 @@ export class CheckOrRadio extends HTMLElement {
         this._input.name = newValue || '';
         break;
       case 'label':
-        this._label!.textContent = newValue;
+        if (this._label) {
+          this._label.textContent = newValue;
+        }
         break;
       default:
         break;
