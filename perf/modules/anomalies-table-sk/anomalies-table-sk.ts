@@ -371,7 +371,7 @@ export class AnomaliesTableSk extends ElementSk {
   private generateSummaryRow(anomalyGroup: AnomalyGroup): TemplateResult {
     const firstAnomaly = anomalyGroup.anomalies[0];
     const summary = {
-      bugId: firstAnomaly.bug_id,
+      bugId: 0,
       startRevision: firstAnomaly.start_revision,
       endRevision: firstAnomaly.end_revision,
       master: '*',
@@ -446,7 +446,7 @@ export class AnomaliesTableSk extends ElementSk {
         <td class="center-content"></td>
         <td>
           ${this.getReportLinkForBugId(
-            anomalyForBugReportLink ? anomalyForBugReportLink.bug_id : firstAnomaly.bug_id
+            anomalyForBugReportLink ? anomalyForBugReportLink.bug_id : 0
           )}
           <close-icon-sk
             id="btnUnassociate"
@@ -457,7 +457,7 @@ export class AnomaliesTableSk extends ElementSk {
                 'RESET'
               );
             }}
-            ?hidden=${anomalyForBugReportLink!.bug_id === 0}>
+            ?hidden=${anomalyForBugReportLink === undefined}>
           </close-icon-sk>
         </td>
         <td>
