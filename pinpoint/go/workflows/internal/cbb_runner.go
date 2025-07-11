@@ -253,7 +253,7 @@ func formatResult(cr *CommitRun, bot string, benchmark string, bi *browserInfo) 
 
 // Activity to upload CBB results to cloud storage, for import into perf dashboard.
 func UploadCbbResultsActivity(ctx context.Context, t time.Time, bot string, benchmark string, results string) (string, error) {
-	gsBucket := "chrome-perf-experiment-non-public"
+	gsBucket := "chrome-perf-non-public"
 	store, err := NewStore(ctx, gsBucket, false)
 	if err != nil {
 		return "", skerr.Wrap(err)

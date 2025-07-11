@@ -60,7 +60,7 @@ After results expire from the landing page, you can view results from the
 You cannot test local changes this way. These steps are for testing things that
 can only be tested in prod.
 
-1. Break glass (More context at [go/skia-infra-iac-handbook](go/skia-infra-iac-handbook)
+1. Break glass (More context at [go/skia-infra-iac-handbook](http://go/skia-infra-iac-handbook)
    under Breakglass Access):<br>
    `grants add --wait_for_twosync --reason="b/XYZ -- justification"
 skia-infra-breakglass-policy:2h`
