@@ -224,7 +224,7 @@ export class AnomaliesTableSk extends ElementSk {
     return groups;
   }
 
-  private async preGenerateMultiGraphUrl() {
+  private async preGenerateMultiGraphUrl(): Promise<void> {
     this.anomalyList.forEach(async (anomaly) => {
       await this.generateMultiGraphUrl(anomaly);
     });
@@ -531,14 +531,14 @@ export class AnomaliesTableSk extends ElementSk {
     return html`\u25BC`; // prettier-ignore
   }
 
-  populateTable(anomalyList: Anomaly[]) {
+  async populateTable(anomalyList: Anomaly[]) {
     const msg = this.querySelector('#clear-msg') as HTMLHeadingElement;
     const table = this.querySelector('#anomalies-table') as HTMLTableElement;
     if (anomalyList.length > 0) {
       msg.hidden = true;
       table.hidden = false;
       this.anomalyList = anomalyList;
-      this.preGenerateMultiGraphUrl();
+      await this.preGenerateMultiGraphUrl();
 
       this.groupAnomalies();
       this._render();
@@ -625,6 +625,7 @@ export class AnomaliesTableSk extends ElementSk {
         <trending-up-icon-sk></trending-up-icon-sk>
       </button>`;
     } else {
+      console.log('Loading multi graph with Spinner');
       return this.loadMultigraphUrlWithSpinner(anomaly);
     }
   }
