@@ -538,7 +538,9 @@ export class AnomaliesTableSk extends ElementSk {
       msg.hidden = true;
       table.hidden = false;
       this.anomalyList = anomalyList;
-      await this.preGenerateMultiGraphUrl();
+      if (window.location.pathname !== this.regressionsPageHost) {
+        await this.preGenerateMultiGraphUrl();
+      }
 
       this.groupAnomalies();
       this._render();
