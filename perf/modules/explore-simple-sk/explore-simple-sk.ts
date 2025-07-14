@@ -12,7 +12,6 @@ import { MdSwitch } from '@material/web/switch/switch.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
-import { deepCopy } from '../../../infra-sk/modules/object';
 import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { TabsSk } from '../../../elements-sk/modules/tabs-sk/tabs-sk';
 import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
@@ -571,8 +570,6 @@ export class ExploreSimpleSk extends ElementSk {
   private collapseButton: HTMLButtonElement | null = null;
 
   private traceFormatter: TraceFormatter | null = null;
-
-  private originalTraceSet: TraceSet = TraceSet({});
 
   private traceKeyForSummary: string = '';
 
@@ -1190,7 +1187,9 @@ export class ExploreSimpleSk extends ElementSk {
   private async onChartOver({ detail }: CustomEvent<PlotShowTooltipEventDetails>): Promise<void> {
     const chart = this.googleChartPlot!.value!;
     // Highlight the paramset corresponding to the trace being hovered on.
-    this.paramset!.highlight = fromKey(chart.getTraceName(detail.tableCol));
+    if (this.paramset) {
+      this.paramset!.highlight = fromKey(chart.getTraceName(detail.tableCol));
+    }
 
     // do not show tooltip if tooltip is selected
     if (this.tooltipSelected) {
@@ -1419,26 +1418,22 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   switchXAxis(target: MdSwitch | null) {
-    const googleChart = this.googleChartPlot.value!;
-    const plotSummary = this.plotSummary.value!;
-
-    googleChart.domain = target!.selected ? 'date' : 'commit';
-    plotSummary.domain = target!.selected ? 'date' : 'commit';
-    const plot = this.plotSimple.value;
-    if (!plot) {
-      return;
+    if (this.googleChartPlot.value) {
+      this.googleChartPlot.value.domain = target!.selected ? 'date' : 'commit';
     }
+
+    if (this.plotSummary.value) {
+      this.plotSummary.value.domain = target!.selected ? 'date' : 'commit';
+    }
+
     this.xAxisSwitch = !this.xAxisSwitch;
     if (target!.selected) {
       this._state.labelMode = LabelMode.Date;
     } else {
       this._state.labelMode = LabelMode.CommitPosition;
     }
-    this.render();
-    const anomalyMap = plot.anomalyDataMap;
-    plot.removeAll();
     this.AddPlotLines(this._dataframe.traceset, this.getLabels(this._dataframe.header!));
-    plot.anomalyDataMap = anomalyMap;
+    this._render();
     this._stateHasChanged();
 
     this.dispatchEvent(new CustomEvent('x-axis-toggled', { detail: target, bubbles: true }));
@@ -1844,8 +1839,10 @@ export class ExploreSimpleSk extends ElementSk {
     const end = Math.ceil(detail.value.end) ?? 0;
     const invalidRange = begin === 0 || end === 0;
     if (dfRepo !== null && dfRepo !== undefined && !invalidRange) {
-      dfRepo.getUserIssues(Object.keys(dfRepo.traces), begin, end).then(() => {
-        this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
+      dfRepo.getUserIssues(Object.keys(dfRepo.traces), begin, end).then((userIssues) => {
+        if (Object.keys(userIssues || {}).length > 0) {
+          this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
+        }
       });
     }
     // If in multi-graph view, sync all graphs.
@@ -2048,6 +2045,10 @@ export class ExploreSimpleSk extends ElementSk {
   // multiple explore-simple-sks on a explore-multi page
   // This function syncs google chart panning and plot-summary selection + panning
   public updateSelectedRangeWithPlotSummary(range: range) {
+    // Summary bar has not been loaded yet.
+    if (!this.plotSummary.value) {
+      return;
+    }
     if (this.googleChartPlot.value) {
       this.googleChartPlot.value.selectedValueRange = range;
       const beginIndex = this.getCommitIndex(range.begin, 'commit');
@@ -2057,9 +2058,7 @@ export class ExploreSimpleSk extends ElementSk {
       this.state.begin = parseInt((begin ?? this.state.begin).toString());
       this.state.end = parseInt((end ?? this.state.end).toString());
     }
-    if (this.plotSummary.value) {
-      this.plotSummary.value.selectedValueRange = range;
-    }
+    this.plotSummary.value.selectedValueRange = range;
     this.updateBrowserURL();
     this.closeTooltip();
   }
@@ -2624,12 +2623,13 @@ export class ExploreSimpleSk extends ElementSk {
         // so we need to look at the original trace set to find matching traces. If we find any
         // match, we add it to the current dataframe and then add the lines to the rendered plot.
         const traceSet = TraceSet({});
-        Object.keys(this.originalTraceSet).forEach((key) => {
+        const originalTraces = this.dfRepo.value!.dataframe.traceset;
+        Object.keys(originalTraces).forEach((key) => {
           if (_matches(key, e.detail.key, e.detail.value!)) {
             if (!(key in this._dataframe.traceset)) {
-              this._dataframe.traceset[key] = this.originalTraceSet[key];
+              this._dataframe.traceset[key] = originalTraces[key];
             }
-            traceSet[key] = this.originalTraceSet[key];
+            traceSet[key] = originalTraces[key];
           }
         });
         this.AddPlotLines(traceSet, []);
@@ -2637,11 +2637,6 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
-  /**
-   * Adds the plot lines to the plot-simple-sk module.
-   * @param traceSet The traceset input.
-   * @param labels The xAxis labels.
-   */
   private AddPlotLines(traceSet: { [key: string]: number[] }, labels: tick[]) {
     this.plotSimple.value?.addLines(traceSet, labels);
 
@@ -2824,7 +2819,9 @@ export class ExploreSimpleSk extends ElementSk {
       console.log('skipped fetching this dataframe because it would be empty anyways');
       return;
     }
-    this.commitTime!.textContent = '';
+    if (this.commitTime) {
+      this.commitTime!.textContent = '';
+    }
     const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
       if (json === null || json === undefined) {
@@ -2847,6 +2844,7 @@ export class ExploreSimpleSk extends ElementSk {
     switchToTab: boolean,
     selectedRange: range | null = null
   ): Promise<void> {
+    this._render();
     if (
       frameResponse.dataframe?.traceset &&
       Object.keys(frameResponse.dataframe.traceset).length === 0
@@ -2868,7 +2866,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.addTraces(frameResponse, switchToTab, selectedRange);
     this.updateTracePointMetadata(frameResponse.dataframe!.traceMetadata);
     this.updateTitle();
-    this._render();
     if (isValidSelection(this._state.selected)) {
       const e = selectionToEvent(this._state.selected, this._dataframe.header);
       // If the range has moved to no longer include the selected commit then
@@ -2879,6 +2876,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.traceSelected(e);
       }
     }
+    this._render();
   }
 
   private toggleDotsHandler() {
@@ -2935,7 +2933,6 @@ export class ExploreSimpleSk extends ElementSk {
     const dataframe = json.dataframe!;
     if (dataframe.traceset === null || Object.keys(dataframe.traceset).length === 0) {
       this.displayMode = 'display_query_only';
-      this._render();
       return;
     }
 
@@ -2944,7 +2941,6 @@ export class ExploreSimpleSk extends ElementSk {
     }
     this.tracesRendered = true;
     this.displayMode = json.display_mode;
-    this._render();
 
     if (this.displayMode === 'display_pivot_table') {
       this.pivotTable!.removeAttribute('disable_validation');
@@ -2957,11 +2953,6 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
 
-    const mergedDataframe = dataframe;
-    this.traceKeyForSummary = '';
-
-    this.originalTraceSet = deepCopy(mergedDataframe.traceset);
-
     const header = dataframe.header;
     if (selectedRange === null) {
       selectedRange = range(header![0]!.offset, header![header!.length - 1]!.offset);
@@ -2971,7 +2962,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Normalize bands to be just offsets.
     const bands: number[] = [];
-    mergedDataframe.header!.forEach((h, i) => {
+    dataframe.header!.forEach((h, i) => {
       if (json.skps!.indexOf(h!.offset) !== -1) {
         bands.push(i);
       }
@@ -2988,9 +2979,11 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     // Populate the paramset element.
-    this.paramset!.paramsets = [mergedDataframe.paramset as CommonSkParamSet];
+    if (this.paramset) {
+      this.paramset!.paramsets = [dataframe.paramset as CommonSkParamSet];
+    }
 
-    if (tab) {
+    if (tab && this.detailTab) {
       this.detailTab!.selected = PARAMS_TAB_INDEX;
       // Asynchronously fetch the user issues for the rendered traces.
       this.dfRepo.value
@@ -3004,6 +2997,7 @@ export class ExploreSimpleSk extends ElementSk {
     if (this._state.plotSummary) {
       const header = dataframe.header!;
       if (this.state.doNotQueryData) {
+        this._render();
         // The data is supposed to be already loaded.
         // Let's simply make the selection on the summary.
         this.plotSummary.value?.SelectRange(selectedRange!);
@@ -3049,7 +3043,12 @@ export class ExploreSimpleSk extends ElementSk {
 
   // Adds x and y coordinates to the user issue points needed to be displayed
   private addGraphCoordinatesToUserIssues(df: DataFrame, issues: UserIssueMap): UserIssueMap {
-    const allPoints = df.header?.map((p) => p?.offset) || [];
+    const commitPosToIndex = new Map<CommitNumber, number>();
+    df.header?.forEach((p, i) => {
+      if (p) {
+        commitPosToIndex.set(p.offset, i);
+      }
+    });
     const issuesObj = issues || {};
     // The dataframe contains trace keys in unextracted form like
     // norm(,a=A,b=B,). However the user issues stores them in extracted form.
@@ -3065,8 +3064,8 @@ export class ExploreSimpleSk extends ElementSk {
       Object.keys(issuesObj[traceId]).forEach((k, _) => {
         const commitPos = parseInt(k) as CommitNumber;
         const bugId = issuesObj[traceId][commitPos].bugId;
-        const pointIndex = allPoints.indexOf(commitPos);
-        if (pointIndex === -1) return;
+        const pointIndex = commitPosToIndex.get(commitPos);
+        if (pointIndex === undefined) return;
 
         // df.traceset has keys in unstructured format like norm(key...).
         // To get the point value we need to get the key in raw form.
@@ -3369,6 +3368,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.displayMode = 'display_query_only';
     this.tracesRendered = false;
     this.graphTitle!.set(null, 0);
+    this.commitLinks = [];
     this.tooltipSelected = false;
     this.closeTooltip();
     this.dispatchEvent(new CustomEvent('remove-all', { bubbles: true }));
@@ -3687,12 +3687,14 @@ export class ExploreSimpleSk extends ElementSk {
   set state(state: State) {
     state = this.rationalizeTimeRange(state);
     this._state = state;
-    this.range!.state = {
-      begin: this._state.begin,
-      end: this._state.end,
-      num_commits: this._state.numCommits,
-      request_type: this._state.requestType,
-    };
+    if (this.range) {
+      this.range!.state = {
+        begin: this._state.begin,
+        end: this._state.end,
+        num_commits: this._state.numCommits,
+        request_type: this._state.requestType,
+      };
+    }
 
     this._render();
 
@@ -3702,7 +3704,7 @@ export class ExploreSimpleSk extends ElementSk {
     // If there is at least one query, the use the last one to repopulate the
     // query-sk dialog.
     const numQueries = this._state.queries.length;
-    if (numQueries >= 1) {
+    if (numQueries >= 1 && this.query) {
       this.query!.paramset = toParamSet(this._state.queries[numQueries - 1]);
       this.query!.current_query = this._state.queries[numQueries - 1];
       this.summary!.paramsets = [toParamSet(this._state.queries[numQueries - 1])];

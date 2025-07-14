@@ -728,9 +728,7 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private emptyCurrentPage(): void {
-    while (this.graphDiv!.hasChildNodes()) {
-      this.graphDiv!.removeChild(this.graphDiv!.lastChild!);
-    }
+    this.graphDiv!.replaceChildren();
     this.currentPageExploreElements = [];
     this.currentPageGraphConfigs = [];
   }
@@ -752,12 +750,13 @@ export class ExploreMultiSk extends ElementSk {
       this.currentPageGraphConfigs.push(this.graphConfigs[i]);
     }
 
+    const elementsToAdd: ExploreSimpleSk[] = [];
     this.currentPageExploreElements.forEach((elem, i) => {
-      this.graphDiv!.appendChild(elem);
+      elementsToAdd.push(elem);
       const graphConfig = this.currentPageGraphConfigs[i];
       this.addStateToExplore(elem, graphConfig, doNotQueryData);
     });
-
+    this.graphDiv!.append(...elementsToAdd);
     this.updateChartHeights();
     this._render();
   }
@@ -788,6 +787,22 @@ export class ExploreMultiSk extends ElementSk {
         (graph as ExploreSimpleSk).extendRange(e.detail.value, e.detail.offsetInSeconds);
       }
     });
+
+    // Ensure that the multichart state is updated when multiple charts are available.
+    if (graphs.length > 1) {
+      const currentUrl = new URL(window.location.href);
+      const begin = currentUrl.searchParams.get('begin');
+      if (begin !== null && Number(begin) !== this.state.begin) {
+        this.state.begin = Number(begin);
+      }
+      const end = currentUrl.searchParams.get('end');
+      if (end !== null && Number(end) !== this.state.end) {
+        this.state.end = Number(end);
+      }
+      if (this.stateHasChanged) {
+        this.stateHasChanged();
+      }
+    }
   }
 
   private syncXAxisLabel(e: CustomEvent): void {
@@ -802,11 +817,7 @@ export class ExploreMultiSk extends ElementSk {
     graphConfig: GraphConfig,
     doNotQueryData: boolean
   ) {
-    let index = this.exploreElements.indexOf(explore);
-    // Splitting elements, so subtract 1 to skip main explore.
-    if (this.exploreElements.length > 1) {
-      index--;
-    }
+    const index = this.exploreElements.indexOf(explore);
     const newState: ExploreState = {
       formulas: graphConfig.formulas || [],
       queries: graphConfig.queries || [],

@@ -234,8 +234,6 @@ export class PlotGoogleChartSk extends LitElement {
   // Index to keep track of which colors we've used so far.
   private colorIndex = 0;
 
-  private cachedChartArea = { left: 0, top: 0, width: 0, height: 0 };
-
   // Whether we are interacting with the chart that takes higher prioritiy than navigations.
   private chartInteracting = false;
 
@@ -675,7 +673,11 @@ export class PlotGoogleChartSk extends LitElement {
   // When a point is hovered, return row and column values from
   // underlying data table.
   private onChartMouseOver(e: CustomEvent) {
-    if (this.navigationMode === 'deltaY' || this.navigationMode === 'dragToZoom') {
+    if (
+      this.navigationMode === 'deltaY' ||
+      this.navigationMode === 'dragToZoom' ||
+      !this.plotElement.value
+    ) {
       return;
     }
     this.chartInteracting = true;
@@ -893,6 +895,12 @@ export class PlotGoogleChartSk extends LitElement {
       bottom = top + chartRect.height;
     const allDivs: Node[] = [];
 
+    // Create a map from commit position to row index for faster lookups.
+    const commitPosToRowIndex = new Map<number, number>();
+    for (let i = 0; i < data.getNumberOfRows(); i++) {
+      commitPosToRowIndex.set(data.getValue(i, 0), i);
+    }
+
     // Clone from the given template icons in the named slots.
     // Each anomaly will clone a new icon element from the template slots and be placed in the
     // anomaly container.
@@ -931,8 +939,8 @@ export class PlotGoogleChartSk extends LitElement {
         const traceCol = this.data!.getColumnIndex(key)!;
         for (const cp in anomalies) {
           const offset = Number(cp);
-          const rows = data.getFilteredRows([{ column: 0, value: offset }]);
-          if (rows.length === 0) {
+          const rowIndex = commitPosToRowIndex.get(offset);
+          if (rowIndex === undefined) {
             this.dispatchEvent(
               new CustomEvent('anomaly-changed', {
                 bubbles: true,
@@ -945,8 +953,8 @@ export class PlotGoogleChartSk extends LitElement {
             continue;
           }
           const xValue =
-            this.domain === 'commit' ? data.getValue(rows[0], 0) : data.getValue(rows[0], 1);
-          const yValue = data.getValue(rows[0], traceCol);
+            this.domain === 'commit' ? data.getValue(rowIndex, 0) : data.getValue(rowIndex, 1);
+          const yValue = data.getValue(rowIndex, traceCol);
           const x = layout.getXLocation(xValue);
           const y = layout.getYLocation(yValue);
           // We only place the anomaly icons if they are within the chart boundary.
@@ -1006,6 +1014,12 @@ export class PlotGoogleChartSk extends LitElement {
       bottom = top + chartRect.height;
     const allDivs: Node[] = [];
 
+    // Create a map from commit position to row index for faster lookups.
+    const commitPosToRowIndex = new Map<number, number>();
+    for (let i = 0; i < data.getNumberOfRows(); i++) {
+      commitPosToRowIndex.set(data.getValue(i, 0), i);
+    }
+
     // Clone from the given template icons in the named slots.
     const slots = this.slots;
     const cloneSlot = (name: 'issue', traceKey: string, commit: number) => {
@@ -1042,8 +1056,8 @@ export class PlotGoogleChartSk extends LitElement {
           }
         }
 
-        const rows = data.getFilteredRows([{ column: 0, value: offset }]);
-        if (rows.length < 0) {
+        const rowIndex = commitPosToRowIndex.get(offset);
+        if (rowIndex === undefined) {
           console.warn('user issue data is out of existing dataframe, ignored.');
           continue;
         }
@@ -1051,8 +1065,8 @@ export class PlotGoogleChartSk extends LitElement {
           continue;
         }
         const xValue =
-          this.domain === 'commit' ? data.getValue(rows[0], 0) : data.getValue(rows[0], 1);
-        const yValue = data.getValue(rows[0], traceCol);
+          this.domain === 'commit' ? data.getValue(rowIndex, 0) : data.getValue(rowIndex, 1);
+        const yValue = data.getValue(rowIndex, traceCol);
         const x = layout.getXLocation(xValue);
         const y = layout.getYLocation(yValue);
         // We only place the user issue icons if they are within the chart boundary.
@@ -1131,18 +1145,6 @@ export class PlotGoogleChartSk extends LitElement {
     this.drawAnomaly(this.chart);
     this.drawUserIssues(this.chart);
     this.drawXbar(this.chart);
-
-    const layout = this.chart.getChartLayoutInterface();
-    const area = layout.getChartAreaBoundingBox();
-
-    if (
-      area.left !== this.cachedChartArea.left ||
-      area.top !== this.cachedChartArea.top ||
-      area.height !== this.cachedChartArea.height ||
-      area.width !== this.cachedChartArea.width
-    ) {
-      this.cachedChartArea = area;
-    }
   }
 
   /**

@@ -109,42 +109,29 @@ export class PlotSummarySk extends LitElement {
     }
 
     const view = new google.visualization.DataView(dt!);
-    const ncols = view.getNumberOfColumns();
+    const options = SummaryChartOptions(getComputedStyle(this), this.domain);
+    options.colors = [];
 
     // The first two columns are the commit position and the date.
     const cols = [this.domain === 'commit' ? 0 : 1];
-    for (let index = 2; index < ncols; index++) {
-      const traceKey = view.getColumnLabel(index);
-      if (!trace || trace === traceKey) {
-        cols.push(index);
-      }
-      // Assign a specific color to all labels.
+    for (let i = 2; i < dt.getNumberOfColumns(); i++) {
+      const traceKey = dt.getColumnLabel(i);
+
+      // Assign a specific color to all labels if not already present.
       if (!this.traceColorMap.has(traceKey)) {
         this.traceColorMap.set(traceKey, defaultColors[this.colorIndex % defaultColors.length]);
         this.colorIndex++;
+      }
+
+      if (!trace || trace === traceKey) {
+        cols.push(i);
+        options.colors.push(this.traceColorMap.get(traceKey)!);
       }
     }
 
     view.setColumns(cols);
     plot.view = view;
-    const options = SummaryChartOptions(getComputedStyle(this), this.domain);
-
-    options.colors = [];
-    // Get internal indices of visible columns.
-    const visibleColumns = plot.view!.getViewColumns();
-    for (const colIndex of visibleColumns) {
-      // skip first two indices as these are reserved.
-      if (colIndex > 1) {
-        // Translate those internal indices to indices of visible columns.
-        const tableIndex = plot.view!.getViewColumnIndex(colIndex);
-        const label = plot.view!.getColumnLabel(tableIndex);
-        options.colors.push(this.traceColorMap.get(label)!);
-      }
-    }
-    const summaryPlot = this.plotElement.value;
-    if (summaryPlot) {
-      summaryPlot.options = options;
-    }
+    plot.options = options;
   }
 
   // The div element that will host the plot on the summary.
