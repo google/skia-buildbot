@@ -129,7 +129,7 @@ export class AnomaliesTableSk extends ElementSk {
     // Though, this will cause one extra call to Chromeperf, which
     // will slow down the repsonse time.
     // I will move this to report-page-sk when the page is ready.
-    await this.fetchGroupReportApi(idString);
+    this.getGroupReportResponse = await this.fetchGroupReportApi(idString);
 
     const sid: string = this.getGroupReportResponse!.sid || '';
     const url = `/u/?sid=${sid}`;
@@ -531,7 +531,7 @@ export class AnomaliesTableSk extends ElementSk {
     return html`\u25BC`; // prettier-ignore
   }
 
-  async populateTable(anomalyList: Anomaly[]) {
+  async populateTable(anomalyList: Anomaly[]): Promise<void> {
     const msg = this.querySelector('#clear-msg') as HTMLHeadingElement;
     const table = this.querySelector('#anomalies-table') as HTMLTableElement;
     if (anomalyList.length > 0) {
@@ -665,8 +665,8 @@ export class AnomaliesTableSk extends ElementSk {
     return Array.from(this.checkedAnomaliesSet);
   }
 
-  private async fetchGroupReportApi(idString: string) {
-    await fetch('/_/anomalies/group_report', {
+  private async fetchGroupReportApi(idString: string): Promise<any> {
+    return fetch('/_/anomalies/group_report', {
       method: 'POST',
       body: JSON.stringify({
         anomalyIDs: idString,

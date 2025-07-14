@@ -153,7 +153,7 @@ export class RegressionsPageSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then((response) => {
+      .then(async (response) => {
         const json: GetAnomaliesResponse = response;
         if (json.subscription) {
           this.subscriptionTable!.load(json.subscription, json.alerts!);
@@ -166,7 +166,7 @@ export class RegressionsPageSk extends ElementSk {
         }
         this.cpAnomalies = this.cpAnomalies.concat([...regs]);
         this.anomalyCursor = json.anomaly_cursor;
-        this.anomaliesTable!.populateTable(this.cpAnomalies);
+        await this.anomaliesTable!.populateTable(this.cpAnomalies);
       })
       .catch((msg) => {
         errorMessage(msg);
