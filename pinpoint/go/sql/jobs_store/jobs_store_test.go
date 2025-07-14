@@ -275,3 +275,100 @@ func TestAddCommitRuns(t *testing.T) {
 	assert.Equal(t, &rightData, actualStoredCommitRuns.Right)
 	assert.Equal(t, initialReq.Story, retrievedJob.AdditionalRequestParameters["story"])
 }
+
+func insertTestListJob(t *testing.T, js JobStore, jobID, jobName, jobType, benchmark, status, botName, user string) {
+	jsi := js.(*jobStoreImpl)
+	query := `
+       INSERT INTO jobs (
+           job_id,
+           job_name,
+           job_status,
+           job_type,
+           submitted_by,
+           benchmark,
+           bot_name,
+           additional_request_parameters,
+           error_message
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       `
+	_, err := jsi.db.Exec(
+		context.Background(),
+		query,
+		jobID,
+		jobName,
+		status,
+		jobType,
+		user,
+		benchmark,
+		botName,
+		map[string]string{},
+		"",
+	)
+	require.NoError(t, err)
+}
+
+func TestListJobs(t *testing.T) {
+	js := setupTestDB(t)
+	ctx := context.Background()
+
+	job1ID := uuid.New().String()
+	job2ID := uuid.New().String()
+	job3ID := uuid.New().String()
+
+	insertTestListJob(t, js, job1ID, "Job A", "Pairwise", "speedometer", "Completed", "linux-perf", "user1@google.com")
+	insertTestListJob(t, js, job2ID, "Job B", "Bisect", "jetstream", "Pending", "windows-perf", "user2@google.com")
+	insertTestListJob(t, js, job3ID, "Another Job C", "Pairwise", "speedometer", "Running", "mac-perf", "user1@google.com")
+
+	t.Run("Default behavior without options", func(t *testing.T) {
+		jobs, err := js.ListJobs(ctx, ListJobsOptions{})
+		require.NoError(t, err)
+		require.Len(t, jobs, 3)
+		// Default sort is by createdat DESC
+		assert.Equal(t, job3ID, jobs[0].JobID)
+		assert.Equal(t, job2ID, jobs[1].JobID)
+		assert.Equal(t, job1ID, jobs[2].JobID)
+	})
+
+	t.Run("Search by term case-sensitive", func(t *testing.T) {
+		// Search for a specific job, case-insensitive
+		opts := ListJobsOptions{SearchTerm: "Job A"}
+		jobs, err := js.ListJobs(ctx, opts)
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+		assert.Equal(t, job1ID, jobs[0].JobID)
+
+		// Search for a broader term that matches all jobs
+		opts = ListJobsOptions{SearchTerm: "Job"}
+		jobs, err = js.ListJobs(ctx, opts)
+		require.NoError(t, err)
+		require.Len(t, jobs, 3)
+	})
+
+	t.Run("With limit", func(t *testing.T) {
+		opts := ListJobsOptions{Limit: 2}
+		jobs, err := js.ListJobs(ctx, opts)
+		require.NoError(t, err)
+		require.Len(t, jobs, 2)
+		assert.Equal(t, job3ID, jobs[0].JobID)
+		assert.Equal(t, job2ID, jobs[1].JobID)
+	})
+
+	t.Run("With limit and search", func(t *testing.T) {
+		opts := ListJobsOptions{SearchTerm: "Job", Limit: 2}
+		jobs, err := js.ListJobs(ctx, opts)
+		require.NoError(t, err)
+		require.Len(t, jobs, 2)
+		assert.Equal(t, job3ID, jobs[0].JobID)
+		assert.Equal(t, job2ID, jobs[1].JobID)
+	})
+
+	t.Run("With limit and offset for pagination", func(t *testing.T) {
+		// Get the second page, which should only have one job.
+		// Jobs are ordered by creation date DESC, so job3, job2, job1.
+		opts := ListJobsOptions{Limit: 2, Offset: 2}
+		jobs, err := js.ListJobs(ctx, opts)
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+		assert.Equal(t, job1ID, jobs[0].JobID)
+	})
+}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"math"
 	"strconv"
 	"time"
@@ -20,6 +21,8 @@ import (
 const (
 	JobStatusIntial = "Pending"
 	JobType         = "Pairwise"
+	DefaultLimit    = 50
+	MaxLimit        = 100
 )
 
 type JobStore interface {
@@ -40,11 +43,38 @@ type JobStore interface {
 
 	// Store results from pairiwse commit runner including CAS references for builds and tests
 	AddCommitRuns(ctx context.Context, jobID string, left, right *CommitRunData) error
+
+	// ListJobs retrieves a list of jobs with optional filtering for the dashboard.
+	ListJobs(ctx context.Context, options ListJobsOptions) ([]*DashboardJob, error)
 }
 
 // JobStore provides methods to access job data from the database.
 type jobStoreImpl struct {
 	db pool.Pool
+}
+
+// DashboardJob contains the simplified job information for the dashboard.
+type DashboardJob struct {
+	JobID       string    `json:"job_id"`
+	JobName     string    `json:"job_name"`
+	JobType     string    `json:"job_type"`
+	Benchmark   string    `json:"benchmark"`
+	CreatedDate time.Time `json:"created_date"`
+	JobStatus   string    `json:"job_status"`
+	BotName     string    `json:"bot_name"`
+	User        string    `json:"user"`
+}
+
+// ListJobsOptions provides options for filtering and sorting the job list.
+type ListJobsOptions struct {
+	// SearchTerm filters jobs by job_name (case-insensitive).
+	SearchTerm string
+	// Limit is the maximum number of jobs to return.
+	// If zero or negative, a default of 50 is used.
+	Limit int
+	// Offset is the number of jobs to skip before starting to return results.
+	// Used for pagination.
+	Offset int
 }
 
 // NewJobStore creates a new JobStore with the given database connection.
@@ -299,4 +329,66 @@ func (js *jobStoreImpl) getAdditionalParams(ctx context.Context, jobID string, t
 	}
 
 	return params, nil
+}
+
+func (js *jobStoreImpl) ListJobs(ctx context.Context, options ListJobsOptions) ([]*DashboardJob, error) {
+	query := `
+		SELECT
+			job_id,
+			job_name,
+			job_type,
+			benchmark,
+			createdat,
+			job_status,
+			bot_name,
+			submitted_by
+		FROM jobs`
+	args := []interface{}{}
+	paramCount := 1
+
+	if options.SearchTerm != "" {
+		query += fmt.Sprintf(" WHERE job_name LIKE $%d", paramCount)
+		args = append(args, "%"+options.SearchTerm+"%") // wildcards
+		paramCount++
+	}
+
+	query += " ORDER BY createdat DESC" // sort by creation date to ensure consistent ordering.
+
+	limit := DefaultLimit
+	if options.Limit > 0 && options.Limit <= MaxLimit {
+		limit = options.Limit
+	}
+	query += fmt.Sprintf(" LIMIT %d", limit)
+
+	if options.Offset > 0 {
+		query += fmt.Sprintf(" OFFSET $%d", paramCount)
+		args = append(args, options.Offset)
+		paramCount++
+	}
+
+	rows, err := js.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, skerr.Fmt("failed to query for jobs with specifed options: %s", err)
+	}
+	defer rows.Close()
+
+	var jobs []*DashboardJob
+	for rows.Next() {
+		var j DashboardJob
+		if err := rows.Scan(
+			&j.JobID,
+			&j.JobName,
+			&j.JobType,
+			&j.Benchmark,
+			&j.CreatedDate,
+			&j.JobStatus,
+			&j.BotName,
+			&j.User,
+		); err != nil {
+			return nil, skerr.Fmt("failed to scan job row: %s", err)
+		}
+		jobs = append(jobs, &j)
+	}
+
+	return jobs, nil
 }
