@@ -741,31 +741,32 @@ export class ExploreSimpleSk extends ElementSk {
 
     <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
     <div class="chart-container">
-        <plot-google-chart-sk
-          style="${ele._state.show_google_plot ? '' : 'display: none'}"
-          ${ref(ele.googleChartPlot)}
-          .highlightAnomalies=${ele._state.highlight_anomalies}
-          @plot-data-select=${ele.onChartSelect}
-          @plot-data-mouseover=${ele.onChartOver}
-          @plot-data-mousedown=${ele.onChartMouseDown}
-          @selection-changing=${ele.OnSelectionRange}
-          @selection-changed=${ele.OnSelectionRange}>
-          <md-icon slot="untriage">help</md-icon>
-          <md-icon slot="regression">report</md-icon>
-          <md-icon slot="improvement">check_circle</md-icon>
-          <md-icon slot="ignored">report_off</md-icon>
-          <md-icon slot="issue">chat_bubble</md-icon>
-          <md-text slot="xbar">|</md-text>
-        </plot-google-chart-sk>
-        <plot-simple-sk
-        style="${!ele._state.show_google_plot ? '' : 'display: none'}"
-          .summary=${ele._state.summary}
-          ${ref(ele.plotSimple)}
-          @trace_selected=${ele.traceSelected}
-          @zoom=${ele.plotZoom}
-          @trace_focused=${ele.plotTraceFocused}
-          class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
-        </plot-simple-sk>
+        ${
+          ele._state.show_google_plot
+            ? html`<plot-google-chart-sk
+                ${ref(ele.googleChartPlot)}
+                .highlightAnomalies=${ele._state.highlight_anomalies}
+                @plot-data-select=${ele.onChartSelect}
+                @plot-data-mouseover=${ele.onChartOver}
+                @plot-data-mousedown=${ele.onChartMouseDown}
+                @selection-changing=${ele.OnSelectionRange}
+                @selection-changed=${ele.OnSelectionRange}>
+                <md-icon slot="untriage">help</md-icon>
+                <md-icon slot="regression">report</md-icon>
+                <md-icon slot="improvement">check_circle</md-icon>
+                <md-icon slot="ignored">report_off</md-icon>
+                <md-icon slot="issue">chat_bubble</md-icon>
+                <md-text slot="xbar">|</md-text>
+              </plot-google-chart-sk>`
+            : html`<plot-simple-sk
+                .summary=${ele._state.summary}
+                ${ref(ele.plotSimple)}
+                @trace_selected=${ele.traceSelected}
+                @zoom=${ele.plotZoom}
+                @trace_focused=${ele.plotTraceFocused}
+                class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
+              </plot-simple-sk>`
+        }
       <chart-tooltip-sk></chart-tooltip-sk>
       </div>
       ${when(ele._state.plotSummary && ele.tracesRendered, () => ele.plotSummaryTemplate())}
