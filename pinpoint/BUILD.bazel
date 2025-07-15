@@ -1,0 +1,16 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "jobsserver",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//pinpoint/go/frontend/cmd:cmd",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/cmd",
+    repository = "skia-public/jobsserver",
+)

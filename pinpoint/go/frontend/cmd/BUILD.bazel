@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "cmd_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/pinpoint/go/frontend/cmd",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//pinpoint/go/frontend/service",
+        "//pinpoint/go/sql/jobs_store",
+        "@com_github_go_chi_chi_v5//:chi",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_binary(
+    name = "cmd",
+    embed = [":cmd_lib"],
+    visibility = ["//visibility:public"],
+)
