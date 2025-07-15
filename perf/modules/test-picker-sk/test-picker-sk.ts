@@ -396,14 +396,7 @@ export class TestPickerSk extends ElementSk {
 
       // Add event listener for value changes
       this.addValueUpdatedEventToField(i);
-
-      // If the current field has a selected value, fetch options for the *next* field.
-      // Otherwise, fetch options for the current field.
-      if (fieldInfo.value.length > 0 && i < this._fieldData.length - 1) {
-        this.fetchExtraOptions(i + 1);
-      } else if (fieldInfo.value.length === 0) {
-        this.fetchExtraOptions(i);
-      }
+      this.fetchExtraOptions();
 
       field.focus();
       this._render();
@@ -440,43 +433,32 @@ export class TestPickerSk extends ElementSk {
     this._render();
   }
 
-  private appendToGraph(param: string) {
-    if (this._autoAddTrace) {
-      if (
-        this._graphDiv !== null &&
-        this._graphDiv.children.length > 0 &&
-        this._count <= PLOT_MAXIMUM
-      ) {
-        const detail = {
-          query: this.createQueryFromFieldData(),
-          param: param,
-        };
-        this.dispatchEvent(
-          new CustomEvent('add-to-graph', {
-            detail: detail,
-            bubbles: true,
-          })
-        );
-      } else {
-        // Show error message if there are too many traces.
-        errorMessage(MAX_MESSAGE);
-      }
-    }
-  }
-
-  private addValueUpdatedEventToField(index: number) {
-    const fieldInfo = this._fieldData[index];
-    if (fieldInfo.field === null) {
+  private updateGraph(value: string[], fieldInfo: FieldInfo, removedValue: string[]) {
+    // Only update when autoAdd is ready and chart is active.
+    if (!this._autoAddTrace) {
       return;
     }
-    // Ensure that we don't add the event listener multiple times.
-    if (fieldInfo.field.getAttribute('listener') === 'true') {
-      fieldInfo.field.removeEventListener('value-changed', () => {});
+    if (this._count > PLOT_MAXIMUM) {
+      // Show error message if there are too many traces.
+      errorMessage(MAX_MESSAGE);
+      return;
     }
-    fieldInfo.field!.addEventListener('value-changed', (e) => {
-      const value = (e as CustomEvent).detail.value;
-      if (value.length === 0) {
-        this.removeChildFields(index);
+    if (this._graphDiv !== null && this._graphDiv.children.length > 0) {
+      const detail = {
+        query: this.createQueryFromFieldData(),
+        param: fieldInfo.param,
+        value: value.length > 0 ? removedValue : value,
+      };
+      if (removedValue.length > 0) {
+        // Remove item from chart, no need to requery.
+        this.dispatchEvent(
+          new CustomEvent('remove-trace', {
+            detail: detail,
+            bubbles: true,
+            composed: true,
+          })
+        );
+        return;
       }
       // Field was split, but not enough values so remove split.
       if (fieldInfo.field!.split && value.length < 2) {
@@ -491,15 +473,46 @@ export class TestPickerSk extends ElementSk {
             composed: true,
           })
         );
+        return;
       }
-      fieldInfo.value = value;
-      if (fieldInfo.field) {
-        fieldInfo.field.selectedItems = value;
+      this.dispatchEvent(
+        new CustomEvent('add-to-graph', {
+          detail: detail,
+          bubbles: true,
+        })
+      );
+    }
+  }
+
+  private addValueUpdatedEventToField(index: number) {
+    const fieldInfo = this._fieldData[index];
+    if (fieldInfo.field === null) {
+      return;
+    }
+    // Ensure that we don't add the event listener multiple times in case
+    // the field is re-used.
+    fieldInfo.field.removeEventListener('value-changed', () => {});
+    fieldInfo.field!.addEventListener('value-changed', (e) => {
+      const value = (e as CustomEvent).detail.value;
+      if (value.length === 0) {
+        this.removeChildFields(index);
       }
-      this.fetchExtraOptions(index);
+
+      const removedValue =
+        fieldInfo.field?.selectedItems.filter((selectedItem) => !value.includes(selectedItem)) ||
+        [];
+      if (fieldInfo.value !== value) {
+        fieldInfo.value = value;
+      }
+      if (fieldInfo.field?.selectedItems !== value) {
+        fieldInfo.field!.selectedItems = value;
+      }
+      this.updateGraph(value, fieldInfo, removedValue);
+      this.fetchExtraOptions();
     });
 
     // Listen for split-by-changed events when the page is loaded from URL.
+    fieldInfo.field.removeEventListener('split-by-changed', () => {});
     fieldInfo.field.addEventListener('split-by-changed', (e) => {
       const param = (e as CustomEvent).detail.param;
       const split = (e as CustomEvent).detail.split;
@@ -542,7 +555,7 @@ export class TestPickerSk extends ElementSk {
    *
    * @param index
    */
-  private fetchExtraOptions(index: number = -1) {
+  private fetchExtraOptions() {
     const handler = (json: NextParamListHandlerResponse) => {
       const param = Object.keys(json.paramset)[0];
       const count: number = json.count || -1;
@@ -570,9 +583,6 @@ export class TestPickerSk extends ElementSk {
         // No parameter, so last item. Update count.
         this._currentIndex = this._fieldData.length - 1;
         this.updateCount(count);
-      }
-      if (index !== -1) {
-        this.appendToGraph(this._fieldData[index].param);
       }
       this._render();
     };

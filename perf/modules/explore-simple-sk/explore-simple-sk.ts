@@ -298,7 +298,16 @@ export const updateShortcut = async (graphConfigs: GraphConfig[]): Promise<strin
   })
     .then(jsonOrThrow)
     .then((json) => json.id)
-    .catch(errorMessage);
+    .catch((msg: any) => {
+      // Catch errors from sendFrameRequest itself
+      if (msg) {
+        if (msg.status === 500) {
+          errorMessage('Unable to update shortcut.', 2000);
+        } else {
+          errorMessage(msg.message || msg.toString());
+        }
+      }
+    });
 };
 
 // State is reflected to the URL via stateReflector.
@@ -622,6 +631,14 @@ export class ExploreSimpleSk extends ElementSk {
   private settingsDialog: MdDialog | null = null;
 
   private dfRepo = createRef<DataFrameRepository>();
+
+  public get dataLoading(): boolean {
+    return this.dfRepo.value?.loading ?? false;
+  }
+
+  public get requestComplete(): Promise<number> {
+    return this.dfRepo.value?.requestComplete ?? Promise.resolve(0);
+  }
 
   constructor(useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
@@ -1078,7 +1095,7 @@ export class ExploreSimpleSk extends ElementSk {
     return colHeader;
   }
 
-  private getCommitIndex(value: number, type: string = 'commit'): number {
+  private getCommitIndex(value: number, type: string = 'commit', max: boolean = false): number {
     // Ensure the index value is an integer.
     value = Math.round(value);
     const header = this.dfRepo.value?.header;
@@ -1099,7 +1116,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // If no element is greater, 'value' is larger than all elements.
     // The closest is the last one.
-    if (index === -1) {
+    if (index === -1 || (index === 0 && max)) {
       return header.length - 1;
     }
 
@@ -1271,27 +1288,28 @@ export class ExploreSimpleSk extends ElementSk {
         })
         .catch(errorMessage);
     }
-    fetch(`/_/initpage/?tz=${tz}`, {
-      method: 'GET',
-    })
-      .then(jsonOrThrow)
-      .then((json) => {
-        this.range!.state = {
-          begin: this._state.begin,
-          end: this._state.end,
-          num_commits: this._state.numCommits,
-          request_type: this._state.requestType,
-        };
-
-        this.query!.key_order = window.perf.key_order || [];
-        this.query!.paramset = json.dataframe.paramset;
-        this.pivotControl!.paramset = json.dataframe.paramset;
-
-        // Remove the paramset so it doesn't get displayed in the Params tab.
-        json.dataframe.paramset = {};
+    if (this.state.graph_index === 0) {
+      fetch(`/_/initpage/?tz=${tz}`, {
+        method: 'GET',
       })
-      .catch(errorMessage);
+        .then(jsonOrThrow)
+        .then((json) => {
+          this.range!.state = {
+            begin: this._state.begin,
+            end: this._state.end,
+            num_commits: this._state.numCommits,
+            request_type: this._state.requestType,
+          };
 
+          this.query!.key_order = window.perf.key_order || [];
+          this.query!.paramset = json.dataframe.paramset;
+          this.pivotControl!.paramset = json.dataframe.paramset;
+
+          // Remove the paramset so it doesn't get displayed in the Params tab.
+          json.dataframe.paramset = {};
+        })
+        .catch(errorMessage);
+    }
     this.closePinpointToastButton!.addEventListener('click', () => this.pinpointJobToast?.hide());
     this.closeTriageToastButton!.addEventListener('click', () => this.triageResultToast?.hide());
 
@@ -1846,6 +1864,9 @@ export class ExploreSimpleSk extends ElementSk {
         }
       });
     }
+    detail.start = this.getCommitIndex(begin, 'commit');
+    detail.end = this.getCommitIndex(end, 'commit', true);
+
     // If in multi-graph view, sync all graphs.
     // This event listener will not work on the alerts page
     detail.graphNumber = this.state.graph_index;
@@ -1879,7 +1900,7 @@ export class ExploreSimpleSk extends ElementSk {
     } else if (range.end > header[header.length - 1]!.offset) {
       extendDirection = 1;
     }
-    if (extendDirection !== 0) {
+    if (extendDirection !== 0 || offset !== undefined) {
       dfRepo.extendRange(extendDirection * monthInSec);
     }
   }
@@ -1947,7 +1968,7 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
     const beginIndex = this.getCommitIndex(begin, 'timestamp');
-    const endIndex = this.getCommitIndex(end, 'timestamp');
+    const endIndex = this.getCommitIndex(end, 'timestamp', true);
     if (beginIndex === -1 || endIndex === -1) {
       // When no commit is found in the dataframe, return.
       // Only message if not anomaly table where graphs are not synced.
@@ -2047,15 +2068,13 @@ export class ExploreSimpleSk extends ElementSk {
   // updateSelectedRangeWithPlotSummary is used to synchronize
   // multiple explore-simple-sks on a explore-multi page
   // This function syncs google chart panning and plot-summary selection + panning
-  public updateSelectedRangeWithPlotSummary(range: range) {
+  public updateSelectedRangeWithPlotSummary(range: range, beginIndex: number, endIndex: number) {
     // Summary bar has not been loaded yet.
     if (!this.plotSummary.value) {
       return;
     }
     if (this.googleChartPlot.value) {
       this.googleChartPlot.value.selectedValueRange = range;
-      const beginIndex = this.getCommitIndex(range.begin, 'commit');
-      const endIndex = this.getCommitIndex(range.end, 'commit');
       const begin = this.dfRepo.value?.header[beginIndex]?.timestamp;
       const end = this.dfRepo.value?.header[endIndex]?.timestamp;
       this.state.begin = parseInt((begin ?? this.state.begin).toString());
@@ -2940,7 +2959,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     if (dataframe.header!.length * Object.keys(dataframe.traceset).length > DATAPOINT_THRESHOLD) {
-      errorMessage('Large amount of data requsted, performance may be affected.');
+      errorMessage('Large amount of data requsted, performance may be affected.', 2000);
     }
     this.tracesRendered = true;
     this.displayMode = json.display_mode;
@@ -3073,12 +3092,14 @@ export class ExploreSimpleSk extends ElementSk {
         // df.traceset has keys in unstructured format like norm(key...).
         // To get the point value we need to get the key in raw form.
         const unextractedTraceId = extractedKeyMap[traceId];
-        const pointValue = df.traceset[unextractedTraceId][pointIndex];
-        issuesObj[traceId][commitPos] = {
-          bugId: bugId,
-          x: pointIndex,
-          y: pointValue,
-        };
+        if (unextractedTraceId !== undefined) {
+          const pointValue = df.traceset[unextractedTraceId][pointIndex];
+          issuesObj[traceId][commitPos] = {
+            bugId: bugId,
+            x: pointIndex,
+            y: pointValue,
+          };
+        }
       });
     });
     return issuesObj;
@@ -3381,6 +3402,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.tracesRendered = false;
     this.commitLinks = [];
     this.tooltipSelected = false;
+
     this.closeTooltip();
     this.dispatchEvent(new CustomEvent('remove-all', { bubbles: true }));
     // force unset autorefresh so that it doesn't re-appear when we remove all the chart.
@@ -3504,7 +3526,7 @@ export class ExploreSimpleSk extends ElementSk {
     );
   }
 
-  private removeKeys(keysToRemove: string[], updateShortcut: boolean) {
+  removeKeys(keysToRemove: string[], updateShortcut: boolean) {
     const toShortcut: string[] = [];
     Object.keys(this._dataframe.traceset).forEach((key) => {
       if (keysToRemove.indexOf(key) !== -1) {

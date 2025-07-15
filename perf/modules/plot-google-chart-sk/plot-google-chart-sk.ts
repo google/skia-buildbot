@@ -40,6 +40,8 @@ export interface PlotSelectionEventDetails {
   domain: 'commit' | 'date';
   graphNumber?: number; // optional argument used to sync multi-graphs
   offsetInSeconds?: number; // optional argument used to sync extended ranges
+  start?: number; // optional argument used to sync extended ranges
+  end?: number; // optional argument used to sync extended ranges
 }
 
 export interface PlotShowTooltipEventDetails {
@@ -366,14 +368,16 @@ export class PlotGoogleChartSk extends LitElement {
     // The first two columns are the commit position and the date.
     const cols = [this.domain === 'commit' ? 0 : 1];
     const hiddenColumns: number[] = [];
-    const newTraceColorMap = new Map(this.traceColorMap);
+    const newTraceColorMap = new Map();
     let modified = false;
     for (let index = 2; index < ncols; index++) {
       const label = view.getColumnLabel(index);
       cols.push(index);
 
       // Assign a specific color to all labels.
-      if (!newTraceColorMap.has(label)) {
+      if (this.traceColorMap.has(label)) {
+        newTraceColorMap.set(label, this.traceColorMap.get(label)!);
+      } else {
         newTraceColorMap.set(label, defaultColors[this.colorIndex % defaultColors.length]);
         this.colorIndex++;
         modified = true;
@@ -383,6 +387,12 @@ export class PlotGoogleChartSk extends LitElement {
         hiddenColumns.push(index);
       }
     }
+
+    if (this.traceColorMap.size > newTraceColorMap.size) {
+      // An item was removed.
+      modified = true;
+    }
+
     if (modified) {
       this.traceColorMap = newTraceColorMap;
     }
@@ -939,6 +949,12 @@ export class PlotGoogleChartSk extends LitElement {
         const traceCol = this.data!.getColumnIndex(key)!;
         for (const cp in anomalies) {
           const offset = Number(cp);
+          if (
+            this.selectedRange &&
+            (offset < this.selectedRange.begin || offset > this.selectedRange.end)
+          ) {
+            continue;
+          }
           const rowIndex = commitPosToRowIndex.get(offset);
           if (rowIndex === undefined) {
             this.dispatchEvent(
@@ -1047,6 +1063,13 @@ export class PlotGoogleChartSk extends LitElement {
       const traceCol = this.data!.getColumnIndex(key)!;
       for (const [cp, issueDetail] of Object.entries(userIssues)) {
         const offset = Number(cp);
+        if (
+          this.selectedRange &&
+          (offset < this.selectedRange.begin || offset > this.selectedRange.end)
+        ) {
+          console.warn(`Anomaly found at ${offset}, but not witin current view.`);
+          continue;
+        }
         const anomaliesOnTraces = this.anomalyMap![key];
         if (anomaliesOnTraces !== null && anomaliesOnTraces !== undefined) {
           const a = anomaliesOnTraces[offset];
@@ -1342,7 +1365,9 @@ export class PlotGoogleChartSk extends LitElement {
       return;
     }
     this.chart.setSelection([]);
-    this.sidePanel.value?.HighlightTraces([]);
+    if (this.sidePanel.value?.HighlightTraces && this.sidePanel.value?.HighlightTraces.length > 0) {
+      this.sidePanel.value?.HighlightTraces([]);
+    }
   }
 
   selectCommit(row: number, column: number): void {

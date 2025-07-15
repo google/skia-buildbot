@@ -94,6 +94,9 @@ export class PickerFieldSk extends ElementSk {
   private onValueChanged(e: Event) {
     const selectedItems = (e as CustomEvent).detail.value as string[];
 
+    if (selectedItems.length === this.selectedItems.length) {
+      return;
+    }
     this.dispatchEvent(
       new CustomEvent('value-changed', {
         detail: {
