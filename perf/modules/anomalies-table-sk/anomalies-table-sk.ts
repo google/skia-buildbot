@@ -288,6 +288,7 @@ export class AnomaliesTableSk extends ElementSk {
       const anomaly = anomalyGroup.anomalies[i];
       const processedAnomaly = this.getProcessedAnomaly(anomaly);
       const anomalyClass = anomaly.is_improvement ? 'improvement' : 'regression';
+      const isLoading = this.loadingGraphForAnomaly.get(anomaly.id) || false;
       rows.push(html`
         <tr
           data-bugid="${anomalySortValues.bugId}"
@@ -315,13 +316,23 @@ export class AnomaliesTableSk extends ElementSk {
             </checkbox-sk>
           </td>
           <td class="center-content">
-            <button
-          id="trendingicon-link"
-          @click=${() => {
-            this.openMultiGraphUrl(anomaly);
-          }}>
-      <trending-up-icon-sk></trending-up-icon-sk>
-        </button>
+            ${
+              isLoading
+                ? html`<spinner-sk active></spinner-sk>` // Show spinner if loading
+                : html`
+                    <button
+                      id="trendingicon-link"
+                      @click=${async () => {
+                        this.loadingGraphForAnomaly.set(anomaly.id, true);
+                        this._render();
+                        await this.openMultiGraphUrl(anomaly);
+                        this.loadingGraphForAnomaly.set(anomaly.id, false);
+                        this._render();
+                      }}>
+                      <trending-up-icon-sk></trending-up-icon-sk>
+                    </button>
+                  `
+            }
           </td>
           <td>
             ${this.getReportLinkForBugId(anomaly.bug_id)}
@@ -522,15 +533,6 @@ export class AnomaliesTableSk extends ElementSk {
     return start + ' - ' + end;
   }
 
-  // return up or down triangle.
-  // also suppressed the 'Non ASCII character found' error.
-  private getDirectionSign(medianBefore: number, medianAfter: number): TemplateResult {
-    if (medianBefore <= medianAfter) {
-      return html`\u25B2`; // prettier-ignore
-    }
-    return html`\u25BC`; // prettier-ignore
-  }
-
   async populateTable(anomalyList: Anomaly[]): Promise<void> {
     const msg = this.querySelector('#clear-msg') as HTMLHeadingElement;
     const table = this.querySelector('#anomalies-table') as HTMLTableElement;
@@ -623,32 +625,12 @@ export class AnomaliesTableSk extends ElementSk {
     // To prevent this, we will only pre-generate the URLs on the Report page.
     if (window.location.pathname !== this.regressionsPageHost) {
       const url = this.multiChartUrlToAnomalyMap.get(anomaly.id);
-      return html`<button id="trendingicon-link" @click=${() => this.openAnomalyUrl(url)}>
-        <trending-up-icon-sk></trending-up-icon-sk>
-      </button>`;
+      return this.openAnomalyUrl(url);
     } else {
       console.log('Loading multi graph with Spinner');
-      return this.loadMultigraphUrlWithSpinner(anomaly);
+      const url = await this.generateMultiGraphUrl(anomaly);
+      return this.openAnomalyUrl(url);
     }
-  }
-
-  private loadMultigraphUrlWithSpinner(anomaly: Anomaly) {
-    const isLoading = this.loadingGraphForAnomaly.get(anomaly.id) || false;
-    return isLoading
-      ? html`<spinner-sk active></spinner-sk>` // Show spinner if loading
-      : html`
-          <button
-            id="trendingicon-link"
-            @click=${async () => {
-              this.loadingGraphForAnomaly.set(anomaly.id, true);
-              this._render();
-              await this.generateMultiGraphUrl(anomaly);
-              this.loadingGraphForAnomaly.set(anomaly.id, false);
-              this._render();
-            }}>
-            <trending-up-icon-sk></trending-up-icon-sk>
-          </button>
-        `;
   }
 
   //helper method to handle the async multi chart url opening
@@ -666,7 +648,7 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   private async fetchGroupReportApi(idString: string): Promise<any> {
-    return fetch('/_/anomalies/group_report', {
+    return await fetch('/_/anomalies/group_report', {
       method: 'POST',
       body: JSON.stringify({
         anomalyIDs: idString,
@@ -679,7 +661,7 @@ export class AnomaliesTableSk extends ElementSk {
       .catch((msg) => {
         errorMessage(msg);
       })
-      .then((response) => {
+      .then(async (response) => {
         this.getGroupReportResponse = response;
       });
   }
