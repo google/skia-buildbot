@@ -6,9 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/mcp/services/releaseinfra",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/skerr",
         "//mcp/common",
-        "//mcp/services/common",
-        "//mcp/services/releaseinfra/buildbucket",
+        "//mcp/services/releaseinfra/versionhistory",
     ],
 )
