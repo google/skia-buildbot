@@ -88,7 +88,7 @@ def cipd_install(
     cipd_url += "/+/"
     cipd_url += tag
 
-    mirror_url = "https://storage.googleapis.com/skia-world-readable/bazel/"
+    mirror_url = "https://cdn.skia.org/bazel/"
     mirror_url += sha256
     mirror_url += ".zip"
 

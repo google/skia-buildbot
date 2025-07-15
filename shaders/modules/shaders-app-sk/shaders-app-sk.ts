@@ -230,7 +230,7 @@ const uniformExampleEntry = (uni: uniformExample) =>
  * @returns the corrrect url for a shader example
  */
 const cdnImage = (i: shaderExample) =>
-  `https://storage.googleapis.com/skia-world-readable/example-shaders/${i.imageName}-thumbnail.jpeg`;
+  `https://cdn.skia.org/example-shaders/${i.imageName}-thumbnail.jpeg`;
 
 export class ShadersAppSk extends ElementSk {
   private width: number = DEFAULT_SIZE;

@@ -118,11 +118,11 @@ func main() {
 	h := httputils.LoggingRequestResponse(http.HandlerFunc(storageHandler))
 	h = httputils.XFrameOptionsDeny(h)
 	if !*local {
-		h = httputils.HealthzAndHTTPS(h)
 		h = cors.New(cors.Options{
 			AllowedOrigins: []string{"*.skia.org", "*.luci.app"},
 			Debug:          true,
 		}).Handler(h)
+		h = httputils.HealthzAndHTTPS(h)
 	}
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, h))

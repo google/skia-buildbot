@@ -76,5 +76,5 @@ RUN cd /tmp \
 
 # These are pre-compiled because Swiftshader dropped official support for them so we won't be
 # able to compile these at head anymore.
-ADD --chown=skia:skia https://storage.googleapis.com/skia-world-readable/swiftshader/libGLESv2.so /usr/local/lib/libGLESv2.so
-ADD --chown=skia:skia https://storage.googleapis.com/skia-world-readable/swiftshader/libEGL.so /usr/local/lib/libEGL.so
+ADD --chown=skia:skia https://cdn.skia.org/swiftshader/libGLESv2.so /usr/local/lib/libGLESv2.so
+ADD --chown=skia:skia https://cdn.skia.org/swiftshader/libEGL.so /usr/local/lib/libEGL.so

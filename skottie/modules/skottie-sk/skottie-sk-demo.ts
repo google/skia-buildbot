@@ -41,5 +41,5 @@ fetchMock.post('glob:/_/upload', {
 });
 
 $$<SkottieSk>('skottie-sk')!.overrideAssetsPathForTesting(
-  'https://storage.googleapis.com/skia-world-readable/test_external_assets'
+  'https://cdn.skia.org/test_external_assets'
 );
