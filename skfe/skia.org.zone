@@ -47,6 +47,7 @@ autoroll                 300      IN A 34.110.212.89
 autoroll-google3         300      IN A 34.110.212.89
 bugs-central             300      IN A 34.110.212.89
 cabe                     300      IN A 34.110.212.89
+cdn                      300      IN A 34.110.212.89
 codesize                 300      IN A 34.110.212.89
 debugger                 300      IN A 34.110.212.89
 demos                    300      IN A 34.110.212.89
