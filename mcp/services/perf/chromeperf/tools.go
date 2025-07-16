@@ -16,7 +16,7 @@ import (
 func GetTools(httpClient *http.Client) []common.Tool {
 	return []common.Tool{
 		{
-			Name:        "List Bot Configurations",
+			Name:        "ListBotConfigurations",
 			Description: listBotConfigurationDescription,
 			Arguments: []common.ToolArgument{
 				// Not required, because this can either provide the entire list of bots,
@@ -41,7 +41,7 @@ func GetTools(httpClient *http.Client) []common.Tool {
 			},
 		},
 		{
-			Name:        "List Benchmarks",
+			Name:        "ListBenchmarks",
 			Description: listBenchmarkDescription,
 			Arguments:   []common.ToolArgument{},
 			Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -62,7 +62,7 @@ func GetTools(httpClient *http.Client) []common.Tool {
 			},
 		},
 		{
-			Name:        "List Stories",
+			Name:        "ListStories",
 			Description: listStoryDescription,
 			Arguments: []common.ToolArgument{
 				pinpoint.BenchmarkArgument(true),
@@ -85,7 +85,7 @@ func GetTools(httpClient *http.Client) []common.Tool {
 			},
 		},
 		{
-			Name:        "Get Chart URL",
+			Name:        "GetChartURL",
 			Description: "Generate a URL to the chart for a given anomaly.",
 			Arguments: []common.ToolArgument{
 				{
