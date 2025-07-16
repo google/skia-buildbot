@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "versionhistory",
@@ -14,5 +15,16 @@ go_library(
         "//go/sklog",
         "//mcp/common",
         "@com_github_mark3labs_mcp_go//mcp",
+    ],
+)
+
+go_test(
+    name = "versionhistory_test",
+    srcs = ["client_test.go"],
+    embed = [":versionhistory"],
+    deps = [
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )

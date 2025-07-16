@@ -19,7 +19,7 @@ func GetTools(c *VersionHistoryClient) []common.Tool {
 			Name:        "list_chrome_platforms",
 			Description: listChromePlatformsDescription,
 			Arguments:   []common.ToolArgument{},
-			Handler:     c.GetChromePlatformsHandler,
+			Handler:     c.ListChromePlatformsHandler,
 		},
 		{
 			Name:        "list_chrome_channels",
@@ -31,13 +31,13 @@ func GetTools(c *VersionHistoryClient) []common.Tool {
 					Required:    false,
 				},
 			},
-			Handler: c.GetChromeChannelsHandler,
+			Handler: c.ListChromeChannelsHandler,
 		},
 		{
 			Name:        "list_active_releases",
 			Description: listActiveReleasesDescription,
 			Arguments:   []common.ToolArgument{},
-			Handler:     c.GetActiveReleasesHandler,
+			Handler:     c.ListActiveReleasesHandler,
 		},
 		{
 			Name:        "list_release_info",
@@ -75,7 +75,7 @@ used ad the default timezone, eg. "2025-07-12T14:30:00-07:00".`,
 					Required:    false,
 				},
 			},
-			Handler: c.GetVersionInfoHandler,
+			Handler: c.ListReleaseInfoHandler,
 		},
 	}
 }

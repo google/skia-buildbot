@@ -24,7 +24,7 @@ const (
 	vhAll          = "all"
 	queryNoEndtime = "filter=endtime=none"
 	queryStarttime = "filter=starttime%%3E%s,starttime%%3C%s"
-	queryOrderBy   = "order_by=startime%20desc"
+	queryOrderBy   = "order_by=starttime%20desc"
 )
 
 // VersionHistoryClient is a client for interacting with an HTTPS API.
@@ -87,7 +87,7 @@ func convertValueToMarkdown(sb *strings.Builder, val interface{}, depth int, par
 		} else if depth > 0 {
 			// If this object is an element of an array (e.g., an item in "products" list)
 			// It needs its own bullet point
-			sb.WriteString(fmt.Sprintf("%s- \n", indent))
+			sb.WriteString(fmt.Sprintf("%s-\n", indent))
 		}
 
 		// Collect and sort keys for consistent Markdown output order
@@ -188,7 +188,7 @@ func (vhc *VersionHistoryClient) queryAPI(ctx context.Context, url string) ([]by
 	return body, nil
 }
 
-func (vhc *VersionHistoryClient) GetChromePlatformsHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func (vhc *VersionHistoryClient) ListChromePlatformsHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	url := vhc.u.JoinPath(vhPlatforms)
 	body, err := vhc.queryAPI(ctx, url.String())
 	if err != nil {
@@ -199,10 +199,10 @@ func (vhc *VersionHistoryClient) GetChromePlatformsHandler(ctx context.Context, 
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to convert JSON to Markdown")
 	}
-	return mcp.NewToolResultText(fmt.Sprintf("Supported platforms\n:%s", md)), nil
+	return mcp.NewToolResultText(fmt.Sprintf("Supported platforms:\n%s", md)), nil
 }
 
-func (vhc *VersionHistoryClient) GetChromeChannelsHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func (vhc *VersionHistoryClient) ListChromeChannelsHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	platform := request.GetString(argPlatform, vhAll)
 	url := vhc.u.JoinPath(vhPlatforms, platform, vhChannels)
 	body, err := vhc.queryAPI(ctx, url.String())
@@ -214,10 +214,10 @@ func (vhc *VersionHistoryClient) GetChromeChannelsHandler(ctx context.Context, r
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to convert JSON to Markdown")
 	}
-	return mcp.NewToolResultText(fmt.Sprintf("Available channels\n:%s", md)), nil
+	return mcp.NewToolResultText(fmt.Sprintf("Available channels:\n%s", md)), nil
 }
 
-func (vhc *VersionHistoryClient) GetActiveReleasesHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func (vhc *VersionHistoryClient) ListActiveReleasesHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	url := vhc.u.JoinPath(vhPlatforms, vhAll, vhChannels, vhAll, vhVersions, vhAll, vhReleases)
 	url.RawQuery = queryNoEndtime
 	body, err := vhc.queryAPI(ctx, url.String())
@@ -232,7 +232,7 @@ func (vhc *VersionHistoryClient) GetActiveReleasesHandler(ctx context.Context, r
 	return mcp.NewToolResultText(fmt.Sprintf("Active releases:\n%s", md)), nil
 }
 
-func (vhc *VersionHistoryClient) GetVersionInfoHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func (vhc *VersionHistoryClient) ListReleaseInfoHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	st, err := request.RequireString(argStarttime)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
@@ -256,5 +256,5 @@ func (vhc *VersionHistoryClient) GetVersionInfoHandler(ctx context.Context, requ
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to convert JSON to Markdown")
 	}
-	return mcp.NewToolResultText(fmt.Sprintf("Recent Chrome releases:\n%s", md)), nil
+	return mcp.NewToolResultText(fmt.Sprintf("Chrome releases found:\n%s", md)), nil
 }
