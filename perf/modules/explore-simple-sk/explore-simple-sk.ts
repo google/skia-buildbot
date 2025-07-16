@@ -3363,12 +3363,20 @@ export class ExploreSimpleSk extends ElementSk {
     this.plotSimple.value?.removeAll();
     this._dataframe.header = [];
     this._dataframe.traceset = TraceSet({});
-    this.paramset!.paramsets = [];
-    this.commitTime!.textContent = '';
-    this.detailTab!.selected = PARAMS_TAB_INDEX;
+    if (this.graphTitle) {
+      this.graphTitle.set(null, 0);
+    }
+    if (this.paramset) {
+      this.paramset.paramsets = [];
+    }
+    if (this.commitTime) {
+      this.commitTime.textContent = '';
+    }
+    if (this.detailTab) {
+      this.detailTab.selected = PARAMS_TAB_INDEX;
+    }
     this.displayMode = 'display_query_only';
     this.tracesRendered = false;
-    this.graphTitle!.set(null, 0);
     this.commitLinks = [];
     this.tooltipSelected = false;
     this.closeTooltip();
