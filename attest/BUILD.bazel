@@ -1,0 +1,14 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "attest_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//attest/go/attest:attest",
+                "0755",
+            ],
+        ],
+    },
+    repository = "skia-public/attest",
+)

@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "attest_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/attest/go/attest",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/exec",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "attest",
+    embed = [":attest_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "attest_test",
+    srcs = ["main_test.go"],
+    embed = [":attest_lib"],
+    deps = ["@com_github_stretchr_testify//require"],
+)
