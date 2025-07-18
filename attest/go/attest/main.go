@@ -28,7 +28,9 @@ var (
 )
 
 func checkAttestation(ctx context.Context, attestorProject, attestor, imageID string) (bool, error) {
-	output, err := exec.RunSimple(ctx, fmt.Sprintf("gcloud container binauthz attestations list --attestor-project=%s --attestor=%s --artifact-url=%s", attestorProject, attestor, imageID))
+	cmd := fmt.Sprintf("gcloud container binauthz attestations list --attestor-project=%s --attestor=%s --artifact-url=%s", attestorProject, attestor, imageID)
+	output, err := exec.RunSimple(ctx, cmd)
+	sklog.Debugf("Attestation command and output:\n%s\n%s", cmd, output)
 	if err != nil {
 		return false, skerr.Wrap(err)
 	}
