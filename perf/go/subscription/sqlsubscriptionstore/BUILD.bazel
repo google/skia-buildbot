@@ -17,7 +17,6 @@ go_library(
 go_test(
     name = "sqlsubscriptionstore_test",
     srcs = ["sqlsubscriptionstore_test.go"],
-    data = ["//perf/migrations:cockroachdb"],
     embed = [":sqlsubscriptionstore"],
     deps = [
         "//go/sql/pool",

@@ -4,9 +4,9 @@ include ../make/bazel.mk
 build: ./modules/json/index.ts
 	$(BAZEL) build --config=mayberemote //perf/...
 
-generate_sql_schema_spanner:
-	cd ./go/sql; go run ./tosql --schemaTarget spanner
-	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema_spanner.json --databaseType spanner
+generate_sql_schema:
+	cd ./go/sql; go run ./tosql
+	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema_spanner.json
 
 .PHONY: docs
 docs:

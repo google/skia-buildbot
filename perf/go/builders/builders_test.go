@@ -93,46 +93,13 @@ func TestNewTraceStoreFromConfig_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestNewTraceStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
-	ctx, instanceConfig := newDBConfigForTest(t)
-
-	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
-	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
-
-	_, err := NewTraceStoreFromConfig(ctx, instanceConfig)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), invalidDataStoreType)
-}
-
-func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
-	ctx, instanceConfig := newDBConfigForTest(t)
-
-	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
-	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
-
-	_, err := NewAlertStoreFromConfig(ctx, instanceConfig)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), invalidDataStoreType)
-}
-
-func TestNewRegressionStoreFromConfig_CochroachDB_Success(t *testing.T) {
+func TestNewRegressionStoreFromConfig_Success(t *testing.T) {
 	ctx, instanceConfig := newDBConfigForTest(t)
 
 	store, err := NewRegressionStoreFromConfig(ctx, instanceConfig, nil)
 	require.NoError(t, err)
 
 	regressiontest.SetLowAndTriage(t, store)
-}
-
-func TestNewRegressionStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
-	ctx, instanceConfig := newDBConfigForTest(t)
-
-	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
-	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
-
-	_, err := NewRegressionStoreFromConfig(ctx, instanceConfig, nil)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), invalidDataStoreType)
 }
 
 func TestNewShortcutStoreFromConfig_Success(t *testing.T) {
@@ -142,17 +109,6 @@ func TestNewShortcutStoreFromConfig_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	shortcuttest.InsertGet(t, store)
-}
-
-func TestNewShortcutStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
-	ctx, instanceConfig := newDBConfigForTest(t)
-
-	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
-	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
-
-	_, err := NewShortcutStoreFromConfig(ctx, instanceConfig)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), invalidDataStoreType)
 }
 
 func TestNewPerfGitFromConfig_Success(t *testing.T) {

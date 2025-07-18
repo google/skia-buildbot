@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
-	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
@@ -40,16 +39,19 @@ const (
 // statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
 var statements = map[statement]string{
 	write: `
-		UPSERT INTO
+		INSERT INTO
 			Regressions (commit_number, alert_id, regression, migrated)
 		VALUES
 			($1, $2, $3, false)
+		ON CONFLICT (commit_number, alert_id) DO UPDATE
+		SET commit_number=EXCLUDED.commit_number, alert_id=EXCLUDED.alert_id,
+		regression=EXCLUDED.regression, migrated=EXCLUDED.migrated
 		`,
 	updateRegression: `
-		UPSERT INTO
-			Regressions (commit_number, alert_id, regression, migrated)
-		VALUES
-			($1, $2, $3, false)
+		UPDATE Regressions
+			SET regression=$3, migrated=false
+		WHERE
+			commit_number=$1 AND alert_id=$2
 		`,
 	read: `
 		SELECT
@@ -116,14 +118,10 @@ type SQLRegressionStore struct {
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db pool.Pool, dbType config.DataStoreType) (*SQLRegressionStore, error) {
-	stmts := statements
-	if dbType == config.SpannerDataStoreType {
-		stmts = spannerStatements
-	}
+func New(db pool.Pool) (*SQLRegressionStore, error) {
 	return &SQLRegressionStore{
 		db:                         db,
-		statements:                 stmts,
+		statements:                 statements,
 		regressionFoundCounterLow:  metrics2.GetCounter("perf_regression_store_found", map[string]string{"direction": "low"}),
 		regressionFoundCounterHigh: metrics2.GetCounter("perf_regression_store_found", map[string]string{"direction": "high"}),
 	}, nil

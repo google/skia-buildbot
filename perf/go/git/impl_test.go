@@ -18,7 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-func TestCockroachDB(t *testing.T) {
+func TestSpannerDB(t *testing.T) {
 	for name, subTest := range subTests {
 		t.Run(name, func(t *testing.T) {
 			ctx, db, gb, hashes, _, instanceConfig := gittest.NewForTest(t)

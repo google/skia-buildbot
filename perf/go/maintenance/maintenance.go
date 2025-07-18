@@ -52,10 +52,10 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	// Migrate schema if needed.
 	db, err := builders.NewDBPoolFromConfig(ctx, instanceConfig, false)
 	if err != nil {
-		return skerr.Wrapf(err, "Failed to create CockroachDB instance.")
+		return skerr.Wrapf(err, "Failed to create Spanner instance.")
 	}
 
-	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, instanceConfig.DataStoreConfig.DataStoreType)
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to migrate schema.")
 	}
@@ -82,7 +82,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 
 	// Migrate regression schema if specified.
 	if flags.MigrateRegressions {
-		migrator, err := migration.New(ctx, db, instanceConfig.DataStoreConfig.DataStoreType)
+		migrator, err := migration.New(ctx, db)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to build regression schema migrator.")
 		}
@@ -145,7 +145,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	}
 
 	if flags.DeleteShortcutsAndRegressions {
-		deleter, err := deletion.New(db, instanceConfig.DataStoreConfig.DataStoreType)
+		deleter, err := deletion.New(db)
 		if err != nil {
 			return skerr.Wrapf(err, "Error creating new Deleter")
 		}

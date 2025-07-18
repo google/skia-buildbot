@@ -19,7 +19,6 @@ go_library(
 go_test(
     name = "sqlanomalygroupstore_test",
     srcs = ["sqlanomalygroupstore_test.go"],
-    # data = ["//perf/migrations:cockroachdb"],
     embed = [":sqlanomalygroupstore"],
     deps = [
         "//go/sql/pool",

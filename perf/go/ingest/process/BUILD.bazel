@@ -33,7 +33,6 @@ go_test(
     srcs = ["process_manual_test.go"],
     data = [
         "//perf/integration:data",
-        "//perf/migrations:cockroachdb",
     ],
     embed = [":process"],
     # This test requires the GOOGLE_APPLICATION_CREDENTIALS environment variable to be set, which

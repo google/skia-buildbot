@@ -80,17 +80,17 @@ func (pgxLogAdaptor) Log(ctx context.Context, level pgx.LogLevel, msg string, da
 const maxPoolConnections = 300
 
 // singletonPool is the one and only instance of pool.Pool that an
-// application should have, used in NewCockroachDBFromConfig.
+// application should have, used in NewDBPoolFromConfig.
 var singletonPool pool.Pool
 
 // singletonPoolMutex is used to enforce the singleton nature of singletonPool,
-// used in NewCockroachDBFromConfig
+// used in NewDBPoolFromConfig
 var singletonPoolMutex sync.Mutex
 
-// NewDBPoolFromConfig opens an existing CockroachDB database.
+// NewDBPoolFromConfig opens an existing database.
 //
 // No migrations are applied automatically, they must be applied by the
-// 'migrate' command line application. See COCKROACHDB.md for more details.
+// 'migrate' command line application.
 func NewDBPoolFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig, checkSchema bool) (pool.Pool, error) {
 	singletonPoolMutex.Lock()
 	defer singletonPoolMutex.Unlock()
@@ -124,7 +124,7 @@ func NewDBPoolFromConfig(ctx context.Context, instanceConfig *config.InstanceCon
 
 	if checkSchema {
 		// Confirm the database has the right schema.
-		expectedSchema, err := expectedschema.Load(instanceConfig.DataStoreConfig.DataStoreType)
+		expectedSchema, err := expectedschema.Load()
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -211,7 +211,7 @@ func NewAlertStoreFromConfig(ctx context.Context, instanceConfig *config.Instanc
 	if err != nil {
 		return nil, err
 	}
-	return sqlalertstore.New(db, instanceConfig.DataStoreConfig.DataStoreType)
+	return sqlalertstore.New(db)
 }
 
 // NewRegressionStoreFromConfig creates a new regression.RegressionStore from
@@ -227,7 +227,7 @@ func NewRegressionStoreFromConfig(ctx context.Context, instanceConfig *config.In
 	if instanceConfig.UseRegression2 {
 		return sqlregression2store.New(db, alertsConfigProvider)
 	} else {
-		return sqlregressionstore.New(db, instanceConfig.DataStoreConfig.DataStoreType)
+		return sqlregressionstore.New(db)
 	}
 }
 
@@ -371,19 +371,9 @@ func GetCacheFromConfig(ctx context.Context, instanceConfig config.InstanceConfi
 
 // getDBPool returns a pool.Pool object based on the target database configured.
 func getDBPool(ctx context.Context, instanceConfig *config.InstanceConfig) (pool.Pool, error) {
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewDBPoolFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return db, nil
-	case config.SpannerDataStoreType:
-		db, err := NewDBPoolFromConfig(ctx, instanceConfig, false)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return db, nil
+	db, err := NewDBPoolFromConfig(ctx, instanceConfig, true)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
-	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+	return db, nil
 }

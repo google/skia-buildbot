@@ -22,7 +22,6 @@ go_library(
 go_test(
     name = "sqlculpritstore_test",
     srcs = ["sqlculpritstore_test.go"],
-    # data = ["//perf/migrations:cockroachdb"],
     embed = [":sqlculpritstore"],
     deps = [
         "//go/sql/pool",

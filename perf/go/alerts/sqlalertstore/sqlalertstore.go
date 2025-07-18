@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/config"
 )
 
 // statement is an SQL statement identifier.
@@ -43,10 +42,14 @@ var statements = map[statement]string{
 			id
 		`,
 	updateAlert: `
-		UPSERT INTO
+		INSERT INTO
 			Alerts (id, alert, config_state, last_modified, sub_name, sub_revision)
 		VALUES
 			($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (id) DO UPDATE
+		SET id=EXCLUDED.id, alert=EXCLUDED.alert, config_state=EXCLUDED.config_state,
+			last_modified=EXCLUDED.last_modified, sub_name=EXCLUDED.sub_name,
+			sub_revision=EXCLUDED.sub_revision
 		`,
 	deleteAlert: `
 		UPDATE
@@ -81,14 +84,14 @@ var statements = map[statement]string{
 			ALERTS
 		`,
 	listForSub: `
-		SELECT
-			id, alert
-		FROM
-			ALERTS
-		WHERE
-			config_state=0
-			AND sub_name=$1
-		`,
+			SELECT
+				id, alert
+			FROM
+				ALERTS
+			WHERE
+				config_state=0
+				AND sub_name=$1
+			`,
 }
 
 // SQLAlertStore implements the alerts.Store interface.
@@ -103,14 +106,10 @@ type SQLAlertStore struct {
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db pool.Pool, dbType config.DataStoreType) (*SQLAlertStore, error) {
-	stmts := statements
-	if dbType == config.SpannerDataStoreType {
-		stmts = spannerStatements
-	}
+func New(db pool.Pool) (*SQLAlertStore, error) {
 	return &SQLAlertStore{
 		db:         db,
-		statements: stmts,
+		statements: statements,
 	}, nil
 }
 

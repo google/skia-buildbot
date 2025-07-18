@@ -180,15 +180,14 @@ const (
 	// in-memory caches.
 	cacheMetricsRefreshDuration = 15 * time.Second
 
-	// CockroachDB can be sensitive to the number of VALUES in a single INSERT
-	// statement. These values were experimentally determined to be good when 6
-	// ingesters running 20 parallel Go routines were ingesting a large amout of
-	// data. Note that values over 200 caused the insert rate to drop precipitously,
-	// going from 20,000 qps with a batch size of 100 down to 400 qps with a batch
-	// size of 200.
 	writeTracesValuesChunkSize    = 100
 	writeTracesPostingsChunkSize  = 100
 	writeTracesParamSetsChunkSize = 100
+	// The number of parallel writes when writing postings data.
+	writePostingsParallelPoolSize = 5
+
+	// The number of parallel writes when writing traces data.
+	writeTracesParallelPoolSize = 5
 
 	// queryTracesChunkSize is the number of traces we try to read trace values for
 	// at a time.
@@ -231,7 +230,7 @@ type orderedParamSetCacheEntry struct {
 
 // traceIDForSQL is the type of the IDs that are used in the SQL queries,
 // they are hex encoded md5 hashes of a trace name, e.g. "\x00112233...".
-// Note the \x prefix which tells CockroachDB that this is hex encoded.
+// Note the \x prefix which tells the database that this is hex encoded.
 type traceIDForSQL string
 
 var badTraceIDFromSQL traceIDForSQL = ""
@@ -240,7 +239,7 @@ var badTraceIDFromSQL traceIDForSQL = ""
 type traceIDForSQLInBytes [md5.Size]byte
 
 // Calculates the traceIDForSQL for the given trace name, e.g. "\x00112233...".
-// Note the \x prefix which tells CockroachDB that this is hex encoded.
+// Note the \x prefix which tells the database that this is hex encoded.
 func traceIDForSQLFromTraceName(traceName string) traceIDForSQL {
 	b := md5.Sum([]byte(traceName))
 	return traceIDForSQL(fmt.Sprintf("\\x%x", b))
@@ -290,7 +289,7 @@ const (
 )
 
 var templates = map[statement]string{
-	insertIntoTraceValues: `UPSERT INTO
+	insertIntoTraceValues: `INSERT INTO
             TraceValues (trace_id, commit_number, val, source_file_id)
         VALUES
         {{ range $index, $element :=  . -}}
@@ -299,8 +298,10 @@ var templates = map[statement]string{
                 '{{ $element.MD5HexTraceID }}', {{ $element.CommitNumber }}, {{ $element.Val }}, {{ $element.SourceFileID }}
             )
         {{ end }}
+        ON CONFLICT (trace_id, commit_number) DO UPDATE
+        SET trace_id=EXCLUDED.trace_id, commit_number=EXCLUDED.commit_number, val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id
         `,
-	insertIntoTraceValues2: `UPSERT INTO
+	insertIntoTraceValues2: `INSERT INTO
             TraceValues2 (trace_id, commit_number, val, source_file_id, benchmark, bot, test, subtest_1, subtest_2, subtest_3)
         VALUES
         {{ range $index, $element :=  . -}}
@@ -311,14 +312,16 @@ var templates = map[statement]string{
 				'{{ $element.Subtest_2 }}', '{{ $element.Subtest_3 }}'
             )
         {{ end }}
+         ON CONFLICT (trace_id, commit_number) DO UPDATE
+         SET trace_id=EXCLUDED.trace_id, commit_number=EXCLUDED.commit_number, val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id,
+            benchmark=EXCLUDED.benchmark, bot=EXCLUDED.bot, test=EXCLUDED.test, subtest_1=EXCLUDED.subtest_1, subtest_2=EXCLUDED.subtest_2, subtest_3=EXCLUDED.subtest_3
         `,
 	queryTraceIDs: `
         {{ $key := .Key }}
         SELECT
             trace_id
         FROM
-            Postings@primary
-            {{ .AsOf }}
+            Postings
         WHERE
             tile_number = {{ .TileNumber }}
             AND key_value IN
@@ -335,8 +338,7 @@ var templates = map[statement]string{
 		SELECT
 			trace_id
 		FROM
-			Postings@by_key_value
-			{{ .AsOf }}
+			Postings
 		WHERE
 			tile_number = {{ .TileNumber }}
 			AND key_value IN
@@ -354,7 +356,6 @@ var templates = map[statement]string{
             val
         FROM
             TraceValues
-            {{ .AsOf }}
         WHERE
             commit_number >= {{ .BeginCommitNumber }}
             AND commit_number <= {{ .EndCommitNumber }}
@@ -371,7 +372,7 @@ var templates = map[statement]string{
             SourceFiles.source_file
         FROM
             TraceValues
-        INNER LOOKUP JOIN SourceFiles ON SourceFiles.source_file_id = TraceValues.source_file_id
+        INNER JOIN SourceFiles ON SourceFiles.source_file_id = TraceValues.source_file_id
         WHERE
             TraceValues.trace_id = '{{ .MD5HexTraceID }}'
             AND TraceValues.commit_number = {{ .CommitNumber }}`,
@@ -380,10 +381,10 @@ var templates = map[statement]string{
             TraceValues.commit_number, SourceFiles.source_file
         FROM
             TraceValues
-        INNER LOOKUP JOIN SourceFiles ON SourceFiles.source_file_id = TraceValues.source_file_id
+        INNER JOIN SourceFiles ON SourceFiles.source_file_id = TraceValues.source_file_id
         WHERE
             TraceValues.trace_id = '{{ .MD5HexTraceID }}'
-            AND TraceValues.commit_number IN ($1)`,
+            AND TraceValues.commit_number IN `,
 	insertIntoPostings: `
         INSERT INTO
             Postings (tile_number, key_value, trace_id)
@@ -392,8 +393,7 @@ var templates = map[statement]string{
                 {{ if $index }},{{end}}
                 ( {{ $element.TileNumber }}, '{{ $element.Key }}={{ $element.Value }}', '{{ $element.MD5HexTraceID }}' )
             {{ end }}
-        ON CONFLICT
-        DO NOTHING`,
+        ON CONFLICT (tile_number, key_value, trace_id) DO NOTHING`,
 	insertIntoParamSets: `
         INSERT INTO
             ParamSets (tile_number, param_key, param_value)
@@ -402,14 +402,13 @@ var templates = map[statement]string{
                 {{ if $index }},{{end}}
                 ( {{ $element.TileNumber }}, '{{ $element.Key }}', '{{ $element.Value }}' )
             {{ end }}
-        ON CONFLICT
+        ON CONFLICT (tile_number, param_key, param_value)
         DO NOTHING`,
 	paramSetForTile: `
         SELECT
            param_key, param_value
         FROM
             ParamSets
-            {{ .AsOf }}
         WHERE
             tile_number = {{ .TileNumber }}`,
 	countMatchingTraces: `
@@ -431,7 +430,7 @@ var templates = map[statement]string{
                   {{ end }}
                )
             LIMIT {{ .CountOptimizationThreshold }}
-        )`,
+        ) AS temp`,
 	restrictClause: `
     AND trace_ID IN
     ({{ range $index, $value := .Values -}}
@@ -444,7 +443,7 @@ var templates = map[statement]string{
 type insertIntoTraceValuesContext struct {
 	// The MD5 sum of the trace name as a hex string, i.e.
 	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
-	// CockroachDB will use to know the string is in hex.
+	// the database will use to know the string is in hex.
 	MD5HexTraceID traceIDForSQL
 
 	CommitNumber types.CommitNumber
@@ -456,7 +455,7 @@ type insertIntoTraceValuesContext struct {
 type insertIntoTraceValuesContext2 struct {
 	// The MD5 sum of the trace name as a hex string, i.e.
 	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
-	// CockroachDB will use to know the string is in hex.
+	// the database will use to know the string is in hex.
 	MD5HexTraceID traceIDForSQL
 
 	CommitNumber types.CommitNumber
@@ -477,7 +476,7 @@ type replaceTraceNamesContext struct {
 
 	// The MD5 sum of the trace name as a hex string, i.e.
 	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
-	// CockroachDB will use to know the string is in hex.
+	// the database will use to know the string is in hex.
 	MD5HexTraceID traceIDForSQL
 }
 
@@ -518,7 +517,7 @@ type getSourceContext struct {
 
 	// The MD5 sum of the trace name as a hex string, i.e.
 	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
-	// CockroachDB will use to know the string is in hex.
+	// the database will use to know the string is in hex.
 	MD5HexTraceID traceIDForSQL
 }
 
@@ -542,7 +541,7 @@ type insertIntoPostingsContext struct {
 
 	// The MD5 sum of the trace name as a hex string, i.e.
 	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
-	// CockroachDB will use to know the string is in hex.
+	// the database will use to know the string is in hex.
 	MD5HexTraceID traceIDForSQL
 
 	// cacheKey is the key for this entry in the local LRU cache. It is not used
@@ -588,7 +587,7 @@ var statements = map[statement]string{
             SourceFiles (source_file)
         VALUES
             ($1)
-        ON CONFLICT
+        ON CONFLICT (source_file_id)
         DO NOTHING`,
 	getSourceFileID: `
         SELECT
@@ -601,7 +600,7 @@ var statements = map[statement]string{
         SELECT
             tile_number
         FROM
-            ParamSets@by_tile_number
+            ParamSets
         ORDER BY
             tile_number DESC
         LIMIT
@@ -617,9 +616,9 @@ var statements = map[statement]string{
         SELECT
             SourceFiles.source_file, TraceValues.commit_number
         FROM
-            TraceValues@primary
-            INNER LOOKUP JOIN
-                SourceFiles@primary
+            TraceValues
+            INNER JOIN
+                SourceFiles
             ON
                 TraceValues.source_file_id = SourceFiles.source_file_id
         WHERE
@@ -632,13 +631,13 @@ var statements = map[statement]string{
         SELECT
             Postings.key_value, Postings.trace_id
         FROM
-            SourceFiles@by_source_file
-            INNER LOOKUP JOIN
-                TraceValues@by_source_file_id
+            SourceFiles
+            INNER JOIN
+                TraceValues
             ON
                 TraceValues.source_file_id = SourceFiles.source_file_id
-            INNER LOOKUP JOIN
-                Postings@by_trace_id
+            INNER JOIN
+                Postings
             ON
                 TraceValues.trace_id = Postings.trace_id
         WHERE
@@ -676,11 +675,6 @@ var statements = map[statement]string{
 
 type timeProvider func() time.Time
 
-// Statement to add to enable follower reads.
-// See https://www.cockroachlabs.com/docs/v20.1/as-of-system-time
-// and https://www.cockroachlabs.com/docs/v20.1/follower-reads#run-queries-that-use-follower-reads
-const followerReadsStatement = "AS OF SYSTEM TIME '-5s'"
-
 // SQLTraceStore implements tracestore.TraceStore backed onto an SQL database.
 type SQLTraceStore struct {
 	// db is the SQL database instance.
@@ -707,15 +701,6 @@ type SQLTraceStore struct {
 	// tileSize is the number of commits per Tile.
 	tileSize int32
 
-	// enableFollowerReads, if true, means older data in the database can be
-	// used to respond to queries.
-	// See https://www.cockroachlabs.com/docs/v20.1/as-of-system-time
-	// and https://www.cockroachlabs.com/docs/v20.1/follower-reads#run-queries-that-use-follower-reads
-	enableFollowerReads bool
-
-	// This is set to true if the datastore is Spanner.
-	isSpanner bool
-
 	traceParamStore tracestore.TraceParamStore
 
 	// metrics
@@ -738,10 +723,6 @@ func New(db pool.Pool, datastoreConfig config.DataStoreConfig, traceParamStore t
 	inMemoryTraceParams *InMemoryTraceParams) (*SQLTraceStore, error) {
 	unpreparedStatements := map[statement]*template.Template{}
 	queryTemplates := templates
-	if datastoreConfig.DataStoreType == config.SpannerDataStoreType {
-		statements = spannerStatements
-		queryTemplates = spannerTemplates
-	}
 	for key, tmpl := range queryTemplates {
 		t, err := template.New("").Parse(tmpl)
 		if err != nil {
@@ -774,8 +755,6 @@ func New(db pool.Pool, datastoreConfig config.DataStoreConfig, traceParamStore t
 		tileSize:                               datastoreConfig.TileSize,
 		cache:                                  cache,
 		orderedParamSetCache:                   paramSetCache,
-		enableFollowerReads:                    datastoreConfig.EnableFollowerReads,
-		isSpanner:                              datastoreConfig.DataStoreType == config.SpannerDataStoreType,
 		traceParamStore:                        traceParamStore,
 		writeTracesMetric:                      metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces"),
 		writeTracesMetricSQL:                   metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces_sql"),
@@ -846,10 +825,6 @@ func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.Ti
 	context := paramSetForTileContext{
 		TileNumber: tileNumber,
 		AsOf:       "",
-	}
-
-	if s.enableFollowerReads {
-		context.AsOf = followerReadsStatement
 	}
 
 	// Expand the template for the SQL.
@@ -1237,9 +1212,6 @@ func (s *SQLTraceStore) restrictByCounting(ctx context.Context, tileNumber types
 				AsOf:                       "",
 				CountOptimizationThreshold: countOptimizationThreshold,
 			}
-			if s.enableFollowerReads {
-				context.AsOf = followerReadsStatement
-			}
 
 			// Expand the template for the SQL.
 			var b bytes.Buffer
@@ -1303,9 +1275,6 @@ func (s *SQLTraceStore) restrictByCounting(ctx context.Context, tileNumber types
 		Key:        optimal.key,
 		Values:     optimal.values,
 		AsOf:       "",
-	}
-	if s.enableFollowerReads {
-		context.AsOf = followerReadsStatement
 	}
 
 	// Expand the template for the SQL.
@@ -1441,9 +1410,6 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 				Values:     values,
 				AsOf:       "",
 			}
-			if s.enableFollowerReads {
-				context.AsOf = followerReadsStatement
-			}
 			if err := s.unpreparedStatements[queryTraceIDsByKeyValue].Execute(&b, context); err != nil {
 				return nil, skerr.Wrapf(err, "failed to expand queryTraceIDsByKeyValue template")
 			}
@@ -1454,9 +1420,6 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 				Values:         values,
 				AsOf:           "",
 				RestrictClause: traceIDRestriction,
-			}
-			if s.enableFollowerReads {
-				context.AsOf = followerReadsStatement
 			}
 			if err := s.unpreparedStatements[queryTraceIDs].Execute(&b, context); err != nil {
 				return nil, skerr.Wrapf(err, "failed to expand queryTraceIDs template")
@@ -1703,9 +1666,6 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 		TraceIDs:          chunk,
 		AsOf:              "",
 	}
-	if s.enableFollowerReads {
-		readTracesContext.AsOf = followerReadsStatement
-	}
 
 	// Expand the template for the SQL.
 	var b bytes.Buffer
@@ -1921,39 +1881,21 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 
 	if len(postingsTemplateContext) > 0 {
 		var err error
-		if s.isSpanner {
-			err = util.ChunkIterParallelPool(ctx, len(postingsTemplateContext), writeTracesPostingsChunkSize, writePostingsParallelPoolSize, func(ctx context.Context, startIdx int, endIdx int) error {
-				ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writePostingsChunkParallel")
-				defer span.End()
+		err = util.ChunkIterParallelPool(ctx, len(postingsTemplateContext), writeTracesPostingsChunkSize, writePostingsParallelPoolSize, func(ctx context.Context, startIdx int, endIdx int) error {
+			ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writePostingsChunkParallel")
+			defer span.End()
 
-				var b bytes.Buffer
-				if err := s.unpreparedStatements[insertIntoPostings].Execute(&b, postingsTemplateContext[startIdx:endIdx]); err != nil {
-					return skerr.Wrapf(err, "failed to expand postings template on slice [%d, %d]", startIdx, endIdx)
-				}
-				sql := b.String()
+			var b bytes.Buffer
+			if err := s.unpreparedStatements[insertIntoPostings].Execute(&b, postingsTemplateContext[startIdx:endIdx]); err != nil {
+				return skerr.Wrapf(err, "failed to expand postings template on slice [%d, %d]", startIdx, endIdx)
+			}
+			sql := b.String()
 
-				if _, err := s.db.Exec(ctx, sql); err != nil {
-					return skerr.Wrapf(err, "Executing: %q", b.String())
-				}
-				return nil
-			})
-		} else {
-			err = util.ChunkIter(len(postingsTemplateContext), writeTracesPostingsChunkSize, func(startIdx int, endIdx int) error {
-				ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writePostingsChunk")
-				defer span.End()
-
-				var b bytes.Buffer
-				if err := s.unpreparedStatements[insertIntoPostings].Execute(&b, postingsTemplateContext[startIdx:endIdx]); err != nil {
-					return skerr.Wrapf(err, "failed to expand postings template on slice [%d, %d]", startIdx, endIdx)
-				}
-				sql := b.String()
-
-				if _, err := s.db.Exec(ctx, sql); err != nil {
-					return skerr.Wrapf(err, "Executing: %q", b.String())
-				}
-				return nil
-			})
-		}
+			if _, err := s.db.Exec(ctx, sql); err != nil {
+				return skerr.Wrapf(err, "Executing: %q", b.String())
+			}
+			return nil
+		})
 
 		if err != nil {
 			return err
@@ -1973,39 +1915,21 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 	}
 	sklog.Infof("About to format %d trace values", len(valuesTemplateContext))
 
-	if s.isSpanner {
-		err = util.ChunkIterParallelPool(ctx, len(valuesTemplateContext), writeTracesValuesChunkSize, writeTracesParallelPoolSize, func(ctx context.Context, startIdx int, endIdx int) error {
-			ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writeTraceValuesChunkParallel")
-			defer span.End()
+	err = util.ChunkIterParallelPool(ctx, len(valuesTemplateContext), writeTracesValuesChunkSize, writeTracesParallelPoolSize, func(ctx context.Context, startIdx int, endIdx int) error {
+		ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writeTraceValuesChunkParallel")
+		defer span.End()
 
-			var b bytes.Buffer
-			if err := s.unpreparedStatements[insertIntoTraceValues].Execute(&b, valuesTemplateContext[startIdx:endIdx]); err != nil {
-				return skerr.Wrapf(err, "failed to expand trace values template")
-			}
+		var b bytes.Buffer
+		if err := s.unpreparedStatements[insertIntoTraceValues].Execute(&b, valuesTemplateContext[startIdx:endIdx]); err != nil {
+			return skerr.Wrapf(err, "failed to expand trace values template")
+		}
 
-			sql := b.String()
-			if _, err := s.db.Exec(ctx, sql); err != nil {
-				return skerr.Wrapf(err, "Executing: %q", sql)
-			}
-			return nil
-		})
-	} else {
-		err = util.ChunkIter(len(valuesTemplateContext), writeTracesValuesChunkSize, func(startIdx int, endIdx int) error {
-			ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writeTraceValuesChunk")
-			defer span.End()
-
-			var b bytes.Buffer
-			if err := s.unpreparedStatements[insertIntoTraceValues].Execute(&b, valuesTemplateContext[startIdx:endIdx]); err != nil {
-				return skerr.Wrapf(err, "failed to expand trace values template")
-			}
-
-			sql := b.String()
-			if _, err := s.db.Exec(ctx, sql); err != nil {
-				return skerr.Wrapf(err, "Executing: %q", sql)
-			}
-			return nil
-		})
-	}
+		sql := b.String()
+		if _, err := s.db.Exec(ctx, sql); err != nil {
+			return skerr.Wrapf(err, "Executing: %q", sql)
+		}
+		return nil
+	})
 
 	if err != nil {
 		return err

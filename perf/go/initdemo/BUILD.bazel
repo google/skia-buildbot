@@ -7,7 +7,6 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/sklog",
-        "//perf/go/sql",
         "//perf/go/sql/spanner",
         "@com_github_jackc_pgx_v4//pgxpool",
     ],

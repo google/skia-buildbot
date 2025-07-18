@@ -132,9 +132,6 @@ type IssueTrackerConfig struct {
 type DataStoreType string
 
 const (
-	// CockroachDBDataStoreType is for storing all data in a CockroachDB database.
-	CockroachDBDataStoreType DataStoreType = "cockroachdb"
-
 	// SpannerDataStoreType is for storing all data in a Spanner database.
 	SpannerDataStoreType DataStoreType = "spanner"
 )
@@ -163,15 +160,7 @@ type DataStoreConfig struct {
 	// determine how the rest of the DataStoreConfig values are interpreted.
 	DataStoreType DataStoreType `json:"datastore_type"`
 
-	// If the datastore type is 'cockroachdb' then this value is a connection
-	// string of the form "postgresql://...". See
-	// https://www.cockroachlabs.com/docs/stable/connection-parameters.html for
-	// more details.
-	//
-	// In addition, for 'cockroachdb' databases, the database name given in the
-	// connection string must exist and the user given in the connection string
-	// must have rights to create, delete, and alter tables as Perf will do
-	// database migrations on startup.
+	// ConnectionString is a connection string of the form "postgresql://...".
 	ConnectionString string `json:"connection_string"`
 
 	// TileSize is the size of each tile in commits. This value is used for all

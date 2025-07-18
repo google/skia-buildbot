@@ -17,7 +17,6 @@ go_library(
 go_test(
     name = "sqluserissuestore_test",
     srcs = ["sqluserissuestore_test.go"],
-    data = ["//perf/migrations:cockroachdb"],
     embed = [":sqluserissuestore"],
     deps = [
         "//go/sql/pool",

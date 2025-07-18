@@ -3,10 +3,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "sqlregressionstore",
-    srcs = [
-        "spanner.go",
-        "sqlregressionstore.go",
-    ],
+    srcs = ["sqlregressionstore.go"],
     importpath = "go.skia.org/infra/perf/go/regression/sqlregressionstore",
     visibility = ["//visibility:public"],
     deps = [
@@ -16,7 +13,6 @@ go_library(
         "//go/sql/pool",
         "//perf/go/alerts",
         "//perf/go/clustering2",
-        "//perf/go/config",
         "//perf/go/regression",
         "//perf/go/types",
         "//perf/go/ui/frame",
@@ -27,19 +23,8 @@ go_library(
 go_test(
     name = "sqlregressionstore_test",
     srcs = ["sqlregressionstore_test.go"],
-    data = ["//perf/migrations:cockroachdb"],
     embed = [":sqlregressionstore"],
-    # Perf CockroachDB tests fail intermittently when running locally (i.e. not on RBE) due to tests
-    # running in parallel against the same CockroachDB instance:
-    #
-    #     pq: relation "schema_lock" already exists
-    #
-    # This is not an issue on RBE because each test target starts its own emulator instance.
-    #
-    # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
-    flaky = True,
     deps = [
-        "//perf/go/config",
         "//perf/go/regression",
         "//perf/go/regression/regressiontest",
         "//perf/go/sql/sqltest",

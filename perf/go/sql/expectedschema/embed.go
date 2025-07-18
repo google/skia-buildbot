@@ -7,7 +7,6 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/schema"
-	"go.skia.org/infra/perf/go/config"
 )
 
 // FS is a filesystem with the schema.json file.
@@ -19,12 +18,9 @@ import (
 var FS embed.FS
 
 // Load returns the deserialized schema.Description stored in the schema.json file.
-func Load(datastoreType config.DataStoreType) (schema.Description, error) {
+func Load() (schema.Description, error) {
 	var ret schema.Description
-	fileName := "schema.json"
-	if datastoreType == config.SpannerDataStoreType {
-		fileName = "schema_spanner.json"
-	}
+	fileName := "schema_spanner.json"
 	b, err := FS.ReadFile(fileName)
 	if err != nil {
 		return ret, skerr.Wrap(err)
@@ -38,12 +34,9 @@ func Load(datastoreType config.DataStoreType) (schema.Description, error) {
 }
 
 // LoadPrev returns the deserialized schema.Description stored in the schema_old.json file.
-func LoadPrev(datastoreType config.DataStoreType) (schema.Description, error) {
+func LoadPrev() (schema.Description, error) {
 	var ret schema.Description
-	fileName := "schema_prev.json"
-	if datastoreType == config.SpannerDataStoreType {
-		fileName = "schema_prev_spanner.json"
-	}
+	fileName := "schema_prev_spanner.json"
 	b, err := FS.ReadFile(fileName)
 	if err != nil {
 		return ret, skerr.Wrap(err)

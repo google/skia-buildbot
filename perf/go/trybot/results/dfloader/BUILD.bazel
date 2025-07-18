@@ -25,17 +25,7 @@ go_library(
 go_test(
     name = "dfloader_test",
     srcs = ["dfloader_test.go"],
-    data = ["//perf/migrations:cockroachdb"],
     embed = [":dfloader"],
-    # Perf CockroachDB tests fail intermittently when running locally (i.e. not on RBE) due to tests
-    # running in parallel against the same CockroachDB instance:
-    #
-    #     pq: relation "schema_lock" already exists
-    #
-    # This is not an issue on RBE because each test target starts its own emulator instance.
-    #
-    # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
-    flaky = True,
     deps = [
         "//go/paramtools",
         "//go/vec32",

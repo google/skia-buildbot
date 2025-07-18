@@ -40,16 +40,6 @@ import (
 //
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
-var FromLiveToNext = `
-    CREATE TABLE IF NOT EXISTS TraceParams (
-		trace_id BYTES PRIMARY KEY,
-		params JSONB
-	);
-`
-
-// Same as above, but will be used when doing schema migration for spanner databases.
-// Some statements can be different for CDB v/s Spanner, hence splitting into
-// separate variables.
 var FromLiveToNextSpanner = `
 	CREATE TABLE IF NOT EXISTS TraceParams (
 		trace_id BYTEA PRIMARY KEY,
@@ -60,31 +50,25 @@ var FromLiveToNextSpanner = `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
-var FromNextToLive = `
-    DROP TABLE IF EXISTS TraceParams;
-`
-
-// ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
-// FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLiveSpanner = `
 	DROP TABLE IF EXISTS TraceParams;
 `
 
 // This function will check whether there's a new schema checked-in,
-// and if so, migrate the schema in the given CockroachDB instance.
-func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool, datastoreType config.DataStoreType) error {
-	sklog.Debugf("Starting validate and migrate. DatastoreType: %s", datastoreType)
-	next, err := Load(datastoreType)
+// and if so, migrate the schema in the given Spanner instance.
+func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool) error {
+	sklog.Debugf("Starting validate and migrate.")
+	next, err := Load()
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 
-	prev, err := LoadPrev(datastoreType)
+	prev, err := LoadPrev()
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 
-	actual, err := schema.GetDescription(ctx, db, sql.Tables{}, string(datastoreType))
+	actual, err := schema.GetDescription(ctx, db, sql.Tables{}, "spanner")
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -94,11 +78,8 @@ func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool, datastoreTyp
 
 	if diffNextActual != "" && diffPrevActual == "" {
 		sklog.Debugf("Next is different from live schema. Will migrate. diffNextActual: %s", diffNextActual)
-		fromLiveToNextStmt := FromLiveToNext
-		if datastoreType == config.SpannerDataStoreType {
-			fromLiveToNextStmt = FromLiveToNextSpanner
-		}
-		_, err = db.Exec(ctx, fromLiveToNextStmt)
+
+		_, err = db.Exec(ctx, FromLiveToNextSpanner)
 		if err != nil {
 			sklog.Errorf("Failed to migrate Schema from prev to next. Prev: %s, Next: %s.", prev, next)
 			return skerr.Wrapf(err, "Failed to migrate Schema")

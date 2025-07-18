@@ -16,7 +16,6 @@ go_library(
 go_test(
     name = "sqlfavoritestore_test",
     srcs = ["sqlfavoritestore_test.go"],
-    data = ["//perf/migrations:cockroachdb"],
     embed = [":sqlfavoritestore"],
     deps = [
         "//go/sql/pool",

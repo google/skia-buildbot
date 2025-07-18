@@ -23,7 +23,7 @@ import (
 
 func setupTestApp(t *testing.T) *Backend {
 	db := sqltest.NewSpannerDBForTests(t, "backend")
-	alertStore, _ := alert_store.New(db, config.SpannerDataStoreType)
+	alertStore, _ := alert_store.New(db)
 	configProvider, _ := alerts.NewConfigProvider(context.Background(), alertStore, 600)
 	anomalygroupStore, _ := ag_store.New(db, config.SpannerDataStoreType)
 	culpritStore, _ := culprit_store.New(db)

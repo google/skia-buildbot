@@ -6,45 +6,19 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/regressiontest"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
-func TestSQLRegressionStore_CockroachDB(t *testing.T) {
-
-	// Common regressiontest tests.
-	for name, subTest := range regressiontest.SubTests {
-		t.Run(name, func(t *testing.T) {
-			db := sqltest.NewCockroachDBForTests(t, "regstore")
-
-			store, err := New(db, config.CockroachDBDataStoreType)
-			require.NoError(t, err)
-			subTest(t, store)
-		})
-	}
-
-	// SQLRegressionStore specific tests.
-	for name, subTest := range subTests {
-		t.Run(name, func(t *testing.T) {
-			db := sqltest.NewCockroachDBForTests(t, "regstore")
-
-			store, err := New(db, config.CockroachDBDataStoreType)
-			require.NoError(t, err)
-			subTest(t, store)
-		})
-	}
-}
-
-func TestSQLRegressionStore_Spanner(t *testing.T) {
+func TestSQLRegressionStore(t *testing.T) {
 
 	// Common regressiontest tests.
 	for name, subTest := range regressiontest.SubTests {
 		t.Run(name, func(t *testing.T) {
 			db := sqltest.NewSpannerDBForTests(t, "regstore")
 
-			store, err := New(db, config.SpannerDataStoreType)
+			store, err := New(db)
 			require.NoError(t, err)
 			subTest(t, store)
 		})
@@ -55,7 +29,7 @@ func TestSQLRegressionStore_Spanner(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			db := sqltest.NewSpannerDBForTests(t, "regstore")
 
-			store, err := New(db, config.SpannerDataStoreType)
+			store, err := New(db)
 			require.NoError(t, err)
 			subTest(t, store)
 		})

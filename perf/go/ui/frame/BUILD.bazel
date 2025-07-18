@@ -30,7 +30,6 @@ go_library(
 go_test(
     name = "frame_test",
     srcs = ["frame_test.go"],
-    data = ["//perf/migrations:cockroachdb"],
     embed = [":frame"],
     deps = [
         "//go/testutils",

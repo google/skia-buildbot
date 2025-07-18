@@ -11,13 +11,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
 func setUp(t *testing.T) (alerts.Store, pool.Pool) {
 	db := sqltest.NewSpannerDBForTests(t, "alertstore")
-	store, err := New(db, config.SpannerDataStoreType)
+	store, err := New(db)
 	require.NoError(t, err)
 
 	return store, db

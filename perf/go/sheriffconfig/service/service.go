@@ -107,7 +107,7 @@ func New(ctx context.Context,
 	}, nil
 }
 
-// Fetches specified path config from LUCI Config, transforms it and stores it in the CockroachDB
+// Fetches specified path config from LUCI Config, transforms it and stores it in the Spanner
 // in Subscription and Alert tables.
 func (s *sheriffconfigService) ImportSheriffConfig(ctx context.Context, path string) error {
 

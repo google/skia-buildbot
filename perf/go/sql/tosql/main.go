@@ -16,9 +16,7 @@ import (
 
 func main() {
 	// Command line flags.
-	var (
-		schemaTarget = flag.String("schemaTarget", "cockroachdb", "Target for the generated schema. Eg: CockroachDB, Spanner")
-	)
+	var ()
 	flag.Parse()
 
 	cwd, err := os.Getwd()
@@ -26,16 +24,10 @@ func main() {
 		sklog.Fatalf("Could not get working dir: %s", err)
 	}
 
-	outputFileName := "schema.go"
-	packageName := "sql"
-	packagePath := cwd
-	schemaTargetDB := exporter.CockroachDB
-	if *schemaTarget == "spanner" {
-		outputFileName = "schema_spanner.go"
-		schemaTargetDB = exporter.Spanner
-		packageName = "spanner"
-		packagePath = filepath.Join(packagePath, "spanner")
-	}
+	outputFileName := "schema_spanner.go"
+	packageName := "spanner"
+	packagePath := filepath.Join(cwd, "spanner")
+	schemaTargetDB := exporter.Spanner
 
 	ttlExcludeTables := []string{
 		"Alerts",

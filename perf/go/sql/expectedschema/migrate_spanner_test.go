@@ -20,7 +20,7 @@ func Test_NoMigrationNeeded_Spanner(t *testing.T) {
 	db := sqltest.NewSpannerDBForTests(t, "desc")
 
 	// Newly created schema should already be up to date, so no error should pop up.
-	err := expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
+	err := expectedschema.ValidateAndMigrateNewSchema(ctx, db)
 	require.NoError(t, err)
 	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{})
 	require.NoError(t, err)
@@ -41,7 +41,7 @@ func Test_InvalidSchema_Spanner(t *testing.T) {
 	require.NoError(t, err)
 
 	// Live schema doesn't match next or prev schema versions. This shouldn't happen.
-	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db)
 	require.Error(t, err)
 	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{})
 	require.NoError(t, err)
@@ -51,9 +51,9 @@ func Test_MigrationNeeded_Spanner(t *testing.T) {
 	ctx := context.Background()
 	db := sqltest.NewSpannerDBForTests(t, "desc")
 
-	next, err := expectedschema.Load(config.SpannerDataStoreType)
+	next, err := expectedschema.Load()
 	require.NoError(t, err)
-	prev, err := expectedschema.LoadPrev(config.SpannerDataStoreType)
+	prev, err := expectedschema.LoadPrev()
 	require.NoError(t, err)
 
 	_, err = db.Exec(ctx, expectedschema.FromNextToLiveSpanner)
@@ -65,7 +65,7 @@ func Test_MigrationNeeded_Spanner(t *testing.T) {
 	assertdeep.Equal(t, prev, *actual)
 
 	// Since live matches the prev schema, it should get migrated to next.
-	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db)
 	require.NoError(t, err)
 	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{})
 	require.NoError(t, err)
@@ -92,7 +92,7 @@ func Test_TraceParamsAddColAndIdx_Spanner(t *testing.T) {
 	require.NoError(t, err)
 
 	// Specify that we should index traceparams on "bot":
-	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db)
 	require.NoError(t, err)
 	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{"bot"})
 	require.NoError(t, err)
@@ -122,7 +122,7 @@ func Test_TraceParamsRemoveColAndIdx_Spanner(t *testing.T) {
 	require.NoError(t, err)
 
 	// Specify that we should index traceparams on "bot":
-	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db)
 	require.NoError(t, err)
 	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{"bot"})
 	require.NoError(t, err)
@@ -132,7 +132,7 @@ func Test_TraceParamsRemoveColAndIdx_Spanner(t *testing.T) {
 	_, err = db.Exec(ctx, dropFromParamsets)
 	require.NoError(t, err)
 	// Specify that we should NO LONGER index traceparams on "bot":
-	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, config.SpannerDataStoreType)
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db)
 	require.NoError(t, err)
 	err = expectedschema.UpdateTraceParamsSchema(ctx, db, config.SpannerDataStoreType, []string{})
 	require.NoError(t, err)

@@ -1,7 +1,6 @@
 package sql
 
 //go:generate bazelisk run --config=mayberemote //:go -- run ./tosql
-//go:generate bazelisk run --config=mayberemote //:go -- run ./tosql --schemaTarget spanner
 
 import (
 	alertschema "go.skia.org/infra/perf/go/alerts/sqlalertstore/schema"

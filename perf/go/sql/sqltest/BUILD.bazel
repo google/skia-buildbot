@@ -7,15 +7,12 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/emulators",
-        "//go/emulators/cockroachdb_instance",
         "//go/emulators/gcp_emulator",
         "//go/emulators/pgadapter",
         "//go/sql/pool",
         "//go/sql/pool/wrapper/timeout",
-        "//perf/go/sql",
         "//perf/go/sql/spanner",
         "@com_github_jackc_pgx_v4//pgxpool",
-        "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],
 )
