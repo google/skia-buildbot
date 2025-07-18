@@ -8,6 +8,10 @@ skia_app_container(
                 "//attest/go/attest:attest",
                 "0755",
             ],
+            [
+                "@google_cloud_sdk//:all_files",
+                "0755",
+            ],
         ],
     },
     repository = "skia-public/attest",
