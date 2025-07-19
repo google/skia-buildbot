@@ -299,8 +299,7 @@ export class AnomaliesTableSk extends ElementSk {
           data-delta="${anomalySortValues.delta}"
           class=${this.getRowClass(i + 1, anomalyGroup)}
           ?hidden=${
-            (!this.isParentRow && !anomalyGroup.expanded) ||
-            (anomalyGroup.anomalies.length > 1 && !anomalyGroup.expanded)
+            !anomalyGroup.expanded && !this.isParentRow && anomalyGroup.anomalies.length > 1
           }>
           <td>
           </td>
