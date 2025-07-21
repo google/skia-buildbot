@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gcloud/binaryauthorization"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -24,22 +26,19 @@ var (
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 
 	// Global Binary Authorization API client.
-	httpClient *http.Client
+	binauthClient binaryauthorization.Client
 )
 
 func checkAttestation(ctx context.Context, attestorProject, attestor, imageID string) (bool, error) {
-	cmd := fmt.Sprintf("gcloud container binauthz attestations list --attestor-project=%s --attestor=%s --artifact-url=%s", attestorProject, attestor, imageID)
-	output, err := exec.RunSimple(ctx, cmd)
-	sklog.Debugf("Attestation command and output:\n%s\n%s", cmd, output)
+	split := strings.Split(imageID, "@sha256:")
+	if len(split) != 2 {
+		return false, skerr.Fmt("incorrect image format")
+	}
+	attestations, err := binauthClient.ListAttestations(ctx, attestorProject, attestor, split[1])
 	if err != nil {
 		return false, skerr.Wrap(err)
 	}
-	// TODO(borenet): What is the behavior when there are no attestations?
-	// I don't currently have access to run this command.
-	if output == "" {
-		return false, nil
-	}
-	return true, nil
+	return len(attestations) > 0, nil
 }
 
 var validImageRegex = regexp.MustCompile(`[0-9A-Za-z_.]+\/[0-9A-Za-z_-]+\/[0-9A-Za-z_-]+@sha256:[0-9a-f]{64}`)
@@ -90,6 +89,14 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
+
+	ctx := context.Background()
+	ts, err := google.DefaultTokenSource(ctx, binaryauthorization.Scope)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxAnd3xx().Client()
+	binauthClient = (*binaryauthorization.ApiClient)(httpClient)
 
 	h := httputils.LoggingRequestResponse(http.HandlerFunc(handler))
 	h = httputils.XFrameOptionsDeny(h)

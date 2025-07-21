@@ -8,10 +8,11 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
-        "//go/exec",
+        "//go/gcloud/binaryauthorization",
         "//go/httputils",
         "//go/skerr",
         "//go/sklog",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
