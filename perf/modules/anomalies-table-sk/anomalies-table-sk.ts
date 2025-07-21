@@ -129,7 +129,7 @@ export class AnomaliesTableSk extends ElementSk {
     // Though, this will cause one extra call to Chromeperf, which
     // will slow down the repsonse time.
     // I will move this to report-page-sk when the page is ready.
-    await this.fetchGroupReportApi(idString);
+    this.getGroupReportResponse = await this.fetchGroupReportApi(idString);
 
     const sid: string = this.getGroupReportResponse!.sid || '';
     const url = `/u/?sid=${sid}`;
@@ -225,9 +225,9 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   private async preGenerateMultiGraphUrl(): Promise<void> {
-    for (const anomaly of this.anomalyList) {
+    this.anomalyList.forEach(async (anomaly) => {
       await this.generateMultiGraphUrl(anomaly);
-    }
+    });
   }
 
   private anomalyChecked(chkbox: CheckOrRadio, a: Anomaly) {
@@ -657,7 +657,7 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   private async fetchGroupReportApi(idString: string): Promise<any> {
-    await fetch('/_/anomalies/group_report', {
+    return await fetch('/_/anomalies/group_report', {
       method: 'POST',
       body: JSON.stringify({
         anomalyIDs: idString,
@@ -671,8 +671,7 @@ export class AnomaliesTableSk extends ElementSk {
         errorMessage(msg);
       })
       .then(async (response) => {
-        const json: GetGroupReportResponse = response;
-        this.getGroupReportResponse = json;
+        this.getGroupReportResponse = response;
       });
   }
 
