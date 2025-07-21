@@ -672,7 +672,8 @@ export class AnomaliesTableSk extends ElementSk {
         errorMessage(msg);
       })
       .then(async (response) => {
-        this.getGroupReportResponse = response;
+        const json: GetGroupReportResponse = response;
+        this.getGroupReportResponse = json;
       });
   }
 
