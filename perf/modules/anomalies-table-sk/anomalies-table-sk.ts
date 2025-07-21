@@ -679,14 +679,19 @@ export class AnomaliesTableSk extends ElementSk {
 
   // openMultiGraphLink generates a multi-graph url for the given parameters
   private async generateMultiGraphUrl(anomaly: Anomaly): Promise<string> {
-    await this.fetchGroupReportApi(String(anomaly.id));
-    const begin = this.getGroupReportResponse?.timerange_map![anomaly.id].begin;
-    const end = this.getGroupReportResponse?.timerange_map![anomaly.id].end;
+    const begin =
+      anomaly.timestamp === undefined
+        ? this.fetchGroupReportApi(String(anomaly.id))
+        : anomaly.timestamp;
+    const end =
+      anomaly.timestamp === undefined
+        ? this.fetchGroupReportApi(String(anomaly.id))
+        : anomaly.timestamp;
 
     // generate data one week ahead and one week behind to make it easier
     // for user to discern trends
-    const rangeBegin = begin ? (begin - weekInSeconds).toString() : '';
-    const rangeEnd = end ? (end + weekInSeconds).toString() : '';
+    const rangeBegin = begin ? (Number(begin) - weekInSeconds).toString() : '';
+    const rangeEnd = end ? (Number(end) + weekInSeconds).toString() : '';
 
     const graphConfigs = [] as GraphConfig[];
 
