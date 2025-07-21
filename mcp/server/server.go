@@ -61,6 +61,9 @@ type mcpFlags struct {
 	// Specify the port for the server.
 	Port int
 
+	// Port for prometheus metrics.
+	PromPort int
+
 	// Arguments to pass on to the service.
 	ServiceArgs string
 
@@ -88,6 +91,12 @@ func (flags *mcpFlags) AsCliFlags() []cli.Flag {
 			Name:        "port",
 			Value:       8080,
 			Usage:       "The port for the server.",
+		},
+		&cli.IntFlag{
+			Destination: &flags.Port,
+			Name:        "prom_port",
+			Value:       20000,
+			Usage:       "The prometheus metrics port for the server.",
 		},
 		&cli.StringFlag{
 			Destination: &flags.ServiceArgs,
@@ -149,7 +158,8 @@ func main() {
 		},
 	}
 
-	infraCommon.InitWithMust("mcpserver")
+	promPortSpec := fmt.Sprintf(":%d", mcpFlags.PromPort)
+	infraCommon.InitWithMust("mcpserver", infraCommon.PrometheusOpt(&promPortSpec))
 	defer infraCommon.Defer()
 	err := cliApp.Run(os.Args)
 	if err != nil {
