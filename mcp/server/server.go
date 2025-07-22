@@ -93,7 +93,7 @@ func (flags *mcpFlags) AsCliFlags() []cli.Flag {
 			Usage:       "The port for the server.",
 		},
 		&cli.IntFlag{
-			Destination: &flags.Port,
+			Destination: &flags.PromPort,
 			Name:        "prom_port",
 			Value:       20000,
 			Usage:       "The prometheus metrics port for the server.",
