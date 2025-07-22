@@ -14,4 +14,4 @@ copy_release_files () {
 ${INSTALL} --mode=644 -T Dockerfile        ${ROOT}/Dockerfile
 }
 
-source ../bash/docker_build.sh
+source ../../bash/docker_build.sh
