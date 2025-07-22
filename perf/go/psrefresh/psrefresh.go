@@ -101,6 +101,8 @@ func (pf *defaultParamSetRefresher) oneStep() error {
 	}
 
 	ps.Normalize()
+	pf.mutex.Lock()
+	defer pf.mutex.Unlock()
 	pf.ps = ps.Freeze()
 	return nil
 }
