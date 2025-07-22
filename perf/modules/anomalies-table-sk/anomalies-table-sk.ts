@@ -431,7 +431,7 @@ export class AnomaliesTableSk extends ElementSk {
               // group is not expanded, check all children anomalies.
               this.toggleChildrenCheckboxes(anomalyGroup);
             }}"
-            id="anomaly-row-${anomalyGroup.anomalies.length}">
+            id="anomaly-row-${this.getGroupId(anomalyGroup)}">
           </checkbox-sk>
         </td>
         <td class="center-content"></td>
@@ -588,7 +588,7 @@ export class AnomaliesTableSk extends ElementSk {
    */
   private toggleChildrenCheckboxes(anomalyGroup: AnomalyGroup) {
     const summaryRowCheckbox = this.querySelector(
-      `checkbox-sk[id="anomaly-row-${anomalyGroup.anomalies.length}"]`
+      `checkbox-sk[id="anomaly-row-${this.getGroupId(anomalyGroup)}"]`
     ) as CheckOrRadio;
     anomalyGroup.anomalies.forEach((anomaly) => {
       const checkbox = this.querySelector(
@@ -610,7 +610,7 @@ export class AnomaliesTableSk extends ElementSk {
     this.anomalyGroups.forEach((group) => {
       group.anomalies.forEach((anomaly) => {
         const summaryRowCheckbox = this.querySelector(
-          `checkbox-sk[id=anomaly-row-${group.anomalies.length}]`
+          `checkbox-sk[id=anomaly-row-${this.getGroupId(group)}]`
         ) as CheckOrRadio;
         summaryRowCheckbox!.checked = checked;
         const checkbox = this.querySelector(
@@ -728,7 +728,7 @@ export class AnomaliesTableSk extends ElementSk {
     this.anomalyGroups.forEach((group) => {
       group.anomalies.forEach((anomaly) => {
         const summaryRowCheckbox = this.querySelector(
-          `checkbox-sk[id=anomaly-row-${group.anomalies.length}]`
+          `checkbox-sk[id=anomaly-row-${this.getGroupId(group)}]`
         ) as CheckOrRadio;
         summaryRowCheckbox!.checked = true;
         const checkbox = this.querySelector(
@@ -738,6 +738,19 @@ export class AnomaliesTableSk extends ElementSk {
         this.checkedAnomaliesSet.add(anomaly);
       });
     });
+  }
+
+  /**
+   * Generates a deterministic ID for an anomaly group based on the sorted IDs of its anomalies.
+   * This ensures a unique and consistent ID for each group, preventing clashes.
+   * @param anomalyGroup The anomaly group.
+   * @returns A string ID for the group.
+   */
+  private getGroupId(anomalyGroup: AnomalyGroup): string {
+    return `group-${anomalyGroup.anomalies
+      .map((a) => a.id)
+      .sort()
+      .join('-')}`;
   }
 }
 
