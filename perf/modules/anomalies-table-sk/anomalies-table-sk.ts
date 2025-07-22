@@ -225,9 +225,7 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   private async preGenerateMultiGraphUrl(): Promise<void> {
-    this.anomalyList.forEach(async (anomaly) => {
-      await this.generateMultiGraphUrl(anomaly);
-    });
+    await this.generateMultiGraphUrl(this.anomalyList);
   }
 
   private anomalyChecked(chkbox: CheckOrRadio, a: Anomaly) {
@@ -636,9 +634,8 @@ export class AnomaliesTableSk extends ElementSk {
       const url = this.multiChartUrlToAnomalyMap.get(anomaly.id);
       return this.openAnomalyUrl(url);
     } else {
-      console.log('Loading multi graph with Spinner');
-      const url = await this.generateMultiGraphUrl(anomaly);
-      return this.openAnomalyUrl(url);
+      const urlList = await this.generateMultiGraphUrl([anomaly]);
+      return this.openAnomalyUrl(urlList.at(0));
     }
   }
 
@@ -670,55 +667,59 @@ export class AnomaliesTableSk extends ElementSk {
       .catch((msg) => {
         errorMessage(msg);
       })
-      .then(async (response) => {
+      .then((response) => {
         const json: GetGroupReportResponse = response;
         this.getGroupReportResponse = json;
       });
   }
 
   // openMultiGraphLink generates a multi-graph url for the given parameters
-  private async generateMultiGraphUrl(anomaly: Anomaly): Promise<string> {
-    const begin =
-      anomaly.timestamp === undefined
-        ? this.fetchGroupReportApi(String(anomaly.id))
-        : anomaly.timestamp;
-    const end =
-      anomaly.timestamp === undefined
-        ? this.fetchGroupReportApi(String(anomaly.id))
-        : anomaly.timestamp;
+  private async generateMultiGraphUrl(anomalies: Anomaly[]): Promise<string[]> {
+    await this.fetchGroupReportApi(String(anomalies.map((anomaly) => anomaly.id).join(',')));
+    const shortcutUrlList: string[] = [];
+    for (let i = 0; i < anomalies.length; i++) {
+      const timerange = this.calculateTimeRange(anomalies.at(i)!);
+      const graphConfigs = [] as GraphConfig[];
+      const config: GraphConfig = {
+        keys: '',
+        formulas: [],
+        queries: [],
+      };
+      config.queries = [this.traceFormatter!.formatQuery(anomalies.at(i)!.test_path)];
+      graphConfigs.push(config);
+      await updateShortcut(graphConfigs)
+        .then((shortcut) => {
+          if (shortcut === '') {
+            this.shortcutUrl = '';
+            return;
+          }
+          this.shortcutUrl = shortcut;
+        })
+        .catch(errorMessage);
+
+      // request_type=0 only selects data points for within the range
+      // rather than show 250 data points by default
+      const url =
+        `${window.location.protocol}//${window.location.host}` +
+        `/m/?begin=${timerange[0]}&end=${timerange[1]}` +
+        `&request_type=0&shortcut=${this.shortcutUrl}&totalGraphs=1`;
+      this.multiChartUrlToAnomalyMap.set(anomalies.at(i)!.id, url);
+      shortcutUrlList.push(url);
+    }
+
+    return shortcutUrlList;
+  }
+
+  private calculateTimeRange(anomaly: Anomaly): string[] {
+    const timerangeBegin = this.getGroupReportResponse?.timerange_map![anomaly.id].begin;
+    const timerangeEnd = this.getGroupReportResponse?.timerange_map![anomaly.id].end;
 
     // generate data one week ahead and one week behind to make it easier
     // for user to discern trends
-    const rangeBegin = begin ? (Number(begin) - weekInSeconds).toString() : '';
-    const rangeEnd = end ? (Number(end) + weekInSeconds).toString() : '';
+    const newTimerangeBegin = timerangeBegin ? (timerangeBegin - weekInSeconds).toString() : '';
+    const newTimerangeEnd = timerangeEnd ? (timerangeEnd + weekInSeconds).toString() : '';
 
-    const graphConfigs = [] as GraphConfig[];
-
-    const config: GraphConfig = {
-      keys: '',
-      formulas: [],
-      queries: [],
-    };
-    config.queries = [this.traceFormatter!.formatQuery(anomaly.test_path)];
-    graphConfigs.push(config);
-    await updateShortcut(graphConfigs)
-      .then((shortcut) => {
-        if (shortcut === '') {
-          this.shortcutUrl = '';
-          return;
-        }
-        this.shortcutUrl = shortcut;
-      })
-      .catch(errorMessage);
-
-    // request_type=0 only selects data points for within the range
-    // rather than show 250 data points by default
-    const url =
-      `${window.location.protocol}//${window.location.host}` +
-      `/m/?begin=${rangeBegin}&end=${rangeEnd}` +
-      `&request_type=0&shortcut=${this.shortcutUrl}&totalGraphs=1`;
-    this.multiChartUrlToAnomalyMap.set(anomaly.id, url);
-    return url;
+    return [newTimerangeBegin, newTimerangeEnd];
   }
 
   initialCheckAllCheckbox() {
