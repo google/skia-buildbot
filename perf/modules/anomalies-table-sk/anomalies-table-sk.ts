@@ -129,7 +129,7 @@ export class AnomaliesTableSk extends ElementSk {
     // Though, this will cause one extra call to Chromeperf, which
     // will slow down the repsonse time.
     // I will move this to report-page-sk when the page is ready.
-    this.getGroupReportResponse = await this.fetchGroupReportApi(idString);
+    await this.fetchGroupReportApi(idString);
 
     const sid: string = this.getGroupReportResponse!.sid || '';
     const url = `/u/?sid=${sid}`;
@@ -299,8 +299,7 @@ export class AnomaliesTableSk extends ElementSk {
           data-delta="${anomalySortValues.delta}"
           class=${this.getRowClass(i + 1, anomalyGroup)}
           ?hidden=${
-            (!this.isParentRow && !anomalyGroup.expanded) ||
-            (anomalyGroup.anomalies.length > 1 && !anomalyGroup.expanded)
+            !anomalyGroup.expanded && !this.isParentRow && anomalyGroup.anomalies.length > 1
           }>
           <td>
           </td>
@@ -658,7 +657,7 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   private async fetchGroupReportApi(idString: string): Promise<any> {
-    return await fetch('/_/anomalies/group_report', {
+    await fetch('/_/anomalies/group_report', {
       method: 'POST',
       body: JSON.stringify({
         anomalyIDs: idString,
