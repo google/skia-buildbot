@@ -16,12 +16,13 @@ var (
 	port             = flag.String("port", ":8080", "The port to listen on for HTTP traffic.")
 	connectionString = flag.String("connection_string", "postgresql://root@localhost:5432/natnael-test-database?sslmode=disable",
 		"The connection string for the Pairwise backend database.")
+	prodAssetsDir = flag.String("prod_assest_dir", "pinpoint/ui/pages/production",
+		"The resource/assets directory")
 )
 
 func main() {
-
+	flag.Parse()
 	ctx := context.Background()
-
 	cfg, err := pgxpool.ParseConfig(*connectionString)
 	if err != nil {
 		sklog.Fatalf("failed to parse database config: %s", err)
@@ -32,13 +33,13 @@ func main() {
 	}
 	js := jobstore.NewJobStore(pool)
 
-	service, err := jobs.New(ctx, js)
-	if err != nil {
-		sklog.Fatalf("Failed to create http service: %s", err)
-	}
+	service := jobs.New(ctx, js, *prodAssetsDir)
 
 	router := chi.NewRouter()
 	service.RegisterHandlers(router)
+
+	// /dist/ is the assets_serving_path defined in the BUILD for the landing page
+	router.Handle("/dist/*", http.StripPrefix("/dist/", http.FileServer(http.Dir(*prodAssetsDir))))
 
 	sklog.Infof("http://localhost%s", *port)
 

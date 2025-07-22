@@ -3,7 +3,9 @@ package jobsservice
 import (
 	"context"
 	"encoding/json"
+	"html/template"
 	"net/http"
+	"path/filepath"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -13,20 +15,23 @@ import (
 )
 
 const (
-	defaultLimt   = 50
+	defaultLimit  = 50
 	defaultOffset = 0
 )
 
 // Service handles the HTTP endpoints for Pinpoint jobs.
 type Service struct {
-	jobStore jobstore.JobStore
+	jobStore  jobstore.JobStore
+	templates *template.Template
 }
 
 // New creates a new Service.
-func New(ctx context.Context, js jobstore.JobStore) (*Service, error) {
-	return &Service{
+func New(ctx context.Context, js jobstore.JobStore, resourceDir string) *Service {
+	s := &Service{
 		jobStore: js,
-	}, nil
+	}
+	s.loadTemplates(resourceDir)
+	return s
 }
 
 // ListJobsHandler handles requests for listing jobs.
@@ -38,7 +43,7 @@ func (s *Service) ListJobsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	q := r.URL.Query()
 
-	var limit int = defaultLimt
+	var limit int = defaultLimit
 	var offset int = defaultOffset
 	var err error
 
@@ -92,7 +97,25 @@ func (s *Service) ListJobsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// templateHandler returns an http.HandlerFunc that executes the named template.
+func (s *Service) templateHandler(name string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		var data any // Currently we dont define Cookies or any other data to be stored in the HTML
+		if err := s.templates.ExecuteTemplate(w, name, data); err != nil {
+			httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 // RegisterHandlers registers the service's HTTP handlers with a mux.
 func (s *Service) RegisterHandlers(router *chi.Mux) {
 	router.Get("/json/jobs/list", s.ListJobsHandler)
+	router.HandleFunc("/", s.templateHandler("landing-page.html"))
+}
+
+// loadTemplates loads the HTML templates from the given directory.
+func (s *Service) loadTemplates(resourcesDir string) {
+	s.templates = template.Must(template.New("").Delims("{%", "%}").ParseGlob(filepath.Join(resourcesDir, "*.html")))
 }
