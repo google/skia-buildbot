@@ -119,7 +119,7 @@ func main() {
 	h = httputils.XFrameOptionsDeny(h)
 	if !*local {
 		h = cors.New(cors.Options{
-			AllowedOrigins: []string{"*.skia.org", "*.luci.app"},
+			AllowedOrigins: []string{"*"},
 			Debug:          true,
 		}).Handler(h)
 		h = httputils.HealthzAndHTTPS(h)
