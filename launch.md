@@ -90,7 +90,7 @@ folder (e.g. `fiddlek/fiddle/Dockerfile`, `fiddlek/fiddler/Dockerfile`).
 
 When choosing a base image, consider our light wrappers, found in `kube/*`. For
 example, `kube/basealpine/Dockerfile` which can be used by having
-`FROM gcr.io/skia-public/basealpine:3.9` as the first line in a Dockerfile.
+`FROM gcr.io/skia-public/basealpine:latest` as the first line in a Dockerfile.
 
 We have a helper script for 'installing' an app into a Docker container,
 `bash/docker_build.sh`. A call to this script is customarily put in a bash
@@ -107,7 +107,7 @@ absolutely needed.
 Putting all the above together, a bare-bones Dockerfile would look something
 like:
 
-    FROM gcr.io/skia-public/basealpine:3.9
+    FROM gcr.io/skia-public/basealpine:latest
 
     COPY . /
 
@@ -283,7 +283,6 @@ spec:
 ```
 
 - It is possible to test your service/config without making it publicly visible.
-
   - Deploy your `app.yaml` either with `pushk` or `kubectl apply -f app.yaml`
   - Identify a pod name, `kubectl get pods | grep [my-app]` where my-app is the
     name of the new service.
@@ -313,7 +312,6 @@ spec:
   ```
 
 - Add prober rules to `probers.json` in your application directory.
-
   - Ideally, probe all public HTML pages and all nullipotent JSON endpoints. You
     can write functions in `prober/go/prober/main.go` to check the response body
     if desired.
@@ -326,7 +324,6 @@ spec:
   [alerts_public](https://skia.googlesource.com/buildbot/+show/master/promk/prometheus/alerts_public.yml).
   The alerts may link to a production manual, `PROD.md`, checked into the
   application source directory. Examples:
-
   - All prober rules.
   - Additional stats from metrics2. Legacy apps have their alert rules in
     `prometheus/sys/alert.rules`
