@@ -148,7 +148,7 @@ export class PointLinksSk extends ElementSk {
 
     this.commitPosition = commit_position;
     this.reset();
-    if (commit_position === null || prev_commit_position === null) {
+    if (commit_position === null) {
       return Promise.resolve(commitLinks);
     }
     if (commitLinks.length > 0) {
@@ -189,7 +189,7 @@ export class PointLinksSk extends ElementSk {
       const displayTexts: { [key: string]: string } = {};
       const displayUrls: { [key: string]: string } = {};
 
-      if (keysForCommitRange !== null) {
+      if (keysForCommitRange !== null && prev_commit_position !== null) {
         const prevLinks = await this.getLinksForPoint(prev_commit_position, trace_id);
         if (signal.aborted) {
           console.log(`Request aborted for ${commit_position})`);
