@@ -17,7 +17,7 @@ var (
 	connectionString = flag.String("connection_string", "postgresql://root@localhost:5432/natnael-test-database?sslmode=disable",
 		"The connection string for the Pairwise backend database.")
 	prodAssetsDir = flag.String("prod_assest_dir", "pinpoint/ui/pages/production",
-		"The resource/assets directory")
+		"The resource/assets directory.")
 )
 
 func main() {
@@ -33,7 +33,10 @@ func main() {
 	}
 	js := jobstore.NewJobStore(pool)
 
-	service := jobs.New(ctx, js, *prodAssetsDir)
+	service, err := jobs.New(ctx, js, *prodAssetsDir)
+	if err != nil {
+		sklog.Fatalf("failed to connect create Jobs Service: %s", err)
+	}
 
 	router := chi.NewRouter()
 	service.RegisterHandlers(router)

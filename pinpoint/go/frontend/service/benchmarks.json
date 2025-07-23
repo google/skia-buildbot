@@ -1,0 +1,17 @@
+[
+    {
+        "benchmark": "jetstream2.crossbench",
+        "stories":["default"],
+        "bots": ["mac-m1-pro-perf", "linux-perf", "win-11-perf"]
+    },
+    {
+        "benchmark": "speedometer3.crossbench",
+        "stories":["default"],
+        "bots": ["mac-m1-pro-perf", "linux-perf", "win-11-perf"]
+    },
+    {
+        "benchmark": "speedometer",
+        "stories":["http://browserbench.org/Speedometer/"],
+        "bots": ["mac-m1_mini_2020-perf", "linux-perf", "win-11-perf"]
+    }
+]

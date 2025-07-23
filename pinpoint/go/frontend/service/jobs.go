@@ -1,8 +1,11 @@
 package jobsservice
 
 import (
+	"bytes"
 	"context"
+	_ "embed"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -10,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 
 	jobstore "go.skia.org/infra/pinpoint/go/sql/jobs_store"
 )
@@ -19,19 +23,33 @@ const (
 	defaultOffset = 0
 )
 
+//go:embed benchmarks.json
+var benchmarksJSON []byte
+
+type BenchmarkConfig struct {
+	BenchmarkName string   `json:"benchmark"`
+	Stories       []string `json:"stories"`
+	Bots          []string `json:"bots"`
+}
+
 // Service handles the HTTP endpoints for Pinpoint jobs.
 type Service struct {
-	jobStore  jobstore.JobStore
-	templates *template.Template
+	jobStore         jobstore.JobStore
+	templates        *template.Template
+	benchmarkConfigs []BenchmarkConfig
 }
 
 // New creates a new Service.
-func New(ctx context.Context, js jobstore.JobStore, resourceDir string) *Service {
+func New(ctx context.Context, js jobstore.JobStore, resourceDir string) (*Service, error) {
 	s := &Service{
 		jobStore: js,
 	}
+	err := s.loadConfigs()
+	if err != nil {
+		return nil, skerr.Fmt("failed to retreive config contents: %s", err)
+	}
 	s.loadTemplates(resourceDir)
-	return s
+	return s, nil
 }
 
 // ListJobsHandler handles requests for listing jobs.
@@ -112,10 +130,104 @@ func (s *Service) templateHandler(name string) http.HandlerFunc {
 // RegisterHandlers registers the service's HTTP handlers with a mux.
 func (s *Service) RegisterHandlers(router *chi.Mux) {
 	router.Get("/json/jobs/list", s.ListJobsHandler)
+	router.Get("/benchmarks", s.ListBenchmarksHandler)
+	router.Get("/bots", s.ListBotConfigurationsHandler)
+	router.Get("/stories", s.ListStoriesHandler)
 	router.HandleFunc("/", s.templateHandler("landing-page.html"))
+}
+
+// ListBenchmarksHandler handles requests for listing chromeperf benchmarks.
+func (s *Service) ListBenchmarksHandler(w http.ResponseWriter, r *http.Request) {
+	benchmarks := make([]string, 0, len(s.benchmarkConfigs))
+	for _, config := range s.benchmarkConfigs {
+		benchmarks = append(benchmarks, config.BenchmarkName)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(benchmarks); err != nil {
+		msg := "Failed to encode response"
+		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
+		return
+	}
+}
+
+// ListBotConfigurationsHandler handles requests for listing available chromeperf bots based on a given benchmark.
+func (s *Service) ListBotConfigurationsHandler(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+
+	benchmarkName := q.Get("benchmark")
+
+	// If no benchmark is specified, return all unique bots.
+	if benchmarkName == "" {
+		allBots := make(map[string]struct{})
+		for _, config := range s.benchmarkConfigs {
+			for _, bot := range config.Bots {
+				allBots[bot] = struct{}{}
+			}
+		}
+		bots := make([]string, 0, len(allBots))
+		for bot := range allBots {
+			bots = append(bots, bot)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(bots); err != nil {
+			httputils.ReportError(w, err, "Failed to encode response", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// If a benchmark is specified, find it and return its bots.
+	for _, config := range s.benchmarkConfigs {
+		if config.BenchmarkName == benchmarkName {
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(config.Bots); err != nil {
+				httputils.ReportError(w, err, "Failed to encode response", http.StatusInternalServerError)
+			}
+			return
+		}
+	}
+}
+
+// ListStoriesHandler handles requests for listing chromeperf stories based on provided benchmark.
+func (s *Service) ListStoriesHandler(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+
+	benchmark := q.Get("benchmark")
+	var stories []string
+	found := false
+	for _, config := range s.benchmarkConfigs {
+		if config.BenchmarkName == benchmark {
+			found = true
+			stories = config.Stories
+			break
+		}
+	}
+
+	if !found {
+		msg := "Failed to find bot configurations"
+		httputils.ReportError(w, fmt.Errorf("story values were not found"), msg, http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(stories); err != nil {
+		msg := "Failed to encode response"
+		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
+		return
+	}
 }
 
 // loadTemplates loads the HTML templates from the given directory.
 func (s *Service) loadTemplates(resourcesDir string) {
 	s.templates = template.Must(template.New("").Delims("{%", "%}").ParseGlob(filepath.Join(resourcesDir, "*.html")))
+}
+
+// loadConfigs loads the values retrived from the JSON file defined in configPath.
+func (s *Service) loadConfigs() error {
+	decoder := json.NewDecoder(bytes.NewReader(benchmarksJSON))
+	err := decoder.Decode(&s.benchmarkConfigs)
+	if err != nil {
+		return skerr.Fmt("failed to decode from embedded benchmarks.json: %s", err)
+	}
+	return nil
 }

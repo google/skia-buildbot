@@ -3,10 +3,14 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "service",
     srcs = ["jobs.go"],
+    embedsrcs = [
+        "benchmarks.json",
+    ],
     importpath = "go.skia.org/infra/pinpoint/go/frontend/service",
     visibility = ["//visibility:public"],
     deps = [
         "//go/httputils",
+        "//go/skerr",
         "//pinpoint/go/sql/jobs_store",
         "@com_github_go_chi_chi_v5//:chi",
     ],

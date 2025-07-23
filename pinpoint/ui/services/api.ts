@@ -34,3 +34,49 @@ export async function listJobs(options: ListJobsOptions): Promise<Job[]> {
   }
   return response.json();
 }
+
+/**
+ * Fetches a list of benchmarks to run jobs against.
+ * @returns A promise that resolves to an array of benchmarks.
+ */
+export async function listBenchmarks(): Promise<string[]> {
+  const response = await fetch(`/benchmarks`);
+  if (!response.ok) {
+    throw new Error(`Failed to list benchmarks: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Fetches a list of bots to run jobs on based on a chosen benchmark.
+ * If given an empty benchmark, the function will return all bots.
+ * @returns A promise that resolves to an array of strings.
+ */
+export async function listBots(benchmark: string): Promise<string[]> {
+  const params = new URLSearchParams();
+  params.set('benchmark', benchmark);
+
+  const response = await fetch(`/bots?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(`Failed to list bots: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Fetches a list of stories to run jobs on based on a chosen benchmark.
+ * @returns A promise that resolves to an array of strings.
+ */
+export async function listStories(benchmark: string): Promise<string[]> {
+  const params = new URLSearchParams();
+  if (benchmark === '') {
+    throw new Error(`Failed to list stories: No benchmark provided`);
+  }
+
+  params.set('benchmark', benchmark);
+  const response = await fetch(`/stories?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(`Failed to list stories: ${response.statusText}`);
+  }
+  return response.json();
+}
