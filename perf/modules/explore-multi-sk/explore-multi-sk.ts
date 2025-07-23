@@ -783,7 +783,7 @@ export class ExploreMultiSk extends ElementSk {
       }
       // Sync the selection by extending the range for other graphs.
       // If a sync is requested when only one graph then ignore.
-      if (graphs.length > 1 && e.detail.offsetInSeconds !== undefined) {
+      if (graphs.length > 1) {
         (graph as ExploreSimpleSk).extendRange(e.detail.value, e.detail.offsetInSeconds);
       }
     });

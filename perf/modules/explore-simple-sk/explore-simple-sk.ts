@@ -1868,6 +1868,10 @@ export class ExploreSimpleSk extends ElementSk {
     if (!dfRepo || !header || header.length === 0 || dfRepo.loading) {
       return;
     }
+    if (offset) {
+      dfRepo.extendRange(offset);
+      return;
+    }
 
     let extendDirection = 0;
     if (range.begin < header[0]!.offset) {
@@ -1875,10 +1879,8 @@ export class ExploreSimpleSk extends ElementSk {
     } else if (range.end > header[header.length - 1]!.offset) {
       extendDirection = 1;
     }
-
     if (extendDirection !== 0) {
-      // If a specific offset is provided, use it. Otherwise, use the calculated default.
-      dfRepo.extendRange(offset ?? extendDirection * monthInSec);
+      dfRepo.extendRange(extendDirection * monthInSec);
     }
   }
 
