@@ -86,7 +86,7 @@ export class PlotSummarySk extends LitElement {
     this.addEventListeners();
   }
 
-  protected willUpdate(changedProperties: PropertyValues): void {
+  protected updated(changedProperties: PropertyValues): void {
     if (
       changedProperties.has('data') ||
       changedProperties.has('selectedTrace') ||
@@ -96,8 +96,7 @@ export class PlotSummarySk extends LitElement {
     }
   }
 
-  private async updateDataView(dt: DataTable, trace: string | null) {
-    await this.updateComplete;
+  private updateDataView(dt: DataTable, trace: string | null) {
     const plot = this.plotElement.value;
     if (!plot || !dt) {
       if (dt) {
