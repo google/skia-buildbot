@@ -11,7 +11,7 @@ import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/checkbox-sk';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import '../../../infra-sk/modules/sort-sk';
-import { Anomaly, GetGroupReportResponse } from '../json';
+import { Anomaly, GetGroupReportResponse, Timerange } from '../json';
 import { GraphConfig } from '../explore-simple-sk/explore-simple-sk';
 import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import '../window/window';
@@ -224,8 +224,10 @@ export class AnomaliesTableSk extends ElementSk {
     return groups;
   }
 
-  private async preGenerateMultiGraphUrl(): Promise<void> {
-    await this.generateMultiGraphUrl(this.anomalyList);
+  private async preGenerateMultiGraphUrl(timerangeMap: {
+    [key: number]: Timerange;
+  }): Promise<void> {
+    await this.generateMultiGraphUrl(this.anomalyList, timerangeMap);
   }
 
   private anomalyChecked(chkbox: CheckOrRadio, a: Anomaly) {
@@ -540,7 +542,10 @@ export class AnomaliesTableSk extends ElementSk {
     return start + ' - ' + end;
   }
 
-  async populateTable(anomalyList: Anomaly[]): Promise<void> {
+  async populateTable(
+    anomalyList: Anomaly[],
+    timerangeMap: { [key: number]: Timerange }
+  ): Promise<void> {
     const msg = this.querySelector('#clear-msg') as HTMLHeadingElement;
     const table = this.querySelector('#anomalies-table') as HTMLTableElement;
     if (anomalyList.length > 0) {
@@ -548,7 +553,7 @@ export class AnomaliesTableSk extends ElementSk {
       table.hidden = false;
       this.anomalyList = anomalyList;
       if (window.location.pathname !== this.regressionsPageHost) {
-        await this.preGenerateMultiGraphUrl();
+        await this.preGenerateMultiGraphUrl(timerangeMap);
       }
 
       this.groupAnomalies();
@@ -634,7 +639,11 @@ export class AnomaliesTableSk extends ElementSk {
       const url = this.multiChartUrlToAnomalyMap.get(anomaly.id);
       return this.openAnomalyUrl(url);
     } else {
-      const urlList = await this.generateMultiGraphUrl([anomaly]);
+      await this.fetchGroupReportApi(String(anomaly.id));
+      const urlList = await this.generateMultiGraphUrl(
+        [anomaly],
+        this.getGroupReportResponse!.timerange_map!
+      );
       return this.openAnomalyUrl(urlList.at(0));
     }
   }
@@ -674,11 +683,13 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   // openMultiGraphLink generates a multi-graph url for the given parameters
-  private async generateMultiGraphUrl(anomalies: Anomaly[]): Promise<string[]> {
-    await this.fetchGroupReportApi(String(anomalies.map((anomaly) => anomaly.id).join(',')));
+  private async generateMultiGraphUrl(
+    anomalies: Anomaly[],
+    timerangeMap: { [key: number]: Timerange }
+  ): Promise<string[]> {
     const shortcutUrlList: string[] = [];
     for (let i = 0; i < anomalies.length; i++) {
-      const timerange = this.calculateTimeRange(anomalies.at(i)!);
+      const timerange = this.calculateTimeRange(timerangeMap[anomalies.at(i)!.id]);
       const graphConfigs = [] as GraphConfig[];
       const config: GraphConfig = {
         keys: '',
@@ -710,9 +721,9 @@ export class AnomaliesTableSk extends ElementSk {
     return shortcutUrlList;
   }
 
-  private calculateTimeRange(anomaly: Anomaly): string[] {
-    const timerangeBegin = this.getGroupReportResponse?.timerange_map![anomaly.id].begin;
-    const timerangeEnd = this.getGroupReportResponse?.timerange_map![anomaly.id].end;
+  private calculateTimeRange(timerange: Timerange): string[] {
+    const timerangeBegin = timerange.begin;
+    const timerangeEnd = timerange.end;
 
     // generate data one week ahead and one week behind to make it easier
     // for user to discern trends

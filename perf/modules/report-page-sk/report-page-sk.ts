@@ -101,6 +101,14 @@ export class AnomalyTracker {
 
     return ret;
   }
+
+  getTimerangeMap(): { [key: number]: Timerange } {
+    const map: { [key: number]: Timerange } = {};
+    for (const anomalyId in this.tracker) {
+      map[anomalyId] = this.tracker[anomalyId].timerange;
+    }
+    return map;
+  }
 }
 
 export class ReportPageSk extends ElementSk {
@@ -191,7 +199,10 @@ export class ReportPageSk extends ElementSk {
   }
 
   private initializePage() {
-    this.anomaliesTable!.populateTable(this.anomalyTracker.toAnomalyList());
+    this.anomaliesTable!.populateTable(
+      this.anomalyTracker.toAnomalyList(),
+      this.anomalyTracker.getTimerangeMap()
+    );
 
     const selected = this.anomalyTracker.getSelectedAnomalies();
     if (selected.length > 0) {
