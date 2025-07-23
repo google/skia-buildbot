@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/chromeperf"
+	"go.skia.org/infra/perf/go/config"
 	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 )
 
@@ -43,6 +44,7 @@ type FileBugRequest struct {
 	Ccs         []string `json:"ccs,omitempty"`
 	Labels      []string `json:"labels,omitempty"`
 	TraceNames  []string `json:"trace_names,omitempty"`
+	Host        string   `json:"host,omitempty"`
 }
 
 // Existing bug request object to asscociate alerts from new bug UI.
@@ -122,6 +124,9 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&fileBugRequest); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON on new bug request.", http.StatusInternalServerError)
 		return
+	}
+	if fileBugRequest.Host == "" {
+		fileBugRequest.Host = config.Config.URL
 	}
 	sklog.Debugf("[SkiaTriage] File new bug request received from frontend: %s", fileBugRequest)
 
