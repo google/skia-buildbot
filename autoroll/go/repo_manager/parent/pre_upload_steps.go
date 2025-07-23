@@ -185,9 +185,19 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir string, licenseFil
 	}()
 
 	sklog.Info("Running flutter license scripts.")
-	binariesPath := filepath.Join(parentRepoDir, "engine", "src", "flutter", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
+
+	// Step0: Check for the existence of a new pre-upload script, which replaces
+	// all of the subsequent steps if present.
+	preUploadScript := filepath.Join(parentRepoDir, ".autoroller-preupload.sh")
+	if _, err := os.Stat(preUploadScript); err != nil && !os.IsNotExist(err) {
+		return skerr.Wrapf(err, "failed to check the presence of pre-upload script")
+	} else if err == nil {
+		_, err = exec.RunCwd(ctx, parentRepoDir, preUploadScript)
+		return skerr.Wrap(err)
+	}
 
 	// Step1: Run pub get.
+	binariesPath := filepath.Join(parentRepoDir, "engine", "src", "flutter", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
 	licenseToolsDir := filepath.Join(parentRepoDir, "engine", "src", "flutter", "tools", "licenses")
 	dartBinary := filepath.Join(binariesPath, "dart")
 	sklog.Info("Running dart pub get.")
