@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os/user"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -31,7 +33,6 @@ var (
 	namespace                 = flag.String("namespace", "default", "The namespace the worker registered to.")
 	taskQueue                 = flag.String("taskQueue", "", "Task queue name registered to worker services.")
 	commit                    = flag.String("commit", "611b5a084486cd6d99a0dad63f34e320a2ebc2b3", "Git commit hash to build Chrome.")
-	commitPosition            = flag.Int("commit-position", 0, "Commit position (currently only used by CBB)")
 	startGitHash              = flag.String("start-git-hash", "c73e059a2ac54302b2951e4b4f1f7d94d92a707a", "Start git commit hash for bisect.")
 	endGitHash                = flag.String("end-git-hash", "979c9324d3c6474c15335e676ac7123312d5df82", "End git commit hash for bisect.")
 	configuration             = flag.String("configuration", "mac-m2-pro-perf", "Bot configuration to use.")
@@ -53,6 +54,11 @@ var (
 	triggerQueryPairwiseFlag  = flag.Bool("query-pairwise", false, "toggle true to trigger querying of pairwise flows")
 	triggerCbbRunnerFlag      = flag.Bool("cbb-runner", false, "toggle true to trigger CBB runner workflow")
 	triggerCbbNewReleaseFlag  = flag.Bool("cbb-new-release", false, "toggle true to trigger CbbNewReleaseDetectorWorkflow")
+	// The following flags are used by cbb-runner only.
+	commitPosition = flag.Int("commit-position", 0, "Commit position (required for CBB).")
+	browser        = flag.String("browser", "chrome", "chrome or safari or edge (used by CBB only)")
+	channel        = flag.String("channel", "stable", "stable, dev or \"Technology Preview\" (used by CBB only)")
+	bucket         = flag.String("bucket", "prod", "GS bucket to upload results to (prod, exp, or none; used by CBB only)")
 )
 
 func defaultWorkflowOptions() client.StartWorkflowOptions {
@@ -316,18 +322,65 @@ func triggerQueryPairwise(c client.Client) (*pb.QueryPairwiseResponse, error) {
 }
 
 func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
+	if *commit == "" {
+		return nil, errors.New("Please specify a commit hash using --commit switch")
+	}
+	if *commitPosition == 0 {
+		return nil, errors.New("Please specify a commit position using --commit-position switch")
+	}
 	ctx := context.Background()
 	p := &internal.CbbRunnerParams{
-		BotConfig: "mac-m3-pro-perf-cbb",
+		BotConfig: *configuration,
 		Commit:    common.NewCombinedCommit(common.NewChromiumCommit(*commit)),
-		Browser:   "chrome",
-		Channel:   "stable",
-		// For testing purposes, this is currently hardcoded to run 2 iterations of Speedometer 3.
-		// A mechanism will be added in the future to allow specifying benchmarks and iterations
-		// on the command line.
-		Benchmarks: []internal.BenchmarkRunConfig{{Benchmark: "speedometer3", Iterations: 2}},
+		Browser:   *browser,
+		Channel:   *channel,
 	}
 	p.Commit.Main.CommitPosition = int32(*commitPosition)
+
+	if *iterations == 0 {
+		if strings.HasPrefix(*configuration, "mac") {
+			*iterations = 3
+		} else {
+			*iterations = 2
+		}
+	}
+
+	switch *benchmark {
+	case "", "full":
+		// Setting p.Benchmarks to nil causes the default full set of benchmarks to run.
+		p.Benchmarks = nil
+	case "trial":
+		p.Benchmarks = []internal.BenchmarkRunConfig{
+			{Benchmark: "speedometer3", Iterations: int32(*iterations)},
+			{Benchmark: "jetstream2", Iterations: int32(*iterations)},
+			{Benchmark: "motionmark1.3", Iterations: int32(*iterations)},
+		}
+	default:
+		// Multiple benchmarks can be specified, separated by ",".
+		for _, b := range strings.Split(*benchmark, ",") {
+			// Each benchmark can be specified as "name", or "name:iteration"
+			colon := strings.Index(b, ":")
+			if colon == -1 {
+				p.Benchmarks = append(p.Benchmarks, internal.BenchmarkRunConfig{Benchmark: b, Iterations: int32(*iterations)})
+			} else {
+				i, err := strconv.ParseInt(b[colon+1:], 10, 32)
+				if err != nil {
+					return nil, skerr.Wrapf(err, "Invalid iteration %v in --benchmark", b[colon+1:])
+				}
+				p.Benchmarks = append(p.Benchmarks, internal.BenchmarkRunConfig{Benchmark: b[:colon], Iterations: int32(i)})
+			}
+		}
+	}
+
+	switch *bucket {
+	case "prod":
+		p.Bucket = "chrome-perf-non-public"
+	case "exp":
+		p.Bucket = "chrome-perf-experiment-non-public"
+	case "none":
+		p.Bucket = ""
+	}
+
 	var cr *internal.CommitRun
 	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.CbbRunner, p)
 	if err != nil {

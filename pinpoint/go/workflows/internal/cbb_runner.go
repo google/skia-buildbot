@@ -40,6 +40,9 @@ type CbbRunnerParams struct {
 	// The set of benchmarks to run, and the number of iterations for each.
 	// If nil, use default.
 	Benchmarks []BenchmarkRunConfig
+
+	// Name of the Google cloud storage bucket to upload results to.
+	Bucket string
 }
 
 // Configuration for a particular benchmark.
@@ -137,11 +140,15 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 		p := &SingleCommitRunnerParams{
 			PinpointJobID:  jobId,
 			BotConfig:      cbb.BotConfig,
-			Benchmark:      b.Benchmark + ".crossbench",
+			Benchmark:      b.Benchmark,
 			Story:          "default",
 			CombinedCommit: cbb.Commit,
 			Iterations:     b.Iterations,
 			ExtraArgs:      []string{browser},
+		}
+
+		if !strings.HasSuffix(p.Benchmark, ".crossbench") {
+			p.Benchmark += ".crossbench"
 		}
 
 		var cr *CommitRun
@@ -152,21 +159,25 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 		r := formatResult(cr, cbb.BotConfig, p.Benchmark, bi)
 		results[b.Benchmark] = r
 
-		var swc StringWriterCloser = StringWriterCloser{
-			builder: new(strings.Builder),
-		}
-		err = r.Write(swc)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
+		if cbb.Bucket != "" {
+			var swc StringWriterCloser = StringWriterCloser{
+				builder: new(strings.Builder),
+			}
+			err = r.Write(swc)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
 
-		var gsPath string
-		err = workflow.ExecuteActivity(
-			ctx, UploadCbbResultsActivity, startTime, cbb.BotConfig, p.Benchmark, swc.builder.String()).Get(ctx, &gsPath)
-		if err != nil {
-			return nil, skerr.Wrap(err)
+			var gsPath string
+			err = workflow.ExecuteActivity(
+				ctx, UploadCbbResultsActivity, startTime, cbb.BotConfig, p.Benchmark, swc.builder.String(), cbb.Bucket).Get(ctx, &gsPath)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			sklog.Infof("Uploaded results to %s", gsPath)
+		} else {
+			sklog.Warning("No GS bucket provided to upload results")
 		}
-		sklog.Infof("Uploaded results to %s", gsPath)
 	}
 
 	return &results, nil
@@ -252,9 +263,11 @@ func formatResult(cr *CommitRun, bot string, benchmark string, bi *browserInfo) 
 }
 
 // Activity to upload CBB results to cloud storage, for import into perf dashboard.
-func UploadCbbResultsActivity(ctx context.Context, t time.Time, bot string, benchmark string, results string) (string, error) {
-	gsBucket := "chrome-perf-non-public"
-	store, err := NewStore(ctx, gsBucket, false)
+func UploadCbbResultsActivity(ctx context.Context, t time.Time, bot string, benchmark string, results string, bucket string) (string, error) {
+	if bucket == "" {
+		return "", nil
+	}
+	store, err := NewStore(ctx, bucket, false)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
@@ -273,6 +286,6 @@ func UploadCbbResultsActivity(ctx context.Context, t time.Time, bot string, benc
 		return "", skerr.Wrap(err)
 	}
 
-	gsPath := fmt.Sprintf("gs://%s/%s", gsBucket, storeFilePath)
+	gsPath := fmt.Sprintf("gs://%s/%s", bucket, storeFilePath)
 	return gsPath, nil
 }
