@@ -8,6 +8,9 @@ packages:
   go.skia.org/infra/am/go/alertclient:
     interfaces:
       APIClient:
+  go.skia.org/infra/attest/go/types:
+    interfaces:
+      Client:
   go.skia.org/infra/autoroll/go/config/db:
     interfaces:
       DB:

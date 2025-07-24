@@ -204,18 +204,18 @@ func createCmd(command *Command) *osexec.Cmd {
 }
 
 func start(command *Command, cmd *osexec.Cmd) error {
-	if command.Verbose != Silent {
-		dirMsg := ""
-		if cmd.Dir != "" {
-			dirMsg = " with CWD " + cmd.Dir
-		}
-		if command.Verbose == Info {
-			sklog.Infof("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
-		} else if command.Verbose == Debug {
-			sklog.Debugf("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
-		}
+	// if command.Verbose != Silent {
+	// 	dirMsg := ""
+	// 	if cmd.Dir != "" {
+	// 		dirMsg = " with CWD " + cmd.Dir
+	// 	}
+	// 	if command.Verbose == Info {
+	// 		sklog.Infof("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
+	// 	} else if command.Verbose == Debug {
+	// 		sklog.Debugf("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
+	// 	}
 
-	}
+	// }
 	err := cmd.Start()
 	if err != nil {
 		return fmt.Errorf("Unable to start command %s: %s", DebugString(command), err)

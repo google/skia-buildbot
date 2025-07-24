@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "types",
+    srcs = ["types.go"],
+    importpath = "go.skia.org/infra/attest/go/types",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_test(
+    name = "types_test",
+    srcs = ["types_test.go"],
+    embed = [":types"],
+    deps = [
+        "//attest/go/types/mocks",
+        "//go/testutils",
+        "@com_github_stretchr_testify//require",
+    ],
+)

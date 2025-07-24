@@ -102,11 +102,11 @@ go_googleapis_compatibility_hack(
 # Needed by @com_github_bazelbuild_remote_apis.
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "b8ab9bbdf0c6968cf20060794bc61e231fae82aaf69d6e3577c154181991f576",
-    strip_prefix = "protobuf-3.18.1",
+    sha256 = "da288bf1daa6c04d03a9051781caa52aceb9163586bff9aa6cfb12f69b9395aa",
+    strip_prefix = "protobuf-27.0",
     urls = gcs_mirror_url(
         sha256 = "b8ab9bbdf0c6968cf20060794bc61e231fae82aaf69d6e3577c154181991f576",
-        url = "https://github.com/protocolbuffers/protobuf/releases/download/v3.18.1/protobuf-all-3.18.1.tar.gz",
+        url = "https://github.com/protocolbuffers/protobuf/releases/download/v27.0/protobuf-27.0.tar.gz",
     ),
 )
 
@@ -118,6 +118,15 @@ http_archive(
 # The protobuf_deps() macro brings in a bunch of dependencies, but by copying the macro body here
 # and removing dependencies one by one, "rules_proto" was identified as the only dependency that is
 # required to build this repository.
+
+http_archive(
+    name = "com_google_absl",
+    sha256 = "f49929d22751bf70dd61922fb1fd05eb7aec5e7a7f870beece79a6e28f0a06c1",
+    strip_prefix = "abseil-cpp-4a2c63365eff8823a5221db86ef490e828306f9d",
+    # Abseil LTS 20240116.0
+    urls = ["https://github.com/abseil/abseil-cpp/archive/4a2c63365eff8823a5221db86ef490e828306f9d.zip"],
+)
+
 http_archive(
     name = "rules_proto",
     sha256 = "6fb6767d1bef535310547e03247f7518b03487740c11b6c6adb7952033fe1295",
@@ -136,6 +145,10 @@ rules_proto_setup()
 load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 
 rules_proto_toolchains()
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
 
 # Needed by @com_github_bazelbuild_remote_apis for the googleapis protos.
 http_archive(
@@ -320,10 +333,10 @@ esbuild_register_toolchains(
 # See https://github.com/bazelbuild/rules_pkg/tree/main/pkg.
 http_archive(
     name = "rules_pkg",
-    sha256 = "038f1caa773a7e35b3663865ffb003169c6a71dc995e39bf4815792f385d837d",
+    sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.4.0/rules_pkg-0.4.0.tar.gz",
-        "https://github.com/bazelbuild/rules_pkg/releases/download/0.4.0/rules_pkg-0.4.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
+        "https://github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
     ],
 )
 

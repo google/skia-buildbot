@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "attestation",
+    srcs = ["attestation.go"],
+    importpath = "go.skia.org/infra/attest/go/attestation",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//attest/go/types",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_binaryauthorization//apiv1",
+        "@com_google_cloud_go_binaryauthorization//apiv1/binaryauthorizationpb",
+        "@com_google_cloud_go_containeranalysis//apiv1beta1",
+        "@com_google_cloud_go_containeranalysis//apiv1beta1/grafeas/grafeaspb",
+        "@org_golang_google_api//iterator",
+        "@org_golang_google_api//option",
+        "@org_golang_google_genproto//googleapis/grafeas/v1:grafeas",
+        "@org_golang_x_oauth2//google",
+    ],
+)
