@@ -631,6 +631,22 @@ load("//bazel/external:google_chrome.bzl", "google_chrome")
 
 google_chrome(name = "google_chrome")
 
+################################################
+# bazel-toolchains rbe_configs_gen (prebuilt). #
+################################################
+
+http_file(
+    name = "rbe_configs_gen_linux_amd64",
+    downloaded_file_path = "rbe_configs_gen",
+    executable = True,
+    sha256 = "1206e8a79b41cb22524f73afa4f4ee648478f46ef6990d78e7cc953665a1db89",
+    urls = gcs_mirror_url(
+        ext = "",
+        sha256 = "1206e8a79b41cb22524f73afa4f4ee648478f46ef6990d78e7cc953665a1db89",
+        url = "https://github.com/bazelbuild/bazel-toolchains/releases/download/v5.1.2/rbe_configs_gen_linux_amd64",
+    ),
+)
+
 ##########################
 # Buildifier (prebuilt). #
 ##########################

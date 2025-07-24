@@ -299,3 +299,12 @@ alias(
     actual = "//sk/go/sk",
     visibility = ["//visibility:public"],
 )
+
+################################################
+# rbe_configs_gen  #
+################################################
+alias(
+    name = "rbe_configs_gen",
+    actual = "@rbe_configs_gen_linux_amd64//file:rbe_configs_gen",
+    visibility = ["//visibility:public"],
+)

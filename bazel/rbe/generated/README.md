@@ -60,14 +60,13 @@ regenerating these files, just update the `container-image` exec_property of the
 in `//bazel/rbe/generated/config/BUILD`
 ([example](https://skia.googlesource.com/buildbot/+/bb3604fd9a57bb20d799341b50f616af9e0062d4/bazel/rbe/generated/config/BUILD#43)).
 
-Regenerate the `//bazel/rbe/generated` directory with the `rbe_configs_gen` CLI tool (installation
-instructions below):
+Regenerate the `//bazel/rbe/generated` directory with the `rbe_configs_gen` CLI tool:
 
 ```
 # Replace the <PLACEHOLDERS> as needed.
-$ rbe_configs_gen \
+$ bazelisk run //:rbe_configs_gen \
       --bazel_version=<BAZEL VERSION> \
-      --toolchain_container=gcr.io/skia-public/rbe-container-skia-infra@sha256:<HASH OF MOST RECENT IMAGE> \
+      --toolchain_container=gcr.io/skia-public/infra-rbe-linux@sha256:<HASH OF MOST RECENT IMAGE> \
       --output_src_root=<PATH TO REPOSITORY CHECKOUT> \
       --output_config_path=bazel/rbe/generated \
       --exec_os=linux \
@@ -78,10 +77,10 @@ $ rbe_configs_gen \
 Example:
 
 ```
-$ rbe_configs_gen \
-      --bazel_version=4.1.0 \
-      --toolchain_container=gcr.io/skia-public/rbe-container-skia-infra@sha256:5418d876cd8bb7cdbd05b834254038744d15f2f38327dfa46ff8dc9f83355260 \
-      --output_src_root=$HOME/buildbot \
+$ bazelisk run //:rbe_configs_gen -- \
+      --bazel_version=$(cat .bazelversion) \
+      --toolchain_container=gcr.io/skia-public/infra-rbe-linux@sha256:0b12571d1befe54e9300711c8519535d635b867c317b2098915c7733fd65b833 \
+      --output_src_root=$(pwd) \
       --output_config_path=bazel/rbe/generated \
       --exec_os=linux \
       --target_os=linux \
@@ -111,17 +110,3 @@ Try running various bazel commands with `--config remote` to make use of the new
 
 When uploading the change as a CL, any tasks with the `-RBE` suffix will automatically use the
 image specified in `//bazel/rbe/generated/config/BUILD`.
-
-## How to install the `rbe_configs_gen` CLI tool
-
-Clone the [bazel-toolchains](https://github.com/bazelbuild/bazel-toolchains) repository outside of
-the Buildbot repository checkout, build the `rbe_configs_gen` binary, and place it on your $PATH:
-
-```
-$ git clone https://github.com/bazelbuild/bazel-toolchains
-
-$ cd bazel-toolchains
-
-# This assumes that $HOME/bin is in your $PATH.
-$ go build -o $HOME/bin/rbe_configs_gen ./cmd/rbe_configs_gen/rbe_configs_gen.go
-```

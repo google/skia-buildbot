@@ -143,6 +143,34 @@ lto_index_actions = [
     ACTION_NAMES.lto_index_for_nodeps_dynamic_library,
 ]
 
+def _sanitizer_feature(name = "", specific_compile_flags = [], specific_link_flags = []):
+    return feature(
+        name = name,
+        flag_sets = [
+            flag_set(
+                actions = all_compile_actions,
+                flag_groups = [
+                    flag_group(flags = [
+                        "-fno-omit-frame-pointer",
+                        "-fno-sanitize-recover=all",
+                    ] + specific_compile_flags),
+                ],
+                with_features = [
+                    with_feature_set(features = [name]),
+                ],
+            ),
+            flag_set(
+                actions = all_link_actions,
+                flag_groups = [
+                    flag_group(flags = specific_link_flags),
+                ],
+                with_features = [
+                    with_feature_set(features = [name]),
+                ],
+            ),
+        ],
+    )
+
 def _impl(ctx):
     tool_paths = [
         tool_path(name = name, path = path)
@@ -783,6 +811,24 @@ def _impl(ctx):
         ],
     )
 
+    is_linux = ctx.attr.target_libc != "macosx"
+    if is_linux:
+        versioned_library_flag_group = flag_group(
+            flags = ["-l:%{libraries_to_link.name}"],
+            expand_if_equal = variable_with_value(
+                name = "libraries_to_link.type",
+                value = "versioned_dynamic_library",
+            ),
+        )
+    else:
+        versioned_library_flag_group = flag_group(
+            flags = ["%{libraries_to_link.path}"],
+            expand_if_equal = variable_with_value(
+                name = "libraries_to_link.type",
+                value = "versioned_dynamic_library",
+            ),
+        )
+
     libraries_to_link_feature = feature(
         name = "libraries_to_link",
         flag_sets = [
@@ -840,13 +886,7 @@ def _impl(ctx):
                                     value = "dynamic_library",
                                 ),
                             ),
-                            flag_group(
-                                flags = ["-l:%{libraries_to_link.name}"],
-                                expand_if_equal = variable_with_value(
-                                    name = "libraries_to_link.type",
-                                    value = "versioned_dynamic_library",
-                                ),
-                            ),
+                            versioned_library_flag_group,
                             flag_group(
                                 flags = ["-Wl,-no-whole-archive"],
                                 expand_if_true = "libraries_to_link.is_whole_archive",
@@ -1224,7 +1264,37 @@ def _impl(ctx):
         enabled = True,
     )
 
-    is_linux = ctx.attr.target_libc != "macosx"
+    asan_feature = _sanitizer_feature(
+        name = "asan",
+        specific_compile_flags = [
+            "-fsanitize=address",
+            "-fno-common",
+        ],
+        specific_link_flags = [
+            "-fsanitize=address",
+        ],
+    )
+
+    tsan_feature = _sanitizer_feature(
+        name = "tsan",
+        specific_compile_flags = [
+            "-fsanitize=thread",
+        ],
+        specific_link_flags = [
+            "-fsanitize=thread",
+        ],
+    )
+
+    ubsan_feature = _sanitizer_feature(
+        name = "ubsan",
+        specific_compile_flags = [
+            "-fsanitize=undefined",
+        ],
+        specific_link_flags = [
+            "-fsanitize=undefined",
+        ],
+    )
+
     libtool_feature = feature(
         name = "libtool",
         enabled = not is_linux,
@@ -1265,6 +1335,9 @@ def _impl(ctx):
             strip_debug_symbols_feature,
             coverage_feature,
             supports_pic_feature,
+            asan_feature,
+            tsan_feature,
+            ubsan_feature,
         ] + (
             [
                 supports_start_end_lib_feature,
@@ -1300,6 +1373,9 @@ def _impl(ctx):
             libtool_feature,
             archiver_flags_feature,
             supports_pic_feature,
+            asan_feature,
+            tsan_feature,
+            ubsan_feature,
         ] + (
             [
                 supports_start_end_lib_feature,
