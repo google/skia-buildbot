@@ -54,7 +54,7 @@ export class AnomalyTracker {
   load(
     anomalyList: Anomaly[],
     timerangeMap: { [key: number]: Timerange },
-    selectedKeys: string[] = []
+    selectedKeys: number[]
   ): void {
     anomalyList.forEach((anomaly) => {
       this.tracker[anomaly.id] = {
@@ -62,7 +62,7 @@ export class AnomalyTracker {
         // anomaly id is number type, but selectedKey in string and needs type
         // match to check whether it's in.
         // When selectedKeys is null, includes() returns undefined.
-        checked: Boolean(selectedKeys?.includes(anomaly.id.toString())),
+        checked: Boolean(selectedKeys?.includes(anomaly.id)),
         graph: null,
         timerange: timerangeMap[anomaly.id],
       };
@@ -198,17 +198,13 @@ export class ReportPageSk extends ElementSk {
       });
   }
 
-  private initializePage() {
-    this.anomaliesTable!.populateTable(
+  private async initializePage() {
+    await this.anomaliesTable!.populateTable(
       this.anomalyTracker.toAnomalyList(),
       this.anomalyTracker.getTimerangeMap()
     );
 
-    const selected = this.anomalyTracker.getSelectedAnomalies();
-    if (selected.length > 0) {
-      this.anomaliesTable!.checkSelectedAnomalies(selected);
-    }
-    this.anomaliesTable?.initialCheckAllCheckbox();
+    this.anomaliesTable!.checkSelectedAnomalies(this.anomalyTracker.toAnomalyList());
   }
 
   private async initializeDefaults() {
