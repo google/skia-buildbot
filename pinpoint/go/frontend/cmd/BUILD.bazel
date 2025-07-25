@@ -16,11 +16,9 @@ go_library(
 
 go_binary(
     name = "cmd",
-    # This Dependency will come to effect once we begin to serve pages for the
-    # Pinpoint UI.
-    # data = [
-    #    "//pinpoint/ui/pages:landing-page",
-    # ],
+    data = [
+        "//pinpoint/ui/pages:landing-page",
+    ],
     embed = [":cmd_lib"],
     visibility = ["//visibility:public"],
 )

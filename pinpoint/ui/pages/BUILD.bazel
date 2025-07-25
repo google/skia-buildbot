@@ -1,0 +1,11 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "landing-page",
+    assets_serving_path = "/dist",
+    html_file = "landing-page.html",
+    sk_element_deps = [
+        "//pinpoint/ui/modules/pinpoint-landing-page-sk",
+    ],
+    ts_entry_point = "landing-page.ts",
+)

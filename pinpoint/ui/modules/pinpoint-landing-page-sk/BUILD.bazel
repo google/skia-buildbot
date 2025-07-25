@@ -1,0 +1,19 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "pinpoint-landing-page-sk",
+    sk_element_deps = [
+        "//pinpoint/ui/modules/jobs-table-sk",
+        "//pinpoint/ui/modules/pinpoint-scaffold-sk",
+    ],
+    ts_deps = [
+        "//:node_modules/lit",
+        "//pinpoint/ui/services:api_ts_lib",
+        "//:node_modules/@material/web",
+    ],
+    ts_srcs = [
+        "pinpoint-landing-page-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
