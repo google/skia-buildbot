@@ -23,40 +23,6 @@ serve:
 	@echo "For the module under development, try running something like:"
 	@echo "bazel run modules/fiddle-embed-sk:demo_page_server"
 
-release-fiddle: build
-	$(BAZEL) run --config=mayberemote //fiddlek:push_fiddle_container
-
-.PHONY: pull-skia-release-image
-pull-skia-release-image:
-	# Pull down the most recently build Skia docker container.
-	$(DOCKER) pull gcr.io/skia-public/skia-release:prod
-
-release-fiddler: build
-	$(BAZEL) run --config=mayberemote //fiddlek:push_fiddler_container
-
-release: release-fiddle release-fiddler
-
-# Used by the autodeployment framework:
-# https://skia.googlesource.com/buildbot/+doc/main/docker_pushes_watcher/README.md
-release-fiddler-ci: build
-	# COPY_FROM_DIR and STABLE_DOCKER_TAG env variables are expected to be
-	# set by the auto deploy mechanism,
-	cp $(COPY_FROM_DIR)/skia.tar.gz build/skia.tar.gz
-	${BAZEL} run //fiddlek:push_fiddler_container --workspace_status_command=bazel/override_container_label.sh
-	# Cleanup the build directory.
-	git checkout build/*
-
-# Review section in README.md before running this target
-push_I_am_really_sure: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout fiddle fiddler
-
-push_fiddle: release-fiddle
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout fiddle
-
-# Review section in README.md before running this target
-push_fiddler_I_am_really_sure: release-fiddler
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout fiddler
-
 cli:
 	go install -v ./go/fiddlecli
 

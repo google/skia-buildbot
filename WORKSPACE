@@ -456,15 +456,6 @@ container_pull(
     repository = "skia-public/cd-base",
 )
 
-# Pulls the gcr.io/skia-public/skia-build-tools container, needed by some apps that
-# build skia.
-container_pull(
-    name = "skia-build-tools",
-    digest = "sha256:28cc48a073ac1f35f468c1b725e331b626791b35edb18696f30891c4f047d236",
-    registry = "gcr.io",
-    repository = "skia-public/skia-build-tools",
-)
-
 # Pulls the gcr.io/skia-public/docsyserver-base container, needed by docsyserver.
 container_pull(
     name = "docsyserver-base",
@@ -511,14 +502,6 @@ container_pull(
     import_tags = ["1.21.3"],
     registry = "google-go.pkg.dev",
     repository = "golang",
-)
-
-# Pulls the gcr.io/skia-public/skia-release container, needed by fiddle
-container_pull(
-    name = "skia-release",
-    registry = "gcr.io",
-    repository = "skia-public/skia-release",
-    tag = "511fd84b36e4f449a7d05723de4f354effc28bf4",
 )
 
 container_pull(
