@@ -20,6 +20,11 @@ const (
 	IterationFlagName         = "iteration"
 	StoryFlagName             = "story"
 	TargetNewPinpoint         = "target_new_pinpoint"
+	UserFlagName              = "user"
+	BugIDFlagName             = "bug_id"
+	ProjectFlagName           = "project"
+	BasePatchFlagName         = "base_patch"
+	ExperimentPatchFlagName   = "experiment_patch"
 
 	// bisect specific flags
 	BaseRevisionFlagName       = "base_revision"
@@ -39,6 +44,7 @@ func BenchmarkArgument(required bool) common.ToolArgument {
 // Pinpoint try and bisect jobs.
 // isTryJob is a bool field, where if try job is true, git hash fields are required.
 func arguments(isTryJob bool) []common.ToolArgument {
+	// TODO(jeffyoon@) pass the user
 	return []common.ToolArgument{
 		{
 			Name:         BaseGitHashFlagName,
@@ -83,6 +89,7 @@ func arguments(isTryJob bool) []common.ToolArgument {
 
 // arguments specific to bisect, to support bisecting an anomaly for a culprit.
 func bisectArguments() []common.ToolArgument {
+	// TODO(jeffyoon@) comparison magnitude
 	return append(arguments(false), []common.ToolArgument{
 		{
 			Name:         BaseRevisionFlagName,
@@ -93,6 +100,41 @@ func bisectArguments() []common.ToolArgument {
 		{
 			Name:         ExperimentRevisionFlagName,
 			Description:  experimentRevisionDescription,
+			Required:     false,
+			ArgumentType: common.StringArgument,
+		},
+	}...)
+}
+
+func pairwiseArguments() []common.ToolArgument {
+	return append(arguments(true), []common.ToolArgument{
+		{
+			Name:         UserFlagName,
+			Description:  userDescription,
+			Required:     true,
+			ArgumentType: common.StringArgument,
+		},
+		{
+			Name:         BugIDFlagName,
+			Description:  bugIDDescription,
+			Required:     false,
+			ArgumentType: common.StringArgument,
+		},
+		{
+			Name:         ProjectFlagName,
+			Description:  projectDescription,
+			Required:     false,
+			ArgumentType: common.StringArgument,
+		},
+		{
+			Name:         BasePatchFlagName,
+			Description:  basePatchDescription,
+			Required:     false,
+			ArgumentType: common.StringArgument,
+		},
+		{
+			Name:         ExperimentPatchFlagName,
+			Description:  experimentPatchDescription,
 			Required:     false,
 			ArgumentType: common.StringArgument,
 		},
@@ -125,7 +167,7 @@ func GetTools(httpClient *http.Client, crrevClient *backends.CrrevClientImpl) []
 		{
 			Name:        PairwiseCommandName,
 			Description: pairwiseDescription,
-			Arguments:   arguments(true),
+			Arguments:   pairwiseArguments(),
 			Handler: func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 				c := NewPinpointClient(request.GetArguments())
 

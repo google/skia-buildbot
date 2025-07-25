@@ -121,6 +121,24 @@ func (pc *PinpointClient) legacyRequestUrl(comparisonMode string, bisectKey stri
 	if pc.args[IterationFlagName] != nil {
 		params.Set("iterations", pc.args[IterationFlagName].(string))
 	}
+	if pc.args[UserFlagName] != nil {
+		params.Set("user", pc.args[UserFlagName].(string))
+	}
+	if pc.args[BugIDFlagName] != nil {
+		params.Set("bug_id", pc.args[BugIDFlagName].(string))
+	}
+	// project defaults to Chromium if not provided.
+	if pc.args[ProjectFlagName] != nil {
+		params.Set("project", pc.args[ProjectFlagName].(string))
+	} else {
+		params.Set("project", "chromium")
+	}
+	if pc.args[BasePatchFlagName] != nil {
+		params.Set("base_patch", pc.args[BasePatchFlagName].(string))
+	}
+	if pc.args[ExperimentPatchFlagName] != nil {
+		params.Set("experiment_patch", pc.args[ExperimentPatchFlagName].(string))
+	}
 
 	url := fmt.Sprintf("%s%s?%s", pc.Url, LegacyPinpointApiNew, params.Encode())
 	sklog.Debugf("Target URL for Pinpoint Job: %s", url)

@@ -17,7 +17,11 @@ Pinpoint. This try job compares the performance of Chrome on a particular
 benchmark on a particular platform at two different the performance of Chrome
 on a particular benchmark on a particular platform at two different points in
 time, defined by the base (or control, or A) and the experiment (or the
-treatment, or B).
+treatment, or B). When testing a set of changes (also referred to as a Gerrit
+patchset or Gerrit change), the base_git_hash and experiment_git_hash are
+usually the same value, with the experiment_patch applied so that, in the
+context of an A/B test, A is compared against A + patchset to measure the impact
+of the patchset in isolation.
 `
 
 // Tool Arguments
@@ -98,4 +102,34 @@ experiment. For a bisect job, it defines the starting point to run the bisection
 for when searching for a culprit. If the experiment git hash is already
 provided, this value will be ignored. One of experiment revision flag or
 experiment git hash is required to run a try or bisect job.
+`
+
+const userDescription = `
+The user, usually in the form of an email, that is making the Pinpoint job
+request. This user email will be tied to the triggered job, so that on the
+Pinpoint dashboard, the triggered job will appear under the user's list of jobs.
+`
+
+const bugIDDescription = `
+The Buganizer ID to associate with this execution. If a Buganizer ID is
+provided, that ticket will be updated with the status and results of the
+Pinpoint job.
+`
+
+const projectDescription = `
+The project associated with the Pinpoint job. Usually, this is \"chromium\"
+and is the default value.
+`
+const basePatchDescription = `
+A Gerrit change ID that can be applied as a patch to the base git hash (or
+revision). This means that when Chromium is built, it will checkout Chromium at
+the base_git_hash defined, and then apply this Gerrit patchset before building
+Chromium.
+`
+
+const experimentPatchDescription = `
+A Gerrit change ID that can be applied as a patch to the experiment git hash
+(or revision). This means that when Chromium is built, it will checkout Chromium
+at the experiment_git_hash defined, and then apply this Gerrit patchset before
+building Chromium.
 `
