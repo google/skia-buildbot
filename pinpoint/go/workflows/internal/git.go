@@ -97,6 +97,13 @@ func (client *gitClient) ShallowClone(branchName string) error {
 	if _, err := exec.RunCwd(client.ctx, checkoutDir, client.gitExec, "init"); err != nil {
 		return skerr.Wrapf(err, "Failed to init Git")
 	}
+	if _, err := exec.RunCwd(client.ctx, checkoutDir, client.gitExec, "config",
+		"user.email", "pinpoint-worker@skia-infra-corp.iam.gserviceaccount.com"); err != nil {
+		return skerr.Wrapf(err, "Failed to config user email")
+	}
+	if _, err := exec.RunCwd(client.ctx, checkoutDir, client.gitExec, "config", "user.name", "Pinpoint Worker"); err != nil {
+		return skerr.Wrapf(err, "Failed to config user name")
+	}
 	if _, err := exec.RunCwd(client.ctx, checkoutDir, client.gitExec, "remote", "add", "origin", client.repoUrl); err != nil {
 		return skerr.Wrapf(err, "Failed to add remote Git")
 	}
