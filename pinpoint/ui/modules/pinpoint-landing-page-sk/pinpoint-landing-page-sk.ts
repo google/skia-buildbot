@@ -56,7 +56,12 @@ export class PinpointLandingPageSk extends LitElement {
     this._error = null;
     this._sortBy = 'created_date';
     this._sortDir = 'desc';
-    this._listJobsOptions = { searchTerm: '' };
+    this._listJobsOptions = {
+      searchTerm: '',
+      benchmark: '',
+      botName: '',
+      user: '',
+    };
     this._currentPage = 0;
     this._hasNextPage = false;
   }
@@ -100,6 +105,16 @@ export class PinpointLandingPageSk extends LitElement {
   private onSearchChanged(e: CustomEvent<{ value: string }>) {
     this._listJobsOptions = { ...this._listJobsOptions, searchTerm: e.detail.value };
     this._currentPage = 0; // Reset to first page on new search
+    this.fetchJobs();
+  }
+
+  // Handles the 'filters-changed' event from the pinpoint-scaffold-sk component.
+  private onFiltersChanged(e: CustomEvent<{ benchmark: string; botName: string; user: string }>) {
+    this._listJobsOptions = {
+      ...this._listJobsOptions,
+      ...e.detail,
+    };
+    this._currentPage = 0;
     this.fetchJobs();
   }
 
@@ -177,7 +192,9 @@ export class PinpointLandingPageSk extends LitElement {
     }
 
     return html`
-      <pinpoint-scaffold-sk @search-changed=${this.onSearchChanged}>
+      <pinpoint-scaffold-sk
+        @search-changed=${this.onSearchChanged}
+        @filters-changed=${this.onFiltersChanged}>
         ${loadingIndicator} ${errorIndicator} ${content}
       </pinpoint-scaffold-sk>
     `;

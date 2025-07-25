@@ -13,6 +13,9 @@ export interface Job {
 
 export interface ListJobsOptions {
   searchTerm?: string;
+  benchmark?: string;
+  botName?: string;
+  user?: string;
   limit?: number;
   offset?: number;
 }
@@ -25,6 +28,9 @@ export interface ListJobsOptions {
 export async function listJobs(options: ListJobsOptions): Promise<Job[]> {
   const params = new URLSearchParams();
   if (options.searchTerm) params.set('search_term', options.searchTerm);
+  if (options.benchmark) params.set('benchmark', options.benchmark);
+  if (options.botName) params.set('bot_name', options.botName);
+  if (options.user) params.set('user', options.user);
   if (options.limit) params.set('limit', options.limit.toString());
   if (options.offset) params.set('offset', options.offset.toString());
 

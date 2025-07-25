@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v4"
@@ -69,6 +70,12 @@ type DashboardJob struct {
 type ListJobsOptions struct {
 	// SearchTerm filters jobs by job_name (case-insensitive).
 	SearchTerm string
+	// Benchmark filters jobs by the exact benchmark name.
+	Benchmark string
+	// BotName filters jobs by the exact bot name.
+	BotName string
+	// User filters jobs by the exact user who submitted the job.
+	User string
 	// Limit is the maximum number of jobs to return.
 	// If zero or negative, a default of 50 is used.
 	Limit int
@@ -343,16 +350,36 @@ func (js *jobStoreImpl) ListJobs(ctx context.Context, options ListJobsOptions) (
 			bot_name,
 			submitted_by
 		FROM jobs`
-	args := []interface{}{}
+	var whereClauses []string
+	var args []interface{}
 	paramCount := 1
 
 	if options.SearchTerm != "" {
-		query += fmt.Sprintf(" WHERE job_name LIKE $%d", paramCount)
-		args = append(args, "%"+options.SearchTerm+"%") // wildcards
+		whereClauses = append(whereClauses, fmt.Sprintf("job_name LIKE $%d", paramCount))
+		args = append(args, "%"+options.SearchTerm+"%")
+		paramCount++
+	}
+	if options.Benchmark != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("benchmark LIKE $%d", paramCount))
+		args = append(args, "%"+options.Benchmark+"%")
+		paramCount++
+	}
+	if options.BotName != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("bot_name LIKE $%d", paramCount))
+		args = append(args, "%"+options.BotName+"%")
+		paramCount++
+	}
+	if options.User != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("submitted_by LIKE $%d", paramCount))
+		args = append(args, "%"+options.User+"%")
 		paramCount++
 	}
 
-	query += " ORDER BY createdat DESC" // sort by creation date to ensure consistent ordering.
+	if len(whereClauses) > 0 {
+		query += " WHERE " + strings.Join(whereClauses, " AND ")
+	}
+
+	query += " ORDER BY createdat DESC"
 
 	limit := DefaultLimit
 	if options.Limit > 0 && options.Limit <= MaxLimit {
@@ -363,7 +390,6 @@ func (js *jobStoreImpl) ListJobs(ctx context.Context, options ListJobsOptions) (
 	if options.Offset > 0 {
 		query += fmt.Sprintf(" OFFSET $%d", paramCount)
 		args = append(args, options.Offset)
-		paramCount++
 	}
 
 	rows, err := js.db.Query(ctx, query, args...)

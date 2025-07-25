@@ -371,4 +371,14 @@ func TestListJobs(t *testing.T) {
 		require.Len(t, jobs, 1)
 		assert.Equal(t, job1ID, jobs[0].JobID)
 	})
+
+	t.Run("With filters for benchmark and user", func(t *testing.T) {
+		opts := ListJobsOptions{Benchmark: "speedo", User: "user1"}
+		jobs, err := js.ListJobs(ctx, opts)
+		require.NoError(t, err)
+		require.Len(t, jobs, 2)
+		// Default sort is by createdat DESC, so job3 should come before job1.
+		assert.Equal(t, job3ID, jobs[0].JobID)
+		assert.Equal(t, job1ID, jobs[1].JobID)
+	})
 }

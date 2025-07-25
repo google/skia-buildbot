@@ -2,10 +2,13 @@ load("//infra-sk:index.bzl", "sk_element")
 
 sk_element(
     name = "pinpoint-scaffold-sk",
+    sk_element_deps = ["//elements-sk/modules/icons/filter-list-icon-sk"],
     ts_deps = [
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
         "//:node_modules/@material/web",
+        "//pinpoint/ui/services:api_ts_lib",
+        "//:node_modules/@vaadin/combo-box",
     ],
     ts_srcs = [
         "pinpoint-scaffold-sk.ts",

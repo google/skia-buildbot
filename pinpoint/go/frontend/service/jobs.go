@@ -96,6 +96,9 @@ func (s *Service) ListJobsHandler(w http.ResponseWriter, r *http.Request) {
 
 	opts := jobstore.ListJobsOptions{
 		SearchTerm: q.Get("search_term"),
+		Benchmark:  q.Get("benchmark"),
+		BotName:    q.Get("bot_name"),
+		User:       q.Get("user"),
 		Limit:      limit,
 		Offset:     offset,
 	}
