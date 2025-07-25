@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/kube/cmd/k8s-config-presubmit",
     visibility = ["//visibility:private"],
     deps = [
+        "//attest/go/types",
         "//go/docker",
         "//go/git",
         "//go/util",

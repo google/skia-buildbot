@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -28,6 +29,7 @@ import (
 	"github.com/yannh/kubeconform/pkg/validator"
 	corev1 "k8s.io/api/core/v1"
 
+	"go.skia.org/infra/attest/go/types"
 	"go.skia.org/infra/go/docker"
 	git_pkg "go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/util"
@@ -347,6 +349,23 @@ func checkK8sConfigFile(ctx context.Context, f fileWithChanges) bool {
 	}
 	for _, container := range containers {
 		ok = ok && validateContainer(ctx, container)
+	}
+
+	// Validate images.
+	images := map[string]bool{}
+	for _, container := range containers {
+		images[container.Image] = true
+	}
+	client := types.NewHttpClient("https://attest.skia.org", http.DefaultClient)
+	for image := range images {
+		verified, err := client.Verify(ctx, image)
+		if err != nil {
+			logf(ctx, "Failed to verify image %s: %s", image, err)
+			return false
+		} else if !verified {
+			logf(ctx, "Image %s does not have a valid attestation", image)
+			ok = false
+		}
 	}
 
 	return ok
