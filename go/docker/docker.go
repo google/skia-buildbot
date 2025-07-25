@@ -32,6 +32,7 @@ const (
 
 var (
 	dockerImageRegex = regexp.MustCompile(`^([0-9a-zA-Z_\.-]+)/([0-9a-zA-Z_\.\/-]+)(:([0-9a-zA-Z_\.-]+)|@(sha256:[0-9a-f]{64})|)$`)
+	digestRegex      = regexp.MustCompile(`^sha256:[0-9a-f]{64}$`)
 )
 
 // SplitImage splits a full Docker image path into registry, repository, and
@@ -49,6 +50,11 @@ func SplitImage(image string) (registry, repository, tagOrDigest string, err err
 		tagOrDigest = m[5]
 	}
 	return
+}
+
+// IsDigest returns true if the given string looks like a Docker image digest.
+func IsDigest(str string) bool {
+	return digestRegex.MatchString(str)
 }
 
 // Client is used for interacting with a Docker registry.
@@ -417,4 +423,29 @@ func GetDigest(ctx context.Context, c Client, registry, repository, tag string) 
 		return "", skerr.Wrap(err)
 	}
 	return manifest.Digest, nil
+}
+
+// GetDigestIfNeeded retrieves the digest for the given image from the registry,
+// unless the given tagOrDigest looks like a digest, in which case it is
+// returned unchanged.
+func GetDigestIfNeeded(ctx context.Context, c Client, registry, repository, tagOrDigest string) (string, error) {
+	if IsDigest(tagOrDigest) {
+		return tagOrDigest, nil
+	} else {
+		return GetDigest(ctx, c, registry, repository, tagOrDigest)
+	}
+}
+
+// GetTags retrieves the tags attached to the given image. This requires listing
+// all instances of the image, so it may be quite slow.
+func GetTags(ctx context.Context, c Client, registry, repository, digest string) ([]string, error) {
+	instances, err := c.ListInstances(ctx, registry, repository)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	instance, ok := instances[digest]
+	if !ok {
+		return nil, skerr.Fmt("failed to find instance %q of %s/%s", digest, registry, repository)
+	}
+	return instance.Tags, nil
 }

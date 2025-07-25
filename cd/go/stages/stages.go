@@ -128,34 +128,22 @@ func (sm *StageManager) SetStage(ctx context.Context, image, stage, reference st
 		}
 
 		// Retrieve the digest of the image.
-		manifest, err := sm.docker.GetManifest(ctx, registry, repository, reference)
+		digest, err := docker.GetDigestIfNeeded(ctx, sm.docker, registry, repository, reference)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		digest := manifest.Digest
 
-		// Find a "git-abc123" tag for the image, derive the commit hash.
+		// If the reference wasn't a git commit hash, retrieve all commit hashes
+		// associated with the image via tags and use an arbitrary one of them.
 		if gitHash == "" {
-			instances, err := sm.docker.ListInstances(ctx, registry, repository)
+			commitHashes, err := GetCommitHashesForImage(ctx, sm.docker, registry, repository, digest)
 			if err != nil {
 				return skerr.Wrap(err)
 			}
-			instance, ok := instances[digest]
-			if !ok {
-				return skerr.Fmt("failed to find instance %q of %s", digest, image)
+			if len(commitHashes) == 0 {
+				return skerr.Fmt("Failed to find git commit hash for instance %s of %s", digest, image)
 			}
-			for _, tag := range instance.Tags {
-				if strings.HasPrefix(tag, GitTagPrefix) {
-					maybeHash := strings.TrimPrefix(tag, GitTagPrefix)
-					if git.IsFullCommitHash(maybeHash) {
-						gitHash = maybeHash
-						break
-					}
-				}
-			}
-		}
-		if gitHash == "" {
-			return skerr.Fmt("failed to find \"git-\" tag on instance %q of %s", digest, image)
+			gitHash = commitHashes[0]
 		}
 
 		// Update the stage file.
@@ -391,4 +379,24 @@ func GetStagesFromAnnotations(annotations map[string]string) (map[string]string,
 		rv[strings.TrimSpace(splitPair[0])] = strings.TrimSpace(splitPair[1])
 	}
 	return rv, nil
+}
+
+// GetCommitHashesForImage finds all "git-<hash>" tags associated with the given
+// image and returns a slice of strings containing the hashes.
+func GetCommitHashesForImage(ctx context.Context, c docker.Client, registry, repository, digest string) ([]string, error) {
+	tags, err := docker.GetTags(ctx, c, registry, repository, digest)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	commitHashes := []string{}
+	for _, tag := range tags {
+		if strings.HasPrefix(tag, GitTagPrefix) {
+			maybeHash := strings.TrimPrefix(tag, GitTagPrefix)
+			if git.IsFullCommitHash(maybeHash) {
+				commitHashes = append(commitHashes, maybeHash)
+				break
+			}
+		}
+	}
+	return commitHashes, nil
 }
