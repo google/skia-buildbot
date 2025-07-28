@@ -623,6 +623,9 @@ export class ExploreMultiSk extends ElementSk {
         if (this.testPicker) {
           this.testPicker.autoAddTrace = true;
         }
+        if (this.state.splitByKeys.length > 0) {
+          this.splitGraphs();
+        }
       }
       this.updateSplitByKeys();
     });
