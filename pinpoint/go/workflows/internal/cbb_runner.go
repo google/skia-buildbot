@@ -67,6 +67,14 @@ func setupBenchmarks(cbb *CbbRunnerParams) []BenchmarkRunConfig {
 	benchmarks = append(benchmarks, BenchmarkRunConfig{"jetstream2", 22})
 	benchmarks = append(benchmarks, BenchmarkRunConfig{"motionmark1.3", 22})
 
+	// TODO(b/433537961) Double number of iterations on Android until we
+	// figure out why benchmarks fail frequently on it.
+	if strings.HasPrefix(botConfig, "android-") {
+		for i := range benchmarks {
+			benchmarks[i].Iterations *= 2
+		}
+	}
+
 	return benchmarks
 }
 
