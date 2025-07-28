@@ -59,7 +59,7 @@ export const getAttributes = (df: DataFrame): string[] => {
 // Just depends on whether explore-simple-sk needs to invoke this logic
 export const getTitle = (dt: DataTable): object => {
   const numCols = dt!.getNumberOfColumns();
-  const traceKeys = [];
+  const traceKeys: string[] = [];
   // skip the first two columns since they are domains
   for (let i = 2; i < numCols; i++) {
     traceKeys.push(dt!.getColumnLabel(i));

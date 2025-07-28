@@ -759,6 +759,22 @@ export class TestPickerSk extends ElementSk {
       this.autoAddTrace = true;
     }
   }
+
+  removeItemFromChart(param: string, value: string[]) {
+    // Find the field info for the given param.
+    const fieldInfo = this._fieldData.find((field) => field.param === param);
+    if (fieldInfo) {
+      const newValue = fieldInfo.value.filter((v) => !value.includes(v));
+      // Update the value in the field info.
+      fieldInfo.value = newValue;
+      // Update the selected items in the field.
+      if (fieldInfo.field) {
+        fieldInfo.field.selectedItems = newValue;
+      }
+      // Update the graph with the new value.
+      this.updateGraph(newValue, fieldInfo, value);
+    }
+  }
 }
 
 define('test-picker-sk', TestPickerSk);

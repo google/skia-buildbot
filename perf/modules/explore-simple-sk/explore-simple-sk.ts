@@ -342,9 +342,12 @@ export class State {
 
   selected: PointSelected = defaultPointSelected(); // The point on a trace that was clicked on.
 
-  labelMode: LabelMode = LabelMode.Date;
+  domain: string = 'commit'; // The domain of the x-axis, either commit or date. Default commit.
 
-  _incremental: boolean = false; // Enables a data fetching optimization.
+  // Deprecated.
+  labelMode: LabelMode = LabelMode.Date; // The label mode for the x-axis, date or commit.
+
+  incremental: boolean = false; // Enables a data fetching optimization.
 
   disable_filter_parent_traces: boolean = false;
 
@@ -590,7 +593,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   useTestPicker: boolean = false;
 
-  enable_copy_query: boolean = false;
+  is_chart_split: boolean = false;
 
   is_anomaly_table: boolean = false;
 
@@ -665,7 +668,7 @@ export class ExploreSimpleSk extends ElementSk {
       <graph-title-sk id=graphTitle style="flex-grow:  1;"></graph-title-sk>
       <md-icon-button
         title="Load Test Picker with current Query"
-        ?disabled=${!ele.enable_copy_query}
+        ?disabled=${ele.is_chart_split}
         @click=${() => {
           ele.loadTestPickerFromParams();
         }}>
@@ -1021,7 +1024,7 @@ export class ExploreSimpleSk extends ElementSk {
   private showZero = () => {
     this._state.showZero = !this._state.showZero;
     this.googleChartPlot.value!.showZero = this._state.showZero;
-    this._render();
+    this.render();
   };
 
   // Get primary trace from googleChart and pass along traceid and paramset
@@ -1040,7 +1043,6 @@ export class ExploreSimpleSk extends ElementSk {
   };
 
   private closeExplore() {
-    this.removeAll(false);
     // Remove the explore object from the list in `explore-multi-sk.ts`.
     const detail = { elem: this };
     this.dispatchEvent(new CustomEvent('remove-explore', { detail: detail, bubbles: true }));
@@ -1238,7 +1240,7 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
     this._initialized = true;
-    this._render();
+    this.render();
 
     this.anomalyTable = this.querySelector('#anomaly');
     this.commits = this.querySelector('#commits');
@@ -1271,9 +1273,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.bisectButton = this.querySelector('#bisect-button');
     this.collapseButton = this.querySelector('#collapseButton');
     this.graphTitle = this.querySelector<GraphTitleSk>('#graphTitle');
-
-    // Enable button only on Multi Chart view.
-    this.enable_copy_query = document.querySelector('explore-multi-sk') ? true : false;
     this.is_anomaly_table = document.querySelector('anomaly-table-sk') ? true : false;
 
     // material UI stuff
@@ -1395,7 +1394,7 @@ export class ExploreSimpleSk extends ElementSk {
         }
         this.triageResultToast?.show();
         this._stateHasChanged();
-        this._render();
+        this.render();
       }
     });
 
@@ -1430,32 +1429,54 @@ export class ExploreSimpleSk extends ElementSk {
 
   render(): void {
     this._render();
+    // Enable button only on Multi Chart view.
+    const pagination = document.querySelector('pagination-sk');
+    this.is_chart_split = !(pagination && pagination.getAttribute('total') === '1') || false;
   }
 
   showSettingsDialog(_event: Event) {
     this.settingsDialog!.show();
   }
 
+  // Handle the x-axis switch toggle.
+  // If the switch is selected, set the x-axis to date mode.
   switchXAxis(target: MdSwitch | null) {
+    if (target!.selected) {
+      this._state.labelMode = LabelMode.Date;
+      this._state.domain = 'date';
+    } else {
+      this._state.labelMode = LabelMode.CommitPosition;
+      this._state.domain = 'commit';
+    }
+
+    if (this.is_chart_split) {
+      const detail = {
+        index: this.state.graph_index,
+        domain: this.state.domain,
+      };
+      this.dispatchEvent(new CustomEvent('x-axis-toggled', { detail, bubbles: true }));
+    }
+    this.updateXAxis(this._state.domain);
+  }
+
+  // Set the x-axis domain to either commit or date.
+  // This is used to update the x-axis domain when the user toggles the switch.
+  // It also is an entry point from multichart to update related charts which is
+  // why it has a separate method.
+  updateXAxis(domain: string) {
+    if (this.state.domain !== domain) {
+      this.xAxisSwitch = !this.xAxisSwitch;
+      this._state.domain = domain;
+    }
     if (this.googleChartPlot.value) {
-      this.googleChartPlot.value.domain = target!.selected ? 'date' : 'commit';
+      this.googleChartPlot.value.domain = domain as 'commit' | 'date';
     }
 
     if (this.plotSummary.value) {
-      this.plotSummary.value.domain = target!.selected ? 'date' : 'commit';
+      this.plotSummary.value.domain = domain as 'commit' | 'date';
     }
-
-    this.xAxisSwitch = !this.xAxisSwitch;
-    if (target!.selected) {
-      this._state.labelMode = LabelMode.Date;
-    } else {
-      this._state.labelMode = LabelMode.CommitPosition;
-    }
-    this.AddPlotLines(this._dataframe.traceset, this.getLabels(this._dataframe.header!));
-    this._render();
+    this.render();
     this._stateHasChanged();
-
-    this.dispatchEvent(new CustomEvent('x-axis-toggled', { detail: target, bubbles: true }));
   }
 
   // updates the chart height using a string input.
@@ -1719,7 +1740,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   /** Open the query dialog box. */
   openQuery() {
-    this._render();
+    this.render();
     this._dialogOn = true;
     this.queryDialog!.showModal();
     // If there is a query already plotted, update the counts on the query dialog.
@@ -1731,7 +1752,7 @@ export class ExploreSimpleSk extends ElementSk {
   private paramsetChanged(e: CustomEvent<ParamSet>) {
     this.query!.paramset = e.detail;
     this.pivotControl!.paramset = e.detail;
-    this._render();
+    this.render();
   }
 
   /** Called when the query-count-sk element has finished querying the server
@@ -1739,7 +1760,7 @@ export class ExploreSimpleSk extends ElementSk {
   private fromParamsParamsetChanged(e: CustomEvent<ParamSet>) {
     this.fromParamsQuery!.paramset = e.detail;
     this.fromParamsQuery!.selectKey(this.fromParamsKey);
-    this._render();
+    this.render();
   }
 
   private fromParamsCloseQueryDialog() {
@@ -1827,7 +1848,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   /** User has zoomed in on the graph. */
   private plotZoom() {
-    this._render();
+    this.render();
   }
 
   /** get story name for pinpoint. */
@@ -1864,8 +1885,8 @@ export class ExploreSimpleSk extends ElementSk {
         }
       });
     }
-    detail.start = this.getCommitIndex(begin, 'commit');
-    detail.end = this.getCommitIndex(end, 'commit', true);
+    detail.start = this.getCommitIndex(begin, this.state.domain);
+    detail.end = this.getCommitIndex(end, this.state.domain, true);
 
     // If in multi-graph view, sync all graphs.
     // This event listener will not work on the alerts page
@@ -1967,6 +1988,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.updateBrowserURL();
       }
     }
+    // Pull from URL which is always a timestamp.
     const beginIndex = this.getCommitIndex(begin, 'timestamp');
     const endIndex = this.getCommitIndex(end, 'timestamp', true);
     if (beginIndex === -1 || endIndex === -1) {
@@ -1979,19 +2001,25 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     if (this.state.graph_index === 0 || this.is_anomaly_table) {
-      const beginCommit = this.dfRepo.value?.header[beginIndex]?.offset;
-      const endCommit = this.dfRepo.value?.header[endIndex]?.offset;
+      const beginCommit = this.dfRepo.value?.header[beginIndex];
+      const endCommit = this.dfRepo.value?.header[endIndex];
       if (beginCommit === undefined || endCommit === undefined) {
         console.error(`Begin or end commit offset not found in the dataframe.`);
         return;
       }
 
+      let beginValue: number = beginCommit!.offset;
+      let endValue: number = endCommit!.offset;
+      if (this.state.domain === 'date') {
+        beginValue = beginCommit!.timestamp;
+        endValue = endCommit!.timestamp;
+      }
       if (this.parentNode) {
         const graphNumber = Array.from(this.parentNode!.children).indexOf(this);
         const detail: PlotSummarySkSelectionEventDetails = {
           graphNumber: graphNumber,
-          value: { begin: beginCommit, end: endCommit },
-          domain: 'commit',
+          value: { begin: beginValue, end: endValue },
+          domain: this.state.domain as 'commit' | 'date',
           start: 0,
           end: 0,
         };
@@ -2004,7 +2032,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     if (this.state.graph_index === graph && commit && !isNaN(commit)) {
       // If the commit is specified, we need to select it in the chart.
-      const commitIndex = this.getCommitIndex(commit);
+      const commitIndex = this.getCommitIndex(commit, this.state.domain);
       if (commitIndex === null) {
         errorMessage(`Commit not found in the dataframe: ${commit}`);
         return;
@@ -2382,7 +2410,7 @@ export class ExploreSimpleSk extends ElementSk {
       this.plotSummary.value!.selectedTrace = '';
     }
 
-    this._render();
+    this.render();
   }
 
   /** Highlight a trace when it is clicked on. */
@@ -2461,7 +2489,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
 
-    this._render();
+    this.render();
 
     this._state.selected.name = detail.name;
     this._state.selected.commit = commit;
@@ -2780,7 +2808,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.plotSimple.value!.highlight = keys;
       }
     }
-    this._render();
+    this.render();
   }
 
   private closeHelp() {
@@ -2866,7 +2894,7 @@ export class ExploreSimpleSk extends ElementSk {
     switchToTab: boolean,
     selectedRange: range | null = null
   ): Promise<void> {
-    this._render();
+    this.render();
     if (
       frameResponse.dataframe?.traceset &&
       Object.keys(frameResponse.dataframe.traceset).length === 0
@@ -2898,7 +2926,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.traceSelected(e);
       }
     }
-    this._render();
+    this.render();
   }
 
   private toggleDotsHandler() {
@@ -2995,6 +3023,7 @@ export class ExploreSimpleSk extends ElementSk {
       if (this.state.xbaroffset !== -1) {
         googleChart.xbar = this.state.xbaroffset;
       }
+      googleChart.domain = this.state.domain as 'date' | 'commit';
     }
     if (this.state.use_titles) {
       this.updateTitle();
@@ -3019,11 +3048,10 @@ export class ExploreSimpleSk extends ElementSk {
     if (this._state.plotSummary) {
       const header = dataframe.header!;
       if (this.state.doNotQueryData) {
-        this._render();
+        this.render();
         // The data is supposed to be already loaded.
         // Let's simply make the selection on the summary.
         this.plotSummary.value?.SelectRange(selectedRange!);
-        this.useBrowserURL();
       } else {
         let extendRange = 3 * monthInSec;
         // Large amount of traces, limit the range extension.
@@ -3051,7 +3079,6 @@ export class ExploreSimpleSk extends ElementSk {
           this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit', false);
           this.plotSummary.value?.SelectRange(selectedRange!);
           // Modify the Range if URL contains different values.
-          this.useBrowserURL();
         });
       }
     }
@@ -3404,14 +3431,13 @@ export class ExploreSimpleSk extends ElementSk {
     this.tooltipSelected = false;
 
     this.closeTooltip();
-    this.dispatchEvent(new CustomEvent('remove-all', { bubbles: true }));
     // force unset autorefresh so that it doesn't re-appear when we remove all the chart.
     // the removeAll button from "remove all" or "X" will call invoke removeAll()
     // with skipHistory = false, so state should be updated.
     this._state.autoRefresh = false;
     this.autoRefreshChanged();
 
-    this._render();
+    this.render();
     if (!skipHistory) {
       this.clearSelectedState();
       this._stateHasChanged();
@@ -3451,7 +3477,7 @@ export class ExploreSimpleSk extends ElementSk {
         this._state.queries = [];
         this.clearSelectedState();
         this._stateHasChanged();
-        this._render();
+        this.render();
       })
       .catch(errorMessage);
   }
@@ -3480,7 +3506,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   public toggleGoogleChart() {
     this.state.show_google_plot = !this.state.show_google_plot;
-    this._render();
+    this.render();
   }
 
   // TODO(b/377772220): When splitting a chart with multiple traces,
@@ -3552,7 +3578,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     if (!this.hasData()) {
       this.displayMode = 'display_query_only';
-      this._render();
+      this.render();
     }
     if (updateShortcut) {
       this.reShortCut(toShortcut);
@@ -3628,7 +3654,7 @@ export class ExploreSimpleSk extends ElementSk {
     if (b) {
       this.displayMode = 'display_spinner';
     }
-    this._render();
+    this.render();
   }
 
   get spinning(): boolean {
@@ -3729,7 +3755,7 @@ export class ExploreSimpleSk extends ElementSk {
       };
     }
 
-    this._render();
+    this.render();
 
     if (this.plotSimple.value) {
       this.plotSimple.value!.dots = this._state.dots;
@@ -3785,7 +3811,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private toggleDetails() {
     this.navOpen = !this.navOpen;
-    this._render();
+    this.render();
   }
 
   getTraceset(): { [key: string]: number[] } | null {

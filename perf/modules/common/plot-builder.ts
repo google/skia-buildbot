@@ -138,7 +138,7 @@ export function mainChartOptions(
   // based on the current chart's format.
   const gridlineColor = style.getPropertyValue('--md-sys-color-inverse-on-surface');
   const minAxisValue: number | undefined = showZero ? 0 : undefined;
-  const format = domain === 'commit' ? '#' : 'MM/dd/yy';
+  const format = domain === 'commit' ? '#' : 'M/d/yy';
   return {
     // interpolateNulls will continue a line from the last known point to the
     // next available if there's nulls inbetween.
@@ -169,6 +169,7 @@ export function mainChartOptions(
       },
       gridlines: {
         color: gridlineColor,
+        count: 100,
       },
       minorGridlines: {
         color: gridlineColor,
