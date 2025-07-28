@@ -16,13 +16,11 @@ import { html, css } from 'lit';
 import { LitElement, PropertyValues } from 'lit';
 import { ref, Ref, createRef } from 'lit/directives/ref.js';
 import { property } from 'lit/decorators.js';
-import { when } from 'lit/directives/when.js';
 import { define } from '../../../elements-sk/modules/define';
 import { AnomalyMap } from '../json';
 import { defaultColors, mainChartOptions } from '../common/plot-builder';
 import {
   dataframeAnomalyContext,
-  dataframeLoadingContext,
   dataframeUserIssueContext,
   DataTable,
   traceColorMapContext,
@@ -153,17 +151,7 @@ export class PlotGoogleChartSk extends LitElement {
     .closeIcon {
     }
 
-    md-linear-progress {
-      position: absolute;
-      width: 100%;
-      --md-linear-progress-active-indicator-height: 8px;
-      --md-linear-progress-track-height: 8px;
-      --md-linear-progress-track-shape: 8px;
-    }
   `;
-
-  @consume({ context: dataframeLoadingContext, subscribe: true })
-  private loading = false;
 
   @consume({ context: dataTableContext, subscribe: true })
   @property({ attribute: false })
@@ -304,7 +292,6 @@ export class PlotGoogleChartSk extends LitElement {
           @google-chart-onmouseout=${this.onChartMouseOut}
           @google-chart-ready=${this.onChartReady}>
         </google-chart>
-        ${when(this.loading, () => html`<md-linear-progress indeterminate></md-linear-progress>`)}
         <div class="anomaly" ${ref(this.anomalyDiv)}></div>
         <div class="userissue" ${ref(this.userIssueDiv)}></div>
         <div class="xbar" ${ref(this.xbarDiv)}></div>

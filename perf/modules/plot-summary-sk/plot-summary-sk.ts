@@ -202,6 +202,13 @@ export class PlotSummarySk extends LitElement {
         <h-resizable-box-sk
           ${ref(this.selectionBox)}
           @selection-changed=${this.onSelectionChanged}></h-resizable-box-sk>
+        ${when(
+          this.loading,
+          () =>
+            html`<div class="overlay">
+              <div class="loader"></div>
+            </div>`
+        )}
       </div>
       ${this.controlTemplate('right')}
     `;
