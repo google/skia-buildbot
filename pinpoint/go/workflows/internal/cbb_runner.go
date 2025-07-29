@@ -5,7 +5,6 @@ package internal
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"path"
 	"strings"
@@ -49,6 +48,28 @@ type CbbRunnerParams struct {
 type BenchmarkRunConfig struct {
 	Benchmark  string
 	Iterations int32
+}
+
+func validateParameters(cbb *CbbRunnerParams) error {
+	switch cbb.Browser {
+	case "chrome", "edge":
+		if cbb.Channel != "stable" && cbb.Channel != "dev" {
+			return fmt.Errorf(
+				"Unrecognized browser channel %s, %s only supports stable and dev",
+				cbb.Channel, cbb.Browser)
+		}
+	case "safari":
+		if cbb.Channel != "stable" && cbb.Channel != "technology-preview" {
+			return fmt.Errorf(
+				"Unrecognized browser channel %s, %s only supports stable and technology-preview",
+				cbb.Channel, cbb.Browser)
+		}
+	default:
+		return fmt.Errorf(
+			"Unrecognized browser %s, only chrome, safari, and edge are supported",
+			cbb.Browser)
+	}
+	return nil
 }
 
 func setupBenchmarks(cbb *CbbRunnerParams) []BenchmarkRunConfig {
@@ -96,7 +117,7 @@ func getBrowserInfo(ctx workflow.Context, cbb *CbbRunnerParams) (*browserInfo, e
 	} else if strings.HasPrefix(cbb.BotConfig, "android-") {
 		platformName = "Android"
 	} else {
-		return nil, errors.New(fmt.Sprintf("Unable to determine platform for bot %s", cbb.BotConfig))
+		return nil, fmt.Errorf("Unable to determine platform for bot %s", cbb.BotConfig)
 	}
 	gitPath := fmt.Sprintf("testing/perf/cbb_ref_info/%s/%s/%s.json", cbb.Browser, cbb.Channel, platformName)
 
@@ -114,12 +135,9 @@ func getBrowserInfo(ctx workflow.Context, cbb *CbbRunnerParams) (*browserInfo, e
 	return &bi, nil
 }
 
-func setupBrowser(bi *browserInfo) string {
-	browser := fmt.Sprintf(
-		"--official-browser=%s-%s",
-		strings.ToLower(bi.Browser),
-		strings.ToLower(strings.ReplaceAll(bi.Channel, " ", "-")))
-	if bi.Browser == "Chrome" {
+func setupBrowser(cbb *CbbRunnerParams, bi *browserInfo) string {
+	browser := fmt.Sprintf("--official-browser=%s-%s", cbb.Browser, cbb.Channel)
+	if cbb.Browser == "chrome" {
 		browser = fmt.Sprintf("%s-%s", browser, bi.Version)
 	}
 	return browser
@@ -132,13 +150,18 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
 
+	err := validateParameters(cbb)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	bi, err := getBrowserInfo(ctx, cbb)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	benchmarks := setupBenchmarks(cbb)
-	browser := setupBrowser(bi)
+	browser := setupBrowser(cbb, bi)
 
 	results := map[string]*format.Format{}
 

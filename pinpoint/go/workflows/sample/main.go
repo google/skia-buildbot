@@ -57,7 +57,7 @@ var (
 	// The following flags are used by cbb-runner only.
 	commitPosition = flag.Int("commit-position", 0, "Commit position (required for CBB).")
 	browser        = flag.String("browser", "chrome", "chrome or safari or edge (used by CBB only)")
-	channel        = flag.String("channel", "stable", "stable, dev or \"Technology Preview\" (used by CBB only)")
+	channel        = flag.String("channel", "stable", "stable, dev or tp (used by CBB only)")
 	bucket         = flag.String("bucket", "prod", "GS bucket to upload results to (prod, exp, or none; used by CBB only)")
 )
 
@@ -322,6 +322,9 @@ func triggerQueryPairwise(c client.Client) (*pb.QueryPairwiseResponse, error) {
 }
 
 func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
+	if len(flag.Args()) != 0 {
+		return nil, fmt.Errorf("Unrecognized command line arguments: %v", flag.Args())
+	}
 	if *commit == "" {
 		return nil, errors.New("Please specify a commit hash using --commit switch")
 	}
@@ -336,6 +339,10 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 		Channel:   *channel,
 	}
 	p.Commit.Main.CommitPosition = int32(*commitPosition)
+
+	if p.Channel == "tp" {
+		p.Channel = "technology-preview"
+	}
 
 	if *iterations == 0 {
 		if strings.HasPrefix(*configuration, "mac") {
