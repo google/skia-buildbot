@@ -69,7 +69,7 @@ export class AnomalyTracker {
     });
   }
 
-  getAnomaly(id: number): AnomalyDataPoint {
+  getAnomaly(id: number): AnomalyDataPoint | null {
     return this.tracker[id];
   }
 
@@ -128,7 +128,7 @@ export class ReportPageSk extends ElementSk {
 
   private commitMap: Map<Commit, boolean> = new Map();
 
-  private allCommitsDialog: HTMLDialogElement | null = null;
+  private requestAnomalies: string = '';
 
   private commitUrlprefix = window.perf.git_repo_url + '/+show/';
 
@@ -170,6 +170,8 @@ export class ReportPageSk extends ElementSk {
     this._render();
 
     const urlParams = new URLSearchParams(window.location.search);
+    this.requestAnomalies =
+      urlParams.get('anomalyIDs') === null ? '' : urlParams.get('anomalyIDs')!;
     await fetch('/_/anomalies/group_report', {
       method: 'POST',
       body: JSON.stringify({
@@ -204,7 +206,7 @@ export class ReportPageSk extends ElementSk {
       this.anomalyTracker.getTimerangeMap()
     );
 
-    this.anomaliesTable!.checkSelectedAnomalies(this.anomalyTracker.toAnomalyList());
+    this.anomaliesTable!.checkSelectedAnomalies(this.findRequestedAnomalies());
   }
 
   private async initializeDefaults() {
@@ -263,7 +265,7 @@ export class ReportPageSk extends ElementSk {
 
     const query = this.getQueryFromAnomaly(anomaly);
     const state = new State();
-    const timerange = this.anomalyTracker.getAnomaly(anomaly.id).timerange;
+    const timerange = this.anomalyTracker.getAnomaly(anomaly.id)!.timerange;
     explore.state = {
       ...state,
       queries: [query],
@@ -287,7 +289,7 @@ export class ReportPageSk extends ElementSk {
   }
 
   private updateGraphs(anomaly: Anomaly, checked: boolean) {
-    const graph = this.anomalyTracker.getAnomaly(anomaly.id).graph;
+    const graph = this.anomalyTracker.getAnomaly(anomaly.id)!.graph;
     if (checked && !graph) {
       // Add a new graph if checked and it doesn't exist
       this.anomalyTracker.setGraph(anomaly.id, this.addGraph(anomaly));
@@ -312,6 +314,19 @@ export class ReportPageSk extends ElementSk {
     graphs.forEach((graph) => {
       (graph as ExploreSimpleSk).switchXAxis(e.detail);
     });
+  }
+
+  // findRequestedAnomalies returns a list of requested anomaly objects .
+  // This is for only loading selected untriaged anomaly graphs in the first place.
+  findRequestedAnomalies(): Anomaly[] {
+    const ret: Anomaly[] = [];
+    const requestAnomalyIds = this.requestAnomalies.split(',');
+    this.anomalyTracker.toAnomalyList().forEach((anomaly) => {
+      if (requestAnomalyIds.includes(String(anomaly.id))) {
+        ret.push(this.anomalyTracker.getAnomaly(anomaly.id)!.anomaly);
+      }
+    });
+    return ret;
   }
 
   private showAllCommitsTemplate() {
