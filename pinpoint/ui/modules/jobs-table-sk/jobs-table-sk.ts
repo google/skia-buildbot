@@ -2,6 +2,8 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Job } from '../../services/api';
 import '@material/web/icon/icon.js';
+import '../../../../elements-sk/modules/icons/arrow-upward-icon-sk';
+import '../../../../elements-sk/modules/icons/arrow-downward-icon-sk';
 
 type SortDirection = 'asc' | 'desc';
 
@@ -79,13 +81,11 @@ export class JobsTableSk extends LitElement {
   private renderSortIcon(key: string) {
     if (this.sortBy !== key) return '';
 
-    let iconName: string;
     if (this.sortDir === 'desc') {
-      iconName = 'arrow_downward';
+      return html`<arrow-downward-icon-sk></arrow-downward-icon-sk>`;
     } else {
-      iconName = 'arrow_upward';
+      return html`<arrow-upward-icon-sk></arrow-upward-icon-sk>`;
     }
-    return html`<md-icon class="sort-icon">${iconName}</md-icon>`;
   }
 
   private formatDate(dateStr: string): string {

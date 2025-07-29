@@ -1,7 +1,11 @@
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
 sk_element(
     name = "jobs-table-sk",
+    sk_element_deps = [
+        "//elements-sk/modules/icons/arrow-downward-icon-sk",
+        "//elements-sk/modules/icons/arrow-upward-icon-sk",
+    ],
     ts_deps = [
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
@@ -13,4 +17,17 @@ sk_element(
         "index.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "jobs-table-sk_test",
+    src = "jobs-table-sk_test.ts",
+    deps = [
+        ":jobs-table-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/sinon",
+        "//pinpoint/ui/services:api_ts_lib",
+    ],
 )
