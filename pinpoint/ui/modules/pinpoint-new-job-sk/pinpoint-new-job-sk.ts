@@ -66,6 +66,14 @@ export class PinpointNewJobSk extends LitElement {
       color: var(--md-sys-color-on-surface-variant);
     }
 
+    .help-section ul {
+      padding-left: 20px;
+      margin: 1em 0;
+    }
+    .help-section li {
+      margin-bottom: 0.5em;
+    }
+
     .form-section {
       display: flex;
       flex-direction: column;
@@ -85,6 +93,30 @@ export class PinpointNewJobSk extends LitElement {
       font-weight: 500;
       margin: 8px 0 -8px 0;
       color: var(--md-sys-color-on-surface);
+    }
+
+    .form-section p {
+      margin: 0 0 1em 0;
+      color: var(--md-sys-color-on-surface-variant);
+      font-size: 0.9em;
+      line-height: 1.4;
+    }
+
+    .form-section ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 8px 0;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .form-section li {
+      padding: 4px 0;
+    }
+
+    .form-section li b {
+      color: var(--md-sys-color-on-surface);
+      min-width: 120px;
+      display: inline-block;
     }
 
     md-outlined-text-field,
@@ -128,6 +160,8 @@ export class PinpointNewJobSk extends LitElement {
   @state() private _selectedStory = '';
 
   @state() private _iterationCount = '10';
+
+  @state() private _bugId = '';
 
   async connectedCallback() {
     super.connectedCallback();
@@ -242,10 +276,16 @@ export class PinpointNewJobSk extends LitElement {
             @input=${(e: InputEvent) =>
               (this._iterationCount = (
                 e.target as HTMLInputElement
-              ).value)}></md-outlined-text-field>
+              ).value)}></md-outlined-text-field
+          ><md-outlined-text-field
+            label="Bug ID (optional)"
+            type="number"
+            .value=${this._bugId}
+            @input=${(e: InputEvent) =>
+              (this._bugId = (e.target as HTMLInputElement).value)}></md-outlined-text-field>
         </div>
         <div class="help-section">
-          <h3>Job Name & Iterations</h3>
+          <h3>Job Name, Iterations & Bug ID</h3>
           <p>
             Give your job a memorable name for easier identification later. If left blank, a name
             will be generated.
@@ -254,6 +294,9 @@ export class PinpointNewJobSk extends LitElement {
             The number of iterations to run the benchmark. Higher iterations usually yield more
             granular benchmark results. This value defaults to 10.
           </p>
+          <p>
+            If this job is related to a bug, you can provide the bug ID here for tracking purposes.
+          </p>
         </div>
       </div>
     `;
@@ -261,8 +304,60 @@ export class PinpointNewJobSk extends LitElement {
 
   private renderSimplifiedView() {
     return html`
-      <div class="simplified-view">
-        <p>A simplified job creation flow is coming soon.</p>
+      <div class="detailed-grid">
+        <div class="form-section">
+          <h2>1. Define Commit Range</h2>
+          <p>
+            A Pinpoint job can either be a <b>bisection</b> to find a commit that caused a
+            performance regression, or a <b>try job</b> to compare performance between two commits.
+            Provide two commit points to define the range for the job.
+          </p>
+          <h3>Base Commit</h3>
+          <md-outlined-text-field
+            label="Commit Hash"
+            placeholder="Commit Hash"></md-outlined-text-field>
+          <h3>Experimental Commit</h3>
+          <md-outlined-text-field
+            label="Commit Hash"
+            placeholder="Commit Hash"></md-outlined-text-field>
+
+          <h2>2. Review Test Configuration</h2>
+          <p>
+            This simplified flow uses a standard test configuration for general performance
+            analysis. For custom settings, use the "Detailed" tab.
+          </p>
+          <ul>
+            <li><b>Benchmark:</b> <span>speedometer3.crossbench</span></li>
+            <li><b>Device:</b> <span>mac-m1-pro-perf</span></li>
+            <li><b>Story:</b> <span>default</span></li>
+            <li><b>Iteration Count:</b> <span>20</span></li>
+          </ul>
+        </div>
+        <div class="help-section">
+          <h3>What is Pinpoint?</h3>
+          <p>
+            Pinpoint is a performance testing tool for Chrome that helps diagnose regressions and
+            evaluate performance changes. It automates the process of building Chrome at different
+            revisions, running benchmarks, and comparing the results.
+          </p>
+          <p>
+            You can run two main types of jobs:
+            <ul>
+              <li><b>Try Job:</b> An A/B test that compares performance between two specific commits.</li>
+              <li><b>Bisection:</b> A binary search across a range of commits to automatically find the one that introduced a performance regression.</li>
+            </ul>
+          </p>
+          <h3>Commit Range</h3>
+          <p>
+            Provide two commit points (as git hashes) to define the job's scope. For a try job, these are your A and B points. For a bisection, this is the range to search.
+          </p>
+          <h3>Test Configuration</h3>
+          <p>
+            This simplified view uses a common, pre-selected configuration for quick testing. The
+            benchmark, device, and other parameters are fixed. If you need to test on different
+            devices or run other benchmarks, please use the "Detailed" tab.
+          </p>
+        </div>
       </div>
     `;
   }

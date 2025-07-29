@@ -1,8 +1,11 @@
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
 sk_element(
     name = "pinpoint-scaffold-sk",
-    sk_element_deps = ["//elements-sk/modules/icons/filter-list-icon-sk"],
+    sk_element_deps = [
+        "//elements-sk/modules/icons/filter-list-icon-sk",
+        "//pinpoint/ui/modules/pinpoint-new-job-sk",
+    ],
     ts_deps = [
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
@@ -15,4 +18,19 @@ sk_element(
         "index.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "pinpoint-scaffold-sk_test",
+    src = "pinpoint-scaffold-sk_test.ts",
+    deps = [
+        ":pinpoint-scaffold-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/@vaadin/combo-box",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//:node_modules/sinon",
+        "//pinpoint/ui/modules/pinpoint-new-job-sk",
+    ],
 )

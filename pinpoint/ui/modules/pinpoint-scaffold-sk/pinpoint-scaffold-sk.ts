@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, state, query } from 'lit/decorators.js';
 import { listBenchmarks, listBots } from '../../services/api';
 import '@material/web/button/filled-button.js';
 import '@material/web/textfield/outlined-text-field.js';
@@ -9,6 +9,10 @@ import '../../../../elements-sk/modules/icons/filter-list-icon-sk';
 import '@material/web/menu/menu.js';
 import '@vaadin/combo-box/vaadin-combo-box.js';
 import { Menu } from '@material/web/menu/internal/menu.js';
+
+import '../pinpoint-new-job-sk';
+
+import type { PinpointNewJobSk } from '../pinpoint-new-job-sk/pinpoint-new-job-sk';
 
 /**
  * @element pinpoint-scaffold-sk
@@ -74,6 +78,8 @@ export class PinpointScaffoldSk extends LitElement {
     }
   `;
 
+  @query('pinpoint-new-job-sk') private _newJobModal!: PinpointNewJobSk;
+
   private onSearchInput(e: InputEvent) {
     const value = (e.target as HTMLInputElement).value;
     this.dispatchEvent(
@@ -83,6 +89,10 @@ export class PinpointScaffoldSk extends LitElement {
         composed: true,
       })
     );
+  }
+
+  private openNewJobModal() {
+    this._newJobModal.show();
   }
 
   private onBenchmarkFilterChange(e: CustomEvent) {
@@ -157,12 +167,13 @@ export class PinpointScaffoldSk extends LitElement {
               </div>
             </md-menu>
           </div>
-          <md-filled-button>Create new job</md-filled-button>
+          <md-filled-button @click=${this.openNewJobModal}>Create a new job</md-filled-button>
         </div>
       </header>
       <main>
         <slot></slot>
       </main>
+      <pinpoint-new-job-sk></pinpoint-new-job-sk>
     `;
   }
 }
