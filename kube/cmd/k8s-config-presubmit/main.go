@@ -360,10 +360,10 @@ func checkK8sConfigFile(ctx context.Context, f fileWithChanges) bool {
 	for image := range images {
 		verified, err := client.Verify(ctx, image)
 		if err != nil {
-			logf(ctx, "Failed to verify image %s: %s", image, err)
+			logf(ctx, "Failed to verify image %s: %s\n", image, err)
 			return false
 		} else if !verified {
-			logf(ctx, "Image %s does not have a valid attestation", image)
+			logf(ctx, "Image %s does not have a valid attestation\n", image)
 			ok = false
 		}
 	}

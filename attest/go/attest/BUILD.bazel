@@ -8,9 +8,11 @@ go_library(
     deps = [
         "//attest/go/attestation",
         "//attest/go/types",
+        "//go/cache/local",
         "//go/common",
         "//go/httputils",
         "//go/sklog",
+        "@org_golang_x_time//rate",
     ],
 )
 

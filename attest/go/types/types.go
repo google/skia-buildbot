@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"regexp"
 
+	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/time/rate"
 )
 
 const (
@@ -54,6 +56,22 @@ type Client interface {
 	// API calls failed.
 	Verify(ctx context.Context, imageID string) (bool, error)
 }
+
+// VerifyFunc is a function which finds and validates the attestation for the
+// given Docker image ID. It returns true if any attestation exists with a valid
+// signature and false if no such attestation exists, or an error if any of the
+// required API calls failed.
+//
+// VerifyFunc is an adapter which allows the use of ordinary functions as
+// Client implementations.
+type VerifyFunc func(ctx context.Context, imageID string) (bool, error)
+
+// Verify implements Client.
+func (f VerifyFunc) Verify(ctx context.Context, imageID string) (bool, error) {
+	return f(ctx, imageID)
+}
+
+var _ Client = VerifyFunc(nil)
 
 // HttpClient implements Client by communicating with the attest service.
 type HttpClient struct {
@@ -119,6 +137,51 @@ func (c *HttpClient) Verify(ctx context.Context, imageID string) (bool, error) {
 }
 
 var _ Client = &HttpClient{}
+
+// cache.Cache uses strings for keys and values.
+const (
+	cachedValueTrue  = "true"
+	cachedValueFalse = "false"
+)
+
+// WithCache returns a Client which uses the given cache.
+func WithCache(wrapped Client, cache cache.Cache) VerifyFunc {
+	return func(ctx context.Context, imageID string) (bool, error) {
+		cachedValue, err := cache.GetValue(ctx, imageID)
+		if err != nil {
+			return false, skerr.Wrapf(err, "failed to retrieve cached value for %s", imageID)
+		}
+		switch cachedValue {
+		case cachedValueTrue:
+			return true, nil
+		case cachedValueFalse:
+			return false, nil
+		default:
+			verified, err := wrapped.Verify(ctx, imageID)
+			if err != nil {
+				return false, skerr.Wrap(err)
+			}
+			cachedValue = cachedValueFalse
+			if verified {
+				cachedValue = cachedValueTrue
+			}
+			if err := cache.SetValue(ctx, imageID, cachedValue); err != nil {
+				return false, skerr.Wrapf(err, "failed to set cached value for %s", imageID)
+			}
+			return verified, nil
+		}
+	}
+}
+
+// WithRateLimiter returns a Client which uses the given rate.Limiter.
+func WithRateLimiter(wrapped Client, lim *rate.Limiter) VerifyFunc {
+	return func(ctx context.Context, imageID string) (bool, error) {
+		if err := lim.Wait(ctx); err != nil {
+			return false, skerr.Wrap(err)
+		}
+		return wrapped.Verify(ctx, imageID)
+	}
+}
 
 // Server wraps a Client and serves HTTP requests.
 type Server struct {

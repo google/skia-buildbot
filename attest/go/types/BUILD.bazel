@@ -7,9 +7,11 @@ go_library(
     importpath = "go.skia.org/infra/attest/go/types",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/cache",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "@org_golang_x_time//rate",
     ],
 )
 
@@ -19,6 +21,7 @@ go_test(
     embed = [":types"],
     deps = [
         "//attest/go/types/mocks",
+        "//go/cache/mock",
         "//go/testutils",
         "@com_github_stretchr_testify//require",
     ],

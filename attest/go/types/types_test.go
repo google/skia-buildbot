@@ -1,11 +1,13 @@
 package types
 
 import (
+	"context"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/attest/go/types/mocks"
+	cache_mocks "go.skia.org/infra/go/cache/mock"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -84,4 +86,68 @@ func TestClientServer_BadImageFormat(t *testing.T) {
 	verified, err := client.Verify(t.Context(), "bogus")
 	require.True(t, IsErrBadImageFormat(err))
 	require.False(t, verified)
+}
+
+func TestClientWithCache_NotCached_Verified(t *testing.T) {
+	ctx := context.Background()
+	mockClient := &mocks.Client{}
+	mockCache := &cache_mocks.Cache{}
+	client := WithCache(mockClient, mockCache)
+
+	const imageID = "fake-image-id"
+	mockCache.On("GetValue", testutils.AnyContext, imageID).Return("", nil).Once()
+	mockClient.On("Verify", testutils.AnyContext, imageID).Return(true, nil).Once()
+	mockCache.On("SetValue", testutils.AnyContext, imageID, cachedValueTrue).Return(nil).Once()
+	verified, err := client.Verify(ctx, imageID)
+	require.NoError(t, err)
+	require.True(t, verified)
+	mockCache.AssertExpectations(t)
+	mockClient.AssertExpectations(t)
+}
+
+func TestClientWithCache_Cached_Verified(t *testing.T) {
+	ctx := context.Background()
+	mockClient := &mocks.Client{}
+	mockCache := &cache_mocks.Cache{}
+	client := WithCache(mockClient, mockCache)
+
+	const imageID = "fake-image-id"
+	mockCache.On("GetValue", testutils.AnyContext, imageID).Return(cachedValueTrue, nil).Once()
+	verified, err := client.Verify(ctx, imageID)
+	require.NoError(t, err)
+	require.True(t, verified)
+	mockCache.AssertExpectations(t)
+	mockClient.AssertExpectations(t)
+}
+
+func TestClientWithCache_NotCached_NotVerified(t *testing.T) {
+	ctx := context.Background()
+	mockClient := &mocks.Client{}
+	mockCache := &cache_mocks.Cache{}
+	client := WithCache(mockClient, mockCache)
+
+	const imageID = "fake-image-id"
+	mockCache.On("GetValue", testutils.AnyContext, imageID).Return("", nil).Once()
+	mockClient.On("Verify", testutils.AnyContext, imageID).Return(false, nil).Once()
+	mockCache.On("SetValue", testutils.AnyContext, imageID, cachedValueFalse).Return(nil).Once()
+	verified, err := client.Verify(ctx, imageID)
+	require.NoError(t, err)
+	require.False(t, verified)
+	mockCache.AssertExpectations(t)
+	mockClient.AssertExpectations(t)
+}
+
+func TestClientWithCache_Cached_NotVerified(t *testing.T) {
+	ctx := context.Background()
+	mockClient := &mocks.Client{}
+	mockCache := &cache_mocks.Cache{}
+	client := WithCache(mockClient, mockCache)
+
+	const imageID = "fake-image-id"
+	mockCache.On("GetValue", testutils.AnyContext, imageID).Return(cachedValueFalse, nil).Once()
+	verified, err := client.Verify(ctx, imageID)
+	require.NoError(t, err)
+	require.False(t, verified)
+	mockCache.AssertExpectations(t)
+	mockClient.AssertExpectations(t)
 }
