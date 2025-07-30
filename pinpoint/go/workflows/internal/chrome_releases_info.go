@@ -183,9 +183,10 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo) (*ChromeReleaseIn
 	sklog.Infof("Git committed successfully! Start uploading it.")
 
 	stdout, err := exec.RunCwd(
-		client.ctx, client.repoDir, client.gitExec, "cl", "upload", "--skip-title",
-		"--reviewers", "rubber-stamper@appspot.gserviceaccount.com",
-		"--enable-auto-submit", "--bypass-hooks", "--send-mail", "--force")
+		client.ctx, client.repoDir, client.gitExec,
+		"push", "origin", "HEAD:refs/for/main",
+		"-o", "r=rubber-stamper@appspot.gserviceaccount.com",
+		"-o", "l=Auto-Submit+1")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to upload the change.")
 	}
@@ -205,6 +206,7 @@ func waitForSubmitCl(client *gitClient) (*ChromeReleaseInfo, error) {
 		if time.Now().Sub(start) > ClSubmissionTimeout {
 			return nil, fmt.Errorf("waitForSubmitCl timeout!")
 		}
+		// TODO(b/433796566): Re-implement without using "cl" command.
 		stdout, err := exec.RunCwd(
 			client.ctx, client.repoDir, client.gitExec, "cl", "status")
 		if err != nil {
