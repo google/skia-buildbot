@@ -398,7 +398,7 @@ export class SidePanelSk extends LitElement {
       const legendEntry = legendEntryObj as { [key: string]: string };
       return displayKeys
         .map((key) => legendEntry[key])
-        .filter((value) => value && value !== 'untitled_key')
+        .filter((value) => value)
         .join('/');
     });
 

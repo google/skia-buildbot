@@ -52,6 +52,10 @@ class FieldInfo {
   value: string[] = []; // The currently selected value in a field.
 
   splitBy: string[] = []; // Split item selected.
+
+  onValueChanged: ((e: Event) => void) | null = null;
+
+  onSplitByChanged: ((e: Event) => void) | null = null;
 }
 
 export class TestPickerSk extends ElementSk {
@@ -238,7 +242,7 @@ export class TestPickerSk extends ElementSk {
    *
    * @param readonly
    */
-  private setReadOnly(readonly: boolean) {
+  setReadOnly(readonly: boolean) {
     this._fieldData.forEach((field) => {
       if (readonly) {
         field.field?.disable();
@@ -274,7 +278,10 @@ export class TestPickerSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json) => {
         this._requestInProgress = false;
-        this.setReadOnly(false);
+        // Only re-enable when autoadd is false.
+        if (this.autoAddTrace === false) {
+          this.setReadOnly(false);
+        }
         handler(json);
       })
       .catch((msg: any) => {
@@ -416,10 +423,14 @@ export class TestPickerSk extends ElementSk {
       const allOptions = [
         ...new Set([...(paramSets[param] || []), ...(paramSet[param] || [])]),
       ].sort();
+      const value = paramSets[param] || [];
+      if (value.length === 0) {
+        break; // Stop after the first field without a value
+      }
       if (allOptions.length > 0) {
         fieldInfo.field.options = allOptions;
-        fieldInfo.field.selectedItems = allOptions;
-        fieldInfo.value = allOptions;
+        fieldInfo.field.selectedItems = value;
+        fieldInfo.value = value;
       }
       this.fetchExtraOptions();
       this._containerDiv!.appendChild(fieldInfo.field);
@@ -427,7 +438,7 @@ export class TestPickerSk extends ElementSk {
   }
 
   private onToggleCheckboxClick(e: Event): void {
-    this._autoAddTrace = (e.target as CheckOrRadio).checked;
+    this.autoAddTrace = (e.target as CheckOrRadio).checked;
     // This prevents a double event from happening.
     e.preventDefault();
     this._render();
@@ -435,7 +446,7 @@ export class TestPickerSk extends ElementSk {
 
   private updateGraph(value: string[], fieldInfo: FieldInfo, removedValue: string[]) {
     // Only update when autoAdd is ready and chart is active.
-    if (!this._autoAddTrace) {
+    if (!this.autoAddTrace) {
       return;
     }
     if (this._count > PLOT_MAXIMUM) {
@@ -489,35 +500,57 @@ export class TestPickerSk extends ElementSk {
     if (fieldInfo.field === null) {
       return;
     }
-    // Ensure that we don't add the event listener multiple times in case
-    // the field is re-used.
-    fieldInfo.field.removeEventListener('value-changed', () => {});
-    fieldInfo.field!.addEventListener('value-changed', (e) => {
+    // Remove existing listeners if they exist.
+    if (fieldInfo.onValueChanged) {
+      fieldInfo.field.removeEventListener('value-changed', fieldInfo.onValueChanged);
+    }
+    if (fieldInfo.onSplitByChanged) {
+      fieldInfo.field.removeEventListener('split-by-changed', fieldInfo.onSplitByChanged);
+    }
+
+    // Create and store the new listeners.
+    fieldInfo.onValueChanged = (e: Event) => {
       const value = (e as CustomEvent).detail.value;
       if (value.length === 0) {
         this.removeChildFields(index);
       }
-
       const removedValue =
         fieldInfo.field?.selectedItems.filter((selectedItem) => !value.includes(selectedItem)) ||
         [];
+      // Don't update graph if the first field is changed as it can overload the graph.
+      if (
+        this._fieldData[0].param === fieldInfo.param &&
+        this._fieldData[0].field!.selectedItems.length > 0 &&
+        removedValue.length === 0
+      ) {
+        fieldInfo.field!.selectedItems = this._fieldData[0].field!.selectedItems;
+        errorMessage('Unable to add more items to the first field.');
+        return;
+      }
+
       if (fieldInfo.value !== value) {
         fieldInfo.value = value;
       }
       if (fieldInfo.field?.selectedItems !== value) {
+        // Chart needs to be reset, so disable autoAddTrace.
+        if (value.length === 0) {
+          this.autoAddTrace = false;
+        }
         fieldInfo.field!.selectedItems = value;
       }
       this.updateGraph(value, fieldInfo, removedValue);
       this.fetchExtraOptions();
-    });
+    };
 
-    // Listen for split-by-changed events when the page is loaded from URL.
-    fieldInfo.field.removeEventListener('split-by-changed', () => {});
-    fieldInfo.field.addEventListener('split-by-changed', (e) => {
+    fieldInfo.onSplitByChanged = (e: Event) => {
       const param = (e as CustomEvent).detail.param;
       const split = (e as CustomEvent).detail.split;
       this.setSplitFields(param, split);
-    });
+    };
+
+    // Add the new listeners.
+    fieldInfo.field!.addEventListener('value-changed', fieldInfo.onValueChanged);
+    fieldInfo.field.addEventListener('split-by-changed', fieldInfo.onSplitByChanged);
   }
 
   private setSplitFields(param: string, split: boolean) {
@@ -701,6 +734,10 @@ export class TestPickerSk extends ElementSk {
     }
   }
 
+  get autoAddTrace(): boolean {
+    return this._autoAddTrace;
+  }
+
   /**
    * Initializes Test Picker from scratch.
    *
@@ -752,6 +789,8 @@ export class TestPickerSk extends ElementSk {
           param: param,
           value: [],
           splitBy: [],
+          onValueChanged: null,
+          onSplitByChanged: null,
         });
       });
     }

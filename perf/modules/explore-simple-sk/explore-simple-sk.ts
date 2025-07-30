@@ -1501,6 +1501,11 @@ export class ExploreSimpleSk extends ElementSk {
   };
 
   private _renderedTraces = () => {
+    this.dispatchEvent(
+      new CustomEvent('data-loading', {
+        bubbles: true,
+      })
+    );
     this.dispatchEvent(new CustomEvent('rendered_traces', {}));
   };
 
@@ -1969,8 +1974,11 @@ export class ExploreSimpleSk extends ElementSk {
    *    'trace' (column) on the chart.
    * 3. Split by Key (splitByKey): If the 'splitByKey' param is present, it will
    *    trigger the action to split the chart by that parameter key.
+   *
+   * @param selection - If true, it will select the commit and trace specified in the URL.
+   *                    This is needed when popping the selection too early.
    */
-  useBrowserURL(): void {
+  useBrowserURL(selection: boolean = true): void {
     const currentUrl = new URL(window.location.href);
     const commit: number = parseInt(
       currentUrl.searchParams.get('commit') ?? String(this._state.selected.commit)
@@ -2038,7 +2046,7 @@ export class ExploreSimpleSk extends ElementSk {
         return;
       }
       const googlePlot = this.googleChartPlot.value;
-      if (googlePlot) {
+      if (googlePlot && selection) {
         googlePlot.selectCommit(commitIndex, column);
       }
     }
@@ -2147,10 +2155,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._dataframe.traceset = subDataframe.traceset;
     this._dataframe.header = subDataframe.header;
     this._dataframe.traceMetadata = subDataframe.traceMetadata;
-
-    if (!plot) {
-      return;
-    }
+    this.updateTracePointMetadata(subDataframe.traceMetadata);
 
     // Specific to legacy charts: Add the x and y coordinates
     // for each user issue to be shown.
@@ -2158,15 +2163,16 @@ export class ExploreSimpleSk extends ElementSk {
       this._dataframe,
       this.dfRepo.value?.userIssues || {}
     );
-    plot.userIssueMap = issues;
 
     if (replot) {
-      plot.removeAll();
       this.AddPlotLines(subDataframe.traceset, this.getLabels(subDataframe.header!));
-      this.updateTracePointMetadata(subDataframe.traceMetadata);
     }
 
     if (anomalyMap) {
+      if (!plot) {
+        return;
+      }
+      plot.userIssueMap = issues;
       plot.anomalyDataMap = getAnomalyDataMap(
         subDataframe.traceset,
         subDataframe.header!,
@@ -3044,7 +3050,6 @@ export class ExploreSimpleSk extends ElementSk {
         });
     }
     this._renderedTraces();
-
     if (this._state.plotSummary) {
       const header = dataframe.header!;
       if (this.state.doNotQueryData) {
@@ -3052,6 +3057,11 @@ export class ExploreSimpleSk extends ElementSk {
         // The data is supposed to be already loaded.
         // Let's simply make the selection on the summary.
         this.plotSummary.value?.SelectRange(selectedRange!);
+        this.dispatchEvent(
+          new CustomEvent('data-loaded', {
+            bubbles: true,
+          })
+        );
       } else {
         let extendRange = 3 * monthInSec;
         // Large amount of traces, limit the range extension.
@@ -3079,15 +3089,15 @@ export class ExploreSimpleSk extends ElementSk {
           this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit', false);
           this.plotSummary.value?.SelectRange(selectedRange!);
           // Modify the Range if URL contains different values.
+          this.useBrowserURL();
+          this.dispatchEvent(
+            new CustomEvent('data-loaded', {
+              bubbles: true,
+            })
+          );
         });
       }
     }
-
-    this.dispatchEvent(
-      new CustomEvent('data-loaded', {
-        bubbles: true,
-      })
-    );
   }
 
   // Adds x and y coordinates to the user issue points needed to be displayed
@@ -3815,7 +3825,7 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   getTraceset(): { [key: string]: number[] } | null {
-    return this.dfRepo.value?.dataframe.traceset ?? null;
+    return this._dataframe.traceset ?? null;
   }
 
   getSelectedRange(): range | null {

@@ -94,7 +94,12 @@ export class PickerFieldSk extends ElementSk {
   private onValueChanged(e: Event) {
     const selectedItems = (e as CustomEvent).detail.value as string[];
 
-    if (selectedItems.length === this.selectedItems.length) {
+    // If the selected items are the same as the current selection and
+    // not all options are selected, do not dispatch the event.
+    if (
+      selectedItems.length === this.selectedItems.length &&
+      this.options.length !== selectedItems.length
+    ) {
       return;
     }
     this.dispatchEvent(
@@ -140,7 +145,8 @@ export class PickerFieldSk extends ElementSk {
       if (this._allSelected.checked === true) {
         this.selectedItems = this.options;
       } else {
-        this.selectedItems = [];
+        // Leave the first item selected.
+        this.selectedItems = this.options.splice(1);
       }
   }
 

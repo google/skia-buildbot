@@ -616,7 +616,7 @@ export class ExploreMultiSk extends ElementSk {
         if (this.exploreElements.length > 0 && this.exploreElements[0].dataLoading) {
           await this.exploreElements[0].requestComplete;
         }
-        this.addGraphsToCurrentPage(true);
+        this.addGraphsToCurrentPage(false);
         const query = this.testPicker!.createQueryFromFieldData();
         explore.addFromQueryOrFormula(true, 'query', query, '');
         this.refreshSplitList = true;
@@ -634,6 +634,7 @@ export class ExploreMultiSk extends ElementSk {
     // selected test values.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.addEventListener('add-to-graph', async (e) => {
+      this.testPicker?.setReadOnly(true);
       const query = (e as CustomEvent).detail.query;
       let explore: ExploreSimpleSk;
       if (this.currentPageExploreElements.length === 0) {
@@ -648,7 +649,7 @@ export class ExploreMultiSk extends ElementSk {
           return;
         }
       } else {
-        explore = this.currentPageExploreElements[0];
+        explore = this.exploreElements[0];
         this.currentPageExploreElements.splice(1);
         this.currentPageGraphConfigs.splice(1);
         this.exploreElements.splice(1);
@@ -663,7 +664,6 @@ export class ExploreMultiSk extends ElementSk {
     this.addEventListener('remove-trace', (e) => {
       const param = (e as CustomEvent).detail.param as string;
       const values = (e as CustomEvent).detail.value as string[];
-      const query = (e as CustomEvent).detail.query;
 
       if (values.length === 0) {
         this.resetGraphs();
@@ -684,52 +684,59 @@ export class ExploreMultiSk extends ElementSk {
         }
       });
 
-      this.exploreElements.forEach((elem) => {
-        if (elem.state.queries?.some((q) => queriesToRemove.includes(q))) {
-          elem.removeKeys(tracesToRemove, true);
-          this.removeExplore(elem);
-        }
-      });
-
-      const params: ParamSet = ParamSet({});
-
       if (Object.keys(traceSet).length === 0) {
         this.emptyCurrentPage();
         return;
       }
+      // Remove the traces from the current page explore elements.
+      this.exploreElements.forEach((elem) => {
+        if (!elem.state.queries?.length) {
+          return;
+        }
 
-      Object.keys(traceSet).forEach((trace) => {
-        addParamsToParamSet(params, fromKey(trace));
+        const traceset = elem.getTraceset() as TraceSet;
+        elem.removeKeys(tracesToRemove, true);
+        elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
+        if (elem.state.queries.length === 0) {
+          this.removeExplore(elem);
+        }
+        const params: ParamSet = ParamSet({});
+        Object.keys(traceset).forEach((trace) => {
+          addParamsToParamSet(params, fromKey(trace));
+        });
+
+        // Update the graph with the new traceSet and params.
+        const updatedRequest: FrameRequest = {
+          queries: elem.state.queries,
+          request_type: this.state.request_type,
+          begin: this.state.begin,
+          end: this.state.end,
+          tz: '',
+        };
+        const updatedResponse: FrameResponse = {
+          dataframe: {
+            traceset: traceset,
+            header: this.getHeader(),
+            paramset: ReadOnlyParamSet(params),
+            skip: 0,
+            traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(
+              Object.keys(traceset),
+              elem.getCommitLinks()
+            ),
+          },
+          anomalymap: this.getAnomalyMapForTraces(this.getFullAnomalyMap(), Object.keys(traceset)),
+          display_mode: 'display_plot',
+          msg: '',
+          skps: [],
+        };
+        elem.UpdateWithFrameResponse(
+          updatedResponse,
+          updatedRequest,
+          true,
+          this.exploreElements[0].getSelectedRange()
+        );
       });
-      const updatedRequest: FrameRequest = {
-        queries: query,
-        request_type: this.state.request_type,
-        begin: this.state.begin,
-        end: this.state.end,
-        tz: '',
-      };
-      const updatedResponse: FrameResponse = {
-        dataframe: {
-          traceset: traceSet as TraceSet,
-          header: this.getHeader(),
-          paramset: ReadOnlyParamSet(params),
-          skip: 0,
-          traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(
-            Object.keys(traceSet),
-            this.getAllCommitLinks()
-          ),
-        },
-        anomalymap: this.getAnomalyMapForTraces(this.getFullAnomalyMap(), Object.keys(traceSet)),
-        display_mode: 'display_plot',
-        msg: '',
-        skps: [],
-      };
-      this.exploreElements[0].UpdateWithFrameResponse(
-        updatedResponse,
-        updatedRequest,
-        true,
-        this.exploreElements[0].getSelectedRange()
-      );
+
       if (this.stateHasChanged) {
         this.stateHasChanged();
       }
@@ -790,7 +797,7 @@ export class ExploreMultiSk extends ElementSk {
     });
 
     this.testPicker!.populateFieldDataFromParamSet(paramSets, paramSet);
-    this.exploreElements[0].useBrowserURL();
+    this.exploreElements[0].useBrowserURL(false);
     this.testPicker!.scrollIntoView();
   }
 
@@ -1019,6 +1026,15 @@ export class ExploreMultiSk extends ElementSk {
     explore.addEventListener('data-loaded', () => {
       this.refreshSplitList = true;
       this.updateSplitByKeys();
+      if (this.testPicker) {
+        this.testPicker.setReadOnly(false);
+      }
+    });
+
+    explore.addEventListener('data-loading', () => {
+      if (this.testPicker) {
+        this.testPicker.setReadOnly(true);
+      }
     });
 
     return explore;
