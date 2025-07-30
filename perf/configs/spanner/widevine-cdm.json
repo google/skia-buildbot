@@ -57,7 +57,8 @@
             "show_google_plot": "true",
             "plotSummary": "true",
             "enable_chart_tooltip": "true",
-            "use_titles": "true"
+            "use_titles": "true",
+            "useTestPicker": "true"
         }
     },
     "optimize_sqltracestore": true,
