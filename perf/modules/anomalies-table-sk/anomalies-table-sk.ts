@@ -569,12 +569,6 @@ export class AnomaliesTableSk extends ElementSk {
    * @param anomalyList
    */
   checkSelectedAnomalies(anomalyList: Anomaly[]): void {
-    this.anomalyGroups.forEach((group) => {
-      const summaryRowCheckbox = this.querySelector(
-        `checkbox-sk[id=anomaly-row-${this.getGroupId(group)}]`
-      ) as CheckOrRadio;
-      summaryRowCheckbox!.checked = true;
-    });
     anomalyList.forEach((anomaly) => {
       this.checkAnomaly(anomaly);
     });

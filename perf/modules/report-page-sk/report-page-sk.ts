@@ -128,7 +128,7 @@ export class ReportPageSk extends ElementSk {
 
   private commitMap: Map<Commit, boolean> = new Map();
 
-  private requestAnomalies: string = '';
+  private requestAnomalies: string[] = [];
 
   private commitUrlprefix = window.perf.git_repo_url + '/+show/';
 
@@ -171,7 +171,7 @@ export class ReportPageSk extends ElementSk {
 
     const urlParams = new URLSearchParams(window.location.search);
     this.requestAnomalies =
-      urlParams.get('anomalyIDs') === null ? '' : urlParams.get('anomalyIDs')!;
+      urlParams.get('anomalyIDs') === null ? [] : urlParams.get('anomalyIDs')!.split(',');
     await fetch('/_/anomalies/group_report', {
       method: 'POST',
       body: JSON.stringify({
@@ -188,6 +188,8 @@ export class ReportPageSk extends ElementSk {
       .then(jsonOrThrow)
       .then(async (json) => {
         this.anomalyTracker.load(json.anomaly_list, json.timerange_map, json.selected_keys);
+        const selectedKey: string[] = json.selected_keys;
+        this.requestAnomalies.push(...selectedKey);
         this.initializePage();
         await this.listAllCommits(this.anomalyTracker.toAnomalyList());
         this._spinner!.active = false;
@@ -320,9 +322,8 @@ export class ReportPageSk extends ElementSk {
   // This is for only loading selected untriaged anomaly graphs in the first place.
   findRequestedAnomalies(): Anomaly[] {
     const ret: Anomaly[] = [];
-    const requestAnomalyIds = this.requestAnomalies.split(',');
     this.anomalyTracker.toAnomalyList().forEach((anomaly) => {
-      if (requestAnomalyIds.includes(String(anomaly.id))) {
+      if (this.requestAnomalies.includes(String(anomaly.id))) {
         ret.push(this.anomalyTracker.getAnomaly(anomaly.id)!.anomaly);
       }
     });
