@@ -145,12 +145,10 @@ export class AnomaliesTableSk extends ElementSk {
     this._render();
   }
 
-  private rangeIntersects(aMin: number, aMax: number, bMin: number, bMax: number) {
-    return aMin <= bMax && bMin <= aMax;
-  }
-
   private shouldMerge(a: Anomaly, b: Anomaly) {
-    return this.rangeIntersects(a.start_revision, a.end_revision, b.start_revision, b.end_revision);
+    const testSuiteA = a.test_path.split('/').length > 2 ? a.test_path.split('/')[2] : '';
+    const testSuiteB = b.test_path.split('/').length > 2 ? b.test_path.split('/')[2] : '';
+    return testSuiteA === testSuiteB;
   }
 
   /**
