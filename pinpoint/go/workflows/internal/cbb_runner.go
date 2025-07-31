@@ -143,6 +143,70 @@ func setupBrowser(cbb *CbbRunnerParams, bi *browserInfo) string {
 	return browser
 }
 
+// Generate Pinpoint job ID. Uses abbreviations to keep the job ID short.
+func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
+	// Shorten browser/channel name.
+	// * Browser name is shortened to 3 characters.
+	// * Channel name is omitted if it is "Stable".
+	// * Special case: Safari Technology Preview is abbreviated as "STP".
+	browser := bi.Browser[:3]
+	if bi.Channel != "Stable" {
+		if bi.Browser == "Safari" && bi.Channel == "Technology Preview" {
+			browser = "STP"
+		} else {
+			browser += " " + bi.Channel
+		}
+	}
+
+	// Chrome and Edge versions are used as-is, but Safari versions are too long.
+	// * Safari Stable version looks like "1.2.3 (12345.6.7.8)". Truncate at the space.
+	// * STP version looks like "1.2.3 (Release 123, 12345.6.7.8)". Keep only the release number.
+	version := bi.Version
+	if bi.Browser == "Safari" {
+		if bi.Channel == "Stable" {
+			space := strings.Index(version, " ")
+			if space != -1 {
+				version = version[:space]
+			}
+		} else {
+			release := strings.Index(version, "Release ")
+			if release != -1 {
+				version = version[release+8:]
+			}
+			comma := strings.Index(version, ",")
+			if comma != -1 {
+				version = version[:comma]
+			}
+		}
+	}
+
+	// Shorten bot name.
+	bot := cbb.BotConfig
+	switch bot {
+	case "android-pixel-tangor-perf-cbb":
+		bot = "tang"
+	case "mac-m3-pro-perf-cbb":
+		bot = "m3"
+	case "win-victus-perf-cbb":
+		bot = "vic"
+	case "win-arm64-snapdragon-plus-perf-cbb":
+		bot = "plus"
+	case "win-arm64-snapdragon-elite-perf-cbb":
+		bot = "elite"
+	}
+
+	// Shorten benchmark name.
+	if strings.HasPrefix(benchmark, "speedometer") {
+		benchmark = "SP"
+	} else if strings.HasPrefix(benchmark, "jetstream") {
+		benchmark = "JS"
+	} else if strings.HasPrefix(benchmark, "motionmark") {
+		benchmark = "MM"
+	}
+
+	return fmt.Sprintf("CBB %s %s %s %s", browser, version, bot, benchmark)
+}
+
 // Workflow to run all CBB benchmarks on a particular browser / bot config and upload the results.
 func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]*format.Format, error) {
 	startTime := time.Now()
@@ -166,10 +230,8 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 	results := map[string]*format.Format{}
 
 	for _, b := range benchmarks {
-		jobId := fmt.Sprintf(
-			"CBB %s %s %s %s", bi.Browser, bi.Channel, bi.Version, b.Benchmark)
 		p := &SingleCommitRunnerParams{
-			PinpointJobID:  jobId,
+			PinpointJobID:  genJobId(bi, cbb, b.Benchmark),
 			BotConfig:      cbb.BotConfig,
 			Benchmark:      b.Benchmark,
 			Story:          "default",
