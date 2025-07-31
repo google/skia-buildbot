@@ -354,7 +354,10 @@ func checkK8sConfigFile(ctx context.Context, f fileWithChanges) bool {
 	// Validate images.
 	images := map[string]bool{}
 	for _, container := range containers {
-		images[container.Image] = true
+		// Only check images that we've built.
+		if strings.HasPrefix(container.Image, "gcr.io/skia-public/") {
+			images[container.Image] = true
+		}
 	}
 	client := types.NewHttpClient("https://attest.skia.org", http.DefaultClient)
 	for image := range images {
