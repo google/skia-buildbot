@@ -2,9 +2,6 @@ package jobstore
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
-	"strings"
 	"testing"
 	"time"
 
@@ -12,8 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/pinpoint/go/common"
+	"go.skia.org/infra/pinpoint/go/sql/schema"
 	"go.skia.org/infra/pinpoint/go/sql/schema/spanner"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pinpointpb "go.skia.org/infra/pinpoint/proto/v1"
@@ -47,13 +46,7 @@ var endCommit = pinpointpb.CombinedCommit{
 	},
 }
 
-// Helper struct to unmarshal the JSON stored in additional_request_parameters["commit_runs"]
-type storedCommitRuns struct {
-	Left  *CommitRunData `json:"left"`
-	Right *CommitRunData `json:"right"`
-}
-
-var leftData = CommitRunData{
+var leftData = schema.CommitRunData{
 	Build: &workflows.Build{
 		ID:     123,
 		Status: buildbucketpb.Status_SUCCESS,
@@ -70,7 +63,7 @@ var leftData = CommitRunData{
 	},
 }
 
-var rightData = CommitRunData{
+var rightData = schema.CommitRunData{
 	Build: &workflows.Build{
 		ID:     456,
 		Status: buildbucketpb.Status_SUCCESS, // Success
@@ -121,17 +114,17 @@ func TestAddInitialJob(t *testing.T) {
 	assert.Equal(t, req.Benchmark, retrievedJob.Benchmark)
 	assert.Equal(t, req.Configuration, retrievedJob.BotName)
 
-	expectedAdditionalParams := map[string]string{
-		"start_commit_githash":  req.StartCommit.Main.GitHash,
-		"end_commit_githash":    req.EndCommit.Main.GitHash,
-		"story":                 req.Story,
-		"story_tags":            req.StoryTags,
-		"initial_attempt_count": req.InitialAttemptCount,
-		"aggregation_method":    req.AggregationMethod,
-		"target":                req.Target,
-		"project":               req.Project,
-		"bug_id":                req.BugId,
-		"chart":                 req.Chart,
+	expectedAdditionalParams := &schema.AdditionalRequestParametersSchema{
+		StartCommitGithash:  req.StartCommit.Main.GitHash,
+		EndCommitGithash:    req.EndCommit.Main.GitHash,
+		Story:               req.Story,
+		StoryTags:           req.StoryTags,
+		InitialAttemptCount: req.InitialAttemptCount,
+		AggregationMethod:   req.AggregationMethod,
+		Target:              req.Target,
+		Project:             req.Project,
+		BugId:               req.BugId,
+		Chart:               req.Chart,
 	}
 	assert.Equal(t, expectedAdditionalParams, retrievedJob.AdditionalRequestParameters)
 	assert.Empty(t, retrievedJob.MetricSummary)
@@ -162,7 +155,7 @@ func TestUpdateJobStatus(t *testing.T) {
 	retrievedJob, err := js.GetJob(ctx, jobID)
 	require.NoError(t, err)
 	assert.Equal(t, newStatus, retrievedJob.JobStatus)
-	assert.Equal(t, "10", retrievedJob.AdditionalRequestParameters["duration"])
+	assert.Equal(t, "10", retrievedJob.AdditionalRequestParameters.Duration)
 }
 
 func TestAddResults(t *testing.T) {
@@ -224,7 +217,7 @@ func TestAddErrors(t *testing.T) {
 	err := js.AddInitialJob(ctx, initialReq, jobID)
 	require.NoError(t, err)
 
-	testError := errors.New("something went wrong during execution")
+	testError := skerr.Fmt("something went wrong during execution")
 	err = js.SetErrors(ctx, jobID, testError)
 	require.NoError(t, err)
 
@@ -263,17 +256,10 @@ func TestAddCommitRuns(t *testing.T) {
 	retrievedJob, err := js.GetJob(ctx, jobID)
 	require.NoError(t, err)
 
-	// we need to unmarshal the "commit_runs" value from the map.
-	commitRunsJSON, ok := retrievedJob.AdditionalRequestParameters["commit_runs"]
-	assert.True(t, ok)
-
-	var actualStoredCommitRuns storedCommitRuns
-	err = json.NewDecoder(strings.NewReader(commitRunsJSON)).Decode(&actualStoredCommitRuns)
-	require.NoError(t, err)
-
-	assert.Equal(t, &leftData, actualStoredCommitRuns.Left)
-	assert.Equal(t, &rightData, actualStoredCommitRuns.Right)
-	assert.Equal(t, initialReq.Story, retrievedJob.AdditionalRequestParameters["story"])
+	require.NotNil(t, retrievedJob.AdditionalRequestParameters.CommitRuns)
+	assert.Equal(t, &leftData, retrievedJob.AdditionalRequestParameters.CommitRuns.Left)
+	assert.Equal(t, &rightData, retrievedJob.AdditionalRequestParameters.CommitRuns.Right)
+	assert.Equal(t, initialReq.Story, retrievedJob.AdditionalRequestParameters.Story)
 }
 
 func insertTestListJob(t *testing.T, js JobStore, jobID, jobName, jobType, benchmark, status, botName, user string) {
@@ -301,7 +287,7 @@ func insertTestListJob(t *testing.T, js JobStore, jobID, jobName, jobType, bench
 		user,
 		benchmark,
 		botName,
-		map[string]string{},
+		&schema.AdditionalRequestParametersSchema{},
 		"",
 	)
 	require.NoError(t, err)

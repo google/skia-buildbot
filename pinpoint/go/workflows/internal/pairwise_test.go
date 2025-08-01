@@ -10,7 +10,8 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
-	jobstore "go.skia.org/infra/pinpoint/go/sql/jobs_store"
+	"go.skia.org/infra/pinpoint/go/sql/schema"
+
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/activity"
@@ -51,7 +52,7 @@ func registerJobStoreActivities(env *testsuite.TestWorkflowEnvironment) {
 		activity.RegisterOptions{Name: AddResults},
 	)
 	env.RegisterActivityWithOptions(
-		func(context.Context, string, *jobstore.CommitRunData, *jobstore.CommitRunData) error { return nil },
+		func(context.Context, string, *schema.CommitRunData, *schema.CommitRunData) error { return nil },
 		activity.RegisterOptions{Name: AddCommitRuns},
 	)
 }

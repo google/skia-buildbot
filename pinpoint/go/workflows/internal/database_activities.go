@@ -6,6 +6,7 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	jobstore "go.skia.org/infra/pinpoint/go/sql/jobs_store"
+	"go.skia.org/infra/pinpoint/go/sql/schema"
 	pinpointpb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
@@ -48,7 +49,7 @@ func (a *JobStoreActivities) AddResults(ctx context.Context, jobID string, resul
 }
 
 // Store results from pairiwse commit runner including CAS references for builds and tests.
-func (a *JobStoreActivities) AddCommitRuns(ctx context.Context, jobID string, left, right *jobstore.CommitRunData) error {
+func (a *JobStoreActivities) AddCommitRuns(ctx context.Context, jobID string, left, right *schema.CommitRunData) error {
 	return skerr.Wrap(a.js.AddCommitRuns(ctx, jobID, left, right))
 }
 

@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
-	jobstore "go.skia.org/infra/pinpoint/go/sql/jobs_store"
+	"go.skia.org/infra/pinpoint/go/sql/schema"
 	"go.skia.org/infra/pinpoint/go/workflows"
 
 	"go.temporal.io/sdk/temporal"
@@ -128,11 +128,11 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (pe *pi
 	}
 	// Store details of commit buids and test runs
 	if pr != nil {
-		leftData := &jobstore.CommitRunData{
+		leftData := &schema.CommitRunData{
 			Build: pr.Left.Build,
 			Runs:  pr.Left.Runs,
 		}
-		rightData := &jobstore.CommitRunData{
+		rightData := &schema.CommitRunData{
 			Build: pr.Right.Build,
 			Runs:  pr.Right.Runs,
 		}

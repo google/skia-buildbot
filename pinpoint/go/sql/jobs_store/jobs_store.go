@@ -3,7 +3,6 @@ package jobstore
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -43,7 +42,7 @@ type JobStore interface {
 	SetErrors(ctx context.Context, jobID string, err error) error
 
 	// Store results from pairiwse commit runner including CAS references for builds and tests
-	AddCommitRuns(ctx context.Context, jobID string, left, right *CommitRunData) error
+	AddCommitRuns(ctx context.Context, jobID string, left, right *schema.CommitRunData) error
 
 	// ListJobs retrieves a list of jobs with optional filtering for the dashboard.
 	ListJobs(ctx context.Context, options ListJobsOptions) ([]*DashboardJob, error)
@@ -84,6 +83,34 @@ type ListJobsOptions struct {
 	Offset int
 }
 
+// CommitRunData contains the build and test run data for a commit.
+type CommitRunData struct {
+	Build *workflows.Build     `json:"Build"`
+	Runs  []*workflows.TestRun `json:"Runs"`
+}
+
+// CommitRuns contains the data for left and right commits.
+type CommitRuns struct {
+	Left  *CommitRunData `json:"left"`
+	Right *CommitRunData `json:"right"`
+}
+
+// AdditionalRequestParametersSchema contains all additional parameters needed for a Job.
+type AdditionalRequestParametersSchema struct {
+	StartCommitGithash  string      `json:"start_commit_githash,omitempty"`
+	EndCommitGithash    string      `json:"end_commit_githash,omitempty"`
+	Story               string      `json:"story,omitempty"`
+	StoryTags           string      `json:"story_tags,omitempty"`
+	InitialAttemptCount string      `json:"initial_attempt_count,omitempty"`
+	AggregationMethod   string      `json:"aggregation_method,omitempty"`
+	Target              string      `json:"target,omitempty"`
+	Project             string      `json:"project,omitempty"`
+	BugId               string      `json:"bug_id,omitempty"`
+	Chart               string      `json:"chart,omitempty"`
+	Duration            string      `json:"duration,omitempty"`
+	CommitRuns          *CommitRuns `json:"commit_runs,omitempty"`
+}
+
 // NewJobStore creates a new JobStore with the given database connection.
 func NewJobStore(db pool.Pool) JobStore {
 	return &jobStoreImpl{
@@ -91,46 +118,26 @@ func NewJobStore(db pool.Pool) JobStore {
 	}
 }
 
-// CommitRunData contains the build and test run data for a commit.
-type CommitRunData struct {
-	// Build contains the build data for a commit.
-	Build *workflows.Build
-	// Runs contains the test run data for a commit.
-	Runs []*workflows.TestRun
-}
-
 func (js *jobStoreImpl) AddInitialJob(ctx context.Context, request *pinpointpb.SchedulePairwiseRequest, id string) error {
 	if request == nil {
 		return skerr.Fmt("SchedulePairwiseRequest cannot be nil")
 	}
-	additionalParams := make(map[string]string)
+	additionalParams := &AdditionalRequestParametersSchema{}
 
 	if request.StartCommit != nil && request.StartCommit.Main != nil && request.StartCommit.Main.GitHash != "" {
-		additionalParams["start_commit_githash"] = request.StartCommit.Main.GitHash
+		additionalParams.StartCommitGithash = request.StartCommit.Main.GitHash
 	}
 	if request.EndCommit != nil && request.EndCommit.Main != nil && request.EndCommit.Main.GitHash != "" {
-		additionalParams["end_commit_githash"] = request.EndCommit.Main.GitHash
+		additionalParams.EndCommitGithash = request.EndCommit.Main.GitHash
 	}
-
-	params := []struct {
-		key   string
-		value string
-	}{
-		{"story", request.Story},
-		{"story_tags", request.StoryTags},
-		{"initial_attempt_count", request.InitialAttemptCount},
-		{"aggregation_method", request.AggregationMethod},
-		{"target", request.Target},
-		{"project", request.Project},
-		{"bug_id", request.BugId},
-		{"chart", request.Chart},
-	}
-
-	for _, p := range params {
-		if p.value != "" {
-			additionalParams[p.key] = p.value
-		}
-	}
+	additionalParams.Story = request.Story
+	additionalParams.StoryTags = request.StoryTags
+	additionalParams.InitialAttemptCount = request.InitialAttemptCount
+	additionalParams.AggregationMethod = request.AggregationMethod
+	additionalParams.Target = request.Target
+	additionalParams.Project = request.Project
+	additionalParams.BugId = request.BugId
+	additionalParams.Chart = request.Chart
 
 	jobName := "default"
 	submittedBy := "default"
@@ -207,7 +214,7 @@ func (js *jobStoreImpl) GetJob(ctx context.Context, jobID string) (*schema.JobSc
 		&job.ErrorMessage,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return nil, skerr.Fmt("job with ID %s not found", jobID)
 		}
 		return nil, skerr.Fmt("failed to query or scan job with ID %s: %w", jobID, err)
@@ -242,7 +249,7 @@ func (js *jobStoreImpl) UpdateJobStatus(ctx context.Context, jobID string, statu
 	if err != nil {
 		return err
 	}
-	params["duration"] = strconv.FormatInt(durationMinutesRounded, 10)
+	params.Duration = strconv.FormatInt(durationMinutesRounded, 10)
 
 	query := `
        UPDATE jobs SET
@@ -279,7 +286,7 @@ func (js *jobStoreImpl) SetErrors(ctx context.Context, jobID string, err error) 
 	return nil
 }
 
-func (js *jobStoreImpl) AddCommitRuns(ctx context.Context, jobID string, left, right *CommitRunData) error {
+func (js *jobStoreImpl) AddCommitRuns(ctx context.Context, jobID string, left, right *schema.CommitRunData) error {
 	// We want to pull additional_request_parameters, combine, then update
 	tx, err := js.db.Begin(ctx)
 	if err != nil {
@@ -292,17 +299,10 @@ func (js *jobStoreImpl) AddCommitRuns(ctx context.Context, jobID string, left, r
 	if err != nil {
 		return err
 	}
-	commitRunsData := map[string]any{
-		"left":  left,
-		"right": right,
+	params.CommitRuns = &schema.CommitRuns{
+		Left:  left,
+		Right: right,
 	}
-
-	commitRunsJSON, err := json.Marshal(commitRunsData)
-	if err != nil {
-		return skerr.Fmt("failed to marshal commit runs to JSON for job_id %s: %w", jobID, err)
-	}
-
-	params["commit_runs"] = string(commitRunsJSON)
 
 	query := `
        UPDATE jobs SET
@@ -320,7 +320,7 @@ func (js *jobStoreImpl) AddCommitRuns(ctx context.Context, jobID string, left, r
 
 // Helper function that retrieves the additional parameters for a given job ID.
 func (js *jobStoreImpl) getAdditionalParams(ctx context.Context, jobID string, tx pgx.Tx,
-) (map[string]string, error) {
+) (*schema.AdditionalRequestParametersSchema, error) {
 
 	var existingParams []byte
 	err := tx.QueryRow(ctx,
@@ -330,9 +330,12 @@ func (js *jobStoreImpl) getAdditionalParams(ctx context.Context, jobID string, t
 		return nil, skerr.Fmt("failed to query existing params for job %s: %w", jobID, err)
 	}
 
-	var params map[string]string
+	var params *schema.AdditionalRequestParametersSchema
 	if err := json.NewDecoder(bytes.NewReader(existingParams)).Decode(&params); err != nil {
 		return nil, skerr.Fmt("failed to unmarshal existing params for job %s: %w", jobID, err)
+	}
+	if params == nil {
+		params = &schema.AdditionalRequestParametersSchema{}
 	}
 
 	return params, nil

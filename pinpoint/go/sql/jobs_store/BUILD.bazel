@@ -21,8 +21,10 @@ go_test(
     srcs = ["jobs_store_test.go"],
     embed = [":jobs_store"],
     deps = [
+        "//go/skerr",
         "//perf/go/sql/sqltest",
         "//pinpoint/go/common",
+        "//pinpoint/go/sql/schema",
         "//pinpoint/go/sql/schema/spanner",
         "//pinpoint/go/workflows",
         "//pinpoint/proto/v1:proto",

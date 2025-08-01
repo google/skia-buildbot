@@ -118,6 +118,31 @@ func (s *Service) ListJobsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Service) GetJobHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	jobID := chi.URLParam(r, "jobID")
+	if jobID == "" {
+		msg := "No Job ID was provided"
+		httputils.ReportError(w, skerr.Fmt("no job id was provided"), msg, http.StatusBadRequest)
+		return
+	}
+
+	job, err := s.jobStore.GetJob(ctx, jobID)
+	if err != nil {
+		msg := "Failed to receive Job info"
+		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		msg := "Failed to encode response"
+		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
+		return
+	}
+
+}
+
 // templateHandler returns an http.HandlerFunc that executes the named template.
 func (s *Service) templateHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -133,6 +158,7 @@ func (s *Service) templateHandler(name string) http.HandlerFunc {
 // RegisterHandlers registers the service's HTTP handlers with a mux.
 func (s *Service) RegisterHandlers(router *chi.Mux) {
 	router.Get("/json/jobs/list", s.ListJobsHandler)
+	router.Get("/json/job/{jobID}", s.GetJobHandler)
 	router.Get("/benchmarks", s.ListBenchmarksHandler)
 	router.Get("/bots", s.ListBotConfigurationsHandler)
 	router.Get("/stories", s.ListStoriesHandler)
