@@ -169,7 +169,6 @@ export function mainChartOptions(
       },
       gridlines: {
         color: gridlineColor,
-        count: 100,
       },
       minorGridlines: {
         color: gridlineColor,
