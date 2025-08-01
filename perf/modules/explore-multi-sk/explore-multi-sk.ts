@@ -549,15 +549,15 @@ export class ExploreMultiSk extends ElementSk {
 
     // Now add the graphs that have been configured to the page.
     this.addGraphsToCurrentPage(true);
+    // Limit page size to the number of graphs available.
     const limit =
-      this.exploreElements.length > this.state.pageSize
-        ? this.state.pageSize
+      this.exploreElements.length > this.state.pageSize + this.state.pageOffset
+        ? this.state.pageSize + this.state.pageOffset + 1
         : this.exploreElements.length;
-    for (let i = this.state.pageOffset; i < limit; i++) {
-      // Graph is being split, so skip the primary graph.
-      if (this.exploreElements.length > 1 && i === 0) {
-        continue;
-      }
+    // If graph is being split, skip the primary graph (index 0), as it contains all the data.
+    // This is to avoid displaying the primary graph in the pagination view.
+    const offset = this.exploreElements.length === 1 ? 0 : this.state.pageOffset + 1;
+    for (let i = offset; i < limit; i++) {
       this.exploreElements[i].UpdateWithFrameResponse(
         frameResponses[i],
         frameRequests[i],
@@ -749,7 +749,7 @@ export class ExploreMultiSk extends ElementSk {
   private async populateTestPicker(paramSet: { [key: string]: string[] }) {
     const paramSets: ParamSet = ParamSet({});
 
-    const timeoutMs = 30000; // Timeout for waiting for non-empty tracesets.
+    const timeoutMs = 50000; // Timeout for waiting for non-empty tracesets.
     const pollIntervalMs = 500; // Interval to re-check.
 
     // Create a promise that resolves when the tracesets are ready.
