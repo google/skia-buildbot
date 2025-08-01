@@ -54,6 +54,7 @@ var (
 	validChromiumGerritConfigs = []GerritConfig_Config{
 		GerritConfig_CHROMIUM_BOT_COMMIT,
 		GerritConfig_CHROMIUM_BOT_COMMIT_NO_CQ,
+		GerritConfig_CHROMIUM_NO_CR,
 	}
 )
 
