@@ -32,21 +32,11 @@ If not updating Bazel, merely note what version is there.
 
 #### Rebuild Toolchain Container
 
-If necessary, make changes to `//bazel/rbe/gce_linux_container/Dockerfile` and run
-`make -C bazel/rbe/gce_linux_container push` from the root directory, e.g.:
+If necessary, make changes to `//bazel/rbe/gce_linux_container/Dockerfile` and commit those.
+Use Louhi's Build infra-rbe-linux flow to create a new image.
 
-```
-$ make -C bazel/rbe/gce_linux_container push
-...
-Successfully tagged gcr.io/skia-public/infra-rbe-linux:2022-06-17T17_13_12Z-somegoogler-16372d5-dirty
-docker push gcr.io/skia-public/infra-rbe-linux:2022-06-17T17_13_12Z-somegoogler-16372d5-dirty
-The push refers to repository [gcr.io/skia-public/infra-rbe-linux]
-...
-2022-06-17T17_13_12Z-somegoogler-16372d5-dirty: digest: sha256:0b12571d1befe54e9300711c8519535d635b867c317b2098915c7733fd65b833 size: 2007
-make: Leaving directory '/usr/local/google/home/somegoogler/buildbot/bazel/rbe/gce_linux_container'
-```
-
-Make note of the image SHA256 hash printed out by the above command.
+Make note of the image's SHA256 hash, found in the Louhi page
+[(example)](https://louhi.corp.goog/6316342352543744/execution-detail/5660155978317824).
 
 If not rebuilding the container, merely note what SHA256 hash is specified in the `container-image`
 exec_property of the platform defined in `//bazel/rbe/generated/config/BUILD`
@@ -79,7 +69,7 @@ Example:
 ```
 $ bazelisk run //:rbe_configs_gen -- \
       --bazel_version=$(cat .bazelversion) \
-      --toolchain_container=gcr.io/skia-public/infra-rbe-linux@sha256:0b12571d1befe54e9300711c8519535d635b867c317b2098915c7733fd65b833 \
+      --toolchain_container=gcr.io/skia-public/infra-rbe-linux@sha256:9d565deca2ec317a4c26403ba9d14cf4d3ed083632cd24870155db292eb4de6b \
       --output_src_root=$(pwd) \
       --output_config_path=bazel/rbe/generated \
       --exec_os=linux \
