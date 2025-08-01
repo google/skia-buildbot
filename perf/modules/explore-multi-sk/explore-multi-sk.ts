@@ -549,14 +549,17 @@ export class ExploreMultiSk extends ElementSk {
 
     // Now add the graphs that have been configured to the page.
     this.addGraphsToCurrentPage(true);
+
+    const isSplitChart: boolean = this.exploreElements.length > 1;
     // Limit page size to the number of graphs available.
-    const limit =
-      this.exploreElements.length > this.state.pageSize + this.state.pageOffset
-        ? this.state.pageSize + this.state.pageOffset + 1
-        : this.exploreElements.length;
+    const limit = Math.min(
+      this.state.pageSize + this.state.pageOffset + 1,
+      this.exploreElements.length
+    );
+
     // If graph is being split, skip the primary graph (index 0), as it contains all the data.
     // This is to avoid displaying the primary graph in the pagination view.
-    const offset = this.exploreElements.length === 1 ? 0 : this.state.pageOffset + 1;
+    const offset = isSplitChart ? this.state.pageOffset + 1 : 0;
     for (let i = offset; i < limit; i++) {
       this.exploreElements[i].UpdateWithFrameResponse(
         frameResponses[i],
@@ -857,7 +860,8 @@ export class ExploreMultiSk extends ElementSk {
   private addGraphsToCurrentPage(doNotQueryData: boolean = false): void {
     this.state.totalGraphs = this.exploreElements.length > 1 ? this.exploreElements.length - 1 : 1;
     this.emptyCurrentPage();
-    let startIndex = this.state.pageOffset;
+    let startIndex = this.exploreElements.length > 1 ? this.state.pageOffset : 0;
+
     if (this.exploreElements.length > 1) {
       startIndex++;
     }

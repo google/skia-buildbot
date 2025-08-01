@@ -3825,6 +3825,10 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   getTraceset(): { [key: string]: number[] } | null {
+    return this.dfRepo.value?.dataframe.traceset ?? null;
+  }
+
+  getDataTraces(): { [key: string]: number[] } | null {
     return this._dataframe.traceset ?? null;
   }
 

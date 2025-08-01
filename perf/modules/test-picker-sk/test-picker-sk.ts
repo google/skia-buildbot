@@ -135,7 +135,7 @@ export class TestPickerSk extends ElementSk {
       this.updateCount(json.count);
 
       if (param in json.paramset && json.paramset[param] !== null) {
-        const options = json.paramset[param];
+        const options = json.paramset[param].filter((option: string) => !option.includes('.'));
         options.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
         const field: PickerFieldSk = new PickerFieldSk(param);
         currentFieldInfo.field = field;
@@ -143,6 +143,11 @@ export class TestPickerSk extends ElementSk {
         this._currentIndex += 1;
         field!.label = param;
         field!.options = options;
+        const extraTests = json.paramset[param].filter((option: string) => option.includes('.'));
+        if (extraTests.length > 0) {
+          field!.options = options.concat(extraTests);
+        }
+
         field!.focus();
         if (currentIndex !== 0) {
           field!.openOverlay();
@@ -313,7 +318,7 @@ export class TestPickerSk extends ElementSk {
 
     const handler = (json: NextParamListHandlerResponse) => {
       if (param in json.paramset && json.paramset[param] !== null) {
-        const options = json.paramset[param];
+        const options = json.paramset[param].filter((option: string) => !option.includes('.'));
         field!.options = options;
         this.updateCount(json.count);
         field!.focus();
@@ -414,6 +419,10 @@ export class TestPickerSk extends ElementSk {
     const uniqueParamKeys = [...new Set([...Object.keys(paramSets), ...Object.keys(paramSet)])];
     this.initializeFieldData(uniqueParamKeys);
     this._currentIndex = 0; // Reset current index for proper field initialization
+    // If no params are provided, then chart is loaded with all traces.
+    if (Object.keys(paramSet).length === 0) {
+      this.autoAddTrace = true;
+    }
 
     for (let i = 0; i < this._fieldData.length; i++) {
       const fieldInfo = this._fieldData[i];
@@ -601,7 +610,15 @@ export class TestPickerSk extends ElementSk {
               fieldInfo.field = field;
               this._containerDiv!.appendChild(field);
             }
-            fieldInfo.field!.options = json.paramset[param];
+            fieldInfo.field!.options = json.paramset[param].filter(
+              (option: string) => !option.includes('.')
+            );
+            const extraTests = json.paramset[param].filter((option: string) =>
+              option.includes('.')
+            );
+            if (extraTests.length > 0) {
+              fieldInfo.field!.options = fieldInfo.field!.options.concat(extraTests);
+            }
             fieldInfo.field!.focus();
             this.addValueUpdatedEventToField(i);
             // Track the furthest index queried
@@ -709,6 +726,7 @@ export class TestPickerSk extends ElementSk {
    */
   private updateCount(count: number) {
     if (count === -1) {
+      this.setReadOnly(true);
       this._count = 0;
       return;
     }
@@ -717,7 +735,7 @@ export class TestPickerSk extends ElementSk {
     if (count > PLOT_MAXIMUM || count <= 0) {
       this.autoAddTrace = false;
       this._plotButton!.disabled = true;
-      this._plotButton!.title = 'Plotting is disabled. Not enough traces.';
+      this._plotButton!.title = 'Plotting is disabled. Too many traces.';
       return;
     }
     if (this._graphDiv && this._graphDiv.children.length > 0) {
