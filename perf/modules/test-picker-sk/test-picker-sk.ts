@@ -53,6 +53,8 @@ class FieldInfo {
 
   splitBy: string[] = []; // Split item selected.
 
+  index: number = 0; // Index of the field in the fieldData array.
+
   onValueChanged: ((e: Event) => void) | null = null;
 
   onSplitByChanged: ((e: Event) => void) | null = null;
@@ -158,47 +160,7 @@ export class TestPickerSk extends ElementSk {
 
       this._render();
     };
-    this.callNextParamList(handler);
-  }
-
-  /**
-   * Adds event listener to PickerFieldSk element that handles whenever the
-   * selected value in a field has "changed".
-   *
-   * A value can only be considered "changed", when it's set to either
-   * empty string or a valid value from the dropdown selection menu.
-   *
-   * @param index - index of the FieldInfo to add the event listener to.
-   */
-  private addValueChangedEventToField(index: number) {
-    const fieldInfo = this._fieldData[index];
-
-    fieldInfo.field!.addEventListener('value-changed', (e) => {
-      const value = (e as CustomEvent).detail.value;
-      fieldInfo.value = value;
-
-      // Remove any child fields, as their values are no longer valid.
-      // If the value of a parent changes, the child values need to be
-      // recalculated.
-      this.removeChildFields(index);
-
-      // If the new value is not empty, there's two scenarios:
-      // 1. If this is not the last param, add a new child field as
-      //    there's still more values to choose from.
-      // 2. If this is the last param, we are done selecting values.
-      //    Just update the match count to reflect the new selection.
-      if (value !== '') {
-        if (index !== this._fieldData.length - 1) {
-          this.addChildField();
-        } else {
-          this.fetchCount();
-        }
-        // If new value is empty, simply re-calculate the field options and
-        // update the count.
-      } else {
-        this.fetchOptions(index);
-      }
-    });
+    this.callNextParamList(handler, currentIndex);
   }
 
   /**
@@ -262,10 +224,13 @@ export class TestPickerSk extends ElementSk {
    *
    * @param handler
    */
-  private callNextParamList(handler: (json: NextParamListHandlerResponse) => void) {
+  private callNextParamList(handler: (json: NextParamListHandlerResponse) => void, index: number) {
     this.updateCount(-1);
     this._requestInProgress = true;
-    this.setReadOnly(true);
+    // Allow multiple selections to continue.
+    if (!(this._fieldData[index].value.length > 1)) {
+      this.setReadOnly(true);
+    }
     this._render();
 
     const fieldData = this.createQueryFromFieldData();
@@ -328,23 +293,7 @@ export class TestPickerSk extends ElementSk {
         this._render();
       }
     };
-    this.callNextParamList(handler);
-  }
-
-  /**
-   * Update the matches count.
-   *
-   * Calls '/_/nextParamList/' to calculate how many matches the current
-   * selection has.
-   */
-  private fetchCount() {
-    const handler = (json: NextParamListHandlerResponse) => {
-      this._requestInProgress = false;
-      this.updateCount(json.count);
-      this._render();
-    };
-
-    this.callNextParamList(handler);
+    this.callNextParamList(handler, index);
   }
 
   private onPlotButtonClick() {
@@ -408,7 +357,7 @@ export class TestPickerSk extends ElementSk {
 
       // Add event listener for value changes
       this.addValueUpdatedEventToField(i);
-      this.fetchExtraOptions();
+      this.fetchExtraOptions(i);
 
       field.focus();
       this._render();
@@ -441,7 +390,7 @@ export class TestPickerSk extends ElementSk {
         fieldInfo.field.selectedItems = value;
         fieldInfo.value = value;
       }
-      this.fetchExtraOptions();
+      this.fetchExtraOptions(i);
       this._containerDiv!.appendChild(fieldInfo.field);
     }
   }
@@ -548,7 +497,7 @@ export class TestPickerSk extends ElementSk {
         fieldInfo.field!.selectedItems = value;
       }
       this.updateGraph(value, fieldInfo, removedValue);
-      this.fetchExtraOptions();
+      this.fetchExtraOptions(index);
     };
 
     fieldInfo.onSplitByChanged = (e: Event) => {
@@ -597,7 +546,7 @@ export class TestPickerSk extends ElementSk {
    *
    * @param index
    */
-  private fetchExtraOptions() {
+  private fetchExtraOptions(index: number) {
     const handler = (json: NextParamListHandlerResponse) => {
       const param = Object.keys(json.paramset)[0];
       const count: number = json.count || -1;
@@ -636,7 +585,7 @@ export class TestPickerSk extends ElementSk {
       }
       this._render();
     };
-    this.callNextParamList(handler);
+    this.callNextParamList(handler, index);
   }
 
   /**
@@ -801,12 +750,13 @@ export class TestPickerSk extends ElementSk {
       });
     } else {
       this._fieldData = [];
-      params.forEach((param) => {
+      params.forEach((param, i) => {
         this._fieldData.push({
           field: null,
           param: param,
           value: [],
           splitBy: [],
+          index: i,
           onValueChanged: null,
           onSplitByChanged: null,
         });

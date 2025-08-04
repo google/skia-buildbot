@@ -175,6 +175,12 @@ export class PickerFieldSk extends ElementSk {
   disable() {
     if (this._comboBox !== null) {
       this._comboBox!.setAttribute('readonly', '');
+      if (this._allSelected !== null) {
+        this._allSelected.disabled = true;
+      }
+      if (this._splitBox !== null) {
+        this._splitBox.disabled = true;
+      }
       this._render();
     }
   }
@@ -183,6 +189,12 @@ export class PickerFieldSk extends ElementSk {
     if (this._comboBox !== null) {
       this._comboBox!.removeAttribute('opened');
       this._comboBox!.removeAttribute('readonly');
+      if (this._allSelected !== null) {
+        this._allSelected.disabled = false;
+      }
+      if (this._splitBox !== null) {
+        this._splitBox.disabled = false;
+      }
       this._render();
     }
   }
