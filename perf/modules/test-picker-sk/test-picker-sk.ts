@@ -698,6 +698,7 @@ export class TestPickerSk extends ElementSk {
     this._autoAddTrace = autoAdd;
     if (this._plotButton !== null) {
       this._plotButton.disabled = autoAdd;
+      this._plotButton!.title = autoAdd ? 'Traces are added automatically' : 'Plot a graph';
     }
   }
 
