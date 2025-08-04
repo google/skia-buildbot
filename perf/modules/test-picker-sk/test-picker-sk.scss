@@ -16,6 +16,7 @@
   #fieldContainer {
     display: flex;
     align-items: flex-start;
+    flex-wrap: wrap;
   }
 
   #max-message {
