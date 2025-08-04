@@ -119,6 +119,76 @@ export const BuildStatus: { [key: number]: string } = {
   68: 'CANCELED',
 };
 
+export interface Commit {
+  git_hash?: string;
+  repository?: string;
+}
+
+export interface CombinedCommit {
+  main?: Commit;
+}
+
+export interface SchedulePairwiseRequest {
+  start_commit?: CombinedCommit;
+  end_commit?: CombinedCommit;
+  // This key 'bot_name' maps to the 'configuration' field in the proto.
+  bot_name?: string;
+  benchmark?: string;
+  story?: string;
+  job_name?: string;
+}
+
+export interface PairwiseExecution {
+  job_id: string;
+}
+
+export interface CancelJobRequest {
+  job_id: string;
+  reason: string;
+}
+
+export interface CancelJobResponse {
+  job_id: string;
+  state: string;
+}
+
+/**
+ * Schedules a new Pairwise job.
+ * @param request - The parameters for the pairwise job.
+ * @returns A promise that resolves to the execution details of the new job.
+ */
+export async function schedulePairwise(
+  request: SchedulePairwiseRequest
+): Promise<PairwiseExecution> {
+  const response = await fetch('/pinpoint/v1/pairwise', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to schedule pairwise job: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Cancels a running job.
+ * @param request - The job ID and reason for cancellation.
+ * @returns A promise that resolves to the cancellation response.
+ */
+export async function cancelJob(request: CancelJobRequest): Promise<CancelJobResponse> {
+  const params = new URLSearchParams();
+  params.set('job_id', request.job_id);
+  params.set('reason', request.reason);
+  const response = await fetch(`/pinpoint/v1/cancel?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(`Failed to cancel job: ${response.statusText}`);
+  }
+  return response.json();
+}
+
 /**
 
  * Fetches a list of jobs from the backend.

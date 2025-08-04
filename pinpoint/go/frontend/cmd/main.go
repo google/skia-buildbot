@@ -33,7 +33,7 @@ func main() {
 	}
 	js := jobstore.NewJobStore(pool)
 
-	service, err := jobs.New(ctx, js, *prodAssetsDir)
+	service, err := jobs.New(ctx, js, nil, nil, *prodAssetsDir)
 	if err != nil {
 		sklog.Fatalf("failed to connect create Jobs Service: %s", err)
 	}

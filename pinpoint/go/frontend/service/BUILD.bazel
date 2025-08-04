@@ -11,7 +11,11 @@ go_library(
     deps = [
         "//go/httputils",
         "//go/skerr",
+        "//pinpoint/go/service",
         "//pinpoint/go/sql/jobs_store",
+        "//pinpoint/proto/v1:proto",
+        "//temporal/go/client",
         "@com_github_go_chi_chi_v5//:chi",
+        "@org_golang_x_time//rate",
     ],
 )

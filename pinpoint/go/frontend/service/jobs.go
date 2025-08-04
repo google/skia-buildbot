@@ -14,8 +14,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
-
+	pinpoint_service "go.skia.org/infra/pinpoint/go/service"
 	jobstore "go.skia.org/infra/pinpoint/go/sql/jobs_store"
+	pb "go.skia.org/infra/pinpoint/proto/v1"
+	tpr_client "go.skia.org/infra/temporal/go/client"
+	"golang.org/x/time/rate"
 )
 
 const (
@@ -37,17 +40,28 @@ type Service struct {
 	jobStore         jobstore.JobStore
 	templates        *template.Template
 	benchmarkConfigs []BenchmarkConfig
+	pinpointServer   pb.PinpointServer
+	pinpointHandler  http.Handler
 }
 
 // New creates a new Service.
-func New(ctx context.Context, js jobstore.JobStore, resourceDir string) (*Service, error) {
+func New(ctx context.Context, js jobstore.JobStore, t tpr_client.TemporalProvider, l *rate.Limiter, resourceDir string) (*Service, error) {
 	s := &Service{
-		jobStore: js,
+		jobStore:       js,
+		pinpointServer: pinpoint_service.New(t, l), // gRPC service to handle temporal interaction
 	}
-	err := s.loadConfigs()
+
+	handler, err := pinpoint_service.NewJSONHandler(context.Background(), s.pinpointServer)
+	if err != nil {
+		return nil, skerr.Fmt("failed to initalize pinpoint service %s.", err)
+	}
+	s.pinpointHandler = handler
+
+	err = s.loadConfigs()
 	if err != nil {
 		return nil, skerr.Fmt("failed to retreive config contents: %s", err)
 	}
+
 	s.loadTemplates(resourceDir)
 	return s, nil
 }
@@ -163,6 +177,7 @@ func (s *Service) RegisterHandlers(router *chi.Mux) {
 	router.Get("/bots", s.ListBotConfigurationsHandler)
 	router.Get("/stories", s.ListStoriesHandler)
 	router.HandleFunc("/", s.templateHandler("landing-page.html"))
+	router.HandleFunc("/pinpoint/*", s.pinpointHandler.ServeHTTP)
 }
 
 // ListBenchmarksHandler handles requests for listing chromeperf benchmarks.

@@ -282,6 +282,12 @@ message SchedulePairwiseRequest {
 	// For example, "all", "representative_win_desktop" or "2019,2018".
 	// Users can run jobs with either story, story tags, or both story and story tags.
 	string story_tags = 15;
+
+	// The user email who triggers the job.
+	string user_email = 16;
+
+	// The name for a Pinpoint job specified by the user.
+	string job_name = 17;
 }
 
 enum PairwiseJobStatus {

@@ -1015,7 +1015,11 @@ type SchedulePairwiseRequest struct {
 	// StoryTags is a comma delimited string of tags to pass for the story.
 	// For example, "all", "representative_win_desktop" or "2019,2018".
 	// Users can run jobs with either story, story tags, or both story and story tags.
-	StoryTags     string `protobuf:"bytes,15,opt,name=story_tags,json=storyTags,proto3" json:"story_tags,omitempty"`
+	StoryTags string `protobuf:"bytes,15,opt,name=story_tags,json=storyTags,proto3" json:"story_tags,omitempty"`
+	// The user email who triggers the job.
+	UserEmail string `protobuf:"bytes,16,opt,name=user_email,json=userEmail,proto3" json:"user_email,omitempty"`
+	// The name for a Pinpoint job specified by the user.
+	JobName       string `protobuf:"bytes,17,opt,name=job_name,json=jobName,proto3" json:"job_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1151,6 +1155,20 @@ func (x *SchedulePairwiseRequest) GetEndBuild() *CASReference {
 func (x *SchedulePairwiseRequest) GetStoryTags() string {
 	if x != nil {
 		return x.StoryTags
+	}
+	return ""
+}
+
+func (x *SchedulePairwiseRequest) GetUserEmail() string {
+	if x != nil {
+		return x.UserEmail
+	}
+	return ""
+}
+
+func (x *SchedulePairwiseRequest) GetJobName() string {
+	if x != nil {
+		return x.JobName
 	}
 	return ""
 }
@@ -2613,7 +2631,7 @@ const file_service_proto_rawDesc = "" +
 	"\x0fBisectExecution\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x127\n" +
 	"\bculprits\x18\x02 \x03(\v2\x1b.pinpoint.v1.CombinedCommitR\bculprits\x12A\n" +
-	"\x11detailed_culprits\x18\x03 \x03(\v2\x14.pinpoint.v1.CulpritR\x10detailedCulprits\"\xf5\x04\n" +
+	"\x11detailed_culprits\x18\x03 \x03(\v2\x14.pinpoint.v1.CulpritR\x10detailedCulprits\"\xaf\x05\n" +
 	"\x17SchedulePairwiseRequest\x12>\n" +
 	"\fstart_commit\x18\x01 \x01(\v2\x1b.pinpoint.v1.CombinedCommitR\vstartCommit\x12:\n" +
 	"\n" +
@@ -2633,7 +2651,10 @@ const file_service_proto_rawDesc = "" +
 	"startBuild\x126\n" +
 	"\tend_build\x18\x0e \x01(\v2\x19.pinpoint.v1.CASReferenceR\bendBuild\x12\x1d\n" +
 	"\n" +
-	"story_tags\x18\x0f \x01(\tR\tstoryTags\"-\n" +
+	"story_tags\x18\x0f \x01(\tR\tstoryTags\x12\x1d\n" +
+	"\n" +
+	"user_email\x18\x10 \x01(\tR\tuserEmail\x12\x19\n" +
+	"\bjob_name\x18\x11 \x01(\tR\ajobName\"-\n" +
 	"\x14QueryPairwiseRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"\x8d\x01\n" +
 	"\x15QueryPairwiseResponse\x126\n" +

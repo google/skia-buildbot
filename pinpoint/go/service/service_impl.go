@@ -32,7 +32,7 @@ type server struct {
 
 const (
 	// Those should be configurable for each instance.
-	hostPort  = "temporal.temporal:7233"
+	hostPort  = "localhost:7233"
 	namespace = "perf-internal"
 	taskQueue = "perf.perf-chrome-public.bisect"
 	// TODO(b/352631333): Replace the rate limit with an actual queueing system
