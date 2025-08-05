@@ -53,6 +53,18 @@
         "start_commit": "ad24d3f177fc0a99fa60a192438ae4fe489bc0ed"
     },
     "query_config": {
+        "default_param_selections": {
+            "master": ["WidevineCdmPerf"],
+            "improvement_direction": ["down"],
+            "stat": ["error"]
+        },
+          "include_params": [
+            "benchmark",
+            "bot",
+            "subtest_1",
+            "test",
+            "unit"
+        ],
         "default_url_values": {
             "show_google_plot": "true",
             "plotSummary": "true",
