@@ -189,7 +189,7 @@ export class ReportPageSk extends ElementSk {
       .then(async (json) => {
         this.anomalyTracker.load(json.anomaly_list, json.timerange_map, json.selected_keys);
         const selectedKey: string[] = json.selected_keys;
-        if (selectedKey.length > 0) {
+        if (selectedKey && selectedKey.length > 0) {
           this.requestAnomalies.push(...selectedKey);
         }
         this.initializePage();
