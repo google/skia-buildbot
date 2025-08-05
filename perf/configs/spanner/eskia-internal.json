@@ -3,7 +3,7 @@
     "ga_measurement_id": "G-3G1YN6EEKN",
     "landing_page_rel_path": "/m/",
     "allowed_hosts": [],
-    "trace_sample_proportion": 1.0,
+    "trace_sample_proportion": 0.01,
     "contact": "eskia-team@google.com",
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "feedback_url": "http://go/berf-skia-feedback",
