@@ -9,3 +9,13 @@ sk_page(
     ],
     ts_entry_point = "landing-page.ts",
 )
+
+sk_page(
+    name = "results-page",
+    assets_serving_path = "/dist",
+    html_file = "results-page.html",
+    sk_element_deps = [
+        "//pinpoint/ui/modules/pinpoint-results-page-sk",
+    ],
+    ts_entry_point = "results-page.ts",
+)

@@ -10,7 +10,6 @@ go_library(
         "//go/skerr",
         "//go/sql/pool",
         "//pinpoint/go/sql/schema",
-        "//pinpoint/go/workflows",
         "//pinpoint/proto/v1:proto",
         "@com_github_jackc_pgx_v4//:pgx",
     ],

@@ -18,6 +18,7 @@ go_binary(
     name = "cmd",
     data = [
         "//pinpoint/ui/pages:landing-page",
+        "//pinpoint/ui/pages:results-page",
     ],
     embed = [":cmd_lib"],
     visibility = ["//visibility:public"],

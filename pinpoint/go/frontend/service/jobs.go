@@ -177,6 +177,7 @@ func (s *Service) RegisterHandlers(router *chi.Mux) {
 	router.Get("/bots", s.ListBotConfigurationsHandler)
 	router.Get("/stories", s.ListStoriesHandler)
 	router.HandleFunc("/", s.templateHandler("landing-page.html"))
+	router.HandleFunc("/results/jobid/{jobID}", s.templateHandler("results-page.html"))
 	router.HandleFunc("/pinpoint/*", s.pinpointHandler.ServeHTTP)
 }
 

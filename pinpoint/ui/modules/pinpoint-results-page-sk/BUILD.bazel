@@ -1,0 +1,20 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "pinpoint-results-page-sk",
+    sk_element_deps = [
+        "//pinpoint/ui/modules/job-overview-sk",
+        "//elements-sk/modules/icons/home-icon-sk",
+    ],
+    ts_deps = [
+        "//:node_modules/@material/web",
+        "//:node_modules/lit",
+        "//:node_modules/lit-html",  # keep
+        "//pinpoint/ui/services:api_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "pinpoint-results-page-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

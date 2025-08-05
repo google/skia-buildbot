@@ -60,6 +60,13 @@ export class JobsTableSk extends LitElement {
       vertical-align: middle;
       font-size: 1.2em;
     }
+    a {
+      color: var(--md-sys-color-primary);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
   `;
 
   private onHeaderClick(key: string) {
@@ -120,7 +127,7 @@ export class JobsTableSk extends LitElement {
           ${this.jobs.map(
             (job) => html`
               <tr>
-                <td>${job.job_name}</td>
+                <td><a href="/results/jobid/${job.job_id}">${job.job_name}</a></td>
                 <td>${job.benchmark}</td>
                 <td>${job.bot_name}</td>
                 <td>${job.user}</td>

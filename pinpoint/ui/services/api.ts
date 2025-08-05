@@ -30,14 +30,39 @@ export interface CASReference {
   digest: CASDigest;
 }
 
+// This interface represents a single commit's details.
+// It mirrors the pinpointpb.Commit struct.
+export interface Commit {
+  git_hash: string;
+  repository: string;
+  url: string;
+  author: string;
+  created: string; // time.Time string from Golang. General scheme is YYYY-MM-DDTHH:MM:SS.SSSSSSSSSZ
+  subject: string;
+  message: string;
+  commit_branch: string;
+  commit_position: number;
+  review_url: string;
+  change_id: string;
+}
+
+// This interface represents a commit with potential dependencies or patches.
+// It mirrors the pinpointpb.CombinedCommit struct.
+export interface CombinedCommit {
+  main: Commit | null;
+  modified_deps: Commit[];
+  patch: any | null; // This corresponds to *cabe.v1.GerritChange
+}
+
 export interface Build {
-  // From BuildParams
+  // Fields from embedded workflows.BuildParams
   WorkflowID: string;
-  Commit: any; // This corresponds to *common.CombinedCommit
+  Commit: CombinedCommit | null; // This corresponds to *common.CombinedCommit
   Device: string;
   Target: string;
   Patch: any[]; // This corresponds to []*buildbucketpb.GerritChange
   Project: string;
+  // Fields from workflows.Build
   ID: number;
   Status: number; // This corresponds to buildbucketpb.Status
   CAS: CASReference | null;
@@ -118,15 +143,6 @@ export const BuildStatus: { [key: number]: string } = {
   36: 'INFRA_FAILURE',
   68: 'CANCELED',
 };
-
-export interface Commit {
-  git_hash?: string;
-  repository?: string;
-}
-
-export interface CombinedCommit {
-  main?: Commit;
-}
 
 export interface SchedulePairwiseRequest {
   start_commit?: CombinedCommit;

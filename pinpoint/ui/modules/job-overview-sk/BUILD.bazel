@@ -1,0 +1,16 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "job-overview-sk",
+    ts_deps = [
+        "//:node_modules/@material/web",
+        "//:node_modules/lit",
+        "//:node_modules/lit-html",  # keep
+        "//pinpoint/ui/services:api_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "job-overview-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

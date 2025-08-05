@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/pinpoint/go/sql/schema"
-	"go.skia.org/infra/pinpoint/go/workflows"
 	pinpointpb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
@@ -83,34 +82,6 @@ type ListJobsOptions struct {
 	Offset int
 }
 
-// CommitRunData contains the build and test run data for a commit.
-type CommitRunData struct {
-	Build *workflows.Build     `json:"Build"`
-	Runs  []*workflows.TestRun `json:"Runs"`
-}
-
-// CommitRuns contains the data for left and right commits.
-type CommitRuns struct {
-	Left  *CommitRunData `json:"left"`
-	Right *CommitRunData `json:"right"`
-}
-
-// AdditionalRequestParametersSchema contains all additional parameters needed for a Job.
-type AdditionalRequestParametersSchema struct {
-	StartCommitGithash  string      `json:"start_commit_githash,omitempty"`
-	EndCommitGithash    string      `json:"end_commit_githash,omitempty"`
-	Story               string      `json:"story,omitempty"`
-	StoryTags           string      `json:"story_tags,omitempty"`
-	InitialAttemptCount string      `json:"initial_attempt_count,omitempty"`
-	AggregationMethod   string      `json:"aggregation_method,omitempty"`
-	Target              string      `json:"target,omitempty"`
-	Project             string      `json:"project,omitempty"`
-	BugId               string      `json:"bug_id,omitempty"`
-	Chart               string      `json:"chart,omitempty"`
-	Duration            string      `json:"duration,omitempty"`
-	CommitRuns          *CommitRuns `json:"commit_runs,omitempty"`
-}
-
 // NewJobStore creates a new JobStore with the given database connection.
 func NewJobStore(db pool.Pool) JobStore {
 	return &jobStoreImpl{
@@ -122,7 +93,7 @@ func (js *jobStoreImpl) AddInitialJob(ctx context.Context, request *pinpointpb.S
 	if request == nil {
 		return skerr.Fmt("SchedulePairwiseRequest cannot be nil")
 	}
-	additionalParams := &AdditionalRequestParametersSchema{}
+	additionalParams := &schema.AdditionalRequestParametersSchema{}
 
 	if request.StartCommit != nil && request.StartCommit.Main != nil && request.StartCommit.Main.GitHash != "" {
 		additionalParams.StartCommitGithash = request.StartCommit.Main.GitHash
