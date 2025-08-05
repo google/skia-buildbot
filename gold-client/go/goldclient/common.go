@@ -17,15 +17,23 @@ import (
 
 const requestTimeout = 10 * time.Second
 
+var (
+	// These are made accessible outside of getWithRetries() so that tests can
+	// lower their values to cut down on testing time.
+	GetWithRetriesMaxElapsedTime  = 60 * time.Second
+	GetWithRetriesInitialInterval = time.Second
+	GetWithRetriesMaxInterval     = 10 * time.Second
+)
+
 // getWithRetries makes a GET request with retries to work around the rare unexpected EOF error.
 // See https://crbug.com/skia/9108.
 func getWithRetries(ctx context.Context, url string) ([]byte, error) {
 	httpClient := extractHTTPClient(ctx)
 
 	eb := backoff.NewExponentialBackOff()
-	eb.InitialInterval = time.Second
-	eb.MaxInterval = 10 * time.Second
-	eb.MaxElapsedTime = 60 * time.Second
+	eb.InitialInterval = GetWithRetriesInitialInterval
+	eb.MaxInterval = GetWithRetriesMaxInterval
+	eb.MaxElapsedTime = GetWithRetriesMaxElapsedTime
 
 	var returnBytes []byte
 	logAndReturn := func(err error) error {

@@ -7,11 +7,20 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/gold-client/go/mocks"
 )
+
+func TestMain(m *testing.M) {
+	// Make retries finish faster for tests in this package.
+	GetWithRetriesMaxElapsedTime = 100 * time.Millisecond
+	GetWithRetriesInitialInterval = 5 * time.Millisecond
+	GetWithRetriesMaxInterval = 20 * time.Millisecond
+	m.Run()
+}
 
 func TestGetWithRetries_OneAttempt_Success(t *testing.T) {
 	mh := &mocks.HTTPClient{}
