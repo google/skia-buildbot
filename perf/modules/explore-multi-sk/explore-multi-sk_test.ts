@@ -128,8 +128,7 @@ describe('ExploreMultiSk', () => {
 
       assert.equal(element['exploreElements'].length, 0);
 
-      // Note: totalGraphs is incorrectly set to 1 due to a bug.
-      assert.equal(element.state.totalGraphs, 1);
+      assert.equal(element.state.totalGraphs, 0);
       // However, the page offset is correctly reset to 0 by a different
       // part of the logic that recalculates the max valid offset.
       assert.equal(element.state.pageOffset, 0, 'Page offset should be reset to 0');

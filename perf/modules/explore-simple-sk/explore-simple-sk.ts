@@ -1501,11 +1501,6 @@ export class ExploreSimpleSk extends ElementSk {
   };
 
   private _renderedTraces = () => {
-    this.dispatchEvent(
-      new CustomEvent('data-loading', {
-        bubbles: true,
-      })
-    );
     this.dispatchEvent(new CustomEvent('rendered_traces', {}));
   };
 
@@ -3024,7 +3019,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Normalize bands to be just offsets.
     const bands: number[] = [];
-    dataframe.header!.forEach((h, i) => {
+    header!.forEach((h, i) => {
       if (json.skps!.indexOf(h!.offset) !== -1) {
         bands.push(i);
       }
@@ -3057,53 +3052,60 @@ export class ExploreSimpleSk extends ElementSk {
     }
     this._renderedTraces();
     if (this._state.plotSummary) {
-      const header = dataframe.header!;
       if (this.state.doNotQueryData) {
         this.render();
         // The data is supposed to be already loaded.
         // Let's simply make the selection on the summary.
-        this.plotSummary.value?.SelectRange(selectedRange!);
-        this.dispatchEvent(
-          new CustomEvent('data-loaded', {
-            bubbles: true,
-          })
-        );
+        const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
+        this.plotSummary.value?.SelectRange(updatedRange);
       } else {
         let extendRange = 3 * monthInSec;
         // Large amount of traces, limit the range extension.
         if (this.dfRepo.value?.traces && Object.keys(this.dfRepo.value.traces).length > 10) {
-          extendRange = monthInSec;
+          extendRange = monthInSec as CommitNumber;
         }
-
-        this.plotSummary.value?.Select(header![0]!, header[header.length - 1]!);
         this.dfRepo.value?.extendRange(-extendRange).then(() => {
+          const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
           // Already plotted, just need to update the data.
-          this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit', false);
-        });
-        this.dfRepo.value?.extendRange(extendRange).then(() => {
-          // Ensure at least the Minimum Points are displayed.
-          if (dataframe.header && dataframe.header.length < MIN_POINTS) {
-            const header = this.dfRepo.value?.header;
-            // Check to ensure enough point exist.
-            if (header && header.length > MIN_POINTS) {
-              selectedRange = range(
-                header[header.length - MIN_POINTS]!.offset,
-                header[header.length - 1]!.offset
-              );
-            }
-          }
-          this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit', false);
-          this.plotSummary.value?.SelectRange(selectedRange!);
-          // Modify the Range if URL contains different values.
-          this.useBrowserURL();
+          this.updateSelectedRangeWithUpdatedDataframe(updatedRange, 'commit', false);
+          this.plotSummary.value?.SelectRange(updatedRange);
+          // Dispatch an event to notify that data is loaded for the previous range.
           this.dispatchEvent(
             new CustomEvent('data-loaded', {
               bubbles: true,
             })
           );
         });
+        this.dfRepo.value?.extendRange(extendRange).then(() => {
+          const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
+          this.updateSelectedRangeWithUpdatedDataframe(updatedRange, 'commit', false);
+          this.plotSummary.value?.SelectRange(updatedRange);
+          // Modify the Range if URL contains different values.
+          this.useBrowserURL();
+        });
       }
     }
+  }
+
+  // Extend the selected range to include at least the minimum number of points.
+  // Checks to ensure enough points exist, if not, then extends the range to the
+  // total MIN_POINTS points in the header.
+  private extendRangeToMinimumAllowed(
+    header: string | any[] | null,
+    selectedRange: { begin: number; end: number }
+  ) {
+    // Ensure at least the Minimum Points are displayed.
+    if (header && header.length < MIN_POINTS) {
+      const repoHeader = this.dfRepo.value?.header;
+      // Check to ensure enough point exist.
+      if (repoHeader && repoHeader.length > MIN_POINTS) {
+        selectedRange = range(
+          repoHeader[repoHeader.length - MIN_POINTS]!.offset,
+          repoHeader[repoHeader.length - 1]!.offset
+        );
+      }
+    }
+    return selectedRange;
   }
 
   // Adds x and y coordinates to the user issue points needed to be displayed
@@ -3589,6 +3591,9 @@ export class ExploreSimpleSk extends ElementSk {
     keysToRemove.forEach((key) => {
       if (this._dataframe.traceset[key] !== undefined) {
         delete this._dataframe.traceset[key];
+      }
+      if (this.dfRepo.value?.dataframe.traceset[key] !== undefined) {
+        delete this.dfRepo.value?.dataframe.traceset[key];
       }
     });
 

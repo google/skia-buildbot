@@ -213,8 +213,12 @@ export class TestPickerSk extends ElementSk {
     this._fieldData.forEach((field) => {
       if (readonly) {
         field.field?.disable();
+        this._plotButton!.disabled = true;
       } else {
         field.field?.enable();
+        if (!this.autoAddTrace) {
+          this._plotButton!.disabled = false;
+        }
       }
     });
   }
@@ -249,7 +253,7 @@ export class TestPickerSk extends ElementSk {
       .then((json) => {
         this._requestInProgress = false;
         // Only re-enable when autoadd is false.
-        if (this.autoAddTrace === false) {
+        if (this.autoAddTrace === false && json.count > 0) {
           this.setReadOnly(false);
         }
         handler(json);
@@ -412,6 +416,7 @@ export class TestPickerSk extends ElementSk {
       errorMessage(MAX_MESSAGE);
       return;
     }
+    this.setReadOnly(true);
     if (this._graphDiv !== null && this._graphDiv.children.length > 0) {
       const detail = {
         query: this.createQueryFromFieldData(),
@@ -674,7 +679,10 @@ export class TestPickerSk extends ElementSk {
    * @param count
    */
   private updateCount(count: number) {
+    this._plotButton!.disabled = true;
     if (count === -1) {
+      // Loading new data, so disable plotting.
+      this._plotButton!.title = 'Loading...';
       this.setReadOnly(true);
       this._count = 0;
       return;
@@ -682,28 +690,52 @@ export class TestPickerSk extends ElementSk {
 
     this._count = count;
     if (count > PLOT_MAXIMUM || count <= 0) {
+      // Disable plotting if there are too many or no traces.
       this.autoAddTrace = false;
+      this._plotButton!.title = this._count > PLOT_MAXIMUM ? 'Too many traces.' : 'No traces.';
       this._plotButton!.disabled = true;
-      this._plotButton!.title = 'Plotting is disabled. Too many traces.';
       return;
     }
     if (this._graphDiv && this._graphDiv.children.length > 0) {
+      // Graph is already loaded, so allow new changes automatically.
       this.autoAddTrace = true;
     } else {
+      // No graph loaded yet, so allow plotting.
+      this._plotButton!.title = 'Plot graph';
       this.autoAddTrace = false;
+      this._plotButton!.disabled = false;
     }
   }
 
   set autoAddTrace(autoAdd: boolean) {
     this._autoAddTrace = autoAdd;
     if (this._plotButton !== null) {
-      this._plotButton.disabled = autoAdd;
-      this._plotButton!.title = autoAdd ? 'Traces are added automatically' : 'Plot a graph';
+      if (this._count > 0) {
+        this._plotButton.disabled = autoAdd;
+        this._plotButton!.title = autoAdd ? 'Traces are added automatically' : 'Plot a graph';
+      }
     }
   }
 
   get autoAddTrace(): boolean {
     return this._autoAddTrace;
+  }
+
+  /**
+   * Returns true if the first field is loaded.
+   *
+   * This is used to determine if the test picker is ready to be used.
+   * If the first field is not loaded, then we are not ready.
+   *
+   * @returns true if the first field is loaded, false otherwise.
+   */
+  isLoaded(): boolean {
+    // If the first field is not loaded, then we are not ready.
+    return (
+      this._fieldData.length > 0 &&
+      this._fieldData[0].field !== null &&
+      this._fieldData[0].field.selectedItems.length > 0
+    );
   }
 
   /**

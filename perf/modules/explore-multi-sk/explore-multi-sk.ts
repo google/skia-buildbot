@@ -137,6 +137,7 @@ export class ExploreMultiSk extends ElementSk {
   private refreshSplitList: boolean = true;
 
   private _onSplitByChanged = (e: Event) => {
+    this.dataLoading();
     const splitByParamKey: string = (e as CustomEvent).detail.param;
     const split = (e as CustomEvent).detail.split;
     if (!split) {
@@ -148,6 +149,7 @@ export class ExploreMultiSk extends ElementSk {
       this.state.splitByKeys = [splitByParamKey];
     }
     this.splitGraphs();
+    this.dataLoaded();
   };
 
   constructor() {
@@ -457,6 +459,7 @@ export class ExploreMultiSk extends ElementSk {
       return;
     }
 
+    this.dataLoading();
     if (this.exploreElements.length > 0 && this.exploreElements[0].dataLoading) {
       errorMessage('Data is still loading, please wait...', 3000);
       await this.exploreElements[0].requestComplete;
@@ -571,6 +574,7 @@ export class ExploreMultiSk extends ElementSk {
     if (this.stateHasChanged) {
       this.stateHasChanged();
     }
+    this.dataLoaded();
   }
 
   /**
@@ -621,7 +625,7 @@ export class ExploreMultiSk extends ElementSk {
         }
         this.addGraphsToCurrentPage(false);
         const query = this.testPicker!.createQueryFromFieldData();
-        explore.addFromQueryOrFormula(true, 'query', query, '');
+        await explore.addFromQueryOrFormula(true, 'query', query, '');
         this.refreshSplitList = true;
         if (this.testPicker) {
           this.testPicker.autoAddTrace = true;
@@ -640,7 +644,6 @@ export class ExploreMultiSk extends ElementSk {
     // selected test values.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.addEventListener('add-to-graph', async (e) => {
-      this.testPicker?.setReadOnly(true);
       const query = (e as CustomEvent).detail.query;
       let explore: ExploreSimpleSk;
       if (this.currentPageExploreElements.length === 0) {
@@ -667,7 +670,7 @@ export class ExploreMultiSk extends ElementSk {
       this.refreshSplitList = true;
     });
 
-    this.addEventListener('remove-trace', (e) => {
+    this.addEventListener('remove-trace', async (e) => {
       const param = (e as CustomEvent).detail.param as string;
       const values = (e as CustomEvent).detail.value as string[];
 
@@ -675,6 +678,7 @@ export class ExploreMultiSk extends ElementSk {
         this.resetGraphs();
         return;
       }
+      this.dataLoading();
       const traceSet = this.getCompleteTraceset();
       const tracesToRemove: string[] = [];
       const queriesToRemove: string[] = [];
@@ -695,16 +699,19 @@ export class ExploreMultiSk extends ElementSk {
         return;
       }
       // Remove the traces from the current page explore elements.
-      this.exploreElements.forEach((elem) => {
+      const elemsToRemove: ExploreSimpleSk[] = [];
+      const updatePromises = this.exploreElements.map((elem) => {
         if (!elem.state.queries?.length) {
-          return;
+          return Promise.resolve();
         }
 
-        const traceset = elem.getDataTraces() as TraceSet;
+        elem.state.doNotQueryData = true;
+        const traceset = elem.getTraceset() as TraceSet;
         elem.removeKeys(tracesToRemove, true);
         elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
         if (elem.state.queries.length === 0) {
-          this.removeExplore(elem);
+          elemsToRemove.push(elem);
+          return Promise.resolve();
         }
         const params: ParamSet = ParamSet({});
         Object.keys(traceset).forEach((trace) => {
@@ -735,7 +742,7 @@ export class ExploreMultiSk extends ElementSk {
           msg: '',
           skps: [],
         };
-        elem.UpdateWithFrameResponse(
+        return elem.UpdateWithFrameResponse(
           updatedResponse,
           updatedRequest,
           true,
@@ -743,8 +750,15 @@ export class ExploreMultiSk extends ElementSk {
         );
       });
 
+      await Promise.all(updatePromises);
+
+      elemsToRemove.forEach((elem) => {
+        this.removeExplore(elem);
+      });
+
       if (this.stateHasChanged) {
         this.stateHasChanged();
+        this.dataLoaded();
       }
     });
     // Event listener for when the "Query Highlighted" button is clicked.
@@ -753,10 +767,6 @@ export class ExploreMultiSk extends ElementSk {
     this.addEventListener('populate-query', (e) => {
       this.populateTestPicker((e as CustomEvent).detail);
     });
-
-    if (this.exploreElements.length > 0) {
-      await this.populateTestPicker(this.exploreElements[0].getParamSet());
-    }
   }
 
   private async populateTestPicker(paramSet: { [key: string]: string[] }) {
@@ -803,6 +813,7 @@ export class ExploreMultiSk extends ElementSk {
     });
 
     this.testPicker!.populateFieldDataFromParamSet(paramSets, paramSet);
+    this.testPicker!.setReadOnly(false);
     this.exploreElements[0].useBrowserURL(false);
     this.testPicker!.scrollIntoView();
   }
@@ -814,12 +825,14 @@ export class ExploreMultiSk extends ElementSk {
       this.exploreElements.splice(indexToRemove, 1);
       this.graphConfigs.splice(indexToRemove, 1);
       this.state.totalGraphs =
-        this.exploreElements.length > 1 ? this.exploreElements.length - 1 : 1;
+        this.exploreElements.length > 1 ? this.exploreElements.length - 1 : 0;
 
       // Adjust pagination: if there are no graphs left, reset page offset to 0.
       if (this.state.totalGraphs === 0) {
         this.state.pageOffset = 0;
         this.testPicker!.autoAddTrace = false;
+        this.resetGraphs();
+        this.emptyCurrentPage();
       } else if (this.state.pageSize > 0) {
         // If graphs remain and pageSize is valid, calculate the maximum valid page offset.
         // This prevents being on a page that no longer exists
@@ -829,9 +842,9 @@ export class ExploreMultiSk extends ElementSk {
           (Math.ceil(this.state.totalGraphs / this.state.pageSize) - 1) * this.state.pageSize
         );
         this.state.pageOffset = Math.min(this.state.pageOffset, maxValidPageOffset);
+        this.addGraphsToCurrentPage(true);
       }
       this.updateShortcutMultiview();
-      this.addGraphsToCurrentPage(true);
     } else {
       this.state.totalGraphs =
         this.exploreElements.length > 1 ? this.exploreElements.length - 1 : 1;
@@ -1045,10 +1058,11 @@ export class ExploreMultiSk extends ElementSk {
     this.refreshSplitList = true;
     this.updateSplitByKeys();
     if (this.testPicker) {
-      if (this.exploreElements.length > 0) {
+      if (!this.testPicker.isLoaded() && this.exploreElements.length > 0) {
         this.populateTestPicker(this.exploreElements[0].getParamSet());
+      } else {
+        this.testPicker.setReadOnly(false);
       }
-      this.testPicker.setReadOnly(false);
     }
   }
 
