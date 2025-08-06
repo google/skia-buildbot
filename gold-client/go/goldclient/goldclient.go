@@ -43,6 +43,12 @@ const (
 	// digestsDirectory is the directory inside the work directory in which digests downloaded from
 	// GCS will be cached.
 	digestsDirectory = "digests"
+
+	// CombineInexactMatches is a key that can be passed to Test() as an optional key. If its
+	// value is "1", and if an inexact match is found, the digest of the closest image will be
+	// reported to Gold instead of the digest of the new image. This is to avoid adding many
+	// unique images to the corpus for tests that are known to be flaky.
+	CombineInexactMatches = "combine-inexact-matches"
 )
 
 // GoldClient is the uniform interface to communicate with the Gold service.
@@ -290,7 +296,13 @@ func (c *CloudClient) Test(ctx context.Context, name types.TestName, imgFileName
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
 // Returns true if the test was added (and maybe uploaded) successfully.
-func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error) {
+func (c *CloudClient) addTest(
+	ctx context.Context,
+	name types.TestName,
+	imgFileName string,
+	imgDigest types.Digest,
+	additionalKeys,
+	optionalKeys map[string]string) (bool, error) {
 	// Get an uploader. This is either based on an authenticated client or on gsutils.
 	uploader := extractGCSUploader(ctx)
 
@@ -346,51 +358,142 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 	// If we do per test pass/fail then upload the result and compare it to the baseline.
 	ret := true
 	if c.resultState.PerTestPassFail {
-		egroup.Go(func() error {
-			return c.uploadResultJSON(ctx)
-		})
+		ret, err = c.handlePassFailComparison(ctx, name, traceID, &imgBytes, imgDigest, optionalKeys, grouping)
+	}
 
-		egroup.Go(func() error {
-			match, algorithmName, err := c.matchImageAgainstBaseline(ctx, name, traceID, imgBytes, imgDigest, optionalKeys)
+	if err := egroup.Wait(); err != nil {
+		return false, err
+	}
+	return ret, nil
+}
+
+// handlePassFailComparison is a helper to handle the addTest logic when PerTestPassFail is set.
+// Returns true if the image comparison was successful.
+func (c *CloudClient) handlePassFailComparison(
+	ctx context.Context,
+	name types.TestName,
+	traceID tiling.TraceIDV2,
+	imgBytes *[]byte,
+	imgDigest types.Digest,
+	optionalKeys map[string]string,
+	grouping paramtools.Params) (bool, error) {
+
+	algorithmName, _, err := imgmatching.MakeMatcher(optionalKeys)
+	if err != nil {
+		return false, skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
+	}
+
+	use_inexact_matching := algorithmName != imgmatching.ExactMatching
+	combine, ok := optionalKeys[CombineInexactMatches]
+	combine_results := ok && combine == "1"
+
+	if use_inexact_matching && combine_results {
+		return c.handleInexactComparisonWithCombinedMatches(ctx, name, traceID, imgBytes, imgDigest, optionalKeys, grouping)
+	}
+	return c.handleStandardComparison(ctx, name, traceID, imgBytes, imgDigest, optionalKeys, grouping)
+}
+
+// handleStandardComparison is a helper to handle the handlePassFailComparison logic that is used
+// in the vast majority of comparisons. The result is uploaded, and if inexact matching is used,
+// successful matches will cause the new image to be triaged as positive. Returns true if the
+// image comparison was successful.
+func (c *CloudClient) handleStandardComparison(
+	ctx context.Context,
+	name types.TestName,
+	traceID tiling.TraceIDV2,
+	imgBytes *[]byte,
+	imgDigest types.Digest,
+	optionalKeys map[string]string,
+	grouping paramtools.Params) (bool, error) {
+
+	var egroup errgroup.Group
+	egroup.Go(func() error {
+		return c.uploadResultJSON(ctx)
+	})
+
+	ret := true
+	egroup.Go(func() error {
+		match, algorithmName, _, err := c.matchImageAgainstBaseline(ctx, name, traceID, *imgBytes, imgDigest, optionalKeys)
+		if err != nil {
+			return skerr.Wrapf(err, "matching image against baseline")
+		}
+		ret = match
+
+		// If the image is untriaged, but matches the latest positive digest in its baseline via the
+		// specified non-exact image matching algorithm, then triage the image as positive.
+		if match && algorithmName != imgmatching.ExactMatching {
+			infof(ctx, "Triaging digest %q for test %q as positive (algorithm name: %q)\n", imgDigest, name, algorithmName)
+			err = c.TriageAsPositive(ctx, name, imgDigest, string(algorithmName))
 			if err != nil {
-				return skerr.Wrapf(err, "matching image against baseline")
+				return skerr.Wrapf(err, "triaging image as positive, image hash %q, test name %q, algorithm name %q", imgDigest, name, algorithmName)
 			}
-			ret = match
+		}
 
-			// If the image is untriaged, but matches the latest positive digest in its baseline via the
-			// specified non-exact image matching algorithm, then triage the image as positive.
-			if match && algorithmName != imgmatching.ExactMatching {
-				infof(ctx, "Triaging digest %q for test %q as positive (algorithm name: %q)\n", imgDigest, name, algorithmName)
-				err = c.TriageAsPositive(ctx, name, imgDigest, string(algorithmName))
-				if err != nil {
-					return skerr.Wrapf(err, "triaging image as positive, image hash %q, test name %q, algorithm name %q", imgDigest, name, algorithmName)
-				}
+		if !match {
+			err = c.reportTriageLink(ctx, imgDigest, grouping)
+			if err != nil {
+				return skerr.Wrapf(err, "reporting triage link")
 			}
+		}
 
-			if !match {
-				link := fmt.Sprintf("%s/detail?grouping=%s&digest=%s", c.resultState.GoldURL, url.QueryEscape(urlEncode(grouping)), imgDigest)
-				if c.resultState.SharedConfig.ChangelistID != "" {
-					link += "&changelist_id=" + c.resultState.SharedConfig.ChangelistID
-					link += "&crs=" + c.resultState.SharedConfig.CodeReviewSystem
-				}
-				link += "\n"
-				infof(ctx, "Untriaged or negative image: %s\n", link)
-				ff := c.resultState.FailureFile
-				if ff != "" {
-					f, err := os.OpenFile(ff, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-					if err != nil {
-						return skerr.Fmt("could not open failure file %s: %s", ff, err)
-					}
-					if _, err := f.WriteString(link); err != nil {
-						_ = f.Close() // Write error is more important.
-						return skerr.Fmt("could not write to failure file %s: %s", ff, err)
-					}
-					if err := f.Close(); err != nil {
-						return skerr.Fmt("could not close failure file %s: %s", ff, err)
-					}
-				}
+		return nil
+	})
+
+	if err := egroup.Wait(); err != nil {
+		return false, err
+	}
+
+	return ret, nil
+}
+
+// handleInexactComparisonWithCombinedMatches is a helper to handle the handlePassFailComparison
+// logic that is used when inexact matching is used with the CombineInexactMatches optional key set
+// to 1. This behaves similarly to handleStandardComparison, but in the event of a successful
+// inexact comparison, the recent positive image that was compared against will be reported instead
+// of the image that was actually produced. Returns true if the image comparison was successful.
+func (c *CloudClient) handleInexactComparisonWithCombinedMatches(
+	ctx context.Context,
+	name types.TestName,
+	traceID tiling.TraceIDV2,
+	imgBytes *[]byte,
+	imgDigest types.Digest,
+	optionalKeys map[string]string,
+	grouping paramtools.Params) (bool, error) {
+
+	// We cannot do work asynchronously from the start in this code path like we
+	// can with other comparisons since the result we report will be dependent on
+	// whether the inexact comparison succeeds or not.
+
+	match, algorithmName, mostRecentPositiveDigest, err := c.matchImageAgainstBaseline(ctx, name, traceID, *imgBytes, imgDigest, optionalKeys)
+	if err != nil {
+		wrapped_err := skerr.Wrapf(err, "matching image against baseline")
+		err = c.uploadResultJSON(ctx)
+		if err != nil {
+			wrapped_err = skerr.Wrapf(wrapped_err, "uploading result json")
+		}
+		return false, wrapped_err
+	}
+
+	// If the image matched and we didn't use exact matching, then we report that
+	// the image we compared against was produced.
+	if match && algorithmName != imgmatching.ExactMatching {
+		infof(ctx, "Reporting digest %q instead of %q because %q is enabled\n", mostRecentPositiveDigest, imgDigest, CombineInexactMatches)
+		index := len(c.resultState.SharedConfig.Results) - 1
+		c.resultState.SharedConfig.Results[index].Digest = mostRecentPositiveDigest
+	}
+
+	// At this point we can safely upload asynchronously.
+	var egroup errgroup.Group
+	egroup.Go(func() error {
+		return c.uploadResultJSON(ctx)
+	})
+
+	if !match {
+		egroup.Go(func() error {
+			err = c.reportTriageLink(ctx, imgDigest, grouping)
+			if err != nil {
+				return skerr.Wrapf(err, "reporting triage link")
 			}
-
 			return nil
 		})
 	}
@@ -398,7 +501,39 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 	if err := egroup.Wait(); err != nil {
 		return false, err
 	}
-	return ret, nil
+
+	return match, nil
+}
+
+// reportTriageLink constructs and reports a triage link for the given digest and grouping. This
+// link is reported via both logging and the failure file.
+func (c *CloudClient) reportTriageLink(
+	ctx context.Context,
+	imgDigest types.Digest,
+	grouping paramtools.Params) error {
+
+	link := fmt.Sprintf("%s/detail?grouping=%s&digest=%s", c.resultState.GoldURL, url.QueryEscape(urlEncode(grouping)), imgDigest)
+	if c.resultState.SharedConfig.ChangelistID != "" {
+		link += "&changelist_id=" + c.resultState.SharedConfig.ChangelistID
+		link += "&crs=" + c.resultState.SharedConfig.CodeReviewSystem
+	}
+	link += "\n"
+	infof(ctx, "Untriaged or negative image: %s\n", link)
+	ff := c.resultState.FailureFile
+	if ff != "" {
+		f, err := os.OpenFile(ff, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return skerr.Fmt("could not open failure file %s: %s", ff, err)
+		}
+		if _, err := f.WriteString(link); err != nil {
+			_ = f.Close() // Write error is more important.
+			return skerr.Fmt("could not write to failure file %s: %s", ff, err)
+		}
+		if err := f.Close(); err != nil {
+			return skerr.Fmt("could not close failure file %s: %s", ff, err)
+		}
+	}
+	return nil
 }
 
 // groupingForTrace returns the grouping for the given trace. It fails if the trace params do not
@@ -472,7 +607,7 @@ func (c *CloudClient) Check(ctx context.Context, name types.TestName, imgFileNam
 	}
 
 	_, _, traceID := c.makeResultKeyAndTraceParamsAndID(name, keys)
-	match, _, err := c.matchImageAgainstBaseline(ctx, name, traceID, imgBytes, imgHash, optionalKeys)
+	match, _, _, err := c.matchImageAgainstBaseline(ctx, name, traceID, imgBytes, imgHash, optionalKeys)
 	return match, skerr.Wrap(err)
 }
 
@@ -489,16 +624,25 @@ func (c *CloudClient) Check(ctx context.Context, name types.TestName, imgFileNam
 // either positive or negative in the baseline, imgmatching.ExactMatching will be returned
 // regardless of whether a non-exact image matching algorithm was specified via the optionalKeys.
 //
+// If the algorithm is actually run, the digest of the image that was used for comparison is also
+// returned.
+//
 // A non-nil error is returned if there are any problems parsing or instantiating the specified
 // image matching algorithm, for example if there are any missing parameters.
-func (c *CloudClient) matchImageAgainstBaseline(ctx context.Context, testName types.TestName, traceId tiling.TraceIDV2, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (bool, imgmatching.AlgorithmName, error) {
+func (c *CloudClient) matchImageAgainstBaseline(
+	ctx context.Context,
+	testName types.TestName,
+	traceId tiling.TraceIDV2,
+	imageBytes []byte,
+	imageHash types.Digest,
+	optionalKeys map[string]string) (bool, imgmatching.AlgorithmName, types.Digest, error) {
 	// First we check whether the digest is a known positive or negative, regardless of the specified
 	// image matching algorithm.
 	if c.resultState.Expectations[testName][imageHash] == expectations.Positive {
-		return true, imgmatching.ExactMatching, nil
+		return true, imgmatching.ExactMatching, "", nil
 	}
 	if c.resultState.Expectations[testName][imageHash] == expectations.Negative {
-		return false, imgmatching.ExactMatching, nil
+		return false, imgmatching.ExactMatching, "", nil
 	}
 
 	// Extract the specified image matching algorithm from the optionalKeys (defaulting to exact
@@ -506,31 +650,31 @@ func (c *CloudClient) matchImageAgainstBaseline(ctx context.Context, testName ty
 	// algorithm requires one (i.e. all but exact matching).
 	algorithmName, matcher, err := imgmatching.MakeMatcher(optionalKeys)
 	if err != nil {
-		return false, "", skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
+		return false, "", "", skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
 	}
 
 	// Nothing else to do if performing exact matching: we've already checked whether the image is a
 	// known positive.
 	if algorithmName == imgmatching.ExactMatching {
-		return false, algorithmName, nil
+		return false, algorithmName, "", nil
 	}
 
 	// This can happen if a user supplied just the hash and not the image itself.
 	if len(imageBytes) == 0 {
-		return false, "", skerr.Fmt("Must supply the image if using a non-exact matching algorithm")
+		return false, "", "", skerr.Fmt("Must supply the image if using a non-exact matching algorithm")
 	}
 
 	// Decode test output PNG image.
 	img, err := png.Decode(bytes.NewReader(imageBytes))
 	if err != nil {
-		return false, "", skerr.Wrapf(err, "decoding PNG image")
+		return false, "", "", skerr.Wrapf(err, "decoding PNG image")
 	}
 
 	// Fetch the most recent positive digest.
 	infof(ctx, "Fetching most recent positive digest for trace with ID %q.\n", traceId)
 	mostRecentPositiveDigest, err := c.MostRecentPositiveDigest(ctx, traceId)
 	if err != nil {
-		return false, "", skerr.Wrapf(err, "retrieving most recent positive image")
+		return false, "", "", skerr.Wrapf(err, "retrieving most recent positive image")
 	}
 
 	// Download from GCS the image corresponding to the most recent positive digest.
@@ -540,13 +684,13 @@ func (c *CloudClient) matchImageAgainstBaseline(ctx context.Context, testName ty
 	} else {
 		mostRecentPositiveImage, _, err = c.getDigestFromCacheOrGCS(ctx, mostRecentPositiveDigest)
 		if err != nil {
-			return false, "", skerr.Wrapf(err, "downloading most recent positive image from GCS")
+			return false, "", "", skerr.Wrapf(err, "downloading most recent positive image from GCS")
 		}
 	}
 
 	// Return algorithm's output.
 	infof(ctx, "Non-exact image comparison using algorithm %q against most recent positive digest %q.\n", algorithmName, mostRecentPositiveDigest)
-	return matcher.Match(mostRecentPositiveImage, img), algorithmName, nil
+	return matcher.Match(mostRecentPositiveImage, img), algorithmName, mostRecentPositiveDigest, nil
 }
 
 // Finalize implements the GoldClient interface.
