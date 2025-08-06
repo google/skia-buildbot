@@ -196,17 +196,17 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/bazel_build_all/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/bazel_build_all/${platform}",
-		Version: "git_revision:bb0d9a82f7af8bdf24ee0f8ce5bcb293a11967ca",
+		Version: "git_revision:913e6e8466e6f57d0ca63e2548b871903ebf53fe",
 	},
 	"skia/tools/bazel_test_all/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/bazel_test_all/${platform}",
-		Version: "git_revision:bb0d9a82f7af8bdf24ee0f8ce5bcb293a11967ca",
+		Version: "git_revision:913e6e8466e6f57d0ca63e2548b871903ebf53fe",
 	},
 	"skia/tools/command_wrapper/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/command_wrapper/${platform}",
-		Version: "git_revision:bb0d9a82f7af8bdf24ee0f8ce5bcb293a11967ca",
+		Version: "git_revision:913e6e8466e6f57d0ca63e2548b871903ebf53fe",
 	},
 	"skia/tools/goldctl/${platform}": {
 		Path:    "cipd_bin_packages",
@@ -216,6 +216,6 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/presubmit/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/presubmit/${platform}",
-		Version: "git_revision:bb0d9a82f7af8bdf24ee0f8ce5bcb293a11967ca",
+		Version: "git_revision:913e6e8466e6f57d0ca63e2548b871903ebf53fe",
 	},
 }
