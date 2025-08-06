@@ -700,7 +700,7 @@ export class ExploreMultiSk extends ElementSk {
           return;
         }
 
-        const traceset = elem.getTraceset() as TraceSet;
+        const traceset = elem.getDataTraces() as TraceSet;
         elem.removeKeys(tracesToRemove, true);
         elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
         if (elem.state.queries.length === 0) {
@@ -1031,20 +1031,31 @@ export class ExploreMultiSk extends ElementSk {
       }
     });
     explore.addEventListener('data-loaded', () => {
-      this.refreshSplitList = true;
-      this.updateSplitByKeys();
-      if (this.testPicker) {
-        this.testPicker.setReadOnly(false);
-      }
+      this.dataLoaded();
     });
 
     explore.addEventListener('data-loading', () => {
-      if (this.testPicker) {
-        this.testPicker.setReadOnly(true);
-      }
+      this.dataLoading();
     });
 
     return explore;
+  }
+
+  private dataLoaded(): void {
+    this.refreshSplitList = true;
+    this.updateSplitByKeys();
+    if (this.testPicker) {
+      if (this.exploreElements.length > 0) {
+        this.populateTestPicker(this.exploreElements[0].getParamSet());
+      }
+      this.testPicker.setReadOnly(false);
+    }
+  }
+
+  private dataLoading(): void {
+    if (this.testPicker) {
+      this.testPicker.setReadOnly(true);
+    }
   }
 
   public get state(): State {
