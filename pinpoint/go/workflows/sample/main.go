@@ -59,6 +59,7 @@ var (
 	browser        = flag.String("browser", "chrome", "chrome or safari or edge (used by CBB only)")
 	channel        = flag.String("channel", "stable", "stable, dev or tp (used by CBB only)")
 	bucket         = flag.String("bucket", "prod", "GS bucket to upload results to (prod, exp, or none; used by CBB only)")
+	noWait         = flag.Bool("no-wait", false, "if true, don't wait for workflow to finish (used by CBB only)")
 )
 
 func defaultWorkflowOptions() client.StartWorkflowOptions {
@@ -394,6 +395,10 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 		return nil, skerr.Wrapf(err, "Unable to execute workflow")
 	}
 	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+	if *noWait {
+		return nil, nil
+	}
 
 	if err := we.Get(ctx, &cr); err != nil {
 		return nil, skerr.Wrapf(err, "Unable to get result")
