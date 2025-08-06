@@ -1,12 +1,7 @@
 load("//infra-sk:index.bzl", "sk_element")
 
 sk_element(
-    name = "pinpoint-results-page-sk",
-    sk_element_deps = [
-        "//pinpoint/ui/modules/job-overview-sk",
-        "//pinpoint/ui/modules/commit-run-overview-sk",
-        "//elements-sk/modules/icons/home-icon-sk",
-    ],
+    name = "commit-run-overview-sk",
     ts_deps = [
         "//:node_modules/@material/web",
         "//:node_modules/lit",
@@ -14,8 +9,8 @@ sk_element(
         "//pinpoint/ui/services:api_ts_lib",
     ],
     ts_srcs = [
+        "commit-run-overview-sk.ts",
         "index.ts",
-        "pinpoint-results-page-sk.ts",
     ],
     visibility = ["//visibility:public"],
 )

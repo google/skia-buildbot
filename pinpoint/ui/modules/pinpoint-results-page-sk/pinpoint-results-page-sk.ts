@@ -7,6 +7,7 @@ import '@material/web/icon/icon.js';
 import '@material/web/dialog/dialog.js';
 import '../job-overview-sk';
 import { JobOverviewSk } from '../job-overview-sk/job-overview-sk';
+import '../commit-run-overview-sk';
 import '../../../../elements-sk/modules/icons/home-icon-sk';
 
 @customElement('pinpoint-results-page-sk')
@@ -40,6 +41,12 @@ export class ResultsPageSk extends LitElement {
     }
     .top-right {
       margin-left: auto;
+    }
+    .commit-runs-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1em;
+      margin-top: 1em;
     }
   `;
 
@@ -91,6 +98,8 @@ export class ResultsPageSk extends LitElement {
       ? `${this.job.AdditionalRequestParameters.duration} minutes`
       : 'N/A';
 
+    const commitRuns = this.job.AdditionalRequestParameters?.commit_runs;
+
     return html`
       <div class="container">
         <div class="header">
@@ -106,6 +115,16 @@ export class ResultsPageSk extends LitElement {
           <span>User: ${this.job.SubmittedBy}</span>
           <span>Created On: ${this.formatDate(this.job.CreatedDate)}</span>
           <span>Duration: ${duration}</span>
+        </div>
+        <div class="commit-runs-section">
+          <commit-run-overview-sk
+            title="Base Commit"
+            .job=${this.job}
+            .commitRun=${commitRuns?.left || null}></commit-run-overview-sk>
+          <commit-run-overview-sk
+            title="Experimental Commit"
+            .job=${this.job}
+            .commitRun=${commitRuns?.right || null}></commit-run-overview-sk>
         </div>
       </div>
       <job-overview-sk .job=${this.job}></job-overview-sk>

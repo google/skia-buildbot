@@ -35,23 +35,23 @@ export interface CASReference {
 export interface Commit {
   git_hash: string;
   repository: string;
-  url: string;
-  author: string;
-  created: string; // time.Time string from Golang. General scheme is YYYY-MM-DDTHH:MM:SS.SSSSSSSSSZ
-  subject: string;
-  message: string;
-  commit_branch: string;
-  commit_position: number;
-  review_url: string;
-  change_id: string;
+  url?: string;
+  author?: string;
+  created?: string; // time.Time Golang string. General scheme is YYYY-MM-DDTHH:MM:SS.SSSSSSSSSZ
+  subject?: string;
+  message?: string;
+  commit_branch?: string;
+  commit_position?: number;
+  review_url?: string;
+  change_id?: string;
 }
 
 // This interface represents a commit with potential dependencies or patches.
 // It mirrors the pinpointpb.CombinedCommit struct.
 export interface CombinedCommit {
   main: Commit | null;
-  modified_deps: Commit[];
-  patch: any | null; // This corresponds to *cabe.v1.GerritChange
+  modified_deps?: Commit[];
+  patch?: any | null; // This corresponds to *cabe.v1.GerritChange
 }
 
 export interface Build {
