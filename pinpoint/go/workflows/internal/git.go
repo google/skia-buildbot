@@ -41,7 +41,7 @@ func NewGitChromium(ctx context.Context) (*gitClient, error) {
 }
 
 func NewGitClient(ctx context.Context, repoUrl string, gerritUrl string) (*gitClient, error) {
-	ts, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
