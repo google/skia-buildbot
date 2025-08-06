@@ -21,6 +21,10 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
+const (
+	cipdInstanceChecksum = "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6"
+)
+
 func TestCIPDInstanceToRevision(t *testing.T) {
 	ts := time.Unix(1615384545, 0)
 	pkg := &cipd.InstanceDescription{
@@ -46,7 +50,7 @@ func TestCIPDInstanceToRevision(t *testing.T) {
 	}
 	expect := &revision.Revision{
 		Id:       "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
-		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Checksum: cipdInstanceChecksum,
 		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
@@ -86,7 +90,7 @@ func TestCIPDInstanceToRevision_MissingRevisionIdTag(t *testing.T) {
 	}
 	expect := &revision.Revision{
 		Id:       "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
-		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Checksum: cipdInstanceChecksum,
 		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
@@ -127,7 +131,7 @@ func TestCIPDInstanceToRevision_RevisionIdTag(t *testing.T) {
 	}
 	expect := &revision.Revision{
 		Id:       "version:5",
-		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Checksum: cipdInstanceChecksum,
 		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
@@ -167,7 +171,7 @@ func TestCIPDInstanceToRevision_RevisionIdTagStripKey(t *testing.T) {
 	}
 	expect := &revision.Revision{
 		Id:       "5",
-		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Checksum: cipdInstanceChecksum,
 		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
@@ -217,7 +221,7 @@ func TestCIPDChild_GetRevision(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, &revision.Revision{
 		Id:       instanceID,
-		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Checksum: cipdInstanceChecksum,
 		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
@@ -301,7 +305,7 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 	require.Equal(t, &revision.Revision{
 		Id:          instanceTag,
 		IsGit:       true,
-		Checksum:    "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Checksum:    cipdInstanceChecksum,
 		Author:      "you@google.com",
 		Bugs:        map[string][]string{},
 		Description: gitRev.Subject,
@@ -359,7 +363,7 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, &revision.Revision{
 		Id:       "version:5",
-		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Checksum: cipdInstanceChecksum,
 		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
@@ -420,7 +424,7 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag_StripKey(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, &revision.Revision{
 		Id:       "5",
-		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Checksum: cipdInstanceChecksum,
 		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
@@ -482,7 +486,7 @@ func TestCIPDChild_Update(t *testing.T) {
 	require.NoError(t, err)
 	expectRev := &revision.Revision{
 		Id:       instanceID,
-		Checksum: "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Checksum: cipdInstanceChecksum,
 		Author:   "me@google.com",
 		Bugs: map[string][]string{
 			"skia": {"12345"},
@@ -519,39 +523,12 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 		gitRepo: gitilesRepo,
 	}
 
-	gitRevision := "abcde12345abcde12345abcde12345abcde12345"
+	tipRevHash := "abcde12345abcde12345abcde12345abcde12345"
 	gitTs := time.Unix(1615384887, 0)
 	cipdTs := time.Unix(1615384545, 0)
 	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
-	instanceTag := gitRevTag(gitRevision)
-	tipCommit := &vcsinfo.LongCommit{
-		ShortCommit: &vcsinfo.ShortCommit{
-			Hash:    gitRevision,
-			Author:  "you@google.com",
-			Subject: "fake commit",
-		},
-		Timestamp: gitTs,
-	}
-	middleCommitA := &vcsinfo.LongCommit{
-		ShortCommit: &vcsinfo.ShortCommit{
-			Hash:    "cccccccccccccccccccccccccccccccccccccccc",
-			Author:  "you@google.com",
-			Subject: "middle commit A",
-		},
-		Timestamp: gitTs.Add(-4 * time.Minute),
-	}
-	middleCommitB := &vcsinfo.LongCommit{
-		ShortCommit: &vcsinfo.ShortCommit{
-			Hash:    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-			Author:  "you@google.com",
-			Subject: "middle commit B",
-		},
-		Timestamp: gitTs.Add(-2 * time.Minute),
-	}
-	mockGitiles.On("Details", testutils.AnyContext, gitRevision).Return(tipCommit, nil)
-	mockGitiles.On("Details", testutils.AnyContext, middleCommitA.Hash).Return(middleCommitA, nil)
-	mockGitiles.On("Details", testutils.AnyContext, middleCommitB.Hash).Return(middleCommitB, nil)
-	mockGitiles.On("URL").Return(gitilesConfig.RepoUrl)
+	instanceTag := gitRevTag(tipRevHash)
+
 	mockCipdClient.On("ResolveVersion", testutils.AnyContext, c.name, c.tag).Return(common.Pin{
 		PackageName: c.name,
 		InstanceID:  instanceID,
@@ -584,6 +561,31 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 			},
 		},
 	}, nil)
+
+	tipCommit := &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash:    tipRevHash,
+			Author:  "you@google.com",
+			Subject: "fake commit",
+		},
+		Timestamp: gitTs,
+	}
+	middleCommitA := &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash:    "cccccccccccccccccccccccccccccccccccccccc",
+			Author:  "you@google.com",
+			Subject: "middle commit A",
+		},
+		Timestamp: gitTs.Add(-4 * time.Minute),
+	}
+	middleCommitB := &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash:    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			Author:  "you@google.com",
+			Subject: "middle commit B",
+		},
+		Timestamp: gitTs.Add(-2 * time.Minute),
+	}
 	lastRollRevHash := "bcdef67890bcdef67890bcdef67890bcdef67890"
 	lastRollRev := &revision.Revision{
 		Id:          gitRevTag(lastRollRevHash),
@@ -594,18 +596,21 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 		Timestamp:   gitTs.Add(-10 * time.Minute),
 		URL:         "fake.git/+show/" + lastRollRevHash,
 	}
+	hashes := []string{tipCommit.Hash, middleCommitB.Hash, middleCommitA.Hash, lastRollRevHash}
+	commits := []*vcsinfo.LongCommit{tipCommit, middleCommitB, middleCommitA}
 
-	mockGitiles.On("LogFirstParent", testutils.AnyContext, lastRollRevHash, tipCommit.Hash).Return([]*vcsinfo.LongCommit{
-		tipCommit,
-		middleCommitB,
-		middleCommitA,
-	}, nil)
+	mockGitiles.On("Details", testutils.AnyContext, tipRevHash).Return(tipCommit, nil).Once()
+	mockGitiles_getRevisionHelper(mockGitiles, tipRevHash, tipRevHash)
+	mockGitiles.On("LogFirstParent", testutils.AnyContext, lastRollRevHash, tipRevHash).Return(commits, nil).Once()
+	MockGitiles_ConvertRevisions(mockGitiles, hashes, tipRevHash)
+	mockGitiles.On("URL").Return("fake.git")
+
 	nextRollRev, notRolledRevs, err := c.Update(ctx, lastRollRev)
 	require.NoError(t, err)
 	expectNextRollRev := &revision.Revision{
 		Id:          instanceTag,
 		IsGit:       true,
-		Checksum:    "f0409b2fc2b61d5bb51862d132d9f3757af9206fa4cb442703e814e3805588f6",
+		Checksum:    cipdInstanceChecksum,
 		Author:      "you@google.com",
 		Bugs:        map[string][]string{},
 		Description: tipCommit.Subject,

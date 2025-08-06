@@ -8,8 +8,10 @@ go_library(
     deps = [
         "//go/git",
         "//go/gitiles",
+        "//go/gitiles/mocks",
         "//go/mockhttpclient",
         "//go/sktest",
+        "//go/testutils",
         "//go/vfs",
         "@com_github_stretchr_testify//require",
     ],

@@ -10,12 +10,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
+	"os"
+	"path"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/gitiles/mocks"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vfs"
 )
 
@@ -123,4 +128,46 @@ func (mr *MockRepo) MockLog(ctx context.Context, logExpr string, opts ...gitiles
 		url += "&" + query
 	}
 	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(b))
+}
+
+type MockReadObjectInfo struct {
+	path     string
+	fi       fs.FileInfo
+	contents []byte
+}
+
+func MockReadObject(g *mocks.GitilesRepo, revision string, obj *MockReadObjectInfo) {
+	g.On("ReadObject", testutils.AnyContext, obj.path, revision).Return(obj.fi, obj.contents, nil).Once()
+}
+
+func MockReadObject_File(g *mocks.GitilesRepo, revision, name, contents string) {
+	contentsBytes := []byte(contents)
+	MockReadObject(g, revision, &MockReadObjectInfo{
+		path: name,
+		fi: vfs.FileInfo{
+			Name:  path.Base(name),
+			Size:  int64(len(contentsBytes)),
+			Mode:  0644,
+			IsDir: false,
+		}.Get(),
+		contents: contentsBytes,
+	})
+}
+
+func MockReadObject_Dir(g *mocks.GitilesRepo, revision, name string, contents []string) {
+	contentsStr := ""
+	for _, name := range contents {
+		contentsStr += fmt.Sprintf("0644 blob somehash %s\n", name)
+	}
+	contentsBytes := []byte(contentsStr)
+	MockReadObject(g, revision, &MockReadObjectInfo{
+		path: name,
+		fi: vfs.FileInfo{
+			Name:  path.Base(name),
+			Size:  int64(len(contentsBytes)),
+			Mode:  0644 | os.ModeDir,
+			IsDir: true,
+		}.Get(),
+		contents: contentsBytes,
+	})
 }

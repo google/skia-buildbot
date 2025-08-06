@@ -81,12 +81,16 @@ func newGitiles(ctx context.Context, c *config.GitilesParentConfig, reg *config_
 // See documentation for Parent interface.
 func (p *gitilesParent) Update(ctx context.Context) (string, error) {
 	// Find the head of the branch we're tracking.
-	baseCommit, err := p.GetTipRevision(ctx)
+	baseCommit, err := p.ResolveRef(ctx, p.Branch())
 	if err != nil {
 		return "", err
 	}
-	sklog.Infof("Found tip revision of parent: %s", baseCommit.Id)
-	lastRollRev, ok := baseCommit.Dependencies[p.childID]
+	sklog.Infof("Found tip revision of parent: %s", baseCommit)
+	deps, err := p.GetPinnedRevs(ctx, baseCommit)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	lastRollRev, ok := deps[p.childID]
 	if !ok {
 		return "", skerr.Fmt("Unable to find dependency %q in %#v", p.childID, lastRollRev)
 	}
@@ -94,7 +98,7 @@ func (p *gitilesParent) Update(ctx context.Context) (string, error) {
 	// Save the data.
 	p.baseCommitMtx.Lock()
 	defer p.baseCommitMtx.Unlock()
-	p.baseCommit = baseCommit.Id
+	p.baseCommit = baseCommit
 	return lastRollRev, nil
 }
 

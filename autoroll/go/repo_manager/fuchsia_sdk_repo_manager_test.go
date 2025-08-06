@@ -1,23 +1,18 @@
 package repo_manager
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"net/url"
-	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
-	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
-	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
+	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/git"
-	git_testutils "go.skia.org/infra/go/git/testutils"
-	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
+	gitiles_mocks "go.skia.org/infra/go/gitiles/mocks"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils"
 )
 
 const (
@@ -91,55 +86,33 @@ func fuchsiaCfg() *config.ParentChildRepoManagerConfig {
 	}
 }
 
-func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
-	wd, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-
-	ctx := cipd_git.UseGitFinder(context.Background())
-
+func setupFuchsiaSDK(t *testing.T) (*parentChildRepoManager, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface, *mockhttpclient.URLMock) {
+	reg := setupRegistry(t)
 	cfg := fuchsiaCfg()
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
-
-	// Create child and parent repos.
-	parent := git_testutils.GitInit(t, ctx)
-	parent.Add(ctx, fuchsiaSDKVersionFilePathLinux, fuchsiaSDKRevBase)
-	parent.Add(ctx, fuchsiaSDKVersionFilePathMac, fuchsiaSDKRevBase)
-	parent.Commit(ctx)
-	parentCfg.Gitiles.RepoUrl = parent.RepoUrl()
+	parentCfg := cfg.GetGitilesParent()
+	p, parentGitiles, parentGerrit := parent.NewGitilesFileForTesting(t, parentCfg, reg)
 
 	urlmock := mockhttpclient.NewURLMock()
-	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.CheckoutDir(parent.Dir()), urlmock)
-
-	gUrl := "https://fake-skia-review.googlesource.com"
-	serialized, err := json.Marshal(&gerrit.AccountDetails{
-		AccountId: 101,
-		Name:      mockUser,
-		Email:     mockUser,
-		UserName:  mockUser,
-	})
-	require.NoError(t, err)
-	serialized = append([]byte("abcd\n"), serialized...)
-	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerrit(gUrl, urlmock.Client())
+	c, err := child.NewFuchsiaSDK(t.Context(), cfg.GetFuchsiaSdkChild(), urlmock.Client())
 	require.NoError(t, err)
 
-	// Initial update, everything up-to-date.
-	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
-	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
-	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)
-	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
-
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
-	require.NoError(t, err)
-
-	cleanup := func() {
-		testutils.RemoveAll(t, wd)
-		parent.Cleanup()
+	// Create the RepoManager.
+	rm := &parentChildRepoManager{
+		Parent: p,
+		Child:  c,
 	}
 
-	return ctx, rm, urlmock, mockParent, parent, cleanup
+	// Mock requests for Update().
+	fileContents := map[string]string{
+		fuchsiaSDKVersionFilePathLinux: fuchsiaSDKRevBase + "\n",
+		fuchsiaSDKVersionFilePathMac:   "mac-base\n",
+	}
+	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, fileContents)
+	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
+
+	// Update.
+	_, _, _ = updateAndAssert(t, rm, parentGitiles, parentGerrit, urlmock)
+	return rm, parentGitiles, parentGerrit, urlmock
 }
 
 func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, revLinux, revMac string) {
@@ -151,97 +124,47 @@ func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, revLinux, revMac string) 
 }
 
 func TestFuchsiaSDKRepoManager(t *testing.T) {
+	rm, parentGitiles, parentGerrit, urlmock := setupFuchsiaSDK(t)
 
-	ctx, rm, urlmock, mockParent, parent, cleanup := setupFuchsiaSDK(t)
-	defer cleanup()
+	// Mock requests for Update().
+	cfg := fuchsiaCfg()
+	oldContent := map[string]string{
+		fuchsiaSDKVersionFilePathLinux: fuchsiaSDKRevBase + "\n",
+		fuchsiaSDKVersionFilePathMac:   "mac-base\n",
+	}
+	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, oldContent)
+	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
 
-	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	require.NoError(t, err)
+	// Update.
+	lastRollRev, tipRev, notRolledRevs := updateAndAssert(t, rm, parentGitiles, parentGerrit, urlmock)
 	require.Equal(t, fuchsiaSDKRevBase, lastRollRev.Id)
 	require.Equal(t, fuchsiaSDKRevBase, tipRev.Id)
-	prev, err := rm.GetRevision(ctx, fuchsiaSDKRevPrev)
+	prev, err := rm.GetRevision(t.Context(), fuchsiaSDKRevPrev)
 	require.NoError(t, err)
 	require.Equal(t, fuchsiaSDKRevPrev, prev.Id)
-	base, err := rm.GetRevision(ctx, fuchsiaSDKRevBase)
+	base, err := rm.GetRevision(t.Context(), fuchsiaSDKRevBase)
 	require.NoError(t, err)
 	require.Equal(t, fuchsiaSDKRevBase, base.Id)
-	next, err := rm.GetRevision(ctx, fuchsiaSDKRevNext)
+	next, err := rm.GetRevision(t.Context(), fuchsiaSDKRevNext)
 	require.NoError(t, err)
 	require.Equal(t, fuchsiaSDKRevNext, next.Id)
 	require.Equal(t, 0, len(notRolledRevs))
 
-	// There's a new version.
-	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
-	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
-	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)
+	// // There's a new version.
+	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, oldContent)
 	mockGetLatestSDK(urlmock, fuchsiaSDKRevNext, "mac-next")
-	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
-	require.NoError(t, err)
+	lastRollRev, tipRev, notRolledRevs = updateAndAssert(t, rm, parentGitiles, parentGerrit, urlmock)
 	require.Equal(t, fuchsiaSDKRevBase, lastRollRev.Id)
 	require.Equal(t, fuchsiaSDKRevNext, tipRev.Id)
 	require.Equal(t, 1, len(notRolledRevs))
 	require.Equal(t, fuchsiaSDKRevNext, notRolledRevs[0].Id)
 
 	// Upload a CL.
-
-	// Mock the request for the currently-pinned versions.
-	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
-	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)
-
-	// Mock the initial change creation.
-	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.MainBranch, parentHead))
-	ci := gerrit.ChangeInfo{
-		ChangeId: "123",
-		Project:  "test-project",
-		Branch:   "test-branch",
-		Id:       "123",
-		Issue:    123,
-		Revisions: map[string]*gerrit.Revision{
-			"ps1": {
-				ID:     "ps1",
-				Number: 1,
-			},
-			"ps2": {
-				ID:     "ps2",
-				Number: 2,
-			},
-		},
+	newContent := map[string]string{
+		fuchsiaSDKVersionFilePathLinux: fuchsiaSDKRevNext + "\n",
+		fuchsiaSDKVersionFilePathMac:   "mac-next\n",
 	}
-	respBody, err := json.Marshal(ci)
+	parent.MockGitilesFileForCreateNewRoll(parentGitiles, parentGerrit, cfg.GetGitilesParent(), noCheckoutParentHead, fakeCommitMsgMock, oldContent, newContent, fakeReviewers)
+	_, err = rm.CreateNewRoll(t.Context(), lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
 	require.NoError(t, err)
-	respBody = append([]byte(")]}'\n"), respBody...)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
-
-	// Mock the edit of the change to update the commit message.
-	reqBody = []byte(fmt.Sprintf(`{"message":"%s"}`, strings.Replace(fakeCommitMsgMock, "\n", "\\n", -1)))
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
-
-	// Mock the request to modify the version files.
-	reqBody = []byte(tipRev.Id + "\n")
-	reqUrl := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(fuchsiaSDKVersionFilePathLinux))
-	urlmock.MockOnce(reqUrl, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
-	reqBody = []byte("mac-next\n")
-	reqUrl = fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(fuchsiaSDKVersionFilePathMac))
-	urlmock.MockOnce(reqUrl, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
-
-	// Mock the request to publish the change edit.
-	reqBody = []byte(`{"notify":"ALL"}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:publish", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
-
-	// Mock the request to load the updated change.
-	respBody, err = json.Marshal(ci)
-	require.NoError(t, err)
-	respBody = append([]byte(")]}'\n"), respBody...)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS&o=SUBMITTABLE", mockhttpclient.MockGetDialogue(respBody))
-
-	// Mock the request to set the CQ.
-	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/test-project~123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
-
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, false, fakeCommitMsg)
-	require.NoError(t, err)
-	require.Equal(t, ci.Issue, issue)
 }

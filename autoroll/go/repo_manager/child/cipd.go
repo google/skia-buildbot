@@ -129,10 +129,6 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 
 // LogRevisions implements Child.
 func (c *CIPDChild) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
-	revs := []*revision.Revision{}
-	if from.Id != to.Id {
-		revs = append(revs, to)
-	}
 	if c.gitRepo != nil {
 		// Obtain the git revisions from the backing repo.
 		_, fromHash, err := splitCIPDTag(from.Id)
@@ -143,11 +139,7 @@ func (c *CIPDChild) LogRevisions(ctx context.Context, from, to *revision.Revisio
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		notRolledCommits, err := c.gitRepo.LogFirstParent(ctx, fromHash, toHash)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		revs, err = c.gitRepo.ConvertRevisions(ctx, notRolledCommits)
+		revs, err := c.gitRepo.LogRevisions(ctx, &revision.Revision{Id: fromHash}, &revision.Revision{Id: toHash})
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -166,6 +158,11 @@ func (c *CIPDChild) LogRevisions(ctx context.Context, from, to *revision.Revisio
 				rev.InvalidReason = "No associated CIPD package."
 			}
 		}
+		return revs, nil
+	}
+	revs := []*revision.Revision{}
+	if from.Id != to.Id {
+		revs = append(revs, to)
 	}
 	return revs, nil
 }

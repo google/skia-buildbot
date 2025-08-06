@@ -59,29 +59,38 @@ func (r *GitilesRepo) GetRevision(ctx context.Context, id string) (*revision.Rev
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to retrieve revision %q", id)
 	}
+	return r.getRevisionHelper(ctx, details)
+}
+
+func (r *GitilesRepo) getRevisionHelper(ctx context.Context, details *vcsinfo.LongCommit) (*revision.Revision, error) {
 	revLinkTmpl := fmt.Sprintf(gitiles.CommitURL, r.GitilesRepo.URL(), "%s")
 	rev := revision.FromLongCommit(revLinkTmpl, r.defaultBugProject, details)
-
-	// Optionally load any dependencies.
-	if len(r.deps) > 0 {
-		deps, err := version_file_common.GetPinnedRevs(ctx, r.deps, func(ctx context.Context, path string) (string, error) {
-			return r.GetFile(ctx, path, rev.Id)
-		})
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		rev.Dependencies = deps
+	deps, err := r.GetPinnedRevs(ctx, rev.Id)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
+	rev.Dependencies = deps
 	return rev, nil
+}
+
+// GetPinnedRevs loads any dependencies pinned by the given commit, if any are
+// configured. Otherwise returns nil.
+func (r *GitilesRepo) GetPinnedRevs(ctx context.Context, commit string) (map[string]string, error) {
+	if len(r.deps) > 0 {
+		return version_file_common.GetPinnedRevs(ctx, r.deps, func(ctx context.Context, path string) (string, error) {
+			return r.GetFile(ctx, path, commit)
+		})
+	}
+	return nil, nil
 }
 
 // LogRevisions implements the child.Child interface.
 func (r *GitilesRepo) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
-	hashes, err := r.LogFirstParent(ctx, from.Id, to.Id)
+	commits, err := r.LogFirstParent(ctx, from.Id, to.Id)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	revs, err := r.ConvertRevisions(ctx, hashes)
+	revs, err := r.ConvertRevisions(ctx, commits)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -100,7 +109,7 @@ func (r *GitilesRepo) GetTipRevision(ctx context.Context) (*revision.Revision, e
 func (r *GitilesRepo) ConvertRevisions(ctx context.Context, commits []*vcsinfo.LongCommit) ([]*revision.Revision, error) {
 	revs := make([]*revision.Revision, 0, len(commits))
 	for _, commit := range commits {
-		rev, err := r.GetRevision(ctx, commit.Hash)
+		rev, err := r.getRevisionHelper(ctx, commit)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to retrieve revision")
 		}

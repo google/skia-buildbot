@@ -91,7 +91,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 
 	// Some Parent implementations require a Child to be passed in.
 	if c.GetCopyParent() != nil {
-		parentRM, err = parent.NewCopy(ctx, c.GetCopyParent(), reg, client, serverURL, workdir, cr.UserName(), cr.UserEmail(), childRM)
+		parentRM, err = parent.NewCopy(ctx, c.GetCopyParent(), reg, client, serverURL, childRM)
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -101,6 +101,19 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 	}
 
 	// Revision filter.
+	revFilters, err := getRevisionFilters(c, client, workdir)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return &parentChildRepoManager{
+		Child:      childRM,
+		Parent:     parentRM,
+		revFilters: revFilters,
+	}, nil
+}
+
+func getRevisionFilters(c *config.ParentChildRepoManagerConfig, client *http.Client, workdir string) (revision_filter.RevisionFilters, error) {
 	var revFilters []revision_filter.RevisionFilter
 	for _, rfConfig := range c.GetBuildbucketRevisionFilter() {
 		revFilter, err := revision_filter.NewBuildbucketRevisionFilter(client, rfConfig)
@@ -123,12 +136,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		}
 		revFilters = append(revFilters, revFilter)
 	}
-
-	return &parentChildRepoManager{
-		Child:      childRM,
-		Parent:     parentRM,
-		revFilters: revFilters,
-	}, nil
+	return revFilters, nil
 }
 
 // See documentation for RepoManager interface.

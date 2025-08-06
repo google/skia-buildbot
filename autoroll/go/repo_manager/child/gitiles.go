@@ -56,7 +56,7 @@ func (c *gitilesChild) Update(ctx context.Context, lastRollRev *revision.Revisio
 		return nil, nil, skerr.Wrapf(err, "failed to convert not-rolled revisions")
 	}
 	if c.path != "" && len(notRolledRevs) > 0 && tipRev.Id != notRolledRevs[0].Id {
-		sklog.Info("Tip rev %q does not match first not-rolled rev %q; using not-rolled rev. This is expected for rollers which watch a sub-section of a repository.", tipRev.Id, notRolledRevs[0].Id)
+		sklog.Infof("Tip rev %q does not match first not-rolled rev %q; using not-rolled rev. This is expected for rollers which watch a sub-section of a repository.", tipRev.Id, notRolledRevs[0].Id)
 		tipRev = notRolledRevs[0]
 	}
 	return tipRev, notRolledRevs, nil

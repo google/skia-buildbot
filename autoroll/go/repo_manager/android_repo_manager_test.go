@@ -31,8 +31,8 @@ const (
 )
 
 var (
-	androidEmails = []string{"reviewer@chromium.org"}
-	childCommits  = []string{
+	androidEmails       = []string{"reviewer@chromium.org"}
+	androidChildCommits = []string{
 		"5678888888888888888888888888888888888888",
 		"1234444444444444444444444444444444444444"}
 )
@@ -91,11 +91,11 @@ func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string,
 			var output string
 			if cmd.Args[0] == "log" {
 				if cmd.Args[1] == "--format=format:%H%x20%ci" {
-					output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1])
+					output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", androidChildCommits[0], androidChildCommits[1])
 				}
 				if cmd.Args[1] == "-n" && cmd.Args[2] == "1" {
 					commit := ""
-					for _, c := range childCommits {
+					for _, c := range androidChildCommits {
 						if cmd.Args[len(cmd.Args)-1] == c {
 							commit = c
 							break
@@ -105,26 +105,26 @@ func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string,
 					output = fmt.Sprintf("%s\nparent\nMe (me@google.com)\nsome commit\n1558543876\n", commit)
 				}
 			} else if cmd.Args[0] == "ls-remote" {
-				output = childCommits[0]
+				output = androidChildCommits[0]
 			} else if cmd.Args[0] == "merge-base" {
-				output = childCommits[1]
+				output = androidChildCommits[1]
 			} else if cmd.Args[0] == "rev-list" {
 				split := strings.Split(cmd.Args[len(cmd.Args)-1], "..")
 				require.Equal(t, 2, len(split))
 				startCommit := split[0]
 				endCommit := split[1]
 				start, end := -1, -1
-				for i := 0; i < len(childCommits); i++ {
-					if childCommits[i] == startCommit {
+				for i := 0; i < len(androidChildCommits); i++ {
+					if androidChildCommits[i] == startCommit {
 						start = i
 					}
-					if childCommits[i] == endCommit {
+					if androidChildCommits[i] == endCommit {
 						end = i
 					}
 				}
 				require.NotEqual(t, -1, start)
 				require.NotEqual(t, -1, end)
-				output = strings.Join(childCommits[end:start], "\n")
+				output = strings.Join(androidChildCommits[end:start], "\n")
 			}
 			n, err := cmd.CombinedOutput.Write([]byte(output))
 			require.NoError(t, err)
@@ -159,8 +159,8 @@ func TestAndroidRepoManager(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, fmt.Sprintf("%s/%s", wd, childPath), rm.(*androidRepoManager).childDir)
-	require.Equal(t, childCommits[len(childCommits)-1], lastRollRev.Id)
-	require.Equal(t, childCommits[0], tipRev.Id)
+	require.Equal(t, androidChildCommits[len(androidChildCommits)-1], lastRollRev.Id)
+	require.Equal(t, androidChildCommits[0], tipRev.Id)
 }
 
 // TestCreateNewAndroidRoll tests creating a new roll.

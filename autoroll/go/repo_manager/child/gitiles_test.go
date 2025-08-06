@@ -10,13 +10,11 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
-	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/git"
-	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/gitiles"
-	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
-	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 // TODO(borenet): Split up the tests in no_checkout_deps_repo_manager_test.go
@@ -41,74 +39,61 @@ func setupRegistry(t *testing.T) *config_vars.Registry {
 // TestGitilesChildPathFilter verifies that GitilesChild filters out Revisions
 // which do not modify the configured path.
 func TestGitilesChildPathFilter(t *testing.T) {
-
-	ctx := cipd_git.UseGitFinder(context.Background())
-	repo := git_testutils.GitInit(t, ctx)
-	commits := []string{}
-
-	// Initial commit: set up the repo structure.
-	repo.AddGen(ctx, "top-file.txt")
-	repo.AddGen(ctx, "ignored-dir/ignored-file.txt")
-	repo.AddGen(ctx, "watched-dir/watched-file.txt")
-	commits = append(commits, repo.Commit(ctx))
-
-	// Second commit: does not modify the watched dir.
-	repo.AddGen(ctx, "top-file.txt")
-	commits = append(commits, repo.Commit(ctx))
-
-	// Third commit: modifies the watched dir.
-	repo.AddGen(ctx, "watched-dir/watched-file.txt")
-	commits = append(commits, repo.Commit(ctx))
-
-	// Fourth commit: does not modify the watched dir.
-	repo.AddGen(ctx, "ignored-dir/ignored-file.txt")
-	commits = append(commits, repo.Commit(ctx))
-
-	// Fifth commit: adds a file in the watched dir.
-	repo.AddGen(ctx, "watched-dir/watched-file2.txt")
-	commits = append(commits, repo.Commit(ctx))
-
-	// Sixth commit: another unrelated file.
-	repo.AddGen(ctx, "other.txt")
-	commits = append(commits, repo.Commit(ctx))
+	commits := []string{
+		"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+		"dddddddddddddddddddddddddddddddddddddddd",
+		"cccccccccccccccccccccccccccccccccccccccc",
+		"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	}
 
 	// Create the GitilesChild.
 	cfg := config.GitilesChildConfig{
 		Gitiles: &config.GitilesConfig{
 			Branch:  git.MainBranch,
-			RepoUrl: repo.RepoUrl(),
+			RepoUrl: "fake-repo.git",
 		},
 		Path: "", // Test without Path first.
 	}
 	reg := setupRegistry(t)
-	urlMock := mockhttpclient.NewURLMock()
-	mockGitiles := gitiles_testutils.NewMockRepo(t, repo.RepoUrl(), git.CheckoutDir(repo.Dir()), urlMock)
-	c, err := NewGitiles(ctx, &cfg, reg, urlMock.Client())
-	require.NoError(t, err)
+
+	c, mockGitiles := NewGitilesForTesting(t, &cfg, reg)
 
 	// Update.
-	lastRollRev := &revision.Revision{Id: commits[0]}
-	mockGitiles.MockGetCommit(ctx, git.MainBranch)
-	mockGitiles.MockLog(ctx, git.LogFromTo(commits[0], commits[len(commits)-1]))
-	for _, c := range commits[1:] {
-		mockGitiles.MockGetCommit(ctx, c)
-	}
-	tip, notRolled, err := c.Update(ctx, lastRollRev)
+	lastRollRev := commits[len(commits)-1]
+	tipRev := commits[0]
+	MockGitiles_Update(t, mockGitiles, &cfg, lastRollRev, tipRev, commits, nil)
+
+	tip, notRolled, err := c.Update(t.Context(), &revision.Revision{Id: lastRollRev})
 	require.NoError(t, err)
-	require.Equal(t, commits[len(commits)-1], tip.Id)
+	require.Equal(t, tipRev, tip.Id)
 	require.Equal(t, len(commits)-1, len(notRolled))
-	require.True(t, urlMock.Empty())
+	mockGitiles.AssertExpectations(t)
 
 	// Now, set Path.
-	cfg.Path = "watched-dir"
-	c, err = NewGitiles(ctx, &cfg, reg, urlMock.Client())
-	mockGitiles.MockGetCommit(ctx, git.MainBranch)
-	mockGitiles.MockLog(ctx, git.LogFromTo(commits[0], commits[len(commits)-1]), gitiles.LogPath(cfg.Path))
-	mockGitiles.MockGetCommit(ctx, commits[2])
-	mockGitiles.MockGetCommit(ctx, commits[4])
-	tip, notRolled, err = c.Update(ctx, lastRollRev)
+	c.path = "watched-dir"
+	mockGitiles.On("Details", testutils.AnyContext, git.MainBranch).Return(&vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash: tipRev,
+		},
+	}, nil).Once()
+	notRolledCommits := []*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: commits[1],
+			},
+		},
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: commits[3],
+			},
+		},
+	}
+	mockGitiles.On("Log", testutils.AnyContext, git.LogFromTo(lastRollRev, tipRev), gitiles.LogPath(c.path)).Return(notRolledCommits, nil).Once()
+
+	tip, notRolled, err = c.Update(t.Context(), &revision.Revision{Id: lastRollRev})
 	require.NoError(t, err)
-	require.Equal(t, commits[4], tip.Id)
+	require.Equal(t, commits[1], tip.Id)
 	require.Equal(t, 2, len(notRolled))
-	require.True(t, urlMock.Empty())
+	mockGitiles.AssertExpectations(t)
 }

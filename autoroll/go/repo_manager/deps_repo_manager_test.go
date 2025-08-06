@@ -44,7 +44,7 @@ blah blah blah
 )
 
 var (
-	emails = []string{"reviewer@chromium.org"}
+	fakeReviewers = []string{"reviewer@chromium.org"}
 )
 
 func depsCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
@@ -260,7 +260,7 @@ func TestDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	mockGerritGetAndPublishChange(t, urlmock, cfg)
 
 	// Create a roll, assert that it's at tip of tree.
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, false, fakeCommitMsg)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, int64(123), issue)
 }
@@ -282,7 +282,7 @@ func TestDEPSRepoManagerCreateNewRollWithPatchRef(t *testing.T) {
 	unsubmittedRev := &revision.Revision{
 		Id: "refs/changes/11/1111/1",
 	}
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, unsubmittedRev, notRolledRevs, emails, false, false, fakeCommitMsg)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, unsubmittedRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, true, *patchRefInSyncCmd)
 	require.Equal(t, int64(123), issue)
@@ -312,7 +312,7 @@ func TestDEPSRepoManagerPreUploadSteps(t *testing.T) {
 	mockGerritGetAndPublishChange(t, urlmock, cfg)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, false, fakeCommitMsg)
+	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.True(t, ran)
 }
@@ -351,7 +351,7 @@ cache_dir=None
 	mockGerritGetAndPublishChange(t, urlmock, cfg)
 
 	// Create a roll.
-	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, false, fakeCommitMsg)
+	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
 	require.NoError(t, err)
 
 	// Ensure that we pass the spec into "gclient config".

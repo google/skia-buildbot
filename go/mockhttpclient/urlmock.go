@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/texttheater/golang-levenshtein/levenshtein"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -300,7 +302,7 @@ func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 	closest := "(no mocked URLs)"
 	m.mtx.Lock()
 	if resps, ok := m.mockOnce[url]; ok {
-		if resps != nil && len(resps) > 0 {
+		if len(resps) > 0 {
 			md = &resps[0]
 			m.mockOnce[url] = m.mockOnce[url][1:]
 		}
@@ -338,7 +340,7 @@ func (m *URLMock) Empty() bool {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	for url, resps := range m.mockOnce {
-		if resps != nil && len(resps) > 0 {
+		if len(resps) > 0 {
 			sklog.Errorf("not empty: %s", url)
 			return false
 		}
@@ -350,11 +352,18 @@ func (m *URLMock) Empty() bool {
 func (m *URLMock) List() []string {
 	rv := []string{}
 	for url, resps := range m.mockOnce {
-		if resps != nil && len(resps) > 0 {
+		if len(resps) > 0 {
 			rv = append(rv, url)
 		}
 	}
 	return rv
+}
+
+// AssertExpectations asserts that URLMock is empty.
+func (m *URLMock) AssertExpectations(t mock.TestingT) bool {
+	ok := m.Empty()
+	assert.True(t, ok)
+	return ok
 }
 
 // respBodyCloser is a wrapper which lets us pretend to implement io.ReadCloser

@@ -1,28 +1,25 @@
 package repo_manager
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"path"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
-	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gerrit"
+	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/git"
-	git_testutils "go.skia.org/infra/go/git/testutils"
-	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
+	gitiles_mocks "go.skia.org/infra/go/gitiles/mocks"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -48,7 +45,7 @@ const (
 	afdoVersionFilePath = "chrome/android/profiles/newest.txt"
 )
 
-func afdoCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+func afdoCfg() *config.ParentChildRepoManagerConfig {
 	return &config.ParentChildRepoManagerConfig{
 		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
 			GitilesParent: &config.GitilesParentConfig{
@@ -94,45 +91,28 @@ func gerritCR(t *testing.T, g gerrit.GerritInterface, client *http.Client) coder
 	return rv
 }
 
-func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
-	wd, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
+func setupAfdo(t *testing.T) (*parentChildRepoManager, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface, *mockhttpclient.URLMock) {
+	reg := setupRegistry(t)
+	cfg := afdoCfg()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
-
-	// Create child and parent repos.
-	parent := git_testutils.GitInit(t, ctx)
-	parent.Add(context.Background(), afdoVersionFilePath, afdoRevBase)
-	parent.Commit(context.Background())
+	parentCfg := cfg.GetGitilesParent()
+	p, parentGitiles, parentGerrit := parent.NewGitilesFileForTesting(t, parentCfg, reg)
 
 	urlmock := mockhttpclient.NewURLMock()
-	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.CheckoutDir(parent.Dir()), urlmock)
-
-	gUrl := "https://fake-skia-review.googlesource.com"
-	serialized, err := json.Marshal(&gerrit.AccountDetails{
-		AccountId: 101,
-		Name:      mockUser,
-		Email:     mockUser,
-		UserName:  mockUser,
-	})
-	require.NoError(t, err)
-	serialized = append([]byte("abcd\n"), serialized...)
-	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	client := urlmock.Client()
-	g, err := gerrit.NewGerrit(gUrl, client)
+	c, err := child.NewSemVerGCS(t.Context(), cfg.GetSemverGcsChild(), reg, urlmock.Client())
 	require.NoError(t, err)
 
-	cfg := afdoCfg(t)
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
-	parentCfg.Gitiles.RepoUrl = parent.RepoUrl()
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", client, gerritCR(t, g, client))
-	require.NoError(t, err)
+	// Create the RepoManager.
+	rm := &parentChildRepoManager{
+		Parent: p,
+		Child:  c,
+	}
 
-	// Mock requests for Update.
-	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
-	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
+	// Mock requests for Update().
+	fileContents := map[string]string{
+		afdoVersionFilePath: afdoRevBase,
+	}
+	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, fileContents)
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
@@ -143,15 +123,8 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevBase, afdoTimeBase)
 
 	// Initial update. Everything up to date.
-	_, _, _, err = rm.Update(ctx)
-	require.NoError(t, err)
-
-	cleanup := func() {
-		testutils.RemoveAll(t, wd)
-		parent.Cleanup()
-	}
-
-	return ctx, rm, urlmock, mockParent, parent, cleanup
+	_, _, _ = updateAndAssert(t, rm, parentGitiles, parentGerrit, urlmock)
+	return rm, parentGitiles, parentGerrit, urlmock
 }
 
 type gsObject struct {
@@ -238,15 +211,14 @@ func mockGSObject(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath,
 }
 
 func TestAFDORepoManager(t *testing.T) {
-
-	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
-	defer cleanup()
+	rm, parentGitiles, parentGerrit, urlmock := setupAfdo(t)
+	cfg := afdoCfg()
 
 	// Mock requests for Update.
-	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
-	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
+	oldContent := map[string]string{
+		afdoVersionFilePath: afdoRevBase,
+	}
+	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, oldContent)
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
@@ -257,27 +229,25 @@ func TestAFDORepoManager(t *testing.T) {
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevBase, afdoTimeBase)
 
 	// Update.
-	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	require.NoError(t, err)
+	lastRollRev, tipRev, notRolledRevs := updateAndAssert(t, rm, parentGitiles, parentGerrit, urlmock)
 	require.Equal(t, afdoRevBase, lastRollRev.Id)
 	require.Equal(t, afdoRevBase, tipRev.Id)
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevPrev, afdoTimePrev)
-	prev, err := rm.GetRevision(ctx, afdoRevPrev)
+	prev, err := rm.GetRevision(t.Context(), afdoRevPrev)
 	require.NoError(t, err)
 	require.Equal(t, afdoRevPrev, prev.Id)
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevBase, afdoTimeBase)
-	base, err := rm.GetRevision(ctx, afdoRevBase)
+	base, err := rm.GetRevision(t.Context(), afdoRevBase)
 	require.NoError(t, err)
 	require.Equal(t, afdoRevBase, base.Id)
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevNext, afdoTimeNext)
-	next, err := rm.GetRevision(ctx, afdoRevNext)
+	next, err := rm.GetRevision(t.Context(), afdoRevNext)
 	require.NoError(t, err)
 	require.Equal(t, afdoRevNext, next.Id)
 	require.Equal(t, 0, len(notRolledRevs))
 
 	// There's a new version.
-	mockParent.MockGetCommit(ctx, git.MainBranch)
-	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
+	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, oldContent)
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevNext: afdoTimeNext,
@@ -288,105 +258,52 @@ func TestAFDORepoManager(t *testing.T) {
 		afdoRevNext: afdoTimeNext,
 	})
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevBase, afdoTimeBase)
-	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
-	require.NoError(t, err)
+	lastRollRev, tipRev, notRolledRevs = updateAndAssert(t, rm, parentGitiles, parentGerrit, urlmock)
 	require.Equal(t, afdoRevBase, lastRollRev.Id)
 	require.Equal(t, afdoRevNext, tipRev.Id)
 	require.Equal(t, 1, len(notRolledRevs))
 	require.Equal(t, afdoRevNext, notRolledRevs[0].Id)
 
 	// Upload a CL.
-
-	// Mock the request to get the current version.
-	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
-
-	// Mock the initial change creation.
-	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.MainBranch, parentHead))
-	ci := gerrit.ChangeInfo{
-		ChangeId: "123",
-		Project:  "test-project",
-		Branch:   "test-branch",
-		Id:       "123",
-		Issue:    123,
-		Revisions: map[string]*gerrit.Revision{
-			"ps1": {
-				ID:     "ps1",
-				Number: 1,
-			},
-			"ps2": {
-				ID:     "ps2",
-				Number: 2,
-			},
-		},
+	newContent := map[string]string{
+		afdoVersionFilePath: afdoRevNext + "\n",
 	}
-	respBody, err := json.Marshal(ci)
+	parent.MockGitilesFileForCreateNewRoll(parentGitiles, parentGerrit, cfg.GetGitilesParent(), noCheckoutParentHead, fakeCommitMsgMock, oldContent, newContent, fakeReviewers)
+	_, err = rm.CreateNewRoll(t.Context(), lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
 	require.NoError(t, err)
-	respBody = append([]byte(")]}'\n"), respBody...)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
-
-	// Mock the edit of the change to update the commit message.
-	reqBody = []byte(fmt.Sprintf(`{"message":"%s"}`, strings.Replace(fakeCommitMsgMock, "\n", "\\n", -1)))
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
-
-	// Mock the request to modify the version file.
-	reqBody = []byte(tipRev.Id + "\n")
-	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(afdoVersionFilePath))
-	urlmock.MockOnce(url, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
-
-	// Mock the request to publish the change edit.
-	reqBody = []byte(`{"notify":"ALL"}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:publish", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
-
-	// Mock the request to load the updated change.
-	respBody, err = json.Marshal(ci)
-	require.NoError(t, err)
-	respBody = append([]byte(")]}'\n"), respBody...)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS&o=SUBMITTABLE", mockhttpclient.MockGetDialogue(respBody))
-
-	// Mock the request to set the CQ.
-	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/test-project~123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
-
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, false, fakeCommitMsg)
-	require.NoError(t, err)
-	require.Equal(t, ci.Issue, issue)
+	assertExpectations(t, parentGitiles, parentGerrit, urlmock)
 }
 
 func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
-
-	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
-	defer cleanup()
+	rm, parentGitiles, parentGerrit, urlmock := setupAfdo(t)
+	cfg := afdoCfg()
 
 	// Sanity check.
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevPrev, afdoTimePrev)
-	prev, err := rm.GetRevision(ctx, afdoRevPrev)
+	prev, err := rm.GetRevision(t.Context(), afdoRevPrev)
 	require.NoError(t, err)
 	require.Equal(t, afdoRevPrev, prev.Id)
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevBase, afdoTimeBase)
-	base, err := rm.GetRevision(ctx, afdoRevBase)
+	base, err := rm.GetRevision(t.Context(), afdoRevBase)
 	require.NoError(t, err)
 	require.Equal(t, afdoRevBase, base.Id)
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevNext, afdoTimeNext)
-	next, err := rm.GetRevision(ctx, afdoRevNext)
+	next, err := rm.GetRevision(t.Context(), afdoRevNext)
 	require.NoError(t, err)
 	require.Equal(t, afdoRevNext, next.Id)
 
-	// Roll to a revision which is not in the GCS bucket.
-	parent.Add(context.Background(), afdoVersionFilePath, "BOGUS_REV")
-	parent.Commit(context.Background())
-	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
-	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
+	// We've rolled to a revision which is not in the GCS bucket.
+	fileContents := map[string]string{
+		afdoVersionFilePath: "BOGUS_REV",
+	}
+	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, fileContents)
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevPrev: afdoTimePrev,
 		afdoRevNext: afdoTimeNext,
 	})
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, "BOGUS_REV", afdoTimePrev)
-	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	require.NoError(t, err)
+	lastRollRev, tipRev, notRolledRevs := updateAndAssert(t, rm, parentGitiles, parentGerrit, urlmock)
 	expect := &revision.Revision{
 		Id:       "BOGUS_REV",
 		Checksum: "76c69f92576495db1a",
@@ -404,8 +321,7 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 	// Now try again, but don't mock the bogus rev in GCS. We should still
 	// come up with the same lastRollRev.Id, but the Revision will otherwise
 	// be empty.
-	mockParent.MockGetCommit(ctx, git.MainBranch)
-	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
+	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, fileContents)
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevPrev: afdoTimePrev,
@@ -418,8 +334,7 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 		afdoRevPrev: afdoTimePrev,
 		afdoRevNext: afdoTimeNext,
 	})
-	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
-	require.NoError(t, err)
+	lastRollRev, tipRev, notRolledRevs = updateAndAssert(t, rm, parentGitiles, parentGerrit, urlmock)
 	assertdeep.Equal(t, &revision.Revision{
 		Id:            "BOGUS_REV",
 		InvalidReason: "Failed to retrieve revision.",

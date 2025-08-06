@@ -1,10 +1,13 @@
 package sktest
 
+import "context"
+
 // TestingT is an interface which is compatible with testing.T and testing.B,
 // used so that we don't have to import the "testing" package except in _test.go
 // files.
 type TestingT interface {
 	Cleanup(func())
+	Context() context.Context
 	Error(...interface{})
 	Errorf(string, ...interface{})
 	Fail()
