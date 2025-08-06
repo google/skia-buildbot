@@ -71,9 +71,9 @@ var (
 		"Stable": "stable",
 	}
 	cbbPlatforms = map[string]string{
-		"Android": "Android",
-		"Mac":     "macOS",
-		"Windows": "Windows",
+		"Android": "android",
+		"Mac":     "mac",
+		"Windows": "windows",
 	}
 	// httpClient shares the http client object.
 	httpClient *http.Client
@@ -119,7 +119,10 @@ func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildI
 		if _, found := cbbPlatforms[build.Platform]; !found {
 			continue
 		}
-		filePath := fmt.Sprintf(cbbRefInfoPath, cbbChannels[build.Channel], cbbPlatforms[build.Platform])
+		build.Browser = "chrome"
+		build.Channel = cbbChannels[build.Channel]
+		build.Platform = cbbPlatforms[build.Platform]
+		filePath := fmt.Sprintf(cbbRefInfoPath, build.Channel, build.Platform)
 		if store.Exists(filePath) {
 			var content, err = store.GetFileContent(filePath)
 			if err != nil {
@@ -136,7 +139,6 @@ func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildI
 		} else {
 			sklog.Infof("No history found for %s", filePath)
 		}
-		build.Browser = "Chrome"
 
 		// TODO(b/388894957): We may need to update the GCS after committing.
 		jsonData, err := json.MarshalIndent(build, "", "  ")
@@ -168,7 +170,7 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*Chr
 	}
 
 	for _, build := range builds {
-		filename := fmt.Sprintf(cbbRefInfoRepo, cbbChannels[build.Channel], cbbPlatforms[build.Platform])
+		filename := fmt.Sprintf(cbbRefInfoRepo, build.Channel, build.Platform)
 		path := filepath.Join(client.repoDir, filename)
 		jsonData, err := json.MarshalIndent(build, "", "  ")
 		if err != nil {
