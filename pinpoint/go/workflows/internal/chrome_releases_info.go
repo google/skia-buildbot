@@ -38,6 +38,8 @@ const (
 	chromiumDashUrl = "https://chromiumdash.appspot.com/fetch_releases?num=1"
 	// chromeInternalBucket is the bucket to save the build info JSON files.
 	chromeInternalBucket = "chrome-perf-non-public"
+	// chromeExperimentBucket is the experimental bucket to save the build info JSON files.
+	chromeExperimentBucket = "chrome-perf-experiment-non-public"
 	// cbbRefInfoPath is the root of the build info files in the bucket.
 	cbbRefInfoPath = "cbb_ref_info/chrome/%s/%s.json"
 	// cbbRefInfoRepo is the root of the build info files in the chromium/src.
@@ -79,7 +81,7 @@ var (
 
 // getChromiumDashInfo detects new Chrome releases, submits their info to the
 // main branch, and returns a commit position.
-func GetChromeReleasesInfoActivity(ctx context.Context) (*ChromeReleaseInfo, error) {
+func GetChromeReleasesInfoActivity(ctx context.Context, isDev bool) (*ChromeReleaseInfo, error) {
 	// TODO(b/388894957): Create HTTP Client in the Orchestrator to share.
 	httpClient = httputils.NewTimeoutClient()
 	resp, err := httputils.GetWithContext(ctx, httpClient, chromiumDashUrl)
@@ -91,17 +93,21 @@ func GetChromeReleasesInfoActivity(ctx context.Context) (*ChromeReleaseInfo, err
 		sklog.Fatalf("Invalid ChromiumDash response:%s, err: %s", resp.Body, err)
 	}
 
-	newBuilds, err := filterBuilds(ctx, builds)
+	newBuilds, err := filterBuilds(ctx, builds, isDev)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
-	return commitBuildsInfo(ctx, newBuilds)
+	return commitBuildsInfo(ctx, newBuilds, isDev)
 }
 
 // filterBuilds removes supported builds if their version hasn't changed.
-func filterBuilds(ctx context.Context, builds []BuildInfo) ([]BuildInfo, error) {
-	var store, err = NewStore(ctx, chromeInternalBucket, true)
+func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildInfo, error) {
+	bucket := chromeInternalBucket
+	if isDev {
+		bucket = chromeExperimentBucket
+	}
+	var store, err = NewStore(ctx, bucket, true)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -147,7 +153,7 @@ func filterBuilds(ctx context.Context, builds []BuildInfo) ([]BuildInfo, error) 
 }
 
 // commitBuildsInfo creates JSON files and uploads the associated commit.
-func commitBuildsInfo(ctx context.Context, builds []BuildInfo) (*ChromeReleaseInfo, error) {
+func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*ChromeReleaseInfo, error) {
 	sklog.Infof("Builds to commit thier info: %v", builds)
 	if len(builds) == 0 {
 		sklog.Infof("No new build was detected.")
@@ -157,7 +163,7 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo) (*ChromeReleaseIn
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := client.ShallowClone(cbbBranchName); err != nil {
+	if err := client.ShallowClone(cbbBranchName, isDev); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
@@ -191,6 +197,11 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo) (*ChromeReleaseIn
 		return nil, skerr.Wrapf(err, "Failed to upload the change.")
 	}
 	sklog.Infof("Git uploaded successfully! stdput=%s", stdout)
+
+	if isDev {
+		// TODO(b/433796566): waitForSubmitCl doesn't currently work, so skipping it.
+		return nil, nil
+	}
 
 	return waitForSubmitCl(client)
 }

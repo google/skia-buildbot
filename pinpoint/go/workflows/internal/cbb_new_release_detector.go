@@ -2,6 +2,7 @@ package internal
 
 import (
 	"log"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/skerr"
@@ -38,8 +39,11 @@ type ChromeReleaseInfo struct {
 func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, error) {
 	ctx = workflow.WithActivityOptions(ctx, releaseDetectorActivityOptions)
 
+	// Is this workflow running locally on a dev machine?
+	isDev := strings.HasPrefix(workflow.GetActivityOptions(ctx).TaskQueue, "localhost.")
+
 	var commitInfo ChromeReleaseInfo
-	if err := workflow.ExecuteActivity(ctx, GetChromeReleasesInfoActivity).Get(ctx, &commitInfo); err != nil {
+	if err := workflow.ExecuteActivity(ctx, GetChromeReleasesInfoActivity, isDev).Get(ctx, &commitInfo); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	log.Printf("commitInfo:%v", commitInfo)
