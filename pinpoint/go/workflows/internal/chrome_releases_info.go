@@ -6,8 +6,6 @@ import (
 	"fmt"
 
 	"net/http"
-	"os"
-	"path/filepath"
 	"regexp"
 	"time"
 
@@ -165,47 +163,38 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*Chr
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := client.ShallowClone(cbbBranchName, isDev); err != nil {
-		return nil, skerr.Wrap(err)
-	}
 
+	ci, err := client.gerritClient.CreateChange(client.ctx, "chromium/src", "main", cbbCommitMessage, "", "")
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to create Gerrit change.")
+	}
+	sklog.Infof("Gerrit change created successfully, change ID: %s", ci.Id)
 	for _, build := range builds {
 		filename := fmt.Sprintf(cbbRefInfoRepo, build.Channel, build.Platform)
-		path := filepath.Join(client.repoDir, filename)
 		jsonData, err := json.MarshalIndent(build, "", "  ")
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to convert %v to JSON", build)
 		}
-		if err := os.WriteFile(path, []byte(jsonData), 0644); err != nil {
-			return nil, skerr.Wrapf(err, "Failed to write: %s", path)
+		err = client.gerritClient.EditFile(client.ctx, ci, filename, string(jsonData))
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to add %s to Gerrit change", filename)
 		}
-		if _, err := exec.RunCwd(client.ctx, client.repoDir, client.gitExec, "add", filename); err != nil {
-			return nil, skerr.Wrapf(err, "Failed to add %s in Git", filename)
-		}
-		sklog.Infof("Git added %s", filename)
 	}
 
-	if _, err := exec.RunCwd(client.ctx, client.repoDir, client.gitExec, "commit", "-m", cbbCommitMessage); err != nil {
-		return nil, skerr.Wrapf(err, "Failed to commit")
-	}
-	sklog.Infof("Git committed successfully! Start uploading it.")
-
-	stdout, err := exec.RunCwd(
-		client.ctx, client.repoDir, client.gitExec,
-		"push", "origin", "HEAD:refs/for/main",
-		"-o", "r=rubber-stamper@appspot.gserviceaccount.com",
-		"-o", "l=Auto-Submit+1")
+	err = client.gerritClient.PublishChangeEdit(client.ctx, ci)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to upload the change.")
+		return nil, skerr.Wrapf(err, "Failed to publish the change to Gerrit.")
 	}
-	sklog.Infof("Git uploaded successfully! stdput=%s", stdout)
-
-	if isDev {
-		// TODO(b/433796566): waitForSubmitCl doesn't currently work, so skipping it.
-		return nil, nil
+	// Refresh the change info.
+	ci, err = client.gerritClient.GetChange(client.ctx, ci.Id)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to refresh change info.")
 	}
+	sklog.Infof("Change published to Gerrit, change info: %#v", ci)
 
-	return waitForSubmitCl(client)
+	// TODO(b/433796566): waitForSubmitCl doesn't currently work, so skipping it.
+	return nil, nil
+	// return waitForSubmitCl(client)
 }
 
 // waitForSubmitCl waits for the 'rubber-stamper' to submit uploaded CLs, then
