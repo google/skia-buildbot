@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
 
 sk_element(
     name = "explore-multi-sk",
@@ -50,4 +50,23 @@ sk_page(
     ],
     ts_deps = ["//perf/modules/common:test-util_ts_lib"],
     ts_entry_point = "explore-multi-sk-demo.ts",
+)
+
+karma_test(
+    name = "explore-multi-sk_test",
+    src = "explore-multi-sk_test.ts",
+    deps = [
+        ":explore-multi-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//:node_modules/sinon",
+        "//golden/modules/pagination-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/common:test-util_ts_lib",
+        "//perf/modules/explore-simple-sk",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/plot-google-chart-sk",
+    ],
 )

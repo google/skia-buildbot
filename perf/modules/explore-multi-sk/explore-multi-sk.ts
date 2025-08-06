@@ -61,7 +61,7 @@ import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagi
 import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
 
-class State {
+export class State {
   begin: number = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
 
   end: number = Math.floor(Date.now() / 1000);
@@ -941,7 +941,7 @@ export class ExploreMultiSk extends ElementSk {
     const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
     graphs.forEach((graph, i) => {
       // Skip graph that sent the event.
-      if (i !== e.detail) {
+      if (i !== e.detail.index) {
         (graph as ExploreSimpleSk).updateXAxis(e.detail.domain);
       }
     });
