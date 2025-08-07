@@ -132,7 +132,7 @@ func (c CheckoutDir) AddRemote(ctx context.Context, remote, repoUrl string) erro
 // forcing it to match the same branch from origin. All local changes will be
 // lost.
 func (c CheckoutDir) CleanupBranch(ctx context.Context, branch string) error {
-	if _, err := c.Git(ctx, "checkout", branch, "-f"); err != nil {
+	if _, err := c.Git(ctx, "checkout", "-f", "-B", branch, "-t", fmt.Sprintf("origin/%s", branch)); err != nil {
 		return skerr.Wrap(err)
 	}
 	if _, err := c.Git(ctx, "clean", "-d", "-f"); err != nil {
