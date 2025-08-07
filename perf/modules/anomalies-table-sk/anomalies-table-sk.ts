@@ -145,47 +145,105 @@ export class AnomaliesTableSk extends ElementSk {
     this._render();
   }
 
-  private shouldMerge(a: Anomaly, b: Anomaly) {
-    const testSuiteA = a.test_path.split('/').length > 2 ? a.test_path.split('/')[2] : '';
-    const testSuiteB = b.test_path.split('/').length > 2 ? b.test_path.split('/')[2] : '';
-    return testSuiteA === testSuiteB;
+  private doRangesOverlap(a: Anomaly, b: Anomaly): boolean {
+    if (
+      a.start_revision === null ||
+      a.end_revision === null ||
+      b.start_revision === null ||
+      b.end_revision === null
+    ) {
+      return false;
+    }
+    return a.start_revision <= b.end_revision && a.end_revision >= b.start_revision;
   }
 
   /**
    * Merge anomalies into groups.
    *
-   * The criteria for merging two anomalies A and B is if A.start_revision and A.end_revision
-   * intersect with B.start_revision and B.end_revision.
+   * The grouping hierarchy is:
+   * 1. Anomalies with the same non-zero bug_id are grouped together.
+   * 2. Else group anomalies if their revision ranges overlap.
+   * 3. Else group anomalies if they have same benchmark.
    */
   private groupAnomalies() {
-    const groups: AnomalyGroup[] = [];
+    const bugIdGroupsMap: Map<number, Anomaly[]> = new Map();
+    const remainAnomalies: Anomaly[] = [];
 
-    for (let i = 0; i < this.anomalyList.length; i++) {
-      let merged = false;
-      const anomaly = this.anomalyList[i];
-      for (const group of groups) {
-        let doMerge = true;
-        for (const other of group.anomalies) {
-          const should = this.shouldMerge(anomaly, other);
-          if (!should) {
-            doMerge = false;
-            break;
-          }
+    // First, separate anomalies by bug_id.
+    for (const anomaly of this.anomalyList) {
+      if (anomaly.bug_id && anomaly.bug_id > 0) {
+        if (!bugIdGroupsMap.has(anomaly.bug_id)) {
+          bugIdGroupsMap.set(anomaly.bug_id, []);
         }
-        if (doMerge) {
+        bugIdGroupsMap.get(anomaly.bug_id)!.push(anomaly);
+      } else {
+        remainAnomalies.push(anomaly);
+      }
+    }
+
+    const finalGroups: AnomalyGroup[] = [];
+
+    // Create groups from bug_id map.
+    for (const anomalies of bugIdGroupsMap.values()) {
+      finalGroups.push({
+        anomalies: anomalies,
+        expanded: false,
+      });
+    }
+
+    // Group remaining anomalies by revision overlap.
+    const revisionGroup: AnomalyGroup[] = [];
+    for (const anomaly of remainAnomalies) {
+      let merged = false;
+      for (const group of revisionGroup) {
+        if (group.anomalies.some((other) => this.doRangesOverlap(anomaly, other))) {
           group.anomalies.push(anomaly);
           merged = true;
           break;
         }
       }
       if (!merged) {
-        groups.push({
+        revisionGroup.push({
           anomalies: [anomaly],
           expanded: false,
         });
       }
     }
-    this.anomalyGroups = groups;
+
+    const sameBenchmarkGroup: AnomalyGroup[] = [];
+    // Finally group remaining single Anomalies by benchmark.
+    for (let i = revisionGroup.length - 1; i >= 0; i--) {
+      const group = revisionGroup[i];
+      if (group.anomalies.length === 1) {
+        let foundGroup = false;
+        const anomaly = group.anomalies.at(0)!;
+        for (const group of sameBenchmarkGroup) {
+          if (group.anomalies.some((other) => this.isSameBenchmark(anomaly, other))) {
+            group.anomalies.push(anomaly);
+            foundGroup = true;
+            break;
+          }
+        }
+        if (!foundGroup) {
+          sameBenchmarkGroup.push({
+            anomalies: [anomaly],
+            expanded: false,
+          });
+        } else {
+          // Remove the anomaly from the revisionGroup
+          revisionGroup.splice(i, 1);
+        }
+      }
+    }
+
+    // Combine bug groups and revision groups
+    this.anomalyGroups = [...finalGroups, ...revisionGroup, ...sameBenchmarkGroup];
+  }
+
+  private isSameBenchmark(a: Anomaly, b: Anomaly) {
+    const testSuiteA = a.test_path.split('/').length > 2 ? a.test_path.split('/')[2] : '';
+    const testSuiteB = b.test_path.split('/').length > 2 ? b.test_path.split('/')[2] : '';
+    return testSuiteA === testSuiteB;
   }
 
   private generateTable() {
