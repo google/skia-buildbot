@@ -2564,9 +2564,15 @@ export class ExploreSimpleSk extends ElementSk {
 
   private clearSelectedState() {
     // Switch back to the params tab since we are about to hide the details tab.
-    this.detailTab!.selected = PARAMS_TAB_INDEX;
-    this.commitsTab!.disabled = true;
-    this.logEntry!.textContent = '';
+    if (this.detailTab) {
+      this.detailTab!.selected = PARAMS_TAB_INDEX;
+    }
+    if (this.commitsTab) {
+      this.commitsTab!.disabled = true;
+    }
+    if (this.logEntry) {
+      this.logEntry!.textContent = '';
+    }
     this._state.selected = defaultPointSelected();
     this._stateHasChanged();
   }
