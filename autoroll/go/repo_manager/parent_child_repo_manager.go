@@ -32,6 +32,19 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 	var parentRM parent.Parent
 	var err error
 
+	// Get the child branch, if any.
+	var childBranch *config_vars.Template
+	if c.GetGitilesChild() != nil {
+		childBranch, err = config_vars.NewTemplate(c.GetGitilesChild().Gitiles.Branch)
+	} else if c.GetGitCheckoutChild() != nil {
+		childBranch, err = config_vars.NewTemplate(c.GetGitCheckoutChild().GitCheckout.Branch)
+	} else if c.GetGitCheckoutGithubChild() != nil {
+		childBranch, err = config_vars.NewTemplate(c.GetGitCheckoutGithubChild().GitCheckout.GitCheckout.Branch)
+	}
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	// Some Child implementations require that they are created by the Parent,
 	// so we have to create the Parent first.
 	var childCheckout git.Checkout
@@ -43,7 +56,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		}
 		childFullPath := filepath.Join(workdir, childPath)
 		childCheckout = git.CheckoutDir(childFullPath)
-		parentRM, err = parent.NewDEPSLocalGerrit(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr)
+		parentRM, err = parent.NewDEPSLocalGerrit(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr, childBranch)
 	} else if c.GetDepsLocalGithubParent() != nil {
 		parentCfg := c.GetDepsLocalGithubParent()
 		childPath := parentCfg.DepsLocal.ChildPath
@@ -52,7 +65,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		}
 		childFullPath := filepath.Join(workdir, childPath)
 		childCheckout = git.CheckoutDir(childFullPath)
-		parentRM, err = parent.NewDEPSLocalGitHub(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr)
+		parentRM, err = parent.NewDEPSLocalGitHub(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr, childBranch)
 	} else if c.GetGitCheckoutGerritParent() != nil {
 		parentRM, err = parent.NewGitCheckoutGerrit(ctx, c.GetGitCheckoutGerritParent(), reg, client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitCheckoutGithubFileParent() != nil {
