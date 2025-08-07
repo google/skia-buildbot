@@ -3,12 +3,16 @@ package parent
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -32,16 +36,20 @@ func TestGetPreUploadStep(t *testing.T) {
 func TestFlutterLicenseScripts(t *testing.T) {
 	unittest.LinuxOnlyTest(t)
 
+	wd, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	defer testutils.RemoveAll(t, wd)
+
 	pubErr := error(nil)
 	mainDartErr := error(nil)
 	gitErr := error(nil)
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		dartBinary := "testing/engine/src/flutter/third_party/dart/tools/sdks/dart-sdk/bin/dart"
+		dartBinary := fmt.Sprintf("%s/engine/src/flutter/third_party/dart/tools/sdks/dart-sdk/bin/dart", wd)
 		pubDartCmd := "pub get"
-		mainDartCmd := "--interpret_irregexp lib/main.dart --src ../../.. --out testing/engine/src/out/licenses --golden testing/engine/src/flutter/ci/licenses_golden"
-		releaseDartCmd := "--interpret_irregexp lib/main.dart --release --src ../../.. --quiet --out testing/engine/src/out/licenses"
+		mainDartCmd := fmt.Sprintf("--interpret_irregexp lib/main.dart --src ../../.. --out %s/engine/src/out/licenses --golden %s/engine/src/flutter/ci/licenses_golden", wd, wd)
+		releaseDartCmd := fmt.Sprintf("--interpret_irregexp lib/main.dart --release --src ../../.. --quiet --out %s/engine/src/out/licenses", wd)
 		cmdArgs := strings.Join(cmd.Args, " ")
 		if cmd.Name == dartBinary && cmdArgs == pubDartCmd {
 			return pubErr
@@ -59,23 +67,23 @@ func TestFlutterLicenseScripts(t *testing.T) {
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 
 	// No errors should be throw.
-	err := FlutterLicenseScripts(ctx, nil, nil, "testing", nil, nil)
+	err = FlutterLicenseScripts(ctx, nil, nil, wd, nil, nil)
 	assert.NoError(t, err)
 
 	// Now test for errors.
 	pubErr = errors.New("pub error")
-	err = FlutterLicenseScripts(ctx, nil, nil, "testing", nil, nil)
+	err = FlutterLicenseScripts(ctx, nil, nil, wd, nil, nil)
 	assert.Error(t, err)
 	assert.Equal(t, "Error when running pub get: pub error; Stdout+Stderr:\n", err.Error())
 
 	pubErr = error(nil)
 	mainDartErr = errors.New("dart error")
-	err = FlutterLicenseScripts(ctx, nil, nil, "testing", nil, nil)
+	err = FlutterLicenseScripts(ctx, nil, nil, wd, nil, nil)
 	assert.Error(t, err)
 	assert.Equal(t, "Error when running dart license script: dart error", err.Error())
 
 	pubErr = error(nil)
 	mainDartErr = error(nil)
-	err = FlutterLicenseScripts(ctx, nil, nil, "testing", nil, nil)
+	err = FlutterLicenseScripts(ctx, nil, nil, wd, nil, nil)
 	assert.NoError(t, err)
 }
