@@ -380,3 +380,14 @@ func NewTokenSourceFromKeyString(ctx context.Context, local bool, keyAsBase64Str
 	}
 	return cred.TokenSource, nil
 }
+
+func PeriodicallyLogTokenExpiration(ctx context.Context, freq time.Duration, ts oauth2.TokenSource) {
+	util.RepeatCtx(ctx, freq, func(ctx context.Context) {
+		tok, err := ts.Token()
+		if err != nil {
+			sklog.Errorf("[PeriodicallyLogTokenExpiration] Failed to obtain auth token: %s", err)
+		} else {
+			sklog.Infof("[PeriodicallyLogTokenExpiration] Token expires at %s", tok.Expiry)
+		}
+	})
+}

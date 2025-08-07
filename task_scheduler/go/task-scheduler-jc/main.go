@@ -122,6 +122,8 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create token source: %s", err)
 	}
+	go auth.PeriodicallyLogTokenExpiration(ctx, time.Minute, tokenSource)
+
 	cas, err := rbe.NewClient(ctx, *rbeInstance, tokenSource)
 	if err != nil {
 		sklog.Fatalf("Failed to create RBE-CAS client: %s", err)
