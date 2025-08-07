@@ -9,7 +9,7 @@ document.querySelector('plot-google-chart-sk')!.addEventListener('some-event-nam
 });
 
 const dummyAnomaly = (): Anomaly => ({
-  id: 0,
+  id: '0',
   test_path: '',
   bug_id: -1,
   start_revision: 0,

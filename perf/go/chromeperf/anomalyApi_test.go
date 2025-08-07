@@ -284,3 +284,75 @@ func TestDedupStringSlice(t *testing.T) {
 		})
 	}
 }
+
+func TestAnomaly_UnmarshalJSON_IdAsString(t *testing.T) {
+	jsonData := `{"id": "12345"}`
+	var anomaly Anomaly
+	err := json.Unmarshal([]byte(jsonData), &anomaly)
+	assert.NoError(t, err)
+	assert.Equal(t, "12345", anomaly.Id)
+}
+
+func TestAnomaly_UnmarshalJSON_IdAsNumber(t *testing.T) {
+	jsonData := `{"id": 12345}`
+	var anomaly Anomaly
+	err := json.Unmarshal([]byte(jsonData), &anomaly)
+	assert.NoError(t, err)
+	assert.Equal(t, "12345", anomaly.Id)
+}
+
+func TestAnomaly_UnmarshalJSON_FullObject(t *testing.T) {
+	jsonData := `{
+		"id": 12345,
+		"test_path": "some/test/path",
+		"bug_id": 54321,
+		"start_revision": 1,
+		"end_revision": 2,
+		"is_improvement": true,
+		"recovered": false,
+		"state": "some_state",
+		"statistic": "avg",
+		"units": "ms",
+		"degrees_of_freedom": 10,
+		"median_before_anomaly": 1.1,
+		"median_after_anomaly": 2.2,
+		"p_value": 0.01,
+		"segment_size_after": 100,
+		"segment_size_before": 100,
+		"std_dev_before_anomaly": 0.5,
+		"t_statistic": 2.5,
+		"subscription_name": "some_subscription",
+		"bug_component": "some_component",
+		"bug_labels": ["label1", "label2"],
+		"bug_cc_emails": ["a@a.com", "b@b.com"],
+		"bisect_ids": ["bisect1", "bisect2"],
+		"timestamp": "2025-08-01T12:00:00Z"
+	}`
+	var anomaly Anomaly
+	err := json.Unmarshal([]byte(jsonData), &anomaly)
+	assert.NoError(t, err)
+	assert.Equal(t, "12345", anomaly.Id)
+	assert.Equal(t, "some/test/path", anomaly.TestPath)
+	assert.Equal(t, 54321, anomaly.BugId)
+	assert.Equal(t, 1, anomaly.StartRevision)
+	assert.Equal(t, 2, anomaly.EndRevision)
+	assert.True(t, anomaly.IsImprovement)
+	assert.False(t, anomaly.Recovered)
+	assert.Equal(t, "some_state", anomaly.State)
+	assert.Equal(t, "avg", anomaly.Statistics)
+	assert.Equal(t, "ms", anomaly.Unit)
+	assert.Equal(t, 10.0, anomaly.DegreeOfFreedom)
+	assert.Equal(t, 1.1, anomaly.MedianBeforeAnomaly)
+	assert.Equal(t, 2.2, anomaly.MedianAfterAnomaly)
+	assert.Equal(t, 0.01, anomaly.PValue)
+	assert.Equal(t, 100, anomaly.SegmentSizeAfter)
+	assert.Equal(t, 100, anomaly.SegmentSizeBefore)
+	assert.Equal(t, 0.5, anomaly.StdDevBeforeAnomaly)
+	assert.Equal(t, 2.5, anomaly.TStatistics)
+	assert.Equal(t, "some_subscription", anomaly.SubscriptionName)
+	assert.Equal(t, "some_component", anomaly.BugComponent)
+	assert.Equal(t, []string{"label1", "label2"}, anomaly.BugLabels)
+	assert.Equal(t, []string{"a@a.com", "b@b.com"}, anomaly.BugCcEmails)
+	assert.Equal(t, []string{"bisect1", "bisect2"}, anomaly.BisectIDs)
+	assert.Equal(t, "2025-08-01T12:00:00Z", anomaly.Timestamp)
+}

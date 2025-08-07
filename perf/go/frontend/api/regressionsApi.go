@@ -440,7 +440,7 @@ func (rApi regressionsApi) anomalyHandler(w http.ResponseWriter, r *http.Request
 		Graphs: graphs,
 	}
 
-	graphQueryParams := getGraphQueryParamsForAnomalyId([]string{strconv.Itoa(anomaly.Id)})
+	graphQueryParams := getGraphQueryParamsForAnomalyId([]string{anomaly.Id})
 	var redirectUrl string
 	shortcutId, err := rApi.graphsShortcutStore.InsertShortcut(ctx, &shortcutObj)
 	if err != nil {

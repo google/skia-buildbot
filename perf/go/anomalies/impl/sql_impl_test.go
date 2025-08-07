@@ -116,6 +116,7 @@ func TestSqlAnomaliesStore_GetAnomalies(t *testing.T) {
 		assert.Contains(t, anomaliesMap, traceKey1)
 		assert.Contains(t, anomaliesMap[traceKey1], types.CommitNumber(endCommit))
 		anomaly1 := anomaliesMap[traceKey1][types.CommitNumber(endCommit)]
+		assert.Equal(t, "alert_id_1", anomaly1.Id)
 		assert.Equal(t, traceKey1, anomaly1.TestPath)
 		assert.Equal(t, startCommit, anomaly1.StartRevision)
 		assert.Equal(t, endCommit, anomaly1.EndRevision)
@@ -126,6 +127,7 @@ func TestSqlAnomaliesStore_GetAnomalies(t *testing.T) {
 		assert.Contains(t, anomaliesMap, traceKey2)
 		assert.Contains(t, anomaliesMap[traceKey2], types.CommitNumber(endCommit))
 		anomaly2 := anomaliesMap[traceKey2][types.CommitNumber(endCommit)]
+		assert.Equal(t, "alert_id_2", anomaly2.Id)
 		assert.True(t, anomaly2.IsImprovement)
 		assert.Equal(t, medianBefore*2, anomaly2.MedianBeforeAnomaly)
 		assert.Equal(t, medianAfter*2, anomaly2.MedianAfterAnomaly)

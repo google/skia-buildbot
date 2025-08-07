@@ -50,9 +50,9 @@ export class AnomaliesTableSk extends ElementSk {
 
   private getGroupReportResponse: GetGroupReportResponse | null = null;
 
-  private loadingGraphForAnomaly: Map<number, boolean> = new Map<number, boolean>();
+  private loadingGraphForAnomaly: Map<string, boolean> = new Map<string, boolean>();
 
-  private multiChartUrlToAnomalyMap: Map<number, string> = new Map<number, string>();
+  private multiChartUrlToAnomalyMap: Map<string, string> = new Map<string, string>();
 
   private regressionsPageHost = '/a/';
 
@@ -281,7 +281,7 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   private async preGenerateMultiGraphUrl(timerangeMap: {
-    [key: number]: Timerange;
+    [key: string]: Timerange;
   }): Promise<void> {
     await this.generateMultiGraphUrl(this.anomalyList, timerangeMap);
   }
@@ -600,7 +600,7 @@ export class AnomaliesTableSk extends ElementSk {
 
   async populateTable(
     anomalyList: Anomaly[],
-    timerangeMap: { [key: number]: Timerange }
+    timerangeMap: { [key: string]: Timerange }
   ): Promise<void> {
     const msg = this.querySelector('#clear-msg') as HTMLHeadingElement;
     const table = this.querySelector('#anomalies-table') as HTMLTableElement;
@@ -741,7 +741,7 @@ export class AnomaliesTableSk extends ElementSk {
   // openMultiGraphLink generates a multi-graph url for the given parameters
   private async generateMultiGraphUrl(
     anomalies: Anomaly[],
-    timerangeMap: { [key: number]: Timerange }
+    timerangeMap: { [key: string]: Timerange }
   ): Promise<string[]> {
     const shortcutUrlList: string[] = [];
     for (let i = 0; i < anomalies.length; i++) {

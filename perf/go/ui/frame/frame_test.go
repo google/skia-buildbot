@@ -52,7 +52,7 @@ const (
 )
 
 var anomaly1 = chromeperf.Anomaly{
-	Id:            111,
+	Id:            "111",
 	TestPath:      testPath1,
 	StartRevision: startCommitPosition,
 	EndRevision:   endCommitPosition,
@@ -64,7 +64,7 @@ var anomaly1 = chromeperf.Anomaly{
 	PValue:        1.1,
 }
 var anomaly2 = chromeperf.Anomaly{
-	Id:            222,
+	Id:            "222",
 	TestPath:      testPath2,
 	StartRevision: startCommitPosition,
 	EndRevision:   endCommitPosition,

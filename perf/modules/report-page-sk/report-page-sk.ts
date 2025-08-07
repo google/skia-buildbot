@@ -41,7 +41,7 @@ export interface AnomalyDataPoint {
 
 export class AnomalyTracker {
   // Internal map for anomalies
-  private tracker: { [key: number]: AnomalyDataPoint };
+  private tracker: { [key: string]: AnomalyDataPoint };
 
   constructor() {
     this.tracker = {};
@@ -53,8 +53,8 @@ export class AnomalyTracker {
   // that any missing data will simply be unset.
   load(
     anomalyList: Anomaly[],
-    timerangeMap: { [key: number]: Timerange },
-    selectedKeys: number[]
+    timerangeMap: { [key: string]: Timerange },
+    selectedKeys: string[]
   ): void {
     anomalyList.forEach((anomaly) => {
       this.tracker[anomaly.id] = {
@@ -69,15 +69,15 @@ export class AnomalyTracker {
     });
   }
 
-  getAnomaly(id: number): AnomalyDataPoint | null {
+  getAnomaly(id: string): AnomalyDataPoint | null {
     return this.tracker[id];
   }
 
-  setGraph(id: number, graph: ExploreSimpleSk): void {
+  setGraph(id: string, graph: ExploreSimpleSk): void {
     this.tracker[id].graph = graph;
   }
 
-  unsetGraph(id: number): void {
+  unsetGraph(id: string): void {
     this.tracker[id].graph = null;
   }
 
@@ -102,8 +102,8 @@ export class AnomalyTracker {
     return ret;
   }
 
-  getTimerangeMap(): { [key: number]: Timerange } {
-    const map: { [key: number]: Timerange } = {};
+  getTimerangeMap(): { [key: string]: Timerange } {
+    const map: { [key: string]: Timerange } = {};
     for (const anomalyId in this.tracker) {
       map[anomalyId] = this.tracker[anomalyId].timerange;
     }

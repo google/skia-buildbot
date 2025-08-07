@@ -161,7 +161,7 @@ export interface DataFrame {
 }
 
 export interface Anomaly {
-	id: number;
+	id: string;
 	test_path: string;
 	bug_id: number;
 	start_revision: number;
@@ -296,7 +296,7 @@ export interface GetGroupReportResponse {
 	sid: string;
 	selected_keys: string[] | null;
 	error: string;
-	timerange_map: { [key: number]: Timerange } | null;
+	timerange_map: { [key: string]: Timerange } | null;
 }
 
 export interface GetGraphsShortcutRequest {

@@ -32,7 +32,7 @@ const (
 )
 
 var anomaly1 = chromeperf.Anomaly{
-	Id:            111,
+	Id:            "111",
 	TestPath:      testPath1,
 	StartRevision: startCommitPosition,
 	EndRevision:   endCommitPosition,
@@ -44,7 +44,7 @@ var anomaly1 = chromeperf.Anomaly{
 	PValue:        1.1,
 }
 var anomaly2 = chromeperf.Anomaly{
-	Id:            222,
+	Id:            "222",
 	TestPath:      testPath2,
 	StartRevision: startCommitPosition,
 	EndRevision:   endCommitPosition,
@@ -56,7 +56,7 @@ var anomaly2 = chromeperf.Anomaly{
 	PValue:        2.2,
 }
 var anomaly3 = chromeperf.Anomaly{
-	Id:            333,
+	Id:            "333",
 	TestPath:      testPath3,
 	StartRevision: startCommitPosition,
 	EndRevision:   endCommitPosition,
@@ -68,7 +68,7 @@ var anomaly3 = chromeperf.Anomaly{
 	PValue:        3.3,
 }
 var anomaly4 = chromeperf.Anomaly{
-	Id:            444,
+	Id:            "444",
 	TestPath:      testPath4,
 	StartRevision: startCommitPosition,
 	EndRevision:   endCommitPosition,

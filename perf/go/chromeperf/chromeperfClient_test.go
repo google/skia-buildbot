@@ -335,7 +335,7 @@ func TestSendGetRequest(t *testing.T) {
 
 // For testing purpose only.
 type anomaly struct {
-	Id            int    `json:"id"`
+	Id            string `json:"id"`
 	TestPath      string `json:"test_path"`
 	BugId         int    `json:"bug_id"`
 	StartRevision int    `json:"start_revision"`
@@ -391,7 +391,7 @@ func (m *marshalErrorType) MarshalJSON() ([]byte, error) {
 func TestSendPostRequest(t *testing.T) {
 	ctx := context.Background()
 	anomaly1 := anomaly{
-		Id:                  101,
+		Id:                  "101",
 		TestPath:            "Master>Builder>Test>Subtest.Value",
 		BugId:               12345,
 		StartRevision:       10001,
@@ -418,7 +418,7 @@ func TestSendPostRequest(t *testing.T) {
 		BisectIDs:           []string{"bisect_run_001", "bisect_run_002"},
 	}
 	anomaly2 := anomaly{
-		Id:                  102,
+		Id:                  "102",
 		TestPath:            "Master>Builder>Test>AnotherSubtest.Score",
 		BugId:               0,
 		StartRevision:       10010,

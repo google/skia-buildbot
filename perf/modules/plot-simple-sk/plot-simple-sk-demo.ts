@@ -21,7 +21,7 @@ const random = (): number => {
 };
 
 const dummyAnomaly = (isImprovement: boolean, bug_id: number): Anomaly => ({
-  id: 0,
+  id: '0',
   test_path: '',
   bug_id: bug_id,
   start_revision: 0,

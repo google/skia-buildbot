@@ -169,7 +169,7 @@ export class TriageMenuSk extends ElementSk {
    * @param bug_id - Bug ID to set for all anomalies.
    */
   makeEditAnomalyRequest(anomalies: Anomaly[], traceNames: string[], editAction: string): void {
-    const keys: number[] = anomalies.map((a) => a.id);
+    const keys: string[] = anomalies.map((a) => a.id);
     const body: any = { keys: keys, trace_names: traceNames, action: editAction };
 
     fetch('/_/triage/edit_anomalies', {
@@ -219,7 +219,7 @@ export class TriageMenuSk extends ElementSk {
    * values, as well as its selected value.
    */
   makeNudgeRequest(anomalies: Anomaly[], traceNames: string[], entry: NudgeEntry): void {
-    const keys: number[] = anomalies.map((a) => a.id);
+    const keys: string[] = anomalies.map((a) => a.id);
     const body: any = {
       keys: keys,
       trace_names: traceNames,

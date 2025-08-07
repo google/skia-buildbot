@@ -36,7 +36,7 @@ type triageApi struct {
 
 // Request object for the request from new bug UI.
 type FileBugRequest struct {
-	Keys        []int    `json:"keys"`
+	Keys        []string `json:"keys"`
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	Component   string   `json:"component"`
@@ -50,7 +50,7 @@ type FileBugRequest struct {
 // Existing bug request object to asscociate alerts from new bug UI.
 type SkiaAssociateBugRequest struct {
 	BugId      int      `json:"bug_id"`
-	Keys       []int    `json:"keys"`
+	Keys       []string `json:"keys"`
 	TraceNames []string `json:"trace_names"`
 }
 
@@ -80,7 +80,7 @@ type ChromeperfFileBugResponse struct {
 //   - X button (untriage the anomaly)
 //   - Nudge (move the anomaly position to adjacent datapoints)
 type EditAnomaliesRequest struct {
-	Keys          []int    `json:"keys"`
+	Keys          []string `json:"keys"`
 	Action        string   `json:"action"`
 	StartRevision int      `json:"start_revision,omitempty"`
 	EndRevision   int      `json:"end_revision,omitempty"`

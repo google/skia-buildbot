@@ -807,7 +807,7 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 	for _, anomalyData := range anomaliesForRevision {
 		key := anomalyData.GetKey()
 		queryParams := url.Values{
-			"highlight_anomalies": []string{strconv.Itoa(anomalyData.Anomaly.Id)},
+			"highlight_anomalies": []string{anomalyData.Anomaly.Id},
 		}
 		if _, ok := revisionInfoMap[key]; !ok {
 			exploreUrl := f.urlProvider.Explore(
@@ -840,7 +840,7 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 				BugId:         bugId,
 				ExploreUrl:    exploreUrl,
 				Query:         f.urlProvider.GetQueryStringFromParameters(anomalyData.Params),
-				AnomalyIds:    []string{strconv.Itoa(anomalyData.Anomaly.Id)},
+				AnomalyIds:    []string{anomalyData.Anomaly.Id},
 			}
 		} else {
 			revInfo := revisionInfoMap[key]
@@ -852,7 +852,7 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 				revInfo.EndRevision = anomalyData.EndRevision
 			}
 
-			revInfo.AnomalyIds = append(revInfo.AnomalyIds, strconv.Itoa(anomalyData.Anomaly.Id))
+			revInfo.AnomalyIds = append(revInfo.AnomalyIds, anomalyData.Anomaly.Id)
 			revisionInfoMap[key] = revInfo
 		}
 	}

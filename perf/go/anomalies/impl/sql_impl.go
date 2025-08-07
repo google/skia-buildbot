@@ -3,7 +3,6 @@ package anomalies_impl
 import (
 	"context"
 
-	"hash/fnv"
 	"time"
 
 	"go.opencensus.io/trace"
@@ -63,15 +62,8 @@ func (s *sqlAnomaliesStore) GetAnomalies(ctx context.Context, traceNames []strin
 					continue
 				}
 
-				// In ChromePerf, the id is integer, but in the database, it is string.
-				// Temporarily, hash the string id to get a deterministic integer id.
-				// TODO(ansid): converge these two (by making id a string everywhere).
-				h := fnv.New32a()
-				h.Write([]byte(reg.Id))
-				id := int(h.Sum32())
-
 				anomaly := chromeperf.Anomaly{
-					Id:                  id,
+					Id:                  reg.Id,
 					TestPath:            traceKeyInFrame,
 					StartRevision:       int(reg.PrevCommitNumber),
 					EndRevision:         int(reg.CommitNumber),

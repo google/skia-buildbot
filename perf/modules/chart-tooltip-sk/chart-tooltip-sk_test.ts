@@ -57,7 +57,7 @@ describe('chart-tooltip-sk', () => {
   const bugId = 15423;
 
   const dummyAnomaly = (bugId: number): Anomaly => ({
-    id: 1,
+    id: '1',
     test_path: '',
     bug_id: bugId,
     start_revision: 1234,

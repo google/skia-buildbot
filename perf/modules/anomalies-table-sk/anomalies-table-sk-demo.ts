@@ -36,7 +36,7 @@ window.perf = {
 
 const anomaly_table = [
   {
-    id: 1,
+    id: '1',
     test_path: 'ChromePerf/linux-perf/Speed/Total/Jet',
     bug_id: 12345,
     start_revision: 1234,
@@ -61,7 +61,7 @@ const anomaly_table = [
     bisect_ids: [],
   },
   {
-    id: 2,
+    id: '2',
     test_path: 'ChromePerf/mac-m1/Motion/Score/Motion',
     bug_id: -1,
     start_revision: 1234,
@@ -86,7 +86,7 @@ const anomaly_table = [
     bisect_ids: [],
   },
   {
-    id: 3,
+    id: '3',
     test_path: 'ChromePerf/mac-m1/Motion/Score/Motion',
     bug_id: 12345,
     start_revision: 34567,
@@ -111,7 +111,7 @@ const anomaly_table = [
     bisect_ids: [],
   },
   {
-    id: 4,
+    id: '4',
     test_path: 'ChromePerf/mac-m1/Motion/Score/Motion',
     bug_id: -1,
     start_revision: 1234,

@@ -64,7 +64,7 @@ describe('regressions-page-sk', () => {
   const anomalyListResponse: GetAnomaliesResponse = {
     anomaly_list: [
       {
-        id: 123,
+        id: '123',
         test_path: 'mm/bb/kk/tt',
         bug_id: 789,
         start_revision: 1235,
@@ -98,7 +98,7 @@ describe('regressions-page-sk', () => {
   const anomalyListResponseWithAnomalyCursor: GetAnomaliesResponse = {
     anomaly_list: [
       {
-        id: 123,
+        id: '123',
         test_path: 'mm/bb/kk/tt',
         bug_id: 789,
         start_revision: 1235,

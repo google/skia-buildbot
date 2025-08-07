@@ -2,6 +2,7 @@ package chromeperf
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -49,7 +50,7 @@ type AnomalyMap map[string]CommitNumberAnomalyMap
 // instead of Chrome Perf API, so chromeperf.Anomaly should be renamed to
 // something more generic.
 type Anomaly struct {
-	Id            int    `json:"id"`
+	Id            string `json:"id"`
 	TestPath      string `json:"test_path"`
 	BugId         int    `json:"bug_id"`
 	StartRevision int    `json:"start_revision"`
@@ -80,6 +81,34 @@ type Anomaly struct {
 	BugCcEmails         []string `json:"bug_cc_emails"`
 	BisectIDs           []string `json:"bisect_ids"`
 	Timestamp           string   `json:"timestamp,omitempty"`
+}
+
+// UnmarshalJSON handles the fact that anomaly IDs can be sent as either a
+// string (preferred) or a number (legacy chromeperf format). It transparently
+// converts numeric IDs to strings.
+func (a *Anomaly) UnmarshalJSON(data []byte) error {
+	// Create a type alias to avoid recursive calls to UnmarshalJSON
+	type Alias Anomaly
+	aux := &struct {
+		Id interface{} `json:"id"`
+		*Alias
+	}{
+		Alias: (*Alias)(a),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Handle the "id" field, which can be a string or a number in the JSON.
+	switch v := aux.Id.(type) {
+	case string:
+		a.Id = v
+	case float64:
+		// Convert the number to a string without decimals.
+		a.Id = fmt.Sprintf("%.0f", v)
+	}
+
+	return nil
 }
 
 // AnomalyForRevision defines struct to contain anomaly data for a specific revision

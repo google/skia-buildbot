@@ -155,12 +155,12 @@ export class ExistingBugDialogSk extends ElementSk {
     this._render();
 
     // Extract bug_id.
-    const bugId = this.querySelector('#bug_id')! as HTMLInputElement;
-    this.bug_id = +bugId?.value as number;
+    const bugId = (this.querySelector('#bug_id')! as HTMLInputElement)?.value;
+    this.bug_id = +bugId as number;
 
-    let alertKeys: number[] = this._anomalies.map((a) => a.id);
+    let alertKeys: string[] = this._anomalies.map((a) => a.id);
     if (alertKeys.length === 0) {
-      alertKeys = [this.bug_id];
+      alertKeys = [bugId];
     }
     const requestBody = {
       bug_id: this.bug_id,

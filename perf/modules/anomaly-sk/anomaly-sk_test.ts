@@ -17,7 +17,7 @@ import { AnomalySk, getAnomalyDataMap } from './anomaly-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 const dummyAnomaly = (): Anomaly => ({
-  id: 0,
+  id: '0',
   test_path: '',
   bug_id: -1,
   start_revision: 0,

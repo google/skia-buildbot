@@ -132,10 +132,10 @@ export const mergeAnomaly = (anomaly1: AnomalyMap, ...anomalies: AnomalyMap[]) =
  *  location into the anomaly map. This should match what is on the backend.
  *
  * @param anomalies The list of anomaly to check against.
- * @param id Anomaly ID number to filter out.
+ * @param id Anomaly ID to filter out.
  * @returns The new AnomalyMap.
  */
-export const removeAnomaly = (anomalies: AnomalyMap, id: number): AnomalyMap => {
+export const removeAnomaly = (anomalies: AnomalyMap, id: string): AnomalyMap => {
   const anomaly: AnomalyMap = {};
   for (const trace in anomalies) {
     const commitAnomaly: CommitNumberAnomalyMap = {};

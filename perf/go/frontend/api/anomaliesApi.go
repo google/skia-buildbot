@@ -105,7 +105,7 @@ type GetGroupReportResponse struct {
 	Error string `json:"error"`
 	// List of timeranges that will let report page know in what range to render
 	// each graph.
-	TimerangeMap map[int]Timerange `json:"timerange_map"`
+	TimerangeMap map[string]Timerange `json:"timerange_map"`
 }
 
 func (api anomaliesApi) RegisterHandlers(router *chi.Mux) {
@@ -406,8 +406,8 @@ func IsGroupReportRequestValid(req GetGroupReportRequest) bool {
 	return valid_param_count == 1
 }
 
-func (api anomaliesApi) getTimerangeMap(ctx context.Context, anomalies []chromeperf.Anomaly) (map[int]Timerange, error) {
-	timerangeMap := make(map[int]Timerange)
+func (api anomaliesApi) getTimerangeMap(ctx context.Context, anomalies []chromeperf.Anomaly) (map[string]Timerange, error) {
+	timerangeMap := make(map[string]Timerange)
 	for i := range anomalies {
 		anomaly := &anomalies[i]
 		var startTime int64
