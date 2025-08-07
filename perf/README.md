@@ -64,33 +64,3 @@ This will allow the demo page to fetch the real data.
 Note you need to have `entr` installed for this to work:
 
     sudo apt install entr
-
-## Legacy mode with CockroachDB (Deprecated)
-
-In addition you will also need to install the full executable `cockroach`. In order to successfully install and work on the command, here are a set of cautions when installing coakroach on your machine:
-
-- Make sure to download the Full Binary version : https://www.cockroachlabs.com/docs/releases#v22-1. Choose the v22-1 full binary version for compatibility with Schema validation on your machine. Linux version is for cloudtop, and ARM 64-bit is for Mac.
-
-  - After downloading the cockroach version, we extract the download archive anywhere(default is from Downloads), and then unzip the archive file to export that directory into the path variable.
-
-  - Alternative, we can unzip the downloaded cockroach file, open the lib folder, and copy the libgeos.so and libgeos_c.so files from current path into the /usr/local/lib/cockroach folder, eg.
-
-        cp -i /usr/local/google/home/username/Downloads/cockroach-v22.1.22.linux-amd64/lib/libgeos.so /usr/local/lib/cockroach
-
-  - Then export path
-
-        export PATH=$PATH:/path/to/cockroach
-
-  - Then add this path into the .bashrc file. Also make sure to source the .bashrc file under the current path to refresh the active terminal, or open a new terminal.
-
-  - After that, run
-
-        cockroach start-single-node --insecure --listen-addr=127.0.0.1:26257
-
-    (nit: listen-address is set by default)
-
-  - Then type dt, you will see a list of local tables with no data.
-
-  - To confirm that the cockroach installation has been completed, we should open a SQL shell to this running database, by running
-
-        cockroach sql --insecure --host=localhost:26257
