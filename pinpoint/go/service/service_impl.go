@@ -237,6 +237,10 @@ func (s *server) SchedulePairwise(ctx context.Context, req *pb.SchedulePairwiseR
 		Request:       req,
 		CulpritVerify: false,
 	})
+	if err != nil {
+		sklog.Infof("failed to execute workflow: %v", err)
+		return nil, status.Errorf(codes.Internal, "Unable to execute workflow: (%v).", err)
+	}
 
 	return &pb.PairwiseExecution{
 		JobId: workflowRun.GetID(),

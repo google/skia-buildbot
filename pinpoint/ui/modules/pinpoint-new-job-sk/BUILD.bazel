@@ -2,6 +2,7 @@ load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
 sk_element(
     name = "pinpoint-new-job-sk",
+    sk_element_deps = ["//elements-sk/modules/toast-sk"],
     ts_deps = [
         "//:node_modules/@material/web",
         "//:node_modules/lit",

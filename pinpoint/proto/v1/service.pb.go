@@ -2787,13 +2787,13 @@ const file_service_proto_rawDesc = "" +
 	"\x1bPAIRWISE_JOB_STATUS_RUNNING\x10\x01\x12!\n" +
 	"\x1dPAIRWISE_JOB_STATUS_COMPLETED\x10\x02\x12\x1e\n" +
 	"\x1aPAIRWISE_JOB_STATUS_FAILED\x10\x03\x12 \n" +
-	"\x1cPAIRWISE_JOB_STATUS_CANCELED\x10\x042\x8a\x06\n" +
+	"\x1cPAIRWISE_JOB_STATUS_CANCELED\x10\x042\x8d\x06\n" +
 	"\bPinpoint\x12\x8e\x01\n" +
 	"\x11ScheduleBisection\x12\".pinpoint.v1.ScheduleBisectRequest\x1a\x1c.pinpoint.v1.BisectExecution\"7\x82\xd3\xe4\x93\x021Z\x17\"\x15/pinpoint/v1/schedule\"\x16/pinpoint/v1/bisection\x12g\n" +
 	"\tCancelJob\x12\x1d.pinpoint.v1.CancelJobRequest\x1a\x1e.pinpoint.v1.CancelJobResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/pinpoint/v1/cancel\x12k\n" +
 	"\x0eQueryBisection\x12\x1f.pinpoint.v1.QueryBisectRequest\x1a\x1c.pinpoint.v1.BisectExecution\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/pinpoint/v1/query\x12p\n" +
-	"\x0eLegacyJobQuery\x12\x1d.pinpoint.v1.LegacyJobRequest\x1a\x1e.pinpoint.v1.LegacyJobResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/pinpoint/v1/legacy-job\x12w\n" +
-	"\x10SchedulePairwise\x12$.pinpoint.v1.SchedulePairwiseRequest\x1a\x1e.pinpoint.v1.PairwiseExecution\"\x1d\x82\xd3\xe4\x93\x02\x17\"\x15/pinpoint/v1/pairwise\x12\xab\x01\n" +
+	"\x0eLegacyJobQuery\x12\x1d.pinpoint.v1.LegacyJobRequest\x1a\x1e.pinpoint.v1.LegacyJobResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/pinpoint/v1/legacy-job\x12z\n" +
+	"\x10SchedulePairwise\x12$.pinpoint.v1.SchedulePairwiseRequest\x1a\x1e.pinpoint.v1.PairwiseExecution\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/pinpoint/v1/pairwise\x12\xab\x01\n" +
 	"\x15ScheduleCulpritFinder\x12).pinpoint.v1.ScheduleCulpritFinderRequest\x1a#.pinpoint.v1.CulpritFinderExecution\"B\x82\xd3\xe4\x93\x02<Z\x1d\"\x1b/pinpoint/v1/culprit-finder\"\x1b/pinpoint/v1/culprit_finderB0Z.go.skia.org/infra/pinpoint/proto/v1;pinpointpbb\x06proto3"
 
 var (

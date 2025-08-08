@@ -211,18 +211,11 @@ func local_request_Pinpoint_LegacyJobQuery_0(ctx context.Context, marshaler runt
 
 }
 
-var (
-	filter_Pinpoint_SchedulePairwise_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_Pinpoint_SchedulePairwise_0(ctx context.Context, marshaler runtime.Marshaler, client PinpointClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq SchedulePairwiseRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Pinpoint_SchedulePairwise_0); err != nil {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -235,10 +228,7 @@ func local_request_Pinpoint_SchedulePairwise_0(ctx context.Context, marshaler ru
 	var protoReq SchedulePairwiseRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Pinpoint_SchedulePairwise_0); err != nil {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 

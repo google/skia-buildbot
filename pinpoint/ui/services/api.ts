@@ -147,15 +147,25 @@ export const BuildStatus: { [key: number]: string } = {
 export interface SchedulePairwiseRequest {
   start_commit?: CombinedCommit;
   end_commit?: CombinedCommit;
-  // This key 'bot_name' maps to the 'configuration' field in the proto.
-  bot_name?: string;
+  configuration?: string;
   benchmark?: string;
   story?: string;
+  measurement?: string;
+  aggregation_method?: string;
+  target?: string;
+  project?: string;
+  bug_id?: string;
+  initial_attempt_count?: string;
+  improvement_dir?: string;
+  start_build?: CASReference;
+  end_build?: CASReference;
+  story_tags?: string;
+  user_email?: string;
   job_name?: string;
 }
 
 export interface PairwiseExecution {
-  job_id: string;
+  jobId: string;
 }
 
 export interface CancelJobRequest {
@@ -184,7 +194,17 @@ export async function schedulePairwise(
     body: JSON.stringify(request),
   });
   if (!response.ok) {
-    throw new Error(`Failed to schedule pairwise job: ${response.statusText}`);
+    const errorText = await response.text();
+    let finalMessage = errorText;
+    try {
+      const errorJson = JSON.parse(errorText);
+      if (errorJson && errorJson.message) {
+        finalMessage = errorJson.message;
+      }
+    } catch (_) {
+      // Return intial error text
+    }
+    throw new Error(finalMessage);
   }
   return response.json();
 }

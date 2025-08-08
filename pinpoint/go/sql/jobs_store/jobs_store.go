@@ -110,8 +110,13 @@ func (js *jobStoreImpl) AddInitialJob(ctx context.Context, request *pinpointpb.S
 	additionalParams.BugId = request.BugId
 	additionalParams.Chart = request.Chart
 
-	jobName := "default"
-	submittedBy := "default"
+	jobName := request.GetJobName()
+	submittedBy := request.GetUserEmail()
+	// TODO(natnaelal) Ensure that a username is given once auth is implemented
+	// through the frontend.
+	if submittedBy == "" {
+		submittedBy = "default"
+	}
 	jobError := ""
 	query := `
        INSERT INTO jobs (

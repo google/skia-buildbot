@@ -13,7 +13,18 @@ import '@material/web/select/select-option.js';
 import type { MdDialog } from '@material/web/dialog/dialog';
 import type { Tabs } from '@material/web/tabs/internal/tabs.js';
 import type { MdOutlinedSelect } from '@material/web/select/outlined-select.js';
-import { listBenchmarks, listBots, listStories } from '../../services/api';
+import '../../../../elements-sk/modules/toast-sk';
+import type { ToastSk } from '../../../../elements-sk/modules/toast-sk/toast-sk';
+
+import {
+  listBenchmarks,
+  listBots,
+  listStories,
+  schedulePairwise,
+  SchedulePairwiseRequest,
+} from '../../services/api';
+
+const MAX_ITERATIONS = 300;
 
 /**
  * @element pinpoint-new-job-sk
@@ -145,6 +156,8 @@ export class PinpointNewJobSk extends LitElement {
 
   @query('md-dialog') private _dialog!: MdDialog;
 
+  @query('#job-status-toast') private _toast!: ToastSk;
+
   @state() private _activeTab: 'simplified' | 'detailed' = 'detailed';
 
   @state() private _benchmarks: string[] = [];
@@ -159,9 +172,20 @@ export class PinpointNewJobSk extends LitElement {
 
   @state() private _selectedStory = '';
 
+  @state() private _startCommit = '';
+
+  @state() private _endCommit = '';
+
+  @state() private _jobName = '';
+
   @state() private _iterationCount = '10';
 
   @state() private _bugId = '';
+
+  @state() private _storyTags = '';
+
+  // UI state for handling the async job submission.
+  @state() private _startingJob = false;
 
   async connectedCallback() {
     super.connectedCallback();
@@ -210,6 +234,97 @@ export class PinpointNewJobSk extends LitElement {
     }
   }
 
+  private formIsValid(): string[] {
+    const errors: string[] = [];
+    if (this._startCommit.trim() === '') {
+      errors.push('Start commit is required.');
+    }
+    if (this._endCommit.trim() === '') {
+      errors.push('End commit is required.');
+    }
+    if (this._selectedBenchmark === '') {
+      errors.push('Benchmark is required.');
+    }
+    if (this._selectedBot === '') {
+      errors.push('Device to test on is required.');
+    }
+
+    const iterationCount = parseInt(this._iterationCount, 10);
+    if (isNaN(iterationCount)) {
+      errors.push('Iteration count must be a number.');
+    } else if (iterationCount < 1) {
+      errors.push('Iteration count must be at least 1.');
+    } else if (iterationCount > MAX_ITERATIONS) {
+      errors.push(`Iteration count cannot be more than ${MAX_ITERATIONS}.`);
+    }
+    return errors;
+  }
+
+  private async _startJob(e: Event) {
+    e.preventDefault();
+    const validationErrors = this.formIsValid();
+    if (validationErrors.length > 0) {
+      this._toast.textContent = validationErrors.join(' ');
+      this._toast.show();
+      return;
+    }
+
+    this._startingJob = true;
+
+    // Use a default job name if the user doesn't provide one.
+    let jobName = this._jobName.trim();
+    if (!jobName) {
+      jobName = `Try Job on ${this._selectedBenchmark} with ${this._selectedBot}`;
+    }
+    const chromeRepo = 'https://chromium.googlesource.com/chromium/src.git';
+
+    const request: SchedulePairwiseRequest = {
+      configuration: this._selectedBot,
+      benchmark: this._selectedBenchmark,
+      story: this._selectedStory,
+      story_tags: this._storyTags.trim() || undefined,
+      job_name: jobName,
+      bug_id: this._bugId.trim() || undefined, // Send undefined if empty
+      initial_attempt_count: this._iterationCount,
+      start_commit: {
+        main: {
+          repository: chromeRepo,
+          git_hash: this._startCommit.trim(),
+        },
+      },
+      end_commit: {
+        main: {
+          repository: chromeRepo,
+          git_hash: this._endCommit.trim(),
+        },
+      },
+    };
+
+    try {
+      const resp = await schedulePairwise(request);
+      const jobUrl = `/results/jobid/${resp.jobId}`;
+
+      this._toast.innerHTML = `Successfully started job.
+      <a href="${jobUrl}" target="_blank" rel="noopener noreferrer">View Job ${resp.jobId}</a>`;
+
+      this._toast.show();
+      this.dispatchEvent(
+        new CustomEvent('pinpoint-job-started', { bubbles: true, composed: true })
+      );
+      this.close();
+    } catch (err) {
+      const message = (err as Error).message || 'Unknown error';
+      this._toast.textContent = `Failed to start job: ${message}`;
+      this._toast.show();
+    } finally {
+      this._startingJob = false;
+    }
+  }
+
+  private _onValueChanged(e: Event, property: string) {
+    (this as any)[property] = (e.target as HTMLInputElement | MdOutlinedSelect).value;
+  }
+
   private renderDetailedView() {
     return html`
       <div class="about-section">
@@ -225,11 +340,17 @@ export class PinpointNewJobSk extends LitElement {
           <h3>Base Commit</h3>
           <md-outlined-text-field
             label="Commit Hash"
-            placeholder="Commit Hash"></md-outlined-text-field>
+            placeholder="Commit Hash"
+            .value=${this._startCommit}
+            @input=${(e: InputEvent) =>
+              this._onValueChanged(e, '_startCommit')}></md-outlined-text-field>
           <h3>Experimental Commit</h3>
           <md-outlined-text-field
             label="Commit Hash"
-            placeholder="Commit Hash"></md-outlined-text-field>
+            placeholder="Commit Hash"
+            .value=${this._endCommit}
+            @input=${(e: InputEvent) =>
+              this._onValueChanged(e, '_endCommit')}></md-outlined-text-field>
         </div>
         <div class="help-section">
           <h3>Chrome Build</h3>
@@ -247,16 +368,24 @@ export class PinpointNewJobSk extends LitElement {
               (b) => html`<md-select-option .value=${b}>${b}</md-select-option>`
             )}
           </md-outlined-select>
-          <md-outlined-select label="Device to test on" .value=${this._selectedBot}>
+          <md-outlined-select
+            label="Device to test on"
+            .value=${this._selectedBot}
+            @change=${(e: Event) => this._onValueChanged(e, '_selectedBot')}>
             ${this._bots.map((b) => html`<md-select-option .value=${b}>${b}</md-select-option>`)}
           </md-outlined-select>
           <md-outlined-select
             label="Story"
             .value=${this._selectedStory}
-            ?disabled=${!this._selectedBenchmark}>
+            ?disabled=${!this._selectedBenchmark}
+            @change=${(e: Event) => this._onValueChanged(e, '_selectedStory')}>
             ${this._stories.map((s) => html`<md-select-option .value=${s}>${s}</md-select-option>`)}
           </md-outlined-select>
-          <md-outlined-text-field label="Story tags (optional)"></md-outlined-text-field>
+          <md-outlined-text-field
+            label="Story tags (optional)"
+            .value=${this._storyTags}
+            @input=${(e: InputEvent) =>
+              this._onValueChanged(e, '_storyTags')}></md-outlined-text-field>
         </div>
         <div class="help-section">
           <h3>Device and Benchmark</h3>
@@ -268,21 +397,22 @@ export class PinpointNewJobSk extends LitElement {
 
         <div class="form-section">
           <h2>(Optional) Name your run and set iterations</h2>
-          <md-outlined-text-field label="Job Name"></md-outlined-text-field>
+          <md-outlined-text-field
+            label="Job Name"
+            .value=${this._jobName}
+            @input=${(e: InputEvent) =>
+              this._onValueChanged(e, '_jobName')}></md-outlined-text-field>
           <md-outlined-text-field
             label="Iteration Count"
             type="number"
             .value=${this._iterationCount}
             @input=${(e: InputEvent) =>
-              (this._iterationCount = (
-                e.target as HTMLInputElement
-              ).value)}></md-outlined-text-field
-          ><md-outlined-text-field
+              this._onValueChanged(e, '_iterationCount')}></md-outlined-text-field>
+          <md-outlined-text-field
             label="Bug ID (optional)"
             type="number"
             .value=${this._bugId}
-            @input=${(e: InputEvent) =>
-              (this._bugId = (e.target as HTMLInputElement).value)}></md-outlined-text-field>
+            @input=${(e: InputEvent) => this._onValueChanged(e, '_bugId')}></md-outlined-text-field>
         </div>
         <div class="help-section">
           <h3>Job Name, Iterations & Bug ID</h3>
@@ -383,9 +513,12 @@ export class PinpointNewJobSk extends LitElement {
         </div>
         <div slot="actions">
           <md-outlined-button @click=${this.close}>Cancel</md-outlined-button>
-          <md-filled-button>Start</md-filled-button>
+          <md-filled-button @click=${this._startJob} ?disabled=${this._startingJob}>
+            ${this._startingJob ? 'Starting...' : 'Start'}
+          </md-filled-button>
         </div>
       </md-dialog>
+      <toast-sk id="job-status-toast"></toast-sk>
     `;
   }
 }

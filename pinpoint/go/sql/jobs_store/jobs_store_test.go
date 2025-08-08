@@ -99,6 +99,8 @@ func TestAddInitialJob(t *testing.T) {
 		Target:              "target_val",
 		Project:             "project_val",
 		BugId:               "bug_val",
+		UserEmail:           "testDev@chromium.org",
+		JobName:             "Test Pairwise Job on Mac mini",
 	}
 
 	err := js.AddInitialJob(ctx, req, jobID)
@@ -108,9 +110,9 @@ func TestAddInitialJob(t *testing.T) {
 	retrievedJob, err := js.GetJob(ctx, jobID)
 	require.NoError(t, err)
 	assert.Equal(t, jobID, retrievedJob.JobID)
-	assert.Equal(t, "default", retrievedJob.JobName)
+	assert.Equal(t, "Test Pairwise Job on Mac mini", retrievedJob.JobName)
 	assert.Equal(t, JobType, retrievedJob.JobType)
-	assert.Equal(t, "default", retrievedJob.SubmittedBy)
+	assert.Equal(t, "testDev@chromium.org", retrievedJob.SubmittedBy)
 	assert.Equal(t, req.Benchmark, retrievedJob.Benchmark)
 	assert.Equal(t, req.Configuration, retrievedJob.BotName)
 

@@ -535,7 +535,8 @@ service Pinpoint {
 
 	rpc SchedulePairwise(SchedulePairwiseRequest) returns (PairwiseExecution) {
 		option (google.api.http) = {
-			post: "/pinpoint/v1/pairwise"
+			post: "/pinpoint/v1/pairwise",
+			body: "*"
 		};
 	}
 
