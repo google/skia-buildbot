@@ -639,6 +639,20 @@ export class ExploreSimpleSk extends ElementSk {
     return this.dfRepo.value?.loading ?? false;
   }
 
+  public set dataLoading(value: boolean) {
+    if (this.dfRepo.value) {
+      this.dfRepo.value.loading = value;
+      if (!value) {
+        // Dispatch an event to notify that data is loaded for the previous range.
+        this.dispatchEvent(
+          new CustomEvent('data-loaded', {
+            bubbles: true,
+          })
+        );
+      }
+    }
+  }
+
   public get requestComplete(): Promise<number> {
     return this.dfRepo.value?.requestComplete ?? Promise.resolve(0);
   }
@@ -1911,7 +1925,7 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
     if (offset) {
-      dfRepo.extendRange(offset);
+      await dfRepo.extendRange(offset);
       return;
     }
 
@@ -3058,6 +3072,7 @@ export class ExploreSimpleSk extends ElementSk {
         // Let's simply make the selection on the summary.
         const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
         this.plotSummary.value?.SelectRange(updatedRange);
+        this.dataLoading = false;
       } else {
         let extendRange = 3 * monthInSec;
         // Large amount of traces, limit the range extension.
@@ -3069,12 +3084,7 @@ export class ExploreSimpleSk extends ElementSk {
           // Already plotted, just need to update the data.
           this.updateSelectedRangeWithUpdatedDataframe(updatedRange, 'commit', false);
           this.plotSummary.value?.SelectRange(updatedRange);
-          // Dispatch an event to notify that data is loaded for the previous range.
-          this.dispatchEvent(
-            new CustomEvent('data-loaded', {
-              bubbles: true,
-            })
-          );
+          this.dataLoading = false;
         });
         this.dfRepo.value?.extendRange(extendRange).then(() => {
           const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
@@ -3848,7 +3858,10 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   getHeader(): (ColumnHeader | null)[] | null {
-    return this.dfRepo.value!.header;
+    if (this.dfRepo.value) {
+      return this.dfRepo.value!.header;
+    }
+    return null;
   }
 
   getCommitLinks(): (CommitLinks | null)[] {

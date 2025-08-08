@@ -162,7 +162,7 @@ export class PlotSummarySk extends LitElement {
           offsetInSeconds: chunk * direction,
         };
         this.dispatchEvent(
-          new CustomEvent<PlotSelectionEventDetails>('selection-changing-in-multi', {
+          new CustomEvent<PlotSelectionEventDetails>('range-changing-in-multi', {
             bubbles: true,
             detail: detail,
           })
