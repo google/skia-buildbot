@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/progress"
 	"go.skia.org/infra/go/pubsub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -363,10 +364,15 @@ func (jc *JobCreator) initCaches(ctx context.Context) error {
 	}
 
 	// Actually cache the RepoStates.
+	pt := progress.New(int64(len(repoStatesToCache)))
+	pt.AtInterval(ctx, 5*time.Minute, func(count, total int64) {
+		sklog.Debugf("Cached %d of %d RepoStates", count, total)
+	})
 	var g errgroup.Group
 	for rs := range repoStatesToCache {
 		rs := rs // https://golang.org/doc/faq#closures_and_goroutines
 		g.Go(func() error {
+			defer pt.Inc(1)
 			if _, err := jc.cacher.GetOrCacheRepoState(ctx, rs); err != nil {
 				if cacher.IsCachedError(err) {
 					// Returning an error here would cause the app to repeatedly

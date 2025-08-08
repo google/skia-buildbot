@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "progress",
+    srcs = ["progress.go"],
+    importpath = "go.skia.org/infra/go/progress",
+    visibility = ["//visibility:public"],
+    deps = ["//go/util"],
+)
