@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	vcsinfo "go.skia.org/infra/go/vcsinfo"
 )
@@ -60,8 +61,8 @@ func (m *MockCheckout) RevList(ctx context.Context, revListArgs ...string) ([]st
 	}
 	return args.Get(0).([]string), args.Error(1)
 }
-func (m *MockCheckout) GetBranchHead(ctx context.Context, branchName string) (string, error) {
-	args := m.Called(ctx, branchName)
+func (m *MockCheckout) ResolveRef(ctx context.Context, ref string) (string, error) {
+	args := m.Called(ctx, ref)
 	return args.String(0), args.Error(1)
 }
 func (m *MockCheckout) Branches(ctx context.Context) ([]*git.Branch, error) {
@@ -164,6 +165,9 @@ func (m *MockCheckout) IsDirty(ctx context.Context) (bool, string, error) {
 	return args.Bool(0), args.String(1), args.Error(2)
 }
 
+// Assert that MockCheckout implements git.Checkout.
+var _ git.Checkout = &MockCheckout{}
+
 /*******************************************************************************
 * Mock FileInfo
 *******************************************************************************/
@@ -184,6 +188,9 @@ func (m *MockFileInfo) Mode() fs.FileMode  { return m.FMode }
 func (m *MockFileInfo) ModTime() time.Time { return m.FModTime }
 func (m *MockFileInfo) IsDir() bool        { return m.FIsDir }
 func (m *MockFileInfo) Sys() interface{}   { return nil }
+
+// Assert that MockFileInfo implements fs.FileInfo.
+var _ fs.FileInfo = &MockFileInfo{}
 
 // MockProcess is a mock implementation of exec.Process.
 type MockProcess struct {
@@ -207,6 +214,9 @@ func (m *MockProcess) Kill() error {
 	args := m.Called()
 	return args.Error(0)
 }
+
+// Assert that MockProcess implements exec.Process.
+var _ exec.Process = &MockProcess{}
 
 /*******************************************************************************
 * Mock directoryRemover

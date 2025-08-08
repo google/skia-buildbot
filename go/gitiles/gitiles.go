@@ -80,6 +80,8 @@ type GitilesRepo interface {
 	DownloadFile(ctx context.Context, srcPath, dstPath string) error
 	// DownloadFileAtRef downloads the given file at the given ref.
 	DownloadFileAtRef(ctx context.Context, srcPath, ref, dstPath string) error
+	// IsAncestor returns true iff A is an ancestor of B.
+	IsAncestor(ctx context.Context, a, b string) (bool, error)
 	// ListDirAtRef reads the given directory at the given ref. Returns a slice of
 	// file names and a slice of dir names, relative to the given directory, or any
 	// error which occurred.
@@ -239,6 +241,15 @@ func (r *Repo) DownloadFileAtRef(ctx context.Context, srcPath, ref, dstPath stri
 		_, err = w.Write(contents)
 		return skerr.Wrap(err)
 	})
+}
+
+// IsAncestor returns true iff A is an ancestor of B.
+func (r *Repo) IsAncestor(ctx context.Context, a, b string) (bool, error) {
+	log, err := r.Log(ctx, git.LogFromTo(a, b))
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	return len(log) > 0, nil
 }
 
 // ListDirAtRef reads the given directory at the given ref. Returns a slice of

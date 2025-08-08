@@ -110,6 +110,12 @@ func (c *FuchsiaSDKChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.
 	return fs, nil
 }
 
+// GetNotSubmittedReason implements Child.
+func (c *FuchsiaSDKChild) GetNotSubmittedReason(context.Context, *revision.Revision) (string, error) {
+	// We just assume that all Fuchsia SDK revisions are submitted.
+	return "", nil
+}
+
 // fuchsiaSDKVersionToRevision returns a revision.Revision instance based on the
 // given version ID.
 func fuchsiaSDKVersionToRevision(ver string) *revision.Revision {

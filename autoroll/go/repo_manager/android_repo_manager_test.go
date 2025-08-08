@@ -158,7 +158,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	lastRollRev, tipRev, _, err := rm.Update(ctx)
 	require.NoError(t, err)
 
-	require.Equal(t, fmt.Sprintf("%s/%s", wd, childPath), rm.(*androidRepoManager).childDir)
+	require.Equal(t, fmt.Sprintf("%s/%s", wd, childPath), rm.childDir)
 	require.Equal(t, androidChildCommits[len(androidChildCommits)-1], lastRollRev.Id)
 	require.Equal(t, androidChildCommits[0], tipRev.Id)
 }
@@ -236,7 +236,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	require.NoError(t, err)
 
 	ran := false
-	rm.(*androidRepoManager).preUploadSteps = []parent.PreUploadStep{
+	rm.preUploadSteps = []parent.PreUploadStep{
 		func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
 			ran = true
 			return nil

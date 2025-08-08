@@ -3,6 +3,7 @@ package repo_manager
 import (
 	"bytes"
 	"context"
+	"net/http"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -32,9 +33,9 @@ type CommandTmplVars struct {
 	RollingTo string
 }
 
-// CommandRepoManager implements RepoManager by shelling out to various
+// commandRepoManager implements RepoManager by shelling out to various
 // configured commands to perform all of the work.
-type CommandRepoManager struct {
+type commandRepoManager struct {
 	co            *git_common.Checkout
 	shortRevRegex *config_vars.Template
 	getTipRev     *config.CommandRepoManagerConfig_CommandConfig
@@ -42,11 +43,12 @@ type CommandRepoManager struct {
 	setPinnedRev  *config.CommandRepoManagerConfig_CommandConfig
 	createRoll    git_common.CreateRollFunc
 	uploadRoll    git_common.UploadRollFunc
+	client        *http.Client
 }
 
 // NewCommandRepoManager returns a RepoManager implementation which rolls
 // trace_processor_shell into Chrome.
-func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConfig, reg *config_vars.Registry, workdir, serverURL string, cr codereview.CodeReview) (*CommandRepoManager, error) {
+func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConfig, reg *config_vars.Registry, workdir, serverURL string, cr codereview.CodeReview, client *http.Client) (*commandRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -61,7 +63,7 @@ func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConf
 			return nil, skerr.Wrap(err)
 		}
 	}
-	var rm *CommandRepoManager
+	var rm *commandRepoManager
 	createRoll := func(ctx context.Context, co git.Checkout, from, to *revision.Revision, _ []*revision.Revision, commitMsg string) (string, error) {
 		vars := &CommandTmplVars{
 			RollingFrom: from.Id,
@@ -91,7 +93,7 @@ func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConf
 	if err := gerrit_common.SetupGerrit(ctx, co.Checkout, g); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	rm = &CommandRepoManager{
+	rm = &commandRepoManager{
 		co:            co,
 		shortRevRegex: shortRevRegex,
 		getTipRev:     c.GetTipRev,
@@ -99,6 +101,7 @@ func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConf
 		setPinnedRev:  c.SetPinnedRev,
 		createRoll:    createRoll,
 		uploadRoll:    uploadRoll,
+		client:        client,
 	}
 	return rm, nil
 }
@@ -132,7 +135,7 @@ func makeCommand(cfg *config.CommandRepoManagerConfig_CommandConfig, baseDir str
 }
 
 // Run the given command and return the output.
-func (rm *CommandRepoManager) run(ctx context.Context, cmd *config.CommandRepoManagerConfig_CommandConfig, vars *CommandTmplVars) (string, error) {
+func (rm *commandRepoManager) run(ctx context.Context, cmd *config.CommandRepoManagerConfig_CommandConfig, vars *CommandTmplVars) (string, error) {
 	c, err := makeCommand(cmd, rm.co.Dir(), vars)
 	if err != nil {
 		return "", skerr.Wrap(err)
@@ -146,7 +149,7 @@ func (rm *CommandRepoManager) run(ctx context.Context, cmd *config.CommandRepoMa
 }
 
 // Update implements RepoManager.
-func (rm *CommandRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
+func (rm *commandRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	if _, _, err := rm.co.Update(ctx); err != nil {
 		return nil, nil, nil, skerr.Wrap(err)
 	}
@@ -174,7 +177,7 @@ func (rm *CommandRepoManager) Update(ctx context.Context) (*revision.Revision, *
 }
 
 // GetRevision implements RepoManager.
-func (rm *CommandRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
+func (rm *commandRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	// Just return the most basic Revision with the given ID. Note that we could
 	// add a command which retrieves revision information and passes it back to
 	// us in JSON format or something, but I'm not sure how valuable that would
@@ -191,7 +194,7 @@ func (rm *CommandRepoManager) GetRevision(ctx context.Context, id string) (*revi
 }
 
 // LogRevisions implements RepoManager.
-func (rm *CommandRepoManager) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
+func (rm *commandRepoManager) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
 	var revs []*revision.Revision
 	if from.Id != to.Id {
 		revs = append(revs, to)
@@ -200,9 +203,14 @@ func (rm *CommandRepoManager) LogRevisions(ctx context.Context, from, to *revisi
 }
 
 // CreateNewRoll implements RepoManager.
-func (rm *CommandRepoManager) CreateNewRoll(ctx context.Context, rollingFrom *revision.Revision, rollingTo *revision.Revision, revisions []*revision.Revision, reviewers []string, dryRun, canary bool, commitMsg string) (int64, error) {
+func (rm *commandRepoManager) CreateNewRoll(ctx context.Context, rollingFrom *revision.Revision, rollingTo *revision.Revision, revisions []*revision.Revision, reviewers []string, dryRun, canary bool, commitMsg string) (int64, error) {
 	return rm.co.CreateNewRoll(ctx, rollingFrom, rollingTo, revisions, reviewers, dryRun, canary, commitMsg, rm.createRoll, rm.uploadRoll)
 }
 
+// GetNotSubmittedReason implements RepoManager.
+func (rm *commandRepoManager) GetNotSubmittedReason(ctx context.Context, rev *revision.Revision) (string, error) {
+	return gerrit_common.GetNotSubmittedReason(ctx, rev, rm.client)
+}
+
 // commandRepoManager implements RepoManager.
-var _ RepoManager = &CommandRepoManager{}
+var _ RepoManager = &commandRepoManager{}

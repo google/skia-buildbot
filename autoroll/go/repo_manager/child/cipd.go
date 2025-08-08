@@ -212,6 +212,15 @@ func (c *CIPDChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, er
 	return fs, nil
 }
 
+// GetNotSubmittedReason implements Child.
+func (c *CIPDChild) GetNotSubmittedReason(context.Context, *revision.Revision) (string, error) {
+	// We just assume that all CIPD revisions are submitted because CIPD
+	// packages don't really have a concept of being submitted and because those
+	// which are built from Git revisions are generally only built from Git
+	// revisions which are submitted.
+	return "", nil
+}
+
 // SetClientForTesting sets the CIPDClient used by the CIPDChild so that it can
 // be overridden for testing.
 func (c *CIPDChild) SetClientForTesting(client cipd.CIPDClient) {

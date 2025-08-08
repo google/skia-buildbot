@@ -23,6 +23,9 @@ packages:
   go.skia.org/infra/autoroll/go/recent_rolls:
     interfaces:
       DB:
+  go.skia.org/infra/autoroll/go/repo_manager/common/git_common:
+    interfaces:
+      RepoInterface:
   go.skia.org/infra/autoroll/go/roller_cleanup:
     interfaces:
       DB:

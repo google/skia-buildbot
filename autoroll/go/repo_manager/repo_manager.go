@@ -29,6 +29,10 @@ type RepoManager interface {
 	// revision ID.
 	GetRevision(context.Context, string) (*revision.Revision, error)
 
+	// GetNotSubmittedReason returns the reason we think the given revision ID
+	// is not submitted, or the empty string if we think it is.
+	GetNotSubmittedReason(context.Context, *revision.Revision) (string, error)
+
 	// LogRevisions returns a list of Revision instances between two revisions.
 	LogRevisions(context.Context, *revision.Revision, *revision.Revision) ([]*revision.Revision, error)
 }
@@ -44,7 +48,7 @@ func New(ctx context.Context, c config.RepoManagerConfig, reg *config_vars.Regis
 	if rmc, ok := c.(*config.AndroidRepoManagerConfig); ok {
 		return NewAndroidRepoManager(ctx, rmc, reg, workdir, serverURL, serviceAccount, client, cr, isInternal, local)
 	} else if rmc, ok := c.(*config.CommandRepoManagerConfig); ok {
-		return NewCommandRepoManager(ctx, rmc, reg, workdir, serverURL, cr)
+		return NewCommandRepoManager(ctx, rmc, reg, workdir, serverURL, cr, client)
 	} else if rmc, ok := c.(*config.FreeTypeRepoManagerConfig); ok {
 		return NewFreeTypeRepoManager(ctx, rmc, reg, workdir, serverURL, client, cr, local)
 	} else if rmc, ok := c.(*config.ParentChildRepoManagerConfig); ok {

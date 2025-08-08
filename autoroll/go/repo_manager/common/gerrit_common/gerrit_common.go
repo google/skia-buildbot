@@ -3,10 +3,13 @@ package gerrit_common
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
@@ -102,4 +105,62 @@ func SetupGerrit(ctx context.Context, co git.Checkout, g gerrit.GerritInterface)
 		return skerr.Wrap(err)
 	}
 	return nil
+}
+
+// GetNotSubmittedReason returns the reason we think the given revision ID is
+// not submitted, or the empty string if we think it is.
+func GetNotSubmittedReason(ctx context.Context, rev *revision.Revision, c *http.Client) (string, error) {
+	// Find the Gerrit CL associated with the requested revision. Check whether
+	// it has been merged.
+	changeID, err := gerrit.ParseChangeId(rev.Details)
+	if err != nil {
+		return "Revision is not a Gerrit change; cannot verify that it has been reviewed and submitted", nil
+	}
+	gerritURL, err := commitURLToGerritURL(rev.URL)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to build Gerrit URL for revision %s", rev.Id)
+	}
+	g, err := gerrit.NewGerrit(gerritURL, c)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to create Gerrit client for revision %q", rev.Id)
+	}
+	cis, err := g.Search(ctx, 0, false, gerrit.SearchCommit(rev.Id))
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to search Gerrit changes for revision %q", rev.Id)
+	}
+	var foundCL *gerrit.ChangeInfo
+	for _, ci := range cis {
+		if ci.ChangeId == changeID {
+			foundCL = ci
+			break
+		}
+	}
+	if foundCL == nil {
+		// Fall back to retrieving the change by ID.
+		ci, err := g.GetChange(ctx, changeID)
+		if err != nil {
+			if err == gerrit.ErrNotFound || strings.Contains(err.Error(), "status code 404") {
+				// Returning an error here will result in an infinite retry loop
+				// unless this is some transient problem on the Gerrit server.
+				return fmt.Sprintf("failed to retrieve Gerrit CL for change ID %q", changeID), nil
+			}
+			return "", skerr.Wrapf(err, "failed to retrieve Gerrit CL for change ID %q", changeID)
+		}
+		foundCL = ci
+	}
+	if !foundCL.IsMerged() {
+		return fmt.Sprintf("CL %s is not merged", g.Url(foundCL.Issue)), nil
+	}
+	return "", nil
+}
+
+// commitURLToGerritURL converts a Gitiles URL for a commit to a Gerrit host URL.
+func commitURLToGerritURL(commitURL string) (string, error) {
+	u, err := url.Parse(commitURL)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to parse url %q", commitURL)
+	}
+	u.Host = strings.Replace(u.Host, ".googlesource.com", "-review.googlesource.com", 1)
+	u.Path = ""
+	return u.String(), nil
 }

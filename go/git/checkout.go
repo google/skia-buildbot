@@ -219,9 +219,9 @@ func (c CheckoutDir) RevList(ctx context.Context, args ...string) ([]string, err
 	return gitRunner_RevList(ctx, c, args...)
 }
 
-// GetBranchHead returns the commit hash at the HEAD of the given branch.
-func (c CheckoutDir) GetBranchHead(ctx context.Context, branchName string) (string, error) {
-	return gitRunner_GetBranchHead(ctx, c, branchName)
+// ResolveRef returns the commit hash at the HEAD of the given branch.
+func (c CheckoutDir) ResolveRef(ctx context.Context, branchName string) (string, error) {
+	return gitRunner_ResolveRef(ctx, c, branchName)
 }
 
 // Branches runs "git branch" and returns a slice of Branch instances.

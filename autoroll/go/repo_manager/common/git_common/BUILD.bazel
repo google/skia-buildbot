@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "git_common",
@@ -11,6 +12,20 @@ go_library(
         "//autoroll/go/repo_manager/common/version_file_common",
         "//autoroll/go/revision",
         "//go/git",
+        "//go/gitiles",
         "//go/skerr",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "git_common_test",
+    srcs = ["git_common_test.go"],
+    embed = [":git_common"],
+    deps = [
+        "//autoroll/go/repo_manager/common/git_common/mocks",
+        "//go/git",
+        "//go/testutils",
+        "@com_github_stretchr_testify//require",
     ],
 )

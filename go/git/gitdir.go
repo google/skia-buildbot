@@ -58,8 +58,8 @@ type GitDir interface {
 	// RevList runs "git rev-list <name>" and returns a slice of commit hashes.
 	RevList(ctx context.Context, args ...string) ([]string, error)
 
-	// GetBranchHead returns the commit hash at the HEAD of the given branch.
-	GetBranchHead(ctx context.Context, branchName string) (string, error)
+	// ResolveRef resolves the given ref to a commit hash.
+	ResolveRef(ctx context.Context, ref string) (string, error)
 
 	// Branches runs "git branch" and returns a slice of Branch instances.
 	Branches(ctx context.Context) ([]*Branch, error)
@@ -182,8 +182,8 @@ func gitRunner_RevList(ctx context.Context, g gitRunner, args ...string) ([]stri
 	return strings.Fields(out), nil
 }
 
-// GetBranchHead returns the commit hash at the HEAD of the given branch.
-func gitRunner_GetBranchHead(ctx context.Context, g gitRunner, branchName string) (string, error) {
+// ResolveRef resolves the given ref to a commit hash.
+func gitRunner_ResolveRef(ctx context.Context, g gitRunner, branchName string) (string, error) {
 	return gitRunner_RevParse(ctx, g, "--verify", fmt.Sprintf("refs/heads/%s^{commit}", branchName))
 }
 
@@ -199,7 +199,7 @@ func gitRunner_Branches(ctx context.Context, g gitRunner) ([]*Branch, error) {
 		if name == "*" {
 			continue
 		}
-		head, err := gitRunner_GetBranchHead(ctx, g, name)
+		head, err := gitRunner_ResolveRef(ctx, g, name)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

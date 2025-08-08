@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/android_skia_checkout"
@@ -83,7 +84,7 @@ type androidRepoManager struct {
 }
 
 // NewAndroidRepoManager returns an androidRepoManager instance.
-func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal, local bool) (RepoManager, error) {
+func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal, local bool) (*androidRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -673,3 +674,11 @@ func (r *androidRepoManager) getTipRev(ctx context.Context) (*revision.Revision,
 	}
 	return revision.FromLongCommit(r.childRevLinkTmpl, r.defaultBugProject, details), nil
 }
+
+// GetNotSubmittedReason implements RepoManager.
+func (r *androidRepoManager) GetNotSubmittedReason(ctx context.Context, rev *revision.Revision) (string, error) {
+	return git_common.GetNotSubmittedReason(ctx, r.childRepo, rev.Id, r.childBranch.String())
+}
+
+// assert that androidRepoManager implements RepoManager.
+var _ RepoManager = &androidRepoManager{}

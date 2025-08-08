@@ -25,7 +25,7 @@ type gitilesChild struct {
 
 // NewGitiles returns an implementation of Child which uses Gitiles rather
 // than a local checkout.
-func NewGitiles(ctx context.Context, c *config.GitilesChildConfig, reg *config_vars.Registry, client *http.Client) (Child, error) {
+func NewGitiles(ctx context.Context, c *config.GitilesChildConfig, reg *config_vars.Registry, client *http.Client) (*gitilesChild, error) {
 	g, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, reg, client)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -65,6 +65,15 @@ func (c *gitilesChild) Update(ctx context.Context, lastRollRev *revision.Revisio
 // See documentation for Child interface.
 func (c *gitilesChild) Download(ctx context.Context, rev *revision.Revision, dest string) error {
 	return git_common.Clone(ctx, c.URL(), dest, rev)
+}
+
+// GetNotSubmittedReason implements Child.
+func (c *gitilesChild) GetNotSubmittedReason(ctx context.Context, rev *revision.Revision) (string, error) {
+	// We just assume that all CIPD revisions are submitted because CIPD
+	// packages don't really have a concept of being submitted and because those
+	// which are built from Git revisions are generally only built from Git
+	// revisions which are submitted.
+	return git_common.GetNotSubmittedReason(ctx, c.GitilesRepo, rev.Id, c.Branch())
 }
 
 // gitilesChild implements Child.

@@ -47,5 +47,10 @@ func (c *GitCheckoutChild) VFS(ctx context.Context, rev *revision.Revision) (vfs
 	return c.Checkout.VFS(ctx, rev.Id)
 }
 
+// GetNotSubmittedReason implements Child.
+func (c *GitCheckoutChild) GetNotSubmittedReason(ctx context.Context, rev *revision.Revision) (string, error) {
+	return git_common.GetNotSubmittedReason(ctx, c.Checkout, rev.Id, c.Branch.String())
+}
+
 // GitCheckoutChild implements Child.
 var _ Child = &GitCheckoutChild{}

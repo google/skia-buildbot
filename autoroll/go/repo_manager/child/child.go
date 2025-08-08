@@ -26,6 +26,10 @@ type Child interface {
 	// LogRevisions returns a list of Revision instances between two revisions.
 	LogRevisions(context.Context, *revision.Revision, *revision.Revision) ([]*revision.Revision, error)
 
+	// GetNotSubmittedReason returns the reason we think the given revision ID
+	// is not submitted, or the empty string if we think it is.
+	GetNotSubmittedReason(context.Context, *revision.Revision) (string, error)
+
 	// VFS returns a vfs.FS instance which reads from this Child at the given
 	// Revision.
 	VFS(context.Context, *revision.Revision) (vfs.FS, error)

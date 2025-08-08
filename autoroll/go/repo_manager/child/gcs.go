@@ -238,6 +238,13 @@ func (c *gcsChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, err
 	return nil, skerr.Fmt("VFS not implemented for gcsChild")
 }
 
+// GetNotSubmittedReason implements Child.
+func (c *gcsChild) GetNotSubmittedReason(context.Context, *revision.Revision) (string, error) {
+	// We just assume that all GCS revisions are submitted because GCS objects
+	// don't really have a concept of being submitted.
+	return "", nil
+}
+
 // parseRevisionID parses a revision ID from the given GCS path, using the
 // configured regular expression if one was provided, and simply using the base
 // name of the file otherwise.

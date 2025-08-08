@@ -101,5 +101,14 @@ func (c *DockerChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, 
 	return nil, skerr.Fmt("VFS not implemented for DockerChild")
 }
 
+// GetNotSubmittedReason implements Child.
+func (c *DockerChild) GetNotSubmittedReason(context.Context, *revision.Revision) (string, error) {
+	// We just assume that all Docker revisions are submitted because Docker
+	// images don't really have a concept of being submitted and because those
+	// which are built from Git revisions are generally only built from Git
+	// revisions which are submitted.
+	return "", nil
+}
+
 // Assert that DockerChild implements Child.
 var _ Child = &DockerChild{}

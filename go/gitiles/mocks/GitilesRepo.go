@@ -116,6 +116,34 @@ func (_m *GitilesRepo) DownloadFileAtRef(ctx context.Context, srcPath string, re
 	return r0
 }
 
+// IsAncestor provides a mock function with given fields: ctx, a, b
+func (_m *GitilesRepo) IsAncestor(ctx context.Context, a string, b string) (bool, error) {
+	ret := _m.Called(ctx, a, b)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsAncestor")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return rf(ctx, a, b)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = rf(ctx, a, b)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, a, b)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListDir provides a mock function with given fields: ctx, dir
 func (_m *GitilesRepo) ListDir(ctx context.Context, dir string) ([]fs.FileInfo, error) {
 	ret := _m.Called(ctx, dir)

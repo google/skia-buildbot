@@ -16,8 +16,8 @@ func NewGitilesForTesting(t sktest.TestingT, cfg *config.GitilesChildConfig, reg
 	require.NoError(t, err)
 	gitiles := &gitiles_mocks.GitilesRepo{}
 	gitiles.On("URL").Return(cfg.Gitiles.RepoUrl)
-	c.(*gitilesChild).GitilesRepo.GitilesRepo = gitiles
-	return c.(*gitilesChild), gitiles
+	c.GitilesRepo.GitilesRepo = gitiles
+	return c, gitiles
 }
 
 func MockGitiles_GetRevision(childGitiles *gitiles_mocks.GitilesRepo, ref, hash, tipRev string) {

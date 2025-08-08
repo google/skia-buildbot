@@ -12,7 +12,9 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -206,4 +208,49 @@ func Clone(ctx context.Context, repoUrl, dest string, rev *revision.Revision) er
 		return skerr.Wrap(err)
 	}
 	return nil
+}
+
+// RepoInterface is used by GetNotSubmittedReason to interact with a git repo.
+type RepoInterface interface {
+	// IsAncestor which returns true iff A is an ancestor of B.
+	IsAncestor(ctx context.Context, a, b string) (bool, error)
+
+	// ResolveRef resolves the given ref to a commit hash.
+	ResolveRef(ctx context.Context, ref string) (string, error)
+}
+
+// Assert that git.Checkout and gitiles.GitilesRepo implement RepoInterface.
+var _ RepoInterface = git.Checkout(nil)
+var _ RepoInterface = gitiles.GitilesRepo(nil)
+
+// GetNotSubmittedReason returns the reason we think the given revision ID is
+// not submitted, or the empty string if we think it is.
+func GetNotSubmittedReason(ctx context.Context, repo RepoInterface, revID string, targetBranch string) (string, error) {
+	// Check whether the commit is the head of or an ancestor of the target
+	// branch or other known branches.
+	knownBranches := []string{
+		targetBranch,
+		git.MainBranch,
+		git.MasterBranch,
+	}
+	for _, branch := range knownBranches {
+		// Is the revision the branch head?
+		branchHead, err := repo.ResolveRef(ctx, branch)
+		if err != nil {
+			// The branch may not exist in this repo. Ignore and move on.
+			sklog.Warningf("failed to resolve branch %q: %s", branch, err)
+			continue
+		}
+		if branchHead == revID {
+			return "", nil
+		}
+
+		// Is the revision an ancestor of the branch head?
+		if ok, err := repo.IsAncestor(ctx, revID, branch); err != nil {
+			return "", skerr.Wrap(err)
+		} else if ok {
+			return "", nil
+		}
+	}
+	return fmt.Sprintf("%s is not an ancestor of any of %v", revID, knownBranches), nil
 }
