@@ -1,9 +1,12 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { listJobs, Job, ListJobsOptions } from '../../services/api';
+import { listJobs, Job, ListJobsOptions, cancelJob } from '../../services/api';
 import '../pinpoint-scaffold-sk';
 import '@material/web/button/filled-button.js';
 import '@material/web/button/outlined-button.js';
+import '@material/web/dialog/dialog.js';
+import '@material/web/textfield/filled-text-field.js';
+import { MdDialog } from '@material/web/dialog/dialog.js';
 import '../jobs-table-sk';
 
 /**
@@ -28,6 +31,11 @@ export class PinpointLandingPageSk extends LitElement {
       padding: 40px;
       color: var(--md-sys-color-on-surface-variant);
     }
+
+    #cancel-dialog p {
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
   `;
 
   @state() private _pagedJobs: Job[]; // Jobs only for the current page.
@@ -46,6 +54,8 @@ export class PinpointLandingPageSk extends LitElement {
   @state() private _currentPage: number;
 
   @state() private _hasNextPage: boolean;
+
+  @state() private _jobToCancel: Job | null = null;
 
   private readonly _pageSize: number = 20; // We will present 20 jobs per page
 
@@ -132,6 +142,47 @@ export class PinpointLandingPageSk extends LitElement {
     }
   }
 
+  private get cancelDialog() {
+    return this.shadowRoot!.querySelector<MdDialog>('#cancel-dialog')!;
+  }
+
+  private get cancelReasonField() {
+    return this.shadowRoot!.querySelector<HTMLInputElement>('md-filled-text-field')!;
+  }
+
+  private handleCancelJobClicked(e: CustomEvent<{ job: Job }>) {
+    this._jobToCancel = e.detail.job;
+    this.cancelDialog.show();
+  }
+
+  private closeCancelDialog() {
+    this.cancelDialog.close();
+    this.cancelReasonField.value = '';
+    this._jobToCancel = null;
+  }
+
+  private async submitCancellation() {
+    const reason = this.cancelReasonField.value;
+    if (!this._jobToCancel || !reason) {
+      this._error = 'A reason is required to cancel a job.';
+      return;
+    }
+
+    this._loading = true;
+    try {
+      await cancelJob({
+        job_id: this._jobToCancel.job_id,
+        reason: reason,
+      });
+      this.closeCancelDialog();
+      await this.fetchJobs();
+    } catch (e) {
+      this._error = `Failed to cancel job: ${(e as Error).message}`;
+    } finally {
+      this._loading = false;
+    }
+  }
+
   render() {
     // Perform client-side sorting of the current page's jobs before rendering.
     const sortedJobs = [...this._pagedJobs].sort((a, b) => {
@@ -175,7 +226,8 @@ export class PinpointLandingPageSk extends LitElement {
           .jobs=${sortedJobs}
           .sortBy=${this._sortBy}
           .sortDir=${this._sortDir}
-          @sort-changed=${this.onSortChanged}></jobs-table-sk>
+          @sort-changed=${this.onSortChanged}
+          @cancel-job-clicked=${this.handleCancelJobClicked}></jobs-table-sk>
         <div class="pagination-controls">
           <md-outlined-button
             ?disabled=${!hasPrevious || this._loading}
@@ -196,6 +248,22 @@ export class PinpointLandingPageSk extends LitElement {
         @search-changed=${this.onSearchChanged}
         @filters-changed=${this.onFiltersChanged}>
         ${loadingIndicator} ${errorIndicator} ${content}
+        <md-dialog id="cancel-dialog">
+          <div slot="headline">Cancel Job</div>
+          <form id="cancel-form" slot="content" method="dialog">
+            <p>Are you sure you want to cancel job: <b>${this._jobToCancel?.job_name}</b>?</p>
+            <md-filled-text-field
+              label="Reason"
+              required
+              style="width: 100%;"></md-filled-text-field>
+          </form>
+          <div slot="actions">
+            <md-outlined-button @click=${this.closeCancelDialog}>Back</md-outlined-button>
+            <md-filled-button @click=${this.submitCancellation} ?disabled=${this._loading}>
+              Submit
+            </md-filled-button>
+          </div>
+        </md-dialog>
       </pinpoint-scaffold-sk>
     `;
   }

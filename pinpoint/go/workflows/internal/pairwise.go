@@ -20,9 +20,9 @@ import (
 
 // TODO(natnaelal) Expand potential job statuses to include intermediate statuses
 const (
-	failed    = "FAILED"
-	completed = "COMPLETED"
-	canceled  = "CANCELED"
+	failed    = "Failed"
+	completed = "Completed"
+	canceled  = "Canceled"
 )
 
 func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (

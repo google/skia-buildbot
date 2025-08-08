@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Job } from '../../services/api';
 import '@material/web/icon/icon.js';
+import '@material/web/button/filled-tonal-button.js';
 import '../../../../elements-sk/modules/icons/arrow-upward-icon-sk';
 import '../../../../elements-sk/modules/icons/arrow-downward-icon-sk';
 
@@ -35,6 +36,7 @@ export class JobsTableSk extends LitElement {
     { key: 'created_date', label: 'Created' },
     { key: 'job_type', label: 'Type' },
     { key: 'job_status', label: 'Status' },
+    { key: 'actions', label: '' },
   ];
 
   static styles = css`
@@ -67,6 +69,11 @@ export class JobsTableSk extends LitElement {
     a:hover {
       text-decoration: underline;
     }
+    .cancel-button {
+      --md-filled-tonal-button-container-height: 32px;
+      --md-filled-tonal-button-label-text-size: 0.875rem;
+      --md-sys-color-on-secondary-container: var(--md-sys-color-on-error-container);
+    }
   `;
 
   private onHeaderClick(key: string) {
@@ -81,6 +88,16 @@ export class JobsTableSk extends LitElement {
     this.dispatchEvent(
       new CustomEvent('sort-changed', {
         detail: { sortBy: key, sortDir: newDir },
+      })
+    );
+  }
+
+  private onCancelClick(job: Job) {
+    this.dispatchEvent(
+      new CustomEvent('cancel-job-clicked', {
+        detail: { job },
+        bubbles: true,
+        composed: true,
       })
     );
   }
@@ -134,6 +151,17 @@ export class JobsTableSk extends LitElement {
                 <td>${this.formatDate(job.created_date)}</td>
                 <td>${job.job_type}</td>
                 <td>${job.job_status}</td>
+                <td>
+                  ${job.job_status === 'Pending' || job.job_status === 'Running'
+                    ? html`
+                        <md-filled-tonal-button
+                          class="cancel-button"
+                          @click=${() => this.onCancelClick(job)}>
+                          Cancel
+                        </md-filled-tonal-button>
+                      `
+                    : ''}
+                </td>
               </tr>
             `
           )}
