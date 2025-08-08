@@ -46,10 +46,11 @@ type Syncer struct {
 	queue         chan func(int)
 	workdir       string
 	tmpDir        string
+	useGitCache   bool
 }
 
 // New returns a Syncer instance.
-func New(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int) (*Syncer, error) {
+func New(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int, useGitCache bool) (*Syncer, error) {
 	queue := make(chan func(int))
 	s := &Syncer{
 		depotToolsDir: depotToolsDir,
@@ -57,6 +58,7 @@ func New(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string
 		repos:         repos,
 		workdir:       workdir,
 		tmpDir:        filepath.Join(os.TempDir(), "task-scheduler-syncer"),
+		useGitCache:   useGitCache,
 	}
 	if err := s.cleanupTempDirs(ctx); err != nil {
 		return nil, skerr.Wrap(err)
@@ -127,7 +129,10 @@ func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, fn func(*g
 			return
 		}
 		defer util.RemoveAll(tmp)
-		cacheDir := path.Join(s.workdir, "cache", fmt.Sprintf("%d", workerId))
+		cacheDir := ""
+		if s.useGitCache {
+			cacheDir = path.Join(s.workdir, "cache", fmt.Sprintf("%d", workerId))
+		}
 		gr, err := tempGitRepoGclient(ctx, rs, s.depotToolsDir, cacheDir, tmp)
 		if err != nil {
 			rvErr <- skerr.Wrap(err)
@@ -275,12 +280,14 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	env := []string{
 		"DEPOT_TOOLS_METRICS=0",
 		"DEPOT_TOOLS_UPDATE=0",
-		fmt.Sprintf("GIT_CACHE_PATH=%s", gitCacheDir),
 		fmt.Sprintf("HOME=%s", tmp),
 		fmt.Sprintf("INFRA_GIT_WRAPPER_HOME=%s", tmp),
 		fmt.Sprintf("PATH=%s", strings.Join(paths, ":")),
 		// Incase we need to download topics.
 		"SKIP_GCE_AUTH_FOR_GIT=1",
+	}
+	if gitCacheDir != "" {
+		env = append(env, fmt.Sprintf("GIT_CACHE_PATH=%s", gitCacheDir))
 	}
 
 	spec := fmt.Sprintf("solutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", projectName, rs.Repo)
@@ -305,8 +312,10 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		vpythonBinary, "-u", gclientPath, "sync",
 		"--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision),
 		"--reset", "--force", "--ignore_locks", "--nohooks", "--noprehooks",
-		"--shallow",
 		"-v", "-v", "-v", // Delete this if/when logs are too verbose.
+	}
+	if gitCacheDir == "" {
+		cmd = append(cmd, "--shallow")
 	}
 	if ctx.Value(SkipDownloadTopicsKey) == nil {
 		cmd = append(cmd, "--download-topics")

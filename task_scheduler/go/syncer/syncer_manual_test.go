@@ -49,7 +49,7 @@ func TestTempGitRepoErr(t *testing.T) {
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	require.NoError(t, err)
 
-	s, err := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers)
+	s, err := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers, true)
 	require.NoError(t, err)
 	defer testutils.AssertCloses(t, s)
 
@@ -105,7 +105,7 @@ func TestLazyTempGitRepo(t *testing.T) {
 	})
 	ctx = exec.NewContext(context.Background(), mockRun.Run)
 
-	s, err := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers)
+	s, err := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers, true)
 	require.NoError(t, err)
 	defer testutils.AssertCloses(t, s)
 

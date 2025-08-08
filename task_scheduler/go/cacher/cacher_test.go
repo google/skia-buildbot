@@ -35,7 +35,7 @@ func setup(t *testing.T) (context.Context, *CacherImpl, task_cfg_cache.TaskCfgCa
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, wd)
 	require.NoError(t, err)
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
-	s, err := syncer.New(ctx, repos, depotTools, wd, 1)
+	s, err := syncer.New(ctx, repos, depotTools, wd, 1, true)
 	require.NoError(t, err)
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)

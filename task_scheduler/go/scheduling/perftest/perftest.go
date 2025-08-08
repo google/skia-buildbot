@@ -344,7 +344,7 @@ func main() {
 	depotTools, err := depot_tools.GetDepotTools(ctx, workdir)
 	assertNoError(err)
 	pubsubClient := &pubsub_mocks.Client{}
-	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "skia", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient, syncer.DefaultNumWorkers)
+	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "skia", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient, syncer.DefaultNumWorkers, true)
 	assertNoError(err)
 
 	// Wait for job-creator to process the jobs from the repo.

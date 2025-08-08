@@ -70,6 +70,7 @@ var (
 	workdir                  = flag.String("workdir", "workdir", "Working directory to use.")
 	promPort                 = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	numSyncWorkers           = flag.Int("sync_workers", syncer.DefaultNumWorkers, "Number of sync worker goroutines to use.")
+	useGitCache              = flag.Bool("use_git_cache", true, "Whether or not to use a Git cache for syncing.")
 )
 
 func main() {
@@ -204,7 +205,7 @@ func main() {
 
 	// Create and start the JobCreator.
 	sklog.Infof("Creating JobCreator.")
-	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, cas, httpClient, *buildbucketProject, *buildbucketTarget, *buildbucketBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, pubsubClient, *numSyncWorkers)
+	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, cas, httpClient, *buildbucketProject, *buildbucketTarget, *buildbucketBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, pubsubClient, *numSyncWorkers, *useGitCache)
 	if err != nil {
 		_ = metrics2.GetDefaultClient().Flush()
 		sklog.Fatal(err)
