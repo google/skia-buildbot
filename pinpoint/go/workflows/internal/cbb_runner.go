@@ -111,11 +111,11 @@ type browserInfo struct {
 func getBrowserInfo(ctx workflow.Context, cbb *CbbRunnerParams) (*browserInfo, error) {
 	var platformName string
 	if strings.HasPrefix(cbb.BotConfig, "mac-") {
-		platformName = "macOS"
+		platformName = "mac"
 	} else if strings.HasPrefix(cbb.BotConfig, "win-") {
-		platformName = "Windows"
+		platformName = "windows"
 	} else if strings.HasPrefix(cbb.BotConfig, "android-") {
-		platformName = "Android"
+		platformName = "android"
 	} else {
 		return nil, fmt.Errorf("Unable to determine platform for bot %s", cbb.BotConfig)
 	}
@@ -150,9 +150,9 @@ func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
 	// * Channel name is omitted if it is "Stable".
 	// * Special case: Safari Technology Preview is abbreviated as "STP".
 	browser := bi.Browser[:3]
-	if bi.Channel != "Stable" {
-		if bi.Browser == "Safari" && bi.Channel == "Technology Preview" {
-			browser = "STP"
+	if bi.Channel != "stable" {
+		if bi.Browser == "safari" && bi.Channel == "technology-preview" {
+			browser = "stp"
 		} else {
 			browser += " " + bi.Channel
 		}
@@ -317,6 +317,11 @@ func formatResult(cr *CommitRun, bot string, benchmark string, bi *browserInfo) 
 		}
 	}
 
+	// Form a human-readable browser name and channel string, such as "Chrome Stable".
+	browser_id := fmt.Sprintf("%s %s", bi.Browser, bi.Channel)
+	browser_id = strings.ReplaceAll(browser_id, "-", " ")
+	browser_id = strings.Title(browser_id)
+
 	for c, v := range values {
 		h := perfresults.Histogram{
 			SampleValues: v,
@@ -326,7 +331,7 @@ func formatResult(cr *CommitRun, bot string, benchmark string, bi *browserInfo) 
 			Key: map[string]string{
 				"test":      c,
 				"unit":      u,
-				"subtest_1": fmt.Sprintf("%s %s", bi.Browser, bi.Channel),
+				"subtest_1": browser_id,
 			},
 			Measurements: map[string][]format.SingleMeasurement{
 				// Following the convention used in CBB v2 (bench-o-matic) and v3 (swarming-in-google3),
