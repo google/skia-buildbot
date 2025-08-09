@@ -9,11 +9,10 @@ import (
 	"regexp"
 	"time"
 
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 )
 
 // BuildInfo fromt the ChromiumDash response.
@@ -45,21 +44,11 @@ const (
 	// cbbBranchName provides a default name to create a new branch.
 	cbbBranchName = "cbb-autoroll"
 	// cbbCommitMessage provides a default commit message.
-	cbbCommitMessage = "Update CBB autorolll for the builds refs"
-	// clNumberStatus to get CL# and status from `git cl status` output.
-	// e.g. "  * cbb-autoroll : https://crrev.com/c/12345 (closed)"
-	// match[1] == "12345", match[2] == '(closed)'
-	clNumberStatus = "%s.*:.*https://crrev.com/c/(\\d+) (.+)"
+	cbbCommitMessage = "Update CBB autorolll for the builds refs\n\nNo-try: true"
 	// clCommitNumber to get CL commit number from `git cl status` output.
 	// e.g. "  Cr-Commit-Position: refs/heads/main@{#99999}"
 	// match[1] == "99999"
 	clCommitNumber = ".*Cr-Commit-Position: refs/heads/main@{#(\\d+)}"
-	// crrevUrl to get git hash from a commit position from the crrev.com
-	crrevUrl = "https://crrev.com/%s"
-	// crrevCommitHash to commit hash from a redirect crrev URL.
-	// e.g. "https://chromium.googlesource.com/chromium/src/+/12345abcdef"
-	// match[1] == "12345abcdef'
-	crrevCommitHash = "https://chromium.googlesource.com/chromium/src/\\+/(.*)"
 )
 
 var (
@@ -185,77 +174,59 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*Chr
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to publish the change to Gerrit.")
 	}
-	// Refresh the change info.
+	// Must call GetChange to refresh the ChangeInfo, otherwise SetReview will fail.
 	ci, err = client.gerritClient.GetChange(client.ctx, ci.Id)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to refresh change info.")
+		return nil, skerr.Wrapf(err, "Failed to refresh change info after publishing edit.")
 	}
-	sklog.Infof("Change published to Gerrit, change info: %#v", ci)
+	labels := map[string]int{"Auto-Submit": 1}
+	reviewers := []string{"rubber-stamper@appspot.gserviceaccount.com"}
+	err = client.gerritClient.SetReview(client.ctx, ci, "", labels, reviewers, "", nil, "", 0, nil)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to set review info on Gerrit.")
+	}
+	sklog.Infof("Change published to Gerrit, change ID: %v", ci.Issue)
 
-	// TODO(b/433796566): waitForSubmitCl doesn't currently work, so skipping it.
-	return nil, nil
-	// return waitForSubmitCl(client)
+	return waitForSubmitCl(client, ci)
 }
 
 // waitForSubmitCl waits for the 'rubber-stamper' to submit uploaded CLs, then
 // returns the commit position.
-func waitForSubmitCl(client *gitClient) (*ChromeReleaseInfo, error) {
+func waitForSubmitCl(client *gitClient, ci *gerrit.ChangeInfo) (*ChromeReleaseInfo, error) {
 	var commitPosition string
-	statusPattern := fmt.Sprintf(clNumberStatus, cbbBranchName)
 	sklog.Infof("Waiting for CL to be submitted.")
 	start := time.Now()
 	for {
 		if time.Now().Sub(start) > ClSubmissionTimeout {
 			return nil, fmt.Errorf("waitForSubmitCl timeout!")
 		}
-		// TODO(b/433796566): Re-implement without using "cl" command.
-		stdout, err := exec.RunCwd(
-			client.ctx, client.repoDir, client.gitExec, "cl", "status")
+		// Refresh the change info to get the latest CL status.
+		ci, err := client.gerritClient.GetChange(client.ctx, ci.Id)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to run `git cl status`.")
+			return nil, skerr.Wrapf(err, "Failed to refresh change info.")
 		}
-		re := regexp.MustCompile(statusPattern)
-		match := re.FindStringSubmatch(stdout)
-		if len(match) == 3 && match[2] == "(closed)" {
-			re = regexp.MustCompile(clCommitNumber)
-			match = re.FindStringSubmatch(stdout)
+		if ci.Committed {
+			commitHash := ci.Patchsets[len(ci.Patchsets)-1].ID
+			commit, err := client.gerritClient.GetCommit(client.ctx, ci.Issue, commitHash)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "Failed to get commit info")
+			}
+			re := regexp.MustCompile(clCommitNumber)
+			match := re.FindStringSubmatch(commit.Message)
 			if len(match) != 2 {
-				return nil, fmt.Errorf("Failed to detect Commit Number: %s", stdout)
+				return nil, fmt.Errorf("Failed to detect Commit Number: %s", commit.Message)
 			}
 			commitPosition = match[1]
 			sklog.Infof("Detected commit number=%s", commitPosition)
-			return findCommitHash(client.ctx, commitPosition)
+			releaseInfo := &ChromeReleaseInfo{
+				CommitPosition: commitPosition,
+				CommitHash:     commitHash,
+			}
+			return releaseInfo, nil
 		} else {
-			sklog.Infof("CL status: stdout=%s\nmatch=%v", stdout, match)
+			sklog.Infof("CL status: %s", ci.Status)
 		}
 
 		time.Sleep(10 * time.Second)
 	}
-}
-
-// findCommitHash finds the commit hash by hitting the crrev.com with the
-// commit position. The redirected url includes the commit hash value.
-func findCommitHash(ctx context.Context, commitPosition string) (*ChromeReleaseInfo, error) {
-	url := fmt.Sprintf(crrevUrl, commitPosition)
-	resp, err := httputils.GetWithContext(ctx, httpClient, url)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		util.Close(resp.Body)
-		return nil, skerr.Fmt("findCommitHash got status %q", resp.Status)
-	}
-	redirectUrl := resp.Request.URL.String()
-	sklog.Infof("crrev.com redirect URL=%s", redirectUrl)
-	re := regexp.MustCompile(crrevCommitHash)
-	match := re.FindStringSubmatch(redirectUrl)
-	if len(match) != 2 {
-		return nil, fmt.Errorf("Failed to detect Commit Hash: %v", resp.Request.URL)
-	}
-	commitHash := match[1]
-	commitInfo := &ChromeReleaseInfo{
-		CommitPosition: commitPosition,
-		CommitHash:     commitHash,
-	}
-	return commitInfo, nil
 }
