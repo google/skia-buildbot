@@ -186,6 +186,8 @@ export class TriageMenuSk extends ElementSk {
           bug_id = 0;
         } else if (editAction === 'IGNORE') {
           bug_id = -2;
+          const anomalyIds = anomalies.map((a) => a.id).join(', ');
+          alert(`Anomaly has ignore with anomaly id: ${anomalyIds}`);
         }
         if (bug_id !== null) {
           for (let i = 0; i < anomalies.length; i++) {
