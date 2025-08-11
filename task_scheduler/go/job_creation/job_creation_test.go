@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/cas/mocks"
@@ -22,11 +23,12 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
+	cacher_mocks "go.skia.org/infra/task_scheduler/go/cacher/mocks"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/syncer"
-	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
+	tcc_mocks "go.skia.org/infra/task_scheduler/go/task_cfg_cache/mocks"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarmingv2"
 	swarming_testutils "go.skia.org/infra/task_scheduler/go/testutils"
@@ -40,7 +42,6 @@ const (
 
 // Common setup for JobCreator tests.
 func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *memory.InMemoryDB, *JobCreator, *mockhttpclient.URLMock, *mocks.CAS, func()) {
-
 	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -58,22 +59,47 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *memory.In
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
 	g, err := gerrit.NewGerrit(fakeGerritUrl, urlMock.Client())
 	require.NoError(t, err)
-	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
-	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
-	require.NoError(t, err)
+
 	cas := &mocks.CAS{}
 	// Go ahead and mock the single-input merge calls.
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.CompileCASDigest}).Return(tcc_testutils.CompileCASDigest, nil)
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
-	jc, err := NewJobCreator(ctx, d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, cas, urlMock.Client(), "skia", "fake-bb-target", tryjobs.BUCKET_TESTING, projectRepoMapping, depotTools, g, taskCfgCache, nil, syncer.DefaultNumWorkers, true)
+	c1 := repos[gb.RepoUrl()].Get(git.MainBranch)
+	c0 := c1.Parents[0]
+	rs0 := types.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c0,
+	}
+	rs1 := types.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c1.Hash,
+	}
+
+	taskCfgCache := &tcc_mocks.TaskCfgCache{}
+	taskCfgCache.On("Get", testutils.AnyContext, rs1).Return(tcc_testutils.TasksCfg2, nil, nil)
+	taskCfgCache.On("Get", testutils.AnyContext, rs0).Return(tcc_testutils.TasksCfg1, nil, nil)
+	taskCfgCache.On("Cleanup", testutils.AnyContext, mock.Anything).Return(nil)
+
+	jc, err := newJobCreatorWithoutInit(ctx, d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, cas, urlMock.Client(), "skia", "fake-bb-target", tryjobs.BUCKET_TESTING, projectRepoMapping, depotTools, g, taskCfgCache, nil, syncer.DefaultNumWorkers, true)
 	require.NoError(t, err)
+
+	mockCacher := &cacher_mocks.Cacher{}
+	jc.cacher = mockCacher
+	mockCacher.On("GetOrCacheRepoState", testutils.AnyContext, rs1).Return(tcc_testutils.TasksCfg2, nil)
+	mockCacher.On("GetOrCacheRepoState", testutils.AnyContext, rs0).Return(tcc_testutils.TasksCfg1, nil)
+
+	require.NoError(t, jc.initCaches(ctx))
+
+	jc.Start(ctx, false)
+
 	return ctx, gb, d, jc, urlMock, cas, func() {
+		taskCfgCache.On("Close").Return(nil)
 		testutils.AssertCloses(t, jc)
+		mockCacher.AssertExpectations(t)
 		testutils.RemoveAll(t, tmp)
 		gb.Cleanup()
-		btCleanup()
 		cancel()
 	}
 }
@@ -93,16 +119,34 @@ func updateRepos(t *testing.T, ctx context.Context, jc *JobCreator) {
 	require.True(t, acked)
 }
 
-func makeDummyCommits(ctx context.Context, gb *git_testutils.GitBuilder, numCommits int) {
+func mockLastCommit(t *testing.T, ctx context.Context, gb *git_testutils.GitBuilder, taskCfgCache *tcc_mocks.TaskCfgCache, cacher *cacher_mocks.Cacher) {
+	tasksCfg, err := specs.ReadTasksCfg(gb.Dir())
+	require.NoError(t, err)
+
+	hash, err := git.CheckoutDir(gb.Dir()).RevParse(ctx, "HEAD")
+	require.NoError(t, err)
+	rs := types.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: hash,
+	}
+	taskCfgCache.On("Get", testutils.AnyContext, rs).Return(tasksCfg, nil, nil)
+	cacher.On("GetOrCacheRepoState", testutils.AnyContext, rs).Return(tasksCfg, nil, nil)
+}
+
+func makeFakeCommits(t *testing.T, ctx context.Context, gb *git_testutils.GitBuilder, taskCfgCache *tcc_mocks.TaskCfgCache, cacher *cacher_mocks.Cacher, numCommits int) {
 	for i := 0; i < numCommits; i++ {
-		gb.AddGen(ctx, "dummyfile.txt")
-		gb.CommitMsg(ctx, fmt.Sprintf("Dummy #%d/%d", i, numCommits))
+		gb.AddGen(ctx, "fakefile.txt")
+		gb.CommitMsg(ctx, fmt.Sprintf("Fake #%d/%d", i, numCommits))
+		mockLastCommit(t, ctx, gb, taskCfgCache, cacher)
 	}
 }
 
 func TestGatherNewJobs(t *testing.T) {
 	ctx, gb, _, jc, _, _, cleanup := setup(t)
 	defer cleanup()
+
+	tcc := jc.taskCfgCache.(*tcc_mocks.TaskCfgCache)
+	cacher := jc.cacher.(*cacher_mocks.Cacher)
 
 	testGatherNewJobs := func(expectedJobs int) {
 		updateRepos(t, ctx, jc)
@@ -126,12 +170,12 @@ func TestGatherNewJobs(t *testing.T) {
 
 	// Add a commit on main, run gatherNewJobs, ensure that we added the
 	// new Jobs.
-	makeDummyCommits(ctx, gb, 1)
+	makeFakeCommits(t, ctx, gb, tcc, cacher, 1)
 	updateRepos(t, ctx, jc)
 	testGatherNewJobs(8) // we didn't add to the jobs spec, so 3 jobs/rev.
 
 	// Add several commits on main, ensure that we added all of the Jobs.
-	makeDummyCommits(ctx, gb, 10)
+	makeFakeCommits(t, ctx, gb, tcc, cacher, 10)
 	updateRepos(t, ctx, jc)
 	testGatherNewJobs(38) // 3 jobs/rev + 8 pre-existing jobs.
 
@@ -143,14 +187,15 @@ func TestGatherNewJobs(t *testing.T) {
 	fileName := "some_other_file"
 	gb.Add(ctx, fileName, msg)
 	gb.Commit(ctx)
+	mockLastCommit(t, ctx, gb, tcc, cacher)
 	updateRepos(t, ctx, jc)
 	testGatherNewJobs(41) // 38 previous jobs + 3 new ones.
 
 	// Add several commits in a row on different branches, ensure that we
 	// added all of the Jobs for all of the new commits.
-	makeDummyCommits(ctx, gb, 5)
+	makeFakeCommits(t, ctx, gb, tcc, cacher, 5)
 	gb.CheckoutBranch(ctx, git.MainBranch)
-	makeDummyCommits(ctx, gb, 5)
+	makeFakeCommits(t, ctx, gb, tcc, cacher, 5)
 	updateRepos(t, ctx, jc)
 	testGatherNewJobs(71) // 10 commits x 3 jobs/commit = 30, plus 41
 
@@ -168,6 +213,7 @@ func TestGatherNewJobs(t *testing.T) {
 	require.NoError(t, err)
 	gb.Add(ctx, "infra/bots/tasks.json", string(cfgBytes))
 	gb.CommitMsgAt(ctx, "abcd", time.Now())
+	mockLastCommit(t, ctx, gb, tcc, cacher)
 	updateRepos(t, ctx, jc)
 	testGatherNewJobs(72)
 }
@@ -175,6 +221,9 @@ func TestGatherNewJobs(t *testing.T) {
 func TestPeriodicJobs(t *testing.T) {
 	ctx, gb, _, jc, _, _, cleanup := setup(t)
 	defer cleanup()
+
+	tcc := jc.taskCfgCache.(*tcc_mocks.TaskCfgCache)
+	cacher := jc.cacher.(*cacher_mocks.Cacher)
 
 	// Rewrite tasks.json with a periodic job.
 	nightlyName := "Nightly-Job"
@@ -218,6 +267,7 @@ func TestPeriodicJobs(t *testing.T) {
 	}
 	gb.Add(ctx, specs.TASKS_CFG_FILE, testutils.MarshalJSON(t, &cfg))
 	gb.Commit(ctx)
+	mockLastCommit(t, ctx, gb, tcc, cacher)
 	updateRepos(t, ctx, jc)
 
 	// Trigger the periodic jobs. Make sure that we inserted the new Job.
@@ -270,7 +320,6 @@ func TestPeriodicJobs(t *testing.T) {
 }
 
 func TestTaskSchedulerIntegration(t *testing.T) {
-
 	ctx, _, d, jc, _, cas, cleanup := setup(t)
 	defer cleanup()
 

@@ -65,6 +65,14 @@ type JobCreator struct {
 
 // NewJobCreator returns a JobCreator instance.
 func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, rbe cas.CAS, c *http.Client, buildbucketProject, buildbucketTarget, buildbucketBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache task_cfg_cache.TaskCfgCache, pubsubClient pubsub.Client, numSyncWorkers int, useGitCache bool) (*JobCreator, error) {
+	jc, err := newJobCreatorWithoutInit(ctx, d, period, numCommits, workdir, host, repos, rbe, c, buildbucketProject, buildbucketTarget, buildbucketBucket, projectRepoMapping, depotTools, gerrit, taskCfgCache, pubsubClient, numSyncWorkers, useGitCache)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return jc, jc.initCaches(ctx)
+}
+
+func newJobCreatorWithoutInit(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, rbe cas.CAS, c *http.Client, buildbucketProject, buildbucketTarget, buildbucketBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache task_cfg_cache.TaskCfgCache, pubsubClient pubsub.Client, numSyncWorkers int, useGitCache bool) (*JobCreator, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -104,9 +112,6 @@ func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommit
 		taskCfgCache:  taskCfgCache,
 		tryjobs:       tryjobs,
 		window:        w,
-	}
-	if err := jc.initCaches(ctx); err != nil {
-		return nil, err
 	}
 	return jc, nil
 }
