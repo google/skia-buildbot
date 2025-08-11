@@ -23,6 +23,7 @@ import (
 	depot_tools_auth "go.skia.org/infra/go/depot_tools/auth"
 	"go.skia.org/infra/go/du"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
@@ -56,6 +57,7 @@ var (
 	buildbucketProject       = flag.String("buildbucket_project", "skia", "luci-config project in which the buildbucket bucket is defined.")
 	buildbucketTarget        = flag.String("buildbucket_target", "", "Buildbucket backend target name used to address this scheduler.")
 	buildbucketPubSubProject = flag.String("buildbucket_pubsub_project", "", "Pub/sub project used for sending messages to Buildbucket.")
+	bypassGitWrapper         = flag.Bool("bypass_git_wrapper", false, "If set, bypass the git wrapper and call git directly.")
 	host                     = flag.String("host", "localhost", "HTTP service host")
 	port                     = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	disableTryjobs           = flag.Bool("disable_try_jobs", false, "If set, no try jobs will be picked up.")
@@ -95,6 +97,10 @@ func main() {
 	}
 	ctx, cancelFn := context.WithCancel(context.Background())
 	cleanup.AtExit(cancelFn)
+
+	if *bypassGitWrapper {
+		git.BypassWrapper(true)
+	}
 
 	// Get the absolute workdir.
 	wdAbs, err := filepath.Abs(*workdir)

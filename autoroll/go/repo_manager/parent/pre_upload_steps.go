@@ -535,7 +535,7 @@ func GenericPreUploadStep(ctx context.Context, cfg *config.PreUploadConfig, env 
 		for idx := range split {
 			split[idx] = replaceMagicVars(split[idx])
 		}
-		executable, err := exec.LookPath(split[0], pathVar)
+		executable, err := exec.LookPath(ctx, split[0], pathVar)
 		if err != nil {
 			return skerr.Wrap(err)
 		}

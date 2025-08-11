@@ -41,11 +41,6 @@ func (bl BranchList) Len() int           { return len(bl) }
 func (bl BranchList) Less(a, b int) bool { return bl[a].Name < bl[b].Name }
 func (bl BranchList) Swap(a, b int)      { bl[a], bl[b] = bl[b], bl[a] }
 
-// Executable returns the path to Git.
-func Executable(ctx context.Context) (string, error) {
-	return git_common.Executable(ctx)
-}
-
 // GitDir is a directory in which one may run Git commands.
 type GitDir interface {
 	// Dir returns the working directory of the GitDir.

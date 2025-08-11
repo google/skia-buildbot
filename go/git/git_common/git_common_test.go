@@ -11,7 +11,7 @@ import (
 	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 )
 
-func TestFindGit(t *testing.T) {
+func TestFindGit_WithGitFinder(t *testing.T) {
 	execCount := 0
 	gitFinder := func() (string, error) {
 		execCount++
@@ -27,7 +27,6 @@ func TestFindGit(t *testing.T) {
 		require.NotEqual(t, 0, major)
 		require.NotEqual(t, 0, minor)
 		require.False(t, isWrapper)
-		require.True(t, git_common.IsFromCIPD(git))
 	}
 	check()
 	require.Equal(t, 1, execCount)

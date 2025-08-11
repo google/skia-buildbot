@@ -319,7 +319,7 @@ func (c *execContext) runSimpleCommand(ctx context.Context, command *Command) (s
 	// Setting Verbose to Silent to maintain previous behavior.
 	command.Verbose = Silent
 	err := c.Run(ctx, command)
-	result := string(output.Bytes())
+	result := output.String()
 	if err != nil {
 		return result, fmt.Errorf("%s; Stdout+Stderr:\n%s", err.Error(), result)
 	}
@@ -403,9 +403,24 @@ func (w *threadSafeWriter) Write(b []byte) (int, error) {
 	return w.w.Write(b)
 }
 
+const overrideExecutableExistsContextKey = "exec.IsExecutable"
+
+// WithOverrideExecutableExists overrides the function used by LookPath to
+// determine whether an executable exists for testing.
+func WithOverrideExecutableExists(ctx context.Context, exists func(name string) bool) context.Context {
+	return context.WithValue(ctx, overrideExecutableExistsContextKey, exists)
+}
+
 // findExecutable determines whether the given file path is an executable.
 // Implementation taken directly from os/exec package.
-func findExecutable(file string) error {
+func findExecutable(ctx context.Context, file string) error {
+	if executableExists := ctx.Value(overrideExecutableExistsContextKey); executableExists != nil {
+		if executableExists.(func(string) bool)(file) {
+			return nil
+		} else {
+			return fs.ErrNotExist
+		}
+	}
 	d, err := os.Stat(file)
 	if err != nil {
 		return err
@@ -417,35 +432,43 @@ func findExecutable(file string) error {
 }
 
 // LookPath searches for an executable named file in the directories named by
+// the pathVar argument.
+func LookPath(ctx context.Context, file, pathVar string) (string, error) {
+	foundPaths := LookPathAll(ctx, file, pathVar)
+	if len(foundPaths) == 0 {
+		return "", &osexec.Error{
+			Name: file,
+			Err:  osexec.ErrNotFound,
+		}
+	}
+	return foundPaths[0], nil
+}
+
+// LookPathAll searches for executables named file in the directories named by
 // the path argument. Implementation is taken directly from the os/exec package
-// but modified to search given path argument instead of os.Getenv("PATH").
-func LookPath(file, path string) (string, error) {
+// but modified to search given path argument instead of os.Getenv("PATH") and
+// to return all matching executables.
+func LookPathAll(ctx context.Context, file, pathVar string) []string {
 	// NOTE(rsc): I wish we could use the Plan 9 behavior here
 	// (only bypass the path if file begins with / or ./ or ../)
 	// but that would not match all the Unix shells.
-
 	if strings.Contains(file, "/") {
-		err := findExecutable(file)
+		err := findExecutable(ctx, file)
 		if err == nil {
-			return file, nil
+			return []string{file}
 		}
-		return "", &osexec.Error{
-			Name: file,
-			Err:  err,
-		}
+		return []string{}
 	}
-	for _, dir := range filepath.SplitList(path) {
+	var rv []string
+	for _, dir := range filepath.SplitList(pathVar) {
 		if dir == "" {
 			// Unix shell semantics: path element "" means "."
 			dir = "."
 		}
 		path := filepath.Join(dir, file)
-		if err := findExecutable(path); err == nil {
-			return path, nil
+		if err := findExecutable(ctx, path); err == nil {
+			rv = append(rv, path)
 		}
 	}
-	return "", &osexec.Error{
-		Name: file,
-		Err:  osexec.ErrNotFound,
-	}
+	return rv
 }

@@ -55,6 +55,16 @@ const (
 // ObjectType represents a Git object type.
 type ObjectType string
 
+// Executable returns the path to Git.
+func Executable(ctx context.Context) (string, error) {
+	return git_common.Executable(ctx)
+}
+
+// BypassWrapper forces subsequent calls to Git to bypass the Git wrapper.
+func BypassWrapper(shouldBypass bool) {
+	git_common.BypassWrapper(shouldBypass)
+}
+
 // Clone runs "git clone" into the given destination directory. Most callers
 // should use NewRepo or NewCheckout instead.
 func Clone(ctx context.Context, repoUrl, dest string, mirror bool) error {

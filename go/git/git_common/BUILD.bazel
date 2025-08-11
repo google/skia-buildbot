@@ -17,10 +17,15 @@ go_library(
 
 go_test(
     name = "git_common_test",
-    srcs = ["git_common_test.go"],
+    srcs = [
+        "git_common_manual_test.go",
+        "git_common_test.go",
+    ],
     deps = [
         ":git_common",
         "//bazel/external/cipd/git",
+        "//go/exec",
+        "//go/skerr",
         "@com_github_stretchr_testify//require",
     ],
 )
