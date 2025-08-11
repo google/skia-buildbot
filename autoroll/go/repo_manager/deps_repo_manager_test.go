@@ -25,7 +25,6 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -86,7 +85,7 @@ func depsCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 	}
 }
 
-func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, *mockhttpclient.URLMock, *bool, func()) {
+func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, *mockhttpclient.URLMock, *string, func()) {
 	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
@@ -111,7 +110,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig
 	parent.Commit(ctx)
 
 	lastUpload := new(vcsinfo.LongCommit)
-	patchRefInSyncCmd := new(bool)
+	patchRefInSyncCmd := new(string)
 	mockRun := &exec.CommandCollector{}
 	ctx = exec.NewContext(ctx, mockRun.Run)
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -122,9 +121,13 @@ func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig
 			}
 			*lastUpload = *d
 			return nil
-		} else if cmd.Name == "vpython3" && strings.Contains(cmd.Args[0], "gclient.py") && cmd.Args[1] == "sync" && util.In("--patch-ref", cmd.Args) && util.In("--no-rebase-patch-ref", cmd.Args) && util.In("--no-reset-patch-ref", cmd.Args) {
-			*patchRefInSyncCmd = true
-			return nil
+		} else if cmd.Name == "vpython3" && strings.Contains(cmd.Args[0], "gclient.py") && cmd.Args[1] == "sync" {
+			for idx, arg := range cmd.Args {
+				if arg == "--patch-ref" {
+					*patchRefInSyncCmd = cmd.Args[idx+1]
+					return nil
+				}
+			}
 		}
 		return exec.DefaultRun(ctx, cmd)
 	})
@@ -273,7 +276,7 @@ func TestDEPSRepoManagerCreateNewRollWithPatchRef(t *testing.T) {
 
 	lastRollRev, _, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
-	require.Equal(t, false, *patchRefInSyncCmd)
+	require.Equal(t, "", *patchRefInSyncCmd)
 
 	// Mock the request to load the change.
 	mockGerritGetAndPublishChange(t, urlmock, cfg)
@@ -284,7 +287,10 @@ func TestDEPSRepoManagerCreateNewRollWithPatchRef(t *testing.T) {
 	}
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, unsubmittedRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
 	require.NoError(t, err)
-	require.Equal(t, true, *patchRefInSyncCmd)
+	repoUrl := cfg.GetDepsLocalGerritParent().DepsLocal.GitCheckout.Dep.Primary.Id
+	childBranch := cfg.GetGitCheckoutChild().GitCheckout.Branch
+	patchRef := fmt.Sprintf("%s@%s:%s", repoUrl, childBranch, unsubmittedRev.Id)
+	require.Equal(t, patchRef, *patchRefInSyncCmd)
 	require.Equal(t, int64(123), issue)
 }
 

@@ -28,22 +28,29 @@ type parentChildRepoManager struct {
 // newParentChildRepoManager returns a RepoManager which pairs a Parent with a
 // Child.
 func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, serverURL string, client *http.Client, cr codereview.CodeReview) (*parentChildRepoManager, error) {
+	// Get the child branch, if any.
+	var childBranchTmpl string
+	if c.GetGitilesChild() != nil {
+		childBranchTmpl = c.GetGitilesChild().Gitiles.Branch
+	} else if c.GetGitCheckoutChild() != nil {
+		childBranchTmpl = c.GetGitCheckoutChild().GitCheckout.Branch
+	} else if c.GetGitCheckoutGithubChild() != nil {
+		childBranchTmpl = c.GetGitCheckoutGithubChild().GitCheckout.GitCheckout.Branch
+	}
+	var childBranch *config_vars.Template
+	var err error
+	if childBranchTmpl != "" {
+		childBranch, err = config_vars.NewTemplate(childBranchTmpl)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if err := reg.Register(childBranch); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+
 	var childRM child.Child
 	var parentRM parent.Parent
-	var err error
-
-	// Get the child branch, if any.
-	var childBranch *config_vars.Template
-	if c.GetGitilesChild() != nil {
-		childBranch, err = config_vars.NewTemplate(c.GetGitilesChild().Gitiles.Branch)
-	} else if c.GetGitCheckoutChild() != nil {
-		childBranch, err = config_vars.NewTemplate(c.GetGitCheckoutChild().GitCheckout.Branch)
-	} else if c.GetGitCheckoutGithubChild() != nil {
-		childBranch, err = config_vars.NewTemplate(c.GetGitCheckoutGithubChild().GitCheckout.GitCheckout.Branch)
-	}
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
 
 	// Some Child implementations require that they are created by the Parent,
 	// so we have to create the Parent first.
