@@ -26,11 +26,8 @@
 import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
-import '@vaadin/combo-box/theme/lumo/vaadin-combo-box.js';
-import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
-import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { MultiSelectComboBox } from '@vaadin/multi-select-combo-box';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 
 export interface SplitChartSelectionEventDetails {
   attribute: string;
@@ -59,6 +56,10 @@ export class PickerFieldSk extends ElementSk {
 
   private _index: number = 0;
 
+  /**
+   * Creates an instance of PickerFieldSk.
+   * @param label The label for the picker field.
+   */
   constructor(label: string) {
     super(PickerFieldSk.template);
 
@@ -107,6 +108,12 @@ export class PickerFieldSk extends ElementSk {
     </div>
   `;
 
+  /**
+   * Handles the 'selected-items-changed' event from the
+   * vaadin-multi-select-combo-box.
+   * Dispatches a custom 'value-changed' event with the new selected items.
+   * @param e The event object.
+   */
   private onValueChanged(e: Event) {
     const selectedItems = (e as CustomEvent).detail.value as string[];
     this.dispatchEvent(
@@ -194,6 +201,9 @@ export class PickerFieldSk extends ElementSk {
     this._primarySelected = this.querySelector('checkbox-sk#select-primary');
   }
 
+  /**
+   * Sets focus on the internal vaadin-multi-select-combo-box element.
+   */
   focus() {
     if (this._comboBox !== null) {
       this._comboBox!.focus();
@@ -201,6 +211,10 @@ export class PickerFieldSk extends ElementSk {
     this._render();
   }
 
+  /**
+   * Opens the overlay (dropdown) of the internal
+   * vaadin-multi-select-combo-box element.
+   */
   openOverlay() {
     if (this._comboBox !== null) {
       this._comboBox!.click();
@@ -208,6 +222,11 @@ export class PickerFieldSk extends ElementSk {
     this._render();
   }
 
+  /**
+   * Disables the picker field and associated checkboxes.
+   * Sets the vaadin-multi-select-combo-box to readonly and disables the
+   * "Select All", "Split", and "Primary" checkboxes.
+   */
   disable() {
     if (this._comboBox !== null) {
       this._comboBox!.setAttribute('readonly', '');
@@ -224,6 +243,11 @@ export class PickerFieldSk extends ElementSk {
     }
   }
 
+  /**
+   * Enables the picker field and associated checkboxes.
+   * Removes the readonly attribute from the vaadin-multi-select-combo-box
+   * and enables the "Select All", "Split", and "Primary" checkboxes.
+   */
   enable() {
     if (this._comboBox !== null) {
       this._comboBox!.removeAttribute('opened');
@@ -241,18 +265,28 @@ export class PickerFieldSk extends ElementSk {
     }
   }
 
+  /**
+   * Clears the selected value of the combo box and resets the selected items.
+   */
   clear() {
     this.focus();
     this.setValue('');
     this.selectedItems = [];
   }
 
+  /**
+   * Sets the value of the internal vaadin-multi-select-combo-box element.
+   * @param val The string value to set.
+   */
   setValue(val: string) {
     this._comboBox!.removeAttribute('value');
     this._comboBox!.setAttribute('value', val);
     this._render();
   }
 
+  /**
+   * Enables the split checkbox.
+   */
   enableSplit() {
     if (this._splitBox !== null) {
       this._splitBox.removeAttribute('disabled');
@@ -260,6 +294,9 @@ export class PickerFieldSk extends ElementSk {
     this._render();
   }
 
+  /**
+   * Disables the split checkbox and sets the split property to false.
+   */
   disableSplit() {
     if (this._splitBox !== null) {
       this._split = false;
@@ -268,6 +305,9 @@ export class PickerFieldSk extends ElementSk {
     this._render();
   }
 
+  /**
+   * Resets the selected items of the combo box.
+   */
   reset() {
     this.selectedItems = [];
   }
@@ -293,6 +333,10 @@ export class PickerFieldSk extends ElementSk {
     }
   }
 
+  /**
+   * Returns true if all options are currently selected.
+   * @returns True if all options are selected, false otherwise.
+   */
   private get _isAllSelected(): boolean {
     if (this._options.length === 0) {
       return false;
@@ -300,6 +344,10 @@ export class PickerFieldSk extends ElementSk {
     return this.selectedItems.length === this._options.length;
   }
 
+  /**
+   * Returns true if all primary options are currently selected.
+   * @returns True if all primary options are selected, false otherwise.
+   */
   private get _arePrimarySelected(): boolean {
     if (this._primaryOptions.length === 0) {
       return false;
@@ -308,18 +356,35 @@ export class PickerFieldSk extends ElementSk {
     return this._primaryOptions.length === this.selectedItems.length && show;
   }
 
+  /**
+   * Gets the index of the picker field.
+   * @returns The index of the picker field.
+   */
   get index(): number {
     return this._index;
   }
 
+  /**
+   * Sets the index of the picker field.
+   * @param v The new index value.
+   */
   set index(v: number) {
     this._index = v;
   }
 
+  /**
+   * Gets the current split state of the picker field.
+   * @returns True if the field is split, false otherwise.
+   */
   get split(): boolean {
     return this._split;
   }
 
+  /**
+   * Sets the split state of the picker field.
+   * Updates the checked state of the split checkbox.
+   * @param v The new split state.
+   */
   set split(v: boolean) {
     this._split = v;
     if (this._splitBox !== null) {
@@ -328,10 +393,19 @@ export class PickerFieldSk extends ElementSk {
     this._render();
   }
 
+  /**
+   * Gets the array of available options for the picker field.
+   * @returns An array of strings representing the available options.
+   */
   get options(): string[] {
     return this._options;
   }
 
+  /**
+   * Sets the array of available options for the picker field.
+   * Also filters primary options and recalculates the overlay width.
+   * @param v The new array of options.
+   */
   set options(v: string[]) {
     this._options = v;
     this.primaryOptions = v.filter((option) => !option.includes('.'));
@@ -339,50 +413,103 @@ export class PickerFieldSk extends ElementSk {
     this._render();
   }
 
+  /**
+   * Gets the array of primary options (options without periods) for the
+   * picker field.
+   * @returns An array of strings representing the primary options.
+   */
   get primaryOptions(): string[] {
     return this._primaryOptions;
   }
 
+  /**
+   * Sets the array of primary options for the picker field.
+   * @param v The new array of primary options.
+   */
   set primaryOptions(v: string[]) {
     this._primaryOptions = v;
     this._render();
   }
 
+  /**
+   * Gets the label of the picker field.
+   * @returns The label of the picker field.
+   */
   get label(): string {
     return this._label;
   }
 
+  /**
+   * Sets the label of the picker field.
+   * @param v The new label value.
+   */
   set label(v: string) {
     this._label = v;
     this._render();
   }
 
+  /**
+   * Gets the currently selected items of the combo box.
+   * @returns An array of strings representing the selected items.
+   */
   get selectedItems(): string[] {
     return this._selectedItems;
   }
 
+  /**
+   * Sets the selected items of the combo box.
+   * @param v The new array of selected items.
+   */
   set selectedItems(v: string[]) {
     this._selectedItems = v;
     this._render();
   }
 
+  /**
+   * Gets the helper text of the picker field.
+   * @returns The helper text of the picker field.
+   */
   get helperText(): string {
     return this._helper_text;
   }
 
+  /**
+   * Sets the helper text of the picker field.
+   * @param v The new helper text value.
+   */
   set helperText(v: string) {
     this._helper_text = v;
     this._render();
   }
 
+  /**
+   * Returns true if the "Select All" checkbox should be shown.
+   * The checkbox is shown if there are more than 2 options and the field is
+   * not the first field (index > 0).
+   * @returns True if the "Select All" checkbox should be shown, false
+   * otherwise.
+   */
   get showSelectAll(): boolean {
     return this.options.length > 2 && this.index > 0;
   }
 
+  /**
+   * Returns true if the "Split" checkbox should be shown.
+   * The checkbox is shown if there are more than 1 selected item and the
+   * field is not the first field (index > 0).
+   * @returns True if the "Split" checkbox should be shown, false otherwise.
+   */
   get showSplit(): boolean {
     return this.selectedItems.length > 1 && this.index > 0;
   }
 
+  /**
+   * Returns true if the "Primary" checkbox should be shown.
+   * The checkbox is shown if the number of primary options is different from
+   * the total number of options and the field is not the first field
+   * (index > 0).
+   * @returns True if the "Primary" checkbox should be shown, false otherwise.
+   */
   get showPrimary(): boolean {
     return (
       this.primaryOptions.length > 0 &&

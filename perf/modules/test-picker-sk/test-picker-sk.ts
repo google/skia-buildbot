@@ -95,7 +95,7 @@ export class TestPickerSk extends ElementSk {
         </div>
         <div id="plot-button-container">
           <div ?hidden="${!(ele._count > PLOT_MAXIMUM)}">
-            <span id="max-message" style="margin-left:2px">(${MAX_MESSAGE})</span>
+            <span id="max-message" style="margin-left:2px"> (${MAX_MESSAGE}) </span>
           </div>
           <button
             id="plot-button"
@@ -109,6 +109,10 @@ export class TestPickerSk extends ElementSk {
     </div>
   `;
 
+  /**
+   * Called when the element is added to the DOM.
+   * Initializes references to DOM elements and renders the component.
+   */
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
@@ -119,16 +123,10 @@ export class TestPickerSk extends ElementSk {
   }
 
   /**
-   * Adds a PickerFieldSk to the fieldContainer div.
-   *
-   * Order of events:
-   * 1. Fetch options for the next child to be added.
-   * 2. If we receive options, we initialize new PickerFieldSk object. Otherwise, do
-   *    create a new field. Just update the count.
-   * 2. Populate the field with fetched dropdown options.
-   * 3. Focus the field.
-   * 4. Open the dropdown selection menu automatically if it's not the first field.
-   * 5. Add eventListener to field specifying how to handle selected value changes.
+   * Adds a new PickerFieldSk element to the field container.
+   * This function fetches options for the new field from the backend,
+   * initializes and populates the field, focuses it, and sets up event
+   * listeners.
    */
   private addChildField(readOnly: boolean) {
     const currentIndex = this._currentIndex;
@@ -148,6 +146,8 @@ export class TestPickerSk extends ElementSk {
 
         field!.label = param;
         field!.options = options;
+        field.index = this._currentIndex;
+        this._currentIndex += 1;
         const extraTests = json.paramset[param].filter((option: string) => option.includes('.'));
         if (extraTests.length > 0) {
           field!.options = options.concat(extraTests);
@@ -167,18 +167,12 @@ export class TestPickerSk extends ElementSk {
   }
 
   /**
-   * Removes child fields, given an index.
-   *
-   * For example, if the params are:
-   * ['benchmark', 'bot', 'test', 'subtest_1']
-   *
-   * 'benchmark' has 'bot' as a child, which has 'test' as a child,
-   * and so on.
-   *
-   * Given index 0 for 'benchmark' param, this function will remove
-   * 'bot', 'test', and 'subtest_1' fields if they exist.
-   *
-   * @param index
+   * Removes child fields from the field container starting from a given index.
+   * This function iterates through the `_fieldData` array from the current
+   * index down to the specified index, removing the corresponding
+   * `PickerFieldSk` elements from the DOM and resetting their values.
+   * It also dispatches a 'split-by-changed' event if a split field is removed.
+   * @param index The index from which to start removing child fields.
    */
   private removeChildFields(index: number) {
     while (this._currentIndex > index) {
@@ -209,8 +203,11 @@ export class TestPickerSk extends ElementSk {
 
   /**
    * Sets the readonly property for all rendered fields.
-   *
-   * @param readonly
+   * When `readonly` is true, all fields and the plot button are disabled.
+   * When `readonly` is false, all fields are enabled, and the plot button is
+   * enabled unless `autoAddTrace` is true.
+   * @param readonly - A boolean indicating whether the fields should be
+   * read-only.
    */
   setReadOnly(readonly: boolean) {
     this._readOnly = readonly;
@@ -232,9 +229,14 @@ export class TestPickerSk extends ElementSk {
   }
 
   /**
-   * Wrapper for POST Call to backend.
-   *
-   * @param handler
+   * Makes a POST request to the /_/nextParamList/ endpoint to fetch parameter
+   * lists.
+   * Updates the count and sets `_requestInProgress` to true during the request.
+   * Disables fields if multiple selections are not allowed.
+   * Re-enables fields and calls the handler function on success.
+   * On failure, removes child fields and displays an error message.
+   * @param handler - A callback function to handle the JSON response.
+   * @param index - The index of the current field.
    */
   private callNextParamList(handler: (json: NextParamListHandlerResponse) => void, index: number) {
     this.updateCount(-1);
@@ -273,17 +275,10 @@ export class TestPickerSk extends ElementSk {
   }
 
   /**
-   * Fetches the values for a given field.
-   *
-   * When creating a new field, we need to talk to the backend to
-   * figure out which options the field can provide as valid options in
-   * its dropdown menu.
-   *
-   * Once options are fetched, the field will be populated. Its dropdown
-   * menu will be automatically opened, unless it is the first field.
-   * The match count is also updated.
-   *
-   * @param index
+   * Fetches the available options for a given field from the backend.
+   * After fetching, it populates the field's dropdown, updates the match count,
+   * focuses the field, and opens its overlay if it's not the first field.
+   * @param index - The index of the field in the `_fieldData` array.
    */
   private fetchOptions(index: number) {
     const fieldInfo = this._fieldData[index];
@@ -305,6 +300,10 @@ export class TestPickerSk extends ElementSk {
     this.callNextParamList(handler, index);
   }
 
+  /**
+   * Handles the click event on the Plot button.
+   * Dispatches a 'plot-button-clicked' custom event with the current query.
+   */
   private onPlotButtonClick() {
     const detail = {
       query: this.createQueryFromFieldData(),
@@ -319,25 +318,18 @@ export class TestPickerSk extends ElementSk {
   }
 
   /**
-   * Reset test picker and populate the fields with an input query.
-   * e.g.:
-   * populateFieldDataFromQuery(
-   *    'benchmark=a&bot=b&test=c&subtest1=&subtest2=d',
-   *    ['benchmark', 'bot', 'test', 'subtest1', 'subtest2']
-   * )
-   *
-   * In the above case, fields will be filled in order of hierarchy until an
-   * empty value is reached. Since subtest1 is empty, it'll stop filling at
-   * subtest1, leaving subtest1 and subtest2 fields empty.
-   *
-   * As another example the query 'bot=b&test=c&subtest1=&subtest2=d', is
-   * not valid as it's missing the benchmark key.
-   *
-   * Note that calling this function will overwrite any current selections
-   * in the test picker.
-   *
-   * @param query
-   * @param params
+   * Resets the test picker and populates the fields with an input query.
+   * This function parses the input query, initializes the field data based on
+   * the provided parameters, and then populates the fields with the
+   * corresponding selected values and available options.
+   * Note that calling this function will overwrite any current selections in
+   * the test picker.
+   * @param query - The query string to populate the fields from
+   * (e.g., 'benchmark=a&bot=b&test=c').
+   * @param params - An array of parameter names defining the hierarchy of the
+   * fields.
+   * @param paramSet - A ParamSet object containing available options for each
+   * parameter.
    */
   populateFieldDataFromQuery(query: string, params: string[], paramSet: ParamSet) {
     const selectedParams: ParamSet = toParamSet(query);
@@ -352,6 +344,7 @@ export class TestPickerSk extends ElementSk {
       const param = fieldInfo.param;
       const field: PickerFieldSk = new PickerFieldSk(param);
       fieldInfo.field = field;
+      fieldInfo.field.index = i;
       this._containerDiv!.appendChild(field);
 
       // Set selected items from the query
@@ -374,6 +367,17 @@ export class TestPickerSk extends ElementSk {
     }
   }
 
+  /**
+   * Populates the field data from a given ParamSet.
+   * This function initializes the field data based on the unique keys from
+   * both paramSets and paramSet, and then populates the fields with the
+   * corresponding values and options.
+   * If no parameters are provided in `paramSet`, `autoAddTrace` is set to true.
+   * @param paramSets - A ParamSet object containing the initial selected
+   * values for the fields.
+   * @param paramSet - A ParamSet object containing available options for each
+   * parameter.
+   */
   populateFieldDataFromParamSet(paramSets: ParamSet, paramSet: ParamSet) {
     const uniqueParamKeys = [...new Set([...Object.keys(paramSets), ...Object.keys(paramSet)])];
     this.initializeFieldData(uniqueParamKeys);
@@ -406,6 +410,11 @@ export class TestPickerSk extends ElementSk {
     }
   }
 
+  /**
+   * Handles the toggle event of the auto-add trace checkbox.
+   * Sets the `autoAddTrace` property based on the checkbox's checked state.
+   * @param e The event object from the checkbox toggle.
+   */
   private onToggleCheckboxClick(e: Event): void {
     this.autoAddTrace = (e.target as CheckOrRadio).checked;
     // This prevents a double event from happening.
@@ -413,6 +422,16 @@ export class TestPickerSk extends ElementSk {
     this._render();
   }
 
+  /**
+   * Updates the graph based on the selected values.
+   * If `autoAddTrace` is false, no update occurs.
+   * If the trace count exceeds `PLOT_MAXIMUM`, an error message is displayed.
+   * Dispatches 'remove-trace' or 'add-to-graph' events based on changes.
+   *
+   * @param value The current selected values for the field.
+   * @param fieldInfo The FieldInfo object for the current field.
+   * @param removedValue The values that were removed from the selection.
+   */
   private updateGraph(value: string[], fieldInfo: FieldInfo, removedValue: string[]) {
     // No valid data, so remove entire graph.
     if (fieldInfo.index === 0 && value.length === 0) {
@@ -503,7 +522,8 @@ export class TestPickerSk extends ElementSk {
       const removedValue =
         fieldInfo.field?.selectedItems.filter((selectedItem) => !value.includes(selectedItem)) ||
         [];
-      // Don't update graph if the first field is changed as it can overload the graph.
+      // Don't update graph if the first field is changed as it can overload
+      // the graph.
       if (
         this._fieldData[0].param === fieldInfo.param &&
         this._fieldData[0].field!.selectedItems.length > 0 &&
@@ -539,6 +559,12 @@ export class TestPickerSk extends ElementSk {
     fieldInfo.field.addEventListener('split-by-changed', fieldInfo.onSplitByChanged);
   }
 
+  /**
+   * Sets the split property for a given parameter and enables/disables split
+   * options for other fields.
+   * @param param The parameter to set the split property for.
+   * @param split A boolean indicating whether to split or not.
+   */
   private setSplitFields(param: string, split: boolean) {
     for (let i = 0; i < this._fieldData.length; i++) {
       if (this._fieldData[i].param === param) {
@@ -618,12 +644,10 @@ export class TestPickerSk extends ElementSk {
   }
 
   /**
-   * Reads the values currently selected and transforms them to
-   * query format. Add default values from _defaultParams.
-   *
-   * This is necessary to make calls to /_/nextParamList/.
-   *
-   * @returns value selection in query format.
+   * Generates a query string from the currently selected field values.
+   * Includes default parameter values if they are not already specified in the
+   * selected fields.
+   * @returns A query string representing the selected field values.
    */
   createQueryFromFieldData(): string {
     const paramSet: ParamSet = {};
@@ -657,12 +681,14 @@ export class TestPickerSk extends ElementSk {
   }
 
   /**
-   * Reads the values currently selected and transforms them to
-   * query format. Add default values from _defaultParams.
-   *
-   * This is necessary to make calls to /_/nextParamList/.
-   *
-   * @returns value selection in query format.
+   * Generates a query string from the selected field values up to a specified
+   * index.
+   * Includes default parameter values if they are not already specified in the
+   * selected fields.
+   * @param index - The maximum index of the field to include in the query
+   * string.
+   * @returns A query string representing the selected field values up to the
+   * specified index.
    */
   createQueryFromIndex(index: number): string {
     const paramSet: ParamSet = {};
@@ -691,16 +717,15 @@ export class TestPickerSk extends ElementSk {
   }
 
   /**
-   * Updates the count and updates the Plot button based on the count.
-   *
-   * -1 is a valid value and it sets the count to be empty string.
-   * This is useful for when we want to display the spinning wheel
-   * instead, when the count is still being calculated.
-   *
-   * Also, enables plotting based on the count. If the count is
-   * PLOT_MAXIMUM or 0, user is not able to plot.
-   *
-   * @param count
+   * Updates the count of matching traces and controls the state of the Plot
+   * button.
+   * If `count` is -1, it indicates loading, disabling the plot button and
+   * setting its title to 'Loading...'.
+   * If `count` is greater than `PLOT_MAXIMUM` or less than or equal to 0, the
+   * plot button is disabled.
+   * Otherwise, the plot button is enabled, and `autoAddTrace` is set based on
+   * whether a graph is already loaded.
+   * @param count - The number of matching traces.
    */
   private updateCount(count: number) {
     this._plotButton!.disabled = true;
@@ -737,6 +762,14 @@ export class TestPickerSk extends ElementSk {
     }
   }
 
+  /**
+   * Sets whether traces should be added automatically to the graph.
+   * If `autoAdd` is true, the plot button will be disabled and its title will
+   * indicate automatic addition.
+   * Otherwise, the plot button will be enabled and its title will indicate
+   * manual plotting.
+   * @param autoAdd - A boolean indicating whether to automatically add traces.
+   */
   set autoAddTrace(autoAdd: boolean) {
     this._autoAddTrace = autoAdd;
     if (this._plotButton !== null) {
@@ -747,6 +780,10 @@ export class TestPickerSk extends ElementSk {
     }
   }
 
+  /**
+   * Returns whether traces are automatically added to the graph.
+   * @returns A boolean indicating whether traces are automatically added.
+   */
   get autoAddTrace(): boolean {
     return this._autoAddTrace;
   }
@@ -796,12 +833,11 @@ export class TestPickerSk extends ElementSk {
 
   /**
    * Resets data structures from scratch.
-   *
    * Clears the field container DOM, resets the index,
    * resets the fieldData structure, and initializes fieldData
    * based on given params.
-   *
-   * @param params
+   * @param params - An array of parameter names to initialize the field data
+   * with.
    */
   private initializeFieldData(params: string[]) {
     this._containerDiv!.replaceChildren();
@@ -834,6 +870,11 @@ export class TestPickerSk extends ElementSk {
     }
   }
 
+  /**
+   * Removes an item from the chart.
+   * @param param The parameter of the item to remove.
+   * @param value The value of the item to remove.
+   */
   removeItemFromChart(param: string, value: string[]) {
     // Find the field info for the given param.
     const fieldInfo = this._fieldData.find((field) => field.param === param);
