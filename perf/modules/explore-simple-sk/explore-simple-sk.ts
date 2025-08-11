@@ -684,7 +684,7 @@ export class ExploreSimpleSk extends ElementSk {
         title="Load Test Picker with current Query"
         ?disabled=${ele.is_chart_split && !ele.useTestPicker}
         @click=${() => {
-          ele.loadTestPickerFromParams();
+          ele.loadDataFromExistingChart();
         }}>
         <md-icon id="icon">north_west</md-icon>
       </md-icon-button>
@@ -1041,18 +1041,36 @@ export class ExploreSimpleSk extends ElementSk {
     this.render();
   };
 
-  // Get primary trace from googleChart and pass along traceid and paramset
-  // to the test picker to be used with multi chart.
-  private loadTestPickerFromParams = async () => {
+  private loadDataFromExistingChart = async () => {
+    if (this.is_chart_split) {
+      return;
+    }
     const googleChart = this.googleChartPlot.value;
     // Check that data is fully loaded before triggering event.
     if (googleChart && googleChart.data) {
-      this.dispatchEvent(
-        new CustomEvent('populate-query', {
-          detail: this.getParamSet(),
-          bubbles: true,
-        })
-      );
+      if (this.is_anomaly_table) {
+        const anomalyId: string | undefined = this.googleChartPlot.value?.highlightAnomalies[0];
+        if (anomalyId && anomalyId !== undefined) {
+          const anomaly = { id: anomalyId } as unknown as Anomaly;
+          // Open new tab with existing chart from report page.
+          this.dispatchEvent(
+            new CustomEvent('open-anomaly-chart', {
+              detail: anomaly,
+              composed: true,
+              bubbles: true, // Bubbling is still good practice even for window events
+            })
+          );
+        }
+      } else {
+        // Get primary trace from googleChart and pass along traceid and paramset
+        // to the test picker to be used with multi chart.
+        this.dispatchEvent(
+          new CustomEvent('populate-query', {
+            detail: this.getParamSet(),
+            bubbles: true,
+          })
+        );
+      }
     }
   };
 
@@ -1287,7 +1305,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.bisectButton = this.querySelector('#bisect-button');
     this.collapseButton = this.querySelector('#collapseButton');
     this.graphTitle = this.querySelector<GraphTitleSk>('#graphTitle');
-    this.is_anomaly_table = document.querySelector('anomaly-table-sk') ? true : false;
+    this.is_anomaly_table = document.querySelector('#anomaly-table') ? true : false;
 
     // material UI stuff
     this.settingsDialog = this.querySelector<MdDialog>('#settings-dialog');
@@ -1443,9 +1461,10 @@ export class ExploreSimpleSk extends ElementSk {
 
   render(): void {
     this._render();
-    // Enable button only on Multi Chart view.
-    const pagination = document.querySelector('pagination-sk');
-    this.is_chart_split = !(pagination && pagination.getAttribute('total') === '1') || false;
+    // Determine if in split chart mode.
+    const chartTotal = document.querySelectorAll('explore-simple-sk');
+    const testPicker = document.querySelector('test-picker-sk');
+    this.is_chart_split = chartTotal.length > 1 && testPicker ? true : false;
   }
 
   showSettingsDialog(_event: Event) {

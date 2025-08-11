@@ -331,6 +331,10 @@ export class DataFrameRepository extends LitElement {
     const req = structuredClone(this._baseRequest);
     req.begin = range.begin;
     req.end = range.end;
+    if (req.begin === req.end) {
+      return {} as FrameResponse;
+    }
+
     const resp = await startRequest(DataFrameRepository.frameStartUrl, req, 1000).catch(() => {
       return null;
     });

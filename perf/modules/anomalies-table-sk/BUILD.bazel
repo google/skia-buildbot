@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
 
 sk_element(
     name = "anomalies-table-sk",
@@ -50,4 +50,19 @@ sk_page(
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":anomalies-table-sk-demo",
+)
+
+karma_test(
+    name = "anomalies-table-sk_test",
+    src = "anomalies-table-sk_test.ts",
+    deps = [
+        ":anomalies-table-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//:node_modules/sinon",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
 )

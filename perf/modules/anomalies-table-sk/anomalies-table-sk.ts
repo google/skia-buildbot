@@ -62,6 +62,13 @@ export class AnomaliesTableSk extends ElementSk {
     super(AnomaliesTableSk.template);
   }
 
+  private openAnomalyChartListener = (e: Event) => {
+    const anomaly = (e as CustomEvent<Anomaly>).detail;
+    if (anomaly) {
+      this.openMultiGraphUrl(anomaly);
+    }
+  };
+
   async connectedCallback() {
     super.connectedCallback();
     this._render();
@@ -79,6 +86,12 @@ export class AnomaliesTableSk extends ElementSk {
         this._render();
       }
     });
+    this.addEventListener('open-anomaly-chart', this.openAnomalyChartListener as EventListener);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.removeEventListener('open-anomaly-chart', this.openAnomalyChartListener as EventListener);
   }
 
   private static template = (ele: AnomaliesTableSk) => html`
@@ -683,7 +696,7 @@ export class AnomaliesTableSk extends ElementSk {
     this._render();
   }
 
-  private async openMultiGraphUrl(anomaly: Anomaly) {
+  public async openMultiGraphUrl(anomaly: Anomaly) {
     // Skip pre-generating the multi-chart on the Regression page(/a/)
     // to prevent spikes in page loading time.
     // For example, there's a common scenario where more than 500 rows will be initially loaded
@@ -692,7 +705,11 @@ export class AnomaliesTableSk extends ElementSk {
     // To prevent this, we will only pre-generate the URLs on the Report page.
     if (window.location.pathname !== this.regressionsPageHost) {
       const url = this.multiChartUrlToAnomalyMap.get(anomaly.id);
-      return this.openAnomalyUrl(url);
+      if (url) {
+        return this.openAnomalyUrl(url);
+      } else {
+        console.warn('Anomaly not found, unable to open chart.');
+      }
     } else {
       await this.fetchGroupReportApi(String(anomaly.id));
       const urlList = await this.generateMultiGraphUrl(
