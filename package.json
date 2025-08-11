@@ -34,7 +34,7 @@
     "@types/karma": "^6.3.8",
     "@types/mocha": "^8.2.2",
     "@types/node": "^20.0.1",
-    "@types/sinon": "^7.5.2",
+    "@types/sinon": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^8.5.0",
     "@typescript-eslint/parser": "^8.5.0",
     "@vaadin/combo-box": "^24.7.6",
