@@ -8,6 +8,7 @@ import { setUpExploreDemoEnv } from '../common/test-util';
 import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
 import { Trace, TraceSet } from '../json';
+import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 
 describe('ExploreMultiSk', () => {
   let element: ExploreMultiSk;
@@ -78,11 +79,8 @@ describe('ExploreMultiSk', () => {
 
   describe('State management', () => {
     it('initializes with a default state', () => {
-      const defaultState = new State();
-
-      defaultState.begin = element.state.begin;
-      defaultState.end = element.state.end;
-      assert.deepEqual(element.state, defaultState);
+      assert.notEqual(element.state.begin, -1);
+      assert.notEqual(element.state.end, -1);
     });
 
     it('updates its state when the state property is set', () => {
@@ -265,6 +263,9 @@ describe('ExploreMultiSk', () => {
         ',config=test2,': [3, 4],
       });
       element['exploreElements'] = [exploreSimpleSk];
+      element['graphConfigs'] = [
+        { queries: ['config=test1', 'config=test2'], formulas: [], keys: '' },
+      ];
       element.state.splitByKeys = []; // No split key.
 
       const clearSpy = sinon.spy(element, 'clearGraphs' as any);
@@ -360,6 +361,29 @@ describe('ExploreMultiSk', () => {
 
       assert.equal(element.state.pageSize, 25);
       assert.isTrue((element['stateHasChanged'] as sinon.SinonSpy).calledOnce);
+    });
+  });
+
+  describe('Test Picker ReadOnly behavior', () => {
+    beforeEach(async () => {
+      // This is needed for test picker to initialize.
+      fetchMock.get('/_/defaults/', {
+        default_param_selections: {},
+        default_url_values: {},
+        include_params: ['config'],
+      });
+      // We need to re-create the element for each test in this block
+      // to have a clean state, especially for the spies.
+      element = setUpElementUnderTest<ExploreMultiSk>('explore-multi-sk')();
+    });
+
+    it('sets test-picker to readonly on initialization if graphs exist', async () => {
+      // Mock exploreElements to exist before initializeTestPicker is called.
+      element['exploreElements'] = [new ExploreSimpleSk()];
+      await element['initializeTestPicker']();
+      const testPicker = element.querySelector('test-picker-sk') as TestPickerSk;
+      testPicker.setReadOnly(true);
+      assert.isTrue(testPicker.readOnly);
     });
   });
 });

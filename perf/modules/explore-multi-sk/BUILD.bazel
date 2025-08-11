@@ -68,5 +68,6 @@ karma_test(
         "//perf/modules/explore-simple-sk",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/plot-google-chart-sk",
+        "//perf/modules/test-picker-sk",
     ],
 )

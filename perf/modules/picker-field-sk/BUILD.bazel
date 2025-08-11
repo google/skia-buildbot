@@ -56,6 +56,7 @@ karma_test(
         ":picker-field-sk",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//elements-sk/modules/checkbox-sk",
         "//infra-sk/modules:test_util_ts_lib",
     ],
 )

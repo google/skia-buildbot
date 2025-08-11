@@ -30,6 +30,7 @@ import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.
 import '@vaadin/combo-box/theme/lumo/vaadin-combo-box.js';
 import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
+import { MultiSelectComboBox } from '@vaadin/multi-select-combo-box';
 
 export interface SplitChartSelectionEventDetails {
   attribute: string;
@@ -48,9 +49,15 @@ export class PickerFieldSk extends ElementSk {
 
   private _allSelected: CheckOrRadio | null = null;
 
+  private _primarySelected: CheckOrRadio | null = null;
+
   private _selectedItems: string[] = [];
 
+  private _primaryOptions: string[] = [];
+
   private _split: boolean = false;
+
+  private _index: number = 0;
 
   constructor(label: string) {
     super(PickerFieldSk.template);
@@ -68,7 +75,16 @@ export class PickerFieldSk extends ElementSk {
           label="Split"
           @change=${ele.splitOnValue}
           ?checked=${ele.split}
-          ?hidden=${ele.selectedItems.length < 2}>
+          ?hidden=${!ele.showSplit}>
+        </checkbox-sk>
+        <checkbox-sk
+          title="Select Primary (without periods)."
+          name=${ele.label}
+          id="select-primary"
+          label="Primary"
+          @change=${ele.selectPrimary}
+          ?checked=${ele._arePrimarySelected}
+          ?hidden=${!ele.showPrimary}>
         </checkbox-sk>
         <checkbox-sk
           title="Select All"
@@ -76,8 +92,8 @@ export class PickerFieldSk extends ElementSk {
           id="select-all"
           label="All"
           @change=${ele.selectAll}
-          ?checked=${ele.selectedItems.length === ele.options.length}
-          ?hidden=${ele.options.length < 2}>
+          ?checked=${ele._isAllSelected}
+          ?hidden=${!ele.showSelectAll}>
         </checkbox-sk>
       </div>
       <vaadin-multi-select-combo-box
@@ -93,15 +109,6 @@ export class PickerFieldSk extends ElementSk {
 
   private onValueChanged(e: Event) {
     const selectedItems = (e as CustomEvent).detail.value as string[];
-
-    // If the selected items are the same as the current selection and
-    // not all options are selected, do not dispatch the event.
-    if (
-      selectedItems.length === this.selectedItems.length &&
-      this.options.length !== selectedItems.length
-    ) {
-      return;
-    }
     this.dispatchEvent(
       new CustomEvent('value-changed', {
         detail: {
@@ -140,14 +147,42 @@ export class PickerFieldSk extends ElementSk {
    *
    * @param e - The event triggered by the checkbox change.
    */
-  private selectAll() {
-    if (this._allSelected)
-      if (this._allSelected.checked === true) {
-        this.selectedItems = this.options;
+  private selectAll(e: Event) {
+    if (this._allSelected) {
+      if ((e.currentTarget as HTMLInputElement).checked) {
+        // Create a shallow copy to avoid direct mutation issues.
+        this.selectedItems = this.options.slice();
+        (this._comboBox as MultiSelectComboBox)!.selectedItems = this.selectedItems;
       } else {
         // Leave the first item selected.
-        this.selectedItems = this.options.splice(1);
+        this.selectedItems = this.options.slice(0, 1);
+        (this._comboBox as MultiSelectComboBox)!.selectedItems = this.selectedItems;
       }
+    }
+  }
+
+  /**
+   * Selects or unselects primary options based on the checkbox state.
+   * If checked, it adds all primary options to the current selection.
+   * If unchecked, it removes all primary options from the current selection.
+   */
+  private selectPrimary(e: Event) {
+    if (this._primarySelected) {
+      if ((e.currentTarget as HTMLInputElement).checked) {
+        // If all is selected, deselect all and select primary.
+        if (this._isAllSelected) {
+          this.selectedItems = [];
+        }
+        // Add all primary options to the current selection, ensuring no duplicates.
+        const newSelection = [...new Set([...this.selectedItems, ...this.primaryOptions])];
+        this.selectedItems = newSelection;
+        (this._comboBox as MultiSelectComboBox)!.selectedItems = this.selectedItems;
+      } else {
+        // Leave the first item selected.
+        this.selectedItems = this.options.slice(0, 1);
+        (this._comboBox as MultiSelectComboBox)!.selectedItems = this.selectedItems;
+      }
+    }
   }
 
   connectedCallback(): void {
@@ -156,6 +191,7 @@ export class PickerFieldSk extends ElementSk {
     this._comboBox = this.querySelector('vaadin-multi-select-combo-box');
     this._splitBox = this.querySelector('checkbox-sk#split-by');
     this._allSelected = this.querySelector('checkbox-sk#select-all');
+    this._primarySelected = this.querySelector('checkbox-sk#select-primary');
   }
 
   focus() {
@@ -181,6 +217,9 @@ export class PickerFieldSk extends ElementSk {
       if (this._splitBox !== null) {
         this._splitBox.disabled = true;
       }
+      if (this._primarySelected !== null) {
+        this._primarySelected.disabled = true;
+      }
       this._render();
     }
   }
@@ -194,6 +233,9 @@ export class PickerFieldSk extends ElementSk {
       }
       if (this._splitBox !== null) {
         this._splitBox.disabled = false;
+      }
+      if (this._primarySelected !== null) {
+        this._primarySelected.disabled = false;
       }
       this._render();
     }
@@ -251,6 +293,29 @@ export class PickerFieldSk extends ElementSk {
     }
   }
 
+  private get _isAllSelected(): boolean {
+    if (this._options.length === 0) {
+      return false;
+    }
+    return this.selectedItems.length === this._options.length;
+  }
+
+  private get _arePrimarySelected(): boolean {
+    if (this._primaryOptions.length === 0) {
+      return false;
+    }
+    const show = this._primaryOptions.every((p) => this.selectedItems.includes(p));
+    return this._primaryOptions.length === this.selectedItems.length && show;
+  }
+
+  get index(): number {
+    return this._index;
+  }
+
+  set index(v: number) {
+    this._index = v;
+  }
+
   get split(): boolean {
     return this._split;
   }
@@ -269,7 +334,17 @@ export class PickerFieldSk extends ElementSk {
 
   set options(v: string[]) {
     this._options = v;
+    this.primaryOptions = v.filter((option) => !option.includes('.'));
     this.calculateOverlayWidth();
+    this._render();
+  }
+
+  get primaryOptions(): string[] {
+    return this._primaryOptions;
+  }
+
+  set primaryOptions(v: string[]) {
+    this._primaryOptions = v;
     this._render();
   }
 
@@ -298,6 +373,22 @@ export class PickerFieldSk extends ElementSk {
   set helperText(v: string) {
     this._helper_text = v;
     this._render();
+  }
+
+  get showSelectAll(): boolean {
+    return this.options.length > 2 && this.index > 0;
+  }
+
+  get showSplit(): boolean {
+    return this.selectedItems.length > 1 && this.index > 0;
+  }
+
+  get showPrimary(): boolean {
+    return (
+      this.primaryOptions.length > 0 &&
+      this.primaryOptions.length !== this.options.length &&
+      this.index > 0
+    );
   }
 }
 

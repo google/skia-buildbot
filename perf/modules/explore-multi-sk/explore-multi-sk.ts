@@ -545,7 +545,7 @@ export class ExploreMultiSk extends ElementSk {
    */
   private async splitGraphs(): Promise<void> {
     const groupedTraces = this.groupTracesBySplitKey();
-    if (groupedTraces.size === 0) {
+    if (groupedTraces.size === 0 || this.state.splitByKeys.length === 0) {
       return;
     }
 
@@ -629,7 +629,9 @@ export class ExploreMultiSk extends ElementSk {
         defaultParams = {};
       }
 
-      this.testPicker!.initializeTestPicker(testPickerParams!, defaultParams);
+      const readOnly = this.exploreElements.length > 0;
+      this.testPicker!.initializeTestPicker(testPickerParams!, defaultParams, readOnly);
+      this._render();
     }
     // Event listener to remove the explore object from the list if the user
     // close it in a Multiview window.
@@ -1137,7 +1139,8 @@ export class ExploreMultiSk extends ElementSk {
     if (this.testPicker) {
       if (!this.testPicker.isLoaded() && this.exploreElements.length > 0) {
         this.populateTestPicker(this.exploreElements[0].getParamSet());
-      } else {
+      }
+      if (this.exploreElements.every((e) => !e.dataLoading)) {
         this.testPicker.setReadOnly(false);
       }
     }

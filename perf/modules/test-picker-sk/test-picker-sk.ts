@@ -79,6 +79,8 @@ export class TestPickerSk extends ElementSk {
 
   private _autoAddTrace: boolean = false;
 
+  private _readOnly: boolean = false;
+
   constructor() {
     super(TestPickerSk.template);
   }
@@ -128,7 +130,7 @@ export class TestPickerSk extends ElementSk {
    * 4. Open the dropdown selection menu automatically if it's not the first field.
    * 5. Add eventListener to field specifying how to handle selected value changes.
    */
-  private addChildField() {
+  private addChildField(readOnly: boolean) {
     const currentIndex = this._currentIndex;
     const currentFieldInfo = this._fieldData[currentIndex];
     const param = currentFieldInfo.param;
@@ -142,14 +144,16 @@ export class TestPickerSk extends ElementSk {
         const field: PickerFieldSk = new PickerFieldSk(param);
         currentFieldInfo.field = field;
         this._containerDiv!.appendChild(field);
-        this._currentIndex += 1;
+        this.setReadOnly(readOnly);
+
         field!.label = param;
         field!.options = options;
         const extraTests = json.paramset[param].filter((option: string) => option.includes('.'));
         if (extraTests.length > 0) {
           field!.options = options.concat(extraTests);
         }
-
+        field.index = this._currentIndex;
+        this._currentIndex += 1;
         field!.focus();
         if (currentIndex !== 0) {
           field!.openOverlay();
@@ -157,7 +161,6 @@ export class TestPickerSk extends ElementSk {
 
         this.addValueUpdatedEventToField(currentIndex);
       }
-
       this._render();
     };
     this.callNextParamList(handler, currentIndex);
@@ -210,6 +213,7 @@ export class TestPickerSk extends ElementSk {
    * @param readonly
    */
   setReadOnly(readonly: boolean) {
+    this._readOnly = readonly;
     this._fieldData.forEach((field) => {
       if (readonly) {
         field.field?.disable();
@@ -221,6 +225,10 @@ export class TestPickerSk extends ElementSk {
         }
       }
     });
+  }
+
+  get readOnly() {
+    return this._readOnly;
   }
 
   /**
@@ -252,10 +260,7 @@ export class TestPickerSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json) => {
         this._requestInProgress = false;
-        // Only re-enable when autoadd is false.
-        if (this.autoAddTrace === false && json.count > 0) {
-          this.setReadOnly(false);
-        }
+        // Only re-enable when autoadd is false, and we have results or it is the initial
         handler(json);
       })
       .catch((msg: any) => {
@@ -358,6 +363,7 @@ export class TestPickerSk extends ElementSk {
       if (paramSet && paramSet[param]) {
         field.options = paramSet[param];
       }
+      field.index = i;
 
       // Add event listener for value changes
       this.addValueUpdatedEventToField(i);
@@ -392,6 +398,7 @@ export class TestPickerSk extends ElementSk {
       if (allOptions.length > 0) {
         fieldInfo.field.options = allOptions;
         fieldInfo.field.selectedItems = value;
+        fieldInfo.field.index = i;
         fieldInfo.value = value;
       }
       this.fetchExtraOptions(i);
@@ -407,6 +414,22 @@ export class TestPickerSk extends ElementSk {
   }
 
   private updateGraph(value: string[], fieldInfo: FieldInfo, removedValue: string[]) {
+    // No valid data, so remove entire graph.
+    if (fieldInfo.index === 0 && value.length === 0) {
+      const detail = {
+        query: this.createQueryFromFieldData(),
+        param: fieldInfo.param,
+        value: value.length > 0 ? removedValue : value,
+      };
+      this.dispatchEvent(
+        new CustomEvent('remove-trace', {
+          detail: detail,
+          bubbles: true,
+          composed: true,
+        })
+      );
+      return;
+    }
     // Only update when autoAdd is ready and chart is active.
     if (!this.autoAddTrace) {
       return;
@@ -573,6 +596,7 @@ export class TestPickerSk extends ElementSk {
             if (extraTests.length > 0) {
               fieldInfo.field!.options = fieldInfo.field!.options.concat(extraTests);
             }
+            fieldInfo.field.index = i;
             fieldInfo.field!.focus();
             this.addValueUpdatedEventToField(i);
             // Track the furthest index queried
@@ -683,11 +707,17 @@ export class TestPickerSk extends ElementSk {
     if (count === -1) {
       // Loading new data, so disable plotting.
       this._plotButton!.title = 'Loading...';
-      this.setReadOnly(true);
+      // Still loading so
+      if (this._currentIndex > 0) {
+        this.setReadOnly(true);
+      } else {
+        this.setReadOnly(false);
+      }
       this._count = 0;
       return;
     }
 
+    this.setReadOnly(false);
     this._count = count;
     if (count > PLOT_MAXIMUM || count <= 0) {
       // Disable plotting if there are too many or no traces.
@@ -753,10 +783,14 @@ export class TestPickerSk extends ElementSk {
    * queries will automatically get "bot=linux-perf" appended. The exception
    * is if bot is already specified in the query, then no defaults are applied.
    */
-  initializeTestPicker(params: string[], defaultParams: { [key: string]: string[] | null }) {
+  initializeTestPicker(
+    params: string[],
+    defaultParams: { [key: string]: string[] | null },
+    readOnly: boolean
+  ) {
     this._defaultParams = defaultParams;
     this.initializeFieldData(params);
-    this.addChildField();
+    this.addChildField(readOnly);
     this._render();
   }
 

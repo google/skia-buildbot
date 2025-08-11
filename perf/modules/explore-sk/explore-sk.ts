@@ -137,7 +137,8 @@ export class ExploreSk extends ElementSk {
     } else {
       this.testPicker!.initializeTestPicker(
         testPickerParams!,
-        this.defaults?.default_param_selections ?? {}
+        this.defaults?.default_param_selections ?? {},
+        false
       );
     }
 
