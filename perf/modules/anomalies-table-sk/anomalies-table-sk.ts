@@ -342,7 +342,7 @@ export class AnomaliesTableSk extends ElementSk {
       const anomalySortValues = this.getProcessedAnomaly(anomalyGroup.anomalies[i]);
       const anomaly = anomalyGroup.anomalies[i];
       const processedAnomaly = this.getProcessedAnomaly(anomaly);
-      const anomalyClass = anomaly.is_improvement ? 'improvement' : 'regression';
+      const anomalyClass = processedAnomaly.delta > 0 ? 'improvement' : 'regression';
       const isLoading = this.loadingGraphForAnomaly.get(anomaly.id) || false;
       rows.push(html`
         <tr

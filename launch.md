@@ -283,6 +283,7 @@ spec:
 ```
 
 - It is possible to test your service/config without making it publicly visible.
+
   - Deploy your `app.yaml` either with `pushk` or `kubectl apply -f app.yaml`
   - Identify a pod name, `kubectl get pods | grep [my-app]` where my-app is the
     name of the new service.
@@ -312,6 +313,7 @@ spec:
   ```
 
 - Add prober rules to `probers.json` in your application directory.
+
   - Ideally, probe all public HTML pages and all nullipotent JSON endpoints. You
     can write functions in `prober/go/prober/main.go` to check the response body
     if desired.
@@ -324,6 +326,7 @@ spec:
   [alerts_public](https://skia.googlesource.com/buildbot/+show/master/promk/prometheus/alerts_public.yml).
   The alerts may link to a production manual, `PROD.md`, checked into the
   application source directory. Examples:
+
   - All prober rules.
   - Additional stats from metrics2. Legacy apps have their alert rules in
     `prometheus/sys/alert.rules`

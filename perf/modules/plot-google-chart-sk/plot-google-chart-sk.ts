@@ -150,7 +150,6 @@ export class PlotGoogleChartSk extends LitElement {
 
     .closeIcon {
     }
-
   `;
 
   @consume({ context: dataTableContext, subscribe: true })
