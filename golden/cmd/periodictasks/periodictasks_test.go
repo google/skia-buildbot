@@ -1430,7 +1430,7 @@ func TestGetIgnoredCount_ReturnsCorrectAnswer(t *testing.T) {
 
 func TestUploadDataToPerf_DataComplete_CorrectJSONUploaded(t *testing.T) {
 	mockTime := time.Date(2022, time.October, 9, 8, 7, 6, 54321, time.UTC)
-	ctx := now.TimeTravelingContext(mockTime)
+	ctx := now.TimeTravelingContext(t.Context(), mockTime)
 
 	mc := mocks.NewGCSClient(t)
 	expectedOptions := gcs.FileWriteOptions{
@@ -1510,7 +1510,7 @@ func TestSummarizeTraces_Success_cdb(t *testing.T) {
 	waitForSystemTime()
 
 	mockTime := time.Date(2022, time.October, 10, 10, 10, 10, 10101010, time.UTC)
-	ctx = now.TimeTravelingContext(mockTime)
+	ctx = now.TimeTravelingContext(t.Context(), mockTime)
 
 	uploadedFiles := map[string]string{}
 	gcsSpy := mocks.NewGCSClient(t)
@@ -1592,7 +1592,7 @@ func TestSummarizeTraces_Success(t *testing.T) {
 	waitForSystemTime()
 
 	mockTime := time.Date(2022, time.October, 10, 10, 10, 10, 10101010, time.UTC)
-	ctx = now.TimeTravelingContext(mockTime)
+	ctx = now.TimeTravelingContext(t.Context(), mockTime)
 
 	uploadedFiles := map[string]string{}
 	gcsSpy := mocks.NewGCSClient(t)

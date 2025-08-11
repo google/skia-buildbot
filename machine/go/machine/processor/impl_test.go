@@ -156,7 +156,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := now.TimeTravelingContext(stateTime)
+	ctx := now.TimeTravelingContext(t.Context(), stateTime)
 
 	// The current machine has nothing attached.
 	previous := machine.NewDescription(ctx)
@@ -218,7 +218,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := now.TimeTravelingContext(stateTime)
+	ctx := now.TimeTravelingContext(t.Context(), stateTime)
 
 	// The current machine has a device attached.
 	previous := machine.NewDescription(ctx)
@@ -275,7 +275,7 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := now.TimeTravelingContext(stateTime)
+	ctx := now.TimeTravelingContext(t.Context(), stateTime)
 
 	// The current machine has a device attached.
 	previous := machine.NewDescription(ctx)
@@ -324,7 +324,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := now.TimeTravelingContext(stateTime)
+	ctx := now.TimeTravelingContext(t.Context(), stateTime)
 
 	// The current machine has been quarantined because the device went missing.
 	previous := machine.NewDescription(ctx)
@@ -393,7 +393,7 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := now.TimeTravelingContext(stateTime)
+	ctx := now.TimeTravelingContext(t.Context(), stateTime)
 
 	previous := machine.NewDescription(ctx)
 	previous.AttachedDevice = machine.AttachedDeviceAdb
@@ -456,7 +456,7 @@ func TestProcess_DeviceStillInRecoveryMode_MetricReportsTimeInRecovery(t *testin
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := now.TimeTravelingContext(serverTime)
+	ctx := now.TimeTravelingContext(t.Context(), serverTime)
 
 	previous := machine.NewDescription(ctx)
 	previous.RecoveryStart = startRecoveryTime
@@ -499,7 +499,7 @@ func TestProcess_RecoveryModeIfDeviceTooHot(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := now.TimeTravelingContext(stateTime)
+	ctx := now.TimeTravelingContext(t.Context(), stateTime)
 
 	previous := machine.NewDescription(ctx)
 	event := machine.Event{
@@ -578,7 +578,7 @@ func TestProcess_HandleTempsInMilliCentgrade(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := now.TimeTravelingContext(stateTime)
+	ctx := now.TimeTravelingContext(t.Context(), stateTime)
 
 	const dumpsysBattery = `IsStatusOverride: false
 ThermalEventListeners:
@@ -710,7 +710,7 @@ func TestProcess_RecoveryModeIfDeviceTooHotAndBatteryIsTooLow(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := now.TimeTravelingContext(stateTime)
+	ctx := now.TimeTravelingContext(t.Context(), stateTime)
 
 	previous := machine.NewDescription(ctx)
 	event := machine.Event{
@@ -802,7 +802,7 @@ func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *tes
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := now.TimeTravelingContext(stateTime)
+	ctx := now.TimeTravelingContext(t.Context(), stateTime)
 
 	previous := machine.NewDescription(ctx)
 	event := machine.Event{
@@ -846,7 +846,7 @@ func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := now.TimeTravelingContext(stateTime)
+	ctx := now.TimeTravelingContext(t.Context(), stateTime)
 
 	previous := machine.NewDescription(ctx)
 	previous.Recovering = "low power"
@@ -925,7 +925,7 @@ func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testin
 		},
 	}
 
-	ctx := now.TimeTravelingContext(serverTime)
+	ctx := now.TimeTravelingContext(t.Context(), serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, machine.Description{
@@ -987,7 +987,7 @@ func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T)
 		},
 	}
 
-	ctx := now.TimeTravelingContext(serverTime)
+	ctx := now.TimeTravelingContext(t.Context(), serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, machine.Description{
@@ -1048,7 +1048,7 @@ func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
 		},
 	}
 
-	ctx := now.TimeTravelingContext(serverTime)
+	ctx := now.TimeTravelingContext(t.Context(), serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, machine.Description{
@@ -1293,7 +1293,7 @@ func TestProcess_Standalone_NotOnGCE_Success(t *testing.T) {
 		},
 	}
 
-	ctx := now.TimeTravelingContext(serverTime)
+	ctx := now.TimeTravelingContext(t.Context(), serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 
@@ -1336,7 +1336,7 @@ func TestProcess_Standalone_OnGCE_Success(t *testing.T) {
 		},
 	}
 
-	ctx := now.TimeTravelingContext(serverTime)
+	ctx := now.TimeTravelingContext(t.Context(), serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 
@@ -1380,7 +1380,7 @@ func TestProcess_Standalone_DockerInstalled_Success(t *testing.T) {
 		},
 	}
 
-	ctx := now.TimeTravelingContext(serverTime)
+	ctx := now.TimeTravelingContext(t.Context(), serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 
@@ -1420,7 +1420,7 @@ func TestProcess_PyOCD_DeviceConnected_Success(t *testing.T) {
 		},
 	}
 
-	ctx := now.TimeTravelingContext(serverTime)
+	ctx := now.TimeTravelingContext(t.Context(), serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 
@@ -1458,7 +1458,7 @@ func TestProcess_PyOCD_PreviouslyQuarantined_NewSettingClears(t *testing.T) {
 		},
 	}
 
-	ctx := now.TimeTravelingContext(serverTime)
+	ctx := now.TimeTravelingContext(t.Context(), serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 

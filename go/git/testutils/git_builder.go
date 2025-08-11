@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 )
@@ -162,7 +163,7 @@ func (g *GitBuilder) CommitMsgAt(ctx context.Context, msg string, time time.Time
 // CommitMsg commits files in the index with the given commit message. The
 // current branch is then pushed. Returns the hash of the new commit.
 func (g *GitBuilder) CommitMsg(ctx context.Context, msg string) string {
-	return g.CommitMsgAt(ctx, msg, time.Now())
+	return g.CommitMsgAt(ctx, msg, now.Now(ctx))
 }
 
 // Commit commits files in the index. The current branch is then pushed. Uses an
@@ -246,7 +247,7 @@ func (g *GitBuilder) MergeBranchAt(ctx context.Context, name string, ts time.Tim
 // MergeBranch merges the given branch into the current branch and pushes the
 // current branch. Returns the hash of the new commit.
 func (g *GitBuilder) MergeBranch(ctx context.Context, name string) string {
-	return g.MergeBranchAt(ctx, name, time.Now())
+	return g.MergeBranchAt(ctx, name, now.Now(ctx))
 }
 
 // Reset runs "git reset" in the repo.

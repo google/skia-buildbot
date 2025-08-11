@@ -31,6 +31,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const periodicSyncInterval = 5 * time.Minute
+
 var (
 	// ignoreBranches indicates that we shouldn't schedule on these branches.
 	// WARNING: Any commit reachable from any of these branches will be
@@ -52,15 +54,16 @@ var (
 // JobCreator is a struct used for creating Jobs based on new commits, tryjobs,
 // and timed triggers.
 type JobCreator struct {
-	cacher        cacher.Cacher
-	db            db.DB
-	jCache        cache.JobCache
-	lvUpdateRepos metrics2.Liveness
-	repos         repograph.Map
-	syncer        *syncer.Syncer
-	taskCfgCache  task_cfg_cache.TaskCfgCache
-	tryjobs       *tryjobs.TryJobIntegrator
-	window        window.Window
+	cacher              cacher.Cacher
+	db                  db.DB
+	gatherNewJobsQueues map[string]chan func(error)
+	jCache              cache.JobCache
+	lvUpdateRepos       metrics2.Liveness
+	repos               repograph.Map
+	syncer              *syncer.Syncer
+	taskCfgCache        task_cfg_cache.TaskCfgCache
+	tryjobs             *tryjobs.TryJobIntegrator
+	window              window.Window
 }
 
 // NewJobCreator returns a JobCreator instance.
@@ -102,16 +105,21 @@ func newJobCreatorWithoutInit(ctx context.Context, d db.DB, period time.Duration
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create TryJobIntegrator")
 	}
+	gatherNewJobsQueues := map[string]chan func(error){}
+	for repoUrl := range repos {
+		gatherNewJobsQueues[repoUrl] = make(chan func(error))
+	}
 	jc := &JobCreator{
-		cacher:        chr,
-		db:            d,
-		jCache:        jCache,
-		lvUpdateRepos: metrics2.NewLiveness("last_successful_repo_update"),
-		repos:         repos,
-		syncer:        sc,
-		taskCfgCache:  taskCfgCache,
-		tryjobs:       tryjobs,
-		window:        w,
+		cacher:              chr,
+		db:                  d,
+		gatherNewJobsQueues: gatherNewJobsQueues,
+		jCache:              jCache,
+		lvUpdateRepos:       metrics2.NewLiveness("last_successful_repo_update"),
+		repos:               repos,
+		syncer:              sc,
+		taskCfgCache:        taskCfgCache,
+		tryjobs:             tryjobs,
+		window:              w,
 	}
 	return jc, nil
 }
@@ -127,11 +135,44 @@ func (jc *JobCreator) Close() error {
 	return nil
 }
 
+func (jc *JobCreator) triggerRepoUpdate(repoUrl string, callback func(error)) {
+	ch, ok := jc.gatherNewJobsQueues[repoUrl]
+	if !ok {
+		sklog.Errorf("Received request to update unknown repo %q", repoUrl)
+		return
+	}
+	ch <- callback
+}
+
 // Start initeates the JobCreator's goroutines for creating jobs.
 func (jc *JobCreator) Start(ctx context.Context, enableTryjobs bool) {
 	if enableTryjobs {
 		jc.tryjobs.Start(ctx)
 	}
+	for repoUrl, repo := range jc.repos {
+		repoUrl := repoUrl
+		repo := repo
+		go func() {
+			ch := jc.gatherNewJobsQueues[repoUrl]
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case callback := <-ch:
+					err := jc.insertNewJobsFromRepo(ctx, repoUrl, repo)
+					if err != nil {
+						sklog.Errorf("Failed inserting new jobs for %s; will try again in %s: %s", repoUrl, periodicSyncInterval, err)
+					}
+					callback(err)
+				}
+			}
+		}()
+	}
+	go util.RepeatCtx(ctx, periodicSyncInterval, func(ctx context.Context) {
+		for repoUrl := range jc.repos {
+			jc.triggerRepoUpdate(repoUrl, func(error) {})
+		}
+	})
 }
 
 // putJobsInChunks is a wrapper around DB.PutJobsInChunks which adds the jobs
@@ -302,26 +343,21 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 
 // HandleRepoUpdate is a pubsub.AutoUpdateMapCallback which is called when any
 // of the repos is updated.
-func (jc *JobCreator) HandleRepoUpdate(ctx context.Context, repoUrl string, g *repograph.Graph, ack, nack func()) error {
+func (jc *JobCreator) HandleRepoUpdate(ctx context.Context, repoUrl string, g *repograph.Graph, ack, _ func()) error {
+	// Don't wait for the sync to start to ack the message.
+	ack()
+	jc.triggerRepoUpdate(repoUrl, func(error) {})
+	return nil
+}
+
+func (jc JobCreator) insertNewJobsFromRepo(ctx context.Context, repoUrl string, g *repograph.Graph) error {
 	newJobs, err := jc.gatherNewJobs(ctx, repoUrl, g)
 	if err != nil {
-		// gatherNewJobs does not return an error if the
-		// commit is invalid; so the error indicates
-		// something transient that should be retried.
-		nack()
 		return skerr.Wrapf(err, "gatherNewJobs returned transient error")
 	}
 	if err := jc.putJobsInChunks(ctx, newJobs); err != nil {
-		// nack the pubsub message so that we'll have
-		// another chance to add these jobs.
-		nack()
 		return skerr.Wrapf(err, "Failed to insert new jobs into the DB")
 	}
-	// Now we've inserted jobs for the new commits. We don't
-	// want to go through and do it again, so ack the pubsub
-	// message without waiting to see if the cache refreshes
-	// below succeed.
-	ack()
 	if err := jc.window.Update(ctx); err != nil {
 		return skerr.Wrapf(err, "failed to update window")
 	}

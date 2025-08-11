@@ -47,6 +47,7 @@ go_test(
         "//go/git/repograph",
         "//go/git/testutils",
         "//go/mockhttpclient",
+        "//go/now",
         "//go/sklog",
         "//go/swarming",
         "//go/testutils",

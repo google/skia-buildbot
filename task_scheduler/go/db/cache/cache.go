@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -737,7 +738,7 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 				break
 			}
 			if !other.Created.Equal(job.Created) {
-				panic(fmt.Sprintf("jobCache inconsistent; c.jobs contains job not in c.jobsByTime. old: %v, task: %v", old, job))
+				panic(fmt.Sprintf("jobCache inconsistent; c.jobs contains job not in c.jobsByTime. old: %s, new: %s", old.Id, job.Id))
 			}
 		}
 	} else {
@@ -770,7 +771,7 @@ func (c *jobCache) Update(ctx context.Context) error {
 	c.modMtx.Lock()
 	defer c.modMtx.Unlock()
 
-	c.lastUpdated = time.Now()
+	c.lastUpdated = now.Now(ctx)
 
 	c.expireJobs()
 	for _, job := range c.modified {
@@ -839,7 +840,7 @@ func NewJobCache(ctx context.Context, d db.JobReader, timeWindow window.Window, 
 	}
 	go func() {
 		for jobs := range mod {
-			now := time.Now()
+			now := now.Now(ctx)
 			c.modMtx.Lock()
 			for _, job := range jobs {
 				if old, ok := c.modified[job.Id]; !ok || job.DbModified.After(old.DbModified) {

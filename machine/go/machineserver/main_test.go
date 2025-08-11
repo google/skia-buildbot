@@ -52,7 +52,7 @@ const (
 )
 
 func setupForTestLocalOrProd(t *testing.T, local bool) (context.Context, machine.Description, *server, chi.Router, *httptest.ResponseRecorder) {
-	ctx := now.TimeTravelingContext(fakeTime)
+	ctx := now.TimeTravelingContext(t.Context(), fakeTime)
 	desc := machine.NewDescription(ctx)
 	desc.Dimensions = machine.SwarmingDimensions{
 		machine.DimID: []string{machineID},

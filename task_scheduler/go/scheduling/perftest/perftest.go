@@ -159,7 +159,7 @@ func main() {
 			sklog.Fatal(err)
 		}
 	}()
-	ctx := now.TimeTravelingContext(commitDate.Add(24 * time.Hour))
+	ctx := now.TimeTravelingContext(context.Background(), commitDate.Add(24*time.Hour))
 	repoName := "skia.git"
 	repoDir := filepath.Join(workdir, repoName)
 	assertNoError(os.Mkdir(repoDir, os.ModePerm))

@@ -58,7 +58,7 @@ func TestTimeTravelingContext_SetTime_ChangesWhenNowIs(t *testing.T) {
 	secondTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	thirdTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	ctx := TimeTravelingContext(firstTime)
+	ctx := TimeTravelingContext(t.Context(), firstTime)
 
 	assert.Equal(t, firstTime, Now(ctx))
 	time.Sleep(100 * time.Millisecond)
@@ -73,20 +73,4 @@ func TestTimeTravelingContext_SetTime_ChangesWhenNowIs(t *testing.T) {
 	ctx.SetTime(thirdTime)
 
 	assert.Equal(t, thirdTime, Now(ctx))
-}
-
-func TestTimeTravelingContext_WithContext_AllowsWrappingContext(t *testing.T) {
-
-	firstTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
-	secondTime := time.Date(2021, time.August, 20, 4, 0, 0, 0, time.UTC)
-
-	baseCtx := context.WithValue(context.Background(), "foo", "bar")
-
-	ctx := TimeTravelingContext(firstTime).WithContext(baseCtx)
-
-	assert.Equal(t, firstTime, Now(ctx))
-	ctx.SetTime(secondTime)
-	assert.Equal(t, secondTime, Now(ctx))
-
-	assert.Equal(t, "bar", ctx.Value("foo"))
 }

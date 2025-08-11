@@ -2143,7 +2143,7 @@ func TestTriage3_SingleDigestOnPrimaryBranch_Success(t *testing.T) {
 			},
 		},
 	}
-	ctx = now.TimeTravelingContext(fakeNow)
+	ctx = now.TimeTravelingContext(ctx, fakeNow)
 	tsBeforeTriage := time.Now()
 	res, err := wh.triage3(ctx, user, request)
 	require.NoError(t, err)
@@ -2508,7 +2508,7 @@ func TestTriage3_SingleDigestOnPrimaryBranch_ImageMatchingAlgorithm_UsesAlgorith
 		},
 		ImageMatchingAlgorithm: algorithmName,
 	}
-	ctx = now.TimeTravelingContext(fakeNow)
+	ctx = now.TimeTravelingContext(ctx, fakeNow)
 	tsBeforeTriage := time.Now()
 	res, err := wh.triage3(ctx, user, tr)
 	require.NoError(t, err)
@@ -2596,7 +2596,7 @@ func TestTriage3_BulkTriageOnPrimaryBranch_Success(t *testing.T) {
 		},
 	}
 
-	ctx = now.TimeTravelingContext(fakeNow)
+	ctx = now.TimeTravelingContext(ctx, fakeNow)
 	tsBeforeTriage := time.Now()
 	res, err := wh.triage3(ctx, user, tr)
 	require.NoError(t, err)
@@ -2707,7 +2707,7 @@ func TestTriage3_BulkTriageOnPrimaryBranch_OneCorrectAndOneWrongLabelBefore_Succ
 		},
 	}
 
-	ctx = now.TimeTravelingContext(fakeNow)
+	ctx = now.TimeTravelingContext(ctx, fakeNow)
 	tsBeforeTriage := time.Now()
 	res, err := wh.triage3(ctx, user, tr)
 	require.NoError(t, err)
@@ -2796,7 +2796,7 @@ func TestTriage3_BulkTriageOnOpenCL_Success(t *testing.T) {
 		CodeReviewSystem: dks.GerritCRS,
 		ChangelistID:     dks.ChangelistIDThatAttemptsToFixIOS,
 	}
-	ctx = now.TimeTravelingContext(fakeNow)
+	ctx = now.TimeTravelingContext(ctx, fakeNow)
 	tsBeforeTriage := time.Now()
 	res, err := wh.triage3(ctx, user, tr)
 	require.NoError(t, err)

@@ -57,7 +57,7 @@ func TestAddMetricForImageAge_NameIsSHA256_UpdatesMetricWithAZeroValue(t *testin
 
 func TestAddMetricForImageAge_NameHasDateEncoded_UpdatesMetricWithDaysSinceThatDate(t *testing.T) {
 	imageTime := time.Date(2020, time.January, 1, 1, 1, 0, 0, time.UTC)
-	ctx := now.TimeTravelingContext(imageTime.Add(time.Hour * 49)) // Two days (plus a smidge).
+	ctx := now.TimeTravelingContext(t.Context(), imageTime.Add(time.Hour*49)) // Two days (plus a smidge).
 
 	//  gcr.io/skia-public/emailservice:2022-07-06T16_08_06Z-jcgregorio-e0bf15f-clean
 	imageName := fmt.Sprintf("gcr.io/skia-public/emailservice:%s-jcgregorio-e0bf15f-clean", imageTime.Format("2006-01-02T15_04_05Z07:00"))

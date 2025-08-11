@@ -26,7 +26,7 @@ const (
 	patchsetRef2 = "123/18"
 )
 
-var mockTime = time.Unix(12, 0).UTC()
+var mockTime = time.Unix(1754937106, 0).UTC()
 
 var myFakeError = fmt.Errorf("My fake error")
 

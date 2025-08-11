@@ -33,7 +33,7 @@ var (
 )
 
 func testSetupLogger(t *testing.T) (*now.TimeTravelCtx, *GRPCLogger, *bytes.Buffer) {
-	ttCtx := now.TimeTravelingContext(startTime)
+	ttCtx := now.TimeTravelingContext(t.Context(), startTime)
 	buf := &bytes.Buffer{}
 	l := New("test-project", buf)
 
@@ -177,7 +177,7 @@ func TestServerUnaryLoggingInterceptor_tracing(t *testing.T) {
 	// This interceptor replaces the context created by the grpc.Server with the [now.TimeTravelCtx] created by this test.
 	// Otherwise, the test grpc handler will get the actual current time rather than the fake time set by this test.
 	timeTravelInterceptor := func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-		ttCtx = ttCtx.WithContext(ctx)
+		ttCtx = now.TimeTravelingContext(ctx, now.Now(ttCtx))
 		return handler(ttCtx, req)
 	}
 	interceptors := []grpc.UnaryServerInterceptor{

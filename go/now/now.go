@@ -69,11 +69,11 @@ type TimeTravelCtx struct {
 }
 
 // TimeTravelingContext returns a *TimeTravelCtx, using the given time and the background context.
-func TimeTravelingContext(start time.Time) *TimeTravelCtx {
+func TimeTravelingContext(parent context.Context, start time.Time) *TimeTravelCtx {
 	t := &TimeTravelCtx{
 		ts: start,
 	}
-	t.Context = context.WithValue(context.Background(), ContextKey, NowProvider(t.now))
+	t.Context = context.WithValue(parent, ContextKey, NowProvider(t.now))
 	return t
 }
 
@@ -90,15 +90,6 @@ func (t *TimeTravelCtx) SetTime(newTime time.Time) {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 	t.ts = newTime
-}
-
-// WithContext replaces the embedded context with one derived from the passed in context.
-// It is thread-safe, but tests should strive to use it in a non-threaded way for simplicity.
-func (t *TimeTravelCtx) WithContext(ctx context.Context) *TimeTravelCtx {
-	t.mutex.Lock()
-	defer t.mutex.Unlock()
-	t.Context = context.WithValue(ctx, ContextKey, NowProvider(t.now))
-	return t
 }
 
 // TimeTicker provides an interface around time.Ticker so that it can be mocked.

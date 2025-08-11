@@ -29,7 +29,7 @@ func TestLoggingTracer(t *testing.T) {
 	}
 	defer func() { Logf = originalLogf }()
 
-	ctx := now.TimeTravelingContext(fakeNow)
+	ctx := now.TimeTravelingContext(t.Context(), fakeNow)
 	a(ctx)
 
 	// These patterns make this test case fragile (i.e. inserting/deleting lines in this file might

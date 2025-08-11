@@ -315,7 +315,7 @@ func TestNewDataFrameIterator_MultipleDataframesWithSettlingTime_OneFramesOfLeng
 		SettlingTime: config.DurationAsString(30 * time.Second),
 	}
 
-	ctx := now.TimeTravelingContext(lastTimeStamp)
+	ctx := now.TimeTravelingContext(t.Context(), lastTimeStamp)
 	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, query, domain, alert, anomalyConfig)
 	require.NoError(t, err)
 

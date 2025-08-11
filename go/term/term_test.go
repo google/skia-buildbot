@@ -87,7 +87,7 @@ lines`},
 }
 
 func TestStructs(t *testing.T) {
-	ctx := now.TimeTravelingContext(time.Unix(1683911893, 0))
+	ctx := now.TimeTravelingContext(t.Context(), time.Unix(1683911893, 0))
 	data := []struct {
 		String string            `json:"string"`
 		Int    int64             `json:"int"`
@@ -130,7 +130,7 @@ c1 3 3.2 [c1 c2 c3] [c1 c2 c3] map[ck1:cv1 ck2:cv2]`
 }
 
 func TestStructs_IncludeHeader(t *testing.T) {
-	ctx := now.TimeTravelingContext(time.Unix(1683911893, 0))
+	ctx := now.TimeTravelingContext(t.Context(), time.Unix(1683911893, 0))
 	data := []struct {
 		String string            `json:"string"`
 		Int    int64             `json:"int"`
@@ -175,7 +175,7 @@ c1     3   3.2   [c1 c2 c3] [c1 c2 c3] map[ck1:cv1 ck2:cv2]`
 }
 
 func TestStructs_IncludeHeader_JSONTagsAsHeaders(t *testing.T) {
-	ctx := now.TimeTravelingContext(time.Unix(1683911893, 0))
+	ctx := now.TimeTravelingContext(t.Context(), time.Unix(1683911893, 0))
 	data := []struct {
 		String string            `json:"string"`
 		Int    int64             `json:"int"`
@@ -220,7 +220,7 @@ c1     3   3.2   [c1 c2 c3] [c1 c2 c3] map[ck1:cv1 ck2:cv2]`
 }
 
 func TestStructs_Pointers(t *testing.T) {
-	ctx := now.TimeTravelingContext(time.Unix(1683911893, 0))
+	ctx := now.TimeTravelingContext(t.Context(), time.Unix(1683911893, 0))
 	data := []*struct {
 		String string            `json:"string"`
 		Int    int64             `json:"int"`
@@ -263,7 +263,7 @@ c1 3 3.2 [c1 c2 c3] [c1 c2 c3] map[ck1:cv1 ck2:cv2]`
 }
 
 func TestStructs_NestedStructs(t *testing.T) {
-	ctx := now.TimeTravelingContext(time.Unix(1683911893, 0))
+	ctx := now.TimeTravelingContext(t.Context(), time.Unix(1683911893, 0))
 	type nested struct {
 		Int   int64             `json:"int"`
 		Float float64           `json:"float"`
@@ -317,7 +317,7 @@ c1     3   3.2   [c1 c2 c3] [c1 c2 c3] map[ck1:cv1 ck2:cv2]`
 }
 
 func TestStructs_Time(t *testing.T) {
-	ctx := now.TimeTravelingContext(time.Unix(1683911893, 0))
+	ctx := now.TimeTravelingContext(t.Context(), time.Unix(1683911893, 0))
 	data := []struct {
 		String string    `json:"string"`
 		Time   time.Time `json:"tume"`
@@ -344,7 +344,7 @@ c1 2023-05-12 15:22:26 +0000 UTC`
 }
 
 func TestStructs_TimeAsDiffs(t *testing.T) {
-	ctx := now.TimeTravelingContext(time.Unix(1683911893, 0))
+	ctx := now.TimeTravelingContext(t.Context(), time.Unix(1683911893, 0))
 	data := []struct {
 		String string    `json:"string"`
 		Time   time.Time `json:"tume"`
@@ -373,7 +373,7 @@ c1 1h 55m`
 }
 
 func TestStructs_TimeInNestedStruct(t *testing.T) {
-	ctx := now.TimeTravelingContext(time.Unix(1683911893, 0))
+	ctx := now.TimeTravelingContext(t.Context(), time.Unix(1683911893, 0))
 	type nested struct {
 		Time time.Time `json:"time"`
 	}
@@ -414,7 +414,7 @@ c1     2023-05-12 15:22:26 +0000 UTC`
 }
 
 func TestStructs_EmptyCollectionsBlank(t *testing.T) {
-	ctx := now.TimeTravelingContext(time.Unix(1683911893, 0))
+	ctx := now.TimeTravelingContext(t.Context(), time.Unix(1683911893, 0))
 	data := []struct {
 		String string            `json:"string"`
 		Slice  []string          `json:"slice"`

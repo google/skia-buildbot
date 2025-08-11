@@ -254,7 +254,7 @@ func insertJobs(t sktest.TestingT, ctx context.Context, s *TaskScheduler, rss ..
 // Common setup for TaskScheduler tests.
 func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, *swarming_testutils.TestClient, *TaskScheduler, *mockhttpclient.URLMock, *mocks.CAS, func()) {
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 
 	tmp, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
@@ -719,11 +719,11 @@ func processTaskCandidate(ctx context.Context, s *TaskScheduler, c *TaskCandidat
 }
 
 func TestProcessTaskCandidate(t *testing.T) {
-	_, _, _, _, s, _, _, cleanup := setup(t)
+	ctx, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	currentTime := time.Unix(0, 1470674884000000)
-	ctx := now.TimeTravelingContext(currentTime)
+	ctx = now.TimeTravelingContext(ctx, currentTime)
 
 	checkDiagTryForced := func(c *TaskCandidate) {
 		require.NotNil(t, c.Diagnostics)
@@ -832,10 +832,10 @@ func TestProcessTaskCandidate(t *testing.T) {
 }
 
 func TestRegularJobRetryScoring(t *testing.T) {
-	_, _, _, _, s, _, _, cleanup := setup(t)
+	ctx, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
-	ctx := now.TimeTravelingContext(time.Date(2021, time.October, 15, 0, 0, 0, 0, time.UTC))
+	ctx = now.TimeTravelingContext(ctx, time.Date(2021, time.October, 15, 0, 0, 0, 0, time.UTC))
 	currentTime := now.Now(ctx)
 
 	checkDiag := func(c *TaskCandidate) {
@@ -1247,7 +1247,7 @@ func TestTestednessIncrease(t *testing.T) {
 func TestComputeBlamelist(t *testing.T) {
 
 	// Setup.
-	nowCtx := now.TimeTravelingContext(mem_git.BaseTime.Add(time.Hour))
+	nowCtx := now.TimeTravelingContext(t.Context(), mem_git.BaseTime.Add(time.Hour))
 	ctx, cancel := context.WithCancel(nowCtx)
 	defer cancel()
 

@@ -13,7 +13,7 @@ import (
 func TestGetResultFilePath_Success(t *testing.T) {
 
 	arbitraryTime := time.Date(2022, 1, 2, 3, 4, 5, 67, time.UTC)
-	ctx := now.TimeTravelingContext(arbitraryTime)
+	ctx := now.TimeTravelingContext(t.Context(), arbitraryTime)
 
 	test := func(name string, config jsonio.GoldResults, expectedPath string) {
 		t.Run(name, func(t *testing.T) {

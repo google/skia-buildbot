@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
@@ -104,19 +106,18 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *memory.In
 	}
 }
 
-func updateRepos(t *testing.T, ctx context.Context, jc *JobCreator) {
-	acked := false
-	ack := func() {
-		acked = true
-	}
-	nack := func() {
-		require.FailNow(t, "Should not have called nack()")
-	}
+func updateReposAndStartJobs(t *testing.T, ctx context.Context, jc *JobCreator) {
+	var wg sync.WaitGroup
+	wg.Add(1)
 	err := jc.repos.UpdateWithCallback(ctx, func(repoUrl string, g *repograph.Graph) error {
-		return jc.HandleRepoUpdate(ctx, repoUrl, g, ack, nack)
+		jc.triggerRepoUpdate(repoUrl, func(err error) {
+			require.NoError(t, err)
+			wg.Done()
+		})
+		return nil
 	})
 	require.NoError(t, err)
-	require.True(t, acked)
+	wg.Wait()
 }
 
 func mockLastCommit(t *testing.T, ctx context.Context, gb *git_testutils.GitBuilder, taskCfgCache *tcc_mocks.TaskCfgCache, cacher *cacher_mocks.Cacher) {
@@ -149,7 +150,7 @@ func TestGatherNewJobs(t *testing.T) {
 	cacher := jc.cacher.(*cacher_mocks.Cacher)
 
 	testGatherNewJobs := func(expectedJobs int) {
-		updateRepos(t, ctx, jc)
+		updateReposAndStartJobs(t, ctx, jc)
 		jobs, err := jc.jCache.InProgressJobs()
 		require.NoError(t, err)
 		require.Equal(t, expectedJobs, len(jobs))
@@ -171,12 +172,12 @@ func TestGatherNewJobs(t *testing.T) {
 	// Add a commit on main, run gatherNewJobs, ensure that we added the
 	// new Jobs.
 	makeFakeCommits(t, ctx, gb, tcc, cacher, 1)
-	updateRepos(t, ctx, jc)
+	updateReposAndStartJobs(t, ctx, jc)
 	testGatherNewJobs(8) // we didn't add to the jobs spec, so 3 jobs/rev.
 
 	// Add several commits on main, ensure that we added all of the Jobs.
 	makeFakeCommits(t, ctx, gb, tcc, cacher, 10)
-	updateRepos(t, ctx, jc)
+	updateReposAndStartJobs(t, ctx, jc)
 	testGatherNewJobs(38) // 3 jobs/rev + 8 pre-existing jobs.
 
 	// Add a commit on a branch other than main, run gatherNewJobs, ensure
@@ -188,7 +189,7 @@ func TestGatherNewJobs(t *testing.T) {
 	gb.Add(ctx, fileName, msg)
 	gb.Commit(ctx)
 	mockLastCommit(t, ctx, gb, tcc, cacher)
-	updateRepos(t, ctx, jc)
+	updateReposAndStartJobs(t, ctx, jc)
 	testGatherNewJobs(41) // 38 previous jobs + 3 new ones.
 
 	// Add several commits in a row on different branches, ensure that we
@@ -196,7 +197,7 @@ func TestGatherNewJobs(t *testing.T) {
 	makeFakeCommits(t, ctx, gb, tcc, cacher, 5)
 	gb.CheckoutBranch(ctx, git.MainBranch)
 	makeFakeCommits(t, ctx, gb, tcc, cacher, 5)
-	updateRepos(t, ctx, jc)
+	updateReposAndStartJobs(t, ctx, jc)
 	testGatherNewJobs(71) // 10 commits x 3 jobs/commit = 30, plus 41
 
 	// Add one more commit on the non-main branch which marks all but one
@@ -214,13 +215,20 @@ func TestGatherNewJobs(t *testing.T) {
 	gb.Add(ctx, "infra/bots/tasks.json", string(cfgBytes))
 	gb.CommitMsgAt(ctx, "abcd", time.Now())
 	mockLastCommit(t, ctx, gb, tcc, cacher)
-	updateRepos(t, ctx, jc)
+	updateReposAndStartJobs(t, ctx, jc)
 	testGatherNewJobs(72)
 }
 
 func TestPeriodicJobs(t *testing.T) {
 	ctx, gb, _, jc, _, _, cleanup := setup(t)
 	defer cleanup()
+
+	startTime := time.Unix(1754927651, 0) // Arbitrary start time.
+	nowContext := now.TimeTravelingContext(ctx, startTime)
+	advanceTime := func(duration time.Duration) {
+		nowContext.SetTime(now.Now(ctx).Add(duration))
+	}
+	ctx = nowContext
 
 	tcc := jc.taskCfgCache.(*tcc_mocks.TaskCfgCache)
 	cacher := jc.cacher.(*cacher_mocks.Cacher)
@@ -268,13 +276,13 @@ func TestPeriodicJobs(t *testing.T) {
 	gb.Add(ctx, specs.TASKS_CFG_FILE, testutils.MarshalJSON(t, &cfg))
 	gb.Commit(ctx)
 	mockLastCommit(t, ctx, gb, tcc, cacher)
-	updateRepos(t, ctx, jc)
+	updateReposAndStartJobs(t, ctx, jc)
 
 	// Trigger the periodic jobs. Make sure that we inserted the new Job.
 	require.NoError(t, jc.MaybeTriggerPeriodicJobs(ctx, specs.TRIGGER_NIGHTLY))
 	require.NoError(t, jc.jCache.Update(ctx))
-	start := time.Now().Add(-10 * time.Minute)
-	end := time.Now().Add(10 * time.Minute)
+	start := startTime.Add(-10 * time.Minute)
+	end := startTime.Add(10 * time.Minute)
 	jobs, err := jc.jCache.GetMatchingJobsFromDateRange(names, start, end)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(jobs[nightlyName]))
@@ -282,6 +290,7 @@ func TestPeriodicJobs(t *testing.T) {
 	require.Equal(t, 0, len(jobs[weeklyName]))
 
 	// Ensure that we don't trigger another.
+	advanceTime(time.Second) // This ensures that we see the job we just added.
 	require.NoError(t, jc.MaybeTriggerPeriodicJobs(ctx, specs.TRIGGER_NIGHTLY))
 	require.NoError(t, jc.jCache.Update(ctx))
 	jobs, err = jc.jCache.GetMatchingJobsFromDateRange(names, start, end)
@@ -289,13 +298,12 @@ func TestPeriodicJobs(t *testing.T) {
 	require.Equal(t, 1, len(jobs[nightlyName]))
 	require.Equal(t, 0, len(jobs[weeklyName]))
 
-	// Hack the old Job's created time to simulate it scrolling out of the
-	// window.
-	oldJob := jobs[nightlyName][0]
-	oldJob.Created = start.Add(-23 * time.Hour)
-	require.NoError(t, jc.db.PutJob(ctx, oldJob))
-	jc.jCache.AddJobs([]*types.Job{oldJob})
+	// Fast-forward time to scroll the old job out of the window.
+	advanceTime(24 * time.Hour)
+	require.NoError(t, jc.window.Update(ctx))
 	require.NoError(t, jc.jCache.Update(ctx))
+	start = now.Now(ctx).Add(-10 * time.Minute)
+	end = now.Now(ctx).Add(10 * time.Minute)
 	jobs, err = jc.jCache.GetMatchingJobsFromDateRange(names, start, end)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(jobs[nightlyName]))
@@ -345,7 +353,7 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 
 	// This should cause JobCreator to insert jobs into the DB, and Task
 	// Scheduler should trigger tasks for them.
-	updateRepos(t, ctx, jc)
+	updateReposAndStartJobs(t, ctx, jc)
 
 	bot1 := &apipb.BotInfo{
 		BotId: "bot1",

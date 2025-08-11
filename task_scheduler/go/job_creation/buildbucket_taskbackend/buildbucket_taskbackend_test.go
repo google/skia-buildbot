@@ -43,7 +43,7 @@ var (
 )
 
 func setup(t *testing.T) (context.Context, *TaskBackend, *mocks.JobDB, *buildbucket_mocks.BuildBucketInterface) {
-	ctx := now.TimeTravelingContext(fakeCreateTime.Add(time.Minute))
+	ctx := now.TimeTravelingContext(t.Context(), fakeCreateTime.Add(time.Minute))
 	bb := &buildbucket_mocks.BuildBucketInterface{}
 	projectRepoMapping := map[string]string{
 		fakeProject: fakeRepo,

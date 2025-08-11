@@ -74,7 +74,7 @@ func TestNewEvent(t *testing.T) {
 
 func TestNewDescription(t *testing.T) {
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
-	ctx := now.TimeTravelingContext(serverTime)
+	ctx := now.TimeTravelingContext(t.Context(), serverTime)
 	actual := machine.NewDescription(ctx)
 	expected := machine.Description{
 		AttachedDevice: machine.AttachedDeviceNone,

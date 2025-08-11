@@ -773,7 +773,7 @@ func TestTaskDBSearch(t sktest.TestingT, db TaskDB) {
 
 	require.NoError(t, db.PutTasks(ctx, []*types.Task{t1, t2, t3, t4, t5, t6}))
 
-	ctx = now.TimeTravelingContext(tCurrent).Context
+	ctx = now.TimeTravelingContext(ctx, tCurrent).Context
 
 	test := func(params *TaskSearchParams, expect ...*types.Task) {
 		actual, err := db.SearchTasks(ctx, params)
@@ -1103,7 +1103,7 @@ func TestJobDBSearch(t sktest.TestingT, db JobDB) {
 
 	require.NoError(t, db.PutJobs(ctx, []*types.Job{j1, j2, j3, j4, j5}))
 
-	ctx = now.TimeTravelingContext(tCurrent).Context
+	ctx = now.TimeTravelingContext(ctx, tCurrent).Context
 
 	test := func(params *JobSearchParams, expect ...*types.Job) {
 		actual, err := db.SearchJobs(ctx, params)

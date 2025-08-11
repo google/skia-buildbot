@@ -150,7 +150,7 @@ var (
 // Returns the GitBuilder instance for the test repo, along with the commit
 // hashes for c1 and c2.
 func SetupTestRepo(t sktest.TestingT) (context.Context, *git_testutils.GitBuilder, string, string) {
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := cipd_git.UseGitFinder(t.Context())
 	gb := git_testutils.GitInit(t, ctx)
 
 	// Commit 1.

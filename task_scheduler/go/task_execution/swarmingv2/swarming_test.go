@@ -80,7 +80,7 @@ func TestGetFreeMachines_CombinesPagedResponses(t *testing.T) {
 
 func TestGetPendingTasks_CombinesPagedResponses(t *testing.T) {
 	ts := time.Unix(1715176877, 0) // Arbitrary time.
-	ctx := now.TimeTravelingContext(ts)
+	ctx := now.TimeTravelingContext(t.Context(), ts)
 	client := &mocks.SwarmingV2Client{}
 	s := &SwarmingV2TaskExecutor{
 		casInstance: "fake-cas-instance",
