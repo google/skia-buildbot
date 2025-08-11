@@ -88,37 +88,37 @@ var subTests = map[string]struct {
 }
 
 func testTraceNameToTestPath_Success(t *testing.T, traceName string) {
-	testPath, err := traceNameToTestPath(traceName, false)
+	testPath, err := TraceNameToTestPath(traceName, false)
 	require.NoError(t, err)
 	assert.Equal(t, "ChromiumPerf/MacM1/Blazor/timeToFirstContentfulPaint_avg/subtest111/subtest222/subtest333/subtest444/subtest555/subtest666/subtest777", testPath)
 }
 
 func testTraceNameToTestPath_StatNotValue_NoTracePathReturned(t *testing.T, traceName string) {
-	testPath, err := traceNameToTestPath(traceName, false)
+	testPath, err := TraceNameToTestPath(traceName, false)
 	require.NoError(t, err)
 	assert.Equal(t, "ChromiumPerf/MacM1/Blazor/timeToFirstContentfulPaint_avg/subtest111/subtest222/subtest333/subtest444/subtest555/subtest666/subtest777", testPath)
 }
 
 func testTraceNameToTestPath_NoMaster_Error(t *testing.T, traceName string) {
-	testPath, err := traceNameToTestPath(traceName, false)
+	testPath, err := TraceNameToTestPath(traceName, false)
 	require.Error(t, err)
 	assert.Equal(t, "", testPath)
 }
 
 func testTraceNameToTestPath_NoBot_Error(t *testing.T, traceName string) {
-	testPath, err := traceNameToTestPath(traceName, false)
+	testPath, err := TraceNameToTestPath(traceName, false)
 	require.Error(t, err)
 	assert.Equal(t, "", testPath)
 }
 
 func testTraceNameToTestPath_NoTest_Error(t *testing.T, traceName string) {
-	testPath, err := traceNameToTestPath(traceName, false)
+	testPath, err := TraceNameToTestPath(traceName, false)
 	require.Error(t, err)
 	assert.Equal(t, "", testPath)
 }
 
 func testTraceNameToTestPath_InvalidTraceName_Error(t *testing.T, traceName string) {
-	testPath, err := traceNameToTestPath(traceName, false)
+	testPath, err := TraceNameToTestPath(traceName, false)
 	require.Error(t, err)
 	assert.Equal(t, "", testPath)
 }
@@ -153,7 +153,7 @@ func TestTraceNameToTestPath_WithStat(t *testing.T) {
 	}
 	for name, subTest := range subTests {
 		t.Run(name, func(t *testing.T) {
-			newTestPath, err := traceNameToTestPath(subTest.oldParams, true)
+			newTestPath, err := TraceNameToTestPath(subTest.oldParams, true)
 			assert.NoError(t, err)
 			assert.Equal(t, subTest.expectedParams, newTestPath)
 		})

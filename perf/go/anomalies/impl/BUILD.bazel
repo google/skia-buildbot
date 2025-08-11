@@ -14,6 +14,7 @@ go_library(
         "//go/sklog",
         "//perf/go/anomalies",
         "//perf/go/chromeperf",
+        "//perf/go/chromeperf/compat",
         "//perf/go/git",
         "//perf/go/regression",
         "//perf/go/types",
@@ -26,6 +27,7 @@ go_test(
     srcs = ["sql_impl_test.go"],
     embed = [":impl"],
     deps = [
+        "//perf/go/chromeperf",
         "//perf/go/dataframe",
         "//perf/go/git/mocks",
         "//perf/go/git/provider",

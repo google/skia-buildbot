@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/chromeperf"
+	"go.skia.org/infra/perf/go/chromeperf/compat"
 	"go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/types"
@@ -53,33 +54,29 @@ func (s *sqlAnomaliesStore) GetAnomalies(ctx context.Context, traceNames []strin
 
 	for _, allRegressionsForCommit := range regressionsMap {
 		for _, reg := range allRegressionsForCommit.ByAlertID {
-			if reg.Frame == nil || reg.Frame.DataFrame == nil {
+			convertedAnomalies, err := compat.ConvertRegressionToAnomalies(reg)
+			if err != nil {
+				sklog.Warningf("Could not convert regression with id %s to anomalies: %s", reg.Id, err)
 				continue
 			}
 
-			for traceKeyInFrame := range reg.Frame.DataFrame.TraceSet {
-				if len(targetTraceSet) > 0 && !targetTraceSet[traceKeyInFrame] {
+			for traceKey, commitMap := range convertedAnomalies {
+				// Applying filtering.
+				if len(targetTraceSet) > 0 && !targetTraceSet[traceKey] {
 					continue
 				}
 
-				anomaly := chromeperf.Anomaly{
-					Id:                  reg.Id,
-					TestPath:            traceKeyInFrame,
-					StartRevision:       int(reg.PrevCommitNumber),
-					EndRevision:         int(reg.CommitNumber),
-					IsImprovement:       reg.IsImprovement,
-					MedianBeforeAnomaly: float64(reg.MedianBefore),
-					MedianAfterAnomaly:  float64(reg.MedianAfter),
+				if _, ok := result[traceKey]; !ok {
+					result[traceKey] = chromeperf.CommitNumberAnomalyMap{}
 				}
-				sklog.Debugf("Constructed anomaly for trace %s: %+v", traceKeyInFrame, anomaly)
-
-				if _, ok := result[traceKeyInFrame]; !ok {
-					result[traceKeyInFrame] = chromeperf.CommitNumberAnomalyMap{}
+				for commitNumber, anomaly := range commitMap {
+					result[traceKey][commitNumber] = anomaly
+					sklog.Debugf("Constructed anomaly for trace %s: %+v", traceKey, anomaly)
 				}
-				result[traceKeyInFrame][reg.CommitNumber] = anomaly
 			}
 		}
 	}
+	sklog.Debugf("Found %d anomalies for traceNames: %v, startCommitPosition: %d, endCommitPosition: %d", len(result), traceNames, startCommitPosition, endCommitPosition)
 	return result, nil
 }
 
@@ -110,6 +107,7 @@ func (s *sqlAnomaliesStore) GetAnomaliesInTimeRange(ctx context.Context, traceNa
 	startCommitNumber := commits[0].CommitNumber
 	endCommitNumber := commits[len(commits)-1].CommitNumber
 
+	sklog.Debugf("Found %d commits in time range %v to %v. Converted to commit range [%d, %d]", len(commits), startTime, endTime, startCommitNumber, endCommitNumber)
 	return s.GetAnomalies(ctx, traceNames, int(startCommitNumber), int(endCommitNumber))
 }
 
@@ -153,6 +151,7 @@ func (s *sqlAnomaliesStore) GetAnomaliesAroundRevision(ctx context.Context, revi
 		}
 	}
 
+	sklog.Debugf("Found %d anomalies around revision %d (window [%d, %d])", len(result), revision, startCommitPosition, endCommitPosition)
 	return result, nil
 }
 

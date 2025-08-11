@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/dataframe"
 	gitMocks "go.skia.org/infra/perf/go/git/mocks"
 	"go.skia.org/infra/perf/go/git/provider"
@@ -26,8 +27,8 @@ const (
 	endCommit    = 200
 	medianBefore = 30.0
 	medianAfter  = 40.0
-	traceKey1    = "test_trace_1,config=A,arch=x86,"
-	traceKey2    = "test_trace_2,config=B,arch=arm,"
+	traceKey1    = ",benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=test1,"
+	traceKey2    = ",benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=test2,"
 )
 
 func setupStore(t *testing.T) (*sqlAnomaliesStore, *regStoreMocks.Store, *gitMocks.Git) {
@@ -117,7 +118,9 @@ func TestSqlAnomaliesStore_GetAnomalies(t *testing.T) {
 		assert.Contains(t, anomaliesMap[traceKey1], types.CommitNumber(endCommit))
 		anomaly1 := anomaliesMap[traceKey1][types.CommitNumber(endCommit)]
 		assert.Equal(t, "alert_id_1", anomaly1.Id)
-		assert.Equal(t, traceKey1, anomaly1.TestPath)
+		expectedTestPath1, err := chromeperf.TraceNameToTestPath(traceKey1, false)
+		require.NoError(t, err)
+		assert.Equal(t, expectedTestPath1, anomaly1.TestPath)
 		assert.Equal(t, startCommit, anomaly1.StartRevision)
 		assert.Equal(t, endCommit, anomaly1.EndRevision)
 		assert.False(t, anomaly1.IsImprovement)
@@ -128,6 +131,9 @@ func TestSqlAnomaliesStore_GetAnomalies(t *testing.T) {
 		assert.Contains(t, anomaliesMap[traceKey2], types.CommitNumber(endCommit))
 		anomaly2 := anomaliesMap[traceKey2][types.CommitNumber(endCommit)]
 		assert.Equal(t, "alert_id_2", anomaly2.Id)
+		expectedTestPath2, err := chromeperf.TraceNameToTestPath(traceKey2, false)
+		require.NoError(t, err)
+		assert.Equal(t, expectedTestPath2, anomaly2.TestPath)
 		assert.True(t, anomaly2.IsImprovement)
 		assert.Equal(t, medianBefore*2, anomaly2.MedianBeforeAnomaly)
 		assert.Equal(t, medianAfter*2, anomaly2.MedianAfterAnomaly)
@@ -164,7 +170,7 @@ func TestSqlAnomaliesStore_GetAnomaliesInTimeRange(t *testing.T) {
 	ctx := context.Background()
 	startTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
 	endTime := time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC)
-	traceNames := []string{"traceA"}
+	traceNames := []string{traceKey1}
 
 	t.Run("GitNotInitialized", func(t *testing.T) {
 		regStoreMock := regStoreMocks.NewStore(t)

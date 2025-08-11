@@ -361,7 +361,7 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 	testPathTraceNameMap := make(map[string]string)
 	for _, traceName := range traceNames {
 		// Build chrome perf test_path from skia perf traceName
-		testPath, err := traceNameToTestPath(traceName, cp.config.Experiments.EnableSkiaBridgeAggregation)
+		testPath, err := TraceNameToTestPath(traceName, cp.config.Experiments.EnableSkiaBridgeAggregation)
 		if err != nil {
 			sklog.Errorf("Failed to build chrome perf test path from trace name %q: %s", traceName, err)
 		} else {
@@ -403,7 +403,7 @@ func (cp *anomalyApiClientImpl) GetAnomaliesTimeBased(ctx context.Context, trace
 	testPathTraceNameMap := make(map[string]string)
 	for _, traceName := range traceNames {
 		// Build chrome perf test_path from skia perf traceName
-		testPath, err := traceNameToTestPath(traceName, cp.config.EnableSheriffConfig)
+		testPath, err := TraceNameToTestPath(traceName, cp.config.EnableSheriffConfig)
 		if err != nil {
 			sklog.Errorf("Failed to build chrome perf test path from trace name %q: %s", traceName, err)
 		} else {
@@ -470,13 +470,13 @@ func (cp *anomalyApiClientImpl) GetAnomaliesAroundRevision(ctx context.Context, 
 	return response, nil
 }
 
-// traceNameToTestPath converts trace name to Chrome Perf test path.
+// TraceNameToTestPath converts trace name to Chrome Perf test path.
 // For example, for the trace name, ",benchmark=Blazor,bot=MacM1,
 // master=ChromiumPerf,test=timeToFirstContentfulPaint_avg,subtest_1=111,
 // subtest_2=222,...subtest_7=777,unit=microsecond,improvement_direction=up,"
 // test path will be: "ChromiumPerf/MacM1/Blazor/timeToFirstContentfulPaint_avg
 // /111/222/.../777"
-func traceNameToTestPath(traceName string, statToSuffixRequired bool) (string, error) {
+func TraceNameToTestPath(traceName string, statToSuffixRequired bool) (string, error) {
 	keyValueEquations := strings.Split(traceName, ",")
 	if len(keyValueEquations) == 0 {
 		return "", fmt.Errorf("cannot build test path from trace name: %q", traceName)
@@ -529,7 +529,6 @@ func traceNameToTestPath(traceName string, statToSuffixRequired bool) (string, e
 			// The value of "average" is put here as a place holder that we can tell the difference if we decide
 			// to use different stat value for testName and testName_avg.
 			// As a result, anomalies detected with the 'test' as 'testName' will NOT be able to be loaded.
-			sklog.Debugf("Test value before suffix handling: %s", val)
 			// If the test value has stat suffix already (case #1, #2), we don't need to do anything.
 			// Otherwise, attach the correct stat suffix to the test value.
 			if !hasSuffixInTestValue(val, statToSuffixMap) {
@@ -542,7 +541,6 @@ func traceNameToTestPath(traceName string, statToSuffixRequired bool) (string, e
 					sklog.Warningf("Unexpected value for statistics in paramset: %s", statistics)
 				}
 			}
-			sklog.Debugf("Test value after suffix handling: %s", val)
 		}
 		testPath += "/" + val
 	} else {

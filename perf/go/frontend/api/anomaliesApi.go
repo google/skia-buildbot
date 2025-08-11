@@ -19,8 +19,10 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/chromeperf"
+	"go.skia.org/infra/perf/go/chromeperf/compat"
 	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/subscription"
 	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/types"
@@ -36,6 +38,8 @@ type anomaliesApi struct {
 	perfGit          perfgit.Git
 	subStore         subscription.Store
 	alertStore       alerts.Store
+	regStore         regression.Store
+	preferLegacy     bool
 }
 
 // Response object for the request from sheriff list UI.
@@ -110,22 +114,48 @@ type GetGroupReportResponse struct {
 
 func (api anomaliesApi) RegisterHandlers(router *chi.Mux) {
 	// Endpoints for using Chromeperf data.
-	router.Get("/_/anomalies/sheriff_list", api.GetSheriffListLegacy)
-	router.Get("/_/anomalies/anomaly_list", api.GetAnomalyListLegacy)
-	router.Post("/_/anomalies/group_report", api.GetGroupReportLegacy)
+	router.Get("/_/anomalies/sheriff_list", api.GetSheriffListDefault)
+	router.Get("/_/anomalies/anomaly_list", api.GetAnomalyListDefault)
+	router.Post("/_/anomalies/group_report", api.GetGroupReportDefault)
 
 	// Endpoints for using data from the instance database.
 	router.Get("/_/anomalies/sheriff_list_skia", api.GetSheriffList)
 	router.Get("/_/anomalies/anomaly_list_skia", api.GetAnomalyList)
 }
 
-func NewAnomaliesApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, perfGit perfgit.Git, subStore subscription.Store, alertStore alerts.Store) anomaliesApi {
+func NewAnomaliesApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, perfGit perfgit.Git, subStore subscription.Store, alertStore alerts.Store, regStore regression.Store, preferLegacy bool) anomaliesApi {
 	return anomaliesApi{
 		loginProvider:    loginProvider,
 		chromeperfClient: chromeperfClient,
 		perfGit:          perfGit,
 		subStore:         subStore,
 		alertStore:       alertStore,
+		regStore:         regStore,
+		preferLegacy:     preferLegacy,
+	}
+}
+
+func (api anomaliesApi) GetSheriffListDefault(w http.ResponseWriter, r *http.Request) {
+	if api.preferLegacy {
+		api.GetSheriffListLegacy(w, r)
+	} else {
+		api.GetSheriffList(w, r)
+	}
+}
+
+func (api anomaliesApi) GetAnomalyListDefault(w http.ResponseWriter, r *http.Request) {
+	if api.preferLegacy {
+		api.GetAnomalyListLegacy(w, r)
+	} else {
+		api.GetAnomalyList(w, r)
+	}
+}
+
+func (api anomaliesApi) GetGroupReportDefault(w http.ResponseWriter, r *http.Request) {
+	if api.preferLegacy {
+		api.GetGroupReportLegacy(w, r)
+	} else {
+		api.GetGroupReport(w, r)
 	}
 }
 
@@ -360,28 +390,145 @@ func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 
 	getAnomaliesResponse.Subscription = sub
 
-	alertsPtr, err := api.alertStore.ListForSubscription(ctx, subName)
+	alertsFromStore, err := api.alertStore.ListForSubscription(ctx, subName)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get list of alerts", http.StatusInternalServerError)
 		return
 	}
-	alerts := make([]alerts.Alert, len(alertsPtr))
 
-	for i, alertPtr := range alertsPtr {
-		alerts[i] = *alertPtr
+	alertsForResponse := make([]alerts.Alert, len(alertsFromStore))
+	for i, alertPtr := range alertsFromStore {
+		if alertPtr != nil {
+			alertsForResponse[i] = *alertPtr
+		}
+	}
+	getAnomaliesResponse.Alerts = alertsForResponse
+
+	regressions, err := api.regStore.GetRegressionsBySubName(ctx, subName, 50, 0)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get regressions", http.StatusInternalServerError)
+		return
+	}
+	anomalies := make([]chromeperf.Anomaly, 0)
+	for _, reg := range regressions {
+		convertedAnomalies, err := compat.ConvertRegressionToAnomalies(reg)
+		if err != nil {
+			sklog.Warningf("Could not convert regression with id %s to anomalies: %s", reg.Id, err)
+			continue
+		}
+		for _, commitNumberMap := range convertedAnomalies {
+			for _, anomaly := range commitNumberMap {
+				anomalies = append(anomalies, anomaly)
+			}
+		}
 	}
 
-	getAnomaliesResponse.Alerts = alerts
-
-	// TODO(eduardoyap): Add logic to return anomalies from subscription.
+	getAnomaliesResponse.Anomalies = anomalies
 
 	if err := json.NewEncoder(w).Encode(getAnomaliesResponse); err != nil {
 		httputils.ReportError(w, err, "Failed to write get anoamlies response.", http.StatusInternalServerError)
 		return
 	}
 	sklog.Debugf("[SkiaTriage] %d anomalies are received.", len(getAnomaliesResponse.Anomalies))
+}
 
-	return
+func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
+	if api.loginProvider.LoggedInAs(r) == "" {
+		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+		return
+	}
+
+	var err error
+	var groupReportRequest GetGroupReportRequest
+	if err = json.NewDecoder(r.Body).Decode(&groupReportRequest); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON on anomaly group report request.", http.StatusInternalServerError)
+		return
+	}
+	sklog.Debugf("[SkiaTriage] Anomaly group report request received from frontend: Revision: %s, AnomalyIDs: %s, BugID: %s, AnomalyGroupID: %s, Sid: %s", groupReportRequest.Revison, groupReportRequest.AnomalyIDs, groupReportRequest.BugID, groupReportRequest.AnomalyGroupID, groupReportRequest.Sid)
+
+	if !IsGroupReportRequestValid(groupReportRequest) {
+		httputils.ReportError(w, err, "Group report request is invalid.", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	ctx, cancel := context.WithTimeout(r.Context(), defaultAnomaliesRequestTimeout)
+	defer cancel()
+	groupReportResponse := &GetGroupReportResponse{}
+
+	if groupReportRequest.AnomalyIDs != "" {
+		ids := strings.Split(groupReportRequest.AnomalyIDs, ",")
+		regressions, err := api.regStore.GetByIDs(ctx, ids)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to retrieve regressions by ID.", http.StatusInternalServerError)
+			sklog.Errorf("Failed to get regressions by ID: %s", err)
+			return
+		}
+		groupReportResponse.Anomalies = make([]chromeperf.Anomaly, 0)
+		for _, reg := range regressions {
+			anomalies, err := compat.ConvertRegressionToAnomalies(reg)
+			if err != nil {
+				sklog.Warningf("Could not convert regression with id %s to anomalies: %s", reg.Id, err)
+				continue
+			}
+			for _, commitNumberMap := range anomalies {
+				for _, anomaly := range commitNumberMap {
+					groupReportResponse.Anomalies = append(groupReportResponse.Anomalies, anomaly)
+				}
+			}
+		}
+	} else if groupReportRequest.BugID != "" {
+		httputils.ReportError(w, errors.New("not implemented"), "This API is not implemented for this parameter.", http.StatusInternalServerError)
+		sklog.Debugf("Unsupported parameters for group report: %v", groupReportRequest)
+		return
+	} else if groupReportRequest.Sid != "" {
+		httputils.ReportError(w, errors.New("not implemented"), "This API is not implemented for this parameter.", http.StatusInternalServerError)
+		sklog.Debugf("Unsupported parameters for group report: %v", groupReportRequest)
+		return
+	} else if groupReportRequest.Revison != "" {
+		httputils.ReportError(w, errors.New("not implemented"), "This API is not implemented for this parameter.", http.StatusInternalServerError)
+		sklog.Debugf("Unsupported parameters for group report: %v", groupReportRequest)
+		return
+	} else if groupReportRequest.AnomalyGroupID != "" {
+		httputils.ReportError(w, errors.New("not implemented"), "This API is not implemented for this parameter.", http.StatusInternalServerError)
+		sklog.Debugf("Unsupported parameters for group report: %v", groupReportRequest)
+		return
+	} else {
+		httputils.ReportError(w, errors.New("invalid Request"), fmt.Sprintf("Group report request does not have valid parameters: %v", groupReportRequest), http.StatusBadRequest)
+		sklog.Debug("[SkiaTriage] Group report request does not have valid parameters")
+		return
+	}
+
+	if groupReportResponse.Error != "" {
+		httputils.ReportError(w, errors.New(groupReportResponse.Error), fmt.Sprintf("Error when getting the anomaly report group. Please double check each request parameter, and try again: %v", groupReportResponse.Error), http.StatusBadRequest)
+		sklog.Debugf("[SkiaTriage] Error when getting the anomaly report group: %v", groupReportResponse.Error)
+		return
+	}
+
+	// b/383913153: mitigation on the anomaly rendering scenario.
+	for i := range groupReportResponse.Anomalies {
+		groupReportResponse.Anomalies[i].TestPath, err = cleanTestName(groupReportResponse.Anomalies[i].TestPath)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to clean up test name by regex.", http.StatusInternalServerError)
+			sklog.Debugf("[SkiaTriage] Failed to clean up test name by regex: %v", err)
+			return
+		}
+	}
+
+	groupReportResponse.TimerangeMap, err = api.getTimerangeMap(ctx, groupReportResponse.Anomalies)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get timerange map.", http.StatusInternalServerError)
+		sklog.Debugf("[SkiaTriage] Failed to get timerange map: %v", err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(groupReportResponse); err != nil {
+		httputils.ReportError(w, err, "Failed to write anomaly report response.", http.StatusInternalServerError)
+		sklog.Debugf("[SkiaTriage] Failed to write anomaly report response: %v", err)
+		return
+	}
+	sklog.Debugf("[SkiaTriage] %d anomalies are received from anomaly report group.", len(groupReportResponse.Anomalies))
 }
 
 // The group report page should only regard one input parameters.

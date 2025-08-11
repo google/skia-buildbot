@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "compat",
+    srcs = ["compat.go"],
+    importpath = "go.skia.org/infra/perf/go/chromeperf/compat",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "//perf/go/chromeperf",
+        "//perf/go/regression",
+    ],
+)
+
+go_test(
+    name = "compat_test",
+    srcs = ["compat_test.go"],
+    embed = [":compat"],
+    deps = [
+        "//perf/go/dataframe",
+        "//perf/go/regression",
+        "//perf/go/types",
+        "//perf/go/ui/frame",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

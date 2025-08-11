@@ -39,6 +39,7 @@ go_library(
         "//perf/go/backend/client",
         "//perf/go/bug",
         "//perf/go/chromeperf",
+        "//perf/go/chromeperf/compat",
         "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/dfbuilder",
