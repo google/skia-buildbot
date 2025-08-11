@@ -9,6 +9,7 @@ import '../job-overview-sk';
 import { JobOverviewSk } from '../job-overview-sk/job-overview-sk';
 import '../commit-run-overview-sk';
 import '../../../../elements-sk/modules/icons/home-icon-sk';
+import '../wilcoxon-results-sk/wilcoxon-results-sk';
 
 @customElement('pinpoint-results-page-sk')
 export class ResultsPageSk extends LitElement {
@@ -47,6 +48,23 @@ export class ResultsPageSk extends LitElement {
       grid-template-columns: 1fr 1fr;
       gap: 1em;
       margin-top: 1em;
+    }
+    .status-box,
+    .error-box {
+      margin-top: 1em;
+      padding: 1em;
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      background-color: #f8f9fa;
+    }
+    .error-box {
+      border-color: var(--md-sys-color-error, #b3261e);
+      background-color: var(--md-sys-color-error-container, #f9dedc);
+      color: var(--md-sys-color-on-error-container, #410e0b);
+    }
+    .error-box h3 {
+      margin-top: 0;
+      color: var(--md-sys-color-error, #b3261e);
     }
   `;
 
@@ -89,6 +107,48 @@ export class ResultsPageSk extends LitElement {
     }).format(new Date(dateStr));
   }
 
+  private _renderWilcoxonSection() {
+    if (this.job?.JobType !== 'Pairwise') {
+      return '';
+    }
+
+    switch (this.job.JobStatus) {
+      case 'COMPLETED':
+        return html`<wilcoxon-result-sk .job=${this.job}></wilcoxon-result-sk>`;
+      case 'Completed':
+        return html`<wilcoxon-result-sk .job=${this.job}></wilcoxon-result-sk>`;
+      case 'Pending':
+        return html`
+          <div class="status-box">
+            <h3>Results Pending</h3>
+            <p>
+              Job is currently ${this.job.JobStatus.toLowerCase()}. Wilcoxon results will be
+              available upon completion.
+            </p>
+          </div>
+        `;
+      case 'FAILED':
+        return html`
+          <div class="error-box">
+            <h3>Job Failed</h3>
+            <p>
+              The job failed to complete.
+              ${this.job.ErrorMessage ? html`<b>Error:</b> ${this.job.ErrorMessage}` : ''}
+            </p>
+          </div>
+        `;
+      case 'CANCELED':
+        return html`
+          <div class="status-box">
+            <h3>Job Canceled</h3>
+            <p>This job was canceled before completion.</p>
+          </div>
+        `;
+      default:
+        return '';
+    }
+  }
+
   render() {
     if (this.loading) return html`<p>Loading...</p>`;
     if (this.error) return html`<p>Error: ${this.error}</p>`;
@@ -126,6 +186,8 @@ export class ResultsPageSk extends LitElement {
             .job=${this.job}
             .commitRun=${commitRuns?.right || null}></commit-run-overview-sk>
         </div>
+
+        ${this._renderWilcoxonSection()}
       </div>
       <job-overview-sk .job=${this.job}></job-overview-sk>
     `;

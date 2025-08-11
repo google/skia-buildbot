@@ -6,6 +6,7 @@ sk_element(
         "//pinpoint/ui/modules/job-overview-sk",
         "//pinpoint/ui/modules/commit-run-overview-sk",
         "//elements-sk/modules/icons/home-icon-sk",
+        "//pinpoint/ui/modules/wilcoxon-results-sk",
     ],
     ts_deps = [
         "//:node_modules/@material/web",

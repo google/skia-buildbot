@@ -1,0 +1,14 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "wilcoxon-results-sk",
+    ts_deps = [
+        "//:node_modules/lit",
+        "//pinpoint/ui/services:api_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "wilcoxon-results-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
