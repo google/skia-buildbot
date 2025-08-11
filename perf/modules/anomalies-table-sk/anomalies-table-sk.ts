@@ -229,10 +229,9 @@ export class AnomaliesTableSk extends ElementSk {
             anomalies: [anomaly],
             expanded: false,
           });
-        } else {
-          // Remove the anomaly from the revisionGroup
-          revisionGroup.splice(i, 1);
         }
+        // Remove the anomaly from the revisionGroup
+        revisionGroup.splice(i, 1);
       }
     }
 
