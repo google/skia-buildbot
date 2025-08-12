@@ -944,8 +944,12 @@ export class ExploreMultiSk extends ElementSk {
     // hasnt selected a range yet.
     const selectedRange = this.exploreElements.map((e) => e.getSelectedRange()).find((r) => !!r);
 
-    graphs.forEach((graph) => {
-      graph.dataLoading = true;
+    // Sets dataLoading state across all graphs since the main graph is only one doing work.
+    graphs.forEach((graph, i) => {
+      // Skip main graph as its loading state will be handled by extendRange.
+      if (i > 0) {
+        graph.dataLoading = true;
+      }
     });
 
     // Extend range of primary graph first, so that the other graphs can use
