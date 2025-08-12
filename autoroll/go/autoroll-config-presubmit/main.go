@@ -90,7 +90,7 @@ func main() {
 		logf(ctx, "Deleted files:\n%s\n", deletedFiles)
 	}
 	ok := true
-	ok = ok && validateConfigs(ctx)
+	ok = ok && validateConfigs(ctx, changedFiles)
 	ok = ok && checkK8sConfigGeneration(ctx)
 	if !*commit {
 		// Nothing to do here currently.
@@ -129,13 +129,34 @@ func checkK8sConfigGeneration(ctx context.Context) bool {
 	return true
 }
 
-func validateConfigs(ctx context.Context) bool {
-	output, err := run(ctx, "bash", "./validate-configs.sh")
-	if err != nil {
-		logf(ctx, "Failed running validate-configs.sh:\n%s\nOutput:\n%s", err, string(output))
-		return false
+func validateConfigs(ctx context.Context, changedFiles []fileWithChanges) bool {
+	var filesToValidate []string
+	for _, f := range changedFiles {
+		if strings.HasSuffix(f.fileName, ".cfg") {
+			filesToValidate = append(filesToValidate, f.fileName)
+		} else if f.fileName == "WORKSPACE" || strings.Contains(f.fileName, ".bazel") || strings.Contains(f.fileName, ".bzl") {
+			// We might have updated the presubmit itself; conservatively run
+			// against every config file.
+			filesToValidate = nil
+		}
 	}
-	return true
+	ok := true
+	if len(filesToValidate) > 0 {
+		for _, f := range filesToValidate {
+			output, err := run(ctx, "bash", "./validate-single-config.sh", f)
+			if err != nil {
+				logf(ctx, "Failed running validate-single-config.sh %s:\n%s\nOutput:\n%s", f, err, string(output))
+				ok = false
+			}
+		}
+	} else {
+		output, err := run(ctx, "bash", "./validate-configs.sh")
+		if err != nil {
+			logf(ctx, "Failed running validate-configs.sh:\n%s\nOutput:\n%s", err, string(output))
+			ok = false
+		}
+	}
+	return ok
 }
 
 func checkDiffs(ctx context.Context, script string, args []string, suffixes []string) bool {
