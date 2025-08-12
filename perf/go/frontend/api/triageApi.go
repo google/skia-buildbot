@@ -80,7 +80,7 @@ type ChromeperfFileBugResponse struct {
 //   - X button (untriage the anomaly)
 //   - Nudge (move the anomaly position to adjacent datapoints)
 type EditAnomaliesRequest struct {
-	Keys          []string `json:"keys"`
+	Keys          []int    `json:"keys"`
 	Action        string   `json:"action"`
 	StartRevision int      `json:"start_revision,omitempty"`
 	EndRevision   int      `json:"end_revision,omitempty"`

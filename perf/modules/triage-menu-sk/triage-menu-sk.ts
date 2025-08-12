@@ -159,18 +159,22 @@ export class TriageMenuSk extends ElementSk {
   /**
    * Sends request to /_/triage/edit_anomalies API to edit anomaly data.
    *
-   * If bug_id is set to 0, it de-associates all bugs from the input anomalies.
-   * If bug_id is set to -1, the anomaly is marked as invalid.
-   * If bug_id is set to -2, the anomaly is marked as ignored.
+   * If edit action is IGNORE, the anomaly will be ignored.
+   * If edit action is RESET, the bug will be deassociated with the existing bug id.
+   * If edit action is NUDGE, the anomaly will be nudged with a new time range.
    *
    * @param anomalies - The anomalies to modify.
    * @param traceNames - Trace IDs for modified anomalies. This tells the API to
    * invalidate these traces from the cache.
-   * @param bug_id - Bug ID to set for all anomalies.
+   * @param editAction - An action that corresponds to different behaviors.
    */
   makeEditAnomalyRequest(anomalies: Anomaly[], traceNames: string[], editAction: string): void {
-    const keys: string[] = anomalies.map((a) => a.id);
-    const body: any = { keys: keys, trace_names: traceNames, action: editAction };
+    const keys: number[] = anomalies.map((a) => Number(a.id));
+    const body: any = {
+      keys: keys,
+      trace_names: traceNames,
+      action: editAction,
+    };
 
     fetch('/_/triage/edit_anomalies', {
       method: 'POST',
@@ -194,6 +198,8 @@ export class TriageMenuSk extends ElementSk {
             anomalies[i].bug_id = bug_id;
           }
         }
+        const anomalyIds = anomalies.map((a) => a.id).join(', ');
+        alert(`Anomaly has ignore with anomaly id: ${anomalyIds}`);
         this.dispatchEvent(
           new CustomEvent('anomaly-changed', {
             bubbles: true,
