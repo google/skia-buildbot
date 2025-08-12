@@ -1682,6 +1682,9 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 		return skerr.Wrapf(err, "SQL: %q", sql)
 	}
 
+	// Create a local map to store results from this chunk. This avoids
+	// holding the main lock while iterating over every row.
+	localTraces := types.TraceSet{}
 	var traceIDArray traceIDForSQLInBytes
 	commitToIndexMap := map[types.CommitNumber]int{}
 	for i, commit := range commits {
@@ -1696,20 +1699,36 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 			return skerr.Wrap(err)
 		}
 
-		if err != nil {
-			sklog.Warningf("Invalid trace name found in query response: %s", err)
-			continue
-		}
 		// pgx can't Scan into an array, but Go can't use a slice as a map key, so
 		// we Scan into a byte slice and then copy into a byte array to use
 		// as the index into the map.
 		copy(traceIDArray[:], traceIDInBytes)
-		mutex.Lock()
-		(*ret)[traceNameMap[traceIDArray]][commitToIndexMap[commitNumber]] = float32(val)
-		mutex.Unlock()
+
+		// Note: We read traceNameMap without a lock. This is safe because the map is
+		// fully populated before the goroutines are dispatched and is not written to after.
+		traceName := traceNameMap[traceIDArray]
+
+		if localTraces[traceName] == nil {
+			localTraces[traceName] = vec32.New(len(commits))
+		}
+		localTraces[traceName][commitToIndexMap[commitNumber]] = float32(val)
 	}
 	if err := rows.Err(); err != nil {
 		return skerr.Wrap(err)
+	}
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	// Merge the locally collected results into the final shared result map.
+	for traceName, localValues := range localTraces {
+		// The slice in the final 'ret' map was already created before this goroutine started.
+		// We just need to carefully copy the values we found into it.
+		for i, v := range localValues {
+			if v != vec32.MissingDataSentinel {
+				(*ret)[traceName][i] = v
+			}
+		}
 	}
 
 	return nil
