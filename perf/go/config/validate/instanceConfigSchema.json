@@ -532,6 +532,9 @@
         },
         "max_empty_tiles": {
           "type": "integer"
+        },
+        "default_range": {
+          "type": "integer"
         }
       },
       "additionalProperties": false,

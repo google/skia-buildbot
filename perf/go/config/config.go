@@ -896,6 +896,10 @@ type QueryConfig struct {
 	// MaxEmptyTilesForQuery defines the max number of tiles with empty results
 	// to look at before we stop querying further back.
 	MaxEmptyTilesForQuery int `json:"max_empty_tiles,omitempty"`
+
+	// DefaultRange determines the time range of datapoints to obtain when displaying a graph without
+	// ranges specified. Specified in seconds.
+	DefaultRange int64 `json:"default_range,omitempty"`
 }
 
 // Experiments contains experiment flags for the instance.

@@ -71,7 +71,8 @@
             "enable_chart_tooltip": "true",
             "use_titles": "true",
             "useTestPicker": "true"
-        }
+        },
+        "default_range": 2628000
     },
     "optimize_sqltracestore": true,
     "show_triage_link": true

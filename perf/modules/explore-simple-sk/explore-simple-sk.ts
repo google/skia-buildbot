@@ -312,9 +312,9 @@ export const updateShortcut = async (graphConfigs: GraphConfig[]): Promise<strin
 
 // State is reflected to the URL via stateReflector.
 export class State {
-  begin: number = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
+  begin: number = -1;
 
-  end: number = Math.floor(Date.now() / 1000);
+  end: number = -1;
 
   formulas: string[] = [];
 
@@ -2593,28 +2593,27 @@ export class ExploreSimpleSk extends ElementSk {
    * which may end up giving us an inverted time range, i.e. end < begin.
    */
   private rationalizeTimeRange(state: State): State {
+    const defaultRangeS = this.getDefaultRange();
+
     // Check if URL contains begin/end timestamps.
     const currentUrl = new URL(window.location.href);
     const now = Math.floor(Date.now() / 1000);
     const beginParam = parseInt(currentUrl.searchParams.get('begin') ?? state.begin.toString());
     state.begin =
-      beginParam !== null
-        ? parseInt((beginParam - DEFAULT_RANGE_S).toString())
-        : now - DEFAULT_RANGE_S;
+      beginParam !== null ? parseInt((beginParam - defaultRangeS).toString()) : now - defaultRangeS;
 
     const endParam = currentUrl.searchParams.get('end');
-    state.end =
-      endParam !== null ? parseInt((parseInt(endParam) + DEFAULT_RANGE_S).toString()) : now;
+    state.end = endParam !== null ? parseInt((parseInt(endParam) + defaultRangeS).toString()) : now;
 
     if (state.end <= state.begin) {
       // If dense then just make sure begin is before end.
       if (state.requestType === 1) {
-        state.begin = state.end - DEFAULT_RANGE_S;
+        state.begin = state.end - defaultRangeS;
       } else if (this._state.begin !== state.begin) {
-        state.end = state.begin + DEFAULT_RANGE_S;
+        state.end = state.begin + defaultRangeS;
       } else {
         // They set 'end' in the URL.
-        state.begin = state.end - DEFAULT_RANGE_S;
+        state.begin = state.end - defaultRangeS;
       }
     }
     return state;
@@ -3775,6 +3774,11 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   set state(state: State) {
+    if (state.begin === -1 && state.end === -1) {
+      const now = Math.floor(Date.now() / 1000);
+      state.end = now;
+      state.begin = now - this.getDefaultRange();
+    }
     state = this.rationalizeTimeRange(state);
     this._state = state;
     if (this.range) {
@@ -3905,6 +3909,14 @@ export class ExploreSimpleSk extends ElementSk {
       traceMetadata.push(metadata);
     });
     return traceMetadata;
+  }
+
+  private getDefaultRange(): number {
+    if (this._defaults && this._defaults.default_range) {
+      return this._defaults.default_range;
+    }
+
+    return DEFAULT_RANGE_S;
   }
 }
 

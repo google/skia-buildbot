@@ -79,6 +79,9 @@ describe('ExploreMultiSk', () => {
   describe('State management', () => {
     it('initializes with a default state', () => {
       const defaultState = new State();
+
+      defaultState.begin = element.state.begin;
+      defaultState.end = element.state.end;
       assert.deepEqual(element.state, defaultState);
     });
 

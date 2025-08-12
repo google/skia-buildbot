@@ -130,6 +130,7 @@ export interface QueryConfig {
 	redis_config?: RedisConfig;
 	query_commit_chunk_size?: number;
 	max_empty_tiles?: number;
+	default_range?: number;
 }
 
 export interface Commit {

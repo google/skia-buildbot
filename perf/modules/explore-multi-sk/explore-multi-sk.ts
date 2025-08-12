@@ -62,9 +62,9 @@ import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
 
 export class State {
-  begin: number = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
+  begin: number = -1;
 
-  end: number = Math.floor(Date.now() / 1000);
+  end: number = -1;
 
   shortcut: string = '';
 
@@ -170,7 +170,13 @@ export class ExploreMultiSk extends ElementSk {
       () => this.state as unknown as HintableObject,
       async (hintableState) => {
         const state = hintableState as unknown as State;
+        if (state.begin === -1 && state.end === -1) {
+          const now = Math.floor(Date.now() / 1000);
+          const defaultRangeS = this.defaults?.default_range || DEFAULT_RANGE_S;
+          state.begin = now - defaultRangeS;
 
+          state.end = now;
+        }
         const numElements = this.exploreElements.length;
         let graphConfigs: GraphConfig[] | undefined = [];
         if (state.shortcut !== '') {
