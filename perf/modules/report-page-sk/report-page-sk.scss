@@ -2,6 +2,16 @@
 @import '../themes/themes.scss';
 
 report-page-sk {
+  .loading-status {
+    align-items: center;
+    display: flex;
+
+    .loading-message {
+      color: var(--outline);
+      font-style: italic;
+      margin-left: 0.5em;
+    }
+  }
   #commits-dialog {
     overflow: auto;
     width: 45%;

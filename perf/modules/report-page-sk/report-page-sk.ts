@@ -10,7 +10,6 @@ import { State, ExploreSimpleSk } from '../explore-simple-sk/explore-simple-sk';
 import { Anomaly, Commit, CommitNumber, QueryConfig, Timerange } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
-import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 import '../../../elements-sk/modules/spinner-sk';
@@ -120,7 +119,7 @@ export class ReportPageSk extends ElementSk {
 
   private graphDiv: Element | null = null;
 
-  private _spinner: SpinnerSk | null = null;
+  private _currentlyLoading: string = '';
 
   private traceFormatter: ChromeTraceFormatter | null = null;
 
@@ -134,9 +133,28 @@ export class ReportPageSk extends ElementSk {
 
   private commitBodyPrefix = 'Body ';
 
+  private static template = (ele: ReportPageSk) => html`
+    ${ele._currentlyLoading
+      ? html`
+          <div class="loading-status">
+            <spinner-sk id="loading-spinner" active></spinner-sk>
+            <span class="loading-message">${ele._currentlyLoading}</span>
+          </div>
+        `
+      : ''}
+    <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
+    ${ele.showAllCommitsTemplate()}
+    <div id="graph-container" @x-axis-toggled=${ele.syncXAxisLabel}></div>
+  `;
+
   constructor() {
     super(ReportPageSk.template);
     this.traceFormatter = new ChromeTraceFormatter();
+  }
+
+  private setCurrentlyLoading(value: string) {
+    this._currentlyLoading = value;
+    this._render();
   }
 
   async connectedCallback() {
@@ -144,29 +162,21 @@ export class ReportPageSk extends ElementSk {
     upgradeProperty(this, 'commitList');
     this._render();
 
-    this._spinner = this.querySelector('#loading-spinner');
     this.anomaliesTable = this.querySelector('#anomaly-table');
     this.graphDiv = this.querySelector('#graph-container');
-    await this.initializeDefaults();
 
+    this.setCurrentlyLoading('Loading configuration...');
+    await this.initializeDefaults();
     this.addEventListener('anomalies_checked', (e) => {
       const detail = (e as CustomEvent).detail;
       this.updateGraphs(detail.anomaly, detail.checked);
     });
+
     await this.fetchAnomalies();
   }
 
-  private static template = (ele: ReportPageSk) => html`
-    <div>
-      <spinner-sk id="loading-spinner"></spinner-sk>
-    </div>
-    <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
-    ${ele.showAllCommitsTemplate()}
-    <div id="graph-container" @x-axis-toggled=${ele.syncXAxisLabel}></div>
-  `;
-
   async fetchAnomalies() {
-    this._spinner!.active = true;
+    this.setCurrentlyLoading('Loading anomalies...');
     this._render();
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -192,14 +202,17 @@ export class ReportPageSk extends ElementSk {
         if (selectedKey && selectedKey.length > 0) {
           this.requestAnomalies.push(...selectedKey);
         }
-        this.initializePage();
-        await this.listAllCommits(this.anomalyTracker.toAnomalyList());
-        this._spinner!.active = false;
+        this.setCurrentlyLoading('Loading anomalies details and common commits...');
+        await Promise.all([
+          this.initializePage(),
+          this.listAllCommits(this.anomalyTracker.toAnomalyList()),
+        ]);
+        this.setCurrentlyLoading('');
         this._render();
       })
       .catch((msg: any) => {
         errorMessage(msg);
-        this._spinner!.active = false;
+        this.setCurrentlyLoading('');
         this._render();
       });
   }
