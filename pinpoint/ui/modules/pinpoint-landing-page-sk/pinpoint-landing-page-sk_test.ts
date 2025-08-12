@@ -4,6 +4,7 @@ import { PinpointLandingPageSk } from './pinpoint-landing-page-sk';
 import './index';
 import { Job } from '../../services/api';
 import { JobsTableSk } from '../jobs-table-sk/jobs-table-sk';
+import { PinpointScaffoldSk } from '../pinpoint-scaffold-sk/pinpoint-scaffold-sk';
 import '../jobs-table-sk';
 
 describe('PinpointLandingPageSk', () => {
@@ -160,5 +161,28 @@ describe('PinpointLandingPageSk', () => {
     expect(jobsTable.jobs[0].job_name).to.equal('A Job');
     expect(jobsTable.sortBy).to.equal('job_name');
     expect(jobsTable.sortDir).to.equal('asc');
+  });
+
+  it('initializes and fetches with parameters from the URL', async () => {
+    // Set the URL before the element is created to simulate loading a page with params.
+    window.history.pushState(null, '', '/?benchmark=foo&user=bar&page=1');
+
+    const expectedUrl = '/json/jobs/list?benchmark=foo&user=bar&limit=20&offset=20';
+    fetchMock.get(expectedUrl, []);
+    await setupElement();
+
+    // Verify the correct API call was made.
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    expect(fetchMock.called(expectedUrl), `Expected fetch to ${expectedUrl}`).to.be.true;
+
+    // Verify the state was passed down to the scaffold component.
+    const scaffold = element.shadowRoot!.querySelector(
+      'pinpoint-scaffold-sk'
+    )! as PinpointScaffoldSk;
+    expect(scaffold.benchmark).to.equal('foo');
+    expect(scaffold.user).to.equal('bar');
+
+    // Reset URL for subsequent tests.
+    window.history.pushState(null, '', window.location.pathname);
   });
 });

@@ -10,6 +10,8 @@ sk_element(
         "//:node_modules/lit",
         "//pinpoint/ui/services:api_ts_lib",
         "//:node_modules/@material/web",
+        "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
     ],
     ts_srcs = [
         "pinpoint-landing-page-sk.ts",
@@ -27,6 +29,7 @@ karma_test(
         "//:node_modules/chai",
         "//:node_modules/fetch-mock",
         "//pinpoint/ui/modules/jobs-table-sk",
+        "//pinpoint/ui/modules/pinpoint-scaffold-sk",
         "//pinpoint/ui/services:api_ts_lib",
     ],
 )

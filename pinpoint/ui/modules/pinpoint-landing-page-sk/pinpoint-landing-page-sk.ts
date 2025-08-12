@@ -2,6 +2,8 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { listJobs, Job, ListJobsOptions, cancelJob } from '../../services/api';
 import '../pinpoint-scaffold-sk';
+import { stateReflector } from '../../../../infra-sk/modules/stateReflector';
+import { HintableObject } from '../../../../infra-sk/modules/hintable';
 import '@material/web/button/filled-button.js';
 import '@material/web/button/outlined-button.js';
 import '@material/web/dialog/dialog.js';
@@ -57,6 +59,8 @@ export class PinpointLandingPageSk extends LitElement {
 
   @state() private _jobToCancel: Job | null = null;
 
+  private _stateChanged: (() => void) | null = null;
+
   private readonly _pageSize: number = 20; // We will present 20 jobs per page
 
   constructor() {
@@ -74,11 +78,41 @@ export class PinpointLandingPageSk extends LitElement {
     };
     this._currentPage = 0;
     this._hasNextPage = false;
+
+    this._stateChanged = stateReflector(
+      () => this.getState(),
+      (newState) => this.setState(newState as HintableObject)
+    );
+  }
+
+  private getState(): HintableObject {
+    const state: HintableObject = {
+      page: this._currentPage,
+      sortBy: this._sortBy,
+      sortDir: this._sortDir,
+      searchTerm: this._listJobsOptions.searchTerm || '',
+      benchmark: this._listJobsOptions.benchmark || '',
+      botName: this._listJobsOptions.botName || '',
+      user: this._listJobsOptions.user || '',
+    };
+    return state;
+  }
+
+  private setState(state: HintableObject) {
+    this._currentPage = (state.page as number) || 0;
+    this._sortBy = (state.sortBy as string) || 'created_date';
+    this._sortDir = (state.sortDir as 'asc' | 'desc') || 'desc';
+    this._listJobsOptions = {
+      searchTerm: (state.searchTerm as string) || '',
+      benchmark: (state.benchmark as string) || '',
+      botName: (state.botName as string) || '',
+      user: (state.user as string) || '',
+    };
+    this.fetchJobs();
   }
 
   connectedCallback() {
     super.connectedCallback();
-    this.fetchJobs();
   }
 
   private async fetchJobs() {
@@ -109,12 +143,14 @@ export class PinpointLandingPageSk extends LitElement {
   private onSortChanged(e: CustomEvent<{ sortBy: string; sortDir: 'asc' | 'desc' }>) {
     this._sortBy = e.detail.sortBy;
     this._sortDir = e.detail.sortDir;
+    this._stateChanged!();
   }
 
   // Handles the 'search-changed' event from the pinpoint-scaffold-sk component.
   private onSearchChanged(e: CustomEvent<{ value: string }>) {
     this._listJobsOptions = { ...this._listJobsOptions, searchTerm: e.detail.value };
     this._currentPage = 0; // Reset to first page on new search
+    this._stateChanged!();
     this.fetchJobs();
   }
 
@@ -125,12 +161,14 @@ export class PinpointLandingPageSk extends LitElement {
       ...e.detail,
     };
     this._currentPage = 0;
+    this._stateChanged!();
     this.fetchJobs();
   }
 
   private onPreviousClicked() {
     if (this._currentPage > 0) {
       this._currentPage -= 1;
+      this._stateChanged!();
       this.fetchJobs();
     }
   }
@@ -138,6 +176,7 @@ export class PinpointLandingPageSk extends LitElement {
   private onNextClicked() {
     if (this._hasNextPage) {
       this._currentPage += 1;
+      this._stateChanged!();
       this.fetchJobs();
     }
   }
@@ -245,6 +284,10 @@ export class PinpointLandingPageSk extends LitElement {
 
     return html`
       <pinpoint-scaffold-sk
+        .searchTerm=${this._listJobsOptions.searchTerm}
+        .benchmark=${this._listJobsOptions.benchmark}
+        .botName=${this._listJobsOptions.botName}
+        .user=${this._listJobsOptions.user}
         @search-changed=${this.onSearchChanged}
         @filters-changed=${this.onFiltersChanged}>
         ${loadingIndicator} ${errorIndicator} ${content}

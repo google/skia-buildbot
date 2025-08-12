@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, state, query } from 'lit/decorators.js';
+import { customElement, state, query, property } from 'lit/decorators.js';
 import { listBenchmarks, listBots } from '../../services/api';
 import '@material/web/button/filled-button.js';
 import '@material/web/textfield/outlined-text-field.js';
@@ -22,6 +22,16 @@ import type { PinpointNewJobSk } from '../pinpoint-new-job-sk/pinpoint-new-job-s
  */
 @customElement('pinpoint-scaffold-sk')
 export class PinpointScaffoldSk extends LitElement {
+  // The properties help fill the filters box in the case where the landing
+  // page pulls parameters from the URL and intially loads
+  @property({ type: String }) searchTerm: string = '';
+
+  @property({ type: String }) benchmark: string = '';
+
+  @property({ type: String }) botName: string = '';
+
+  @property({ type: String }) user: string = '';
+
   @state() private _benchmarks: string[] = [];
 
   @state() private _bots: string[] = [];
@@ -125,6 +135,19 @@ export class PinpointScaffoldSk extends LitElement {
     }
   }
 
+  private openFilterMenu() {
+    // When the menu is opened, initialize its state from the component's
+    // current filter properties.
+    this._selectedBenchmark = this.benchmark;
+    this._selectedBot = this.botName;
+    this._selectedUser = this.user;
+
+    const menu = this.shadowRoot?.querySelector('#filter-menu') as Menu | null;
+    if (menu) {
+      menu.open = !menu.open;
+    }
+  }
+
   render() {
     return html`
       <header>
@@ -132,14 +155,10 @@ export class PinpointScaffoldSk extends LitElement {
         <div class="header-actions">
           <md-outlined-text-field
             label="Search by job name"
+            .value=${this.searchTerm}
             @input=${this.onSearchInput}></md-outlined-text-field>
           <div style="position: relative;">
-            <md-icon-button
-              id="filter-anchor"
-              @click=${() => {
-                const menu = this.shadowRoot?.querySelector('#filter-menu') as Menu | null;
-                if (menu) menu.open = !menu.open;
-              }}>
+            <md-icon-button id="filter-anchor" @click=${this.openFilterMenu}>
               <filter-list-icon-sk></filter-list-icon-sk>
             </md-icon-button>
             <md-menu id="filter-menu" anchor="filter-anchor" stay-open-on-outside-click>
@@ -147,6 +166,7 @@ export class PinpointScaffoldSk extends LitElement {
                 <vaadin-combo-box
                   label="Benchmark"
                   .items=${this._benchmarks}
+                  .value=${this._selectedBenchmark}
                   allow-custom-value
                   clear-button-visible
                   @value-changed=${this.onBenchmarkFilterChange}>
@@ -155,12 +175,15 @@ export class PinpointScaffoldSk extends LitElement {
                 <vaadin-combo-box
                   label="Device"
                   .items=${this._bots}
+                  .value=${this._selectedBot}
                   allow-custom-value
                   clear-button-visible
                   @value-changed=${this.onBotFilterChange}>
                 </vaadin-combo-box>
-                <md-outlined-text-field label="User" @input=${this.onUserFilterChange}>
-                </md-outlined-text-field>
+                <md-outlined-text-field
+                  label="User"
+                  .value=${this._selectedUser}
+                  @input=${this.onUserFilterChange}></md-outlined-text-field>
                 <div class="filter-actions">
                   <md-filled-button @click=${this.applyFilters}>Apply</md-filled-button>
                 </div>
