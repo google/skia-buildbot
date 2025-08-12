@@ -712,6 +712,19 @@ export class PlotGoogleChartSk extends LitElement {
     });
   }
 
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.clear();
+    window.removeEventListener('mousemove', this.onWindowMouseMove);
+    window.removeEventListener('mouseup', this.onWindowMouseUp);
+  }
+
+  public clear(): void {
+    if (this.chart) {
+      this.chart.clearChart();
+    }
+  }
+
   private onSidePanelToggle() {
     this.plotElement.value?.redraw();
   }

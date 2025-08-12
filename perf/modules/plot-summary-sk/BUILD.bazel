@@ -102,14 +102,18 @@ sk_element(
         "//:node_modules/lit",
         "//perf/modules/dataframe:index_ts_lib",
     ],
-    ts_srcs = ["h_resizable_box_sk.ts"],
+    ts_srcs = [
+        "h_resizable_box_sk.ts",
+    ],
     visibility = ["//visibility:public"],
 )
 
 sk_element(
     name = "plot-summary-sk.css_ts_lib",
     ts_deps = ["//:node_modules/lit"],
-    ts_srcs = ["plot-summary-sk.css.ts"],
+    ts_srcs = [
+        "plot-summary-sk.css.ts",
+    ],
     visibility = ["//visibility:public"],
 )
 

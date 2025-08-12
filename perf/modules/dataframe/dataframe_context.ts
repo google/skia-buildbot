@@ -39,6 +39,8 @@ import { convertFromDataframe } from '../common/plot-builder';
 import { formatSpecialFunctions } from '../paramtools';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 
+const MAX_DATAPOINTS = 5000;
+
 // Holds issue data for a single data point.
 // x and y corresponds to the location of the data point on the chart
 export interface IssueDetail {
@@ -275,6 +277,21 @@ export class DataFrameRepository extends LitElement {
         .concat(...traceset[key])
         .concat(traceTail[key] || []) as Trace;
     });
+
+    if (this._header.length > MAX_DATAPOINTS) {
+      const excess = this._header.length - MAX_DATAPOINTS;
+      if (isAfter) {
+        this._header.splice(0, excess);
+        Object.keys(this._traceset).forEach((key) => {
+          (this._traceset[key] as number[]).splice(0, excess);
+        });
+      } else {
+        this._header.splice(MAX_DATAPOINTS);
+        Object.keys(this._traceset).forEach((key) => {
+          (this._traceset[key] as number[]).splice(MAX_DATAPOINTS);
+        });
+      }
+    }
 
     if (traceMetadata !== null) {
       if (this._traceMetadata === null) {

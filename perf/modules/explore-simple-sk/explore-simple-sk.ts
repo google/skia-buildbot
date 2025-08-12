@@ -183,6 +183,10 @@ const monthInSec = 30 * 24 * 60 * 60;
 // max number of charts to show on a page
 const chartsPerPage = 11;
 
+const REFRESH_TIMEOUT = 30 * 1000;
+
+type RequestFrameCallback = (frameResponse: FrameResponse) => Promise<void>;
+
 export interface ZoomWithDelta {
   zoom: CommitRange;
   delta: CommitNumber;
@@ -310,6 +314,12 @@ export class State {
   xbaroffset: number = -1; // The offset of the commit in the repo.
 
   showZero: boolean = false;
+
+  dots: boolean = true;
+
+  autoRefresh: boolean = false;
+
+  show_google_plot = false;
 
   numCommits: number = 250;
 
@@ -464,6 +474,8 @@ export class ExploreSimpleSk extends ElementSk {
   // The id of the current frame request. Will be the empty string if there
   // is no pending request.
   private _requestId = '';
+
+  private _refreshId = -1;
 
   // All the data converted into a CVS blob to download.
   private _csvBlobURL: string = '';
@@ -945,7 +957,10 @@ export class ExploreSimpleSk extends ElementSk {
   };
 
   private showZero = () => {
-    this._state.showZero = !this._state.showZero;
+    this.setState({
+      ...this._state,
+      showZero: !this._state.showZero,
+    });
     this.googleChartPlot.value!.showZero = this._state.showZero;
     this.render();
   };
@@ -1102,12 +1117,15 @@ export class ExploreSimpleSk extends ElementSk {
     const position = chart.getPositionByIndex(index);
     const commit = this.getCommitDetails(commitPos);
     const prevCommit = this.getCommitDetails(this.getPreviousCommit(index.tableRow, traceName));
-    this.state.selected = {
-      name: traceName,
-      commit: commitPos,
-      tableCol: index.tableCol,
-      tableRow: index.tableRow,
-    };
+    this.setState({
+      ...this._state,
+      selected: {
+        name: traceName,
+        commit: commitPos,
+        tableCol: index.tableCol,
+        tableRow: index.tableRow,
+      },
+    });
 
     this.enableTooltip(
       {
@@ -1526,9 +1544,15 @@ export class ExploreSimpleSk extends ElementSk {
   private switchZoom(target: MdSwitch | null) {
     this.zoomDirectionSwitch = !this.zoomDirectionSwitch;
     if (target!.selected) {
-      this.state.horizontal_zoom = true;
+      this.setState({
+        ...this._state,
+        horizontal_zoom: true,
+      });
     } else {
-      this.state.horizontal_zoom = false;
+      this.setState({
+        ...this._state,
+        horizontal_zoom: false,
+      });
     }
     this.render();
     const detail = {
@@ -1684,10 +1708,12 @@ export class ExploreSimpleSk extends ElementSk {
       })
         .then(jsonOrThrow)
         .then((json: ShiftResponse) => {
-          this._state.begin = json.begin;
-          this._state.end = json.end;
-          this._state.requestType = 0;
-          this._stateHasChanged();
+          this.setState({
+            ...this._state,
+            begin: json.begin,
+            end: json.end,
+            requestType: 0,
+          });
           this.rangeChangeImpl();
         })
         .catch(errorMessage);
@@ -2433,8 +2459,10 @@ export class ExploreSimpleSk extends ElementSk {
     if (this.logEntry) {
       this.logEntry!.textContent = '';
     }
-    this._state.selected = defaultPointSelected();
-    this._stateHasChanged();
+    this.setState({
+      ...this._state,
+      selected: defaultPointSelected(),
+    });
   }
 
   /**
@@ -2731,17 +2759,15 @@ export class ExploreSimpleSk extends ElementSk {
       this.commitTime!.textContent = '';
     }
     const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
-    this.requestFrame(body)
-      .then((json) => {
-        if (json === null || json === undefined) {
-          errorMessage('Failed to find any matching traces.');
-          return;
-        }
-        return this.UpdateWithFrameResponse(json, body, switchToTab);
-      })
-      .catch(() => {
+    this.requestFrame(body, (json) => {
+      if (json === null || json === undefined) {
         errorMessage('Failed to find any matching traces.');
-      });
+        return Promise.resolve();
+      }
+      return this.UpdateWithFrameResponse(json, body, switchToTab);
+    }).catch(() => {
+      errorMessage('Failed to find any matching traces.');
+    });
   }
 
   /**
@@ -2814,6 +2840,40 @@ export class ExploreSimpleSk extends ElementSk {
    * otherwise replace them all with the new ones.
    * @param {Boolean} tab - If true then switch to the Params tab.
    */
+  private toggleDotsHandler() {
+    this.setState({
+      ...this._state,
+      dots: !this._state.dots,
+    });
+  }
+
+  private autoRefreshHandler(target: MdSwitch | null) {
+    this.setState({
+      ...this._state,
+      autoRefresh: target!.selected,
+    });
+    this.autoRefreshChanged();
+  }
+
+  private autoRefreshChanged() {
+    if (!this._state.autoRefresh) {
+      if (this._refreshId !== -1) {
+        clearInterval(this._refreshId);
+      }
+    } else {
+      this._refreshId = window.setInterval(() => this.autoRefresh(), REFRESH_TIMEOUT);
+    }
+  }
+
+  private autoRefresh() {
+    const body = this.requestFrameBodyFullFromState();
+    const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
+    this.requestFrame(body, (json) => {
+      return this.UpdateWithFrameResponse(json, body, switchToTab);
+    });
+    this.setState(this._state);
+  }
+
   private async addTraces(
     json: FrameResponse,
     tab: boolean,
@@ -2976,10 +3036,10 @@ export class ExploreSimpleSk extends ElementSk {
    *
    * @param plotType - The type of traces being added.
    */
-  add(replace: boolean, plotType: addPlotType): void {
+  async add(replace: boolean, plotType: addPlotType): Promise<void> {
     const q = this.query!.current_query;
     const f = this.formula!.value;
-    this.addFromQueryOrFormula(replace, plotType, q, f);
+    await this.addFromQueryOrFormula(replace, plotType, q, f);
   }
 
   /** Create a FrameRequest for just a single query or formula. */
@@ -3093,7 +3153,7 @@ export class ExploreSimpleSk extends ElementSk {
     try {
       if (createFromScratch) {
         const body = this.requestFrameBodyFullFromState();
-        return this.requestFrame(body).then((json) => {
+        return this.requestFrame(body, (json) => {
           return this.UpdateWithFrameResponse(
             json,
             body,
@@ -3105,7 +3165,7 @@ export class ExploreSimpleSk extends ElementSk {
       } else {
         const requestNewData = this.requestFrameBodyForTrace(plotType, q, f);
         const requestAllData = this.requestFrameBodyFullFromState();
-        return this.requestFrame(requestNewData).then((json) => {
+        return this.requestFrame(requestNewData, (json) => {
           // Merge new data with the existing state.
           const frameResponse = json as FrameResponse;
           const newDf = frameResponse.dataframe!;
@@ -3332,10 +3392,12 @@ export class ExploreSimpleSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((json) => {
-        this._state.keys = json.id;
-        this._state.queries = [];
+        this.setState({
+          ...this._state,
+          keys: json.id,
+          queries: [],
+        });
         this.clearSelectedState();
-        this._stateHasChanged();
         this.render();
       })
       .catch(errorMessage);
@@ -3476,16 +3538,6 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
-  /** Common catch function for _requestFrame and _checkFrameRequestStatus. */
-  private catch(msg: any) {
-    this._requestId = '';
-    if (msg) {
-      errorMessage(msg);
-    }
-    this.percent!.textContent = '';
-    this.spinning = false;
-  }
-
   /** @prop spinning - True if we are waiting to retrieve data from
    * the server.
    */
@@ -3514,43 +3566,58 @@ export class ExploreSimpleSk extends ElementSk {
    *    tz:       "America/New_York"
    * };
    *
-   * @returns A Promise that resolves with the decoded JSON body
+   * The 'cb' callback function will be called with the decoded JSON body
    * of the response once it's available.
    */
-  private async requestFrame(body: FrameRequest): Promise<FrameResponse> {
+  private requestFrame(body: FrameRequest, cb: RequestFrameCallback): Promise<void> {
     if (this._requestId !== '') {
       const err = new Error('There is a pending query already running.');
       errorMessage(err.message);
-      throw err;
+      return Promise.reject(err);
     }
 
-    // _requestId is used as a lock, any non-empty string works for that.
-    this._requestId = 'Request in progress';
+    this._requestId = 'About to make request';
     this.spinning = true;
-    this.dataLoading = true;
-
-    try {
-      const jsonResponse = await this.sendFrameRequest(body);
-      return jsonResponse;
-    } catch (err: any) {
-      // This catches errors from sendFrameRequest (e.g., status !== 'Finished')
-      if (this.percent) {
-        this.percent.textContent = '';
-      }
-      // Re-throw the error for the caller to handle
-      throw err;
-    } finally {
-      // Ensuring the state is always cleaned up.
-      this.spinning = false;
-      this.dataLoading = false;
-      this._requestId = '';
-    }
+    return new Promise<void>((resolve, reject) => {
+      this.sendFrameRequest(body, async (json) => {
+        // make this inner callback async
+        try {
+          await cb(json); // await the execution of the main callback
+          resolve();
+        } catch (e: any) {
+          // Catch errors from cb
+          errorMessage(e.message || e.toString());
+          reject(e);
+        }
+      })
+        .catch((msg: any) => {
+          // Catch errors from sendFrameRequest itself
+          if (msg) {
+            errorMessage(msg.message || msg.toString());
+          }
+          if (this.percent) {
+            // Check if percent is not null
+            this.percent.textContent = '';
+          }
+          reject(msg);
+        })
+        .finally(() => {
+          this.spinning = false;
+          this._requestId = '';
+        });
+    });
   }
 
   /**
    * Starts the frame request and returns the resulting data.
    */
-  private async sendFrameRequest(body: FrameRequest): Promise<FrameResponse> {
+  private async sendFrameRequest(body: FrameRequest, cb: RequestFrameCallback) {
+    // Fill in a default time range if either of the values are -1.
+    if (this._state.begin === -1 || this._state.end === -1) {
+      const now = Math.floor(Date.now() / 1000);
+      this._state.begin = now - DEFAULT_RANGE_S;
+      this._state.end = now;
+    }
     body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     const finishedProg = await startRequest(
@@ -3573,7 +3640,7 @@ export class ExploreSimpleSk extends ElementSk {
       errorMessage(msg);
     }
 
-    return finishedProg.results as FrameResponse;
+    await cb(finishedProg.results as FrameResponse);
   }
 
   get state(): State {
@@ -3581,6 +3648,10 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   set state(state: State) {
+    this.setState(state);
+  }
+
+  setState(state: State): void {
     const prevBegin = this._state?.begin;
     const prevEnd = this._state?.end;
     const prevRequestType = this._state?.requestType;
@@ -3588,15 +3659,13 @@ export class ExploreSimpleSk extends ElementSk {
     const prevFormulas = [...(this._state?.formulas || [])];
     const prevKeys = this._state?.keys;
 
+    if (state.begin === -1 && state.end === -1) {
+      const now = Math.floor(Date.now() / 1000);
+      state.end = now;
+      state.begin = now - this.getDefaultRange();
+    }
     state = this.rationalizeTimeRange(state);
     this._state = state;
-
-    // Synchronize the xAxisSwitch with the state's domain
-    const isDateDomain = this._state.domain === 'date';
-    if (this.xAxisSwitch !== isDateDomain) {
-      this.xAxisSwitch = isDateDomain;
-    }
-
     if (this.range) {
       this.range!.state = {
         begin: this._state.begin,
@@ -3646,7 +3715,8 @@ export class ExploreSimpleSk extends ElementSk {
       this.updateTestPickerUrl();
     }
 
-    if (!state.doNotQueryData) {
+    this.autoRefreshChanged();
+    if (!state.doNotQueryData && this.getHeader() !== null) {
       this.rangeChangeImpl();
     }
   }

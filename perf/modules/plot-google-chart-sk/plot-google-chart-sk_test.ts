@@ -51,6 +51,11 @@ describe('plot-google-chart-sk', () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(element).to.not.be.null;
     });
+
+    it('some result', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      expect(element).to.not.be.null;
+    });
   });
 
   describe('determineYAxisTitle', () => {
