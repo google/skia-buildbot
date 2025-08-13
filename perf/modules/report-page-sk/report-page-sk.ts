@@ -58,8 +58,6 @@ export class AnomalyTracker {
     anomalyList.forEach((anomaly) => {
       this.tracker[anomaly.id] = {
         anomaly: anomaly,
-        // anomaly id is number type, but selectedKey in string and needs type
-        // match to check whether it's in.
         // When selectedKeys is null, includes() returns undefined.
         checked: Boolean(selectedKeys?.includes(anomaly.id)),
         graph: null,
@@ -111,6 +109,12 @@ export class AnomalyTracker {
 }
 
 export class ReportPageSk extends ElementSk {
+  /**
+   * Factory for creating ExploreSimpleSk instances. This allows for dependency
+   * injection in tests.
+   */
+  public exploreSimpleSkFactory = () => new ExploreSimpleSk(false);
+
   // An anomaly tracker for the report page.
   private anomalyTracker = new AnomalyTracker();
 
@@ -120,6 +124,8 @@ export class ReportPageSk extends ElementSk {
   private graphDiv: Element | null = null;
 
   private _currentlyLoading: string = '';
+
+  private _allGraphsLoaded: boolean = false;
 
   private traceFormatter: ChromeTraceFormatter | null = null;
 
@@ -159,6 +165,10 @@ export class ReportPageSk extends ElementSk {
 
   async connectedCallback() {
     super.connectedCallback();
+    if (this._currentlyLoading !== '' || this._allGraphsLoaded) {
+      return;
+    }
+    this._connected = true;
     upgradeProperty(this, 'commitList');
     this._render();
 
@@ -169,6 +179,7 @@ export class ReportPageSk extends ElementSk {
     await this.initializeDefaults();
     this.addEventListener('anomalies_checked', (e) => {
       const detail = (e as CustomEvent).detail;
+      this.anomalyTracker.getAnomaly(detail.anomaly.id)!.checked = detail.checked;
       this.updateGraphs(detail.anomaly, detail.checked);
     });
 
@@ -207,8 +218,9 @@ export class ReportPageSk extends ElementSk {
           this.initializePage(),
           this.listAllCommits(this.anomalyTracker.toAnomalyList()),
         ]);
+        this.setCurrentlyLoading('Loading graphs...');
+        await this.loadGraphsInChunks();
         this.setCurrentlyLoading('');
-        this._render();
       })
       .catch((msg: any) => {
         errorMessage(msg);
@@ -217,13 +229,59 @@ export class ReportPageSk extends ElementSk {
       });
   }
 
+  /**
+   * Loads graphs in parallel batches. The next batch will only start
+   * after all graphs in the current batch have finished loading.
+   */
+  private async loadGraphsInChunks() {
+    const anomaliesToLoad = this.anomalyTracker.getSelectedAnomalies();
+    // Chunk size is selected arbitrarily, feel free to tweak.
+    const chunkSize = 5;
+
+    let loadedCount = 0;
+    for (let i = 0; i < anomaliesToLoad.length; i += chunkSize) {
+      this.setCurrentlyLoading(`Loading graphs (${loadedCount}/${anomaliesToLoad.length})...`);
+      const chunk = anomaliesToLoad.slice(i, i + chunkSize);
+      const promises = chunk.map(
+        (anomaly) =>
+          new Promise<void>((resolve) => {
+            const dataPoint = this.anomalyTracker.getAnomaly(anomaly.id);
+
+            if (dataPoint && !dataPoint.graph) {
+              const graphElement = this.addGraph(anomaly);
+              this.anomalyTracker.setGraph(anomaly.id, graphElement);
+
+              const listener = () => {
+                graphElement.removeEventListener('data-loaded', listener);
+                loadedCount++;
+                resolve();
+              };
+              graphElement.addEventListener('data-loaded', listener);
+            } else {
+              // Graph is not needed, resolve immediately.
+              loadedCount++;
+              resolve();
+            }
+          })
+      );
+      await Promise.all(promises);
+    }
+
+    this._allGraphsLoaded = true;
+  }
+
   private async initializePage() {
     await this.anomaliesTable!.populateTable(
       this.anomalyTracker.toAnomalyList(),
       this.anomalyTracker.getTimerangeMap()
     );
 
-    this.anomaliesTable!.checkSelectedAnomalies(this.findRequestedAnomalies());
+    const selected = this.findRequestedAnomalies();
+    if (selected.length > 0) {
+      this.anomaliesTable!.checkSelectedAnomalies(selected);
+    } else {
+      this.anomaliesTable!.initialCheckAllCheckbox();
+    }
   }
 
   private async initializeDefaults() {
@@ -271,14 +329,14 @@ export class ReportPageSk extends ElementSk {
   }
 
   private addGraph(anomaly: Anomaly) {
-    const explore: ExploreSimpleSk = new ExploreSimpleSk(true);
+    const explore: ExploreSimpleSk = this.exploreSimpleSkFactory();
     explore.defaults = this.defaults;
     explore.openQueryByDefault = false;
     explore.navOpen = false;
     explore.enableRemoveButton = false;
     explore.is_chart_split = true;
     const graphIndex = this.graphDiv!.children.length;
-    this.graphDiv!.prepend(explore);
+    this.graphDiv!.append(explore);
 
     const query = this.getQueryFromAnomaly(anomaly);
     const state = new State();
@@ -286,7 +344,7 @@ export class ReportPageSk extends ElementSk {
     explore.state = {
       ...state,
       queries: [query],
-      highlight_anomalies: [String(anomaly.id)],
+      highlight_anomalies: [anomaly.id],
       // show 1 week's worth of data before and after
       // showing more data helps users determine
       // if a regression has already been mitigated
@@ -306,16 +364,23 @@ export class ReportPageSk extends ElementSk {
   }
 
   private updateGraphs(anomaly: Anomaly, checked: boolean) {
-    const graph = this.anomalyTracker.getAnomaly(anomaly.id)!.graph;
+    if (!this._allGraphsLoaded) {
+      return;
+    }
+    const dataPoint = this.anomalyTracker.getAnomaly(anomaly.id)!;
+    const graph = dataPoint.graph;
+
     if (checked && !graph) {
-      // Add a new graph if checked and it doesn't exist
+      // If checked and no graph exists, add it immediately.
       this.anomalyTracker.setGraph(anomaly.id, this.addGraph(anomaly));
     } else if (!checked && graph) {
-      // Remove the graph if unchecked and it exists
+      // If unchecked and a graph exists, remove it.
       this.anomalyTracker.unsetGraph(anomaly.id);
       this.graphDiv!.removeChild(graph);
     }
+
     this.updateChartHeights();
+    this._render();
   }
 
   private updateChartHeights(): void {
@@ -338,7 +403,7 @@ export class ReportPageSk extends ElementSk {
   findRequestedAnomalies(): Anomaly[] {
     const ret: Anomaly[] = [];
     this.anomalyTracker.toAnomalyList().forEach((anomaly) => {
-      if (this.requestAnomalies.includes(String(anomaly.id))) {
+      if (this.requestAnomalies.includes(anomaly.id)) {
         ret.push(this.anomalyTracker.getAnomaly(anomaly.id)!.anomaly);
       }
     });
