@@ -124,12 +124,21 @@ const basePatchDescription = `
 A Gerrit change ID that can be applied as a patch to the base git hash (or
 revision). This means that when Chromium is built, it will checkout Chromium at
 the base_git_hash defined, and then apply this Gerrit patchset before building
-Chromium.
+Chromium. The patch should be the full URL to the change, not just the patch id.
+For example, https://chromium-review.googlesource.com/c/chromium/src/+/6527568.
+If there's a patch, it should be appended to the very end. For example, if the
+user wants to apply patchset 2, an example would look like
+https://chromium-review.googlesource.com/c/chromium/src/+/6527568/2.
 `
 
 const experimentPatchDescription = `
 A Gerrit change ID that can be applied as a patch to the experiment git hash
 (or revision). This means that when Chromium is built, it will checkout Chromium
 at the experiment_git_hash defined, and then apply this Gerrit patchset before
-building Chromium.
+building Chromium. The patch should be the full URL to the change, not just the
+patch id. For example,
+https://chromium-review.googlesource.com/c/chromium/src/+/6527568.
+If there's a patch, it should be appended to the very end. For example, if the
+user wants to apply patchset 2, an example would look like
+https://chromium-review.googlesource.com/c/chromium/src/+/6527568/2.
 `
