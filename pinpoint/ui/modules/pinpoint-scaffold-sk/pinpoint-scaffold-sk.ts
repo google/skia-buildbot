@@ -32,6 +32,10 @@ export class PinpointScaffoldSk extends LitElement {
 
   @property({ type: String }) user: string = '';
 
+  @property({ type: String }) startDate: string = '';
+
+  @property({ type: String }) endDate: string = '';
+
   @state() private _benchmarks: string[] = [];
 
   @state() private _bots: string[] = [];
@@ -41,6 +45,10 @@ export class PinpointScaffoldSk extends LitElement {
   @state() private _selectedBot: string = '';
 
   @state() private _selectedUser: string = '';
+
+  @state() private _selectedStartDate: string = '';
+
+  @state() private _selectedEndDate: string = '';
 
   async connectedCallback() {
     super.connectedCallback();
@@ -117,6 +125,14 @@ export class PinpointScaffoldSk extends LitElement {
     this._selectedUser = (e.target as HTMLInputElement).value;
   }
 
+  private onStartDateChange(e: InputEvent) {
+    this._selectedStartDate = (e.target as HTMLInputElement).value;
+  }
+
+  private onEndDateChange(e: InputEvent) {
+    this._selectedEndDate = (e.target as HTMLInputElement).value;
+  }
+
   private applyFilters() {
     this.dispatchEvent(
       new CustomEvent('filters-changed', {
@@ -124,6 +140,8 @@ export class PinpointScaffoldSk extends LitElement {
           benchmark: this._selectedBenchmark,
           botName: this._selectedBot,
           user: this._selectedUser,
+          startDate: this._selectedStartDate,
+          endDate: this._selectedEndDate,
         },
         bubbles: true,
         composed: true,
@@ -141,6 +159,8 @@ export class PinpointScaffoldSk extends LitElement {
     this._selectedBenchmark = this.benchmark;
     this._selectedBot = this.botName;
     this._selectedUser = this.user;
+    this._selectedStartDate = this.startDate;
+    this._selectedEndDate = this.endDate;
 
     const menu = this.shadowRoot?.querySelector('#filter-menu') as Menu | null;
     if (menu) {
@@ -184,6 +204,18 @@ export class PinpointScaffoldSk extends LitElement {
                   label="User"
                   .value=${this._selectedUser}
                   @input=${this.onUserFilterChange}></md-outlined-text-field>
+                <md-outlined-text-field
+                  label="Start Date"
+                  type="date"
+                  .value=${this._selectedStartDate}
+                  @input=${this.onStartDateChange}>
+                </md-outlined-text-field>
+                <md-outlined-text-field
+                  label="End Date"
+                  type="date"
+                  .value=${this._selectedEndDate}
+                  @input=${this.onEndDateChange}>
+                </md-outlined-text-field>
                 <div class="filter-actions">
                   <md-filled-button @click=${this.applyFilters}>Apply</md-filled-button>
                 </div>

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/httputils"
@@ -104,8 +105,46 @@ func (s *Service) ListJobsHandler(w http.ResponseWriter, r *http.Request) {
 	// Basic validation
 	if offset < 0 || limit < 0 {
 		msg := "Cannot accept negative numbers as parameters"
-		httputils.ReportError(w, err, msg, http.StatusBadRequest)
+		httputils.ReportError(w, skerr.Fmt("negative parameters"), msg, http.StatusBadRequest)
 		return
+	}
+
+	startDate := q.Get("start_date")
+	endDate := q.Get("end_date")
+
+	// Either both dates need to be filled or neither
+	if startDate == "" && endDate != "" {
+		msg := "Start date must be filled out"
+		httputils.ReportError(w, skerr.Fmt("invalid params"), msg, http.StatusBadRequest)
+		return
+	}
+
+	if startDate != "" && endDate == "" {
+		msg := "End date must be filled out"
+		httputils.ReportError(w, skerr.Fmt("invalid params"), msg, http.StatusBadRequest)
+		return
+	}
+
+	// If a date range is provided, validate the format and order.
+	if startDate != "" {
+		start, err := time.Parse(time.DateOnly, startDate)
+		if err != nil {
+			msg := "Invalid start date format. Please use YYYY-MM-DD"
+			httputils.ReportError(w, err, msg, http.StatusBadRequest)
+			return
+		}
+		end, err := time.Parse(time.DateOnly, endDate)
+		if err != nil {
+			msg := "Invalid end date format. Please use YYYY-MM-DD"
+			httputils.ReportError(w, err, msg, http.StatusBadRequest)
+			return
+		}
+
+		if start.After(end) {
+			msg := "Start date cannot be after end date"
+			httputils.ReportError(w, skerr.Fmt("invalid dates"), msg, http.StatusBadRequest)
+			return
+		}
 	}
 
 	opts := jobstore.ListJobsOptions{
@@ -113,6 +152,8 @@ func (s *Service) ListJobsHandler(w http.ResponseWriter, r *http.Request) {
 		Benchmark:  q.Get("benchmark"),
 		BotName:    q.Get("bot_name"),
 		User:       q.Get("user"),
+		StartDate:  q.Get("start_date"),
+		EndDate:    q.Get("end_date"),
 		Limit:      limit,
 		Offset:     offset,
 	}

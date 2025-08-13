@@ -87,6 +87,20 @@ describe('PinpointScaffoldSk', () => {
     inputElement.value = 'test-user';
     inputElement.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
 
+    const startDateFilter = element.shadowRoot!.querySelector(
+      '.filter-menu-items md-outlined-text-field[label="Start Date"]'
+    ) as HTMLElement;
+    const startDateInputElement = startDateFilter.shadowRoot!.querySelector('input')!;
+    startDateInputElement.value = '2023-10-01';
+    startDateInputElement.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+
+    const endDateFilter = element.shadowRoot!.querySelector(
+      '.filter-menu-items md-outlined-text-field[label="End Date"]'
+    ) as HTMLElement;
+    const endDateInputElement = endDateFilter.shadowRoot!.querySelector('input')!;
+    endDateInputElement.value = '2023-10-31';
+    endDateInputElement.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+
     await element.updateComplete;
 
     // Apply filters
@@ -101,6 +115,8 @@ describe('PinpointScaffoldSk', () => {
       benchmark: 'benchmark1',
       botName: 'bot1',
       user: 'test-user',
+      startDate: '2023-10-01',
+      endDate: '2023-10-31',
     });
   });
 

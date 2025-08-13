@@ -70,6 +70,10 @@ type ListJobsOptions struct {
 	SearchTerm string
 	// Benchmark filters jobs by the exact benchmark name.
 	Benchmark string
+	// StartDate filters jobs created on or after this date (YYYY-MM-DD).
+	StartDate string
+	// EndDate filters jobs created on or before this date (YYYY-MM-DD).
+	EndDate string
 	// BotName filters jobs by the exact bot name.
 	BotName string
 	// User filters jobs by the exact user who submitted the job.
@@ -341,6 +345,16 @@ func (js *jobStoreImpl) ListJobs(ctx context.Context, options ListJobsOptions) (
 	if options.Benchmark != "" {
 		whereClauses = append(whereClauses, fmt.Sprintf("benchmark LIKE $%d", paramCount))
 		args = append(args, "%"+options.Benchmark+"%")
+		paramCount++
+	}
+	if options.StartDate != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("createdat >= $%d", paramCount))
+		args = append(args, options.StartDate)
+		paramCount++
+	}
+	if options.EndDate != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("createdat <= $%d", paramCount))
+		args = append(args, options.EndDate+" 23:59:59")
 		paramCount++
 	}
 	if options.BotName != "" {

@@ -75,6 +75,8 @@ export class PinpointLandingPageSk extends LitElement {
       benchmark: '',
       botName: '',
       user: '',
+      startDate: '',
+      endDate: '',
     };
     this._currentPage = 0;
     this._hasNextPage = false;
@@ -93,6 +95,8 @@ export class PinpointLandingPageSk extends LitElement {
       searchTerm: this._listJobsOptions.searchTerm || '',
       benchmark: this._listJobsOptions.benchmark || '',
       botName: this._listJobsOptions.botName || '',
+      startDate: this._listJobsOptions.startDate || '',
+      endDate: this._listJobsOptions.endDate || '',
       user: this._listJobsOptions.user || '',
     };
     return state;
@@ -102,10 +106,13 @@ export class PinpointLandingPageSk extends LitElement {
     this._currentPage = (state.page as number) || 0;
     this._sortBy = (state.sortBy as string) || 'created_date';
     this._sortDir = (state.sortDir as 'asc' | 'desc') || 'desc';
+
     this._listJobsOptions = {
       searchTerm: (state.searchTerm as string) || '',
       benchmark: (state.benchmark as string) || '',
       botName: (state.botName as string) || '',
+      startDate: (state.startDate as string) || '',
+      endDate: (state.endDate as string) || '',
       user: (state.user as string) || '',
     };
     this.fetchJobs();
@@ -155,7 +162,15 @@ export class PinpointLandingPageSk extends LitElement {
   }
 
   // Handles the 'filters-changed' event from the pinpoint-scaffold-sk component.
-  private onFiltersChanged(e: CustomEvent<{ benchmark: string; botName: string; user: string }>) {
+  private onFiltersChanged(
+    e: CustomEvent<{
+      benchmark: string;
+      botName: string;
+      user: string;
+      startDate: string;
+      endDate: string;
+    }>
+  ) {
     this._listJobsOptions = {
       ...this._listJobsOptions,
       ...e.detail,
@@ -288,6 +303,8 @@ export class PinpointLandingPageSk extends LitElement {
         .benchmark=${this._listJobsOptions.benchmark}
         .botName=${this._listJobsOptions.botName}
         .user=${this._listJobsOptions.user}
+        .startDate=${this._listJobsOptions.startDate}
+        .endDate=${this._listJobsOptions.endDate}
         @search-changed=${this.onSearchChanged}
         @filters-changed=${this.onFiltersChanged}>
         ${loadingIndicator} ${errorIndicator} ${content}

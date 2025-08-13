@@ -18,6 +18,8 @@ export interface ListJobsOptions {
   user?: string;
   limit?: number;
   offset?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface CASDigest {
@@ -239,10 +241,13 @@ export async function listJobs(options: ListJobsOptions): Promise<Job[]> {
   if (options.user) params.set('user', options.user);
   if (options.limit) params.set('limit', options.limit.toString());
   if (options.offset) params.set('offset', options.offset.toString());
+  if (options.startDate) params.set('start_date', options.startDate);
+  if (options.endDate) params.set('end_date', options.endDate);
 
   const response = await fetch(`/json/jobs/list?${params.toString()}`);
   if (!response.ok) {
-    throw new Error(`Failed to list jobs: ${response.statusText}`);
+    const errorText = await response.text();
+    throw new Error(`Failed to list jobs: ${errorText}: ${response.statusText}`);
   }
   return response.json();
 }
