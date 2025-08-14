@@ -12,6 +12,7 @@ sk_element(
         "//perf/modules/new-bug-dialog-sk",
         "//perf/modules/existing-bug-dialog-sk",
         "//perf/modules/plot-simple-sk",
+        "//elements-sk/modules/toast-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",

@@ -21,6 +21,7 @@ import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
 
 import '../new-bug-dialog-sk/new-bug-dialog-sk';
 import '../existing-bug-dialog-sk/existing-bug-dialog-sk';
+import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 
 export class NudgeEntry {
   // Whether the nudge entry should be marked as selected in UI.
@@ -63,6 +64,10 @@ export class TriageMenuSk extends ElementSk {
   // Existing Bug Dialog.
   existingBugDialog: ExistingBugDialogSk | null = null;
 
+  private closeIgnoreToastButton: HTMLButtonElement | null = null;
+
+  private ignoreTriageToast: ToastSk | null = null;
+
   constructor() {
     super(TriageMenuSk.template);
   }
@@ -79,6 +84,14 @@ export class TriageMenuSk extends ElementSk {
           Ignore
         </button>
       </div>
+      <toast-sk id="ignore_toast" duration="8000">
+        <div>
+          <a> Anomaly has ignore with anomaly id: ${ele._anomalies.map((a) => a.id).join(', ')}</a>
+        </div>
+        <div class="close-bisect">
+          <button id="hide-ignore-triage" class="action" type="button">Close</button>
+        </div>
+      </toast-sk>
     </div>`;
 
   connectedCallback(): void {
@@ -87,6 +100,9 @@ export class TriageMenuSk extends ElementSk {
 
     this.existingBugDialog = this.querySelector('existing-bug-dialog-sk');
     this.newBugDialog = this.querySelector('new-bug-dialog-sk');
+    this.closeIgnoreToastButton = this.querySelector('#hide-ignore-triage');
+    this.ignoreTriageToast = this.querySelector('#ignore_toast');
+    this.closeIgnoreToastButton!.addEventListener('click', () => this.ignoreTriageToast?.hide());
 
     this.addEventListener('click', (e) => {
       const existingBugButton = this.querySelector('#existing-bug');
@@ -190,16 +206,13 @@ export class TriageMenuSk extends ElementSk {
           bug_id = 0;
         } else if (editAction === 'IGNORE') {
           bug_id = -2;
-          const anomalyIds = anomalies.map((a) => a.id).join(', ');
-          alert(`Anomaly has ignore with anomaly id: ${anomalyIds}`);
         }
         if (bug_id !== null) {
           for (let i = 0; i < anomalies.length; i++) {
             anomalies[i].bug_id = bug_id;
           }
         }
-        const anomalyIds = anomalies.map((a) => a.id).join(', ');
-        alert(`Anomaly has ignore with anomaly id: ${anomalyIds}`);
+        this.ignoreTriageToast?.show();
         this.dispatchEvent(
           new CustomEvent('anomaly-changed', {
             bubbles: true,
