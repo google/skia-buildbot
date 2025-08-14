@@ -81,6 +81,7 @@
             "use_titles": "true",
             "show_google_plot": "true"
         },
+        "default_range": 604800,
         "max_empty_tiles": 5,
         "cache_config": {
             "type": "redis",

@@ -74,6 +74,7 @@
       "use_titles": "true",
       "show_google_plot": "true"
     },
+    "default_range": 604800,
     "query_commit_chunk_size": 10000,
     "cache_config": {
       "type": "redis",
