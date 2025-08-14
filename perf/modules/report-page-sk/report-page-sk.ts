@@ -271,12 +271,12 @@ export class ReportPageSk extends ElementSk {
   }
 
   private addGraph(anomaly: Anomaly) {
-    const explore: ExploreSimpleSk = new ExploreSimpleSk(false);
+    const explore: ExploreSimpleSk = new ExploreSimpleSk(true);
     explore.defaults = this.defaults;
     explore.openQueryByDefault = false;
     explore.navOpen = false;
     explore.enableRemoveButton = false;
-
+    explore.is_chart_split = true;
     const graphIndex = this.graphDiv!.children.length;
     this.graphDiv!.prepend(explore);
 

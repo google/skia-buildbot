@@ -682,7 +682,7 @@ export class ExploreSimpleSk extends ElementSk {
       <graph-title-sk id=graphTitle style="flex-grow:  1;"></graph-title-sk>
       <md-icon-button
         title="Load Test Picker with current Query"
-        ?disabled=${ele.is_chart_split}
+        ?disabled=${ele.is_chart_split && !ele.useTestPicker}
         @click=${() => {
           ele.loadTestPickerFromParams();
         }}>
