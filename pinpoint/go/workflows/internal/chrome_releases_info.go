@@ -187,12 +187,12 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*Chr
 	}
 	sklog.Infof("Change published to Gerrit, change ID: %v", ci.Issue)
 
-	return waitForSubmitCl(client, ci)
+	return waitForSubmitCl(client, ci, builds)
 }
 
 // waitForSubmitCl waits for the 'rubber-stamper' to submit uploaded CLs, then
 // returns the commit position.
-func waitForSubmitCl(client *gitClient, ci *gerrit.ChangeInfo) (*ChromeReleaseInfo, error) {
+func waitForSubmitCl(client *gitClient, ci *gerrit.ChangeInfo, builds []BuildInfo) (*ChromeReleaseInfo, error) {
 	var commitPosition string
 	sklog.Infof("Waiting for CL to be submitted.")
 	start := time.Now()
@@ -221,6 +221,7 @@ func waitForSubmitCl(client *gitClient, ci *gerrit.ChangeInfo) (*ChromeReleaseIn
 			releaseInfo := &ChromeReleaseInfo{
 				CommitPosition: commitPosition,
 				CommitHash:     commitHash,
+				Builds:         builds,
 			}
 			return releaseInfo, nil
 		} else {
