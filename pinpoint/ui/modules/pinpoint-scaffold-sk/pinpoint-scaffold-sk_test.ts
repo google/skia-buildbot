@@ -5,6 +5,7 @@ import { PinpointScaffoldSk } from './pinpoint-scaffold-sk';
 import './index';
 import { PinpointNewJobSk } from '../pinpoint-new-job-sk/pinpoint-new-job-sk';
 import { ComboBox } from '@vaadin/combo-box';
+import '@material/web/button/outlined-button.js';
 
 describe('PinpointScaffoldSk', () => {
   const benchmarks = ['benchmark1', 'benchmark2'];
@@ -117,6 +118,40 @@ describe('PinpointScaffoldSk', () => {
       user: 'test-user',
       startDate: '2023-10-01',
       endDate: '2023-10-31',
+    });
+  });
+
+  it('clears filters and dispatches filters-changed event', async () => {
+    const spy = sinon.spy();
+    element.addEventListener('filters-changed', spy);
+
+    // Open the filter menu
+    const filterButton = element.shadowRoot!.querySelector('#filter-anchor') as HTMLElement;
+    filterButton.click();
+    await element.updateComplete;
+
+    // Set some filter values first
+    // @ts-expect-error - access private property for testing
+    element._selectedBenchmark = 'benchmark1';
+    // @ts-expect-error - access private property for testing
+    element._selectedBot = 'bot1';
+    await element.updateComplete;
+
+    // Click the clear button
+    const clearButton = element.shadowRoot!.querySelector(
+      '.filter-actions md-outlined-button'
+    ) as HTMLElement;
+    clearButton.click();
+    await element.updateComplete;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    expect(spy.calledOnce).to.be.true;
+    expect(spy.firstCall.args[0].detail).to.deep.equal({
+      benchmark: '',
+      botName: '',
+      user: '',
+      startDate: '',
+      endDate: '',
     });
   });
 

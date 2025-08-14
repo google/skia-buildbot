@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state, query, property } from 'lit/decorators.js';
 import { listBenchmarks, listBots } from '../../services/api';
 import '@material/web/button/filled-button.js';
+import '@material/web/button/outlined-button.js';
 import '@material/web/textfield/outlined-text-field.js';
 import '@material/web/iconbutton/icon-button.js';
 import '@material/web/icon/icon.js';
@@ -92,6 +93,7 @@ export class PinpointScaffoldSk extends LitElement {
     .filter-actions {
       display: flex;
       justify-content: flex-end;
+      gap: 8px;
       margin-top: 8px;
     }
   `;
@@ -131,6 +133,15 @@ export class PinpointScaffoldSk extends LitElement {
 
   private onEndDateChange(e: InputEvent) {
     this._selectedEndDate = (e.target as HTMLInputElement).value;
+  }
+
+  private clearFilters() {
+    this._selectedBenchmark = '';
+    this._selectedBot = '';
+    this._selectedUser = '';
+    this._selectedStartDate = '';
+    this._selectedEndDate = '';
+    this.applyFilters();
   }
 
   private applyFilters() {
@@ -217,6 +228,7 @@ export class PinpointScaffoldSk extends LitElement {
                   @input=${this.onEndDateChange}>
                 </md-outlined-text-field>
                 <div class="filter-actions">
+                  <md-outlined-button @click=${this.clearFilters}>Clear</md-outlined-button>
                   <md-filled-button @click=${this.applyFilters}>Apply</md-filled-button>
                 </div>
               </div>

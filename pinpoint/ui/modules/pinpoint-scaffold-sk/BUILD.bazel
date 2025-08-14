@@ -25,6 +25,7 @@ karma_test(
     src = "pinpoint-scaffold-sk_test.ts",
     deps = [
         ":pinpoint-scaffold-sk",
+        "//:node_modules/@material/web",
         "//:node_modules/@types/chai",
         "//:node_modules/@types/sinon",
         "//:node_modules/@vaadin/combo-box",
