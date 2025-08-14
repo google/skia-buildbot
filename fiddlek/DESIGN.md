@@ -156,10 +156,3 @@ Lifetime
 RBAC
 
 - Fiddler pods don't load any mounts, secrets, or service accounts.
-
-## Backups
-
-A backup of all the named fiddles from gs://skia-fiddle/named
-to gs://skia-fiddle-backup takes placed on a daily basis. See:
-
-https://console.cloud.google.com/storage/transfer?project=google.com:skia-buildbots
