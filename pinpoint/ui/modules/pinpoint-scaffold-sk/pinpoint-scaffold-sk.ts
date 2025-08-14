@@ -73,6 +73,10 @@ export class PinpointScaffoldSk extends LitElement {
       font-size: 1.5em;
       margin: 0;
     }
+    h1 a {
+      color: inherit;
+      text-decoration: none;
+    }
     .header-actions {
       display: flex;
       gap: 16px;
@@ -182,7 +186,7 @@ export class PinpointScaffoldSk extends LitElement {
   render() {
     return html`
       <header>
-        <h1>Pinpoint</h1>
+        <h1><a href="/">Pinpoint</a></h1>
         <div class="header-actions">
           <md-outlined-text-field
             label="Search by job name"
