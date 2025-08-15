@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -27,6 +28,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -527,6 +529,45 @@ func (g *GitHub) GetDescription(pullRequestNum int) (string, error) {
 	return issue.GetBody(), nil
 }
 
+func (g *GitHub) GetCommit(hash string) (*github.RepositoryCommit, error) {
+	commit, resp, err := g.client.Repositories.GetCommit(g.ctx, g.RepoOwner, g.RepoName, hash)
+	if err != nil {
+		return nil, fmt.Errorf("Failed retrieving commit: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Unexpected status code %d.", resp.StatusCode)
+	}
+	return commit, nil
+}
+
+// CommitToLongCommit converts a github.RepositoryCommit to a vcsinfo.LongCommit.
+func CommitToLongCommit(c *github.RepositoryCommit) *vcsinfo.LongCommit {
+	split := strings.Split(*c.Commit.Message, "\n")
+	subject := split[0]
+	split = split[1:]
+	body := ""
+	if len(split) > 0 && split[0] == "" {
+		split = split[1:]
+	}
+	if len(split) > 0 {
+		body = strings.Join(split, "\n")
+	}
+	parents := make([]string, 0, len(c.Parents))
+	for _, p := range c.Parents {
+		parents = append(parents, *p.SHA)
+	}
+	return &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash:    *c.SHA,
+			Author:  fmt.Sprintf("%s (%s)", *c.Commit.Author.Name, *c.Commit.Author.Email),
+			Subject: subject,
+		},
+		Parents:   parents,
+		Body:      body,
+		Timestamp: *c.Commit.Committer.Date,
+	}
+}
+
 func (g *GitHub) ReadRawFile(branch, filePath string) (string, error) {
 	githubContentURL := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s", g.RepoOwner, g.RepoName, branch, filePath)
 	resp, err := g.httpClient.Get(githubContentURL)
@@ -554,4 +595,32 @@ func (g *GitHub) GetPullRequestUrlBase() string {
 
 func (g *GitHub) GetIssueUrlBase() string {
 	return fmt.Sprintf("https://github.com/%s/%s/issues/", g.RepoOwner, g.RepoName)
+}
+
+// repoUrlRegexp is a regular expression which parses a GitHub repo URL.
+var repoUrlRegexp = regexp.MustCompile(`^(?P<protocol>https:\/\/|git@)github\.com(?P<colon_or_slash>[:/])(?P<repo_owner>[a-zA-Z0-9\._-]+?)/(?P<repo_name>[a-zA-Z0-9\._-]+?)(?P<dot_git>\.git)?$`)
+
+// ParseRepoOwnerAndName returns the owner and name of the repo from the given
+// URL.
+func ParseRepoOwnerAndName(url string) (owner string, repo string, err error) {
+	groupNames := repoUrlRegexp.SubexpNames()
+	m := repoUrlRegexp.FindStringSubmatch(url)
+	if len(m) != len(groupNames) {
+		return "", "", skerr.Fmt("failed to parse repo URL %q", url)
+	}
+	for idx, name := range groupNames {
+		sklog.Errorf("%d: %s: %s", idx, name, m[idx])
+		if name == "repo_owner" {
+			owner = m[idx]
+		} else if name == "repo_name" {
+			repo = m[idx]
+		}
+	}
+	if owner == "" {
+		return "", "", skerr.Fmt("failed to parse owner from %q", url)
+	}
+	if repo == "" {
+		return "", "", skerr.Fmt("failed to parse repo name from %q", url)
+	}
+	return
 }

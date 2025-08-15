@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 func TestAddComment(t *testing.T) {
@@ -500,4 +501,173 @@ func TestGetIssueUrlBase(t *testing.T) {
 	require.NoError(t, err)
 	issueUrlBase := githubClient.GetIssueUrlBase()
 	require.Equal(t, "https://github.com/kryptonians/krypton/issues/", issueUrlBase)
+}
+
+func TestParseRepoOwnerAndName(t *testing.T) {
+	testCases := []struct {
+		url         string
+		repoOwner   string
+		repoName    string
+		expectErr   bool
+		errContains string
+		description string
+	}{
+		{
+			url:         "https://github.com/google/skia",
+			repoOwner:   "google",
+			repoName:    "skia",
+			expectErr:   false,
+			description: "https URL",
+		},
+		{
+			url:         "git@github.com:google/skia.git",
+			repoOwner:   "google",
+			repoName:    "skia",
+			expectErr:   false,
+			description: "git URL",
+		},
+		{
+			url:         "https://github.com/some-user/some-repo.git",
+			repoOwner:   "some-user",
+			repoName:    "some-repo",
+			expectErr:   false,
+			description: "hyphenated user and repo",
+		},
+		{
+			url:         "https://github.com/some_user/some_repo.git",
+			repoOwner:   "some_user",
+			repoName:    "some_repo",
+			expectErr:   false,
+			description: "underscored user and repo",
+		},
+		{
+			url:         "https://github.com/some.user/some.repo.git",
+			repoOwner:   "some.user",
+			repoName:    "some.repo",
+			expectErr:   false,
+			description: "dotted user and repo",
+		},
+		{
+			url:         "https://not-github.com/google/skia",
+			expectErr:   true,
+			errContains: "failed to parse repo URL",
+			description: "invalid URL",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.description, func(t *testing.T) {
+			repoOwner, repoName, err := ParseRepoOwnerAndName(tc.url)
+			if tc.expectErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.errContains)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.repoOwner, repoOwner)
+				require.Equal(t, tc.repoName, repoName)
+			}
+		})
+	}
+}
+
+func TestCommitToLongCommit(t *testing.T) {
+	ts := time.Date(2020, 1, 1, 12, 0, 0, 0, time.UTC)
+	testCases := []struct {
+		description string
+		commit      *github.RepositoryCommit
+		expected    *vcsinfo.LongCommit
+	}{
+		{
+			description: "Simple commit",
+			commit: &github.RepositoryCommit{
+				SHA: github.String("abcdef123456"),
+				Commit: &github.Commit{
+					Author: &github.CommitAuthor{
+						Name:  github.String("Test User"),
+						Email: github.String("test@google.com"),
+					},
+					Committer: &github.CommitAuthor{
+						Date: &ts,
+					},
+					Message: github.String("Subject"),
+				},
+			},
+			expected: &vcsinfo.LongCommit{
+				ShortCommit: &vcsinfo.ShortCommit{
+					Hash:    "abcdef123456",
+					Author:  "Test User (test@google.com)",
+					Subject: "Subject",
+				},
+				Parents:   []string{},
+				Body:      "",
+				Timestamp: ts,
+			},
+		},
+		{
+			description: "Commit with body",
+			commit: &github.RepositoryCommit{
+				SHA: github.String("abcdef123456"),
+				Commit: &github.Commit{
+					Author: &github.CommitAuthor{
+						Name:  github.String("Test User"),
+						Email: github.String("test@google.com"),
+					},
+					Committer: &github.CommitAuthor{
+						Date: &ts,
+					},
+					Message: github.String("Subject\n\nThis is the body."),
+				},
+			},
+			expected: &vcsinfo.LongCommit{
+				ShortCommit: &vcsinfo.ShortCommit{
+					Hash:    "abcdef123456",
+					Author:  "Test User (test@google.com)",
+					Subject: "Subject",
+				},
+				Parents:   []string{},
+				Body:      "This is the body.",
+				Timestamp: ts,
+			},
+		},
+		{
+			description: "Commit with parents",
+			commit: &github.RepositoryCommit{
+				SHA: github.String("abcdef123456"),
+				Commit: &github.Commit{
+					Author: &github.CommitAuthor{
+						Name:  github.String("Test User"),
+						Email: github.String("test@google.com"),
+					},
+					Committer: &github.CommitAuthor{
+						Date: &ts,
+					},
+					Message: github.String("Subject"),
+				},
+				Parents: []github.Commit{
+					{
+						SHA: github.String("parent1"),
+					},
+					{
+						SHA: github.String("parent2"),
+					},
+				},
+			},
+			expected: &vcsinfo.LongCommit{
+				ShortCommit: &vcsinfo.ShortCommit{
+					Hash:    "abcdef123456",
+					Author:  "Test User (test@google.com)",
+					Subject: "Subject",
+				},
+				Parents:   []string{"parent1", "parent2"},
+				Body:      "",
+				Timestamp: ts,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.description, func(t *testing.T) {
+			actual := CommitToLongCommit(tc.commit)
+			require.Equal(t, tc.expected, actual)
+		})
+	}
 }
