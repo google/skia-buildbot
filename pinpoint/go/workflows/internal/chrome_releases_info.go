@@ -1,9 +1,13 @@
 package internal
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"net/http"
 	"regexp"
@@ -32,7 +36,7 @@ type BuildInfo struct {
 
 const (
 	// chromiumDashUrl response contains the latest Chrome build versions.
-	chromiumDashUrl = "https://chromiumdash.appspot.com/fetch_releases?num=1"
+	chromiumDashUrl = "https://chromiumdash.appspot.com/fetch_releases"
 	// chromeInternalBucket is the bucket to save the build info JSON files.
 	chromeInternalBucket = "chrome-perf-non-public"
 	// chromeExperimentBucket is the experimental bucket to save the build info JSON files.
@@ -88,7 +92,13 @@ func GetChromeReleasesInfoActivity(ctx context.Context, isDev bool) (*ChromeRele
 	return commitBuildsInfo(ctx, newBuilds, isDev)
 }
 
-// filterBuilds removes supported builds if their version hasn't changed.
+type buildInfoEx struct {
+	buildInfo         *BuildInfo
+	comparableVersion []byte
+}
+
+// filterBuilds finds the latest build from each supported channel/platform,
+// and then removes the builds if their version hasn't changed from previous run.
 func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildInfo, error) {
 	bucket := chromeInternalBucket
 	if isDev {
@@ -98,7 +108,10 @@ func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildI
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	var newBuilds []BuildInfo
+
+	// A map to store the latest build for each supported channel/platform.
+	// Its keys have the format "stable,mac".
+	var latestBuilds map[string]buildInfoEx = make(map[string]buildInfoEx)
 	for _, build := range builds {
 		if _, found := cbbChannels[build.Channel]; !found {
 			continue
@@ -109,6 +122,25 @@ func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildI
 		build.Browser = "chrome"
 		build.Channel = cbbChannels[build.Channel]
 		build.Platform = cbbPlatforms[build.Platform]
+		key := build.Channel + "," + build.Platform
+		comparableVersion, err := versionToBytes(build.Version)
+		if err != nil {
+			sklog.Errorf("Chrome with invalid version %s, ignored", build.Version)
+			continue
+		}
+		existingBuild, found := latestBuilds[key]
+		if found && bytes.Compare(comparableVersion, existingBuild.comparableVersion) <= 0 {
+			continue
+		}
+		latestBuilds[key] = buildInfoEx{
+			buildInfo:         &build,
+			comparableVersion: comparableVersion,
+		}
+	}
+
+	var newBuilds []BuildInfo
+	for _, buildEx := range latestBuilds {
+		build := *buildEx.buildInfo
 		filePath := fmt.Sprintf(cbbRefInfoPath, build.Channel, build.Platform)
 		if store.Exists(filePath) {
 			var content, err = store.GetFileContent(filePath)
@@ -230,4 +262,26 @@ func waitForSubmitCl(client *gitClient, ci *gerrit.ChangeInfo, builds []BuildInf
 
 		time.Sleep(10 * time.Second)
 	}
+}
+
+// versionToBytes converts a version string into a byte slice that can be lexicographically
+// compared. Each component of the version string is converted to a 4-byte big-endian
+// representation.
+func versionToBytes(version string) ([]byte, error) {
+	parts := strings.Split(version, ".")
+	if len(parts) != 4 {
+		return nil, skerr.Fmt("invalid version format: %s", version)
+	}
+
+	versionBytes := make([]byte, 0, 16)
+	for _, part := range parts {
+		val, err := strconv.ParseUint(part, 10, 32)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "invalid version component: %s", part)
+		}
+		buf := make([]byte, 4)
+		binary.BigEndian.PutUint32(buf, uint32(val))
+		versionBytes = append(versionBytes, buf...)
+	}
+	return versionBytes, nil
 }
