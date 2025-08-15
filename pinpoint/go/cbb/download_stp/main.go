@@ -3,15 +3,16 @@
 // Already implemented:
 // * Parse STP resources page to find latest STP release number and download links.
 // * Download STP installation images, and create CIPD packages from them.
+// * Update lab configuration to install the downloaded STP image on CBB test devices.
 //
 // TODO(b/433796487):
-// * Update lab configuration to install the downloaded STP image on CBB test devices.
 // * Update CBB ref file.
 // * Trigger CBB runs.
 
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -19,9 +20,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"golang.org/x/net/html"
+	"golang.org/x/oauth2/google"
 )
+
+const macosVersion = "macos15"
 
 var httpClient = httputils.NewTimeoutClient()
 
@@ -163,6 +169,127 @@ func createCipd(url string, refs []string) error {
 	return nil
 }
 
+// Create a Gerrit CL to update
+// https://chrome-internal.googlesource.com/infra/puppet/+/main/puppetm/etc/puppet/hieradata/cipd.yaml,
+// which controls the version of Safari TP installed on CBB test devices.
+func updatePuppet(release string) error {
+	fmt.Println("Attempting to create a CL to update puppet data")
+
+	const gerritUrl = "https://chrome-internal-review.googlesource.com/"
+	const project = "infra/puppet"
+	const branch = "main"
+	const filePath = "puppetm/etc/puppet/hieradata/cipd.yaml"
+	reviewers := []string{"friedman@google.com"}
+	labels := map[string]int{"Auto-Submit": 1}
+
+	ctx := context.Background()
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
+	if err != nil {
+		return fmt.Errorf("unable to get Gerrit token: %w", err)
+	}
+
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	gerritClient, err := gerrit.NewGerrit(gerritUrl, httpClient)
+	if err != nil {
+		return fmt.Errorf("unable to get Gerrit client: %w", err)
+	}
+
+	subject := "[cipd] Bump safari technology preview to " + release + "-" + macosVersion
+	ci, err := gerritClient.CreateChange(ctx, project, branch, subject, "", "")
+	if err != nil {
+		return fmt.Errorf("failed to create Gerrit change: %w", err)
+	}
+
+	// Get data from the newly created CL.
+	ci, err = gerritClient.GetChange(ctx, ci.Id)
+	if err != nil {
+		return fmt.Errorf("failed to refresh change info: %w", err)
+	}
+
+	content, err := gerritClient.GetContent(ctx, ci.Issue, ci.Patchsets[0].ID, filePath)
+	if err != nil {
+		return fmt.Errorf("failed to get cipd.yaml contents from Gerrir: %w", err)
+	}
+
+	content, err = updateCipdYamlContent(content, release)
+	if err != nil {
+		return fmt.Errorf("error while updating cipd.yaml content: %w", err)
+	}
+
+	err = gerritClient.EditFile(ctx, ci, filePath, content)
+	if err != nil {
+		return fmt.Errorf("failed to upload new cipd.yaml to Gerrit: %w", err)
+	}
+
+	err = gerritClient.PublishChangeEdit(ctx, ci)
+	if err != nil {
+		return fmt.Errorf("failed to publish change to Gerrit: %w", err)
+	}
+
+	// Must call GetChange to refresh the ChangeInfo, otherwise SetReview will fail.
+	ci, err = gerritClient.GetChange(ctx, ci.Id)
+	if err != nil {
+		return fmt.Errorf("failed to refresh change info after publishing edit: %w", err)
+	}
+
+	err = gerritClient.SetReview(ctx, ci, "", labels, reviewers, "", nil, "", 0, nil)
+	if err != nil {
+		return fmt.Errorf("failed to set review info on Gerrit: %w", err)
+	}
+
+	fmt.Printf("Successfully created CL %s/c/%s/+/%d", gerritUrl, project, ci.Issue)
+	return nil
+}
+
+// Edit the content of cipd.yaml file to update the Safari TP release number.
+func updateCipdYamlContent(content, release string) (string, error) {
+	lines := strings.Split(content, "\n")
+	linesUpdated := 0
+	inStpBlock := false
+	inVersionsBlock := false
+	inEquivalentVersionsBlock := false
+	for i, line := range lines {
+		if strings.Contains(line, "infra/chromeperf/cbb/safari_technology_preview:") {
+			inStpBlock = true
+			continue
+		}
+
+		if inStpBlock {
+			if line == "" {
+				break
+			}
+			trimmedLine := strings.TrimSpace(line)
+			if trimmedLine == "versions:" {
+				inVersionsBlock = true
+				inEquivalentVersionsBlock = false
+				continue
+			} else if trimmedLine == "equivalent_safaridriver_versions:" {
+				inEquivalentVersionsBlock = true
+				inVersionsBlock = false
+				continue
+			}
+
+			if inVersionsBlock || inEquivalentVersionsBlock {
+				if strings.HasPrefix(trimmedLine, "canary: ") || strings.HasPrefix(trimmedLine, "stable: ") {
+					pos := strings.Index(line, ": ")
+					newLine := line[:pos+2] + release
+					if inVersionsBlock {
+						newLine += "-" + macosVersion
+					}
+					lines[i] = newLine
+					linesUpdated++
+				}
+			}
+		}
+	}
+
+	if linesUpdated != 4 {
+		return "", fmt.Errorf("unexpected file contents: %d lines updated instead of 4", linesUpdated)
+	}
+
+	return strings.Join(lines, "\n"), nil
+}
+
 func main() {
 	doc, err := downloadAndParseHtml()
 	if err != nil {
@@ -194,6 +321,12 @@ func main() {
 	err = createCipd(ri.linkTahoe, []string{ri.release + "-macos26"})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to create CIPD package for macOS 26: %v", err)
+		os.Exit(1)
+	}
+
+	err = updatePuppet(ri.release)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to update puppet settings: %v\n", err)
 		os.Exit(1)
 	}
 }
