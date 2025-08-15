@@ -38,9 +38,6 @@ const (
 	envVarSwarmingServer = "SWARMING_SERVER"
 	envVarSwarmingTask   = "SWARMING_TASK_ID"
 
-	// envVarPath represents the PATH environment variable.
-	envVarPath = "PATH"
-
 	// EnvVarWrappedStepID indicates that a task driver is nested inside of
 	// another, with the given step ID as its parent.
 	EnvVarWrappedStepID = "TASK_DRIVER_WRAPPED_STEP_ID"
@@ -261,7 +258,7 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 		run:     r,
 		execRun: execRun,
 	})
-	env := MergeEnv(os.Environ(), BaseEnv)
+	env := exec.MergeEnv(os.Environ(), BaseEnv)
 	if wrappedStepID, ok := os.LookupEnv(EnvVarWrappedStepID); ok {
 		// We don't send a RUN_STARTED message, or a STEP_STARTED message for
 		// the root step, because we want all of the steps for this task driver

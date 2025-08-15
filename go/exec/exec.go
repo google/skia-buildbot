@@ -37,6 +37,7 @@ import (
 	"os"
 	osexec "os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"syscall"
@@ -411,16 +412,10 @@ func WithOverrideExecutableExists(ctx context.Context, exists func(name string) 
 	return context.WithValue(ctx, overrideExecutableExistsContextKey, exists)
 }
 
-// findExecutable determines whether the given file path is an executable.
+// DefaultExecutableExists returns nil if the given file path exists and is
+// executable.
 // Implementation taken directly from os/exec package.
-func findExecutable(ctx context.Context, file string) error {
-	if executableExists := ctx.Value(overrideExecutableExistsContextKey); executableExists != nil {
-		if executableExists.(func(string) bool)(file) {
-			return nil
-		} else {
-			return fs.ErrNotExist
-		}
-	}
+func DefaultExecutableExists(file string) error {
 	d, err := os.Stat(file)
 	if err != nil {
 		return err
@@ -429,6 +424,18 @@ func findExecutable(ctx context.Context, file string) error {
 		return nil
 	}
 	return fs.ErrPermission
+}
+
+// findExecutable determines whether the given file path is an executable.
+func findExecutable(ctx context.Context, file string) error {
+	if executableExists := ctx.Value(overrideExecutableExistsContextKey); executableExists != nil {
+		if executableExists.(func(string) bool)(file) {
+			return nil
+		} else {
+			return fs.ErrNotExist
+		}
+	}
+	return DefaultExecutableExists(file)
 }
 
 // LookPath searches for an executable named file in the directories named by
@@ -470,5 +477,50 @@ func LookPathAll(ctx context.Context, file, pathVar string) []string {
 			rv = append(rv, path)
 		}
 	}
+	return rv
+}
+
+const (
+	// PathPlaceholder is a placeholder for any existing value of PATH, used
+	// when merging environments to avoid overriding the PATH altogether.
+	PathPlaceholder = "%(PATH)s"
+	// EnvVarPath represents the PATH environment variable.
+	EnvVarPath = "PATH"
+)
+
+// MergeEnv merges the second env into the base, returning a new env with the
+// original unchanged. Variables in the second env override those in the base,
+// except for PATH, which is merged. If PATH defined by the second env contains
+// %(PATH)s, then the result is the PATH from the second env with PATH from
+// the first env inserted in place of %(PATH)s. Otherwise, the PATH from the
+// second env overrides PATH from the first. Note that setting PATH to the empty
+// string in the second env will cause PATH to be empty in the result!
+func MergeEnv(base, other []string) []string {
+	m := make(map[string]string, len(base))
+	for _, kv := range base {
+		split := strings.SplitN(kv, "=", 2)
+		if len(split) != 2 {
+			sklog.Errorf("Invalid env var: %s", kv)
+			continue
+		}
+		m[split[0]] = split[1]
+	}
+	for _, kv := range other {
+		split := strings.SplitN(kv, "=", 2)
+		if len(split) != 2 {
+			sklog.Errorf("Invalid env var: %s", kv)
+			continue
+		}
+		k, v := split[0], split[1]
+		if existing, ok := m[k]; ok && k == EnvVarPath {
+			v = strings.Replace(v, PathPlaceholder, existing, -1)
+		}
+		m[k] = v
+	}
+	rv := make([]string, 0, len(m))
+	for k, v := range m {
+		rv = append(rv, fmt.Sprintf("%s=%s", k, v))
+	}
+	sort.Strings(rv)
 	return rv
 }

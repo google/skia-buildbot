@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 
@@ -30,51 +29,7 @@ const (
 	// StepResultException indicates that the step failed in an exceptional way,
 	// eg. it timed out or was interrupted.
 	StepResultException StepResult = "EXCEPTION"
-
-	// PathPlaceholder is a placeholder for any existing value of PATH,
-	// used when merging environments to avoid overriding the PATH
-	// altogether.
-	PathPlaceholder = "%(PATH)s"
 )
-
-// MergeEnv merges the second env into the base, returning a new env with the
-// original unchanged. Variables in the second env override those in the base,
-// except for PATH, which is merged. If PATH defined by the second env contains
-// %(PATH)s, then the result is the PATH from the second env with PATH from
-// the first env inserted in place of %(PATH)s. Otherwise, the PATH from the
-// second env overrides PATH from the first. Note that setting PATH to the empty
-// string in the second env will cause PATH to be empty in the result!
-func MergeEnv(base, other []string) []string {
-	m := make(map[string]string, len(base))
-	for _, kv := range base {
-		split := strings.SplitN(kv, "=", 2)
-		if len(split) != 2 {
-			sklog.Errorf("Invalid env var: %s", kv)
-			continue
-		}
-		m[split[0]] = split[1]
-	}
-	for _, kv := range other {
-		split := strings.SplitN(kv, "=", 2)
-		if len(split) != 2 {
-			sklog.Errorf("Invalid env var: %s", kv)
-			continue
-		}
-		k, v := split[0], split[1]
-		if existing, ok := m[k]; ok && k == envVarPath {
-			if strings.Contains(v, PathPlaceholder) {
-				v = strings.Replace(v, PathPlaceholder, existing, -1)
-			}
-		}
-		m[k] = v
-	}
-	rv := make([]string, 0, len(m))
-	for k, v := range m {
-		rv = append(rv, fmt.Sprintf("%s=%s", k, v))
-	}
-	sort.Strings(rv)
-	return rv
-}
 
 // StepResult represents the result of a Step.
 type StepResult string
@@ -395,7 +350,7 @@ func execCtx(ctx context.Context) context.Context {
 		name := strings.Join(append([]string{cmd.Name}, cmd.Args...), " ")
 
 		// Merge the command's env into that of its parent.
-		cmd.Env = MergeEnv(getCtx(ctx).env, cmd.Env)
+		cmd.Env = exec.MergeEnv(getCtx(ctx).env, cmd.Env)
 
 		return Do(ctx, Props(name).Env(cmd.Env), func(ctx context.Context) error {
 			// Set up stdout and stderr streams.

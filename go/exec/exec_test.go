@@ -66,7 +66,7 @@ func TestSquashWriters(t *testing.T) {
 		expect.NoError(t, err)
 		for _, buffer := range input {
 			if buffer != nil {
-				expect.Equal(t, testString1+testString2, string(buffer.Bytes()))
+				expect.Equal(t, testString1+testString2, buffer.String())
 			}
 		}
 	}
@@ -212,7 +212,7 @@ func TestSimpleIO(t *testing.T) {
 		Stdin:  bytes.NewReader([]byte(inputString)),
 		Stdout: &output,
 	}))
-	expect.Equal(t, "bar\nbaz\n", string(output.Bytes()))
+	expect.Equal(t, "bar\nbaz\n", output.String())
 }
 
 func TestError(t *testing.T) {
@@ -235,7 +235,7 @@ sys.exit(123)
 	var exitError *exec.ExitError
 	require.True(t, errors.As(err, &exitError))
 	require.Equal(t, 123, exitError.ExitCode())
-	expect.Contains(t, string(output.Bytes()), "Error in subprocess!")
+	expect.Contains(t, output.String(), "Error in subprocess!")
 }
 
 func TestCombinedOutput(t *testing.T) {
@@ -255,7 +255,7 @@ sys.stderr.write('blue')
 `},
 		CombinedOutput: &combined,
 	}))
-	expect.Equal(t, "rosesredvioletsblue", string(combined.Bytes()))
+	expect.Equal(t, "rosesredvioletsblue", combined.String())
 }
 
 // Previously there was a bug due to code like:
@@ -420,4 +420,72 @@ func findPython3(t *testing.T) string {
 	python3, err := rules_python.FindPython3()
 	require.NoError(t, err)
 	return python3
+}
+
+func TestMergeEnv(t *testing.T) {
+	tc := []struct {
+		a      []string
+		b      []string
+		expect []string
+	}{
+		// Unrelated variables both show up.
+		{
+			expect: []string{"a=a", "b=b"},
+			a:      []string{"a=a"},
+			b:      []string{"b=b"},
+		},
+		// The second env takes precedence over the first.
+		{
+			expect: []string{"k=v2"},
+			a:      []string{"k=v1"},
+			b:      []string{"k=v2"},
+		},
+
+		// PATH gets special treatment.
+
+		// If only one is specified, it gets preserved.
+		{
+			expect: []string{"PATH=p2"},
+			a:      []string{},
+			b:      []string{"PATH=p2"},
+		},
+		{
+			expect: []string{"PATH=p1"},
+			a:      []string{"PATH=p1"},
+			b:      []string{},
+		},
+		// The second env takes precedence over the first.
+		{
+			expect: []string{"PATH=p2"},
+			a:      []string{"PATH=p1"},
+			b:      []string{"PATH=p2"},
+		},
+		// ... even if the second env defines it to be empty.
+		{
+			expect: []string{"PATH="},
+			a:      []string{"PATH=p1"},
+			b:      []string{"PATH="},
+		},
+		// If provided, PATH_PLACEHOLDER gets replaced by PATH from the first.
+		{
+			expect: []string{"PATH=p1:p2"},
+			a:      []string{"PATH=p1"},
+			b:      []string{fmt.Sprintf("PATH=%s:p2", PathPlaceholder)},
+		},
+		{
+			expect: []string{"PATH=p2:p1"},
+			a:      []string{"PATH=p1"},
+			b:      []string{fmt.Sprintf("PATH=p2:%s", PathPlaceholder)},
+		},
+		// There's no good reason to do this, but it would work.
+		{
+			expect: []string{"PATH=p1:p1"},
+			a:      []string{"PATH=p1"},
+			b:      []string{fmt.Sprintf("PATH=%s:%s", PathPlaceholder, PathPlaceholder)},
+		},
+	}
+
+	for _, c := range tc {
+		require.Equal(t, c.expect, MergeEnv(c.a, c.b))
+	}
 }

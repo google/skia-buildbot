@@ -181,7 +181,7 @@ func main() {
 		// steps. Use the built-in os/exec package to run the command so that we
 		// don't generate an unnecessary step for the subprocess.
 		osCmd := osexec.CommandContext(ctx, cmd.Name, cmd.Args...)
-		osCmd.Env = td.MergeEnv(os.Environ(), []string{fmt.Sprintf("%s=%s", td.EnvVarWrappedStepID, td.StepIDRoot)})
+		osCmd.Env = exec.MergeEnv(os.Environ(), []string{fmt.Sprintf("%s=%s", td.EnvVarWrappedStepID, td.StepIDRoot)})
 		runErr = osCmd.Run()
 	} else {
 		_, runErr = exec.RunCommand(ctx, cmd)

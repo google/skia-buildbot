@@ -55,9 +55,9 @@ func withChildCtx(ctx context.Context, child *Context) context.Context {
 	child.run = parent.run
 	if child.step == nil {
 		child.step = parent.step
-		child.env = MergeEnv(parent.env, child.env)
+		child.env = exec.MergeEnv(parent.env, child.env)
 	} else {
-		child.step.Environ = MergeEnv(parent.env, child.step.Environ)
+		child.step.Environ = exec.MergeEnv(parent.env, child.step.Environ)
 		// Override child.env; it shouldn't be set when adding a step.
 		child.env = child.step.Environ
 	}
