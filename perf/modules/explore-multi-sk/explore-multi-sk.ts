@@ -863,6 +863,12 @@ export class ExploreMultiSk extends ElementSk {
     if (indexToRemove > -1) {
       this.exploreElements.splice(indexToRemove, 1);
       this.graphConfigs.splice(indexToRemove, 1);
+      // Re-index the remaining graphs. This ensures that the graph_index property
+      // in each element's state correctly reflects its position in the exploreElements array,
+      // which is important for syncing actions between graphs.
+      this.exploreElements.forEach((elem, index) => {
+        elem.state.graph_index = index;
+      });
       const numElements = this.exploreElements.length;
       this.state.totalGraphs = numElements > 1 ? numElements - 1 : 0;
 

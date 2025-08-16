@@ -134,6 +134,28 @@ describe('ExploreMultiSk', () => {
       // part of the logic that recalculates the max valid offset.
       assert.equal(element.state.pageOffset, 0, 'Page offset should be reset to 0');
     });
+
+    it('updates graph indices when a graph is removed', async () => {
+      await element['initializeTestPicker']();
+      const graph1 = element['addEmptyGraph']()!;
+      const graph2 = element['addEmptyGraph']()!;
+      const graph3 = element['addEmptyGraph']()!;
+
+      // Manually set the graph_index as it would be in the real application flow.
+      graph1.state.graph_index = 0;
+      graph2.state.graph_index = 1;
+      graph3.state.graph_index = 2;
+
+      // Dispatch event to remove the second graph.
+      const event = new CustomEvent('remove-explore', {
+        detail: { elem: graph2 },
+        bubbles: true,
+      });
+      element.dispatchEvent(event);
+
+      // After removing graph2 (index 1), graph3 should have its index updated to 1.
+      assert.equal(element['exploreElements'][1].state.graph_index, 1);
+    });
   });
 
   describe('Shortcut functionality', () => {
