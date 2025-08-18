@@ -104,27 +104,32 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (
 		duration := time.Now().UnixNano() - wkStartTime
 		mh.Timer("pairwise_duration").Record(time.Duration(duration))
 
+		// Create a new disconnected context for cleanup activities.
+		// This ensures that even if the workflow context is canceled,
+		// these final activities can still be scheduled and run.
+		disconnectedCtx, _ := workflow.NewDisconnectedContext(ctx)
+
 		// Final writebacks to Spanner before end of Pairwise workflow
 		if finalError != nil {
 			if temporal.IsCanceledError(finalError) {
-				if err := workflow.ExecuteActivity(ctx, UpdateJobStatus, dbJobID, canceled, duration).Get(ctx, nil); err != nil {
+				if err := workflow.ExecuteActivity(disconnectedCtx, UpdateJobStatus, dbJobID, canceled, duration).Get(disconnectedCtx, nil); err != nil {
 					sklog.Errorf("couldn't update status for canceled pairwise job with this ID: %s", dbJobID)
 				}
 			} else {
 				// Pairwise job failed for other reasons.
-				if err := workflow.ExecuteActivity(ctx, SetErrors, dbJobID, finalError.Error()).Get(ctx, nil); err != nil {
+				if err := workflow.ExecuteActivity(disconnectedCtx, SetErrors, dbJobID, finalError.Error()).Get(disconnectedCtx, nil); err != nil {
 					sklog.Errorf("couldn't add error for pairwise job with this ID: %s", dbJobID)
 				}
-				if err := workflow.ExecuteActivity(ctx, UpdateJobStatus, dbJobID, failed, duration).Get(ctx, nil); err != nil {
+				if err := workflow.ExecuteActivity(disconnectedCtx, UpdateJobStatus, dbJobID, failed, duration).Get(disconnectedCtx, nil); err != nil {
 					sklog.Errorf("couldn't update status for pairwise job with this ID: %s", dbJobID)
 				}
 			}
 		} else {
-			if err := workflow.ExecuteActivity(ctx, UpdateJobStatus, dbJobID, completed, duration).Get(ctx, nil); err != nil {
+			if err := workflow.ExecuteActivity(disconnectedCtx, UpdateJobStatus, dbJobID, completed, duration).Get(disconnectedCtx, nil); err != nil {
 				sklog.Errorf("couldn't update status for pairwise job with this ID: %s", dbJobID)
 			}
 			// Write back to database the results of the comparision through the job store object
-			if err := workflow.ExecuteActivity(ctx, AddResults, dbJobID, protoResults).Get(ctx, nil); err != nil {
+			if err := workflow.ExecuteActivity(disconnectedCtx, AddResults, dbJobID, protoResults).Get(disconnectedCtx, nil); err != nil {
 				sklog.Errorf("couldn't add results for pairwise job with this ID: %s", dbJobID)
 			}
 		}
