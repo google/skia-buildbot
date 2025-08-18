@@ -150,8 +150,7 @@ demo_word-cloud-sk:
 initdemo:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo -- \
-		--database_url=postgresql://localhost:5432/demo?sslmode=disable \
-		--spanner
+		--database_url=postgresql://localhost:5432/demo?sslmode=disable
 
 ingest_demo:
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
