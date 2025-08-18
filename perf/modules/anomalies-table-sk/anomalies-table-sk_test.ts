@@ -125,5 +125,21 @@ describe('anomalies-table-sk', () => {
 
       expect(openMultiGraphUrlStub.calledOnceWith(anomaly)).to.equal(true);
     });
+
+    it('is called when open-anomaly-chart event is dispatched from a child', async () => {
+      const openMultiGraphUrlStub = sinon.stub(element, 'openMultiGraphUrl');
+
+      const event = new CustomEvent('open-anomaly-chart', {
+        detail: anomaly,
+        bubbles: true,
+        composed: true,
+      });
+      // In the real application, the event is dispatched by a child of the
+      // report-page-sk, which then calls the public openAnomalyChartListener
+      // method on the anomalies-table-sk. We simulate that here.
+      element.openAnomalyChartListener(event);
+
+      expect(openMultiGraphUrlStub.calledOnceWith(anomaly)).to.equal(true);
+    });
   });
 });

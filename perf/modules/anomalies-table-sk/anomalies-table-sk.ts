@@ -62,7 +62,7 @@ export class AnomaliesTableSk extends ElementSk {
     super(AnomaliesTableSk.template);
   }
 
-  private openAnomalyChartListener = (e: Event) => {
+  public openAnomalyChartListener = (e: Event) => {
     const anomaly = (e as CustomEvent<Anomaly>).detail;
     if (anomaly) {
       this.openMultiGraphUrl(anomaly);
@@ -86,12 +86,12 @@ export class AnomaliesTableSk extends ElementSk {
         this._render();
       }
     });
-    this.addEventListener('open-anomaly-chart', this.openAnomalyChartListener as EventListener);
+    this.addEventListener('open-anomaly-chart', this.openAnomalyChartListener);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener('open-anomaly-chart', this.openAnomalyChartListener as EventListener);
+    this.removeEventListener('open-anomaly-chart', this.openAnomalyChartListener);
   }
 
   private static template = (ele: AnomaliesTableSk) => html`

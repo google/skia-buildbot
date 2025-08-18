@@ -150,7 +150,11 @@ export class ReportPageSk extends ElementSk {
       : ''}
     <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
     ${ele.showAllCommitsTemplate()}
-    <div id="graph-container" @x-axis-toggled=${ele.syncXAxisLabel}></div>
+    <div
+      id="graph-container"
+      @x-axis-toggled=${ele.syncXAxisLabel}
+      @open-anomaly-chart=${(e: CustomEvent<Anomaly>) =>
+        ele.anomaliesTable!.openAnomalyChartListener(e)}></div>
   `;
 
   constructor() {
