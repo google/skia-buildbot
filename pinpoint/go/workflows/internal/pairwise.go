@@ -18,11 +18,11 @@ import (
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
 
-// TODO(natnaelal) Expand potential job statuses to include intermediate statuses
 const (
 	failed    = "Failed"
 	completed = "Completed"
 	canceled  = "Canceled"
+	running   = "Running"
 )
 
 func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (
@@ -58,7 +58,7 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (
 
 	wkStartTime := time.Now().UnixNano()
 	if err := workflow.ExecuteActivity(ctx, AddInitialJob, p.Request, dbJobID).Get(ctx, nil); err != nil {
-		// TODO(natnaelal) Convert subsequent uses of sklog to full errors once Job Store activities are
+		// TODO(b/439651386) Convert subsequent uses of sklog to full errors once Job Store activities are
 		// more stable and fully integrated
 		sklog.Errorf("failed to add initial job info to Spanner: %s", err)
 	}
@@ -131,10 +131,16 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (
 
 	}()
 
+	// Update status to running
+	if err := workflow.ExecuteActivity(ctx, UpdateJobStatus, jobID, running, int64(0)).Get(ctx, nil); err != nil {
+		sklog.Errorf("couldn't update status for running pairwise job with this ID: %s", jobID)
+	}
+
 	var pr *PairwiseRun
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.PairwiseCommitsRunner, pairwiseRunnerParams).Get(ctx, &pr); err != nil {
 		return nil, skerr.Wrap(err)
 	}
+
 	// Store details of commit buids and test runs
 	if pr != nil {
 		leftData := &schema.CommitRunData{
@@ -148,7 +154,6 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (
 		if err := workflow.ExecuteActivity(ctx, AddCommitRuns, dbJobID, leftData, rightData).Get(ctx, nil); err != nil {
 			sklog.Errorf("couldn't add commit runs for pairwise job with this ID: %s", dbJobID)
 		}
-
 	}
 
 	results, err := comparePairwiseRuns(ctx, pr, compare.UnknownDir)

@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	AddInitialJob   = "add-initial-job-activity"
-	UpdateJobStatus = "update-job-status-activity"
-	SetErrors       = "set-errors-activity"
-	AddResults      = "add-results-activity"
-	AddCommitRuns   = "add-commit-runs-activity"
+	AddInitialJob   = "AddInitialJobActivity"
+	UpdateJobStatus = "UpdateJobStatusActivity"
+	SetErrors       = "SetErrorsActivity"
+	AddResults      = "AddResultsActivity"
+	AddCommitRuns   = "AddCommitRunsActivity"
 )
 
 // JobStoreActivities holds dependencies for job store activities.

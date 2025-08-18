@@ -114,10 +114,11 @@ export class ResultsPageSk extends LitElement {
 
     switch (this.job.JobStatus) {
       case 'COMPLETED':
-        return html`<wilcoxon-result-sk .job=${this.job}></wilcoxon-result-sk>`;
       case 'Completed':
         return html`<wilcoxon-result-sk .job=${this.job}></wilcoxon-result-sk>`;
+
       case 'Pending':
+      case 'Running':
         return html`
           <div class="status-box">
             <h3>Results Pending</h3>
@@ -127,23 +128,29 @@ export class ResultsPageSk extends LitElement {
             </p>
           </div>
         `;
+
       case 'FAILED':
+      case 'Failed':
         return html`
           <div class="error-box">
             <h3>Job Failed</h3>
             <p>
-              The job failed to complete.
-              ${this.job.ErrorMessage ? html`<b>Error:</b> ${this.job.ErrorMessage}` : ''}
+              The job failed to complete. If you believe this is an error, please reach out to
+              browser-perf-engprod@google.com.
+              ${this.job.ErrorMessage ? html`<br /><b>Error:</b> ${this.job.ErrorMessage}` : ''}
             </p>
           </div>
         `;
+
       case 'CANCELED':
+      case 'Canceled':
         return html`
           <div class="status-box">
             <h3>Job Canceled</h3>
             <p>This job was canceled before completion.</p>
           </div>
         `;
+
       default:
         return '';
     }
