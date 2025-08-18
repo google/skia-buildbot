@@ -73,6 +73,7 @@ go_test(
         "//autoroll/go/config_vars",
         "//autoroll/go/revision",
         "//bazel/external/cipd/git",
+        "//go/cipd",
         "//go/exec",
         "//go/gerrit",
         "//go/gerrit/mocks",
