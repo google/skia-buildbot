@@ -10,6 +10,8 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sort"
+	"strconv"
 	"time"
 
 	"cloud.google.com/go/compute/metadata"
@@ -42,8 +44,8 @@ import (
 )
 
 const (
-	appName   = "cabe"
-	drainTime = time.Second * 5
+	appName      = "cabe"
+	defaultAlpha = 0.05
 )
 
 func init() {
@@ -118,10 +120,56 @@ func (a *App) swarmingTaskReader(ctx context.Context, pinpointJobID string) ([]*
 	return tasksResp, nil
 }
 
+// Generate the critical values to compare the p-values with.
+// If use_fdr_control is True, the critical value will be (alpha * rank / len(results));
+// else, the critical value will be alpha itself (0.05 by default)
+// https://en.wikipedia.org/wiki/False_discovery_rate#Benjamini%E2%80%93Hochberg_procedure
+func generateCriticalValues(results []*cpb.AnalysisResult, use_fdr_control bool) []float64 {
+	// sort the result list by each result's p-value (all NaN will be pushed to the end)
+	sort.Slice(results, func(i, j int) bool {
+		vi, vj := results[i].Statistic.PValue, results[j].Statistic.PValue
+		if math.IsNaN(vi) {
+			return false
+		}
+		if math.IsNaN(vj) {
+			return true
+		}
+		return vi < vj
+	})
+
+	// count the valid p-values
+	var pValueCount int
+	for _, r := range results {
+		if !math.IsNaN(r.Statistic.PValue) {
+			pValueCount++
+		}
+	}
+
+	criticalValues := make([]float64, pValueCount)
+	// if use_fdr_control is true, we will compare the p-value with the adjusted critical value;
+	// else, we compare the p-value with the default alpha 0.05.
+	for i := 0; i < pValueCount; i++ {
+		if use_fdr_control {
+			// the rank is i+1 for a sorted 0-based list.
+			criticalValues[i] = (float64(i+1) * defaultAlpha) / float64(pValueCount)
+		} else {
+			criticalValues[i] = defaultAlpha
+		}
+	}
+	sklog.Debugf("[POC] critical values generated: %f", criticalValues)
+
+	return criticalValues
+}
+
 func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	job_id := chi.URLParam(r, "pinpoint_job_id")
+	use_fdr_control, err := strconv.ParseBool(r.URL.Query().Get("use_fdr_control"))
+	if err != nil {
+		use_fdr_control = false
+	}
+	sklog.Debugf("[POC] FDR procedure in use? %s", use_fdr_control)
 
 	analy := analyzer.New(
 		job_id,
@@ -143,9 +191,12 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := analy.AnalysisResults()
+	// generate the critical values for comparison. Note that the res will be sorted by each p-value.
+	criticalValues := generateCriticalValues(res, use_fdr_control)
+
 	analysis_results := &CQGetCabeAnalysisResults{}
 	analysis_results.Results = make(map[string]*cpb.Statistic)
-	for _, r := range res {
+	for i, r := range res {
 		stat := r.Statistic
 		workload := r.ExperimentSpec.Analysis.Benchmark[0].Workload[0]
 		is_significant := false
@@ -165,10 +216,10 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 				is_significant = true
 			}
 		} else if stat.Lower == math.NaN() || stat.Upper == math.NaN() || stat.Lower == math.Inf(1) || stat.Upper == math.Inf(1) {
-			if stat.PValue < 0.05 {
+			if stat.PValue < criticalValues[i] {
 				is_significant = true
 			}
-		} else if stat.Lower*stat.Upper > 0 && stat.PValue < 0.05 {
+		} else if stat.Lower*stat.Upper > 0 && stat.PValue < criticalValues[i] {
 			is_significant = true
 		}
 		if is_significant && !is_improvement {
