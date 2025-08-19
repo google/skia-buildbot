@@ -28,6 +28,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { MultiSelectComboBox } from '@vaadin/multi-select-combo-box';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
+import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
 
 export interface SplitChartSelectionEventDetails {
   attribute: string;
