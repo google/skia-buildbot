@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
 sk_element(
     name = "pinpoint-results-page-sk",
@@ -19,4 +19,19 @@ sk_element(
         "pinpoint-results-page-sk.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "pinpoint-results-page-sk_test",
+    src = "pinpoint-results-page-sk_test.ts",
+    deps = [
+        ":pinpoint-results-page-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//:node_modules/sinon",
+        "//pinpoint/ui/modules/job-overview-sk",
+        "//pinpoint/ui/services:api_ts_lib",
+    ],
 )

@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
 sk_element(
     name = "job-overview-sk",
@@ -13,4 +13,18 @@ sk_element(
         "job-overview-sk.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "job-overview-sk_test",
+    src = "job-overview-sk_test.ts",
+    deps = [
+        ":job-overview-sk",
+        "//:node_modules/@material/web",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/sinon",
+        "//pinpoint/ui/services:api_ts_lib",
+    ],
 )
