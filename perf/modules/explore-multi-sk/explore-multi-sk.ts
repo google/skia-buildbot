@@ -136,7 +136,6 @@ export class ExploreMultiSk extends ElementSk {
       this.state.splitByKeys = [splitByParamKey];
     }
     this.splitGraphs();
-    this.dataLoaded();
   };
 
   constructor() {
@@ -219,6 +218,7 @@ export class ExploreMultiSk extends ElementSk {
 
         // If a key is specified (eg: directly via url), perform the split
         if (this.state.splitByKeys.length > 0) {
+          this.dataLoading();
           this.splitGraphs();
         }
       }
@@ -414,15 +414,15 @@ export class ExploreMultiSk extends ElementSk {
     // Use primary explore element for main chart.
     let traceset = fullTraceSet as TraceSet;
     let paramset = mainParams;
+    const commitLinks = this.exploreElements[0].getCommitLinks();
     let traceMetadata = ExploreSimpleSk.getTraceMetadataFromCommitLinks(
       Object.keys(fullTraceSet),
-      this.exploreElements[0].getCommitLinks()
+      commitLinks
     );
     let anomalyMap = this.getAnomalyMapForTraces(fullAnomalyMap, Object.keys(fullTraceSet));
 
     // If passing in traces, then create child specific requests per trace.
     if (traces) {
-      const commitLinks = this.getAllCommitLinks();
       const traceSet: TraceSet = TraceSet({});
       const paramSet: ParamSet = ParamSet({});
       traces.forEach((trace) => {
@@ -457,15 +457,16 @@ export class ExploreMultiSk extends ElementSk {
   private async splitGraphs(): Promise<void> {
     const groupedTraces = this.groupTracesBySplitKey();
     if (groupedTraces.size === 0) {
+      this.dataLoaded();
       return;
     }
 
     // It's the same graph, so let's simply return early.
     if (groupedTraces.size === 1 && this.state.totalGraphs === 1) {
+      this.dataLoaded();
       return;
     }
 
-    this.dataLoading();
     if (this.exploreElements.length > 0 && this.exploreElements[0].dataLoading) {
       errorMessage('Data is still loading, please wait...', 3000);
       await this.exploreElements[0].requestComplete;
@@ -569,16 +570,17 @@ export class ExploreMultiSk extends ElementSk {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.addEventListener('plot-button-clicked', async (e) => {
       const explore = this.addEmptyGraph(true);
+      this.dataLoading();
       if (explore) {
         if (this.exploreElements.length > 0 && this.exploreElements[0].dataLoading) {
           await this.exploreElements[0].requestComplete;
         }
         this.addGraphsToCurrentPage(false);
-        const query = this.testPicker!.createQueryFromFieldData();
-        await explore.addFromQueryOrFormula(true, 'query', query, '');
         if (this.testPicker) {
           this.testPicker.autoAddTrace = true;
         }
+        const query = this.testPicker!.createQueryFromFieldData();
+        await explore.addFromQueryOrFormula(true, 'query', query, '');
         if (this.state.splitByKeys.length > 0) {
           this.splitGraphs();
         }
@@ -594,6 +596,7 @@ export class ExploreMultiSk extends ElementSk {
     this.addEventListener('add-to-graph', async (e) => {
       const query = (e as CustomEvent).detail.query;
       let explore: ExploreSimpleSk;
+      this.dataLoading();
       if (this.currentPageExploreElements.length === 0) {
         const newExplore = this.addEmptyGraph(true);
         if (newExplore) {
@@ -1247,6 +1250,7 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private pageChanged(e: CustomEvent<PaginationSkPageChangedEventDetail>) {
+    this.dataLoading();
     this.state.pageOffset = Math.max(
       0,
       this.state.pageOffset + e.detail.delta * this.state.pageSize
@@ -1256,21 +1260,23 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private pageSizeChanged(e: MouseEvent) {
+    this.dataLoading();
     this.state.pageSize = +(e.target! as HTMLInputElement).value;
     this.stateHasChanged!();
     this.splitGraphs();
   }
 
-  private loadAllCharts() {
+  private async loadAllCharts() {
     if (
       window.confirm(
         'Loading all charts at once may cause performance issues or page crashes. Proceed?'
       )
     ) {
-      this.state.pageSize = this.state.totalGraphs;
+      const pageSize = this.exploreElements.length > 0 ? this.exploreElements.length - 1 : 1;
+      this.state.pageSize = pageSize;
       this.state.pageOffset = 0;
       this.stateHasChanged!();
-      this.addGraphsToCurrentPage(true);
+      await this.splitGraphs();
     }
   }
 }

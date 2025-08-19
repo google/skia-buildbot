@@ -7,7 +7,7 @@ import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { setUpExploreDemoEnv } from '../common/test-util';
 import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
-import { Trace, TraceSet } from '../json';
+import { Trace, TraceSet, CommitNumber, TimestampSeconds } from '../json';
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 
 describe('ExploreMultiSk', () => {
@@ -503,6 +503,89 @@ describe('ExploreMultiSk', () => {
       const testPicker = element.querySelector('test-picker-sk') as TestPickerSk;
       testPicker.setReadOnly(true);
       assert.isTrue(testPicker.readOnly);
+    });
+  });
+
+  describe('loadAllCharts', () => {
+    beforeEach(() => {
+      // Mock window.confirm to always return true for these tests.
+      sinon.stub(window, 'confirm').returns(true);
+      element['stateHasChanged'] = sinon.spy();
+      sinon.stub(element, '_render' as any);
+      sinon.stub(element, 'updateChartHeights' as any);
+    });
+
+    it('calls splitGraphs and updates pagination when there are multiple graphs', async () => {
+      const splitGraphsSpy = sinon.spy(element, 'splitGraphs' as any);
+      element['exploreElements'] = [
+        new ExploreSimpleSk(),
+        new ExploreSimpleSk(),
+        new ExploreSimpleSk(),
+      ];
+      element.state.totalGraphs = 2;
+
+      await element['loadAllCharts']();
+
+      assert.equal(element.state.pageSize, 2);
+      assert.equal(element.state.pageOffset, 0);
+      assert.isTrue((element['stateHasChanged'] as sinon.SinonSpy).calledOnce);
+      assert.isTrue(splitGraphsSpy.calledOnce);
+    });
+
+    it('calls splitGraphs and updates pagination when there is only one graph', async () => {
+      const splitGraphsSpy = sinon.spy(element, 'splitGraphs' as any);
+      element['exploreElements'] = [new ExploreSimpleSk()];
+      element.state.totalGraphs = 1;
+
+      await element['loadAllCharts']();
+
+      assert.equal(element.state.pageSize, 0);
+      assert.equal(element.state.pageOffset, 0);
+      assert.isTrue((element['stateHasChanged'] as sinon.SinonSpy).calledOnce);
+      assert.isTrue(splitGraphsSpy.calledOnce);
+    });
+
+    it('populates currentPageExploreElements after loading all charts', () => {
+      const exploreSimpleSk = new ExploreSimpleSk();
+      exploreSimpleSk.getTraceset = () => ({
+        ',config=test1,': [1, 2],
+        ',config=test2,': [3, 4],
+      });
+      exploreSimpleSk.getHeader = () => [
+        {
+          offset: 0 as CommitNumber,
+          timestamp: 1757354947 as TimestampSeconds,
+          hash: '',
+          author: '',
+          message: '',
+          url: '',
+        },
+        {
+          offset: 1 as CommitNumber,
+          timestamp: 1757441347 as TimestampSeconds,
+          hash: '',
+          author: '',
+          message: '',
+          url: '',
+        },
+      ];
+      exploreSimpleSk.getCommitLinks = () => [];
+      exploreSimpleSk.getAnomalyMap = () => ({});
+      exploreSimpleSk.getSelectedRange = () => null;
+
+      element['exploreElements'] = [exploreSimpleSk, new ExploreSimpleSk(), new ExploreSimpleSk()];
+      element['graphConfigs'] = [
+        { queries: ['config=test1', 'config=test2'], formulas: [], keys: '' },
+        { queries: ['config=test1'], formulas: [], keys: '' },
+        { queries: ['config=test2'], formulas: [], keys: '' },
+      ];
+      element.state.splitByKeys = ['config'];
+
+      element['loadAllCharts']();
+
+      // After splitting, there should be 3 elements (1 master, 2 split).
+      // After loadAllCharts, pageSize is 2, so currentPageExploreElements should have 2.
+      assert.equal(element['currentPageExploreElements'].length, 2);
     });
   });
 });
