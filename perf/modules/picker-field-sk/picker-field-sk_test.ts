@@ -113,4 +113,14 @@ describe('picker-field-sk', () => {
       expect(element.selectedItems.sort()).to.deep.equal(['A', 'C'].sort());
     });
   });
+
+  describe('vaadin-multi-select-combo-box', () => {
+    it('is visible when rendered', async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const comboBox = element.querySelector('vaadin-multi-select-combo-box');
+      expect(comboBox).to.not.equal(null);
+      expect(comboBox!.offsetWidth).to.be.greaterThan(0);
+      expect(comboBox!.offsetHeight).to.be.greaterThan(0);
+    });
+  });
 });
