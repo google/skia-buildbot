@@ -6,12 +6,12 @@ sk_element(
     sass_srcs = ["skottie-text-editor-sk.scss"],
     sk_element_deps = ["//skottie/modules/skottie-text-editor-sk/text-box-sk"],
     ts_deps = [
-        "//elements-sk/modules:define_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//skottie/modules/helpers:animation_ts_lib",
-        "//skottie/modules:types_ts_lib",
         ":text-replace_ts_lib",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//skottie/modules:types_ts_lib",
+        "//skottie/modules/helpers:animation_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

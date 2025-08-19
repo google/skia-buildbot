@@ -7,12 +7,12 @@ sk_element(
     ],
     sass_srcs = ["anomaly-sk.scss"],
     ts_deps = [
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/cid:cid_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
-        "//:node_modules/lit",
-        "//perf/modules/cid:cid_ts_lib",
         "//perf/modules/common:anomaly-data_ts_lib",
     ],
     ts_srcs = [
@@ -27,9 +27,9 @@ sk_page(
     html_file = "anomaly-sk-demo.html",
     sk_element_deps = [":anomaly-sk"],
     ts_deps = [
-        "//perf/modules/json:index_ts_lib",
-        "//infra-sk/modules:dom_ts_lib",
         "//:node_modules/fetch-mock",
+        "//infra-sk/modules:dom_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_entry_point = "anomaly-sk-demo.ts",
 )

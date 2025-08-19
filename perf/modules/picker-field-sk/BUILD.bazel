@@ -13,10 +13,10 @@ sk_element(
     sass_srcs = ["picker-field-sk.scss"],
     sk_element_deps = ["//elements-sk/modules/checkbox-sk"],
     ts_deps = [
-        "//:node_modules/lit",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/@vaadin/multi-select-combo-box",
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "picker-field-sk.ts",
@@ -31,8 +31,8 @@ sk_page(
     scss_entry_point = "picker-field-sk-demo.scss",
     sk_element_deps = [":picker-field-sk"],
     ts_deps = [
-        "//infra-sk/modules:dom_ts_lib",
         ":test_data_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "picker-field-sk-demo.ts",
 )

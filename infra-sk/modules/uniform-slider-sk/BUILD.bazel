@@ -10,11 +10,11 @@ sk_element(
     sass_deps = ["//infra-sk:themes_sass_lib"],
     sass_srcs = ["uniform-slider-sk.scss"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//infra-sk/modules/uniform:uniform_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules/uniform:uniform_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

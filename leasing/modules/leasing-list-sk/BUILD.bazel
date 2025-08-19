@@ -18,12 +18,12 @@ sk_element(
         "//elements-sk/modules/nav-links-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//leasing/modules/json:index_ts_lib",
-        "//leasing/modules:leasing_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:upgradeproperty_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//leasing/modules:leasing_ts_lib",
+        "//leasing/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

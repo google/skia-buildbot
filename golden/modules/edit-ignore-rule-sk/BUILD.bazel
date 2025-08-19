@@ -10,12 +10,12 @@ sk_element(
     sass_srcs = ["edit-ignore-rule-sk.scss"],
     sk_element_deps = ["//infra-sk/modules/query-sk"],
     ts_deps = [
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
         "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:human_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "edit-ignore-rule-sk.ts",
@@ -29,8 +29,8 @@ sk_page(
     html_file = "edit-ignore-rule-sk-demo.html",
     sk_element_deps = [":edit-ignore-rule-sk"],
     ts_deps = [
-        "//golden/modules:shared_demo_data_ts_lib",
         ":edit-ignore-rule-sk_po_ts_lib",
+        "//golden/modules:shared_demo_data_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "edit-ignore-rule-sk-demo.ts",

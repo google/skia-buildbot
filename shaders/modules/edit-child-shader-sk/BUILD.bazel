@@ -13,12 +13,12 @@ sk_element(
     ],
     sass_srcs = ["edit-child-shader-sk.scss"],
     ts_deps = [
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//shaders/modules/json:index_ts_lib",
         "//shaders/modules/shadernode:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
-        "//infra-sk/modules:dom_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "edit-child-shader-sk.ts",

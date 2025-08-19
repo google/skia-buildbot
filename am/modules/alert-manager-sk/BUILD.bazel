@@ -27,9 +27,10 @@ sk_element(
         "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
+        "//:node_modules/lit",
+        "//am/modules:am_ts_lib",
         "//am/modules/json:index_ts_lib",
         "//am/modules/paramset:index_ts_lib",
-        "//am/modules:am_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
@@ -37,7 +38,6 @@ sk_element(
         "//infra-sk/modules:human_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "alert-manager-sk.ts",

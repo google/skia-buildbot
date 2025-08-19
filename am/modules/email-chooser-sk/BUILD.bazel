@@ -14,9 +14,9 @@ sk_element(
     ],
     sass_srcs = ["email-chooser-sk.scss"],
     ts_deps = [
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "email-chooser-sk.ts",

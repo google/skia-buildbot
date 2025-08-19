@@ -10,12 +10,12 @@ sk_element(
     sass_deps = ["//infra-sk:themes_sass_lib"],
     sass_srcs = ["alogin-sk.scss"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//infra-sk/modules/json:index_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
         "//infra-sk/modules/url:index_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "alogin-sk.ts",
@@ -30,8 +30,8 @@ sk_page(
     scss_entry_point = "alogin-sk-demo.scss",
     sk_element_deps = [":alogin-sk"],
     ts_deps = [
-        "//infra-sk/modules/json:index_ts_lib",
         "//:node_modules/fetch-mock",
+        "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_entry_point = "alogin-sk-demo.ts",
 )

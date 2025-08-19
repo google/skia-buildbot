@@ -17,11 +17,11 @@ sk_element(
         "//elements-sk/modules/icons/view-agenda-icon-sk",
     ],
     ts_deps = [
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
         "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "bulk-triage-sk.ts",
@@ -36,10 +36,10 @@ sk_page(
     sk_element_deps = [":bulk-triage-sk"],
     ts_deps = [
         ":test_data_ts_lib",
+        "//:node_modules/fetch-mock",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:object_ts_lib",
-        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "bulk-triage-sk-demo.ts",
 )

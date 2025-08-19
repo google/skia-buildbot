@@ -17,11 +17,11 @@ sk_element(
         "//elements-sk/modules/select-sk",
     ],
     ts_deps = [
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/pivotutil:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "pivot-query-sk.ts",
@@ -36,8 +36,8 @@ sk_page(
     scss_entry_point = "pivot-query-sk-demo.scss",
     sk_element_deps = [":pivot-query-sk"],
     ts_deps = [
-        "//perf/modules/json:index_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_entry_point = "pivot-query-sk-demo.ts",
 )

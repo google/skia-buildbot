@@ -5,13 +5,13 @@ sk_element(
     sass_srcs = ["skottie-library-sk.scss"],
     sk_element_deps = ["//skottie/modules/skottie-player-sk"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//skottie/modules/skottie-text-editor-sk:text-replace_ts_lib",
-        "//skottie/modules:types_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
-        "//infra-sk/modules:dom_ts_lib",
         "//:node_modules/jszip",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//skottie/modules:types_ts_lib",
+        "//skottie/modules/skottie-text-editor-sk:text-replace_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

@@ -37,8 +37,8 @@ sk_page(
         "//codesize/modules/codesize-scaffold-sk",
     ],
     ts_deps = [
-        "//codesize/modules:rpc_types_ts_lib",
         "//:node_modules/fetch-mock",
+        "//codesize/modules:rpc_types_ts_lib",
     ],
     ts_entry_point = "binary-page-sk-demo.ts",
 )

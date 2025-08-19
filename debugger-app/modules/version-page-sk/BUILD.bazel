@@ -13,9 +13,9 @@ sk_element(
         "//infra-sk/modules/theme-chooser-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "version-page-sk.ts",

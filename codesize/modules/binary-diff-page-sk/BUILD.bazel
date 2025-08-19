@@ -8,11 +8,11 @@ sk_element(
         "//infra-sk/modules/human-date-sk",
     ],
     ts_deps = [
+        "//:node_modules/lit",
         "//codesize/modules:rpc_types_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "binary-diff-page-sk.ts",
@@ -29,8 +29,8 @@ sk_page(
         ":binary-diff-page-sk",
     ],
     ts_deps = [
-        "//codesize/modules:rpc_types_ts_lib",
         "//:node_modules/fetch-mock",
+        "//codesize/modules:rpc_types_ts_lib",
     ],
     ts_entry_point = "binary-diff-page-sk-demo.ts",
 )

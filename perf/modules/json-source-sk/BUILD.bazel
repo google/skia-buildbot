@@ -11,16 +11,16 @@ sk_element(
     sass_srcs = ["json-source-sk.scss"],
     sk_element_deps = ["//elements-sk/modules/spinner-sk"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//perf/modules/errorMessage:index_ts_lib",
-        "//perf/modules/json:index_ts_lib",
+        "//:node_modules/@material/web",
+        "//:node_modules/lit",
+        "//:node_modules/lit-html",  # keep
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
-        "//:node_modules/lit",
-        "//:node_modules/lit-html",  # keep
-        "//:node_modules/@material/web",
     ],
     ts_srcs = [
         "index.ts",

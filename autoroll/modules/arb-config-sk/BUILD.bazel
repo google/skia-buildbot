@@ -15,13 +15,13 @@ sk_element(
         "//elements-sk/modules/tabs-sk",
     ],
     ts_deps = [
+        "//:node_modules/lit",
         "//autoroll/modules/config:index_ts_lib",
         "//autoroll/modules/rpc:index_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "arb-config-sk.ts",
@@ -40,10 +40,10 @@ sk_page(
         "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
+        "//:node_modules/fetch-mock",
         "//autoroll/modules/rpc-mock:fake-config_ts_lib",
         "//autoroll/modules/rpc-mock:index_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
-        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "arb-config-sk-demo.ts",
 )

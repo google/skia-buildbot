@@ -7,14 +7,14 @@ sk_element(
     ],
     sass_srcs = ["cluster-digests-sk.scss"],
     ts_deps = [
-        "//golden/modules:rpc_types_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/@types/d3-force",
         "//:node_modules/@types/d3-selection",
         "//:node_modules/d3-force",
         "//:node_modules/d3-selection",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "cluster-digests-sk.ts",

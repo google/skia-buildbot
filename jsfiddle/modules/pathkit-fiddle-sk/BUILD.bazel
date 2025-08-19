@@ -14,8 +14,8 @@ sk_element(
         "//elements-sk/modules/error-toast-sk",
     ],
     ts_deps = [
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

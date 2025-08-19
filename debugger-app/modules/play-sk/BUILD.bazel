@@ -18,10 +18,10 @@ sk_element(
         "//elements-sk/modules/icons/video-library-icon-sk",
     ],
     ts_deps = [
-        "//debugger-app/modules:events_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/lit",
+        "//debugger-app/modules:events_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

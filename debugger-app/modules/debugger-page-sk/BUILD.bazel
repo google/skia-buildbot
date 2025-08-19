@@ -21,12 +21,12 @@ sk_element(
         "//elements-sk/modules/tabs-sk",
     ],
     ts_deps = [
+        "//:node_modules/lit",
         "//debugger-app/modules:debugger_ts_lib",
         "//debugger-app/modules:events_ts_lib",
         "//debugger-app/wasm_libs:canvaskit_types",  # keep
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "debugger-page-sk.ts",

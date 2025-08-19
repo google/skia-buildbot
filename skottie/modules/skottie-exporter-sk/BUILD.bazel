@@ -12,9 +12,9 @@ sk_element(
         "//skottie/modules/skottie-exporter-sk/skottie-exporter-png-sk",
     ],
     ts_deps = [
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

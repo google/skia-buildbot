@@ -4,11 +4,11 @@ sk_element(
     name = "skottie-performance-sk",
     sass_srcs = ["skottie-performance-sk.scss"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
-        "//infra-sk/modules:dom_ts_lib",
         "//:node_modules/chart.js",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

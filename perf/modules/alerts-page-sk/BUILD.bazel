@@ -16,16 +16,16 @@ sk_element(
         "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//perf/modules/alert:index_ts_lib",
-        "//perf/modules/errorMessage:index_ts_lib",
-        "//perf/modules/json:index_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:query_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
-        "//:node_modules/lit",
+        "//perf/modules/alert:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "alerts-page-sk.ts",
@@ -42,8 +42,8 @@ sk_page(
         "//elements-sk/modules/error-toast-sk",
     ],
     ts_deps = [
-        "//perf/modules/json:index_ts_lib",
         "//:node_modules/fetch-mock",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_entry_point = "alerts-page-sk-demo.ts",
 )

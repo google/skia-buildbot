@@ -13,9 +13,9 @@ sk_element(
     sass_srcs = ["rotations-sk.scss"],
     sk_element_deps = ["//status/modules/tree-status-sk"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -32,9 +32,9 @@ sk_page(
         ":rotations-sk",
     ],
     ts_deps = [
-        "//status/modules/tree-status-sk:test_data_ts_lib",
-        "//infra-sk/modules:dom_ts_lib",
         "//:node_modules/fetch-mock",
+        "//infra-sk/modules:dom_ts_lib",
+        "//status/modules/tree-status-sk:test_data_ts_lib",
     ],
     ts_entry_point = "rotations-sk-demo.ts",
 )

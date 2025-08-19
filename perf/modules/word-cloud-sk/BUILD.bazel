@@ -13,10 +13,10 @@ sk_element(
     ],
     sass_srcs = ["word-cloud-sk.scss"],
     ts_deps = [
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

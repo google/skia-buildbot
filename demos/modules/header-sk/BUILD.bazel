@@ -17,9 +17,9 @@ sk_element(
         "//elements-sk/modules/error-toast-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "header-sk.ts",

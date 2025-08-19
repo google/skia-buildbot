@@ -8,11 +8,11 @@ sk_demo_page_server(
 sk_element(
     name = "human-date-sk",
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:upgradeproperty_ts_lib",
         "//infra-sk/modules:human_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "human-date-sk.ts",

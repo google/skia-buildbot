@@ -12,10 +12,10 @@ sk_element(
         "//skottie/modules/skottie-exporter-sk/skottie-exporter-base-sk",
     ],
     ts_deps = [
-        "//elements-sk/modules:define_ts_lib",
-        "//skottie/modules/helpers:delay_ts_lib",
         "//:node_modules/jszip",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//skottie/modules/helpers:delay_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

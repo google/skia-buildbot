@@ -7,9 +7,9 @@ sk_element(
         "//elements-sk/modules/icons/arrow-upward-icon-sk",
     ],
     ts_deps = [
+        "//:node_modules/@material/web",
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
-        "//:node_modules/@material/web",
         "//pinpoint/ui/services:api_ts_lib",
     ],
     ts_srcs = [

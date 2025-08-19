@@ -14,15 +14,15 @@ sk_element(
         "//infra-sk/modules/paramset-sk",
     ],
     ts_deps = [
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
         "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "cluster-page-sk.ts",
@@ -40,13 +40,13 @@ sk_page(
     ],
     ts_deps = [
         ":test_data_ts_lib",
+        "//:node_modules/fetch-mock",
         "//golden/modules:demo_util_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//golden/modules:settings_ts_lib",
         "//golden/modules/digest-details-sk:test_data_ts_lib",
         "//golden/modules/last-commit-sk:demo_data_ts_lib",
         "//golden/modules/search-page-sk:demo_data_ts_lib",
-        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "cluster-page-sk-demo.ts",
 )

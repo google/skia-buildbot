@@ -11,10 +11,10 @@ sk_element(
     ts_deps = [
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
-        "//perf/modules/errorMessage:index_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
-        "//infra-sk/modules:jsonorthrow_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
     ts_srcs = [
         "user-issue-sk.ts",

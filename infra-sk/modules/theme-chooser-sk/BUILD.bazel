@@ -14,9 +14,9 @@ sk_element(
     sass_srcs = ["theme-chooser-sk.scss"],
     sk_element_deps = ["//elements-sk/modules/icons/invert-colors-icon-sk"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -58,10 +58,10 @@ sk_page(
         "//perf/modules/calendar-input-sk",
     ],
     ts_deps = [
-        "//elements-sk/modules:errormessage_ts_lib",
-        "//infra-sk/modules:gentheme_ts_lib",
-        "//infra-sk/modules:dom_ts_lib",
         "//:node_modules/lit",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:gentheme_ts_lib",
     ],
     ts_entry_point = "theme-chooser-sk-demo.ts",
 )

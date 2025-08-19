@@ -16,13 +16,13 @@ sk_element(
         "//elements-sk/modules/icons/delete-icon-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//infra-sk/modules:linkify_ts_lib",
-        "//status/modules/rpc:index_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules:linkify_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//status/modules/rpc:index_ts_lib",
     ],
     ts_srcs = [
         "comments-sk.ts",
@@ -36,9 +36,9 @@ sk_page(
     html_file = "comments-sk-demo.html",
     sk_element_deps = [":comments-sk"],
     ts_deps = [
-        "//status/modules/rpc-mock:index_ts_lib",
         ":test_data_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//status/modules/rpc-mock:index_ts_lib",
     ],
     ts_entry_point = "comments-sk-demo.ts",
 )

@@ -4,9 +4,9 @@ sk_element(
     name = "graph-title-sk",
     sass_srcs = ["graph-title-sk.scss"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "graph-title-sk.ts",

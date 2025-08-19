@@ -5,11 +5,11 @@ sk_element(
     sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
     sass_srcs = ["bugs-slo-popup-sk.scss"],
     ts_deps = [
+        "//:node_modules/lit",
         "//bugs-central/modules/json:index_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "bugs-slo-popup-sk.ts",

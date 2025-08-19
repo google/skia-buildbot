@@ -9,14 +9,14 @@ sk_element(
     name = "point-links-sk",
     sass_srcs = ["point-links-sk.scss"],
     ts_deps = [
+        "//:node_modules/@material/web",
         "//:node_modules/lit",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//:node_modules/lit-html",  # keep
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "//:node_modules/@material/web",
-        "//:node_modules/lit-html",  # keep
     ],
     ts_srcs = [
         "point-links-sk.ts",

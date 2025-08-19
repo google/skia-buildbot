@@ -21,16 +21,16 @@ sk_element(
         "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [
-        "//:node_modules/lit",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
-        "//infra-sk/modules:statereflector_ts_lib",
-        "//infra-sk/modules:jsonorthrow_ts_lib",
-        "//perf/modules/json:index_ts_lib",
         "//:node_modules/@material/web",
+        "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
+        "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:statereflector_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
         "//perf/modules/telemetry:telemetry_ts_lib",
     ],
     ts_srcs = [

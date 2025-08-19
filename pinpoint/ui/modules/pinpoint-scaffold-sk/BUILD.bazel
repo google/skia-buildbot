@@ -7,11 +7,11 @@ sk_element(
         "//pinpoint/ui/modules/pinpoint-new-job-sk",
     ],
     ts_deps = [
+        "//:node_modules/@material/web",
+        "//:node_modules/@vaadin/combo-box",
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
-        "//:node_modules/@material/web",
         "//pinpoint/ui/services:api_ts_lib",
-        "//:node_modules/@vaadin/combo-box",
     ],
     ts_srcs = [
         "pinpoint-scaffold-sk.ts",

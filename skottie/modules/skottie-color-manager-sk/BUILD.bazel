@@ -6,11 +6,11 @@ sk_element(
     sass_srcs = ["skottie-color-manager-sk.scss"],
     sk_element_deps = ["//skottie/modules/skottie-color-input-sk"],
     ts_deps = [
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//skottie/modules:types_ts_lib",
         "//skottie/modules/helpers:color_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

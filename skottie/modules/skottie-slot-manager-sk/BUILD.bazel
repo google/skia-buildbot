@@ -10,14 +10,14 @@ sk_element(
         "//skottie/modules/skottie-color-manager-sk",
     ],
     ts_deps = [
-        "//elements-sk/modules:define_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//skottie/modules/helpers:color_ts_lib",
+        ":skottie-vec2-input-sk_ts_lib",
         ":slot-info_ts_lib",
         ":slot-replace_ts_lib",
-        ":skottie-vec2-input-sk_ts_lib",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//skottie/modules:types_ts_lib",
+        "//skottie/modules/helpers:color_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

@@ -10,15 +10,15 @@ load(
 sk_element(
     name = "split-chart-menu-sk",
     ts_deps = [
+        ":split-chart-menu-sk.css_ts_lib",
+        "//:node_modules/@lit/context",
+        "//:node_modules/@material/web",
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
         "//elements-sk/modules:define_ts_lib",
-        "//:node_modules/@lit/context",
         "//perf/modules/dataframe:dataframe_context_ts_lib",
-        "//perf/modules/json:index_ts_lib",
         "//perf/modules/dataframe:traceset_ts_lib",
-        "//:node_modules/@material/web",
-        ":split-chart-menu-sk.css_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

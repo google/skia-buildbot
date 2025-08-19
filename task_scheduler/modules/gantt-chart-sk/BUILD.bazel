@@ -10,9 +10,9 @@ sk_element(
     sass_deps = ["//task_scheduler/modules:colors_sass_lib"],
     sass_srcs = ["gantt-chart-sk.scss"],
     ts_deps = [
+        "//:node_modules/lit",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:human_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "gantt-chart-sk.ts",

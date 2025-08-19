@@ -10,13 +10,13 @@ sk_element(
     sass_srcs = ["arb-table-sk.scss"],
     sk_element_deps = ["//infra-sk/modules/human-date-sk"],
     ts_deps = [
-        "//autoroll/modules/rpc:index_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//:node_modules/lit",
         "//autoroll/modules:utils_ts_lib",
+        "//autoroll/modules/rpc:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "arb-table-sk.ts",

@@ -22,14 +22,14 @@ sk_element(
         "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//infra-sk/modules:linkify_ts_lib",
-        "//skcq/modules/json:index_ts_lib",
-        "//skcq/modules:skcq_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:upgradeproperty_ts_lib",
         "//infra-sk/modules:human_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules:linkify_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//skcq/modules:skcq_ts_lib",
+        "//skcq/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -43,8 +43,8 @@ sk_page(
     html_file = "verifiers-detail-sk-demo.html",
     sk_element_deps = [":verifiers-detail-sk"],
     ts_deps = [
-        "//skcq/modules/json:index_ts_lib",
         "//:node_modules/fetch-mock",
+        "//skcq/modules/json:index_ts_lib",
     ],
     ts_entry_point = "verifiers-detail-sk-demo.ts",
 )

@@ -38,14 +38,14 @@ sk_element(
     ],
     sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],
     ts_deps = [
-        "//infra-sk/modules/fps:fps_ts_lib",
-        "//elements-sk/modules:errormessage_ts_lib",
-        "//infra-sk/modules:dom_ts_lib",
-        "//infra-sk/modules:jsonorthrow_ts_lib",
         "//:node_modules/@types/codemirror",
         "//:node_modules/canvaskit-wasm",
         "//:node_modules/codemirror",
         "//:node_modules/lit",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules/fps:fps_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

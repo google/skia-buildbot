@@ -18,15 +18,15 @@ sk_element(
         "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
-        "//autoroll/modules/rpc:index_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//infra-sk/modules:string_ts_lib",
+        "//:node_modules/lit",
         "//autoroll/modules:utils_ts_lib",
+        "//autoroll/modules/rpc:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:human_ts_lib",
+        "//infra-sk/modules:string_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "arb-status-sk.ts",
@@ -45,9 +45,9 @@ sk_page(
         "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
+        "//:node_modules/fetch-mock",
         "//autoroll/modules/rpc-mock:index_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
-        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "arb-status-sk-demo.ts",
 )

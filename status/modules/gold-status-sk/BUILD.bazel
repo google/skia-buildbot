@@ -12,12 +12,12 @@ sk_element(
     ],
     sass_srcs = ["gold-status-sk.scss"],
     ts_deps = [
-        "//golden/modules:rpc_types_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "gold-status-sk.ts",
@@ -34,8 +34,8 @@ sk_page(
         ":gold-status-sk",
     ],
     ts_deps = [
-        "//golden/modules:rpc_types_ts_lib",
         "//:node_modules/fetch-mock",
+        "//golden/modules:rpc_types_ts_lib",
     ],
     ts_entry_point = "gold-status-sk-demo.ts",
 )

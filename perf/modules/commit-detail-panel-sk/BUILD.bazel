@@ -15,11 +15,11 @@ sk_element(
     sass_srcs = ["commit-detail-panel-sk.scss"],
     sk_element_deps = ["//perf/modules/commit-detail-sk"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//perf/modules/json:index_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "commit-detail-panel-sk.ts",

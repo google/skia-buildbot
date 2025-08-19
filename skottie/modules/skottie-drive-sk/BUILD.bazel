@@ -13,12 +13,12 @@ sk_element(
         "//elements-sk/modules/error-toast-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//skottie/modules:types_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//skottie/modules:types_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

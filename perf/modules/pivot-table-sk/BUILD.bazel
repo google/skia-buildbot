@@ -18,14 +18,14 @@ sk_element(
         "//elements-sk/modules/icons/sort-icon-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//perf/modules/json:index_ts_lib",
-        "//perf/modules/pivotutil:index_ts_lib",
-        "//perf/modules/paramtools:index_ts_lib",
-        "//perf/modules/const:const_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:query_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/const:const_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
+        "//perf/modules/pivotutil:index_ts_lib",
     ],
     ts_srcs = [
         "pivot-table-sk.ts",
@@ -39,8 +39,8 @@ sk_page(
     html_file = "pivot-table-sk-demo.html",
     sk_element_deps = [":pivot-table-sk"],
     ts_deps = [
-        "//perf/modules/json:index_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_entry_point = "pivot-table-sk-demo.ts",
 )

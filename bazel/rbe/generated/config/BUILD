@@ -17,7 +17,6 @@
 
 package(default_visibility = ["//visibility:public"])
 
-
 toolchain(
     name = "cc-toolchain",
     exec_compatible_with = [
@@ -35,7 +34,6 @@ toolchain(
 
 platform(
     name = "platform",
-    parents = ["@local_config_platform//:host"],
     constraint_values = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
@@ -45,4 +43,5 @@ platform(
         "container-image": "docker://gcr.io/skia-public/infra-rbe-linux@sha256:ca2e0ed9c82fd5521ade557effa94f6e6dca3b7fc979852db1602a271ede2916",
         "OSFamily": "Linux",
     },
+    parents = ["@local_config_platform//:host"],
 )

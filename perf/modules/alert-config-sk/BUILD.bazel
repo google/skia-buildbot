@@ -17,13 +17,13 @@ sk_element(
         "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
-        "//infra-sk/modules:jsonorthrow_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "alert-config-sk.ts",
@@ -40,8 +40,8 @@ sk_page(
         "//elements-sk/modules/error-toast-sk",
     ],
     ts_deps = [
-        "//perf/modules/json:index_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_entry_point = "alert-config-sk-demo.ts",
 )

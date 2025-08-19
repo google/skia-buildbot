@@ -4,12 +4,12 @@ sk_element(
     name = "skottie-audio-sk",
     sass_srcs = ["skottie-audio-sk.scss"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//skottie/modules:types_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/@types/howler",
         "//:node_modules/howler",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//skottie/modules:types_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

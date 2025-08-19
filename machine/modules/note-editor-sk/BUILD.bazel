@@ -13,11 +13,11 @@ sk_element(
     ],
     sass_srcs = ["note-editor-sk.scss"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//machine/modules/json:index_ts_lib",
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//machine/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -32,8 +32,8 @@ sk_page(
     scss_entry_point = "note-editor-sk-demo.scss",
     sk_element_deps = [":note-editor-sk"],
     ts_deps = [
-        "//machine/modules/json:index_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//machine/modules/json:index_ts_lib",
     ],
     ts_entry_point = "note-editor-sk-demo.ts",
 )

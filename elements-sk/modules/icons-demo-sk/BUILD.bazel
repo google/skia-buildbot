@@ -10,10 +10,10 @@ sk_element(
     sass_deps = ["//elements-sk/modules/icons:icon-sk_sass_lib"],
     sass_srcs = ["icons-demo-sk.scss"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         ":icons_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "icons-demo-sk.ts",

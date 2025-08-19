@@ -14,11 +14,11 @@ sk_element(
         "//elements-sk/modules/icons/save-icon-sk",
     ],
     ts_deps = [
+        "//:node_modules/lit",
         "//debugger-app/modules:debugger_ts_lib",
         "//debugger-app/modules:default-map_ts_lib",
         "//debugger-app/modules:events_ts_lib",
         "//elements-sk/modules:define_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "commands-sk.ts",

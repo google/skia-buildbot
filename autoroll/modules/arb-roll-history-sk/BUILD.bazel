@@ -10,10 +10,10 @@ sk_element(
     sass_srcs = ["arb-roll-history-sk.scss"],
     sk_element_deps = ["//infra-sk/modules/human-date-sk"],
     ts_deps = [
-        "//autoroll/modules/rpc:index_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//elements-sk/modules:define_ts_lib",
         "//:node_modules/lit",
+        "//autoroll/modules/rpc:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "arb-roll-history-sk.ts",

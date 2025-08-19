@@ -20,11 +20,11 @@ sk_element(
         ":drag-to-zoom-box-sk_ts_lib",
     ],
     ts_deps = [
-        "//:node_modules/lit-html",  # keep
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@lit/context",
         "//:node_modules/@material/web",
         "//:node_modules/lit",
+        "//:node_modules/lit-html",  # keep
         "//elements-sk/modules:define_ts_lib",
         "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/dataframe:dataframe_context_ts_lib",
@@ -94,15 +94,15 @@ sk_element(
 sk_element(
     name = "side-panel-sk_ts_lib",
     ts_deps = [
+        "//:node_modules/@lit/context",  # keep
         "//:node_modules/@material/web",
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
-        "//:node_modules/@lit/context",  # keep
+        "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/dataframe:dataframe_context_ts_lib",
         "//perf/modules/dataframe:index_ts_lib",
         "//perf/modules/dataframe:traceset_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "//perf/modules/common:plot-builder_ts_lib",
     ],
     ts_srcs = ["side-panel-sk.ts"],
     visibility = ["//visibility:public"],

@@ -5,9 +5,9 @@ sk_element(
     sass_deps = ["//elements-sk/modules:colors_sass_lib"],
     sass_srcs = ["skottie-button-sk.scss"],
     ts_deps = [
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",
