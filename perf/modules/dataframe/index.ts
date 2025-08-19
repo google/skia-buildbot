@@ -264,10 +264,19 @@ export function join(a: DataFrame, b: DataFrame): DataFrame {
 
   const traceLen = ret.header!.length;
 
-  for (const [key, sourceTrace] of Object.entries(a.traceset)) {
+  // Pre-allocate the arrays in the traceset with the correct length.
+  for (const key of Object.keys(a.traceset)) {
     if (!ret.traceset[key]) {
-      ret.traceset[key] = Trace(new Array<number>(traceLen).fill(MISSING_DATA_SENTINEL));
+      ret.traceset[key] = new Array(traceLen).fill(MISSING_DATA_SENTINEL) as Trace;
     }
+  }
+  for (const key of Object.keys(b.traceset)) {
+    if (!ret.traceset[key]) {
+      ret.traceset[key] = new Array(traceLen).fill(MISSING_DATA_SENTINEL) as Trace;
+    }
+  }
+
+  for (const [key, sourceTrace] of Object.entries(a.traceset)) {
     const destTrace = ret.traceset[key];
     (sourceTrace as number[]).forEach((sourceValue, sourceOffset) => {
       destTrace[aMap[sourceOffset]] = sourceValue;
@@ -275,9 +284,6 @@ export function join(a: DataFrame, b: DataFrame): DataFrame {
   }
 
   for (const [key, sourceTrace] of Object.entries(b.traceset)) {
-    if (!ret.traceset[key]) {
-      ret.traceset[key] = Trace(new Array<number>(traceLen).fill(MISSING_DATA_SENTINEL));
-    }
     const destTrace = ret.traceset[key];
     (sourceTrace as number[]).forEach((sourceValue, sourceOffset) => {
       destTrace[bMap[sourceOffset]] = sourceValue;

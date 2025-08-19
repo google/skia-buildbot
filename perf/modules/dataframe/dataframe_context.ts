@@ -647,4 +647,23 @@ export class DataFrameRepository extends LitElement {
       this.userIssues = issues;
     }
   }
+
+  /**
+   * Clears all the data in the repository.
+   */
+  clear() {
+    this._traceset = TraceSet({});
+    this._header = [];
+    this._traceMetadata = [];
+    this.dataframe = {
+      traceset: TraceSet({}),
+      header: [],
+      paramset: ReadOnlyParamSet({}),
+      skip: 0,
+      traceMetadata: [],
+    };
+    this.data = null;
+    this.anomaly = null;
+    this.userIssues = null;
+  }
 }

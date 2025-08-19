@@ -258,4 +258,21 @@ describe('dataframe-repository', () => {
 
     assert.deepEqual(dfRepo.userIssues, expected);
   });
+
+  it('clears the repository', async () => {
+    mockFrameStart(df, paramset, anomaly);
+
+    const dfRepo = newEl();
+    await dfRepo.resetTraces(range(now + 1, now + timeSpan * 10), paramset);
+
+    dfRepo.clear();
+
+    assert.deepEqual(dfRepo.commitRange, { begin: 0, end: 0 });
+    assert.deepEqual(dfRepo.timeRange, { begin: 0, end: 0 });
+    assert.isTrue(dfRepo.isEmpty);
+    assert.isEmpty(dfRepo.header);
+    assert.isEmpty(dfRepo.traces);
+    assert.isNull(dfRepo.anomaly);
+    assert.isNull(dfRepo.userIssues);
+  });
 });
