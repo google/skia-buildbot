@@ -150,6 +150,19 @@ export class PlotGoogleChartSk extends LitElement {
 
     .closeIcon {
     }
+
+    .hover-indicator {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      display: none;
+      background-color: transparent;
+      border: 3px solid;
+      opacity: 0.75;
+    }
   `;
 
   @consume({ context: dataTableContext, subscribe: true })
@@ -257,6 +270,8 @@ export class PlotGoogleChartSk extends LitElement {
   // The div container for anomaly overlays.
   private xbarDiv = createRef<HTMLDivElement>();
 
+  private hoverIndicatorDiv = createRef<HTMLDivElement>();
+
   constructor() {
     super();
     this.addEventListeners();
@@ -291,6 +306,7 @@ export class PlotGoogleChartSk extends LitElement {
           @google-chart-onmouseout=${this.onChartMouseOut}
           @google-chart-ready=${this.onChartReady}>
         </google-chart>
+        <div class="hover-indicator" ${ref(this.hoverIndicatorDiv)}></div>
         <div class="anomaly" ${ref(this.anomalyDiv)}></div>
         <div class="userissue" ${ref(this.userIssueDiv)}></div>
         <div class="xbar" ${ref(this.xbarDiv)}></div>
@@ -685,6 +701,19 @@ export class PlotGoogleChartSk extends LitElement {
     const tableRowIndex = plot!.view!.getTableRowIndex(e.detail.data.row);
     const tableColumnIndex = plot!.view!.getTableColumnIndex(e.detail.data.column);
 
+    if (this.hoverIndicatorDiv.value) {
+      const pos = this.getPositionByIndex({
+        tableRow: tableRowIndex,
+        tableCol: tableColumnIndex,
+      });
+      const traceName = this.getTraceName(tableColumnIndex);
+      const traceColor = this.getTraceColor(traceName);
+      this.hoverIndicatorDiv.value.style.borderColor = traceColor ?? 'none';
+      this.hoverIndicatorDiv.value.style.left = `${pos.x}px`;
+      this.hoverIndicatorDiv.value.style.top = `${pos.y}px`;
+      this.hoverIndicatorDiv.value.style.display = 'block';
+    }
+
     this.dispatchEvent(
       new CustomEvent<PlotShowTooltipEventDetails>('plot-data-mouseover', {
         bubbles: true,
@@ -781,6 +810,9 @@ export class PlotGoogleChartSk extends LitElement {
   // like deltaRange and zoom so need to ensure they will continue
   // to work even past data points
   private onChartMouseOut() {
+    if (this.hoverIndicatorDiv.value) {
+      this.hoverIndicatorDiv.value.style.display = 'none';
+    }
     this.chartInteracting = this.navigationMode !== null;
     this.dispatchEvent(
       new CustomEvent('plot-chart-mouseout', {
