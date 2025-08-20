@@ -99,7 +99,7 @@ export class WilcoxonResultSk extends LitElement {
       return html`<p>No Wilcoxon results available for this job.</p>`;
     }
 
-    // TODO(natnael) Implement improvement direction in backend
+    // TODO(b/440108016) Implement improvement direction in backend
     // For now default to UP
     const effectiveDir = 'UP';
     const charts = Object.keys(this.job.MetricSummary);

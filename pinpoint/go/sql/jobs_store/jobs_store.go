@@ -116,7 +116,7 @@ func (js *jobStoreImpl) AddInitialJob(ctx context.Context, request *pinpointpb.S
 
 	jobName := request.GetJobName()
 	submittedBy := request.GetUserEmail()
-	// TODO(natnaelal) Ensure that a username is given once auth is implemented
+	// TODO(b/440105685) Require that a user email is given once auth is implemented
 	// through the frontend.
 	if submittedBy == "" {
 		submittedBy = "default"

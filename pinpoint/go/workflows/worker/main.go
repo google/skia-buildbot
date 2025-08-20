@@ -32,7 +32,6 @@ var (
 	taskQueue         = flag.String("taskQueue", "", "Task queue name registered to worker services.")
 	local             = flag.Bool("local", false, "Test run on local dev machine (skip GCP tracing).")
 	databaseWriteback = flag.Bool("databaseWriteback", false, "Write back pairwise job information into Spanner Database")
-	// TODO(natnael): Change database to a Production database in Performance Tooling Instance when migration is complete
 	pairwiseDBConnStr = flag.String("pairwise_db_conn_str", "postgresql://root@localhost:5432/natnael-test-database?sslmode=disable",
 		"The connection string for the Pairwise backend database.")
 )
@@ -81,7 +80,8 @@ func main() {
 	w := worker.New(c, *taskQueue, worker.Options{})
 
 	// Only register writeback activity if flag is set to true
-	// TODO(natnael) Set to always true when database is fully integrated into Pairwise Workflow
+	// TODO(b/439651172) Consider setting to always true when database is fully
+	// integrated into Pairwise Workflow
 	if *databaseWriteback {
 		// Initialize the database connection pool for Pairwise activities.
 		ctx := context.Background()

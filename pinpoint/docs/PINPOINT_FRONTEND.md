@@ -35,6 +35,25 @@ The application supports the following command-line flags for configuration:
 --prod_assest_dir: The directory containing production assets for the UI.
 (Default: pinpoint/ui/pages/production)
 
+## Temporal
+
+To be able to initiate Pairwise jobs and cancel ongoing jobs, you must follow the steps in the
+[temporal doc](/temporal/README.md).
+
+Sepcifically you must follow the steps up to "Create a new terminal and run the worker."
+The specific namespace and taskQueue are specificed in
+[service/service_impl.go](/pinpoint/go/service/service_impl.go)
+
+Here is an example set of commands to run:
+
+1. Connect your cloudtop to GKE cluster:<br>
+   `./kube/attach.sh skia-infra-public-dev`
+2. Connect to the service at localhost 7233:<br>
+   `kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233`
+3. Create a new terminal and run the worker:<br>
+   `bazelisk run //pinpoint/go/workflows/worker -- --local` \
+   ` --namespace perf-internal --taskQueue perf.perf-chrome-public.bisect`
+
 ## Responsibilities
 
 - Provides HTTP endpoints for listing, and viewing Pinpoint jobs.
