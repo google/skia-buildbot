@@ -3271,8 +3271,13 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
     if (this.range !== null) {
-      this._state.begin = this.range!.state.begin;
-      this._state.end = this.range!.state.end;
+      // Only lengthen the time range, do not shorten.
+      if (this.range.state.begin < this._state.begin) {
+        this._state.begin = this.range.state.begin;
+      }
+      if (this.range.state.end > this._state.end) {
+        this._state.end = this.range.state.end;
+      }
       this._state.numCommits = this.range!.state.num_commits;
       this._state.requestType = this.range!.state.request_type;
     }
