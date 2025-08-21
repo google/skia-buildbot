@@ -20,10 +20,12 @@ import {
   CommitRange,
   GraphConfig,
   updateShortcut,
+  State,
 } from './explore-simple-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { generateFullDataFrame } from '../dataframe/test_utils';
 import { UserIssueMap } from '../dataframe/dataframe_context';
+import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -502,5 +504,96 @@ describe('updateBrowserURL', () => {
     assert.equal(pushedUrl.searchParams.get('begin'), '100');
     assert.equal(pushedUrl.searchParams.get('end'), '200');
     assert.equal(pushedUrl.searchParams.get('request_type'), '0');
+  });
+});
+
+describe('addFromQueryOrFormula range', () => {
+  let explore: ExploreSimpleSk;
+  let state: State;
+
+  beforeEach(() => {
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    state = new State();
+    explore.state = state;
+  });
+
+  it('extends the time range', () => {
+    explore.state.begin = 100;
+    explore.state.end = 200;
+
+    const range = document.createElement('domain-picker-sk') as DomainPickerSk;
+    range.state = {
+      begin: 50,
+      end: 250,
+      num_commits: 0,
+      request_type: 0,
+    };
+    explore.appendChild(range);
+    explore['range'] = range;
+
+    explore['addFromQueryOrFormula'](false, 'query', 'a=b', '');
+
+    assert.equal(explore.state.begin, 50);
+    assert.equal(explore.state.end, 250);
+  });
+
+  it('does not shorten the time range', () => {
+    explore.state.begin = 100;
+    explore.state.end = 200;
+
+    const range = document.createElement('domain-picker-sk') as DomainPickerSk;
+    range.state = {
+      begin: 150,
+      end: 180,
+      num_commits: 0,
+      request_type: 0,
+    };
+    explore.appendChild(range);
+    explore['range'] = range;
+
+    explore['addFromQueryOrFormula'](false, 'query', 'a=b', '');
+
+    assert.equal(explore.state.begin, 100);
+    assert.equal(explore.state.end, 200);
+  });
+
+  it('only extends the beginning of the time range', () => {
+    explore.state.begin = 100;
+    explore.state.end = 200;
+
+    const range = document.createElement('domain-picker-sk') as DomainPickerSk;
+    range.state = {
+      begin: 50,
+      end: 180,
+      num_commits: 0,
+      request_type: 0,
+    };
+    explore.appendChild(range);
+    explore['range'] = range;
+
+    explore['addFromQueryOrFormula'](false, 'query', 'a=b', '');
+
+    assert.equal(explore.state.begin, 50);
+    assert.equal(explore.state.end, 200);
+  });
+
+  it('only extends the end of the time range', () => {
+    explore.state.begin = 100;
+    explore.state.end = 200;
+
+    const range = document.createElement('domain-picker-sk') as DomainPickerSk;
+    range.state = {
+      begin: 120,
+      end: 250,
+      num_commits: 0,
+      request_type: 0,
+    };
+    explore.appendChild(range);
+    explore['range'] = range;
+
+    explore['addFromQueryOrFormula'](false, 'query', 'a=b', '');
+
+    assert.equal(explore.state.begin, 100);
+    assert.equal(explore.state.end, 250);
   });
 });
