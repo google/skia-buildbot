@@ -9,7 +9,6 @@ sk_element(
     ],
     sass_srcs = ["anomalies-table-sk.scss"],
     sk_element_deps = [
-        "//elements-sk/modules/checkbox-sk",
         "//infra-sk/modules/sort-sk",
         "//perf/modules/anomaly-sk",
         "//perf/modules/triage-menu-sk",

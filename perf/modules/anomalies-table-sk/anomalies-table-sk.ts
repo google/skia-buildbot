@@ -8,7 +8,6 @@
 import { html, TemplateResult } from 'lit/html.js';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { define } from '../../../elements-sk/modules/define';
-import '../../../elements-sk/modules/checkbox-sk';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import '../../../infra-sk/modules/sort-sk';
 import { Anomaly, GetGroupReportResponse, Timerange } from '../json';
@@ -17,7 +16,6 @@ import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import '../window/window';
 import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
-import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import '@material/web/button/outlined-button.js';
 import { errorMessage } from '../errorMessage';
 import { updateShortcut } from '../explore-simple-sk/explore-simple-sk';
@@ -42,7 +40,7 @@ export class AnomaliesTableSk extends ElementSk {
 
   private triageMenu: TriageMenuSk | null = null;
 
-  private headerCheckbox: CheckOrRadio | null = null;
+  private headerCheckbox: HTMLInputElement | null = null;
 
   private traceFormatter: ChromeTraceFormatter | null = null;
 
@@ -76,7 +74,7 @@ export class AnomaliesTableSk extends ElementSk {
     this.triageMenu = this.querySelector('#triage-menu');
     this.triageMenu!.disableNudge();
     this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
-    this.headerCheckbox = this.querySelector('#header-checkbox') as CheckOrRadio;
+    this.headerCheckbox = this.querySelector('#header-checkbox') as HTMLInputElement;
     this.traceFormatter = new ChromeTraceFormatter();
     this.addEventListener('click', (e: Event) => {
       const triageButton = this.querySelector('#triage-button');
@@ -265,7 +263,9 @@ export class AnomaliesTableSk extends ElementSk {
           <tr class="headers">
             <th id="group"></th>
             <th id="checkbox">
-              <checkbox-sk id="header-checkbox" @change=${this.toggleAllCheckboxes}> </checkbox-sk>
+              <label for="header-checkbox"
+                ><input type="checkbox" id="header-checkbox" @change=${this.toggleAllCheckboxes}
+              /></label>
             </th>
             <th id="graph_header">Chart</th>
             <th id="bug_id" data-key="bugid">Bug ID</th>
@@ -298,15 +298,64 @@ export class AnomaliesTableSk extends ElementSk {
     await this.generateMultiGraphUrl(this.anomalyList, timerangeMap);
   }
 
-  private anomalyChecked(chkbox: CheckOrRadio, a: Anomaly) {
-    if (chkbox.checked === true) {
-      this.checkedAnomaliesSet.add(a);
-      if (this.checkedAnomaliesSet.size === this.anomalyList.length) {
-        this.headerCheckbox!.checked = true;
+  private findGroupForAnomaly(anomaly: Anomaly): AnomalyGroup | null {
+    for (const group of this.anomalyGroups) {
+      if (group.anomalies.find((a) => a.id === anomaly.id)) {
+        return group;
       }
+    }
+    return null;
+  }
+
+  private _updateCheckedState(
+    chkbox: HTMLInputElement,
+    a: Anomaly,
+    anomalyGroup: AnomalyGroup | null
+  ) {
+    if (chkbox.checked) {
+      this.checkedAnomaliesSet.add(a);
+    } else {
+      this.checkedAnomaliesSet.delete(a);
+    }
+
+    const group = anomalyGroup || this.findGroupForAnomaly(a);
+
+    // Update summary checkbox state.
+    if (group && group.anomalies.length > 1) {
+      const summaryRowCheckboxId = this.getGroupId(group);
+      const summaryCheckbox = this.querySelector<HTMLInputElement>(
+        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+      );
+      if (summaryCheckbox) {
+        let checkedCount = 0;
+        for (const anomaly of group.anomalies) {
+          if (this.checkedAnomaliesSet.has(anomaly)) {
+            checkedCount++;
+          }
+        }
+
+        if (checkedCount === 0) {
+          summaryCheckbox.indeterminate = false;
+          summaryCheckbox.checked = false;
+        } else if (checkedCount === group.anomalies.length) {
+          summaryCheckbox.checked = true;
+          summaryCheckbox.indeterminate = false;
+        } else {
+          summaryCheckbox.checked = false;
+          summaryCheckbox.indeterminate = true;
+        }
+      }
+    }
+
+    if (this.checkedAnomaliesSet.size === 0) {
+      this.headerCheckbox!.indeterminate = false;
+      this.headerCheckbox!.checked = false;
+    } else if (this.checkedAnomaliesSet.size === this.anomalyList.length) {
+      this.headerCheckbox!.indeterminate = false;
+      this.headerCheckbox!.checked = true;
     } else {
       this.headerCheckbox!.checked = false;
-      this.checkedAnomaliesSet.delete(a);
+      this.headerCheckbox!.indeterminate = true;
     }
 
     this.dispatchEvent(
@@ -320,6 +369,10 @@ export class AnomaliesTableSk extends ElementSk {
     );
 
     this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
+  }
+
+  private anomalyChecked(chkbox: HTMLInputElement, a: Anomaly, anomalyGroup: AnomalyGroup | null) {
+    this._updateCheckedState(chkbox, a, anomalyGroup);
     this._render();
   }
 
@@ -372,18 +425,17 @@ export class AnomaliesTableSk extends ElementSk {
           <td>
           </td>
           <td>
-            <checkbox-sk
+            <label><input type="checkbox"
               @change=${(e: Event) => {
                 // If we just need to check 1 anomaly, just mark it as checked.
                 if (length === 1 || anomalyGroup.expanded) {
-                  this.anomalyChecked(e.target as CheckOrRadio, anomaly);
+                  this.anomalyChecked(e.target as HTMLInputElement, anomaly, anomalyGroup);
                 } else {
                   // If the the summary row gets checked, check all children anomalies.
                   this.toggleChildrenCheckboxes(anomalyGroup);
                 }
               }}
-              id="anomaly-row-${anomaly.id}">
-            </checkbox-sk>
+              id="anomaly-row-${anomaly.id}"></label>
           </td>
           <td class="center-content">
             ${
@@ -495,14 +547,16 @@ export class AnomaliesTableSk extends ElementSk {
           </button>
         </td>
         <td>
-          <checkbox-sk
-            @change="${() => {
-              // If the summary row checkbox gets checked and the
-              // group is not expanded, check all children anomalies.
-              this.toggleChildrenCheckboxes(anomalyGroup);
-            }}"
-            id="anomaly-row-${this.getGroupId(anomalyGroup)}">
-          </checkbox-sk>
+          <label
+            ><input
+              type="checkbox"
+              @change="${() => {
+                // If the summary row checkbox gets checked and the
+                // group is not expanded, check all children anomalies.
+                this.toggleChildrenCheckboxes(anomalyGroup);
+              }}"
+              id="anomaly-row-${this.getGroupId(anomalyGroup)}" />
+          </label>
         </td>
         <td class="center-content"></td>
         <td>
@@ -646,11 +700,11 @@ export class AnomaliesTableSk extends ElementSk {
 
   private checkAnomaly(checkedAnomaly: Anomaly) {
     const checkbox = this.querySelector(
-      `checkbox-sk[id="anomaly-row-${checkedAnomaly.id}"]`
-    ) as CheckOrRadio;
+      `input[id="anomaly-row-${checkedAnomaly.id}"]`
+    ) as HTMLInputElement;
     if (checkbox !== null) {
       checkbox.checked = true;
-      this.anomalyChecked(checkbox, checkedAnomaly);
+      this.anomalyChecked(checkbox, checkedAnomaly, null);
     }
   }
 
@@ -660,16 +714,44 @@ export class AnomaliesTableSk extends ElementSk {
    * at once by interacting with the parent checkbox.
    */
   private toggleChildrenCheckboxes(anomalyGroup: AnomalyGroup) {
-    const summaryRowCheckbox = this.querySelector(
-      `checkbox-sk[id="anomaly-row-${this.getGroupId(anomalyGroup)}"]`
-    ) as CheckOrRadio;
+    const summaryRowCheckbox = this.querySelector<HTMLInputElement>(
+      `input[id="anomaly-row-${this.getGroupId(anomalyGroup)}"]`
+    ) as HTMLInputElement;
+    const checked = summaryRowCheckbox.checked;
+
     anomalyGroup.anomalies.forEach((anomaly) => {
-      const checkbox = this.querySelector(
-        `checkbox-sk[id="anomaly-row-${anomaly.id}"]`
-      ) as CheckOrRadio;
-      checkbox.checked = summaryRowCheckbox.checked;
-      this.anomalyChecked(checkbox, anomaly);
+      const checkbox = this.querySelector<HTMLInputElement>(
+        `input[id="anomaly-row-${anomaly.id}"]`
+      ) as HTMLInputElement;
+      checkbox.checked = checked;
+      if (checked) {
+        this.checkedAnomaliesSet.add(anomaly);
+      } else {
+        this.checkedAnomaliesSet.delete(anomaly);
+      }
+      this.dispatchEvent(
+        new CustomEvent('anomalies_checked', {
+          detail: {
+            anomaly: anomaly,
+            checked: checked,
+          },
+          bubbles: true,
+        })
+      );
     });
+
+    // Update header checkbox state.
+    if (this.checkedAnomaliesSet.size === 0) {
+      this.headerCheckbox!.indeterminate = false;
+      this.headerCheckbox!.checked = false;
+    } else if (this.checkedAnomaliesSet.size === this.anomalyList.length) {
+      this.headerCheckbox!.indeterminate = false;
+      this.headerCheckbox!.checked = true;
+    } else {
+      this.headerCheckbox!.checked = false;
+    }
+
+    this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
     this._render();
   }
 
@@ -680,19 +762,32 @@ export class AnomaliesTableSk extends ElementSk {
    */
   private toggleAllCheckboxes() {
     const checked = this.headerCheckbox!.checked;
+
     this.anomalyGroups.forEach((group) => {
+      if (group.anomalies.length > 1) {
+        const summaryRowCheckbox = this.querySelector<HTMLInputElement>(
+          `input[id=anomaly-row-${this.getGroupId(group)}]`
+        );
+        if (summaryRowCheckbox) {
+          summaryRowCheckbox.checked = checked;
+        }
+      }
+
       group.anomalies.forEach((anomaly) => {
-        const summaryRowCheckbox = this.querySelector(
-          `checkbox-sk[id=anomaly-row-${this.getGroupId(group)}]`
-        ) as CheckOrRadio;
-        summaryRowCheckbox!.checked = checked;
-        const checkbox = this.querySelector(
-          `checkbox-sk[id="anomaly-row-${anomaly.id}"]`
-        ) as CheckOrRadio;
-        checkbox!.checked = checked;
-        this.anomalyChecked(checkbox, anomaly);
+        const checkbox = this.querySelector<HTMLInputElement>(
+          `input[id="anomaly-row-${anomaly.id}"]`
+        );
+        if (checkbox) {
+          checkbox.checked = checked;
+        }
+        if (checked) {
+          this.checkedAnomaliesSet.add(anomaly);
+        } else {
+          this.checkedAnomaliesSet.delete(anomaly);
+        }
       });
     });
+    this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
     this._render();
   }
 
@@ -811,12 +906,12 @@ export class AnomaliesTableSk extends ElementSk {
     this.anomalyGroups.forEach((group) => {
       group.anomalies.forEach((anomaly) => {
         const summaryRowCheckbox = this.querySelector(
-          `checkbox-sk[id=anomaly-row-${this.getGroupId(group)}]`
-        ) as CheckOrRadio;
+          `input[id=anomaly-row-${this.getGroupId(group)}]`
+        ) as HTMLInputElement;
         summaryRowCheckbox!.checked = true;
         const checkbox = this.querySelector(
-          `checkbox-sk[id="anomaly-row-${anomaly.id}"]`
-        ) as CheckOrRadio;
+          `input[id="anomaly-row-${anomaly.id}"]`
+        ) as HTMLInputElement;
         checkbox.checked = true;
         this.checkedAnomaliesSet.add(anomaly);
       });
