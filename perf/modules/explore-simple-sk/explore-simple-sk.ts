@@ -622,9 +622,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private graphTitle: GraphTitleSk | null = null;
 
-  private showRemoveAll = true;
-
-  private tracesRendered = false;
+  tracesRendered = false;
 
   private userIssueMap: UserIssueMap = {};
 
@@ -1523,8 +1521,6 @@ export class ExploreSimpleSk extends ElementSk {
   // with the real function once stateReflector has been setup.
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private _stateHasChanged = () => {
-    this.showRemoveAll = this._state.show_remove_all;
-
     // If chart tooltip is enabled do not show crosshair label
     if (this.plotSimple.value) {
       this.plotSimple.value.showCrosshairLabel = !this._state.enable_chart_tooltip;

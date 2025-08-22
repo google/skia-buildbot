@@ -17,6 +17,7 @@ sk_element(
         "//perf/modules/anomalies-table-sk",
         "//perf/modules/explore-simple-sk",
         "//elements-sk/modules/icons/camera-roll-icon-sk",
+        "//perf/modules/plot-google-chart-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",

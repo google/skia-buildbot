@@ -17,6 +17,7 @@ import '../anomalies-table-sk/anomalies-table-sk';
 import { lookupCids } from '../cid/cid';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import '../../../elements-sk/modules/icons/camera-roll-icon-sk';
+import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 
 const weekInSeconds = 7 * 24 * 60 * 60;
 
@@ -153,6 +154,8 @@ export class ReportPageSk extends ElementSk {
     <div
       id="graph-container"
       @x-axis-toggled=${ele.syncXAxisLabel}
+      @range-changing-in-multi=${ele.syncExtendRangeOnSummaryBar}
+      @selection-changing-in-multi=${ele.syncChartSelection}
       @open-anomaly-chart=${(e: CustomEvent<Anomaly>) =>
         ele.anomaliesTable!.openAnomalyChartListener(e)}></div>
   `;
@@ -339,6 +342,8 @@ export class ReportPageSk extends ElementSk {
     explore.navOpen = false;
     explore.enableRemoveButton = false;
     explore.is_chart_split = true;
+    explore.state.plotSummary = true;
+    explore.tracesRendered = true;
     const graphIndex = this.graphDiv!.children.length;
     this.graphDiv!.append(explore);
 
@@ -392,6 +397,40 @@ export class ReportPageSk extends ElementSk {
     graphs.forEach((graph) => {
       const height = graphs.length === 1 ? '500px' : '250px';
       (graph as ExploreSimpleSk).updateChartHeight(height);
+    });
+  }
+
+  private async syncExtendRangeOnSummaryBar(
+    e: CustomEvent<PlotSelectionEventDetails>
+  ): Promise<void> {
+    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
+    const offset = e.detail.offsetInSeconds;
+    const range = e.detail.value;
+
+    graphs.forEach(async (graph) => {
+      await (graph as ExploreSimpleSk).extendRange(range, offset);
+    });
+  }
+
+  private async syncChartSelection(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
+    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
+    if (!e.detail.value) {
+      return;
+    }
+
+    if (graphs.length > 1 && e.detail.offsetInSeconds !== undefined) {
+      await (graphs[0] as ExploreSimpleSk).extendRange(e.detail.value, e.detail.offsetInSeconds);
+    }
+    // Default behavior for non-split views or for pan/zoom actions.
+    graphs.forEach((graph, i) => {
+      // only update graph that isn't selected
+      if (i !== e.detail.graphNumber && e.detail.offsetInSeconds === undefined) {
+        (graph as ExploreSimpleSk).updateSelectedRangeWithPlotSummary(
+          e.detail.value,
+          e.detail.start ?? 0,
+          e.detail.end ?? 0
+        );
+      }
     });
   }
 
