@@ -205,9 +205,24 @@ export class PinpointNewJobSk extends LitElement {
     this._dialog.close();
   }
 
+  private _resetForSimplifiedView() {
+    this._selectedBenchmark = 'speedometer3.crossbench';
+    this._selectedBot = 'mac-m1-pro-perf';
+    this._selectedStory = 'default';
+    this._iterationCount = '20';
+    this._startCommit = '';
+    this._endCommit = '';
+    this._jobName = '';
+    this._bugId = '';
+    this._storyTags = '';
+  }
+
   private onTabChanged(e: CustomEvent) {
     const tabs = e.target as Tabs;
     this._activeTab = tabs.activeTabIndex === 0 ? 'detailed' : 'simplified';
+    if (this._activeTab === 'simplified') {
+      this._resetForSimplifiedView();
+    }
   }
 
   private async onBenchmarkChanged(e: Event) {
@@ -445,12 +460,17 @@ export class PinpointNewJobSk extends LitElement {
           <h3>Base Commit</h3>
           <md-outlined-text-field
             label="Commit Hash"
-            placeholder="Commit Hash"></md-outlined-text-field>
+            placeholder="Commit Hash"
+            .value=${this._startCommit}
+            @input=${(e: InputEvent) =>
+              this._onValueChanged(e, '_startCommit')}></md-outlined-text-field>
           <h3>Experimental Commit</h3>
           <md-outlined-text-field
             label="Commit Hash"
-            placeholder="Commit Hash"></md-outlined-text-field>
-
+            placeholder="Commit Hash"
+            .value=${this._endCommit}
+            @input=${(e: InputEvent) =>
+              this._onValueChanged(e, '_endCommit')}></md-outlined-text-field>
           <h2>2. Review Test Configuration</h2>
           <p>
             This simplified flow uses a standard test configuration for general performance

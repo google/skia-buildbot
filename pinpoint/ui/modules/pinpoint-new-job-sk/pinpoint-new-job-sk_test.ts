@@ -72,6 +72,48 @@ describe('PinpointNewJobSk', () => {
     expect(h2!.textContent).to.contain('1. Define Commit Range');
   });
 
+  it('sets default values when switching to simplified tab', async () => {
+    await setupElement();
+    const tabs = element.shadowRoot!.querySelector('md-tabs') as Tabs;
+    tabs.activeTabIndex = 1; // Switch to "Simplified"
+    tabs.dispatchEvent(new CustomEvent('change'));
+    await element.updateComplete;
+
+    // Check that the internal state has been updated with default values.
+    expect((element as any)._selectedBenchmark).to.equal('speedometer3.crossbench');
+    expect((element as any)._selectedBot).to.equal('mac-m1-pro-perf');
+    expect((element as any)._selectedStory).to.equal('default');
+    expect((element as any)._iterationCount).to.equal('20');
+    expect((element as any)._startCommit).to.equal('');
+    expect((element as any)._endCommit).to.equal('');
+    expect((element as any)._jobName).to.equal('');
+    expect((element as any)._bugId).to.equal('');
+    expect((element as any)._storyTags).to.equal('');
+  });
+
+  it('updates commit values from simplified view inputs', async () => {
+    await setupElement();
+    const tabs = element.shadowRoot!.querySelector('md-tabs') as Tabs;
+    tabs.activeTabIndex = 1; // Switch to "Simplified"
+    tabs.dispatchEvent(new CustomEvent('change'));
+    await element.updateComplete;
+
+    const textFields = element.shadowRoot!.querySelectorAll('md-outlined-text-field');
+    const baseCommitInput = textFields[0];
+    const expCommitInput = textFields[1];
+
+    baseCommitInput.value = 'commit123';
+    baseCommitInput.dispatchEvent(new Event('input'));
+    await element.updateComplete;
+
+    expCommitInput.value = 'commit456';
+    expCommitInput.dispatchEvent(new Event('input'));
+    await element.updateComplete;
+
+    expect((element as any)._startCommit).to.equal('commit123');
+    expect((element as any)._endCommit).to.equal('commit456');
+  });
+
   it('updates bots and stories when a benchmark is selected', async () => {
     fetchMock.get('/bots?benchmark=benchmark_a', ['bot_a1', 'bot_a2']);
     fetchMock.get('/stories?benchmark=benchmark_a', ['story_a1', 'story_a2']);
