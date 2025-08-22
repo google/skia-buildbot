@@ -15,6 +15,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -28,6 +29,7 @@ import (
 )
 
 const macosVersion = "macos15"
+const cipdPath = "infra/chromeperf/cbb/safari_technology_preview"
 
 var httpClient = httputils.NewTimeoutClient()
 
@@ -119,6 +121,26 @@ func extractFromHtml(doc *html.Node) *releaseInfo {
 	return &ri
 }
 
+// Check if an existing CIPD package with the right reference already exists.
+func findCipd(ref string) bool {
+	cmd := exec.Command("cipd", "resolve", cipdPath, "-version", ref)
+	err := cmd.Run()
+
+	if err == nil {
+		// No error means "cipd resolve" found an existing package.
+		return true
+	}
+
+	exitError, isExitError := err.(*exec.ExitError)
+	if isExitError && exitError.ProcessState.ExitCode() == 1 {
+		// Exit code 1 means "cipd resolve" did not find an existing package.
+		return false
+	}
+
+	log.Fatalf("Unexpected error from cipd resolve: %v", err)
+	return false
+}
+
 // Download an STP installation image, and create a CIPD package form it.
 func createCipd(url string, refs []string) error {
 	// Create a new temporary directory
@@ -151,7 +173,6 @@ func createCipd(url string, refs []string) error {
 	tmpfile.Close()
 
 	// Upload to CIPD
-	cipdPath := "infra/chromeperf/cbb/safari_technology_preview"
 	args := []string{
 		"create", "-in", tmpDir, "-name", cipdPath,
 	}
@@ -237,7 +258,7 @@ func updatePuppet(release string) error {
 		return fmt.Errorf("failed to set review info on Gerrit: %w", err)
 	}
 
-	fmt.Printf("Successfully created CL %s/c/%s/+/%d", gerritUrl, project, ci.Issue)
+	fmt.Printf("Successfully created CL %sc/%s/+/%d\n", gerritUrl, project, ci.Issue)
 	return nil
 }
 
@@ -312,6 +333,11 @@ func main() {
 	}
 	fmt.Printf("Release: %s\n", ri.release)
 	fmt.Printf("Download Links:\n  %s\n  %s\n", ri.linkTahoe, ri.linkSequoia)
+
+	if found := findCipd(ri.release + "-" + macosVersion); found {
+		fmt.Printf("Current STP release %s has already been downloaded, exiting...\n", ri.release)
+		return
+	}
 
 	err = createCipd(ri.linkSequoia, []string{ri.release + "-macos15", "latest"})
 	if err != nil {
