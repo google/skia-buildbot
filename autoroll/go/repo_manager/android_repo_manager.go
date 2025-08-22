@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
@@ -677,7 +678,12 @@ func (r *androidRepoManager) getTipRev(ctx context.Context) (*revision.Revision,
 
 // GetNotSubmittedReason implements RepoManager.
 func (r *androidRepoManager) GetNotSubmittedReason(ctx context.Context, rev *revision.Revision) (string, error) {
-	return git_common.GetNotSubmittedReason(ctx, r.childRepo, rev.Id, r.childBranch.String())
+	// Our local childRepo has the branches from the parent, and the child's
+	// branches are from a non-default remote. Therefore, we can't just pass
+	// r.childRepo into GetNotSubmittedReason. Instead we assume that there's a
+	// Gitiles repo associated with the child and use that.
+	gitilesRepo := gitiles.NewRepo(r.childRepoURL, r.httpClient)
+	return git_common.GetNotSubmittedReason(ctx, gitilesRepo, rev.Id, r.childBranch.String())
 }
 
 // assert that androidRepoManager implements RepoManager.

@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -15,12 +16,13 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/gitiles"
+	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 )
@@ -40,7 +42,7 @@ var (
 func androidGerrit(t *testing.T, g gerrit.GerritInterface) (codereview.CodeReview, *mockhttpclient.URLMock) {
 	urlmock := mockhttpclient.NewURLMock()
 	rv, err := codereview.NewGerrit(&config.GerritConfig{
-		Url:     "https://googleplex-android-review.googlesource.com",
+		Url:     "https://fake-android-review.googlesource.com",
 		Project: "platform/external/skia",
 		Config:  config.GerritConfig_ANDROID,
 	}, g, urlmock.Client())
@@ -52,7 +54,7 @@ func androidCfg() *config.AndroidRepoManagerConfig {
 	return &config.AndroidRepoManagerConfig{
 		ChildBranch:   git.MainBranch,
 		ChildPath:     childPath,
-		ChildRepoUrl:  common.REPO_SKIA,
+		ChildRepoUrl:  "https://fake.googlesource.com/skia",
 		ParentBranch:  git.MainBranch,
 		ParentRepoUrl: "https://my-repo.com",
 		Metadata: &config.AndroidRepoManagerConfig_ProjectMetadataFileConfig{
@@ -60,7 +62,7 @@ func androidCfg() *config.AndroidRepoManagerConfig {
 			Name:        "skia",
 			Description: "Skia Graphics Library",
 			HomePage:    "https://www.skia.org/",
-			GitUrl:      "https://skia.googlesource.com/skia",
+			GitUrl:      "https://fake.googlesource.com/skia",
 			LicenseType: "RECIPROCAL",
 		},
 	}
@@ -144,8 +146,8 @@ func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string,
 	return ctx, setupRegistry(t), wd, cleanup
 }
 
-// TestAndroidRepoManager tests all aspects of the RepoManager except for CreateNewRoll.
-func TestAndroidRepoManager(t *testing.T) {
+// TestAndroidRepoManager_Update tests AndroidRepoManager.Update.
+func TestAndroidRepoManager_Update(t *testing.T) {
 	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 	g := &mocks.GerritInterface{}
@@ -163,8 +165,8 @@ func TestAndroidRepoManager(t *testing.T) {
 	require.Equal(t, androidChildCommits[0], tipRev.Id)
 }
 
-// TestCreateNewAndroidRoll tests creating a new roll.
-func TestCreateNewAndroidRoll(t *testing.T) {
+// TestAndroidRepoManager_CreateNewRoll tests creating a new roll.
+func TestAndroidRepoManager_CreateNewRoll(t *testing.T) {
 	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
@@ -187,9 +189,9 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	require.Equal(t, issueNum, issue)
 }
 
-// TestCreateNewAndroidRollWithExternalChangeId tests creating a new roll
-// with an external change ID specified in the target revision.
-func TestCreateNewAndroidRollWithExternalChangeId(t *testing.T) {
+// TestAndroidRepoManager_CreateNewRollWithExternalChangeId tests creating a new
+// roll with an external change ID specified in the target revision.
+func TestAndroidRepoManager_CreateNewRollWithExternalChangeId(t *testing.T) {
 	testTopicName := "test_topic_name"
 	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
@@ -216,8 +218,9 @@ func TestCreateNewAndroidRollWithExternalChangeId(t *testing.T) {
 	require.Equal(t, issueNum, issue)
 }
 
-// Verify that we ran the PreUploadSteps.
-func TestRanPreUploadStepsAndroid(t *testing.T) {
+// TestAndroidRepoManager_RanPreUploadSteps verifies that we ran the
+// PreUploadSteps.
+func TestAndroidRepoManager_RanPreUploadSteps(t *testing.T) {
 	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
@@ -249,8 +252,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	require.True(t, ran)
 }
 
-func TestAndroidConfigValidation(t *testing.T) {
-
+func TestAndroidRepoManager_ConfigValidation(t *testing.T) {
 	cfg := androidCfg()
 	require.NoError(t, cfg.Validate())
 
@@ -258,4 +260,38 @@ func TestAndroidConfigValidation(t *testing.T) {
 	// verify that we fail validation.
 	cfg = &config.AndroidRepoManagerConfig{}
 	require.Error(t, cfg.Validate())
+}
+
+func TestAndroidRepoManager_GetNotSubmittedReason(t *testing.T) {
+	ctx, reg, wd, cleanup := setupAndroid(t)
+	defer cleanup()
+	g := &mocks.GerritInterface{}
+	g.On("GetUserEmail", testutils.AnyContext).Return("fake-service-account", nil)
+	g.On("GetRepoUrl").Return(androidCfg().ParentRepoUrl)
+	g.On("Config").Return(gerrit.ConfigAndroid)
+	mockGerrit, _ := androidGerrit(t, g)
+	urlMock := mockhttpclient.NewURLMock()
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", urlMock.Client(), mockGerrit, true, true)
+	require.NoError(t, err)
+
+	// The revision was submitted.
+	fakeRev := &revision.Revision{Id: androidChildCommits[0]}
+	gitiles_testutils.MockGetCommit(t, urlMock, rm.childRepoURL, rm.childBranch.String(), &gitiles.Commit{
+		Commit: androidChildCommits[0],
+		Author: &gitiles.Author{
+			Time: time.Now().Format(gitiles.DateFormatNoTZ),
+		},
+		Committer: &gitiles.Author{
+			Time: time.Now().Format(gitiles.DateFormatNoTZ),
+		},
+	})
+	notSubmittedReason, err := rm.GetNotSubmittedReason(ctx, fakeRev)
+	require.NoError(t, err)
+	require.Empty(t, notSubmittedReason)
+
+	// The revision is not submitted.
+	fakeRev.Id = "bogus"
+	notSubmittedReason, err = rm.GetNotSubmittedReason(ctx, fakeRev)
+	require.NoError(t, err)
+	require.NotEmpty(t, notSubmittedReason)
 }
