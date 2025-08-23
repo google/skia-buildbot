@@ -176,7 +176,7 @@ export class BisectDialogSk extends ElementSk {
 
     const test = parameters!.at(3);
 
-    const parts: string[] = test!.split('_');
+    const parts: string[] = test!.split(':');
     // Pop up the last element from the array if exists
     const tail = parts.pop();
 
