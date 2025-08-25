@@ -341,9 +341,13 @@ explore-simple-sk {
 
   #query-dialog {
     overflow: auto;
-    width: 90%;
-    margin-top: 60px;
+    width: 80%;
     height: 68vh;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
 
     paramset-sk {
       display: inline-block;
