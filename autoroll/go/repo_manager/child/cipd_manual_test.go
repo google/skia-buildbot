@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/vfs"
 	"golang.org/x/oauth2/google"
@@ -38,7 +39,9 @@ func TestCIPDChild_VCS(t *testing.T) {
 	require.NoError(t, err)
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	wd := t.TempDir()
-	c, err := NewCIPD(ctx, &cfg, nil, client, wd)
+	cipdClient, err := cipd.NewClient(client, wd, cipd.DefaultServiceURL)
+	require.NoError(t, err)
+	c, err := NewCIPD(ctx, &cfg, nil, client, cipdClient, wd)
 	require.NoError(t, err)
 
 	// Download.

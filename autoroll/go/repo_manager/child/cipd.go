@@ -29,7 +29,7 @@ import (
 const (
 	cipdPackageUrlTmpl  = "%s/p/%s/+/%s"
 	cipdBuganizerPrefix = "b/"
-	gitRevisionTag      = "git_revision"
+	cipdGitRevisionTag  = "git_revision"
 )
 
 var (
@@ -39,12 +39,8 @@ var (
 // NewCIPD returns an implementation of Child which deals with a CIPD package.
 // If the caller calls CIPDChild.Download, the destination must be a descendant of
 // the provided workdir.
-func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Registry, client *http.Client, workdir string) (*CIPDChild, error) {
+func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Registry, client *http.Client, cipdClient cipd.CIPDClient, workdir string) (*CIPDChild, error) {
 	if err := c.Validate(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	cipdClient, err := cipd.NewClient(client, workdir, cipd.DefaultServiceURL)
-	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	gitilesConfig := c.SourceRepo
@@ -55,6 +51,7 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Re
 		}
 	}
 	var gitilesRepo *gitiles_common.GitilesRepo
+	var err error
 	if gitilesConfig != nil {
 		gitilesRepo, err = gitiles_common.NewGitilesRepo(ctx, gitilesConfig, reg, client)
 		if err != nil {
@@ -119,7 +116,7 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
-			gitRev.Id = fmt.Sprintf("%s:%s", gitRevisionTag, gitRevision)
+			gitRev.Id = fmt.Sprintf("%s:%s", cipdGitRevisionTag, gitRevision)
 			gitRev.Checksum = rev.Checksum
 			return gitRev, nil
 		}
@@ -145,7 +142,7 @@ func (c *CIPDChild) LogRevisions(ctx context.Context, from, to *revision.Revisio
 		}
 		for _, rev := range revs {
 			// Fix the IDs to be CIPD tags rather than Git commit hashes.
-			rev.Id = fmt.Sprintf("%s:%s", gitRevisionTag, rev.Id)
+			rev.Id = fmt.Sprintf("%s:%s", cipdGitRevisionTag, rev.Id)
 
 			// Make in-between revisions invalid, since we only have CIPD
 			// package instances associated with from and to.
@@ -331,7 +328,7 @@ func getGitRevisionFromCIPDInstance(instance *cipd_api.InstanceDescription) stri
 			sklog.Error(err)
 			continue
 		}
-		if gitRevisionTag == key {
+		if cipdGitRevisionTag == key {
 			return value
 		}
 	}
@@ -353,9 +350,9 @@ func joinCIPDTag(key, value string) string {
 	return fmt.Sprintf("%s:%s", key, value)
 }
 
-// gitRevTag creates a git_revision tag for the given hash.
-func gitRevTag(hash string) string {
-	return joinCIPDTag(gitRevisionTag, hash)
+// CIPDGitRevisionTag creates a git_revision tag for the given hash.
+func CIPDGitRevisionTag(hash string) string {
+	return joinCIPDTag(cipdGitRevisionTag, hash)
 }
 
 var _ Child = &CIPDChild{}

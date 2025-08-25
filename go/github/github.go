@@ -609,7 +609,6 @@ func ParseRepoOwnerAndName(url string) (owner string, repo string, err error) {
 		return "", "", skerr.Fmt("failed to parse repo URL %q", url)
 	}
 	for idx, name := range groupNames {
-		sklog.Errorf("%d: %s: %s", idx, name, m[idx])
 		if name == "repo_owner" {
 			owner = m[idx]
 		} else if name == "repo_name" {

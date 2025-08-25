@@ -43,7 +43,7 @@ const (
 	// TagsURL is the format of the URL used to retrieve tags.
 	TagsURL = "%s/+refs%%2Ftags?format=JSON"
 
-	dateFormatNoTZ = "Mon Jan 02 15:04:05 2006"
+	DateFormatNoTZ = "Mon Jan 02 15:04:05 2006"
 	dateFormatTZ   = "Mon Jan 02 15:04:05 2006 -0700"
 
 	// These were copied from the defaults used by gitfs:
@@ -176,7 +176,7 @@ func (r *Repo) getJSON(ctx context.Context, url string, dest interface{}) error 
 	if err != nil {
 		return skerr.Fmt("Failed to read response: %s", err)
 	}
-	// Remove the first line.
+	// Remove the first line, which contains XSS protection.
 	b = b[4:]
 	return skerr.Wrap(json.Unmarshal(b, dest))
 }
@@ -359,7 +359,7 @@ func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
 	if strings.Contains(c.Committer.Time, " +") || strings.Contains(c.Committer.Time, " -") {
 		ts, err = time.Parse(dateFormatTZ, c.Committer.Time)
 	} else {
-		ts, err = time.Parse(dateFormatNoTZ, c.Committer.Time)
+		ts, err = time.Parse(DateFormatNoTZ, c.Committer.Time)
 	}
 	if err != nil {
 		return nil, err

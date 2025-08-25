@@ -138,9 +138,6 @@ func mergeInclude(ctx context.Context, include, from, to string, fs vfs.FS, chan
 		return skerr.Wrap(err)
 	}
 	oldParentContents := string(oldParentBytes)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
 	dir := filepath.Dir(dest)
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return skerr.Wrap(err)

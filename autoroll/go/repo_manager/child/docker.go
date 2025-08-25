@@ -13,16 +13,12 @@ import (
 )
 
 // NewDocker returns an implementation of Child which deals with Docker images.
-func NewDocker(ctx context.Context, c *config.DockerChildConfig) (*DockerChild, error) {
+func NewDocker(ctx context.Context, c *config.DockerChildConfig, client docker.Client) (*DockerChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	dockerClient, err := docker.NewClient(ctx)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
 	return &DockerChild{
-		client:   dockerClient,
+		client:   client,
 		registry: c.Registry,
 		repo:     c.Repository,
 		tag:      c.Tag,

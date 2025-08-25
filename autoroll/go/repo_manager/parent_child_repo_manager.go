@@ -12,6 +12,9 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/docker"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -28,6 +31,11 @@ type parentChildRepoManager struct {
 // newParentChildRepoManager returns a RepoManager which pairs a Parent with a
 // Child.
 func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, serverURL string, client *http.Client, cr codereview.CodeReview) (*parentChildRepoManager, error) {
+	cipdClient, err := cipd.NewClient(client, workdir, cipd.DefaultServiceURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	// Get the child branch, if any.
 	var childBranchTmpl string
 	if c.GetGitilesChild() != nil {
@@ -38,7 +46,6 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		childBranchTmpl = c.GetGitCheckoutGithubChild().GitCheckout.GitCheckout.Branch
 	}
 	var childBranch *config_vars.Template
-	var err error
 	if childBranchTmpl != "" {
 		childBranch, err = config_vars.NewTemplate(childBranchTmpl)
 		if err != nil {
@@ -88,7 +95,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 
 	// Create the Child.
 	if c.GetCipdChild() != nil {
-		childRM, err = child.NewCIPD(ctx, c.GetCipdChild(), reg, client, workdir)
+		childRM, err = child.NewCIPD(ctx, c.GetCipdChild(), reg, client, cipdClient, workdir)
 	} else if c.GetFuchsiaSdkChild() != nil {
 		childRM, err = child.NewFuchsiaSDK(ctx, c.GetFuchsiaSdkChild(), client)
 	} else if c.GetGitilesChild() != nil {
@@ -100,7 +107,11 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 	} else if c.GetSemverGcsChild() != nil {
 		childRM, err = child.NewSemVerGCS(ctx, c.GetSemverGcsChild(), reg, client)
 	} else if c.GetDockerChild() != nil {
-		childRM, err = child.NewDocker(ctx, c.GetDockerChild())
+		dockerClient, err := docker.NewClient(ctx)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		childRM, err = child.NewDocker(ctx, c.GetDockerChild(), dockerClient)
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -121,7 +132,8 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 	}
 
 	// Revision filter.
-	revFilters, err := getRevisionFilters(c, client, workdir)
+	bbClient := buildbucket.NewClient(client)
+	revFilters, err := getRevisionFilters(c, client, cipdClient, bbClient)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -133,17 +145,17 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 	}, nil
 }
 
-func getRevisionFilters(c *config.ParentChildRepoManagerConfig, client *http.Client, workdir string) (revision_filter.RevisionFilters, error) {
+func getRevisionFilters(c *config.ParentChildRepoManagerConfig, client *http.Client, cipdClient cipd.CIPDClient, bbClient buildbucket.BuildBucketInterface) (revision_filter.RevisionFilters, error) {
 	var revFilters []revision_filter.RevisionFilter
 	for _, rfConfig := range c.GetBuildbucketRevisionFilter() {
-		revFilter, err := revision_filter.NewBuildbucketRevisionFilter(client, rfConfig)
+		revFilter, err := revision_filter.NewBuildbucketRevisionFilter(bbClient, rfConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 		revFilters = append(revFilters, revFilter)
 	}
 	for _, rfConfig := range c.GetCipdRevisionFilter() {
-		revFilter, err := revision_filter.NewCIPDRevisionFilter(client, rfConfig, workdir)
+		revFilter, err := revision_filter.NewCIPDRevisionFilter(cipdClient, rfConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

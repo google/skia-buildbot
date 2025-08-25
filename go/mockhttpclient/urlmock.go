@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/texttheater/golang-levenshtein/levenshtein"
@@ -85,7 +86,12 @@ func (md *MockDialogue) RequestHeader(key, value string) {
 	md.requestHeaders[key] = append(md.requestHeaders[key], value)
 }
 
-func (md *MockDialogue) GetResponse(r *http.Request) (*http.Response, error) {
+func (md *MockDialogue) GetResponse(r *http.Request) (resp *http.Response, err error) {
+	defer func() {
+		if err != nil {
+			sklog.Errorf("URLMock error for %s: %s", r.URL, err)
+		}
+	}()
 	if md.requestMethod != r.Method {
 		return nil, fmt.Errorf("Wrong Method, expected %q, but was %q", md.requestMethod, r.Method)
 	}
@@ -111,7 +117,8 @@ func (md *MockDialogue) GetResponse(r *http.Request) (*http.Response, error) {
 			return nil, fmt.Errorf("Error reading request body: %s", err)
 		}
 		if !reflect.DeepEqual(md.requestPayload, DONT_CARE_REQUEST) && !reflect.DeepEqual(md.requestPayload, requestBody) {
-			return nil, fmt.Errorf("Wrong request payload, expected \n%s, but was \n%s", md.requestPayload, requestBody)
+			diff := cmp.Diff(md.requestPayload, requestBody)
+			return nil, fmt.Errorf("Wrong request payload, expected \n%s, but was \n%s. Diff: %s", md.requestPayload, requestBody, diff)
 		}
 	}
 	return &http.Response{

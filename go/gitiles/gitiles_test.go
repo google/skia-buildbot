@@ -102,12 +102,12 @@ func TestLog(t *testing.T) {
 				Author: &Author{
 					Name:  "don't care",
 					Email: "don't care",
-					Time:  d.Timestamp.Format(dateFormatNoTZ),
+					Time:  d.Timestamp.Format(DateFormatNoTZ),
 				},
 				Committer: &Author{
 					Name:  "don't care",
 					Email: "don't care",
-					Time:  d.Timestamp.Format(dateFormatNoTZ),
+					Time:  d.Timestamp.Format(DateFormatNoTZ),
 				},
 				Message: d.Subject,
 			})
@@ -252,12 +252,12 @@ func TestLogPagination(t *testing.T) {
 				Author: &Author{
 					Name:  "don't care",
 					Email: "don't care",
-					Time:  c.Timestamp.Format(dateFormatNoTZ),
+					Time:  c.Timestamp.Format(DateFormatNoTZ),
 				},
 				Committer: &Author{
 					Name:  "don't care",
 					Email: "don't care",
-					Time:  c.Timestamp.Format(dateFormatNoTZ),
+					Time:  c.Timestamp.Format(DateFormatNoTZ),
 				},
 				Message: "don't care",
 			})
@@ -356,11 +356,11 @@ func TestLogLimit(t *testing.T) {
 				Parents: c.Parents,
 				Author: &Author{
 					Name: strings.TrimSuffix(c.Author, " ()"),
-					Time: c.Timestamp.Format(dateFormatNoTZ),
+					Time: c.Timestamp.Format(DateFormatNoTZ),
 				},
 				Committer: &Author{
 					Name: strings.TrimSuffix(c.Author, " ()"),
-					Time: c.Timestamp.Format(dateFormatNoTZ),
+					Time: c.Timestamp.Format(DateFormatNoTZ),
 				},
 				Message: c.Subject,
 			})

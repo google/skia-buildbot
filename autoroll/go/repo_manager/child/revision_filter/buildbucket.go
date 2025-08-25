@@ -3,7 +3,6 @@ package revision_filter
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/autoroll/go/config"
@@ -76,12 +75,12 @@ func (f BuildbucketRevisionFilter) Update(_ context.Context) error {
 
 // NewBuildbucketRevisionFilter returns a RevisionFilter which uses results from
 // Buildbucket to filter revisions.
-func NewBuildbucketRevisionFilter(client *http.Client, bbConfig *config.BuildbucketRevisionFilterConfig) (*BuildbucketRevisionFilter, error) {
+func NewBuildbucketRevisionFilter(bbClient buildbucket.BuildBucketInterface, bbConfig *config.BuildbucketRevisionFilterConfig) (*BuildbucketRevisionFilter, error) {
 	if bbConfig == nil {
 		return nil, skerr.Fmt("BuildbucketRevisionFilterConfig config must be specified")
 	}
 	return &BuildbucketRevisionFilter{
-		bb:       buildbucket.NewClient(client),
+		bb:       bbClient,
 		bbConfig: bbConfig,
 	}, nil
 }

@@ -30,11 +30,11 @@ type FuchsiaSDKChild struct {
 // SDK.
 func NewFuchsiaSDK(ctx context.Context, c *config.FuchsiaSDKChildConfig, client *http.Client) (*FuchsiaSDKChild, error) {
 	if err := c.Validate(); err != nil {
-		return nil, fmt.Errorf("Failed to validate config: %s", err)
+		return nil, skerr.Wrapf(err, "failed to validate config")
 	}
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create storage client: %s", err)
+		return nil, skerr.Wrapf(err, "failed to create storage client")
 	}
 
 	rv := &FuchsiaSDKChild{

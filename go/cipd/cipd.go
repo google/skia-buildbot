@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	api "go.chromium.org/luci/cipd/api/cipd/v1"
 	"go.chromium.org/luci/cipd/client/cipd"
@@ -137,9 +138,23 @@ var (
 	}
 )
 
+// SplitTag splits the tag in "key:value" format into the key and value.
+func SplitTag(tag string) (string, string, error) {
+	split := strings.SplitN(tag, ":", 2)
+	if len(split) != 2 {
+		return "", "", skerr.Fmt("invalid tag format %q", tag)
+	}
+	return split[0], split[1], nil
+}
+
+// JoinTag joins the key and value into "key:value" format.
+func JoinTag(key, value string) string {
+	return fmt.Sprintf("%s:%s", key, value)
+}
+
 // VersionTag returns a CIPD version tag for the given version number.
 func VersionTag(version string) string {
-	return fmt.Sprintf("version:%s", version)
+	return JoinTag("version", version)
 }
 
 // Package describes a CIPD package.

@@ -3,8 +3,6 @@ package revision_filter
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -26,9 +24,9 @@ type CIPDRevisionFilter struct {
 func (f *CIPDRevisionFilter) Skip(ctx context.Context, r revision.Revision) (string, error) {
 	tag := r.Id
 	if f.tagKey != "" {
-		tag = fmt.Sprintf("%s:%s", f.tagKey, tag)
+		tag = cipd.JoinTag(f.tagKey, tag)
 	}
-	if len(strings.Split(tag, ":")) != 2 {
+	if _, _, err := cipd.SplitTag(tag); err != nil {
 		return fmt.Sprintf("%q doesn't follow CIPD tag format", tag), nil
 	}
 	for _, pkg := range f.packages {
@@ -59,11 +57,7 @@ func (f *CIPDRevisionFilter) Update(_ context.Context) error {
 
 // NewCIPDRevisionFilter returns a RevisionFilter which filters out Revisions
 // which don't exist on all of the configured packages and platforms.
-func NewCIPDRevisionFilter(client *http.Client, cfg *config.CIPDRevisionFilterConfig, workdir string) (*CIPDRevisionFilter, error) {
-	cipdClient, err := cipd.NewClient(client, workdir, cipd.DefaultServiceURL)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
+func NewCIPDRevisionFilter(cipdClient cipd.CIPDClient, cfg *config.CIPDRevisionFilterConfig) (*CIPDRevisionFilter, error) {
 	return &CIPDRevisionFilter{
 		client:    cipdClient,
 		packages:  cfg.Package,

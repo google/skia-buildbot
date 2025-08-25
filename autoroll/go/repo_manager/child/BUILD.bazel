@@ -67,6 +67,7 @@ go_test(
         "//autoroll/go/revision",
         "//go/auth",
         "//go/chrome_branch/mocks",
+        "//go/cipd",
         "//go/cipd/mocks",
         "//go/docker",
         "//go/docker/mocks",

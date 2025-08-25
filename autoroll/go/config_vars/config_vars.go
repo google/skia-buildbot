@@ -94,7 +94,7 @@ type Branches struct {
 
 // Validate returns an error if Branches is not valid.
 func (b *Branches) Validate() error {
-	if b.ActiveMilestones == nil || len(b.ActiveMilestones) == 0 {
+	if len(b.ActiveMilestones) == 0 {
 		return skerr.Fmt("ActiveMilestones is required.")
 	}
 	for _, m := range b.ActiveMilestones {

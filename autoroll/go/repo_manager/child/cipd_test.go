@@ -260,7 +260,7 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 	gitTs := time.Unix(1615384887, 0)
 	cipdTs := time.Unix(1615384545, 0)
 	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
-	instanceTag := gitRevTag(gitRevision)
+	instanceTag := CIPDGitRevisionTag(gitRevision)
 	gitRev := &vcsinfo.LongCommit{
 		ShortCommit: &vcsinfo.ShortCommit{
 			Hash:    gitRevision,
@@ -526,7 +526,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	gitTs := time.Unix(1615384887, 0)
 	cipdTs := time.Unix(1615384545, 0)
 	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
-	instanceTag := gitRevTag(tipRevHash)
+	instanceTag := CIPDGitRevisionTag(tipRevHash)
 
 	mockCipdClient.On("ResolveVersion", testutils.AnyContext, c.name, c.tag).Return(common.Pin{
 		PackageName: c.name,
@@ -587,7 +587,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	}
 	lastRollRevHash := "bcdef67890bcdef67890bcdef67890bcdef67890"
 	lastRollRev := &revision.Revision{
-		Id:          gitRevTag(lastRollRevHash),
+		Id:          CIPDGitRevisionTag(lastRollRevHash),
 		Author:      "me@google.com",
 		Bugs:        map[string][]string{},
 		Description: "fake last roll rev",
@@ -617,7 +617,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 		URL:         "fake.git/+show/" + tipCommit.Hash,
 	}
 	expectMiddleRevA := &revision.Revision{
-		Id:            gitRevTag(middleCommitA.Hash),
+		Id:            CIPDGitRevisionTag(middleCommitA.Hash),
 		Checksum:      "",
 		Author:        "you@google.com",
 		Bugs:          map[string][]string{},
@@ -628,7 +628,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 		URL:           "fake.git/+show/" + middleCommitA.Hash,
 	}
 	expectMiddleRevB := &revision.Revision{
-		Id:            gitRevTag(middleCommitB.Hash),
+		Id:            CIPDGitRevisionTag(middleCommitB.Hash),
 		Checksum:      "",
 		Author:        "you@google.com",
 		Bugs:          map[string][]string{},
