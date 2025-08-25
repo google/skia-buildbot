@@ -3,7 +3,6 @@ package repo_manager
 import (
 	"path"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -112,7 +111,7 @@ func TestCopyRepoManager(t *testing.T) {
 
 }
 
-func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
+func TestCopyRepoManagerCreateNewRoll_ChildContentsCopiedIntoParentFiles(t *testing.T) {
 	cfg := copyCfg()
 	rm, parentGitiles, parentGerrit, childGitiles := setupCopy(t)
 
@@ -140,39 +139,37 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 
 	// In addition to the typical requests sent by the GitilesFile parent, we
 	// read file contents from both child and parent.
-	childGitiles.On("ResolveRef", testutils.AnyContext, noCheckoutLastRollRev).Return(noCheckoutLastRollRev, nil).Once()
 	oldContent = map[string]string{
-		parentCfg.Copies[0].SrcRelPath:                 "old-contents1",
-		path.Join(parentCfg.Copies[1].SrcRelPath, "a"): "old-contents-a",
-		path.Join(parentCfg.Copies[1].SrcRelPath, "b"): "old-contents-b",
-		path.Join(parentCfg.Copies[1].SrcRelPath, "c"): "old-contents-c",
+		parentCfg.Copies[0].DstRelPath:                 "old-contents1",
+		path.Join(parentCfg.Copies[1].DstRelPath, "a"): "old-contents-a",
+		path.Join(parentCfg.Copies[1].DstRelPath, "b"): "old-contents-b",
+		path.Join(parentCfg.Copies[1].DstRelPath, "c"): "old-contents-c",
 	}
-	// Note, Copy parent reads the old versions from the lastRollRev in the
-	// child repo, not from the base rev of the parent repo.
-	gitiles_testutils.MockReadObject_Dir(childGitiles, noCheckoutLastRollRev, parentCfg.Copies[1].SrcRelPath, []string{"a", "b", "c"})
+	parentGitiles.On("ResolveRef", testutils.AnyContext, noCheckoutParentHead).Return(noCheckoutParentHead, nil).Once()
+	gitiles_testutils.MockReadObject_Dir(parentGitiles, noCheckoutParentHead, parentCfg.Copies[1].DstRelPath, []string{"a", "b", "c"})
 	for path, contents := range oldContent {
-		gitiles_testutils.MockReadObject_File(childGitiles, noCheckoutLastRollRev, path, contents)
+		gitiles_testutils.MockReadObject_File(parentGitiles, noCheckoutParentHead, path, contents)
 	}
 
 	childGitiles.On("ResolveRef", testutils.AnyContext, noCheckoutTipRev).Return(noCheckoutTipRev, nil).Once()
-	newContent = map[string]string{
+	childContent := map[string]string{
 		parentCfg.Copies[0].SrcRelPath:                 "new-contents1",
 		path.Join(parentCfg.Copies[1].SrcRelPath, "a"): "new-contents-a",
 		path.Join(parentCfg.Copies[1].SrcRelPath, "b"): "new-contents-b",
 		path.Join(parentCfg.Copies[1].SrcRelPath, "c"): "new-contents-c",
 	}
 	gitiles_testutils.MockReadObject_Dir(childGitiles, noCheckoutTipRev, parentCfg.Copies[1].SrcRelPath, []string{"a", "b", "c"})
-	for path, contents := range newContent {
+	for path, contents := range childContent {
 		gitiles_testutils.MockReadObject_File(childGitiles, noCheckoutTipRev, path, contents)
 	}
 
+	newContent = map[string]string{
+		parentCfg.Copies[0].DstRelPath:                 "new-contents1",
+		path.Join(parentCfg.Copies[1].DstRelPath, "a"): "new-contents-a",
+		path.Join(parentCfg.Copies[1].DstRelPath, "b"): "new-contents-b",
+		path.Join(parentCfg.Copies[1].DstRelPath, "c"): "new-contents-c",
+	}
 	for path, contents := range newContent {
-		for _, copy := range parentCfg.Copies {
-			if strings.HasPrefix(path, copy.SrcRelPath) {
-				path = copy.DstRelPath + strings.TrimPrefix(path, copy.SrcRelPath)
-				break
-			}
-		}
 		parentGerrit.On("EditFile", testutils.AnyContext, mock.Anything, path, contents).Return(nil).Once()
 	}
 
