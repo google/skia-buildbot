@@ -30,8 +30,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"go.skia.org/infra/attest/go/types"
+	"go.skia.org/infra/cd/go/stages"
 	"go.skia.org/infra/go/docker"
 	git_pkg "go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/k8s-checker/go/k8s_config"
 )
@@ -99,9 +101,16 @@ func main() {
 		logf(ctx, "Changed files:\n%v\n", changedFiles)
 		logf(ctx, "Deleted files:\n%s\n", deletedFiles)
 	}
+
+	sf, err := stages.DecodeFile(stages.StageFilePath)
+	if err != nil {
+		logf(ctx, "failed to read %s: %s", stages.StageFilePath, err)
+		os.Exit(1)
+	}
+
 	ok := true
 	ok = ok && checkKubeval(ctx, changedFiles)
-	ok = ok && checkK8sConfigs(ctx, changedFiles)
+	ok = ok && checkK8sConfigs(ctx, changedFiles, sf)
 	ok = ok && checkAlertRules(ctx, changedFiles)
 	if !*commit {
 		// Nothing to do here currently.
@@ -249,12 +258,12 @@ func ValidateAlertFile(ctx context.Context, path string) error {
 	return nil
 }
 
-func checkK8sConfigs(ctx context.Context, changedFiles []fileWithChanges) bool {
+func checkK8sConfigs(ctx context.Context, changedFiles []fileWithChanges, sf *stages.StageFile) bool {
 	// TODO(borenet): Should we check all files?
 	ok := true
 	for _, f := range changedFiles {
 		if strings.Contains(f.fileName, "skia-infra-") && isYAMLFile(f.fileName) {
-			ok = ok && checkK8sConfigFile(ctx, f)
+			ok = ok && checkK8sConfigFile(ctx, f, sf)
 		}
 	}
 	return ok
@@ -267,7 +276,7 @@ var podSecurityVersions = []string{"v1.26"}
 const podSecurityLevelLabelTmpl = "pod-security.kubernetes.io/%s"
 const podSecurityVersionLabelTmpl = "pod-security.kubernetes.io/%s-version"
 
-func checkK8sConfigFile(ctx context.Context, f fileWithChanges) bool {
+func checkK8sConfigFile(ctx context.Context, f fileWithChanges, sf *stages.StageFile) bool {
 	// Read the configs from the file.
 	contents, err := os.ReadFile(f.fileName)
 	if err != nil {
@@ -332,20 +341,40 @@ func checkK8sConfigFile(ctx context.Context, f fileWithChanges) bool {
 	// Validate containers.
 	containers := []corev1.Container{}
 	for _, deployment := range k8sConfigs.Deployment {
-		containers = append(containers, deployment.Spec.Template.Spec.InitContainers...)
-		containers = append(containers, deployment.Spec.Template.Spec.Containers...)
+		c, err := validateSpecAndGetContainers(ctx, f.fileName, sf, deployment.Name, deployment.Spec.Template)
+		if err != nil {
+			logf(ctx, "%s\n", skerr.Unwrap(err))
+			ok = false
+		} else {
+			containers = append(containers, c...)
+		}
 	}
 	for _, statefulSet := range k8sConfigs.StatefulSet {
-		containers = append(containers, statefulSet.Spec.Template.Spec.InitContainers...)
-		containers = append(containers, statefulSet.Spec.Template.Spec.Containers...)
+		c, err := validateSpecAndGetContainers(ctx, f.fileName, sf, statefulSet.Name, statefulSet.Spec.Template)
+		if err != nil {
+			logf(ctx, "%s\n", skerr.Unwrap(err))
+			ok = false
+		} else {
+			containers = append(containers, c...)
+		}
 	}
 	for _, daemonSet := range k8sConfigs.DaemonSet {
-		containers = append(containers, daemonSet.Spec.Template.Spec.InitContainers...)
-		containers = append(containers, daemonSet.Spec.Template.Spec.Containers...)
+		c, err := validateSpecAndGetContainers(ctx, f.fileName, sf, daemonSet.Name, daemonSet.Spec.Template)
+		if err != nil {
+			logf(ctx, "%s\n", skerr.Unwrap(err))
+			ok = false
+		} else {
+			containers = append(containers, c...)
+		}
 	}
 	for _, cronJob := range k8sConfigs.CronJob {
-		containers = append(containers, cronJob.Spec.JobTemplate.Spec.Template.Spec.InitContainers...)
-		containers = append(containers, cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers...)
+		c, err := validateSpecAndGetContainers(ctx, f.fileName, sf, cronJob.Name, cronJob.Spec.JobTemplate.Spec.Template)
+		if err != nil {
+			logf(ctx, "%s\n", skerr.Unwrap(err))
+			ok = false
+		} else {
+			containers = append(containers, c...)
+		}
 	}
 	for _, container := range containers {
 		ok = ok && validateContainer(ctx, container)
@@ -372,6 +401,39 @@ func checkK8sConfigFile(ctx context.Context, f fileWithChanges) bool {
 	}
 
 	return ok
+}
+
+func validateSpecAndGetContainers(ctx context.Context, fileName string, sf *stages.StageFile, serviceName string, spec corev1.PodTemplateSpec) ([]corev1.Container, error) {
+	containers := append(spec.Spec.InitContainers, spec.Spec.Containers...)
+
+	nameToContainer := make(map[string]corev1.Container, len(containers))
+	for _, container := range containers {
+		nameToContainer[container.Name] = container
+	}
+	stgs, err := stages.GetStagesFromAnnotations(spec.Annotations)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get stages from annotations of %q in %s", serviceName, fileName)
+	}
+	for containerName, stageName := range stgs {
+		container, ok := nameToContainer[containerName]
+		if !ok {
+			return nil, skerr.Fmt("Found unused %s annotation in %q in %s: %q does not match any container", stages.PodAnnotationKey, serviceName, fileName, containerName)
+		}
+		imagePath := strings.Split(container.Image, "@")[0]
+		img, ok := sf.Images[imagePath]
+		if !ok {
+			return nil, skerr.Fmt("Container %q in %s uses image %q which is not present in %s\n", container.Name, fileName, imagePath, stages.StageFilePath)
+		}
+		stg, ok := img.Stages[stageName]
+		if !ok {
+			return nil, skerr.Fmt("Container %q in %s uses stage %q of image %q which is not present in %s\n", container.Name, fileName, stageName, imagePath, stages.StageFilePath)
+		}
+		expectImg := fmt.Sprintf("%s@%s", imagePath, stg.Digest)
+		if container.Image != expectImg {
+			return nil, skerr.Fmt("Container %q in %s has image %q which does not match %q specified by stage %q of image %q in %s\n", container.Name, fileName, container.Image, expectImg, stageName, imagePath, stages.StageFilePath)
+		}
+	}
+	return containers, nil
 }
 
 func validateContainer(ctx context.Context, container corev1.Container) bool {
