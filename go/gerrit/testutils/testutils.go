@@ -20,6 +20,9 @@ const (
 	FakeGitCookies = ".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"
 	// FakeChangeId is the Change ID used for changes uploaded to MockGerrit.
 	FakeChangeId = "123"
+
+	// xssLine is prepended to Gerrit server responses to help prevent XSS.
+	xssLine = ")]}'\n"
 )
 
 // MockGerrit is a GerritInterface implementation which mocks out requests to
@@ -62,7 +65,7 @@ func (g *MockGerrit) MockGetUserEmail(acc *gerrit.AccountDetails) {
 	url := FakeGerritURL + "/a/accounts/self/detail"
 	serialized, err := json.Marshal(acc)
 	require.NoError(g.t, err)
-	serialized = append([]byte(")]}'\n"), serialized...)
+	serialized = append([]byte(xssLine), serialized...)
 	g.Mock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 }
 
@@ -71,7 +74,7 @@ func (g *MockGerrit) MockGetIssueProperties(ci *gerrit.ChangeInfo) {
 	url := FakeGerritURL + "/a" + fmt.Sprintf(gerrit.URLTmplChange, fmt.Sprintf("%d", ci.Issue))
 	serialized, err := json.Marshal(ci)
 	require.NoError(g.t, err)
-	serialized = append([]byte(")]}'\n"), serialized...)
+	serialized = append([]byte(xssLine), serialized...)
 	g.Mock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 }
 
@@ -153,7 +156,7 @@ func (g *MockGerrit) MockSearch(results []*gerrit.ChangeInfo, limit int, terms .
 	url := fmt.Sprintf("%s/a%s", FakeGerritURL, gerrit.MakeGerritSearchURL(limit, 0, terms...))
 	serialized, err := json.Marshal(results)
 	require.NoError(g.t, err)
-	serialized = append([]byte(")]}'\n"), serialized...)
+	serialized = append([]byte(xssLine), serialized...)
 	g.Mock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 }
 

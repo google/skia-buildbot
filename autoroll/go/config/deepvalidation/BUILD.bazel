@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "deepvalidation",
+    srcs = ["deepvalidation.go"],
+    importpath = "go.skia.org/infra/autoroll/go/config/deepvalidation",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/codereview",
+        "//autoroll/go/config",
+        "//autoroll/go/config_vars",
+        "//go/chrome_branch",
+        "//go/gerrit",
+        "//go/github",
+        "//go/skerr",
+    ],
+)
+
+go_test(
+    name = "deepvalidation_test",
+    srcs = ["deepvalidation_test.go"],
+    embed = [":deepvalidation"],
+    deps = [
+        "//autoroll/go/config",
+        "//autoroll/go/config_vars",
+        "//go/chrome_branch",
+        "//go/chrome_branch/mocks",
+        "//go/gerrit",
+        "//go/gerrit/testutils",
+        "//go/mockhttpclient",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)
