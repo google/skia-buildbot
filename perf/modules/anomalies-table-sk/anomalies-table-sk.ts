@@ -762,6 +762,7 @@ export class AnomaliesTableSk extends ElementSk {
    */
   private toggleAllCheckboxes() {
     const checked = this.headerCheckbox!.checked;
+    this.headerCheckbox!.indeterminate = false;
 
     this.anomalyGroups.forEach((group) => {
       if (group.anomalies.length > 1) {
@@ -769,6 +770,7 @@ export class AnomaliesTableSk extends ElementSk {
           `input[id=anomaly-row-${this.getGroupId(group)}]`
         );
         if (summaryRowCheckbox) {
+          summaryRowCheckbox.indeterminate = false;
           summaryRowCheckbox.checked = checked;
         }
       }

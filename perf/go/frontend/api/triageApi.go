@@ -36,7 +36,7 @@ type triageApi struct {
 
 // Request object for the request from new bug UI.
 type FileBugRequest struct {
-	Keys        []string `json:"keys"`
+	Keys        []int    `json:"keys"`
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	Component   string   `json:"component"`
@@ -50,7 +50,7 @@ type FileBugRequest struct {
 // Existing bug request object to asscociate alerts from new bug UI.
 type SkiaAssociateBugRequest struct {
 	BugId      int      `json:"bug_id"`
-	Keys       []string `json:"keys"`
+	Keys       []int    `json:"keys"`
 	TraceNames []string `json:"trace_names"`
 }
 
