@@ -10,7 +10,6 @@ sk_element(
         "//perf/modules/favorites-dialog-sk",
         "//infra-sk/modules/alogin-sk",
         "//perf/modules/plot-google-chart-sk",
-        "//perf/modules/picker-field-sk",
         "//perf/modules/point-links-sk",
     ],
     ts_deps = [
@@ -23,7 +22,6 @@ sk_element(
         "//:node_modules/lit",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
         "//:node_modules/@google-web-components/google-chart",

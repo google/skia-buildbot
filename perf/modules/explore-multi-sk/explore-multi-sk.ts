@@ -40,9 +40,7 @@ import {
   QueryConfig,
   ReadOnlyParamSet,
   RequestType,
-  TraceCommitLink,
   TraceSet,
-  TraceMetadata,
   Trace,
 } from '../json';
 
@@ -52,13 +50,10 @@ import '../test-picker-sk';
 import '../../../golden/modules/pagination-sk/pagination-sk';
 import '../window/window';
 
-import { $$ } from '../../../infra-sk/modules/dom';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
-import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
-import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
 
 export class State {
@@ -118,8 +113,6 @@ export class ExploreMultiSk extends ElementSk {
 
   private _state: State = new State();
 
-  private addGraphButton: HTMLButtonElement | null = null;
-
   private graphDiv: Element | null = null;
 
   private useTestPicker: boolean = false;
@@ -129,12 +122,6 @@ export class ExploreMultiSk extends ElementSk {
   private defaults: QueryConfig | null = null;
 
   private userEmail: string = '';
-
-  private splitByList: PickerFieldSk | null = null;
-
-  private paramKeys: string[] = [];
-
-  private refreshSplitList: boolean = true;
 
   private _onSplitByChanged = (e: Event) => {
     this.dataLoading();
@@ -225,12 +212,9 @@ export class ExploreMultiSk extends ElementSk {
           });
         });
 
-        // Update the split by dropdown list.
-        this.updateSplitByKeys();
         // If a key is specified (eg: directly via url), perform the split
         if (this.state.splitByKeys.length > 0) {
           this.splitGraphs();
-          this.refreshSplitList = true;
         }
       }
     );
@@ -246,11 +230,6 @@ export class ExploreMultiSk extends ElementSk {
   private canAddFav(): boolean {
     return this.userEmail !== null && this.userEmail !== '';
   }
-
-  private openAddFavoriteDialog = async () => {
-    const d = $$<FavoritesDialogSk>('#fav-dialog', this) as FavoritesDialogSk;
-    await d!.open();
-  };
 
   private static template = (ele: ExploreMultiSk) => html`
     <div id="menu">
@@ -334,83 +313,6 @@ export class ExploreMultiSk extends ElementSk {
         }
       }
     }
-  }
-
-  /**
-   * updateSplitByKeys updates the split by dropdown and adds the count of splits
-   * next to the respective key.
-   */
-  private updateSplitByKeys() {
-    if (this.refreshSplitList) {
-      const splitCounts = this.getSplitCountByParam();
-      if (splitCounts.size > 0) {
-        const splitList: string[] = [];
-        this.paramKeys.forEach((paramKey) => {
-          const optionText = paramKey + ' (' + splitCounts.get(paramKey) + ')';
-          splitList.push(optionText);
-        });
-        this.splitByList!.options = splitList;
-        this.refreshSplitList = false;
-      }
-    }
-  }
-
-  /**
-   * This function initializes the split by list by populating
-   * it with the available param keys in the dropdown.
-   */
-  // DEPRECATED: Replaced by splitting via checkboxes.
-  private async initializeSplitByList(): Promise<void> {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    await fetch(`/_/initpage/?tz=${tz}`, {
-      method: 'GET',
-    })
-      .then(jsonOrThrow)
-      .then((json) => {
-        this.paramKeys = Object.keys(json.dataframe.paramset);
-        this.splitByList = this.querySelector('#splitby-keys');
-        this.splitByList!.label = 'Split By';
-        this.splitByList!.options = this.paramKeys;
-      });
-
-    // Whenever the user selects a value from the split by list,
-    // update the state to reflect it and then split the graphs.
-    this.splitByList!.addEventListener('value-changed', (e) => {
-      const selectedSplitKey = (e as CustomEvent).detail.value[0];
-      // The selectedSplitKey string will contain the split count, e.g. "bot (5)".
-      // so we need to extract that out.
-      selectedSplitKey.trim();
-      const splitByParamKey = selectedSplitKey.split('(')[0] ?? '';
-      // Only split if the new selection is different.
-      if (!this.state.splitByKeys.includes(splitByParamKey)) {
-        this.state.splitByKeys.push(splitByParamKey);
-        if (this.stateHasChanged) {
-          this.stateHasChanged();
-        }
-        this.splitGraphs();
-      }
-    });
-  }
-
-  /**
-   * getSplitCountByParam returns a map where the key is the param key
-   * and the value is the number of split graphs based on the key.
-   * @returns
-   */
-  private getSplitCountByParam(): Map<string, number> {
-    const splitCountByParam = new Map<string, number>();
-    const traceset: string[] = [];
-    this.getTracesets().forEach((ts) => {
-      traceset.push(...ts);
-    });
-    if (traceset.length > 0) {
-      this.paramKeys.forEach((paramKey) => {
-        const tracesGroupedForKey = this.groupTracesByParamKey(traceset, [paramKey]);
-        splitCountByParam.set(paramKey, tracesGroupedForKey.size);
-      });
-    }
-
-    return splitCountByParam;
   }
 
   /**
@@ -665,7 +567,6 @@ export class ExploreMultiSk extends ElementSk {
         this.addGraphsToCurrentPage(false);
         const query = this.testPicker!.createQueryFromFieldData();
         await explore.addFromQueryOrFormula(true, 'query', query, '');
-        this.refreshSplitList = true;
         if (this.testPicker) {
           this.testPicker.autoAddTrace = true;
         }
@@ -673,7 +574,6 @@ export class ExploreMultiSk extends ElementSk {
           this.splitGraphs();
         }
       }
-      this.updateSplitByKeys();
     });
 
     this.removeEventListener('split-by-changed', this._onSplitByChanged);
@@ -706,7 +606,6 @@ export class ExploreMultiSk extends ElementSk {
       }
       await explore.addFromQueryOrFormula(true, 'query', query, '');
       await this.splitGraphs();
-      this.refreshSplitList = true;
     });
 
     this.addEventListener('remove-trace', async (e) => {
@@ -1140,8 +1039,6 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private dataLoaded(): void {
-    this.refreshSplitList = true;
-    this.updateSplitByKeys();
     if (this.testPicker) {
       if (!this.testPicker.isLoaded() && this.exploreElements.length > 0) {
         this.populateTestPicker(this.exploreElements[0].getParamSet());
@@ -1299,42 +1196,6 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   /**
-   * getTraceMetadataFromCommitLinks returns the traceMetadata for the given traces extracted
-   * from the commitlinks.
-   * @param traceIds TraceIds to filter for.
-   * @param commitLinks All commit links available.
-   * @returns
-   */
-  private getTraceMetadataFromCommitLinks(
-    // eslint-disable-line no-unused-vars
-    traceIds: string[],
-    commitLinks: (CommitLinks | null)[]
-  ): TraceMetadata[] {
-    const traceMetadata: TraceMetadata[] = [];
-    const relevantLinks = commitLinks.filter((link) => traceIds.includes(link!.traceid));
-    const traceLinkMap = new Map<string, TraceMetadata>();
-    relevantLinks.forEach((link) => {
-      let metadata = traceLinkMap.get(link!.traceid);
-      if (metadata === undefined) {
-        metadata = { traceid: link!.traceid, commitLinks: {} };
-      }
-      Object.keys(link!.displayUrls!).forEach((key) => {
-        const traceCommitLink: TraceCommitLink = {
-          Href: link!.displayUrls![key],
-          Text: link!.displayTexts![key],
-        };
-        if (metadata!.commitLinks![link!.cid] === undefined) {
-          metadata!.commitLinks![link!.cid] = {};
-        }
-        metadata!.commitLinks![link!.cid]![key] = traceCommitLink;
-      });
-      traceMetadata.push(metadata);
-    });
-
-    return traceMetadata;
-  }
-
-  /**
    * Fetches the Graph Configs in the DB for a given shortcut ID.
    *
    * @param {string} shortcut - shortcut ID to look for in the GraphsShortcut table.
@@ -1389,25 +1250,6 @@ export class ExploreMultiSk extends ElementSk {
     this.state.pageSize = +(e.target! as HTMLInputElement).value;
     this.stateHasChanged!();
     this.splitGraphs();
-  }
-
-  private updatePageForNewExplore() {
-    // Check if there is space left on the current page
-    if (this.graphDiv!.childElementCount === this.state.pageSize) {
-      // We will have to add another page since the current one is full.
-      // Go to the next page.
-      this.pageChanged(
-        new CustomEvent<PaginationSkPageChangedEventDetail>('page-changed', {
-          detail: {
-            delta: 1,
-          },
-          bubbles: true,
-        })
-      );
-    } else {
-      // Re-render the page
-      this.addGraphsToCurrentPage(true);
-    }
   }
 
   private loadAllCharts() {
