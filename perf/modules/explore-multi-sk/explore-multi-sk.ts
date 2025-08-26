@@ -447,7 +447,7 @@ export class ExploreMultiSk extends ElementSk {
    */
   private async splitGraphs(): Promise<void> {
     const groupedTraces = this.groupTracesBySplitKey();
-    if (groupedTraces.size === 0 || this.state.splitByKeys.length === 0) {
+    if (groupedTraces.size === 0) {
       return;
     }
 
