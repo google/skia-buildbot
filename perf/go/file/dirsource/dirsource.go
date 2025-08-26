@@ -60,8 +60,12 @@ func (d *DirSource) Start(_ context.Context) (<-chan file.File, error) {
 			if info.IsDir() {
 				return nil
 			}
+			relativePath, err := filepath.Rel(d.dir, path)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
 			ret <- file.File{
-				Name:     path,
+				Name:     relativePath,
 				Contents: f,
 				Created:  info.ModTime(), // Obviously not created time.
 			}

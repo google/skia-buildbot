@@ -7,6 +7,7 @@ package builders
 import (
 	"context"
 	"io/fs"
+	"os"
 	"sync"
 
 	"github.com/jackc/pgx/v4"
@@ -239,8 +240,17 @@ func NewSourceFromConfig(ctx context.Context, instanceConfig *config.InstanceCon
 // provides access to ingested files.
 //
 // If local is true then we aren't running in production.
-func NewIngestedFSFromConfig(ctx context.Context, _ *config.InstanceConfig, local bool) (fs.FS, error) {
-	// We currently default to Google Cloud Storage, but Config options could be
-	// added to use other systems, such as S3.
-	return gcs.New(ctx, local)
+func NewIngestedFSFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig, local bool) (fs.FS, error) {
+	switch instanceConfig.IngestionConfig.SourceConfig.SourceType {
+	case config.GCSSourceType:
+		return gcs.New(ctx, local)
+	case config.DirSourceType:
+		n := len(instanceConfig.IngestionConfig.SourceConfig.Sources)
+		if n != 1 {
+			return nil, skerr.Fmt("For a source_type of 'dir' there must be a single entry for 'sources', found %d.", n)
+		}
+		return os.DirFS(instanceConfig.IngestionConfig.SourceConfig.Sources[0]), nil
+	default:
+		return nil, skerr.Fmt("Unknown source_type: %q", instanceConfig.IngestionConfig.SourceConfig.SourceType)
+	}
 }

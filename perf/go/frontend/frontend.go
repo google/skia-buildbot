@@ -1530,6 +1530,10 @@ func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to load details", http.StatusInternalServerError)
 		return
 	}
+	// When ingesting from a local dir the name ends up being the absolute
+	// filename when we should really store the relative path from configs dir
+	// path.
+	sklog.Infof("source file location: %q", name)
 
 	reader, err := f.ingestedFS.Open(name)
 	if err != nil {

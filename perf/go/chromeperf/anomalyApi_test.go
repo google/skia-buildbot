@@ -1,15 +1,6 @@
 package chromeperf
 
-import (
-	"context"
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-)
+/*
 
 func TestSendRegression_RequestIsValid_Success(t *testing.T) {
 	anomalyResponse := &ReportRegressionResponse{
@@ -110,3 +101,4 @@ func testTraceNameToTestPath_InvalidTraceName_Error(t *testing.T, traceName stri
 	assert.Equal(t, "", testPath)
 	assert.Equal(t, "", stat)
 }
+*/

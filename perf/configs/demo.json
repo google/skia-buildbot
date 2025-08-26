@@ -3,7 +3,7 @@
     "ga_measurement_id": "G-FAKE-MEASUREMENT-ID",
     "contact": "user@example.org",
     "trace_sample_proportion": 1.0,
-    "fetch_chrome_perf_anomalies": true,
+    "fetch_chrome_perf_anomalies": false,
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"
     },
