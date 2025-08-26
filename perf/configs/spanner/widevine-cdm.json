@@ -72,7 +72,7 @@
             "use_titles": "true",
             "useTestPicker": "true"
         },
-        "default_range": 2628000
+        "default_range": 15552000
     },
     "optimize_sqltracestore": true,
     "show_triage_link": true
