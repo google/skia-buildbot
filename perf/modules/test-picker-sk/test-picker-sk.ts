@@ -515,19 +515,25 @@ export class TestPickerSk extends ElementSk {
 
     // Create and store the new listeners.
     fieldInfo.onValueChanged = (e: Event) => {
-      const value = (e as CustomEvent).detail.value;
+      const value = (e as CustomEvent).detail.value as string[];
       if (value.length === 0) {
         this.removeChildFields(index);
       }
-      const removedValue =
-        fieldInfo.field?.selectedItems.filter((selectedItem) => !value.includes(selectedItem)) ||
-        [];
+      if (value === fieldInfo.field!.selectedItems) {
+        // Updated already, ignore.
+        return;
+      }
+
+      const newValues = new Set(value);
+      const oldValues = new Set(fieldInfo.value);
+      const removed = [...oldValues].filter((x) => !newValues.has(x));
+
       // Don't update graph if the first field is changed as it can overload
       // the graph.
       if (
         this._fieldData[0].param === fieldInfo.param &&
         this._fieldData[0].field!.selectedItems.length > 0 &&
-        removedValue.length === 0
+        removed.length === 0
       ) {
         fieldInfo.field!.selectedItems = this._fieldData[0].field!.selectedItems;
         errorMessage('Unable to add more items to the first field.');
@@ -537,14 +543,15 @@ export class TestPickerSk extends ElementSk {
       if (fieldInfo.value !== value) {
         fieldInfo.value = value;
       }
-      if (fieldInfo.field?.selectedItems !== value) {
+      if (value.length === 0) {
         // Chart needs to be reset, so disable autoAddTrace.
-        if (value.length === 0) {
-          this.autoAddTrace = false;
-        }
+        this.autoAddTrace = false;
+      }
+      if (value.length !== fieldInfo.field!.selectedItems.length) {
+        // Selected Item Needs to be updated.
         fieldInfo.field!.selectedItems = value;
       }
-      this.updateGraph(value, fieldInfo, removedValue);
+      this.updateGraph(value, fieldInfo, removed);
       this.fetchExtraOptions(index);
     };
 
@@ -880,14 +887,10 @@ export class TestPickerSk extends ElementSk {
     const fieldInfo = this._fieldData.find((field) => field.param === param);
     if (fieldInfo) {
       const newValue = fieldInfo.value.filter((v) => !value.includes(v));
-      // Update the value in the field info.
-      fieldInfo.value = newValue;
       // Update the selected items in the field.
       if (fieldInfo.field) {
         fieldInfo.field.selectedItems = newValue;
       }
-      // Update the graph with the new value.
-      this.updateGraph(newValue, fieldInfo, value);
     }
   }
 }
