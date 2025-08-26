@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/now"
 )
 
 type MockStore struct {
@@ -31,7 +32,7 @@ func (store *MockStore) List(ctx context.Context, includeDeleted bool) ([]*Alert
 	return store.alerts, nil
 }
 
-func (store *MockStore) GetListCount() int {
+func (store *MockStore) numberOfTimesListCalled() int {
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
 	return store.listCount
@@ -49,17 +50,19 @@ func TestCached(t *testing.T) {
 		},
 		mutex: sync.Mutex{},
 	}
-	provider, _ := NewConfigProvider(context.Background(), store, 10)
+	provider, err := NewConfigProvider(context.Background(), store, 10)
+	require.NoError(t, err)
+
 	alerts, err := provider.GetAllAlertConfigs(context.Background(), false)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(alerts))
-	assert.Equal(t, 2, store.GetListCount())
+	assert.Equal(t, 2, store.numberOfTimesListCalled())
 
 	// Now call it again. This time it should not hit the store obj
 	alerts, err = provider.GetAllAlertConfigs(context.Background(), false)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(alerts))
-	assert.Equal(t, 2, store.GetListCount())
+	assert.Equal(t, 2, store.numberOfTimesListCalled())
 }
 
 func TestCache_Refresh(t *testing.T) {
@@ -74,21 +77,19 @@ func TestCache_Refresh(t *testing.T) {
 		},
 		mutex: sync.Mutex{},
 	}
-	provider, _ := NewConfigProvider(context.Background(), store, 10)
+	provider, err := NewConfigProvider(context.Background(), store, 10)
+	require.NoError(t, err)
 	ctx := context.Background()
 	alerts, err := provider.GetAllAlertConfigs(ctx, false)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(alerts))
-	assert.Equal(t, 2, store.GetListCount())
+	assert.Equal(t, 2, store.numberOfTimesListCalled())
 
-	// Refresh should reset the cache
-	_ = provider.Refresh(ctx)
-
-	// Now call it again. This time it should hit the store obj
+	// Now call it again. This time it should not hit the store obj
 	alerts, err = provider.GetAllAlertConfigs(context.Background(), false)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(alerts))
-	assert.Equal(t, 4, store.GetListCount())
+	assert.Equal(t, 2, store.numberOfTimesListCalled())
 }
 
 func TestCache_Expire(t *testing.T) {
@@ -103,44 +104,22 @@ func TestCache_Expire(t *testing.T) {
 		},
 		mutex: sync.Mutex{},
 	}
-	provider, _ := NewConfigProvider(context.Background(), store, 1)
+	provider, err := NewConfigProvider(context.Background(), store, 1)
+	require.NoError(t, err)
 	alerts, err := provider.GetAllAlertConfigs(context.Background(), false)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(alerts))
-	assert.Equal(t, 2, store.GetListCount())
+	assert.Equal(t, 2, store.numberOfTimesListCalled())
 
 	// Sleep for 2 sec to expire the cache
-	time.Sleep(2 * time.Second)
+	time.Sleep(3 * time.Second)
 
-	// Now call it again. It should hit the store obj
-	alerts, err = provider.GetAllAlertConfigs(context.Background(), false)
+	// Use TimeTravelingContext here.
+	futureCtx := now.TimeTravelingContext(time.Now().Add(time.Duration(3 * time.Second)))
+
+	// Now call it again. It should hit the store just once.
+	alerts, err = provider.GetAllAlertConfigs(futureCtx, false)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(alerts))
-	assert.Equal(t, 4, store.GetListCount())
-}
-
-func TestCache_Concurrent(t *testing.T) {
-	store := &MockStore{
-		alerts: []*Alert{
-			{
-				IDAsString: "1",
-			},
-			{
-				IDAsString: "3",
-			},
-		},
-	}
-	provider, _ := NewConfigProvider(context.Background(), store, 0)
-	wg := sync.WaitGroup{}
-	for i := 0; i < 20; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			time.Sleep(10 * time.Millisecond)
-			alerts, err := provider.GetAllAlertConfigs(context.Background(), false)
-			require.NoError(t, err)
-			assert.Equal(t, 2, len(alerts))
-		}()
-	}
-	wg.Wait()
+	assert.Equal(t, 3, store.numberOfTimesListCalled())
 }

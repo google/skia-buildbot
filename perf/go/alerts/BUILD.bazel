@@ -11,9 +11,9 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/alerts",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/now",
         "//go/paramtools",
         "//go/skerr",
-        "//go/sklog",
         "//perf/go/types",
     ],
 )
@@ -27,6 +27,7 @@ go_test(
     embed = [":alerts"],
     race = "on",
     deps = [
+        "//go/now",
         "//go/paramtools",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

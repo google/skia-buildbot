@@ -30,8 +30,5 @@ go_test(
         "anomalyApi_test.go",
     ],
     embed = [":chromeperf"],
-    deps = [
-        "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//require",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

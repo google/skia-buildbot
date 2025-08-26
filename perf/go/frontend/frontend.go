@@ -509,7 +509,7 @@ func (f *Frontend) initialize() {
 	}
 	f.configProvider, err = alerts.NewConfigProvider(ctx, f.alertStore, 600)
 	if err != nil {
-		sklog.Fatalf("Failed to create alerts configprovider: %s", err)
+		sklog.Fatalf("Failed building config provider: %s", err)
 	}
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
