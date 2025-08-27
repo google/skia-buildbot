@@ -331,22 +331,23 @@ func (dv *deepvalidator) freeTypeRepoManagerConfig(ctx context.Context, c *confi
 // ParentChildRepoManagerConfig, making external network requests as needed.
 func (dv *deepvalidator) parentChildRepoManagerConfig(ctx context.Context, c *config.ParentChildRepoManagerConfig) (version_file_common.GetFileFunc, version_file_common.GetFileFunc, error) {
 	var getFileParent, getFileChild version_file_common.GetFileFunc
+	var tipRev *revision.Revision
 	var err error
 	switch child := c.Child.(type) {
 	case *config.ParentChildRepoManagerConfig_CipdChild:
-		_, err = dv.cipdChildConfig(ctx, child.CipdChild)
+		tipRev, err = dv.cipdChildConfig(ctx, child.CipdChild)
 	case *config.ParentChildRepoManagerConfig_FuchsiaSdkChild:
-		_, err = dv.fuchsiaSDKChildConfig(ctx, child.FuchsiaSdkChild)
+		tipRev, err = dv.fuchsiaSDKChildConfig(ctx, child.FuchsiaSdkChild)
 	case *config.ParentChildRepoManagerConfig_GitCheckoutChild:
-		getFileChild, _, err = dv.gitCheckoutChildConfig(ctx, child.GitCheckoutChild)
+		getFileChild, tipRev, err = dv.gitCheckoutChildConfig(ctx, child.GitCheckoutChild)
 	case *config.ParentChildRepoManagerConfig_GitCheckoutGithubChild:
-		getFileChild, _, err = dv.gitCheckoutGitHubChildConfig(ctx, child.GitCheckoutGithubChild)
+		getFileChild, tipRev, err = dv.gitCheckoutGitHubChildConfig(ctx, child.GitCheckoutGithubChild)
 	case *config.ParentChildRepoManagerConfig_GitilesChild:
-		getFileChild, _, err = dv.gitilesChildConfig(ctx, child.GitilesChild)
+		getFileChild, tipRev, err = dv.gitilesChildConfig(ctx, child.GitilesChild)
 	case *config.ParentChildRepoManagerConfig_SemverGcsChild:
-		_, err = dv.semVerGCSChildConfig(ctx, child.SemverGcsChild)
+		tipRev, err = dv.semVerGCSChildConfig(ctx, child.SemverGcsChild)
 	case *config.ParentChildRepoManagerConfig_DockerChild:
-		_, err = dv.dockerChildConfig(ctx, child.DockerChild)
+		tipRev, err = dv.dockerChildConfig(ctx, child.DockerChild)
 	default:
 		return nil, nil, skerr.Fmt("Unknown child type: %s", child)
 	}
@@ -357,8 +358,18 @@ func (dv *deepvalidator) parentChildRepoManagerConfig(ctx context.Context, c *co
 	switch parent := c.Parent.(type) {
 	case *config.ParentChildRepoManagerConfig_CopyParent:
 		getFileParent, err = dv.copyParentConfig(ctx, parent.CopyParent, getFileChild)
+	case *config.ParentChildRepoManagerConfig_DepsLocalGithubParent:
+		getFileParent, err = dv.depsLocalGitHubParentConfig(ctx, parent.DepsLocalGithubParent, tipRev, getFileChild)
+	case *config.ParentChildRepoManagerConfig_DepsLocalGerritParent:
+		getFileParent, err = dv.depsLocalGerritParentConfig(ctx, parent.DepsLocalGerritParent, tipRev, getFileChild)
+	case *config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent:
+		getFileParent, err = dv.gitCheckoutGitHubFileParentConfig(ctx, parent.GitCheckoutGithubFileParent, tipRev, getFileChild)
+	case *config.ParentChildRepoManagerConfig_GitCheckoutGerritParent:
+		getFileParent, err = dv.gitCheckoutGerritParentConfig(ctx, parent.GitCheckoutGerritParent, tipRev, getFileChild)
 	case *config.ParentChildRepoManagerConfig_GitilesParent:
 		getFileParent, err = dv.gitilesParentConfig(ctx, parent.GitilesParent, getFileChild)
+	case *config.ParentChildRepoManagerConfig_GoModGerritParent:
+		getFileParent, err = dv.goModGerritParentConfig(ctx, parent.GoModGerritParent, tipRev)
 	default:
 		return nil, nil, skerr.Fmt("Unknown parent type: %s", parent)
 	}
@@ -439,6 +450,25 @@ func (dv *deepvalidator) gitilesParentConfig(ctx context.Context, c *config.Giti
 		return nil, skerr.Wrap(err)
 	}
 	return getFileParent, nil
+}
+
+// goModGerritParentConfig performs validation of the
+// GoModGerritParentConfig, making external network requests as needed.
+func (dv *deepvalidator) goModGerritParentConfig(ctx context.Context, c *config.GoModGerritParentConfig, tipRev *revision.Revision) (version_file_common.GetFileFunc, error) {
+	if err := dv.gerritConfig(ctx, c.Gerrit); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return dv.goModParentConfig(ctx, c.GoMod, tipRev)
+}
+
+// goModParentConfig performs validation of the GoModParentConfig,
+// making external network requests as needed.
+func (dv *deepvalidator) goModParentConfig(ctx context.Context, c *config.GoModParentConfig, tipRev *revision.Revision) (version_file_common.GetFileFunc, error) {
+	parentGetFile, _, err := dv.gitCheckoutConfig(ctx, c.GitCheckout)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return parentGetFile, nil
 }
 
 // dependencyConfig performs validation of the DependencyConfig, making
@@ -571,6 +601,94 @@ func (dv *deepvalidator) copyParentConfig_CopyEntry(ctx context.Context, c *conf
 		return skerr.Wrapf(err, "failed to read dst %q", c.DstRelPath)
 	}
 	return nil
+}
+
+// depsLocalGitHubParentConfig performs validation of the
+// DEPSLocalGitHubParentConfig, making external network requests as needed.
+func (dv *deepvalidator) depsLocalGitHubParentConfig(ctx context.Context, c *config.DEPSLocalGitHubParentConfig, tipRev *revision.Revision, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
+	if err := dv.gitHubConfig(ctx, c.Github); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	forkTmpl, err := config_vars.NewTemplate(git.MainBranch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := dv.reg.Register(forkTmpl); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if _, _, err := dv.deepValidateGitHubRepo(ctx, c.ForkRepoUrl, forkTmpl); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return dv.depsLocalParentConfig(ctx, c.DepsLocal, tipRev, getFileChild)
+}
+
+// depsLocalParentConfig performs validation of the
+// DEPSLocalParentConfig, making external network requests as needed.
+func (dv *deepvalidator) depsLocalParentConfig(ctx context.Context, c *config.DEPSLocalParentConfig, tipRev *revision.Revision, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
+	getFileParent, err := dv.gitCheckoutParentConfig(ctx, c.GitCheckout, getFileChild)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return getFileParent, nil
+}
+
+// gitCheckoutParentConfig performs validation of the
+// GitCheckoutParentConfig, making external network requests as needed.
+func (dv *deepvalidator) gitCheckoutParentConfig(ctx context.Context, c *config.GitCheckoutParentConfig, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
+	getFileParent, _, err := dv.gitCheckoutConfig(ctx, c.GitCheckout)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := dv.dependencyConfig(ctx, c.Dep, getFileParent, getFileChild); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return getFileParent, nil
+}
+
+// depsLocalGerritParentConfig performs validation of the
+// DEPSLocalGerritParentConfig, making external network requests as needed.
+func (dv *deepvalidator) depsLocalGerritParentConfig(ctx context.Context, c *config.DEPSLocalGerritParentConfig, tipRev *revision.Revision, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
+	if err := dv.gerritConfig(ctx, c.Gerrit); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return dv.depsLocalParentConfig(ctx, c.DepsLocal, tipRev, getFileChild)
+}
+
+// gitCheckoutGitHubFileParentConfig performs validation of the
+// GitCheckoutGitHubFileParentConfig, making external network requests as needed.
+func (dv *deepvalidator) gitCheckoutGitHubFileParentConfig(ctx context.Context, c *config.GitCheckoutGitHubFileParentConfig, tipRev *revision.Revision, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
+	getFileParent, err := dv.gitCheckoutGitHubParentConfig(ctx, c.GitCheckout, getFileChild)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return getFileParent, nil
+}
+
+// gitCheckoutGitHubParentConfig performs validation of the
+// GitCheckoutGitHubParentConfig, making external network requests as needed.
+func (dv *deepvalidator) gitCheckoutGitHubParentConfig(ctx context.Context, c *config.GitCheckoutGitHubParentConfig, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
+	// TODO(borenet): Can we rely on main being present?
+	branchTmpl, err := config_vars.NewTemplate(git.MainBranch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := dv.reg.Register(branchTmpl); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if _, _, err := dv.deepValidateGitHubRepo(ctx, c.ForkRepoUrl, branchTmpl); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return dv.gitCheckoutParentConfig(ctx, c.GitCheckout, getFileChild)
+}
+
+// gitCheckoutGerritParentConfig performs validation of the
+// GitCheckoutGerritParentConfig, making external network requests as needed.
+func (dv *deepvalidator) gitCheckoutGerritParentConfig(ctx context.Context, c *config.GitCheckoutGerritParentConfig, tipRev *revision.Revision, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
+	getFileParent, err := dv.gitCheckoutParentConfig(ctx, c.GitCheckout, getFileChild)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return getFileParent, nil
 }
 
 // dockerChildConfig performs validation of the DockerChildConfig,

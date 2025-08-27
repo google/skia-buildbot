@@ -43,10 +43,12 @@ const (
 	fakeParentRepo = "https://fake.googlesource.com/parent.git"
 	fakeChildRepo  = "https://fake.googlesource.com/child.git"
 
-	fakeGitHubRepoOwner = "fake"
-	fakeGitHubRepoName  = "skia"
-	fakeGitHubRepo      = "https://github.com/fake/skia"
-	fakeGitHubRef       = "refs/heads%2Fmain"
+	fakeGitHubRepoOwner    = "fake"
+	fakeGitHubRepoName     = "skia"
+	fakeGitHubRepo         = "https://github.com/fake/skia"
+	fakeGitHubForkRepoName = "fork"
+	fakeGitHubForkRepo     = "https://github.com/fake/fork"
+	fakeGitHubRef          = "refs/heads%2Fmain"
 
 	fakeCommitHash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
@@ -244,9 +246,7 @@ func TestDeepValidator_versionFileConfig(t *testing.T) {
 	defer urlMock.AssertExpectations(t)
 
 	cfg := makeVersionFileConfig()
-	getFile := func(ctx context.Context, path string) (string, error) {
-		return fakeDepsContent, nil
-	}
+	getFile := makeGetFileFunc(fakeDepsContent, nil)
 
 	t.Run("Success", func(t *testing.T) {
 		err := dv.versionFileConfig(t.Context(), cfg, getFile)
@@ -264,9 +264,7 @@ func TestDeepValidator_versionFileConfig(t *testing.T) {
 	})
 
 	t.Run("getFile fails", func(t *testing.T) {
-		getFile = func(ctx context.Context, path string) (string, error) {
-			return "", fmt.Errorf("failed to read file")
-		}
+		getFile := makeGetFileFunc("", fmt.Errorf("failed to read file"))
 		err := dv.versionFileConfig(t.Context(), cfg, getFile)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "failed to read file")
@@ -540,9 +538,7 @@ func TestDeepValidator_freeTypeParentConfig(t *testing.T) {
 
 	mocksForFreeTypeParentConfig(t, urlMock, cfg)
 
-	getFileChild := func(ctx context.Context, file string) (string, error) {
-		return "", nil
-	}
+	getFileChild := makeGetFileFunc("", nil)
 	_, err := dv.freeTypeParentConfig(t.Context(), cfg, getFileChild)
 	require.NoError(t, err)
 }
@@ -555,10 +551,32 @@ func TestDeepValidator_gitilesParentConfig(t *testing.T) {
 
 	mocksForGitilesParentConfig(t, urlMock, cfg)
 
-	getFileChild := func(ctx context.Context, file string) (string, error) {
-		return "", nil
-	}
+	getFileChild := makeGetFileFunc("", nil)
 	_, err := dv.gitilesParentConfig(t.Context(), cfg, getFileChild)
+	require.NoError(t, err)
+}
+
+func TestDeepValidator_goModGerritParentConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeGoModGerritParentConfig()
+
+	mocksForGoModGerritParentConfig(t, urlMock, cfg)
+
+	_, err := dv.goModGerritParentConfig(t.Context(), cfg, &revision.Revision{})
+	require.NoError(t, err)
+}
+
+func TestDeepValidator_goModParentConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeGoModParentConfig()
+
+	mocksForGoModParentConfig(t, urlMock, cfg)
+
+	_, err := dv.goModParentConfig(t.Context(), cfg, &revision.Revision{})
 	require.NoError(t, err)
 }
 
@@ -580,12 +598,8 @@ func TestDeepValidator_dependencyConfig(t *testing.T) {
 	})
 
 	t.Run("Not Found", func(t *testing.T) {
-		getFile := func(ctx context.Context, path string) (string, error) {
-			return fakeDepsContent, nil
-		}
-		getFileFail := func(ctx context.Context, path string) (string, error) {
-			return "", fmt.Errorf("failed to read file")
-		}
+		getFile := makeGetFileFunc(fakeDepsContent, nil)
+		getFileFail := makeGetFileFunc("", fmt.Errorf("failed to read file"))
 		err := dv.dependencyConfig(t.Context(), cfg, getFileFail, getFile)
 		require.Error(t, err)
 	})
@@ -758,12 +772,8 @@ func TestDeepValidator_copyParentConfig_CopyEntry(t *testing.T) {
 
 	cfg := makeCopyParentConfig_CopyEntry()
 
-	getFileSuccess := func(ctx context.Context, path string) (string, error) {
-		return "some content", nil
-	}
-	getFileFail := func(ctx context.Context, path string) (string, error) {
-		return "", fmt.Errorf("file not found")
-	}
+	getFileSuccess := makeGetFileFunc("some content", nil)
+	getFileFail := makeGetFileFunc("", fmt.Errorf("file not found"))
 
 	t.Run("Success", func(t *testing.T) {
 		err := dv.copyParentConfig_CopyEntry(t.Context(), cfg, getFileSuccess, getFileSuccess)
@@ -781,6 +791,110 @@ func TestDeepValidator_copyParentConfig_CopyEntry(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "file not found")
 	})
+}
+
+func TestDeepValidator_depsLocalGitHubParentConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeDEPSLocalGitHubParentConfig()
+
+	mocksForDepsLocalGitHubParentConfig(t, dv, urlMock, cfg)
+
+	getFileChild := makeGetFileFunc("", nil)
+	_, err := dv.depsLocalGitHubParentConfig(t.Context(), cfg, &revision.Revision{}, getFileChild)
+	require.NoError(t, err)
+}
+
+func TestDeepValidator_depsLocalParentConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeDEPSLocalParentConfig()
+	mocksForDepsLocalParentConfig(t, dv, urlMock, cfg)
+
+	getFileChild := makeGetFileFunc("", nil)
+	tipRev := &revision.Revision{
+		Id: "test-rev",
+	}
+	_, err := dv.depsLocalParentConfig(t.Context(), cfg, tipRev, getFileChild)
+	require.NoError(t, err)
+
+	// Test failure case.
+	repoURL := cfg.GitCheckout.GitCheckout.RepoUrl
+	urlMock.MockOnce(repoURL+"/+show/main?format=JSON", mockhttpclient.MockGetError("not found", http.StatusNotFound))
+	_, err = dv.depsLocalParentConfig(t.Context(), cfg, tipRev, getFileChild)
+	require.Error(t, err)
+}
+
+func TestDeepValidator_gitCheckoutParentConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeGitCheckoutParentConfig()
+
+	mocksForGitCheckoutParentConfig(t, urlMock, cfg)
+
+	getFileChild := makeGetFileFunc("child content", nil)
+	_, err := dv.gitCheckoutParentConfig(t.Context(), cfg, getFileChild)
+	require.NoError(t, err)
+
+	// Test failure case.
+	urlMock.MockOnce(cfg.GitCheckout.RepoUrl+"/+show/main?format=JSON", mockhttpclient.MockGetError("not found", http.StatusNotFound))
+	_, err = dv.gitCheckoutParentConfig(t.Context(), cfg, getFileChild)
+	require.Error(t, err)
+}
+
+func TestDeepValidator_depsLocalGerritParentConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeDEPSLocalGerritParentConfig()
+
+	mocksForDepsLocalGerritParentConfig(t, dv, urlMock, cfg)
+
+	getFileChild := makeGetFileFunc("child content", nil)
+	_, err := dv.depsLocalGerritParentConfig(t.Context(), cfg, &revision.Revision{}, getFileChild)
+	require.NoError(t, err)
+}
+
+func TestDeepValidator_gitCheckoutGitHubFileParentConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeGitCheckoutGitHubFileParentConfig()
+
+	mocksForGitCheckoutGitHubFileParentConfig(t, urlMock, cfg)
+
+	getFileChild := makeGetFileFunc("child content", nil)
+	_, err := dv.gitCheckoutGitHubFileParentConfig(t.Context(), cfg, &revision.Revision{}, getFileChild)
+	require.NoError(t, err)
+}
+
+func TestDeepValidator_gitCheckoutGitHubParentConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeGitCheckoutGitHubParentConfig()
+
+	mocksForGitCheckoutGitHubParentConfig(t, urlMock, cfg)
+
+	getFileChild := makeGetFileFunc("child content", nil)
+	_, err := dv.gitCheckoutGitHubParentConfig(t.Context(), cfg, getFileChild)
+	require.NoError(t, err)
+}
+
+func TestDeepValidator_gitCheckoutGerritParentConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeGitCheckoutGerritParentConfig()
+
+	mocksForGitCheckoutGerritParentConfig(t, urlMock, cfg)
+
+	getFileChild := makeGetFileFunc("child content", nil)
+	_, err := dv.gitCheckoutGerritParentConfig(t.Context(), cfg, &revision.Revision{}, getFileChild)
+	require.NoError(t, err)
 }
 
 func TestDeepValidator_dockerChildConfig(t *testing.T) {
@@ -848,24 +962,59 @@ func TestDeepValidator_parentChildRepoManagerConfig(t *testing.T) {
 	copyParentMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock) {
 		mocksForCopyParentConfig(t, urlMock, copyParentCfg.GetCopyParent())
 	}
+	depsLocalGithubParentCfg := &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGithubParent{DepsLocalGithubParent: makeDEPSLocalGitHubParentConfig()},
+	}
+	depsLocalGithubParentMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock) {
+		mocksForDepsLocalGitHubParentConfig(t, dv, urlMock, depsLocalGithubParentCfg.GetDepsLocalGithubParent())
+	}
+	depsLocalGerritParentCfg := &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGerritParent{DepsLocalGerritParent: makeDEPSLocalGerritParentConfig()},
+	}
+	depsLocalGerritParentMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock) {
+		mocksForDepsLocalGerritParentConfig(t, dv, urlMock, depsLocalGerritParentCfg.GetDepsLocalGerritParent())
+	}
+	gitCheckoutGithubFileParentCfg := &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent{GitCheckoutGithubFileParent: makeGitCheckoutGitHubFileParentConfig()},
+	}
+	gitCheckoutGithubFileParentMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock) {
+		mocksForGitCheckoutGitHubFileParentConfig(t, urlMock, gitCheckoutGithubFileParentCfg.GetGitCheckoutGithubFileParent())
+	}
+	gitilesParentCfg := &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{GitilesParent: makeGitilesParentConfig()},
+	}
+	gitilesParentMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock) {
+		mocksForGitilesParentConfig(t, urlMock, gitilesParentCfg.GetGitilesParent())
+	}
+	goModGerritParentCfg := &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GoModGerritParent{GoModGerritParent: makeGoModGerritParentConfig()},
+	}
+	goModGerritParentMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock) {
+		mocksForGoModGerritParentConfig(t, urlMock, goModGerritParentCfg.GetGoModGerritParent())
+	}
+	gitCheckoutGerritParentCfg := &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitCheckoutGerritParent{GitCheckoutGerritParent: makeGitCheckoutGerritParentConfig()},
+	}
+	gitCheckoutGerritParentMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock) {
+		mocksForGitCheckoutGerritParentConfig(t, urlMock, gitCheckoutGerritParentCfg.GetGitCheckoutGerritParent())
+	}
 
-	// cipdChildCfg := &config.ParentChildRepoManagerConfig{
-	// 	Child: &config.ParentChildRepoManagerConfig_CipdChild{
-	// 		CipdChild: makeCIPDChildConfig(),
-	// 	},
-	// }
-	// cipdChildMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, copiedFile string) {
-	// 	mocksForCIPDChildConfig(t, dv, cipdChildCfg.GetCipdChild(), nil)
-	// }
-	// fuchsiaSdkChildCfg := &config.ParentChildRepoManagerConfig{
-	// 	Child: &config.ParentChildRepoManagerConfig_FuchsiaSdkChild{
-	// 		FuchsiaSdkChild: makeFuchsiaSDKChildConfig(),
-	// 	},
-	// }
-	// fuchsiaSdkChildMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, copiedFile string) {
-	// 	mocksForFuchsiaSDKChildConfig(t, urlMock, fuchsiaSdkChildCfg.GetFuchsiaSdkChild())
-
-	// }
+	cipdChildCfg := &config.ParentChildRepoManagerConfig{
+		Child: &config.ParentChildRepoManagerConfig_CipdChild{
+			CipdChild: makeCIPDChildConfig(),
+		},
+	}
+	cipdChildMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, copiedFile string) {
+		mocksForCIPDChildConfig(t, dv, cipdChildCfg.GetCipdChild(), nil)
+	}
+	fuchsiaSdkChildCfg := &config.ParentChildRepoManagerConfig{
+		Child: &config.ParentChildRepoManagerConfig_FuchsiaSdkChild{
+			FuchsiaSdkChild: makeFuchsiaSDKChildConfig(),
+		},
+	}
+	fuchsiaSdkChildMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, copiedFile string) {
+		mocksForFuchsiaSDKChildConfig(t, urlMock, fuchsiaSdkChildCfg.GetFuchsiaSdkChild())
+	}
 	gitCheckoutChildCfg := &config.ParentChildRepoManagerConfig{
 		Child: &config.ParentChildRepoManagerConfig_GitCheckoutChild{
 			GitCheckoutChild: makeGitCheckoutChildConfig(),
@@ -903,26 +1052,75 @@ func TestDeepValidator_parentChildRepoManagerConfig(t *testing.T) {
 			gitiles_testutils.MockReadFile(t, urlMock, cfg.Gitiles.RepoUrl, copiedFile, cfg.Gitiles.Branch, []byte(""), vfs.FileInfoImpl{}.Get())
 		}
 	}
-	// semverGcsChildCfg := &config.ParentChildRepoManagerConfig{
-	// 	Child: &config.ParentChildRepoManagerConfig_SemverGcsChild{
-	// 		SemverGcsChild: makeSemVerGCSChildConfig(),
-	// 	},
-	// }
-	// semverGcsChildMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, copiedFile string) {
-	// 	mocksForSemVerGCSChildConfig(t, urlMock, semverGcsChildCfg.GetSemverGcsChild())
-	// }
-	// dockerChildCfg := &config.ParentChildRepoManagerConfig{
-	// 	Child: &config.ParentChildRepoManagerConfig_DockerChild{
-	// 		DockerChild: makeDockerChildConfig(),
-	// 	},
-	// }
-	// dockerChildMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, copiedFile string) {
-	// 	mocksForDockerChildConfig(t, dv.dockerClient.(*docker_mocks.Client), dockerChildCfg.GetDockerChild())
-	// }
+	semverGcsChildCfg := &config.ParentChildRepoManagerConfig{
+		Child: &config.ParentChildRepoManagerConfig_SemverGcsChild{
+			SemverGcsChild: makeSemVerGCSChildConfig(),
+		},
+	}
+	semverGcsChildMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, copiedFile string) {
+		mocksForSemVerGCSChildConfig(t, urlMock, semverGcsChildCfg.GetSemverGcsChild())
+	}
+	dockerChildCfg := &config.ParentChildRepoManagerConfig{
+		Child: &config.ParentChildRepoManagerConfig_DockerChild{
+			DockerChild: makeDockerChildConfig(),
+		},
+	}
+	dockerChildMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, copiedFile string) {
+		mocksForDockerChildConfig(t, dv.dockerClient.(*docker_mocks.Client), dockerChildCfg.GetDockerChild())
+	}
 
 	test("CopyParent_GitCheckoutChild", copyParentCfg, copyParentMocks, gitCheckoutChildCfg, gitCheckoutChildMocks)
 	test("CopyParent_GitCheckoutGithubChild", copyParentCfg, copyParentMocks, gitCheckoutGithubChildCfg, gitCheckoutGithubChildMocks)
 	test("CopyParent_GitilesChild", copyParentCfg, copyParentMocks, gitilesChildCfg, gitilesChildMocks)
+
+	test("DepsLocalGithubParent_CipdChild", depsLocalGithubParentCfg, depsLocalGithubParentMocks, cipdChildCfg, cipdChildMocks)
+	test("DepsLocalGithubParent_FuchsiaSdkChild", depsLocalGithubParentCfg, depsLocalGithubParentMocks, fuchsiaSdkChildCfg, fuchsiaSdkChildMocks)
+	test("DepsLocalGithubParent_GitCheckoutChild", depsLocalGithubParentCfg, depsLocalGithubParentMocks, gitCheckoutChildCfg, gitCheckoutChildMocks)
+	test("DepsLocalGithubParent_GitCheckoutGithubChild", depsLocalGithubParentCfg, depsLocalGithubParentMocks, gitCheckoutGithubChildCfg, gitCheckoutGithubChildMocks)
+	test("DepsLocalGithubParent_GitilesChild", depsLocalGithubParentCfg, depsLocalGithubParentMocks, gitilesChildCfg, gitilesChildMocks)
+	test("DepsLocalGithubParent_SemverGcsChild", depsLocalGithubParentCfg, depsLocalGithubParentMocks, semverGcsChildCfg, semverGcsChildMocks)
+	test("DepsLocalGithubParent_DockerChild", depsLocalGithubParentCfg, depsLocalGithubParentMocks, dockerChildCfg, dockerChildMocks)
+
+	test("DepsLocalGerritParent_CipdChild", depsLocalGerritParentCfg, depsLocalGerritParentMocks, cipdChildCfg, cipdChildMocks)
+	test("DepsLocalGerritParent_FuchsiaSdkChild", depsLocalGerritParentCfg, depsLocalGerritParentMocks, fuchsiaSdkChildCfg, fuchsiaSdkChildMocks)
+	test("DepsLocalGerritParent_GitCheckoutChild", depsLocalGerritParentCfg, depsLocalGerritParentMocks, gitCheckoutChildCfg, gitCheckoutChildMocks)
+	test("DepsLocalGerritParent_GitCheckoutGithubChild", depsLocalGerritParentCfg, depsLocalGerritParentMocks, gitCheckoutGithubChildCfg, gitCheckoutGithubChildMocks)
+	test("DepsLocalGerritParent_GitilesChild", depsLocalGerritParentCfg, depsLocalGerritParentMocks, gitilesChildCfg, gitilesChildMocks)
+	test("DepsLocalGerritParent_SemverGcsChild", depsLocalGerritParentCfg, depsLocalGerritParentMocks, semverGcsChildCfg, semverGcsChildMocks)
+	test("DepsLocalGerritParent_DockerChild", depsLocalGerritParentCfg, depsLocalGerritParentMocks, dockerChildCfg, dockerChildMocks)
+
+	test("GitCheckoutGithubFileParent_CipdChild", gitCheckoutGithubFileParentCfg, gitCheckoutGithubFileParentMocks, cipdChildCfg, cipdChildMocks)
+	test("GitCheckoutGithubFileParent_FuchsiaSdkChild", gitCheckoutGithubFileParentCfg, gitCheckoutGithubFileParentMocks, fuchsiaSdkChildCfg, fuchsiaSdkChildMocks)
+	test("GitCheckoutGithubFileParent_GitCheckoutChild", gitCheckoutGithubFileParentCfg, gitCheckoutGithubFileParentMocks, gitCheckoutChildCfg, gitCheckoutChildMocks)
+	test("GitCheckoutGithubFileParent_GitCheckoutGithubChild", gitCheckoutGithubFileParentCfg, gitCheckoutGithubFileParentMocks, gitCheckoutGithubChildCfg, gitCheckoutGithubChildMocks)
+	test("GitCheckoutGithubFileParent_GitilesChild", gitCheckoutGithubFileParentCfg, gitCheckoutGithubFileParentMocks, gitilesChildCfg, gitilesChildMocks)
+	test("GitCheckoutGithubFileParent_SemverGcsChild", gitCheckoutGithubFileParentCfg, gitCheckoutGithubFileParentMocks, semverGcsChildCfg, semverGcsChildMocks)
+	test("GitCheckoutGithubFileParent_DockerChild", gitCheckoutGithubFileParentCfg, gitCheckoutGithubFileParentMocks, dockerChildCfg, dockerChildMocks)
+
+	test("GitilesParent_CipdChild", gitilesParentCfg, gitilesParentMocks, cipdChildCfg, cipdChildMocks)
+	test("GitilesParent_FuchsiaSdkChild", gitilesParentCfg, gitilesParentMocks, fuchsiaSdkChildCfg, fuchsiaSdkChildMocks)
+	test("GitilesParent_GitCheckoutChild", gitilesParentCfg, gitilesParentMocks, gitCheckoutChildCfg, gitCheckoutChildMocks)
+	test("GitilesParent_GitCheckoutGithubChild", gitilesParentCfg, gitilesParentMocks, gitCheckoutGithubChildCfg, gitCheckoutGithubChildMocks)
+	test("GitilesParent_GitilesChild", gitilesParentCfg, gitilesParentMocks, gitilesChildCfg, gitilesChildMocks)
+	test("GitilesParent_SemverGcsChild", gitilesParentCfg, gitilesParentMocks, semverGcsChildCfg, semverGcsChildMocks)
+	test("GitilesParent_DockerChild", gitilesParentCfg, gitilesParentMocks, dockerChildCfg, dockerChildMocks)
+
+	test("GoModGerritParent_CipdChild", goModGerritParentCfg, goModGerritParentMocks, cipdChildCfg, cipdChildMocks)
+	test("GoModGerritParent_FuchsiaSdkChild", goModGerritParentCfg, goModGerritParentMocks, fuchsiaSdkChildCfg, fuchsiaSdkChildMocks)
+	test("GoModGerritParent_GitCheckoutChild", goModGerritParentCfg, goModGerritParentMocks, gitCheckoutChildCfg, gitCheckoutChildMocks)
+	test("GoModGerritParent_GitCheckoutGithubChild", goModGerritParentCfg, goModGerritParentMocks, gitCheckoutGithubChildCfg, gitCheckoutGithubChildMocks)
+	test("GoModGerritParent_GitilesChild", goModGerritParentCfg, goModGerritParentMocks, gitilesChildCfg, gitilesChildMocks)
+	test("GoModGerritParent_SemverGcsChild", goModGerritParentCfg, goModGerritParentMocks, semverGcsChildCfg, semverGcsChildMocks)
+	test("GoModGerritParent_DockerChild", goModGerritParentCfg, goModGerritParentMocks, dockerChildCfg, dockerChildMocks)
+
+	test("GitCheckoutGerritParent_CipdChild", gitCheckoutGerritParentCfg, gitCheckoutGerritParentMocks, cipdChildCfg, cipdChildMocks)
+	test("GitCheckoutGerritParent_FuchsiaSdkChild", gitCheckoutGerritParentCfg, gitCheckoutGerritParentMocks, fuchsiaSdkChildCfg, fuchsiaSdkChildMocks)
+	test("GitCheckoutGerritParent_GitCheckoutChild", gitCheckoutGerritParentCfg, gitCheckoutGerritParentMocks, gitCheckoutChildCfg, gitCheckoutChildMocks)
+	test("GitCheckoutGerritParent_GitCheckoutGithubChild", gitCheckoutGerritParentCfg, gitCheckoutGerritParentMocks, gitCheckoutGithubChildCfg, gitCheckoutGithubChildMocks)
+	test("GitCheckoutGerritParent_GitilesChild", gitCheckoutGerritParentCfg, gitCheckoutGerritParentMocks, gitilesChildCfg, gitilesChildMocks)
+	test("GitCheckoutGerritParent_SemverGcsChild", gitCheckoutGerritParentCfg, gitCheckoutGerritParentMocks, semverGcsChildCfg, semverGcsChildMocks)
+	test("GitCheckoutGerritParent_DockerChild", gitCheckoutGerritParentCfg, gitCheckoutGerritParentMocks, dockerChildCfg, dockerChildMocks)
+
 }
 
 func makeCommandRepoManagerConfig() *config.CommandRepoManagerConfig {
@@ -970,6 +1168,16 @@ func makeCopyParentConfig_CopyEntry() *config.CopyParentConfig_CopyEntry {
 	}
 }
 
+func makeDEPSLocalGitHubParentConfig() *config.DEPSLocalGitHubParentConfig {
+	cfg := makeDEPSLocalParentConfig()
+	cfg.GitCheckout.GitCheckout.RepoUrl = fakeGitHubRepo
+	return &config.DEPSLocalGitHubParentConfig{
+		DepsLocal:   cfg,
+		Github:      makeGitHubConfig(),
+		ForkRepoUrl: fakeGitHubForkRepo,
+	}
+}
+
 func makeDockerChildConfig() *config.DockerChildConfig {
 	return &config.DockerChildConfig{
 		Registry:   "gcr.io",
@@ -978,10 +1186,51 @@ func makeDockerChildConfig() *config.DockerChildConfig {
 	}
 }
 
+func makeGitCheckoutGerritParentConfig() *config.GitCheckoutGerritParentConfig {
+	return &config.GitCheckoutGerritParentConfig{
+		GitCheckout: makeGitCheckoutParentConfig(),
+	}
+}
+
+func makeGitCheckoutGitHubParentConfig() *config.GitCheckoutGitHubParentConfig {
+	cfg := makeGitCheckoutParentConfig()
+	cfg.GitCheckout.RepoUrl = fakeGitHubRepo
+	return &config.GitCheckoutGitHubParentConfig{
+		GitCheckout: cfg,
+		ForkRepoUrl: fakeGitHubForkRepo,
+	}
+}
+
+func makeGitCheckoutGitHubFileParentConfig() *config.GitCheckoutGitHubFileParentConfig {
+	return &config.GitCheckoutGitHubFileParentConfig{
+		GitCheckout: makeGitCheckoutGitHubParentConfig(),
+	}
+}
+
+func makeDEPSLocalGerritParentConfig() *config.DEPSLocalGerritParentConfig {
+	return &config.DEPSLocalGerritParentConfig{
+		DepsLocal: makeDEPSLocalParentConfig(),
+		Gerrit:    makeGerritConfig(),
+	}
+}
+
+func makeGitCheckoutParentConfig() *config.GitCheckoutParentConfig {
+	return &config.GitCheckoutParentConfig{
+		GitCheckout: makeGitCheckoutConfig(),
+		Dep:         makeDependencyConfig(),
+	}
+}
+
 func makeGitCheckoutConfig() *config.GitCheckoutConfig {
 	return &config.GitCheckoutConfig{
 		Branch:  git.MainBranch,
 		RepoUrl: fakeGitRepo,
+	}
+}
+
+func makeDEPSLocalParentConfig() *config.DEPSLocalParentConfig {
+	return &config.DEPSLocalParentConfig{
+		GitCheckout: makeGitCheckoutParentConfig(),
 	}
 }
 
@@ -1068,6 +1317,19 @@ func makeVersionFileConfig() *config.VersionFileConfig {
 	}
 }
 
+func makeGoModParentConfig() *config.GoModParentConfig {
+	return &config.GoModParentConfig{
+		GitCheckout: makeGitCheckoutConfig(),
+	}
+}
+
+func makeGoModGerritParentConfig() *config.GoModGerritParentConfig {
+	return &config.GoModGerritParentConfig{
+		Gerrit: makeGerritConfig(),
+		GoMod:  makeGoModParentConfig(),
+	}
+}
+
 func makeGitCheckoutGitHubChildConfig() *config.GitCheckoutGitHubChildConfig {
 	cfg := makeGitCheckoutChildConfig()
 	cfg.GitCheckout.RepoUrl = fakeGitHubRepo
@@ -1113,7 +1375,6 @@ func mocksForGitHubConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *co
 }
 
 func mockGitHubAPICalls(t *testing.T, urlMock *mockhttpclient.URLMock, repoURL string) string {
-	// Mock GitHub API.
 	repoOwner, repoName, err := skgithub.ParseRepoOwnerAndName(repoURL)
 	require.NoError(t, err)
 	sha := fakeCommitHash
@@ -1229,13 +1490,22 @@ func mocksForGitilesParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, 
 	mocksForDependencyConfig(t, urlMock, cfg.Dep, cfg.Gitiles.RepoUrl, cfg.Gitiles.Branch)
 }
 
+func mocksForGoModGerritParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.GoModGerritParentConfig) {
+	commit := makeFakeCommit()
+	gitiles_testutils.MockGetCommit(t, urlMock, cfg.GoMod.GitCheckout.RepoUrl, git.MainBranch, commit)
+	mocksForGerritConfig(t, urlMock, cfg.Gerrit)
+}
+
+func mocksForGoModParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.GoModParentConfig) {
+	commit := makeFakeCommit()
+	gitiles_testutils.MockGetCommit(t, urlMock, cfg.GitCheckout.RepoUrl, git.MainBranch, commit)
+}
+
 func mocksForFuchsiaSDKChildConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.FuchsiaSDKChildConfig) {
-	// Mock GCS.
 	urlMock.MockOnce("https://storage.googleapis.com/fuchsia/development%2FLATEST_LINUX", mockhttpclient.MockGetDialogue([]byte("12345")))
 }
 
 func mocksForCIPDChildConfig(t *testing.T, dv *deepvalidator, cfg *config.CIPDChildConfig, tags []string) {
-	// Mock CIPD.
 	pin := cipd_common.Pin{
 		PackageName: cfg.Name,
 		InstanceID:  fakeCIPDDigest,
@@ -1261,7 +1531,6 @@ func mocksForGitCheckoutChildConfig(t *testing.T, urlMock *mockhttpclient.URLMoc
 }
 
 func mocksForSemVerGCSChildConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.SemVerGCSChildConfig) {
-	// Mock GCS.
 	body := `{"items": [{"name": "v1.2.3.object"}]}`
 	url := fmt.Sprintf("https://storage.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&endOffset=&includeFoldersAsPrefixes=false&includeTrailingDelimiter=false&matchGlob=&pageToken=&prefix=%s&prettyPrint=false&projection=full&startOffset=&versions=false", cfg.Gcs.GcsBucket, cfg.Gcs.GcsPath)
 	urlMock.Mock(url, mockhttpclient.MockGetDialogue([]byte(body)))
@@ -1279,8 +1548,61 @@ func mocksForCopyParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg
 	}.Get())
 }
 
+func mocksForDepsLocalGitHubParentConfig(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, cfg *config.DEPSLocalGitHubParentConfig) {
+	sharedMocksForGitCheckoutGitHubParentConfig(t, urlMock, cfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl, cfg.ForkRepoUrl, cfg.DepsLocal.GitCheckout.Dep)
+
+	// Mock GitHub API.
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/pulls?state=open", cfg.Github.RepoOwner, cfg.Github.RepoName)
+	urlMock.MockOnce(url, mockhttpclient.MockGetDialogue([]byte(`[{"number": 1}]`)))
+}
+
+func mocksForDepsLocalParentConfig(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, cfg *config.DEPSLocalParentConfig) {
+	repoURL := cfg.GitCheckout.GitCheckout.RepoUrl
+
+	// Mock gitiles for parent.
+	commit := makeFakeCommit()
+	gitiles_testutils.MockGetCommit(t, urlMock, repoURL, git.MainBranch, commit)
+
+	mocksForDependencyConfig(t, urlMock, cfg.GitCheckout.Dep, repoURL, commit.Commit)
+}
+
+func mocksForGitCheckoutParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.GitCheckoutParentConfig) {
+	repoURL := cfg.GitCheckout.RepoUrl
+
+	// Mock gitiles for parent.
+	commit := makeFakeCommit()
+	gitiles_testutils.MockGetCommit(t, urlMock, repoURL, git.MainBranch, commit)
+	mocksForDependencyConfig(t, urlMock, cfg.Dep, repoURL, commit.Commit)
+}
+
+func mocksForDepsLocalGerritParentConfig(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, cfg *config.DEPSLocalGerritParentConfig) {
+	mocksForGerritConfig(t, urlMock, cfg.Gerrit)
+	mocksForDepsLocalParentConfig(t, dv, urlMock, cfg.DepsLocal)
+}
+
+func mocksForGitCheckoutGitHubFileParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.GitCheckoutGitHubFileParentConfig) {
+	mocksForGitCheckoutGitHubParentConfig(t, urlMock, cfg.GitCheckout)
+}
+
+func sharedMocksForGitCheckoutGitHubParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, repoURL, forkRepoURL string, dep *config.DependencyConfig) string {
+	// Mocks for the fork.
+	mockGitHubAPICalls(t, urlMock, forkRepoURL)
+
+	// Mocks for the parent.
+	sha := mockGitHubAPICalls(t, urlMock, repoURL)
+	mocksForDependencyConfig(t, urlMock, dep, repoURL, sha)
+	return sha
+}
+
+func mocksForGitCheckoutGitHubParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.GitCheckoutGitHubParentConfig) string {
+	return sharedMocksForGitCheckoutGitHubParentConfig(t, urlMock, cfg.GitCheckout.GitCheckout.RepoUrl, cfg.ForkRepoUrl, cfg.GitCheckout.Dep)
+}
+
+func mocksForGitCheckoutGerritParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.GitCheckoutGerritParentConfig) {
+	mocksForGitCheckoutParentConfig(t, urlMock, cfg.GitCheckout)
+}
+
 func mocksForDockerChildConfig(t *testing.T, dockerClient *docker_mocks.Client, cfg *config.DockerChildConfig) {
-	// Mock Docker calls.
 	now := time.Now()
 	dockerClient.On("GetManifest", testutils.AnyContext, cfg.Registry, cfg.Repository, cfg.Tag).Return(&docker.Manifest{
 		Digest: fakeDockerDigest,
@@ -1301,4 +1623,10 @@ func mockDEPSContent(t *testing.T, urlMock *mockhttpclient.URLMock, repoURL, com
 		Mode:  0644,
 		IsDir: false,
 	}.Get())
+}
+
+func makeGetFileFunc(returnedContents string, returnedErr error) func(context.Context, string) (string, error) {
+	return func(_ context.Context, _ string) (string, error) {
+		return returnedContents, returnedErr
+	}
 }
