@@ -15,6 +15,7 @@ go_library(
         "//autoroll/go/repo_manager/common/version_file_common",
         "//autoroll/go/repo_manager/parent",
         "//autoroll/go/revision",
+        "//autoroll/go/roller",
         "//go/buildbucket",
         "//go/chrome_branch",
         "//go/cipd",

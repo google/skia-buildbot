@@ -106,6 +106,16 @@ func TestDeepValidator_deepValidate(t *testing.T) {
 		require.NoError(t, dv.deepValidate(ctx, cfg))
 	})
 
+	t.Run("reviewer", func(t *testing.T) {
+		dv, _ := newTestDeepValidator(t)
+		cfg := &config.Config{
+			Reviewer: []string{
+				"me@google.com",
+			},
+		}
+		require.NoError(t, dv.deepValidate(ctx, cfg))
+	})
+
 	t.Run("parentChild", func(t *testing.T) {
 		dv, urlMock := newTestDeepValidator(t)
 		defer urlMock.AssertExpectations(t)
@@ -1241,6 +1251,28 @@ func TestDeepValidator_parentChildRepoManagerConfig(t *testing.T) {
 	test("GitCheckoutGerritParent_SemverGcsChild", gitCheckoutGerritParentCfg, gitCheckoutGerritParentMocks, semverGcsChildCfg, semverGcsChildMocks)
 	test("GitCheckoutGerritParent_DockerChild", gitCheckoutGerritParentCfg, gitCheckoutGerritParentMocks, dockerChildCfg, dockerChildMocks)
 
+}
+
+func TestDeepValidator_reviewer(t *testing.T) {
+	t.Run("Email", func(t *testing.T) {
+		dv, _ := newTestDeepValidator(t)
+		require.NoError(t, dv.reviewer(t.Context(), "me@google.com"))
+	})
+
+	const rotationURL = "https://my-rotation.google.com"
+
+	t.Run("Rotation", func(t *testing.T) {
+		dv, urlMock := newTestDeepValidator(t)
+		defer urlMock.AssertExpectations(t)
+		urlMock.MockOnce(rotationURL, mockhttpclient.MockGetDialogue([]byte(`{"emails":["reviewer@google.com"]}`)))
+		require.NoError(t, dv.reviewer(t.Context(), rotationURL))
+	})
+	t.Run("Rotation Failed Fetch", func(t *testing.T) {
+		dv, urlMock := newTestDeepValidator(t)
+		defer urlMock.AssertExpectations(t)
+		urlMock.MockOnce(rotationURL, mockhttpclient.MockGetError(http.StatusText(http.StatusNotFound), http.StatusNotFound))
+		require.Error(t, dv.reviewer(t.Context(), rotationURL))
+	})
 }
 
 func makeTransitiveDepConfig() *config.TransitiveDepConfig {

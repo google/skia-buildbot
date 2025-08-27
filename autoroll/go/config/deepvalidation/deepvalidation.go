@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/cipd"
@@ -134,6 +135,11 @@ func (dv *deepvalidator) deepValidate(ctx context.Context, c *config.Config) err
 	}
 	if c.GetGithub() != nil {
 		if err := dv.gitHubConfig(ctx, c.GetGithub()); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	for _, reviewer := range c.Reviewer {
+		if err := dv.reviewer(ctx, reviewer); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
@@ -873,6 +879,13 @@ func (dv *deepvalidator) preUploadConfig(ctx context.Context, c *config.PreUploa
 		}
 	}
 	return nil
+}
+
+// reviewer performs validation of a reviewer, making external network requests
+// as needed.
+func (dv *deepvalidator) reviewer(ctx context.Context, reviewer string) error {
+	_, err := roller.GetReviewersFromURLOrEmail(dv.client, reviewer)
+	return skerr.Wrap(err)
 }
 
 // makeFakeRevision can be used wherever we need to pass in a Revision but the

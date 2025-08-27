@@ -25,7 +25,7 @@ func GetReviewers(c *http.Client, metricsName string, reviewersSources, backupRe
 	allEmails := util.StringSet{}
 	for _, s := range reviewersSources {
 		success := int64(1)
-		emails, err := getReviewersHelper(c, s)
+		emails, err := GetReviewersFromURLOrEmail(c, s)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve reviewer(s) from %s: %s", s, err)
 			success = 0
@@ -54,9 +54,9 @@ func GetReviewers(c *http.Client, metricsName string, reviewersSources, backupRe
 	return rv
 }
 
-// getReviewersHelper interprets a single reviewer as either an email address or
-// a URL; if the latter, it loads the reviewers list from the URL.
-func getReviewersHelper(c *http.Client, reviewer string) ([]string, error) {
+// GetReviewersFromURLOrEmail interprets a single reviewer as either an email
+// address or a URL; if the latter, it loads the reviewers list from the URL.
+func GetReviewersFromURLOrEmail(c *http.Client, reviewer string) ([]string, error) {
 	// If the passed-in reviewersConfig doesn't look like a URL, it's probably
 	// an email address. Use it directly.
 	if _, err := url.ParseRequestURI(reviewer); err != nil {
