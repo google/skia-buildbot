@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
 
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.chromium.org/luci/common/errors"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
@@ -140,6 +142,14 @@ func (dv *deepvalidator) deepValidate(ctx context.Context, c *config.Config) err
 	}
 	for _, reviewer := range c.Reviewer {
 		if err := dv.reviewer(ctx, reviewer); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+
+	// CommitMsg should never be nil, but that case would be detected by normal
+	// validation. We allow it to be nil here to simplify testing.
+	if c.CommitMsg != nil {
+		if err := dv.commitMsg(ctx, c.CommitMsg); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
@@ -886,6 +896,32 @@ func (dv *deepvalidator) preUploadConfig(ctx context.Context, c *config.PreUploa
 func (dv *deepvalidator) reviewer(ctx context.Context, reviewer string) error {
 	_, err := roller.GetReviewersFromURLOrEmail(dv.client, reviewer)
 	return skerr.Wrap(err)
+}
+
+var trybotRegex = regexp.MustCompile(`^luci\.(\S+)\.(\S+):(\S+)$`)
+
+// commitMsg performs validation of the CommitMsg, making external network
+// requests as needed.
+func (dv *deepvalidator) commitMsg(ctx context.Context, c *config.CommitMsgConfig) error {
+	for _, trybot := range c.CqExtraTrybots {
+		m := trybotRegex.FindStringSubmatch(trybot)
+		if len(m) != 4 {
+			return skerr.Fmt("Unknown trybot format %q, expected `%s`", trybot, trybotRegex.String())
+		}
+		builder, err := dv.bbClient.GetBuilder(ctx, &buildbucketpb.GetBuilderRequest{
+			Id: &buildbucketpb.BuilderID{
+				Project: m[1],
+				Bucket:  m[2],
+				Builder: m[3],
+			},
+		})
+		if err != nil {
+			return skerr.Wrapf(err, "failed to retrieve buildbucket builder for %q", trybot)
+		} else if builder == nil {
+			return skerr.Fmt("no buildbucket builder for %q", trybot)
+		}
+	}
+	return nil
 }
 
 // makeFakeRevision can be used wherever we need to pass in a Revision but the

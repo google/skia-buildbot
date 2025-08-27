@@ -116,6 +116,15 @@ func TestDeepValidator_deepValidate(t *testing.T) {
 		require.NoError(t, dv.deepValidate(ctx, cfg))
 	})
 
+	t.Run("commitMsg", func(t *testing.T) {
+		dv, urlMock := newTestDeepValidator(t)
+		defer urlMock.AssertExpectations(t)
+		cfg := &config.Config{
+			CommitMsg: &config.CommitMsgConfig{},
+		}
+		require.NoError(t, dv.deepValidate(ctx, cfg))
+	})
+
 	t.Run("parentChild", func(t *testing.T) {
 		dv, urlMock := newTestDeepValidator(t)
 		defer urlMock.AssertExpectations(t)
@@ -1273,6 +1282,28 @@ func TestDeepValidator_reviewer(t *testing.T) {
 		urlMock.MockOnce(rotationURL, mockhttpclient.MockGetError(http.StatusText(http.StatusNotFound), http.StatusNotFound))
 		require.Error(t, dv.reviewer(t.Context(), rotationURL))
 	})
+}
+
+func TestDeepValidator_commitMsg(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := &config.CommitMsgConfig{
+		CqExtraTrybots: []string{
+			"luci.fake.try:some-fake-builder",
+		},
+	}
+	bbClient := dv.bbClient.(*buildbucket_mocks.BuildBucketInterface)
+	bbClient.On("GetBuilder", testutils.AnyContext, &buildbucketpb.GetBuilderRequest{
+		Id: &buildbucketpb.BuilderID{
+			Project: "fake",
+			Bucket:  "try",
+			Builder: "some-fake-builder",
+		},
+	}).Return(&buildbucketpb.BuilderItem{}, nil)
+
+	require.NoError(t, dv.commitMsg(t.Context(), cfg))
+	bbClient.AssertExpectations(t)
 }
 
 func makeTransitiveDepConfig() *config.TransitiveDepConfig {

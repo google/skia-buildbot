@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
@@ -58,37 +59,43 @@ type BuildBucketInterface interface {
 	// StartBuild notifies Buildbucket that the build has started. Returns the
 	// token which should be passed to UpdateBuild for subsequent calls.
 	StartBuild(ctx context.Context, buildId int64, taskId, token string) (string, error)
+
+	// Builder related functionality.
+	GetBuilder(ctx context.Context, in *buildbucketpb.GetBuilderRequest, opts ...grpc.CallOption) (*buildbucketpb.BuilderItem, error)
 }
 
 // Client is used for interacting with the BuildBucket API.
 type Client struct {
-	bc   buildbucketpb.BuildsClient
-	host string
+	builds   buildbucketpb.BuildsClient
+	builders buildbucketpb.BuildersClient
+	host     string
 }
 
 // NewClient returns an authenticated Client instance.
 func NewClient(c *http.Client) *Client {
 	host := DEFAULT_HOST
+	prpcClient := &prpc.Client{
+		C:    c,
+		Host: host,
+	}
 	return &Client{
-		bc: buildbucketpb.NewBuildsPRPCClient(&prpc.Client{
-			C:    c,
-			Host: host,
-		}),
-		host: host,
+		builds:   buildbucketpb.NewBuildsPRPCClient(prpcClient),
+		builders: buildbucketpb.NewBuildersClient(prpcClient),
+		host:     host,
 	}
 }
 
 // NewTestingClient lets the MockClient inject a mock BuildsClient and host.
 func NewTestingClient(bc buildbucketpb.BuildsClient, host string) *Client {
 	return &Client{
-		bc:   bc,
-		host: host,
+		builds: bc,
+		host:   host,
 	}
 }
 
 // GetBuild implements the BuildBucketInterface.
 func (c *Client) GetBuild(ctx context.Context, buildId int64) (*buildbucketpb.Build, error) {
-	b, err := c.bc.GetBuild(ctx, &buildbucketpb.GetBuildRequest{
+	b, err := c.builds.GetBuild(ctx, &buildbucketpb.GetBuildRequest{
 		Id:     buildId,
 		Fields: common.GetBuildFields,
 	})
@@ -135,7 +142,7 @@ func (c *Client) ScheduleBuilds(ctx context.Context, builds []string, buildsToTa
 		requests = append(requests, request)
 	}
 
-	resp, err := c.bc.Batch(ctx, &buildbucketpb.BatchRequest{
+	resp, err := c.builds.Batch(ctx, &buildbucketpb.BatchRequest{
 		Requests: requests,
 	})
 	if err != nil {
@@ -154,7 +161,7 @@ func (c *Client) ScheduleBuilds(ctx context.Context, builds []string, buildsToTa
 
 // CancelBuild implements BuildbucketInterface.
 func (c *Client) CancelBuild(ctx context.Context, buildID int64, summaryMarkdown string) (*buildbucketpb.Build, error) {
-	build, err := c.bc.CancelBuild(ctx, &buildbucketpb.CancelBuildRequest{
+	build, err := c.builds.CancelBuild(ctx, &buildbucketpb.CancelBuildRequest{
 		Id:              buildID,
 		SummaryMarkdown: summaryMarkdown,
 	})
@@ -179,7 +186,7 @@ func (c *Client) CancelBuilds(ctx context.Context, buildIDs []int64, summaryMark
 		requests = append(requests, request)
 	}
 
-	resp, err := c.bc.Batch(ctx, &buildbucketpb.BatchRequest{
+	resp, err := c.builds.Batch(ctx, &buildbucketpb.BatchRequest{
 		Requests: requests,
 	})
 	if err != nil {
@@ -206,7 +213,7 @@ func (c *Client) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate)
 			PageToken: cursor,
 			Predicate: pred,
 		}
-		resp, err := c.bc.SearchBuilds(ctx, req)
+		resp, err := c.builds.SearchBuilds(ctx, req)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -239,7 +246,7 @@ func contextWithTokenMetadata(ctx context.Context, token string) context.Context
 
 // StartBuild implements BuildbucketInterface.
 func (c *Client) StartBuild(ctx context.Context, buildId int64, taskId, token string) (string, error) {
-	resp, err := c.bc.StartBuild(contextWithTokenMetadata(ctx, token), &buildbucketpb.StartBuildRequest{
+	resp, err := c.builds.StartBuild(contextWithTokenMetadata(ctx, token), &buildbucketpb.StartBuildRequest{
 		RequestId: uuid.New().String(),
 		BuildId:   buildId,
 		TaskId:    taskId,
@@ -296,13 +303,17 @@ func (c *Client) UpdateBuild(ctx context.Context, build *buildbucketpb.Build, to
 			updatePaths = append(updatePaths, "build.infra.buildbucket.agent.purposes")
 		}
 	}
-	_, err := c.bc.UpdateBuild(contextWithTokenMetadata(ctx, token), &buildbucketpb.UpdateBuildRequest{
+	_, err := c.builds.UpdateBuild(contextWithTokenMetadata(ctx, token), &buildbucketpb.UpdateBuildRequest{
 		Build: build,
 		UpdateMask: &fieldmaskpb.FieldMask{
 			Paths: updatePaths,
 		},
 	})
 	return skerr.Wrap(err)
+}
+
+func (c *Client) GetBuilder(ctx context.Context, in *buildbucketpb.GetBuilderRequest, opts ...grpc.CallOption) (*buildbucketpb.BuilderItem, error) {
+	return c.builders.GetBuilder(ctx, in)
 }
 
 // Make sure Client fulfills the BuildBucketInterface interface.

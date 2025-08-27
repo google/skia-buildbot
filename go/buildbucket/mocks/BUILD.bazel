@@ -8,5 +8,6 @@ go_library(
     deps = [
         "@com_github_stretchr_testify//mock",
         "@org_chromium_go_luci//buildbucket/proto",
+        "@org_golang_google_grpc//:grpc",
     ],
 )

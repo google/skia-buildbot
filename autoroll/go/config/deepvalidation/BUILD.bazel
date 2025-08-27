@@ -29,6 +29,7 @@ go_library(
         "//go/progress",
         "//go/skerr",
         "//go/sklog",
+        "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/errors",
     ],
 )
