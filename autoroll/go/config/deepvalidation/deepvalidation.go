@@ -15,8 +15,10 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/chrome_branch"
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/gitiles"
@@ -35,8 +37,13 @@ func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c 
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	cipdClient, err := cipd.NewClient(client, "", cipd.DefaultServiceURL)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	dv := &deepvalidator{
 		client:           client,
+		cipdClient:       cipdClient,
 		reg:              reg,
 		githubHttpClient: githubHttpClient,
 	}
@@ -47,6 +54,7 @@ func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c 
 // elements needed by most validation functions.
 type deepvalidator struct {
 	client           *http.Client
+	cipdClient       cipd.CIPDClient
 	reg              *config_vars.Registry
 	githubHttpClient *http.Client
 }
@@ -64,19 +72,27 @@ func (dv *deepvalidator) deepValidate(ctx context.Context, c *config.Config) err
 			return skerr.Wrap(err)
 		}
 	}
-	var err error
-	switch rm := c.RepoManager.(type) {
-	case *config.Config_AndroidRepoManager:
-		_, _, err = dv.androidRepoManagerConfig(ctx, rm.AndroidRepoManager)
-	case *config.Config_CommandRepoManager:
-		err = dv.commandRepoManagerConfig(ctx, rm.CommandRepoManager)
-	case *config.Config_FreetypeRepoManager:
-		_, _, err = dv.freeTypeRepoManagerConfig(ctx, rm.FreetypeRepoManager)
-	case *config.Config_Google3RepoManager:
-		err = dv.google3RepoManagerConfig(ctx, rm.Google3RepoManager)
-	}
-	if err != nil {
-		return skerr.Wrap(err)
+	// RepoManager should never be nil, but that case would be detected by
+	// normal validation. We allow it to be nil here to simplify testing.
+	if c.RepoManager != nil {
+		var err error
+		switch rm := c.RepoManager.(type) {
+		case *config.Config_AndroidRepoManager:
+			_, _, err = dv.androidRepoManagerConfig(ctx, rm.AndroidRepoManager)
+		case *config.Config_CommandRepoManager:
+			err = dv.commandRepoManagerConfig(ctx, rm.CommandRepoManager)
+		case *config.Config_FreetypeRepoManager:
+			_, _, err = dv.freeTypeRepoManagerConfig(ctx, rm.FreetypeRepoManager)
+		case *config.Config_Google3RepoManager:
+			err = dv.google3RepoManagerConfig(ctx, rm.Google3RepoManager)
+		case *config.Config_ParentChildRepoManager:
+			_, _, err = dv.parentChildRepoManagerConfig(ctx, rm.ParentChildRepoManager)
+		default:
+			return skerr.Fmt("Unknown repo manager type: %s", rm)
+		}
+		if err != nil {
+			return skerr.Wrap(err)
+		}
 	}
 	return nil
 }
@@ -306,6 +322,35 @@ func (dv *deepvalidator) freeTypeRepoManagerConfig(ctx context.Context, c *confi
 	return getFileParent, getFileChild, nil
 }
 
+// parentChildRepoManagerConfig performs validation of the
+// ParentChildRepoManagerConfig, making external network requests as needed.
+func (dv *deepvalidator) parentChildRepoManagerConfig(ctx context.Context, c *config.ParentChildRepoManagerConfig) (version_file_common.GetFileFunc, version_file_common.GetFileFunc, error) {
+	var getFileParent, getFileChild version_file_common.GetFileFunc
+	var err error
+	switch child := c.Child.(type) {
+	case *config.ParentChildRepoManagerConfig_GitilesChild:
+		getFileChild, _, err = dv.gitilesChildConfig(ctx, child.GitilesChild)
+	default:
+		return nil, nil, skerr.Fmt("Unknown child type: %s", child)
+	}
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+
+	switch parent := c.Parent.(type) {
+	case *config.ParentChildRepoManagerConfig_CopyParent:
+		getFileParent, err = dv.copyParentConfig(ctx, parent.CopyParent, getFileChild)
+	case *config.ParentChildRepoManagerConfig_GitilesParent:
+		getFileParent, err = dv.gitilesParentConfig(ctx, parent.GitilesParent, getFileChild)
+	default:
+		return nil, nil, skerr.Fmt("Unknown parent type: %s", parent)
+	}
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	return getFileParent, getFileChild, nil
+}
+
 // gitCheckoutConfig performs validation of the GitCheckoutConfig,
 // making external network requests as needed.
 func (dv *deepvalidator) gitCheckoutConfig(ctx context.Context, c *config.GitCheckoutConfig) (version_file_common.GetFileFunc, *revision.Revision, error) {
@@ -383,6 +428,79 @@ func (dv *deepvalidator) dependencyConfig(ctx context.Context, c *config.Depende
 		if _, err := getFileParent(ctx, findAndReplaceFile); err != nil {
 			return skerr.Wrap(err)
 		}
+	}
+	return nil
+}
+
+// cipdChildConfig performs validation of the CIPDChildConfig, making
+// external network requests as needed.
+func (dv *deepvalidator) cipdChildConfig(ctx context.Context, c *config.CIPDChildConfig) (*revision.Revision, error) {
+	cipdChild, err := child.NewCIPD(ctx, c, dv.reg, dv.client, dv.cipdClient, "")
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create cipd child")
+	}
+	// Create a fake revision to pass into Update. We don't have a real
+	// last-rolled revision, but Update requires one.
+	fakeRev := &revision.Revision{
+		Id: "fake",
+	}
+	if c.GitilesRepo != "" || c.SourceRepo != nil {
+		repoUrl := c.GitilesRepo
+		if c.SourceRepo != nil {
+			repoUrl = c.SourceRepo.RepoUrl
+		}
+		repo := gitiles.NewRepo(repoUrl, dv.client)
+		// TODO(borenet): Can we rely on main being present?
+		head, err := repo.Details(ctx, git.MainBranch)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		details, err := repo.Details(ctx, head.Parents[0])
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		fakeRev = revision.FromLongCommit("", "", details)
+		fakeRev.Id = child.CIPDGitRevisionTag(fakeRev.Id)
+	}
+	tipRev, _, err := cipdChild.Update(ctx, fakeRev)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get revision for tag %q of package %s", c.Tag, c.Name)
+	}
+	return tipRev, nil
+}
+
+// copyParentConfig performs validation of the CopyParentConfig, making
+// external network requests as needed.
+func (dv *deepvalidator) copyParentConfig(ctx context.Context, c *config.CopyParentConfig, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
+	p, err := parent.NewCopy(ctx, c, dv.reg, dv.client, "", nil)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if _, err := p.Update(ctx); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// Update() may not check the presence of the copied files; go ahead and
+	// do that here.
+	getFileParent, err := dv.makeGitilesGetFileFuncFromConfig(c.Gitiles.Gitiles)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	for _, cpy := range c.Copies {
+		if err := dv.copyParentConfig_CopyEntry(ctx, cpy, getFileParent, getFileChild); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+	return getFileParent, nil
+}
+
+// copyParentConfig_CopyEntry performs validation of the
+// CopyParentConfig_CopyEntry, making external network requests as needed.
+func (dv *deepvalidator) copyParentConfig_CopyEntry(ctx context.Context, c *config.CopyParentConfig_CopyEntry, getFileParent, getFileChild version_file_common.GetFileFunc) error {
+	if _, err := getFileChild(ctx, c.SrcRelPath); err != nil {
+		return skerr.Wrapf(err, "failed to read src %q", c.SrcRelPath)
+	}
+	if _, err := getFileParent(ctx, c.DstRelPath); err != nil {
+		return skerr.Wrapf(err, "failed to read dst %q", c.DstRelPath)
 	}
 	return nil
 }

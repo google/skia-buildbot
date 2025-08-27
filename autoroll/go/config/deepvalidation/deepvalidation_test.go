@@ -13,11 +13,17 @@ import (
 	"github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	luci_cipd "go.chromium.org/luci/cipd/client/cipd"
+	cipd_common "go.chromium.org/luci/cipd/common"
+
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/chrome_branch/mocks"
+	"go.skia.org/infra/go/cipd"
+	cipd_mocks "go.skia.org/infra/go/cipd/mocks"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
 	gerrit_testutils "go.skia.org/infra/go/gerrit/testutils"
@@ -26,6 +32,7 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vfs"
 )
 
@@ -42,6 +49,8 @@ const (
 	fakeCommitHash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 	fakeDepsContent = `deps = { 'path/to/my-dep': 'my-dep@123' }`
+
+	fakeCIPDDigest = "wIAwHNjMc5BjlUmQFUuvLCMMXyDEmyjxMldtRXoWJVIC"
 )
 
 // newTestDeepValidator creates a deepvalidator instance for testing.
@@ -52,11 +61,11 @@ func newTestDeepValidator(t *testing.T) (*deepvalidator, *mockhttpclient.URLMock
 	reg, err := config_vars.NewRegistry(context.Background(), cbc)
 	require.NoError(t, err)
 	return &deepvalidator{
-			client:           urlMock.Client(),
-			reg:              reg,
-			githubHttpClient: urlMock.Client(),
-		},
-		urlMock
+		client:           urlMock.Client(),
+		cipdClient:       &cipd_mocks.CIPDClient{},
+		reg:              reg,
+		githubHttpClient: urlMock.Client(),
+	}, urlMock
 }
 
 func TestDeepValidator_deepValidate(t *testing.T) {
@@ -83,6 +92,28 @@ func TestDeepValidator_deepValidate(t *testing.T) {
 			},
 		}
 		mocksForGitHubConfig(t, urlMock, cfg.GetGithub())
+		require.NoError(t, dv.deepValidate(ctx, cfg))
+	})
+
+	t.Run("parentChild", func(t *testing.T) {
+		dv, urlMock := newTestDeepValidator(t)
+		defer urlMock.AssertExpectations(t)
+		childCfg := makeGitilesChildConfig()
+		parentCfg := makeGitilesParentConfig()
+		cfg := &config.Config{
+			RepoManager: &config.Config_ParentChildRepoManager{
+				ParentChildRepoManager: &config.ParentChildRepoManagerConfig{
+					Child: &config.ParentChildRepoManagerConfig_GitilesChild{
+						GitilesChild: childCfg,
+					},
+					Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
+						GitilesParent: parentCfg,
+					},
+				},
+			},
+		}
+		mocksForGitilesChildConfig(t, urlMock, childCfg)
+		mocksForGitilesParentConfig(t, urlMock, parentCfg)
 		require.NoError(t, dv.deepValidate(ctx, cfg))
 	})
 
@@ -534,6 +565,223 @@ func TestDeepValidator_dependencyConfig(t *testing.T) {
 	})
 }
 
+func TestDeepValidator_cipdChildConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeCIPDChildConfig()
+	mocksForCIPDChildConfig(t, dv, cfg, nil)
+
+	_, err := dv.cipdChildConfig(t.Context(), cfg)
+	require.NoError(t, err)
+}
+
+func TestDeepValidator_cipdChildConfig_GitilesRepo(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeCIPDChildConfig()
+	cfg.GitilesRepo = fakeGitRepo
+
+	// Mock Gitiles calls.
+	parent := makeFakeCommit()
+	parent.Commit = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	head := makeFakeCommit()
+	head.Parents = []string{parent.Commit}
+	gitiles_testutils.MockGetCommit(t, urlMock, cfg.GitilesRepo, git.MainBranch, head)
+	gitiles_testutils.MockGetCommit(t, urlMock, cfg.GitilesRepo, head.Commit, head)
+	gitiles_testutils.MockGetCommit(t, urlMock, cfg.GitilesRepo, parent.Commit, parent)
+	gitiles_testutils.MockLog(t, urlMock, cfg.GitilesRepo, git.LogFromTo(parent.Commit, head.Commit), &gitiles.Log{
+		Log: []*gitiles.Commit{head},
+	})
+
+	// Mock CIPD calls.
+	mocksForCIPDChildConfig(t, dv, cfg, []string{child.CIPDGitRevisionTag(head.Commit)})
+
+	_, err := dv.cipdChildConfig(t.Context(), cfg)
+	require.NoError(t, err)
+}
+
+func TestDeepValidator_cipdChildConfig_SourceRepo(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeCIPDChildConfig()
+	cfg.SourceRepo = makeGitilesConfig()
+
+	// Mock Gitiles calls.
+	parent := makeFakeCommit()
+	parent.Commit = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	head := makeFakeCommit()
+	head.Parents = []string{parent.Commit}
+	gitiles_testutils.MockGetCommit(t, urlMock, cfg.SourceRepo.RepoUrl, git.MainBranch, head)
+	gitiles_testutils.MockGetCommit(t, urlMock, cfg.SourceRepo.RepoUrl, head.Commit, head)
+	gitiles_testutils.MockGetCommit(t, urlMock, cfg.SourceRepo.RepoUrl, parent.Commit, parent)
+	gitiles_testutils.MockLog(t, urlMock, cfg.SourceRepo.RepoUrl, git.LogFromTo(parent.Commit, head.Commit), &gitiles.Log{
+		Log: []*gitiles.Commit{head},
+	})
+
+	// Mock CIPD calls.
+	mocksForCIPDChildConfig(t, dv, cfg, []string{child.CIPDGitRevisionTag(head.Commit)})
+
+	_, err := dv.cipdChildConfig(t.Context(), cfg)
+	require.NoError(t, err)
+}
+
+func TestDeepValidator_cipdChildConfig_RevisionIdTag(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeCIPDChildConfig()
+	cfg.RevisionIdTag = "custom-revision-id"
+	const revisionID = "some-revision-id"
+
+	// Mock CIPD calls.
+	mocksForCIPDChildConfig(t, dv, cfg, []string{
+		cipd.JoinTag(cfg.RevisionIdTag, revisionID),
+	})
+
+	rev, err := dv.cipdChildConfig(t.Context(), cfg)
+	require.NoError(t, err)
+	require.Equal(t, cfg.RevisionIdTag+":"+revisionID, rev.Id)
+}
+
+func TestDeepValidator_cipdChildConfig_RevisionIdTag_StripKey(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeCIPDChildConfig()
+	cfg.RevisionIdTag = "custom-revision-id"
+	cfg.RevisionIdTagStripKey = true
+	const revisionID = "some-revision-id"
+
+	// Mock CIPD calls.
+	mocksForCIPDChildConfig(t, dv, cfg, []string{
+		cipd.JoinTag(cfg.RevisionIdTag, revisionID),
+	})
+
+	rev, err := dv.cipdChildConfig(t.Context(), cfg)
+	require.NoError(t, err)
+	require.Equal(t, revisionID, rev.Id)
+}
+
+func TestDeepValidator_copyParentConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makeCopyParentConfig()
+
+	mocksForCopyParentConfig(t, urlMock, cfg)
+
+	// Mock getFileChild.
+	getFileChild := func(ctx context.Context, path string) (string, error) {
+		require.Equal(t, cfg.Copies[0].SrcRelPath, path)
+		return "child content", nil
+	}
+
+	_, err := dv.copyParentConfig(t.Context(), cfg, getFileChild)
+	require.NoError(t, err)
+}
+
+func TestDeepValidator_copyParentConfig_CopyEntry(t *testing.T) {
+	dv, _ := newTestDeepValidator(t)
+
+	cfg := makeCopyParentConfig_CopyEntry()
+
+	getFileSuccess := func(ctx context.Context, path string) (string, error) {
+		return "some content", nil
+	}
+	getFileFail := func(ctx context.Context, path string) (string, error) {
+		return "", fmt.Errorf("file not found")
+	}
+
+	t.Run("Success", func(t *testing.T) {
+		err := dv.copyParentConfig_CopyEntry(t.Context(), cfg, getFileSuccess, getFileSuccess)
+		require.NoError(t, err)
+	})
+
+	t.Run("Src Fails", func(t *testing.T) {
+		err := dv.copyParentConfig_CopyEntry(t.Context(), cfg, getFileFail, getFileSuccess)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "file not found")
+	})
+
+	t.Run("Dst Fails", func(t *testing.T) {
+		err := dv.copyParentConfig_CopyEntry(t.Context(), cfg, getFileSuccess, getFileFail)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "file not found")
+	})
+}
+
+func TestDeepValidator_parentChildRepoManagerConfig(t *testing.T) {
+	// Shorthand for functions to set up mocks for parent and child,
+	// respectively.
+	type mockParentFunc func(*testing.T, *deepvalidator, *mockhttpclient.URLMock)
+	type mockChildFunc func(*testing.T, *deepvalidator, *mockhttpclient.URLMock, string)
+
+	// test is a helper function that actually tests a combination of parent
+	// and child types.
+	test := func(name string, parentCfg *config.ParentChildRepoManagerConfig, parentMocks mockParentFunc, childCfg *config.ParentChildRepoManagerConfig, childMocks mockChildFunc) {
+		t.Run(name, func(t *testing.T) {
+			dv, urlMock := newTestDeepValidator(t)
+
+			// Merge the configs.
+			cfg := &config.ParentChildRepoManagerConfig{
+				Parent: parentCfg.Parent,
+				Child:  childCfg.Child,
+			}
+
+			// Need to ensure that the child mocks any requests to read a
+			// copied file.
+			copiedFile := ""
+			if parentCfg.GetCopyParent() != nil {
+				copiedFile = parentCfg.GetCopyParent().Copies[0].SrcRelPath
+			}
+
+			// Mock the Child first, since deepvalidator.parentChildRepoManager
+			// validates the Child first.
+			childMocks(t, dv, urlMock, copiedFile)
+			parentMocks(t, dv, urlMock)
+
+			// Merge the configs and run the test.
+
+			_, _, err := dv.parentChildRepoManagerConfig(t.Context(), cfg)
+			require.NoError(t, err)
+			urlMock.AssertExpectations(t)
+		})
+	}
+
+	// Create all combinations of parent and child configs.
+	//
+	// We're using a full ParentChildRepoManagerConfig for both the parent and
+	// child because the config.isParentChildRepoManagerConfig_Parent and
+	// config.isParentChildRepoManagerConfig_Child interfaces are private, which
+	// makes passing around any other type difficult.
+	copyParentCfg := &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_CopyParent{
+			CopyParent: makeCopyParentConfig(),
+		},
+	}
+	copyParentMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock) {
+		mocksForCopyParentConfig(t, urlMock, copyParentCfg.GetCopyParent())
+	}
+
+	gitilesChildCfg := &config.ParentChildRepoManagerConfig{
+		Child: &config.ParentChildRepoManagerConfig_GitilesChild{
+			GitilesChild: makeGitilesChildConfig(),
+		},
+	}
+	gitilesChildMocks := func(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, copiedFile string) {
+		cfg := gitilesChildCfg.GetGitilesChild()
+		mocksForGitilesChildConfig(t, urlMock, cfg)
+		if copiedFile != "" {
+			gitiles_testutils.MockReadFile(t, urlMock, cfg.Gitiles.RepoUrl, copiedFile, cfg.Gitiles.Branch, []byte(""), vfs.FileInfoImpl{}.Get())
+		}
+	}
+
+	test("CopyParent_GitilesChild", copyParentCfg, copyParentMocks, gitilesChildCfg, gitilesChildMocks)
+}
+
 func makeCommandRepoManagerConfig() *config.CommandRepoManagerConfig {
 	return &config.CommandRepoManagerConfig{
 		GitCheckout: &config.GitCheckoutConfig{
@@ -551,11 +799,34 @@ func makeCommandRepoManagerConfig() *config.CommandRepoManagerConfig {
 		},
 	}
 }
+func makeCopyParentConfig() *config.CopyParentConfig {
+	cfg := &config.CopyParentConfig{
+		Gitiles: makeGitilesParentConfig(),
+		Copies: []*config.CopyParentConfig_CopyEntry{
+			makeCopyParentConfig_CopyEntry(),
+		},
+	}
+	return cfg
+}
+
+func makeCopyParentConfig_CopyEntry() *config.CopyParentConfig_CopyEntry {
+	return &config.CopyParentConfig_CopyEntry{
+		SrcRelPath: "src/file.txt",
+		DstRelPath: "dst/file.txt",
+	}
+}
 
 func makeGitCheckoutConfig() *config.GitCheckoutConfig {
 	return &config.GitCheckoutConfig{
 		Branch:  git.MainBranch,
 		RepoUrl: fakeGitRepo,
+	}
+}
+
+func makeCIPDChildConfig() *config.CIPDChildConfig {
+	return &config.CIPDChildConfig{
+		Name: "my-package",
+		Tag:  "latest",
 	}
 }
 
@@ -766,6 +1037,38 @@ func mocksForGitilesParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, 
 	sharedMocksForGitilesParent(t, urlMock, cfg.Gitiles.RepoUrl, cfg.Gitiles.Branch)
 	mocksForGerritConfig(t, urlMock, cfg.Gerrit)
 	mocksForDependencyConfig(t, urlMock, cfg.Dep, cfg.Gitiles.RepoUrl, cfg.Gitiles.Branch)
+}
+
+func mocksForCIPDChildConfig(t *testing.T, dv *deepvalidator, cfg *config.CIPDChildConfig, tags []string) {
+	// Mock CIPD.
+	pin := cipd_common.Pin{
+		PackageName: cfg.Name,
+		InstanceID:  fakeCIPDDigest,
+	}
+	tagInfos := make([]luci_cipd.TagInfo, len(tags))
+	for idx, tag := range tags {
+		tagInfos[idx].Tag = tag
+	}
+	client := dv.cipdClient.(*cipd_mocks.CIPDClient)
+	client.On("ResolveVersion", testutils.AnyContext, cfg.Name, cfg.Tag).Return(pin, nil)
+	client.On("Describe", testutils.AnyContext, cfg.Name, pin.InstanceID, false).Return(&luci_cipd.InstanceDescription{
+		InstanceInfo: luci_cipd.InstanceInfo{
+			Pin: pin,
+		},
+		Tags: tagInfos,
+	}, nil)
+}
+
+func mocksForCopyParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.CopyParentConfig) {
+	repoURL := cfg.Gitiles.Gitiles.RepoUrl
+
+	// Mock gitiles for parent.
+	sharedMocksForGitilesParent(t, urlMock, cfg.Gitiles.Gitiles.RepoUrl, cfg.Gitiles.Gitiles.Branch)
+
+	// Mock getFileParent for the copy validation.
+	gitiles_testutils.MockReadFile(t, urlMock, repoURL, cfg.Copies[0].DstRelPath, cfg.Gitiles.Gitiles.Branch, []byte("parent content"), vfs.FileInfo{
+		Name: "file.txt",
+	}.Get())
 }
 
 func mockDEPSContent(t *testing.T, urlMock *mockhttpclient.URLMock, repoURL, commit string) {
