@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/docker"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -41,9 +42,14 @@ func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c 
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	dockerClient, err := docker.NewClient(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	dv := &deepvalidator{
 		client:           client,
 		cipdClient:       cipdClient,
+		dockerClient:     dockerClient,
 		reg:              reg,
 		githubHttpClient: githubHttpClient,
 	}
@@ -55,6 +61,7 @@ func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c 
 type deepvalidator struct {
 	client           *http.Client
 	cipdClient       cipd.CIPDClient
+	dockerClient     docker.Client
 	reg              *config_vars.Registry
 	githubHttpClient *http.Client
 }
@@ -255,9 +262,7 @@ func (dv *deepvalidator) commandRepoManagerConfig(ctx context.Context, c *config
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	tipRev := &revision.Revision{
-		Id: "fake",
-	}
+	tipRev := makeFakeRevision()
 	if err := dv.commandRepoManagerConfig_CommandConfig(ctx, c.GetTipRev, tipRev, getFile); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -328,8 +333,20 @@ func (dv *deepvalidator) parentChildRepoManagerConfig(ctx context.Context, c *co
 	var getFileParent, getFileChild version_file_common.GetFileFunc
 	var err error
 	switch child := c.Child.(type) {
+	case *config.ParentChildRepoManagerConfig_CipdChild:
+		_, err = dv.cipdChildConfig(ctx, child.CipdChild)
+	case *config.ParentChildRepoManagerConfig_FuchsiaSdkChild:
+		_, err = dv.fuchsiaSDKChildConfig(ctx, child.FuchsiaSdkChild)
+	case *config.ParentChildRepoManagerConfig_GitCheckoutChild:
+		getFileChild, _, err = dv.gitCheckoutChildConfig(ctx, child.GitCheckoutChild)
+	case *config.ParentChildRepoManagerConfig_GitCheckoutGithubChild:
+		getFileChild, _, err = dv.gitCheckoutGitHubChildConfig(ctx, child.GitCheckoutGithubChild)
 	case *config.ParentChildRepoManagerConfig_GitilesChild:
 		getFileChild, _, err = dv.gitilesChildConfig(ctx, child.GitilesChild)
+	case *config.ParentChildRepoManagerConfig_SemverGcsChild:
+		_, err = dv.semVerGCSChildConfig(ctx, child.SemverGcsChild)
+	case *config.ParentChildRepoManagerConfig_DockerChild:
+		_, err = dv.dockerChildConfig(ctx, child.DockerChild)
 	default:
 		return nil, nil, skerr.Fmt("Unknown child type: %s", child)
 	}
@@ -349,6 +366,12 @@ func (dv *deepvalidator) parentChildRepoManagerConfig(ctx context.Context, c *co
 		return nil, nil, skerr.Wrap(err)
 	}
 	return getFileParent, getFileChild, nil
+}
+
+// gitCheckoutGitHubChildConfig performs validation of the
+// GitCheckoutGitHubChildConfig, making external network requests as needed.
+func (dv *deepvalidator) gitCheckoutGitHubChildConfig(ctx context.Context, c *config.GitCheckoutGitHubChildConfig) (version_file_common.GetFileFunc, *revision.Revision, error) {
+	return dv.gitCheckoutChildConfig(ctx, c.GitCheckout)
 }
 
 // gitCheckoutConfig performs validation of the GitCheckoutConfig,
@@ -432,6 +455,23 @@ func (dv *deepvalidator) dependencyConfig(ctx context.Context, c *config.Depende
 	return nil
 }
 
+// fuchsiaSDKChildConfig performs validation of the
+// FuchsiaSDKChildConfig, making external network requests as needed.
+func (dv *deepvalidator) fuchsiaSDKChildConfig(ctx context.Context, c *config.FuchsiaSDKChildConfig) (*revision.Revision, error) {
+	fuchsiaChild, err := child.NewFuchsiaSDK(ctx, c, dv.client)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create fuchsia sdk child")
+	}
+	// Create a fake revision to pass into Update. We don't have a real
+	// last-rolled revision, but Update requires one.
+	fakeRev := makeFakeRevision()
+	tipRev, _, err := fuchsiaChild.Update(ctx, fakeRev)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to update fuchsia sdk child")
+	}
+	return tipRev, nil
+}
+
 // cipdChildConfig performs validation of the CIPDChildConfig, making
 // external network requests as needed.
 func (dv *deepvalidator) cipdChildConfig(ctx context.Context, c *config.CIPDChildConfig) (*revision.Revision, error) {
@@ -441,9 +481,7 @@ func (dv *deepvalidator) cipdChildConfig(ctx context.Context, c *config.CIPDChil
 	}
 	// Create a fake revision to pass into Update. We don't have a real
 	// last-rolled revision, but Update requires one.
-	fakeRev := &revision.Revision{
-		Id: "fake",
-	}
+	fakeRev := makeFakeRevision()
 	if c.GitilesRepo != "" || c.SourceRepo != nil {
 		repoUrl := c.GitilesRepo
 		if c.SourceRepo != nil {
@@ -465,6 +503,36 @@ func (dv *deepvalidator) cipdChildConfig(ctx context.Context, c *config.CIPDChil
 	tipRev, _, err := cipdChild.Update(ctx, fakeRev)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get revision for tag %q of package %s", c.Tag, c.Name)
+	}
+	return tipRev, nil
+}
+
+// gitCheckoutChildConfig performs validation of the
+// GitCheckoutChildConfig, making external network requests as needed.
+func (dv *deepvalidator) gitCheckoutChildConfig(ctx context.Context, c *config.GitCheckoutChildConfig) (version_file_common.GetFileFunc, *revision.Revision, error) {
+	getFile, tipRev, err := dv.gitCheckoutConfig(ctx, c.GitCheckout)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	return getFile, tipRev, nil
+}
+
+// semVerGCSChildConfig performs validation of the
+// SemVerGCSChildConfig, making external network requests as needed.
+func (dv *deepvalidator) semVerGCSChildConfig(ctx context.Context, c *config.SemVerGCSChildConfig) (*revision.Revision, error) {
+	semverChild, err := child.NewSemVerGCS(ctx, c, dv.reg, dv.client)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create semver gcs child")
+	}
+	// Create a fake revision to pass into Update. We don't have a real
+	// last-rolled revision, but Update requires one.
+	fakeRev := makeFakeRevision()
+	tipRev, _, err := semverChild.Update(ctx, fakeRev)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to update semver gcs child")
+	}
+	if tipRev.Id == fakeRev.Id {
+		return nil, skerr.Fmt("found no matching objects in %s/%s", c.Gcs.GcsBucket, c.Gcs.GcsPath)
 	}
 	return tipRev, nil
 }
@@ -503,4 +571,29 @@ func (dv *deepvalidator) copyParentConfig_CopyEntry(ctx context.Context, c *conf
 		return skerr.Wrapf(err, "failed to read dst %q", c.DstRelPath)
 	}
 	return nil
+}
+
+// dockerChildConfig performs validation of the DockerChildConfig,
+// making external network requests as needed.
+func (dv *deepvalidator) dockerChildConfig(ctx context.Context, c *config.DockerChildConfig) (*revision.Revision, error) {
+	dockerChild, err := child.NewDocker(ctx, c, dv.dockerClient)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create docker child")
+	}
+	// Create a fake revision to pass into Update. We don't have a real
+	// last-rolled revision, but Update requires one.
+	fakeRev := makeFakeRevision()
+	tipRev, _, err := dockerChild.Update(ctx, fakeRev)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get revision for tag %q", c.Tag)
+	}
+	return tipRev, nil
+}
+
+// makeFakeRevision can be used wherever we need to pass in a Revision but the
+// actual value is not important.
+func makeFakeRevision() *revision.Revision {
+	return &revision.Revision{
+		Id: "fake",
+	}
 }
