@@ -6,7 +6,10 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
+	"time"
 
+	"go.chromium.org/luci/common/errors"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
@@ -25,6 +28,7 @@ import (
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/progress"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -58,6 +62,55 @@ func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c 
 		githubHttpClient: githubHttpClient,
 	}
 	return dv.deepValidate(ctx, c)
+}
+
+// numMultiValidateWorkers is the size of the worker pool used in
+// DeepValidateMulti.
+const numMultiValidateWorkers = 15
+
+// DeepValidateMulti validates multiple config files.
+func DeepValidateMulti(ctx context.Context, client, githubHttpClient *http.Client, configs map[string]*config.Config) error {
+	type configToValidate struct {
+		filename string
+		config   *config.Config
+	}
+	configsToValidate := make(chan *configToValidate)
+
+	go func() {
+		for file, cfg := range configs {
+			configsToValidate <- &configToValidate{
+				filename: file,
+				config:   cfg,
+			}
+		}
+		close(configsToValidate)
+	}()
+
+	pt := progress.New(int64(len(configs)))
+	pt.AtInterval(ctx, 5*time.Second, func(count, total int64) {
+		sklog.Debugf("Validated %d of %d", count, total)
+	})
+	var wg sync.WaitGroup
+	results := sync.Map{}
+	for range numMultiValidateWorkers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for cfg := range configsToValidate {
+				if err := DeepValidate(ctx, client, githubHttpClient, cfg.config); err != nil {
+					results.Store(cfg.filename, err)
+				}
+				pt.Inc(1)
+			}
+		}()
+	}
+	wg.Wait()
+	var combinedErr error
+	results.Range(func(file, err any) bool {
+		combinedErr = errors.Append(combinedErr, skerr.Fmt("Deep validation failed for %s: %s", file, err))
+		return true
+	})
+	return combinedErr
 }
 
 // deepvalidator is a helper for running deep validation which wraps up shared

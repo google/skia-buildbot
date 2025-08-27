@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -17,10 +18,12 @@ import (
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
 	"github.com/go-chi/chi/v5"
+	"go.chromium.org/luci/common/errors"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config/conversion"
 	"go.skia.org/infra/autoroll/go/config/db"
+	"go.skia.org/infra/autoroll/go/config/deepvalidation"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/roller"
@@ -72,7 +75,7 @@ var hangOptions = []HangOption{hangNone, hangImmediately, hangBeforeRollerCreati
 // flags
 var (
 	configContents         = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
-	configFile             = flag.String("config_file", "", "Configuration file to use, mutually exclusive with --config.")
+	configFile             = common.NewMultiStringFlag("config_file", nil, "Configuration file(s) to use, mutually exclusive with --config.")
 	firestoreInstance      = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	local                  = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port                   = flag.String("port", ":8000", "HTTP service port.")
@@ -81,6 +84,7 @@ var (
 	hang                   = flag.String("hang", string(hangNone), fmt.Sprintf("If set, just hang and do nothing, at specified points in the code. Options: %v", hangOptions))
 	namespacedEmailService = flag.Bool("namespaced-email-service", false, "If true then use the emailservice that's running in its own namespace.")
 	validateConfig         = flag.Bool("validate-config", false, "If set, validate the config and exit without running the autoroll backend.")
+	deepValidateConfig     = flag.Bool("deep-validate-config", false, "If set, validate the config deeply, making necessary network requests, and exit. Note: the caller must have all of the permissions that the roller itself has.")
 	genK8sConfig           = flag.String("gen-k8s-config", "", "Eg. \"skia-infra-public/skia-chromium.cfg:/path/to/k8s/config\". If set, generate a Kubernetes config file for the roller and write it in the given directory, without running the autoroll backend.")
 )
 
@@ -103,6 +107,7 @@ func clientConfig(ts oauth2.TokenSource) httputils.ClientConfig {
 }
 
 func main() {
+	// Parse and validate flags.
 	common.InitWithMust(
 		"autoroll-be",
 		common.PrometheusOpt(promPort),
@@ -114,34 +119,78 @@ func main() {
 		httputils.RunHealthCheckServer(*port)
 	}
 
-	// Decode the config.
-	if (*configContents == "" && *configFile == "") || (*configContents != "" && *configFile != "") {
-		sklog.Fatal("Exactly one of --config or --config_file is required.")
+	if (*configContents == "" && len(*configFile) == 0) || (*configContents != "" && len(*configFile) > 0) {
+		sklog.Fatal("--config and --config_file are mutually exclusive")
 	}
-	var configBytes []byte
-	var err error
+	if len(*configFile) > 1 && !(*validateConfig || *deepValidateConfig) {
+		sklog.Fatal("Multiple --config_file only supported with --validate-config or --deep-validate-config.")
+	}
+
+	// Decode the config(s).
+	configsMap := map[string]*config.Config{} // All provided configs.
+	var cfg *config.Config                    // A single config; the one we'll actually use.
+	var configBytes []byte                    // The raw bytes for cfg.
 	if *configContents != "" {
+		var err error
 		configBytes, err = base64.StdEncoding.DecodeString(*configContents)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		cfg = new(config.Config)
+		if err := prototext.Unmarshal(configBytes, cfg); err != nil {
+			sklog.Fatal(err)
+		}
+		configsMap["--config"] = cfg // No filename, since the config was passed as a flag.
 	} else {
-		err = util.WithReadFile(*configFile, func(f io.Reader) error {
-			configBytes, err = io.ReadAll(f)
-			return err
-		})
+		for _, configFileFlag := range *configFile {
+			cfgFiles, err := filepath.Glob(configFileFlag)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			for _, cfgFile := range cfgFiles {
+				if err := util.WithReadFile(cfgFile, func(f io.Reader) error {
+					var err error
+					configBytes, err = io.ReadAll(f)
+					return err
+				}); err != nil {
+					sklog.Fatal(err)
+				}
+				cfg = new(config.Config)
+				if err := prototext.Unmarshal(configBytes, cfg); err != nil {
+					sklog.Fatal(err)
+				}
+				configsMap[cfgFile] = cfg
+			}
+		}
 	}
+
+	// Validate the config(s), then exit if that's all we were supposed to do.
+	for file, cfg := range configsMap {
+		anyFailed := false
+		if err := cfg.Validate(); err != nil {
+			anyFailed = true
+			if file == "" { // No filename; the config was passed as a flag.
+				fmt.Fprintf(os.Stderr, "Config failed validation: %s\n", err)
+			} else {
+				fmt.Fprintf(os.Stderr, "Config file %s failed validation: %s\n\n", file, err)
+			}
+		}
+		if anyFailed {
+			os.Exit(1)
+		}
+	}
+	if *validateConfig && !*deepValidateConfig {
+		return
+	}
+
+	ctx := context.Background()
+
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	var cfg config.Config
-	if err := prototext.Unmarshal(configBytes, &cfg); err != nil {
-		sklog.Fatal(err)
-	}
-	if err := cfg.Validate(); err != nil {
-		sklog.Fatal(err)
-	}
-	if *validateConfig {
-		return
-	}
-	ctx := context.Background()
+	client := clientConfig(ts).Client()
+
 	if *genK8sConfig != "" {
 		split := strings.Split(*genK8sConfig, ":")
 		if len(split) != 2 {
@@ -151,6 +200,86 @@ func main() {
 			sklog.Fatalf("failed to convert config: %s", err)
 		}
 		return
+	}
+
+	user, err := user.Current()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	sklog.Infof("Current user: %s; HOME=%s", user.Name, user.HomeDir)
+
+	secretClient, err := secret.NewClient(ctx)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	// Create HTTP clients for Gerrit and Github.
+
+	// Gerrit sometimes throws 404s for CLs that we've just uploaded, likely
+	// due to eventual consistency. Rather than error out, use an HTTP
+	// client which retries 4XX errors.
+	gerritHttpClient := clientConfig(ts).WithRetry4XX().Client()
+
+	// Instantiate githubClient using the github token secret.
+	var githubHttpClient *http.Client
+	// Find any GitHub config.
+	var githubCfg *config.GitHubConfig
+	for _, cfg := range configsMap {
+		if cfg.GetGithub() != nil {
+			githubCfg = cfg.GetGithub()
+			break
+		}
+	}
+	if githubCfg != nil {
+		var gToken string
+		if *local {
+			pathToGithubToken := filepath.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
+			gBody, err := os.ReadFile(pathToGithubToken)
+			if err != nil {
+				sklog.Fatalf("Couldn't find githubToken in %s: %s.", pathToGithubToken, err)
+			}
+			gToken = strings.TrimSpace(string(gBody))
+		} else {
+			gBody, err := secretClient.Get(ctx, secretProject, githubCfg.TokenSecret, secret.VersionLatest)
+			if err != nil {
+				sklog.Fatalf("Failed to retrieve secret %s: %s", githubCfg.TokenSecret, err)
+			}
+			gToken = strings.TrimSpace(gBody)
+
+			// Setup the required SSH key from secrets if we are not running
+			// locally and if the file does not already exist.
+			sshKeyDestDir := filepath.Join(user.HomeDir, ".ssh")
+			sshKeyDest := filepath.Join(sshKeyDestDir, github.SSH_KEY_FILENAME)
+			if _, err := os.Stat(sshKeyDest); os.IsNotExist(err) {
+				sshKey, err := secretClient.Get(ctx, secretProject, githubCfg.SshKeySecret, secret.VersionLatest)
+				if err != nil {
+					sklog.Fatalf("Failed to retrieve secret %s: %s", githubCfg.SshKeySecret, err)
+				}
+				if _, err := fileutil.EnsureDirExists(sshKeyDestDir); err != nil {
+					sklog.Fatalf("Could not create %s: %s", sshKeyDest, err)
+				}
+				if err := os.WriteFile(sshKeyDest, []byte(sshKey), 0600); err != nil {
+					sklog.Fatalf("Could not write to %s: %s", sshKeyDest, err)
+				}
+			}
+			// Make sure github is added to known_hosts.
+			github.AddToKnownHosts(ctx)
+		}
+		githubHttpClient = oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
+	}
+
+	// Perform deep validation and exit if requested.
+	if *deepValidateConfig {
+		sklog.Info("Performing deep config validation")
+		if err := deepvalidation.DeepValidateMulti(ctx, client, githubHttpClient, configsMap); err != nil {
+			errors.WalkLeaves(err, func(err error) bool {
+				fmt.Fprintf(os.Stderr, "%s\n\n", err)
+				return true
+			})
+			os.Exit(1)
+		}
+		sklog.Info("All configs passed validation")
+		os.Exit(0)
 	}
 
 	// Rollers use a custom temporary dir, to ensure that it's on a
@@ -168,11 +297,6 @@ func main() {
 		}
 	})
 
-	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	client := clientConfig(ts).Client()
 	namespace := ds.AUTOROLL_NS
 	if cfg.IsInternal {
 		namespace = ds.AUTOROLL_INTERNAL_NS
@@ -182,17 +306,6 @@ func main() {
 	}
 
 	chatbot.Init(fmt.Sprintf("%s -> %s AutoRoller", cfg.ChildDisplayName, cfg.ParentDisplayName))
-
-	user, err := user.Current()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Infof("Current user: %s; HOME=%s", user.Name, user.HomeDir)
-
-	secretClient, err := secret.NewClient(ctx)
-	if err != nil {
-		sklog.Fatal(err)
-	}
 
 	var emailer emailclient.Client
 	var chatBotConfigReader chatbot.ConfigReader
@@ -234,7 +347,7 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		if err := configDB.Put(ctx, cfg.RollerName, &cfg); err != nil {
+		if err := configDB.Put(ctx, cfg.RollerName, cfg); err != nil {
 			sklog.Fatal(err)
 		}
 	}
@@ -277,57 +390,12 @@ func main() {
 			sklog.Fatal("Gerrit config doesn't exist.")
 		}
 		gerritConfig := codereview.GerritConfigs[gc.Config]
-		// Gerrit sometimes throws 404s for CLs that we've just uploaded, likely
-		// due to eventual consistency. Rather than error out, use an HTTP
-		// client which retries 4XX errors.
-		clientForGerrit := clientConfig(ts).WithRetry4XX().Client()
-		g, err = gerrit.NewGerritWithConfig(gerritConfig, gc.Url, clientForGerrit)
+		g, err = gerrit.NewGerritWithConfig(gerritConfig, gc.Url, gerritHttpClient)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
 	} else if cfg.GetGithub() != nil {
-		githubCfg := cfg.GetGithub()
-		var gToken string
-		if *local {
-			pathToGithubToken := filepath.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
-			gBody, err := os.ReadFile(pathToGithubToken)
-			if err != nil {
-				sklog.Fatalf("Couldn't find githubToken in %s: %s.", pathToGithubToken, err)
-			}
-			gToken = strings.TrimSpace(string(gBody))
-		} else {
-			gBody, err := secretClient.Get(ctx, secretProject, githubCfg.TokenSecret, secret.VersionLatest)
-			if err != nil {
-				sklog.Fatalf("Failed to retrieve secret %s: %s", githubCfg.TokenSecret, err)
-			}
-			gToken = strings.TrimSpace(gBody)
-
-			// Setup the required SSH key from secrets if we are not running
-			// locally and if the file does not already exist.
-			sshKeyDestDir := filepath.Join(user.HomeDir, ".ssh")
-			sshKeyDest := filepath.Join(sshKeyDestDir, github.SSH_KEY_FILENAME)
-			if _, err := os.Stat(sshKeyDest); os.IsNotExist(err) {
-				sshKey, err := secretClient.Get(ctx, secretProject, githubCfg.SshKeySecret, secret.VersionLatest)
-				if err != nil {
-					sklog.Fatalf("Failed to retrieve secret %s: %s", githubCfg.SshKeySecret, err)
-				}
-				if _, err := fileutil.EnsureDirExists(sshKeyDestDir); err != nil {
-					sklog.Fatalf("Could not create %s: %s", sshKeyDest, err)
-				}
-				if err := os.WriteFile(sshKeyDest, []byte(sshKey), 0600); err != nil {
-					sklog.Fatalf("Could not write to %s: %s", sshKeyDest, err)
-				}
-			}
-			// Make sure github is added to known_hosts.
-			github.AddToKnownHosts(ctx)
-		}
-
-		// Instantiate githubClient using the github token secret.
-		githubHttpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
 		gc := cfg.GetGithub()
-		if gc == nil {
-			sklog.Fatal("Github config doesn't exist.")
-		}
 		githubClient, err = github.NewGitHub(ctx, gc.RepoOwner, gc.RepoName, githubHttpClient)
 		if err != nil {
 			sklog.Fatalf("Could not create Github client: %s", err)
@@ -362,7 +430,7 @@ func main() {
 		httputils.RunHealthCheckServer(*port)
 	}
 
-	arb, err := roller.NewAutoRoller(ctx, &cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, serverURL, gcsClient, client, rollerName, *local, statusDB, manualRolls, rollerCleanup)
+	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, serverURL, gcsClient, client, rollerName, *local, statusDB, manualRolls, rollerCleanup)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -454,7 +522,7 @@ func main() {
 							continue
 						}
 						creationTime := time.Unix(creationTS, 0)
-						elapsedDuration := time.Now().Sub(creationTime)
+						elapsedDuration := time.Since(creationTime)
 						elapsedDays := elapsedDuration.Hours() / 24
 						sklog.Infof("Fork branch %s was created %f days ago", *r.Ref, elapsedDays)
 						if elapsedDays > 7 {
