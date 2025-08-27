@@ -58,11 +58,18 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Re
 			return nil, skerr.Wrap(err)
 		}
 	}
+	tagTmpl, err := config_vars.NewTemplate(c.Tag)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := reg.Register(tagTmpl); err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	return &CIPDChild{
 		client:                cipdClient,
 		name:                  c.Name,
 		root:                  workdir,
-		tag:                   c.Tag,
+		tag:                   tagTmpl,
 		gitRepo:               gitilesRepo,
 		revisionIdTag:         c.RevisionIdTag,
 		revisionIdTagStripKey: c.RevisionIdTagStripKey,
@@ -74,7 +81,7 @@ type CIPDChild struct {
 	client                cipd.CIPDClient
 	name                  string
 	root                  string
-	tag                   string
+	tag                   *config_vars.Template
 	gitRepo               *gitiles_common.GitilesRepo
 	revisionIdTag         string
 	revisionIdTagStripKey bool
@@ -167,7 +174,7 @@ func (c *CIPDChild) LogRevisions(ctx context.Context, from, to *revision.Revisio
 // Update implements Child.
 // Note: that this just finds the newest version of the CIPD package.
 func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
-	head, err := c.client.ResolveVersion(ctx, c.name, c.tag)
+	head, err := c.client.ResolveVersion(ctx, c.name, c.tag.String())
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}

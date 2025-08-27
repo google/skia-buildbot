@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
@@ -13,6 +14,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/chrome_branch"
 	chrome_branch_mocks "go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/cipd/mocks"
 	"go.skia.org/infra/go/git"
@@ -188,10 +190,17 @@ func TestCIPDInstanceToRevision_RevisionIdTagStripKey(t *testing.T) {
 
 func TestCIPDChild_GetRevision(t *testing.T) {
 	mockCipdClient := &mocks.CIPDClient{}
+	cbc := &chrome_branch_mocks.Client{}
+	cbc.On("Get", mock.Anything).Return(&chrome_branch.Branches{}, []*chrome_branch.Branch{{Milestone: 123}}, nil)
+	reg, err := config_vars.NewRegistry(t.Context(), cbc)
+	require.NoError(t, err)
+	tagTmpl, err := config_vars.NewTemplate("latest")
+	require.NoError(t, err)
+	require.NoError(t, reg.Register(tagTmpl))
 	c := &CIPDChild{
 		client: mockCipdClient,
 		name:   "some/package",
-		tag:    "latest",
+		tag:    tagTmpl,
 	}
 	ctx := context.Background()
 	ts := time.Unix(1615384545, 0)
@@ -242,6 +251,9 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 	cbc.On("Get", ctx).Return(configFakeVars.Branches.Chromium, configFakeVars.Branches.ActiveMilestones, nil)
 	reg, err := config_vars.NewRegistry(ctx, cbc)
 	require.NoError(t, err)
+	tagTmpl, err := config_vars.NewTemplate("latest")
+	require.NoError(t, err)
+	require.NoError(t, reg.Register(tagTmpl))
 	gitilesConfig := &config.GitilesConfig{
 		Branch:  git.MainBranch,
 		RepoUrl: "fake.git",
@@ -252,7 +264,7 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 	c := &CIPDChild{
 		client:  mockCipdClient,
 		name:    "some/package",
-		tag:     "latest",
+		tag:     tagTmpl,
 		gitRepo: gitilesRepo,
 	}
 
@@ -316,12 +328,17 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 
 func TestCIPDChild_GetRevision_HasRevisionIDTag(t *testing.T) {
 	mockCipdClient := &mocks.CIPDClient{}
-	ctx := context.Background()
-
+	cbc := &chrome_branch_mocks.Client{}
+	cbc.On("Get", mock.Anything).Return(&chrome_branch.Branches{}, []*chrome_branch.Branch{{Milestone: 123}}, nil)
+	reg, err := config_vars.NewRegistry(t.Context(), cbc)
+	require.NoError(t, err)
+	tagTmpl, err := config_vars.NewTemplate("latest")
+	require.NoError(t, err)
+	require.NoError(t, reg.Register(tagTmpl))
 	c := &CIPDChild{
 		client:        mockCipdClient,
 		name:          "some/package",
-		tag:           "latest",
+		tag:           tagTmpl,
 		revisionIdTag: "version",
 	}
 
@@ -358,7 +375,7 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag(t *testing.T) {
 		},
 	}, nil)
 
-	rev, err := c.GetRevision(ctx, instanceID)
+	rev, err := c.GetRevision(t.Context(), instanceID)
 	require.NoError(t, err)
 	require.Equal(t, &revision.Revision{
 		Id:       "version:5",
@@ -376,12 +393,18 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag(t *testing.T) {
 
 func TestCIPDChild_GetRevision_HasRevisionIDTag_StripKey(t *testing.T) {
 	mockCipdClient := &mocks.CIPDClient{}
-	ctx := context.Background()
+	cbc := &chrome_branch_mocks.Client{}
+	cbc.On("Get", mock.Anything).Return(&chrome_branch.Branches{}, []*chrome_branch.Branch{{Milestone: 123}}, nil)
+	reg, err := config_vars.NewRegistry(t.Context(), cbc)
+	require.NoError(t, err)
+	tagTmpl, err := config_vars.NewTemplate("latest")
+	require.NoError(t, err)
+	require.NoError(t, reg.Register(tagTmpl))
 
 	c := &CIPDChild{
 		client:                mockCipdClient,
 		name:                  "some/package",
-		tag:                   "latest",
+		tag:                   tagTmpl,
 		revisionIdTag:         "version",
 		revisionIdTagStripKey: true,
 	}
@@ -419,7 +442,7 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag_StripKey(t *testing.T) {
 		},
 	}, nil)
 
-	rev, err := c.GetRevision(ctx, instanceID)
+	rev, err := c.GetRevision(t.Context(), instanceID)
 	require.NoError(t, err)
 	require.Equal(t, &revision.Revision{
 		Id:       "5",
@@ -437,15 +460,22 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag_StripKey(t *testing.T) {
 
 func TestCIPDChild_Update(t *testing.T) {
 	mockCipdClient := &mocks.CIPDClient{}
+	cbc := &chrome_branch_mocks.Client{}
+	cbc.On("Get", mock.Anything).Return(&chrome_branch.Branches{}, []*chrome_branch.Branch{{Milestone: 123}}, nil)
+	reg, err := config_vars.NewRegistry(t.Context(), cbc)
+	require.NoError(t, err)
+	tagTmpl, err := config_vars.NewTemplate("latest")
+	require.NoError(t, err)
+	require.NoError(t, reg.Register(tagTmpl))
 	c := &CIPDChild{
 		client: mockCipdClient,
 		name:   "some/package",
-		tag:    "latest",
+		tag:    tagTmpl,
 	}
 	ctx := context.Background()
 	ts := time.Unix(1615384545, 0)
 	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
-	mockCipdClient.On("ResolveVersion", testutils.AnyContext, c.name, c.tag).Return(common.Pin{
+	mockCipdClient.On("ResolveVersion", testutils.AnyContext, c.name, c.tag.String()).Return(common.Pin{
 		PackageName: c.name,
 		InstanceID:  instanceID,
 	}, nil)
@@ -502,23 +532,24 @@ func TestCIPDChild_Update(t *testing.T) {
 func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	mockCipdClient := &mocks.CIPDClient{}
 	mockGitiles := &gitiles_mocks.GitilesRepo{}
-	ctx := context.Background()
 	cbc := &chrome_branch_mocks.Client{}
-	configFakeVars := config_vars.FakeVars()
-	cbc.On("Get", ctx).Return(configFakeVars.Branches.Chromium, configFakeVars.Branches.ActiveMilestones, nil)
-	reg, err := config_vars.NewRegistry(ctx, cbc)
+	cbc.On("Get", mock.Anything).Return(&chrome_branch.Branches{}, []*chrome_branch.Branch{{Milestone: 123}}, nil)
+	reg, err := config_vars.NewRegistry(t.Context(), cbc)
 	require.NoError(t, err)
+	tagTmpl, err := config_vars.NewTemplate("latest")
+	require.NoError(t, err)
+	require.NoError(t, reg.Register(tagTmpl))
 	gitilesConfig := &config.GitilesConfig{
 		Branch:  git.MainBranch,
 		RepoUrl: "fake.git",
 	}
-	gitilesRepo, err := gitiles_common.NewGitilesRepo(ctx, gitilesConfig, reg, nil)
+	gitilesRepo, err := gitiles_common.NewGitilesRepo(t.Context(), gitilesConfig, reg, nil)
 	require.NoError(t, err)
 	gitilesRepo.GitilesRepo = mockGitiles
 	c := &CIPDChild{
 		client:  mockCipdClient,
 		name:    "some/package",
-		tag:     "latest",
+		tag:     tagTmpl,
 		gitRepo: gitilesRepo,
 	}
 
@@ -528,7 +559,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
 	instanceTag := CIPDGitRevisionTag(tipRevHash)
 
-	mockCipdClient.On("ResolveVersion", testutils.AnyContext, c.name, c.tag).Return(common.Pin{
+	mockCipdClient.On("ResolveVersion", testutils.AnyContext, c.name, c.tag.String()).Return(common.Pin{
 		PackageName: c.name,
 		InstanceID:  instanceID,
 	}, nil)
@@ -604,7 +635,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	MockGitiles_ConvertRevisions(mockGitiles, hashes, tipRevHash)
 	mockGitiles.On("URL").Return("fake.git")
 
-	nextRollRev, notRolledRevs, err := c.Update(ctx, lastRollRev)
+	nextRollRev, notRolledRevs, err := c.Update(t.Context(), lastRollRev)
 	require.NoError(t, err)
 	expectNextRollRev := &revision.Revision{
 		Id:          instanceTag,
@@ -644,4 +675,79 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 		expectMiddleRevB,
 		expectMiddleRevA,
 	}, notRolledRevs)
+}
+
+func TestCIPDChild_Update_TagTemplate(t *testing.T) {
+	mockCipdClient := &mocks.CIPDClient{}
+	cbc := &chrome_branch_mocks.Client{}
+	cbc.On("Get", mock.Anything).Return(&chrome_branch.Branches{
+		Stable: &chrome_branch.Branch{
+			Number: 12345,
+		},
+	}, nil, nil)
+	reg, err := config_vars.NewRegistry(t.Context(), cbc)
+	require.NoError(t, err)
+	tagTmpl, err := config_vars.NewTemplate("latest-{{.Branches.Chromium.Stable.Number}}")
+	require.NoError(t, err)
+	require.NoError(t, reg.Register(tagTmpl))
+	c := &CIPDChild{
+		client: mockCipdClient,
+		name:   "some/package",
+		tag:    tagTmpl,
+	}
+	ctx := context.Background()
+	ts := time.Unix(1615384545, 0)
+	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
+	mockCipdClient.On("ResolveVersion", testutils.AnyContext, c.name, "latest-12345").Return(common.Pin{
+		PackageName: c.name,
+		InstanceID:  instanceID,
+	}, nil)
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID, false).Return(&cipd.InstanceDescription{
+		InstanceInfo: cipd.InstanceInfo{
+			Pin: common.Pin{
+				PackageName: c.name,
+				InstanceID:  instanceID,
+			},
+			RegisteredBy: "me@google.com",
+			RegisteredTs: cipd.UnixTime(ts),
+		},
+		Tags: []cipd.TagInfo{
+			{
+				Tag: "version:5",
+			},
+			{
+				Tag: "otherTag:blahblah",
+			},
+			{
+				Tag: "bug:skia:12345",
+			},
+		},
+	}, nil)
+	lastRollRev := &revision.Revision{
+		Id:     "instanceID_lastRollRev",
+		Author: "me@google.com",
+		Bugs: map[string][]string{
+			"skia": {"12345"},
+		},
+		Description: "some/package:instanceID_lastRollRev",
+		Display:     "8ECbL8K2HVu1GGLRM...",
+		Timestamp:   ts,
+		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID_lastRollRev",
+	}
+	nextRollRev, notRolledRevs, err := c.Update(ctx, lastRollRev)
+	require.NoError(t, err)
+	expectRev := &revision.Revision{
+		Id:       instanceID,
+		Checksum: cipdInstanceChecksum,
+		Author:   "me@google.com",
+		Bugs: map[string][]string{
+			"skia": {"12345"},
+		},
+		Description: "some/package:8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
+		Display:     "8ECbL8K2HVu1GGLRM...",
+		Timestamp:   ts,
+		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC",
+	}
+	require.Equal(t, expectRev, nextRollRev)
+	require.Equal(t, []*revision.Revision{expectRev}, notRolledRevs)
 }
