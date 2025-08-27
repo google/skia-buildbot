@@ -13,6 +13,7 @@ import (
 	"github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	luci_cipd "go.chromium.org/luci/cipd/client/cipd"
 	cipd_common "go.chromium.org/luci/cipd/common"
 
@@ -20,6 +21,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/revision"
+	buildbucket_mocks "go.skia.org/infra/go/buildbucket/mocks"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/cipd"
@@ -52,7 +54,9 @@ const (
 
 	fakeCommitHash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-	fakeDepsContent = `deps = { 'path/to/my-dep': 'my-dep@123' }`
+	fakeDepsContent             = `deps = { 'path/to/my-dep': 'my-dep@123' }`
+	fakeParentDepsForTransitive = `deps = { 'path/to/parent-dep': 'parent-dep@123' }`
+	fakeChildDepsForTransitive  = `deps = { 'path/to/child-dep': 'child-dep@456' }`
 
 	fakeCIPDDigest   = "wIAwHNjMc5BjlUmQFUuvLCMMXyDEmyjxMldtRXoWJVIC"
 	fakeDockerDigest = "sha256:d509c16b3df2b81393476f1b6aa32b61c3aeca20238d52c39e17667f278c49a3"
@@ -66,6 +70,7 @@ func newTestDeepValidator(t *testing.T) (*deepvalidator, *mockhttpclient.URLMock
 	reg, err := config_vars.NewRegistry(context.Background(), cbc)
 	require.NoError(t, err)
 	return &deepvalidator{
+		bbClient:         &buildbucket_mocks.BuildBucketInterface{},
 		client:           urlMock.Client(),
 		cipdClient:       &cipd_mocks.CIPDClient{},
 		dockerClient:     &docker_mocks.Client{},
@@ -185,6 +190,31 @@ func TestDeepValidator_deepValidate(t *testing.T) {
 		gitiles_testutils.MockGetCommit(t, urlMock, g3Cfg.ChildRepo, g3Cfg.ChildBranch, makeFakeCommit())
 		require.NoError(t, dv.deepValidate(ctx, cfg))
 	})
+
+	t.Run("transitive", func(t *testing.T) {
+		dv, urlMock := newTestDeepValidator(t)
+		defer urlMock.AssertExpectations(t)
+		cfg := &config.Config{
+			RepoManager: &config.Config_AndroidRepoManager{
+				AndroidRepoManager: &config.AndroidRepoManagerConfig{
+					ParentRepoUrl: fakeParentRepo,
+					ParentBranch:  git.MainBranch,
+					ChildRepoUrl:  fakeChildRepo,
+					ChildBranch:   git.MainBranch,
+				},
+			},
+			TransitiveDeps: []*config.TransitiveDepConfig{
+				makeTransitiveDepConfig(),
+			},
+		}
+		commit := makeFakeCommit()
+		gitiles_testutils.MockGetCommit(t, urlMock, cfg.GetAndroidRepoManager().ParentRepoUrl, cfg.GetAndroidRepoManager().ParentBranch, commit)
+		gitiles_testutils.MockGetCommit(t, urlMock, cfg.GetAndroidRepoManager().ChildRepoUrl, cfg.GetAndroidRepoManager().ChildBranch, commit)
+		gitiles_testutils.MockReadFile(t, urlMock, cfg.GetAndroidRepoManager().ParentRepoUrl, deps_parser.DepsFileName, commit.Commit, []byte(fakeParentDepsForTransitive), &vfs.FileInfoImpl{})
+		gitiles_testutils.MockReadFile(t, urlMock, cfg.GetAndroidRepoManager().ChildRepoUrl, deps_parser.DepsFileName, commit.Commit, []byte(fakeChildDepsForTransitive), &vfs.FileInfoImpl{})
+
+		require.NoError(t, dv.deepValidate(ctx, cfg))
+	})
 }
 
 func TestDeepValidator_gerritConfig(t *testing.T) {
@@ -226,7 +256,6 @@ func TestDeepValidator_gitHubConfig(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mocksForGitHubConfig(t, urlMock, cfg)
-
 		err := dv.gitHubConfig(t.Context(), cfg)
 		require.NoError(t, err)
 		urlMock.AssertExpectations(t)
@@ -238,6 +267,35 @@ func TestDeepValidator_gitHubConfig(t *testing.T) {
 		err := dv.gitHubConfig(t.Context(), cfg)
 		require.Error(t, err)
 		urlMock.AssertExpectations(t)
+	})
+}
+
+func TestDeepValidator_transitiveDepConfig(t *testing.T) {
+	dv, _ := newTestDeepValidator(t)
+
+	cfg := makeTransitiveDepConfig()
+
+	getFileParentSuccess := makeGetFileFunc(fakeParentDepsForTransitive, nil)
+	getFileChildSuccess := makeGetFileFunc(fakeChildDepsForTransitive, nil)
+
+	getFileParentFail := makeGetFileFunc("", fmt.Errorf("failed to read parent file"))
+	getFileChildFail := makeGetFileFunc("", fmt.Errorf("failed to read child file"))
+
+	t.Run("Success", func(t *testing.T) {
+		err := dv.transitiveDepConfig(t.Context(), cfg, getFileParentSuccess, getFileChildSuccess)
+		require.NoError(t, err)
+	})
+
+	t.Run("Parent Fails", func(t *testing.T) {
+		err := dv.transitiveDepConfig(t.Context(), cfg, getFileParentFail, getFileChildSuccess)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to read parent file")
+	})
+
+	t.Run("Child Fails", func(t *testing.T) {
+		err := dv.transitiveDepConfig(t.Context(), cfg, getFileParentSuccess, getFileChildFail)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to read child file")
 	})
 }
 
@@ -437,18 +495,14 @@ func TestDeepValidator_commandRepoManagerConfig_CommandConfig(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
-		err := dv.commandRepoManagerConfig_CommandConfig(t.Context(), cfg, &revision.Revision{}, func(ctx context.Context, path string) (string, error) {
-			return "", nil
-		})
+		err := dv.commandRepoManagerConfig_CommandConfig(t.Context(), cfg, &revision.Revision{}, makeGetFileFunc("", nil))
 		require.NoError(t, err)
 		urlMock.AssertExpectations(t)
 	})
 
 	t.Run("Not Found", func(t *testing.T) {
 		cfg.Command[0] = "./missing.sh" // This is just for clarity in the logs.
-		err := dv.commandRepoManagerConfig_CommandConfig(t.Context(), cfg, &revision.Revision{}, func(ctx context.Context, path string) (string, error) {
-			return "", fmt.Errorf("file not found")
-		})
+		err := dv.commandRepoManagerConfig_CommandConfig(t.Context(), cfg, &revision.Revision{}, makeGetFileFunc("", fmt.Errorf("file not found")))
 		require.Error(t, err)
 		urlMock.AssertExpectations(t)
 	})
@@ -897,6 +951,57 @@ func TestDeepValidator_gitCheckoutGerritParentConfig(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestDeepValidator_buildbucketRevisionFilterConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := &config.BuildbucketRevisionFilterConfig{
+		Project:            "my-project",
+		Bucket:             "my-bucket",
+		Builder:            []string{"my-builder"},
+		BuildsetCommitTmpl: "commit/gitiles/skia.googlesource.com/skia/+/%s",
+	}
+
+	rev := &revision.Revision{Id: "test"}
+	pred := &buildbucketpb.BuildPredicate{
+		Builder: &buildbucketpb.BuilderID{
+			Project: cfg.Project,
+			Bucket:  cfg.Bucket,
+		},
+		Tags: []*buildbucketpb.StringPair{
+			{Key: "buildset", Value: fmt.Sprintf(cfg.BuildsetCommitTmpl, rev.Id)},
+		},
+	}
+	resp := []*buildbucketpb.Build{}
+	dv.bbClient.(*buildbucket_mocks.BuildBucketInterface).On("Search", testutils.AnyContext, pred).Return(resp, nil)
+
+	require.NoError(t, dv.buildbucketRevisionFilterConfig(t.Context(), cfg, rev))
+}
+
+func TestDeepValidator_cipdRevisionFilterConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := &config.CIPDRevisionFilterConfig{
+		Package:  []string{"my-package"},
+		Platform: []string{"linux-amd64"},
+		TagKey:   "my-tag",
+	}
+
+	rev := &revision.Revision{Id: "tag-value"}
+
+	// Mock CIPD calls.
+	pkg := cfg.Package[0] + "/" + cfg.Platform[0]
+	tags := []string{cipd.JoinTag(cfg.TagKey, rev.Id)}
+	pin := cipd_common.Pin{
+		PackageName: pkg,
+		InstanceID:  fakeCIPDDigest,
+	}
+	dv.cipdClient.(*cipd_mocks.CIPDClient).On("SearchInstances", testutils.AnyContext, pkg, tags).Return(cipd_common.PinSlice([]cipd_common.Pin{pin}), nil)
+
+	require.NoError(t, dv.cipdRevisionFilterConfig(t.Context(), cfg, rev))
+}
+
 func TestDeepValidator_dockerChildConfig(t *testing.T) {
 	dv, _ := newTestDeepValidator(t)
 	defer dv.dockerClient.(*docker_mocks.Client).AssertExpectations(t)
@@ -908,6 +1013,21 @@ func TestDeepValidator_dockerChildConfig(t *testing.T) {
 	rev, err := dv.dockerChildConfig(t.Context(), cfg)
 	require.NoError(t, err)
 	require.Equal(t, fakeDockerDigest, rev.Id)
+}
+
+func TestDeepValidator_preUploadConfig(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makePreUploadConfig()
+
+	mocksForPreUploadConfig(t, dv, cfg)
+
+	getFile := makeGetFileFunc("", nil)
+	tipRev := &revision.Revision{
+		Id: "test-rev",
+	}
+	require.NoError(t, dv.preUploadConfig(t.Context(), cfg, tipRev, getFile))
 }
 
 func TestDeepValidator_parentChildRepoManagerConfig(t *testing.T) {
@@ -1123,6 +1243,17 @@ func TestDeepValidator_parentChildRepoManagerConfig(t *testing.T) {
 
 }
 
+func makeTransitiveDepConfig() *config.TransitiveDepConfig {
+	parentCfg := makeVersionFileConfig()
+	parentCfg.Id = "parent-dep"
+	childCfg := makeVersionFileConfig()
+	childCfg.Id = "child-dep"
+	return &config.TransitiveDepConfig{
+		Parent: parentCfg,
+		Child:  childCfg,
+	}
+}
+
 func makeCommandRepoManagerConfig() *config.CommandRepoManagerConfig {
 	return &config.CommandRepoManagerConfig{
 		GitCheckout: &config.GitCheckoutConfig{
@@ -1230,7 +1361,8 @@ func makeGitCheckoutConfig() *config.GitCheckoutConfig {
 
 func makeDEPSLocalParentConfig() *config.DEPSLocalParentConfig {
 	return &config.DEPSLocalParentConfig{
-		GitCheckout: makeGitCheckoutParentConfig(),
+		GitCheckout:       makeGitCheckoutParentConfig(),
+		PreUploadCommands: makePreUploadConfig(),
 	}
 }
 
@@ -1312,6 +1444,22 @@ func makeVersionFileConfig() *config.VersionFileConfig {
 		File: []*config.VersionFileConfig_File{
 			{
 				Path: deps_parser.DepsFileName,
+			},
+		},
+	}
+}
+
+func makePreUploadConfig() *config.PreUploadConfig {
+	return &config.PreUploadConfig{
+		CipdPackage: []*config.PreUploadCIPDPackageConfig{
+			{
+				Name:    "pre-upload-package",
+				Version: "my-version",
+			},
+		},
+		Command: []*config.PreUploadCommandConfig{
+			{
+				Command: "./do_stuff.sh",
 			},
 		},
 	}
@@ -1549,11 +1697,19 @@ func mocksForCopyParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg
 }
 
 func mocksForDepsLocalGitHubParentConfig(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, cfg *config.DEPSLocalGitHubParentConfig) {
-	sharedMocksForGitCheckoutGitHubParentConfig(t, urlMock, cfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl, cfg.ForkRepoUrl, cfg.DepsLocal.GitCheckout.Dep)
+	sha := sharedMocksForGitCheckoutGitHubParentConfig(t, urlMock, cfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl, cfg.ForkRepoUrl, cfg.DepsLocal.GitCheckout.Dep)
 
 	// Mock GitHub API.
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/pulls?state=open", cfg.Github.RepoOwner, cfg.Github.RepoName)
 	urlMock.MockOnce(url, mockhttpclient.MockGetDialogue([]byte(`[{"number": 1}]`)))
+
+	// Mock CIPD for pre-upload config.
+	mocksForPreUploadConfig(t, dv, cfg.DepsLocal.PreUploadCommands)
+
+	repoOwner, repoName, err := skgithub.ParseRepoOwnerAndName(cfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl)
+	require.NoError(t, err)
+	preUploadContentsURL := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/do_stuff.sh", repoOwner, repoName, sha)
+	urlMock.MockOnce(preUploadContentsURL, mockhttpclient.MockGetDialogue([]byte("")))
 }
 
 func mocksForDepsLocalParentConfig(t *testing.T, dv *deepvalidator, urlMock *mockhttpclient.URLMock, cfg *config.DEPSLocalParentConfig) {
@@ -1562,8 +1718,14 @@ func mocksForDepsLocalParentConfig(t *testing.T, dv *deepvalidator, urlMock *moc
 	// Mock gitiles for parent.
 	commit := makeFakeCommit()
 	gitiles_testutils.MockGetCommit(t, urlMock, repoURL, git.MainBranch, commit)
+	gitiles_testutils.MockReadFile(t, urlMock, repoURL, "do_stuff.sh", commit.Commit, []byte("#!/bin/bash\necho hello"), vfs.FileInfo{
+		Name: "do_stuff.sh",
+	}.Get())
 
 	mocksForDependencyConfig(t, urlMock, cfg.GitCheckout.Dep, repoURL, commit.Commit)
+
+	// Mock CIPD for pre-upload config.
+	mocksForPreUploadConfig(t, dv, cfg.PreUploadCommands)
 }
 
 func mocksForGitCheckoutParentConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.GitCheckoutParentConfig) {
@@ -1614,6 +1776,16 @@ func mocksForDockerChildConfig(t *testing.T, dockerClient *docker_mocks.Client, 
 		Author:  "test-author",
 		Created: now,
 	}, nil)
+}
+
+func mocksForPreUploadConfig(t *testing.T, dv *deepvalidator, cfg *config.PreUploadConfig) {
+	client := dv.cipdClient.(*cipd_mocks.CIPDClient)
+	for _, pkg := range cfg.CipdPackage {
+		client.On("ResolveVersion", testutils.AnyContext, pkg.Name, pkg.Version).Return(cipd_common.Pin{
+			PackageName: pkg.Name,
+			InstanceID:  fakeCIPDDigest,
+		}, nil)
+	}
 }
 
 func mockDEPSContent(t *testing.T, urlMock *mockhttpclient.URLMock, repoURL, commit string) {

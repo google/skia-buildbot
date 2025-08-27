@@ -11,9 +11,11 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/docker"
@@ -38,6 +40,7 @@ func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c 
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	bbClient := buildbucket.NewClient(client)
 	cipdClient, err := cipd.NewClient(client, "", cipd.DefaultServiceURL)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -47,6 +50,7 @@ func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c 
 		return skerr.Wrap(err)
 	}
 	dv := &deepvalidator{
+		bbClient:         bbClient,
 		client:           client,
 		cipdClient:       cipdClient,
 		dockerClient:     dockerClient,
@@ -59,6 +63,7 @@ func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c 
 // deepvalidator is a helper for running deep validation which wraps up shared
 // elements needed by most validation functions.
 type deepvalidator struct {
+	bbClient         buildbucket.BuildBucketInterface
 	client           *http.Client
 	cipdClient       cipd.CIPDClient
 	dockerClient     docker.Client
@@ -79,25 +84,32 @@ func (dv *deepvalidator) deepValidate(ctx context.Context, c *config.Config) err
 			return skerr.Wrap(err)
 		}
 	}
+
+	var getFileParent, getFileChild version_file_common.GetFileFunc
 	// RepoManager should never be nil, but that case would be detected by
 	// normal validation. We allow it to be nil here to simplify testing.
 	if c.RepoManager != nil {
 		var err error
 		switch rm := c.RepoManager.(type) {
 		case *config.Config_AndroidRepoManager:
-			_, _, err = dv.androidRepoManagerConfig(ctx, rm.AndroidRepoManager)
+			getFileParent, getFileChild, err = dv.androidRepoManagerConfig(ctx, rm.AndroidRepoManager)
 		case *config.Config_CommandRepoManager:
 			err = dv.commandRepoManagerConfig(ctx, rm.CommandRepoManager)
 		case *config.Config_FreetypeRepoManager:
-			_, _, err = dv.freeTypeRepoManagerConfig(ctx, rm.FreetypeRepoManager)
+			getFileParent, getFileChild, err = dv.freeTypeRepoManagerConfig(ctx, rm.FreetypeRepoManager)
 		case *config.Config_Google3RepoManager:
 			err = dv.google3RepoManagerConfig(ctx, rm.Google3RepoManager)
 		case *config.Config_ParentChildRepoManager:
-			_, _, err = dv.parentChildRepoManagerConfig(ctx, rm.ParentChildRepoManager)
+			getFileParent, getFileChild, err = dv.parentChildRepoManagerConfig(ctx, rm.ParentChildRepoManager)
 		default:
 			return skerr.Fmt("Unknown repo manager type: %s", rm)
 		}
 		if err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	for _, td := range c.TransitiveDeps {
+		if err := dv.transitiveDepConfig(ctx, td, getFileParent, getFileChild); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
@@ -138,6 +150,18 @@ func (dv *deepvalidator) gitHubConfig(ctx context.Context, c *config.GitHubConfi
 		return skerr.Wrapf(err, "failed deep-validating GitHubConfig for %s/%s", c.RepoOwner, c.RepoName)
 	}
 
+	return nil
+}
+
+// transitiveDepConfig performs validation of the TransitiveDepConfig,
+// making external network requests as needed.
+func (dv *deepvalidator) transitiveDepConfig(ctx context.Context, c *config.TransitiveDepConfig, getFileParent, getFileChild version_file_common.GetFileFunc) error {
+	if err := dv.versionFileConfig(ctx, c.Parent, getFileParent); err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := dv.versionFileConfig(ctx, c.Child, getFileChild); err != nil {
+		return skerr.Wrap(err)
+	}
 	return nil
 }
 
@@ -248,9 +272,14 @@ func (dv *deepvalidator) androidRepoManagerConfig(ctx context.Context, c *config
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
-	getFileChild, _, err := dv.deepValidateGitRepo(ctx, c.ChildRepoUrl, c.ChildBranch)
+	getFileChild, tipRev, err := dv.deepValidateGitRepo(ctx, c.ChildRepoUrl, c.ChildBranch)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
+	}
+	if c.PreUploadCommands != nil {
+		if err := dv.preUploadConfig(ctx, c.PreUploadCommands, tipRev, getFileParent); err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
 	}
 	return getFileParent, getFileChild, nil
 }
@@ -376,6 +405,16 @@ func (dv *deepvalidator) parentChildRepoManagerConfig(ctx context.Context, c *co
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
+	for _, rf := range c.GetBuildbucketRevisionFilter() {
+		if err := dv.buildbucketRevisionFilterConfig(ctx, rf, tipRev); err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+	}
+	for _, rf := range c.GetCipdRevisionFilter() {
+		if err := dv.cipdRevisionFilterConfig(ctx, rf, tipRev); err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+	}
 	return getFileParent, getFileChild, nil
 }
 
@@ -468,6 +507,11 @@ func (dv *deepvalidator) goModParentConfig(ctx context.Context, c *config.GoModP
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if c.PreUploadCommands != nil {
+		if err := dv.preUploadConfig(ctx, c.PreUploadCommands, tipRev, parentGetFile); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
 	return parentGetFile, nil
 }
 
@@ -479,6 +523,11 @@ func (dv *deepvalidator) dependencyConfig(ctx context.Context, c *config.Depende
 	}
 	for _, findAndReplaceFile := range c.FindAndReplace {
 		if _, err := getFileParent(ctx, findAndReplaceFile); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	for _, dep := range c.Transitive {
+		if err := dv.transitiveDepConfig(ctx, dep, getFileParent, getFileChild); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
@@ -629,6 +678,11 @@ func (dv *deepvalidator) depsLocalParentConfig(ctx context.Context, c *config.DE
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if c.PreUploadCommands != nil {
+		if err := dv.preUploadConfig(ctx, c.PreUploadCommands, tipRev, getFileParent); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
 	return getFileParent, nil
 }
 
@@ -661,6 +715,11 @@ func (dv *deepvalidator) gitCheckoutGitHubFileParentConfig(ctx context.Context, 
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if c.PreUploadCommands != nil {
+		if err := dv.preUploadConfig(ctx, c.PreUploadCommands, tipRev, getFileParent); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
 	return getFileParent, nil
 }
 
@@ -688,7 +747,40 @@ func (dv *deepvalidator) gitCheckoutGerritParentConfig(ctx context.Context, c *c
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if c.PreUploadCommands != nil {
+		if err := dv.preUploadConfig(ctx, c.PreUploadCommands, tipRev, getFileParent); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
 	return getFileParent, nil
+}
+
+// buildbucketRevisionFilterConfig performs validation of the
+// BuildbucketRevisionFilterConfig, making external network requests as needed.
+func (dv *deepvalidator) buildbucketRevisionFilterConfig(ctx context.Context, c *config.BuildbucketRevisionFilterConfig, rev *revision.Revision) error {
+	filter, err := revision_filter.NewBuildbucketRevisionFilter(dv.bbClient, c)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if _, err := filter.Skip(ctx, *rev); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// cipdRevisionFilterConfig performs validation of the
+// CIPDRevisionFilterConfig, making external network requests as needed.
+func (dv *deepvalidator) cipdRevisionFilterConfig(ctx context.Context, c *config.CIPDRevisionFilterConfig, rev *revision.Revision) error {
+	filter, err := revision_filter.NewCIPDRevisionFilter(dv.cipdClient, c)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if skipReason, err := filter.Skip(ctx, *rev); err != nil {
+		return skerr.Wrap(err)
+	} else if skipReason != "" {
+		sklog.Warningf("Revision is skipped because %q", skipReason)
+	}
+	return nil
 }
 
 // dockerChildConfig performs validation of the DockerChildConfig,
@@ -706,6 +798,28 @@ func (dv *deepvalidator) dockerChildConfig(ctx context.Context, c *config.Docker
 		return nil, skerr.Wrapf(err, "failed to get revision for tag %q", c.Tag)
 	}
 	return tipRev, nil
+}
+
+// preUploadConfig performs validation of the PreUploadConfig, making
+// external network requests as needed.
+func (dv *deepvalidator) preUploadConfig(ctx context.Context, c *config.PreUploadConfig, tipRev *revision.Revision, getFile version_file_common.GetFileFunc) error {
+	// Note: we don't directly call Placeholders.Command (or
+	// Placeholders.PreUploadConfig) because that's done in deepValidateCommand.
+	cipdPkgs, err := fakePlaceholders(tipRev).CIPDPackages(c.CipdPackage)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	for _, pkg := range cipdPkgs {
+		if _, err := dv.cipdClient.ResolveVersion(ctx, pkg.Name, pkg.Version); err != nil {
+			return skerr.Wrapf(err, "failed deep-validating CIPDChildConfig")
+		}
+	}
+	for _, cmd := range c.Command {
+		if err := deepValidateCommand(ctx, strings.Fields(cmd.Command), cmd.Cwd, cmd.Env, tipRev, getFile); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return nil
 }
 
 // makeFakeRevision can be used wherever we need to pass in a Revision but the
