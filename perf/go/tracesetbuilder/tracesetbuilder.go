@@ -51,10 +51,14 @@ func newMergeWorker(wg *sync.WaitGroup, size int) *mergeWorker {
 			trace, ok := m.traceSet[req.key]
 			if !ok {
 				trace = types.NewTrace(size)
+				m.traceSet[req.key] = trace
 			}
 			for i, c := range req.commits {
 				// dstIndex := traceMap[b.store.OffsetFromCommitNumber(c.CommitNumber)]
-				dstIndex := req.commitNumberToOutputIndex[c.CommitNumber]
+				dstIndex, ok := req.commitNumberToOutputIndex[c.CommitNumber]
+				if !ok {
+					continue
+				}
 				trace[dstIndex] = req.trace[i]
 			}
 			/*
@@ -62,7 +66,6 @@ func newMergeWorker(wg *sync.WaitGroup, size int) *mergeWorker {
 					trace[dstIndex] = req.trace[srcIndex]
 				}
 			*/
-			m.traceSet[req.key] = trace
 			m.paramSet.AddParams(req.params)
 			m.wg.Done()
 		}
@@ -143,7 +146,7 @@ func (t *TraceSetBuilder) Add(commitNumberToOutputIndex map[types.CommitNumber]i
 //
 // Don't call Build until Add() has been called for every tile to be added.
 func (t *TraceSetBuilder) Build(ctx context.Context) (types.TraceSet, paramtools.ReadOnlyParamSet) {
-	ctx, span := trace.StartSpan(ctx, "TraceSetBuilder.Build")
+	_, span := trace.StartSpan(ctx, "TraceSetBuilder.Build")
 	defer span.End()
 
 	defer timer.New("TraceSetBuilder.Build").Stop()

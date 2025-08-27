@@ -63,8 +63,6 @@ func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, key
 }
 
 func TestBuildNew(t *testing.T) {
-	ctx := context.Background()
-
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
@@ -76,47 +74,60 @@ func TestBuildNew(t *testing.T) {
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces)
 
+	now := gittest.StartTime
 	// Add some points to the first and second tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
 		",arch=x86,config=8888,": 1.2,
 		",arch=x86,config=565,":  2.1,
 		",arch=arm,config=8888,": 100.5,
-	}, "gs://foo.json", time.Now())
+	}, "gs://foo.json", now)
 	assert.NoError(t, err)
 	err = addValuesAtIndex(store, 1, map[string]float32{
 		",arch=x86,config=8888,": 1.3,
 		",arch=x86,config=565,":  2.2,
 		",arch=arm,config=8888,": 100.6,
-	}, "gs://foo.json", time.Now())
+	}, "gs://foo.json", now.Add(1*time.Minute))
 	assert.NoError(t, err)
 	err = addValuesAtIndex(store, 7, map[string]float32{
 		",arch=x86,config=8888,": 1.0,
 		",arch=x86,config=565,":  2.5,
 		",arch=arm,config=8888,": 101.1,
-	}, "gs://foo.json", time.Now())
+	}, "gs://foo.json", now.Add(7*time.Minute))
 	assert.NoError(t, err)
+
+	/*
+		The trace store looks like this:
+
+		Trace ID                     0     1               7
+		------------------------------------------------------
+		,arch=x86,config=8888,      1.2   1.3             1.0
+		,arch=x86,config=565,       2.1   2.2             2.5
+		,arch=arm,config=8888,    100.5 100.6           101.1
+
+		ts                   1680000000   +60            +420
+	*/
 
 	// NewFromQueryAndRange
 	q, err := query.New(url.Values{"config": []string{"8888"}})
 	assert.NoError(t, err)
-	now := gittest.StartTime.Add(7 * time.Minute)
+	now = gittest.StartTime.Add(8 * time.Minute)
 
-	df, err := builder.NewFromQueryAndRange(ctx, now.Add(-8*time.Minute), now.Add(time.Second), q, false, progress.New())
+	df, err := builder.NewFromQueryAndRange(ctx, gittest.StartTime.Add(-1*time.Minute), now, q, false, progress.New())
 	require.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 3)
-	assert.Equal(t, *df.Header[0], dataframe.ColumnHeader{
+	assert.Equal(t, dataframe.ColumnHeader{
 		Offset:    0,
 		Timestamp: 1680000000,
-	}, "0")
-	assert.Equal(t, *df.Header[1], dataframe.ColumnHeader{
+	}, *df.Header[0], "0")
+	assert.Equal(t, dataframe.ColumnHeader{
 		Offset:    1,
 		Timestamp: 1680000060,
-	}, "1")
-	assert.Equal(t, *df.Header[2], dataframe.ColumnHeader{
+	}, *df.Header[1], "1")
+	assert.Equal(t, dataframe.ColumnHeader{
 		Offset:    7,
 		Timestamp: 1680000420,
-	}, "2")
+	}, *df.Header[2], "2")
 	assert.Equal(t, types.Trace{1.2, 1.3, 1}, df.TraceSet[",arch=x86,config=8888,"])
 	assert.Equal(t, types.Trace{100.5, 100.6, 101.1}, df.TraceSet[",arch=arm,config=8888,"])
 
@@ -143,13 +154,13 @@ func TestBuildNew(t *testing.T) {
 	q, err = query.New(url.Values{"config": []string{"nvpr"}})
 	assert.NoError(t, err)
 
-	df, err = builder.NewFromQueryAndRange(ctx, now.Add(-8*time.Minute), now.Add(time.Second), q, false, progress.New())
+	df, err = builder.NewFromQueryAndRange(ctx, gittest.StartTime.Add(-1*time.Minute), now, q, false, progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 0)
 	assert.Len(t, df.Header, 0)
 
 	// NewFromKeysAndRange.
-	df, err = builder.NewFromKeysAndRange(ctx, []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, now.Add(-8*time.Minute), now.Add(time.Second), false, progress.New())
+	df, err = builder.NewFromKeysAndRange(ctx, []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, gittest.StartTime.Add(-1*time.Minute), now, false, progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 3)
@@ -185,7 +196,7 @@ func TestBuildNew(t *testing.T) {
 	assert.Len(t, df.Header, 0)
 
 	// Empty set of keys should not fail.
-	df, err = builder.NewFromKeysAndRange(ctx, []string{}, now.Add(-8*time.Minute), now.Add(time.Second), false, progress.New())
+	df, err = builder.NewFromKeysAndRange(ctx, []string{}, gittest.StartTime.Add(-1*time.Minute), now, false, progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 0)
 	assert.Len(t, df.Header, 0)
@@ -200,7 +211,7 @@ func TestBuildNew(t *testing.T) {
 	// This query will only encode for one tile and should still succeed.
 	q, err = query.New(url.Values{"model": []string{"Pixel"}})
 	assert.NoError(t, err)
-	df, err = builder.NewFromQueryAndRange(ctx, now.Add(-8*time.Minute), now.Add(time.Second), q, false, progress.New())
+	df, err = builder.NewFromQueryAndRange(ctx, gittest.StartTime.Add(-1*time.Minute), now, q, false, progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 1)
 	assert.Len(t, df.Header, 1)
