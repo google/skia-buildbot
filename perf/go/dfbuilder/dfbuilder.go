@@ -268,7 +268,10 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 				}
 				for i, c := range commits {
 					// dstIndex := traceMap[b.store.OffsetFromCommitNumber(c.CommitNumber)]
-					dstIndex := commitNumberToOutputIndex[c.CommitNumber]
+					dstIndex, ok := commitNumberToOutputIndex[c.CommitNumber]
+					if !ok {
+						continue
+					}
 					trace[dstIndex] = tileTrace[i]
 				}
 				/*
@@ -480,7 +483,10 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 				}
 				for i, c := range commits {
 					// dstIndex := traceMap[b.store.OffsetFromCommitNumber(c.CommitNumber)]
-					dstIndex := commitNumberToOutputIndex[c.CommitNumber]
+					dstIndex, ok := commitNumberToOutputIndex[c.CommitNumber]
+					if !ok {
+						continue
+					}
 					trace[dstIndex] = tileTrace[i]
 				}
 				/*
