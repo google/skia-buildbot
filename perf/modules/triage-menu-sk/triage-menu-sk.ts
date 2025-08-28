@@ -50,13 +50,13 @@ export class NudgeEntry {
 }
 
 export class TriageMenuSk extends ElementSk {
-  private _trace_names: string[] = [];
+  _trace_names: string[] = [];
 
-  private _anomalies: Anomaly[] = [];
+  _anomalies: Anomaly[] = [];
 
-  private _nudgeList: NudgeEntry[] | null = null;
+  _nudgeList: NudgeEntry[] | null = null;
 
-  private _allowNudge: boolean = true;
+  _allowNudge: boolean = true;
 
   // New Bug Dialog.
   newBugDialog: NewBugDialogSk | null = null;
@@ -66,7 +66,7 @@ export class TriageMenuSk extends ElementSk {
 
   private closeIgnoreToastButton: HTMLButtonElement | null = null;
 
-  private ignoreTriageToast: ToastSk | null = null;
+  ignoreTriageToast: ToastSk | null = null;
 
   constructor() {
     super(TriageMenuSk.template);
@@ -113,19 +113,19 @@ export class TriageMenuSk extends ElementSk {
     });
   }
 
-  private fileBug() {
+  fileBug() {
     this.newBugDialog!.fileNewBug();
   }
 
-  private openNewBugDialog() {
+  openNewBugDialog() {
     this.newBugDialog!.open();
   }
 
-  private openExistingBugDialog() {
+  openExistingBugDialog() {
     this.existingBugDialog!.open();
   }
 
-  private ignoreAnomaly() {
+  ignoreAnomaly() {
     this.makeEditAnomalyRequest(this._anomalies, this._trace_names, 'IGNORE');
   }
 
@@ -168,7 +168,7 @@ export class TriageMenuSk extends ElementSk {
     `;
   }
 
-  private nudgeAnomaly(entry: NudgeEntry) {
+  nudgeAnomaly(entry: NudgeEntry) {
     this.makeNudgeRequest(this._anomalies, this._trace_names, entry);
   }
 
@@ -225,8 +225,10 @@ export class TriageMenuSk extends ElementSk {
           })
         );
       })
-      .catch((msg: any) => {
-        errorMessage(msg);
+      .catch(() => {
+        errorMessage(
+          'Edit anomalies request failed due to an internal server error. Please try again.'
+        );
       });
   }
 
