@@ -41,9 +41,9 @@ export class NewBugDialogSk extends ElementSk {
 
   private _form: HTMLFormElement | null = null;
 
-  private _anomalies: Anomaly[] = [];
+  _anomalies: Anomaly[] = [];
 
-  private _traceNames: string[] = [];
+  _traceNames: string[] = [];
 
   private _user: string = '';
 
@@ -125,7 +125,7 @@ export class NewBugDialogSk extends ElementSk {
   /**
    * Checks if any of the anomalies have labels.
    */
-  private hasLabels(): boolean {
+  hasLabels(): boolean {
     return this._anomalies.some((anomaly) => anomaly.bug_labels && anomaly.bug_labels!.length > 0);
   }
 
@@ -134,7 +134,7 @@ export class NewBugDialogSk extends ElementSk {
    *
    * These will all be checked by default.
    */
-  private getLabelCheckboxes(): TemplateResult[] {
+  getLabelCheckboxes(): TemplateResult[] {
     const checkboxes: TemplateResult[] = [];
 
     // Use a Set to keep track of unique labels and not show duplicates.
@@ -172,7 +172,7 @@ export class NewBugDialogSk extends ElementSk {
    *
    * The first radio is always selected. A radio selection is required.
    */
-  private getComponentRadios(): TemplateResult[] {
+  getComponentRadios(): TemplateResult[] {
     const radios: TemplateResult[] = [];
 
     // Use a Set to keep track of unique components
@@ -213,7 +213,7 @@ export class NewBugDialogSk extends ElementSk {
   /**
    * Use anomaly medians to calculate the percent change.
    */
-  private getPercentChangeForAnomaly(anomaly: Anomaly): number {
+  getPercentChangeForAnomaly(anomaly: Anomaly): number {
     if (anomaly.median_before_anomaly === 0.0) {
       return Number.MAX_VALUE;
     }
@@ -227,7 +227,7 @@ export class NewBugDialogSk extends ElementSk {
    *
    * If percentChange is infinite or undefined, set it to this.INFINITY_PERCENT_CHANGE.
    */
-  private getDisplayPercentChanged(anomaly: Anomaly): string {
+  getDisplayPercentChanged(anomaly: Anomaly): string {
     if (Math.abs(this.getPercentChangeForAnomaly(anomaly)) === Number.MAX_VALUE) {
       return this.INFINITY_PERCENT_CHANGE;
     }
@@ -239,7 +239,7 @@ export class NewBugDialogSk extends ElementSk {
    *
    * There are special cases for displaying the names of benchmarks.
    */
-  private getSuiteNameForAlert(anomaly: Anomaly) {
+  getSuiteNameForAlert(anomaly: Anomaly) {
     const test_path_parts = anomaly.test_path.split('/');
     const testsuite = test_path_parts[2];
     const SUITES_WITH_SUBTEST_ENTRY = ['rendering.desktop', 'rendering.mobile', 'v8'];
@@ -254,7 +254,7 @@ export class NewBugDialogSk extends ElementSk {
    *
    * This tries to mimic the getBugTitleForAnomaly function in LegacyChromeperf UI.
    */
-  private getBugTitle() {
+  getBugTitle() {
     if (this._anomalies.length === 0) {
       return '';
     }
@@ -418,11 +418,13 @@ export class NewBugDialogSk extends ElementSk {
           })
         );
       })
-      .catch((msg: any) => {
+      .catch(() => {
         this._spinner!.active = false;
         this.querySelector('#file-button')!.removeAttribute('disabled');
         this.querySelector('#close-button')!.removeAttribute('disabled');
-        errorMessage(msg);
+        errorMessage(
+          'File new bug request failed due to an internal server error. Please try again.'
+        );
         this._render();
       });
   }
@@ -445,7 +447,7 @@ export class NewBugDialogSk extends ElementSk {
     this._dialog!.showModal();
   }
 
-  private closeDialog(): void {
+  closeDialog(): void {
     this._opened = false;
     this._dialog!.close();
   }
