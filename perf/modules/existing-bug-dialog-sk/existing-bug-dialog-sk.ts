@@ -35,17 +35,17 @@ import '../../../elements-sk/modules/spinner-sk';
 import '../window/window';
 
 export class ExistingBugDialogSk extends ElementSk {
-  private _dialog: HTMLDialogElement | null = null;
+  _dialog: HTMLDialogElement | null = null;
 
   private _spinner: SpinnerSk | null = null;
 
-  private _projectId: ProjectId;
+  _projectId: ProjectId;
 
   private _form: HTMLFormElement | null = null;
 
-  private _anomalies: Anomaly[] = [];
+  _anomalies: Anomaly[] = [];
 
-  private _traceNames: string[] = [];
+  _traceNames: string[] = [];
 
   private allProjectIdOptions: ProjectId[] = [];
 
@@ -55,10 +55,10 @@ export class ExistingBugDialogSk extends ElementSk {
 
   private bug_id: number | undefined;
 
-  private _associatedBugIds = new Set<number>();
+  _associatedBugIds = new Set<number>();
 
   // maintain a map which maps each bug id associates with its title
-  private bugIdTitleMap: { [key: number]: string } = {};
+  bugIdTitleMap: { [key: number]: string } = {};
 
   // Host bug url, usually from window.perf.bug_host_url.
   private _bug_host_url: string = window.perf ? window.perf.bug_host_url : '';
@@ -135,7 +135,10 @@ export class ExistingBugDialogSk extends ElementSk {
     });
   }
 
-  private closeDialog(): void {
+  closeDialog(): void {
+    this._active = false;
+    this._spinner!.active = false;
+    this._render();
     this._dialog!.close();
   }
 
@@ -205,11 +208,13 @@ export class ExistingBugDialogSk extends ElementSk {
           })
         );
       })
-      .catch((msg: any) => {
+      .catch(() => {
         this._spinner!.active = false;
         this.querySelector('#file-button')!.removeAttribute('disabled');
         this.querySelector('#close-button')!.removeAttribute('disabled');
-        errorMessage(msg);
+        errorMessage(
+          'Associate alerts request failed due to an internal server error. Please try again.'
+        );
         this._render();
       });
   }
@@ -261,7 +266,7 @@ export class ExistingBugDialogSk extends ElementSk {
       });
   }
 
-  private async fetch_bug_titles() {
+  async fetch_bug_titles() {
     const bugIds = Array.from(this._associatedBugIds);
 
     await fetch('/_/triage/list_issues', {
@@ -289,7 +294,7 @@ export class ExistingBugDialogSk extends ElementSk {
       });
   }
 
-  private getAssociatedBugList(anomalies: Anomaly[]) {
+  getAssociatedBugList(anomalies: Anomaly[]) {
     this._associatedBugIds.clear();
     anomalies.forEach((anomaly) => {
       if (anomaly.bug_id && anomaly.bug_id !== 0) {

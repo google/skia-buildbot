@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
 
 sk_element(
     name = "existing-bug-dialog-sk",
@@ -47,4 +47,19 @@ sk_page(
         "//perf/modules/json:index_ts_lib",
     ],
     ts_entry_point = "existing-bug-dialog-sk-demo.ts",
+)
+
+karma_test(
+    name = "existing-bug-dialog_test",
+    src = "existing-bug-dialog_test.ts",
+    deps = [
+        ":existing-bug-dialog-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//:node_modules/sinon",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
 )
