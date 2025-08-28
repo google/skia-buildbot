@@ -72,3 +72,17 @@ Use this command to run the presubmit tests:
 ```
 ./run_unittests --small
 ```
+
+# VS Code Setup
+
+Use `bazelisk` and `starpls` with the VS Code Bazel extension.
+The install for `bazelisk` is listed above, and `starpls` can be
+downloaded from:
+
+    https://github.com/withered-magic/starpls/releases
+
+```
+    "bazel.executable": "bazelisk",
+    "bazel.enableCodeLens": true,
+    "bazel.lsp.command": "starpls"
+```
