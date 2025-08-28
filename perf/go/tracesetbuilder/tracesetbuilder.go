@@ -54,7 +54,10 @@ func newMergeWorker(wg *sync.WaitGroup, size int) *mergeWorker {
 			}
 			for i, c := range req.commits {
 				// dstIndex := traceMap[b.store.OffsetFromCommitNumber(c.CommitNumber)]
-				dstIndex := req.commitNumberToOutputIndex[c.CommitNumber]
+				dstIndex, ok := req.commitNumberToOutputIndex[c.CommitNumber]
+				if !ok {
+					continue
+				}
 				trace[dstIndex] = req.trace[i]
 			}
 			/*
