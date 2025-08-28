@@ -59,6 +59,8 @@ const (
 
 	secretChatWebhooks = "autoroll-chat-webhooks"
 	secretProject      = "skia-infra-public"
+
+	configPassedAsFlag = "--config"
 )
 
 type HangOption string
@@ -85,7 +87,7 @@ var (
 	namespacedEmailService = flag.Bool("namespaced-email-service", false, "If true then use the emailservice that's running in its own namespace.")
 	validateConfig         = flag.Bool("validate-config", false, "If set, validate the config and exit without running the autoroll backend.")
 	deepValidateConfig     = flag.Bool("deep-validate-config", false, "If set, validate the config deeply, making necessary network requests, and exit. Note: the caller must have all of the permissions that the roller itself has.")
-	genK8sConfig           = flag.String("gen-k8s-config", "", "Eg. \"skia-infra-public/skia-chromium.cfg:/path/to/k8s/config\". If set, generate a Kubernetes config file for the roller and write it in the given directory, without running the autoroll backend.")
+	genK8sConfig           = flag.String("gen-k8s-config", "", "Path to the root of the k8s-config repo. If set, generate a Kubernetes config file for the roller config(s) and write it in the given directory, without running the autoroll backend.")
 )
 
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
@@ -122,8 +124,18 @@ func main() {
 	if (*configContents == "" && len(*configFile) == 0) || (*configContents != "" && len(*configFile) > 0) {
 		sklog.Fatal("--config and --config_file are mutually exclusive")
 	}
-	if len(*configFile) > 1 && !(*validateConfig || *deepValidateConfig) {
-		sklog.Fatal("Multiple --config_file only supported with --validate-config or --deep-validate-config.")
+	if len(*configFile) > 1 && !(*validateConfig || *deepValidateConfig || *genK8sConfig != "") {
+		sklog.Fatal("Multiple --config_file only supported with --validate-config, --deep-validate-config, or --gen-k8s-config.")
+	}
+	if *configContents != "" && *genK8sConfig != "" {
+		sklog.Fatal("--config is not compatible with --gen-k8s-config. Use --config_file instead.")
+	}
+	// This is just to prevent confusion, since one would assume that deep
+	// validation should happen *before* generating the k8s configs. We don't
+	// do that because deep validation requires more setup and we'd prefer to
+	// defer that until necessary.
+	if *deepValidateConfig && *genK8sConfig != "" {
+		sklog.Fatal("--deep-validate-config and --gen-k8s-config are mutually exclusive.")
 	}
 
 	// Decode the config(s).
@@ -140,7 +152,7 @@ func main() {
 		if err := prototext.Unmarshal(configBytes, cfg); err != nil {
 			sklog.Fatal(err)
 		}
-		configsMap["--config"] = cfg // No filename, since the config was passed as a flag.
+		configsMap[configPassedAsFlag] = cfg // No filename, since the config was passed as a flag.
 	} else {
 		for _, configFileFlag := range *configFile {
 			cfgFiles, err := filepath.Glob(configFileFlag)
@@ -169,7 +181,7 @@ func main() {
 		anyFailed := false
 		if err := cfg.Validate(); err != nil {
 			anyFailed = true
-			if file == "" { // No filename; the config was passed as a flag.
+			if file == configPassedAsFlag {
 				fmt.Fprintf(os.Stderr, "Config failed validation: %s\n", err)
 			} else {
 				fmt.Fprintf(os.Stderr, "Config file %s failed validation: %s\n\n", file, err)
@@ -180,27 +192,28 @@ func main() {
 		}
 	}
 	if *validateConfig && !*deepValidateConfig {
+		sklog.Infof("%d configs passed basic validation.", len(configsMap))
 		return
 	}
 
 	ctx := context.Background()
 
+	// Generate k8s configs, then exit if that's all we were supposed to do.
+	if *genK8sConfig != "" {
+		for file, cfg := range configsMap {
+			if err := conversion.ConvertConfig(ctx, cfg, file, *genK8sConfig); err != nil {
+				sklog.Fatalf("failed to convert config: %s", err)
+			}
+		}
+		return
+	}
+
+	// Set up to run the autoroll backend.
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	client := clientConfig(ts).Client()
-
-	if *genK8sConfig != "" {
-		split := strings.Split(*genK8sConfig, ":")
-		if len(split) != 2 {
-			sklog.Fatal("Invalid value %q for --gen-k8s-config, expected <source config relpath>:<dest path>")
-		}
-		if err := conversion.ConvertConfig(ctx, configBytes, split[0], split[1]); err != nil {
-			sklog.Fatalf("failed to convert config: %s", err)
-		}
-		return
-	}
 
 	user, err := user.Current()
 	if err != nil {

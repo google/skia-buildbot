@@ -35,16 +35,11 @@ var (
 )
 
 // ConvertConfig converts the given roller config file to a Kubernetes config.
-func ConvertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string) error {
+func ConvertConfig(ctx context.Context, cfg *config.Config, relPath, dstDir string) error {
 	if backendTemplate == "" {
 		return skerr.Fmt("internal error; embedded template is empty")
 	}
 
-	// Decode the config file.
-	var cfg config.Config
-	if err := prototext.Unmarshal(cfgBytes, &cfg); err != nil {
-		return skerr.Wrapf(err, "failed to parse roller config")
-	}
 	// Google3 uses a different type of backend.
 	if cfg.ParentDisplayName == google3ParentName {
 		return nil
@@ -55,7 +50,7 @@ func ConvertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string)
 	cfgJsonBytes, err := protojson.MarshalOptions{
 		AllowPartial:    true,
 		EmitUnpopulated: true,
-	}.Marshal(&cfg)
+	}.Marshal(cfg)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -84,7 +79,7 @@ func ConvertConfig(ctx context.Context, cfgBytes []byte, relPath, dstDir string)
 		// related to the config. Remove this if we start getting errors about
 		// command lines being too long.
 		Indent: "  ",
-	}.Marshal(&cfg)
+	}.Marshal(cfg)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to encode roller config as text proto")
 	}
