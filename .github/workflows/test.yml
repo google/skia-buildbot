@@ -1,0 +1,24 @@
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the code
+      uses: actions/checkout@v4
+      
+    - name: Download bazelisk
+      run: curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.27.0/bazelisk-linux-amd64 --output $HOME/bazelisk
+
+    - name: Make bazelisk executable
+      run: chmod +x $HOME/bazelisk
+
+    - name: Build
+      run: $HOME/bazelisk test //perf/...
