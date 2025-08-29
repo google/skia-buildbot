@@ -13,12 +13,9 @@ jobs:
     steps:
     - name: Check out the code
       uses: actions/checkout@v4
-      
-    - name: Download bazelisk
-      run: curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.27.0/bazelisk-linux-amd64 --output $HOME/bazelisk
 
-    - name: Make bazelisk executable
-      run: chmod +x $HOME/bazelisk
+    - name: Start emulators
+      run: ./scripts/run_emulators/run_emulators start
 
     - name: Build
       run: $HOME/bazelisk test //perf/...

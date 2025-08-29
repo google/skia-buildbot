@@ -8,25 +8,41 @@ cmd="$1"
 shift
 
 if [ "$cmd" == "start" ]; then
-  sleep 20 # Give the emulators time to start up before exiting.
+  sleep 10 # Give the emulators time to start up before exiting.
 
-  # The ports below should be kept in sync with run_emulators.go.
-  echo Emulators started. Set environment variables as follows:
-  echo export DATASTORE_EMULATOR_HOST=localhost:8891
-  echo export BIGTABLE_EMULATOR_HOST=localhost:8892
-  echo export PUBSUB_EMULATOR_HOST=localhost:8893
-  echo export FIRESTORE_EMULATOR_HOST=localhost:8894
-  echo export COCKROACHDB_EMULATOR_HOST=localhost:8895
-elif [ "$cmd" == "stop" ]; then
-  echo Emulators stopped. Unset environment variables as follows:
-  echo export DATASTORE_EMULATOR_HOST=
-  echo export BIGTABLE_EMULATOR_HOST=
-  echo export PUBSUB_EMULATOR_HOST=
-  echo export FIRESTORE_EMULATOR_HOST=
-  echo export COCKROACHDB_EMULATOR_HOST=
-
-  if [ "$1" == "--dump-logs" ]; then
-    echo "Emulator logs:"
-    cat ${TMPDIR}/cloud_emulators.log
+  if [[ -v GITHUB_ENV ]]; then
+    echo "DATASTORE_EMULATOR_HOST=localhost:8891" >> "$GITHUB_ENV"
+    echo "BIGTABLE_EMULATOR_HOST=localhost:8892" >> "$GITHUB_ENV"
+    echo "PUBSUB_EMULATOR_HOST=localhost:8893" >> "$GITHUB_ENV"
+    echo "FIRESTORE_EMULATOR_HOST=localhost:8894" >> "$GITHUB_ENV"
+    echo "COCKROACHDB_EMULATOR_HOST=localhost:8895" >> "$GITHUB_ENV"
+  else
+    # The ports below should be kept in sync with run_emulators.go.
+    echo Emulators started. Set environment variables as follows:
+    echo export DATASTORE_EMULATOR_HOST=localhost:8891
+    echo export BIGTABLE_EMULATOR_HOST=localhost:8892
+    echo export PUBSUB_EMULATOR_HOST=localhost:8893
+    echo export FIRESTORE_EMULATOR_HOST=localhost:8894
+    echo export COCKROACHDB_EMULATOR_HOST=localhost:8895
   fi
+elif [ "$cmd" == "stop" ]; then
+  if [[ -v GITHUB_ENV ]]; then
+    echo "DATASTORE_EMULATOR_HOST=" >> "$GITHUB_ENV"
+    echo "BIGTABLE_EMULATOR_HOST=" >> "$GITHUB_ENV"
+    echo "PUBSUB_EMULATOR_HOST=" >> "$GITHUB_ENV"
+    echo "FIRESTORE_EMULATOR_HOST=" >> "$GITHUB_ENV"
+    echo "COCKROACHDB_EMULATOR_HOST=" >> "$GITHUB_ENV"
+  else
+    echo Emulators stopped. Unset environment variables as follows:
+    echo export DATASTORE_EMULATOR_HOST=
+    echo export BIGTABLE_EMULATOR_HOST=
+    echo export PUBSUB_EMULATOR_HOST=
+    echo export FIRESTORE_EMULATOR_HOST=
+    echo export COCKROACHDB_EMULATOR_HOST=
+  fi
+fi
+
+if [ "$1" == "--dump-logs" ]; then
+  echo "Emulator logs:"
+  cat ${TMPDIR}/cloud_emulators.log
 fi
