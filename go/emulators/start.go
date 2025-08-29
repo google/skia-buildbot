@@ -12,12 +12,12 @@ import (
 	"go.skia.org/infra/go/sktest"
 )
 
-type StartEmulator func() (bool, error)
+type EmulatorLauncherFn func() (bool, error)
 
 // RequireEmulator fails the test when running outside of RBE if the corresponding *_EMULATOR_HOST
 // environment variable wasn't set, or starts a new emulator instance under RBE if necessary.
 // This should not be called by unit tests directly, but rather by the subpackages of this module.
-func RequireEmulator(t sktest.TestingT, emulator Emulator, fn StartEmulator) {
+func RequireEmulator(t sktest.TestingT, emulator Emulator, fn EmulatorLauncherFn) {
 	if bazel.InBazelTestOnRBE() {
 		setUpEmulatorBazelRBEOnly(t, emulator, fn)
 		return
@@ -45,7 +45,7 @@ and then set the environment variables it prints out.`, emulator)
 //
 // Test case-specific instances should only be used in the presence of hard-to-diagnose bugs that
 // only occur under RBE.
-func setUpEmulatorBazelRBEOnly(t sktest.TestingT, emulator Emulator, fn StartEmulator) {
+func setUpEmulatorBazelRBEOnly(t sktest.TestingT, emulator Emulator, fn EmulatorLauncherFn) {
 	started, err := fn()
 	if err != nil {
 		t.Fatalf("Could not start %s Emulator: %s", emulator, err)
@@ -77,9 +77,9 @@ func setUpEmulatorBazelRBEOnly(t sktest.TestingT, emulator Emulator, fn StartEmu
 	})
 }
 
-// StartForRBE performs some shared-setup to starting emulators. It should not be called by anything
+// StartEmulatorCmd performs some shared-setup to starting emulators. It should not be called by anything
 // other than subpackages of this package.
-func StartForRBE(cmd *exec.Cmd) error {
+func StartEmulatorCmd(cmd *exec.Cmd) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if bazel.InBazelTestOnRBE() {

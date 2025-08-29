@@ -16,7 +16,7 @@ import (
 //
 // [1] https://github.com/bazelbuild/rules_python
 func FindPython3() (string, error) {
-	if !bazel.InBazelTest() {
+	if !bazel.InBazel() {
 		return exec.LookPath("python3")
 	}
 	if runtime.GOOS == "linux" {

@@ -7,26 +7,12 @@ This repo contains infrastructure code for Skia.
 # Getting the Source Code
 
 The main source code repository is a Git repository hosted at
-[https://skia.googlesource.com/buildbot.git](https://skia.googlesource.com/buildbot.git).
-It is possible to check out this repository directly with `git clone` or via
-`go get`.
-
-Using `git clone` allows you to work in whatever directory you want. You will
-still need to set GOPATH in order to build some apps (recommended to put this in
-a cache dir). E.g.:
-
-```
-$ cd ${WORKDIR}
-$ git clone https://skia.googlesource.com/buildbot.git
-$ export GOPATH=${HOME}/.cache/gopath/$(basename ${WORKDIR})
-$ mkdir $GOPATH
-$ cd buildbot
-```
+[https://github.com/jcgregorio/goldmine](https://github.com/jcgregorio/goldmine).
 
 # Install dependencies
 
-Almost all applications are built with Bazel, and bazelisk is the recommended
-tool to ensure you have the right version of bazel installed:
+Install Go first. Almost all applications are built with Bazel, and bazelisk is
+the recommended tool to ensure you have the right version of bazel installed:
 
 ```
 go install github.com/bazelbuild/bazelisk@latest
@@ -40,7 +26,7 @@ go install go.chromium.org/luci/client/cmd/...@latest
 ## Install other dependencies:
 
 ```
-sudo apt-get install jq
+sudo apt-get install jq default-jre
 ```
 
 # Build ~everything
