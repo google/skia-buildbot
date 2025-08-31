@@ -296,3 +296,182 @@ Found partially name matches in BCR: `bazel_skylib_gazelle_plugin`
 It has been introduced as a Bazel module:
 
 	bazel_dep(name = "bazel_skylib", version = "1.8.1")
+## Migration of `aspect_rules_js`:
+
+<details>
+<summary>Click here to see where and how the repo was declared in the WORKSPACE file</summary>
+
+#### Location
+```python
+Repository aspect_rules_js instantiated at:
+  /home/jcgregorio/goldmine/WORKSPACE:198:13: in <toplevel>
+Repository rule http_archive defined at:
+  /home/jcgregorio/.cache/bazel/_bazel_jcgregorio/385682bf6f095f8585d188113d285ba8/external/bazel_tools/tools/build_defs/repo/http.bzl:387:31: in <toplevel>
+
+```
+
+#### Definition
+```python
+load("@@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+http_archive(
+  name = "aspect_rules_js",
+  urls = [
+    "https://storage.googleapis.com/skia-world-readable/bazel/76a04ef2120ee00231d85d1ff012ede23963733339ad8db81f590791a031f643.tar.gz",
+    "https://github.com/aspect-build/rules_js/releases/download/v1.34.1/rules_js-v1.34.1.tar.gz"
+  ],
+  sha256 = "76a04ef2120ee00231d85d1ff012ede23963733339ad8db81f590791a031f643",
+  strip_prefix = "rules_js-1.34.1",
+)
+```
+**Tip**: URLs usually show which version was used.
+</details>
+
+___
+Found perfect name match in BCR: `aspect_rules_js`
+
+It has been introduced as a Bazel module:
+
+	bazel_dep(name = "aspect_rules_js", version = "2.5.0")
+## Migration of `npm`:
+
+<details>
+<summary>Click here to see where and how the repo was declared in the WORKSPACE file</summary>
+
+#### Location
+```python
+Repository npm instantiated at:
+  /home/jcgregorio/goldmine/WORKSPACE:221:19: in <toplevel>
+  /home/jcgregorio/.cache/bazel/_bazel_jcgregorio/385682bf6f095f8585d188113d285ba8/external/aspect_rules_js/npm/repositories.bzl:12:24: in npm_translate_lock
+  /home/jcgregorio/.cache/bazel/_bazel_jcgregorio/385682bf6f095f8585d188113d285ba8/external/aspect_rules_js/npm/private/npm_translate_lock.bzl:545:28: in npm_translate_lock
+Repository rule npm_translate_lock_rule defined at:
+  /home/jcgregorio/.cache/bazel/_bazel_jcgregorio/385682bf6f095f8585d188113d285ba8/external/aspect_rules_js/npm/private/npm_translate_lock.bzl:133:42: in <toplevel>
+
+```
+
+#### Definition
+```python
+load("@@aspect_rules_js//npm/private:npm_translate_lock.bzl", "npm_translate_lock_rule")
+npm_translate_lock_rule(
+  name = "npm",
+  additional_file_contents = {  },
+  bins = {  },
+  custom_postinstalls = {  },
+  data = [
+    "//:package.json"
+  ],
+  dev = False,
+  external_repository_action_cache = ".aspect/rules/external_repository_action_cache",
+  lifecycle_hooks_envs = {  },
+  lifecycle_hooks_execution_requirements = {
+    "*": [
+        "no-sandbox"
+    ]
+  },
+  lifecycle_hooks = {
+    "*": [
+        "preinstall",
+        "install",
+        "postinstall"
+    ]
+  },
+  no_optional = False,
+  npm_package_lock = "//:package-lock.json",
+  npmrc = "//:.npmrc",
+  package_visibility = {  },
+  patch_args = {
+    "*": [
+        "-p0"
+    ]
+  },
+  patches = {  },
+  pnpm_lock = "//:pnpm-lock.yaml",
+  preupdate = [  ],
+  prod = False,
+  public_hoist_packages = {  },
+  quiet = True,
+  update_pnpm_lock = True,
+  update_pnpm_lock_node_toolchain_prefix = "nodejs",
+  verify_node_modules_ignored = "//:.bazelignore",
+  npm_package_target_name = "{dirname}",
+)
+```
+**Tip**: URLs usually show which version was used.
+</details>
+
+___
+	It is not found in BCR. 
+
+	It has been introduced using a module extension:
+
+## Migration of `aspect_rules_esbuild`:
+
+<details>
+<summary>Click here to see where and how the repo was declared in the WORKSPACE file</summary>
+
+#### Location
+```python
+Repository aspect_rules_esbuild instantiated at:
+  /home/jcgregorio/goldmine/WORKSPACE:261:13: in <toplevel>
+Repository rule http_archive defined at:
+  /home/jcgregorio/.cache/bazel/_bazel_jcgregorio/385682bf6f095f8585d188113d285ba8/external/bazel_tools/tools/build_defs/repo/http.bzl:387:31: in <toplevel>
+
+```
+
+#### Definition
+```python
+load("@@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+http_archive(
+  name = "aspect_rules_esbuild",
+  urls = [
+    "https://storage.googleapis.com/skia-world-readable/bazel/46aab76044f040c1c0bd97672d56324619af4913cb9e96606ec37ddd4605831d.tar.gz",
+    "https://github.com/aspect-build/rules_esbuild/releases/download/v0.16.0/rules_esbuild-v0.16.0.tar.gz"
+  ],
+  sha256 = "46aab76044f040c1c0bd97672d56324619af4913cb9e96606ec37ddd4605831d",
+  strip_prefix = "rules_esbuild-0.16.0",
+)
+```
+**Tip**: URLs usually show which version was used.
+</details>
+
+___
+Found perfect name match in BCR: `aspect_rules_esbuild`
+
+It has been introduced as a Bazel module:
+
+	bazel_dep(name = "aspect_rules_esbuild", version = "0.22.1")
+## Migration of `aspect_bazel_lib`:
+
+<details>
+<summary>Click here to see where and how the repo was declared in the WORKSPACE file</summary>
+
+#### Location
+```python
+Repository aspect_bazel_lib instantiated at:
+  /home/jcgregorio/goldmine/WORKSPACE:210:22: in <toplevel>
+  /home/jcgregorio/.cache/bazel/_bazel_jcgregorio/385682bf6f095f8585d188113d285ba8/external/aspect_rules_js/js/repositories.bzl:23:17: in rules_js_dependencies
+  /home/jcgregorio/.cache/bazel/_bazel_jcgregorio/385682bf6f095f8585d188113d285ba8/external/aspect_rules_js/js/private/maybe.bzl:7:10: in maybe_http_archive
+  /home/jcgregorio/.cache/bazel/_bazel_jcgregorio/385682bf6f095f8585d188113d285ba8/external/bazel_tools/tools/build_defs/repo/utils.bzl:268:18: in maybe
+Repository rule http_archive defined at:
+  /home/jcgregorio/.cache/bazel/_bazel_jcgregorio/385682bf6f095f8585d188113d285ba8/external/bazel_tools/tools/build_defs/repo/http.bzl:387:31: in <toplevel>
+
+```
+
+#### Definition
+```python
+load("@@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+http_archive(
+  name = "aspect_bazel_lib",
+  url = "https://github.com/aspect-build/bazel-lib/releases/download/v1.39.0/bazel-lib-v1.39.0.tar.gz",
+  sha256 = "4d6010ca5e3bb4d7045b071205afa8db06ec11eb24de3f023d74d77cca765f66",
+  strip_prefix = "bazel-lib-1.39.0",
+)
+```
+**Tip**: URLs usually show which version was used.
+</details>
+
+___
+Found perfect name match in BCR: `aspect_bazel_lib`
+
+It has been introduced as a Bazel module:
+
+	bazel_dep(name = "aspect_bazel_lib", version = "2.21.1")

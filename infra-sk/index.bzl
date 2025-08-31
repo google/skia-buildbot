@@ -1,7 +1,6 @@
 """This module defines rules for building Skia Infrastructure web applications."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
-
 # https://github.com/bazelbuild/bazel-skylib/blob/main/rules/common_settings.bzl
 load("@bazel_skylib//rules:common_settings.bzl", skylib_bool_flag = "bool_flag")
 load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
