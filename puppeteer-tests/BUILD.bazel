@@ -21,9 +21,9 @@ ts_library(
         # Provides Google Chrome, libraries and fonts.
         "@platforms//os:linux": [
             ":chrome",
-            "//:.puppeteerrc.js",
+            "//:puppeteer_rc",
             # TODO(lovisolo): Do we really need this? Can't we just use the :chrome target?
-            "@google_chrome//:all_files",
+            #"@google_chrome//:all_files",
         ],
         # We don't have hermetic support for Mac and Windows. Users are expected
         # to have a working chrome installation already.
