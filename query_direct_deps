@@ -1,0 +1,17 @@
+# /home/jcgregorio/goldmine/go/sql/pool/BUILD.bazel:3:11
+go_library(
+  name = "pool",
+  visibility = ["//visibility:public"],
+  generator_name = "pool",
+  generator_function = "go_library_macro",
+  generator_location = "go/sql/pool/BUILD.bazel:3:11",
+  srcs = ["//go/sql/pool:pool.go"],
+  deps = ["@com_github_jackc_pgconn//:pgconn", "@com_github_jackc_pgx_v4//:pgx", "@com_github_jackc_pgx_v4//pgxpool:pgxpool"],
+  importpath = "go.skia.org/infra/go/sql/pool",
+)
+# Rule pool instantiated at (most recent call last):
+#   /home/jcgregorio/goldmine/go/sql/pool/BUILD.bazel:3:11                                                                                          in <toplevel>
+#   /home/jcgregorio/.cache/bazel/_bazel_jcgregorio/385682bf6f095f8585d188113d285ba8/external/io_bazel_rules_go/go/private/rules/wrappers.bzl:45:15 in go_library_macro
+# Rule go_library defined at (most recent call last):
+#   /home/jcgregorio/.cache/bazel/_bazel_jcgregorio/385682bf6f095f8585d188113d285ba8/external/io_bazel_rules_go/go/private/rules/library.bzl:64:18 in <toplevel>
+

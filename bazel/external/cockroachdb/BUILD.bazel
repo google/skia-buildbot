@@ -4,10 +4,6 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "cockroachdb",
     srcs = ["cockroachdb.go"],
-    data = select({
-        "@platforms//os:linux": ["@cockroachdb_linux//:all_files"],
-        "//conditions:default": [],  # Prevent errors on platforms without this package.
-    }),
     importpath = "go.skia.org/infra/bazel/external/cockroachdb",
     visibility = ["//visibility:public"],
     deps = [
