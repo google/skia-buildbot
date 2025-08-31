@@ -44,7 +44,7 @@ test:
 
 .PHONY: demo_alert-config-sk
 demo_alert-config-sk:
-	$(BAZEL) run --config=mayberemote //perf/modules/alert-config-sk:demo_page_server
+	$(BAZEL) run --config=mayberemote --enable_bzlmod --noenable_workspace  //perf/modules/alert-config-sk:demo_page_server
 
 .PHONY: demo_alerts-page-sk
 demo_alerts-page-sk:
