@@ -79,3 +79,10 @@ npm.npm_translate_lock(
 use_repo(
     npm, "npm",
 )
+
+
+
+# Load the extension from the .bzl file
+google_chrome_ext = use_extension("//bazel/external:google_chrome.bzl", "google_chrome_ext")
+use_repo(google_chrome_ext, "google_chrome")
+

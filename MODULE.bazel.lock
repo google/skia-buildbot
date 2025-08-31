@@ -204,6 +204,23 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "//bazel/external:google_chrome.bzl%google_chrome_ext": {
+      "general": {
+        "bzlTransitiveDigest": "O4tw2OjjbHEUvGTnkA6tdYVf33Ggbanp0Io9CTDu76s=",
+        "usagesDigest": "bj+RWtm/Y8/LvMS3bKWf58rJ9vK/1YCdQc69g+pgCmI=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "google_chrome": {
+            "bzlFile": "@@//bazel/external:google_chrome.bzl",
+            "ruleClassName": "google_chrome",
+            "attributes": {}
+          }
+        },
+        "recordedRepoMappingEntries": []
+      }
+    },
     "@@apple_support~//crosstool:setup.bzl%apple_cc_configure_extension": {
       "general": {
         "bzlTransitiveDigest": "PjIds3feoYE8SGbbIq2SFTZy3zmxeO2tQevJZNDo7iY=",

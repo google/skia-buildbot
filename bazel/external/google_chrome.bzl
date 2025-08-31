@@ -399,3 +399,10 @@ google_chrome = repository_rule(
     implementation = _google_chrome_impl,
     doc = "Hermetically installs Google Chrome, and all required libraries and fonts.",
 )
+
+def _google_chrome_ext(mctx):
+    google_chrome(name = "google_chrome")
+
+google_chrome_ext = module_extension(
+    implementation = _google_chrome_ext,
+)

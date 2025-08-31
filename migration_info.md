@@ -475,3 +475,4 @@ Found perfect name match in BCR: `aspect_bazel_lib`
 It has been introduced as a Bazel module:
 
 	bazel_dep(name = "aspect_bazel_lib", version = "2.21.1")
+Repository definition for `google_chrome` is not found in ./resolved_deps.py file, please add `--force/-f` flag to force update it.
