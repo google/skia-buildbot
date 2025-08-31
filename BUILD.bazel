@@ -98,6 +98,7 @@ platform(
     # Note that depending on network resources breaks test hermeticity.
 
 # Commented out for now.
+# TODO(jcgregorio) Fix this and restore for RBE.
 #
 #    exec_properties = NETWORK_ON,
 

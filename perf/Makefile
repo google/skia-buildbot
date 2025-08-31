@@ -191,12 +191,12 @@ run-flutter-instance:
 run-demo-instance:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
-	$(BAZEL) run --config=mayberemote //perf/go/perfserver:perfserver -- ingest \
+	$(BAZEL) run --config=mayberemote -c dbg //perf/go/perfserver:perfserver -- ingest \
 		--local \
 		--config_filename=$(realpath ./configs/demo.json) \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
 
-	$(BAZEL) run --config=mayberemote //perf/go/perfserver:perfserver -- frontend \
+	$(BAZEL) run --config=mayberemote -c dbg //perf/go/perfserver:perfserver -- frontend \
 		--local \
 		--do_clustering=false \
 		--port=:8002 \

@@ -12,6 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Enable Bzlmod for every Bazel command
+common --enable_bzlmod
+
+# Turn off WORKSPACE, we will only used bzlmod from this point forward.
+common --noenable_workspace 
+
+
 # If we prefix the directories with an underscore then they get ignored by Go tools.
 # We are forced to do this until https://github.com/golang/go/issues/42965 is fixed.
 build --symlink_prefix=_bazel_
