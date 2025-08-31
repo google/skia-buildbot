@@ -1,7 +1,1 @@
 node_modules
-
-# Updating the certs requires a checkout of k8s-config, which also had Bazel in it.
-skfe/k8s-config
-
-# Updating tools.luci.app configs requires a checkout of k8s-config, which also had Bazel in it.
-tool/k8s-config

@@ -1,5 +1,7 @@
 """This module defines the test_on_env rule."""
 
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
 def test_on_env(name, test, env, timeout_secs = 10, tags = None, test_on_env_binary = None):
     """Allows running test targets that require launching a test environment before their execution.
 
@@ -52,7 +54,7 @@ def test_on_env(name, test, env, timeout_secs = 10, tags = None, test_on_env_bin
 
     # Even though test_on_env is a go binary, it seems perfectly happy to be run with the
     # sh_test rule.
-    native.sh_test(
+    sh_test(
         name = name,
         srcs = [test_on_env_binary],
         args = [

@@ -3,6 +3,7 @@
 load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 def skia_app_container(
         name,
@@ -252,7 +253,7 @@ def skia_app_container(
         tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
     )
 
-    native.sh_binary(
+    sh_binary(
         name = "pushk_" + name,
         srcs = ["gen_pushk_" + name],
         data = [

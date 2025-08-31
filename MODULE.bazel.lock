@@ -179,7 +179,8 @@
     "https://bcr.bazel.build/modules/rules_shell/0.2.0/MODULE.bazel": "fda8a652ab3c7d8fee214de05e7a9916d8b28082234e8d2c0094505c5268ed3c",
     "https://bcr.bazel.build/modules/rules_shell/0.3.0/MODULE.bazel": "de4402cd12f4cc8fda2354fce179fdb068c0b9ca1ec2d2b17b3e21b24c1a937b",
     "https://bcr.bazel.build/modules/rules_shell/0.4.1/MODULE.bazel": "00e501db01bbf4e3e1dd1595959092c2fadf2087b2852d3f553b5370f5633592",
-    "https://bcr.bazel.build/modules/rules_shell/0.4.1/source.json": "4757bd277fe1567763991c4425b483477bb82e35e777a56fd846eb5cceda324a",
+    "https://bcr.bazel.build/modules/rules_shell/0.6.0/MODULE.bazel": "c65e3ab217f64c3960e3ab55a53b430babcac6f0870fe79192812ae68a596a81",
+    "https://bcr.bazel.build/modules/rules_shell/0.6.0/source.json": "9431501bbc2114effd3b625b30555c5de51b7d291c1aee48b6f4d09d82126b3e",
     "https://bcr.bazel.build/modules/stardoc/0.5.1/MODULE.bazel": "1a05d92974d0c122f5ccf09291442580317cdd859f07a8655f1db9a60374f9f8",
     "https://bcr.bazel.build/modules/stardoc/0.5.3/MODULE.bazel": "c7f6948dae6999bf0db32c1858ae345f112cacf98f174c7a8bb707e41b974f1c",
     "https://bcr.bazel.build/modules/stardoc/0.5.4/MODULE.bazel": "6569966df04610b8520957cb8e97cf2e9faac2c0309657c537ab51c16c18a2a4",
@@ -548,6 +549,48 @@
         ]
       }
     },
+    "@@aspect_rules_ts~//ts:extensions.bzl%ext": {
+      "general": {
+        "bzlTransitiveDigest": "9IJp6IlB/FMHFBJe4MX/DQM4zi3oArC8yqYE/+NyPwk=",
+        "usagesDigest": "MFh/lahKFRY6LlFPwP4BymosZkHrZ6sRVfn9dWQ8S3g=",
+        "recordedFileInputs": {
+          "@@//package.json": "32b8791a2bc069ad965c5bea5eda75d6b3b1f52229f5d26d2008c7ee4fbeeaf2"
+        },
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "npm_typescript": {
+            "bzlFile": "@@aspect_rules_ts~//ts/private:npm_repositories.bzl",
+            "ruleClassName": "http_archive_version",
+            "attributes": {
+              "version": "",
+              "version_from": "@@//:package.json",
+              "integrity": "",
+              "urls": [
+                "https://registry.npmjs.org/typescript/-/typescript-{}.tgz"
+              ]
+            }
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "aspect_rules_ts~",
+            "aspect_rules_ts",
+            "aspect_rules_ts~"
+          ],
+          [
+            "aspect_rules_ts~",
+            "aspect_tools_telemetry_report",
+            "aspect_tools_telemetry~~telemetry~aspect_tools_telemetry_report"
+          ],
+          [
+            "aspect_rules_ts~",
+            "bazel_tools",
+            "bazel_tools"
+          ]
+        ]
+      }
+    },
     "@@aspect_tools_telemetry~//:extension.bzl%telemetry": {
       "general": {
         "bzlTransitiveDigest": "gA7tPEdJXhskzPIEUxjX9IdDrM6+WjfbgXJ8Ez47umk=",
@@ -676,8 +719,8 @@
     },
     "@@rules_nodejs~//nodejs:extensions.bzl%node": {
       "general": {
-        "bzlTransitiveDigest": "SqbzUarOVzAfK28Ca5+NIU3LUwnW/b3h0xXBUS97oyI=",
-        "usagesDigest": "9/GD5p95L6v/GWAW3MQVRGkBlMTcXDt9ObroLenv874=",
+        "bzlTransitiveDigest": "hdICB1K7PX7oWtO8oksVTBDNt6xxiNERpcO4Yxoa0Gc=",
+        "usagesDigest": "8YLFMmKH6/gsoZ7UJzgCoj9/ay/muOTkeMf2du1rxg4=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -691,7 +734,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.4",
+              "node_version": "16.14.0",
               "include_headers": false,
               "platform": "linux_amd64"
             }
@@ -705,7 +748,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.4",
+              "node_version": "16.14.0",
               "include_headers": false,
               "platform": "linux_arm64"
             }
@@ -719,7 +762,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.4",
+              "node_version": "16.14.0",
               "include_headers": false,
               "platform": "linux_s390x"
             }
@@ -733,7 +776,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.4",
+              "node_version": "16.14.0",
               "include_headers": false,
               "platform": "linux_ppc64le"
             }
@@ -747,7 +790,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.4",
+              "node_version": "16.14.0",
               "include_headers": false,
               "platform": "darwin_amd64"
             }
@@ -761,7 +804,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.4",
+              "node_version": "16.14.0",
               "include_headers": false,
               "platform": "darwin_arm64"
             }
@@ -775,9 +818,23 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.4",
+              "node_version": "16.14.0",
               "include_headers": false,
               "platform": "windows_amd64"
+            }
+          },
+          "nodejs_windows_arm64": {
+            "bzlFile": "@@rules_nodejs~//nodejs:repositories.bzl",
+            "ruleClassName": "_nodejs_repositories",
+            "attributes": {
+              "node_download_auth": {},
+              "node_repositories": {},
+              "node_urls": [
+                "https://nodejs.org/dist/v{version}/{filename}"
+              ],
+              "node_version": "16.14.0",
+              "include_headers": false,
+              "platform": "windows_arm64"
             }
           },
           "nodejs": {

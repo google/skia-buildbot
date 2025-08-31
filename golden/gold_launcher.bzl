@@ -1,6 +1,7 @@
 """This module defines the gold_launcher macro."""
 
 load("//golden/pages:all_gold_pages.bzl", "ALL_GOLD_PAGES")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 # Curly braces are escaped ("{" becomes "{{", "}" becomes "}}") because we will format this
 # template with https://bazel.build/rules/lib/string#format.
@@ -172,7 +173,7 @@ def gold_launcher(
         cmd = "echo '%s' > $@" % formatted_runner_script,
     )
 
-    native.sh_binary(
+    sh_binary(
         name = name,
         srcs = [name + "_runner"],
         data = deps,

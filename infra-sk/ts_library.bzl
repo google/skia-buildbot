@@ -1,6 +1,6 @@
 """This module provides a wrapper around the ts_project rule from the rules_ts repository."""
 
-load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config", "ts_project")
 
 def ts_library(name, srcs, deps = [], **kwargs):
     """Wraps rules_ts's ts_project rule with common settings for our code.

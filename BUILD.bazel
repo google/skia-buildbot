@@ -1,9 +1,10 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
-load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config", "ts_project")
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 load("@exec_properties//:constants.bzl", "NETWORK_ON")
 load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 # Disable generation of go_proto_library targets. Let Gazelle use checked-in .pb.go files instead.
 #
