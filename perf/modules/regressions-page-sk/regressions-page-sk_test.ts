@@ -3,7 +3,7 @@ import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
 import { RegressionsPageSk } from './regressions-page-sk';
 
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { setUpElementUnderTest, setQueryString } from '../../../infra-sk/modules/test_util';
 
 import { GetSheriffListResponse, GetAnomaliesResponse } from '../json';
 
@@ -129,33 +129,39 @@ describe('regressions-page-sk', () => {
     subscription: null,
   };
 
-  fetchMock.get(
-    '/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202&anomaly_cursor=query_cursor',
-    {
-      body: anomalyListResponseWithAnomalyCursor,
-    }
-  );
-  fetchMock.get('/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202', {
-    body: anomalyListResponse,
-  });
-  fetchMock.get('/_/anomalies/anomaly_list', {
-    body: anomalyListResponse,
-  });
-  fetchMock.get('/_/anomalies/anomaly_list?triaged=true', {
-    body: anomalyListResponse,
-  });
-  fetchMock.get('/_/anomalies/anomaly_list?improvements=true', {
-    body: anomalyListResponse,
+  beforeEach(() => {
+    setQueryString('');
+    localStorage.clear();
+    fetchMock.reset();
+
+    fetchMock.get('/_/anomalies/sheriff_list', { body: sheriffListResponse });
+    fetchMock.get(
+      '/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202&anomaly_cursor=query_cursor',
+      {
+        body: anomalyListResponseWithAnomalyCursor,
+      }
+    );
+    fetchMock.get('/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202', {
+      body: anomalyListResponse,
+    });
+    fetchMock.get('/_/anomalies/anomaly_list', {
+      body: anomalyListResponse,
+    });
+    fetchMock.get('/_/anomalies/anomaly_list?triaged=true', {
+      body: anomalyListResponse,
+    });
+    fetchMock.get('/_/anomalies/anomaly_list?improvements=true', {
+      body: anomalyListResponse,
+    });
   });
 
-  describe('RegressionsPageSK', () => {
-    const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
-
-    const element = newInstance((_el: RegressionsPageSk) => {});
-
-    const dropdown = document.getElementById('filter') as HTMLSelectElement;
-
+  describe('RegressionsPageSk - Filter Changes and API Calls', () => {
     it('Loads associated regressions when subscription selected', async () => {
+      const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
+      const element = newInstance((_el: RegressionsPageSk) => {});
+      const dropdown = document.getElementById('filter') as HTMLSelectElement;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
       // 4 loaded configs and the default options
       assert.equal(dropdown?.options.length, 5);
       // /anomaly_list is not called without a sheriff selected.
@@ -180,7 +186,7 @@ describe('regressions-page-sk', () => {
     });
   });
 
-  describe('RegressionsPageSK', () => {
+  describe('RegressionsPageSk - Anomaly Cursor Handling', () => {
     fetchMock.config.overwriteRoutes = true;
     const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
 
@@ -231,6 +237,75 @@ describe('regressions-page-sk', () => {
       element.subscriptionList.every((sheriff, index) => {
         assert.equal(sheriff, sheriffListResponseSorted.at(index));
       });
+    });
+  });
+
+  describe('Selector Persistence', () => {
+    const LAST_SELECTED_SHERIFF_KEY = 'perf-last-selected-sheriff';
+    const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
+
+    let originalPath: string;
+
+    beforeEach(() => {
+      // Store the original path to restore later
+      originalPath = window.location.pathname + window.location.search;
+    });
+
+    afterEach(() => {
+      // Clean up: Restore the original URL
+      window.history.pushState({}, '', originalPath);
+    });
+
+    it('should save selection to localStorage and restore it on new instances', async () => {
+      // 1. Initial load.
+      let element = newInstance();
+      await fetchMock.flush(true);
+
+      assert.strictEqual(element.state.selectedSubscription, '');
+      assert.isNull(localStorage.getItem(LAST_SELECTED_SHERIFF_KEY));
+
+      // 2. Simulate user selecting an option.
+      await element.filterChange('Sheriff Config 2');
+      await fetchMock.flush(true);
+
+      // 3. Verify value is saved to localStorage.
+      assert.strictEqual(localStorage.getItem(LAST_SELECTED_SHERIFF_KEY), 'Sheriff Config 2');
+      assert.strictEqual(element.state.selectedSubscription, 'Sheriff Config 2');
+
+      // 4. Simulate "Reloading Page" by creating a new instance.
+      element = newInstance();
+      await fetchMock.flush(true);
+
+      // 5. On "reloaded" Page, check if the selector has the value from localStorage.
+      assert.strictEqual(element.state.selectedSubscription, 'Sheriff Config 2');
+
+      // Also check that the correct anomaly list was fetched.
+      assert.equal(fetchMock.lastUrl(), '/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202');
+      const select = element.querySelector<HTMLSelectElement>('#filter')!;
+      assert.strictEqual(select.value, 'Sheriff Config 2');
+    });
+
+    it('should initialize with default when no value is in uri nor in LocalCtorage', async () => {
+      const element = newInstance();
+      await fetchMock.flush(true);
+
+      assert.strictEqual(element.state.selectedSubscription, '');
+      const select = element.querySelector<HTMLSelectElement>('#filter')!;
+      assert.strictEqual(select.value, '');
+    });
+
+    it('should initialize with query parameter from uri if present', async () => {
+      const testSearch = '?selectedSubscription=Sheriff%20Config%202';
+
+      // Change the URL search part
+      window.history.pushState({}, '', window.location.pathname + testSearch);
+      // Verify that window.location.search is updated
+      assert.strictEqual(window.location.search, testSearch);
+
+      const element = newInstance();
+      await fetchMock.flush(true);
+
+      assert.strictEqual(element.state.selectedSubscription, 'Sheriff Config 2');
     });
   });
 });

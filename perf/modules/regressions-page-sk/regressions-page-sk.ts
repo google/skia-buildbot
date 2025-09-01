@@ -34,6 +34,8 @@ const ANOMALY_LIST_ENDPOINT_LEGACY = '/_/anomalies/anomaly_list';
 const SHERIFF_LIST_ENDPOINT = '/_/anomalies/sheriff_list_skia';
 const ANOMALY_LIST_ENDPOINT = '/_/anomalies/anomaly_list_skia';
 
+const LAST_SELECTED_SHERIFF_KEY = 'perf-last-selected-sheriff';
+
 /**
  * RegressionsPageSk is a component that displays a list of regressions
  * for a given subscription.
@@ -91,7 +93,19 @@ export class RegressionsPageSk extends ElementSk {
     this.stateHasChanged = stateReflector(
       /* getState */ () => this.state as unknown as HintableObject,
       /* setState */ async (newState) => {
-        this.state = newState as unknown as State;
+        const typedNewState = newState as unknown as State;
+        if (typedNewState.selectedSubscription) {
+          localStorage.setItem(LAST_SELECTED_SHERIFF_KEY, typedNewState.selectedSubscription);
+        }
+        // Merge the new state from the URL. Properties not in the URL
+        // will retain their current values.
+        this.state = { ...this.state, ...typedNewState };
+
+        // Ensure selectedSubscription is set, prioritizing URL, then localStorage, then empty.
+        this.state.selectedSubscription =
+          typedNewState.selectedSubscription ||
+          localStorage.getItem(LAST_SELECTED_SHERIFF_KEY) ||
+          '';
         await this.init();
         if (this.state.selectedSubscription !== '') {
           this.btnTriaged!.disabled = false;
@@ -253,6 +267,7 @@ export class RegressionsPageSk extends ElementSk {
   }
 
   async filterChange(sub: string): Promise<void> {
+    localStorage.setItem(LAST_SELECTED_SHERIFF_KEY, sub);
     this.state.selectedSubscription = sub;
     this.btnTriaged!.disabled = false;
     this.btnImprovement!.disabled = false;
