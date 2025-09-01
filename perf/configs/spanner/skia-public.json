@@ -47,9 +47,32 @@
           "show_google_plot": "true",
           "plotSummary": "true",
           "enable_chart_tooltip": "true",
+          "useTestPicker": "true",
           "use_titles": "true"
-      }
+      },
+      "include_params": [
+        "name",
+        "source_type",
+        "sub_result",
+        "test",
+        "os",
+        "model",
+        "arch",
+        "bench_type",
+        "clip",
+        "compiler",
+        "config",
+        "cpu_or_gpu",
+        "cpu_or_gpu_value",
+        "extra_config",
+        "scale"
+      ]
   },
+  "data_point_config": {
+    "enable_point_links": true,
+    "show_json_file_display": true,
+    "always_show_commit_info": true
+},
   "optimize_sqltracestore": true,
   "show_triage_link": true
 }
