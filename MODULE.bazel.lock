@@ -207,6 +207,23 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "//bazel/external:cockroachdb.bzl%cockroachdb_cli_ext": {
+      "general": {
+        "bzlTransitiveDigest": "amWbgyc3RUcbvpTH8pvW+QaG6Ru72BKZMpLXU+PpZlE=",
+        "usagesDigest": "dx9+aFZ0t6gXUo0R0dfY5EtpP74axTe4rjrRR9Y/2a8=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "cockroachdb_cli_ext": {
+            "bzlFile": "@@//bazel/external:cockroachdb.bzl",
+            "ruleClassName": "cockroachdb_cli",
+            "attributes": {}
+          }
+        },
+        "recordedRepoMappingEntries": []
+      }
+    },
     "//bazel/external:google_chrome.bzl%google_chrome_ext": {
       "general": {
         "bzlTransitiveDigest": "O4tw2OjjbHEUvGTnkA6tdYVf33Ggbanp0Io9CTDu76s=",

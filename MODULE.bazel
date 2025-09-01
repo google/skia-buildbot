@@ -88,6 +88,7 @@ http_archive(
   sha256 = "27d53c1d646fc9537a70427ad7b034734d08a9c38924cc6357cc973fed300820",
   strip_prefix = "rules_docker-0.24.0",
 )
+
 # -- repo definitions -- #
 
 # See https://github.com/aspect-build/rules_js/blob/main/docs/pnpm.md
@@ -155,3 +156,6 @@ use_repo(google_chrome_ext, "google_chrome")
 
 google_cloud_sdk_ext = use_extension("//bazel/external:google_cloud_sdk.bzl", "google_cloud_sdk_ext")
 use_repo(google_cloud_sdk_ext, "google_cloud_sdk_ext")
+
+cockroachdb_cli_ext = use_extension("//bazel/external:cockroachdb.bzl", "cockroachdb_cli_ext")
+use_repo(cockroachdb_cli_ext, "cockroachdb_cli_ext")
