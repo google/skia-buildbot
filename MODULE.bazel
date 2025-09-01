@@ -15,6 +15,7 @@ bazel_dep(name = "aspect_rules_js", version = "2.5.0")
 bazel_dep(name = "aspect_rules_esbuild", version = "0.22.1")
 bazel_dep(name = "aspect_bazel_lib", version = "2.21.1")
 bazel_dep(name = "tar.bzl", version = "0.5.5")
+bazel_dep(name = "rules_python", version = "1.5.4")
 # -- bazel_dep definitions -- #
 
 
@@ -33,6 +34,23 @@ rules_ts_ext.deps(
 use_repo(rules_ts_ext, "npm_typescript")
 
 
+
+####################################################################################################
+# rules_python setup
+####################################################################################################
+
+# We next initialize the python toolchain using the extension.
+# You can set different Python versions in this block.
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.defaults(
+    # Use python.defaults if you have defined multiple toolchain versions.
+    python_version = "3.9",
+    python_version_env = "BAZEL_PYTHON_VERSION",
+)
+python.toolchain(
+    configure_coverage_tool = True,
+    python_version = "3.9",
+)
 
 #esbuild = use_extension("@aspect_rules_esbuild//esbuild:extensions.bzl", "esbuild")
 #esbuild.toolchain(
@@ -135,3 +153,5 @@ use_repo(
 google_chrome_ext = use_extension("//bazel/external:google_chrome.bzl", "google_chrome_ext")
 use_repo(google_chrome_ext, "google_chrome")
 
+google_cloud_sdk_ext = use_extension("//bazel/external:google_cloud_sdk.bzl", "google_cloud_sdk_ext")
+use_repo(google_cloud_sdk_ext, "google_cloud_sdk_ext")

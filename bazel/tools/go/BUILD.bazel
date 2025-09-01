@@ -1,4 +1,5 @@
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
 # Non-predefined variables must be escaped with "$$" (e.g. "$$FOO"); see
 # https://bazel.build/reference/be/make-variables#predefined_label_variables.
 # Single quotes (as used for ownership) throw off Bazel, so they've been omitted at the
@@ -28,8 +29,8 @@ genrule(
     outs = ["go.sh"],
     cmd = "echo '%s' > $@" % _SCRIPT,
     tools = [
-        "@go_sdk//:files",
         "@go_sdk//:bin/go",
+        "@go_sdk//:files",
     ],
 )
 

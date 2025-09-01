@@ -12,10 +12,10 @@ go_library(
         "//bazel/gazelle/frontend/parsers",
         "//bazel/gazelle/frontend/resolver",
         "//go/util",
-        "@bazel_gazelle//config:go_default_library",
-        "@bazel_gazelle//label:go_default_library",
-        "@bazel_gazelle//language:go_default_library",
-        "@bazel_gazelle//rule:go_default_library",
+        "@bazel_gazelle//config",
+        "@bazel_gazelle//label",
+        "@bazel_gazelle//language",
+        "@bazel_gazelle//rule",
     ],
 )
 

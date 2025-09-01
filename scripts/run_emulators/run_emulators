@@ -2,7 +2,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TMPDIR="${TMPDIR:-/tmp}"
-nohup bazelisk run --config=mayberemote //scripts/run_emulators "$@" > ${TMPDIR}/cloud_emulators.log &
+nohup bazelisk run --config=mayberemote //scripts/run_emulators "$1" > ${TMPDIR}/cloud_emulators.log &
 
 cmd="$1"
 shift
@@ -14,7 +14,6 @@ if [ "$cmd" == "start" ]; then
     echo "DATASTORE_EMULATOR_HOST=localhost:8891" >> "$GITHUB_ENV"
     echo "BIGTABLE_EMULATOR_HOST=localhost:8892" >> "$GITHUB_ENV"
     echo "PUBSUB_EMULATOR_HOST=localhost:8893" >> "$GITHUB_ENV"
-    echo "FIRESTORE_EMULATOR_HOST=localhost:8894" >> "$GITHUB_ENV"
     echo "COCKROACHDB_EMULATOR_HOST=localhost:8895" >> "$GITHUB_ENV"
   else
     # The ports below should be kept in sync with run_emulators.go.
@@ -22,7 +21,6 @@ if [ "$cmd" == "start" ]; then
     echo export DATASTORE_EMULATOR_HOST=localhost:8891
     echo export BIGTABLE_EMULATOR_HOST=localhost:8892
     echo export PUBSUB_EMULATOR_HOST=localhost:8893
-    echo export FIRESTORE_EMULATOR_HOST=localhost:8894
     echo export COCKROACHDB_EMULATOR_HOST=localhost:8895
   fi
 elif [ "$cmd" == "stop" ]; then
@@ -30,14 +28,12 @@ elif [ "$cmd" == "stop" ]; then
     echo "DATASTORE_EMULATOR_HOST=" >> "$GITHUB_ENV"
     echo "BIGTABLE_EMULATOR_HOST=" >> "$GITHUB_ENV"
     echo "PUBSUB_EMULATOR_HOST=" >> "$GITHUB_ENV"
-    echo "FIRESTORE_EMULATOR_HOST=" >> "$GITHUB_ENV"
     echo "COCKROACHDB_EMULATOR_HOST=" >> "$GITHUB_ENV"
   else
     echo Emulators stopped. Unset environment variables as follows:
     echo export DATASTORE_EMULATOR_HOST=
     echo export BIGTABLE_EMULATOR_HOST=
     echo export PUBSUB_EMULATOR_HOST=
-    echo export FIRESTORE_EMULATOR_HOST=
     echo export COCKROACHDB_EMULATOR_HOST=
   fi
 fi

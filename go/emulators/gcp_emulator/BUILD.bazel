@@ -7,7 +7,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//bazel/external/google_cloud_sdk",
-        "//bazel/external/rules_python",
         "//go/emulators",
         "//go/skerr",
         "//go/sktest",

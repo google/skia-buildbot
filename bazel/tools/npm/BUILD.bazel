@@ -1,4 +1,5 @@
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
 # Non-predefined variables must be escaped with "$$" (e.g. "$$FOO"); see
 # https://bazel.build/reference/be/make-variables#predefined_label_variables.
 #
@@ -28,8 +29,8 @@ genrule(
     outs = ["npm.sh"],
     cmd = "echo '%s' > $@" % _SCRIPT,
     tools = [
-        "@nodejs_linux_amd64//:bin/nodejs/bin/npm",
         "@nodejs_linux_amd64//:bin/nodejs/bin/node",
+        "@nodejs_linux_amd64//:bin/nodejs/bin/npm",
     ],
 )
 

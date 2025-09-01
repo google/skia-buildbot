@@ -15,12 +15,12 @@ def _google_cloud_sdk_impl(repository_ctx):
     hash = ""
     if repository_ctx.os.name.lower().startswith("linux"):
         if arch == "amd64":
-            url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-386.0.0-linux-x86_64.tar.gz"
-            hash = "afadfe261e8df24fda780db6fd9be6929df25cf99fd718384eaa7128206349a0"
+            url = "https://storage.googleapis.com/cloud-sdk-release/google-cloud-cli-532.0.0-linux-x86_64.tar.gz"
+            hash = "3228c25c32922f62b7c516c9ecc0f431ac7e7b8f72e7825540479cc6d2abc306"
     elif repository_ctx.os.name == "mac os x":
         if arch in ("amd64", "x86_64", "aarch64"):
-            url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-386.0.0-darwin-x86_64.tar.gz"
-            hash = "253c315a7d16a91692d24d365791d20b8264c055b5478300ce6a6ff237ef2ef8"
+            url = "https://storage.googleapis.com/cloud-sdk-release/google-cloud-cli-532.0.0-darwin-x86_64.tar.gz"
+            hash = "774fc80866230445d7d4a4bad2464110aeaa8b77d56da3f9b44737734a13a756"
 
     if not url:
         # Support for other platforms can be added as needed.
@@ -96,4 +96,13 @@ This rule hermetically downloads the Google Cloud SDK, then installs the Cloud E
 `gcloud components install ...` command, which is not guaranteed to always download the emulators
 at the same exact revision. Therefore, this rule cannot be considered to be fully hermetic.
 """,
+)
+
+def _google_cloud_sdk_ext(mctx):
+    google_cloud_sdk(
+        name = "google_cloud_sdk_ext"
+    )
+
+google_cloud_sdk_ext = module_extension(
+    implementation = _google_cloud_sdk_ext,
 )

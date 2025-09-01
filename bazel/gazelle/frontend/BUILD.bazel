@@ -9,7 +9,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//bazel/gazelle/frontend/language",
-        "@bazel_gazelle//language:go_default_library",
+        "@bazel_gazelle//language",
     ],
 )
 
@@ -22,7 +22,7 @@ go_test(
     deps = [
         "//bazel/go/bazel",
         "//go/testutils/unittest",
-        "@bazel_gazelle//testtools:go_default_library",
+        "@bazel_gazelle//testtools",
         "@com_github_stretchr_testify//require",
     ],
 )

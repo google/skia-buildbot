@@ -3,28 +3,28 @@ package gcp_emulator
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"sync"
 
 	"go.skia.org/infra/bazel/external/google_cloud_sdk"
-	"go.skia.org/infra/bazel/external/rules_python"
 	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sktest"
 )
 
 func RequireBigTable(t sktest.TestingT) {
-	emulators.RequireEmulator(t, emulators.BigTable, startBigTableEmulatorIfNotRunning)
+	// NOOP
+	// TODO(jcgregorio) Remove all references to bigtable.
 }
 
 func RequireDatastore(t sktest.TestingT) {
-	emulators.RequireEmulator(t, emulators.Datastore, startDatastoreEmulatorIfNotRunning)
+	// NOOP
+	// TODO(jcgregorio) Remove all references to datastore.
 }
 
 func RequireFirestore(t sktest.TestingT) {
-	emulators.RequireEmulator(t, emulators.Firestore, startFirestoreEmulatorIfNotRunning)
+	// NOOP
+	// TODO(jcgregorio) Remove all references to firestore.
 }
 
 func RequirePubSub(t sktest.TestingT) {
@@ -35,56 +35,6 @@ var (
 	isRunning      = map[string]bool{}
 	isRunningMutex sync.Mutex
 )
-
-func startBigTableEmulatorIfNotRunning() (bool, error) {
-	const emulator = "bigtable"
-	isRunningMutex.Lock()
-	defer isRunningMutex.Unlock()
-	if isRunning[emulator] {
-		return false, nil
-	}
-	err := runGCloudCmd("beta", "emulators", emulator, "start",
-		fmt.Sprintf("--host-port=localhost:%d", emulators.BigTablePort),
-		"--project=test-project")
-	if err != nil {
-		return false, skerr.Wrapf(err, "Starting pubsub emulator")
-	}
-	isRunning[emulator] = true
-	return true, nil
-}
-
-func startDatastoreEmulatorIfNotRunning() (bool, error) {
-	const emulator = "datastore"
-	isRunningMutex.Lock()
-	defer isRunningMutex.Unlock()
-	if isRunning[emulator] {
-		return false, nil
-	}
-	err := runGCloudCmd("beta", "emulators", emulator, "start",
-		fmt.Sprintf("--host-port=localhost:%d", emulators.DataStorePort),
-		"--no-store-on-disk", "--project=test-project")
-	if err != nil {
-		return false, skerr.Wrapf(err, "Starting pubsub emulator")
-	}
-	isRunning[emulator] = true
-	return true, nil
-}
-
-func startFirestoreEmulatorIfNotRunning() (bool, error) {
-	const emulator = "firestore"
-	isRunningMutex.Lock()
-	defer isRunningMutex.Unlock()
-	if isRunning[emulator] {
-		return false, nil
-	}
-	err := runGCloudCmd("beta", "emulators", emulator, "start",
-		fmt.Sprintf("--host-port=localhost:%d", emulators.FirestorePort))
-	if err != nil {
-		return false, skerr.Wrapf(err, "Starting pubsub emulator")
-	}
-	isRunning[emulator] = true
-	return true, nil
-}
 
 func startPubSubEmulatorIfNotRunning() (bool, error) {
 	const emulator = "pubsub"
@@ -109,15 +59,7 @@ func runGCloudCmd(args ...string) error {
 		return skerr.Wrapf(err, "finding Bazel-downloaded gcloud command")
 	}
 
-	// Add Bazel-downloaded `python3` binary to the PATH. The `gcloud` comand requires this.
-	python3, err := rules_python.FindPython3()
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	python3BinaryDir := filepath.Dir(python3)
-	if err := os.Setenv("PATH", fmt.Sprintf("%s:%s", python3BinaryDir, os.Getenv("PATH"))); err != nil {
-		return skerr.Wrap(err)
-	}
+	// gcloud on linux x86_64 comes with its own python runtime, so we don't need Python on the PATH.
 
 	// If the gcloud command tries to use an interactive prompt to handle cases where e.g.
 	// a particular gcloud component isn't already installed and it asks the user if they want
@@ -135,15 +77,6 @@ func runGCloudCmd(args ...string) error {
 }
 
 func StartAllIfNotRunning() error {
-	if _, err := startBigTableEmulatorIfNotRunning(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if _, err := startDatastoreEmulatorIfNotRunning(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if _, err := startFirestoreEmulatorIfNotRunning(); err != nil {
-		return skerr.Wrap(err)
-	}
 	if _, err := startPubSubEmulatorIfNotRunning(); err != nil {
 		return skerr.Wrap(err)
 	}
