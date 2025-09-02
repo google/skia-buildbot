@@ -1,145 +1,432 @@
 import './index';
-import { expect } from 'chai';
-import fetchMock from 'fetch-mock';
+import sinon from 'sinon';
+import { assert } from 'chai';
 import { AnomaliesTableSk } from './anomalies-table-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { Anomaly } from '../json';
-import sinon from 'sinon';
+import { Anomaly, Timerange } from '../json';
+import fetchMock from 'fetch-mock';
 
 describe('anomalies-table-sk', () => {
   const newInstance = setUpElementUnderTest<AnomaliesTableSk>('anomalies-table-sk');
+  fetchMock.config.overwriteRoutes = false;
 
   let element: AnomaliesTableSk;
   beforeEach(() => {
     window.perf = {
       instance_url: '',
-      commit_range_url: '',
-      key_order: [],
-      demo: false,
-      radius: 0,
-      num_shift: 0,
-      interesting: 0,
+      commit_range_url: 'http://example.com/range/{begin}/{end}',
+      key_order: ['config'],
+      demo: true,
+      radius: 7,
+      num_shift: 10,
+      interesting: 25,
       step_up_only: false,
-      display_group_by: false,
+      display_group_by: true,
       hide_list_of_commits_on_explore: false,
       notifications: 'none',
       fetch_chrome_perf_anomalies: false,
       feedback_url: '',
       chat_url: '',
       help_url_override: '',
-      trace_format: 'chrome',
+      trace_format: '',
       need_alert_action: false,
-      bug_host_url: '',
+      bug_host_url: 'https://example.bug.url',
       git_repo_url: '',
       keys_for_commit_range: [],
       keys_for_useful_links: [],
       skip_commit_detail_display: false,
-      image_tag: '',
+      image_tag: 'fake-tag',
       remove_default_stat_value: false,
       enable_skia_bridge_aggregation: false,
       show_json_file_display: false,
       always_show_commit_info: false,
-      show_triage_link: false,
-    };
-    element = newInstance((el: AnomaliesTableSk) => {
-      el.populateTable([], {});
-    });
-  });
-
-  afterEach(() => {
-    fetchMock.reset();
-    sinon.restore();
-  });
-
-  describe('openMultiGraphUrl', () => {
-    const anomaly: Anomaly = {
-      id: '123',
-      test_path: 'master/bot/test/subtest',
-      bug_id: 456,
-      start_revision: 100,
-      end_revision: 200,
-      is_improvement: false,
-      recovered: false,
-      state: 'new',
-      statistic: 'mean',
-      units: 'ms',
-      degrees_of_freedom: 1,
-      median_before_anomaly: 10,
-      median_after_anomaly: 20,
-      p_value: 0.01,
-      segment_size_after: 10,
-      segment_size_before: 10,
-      std_dev_before_anomaly: 1,
-      t_statistic: 2,
-      subscription_name: 'sub',
-      bug_component: '',
-      bug_labels: [],
-      bug_cc_emails: [],
-      bisect_ids: [],
+      show_triage_link: true,
     };
 
-    beforeEach(() => {
-      fetchMock.post('begin:/_/anomalies/group_report', {
-        sid: 'test-sid',
-        timerange_map: {
-          '123': {
-            begin: 100,
-            end: 200,
-          },
-        },
-      });
-      fetchMock.post('begin:/_/shortcut/update', {
-        id: 'test-shortcut',
-      });
-    });
-
-    it('opens a new window with the correct URL', async () => {
-      // Stub window.open to capture the URL.
-      let openedUrl = '';
-      window.open = (url?: string | URL, _target?: string, _features?: string) => {
-        openedUrl = url as string;
-        return null;
-      };
-
-      await element.populateTable([anomaly], {
+    fetchMock.post('begin:/_/anomalies/group_report', {
+      sid: 'test_sid',
+      timerange_map: {
         '123': {
           begin: 100,
           end: 200,
         },
-      });
+      },
+    });
+
+    element = newInstance();
+  });
+
+  afterEach(() => {
+    fetchMock.restore();
+    sinon.restore();
+  });
+
+  const dummyAnomaly = (
+    id: string,
+    bugId: number,
+    start: number,
+    end: number,
+    testPath: string
+  ): Anomaly => ({
+    id: id,
+    test_path: testPath,
+    bug_id: bugId,
+    start_revision: start,
+    end_revision: end,
+    is_improvement: false,
+    recovered: true,
+    state: '',
+    statistic: '',
+    units: '',
+    degrees_of_freedom: 0,
+    median_before_anomaly: 75.209091,
+    median_after_anomaly: 100.5023,
+    p_value: 0,
+    segment_size_after: 0,
+    segment_size_before: 0,
+    std_dev_before_anomaly: 0,
+    t_statistic: 0,
+    subscription_name: '',
+    bug_component: 'Test>Component',
+    bug_labels: ['TestLabel1', 'TestLabel2'],
+    bug_cc_emails: [],
+    bisect_ids: [],
+  });
+
+  describe('populate table', () => {
+    it('populates the table with anomalies', async () => {
+      const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
+      const timerangeMap: { [key: string]: Timerange } = {
+        '1': { begin: 100, end: 200 },
+      };
+      // Mock shortcut update call to prevent console errors in test
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+      await element.populateTable(anomalies, timerangeMap);
+      assert.equal(element.anomalyList.length, 1);
+    });
+  });
+
+  describe('open report', () => {
+    it('opens a new window with the correct url', async () => {
+      const spy = sinon.spy(window, 'open');
+      const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+
+      await element.populateTable(anomalies, { '1': { begin: 100, end: 200 } });
+      await element.checkSelectedAnomalies(anomalies);
+      await element.openReport();
+      sinon.assert.calledOnce(spy);
+      sinon.assert.calledWith(spy, '/u/?anomalyIDs=1', '_blank');
+    });
+  });
+
+  describe('toggle popup', () => {
+    it('toggles the showPopup property', () => {
+      assert.isFalse(element.showPopup);
+      element.togglePopup();
+      assert.isTrue(element.showPopup);
+      element.togglePopup();
+      assert.isFalse(element.showPopup);
+    });
+  });
+
+  describe('group anomalies', () => {
+    it('groups anomalies by bug id, revision overlap, and benchmark', () => {
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
+        dummyAnomaly('3', 0, 300, 400, 'master/bot/suite/test3'),
+        dummyAnomaly('4', 0, 350, 450, 'master/bot/suite/test4'),
+        dummyAnomaly('5', 0, 500, 600, 'master/bot/suite2/test5'),
+        dummyAnomaly('6', 0, 700, 800, 'master/bot/suite2/test6'),
+      ];
+      element.anomalyList = anomalies;
+      element.groupAnomalies();
+      assert.lengthOf(element.anomalyGroups, 3);
+      assert.lengthOf(element.anomalyGroups[0].anomalies, 2);
+      assert.lengthOf(element.anomalyGroups[1].anomalies, 2);
+      assert.lengthOf(element.anomalyGroups[2].anomalies, 2);
+    });
+  });
+
+  describe('do ranges overlap', () => {
+    it('returns true if ranges overlap', () => {
+      const a = dummyAnomaly('1', 0, 100, 200, '');
+      const b = dummyAnomaly('2', 0, 150, 250, '');
+      assert.isTrue(element.doRangesOverlap(a, b));
+    });
+
+    it('returns false if ranges do not overlap', () => {
+      const a = dummyAnomaly('1', 0, 100, 200, '');
+      const b = dummyAnomaly('2', 0, 300, 400, '');
+      assert.isFalse(element.doRangesOverlap(a, b));
+    });
+  });
+
+  describe('is same benchmark', () => {
+    it('returns true if benchmarks are the same', () => {
+      const a = dummyAnomaly('1', 0, 0, 0, 'master/bot/suite/test1');
+      const b = dummyAnomaly('2', 0, 0, 0, 'master/bot/suite/test2');
+      assert.isTrue(element.isSameBenchmark(a, b));
+    });
+
+    it('returns false if benchmarks are different', () => {
+      const a = dummyAnomaly('1', 0, 0, 0, 'master/bot/suite1/test1');
+      const b = dummyAnomaly('2', 0, 0, 0, 'master/bot/suite2/test2');
+      assert.isFalse(element.isSameBenchmark(a, b));
+    });
+  });
+
+  describe('find longest sub test path', () => {
+    it('returns the longest common sub test path', () => {
+      const anomalies = [
+        dummyAnomaly('1', 0, 0, 0, 'master/bot/suite/test1/sub1'),
+        dummyAnomaly('2', 0, 0, 0, 'master/bot/suite/test1/sub2'),
+      ];
+      assert.equal(element.findLongestSubTestPath(anomalies), 'test1/sub*');
+    });
+  });
+
+  describe('get report link for bug id', () => {
+    it('returns a link for a valid bug id', () => {
+      const link = element.getReportLinkForBugId(12345);
+      assert.isDefined(link);
+    });
+
+    it('returns an empty template for bug id 0', () => {
+      const link = element.getReportLinkForBugId(0);
+      assert.equal(link.strings.at(0), '');
+    });
+
+    it('returns a message for bug id -1', () => {
+      const link = element.getReportLinkForBugId(-1);
+      assert.equal(link.strings[0], 'Invalid Alert');
+    });
+
+    it('returns a message for bug id -2', () => {
+      const link = element.getReportLinkForBugId(-2);
+      assert.equal(link.strings[0], 'Ignored Alert');
+    });
+  });
+
+  describe('get report link for summary row bug id', () => {
+    it('returns the first anomaly with a bug id', () => {
+      const anomalyWithBug = dummyAnomaly('1', 12345, 0, 0, '');
+      const anomalyWithoutBug = dummyAnomaly('2', 0, 0, 0, '');
+      const group = { anomalies: [anomalyWithoutBug, anomalyWithBug], expanded: false };
+      const anomaly = element.getReportLinkForSummaryRowBugId(group);
+      assert.deepEqual(anomaly, anomalyWithBug);
+    });
+
+    it('returns undefined if no anomalies have a bug id', () => {
+      const group = { anomalies: [dummyAnomaly('1', 0, 0, 0, '')], expanded: false };
+      const anomaly = element.getReportLinkForSummaryRowBugId(group);
+      assert.isUndefined(anomaly);
+    });
+  });
+
+  describe('get row class', () => {
+    it('returns the correct class for an expanded parent row', () => {
+      const group = { anomalies: [dummyAnomaly('1', 0, 0, 0, '')], expanded: true };
+      const rowClass = element.getRowClass(0, group);
+      assert.equal(rowClass, 'parent-expanded-row');
+    });
+
+    it('returns the correct class for an expanded child row', () => {
+      const group = { anomalies: [dummyAnomaly('1', 0, 0, 0, '')], expanded: true };
+      const rowClass = element.getRowClass(1, group);
+      assert.equal(rowClass, 'child-expanded-row');
+    });
+
+    it('returns an empty string for a collapsed row', () => {
+      const group = { anomalies: [dummyAnomaly('1', 0, 0, 0, '')], expanded: false };
+      const rowClass = element.getRowClass(0, group);
+      assert.equal(rowClass, '');
+    });
+  });
+
+  describe('expand group', () => {
+    it('toggles the expanded property of a group', () => {
+      const group = { anomalies: [], expanded: false };
+      element.expandGroup(group);
+      assert.isTrue(group.expanded);
+      element.expandGroup(group);
+      assert.isFalse(group.expanded);
+    });
+  });
+
+  describe('compute revision range', () => {
+    it('returns the correct range string', () => {
+      assert.equal(element.computeRevisionRange(100, 200), '100 - 200');
+    });
+
+    it('returns a single number if start and end are the same', () => {
+      assert.equal(element.computeRevisionRange(100, 100), '100');
+    });
+
+    it('returns an empty string if start or end is null', () => {
+      assert.equal(element.computeRevisionRange(null, 100), '');
+      assert.equal(element.computeRevisionRange(100, null), '');
+    });
+  });
+
+  describe('check selected anomalies', () => {
+    it('checks the checkboxes for the given anomalies', async () => {
+      const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
+      const timerangeMap: { [key: string]: Timerange } = {
+        '1': { begin: 100, end: 200 },
+      };
+      // Mock shortcut update call to prevent console errors in test
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+      await element.populateTable(anomalies, timerangeMap);
+      await element.checkSelectedAnomalies(anomalies);
+      await fetchMock.flush(true);
+      const checkbox = element.querySelector('#anomaly-row-1') as HTMLInputElement;
+      assert.isTrue(checkbox.checked);
+    });
+  });
+
+  describe('toggle children checkboxes', () => {
+    it('toggles the checkboxes of all children in a group', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 0, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
+      ];
+      const timerangeMap: { [key: string]: Timerange } = {
+        '1': { begin: 100, end: 200 },
+      };
+      // Mock shortcut update call to prevent console errors in test
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+      await fetchMock.flush(true);
+      await element.populateTable(anomalies, timerangeMap);
+      const group = element.anomalyGroups[0];
+      const suummarycheckboxid = element.getGroupId(group);
+      const summarycheckbox = element.querySelector(
+        `input[id="anomaly-row-${suummarycheckboxid}"]`
+      ) as HTMLInputElement;
+      summarycheckbox.checked = true;
+      element.toggleChildrenCheckboxes(group);
+
+      const checkbox1 = element.querySelector('#anomaly-row-1') as HTMLInputElement;
+      const checkbox2 = element.querySelector('#anomaly-row-2') as HTMLInputElement;
+      assert.isTrue(checkbox1.checked);
+      assert.isTrue(checkbox2.checked);
+    });
+  });
+
+  describe('toggle all checkboxes', () => {
+    it('toggles all checkboxes in the table', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 0, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
+      ];
+      const timerangeMap: { [key: string]: Timerange } = {
+        '1': { begin: 100, end: 200 },
+      };
+      // Mock shortcut update call to prevent console errors in test
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+      await fetchMock.flush(true);
+      await element.populateTable(anomalies, timerangeMap);
+
+      const headerCheckbox = element.querySelector('#header-checkbox') as HTMLInputElement;
+      headerCheckbox.checked = true;
+      element.toggleAllCheckboxes();
+      const checkbox1 = element.querySelector('#anomaly-row-1') as HTMLInputElement;
+      const checkbox2 = element.querySelector('#anomaly-row-2') as HTMLInputElement;
+      assert.isTrue(checkbox1.checked);
+      assert.isTrue(checkbox2.checked);
+    });
+  });
+
+  describe('open multi graph url', () => {
+    it('opens the url from the map if it exists', async () => {
+      const spy = sinon.spy(window, 'open');
+      const anomaly = dummyAnomaly('1', 0, 0, 0, '');
+      element.multiChartUrlToAnomalyMap.set('1', 'test_url');
       await element.openMultiGraphUrl(anomaly);
+      await fetchMock.flush(true);
 
-      expect(openedUrl).to.contain('/m/');
-      expect(openedUrl).to.contain('shortcut=test-shortcut');
+      assert.isTrue(spy.calledWith('test_url', '_blank'));
     });
 
-    it('is called when open-anomaly-chart event is dispatched', async () => {
-      const openMultiGraphUrlStub = sinon.stub(element, 'openMultiGraphUrl');
-
-      const event = new CustomEvent('open-anomaly-chart', {
-        detail: anomaly,
-        bubbles: true,
+    it('fetches the url if it does not exist in the map', async () => {
+      const spy = sinon.spy(window, 'open');
+      const anomaly = dummyAnomaly('1', 0, 0, 0, 'master/bot/suite/test');
+      fetchMock.post('begin:/_/anomalies/group_report', {
+        sid: 'test_sid',
+        timerange_map: { '1': { begin: 1, end: 2 } },
       });
-      element.dispatchEvent(event);
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+      await fetchMock.flush(true);
 
-      expect(openMultiGraphUrlStub.calledOnceWith(anomaly)).to.equal(true);
+      window.history.pushState({}, '', '/a/');
+      await element.openMultiGraphUrl(anomaly);
+      assert.isTrue(spy.calledOnce);
     });
+  });
 
-    it('is called when open-anomaly-chart event is dispatched from a child', async () => {
-      const openMultiGraphUrlStub = sinon.stub(element, 'openMultiGraphUrl');
+  describe('get checked anomalies', () => {
+    it('returns the currently checked anomalies', async () => {
+      const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
+      await element.populateTable(anomalies, {});
+      element.checkSelectedAnomalies(anomalies);
+      const checked = element.getCheckedAnomalies();
+      assert.deepEqual(checked, anomalies);
+    });
+  });
 
-      const event = new CustomEvent('open-anomaly-chart', {
-        detail: anomaly,
-        bubbles: true,
-        composed: true,
-      });
-      // In the real application, the event is dispatched by a child of the
-      // report-page-sk, which then calls the public openAnomalyChartListener
-      // method on the anomalies-table-sk. We simulate that here.
-      element.openAnomalyChartListener(event);
+  describe('fetch group report api', () => {
+    it('fetches the group report', async () => {
+      fetchMock.post('begin:/_/anomalies/group_report', { sid: 'test_sid' });
+      await element.fetchGroupReportApi('1,2,3');
+      assert.equal(element.getGroupReportResponse!.sid, 'test_sid');
+    });
+  });
 
-      expect(openMultiGraphUrlStub.calledOnceWith(anomaly)).to.equal(true);
+  describe('generate multi graph url', () => {
+    it('generates the correct multi graph url', async () => {
+      const anomalies = [dummyAnomaly('1', 0, 0, 0, 'master/bot/suite/test')];
+      const timerangeMap = { '1': { begin: 1, end: 2 } };
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+      const urls = await element.generateMultiGraphUrl(anomalies, timerangeMap);
+      assert.isNotEmpty(urls);
+    });
+  });
+
+  describe('calculate time range', () => {
+    it('calculates the correct time range', () => {
+      const timerange = { begin: 1000, end: 2000 };
+      const newRange = element.calculateTimeRange(timerange);
+      const weekInSeconds = 7 * 24 * 60 * 60;
+      assert.equal(newRange[0], (1000 - weekInSeconds).toString());
+      assert.equal(newRange[1], (2000 + weekInSeconds).toString());
+    });
+  });
+
+  describe('initial check all checkbox', () => {
+    it('checks all checkboxes', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 0, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
+      ];
+      await element.populateTable(anomalies, {});
+      element.initialCheckAllCheckbox();
+      const checkbox1 = element.querySelector('#anomaly-row-1') as HTMLInputElement;
+      const checkbox2 = element.querySelector('#anomaly-row-2') as HTMLInputElement;
+      assert.isTrue(checkbox1.checked);
+      assert.isTrue(checkbox2.checked);
+    });
+  });
+
+  describe('get group id', () => {
+    it('returns the correct group id', () => {
+      const group = {
+        anomalies: [dummyAnomaly('2', 0, 0, 0, ''), dummyAnomaly('1', 0, 0, 0, '')],
+        expanded: false,
+      };
+      const groupId = element.getGroupId(group);
+      assert.equal(groupId, 'group-1-2');
     });
   });
 });

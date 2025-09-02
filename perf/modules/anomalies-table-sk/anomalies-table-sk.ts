@@ -30,11 +30,11 @@ class AnomalyGroup {
 }
 
 export class AnomaliesTableSk extends ElementSk {
-  private anomalyList: Anomaly[] = [];
+  anomalyList: Anomaly[] = [];
 
-  private anomalyGroups: AnomalyGroup[] = [];
+  anomalyGroups: AnomalyGroup[] = [];
 
-  private showPopup: boolean = false;
+  showPopup: boolean = false;
 
   private checkedAnomaliesSet: Set<Anomaly> = new Set<Anomaly>();
 
@@ -46,11 +46,11 @@ export class AnomaliesTableSk extends ElementSk {
 
   private shortcutUrl: string = '';
 
-  private getGroupReportResponse: GetGroupReportResponse | null = null;
+  getGroupReportResponse: GetGroupReportResponse | null = null;
 
   private loadingGraphForAnomaly: Map<string, boolean> = new Map<string, boolean>();
 
-  private multiChartUrlToAnomalyMap: Map<string, string> = new Map<string, string>();
+  multiChartUrlToAnomalyMap: Map<string, string> = new Map<string, string>();
 
   private regressionsPageHost = '/a/';
 
@@ -116,7 +116,7 @@ export class AnomaliesTableSk extends ElementSk {
     <h1 id="clear-msg" hidden>All anomalies are triaged!</h1>
   `;
 
-  private async openReport() {
+  async openReport() {
     const idList = [...this.checkedAnomaliesSet].map((a) => a.id);
 
     // If only one anomaly is selected, open the report page using
@@ -147,7 +147,7 @@ export class AnomaliesTableSk extends ElementSk {
     window.open(url, '_blank');
   }
 
-  private togglePopup() {
+  togglePopup() {
     this.showPopup = !this.showPopup;
     if (this.showPopup) {
       const triageMenu = this.querySelector('#triage-menu') as TriageMenuSk;
@@ -156,7 +156,10 @@ export class AnomaliesTableSk extends ElementSk {
     this._render();
   }
 
-  private doRangesOverlap(a: Anomaly, b: Anomaly): boolean {
+  doRangesOverlap(a: Anomaly, b: Anomaly): boolean {
+    if (a.start_revision > b.start_revision) {
+      [a, b] = [b, a];
+    }
     if (
       a.start_revision === null ||
       a.end_revision === null ||
@@ -176,7 +179,7 @@ export class AnomaliesTableSk extends ElementSk {
    * 2. Else group anomalies if their revision ranges overlap.
    * 3. Else group anomalies if they have same benchmark.
    */
-  private groupAnomalies() {
+  groupAnomalies() {
     const bugIdGroupsMap: Map<number, Anomaly[]> = new Map();
     const remainAnomalies: Anomaly[] = [];
 
@@ -250,7 +253,7 @@ export class AnomaliesTableSk extends ElementSk {
     this.anomalyGroups = [...finalGroups, ...revisionGroup, ...sameBenchmarkGroup];
   }
 
-  private isSameBenchmark(a: Anomaly, b: Anomaly) {
+  isSameBenchmark(a: Anomaly, b: Anomaly) {
     const testSuiteA = a.test_path.split('/').length > 2 ? a.test_path.split('/')[2] : '';
     const testSuiteB = b.test_path.split('/').length > 2 ? b.test_path.split('/')[2] : '';
     return testSuiteA === testSuiteB;
@@ -586,7 +589,7 @@ export class AnomaliesTableSk extends ElementSk {
     `;
   }
 
-  private findLongestSubTestPath(anomalyList: Anomaly[]): string {
+  findLongestSubTestPath(anomalyList: Anomaly[]): string {
     // Check if this character exists at the same position in all other strings.
     let longestCommonTestPath = anomalyList.at(0)!.test_path;
 
@@ -614,7 +617,7 @@ export class AnomaliesTableSk extends ElementSk {
     return anomalyList.at(0)!.test_path;
   }
 
-  private getReportLinkForBugId(bug_id: number) {
+  getReportLinkForBugId(bug_id: number) {
     if (bug_id === 0) {
       return html``;
     }
@@ -627,7 +630,7 @@ export class AnomaliesTableSk extends ElementSk {
     return html`<a href="http://b/${bug_id}" target="_blank">${bug_id}</a>`;
   }
 
-  private getReportLinkForSummaryRowBugId(anomalyGroup: AnomalyGroup): Anomaly | undefined {
+  getReportLinkForSummaryRowBugId(anomalyGroup: AnomalyGroup): Anomaly | undefined {
     for (const anomaly of anomalyGroup.anomalies) {
       if (anomaly.bug_id !== null && anomaly.bug_id !== 0) {
         return anomaly;
@@ -636,7 +639,7 @@ export class AnomaliesTableSk extends ElementSk {
     return undefined;
   }
 
-  private getRowClass(index: number, anomalyGroup: AnomalyGroup) {
+  getRowClass(index: number, anomalyGroup: AnomalyGroup) {
     if (anomalyGroup.expanded) {
       if (index === 0) {
         this.isParentRow = true;
@@ -649,12 +652,12 @@ export class AnomaliesTableSk extends ElementSk {
     return '';
   }
 
-  private expandGroup(anomalyGroup: AnomalyGroup) {
+  expandGroup(anomalyGroup: AnomalyGroup) {
     anomalyGroup.expanded = !anomalyGroup.expanded;
     this._render();
   }
 
-  private computeRevisionRange(start: number | null, end: number | null): string {
+  computeRevisionRange(start: number | null, end: number | null): string {
     if (start === null || end === null) {
       return '';
     }
@@ -713,7 +716,7 @@ export class AnomaliesTableSk extends ElementSk {
    * group is collapsed. This allows the user to check/uncheck all children anomalies
    * at once by interacting with the parent checkbox.
    */
-  private toggleChildrenCheckboxes(anomalyGroup: AnomalyGroup) {
+  toggleChildrenCheckboxes(anomalyGroup: AnomalyGroup) {
     const summaryRowCheckbox = this.querySelector<HTMLInputElement>(
       `input[id="anomaly-row-${this.getGroupId(anomalyGroup)}"]`
     ) as HTMLInputElement;
@@ -760,7 +763,7 @@ export class AnomaliesTableSk extends ElementSk {
    * the header checkbox. This provides a convenient way to select or deselect all
    * anomalies at once.
    */
-  private toggleAllCheckboxes() {
+  toggleAllCheckboxes() {
     const checked = this.headerCheckbox!.checked;
     this.headerCheckbox!.indeterminate = false;
 
@@ -831,7 +834,7 @@ export class AnomaliesTableSk extends ElementSk {
     return Array.from(this.checkedAnomaliesSet);
   }
 
-  private async fetchGroupReportApi(idString: string): Promise<any> {
+  async fetchGroupReportApi(idString: string): Promise<any> {
     await fetch('/_/anomalies/group_report', {
       method: 'POST',
       body: JSON.stringify({
@@ -852,7 +855,7 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   // openMultiGraphLink generates a multi-graph url for the given parameters
-  private async generateMultiGraphUrl(
+  async generateMultiGraphUrl(
     anomalies: Anomaly[],
     timerangeMap: { [key: string]: Timerange }
   ): Promise<string[]> {
@@ -890,7 +893,10 @@ export class AnomaliesTableSk extends ElementSk {
     return shortcutUrlList;
   }
 
-  private calculateTimeRange(timerange: Timerange): string[] {
+  calculateTimeRange(timerange: Timerange): string[] {
+    if (!timerange) {
+      return ['', ''];
+    }
     const timerangeBegin = timerange.begin;
     const timerangeEnd = timerange.end;
 
@@ -926,7 +932,7 @@ export class AnomaliesTableSk extends ElementSk {
    * @param anomalyGroup The anomaly group.
    * @returns A string ID for the group.
    */
-  private getGroupId(anomalyGroup: AnomalyGroup): string {
+  getGroupId(anomalyGroup: AnomalyGroup): string {
     return `group-${anomalyGroup.anomalies
       .map((a) => a.id)
       .sort()
