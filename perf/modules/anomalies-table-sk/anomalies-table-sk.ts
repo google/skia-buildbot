@@ -106,6 +106,12 @@ export class AnomaliesTableSk extends ElementSk {
         ?disabled="${ele.checkedAnomaliesSet.size === 0}">
         Graph
       </button>
+      <button
+        id="open-group-button"
+        @click="${ele.openAnomalyGroupReportPage}"
+        ?disabled="${ele.checkedAnomaliesSet.size === 0}">
+        Anomaly Group Graph
+      </button>
     </div>
     <div class="popup-container" ?hidden="${!ele.showPopup}">
       <div class="popup">
@@ -145,6 +151,24 @@ export class AnomaliesTableSk extends ElementSk {
     const sid: string = this.getGroupReportResponse!.sid || '';
     const url = `/u/?sid=${sid}`;
     window.open(url, '_blank');
+  }
+
+  async openAnomalyGroupReportPage() {
+    for (const group of this.anomalyGroups) {
+      const summaryRowCheckboxId = this.getGroupId(group);
+      const groupCheckbox = this.querySelector<HTMLInputElement>(
+        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+      );
+      if (groupCheckbox && groupCheckbox!.checked) {
+        const idList = [...group.anomalies].map((a) => a.id);
+        const idString = idList.join(',');
+        await this.fetchGroupReportApi(idString);
+
+        const sid: string = this.getGroupReportResponse!.sid || '';
+        const url = `/u/?sid=${sid}`;
+        window.open(url, '_blank');
+      }
+    }
   }
 
   togglePopup() {
