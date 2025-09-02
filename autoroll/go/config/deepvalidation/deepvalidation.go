@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -898,27 +897,42 @@ func (dv *deepvalidator) reviewer(ctx context.Context, reviewer string) error {
 	return skerr.Wrap(err)
 }
 
-var trybotRegex = regexp.MustCompile(`^luci\.(\S+)\.(\S+):(\S+)$`)
+// cqExtraTrybot performs validation of the cqExtraTrybot, making external
+// network requests as needed.
+func (dv *deepvalidator) cqExtraTrybot(ctx context.Context, trybot string) error {
+	project, bucket, builders, err := config.ParseTrybotName(dv.reg, trybot)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	for _, builder := range builders {
+		bbBuilder, err := dv.bbClient.GetBuilder(ctx, &buildbucketpb.GetBuilderRequest{
+			Id: &buildbucketpb.BuilderID{
+				Project: project,
+				Bucket:  bucket,
+				Builder: builder,
+			},
+		})
+		if project == "skia" {
+			// Skia is a special case: we use dynamic builders, which won't have
+			// a definition that can be found via GetBuilder. Here we just have
+			// to assume that the builder exists.
+			return nil
+		}
+		if err != nil {
+			return skerr.Wrapf(err, "failed to retrieve buildbucket builder for %q", trybot)
+		} else if bbBuilder == nil {
+			return skerr.Fmt("no buildbucket builder for %q", trybot)
+		}
+	}
+	return nil
+}
 
 // commitMsg performs validation of the CommitMsg, making external network
 // requests as needed.
 func (dv *deepvalidator) commitMsg(ctx context.Context, c *config.CommitMsgConfig) error {
 	for _, trybot := range c.CqExtraTrybots {
-		m := trybotRegex.FindStringSubmatch(trybot)
-		if len(m) != 4 {
-			return skerr.Fmt("Unknown trybot format %q, expected `%s`", trybot, trybotRegex.String())
-		}
-		builder, err := dv.bbClient.GetBuilder(ctx, &buildbucketpb.GetBuilderRequest{
-			Id: &buildbucketpb.BuilderID{
-				Project: m[1],
-				Bucket:  m[2],
-				Builder: m[3],
-			},
-		})
-		if err != nil {
-			return skerr.Wrapf(err, "failed to retrieve buildbucket builder for %q", trybot)
-		} else if builder == nil {
-			return skerr.Fmt("no buildbucket builder for %q", trybot)
+		if err := dv.cqExtraTrybot(ctx, trybot); err != nil {
+			return skerr.Wrap(err)
 		}
 	}
 	return nil

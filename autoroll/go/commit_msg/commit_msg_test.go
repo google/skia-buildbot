@@ -24,7 +24,7 @@ func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
 	c := &config.CommitMsgConfig{
 		BugProject:           fakeBugProject,
 		ChildLogUrlTmpl:      "https://fake-child-log/{{.RollingFrom}}..{{.RollingTo}}",
-		CqExtraTrybots:       []string{"some-trybot-on-m{{.Branches.Chromium.Beta.Milestone}}"},
+		CqExtraTrybots:       []string{"luci.fakeproject.try:some-trybot-on-m{{.Branches.Chromium.Beta.Milestone}}"},
 		CqDoNotCancelTrybots: true,
 		ExtraFooters:         []string{"My-Footer: BlahBlah", "My-Other-Footer: Blah"},
 		IncludeLog:           true,
@@ -105,7 +105,7 @@ func TestMakeVars(t *testing.T) {
 
 		// CqExtratrybots.
 		require.Len(t, vars.CqExtraTrybots, 1)
-		require.Equal(t, "some-trybot-on-m92", vars.CqExtraTrybots[0])
+		require.Equal(t, "luci.fakeproject.try:some-trybot-on-m92", vars.CqExtraTrybots[0])
 
 		// Log URL.
 		if c.ChildLogUrlTmpl == "" {
@@ -239,7 +239,7 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot-on-m92
+Cq-Include-Trybots: luci.fakeproject.try:some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com

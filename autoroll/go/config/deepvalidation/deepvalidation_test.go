@@ -1300,7 +1300,7 @@ func TestDeepValidator_commitMsg(t *testing.T) {
 			Bucket:  "try",
 			Builder: "some-fake-builder",
 		},
-	}).Return(&buildbucketpb.BuilderItem{}, nil)
+	}).Return(&buildbucketpb.BuilderItem{}, nil).Once()
 
 	require.NoError(t, dv.commitMsg(t.Context(), cfg))
 	bbClient.AssertExpectations(t)

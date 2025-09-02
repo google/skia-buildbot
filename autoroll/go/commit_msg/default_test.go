@@ -34,7 +34,7 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot-on-m92
+Cq-Include-Trybots: luci.fakeproject.try:some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com
@@ -70,7 +70,7 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot-on-m92
+Cq-Include-Trybots: luci.fakeproject.try:some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com
@@ -109,7 +109,7 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot-on-m92
+Cq-Include-Trybots: luci.fakeproject.try:some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Tbr: reviewer@google.com
 Test: some-test
@@ -152,7 +152,7 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot-on-m92
+Cq-Include-Trybots: luci.fakeproject.try:some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: None
 Tbr: reviewer@google.com
@@ -244,7 +244,7 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot-on-m92
+Cq-Include-Trybots: luci.fakeproject.try:some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com
@@ -286,7 +286,7 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot-on-m92
+Cq-Include-Trybots: luci.fakeproject.try:some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com
@@ -331,7 +331,7 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot-on-m92
+Cq-Include-Trybots: luci.fakeproject.try:some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com

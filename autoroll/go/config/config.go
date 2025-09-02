@@ -7,11 +7,15 @@ package config
 //go:generate bazelisk run --config=mayberemote //:protoc -- --twirp_typescript_out=../../modules/config ./config.proto
 
 import (
+	"context"
 	"regexp"
 	"strings"
 
+	"github.com/stretchr/testify/mock"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/time_window"
+	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/skerr"
@@ -317,8 +321,49 @@ func (c *Config) DefaultStrategy() string {
 	return c.GetRepoManagerConfig().DefaultStrategy()
 }
 
+// trybots may be specified as "luci.<project>.<bucket>:<builder>" or
+// <project>/<bucket>:<builder>.
+var trybotProjectBucketRegex = regexp.MustCompile(`^(?P<project>[a-zA-Z0-9_-]+)(?:\.|\/)(?P<bucket>[a-zA-Z0-9._-]+)$`)
+
+// ParseTrybotName parses a trybot name, eg. "luci.chromium.try:some-trybot",
+// and returns its project, bucket, and builder names, or any error which
+// occurred. Requires a config_vars.Registry instance because trybot names might
+// be templated.
+func ParseTrybotName(reg *config_vars.Registry, trybot string) (string, string, []string, error) {
+	tmpl, err := config_vars.NewTemplate(trybot)
+	if err != nil {
+		return "", "", nil, skerr.Wrap(err)
+	}
+	if err := reg.Register(tmpl); err != nil {
+		return "", "", nil, skerr.Wrap(err)
+	}
+	trybot = strings.TrimPrefix(tmpl.String(), "luci.")
+	split := strings.SplitN(trybot, ":", 2)
+	if len(split) != 2 {
+		return "", "", nil, skerr.Fmt("invalid trybot name %q, expected a colon", trybot)
+	}
+	m := trybotProjectBucketRegex.FindStringSubmatch(split[0])
+	if len(m) == 0 {
+		return "", "", nil, skerr.Fmt("invalid trybot project/bucket %q, expected `%s`", split[0], trybotProjectBucketRegex.String())
+	}
+	builders := strings.Split(split[1], ",")
+	return m[trybotProjectBucketRegex.SubexpIndex("project")], m[trybotProjectBucketRegex.SubexpIndex("bucket")], builders, nil
+}
+
 // Validate implements util.Validator.
 func (c *CommitMsgConfig) Validate() error {
+	cbc := &mocks.Client{}
+	fakeVars := config_vars.FakeVars()
+	cbc.On("Get", mock.Anything).Return(fakeVars.Branches.Chromium, fakeVars.Branches.ActiveMilestones, nil)
+	reg, err := config_vars.NewRegistry(context.TODO(), cbc)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	for _, trybot := range c.CqExtraTrybots {
+		if _, _, _, err := ParseTrybotName(reg, trybot); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
 	// TODO(borenet): We should be ensuring that ChildLogUrlTmpl matches the
 	// actual child repo.
 	// TODO(borenet): We should be checking the ExtraFooters to ensure that they
