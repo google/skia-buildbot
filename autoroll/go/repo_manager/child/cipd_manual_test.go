@@ -43,7 +43,7 @@ func TestCIPDChild_VCS(t *testing.T) {
 	require.NoError(t, err)
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	wd := t.TempDir()
-	cipdClient, err := cipd.NewClient(client, wd, cipd.DefaultServiceURL)
+	cipdClient, err := cipd.NewClient(ctx, wd, cipd.DefaultServiceURL)
 	require.NoError(t, err)
 
 	cbc := &chrome_branch_mocks.Client{}

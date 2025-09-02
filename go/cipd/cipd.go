@@ -10,7 +10,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -24,9 +23,11 @@ import (
 	"go.chromium.org/luci/cipd/client/cipd/pkg"
 	"go.chromium.org/luci/cipd/client/cipd/template"
 	"go.chromium.org/luci/cipd/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -214,8 +215,8 @@ func GetStrCIPDPkgs(pkgs []*Package) []string {
 // Run "cipd ensure" to get the correct packages in the given location. Note
 // that any previously-installed packages in the given rootDir will be removed
 // if not specified again.
-func Ensure(ctx context.Context, c *http.Client, rootDir string, forceCopyInstallMode bool, packages ...*Package) error {
-	cipdClient, err := NewClient(c, rootDir, DefaultServiceURL)
+func Ensure(ctx context.Context, rootDir string, forceCopyInstallMode bool, packages ...*Package) error {
+	cipdClient, err := NewClient(ctx, rootDir, DefaultServiceURL)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to create CIPD client")
 	}
@@ -276,7 +277,12 @@ type Client struct {
 }
 
 // NewClient returns a CIPD client.
-func NewClient(c *http.Client, rootDir, serviceURL string) (*Client, error) {
+func NewClient(ctx context.Context, rootDir, serviceURL string) (*Client, error) {
+	ts, err := google.DefaultTokenSource(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 	cipdClient, err := cipd.NewClient(cipd.ClientOptions{
 		ServiceURL:          serviceURL,
 		Root:                rootDir,

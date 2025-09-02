@@ -98,7 +98,7 @@ func AddPreUploadStepForTesting(s PreUploadStep) config.PreUploadStep {
 func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
-	_, goEnv, err := go_install.EnsureGo(ctx, client, cipdRoot)
+	_, goEnv, err := go_install.EnsureGo(ctx, cipdRoot)
 	if err != nil {
 		return err
 	}
@@ -292,7 +292,7 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir string, licenseFil
 func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
-	goExc, goEnv, err := go_install.EnsureGo(ctx, client, cipdRoot)
+	goExc, goEnv, err := go_install.EnsureGo(ctx, cipdRoot)
 	if err != nil {
 		return err
 	}
@@ -300,7 +300,7 @@ func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parent
 	// Also install the protoc asset. Use a different CIPD root dir to
 	// prevent conflicts with the Go packages.
 	protocRoot := path.Join(os.TempDir(), "cipd_protoc")
-	if err := cipd.Ensure(ctx, client, protocRoot, true, cipd.PkgProtoc); err != nil {
+	if err := cipd.Ensure(ctx, protocRoot, true, cipd.PkgProtoc); err != nil {
 		return err
 	}
 
@@ -404,7 +404,7 @@ func VulkanDepsUpdateCommitMessage(ctx context.Context, env []string, _ *http.Cl
 // UpdateBoringSSL runs a script to generate files for BoringSSL.
 func UpdateBoringSSL(ctx context.Context, env []string, client *http.Client, parentRepoDir string, _, _ *revision.Revision) error {
 	sklog.Info("Installing Go...")
-	_, goEnv, err := go_install.EnsureGo(ctx, client, cipdRoot)
+	_, goEnv, err := go_install.EnsureGo(ctx, cipdRoot)
 	if err != nil {
 		return err
 	}
@@ -600,7 +600,7 @@ func GenericPreUploadStep(ctx context.Context, cfg *config.PreUploadConfig, env 
 	}
 	if len(cipdPkgs) > 0 {
 		sklog.Info("Installing CIPD packages...")
-		if err := cipd.Ensure(ctx, client, cipdRoot, true, cipdPkgs...); err != nil {
+		if err := cipd.Ensure(ctx, cipdRoot, true, cipdPkgs...); err != nil {
 			return skerr.Wrap(err)
 		}
 	}

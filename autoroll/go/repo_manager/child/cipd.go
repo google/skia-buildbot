@@ -91,6 +91,7 @@ type CIPDChild struct {
 func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	instance, err := c.client.Describe(ctx, c.name, id, false)
 	if err != nil {
+		sklog.Warningf("Failed to Describe instance %q of package %q; falling back to search: %s", id, c.name, err)
 		tag := id
 		if c.revisionIdTag != "" && c.revisionIdTagStripKey {
 			tag = joinCIPDTag(c.revisionIdTag, id)
@@ -174,9 +175,10 @@ func (c *CIPDChild) LogRevisions(ctx context.Context, from, to *revision.Revisio
 // Update implements Child.
 // Note: that this just finds the newest version of the CIPD package.
 func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
-	head, err := c.client.ResolveVersion(ctx, c.name, c.tag.String())
+	tag := c.tag.String()
+	head, err := c.client.ResolveVersion(ctx, c.name, tag)
 	if err != nil {
-		return nil, nil, skerr.Wrap(err)
+		return nil, nil, skerr.Wrapf(err, "failed to resolve tag %q of %q", tag, c.name)
 	}
 	tipRev, err := c.GetRevision(ctx, head.InstanceID)
 	if err != nil {

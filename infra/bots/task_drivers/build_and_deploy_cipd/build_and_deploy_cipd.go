@@ -14,14 +14,10 @@ import (
 
 	cipd_pkg "go.chromium.org/luci/cipd/client/cipd/pkg"
 	cipd_common "go.chromium.org/luci/cipd/common"
-	"golang.org/x/oauth2"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"go.skia.org/infra/task_driver/go/lib/bazel"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
@@ -83,16 +79,10 @@ func main() {
 
 	// Create directories for each of the build platforms.
 	pkgs := make([]*pkgSpec, 0, len(*platformsList))
-	var ts oauth2.TokenSource
 	var cipdClient cipd.CIPDClient
 	if err := td.Do(ctx, td.Props("Setup").Infra(), func(ctx context.Context) error {
 		var err error
-		ts, err = auth_steps.Init(ctx, *local, auth.ScopeUserinfoEmail)
-		if err != nil {
-			return err
-		}
-		httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-		cipdClient, err = cipd.NewClient(httpClient, ".", *cipdServiceURL)
+		cipdClient, err = cipd.NewClient(ctx, ".", *cipdServiceURL)
 		if err != nil {
 			return err
 		}

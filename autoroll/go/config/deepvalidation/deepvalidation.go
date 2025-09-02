@@ -47,7 +47,7 @@ func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c 
 		return skerr.Wrap(err)
 	}
 	bbClient := buildbucket.NewClient(client)
-	cipdClient, err := cipd.NewClient(client, "", cipd.DefaultServiceURL)
+	cipdClient, err := cipd.NewClient(ctx, "", cipd.DefaultServiceURL)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

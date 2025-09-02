@@ -9,13 +9,11 @@ go_library(
         "//go/exec",
         "//go/sklog",
         "//go/util",
-        "//task_driver/go/lib/auth_steps",
         "//task_driver/go/lib/cas",
         "//task_driver/go/lib/cipd",
         "//task_driver/go/lib/os_steps",
         "//task_driver/go/td",
         "//task_scheduler/go/types",
-        "@org_golang_google_api//compute/v1:compute",
         "@org_golang_x_oauth2//:oauth2",
     ],
 )

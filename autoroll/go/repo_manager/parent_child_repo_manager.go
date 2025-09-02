@@ -31,7 +31,7 @@ type parentChildRepoManager struct {
 // newParentChildRepoManager returns a RepoManager which pairs a Parent with a
 // Child.
 func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, serverURL string, client *http.Client, cr codereview.CodeReview) (*parentChildRepoManager, error) {
-	cipdClient, err := cipd.NewClient(client, workdir, cipd.DefaultServiceURL)
+	cipdClient, err := cipd.NewClient(ctx, workdir, cipd.DefaultServiceURL)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
