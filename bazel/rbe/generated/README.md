@@ -69,7 +69,7 @@ Example:
 ```
 $ bazelisk run //:rbe_configs_gen -- \
       --bazel_version=$(cat .bazelversion) \
-      --toolchain_container=gcr.io/skia-public/infra-rbe-linux@sha256:9d565deca2ec317a4c26403ba9d14cf4d3ed083632cd24870155db292eb4de6b \
+      --toolchain_container=gcr.io/skia-public/infra-rbe-linux@sha256:ca2e0ed9c82fd5521ade557effa94f6e6dca3b7fc979852db1602a271ede2916 \
       --output_src_root=$(pwd) \
       --output_config_path=bazel/rbe/generated \
       --exec_os=linux \
