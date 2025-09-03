@@ -773,6 +773,10 @@ message VersionFileConfig_File {
     // regex which is used to extract the existing revision of the dependency
     // and to update the pin to the new revision. Optional.
     string regex = 2;
+    // regex_replace_all indicates that, when regex is non-empty, we should
+    // replace all matching occurrences of the regex in the file when updating
+    // it, as opposed to only the first.
+    bool regex_replace_all = 3;
 }
 
 // DependencyConfig provides configuration for a dependency whose version is

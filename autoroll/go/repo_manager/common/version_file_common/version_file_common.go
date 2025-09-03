@@ -14,34 +14,40 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-func getUsingRegex(dep *config.VersionFileConfig_File, contents string) (string, string, error) {
+func getUsingRegex(dep *config.VersionFileConfig_File, contents string) ([]string, []string, error) {
 	re, err := regexp.Compile(dep.Regex)
 	if err != nil {
 		// We check the regex when we validate the config, so in theory we
 		// shouldn't run into this.
-		return "", "", skerr.Wrap(err)
+		return nil, nil, skerr.Wrap(err)
 	}
-	match := re.FindStringSubmatch(contents)
-	if match == nil {
-		return "", "", skerr.Fmt("no match found for regex `%s` in:\n%s", dep.Regex, contents)
+	matches := re.FindAllStringSubmatch(contents, -1)
+	if len(matches) == 0 {
+		return nil, nil, skerr.Fmt("no match found for regex `%s` in:\n%s", dep.Regex, contents)
 	}
-	// We expect the regex to contain exactly one capture group, so the
-	// match slice should contain two elements: entire matched text, and the
-	// contents of the capture group.
-	if len(match) != 2 {
-		return "", "", skerr.Fmt("wrong number of matches found for regex `%s`; expected two; Contents:\n%s", dep.Regex, contents)
+	var fullMatches []string
+	var revisions []string
+	for _, match := range matches {
+		// We expect the regex to contain exactly one capture group, so the
+		// match slice should contain two elements: entire matched text, and the
+		// contents of the capture group.
+		if len(match) != 2 {
+			return nil, nil, skerr.Fmt("wrong number of matches found for regex `%s`; expected two; Contents:\n%s", dep.Regex, contents)
+		}
+		fullMatches = append(fullMatches, match[0])
+		revisions = append(revisions, match[1])
 	}
-	return match[0], match[1], nil
+	return fullMatches, revisions, nil
 }
 
 // getPinnedRevInFile reads the given file contents to find the pinned revision.
 func getPinnedRevInFile(id string, file *config.VersionFileConfig_File, contents string) (string, error) {
 	if file.Regex != "" {
-		_, revision, err := getUsingRegex(file, contents)
+		_, revisions, err := getUsingRegex(file, contents)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
-		return revision, nil
+		return revisions[0], nil
 	} else if file.Path == deps_parser.DepsFileName {
 		depsEntry, err := deps_parser.GetDep(contents, id)
 		if err != nil {
@@ -94,15 +100,22 @@ func GetPinnedRevs(ctx context.Context, deps []*config.VersionFileConfig, getFil
 // the new contents.
 func setPinnedRevInFile(id string, dep *config.VersionFileConfig_File, newRev *revision.Revision, oldContents string) (string, error) {
 	if dep.Regex != "" {
-		fullMatch, oldVersion, err := getUsingRegex(dep, oldContents)
+		fullMatches, oldVersions, err := getUsingRegex(dep, oldContents)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
-		// Replace the full string matched by the regex instead of just the
-		// revision ID itself, in case the same string appears more than once in
-		// the file.
-		repl := strings.Replace(fullMatch, oldVersion, newRev.Id, 1)
-		newContents := strings.Replace(oldContents, fullMatch, repl, 1)
+		newContents := oldContents
+		for idx, fullMatch := range fullMatches {
+			oldVersion := oldVersions[idx]
+			// Replace the full string matched by the regex instead of just the
+			// revision ID itself, in case the same string appears more than once in
+			// the file.
+			repl := strings.Replace(fullMatch, oldVersion, newRev.Id, 1)
+			newContents = strings.Replace(newContents, fullMatch, repl, 1)
+			if !dep.RegexReplaceAll {
+				break
+			}
+		}
 		return newContents, nil
 	} else if dep.Path == deps_parser.DepsFileName {
 		newContents, err := deps_parser.SetDep(oldContents, id, newRev.Id)

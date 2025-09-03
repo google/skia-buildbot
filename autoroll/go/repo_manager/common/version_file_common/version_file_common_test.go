@@ -13,114 +13,156 @@ import (
 )
 
 func TestGetPinnedRev(t *testing.T) {
-
-	type tc struct {
-		name                string
-		depId               string
-		versionFilePath     string
-		regex               string
-		versionFileContents string
-		expectRev           string
+	test := func(name string, dep *config.VersionFileConfig, versionFileContents, expectRev string) {
+		t.Run(name, func(t *testing.T) {
+			actual, err := getPinnedRevInFile(dep.Id, dep.File[0], versionFileContents)
+			require.NoError(t, err)
+			require.Equal(t, expectRev, actual)
+		})
 	}
-	for _, c := range []tc{
-		{
-			name:            "DEPSFile",
-			depId:           "my-dep",
-			versionFilePath: deps_parser.DepsFileName,
-			versionFileContents: `deps = {
+
+	test("DEPSFile",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: deps_parser.DepsFileName,
+				},
+			},
+		},
+		`deps = {
 				"my-dep-path": "my-dep@my-rev",
 			}`,
-			expectRev: "my-rev",
+		"my-rev",
+	)
+	test("PlainVersionFile",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: "any/other/file",
+				},
+			},
 		},
-		{
-			name:            "PlainVersionFile",
-			depId:           "my-dep",
-			versionFilePath: "any/other/file",
-			versionFileContents: `  my-rev
+		`  my-rev
 
 			`,
-			expectRev: "my-rev",
+		"my-rev",
+	)
+	test("Regex",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path:  "regex-file",
+					Regex: `"my-dep@([a-zA-Z_-]+)"`,
+				},
+			},
 		},
-		{
-			name:            "Regex",
-			depId:           "my-dep",
-			versionFilePath: "regex-file",
-			regex:           `"my-dep@([a-zA-Z_-]+)"`,
-			versionFileContents: `deps = {
+		`deps = {
 				"my-dep-path": "my-dep@my-rev",
 			}`,
-			expectRev: "my-rev",
+		"my-rev",
+	)
+	// Verify that the regex takes precedence over DEPS parsing.
+	test(
+		"Regex in DEPS",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path:  deps_parser.DepsFileName,
+					Regex: `'some-var': '([a-zA-Z_-]+)',`,
+				},
+			},
 		},
-		{
-			// Verify that the regex takes precedence over DEPS parsing.
-			name:            "Regex in DEPS",
-			depId:           "my-dep",
-			versionFilePath: deps_parser.DepsFileName,
-			regex:           `'some-var': '([a-zA-Z_-]+)',`,
-			versionFileContents: `
+		`
 			vars = {
 				'some-var': 'my-other-rev',
 			}
 			deps = {
 				"my-dep-path": "my-dep@my-rev",
 			}`,
-			expectRev: "my-other-rev",
+		"my-other-rev",
+	)
+	// Verify that we use the first match when multiple regex matches exist.
+	test(
+		"Multiple Regex Matches Take First",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path:  "some-file",
+					Regex: `{"my-dep":"([a-z0-9]+)"},`,
+				},
+			},
 		},
-	} {
-		t.Run(c.name, func(t *testing.T) {
-			actual, err := getPinnedRevInFile(c.depId, &config.VersionFileConfig_File{
-				Path:  c.versionFilePath,
-				Regex: c.regex,
-			}, c.versionFileContents)
-			require.NoError(t, err)
-			require.Equal(t, c.expectRev, actual)
-		})
-	}
+		`{
+  "deps": [
+    {"my-dep":"abc123"},
+    {"my-dep":"def456"}, // Another copy, for reasons!
+  ]
+}`,
+		"abc123",
+	)
 }
 
 func TestSetPinnedRev(t *testing.T) {
-
-	type tc struct {
-		name                string
-		depId               string
-		versionFilePath     string
-		versionFileContents string
-		newRev              *revision.Revision
-		expectNewContents   string
+	test := func(name string, dep *config.VersionFileConfig, versionFileContents string, newRev *revision.Revision, expectNewContents string) {
+		t.Run(name, func(t *testing.T) {
+			actual, err := setPinnedRevInFile(dep.Id, dep.File[0], newRev, versionFileContents)
+			require.NoError(t, err)
+			require.Equal(t, expectNewContents, actual)
+		})
 	}
-	for _, c := range []tc{
-		{
-			name:            "DEPSFile",
-			depId:           "my-dep",
-			versionFilePath: deps_parser.DepsFileName,
-			versionFileContents: `deps = {
+
+	test("DEPSFile",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: deps_parser.DepsFileName,
+				},
+			},
+		},
+		`deps = {
 				"my-dep-path": "my-dep@old-rev",
 			}`,
-			newRev: &revision.Revision{
-				Id: "new-rev",
-			},
-			expectNewContents: `deps = {
+		&revision.Revision{
+			Id: "new-rev",
+		},
+		`deps = {
 				"my-dep-path": "my-dep@new-rev",
 			}`,
+	)
+	test("PlainVersionFile",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: "any/other/file",
+				},
+			},
 		},
-		{
-			name:            "PlainVersionFile",
-			depId:           "my-dep",
-			versionFilePath: "any/other/file",
-			versionFileContents: `  old-rev
+		`  old-rev
 
 			`,
-			newRev: &revision.Revision{
-				Id: "new-rev",
-			},
-			expectNewContents: `new-rev
-`,
+		&revision.Revision{
+			Id: "new-rev",
 		},
-		{
-			name:            "BazelFile",
-			depId:           "infra/3pp/tools/git/linux-amd64",
-			versionFilePath: "WORKSPACE",
-			versionFileContents: `
+		`new-rev
+`,
+	)
+	test("BazelFile",
+		&config.VersionFileConfig{
+			Id: "infra/3pp/tools/git/linux-amd64",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: "WORKSPACE",
+				},
+			},
+		},
+		`
 cipd_install(
     name = "git_amd64_linux",
     build_file_content = all_cipd_files(),
@@ -129,11 +171,11 @@ cipd_install(
     tag = "version:2.29.2.chromium.6",
 )
 `,
-			newRev: &revision.Revision{
-				Id:       "version:2.30.1.chromium.7",
-				Checksum: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-			},
-			expectNewContents: `
+		&revision.Revision{
+			Id:       "version:2.30.1.chromium.7",
+			Checksum: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		},
+		`
 cipd_install(
     name = "git_amd64_linux",
     build_file_content = all_cipd_files(),
@@ -142,79 +184,122 @@ cipd_install(
     tag = "version:2.30.1.chromium.7",
 )
 `,
+	)
+	// Verify that we replace the first match when multiple regex matches exist.
+	test(
+		"Multiple Regex Matches Replace First",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path:  "some-file",
+					Regex: `{"my-dep":"([a-z0-9]+)"},`,
+				},
+			},
 		},
-	} {
-		t.Run(c.name, func(t *testing.T) {
-			actual, err := setPinnedRevInFile(c.depId, &config.VersionFileConfig_File{
-				Path: c.versionFilePath,
-			}, c.newRev, c.versionFileContents)
-			require.NoError(t, err)
-			require.Equal(t, c.expectNewContents, actual)
-		})
-	}
+		`{
+  "deps": [
+    {"my-dep":"abc123"},
+    {"my-dep":"def456"}, // Another copy, for reasons!
+  ]
+}`,
+		&revision.Revision{
+			Id: "999999",
+		},
+		`{
+  "deps": [
+    {"my-dep":"999999"},
+    {"my-dep":"def456"}, // Another copy, for reasons!
+  ]
+}`,
+	)
+	// Verify that we replace all matches when RegexReplaceAll is true.
+	test(
+		"Multiple Regex Matches Replace All",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path:            "some-file",
+					Regex:           `{"my-dep":"([a-z0-9]+)"},`,
+					RegexReplaceAll: true,
+				},
+			},
+		},
+		`{
+  "deps": [
+    {"my-dep":"abc123"},
+    {"my-dep":"def456"}, // Another copy, for reasons!
+  ]
+}`,
+		&revision.Revision{
+			Id: "999999",
+		},
+		`{
+  "deps": [
+    {"my-dep":"999999"},
+    {"my-dep":"999999"}, // Another copy, for reasons!
+  ]
+}`,
+	)
 }
 
 func TestUpdateSingleDep(t *testing.T) {
-
-	type tc struct {
-		name                string
-		depId               string
-		versionFilePath     string
-		versionFileContents string
-		newRev              *revision.Revision
-		expectOldRev        string
-		expectNewContents   string
-	}
-	for _, c := range []tc{
-		{
-			name:            "DEPSFile",
-			depId:           "my-dep",
-			versionFilePath: deps_parser.DepsFileName,
-			versionFileContents: `deps = {
-				"my-dep-path": "my-dep@old-rev",
-			}`,
-			newRev: &revision.Revision{
-				Id: "new-rev",
-			},
-			expectOldRev: "old-rev",
-			expectNewContents: `deps = {
-				"my-dep-path": "my-dep@new-rev",
-			}`,
-		},
-		{
-			name:            "PlainVersionFile",
-			depId:           "my-dep",
-			versionFilePath: "some/other/file",
-			versionFileContents: `old-rev
-`,
-			newRev: &revision.Revision{
-				Id: "new-rev",
-			},
-			expectOldRev: "old-rev",
-			expectNewContents: `new-rev
-`,
-		},
-	} {
-		t.Run(c.name, func(t *testing.T) {
+	test := func(name string, dep *config.VersionFileConfig, versionFileContents string, newRev *revision.Revision, expectOldRev string, expectNewContents string) {
+		t.Run(name, func(t *testing.T) {
 			changes := map[string]string{}
 			getFile := func(ctx context.Context, path string) (string, error) {
-				if path == c.versionFilePath {
-					return c.versionFileContents, nil
+				if path == dep.File[0].Path {
+					return versionFileContents, nil
 				}
 				return "", fmt.Errorf("Unknown file path %s", path)
 			}
-			oldRev, err := updateSingleDep(context.Background(), &config.VersionFileConfig{
-				Id: c.depId,
-				File: []*config.VersionFileConfig_File{
-					{Path: c.versionFilePath},
-				},
-			}, c.newRev, changes, getFile)
+			oldRev, err := updateSingleDep(context.Background(), dep, newRev, changes, getFile)
 			require.NoError(t, err)
-			require.Equal(t, c.expectOldRev, oldRev)
-			actualNewContents := changes[c.versionFilePath]
-			require.Equal(t, c.expectNewContents, actualNewContents)
+			require.Equal(t, expectOldRev, oldRev)
+			actualNewContents := changes[dep.File[0].Path]
+			require.Equal(t, expectNewContents, actualNewContents)
 		})
 	}
+
+	test("DEPSFile",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: deps_parser.DepsFileName,
+				},
+			},
+		},
+		`deps = {
+				"my-dep-path": "my-dep@old-rev",
+			}`,
+		&revision.Revision{
+			Id: "new-rev",
+		},
+		"old-rev",
+		`deps = {
+				"my-dep-path": "my-dep@new-rev",
+			}`,
+	)
+	test("PlainVersionFile",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: "some/other/file",
+				},
+			},
+		},
+		`old-rev
+`,
+		&revision.Revision{
+			Id: "new-rev",
+		},
+		"old-rev",
+		`new-rev
+`,
+	)
 }
 
 func TestUpdateSingleDepSubmodule(t *testing.T) {
@@ -320,7 +405,6 @@ deps = {
 }
 
 func TestUpdateDep(t *testing.T) {
-
 	oldContents := map[string]string{
 		deps_parser.DepsFileName: `deps = {
 			"my-dep-path": "my-dep@old-rev",

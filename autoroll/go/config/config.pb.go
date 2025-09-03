@@ -4016,9 +4016,13 @@ type VersionFileConfig_File struct {
 	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
 	// regex which is used to extract the existing revision of the dependency
 	// and to update the pin to the new revision. Optional.
-	Regex         string `protobuf:"bytes,2,opt,name=regex,proto3" json:"regex,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Regex string `protobuf:"bytes,2,opt,name=regex,proto3" json:"regex,omitempty"`
+	// regex_replace_all indicates that, when regex is non-empty, we should
+	// replace all matching occurrences of the regex in the file when updating
+	// it, as opposed to only the first.
+	RegexReplaceAll bool `protobuf:"varint,3,opt,name=regex_replace_all,json=regexReplaceAll,proto3" json:"regex_replace_all,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *VersionFileConfig_File) Reset() {
@@ -4063,6 +4067,13 @@ func (x *VersionFileConfig_File) GetRegex() string {
 		return x.Regex
 	}
 	return ""
+}
+
+func (x *VersionFileConfig_File) GetRegexReplaceAll() bool {
+	if x != nil {
+		return x.RegexReplaceAll
+	}
+	return false
 }
 
 // DependencyConfig provides configuration for a dependency whose version is
@@ -5185,10 +5196,11 @@ const file_config_proto_rawDesc = "" +
 	"logUrlTmpl\"`\n" +
 	"\x11VersionFileConfig\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12;\n" +
-	"\x04file\x18\x02 \x03(\v2'.autoroll.config.VersionFileConfig_FileR\x04file\"B\n" +
+	"\x04file\x18\x02 \x03(\v2'.autoroll.config.VersionFileConfig_FileR\x04file\"n\n" +
 	"\x16VersionFileConfig_File\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x14\n" +
-	"\x05regex\x18\x02 \x01(\tR\x05regex\"\xc0\x01\n" +
+	"\x05regex\x18\x02 \x01(\tR\x05regex\x12*\n" +
+	"\x11regex_replace_all\x18\x03 \x01(\bR\x0fregexReplaceAll\"\xc0\x01\n" +
 	"\x10DependencyConfig\x12<\n" +
 	"\aprimary\x18\x01 \x01(\v2\".autoroll.config.VersionFileConfigR\aprimary\x12D\n" +
 	"\n" +
