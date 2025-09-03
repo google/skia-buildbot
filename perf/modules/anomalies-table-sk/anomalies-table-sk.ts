@@ -98,19 +98,19 @@ export class AnomaliesTableSk extends ElementSk {
         id="triage-button"
         @click="${ele.togglePopup}"
         ?disabled="${ele.checkedAnomaliesSet.size === 0}">
-        Triage
+        Triage Selected
       </button>
       <button
         id="graph-button"
         @click="${ele.openReport}"
         ?disabled="${ele.checkedAnomaliesSet.size === 0}">
-        Graph
+        Graph Selected
       </button>
       <button
         id="open-group-button"
         @click="${ele.openAnomalyGroupReportPage}"
         ?disabled="${ele.checkedAnomaliesSet.size === 0}">
-        Anomaly Group Graph
+        Graph Selected by Group
       </button>
     </div>
     <div class="popup-container" ?hidden="${!ele.showPopup}">

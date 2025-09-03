@@ -71,7 +71,7 @@ export class PickerFieldSk extends ElementSk {
     <div id="picker-field-${ele.label}">
       <div id="split-by-container">
         <checkbox-sk
-          title="Splits the chart by attribute."
+          title="Split the chart by attribute."
           name=${ele.label}
           id="split-by"
           label="Split"
@@ -80,7 +80,7 @@ export class PickerFieldSk extends ElementSk {
           ?hidden=${!ele.showSplit}>
         </checkbox-sk>
         <checkbox-sk
-          title="Select Primary (without periods)."
+          title="Select all values without periods in the name."
           name=${ele.label}
           id="select-primary"
           label="Primary"
