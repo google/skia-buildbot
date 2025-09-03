@@ -34,6 +34,7 @@ const (
 
 	afdoGsBucket = "chromeos-prebuilt"
 	afdoGsPath   = "afdo-job/llvm"
+	afdoGsPrefix = "chromeos-chrome-amd64-" // Prefix of the version regex.
 
 	// Example name: chromeos-chrome-amd64-63.0.3239.57_rc-r1.afdo.bz2
 	afdoVersionRegex = ("^chromeos-chrome-amd64-" + // Prefix
@@ -113,11 +114,11 @@ func setupAfdo(t *testing.T) (*parentChildRepoManager, *gitiles_mocks.GitilesRep
 		afdoVersionFilePath: afdoRevBase,
 	}
 	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, fileContents)
-	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, afdoGsPrefix, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
 	// Mock the "list" call twice, since Update uses both LogRevisions and getAllRevisions.
-	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, afdoGsPrefix, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevBase, afdoTimeBase)
@@ -152,8 +153,8 @@ type gsObjectList struct {
 	Items []gsObject `json:"items"`
 }
 
-func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath string, items map[string]string) {
-	fakeUrl := fmt.Sprintf("https://storage.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&endOffset=&includeFoldersAsPrefixes=false&includeTrailingDelimiter=false&matchGlob=&pageToken=&prefix=%s&prettyPrint=false&projection=full&startOffset=&versions=false", bucket, url.PathEscape(gsPath))
+func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath, gsPrefix string, items map[string]string) {
+	fakeUrl := fmt.Sprintf("https://storage.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&endOffset=&includeFoldersAsPrefixes=false&includeTrailingDelimiter=false&matchGlob=&pageToken=&prefix=%s&prettyPrint=false&projection=full&startOffset=&versions=false", bucket, url.PathEscape(path.Join(gsPath, gsPrefix)))
 	resp := gsObjectList{
 		Kind:  "storage#objects",
 		Items: []gsObject{},
@@ -219,11 +220,11 @@ func TestAFDORepoManager(t *testing.T) {
 		afdoVersionFilePath: afdoRevBase,
 	}
 	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, oldContent)
-	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, afdoGsPrefix, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
 	// Mock the "list" call twice, since Update uses both LogRevisions and getAllRevisions.
-	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, afdoGsPrefix, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
 	mockGSObject(t, urlmock, afdoGsBucket, afdoGsPath, afdoRevBase, afdoTimeBase)
@@ -248,12 +249,12 @@ func TestAFDORepoManager(t *testing.T) {
 
 	// There's a new version.
 	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, oldContent)
-	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, afdoGsPrefix, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevNext: afdoTimeNext,
 	})
 	// Mock the "list" call twice, since Update uses both LogRevisions and getAllRevisions.
-	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, afdoGsPrefix, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevNext: afdoTimeNext,
 	})
@@ -297,7 +298,7 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 		afdoVersionFilePath: "BOGUS_REV",
 	}
 	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, fileContents)
-	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, afdoGsPrefix, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevPrev: afdoTimePrev,
 		afdoRevNext: afdoTimeNext,
@@ -322,14 +323,14 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 	// come up with the same lastRollRev.Id, but the Revision will otherwise
 	// be empty.
 	parent.MockGitilesFileForUpdate(parentGitiles, cfg.GetGitilesParent(), noCheckoutParentHead, fileContents)
-	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, afdoGsPrefix, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevPrev: afdoTimePrev,
 		afdoRevNext: afdoTimeNext,
 	})
 	// Mock the "list" call twice, since GetRevision falls back to scanning the
 	// GCS directory after the initial GetFileObjectAttrs call fails.
-	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, "", map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevPrev: afdoTimePrev,
 		afdoRevNext: afdoTimeNext,

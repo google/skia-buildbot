@@ -63,6 +63,8 @@ func (s gcsVersionSlice) Less(i, j int) bool {
 // other error will be logged and the object still ignored.
 type gcsGetVersionFunc func(*revision.Revision) (gcsVersion, error)
 
+type gcsGetPrefixFunc func() (string, error)
+
 // gcsShortRevFunc is a function which returns a shortened revision ID.
 type gcsShortRevFunc func(string) string
 
@@ -72,12 +74,13 @@ type gcsChild struct {
 	gcsBucket       string
 	gcsPath         string
 	getGCSVersion   gcsGetVersionFunc
+	getGCSPrefix    gcsGetPrefixFunc
 	revisionIDRegex *regexp.Regexp
 	shortRev        gcsShortRevFunc
 }
 
 // newGCS returns a Child implementation which loads revision from GCS.
-func newGCS(ctx context.Context, c *config.GCSChildConfig, client *http.Client, getVersion gcsGetVersionFunc, shortRev gcsShortRevFunc) (*gcsChild, error) {
+func newGCS(ctx context.Context, c *config.GCSChildConfig, client *http.Client, getVersion gcsGetVersionFunc, shortRev gcsShortRevFunc, getGCSPrefix gcsGetPrefixFunc) (*gcsChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -90,6 +93,7 @@ func newGCS(ctx context.Context, c *config.GCSChildConfig, client *http.Client, 
 		gcs:           gcsClient,
 		gcsBucket:     c.GcsBucket,
 		gcsPath:       c.GcsPath,
+		getGCSPrefix:  getGCSPrefix,
 		getGCSVersion: getVersion,
 		shortRev:      shortRev,
 	}
@@ -108,6 +112,7 @@ func (c *gcsChild) Update(ctx context.Context, lastRollRev *revision.Revision) (
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
+	sklog.Debugf("Found %d revisions\n", len(allRevs))
 	if len(allRevs) == 0 {
 		sklog.Warningf("No valid revisions found in %s/%s", c.gcsBucket, c.gcsPath)
 		return lastRollRev, []*revision.Revision{}, nil
@@ -144,6 +149,7 @@ func (c *gcsChild) GetRevision(ctx context.Context, id string) (*revision.Revisi
 		return c.objectAttrsToRevision(item)
 	}
 	// Try searching by prefix.
+	sklog.Warningf("Failed to find object at %s; falling back to searching entire GCS dir", gcsObjectPath)
 	var rv *revision.Revision
 	err2 := c.gcs.AllFilesInDirectory(ctx, c.gcsPath, func(item *storage.ObjectAttrs) error {
 		rev, err := c.objectAttrsToRevision(item)
@@ -171,7 +177,23 @@ func (c *gcsChild) GetRevision(ctx context.Context, id string) (*revision.Revisi
 func (c *gcsChild) getAllRevisions(ctx context.Context) ([]*revision.Revision, error) {
 	versions := []gcsVersion{}
 	revisions := map[string]*revision.Revision{}
-	if err := c.gcs.AllFilesInDirectory(ctx, c.gcsPath, func(item *storage.ObjectAttrs) error {
+
+	// Optimization: if we know that the files we're looking for begin with a
+	// particular prefix, we can restrict the search to that prefix and
+	// potentially save a lot of time scanning through unrelated files.
+	prefix := c.gcsPath
+	if c.getGCSPrefix != nil {
+		pf, err := c.getGCSPrefix()
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		prefix = path.Join(prefix, pf)
+		sklog.Debugf("Got GCS prefix %s\n", prefix)
+	}
+
+	filesScanned := 0
+	if err := c.gcs.AllFilesInDirectory(ctx, prefix, func(item *storage.ObjectAttrs) error {
+		filesScanned++
 		rev, err := c.objectAttrsToRevision(item)
 		if err != nil {
 			// We may have files in the bucket which do not match the provided
@@ -191,6 +213,7 @@ func (c *gcsChild) getAllRevisions(ctx context.Context) ([]*revision.Revision, e
 	}); err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	sklog.Debugf("Scanned %d files\n", filesScanned)
 	sort.Stable(gcsVersionSlice(versions))
 	var revs []*revision.Revision
 	for _, ver := range versions {

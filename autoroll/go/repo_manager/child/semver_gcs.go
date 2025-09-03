@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
@@ -159,11 +160,23 @@ func NewSemVerGCS(ctx context.Context, c *config.SemVerGCSChildConfig, reg *conf
 		}
 		return getSemanticGCSVersion(versionRegex, rev)
 	}
+	getGCSPrefix := func() (string, error) {
+		// LiteralPrefix gives the literal string before any special regex
+		// characters. The leading caret obscures the prefix we want to find.
+		versionRegexStr := strings.TrimPrefix(versionRegex.String(), "^")
+		versionRegex, err := regexp.Compile(versionRegexStr)
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		prefix, _ := versionRegex.LiteralPrefix()
+		sklog.Infof("Derived GCS search prefix %q from regex %q", prefix, versionRegex.String())
+		return prefix, nil
+	}
 	shortRevFn := func(id string) string {
 		if shortRevRegex != nil {
 			return semVerShortRev(shortRevRegex.String(), id)
 		}
 		return id
 	}
-	return newGCS(ctx, c.Gcs, client, getGCSVersion, shortRevFn)
+	return newGCS(ctx, c.Gcs, client, getGCSVersion, shortRevFn, getGCSPrefix)
 }

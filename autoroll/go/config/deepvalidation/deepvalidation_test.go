@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"path"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -1742,8 +1744,16 @@ func mocksForGitCheckoutChildConfig(t *testing.T, urlMock *mockhttpclient.URLMoc
 }
 
 func mocksForSemVerGCSChildConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.SemVerGCSChildConfig) {
+	prefix := cfg.Gcs.GcsPath
+	if cfg.VersionRegex != "" {
+		regex, err := regexp.Compile(strings.TrimPrefix(cfg.VersionRegex, "^"))
+		require.NoError(t, err)
+		regexPrefix, _ := regex.LiteralPrefix()
+		prefix = path.Join(prefix, regexPrefix)
+	}
+	prefix = url.PathEscape(prefix)
 	body := `{"items": [{"name": "v1.2.3.object"}]}`
-	url := fmt.Sprintf("https://storage.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&endOffset=&includeFoldersAsPrefixes=false&includeTrailingDelimiter=false&matchGlob=&pageToken=&prefix=%s&prettyPrint=false&projection=full&startOffset=&versions=false", cfg.Gcs.GcsBucket, cfg.Gcs.GcsPath)
+	url := fmt.Sprintf("https://storage.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&endOffset=&includeFoldersAsPrefixes=false&includeTrailingDelimiter=false&matchGlob=&pageToken=&prefix=%s&prettyPrint=false&projection=full&startOffset=&versions=false", cfg.Gcs.GcsBucket, prefix)
 	urlMock.Mock(url, mockhttpclient.MockGetDialogue([]byte(body)))
 }
 
