@@ -186,5 +186,40 @@ describe('ReportPageSk', () => {
       assert.strictEqual(graphContainer.children[0], mockExploreInstances[0]);
       assert.strictEqual(graphContainer.children[6], mockExploreInstances[6]);
     });
+
+    it('automatically selects all anomalies if none are initially selected', async () => {
+      const anomalyCount = 3;
+      const anomalies = Array.from({ length: anomalyCount }, (_, i) => createMockAnomaly(i));
+      const timerangeMap = anomalies.reduce(
+        (acc, anom) => {
+          acc[anom.id] = createMockTimerange();
+          return acc;
+        },
+        {} as { [key: string]: Timerange }
+      );
+
+      // Simulate no anomalies being initially selected.
+      fetchMock.post('/_/anomalies/group_report', {
+        anomaly_list: anomalies,
+        timerange_map: timerangeMap,
+        selected_keys: [], // No anomalies selected initially
+      });
+
+      const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
+      const appendSpy = sinon.spy(graphContainer, 'append');
+      const connectedCallbackPromise = element.connectedCallback();
+      await fetchMock.flush(true);
+
+      // Wait for the graphs to be added.
+      await waitUntil(() => appendSpy.callCount === anomalyCount);
+
+      // Simulate data-loaded events for all graphs.
+      for (let i = 0; i < anomalyCount; i++) {
+        mockExploreInstances[i].dispatchEvent(new CustomEvent('data-loaded'));
+      }
+
+      // This will be resolved only when all graphs are loaded.
+      await connectedCallbackPromise;
+    });
   });
 });

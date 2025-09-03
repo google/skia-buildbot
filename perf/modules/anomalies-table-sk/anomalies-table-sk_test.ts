@@ -448,6 +448,30 @@ describe('anomalies-table-sk', () => {
       assert.isTrue(checkbox1.checked);
       assert.isTrue(checkbox2.checked);
     });
+
+    it('initial all checkboxes including group summary rows', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
+        dummyAnomaly('3', 0, 300, 400, 'master/bot/suite/test3'),
+      ];
+      const timerangeMap: { [key: string]: Timerange } = {
+        '1': { begin: 100, end: 200 },
+        '2': { begin: 150, end: 250 },
+        '3': { begin: 300, end: 400 },
+      };
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+      await element.populateTable(anomalies, timerangeMap);
+      element.initialCheckAllCheckbox();
+
+      // Check individual anomaly checkboxes
+      assert.isTrue((element.querySelector('#anomaly-row-1') as HTMLInputElement).checked);
+      assert.isTrue((element.querySelector('#anomaly-row-2') as HTMLInputElement).checked);
+      assert.isTrue((element.querySelector('#anomaly-row-3') as HTMLInputElement).checked);
+
+      // Check group summary checkboxes (assuming grouping logic creates groups)
+      assert.isTrue((element.querySelector('#anomaly-row-group-1-2') as HTMLInputElement).checked);
+    });
   });
 
   describe('get group id', () => {

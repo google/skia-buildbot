@@ -184,19 +184,18 @@ export class ReportPageSk extends ElementSk {
 
     this.setCurrentlyLoading('Loading configuration...');
     await this.initializeDefaults();
+
+    this.setCurrentlyLoading('Loading anomalies...');
+    await this.fetchAnomalies();
+
     this.addEventListener('anomalies_checked', (e) => {
       const detail = (e as CustomEvent).detail;
       this.anomalyTracker.getAnomaly(detail.anomaly.id)!.checked = detail.checked;
       this.updateGraphs(detail.anomaly, detail.checked);
     });
-
-    await this.fetchAnomalies();
   }
 
   async fetchAnomalies() {
-    this.setCurrentlyLoading('Loading anomalies...');
-    this._render();
-
     const urlParams = new URLSearchParams(window.location.search);
     this.requestAnomalies =
       urlParams.get('anomalyIDs') === null ? [] : urlParams.get('anomalyIDs')!.split(',');
@@ -287,7 +286,11 @@ export class ReportPageSk extends ElementSk {
     if (selected.length > 0) {
       this.anomaliesTable!.checkSelectedAnomalies(selected);
     } else {
+      // If no anomalies are requested, check all anomalies by default.
       this.anomaliesTable!.initialCheckAllCheckbox();
+      this.anomalyTracker.toAnomalyList().forEach((anomaly) => {
+        this.anomalyTracker.getAnomaly(anomaly.id)!.checked = true;
+      });
     }
   }
 

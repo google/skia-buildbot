@@ -934,20 +934,7 @@ export class AnomaliesTableSk extends ElementSk {
 
   initialCheckAllCheckbox() {
     this.headerCheckbox!.checked = true;
-
-    this.anomalyGroups.forEach((group) => {
-      group.anomalies.forEach((anomaly) => {
-        const summaryRowCheckbox = this.querySelector(
-          `input[id=anomaly-row-${this.getGroupId(group)}]`
-        ) as HTMLInputElement;
-        summaryRowCheckbox!.checked = true;
-        const checkbox = this.querySelector(
-          `input[id="anomaly-row-${anomaly.id}"]`
-        ) as HTMLInputElement;
-        checkbox.checked = true;
-        this.checkedAnomaliesSet.add(anomaly);
-      });
-    });
+    this.toggleAllCheckboxes();
   }
 
   /**
