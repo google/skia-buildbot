@@ -16,7 +16,6 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/go-chi/chi/v5"
-	"go.skia.org/infra/android_ingest/go/buildapi"
 	"go.skia.org/infra/android_ingest/go/continuous"
 	"go.skia.org/infra/android_ingest/go/lookup"
 	"go.skia.org/infra/android_ingest/go/parser"
@@ -60,7 +59,6 @@ var (
 	converter         *parser.Converter
 	process           *continuous.Process
 	recentRequests    *recent.Recent
-	api               *buildapi.API
 	uploads           metrics2.Counter
 	badFiles          metrics2.Counter
 	txLogWriteFailure metrics2.Counter
@@ -80,7 +78,6 @@ func initialize() {
 	if err != nil {
 		sklog.Fatalf("Unable to create authenticated token source: %s", err)
 	}
-	client := httputils.DefaultClientConfig().WithoutRetries().WithTokenSource(ts).Client()
 
 	if err := os.MkdirAll(*workRoot, 0755); err != nil {
 		sklog.Fatalf("Failed to create directory %q: %s", *workRoot, err)
@@ -107,18 +104,6 @@ func initialize() {
 	if err != nil {
 		sklog.Fatalf("Failed to create buildid lookup cache: %s", err)
 	}
-
-	api, err = buildapi.NewAPI(client)
-	if err != nil {
-		sklog.Fatalf("Failed to construct buildapi.API: %s", err)
-	}
-
-	// Start process that adds buildids to the git repo.
-	process, err = continuous.New(checkout, lookupCache, client, *local, *subdomain)
-	if err != nil {
-		sklog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
-	}
-	process.Start(ctx)
 
 	storageHTTPClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(storageHTTPClient))
@@ -237,37 +222,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// rangeRedirectHandler handles the commit range links that we added to cluster-summary2-sk and redirects
-// them to the android-build dashboard.
-func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	begin := chi.URLParam(r, "begin")
-	end := chi.URLParam(r, "end")
-
-	if begin == "" || end == "" {
-		http.NotFound(w, r)
-		return
-	}
-	ctx := context.Background()
-	beginID, err := process.Repo.LookupBuildID(ctx, begin)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed looking up Build ID.", http.StatusInternalServerError)
-		return
-	}
-	endID, err := process.Repo.LookupBuildID(ctx, end)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed looking up Build ID.", http.StatusInternalServerError)
-		return
-	}
-	redirBranch, err := api.GetBranchFromBuildID(beginID)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed looking up Branch.", http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/%d/branches/%s/cls?end=%d", beginID, redirBranch, endID), http.StatusFound)
-}
-
 // redirectHandler handles the links that we added to the git repo and redirects
 // them to the source android-build dashboard.
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
@@ -306,7 +260,6 @@ func main() {
 	r.Get("/res/*", http.StripPrefix("/res/", http.HandlerFunc(makeResourceHandler())).ServeHTTP)
 	r.Post("/upload", UploadHandler)
 	r.Get("/r/{id:[a-zA-Z0-9]+}", redirectHandler)
-	r.Get("/rr/{begin:[a-zA-Z0-9]+}/{end:[a-zA-Z0-9]+}", rangeRedirectHandler)
 	r.Get("/", indexHandler)
 
 	h := httputils.LoggingGzipRequestResponse(r)
