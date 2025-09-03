@@ -78,6 +78,7 @@ var hangOptions = []HangOption{hangNone, hangImmediately, hangBeforeRollerCreati
 var (
 	configContents         = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
 	configFile             = common.NewMultiStringFlag("config_file", nil, "Configuration file(s) to use, mutually exclusive with --config.")
+	skipConfigFile         = common.NewMultiStringFlag("skip-config-file", nil, "Regular expression(s) indicating config files to skip. Only valid with --config_file.")
 	firestoreInstance      = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	local                  = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port                   = flag.String("port", ":8000", "HTTP service port.")
@@ -137,6 +138,17 @@ func main() {
 	if *deepValidateConfig && *genK8sConfig != "" {
 		sklog.Fatal("--deep-validate-config and --gen-k8s-config are mutually exclusive.")
 	}
+	var skipConfigFiles []*regexp.Regexp
+	if skipConfigFile != nil {
+		skipConfigFiles = make([]*regexp.Regexp, 0, len(*skipConfigFile))
+		for _, skipRegex := range *skipConfigFile {
+			re, err := regexp.Compile(skipRegex)
+			if err != nil {
+				sklog.Fatalf("Invalid regex for --skip_config_file %q: %s", skipRegex, err)
+			}
+			skipConfigFiles = append(skipConfigFiles, re)
+		}
+	}
 
 	// Decode the config(s).
 	configsMap := map[string]*config.Config{} // All provided configs.
@@ -160,6 +172,10 @@ func main() {
 				sklog.Fatal(err)
 			}
 			for _, cfgFile := range cfgFiles {
+				if anyMatch(skipConfigFiles, cfgFile) {
+					sklog.Infof("Skipping %s", cfgFile)
+					continue
+				}
 				if err := util.WithReadFile(cfgFile, func(f io.Reader) error {
 					var err error
 					configBytes, err = io.ReadAll(f)
@@ -278,7 +294,10 @@ func main() {
 			// Make sure github is added to known_hosts.
 			github.AddToKnownHosts(ctx)
 		}
-		githubHttpClient = oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
+		githubHttpClient = httputils.
+			DefaultClientConfig().
+			WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken})).
+			Client()
 	}
 
 	// Perform deep validation and exit if requested.
@@ -551,4 +570,15 @@ func main() {
 		}
 	}
 	httputils.RunHealthCheckServer(*port)
+}
+
+// anyMatch returns true if any of the given regexes matches the given input
+// string.
+func anyMatch(regexes []*regexp.Regexp, inp string) bool {
+	for _, regex := range regexes {
+		if regex.MatchString(inp) {
+			return true
+		}
+	}
+	return false
 }

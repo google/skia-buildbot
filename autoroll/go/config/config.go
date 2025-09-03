@@ -148,7 +148,7 @@ func (c *Config) Validate() error {
 	if c.ServiceAccount == "" {
 		return skerr.Fmt("ServiceAccount is required.")
 	}
-	if c.Reviewer == nil || len(c.Reviewer) == 0 {
+	if len(c.Reviewer) == 0 {
 		return skerr.Fmt("Reviewer is required.")
 	}
 	if _, err := time_window.Parse(c.TimeWindow); err != nil {

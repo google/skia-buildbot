@@ -135,3 +135,22 @@ func LogMessageToString(format string, args ...interface{}) string {
 		return fmt.Sprintf(format, args...)
 	}
 }
+
+// nopLogger implements Logger but does nothing. It is used for suppressing log
+// output.
+type nopLogger struct{}
+
+func (l *nopLogger) Log(int, Severity, string, ...interface{}) {}
+func (l *nopLogger) Flush()                                    {}
+
+var _ Logger = &nopLogger{}
+
+// SuppressLogs causes all log output to be suppressed until the returned
+// function is called.
+func SuppressLogs() func() {
+	oldLogger := logger
+	SetLogger(&nopLogger{})
+	return func() {
+		SetLogger(oldLogger)
+	}
+}

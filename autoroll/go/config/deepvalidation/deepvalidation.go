@@ -2,6 +2,7 @@ package deepvalidation
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -32,7 +33,7 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/progress"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/sklogimpl"
 )
 
 // DeepValidate performs more in-depth validation of the config file,
@@ -63,15 +64,33 @@ func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c 
 		reg:              reg,
 		githubHttpClient: githubHttpClient,
 	}
-	return dv.deepValidate(ctx, c)
+
+	ch := make(chan error)
+	go func() {
+		ch <- dv.deepValidate(ctx, c)
+	}()
+
+	tick := time.Tick(30 * time.Second)
+	for {
+		select {
+		case err := <-ch:
+			return err
+		case <-tick:
+			fmt.Printf("Still validating %s\n", c.RollerName)
+		}
+	}
 }
 
 // numMultiValidateWorkers is the size of the worker pool used in
 // DeepValidateMulti.
-const numMultiValidateWorkers = 15
+const numMultiValidateWorkers = 10
 
 // DeepValidateMulti validates multiple config files.
 func DeepValidateMulti(ctx context.Context, client, githubHttpClient *http.Client, configs map[string]*config.Config) error {
+	// Override logging to reduce noise from the packages we use.
+	unSuppressLogs := sklogimpl.SuppressLogs()
+	defer unSuppressLogs()
+
 	type configToValidate struct {
 		filename string
 		config   *config.Config
@@ -90,7 +109,7 @@ func DeepValidateMulti(ctx context.Context, client, githubHttpClient *http.Clien
 
 	pt := progress.New(int64(len(configs)))
 	pt.AtInterval(ctx, 5*time.Second, func(count, total int64) {
-		sklog.Debugf("Validated %d of %d", count, total)
+		fmt.Printf("Validated %d of %d\n", count, total)
 	})
 	var wg sync.WaitGroup
 	results := sync.Map{}
@@ -389,7 +408,7 @@ func deepValidateCommand(ctx context.Context, cmd []string, cwd string, env []st
 			fp = path.Join(cwd, fp)
 			_, err := getFile(ctx, fp)
 			if err != nil {
-				sklog.Errorf("failed to retrieve file %q: %s", fp, err)
+				fmt.Fprintf(os.Stderr, "failed to retrieve file %q: %s\n", fp, err)
 			}
 			return err == nil
 		}
@@ -649,7 +668,7 @@ func (dv *deepvalidator) cipdChildConfig(ctx context.Context, c *config.CIPDChil
 	}
 	tipRev, _, err := cipdChild.Update(ctx, fakeRev)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to get revision for tag %q of package %s", c.Tag, c.Name)
+		return nil, skerr.Wrap(err)
 	}
 	return tipRev, nil
 }
@@ -843,10 +862,11 @@ func (dv *deepvalidator) cipdRevisionFilterConfig(ctx context.Context, c *config
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	if skipReason, err := filter.Skip(ctx, *rev); err != nil {
+	// Note: there could still be a problem here even if no error is returned;
+	// if skipReason is not empty, it could indicate that the filter is in some
+	// way invalid.
+	if _, err := filter.Skip(ctx, *rev); err != nil {
 		return skerr.Wrap(err)
-	} else if skipReason != "" {
-		sklog.Warningf("Revision is skipped because %q", skipReason)
 	}
 	return nil
 }
@@ -904,6 +924,12 @@ func (dv *deepvalidator) cqExtraTrybot(ctx context.Context, trybot string) error
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	if project == "skia" {
+		// Skia is a special case: we use dynamic builders, which won't have a
+		// definition that can be found via GetBuilder. Here we just have to
+		// assume that the builder exists.
+		return nil
+	}
 	for _, builder := range builders {
 		bbBuilder, err := dv.bbClient.GetBuilder(ctx, &buildbucketpb.GetBuilderRequest{
 			Id: &buildbucketpb.BuilderID{
@@ -919,9 +945,9 @@ func (dv *deepvalidator) cqExtraTrybot(ctx context.Context, trybot string) error
 			return nil
 		}
 		if err != nil {
-			return skerr.Wrapf(err, "failed to retrieve buildbucket builder for %q", trybot)
+			return skerr.Wrapf(err, "failed to retrieve buildbucket builder for %q (project %q bucket %q builder %q)", trybot, project, bucket, builder)
 		} else if bbBuilder == nil {
-			return skerr.Fmt("no buildbucket builder for %q", trybot)
+			return skerr.Fmt("no buildbucket builder for %q (project %q bucket %q builder %q)", trybot, project, bucket, builder)
 		}
 	}
 	return nil

@@ -28,7 +28,7 @@ go_library(
         "//go/gitiles",
         "//go/progress",
         "//go/skerr",
-        "//go/sklog",
+        "//go/sklog/sklogimpl",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/errors",
     ],
