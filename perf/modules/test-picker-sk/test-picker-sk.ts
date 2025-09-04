@@ -147,12 +147,10 @@ export class TestPickerSk extends ElementSk {
         field!.label = param;
         field!.options = options;
         field.index = this._currentIndex;
-        this._currentIndex += 1;
         const extraTests = json.paramset[param].filter((option: string) => option.includes('.'));
         if (extraTests.length > 0) {
           field!.options = options.concat(extraTests);
         }
-        field.index = this._currentIndex;
         this._currentIndex += 1;
         field!.focus();
         if (currentIndex !== 0) {
@@ -635,8 +633,8 @@ export class TestPickerSk extends ElementSk {
             // Track the furthest index queried
             if (this._currentIndex <= i) {
               this._currentIndex = i;
-              this.updateCount(count);
             }
+            this.updateCount(count);
             break;
           }
         }
