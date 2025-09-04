@@ -200,7 +200,7 @@ export class TriageMenuSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then((_) => {
+      .then(async () => {
         let bug_id: number | null = null;
         if (editAction === 'RESET') {
           bug_id = 0;
@@ -242,7 +242,7 @@ export class TriageMenuSk extends ElementSk {
    * values, as well as its selected value.
    */
   makeNudgeRequest(anomalies: Anomaly[], traceNames: string[], entry: NudgeEntry): void {
-    const keys: string[] = anomalies.map((a) => a.id);
+    const keys: number[] = anomalies.map((a) => Number(a.id));
     const body: any = {
       keys: keys,
       trace_names: traceNames,

@@ -9,7 +9,7 @@ import sinon from 'sinon';
 
 describe('triage-menu-sk', () => {
   const newInstance = setUpElementUnderTest<TriageMenuSk>('triage-menu-sk');
-
+  fetchMock.config.overwriteRoutes = false;
   let element: TriageMenuSk;
   beforeEach(() => {
     window.perf = {
@@ -47,6 +47,8 @@ describe('triage-menu-sk', () => {
   });
 
   afterEach(() => {
+    // Check all mock fetches called at least once and reset.
+    assert.isTrue(fetchMock.done());
     fetchMock.restore();
   });
 
@@ -220,6 +222,31 @@ describe('triage-menu-sk', () => {
 
       element.makeNudgeRequest(anomalies, traceNames, entry);
       await fetchMock.flush(true);
+    });
+
+    it('dispatches anomaly-changed event with correct detail', async () => {
+      const anomalies = [dummyAnomaly(0)];
+      const traceNames = ['trace1'];
+      const entry = new NudgeEntry();
+      entry.start_revision = 123;
+      entry.end_revision = 456;
+      entry.anomaly_data = {
+        anomaly: anomalies[0],
+        x: 0,
+        y: 0,
+        highlight: true,
+      };
+      fetchMock.post('/_/triage/edit_anomalies', { status: 200, body: JSON.stringify({}) });
+
+      await element.makeNudgeRequest(anomalies, traceNames, entry);
+      fetchMock.done();
+      await fetchMock.flush(true);
+
+      element.addEventListener('anomaly-changed', (e) => {
+        assert.deepEqual((e as CustomEvent).detail.traceNames, traceNames);
+        assert.deepEqual((e as CustomEvent).detail.displayIndex, 0);
+        assert.deepEqual((e as CustomEvent).detail.anomalies, [entry.anomaly_data?.anomaly]);
+      });
     });
   });
 });
