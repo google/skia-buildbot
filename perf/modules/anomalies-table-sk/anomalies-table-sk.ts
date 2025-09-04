@@ -184,6 +184,7 @@ export class AnomaliesTableSk extends ElementSk {
     if (a.start_revision > b.start_revision) {
       [a, b] = [b, a];
     }
+
     if (
       a.start_revision === null ||
       a.end_revision === null ||
@@ -196,91 +197,119 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   /**
-   * Merge anomalies into groups.
+   * Helper method to group anomalies based on a predicate.
    *
-   * The grouping hierarchy is:
-   * 1. Anomalies with the same non-zero bug_id are grouped together.
-   * 2. Else group anomalies if their revision ranges overlap.
-   * 3. Else group anomalies if they have same benchmark.
+   * It takes a list of anomalies, groups them, and then partitions the result
+   * into groups containing multiple items and a flat list of anomalies that
+   * remained in single-item groups.
+   *
+   * @param anomalies - The list of anomalies to group.
+   * @param predicate - A function that returns true if two anomalies belong in the same group.
+   * @returns An object containing the grouped anomalies and the remaining single anomalies.
+   */
+  private groupAndPartition(
+    anomalies: Anomaly[],
+    predicate: (a: Anomaly, b: Anomaly) => boolean
+  ): { multiItemGroups: AnomalyGroup[]; singleAnomalies: Anomaly[] } {
+    if (!anomalies.length) {
+      return { multiItemGroups: [], singleAnomalies: [] };
+    }
+
+    // Use reduce to iterate once and create all groups.
+    const allGroups = anomalies.reduce((groups: AnomalyGroup[], anomaly) => {
+      const existingGroup = groups.find((g) =>
+        g.anomalies.every((other) => predicate(anomaly, other))
+      );
+
+      if (existingGroup) {
+        existingGroup.anomalies.push(anomaly);
+      } else {
+        groups.push({ anomalies: [anomaly], expanded: false });
+      }
+      return groups;
+    }, []);
+
+    // Now, partition the results into multi-item groups and singles.
+    const multiItemGroups: AnomalyGroup[] = [];
+    const singleAnomalies: Anomaly[] = [];
+    for (const group of allGroups) {
+      if (group.anomalies.length > 1) {
+        multiItemGroups.push(group);
+      } else {
+        singleAnomalies.push(group.anomalies[0]);
+      }
+    }
+
+    return { multiItemGroups, singleAnomalies };
+  }
+
+  /**
+   * Groups anomalies based on a hierarchy of criteria:
+   * 1. By shared bug_id.
+   * 2. By overlapping revision range.
+   * 3. By the exact same revision.
+   * 4. By the same benchmark.
+   * Any remaining anomalies are left in their own individual groups.
    */
   groupAnomalies() {
-    const bugIdGroupsMap: Map<number, Anomaly[]> = new Map();
-    const remainAnomalies: Anomaly[] = [];
-
-    // First, separate anomalies by bug_id.
+    // First, separate anomalies that have a bug_id from those that don't.
+    const withBugId: Anomaly[] = [];
+    const withoutBugId: Anomaly[] = [];
     for (const anomaly of this.anomalyList) {
       if (anomaly.bug_id && anomaly.bug_id > 0) {
-        if (!bugIdGroupsMap.has(anomaly.bug_id)) {
-          bugIdGroupsMap.set(anomaly.bug_id, []);
-        }
-        bugIdGroupsMap.get(anomaly.bug_id)!.push(anomaly);
+        withBugId.push(anomaly);
       } else {
-        remainAnomalies.push(anomaly);
+        withoutBugId.push(anomaly);
       }
     }
 
-    const finalGroups: AnomalyGroup[] = [];
+    // Second, create groups for anomalies sharing a bug_id.
+    const bugIdGroupMap = withBugId.reduce((map, anomaly) => {
+      const bugId = anomaly.bug_id!;
+      const group = map.get(bugId) || [];
+      map.set(bugId, [...group, anomaly]);
+      return map;
+    }, new Map<number, Anomaly[]>());
 
-    // Create groups from bug_id map.
-    for (const anomalies of bugIdGroupsMap.values()) {
-      finalGroups.push({
-        anomalies: anomalies,
-        expanded: false,
-      });
-    }
+    const bugIdGroups: AnomalyGroup[] = Array.from(bugIdGroupMap.values()).map((anomalies) => ({
+      anomalies,
+      expanded: false,
+    }));
 
-    // Group remaining anomalies by revision overlap.
-    const revisionGroup: AnomalyGroup[] = [];
-    for (const anomaly of remainAnomalies) {
-      let merged = false;
-      for (const group of revisionGroup) {
-        if (group.anomalies.some((other) => this.doRangesOverlap(anomaly, other))) {
-          group.anomalies.push(anomaly);
-          merged = true;
-          break;
-        }
-      }
-      if (!merged) {
-        revisionGroup.push({
-          anomalies: [anomaly],
-          expanded: false,
-        });
-      }
-    }
+    // Third, sequentially group the remaining anomalies using the helper.
+    const { multiItemGroups: revisionGroups, singleAnomalies: remainingAfterRevision } =
+      this.groupAndPartition(withoutBugId, (a, b) => this.isSameRevision(a, b));
 
-    const sameBenchmarkGroup: AnomalyGroup[] = [];
-    // Finally group remaining single Anomalies by benchmark.
-    for (let i = revisionGroup.length - 1; i >= 0; i--) {
-      const group = revisionGroup[i];
-      if (group.anomalies.length === 1) {
-        let foundGroup = false;
-        const anomaly = group.anomalies.at(0)!;
-        for (const group of sameBenchmarkGroup) {
-          if (group.anomalies.some((other) => this.isSameBenchmark(anomaly, other))) {
-            group.anomalies.push(anomaly);
-            foundGroup = true;
-            break;
-          }
-        }
-        if (!foundGroup) {
-          sameBenchmarkGroup.push({
-            anomalies: [anomaly],
-            expanded: false,
-          });
-        }
-        // Remove the anomaly from the revisionGroup
-        revisionGroup.splice(i, 1);
-      }
-    }
+    const { multiItemGroups: sameRevisionGroups, singleAnomalies: remainingAfterSameRevision } =
+      this.groupAndPartition(remainingAfterRevision, (a, b) => this.doRangesOverlap(a, b));
 
-    // Combine bug groups and revision groups
-    this.anomalyGroups = [...finalGroups, ...revisionGroup, ...sameBenchmarkGroup];
+    const { multiItemGroups: sameBenchmarkGroups, singleAnomalies: finalSingles } =
+      this.groupAndPartition(remainingAfterSameRevision, (a, b) => this.isSameBenchmark(a, b));
+
+    // Fourth, any anomalies that were never grouped become their own single-item groups.
+    const singleAnomalyGroups: AnomalyGroup[] = finalSingles.map((anomaly) => ({
+      anomalies: [anomaly],
+      expanded: false,
+    }));
+
+    // Last, combine all groups into the final list.
+    this.anomalyGroups = [
+      ...bugIdGroups,
+      ...revisionGroups,
+      ...sameRevisionGroups,
+      ...sameBenchmarkGroups,
+      ...singleAnomalyGroups,
+    ];
   }
 
   isSameBenchmark(a: Anomaly, b: Anomaly) {
     const testSuiteA = a.test_path.split('/').length > 2 ? a.test_path.split('/')[2] : '';
     const testSuiteB = b.test_path.split('/').length > 2 ? b.test_path.split('/')[2] : '';
     return testSuiteA === testSuiteB;
+  }
+
+  isSameRevision(a: Anomaly, b: Anomaly) {
+    return a.start_revision === b.start_revision && a.end_revision === b.end_revision;
   }
 
   private generateTable() {
@@ -409,7 +438,7 @@ export class AnomaliesTableSk extends ElementSk {
     const bot = testPathPieces[1];
     const testsuite = testPathPieces[2];
     const test = testPathPieces.slice(3, testPathPieces.length).join('/');
-    const revision = anomaly.end_revision;
+    const revision = anomaly.start_revision;
     const delta = AnomalySk.getPercentChange(
       anomaly.median_before_anomaly,
       anomaly.median_after_anomaly

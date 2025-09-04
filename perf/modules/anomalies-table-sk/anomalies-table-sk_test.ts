@@ -195,6 +195,20 @@ describe('anomalies-table-sk', () => {
     });
   });
 
+  describe('is same revision', () => {
+    it('returns true if revisions are the same', () => {
+      const a = dummyAnomaly('1', 0, 100, 200, '');
+      const b = dummyAnomaly('2', 0, 100, 200, '');
+      assert.isTrue(element.isSameRevision(a, b));
+    });
+
+    it('returns false if revisions are different', () => {
+      const a = dummyAnomaly('1', 0, 100, 200, '');
+      const b = dummyAnomaly('2', 0, 100, 201, '');
+      assert.isFalse(element.isSameRevision(a, b));
+    });
+  });
+
   describe('is same benchmark', () => {
     it('returns true if benchmarks are the same', () => {
       const a = dummyAnomaly('1', 0, 0, 0, 'master/bot/suite/test1');
