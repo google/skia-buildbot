@@ -61,14 +61,6 @@ def karma_test(
         # Include absolute file paths to the static Karma files.
         static_template_args.append("$(location %s)" % f)
 
-    browser = select({
-        # Provides Google Chrome, libraries and fonts.
-        "@platforms//os:linux": ["@google_chrome//:all_files"],
-        # We don't have hermetic support for Mac and Windows. Users are expected
-        # to have a working Chrome installation already.
-        "//conditions:default": [],
-    })
-
     # See https://docs.aspect.build/rulesets/aspect_rules_js/docs/#using-binaries-published-to-npm.
     _karma_test_bin.karma_test(
         name = name,
@@ -83,8 +75,7 @@ def karma_test(
             "//:node_modules/karma-chai-dom",
             "//:node_modules/karma-spec-reporter",
             "//:node_modules/mocha",
-        ] + browser + static_karma_files,
-        no_copy_to_bin = browser,
+        ] + static_karma_files,
         args = [
             "start",
             "$(location %s)" % karma_config_file,
@@ -94,4 +85,8 @@ def karma_test(
             # Necessary for it to work with ibazel.
             "ibazel_notify_changes",
         ],
+        env = {
+            "CHROME_BIN": "$(CHROME-HEADLESS-SHELL)",
+        },
+        toolchains = ["@rules_browsers//browsers/chromium:toolchain_alias"],
     )
