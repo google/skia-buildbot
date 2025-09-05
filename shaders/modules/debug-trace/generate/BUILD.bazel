@@ -1,7 +1,0 @@
-load("//infra-sk:index.bzl", "ts_library")
-
-ts_library(
-    name = "debug-trace-quicktype_ts_lib",
-    srcs = ["debug-trace-quicktype.ts"],
-    visibility = ["//visibility:public"],
-)

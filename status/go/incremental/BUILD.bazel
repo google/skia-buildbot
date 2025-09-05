@@ -18,9 +18,9 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//go/vcsinfo",
-        "//task_scheduler/go/db",
-        "//task_scheduler/go/types",
-        "//task_scheduler/go/window",
+        "@org_skia_go_infra//task_scheduler/go/db:go_default_library",
+        "@org_skia_go_infra//task_scheduler/go/types:go_default_library",
+        "@org_skia_go_infra//task_scheduler/go/window:go_default_library",
     ],
 )
 
@@ -32,7 +32,6 @@ go_test(
     ],
     embed = [":incremental"],
     deps = [
-        "//bazel/external/cipd/git",
         "//go/deepequal/assertdeep",
         "//go/git",
         "//go/git/repograph",
@@ -40,9 +39,10 @@ go_test(
         "//go/testutils",
         "//go/util",
         "//go/vcsinfo",
-        "//task_scheduler/go/db/memory",
-        "//task_scheduler/go/types",
-        "//task_scheduler/go/window",
         "@com_github_stretchr_testify//require",
+        "@org_skia_go_infra//bazel/external/cipd/git:go_default_library",
+        "@org_skia_go_infra//task_scheduler/go/db/memory:go_default_library",
+        "@org_skia_go_infra//task_scheduler/go/types:go_default_library",
+        "@org_skia_go_infra//task_scheduler/go/window:go_default_library",
     ],
 )

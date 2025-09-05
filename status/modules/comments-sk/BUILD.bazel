@@ -8,7 +8,6 @@ sk_element(
     ],
     sass_srcs = ["comments-sk.scss"],
     sk_element_deps = [
-        "//ct/modules/input-sk",
         "//infra-sk/modules/human-date-sk",
         "//elements-sk/modules/checkbox-sk",
         "//elements-sk/modules/icons/check-box-icon-sk",

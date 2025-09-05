@@ -14,13 +14,13 @@ go_library(
         "//go/metrics2",
         "//go/metrics2/events",
         "//go/sklog",
-        "//go/swarming",
         "//go/taskname",
         "//go/util",
         "//perf/go/ingest/format",
         "//perf/go/perfclient",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
         "@org_golang_x_oauth2//:oauth2",
+        "@org_skia_go_infra//go/swarming:go_default_library",
     ],
 )
 
@@ -37,8 +37,6 @@ go_test(
         "//go/metrics2",
         "//go/metrics2/events",
         "//go/metrics2/testutils",
-        "//go/swarming",
-        "//go/swarming/mocks",
         "//go/taskname",
         "//go/testutils",
         "//go/util",
@@ -48,5 +46,7 @@ go_test(
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_skia_go_infra//go/swarming:go_default_library",
+        "@org_skia_go_infra//go/swarming/mocks:go_default_library",
     ],
 )

@@ -27,7 +27,6 @@ go_test(
     srcs = ["pubsub_test.go"],
     embed = [":pubsub"],
     deps = [
-        "//bazel/external/cipd/git",
         "//go/deepequal/assertdeep",
         "//go/emulators/gcp_emulator",
         "//go/git",
@@ -38,5 +37,6 @@ go_test(
         "@com_github_google_uuid//:uuid",
         "@com_github_stretchr_testify//assert",
         "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_skia_go_infra//bazel/external/cipd/git:go_default_library",
     ],
 )

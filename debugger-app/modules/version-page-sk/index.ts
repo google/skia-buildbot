@@ -1,1 +1,0 @@
-import './version-page-sk';

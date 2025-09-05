@@ -1,6 +1,0 @@
-{
-  "appName": "autoroll-fe-internal",
-  "hostName": "skia-autoroll.corp.goog",
-  "internal": true,
-  "legacyLoginSecrets": "skia-corp-legacy-login-secrets"
-}

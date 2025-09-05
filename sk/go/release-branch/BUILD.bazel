@@ -21,9 +21,9 @@ go_library(
         "//go/vfs",
         "//go/vfs/gitiles",
         "//sk/go/relnotes",
-        "//task_scheduler/go/specs",
         "@com_github_urfave_cli_v2//:cli",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//task_scheduler/go/specs:go_default_library",
     ],
 )
 

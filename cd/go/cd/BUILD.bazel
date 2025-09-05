@@ -19,8 +19,8 @@ go_library(
         "//go/louhi/pubsub",
         "//go/skerr",
         "//go/vcsinfo",
-        "//task_driver/go/td",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//task_driver/go/td:go_default_library",
     ],
 )
 

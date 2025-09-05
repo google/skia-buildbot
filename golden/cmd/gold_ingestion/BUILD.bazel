@@ -14,7 +14,6 @@ go_library(
         "//go/now",
         "//go/skerr",
         "//go/sklog",
-        "//go/swarming",
         "//go/util",
         "//golden/go/config",
         "//golden/go/ingestion",
@@ -27,6 +26,7 @@ go_library(
         "@com_google_cloud_go_storage//:storage",
         "@io_opencensus_go//trace",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//go/swarming:go_default_library",
     ],
 )
 

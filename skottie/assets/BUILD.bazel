@@ -1,5 +1,0 @@
-filegroup(
-    name = "checkerboard",
-    srcs = ["checker.png"],
-    visibility = ["//skottie:__subpackages__"],
-)

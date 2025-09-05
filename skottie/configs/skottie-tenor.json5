@@ -1,8 +1,0 @@
-// Configuration for skottie-tenor.skia.org.
-{
-	"can_upload_zips": true,
-	"client_secret_file": "/etc/skia.org/login.json",
-	"gcs_bucket": "skia-skottie-tenor",
-	"resources_path": "/usr/local/share/skottie/",
-	"site_url": "https://skottie-tenor.skia.org"
-}

@@ -1,1 +1,0 @@
-import './chromium-perf-sk';

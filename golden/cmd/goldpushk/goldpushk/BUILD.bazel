@@ -29,7 +29,6 @@ go_test(
     ],
     embed = [":goldpushk"],
     deps = [
-        "//bazel/external/cipd/git",
         "//go/exec",
         "//go/git",
         "//go/git/testutils",
@@ -37,5 +36,6 @@ go_test(
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@org_skia_go_infra//bazel/external/cipd/git:go_default_library",
     ],
 )

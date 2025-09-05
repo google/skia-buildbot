@@ -8,7 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/now",
-        "//task_scheduler/go/types",
+        "@org_skia_go_infra//task_scheduler/go/types:go_default_library",
     ],
 )
 

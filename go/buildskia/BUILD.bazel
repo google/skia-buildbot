@@ -33,7 +33,6 @@ go_test(
     ],
     embed = [":buildskia"],
     deps = [
-        "//bazel/external/cipd/git",
         "//go/exec",
         "//go/git",
         "//go/git/git_common",
@@ -42,5 +41,6 @@ go_test(
         "//go/vcsinfo",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@org_skia_go_infra//bazel/external/cipd/git:go_default_library",
     ],
 )

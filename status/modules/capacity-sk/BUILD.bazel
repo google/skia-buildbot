@@ -7,7 +7,6 @@ sk_element(
     ],
     sass_srcs = ["capacity-sk.scss"],
     sk_element_deps = [
-        "//ct/modules/input-sk",
         "//infra-sk/modules/app-sk",
         "//infra-sk/modules/theme-chooser-sk",
         "//elements-sk/modules/error-toast-sk",

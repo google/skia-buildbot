@@ -10,7 +10,6 @@ go_library(
     importpath = "go.skia.org/infra/tree_status/go/tree_status",
     visibility = ["//visibility:private"],
     deps = [
-        "//autoroll/go/status",
         "//go/alogin",
         "//go/alogin/proxylogin",
         "//go/baseapp",
@@ -31,6 +30,7 @@ go_library(
         "@org_golang_google_api//option",
         "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//autoroll/go/status:go_default_library",
     ],
 )
 

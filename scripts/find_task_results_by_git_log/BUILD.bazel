@@ -12,10 +12,10 @@ go_library(
         "//go/gitiles",
         "//go/httputils",
         "//go/sklog",
-        "//task_scheduler/go/db",
-        "//task_scheduler/go/db/firestore",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//task_scheduler/go/db:go_default_library",
+        "@org_skia_go_infra//task_scheduler/go/db/firestore:go_default_library",
     ],
 )
 

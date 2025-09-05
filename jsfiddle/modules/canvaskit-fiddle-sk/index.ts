@@ -1,1 +1,0 @@
-import './canvaskit-fiddle-sk';

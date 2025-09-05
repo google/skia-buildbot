@@ -6,7 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/go/git/repograph/shared_tests",
     visibility = ["//visibility:public"],
     deps = [
-        "//bazel/external/cipd/git",
         "//go/deepequal/assertdeep",
         "//go/git",
         "//go/git/repograph",
@@ -16,5 +15,6 @@ go_library(
         "//go/util",
         "//go/vcsinfo",
         "@com_github_stretchr_testify//require",
+        "@org_skia_go_infra//bazel/external/cipd/git:go_default_library",
     ],
 )

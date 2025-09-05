@@ -1,1 +1,0 @@
-import './wasm-fiddle-sk';

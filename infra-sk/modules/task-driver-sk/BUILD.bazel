@@ -18,7 +18,6 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules:linkify_ts_lib",
-        "//task_driver/modules/json:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:upgradeproperty_ts_lib",
         "//infra-sk/modules:human_ts_lib",
@@ -43,7 +42,6 @@ ts_library(
     name = "test_data_ts_lib",
     srcs = ["test_data.ts"],
     visibility = ["//visibility:public"],
-    deps = ["//task_driver/modules/json:index_ts_lib"],
 )
 
 sk_element_puppeteer_test(

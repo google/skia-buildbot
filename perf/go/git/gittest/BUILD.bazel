@@ -6,7 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/git/gittest",
     visibility = ["//visibility:public"],
     deps = [
-        "//bazel/external/cipd/git",
         "//go/git/testutils",
         "//go/sql/pool",
         "//perf/go/config",

@@ -21,7 +21,6 @@ go_test(
     srcs = ["gitiles_test.go"],
     embed = [":gitiles"],
     deps = [
-        "//bazel/external/cipd/git",
         "//go/deepequal/assertdeep",
         "//go/git",
         "//go/git/testutils",
@@ -32,5 +31,6 @@ go_test(
         "//go/vcsinfo",
         "@com_github_stretchr_testify//require",
         "@org_golang_x_time//rate",
+        "@org_skia_go_infra//bazel/external/cipd/git:go_default_library",
     ],
 )

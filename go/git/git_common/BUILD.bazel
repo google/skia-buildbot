@@ -20,7 +20,7 @@ go_test(
     srcs = ["git_common_test.go"],
     deps = [
         ":git_common",
-        "//bazel/external/cipd/git",
         "@com_github_stretchr_testify//require",
+        "@org_skia_go_infra//bazel/external/cipd/git:go_default_library",
     ],
 )

@@ -47,7 +47,6 @@ sk_element(
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
-        "//autoroll/modules/rpc:index_ts_lib",
         "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
         "//:node_modules/lit-html",
         "//infra-sk/modules:object_ts_lib",

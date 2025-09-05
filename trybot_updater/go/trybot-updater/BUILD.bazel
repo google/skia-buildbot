@@ -16,8 +16,8 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "//task_scheduler/go/specs",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//task_scheduler/go/specs:go_default_library",
     ],
 )
 

@@ -1,1 +1,0 @@
-import './shaders-app-sk';

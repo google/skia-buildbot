@@ -9,10 +9,10 @@ go_library(
         "//go/common",
         "//go/httputils",
         "//go/sklog",
-        "//go/swarming",
         "//go/util",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//go/swarming:go_default_library",
     ],
 )
 

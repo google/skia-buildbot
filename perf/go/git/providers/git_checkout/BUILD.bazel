@@ -25,12 +25,12 @@ go_test(
     srcs = ["git_checkout_test.go"],
     embed = [":git_checkout"],
     deps = [
-        "//bazel/external/cipd/git",
         "//go/git/testutils",
         "//perf/go/config",
         "//perf/go/git/provider",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@org_skia_go_infra//bazel/external/cipd/git:go_default_library",
     ],
 )

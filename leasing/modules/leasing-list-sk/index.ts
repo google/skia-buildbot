@@ -1,1 +1,0 @@
-import './leasing-list-sk';

@@ -1,11 +1,12 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
-load("@aspect_rules_ts//ts:defs.bzl", "ts_config", "ts_project")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 
 # load("@exec_properties//:constants.bzl", "NETWORK_ON")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load(":puppeteerrc.bzl", "puppeteerrc_js")
 
 # Disable generation of go_proto_library targets. Let Gazelle use checked-in .pb.go files instead.
 #
@@ -217,7 +218,7 @@ genrule(
 # Sample usage: "bazel run //:go -- generate ./...".
 alias(
     name = "go",
-    actual = "//bazel/tools/go",
+    actual = "@go_sdk//:bin/go",
     visibility = ["//visibility:public"],
 )
 
@@ -275,28 +276,6 @@ alias(
     visibility = ["//visibility:public"],
 )
 
-#######
-# npm #
-#######
-
-# Sample usage: "bazel run //:npm -- install some-package"
-alias(
-    name = "npm",
-    actual = "//bazel/tools/npm",
-    visibility = ["//visibility:public"],
-)
-
-#######
-# npx #
-#######
-
-# Sample usage: "bazel run //:npx -- eslint --fix ."
-alias(
-    name = "npx",
-    actual = "//bazel/tools/npx",
-    visibility = ["//visibility:public"],
-)
-
 ######
 # sk #
 ######
@@ -305,5 +284,16 @@ alias(
 alias(
     name = "sk",
     actual = "//sk/go/sk",
+    visibility = ["//visibility:public"],
+)
+
+#############################################################
+# Create puppeteer.js that points to the downloaded Chrome. #
+#############################################################
+
+puppeteerrc_js(
+    name = "puppeteerrc_js_expanded",
+    template = "puppeteerrc.js.tpl",
+    toolchains = ["@rules_browsers//browsers/chromium:toolchain_alias"],
     visibility = ["//visibility:public"],
 )
