@@ -27,7 +27,6 @@ import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status } from '../../../infra-sk/modules/json';
-import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
@@ -36,8 +35,6 @@ export class NewBugDialogSk extends ElementSk {
   private _dialog: HTMLDialogElement | null = null;
 
   private _bugUrl: string = '';
-
-  private _spinner: SpinnerSk | null = null;
 
   private _form: HTMLFormElement | null = null;
 
@@ -92,12 +89,10 @@ export class NewBugDialogSk extends ElementSk {
           type="text"
           value=${ele._user}>
         </input>
-        <div class="footer">
-          <spinner-sk id="dialog-spinner"></spinner-sk>
-          <button id="file-button" type="submit">Submit</button>
-          <button id="close-button" @click=${ele.closeDialog} type="button">Close</button>
-        </div>
       </form>
+    </dialog>
+    <dialog id="loading-popup">
+      <p>New bug creating in process. Waiting...</p>
     </dialog>
   `;
 
@@ -112,7 +107,6 @@ export class NewBugDialogSk extends ElementSk {
     this._render();
 
     this._dialog = this.querySelector('#new-bug-dialog');
-    this._spinner = this.querySelector('#dialog-spinner');
     this._form = this.querySelector('#new-bug-form');
     this._form!.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -331,10 +325,8 @@ export class NewBugDialogSk extends ElementSk {
    * Upon failure, we keep the dialog open and show an error toast.
    */
   fileNewBug(): void {
-    this._spinner!.active = true;
-    // Disable submit and close button
-    this.querySelector('#file-button')!.setAttribute('disabled', 'true');
-    this.querySelector('#close-button')!.setAttribute('disabled', 'true');
+    const loadingPopup = this.querySelector('#loading-popup') as HTMLDialogElement;
+    loadingPopup.showModal();
     this._render();
 
     // Extract title.
@@ -390,9 +382,7 @@ export class NewBugDialogSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((json) => {
-        this._spinner!.active = false;
-        this.querySelector('#file-button')!.removeAttribute('disabled');
-        this.querySelector('#close-button')!.removeAttribute('disabled');
+        loadingPopup.close();
         this.closeDialog();
 
         // Open the bug page in new window.
@@ -419,9 +409,8 @@ export class NewBugDialogSk extends ElementSk {
         );
       })
       .catch(() => {
-        this._spinner!.active = false;
-        this.querySelector('#file-button')!.removeAttribute('disabled');
-        this.querySelector('#close-button')!.removeAttribute('disabled');
+        loadingPopup.close();
+        this.closeDialog();
         errorMessage(
           'File new bug request failed due to an internal server error. Please try again.'
         );

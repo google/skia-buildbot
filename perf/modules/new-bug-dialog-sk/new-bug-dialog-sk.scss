@@ -32,9 +32,10 @@ new-bug-dialog-sk {
     #description {
       width: 95%;
     }
-    .footer {
-      display: flex;
-      justify-content: right;
-    }
+  }
+  #loading-popup {
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
   }
 }
