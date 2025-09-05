@@ -332,7 +332,7 @@ func TestCopyTask(t *testing.T) {
 		Status:         TASK_STATUS_MISHAP,
 		SwarmingBotId:  "ENIAC",
 		SwarmingTaskId: "abc123",
-		TaskExecutor:   TaskExecutor_Swarming,
+		TaskExecutor:   "fake-swarming.appspot.com",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
 				Repo:     "nou.git",

@@ -359,10 +359,6 @@ func (t *TaskSpec) Validate(cfg *TasksCfg) error {
 		}
 	}
 
-	if !util.In(t.TaskExecutor, types.ValidTaskExecutors) {
-		return fmt.Errorf("Invalid task executor %q; must be one of: %v", t.TaskExecutor, types.ValidTaskExecutors)
-	}
-
 	return nil
 }
 

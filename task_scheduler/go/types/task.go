@@ -37,15 +37,6 @@ const (
 	SWARMING_TAG_SOURCE_REPO     = "source_repo"
 
 	MILO_HOST = "https://ci.chromium.org/raw/build/%s"
-
-	// Types of task executors.
-	TaskExecutor_UseDefault = ""
-	TaskExecutor_Swarming   = "swarming"
-	DefaultTaskExecutor     = TaskExecutor_Swarming
-)
-
-var (
-	ValidTaskExecutors = []string{TaskExecutor_UseDefault, TaskExecutor_Swarming}
 )
 
 type TaskStatus string

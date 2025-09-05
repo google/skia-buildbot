@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/bigtable"
@@ -44,6 +46,8 @@ const (
 
 	// PubSub subscriber ID used for GitStore.
 	GITSTORE_SUBSCRIBER_ID = APP_NAME
+
+	expectSwarmingServerFlagFormat = "--swarming_server=<server>:<pool1>[,pool2]..."
 )
 
 var (
@@ -58,8 +62,8 @@ var (
 	rbeInstance          = flag.String("rbe_instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
 	repoUrls             = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 	scoreDecay24Hr       = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
-	swarmingPools        = common.NewMultiStringFlag("pool", nil, "Which Swarming pools to use.")
-	swarmingServer       = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
+	swarmingPools        = common.NewMultiStringFlag("pool", nil, "Which Swarming pools to use. If specified, these apply to the default Swarming server (the first one specified).")
+	swarmingServers      = common.NewMultiStringFlag("swarming_server", nil, fmt.Sprintf("Map Swarming server(s) to pools, eg. %q. The first is used as the default.", expectSwarmingServerFlagFormat))
 	timePeriod           = flag.String("timeWindow", "4d", "Time period to use.")
 	commitWindow         = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
 	diagnosticsBucket    = flag.String("diagnostics_bucket", "skia-task-scheduler-diagnostics", "Name of Google Cloud Storage bucket to use for diagnostics data.")
@@ -77,6 +81,32 @@ func main() {
 		common.StructuredLogging(local),
 	)
 	defer common.Defer()
+
+	if len(*repoUrls) == 0 {
+		sklog.Fatal("At least one --repo is required.")
+	}
+	var defaultSwarmingServer string
+	swarmingServersToPools := make(map[string][]string, len(*swarmingServers))
+	for idx, swarmingServerSpec := range *swarmingServers {
+		split := strings.Split(swarmingServerSpec, ":")
+		if idx == 0 {
+			defaultSwarmingServer = split[0]
+		}
+		if len(split) == 1 {
+			if idx == 0 {
+				// As a transition from the old flag format to the new, allow
+				// the default swarming server to be specified without pools and
+				// apply the --pools flag instead.
+				swarmingServersToPools[split[0]] = *swarmingPools
+			} else {
+				sklog.Fatalf("Expected %q, not %q", expectSwarmingServerFlagFormat, swarmingServerSpec)
+			}
+		} else if len(split) == 2 {
+			swarmingServersToPools[split[0]] = strings.Split(split[1], ",")
+		} else {
+			sklog.Fatalf("Expected %q, not %q", expectSwarmingServerFlagFormat, swarmingServerSpec)
+		}
+	}
 
 	// TODO(borenet): This is disabled because it causes errors to be logged
 	// every 5 seconds. I've tried reducing the sample frequency significantly
@@ -116,9 +146,6 @@ func main() {
 	}
 
 	// Git repos.
-	if *repoUrls == nil {
-		sklog.Fatal("--repo is required.")
-	}
 	btConf := &bt_gitstore.BTConfig{
 		ProjectID:  *btProject,
 		InstanceID: *btInstance,
@@ -154,18 +181,18 @@ func main() {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
 
-	// Create the task executor.
-	prpcClient := swarmingv2.DefaultPRPCClient(httpClient, *swarmingServer)
-	swarmClient := swarmingv2.NewClient(prpcClient)
-	swarmingTaskExec := swarming_task_execution_v2.NewSwarmingV2TaskExecutor(swarmClient, *rbeInstance, *pubsubTopicName)
-	taskExecs := map[string]types.TaskExecutor{
-		types.TaskExecutor_UseDefault: swarmingTaskExec,
-		types.TaskExecutor_Swarming:   swarmingTaskExec,
+	// Create the task executors.
+	taskExecs := types.NewTaskExecutors(defaultSwarmingServer)
+	for swarmingServer, pools := range swarmingServersToPools {
+		prpcClient := swarmingv2.DefaultPRPCClient(httpClient, swarmingServer)
+		swarmClient := swarmingv2.NewClient(prpcClient)
+		swarmingTaskExec := swarming_task_execution_v2.NewSwarmingV2TaskExecutor(swarmClient, *rbeInstance, *pubsubTopicName)
+		taskExecs.Set(swarmingServer, swarmingTaskExec, pools)
 	}
 
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, cas, *rbeInstance, taskExecs, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, tokenSource, diagClient, diagInstance, scheduling.BusyBotsDebugLog(*debugBusyBots))
+	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, cas, *rbeInstance, taskExecs, httpClient, *scoreDecay24Hr, *pubsubTopicName, taskCfgCache, tokenSource, diagClient, diagInstance, scheduling.BusyBotsDebugLog(*debugBusyBots))
 	if err != nil {
 		sklog.Fatal(err)
 	}

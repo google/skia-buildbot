@@ -57,7 +57,8 @@ import (
 )
 
 const (
-	scoreDelta = 0.000001
+	fakeSwarmingURL = "fake-swarming.appspot.com"
+	scoreDelta      = 0.000001
 )
 
 var (
@@ -253,7 +254,6 @@ func insertJobs(t sktest.TestingT, ctx context.Context, s *TaskScheduler, rss ..
 
 // Common setup for TaskScheduler tests.
 func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, *swarming_testutils.TestClient, *TaskScheduler, *mockhttpclient.URLMock, *mocks.CAS, func()) {
-
 	ctx, cancel := context.WithCancel(t.Context())
 
 	tmp, err := os.MkdirTemp("", "")
@@ -286,11 +286,9 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
 	taskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-cas-instance", "")
-	taskExecs := map[string]types.TaskExecutor{
-		types.TaskExecutor_Swarming:   taskExec,
-		types.TaskExecutor_UseDefault: taskExec,
-	}
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance, false)
+	taskExecs := types.NewTaskExecutors(fakeSwarmingURL)
+	taskExecs.Set(fakeSwarmingURL, taskExec, swarming.POOLS_PUBLIC)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, urlMock.Client(), 1.0, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance, false)
 	require.NoError(t, err)
 
 	// Insert jobs. This is normally done by the JobCreator.
@@ -1766,7 +1764,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	checkDiags := func(bots []*types.Machine, candidates []*TaskCandidate) {
 		var expectedBots []string
 		if len(bots) > 0 {
-			expectedBots = make([]string, len(bots), len(bots))
+			expectedBots = make([]string, len(bots))
 			for i, b := range bots {
 				expectedBots[i] = b.ID
 			}
@@ -2292,7 +2290,6 @@ func (s *spyDB) PutTasks(ctx context.Context, tasks []*types.Task) error {
 }
 
 func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Context, *mem_git.MemGit, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*types.Task), *specs.TasksCfg, func()) {
-
 	ctx, cancel := context.WithCancel(context.Background())
 	workdir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
@@ -2351,11 +2348,9 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
 	taskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-cas-instance", "")
-	taskExecs := map[string]types.TaskExecutor{
-		types.TaskExecutor_Swarming:   taskExec,
-		types.TaskExecutor_UseDefault: taskExec,
-	}
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance, BusyBotsDebugLoggingOff)
+	taskExecs := types.NewTaskExecutors(fakeSwarmingURL)
+	taskExecs.Set(fakeSwarmingURL, taskExec, swarming.POOLS_PUBLIC)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, mockhttpclient.NewURLMock().Client(), 1.0, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance, BusyBotsDebugLoggingOff)
 	require.NoError(t, err)
 
 	for _, h := range hashes {
@@ -3636,7 +3631,8 @@ func TestContinueOnTriggerTaskFailure(t *testing.T) {
 	badCommit := commits[0]
 	badTaskName := "badtask"
 	badPool := "BadPool"
-	s.pools = []string{"Skia", badPool}
+	defaultTaskExec, _ := s.taskExecutors.Get(types.TaskExecutor_Default)
+	s.taskExecutors.Set(types.TaskExecutor_Default, defaultTaskExec, []string{"Skia", badPool})
 	require.NoError(t, s.repos.Update(ctx))
 	for _, hash := range newCommits {
 		rs := types.RepoState{
@@ -3832,6 +3828,78 @@ func TestTriggerTaskNoResource(t *testing.T) {
 	tasks, err := s.tCache.GetTasksForCommits(rs1.Repo, []string{commits[0]})
 	require.NoError(t, err)
 	require.Equal(t, 0, len(tasks[commits[0]]))
+}
+
+func TestTriggerTask_DifferentExecutor(t *testing.T) {
+	// Verify that we trigger tasks on the correct TaskExecutor
+	ctx, memGit, _, swarmingClient1, s, _, cas, cleanup := setup(t)
+	defer cleanup()
+
+	// Move one task to a different TaskExecutor. Ensure that this task runs on
+	// the new one and that the others remain on the old.
+	swarmingClient2 := swarming_testutils.NewTestClient()
+	taskExec2Name := "other-fake-swarming.appspot.com"
+	taskExec2 := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient2, "fake-cas-instance", "")
+	alternatePool := "SkiaAlternate"
+	s.taskExecutors.Set(taskExec2Name, taskExec2, []string{alternatePool})
+	tasksCfg3 := tcc_testutils.TasksCfg2.Copy()
+	alternateTask := tasksCfg3.Tasks[tcc_testutils.PerfTaskName]
+	alternateTask.TaskExecutor = taskExec2Name
+	for idx, dim := range alternateTask.Dimensions {
+		if dim == "pool:Skia" {
+			alternateTask.Dimensions[idx] = "pool:" + alternatePool
+		}
+	}
+	rs3 := rs2.Copy()
+	rs3.Revision = memGit.Commit("update TasksCfg", rs2.Revision)
+	fillCaches(t, ctx, s.taskCfgCache, rs3, tasksCfg3)
+	insertJobs(t, ctx, s, rs3)
+
+	// Mock the bots and tasks.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Android", "device_type": "grouper"})
+	bot3 := makeBot("bot3", map[string]string{"pool": alternatePool, "os": "Android", "device_type": "grouper"})
+	mockBots(t, swarmingClient1, bot1, bot2)
+	mockBots(t, swarmingClient2, bot3)
+
+	// Cycle. Ensure that we triggered the Build task.
+	runMainLoop(t, s, ctx)
+	require.NoError(t, s.tCache.Update(ctx))
+	tasks, err := s.tCache.GetTasksForCommits(rs3.Repo, []string{rs3.Revision})
+	require.NoError(t, err)
+	t1 := tasks[rs3.Revision][tcc_testutils.BuildTaskName]
+	require.NotNil(t, t1)
+	require.Equal(t, tcc_testutils.BuildTaskName, t1.Name)
+
+	// The task is complete.
+	t1.Status = types.TASK_STATUS_SUCCESS
+	t1.Finished = now.Now(ctx)
+	t1.IsolatedOutput = "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/86"
+	require.NoError(t, s.putTask(ctx, t1))
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest, t1.IsolatedOutput}).Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbabc123/56", nil)
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest, t1.IsolatedOutput}).Return("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccabc123/56", nil)
+
+	// Mock the bots and tasks.
+	mockBots(t, swarmingClient1, bot1, bot2)
+	mockBots(t, swarmingClient2, bot3)
+	runMainLoop(t, s, ctx)
+	require.NoError(t, s.tCache.Update(ctx))
+	tasks, err = s.tCache.GetTasksForCommits(rs3.Repo, []string{rs3.Revision})
+	require.NoError(t, err)
+	require.Equal(t, 3, len(tasks[rs3.Revision]))
+
+	// Ensure that the Test and Perf task triggered on the correct swarming
+	// instances.
+	testTask := tasks[rs3.Revision][tcc_testutils.TestTaskName]
+	require.NotNil(t, testTask)
+	_, err = swarmingClient1.GetRequest(ctx, &apipb.TaskIdRequest{TaskId: testTask.SwarmingTaskId})
+	require.NoError(t, err)
+	require.Equal(t, types.TaskExecutor_Default, testTask.TaskExecutor)
+	perfTask := tasks[rs3.Revision][tcc_testutils.PerfTaskName]
+	require.NotNil(t, perfTask)
+	_, err = swarmingClient2.GetRequest(ctx, &apipb.TaskIdRequest{TaskId: perfTask.SwarmingTaskId})
+	require.NoError(t, err)
+	require.Equal(t, taskExec2Name, perfTask.TaskExecutor)
 }
 
 func TestScoreCandidate_TryJob_PrioritizedHigherByWaitTime(t *testing.T) {

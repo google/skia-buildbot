@@ -101,14 +101,13 @@ type TaskScheduler struct {
 	pendingInsert    map[string]bool
 	pendingInsertMtx sync.RWMutex
 
-	pools         []string
 	pubsubCount   metrics2.Counter
 	pubsubTopic   string
 	queue         []*TaskCandidate // protected by queueMtx.
 	queueMtx      sync.RWMutex
 	repos         repograph.Map
 	skipTasks     *skip_tasks.DB
-	taskExecutors map[string]types.TaskExecutor
+	taskExecutors *types.TaskExecutors
 	taskCfgCache  task_cfg_cache.TaskCfgCache
 	tCache        cache.TaskCache
 	// testWaitGroup keeps track of any goroutines the TaskScheduler methods
@@ -120,7 +119,7 @@ type TaskScheduler struct {
 	window                window.Window
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, rbeCas cas.CAS, rbeCasInstance string, taskExecutors map[string]types.TaskExecutor, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string, debugBusyBots BusyBotsDebugLog) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, rbeCas cas.CAS, rbeCasInstance string, taskExecutors *types.TaskExecutors, c *http.Client, timeDecayAmt24Hr float64, pubsubTopic string, taskCfgCache task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string, debugBusyBots BusyBotsDebugLog) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -153,7 +152,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 		diagInstance:          diagInstance,
 		jCache:                jCache,
 		pendingInsert:         map[string]bool{},
-		pools:                 pools,
 		pubsubCount:           metrics2.GetCounter("task_scheduler_pubsub_handler"),
 		pubsubTopic:           pubsubTopic,
 		queue:                 []*TaskCandidate{},
@@ -484,7 +482,7 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo commitGet
 type taskSchedulerMainLoopDiagnostics struct {
 	StartTime  time.Time        `json:"startTime"`
 	EndTime    time.Time        `json:"endTime"`
-	Error      string           `json:"error,omitEmpty"`
+	Error      string           `json:"error,omitempty"`
 	Candidates []*TaskCandidate `json:"candidates"`
 	FreeBots   []*types.Machine `json:"freeBots"`
 }
@@ -1228,8 +1226,8 @@ func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*TaskCand
 			s.pendingInsertMtx.Lock()
 			s.pendingInsert[t.Id] = true
 			s.pendingInsertMtx.Unlock()
-			taskExecutor, ok := s.taskExecutors[t.TaskExecutor]
-			if !ok {
+			taskExecutor, _ := s.taskExecutors.Get(t.TaskExecutor)
+			if taskExecutor == nil {
 				recordErr("Failed to trigger task", skerr.Fmt("Unknown task executor %q wanted by %s", candidate.TaskSpec.TaskExecutor, candidate.Name))
 				return
 			}
@@ -1399,14 +1397,11 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	var freeMachines []*types.Machine
 	var freeMachinesMtx sync.Mutex
 	getFreeMachinesGroup := errgroup.Group{}
-	for taskExecName, taskExec := range s.taskExecutors {
-		if taskExecName == types.TaskExecutor_UseDefault {
-			// This one will be handled by the explicitly-named entry.
-			continue
-		}
+	for taskExec, pools := range s.taskExecutors.Iterate() {
 		taskExec := taskExec
+		pools := pools
 		getFreeMachinesGroup.Go(func() error {
-			m, err := getFreeMachines(ctx, taskExec, s.busyBots, s.pools)
+			m, err := getFreeMachines(ctx, taskExec, s.busyBots, pools)
 			if err != nil {
 				return err
 			}
@@ -1658,15 +1653,12 @@ func (s *TaskScheduler) updateUnfinishedTasks(ctx context.Context) error {
 	unfinishedIDsByExecutor := map[string][]string{}
 	for _, t := range tasks {
 		executor := t.TaskExecutor
-		if executor == types.TaskExecutor_UseDefault {
-			executor = types.DefaultTaskExecutor
-		}
 		unfinishedIDsByExecutor[executor] = append(unfinishedIDsByExecutor[executor], t.SwarmingTaskId)
 	}
 	for executorName := range unfinishedIDsByExecutor {
 		ids := unfinishedIDsByExecutor[executorName]
-		taskExecutor, ok := s.taskExecutors[executorName]
-		if !ok {
+		taskExecutor, _ := s.taskExecutors.Get(executorName)
+		if taskExecutor == nil {
 			return skerr.Fmt("Tasks use unknown task executor %q: %v", executorName, ids)
 		}
 		finishedStates, err := taskExecutor.GetTaskCompletionStatuses(ctx, ids)
@@ -1962,11 +1954,20 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 	}
 
 	// Obtain the Swarming task data.
-	res, err := s.taskExecutors[types.TaskExecutor_Swarming].GetTaskResult(ctx, msg.SwarmingTaskId)
-	if err != nil {
+	var res *types.TaskResult
+	var err error
+	for taskExec := range s.taskExecutors.Iterate() {
+		var err error
+		res, err = taskExec.GetTaskResult(ctx, msg.SwarmingTaskId)
+		if err == nil {
+			break
+		}
+	}
+	if res == nil {
 		sklog.Errorf("pubsub: Failed to retrieve task from Swarming: %s", err)
 		return true
 	}
+
 	// Skip unfinished tasks.
 	if util.TimeIsZero(res.Finished) {
 		return true

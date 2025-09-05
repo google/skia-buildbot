@@ -332,11 +332,9 @@ func main() {
 	cas, err := rbe.NewClient(ctx, rbeInstance, ts)
 	assertNoError(err)
 	swarmingTaskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, rbeInstance, "")
-	taskExecs := map[string]types.TaskExecutor{
-		types.TaskExecutor_UseDefault: swarmingTaskExec,
-		types.TaskExecutor_Swarming:   swarmingTaskExec,
-	}
-	s, err := scheduling.NewTaskScheduler(ctx, d, nil, windowPeriod, 0, repos, cas, rbeInstance, taskExecs, http.DefaultClient, 0.99999, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, nil, "", scheduling.BusyBotsDebugLoggingOff)
+	taskExecs := types.NewTaskExecutors("fake-swarming")
+	taskExecs.Set("fake-swarming", swarmingTaskExec, swarming.POOLS_PUBLIC)
+	s, err := scheduling.NewTaskScheduler(ctx, d, nil, windowPeriod, 0, repos, cas, rbeInstance, taskExecs, http.DefaultClient, 0.99999, "", taskCfgCache, nil, nil, "", scheduling.BusyBotsDebugLoggingOff)
 	assertNoError(err)
 
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
@@ -446,7 +444,7 @@ func main() {
 			break
 		}
 	}
-	elapsed := time.Now().Sub(started)
+	elapsed := time.Since(started)
 
 	// Sanitize the scheduling data so that we can serialize it and compare it
 	// later.

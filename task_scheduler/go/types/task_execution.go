@@ -2,9 +2,16 @@ package types
 
 import (
 	"context"
+	"iter"
 	"time"
 
 	"go.skia.org/infra/go/cipd"
+)
+
+const (
+	// An empty string in TaskExecutor indicates that the default should be
+	// used.
+	TaskExecutor_Default = ""
 )
 
 // CacheRequest is a request for a named cache on a machine.
@@ -73,4 +80,43 @@ type TaskExecutor interface {
 	GetTaskCompletionStatuses(ctx context.Context, taskIDs []string) ([]bool, error)
 	// TriggerTask triggers a new task to run.
 	TriggerTask(ctx context.Context, req *TaskRequest) (*TaskResult, error)
+}
+
+type TaskExecutors struct {
+	execs      map[string]TaskExecutor
+	pools      map[string][]string
+	defaultKey string
+}
+
+func NewTaskExecutors(defaultKey string) *TaskExecutors {
+	return &TaskExecutors{
+		execs:      map[string]TaskExecutor{},
+		pools:      map[string][]string{},
+		defaultKey: defaultKey,
+	}
+}
+
+func (t *TaskExecutors) Get(key string) (TaskExecutor, []string) {
+	if key == TaskExecutor_Default {
+		key = t.defaultKey
+	}
+	return t.execs[key], t.pools[key]
+}
+
+func (t *TaskExecutors) Set(key string, exec TaskExecutor, pools []string) {
+	if key == TaskExecutor_Default {
+		key = t.defaultKey
+	}
+	t.execs[key] = exec
+	t.pools[key] = pools
+}
+
+func (t *TaskExecutors) Iterate() iter.Seq2[TaskExecutor, []string] {
+	return func(yield func(TaskExecutor, []string) bool) {
+		for key, exec := range t.execs {
+			if !yield(exec, t.pools[key]) {
+				return
+			}
+		}
+	}
 }
