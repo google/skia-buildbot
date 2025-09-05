@@ -75,6 +75,7 @@ def karma_test(
             "//:node_modules/karma-chai-dom",
             "//:node_modules/karma-spec-reporter",
             "//:node_modules/mocha",
+            "@rules_browsers//browsers/chromium",
         ] + static_karma_files,
         args = [
             "start",

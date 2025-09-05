@@ -5,7 +5,6 @@ nodejs_test(
     src = "typescript_nodejs_test.ts",
     data = [
         "//:puppeteerrc_js_expanded",
-        "//puppeteer-tests:chrome",
     ],
     tags = ["manual"],
     visibility = ["//bazel/test_on_env:__pkg__"],

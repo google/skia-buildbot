@@ -221,9 +221,12 @@ def nodejs_test(
             "--colors",
             "$(rootpath %s)" % "%s_js_entry_point.js" % name,
         ] + (["--inspect-brk"] if wait_for_debugger else []),
-        env = env,
         tags = tags,
         visibility = visibility,
+        env = env | {
+            "CHROME_BIN": "$(CHROME-HEADLESS-SHELL)",
+        },
+        toolchains = ["@rules_browsers//browsers/chromium:toolchain_alias"],
     )
 
 def nodejs_binary(
