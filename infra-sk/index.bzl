@@ -215,6 +215,7 @@ def nodejs_test(
             # Pulls any transitives not included in the JS bundle, such as Puppeteer's Chromium
             # binary.
             src_lib,
+            "@rules_browsers//browsers/chromium",
         ],
         fixed_args = [
             "--timeout 60000",
