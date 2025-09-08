@@ -535,6 +535,9 @@
         },
         "default_range": {
           "type": "integer"
+        },
+        "default_xaxis_domain": {
+          "type": "string"
         }
       },
       "additionalProperties": false,

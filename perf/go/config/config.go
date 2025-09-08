@@ -900,6 +900,9 @@ type QueryConfig struct {
 	// DefaultRange determines the time range of datapoints to obtain when displaying a graph without
 	// ranges specified. Specified in seconds.
 	DefaultRange int64 `json:"default_range,omitempty"`
+
+	// DefaultXaxisDomain. Either 'commit' or 'date'. If empty will default to 'commit' in ts logic
+	DefaultXaxisDomain string `json:"default_xaxis_domain,omitempty"`
 }
 
 // Experiments contains experiment flags for the instance.

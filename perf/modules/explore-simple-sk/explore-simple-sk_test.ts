@@ -25,12 +25,16 @@ import {
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { generateFullDataFrame } from '../dataframe/test_utils';
 import { UserIssueMap } from '../dataframe/dataframe_context';
+import { MdSwitch } from '@material/web/switch/switch';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 
 fetchMock.config.overwriteRoutes = true;
 
 const now = 1726081856; // an arbitrary UNIX time;
 const timeSpan = 89; // an arbitrary prime number for time span between commits .
+
+// Helper function to wait for the next event loop cycle
+const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 describe('calculateRangeChange', () => {
   const offsets: CommitRange = [100, 120] as CommitRange;
@@ -471,6 +475,7 @@ describe('plotSummary', () => {
     explore.state.plotSummary = true;
     explore['tracesRendered'] = true;
     explore.render();
+    await tick();
 
     const plotSummaryElement = explore['plotSummary'].value;
     assert.notEqual(plotSummaryElement, undefined);
@@ -479,6 +484,7 @@ describe('plotSummary', () => {
   it('Plot Summary bar not enabled', async () => {
     const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     explore.render();
+    await tick();
 
     const plotSummaryElement = explore['plotSummary'].value;
     assert.equal(plotSummaryElement, undefined);
@@ -504,6 +510,63 @@ describe('updateBrowserURL', () => {
     assert.equal(pushedUrl.searchParams.get('begin'), '100');
     assert.equal(pushedUrl.searchParams.get('end'), '200');
     assert.equal(pushedUrl.searchParams.get('request_type'), '0');
+  });
+});
+
+describe('State Propagation and UI Sync', () => {
+  let explore: ExploreSimpleSk;
+  let commitSwitch: MdSwitch;
+
+  beforeEach(async () => {
+    // Mock a successful response for /_/initpage/
+    fetchMock.get(/_\/initpage\/.*/, {
+      dataframe: {
+        traceset: null,
+        header: null,
+        paramset: {},
+        skip: 0,
+      },
+      ticks: [],
+      skps: [],
+      msg: '',
+    });
+
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await tick(); // Wait for the element to render and connectedCallback to run
+
+    // ElementSk renders to light DOM
+    commitSwitch = explore.querySelector('#commit-switch') as MdSwitch;
+    assert.exists(commitSwitch, 'commit-switch should exist');
+  });
+
+  afterEach(() => {
+    fetchMock.reset();
+  });
+
+  it('should update switch state when domain is set to "date"', async () => {
+    const newState = new State();
+    newState.domain = 'date';
+    explore.state = newState;
+    await tick(); // Wait for re-render
+    assert.isTrue(commitSwitch.selected, 'Switch should be selected for date domain');
+    assert.isTrue(explore['xAxisSwitch'], 'xAxisSwitch property should be true');
+  });
+
+  it('should update switch state when domain is set to "commit"', async () => {
+    // First set to date to ensure change detection
+    const initialSate = new State();
+    initialSate.domain = 'date';
+    explore.state = initialSate;
+    await tick();
+    assert.isTrue(commitSwitch.selected, 'Switch should be selected for date domain');
+
+    // Now test changing to commit
+    const newState = new State();
+    newState.domain = 'commit';
+    explore.state = newState;
+    await tick(); // Wait for re-render
+    assert.isFalse(commitSwitch.selected, 'Switch should not be selected for commit domain');
+    assert.isFalse(explore['xAxisSwitch'], 'xAxisSwitch property should be false');
   });
 });
 

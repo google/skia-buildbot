@@ -131,6 +131,7 @@ export interface QueryConfig {
 	query_commit_chunk_size?: number;
 	max_empty_tiles?: number;
 	default_range?: number;
+	default_xaxis_domain?: string;
 }
 
 export interface Commit {

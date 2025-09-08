@@ -81,6 +81,7 @@ karma_test(
     src = "explore-simple-sk_test.ts",
     deps = [
         ":explore-simple-sk",
+        "//:node_modules/@material/web",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//:node_modules/fetch-mock",

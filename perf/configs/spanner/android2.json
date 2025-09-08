@@ -80,7 +80,8 @@
         "show_google_plot": "true",
         "use_titles": "true"
       },
-      "query_commit_chunk_size": 7000
+      "query_commit_chunk_size": 7000,
+      "default_xaxis_domain": "date"
     },
     "data_point_config": {
       "keys_for_useful_links": [

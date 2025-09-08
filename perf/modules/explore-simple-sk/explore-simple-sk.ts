@@ -1472,22 +1472,26 @@ export class ExploreSimpleSk extends ElementSk {
   // Handle the x-axis switch toggle.
   // If the switch is selected, set the x-axis to date mode.
   switchXAxis(target: MdSwitch | null) {
-    if (target!.selected) {
-      this._state.labelMode = LabelMode.Date;
-      this._state.domain = 'date';
-    } else {
-      this._state.labelMode = LabelMode.CommitPosition;
-      this._state.domain = 'commit';
-    }
+    if (!target) return;
+    const newDomain = target.selected ? 'date' : 'commit';
+    if (this._state.domain !== newDomain) {
+      if (target.selected) {
+        this._state.labelMode = LabelMode.Date;
+        this._state.domain = 'date';
+      } else {
+        this._state.labelMode = LabelMode.CommitPosition;
+        this._state.domain = 'commit';
+      }
 
-    if (this.is_chart_split) {
-      const detail = {
-        index: this.state.graph_index,
-        domain: this.state.domain,
-      };
-      this.dispatchEvent(new CustomEvent('x-axis-toggled', { detail, bubbles: true }));
+      if (this.is_chart_split) {
+        const detail = {
+          index: this.state.graph_index,
+          domain: this.state.domain,
+        };
+        this.dispatchEvent(new CustomEvent('x-axis-toggled', { detail, bubbles: true }));
+      }
+      this.updateXAxis(this._state.domain);
     }
-    this.updateXAxis(this._state.domain);
   }
 
   // Set the x-axis domain to either commit or date.
@@ -3801,6 +3805,13 @@ export class ExploreSimpleSk extends ElementSk {
     }
     state = this.rationalizeTimeRange(state);
     this._state = state;
+
+    // Synchronize the xAxisSwitch with the state's domain
+    const isDateDomain = this._state.domain === 'date';
+    if (this.xAxisSwitch !== isDateDomain) {
+      this.xAxisSwitch = isDateDomain;
+    }
+
     if (this.range) {
       this.range!.state = {
         begin: this._state.begin,

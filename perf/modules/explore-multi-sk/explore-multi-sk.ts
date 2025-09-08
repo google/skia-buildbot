@@ -153,6 +153,8 @@ export class ExploreMultiSk extends ElementSk {
 
     await this.initializeDefaults();
 
+    this._state.domain = this.defaults?.default_xaxis_domain === 'date' ? 'date' : 'commit';
+
     this.stateHasChanged = stateReflector(
       () => this.state as unknown as HintableObject,
       async (hintableState) => {
@@ -178,7 +180,10 @@ export class ExploreMultiSk extends ElementSk {
         while (this.exploreElements.length > graphConfigs.length) {
           this.exploreElements.pop();
           this.graphConfigs.pop();
-          this.graphDiv!.removeChild(this.graphDiv!.lastChild!);
+          // Ensure graphDiv exists and has children before removing.
+          if (this.graphDiv && this.graphDiv.lastChild) {
+            this.graphDiv.removeChild(this.graphDiv.lastChild);
+          }
         }
 
         const validGraphs: GraphConfig[] | undefined = [];
@@ -287,13 +292,17 @@ export class ExploreMultiSk extends ElementSk {
    *   requests.
    */
   private async initializeDefaults() {
-    await fetch(`/_/defaults/`, {
-      method: 'GET',
-    })
-      .then(jsonOrThrow)
-      .then((json) => {
-        this.defaults = json;
+    try {
+      const response = await fetch(`/_/defaults/`, {
+        method: 'GET',
       });
+      const json = await jsonOrThrow(response);
+      this.defaults = json;
+    } catch (error: any) {
+      console.error('Error fetching defaults:', error);
+      errorMessage(`Failed to load default configuration: ${error.message || error}`);
+      this.defaults = null;
+    }
 
     if (this.defaults !== null) {
       if (
@@ -968,7 +977,7 @@ export class ExploreMultiSk extends ElementSk {
       selected: explore.state.selected,
       horizontal_zoom: explore.state.horizontal_zoom,
       incremental: false,
-      domain: explore.state.domain || this.state.domain,
+      domain: this.state.domain, // Always use the domain from ExploreMultiSk's state
       labelMode: LabelMode.Date,
       disable_filter_parent_traces: explore.state.disable_filter_parent_traces,
       plotSummary: this.state.plotSummary,

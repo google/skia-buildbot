@@ -59,6 +59,7 @@ perf/res/common
 perf/third_party
 perf/timestamp.json
 perf/local.toml
+perf/configs/local
 perf/client_secrets.json
 perf/go/ingester/testdata/local-ingest-test/
 push/third_party
@@ -116,6 +117,9 @@ _bazel_*
 
 # Gemini CLI
 .gemini
+
+# Gemini Context
+GEMINI.md
 
 # Dotenv
 .env

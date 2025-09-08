@@ -13,7 +13,8 @@ import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 describe('ExploreMultiSk', () => {
   let element: ExploreMultiSk;
 
-  beforeEach(async () => {
+  // Common setup for most tests
+  const setupElement = async (mockDefaults: any = null) => {
     setUpExploreDemoEnv();
     window.perf = {
       instance_url: '',
@@ -52,13 +53,14 @@ describe('ExploreMultiSk', () => {
       roles: ['editor'],
     });
 
-    fetchMock.get('/_/defaults/', {
+    const defaultsResponse = mockDefaults || {
       default_param_selections: {},
       default_url_values: {
         summary: 'true',
       },
       include_params: ['config'],
-    });
+    };
+    fetchMock.get('/_/defaults/', defaultsResponse);
 
     // Mock the data fetch that new graphs will trigger.
     fetchMock.post('/_/frame/v2', {
@@ -70,7 +72,9 @@ describe('ExploreMultiSk', () => {
     });
 
     element = setUpElementUnderTest<ExploreMultiSk>('explore-multi-sk')();
-  });
+    // Wait for connectedCallback to finish, including initializeDefaults
+    await fetchMock.flush(true);
+  };
 
   afterEach(() => {
     fetchMock.restore();
@@ -78,6 +82,10 @@ describe('ExploreMultiSk', () => {
   });
 
   describe('State management', () => {
+    beforeEach(async () => {
+      await setupElement();
+    });
+
     it('initializes with a default state', () => {
       assert.notEqual(element.state.begin, -1);
       assert.notEqual(element.state.end, -1);
@@ -92,7 +100,83 @@ describe('ExploreMultiSk', () => {
     });
   });
 
+  describe('Default Domain (X-Axis Scale)', () => {
+    it('sets domain to "date" if default_xaxis_domain is "date"', async () => {
+      await setupElement({ default_xaxis_domain: 'date' });
+      assert.equal(element.state.domain, 'date');
+    });
+
+    it('sets domain to "commit" if default_xaxis_domain is "commit"', async () => {
+      await setupElement({ default_xaxis_domain: 'commit' });
+      assert.equal(element.state.domain, 'commit');
+    });
+
+    it('sets domain to "commit" if default_xaxis_domain is missing', async () => {
+      await setupElement({}); // No default_xaxis_domain property
+      assert.equal(element.state.domain, 'commit');
+    });
+
+    it('sets domain to "commit" if defaults fails to load (simulated)', async () => {
+      // This setup is slightly different as we need to mock a network failure for defaults.
+      setUpExploreDemoEnv();
+      window.perf = {
+        instance_url: '',
+        commit_range_url: '',
+        key_order: ['config'],
+        demo: true,
+        radius: 7,
+        num_shift: 10,
+        interesting: 25,
+        step_up_only: false,
+        display_group_by: true,
+        hide_list_of_commits_on_explore: false,
+        notifications: 'none',
+        fetch_chrome_perf_anomalies: false,
+        feedback_url: '',
+        chat_url: '',
+        help_url_override: '',
+        trace_format: 'chrome',
+        need_alert_action: false,
+        bug_host_url: '',
+        git_repo_url: '',
+        keys_for_commit_range: [],
+        keys_for_useful_links: [],
+        skip_commit_detail_display: false,
+        image_tag: 'fake-tag',
+        remove_default_stat_value: false,
+        enable_skia_bridge_aggregation: false,
+        show_json_file_display: false,
+        always_show_commit_info: false,
+        show_triage_link: true,
+      };
+      fetchMock.config.overwriteRoutes = true;
+      fetchMock.get('/_/login/status', {
+        email: 'user@google.com',
+        roles: ['editor'],
+      });
+      fetchMock.get('/_/defaults/', Promise.reject(new Error('Network error')));
+      fetchMock.post('/_/frame/v2', {});
+
+      element = setUpElementUnderTest<ExploreMultiSk>('explore-multi-sk')();
+      try {
+        await fetchMock.flush(true);
+      } catch (e) {
+        console.log('Caught expected error from /_/defaults/ failure:', e);
+      }
+      // Even with the error, connectedCallback should complete.
+      assert.equal(
+        element.state.domain,
+        'commit',
+        'Domain should default to commit on fetch failure'
+      );
+    });
+  });
+
   describe('Graph management', () => {
+    beforeEach(async () => {
+      await setupElement();
+    });
+
     it('adds an empty graph', () => {
       const initialGraphCount = element['exploreElements'].length;
       element['addEmptyGraph']();
@@ -159,6 +243,10 @@ describe('ExploreMultiSk', () => {
   });
 
   describe('Shortcut functionality', () => {
+    beforeEach(async () => {
+      await setupElement();
+    });
+
     it('fetches graph configs from a shortcut', async () => {
       const shortcutId = 'test-shortcut-id';
       const mockGraphConfigs: GraphConfig[] = [
@@ -190,6 +278,11 @@ describe('ExploreMultiSk', () => {
 
   describe('Test Picker Integration', () => {
     beforeEach(async () => {
+      await setupElement({
+        default_param_selections: {},
+        default_url_values: {},
+        include_params: ['config'],
+      });
       element.state.useTestPicker = true;
       await element['initializeTestPicker']();
     });
@@ -252,6 +345,10 @@ describe('ExploreMultiSk', () => {
   });
 
   describe('Graph Splitting', () => {
+    beforeEach(async () => {
+      await setupElement();
+    });
+
     it('splits a single graph with multiple traces into multiple graphs', async () => {
       // Setup a single graph with two traces.
       const exploreSimpleSk = new ExploreSimpleSk();
@@ -289,6 +386,7 @@ describe('ExploreMultiSk', () => {
         { queries: ['config=test1', 'config=test2'], formulas: [], keys: '' },
       ];
       element.state.splitByKeys = []; // No split key.
+      element.state.totalGraphs = 1;
 
       const clearSpy = sinon.spy(element, 'clearGraphs' as any);
       await element['splitGraphs']();
@@ -300,6 +398,10 @@ describe('ExploreMultiSk', () => {
   });
 
   describe('Synchronization', () => {
+    beforeEach(async () => {
+      await setupElement();
+    });
+
     it('syncs the x-axis label across all graphs', () => {
       const graph1 = element['addEmptyGraph']()!;
       const graph2 = element['addEmptyGraph']()!;
@@ -356,7 +458,8 @@ describe('ExploreMultiSk', () => {
   });
 
   describe('Pagination', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
+      await setupElement();
       // Mock stateHasChanged and splitGraphs for pagination tests.
       element['stateHasChanged'] = sinon.spy();
       sinon.stub(element, 'splitGraphs' as any);
@@ -387,19 +490,13 @@ describe('ExploreMultiSk', () => {
   });
 
   describe('Test Picker ReadOnly behavior', () => {
-    beforeEach(async () => {
-      // This is needed for test picker to initialize.
-      fetchMock.get('/_/defaults/', {
+    // This block needs special handling for setupElement to control include_params.
+    it('sets test-picker to readonly on initialization if graphs exist', async () => {
+      await setupElement({
         default_param_selections: {},
         default_url_values: {},
         include_params: ['config'],
       });
-      // We need to re-create the element for each test in this block
-      // to have a clean state, especially for the spies.
-      element = setUpElementUnderTest<ExploreMultiSk>('explore-multi-sk')();
-    });
-
-    it('sets test-picker to readonly on initialization if graphs exist', async () => {
       // Mock exploreElements to exist before initializeTestPicker is called.
       element['exploreElements'] = [new ExploreSimpleSk()];
       await element['initializeTestPicker']();
