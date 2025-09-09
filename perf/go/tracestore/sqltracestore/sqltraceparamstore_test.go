@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/paramtools"
@@ -71,4 +72,27 @@ func TestRead_NoRows_Success(t *testing.T) {
 	assert.NoError(t, err)
 	// Expect an empty map.
 	assert.Equal(t, map[string]paramtools.Params{}, traceParamsFromDb)
+}
+
+func TestTraceIdFromBytesBackToBytesConversion(t *testing.T) {
+	makeId := func(x int) string {
+		// nameSpace selection doesn't matter, we just want some IDs generated.
+		return uuid.NewSHA1(uuid.NameSpaceOID, []byte(fmt.Sprintf("%x", x))).String()
+	}
+
+	testDataLen := 1000
+	testData := make([][]byte, testDataLen)
+	for i := range testDataLen {
+		s := makeId(i)
+		testData[i] = []byte(s)
+	}
+
+	testDataForSql := make([]string, testDataLen)
+	for i := range testDataLen {
+		testDataForSql[i] = string(traceIDForSQLFromTraceIDAsBytes(testData[i]))
+	}
+
+	testDataResults, err := convertTraceIDsToBytes(testDataForSql)
+	assert.NoError(t, err)
+	assert.Equal(t, testData, testDataResults)
 }

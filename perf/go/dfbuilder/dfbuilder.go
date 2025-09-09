@@ -3,6 +3,7 @@ package dfbuilder
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"sync"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
+	pqp "go.skia.org/infra/perf/go/preflightqueryprocessor"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracefilter"
@@ -66,7 +68,6 @@ type builder struct {
 	QueryCommitChunkSize               int
 	maxEmptyTiles                      int
 	tracecache                         *tracecache.TraceCache
-	mux                                *sync.Mutex
 	preflightSubqueriesForExistingKeys bool
 
 	newTimer                      metrics2.Float64SummaryMetric
@@ -93,7 +94,6 @@ func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceSt
 		filterParentTraces:                 filterParentTraces,
 		QueryCommitChunkSize:               queryCommitChunkSize,
 		maxEmptyTiles:                      maxEmptyTiles,
-		mux:                                &sync.Mutex{},
 		preflightSubqueriesForExistingKeys: preflightSubqueriesForExistingKeys,
 		newTimer:                           metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_new"),
 		newByTileTimer:                     metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newByTile"),
@@ -647,13 +647,11 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 }
 
 // PreflightQuery implements dataframe.DataFrameBuilder.
-func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceParamSet paramtools.ReadOnlyParamSet) (int64, paramtools.ParamSet, error) {
+func (b *builder) PreflightQuery(ctx context.Context, mainQuery *query.Query, referenceParamSet paramtools.ReadOnlyParamSet) (int64, paramtools.ParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder.PreflightQuery")
 	defer span.End()
 
 	defer timer.NewWithSummary("perfserver_dfbuilder_PreflightQuery", b.preflightQueryTimer).Stop()
-
-	var count int64
 
 	timeBeforeGetLatestTile := time.Now()
 	tileNumber, err := b.store.GetLatestTile(ctx)
@@ -661,96 +659,99 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 		return -1, nil, err
 	}
 
-	if q.Empty() {
+	if mainQuery.Empty() {
 		return -1, nil, skerr.Fmt("Can not pre-flight an empty query")
 	}
-	duration := time.Now().Sub(timeBeforeGetLatestTile)
+	duration := time.Since(timeBeforeGetLatestTile)
 	sklog.Debugf("Time spent to get latest tile is %d ms", int64(duration/time.Millisecond))
 
-	// Since the query isn't empty we'll have to run a partial query
-	// to build the ParamSet. Do so over the two most recent tiles.
-	ps := paramtools.NewParamSet()
+	// Since the query isn't empty we'll have to run a partial query to build the ParamSet.
+	// We do so over the configured number of most recent preflight tiles.
 
 	queryContext, cancel := context.WithTimeout(ctx, time.Duration(b.numPreflightTiles)*singleTileQueryTimeout)
 	defer cancel()
-
+	errg, ectx := errgroup.WithContext(queryContext)
 	timeBeforeQueryTraces := time.Now()
-	// Query traces in parallel to speed it up.
-	var wg sync.WaitGroup
-	doAddParams := func(p paramtools.Params) {
-		b.mux.Lock()
-		defer b.mux.Unlock()
-		ps.AddParams(p)
-	}
-	doUpdateCount := func(tileOneCount int64) {
-		b.mux.Lock()
-		defer b.mux.Unlock()
-		if tileOneCount > count {
-			count = tileOneCount
+
+	// Query traces corresponding to the main query. Count their number.
+	// This will get us the ParamSet corresponding to the query, but we should also
+	// find the values appearing for keys present in the main query.
+	// Those are determined by subqueries created by removing keys one at a time.
+	// For example, if the main query is
+	// "benchmark=A&bot=mac&subtest=c1",
+	// then the resulting paramset should contains benchmark values that are determined by
+	// "bot=mac&subtest=c1" query.
+	// In particular, we don't want to put all values for benchmark without any filtering
+	// if there are other keys in the main query that can limit the possible options.
+	mainQueryObj := pqp.NewPreflightMainQueryProcessor(mainQuery)
+	tileNumberClone := tileNumber
+	errg.Go(func() error {
+		return b.preflightProcessRecentTiles(ectx, mainQueryObj, tileNumberClone)
+	})
+
+	// If the flag is enabled, we execute subqueries that will filter values
+	// for keys present in the query.
+	// Otherwise, we just all possible values from the reference ParamSet.
+	if b.preflightSubqueriesForExistingKeys {
+		doCreateSubqueryWithoutKey := func(key string) (*query.Query, error) {
+			newParams := url.Values{}
+			for _, p := range mainQuery.Params {
+				if p.Key() != key {
+					newParams[p.Key()] = p.Values
+				}
+			}
+			return query.New(newParams)
+		}
+
+		// We process all subqueries in parallel.
+		for _, param := range mainQuery.Params {
+			key := param.Key()
+			errg.Go(func() error {
+				qWithoutKey, err := doCreateSubqueryWithoutKey(key)
+
+				if err != nil {
+					sklog.Errorf("failed to create sub-query: %s", err)
+					return err
+				}
+
+				subQueryObj := pqp.NewPreflightSubQueryProcessor(mainQueryObj, qWithoutKey, key)
+
+				// Nothing restricts this key, set all possible values.
+				if qWithoutKey.Empty() {
+					subQueryObj.SetReferenceParamKey(key, referenceParamSet)
+					return nil
+				}
+
+				// Query the database for traces matching the subquery.
+				// Again, we query $(builder.numPreflightTiles) recent tiles.
+				currentTileNumber := tileNumber
+				return b.preflightProcessRecentTiles(ectx, subQueryObj, currentTileNumber)
+			})
+		}
+	} else {
+		for _, p := range mainQuery.Params {
+			key := p.Key()
+			mainQueryObj.SetReferenceParamKey(key, referenceParamSet)
 		}
 	}
-	var queryTraceError error
-	for i := 0; i < b.numPreflightTiles; i++ {
-		wg.Add(1)
-		go func(iterateTileNumber types.TileNumber) {
-			defer wg.Done()
 
-			// Count the matches and sum the params in the tile.
-			cacheMiss, out, err := b.getTraceIds(queryContext, iterateTileNumber, q)
-			if err != nil {
-				queryTraceError = err
-				sklog.Errorf("failed to query traces at tile %d with error: %s", iterateTileNumber, err)
-				return
-			}
-			var tileOneCount int64
-			traceIdsForTile := []paramtools.Params{}
-			for p := range out {
-				tileOneCount++
-				doAddParams(p)
-				traceIdsForTile = append(traceIdsForTile, p)
-			}
-			doUpdateCount(tileOneCount)
-			// At this point we have all the traces gathered. Let's add them
-			// to the cache if there is a cache configured for the instance.
-			if cacheMiss {
-				b.cacheTraceIdsIfNeeded(ctx, iterateTileNumber, q, traceIdsForTile)
-			}
-		}(tileNumber)
-
-		// Now move to the previous tile.
-		tileNumber = tileNumber.Prev()
-		if tileNumber == types.BadTileNumber {
-			break
-		}
-	}
-	wg.Wait()
-	duration = time.Now().Sub(timeBeforeQueryTraces)
-	sklog.Debugf("Time spent to query traces is %d ms", int64(duration/time.Millisecond))
-	if queryTraceError != nil {
-		return -1, nil, fmt.Errorf("failed to query traces: %s", queryTraceError)
-	}
-
-	// Now we have the ParamSet that corresponds to the query, but for each
-	// key in the query we need to go back and put in all the values that
-	// appear for that key since the user can make more selections in that
-	// key.
-	// TODO(mordeckimarcin) implement new logic using preflightSubqueriesForExistingKeys feature flag.
-	timeBeforeQueryPlan := time.Now()
-	queryPlan, err := q.QueryPlan(ps.Freeze())
-	duration = time.Now().Sub(timeBeforeQueryPlan)
-	sklog.Debugf("Time spent to query plan is %d ms", int64(duration/time.Millisecond))
-	if err != nil {
+	if err = errg.Wait(); err != nil {
 		return -1, nil, err
 	}
-	for key := range queryPlan {
-		ps[key] = referenceParamSet[key]
-	}
+
+	duration = time.Since(timeBeforeQueryTraces)
+	sklog.Debugf("Time spent to query traces is %d ms", int64(duration/time.Millisecond))
+
 	timeBeforeNormalize := time.Now()
+
+	ps := mainQueryObj.GetParamSet()
+	count := mainQueryObj.GetCount()
+
 	ps.Normalize()
-	duration = time.Now().Sub(timeBeforeNormalize)
+	duration = time.Since(timeBeforeNormalize)
 	sklog.Debugf("Time spent to normalize param set is %d ms", int64(duration/time.Millisecond))
 
-	return count, ps, nil
+	return int64(count), *ps, nil
 }
 
 // NumMatches implements dataframe.DataFrameBuilder.
@@ -883,6 +884,54 @@ func (b *builder) getTraceIds(ctx context.Context, tileNumber types.TileNumber, 
 	sklog.Infof("Cache is not enabled, performing database query.")
 	paramsChannel, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
 	return true, paramsChannel, err
+}
+
+// Query matching traceIDs for a single tile and process them using given aggregator.
+func (b *builder) preflightProcessTile(ctx context.Context, aggregator pqp.ParamSetAggregator, iterateTileNumber types.TileNumber) error {
+	// Count the matches and sum the params in the tile.
+	q := aggregator.GetQuery()
+	cacheMiss, out, err := b.getTraceIds(ctx, iterateTileNumber, q)
+	if err != nil {
+		sklog.Errorf("failed to query traces at tile %d with error: %s", iterateTileNumber, err)
+		return err
+	}
+
+	traceIdsForTile := aggregator.ProcessTraceIds(out)
+
+	// At this point we have all the traces gathered. Let's add them
+	// to the cache if there is a cache configured for the instance.
+	if cacheMiss {
+		b.cacheTraceIdsIfNeeded(ctx, iterateTileNumber, q, traceIdsForTile)
+	}
+
+	return nil
+}
+
+func (b *builder) preflightProcessRecentTiles(ctx context.Context, aggregator pqp.ParamSetAggregator, tileNumber types.TileNumber) error {
+	errgroupTile, ectx := errgroup.WithContext(ctx)
+
+	// Query all tiles in parallel to speed things up.
+	for i := 0; i < b.numPreflightTiles; i++ {
+		currentTileNumber := tileNumber
+		errgroupTile.Go(func() error {
+			return b.preflightProcessTile(ectx, aggregator, currentTileNumber)
+		})
+
+		// Now move to the previous tile.
+		tileNumber = tileNumber.Prev()
+		if tileNumber == types.BadTileNumber {
+			break
+		}
+	}
+
+	err := errgroupTile.Wait()
+	if err != nil {
+		sklog.Errorf("Failed to query recent tiles with error %s", err)
+		return err
+	}
+
+	aggregator.Finalize()
+	return nil
 }
 
 // Validate that *builder faithfully implements the DataFrameBuidler interface.

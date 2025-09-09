@@ -3,6 +3,8 @@ package sqltracestore
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
+	"strings"
 	"text/template"
 
 	"go.skia.org/infra/go/paramtools"
@@ -24,12 +26,9 @@ var stmts = map[int]string{
 
 	readTraceParams: `SELECT trace_id, params
         FROM TraceParams
-        WHERE trace_id IN (
-            {{ range $index, $trace_id :=  .MD5HexTraceIDs -}}
-                {{ if $index }},{{ end -}}
-                '{{ $trace_id }}'
-            {{ end -}}
-		)`,
+   			WHERE
+      	trace_id = ANY($1);
+		`,
 	writeTraceParams: `INSERT INTO
         TraceParams (trace_id, params)
         VALUES
@@ -64,22 +63,13 @@ func (s *SQLTraceParamStore) ReadParams(ctx context.Context, traceIds []string) 
 	if len(traceIds) == 0 {
 		return nil, nil
 	}
-	readContext := traceParamsContext{
-		MD5HexTraceIDs: traceIds,
-	}
-	readStmt := stmts[readTraceParams]
-	sqltemplate, err := template.New("").Parse(readStmt)
+
+	traceIdsAsBytes, err := convertTraceIDsToBytes(traceIds)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, err
 	}
 
-	// Expand the template for the SQL.
-	var b bytes.Buffer
-	if err := sqltemplate.Execute(&b, readContext); err != nil {
-		return nil, skerr.Wrapf(err, "failed to expand readTraceParams template")
-	}
-	sql := b.String()
-	rows, err := s.db.Query(ctx, sql)
+	rows, err := s.db.Query(ctx, stmts[readTraceParams], traceIdsAsBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -166,6 +156,27 @@ func (s *SQLTraceParamStore) writeTraceParamsChunk(ctx context.Context, tracePar
 		return skerr.Wrapf(err, "Executing: %q", b.String())
 	}
 	return nil
+}
+
+func traceIDAsBytesFromtraceIDAsString(id string) ([]byte, error) {
+	s := strings.TrimPrefix(id, `\x`)
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to decode trace id: %q", s)
+	}
+	return b, nil
+}
+
+func convertTraceIDsToBytes(traceIds []string) ([][]byte, error) {
+	traceIdsAsBytes := make([][]byte, len(traceIds))
+	for i, id := range traceIds {
+		bytesId, err := traceIDAsBytesFromtraceIDAsString(id)
+		if err != nil {
+			return nil, err
+		}
+		traceIdsAsBytes[i] = bytesId
+	}
+	return traceIdsAsBytes, nil
 }
 
 var _ tracestore.TraceParamStore = (*SQLTraceParamStore)(nil)

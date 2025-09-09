@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"sort"
 	"testing"
 	"time"
 
@@ -38,7 +39,7 @@ var (
 	}
 )
 
-const preflightSubqueriesForExistingKeysFeatureFlag = true
+const preflightSubqueriesForExistingKeysFeatureFlag = false
 
 func getSqlTraceStore(t *testing.T, db pool.Pool, cfg config.DataStoreConfig) (*sqltracestore.SQLTraceStore, *sqltracestore.InMemoryTraceParams) {
 	traceParamStore := sqltracestore.NewTraceParamStore(db)
@@ -584,4 +585,152 @@ func TestPreflightQuery_Cache_Query_Success(t *testing.T) {
 	assert.Equal(t, expectedParamSet, ps)
 	mock_cache.AssertExpectations(t)
 	store.AssertExpectations(t)
+}
+
+func TestPreflightQuery_SingleConstraintFiltering(t *testing.T) {
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
+	require.NoError(t, err)
+
+	instanceConfig.DataStoreConfig.TileSize = 6
+
+	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, true)
+
+	// Add traces that will exercise the filtering logic.
+	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
+		// The target trace that matches both query parameters.
+		",benchmark=speedometer3,bot=mac,test=ChartJS,": 1.0,
+		// A trace that matches the benchmark but not the test.
+		",benchmark=speedometer3,bot=mac,test=OtherTest,": 2.0,
+		// A trace that matches the test but not the benchmark.
+		",benchmark=OtherBench,bot=win,test=ChartJS,": 3.0,
+		// A trace that matches the benchmark but has a different test.
+		",benchmark=speedometer3,bot=mac,test=ThirdTest,": 4.0,
+		// And a complete mismatch.
+		// A trace that matches the benchmark but has a different test.
+		",benchmark=xstream4,bot=z100,test=Ztest,": 5.0,
+	}, "gs://foo.json", time.Now())
+	require.NoError(t, err)
+
+	// The query that should restrict the results significantly.
+	queryString := "benchmark=speedometer3"
+	q, err := query.NewFromString(queryString)
+	require.NoError(t, err)
+
+	// The reference paramset contains all possible values.
+	referenceParamSet := paramtools.ReadOnlyParamSet{
+		"benchmark": {"speedometer3", "OtherBench", "xtream4"},
+		"bot":       {"mac", "win", "z100"},
+		"test":      {"ChartJS", "OtherTest", "ThirdTest", "Ztest"},
+	}
+
+	// Execute the function under test.
+	count, ps, err := builder.PreflightQuery(ctx, q, referenceParamSet)
+	require.NoError(t, err)
+
+	// Only one trace should match the full query.
+	assert.Equal(t, int64(3), count)
+
+	// The crucial part: the returned paramset should be built *only* from the
+	// single matching trace.
+	expectedParamSet := paramtools.ParamSet{
+		"benchmark": {"speedometer3", "OtherBench", "xtream4"},
+		"bot":       {"mac"},
+		"test":      {"ChartJS", "OtherTest", "ThirdTest"},
+	}
+	// Sort the string slices for consistent comparison.
+	for _, v := range expectedParamSet {
+		sort.Strings(v)
+	}
+
+	assert.Equal(t, expectedParamSet, ps)
+}
+
+func TestPreflightQuery_MultiConstraintFiltering(t *testing.T) {
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
+	require.NoError(t, err)
+
+	instanceConfig.DataStoreConfig.TileSize = 6
+	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
+
+	// Add traces that will exercise the filtering logic.
+	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
+		// The target trace that matches both query parameters.
+		",benchmark=speedometer3,bot=mac,test=ChartJS,": 1.0,
+		// A trace that matches the benchmark but not the test.
+		",benchmark=speedometer3,bot=mac,test=OtherTest,": 2.0,
+		// A trace that matches the test but not the benchmark.
+		",benchmark=OtherBench,bot=win,test=ChartJS,": 3.0,
+		// A trace that matches the benchmark but has a different test.
+		",benchmark=speedometer3,bot=mac,test=ThirdTest,": 4.0,
+		// And a complete mismatch.
+		",benchmark=xstream4,bot=z100,test=Ztest,": 5.0,
+	}, "gs://foo.json", time.Now())
+	require.NoError(t, err)
+
+	// The query that should restrict the results significantly.
+	queryString := "benchmark=speedometer3&test=ChartJS"
+	q, err := query.NewFromString(queryString)
+	require.NoError(t, err)
+
+	// The reference paramset contains all possible values.
+	referenceParamSet := paramtools.ReadOnlyParamSet{
+		"benchmark": {"speedometer3", "OtherBench", "xtream4"},
+		"bot":       {"mac", "win", "z100"},
+		"test":      {"ChartJS", "OtherTest", "ThirdTest", "Ztest"},
+	}
+
+	testCases := []struct {
+		name              string
+		enableSubqueries  bool
+		numMatchingTraces int
+		resultPS          paramtools.ParamSet
+	}{
+		{
+			"filter_present_keys",
+			true,
+			1,
+			// The crucial part: the returned paramset should be built using the logic
+			// that for a key in the query, we show all possible values that match the
+			// other query parameters. For keys not in the query, we only show values
+			// that appear in traces that match the full query.
+			paramtools.ParamSet{
+				"benchmark": {"OtherBench", "speedometer3"},
+				"bot":       {"mac"},
+				"test":      {"ChartJS", "OtherTest", "ThirdTest"},
+			},
+		},
+		{
+			"fill_present_keys_with_all_values",
+			false,
+			1,
+			paramtools.ParamSet{
+				"benchmark": {"OtherBench", "speedometer3", "xtream4"},
+				"bot":       {"mac"},
+				"test":      {"ChartJS", "OtherTest", "ThirdTest", "Ztest"},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, tc.enableSubqueries)
+
+			// Execute the function under test.
+			count, ps, err := builder.PreflightQuery(ctx, q, referenceParamSet)
+			require.NoError(t, err)
+
+			// Only one trace should match the full query.
+			assert.Equal(t, int64(tc.numMatchingTraces), count)
+
+			// Sort the string slices for consistent comparison.
+			for _, v := range tc.resultPS {
+				sort.Strings(v)
+			}
+
+			assert.Equal(t, tc.resultPS, ps)
+		})
+	}
 }

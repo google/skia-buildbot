@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "preflightqueryprocessor",
+    srcs = [
+        "preflightmainqueryprocessor.go",
+        "preflightquerybaseprocessor.go",
+        "preflightqueryprocessor.go",
+        "preflightsubqueryprocessor.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/preflightqueryprocessor",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//go/query",
+    ],
+)

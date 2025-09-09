@@ -16,6 +16,7 @@ go_library(
         "//go/vec32",
         "//perf/go/dataframe",
         "//perf/go/git",
+        "//perf/go/preflightqueryprocessor",
         "//perf/go/progress",
         "//perf/go/tracecache",
         "//perf/go/tracefilter",
