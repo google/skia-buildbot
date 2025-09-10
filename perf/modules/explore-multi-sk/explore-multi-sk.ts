@@ -129,6 +129,8 @@ export class ExploreMultiSk extends ElementSk {
 
   private userEmail: string = '';
 
+  private _dataLoading: boolean = false;
+
   private progress: string = '';
 
   private setProgress(value: string) {
@@ -137,7 +139,8 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private _onSplitByChanged = async (e: Event) => {
-    this.dataLoading();
+    this._dataLoading = true;
+    this.testPicker?.setReadOnly(true);
     const splitByParamKey: string = (e as CustomEvent).detail.param;
     const split = (e as CustomEvent).detail.split;
     if (!split) {
@@ -203,12 +206,10 @@ export class ExploreMultiSk extends ElementSk {
           state.end = now;
         }
         const numElements = this.exploreElements.length;
-        let graphConfigs: GraphConfig[] | undefined = [];
+        let graphConfigs: GraphConfig[] = [];
         if (state.shortcut !== '') {
-          graphConfigs = await this.getConfigsFromShortcut(state.shortcut);
-          if (graphConfigs === undefined) {
-            graphConfigs = [];
-          }
+          const shortcutConfigs = (await this.getConfigsFromShortcut(state.shortcut)) ?? [];
+          graphConfigs = shortcutConfigs.map((c) => Object.assign(new GraphConfig(), c));
         }
 
         // This loop removes graphs that are not in the current config.
@@ -222,7 +223,7 @@ export class ExploreMultiSk extends ElementSk {
           }
         }
 
-        const validGraphs: GraphConfig[] | undefined = [];
+        const validGraphs: GraphConfig[] = [];
         for (let i = 0; i < graphConfigs.length; i++) {
           if (
             graphConfigs[i].formulas.length > 0 ||
@@ -255,7 +256,8 @@ export class ExploreMultiSk extends ElementSk {
 
         // If a key is specified (eg: directly via url), perform the split
         if (this.state.splitByKeys.length > 0) {
-          this.dataLoading();
+          this._dataLoading = true;
+          this.testPicker?.setReadOnly(true);
           this.splitGraphs();
         }
       }
@@ -558,12 +560,19 @@ export class ExploreMultiSk extends ElementSk {
    */
   private async splitGraphs(): Promise<void> {
     const groupedTraces = this.groupTracesBySplitKey();
-    if (this.state.splitByKeys.length === 0 || groupedTraces.size === 0) {
-      this.dataLoaded();
+    if (groupedTraces.size === 0) {
+      this.checkDataLoaded();
       return;
     }
 
-    if (this.exploreElements.length > 0 && this.exploreElements[0].dataLoading) {
+    const groupedLength = Array.from(groupedTraces.values()).reduce((sum, v) => sum + v.length, 0);
+    // It's the same graph, so let's simply return early.
+    if (groupedLength === 1 && this.state.totalGraphs === 1) {
+      this.checkDataLoaded();
+      return;
+    }
+
+    if (this.exploreElements.length > 0 && this._dataLoading === true) {
       errorMessage('Data is still loading, please wait...', 3000);
       await this.exploreElements[0].requestComplete;
     }
@@ -617,7 +626,7 @@ export class ExploreMultiSk extends ElementSk {
     if (this.stateHasChanged) {
       this.stateHasChanged();
     }
-    this.dataLoaded();
+    this.checkDataLoaded();
   }
 
   /**
@@ -663,7 +672,8 @@ export class ExploreMultiSk extends ElementSk {
     // selected test values.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.addEventListener('plot-button-clicked', async (e) => {
-      this.dataLoading();
+      this._dataLoading = true;
+      this.testPicker?.setReadOnly(true);
       this.setProgress('Loading graphs...');
       try {
         if (this.state.splitByKeys.length === 0) {
@@ -672,7 +682,7 @@ export class ExploreMultiSk extends ElementSk {
           if (!newExplore) {
             return;
           }
-          if (this.exploreElements.length > 0 && this.exploreElements[0].dataLoading) {
+          if (this.exploreElements.length > 0 && this._dataLoading) {
             await this.exploreElements[0].requestComplete;
           }
           this.addGraphsToCurrentPage(true);
@@ -742,7 +752,7 @@ export class ExploreMultiSk extends ElementSk {
         }
       } finally {
         this.setProgress('');
-        this.dataLoaded();
+        this.checkDataLoaded();
       }
       if (this.testPicker) {
         this.testPicker.autoAddTrace = true;
@@ -757,12 +767,17 @@ export class ExploreMultiSk extends ElementSk {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.addEventListener('add-to-graph', async (e) => {
       const query = (e as CustomEvent).detail.query;
+      // Query is the same as the first graph, so do nothing.
+      if (query === this.graphConfigs[0].queries[0]) {
+        return;
+      }
       let explore: ExploreSimpleSk;
-      this.dataLoading();
+      this._dataLoading = true;
+      this.testPicker?.setReadOnly(true);
       if (this.currentPageExploreElements.length === 0) {
         const newExplore = this.addEmptyGraph(true);
         if (newExplore) {
-          if (this.exploreElements.length > 0 && this.exploreElements[0].dataLoading) {
+          if (this.exploreElements.length > 0 && this._dataLoading) {
             await this.exploreElements[0].requestComplete;
           }
           this.addGraphsToCurrentPage(true);
@@ -777,6 +792,7 @@ export class ExploreMultiSk extends ElementSk {
         this.exploreElements.splice(1);
         this.graphConfigs.splice(1);
         this.state.totalGraphs = this.exploreElements.length;
+        explore.state.doNotQueryData = false;
       }
       await explore.addFromQueryOrFormula(true, 'query', query, '');
       await this.splitGraphs();
@@ -785,12 +801,14 @@ export class ExploreMultiSk extends ElementSk {
     this.addEventListener('remove-trace', async (e) => {
       const param = (e as CustomEvent).detail.param as string;
       const values = (e as CustomEvent).detail.value as string[];
+      const query = (e as CustomEvent).detail.query as string[];
 
       if (values.length === 0) {
         this.resetGraphs();
         return;
       }
-      this.dataLoading();
+      this._dataLoading = true;
+      this.testPicker?.setReadOnly(true);
       const traceSet = this.getCompleteTraceset();
       const tracesToRemove: string[] = [];
       const queriesToRemove: string[] = [];
@@ -810,6 +828,7 @@ export class ExploreMultiSk extends ElementSk {
         this.emptyCurrentPage();
         return;
       }
+
       // Remove the traces from the current page explore elements.
       const elemsToRemove: ExploreSimpleSk[] = [];
       const updatePromises = this.exploreElements.map((elem) => {
@@ -819,8 +838,18 @@ export class ExploreMultiSk extends ElementSk {
 
         elem.state.doNotQueryData = true;
         const traceset = elem.getTraceset() as TraceSet;
+        elem.state.queries = elem.state.queries.filter(
+          (q) =>
+            !q.includes(`${(e as CustomEvent).detail.param}=${(e as CustomEvent).detail.value}`)
+        );
         elem.removeKeys(tracesToRemove, true);
-        elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
+        if (elem.state.queries.length === 1) {
+          // Only one query, so update it with the new query based on params.
+          elem.state.queries = query;
+        } else {
+          // Multiple queries, so remove the ones that match the deleted traces.
+          elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
+        }
         if (elem.state.queries.length === 0) {
           elemsToRemove.push(elem);
           return Promise.resolve();
@@ -870,7 +899,7 @@ export class ExploreMultiSk extends ElementSk {
 
       if (this.stateHasChanged) {
         this.stateHasChanged();
-        this.dataLoaded();
+        this.checkDataLoaded();
       }
     });
     // Event listener for when the "Query Highlighted" button is clicked.
@@ -1202,17 +1231,18 @@ export class ExploreMultiSk extends ElementSk {
       }
     });
     explore.addEventListener('data-loaded', () => {
-      this.dataLoaded();
+      this.checkDataLoaded();
     });
 
     explore.addEventListener('data-loading', () => {
-      this.dataLoading();
+      this._dataLoading = true;
+      this.testPicker?.setReadOnly(true);
     });
 
     return explore;
   }
 
-  private dataLoaded(): void {
+  private checkDataLoaded(): void {
     if (this.progress) {
       return;
     }
@@ -1222,13 +1252,17 @@ export class ExploreMultiSk extends ElementSk {
       }
       if (this.exploreElements.every((e) => !e.dataLoading)) {
         this.testPicker.setReadOnly(false);
+        this._dataLoading = false;
+        if (this.stateHasChanged) {
+          this.stateHasChanged();
+        }
+      } else {
+        this._dataLoading = true;
+        this.testPicker.setReadOnly(true);
+        if (this.stateHasChanged) {
+          this.stateHasChanged();
+        }
       }
-    }
-  }
-
-  private dataLoading(): void {
-    if (this.testPicker) {
-      this.testPicker.setReadOnly(true);
     }
   }
 
@@ -1379,7 +1413,7 @@ export class ExploreMultiSk extends ElementSk {
    * @returns - List of Graph Configs matching the shortcut ID in the GraphsShortcut table
    * or undefined if the ID doesn't exist.
    */
-  private getConfigsFromShortcut(shortcut: string): Promise<GraphConfig[]> | undefined {
+  private getConfigsFromShortcut(shortcut: string): Promise<GraphConfig[]> | GraphConfig[] {
     const body = {
       ID: shortcut,
     };
@@ -1415,7 +1449,8 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private pageChanged(e: CustomEvent<PaginationSkPageChangedEventDetail>) {
-    this.dataLoading();
+    this._dataLoading = true;
+    this.testPicker?.setReadOnly(true);
     this.state.pageOffset = Math.max(
       0,
       this.state.pageOffset + e.detail.delta * this.state.pageSize
@@ -1425,7 +1460,8 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private pageSizeChanged(e: MouseEvent) {
-    this.dataLoading();
+    this._dataLoading = true;
+    this.testPicker?.setReadOnly(true);
     this.state.pageSize = +(e.target! as HTMLInputElement).value;
     this.stateHasChanged!();
     this.splitGraphs();

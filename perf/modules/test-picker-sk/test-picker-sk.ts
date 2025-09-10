@@ -81,6 +81,8 @@ export class TestPickerSk extends ElementSk {
 
   private _readOnly: boolean = false;
 
+  private _dataLoading: boolean = false;
+
   constructor() {
     super(TestPickerSk.template);
   }
@@ -120,6 +122,11 @@ export class TestPickerSk extends ElementSk {
     this._containerDiv = this.querySelector('#fieldContainer');
     this._plotButton = this.querySelector('#plot-button');
     this._graphDiv = document.querySelector('#graphContainer');
+
+    window.addEventListener('data-loaded', () => {
+      this._dataLoading = false;
+      this.setReadOnly(false);
+    });
   }
 
   /**
@@ -208,16 +215,23 @@ export class TestPickerSk extends ElementSk {
    * read-only.
    */
   setReadOnly(readonly: boolean) {
+    const exploreMulti = document.querySelector('explore-multi-sk') as any;
+    if (exploreMulti && exploreMulti._dataLoading) {
+      readonly = true;
+    }
+    this._dataLoading = exploreMulti?._dataLoading;
     this._readOnly = readonly;
     this._fieldData.forEach((field) => {
       if (readonly) {
         field.field?.disable();
         this._plotButton!.disabled = true;
+        this._requestInProgress = true;
       } else {
         field.field?.enable();
-        if (!this.autoAddTrace) {
+        if (!this.autoAddTrace && !this._dataLoading) {
           this._plotButton!.disabled = false;
         }
+        this._requestInProgress = false;
       }
     });
   }
@@ -514,6 +528,13 @@ export class TestPickerSk extends ElementSk {
     // Create and store the new listeners.
     fieldInfo.onValueChanged = (e: Event) => {
       const value = (e as CustomEvent).detail.value as string[];
+      if (value === fieldInfo.field!.selectedItems) {
+        return;
+      }
+
+      if (value.length > 1) {
+        this.setReadOnly(true);
+      }
       if (value.length === 0) {
         this.removeChildFields(index);
       }
@@ -541,8 +562,9 @@ export class TestPickerSk extends ElementSk {
         // Chart needs to be reset, so disable autoAddTrace.
         this.autoAddTrace = false;
       }
+
       if (value.length !== fieldInfo.field!.selectedItems.length) {
-        // Selected Item Needs to be updated.
+        // Selected Item Needs to be updated if the explore was removed.
         fieldInfo.field!.selectedItems = value;
       }
       this.updateGraph(value, fieldInfo, removed);
@@ -629,8 +651,8 @@ export class TestPickerSk extends ElementSk {
             // Track the furthest index queried
             if (this._currentIndex <= i) {
               this._currentIndex = i;
+              this.updateCount(count);
             }
-            this.updateCount(count);
             break;
           }
         }
@@ -886,8 +908,15 @@ export class TestPickerSk extends ElementSk {
     if (fieldInfo) {
       const newValue = fieldInfo.value.filter((v) => !value.includes(v));
       // Update the selected items in the field.
-      if (fieldInfo.field) {
-        fieldInfo.field.selectedItems = newValue;
+      if (fieldInfo.field && fieldInfo.onValueChanged) {
+        // Create a mock event to pass to the handler.
+        const mockEvent = new CustomEvent('value-changed', {
+          detail: {
+            value: newValue,
+          },
+        });
+        // Directly call the handler.
+        fieldInfo.onValueChanged(mockEvent);
       }
     }
   }

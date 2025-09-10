@@ -3304,6 +3304,7 @@ export class ExploreSimpleSk extends ElementSk {
       this.queryDialog!.close();
     }
     this._dialogOn = false;
+    this.dataLoading = true;
 
     if (plotType === 'query') {
       if (!q || q.trim() === '') {

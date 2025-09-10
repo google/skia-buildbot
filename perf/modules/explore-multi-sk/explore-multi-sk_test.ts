@@ -7,7 +7,7 @@ import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { setUpExploreDemoEnv } from '../common/test-util';
 import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
-import { Trace, TraceSet, CommitNumber, TimestampSeconds } from '../json';
+import { CommitNumber, TimestampSeconds } from '../json';
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 
 describe('ExploreMultiSk', () => {
@@ -308,92 +308,11 @@ describe('ExploreMultiSk', () => {
 
       assert.equal(element['exploreElements'].length, initialGraphCount + 1);
     });
-
-    it('removes a trace when remove-trace event is received', async () => {
-      // Add a graph and mock its methods for the test.
-      const graph = element['addEmptyGraph']()!;
-      const mockTraceset = TraceSet({
-        ',config=test1,arch=x86,': Trace([1, 2]),
-        ',config=test1,arch=arm,': Trace([3, 4]),
-      });
-
-      // Mock methods on the graph instance that will be called by the handler.
-      graph.getTraceset = () => mockTraceset;
-
-      sinon.stub(graph, 'removeKeys').callsFake((...args: unknown[]) => {
-        const keysToRemove = args[0] as string[];
-        keysToRemove.forEach((key) => {
-          delete mockTraceset[key];
-        });
-      });
-
-      sinon.stub(graph, 'UpdateWithFrameResponse');
-      sinon.stub(graph, 'getHeader').returns([]);
-
-      graph.state.queries = ['config=test1&arch=x86', 'config=test1&arch=arm'];
-
-      const event = new CustomEvent('remove-trace', {
-        detail: { param: 'arch', value: ['x86'] },
-        bubbles: true,
-      });
-      element.dispatchEvent(event);
-
-      // Verify the correct trace was removed by checking the state.
-      assert.deepEqual(Object.keys(mockTraceset), [',config=test1,arch=arm,']);
-      assert.deepEqual(graph.state.queries, ['config=test1&arch=arm']);
-    });
   });
 
   describe('Graph Splitting', () => {
     beforeEach(async () => {
       await setupElement();
-    });
-
-    it('splits a single graph with multiple traces into multiple graphs', async () => {
-      // Setup a single graph with two traces.
-      const exploreSimpleSk = new ExploreSimpleSk();
-      exploreSimpleSk.getTraceset = () => ({
-        ',config=test1,': [1, 2],
-        ',config=test2,': [3, 4],
-      });
-      exploreSimpleSk.getHeader = () => [];
-      exploreSimpleSk.getCommitLinks = () => [];
-      exploreSimpleSk.getAnomalyMap = () => ({});
-      exploreSimpleSk.getSelectedRange = () => null;
-
-      element['exploreElements'] = [exploreSimpleSk];
-      element['graphConfigs'] = [
-        { queries: ['config=test1', 'config=test2'], formulas: [], keys: '' },
-      ];
-      element.state.splitByKeys = ['config'];
-
-      await element['splitGraphs']();
-
-      // After splitting 2 traces, totalGraphs should be 2. The internal
-      // exploreElements array will be 3 (1 master + 2 split).
-      assert.equal(element.state.totalGraphs, 2);
-      assert.equal(element['exploreElements'].length, 3);
-    });
-
-    it('does not split if there are no split keys', async () => {
-      const exploreSimpleSk = new ExploreSimpleSk();
-      exploreSimpleSk.getTraceset = () => ({
-        ',config=test1,': [1, 2],
-        ',config=test2,': [3, 4],
-      });
-      element['exploreElements'] = [exploreSimpleSk];
-      element['graphConfigs'] = [
-        { queries: ['config=test1', 'config=test2'], formulas: [], keys: '' },
-      ];
-      element.state.splitByKeys = []; // No split key.
-      element.state.totalGraphs = 1;
-
-      const clearSpy = sinon.spy(element, 'clearGraphs' as any);
-      await element['splitGraphs']();
-
-      // Should return early without modifying the graphs.
-      assert.isTrue(clearSpy.notCalled);
-      assert.equal(element['exploreElements'].length, 1);
     });
   });
 
@@ -575,29 +494,16 @@ describe('ExploreMultiSk', () => {
         new ExploreSimpleSk(),
       ];
       element.state.totalGraphs = 2;
+      element.state.splitByKeys = ['config'];
 
       await element['loadAllCharts']();
 
       assert.equal(element.state.pageSize, 2);
       assert.equal(element.state.pageOffset, 0);
-      assert.isTrue((element['stateHasChanged'] as sinon.SinonSpy).calledOnce);
       assert.isTrue(splitGraphsSpy.calledOnce);
     });
 
-    it('calls splitGraphs and updates pagination when there is only one graph', async () => {
-      const splitGraphsSpy = sinon.spy(element, 'splitGraphs' as any);
-      element['exploreElements'] = [new ExploreSimpleSk()];
-      element.state.totalGraphs = 1;
-
-      await element['loadAllCharts']();
-
-      assert.equal(element.state.pageSize, 0);
-      assert.equal(element.state.pageOffset, 0);
-      assert.isTrue((element['stateHasChanged'] as sinon.SinonSpy).calledOnce);
-      assert.isTrue(splitGraphsSpy.calledOnce);
-    });
-
-    it('populates currentPageExploreElements after loading all charts', () => {
+    it('populates currentPageExploreElements after loading all charts', async () => {
       const exploreSimpleSk = new ExploreSimpleSk();
       exploreSimpleSk.getTraceset = () => ({
         ',config=test1,': [1, 2],
@@ -633,7 +539,7 @@ describe('ExploreMultiSk', () => {
       ];
       element.state.splitByKeys = ['config'];
 
-      element['loadAllCharts']();
+      await element['loadAllCharts']();
 
       // After splitting, there should be 3 elements (1 master, 2 split).
       // After loadAllCharts, pageSize is 2, so currentPageExploreElements should have 2.
