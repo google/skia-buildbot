@@ -98,6 +98,10 @@ export class State {
   xbaroffset: number = -1;
 
   splitByKeys: string[] = [];
+
+  dayRange: number = -1;
+
+  dateAxis: boolean = false;
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -151,18 +155,42 @@ export class ExploreMultiSk extends ElementSk {
     this.testPicker = this.querySelector('#test-picker');
 
     await this.initializeDefaults();
-
-    this._state.domain = this.defaults?.default_xaxis_domain === 'date' ? 'date' : 'commit';
-
     this.stateHasChanged = stateReflector(
       () => this.state as unknown as HintableObject,
       async (hintableState) => {
         const state = hintableState as unknown as State;
-        if (state.begin === -1 && state.end === -1) {
-          const now = Math.floor(Date.now() / 1000);
-          const defaultRangeS = this.defaults?.default_range || DEFAULT_RANGE_S;
-          state.begin = now - defaultRangeS;
 
+        // -- Domain Logic --
+        const useDateAxis = state.dateAxis
+          ? state.dateAxis
+          : this.defaults?.default_xaxis_domain === 'date';
+        state.domain = useDateAxis ? 'date' : 'commit';
+
+        // -- Time Range Logic --
+        // Precedence: explicit begin/end > dayRange > component defaults.
+        const beginProvided = state.begin !== -1;
+        const endProvided = state.end !== -1;
+        const dayRangeProvided = state.dayRange !== -1;
+
+        const now = Math.floor(Date.now() / 1000);
+        const defaultRangeS = this.defaults?.default_range || DEFAULT_RANGE_S;
+
+        if (beginProvided || endProvided) {
+          // Scenario 1: begin and/or end are provided in the URL.
+          if (!beginProvided) {
+            state.begin = state.end - defaultRangeS;
+          } else if (!endProvided) {
+            state.end = state.begin + defaultRangeS;
+            if (state.end > now) state.end = now;
+          }
+        } else if (dayRangeProvided) {
+          // Scenario 2: dayRange is provided, begin/end are NOT.
+          state.end = now;
+          state.begin = now - state.dayRange * 24 * 60 * 60;
+          this.state = state;
+        } else {
+          // Scenario 3: No time parameters in URL, use component defaults.
+          state.begin = now - defaultRangeS;
           state.end = now;
         }
         const numElements = this.exploreElements.length;
@@ -966,8 +994,8 @@ export class ExploreMultiSk extends ElementSk {
       formulas: graphConfig.formulas || [],
       queries: graphConfig.queries || [],
       keys: graphConfig.keys || '',
-      begin: explore.state.begin || this.state.begin,
-      end: explore.state.end || this.state.end,
+      begin: this.state.begin,
+      end: this.state.end,
       showZero: this.state.showZero,
       dots: this.state.dots,
       numCommits: this.state.numCommits,

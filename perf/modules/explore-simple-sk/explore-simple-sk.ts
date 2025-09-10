@@ -2613,28 +2613,42 @@ export class ExploreSimpleSk extends ElementSk {
    */
   private rationalizeTimeRange(state: State): State {
     const defaultRangeS = this.getDefaultRange();
-
-    // Check if URL contains begin/end timestamps.
-    const currentUrl = new URL(window.location.href);
     const now = Math.floor(Date.now() / 1000);
-    const beginParam = parseInt(currentUrl.searchParams.get('begin') ?? state.begin.toString());
-    state.begin =
-      beginParam !== null ? parseInt((beginParam - defaultRangeS).toString()) : now - defaultRangeS;
+    let currentBegin = state.begin;
+    let currentEnd = state.end;
 
-    const endParam = currentUrl.searchParams.get('end');
-    state.end = endParam !== null ? parseInt((parseInt(endParam) + defaultRangeS).toString()) : now;
+    // Default application should only happen if the state is uninitialized.
+    // In the ExploreMultiSk context, begin and end should always be > -1.
+    if (currentBegin === -1 && currentEnd === -1) {
+      console.warn('ExploreSimpleSk: begin and end were not initialized.');
+      currentEnd = now;
+      currentBegin = now - defaultRangeS;
+    } else if (currentBegin === -1) {
+      console.warn('ExploreSimpleSk: begin was not initialized.');
+      currentBegin = currentEnd - defaultRangeS;
+    } else if (currentEnd === -1) {
+      console.warn('ExploreSimpleSk: end was not initialized.');
+      currentEnd = currentBegin + defaultRangeS;
+    }
 
-    if (state.end <= state.begin) {
-      // If dense then just make sure begin is before end.
-      if (state.requestType === 1) {
-        state.begin = state.end - defaultRangeS;
-      } else if (this._state.begin !== state.begin) {
-        state.end = state.begin + defaultRangeS;
-      } else {
-        // They set 'end' in the URL.
-        state.begin = state.end - defaultRangeS;
+    // Ensure end is not in the future.
+    if (currentEnd > now) {
+      currentEnd = now;
+    }
+
+    // Ensure end is not before begin.
+    if (currentEnd <= currentBegin) {
+      currentEnd = currentBegin + defaultRangeS;
+      if (currentEnd > now) {
+        currentEnd = now;
+        if (currentBegin >= currentEnd) {
+          currentBegin = currentEnd - defaultRangeS;
+        }
       }
     }
+
+    state.begin = currentBegin;
+    state.end = currentEnd;
     return state;
   }
 
@@ -3798,11 +3812,6 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   set state(state: State) {
-    if (state.begin === -1 && state.end === -1) {
-      const now = Math.floor(Date.now() / 1000);
-      state.end = now;
-      state.begin = now - this.getDefaultRange();
-    }
     state = this.rationalizeTimeRange(state);
     this._state = state;
 

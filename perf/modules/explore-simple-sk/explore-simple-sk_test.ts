@@ -27,6 +27,7 @@ import { generateFullDataFrame } from '../dataframe/test_utils';
 import { UserIssueMap } from '../dataframe/dataframe_context';
 import { MdSwitch } from '@material/web/switch/switch';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
+import sinon from 'sinon';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -658,5 +659,51 @@ describe('addFromQueryOrFormula range', () => {
 
     assert.equal(explore.state.begin, 100);
     assert.equal(explore.state.end, 250);
+  });
+});
+
+describe('rationalizeTimeRange', () => {
+  let explore: ExploreSimpleSk;
+  let clock: sinon.SinonFakeTimers;
+  const now = 1672531200; // Jan 1, 2023 in seconds
+
+  beforeEach(() => {
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    clock = sinon.useFakeTimers(now * 1000);
+  });
+
+  afterEach(() => {
+    clock.restore();
+  });
+
+  it('handles uninitialized begin and end', () => {
+    const state = new State();
+    const rationalizedState = explore['rationalizeTimeRange'](state);
+    assert.equal(rationalizedState.end, now);
+    assert.closeTo(rationalizedState.begin, now - 24 * 60 * 60, 1);
+  });
+
+  it('corrects inverted time ranges', () => {
+    const state = new State();
+    state.begin = now - 100;
+    state.end = now - 500;
+    const rationalizedState = explore['rationalizeTimeRange'](state);
+    assert.isTrue(rationalizedState.end > rationalizedState.begin);
+  });
+
+  it('handles zero-length time ranges', () => {
+    const state = new State();
+    state.begin = now - 100;
+    state.end = now - 100;
+    const rationalizedState = explore['rationalizeTimeRange'](state);
+    assert.isTrue(rationalizedState.end > rationalizedState.begin);
+  });
+
+  it('ensures end is not in the future', () => {
+    const state = new State();
+    state.begin = now - 100;
+    state.end = now + 500;
+    const rationalizedState = explore['rationalizeTimeRange'](state);
+    assert.equal(rationalizedState.end, now);
   });
 });

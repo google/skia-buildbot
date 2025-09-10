@@ -506,6 +506,58 @@ describe('ExploreMultiSk', () => {
     });
   });
 
+  describe('addStateToExplore', () => {
+    it('should always use the multi-sk state for begin and end', async () => {
+      await setupElement();
+      const multiSkState = new State();
+      multiSkState.begin = 1000;
+      multiSkState.end = 2000;
+      element.state = multiSkState;
+
+      const simpleSk = new ExploreSimpleSk();
+      // Provide a full state object to satisfy the type checker.
+      simpleSk.state = {
+        begin: 500,
+        end: 1500,
+        formulas: [],
+        queries: [],
+        keys: '',
+        xbaroffset: -1,
+        showZero: false,
+        dots: true,
+        autoRefresh: false,
+        numCommits: 50,
+        requestType: 1,
+        pivotRequest: { group_by: [], operation: 'avg', summary: [] },
+        sort: '',
+        summary: false,
+        selected: { commit: 0 as CommitNumber, name: '', tableRow: -1, tableCol: -1 },
+        domain: 'commit',
+        labelMode: 0,
+        incremental: false,
+        disable_filter_parent_traces: false,
+        plotSummary: false,
+        highlight_anomalies: [],
+        enable_chart_tooltip: false,
+        show_remove_all: true,
+        use_titles: false,
+        useTestPicker: false,
+        use_test_picker_query: false,
+        show_google_plot: false,
+        enable_favorites: false,
+        hide_paramset: false,
+        horizontal_zoom: false,
+        graph_index: 0,
+        doNotQueryData: false,
+      };
+
+      element['addStateToExplore'](simpleSk, new GraphConfig(), false);
+
+      assert.equal(simpleSk.state.begin, 1000);
+      assert.equal(simpleSk.state.end, 2000);
+    });
+  });
+
   describe('loadAllCharts', () => {
     beforeEach(() => {
       // Mock window.confirm to always return true for these tests.
