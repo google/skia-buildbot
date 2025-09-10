@@ -517,10 +517,6 @@ export class TestPickerSk extends ElementSk {
       if (value.length === 0) {
         this.removeChildFields(index);
       }
-      if (value === fieldInfo.field!.selectedItems) {
-        // Updated already, ignore.
-        return;
-      }
 
       const newValues = new Set(value);
       const oldValues = new Set(fieldInfo.value);
