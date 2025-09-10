@@ -29,14 +29,16 @@ const (
 type SwarmingV2TaskExecutor struct {
 	casInstance string
 	pubSubTopic string
+	realm       string
 	client      swarmingv2.SwarmingV2Client
 }
 
 // NewSwarmingV2TaskExecutor returns a SwarmingTaskExecutor instance.
-func NewSwarmingV2TaskExecutor(client swarmingv2.SwarmingV2Client, casInstance, pubSubTopic string) *SwarmingV2TaskExecutor {
+func NewSwarmingV2TaskExecutor(client swarmingv2.SwarmingV2Client, casInstance, pubSubTopic, realm string) *SwarmingV2TaskExecutor {
 	return &SwarmingV2TaskExecutor{
 		casInstance: casInstance,
 		pubSubTopic: pubSubTopic,
+		realm:       realm,
 		client:      client,
 	}
 }
@@ -257,6 +259,7 @@ func (s *SwarmingV2TaskExecutor) convertTaskRequest(req *types.TaskRequest) (*ap
 		Priority:       swarming.RECOMMENDED_PRIORITY,
 		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, s.pubSubTopic),
 		PubsubUserdata: req.TaskSchedulerTaskID,
+		Realm:          s.realm,
 		ServiceAccount: req.ServiceAccount,
 		Tags:           req.Tags,
 		TaskSlices: []*apipb.TaskSlice{

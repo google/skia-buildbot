@@ -285,7 +285,7 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
-	taskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-cas-instance", "")
+	taskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-cas-instance", "fake-pubsub-topic", "fake-realm")
 	taskExecs := types.NewTaskExecutors(fakeSwarmingURL)
 	taskExecs.Set(fakeSwarmingURL, taskExec, swarming.POOLS_PUBLIC)
 	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, urlMock.Client(), 1.0, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance, false)
@@ -2347,7 +2347,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
-	taskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-cas-instance", "")
+	taskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-cas-instance", "fake-pubsub-topic", "fake-realm")
 	taskExecs := types.NewTaskExecutors(fakeSwarmingURL)
 	taskExecs.Set(fakeSwarmingURL, taskExec, swarming.POOLS_PUBLIC)
 	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, mockhttpclient.NewURLMock().Client(), 1.0, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance, BusyBotsDebugLoggingOff)
@@ -3839,7 +3839,7 @@ func TestTriggerTask_DifferentExecutor(t *testing.T) {
 	// the new one and that the others remain on the old.
 	swarmingClient2 := swarming_testutils.NewTestClient()
 	taskExec2Name := "other-fake-swarming.appspot.com"
-	taskExec2 := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient2, "fake-cas-instance", "")
+	taskExec2 := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient2, "fake-cas-instance", "fake-pubsub-topic", "fake-realm")
 	alternatePool := "SkiaAlternate"
 	s.taskExecutors.Set(taskExec2Name, taskExec2, []string{alternatePool})
 	tasksCfg3 := tcc_testutils.TasksCfg2.Copy()
