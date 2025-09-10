@@ -33,7 +33,7 @@
             "topic": "perf-ingestion-chrome-internal-secondary",
             "subscription": "perf-ingestion-chrome-internal-secondary-prod",
             "sources": [
-                "gs://chrome-perf-internal-secondary/ingest"
+                "gs://chrome-perf-non-public-secondary/ingest"
             ]
         },
         "branches": [],
