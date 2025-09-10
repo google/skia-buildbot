@@ -2,7 +2,7 @@
 {
 	"can_upload_zips": false,
 	"client_secret_file": "/etc/skia.org/login.json",
-	"gcs_bucket": "skottie-dev",
+	"gcs_bucket": "skottie-renderer-dev",
 	"force_auth": false,
 	"resources_path": "/usr/local/share/skottie/",
 	"site_url": "https://skottie-dev.skia.org"
