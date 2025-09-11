@@ -228,8 +228,11 @@ def nodejs_test(
         visibility = visibility,
         # Use the @rules_browsers toolchain which supplies the
         # CHROME-HEADLESS-SHELL and CHROMEDRIVER env variables, which we pass
-        # along to // puppeteer-tests/util.ts so that it can launch the browser
+        # along to //puppeteer-tests/util.ts so that it can launch the browser
         # for puppeteer to use.
+        #
+        # Note we also need the "@rules_browsers//browsers/chromium" in the deps
+        # above to make this work.
         env = env | {
             "CHROME_BIN": "$(CHROME-HEADLESS-SHELL)",
         },
