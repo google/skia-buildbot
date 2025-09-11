@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
+	"go.skia.org/infra/task_scheduler/go/task_execution/swarmingv2"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -135,9 +136,11 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 	require.NoError(t, d.PutTask(ctx, task))
 
 	swarm := &mocks.SwarmingV2Client{}
+	taskExec := swarmingv2.NewSwarmingV2TaskExecutor(swarm, "fake-swarming", "fake-cas-instance", "fake-pubsub-topic", "fake-realm", []string{"Skia"})
+	taskExecs := types.TaskExecutors([]types.TaskExecutor{taskExec})
 
 	// Create the service.
-	srv := newTaskSchedulerServiceImpl(ctx, d, repos, skipDB, tcc, swarm)
+	srv := newTaskSchedulerServiceImpl(ctx, d, repos, skipDB, tcc, taskExecs)
 	return ctx, srv, task, job, skipRule, swarm, func() {
 		btCleanup()
 		cleanupFS()
@@ -201,9 +204,10 @@ func TestGetJob(t *testing.T) {
 	require.Equal(t, job.Id, res.Job.Id)
 	// Don't bother checking other fields, since we have a separate test for
 	// convertJob.
-	require.Equal(t, 1, len(res.Job.TaskDimensions))
-	require.Equal(t, "task", res.Job.TaskDimensions[0].TaskName)
-	assertdeep.Equal(t, []string{"os:linux"}, res.Job.TaskDimensions[0].Dimensions)
+	require.Equal(t, 1, len(res.Job.TaskSpecSummaries))
+	require.Equal(t, "task", res.Job.TaskSpecSummaries[0].TaskName)
+	assertdeep.Equal(t, []string{"os:linux"}, res.Job.TaskSpecSummaries[0].Dimensions)
+	require.Equal(t, "fake-swarming", res.Job.TaskSpecSummaries[0].TaskExecutor)
 }
 
 func TestGetJob_NotStarted(t *testing.T) {
@@ -234,7 +238,7 @@ func TestGetJob_NotStarted(t *testing.T) {
 	require.Equal(t, job.Id, res.Job.Id)
 	// Don't bother checking other fields, since we have a separate test for
 	// convertJob.
-	require.Equal(t, 0, len(res.Job.TaskDimensions))
+	require.Equal(t, 0, len(res.Job.TaskSpecSummaries))
 }
 
 func TestCancelJob(t *testing.T) {
@@ -496,6 +500,7 @@ func TestConvertTask(t *testing.T) {
 		Status:         types.TASK_STATUS_SUCCESS,
 		SwarmingBotId:  "swarmbot",
 		SwarmingTaskId: "swarmtask",
+		TaskExecutor:   "fake-swarming",
 		TaskKey: types.TaskKey{
 			RepoState: types.RepoState{
 				Repo:     fakeRepo,
@@ -540,6 +545,7 @@ func TestConvertTask(t *testing.T) {
 		Status:         TaskStatus_TASK_STATUS_SUCCESS,
 		SwarmingBotId:  "swarmbot",
 		SwarmingTaskId: "swarmtask",
+		TaskExecutor:   "fake-swarming",
 		TaskKey: &TaskKey{
 			RepoState: &RepoState{
 				Repo:     fakeRepo,

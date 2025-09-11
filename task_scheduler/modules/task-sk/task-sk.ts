@@ -5,7 +5,6 @@
  * Displays basic information about a task, including a graph display of its
  * context within the job(s) which utilize it.
  *
- * @attr {string} swarming - URL of the Swarming server.
  * @attr {string} taskID - Unique ID of the task to display.
  */
 import { html } from 'lit/html.js';
@@ -205,7 +204,7 @@ export class TaskSk extends ElementSk {
         this.codereviewLink = `${p.server}/c/${p.issue}/${p.patchset}`;
       }
       [this.statusText, this.statusColor] = taskStatusToTextColor.get(this.task.status)!;
-      this.swarmingTaskLink = `https://${this.swarming}/task?id=${this.task.swarmingTaskId}`;
+      this.swarmingTaskLink = `https://${this.task.taskExecutor}/task?id=${this.task.swarmingTaskId}`;
       const jobReqs = this.task.jobs!.map((jobID: string) => this.rpc!.getJob({ id: jobID }));
       Promise.all(jobReqs).then((jobResps: GetJobResponse[]) => {
         this.jobs = jobResps
@@ -213,7 +212,7 @@ export class TaskSk extends ElementSk {
           .sort((a: Job, b: Job) => (a.name < b.name ? -1 : 1));
         this._render();
         const graph = $$<TaskGraphSk>('task-graph-sk', this);
-        graph?.draw(this.jobs, this.swarming, taskResp.task);
+        graph?.draw(this.jobs, taskResp.task);
       });
     });
   }

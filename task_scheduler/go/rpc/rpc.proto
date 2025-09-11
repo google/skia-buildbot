@@ -322,6 +322,9 @@ message Task {
 
 	// stats provides statistics about the task.
 	TaskStats stats = 18;
+
+	// task_executor describes the system on which this task is executed.
+	string task_executor = 19;
 }
 
 enum JobStatus {
@@ -357,12 +360,14 @@ message TaskSummaries {
 	repeated TaskSummary tasks = 2;
 }
 
-// TaskDimensions contains the dimensions required for a given task.
-message TaskDimensions {
+// TaskSpecSummary contains a subset of a TaskSpec.
+message TaskSpecSummary {
 	// task_name is the name of the task.
 	string task_name = 1;
 	// dimensions are the Swarming bot dimensions requested by the task.
 	repeated string dimensions = 2;
+	// task_executor is the system on which this task is executed.
+	string task_executor = 3;
 }
 
 // TaskStats provides statistics about a task.
@@ -449,6 +454,6 @@ message Job {
 	// instances describing the Tasks.
 	repeated TaskSummaries tasks = 14;
 
-	// taskDimensions are the dimensions of the tasks needed by this job.
-	repeated TaskDimensions task_dimensions = 15;
+	// task_spec_summaries are subsets of the task specs needed by this job.
+	repeated TaskSpecSummary task_spec_summaries = 15;
 }

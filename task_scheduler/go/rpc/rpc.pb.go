@@ -1610,7 +1610,9 @@ type Task struct {
 	// itself.
 	TaskKey *TaskKey `protobuf:"bytes,17,opt,name=task_key,json=taskKey,proto3" json:"task_key,omitempty"`
 	// stats provides statistics about the task.
-	Stats         *TaskStats `protobuf:"bytes,18,opt,name=stats,proto3" json:"stats,omitempty"`
+	Stats *TaskStats `protobuf:"bytes,18,opt,name=stats,proto3" json:"stats,omitempty"`
+	// task_executor describes the system on which this task is executed.
+	TaskExecutor  string `protobuf:"bytes,19,opt,name=task_executor,json=taskExecutor,proto3" json:"task_executor,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1769,6 +1771,13 @@ func (x *Task) GetStats() *TaskStats {
 		return x.Stats
 	}
 	return nil
+}
+
+func (x *Task) GetTaskExecutor() string {
+	if x != nil {
+		return x.TaskExecutor
+	}
+	return ""
 }
 
 // TaskDependencies represents dependencies of a task.
@@ -1958,31 +1967,33 @@ func (x *TaskSummaries) GetTasks() []*TaskSummary {
 	return nil
 }
 
-// TaskDimensions contains the dimensions required for a given task.
-type TaskDimensions struct {
+// TaskSpecSummary contains a subset of a TaskSpec.
+type TaskSpecSummary struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// task_name is the name of the task.
 	TaskName string `protobuf:"bytes,1,opt,name=task_name,json=taskName,proto3" json:"task_name,omitempty"`
 	// dimensions are the Swarming bot dimensions requested by the task.
-	Dimensions    []string `protobuf:"bytes,2,rep,name=dimensions,proto3" json:"dimensions,omitempty"`
+	Dimensions []string `protobuf:"bytes,2,rep,name=dimensions,proto3" json:"dimensions,omitempty"`
+	// task_executor is the system on which this task is executed.
+	TaskExecutor  string `protobuf:"bytes,3,opt,name=task_executor,json=taskExecutor,proto3" json:"task_executor,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *TaskDimensions) Reset() {
-	*x = TaskDimensions{}
+func (x *TaskSpecSummary) Reset() {
+	*x = TaskSpecSummary{}
 	mi := &file_rpc_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *TaskDimensions) String() string {
+func (x *TaskSpecSummary) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TaskDimensions) ProtoMessage() {}
+func (*TaskSpecSummary) ProtoMessage() {}
 
-func (x *TaskDimensions) ProtoReflect() protoreflect.Message {
+func (x *TaskSpecSummary) ProtoReflect() protoreflect.Message {
 	mi := &file_rpc_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1994,23 +2005,30 @@ func (x *TaskDimensions) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use TaskDimensions.ProtoReflect.Descriptor instead.
-func (*TaskDimensions) Descriptor() ([]byte, []int) {
+// Deprecated: Use TaskSpecSummary.ProtoReflect.Descriptor instead.
+func (*TaskSpecSummary) Descriptor() ([]byte, []int) {
 	return file_rpc_proto_rawDescGZIP(), []int{26}
 }
 
-func (x *TaskDimensions) GetTaskName() string {
+func (x *TaskSpecSummary) GetTaskName() string {
 	if x != nil {
 		return x.TaskName
 	}
 	return ""
 }
 
-func (x *TaskDimensions) GetDimensions() []string {
+func (x *TaskSpecSummary) GetDimensions() []string {
 	if x != nil {
 		return x.Dimensions
 	}
 	return nil
+}
+
+func (x *TaskSpecSummary) GetTaskExecutor() string {
+	if x != nil {
+		return x.TaskExecutor
+	}
+	return ""
 }
 
 // TaskStats provides statistics about a task.
@@ -2136,10 +2154,10 @@ type Job struct {
 	// the Job. Keys are TaskSpec names and values are slices of TaskSummary
 	// instances describing the Tasks.
 	Tasks []*TaskSummaries `protobuf:"bytes,14,rep,name=tasks,proto3" json:"tasks,omitempty"`
-	// taskDimensions are the dimensions of the tasks needed by this job.
-	TaskDimensions []*TaskDimensions `protobuf:"bytes,15,rep,name=task_dimensions,json=taskDimensions,proto3" json:"task_dimensions,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// task_spec_summaries are subsets of the task specs needed by this job.
+	TaskSpecSummaries []*TaskSpecSummary `protobuf:"bytes,15,rep,name=task_spec_summaries,json=taskSpecSummaries,proto3" json:"task_spec_summaries,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Job) Reset() {
@@ -2284,9 +2302,9 @@ func (x *Job) GetTasks() []*TaskSummaries {
 	return nil
 }
 
-func (x *Job) GetTaskDimensions() []*TaskDimensions {
+func (x *Job) GetTaskSpecSummaries() []*TaskSpecSummary {
 	if x != nil {
-		return x.TaskDimensions
+		return x.TaskSpecSummaries
 	}
 	return nil
 }
@@ -2479,7 +2497,7 @@ const file_rpc_proto_rawDesc = "" +
 	"\n" +
 	"repo_state\x18\x01 \x01(\v2\x1d.task_scheduler.rpc.RepoStateR\trepoState\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\"\n" +
-	"\rforced_job_id\x18\x03 \x01(\tR\vforcedJobId\"\xe2\x06\n" +
+	"\rforced_job_id\x18\x03 \x01(\tR\vforcedJobId\"\x87\a\n" +
 	"\x04Task\x12\x18\n" +
 	"\aattempt\x18\x01 \x01(\x05R\aattempt\x12\x18\n" +
 	"\acommits\x18\x02 \x03(\tR\acommits\x129\n" +
@@ -2504,7 +2522,8 @@ const file_rpc_proto_rawDesc = "" +
 	"\x0fswarming_bot_id\x18\x0f \x01(\tR\rswarmingBotId\x12(\n" +
 	"\x10swarming_task_id\x18\x10 \x01(\tR\x0eswarmingTaskId\x126\n" +
 	"\btask_key\x18\x11 \x01(\v2\x1b.task_scheduler.rpc.TaskKeyR\ataskKey\x123\n" +
-	"\x05stats\x18\x12 \x01(\v2\x1d.task_scheduler.rpc.TaskStatsR\x05stats\x1a=\n" +
+	"\x05stats\x18\x12 \x01(\v2\x1d.task_scheduler.rpc.TaskStatsR\x05stats\x12#\n" +
+	"\rtask_executor\x18\x13 \x01(\tR\ftaskExecutor\x1a=\n" +
 	"\x0fPropertiesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"J\n" +
@@ -2519,16 +2538,17 @@ const file_rpc_proto_rawDesc = "" +
 	"\x10swarming_task_id\x18\x05 \x01(\tR\x0eswarmingTaskId\"Z\n" +
 	"\rTaskSummaries\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x125\n" +
-	"\x05tasks\x18\x02 \x03(\v2\x1f.task_scheduler.rpc.TaskSummaryR\x05tasks\"M\n" +
-	"\x0eTaskDimensions\x12\x1b\n" +
+	"\x05tasks\x18\x02 \x03(\v2\x1f.task_scheduler.rpc.TaskSummaryR\x05tasks\"s\n" +
+	"\x0fTaskSpecSummary\x12\x1b\n" +
 	"\ttask_name\x18\x01 \x01(\tR\btaskName\x12\x1e\n" +
 	"\n" +
 	"dimensions\x18\x02 \x03(\tR\n" +
-	"dimensions\"\x91\x01\n" +
+	"dimensions\x12#\n" +
+	"\rtask_executor\x18\x03 \x01(\tR\ftaskExecutor\"\x91\x01\n" +
 	"\tTaskStats\x12(\n" +
 	"\x10total_overhead_s\x18\x01 \x01(\x02R\x0etotalOverheadS\x12.\n" +
 	"\x13download_overhead_s\x18\x02 \x01(\x02R\x11downloadOverheadS\x12*\n" +
-	"\x11upload_overhead_s\x18\x03 \x01(\x02R\x0fuploadOverheadS\"\xe6\x06\n" +
+	"\x11upload_overhead_s\x18\x03 \x01(\x02R\x0fuploadOverheadS\"\xee\x06\n" +
 	"\x03Job\x120\n" +
 	"\x14buildbucket_build_id\x18\x01 \x01(\tR\x12buildbucketBuildId\x122\n" +
 	"\x15buildbucket_lease_key\x18\x02 \x01(\tR\x13buildbucketLeaseKey\x129\n" +
@@ -2550,8 +2570,8 @@ const file_rpc_proto_rawDesc = "" +
 	"started_at\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x125\n" +
 	"\x06status\x18\r \x01(\x0e2\x1d.task_scheduler.rpc.JobStatusR\x06status\x12%\n" +
 	"\x0estatus_details\x18\x10 \x01(\tR\rstatusDetails\x127\n" +
-	"\x05tasks\x18\x0e \x03(\v2!.task_scheduler.rpc.TaskSummariesR\x05tasks\x12K\n" +
-	"\x0ftask_dimensions\x18\x0f \x03(\v2\".task_scheduler.rpc.TaskDimensionsR\x0etaskDimensions*\x88\x01\n" +
+	"\x05tasks\x18\x0e \x03(\v2!.task_scheduler.rpc.TaskSummariesR\x05tasks\x12S\n" +
+	"\x13task_spec_summaries\x18\x0f \x03(\v2#.task_scheduler.rpc.TaskSpecSummaryR\x11taskSpecSummaries*\x88\x01\n" +
 	"\n" +
 	"TaskStatus\x12\x17\n" +
 	"\x13TASK_STATUS_PENDING\x10\x00\x12\x17\n" +
@@ -2621,7 +2641,7 @@ var file_rpc_proto_goTypes = []any{
 	(*TaskDependencies)(nil),           // 25: task_scheduler.rpc.TaskDependencies
 	(*TaskSummary)(nil),                // 26: task_scheduler.rpc.TaskSummary
 	(*TaskSummaries)(nil),              // 27: task_scheduler.rpc.TaskSummaries
-	(*TaskDimensions)(nil),             // 28: task_scheduler.rpc.TaskDimensions
+	(*TaskSpecSummary)(nil),            // 28: task_scheduler.rpc.TaskSpecSummary
 	(*TaskStats)(nil),                  // 29: task_scheduler.rpc.TaskStats
 	(*Job)(nil),                        // 30: task_scheduler.rpc.Job
 	(*RepoState_Patch)(nil),            // 31: task_scheduler.rpc.RepoState.Patch
@@ -2665,7 +2685,7 @@ var file_rpc_proto_depIdxs = []int32{
 	33, // 33: task_scheduler.rpc.Job.started_at:type_name -> google.protobuf.Timestamp
 	1,  // 34: task_scheduler.rpc.Job.status:type_name -> task_scheduler.rpc.JobStatus
 	27, // 35: task_scheduler.rpc.Job.tasks:type_name -> task_scheduler.rpc.TaskSummaries
-	28, // 36: task_scheduler.rpc.Job.task_dimensions:type_name -> task_scheduler.rpc.TaskDimensions
+	28, // 36: task_scheduler.rpc.Job.task_spec_summaries:type_name -> task_scheduler.rpc.TaskSpecSummary
 	3,  // 37: task_scheduler.rpc.TaskSchedulerService.TriggerJobs:input_type -> task_scheduler.rpc.TriggerJobsRequest
 	5,  // 38: task_scheduler.rpc.TaskSchedulerService.GetJob:input_type -> task_scheduler.rpc.GetJobRequest
 	7,  // 39: task_scheduler.rpc.TaskSchedulerService.CancelJob:input_type -> task_scheduler.rpc.CancelJobRequest

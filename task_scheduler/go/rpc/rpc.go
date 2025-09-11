@@ -9,12 +9,10 @@ import (
 	"time"
 
 	twirp "github.com/twitchtv/twirp"
-	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
-	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/twirp_auth2"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
@@ -32,8 +30,8 @@ import (
 //go:generate bazelisk run --config=mayberemote //:protoc -- --twirp_typescript_out=../../modules/rpc ./rpc.proto
 
 // NewTaskSchedulerServer creates and returns a Twirp HTTP server.
-func NewTaskSchedulerServer(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache task_cfg_cache.TaskCfgCache, swarm swarmingv2.SwarmingV2Client, plogin alogin.Login) http.Handler {
-	impl := newTaskSchedulerServiceImpl(ctx, db, repos, skipTasks, taskCfgCache, swarm)
+func NewTaskSchedulerServer(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache task_cfg_cache.TaskCfgCache, taskExecs types.TaskExecutors, plogin alogin.Login) http.Handler {
+	impl := newTaskSchedulerServiceImpl(ctx, db, repos, skipTasks, taskCfgCache, taskExecs)
 	srv := NewTaskSchedulerServiceServer(impl, nil)
 	return alogin.StatusMiddleware(plogin)(srv)
 }
@@ -45,18 +43,18 @@ type taskSchedulerServiceImpl struct {
 	repos        repograph.Map
 	skipTasks    *skip_tasks.DB
 	taskCfgCache task_cfg_cache.TaskCfgCache
-	swarming     swarmingv2.SwarmingV2Client
+	taskExecs    types.TaskExecutors
 }
 
 // newTaskSchedulerServiceImpl returns a taskSchedulerServiceImpl instance.
-func newTaskSchedulerServiceImpl(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache task_cfg_cache.TaskCfgCache, swarm swarmingv2.SwarmingV2Client) *taskSchedulerServiceImpl {
+func newTaskSchedulerServiceImpl(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache task_cfg_cache.TaskCfgCache, taskExecs types.TaskExecutors) *taskSchedulerServiceImpl {
 	return &taskSchedulerServiceImpl{
 		AuthHelper:   twirp_auth2.New(),
 		db:           db,
 		repos:        repos,
 		skipTasks:    skipTasks,
 		taskCfgCache: taskCfgCache,
-		swarming:     swarm,
+		taskExecs:    taskExecs,
 	}
 }
 
@@ -127,7 +125,7 @@ func (s *taskSchedulerServiceImpl) getJob(ctx context.Context, id string) (*Job,
 			sklog.Error(err)
 			return nil, nil, twirp.InternalError("Failed to retrieve job dependencies")
 		}
-		taskDimensions := make([]*TaskDimensions, 0, len(rv.Dependencies))
+		taskSpecSummaries := make([]*TaskSpecSummary, 0, len(rv.Dependencies))
 		for _, task := range rv.Dependencies {
 			taskSpec, ok := cfg.Tasks[task.Task]
 			if !ok {
@@ -135,12 +133,17 @@ func (s *taskSchedulerServiceImpl) getJob(ctx context.Context, id string) (*Job,
 				sklog.Error(err)
 				return nil, nil, twirp.InternalError(err.Error())
 			}
-			taskDimensions = append(taskDimensions, &TaskDimensions{
-				TaskName:   task.Task,
-				Dimensions: taskSpec.Dimensions,
+			taskExecutorName := ""
+			if taskExecutor := s.taskExecs.Get(taskSpec.TaskExecutor); taskExecutor != nil {
+				taskExecutorName = taskExecutor.Name()
+			}
+			taskSpecSummaries = append(taskSpecSummaries, &TaskSpecSummary{
+				TaskName:     task.Task,
+				Dimensions:   taskSpec.Dimensions,
+				TaskExecutor: taskExecutorName,
 			})
 		}
-		rv.TaskDimensions = taskDimensions
+		rv.TaskSpecSummaries = taskSpecSummaries
 	}
 
 	return rv, dbJob, nil
@@ -274,19 +277,21 @@ func (s *taskSchedulerServiceImpl) GetTask(ctx context.Context, req *GetTaskRequ
 		return nil, err
 	}
 	if req.IncludeStats {
-		swarmingTask, err := s.swarming.GetResult(ctx, &apipb.TaskIdWithPerfRequest{
-			TaskId:                  task.SwarmingTaskId,
-			IncludePerformanceStats: true,
-		})
-		if err != nil {
-			sklog.Error(err)
-			return nil, twirp.InternalError("Failed to retrieve Swarming task")
-		}
-		if swarmingTask.PerformanceStats != nil && swarmingTask.PerformanceStats.IsolatedDownload != nil && swarmingTask.PerformanceStats.IsolatedUpload != nil {
-			task.Stats = &TaskStats{
-				TotalOverheadS:    float32(swarmingTask.PerformanceStats.BotOverhead),
-				DownloadOverheadS: float32(swarmingTask.PerformanceStats.IsolatedDownload.Duration),
-				UploadOverheadS:   float32(swarmingTask.PerformanceStats.IsolatedUpload.Duration),
+		taskExecutor := s.taskExecs.Get(task.TaskExecutor)
+		if taskExecutor == nil {
+			sklog.Errorf("Task %s has unknown executor %q; cannot include stats", task.Id, task.TaskExecutor)
+		} else {
+			swarmingTask, err := taskExecutor.GetTaskResult(ctx, task.SwarmingTaskId, true)
+			if err != nil {
+				sklog.Error(err)
+				return nil, twirp.InternalError("Failed to retrieve Swarming task")
+			}
+			if swarmingTask.Stats != nil {
+				task.Stats = &TaskStats{
+					TotalOverheadS:    float32(swarmingTask.Stats.TotalOverheadS),
+					DownloadOverheadS: float32(swarmingTask.Stats.DownloadOverheadS),
+					UploadOverheadS:   float32(swarmingTask.Stats.UploadOverheadS),
+				}
 			}
 		}
 	}
@@ -475,6 +480,7 @@ func convertTask(task *types.Task) (*Task, error) {
 		Status:         st,
 		SwarmingBotId:  task.SwarmingBotId,
 		SwarmingTaskId: task.SwarmingTaskId,
+		TaskExecutor:   task.TaskExecutor,
 		TaskKey: &TaskKey{
 			RepoState:   convertRepoState(task.RepoState),
 			Name:        task.Name,

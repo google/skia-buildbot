@@ -519,6 +519,7 @@ export interface Task {
   swarmingTaskId: string;
   taskKey?: TaskKey;
   stats?: TaskStats;
+  taskExecutor: string;
 }
 
 interface TaskJSON {
@@ -540,6 +541,7 @@ interface TaskJSON {
   swarming_task_id?: string;
   task_key?: TaskKeyJSON;
   stats?: TaskStatsJSON;
+  task_executor?: string;
 }
 
 const JSONToTask = (m: TaskJSON): Task => {
@@ -562,6 +564,7 @@ const JSONToTask = (m: TaskJSON): Task => {
     swarmingTaskId: m.swarming_task_id || "",
     taskKey: m.task_key && JSONToTaskKey(m.task_key),
     stats: m.stats && JSONToTaskStats(m.stats),
+    taskExecutor: m.task_executor || "",
   };
 };
 
@@ -625,20 +628,23 @@ const JSONToTaskSummaries = (m: TaskSummariesJSON): TaskSummaries => {
   };
 };
 
-export interface TaskDimensions {
+export interface TaskSpecSummary {
   taskName: string;
   dimensions?: string[];
+  taskExecutor: string;
 }
 
-interface TaskDimensionsJSON {
+interface TaskSpecSummaryJSON {
   task_name?: string;
   dimensions?: string[];
+  task_executor?: string;
 }
 
-const JSONToTaskDimensions = (m: TaskDimensionsJSON): TaskDimensions => {
+const JSONToTaskSpecSummary = (m: TaskSpecSummaryJSON): TaskSpecSummary => {
   return {
     taskName: m.task_name || "",
     dimensions: m.dimensions,
+    taskExecutor: m.task_executor || "",
   };
 };
 
@@ -679,7 +685,7 @@ export interface Job {
   status: JobStatus;
   statusDetails: string;
   tasks?: TaskSummaries[];
-  taskDimensions?: TaskDimensions[];
+  taskSpecSummaries?: TaskSpecSummary[];
 }
 
 interface JobJSON {
@@ -699,7 +705,7 @@ interface JobJSON {
   status?: string;
   status_details?: string;
   tasks?: TaskSummariesJSON[];
-  task_dimensions?: TaskDimensionsJSON[];
+  task_spec_summaries?: TaskSpecSummaryJSON[];
 }
 
 const JSONToJob = (m: JobJSON): Job => {
@@ -720,7 +726,7 @@ const JSONToJob = (m: JobJSON): Job => {
     status: (m.status || Object.keys(JobStatus)[0]) as JobStatus,
     statusDetails: m.status_details || "",
     tasks: m.tasks && m.tasks.map(JSONToTaskSummaries),
-    taskDimensions: m.task_dimensions && m.task_dimensions.map(JSONToTaskDimensions),
+    taskSpecSummaries: m.task_spec_summaries && m.task_spec_summaries.map(JSONToTaskSpecSummary),
   };
 };
 

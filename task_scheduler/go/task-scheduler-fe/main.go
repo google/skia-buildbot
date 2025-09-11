@@ -189,11 +189,9 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := struct {
-		JobId          string
-		SwarmingServer string
+		JobId string
 	}{
-		JobId:          id,
-		SwarmingServer: (*swarmingServers)[0].Name,
+		JobId: id,
 	}
 	if err := jobTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
@@ -262,11 +260,9 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := struct {
-		TaskId         string
-		SwarmingServer string
+		TaskId string
 	}{
-		TaskId:         id,
-		SwarmingServer: (*swarmingServers)[0].Name,
+		TaskId: id,
 	}
 	if err := taskTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
@@ -414,13 +410,11 @@ func main() {
 	httpClient := cfg.Client()
 
 	// Create the task executors.
-	var swarm swarmingv2.SwarmingV2Client
 	var taskExecs types.TaskExecutors
 	for _, swarmingServer := range *swarmingServers {
 		swarmClient := swarmingv2.NewDefaultClient(httpClient, swarmingServer.Name)
 		swarmingTaskExec := swarming_task_execution_v2.NewSwarmingV2TaskExecutor(swarmClient, swarmingServer.Name, "unused-rbe-instance", "unused-pubsub-topic", swarmingServer.Realm, swarmingServer.Pools)
 		taskExecs = append(taskExecs, swarmingTaskExec)
-		swarm = swarmClient
 	}
 
 	// Auto-update the git repos.
@@ -432,7 +426,7 @@ func main() {
 	}
 	plogin := proxylogin.NewWithDefaults()
 
-	srv := rpc.NewTaskSchedulerServer(ctx, tsDb, repos, skipTasks, taskCfgCache, swarm, plogin)
+	srv := rpc.NewTaskSchedulerServer(ctx, tsDb, repos, skipTasks, taskCfgCache, taskExecs, plogin)
 	if err != nil {
 		sklog.Fatal(err)
 	}

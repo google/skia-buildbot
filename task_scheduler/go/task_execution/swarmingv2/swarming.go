@@ -116,12 +116,12 @@ func (s *SwarmingV2TaskExecutor) GetPendingTasks(ctx context.Context, pool strin
 }
 
 // GetTaskResult implements types.TaskExecutor.
-func (s *SwarmingV2TaskExecutor) GetTaskResult(ctx context.Context, taskID string) (*types.TaskResult, error) {
+func (s *SwarmingV2TaskExecutor) GetTaskResult(ctx context.Context, taskID string, includeStats bool) (*types.TaskResult, error) {
 	ctx, span := trace.StartSpan(ctx, "swarming_GetTaskResult", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 	swarmTask, err := s.client.GetResult(ctx, &apipb.TaskIdWithPerfRequest{
 		TaskId:                  taskID,
-		IncludePerformanceStats: false,
+		IncludePerformanceStats: includeStats,
 	})
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -337,6 +337,15 @@ func convertTaskResult(res *apipb.TaskResultResponse) (*types.TaskResult, error)
 		finished = res.AbandonedTs.AsTime().UTC()
 	}
 
+	var stats *types.TaskStats
+	if res.PerformanceStats != nil && res.PerformanceStats.IsolatedDownload != nil && res.PerformanceStats.IsolatedUpload != nil {
+		stats = &types.TaskStats{
+			TotalOverheadS:    float32(res.PerformanceStats.BotOverhead),
+			DownloadOverheadS: float32(res.PerformanceStats.IsolatedDownload.Duration),
+			UploadOverheadS:   float32(res.PerformanceStats.IsolatedUpload.Duration),
+		}
+	}
+
 	return &types.TaskResult{
 		CasOutput: casOutput,
 		Created:   created,
@@ -344,6 +353,7 @@ func convertTaskResult(res *apipb.TaskResultResponse) (*types.TaskResult, error)
 		ID:        res.TaskId,
 		MachineID: res.BotId,
 		Started:   started,
+		Stats:     stats,
 		Status:    status,
 		Tags:      tags,
 	}, nil

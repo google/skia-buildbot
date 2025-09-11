@@ -8,24 +8,24 @@
 import { render, svg } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 
-import { Job, Task, TaskDependencies, TaskDimensions, TaskSummaries, TaskSummary } from '../rpc';
+import { Job, Task, TaskDependencies, TaskSpecSummary, TaskSummaries, TaskSummary } from '../rpc';
 
 type TaskName = string;
 
 export class TaskGraphSk extends HTMLElement {
-  draw(jobs: Job[], swarmingServer: string, selectedTask?: Task) {
+  draw(jobs: Job[], selectedTask?: Task) {
     const graph: Map<TaskName, TaskName[]> = new Map();
     const taskData: Map<TaskName, TaskSummary[]> = new Map();
-    const taskDims: Map<TaskName, string[]> = new Map();
+    const taskSpecs: Map<TaskName, TaskSpecSummary> = new Map();
     jobs.forEach((job: Job) => {
       job.dependencies?.forEach((dep: TaskDependencies) => {
         if (!graph.get(dep.task)) {
           graph.set(dep.task, dep.dependencies || []);
         }
       });
-      job.taskDimensions?.forEach((dims: TaskDimensions) => {
-        if (!taskDims.has(dims.taskName)) {
-          taskDims.set(dims.taskName, dims.dimensions!);
+      job.taskSpecSummaries?.forEach((spec: TaskSpecSummary) => {
+        if (!taskSpecs.has(spec.taskName)) {
+          taskSpecs.set(spec.taskName, spec!);
         }
       });
       job.tasks?.forEach((taskSummaries: TaskSummaries) => {
@@ -119,7 +119,6 @@ export class TaskGraphSk extends HTMLElement {
     const taskSpecHeight = textHeight + botLinkHeight + taskLinkHeight + taskHeight + taskMarginY;
 
     // Compute the task spec block width for each column.
-    const maxTextWidth = 0;
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     ctx.font = `${botLinkFontSize}px ${fontFamily}`;
@@ -161,6 +160,7 @@ export class TaskGraphSk extends HTMLElement {
       height: number;
       name: string;
       numTasks: number;
+      taskSpec: TaskSpecSummary;
     }
     interface taskRect {
       x: number;
@@ -168,11 +168,12 @@ export class TaskGraphSk extends HTMLElement {
       width: number;
       height: number;
       task: TaskSummary;
+      taskSpec: TaskSpecSummary;
     }
     let totalWidth = 0;
     let totalHeight = 0;
-    const taskSpecs: taskSpecRect[] = [];
-    const tasks: taskRect[] = [];
+    const taskSpecRects: taskSpecRect[] = [];
+    const taskRects: taskRect[] = [];
     const byName: Map<string, taskSpecRect> = new Map();
     let curX = taskMarginX;
     cols.forEach((col: cell[], colIdx: number) => {
@@ -186,19 +187,21 @@ export class TaskGraphSk extends HTMLElement {
           height: taskSpecHeight,
           name: taskSpec.name,
           numTasks: taskSpec.tasks.length,
+          taskSpec: taskSpecs.get(taskSpec.name)!,
         };
-        taskSpecs.push(entry);
+        taskSpecRects.push(entry);
         byName.set(taskSpec.name, entry);
 
         const taskX = curX + taskMarginX;
         const taskY = curY + textHeight + botLinkHeight + taskLinkHeight;
         taskSpec.tasks.forEach((task: TaskSummary, taskIdx: number) => {
-          tasks.push({
+          taskRects.push({
             x: taskX + taskIdx * (taskWidth + taskMarginX),
             y: taskY,
             width: taskWidth,
             height: taskHeight,
             task: task,
+            taskSpec: taskSpecs.get(taskSpec.name)!,
           });
         });
         curY += taskSpecHeight + taskSpecMarginY;
@@ -272,7 +275,7 @@ export class TaskGraphSk extends HTMLElement {
             </path>
           `
         )}
-        ${taskSpecs.map(
+        ${taskSpecRects.map(
           (taskSpec: taskSpecRect) => svg`
           <rect
               rx="4"
@@ -293,7 +296,7 @@ export class TaskGraphSk extends HTMLElement {
           </text>
           <a
               target="_blank"
-              href="${TaskGraphSk.computeBotsLink(taskDims.get(taskSpec.name)!, swarmingServer)}">
+              href="${TaskGraphSk.computeBotsLink(taskSpec.taskSpec)}">
             <text
                 class="links"
                 x="${taskSpec.x + textOffsetX}"
@@ -304,7 +307,7 @@ export class TaskGraphSk extends HTMLElement {
           </a>
           <a
               target="_blank"
-              href="${TaskGraphSk.computeTasksLink(taskSpec.name, swarmingServer)}">
+              href="${TaskGraphSk.computeTasksLink(taskSpec.taskSpec)}">
             <text
                 class="links"
                 x="${taskSpec.x + textOffsetX}"
@@ -315,12 +318,12 @@ export class TaskGraphSk extends HTMLElement {
           </a>
         `
         )}
-        ${tasks.map(
+        ${taskRects.map(
           (task) => svg`
           <a
               class="task"
               target="_blank"
-              href="${TaskGraphSk.computeTaskLink(task.task!, swarmingServer)}">
+              href="${TaskGraphSk.computeTaskLink(task.task!, task.taskSpec!.taskExecutor)}">
             <rect
                 class="task ${task.task.id === selectedTask?.id ? 'emphasis' : ''} ${
                   taskStatusToClass[task.task!.status]
@@ -342,16 +345,16 @@ export class TaskGraphSk extends HTMLElement {
     );
   }
 
-  private static computeBotsLink(dims: string[], swarmingServer: string): string {
-    let link = `https://${swarmingServer}/botlist`;
-    if (dims) {
-      for (let i = 0; i < dims.length; i++) {
+  private static computeBotsLink(taskSpec: TaskSpecSummary): string {
+    let link = `https://${taskSpec.taskExecutor}/botlist`;
+    if (taskSpec.dimensions) {
+      for (let i = 0; i < taskSpec.dimensions.length; i++) {
         if (i === 0) {
           link += '?';
         } else {
           link += '&';
         }
-        link += `f=${encodeURIComponent(dims[i])}`;
+        link += `f=${encodeURIComponent(taskSpec.dimensions[i])}`;
       }
     }
     return link;
@@ -364,8 +367,8 @@ export class TaskGraphSk extends HTMLElement {
     )}`;
   }
 
-  private static computeTasksLink(name: string, swarmingServer: string): string {
-    return `https://${swarmingServer}/tasklist?f=sk_name-tag:${name}`;
+  private static computeTasksLink(taskSpec: TaskSpecSummary): string {
+    return `https://${taskSpec.taskExecutor}/tasklist?f=sk_name-tag:${taskSpec.taskName}`;
   }
 }
 

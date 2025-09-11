@@ -51,8 +51,21 @@ type TaskResult struct {
 	ID        string              `json:"id"`
 	MachineID string              `json:"machine_id"`
 	Started   time.Time           `json:"started"`
+	Stats     *TaskStats          `json:"stats"`
 	Status    TaskStatus          `json:"status"`
 	Tags      map[string][]string `json:"tags"`
+}
+
+// TaskStats provides statistics about a Task.
+type TaskStats struct {
+	// TotalOverheadS is the total amount of overhead for the task, in seconds.
+	TotalOverheadS float32 `json:"total_overhead_s,omitempty"`
+	// DownloadOverheadS is the number of seconds spent downloading assets
+	// before running the task.
+	DownloadOverheadS float32 `json:"download_overhead_s,omitempty"`
+	// UploadOverheadS is the number of seconds spent uploading assets after
+	// running the task.
+	UploadOverheadS float32 `json:"upload_overhead_s,omitempty"`
 }
 
 // Machine describes a machine which can run tasks.
@@ -77,7 +90,7 @@ type TaskExecutor interface {
 	// yet started.
 	GetPendingTasks(ctx context.Context, pool string) ([]*TaskResult, error)
 	// GetTaskResult retrieves the result of the given task.
-	GetTaskResult(ctx context.Context, taskID string) (*TaskResult, error)
+	GetTaskResult(ctx context.Context, taskID string, includeStats bool) (*TaskResult, error)
 	// GetTaskCompletionStatuses returns a slice of bools indicating whether
 	// each of the given tasks have finished.
 	GetTaskCompletionStatuses(ctx context.Context, taskIDs []string) ([]bool, error)

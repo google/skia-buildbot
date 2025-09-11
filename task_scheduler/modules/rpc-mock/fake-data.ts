@@ -46,6 +46,7 @@ export const task0: Task = {
     downloadOverheadS: '15.0',
     uploadOverheadS: '15.0',
   },
+  taskExecutor: 'chromium-swarm.appspot.com',
 };
 
 export const task1: Task = {
@@ -75,6 +76,7 @@ export const task1: Task = {
     downloadOverheadS: '5.0',
     uploadOverheadS: '10.0',
   },
+  taskExecutor: 'chromium-swarm.appspot.com',
 };
 
 export const task2: Task = {
@@ -104,6 +106,7 @@ export const task2: Task = {
     downloadOverheadS: '15.0',
     uploadOverheadS: '0.0',
   },
+  taskExecutor: 'chromium-swarm.appspot.com',
 };
 
 export const task3: Task = {
@@ -133,6 +136,7 @@ export const task3: Task = {
     downloadOverheadS: '15.0',
     uploadOverheadS: '40.0',
   },
+  taskExecutor: 'chromium-swarm.appspot.com',
 };
 
 export const task4: Task = {
@@ -162,6 +166,7 @@ export const task4: Task = {
     downloadOverheadS: '25.0',
     uploadOverheadS: '0.0',
   },
+  taskExecutor: 'chromium-swarm.appspot.com',
 };
 
 // job1 represents real task data.
@@ -254,22 +259,26 @@ export const job1: Job = {
       ],
     },
   ],
-  taskDimensions: [
+  taskSpecSummaries: [
     {
       taskName: task1.taskKey!.name,
       dimensions: ['key:val'],
+      taskExecutor: 'chromium-swarm.appspot.com',
     },
     {
       taskName: task0.taskKey!.name,
       dimensions: ['key:val'],
+      taskExecutor: 'chromium-swarm.appspot.com',
     },
     {
       taskName: task2.taskKey!.name,
       dimensions: ['key:val'],
+      taskExecutor: 'chromium-swarm.appspot.com',
     },
     {
       taskName: task4.taskKey!.name,
       dimensions: ['key:val'],
+      taskExecutor: 'chromium-swarm.appspot.com',
     },
   ],
 };
@@ -383,6 +392,38 @@ export const job2: Job = {
           swarmingTaskId: '31cd28b854e04d10',
         },
       ],
+    },
+  ],
+  taskSpecSummaries: [
+    {
+      taskName: 'F',
+      dimensions: ['key:val'],
+      taskExecutor: 'chromium-swarm.appspot.com',
+    },
+    {
+      taskName: 'E',
+      dimensions: ['key:val'],
+      taskExecutor: 'alternate-swarming-for-E.appspot.com',
+    },
+    {
+      taskName: 'D',
+      dimensions: ['key:val'],
+      taskExecutor: 'chromium-swarm.appspot.com',
+    },
+    {
+      taskName: task2.taskKey!.name,
+      dimensions: ['key:val'],
+      taskExecutor: 'chromium-swarm.appspot.com',
+    },
+    {
+      taskName: 'B',
+      dimensions: ['key:val'],
+      taskExecutor: 'chromium-swarm.appspot.com',
+    },
+    {
+      taskName: 'A',
+      dimensions: ['key:val'],
+      taskExecutor: 'chromium-swarm.appspot.com',
     },
   ],
 };

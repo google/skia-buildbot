@@ -145,7 +145,7 @@ func TestGetTaskResult(t *testing.T) {
 		State:  apipb.TaskState_COMPLETED,
 	}, nil)
 
-	task, err := s.GetTaskResult(ctx, "task-id")
+	task, err := s.GetTaskResult(ctx, "task-id", false)
 	require.NoError(t, err)
 	require.Equal(t, &types.TaskResult{
 		ID:     "task-id",

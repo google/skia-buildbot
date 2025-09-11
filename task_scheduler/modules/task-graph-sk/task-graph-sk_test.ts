@@ -14,7 +14,7 @@ describe('task-graph-sk', () => {
   });
 
   it('renders job1', () => {
-    element.draw([job1], 'fake-swarming.com');
+    element.draw([job1]);
     expect(element.getElementsByTagName('svg').length).to.equal(1);
   });
 });

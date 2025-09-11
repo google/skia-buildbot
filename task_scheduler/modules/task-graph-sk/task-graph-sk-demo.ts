@@ -6,4 +6,4 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import './index';
 
 const ele = <TaskGraphSk>document.getElementsByTagName('task-graph-sk')[0];
-ele.draw([job2], 'chromium-swarm.appspot.com');
+ele.draw([job2]);

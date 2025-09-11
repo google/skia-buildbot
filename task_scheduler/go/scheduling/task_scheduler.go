@@ -1680,7 +1680,7 @@ func (s *TaskScheduler) updateUnfinishedTasks(ctx context.Context) error {
 				wg.Add(1)
 				go func(idx int, t *types.Task) {
 					defer wg.Done()
-					taskResult, err := taskExecutor.GetTaskResult(ctx, t.SwarmingTaskId)
+					taskResult, err := taskExecutor.GetTaskResult(ctx, t.SwarmingTaskId, false)
 					if err != nil {
 						errs[idx] = skerr.Wrapf(err, "Failed to update unfinished task %s; failed to get updated task from swarming", t.SwarmingTaskId)
 						return
@@ -1957,7 +1957,7 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 	var err error
 	for _, taskExec := range s.taskExecutors {
 		var err error
-		res, err = taskExec.GetTaskResult(ctx, msg.SwarmingTaskId)
+		res, err = taskExec.GetTaskResult(ctx, msg.SwarmingTaskId, false)
 		if err == nil {
 			break
 		}

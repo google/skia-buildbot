@@ -142,13 +142,7 @@ export class JobSk extends ElementSk {
                   <a href="${ele.codereviewLink}" target="_blank"> ${ele.codereviewLink} </a>
                 </td>
                 <td>
-                  <a
-                    href="/jobs/search?server=${encodeURIComponent(
-                      ele.job!.repoState!.patch!.server
-                    )}&issue=${encodeURIComponent(
-                      ele.job!.repoState!.patch!.issue
-                    )}&patchset=${encodeURIComponent(ele.job!.repoState!.patch!.patchset)}"
-                    target="_blank">
+                  <a href="${ele.searchByCodeReviewLink()}" target="_blank">
                     <button><search-icon-sk></search-icon-sk>Search Jobs</button>
                   </a>
                 </td>
@@ -228,15 +222,6 @@ export class JobSk extends ElementSk {
     this.reload();
   }
 
-  get swarming(): string {
-    return this.getAttribute('swarming') || '';
-  }
-
-  set swarming(swarming: string) {
-    this.setAttribute('swarming', swarming);
-    this._render();
-  }
-
   get rpc(): TaskSchedulerService | null {
     return this._rpc;
   }
@@ -269,7 +254,7 @@ export class JobSk extends ElementSk {
     [this.statusText, this.statusClass] = jobStatusToTextClass.get(this.job.status)!;
     this._render();
     const graph = $$<TaskGraphSk>('task-graph-sk', this);
-    graph?.draw([this.job], this.swarming);
+    graph?.draw([this.job]);
   }
 
   private reload() {
@@ -294,6 +279,18 @@ export class JobSk extends ElementSk {
       .then((resp: CancelJobResponse) => {
         this.updateFrom(resp.job!);
       });
+  }
+
+  private searchByCodeReviewLink() {
+    return (
+      '/jobs/search' +
+      '?server=' +
+      encodeURIComponent(this.job!.repoState!.patch!.server) +
+      '&issue=' +
+      encodeURIComponent(this.job!.repoState!.patch!.issue) +
+      '&patchset=' +
+      encodeURIComponent(this.job!.repoState!.patch!.patchset)
+    );
   }
 }
 
