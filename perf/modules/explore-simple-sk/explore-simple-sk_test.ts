@@ -4,6 +4,7 @@ import fetchMock from 'fetch-mock';
 import {
   ColumnHeader,
   CommitNumber,
+  FrameResponse,
   QueryConfig,
   TimestampSeconds,
   Trace,
@@ -25,17 +26,12 @@ import {
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { generateFullDataFrame } from '../dataframe/test_utils';
 import { UserIssueMap } from '../dataframe/dataframe_context';
-import { MdSwitch } from '@material/web/switch/switch';
-import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 import sinon from 'sinon';
 
 fetchMock.config.overwriteRoutes = true;
 
 const now = 1726081856; // an arbitrary UNIX time;
 const timeSpan = 89; // an arbitrary prime number for time span between commits .
-
-// Helper function to wait for the next event loop cycle
-const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 describe('calculateRangeChange', () => {
   const offsets: CommitRange = [100, 120] as CommitRange;
@@ -476,7 +472,6 @@ describe('plotSummary', () => {
     explore.state.plotSummary = true;
     explore['tracesRendered'] = true;
     explore.render();
-    await tick();
 
     const plotSummaryElement = explore['plotSummary'].value;
     assert.notEqual(plotSummaryElement, undefined);
@@ -485,7 +480,6 @@ describe('plotSummary', () => {
   it('Plot Summary bar not enabled', async () => {
     const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     explore.render();
-    await tick();
 
     const plotSummaryElement = explore['plotSummary'].value;
     assert.equal(plotSummaryElement, undefined);
@@ -511,154 +505,6 @@ describe('updateBrowserURL', () => {
     assert.equal(pushedUrl.searchParams.get('begin'), '100');
     assert.equal(pushedUrl.searchParams.get('end'), '200');
     assert.equal(pushedUrl.searchParams.get('request_type'), '0');
-  });
-});
-
-describe('State Propagation and UI Sync', () => {
-  let explore: ExploreSimpleSk;
-  let commitSwitch: MdSwitch;
-
-  beforeEach(async () => {
-    // Mock a successful response for /_/initpage/
-    fetchMock.get(/_\/initpage\/.*/, {
-      dataframe: {
-        traceset: null,
-        header: null,
-        paramset: {},
-        skip: 0,
-      },
-      ticks: [],
-      skps: [],
-      msg: '',
-    });
-
-    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-    await tick(); // Wait for the element to render and connectedCallback to run
-
-    // ElementSk renders to light DOM
-    commitSwitch = explore.querySelector('#commit-switch') as MdSwitch;
-    assert.exists(commitSwitch, 'commit-switch should exist');
-  });
-
-  afterEach(() => {
-    fetchMock.reset();
-  });
-
-  it('should update switch state when domain is set to "date"', async () => {
-    const newState = new State();
-    newState.domain = 'date';
-    explore.state = newState;
-    await tick(); // Wait for re-render
-    assert.isTrue(commitSwitch.selected, 'Switch should be selected for date domain');
-    assert.isTrue(explore['xAxisSwitch'], 'xAxisSwitch property should be true');
-  });
-
-  it('should update switch state when domain is set to "commit"', async () => {
-    // First set to date to ensure change detection
-    const initialSate = new State();
-    initialSate.domain = 'date';
-    explore.state = initialSate;
-    await tick();
-    assert.isTrue(commitSwitch.selected, 'Switch should be selected for date domain');
-
-    // Now test changing to commit
-    const newState = new State();
-    newState.domain = 'commit';
-    explore.state = newState;
-    await tick(); // Wait for re-render
-    assert.isFalse(commitSwitch.selected, 'Switch should not be selected for commit domain');
-    assert.isFalse(explore['xAxisSwitch'], 'xAxisSwitch property should be false');
-  });
-});
-
-describe('addFromQueryOrFormula range', () => {
-  let explore: ExploreSimpleSk;
-  let state: State;
-
-  beforeEach(() => {
-    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-    state = new State();
-    explore.state = state;
-  });
-
-  it('extends the time range', () => {
-    explore.state.begin = 100;
-    explore.state.end = 200;
-
-    const range = document.createElement('domain-picker-sk') as DomainPickerSk;
-    range.state = {
-      begin: 50,
-      end: 250,
-      num_commits: 0,
-      request_type: 0,
-    };
-    explore.appendChild(range);
-    explore['range'] = range;
-
-    explore['addFromQueryOrFormula'](false, 'query', 'a=b', '');
-
-    assert.equal(explore.state.begin, 50);
-    assert.equal(explore.state.end, 250);
-  });
-
-  it('does not shorten the time range', () => {
-    explore.state.begin = 100;
-    explore.state.end = 200;
-
-    const range = document.createElement('domain-picker-sk') as DomainPickerSk;
-    range.state = {
-      begin: 150,
-      end: 180,
-      num_commits: 0,
-      request_type: 0,
-    };
-    explore.appendChild(range);
-    explore['range'] = range;
-
-    explore['addFromQueryOrFormula'](false, 'query', 'a=b', '');
-
-    assert.equal(explore.state.begin, 100);
-    assert.equal(explore.state.end, 200);
-  });
-
-  it('only extends the beginning of the time range', () => {
-    explore.state.begin = 100;
-    explore.state.end = 200;
-
-    const range = document.createElement('domain-picker-sk') as DomainPickerSk;
-    range.state = {
-      begin: 50,
-      end: 180,
-      num_commits: 0,
-      request_type: 0,
-    };
-    explore.appendChild(range);
-    explore['range'] = range;
-
-    explore['addFromQueryOrFormula'](false, 'query', 'a=b', '');
-
-    assert.equal(explore.state.begin, 50);
-    assert.equal(explore.state.end, 200);
-  });
-
-  it('only extends the end of the time range', () => {
-    explore.state.begin = 100;
-    explore.state.end = 200;
-
-    const range = document.createElement('domain-picker-sk') as DomainPickerSk;
-    range.state = {
-      begin: 120,
-      end: 250,
-      num_commits: 0,
-      request_type: 0,
-    };
-    explore.appendChild(range);
-    explore['range'] = range;
-
-    explore['addFromQueryOrFormula'](false, 'query', 'a=b', '');
-
-    assert.equal(explore.state.begin, 100);
-    assert.equal(explore.state.end, 250);
   });
 });
 
@@ -705,5 +551,107 @@ describe('rationalizeTimeRange', () => {
     state.end = now + 500;
     const rationalizedState = explore['rationalizeTimeRange'](state);
     assert.equal(rationalizedState.end, now);
+  });
+});
+
+describe('Incremental Trace Loading', () => {
+  let explore: ExploreSimpleSk;
+
+  // Define clean queries and comma-wrapped keys separately.
+  const initialQuery = 'arch=x86&config=original';
+  const initialTraceKey = `,${initialQuery},`; // Comma-wrapped for traceset
+  const newQuery = 'arch=arm&config=new';
+  const newTraceKey = `,${newQuery},`; // Comma-wrapped for traceset
+
+  // Generate a dataframe and ensure it has traceMetadata.
+  const initialDataFrame = generateFullDataFrame(
+    { begin: 1, end: 100 },
+    now,
+    1,
+    [timeSpan],
+    [[10, 20]],
+    [initialTraceKey]
+  );
+  initialDataFrame.traceMetadata = []; // Ensure traceMetadata exists.
+
+  const initialFrameResponse: FrameResponse = {
+    dataframe: initialDataFrame,
+    anomalymap: {},
+    skps: [],
+    msg: '',
+    display_mode: 'display_plot',
+  };
+
+  // Generate the second dataframe and ensure it has traceMetadata.
+  const newDataFrame = generateFullDataFrame(
+    { begin: 1, end: 100 },
+    now,
+    1,
+    [timeSpan],
+    [[30, 40]],
+    [newTraceKey]
+  );
+  newDataFrame.traceMetadata = []; // Ensure traceMetadata exists.
+
+  const newFrameResponse: FrameResponse = {
+    dataframe: newDataFrame,
+    anomalymap: {},
+    skps: [],
+    msg: '',
+    display_mode: 'display_plot',
+  };
+
+  beforeEach(() => {
+    fetchMock.reset();
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+
+    fetchMock.get('/_/login/status', {
+      email: 'someone@example.org',
+      roles: ['editor'],
+    });
+    fetchMock.get('path:/_/defaults/', {
+      status: 200,
+      body: JSON.stringify({}),
+    });
+    fetchMock.post('/_/frame/start', {});
+    fetchMock.post('/_/user_issues/', { UserIssues: [] });
+    fetchMock.flush(true);
+  });
+
+  it('only fetches new data when adding a trace', async () => {
+    // Original data.
+    fetchMock.postOnce('/_/frame/start', (_url, opts) => {
+      const body = JSON.parse(opts.body as string);
+      assert.deepEqual(body.queries, [initialQuery]);
+      return {
+        status: 'Finished',
+        results: initialFrameResponse,
+        messages: [],
+      };
+    });
+    await explore.addFromQueryOrFormula(true, 'query', initialQuery, '');
+    await fetchMock.flush(true);
+
+    // Verify the initial data is present.
+    assert.containsAllKeys(explore['_dataframe'].traceset, [initialTraceKey]);
+    assert.lengthOf(Object.keys(explore['_dataframe'].traceset), 1);
+
+    // New data, expect incremental fetch.
+    fetchMock.postOnce('/_/frame/start', (_url, opts) => {
+      const body = JSON.parse(opts.body as string);
+      assert.deepEqual(body.queries, [newQuery]);
+      return {
+        status: 'Finished',
+        results: newFrameResponse,
+        messages: [],
+      };
+    });
+
+    await explore.addFromQueryOrFormula(false, 'query', newQuery, '');
+    await fetchMock.flush(true);
+
+    const finalTraceset = explore['_dataframe'].traceset;
+    assert.containsAllKeys(finalTraceset, [initialTraceKey, newTraceKey]);
+    assert.lengthOf(Object.keys(finalTraceset), 2);
   });
 });

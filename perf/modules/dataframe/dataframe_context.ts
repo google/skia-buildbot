@@ -480,80 +480,84 @@ export class DataFrameRepository extends LitElement {
     if (offsetInSeconds === this.chunkSize) {
       return;
     }
+    let totalTraces = 0;
     let resolver = emptyResolver;
     const curRequest = this._requestComplete;
     this._requestComplete = new Promise((resolve) => {
       resolver = resolve;
     });
-    await curRequest;
-    this.loading = true;
-    const range = deltaRange(this.timeRange, offsetInSeconds);
-    const ranges = sliceRange(range, this.chunkSize);
-    const allResponses: Promise<FrameResponse>[] = [];
-    for (let slice = 0; slice < ranges.length; slice++) {
-      allResponses.push(this.requestNewRange(ranges[slice]));
-    }
-
-    // Fetch and sort the frame responses so they can appended consecutively.
-    const sortedResponses = (await Promise.all(allResponses))
-      .filter(
-        // Filter responses with valid dataframes with actual traces.
-        (fr) =>
-          fr.dataframe &&
-          (fr.dataframe.header?.length || 0) > 0 &&
-          Object.keys(fr.dataframe.traceset).length > 0
-      )
-      .sort(
-        (a: FrameResponse, b: FrameResponse) =>
-          a.dataframe!.header![0]!.offset - b.dataframe!.header![0]!.offset
-      );
-    const totalTraces = sortedResponses
-      .map((resp) => resp.dataframe!.header?.length || 0)
-      .reduce((count, cur) => count + cur, 0);
-
-    const header = ([] as (ColumnHeader | null)[]).concat(
-      ...sortedResponses.map((resp) => resp.dataframe!.header)
-    );
-
-    const traceset = TraceSet({});
-    Object.keys(this.traces).forEach((key) => {
-      traceset[key] = (traceset[key] || []).concat(
-        ...sortedResponses.map((resp) => {
-          if (resp.dataframe && resp.dataframe.traceset[key]) {
-            return resp.dataframe.traceset[key];
-          } else {
-            // If one of the traces we're trying to expand is not in the response,
-            // this will cause the traceset to not have the same length as the
-            // header, shifting all datapoints. Instead, we need to pad the trace
-            // with MISSING values so that they're in sync with the header.
-            const numNulls = resp.dataframe?.header?.length ?? 0;
-            return Array(numNulls).fill(MISSING_DATA_SENTINEL);
-          }
-        })
-      ) as Trace;
-    });
-
-    const traceMetadata: TraceMetadata[] = [];
-    sortedResponses.map((resp) => {
-      if (resp.dataframe && resp.dataframe.traceMetadata) {
-        traceMetadata.push(...resp.dataframe.traceMetadata);
+    try {
+      await curRequest;
+      this.loading = true;
+      const range = deltaRange(this.timeRange, offsetInSeconds);
+      const ranges = sliceRange(range, this.chunkSize);
+      const allResponses: Promise<FrameResponse>[] = [];
+      for (let slice = 0; slice < ranges.length; slice++) {
+        allResponses.push(this.requestNewRange(ranges[slice]));
       }
-    });
-    this.addTraceInfo(header, traceset, traceMetadata);
 
-    const anomaly = sortedResponses.reduce((pre, cur) => mergeAnomaly(pre, cur.anomalymap), {});
-    await this.setDataFrame({
-      traceset: this._traceset,
-      header: this._header,
-      paramset: this._paramset,
-      skip: 0,
-      traceMetadata: this._traceMetadata,
-    });
+      // Fetch and sort the frame responses so they can appended consecutively.
+      const sortedResponses = (await Promise.all(allResponses))
+        .filter(
+          // Filter responses with valid dataframes with actual traces.
+          (fr) =>
+            fr.dataframe &&
+            (fr.dataframe.header?.length || 0) > 0 &&
+            Object.keys(fr.dataframe.traceset).length > 0
+        )
+        .sort(
+          (a: FrameResponse, b: FrameResponse) =>
+            a.dataframe!.header![0]!.offset - b.dataframe!.header![0]!.offset
+        );
+      totalTraces = sortedResponses
+        .map((resp) => resp.dataframe!.header?.length || 0)
+        .reduce((count, cur) => count + cur, 0);
 
-    this.anomaly = mergeAnomaly(this.anomaly, anomaly);
-    this.loading = false;
-    resolver(totalTraces);
-    return totalTraces;
+      const header = ([] as (ColumnHeader | null)[]).concat(
+        ...sortedResponses.map((resp) => resp.dataframe!.header)
+      );
+
+      const traceset = TraceSet({});
+      Object.keys(this.traces).forEach((key) => {
+        traceset[key] = (traceset[key] || []).concat(
+          ...sortedResponses.map((resp) => {
+            if (resp.dataframe && resp.dataframe.traceset[key]) {
+              return resp.dataframe.traceset[key];
+            } else {
+              // If one of the traces we're trying to expand is not in the response,
+              // this will cause the traceset to not have the same length as the
+              // header, shifting all datapoints. Instead, we need to pad the trace
+              // with MISSING values so that they're in sync with the header.
+              const numNulls = resp.dataframe?.header?.length ?? 0;
+              return Array(numNulls).fill(MISSING_DATA_SENTINEL);
+            }
+          })
+        ) as Trace;
+      });
+
+      const traceMetadata: TraceMetadata[] = [];
+      sortedResponses.map((resp) => {
+        if (resp.dataframe && resp.dataframe.traceMetadata) {
+          traceMetadata.push(...resp.dataframe.traceMetadata);
+        }
+      });
+      this.addTraceInfo(header, traceset, traceMetadata);
+
+      const anomaly = sortedResponses.reduce((pre, cur) => mergeAnomaly(pre, cur.anomalymap), {});
+      await this.setDataFrame({
+        traceset: this._traceset,
+        header: this._header,
+        paramset: this._paramset,
+        skip: 0,
+        traceMetadata: this._traceMetadata,
+      });
+
+      this.anomaly = mergeAnomaly(this.anomaly, anomaly);
+      this.loading = false;
+    } finally {
+      resolver(totalTraces);
+      return totalTraces;
+    }
   }
 
   protected async shift(commitRange: range, offset: number = -200) {

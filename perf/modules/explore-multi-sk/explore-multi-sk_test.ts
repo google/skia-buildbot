@@ -640,4 +640,137 @@ describe('ExploreMultiSk', () => {
       assert.equal(element['currentPageExploreElements'].length, 2);
     });
   });
+
+  describe('mergeParamSets', () => {
+    it('should return the original ParamSet in an array if the split key has only one value', () => {
+      const ps = { os: ['linux'], arch: ['x86'] };
+      const result = element['groupParamSetBySplitKey'](ps, ['os']);
+      assert.deepEqual(result, [{ os: ['linux'], arch: ['x86'] }]);
+    });
+
+    it('should return the original ParamSet in an array if no split key is provided', () => {
+      const ps = { os: ['linux', 'windows'], arch: ['x86'] };
+      const result = element['groupParamSetBySplitKey'](ps, []);
+      assert.deepEqual(result, [ps]);
+    });
+  });
+
+  describe('mergeParamSets', () => {
+    it('should merge ParamSets with overlapping keys and de-duplicate values', () => {
+      const paramSets = [
+        { os: ['linux', 'windows'], arch: ['x86'] },
+        { os: ['mac', 'linux'], gpu: ['nvidia'] },
+      ];
+      const result = element['mergeParamSets'](paramSets);
+      assert.isTrue(result.os.includes('linux'));
+      assert.isTrue(result.os.includes('windows'));
+      assert.isTrue(result.os.includes('mac'));
+      assert.equal(result.os.length, 3);
+      assert.deepEqual(result.arch, ['x86']);
+      assert.deepEqual(result.gpu, ['nvidia']);
+    });
+  });
+
+  describe('Chunked Graph Loading', () => {
+    let mainGraph: ExploreSimpleSk;
+    let addFromQuerySpy: sinon.SinonSpy;
+    let loadExtendedSpy: sinon.SinonSpy;
+    let setProgressSpy: sinon.SinonSpy;
+    let testPicker: TestPickerSk;
+
+    beforeEach(async () => {
+      await setupElement();
+      element.state = new State();
+      element.state.useTestPicker = true;
+      element.state.splitByKeys = ['os']; // The key we will split by.
+      element.state.pageSize = 10; // Ensure we try to load all graphs.
+      await element['initializeTestPicker']();
+
+      // The 'plot-button-clicked' handler adds a 'mainGraph' at the beginning.
+      // We will spy on its methods to verify the orchestration logic.
+      mainGraph = new ExploreSimpleSk();
+      addFromQuerySpy = sinon.stub(mainGraph, 'addFromQueryOrFormula').resolves();
+      loadExtendedSpy = sinon.stub(mainGraph, 'loadExtendedRangeData').resolves();
+      sinon.stub(mainGraph, 'getSelectedRange').returns({ begin: 0, end: 1 });
+      // Ensure that awaiting 'requestComplete' doesn't hang the test.
+      sinon.stub(mainGraph, 'requestComplete').get(() => Promise.resolve());
+
+      // We stub 'addEmptyGraph' to ensure it returns our controlled instance
+      // of ExploreSimpleSk, allowing us to spy on its methods.
+      sinon.stub(element, 'addEmptyGraph' as any).returns(mainGraph);
+
+      // Spy on setProgress to check for correct UI feedback.
+      setProgressSpy = sinon.spy(element, 'setProgress' as any);
+
+      // Mock the testPicker to return a ParamSet that will create 7 distinct groups.
+      testPicker = element.querySelector('test-picker-sk')!;
+      sinon.stub(testPicker, 'createParamSetFromFieldData').returns({
+        os: ['win1', 'win2', 'mac1', 'mac2', 'linux1', 'linux2', 'chromeos'], // 7 values
+        arch: ['x86'],
+      });
+
+      // We stub 'splitGraphs' because we are not testing its implementation here,
+      // only that the loading orchestrator calls it.
+      sinon.stub(element, 'splitGraphs' as any).resolves();
+    });
+
+    it('loads graphs in chunks and fetches extended data once at the end', async () => {
+      // Dispatch the event that triggers the chunking logic.
+      const event = new CustomEvent('plot-button-clicked', { bubbles: true });
+      element.dispatchEvent(event);
+
+      // The event handler is async. We need to wait for it to complete.
+      // A small timeout allows the chain of promises in the handler to resolve.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // --- Assertions ---
+
+      // With 7 groups and a CHUNK_SIZE of 5, we expect 3 calls to add traces:
+      // 1. The first graph (chunk size of 1)
+      // 2. The next 5 graphs (chunk size of 5)
+      // 3. The final graph
+      assert.equal(
+        addFromQuerySpy.callCount,
+        3,
+        'addFromQueryOrFormula should be called for each chunk'
+      );
+
+      // Verify that `loadExtendedRange` was correctly set to false for all chunk-loading calls.
+      assert.isFalse(
+        addFromQuerySpy.firstCall.args[4],
+        'loadExtendedRange should be false for the first chunk'
+      );
+      assert.isFalse(
+        addFromQuerySpy.secondCall.args[4],
+        'loadExtendedRange should be false for the second chunk'
+      );
+      assert.isFalse(
+        addFromQuerySpy.thirdCall.args[4],
+        'loadExtendedRange should be false for the third chunk'
+      );
+
+      // Verify that `loadExtendedRangeData` was called exactly once, after all chunks were processed.
+      assert.isTrue(
+        loadExtendedSpy.calledOnce,
+        'loadExtendedRangeData should be called once after all chunks'
+      );
+      const allChunksAddedBeforeExtended = addFromQuerySpy.lastCall.calledBefore(
+        loadExtendedSpy.firstCall
+      );
+      assert.isTrue(
+        allChunksAddedBeforeExtended,
+        'All chunks should be added before extended data is loaded'
+      );
+
+      // Verify that the user receives correct progress updates.
+      // We expect calls for: initial, chunk 1, chunk 2, chunk 3, extended data, and final clear.
+      assert.isTrue(setProgressSpy.callCount >= 6, 'setProgress should be called multiple times');
+      assert.equal(setProgressSpy.getCall(0).args[0], 'Loading graphs...');
+      assert.equal(setProgressSpy.getCall(1).args[0], 'Loading graphs 1-1 of 7');
+      assert.equal(setProgressSpy.getCall(2).args[0], 'Loading graphs 2-6 of 7');
+      assert.equal(setProgressSpy.getCall(3).args[0], 'Loading graphs 7-7 of 7');
+      assert.equal(setProgressSpy.getCall(4).args[0], 'Loading more data for all graphs...');
+      assert.equal(setProgressSpy.lastCall.args[0], '', 'setProgress should be cleared at the end');
+    });
+  });
 });

@@ -142,7 +142,7 @@ import {
 } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { DataFrameRepository, DataTable, UserIssueMap } from '../dataframe/dataframe_context';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
-import { generateSubDataframe } from '../dataframe/index';
+import { generateSubDataframe, join as joinDataframes } from '../dataframe/index';
 import { SplitChartSelectionEventDetails } from '../split-chart-menu-sk/split-chart-menu-sk';
 import { getLegend, getTitle, isSingleTrace, legendFormatter } from '../dataframe/traceset';
 import { BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
@@ -2945,7 +2945,8 @@ export class ExploreSimpleSk extends ElementSk {
     frameResponse: FrameResponse,
     frameRequest: FrameRequest | null,
     switchToTab: boolean,
-    selectedRange: range | null = null
+    selectedRange: range | null = null,
+    extendRange: boolean = true
   ): Promise<void> {
     this.render();
     if (
@@ -2966,7 +2967,12 @@ export class ExploreSimpleSk extends ElementSk {
       frameRequest!
     );
     // Code previously in .then() now runs after await.
-    this.addTraces(frameResponse, switchToTab, selectedRange);
+    const loadingMore: Promise<void> = this.addTraces(
+      frameResponse,
+      switchToTab,
+      selectedRange,
+      extendRange
+    );
     this.updateTracePointMetadata(frameResponse.dataframe!.traceMetadata);
     this.updateTitle();
     if (isValidSelection(this._state.selected)) {
@@ -2980,6 +2986,7 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
     this.render();
+    return loadingMore;
   }
 
   private toggleDotsHandler() {
@@ -3032,7 +3039,12 @@ export class ExploreSimpleSk extends ElementSk {
    * otherwise replace them all with the new ones.
    * @param {Boolean} tab - If true then switch to the Params tab.
    */
-  private addTraces(json: FrameResponse, tab: boolean, selectedRange: range | null = null) {
+  private async addTraces(
+    json: FrameResponse,
+    tab: boolean,
+    selectedRange: range | null = null,
+    loadExtendedRange: boolean = true
+  ) {
     const dataframe = json.dataframe!;
     if (dataframe.traceset === null || Object.keys(dataframe.traceset).length === 0) {
       this.displayMode = 'display_query_only';
@@ -3098,7 +3110,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
     this._renderedTraces();
     if (this._state.plotSummary) {
-      if (this.state.doNotQueryData) {
+      if (this.state.doNotQueryData || !loadExtendedRange) {
         this.render();
         // The data is supposed to be already loaded.
         // Let's simply make the selection on the summary.
@@ -3106,25 +3118,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.plotSummary.value?.SelectRange(updatedRange);
         this.dataLoading = false;
       } else {
-        let extendRange = 3 * monthInSec;
-        // Large amount of traces, limit the range extension.
-        if (this.dfRepo.value?.traces && Object.keys(this.dfRepo.value.traces).length > 10) {
-          extendRange = monthInSec as CommitNumber;
-        }
-        this.dfRepo.value?.extendRange(-extendRange).then(() => {
-          const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
-          // Already plotted, just need to update the data.
-          this.updateSelectedRangeWithUpdatedDataframe(updatedRange, 'commit', false);
-          this.plotSummary.value?.SelectRange(updatedRange);
-          this.dataLoading = false;
-        });
-        this.dfRepo.value?.extendRange(extendRange).then(() => {
-          const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
-          this.updateSelectedRangeWithUpdatedDataframe(updatedRange, 'commit', false);
-          this.plotSummary.value?.SelectRange(updatedRange);
-          // Modify the Range if URL contains different values.
-          this.useBrowserURL();
-        });
+        return this.loadExtendedRangeData(selectedRange);
       }
     }
   }
@@ -3148,6 +3142,40 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
     return selectedRange;
+  }
+
+  /**
+   * Loads extended range data for the plot summary.
+   * @param selectedRange The currently selected range.
+   * @returns A Promise that resolves when the extended range data is loaded.
+   */
+  async loadExtendedRangeData(selectedRange: range): Promise<void> {
+    const header = this.dfRepo.value?.header;
+    if (!header) {
+      return;
+    }
+    let extendRange = 3 * monthInSec;
+    // Large amount of traces, limit the range extension.
+    if (this.dfRepo.value?.traces && Object.keys(this.dfRepo.value.traces).length > 10) {
+      extendRange = monthInSec as CommitNumber;
+    }
+    const promises = [
+      this.dfRepo.value?.extendRange(-extendRange).then(() => {
+        const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
+        // Already plotted, just need to update the data.
+        this.updateSelectedRangeWithUpdatedDataframe(updatedRange, 'commit', false);
+        this.plotSummary.value?.SelectRange(updatedRange);
+      }),
+      this.dfRepo.value?.extendRange(extendRange).then(() => {
+        const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
+        this.updateSelectedRangeWithUpdatedDataframe(updatedRange, 'commit', false);
+        this.plotSummary.value?.SelectRange(updatedRange);
+        // Modify the Range if URL contains different values.
+        this.useBrowserURL();
+      }),
+    ];
+    await Promise.all(promises);
+    this.dataLoading = false;
   }
 
   // Adds x and y coordinates to the user issue points needed to be displayed
@@ -3239,8 +3267,25 @@ export class ExploreSimpleSk extends ElementSk {
     return labels;
   }
 
-  /**
-   * Plot the traces that match either the given query or the given formula,
+  /** Create a FrameRequest for just a single query or formula. */
+  private requestFrameBodyForTrace(plotType: addPlotType, q: string, f: string): FrameRequest {
+    const formulas = plotType === 'formula' ? [f] : [];
+    const queries = plotType === 'query' ? [q] : [];
+    return {
+      begin: this._state.begin,
+      end: this._state.end,
+      num_commits: this._state.numCommits,
+      request_type: this._state.requestType,
+      formulas: formulas,
+      queries: queries,
+      keys: '',
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      pivot: null,
+      disable_filter_parent_traces: this._state.disable_filter_parent_traces,
+    };
+  }
+
+  /* Plot the traces that match either the given query or the given formula,
    * depending on the value of plotType.
    *
    * @param replace - If true then replace all the traces with ones that match
@@ -3252,7 +3297,8 @@ export class ExploreSimpleSk extends ElementSk {
     replace: boolean,
     plotType: addPlotType,
     q: string,
-    f: string
+    f: string,
+    loadExtendedRange: boolean = true
   ): Promise<void> {
     if (this.queryDialog !== null) {
       this.queryDialog!.close();
@@ -3296,7 +3342,12 @@ export class ExploreSimpleSk extends ElementSk {
       this._state.requestType = this.range!.state.request_type;
     }
     this._state.sort = '';
-    if (replace || plotType === 'pivot') {
+    const createFromScratch =
+      replace ||
+      plotType === 'pivot' ||
+      (this._state.formulas.length === 0 && this._state.queries.length === 0);
+
+    if (createFromScratch) {
       this.removeAll(true);
     }
 
@@ -3318,11 +3369,38 @@ export class ExploreSimpleSk extends ElementSk {
 
     this.applyQueryDefaultsIfMissing();
     this._stateHasChanged();
-    const body = this.requestFrameBodyFullFromState();
+
     try {
-      await this.requestFrame(body, (json) => {
-        return this.UpdateWithFrameResponse(json, body, true);
-      });
+      if (createFromScratch) {
+        const body = this.requestFrameBodyFullFromState();
+        return this.requestFrame(body, async (json) => {
+          await this.UpdateWithFrameResponse(
+            json,
+            body,
+            /*switchToTab=*/ true,
+            this.getSelectedRange(),
+            loadExtendedRange
+          );
+        });
+      } else {
+        const requestNewData = this.requestFrameBodyForTrace(plotType, q, f);
+        const requestAllData = this.requestFrameBodyFullFromState();
+        return this.requestFrame(requestNewData, async (json) => {
+          // Merge new data with the existing state.
+          const frameResponse = json as FrameResponse;
+          const newDf = frameResponse.dataframe!;
+          const mergedDataFrame = joinDataframes(this._dataframe, newDf);
+          frameResponse.dataframe = mergedDataFrame;
+          // Don't merge anomalies because DataFrameRepository already does that.
+          await this.UpdateWithFrameResponse(
+            frameResponse,
+            requestAllData,
+            /*switchToTab=*/ true,
+            this.getSelectedRange(),
+            loadExtendedRange
+          );
+        });
+      }
     } catch (error) {
       // errorMessage is likely already called by requestFrame or its callees.
       console.error('Error in addFromQueryOrFormula during requestFrame:', error);

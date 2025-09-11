@@ -11,6 +11,7 @@ sk_element(
         "//infra-sk/modules/alogin-sk",
         "//perf/modules/plot-google-chart-sk",
         "//perf/modules/point-links-sk",
+        "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
@@ -25,6 +26,7 @@ sk_element(
         "//infra-sk/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
         "//:node_modules/@google-web-components/google-chart",
+        "//infra-sk/modules:query_ts_lib",
     ],
     ts_srcs = [
         "explore-multi-sk.ts",

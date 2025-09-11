@@ -644,16 +644,10 @@ export class TestPickerSk extends ElementSk {
     this.callNextParamList(handler, index);
   }
 
-  /**
-   * Generates a query string from the currently selected field values.
-   * Includes default parameter values if they are not already specified in the
-   * selected fields.
-   * @returns A query string representing the selected field values.
-   */
-  createQueryFromFieldData(): string {
+  createParamSetFromFieldData(): ParamSet {
     const paramSet: ParamSet = {};
     if (this._fieldData[0].value === null) {
-      return '';
+      return {};
     }
 
     this._fieldData.forEach((fieldInfo) => {
@@ -665,11 +659,11 @@ export class TestPickerSk extends ElementSk {
     // If all fields are empty, don't add any defaults, which can potentially
     // make the query slow. An empty query should be a fast retrieval.
     if (Object.keys(paramSet).length === 0) {
-      return '';
+      return {};
     }
     // If values are set in child values, but missing initial value, then exit.
     if (this._fieldData[0].value.length === 0) {
-      return '';
+      return {};
     }
     // Apply default values.
     for (const defaultParamKey in this._defaultParams) {
@@ -678,7 +672,17 @@ export class TestPickerSk extends ElementSk {
       }
     }
 
-    return fromParamSet(paramSet);
+    return paramSet;
+  }
+
+  /**
+   * Generates a query string from the currently selected field values.
+   * Includes default parameter values if they are not already specified in the
+   * selected fields.
+   * @returns A query string representing the selected field values.
+   */
+  createQueryFromFieldData(): string {
+    return fromParamSet(this.createParamSetFromFieldData());
   }
 
   /**

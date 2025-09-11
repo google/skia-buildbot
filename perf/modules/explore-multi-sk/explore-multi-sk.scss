@@ -28,4 +28,14 @@ explore-multi-sk {
   #add-graph-button.hidden {
     display: none;
   }
+  .progress-container {
+    align-items: center;
+    display: flex;
+
+    .progress {
+      color: var(--outline);
+      font-style: italic;
+      margin-left: 0.5em;
+    }
+  }
 }

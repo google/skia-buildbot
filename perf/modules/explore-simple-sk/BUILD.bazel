@@ -81,7 +81,6 @@ karma_test(
     src = "explore-simple-sk_test.ts",
     deps = [
         ":explore-simple-sk",
-        "//:node_modules/@material/web",
         "//:node_modules/@types/chai",
         "//:node_modules/@types/sinon",
         "//:node_modules/chai",
@@ -91,7 +90,6 @@ karma_test(
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/dataframe:dataframe_context_ts_lib",
         "//perf/modules/dataframe:test_utils_ts_lib",
-        "//perf/modules/domain-picker-sk",
         "//perf/modules/json:index_ts_lib",
     ],
 )

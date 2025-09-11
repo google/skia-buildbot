@@ -27,6 +27,7 @@ import { load } from '@google-web-components/google-chart/loader';
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 
 import { addParamsToParamSet, fromKey, queryFromKey } from '../paramtools';
+import { ParamSet as QueryParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
@@ -44,6 +45,7 @@ import {
   Trace,
 } from '../json';
 
+import '../../../elements-sk/modules/spinner-sk';
 import '../explore-simple-sk';
 import '../favorites-dialog-sk';
 import '../test-picker-sk';
@@ -127,7 +129,14 @@ export class ExploreMultiSk extends ElementSk {
 
   private userEmail: string = '';
 
-  private _onSplitByChanged = (e: Event) => {
+  private progress: string = '';
+
+  private setProgress(value: string) {
+    this.progress = value;
+    this._render();
+  }
+
+  private _onSplitByChanged = async (e: Event) => {
     this.dataLoading();
     const splitByParamKey: string = (e as CustomEvent).detail.param;
     const split = (e as CustomEvent).detail.split;
@@ -267,7 +276,16 @@ export class ExploreMultiSk extends ElementSk {
   private static template = (ele: ExploreMultiSk) => html`
     <div id="menu">
       <h1>MultiGraph Menu</h1>
+      <spinner-sk id="spinner"></spinner-sk>
       <test-picker-sk id="test-picker" class="hidden"></test-picker-sk>
+      ${ele.progress
+        ? html`
+            <div class="progress-container">
+              <spinner-sk id="spinner" active></spinner-sk>
+              <span class="progress">${ele.progress}</span>
+            </div>
+          `
+        : ''}
     </div>
     <hr />
 
@@ -350,6 +368,62 @@ export class ExploreMultiSk extends ElementSk {
         }
       }
     }
+  }
+
+  /**
+   * Splits a ParamSet into multiple ParamSets based on the values of a given key.
+   * This is analogous to groupTracesByParamKey, but operates on a ParamSet
+   * instead of a list of trace IDs.
+   *
+   * For example, given a ParamSet:
+   * {
+   * "a": ["x", "y"],
+   * "b": ["z"],
+   * }
+   * and a split key of "a", the function will return an array of two ParamSets:
+   * [
+   * { "a": ["x"], "b": ["z"] },
+   * { "a": ["y"], "b": ["z"] }
+   * ]
+   *
+   * @param paramSet The QueryParamSet to split.
+   * @param splitByKeys The key(s) to split by. Currently, only the first key is used.
+   * @returns An array of ParamSets, each representing a group.
+   */
+  private groupParamSetBySplitKey(paramSet: QueryParamSet, splitByKeys: string[]): QueryParamSet[] {
+    if (splitByKeys.length === 0 || Object.keys(paramSet).length === 0) {
+      return [paramSet];
+    }
+
+    // Only handle the first split key for now.
+    const splitKey = splitByKeys[0];
+    const splitValues = paramSet[splitKey];
+    if (!splitValues || splitValues.length <= 1) {
+      return [paramSet];
+    }
+
+    const groups: ParamSet[] = [];
+    splitValues.forEach((value) => {
+      const newGroup: ParamSet = ParamSet({ ...paramSet });
+      // Override the split key to have only the current single value.
+      newGroup[splitKey] = [value];
+      groups.push(newGroup);
+    });
+    return groups;
+  }
+
+  private mergeParamSets(paramSets: QueryParamSet[]): QueryParamSet {
+    const merged: QueryParamSet = {};
+    for (const currentObject of paramSets) {
+      for (const key in currentObject) {
+        if (merged[key]) {
+          merged[key] = [...new Set([...merged[key], ...currentObject[key]])];
+        } else {
+          merged[key] = currentObject[key];
+        }
+      }
+    }
+    return merged;
   }
 
   /**
@@ -484,13 +558,7 @@ export class ExploreMultiSk extends ElementSk {
    */
   private async splitGraphs(): Promise<void> {
     const groupedTraces = this.groupTracesBySplitKey();
-    if (groupedTraces.size === 0) {
-      this.dataLoaded();
-      return;
-    }
-
-    // It's the same graph, so let's simply return early.
-    if (groupedTraces.size === 1 && this.state.totalGraphs === 1) {
+    if (this.state.splitByKeys.length === 0 || groupedTraces.size === 0) {
       this.dataLoaded();
       return;
     }
@@ -510,22 +578,20 @@ export class ExploreMultiSk extends ElementSk {
     const frameResponses: FrameResponse[] = [mainResponse];
 
     this.clearGraphs();
-    if (groupedTraces.size > 1) {
-      // Create the graph configs for each group.
-      Array.from(groupedTraces.values()).forEach((traces, i) => {
-        this.addEmptyGraph();
-        const exploreRequest = this.createFrameRequest(traces);
-        const exploreResponse = this.createFrameResponse(traces);
+    // Create the graph configs for each group.
+    Array.from(groupedTraces.values()).forEach((traces, i) => {
+      this.addEmptyGraph();
+      const exploreRequest = this.createFrameRequest(traces);
+      const exploreResponse = this.createFrameResponse(traces);
 
-        const graphConfig = new GraphConfig();
-        graphConfig.queries = exploreRequest.queries ?? [];
-        // Main graph config is always at index 0.
-        this.graphConfigs[i + 1] = graphConfig;
+      const graphConfig = new GraphConfig();
+      graphConfig.queries = exploreRequest.queries ?? [];
+      // Main graph config is always at index 0.
+      this.graphConfigs[i + 1] = graphConfig;
 
-        frameRequests.push(exploreRequest);
-        frameResponses.push(exploreResponse);
-      });
-    }
+      frameRequests.push(exploreRequest);
+      frameResponses.push(exploreResponse);
+    });
 
     // Now add the graphs that have been configured to the page.
     this.addGraphsToCurrentPage(true);
@@ -597,21 +663,89 @@ export class ExploreMultiSk extends ElementSk {
     // selected test values.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.addEventListener('plot-button-clicked', async (e) => {
-      const explore = this.addEmptyGraph(true);
       this.dataLoading();
-      if (explore) {
-        if (this.exploreElements.length > 0 && this.exploreElements[0].dataLoading) {
-          await this.exploreElements[0].requestComplete;
+      this.setProgress('Loading graphs...');
+      try {
+        if (this.state.splitByKeys.length === 0) {
+          // Just load single graph.
+          const newExplore = this.addEmptyGraph(true);
+          if (!newExplore) {
+            return;
+          }
+          if (this.exploreElements.length > 0 && this.exploreElements[0].dataLoading) {
+            await this.exploreElements[0].requestComplete;
+          }
+          this.addGraphsToCurrentPage(true);
+          const query = this.testPicker!.createQueryFromFieldData();
+          await newExplore.addFromQueryOrFormula(true, 'query', query, '');
+        } else {
+          // Load multiple graphs, split by the selected split key.
+          // To improve UX, allow some interactivity before all the data is loaded.
+          // To achieve this, load everything in 2 steps:
+          // 1. Load all graphs, but only the selected range. This stage can be chunked,
+          //    updates are incremental.
+          // 2. Load extended range data for all graphs. This is one huge request, but it
+          //    allows to avoid any troubles with concurrency and merging.
+
+          // Split the graphs before loading, so we can load each group separately.
+          const paramSet = this.testPicker!.createParamSetFromFieldData();
+          const groups = this.groupParamSetBySplitKey(paramSet, this.state.splitByKeys);
+
+          if (groups.length === 0) {
+            return;
+          }
+
+          // The mainGraph (exploreElements[0]) will act as an accumulator for all queries.
+          // splitGraphs will then use its accumulated traceset to create the individual
+          // split graphs.
+          const mainGraph = this.addEmptyGraph(true);
+          if (!mainGraph) {
+            return;
+          }
+          await mainGraph.requestComplete;
+          this.addGraphsToCurrentPage(false);
+
+          const CHUNK_SIZE = 5;
+          const totalGroupsToLoad = Math.min(this.state.pageSize, groups.length);
+
+          for (let i = 0; i < totalGroupsToLoad; ) {
+            // The first chunk is always of size 1 - this is to avoid showing the primary
+            // graph / "unsplit" mode.
+            const chunkSize = i === 0 ? 1 : CHUNK_SIZE;
+            const endGroupIndex = Math.min(i + chunkSize, totalGroupsToLoad);
+            const chunk = groups.slice(i, endGroupIndex);
+            if (chunk.length === 0) {
+              break; // No more groups to process.
+            }
+
+            this.setProgress(`Loading graphs ${i + 1}-${endGroupIndex} of ${totalGroupsToLoad}`);
+            await mainGraph.addFromQueryOrFormula(
+              /*replace=*/ false,
+              'query',
+              fromParamSet(this.mergeParamSets(chunk)),
+              '',
+              // Important! Do not load extended range data. Otherwise it produces a lot of
+              // queries fetching the same data + creates concurrency issues.
+              /*loadExtendedRange=*/ false
+            );
+            await mainGraph.requestComplete;
+            await this.splitGraphs();
+
+            i = endGroupIndex;
+          }
+
+          // We were postponing loading more data until all the graphs are ready. Now it's time.
+          this.setProgress(`Loading more data for all graphs...`);
+          await mainGraph.loadExtendedRangeData(mainGraph.getSelectedRange()!);
+          await mainGraph.requestComplete;
+          await this.splitGraphs();
         }
-        this.addGraphsToCurrentPage(false);
-        if (this.testPicker) {
-          this.testPicker.autoAddTrace = true;
-        }
-        const query = this.testPicker!.createQueryFromFieldData();
-        await explore.addFromQueryOrFormula(true, 'query', query, '');
-        if (this.state.splitByKeys.length > 0) {
-          this.splitGraphs();
-        }
+      } finally {
+        this.setProgress('');
+        this.dataLoaded();
+      }
+      if (this.testPicker) {
+        this.testPicker.autoAddTrace = true;
       }
     });
 
@@ -1079,6 +1213,9 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private dataLoaded(): void {
+    if (this.progress) {
+      return;
+    }
     if (this.testPicker) {
       if (!this.testPicker.isLoaded() && this.exploreElements.length > 0) {
         this.populateTestPicker(this.exploreElements[0].getParamSet());
