@@ -2,6 +2,7 @@ package swarmingv2
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"strings"
 	"time"
@@ -28,19 +29,33 @@ const (
 // SwarmingV2TaskExecutor implements types.TaskExecutor.
 type SwarmingV2TaskExecutor struct {
 	casInstance string
+	name        string
 	pubSubTopic string
 	realm       string
+	pools       []string
 	client      swarmingv2.SwarmingV2Client
 }
 
 // NewSwarmingV2TaskExecutor returns a SwarmingTaskExecutor instance.
-func NewSwarmingV2TaskExecutor(client swarmingv2.SwarmingV2Client, casInstance, pubSubTopic, realm string) *SwarmingV2TaskExecutor {
+func NewSwarmingV2TaskExecutor(client swarmingv2.SwarmingV2Client, name, casInstance, pubSubTopic, realm string, pools []string) *SwarmingV2TaskExecutor {
 	return &SwarmingV2TaskExecutor{
 		casInstance: casInstance,
+		name:        name,
 		pubSubTopic: pubSubTopic,
 		realm:       realm,
+		pools:       pools,
 		client:      client,
 	}
+}
+
+// Name implements types.TaskExecutor.
+func (s *SwarmingV2TaskExecutor) Name() string {
+	return s.name
+}
+
+// Pools implements types.TaskExecutor.
+func (s *SwarmingV2TaskExecutor) Pools() []string {
+	return s.pools
 }
 
 // GetFreeMachines implements types.TaskExecutor.
@@ -367,3 +382,51 @@ func convertMachine(bot *apipb.BotInfo) *types.Machine {
 }
 
 var _ types.TaskExecutor = &SwarmingV2TaskExecutor{}
+
+// ExpectSwarmingServersFlagFormat is the expected format for
+// SwarmingServersFlag.
+const ExpectSwarmingServersFlagFormat = "<server>/<realm>/<pool1>[,pool2]..."
+
+// SwarmingServerSpec specifies a Swarming server.
+type SwarmingServerSpec struct {
+	Name  string
+	Realm string
+	Pools []string
+}
+
+// swarmingServers is an implementation of flag.Value which specifies at least
+// one Swarming server.
+type swarmingServers []*SwarmingServerSpec
+
+// String implements flag.Value.
+func (s *swarmingServers) String() string {
+	var rv strings.Builder
+	for _, swarm := range *s {
+		_, _ = rv.WriteString(fmt.Sprintf("%s;%s;%s", swarm.Name, swarm.Realm, strings.Join(swarm.Pools, ",")))
+	}
+	return rv.String()
+}
+
+// Set implements flag.Value.
+func (s *swarmingServers) Set(value string) error {
+	split := strings.Split(value, "/")
+	if len(split) == 3 {
+		*s = append(*s, &SwarmingServerSpec{
+			Name:  split[0],
+			Realm: split[1],
+			Pools: strings.Split(split[2], ","),
+		})
+		return nil
+	}
+	return skerr.Fmt("expected %q, not %q", ExpectSwarmingServersFlagFormat, value)
+}
+
+// Assert that SwarmingServers implements flag.Value.
+var _ flag.Value = (*swarmingServers)(nil)
+
+// SwarmingServersFlag returns a flag value for SwarmingServerSpec.
+func SwarmingServersFlag(name string, usage string) *[]*SwarmingServerSpec {
+	var values []*SwarmingServerSpec
+	flag.Var((*swarmingServers)(&values), name, usage)
+	return &values
+}

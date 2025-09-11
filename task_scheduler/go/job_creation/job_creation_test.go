@@ -340,9 +340,8 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 	swarmingClient := swarming_testutils.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
 	cas.On("Close").Return(nil)
-	swarmingTaskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-cas-instance", "fake-pubsub-topic", "fake-realm")
-	taskExecs := types.NewTaskExecutors("fake-swarming")
-	taskExecs.Set("fake-swarming", swarmingTaskExec, swarming.POOLS_PUBLIC)
+	swarmingTaskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-swarming", "fake-cas-instance", "fake-pubsub-topic", "fake-realm", swarming.POOLS_PUBLIC)
+	taskExecs := types.TaskExecutors([]types.TaskExecutor{swarmingTaskExec})
 	ts, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, jc.repos, cas, "fake-rbe-instance", taskExecs, urlMock.Client(), 1.0, "", jc.taskCfgCache, nil, mem_gcsclient.New("fake"), "testing", scheduling.BusyBotsDebugLoggingOff)
 	require.NoError(t, err)
 

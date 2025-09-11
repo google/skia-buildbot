@@ -43,6 +43,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/rpc"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
+	swarming_task_execution_v2 "go.skia.org/infra/task_scheduler/go/task_execution/swarmingv2"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -69,22 +70,22 @@ var (
 	triggerTemplate     *template.Template = nil
 
 	// Flags.
-	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
-	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
-	buildbucketTarget = flag.String("buildbucket_target", "", "Target name used by Buildbucket to address this Task Scheduler.")
-	commitWindow      = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
-	debugPort         = flag.String("debug_port", "", "HTTP service port for debugging using pprof")
+	btInstance        = flag.String("bigtable-instance", "", "BigTable instance to use.")
+	btProject         = flag.String("bigtable-project", "", "GCE project to use for BigTable.")
+	buildbucketTarget = flag.String("buildbucket-target", "", "Target name used by Buildbucket to address this Task Scheduler.")
+	commitWindow      = flag.Int("commit-window", 10, "Minimum number of recent commits to keep in the timeWindow.")
+	debugPort         = flag.String("debug-port", "", "HTTP service port for debugging using pprof")
 	host              = flag.String("host", "localhost", "HTTP service host")
 	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
-	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
-	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
+	firestoreInstance = flag.String("firestore-instance", "", "Firestore instance to use, eg. \"production\"")
+	gitstoreTable     = flag.String("gitstore-bt-table", "git-repos2", "BigTable table used for GitStore.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
-	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
-	swarmingServer    = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
-	timePeriod        = flag.String("timeWindow", "4d", "Time period to use for cache expiration.")
-	tracingProject    = flag.String("tracing_project", "", "GCP project where traces should be uploaded.")
-	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	resourcesDir      = flag.String("resources-dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
+	swarmingServers   = swarming_task_execution_v2.SwarmingServersFlag("swarming-server", fmt.Sprintf("Maps Swarming server to its associated realm and pools, eg. %q. The first is used as the default.", swarming_task_execution_v2.ExpectSwarmingServersFlagFormat))
+	timePeriod        = flag.String("time-window", "4d", "Time period to use for cache expiration.")
+	tracingProject    = flag.String("tracing-project", "", "GCP project where traces should be uploaded.")
+	promPort          = flag.String("prom-port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
 func reloadTemplates() {
@@ -192,7 +193,7 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 		SwarmingServer string
 	}{
 		JobId:          id,
-		SwarmingServer: *swarmingServer,
+		SwarmingServer: (*swarmingServers)[0].Name,
 	}
 	if err := jobTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
@@ -265,7 +266,7 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		SwarmingServer string
 	}{
 		TaskId:         id,
-		SwarmingServer: *swarmingServer,
+		SwarmingServer: (*swarmingServers)[0].Name,
 	}
 	if err := taskTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
@@ -329,6 +330,10 @@ func main() {
 		common.StructuredLogging(local),
 	)
 	defer common.Defer()
+
+	if len(*swarmingServers) == 0 {
+		sklog.Fatal("At least one --swarming-server is required.")
+	}
 
 	reloadTemplates()
 
@@ -404,10 +409,19 @@ func main() {
 		}
 	})
 
-	// Initialize Swarming client.
+	// Initialize HTTP client.
 	cfg := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithDialTimeout(time.Minute).With2xxOnly()
 	httpClient := cfg.Client()
-	swarm := swarmingv2.NewDefaultClient(httpClient, *swarmingServer)
+
+	// Create the task executors.
+	var swarm swarmingv2.SwarmingV2Client
+	var taskExecs types.TaskExecutors
+	for _, swarmingServer := range *swarmingServers {
+		swarmClient := swarmingv2.NewDefaultClient(httpClient, swarmingServer.Name)
+		swarmingTaskExec := swarming_task_execution_v2.NewSwarmingV2TaskExecutor(swarmClient, swarmingServer.Name, "unused-rbe-instance", "unused-pubsub-topic", swarmingServer.Realm, swarmingServer.Pools)
+		taskExecs = append(taskExecs, swarmingTaskExec)
+		swarm = swarmClient
+	}
 
 	// Auto-update the git repos.
 	if err := autoUpdateRepos.Start(ctx, GITSTORE_SUBSCRIBER_ID, tokenSource, 5*time.Minute, func(_ context.Context, _ string, _ *repograph.Graph, ack, _ func()) error {

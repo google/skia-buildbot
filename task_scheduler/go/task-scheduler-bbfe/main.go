@@ -33,13 +33,13 @@ var (
 	tsDb db.DBCloser
 
 	// Flags.
-	buildbucketTarget = flag.String("buildbucket_target", "", "Target name used by Buildbucket to address this Task Scheduler.")
+	buildbucketTarget = flag.String("buildbucket-target", "", "Target name used by Buildbucket to address this Task Scheduler.")
 	host              = flag.String("host", "localhost", "HTTP service host")
 	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
-	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	firestoreInstance = flag.String("firestore-instance", "", "Firestore instance to use, eg. \"production\"")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
-	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	schedulerURL      = flag.String("scheduler_url", "", "URL for the task scheduler frontend, if different from --host")
+	promPort          = flag.String("prom-port", ":20000", "Metrics service address (e.g., ':10110')")
+	schedulerURL      = flag.String("scheduler-url", "", "URL for the task scheduler frontend, if different from --host")
 )
 
 func runServer(serverURL string, bbHandler http.Handler, plogin alogin.Login) {

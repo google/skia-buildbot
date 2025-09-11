@@ -2,7 +2,6 @@ package types
 
 import (
 	"context"
-	"iter"
 	"time"
 
 	"go.skia.org/infra/go/cipd"
@@ -67,6 +66,10 @@ type Machine struct {
 
 // TaskExecutor is a framework for executing Tasks.
 type TaskExecutor interface {
+	// Name returns a unique identifier for this TaskExecutor.
+	Name() string
+	// Pools returns the list of pools within this TaskExecutor.
+	Pools() []string
 	// GetFreeMachines returns all of the machines in the given pool which are
 	// not currently running a task.
 	GetFreeMachines(ctx context.Context, pool string) ([]*Machine, error)
@@ -82,41 +85,19 @@ type TaskExecutor interface {
 	TriggerTask(ctx context.Context, req *TaskRequest) (*TaskResult, error)
 }
 
-type TaskExecutors struct {
-	execs      map[string]TaskExecutor
-	pools      map[string][]string
-	defaultKey string
-}
+type TaskExecutors []TaskExecutor
 
-func NewTaskExecutors(defaultKey string) *TaskExecutors {
-	return &TaskExecutors{
-		execs:      map[string]TaskExecutor{},
-		pools:      map[string][]string{},
-		defaultKey: defaultKey,
+func (t TaskExecutors) Get(key string) TaskExecutor {
+	if len(t) == 0 {
+		return nil
 	}
-}
-
-func (t *TaskExecutors) Get(key string) (TaskExecutor, []string) {
 	if key == TaskExecutor_Default {
-		key = t.defaultKey
+		return t[0]
 	}
-	return t.execs[key], t.pools[key]
-}
-
-func (t *TaskExecutors) Set(key string, exec TaskExecutor, pools []string) {
-	if key == TaskExecutor_Default {
-		key = t.defaultKey
-	}
-	t.execs[key] = exec
-	t.pools[key] = pools
-}
-
-func (t *TaskExecutors) Iterate() iter.Seq2[TaskExecutor, []string] {
-	return func(yield func(TaskExecutor, []string) bool) {
-		for key, exec := range t.execs {
-			if !yield(exec, t.pools[key]) {
-				return
-			}
+	for _, exec := range t {
+		if key == exec.Name() {
+			return exec
 		}
 	}
+	return nil
 }

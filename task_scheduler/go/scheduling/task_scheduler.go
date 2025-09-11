@@ -107,7 +107,7 @@ type TaskScheduler struct {
 	queueMtx      sync.RWMutex
 	repos         repograph.Map
 	skipTasks     *skip_tasks.DB
-	taskExecutors *types.TaskExecutors
+	taskExecutors types.TaskExecutors
 	taskCfgCache  task_cfg_cache.TaskCfgCache
 	tCache        cache.TaskCache
 	// testWaitGroup keeps track of any goroutines the TaskScheduler methods
@@ -119,7 +119,7 @@ type TaskScheduler struct {
 	window                window.Window
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, rbeCas cas.CAS, rbeCasInstance string, taskExecutors *types.TaskExecutors, c *http.Client, timeDecayAmt24Hr float64, pubsubTopic string, taskCfgCache task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string, debugBusyBots BusyBotsDebugLog) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, rbeCas cas.CAS, rbeCasInstance string, taskExecutors types.TaskExecutors, c *http.Client, timeDecayAmt24Hr float64, pubsubTopic string, taskCfgCache task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string, debugBusyBots BusyBotsDebugLog) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -1226,7 +1226,7 @@ func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*TaskCand
 			s.pendingInsertMtx.Lock()
 			s.pendingInsert[t.Id] = true
 			s.pendingInsertMtx.Unlock()
-			taskExecutor, _ := s.taskExecutors.Get(t.TaskExecutor)
+			taskExecutor := s.taskExecutors.Get(t.TaskExecutor)
 			if taskExecutor == nil {
 				recordErr("Failed to trigger task", skerr.Fmt("Unknown task executor %q wanted by %s", candidate.TaskSpec.TaskExecutor, candidate.Name))
 				return
@@ -1397,11 +1397,10 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	var freeMachines []*types.Machine
 	var freeMachinesMtx sync.Mutex
 	getFreeMachinesGroup := errgroup.Group{}
-	for taskExec, pools := range s.taskExecutors.Iterate() {
+	for _, taskExec := range s.taskExecutors {
 		taskExec := taskExec
-		pools := pools
 		getFreeMachinesGroup.Go(func() error {
-			m, err := getFreeMachines(ctx, taskExec, s.busyBots, pools)
+			m, err := getFreeMachines(ctx, taskExec, s.busyBots)
 			if err != nil {
 				return err
 			}
@@ -1569,7 +1568,7 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 }
 
 // getFreeMachines returns a slice of free machines.
-func getFreeMachines(ctx context.Context, taskExec types.TaskExecutor, busy *busyBots, pools []string) ([]*types.Machine, error) {
+func getFreeMachines(ctx context.Context, taskExec types.TaskExecutor, busy *busyBots) ([]*types.Machine, error) {
 	ctx, span := trace.StartSpan(ctx, "getFreeMachines")
 	defer span.End()
 
@@ -1579,7 +1578,7 @@ func getFreeMachines(ctx context.Context, taskExec types.TaskExecutor, busy *bus
 	pending := []*types.TaskResult{}
 	errs := []error{}
 	var mtx sync.Mutex
-	for _, pool := range pools {
+	for _, pool := range taskExec.Pools() {
 		// Free bots.
 		wg.Add(1)
 		go func(pool string) {
@@ -1657,7 +1656,7 @@ func (s *TaskScheduler) updateUnfinishedTasks(ctx context.Context) error {
 	}
 	for executorName := range unfinishedIDsByExecutor {
 		ids := unfinishedIDsByExecutor[executorName]
-		taskExecutor, _ := s.taskExecutors.Get(executorName)
+		taskExecutor := s.taskExecutors.Get(executorName)
 		if taskExecutor == nil {
 			return skerr.Fmt("Tasks use unknown task executor %q: %v", executorName, ids)
 		}
@@ -1956,7 +1955,7 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 	// Obtain the Swarming task data.
 	var res *types.TaskResult
 	var err error
-	for taskExec := range s.taskExecutors.Iterate() {
+	for _, taskExec := range s.taskExecutors {
 		var err error
 		res, err = taskExec.GetTaskResult(ctx, msg.SwarmingTaskId)
 		if err == nil {

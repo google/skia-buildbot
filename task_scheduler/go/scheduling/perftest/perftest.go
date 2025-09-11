@@ -331,9 +331,8 @@ func main() {
 	}
 	cas, err := rbe.NewClient(ctx, rbeInstance, ts)
 	assertNoError(err)
-	swarmingTaskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, rbeInstance, "", "")
-	taskExecs := types.NewTaskExecutors("fake-swarming")
-	taskExecs.Set("fake-swarming", swarmingTaskExec, swarming.POOLS_PUBLIC)
+	swarmingTaskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-swarming", rbeInstance, "", "", swarming.POOLS_PUBLIC)
+	taskExecs := types.TaskExecutors([]types.TaskExecutor{swarmingTaskExec})
 	s, err := scheduling.NewTaskScheduler(ctx, d, nil, windowPeriod, 0, repos, cas, rbeInstance, taskExecs, http.DefaultClient, 0.99999, "", taskCfgCache, nil, nil, "", scheduling.BusyBotsDebugLoggingOff)
 	assertNoError(err)
 

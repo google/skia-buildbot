@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"strings"
 	"time"
 
 	"cloud.google.com/go/bigtable"
@@ -46,31 +45,27 @@ const (
 
 	// PubSub subscriber ID used for GitStore.
 	GITSTORE_SUBSCRIBER_ID = APP_NAME
-
-	expectSwarmingServerFlagFormat = "--swarming_server=<server>;<realm>;<pool1>[,pool2]..."
 )
 
 var (
 	// Flags.
-	btInstance           = flag.String("bigtable_instance", "", "BigTable instance to use.")
-	btProject            = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	btInstance           = flag.String("bigtable-instance", "", "BigTable instance to use.")
+	btProject            = flag.String("bigtable-project", "", "GCE project to use for BigTable.")
 	debugBusyBots        = flag.Bool("debug-busy-bots", false, "If set, dump debug information in the busy-bots module.")
 	port                 = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
-	firestoreInstance    = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
-	gitstoreTable        = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
+	firestoreInstance    = flag.String("firestore-instance", "", "Firestore instance to use, eg. \"production\"")
+	gitstoreTable        = flag.String("gitstore-bt-table", "git-repos2", "BigTable table used for GitStore.")
 	local                = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
-	rbeInstance          = flag.String("rbe_instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
+	rbeInstance          = flag.String("rbe-instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
 	repoUrls             = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
-	scoreDecay24Hr       = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
-	swarmingPools        = common.NewMultiStringFlag("pool", nil, "Which Swarming pools to use. If specified, these apply to the default Swarming server (the first one specified).")
-	swarmingServers      = common.NewMultiStringFlag("swarming_server", nil, fmt.Sprintf("Maps Swarming server to its associated realm and pools, eg. %q. The first is used as the default.", expectSwarmingServerFlagFormat))
-	timePeriod           = flag.String("timeWindow", "4d", "Time period to use.")
-	commitWindow         = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
-	diagnosticsBucket    = flag.String("diagnostics_bucket", "skia-task-scheduler-diagnostics", "Name of Google Cloud Storage bucket to use for diagnostics data.")
-	promPort             = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	pubsubTopicName      = flag.String("pubsub_topic", swarming.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
-	pubsubSubscriberName = flag.String("pubsub_subscriber", PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
-	swarmingAPIv2        = flag.Bool("swarming-api-v2", false, "If set, use Swarming API v2")
+	scoreDecay24Hr       = flag.Float64("score-decay-24hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
+	swarmingServers      = swarming_task_execution_v2.SwarmingServersFlag("swarming-server", fmt.Sprintf("Maps Swarming server to its associated realm and pools, eg. %q. The first is used as the default.", swarming_task_execution_v2.ExpectSwarmingServersFlagFormat))
+	timePeriod           = flag.String("time-window", "4d", "Time period to use.")
+	commitWindow         = flag.Int("commit-window", 10, "Minimum number of recent commits to keep in the timeWindow.")
+	diagnosticsBucket    = flag.String("diagnostics-bucket", "skia-task-scheduler-diagnostics", "Name of Google Cloud Storage bucket to use for diagnostics data.")
+	promPort             = flag.String("prom-port", ":20000", "Metrics service address (e.g., ':10110')")
+	pubsubTopicName      = flag.String("pubsub-topic", swarming.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
+	pubsubSubscriberName = flag.String("pubsub-subscriber", PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
 )
 
 func main() {
@@ -86,41 +81,8 @@ func main() {
 		sklog.Fatal("At least one --repo is required.")
 	}
 
-	var defaultSwarmingServer string
-	swarmingServersToRealm := make(map[string]string, len(*swarmingServers))
-	swarmingServersToPools := make(map[string][]string, len(*swarmingServers))
-	for idx, swarmingServerSpec := range *swarmingServers {
-		split := strings.Split(swarmingServerSpec, ";")
-		if idx == 0 {
-			defaultSwarmingServer = split[0]
-		}
-		if len(split) == 3 {
-			swarmingServersToRealm[split[0]] = split[1]
-			swarmingServersToPools[split[0]] = strings.Split(split[2], ",")
-		} else if len(split) == 1 {
-			// TODO(borenet): Remove this case as soon as the backend instances
-			// have moved to the new flag format.
-			split := strings.Split(swarmingServerSpec, ":")
-			if idx == 0 {
-				defaultSwarmingServer = split[0]
-			}
-			if len(split) == 1 {
-				if idx == 0 {
-					// As a transition from the old flag format to the new, allow
-					// the default swarming server to be specified without pools and
-					// apply the --pools flag instead.
-					swarmingServersToPools[split[0]] = *swarmingPools
-				} else {
-					sklog.Fatalf("Expected %q, not %q", expectSwarmingServerFlagFormat, swarmingServerSpec)
-				}
-			} else if len(split) == 2 {
-				swarmingServersToPools[split[0]] = strings.Split(split[1], ",")
-			} else {
-				sklog.Fatalf("Expected %q, not %q", expectSwarmingServerFlagFormat, swarmingServerSpec)
-			}
-		} else {
-			sklog.Fatalf("Expected %q, not %q", expectSwarmingServerFlagFormat, swarmingServerSpec)
-		}
+	if len(*swarmingServers) == 0 {
+		sklog.Fatal("At least one --swarming-server is required.")
 	}
 
 	// TODO(borenet): This is disabled because it causes errors to be logged
@@ -173,10 +135,7 @@ func main() {
 	}
 	repos := autoUpdateRepos.Map
 
-	// Initialize Swarming client.
-	cfg := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithDialTimeout(time.Minute).With2xxOnly()
-	cfg.RequestTimeout = time.Minute
-
+	// Initialize storage client.
 	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(tokenSource))
 	if err != nil {
 		sklog.Fatal(err)
@@ -197,13 +156,11 @@ func main() {
 	}
 
 	// Create the task executors.
-	taskExecs := types.NewTaskExecutors(defaultSwarmingServer)
-	for swarmingServer, pools := range swarmingServersToPools {
-		realm := swarmingServersToRealm[swarmingServer]
-		prpcClient := swarmingv2.DefaultPRPCClient(httpClient, swarmingServer)
-		swarmClient := swarmingv2.NewClient(prpcClient)
-		swarmingTaskExec := swarming_task_execution_v2.NewSwarmingV2TaskExecutor(swarmClient, *rbeInstance, *pubsubTopicName, realm)
-		taskExecs.Set(swarmingServer, swarmingTaskExec, pools)
+	var taskExecs types.TaskExecutors
+	for _, swarmingServer := range *swarmingServers {
+		swarmClient := swarmingv2.NewDefaultClient(httpClient, swarmingServer.Name)
+		swarmingTaskExec := swarming_task_execution_v2.NewSwarmingV2TaskExecutor(swarmClient, swarmingServer.Name, *rbeInstance, *pubsubTopicName, swarmingServer.Realm, swarmingServer.Pools)
+		taskExecs = append(taskExecs, swarmingTaskExec)
 	}
 
 	// Create and start the task scheduler.
