@@ -8,7 +8,7 @@ import { join, resolve } from 'path';
 import { PUPPETEER_REVISIONS } from 'puppeteer-core/lib/esm/puppeteer/revisions.js';
 import { CHROME_EXECUTABLE_PATH } from './chrome_executable_path';
 
-const INSTALL_TIMEOUT_MS = 30_000; // Chosen arbitrarily; this usually takes ~10 seconds.
+const INSTALL_TIMEOUT_MS = 30000_000; // Chosen arbitrarily; this usually takes ~10 seconds.
 
 async function installChrome(downloadDir: string) {
   console.log(`Downloading Chrome to: ${downloadDir}`);
@@ -36,7 +36,7 @@ async function installChrome(downloadDir: string) {
 
   const installedBrowser = await install({
     browser: Browser.CHROMIUM,
-    buildId: PUPPETEER_REVISIONS.chromium,
+    buildId: PUPPETEER_REVISIONS['chrome-headless-shell'],
     cacheDir: downloadDir,
     downloadProgressCallback: progressCallback,
   });

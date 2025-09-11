@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import puppeteer, { Browser } from 'puppeteer';
+import puppeteer, { Page, Browser, ElementHandle } from 'puppeteer';
 import { CHROME_EXECUTABLE_PATH } from './chrome_downloader/chrome_executable_path';
 
 // File inside $ENV_DIR containing the demo page server's TCP port. Only applies to Bazel tests
@@ -37,7 +37,7 @@ export type EventPromiseFactory = <T>(eventName: EventName) => Promise<T>;
  * pending promise.
  */
 export const addEventListenersToPuppeteerPage = async (
-  page: puppeteer.Page,
+  page: Page,
   eventNames: EventName[]
 ) => {
   // Maps event names to FIFO queues of promise resolver functions.
@@ -108,6 +108,15 @@ export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
     'external',
     'google_chrome'
   );
+
+  console.log("===============================================================");
+  console.log(path.join(
+      bazelRunfilesDir(),
+      'puppeteer-tests',
+      'chrome',
+      CHROME_EXECUTABLE_PATH
+    ));
+  
   return puppeteer.launch({
     // Use the hermetically-downloaded Chrome binary, which we get via the //puppeteer-tests:chrome
     // Bazel target, which in turn uses the @puppeteer/browsers NPM package.
@@ -132,7 +141,7 @@ export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
     headless: !showBrowser,
     env: {
       ...process.env, // Headful mode breaks without this line (e.g. "unable to open X display").
-      FONTCONFIG_SYSROOT: fontconfigSysroot,
+// !!!!! This was the fix !!!!      FONTCONFIG_SYSROOT: fontconfigSysroot,
     },
   });
 };
@@ -145,7 +154,7 @@ export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
  * each test case is executed.
  */
 export interface TestBed {
-  page: puppeteer.Page;
+  page: Page;
   baseUrl: string;
 }
 
@@ -185,18 +194,20 @@ export const outputDir = () => {
  * and increases consistency among test names.
  */
 export function takeScreenshot(
-  handle: puppeteer.Page | puppeteer.ElementHandle,
+  handle: Page | ElementHandle,
   appName: string,
   testName: string
-): Promise<Buffer | string> {
-  const pngPath = path.join(outputDir(), `${appName}_${testName}.png`);
+): Promise<Uint8Array | string> {
+  const pngPathNameWithoutExt = path.join(outputDir(), `${appName}_${testName}`);
+  // const pngPath = path.join(outputDir(), `${appName}_${testName}.png`);
+
   // Typescript is unhappy about the type union due to the ElementHandle having a "this"
   // typing. Both Page and ElementHandle have a screenshot method, so we can just
   // pretend it's one of those two.
-  return (handle as puppeteer.Page).screenshot({ path: pngPath });
+  return (handle as Page).screenshot({ path: `${pngPathNameWithoutExt}.png` });
 }
 
-let browser: puppeteer.Browser;
+let browser: Browser;
 let testBed: Partial<TestBed>;
 
 /**

@@ -1,6 +1,7 @@
 """This module defines rules for building Skia Infrastructure web applications."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
+
 # https://github.com/bazelbuild/bazel-skylib/blob/main/rules/common_settings.bzl
 load("@bazel_skylib//rules:common_settings.bzl", skylib_bool_flag = "bool_flag")
 load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
@@ -215,6 +216,7 @@ def nodejs_test(
             # Pulls any transitives not included in the JS bundle, such as Puppeteer's Chromium
             # binary.
             src_lib,
+            "//puppeteer-tests:chrome",
             "@rules_browsers//browsers/chromium",
         ],
         fixed_args = [
@@ -331,6 +333,8 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
         deps = deps,
     )
 
+    # Maybe this would be better to be controlled by flags?
+
     for debug, headful in [(False, False), (True, False), (True, True)]:
         suffix = ""
         if debug:
@@ -338,12 +342,15 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
         if headful:
             suffix += "_headful"
 
+        print(deps)
         nodejs_test(
             name = name + "_test_only" + suffix,
             src = src,
             src_lib = name + "_ts_lib",
             tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test //...".
-            deps = deps,
+            deps = deps + [
+                "//puppeteer-tests:chrome",
+            ],
             wait_for_debugger = debug,
             env = {"PUPPETEER_TEST_SHOW_BROWSER": "true"} if headful else {},
             _internal_skip_naming_convention_enforcement = True,
