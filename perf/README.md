@@ -56,6 +56,19 @@ bazelisk test --config=mayberemote //perf/...
 Note the first time you run this it will fail and inform you of the gcloud
 simulators that need to be running in the background and how to start them.
 
+### Test parameters
+
+- `--test_output=streamed`: A blaze flag forcing tests to run locally and display logs directly to your terminal as they happen.
+- `--test_arg=--no-single-run`: Passes --no-single-run to the Karma test runner. It keeps the Karma server running after the initial test execution, useful for debugging in a browser.
+- `--test_arg=--auto-watch`: Passes --auto-watch to Karma. Makes Karma watch for file changes and automatically re-run tests when changes are detected.
+
+### Debug Karma tests
+
+1. Run a test with the debug arguments
+   `bazelisk test //perf/modules/regressions-page-sk:regressions-page-sk_test --test_output=streamed --test_arg=--no-single-run --test_arg=--auto-watch`
+2. Open the application in your browser on port `9876`. [Screenshot 1](https://screenshot.googleplex.com/7K5Jr4PBz5hCB3d.png).
+3. See assertion errors in the console if any. Find your sources, add a debug breakpoint. Rerun the test by refreshing the page. [Screenshot 2](https://screenshot.googleplex.com/Bq4QfPLMrBdAbyT.png).
+
 ## Running locally
 
 There are several ways to run Perf locally depending on your needs.
@@ -195,6 +208,24 @@ detailed information and best practices, please refer to the
     ```
     git cl upload
     ```
+
+### Pulling changes from the CL
+
+Instead of a `git pull`, you need to `cherry-pick` the patch from the remote to your local branch.
+
+Command example:
+
+```
+git fetch https://skia.googlesource.com/buildbot refs/changes/96/1052696/5 \
+&& git cherry-pick FETCH_HEAD
+```
+
+- `96`: This is the last two digits of the change number.
+- `1052696`: This is the full change number in Gerrit.
+- `5`: This is the patch set number. Gerrit creates a new patch set for each revision uploaded
+  to the same change. So, this fetches the state of the 5th version of change 1052696.
+  You can check how many patch sets you have in the
+  [Gerrit UI](https://screenshot.googleplex.com/8ZhhcoqmWku8xoF.png).
 
 # Debugging and Profiling
 
