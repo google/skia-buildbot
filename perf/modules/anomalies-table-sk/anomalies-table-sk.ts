@@ -54,6 +54,8 @@ export class AnomaliesTableSk extends ElementSk {
 
   private regressionsPageHost = '/a/';
 
+  private reportPageHost = '/u/';
+
   private isParentRow = false;
 
   constructor() {
@@ -730,7 +732,7 @@ export class AnomaliesTableSk extends ElementSk {
       msg.hidden = true;
       table.hidden = false;
       this.anomalyList = anomalyList;
-      if (window.location.pathname !== this.regressionsPageHost) {
+      if (![this.regressionsPageHost, this.reportPageHost].includes(window.location.pathname)) {
         await this.preGenerateMultiGraphUrl(timerangeMap);
       }
 
