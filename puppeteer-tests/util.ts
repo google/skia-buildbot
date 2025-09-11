@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import puppeteer, { Page, Browser, ElementHandle } from 'puppeteer';
-import { CHROME_EXECUTABLE_PATH } from './chrome_downloader/chrome_executable_path';
 
 // File inside $ENV_DIR containing the demo page server's TCP port. Only applies to Bazel tests
 // using the test_on_env rule.
@@ -109,23 +108,21 @@ export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
     'google_chrome'
   );
 
-  console.log("===============================================================");
-  console.log(path.join(
-      bazelRunfilesDir(),
-      'puppeteer-tests',
-      'chrome',
-      CHROME_EXECUTABLE_PATH
-    ));
-  
+  console.log("===============================================================");  
+  const executablePath = process.env.CHROME_BIN;
+  console.log(executablePath)
   return puppeteer.launch({
     // Use the hermetically-downloaded Chrome binary, which we get via the //puppeteer-tests:chrome
     // Bazel target, which in turn uses the @puppeteer/browsers NPM package.
-    executablePath: path.join(
-      bazelRunfilesDir(),
-      'puppeteer-tests',
-      'chrome',
-      CHROME_EXECUTABLE_PATH
-    ),
+
+
+    
+    
+
+    // Instead we should use the @rules_browsers toolchain that sets an ENV variable, 
+    executablePath: executablePath,
+
+    //
     // These options are required to run Puppeteer from within a Docker container, as is the case
     // under Bazel and RBE. See
     // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.

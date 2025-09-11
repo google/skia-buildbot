@@ -21,7 +21,6 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//:node_modules/puppeteer",
-        "//puppeteer-tests/chrome_downloader:chrome_executable_path_ts_lib",
     ],
 )
 

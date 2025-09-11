@@ -216,7 +216,7 @@ def nodejs_test(
             # Pulls any transitives not included in the JS bundle, such as Puppeteer's Chromium
             # binary.
             src_lib,
-            "//puppeteer-tests:chrome",
+            #            "//puppeteer-tests:chrome",
             "@rules_browsers//browsers/chromium",
         ],
         fixed_args = [
