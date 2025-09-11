@@ -149,7 +149,7 @@ export class ReportPageSk extends ElementSk {
           </div>
         `
       : ''}
-    <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
+    <anomalies-table-sk id="anomaly-table" show_selected_groups_first> </anomalies-table-sk>
     ${ele.showAllCommitsTemplate()}
     <div
       id="graph-container"

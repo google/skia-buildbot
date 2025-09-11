@@ -128,4 +128,37 @@ anomalies-table-sk {
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
     z-index: 100;
   }
+
+  .separator-cell {
+    padding: 10px 0;
+  }
+
+  .separator-container {
+    display: flex;
+    align-items: center;
+    color: var(--on-surface-variant);
+    width: 100%;
+  }
+
+  .separator-line {
+    flex-grow: 1;
+    height: 1px;
+    background-color: var(--surface-3dp);
+    margin: 0 10px;
+  }
+
+  .separator-text {
+    padding: 0 1em;
+    font-style: italic;
+    white-space: nowrap;
+  }
+
+  .unselected-group {
+    opacity: 0.65;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .unselected-group:hover {
+    opacity: 1;
+  }
 }

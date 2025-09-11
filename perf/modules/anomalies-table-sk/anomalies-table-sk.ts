@@ -60,6 +60,10 @@ export class AnomaliesTableSk extends ElementSk {
     super(AnomaliesTableSk.template);
   }
 
+  static get observedAttributes() {
+    return ['show-selected-groups-first'];
+  }
+
   public openAnomalyChartListener = (e: Event) => {
     const anomaly = (e as CustomEvent<Anomaly>).detail;
     if (anomaly) {
@@ -85,6 +89,7 @@ export class AnomaliesTableSk extends ElementSk {
       }
     });
     this.addEventListener('open-anomaly-chart', this.openAnomalyChartListener);
+    this._upgradeProperty('show_selected_groups_first');
   }
 
   disconnectedCallback() {
@@ -320,7 +325,13 @@ export class AnomaliesTableSk extends ElementSk {
             <th id="group"></th>
             <th id="checkbox">
               <label for="header-checkbox"
-                ><input type="checkbox" id="header-checkbox" @change=${this.toggleAllCheckboxes}
+                ><input
+                  type="checkbox"
+                  id="header-checkbox"
+                  @change=${() => {
+                    this.toggleAllCheckboxes();
+                    this.show_selected_groups_first = false;
+                  }}
               /></label>
             </th>
             <th id="graph_header">Chart</th>
@@ -339,13 +350,50 @@ export class AnomaliesTableSk extends ElementSk {
     `;
   }
 
+  private isGroupSelected(group: AnomalyGroup): boolean {
+    return group.anomalies.some((anomaly) => this.checkedAnomaliesSet.has(anomaly));
+  }
+
   private generateGroups() {
-    const groups: TemplateResult[][] = [];
-    for (let i = 0; i < this.anomalyGroups.length; i++) {
-      const anomalyGroup = this.anomalyGroups[i];
-      groups.push(this.generateRows(anomalyGroup) as TemplateResult[]);
+    if (!this.show_selected_groups_first || this.checkedAnomaliesSet.size === 0) {
+      return this.anomalyGroups.map((group) => this.generateRows(group));
     }
-    return groups;
+
+    const selectedGroups: AnomalyGroup[] = [];
+    const unselectedGroups: AnomalyGroup[] = [];
+
+    for (const group of this.anomalyGroups) {
+      if (this.isGroupSelected(group)) {
+        selectedGroups.push(group);
+      } else {
+        unselectedGroups.push(group);
+      }
+    }
+
+    const renderedSelected = selectedGroups.map((group) => this.generateRows(group));
+    const renderedUnselected = unselectedGroups.map((group) =>
+      this.generateRows(group, 'unselected-group')
+    );
+
+    if (selectedGroups.length === 0 || unselectedGroups.length === 0) {
+      return [...renderedSelected, ...renderedUnselected];
+    }
+
+    const separatorRow = html`
+      <tr>
+        <td colspan="9" class="separator-cell">
+          <div class="separator-container">
+            <span class="separator-line"></span>
+            <span class="separator-text"
+              >Other groups, related to selected ones (with overlapping commits range)</span
+            >
+            <span class="separator-line"></span>
+          </div>
+        </td>
+      </tr>
+    `;
+
+    return [...renderedSelected, [separatorRow], ...renderedUnselected];
   }
 
   private async preGenerateMultiGraphUrl(timerangeMap: {
@@ -453,11 +501,11 @@ export class AnomaliesTableSk extends ElementSk {
     };
   }
 
-  private generateRows(anomalyGroup: AnomalyGroup): TemplateResult[] {
+  private generateRows(anomalyGroup: AnomalyGroup, rowClass: string = ''): TemplateResult[] {
     const rows: TemplateResult[] | never = [];
     const length = anomalyGroup.anomalies.length;
     if (length > 1) {
-      rows.push(this.generateSummaryRow(anomalyGroup));
+      rows.push(this.generateSummaryRow(anomalyGroup, rowClass));
     }
 
     for (let i = 0; i < anomalyGroup.anomalies.length; i++) {
@@ -474,43 +522,44 @@ export class AnomaliesTableSk extends ElementSk {
           data-testsuite="${anomalySortValues.testsuite}"
           data-test="${anomalySortValues.test}"
           data-delta="${anomalySortValues.delta}"
-          class=${this.getRowClass(i + 1, anomalyGroup)}
-          ?hidden=${
-            !anomalyGroup.expanded && !this.isParentRow && anomalyGroup.anomalies.length > 1
-          }>
+          class="${this.getRowClass(i + 1, anomalyGroup)} ${rowClass}"
+          ?hidden=${!anomalyGroup.expanded &&
+          !this.isParentRow &&
+          anomalyGroup.anomalies.length > 1}>
+          <td></td>
           <td>
-          </td>
-          <td>
-            <label><input type="checkbox"
-              @change=${(e: Event) => {
-                // If we just need to check 1 anomaly, just mark it as checked.
-                if (length === 1 || anomalyGroup.expanded) {
-                  this.anomalyChecked(e.target as HTMLInputElement, anomaly, anomalyGroup);
-                } else {
-                  // If the the summary row gets checked, check all children anomalies.
-                  this.toggleChildrenCheckboxes(anomalyGroup);
-                }
-              }}
-              id="anomaly-row-${anomaly.id}"></label>
+            <label
+              ><input
+                type="checkbox"
+                @change=${(e: Event) => {
+                  this.show_selected_groups_first = false;
+                  // If we just need to check 1 anomaly, just mark it as checked.
+                  if (length === 1 || anomalyGroup.expanded) {
+                    this.anomalyChecked(e.target as HTMLInputElement, anomaly, anomalyGroup);
+                  } else {
+                    // If the the summary row gets checked, check all children anomalies.
+                    this.toggleChildrenCheckboxes(anomalyGroup);
+                  }
+                }}
+                id="anomaly-row-${anomaly.id}"
+            /></label>
           </td>
           <td class="center-content">
-            ${
-              isLoading
-                ? html`<spinner-sk active></spinner-sk>` // Show spinner if loading
-                : html`
-                    <button
-                      id="trendingicon-link"
-                      @click=${async () => {
-                        this.loadingGraphForAnomaly.set(anomaly.id, true);
-                        this._render();
-                        await this.openMultiGraphUrl(anomaly);
-                        this.loadingGraphForAnomaly.set(anomaly.id, false);
-                        this._render();
-                      }}>
-                      <trending-up-icon-sk></trending-up-icon-sk>
-                    </button>
-                  `
-            }
+            ${isLoading
+              ? html`<spinner-sk active></spinner-sk>` // Show spinner if loading
+              : html`
+                  <button
+                    id="trendingicon-link"
+                    @click=${async () => {
+                      this.loadingGraphForAnomaly.set(anomaly.id, true);
+                      this._render();
+                      await this.openMultiGraphUrl(anomaly);
+                      this.loadingGraphForAnomaly.set(anomaly.id, false);
+                      this._render();
+                    }}>
+                    <trending-up-icon-sk></trending-up-icon-sk>
+                  </button>
+                `}
           </td>
           <td>
             ${this.getReportLinkForBugId(anomaly.bug_id)}
@@ -523,10 +572,7 @@ export class AnomaliesTableSk extends ElementSk {
             </close-icon-sk>
           </td>
           <td>
-              <span
-                >${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span
-              >
-            </a>
+            <span>${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span>
           </td>
           <td>${processedAnomaly.bot}</td>
           <td>${processedAnomaly.testsuite}</td>
@@ -538,7 +584,7 @@ export class AnomaliesTableSk extends ElementSk {
     return rows;
   }
 
-  private generateSummaryRow(anomalyGroup: AnomalyGroup): TemplateResult {
+  private generateSummaryRow(anomalyGroup: AnomalyGroup, rowClass: string = ''): TemplateResult {
     const firstAnomaly = anomalyGroup.anomalies[0];
     const summary = {
       bugId: 0,
@@ -593,7 +639,7 @@ export class AnomaliesTableSk extends ElementSk {
         data-testsuite="${summary.testsuite}"
         data-test="${summary.test}"
         data-delta="${summary.delta}"
-        class="${this.getRowClass(0, anomalyGroup)}}">
+        class="${this.getRowClass(0, anomalyGroup)} ${rowClass}">
         <td>
           <button
             class="expand-button"
@@ -607,6 +653,7 @@ export class AnomaliesTableSk extends ElementSk {
             ><input
               type="checkbox"
               @change="${() => {
+                this.show_selected_groups_first = false;
                 // If the summary row checkbox gets checked and the
                 // group is not expanded, check all children anomalies.
                 this.toggleChildrenCheckboxes(anomalyGroup);
@@ -977,6 +1024,18 @@ export class AnomaliesTableSk extends ElementSk {
       .map((a) => a.id)
       .sort()
       .join('-')}`;
+  }
+
+  get show_selected_groups_first(): boolean {
+    return this.hasAttribute('show_selected_groups_first');
+  }
+
+  set show_selected_groups_first(val: boolean) {
+    if (val) {
+      this.setAttribute('show_selected_groups_first', '');
+    } else {
+      this.removeAttribute('show_selected_groups_first');
+    }
   }
 }
 
