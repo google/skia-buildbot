@@ -98,7 +98,7 @@ at the same exact revision. Therefore, this rule cannot be considered to be full
 """,
 )
 
-def _google_cloud_sdk_ext(mctx):
+def _google_cloud_sdk_ext(_mctx):
     google_cloud_sdk(
         name = "google_cloud_sdk_ext",
     )
