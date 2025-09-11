@@ -7,10 +7,10 @@ load(":common.bzl", "fail_if_nonzero_status")
 
 def _cockroachdb_cli_impl(repository_ctx):
     url = "https://binaries.cockroachdb.com/cockroach-v21.1.9.linux-amd64.tgz"
+
     # https://www.cockroachlabs.com/docs/v21.1/install-cockroachdb-linux does not currently
     # provide SHA256 signatures. kjlubick@ downloaded this file and computed this sha256 signature.
     hash = "05293e76dfb6443790117b6c6c05b1152038b49c83bd4345589e15ced8717be3"
-
 
     if not repository_ctx.os.name.lower().startswith("linux"):
         # Support for other platforms can be added as needed.
@@ -42,7 +42,7 @@ cockroachdb_cli = repository_rule(
 
 def _cockroachdb_cli_ext_impl(mctx):
     cockroachdb_cli(
-        name = "cockroachdb_cli_ext"
+        name = "cockroachdb_cli_ext",
     )
 
 cockroachdb_cli_ext = module_extension(

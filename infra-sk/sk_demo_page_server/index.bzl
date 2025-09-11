@@ -1,4 +1,5 @@
 """This module defines the sk_demo_page_server macro."""
+
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 _demo_page_server = "//infra-sk/sk_demo_page_server:demo_page_server"

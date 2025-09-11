@@ -100,7 +100,7 @@ at the same exact revision. Therefore, this rule cannot be considered to be full
 
 def _google_cloud_sdk_ext(mctx):
     google_cloud_sdk(
-        name = "google_cloud_sdk_ext"
+        name = "google_cloud_sdk_ext",
     )
 
 google_cloud_sdk_ext = module_extension(

@@ -357,9 +357,7 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
             src = src,
             src_lib = name + "_ts_lib",
             tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test //...".
-            deps = deps + [
-                "//puppeteer-tests:chrome",
-            ],
+            deps = deps,
             wait_for_debugger = debug,
             env = {"PUPPETEER_TEST_SHOW_BROWSER": "true"} if headful else {},
             _internal_skip_naming_convention_enforcement = True,
