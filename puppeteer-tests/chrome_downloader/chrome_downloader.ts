@@ -35,10 +35,12 @@ async function installChrome(downloadDir: string) {
   };
 
   const installedBrowser = await install({
-    browser: Browser.CHROMIUM,
-    buildId: PUPPETEER_REVISIONS['chrome-headless-shell'],
+    browser: Browser.CHROME,
+    buildId: PUPPETEER_REVISIONS.chrome,
     cacheDir: downloadDir,
+    unpack: true,
     downloadProgressCallback: progressCallback,
+    
   });
   clearTimeout(timeout);
 
@@ -53,13 +55,13 @@ async function installChrome(downloadDir: string) {
     const prefixLength = downloadDir.length + 1; // Account for trailing slash.
     const actualExecutablePath =
       installedBrowser.executablePath.slice(prefixLength);
-    console.error(
+    console.log(
       "ERROR: The downloaded browser's executable path does not match the expected path."
     );
-    console.error(
+    console.log(
       `    Actual (relative to download directory): ${actualExecutablePath}`
     );
-    console.error(
+    console.log(
       `    Expected:                                ${CHROME_EXECUTABLE_PATH}`
     );
     process.exit(1);

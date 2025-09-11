@@ -319,6 +319,8 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
       deps: Any ts_library dependencies.
     """
 
+    deps.append("//:node_modules/source-map-support")
+
     if not src.endswith("_puppeteer_test.ts"):
         fail("Puppeteer tests must end with \"_puppeteer_test.ts\".")
 
