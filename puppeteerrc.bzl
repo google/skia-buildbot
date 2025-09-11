@@ -1,3 +1,7 @@
+"""
+Creates a puppeteer config file using Make variable substitution.
+"""
+
 def _puppeteerrc_js(ctx):
     out = ctx.actions.declare_file(ctx.label.name + ".js")
     ctx.actions.expand_template(

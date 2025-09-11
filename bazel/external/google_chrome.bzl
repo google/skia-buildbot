@@ -400,7 +400,7 @@ google_chrome = repository_rule(
     doc = "Hermetically installs Google Chrome, and all required libraries and fonts.",
 )
 
-def _google_chrome_ext(mctx):
+def _google_chrome_ext(_mctx):
     google_chrome(name = "google_chrome")
 
 google_chrome_ext = module_extension(

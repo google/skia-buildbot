@@ -1,7 +1,9 @@
-load("@aspect_rules_js//npm/private:npm_translate_lock.bzl", "npm_translate_lock_rule")
-# -- load statements -- #
+""" This module handles the mapping between package.json and pnpm.
+"""
 
-def _extension_for_npm_translate_lock_rule_impl(ctx):
+load("@aspect_rules_js//npm/private:npm_translate_lock.bzl", "npm_translate_lock_rule")
+
+def _extension_for_npm_translate_lock_rule_impl(_ctx):
     npm_translate_lock_rule(
         name = "npm",
         additional_file_contents = {},
@@ -45,7 +47,5 @@ def _extension_for_npm_translate_lock_rule_impl(ctx):
         verify_node_modules_ignored = "//:.bazelignore",
         npm_package_target_name = "{dirname}",
     )
-
-# -- repo definitions -- #
 
 extension_for_npm_translate_lock_rule = module_extension(implementation = _extension_for_npm_translate_lock_rule_impl)

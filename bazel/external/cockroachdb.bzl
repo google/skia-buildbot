@@ -1,9 +1,5 @@
 """This module defines the cockroachdb repository rule.
-
-Note that this rule is not fully hermetic. See the rule's documentation for details.
 """
-
-load(":common.bzl", "fail_if_nonzero_status")
 
 def _cockroachdb_cli_impl(repository_ctx):
     url = "https://binaries.cockroachdb.com/cockroach-v21.1.9.linux-amd64.tgz"
@@ -16,7 +12,6 @@ def _cockroachdb_cli_impl(repository_ctx):
         # Support for other platforms can be added as needed.
         fail("OS/arch not yet supported: %s." % repository_ctx.os.name)
 
-    # Download the Google Cloud SDK.
     repository_ctx.download_and_extract(
         url,
         output = "cockroachdb",
@@ -40,7 +35,7 @@ cockroachdb_cli = repository_rule(
     doc = """Installs the cockroachdb cli.""",
 )
 
-def _cockroachdb_cli_ext_impl(mctx):
+def _cockroachdb_cli_ext_impl(_mctx):
     cockroachdb_cli(
         name = "cockroachdb_cli_ext",
     )
