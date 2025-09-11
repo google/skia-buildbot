@@ -226,6 +226,10 @@ def nodejs_test(
         ] + (["--inspect-brk"] if wait_for_debugger else []),
         tags = tags,
         visibility = visibility,
+        # Use the @rules_browsers toolchain which supplies the
+        # CHROME-HEADLESS-SHELL and CHROMEDRIVER env variables, which we pass
+        # along to // puppeteer-tests/util.ts so that it can launch the browser
+        # for puppeteer to use.
         env = env | {
             "CHROME_BIN": "$(CHROME-HEADLESS-SHELL)",
         },
