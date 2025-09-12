@@ -1,5 +1,5 @@
 """
-Creates a puppeteer config file using Make variable substitution.
+Creates a karma config file using Make variable substitution.
 """
 
 def _karma_config_js(ctx):
@@ -8,7 +8,6 @@ def _karma_config_js(ctx):
         output = out,
         substitutions = {
             "{BROWSER_EXE}": ctx.var["CHROME-HEADLESS-SHELL"],
-            #            "{CHROMEDRIVER}": ctx.var["CHROMEDRIVER"],  or CHROME-HEADLESS-SHELL
         },
         template = ctx.file.template,
     )
@@ -16,11 +15,11 @@ def _karma_config_js(ctx):
 
 karma_config_js = rule(
     doc = """
-We want karma_test to use a hermetic browser.
-We download the browser via @rules_browsers, which
-can be loaded as a toochain that sets the CHROME-HEADLESS-SHELL
-Make variable. This rule uses those Make variables to do template 
-expansion on a karma_config.js.tpl template file.
+We want karma_test to use a hermetic browser. We download the 
+browser via @rules_browsers, which can be loaded as a toochain 
+that sets the CHROME-HEADLESS-SHELL Make variable. This rule 
+uses those Make variables to do template expansion on a *.js.tpl
+template file.
 
 Note that when using this rule the toolchain must be supplied,
 which permits using different browsers for karma tests.

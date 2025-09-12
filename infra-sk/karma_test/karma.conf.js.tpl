@@ -25,7 +25,9 @@ const isBazelTest = !process.env.BUILD_WORKSPACE_DIRECTORY; // Set when running 
 //  - https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions
 const bazelRunfilesDir = `${process.env.RUNFILES_DIR}/${process.env.TEST_WORKSPACE}`;
 
-// Forces Karma to use the Bazel-downloaded Google Chrome browser.
+// Forces Karma to use the Bazel-downloaded Google Chrome browser. Note that
+// {BROWSER_EXE} is defined in `karma_config.bzl` and points to a downloaded
+// Chrome browser.
 process.env.CHROME_BIN = '{BROWSER_EXE}';
 
 module.exports = function (config) {
