@@ -351,7 +351,6 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
         if headful:
             suffix += "_headful"
 
-        print(deps)
         nodejs_test(
             name = name + "_test_only" + suffix,
             src = src,
