@@ -1,4 +1,3 @@
-load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
 load("//infra-sk:index.bzl", "nodejs_test", "ts_library")
 
 nodejs_test(
@@ -22,22 +21,4 @@ ts_library(
     deps = [
         "//:node_modules/puppeteer",
     ],
-)
-
-# Hermetically downloads Chrome using Puppeteer's own code (@puppeteer/browsers NPM package). In
-# conjunction with disabling Puppeteer's automatic downloading behavior in //.puppeteerrc.json,
-# this guarantees that we get a Chrome version that is known to work well with Puppeteer, and that
-# it is placed in a predictable location.
-#
-# This rule behaves like a fancy genrule, and can be depended upon by other targets as if it were a
-# filegroup. See https://docs.aspect.build/rulesets/aspect_rules_js/docs/js_run_binary.
-js_run_binary(
-    name = "chrome",
-    args = ["puppeteer-tests/chrome"],
-    mnemonic = "DownloadChrome",
-    out_dirs = ["chrome"],
-    stderr = "chrome.stderr",
-    stdout = "chrome.stdout",
-    tool = "//puppeteer-tests/chrome_downloader",
-    visibility = ["//visibility:public"],
 )

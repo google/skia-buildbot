@@ -1,7 +1,10 @@
-load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("karma_config.bzl", "karma_config_js")
 
-js_library(
+# Creates a karma config file that is configured to use the downloaded Chrome
+# from @rules_browser toolchain.
+karma_config_js(
     name = "karma_config",
-    srcs = ["karma.conf.js"],
+    template = "karma.conf.js.tpl",
+    toolchains = ["@rules_browsers//browsers/chromium:toolchain_alias"],
     visibility = ["//visibility:public"],
 )

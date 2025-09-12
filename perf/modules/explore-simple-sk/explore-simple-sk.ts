@@ -109,7 +109,6 @@ import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { join, timestampBounds } from '../dataframe';
-import { TryJob_Status } from '../../../autoroll/modules/rpc';
 import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import {
   TraceFormatter,
