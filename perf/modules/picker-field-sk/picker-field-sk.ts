@@ -26,7 +26,6 @@
 import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { MultiSelectComboBox } from '@vaadin/multi-select-combo-box';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
 
@@ -56,6 +55,8 @@ export class PickerFieldSk extends ElementSk {
   private _split: boolean = false;
 
   private _index: number = 0;
+
+  private _checkboxSelected: boolean = false;
 
   /**
    * Creates an instance of PickerFieldSk.
@@ -121,6 +122,7 @@ export class PickerFieldSk extends ElementSk {
       new CustomEvent('value-changed', {
         detail: {
           value: selectedItems, // Forward the array of selected items
+          checkboxSelected: this._checkboxSelected,
         },
         bubbles: true,
         composed: true,
@@ -157,14 +159,13 @@ export class PickerFieldSk extends ElementSk {
    */
   private selectAll(e: Event) {
     if (this._allSelected) {
+      this._checkboxSelected = true;
       if ((e.currentTarget as HTMLInputElement).checked) {
         // Create a shallow copy to avoid direct mutation issues.
         this.selectedItems = this.options.slice();
-        (this._comboBox as MultiSelectComboBox)!.selectedItems = this.selectedItems;
       } else {
         // Leave the first item selected.
         this.selectedItems = this.options.slice(0, 1);
-        (this._comboBox as MultiSelectComboBox)!.selectedItems = this.selectedItems;
       }
     }
   }
@@ -176,6 +177,7 @@ export class PickerFieldSk extends ElementSk {
    */
   private selectPrimary(e: Event) {
     if (this._primarySelected) {
+      this._checkboxSelected = true;
       if ((e.currentTarget as HTMLInputElement).checked) {
         // If all is selected, deselect all and select primary.
         if (this._isAllSelected) {
@@ -184,11 +186,9 @@ export class PickerFieldSk extends ElementSk {
         // Add all primary options to the current selection, ensuring no duplicates.
         const newSelection = [...new Set([...this.selectedItems, ...this.primaryOptions])];
         this.selectedItems = newSelection;
-        (this._comboBox as MultiSelectComboBox)!.selectedItems = this.selectedItems;
       } else {
         // Leave the first item selected.
         this.selectedItems = this.options.slice(0, 1);
-        (this._comboBox as MultiSelectComboBox)!.selectedItems = this.selectedItems;
       }
     }
   }

@@ -215,6 +215,9 @@ export class TestPickerSk extends ElementSk {
    * read-only.
    */
   setReadOnly(readonly: boolean) {
+    if (this._readOnly === readonly) {
+      return;
+    }
     const exploreMulti = document.querySelector('explore-multi-sk') as any;
     if (exploreMulti && exploreMulti._dataLoading) {
       readonly = true;
@@ -234,6 +237,7 @@ export class TestPickerSk extends ElementSk {
         this._requestInProgress = false;
       }
     });
+    this._render();
   }
 
   get readOnly() {
@@ -528,13 +532,12 @@ export class TestPickerSk extends ElementSk {
     // Create and store the new listeners.
     fieldInfo.onValueChanged = (e: Event) => {
       const value = (e as CustomEvent).detail.value as string[];
-      if (value === fieldInfo.field!.selectedItems) {
+      const checkboxSelected = (e as CustomEvent).detail.checkboxSelected as boolean;
+
+      if (value === fieldInfo.field!.selectedItems && !checkboxSelected) {
         return;
       }
 
-      if (value.length > 1) {
-        this.setReadOnly(true);
-      }
       if (value.length === 0) {
         this.removeChildFields(index);
       }
@@ -567,6 +570,9 @@ export class TestPickerSk extends ElementSk {
         // Selected Item Needs to be updated if the explore was removed.
         fieldInfo.field!.selectedItems = value;
       }
+      if (value.length > 1) {
+        this.setReadOnly(true);
+      }
       this.updateGraph(value, fieldInfo, removed);
       this.fetchExtraOptions(index);
     };
@@ -589,6 +595,7 @@ export class TestPickerSk extends ElementSk {
    * @param split A boolean indicating whether to split or not.
    */
   private setSplitFields(param: string, split: boolean) {
+    this.setReadOnly(true);
     for (let i = 0; i < this._fieldData.length; i++) {
       if (this._fieldData[i].param === param) {
         (this._fieldData[i].field as PickerFieldSk).split = split;

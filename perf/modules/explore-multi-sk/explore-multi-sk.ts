@@ -565,11 +565,16 @@ export class ExploreMultiSk extends ElementSk {
       return;
     }
 
-    const groupedLength = Array.from(groupedTraces.values()).reduce((sum, v) => sum + v.length, 0);
-    // It's the same graph, so let's simply return early.
-    if (groupedLength === 1 && this.state.totalGraphs === 1) {
-      this.checkDataLoaded();
-      return;
+    if (this.state.totalGraphs === 1) {
+      // If there is only one graph with no split or only one trace, then do nothing.
+      const groupedLength = Array.from(groupedTraces.values()).reduce(
+        (sum, v) => sum + v.length,
+        0
+      );
+      if (this.state.splitByKeys.length === 0 || groupedLength === 1) {
+        this.checkDataLoaded();
+        return;
+      }
     }
 
     if (this.exploreElements.length > 0 && this._dataLoading === true) {
@@ -662,6 +667,7 @@ export class ExploreMultiSk extends ElementSk {
           const valueToRemove = new URLSearchParams(query).get(param);
           if (valueToRemove) {
             this.testPicker?.removeItemFromChart(param, [valueToRemove]);
+            this._dataLoading = false;
           }
         }
       }
@@ -685,7 +691,7 @@ export class ExploreMultiSk extends ElementSk {
           if (this.exploreElements.length > 0 && this._dataLoading) {
             await this.exploreElements[0].requestComplete;
           }
-          this.addGraphsToCurrentPage(true);
+          this.addGraphsToCurrentPage(false);
           const query = this.testPicker!.createQueryFromFieldData();
           await newExplore.addFromQueryOrFormula(true, 'query', query, '');
         } else {
@@ -794,7 +800,7 @@ export class ExploreMultiSk extends ElementSk {
         this.state.totalGraphs = this.exploreElements.length;
         explore.state.doNotQueryData = false;
       }
-      await explore.addFromQueryOrFormula(true, 'query', query, '');
+      await explore.addFromQueryOrFormula(false, 'query', query, '');
       await this.splitGraphs();
     });
 
@@ -838,10 +844,6 @@ export class ExploreMultiSk extends ElementSk {
 
         elem.state.doNotQueryData = true;
         const traceset = elem.getTraceset() as TraceSet;
-        elem.state.queries = elem.state.queries.filter(
-          (q) =>
-            !q.includes(`${(e as CustomEvent).detail.param}=${(e as CustomEvent).detail.value}`)
-        );
         elem.removeKeys(tracesToRemove, true);
         if (elem.state.queries.length === 1) {
           // Only one query, so update it with the new query based on params.
@@ -895,6 +897,10 @@ export class ExploreMultiSk extends ElementSk {
 
       elemsToRemove.forEach((elem) => {
         this.removeExplore(elem);
+      });
+
+      this.exploreElements.forEach((elem, i) => {
+        this.graphConfigs[i].queries = elem.state.queries ?? [];
       });
 
       if (this.stateHasChanged) {
@@ -980,6 +986,7 @@ export class ExploreMultiSk extends ElementSk {
         this.testPicker!.autoAddTrace = false;
         this.resetGraphs();
         this.emptyCurrentPage();
+        this._dataLoading = false;
       } else if (this.state.pageSize > 0) {
         // If graphs remain and pageSize is valid, calculate the maximum valid page offset.
         // This prevents being on a page that no longer exists
@@ -1250,19 +1257,16 @@ export class ExploreMultiSk extends ElementSk {
       if (!this.testPicker.isLoaded() && this.exploreElements.length > 0) {
         this.populateTestPicker(this.exploreElements[0].getParamSet());
       }
-      if (this.exploreElements.every((e) => !e.dataLoading)) {
-        this.testPicker.setReadOnly(false);
-        this._dataLoading = false;
-        if (this.stateHasChanged) {
-          this.stateHasChanged();
-        }
-      } else {
+      if (this.exploreElements.every((e) => e.dataLoading)) {
         this._dataLoading = true;
         this.testPicker.setReadOnly(true);
-        if (this.stateHasChanged) {
-          this.stateHasChanged();
-        }
+      } else {
+        this._dataLoading = false;
+        this.testPicker.setReadOnly(false);
       }
+    }
+    if (this.stateHasChanged) {
+      this.stateHasChanged();
     }
   }
 
