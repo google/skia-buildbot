@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/git_common"
@@ -46,7 +45,7 @@ func TestGNNinjaBuild(t *testing.T) {
 func TestGNDownloadSkia(t *testing.T) {
 	mock := exec.CommandCollector{}
 	mock.SetDelegateRun(git_common.MocksForFindGit)
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	ctx = exec.NewContext(ctx, mock.Run)
 
 	checkout, err := os.MkdirTemp("", "download-test")

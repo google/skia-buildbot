@@ -13,9 +13,7 @@ import (
 	"strings"
 	"sync"
 
-	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -50,23 +48,8 @@ var (
 type contextKeyType string
 
 func findGitPath(ctx context.Context) (string, error) {
-	if f := ctx.Value(gitPathFinderKey); f != nil {
-		finder := f.(func() (string, error))
-		gitPath, err := finder()
-		return gitPath, skerr.Wrap(err)
-	}
-	if bazel.InBazelTest() {
-		return "", skerr.Fmt("Use git_common.WithGitFinder(cipd_git.FindGit) instead of relying on git on $PATH")
-	}
 	gitPath, err := osexec.LookPath("git")
 	return gitPath, skerr.Wrap(err)
-}
-
-func hasGitFinderOverride(ctx context.Context) bool {
-	if f := ctx.Value(gitPathFinderKey); f != nil {
-		return true
-	}
-	return false
 }
 
 // WithGitFinder overrides how the git_common.FindGit() function locates the git executable.
@@ -81,13 +64,6 @@ func WithGitFinder(ctx context.Context, finder func() (string, error)) context.C
 func FindGit(ctx context.Context) (string, int, int, error) {
 	mtx.Lock()
 	defer mtx.Unlock()
-	if git != "" && !hasGitFinderOverride(ctx) {
-		// return cached version (unless there is a GitFinder on the context).
-		// Since the override is primarily used by tests, we do not want to cache the results and
-		// have test behavior depend on the order tests were executed (e.g. if one test uses
-		// mockGitA and another uses mockGitB, caching would make both use A or both use B).
-		return git, gitVersionMajor, gitVersionMinor, nil
-	}
 	gitPath, err := findGitPath(ctx)
 	if err != nil {
 		return "", 0, 0, skerr.Wrapf(err, "Failed to find git")
@@ -97,35 +73,10 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 		return "", 0, 0, skerr.Wrapf(err, "Failed to obtain git version")
 	}
 	sklog.Infof("Git is %s; version %d.%d", gitPath, maj, min)
-	isFromCIPD := IsFromCIPD(gitPath)
-	isFromCIPDVal := 0
-	if isFromCIPD {
-		isFromCIPDVal = 1
-	}
-	metrics2.GetInt64Metric("git_from_cipd").Update(int64(isFromCIPDVal))
 	git = gitPath
 	gitVersionMajor = maj
 	gitVersionMinor = min
 	return git, gitVersionMajor, gitVersionMinor, nil
-}
-
-// IsFromCIPD returns a bool indicating whether or not the given version of Git
-// appears to be obtained via CIPD.
-func IsFromCIPD(git string) bool {
-	return strings.Contains(git, "cipd_bin_packages") || strings.Contains(git, bazel.RunfilesDir())
-}
-
-// EnsureGitIsFromCIPD returns an error if the version of Git in PATH does not
-// appear to be obtained via CIPD.
-func EnsureGitIsFromCIPD(ctx context.Context) error {
-	git, _, _, err := FindGit(ctx)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	if !IsFromCIPD(git) {
-		return skerr.Fmt("Git does not appear to be obtained via CIPD: %s", git)
-	}
-	return nil
 }
 
 // Version returns the installed Git version, in the form:

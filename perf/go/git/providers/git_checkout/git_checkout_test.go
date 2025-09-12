@@ -12,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git/provider"
@@ -30,7 +29,7 @@ var (
 //
 // The hashes for each commit are going to be random and so are returned also.
 func NewForTest(t *testing.T) (context.Context, *testutils.GitBuilder, []string, *config.InstanceConfig) {
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
 	// Create a git repo for testing purposes.

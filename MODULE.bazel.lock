@@ -218,7 +218,7 @@
   "moduleExtensions": {
     "//bazel/external:cockroachdb.bzl%cockroachdb_cli_ext": {
       "general": {
-        "bzlTransitiveDigest": "amWbgyc3RUcbvpTH8pvW+QaG6Ru72BKZMpLXU+PpZlE=",
+        "bzlTransitiveDigest": "sunk9X6apQmQgLaskPfznNhkAjiN/YRK3yFXKsROneo=",
         "usagesDigest": "dx9+aFZ0t6gXUo0R0dfY5EtpP74axTe4rjrRR9Y/2a8=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
