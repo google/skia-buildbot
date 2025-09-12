@@ -28,6 +28,5 @@ go_test(
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
-        "@org_skia_go_infra//bazel/external/rules_python:go_default_library",
     ],
 )

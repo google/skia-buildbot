@@ -12,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -32,7 +31,7 @@ type RepoImplRefresher interface {
 // CommonSetup performs common setup. Importantly, it uses the git executable brought
 // in from CIPD.
 func CommonSetup(t sktest.TestingT) (context.Context, *git_testutils.GitBuilder, func()) {
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	g := git_testutils.GitInit(t, ctx)
 	return ctx, g, g.Cleanup
 }

@@ -16,7 +16,6 @@ import (
 
 	expect "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/bazel/external/rules_python"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -417,7 +416,7 @@ func TestRunCommand(t *testing.T) {
 }
 
 func findPython3(t *testing.T) string {
-	python3, err := rules_python.FindPython3()
+	python3, err := exec.LookPath("python3")
 	require.NoError(t, err)
 	return python3
 }

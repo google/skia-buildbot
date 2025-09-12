@@ -19,6 +19,5 @@ go_test(
     deps = [
         ":git_common",
         "@com_github_stretchr_testify//require",
-        "@org_skia_go_infra//bazel/external/cipd/git:go_default_library",
     ],
 )

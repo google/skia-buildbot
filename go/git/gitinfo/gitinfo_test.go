@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/git"
 	vcstu "go.skia.org/infra/go/vcsinfo/testutils"
 )
@@ -17,7 +16,7 @@ func TestVCSSuite(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
 	require.NoError(t, err)
 	vcstu.TestDisplay(ctx, t, r)
@@ -27,7 +26,7 @@ func TestFrom(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
 	require.NoError(t, err)
 	vcstu.TestFrom(ctx, t, r)
@@ -37,7 +36,7 @@ func TestLastN(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
@@ -73,7 +72,7 @@ func TestByIndex(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
 	require.NoError(t, err)
 	vcstu.TestByIndex(ctx, t, r)
@@ -83,7 +82,7 @@ func TestLastNIndex(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
 	require.NoError(t, err)
 	vcstu.TestLastNIndex(ctx, t, r)
@@ -93,7 +92,7 @@ func TestIndexOf(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
@@ -106,7 +105,7 @@ func TestRange(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
 	require.NoError(t, err)
 	vcstu.TestRange(ctx, t, r)
@@ -115,7 +114,7 @@ func TestLog(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
@@ -163,7 +162,7 @@ func TestLogFine(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
@@ -194,7 +193,7 @@ func TestLogArgs(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
@@ -214,7 +213,7 @@ func TestShortList(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
@@ -265,7 +264,7 @@ func TestRevList(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, true)
 	if err != nil {
 		t.Fatal(err)
@@ -312,7 +311,7 @@ func TestBranchInfo(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, true)
 	if err != nil {
 		t.Fatal(err)
@@ -331,7 +330,7 @@ func TestSetBranch(t *testing.T) {
 	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	r, err := NewGitInfo(ctx, repoDir, false, true)
 	if err != nil {
 		t.Fatal(err)

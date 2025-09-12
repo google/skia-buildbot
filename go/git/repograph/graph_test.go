@@ -12,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -159,7 +158,7 @@ func checkTopoSortGitBuilder(t *testing.T, ctx context.Context, gb *git_testutil
 
 // TestTopoSort tests repograph.TopologicalSort using the default test repo.
 func TestTopoSortDefault(t *testing.T) {
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
 	commits := git_testutils.GitSetup(ctx, gb)
@@ -184,7 +183,7 @@ func TestTopoSortDefault(t *testing.T) {
 
 // TestTopoSortTimestamp verifies that we use the timestamp as a tie-breaker.
 func TestTopoSortTimestamp(t *testing.T) {
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
 	gb.Add(ctx, "file0", "contents")
@@ -209,7 +208,7 @@ func TestTopoSortTimestamp(t *testing.T) {
 // commits have the same timestamp. Verify that we use the commit hash as a
 // secondary tie-breaker.
 func TestTopoSortCommitHash(t *testing.T) {
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
 	gb.Add(ctx, "file0", "contents")
@@ -234,7 +233,7 @@ func TestTopoSortCommitHash(t *testing.T) {
 // TestTopoSortMergeTimestamp extends TestTopoSortCommitHash to ensure that, in
 // the case of a merge, we follow the parent with the newer timestamp.
 func TestTopoSortMergeTimestamp(t *testing.T) {
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
 	gb.Add(ctx, "file0", "contents")
@@ -262,7 +261,7 @@ func TestTopoSortMergeTimestamp(t *testing.T) {
 }
 
 func TestIsAncestor(t *testing.T) {
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
 	commits := git_testutils.GitSetup(ctx, gb)

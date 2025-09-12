@@ -8,13 +8,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
 )
 
 func TestGitSetup(t *testing.T) {
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	g := GitInit(t, ctx)
 	defer g.Cleanup()
 
@@ -56,7 +55,7 @@ func TestGitSetup(t *testing.T) {
 }
 
 func TestGitBuilderCommitTime(t *testing.T) {
-	ctx := cipd_git.UseGitFinder(context.Background())
+	ctx := context.Background()
 	g := GitInit(t, ctx)
 	defer g.Cleanup()
 
