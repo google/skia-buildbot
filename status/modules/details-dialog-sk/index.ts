@@ -1,1 +1,0 @@
-import './details-dialog-sk';

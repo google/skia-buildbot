@@ -1,1 +1,0 @@
-import './commits-table-sk';

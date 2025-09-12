@@ -1,1 +1,0 @@
-import './bugs-status-sk';

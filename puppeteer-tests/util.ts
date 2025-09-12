@@ -222,7 +222,7 @@ let testBed: Partial<TestBed>;
  *
  * When debugging, it can be handy to set showBrowser to true.
  */
-export async function loadCachedTestBed(showBrowser?: boolean) {
+export async function loadCachedTestBed(showBrowser?: boolean): Promise<TestBed> {
   if (testBed) {
     return testBed as TestBed;
   }
@@ -233,7 +233,7 @@ export async function loadCachedTestBed(showBrowser?: boolean) {
   if (!envDir)
     throw new Error('required environment variable ENV_DIR is unset');
   const port = parseInt(
-    fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8')
+    fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'), 10
   );
   newTestBed.baseUrl = `http://localhost:${port}`;
 

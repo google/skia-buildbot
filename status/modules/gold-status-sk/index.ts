@@ -1,1 +1,0 @@
-import './gold-status-sk';

@@ -12,6 +12,5 @@ nodejs_test(
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//:node_modules/puppeteer",
-        "//puppeteer-tests/chrome_downloader:chrome_executable_path_ts_lib",
     ],
 )
