@@ -8,7 +8,6 @@ go_library(
     deps = [
         "//go/fileutil",
         "//go/gcs",
-        "//go/gcs/gcsclient",
         "//go/httputils",
         "//go/query",
         "//go/skerr",
@@ -23,7 +22,6 @@ go_library(
         "//perf/go/regression",
         "//perf/go/shortcut",
         "//perf/go/tracestore",
-        "//perf/go/trybot/samplesloader/gcssamplesloader",
         "//perf/go/types",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@com_google_cloud_go_storage//:storage",

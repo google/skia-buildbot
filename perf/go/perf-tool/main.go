@@ -252,45 +252,6 @@ func actualMain(app application.Application) {
 				},
 			},
 			{
-				Name: "tiles",
-				Subcommands: []*cli.Command{
-					{
-						Name:  "last",
-						Usage: "Prints the index of the last (most recent) tile.",
-						Flags: []cli.Flag{
-							localFlag,
-							configFilenameFlag,
-							connectionStringFlag,
-						},
-						Action: func(c *cli.Context) error {
-							store, err := getStore(c)
-							if err != nil {
-								return skerr.Wrap(err)
-							}
-							return app.TilesLast(store)
-						},
-					},
-					{
-						Name:  "list",
-						Usage: "Prints the last N tiles and the number of traces they contain.",
-						Flags: []cli.Flag{
-							localFlag,
-							configFilenameFlag,
-							connectionStringFlag,
-							numTilesListFlag,
-						},
-						Action: func(c *cli.Context) error {
-							store, err := getStore(c)
-							if err != nil {
-								return skerr.Wrap(err)
-							}
-
-							return app.TilesList(store, c.Int(numTilesListFlagName))
-						},
-					},
-				},
-			},
-			{
 				Name: "traces",
 				Subcommands: []*cli.Command{
 					{
@@ -514,47 +475,6 @@ using the same input file for both restores.
 					},
 				},
 			},
-			{
-				Name: "trybot",
-				Subcommands: []*cli.Command{
-					{
-						Name:  "reference",
-						Usage: "Generates a reference file to be used by nanostat for the given trybot file.",
-						Description: `
-This command constructs a synthetic nanobench file filled with 'samples' for
-each of the trace ids found in the nanobench file given in --filename.
-The samples in the sythentic file are the samples found in the last --num
-commits of ingested perf data for all the traces found in --filename.
-
-This allows building a nanobench file with a large number of samples
-that can be compared with a nanobench file from a trybot using the nanostat
-application.
-
-This is an experimental function that may go away in the future.
-`,
-						Flags: []cli.Flag{
-							localFlag,
-							configFilenameFlag,
-							connectionStringFlag,
-							trybotFilenameFlag,
-							trybotNumCommitsFlag,
-							requiredOutputFilenameFlag,
-						},
-						Action: func(c *cli.Context) error {
-							instanceConfig, err := instanceConfigFromFlags(c)
-							if err != nil {
-								return skerr.Wrap(err)
-							}
-							store, err := getStore(c)
-							if err != nil {
-								return skerr.Wrap(err)
-							}
-							return app.TrybotReference(c.Bool(localFlagName), store, instanceConfig, c.String(trybotFilenameFlagName), c.String(outputFilenameFlagName), c.Int(trybotNumCommitsFlagName))
-						},
-					},
-				},
-			},
-
 			{
 				Name:  "markdown",
 				Usage: "Generates markdown help for perf-tool.",

@@ -178,42 +178,6 @@ func (_m *Application) IngestValidate(inputFile string, verbose bool) error {
 	return r0
 }
 
-// TilesLast provides a mock function with given fields: store
-func (_m *Application) TilesLast(store tracestore.TraceStore) error {
-	ret := _m.Called(store)
-
-	if len(ret) == 0 {
-		panic("no return value specified for TilesLast")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(tracestore.TraceStore) error); ok {
-		r0 = rf(store)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// TilesList provides a mock function with given fields: store, num
-func (_m *Application) TilesList(store tracestore.TraceStore, num int) error {
-	ret := _m.Called(store, num)
-
-	if len(ret) == 0 {
-		panic("no return value specified for TilesList")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(tracestore.TraceStore, int) error); ok {
-		r0 = rf(store, num)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // TracesExport provides a mock function with given fields: store, queryString, begin, end, outputFile
 func (_m *Application) TracesExport(store tracestore.TraceStore, queryString string, begin types.CommitNumber, end types.CommitNumber, outputFile string) error {
 	ret := _m.Called(store, queryString, begin, end, outputFile)
@@ -243,24 +207,6 @@ func (_m *Application) TracesList(store tracestore.TraceStore, queryString strin
 	var r0 error
 	if rf, ok := ret.Get(0).(func(tracestore.TraceStore, string, types.TileNumber) error); ok {
 		r0 = rf(store, queryString, tileNumber)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// TrybotReference provides a mock function with given fields: local, store, instanceConfig, trybotFilename, outputFilename, numCommits
-func (_m *Application) TrybotReference(local bool, store tracestore.TraceStore, instanceConfig *config.InstanceConfig, trybotFilename string, outputFilename string, numCommits int) error {
-	ret := _m.Called(local, store, instanceConfig, trybotFilename, outputFilename, numCommits)
-
-	if len(ret) == 0 {
-		panic("no return value specified for TrybotReference")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(bool, tracestore.TraceStore, *config.InstanceConfig, string, string, int) error); ok {
-		r0 = rf(local, store, instanceConfig, trybotFilename, outputFilename, numCommits)
 	} else {
 		r0 = ret.Error(0)
 	}
