@@ -10,7 +10,7 @@ import { QueryConfig } from '../json';
 
 const status: Status = {
   email: 'user@google.com',
-  roles: ['viewer', 'admin', 'editor', 'bisecter'],
+  roles: ['viewer', 'admin', 'editor'],
 };
 
 fetchMock.get('/_/login/status', status);
