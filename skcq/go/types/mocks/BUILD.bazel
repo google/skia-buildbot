@@ -10,9 +10,9 @@ go_library(
     importpath = "go.skia.org/infra/skcq/go/types/mocks",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/gerrit",
         "//skcq/go/config",
         "//skcq/go/types",
         "@com_github_stretchr_testify//mock",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )

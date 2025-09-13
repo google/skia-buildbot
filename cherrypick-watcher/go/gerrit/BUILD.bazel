@@ -7,9 +7,9 @@ go_library(
     importpath = "go.skia.org/infra/cherrypick-watcher/go/gerrit",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/gerrit",
         "//go/skerr",
         "//go/sklog",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )
 
@@ -18,9 +18,9 @@ go_test(
     srcs = ["gerrit_test.go"],
     embed = [":gerrit"],
     deps = [
-        "//go/gerrit",
-        "//go/gerrit/mocks",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
+        "@org_skia_go_infra//go/gerrit/mocks:go_default_library",
     ],
 )

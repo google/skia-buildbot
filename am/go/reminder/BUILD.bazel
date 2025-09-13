@@ -10,12 +10,12 @@ go_library(
         "//am/go/incident",
         "//am/go/silence",
         "//email/go/emailclient",
-        "//go/ds",
         "//go/email",
         "//go/httputils",
         "//go/rotations",
         "//go/sklog",
         "@com_google_cloud_go_datastore//:datastore",
+        "@org_skia_go_infra//go/ds:go_default_library",
     ],
 )
 

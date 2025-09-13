@@ -9,9 +9,9 @@ go_library(
         "//go/common",
         "//go/git",
         "//go/gitstore",
-        "//go/gitstore/bt_gitstore",
         "//go/sklog",
         "//go/timer",
+        "@org_skia_go_infra//go/gitstore/bt_gitstore:go_default_library",
     ],
 )
 

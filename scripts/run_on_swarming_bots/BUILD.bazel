@@ -6,7 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/scripts/run_on_swarming_bots",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/cipd",
         "//go/common",
         "//go/httputils",
         "//go/sklog",
@@ -16,6 +15,7 @@ go_library(
         "@org_golang_x_oauth2//google",
         "@org_golang_x_sync//errgroup",
         "@org_skia_go_infra//go/cas/rbe:go_default_library",
+        "@org_skia_go_infra//go/cipd:go_default_library",
         "@org_skia_go_infra//go/swarming:go_default_library",
     ],
 )

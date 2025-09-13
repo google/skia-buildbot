@@ -8,13 +8,13 @@ go_library(
     deps = [
         "//go/auth",
         "//go/common",
-        "//go/cq",
-        "//go/gerrit",
         "//go/httputils",
         "//go/metrics2",
         "//go/sklog",
         "//go/util",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//go/cq:go_default_library",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )
 

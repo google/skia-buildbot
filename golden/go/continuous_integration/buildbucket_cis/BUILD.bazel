@@ -7,12 +7,12 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/buildbucket",
         "//go/skerr",
         "//golden/go/continuous_integration",
         "@com_github_golang_protobuf//ptypes",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_golang_x_time//rate",
+        "@org_skia_go_infra//go/buildbucket:go_default_library",
     ],
 )
 
@@ -21,7 +21,6 @@ go_test(
     srcs = ["buildbucket_cis_test.go"],
     embed = [":buildbucket_cis"],
     deps = [
-        "//go/buildbucket/mocks",
         "//go/testutils",
         "//golden/go/continuous_integration",
         "@com_github_golang_protobuf//ptypes",
@@ -29,5 +28,6 @@ go_test(
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//buildbucket/proto",
+        "@org_skia_go_infra//go/buildbucket/mocks:go_default_library",
     ],
 )

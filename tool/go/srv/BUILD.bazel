@@ -12,7 +12,6 @@ go_library(
         "//go/auth",
         "//go/baseapp",
         "//go/exec",
-        "//go/gerrit",
         "//go/git",
         "//go/gitiles",
         "//go/httputils",
@@ -25,6 +24,7 @@ go_library(
         "@com_github_go_chi_chi_v5//:chi",
         "@com_github_unrolled_secure//:secure",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )
 
@@ -41,8 +41,6 @@ go_test(
     deps = [
         "//go/alogin",
         "//go/alogin/mocks",
-        "//go/gerrit",
-        "//go/gerrit/mocks",
         "//go/git",
         "//go/gitiles/mocks",
         "//go/roles",
@@ -52,5 +50,7 @@ go_test(
         "@com_github_go_chi_chi_v5//:chi",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
+        "@org_skia_go_infra//go/gerrit/mocks:go_default_library",
     ],
 )

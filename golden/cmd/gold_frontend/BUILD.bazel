@@ -11,7 +11,6 @@ go_library(
         "//go/alogin/proxylogin",
         "//go/auth",
         "//go/common",
-        "//go/gerrit",
         "//go/httputils",
         "//go/metrics2",
         "//go/sklog",
@@ -37,6 +36,7 @@ go_library(
         "@org_golang_google_grpc//:grpc",
         "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )
 

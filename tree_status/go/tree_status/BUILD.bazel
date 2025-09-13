@@ -14,7 +14,6 @@ go_library(
         "//go/alogin/proxylogin",
         "//go/baseapp",
         "//go/common",
-        "//go/ds",
         "//go/firestore",
         "//go/httputils",
         "//go/metrics2",
@@ -31,6 +30,7 @@ go_library(
         "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_oauth2//google",
         "@org_skia_go_infra//autoroll/go/status:go_default_library",
+        "@org_skia_go_infra//go/ds:go_default_library",
     ],
 )
 

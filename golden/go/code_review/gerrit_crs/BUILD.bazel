@@ -7,12 +7,12 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/code_review/gerrit_crs",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/gerrit",
         "//go/skerr",
         "//go/sklog",
         "//go/vcsinfo",
         "//golden/go/code_review",
         "@org_golang_x_time//rate",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )
 
@@ -21,13 +21,13 @@ go_test(
     srcs = ["gerrit_crs_test.go"],
     embed = [":gerrit_crs"],
     deps = [
-        "//go/gerrit",
-        "//go/gerrit/mocks",
         "//go/skerr",
         "//go/testutils",
         "//go/vcsinfo",
         "//golden/go/code_review",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
+        "@org_skia_go_infra//go/gerrit/mocks:go_default_library",
     ],
 )

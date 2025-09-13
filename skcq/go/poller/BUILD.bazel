@@ -9,7 +9,6 @@ go_library(
     deps = [
         "//go/allowed",
         "//go/cleanup",
-        "//go/gerrit",
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
@@ -21,6 +20,7 @@ go_library(
         "//skcq/go/throttler",
         "//skcq/go/types",
         "//skcq/go/verifiers",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )
 
@@ -29,7 +29,6 @@ go_test(
     srcs = ["poller_test.go"],
     embed = [":poller"],
     deps = [
-        "//go/gerrit",
         "//go/httputils",
         "//go/testutils",
         "//skcq/go/caches/mocks",
@@ -42,5 +41,6 @@ go_test(
         "//skcq/go/types/mocks",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )

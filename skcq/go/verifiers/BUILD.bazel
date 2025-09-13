@@ -19,8 +19,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/allowed",
-        "//go/buildbucket",
-        "//go/gerrit",
         "//go/git",
         "//go/skerr",
         "//go/sklog",
@@ -31,6 +29,8 @@ go_library(
         "//skcq/go/types",
         "//tree_status/go/types",
         "@org_chromium_go_luci//buildbucket/proto",
+        "@org_skia_go_infra//go/buildbucket:go_default_library",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
         "@org_skia_go_infra//task_scheduler/go/specs:go_default_library",
     ],
 )
@@ -50,8 +50,6 @@ go_test(
     embed = [":verifiers"],
     deps = [
         "//go/allowed",
-        "//go/buildbucket/mocks",
-        "//go/gerrit",
         "//go/gitiles",
         "//go/mockhttpclient",
         "//go/skerr",
@@ -67,6 +65,8 @@ go_test(
         "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_golang_google_protobuf//types/known/timestamppb",
+        "@org_skia_go_infra//go/buildbucket/mocks:go_default_library",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
         "@org_skia_go_infra//task_scheduler/go/specs:go_default_library",
     ],
 )

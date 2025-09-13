@@ -9,7 +9,6 @@ go_library(
         "//codereview-watcher/go/db",
         "//go/auth",
         "//go/common",
-        "//go/gerrit",
         "//go/github",
         "//go/httputils",
         "//go/metrics2",
@@ -18,6 +17,7 @@ go_library(
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )
 

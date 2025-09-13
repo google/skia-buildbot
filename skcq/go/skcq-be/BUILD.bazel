@@ -10,7 +10,6 @@ go_library(
         "//go/auth",
         "//go/baseapp",
         "//go/common",
-        "//go/gerrit",
         "//go/httputils",
         "//go/sklog",
         "//skcq/go/caches",
@@ -21,6 +20,7 @@ go_library(
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )
 

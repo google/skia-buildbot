@@ -17,12 +17,12 @@ go_library(
         "//cherrypick-watcher/go/gerrit",
         "//go/auth",
         "//go/common",
-        "//go/gerrit",
         "//go/httputils",
         "//go/metrics2",
         "//go/sklog",
         "//go/util",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_x_oauth2//google",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )

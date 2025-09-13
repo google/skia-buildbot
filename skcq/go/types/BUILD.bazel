@@ -6,7 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/skcq/go/types",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/gerrit",
         "//skcq/go/config",
+        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )

@@ -7,8 +7,8 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
-        "//go/imports",
         "//go/sklog",
+        "@org_skia_go_infra//go/imports:go_default_library",
     ],
 )
 

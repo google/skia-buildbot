@@ -11,12 +11,12 @@ go_library(
         "//go/common",
         "//go/exec",
         "//go/gcr",
-        "//go/gerrit/rubberstamper",
         "//go/git",
         "//go/kube/clusterconfig",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "@org_skia_go_infra//go/gerrit/rubberstamper:go_default_library",
     ],
 )
 

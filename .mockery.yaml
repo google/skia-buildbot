@@ -5,30 +5,6 @@ filename: "{{.MockName}}.go"
 outpkg: "mocks"
 dir: "{{.InterfaceDir}}/mocks"
 packages:
-  go.skia.org/infra/am/go/alertclient:
-    interfaces:
-      APIClient:
-  go.skia.org/infra/autoroll/go/config/db:
-    interfaces:
-      DB:
-  go.skia.org/infra/autoroll/go/manual:
-    interfaces:
-      DB:
-  go.skia.org/infra/autoroll/go/modes:
-    interfaces:
-      ModeHistory:
-  go.skia.org/infra/autoroll/go/recent_rolls:
-    interfaces:
-      DB:
-  go.skia.org/infra/autoroll/go/status:
-    interfaces:
-      DB:
-  go.skia.org/infra/autoroll/go/strategy:
-    interfaces:
-      StrategyHistory:
-  go.skia.org/infra/autoroll/go/unthrottle:
-    interfaces:
-      Throttle:
   go.skia.org/infra/bugs-central/go/types:
     interfaces:
       BugsDB:
@@ -47,30 +23,15 @@ packages:
   go.skia.org/infra/go/alogin:
     interfaces:
       Login:
-  go.skia.org/infra/go/buildbucket:
-    interfaces:
-      BuildBucketInterface:
-  go.skia.org/infra/go/cas:
-    interfaces:
-      CAS:
-  go.skia.org/infra/go/cas/rbe:
-    interfaces:
-      RBEClient:
   go.skia.org/infra/go/chrome_branch:
     interfaces:
       Client:
-  go.skia.org/infra/go/cipd:
-    interfaces:
-      CIPDClient:
   go.skia.org/infra/go/docker:
     interfaces:
       Client:
   go.skia.org/infra/go/gcs:
     interfaces:
       GCSClient:
-  go.skia.org/infra/go/gerrit:
-    interfaces:
-      GerritInterface:
   go.skia.org/infra/go/gitiles:
     interfaces:
       GitilesRepo:
@@ -80,21 +41,12 @@ packages:
   go.skia.org/infra/go/login:
     interfaces:
       OAuthConfig:
-  go.skia.org/infra/go/louhi:
-    interfaces:
-      DB:
   go.skia.org/infra/go/monorail/v3:
     interfaces:
       IMonorailService:
   go.skia.org/infra/go/now:
     interfaces:
       TimeTicker:
-  go.skia.org/infra/pinpoint/go/backends:
-    interfaces:
-      BuildbucketClient:
-  go.skia.org/infra/pinpoint/go/build_chrome:
-    interfaces:
-      BuildChromeClient:
   go.skia.org/infra/go/pubsub:
     config:
       replace-type:
@@ -118,9 +70,6 @@ packages:
     interfaces:
       PeerFinder:
       Server:
-  go.skia.org/infra/go/swarming:
-    interfaces:
-      ApiClient:
   go.skia.org/infra/go/vcsinfo:
     interfaces:
       VCS:
@@ -190,9 +139,6 @@ packages:
       dir: "{{.InterfaceDir}}/../mocks"
     interfaces:
       GCSClient:
-  go.skia.org/infra/jsfiddle/go/store:
-    interfaces:
-      Store:
   go.skia.org/infra/kube/go/authproxy/auth:
     interfaces:
       Auth:
@@ -274,61 +220,9 @@ packages:
   go.skia.org/infra/scrap/go/scrap:
     interfaces:
       ScrapExchange:
-  go.skia.org/infra/sk/go/relnotes:
-    interfaces:
-      Aggregator:
-  go.skia.org/infra/skcq/go/caches:
-    interfaces:
-      CurrentChangesCache:
-  go.skia.org/infra/skcq/go/codereview:
-    interfaces:
-      CodeReview:
-  go.skia.org/infra/skcq/go/config:
-    interfaces:
-      ConfigReader:
-  go.skia.org/infra/skcq/go/db:
-     interfaces:
-       DB:
-  go.skia.org/infra/skcq/go/types:
-    interfaces:
-      ThrottlerManager:
-        config:
-      Verifier:
-        config:
-      VerifiersManager:
   go.skia.org/infra/skolo/go/powercycle:
     interfaces:
       Controller:
-  go.skia.org/infra/status/go/capacity:
-    config:
-      dir: "{{.InterfaceDir}}/../mocks"
-    interfaces:
-      CapacityClient:
-  go.skia.org/infra/status/go/incremental:
-    config:
-      dir: "{{.InterfaceDir}}/../mocks"
-    interfaces:
-      IncrementalCache:
-  go.skia.org/infra/task_scheduler/go/cacher:
-    interfaces:
-      Cacher:
-  go.skia.org/infra/task_scheduler/go/db:
-    config:
-      dir: "{{.InterfaceDir}}/../mocks"
-    interfaces:
-      RemoteDB:
-      JobDB:
-  go.skia.org/infra/task_scheduler/go/db/cache:
-    interfaces:
-      JobCache:
-        config:
-      TaskCache:
-  go.skia.org/infra/task_scheduler/go/task_cfg_cache:
-    interfaces:
-      TaskCfgCache:
-  go.skia.org/infra/task_scheduler/go/window:
-    interfaces:
-      Window:
   k8s.io/apimachinery/pkg/watch:
     config:
       dir: "go/k8s/watch/mocks"
