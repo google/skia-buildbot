@@ -26,6 +26,3 @@ should be run above your `modules` sub-directory.
  bazelisk run //new_element:new_element "--run_under=cd $PWD &&" -- --element-name=<element name> --app-name=<app name>
 ```
 
-# Python Style Guide
-
-Python code follows the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html).

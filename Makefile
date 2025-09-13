@@ -76,4 +76,8 @@ errcheck:
 mocks:
 	$(BAZEL) run //:mockery
 
+.PHONY: presubmit
+presubmit:
+	$(BAZEL) run --config=mayberemote //cmd/presubmit -- --commit
+
 include make/npm.mk
