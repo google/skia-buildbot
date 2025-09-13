@@ -101,25 +101,10 @@ const bazelRunfilesDir = () =>
  * This can be handy for debugging.
  */
 export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
-  // TODO(lovisolo): Do we need this? Can't we use //puppeteer-tests:chrome for everything?
-  const fontconfigSysroot = path.join(
-    bazelRunfilesDir(),
-    'external',
-    'google_chrome'
-  );
-
   console.log("===============================================================");  
+  // Use the downloaded Chrome we get from the toolchain in @rules_browsers.
   const executablePath = process.env.CHROME_BIN;
-  console.log(executablePath)
   return puppeteer.launch({
-    // Use the hermetically-downloaded Chrome binary, which we get via the //puppeteer-tests:chrome
-    // Bazel target, which in turn uses the @puppeteer/browsers NPM package.
-
-
-    
-    
-
-    // Instead we should use the @rules_browsers toolchain that sets an ENV variable, 
     executablePath: executablePath,
 
     //
@@ -138,7 +123,6 @@ export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
     headless: !showBrowser,
     env: {
       ...process.env, // Headful mode breaks without this line (e.g. "unable to open X display").
-// !!!!! This was the fix !!!!      FONTCONFIG_SYSROOT: fontconfigSysroot,
     },
   });
 };

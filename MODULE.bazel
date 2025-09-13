@@ -149,10 +149,7 @@ use_repo(
     "npm",
 )
 
-# Load the extension from the .bzl file
-google_chrome_ext = use_extension("//bazel/external:google_chrome.bzl", "google_chrome_ext")
-use_repo(google_chrome_ext, "google_chrome")
-
+# Load local extensions.
 google_cloud_sdk_ext = use_extension("//bazel/external:google_cloud_sdk.bzl", "google_cloud_sdk_ext")
 use_repo(google_cloud_sdk_ext, "google_cloud_sdk_ext")
 
