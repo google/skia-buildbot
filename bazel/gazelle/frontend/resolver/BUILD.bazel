@@ -9,11 +9,11 @@ go_library(
     deps = [
         "//bazel/gazelle/frontend/common",
         "//go/util",
-        "@bazel_gazelle//config",
-        "@bazel_gazelle//label",
-        "@bazel_gazelle//repo",
-        "@bazel_gazelle//resolve",
-        "@bazel_gazelle//rule",
+        "@gazelle//config",
+        "@gazelle//label",
+        "@gazelle//repo",
+        "@gazelle//resolve",
+        "@gazelle//rule",
     ],
 )
 
@@ -22,8 +22,8 @@ go_test(
     srcs = ["resolver_test.go"],
     embed = [":resolver"],
     deps = [
-        "@bazel_gazelle//label",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@gazelle//label",
     ],
 )

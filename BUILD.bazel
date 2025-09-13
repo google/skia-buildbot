@@ -1,7 +1,7 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
-load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+load("@gazelle//:def.bzl", "gazelle")
 
 # load("@exec_properties//:constants.bzl", "NETWORK_ON")
 load("@npm//:defs.bzl", "npm_link_all_packages")

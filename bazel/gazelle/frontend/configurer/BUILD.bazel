@@ -6,7 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/bazel/gazelle/frontend/configurer",
     visibility = ["//visibility:public"],
     deps = [
-        "@bazel_gazelle//config",
-        "@bazel_gazelle//rule",
+        "@gazelle//config",
+        "@gazelle//rule",
     ],
 )
