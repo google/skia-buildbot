@@ -1,3 +1,6 @@
+"""
+Top level module of golden.build.
+"""
 module(
     name = "goldmine_build",
     version = "",
@@ -52,16 +55,6 @@ python.toolchain(
     python_version = "3.9",
 )
 
-#esbuild = use_extension("@aspect_rules_esbuild//esbuild:extensions.bzl", "esbuild")
-#esbuild.toolchain(
-#    name = "esbuild",
-#    esbuild_version = "0.19.9",
-#)
-#use_repo(esbuild, "esbuild_toolchains")
-#
-#register_toolchains("@esbuild_toolchains//:all")
-
-http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # -- use_repo_rule statements -- #
 
 go_deps = use_extension("@bazel_gazelle//:extensions.bzl", "go_deps")
@@ -75,12 +68,12 @@ go_sdk.from_file(
     name = "go_sdk",
     go_mod = "//:go.mod",
 )
-#go_sdk.download(version = "1.24.6")
-
 use_repo(go_sdk, "go_sdk")
 
 # -- End of go extension -- #
 
+# TODO(jcgregorio) Replace this with rules_oci.
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "io_bazel_rules_docker",
     sha256 = "27d53c1d646fc9537a70427ad7b034734d08a9c38924cc6357cc973fed300820",
@@ -144,6 +137,7 @@ npm.npm_translate_lock(
     update_pnpm_lock = True,
     verify_node_modules_ignored = "//:.bazelignore",
 )
+
 use_repo(
     npm,
     "npm",
