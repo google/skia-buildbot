@@ -20,7 +20,7 @@ tags:
 buildall:
 	go build ./...
 
-.PHONY: update-go-bazel-files
+.PHONY: gazelle
 gazelle:
 	$(BAZEL) run --config=mayberemote //:gazelle -- update ./
 
