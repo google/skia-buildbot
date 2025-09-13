@@ -32,9 +32,9 @@ packages:
   go.skia.org/infra/go/gcs:
     interfaces:
       GCSClient:
-  go.skia.org/infra/go/gitiles:
-    interfaces:
-      GitilesRepo:
+#  go.skia.org/infra/go/gitiles:
+#    interfaces:
+#      GitilesRepo:
   go.skia.org/infra/go/gitstore:
     interfaces:
       GitStore:
@@ -47,16 +47,16 @@ packages:
   go.skia.org/infra/go/now:
     interfaces:
       TimeTicker:
-  go.skia.org/infra/go/pubsub:
-    config:
-      replace-type:
-        - cloud.google.com/go/internal/pubsub=cloud.google.com/go/pubsub
-    interfaces:
-      Client:
-      Snapshot:
-      Subscription:
-      Topic:
-      PublishResult:
+#  go.skia.org/infra/go/pubsub:
+#    config:
+#      replace-type:
+#        - cloud.google.com/go/internal/pubsub=cloud.google.com/go/pubsub
+#    interfaces:
+#      Client:
+#      Snapshot:
+#      Subscription:
+#      Topic:
+#      PublishResult:
   go.skia.org/infra/go/secret:
     interfaces:
       Client:
@@ -142,18 +142,6 @@ packages:
   go.skia.org/infra/kube/go/authproxy/auth:
     interfaces:
       Auth:
-  go.skia.org/infra/machine/go/machine/change/sink:
-    interfaces:
-      Sink:
-  go.skia.org/infra/machine/go/machine/change/source:
-    interfaces:
-      Source:
-  go.skia.org/infra/machine/go/machine/event/sink:
-    interfaces:
-      Sink:
-  go.skia.org/infra/machine/go/machine/store:
-    interfaces:
-      Store:
   go.skia.org/infra/npm-audit-mirror/go/types:
     interfaces:
       Check:
@@ -220,9 +208,6 @@ packages:
   go.skia.org/infra/scrap/go/scrap:
     interfaces:
       ScrapExchange:
-  go.skia.org/infra/skolo/go/powercycle:
-    interfaces:
-      Controller:
   k8s.io/apimachinery/pkg/watch:
     config:
       dir: "go/k8s/watch/mocks"
