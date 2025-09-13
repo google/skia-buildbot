@@ -16,6 +16,5 @@ go_library(
         "//gold-client/go/imagedownloader",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_x_oauth2//:oauth2",
-        "@org_skia_go_infra//go/luciauth:go_default_library",
     ],
 )

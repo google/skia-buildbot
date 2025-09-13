@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "gerrit",
+    srcs = [
+        "change_edit_helpers.go",
+        "config.go",
+        "gerrit.go",
+    ],
+    importpath = "go.skia.org/infra/go/gerrit",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/git",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_cenkalti_backoff//:backoff",
+        "@com_github_golang_groupcache//lru",
+        "@org_golang_x_time//rate",
+    ],
+)
+
+go_test(
+    name = "gerrit_test",
+    srcs = [
+        "config_test.go",
+        "gerrit_test.go",
+    ],
+    embed = [":gerrit"],
+    deps = [
+        "//go/httputils",
+        "@com_github_stretchr_testify//require",
+    ],
+)

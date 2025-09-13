@@ -15,16 +15,13 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
-	"golang.org/x/oauth2/google"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/ingestion"
@@ -135,13 +132,6 @@ func main() {
 
 	ctx := context.Background()
 
-	// Initialize oauth client and start the ingesters.
-	tokenSrc, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, storage.ScopeFullControl, pubsub.ScopePubSub, pubsub.ScopeCloudPlatform, swarming.AUTH_SCOPE, auth.ScopeGerrit)
-	if err != nil {
-		sklog.Fatalf("Failed to auth: %s", err)
-	}
-	client := httputils.DefaultClientConfig().WithTokenSource(tokenSrc).With2xxOnly().WithDialTimeout(time.Second * 10).Client()
-
 	if isc.SQLDatabaseName == "" {
 		sklog.Fatalf("Must have SQL database config")
 	}
@@ -175,30 +165,15 @@ func main() {
 	}
 	sourcesToScan := []ingestion.FileSearcher{src}
 
-	var secondaryBranchLiveness metrics2.Liveness
-	tryjobProcessor, src, err := getSecondaryBranchIngester(ctx, isc.SecondaryBranchConfig, gcsClient, client, sqlDB)
-	if err != nil {
-		sklog.Fatalf("Setting up secondary branch ingestion: %s", err)
-	}
-	if src != nil {
-		sourcesToScan = append(sourcesToScan, src)
-		secondaryBranchLiveness = metrics2.NewLiveness("gold_ingestion", map[string]string{
-			"metric": "since_last_successful_streaming_result",
-			"source": "secondary_branch",
-		})
-	}
-
 	pss := &pubSubSource{
 		IngestionStore:         ingestionStore,
 		PrimaryBranchProcessor: primaryBranchProcessor,
-		TryjobProcessor:        tryjobProcessor,
 		PrimaryBranchStreamingLiveness: metrics2.NewLiveness("gold_ingestion", map[string]string{
 			"metric": "since_last_successful_streaming_result",
 			"source": "primary_branch",
 		}),
-		SecondaryBranchStreamingLiveness: secondaryBranchLiveness,
-		SuccessCounter:                   metrics2.GetCounter("gold_ingestion_success"),
-		FailedCounter:                    metrics2.GetCounter("gold_ingestion_failure"),
+		SuccessCounter: metrics2.GetCounter("gold_ingestion_success"),
+		FailedCounter:  metrics2.GetCounter("gold_ingestion_failure"),
 	}
 
 	go func() {
@@ -235,32 +210,6 @@ func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClien
 		return nil, nil, skerr.Fmt("unknown ingestion backend: %q", conf.Type)
 	}
 	return primaryBranchProcessor, src, nil
-}
-
-func getSecondaryBranchIngester(ctx context.Context, conf *ingesterConfig, gcsClient *storage.Client, hClient *http.Client, db *pgxpool.Pool) (ingestion.Processor, ingestion.FileSearcher, error) {
-	if conf == nil { // not configured for secondary branch (e.g. tryjob) ingestion.
-		return nil, nil, nil
-	}
-	src := &ingestion.GCSSource{
-		Client: gcsClient,
-		Bucket: conf.Source.Bucket,
-		Prefix: conf.Source.Prefix,
-	}
-	if ok := src.Validate(); !ok {
-		return nil, nil, skerr.Fmt("Invalid GCS Source %#v", src)
-	}
-	var sbProcessor ingestion.Processor
-	var err error
-	if conf.Type == ingestion_processors.SQLSecondaryBranch {
-		sbProcessor, err = ingestion_processors.TryjobSQL(ctx, src, conf.ExtraParams, hClient, db)
-		if err != nil {
-			return nil, nil, skerr.Wrap(err)
-		}
-		sklog.Infof("Configured SQL-backed secondary branch ingestion")
-	} else {
-		return nil, nil, skerr.Fmt("unknown ingestion backend: %q", conf.Type)
-	}
-	return sbProcessor, src, nil
 }
 
 // listen begins listening to the PubSub topic with the configured PubSub subscription. It will
@@ -309,15 +258,10 @@ func listen(ctx context.Context, isc ingestionServerConfig, p *pubSubSource) err
 type pubSubSource struct {
 	IngestionStore         ingestion.Store
 	PrimaryBranchProcessor ingestion.Processor
-	TryjobProcessor        ingestion.Processor
 	// PrimaryBranchStreamingLiveness lets us have a metric to monitor the successful
 	// streaming of data. It will be reset after each successful ingestion of a file from
 	// the primary branch.
 	PrimaryBranchStreamingLiveness metrics2.Liveness
-	// SecondaryBranchStreamingLiveness lets us have a metric to monitor the successful
-	// streaming of data. It will be reset after each successful ingestion of a file from
-	// the secondary branch.
-	SecondaryBranchStreamingLiveness metrics2.Liveness
 
 	SuccessCounter metrics2.Counter
 	FailedCounter  metrics2.Counter
@@ -371,28 +315,11 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 		p.SuccessCounter.Inc(1)
 		return true
 	}
-	if p.TryjobProcessor == nil || !p.TryjobProcessor.HandlesFile(name) {
-		sklog.Warningf("Got a file that no processor is configured for: %s", name)
-		p.FailedCounter.Inc(1)
-		return true
-	}
-	err := p.TryjobProcessor.Process(ctx, name)
-	if skerr.Unwrap(err) == ingestion.ErrRetryable {
-		sklog.Warningf("Got retryable error for tryjob data for file %s", name)
-		p.FailedCounter.Inc(1)
-		return false
-	}
 	// TODO(kjlubick) Processors should mark the SourceFiles table as ingested, not here.
 	if err := p.IngestionStore.SetIngested(ctx, name, time.Now()); err != nil {
 		sklog.Errorf("Could not write to ingestion store: %s", err)
 		// We'll continue anyway. The IngestionStore is not a big deal.
 	}
-	if err != nil {
-		sklog.Errorf("Got non-retryable error for tryjob data for file %s: %s", name, err)
-		p.FailedCounter.Inc(1)
-		return true
-	}
-	p.SecondaryBranchStreamingLiveness.Reset()
 	p.SuccessCounter.Inc(1)
 	return true
 }

@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/gold-client/go/gcsuploader"
@@ -49,7 +48,6 @@ type AuthOpt interface {
 
 // authOpt implements the AuthOpt interface
 type authOpt struct {
-	Luci           bool
 	ServiceAccount string
 	GSUtil         bool
 	NoAuth         bool // skbug.com/14142
@@ -59,7 +57,7 @@ type authOpt struct {
 
 // Validate implements the AuthOpt interface.
 func (a *authOpt) Validate() error {
-	if !a.GSUtil && !a.Luci && a.ServiceAccount == "" && !a.NoAuth {
+	if !a.GSUtil && a.ServiceAccount == "" && !a.NoAuth {
 		return skerr.Fmt("No valid authentication method provided.")
 	}
 	return nil
@@ -71,18 +69,10 @@ func (a *authOpt) GetHTTPClient() (httpclient.HTTPClient, error) {
 		return httputils.DefaultClientConfig().WithoutRetries().Client(), nil
 	}
 	var tokenSrc oauth2.TokenSource
-	if a.Luci {
-		var err error
-		tokenSrc, err = luciauth.NewLUCIContextTokenSource(gstorage.ScopeFullControl, auth.ScopeUserinfoEmail)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "instantiating LUCI auth token source")
-		}
-	} else {
-		var err error
-		tokenSrc, err = auth.NewJWTServiceAccountTokenSource(context.TODO(), "", a.ServiceAccount, "", "", gstorage.ScopeFullControl, auth.ScopeUserinfoEmail)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "instantiating JWT auth token source")
-		}
+	var err error
+	tokenSrc, err = auth.NewJWTServiceAccountTokenSource(context.TODO(), "", a.ServiceAccount, "", "", gstorage.ScopeFullControl, auth.ScopeUserinfoEmail)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "instantiating JWT auth token source")
 	}
 
 	// Retrieve a token to make sure we can retrieve a token. We assume this is cached
@@ -98,7 +88,7 @@ func (a *authOpt) GetGCSUploader(ctx context.Context) (gcsuploader.GCSUploader, 
 	if a.dryRun {
 		return &gcsuploader.DryRunImpl{}, nil
 	}
-	if a.Luci || a.ServiceAccount != "" || a.NoAuth {
+	if a.ServiceAccount != "" || a.NoAuth {
 		return a.httpGCSImpl(ctx)
 	}
 	return &gcsuploader.GsutilImpl{}, nil
@@ -168,16 +158,6 @@ func LoadAuthOpt(workDir string) (*authOpt, error) {
 // serviceAccountFile.
 func InitServiceAccountAuth(svcAccountFile, workDir string) error {
 	a := authOpt{ServiceAccount: svcAccountFile}
-	if err := a.writeToDisk(workDir); err != nil {
-		return skerr.Wrapf(err, "writing to work dir: %s", workDir)
-	}
-	return nil
-}
-
-// InitLUCIAuth instantiates a workDir to be authenticated with LUCI
-// credentials on this machine.
-func InitLUCIAuth(workDir string) error {
-	a := authOpt{Luci: true}
 	if err := a.writeToDisk(workDir); err != nil {
 		return skerr.Wrapf(err, "writing to work dir: %s", workDir)
 	}

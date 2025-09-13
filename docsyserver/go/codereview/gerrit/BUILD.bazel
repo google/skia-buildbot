@@ -9,11 +9,11 @@ go_library(
     deps = [
         "//docsyserver/go/codereview",
         "//go/auth",
+        "//go/gerrit",
         "//go/gitiles",
         "//go/httputils",
         "//go/skerr",
         "@org_golang_x_oauth2//google",
-        "@org_skia_go_infra//go/gerrit:go_default_library",
     ],
 )
 
@@ -23,9 +23,9 @@ go_test(
     embed = [":gerrit"],
     deps = [
         "//docsyserver/go/codereview",
+        "//go/gerrit",
+        "//go/gerrit/mocks",
         "//go/testutils",
         "@com_github_stretchr_testify//require",
-        "@org_skia_go_infra//go/gerrit:go_default_library",
-        "@org_skia_go_infra//go/gerrit/mocks:go_default_library",
     ],
 )

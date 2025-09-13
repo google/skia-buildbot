@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -66,7 +67,7 @@ func (a *authEnv) Auth(ctx context.Context) {
 	}
 
 	if a.flagUseLUCIContext {
-		err = auth.InitLUCIAuth(a.flagWorkDir)
+		err = fmt.Errorf("not implemented")
 	} else if a.flagServiceAccount != "" {
 		err = auth.InitServiceAccountAuth(a.flagServiceAccount, a.flagWorkDir)
 	} else if a.flagUseNoAuthentication {

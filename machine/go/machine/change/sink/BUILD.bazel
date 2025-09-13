@@ -1,8 +1,0 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
-
-go_library(
-    name = "sink",
-    srcs = ["sink.go"],
-    importpath = "go.skia.org/infra/machine/go/machine/change/sink",
-    visibility = ["//visibility:public"],
-)

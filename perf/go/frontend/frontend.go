@@ -255,7 +255,6 @@ type SkPerfConfig struct {
 	DisplayGroupBy             bool               `json:"display_group_by"`                // True if the Group By section of Alert config should be displayed.
 	HideListOfCommitsOnExplore bool               `json:"hide_list_of_commits_on_explore"` // True if the commit-detail-panel-sk element on the Explore details tab should be hidden.
 	Notifications              notifytypes.Type   `json:"notifications"`                   // The type of notifications that can be sent.
-	FetchChromePerfAnomalies   bool               `json:"fetch_chrome_perf_anomalies"`     // If true explore-sk will show the bisect button
 	FeedbackURL                string             `json:"feedback_url"`                    // The URL for the Provide Feedback link
 	ChatURL                    string             `json:"chat_url"`                        // The URL for the Ask the Team link
 	HelpURLOverride            string             `json:"help_url_override"`               // If specified, this URL will override the help link
@@ -280,7 +279,6 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		DisplayGroupBy:             f.flags.DisplayGroupBy,
 		HideListOfCommitsOnExplore: f.flags.HideListOfCommitsOnExplore,
 		Notifications:              config.Config.NotifyConfig.Notifications,
-		FetchChromePerfAnomalies:   config.Config.FetchChromePerfAnomalies,
 		FeedbackURL:                config.Config.FeedbackURL,
 		ChatURL:                    config.Config.ChatURL,
 		HelpURLOverride:            config.Config.HelpURLOverride,
@@ -1790,42 +1788,6 @@ func oldAlertsHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/t/", http.StatusMovedPermanently)
 }
 
-// createBisectHandler takes the POST'd create bisect request
-// then it calls Pinpoint Service API to create bisect job and returns the job id and job url.
-func (f *Frontend) createBisectHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
-	defer cancel()
-	w.Header().Set("Content-Type", "application/json")
-
-	if !f.loginProvider.HasRole(r, roles.Bisecter) {
-		http.Error(w, "User is not logged in or is not authorized to start bisect.", http.StatusForbidden)
-		return
-	}
-
-	if f.pinpoint == nil {
-		err := skerr.Fmt("Pinpoint client has not been initialized.")
-		httputils.ReportError(w, err, "Create bisect is not enabled for this instance, please check configuration file.", http.StatusInternalServerError)
-		return
-	}
-
-	var cbr pinpoint.CreateBisectRequest
-	if err := json.NewDecoder(r.Body).Decode(&cbr); err != nil {
-		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
-		return
-	}
-	sklog.Debugf("Got request of creating bisect job: %+v", cbr)
-
-	resp, err := f.pinpoint.CreateBisect(ctx, cbr)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to create bisect job.", http.StatusInternalServerError)
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		sklog.Errorf("Failed to parse the response of creating bisect job: %s", err)
-	}
-}
-
 // favoritesHandler returns the favorites config for the instance
 func (f *Frontend) favoritesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -1937,8 +1899,6 @@ func (f *Frontend) Serve() {
 
 	router.Post("/_/shortcut/get", f.getGraphsShortcutHandler)
 	router.Post("/_/shortcut/update", f.createGraphsShortcutHandler)
-
-	router.Post("/_/bisect/create", f.createBisectHandler)
 
 	router.Get("/_/favorites/", f.favoritesHandler)
 	router.Get("/_/defaults/", f.defaultsHandler)
