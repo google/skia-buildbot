@@ -6,21 +6,22 @@ module(
     version = "",
 )
 
-bazel_dep(name = "rules_go", version = "0.57.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.21.1")
+bazel_dep(name = "aspect_rules_esbuild", version = "0.22.1")
+bazel_dep(name = "aspect_rules_js", version = "2.5.0")
 bazel_dep(name = "aspect_rules_ts", version = "3.7.0")
+bazel_dep(name = "bazel_skylib", version = "1.8.1")
 bazel_dep(name = "gazelle", version = "0.45.0")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_pkg", version = "1.1.0")
-bazel_dep(name = "rules_nodejs", version = "6.5.0")
-bazel_dep(name = "rules_shell", version = "0.6.0")
-bazel_dep(name = "bazel_skylib", version = "1.8.1")
-bazel_dep(name = "aspect_rules_js", version = "2.5.0")
-bazel_dep(name = "aspect_rules_esbuild", version = "0.22.1")
-bazel_dep(name = "aspect_bazel_lib", version = "2.21.1")
-bazel_dep(name = "tar.bzl", version = "0.5.5")
-bazel_dep(name = "rules_python", version = "1.5.4")
-bazel_dep(name = "rules_cc", version = "0.2.2")
 bazel_dep(name = "rules_browsers", version = "0.2.0")
+bazel_dep(name = "rules_cc", version = "0.2.2")
+bazel_dep(name = "rules_go", version = "0.57.0")
+bazel_dep(name = "rules_nodejs", version = "6.5.0")
+bazel_dep(name = "rules_oci", version = "2.0.1")
+bazel_dep(name = "rules_pkg", version = "1.1.0")
+bazel_dep(name = "rules_python", version = "1.5.4")
+bazel_dep(name = "rules_shell", version = "0.6.0")
+bazel_dep(name = "tar.bzl", version = "0.5.5")
 
 # -- bazel_dep definitions -- #
 
@@ -71,6 +72,35 @@ go_sdk.from_file(
 use_repo(go_sdk, "go_sdk")
 
 # -- End of go extension -- #
+
+#############################
+# OCI Images
+#############################
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+
+# Declare external images you need to pull, for example:
+oci.pull(
+    name = "distroless_base",
+    digest = "sha256:ccaef5ee2f1850270d453fdf700a5392534f8d1a8ca2acda391fbb6a06b81c86",
+    image = "gcr.io/distroless/base",
+    platforms = [
+        "linux/amd64",
+    ],
+)
+
+oci.pull(
+    name = "ubuntu",
+    digest = "sha256:80dd3c3b9c6cecb9f1667e9290b3bc61b78c2678c02cbdae5f0fea92cc6734ab",
+    image = "ubuntu",
+    platforms = [
+        "linux/amd64",
+    ],
+    tag = "latest",
+)
+
+# For each oci.pull call, repeat the "name" here to expose them as dependencies.
+use_repo(oci, "distroless_base", "distroless_base_linux_amd64", "ubuntu", "ubuntu_linux_amd64")
 
 # TODO(jcgregorio) Replace this with rules_oci.
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")

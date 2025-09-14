@@ -1,4 +1,5 @@
-load("//bazel:skia_app_container.bzl", "skia_app_container")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
+load("@tar.bzl", "mutate", "tar")
 
 filegroup(
     name = "configs",
@@ -6,80 +7,131 @@ filegroup(
     visibility = ["//perf:__subpackages__"],
 )
 
-skia_app_container(
-    name = "perfserver",
-    base_image = "@base-cipd//image",
-    dirs = {
-        "/usr/local/bin": [
-            [
-                "//perf/go/perfserver:perfserver",
-                "0755",
-            ],
-            [
-                "//perf/go/perf-tool:perf-tool",
-                "0755",
-            ],
-        ],
-        "/usr/local/share/skiaperf/configs": [
-            [
-                ":configs",
-                "0644",
-            ],
-        ],
-        "/usr/local/share/skiaperf/dist": [
-            [
-                "//perf/pages:production/%s.%s" % (page, ext),
-                "0644",
-            ]
-            for page in [
-                "alerts",
-                "clusters2",
-                "dryrunalert",
-                "help",
-                "multiexplore",
-                "newindex",
-                "triage",
-                "trybot",
-                "favorites",
-                "revisions",
-            ]
-            for ext in [
-                "css",
-                "css.map",
-                "html",
-                "js",
-                "js.map",
-            ]
-        ],
-    },
-    entrypoint = "/usr/local/bin/perfserver",
-    repository = "skia-public/perfserver",
+tar(
+    name = "config_layer",
+    srcs = [":configs"],
+    out = "config_layer.tar",
+    mutate = mutate(strip_prefix = package_name()),  # Places the configs at `/configs/*.json`.
 )
 
-skia_app_container(
-    name = "perf-cockroachdb-backup",
-    base_image = "@cloudsdk//image",
-    default_user = "root",
-    dirs = {
-        "/usr/local/bin": [
-            [
-                "//perf/go/perf-tool:perf-tool",
-                "0755",
-            ],
-        ],
-        "/": [
-            [
-                "//perf/backup:backup.sh",
-                "0755",
-            ],
-        ],
-        "/usr/local/share/skiaperf/configs": [
-            [
-                ":configs",
-                "0644",
-            ],
-        ],
-    },
-    entrypoint = "/backup.sh",
-    repository = "skia-public/perf-cockroachdb-backup",
+tar(
+    name = "perfserver_layer",
+    srcs = ["//perf/go/perfserver"],
+    out = "perfserver_layer.tar",
+    mutate = mutate(strip_prefix = package_name() + "/go/perfserver/perfserver_"),  # Places the perfserver executable at `/perfserver`.
 )
+
+oci_image(
+    name = "perfserver",
+    base = "@ubuntu",
+    entrypoint = ["/usr/bin/bash"],
+    # Link the resulting image back to the repository where the build is defined.
+    labels = {
+        "org.opencontainers.image.source": "https://github.com/jcgregorio/goldmine/tree/main/perf",
+    },
+    tars = [
+        ":config_layer",
+        ":perfserver_layer",
+    ],
+)
+
+# Use this target to build and load the container image into the local image
+# registry from where it can be run.
+#
+# For example:
+#
+#    $ bazel run //perf:local_perfserver
+#    $ docker run -ti perfserver:latest
+oci_load(
+    name = "local_perfserver",
+    image = ":perfserver",
+    repo_tags = ["perfserver:latest"],
+)
+
+oci_push(
+    name = "push",
+    image = ":perfserver",
+    remote_tags = [
+        "latest",
+        "24h",
+    ],
+    repository = "registry/perfserver",
+)
+
+# skia_app_container(
+#     name = "perfserver",
+#     base_image = "@base-cipd//image",
+#     dirs = {
+#         "/usr/local/bin": [
+#             [
+#                 "//perf/go/perfserver:perfserver",
+#                 "0755",
+#             ],
+#             [
+#                 "//perf/go/perf-tool:perf-tool",
+#                 "0755",
+#             ],
+#         ],
+#         "/usr/local/share/skiaperf/configs": [
+#             [
+#                 ":configs",
+#                 "0644",
+#             ],
+#         ],
+#         "/usr/local/share/skiaperf/dist": [
+#             [
+#                 "//perf/pages:production/%s.%s" % (page, ext),
+#                 "0644",
+#             ]
+#             for page in [
+#                 "alerts",
+#                 "clusters2",
+#                 "dryrunalert",
+#                 "help",
+#                 "multiexplore",
+#                 "newindex",
+#                 "triage",
+#                 "trybot",
+#                 "favorites",
+#                 "revisions",
+#             ]
+#             for ext in [
+#                 "css",
+#                 "css.map",
+#                 "html",
+#                 "js",
+#                 "js.map",
+#             ]
+#         ],
+#     },
+#     entrypoint = "/usr/local/bin/perfserver",
+#     repository = "skia-public/perfserver",
+# )
+
+# skia_app_container(
+#     name = "perf-cockroachdb-backup",
+#     base_image = "@cloudsdk//image",
+#     default_user = "root",
+#     dirs = {
+#         "/usr/local/bin": [
+#             [
+#                 "//perf/go/perf-tool:perf-tool",
+#                 "0755",
+#             ],
+#         ],
+#         "/": [
+#             [
+#                 "//perf/backup:backup.sh",
+#                 "0755",
+#             ],
+#         ],
+#         "/usr/local/share/skiaperf/configs": [
+#             [
+#                 ":configs",
+#                 "0644",
+#             ],
+#         ],
+#     },
+#     entrypoint = "/backup.sh",
+#     repository = "skia-public/perf-cockroachdb-backup",
+# )
