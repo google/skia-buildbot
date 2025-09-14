@@ -619,7 +619,9 @@ def sk_page(
         srcs = [
             "production/%s.html" % name,
             "production/%s.js" % name,
+            "production/%s.js.map" % name,
             "production/%s.css" % name,
+            "production/%s.css.map" % name,
         ],
         visibility = ["//visibility:public"],
     )

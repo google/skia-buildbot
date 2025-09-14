@@ -21,6 +21,31 @@ tar(
     mutate = mutate(strip_prefix = package_name() + "/go/perfserver/perfserver_"),  # Places the perfserver executable at `/perfserver`.
 )
 
+# Note that in the below we can strip out the /pages/development and get a dev layer.
+tar(
+    name = "dist_layer",
+    srcs = [
+        "//perf/pages:alerts",
+        "//perf/pages:clusters2",
+        "//perf/pages:dryrunalert",
+        "//perf/pages:favorites",
+        "//perf/pages:help",
+        "//perf/pages:multiexplore",
+        "//perf/pages:newindex",
+        "//perf/pages:revisions",
+        "//perf/pages:triage",
+        "//perf/pages:trybot",
+    ],
+    out = "dist_layer.tar",
+    mutate = mutate(
+        package_dir = "/dist",  # Place all files under the /dist directory, done after the strip_prefix action.
+        strip_prefix = package_name() + "/pages/production",  # Select only the production pages.
+    ),
+)
+
+# Note that this macro also produces a target, //perf:perfserver.digest, that
+# generates the file `_bazel_bin/perf/perfserver.json.sha256` that contains the
+# sha256 of the image.
 oci_image(
     name = "perfserver",
     base = "@ubuntu",
@@ -32,6 +57,7 @@ oci_image(
     tars = [
         ":config_layer",
         ":perfserver_layer",
+        ":dist_layer",
     ],
 )
 
