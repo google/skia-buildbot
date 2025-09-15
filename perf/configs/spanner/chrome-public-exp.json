@@ -28,6 +28,9 @@
         "connection_string": "postgresql://root@localhost:5432/chrome_pub?sslmode=disable",
         "tile_size": 8192
     },
+    "experiments": {
+        "in_memory_traceparams": true
+    },
     "ingestion_config": {
         "source_config": {
             "source_type": "gcs",

@@ -21,6 +21,9 @@
       "connection_string": "postgresql://root@localhost:5432/fuchsia_int?sslmode=disable",
       "tile_size": 256
     },
+    "experiments": {
+        "in_memory_traceparams": true
+    },
     "ingestion_config": {
       "source_config": {
         "source_type": "gcs",

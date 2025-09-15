@@ -15,6 +15,9 @@
         "connection_string": "postgresql://root@localhost:5432/flutter_flutter?sslmode=disable",
         "tile_size": 4096
     },
+    "experiments": {
+        "in_memory_traceparams": true
+    },
     "ingestion_config": {
         "source_config": {
             "source_type": "gcs",

@@ -20,6 +20,9 @@
         "tile_size": 256,
         "enable_follower_reads": true
     },
+    "experiments": {
+      "in_memory_traceparams": true
+    },
     "ingestion_config": {
         "source_config": {
             "source_type": "gcs",
