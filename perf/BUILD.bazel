@@ -1,5 +1,6 @@
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
+load("//bazel:app_container.bzl", "app_container", "app_container_macro")
 
 filegroup(
     name = "configs",
@@ -78,6 +79,48 @@ oci_push(
     image = ":perfserver",
     remote_tags = [
         "latest",
+    ],
+    repository = "registry/perfserver",
+)
+
+app_container(
+    name = "perfserver2",
+    base = "@ubuntu",
+    config = ":configs",
+    entrypoint = "/usr/bin/bash",
+    exe = "//perf/go/perfserver",
+    pages = [
+        "//perf/pages:alerts",
+        "//perf/pages:clusters2",
+        "//perf/pages:dryrunalert",
+        "//perf/pages:favorites",
+        "//perf/pages:help",
+        "//perf/pages:multiexplore",
+        "//perf/pages:newindex",
+        "//perf/pages:revisions",
+        "//perf/pages:triage",
+        "//perf/pages:trybot",
+    ],
+    repository = "registry/perfserver",
+)
+
+app_container_macro(
+    name = "perfserver3",
+    base = "@ubuntu",
+    config = ":configs",
+    entrypoint = "/usr/bin/bash",
+    exe = "//perf/go/perfserver",
+    pages = [
+        "//perf/pages:alerts",
+        "//perf/pages:clusters2",
+        "//perf/pages:dryrunalert",
+        "//perf/pages:favorites",
+        "//perf/pages:help",
+        "//perf/pages:multiexplore",
+        "//perf/pages:newindex",
+        "//perf/pages:revisions",
+        "//perf/pages:triage",
+        "//perf/pages:trybot",
     ],
     repository = "registry/perfserver",
 )

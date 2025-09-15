@@ -3,7 +3,10 @@
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
-def _app_container_impl(name, repository, base, exe, config, entrypoint, labels, pages, env):
+def app_container(name, repository, base, exe, config, entrypoint, pages, env = None, **kwargs):
+    """
+    Replacement for sk_app_container.
+    """
     name_exe = name + "_exe"
     pkg_tar(
         name = name_exe,
@@ -41,11 +44,12 @@ def _app_container_impl(name, repository, base, exe, config, entrypoint, labels,
     oci_image(
         name = name_image,
         base = base,
-        entrypoint = entrypoint,
+        entrypoint = [entrypoint],
         env = env,
         # Link the resulting image back to the repository where the build is defined.
-        labels = labels,
+        #labels = labels,
         tars = pkg_tars,
+        visibility = ["//visibility:public"],
     )
 
     # Use this target to build and load the container image into the local image
@@ -59,6 +63,7 @@ def _app_container_impl(name, repository, base, exe, config, entrypoint, labels,
         name = name + "_local",
         image = name_image,
         repo_tags = [name + ":latest"],
+        visibility = ["//visibility:public"],
     )
 
     oci_push(
@@ -68,11 +73,13 @@ def _app_container_impl(name, repository, base, exe, config, entrypoint, labels,
             "latest",
         ],
         repository = repository,
+        visibility = ["//visibility:public"],
     )
 
-app_container = macro(
+app_container_macro = macro(
     attrs = {
         "repository": attr.string(
+            configurable = False,
             doc = """
             Repository URL where the image will be signed at, e.g.: `index.docker.io/<user>/image`.
             Digests and tags are not allowed.
@@ -80,6 +87,7 @@ app_container = macro(
             mandatory = True,
         ),
         "base": attr.label(
+            configurable = False,
             allow_single_file = True,
             doc = """
             Label to an oci_image target to use as the base.
@@ -87,6 +95,7 @@ app_container = macro(
             mandatory = True,
         ),
         "exe": attr.label(
+            configurable = False,
             allow_single_file = True,
             doc = """
             Label to an executable target, i.e. the application that will run in the container.
@@ -94,33 +103,26 @@ app_container = macro(
             mandatory = True,
         ),
         "config": attr.label(
+            configurable = False,
             allow_single_file = True,
             doc = """
             Label to configuration files.
             """,
         ),
-        "entrypoint": attr.label(
-            allow_single_file = True,
+        "entrypoint": attr.string(
+            configurable = False,
             doc = """
-            A file containing a newline separated list to be used as the 
-            `entrypoint` to execute when the container starts. These values 
-            act as defaults and may be replaced by an entrypoint specified
-            when creating a container.
+            Command to run by default on container startup.
             """,
         ),
-        "labels": attr.label(
-            allow_single_file = True,
-            doc = """
-            A file containing a dictionary of labels. Each line should
-            be in the form `name=value`.
-            """,
-        ),
-        "pages": attr.label_list(
+        "pages": attr.string_list(
+            configurable = False,
             doc = """
             List of sk_pages to add to the image as a layer.
             """,
         ),
         "env": attr.label(
+            configurable = False,
             allow_single_file = True,
             doc = """
             A file containing the default values for the environment variables of the container. These values act as defaults and are merged with any specified when creating a container. Entries replace the base environment variables if any of the entries has conflicting keys.
@@ -128,5 +130,6 @@ app_container = macro(
             """,
         ),
     },
-    implementation = _app_container_impl,
+    implementation = app_container,
+    finalizer = True,
 )
