@@ -656,6 +656,8 @@ export class ExploreMultiSk extends ElementSk {
     // Event listener to remove the explore object from the list if the user
     // close it in a Multiview window.
     this.addEventListener('remove-explore', (e) => {
+      this._dataLoading = true;
+      this.testPicker?.setReadOnly(true);
       const exploreElemToRemove = (e as CustomEvent).detail.elem as ExploreSimpleSk;
       if (this.exploreElements.length === 1) {
         this.removeExplore(exploreElemToRemove);
@@ -667,10 +669,10 @@ export class ExploreMultiSk extends ElementSk {
           const valueToRemove = new URLSearchParams(query).get(param);
           if (valueToRemove) {
             this.testPicker?.removeItemFromChart(param, [valueToRemove]);
-            this._dataLoading = false;
           }
         }
       }
+      this._dataLoading = false;
     });
 
     // Event listener for when the Test Picker plot button is clicked.
@@ -847,7 +849,7 @@ export class ExploreMultiSk extends ElementSk {
         elem.removeKeys(tracesToRemove, true);
         if (elem.state.queries.length === 1) {
           // Only one query, so update it with the new query based on params.
-          elem.state.queries = query;
+          elem.state.queries = Array.from(query);
         } else {
           // Multiple queries, so remove the ones that match the deleted traces.
           elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
