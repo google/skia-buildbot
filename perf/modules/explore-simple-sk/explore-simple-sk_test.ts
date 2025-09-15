@@ -554,6 +554,58 @@ describe('rationalizeTimeRange', () => {
   });
 });
 
+describe('updateTestPickerUrl', () => {
+  let explore: ExploreSimpleSk;
+
+  beforeEach(async () => {
+    // Mock all fetches that can be triggered by element creation.
+    fetchMock.get(/.*\/_\/initpage\/.*/, {
+      dataframe: { paramset: {} },
+    });
+    fetchMock.get('/_/login/status', {
+      email: 'someone@example.org',
+      roles: ['editor'],
+    });
+
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await fetchMock.flush(true);
+  });
+
+  afterEach(() => {
+    fetchMock.reset();
+  });
+
+  it('should set the URL to "#" when there are no queries, formulas, or keys', (done) => {
+    explore.state.queries = [];
+    explore.state.formulas = [];
+    explore.state.keys = '';
+    explore['updateTestPickerUrl']();
+    setTimeout(() => {
+      assert.equal(explore['testPickerUrl'], '#');
+      done();
+    });
+  });
+
+  it('should construct the correct URL when there are queries', (done) => {
+    fetchMock.post('/_/shortcut/update', { id: 'shortcut123' });
+    explore.state.queries = ['config=test'];
+    explore.state.formulas = [];
+    explore.state.keys = '';
+    explore.state.begin = 123;
+    explore.state.end = 456;
+    explore.state.requestType = 0;
+
+    explore['updateTestPickerUrl']();
+    setTimeout(() => {
+      assert.equal(
+        explore['testPickerUrl'],
+        '/m/?begin=123&end=456&request_type=0&shortcut=shortcut123&totalGraphs=1'
+      );
+      done();
+    });
+  });
+});
+
 describe('Incremental Trace Loading', () => {
   let explore: ExploreSimpleSk;
 

@@ -585,6 +585,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private traceKeyForSummary: string = '';
 
+  private testPickerUrl: string = '#';
+
   private showPickerBox: boolean = false;
 
   private commitLinks: (CommitLinks | null)[] = [];
@@ -678,14 +680,13 @@ export class ExploreSimpleSk extends ElementSk {
 
     <div id=chartHeader class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
       <graph-title-sk id=graphTitle style="flex-grow:  1;"></graph-title-sk>
-      <md-icon-button
-        title="Load Test Picker with current Query"
-        ?disabled=${ele.is_chart_split && !ele.useTestPicker}
-        @click=${() => {
-          ele.loadDataFromExistingChart();
-        }}>
-        <md-icon id="icon">north_west</md-icon>
-      </md-icon-button>
+      <a href="${ele.testPickerUrl}">
+        <md-icon-button
+          title="Load Test Picker with current Query"
+          ?disabled=${ele.is_chart_split && !ele.useTestPicker}>
+          <md-icon id="icon">north_west</md-icon>
+        </md-icon-button>
+      </a>
       <md-icon-button
         title="Show Zero on Axis"
         @click=${() => {
@@ -1519,6 +1520,63 @@ export class ExploreSimpleSk extends ElementSk {
   updateChartHeight(height: string) {
     const chart = this.querySelector('div.chart-container');
     (chart as HTMLElement).style.height = height;
+  }
+
+  /**
+   * Asynchronously updates the URL for the Multigraph (/m/?shortcut=...) link.
+   *
+   * This method constructs a URL based on the current graph configuration
+   * (queries, formulas, keys) and time range (`begin`, `end`, `requestType`)
+   * stored in `this._state`.
+   *
+   * It calls the `updateShortcut` function to asynchronously obtain a shortcut ID
+   * for the current graph state. Once the shortcut ID is retrieved, it builds
+   * a new URL for the multi-graph page (`/m/`) including the state parameters
+   * and the shortcut.
+   *
+   * Uninitialized link placeholder is "#".
+   */
+  private updateTestPickerUrl() {
+    const currentState = this._state;
+    const graphConfig: GraphConfig = {
+      queries: currentState.queries,
+      formulas: currentState.formulas,
+      keys: currentState.keys,
+    };
+
+    if (
+      graphConfig.queries.length === 0 &&
+      graphConfig.formulas.length === 0 &&
+      graphConfig.keys === ''
+    ) {
+      if (this.testPickerUrl !== '#') {
+        this.testPickerUrl = '#';
+        this._render();
+      }
+      return;
+    }
+
+    updateShortcut([graphConfig])
+      .then((shortcut) => {
+        const newUrl = shortcut
+          ? `/m/?begin=${currentState.begin}` +
+            `&end=${currentState.end}` +
+            `&request_type=${currentState.requestType}` +
+            `&shortcut=${shortcut}` +
+            `&totalGraphs=1`
+          : '#';
+        if (this.testPickerUrl !== newUrl) {
+          this.testPickerUrl = newUrl;
+          this._render();
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to update shortcut for Test Picker URL:', error);
+        if (this.testPickerUrl !== '#') {
+          this.testPickerUrl = '#';
+          this._render();
+        }
+      });
   }
 
   // Call this anytime something in private state is changed. Will be replaced
@@ -3370,6 +3428,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     this.applyQueryDefaultsIfMissing();
     this._stateHasChanged();
+    this.updateTestPickerUrl();
 
     try {
       if (createFromScratch) {
@@ -3586,6 +3645,7 @@ export class ExploreSimpleSk extends ElementSk {
       this.clearSelectedState();
       this._stateHasChanged();
     }
+    this.updateTestPickerUrl();
   }
 
   /**
@@ -3893,6 +3953,12 @@ export class ExploreSimpleSk extends ElementSk {
   set state(state: State) {
     state = this.rationalizeTimeRange(state);
     this._state = state;
+    const prevBegin = this._state?.begin;
+    const prevEnd = this._state?.end;
+    const prevRequestType = this._state?.requestType;
+    const prevQueries = [...(this._state?.queries || [])];
+    const prevFormulas = [...(this._state?.formulas || [])];
+    const prevKeys = this._state?.keys;
 
     // Synchronize the xAxisSwitch with the state's domain
     const isDateDomain = this._state.domain === 'date';
@@ -3931,6 +3997,24 @@ export class ExploreSimpleSk extends ElementSk {
       this.openQueryByDefault
     ) {
       this.openQuery();
+    }
+
+    // update picker if state has changed
+    const queriesChanged =
+      prevQueries.length !== this._state.queries.length ||
+      prevQueries.some((q, i) => q !== this._state.queries[i]);
+    const formulasChanged =
+      prevFormulas.length !== this._state.formulas.length ||
+      prevFormulas.some((f, i) => f !== this._state.formulas[i]);
+    if (
+      prevBegin !== this._state.begin ||
+      prevEnd !== this._state.end ||
+      prevRequestType !== this._state.requestType ||
+      queriesChanged ||
+      formulasChanged ||
+      prevKeys !== this._state.keys
+    ) {
+      this.updateTestPickerUrl();
     }
 
     this.autoRefreshChanged();
