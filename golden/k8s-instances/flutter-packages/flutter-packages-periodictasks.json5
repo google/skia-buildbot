@@ -1,0 +1,15 @@
+{
+  cl_comment_template: "<not used>",
+  changelist_diff_period: "5m",
+  comment_on_cls_period: "0",
+  primary_branch_diff_period: "5m",
+  update_traces_ignore_period: "1m",
+  prom_port: ":20000",
+  ready_port: ":8000",
+
+  K8S_CPU: "100m",
+  K8S_MEMORY: "100Mi",
+
+  cache_corpora: ["flutter"],
+  caching_frequency_minutes: 5
+}

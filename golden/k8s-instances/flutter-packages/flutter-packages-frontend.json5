@@ -1,0 +1,31 @@
+{
+  authorized_users: [
+    "google.com",
+    "flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com",
+    "flutter-staging-builder@chops-service-accounts.iam.gserviceaccount.com",
+    "flutter-try-builder@chops-service-accounts.iam.gserviceaccount.com",
+    // Note: gmail accounts should be in "normalized" form, that is no dots and
+    // no pluses.
+    "ianhickson@gmail.com",
+    "lavidalovett@gmail.com",
+    "taha@nevercode.io",
+    "bruno@nevercode.io",
+    "coldpalelight@gmail.com",
+  ],
+  client_secret_file: "/etc/skia.org/login.json",
+  frontend: {
+    baseRepoURL: "<inherited from git_repo_url>",
+    defaultCorpus: "flutter",
+    title: "Flutter Gold",
+    ga_measurement_id: "G-EBM1C3F3SF",
+  },
+  prom_port: ":20000",
+  ready_port: ":7000",
+  debug_port: ":7001",
+  resources_path: "/usr/local/share/frontend/dist",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  K8S_CPU: "100m",
+  K8S_LOGIN_SECRETS: "skia-org-legacy-login-secrets",
+  K8S_MEMORY: "200Mi"
+}
