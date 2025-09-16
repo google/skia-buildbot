@@ -673,6 +673,7 @@ export class ExploreMultiSk extends ElementSk {
         }
       }
       this._dataLoading = false;
+      this.testPicker?.setReadOnly(false);
     });
 
     // Event listener for when the Test Picker plot button is clicked.
@@ -988,7 +989,6 @@ export class ExploreMultiSk extends ElementSk {
         this.testPicker!.autoAddTrace = false;
         this.resetGraphs();
         this.emptyCurrentPage();
-        this._dataLoading = false;
       } else if (this.state.pageSize > 0) {
         // If graphs remain and pageSize is valid, calculate the maximum valid page offset.
         // This prevents being on a page that no longer exists
@@ -1005,6 +1005,7 @@ export class ExploreMultiSk extends ElementSk {
       if (this.stateHasChanged) this.stateHasChanged();
       this.addGraphsToCurrentPage(true);
     }
+    this.checkDataLoaded();
   }
 
   private resetGraphs() {
@@ -1258,6 +1259,11 @@ export class ExploreMultiSk extends ElementSk {
     if (this.testPicker) {
       if (!this.testPicker.isLoaded() && this.exploreElements.length > 0) {
         this.populateTestPicker(this.exploreElements[0].getParamSet());
+      }
+      if (this.exploreElements.length === 0) {
+        this._dataLoading = false;
+        this.testPicker.setReadOnly(false);
+        return;
       }
       if (this.exploreElements.every((e) => e.dataLoading)) {
         this._dataLoading = true;
