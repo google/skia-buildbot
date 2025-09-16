@@ -498,4 +498,29 @@ describe('anomalies-table-sk', () => {
       assert.equal(groupId, 'group-1-2');
     });
   });
+
+  describe('checkbox interaction', () => {
+    it('checks a single anomaly in an expanded group on first click', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
+      ];
+      await element.populateTable(anomalies, {});
+
+      // Expand the group to make individual anomaly rows visible.
+      const group = element.anomalyGroups[0];
+      element.expandGroup(group);
+
+      const checkbox1 = element.querySelector('#anomaly-row-1') as HTMLInputElement;
+      assert.isNotNull(checkbox1, 'Checkbox for anomaly 1 should exist.');
+      assert.isFalse(checkbox1.checked, 'Checkbox should not be checked initially.');
+
+      // Simulate a single click.
+      checkbox1.click();
+
+      assert.isTrue(checkbox1.checked, 'Checkbox should be checked after one click.');
+      const checkedAnomalies = element.getCheckedAnomalies();
+      assert.deepEqual(checkedAnomalies, [anomalies[0]]);
+    });
+  });
 });

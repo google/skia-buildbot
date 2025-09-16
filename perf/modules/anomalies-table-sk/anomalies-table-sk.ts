@@ -535,14 +535,9 @@ export class AnomaliesTableSk extends ElementSk {
                 type="checkbox"
                 @change=${(e: Event) => {
                   this.show_selected_groups_first = false;
-                  // If we just need to check 1 anomaly, just mark it as checked.
-                  if (length === 1 || anomalyGroup.expanded) {
-                    this.anomalyChecked(e.target as HTMLInputElement, anomaly, anomalyGroup);
-                  } else {
-                    // If the the summary row gets checked, check all children anomalies.
-                    this.toggleChildrenCheckboxes(anomalyGroup);
-                  }
+                  this.anomalyChecked(e.target as HTMLInputElement, anomaly, anomalyGroup);
                 }}
+                ?checked=${this.checkedAnomaliesSet.has(anomaly)}
                 id="anomaly-row-${anomaly.id}"
             /></label>
           </td>
@@ -660,6 +655,7 @@ export class AnomaliesTableSk extends ElementSk {
                 // group is not expanded, check all children anomalies.
                 this.toggleChildrenCheckboxes(anomalyGroup);
               }}"
+              ?checked=${this.isGroupSelected(anomalyGroup)}
               id="anomaly-row-${this.getGroupId(anomalyGroup)}" />
           </label>
         </td>
