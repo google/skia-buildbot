@@ -31,5 +31,5 @@ app_container(
         "//perf/pages:triage",
         "//perf/pages:trybot",
     ],
-    repository = "registry/perfserver",
+    repository = "us-east1-docker.pkg.dev/api-project-146332866891/goldmine/perfserver",
 )
