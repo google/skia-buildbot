@@ -561,10 +561,6 @@ export class TestPickerSk extends ElementSk {
       if (fieldInfo.value !== value) {
         fieldInfo.value = value;
       }
-      if (value.length === 0) {
-        // Chart needs to be reset, so disable autoAddTrace.
-        this.autoAddTrace = false;
-      }
 
       if (value.length !== fieldInfo.field!.selectedItems.length) {
         // Selected Item Needs to be updated if the explore was removed.
