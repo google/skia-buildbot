@@ -12,5 +12,5 @@ app_container(
         "//infra-sk/modules/theme-chooser-sk:theme-chooser-sk-demo",
         "//jsdoc/page:main",
     ],
-    repository = "us-east1-docker.pkg.dev/api-project-146332866891/goldmine/perfserver",
+    repository = "us-east1-docker.pkg.dev/api-project-146332866891/goldmine/jsdoc",
 )
