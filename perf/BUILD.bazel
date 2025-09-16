@@ -16,6 +16,7 @@ filegroup(
 app_container(
     name = "perfserver",
     base = "@ubuntu",
+    cmd = [],
     config = ":configs",
     entrypoint = "/usr/bin/bash",
     exe = "//perf/go/perfserver",

@@ -1,37 +1,16 @@
-load("//bazel:skia_app_container.bzl", "skia_app_container")
+load("//bazel:app_container.bzl", "app_container")
 
-exports_files([
-    "page/index.html",
-])
-
-skia_app_container(
-    name = "jsdoc_container",
-    dirs = {
-        "/usr/local/bin": [
-            [
-                "//jsdoc/go/jsdoc:jsdoc",
-                "0755",
-            ],
-        ],
-        "/usr/local/share/jsdoc/icons": [
-            [
-                "//elements-sk/modules/icons-demo-sk:icons-demo-sk-demo",
-                "0755",
-            ],
-        ],
-        "/usr/local/share/jsdoc/theme": [
-            [
-                "//infra-sk/modules/theme-chooser-sk:theme-chooser-sk-demo",
-                "0755",
-            ],
-        ],
-        "/usr/local/share/jsdoc": [
-            [
-                "//jsdoc:page/index.html",
-                "0755",
-            ],
-        ],
-    },
+#
+app_container(
+    name = "jsdoc",
+    base = "@distroless_base",
+    cmd = ["--resources_dir=/usr/local/share/jsdoc/dist"],
     entrypoint = "/usr/local/bin/jsdoc",
-    repository = "skia-public/jsdoc",
+    exe = "//jsdoc/go/jsdoc:jsdoc",
+    pages = [
+        "//elements-sk/modules/icons-demo-sk:icons-demo-sk-demo",
+        "//infra-sk/modules/theme-chooser-sk:theme-chooser-sk-demo",
+        "//jsdoc/page:main",
+    ],
+    repository = "us-east1-docker.pkg.dev/api-project-146332866891/goldmine/perfserver",
 )

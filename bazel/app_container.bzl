@@ -3,7 +3,7 @@
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
-def _app_container_impl(name, repository, base, exe, config, entrypoint, pages, env = None, **_kwargs):
+def _app_container_impl(name, repository, base, exe, config, entrypoint, cmd, pages, env = None, **_kwargs):
     """
     Replacement for sk_app_container.
     """
@@ -45,6 +45,7 @@ def _app_container_impl(name, repository, base, exe, config, entrypoint, pages, 
         name = name_image,
         base = base,
         entrypoint = [entrypoint],
+        cmd = cmd,
         env = env,
         # Link the resulting image back to the repository where the build is defined.
         #labels = labels,
@@ -113,6 +114,14 @@ app_container = macro(
             configurable = False,
             doc = """
             Command to run by default on container startup.
+            """,
+        ),
+        "cmd": attr.string_list(
+            configurable = False,
+            doc = """
+            A file containing a newline separated list to be used as 
+            the `command & args` of the container. These values act as defaults 
+            and may be replaced by any specified when creating a container.
             """,
         ),
         "pages": attr.string_list(

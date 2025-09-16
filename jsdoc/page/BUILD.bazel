@@ -1,0 +1,14 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "main",
+    html_file = "index.html",
+    sass_deps = [
+    ],
+    scss_entry_point = "index.scss",
+    sk_element_deps = [
+    ],
+    ts_deps = [
+    ],
+    ts_entry_point = "index.ts",
+)

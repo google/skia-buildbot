@@ -1,12 +1,8 @@
 include ../make/bazel.mk
 
-
-release:
-	$(BAZEL) run --config=mayberemote //jsdoc:push_jsdoc_container
-
 push:
-	$(BAZEL) run --config=mayberemote //jsdoc:pushk_jsdoc_container
+	$(BAZEL) run //jsdoc:jsdoc_push
 
-# Set DOCKER_IMAGE to the image you want to run locally.
 run-local:
-	docker run -p 8000:8000 -ti $(DOCKER_IMAGE)
+	$(BAZEL) run //jsdoc:jsdoc_local
+	docker run -p 8000:8000 -ti jsdoc:latest

@@ -26,6 +26,7 @@ func main() {
 	)
 	r := chi.NewRouter()
 	r.Handle("/*", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir)))
+	r.Handle("/", http.RedirectHandler("/main.html", http.StatusMovedPermanently))
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
