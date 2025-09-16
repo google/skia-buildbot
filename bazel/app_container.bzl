@@ -3,7 +3,7 @@
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
-def app_container(name, repository, base, exe, config, entrypoint, pages, env = None, **kwargs):
+def _app_container_impl(name, repository, base, exe, config, entrypoint, pages, env = None, **_kwargs):
     """
     Replacement for sk_app_container.
     """
@@ -76,7 +76,7 @@ def app_container(name, repository, base, exe, config, entrypoint, pages, env = 
         visibility = ["//visibility:public"],
     )
 
-app_container_macro = macro(
+app_container = macro(
     attrs = {
         "repository": attr.string(
             configurable = False,
@@ -130,6 +130,6 @@ app_container_macro = macro(
             """,
         ),
     },
-    implementation = app_container,
+    implementation = _app_container_impl,
     finalizer = True,
 )

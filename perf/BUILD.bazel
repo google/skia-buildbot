@@ -1,64 +1,9 @@
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
-load("@rules_pkg//:pkg.bzl", "pkg_tar")
-load("//bazel:app_container.bzl", "app_container", "app_container_macro")
+load("//bazel:app_container.bzl", "app_container")
 
 filegroup(
     name = "configs",
     srcs = glob(["configs/*.json"]),
     visibility = ["//perf:__subpackages__"],
-)
-
-pkg_tar(
-    name = "perfserver_exe",
-    srcs = ["//perf/go/perfserver"],
-    mode = "755",
-    package_dir = "/usr/local/bin/",
-    tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
-)
-
-pkg_tar(
-    name = "configs_dir",
-    srcs = [":configs"],
-    mode = "644",
-    package_dir = "/usr/local/share/perfserver/configs",
-    tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
-)
-
-pkg_tar(
-    name = "dist_dir",
-    srcs = [
-        "//perf/pages:alerts_prod",
-        "//perf/pages:clusters2_prod",
-        "//perf/pages:dryrunalert_prod",
-        "//perf/pages:favorites_prod",
-        "//perf/pages:help_prod",
-        "//perf/pages:multiexplore_prod",
-        "//perf/pages:newindex_prod",
-        "//perf/pages:revisions_prod",
-        "//perf/pages:triage_prod",
-        "//perf/pages:trybot_prod",
-    ],
-    mode = "644",
-    package_dir = "/usr/local/share/perfserver/dist",
-    tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
-)
-
-# Note that this macro also produces a target, //perf:perfserver.digest, that
-# generates the file `_bazel_bin/perf/perfserver.json.sha256` that contains the
-# sha256 of the image.
-oci_image(
-    name = "perfserver",
-    base = "@ubuntu",
-    entrypoint = ["/usr/bin/bash"],
-    # Link the resulting image back to the repository where the build is defined.
-    labels = {
-        "org.opencontainers.image.source": "https://github.com/jcgregorio/goldmine/tree/main/perf",
-    },
-    tars = [
-        ":perfserver_exe",
-        ":configs_dir",
-        ":dist_dir",
-    ],
 )
 
 # Use this target to build and load the container image into the local image
@@ -68,44 +13,8 @@ oci_image(
 #
 #    $ bazel run //perf:local_perfserver
 #    $ docker run -ti perfserver:latest
-oci_load(
-    name = "local_perfserver",
-    image = ":perfserver",
-    repo_tags = ["perfserver:latest"],
-)
-
-oci_push(
-    name = "push",
-    image = ":perfserver",
-    remote_tags = [
-        "latest",
-    ],
-    repository = "registry/perfserver",
-)
-
 app_container(
-    name = "perfserver2",
-    base = "@ubuntu",
-    config = ":configs",
-    entrypoint = "/usr/bin/bash",
-    exe = "//perf/go/perfserver",
-    pages = [
-        "//perf/pages:alerts",
-        "//perf/pages:clusters2",
-        "//perf/pages:dryrunalert",
-        "//perf/pages:favorites",
-        "//perf/pages:help",
-        "//perf/pages:multiexplore",
-        "//perf/pages:newindex",
-        "//perf/pages:revisions",
-        "//perf/pages:triage",
-        "//perf/pages:trybot",
-    ],
-    repository = "registry/perfserver",
-)
-
-app_container_macro(
-    name = "perfserver3",
+    name = "perfserver",
     base = "@ubuntu",
     config = ":configs",
     entrypoint = "/usr/bin/bash",
