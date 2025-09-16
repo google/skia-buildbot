@@ -79,6 +79,8 @@ export const convertFromDataframe = (
   keys.forEach((k) => firstRow.push(k));
 
   const rows: any[][] = [firstRow];
+  const isAllMissing = keys.map((k) => df!.traceset[k].every((v) => v === MISSING_DATA_SENTINEL));
+
   df!.header?.forEach((column, idx) => {
     const row: any[] = [];
     if (domain === 'commit' || domain === 'both') {
@@ -87,9 +89,13 @@ export const convertFromDataframe = (
     if (domain === 'date' || domain === 'both') {
       row.push(new Date(column!.timestamp * 1000));
     }
-    keys.forEach((k) => {
+    keys.forEach((k, keyIndex) => {
       const val = df!.traceset[k][idx];
-      row.push(val === MISSING_DATA_SENTINEL ? null : val);
+      if (isAllMissing[keyIndex] && idx === df!.header!.length - 1) {
+        row.push(0);
+      } else {
+        row.push(val === MISSING_DATA_SENTINEL ? null : val);
+      }
     });
     rows.push(row);
   });
