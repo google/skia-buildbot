@@ -31,7 +31,7 @@ build --workspace_status_command=bazel/get_workspace_status.sh
 
 # Tags such as no-remote and no-cache have no effect without this. See
 # https://github.com/bazelbuild/bazel/issues/8830.
-build --experimental_allow_tags_propagation
+build --incompatible_allow_tags_propagation
 
 # Pipe through the host system's *_EMULATOR_HOST environment variables to Bazel tests.
 #

@@ -102,18 +102,6 @@ oci.pull(
 # For each oci.pull call, repeat the "name" here to expose them as dependencies.
 use_repo(oci, "distroless_base", "distroless_base_linux_amd64", "ubuntu", "ubuntu_linux_amd64")
 
-# TODO(jcgregorio) Replace this with rules_oci.
-http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-http_archive(
-    name = "io_bazel_rules_docker",
-    sha256 = "27d53c1d646fc9537a70427ad7b034734d08a9c38924cc6357cc973fed300820",
-    strip_prefix = "rules_docker-0.24.0",
-    urls = [
-        "https://storage.googleapis.com/skia-world-readable/bazel/27d53c1d646fc9537a70427ad7b034734d08a9c38924cc6357cc973fed300820.tar.gz",
-        "https://github.com/bazelbuild/rules_docker/releases/download/v0.24.0/rules_docker-v0.24.0.tar.gz",
-    ],
-)
-
 # -- repo definitions -- #
 
 # See https://github.com/aspect-build/rules_js/blob/main/docs/pnpm.md
