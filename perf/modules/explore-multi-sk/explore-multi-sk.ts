@@ -558,7 +558,10 @@ export class ExploreMultiSk extends ElementSk {
   /**
    * Splits the graphs based on the split by dropdown selection.
    */
-  private async splitGraphs(): Promise<void> {
+  private async splitGraphs(
+    showErrorIfLoading: boolean = true,
+    splitIfOnlyOneGraph: boolean = false
+  ): Promise<void> {
     const groupedTraces = this.groupTracesBySplitKey();
     if (groupedTraces.size === 0) {
       this.checkDataLoaded();
@@ -571,14 +574,16 @@ export class ExploreMultiSk extends ElementSk {
         (sum, v) => sum + v.length,
         0
       );
-      if (this.state.splitByKeys.length === 0 || groupedLength === 1) {
+      if (this.state.splitByKeys.length === 0 || (!splitIfOnlyOneGraph && groupedLength === 1)) {
         this.checkDataLoaded();
         return;
       }
     }
 
     if (this.exploreElements.length > 0 && this._dataLoading === true) {
-      errorMessage('Data is still loading, please wait...', 3000);
+      if (showErrorIfLoading) {
+        errorMessage('Data is still loading, please wait...', 3000);
+      }
       await this.exploreElements[0].requestComplete;
     }
 
@@ -748,7 +753,7 @@ export class ExploreMultiSk extends ElementSk {
               /*loadExtendedRange=*/ false
             );
             await mainGraph.requestComplete;
-            await this.splitGraphs();
+            await this.splitGraphs(/*showErrorIfLoading=*/ false, /*splitIfOnlyOneGraph=*/ true);
 
             i = endGroupIndex;
           }

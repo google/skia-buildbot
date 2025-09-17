@@ -497,7 +497,11 @@ export class DataFrameRepository extends LitElement {
       }
 
       // Fetch and sort the frame responses so they can appended consecutively.
-      const sortedResponses = (await Promise.all(allResponses))
+      const sortedResponses = (await Promise.allSettled(allResponses))
+        .filter(
+          (result): result is PromiseFulfilledResult<FrameResponse> => result.status === 'fulfilled'
+        )
+        .map((result) => result.value)
         .filter(
           // Filter responses with valid dataframes with actual traces.
           (fr) =>
@@ -553,8 +557,10 @@ export class DataFrameRepository extends LitElement {
       });
 
       this.anomaly = mergeAnomaly(this.anomaly, anomaly);
-      this.loading = false;
     } finally {
+      this.loading = false;
+      // This is needed to ensure that the resolver is called even if the
+      // request fails, otherwise the caller can get stuck.
       resolver(totalTraces);
       return totalTraces;
     }

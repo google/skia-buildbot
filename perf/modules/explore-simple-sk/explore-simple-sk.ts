@@ -1998,7 +1998,7 @@ export class ExploreSimpleSk extends ElementSk {
   async extendRange(range: range, offset?: number): Promise<void> {
     const dfRepo = this.dfRepo.value;
     const header = dfRepo?.dataframe?.header;
-    if (!dfRepo || !header || header.length === 0 || dfRepo.loading) {
+    if (!dfRepo || !header || header.length === 0) {
       return;
     }
     if (offset) {
@@ -2013,13 +2013,16 @@ export class ExploreSimpleSk extends ElementSk {
       extendDirection = 1;
     }
     if (extendDirection !== 0 || offset !== undefined) {
-      dfRepo.extendRange(extendDirection * monthInSec);
+      await dfRepo.extendRange(extendDirection * monthInSec);
     }
   }
 
-  private OnSelectionRange({ type, detail }: CustomEvent<PlotSelectionEventDetails>): void {
+  private async OnSelectionRange({
+    type,
+    detail,
+  }: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
     if (type === 'selection-changed') {
-      this.extendRange(detail.value);
+      await this.extendRange(detail.value);
     }
 
     if (this.plotSummary.value) {
@@ -3232,7 +3235,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.useBrowserURL();
       }),
     ];
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
     this.dataLoading = false;
   }
 
