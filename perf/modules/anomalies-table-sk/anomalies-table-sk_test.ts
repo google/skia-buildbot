@@ -150,6 +150,79 @@ describe('anomalies-table-sk', () => {
       assert.isTrue(openSpy.calledWith('/u/?sid=test_sid', '_blank'));
       assert.isTrue(openSpy.calledThrice);
     });
+
+    it('opens single anomaly group with anomaly id', async () => {
+      const openSpy = sinon.spy(window, 'open');
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+
+      const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1')];
+      element.anomalyList = anomalies;
+      await element.populateTable(anomalies, { '1': { begin: 100, end: 200 } });
+
+      const anomalyCheckbox = element.querySelector<HTMLInputElement>(`input[id="anomaly-row-1"]`);
+      anomalyCheckbox!.checked = true;
+
+      await element.openAnomalyGroupReportPage();
+
+      assert.isTrue(openSpy.calledWith('/u/?anomalyIDs=1', '_blank'));
+      assert.isTrue(openSpy.calledOnce);
+    });
+
+    it('opens multi anomaly group with sid', async () => {
+      const openSpy = sinon.spy(window, 'open');
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
+      ];
+      element.anomalyList = anomalies;
+      await element.populateTable(anomalies, { '1': { begin: 100, end: 200 } });
+
+      const group = element.anomalyGroups[0];
+      const summaryRowCheckboxId = element.getGroupId(group);
+      const groupCheckbox = element.querySelector<HTMLInputElement>(
+        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+      );
+      groupCheckbox!.checked = true;
+
+      await element.openAnomalyGroupReportPage();
+
+      assert.isTrue(openSpy.calledWith('/u/?sid=test_sid', '_blank'));
+      assert.isTrue(openSpy.calledOnce);
+    });
+
+    it('opens both single and multi anomaly groups', async () => {
+      const openSpy = sinon.spy(window, 'open');
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
+        dummyAnomaly('3', 54321, 100, 200, 'master/bot/suite/test3'),
+      ];
+      element.anomalyList = anomalies;
+      await element.populateTable(anomalies, { '1': { begin: 100, end: 200 } });
+
+      // Check multi-anomaly group.
+      const multiAnomalyGroup = element.anomalyGroups.find((g) => g.anomalies.length > 1)!;
+      const summaryRowCheckboxId = element.getGroupId(multiAnomalyGroup);
+      const groupCheckbox = element.querySelector<HTMLInputElement>(
+        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+      )!;
+      groupCheckbox.checked = true;
+
+      // Check single-anomaly group.
+      const singleAnomalyCheckbox =
+        element.querySelector<HTMLInputElement>(`input[id="anomaly-row-3"]`)!;
+      singleAnomalyCheckbox.checked = true;
+
+      await element.openAnomalyGroupReportPage();
+
+      assert.isTrue(openSpy.calledTwice);
+      assert.isTrue(openSpy.calledWith('/u/?sid=test_sid', '_blank'));
+      assert.isTrue(openSpy.calledWith('/u/?anomalyIDs=3', '_blank'));
+    });
   });
 
   describe('toggle popup', () => {

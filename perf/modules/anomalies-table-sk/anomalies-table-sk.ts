@@ -129,8 +129,8 @@ export class AnomaliesTableSk extends ElementSk {
     <h1 id="clear-msg" hidden>All anomalies are triaged!</h1>
   `;
 
-  async openReport() {
-    const idList = [...this.checkedAnomaliesSet].map((a) => a.id);
+  async openReportForAnomalyIds(anomalies: Anomaly[]) {
+    const idList = anomalies.map((a) => a.id);
 
     // If only one anomaly is selected, open the report page using
     // the anomaly id directly.
@@ -160,20 +160,26 @@ export class AnomaliesTableSk extends ElementSk {
     window.open(url, '_blank');
   }
 
+  async openReport() {
+    await this.openReportForAnomalyIds(Array.from(this.checkedAnomaliesSet));
+  }
+
   async openAnomalyGroupReportPage() {
     for (const group of this.anomalyGroups) {
-      const summaryRowCheckboxId = this.getGroupId(group);
-      const groupCheckbox = this.querySelector<HTMLInputElement>(
-        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
-      );
-      if (groupCheckbox && groupCheckbox!.checked) {
-        const idList = [...group.anomalies].map((a) => a.id);
-        const idString = idList.join(',');
-        await this.fetchGroupReportApi(idString);
-
-        const sid: string = this.getGroupReportResponse!.sid || '';
-        const url = `/u/?sid=${sid}`;
-        window.open(url, '_blank');
+      let groupCheckbox: HTMLInputElement | null;
+      if (group.anomalies.length > 1) {
+        const summaryRowCheckboxId = this.getGroupId(group);
+        groupCheckbox = this.querySelector<HTMLInputElement>(
+          `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+        );
+      } else {
+        const anomaly = group.anomalies[0];
+        groupCheckbox = this.querySelector<HTMLInputElement>(
+          `input[id="anomaly-row-${anomaly.id}"]`
+        );
+      }
+      if (groupCheckbox && groupCheckbox.checked) {
+        await this.openReportForAnomalyIds(group.anomalies);
       }
     }
   }
