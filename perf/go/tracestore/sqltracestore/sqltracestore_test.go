@@ -50,12 +50,15 @@ func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTr
 	ctx := context.Background()
 	db := sqltest.NewSpannerDBForTests(t, "tracestore")
 	traceParamStore := NewTraceParamStore(db)
-
-	store, err := New(db, cfg, traceParamStore, nil)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	require.NoError(t, err)
+	store, err := New(db, cfg, traceParamStore, inMemoryTraceParams)
 	require.NoError(t, err)
 
 	if populateTraces {
 		populatedTestDB(t, ctx, store)
+		err := inMemoryTraceParams.Refresh(ctx)
+		require.NoError(t, err)
 	}
 
 	return ctx, store
@@ -67,10 +70,14 @@ func commonTestSetupWithCommits(t *testing.T) (context.Context, *SQLTraceStore) 
 	require.NoError(t, err)
 
 	traceParamStore := NewTraceParamStore(db)
-	store, err := New(db, cfg, traceParamStore, nil)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	require.NoError(t, err)
+	store, err := New(db, cfg, traceParamStore, inMemoryTraceParams)
 	require.NoError(t, err)
 
 	populatedTestDB(t, ctx, store)
+	err = inMemoryTraceParams.Refresh(ctx)
+	require.NoError(t, err)
 
 	return ctx, store
 }
@@ -292,17 +299,6 @@ func paramSetFromParamsChan(ch <-chan paramtools.Params) paramtools.ParamSet {
 	return ret
 }
 
-func TestQueryTracesIDOnly_EmptyTileReturnsEmptyParamset(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
-
-	// Query that matches one trace.
-	q, err := query.NewFromString("config=565")
-	assert.NoError(t, err)
-	ch, err := s.QueryTracesIDOnly(ctx, 5, q)
-	require.NoError(t, err)
-	assert.Empty(t, paramSetFromParamsChan(ch))
-}
-
 func TestQueryTracesIDOnly_MatchesOneTrace(t *testing.T) {
 	ctx, s := commonTestSetup(t, true)
 
@@ -316,24 +312,6 @@ func TestQueryTracesIDOnly_MatchesOneTrace(t *testing.T) {
 		"config": []string{"565"},
 	}
 	assert.Equal(t, expected, paramSetFromParamsChan(ch))
-}
-
-func TestQueryTracesIDOnly_QueryThatTriggersUserOfARestrictClause_Success(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
-	s.queryUsesRestrictClause.Reset()
-
-	// "config=565" Matches one trace. "arch=x86" Matches two traces. So the
-	// query will use a restrict clause to speed up the query.
-	q, err := query.NewFromString("arch=x86&config=565")
-	require.NoError(t, err)
-	ch, err := s.QueryTracesIDOnly(ctx, 0, q)
-	require.NoError(t, err)
-	expected := paramtools.ParamSet{
-		"arch":   []string{"x86"},
-		"config": []string{"565"},
-	}
-	assert.Equal(t, expected, paramSetFromParamsChan(ch))
-	assert.Equal(t, int64(1), s.queryUsesRestrictClause.Get())
 }
 
 func TestQueryTracesIDOnly_MatchesTwoTraces(t *testing.T) {

@@ -28,7 +28,8 @@ var (
 	defaultAnomalyConfig = config.AnomalyConfig{}
 )
 
-func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, keyValues map[string]float32, filename string, ts time.Time) error {
+func addValuesAtIndex(store tracestore.TraceStore, inMemoryTraceParams *sqltracestore.InMemoryTraceParams, index types.CommitNumber, keyValues map[string]float32, filename string, ts time.Time) error {
+	ctx := context.Background()
 	ps := paramtools.ParamSet{}
 	params := []paramtools.Params{}
 	values := []float32{}
@@ -41,7 +42,11 @@ func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, key
 		params = append(params, p)
 		values = append(values, v)
 	}
-	return store.WriteTraces(context.Background(), index, params, values, ps, filename, ts)
+	err := store.WriteTraces(ctx, index, params, values, ps, filename, ts)
+	if err != nil {
+		return err
+	}
+	return inMemoryTraceParams.Refresh(ctx)
 }
 
 func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, perfgit.Git, time.Time) {
@@ -55,25 +60,27 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, perf
 	}
 
 	traceParamStore := sqltracestore.NewTraceParamStore(db)
-	store, err := sqltracestore.New(db, cfg, traceParamStore, nil)
+	inMemoryTraceParams, err := sqltracestore.NewInMemoryTraceParams(ctx, db, 12*60*60)
+	assert.NoError(t, err)
+	store, err := sqltracestore.New(db, cfg, traceParamStore, inMemoryTraceParams)
 	require.NoError(t, err)
 
 	ts := gittest.StartTime
 
 	// Add some points to the first and second tile.
-	err = addValuesAtIndex(store, 0, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
 		",arch=x86,config=8888,": 1.2,
 		",arch=x86,config=565,":  2.1,
 		",arch=arm,config=8888,": 100.5,
 	}, "gs://foo.json", ts)
 	assert.NoError(t, err)
-	err = addValuesAtIndex(store, 1, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 1, map[string]float32{
 		",arch=x86,config=8888,": 1.3,
 		",arch=x86,config=565,":  2.2,
 		",arch=arm,config=8888,": 100.6,
 	}, "gs://foo.json", ts.Add(time.Minute))
 	assert.NoError(t, err)
-	err = addValuesAtIndex(store, 7, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 7, map[string]float32{
 		",arch=x86,config=8888,": 1.7,
 		",arch=x86,config=565,":  2.5,
 		",arch=arm,config=8888,": 101.1,
@@ -81,7 +88,7 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, perf
 	assert.NoError(t, err)
 
 	lastTimeStamp := ts.Add(8 * time.Minute)
-	err = addValuesAtIndex(store, 8, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 8, map[string]float32{
 		",arch=x86,config=8888,": 1.8,
 		",arch=x86,config=565,":  2.6,
 		",arch=arm,config=8888,": 101.2,

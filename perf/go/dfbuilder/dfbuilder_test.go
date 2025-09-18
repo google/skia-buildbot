@@ -38,15 +38,17 @@ var (
 	}
 )
 
-func getSqlTraceStore(t *testing.T, db pool.Pool, cfg config.DataStoreConfig) *sqltracestore.SQLTraceStore {
+func getSqlTraceStore(t *testing.T, db pool.Pool, cfg config.DataStoreConfig) (*sqltracestore.SQLTraceStore, *sqltracestore.InMemoryTraceParams) {
 	traceParamStore := sqltracestore.NewTraceParamStore(db)
-	store, err := sqltracestore.New(db, cfg, traceParamStore, nil)
+	inMemoryTraceParams, err := sqltracestore.NewInMemoryTraceParams(context.Background(), db, 1)
+	assert.NoError(t, err)
+	store, err := sqltracestore.New(db, cfg, traceParamStore, inMemoryTraceParams)
 	require.NoError(t, err)
-	return store
+	return store, inMemoryTraceParams
 }
 func TestBuildTraceMapper(t *testing.T) {
 	db := sqltest.NewSpannerDBForTests(t, "dfbuilder")
-	store := getSqlTraceStore(t, db, cfg.DataStoreConfig)
+	store, _ := getSqlTraceStore(t, db, cfg.DataStoreConfig)
 	tileMap := sliceOfTileNumbersFromCommits([]types.CommitNumber{0, 1, 255, 256, 257}, store)
 	expected := []types.TileNumber{0, 1}
 	assert.Equal(t, expected, tileMap)
@@ -57,7 +59,8 @@ func TestBuildTraceMapper(t *testing.T) {
 }
 
 // The keys of values are structured keys, not encoded keys.
-func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, keyValues map[string]float32, filename string, ts time.Time) error {
+func addValuesAtIndex(store tracestore.TraceStore, inMemoryTraceParams *sqltracestore.InMemoryTraceParams, index types.CommitNumber, keyValues map[string]float32, filename string, ts time.Time) error {
+	ctx := context.Background()
 	ps := paramtools.ParamSet{}
 	params := []paramtools.Params{}
 	values := []float32{}
@@ -70,7 +73,11 @@ func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, key
 		params = append(params, p)
 		values = append(values, v)
 	}
-	return store.WriteTraces(context.Background(), index, params, values, ps, filename, ts)
+	err := store.WriteTraces(ctx, index, params, values, ps, filename, ts)
+	if err != nil {
+		return err
+	}
+	return inMemoryTraceParams.Refresh(ctx)
 }
 
 func TestBuildNew(t *testing.T) {
@@ -82,24 +89,24 @@ func TestBuildNew(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
+	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first and second tile.
-	err = addValuesAtIndex(store, 0, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
 		",arch=x86,config=8888,": 1.2,
 		",arch=x86,config=565,":  2.1,
 		",arch=arm,config=8888,": 100.5,
 	}, "gs://foo.json", time.Now())
 	assert.NoError(t, err)
-	err = addValuesAtIndex(store, 1, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 1, map[string]float32{
 		",arch=x86,config=8888,": 1.3,
 		",arch=x86,config=565,":  2.2,
 		",arch=arm,config=8888,": 100.6,
 	}, "gs://foo.json", time.Now())
 	assert.NoError(t, err)
-	err = addValuesAtIndex(store, 7, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 7, map[string]float32{
 		",arch=x86,config=8888,": 1.0,
 		",arch=x86,config=565,":  2.5,
 		",arch=arm,config=8888,": 101.1,
@@ -195,7 +202,7 @@ func TestBuildNew(t *testing.T) {
 	assert.Len(t, df.Header, 0)
 
 	// Add a value that only appears in one of the tiles.
-	err = addValuesAtIndex(store, 7, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 7, map[string]float32{
 		",config=8888,model=Pixel,": 3.0,
 	}, "gs://foo.json", time.Now())
 	assert.NoError(t, err)
@@ -247,12 +254,12 @@ func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
+	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
-	err = addValuesAtIndex(store, 0, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
 		",arch=x86,config=8888,": 1.2,
 		",arch=x86,config=565,":  2.1,
 		",arch=arm,config=8888,": 100.5,
@@ -273,12 +280,12 @@ func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
+	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
-	err = addValuesAtIndex(store, 0, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
 		",arch=x86,config=8888,": 1.2,
 		",arch=x86,config=565,":  2.1,
 		",arch=arm,config=8888,": 100.5,
@@ -315,12 +322,12 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
+	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
-	err = addValuesAtIndex(store, 0, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
 		",arch=x86,config=8888,": 1.2,
 		",arch=x86,config=565,":  2.1,
 		",arch=arm,config=8888,": 100.5,
@@ -328,7 +335,7 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 	assert.NoError(t, err)
 
 	// Add some points to the second tile.
-	err = addValuesAtIndex(store, types.CommitNumber(instanceConfig.DataStoreConfig.TileSize), map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, types.CommitNumber(instanceConfig.DataStoreConfig.TileSize), map[string]float32{
 		",arch=riscv,config=8888,": 1.2,
 	}, "gs://foo.json", time.Now())
 	assert.NoError(t, err)
@@ -347,7 +354,7 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 	}
 	count, ps, err := builder.PreflightQuery(ctx, q, referenceParamSet)
 	require.NoError(t, err)
-	assert.Equal(t, int64(2), count)
+	assert.Equal(t, int64(3), count)
 
 	expectedParamSet := paramtools.ParamSet{
 		"arch":   {"arm", "riscv", "x86"},
@@ -363,7 +370,7 @@ func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
+	store, _ := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 	q, err := query.NewFromString("")
@@ -379,12 +386,12 @@ func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
+	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
-	err = addValuesAtIndex(store, 0, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
 		",arch=x86,config=8888,": 1.2,
 		",arch=x86,config=565,":  2.1,
 		",arch=arm,config=8888,": 100.5,
@@ -407,12 +414,12 @@ func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCounts
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
+	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the latest tile.
-	err = addValuesAtIndex(store, types.CommitNumber(instanceConfig.DataStoreConfig.TileSize+1), map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, types.CommitNumber(instanceConfig.DataStoreConfig.TileSize+1), map[string]float32{
 		",arch=x86,config=8888,": 1.2,
 		",arch=x86,config=565,":  2.1,
 		",arch=arm,config=8888,": 100.5,
@@ -420,7 +427,7 @@ func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCounts
 	assert.NoError(t, err)
 
 	// Add some points to the previous tile.
-	err = addValuesAtIndex(store, 1, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 1, map[string]float32{
 		",arch=x86,config=8888,":   1.2,
 		",arch=riscv,config=8888,": 2.1,
 		",arch=arm,config=8888,":   100.5,
@@ -444,7 +451,7 @@ func TestPreflightQuery_Cache_Success(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
+	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 	cache, err := local.New(10)
 	require.NoError(t, err)
 
@@ -453,7 +460,7 @@ func TestPreflightQuery_Cache_Success(t *testing.T) {
 	builder := NewDataFrameBuilderFromTraceStore(g, store, traceCache, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
-	err = addValuesAtIndex(store, 0, map[string]float32{
+	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
 		",arch=x86,config=8888,": 1.2,
 		",arch=x86,config=565,":  2.1,
 		",arch=arm,config=8888,": 100.5,

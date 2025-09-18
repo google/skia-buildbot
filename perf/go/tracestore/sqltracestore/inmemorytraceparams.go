@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jackc/pgx/v4"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -41,7 +42,7 @@ type InMemoryTraceParams struct {
 	dataLock sync.RWMutex
 }
 
-func (tp *InMemoryTraceParams) refresh(ctx context.Context) error {
+func (tp *InMemoryTraceParams) Refresh(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "InMemoryTraceParams.refresh")
 	defer span.End()
 	traceparams := [][]int32{}
@@ -63,6 +64,9 @@ func (tp *InMemoryTraceParams) refresh(ctx context.Context) error {
 		`
 	tileNumber := types.BadTileNumber
 	if err := tp.db.QueryRow(ctx, getLatestTile).Scan(&tileNumber); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil
+		}
 		return skerr.Wrap(err)
 	}
 
@@ -77,6 +81,9 @@ func (tp *InMemoryTraceParams) refresh(ctx context.Context) error {
 		`
 	paramsRows, err := tp.db.Query(ctx, paramSetForTile, tileNumber)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil
+		}
 		return skerr.Wrap(err)
 	}
 	var pCount int32 = 0
@@ -94,6 +101,9 @@ func (tp *InMemoryTraceParams) refresh(ctx context.Context) error {
 	// Get traceparams row data
 	rows, err := tp.db.Query(ctx, "SELECT trace_id, params FROM traceparams;")
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil
+		}
 		return skerr.Wrap(err)
 	}
 	defer rows.Close()
@@ -140,7 +150,7 @@ func (tp *InMemoryTraceParams) refresh(ctx context.Context) error {
 
 func (tp *InMemoryTraceParams) startRefresher(ctx context.Context) error {
 	// Initialize
-	err := tp.refresh(ctx)
+	err := tp.Refresh(ctx)
 	if err != nil {
 		return err
 	}
@@ -150,7 +160,7 @@ func (tp *InMemoryTraceParams) startRefresher(ctx context.Context) error {
 		// Periodically run it based on the specified duration.
 		refreshDuration := time.Second * time.Duration(tp.refreshIntervalInSeconds)
 		for range time.Tick(refreshDuration) {
-			err := tp.refresh(ctx)
+			err := tp.Refresh(ctx)
 			if err != nil {
 				sklog.Errorf("Error updating alert configurations. %s", err)
 			}
@@ -187,6 +197,9 @@ func (tp *InMemoryTraceParams) QueryTraceIDs(ctx context.Context, tileNumber typ
 		defer close(outParams)
 		tp.dataLock.RLock()
 		defer tp.dataLock.RUnlock()
+		if len(tp.traceparams) == 0 {
+			return
+		}
 		numTraceparams := len(tp.traceparams[0])
 		const kChunkSize int = 2000
 		const kTraceIdQueryPoolSize int = 30
@@ -225,6 +238,15 @@ func (tp *InMemoryTraceParams) QueryTraceIDs(ctx context.Context, tileNumber typ
 								traceids[nextTraceidCount] = traceIdIdx
 								nextTraceidCount++
 							}
+						} else if queryParam.IsNegative {
+							// Keep traceid if it does not match encoded param value
+							for _, eParamValue := range eParamValues {
+								if column[traceIdIdx] != eParamValue {
+									traceids[nextTraceidCount] = traceIdIdx
+									nextTraceidCount++
+								}
+							}
+
 						} else {
 							// Keep traceid if it matches any encoded param value
 							for _, eParamValue := range eParamValues {
