@@ -10,6 +10,7 @@
 //   data to a CSV file.
 //		blaze run //experimental/users/zhanliang/cbb/download_f1 -- --output ~/cbb/cbb_v3_data.csv
 // * Run this script to convert CBB v3 data into the appropriate JSON files.
+//		bazelisk run //pinpoint/go/cbb/upload_v3_data
 //   Then review these JSON files to make sure they were generated correctly.
 // * Elevate to breakglass permission.
 // * Run the following command to upload the JSON files to pers dashboard.
@@ -129,8 +130,6 @@ var safariStableCP = map[string]int{
 	"18.6 (20621.3.11.11.3)":  1493855,
 }
 var safariTPCP = map[string]int{
-	"18.4 (Release 219, 20622.1.12)":      1475903,
-	"18.4 (Release 220, 20622.1.14.5)":    1488562,
 	"26.0 (Release 223, 20622.1.18.11.5)": 1491633,
 	"26.0 (Release 224, 20622.1.20.1)":    1493750,
 	"26.0 (Release 225, 20623.1.1.1)":     1499125,
@@ -216,12 +215,12 @@ func getCP(device, browser, version, chromeVersion string) int {
 	// Since we can't go back in time to create CBB reference files for old releases,
 	// we use fake commit positions. The following formulas are selected to convert
 	// Chrome commit numbers to relatively even-spaced fake commit positions
-	// between 1350000 and 1430000, roughly corresponding to the time period covered
+	// between 1350000 and 1470000, roughly corresponding to the time period covered
 	// by the legacy CBB data we are copying.
 	if isStable {
-		return (parts[0]+7)*10000 + parts[3]*10
+		return parts[0]*14000 + parts[3]*100 - 445000
 	} else {
-		return (parts[2]+3000)*140 + parts[3]*10
+		return parts[2]*215 + parts[3]*20 - 80000
 	}
 }
 
