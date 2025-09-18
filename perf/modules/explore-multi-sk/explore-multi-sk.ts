@@ -154,6 +154,363 @@ export class ExploreMultiSk extends ElementSk {
     this.splitGraphs();
   };
 
+  private _onStateChangedInUrl = async (hintableState: HintableObject) => {
+    const state = hintableState as unknown as State;
+
+    // -- Domain Logic --
+    const useDateAxis = state.dateAxis
+      ? state.dateAxis
+      : this.defaults?.default_xaxis_domain === 'date';
+    state.domain = useDateAxis ? 'date' : 'commit';
+
+    // -- Time Range Logic --
+    // Precedence: explicit begin/end > dayRange > component defaults.
+    const beginProvided = state.begin !== -1;
+    const endProvided = state.end !== -1;
+    const dayRangeProvided = state.dayRange !== -1;
+
+    const now = Math.floor(Date.now() / 1000);
+    const defaultRangeS = this.defaults?.default_range || DEFAULT_RANGE_S;
+
+    if (beginProvided || endProvided) {
+      // Scenario 1: begin and/or end are provided in the URL.
+      if (!beginProvided) {
+        state.begin = state.end - defaultRangeS;
+      } else if (!endProvided) {
+        state.end = state.begin + defaultRangeS;
+        if (state.end > now) state.end = now;
+      }
+    } else if (dayRangeProvided) {
+      // Scenario 2: dayRange is provided, begin/end are NOT.
+      state.end = now;
+      state.begin = now - state.dayRange * 24 * 60 * 60;
+      this.state = state;
+    } else {
+      // Scenario 3: No time parameters in URL, use component defaults.
+      state.begin = now - defaultRangeS;
+      state.end = now;
+    }
+    const numElements = this.exploreElements.length;
+    let graphConfigs: GraphConfig[] = [];
+    if (state.shortcut !== '') {
+      const shortcutConfigs = (await this.getConfigsFromShortcut(state.shortcut)) ?? [];
+      graphConfigs = shortcutConfigs.map((c) => Object.assign(new GraphConfig(), c));
+    }
+
+    // This loop removes graphs that are not in the current config.
+    // This can happen if you add a graph and then use the browser's back button.
+    while (this.exploreElements.length > graphConfigs.length) {
+      this.exploreElements.pop();
+      this.graphConfigs.pop();
+      // Ensure graphDiv exists and has children before removing.
+      if (this.graphDiv && this.graphDiv.lastChild) {
+        this.graphDiv.removeChild(this.graphDiv.lastChild);
+      }
+    }
+
+    const validGraphs: GraphConfig[] = [];
+    for (let i = 0; i < graphConfigs.length; i++) {
+      if (
+        graphConfigs[i].formulas.length > 0 ||
+        graphConfigs[i].queries.length > 0 ||
+        graphConfigs[i].keys !== ''
+      ) {
+        if (i >= numElements) {
+          this.addEmptyGraph();
+        }
+        validGraphs.push(graphConfigs[i]);
+      }
+    }
+    this.graphConfigs = validGraphs;
+
+    this.state = state;
+    if (state.useTestPicker) {
+      this.initializeTestPicker();
+    }
+    await load();
+
+    google.charts.setOnLoadCallback(() => {
+      this.addGraphsToCurrentPage();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      this.exploreElements.forEach((exp) => {
+        exp.keyDown(e);
+      });
+    });
+
+    // If a key is specified (eg: directly via url), perform the split
+    if (this.state.splitByKeys.length > 0) {
+      this._dataLoading = true;
+      this.testPicker?.setReadOnly(true);
+      this.splitGraphs();
+    }
+  };
+
+  // Event listener to remove the explore object from the list if the user
+  // close it in a Multiview window.
+  private _onRemoveExplore = (e: Event) => {
+    this._dataLoading = true;
+    this.testPicker?.setReadOnly(true);
+    const exploreElemToRemove = (e as CustomEvent).detail.elem as ExploreSimpleSk;
+    if (this.exploreElements.length === 1) {
+      this.removeExplore(exploreElemToRemove);
+      e.stopPropagation();
+    } else {
+      const param = this.state.splitByKeys[0];
+      if (exploreElemToRemove.state.queries.length > 0) {
+        const query = exploreElemToRemove.state.queries[0];
+        const valueToRemove = new URLSearchParams(query).get(param);
+        if (valueToRemove) {
+          this.testPicker?.removeItemFromChart(param, [valueToRemove]);
+        }
+      }
+    }
+    this._dataLoading = false;
+    this.testPicker?.setReadOnly(false);
+  };
+
+  // Event listener for when the Test Picker plot button is clicked.
+  // This will create a new empty Graph at the top and plot it with the
+  // selected test values.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private _onPlotButtonClicked = async (e: Event) => {
+    this._dataLoading = true;
+    this.testPicker?.setReadOnly(true);
+    this.setProgress('Loading graphs...');
+    try {
+      if (this.state.splitByKeys.length === 0) {
+        // Just load single graph.
+        const newExplore = this.addEmptyGraph(true);
+        if (!newExplore) {
+          return;
+        }
+        if (this.exploreElements.length > 0 && this._dataLoading) {
+          await this.exploreElements[0].requestComplete;
+        }
+        this.addGraphsToCurrentPage(false);
+        const query = this.testPicker!.createQueryFromFieldData();
+        await newExplore.addFromQueryOrFormula(true, 'query', query, '');
+      } else {
+        // Load multiple graphs, split by the selected split key.
+        // To improve UX, allow some interactivity before all the data is loaded.
+        // To achieve this, load everything in 2 steps:
+        // 1. Load all graphs, but only the selected range. This stage can be chunked,
+        //    updates are incremental.
+        // 2. Load extended range data for all graphs. This is one huge request, but it
+        //    allows to avoid any troubles with concurrency and merging.
+
+        // Split the graphs before loading, so we can load each group separately.
+        const paramSet = this.testPicker!.createParamSetFromFieldData();
+        const groups = this.groupParamSetBySplitKey(paramSet, this.state.splitByKeys);
+
+        if (groups.length === 0) {
+          return;
+        }
+
+        // The mainGraph (exploreElements[0]) will act as an accumulator for all queries.
+        // splitGraphs will then use its accumulated traceset to create the individual
+        // split graphs.
+        const mainGraph = this.addEmptyGraph(true);
+        if (!mainGraph) {
+          return;
+        }
+        await mainGraph.requestComplete;
+        this.addGraphsToCurrentPage(false);
+
+        const CHUNK_SIZE = 5;
+        const totalGroupsToLoad = Math.min(this.state.pageSize, groups.length);
+
+        for (let i = 0; i < totalGroupsToLoad; ) {
+          // The first chunk is always of size 1 - this is to avoid showing the primary
+          // graph / "unsplit" mode.
+          const chunkSize = i === 0 ? 1 : CHUNK_SIZE;
+          const endGroupIndex = Math.min(i + chunkSize, totalGroupsToLoad);
+          const chunk = groups.slice(i, endGroupIndex);
+          if (chunk.length === 0) {
+            break; // No more groups to process.
+          }
+
+          this.setProgress(`Loading graphs ${i + 1}-${endGroupIndex} of ${totalGroupsToLoad}`);
+          await mainGraph.addFromQueryOrFormula(
+            /*replace=*/ false,
+            'query',
+            fromParamSet(this.mergeParamSets(chunk)),
+            '',
+            // Important! Do not load extended range data. Otherwise it produces a lot of
+            // queries fetching the same data + creates concurrency issues.
+            /*loadExtendedRange=*/ false
+          );
+          await mainGraph.requestComplete;
+          await this.splitGraphs(/*showErrorIfLoading=*/ false, /*splitIfOnlyOneGraph=*/ true);
+
+          i = endGroupIndex;
+        }
+
+        // We were postponing loading more data until all the graphs are ready. Now it's time.
+        this.setProgress(`Loading more data for all graphs...`);
+        await mainGraph.loadExtendedRangeData(mainGraph.getSelectedRange()!);
+        await mainGraph.requestComplete;
+        await this.splitGraphs();
+      }
+    } finally {
+      this.setProgress('');
+      this.checkDataLoaded();
+    }
+    if (this.testPicker) {
+      this.testPicker.autoAddTrace = true;
+    }
+  };
+
+  // Event listener for when the Test Picker plot button is clicked.
+  // This will create a new empty Graph at the top and plot it with the
+  // selected test values.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private _onAddToGraph = async (e: Event) => {
+    const query = (e as CustomEvent).detail.query;
+    // Query is the same as the first graph, so do nothing.
+    if (query === this.graphConfigs[0].queries[0]) {
+      return;
+    }
+    let explore: ExploreSimpleSk;
+    this._dataLoading = true;
+    this.testPicker?.setReadOnly(true);
+    if (this.currentPageExploreElements.length === 0) {
+      const newExplore = this.addEmptyGraph(true);
+      if (newExplore) {
+        if (this.exploreElements.length > 0 && this._dataLoading) {
+          await this.exploreElements[0].requestComplete;
+        }
+        this.addGraphsToCurrentPage(true);
+        explore = newExplore;
+      } else {
+        return;
+      }
+    } else {
+      explore = this.exploreElements[0];
+      this.currentPageExploreElements.splice(1);
+      this.currentPageGraphConfigs.splice(1);
+      this.exploreElements.splice(1);
+      this.graphConfigs.splice(1);
+      this.state.totalGraphs = this.exploreElements.length;
+      explore.state.doNotQueryData = false;
+    }
+    await explore.addFromQueryOrFormula(false, 'query', query, '');
+    await this.splitGraphs();
+  };
+
+  private _onRemoveTrace = async (e: Event) => {
+    const param = (e as CustomEvent).detail.param as string;
+    const values = (e as CustomEvent).detail.value as string[];
+    const query = (e as CustomEvent).detail.query as string[];
+
+    if (values.length === 0) {
+      this.resetGraphs();
+      return;
+    }
+    this._dataLoading = true;
+    this.testPicker?.setReadOnly(true);
+    const traceSet = this.getCompleteTraceset();
+    const tracesToRemove: string[] = [];
+    const queriesToRemove: string[] = [];
+
+    // Check through all existing TraceSets and find matches.
+    Object.keys(traceSet).forEach((trace) => {
+      const traceParams = fromKey(trace);
+      if (traceParams[param] && values.includes(traceParams[param])) {
+        // Load remove array and delete from existing traceSet.
+        tracesToRemove.push(trace);
+        queriesToRemove.push(queryFromKey(trace));
+        delete traceSet[trace];
+      }
+    });
+
+    if (Object.keys(traceSet).length === 0) {
+      this.emptyCurrentPage();
+      return;
+    }
+
+    // Remove the traces from the current page explore elements.
+    const elemsToRemove: ExploreSimpleSk[] = [];
+    const updatePromises = this.exploreElements.map((elem) => {
+      if (!elem.state.queries?.length) {
+        return Promise.resolve();
+      }
+
+      elem.state.doNotQueryData = true;
+      const traceset = elem.getTraceset() as TraceSet;
+      elem.removeKeys(tracesToRemove, true);
+      if (elem.state.queries.length === 1) {
+        // Only one query, so update it with the new query based on params.
+        elem.state.queries = Array.from(query);
+      } else {
+        // Multiple queries, so remove the ones that match the deleted traces.
+        elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
+      }
+      if (elem.state.queries.length === 0) {
+        elemsToRemove.push(elem);
+        return Promise.resolve();
+      }
+      const params: ParamSet = ParamSet({});
+      Object.keys(traceset).forEach((trace) => {
+        addParamsToParamSet(params, fromKey(trace));
+      });
+
+      // Update the graph with the new traceSet and params.
+      const updatedRequest: FrameRequest = {
+        queries: elem.state.queries,
+        request_type: this.state.request_type,
+        begin: this.state.begin,
+        end: this.state.end,
+        tz: '',
+      };
+      const updatedResponse: FrameResponse = {
+        dataframe: {
+          traceset: traceset,
+          header: this.getHeader(),
+          paramset: ReadOnlyParamSet(params),
+          skip: 0,
+          traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(
+            Object.keys(traceset),
+            elem.getCommitLinks()
+          ),
+        },
+        anomalymap: this.getAnomalyMapForTraces(this.getFullAnomalyMap(), Object.keys(traceset)),
+        display_mode: 'display_plot',
+        msg: '',
+        skps: [],
+      };
+      return elem.UpdateWithFrameResponse(
+        updatedResponse,
+        updatedRequest,
+        true,
+        this.exploreElements[0].getSelectedRange()
+      );
+    });
+
+    await Promise.all(updatePromises);
+
+    elemsToRemove.forEach((elem) => {
+      this.removeExplore(elem);
+    });
+
+    this.exploreElements.forEach((elem, i) => {
+      this.graphConfigs[i].queries = elem.state.queries ?? [];
+    });
+
+    if (this.stateHasChanged) {
+      this.stateHasChanged();
+      this.checkDataLoaded();
+    }
+  };
+
+  // Event listener for when the "Query Highlighted" button is clicked.
+  // It will populate the Test Picker with the keys from the highlighted
+  // trace.
+  private _onPopulateQuery = (e: Event) => {
+    this.populateTestPicker((e as CustomEvent).detail);
+  };
+
   constructor() {
     super(ExploreMultiSk.template);
   }
@@ -169,98 +526,7 @@ export class ExploreMultiSk extends ElementSk {
     await this.initializeDefaults();
     this.stateHasChanged = stateReflector(
       () => this.state as unknown as HintableObject,
-      async (hintableState) => {
-        const state = hintableState as unknown as State;
-
-        // -- Domain Logic --
-        const useDateAxis = state.dateAxis
-          ? state.dateAxis
-          : this.defaults?.default_xaxis_domain === 'date';
-        state.domain = useDateAxis ? 'date' : 'commit';
-
-        // -- Time Range Logic --
-        // Precedence: explicit begin/end > dayRange > component defaults.
-        const beginProvided = state.begin !== -1;
-        const endProvided = state.end !== -1;
-        const dayRangeProvided = state.dayRange !== -1;
-
-        const now = Math.floor(Date.now() / 1000);
-        const defaultRangeS = this.defaults?.default_range || DEFAULT_RANGE_S;
-
-        if (beginProvided || endProvided) {
-          // Scenario 1: begin and/or end are provided in the URL.
-          if (!beginProvided) {
-            state.begin = state.end - defaultRangeS;
-          } else if (!endProvided) {
-            state.end = state.begin + defaultRangeS;
-            if (state.end > now) state.end = now;
-          }
-        } else if (dayRangeProvided) {
-          // Scenario 2: dayRange is provided, begin/end are NOT.
-          state.end = now;
-          state.begin = now - state.dayRange * 24 * 60 * 60;
-          this.state = state;
-        } else {
-          // Scenario 3: No time parameters in URL, use component defaults.
-          state.begin = now - defaultRangeS;
-          state.end = now;
-        }
-        const numElements = this.exploreElements.length;
-        let graphConfigs: GraphConfig[] = [];
-        if (state.shortcut !== '') {
-          const shortcutConfigs = (await this.getConfigsFromShortcut(state.shortcut)) ?? [];
-          graphConfigs = shortcutConfigs.map((c) => Object.assign(new GraphConfig(), c));
-        }
-
-        // This loop removes graphs that are not in the current config.
-        // This can happen if you add a graph and then use the browser's back button.
-        while (this.exploreElements.length > graphConfigs.length) {
-          this.exploreElements.pop();
-          this.graphConfigs.pop();
-          // Ensure graphDiv exists and has children before removing.
-          if (this.graphDiv && this.graphDiv.lastChild) {
-            this.graphDiv.removeChild(this.graphDiv.lastChild);
-          }
-        }
-
-        const validGraphs: GraphConfig[] = [];
-        for (let i = 0; i < graphConfigs.length; i++) {
-          if (
-            graphConfigs[i].formulas.length > 0 ||
-            graphConfigs[i].queries.length > 0 ||
-            graphConfigs[i].keys !== ''
-          ) {
-            if (i >= numElements) {
-              this.addEmptyGraph();
-            }
-            validGraphs.push(graphConfigs[i]);
-          }
-        }
-        this.graphConfigs = validGraphs;
-
-        this.state = state;
-        if (state.useTestPicker) {
-          this.initializeTestPicker();
-        }
-        await load();
-
-        google.charts.setOnLoadCallback(() => {
-          this.addGraphsToCurrentPage();
-        });
-
-        document.addEventListener('keydown', (e) => {
-          this.exploreElements.forEach((exp) => {
-            exp.keyDown(e);
-          });
-        });
-
-        // If a key is specified (eg: directly via url), perform the split
-        if (this.state.splitByKeys.length > 0) {
-          this._dataLoading = true;
-          this.testPicker?.setReadOnly(true);
-          this.splitGraphs();
-        }
-      }
+      this._onStateChangedInUrl
     );
 
     LoggedIn()
@@ -658,270 +924,24 @@ export class ExploreMultiSk extends ElementSk {
       this.testPicker!.initializeTestPicker(testPickerParams!, defaultParams, readOnly);
       this._render();
     }
-    // Event listener to remove the explore object from the list if the user
-    // close it in a Multiview window.
-    this.addEventListener('remove-explore', (e) => {
-      this._dataLoading = true;
-      this.testPicker?.setReadOnly(true);
-      const exploreElemToRemove = (e as CustomEvent).detail.elem as ExploreSimpleSk;
-      if (this.exploreElements.length === 1) {
-        this.removeExplore(exploreElemToRemove);
-        e.stopPropagation();
-      } else {
-        const param = this.state.splitByKeys[0];
-        if (exploreElemToRemove.state.queries.length > 0) {
-          const query = exploreElemToRemove.state.queries[0];
-          const valueToRemove = new URLSearchParams(query).get(param);
-          if (valueToRemove) {
-            this.testPicker?.removeItemFromChart(param, [valueToRemove]);
-          }
-        }
-      }
-      this._dataLoading = false;
-      this.testPicker?.setReadOnly(false);
-    });
 
-    // Event listener for when the Test Picker plot button is clicked.
-    // This will create a new empty Graph at the top and plot it with the
-    // selected test values.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    this.addEventListener('plot-button-clicked', async (e) => {
-      this._dataLoading = true;
-      this.testPicker?.setReadOnly(true);
-      this.setProgress('Loading graphs...');
-      try {
-        if (this.state.splitByKeys.length === 0) {
-          // Just load single graph.
-          const newExplore = this.addEmptyGraph(true);
-          if (!newExplore) {
-            return;
-          }
-          if (this.exploreElements.length > 0 && this._dataLoading) {
-            await this.exploreElements[0].requestComplete;
-          }
-          this.addGraphsToCurrentPage(false);
-          const query = this.testPicker!.createQueryFromFieldData();
-          await newExplore.addFromQueryOrFormula(true, 'query', query, '');
-        } else {
-          // Load multiple graphs, split by the selected split key.
-          // To improve UX, allow some interactivity before all the data is loaded.
-          // To achieve this, load everything in 2 steps:
-          // 1. Load all graphs, but only the selected range. This stage can be chunked,
-          //    updates are incremental.
-          // 2. Load extended range data for all graphs. This is one huge request, but it
-          //    allows to avoid any troubles with concurrency and merging.
+    this.removeEventListener('remove-explore', this._onRemoveExplore);
+    this.addEventListener('remove-explore', this._onRemoveExplore);
 
-          // Split the graphs before loading, so we can load each group separately.
-          const paramSet = this.testPicker!.createParamSetFromFieldData();
-          const groups = this.groupParamSetBySplitKey(paramSet, this.state.splitByKeys);
-
-          if (groups.length === 0) {
-            return;
-          }
-
-          // The mainGraph (exploreElements[0]) will act as an accumulator for all queries.
-          // splitGraphs will then use its accumulated traceset to create the individual
-          // split graphs.
-          const mainGraph = this.addEmptyGraph(true);
-          if (!mainGraph) {
-            return;
-          }
-          await mainGraph.requestComplete;
-          this.addGraphsToCurrentPage(false);
-
-          const CHUNK_SIZE = 5;
-          const totalGroupsToLoad = Math.min(this.state.pageSize, groups.length);
-
-          for (let i = 0; i < totalGroupsToLoad; ) {
-            // The first chunk is always of size 1 - this is to avoid showing the primary
-            // graph / "unsplit" mode.
-            const chunkSize = i === 0 ? 1 : CHUNK_SIZE;
-            const endGroupIndex = Math.min(i + chunkSize, totalGroupsToLoad);
-            const chunk = groups.slice(i, endGroupIndex);
-            if (chunk.length === 0) {
-              break; // No more groups to process.
-            }
-
-            this.setProgress(`Loading graphs ${i + 1}-${endGroupIndex} of ${totalGroupsToLoad}`);
-            await mainGraph.addFromQueryOrFormula(
-              /*replace=*/ false,
-              'query',
-              fromParamSet(this.mergeParamSets(chunk)),
-              '',
-              // Important! Do not load extended range data. Otherwise it produces a lot of
-              // queries fetching the same data + creates concurrency issues.
-              /*loadExtendedRange=*/ false
-            );
-            await mainGraph.requestComplete;
-            await this.splitGraphs(/*showErrorIfLoading=*/ false, /*splitIfOnlyOneGraph=*/ true);
-
-            i = endGroupIndex;
-          }
-
-          // We were postponing loading more data until all the graphs are ready. Now it's time.
-          this.setProgress(`Loading more data for all graphs...`);
-          await mainGraph.loadExtendedRangeData(mainGraph.getSelectedRange()!);
-          await mainGraph.requestComplete;
-          await this.splitGraphs();
-        }
-      } finally {
-        this.setProgress('');
-        this.checkDataLoaded();
-      }
-      if (this.testPicker) {
-        this.testPicker.autoAddTrace = true;
-      }
-    });
+    this.removeEventListener('plot-button-clicked', this._onPlotButtonClicked);
+    this.addEventListener('plot-button-clicked', this._onPlotButtonClicked);
 
     this.removeEventListener('split-by-changed', this._onSplitByChanged);
     this.addEventListener('split-by-changed', this._onSplitByChanged);
-    // Event listener for when the Test Picker plot button is clicked.
-    // This will create a new empty Graph at the top and plot it with the
-    // selected test values.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    this.addEventListener('add-to-graph', async (e) => {
-      const query = (e as CustomEvent).detail.query;
-      // Query is the same as the first graph, so do nothing.
-      if (query === this.graphConfigs[0].queries[0]) {
-        return;
-      }
-      let explore: ExploreSimpleSk;
-      this._dataLoading = true;
-      this.testPicker?.setReadOnly(true);
-      if (this.currentPageExploreElements.length === 0) {
-        const newExplore = this.addEmptyGraph(true);
-        if (newExplore) {
-          if (this.exploreElements.length > 0 && this._dataLoading) {
-            await this.exploreElements[0].requestComplete;
-          }
-          this.addGraphsToCurrentPage(true);
-          explore = newExplore;
-        } else {
-          return;
-        }
-      } else {
-        explore = this.exploreElements[0];
-        this.currentPageExploreElements.splice(1);
-        this.currentPageGraphConfigs.splice(1);
-        this.exploreElements.splice(1);
-        this.graphConfigs.splice(1);
-        this.state.totalGraphs = this.exploreElements.length;
-        explore.state.doNotQueryData = false;
-      }
-      await explore.addFromQueryOrFormula(false, 'query', query, '');
-      await this.splitGraphs();
-    });
 
-    this.addEventListener('remove-trace', async (e) => {
-      const param = (e as CustomEvent).detail.param as string;
-      const values = (e as CustomEvent).detail.value as string[];
-      const query = (e as CustomEvent).detail.query as string[];
+    this.removeEventListener('add-to-graph', this._onAddToGraph);
+    this.addEventListener('add-to-graph', this._onAddToGraph);
 
-      if (values.length === 0) {
-        this.resetGraphs();
-        return;
-      }
-      this._dataLoading = true;
-      this.testPicker?.setReadOnly(true);
-      const traceSet = this.getCompleteTraceset();
-      const tracesToRemove: string[] = [];
-      const queriesToRemove: string[] = [];
+    this.removeEventListener('remove-trace', this._onRemoveTrace);
+    this.addEventListener('remove-trace', this._onRemoveTrace);
 
-      // Check through all existing TraceSets and find matches.
-      Object.keys(traceSet).forEach((trace) => {
-        const traceParams = fromKey(trace);
-        if (traceParams[param] && values.includes(traceParams[param])) {
-          // Load remove array and delete from existing traceSet.
-          tracesToRemove.push(trace);
-          queriesToRemove.push(queryFromKey(trace));
-          delete traceSet[trace];
-        }
-      });
-
-      if (Object.keys(traceSet).length === 0) {
-        this.emptyCurrentPage();
-        return;
-      }
-
-      // Remove the traces from the current page explore elements.
-      const elemsToRemove: ExploreSimpleSk[] = [];
-      const updatePromises = this.exploreElements.map((elem) => {
-        if (!elem.state.queries?.length) {
-          return Promise.resolve();
-        }
-
-        elem.state.doNotQueryData = true;
-        const traceset = elem.getTraceset() as TraceSet;
-        elem.removeKeys(tracesToRemove, true);
-        if (elem.state.queries.length === 1) {
-          // Only one query, so update it with the new query based on params.
-          elem.state.queries = Array.from(query);
-        } else {
-          // Multiple queries, so remove the ones that match the deleted traces.
-          elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
-        }
-        if (elem.state.queries.length === 0) {
-          elemsToRemove.push(elem);
-          return Promise.resolve();
-        }
-        const params: ParamSet = ParamSet({});
-        Object.keys(traceset).forEach((trace) => {
-          addParamsToParamSet(params, fromKey(trace));
-        });
-
-        // Update the graph with the new traceSet and params.
-        const updatedRequest: FrameRequest = {
-          queries: elem.state.queries,
-          request_type: this.state.request_type,
-          begin: this.state.begin,
-          end: this.state.end,
-          tz: '',
-        };
-        const updatedResponse: FrameResponse = {
-          dataframe: {
-            traceset: traceset,
-            header: this.getHeader(),
-            paramset: ReadOnlyParamSet(params),
-            skip: 0,
-            traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(
-              Object.keys(traceset),
-              elem.getCommitLinks()
-            ),
-          },
-          anomalymap: this.getAnomalyMapForTraces(this.getFullAnomalyMap(), Object.keys(traceset)),
-          display_mode: 'display_plot',
-          msg: '',
-          skps: [],
-        };
-        return elem.UpdateWithFrameResponse(
-          updatedResponse,
-          updatedRequest,
-          true,
-          this.exploreElements[0].getSelectedRange()
-        );
-      });
-
-      await Promise.all(updatePromises);
-
-      elemsToRemove.forEach((elem) => {
-        this.removeExplore(elem);
-      });
-
-      this.exploreElements.forEach((elem, i) => {
-        this.graphConfigs[i].queries = elem.state.queries ?? [];
-      });
-
-      if (this.stateHasChanged) {
-        this.stateHasChanged();
-        this.checkDataLoaded();
-      }
-    });
-    // Event listener for when the "Query Highlighted" button is clicked.
-    // It will populate the Test Picker with the keys from the highlighted
-    // trace.
-    this.addEventListener('populate-query', (e) => {
-      this.populateTestPicker((e as CustomEvent).detail);
-    });
+    this.removeEventListener('populate-query', this._onPopulateQuery);
+    this.addEventListener('populate-query', this._onPopulateQuery);
   }
 
   private async populateTestPicker(paramSet: { [key: string]: string[] }) {
