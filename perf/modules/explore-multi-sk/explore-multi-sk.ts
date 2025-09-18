@@ -319,19 +319,18 @@ export class ExploreMultiSk extends ElementSk {
         this.addGraphsToCurrentPage(false);
 
         const CHUNK_SIZE = 5;
-        const totalGroupsToLoad = Math.min(this.state.pageSize, groups.length);
-
-        for (let i = 0; i < totalGroupsToLoad; ) {
+        const groupdToLoadInChunks = Math.min(this.state.pageSize, groups.length);
+        for (let i = 0; i < groupdToLoadInChunks; ) {
           // The first chunk is always of size 1 - this is to avoid showing the primary
           // graph / "unsplit" mode.
           const chunkSize = i === 0 ? 1 : CHUNK_SIZE;
-          const endGroupIndex = Math.min(i + chunkSize, totalGroupsToLoad);
+          const endGroupIndex = Math.min(i + chunkSize, groupdToLoadInChunks);
           const chunk = groups.slice(i, endGroupIndex);
           if (chunk.length === 0) {
             break; // No more groups to process.
           }
 
-          this.setProgress(`Loading graphs ${i + 1}-${endGroupIndex} of ${totalGroupsToLoad}`);
+          this.setProgress(`Loading graphs ${i + 1}-${endGroupIndex} of ${groups.length}`);
           await mainGraph.addFromQueryOrFormula(
             /*replace=*/ false,
             'query',
@@ -349,11 +348,24 @@ export class ExploreMultiSk extends ElementSk {
 
         // We were postponing loading more data until all the graphs are ready. Now it's time.
         this.setProgress(`Loading more data for all graphs...`);
-        await mainGraph.loadExtendedRangeData(mainGraph.getSelectedRange()!);
+        if (groups.length > groupdToLoadInChunks) {
+          // Note that we load all the graphs, even if they don't fit in one page. It slows down
+          // the initial load, but speeds up page navigation and "Load All Graphs".
+          await mainGraph.addFromQueryOrFormula(
+            /*replace=*/ true,
+            'query',
+            fromParamSet(this.mergeParamSets(groups)),
+            '',
+            /*loadExtendedRange=*/ true
+          );
+        } else {
+          await mainGraph.loadExtendedRangeData(mainGraph.getSelectedRange()!);
+        }
         await mainGraph.requestComplete;
         await this.splitGraphs();
       }
     } finally {
+      this.updateShortcutMultiview();
       this.setProgress('');
       this.checkDataLoaded();
     }

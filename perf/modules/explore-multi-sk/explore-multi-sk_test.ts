@@ -618,9 +618,11 @@ describe('ExploreMultiSk', () => {
       // We stub 'splitGraphs' because we are not testing its implementation here,
       // only that the loading orchestrator calls it.
       sinon.stub(element, 'splitGraphs' as any).resolves();
+      element['stateHasChanged'] = () => {};
     });
 
     it('loads graphs in chunks and fetches extended data once at the end', async () => {
+      const updateShortcutSpy = sinon.spy(element, 'updateShortcutMultiview' as any);
       // Dispatch the event that triggers the chunking logic.
       const event = new CustomEvent('plot-button-clicked', { bubbles: true });
       element.dispatchEvent(event);
@@ -677,6 +679,72 @@ describe('ExploreMultiSk', () => {
       assert.equal(setProgressSpy.getCall(3).args[0], 'Loading graphs 7-7 of 7');
       assert.equal(setProgressSpy.getCall(4).args[0], 'Loading more data for all graphs...');
       assert.equal(setProgressSpy.lastCall.args[0], '', 'setProgress should be cleared at the end');
+
+      assert.isTrue(
+        updateShortcutSpy.calledOnce,
+        'updateShortcutMultiview should be called once at the end'
+      );
+    });
+
+    it('loads all graphs when "Load All Graphs" is clicked and page size is small', async () => {
+      // Set a small page size to ensure not all graphs are loaded initially.
+      element.state.pageSize = 2;
+      const totalSplitGraphs = 7; // Based on the mocked test picker data.
+
+      // Dispatch the event that triggers the chunking logic.
+      const event = new CustomEvent('plot-button-clicked', { bubbles: true });
+      element.dispatchEvent(event);
+
+      // Wait for the async handler to complete.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // After the initial chunked load, the `exploreElements` array is populated.
+      // Let's simulate the state after `_onPlotButtonClicked` has run.
+      // The stub for `splitGraphs` prevents `addGraphsToCurrentPage` from being called
+      // in a way that's useful for this test's setup, so we call it manually.
+      element['exploreElements'] = [
+        mainGraph,
+        ...Array(totalSplitGraphs).fill(new ExploreSimpleSk()),
+      ];
+      element['graphConfigs'] = Array(totalSplitGraphs + 1).fill(new GraphConfig());
+      element['addGraphsToCurrentPage'](true); // This will respect the small pageSize.
+
+      assert.equal(
+        element['currentPageExploreElements'].length,
+        2,
+        'Initially, only one page of graphs should be loaded'
+      );
+
+      // Now, simulate clicking "Load All Charts".
+      // The button only appears when totalGraphs > 10.
+      element.state.totalGraphs = 11;
+      element['_render']();
+      const loadAllButton = element.querySelector<HTMLButtonElement>('div#pagination > button');
+      assert.isNotNull(loadAllButton, 'Load All Charts button should be visible');
+
+      // Stub window.confirm to simulate user confirmation.
+      const confirmStub = sinon.stub(window, 'confirm').returns(true);
+
+      // The real `loadAllCharts` calls `splitGraphs`. We'll spy on it.
+      const splitGraphsSpy = element['splitGraphs'] as sinon.SinonSpy;
+
+      await element['loadAllCharts']();
+
+      assert.isTrue(confirmStub.calledOnce, 'window.confirm should be called');
+      assert.equal(
+        element.state.pageSize,
+        totalSplitGraphs,
+        'Page size should be updated to total graphs'
+      );
+      assert.equal(element.state.pageOffset, 0, 'Page offset should be reset');
+      assert.isTrue(splitGraphsSpy.called, 'splitGraphs should be called to reload');
+
+      element['addGraphsToCurrentPage']();
+      assert.equal(
+        element['currentPageExploreElements'].length,
+        totalSplitGraphs,
+        'All graphs should be loaded on the page'
+      );
     });
   });
 });
