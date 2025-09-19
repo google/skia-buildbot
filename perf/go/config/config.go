@@ -915,6 +915,12 @@ type Experiments struct {
 	InMemoryTraceParams bool `json:"in_memory_traceparams,omitempty"`
 	// Flag specifying whether metadata should be prefetched during the query.
 	PrefetchMetadata bool `json:"prefetch_metadata,omitempty"`
+	// Flag specifying whether subqueries for keys already present in a dfbuilder's PreflightQuery
+	// should be executed. If false, those keys will be populated using all possible values.
+	// If true, those keys will be filtered using the remaining keys from the query,
+	// which is more intuitive for the user, but requires a lot of extra queries,
+	// because for every key, we need to execute the preflight on less restrictive (so more expensive) query.
+	PreflightSubqueriesForExistingKeys bool `json:"preflight_subqueries_for_existing_keys,omitempty"`
 }
 
 type CacheType string

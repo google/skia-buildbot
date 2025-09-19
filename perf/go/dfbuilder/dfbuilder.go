@@ -58,15 +58,16 @@ const (
 
 // builder implements DataFrameBuilder using TraceStore.
 type builder struct {
-	git                  perfgit.Git
-	store                tracestore.TraceStore
-	tileSize             int32
-	numPreflightTiles    int
-	filterParentTraces   Filtering
-	QueryCommitChunkSize int
-	maxEmptyTiles        int
-	tracecache           *tracecache.TraceCache
-	mux                  *sync.Mutex
+	git                                perfgit.Git
+	store                              tracestore.TraceStore
+	tileSize                           int32
+	numPreflightTiles                  int
+	filterParentTraces                 Filtering
+	QueryCommitChunkSize               int
+	maxEmptyTiles                      int
+	tracecache                         *tracecache.TraceCache
+	mux                                *sync.Mutex
+	preflightSubqueriesForExistingKeys bool
 
 	newTimer                      metrics2.Float64SummaryMetric
 	newByTileTimer                metrics2.Float64SummaryMetric
@@ -79,28 +80,29 @@ type builder struct {
 }
 
 // NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
-func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceStore, traceCache *tracecache.TraceCache, numPreflightTiles int, filterParentTraces Filtering, queryCommitChunkSize int, maxEmptyTiles int) dataframe.DataFrameBuilder {
+func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceStore, traceCache *tracecache.TraceCache, numPreflightTiles int, filterParentTraces Filtering, queryCommitChunkSize int, maxEmptyTiles int, preflightSubqueriesForExistingKeys bool) dataframe.DataFrameBuilder {
 	if maxEmptyTiles <= 0 {
 		maxEmptyTiles = newNMaxSearch
 	}
 	return &builder{
-		git:                           git,
-		store:                         store,
-		tracecache:                    traceCache,
-		numPreflightTiles:             numPreflightTiles,
-		tileSize:                      store.TileSize(),
-		filterParentTraces:            filterParentTraces,
-		QueryCommitChunkSize:          queryCommitChunkSize,
-		maxEmptyTiles:                 maxEmptyTiles,
-		mux:                           &sync.Mutex{},
-		newTimer:                      metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_new"),
-		newByTileTimer:                metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newByTile"),
-		newFromQueryAndRangeTimer:     metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromQueryAndRange"),
-		newFromKeysAndRangeTimer:      metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromKeysAndRange"),
-		newFromCommitIDsAndQueryTimer: metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromCommitIDsAndQuery"),
-		newNFromQueryTimer:            metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newNFromQuery"),
-		newNFromKeysTimer:             metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newNFromKeys"),
-		preflightQueryTimer:           metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_preflightQuery"),
+		git:                                git,
+		store:                              store,
+		tracecache:                         traceCache,
+		numPreflightTiles:                  numPreflightTiles,
+		tileSize:                           store.TileSize(),
+		filterParentTraces:                 filterParentTraces,
+		QueryCommitChunkSize:               queryCommitChunkSize,
+		maxEmptyTiles:                      maxEmptyTiles,
+		mux:                                &sync.Mutex{},
+		preflightSubqueriesForExistingKeys: preflightSubqueriesForExistingKeys,
+		newTimer:                           metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_new"),
+		newByTileTimer:                     metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newByTile"),
+		newFromQueryAndRangeTimer:          metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromQueryAndRange"),
+		newFromKeysAndRangeTimer:           metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromKeysAndRange"),
+		newFromCommitIDsAndQueryTimer:      metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromCommitIDsAndQuery"),
+		newNFromQueryTimer:                 metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newNFromQuery"),
+		newNFromKeysTimer:                  metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newNFromKeys"),
+		preflightQueryTimer:                metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_preflightQuery"),
 	}
 }
 
@@ -732,6 +734,7 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 	// key in the query we need to go back and put in all the values that
 	// appear for that key since the user can make more selections in that
 	// key.
+	// TODO(mordeckimarcin) implement new logic using preflightSubqueriesForExistingKeys feature flag.
 	timeBeforeQueryPlan := time.Now()
 	queryPlan, err := q.QueryPlan(ps.Freeze())
 	duration = time.Now().Sub(timeBeforeQueryPlan)

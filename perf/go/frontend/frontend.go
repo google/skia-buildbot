@@ -494,7 +494,8 @@ func (f *Frontend) initialize() {
 		f.flags.NumParamSetsForQueries,
 		dfbuilder.Filtering(config.Config.FilterParentTraces),
 		config.Config.QueryConfig.CommitChunkSize,
-		config.Config.QueryConfig.MaxEmptyTilesForQuery)
+		config.Config.QueryConfig.MaxEmptyTilesForQuery,
+		config.Config.Experiments.PreflightSubqueriesForExistingKeys)
 
 	sklog.Info("About to build paramset refresher.")
 

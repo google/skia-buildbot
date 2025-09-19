@@ -64,6 +64,8 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, perf
 	assert.NoError(t, err)
 	store, err := sqltracestore.New(db, cfg, traceParamStore, inMemoryTraceParams)
 	require.NoError(t, err)
+	// TODO(mordeckimarcin) Add tests with preflightSubqueriesForExistingKeys set to true.
+	preflightSubqueriesForExistingKeys := false
 
 	ts := gittest.StartTime
 
@@ -97,7 +99,7 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, perf
 
 	instanceConfig.DataStoreConfig.TileSize = testTileSize
 	require.NoError(t, err)
-	dfb := dfbuilder.NewDataFrameBuilderFromTraceStore(g, store, nil, 2, false, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
+	dfb := dfbuilder.NewDataFrameBuilderFromTraceStore(g, store, nil, 2, false, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeys)
 	return ctx, dfb, g, lastTimeStamp
 }
 
