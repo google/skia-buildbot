@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/unrolled/secure"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/alogin"
@@ -887,17 +888,17 @@ func oldMainHandler(w http.ResponseWriter, r *http.Request) {
 	instanceConf := config.Config
 	landingPath := instanceConf.LandingPageRelPath
 	if landingPath == "" {
-		landingPath = "/e/"
+		landingPath = "/e"
 	}
 	http.Redirect(w, r, landingPath, http.StatusMovedPermanently)
 }
 
 func oldClustersHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/c/", http.StatusMovedPermanently)
+	http.Redirect(w, r, "/c", http.StatusMovedPermanently)
 }
 
 func oldAlertsHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/t/", http.StatusMovedPermanently)
+	http.Redirect(w, r, "/t", http.StatusMovedPermanently)
 }
 
 func (f *Frontend) RoleEnforcedHandler(role roles.Role, handler http.Handler) http.Handler {
@@ -940,35 +941,39 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	}
 	router.Use(baseapp.SecurityMiddleware(ah, local, nil))
 
+	// All api paths must not end in a trailing slash.
+	// The root path "/" is the only exception.
+	router.Use(middleware.StripSlashes)
+
 	router.HandleFunc("/dist/*", f.makeDistHandler())
 
 	// Redirects for the old Perf URLs.
 	router.HandleFunc("/", oldMainHandler)
-	router.HandleFunc("/clusters/", oldClustersHandler)
-	router.HandleFunc("/alerts/", oldAlertsHandler)
+	router.HandleFunc("/clusters", oldClustersHandler)
+	router.HandleFunc("/alerts", oldAlertsHandler)
 
 	// New endpoints that use ptracestore will go here.
-	router.HandleFunc("/e/", f.templateHandler("newindex.html"))
-	router.HandleFunc("/m/", f.templateHandler("multiexplore.html"))
-	router.HandleFunc("/c/", f.templateHandler("clusters2.html"))
-	router.HandleFunc("/t/", f.templateHandler("triage.html"))
-	router.HandleFunc("/d/", f.templateHandler("dryrunalert.html"))
-	router.HandleFunc("/r/", f.templateHandler("trybot.html"))
-	router.HandleFunc("/f/", f.templateHandler("favorites.html"))
-	router.HandleFunc("/v/", f.templateHandler("revisions.html"))
-	router.HandleFunc("/u/", f.templateHandler("report.html"))
+	router.HandleFunc("/e", f.templateHandler("newindex.html"))
+	router.HandleFunc("/m", f.templateHandler("multiexplore.html"))
+	router.HandleFunc("/c", f.templateHandler("clusters2.html"))
+	router.HandleFunc("/t", f.templateHandler("triage.html"))
+	router.HandleFunc("/d", f.templateHandler("dryrunalert.html"))
+	router.HandleFunc("/r", f.templateHandler("trybot.html"))
+	router.HandleFunc("/f", f.templateHandler("favorites.html"))
+	router.HandleFunc("/v", f.templateHandler("revisions.html"))
+	router.HandleFunc("/u", f.templateHandler("report.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
-	router.HandleFunc("/help/", f.helpHandler)
+	router.HandleFunc("/help", f.helpHandler)
 
 	// The legacy page for /a/ is alerts.html.
 	// Sheriff Config based alerts will route to regressions.html.
 	if config.Config.NewAlertsPage {
-		router.HandleFunc("/a/", f.templateHandler("regressions.html"))
+		router.HandleFunc("/a", f.templateHandler("regressions.html"))
 		// (b/391716594) Need an entry to set up test alerts for migration purposes.
-		router.HandleFunc("/admin/alerts/", f.templateHandler("alerts.html"))
+		router.HandleFunc("/admin/alerts", f.templateHandler("alerts.html"))
 	} else {
-		router.HandleFunc("/a/", f.templateHandler("alerts.html"))
-		router.Get("/r2/", f.templateHandler("regressions.html"))
+		router.HandleFunc("/a", f.templateHandler("alerts.html"))
+		router.Get("/r2", f.templateHandler("regressions.html"))
 	}
 
 	// TODO(ashwinpv): This should move to using the backend service.
@@ -987,7 +992,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	}
 
 	// TODO(ashwinpv): The trybot page looks to be unused. Confirm and delete if that's the case.
-	router.Post("/_/trybot/load/", f.trybotLoadHandler)
+	router.Post("/_/trybot/load", f.trybotLoadHandler)
 
 	apis := f.getFrontendApis()
 
@@ -996,8 +1001,8 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	}
 	router.Get("/_/login/status", f.loginStatus)
 
-	router.Get("/_/defaults/", f.defaultsHandler)
-	router.Get("/_/revision/", f.revisionHandler)
+	router.Get("/_/defaults", f.defaultsHandler)
+	router.Get("/_/revision", f.revisionHandler)
 
 	return router
 }

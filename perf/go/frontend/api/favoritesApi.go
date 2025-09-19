@@ -35,7 +35,7 @@ func NewFavoritesApi(loginProvider alogin.Login, favoritesStore favorites.Store)
 
 // RegisterHandlers registers the api handlers for their respective routes.
 func (f favoritesApi) RegisterHandlers(router *chi.Mux) {
-	router.Get("/_/favorites/", f.favoritesHandler)
+	router.Get("/_/favorites", f.favoritesHandler)
 	router.Post("/_/favorites/new", f.newFavoriteHandler)
 	router.Post("/_/favorites/delete", f.deleteFavoriteHandler)
 	router.Post("/_/favorites/edit", f.updateFavoriteHandler)

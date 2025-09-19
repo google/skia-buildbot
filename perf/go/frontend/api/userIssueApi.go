@@ -30,7 +30,7 @@ func NewUserIssueApi(loginProvider alogin.Login, userIssueStore userissue.Store)
 
 // RegisterHandlers registers the api handlers for their respective routes.
 func (ui userIssueApi) RegisterHandlers(router *chi.Mux) {
-	router.Post("/_/user_issues/", ui.userIssuesHandler)
+	router.Post("/_/user_issues", ui.userIssuesHandler)
 	router.Post("/_/user_issue/save", ui.saveUserIssueHandler)
 	router.Post("/_/user_issue/delete", ui.deleteUserIssueHandler)
 }

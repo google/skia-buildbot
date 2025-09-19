@@ -124,7 +124,7 @@ export class ClusterPageSk extends ElementSk {
         <div>
           Matches:
           <query-count-sk
-            url="/_/count/"
+            url="/_/count"
             current_query=${ele.state.query}
             @paramset-changed=${ele.paramsetChanged}></query-count-sk>
         </div>

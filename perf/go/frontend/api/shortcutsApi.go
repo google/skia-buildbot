@@ -28,7 +28,7 @@ func NewShortCutsApi(shortcutStore shortcut.Store, graphsShortcutStore graphssho
 
 // RegisterHandlers registers the api handlers for their respective routes.
 func (api shortcutsApi) RegisterHandlers(router *chi.Mux) {
-	router.Post("/_/keys/", api.keysHandler)
+	router.Post("/_/keys", api.keysHandler)
 	router.Post("/_/shortcut/get", api.getGraphsShortcutHandler)
 	router.Post("/_/shortcut/update", api.createGraphsShortcutHandler)
 }

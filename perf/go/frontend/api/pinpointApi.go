@@ -34,8 +34,8 @@ func NewPinpointApi(loginProvider alogin.Login, pinpointClient *pinpoint.Client)
 // RegisterHandlers registers the api handlers for their respective routes.
 func (api pinpointApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/bisect/create", api.createBisectHandler)
-	router.Post("/_/try/", api.createTryJobHandler)
-	router.HandleFunc("/p/", api.pinpointBisectionHandler)
+	router.Post("/_/try", api.createTryJobHandler)
+	router.HandleFunc("/p", api.pinpointBisectionHandler)
 }
 
 // createTryJobHandler takes the POST'd to create a Pinpoint try job request

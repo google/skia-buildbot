@@ -72,17 +72,17 @@ export class PerfScaffoldSk extends ElementSk {
     </header>
     <aside id=sidebar>
       <div id=links>
-        <a href="/e/" tab-index=0 ><home-icon-sk></home-icon-sk><span>New Query</span></a>
-        <a href="/f/" tab-index=0 ><favorite-icon-sk></favorite-icon-sk><span>Favorites</span></a>
-        <a href="/m/" tab-index=0 >
+        <a href="/e" tab-index=0 ><home-icon-sk></home-icon-sk><span>New Query</span></a>
+        <a href="/f" tab-index=0 ><favorite-icon-sk></favorite-icon-sk><span>Favorites</span></a>
+        <a href="/m" tab-index=0 >
           <multiline-chart-icon-sk></multiline-chart-icon-sk><span>MultiGraph</span>
         </a>
         <div class="triage-link" ?hidden=${!ele.isHiddenTriage}>
-        <a href="/t/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a>
+        <a href="/t" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a>
         </div>
-        <a href="/a/" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a>
-        <a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
-        <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering</span></a>
+        <a href="/a" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a>
+        <a href="/d" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
+        <a href="/c" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering</span></a>
         ${this.revisionLinkTemplate()}
         <a href="${ele._helpUrl}" target="_blank" tab-index=0 >
           <help-icon-sk></help-icon-sk><span>Help</span>
@@ -107,7 +107,7 @@ export class PerfScaffoldSk extends ElementSk {
 
   private static revisionLinkTemplate = () => {
     if (window.perf.fetch_chrome_perf_anomalies) {
-      return html`<a href="/v/" tab-index="0"
+      return html`<a href="/v" tab-index="0"
         ><trending-up-icon-sk></trending-up-icon-sk><span>Revision Info</span></a
       >`;
     }

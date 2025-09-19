@@ -78,11 +78,11 @@ type graphApi struct {
 // RegisterHandlers registers the api handlers for their respective routes.
 func (api graphApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/frame/start", api.frameStartHandler)
-	router.Post("/_/cid/", api.cidHandler)
-	router.Post("/_/details/", api.detailsHandler)
-	router.Post("/_/links/", api.linksHandler)
-	router.Post("/_/shift/", api.shiftHandler)
-	router.Post("/_/cidRange/", api.cidRangeHandler)
+	router.Post("/_/cid", api.cidHandler)
+	router.Post("/_/details", api.detailsHandler)
+	router.Post("/_/links", api.linksHandler)
+	router.Post("/_/shift", api.shiftHandler)
+	router.Post("/_/cidRange", api.cidRangeHandler)
 }
 
 // NewGraphApi returns a new instance of the graphApi struct.

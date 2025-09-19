@@ -88,13 +88,13 @@ type regressionsApi struct {
 
 // RegisterHandlers registers the api handlers for their respective routes.
 func (r regressionsApi) RegisterHandlers(router *chi.Mux) {
-	router.HandleFunc("/_/alerts/", r.alertsHandler)
-	router.Post("/_/reg/", r.regressionRangeHandler)
+	router.HandleFunc("/_/alerts", r.alertsHandler)
+	router.Post("/_/reg", r.regressionRangeHandler)
 	router.Get("/_/reg/count", r.regressionCountHandler)
 	router.Get("/_/regressions", r.regressionsHandler)
 	router.Get("/_/alertgroup", r.alertGroupQueryHandler)
 	router.Get("/_/anomaly", r.anomalyHandler)
-	router.Post("/_/triage/", r.triageHandler)
+	router.Post("/_/triage", r.triageHandler)
 	router.Post("/_/cluster/start", r.clusterStartHandler)
 }
 

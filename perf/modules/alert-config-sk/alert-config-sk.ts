@@ -169,7 +169,7 @@ export class AlertConfigSk extends ElementSk {
       .paramset=${ele.paramset}
       .key_order=${ele.key_order}
       current_query=${ele._config.query}
-      count_url="/_/count/"
+      count_url="/_/count"
       @query-change=${(e: CustomEvent<QuerySkQueryChangeEventDetail>) =>
         (ele._config.query = e.detail.q)}></query-chooser-sk>
 

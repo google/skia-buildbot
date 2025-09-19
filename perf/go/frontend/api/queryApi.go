@@ -33,9 +33,9 @@ func NewQueryApi(paramsetRefresher psrefresh.ParamSetRefresher) queryApi {
 
 // RegisterHandlers registers the api handlers for their respective routes.
 func (api queryApi) RegisterHandlers(router *chi.Mux) {
-	router.HandleFunc("/_/initpage/", api.initpageHandler)
-	router.Post("/_/count/", api.countHandler)
-	router.Post("/_/nextParamList/", api.nextParamListHandler)
+	router.HandleFunc("/_/initpage", api.initpageHandler)
+	router.Post("/_/count", api.countHandler)
+	router.Post("/_/nextParamList", api.nextParamListHandler)
 }
 
 // NextParamListHandlerRequest is the JSON format for NextParamListHandler request.
