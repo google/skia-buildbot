@@ -71,7 +71,7 @@ export class State {
 
   numCommits: number = 250;
 
-  request_type: RequestType = 0;
+  request_type: RequestType = 1;
 
   domain: 'commit' | 'date' = 'commit'; // The domain of the x-axis, either commit or date.
 
@@ -381,7 +381,7 @@ export class ExploreMultiSk extends ElementSk {
   private _onAddToGraph = async (e: Event) => {
     const query = (e as CustomEvent).detail.query;
     // Query is the same as the first graph, so do nothing.
-    if (query === this.graphConfigs[0].queries[0]) {
+    if (this.graphConfigs.length > 0 && query === this.graphConfigs[0].queries[0]) {
       return;
     }
     let explore: ExploreSimpleSk;

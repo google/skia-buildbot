@@ -308,6 +308,20 @@ describe('ExploreMultiSk', () => {
 
       assert.equal(element['exploreElements'].length, initialGraphCount + 1);
     });
+
+    it('adds a graph when add-to-graph event is received', async () => {
+      const initialGraphCount = element['exploreElements'].length;
+
+      const event = new CustomEvent('add-to-graph', {
+        detail: { query: 'config=test2' },
+        bubbles: true,
+      });
+      element.dispatchEvent(event);
+
+      await element['exploreElements'][0].requestComplete;
+
+      assert.equal(element['exploreElements'].length, initialGraphCount + 1);
+    });
   });
 
   describe('Graph Splitting', () => {
