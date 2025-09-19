@@ -158,9 +158,9 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit
 		return ret.reportError(err, "Failed to get skps.")
 	}
 
-	if traceStore != nil && metadataStore != nil && config.Config.Experiments.PrefetchMetadata {
+	if metadataStore != nil && config.Config.Experiments.PrefetchMetadata {
 		// Get the metadata for the retrieved traces.
-		traceMetadata, err := getMetadataForTraces(ctx, df, traceStore, metadataStore)
+		traceMetadata, err := getMetadataForTraces(ctx, df, metadataStore)
 		if err != nil {
 			return ret.reportError(err, "Failed to get trace metadata.")
 		}
@@ -336,40 +336,37 @@ func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df 
 }
 
 // getMetadataForTraces returns the metadata for the traces present in the data frame for the relevant commits.
-func getMetadataForTraces(ctx context.Context, df *dataframe.DataFrame, traceStore tracestore.TraceStore, metadataStore tracestore.MetadataStore) ([]types.TraceMetadata, error) {
+func getMetadataForTraces(ctx context.Context, df *dataframe.DataFrame, metadataStore tracestore.MetadataStore) ([]types.TraceMetadata, error) {
 	// Extract the relevant commit numbers and trace ids from the data frame.
 	commitNumbers := make([]types.CommitNumber, len(df.Header))
 	traceIds := []string{}
+	sourceFileIds := []int64{}
 	for i := 0; i < len(df.Header); i++ {
 		commitNumbers[i] = df.Header[i].Offset
 	}
 	for traceId := range df.TraceSet {
 		traceIds = append(traceIds, traceId)
 	}
-	// The returned object is a map where the key is the name of the trace and value is a map of commit number to the source file name.
-	sourceInfo, err := traceStore.GetSourceIds(ctx, commitNumbers, traceIds)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Error getting source ids")
+	if len(traceIds) == 0 {
+		return []types.TraceMetadata{}, nil
 	}
 
 	// Collect all the source file ids for which we will extract metadata.
-	sourceFileIds := []string{}
-	for key := range sourceInfo {
-		traceMap := sourceInfo[key]
-		for _, sourceId := range traceMap {
-			if !slices.Contains(sourceFileIds, sourceId) {
-				sourceFileIds = append(sourceFileIds, sourceId)
+	foundIds := map[int64]bool{}
+	for _, traceId := range traceIds {
+		sourceMap := df.SourceInfo[traceId]
+		if sourceMap != nil {
+			for _, sourceFileId := range sourceMap.GetAllSourceFileIds() {
+				foundIds[sourceFileId] = true
 			}
 		}
 	}
-
-	if len(sourceFileIds) == 0 {
-		sklog.Infof("No relevant source files found.")
-		return nil, nil
+	for sourceFileId := range foundIds {
+		sourceFileIds = append(sourceFileIds, sourceFileId)
 	}
 
 	// The return value is a map where the key is the source file name and value is the map of links.
-	linkInfo, err := metadataStore.GetMetadataMultiple(ctx, sourceFileIds)
+	linkInfo, err := metadataStore.GetMetadataForSourceFileIDs(ctx, sourceFileIds)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Error getting metadata")
 	}
@@ -378,18 +375,24 @@ func getMetadataForTraces(ctx context.Context, df *dataframe.DataFrame, traceSto
 	// rawLinks is a nested map that tracks links from database for a
 	// traceId->commitnum->links lookup.
 	rawLinks := map[string]map[types.CommitNumber]map[string]string{}
-	for traceId := range sourceInfo {
+	for traceId := range df.TraceSet {
 		traceMetadata := types.TraceMetadata{
 			TraceID:     traceId,
 			CommitLinks: map[types.CommitNumber]map[string]types.TraceCommitLink{},
 		}
 
-		// Populate the raw links for this trace for the relevant commit numbers.
-		rawLinks[traceId] = map[types.CommitNumber]map[string]string{}
-		for commitnum := range sourceInfo[traceId] {
-			sourceFileName := sourceInfo[traceId][commitnum]
-			links := linkInfo[sourceFileName]
-			rawLinks[traceId][commitnum] = links
+		sourceInfo := df.SourceInfo[traceId]
+		if sourceInfo != nil {
+			// Populate the raw links for this trace for the relevant commit numbers.
+			rawLinks[traceId] = map[types.CommitNumber]map[string]string{}
+			for _, commitnum := range sourceInfo.GetAllCommitNumbers() {
+				sourceFileName, ok := sourceInfo.Get(commitnum)
+				if !ok {
+					continue
+				}
+				links := linkInfo[sourceFileName]
+				rawLinks[traceId][commitnum] = links
+			}
 		}
 		traceMetadatas = append(traceMetadatas, traceMetadata)
 	}

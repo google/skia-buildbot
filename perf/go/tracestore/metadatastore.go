@@ -12,4 +12,7 @@ type MetadataStore interface {
 
 	// GetMetadataMultiple returns the metadata for the list of sourceFiles.
 	GetMetadataMultiple(ctx context.Context, sourceFileNames []string) (map[string]map[string]string, error)
+
+	// GetMetadataForSourceFileIDs returns the metadata for the source files defined by the ids.
+	GetMetadataForSourceFileIDs(ctx context.Context, sourceFileIDs []int64) (map[int64]map[string]string, error)
 }

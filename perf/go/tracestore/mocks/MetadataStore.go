@@ -43,6 +43,36 @@ func (_m *MetadataStore) GetMetadata(ctx context.Context, sourceFileName string)
 	return r0, r1
 }
 
+// GetMetadataForSourceFileIDs provides a mock function with given fields: ctx, sourceFileIDs
+func (_m *MetadataStore) GetMetadataForSourceFileIDs(ctx context.Context, sourceFileIDs []int64) (map[int64]map[string]string, error) {
+	ret := _m.Called(ctx, sourceFileIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMetadataForSourceFileIDs")
+	}
+
+	var r0 map[int64]map[string]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []int64) (map[int64]map[string]string, error)); ok {
+		return rf(ctx, sourceFileIDs)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []int64) map[int64]map[string]string); ok {
+		r0 = rf(ctx, sourceFileIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[int64]map[string]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []int64) error); ok {
+		r1 = rf(ctx, sourceFileIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMetadataMultiple provides a mock function with given fields: ctx, sourceFileNames
 func (_m *MetadataStore) GetMetadataMultiple(ctx context.Context, sourceFileNames []string) (map[string]map[string]string, error) {
 	ret := _m.Called(ctx, sourceFileNames)

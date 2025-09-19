@@ -171,4 +171,46 @@ func (s *SQLMetadataStore) GetMetadataMultiple(ctx context.Context, sourceFileNa
 	return fileLinksAggregate, nil
 }
 
+func (s *SQLMetadataStore) GetMetadataForSourceFileIDs(ctx context.Context, sourceFileIDs []int64) (map[int64]map[string]string, error) {
+	fileLinksAggregate := map[int64]map[string]string{}
+	mutex := sync.Mutex{}
+	err := util.ChunkIterParallelPool(ctx, len(sourceFileIDs), 200, 50, func(ctx context.Context, startIdx, endIdx int) error {
+		sourceFileIDChunk := sourceFileIDs[startIdx:endIdx]
+		sb := strings.Builder{}
+		for _, sourceFileID := range sourceFileIDChunk {
+			sb.WriteString(strconv.FormatInt(sourceFileID, 10) + ", ")
+		}
+
+		sql := sqlstatements[readMultiple] + fmt.Sprintf("(%s)", sb.String()[:len(sb.String())-2])
+		rows, err := s.db.Query(ctx, sql)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				return nil
+			}
+			return skerr.Wrap(err)
+		}
+		// Need to add a mutex to avoid concurrent map writes on fileLinksAggregate.
+		addMetadata := func(sourceFileId int64, links map[string]string) {
+			mutex.Lock()
+			defer mutex.Unlock()
+			fileLinksAggregate[sourceFileId] = links
+		}
+		for rows.Next() {
+			var source_file_id int64
+			var links map[string]string
+			if err := rows.Scan(&source_file_id, &links); err != nil {
+				return skerr.Wrapf(err, "Failed to scan links data.")
+			}
+			addMetadata(source_file_id, links)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return fileLinksAggregate, nil
+}
+
 var _ tracestore.MetadataStore = (*SQLMetadataStore)(nil)

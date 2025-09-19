@@ -610,7 +610,7 @@ func (app) TracesList(store tracestore.TraceStore, queryString string, tileNumbe
 	if err != nil {
 		return err
 	}
-	ts, _, err := store.QueryTraces(context.Background(), tileNumber, q, nil)
+	ts, _, _, err := store.QueryTraces(context.Background(), tileNumber, q, nil)
 	if err != nil {
 		return err
 	}
@@ -655,7 +655,7 @@ func (app) TracesExport(store tracestore.TraceStore, queryString string, begin, 
 	}
 
 	// Now read the values for the trace names.
-	ts, _, err := store.ReadTracesForCommitRange(ctx, traceNames, begin, end)
+	ts, _, _, err := store.ReadTracesForCommitRange(ctx, traceNames, begin, end)
 	if err != nil {
 		return err
 	}

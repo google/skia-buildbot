@@ -80,11 +80,12 @@ type ColumnHeader struct {
 //
 // The name DataFrame was gratuitously borrowed from R.
 type DataFrame struct {
-	TraceSet      types.TraceSet              `json:"traceset"`
-	Header        []*ColumnHeader             `json:"header"`
-	ParamSet      paramtools.ReadOnlyParamSet `json:"paramset"`
-	Skip          int                         `json:"skip"`
-	TraceMetadata []types.TraceMetadata       `json:"traceMetadata"`
+	TraceSet      types.TraceSet                    `json:"traceset"`
+	Header        []*ColumnHeader                   `json:"header"`
+	ParamSet      paramtools.ReadOnlyParamSet       `json:"paramset"`
+	Skip          int                               `json:"skip"`
+	TraceMetadata []types.TraceMetadata             `json:"traceMetadata"`
+	SourceInfo    map[string]*types.TraceSourceInfo `json:"-"`
 }
 
 // BuildParamSet rebuilds d.ParamSet from the keys of d.TraceSet.
@@ -200,6 +201,18 @@ func Join(a, b *DataFrame) *DataFrame {
 			destTrace[bMap[sourceOffset]] = sourceValue
 		}
 	}
+	for traceId := range a.SourceInfo {
+		if _, ok := ret.SourceInfo[traceId]; !ok {
+			ret.SourceInfo[traceId] = &types.TraceSourceInfo{}
+		}
+		ret.SourceInfo[traceId].CopyFrom(*a.SourceInfo[traceId])
+	}
+	for traceId := range b.SourceInfo {
+		if _, ok := ret.SourceInfo[traceId]; !ok {
+			ret.SourceInfo[traceId] = &types.TraceSourceInfo{}
+		}
+		ret.SourceInfo[traceId].CopyFrom(*b.SourceInfo[traceId])
+	}
 	return ret
 }
 
@@ -285,6 +298,7 @@ func (d *DataFrame) Compress() *DataFrame {
 	}
 	// The ParamSet remains unchanged.
 	ret.ParamSet = d.ParamSet
+	ret.SourceInfo = d.SourceInfo
 
 	return ret
 }
@@ -320,9 +334,10 @@ func FromTimeRange(ctx context.Context, git perfgit.Git, begin, end time.Time, d
 // NewEmpty returns a new empty DataFrame.
 func NewEmpty() *DataFrame {
 	return &DataFrame{
-		TraceSet: types.TraceSet{},
-		Header:   []*ColumnHeader{},
-		ParamSet: paramtools.NewReadOnlyParamSet(),
+		TraceSet:   types.TraceSet{},
+		Header:     []*ColumnHeader{},
+		ParamSet:   paramtools.NewReadOnlyParamSet(),
+		SourceInfo: map[string]*types.TraceSourceInfo{},
 	}
 }
 
@@ -338,9 +353,10 @@ func NewHeaderOnly(ctx context.Context, git perfgit.Git, begin, end time.Time, d
 		return nil, skerr.Wrapf(err, "Failed creating header only dataframe.")
 	}
 	return &DataFrame{
-		TraceSet: types.TraceSet{},
-		Header:   colHeaders,
-		ParamSet: paramtools.NewReadOnlyParamSet(),
-		Skip:     skip,
+		TraceSet:   types.TraceSet{},
+		Header:     colHeaders,
+		ParamSet:   paramtools.NewReadOnlyParamSet(),
+		Skip:       skip,
+		SourceInfo: map[string]*types.TraceSourceInfo{},
 	}, nil
 }

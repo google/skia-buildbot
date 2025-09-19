@@ -250,3 +250,61 @@ var (
 		"chromium",
 	}
 )
+
+// TraceSourceInfo provides a struct to abstract sourceInfo data and operations
+// for traces extracted from database.
+type TraceSourceInfo struct {
+	// Map where the key is a commit number and the value is a source file id.
+	sourceMap map[CommitNumber]int64
+}
+
+// Add adds a new source file id for a commit number to the info.
+func (ts *TraceSourceInfo) Add(commitNumber CommitNumber, sourceFileID int64) {
+	if ts.sourceMap == nil {
+		ts.sourceMap = map[CommitNumber]int64{}
+	}
+	ts.sourceMap[commitNumber] = sourceFileID
+}
+
+// Get retrieves the source file id for a commit number.
+// Returns a false value when commit number is not present.
+func (ts *TraceSourceInfo) Get(commitNumber CommitNumber) (int64, bool) {
+	if ts.sourceMap == nil {
+		ts.sourceMap = map[CommitNumber]int64{}
+	}
+	sourceFileID, ok := ts.sourceMap[commitNumber]
+	return sourceFileID, ok
+}
+
+// CopyFrom copies the data from the provided TraceSourceInfo object
+// into the current one.
+func (ts *TraceSourceInfo) CopyFrom(other TraceSourceInfo) {
+	if ts.sourceMap == nil {
+		ts.sourceMap = map[CommitNumber]int64{}
+	}
+	for commitNumber, sourceFileID := range other.sourceMap {
+		ts.sourceMap[commitNumber] = sourceFileID
+	}
+}
+
+// GetAllSourceFileIds returns all the sourceFileIds added to the object.
+func (ts *TraceSourceInfo) GetAllSourceFileIds() []int64 {
+	ret := []int64{}
+	if ts.sourceMap != nil {
+		for _, sourceFileID := range ts.sourceMap {
+			ret = append(ret, sourceFileID)
+		}
+	}
+	return ret
+}
+
+// GetAllCommitNumbers returns all the commit numbers added to the object.
+func (ts *TraceSourceInfo) GetAllCommitNumbers() []CommitNumber {
+	ret := []CommitNumber{}
+	if ts.sourceMap != nil {
+		for commitNumber := range ts.sourceMap {
+			ret = append(ret, commitNumber)
+		}
+	}
+	return ret
+}

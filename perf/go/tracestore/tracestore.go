@@ -54,7 +54,7 @@ type TraceStore interface {
 
 	// QueryTraces returns a map of trace keys to a slice of floats for
 	// all traces that match the given query.
-	QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query, cache *tracecache.TraceCache) (types.TraceSet, []provider.Commit, error)
+	QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query, cache *tracecache.TraceCache) (types.TraceSet, []provider.Commit, map[string]*types.TraceSourceInfo, error)
 
 	// QueryTracesIDOnly returns a stream of ParamSets that match the
 	// given query.
@@ -62,11 +62,11 @@ type TraceStore interface {
 	QueryTracesIDOnly(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error)
 
 	// ReadTraces loads the traces for the given trace keys.
-	ReadTraces(ctx context.Context, tileNumber types.TileNumber, keys []string) (types.TraceSet, []provider.Commit, error)
+	ReadTraces(ctx context.Context, tileNumber types.TileNumber, keys []string) (types.TraceSet, []provider.Commit, map[string]*types.TraceSourceInfo, error)
 
 	// ReadTracesForCommitRange loads the traces for the given trace keys and
 	// between the begin and end commit, inclusive.
-	ReadTracesForCommitRange(ctx context.Context, keys []string, begin types.CommitNumber, end types.CommitNumber) (types.TraceSet, []provider.Commit, error)
+	ReadTracesForCommitRange(ctx context.Context, keys []string, begin types.CommitNumber, end types.CommitNumber) (types.TraceSet, []provider.Commit, map[string]*types.TraceSourceInfo, error)
 
 	// TileNumber returns the types.TileNumber that the commit is stored in.
 	TileNumber(commitNumber types.CommitNumber) types.TileNumber

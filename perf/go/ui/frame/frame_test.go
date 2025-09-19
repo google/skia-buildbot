@@ -159,7 +159,6 @@ func TestGetMetadataForTraces_Success(t *testing.T) {
 	//  [",arch=x86,config=8888,"] = {1, 2, 3}
 	//	[",arch=x86,config=565,"]  = {2, 4, 6}
 	_, df, _ := frameRequestForTest(t)
-	mockTracestore := traceStoreMocks.NewTraceStore(t)
 	mockMetadataStore := traceStoreMocks.NewMetadataStore(t)
 
 	config.Config = &config.InstanceConfig{
@@ -168,31 +167,17 @@ func TestGetMetadataForTraces_Success(t *testing.T) {
 		},
 	}
 
-	commits := []types.CommitNumber{1, 2, 3}
 	traceids := []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}
-	sourceFileIds := []string{
-		"trace0_file1",
-		"trace0_file2",
-		"trace0_file3",
-		"trace1_file1",
-		"trace1_file2",
-		"trace1_file3",
+	sourceFileIds := []int64{
+		12345,
+		23456,
+		34567,
+		45678,
+		56789,
+		67890,
 	}
-	sourceInfo := map[string]map[types.CommitNumber]string{
-		traceids[0]: {
-			1: sourceFileIds[0],
-			2: sourceFileIds[1],
-			3: sourceFileIds[2],
-		},
-		traceids[1]: {
-			1: sourceFileIds[3],
-			2: sourceFileIds[4],
-			3: sourceFileIds[5],
-		},
-	}
-	mockTracestore.On("GetSourceIds", ctx, commits, traceids).Return(sourceInfo, nil)
 
-	sourceFileLinks := map[string]map[string]string{
+	sourceFileLinks := map[int64]map[string]string{
 		sourceFileIds[0]: {
 			"link1": "val1",
 		},
@@ -212,9 +197,9 @@ func TestGetMetadataForTraces_Success(t *testing.T) {
 			"link6": "val6",
 		},
 	}
-	mockMetadataStore.On("GetMetadataMultiple", ctx, mock.Anything).Return(sourceFileLinks, nil)
+	mockMetadataStore.On("GetMetadataForSourceFileIDs", ctx, mock.Anything).Return(sourceFileLinks, nil)
 	ctx := context.Background()
-	traceMetadata, err := getMetadataForTraces(ctx, df, mockTracestore, mockMetadataStore)
+	traceMetadata, err := getMetadataForTraces(ctx, df, mockMetadataStore)
 	assert.NoError(t, err)
 	assert.NotNil(t, traceMetadata)
 	assert.Equal(t, len(traceids), len(traceMetadata))

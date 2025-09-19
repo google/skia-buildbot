@@ -179,6 +179,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 	}
 
 	var g errgroup.Group
+	sourceInfo := map[string]*types.TraceSourceInfo{}
 	// For each tile.
 	for _, tileNumber := range tilesToQuery {
 		tileNumber := tileNumber
@@ -190,12 +191,18 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			// Query for matching traces in the given tile.
 			queryContext, cancel := context.WithTimeout(ctx, singleTileQueryTimeout)
 			defer cancel()
-			traces, commits, err := b.store.QueryTraces(queryContext, tileNumber, q, b.tracecache)
+			traces, commits, sourceFileInfo, err := b.store.QueryTraces(queryContext, tileNumber, q, b.tracecache)
 			if err != nil {
 				return err
 			}
 
 			traceSetBuilder.Add(commitNumberToOutputIndex, commits, traces)
+			for traceid := range sourceFileInfo {
+				if _, ok := sourceInfo[traceid]; !ok {
+					sourceInfo[traceid] = &types.TraceSourceInfo{}
+				}
+				sourceInfo[traceid].CopyFrom(*sourceFileInfo[traceid])
+			}
 			triggerProgress()
 			return nil
 		})
@@ -210,10 +217,11 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 	}
 	traceSet, paramSet := traceSetBuilder.Build(ctx)
 	d := &dataframe.DataFrame{
-		TraceSet: traceSet,
-		Header:   colHeaders,
-		ParamSet: paramSet,
-		Skip:     skip,
+		TraceSet:   traceSet,
+		Header:     colHeaders,
+		ParamSet:   paramSet,
+		Skip:       skip,
+		SourceInfo: sourceInfo,
 	}
 	return d.Compress(), nil
 }
@@ -256,6 +264,7 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 	var mutex sync.Mutex // mutex protects traceSet and paramSet.
 	traceSet := types.TraceSet{}
 	paramSet := paramtools.ParamSet{}
+	sourceInfo := map[string]*types.TraceSourceInfo{}
 	stepsCompleted := 0
 	// triggerProgress must only be called when the caller has mutex locked.
 	triggerProgress := func() {
@@ -270,7 +279,7 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 		// traceMap := traceMap
 		g.Go(func() error {
 			// Read the traces for the given keys.
-			traces, commits, err := b.store.ReadTraces(ctx, tileKey, keys)
+			traces, commits, sourceFileInfo, err := b.store.ReadTraces(ctx, tileKey, keys)
 			if err != nil {
 				return err
 			}
@@ -303,6 +312,12 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 				}
 				paramSet.AddParams(p)
 			}
+			for traceid := range sourceFileInfo {
+				if _, ok := sourceInfo[traceid]; !ok {
+					sourceInfo[traceid] = &types.TraceSourceInfo{}
+				}
+				sourceInfo[traceid].CopyFrom(*sourceFileInfo[traceid])
+			}
 			return nil
 		})
 	}
@@ -310,10 +325,11 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 		return nil, fmt.Errorf("Failed while querying: %s", err)
 	}
 	d := &dataframe.DataFrame{
-		TraceSet: traceSet,
-		Header:   colHeaders,
-		ParamSet: paramSet.Freeze(),
-		Skip:     skip,
+		TraceSet:   traceSet,
+		Header:     colHeaders,
+		ParamSet:   paramSet.Freeze(),
+		Skip:       skip,
+		SourceInfo: sourceInfo,
 	}
 	triggerProgress()
 	return d.Compress(), nil
@@ -419,6 +435,12 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 				}
 			}
 		}
+		for traceId := range df.SourceInfo {
+			if _, ok := ret.SourceInfo[traceId]; !ok {
+				ret.SourceInfo[traceId] = &types.TraceSourceInfo{}
+			}
+			ret.SourceInfo[traceId].CopyFrom(*df.SourceInfo[traceId])
+		}
 		sklog.Infof("Total: %d Steps: %d NumStepsNoData: %d Query: %v", total, steps, numStepsNoData, q.String())
 
 		if total == n {
@@ -499,9 +521,10 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 		}
 
 		traceSet := types.TraceSet{}
+		sourceInfo := map[string]*types.TraceSourceInfo{}
 		for _, tileNumber := range mapper {
 			// Read the traces for the given keys.
-			traces, commits, err := b.store.ReadTraces(ctx, tileNumber, keys)
+			traces, commits, sourceFileInfo, err := b.store.ReadTraces(ctx, tileNumber, keys)
 			if err != nil {
 				return nil, err
 			}
@@ -528,12 +551,19 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 				*/
 				traceSet[key] = trace
 			}
+			for traceid := range sourceFileInfo {
+				if _, ok := sourceInfo[traceid]; !ok {
+					sourceInfo[traceid] = &types.TraceSourceInfo{}
+				}
+				sourceInfo[traceid].CopyFrom(*sourceFileInfo[traceid])
+			}
 		}
 		df := &dataframe.DataFrame{
-			TraceSet: traceSet,
-			Header:   headers,
-			ParamSet: paramtools.NewReadOnlyParamSet(),
-			Skip:     skip,
+			TraceSet:   traceSet,
+			Header:     headers,
+			ParamSet:   paramtools.NewReadOnlyParamSet(),
+			Skip:       skip,
+			SourceInfo: sourceInfo,
 		}
 		df.BuildParamSet()
 
