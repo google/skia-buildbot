@@ -777,6 +777,7 @@ export class ExploreSimpleSk extends ElementSk {
         ${
           ele._state.show_google_plot
             ? html`<plot-google-chart-sk
+                .domain=${ele._state.domain}
                 ${ref(ele.googleChartPlot)}
                 .highlightAnomalies=${ele._state.highlight_anomalies}
                 @plot-data-select=${ele.onChartSelect}
@@ -1021,6 +1022,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private plotSummaryTemplate() {
     return html` <plot-summary-sk
+      .domain=${this._state.domain}
       ${ref(this.plotSummary)}
       @summary_selected=${this.summarySelected}
       selectionType=${!this._state.disableMaterial ? 'material' : 'canvas'}
@@ -2215,6 +2217,10 @@ export class ExploreSimpleSk extends ElementSk {
     domain: 'commit' | 'date',
     replot = true
   ) {
+    // Do not try to initialize graph if no time range yet provided.
+    if (range.begin <= 0) {
+      return;
+    }
     if (this.googleChartPlot.value) {
       this.googleChartPlot.value.selectedRange = range;
       this.googleChartPlot.value.showZero = this.state.showZero;
@@ -3131,11 +3137,14 @@ export class ExploreSimpleSk extends ElementSk {
 
     const header = dataframe.header;
     if (selectedRange === null) {
-      selectedRange = range(header![0]!.offset, header![header!.length - 1]!.offset);
+      const prop = this._state.domain === 'date' ? 'timestamp' : 'offset';
+      selectedRange = range(header![0]![prop], header![header!.length - 1]![prop]);
     }
 
-    this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit');
-
+    this.updateSelectedRangeWithUpdatedDataframe(
+      selectedRange!,
+      this._state.domain as 'commit' | 'date'
+    );
     // Normalize bands to be just offsets.
     const bands: number[] = [];
     header!.forEach((h, i) => {
@@ -3166,7 +3175,10 @@ export class ExploreSimpleSk extends ElementSk {
       this.dfRepo.value
         ?.getUserIssues(Object.keys(dataframe.traceset), selectedRange.begin, selectedRange.end)
         .then((_) => {
-          this.updateSelectedRangeWithUpdatedDataframe(selectedRange!, 'commit');
+          this.updateSelectedRangeWithUpdatedDataframe(
+            selectedRange!,
+            this.state.domain as 'date' | 'commit'
+          );
         });
     }
     this._renderedTraces();
@@ -3224,12 +3236,20 @@ export class ExploreSimpleSk extends ElementSk {
       this.dfRepo.value?.extendRange(-extendRange).then(() => {
         const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
         // Already plotted, just need to update the data.
-        this.updateSelectedRangeWithUpdatedDataframe(updatedRange, 'commit', false);
+        this.updateSelectedRangeWithUpdatedDataframe(
+          updatedRange,
+          this.state.domain as 'date' | 'commit',
+          false
+        );
         this.plotSummary.value?.SelectRange(updatedRange);
       }),
       this.dfRepo.value?.extendRange(extendRange).then(() => {
         const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
-        this.updateSelectedRangeWithUpdatedDataframe(updatedRange, 'commit', false);
+        this.updateSelectedRangeWithUpdatedDataframe(
+          updatedRange,
+          this.state.domain as 'date' | 'commit',
+          false
+        );
         this.plotSummary.value?.SelectRange(updatedRange);
         // Modify the Range if URL contains different values.
         this.useBrowserURL();

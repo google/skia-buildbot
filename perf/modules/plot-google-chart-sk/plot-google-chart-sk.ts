@@ -340,22 +340,37 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   protected willUpdate(changedProperties: PropertyValues): void {
-    if (changedProperties.has('anomalyMap')) {
-      // If the anomalyMap is getting updated,
-      // trigger the chart to redraw and plot the anomaly.
-      this.plotElement.value?.redraw();
-    } else if (changedProperties.has('showZero')) {
+    // If the domain is changing from one valid state to another, we must
+    // convert the selection range before doing anything else.
+    if (changedProperties.has('domain')) {
+      const oldDomain = changedProperties.get('domain') as 'commit' | 'date';
+      if (oldDomain) {
+        this.toggleSelectionRange(oldDomain);
+      }
+    }
+
+    let dataViewUpdated = false;
+    // If domain or data changes, we must rebuild the data view.
+    if (changedProperties.has('domain') || changedProperties.has('data')) {
+      // Do not attempt to render the view until the domain is set.
+      if (this.domain) {
+        this.updateDataView(this.data);
+        dataViewUpdated = true;
+      }
+    }
+
+    // `updateDataView` calls `updateOptions`, so we only call this if the
+    // data view wasn't already rebuilt.
+    if (
+      !dataViewUpdated &&
+      (changedProperties.has('showZero') || changedProperties.has('selectedRange'))
+    ) {
       this.updateOptions();
-    } else if (changedProperties.has('userIssues')) {
+    }
+
+    // If overlays change, trigger a redraw.
+    if (changedProperties.has('anomalyMap') || changedProperties.has('userIssues')) {
       this.plotElement.value?.redraw();
-    } else if (changedProperties.has('selectedRange')) {
-      // If only the selectedRange is updated, then we only update the viewWindow.
-      this.updateOptions();
-    } else if (changedProperties.has('domain')) {
-      this.toggleSelectionRange();
-      this.updateDataView(this.data);
-    } else if (changedProperties.has('data')) {
-      this.updateDataView(this.data);
     }
   }
 
@@ -427,16 +442,20 @@ export class PlotGoogleChartSk extends LitElement {
   // the new range
   // TODO(b/362831653): Fix frame shifting from toggling domain
   // Not sure the cause, could be the timezone?
-  private toggleSelectionRange() {
-    const newScale = this.domain === 'commit';
-    const currBegin = newScale
+  private toggleSelectionRange(oldDomain: 'commit' | 'date') {
+    // Based on the old domain, determine which column to look in and how to
+    // interpret the current selectedRange.
+    const fromDateToCommit = oldDomain === 'date';
+    const fromCol = fromDateToCommit ? 1 : 0;
+    const toCol = fromDateToCommit ? 0 : 1;
+
+    const currBegin = fromDateToCommit
       ? (new Date(this.selectedRange!.begin! * 1000) as any)
-      : this.selectedRange!.begin!;
-    const currEnd = newScale
+      : Math.floor(this.selectedRange!.begin!);
+    const currEnd = fromDateToCommit
       ? (new Date(this.selectedRange!.end! * 1000) as any)
-      : this.selectedRange!.end!;
-    const fromCol = newScale ? 1 : 0;
-    const toCol = newScale ? 0 : 1;
+      : Math.floor(this.selectedRange!.end!);
+
     const rows = this.data!.getFilteredRows([
       {
         column: fromCol,
@@ -444,11 +463,18 @@ export class PlotGoogleChartSk extends LitElement {
         maxValue: currEnd,
       },
     ]);
+    // If no data is found in the range, we cannot convert it, so we abort.
+    if (rows.length === 0) {
+      console.warn(
+        'Could not find matching data range when toggling domain. Selection may be incorrect.'
+      );
+      return;
+    }
     const begin = this.data!.getValue(rows[0], toCol);
     const end = this.data!.getValue(rows[rows.length - 1], toCol);
     this.selectedRange = {
-      begin: newScale ? begin : (begin as any).getTime() / 1000,
-      end: newScale ? end : (end as any).getTime() / 1000,
+      begin: fromDateToCommit ? begin : (begin as any).getTime() / 1000,
+      end: fromDateToCommit ? end : (end as any).getTime() / 1000,
     };
   }
 
