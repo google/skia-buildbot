@@ -199,9 +199,9 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			traceSetBuilder.Add(commitNumberToOutputIndex, commits, traces)
 			for traceid := range sourceFileInfo {
 				if _, ok := sourceInfo[traceid]; !ok {
-					sourceInfo[traceid] = &types.TraceSourceInfo{}
+					sourceInfo[traceid] = types.NewTraceSourceInfo()
 				}
-				sourceInfo[traceid].CopyFrom(*sourceFileInfo[traceid])
+				sourceInfo[traceid].CopyFrom(sourceFileInfo[traceid])
 			}
 			triggerProgress()
 			return nil
@@ -314,9 +314,9 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 			}
 			for traceid := range sourceFileInfo {
 				if _, ok := sourceInfo[traceid]; !ok {
-					sourceInfo[traceid] = &types.TraceSourceInfo{}
+					sourceInfo[traceid] = types.NewTraceSourceInfo()
 				}
-				sourceInfo[traceid].CopyFrom(*sourceFileInfo[traceid])
+				sourceInfo[traceid].CopyFrom(sourceFileInfo[traceid])
 			}
 			return nil
 		})
@@ -437,9 +437,9 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		}
 		for traceId := range df.SourceInfo {
 			if _, ok := ret.SourceInfo[traceId]; !ok {
-				ret.SourceInfo[traceId] = &types.TraceSourceInfo{}
+				ret.SourceInfo[traceId] = types.NewTraceSourceInfo()
 			}
-			ret.SourceInfo[traceId].CopyFrom(*df.SourceInfo[traceId])
+			ret.SourceInfo[traceId].CopyFrom(df.SourceInfo[traceId])
 		}
 		sklog.Infof("Total: %d Steps: %d NumStepsNoData: %d Query: %v", total, steps, numStepsNoData, q.String())
 
@@ -553,9 +553,9 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 			}
 			for traceid := range sourceFileInfo {
 				if _, ok := sourceInfo[traceid]; !ok {
-					sourceInfo[traceid] = &types.TraceSourceInfo{}
+					sourceInfo[traceid] = types.NewTraceSourceInfo()
 				}
-				sourceInfo[traceid].CopyFrom(*sourceFileInfo[traceid])
+				sourceInfo[traceid].CopyFrom(sourceFileInfo[traceid])
 			}
 		}
 		df := &dataframe.DataFrame{

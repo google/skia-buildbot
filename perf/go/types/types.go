@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/vec32"
@@ -256,10 +257,23 @@ var (
 type TraceSourceInfo struct {
 	// Map where the key is a commit number and the value is a source file id.
 	sourceMap map[CommitNumber]int64
+
+	// Mutex to synchronize operations on the map.
+	mutex sync.RWMutex
+}
+
+// NewTraceSourceInfo returns a new TraceSourceInfo object.
+func NewTraceSourceInfo() *TraceSourceInfo {
+	return &TraceSourceInfo{
+		sourceMap: map[CommitNumber]int64{},
+		mutex:     sync.RWMutex{},
+	}
 }
 
 // Add adds a new source file id for a commit number to the info.
 func (ts *TraceSourceInfo) Add(commitNumber CommitNumber, sourceFileID int64) {
+	ts.mutex.Lock()
+	defer ts.mutex.Unlock()
 	if ts.sourceMap == nil {
 		ts.sourceMap = map[CommitNumber]int64{}
 	}
@@ -269,6 +283,8 @@ func (ts *TraceSourceInfo) Add(commitNumber CommitNumber, sourceFileID int64) {
 // Get retrieves the source file id for a commit number.
 // Returns a false value when commit number is not present.
 func (ts *TraceSourceInfo) Get(commitNumber CommitNumber) (int64, bool) {
+	ts.mutex.RLock()
+	defer ts.mutex.RUnlock()
 	if ts.sourceMap == nil {
 		ts.sourceMap = map[CommitNumber]int64{}
 	}
@@ -278,10 +294,15 @@ func (ts *TraceSourceInfo) Get(commitNumber CommitNumber) (int64, bool) {
 
 // CopyFrom copies the data from the provided TraceSourceInfo object
 // into the current one.
-func (ts *TraceSourceInfo) CopyFrom(other TraceSourceInfo) {
+func (ts *TraceSourceInfo) CopyFrom(other *TraceSourceInfo) {
+	ts.mutex.Lock()
+	defer ts.mutex.Unlock()
 	if ts.sourceMap == nil {
 		ts.sourceMap = map[CommitNumber]int64{}
 	}
+	// We need to lock the 'other' object as well to safely read its map.
+	other.mutex.RLock()
+	defer other.mutex.RUnlock()
 	for commitNumber, sourceFileID := range other.sourceMap {
 		ts.sourceMap[commitNumber] = sourceFileID
 	}
@@ -289,6 +310,8 @@ func (ts *TraceSourceInfo) CopyFrom(other TraceSourceInfo) {
 
 // GetAllSourceFileIds returns all the sourceFileIds added to the object.
 func (ts *TraceSourceInfo) GetAllSourceFileIds() []int64 {
+	ts.mutex.RLock()
+	defer ts.mutex.RUnlock()
 	ret := []int64{}
 	if ts.sourceMap != nil {
 		for _, sourceFileID := range ts.sourceMap {
@@ -300,6 +323,8 @@ func (ts *TraceSourceInfo) GetAllSourceFileIds() []int64 {
 
 // GetAllCommitNumbers returns all the commit numbers added to the object.
 func (ts *TraceSourceInfo) GetAllCommitNumbers() []CommitNumber {
+	ts.mutex.RLock()
+	defer ts.mutex.RUnlock()
 	ret := []CommitNumber{}
 	if ts.sourceMap != nil {
 		for commitNumber := range ts.sourceMap {
