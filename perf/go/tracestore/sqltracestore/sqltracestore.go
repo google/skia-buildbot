@@ -1508,6 +1508,7 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 	localTraces := types.TraceSet{}
 	var traceIDArray traceIDForSQLInBytes
 	commitToIndexMap := map[types.CommitNumber]int{}
+	localSourceFileMap := map[string]*types.TraceSourceInfo{}
 	for i, commit := range commits {
 		commitToIndexMap[commit.CommitNumber] = i
 	}
@@ -1534,10 +1535,10 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 			localTraces[traceName] = vec32.New(len(commits))
 		}
 		localTraces[traceName][commitToIndexMap[commitNumber]] = float32(val)
-		if _, ok := sourceFileMap[traceName]; !ok {
-			sourceFileMap[traceName] = types.NewTraceSourceInfo()
+		if _, ok := localSourceFileMap[traceName]; !ok {
+			localSourceFileMap[traceName] = types.NewTraceSourceInfo()
 		}
-		sourceFileMap[traceName].Add(commitNumber, sourceFileId)
+		localSourceFileMap[traceName].Add(commitNumber, sourceFileId)
 	}
 	if err := rows.Err(); err != nil {
 		return skerr.Wrap(err)
@@ -1554,6 +1555,13 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 			if v != vec32.MissingDataSentinel {
 				(*ret)[traceName][i] = v
 			}
+		}
+	}
+	for traceName, localSourceInfo := range localSourceFileMap {
+		if _, ok := sourceFileMap[traceName]; !ok {
+			sourceFileMap[traceName] = localSourceInfo
+		} else {
+			sourceFileMap[traceName].CopyFrom(localSourceInfo)
 		}
 	}
 
