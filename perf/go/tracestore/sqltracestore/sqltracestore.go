@@ -1535,7 +1535,7 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 		}
 		localTraces[traceName][commitToIndexMap[commitNumber]] = float32(val)
 		if _, ok := sourceFileMap[traceName]; !ok {
-			sourceFileMap[traceName] = &types.TraceSourceInfo{}
+			sourceFileMap[traceName] = types.NewTraceSourceInfo()
 		}
 		sourceFileMap[traceName].Add(commitNumber, sourceFileId)
 	}

@@ -203,15 +203,15 @@ func Join(a, b *DataFrame) *DataFrame {
 	}
 	for traceId := range a.SourceInfo {
 		if _, ok := ret.SourceInfo[traceId]; !ok {
-			ret.SourceInfo[traceId] = &types.TraceSourceInfo{}
+			ret.SourceInfo[traceId] = types.NewTraceSourceInfo()
 		}
-		ret.SourceInfo[traceId].CopyFrom(*a.SourceInfo[traceId])
+		ret.SourceInfo[traceId].CopyFrom(a.SourceInfo[traceId])
 	}
 	for traceId := range b.SourceInfo {
 		if _, ok := ret.SourceInfo[traceId]; !ok {
-			ret.SourceInfo[traceId] = &types.TraceSourceInfo{}
+			ret.SourceInfo[traceId] = types.NewTraceSourceInfo()
 		}
-		ret.SourceInfo[traceId].CopyFrom(*b.SourceInfo[traceId])
+		ret.SourceInfo[traceId].CopyFrom(b.SourceInfo[traceId])
 	}
 	return ret
 }
