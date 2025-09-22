@@ -180,6 +180,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 
 	var g errgroup.Group
 	sourceInfo := map[string]*types.TraceSourceInfo{}
+	sourceinfoMutex := sync.Mutex{}
 	// For each tile.
 	for _, tileNumber := range tilesToQuery {
 		tileNumber := tileNumber
@@ -197,6 +198,8 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			}
 
 			traceSetBuilder.Add(commitNumberToOutputIndex, commits, traces)
+			sourceinfoMutex.Lock()
+			defer sourceinfoMutex.Unlock()
 			for traceid := range sourceFileInfo {
 				if _, ok := sourceInfo[traceid]; !ok {
 					sourceInfo[traceid] = types.NewTraceSourceInfo()
