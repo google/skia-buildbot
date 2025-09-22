@@ -246,11 +246,6 @@ export class PlotGoogleChartSk extends LitElement {
   // cache the googleChart object within the module
   private chart: google.visualization.CoreChartBase | null = null;
 
-  // cache the DataView to avoid re-creating it on every update.
-  private _cachedDataView: google.visualization.DataView | null = null;
-
-  private _cachedDataTable: DataTable = null;
-
   // cache the labels which were removed, so that they can be easily re-added
   private removedLabelsCache: string[] = [];
 
@@ -384,11 +379,7 @@ export class PlotGoogleChartSk extends LitElement {
       return;
     }
 
-    if (this._cachedDataTable !== dt) {
-      this._cachedDataTable = dt;
-      this._cachedDataView = new google.visualization.DataView(dt!);
-    }
-    const view = this._cachedDataView!;
+    const view = new google.visualization.DataView(dt!);
     const ncols = view.getNumberOfColumns();
 
     // The first two columns are the commit position and the date.
