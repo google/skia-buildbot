@@ -34,7 +34,6 @@ go_library(
         "@com_github_hashicorp_golang_lru//:golang-lru",
         "@com_github_jackc_pgx_v4//:pgx",
         "@io_opencensus_go//trace",
-        "@org_golang_x_sync//errgroup",
     ],
 )
 
@@ -49,25 +48,20 @@ go_test(
     ],
     embed = [":sqltracestore"],
     deps = [
-        "//go/cache/local",
-        "//go/cache/mock",
         "//go/deepequal/assertdeep",
         "//go/now",
         "//go/paramtools",
         "//go/query",
         "//go/sql/pool",
-        "//go/testutils",
         "//go/vec32",
         "//perf/go/config",
         "//perf/go/git",
         "//perf/go/git/gittest",
         "//perf/go/git/provider",
         "//perf/go/sql/sqltest",
-        "//perf/go/tracecache",
         "//perf/go/tracestore",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],
 )

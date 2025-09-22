@@ -2,26 +2,20 @@ package sqltracestore
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/cache/local"
-	mockCache "go.skia.org/infra/go/cache/mock"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/sql/sqltest"
-	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -408,83 +402,6 @@ func TestQueryTraces_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
 	assert.NoError(t, err)
 	assertCommitNumbersMatch(t, commits, []types.CommitNumber{16, 17, 18, 19, 20, 21, 22, 23})
 	assert.Empty(t, ts)
-}
-
-func TestQueryTraces_WithTraceCache_Success(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t)
-
-	// Query that matches two traces.
-	q, err := query.NewFromString("arch=x86")
-	assert.NoError(t, err)
-	cache := mockCache.NewCache(t)
-	traceCache := tracecache.New(cache)
-
-	// Configure the cache to return the below params.
-	params := []paramtools.Params{
-		paramtools.NewParams(",arch=x86,config=565,"),
-		paramtools.NewParams(",arch=x86,config=8888,"),
-	}
-	b, err := json.Marshal(params)
-	assert.NoError(t, err)
-	cache.On("GetValue", testutils.AnyContext, mock.Anything).Return(string(b), nil)
-
-	ts, commits, _, err := s.QueryTraces(ctx, 0, q, traceCache)
-	assert.NoError(t, err)
-	cache.AssertExpectations(t)
-	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
-	assert.Equal(t, ts, types.TraceSet{
-		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
-		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
-	})
-}
-
-func TestQueryTraces_WithTraceCache_Miss_Success(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t)
-
-	// Query that matches two traces.
-	q, err := query.NewFromString("arch=x86")
-	assert.NoError(t, err)
-	cache := mockCache.NewCache(t)
-	traceCache := tracecache.New(cache)
-	// Make the cache return nil.
-	cache.On("GetValue", testutils.AnyContext, mock.Anything).Return("", nil)
-	cache.On("SetValue", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil)
-
-	ts, commits, _, err := s.QueryTraces(ctx, 0, q, traceCache)
-	assert.NoError(t, err)
-	// Makes sure the cache GetValue function was invoked.
-	cache.AssertExpectations(t)
-	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
-	assert.Equal(t, ts, types.TraceSet{
-		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
-		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
-	})
-}
-
-func TestQueryTraces_WithTraceCache_Local_Success(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t)
-
-	// Query that matches two traces.
-	q, err := query.NewFromString("arch=x86")
-	assert.NoError(t, err)
-
-	// Let's use an actual local cache
-	cache, err := local.New(10)
-	assert.NoError(t, err)
-	traceCache := tracecache.New(cache)
-
-	ts, commits, _, err := s.QueryTraces(ctx, 0, q, traceCache)
-	assert.NoError(t, err)
-	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
-	assert.Equal(t, ts, types.TraceSet{
-		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
-		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
-	})
-	// Let's verify that the local cache was populated.
-	traceIds, err := traceCache.GetTraceIds(ctx, 0, q)
-	assert.NoError(t, err)
-	assert.NotNil(t, traceIds)
-	assert.Equal(t, 2, len(traceIds))
 }
 
 func TestTraceCount(t *testing.T) {

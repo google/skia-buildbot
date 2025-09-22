@@ -172,7 +172,6 @@ import (
 	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -1377,7 +1376,7 @@ func (s *SQLTraceStore) ReadTracesForCommitRange(ctx context.Context, traceNames
 // It works by reading in a number of traceNames into a chunk and then passing
 // that chunk of trace names to a worker pool that reads all the trace values
 // for the given trace names.
-func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, traceNames <-chan string, beginCommit types.CommitNumber, endCommit types.CommitNumber) (types.TraceSet, []provider.Commit, map[string]*types.TraceSourceInfo, error) {
+func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, traceNamesChan <-chan string, beginCommit types.CommitNumber, endCommit types.CommitNumber) (types.TraceSet, []provider.Commit, map[string]*types.TraceSourceInfo, error) {
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.readTracesByChannelForCommitRange")
 	defer span.End()
 
@@ -1387,7 +1386,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	// Validate the begin and end commit numbers.
 	if beginCommit > endCommit {
 		// Empty the traceNames channel.
-		for range traceNames {
+		for range <-traceNamesChan {
 		}
 		return nil, nil, nil, skerr.Fmt("Invalid commit range, [%d, %d] should be [%d, %d]", beginCommit, endCommit, endCommit, beginCommit)
 	}
@@ -1404,65 +1403,45 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 
 	// Protects traceNameMap and ret.
 	var mutex sync.Mutex
-
-	// chunkChannel is used to distribute work to the workers.
-	chunkChannel := make(chan []traceIDForSQL, queryTracesIDOnlyByIndexChannelSize)
-
-	// Start the workers that do the actual querying when given chunks of trace ids.
-	g, ctx := errgroup.WithContext(ctx)
-	sourceFileMap := map[string]*types.TraceSourceInfo{}
-
-	for i := 0; i < poolSize; i++ {
-		g.Go(func() error {
-			ctx, span := trace.StartSpan(ctx, "sqltracestore.ReadTraces.Worker")
-			defer span.End()
-
-			for chunk := range chunkChannel {
-				if err := s.readTracesChunk(ctx, beginCommit, endCommit, commits, chunk, &mutex, traceNameMap, &ret, sourceFileMap); err != nil {
-					return skerr.Wrap(err)
-				}
-			}
-			return nil
-		})
+	traceNames := []string{}
+	var traceIDsForQuery []traceIDForSQL
+	for traceName := range traceNamesChan {
+		traceNames = append(traceNames, traceName)
+		traceIDBytes := traceIDForSQLInBytesFromTraceName(traceName)
+		traceNameMap[traceIDBytes] = traceName
+		traceIDsForQuery = append(traceIDsForQuery, traceIDForSQLFromTraceName(traceName))
 	}
 
-	// Now break up the incoming trace ids into chuck for the workers.
-	currentChunk := []traceIDForSQL{}
-	for key := range traceNames {
-		if !query.IsValid(key) {
-			sklog.Errorf("Invalid key: %q", key)
+	if len(traceNames) == 0 {
+		return types.TraceSet{}, commits, nil, nil
+	}
+
+	for _, name := range traceNames {
+		if !query.IsValid(name) {
+			sklog.Errorf("Invalid trace name: %q", name)
 			continue
 		}
-
 		mutex.Lock()
-		// Make space in ret for the values.
-		ret[key] = vec32.New(len(commits))
-
-		// Update the map from the full name of the trace and id in traceIDForSQLInBytes form.
-		traceNameMap[traceIDForSQLInBytesFromTraceName(key)] = key
+		ret[name] = vec32.New(len(commits))
 		mutex.Unlock()
+	}
 
-		trID := traceIDForSQLFromTraceName(key)
-		currentChunk = append(currentChunk, trID)
-		if len(currentChunk) >= queryTracesChunkSize {
-			chunkChannel <- currentChunk
-			currentChunk = []traceIDForSQL{}
+	sourceFileMap := map[string]*types.TraceSourceInfo{}
+
+	// Iterate over the traceIDs in chunks and query the database in parallel.
+	err = util.ChunkIterParallelPool(ctx, len(traceIDsForQuery), 5, 10, func(ctx context.Context, startIdx, endIdx int) error {
+		chunk := traceIDsForQuery[startIdx:endIdx]
+		if err := s.readTracesChunk(ctx, beginCommit, endCommit, commits, chunk, &mutex, traceNameMap, &ret, sourceFileMap); err != nil {
+			return skerr.Wrap(err)
 		}
-	}
-	// Now handle any remaining values in the currentChunk.
-	if len(currentChunk) >= 0 {
-		chunkChannel <- currentChunk
-	}
-	close(chunkChannel)
+		return nil
+	})
 
-	if err := g.Wait(); err != nil {
+	if err != nil {
 		span.SetStatus(trace.Status{
 			Code:    trace.StatusCodeInternal,
 			Message: err.Error(),
 		})
-		// Empty the traceNames channel.
-		for range traceNames {
-		}
 		return nil, nil, nil, skerr.Wrap(err)
 	}
 
