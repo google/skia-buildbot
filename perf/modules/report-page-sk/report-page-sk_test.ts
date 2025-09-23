@@ -26,7 +26,9 @@ describe('ReportPageSk', () => {
 
   let element: ReportPageSk;
   const mockExploreInstances: (HTMLElement & {
+    extendRange: sinon.SinonSpy;
     updateChartHeight: sinon.SinonSpy;
+    updateSelectedRangeWithPlotSummary: sinon.SinonSpy;
     state: object;
   })[] = [];
 
@@ -116,6 +118,8 @@ describe('ReportPageSk', () => {
       const mockInstance = document.createElement('div') as any;
       mockInstance.updateChartHeight = sinon.spy();
       mockInstance.state = {};
+      mockInstance.extendRange = sinon.spy(() => Promise.resolve());
+      mockInstance.updateSelectedRangeWithPlotSummary = sinon.spy();
       mockExploreInstances.push(mockInstance);
       return mockInstance;
     };
@@ -125,6 +129,12 @@ describe('ReportPageSk', () => {
     sinon.stub(table, 'populateTable').resolves();
     sinon.stub(table, 'checkSelectedAnomalies');
     sinon.stub(table, 'initialCheckAllCheckbox');
+
+    const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
+    sinon
+      .stub(graphContainer, 'querySelectorAll')
+      .withArgs('explore-simple-sk')
+      .callsFake(() => mockExploreInstances as unknown as NodeListOf<Element>);
   });
 
   afterEach(() => {
@@ -220,6 +230,54 @@ describe('ReportPageSk', () => {
 
       // This will be resolved only when all graphs are loaded.
       await connectedCallbackPromise;
+    });
+
+    it('does not update URL until all graphs are loaded', async () => {
+      const anomalyCount = 3;
+      const anomalies = Array.from({ length: anomalyCount }, (_, i) => createMockAnomaly(i));
+      const timerangeMap = anomalies.reduce(
+        (acc, anom) => {
+          acc[anom.id] = createMockTimerange();
+          return acc;
+        },
+        {} as { [key: string]: Timerange }
+      );
+
+      fetchMock.post('/_/anomalies/group_report', {
+        anomaly_list: anomalies,
+        timerange_map: timerangeMap,
+        selected_keys: anomalies.map((a) => a.id),
+      });
+
+      const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
+      const appendSpy = sinon.spy(graphContainer, 'append');
+      const connectedCallbackPromise = element.connectedCallback();
+      await fetchMock.flush(true);
+      await waitUntil(() => appendSpy.callCount === anomalyCount);
+
+      // Simulate data-loaded for all graphs.
+      for (let i = 0; i < anomalyCount; i++) {
+        mockExploreInstances[i].dispatchEvent(new CustomEvent('data-loaded'));
+      }
+      await connectedCallbackPromise;
+      await waitUntil(() => element['_allGraphsLoaded']);
+
+      // URL should not be updated while graphs are still loading.
+      assert.isFalse(mockExploreInstances[0].extendRange.called);
+      assert.isFalse(mockExploreInstances[0].updateSelectedRangeWithPlotSummary.called);
+
+      // And now it should be.
+      const eventDetails = {
+        detail: {
+          value: { begin: 123, end: 456 },
+          domain: 'commit',
+          graphNumber: 1,
+          start: 99,
+          end: 999,
+        },
+      };
+      element['syncChartSelection'](eventDetails as any);
+      assert.isTrue(mockExploreInstances[0].updateSelectedRangeWithPlotSummary.called);
     });
   });
 });

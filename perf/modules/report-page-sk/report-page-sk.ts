@@ -406,6 +406,9 @@ export class ReportPageSk extends ElementSk {
   private async syncExtendRangeOnSummaryBar(
     e: CustomEvent<PlotSelectionEventDetails>
   ): Promise<void> {
+    if (!this._allGraphsLoaded) {
+      return;
+    }
     const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
     const offset = e.detail.offsetInSeconds;
     const range = e.detail.value;
@@ -416,6 +419,9 @@ export class ReportPageSk extends ElementSk {
   }
 
   private async syncChartSelection(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
+    if (!this._allGraphsLoaded) {
+      return;
+    }
     const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
     if (!e.detail.value) {
       return;
