@@ -659,8 +659,15 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // A simple endpoint for kubernetes to ping to check if the service is ready.
-func (f *Frontend) readiness(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+func (f *Frontend) readiness(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/readiness" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		h.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(s)
 }
 
 // liveness is used by the front end service to verify that cockroachDB
@@ -1009,7 +1016,6 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 
 	router.Get("/_/defaults", f.defaultsHandler)
 	router.Get("/_/revision", f.revisionHandler)
-	router.Get("/readiness", f.readiness)
 
 	return router
 }
@@ -1048,10 +1054,11 @@ func (f *Frontend) Serve() {
 	h = httputils.LoggingGzipRequestResponse(h)
 	if !f.flags.DevMode {
 		h = httputils.HealthzAndHTTPS(h)
-		// add liveness handler after https routing since these are applied in
+		// add liveness and readiness handlers after https routing since these are applied in
 		// reverse order to ensure k8 pod can access the endpoint without
 		// 301 moved permanently status
 		h = f.liveness(h)
+		h = f.readiness(h)
 	}
 	http.Handle("/", h)
 
