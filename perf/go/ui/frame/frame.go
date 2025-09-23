@@ -365,6 +365,10 @@ func getMetadataForTraces(ctx context.Context, df *dataframe.DataFrame, metadata
 		sourceFileIds = append(sourceFileIds, sourceFileId)
 	}
 
+	if len(sourceFileIds) == 0 {
+		return []types.TraceMetadata{}, nil
+	}
+
 	// The return value is a map where the key is the source file name and value is the map of links.
 	linkInfo, err := metadataStore.GetMetadataForSourceFileIDs(ctx, sourceFileIds)
 	if err != nil {

@@ -176,6 +176,14 @@ func TestGetMetadataForTraces_Success(t *testing.T) {
 		56789,
 		67890,
 	}
+	sInfo1 := types.NewTraceSourceInfo()
+	sInfo1.Add(1, sourceFileIds[0])
+	sInfo2 := types.NewTraceSourceInfo()
+	sInfo2.Add(2, sourceFileIds[1])
+	df.SourceInfo = map[string]*types.TraceSourceInfo{
+		traceids[0]: sInfo1,
+		traceids[1]: sInfo1,
+	}
 
 	sourceFileLinks := map[int64]map[string]string{
 		sourceFileIds[0]: {
