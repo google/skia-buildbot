@@ -997,11 +997,17 @@ export class ExploreMultiSk extends ElementSk {
       return;
     }
 
-    allTracesets.forEach((traceset) => {
-      traceset.forEach((trace) => {
-        addParamsToParamSet(paramSets, fromKey(trace));
+    if (allTracesets.every((ts) => ts.length === 0)) {
+      this.graphConfigs[0].queries.forEach((query) => {
+        addParamsToParamSet(paramSets, fromKey(query));
       });
-    });
+    } else {
+      allTracesets.forEach((traceset) => {
+        traceset.forEach((trace) => {
+          addParamsToParamSet(paramSets, fromKey(trace));
+        });
+      });
+    }
 
     this.testPicker!.populateFieldDataFromParamSet(paramSets, paramSet);
     this.testPicker!.setReadOnly(false);

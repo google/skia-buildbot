@@ -3916,6 +3916,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     this._requestId = 'About to make request';
     this.spinning = true;
+    this.dataLoading = true;
     return new Promise<void>((resolve, reject) => {
       this.sendFrameRequest(body, async (json) => {
         // make this inner callback async
@@ -3941,6 +3942,7 @@ export class ExploreSimpleSk extends ElementSk {
         })
         .finally(() => {
           this.spinning = false;
+          this.dataLoading = false;
           this._requestId = '';
         });
     });
@@ -3979,7 +3981,9 @@ export class ExploreSimpleSk extends ElementSk {
     const prevBegin = this._state?.begin;
     const prevEnd = this._state?.end;
     const prevRequestType = this._state?.requestType;
-    const prevQueries = [...(this._state?.queries || [])];
+    const prevQueries = [...(this._state?.queries || [])].map((q) =>
+      q.replace(/\+/g, '%2B').replace(/\(/g, '%28').replace(/\)/g, '%29')
+    );
     const prevFormulas = [...(this._state?.formulas || [])];
     const prevKeys = this._state?.keys;
 
