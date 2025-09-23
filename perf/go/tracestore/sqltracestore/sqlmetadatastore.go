@@ -9,6 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -172,6 +173,10 @@ func (s *SQLMetadataStore) GetMetadataMultiple(ctx context.Context, sourceFileNa
 }
 
 func (s *SQLMetadataStore) GetMetadataForSourceFileIDs(ctx context.Context, sourceFileIDs []int64) (map[int64]map[string]string, error) {
+	if len(sourceFileIDs) == 0 {
+		sklog.Info("sourceFileIDs list is empty, returning")
+		return map[int64]map[string]string{}, nil
+	}
 	fileLinksAggregate := map[int64]map[string]string{}
 	mutex := sync.Mutex{}
 	err := util.ChunkIterParallelPool(ctx, len(sourceFileIDs), 200, 50, func(ctx context.Context, startIdx, endIdx int) error {

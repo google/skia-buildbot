@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
@@ -111,4 +113,14 @@ func TestGetMetadataMultiple_Success(t *testing.T) {
 		assert.Equal(t, metadata["key1"], fmt.Sprintf("link1_file_%s", sourceFile))
 		assert.Equal(t, metadata["key2"], fmt.Sprintf("link2_file_%s", sourceFile))
 	}
+}
+
+func TestGetMetadataForSourceFileIDs_EmptyIDsList(t *testing.T) {
+	store := createMetadataStoreForTests(t)
+	emptyIDsList := []int64{}
+	// ctx to get rid of warnings
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	_, err := store.GetMetadataForSourceFileIDs(ctx, emptyIDsList)
+	require.NoError(t, err)
 }
