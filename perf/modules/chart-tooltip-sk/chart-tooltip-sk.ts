@@ -146,7 +146,7 @@ export class ChartTooltipSk extends ElementSk {
   // * The "More details" button is currently set to fetch commit information
   //   via the POST /_/cid api call. Usually, the response details from that api
   //   call can also be used to determine if the given point is an anomaly, but
-  //   chart tooltip is unaware of the anoamly map maintained in plot-simple-sk.
+  //   chart tooltip is unaware of the AnomalyMap.
   //   "More details" should be updated to trigger an event to explore-simple-sk
   //   that can set commit and anoamly information to the chart-tooltip at the
   //   time the two elements are integrated.

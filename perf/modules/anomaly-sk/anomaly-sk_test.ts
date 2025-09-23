@@ -12,7 +12,7 @@ import {
   Trace,
   TraceSet,
 } from '../json';
-import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
+import { AnomalyData } from '../common/anomaly-data';
 import { AnomalySk, getAnomalyDataMap } from './anomaly-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 

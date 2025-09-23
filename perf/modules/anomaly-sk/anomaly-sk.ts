@@ -7,7 +7,7 @@ import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Anomaly, AnomalyMap, ColumnHeader, CommitNumber, TraceSet } from '../json';
-import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
+import { AnomalyData } from '../common/anomaly-data';
 import { lookupCids } from '../cid/cid';
 import '../window/window';
 

@@ -85,11 +85,7 @@ import {
   TraceMetadata,
   TraceCommitLink,
 } from '../json';
-import {
-  AnomalyData,
-  PlotSimpleSk,
-  PlotSimpleSkTraceEventDetails,
-} from '../plot-simple-sk/plot-simple-sk';
+import { PlotSimpleSk, PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import {
   ParamSetSk,
@@ -99,6 +95,7 @@ import {
   ParamSetSkPlusClickEventDetail,
   ParamSetSkRemoveClickEventDetail,
 } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
+import { AnomalyData } from '../common/anomaly-data';
 import { AnomalySk, getAnomalyDataMap } from '../anomaly-sk/anomaly-sk';
 import {
   QuerySk,

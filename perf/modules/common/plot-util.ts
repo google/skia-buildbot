@@ -1,6 +1,6 @@
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { Anomaly } from '../json';
-import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
+import { AnomalyData } from './anomaly-data';
 import { ChartAxisFormat, ChartData, DataPoint } from './plot-builder';
 
 // findMatchingAnomaly will search if the (trace, x and y coordinate) is an

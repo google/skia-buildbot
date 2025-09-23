@@ -34,13 +34,13 @@ sk_element(
         "//perf/modules/dataframe:dataframe_context_ts_lib",
         "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/const:const_ts_lib",
-        "//perf/modules/json:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//:node_modules/@types/d3-array",
         "//:node_modules/@types/d3-scale",
         "//:node_modules/d3-array",
         "//:node_modules/d3-scale",
         "//:node_modules/lit",
+        "//perf/modules/common:anomaly-data_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -63,6 +63,7 @@ sk_page(
         "//infra-sk/modules:dom_ts_lib",
         "//perf/modules/json:index_ts_lib",
         ":ticks_ts_lib",
+        "//perf/modules/common:anomaly-data_ts_lib",
     ],
     ts_entry_point = "plot-simple-sk-demo.ts",
 )

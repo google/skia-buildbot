@@ -68,6 +68,7 @@ sk_element(
         "//:node_modules/lit-html",  # keep
         "//perf/modules/dataframe:dataframe_context_ts_lib",
         "//perf/modules/dataframe:traceset_ts_lib",
+        "//perf/modules/common:anomaly-data_ts_lib",
     ],
     ts_srcs = [
         "explore-simple-sk.ts",

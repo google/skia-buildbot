@@ -16,10 +16,10 @@ ts_library(
     srcs = ["plot-util.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        ":anomaly-data_ts_lib",
         ":plot-builder_ts_lib",
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "//perf/modules/plot-simple-sk",
     ],
 )
 
@@ -32,4 +32,11 @@ ts_library(
         "//infra-sk/modules/json:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
+)
+
+ts_library(
+    name = "anomaly-data_ts_lib",
+    srcs = ["anomaly-data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//perf/modules/json:index_ts_lib"],
 )

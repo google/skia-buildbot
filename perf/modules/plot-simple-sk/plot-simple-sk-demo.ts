@@ -1,12 +1,12 @@
 import './index';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import {
-  AnomalyData,
   PlotSimpleSk,
   PlotSimpleSkTraceEventDetails,
   PlotSimpleSkZoomEventDetails,
 } from './plot-simple-sk';
 import { Anomaly } from '../json';
+import { AnomalyData } from '../common/anomaly-data';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { ticks } from './ticks';

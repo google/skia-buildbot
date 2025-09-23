@@ -17,7 +17,7 @@ import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 import { Anomaly } from '../json';
-import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
+import { AnomalyData } from '../common/anomaly-data';
 
 import '../new-bug-dialog-sk/new-bug-dialog-sk';
 import '../existing-bug-dialog-sk/existing-bug-dialog-sk';

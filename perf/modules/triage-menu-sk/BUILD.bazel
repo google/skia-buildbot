@@ -11,7 +11,6 @@ sk_element(
     sk_element_deps = [
         "//perf/modules/new-bug-dialog-sk",
         "//perf/modules/existing-bug-dialog-sk",
-        "//perf/modules/plot-simple-sk",
         "//elements-sk/modules/toast-sk",
     ],
     ts_deps = [
@@ -21,6 +20,7 @@ sk_element(
         "//perf/modules/json:index_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
+        "//perf/modules/common:anomaly-data_ts_lib",
     ],
     ts_srcs = [
         "triage-menu-sk.ts",

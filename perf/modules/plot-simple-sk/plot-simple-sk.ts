@@ -93,7 +93,6 @@
 import { html } from 'lit/html.js';
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
-import { Anomaly } from '../json';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { KDTree, KDPoint } from './kd';
@@ -101,6 +100,7 @@ import { tick } from './ticks';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { defaultColors } from '../common/plot-builder';
 import { IssueDetail, UserIssueMap } from '../dataframe/dataframe_context';
+import { AnomalyData } from '../common/anomaly-data';
 
 //  Prefix for trace ids that are not real traces, such as special_zero. Special
 //  traces never receive focus and can't be clicked on.
@@ -373,13 +373,6 @@ interface LineData {
   color: string;
   detail: TracePaths;
   summary: TracePaths;
-}
-
-export interface AnomalyData {
-  x: number;
-  y: number;
-  anomaly: Anomaly;
-  highlight: boolean;
 }
 
 export interface MousePosition {
