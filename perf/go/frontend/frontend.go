@@ -658,6 +658,11 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// A simple endpoint for kubernetes to ping to check if the service is ready.
+func (f *Frontend) readiness(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 // liveness is used by the front end service to verify that cockroachDB
 // connections are still working. /liveness handler is polled by
 // kubernetes probes. If the connection is down, the pod will restart
@@ -1004,6 +1009,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 
 	router.Get("/_/defaults", f.defaultsHandler)
 	router.Get("/_/revision", f.revisionHandler)
+	router.Get("/readiness", f.readiness)
 
 	return router
 }
