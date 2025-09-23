@@ -184,7 +184,6 @@ export class ExploreMultiSk extends ElementSk {
       // Scenario 2: dayRange is provided, begin/end are NOT.
       state.end = now;
       state.begin = now - state.dayRange * 24 * 60 * 60;
-      this.state = state;
     } else {
       // Scenario 3: No time parameters in URL, use component defaults.
       state.begin = now - defaultRangeS;
@@ -229,22 +228,27 @@ export class ExploreMultiSk extends ElementSk {
     }
     await load();
 
-    google.charts.setOnLoadCallback(() => {
-      this.addGraphsToCurrentPage();
-    });
+    this.addGraphsToCurrentPage();
+    // If a key is specified on initial load, we must wait for the
+    // shortcut's graphs to load their data before we can split them.
+    if (this.state.splitByKeys.length > 0) {
+      if (this.exploreElements.length > 0) {
+        this._dataLoading = true;
+        if (this.testPicker) {
+          this.testPicker.setReadOnly(true);
+        }
+        // Wait for all initial graphs to load their data.
+        await Promise.all(this.exploreElements.map((e) => e.requestComplete));
+        // Now that the data is loaded, we can split.
+        await this.splitGraphs(false); // showErrorIfLoading = false
+      }
+    }
 
     document.addEventListener('keydown', (e) => {
       this.exploreElements.forEach((exp) => {
         exp.keyDown(e);
       });
     });
-
-    // If a key is specified (eg: directly via url), perform the split
-    if (this.state.splitByKeys.length > 0) {
-      this._dataLoading = true;
-      this.testPicker?.setReadOnly(true);
-      this.splitGraphs();
-    }
   };
 
   // Event listener to remove the explore object from the list if the user

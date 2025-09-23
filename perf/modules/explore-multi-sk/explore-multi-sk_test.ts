@@ -154,7 +154,7 @@ describe('ExploreMultiSk', () => {
         email: 'user@google.com',
         roles: ['editor'],
       });
-      fetchMock.get('/_/defaults/', Promise.reject(new Error('Network error')));
+      fetchMock.getOnce('/_/defaults/', Promise.reject(new Error('Network error')));
       fetchMock.post('/_/frame/v2', {});
 
       element = setUpElementUnderTest<ExploreMultiSk>('explore-multi-sk')();
@@ -759,6 +759,32 @@ describe('ExploreMultiSk', () => {
         totalSplitGraphs,
         'All graphs should be loaded on the page'
       );
+    });
+  });
+
+  describe('_onStateChangedInUrl', () => {
+    beforeEach(async () => {
+      await setupElement();
+    });
+
+    it('correctly calculates begin and end times when dayRange is provided', async () => {
+      // Use fake timers to control Date.now()
+      const clock = sinon.useFakeTimers();
+      const now = Math.floor(Date.now() / 1000);
+      const dayRange = 5;
+      const fiveDaysInSeconds = dayRange * 24 * 60 * 60;
+
+      const state = new State();
+      state.begin = -1;
+      state.end = -1;
+      state.dayRange = dayRange;
+
+      await element['_onStateChangedInUrl'](state as any);
+
+      assert.equal(element.state.end, now);
+      assert.equal(element.state.begin, now - fiveDaysInSeconds);
+
+      clock.restore();
     });
   });
 });
