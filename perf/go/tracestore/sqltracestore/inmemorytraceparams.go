@@ -277,7 +277,7 @@ func (tp *InMemoryTraceParams) QueryTraceIDs(ctx context.Context, tileNumber typ
 				return nil
 			})
 		if err != nil {
-			sklog.Fatal(err)
+			sklog.Errorf("Error querying traceids. %s", err)
 		}
 	}()
 }
