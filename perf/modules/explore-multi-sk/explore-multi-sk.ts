@@ -196,9 +196,66 @@ export class ExploreMultiSk extends ElementSk {
       graphConfigs = shortcutConfigs.map((c) => Object.assign(new GraphConfig(), c));
     }
 
+    const validGraphs: GraphConfig[] = [];
+    if (state.splitByKeys.length > 0 && graphConfigs.length > 0) {
+      validGraphs.push(new GraphConfig());
+      this.addEmptyGraph();
+    }
+    for (let i = 0; i < graphConfigs.length; i++) {
+      if (
+        graphConfigs[i].formulas.length > 0 ||
+        graphConfigs[i].queries.length > 0 ||
+        graphConfigs[i].keys !== ''
+      ) {
+        // Merge queries and formulas into the first graph if splitting.
+        if (state.splitByKeys.length > 0) {
+          // Ensure the master query exists and is a single string.
+          if (validGraphs[0].queries.length === 0) {
+            validGraphs[0].queries.push('');
+          }
+          const aggregatedParams = new URLSearchParams(validGraphs[0].queries[0]);
+
+          graphConfigs[i].queries.forEach((q) => {
+            const incomingParams = new URLSearchParams(q);
+            incomingParams.forEach((value, key) => {
+              // Check if this exact key-value pair already exists.
+              const existingValues = aggregatedParams.getAll(key);
+              if (!existingValues.includes(value)) {
+                aggregatedParams.append(key, value);
+              }
+            });
+          });
+          // URLSearchParams.toString() encodes spaces as '+', but '%20' is generally preferred
+          // and safer for consistent URL handling, so we replace them.
+          validGraphs[0].queries[0] = aggregatedParams.toString().replace(/\+/g, '%20');
+
+          // Handle formulas (simple duplicate check is fine here).
+          graphConfigs[i].formulas.forEach((f) => {
+            if (!validGraphs[0].formulas.includes(f)) {
+              validGraphs[0].formulas.push(f);
+            }
+          });
+
+          // Handle keys (simple duplicate check is fine here).
+          if (graphConfigs[i].keys && !validGraphs[0].keys.includes(graphConfigs[i].keys)) {
+            if (validGraphs[0].keys) {
+              validGraphs[0].keys += ' ';
+            }
+            validGraphs[0].keys += graphConfigs[i].keys;
+          }
+        } else {
+          if (i >= numElements) {
+            this.addEmptyGraph();
+          }
+          validGraphs.push(graphConfigs[i]);
+        }
+      }
+    }
+    this.graphConfigs = validGraphs;
+
     // This loop removes graphs that are not in the current config.
     // This can happen if you add a graph and then use the browser's back button.
-    while (this.exploreElements.length > graphConfigs.length) {
+    while (this.exploreElements.length > this.graphConfigs.length) {
       this.exploreElements.pop();
       this.graphConfigs.pop();
       // Ensure graphDiv exists and has children before removing.
@@ -207,41 +264,32 @@ export class ExploreMultiSk extends ElementSk {
       }
     }
 
-    const validGraphs: GraphConfig[] = [];
-    for (let i = 0; i < graphConfigs.length; i++) {
-      if (
-        graphConfigs[i].formulas.length > 0 ||
-        graphConfigs[i].queries.length > 0 ||
-        graphConfigs[i].keys !== ''
-      ) {
-        if (i >= numElements) {
-          this.addEmptyGraph();
-        }
-        validGraphs.push(graphConfigs[i]);
-      }
-    }
-    this.graphConfigs = validGraphs;
-
     this.state = state;
     if (state.useTestPicker) {
       this.initializeTestPicker();
     }
     await load();
 
-    this.addGraphsToCurrentPage();
+    await this.addGraphsToCurrentPage();
     // If a key is specified on initial load, we must wait for the
     // shortcut's graphs to load their data before we can split them.
-    if (this.state.splitByKeys.length > 0) {
-      if (this.exploreElements.length > 0) {
-        this._dataLoading = true;
-        if (this.testPicker) {
-          this.testPicker.setReadOnly(true);
-        }
-        // Wait for all initial graphs to load their data.
-        await Promise.all(this.exploreElements.map((e) => e.requestComplete));
-        // Now that the data is loaded, we can split.
-        await this.splitGraphs(false); // showErrorIfLoading = false
-      }
+    if (this.state.splitByKeys.length > 0 && this.exploreElements.length > 0) {
+      this.setProgress('Loading graphs...');
+      this._dataLoading = true;
+      await new Promise<void>((resolve) => {
+        const check = () => {
+          if (!this.exploreElements[0].spinning) {
+            resolve();
+          } else {
+            setTimeout(check, 100); // Poll every 100ms.
+          }
+        };
+        check();
+      });
+      // Now that the data is loaded, we can split.
+      await this.splitGraphs(false); // showErrorIfLoading = false
+      this.setProgress('');
+      this.checkDataLoaded();
     }
 
     document.addEventListener('keydown', (e) => {
@@ -290,7 +338,16 @@ export class ExploreMultiSk extends ElementSk {
           return;
         }
         if (this.exploreElements.length > 0 && this._dataLoading) {
-          await this.exploreElements[0].requestComplete;
+          await new Promise<void>((resolve) => {
+            const check = () => {
+              if (!this.exploreElements[0].spinning) {
+                resolve();
+              } else {
+                setTimeout(check, 100); // Poll every 100ms.
+              }
+            };
+            check();
+          });
         }
         this.addGraphsToCurrentPage(false);
         const query = this.testPicker!.createQueryFromFieldData();
@@ -344,7 +401,16 @@ export class ExploreMultiSk extends ElementSk {
             // queries fetching the same data + creates concurrency issues.
             /*loadExtendedRange=*/ false
           );
-          await mainGraph.requestComplete;
+          await new Promise<void>((resolve) => {
+            const check = () => {
+              if (!mainGraph.dataLoading) {
+                resolve();
+              } else {
+                setTimeout(check, 100); // Poll every 100ms.
+              }
+            };
+            check();
+          });
           await this.splitGraphs(/*showErrorIfLoading=*/ false, /*splitIfOnlyOneGraph=*/ true);
 
           i = endGroupIndex;
@@ -396,8 +462,20 @@ export class ExploreMultiSk extends ElementSk {
     if (this.currentPageExploreElements.length === 0) {
       const newExplore = this.addEmptyGraph(true);
       if (newExplore) {
+        if (!newExplore) {
+          return;
+        }
         if (this.exploreElements.length > 0 && this._dataLoading) {
-          await this.exploreElements[0].requestComplete;
+          await new Promise<void>((resolve) => {
+            const check = () => {
+              if (!this.exploreElements[0].spinning) {
+                resolve();
+              } else {
+                setTimeout(check, 100); // Poll every 100ms.
+              }
+            };
+            check();
+          });
         }
         this.addGraphsToCurrentPage(true);
         explore = newExplore;
@@ -843,7 +921,7 @@ export class ExploreMultiSk extends ElementSk {
    * Splits the graphs based on the split by dropdown selection.
    */
   private async splitGraphs(
-    showErrorIfLoading: boolean = true,
+    _showErrorIfLoading: boolean = true,
     splitIfOnlyOneGraph: boolean = false
   ): Promise<void> {
     const groupedTraces = this.groupTracesBySplitKey();
@@ -864,12 +942,14 @@ export class ExploreMultiSk extends ElementSk {
       }
     }
 
+    /* TODO(crbug/447196357): Remove or re-enable if unable to fix loading state bug.
     if (this.exploreElements.length > 0 && this._dataLoading === true) {
       if (showErrorIfLoading) {
         errorMessage('Data is still loading, please wait...', 3000);
       }
       await this.exploreElements[0].requestComplete;
     }
+    */
 
     const selectedRange = this.exploreElements[0].getSelectedRange();
 
@@ -920,6 +1000,7 @@ export class ExploreMultiSk extends ElementSk {
     if (this.stateHasChanged) {
       this.stateHasChanged();
     }
+    this.setProgress('');
     this.checkDataLoaded();
   }
 
@@ -999,17 +1080,11 @@ export class ExploreMultiSk extends ElementSk {
       return;
     }
 
-    if (allTracesets.every((ts) => ts.length === 0)) {
-      this.graphConfigs[0].queries.forEach((query) => {
-        addParamsToParamSet(paramSets, fromKey(query));
+    allTracesets.forEach((traceset) => {
+      traceset.forEach((trace) => {
+        addParamsToParamSet(paramSets, fromKey(trace));
       });
-    } else {
-      allTracesets.forEach((traceset) => {
-        traceset.forEach((trace) => {
-          addParamsToParamSet(paramSets, fromKey(trace));
-        });
-      });
-    }
+    });
 
     this.testPicker!.populateFieldDataFromParamSet(paramSets, paramSet);
     this.testPicker!.setReadOnly(false);
@@ -1098,6 +1173,7 @@ export class ExploreMultiSk extends ElementSk {
       const graphConfig = this.currentPageGraphConfigs[i];
       this.addStateToExplore(elem, graphConfig, doNotQueryData);
     });
+
     this.graphDiv!.append(...elementsToAdd);
     this.updateChartHeights();
     this._render();

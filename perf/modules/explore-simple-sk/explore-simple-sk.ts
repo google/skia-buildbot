@@ -3970,16 +3970,15 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   set state(state: State) {
-    state = this.rationalizeTimeRange(state);
-    this._state = state;
     const prevBegin = this._state?.begin;
     const prevEnd = this._state?.end;
     const prevRequestType = this._state?.requestType;
-    const prevQueries = [...(this._state?.queries || [])].map((q) =>
-      q.replace(/\+/g, '%2B').replace(/\(/g, '%28').replace(/\)/g, '%29')
-    );
+    const prevQueries = [...(this._state?.queries || [])];
     const prevFormulas = [...(this._state?.formulas || [])];
     const prevKeys = this._state?.keys;
+
+    state = this.rationalizeTimeRange(state);
+    this._state = state;
 
     // Synchronize the xAxisSwitch with the state's domain
     const isDateDomain = this._state.domain === 'date';
@@ -4020,10 +4019,11 @@ export class ExploreSimpleSk extends ElementSk {
       this.openQuery();
     }
 
-    // update picker if state has changed
+    const encodedPrevQueries = prevQueries.map((q) => encodeURIComponent(q));
+    const encodedCurrentQueries = this._state.queries.map((q) => encodeURIComponent(q));
     const queriesChanged =
-      prevQueries.length !== this._state.queries.length ||
-      prevQueries.some((q, i) => q !== this._state.queries[i]);
+      encodedPrevQueries.length !== encodedCurrentQueries.length ||
+      encodedPrevQueries.some((q, i) => q !== encodedCurrentQueries[i]);
     const formulasChanged =
       prevFormulas.length !== this._state.formulas.length ||
       prevFormulas.some((f, i) => f !== this._state.formulas[i]);

@@ -765,6 +765,7 @@ describe('ExploreMultiSk', () => {
   describe('_onStateChangedInUrl', () => {
     beforeEach(async () => {
       await setupElement();
+      fetchMock.post('/_/shortcut/update', { id: 'new-shortcut-id' });
     });
 
     it('correctly calculates begin and end times when dayRange is provided', async () => {
@@ -785,6 +786,29 @@ describe('ExploreMultiSk', () => {
       assert.equal(element.state.begin, now - fiveDaysInSeconds);
 
       clock.restore();
+    });
+
+    it('correctly encodes spaces in aggregated queries', async () => {
+      const shortcutId = 'shortcut-with-spaces';
+      const mockGraphConfigs: GraphConfig[] = [
+        { queries: ['config=with space'], formulas: [], keys: '' },
+        { queries: ['arch=x86 new'], formulas: [], keys: '' },
+      ];
+      fetchMock.post('/_/shortcut/get', {
+        graphs: mockGraphConfigs,
+      });
+
+      const state = new State();
+      state.shortcut = shortcutId;
+      state.splitByKeys = ['someKey']; // Enable splitting to trigger aggregation.
+
+      await element['_onStateChangedInUrl'](state as any);
+
+      // Check the aggregated query in the first graph config.
+      const aggregatedQuery = element['graphConfigs'][0].queries[0];
+      assert.include(aggregatedQuery, 'config=with%20space');
+      assert.include(aggregatedQuery, 'arch=x86%20new');
+      assert.notInclude(aggregatedQuery, '+');
     });
   });
 });

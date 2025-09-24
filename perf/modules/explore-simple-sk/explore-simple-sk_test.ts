@@ -707,3 +707,65 @@ describe('Incremental Trace Loading', () => {
     assert.lengthOf(Object.keys(finalTraceset), 2);
   });
 });
+
+describe('State Management', () => {
+  let explore: ExploreSimpleSk;
+  let updateTestPickerUrlStub: sinon.SinonStub;
+
+  beforeEach(async () => {
+    // Mock all fetches that can be triggered by element creation.
+    fetchMock.get(/.*\/_\/initpage\/.*/, {
+      dataframe: { paramset: {} },
+    });
+    fetchMock.get('/_/login/status', {
+      email: 'someone@example.org',
+      roles: ['editor'],
+    });
+    fetchMock.post('/_/frame/start', {
+      status: 'Finished',
+      results: { dataframe: { traceset: {} } },
+    });
+
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await fetchMock.flush(true);
+
+    // Stub the method that gets called when a state change is detected.
+    updateTestPickerUrlStub = sinon.stub(explore, 'updateTestPickerUrl' as any);
+  });
+
+  afterEach(() => {
+    fetchMock.reset();
+    sinon.restore();
+  });
+
+  it('detects query changes with special characters due to encoding', () => {
+    const state1 = new State();
+    state1.queries = ['config=a b'];
+    explore.state = state1;
+
+    // Reset the stub after the initial state setting.
+    updateTestPickerUrlStub.resetHistory();
+
+    const state2 = new State();
+    state2.queries = ['config=a+b'];
+    explore.state = state2;
+
+    // 'a b' and 'a+b' are different strings, so a change should be detected.
+    assert.isTrue(
+      updateTestPickerUrlStub.called,
+      "URL update should be called for different queries ('a b' vs 'a+b')"
+    );
+
+    updateTestPickerUrlStub.resetHistory();
+
+    const state3 = new State();
+    state3.queries = ['config=a+b'];
+    explore.state = state3;
+
+    // The queries are identical, so no change should be detected.
+    assert.isFalse(
+      updateTestPickerUrlStub.called,
+      'URL update should not be called for identical queries'
+    );
+  });
+});
