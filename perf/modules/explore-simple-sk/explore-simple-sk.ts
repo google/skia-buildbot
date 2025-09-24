@@ -193,8 +193,6 @@ const monthInSec = 30 * 24 * 60 * 60;
 // max number of charts to show on a page
 const chartsPerPage = 11;
 
-type RequestFrameCallback = (frameResponse: FrameResponse) => void;
-
 export interface ZoomWithDelta {
   zoom: CommitRange;
   delta: CommitNumber;
@@ -2990,13 +2988,17 @@ export class ExploreSimpleSk extends ElementSk {
       this.commitTime!.textContent = '';
     }
     const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
-    this.requestFrame(body, (json) => {
-      if (json === null || json === undefined) {
+    this.requestFrame(body)
+      .then((json) => {
+        if (json === null || json === undefined) {
+          errorMessage('Failed to find any matching traces.');
+          return;
+        }
+        return this.UpdateWithFrameResponse(json, body, switchToTab);
+      })
+      .catch(() => {
         errorMessage('Failed to find any matching traces.');
-        return;
-      }
-      this.UpdateWithFrameResponse(json, body, switchToTab);
-    });
+      });
   }
 
   /**
@@ -3082,7 +3084,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._state.end = Math.floor(Date.now() / 1000);
     const body = this.requestFrameBodyFullFromState();
     const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
-    this.requestFrame(body, (json) => {
+    this.requestFrame(body).then((json) => {
       this.UpdateWithFrameResponse(json, body, switchToTab);
     });
   }
@@ -3453,8 +3455,8 @@ export class ExploreSimpleSk extends ElementSk {
     try {
       if (createFromScratch) {
         const body = this.requestFrameBodyFullFromState();
-        return this.requestFrame(body, async (json) => {
-          await this.UpdateWithFrameResponse(
+        return this.requestFrame(body).then((json) => {
+          return this.UpdateWithFrameResponse(
             json,
             body,
             /*switchToTab=*/ true,
@@ -3465,14 +3467,14 @@ export class ExploreSimpleSk extends ElementSk {
       } else {
         const requestNewData = this.requestFrameBodyForTrace(plotType, q, f);
         const requestAllData = this.requestFrameBodyFullFromState();
-        return this.requestFrame(requestNewData, async (json) => {
+        return this.requestFrame(requestNewData).then((json) => {
           // Merge new data with the existing state.
           const frameResponse = json as FrameResponse;
           const newDf = frameResponse.dataframe!;
           const mergedDataFrame = joinDataframes(this._dataframe, newDf);
           frameResponse.dataframe = mergedDataFrame;
           // Don't merge anomalies because DataFrameRepository already does that.
-          await this.UpdateWithFrameResponse(
+          return this.UpdateWithFrameResponse(
             frameResponse,
             requestAllData,
             /*switchToTab=*/ true,
@@ -3901,52 +3903,45 @@ export class ExploreSimpleSk extends ElementSk {
    *    tz:       "America/New_York"
    * };
    *
-   * The 'cb' callback function will be called with the decoded JSON body
+   * @returns A Promise that resolves with the decoded JSON body
    * of the response once it's available.
    */
-  private requestFrame(body: FrameRequest, cb: RequestFrameCallback): Promise<void> {
+  private async requestFrame(body: FrameRequest): Promise<FrameResponse> {
     if (this._requestId !== '') {
       const err = new Error('There is a pending query already running.');
       errorMessage(err.message);
-      return Promise.reject(err);
+      throw err;
     }
 
-    this._requestId = 'About to make request';
+    // _requestId is used as a lock, any non-empty string works for that.
+    this._requestId = 'Request in progress';
     this.spinning = true;
     this.dataLoading = true;
-    return new Promise<void>((resolve, reject) => {
-      this.sendFrameRequest(body, async (json) => {
-        // make this inner callback async
-        try {
-          await cb(json); // await the execution of the main callback
-          resolve();
-        } catch (e: any) {
-          // Catch errors from cb
-          errorMessage(e.message || e.toString());
-          reject(e);
-        }
-      })
-        .catch((msg: any) => {
-          // Catch errors from sendFrameRequest itself
-          if (msg) {
-            errorMessage(msg.message || msg.toString());
-          }
-          if (this.percent) {
-            // Check if percent is not null
-            this.percent.textContent = '';
-          }
-          reject(msg);
-        })
-        .finally(() => {
-          this.spinning = false;
-          this.dataLoading = false;
-          this._requestId = '';
-        });
-    });
+
+    try {
+      const jsonResponse = await this.sendFrameRequest(body);
+      return jsonResponse;
+    } catch (err: any) {
+      // This catches errors from sendFrameRequest (e.g., status !== 'Finished')
+      if (this.percent) {
+        this.percent.textContent = '';
+      }
+      // Re-throw the error for the caller to handle
+      throw err;
+    } finally {
+      // Ensuring the state is always cleaned up.
+      this.spinning = false;
+      this.dataLoading = false;
+      this._requestId = '';
+    }
   }
 
-  private async sendFrameRequest(body: FrameRequest, cb: RequestFrameCallback) {
+  /**
+   * Starts the frame request and returns the resulting data.
+   */
+  private async sendFrameRequest(body: FrameRequest): Promise<FrameResponse> {
     body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const finishedProg = await startRequest(
       '/_/frame/start',
       body,
@@ -3958,6 +3953,7 @@ export class ExploreSimpleSk extends ElementSk {
         }
       }
     );
+
     if (finishedProg.status !== 'Finished') {
       throw new Error(messagesToErrorString(finishedProg.messages));
     }
@@ -3965,7 +3961,8 @@ export class ExploreSimpleSk extends ElementSk {
     if (msg) {
       errorMessage(msg);
     }
-    cb(finishedProg.results as FrameResponse);
+
+    return finishedProg.results as FrameResponse;
   }
 
   get state(): State {

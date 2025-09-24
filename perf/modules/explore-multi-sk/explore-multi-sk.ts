@@ -368,6 +368,8 @@ export class ExploreMultiSk extends ElementSk {
         await mainGraph.requestComplete;
         await this.splitGraphs();
       }
+    } catch (err: any) {
+      errorMessage(err.message || "Something went wrong, can't plot the graphs.");
     } finally {
       this.updateShortcutMultiview();
       this.setProgress('');
