@@ -33,8 +33,6 @@ export class ExploreSk extends ElementSk {
 
   private stateHasChanged: (() => void) | null = null;
 
-  private showMultiViewButton = false;
-
   private defaults: QueryConfig | null = null;
 
   private userEmail: string = '';
@@ -76,7 +74,6 @@ export class ExploreSk extends ElementSk {
     });
 
     this.exploreSimpleSk!.addEventListener('rendered_traces', () => {
-      this.showMultiViewButton = false;
       this._render();
     });
 
@@ -88,22 +85,8 @@ export class ExploreSk extends ElementSk {
       .catch(errorMessage);
   }
 
-  private static template = (ele: ExploreSk) => html`
-    <div class="explore-padding" ?hidden=${!ele.showMultiViewButton}>
-      <md-outlined-button
-        @click=${() => {
-          ele.exploreSimpleSk?.viewMultiGraph();
-        }}>
-        View in multi-graph
-      </md-outlined-button>
-      <md-outlined-button
-        @click=${() => {
-          ele.exploreSimpleSk?.toggleGoogleChart();
-        }}>
-        Toggle Chart Style
-      </md-outlined-button>
-    </div>
-    <test-picker-sk id="test-picker" class="hidden explore-padding"></test-picker-sk>
+  private static template = (_ele: ExploreSk) => html`
+    <test-picker-sk id="test-picker" class="hidden test-picker"></test-picker-sk>
     <explore-simple-sk></explore-simple-sk>
   `;
 
@@ -154,11 +137,7 @@ export class ExploreSk extends ElementSk {
     });
 
     // Event listener for when the Remove All button is clicked.
-    // This will hide the Multiview and favorites buttons since we
-    // essentially don't have any graph on the explore page basically
-    // rendering these buttons useless.
     this.addEventListener('remove-all', () => {
-      this.showMultiViewButton = false;
       this._render();
     });
 

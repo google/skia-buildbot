@@ -3751,11 +3751,6 @@ export class ExploreSimpleSk extends ElementSk {
     return graphConfigs;
   }
 
-  public toggleGoogleChart() {
-    this.state.show_google_plot = !this.state.show_google_plot;
-    this.render();
-  }
-
   // TODO(b/377772220): When splitting a chart with multiple traces,
   // this function will perform the split operation on every trace.
   // If a trace is selected, the chart should only split on that trace.
@@ -3767,23 +3762,6 @@ export class ExploreSimpleSk extends ElementSk {
       this._dataframe.traceset,
       detail.attribute
     );
-    const newShortcut = await updateShortcut(graphConfigs);
-
-    if (newShortcut === '') {
-      return;
-    }
-
-    window.open(
-      `/m/?begin=${this._state.begin}&end=${this._state.end}` +
-        `&pageSize=${chartsPerPage}&shortcut=${newShortcut}` +
-        `&totalGraphs=${graphConfigs.length}` +
-        (this.state.show_google_plot ? `&show_google_plot=true` : ``),
-      '_self'
-    );
-  }
-
-  public async viewMultiGraph(): Promise<void> {
-    const graphConfigs: GraphConfig[] = this.createGraphConfigs(this._dataframe.traceset);
     const newShortcut = await updateShortcut(graphConfigs);
 
     if (newShortcut === '') {
