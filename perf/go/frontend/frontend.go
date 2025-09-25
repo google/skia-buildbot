@@ -1047,6 +1047,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.Post("/_/fe_telemetry", f.feTelemetryHandler)
 	router.Get("/_/defaults", f.defaultsHandler)
 	router.Get("/_/revision", f.revisionHandler)
+	router.Get("/_/json/", Proxy_GetHandler)
 
 	return router
 }

@@ -66,28 +66,48 @@ export class PointLinksSk extends ElementSk {
 
   private fuchsiaBuildLogKey = 'Test stdio';
 
+  // _pointLinks stores the asynchronously rendered TemplateResult[] for the point links.
+  // This is necessary because `lit-html` cannot directly render an array of Promises.
+  private _pointLinks: TemplateResult[] = [];
+
   private static template = (ele: PointLinksSk) =>
     html`<div class="point-links" ?hidden=${Object.keys(ele.displayUrls || {}).length === 0}>
       <ul class="table">
-        ${ele.renderPointLinks()} ${ele.renderRevisionLink()}
+        ${ele._pointLinks} ${ele.renderRevisionLink()}
       </ul>
     </div>`;
 
   connectedCallback(): void {
     super.connectedCallback();
+    // Initial render is handled by the `load` and `reset` functions,
+    // which now call `renderPointLinks` to manage asynchronous updates.
     this.render();
   }
 
-  renderPointLinks(): TemplateResult[] {
+  /**
+   * Asynchronously renders the point links and updates the `_pointLinks` property.
+   * This function is now `async` to `await` the `isRange` check and uses `Promise.all`
+   * to ensure all individual link rendering promises resolve before updating the DOM.
+   */
+  async renderPointLinks(): Promise<void> {
     if (Object.keys(this.displayTexts).length === 0 && Object.keys(this.displayUrls).length === 0) {
-      return [];
+      this._pointLinks = [];
+      this.render();
+      return;
     }
     const keys = Object.keys(this.displayUrls);
-    const getHtml = (key: string): TemplateResult => {
+    const getHtml = async (key: string): Promise<TemplateResult> => {
       const link = this.displayUrls![key];
       // TODO(b/398878559): Strip after 'Git' string until json keys are ready.
       const keyText: string = key.split(' Git')[0];
-      const linkText = this.displayTexts![key] || 'Link';
+      let linkText = this.displayTexts![key] || 'Link';
+      // This is a specific change for just v8.
+      if (keyText === 'V8') {
+        const isRange = await this.isRange(link);
+        if (!isRange && linkText.includes(' - ')) {
+          linkText = linkText.split(' - ')[1];
+        }
+      }
       const htmlUrl = html`<a
         href="${link}"
         title="${linkText}"
@@ -104,7 +124,9 @@ export class PointLinksSk extends ElementSk {
         </md-icon-button>
       </li>`;
     };
-    return keys.map(getHtml);
+    const htmlPromises = keys.map(getHtml);
+    this._pointLinks = await Promise.all(htmlPromises);
+    this.render();
   }
 
   renderRevisionLink() {
@@ -131,6 +153,65 @@ export class PointLinksSk extends ElementSk {
 
   private copyToClipboard(text: string): void {
     navigator.clipboard.writeText(text);
+  }
+
+  // isRange returns true if the given link refers to a range of commits, i.e.
+  // more than one commit.
+  //
+  // The ingested data always contains 2 commit hashes, but it is possible that
+  // there is only a single commit between the 2 hashes. We request a JSON
+  // formatted response from googlesource and check the response to see how many
+  // commits exist in the log.
+  private async isRange(link: string): Promise<boolean> {
+    // We can only inspect googlesource links that point to a commit.
+    if (!link.includes('googlesource.com')) {
+      // Not a googlesource commit link we can inspect, assume it's not a single
+      // commit, so we treat it as a range to be safe.
+      return true;
+    }
+
+    const url = new URL(link);
+    url.searchParams.set('format', 'JSON');
+
+    const proxyUrl = `/_/json//?url=${encodeURIComponent(url.toString())}`;
+
+    try {
+      const resp = await fetch(proxyUrl);
+      if (!resp.ok) {
+        // If the proxy fails or the underlying request fails, we can't determine.
+        // Let's log the error and assume it's a range.
+        const text = await resp.text();
+        console.error(
+          `Failed to fetch through proxy for ${url.toString()}: ${resp.status} ${text}`
+        );
+        return true;
+      }
+      const text = await resp.text();
+
+      // Handle googlesource's JSON prefix: )]}'
+      if (!text.startsWith(")]}'")) {
+        // Not the JSON format we expect.
+        return true;
+      }
+      const jsonStr = text.substring(4);
+      // It's possible to get an empty response body.
+      if (!jsonStr.trim()) {
+        return true;
+      }
+      const json = JSON.parse(jsonStr);
+
+      // A range is defined as having more than one commit in the log.
+      if (json && Array.isArray(json.log)) {
+        return json.log.length > 1;
+      }
+      // If we don't have a log array, we can't determine, so assume it's a range.
+      return true;
+    } catch (error) {
+      errorMessage(`Error while determining if link is a range: ${error}`);
+      // On any other error (e.g. network, JSON parsing), we can't be sure.
+      // Returning true is safer as it will display the full link text.
+      return true;
+    }
   }
 
   // load and display the links for the given commit and trace.
@@ -166,7 +247,7 @@ export class PointLinksSk extends ElementSk {
         // Reuse the existing links
         this.displayUrls = existingLink.displayUrls || {};
         this.displayTexts = existingLink.displayTexts || {};
-        this.render();
+        this.renderPointLinks();
         return Promise.resolve(commitLinks);
       }
     }
@@ -247,6 +328,7 @@ export class PointLinksSk extends ElementSk {
 
       this.displayTexts = displayTexts;
       this.displayUrls = displayUrls;
+      this.renderPointLinks();
 
       // Before adding a new commit link, check if it already exists in the array.
       // This should not be necessary, but it is a safeguard due to async calls.
@@ -274,7 +356,7 @@ export class PointLinksSk extends ElementSk {
     this.commitPosition = null;
     this.displayUrls = {};
     this.displayTexts = {};
-    this.render();
+    this.renderPointLinks();
   }
 
   render(): void {

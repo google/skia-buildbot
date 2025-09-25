@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "frontend",
-    srcs = ["frontend.go"],
+    srcs = [
+        "frontend.go",
+        "proxy.go",
+    ],
     data = glob(["testdata/**"]),
     embedsrcs = [
         "googleanalytics.html",
