@@ -52,9 +52,9 @@ export class AnomaliesTableSk extends ElementSk {
 
   multiChartUrlToAnomalyMap: Map<string, string> = new Map<string, string>();
 
-  private regressionsPageHost = '/a/';
+  private regressionsPageHost = '/a';
 
-  private reportPageHost = '/u/';
+  private reportPageHost = '/u';
 
   private isParentRow = false;
 
@@ -781,7 +781,11 @@ export class AnomaliesTableSk extends ElementSk {
       msg.hidden = true;
       table.hidden = false;
       this.anomalyList = anomalyList;
-      if (![this.regressionsPageHost, this.reportPageHost].includes(window.location.pathname)) {
+      let currentPath = window.location.pathname;
+      if (currentPath.endsWith('/')) {
+        currentPath = currentPath.slice(0, -1);
+      }
+      if (![this.regressionsPageHost, this.reportPageHost].includes(currentPath)) {
         // I am not sure we need preGenerateMultiGraphUrl at all.
         // TODO(sergeirudenkov): I want to log metrics here, but don't know whether we
         // have mechanism for this.
@@ -914,7 +918,11 @@ export class AnomaliesTableSk extends ElementSk {
     // when the user chooses 'V8 Javascript Perf' on the Regressions page.
     // It would significantly increase the page loading time if it pre-generates each row's url.
     // To prevent this, we will only pre-generate the URLs on the Report page.
-    if (window.location.pathname !== this.regressionsPageHost) {
+    let currentPath = window.location.pathname;
+    if (currentPath.endsWith('/')) {
+      currentPath = currentPath.slice(0, -1);
+    }
+    if (currentPath !== this.regressionsPageHost) {
       const url = this.multiChartUrlToAnomalyMap.get(anomaly.id);
       if (url) {
         return this.openAnomalyUrl(url);
