@@ -347,6 +347,7 @@ export class ReportPageSk extends ElementSk {
     explore.is_chart_split = true;
     explore.state.plotSummary = true;
     explore.tracesRendered = true;
+    explore.isReportPage = true;
     const graphIndex = this.graphDiv!.children.length;
     this.graphDiv!.append(explore);
 

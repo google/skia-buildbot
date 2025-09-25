@@ -630,6 +630,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private dfRepo = createRef<DataFrameRepository>();
 
+  public isReportPage: boolean = false;
+
   public get dataLoading(): boolean {
     return this.dfRepo.value?.loading ?? false;
   }
@@ -2065,6 +2067,9 @@ export class ExploreSimpleSk extends ElementSk {
    *                    This is needed when popping the selection too early.
    */
   useBrowserURL(selection: boolean = true): void {
+    if (this.isReportPage) {
+      return;
+    }
     const currentUrl = new URL(window.location.href);
     const commit: number = parseInt(
       currentUrl.searchParams.get('commit') ?? String(this._state.selected.commit)
@@ -2164,6 +2169,9 @@ export class ExploreSimpleSk extends ElementSk {
    * This is used to reflect the current state of the graph in the URL.
    */
   private updateBrowserURL(): void {
+    if (this.isReportPage) {
+      return;
+    }
     const currentUrl = new URL(window.location.href);
     // The tooltip is opened to a commit, so we need to update the URL to match.
     if (this._state.selected.tableCol && this._state.selected.tableCol !== -1) {
