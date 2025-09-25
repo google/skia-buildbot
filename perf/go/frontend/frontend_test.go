@@ -136,10 +136,13 @@ func TestFrontend_StripSlashes(t *testing.T) {
 
 	r := f.GetHandler([]string{host})
 
+	queryThatDoesNotChangeAnything := "?params_that_should_be_ignored=ignored"
+
 	testCases := []struct {
-		path               string
-		expectedStatusCode int
-		expectedRedirect   string
+		path                            string
+		expectedStatusCode              int
+		expectedRedirect                string
+		compareAgainstPathWithoutParams string
 	}{
 		{
 			path:               "/c/",
@@ -178,6 +181,17 @@ func TestFrontend_StripSlashes(t *testing.T) {
 			expectedStatusCode: http.StatusMovedPermanently,
 			expectedRedirect:   config.Config.LandingPageRelPath,
 		},
+		{
+			path:                            "/m" + queryThatDoesNotChangeAnything,
+			expectedStatusCode:              http.StatusOK,
+			compareAgainstPathWithoutParams: "/m",
+		},
+		{
+			// Note that the path does not change in browser.
+			path:                            "/m/" + queryThatDoesNotChangeAnything,
+			expectedStatusCode:              http.StatusOK,
+			compareAgainstPathWithoutParams: "/m/",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -191,6 +205,12 @@ func TestFrontend_StripSlashes(t *testing.T) {
 			require.Equal(t, tc.expectedStatusCode, w.Result().StatusCode)
 			if tc.expectedRedirect != "" {
 				require.Equal(t, tc.expectedRedirect, w.Header().Get("Location"))
+			} else {
+				expectedPath := tc.compareAgainstPathWithoutParams
+				if expectedPath == "" {
+					expectedPath = tc.path
+				}
+				require.Equal(t, expectedPath, req.URL.Path)
 			}
 		})
 	}

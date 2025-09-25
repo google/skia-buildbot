@@ -956,6 +956,8 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 
 	// All api paths must not end in a trailing slash.
 	// The root path "/" is the only exception.
+	// Requests with trailing slash are rewritten, so URL in the browser does not change,
+	// and there are no redirects issued.
 	router.Use(middleware.StripSlashes)
 
 	router.HandleFunc("/dist/*", f.makeDistHandler())
