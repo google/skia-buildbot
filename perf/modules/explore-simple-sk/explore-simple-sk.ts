@@ -2742,6 +2742,19 @@ export class ExploreSimpleSk extends ElementSk {
     if (params.test) {
       parts.push(params.test);
     }
+    // Only add subtests if they are not the same as story, up to 4.
+    if (params.subtest_1 && params.subtest_1 !== this.story) {
+      parts.push(params.subtest_1);
+    }
+    if (params.subtest_2 && params.subtest_2 !== this.story) {
+      parts.push(params.subtest_2);
+    }
+    if (params.subtest_3 && params.subtest_3 !== this.story) {
+      parts.push(params.subtest_3);
+    }
+    if (params.subtest_4 && params.subtest_4 !== this.story) {
+      parts.push(params.subtest_4);
+    }
 
     parts.push(this.story);
     this.testPath = parts.join('/');
