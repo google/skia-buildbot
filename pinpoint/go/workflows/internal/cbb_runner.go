@@ -227,6 +227,11 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 	benchmarks := setupBenchmarks(cbb)
 	browser := setupBrowser(cbb, bi)
 
+	extra_args := []string{browser}
+	if bi.Browser == "chrome" && bi.Channel == "stable" && bi.Platform != "android" {
+		extra_args = append(extra_args, "--disable-field-trial-config")
+	}
+
 	results := map[string]*format.Format{}
 
 	for _, b := range benchmarks {
@@ -237,7 +242,7 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 			Story:          "default",
 			CombinedCommit: cbb.Commit,
 			Iterations:     b.Iterations,
-			ExtraArgs:      []string{browser},
+			ExtraArgs:      extra_args,
 		}
 
 		if !strings.HasSuffix(p.Benchmark, ".crossbench") {
