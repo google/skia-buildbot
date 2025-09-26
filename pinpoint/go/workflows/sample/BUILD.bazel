@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/sklog",
+        "//pinpoint/go/backends",
         "//pinpoint/go/common",
         "//pinpoint/go/workflows",
         "//pinpoint/go/workflows/catapult",

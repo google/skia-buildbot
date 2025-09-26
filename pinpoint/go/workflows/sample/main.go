@@ -15,6 +15,7 @@ import (
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/catapult"
@@ -326,13 +327,35 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 	if len(flag.Args()) != 0 {
 		return nil, fmt.Errorf("Unrecognized command line arguments: %v", flag.Args())
 	}
-	if *commit == "" {
-		return nil, errors.New("Please specify a commit hash using --commit switch")
-	}
 	if *commitPosition == 0 {
 		return nil, errors.New("Please specify a commit position using --commit-position switch")
 	}
 	ctx := context.Background()
+	// If the user didn't specify a commit hash (so that *commit has the
+	// default value), or the user specified an empty commit hash,
+	// we try to get the commit hash from the commit position.
+	if *commit == flag.Lookup("commit").DefValue || *commit == "" {
+		crrev, err := backends.NewCrrevClient(ctx)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "unable to create crrev client")
+		}
+		ci, err := crrev.GetCommitInfo(ctx, strconv.Itoa(*commitPosition))
+		if err != nil {
+			return nil, skerr.Wrapf(err, "unable to get commit info")
+		}
+		if len(ci.GitHash) != 40 {
+			// When given an invalid commit position, NewCrrevClient doesn't
+			// return an error, but converts the commit position into a string.
+			// Since a valid commit hash must be 40 characters long, we assume
+			// an error if the length is incorrect.
+			return nil, fmt.Errorf(
+				"commit position %d appears invalid, GetCommitInfo returned %s",
+				*commitPosition, ci.GitHash,
+			)
+		}
+		*commit = ci.GitHash
+		fmt.Println("Using commit hash", *commit, "based on commit position", *commitPosition)
+	}
 	p := &internal.CbbRunnerParams{
 		BotConfig: *configuration,
 		Commit:    common.NewCombinedCommit(common.NewChromiumCommit(*commit)),
