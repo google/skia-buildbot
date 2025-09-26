@@ -95,7 +95,7 @@ import {
   ParamSetSkRemoveClickEventDetail,
 } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 import { AnomalyData } from '../common/anomaly-data';
-import { AnomalySk, getAnomalyDataMap } from '../anomaly-sk/anomaly-sk';
+import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import {
   QuerySk,
   QuerySkQueryChangeEventDetail,
@@ -111,14 +111,13 @@ import {
 import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
-import { fromKey, formatSpecialFunctions } from '../paramtools';
+import { fromKey } from '../paramtools';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
-import { findAnomalyInRange, findSubDataframe, range } from '../dataframe';
+import { findSubDataframe, range } from '../dataframe';
 import { TraceFormatter, GetTraceFormatter } from '../trace-details-formatter/traceformatter';
-import { fixTicksLength, tick, ticks } from '../plot-simple-sk/ticks';
 import {
   PlotSummarySk,
   PlotSummarySkSelectionEventDetails,
@@ -1392,12 +1391,6 @@ export class ExploreSimpleSk extends ElementSk {
 
       // Update the over user issues map in dataframe_context
       repo!.updateUserIssue(traceKey, commitPosition, bugId);
-
-      const issues = this.addGraphCoordinatesToUserIssues(
-        this._dataframe,
-        this.dfRepo.value?.userIssues || {}
-      );
-      this.plotSimple.value!.userIssueMap = issues;
     });
     this.addEventListener('plot-chart-mousedown', () => {
       this.onChartMouseDown();
@@ -2131,7 +2124,6 @@ export class ExploreSimpleSk extends ElementSk {
       this.googleChartPlot.value.showZero = this.state.showZero;
     }
 
-    const plot = this.plotSimple.value;
     const df = this.dfRepo.value?.dataframe;
     const header = df?.header || [];
     const selected = findSubDataframe(header!, range, domain);
@@ -2146,39 +2138,14 @@ export class ExploreSimpleSk extends ElementSk {
     this.state.begin = subDataframe.header![0]!.timestamp;
     this.state.end = subDataframe.header![subDataframe.header!.length - 1]!.timestamp;
 
-    const anomalyMap = findAnomalyInRange(this.dfRepo.value?.anomaly || {}, {
-      begin: header[Math.min(selected.begin, header.length - 1)]!.offset,
-      end: header[Math.min(selected.end, header.length - 1)]!.offset,
-    });
-
     // Update the current dataframe to reflect the selection.
     this._dataframe.traceset = subDataframe.traceset;
     this._dataframe.header = subDataframe.header;
     this._dataframe.traceMetadata = subDataframe.traceMetadata;
     this.updateTracePointMetadata(subDataframe.traceMetadata);
 
-    // Specific to legacy charts: Add the x and y coordinates
-    // for each user issue to be shown.
-    const issues = this.addGraphCoordinatesToUserIssues(
-      this._dataframe,
-      this.dfRepo.value?.userIssues || {}
-    );
-
     if (replot) {
-      this.AddPlotLines(subDataframe.traceset, this.getLabels(subDataframe.header!));
-    }
-
-    if (anomalyMap) {
-      if (!plot) {
-        return;
-      }
-      plot.userIssueMap = issues;
-      plot.anomalyDataMap = getAnomalyDataMap(
-        subDataframe.traceset,
-        subDataframe.header!,
-        anomalyMap,
-        this.state.highlight_anomalies
-      );
+      this.AddPlotLines();
     }
   }
 
@@ -2692,38 +2659,10 @@ export class ExploreSimpleSk extends ElementSk {
         [e.detail.value],
         e.detail.selected
       );
-    } else {
-      if (!e.detail.selected) {
-        // Find the matching traces and remove them from the dataframe's traceset.
-        const keys: string[] = [];
-        Object.keys(this._dataframe.traceset).forEach((key) => {
-          if (_matches(key, e.detail.key, e.detail.value!)) {
-            keys.push(key);
-          }
-        });
-        this.removeKeys(keys, false);
-      } else {
-        // Adding is slightly more involved. The current dataframe may have matching traces removed,
-        // so we need to look at the original trace set to find matching traces. If we find any
-        // match, we add it to the current dataframe and then add the lines to the rendered plot.
-        const traceSet = TraceSet({});
-        const originalTraces = this.dfRepo.value!.dataframe.traceset;
-        Object.keys(originalTraces).forEach((key) => {
-          if (_matches(key, e.detail.key, e.detail.value!)) {
-            if (!(key in this._dataframe.traceset)) {
-              this._dataframe.traceset[key] = originalTraces[key];
-            }
-            traceSet[key] = originalTraces[key];
-          }
-        });
-        this.AddPlotLines(traceSet, []);
-      }
     }
   }
 
-  private AddPlotLines(traceSet: { [key: string]: number[] }, labels: tick[]) {
-    this.plotSimple.value?.addLines(traceSet, labels);
-
+  private AddPlotLines() {
     const dt = this.dfRepo.value?.data;
     const df = this.dfRepo.value?.dataframe;
     const shouldAddSummaryOptions = this._state.plotSummary && df !== undefined && dt !== undefined;
@@ -3177,48 +3116,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.dataLoading = false;
   }
 
-  // Adds x and y coordinates to the user issue points needed to be displayed
-  private addGraphCoordinatesToUserIssues(df: DataFrame, issues: UserIssueMap): UserIssueMap {
-    const commitPosToIndex = new Map<CommitNumber, number>();
-    df.header?.forEach((p, i) => {
-      if (p) {
-        commitPosToIndex.set(p.offset, i);
-      }
-    });
-    const issuesObj = issues || {};
-    // The dataframe contains trace keys in unextracted form like
-    // norm(,a=A,b=B,). However the user issues stores them in extracted form.
-    // We need to maintain this map below is because the trace value
-    // is looked up directly from the dataframe object.
-    const extractedKeyMap: { [key: string]: string } = {};
-    Object.keys(df.traceset).forEach((unextractedTrace) => {
-      const extractedKey = formatSpecialFunctions(unextractedTrace);
-      extractedKeyMap[extractedKey] = unextractedTrace;
-    });
-
-    Object.keys(issuesObj).forEach((traceId) => {
-      Object.keys(issuesObj[traceId]).forEach((k, _) => {
-        const commitPos = parseInt(k) as CommitNumber;
-        const bugId = issuesObj[traceId][commitPos].bugId;
-        const pointIndex = commitPosToIndex.get(commitPos);
-        if (pointIndex === undefined) return;
-
-        // df.traceset has keys in unstructured format like norm(key...).
-        // To get the point value we need to get the key in raw form.
-        const unextractedTraceId = extractedKeyMap[traceId];
-        if (unextractedTraceId !== undefined) {
-          const pointValue = df.traceset[unextractedTraceId][pointIndex];
-          issuesObj[traceId][commitPos] = {
-            bugId: bugId,
-            x: pointIndex,
-            y: pointValue,
-          };
-        }
-      });
-    });
-    return issuesObj;
-  }
-
   /**
    * Plot the traces that match either the current query or the current formula,
    * depending on the value of plotType.
@@ -3233,37 +3130,6 @@ export class ExploreSimpleSk extends ElementSk {
     const q = this.query!.current_query;
     const f = this.formula!.value;
     this.addFromQueryOrFormula(replace, plotType, q, f);
-  }
-
-  /**
-   * Returns the labels for the plot
-   * @param dataframe The dataframe to use for generating labels
-   * @returns a list of labels
-   */
-  private getLabels(columnHeader: (ColumnHeader | null)[]): tick[] {
-    let labels: tick[] = [];
-    const dates: Date[] = [];
-    switch (this.state.labelMode) {
-      case LabelMode.CommitPosition:
-        columnHeader.forEach((header, i) => {
-          labels.push({
-            x: i,
-            text: header!.offset.toString(),
-          });
-        });
-        labels = fixTicksLength(labels);
-        break;
-      case LabelMode.Date:
-        columnHeader.forEach((header) => {
-          dates.push(new Date(header!.timestamp * 1000));
-        });
-        labels = ticks(dates);
-        break;
-      default:
-        break;
-    }
-
-    return labels;
   }
 
   /** Create a FrameRequest for just a single query or formula. */

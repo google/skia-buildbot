@@ -63,7 +63,6 @@ sk_element(
         "//infra-sk/modules/json:index_ts_lib",
         "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
         "//:node_modules/lit",
-        "//perf/modules/plot-simple-sk:ticks_ts_lib",
         "//:node_modules/@material/web",
         "//:node_modules/lit-html",  # keep
         "//perf/modules/dataframe:dataframe_context_ts_lib",
@@ -89,7 +88,6 @@ karma_test(
         "//:node_modules/sinon",
         "//infra-sk/modules:object_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//perf/modules/dataframe:dataframe_context_ts_lib",
         "//perf/modules/dataframe:test_utils_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
