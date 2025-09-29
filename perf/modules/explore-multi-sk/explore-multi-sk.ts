@@ -44,6 +44,7 @@ import {
   TraceSet,
   Trace,
 } from '../json';
+import { recordSummary } from '../telemetry/telemetry';
 
 import '../../../elements-sk/modules/spinner-sk';
 import '../explore-simple-sk';
@@ -330,6 +331,7 @@ export class ExploreMultiSk extends ElementSk {
     this._dataLoading = true;
     this.testPicker?.setReadOnly(true);
     this.setProgress('Loading graphs...');
+    const startTime = performance.now();
     try {
       if (this.state.splitByKeys.length === 0) {
         // Just load single graph.
@@ -437,6 +439,7 @@ export class ExploreMultiSk extends ElementSk {
     } catch (err: any) {
       errorMessage(err.message || "Something went wrong, can't plot the graphs.");
     } finally {
+      recordSummary('fe_multi_graph_data_load_time_s', (performance.now() - startTime) / 1000);
       this.updateShortcutMultiview();
       this.setProgress('');
       this.checkDataLoaded();

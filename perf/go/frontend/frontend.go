@@ -889,6 +889,35 @@ func (f *Frontend) loginStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// feMetric is the structure of the JSON we receive from the frontend when it sends metrics.
+// The frontend metrics are defined in perf/modules/telemetry/telemetry.ts.
+type feMetric struct {
+	MetricName  string            `json:"metric_name"`
+	MetricValue float64           `json:"metric_value"`
+	Tags        map[string]string `json:"tags"`
+	MetricType  string            `json:"metric_type"`
+}
+
+func (f *Frontend) feTelemetryHandler(w http.ResponseWriter, r *http.Request) {
+	var metrics []feMetric
+	if err := json.NewDecoder(r.Body).Decode(&metrics); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		return
+	}
+
+	for _, m := range metrics {
+		switch m.MetricType {
+		case "counter":
+			metrics2.GetCounter(m.MetricName, m.Tags).Inc(int64(m.MetricValue))
+		case "summary":
+			metrics2.GetFloat64SummaryMetric(m.MetricName, m.Tags).Observe(m.MetricValue)
+		default:
+			sklog.Warningf("Unknown metric type: %s", m.MetricType)
+		}
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func (f *Frontend) makeDistHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.StripPrefix("/dist", http.FileServer(f.distFileSystem))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -1015,7 +1044,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 		frontEndApi.RegisterHandlers(router)
 	}
 	router.Get("/_/login/status", f.loginStatus)
-
+	router.Post("/_/fe_telemetry", f.feTelemetryHandler)
 	router.Get("/_/defaults", f.defaultsHandler)
 	router.Get("/_/revision", f.revisionHandler)
 

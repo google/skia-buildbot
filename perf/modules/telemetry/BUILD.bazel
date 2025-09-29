@@ -1,0 +1,7 @@
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "telemetry_ts_lib",
+    srcs = ["telemetry.ts"],
+    visibility = ["//visibility:public"],
+)

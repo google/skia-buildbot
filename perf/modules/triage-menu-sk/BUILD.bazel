@@ -20,6 +20,7 @@ sk_element(
         "//perf/modules/json:index_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
+        "//perf/modules/telemetry:telemetry_ts_lib",
         "//perf/modules/common:anomaly-data_ts_lib",
     ],
     ts_srcs = [
