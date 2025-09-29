@@ -92,7 +92,6 @@ import {
   ParamSetSkCheckboxClickEventDetail,
   ParamSetSkClickEventDetail,
   ParamSetSkKeyCheckboxClickEventDetail,
-  ParamSetSkPlusClickEventDetail,
   ParamSetSkRemoveClickEventDetail,
 } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 import { AnomalyData } from '../common/anomaly-data';
@@ -112,7 +111,7 @@ import {
 import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
-import { fromKey, paramsToParamSet, formatSpecialFunctions } from '../paramtools';
+import { fromKey, formatSpecialFunctions } from '../paramtools';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
@@ -536,8 +535,6 @@ export class ExploreSimpleSk extends ElementSk {
 
   private commits: CommitDetailPanelSk | null = null;
 
-  private commitsTab: HTMLButtonElement | null = null;
-
   private detailTab: TabsSk | null = null;
 
   private formula: HTMLTextAreaElement | null = null;
@@ -555,10 +552,6 @@ export class ExploreSimpleSk extends ElementSk {
   private plotSummary = createRef<PlotSummarySk>();
 
   private query: QuerySk | null = null;
-
-  private fromParamsQuery: QuerySk | null = null;
-
-  private fromParamsQueryCount: QueryCountSk | null = null;
 
   private queryCount: QueryCountSk | null = null;
 
@@ -581,8 +574,6 @@ export class ExploreSimpleSk extends ElementSk {
   private pivotDisplayButton: HTMLButtonElement | null = null;
 
   private queryDialog: HTMLDialogElement | null = null;
-
-  private fromParamsQueryDialog: HTMLDialogElement | null = null;
 
   private helpDialog: HTMLDialogElement | null = null;
 
@@ -911,35 +902,6 @@ export class ExploreSimpleSk extends ElementSk {
       </div>
     </dialog>
 
-    <!--
-    This is the quick-add dialog that appears when you click the '+' sign on any of
-    the Params rows displayed in the details tab (See #simple_paramset).
-    -->
-    <dialog id='from-params-query-dialog'>
-      <h2>Query</h2>
-      <div class=query-parts>
-        <query-sk
-          id=from-params-query
-          values_only
-          hide_invert
-          hide_regex
-          >
-        </query-sk>
-      </div>
-      <div class=query-counts>
-        Matches: <query-count-sk
-          id=from-params-query-count
-          url='/_/count/'
-          @paramset-changed=${ele.fromParamsParamsetChanged}
-        >
-        </query-count-sk>
-      </div>
-      <div class=footer>
-        <button class=action @click=${ele.fromParamsOKQueryDialog}>Plot</button>
-        <button @click=${ele.fromParamsCloseQueryDialog}>Close</button>
-      </div>
-    </dialog>
-
     <dialog id=help>
       <h2>Perf Help</h2>
       <table>
@@ -979,7 +941,6 @@ export class ExploreSimpleSk extends ElementSk {
               <collapse-sk id="collapseDetails" .closed=${!ele.navOpen}>
                 <tabs-sk id="detailTab">
                   <button>Params</button>
-                  <button id="commitsTab" disabled>Details</button>
                 </tabs-sk>
                 <tabs-panel-sk>
                   <div>
@@ -995,33 +956,6 @@ export class ExploreSimpleSk extends ElementSk {
                       @paramset-checkbox-click=${ele.paramsetCheckboxClick}
                       @paramset-key-checkbox-click=${ele.paramsetKeyCheckboxClick}>
                     </paramset-sk>
-                  </div>
-                  <div id="details">
-                    <div id="params_and_logentry">
-                      <paramset-sk
-                        id="simple_paramset"
-                        clickable_plus
-                        clickable_values
-                        copy_content
-                        @paramset-key-value-click=${(
-                          e: CustomEvent<ParamSetSkClickEventDetail>
-                        ) => {
-                          ele.paramsetKeyValueClick(e);
-                        }}
-                        @plus-click=${ele.plusClick}>
-                      </paramset-sk>
-                      <code ?hidden=${ele._state.enable_chart_tooltip}>
-                        <pre id="logEntry"></pre>
-                      </code>
-                      <anomaly-sk id="anomaly"></anomaly-sk>
-                    </div>
-                    <div>
-                      <commit-detail-panel-sk
-                        id="commits"
-                        selectable
-                        .hide=${window.perf.hide_list_of_commits_on_explore ||
-                        ele._state.enable_chart_tooltip}></commit-detail-panel-sk>
-                    </div>
                   </div>
                 </tabs-panel-sk>
               </collapse-sk>
@@ -1297,7 +1231,6 @@ export class ExploreSimpleSk extends ElementSk {
 
     this.anomalyTable = this.querySelector('#anomaly');
     this.commits = this.querySelector('#commits');
-    this.commitsTab = this.querySelector('#commitsTab');
     this.detailTab = this.querySelector('#detailTab');
     this.formula = this.querySelector('#formula');
     this.logEntry = this.querySelector('#logEntry');
@@ -1307,8 +1240,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.pivotDisplayButton = this.querySelector('#pivot-display-button');
     this.pivotTable = this.querySelector('pivot-table-sk');
     this.query = this.querySelector('#query');
-    this.fromParamsQueryCount = this.querySelector('#from-params-query-count');
-    this.fromParamsQuery = this.querySelector('#from-params-query');
     this.queryCount = this.querySelector('query-count-sk');
     this.range = this.querySelector('#range');
     this.simpleParamset = this.querySelector('#simple_paramset');
@@ -1317,7 +1248,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.commitTime = this.querySelector('#commit_time');
     this.csvDownload = this.querySelector('#csv_download');
     this.queryDialog = this.querySelector('#query-dialog');
-    this.fromParamsQueryDialog = this.querySelector('#from-params-query-dialog');
     this.helpDialog = this.querySelector('#help');
     this.pinpointJobToast = this.querySelector('#pinpoint-job-toast');
     this.closePinpointToastButton = this.querySelector('#hide-pinpoint-toast');
@@ -1866,57 +1796,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.query!.paramset = e.detail;
     this.pivotControl!.paramset = e.detail;
     this.render();
-  }
-
-  /** Called when the query-count-sk element has finished querying the server
-   * for an updated ParamSet. */
-  private fromParamsParamsetChanged(e: CustomEvent<ParamSet>) {
-    this.fromParamsQuery!.paramset = e.detail;
-    this.fromParamsQuery!.selectKey(this.fromParamsKey);
-    this.render();
-  }
-
-  private fromParamsCloseQueryDialog() {
-    this.fromParamsQueryDialog!.close();
-  }
-
-  private fromParamsOKQueryDialog() {
-    // This query only contains the key this.fromParamsKey and it's values, so we need
-    // to construct the full query using the traceID.
-    // Note:  toParamSet(s: string) returns CommonSkParamSet, not ParamSet. Hence the cast.
-    const updatedParamValues = ParamSet(toParamSet(this.fromParamsQuery!.current_query));
-    const traceIDAsQuery: ParamSet = paramsToParamSet(fromKey(this._state.selected.name));
-
-    // Merge the two ParamSets.
-    const newQuery: ParamSet = Object.assign(traceIDAsQuery, updatedParamValues);
-    this.addFromQueryOrFormula(false, 'query', fromParamSet(newQuery), '');
-    this.fromParamsQueryDialog!.close();
-  }
-
-  /** Handles clicks on the '+' icons on the Details tab Params. */
-  plusClick(e: CustomEvent<ParamSetSkPlusClickEventDetail>): void {
-    // Record the Params key that was clicked on.
-    this.fromParamsKey = e.detail.key;
-
-    // Convert the traceID into a ParamSet.
-    const keyAsParamSet: ParamSet = paramsToParamSet(fromKey(this._state.selected.name));
-
-    // And remove the Params key that was clicked on.
-    keyAsParamSet[this.fromParamsKey] = [];
-
-    // Convert the ParamSet back into a query to pass to
-    // this.fromParamsQueryCount, which will query the server for the number of
-    // traces that match the new query, and also return a ParamSet we can use to
-    // populate the query-sk control.
-    this.fromParamsQueryCount!.current_query = fromParamSet(keyAsParamSet);
-
-    // To avoid the dialog displaying state data we populate the ParamSet
-    // and select our key which will display and empty set of value choices
-    // until this.fromParamsQueryCount is done.
-    this.fromParamsQuery!.paramset = keyAsParamSet;
-    this.fromParamsQuery!.selectKey(this.fromParamsKey);
-
-    this.fromParamsQueryDialog?.showModal();
   }
 
   private queryChangeDelayedHandler(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
@@ -2633,7 +2512,6 @@ export class ExploreSimpleSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json: CIDHandlerResponse) => {
         this.commits!.details = json.commitSlice || [];
-        this.commitsTab!.disabled = false;
         this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
         this.logEntry!.innerHTML = escapeAndLinkifyToString(json.logEntry);
         this.anomalyTable!.anomaly = selected_anomaly;
@@ -2687,9 +2565,6 @@ export class ExploreSimpleSk extends ElementSk {
     // Switch back to the params tab since we are about to hide the details tab.
     if (this.detailTab) {
       this.detailTab!.selected = PARAMS_TAB_INDEX;
-    }
-    if (this.commitsTab) {
-      this.commitsTab!.disabled = true;
     }
     if (this.logEntry) {
       this.logEntry!.textContent = '';
