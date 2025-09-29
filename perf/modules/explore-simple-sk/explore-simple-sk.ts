@@ -3219,6 +3219,9 @@ export class ExploreSimpleSk extends ElementSk {
 
     this._state.pivotRequest = defaultPivotRequest();
     if (plotType === 'query') {
+      if (this._state.queries.length === 1 && this._state.queries[0] !== q) {
+        this._state.queries = [];
+      }
       if (this._state.queries.indexOf(q) === -1) {
         this._state.queries.push(q);
       }

@@ -27,7 +27,11 @@ import { load } from '@google-web-components/google-chart/loader';
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 
 import { addParamsToParamSet, fromKey, queryFromKey } from '../paramtools';
-import { ParamSet as QueryParamSet, fromParamSet } from '../../../infra-sk/modules/query';
+import {
+  ParamSet as QueryParamSet,
+  fromParamSet,
+  toParamSet,
+} from '../../../infra-sk/modules/query';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
@@ -494,7 +498,7 @@ export class ExploreMultiSk extends ElementSk {
       this.state.totalGraphs = this.exploreElements.length;
       explore.state.doNotQueryData = false;
     }
-    await explore.addFromQueryOrFormula(false, 'query', query, '');
+    await explore.addFromQueryOrFormula(true, 'query', query, '');
     await this.splitGraphs();
   };
 
@@ -519,7 +523,19 @@ export class ExploreMultiSk extends ElementSk {
       if (traceParams[param] && values.includes(traceParams[param])) {
         // Load remove array and delete from existing traceSet.
         tracesToRemove.push(trace);
-        queriesToRemove.push(queryFromKey(trace));
+        let query = queryFromKey(trace);
+        if (this.defaults?.include_params) {
+          const paramSet = toParamSet(query);
+          const filteredParamSet = ParamSet({});
+          const includeParams = this.defaults.include_params;
+          for (const key in paramSet) {
+            if (includeParams.includes(key)) {
+              filteredParamSet[key] = paramSet[key];
+            }
+          }
+          query = fromParamSet(filteredParamSet);
+        }
+        queriesToRemove.push(query);
         delete traceSet[trace];
       }
     });
@@ -532,16 +548,17 @@ export class ExploreMultiSk extends ElementSk {
     // Remove the traces from the current page explore elements.
     const elemsToRemove: ExploreSimpleSk[] = [];
     const updatePromises = this.exploreElements.map((elem) => {
-      if (!elem.state.queries?.length) {
+      // No query and no existing queries, so nothing to do.
+      if (!elem.state.queries?.length && query === undefined) {
         return Promise.resolve();
       }
 
       elem.state.doNotQueryData = true;
       const traceset = elem.getTraceset() as TraceSet;
       elem.removeKeys(tracesToRemove, true);
-      if (elem.state.queries.length === 1) {
-        // Only one query, so update it with the new query based on params.
-        elem.state.queries = Array.from(query);
+      if (elem.state.queries.length <= 1) {
+        // One or no queries, so update it with the new query based on params.
+        elem.state.queries = [Array.isArray(query) ? query[0] : query];
       } else {
         // Multiple queries, so remove the ones that match the deleted traces.
         elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
