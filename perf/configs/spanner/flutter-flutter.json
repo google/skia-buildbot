@@ -16,7 +16,8 @@
         "tile_size": 4096
     },
     "experiments": {
-        "in_memory_traceparams": true
+        "in_memory_traceparams": true,
+        "prefetch_metadata": true
     },
     "ingestion_config": {
         "source_config": {
