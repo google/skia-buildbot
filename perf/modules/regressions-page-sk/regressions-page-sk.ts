@@ -180,8 +180,7 @@ export class RegressionsPageSk extends ElementSk {
         }
         this.cpAnomalies = this.cpAnomalies.concat([...regs]);
         this.anomalyCursor = json.anomaly_cursor;
-        // we skip to pre-generate url in the regressions page
-        await this.anomaliesTable!.populateTable(this.cpAnomalies, {});
+        await this.anomaliesTable!.populateTable(this.cpAnomalies);
       })
       .catch((msg) => {
         errorMessage(msg);

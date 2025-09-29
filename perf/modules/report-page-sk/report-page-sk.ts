@@ -277,10 +277,7 @@ export class ReportPageSk extends ElementSk {
   }
 
   private async initializePage() {
-    await this.anomaliesTable!.populateTable(
-      this.anomalyTracker.toAnomalyList(),
-      this.anomalyTracker.getTimerangeMap()
-    );
+    await this.anomaliesTable!.populateTable(this.anomalyTracker.toAnomalyList());
 
     const selected = this.findRequestedAnomalies();
     if (selected.length > 0) {

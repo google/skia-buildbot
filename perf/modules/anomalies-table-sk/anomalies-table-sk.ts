@@ -52,10 +52,6 @@ export class AnomaliesTableSk extends ElementSk {
 
   multiChartUrlToAnomalyMap: Map<string, string> = new Map<string, string>();
 
-  private regressionsPageHost = '/a';
-
-  private reportPageHost = '/u';
-
   private isParentRow = false;
 
   constructor() {
@@ -402,12 +398,6 @@ export class AnomaliesTableSk extends ElementSk {
     `;
 
     return [...renderedSelected, [separatorRow], ...renderedUnselected];
-  }
-
-  private async preGenerateMultiGraphUrl(timerangeMap: {
-    [key: string]: Timerange;
-  }): Promise<void> {
-    await this.generateMultiGraphUrl(this.anomalyList, timerangeMap);
   }
 
   private findGroupForAnomaly(anomaly: Anomaly): AnomalyGroup | null {
@@ -771,31 +761,13 @@ export class AnomaliesTableSk extends ElementSk {
     return start + ' - ' + end;
   }
 
-  async populateTable(
-    anomalyList: Anomaly[],
-    timerangeMap: { [key: string]: Timerange }
-  ): Promise<void> {
+  async populateTable(anomalyList: Anomaly[]): Promise<void> {
     const msg = this.querySelector('#clear-msg') as HTMLHeadingElement;
     const table = this.querySelector('#anomalies-table') as HTMLTableElement;
     if (anomalyList.length > 0) {
       msg.hidden = true;
       table.hidden = false;
       this.anomalyList = anomalyList;
-      let currentPath = window.location.pathname;
-      if (currentPath.endsWith('/')) {
-        currentPath = currentPath.slice(0, -1);
-      }
-      if (![this.regressionsPageHost, this.reportPageHost].includes(currentPath)) {
-        // I am not sure we need preGenerateMultiGraphUrl at all.
-        // TODO(sergeirudenkov): I want to log metrics here, but don't know whether we
-        // have mechanism for this.
-        console.warn(
-          `preGenerateMultiGraphUrl invoked from ${window.location.pathname}`,
-          'please report a bug'
-        );
-        await this.preGenerateMultiGraphUrl(timerangeMap);
-      }
-
       this.groupAnomalies();
       this._render();
     } else {
@@ -912,31 +884,12 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   public async openMultiGraphUrl(anomaly: Anomaly) {
-    // Skip pre-generating the multi-chart on the Regression page(/a/)
-    // to prevent spikes in page loading time.
-    // For example, there's a common scenario where more than 500 rows will be initially loaded
-    // when the user chooses 'V8 Javascript Perf' on the Regressions page.
-    // It would significantly increase the page loading time if it pre-generates each row's url.
-    // To prevent this, we will only pre-generate the URLs on the Report page.
-    let currentPath = window.location.pathname;
-    if (currentPath.endsWith('/')) {
-      currentPath = currentPath.slice(0, -1);
-    }
-    if (currentPath !== this.regressionsPageHost) {
-      const url = this.multiChartUrlToAnomalyMap.get(anomaly.id);
-      if (url) {
-        return this.openAnomalyUrl(url);
-      } else {
-        console.warn('Anomaly not found, unable to open chart.');
-      }
-    } else {
-      await this.fetchGroupReportApi(String(anomaly.id));
-      const urlList = await this.generateMultiGraphUrl(
-        [anomaly],
-        this.getGroupReportResponse!.timerange_map!
-      );
-      return this.openAnomalyUrl(urlList.at(0));
-    }
+    await this.fetchGroupReportApi(String(anomaly.id));
+    const urlList = await this.generateMultiGraphUrl(
+      [anomaly],
+      this.getGroupReportResponse!.timerange_map!
+    );
+    return this.openAnomalyUrl(urlList.at(0));
   }
 
   //helper method to handle the async multi chart url opening

@@ -4,7 +4,7 @@ import { assert } from 'chai';
 import { AnomaliesTableSk } from './anomalies-table-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { Anomaly, Timerange } from '../json';
+import { Anomaly } from '../json';
 import fetchMock from 'fetch-mock';
 
 describe('anomalies-table-sk', () => {
@@ -97,12 +97,9 @@ describe('anomalies-table-sk', () => {
   describe('populate table', () => {
     it('populates the table with anomalies', async () => {
       const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
-      const timerangeMap: { [key: string]: Timerange } = {
-        '1': { begin: 100, end: 200 },
-      };
       // Mock shortcut update call to prevent console errors in test
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
-      await element.populateTable(anomalies, timerangeMap);
+      await element.populateTable(anomalies);
       assert.equal(element.anomalyList.length, 1);
     });
   });
@@ -113,7 +110,7 @@ describe('anomalies-table-sk', () => {
       const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
 
-      await element.populateTable(anomalies, { '1': { begin: 100, end: 200 } });
+      await element.populateTable(anomalies);
       await element.checkSelectedAnomalies(anomalies);
       await element.openReport();
       sinon.assert.calledOnce(spy);
@@ -135,7 +132,7 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('6', 0, 700, 800, 'master/bot/suite2/test6'),
       ];
       element.anomalyList = anomalies;
-      await element.populateTable(anomalies, { '1': { begin: 100, end: 200 } });
+      await element.populateTable(anomalies);
 
       for (const group of element.anomalyGroups) {
         const summaryRowCheckboxId = element.getGroupId(group);
@@ -157,7 +154,7 @@ describe('anomalies-table-sk', () => {
 
       const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1')];
       element.anomalyList = anomalies;
-      await element.populateTable(anomalies, { '1': { begin: 100, end: 200 } });
+      await element.populateTable(anomalies);
 
       const anomalyCheckbox = element.querySelector<HTMLInputElement>(`input[id="anomaly-row-1"]`);
       anomalyCheckbox!.checked = true;
@@ -177,7 +174,7 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
       ];
       element.anomalyList = anomalies;
-      await element.populateTable(anomalies, { '1': { begin: 100, end: 200 } });
+      await element.populateTable(anomalies);
 
       const group = element.anomalyGroups[0];
       const summaryRowCheckboxId = element.getGroupId(group);
@@ -202,7 +199,7 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('3', 54321, 100, 200, 'master/bot/suite/test3'),
       ];
       element.anomalyList = anomalies;
-      await element.populateTable(anomalies, { '1': { begin: 100, end: 200 } });
+      await element.populateTable(anomalies);
 
       // Check multi-anomaly group.
       const multiAnomalyGroup = element.anomalyGroups.find((g) => g.anomalies.length > 1)!;
@@ -392,12 +389,9 @@ describe('anomalies-table-sk', () => {
   describe('check selected anomalies', () => {
     it('checks the checkboxes for the given anomalies', async () => {
       const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
-      const timerangeMap: { [key: string]: Timerange } = {
-        '1': { begin: 100, end: 200 },
-      };
       // Mock shortcut update call to prevent console errors in test
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
-      await element.populateTable(anomalies, timerangeMap);
+      await element.populateTable(anomalies);
       await element.checkSelectedAnomalies(anomalies);
       await fetchMock.flush(true);
       const checkbox = element.querySelector('#anomaly-row-1') as HTMLInputElement;
@@ -411,13 +405,10 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('1', 0, 100, 200, 'master/bot/suite/test1'),
         dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
       ];
-      const timerangeMap: { [key: string]: Timerange } = {
-        '1': { begin: 100, end: 200 },
-      };
       // Mock shortcut update call to prevent console errors in test
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
       await fetchMock.flush(true);
-      await element.populateTable(anomalies, timerangeMap);
+      await element.populateTable(anomalies);
       const group = element.anomalyGroups[0];
       const suummarycheckboxid = element.getGroupId(group);
       const summarycheckbox = element.querySelector(
@@ -439,13 +430,10 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('1', 0, 100, 200, 'master/bot/suite/test1'),
         dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
       ];
-      const timerangeMap: { [key: string]: Timerange } = {
-        '1': { begin: 100, end: 200 },
-      };
       // Mock shortcut update call to prevent console errors in test
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
       await fetchMock.flush(true);
-      await element.populateTable(anomalies, timerangeMap);
+      await element.populateTable(anomalies);
 
       const headerCheckbox = element.querySelector('#header-checkbox') as HTMLInputElement;
       headerCheckbox.checked = true;
@@ -458,16 +446,6 @@ describe('anomalies-table-sk', () => {
   });
 
   describe('open multi graph url', () => {
-    it('opens the url from the map if it exists', async () => {
-      const spy = sinon.spy(window, 'open');
-      const anomaly = dummyAnomaly('1', 0, 0, 0, '');
-      element.multiChartUrlToAnomalyMap.set('1', 'test_url');
-      await element.openMultiGraphUrl(anomaly);
-      await fetchMock.flush(true);
-
-      assert.isTrue(spy.calledWith('test_url', '_blank'));
-    });
-
     it('fetches the url if it does not exist in the map', async () => {
       const spy = sinon.spy(window, 'open');
       const anomaly = dummyAnomaly('1', 0, 0, 0, 'master/bot/suite/test');
@@ -487,7 +465,7 @@ describe('anomalies-table-sk', () => {
   describe('get checked anomalies', () => {
     it('returns the currently checked anomalies', async () => {
       const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
-      await element.populateTable(anomalies, {});
+      await element.populateTable(anomalies);
       element.checkSelectedAnomalies(anomalies);
       const checked = element.getCheckedAnomalies();
       assert.deepEqual(checked, anomalies);
@@ -528,7 +506,7 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('1', 0, 100, 200, 'master/bot/suite/test1'),
         dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
       ];
-      await element.populateTable(anomalies, {});
+      await element.populateTable(anomalies);
       element.initialCheckAllCheckbox();
       const checkbox1 = element.querySelector('#anomaly-row-1') as HTMLInputElement;
       const checkbox2 = element.querySelector('#anomaly-row-2') as HTMLInputElement;
@@ -542,13 +520,8 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
         dummyAnomaly('3', 0, 300, 400, 'master/bot/suite/test3'),
       ];
-      const timerangeMap: { [key: string]: Timerange } = {
-        '1': { begin: 100, end: 200 },
-        '2': { begin: 150, end: 250 },
-        '3': { begin: 300, end: 400 },
-      };
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
-      await element.populateTable(anomalies, timerangeMap);
+      await element.populateTable(anomalies);
       element.initialCheckAllCheckbox();
 
       // Check individual anomaly checkboxes
@@ -578,7 +551,7 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
         dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
       ];
-      await element.populateTable(anomalies, {});
+      await element.populateTable(anomalies);
 
       // Expand the group to make individual anomaly rows visible.
       const group = element.anomalyGroups[0];
