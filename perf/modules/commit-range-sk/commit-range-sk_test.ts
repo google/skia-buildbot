@@ -12,7 +12,7 @@ describe('commit-range-sk', () => {
   beforeEach(() => {
     window.perf = {
       instance_url: '',
-      commit_range_url: 'http://example.com/range/{begin}..{end}',
+      commit_range_url: 'http://example.com/range/+log/{begin}..{end}',
       key_order: ['config'],
       demo: true,
       radius: 7,
@@ -85,7 +85,7 @@ describe('commit-range-sk', () => {
       await element.recalcLink();
       assert.equal(
         element.querySelector<HTMLAnchorElement>('a')!.href,
-        'http://example.com/range/11111111111111111111111111111..33333333333333333333333333333'
+        'http://example.com/range/+log/11111111111111111111111111111..33333333333333333333333333333'
       );
     });
   });
@@ -100,7 +100,21 @@ describe('commit-range-sk', () => {
     await element.recalcLink();
     assert.equal(
       element.querySelector<HTMLAnchorElement>('a')!.href,
-      'http://example.com/range/22222222222222222222222222222'
+      'http://example.com/range/+/22222222222222222222222222222'
+    );
+  });
+  it('handles GitHub commit URL format', async () => {
+    window.perf.commit_range_url = 'https://github.com/example/repo/commits/{end}';
+    // eslint-disable-next-line dot-notation
+    element['commitNumberToHashes'] = async (cids: CommitNumber[]) => {
+      assert.deepEqual(cids, [64810, 64811]);
+      return ['11111111111111111111111111111', '22222222222222222222222222222'];
+    };
+    element.trace = [11, 12, 13];
+    await element.recalcLink();
+    assert.equal(
+      element.querySelector<HTMLAnchorElement>('a')!.href,
+      'https://github.com/example/repo/commits/22222222222222222222222222222'
     );
   });
 });

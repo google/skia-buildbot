@@ -478,8 +478,8 @@ export class ChartTooltipSk extends ElementSk {
       this._is_range = this.commitRangeSk.isRange();
       this.commitRangeSk.hashes = commitRange.hashes;
       this.commitRangeSk.trace = commitRange.trace;
-      this.commitRangeSk.commitIndex = commitRange.commitIndex;
       this.commitRangeSk.header = commitRange.header;
+      this.commitRangeSk.commitIndex = commitRange.commitIndex;
     }
 
     if (this.userIssueSk !== null) {

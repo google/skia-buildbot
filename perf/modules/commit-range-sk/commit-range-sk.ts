@@ -101,6 +101,19 @@ export class CommitRangeSk extends ElementSk {
     return true;
   }
 
+  /**
+   * Recalculates the link based on the current state of the object.
+   * If there is not enough information to build the link, it clears the
+   * current link.
+   *
+   * Supported URL formats for commit_range_url in k8s-config yaml files:
+   * https://<googlesource_repo>/+log/{begin}..{end}
+   * https://<github_repo>/commits/{end}
+   *
+   * GitHub does not support ranges in the URL.
+   * When only one commit is being referenced, the {begin}.. is removed
+   * from the URL.
+   */
   async recalcLink(): Promise<void> {
     if (window.perf.commit_range_url === '' || this._commitIndex === -1) {
       this.clear();
@@ -116,7 +129,9 @@ export class CommitRangeSk extends ElementSk {
     try {
       let text = `${this._commitIds[1]}`;
       // Check if there are no points between start and end.
-      if (this.isRange()) {
+      const isRange = this.isRange();
+
+      if (isRange) {
         // Add +1 to the previous commit to only show commits after previous.
         text = `${this._commitIds[0] + 1} - ${this._commitIds[1]}`;
       }
@@ -130,14 +145,28 @@ export class CommitRangeSk extends ElementSk {
       // If we have the hashes, then we can build the link.
       if (this.hashes && this.hashes.length > 1) {
         let url = window.perf.commit_range_url;
-        url = url.replace('{end}', this.hashes[1]);
-        if (this.isRange()) {
-          url = url.replace('{begin}', this.hashes[0]);
+
+        // Always replace {end} with the second hash.
+        if (url.includes('{end}')) {
+          url = url.replace('{end}', this.hashes[1]);
+        }
+
+        if (isRange) {
+          // Handle range URLs (Googlesource)
+          if (url.includes('{begin}')) {
+            url = url.replace('{begin}', this.hashes[0]);
+          }
         } else {
-          // Multiple hashes found, but are sequential, so use second hash only.
-          url = url.replace('{begin}..', '');
-          // Use +log to ensure it is the correct placeholder.
-          url = url.replace('+log', '+');
+          // Handle single commit scenarios
+          if (url.includes('+log/{begin}..')) {
+            // Googlesource style: transform to single commit view
+            url = url.replace('+log/{begin}..', '+/');
+          } else {
+            // Fallback for any other template, remove {begin} if it exists
+            if (url.includes('{begin}')) {
+              url = url.replace('{begin}', '');
+            }
+          }
         }
         this.htmlTemplate = html`<a href="${url}" target="_blank">${text}</a>`;
         // Ensure element is connected to tooltip before dispatching event.
