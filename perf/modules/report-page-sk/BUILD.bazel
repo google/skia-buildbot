@@ -29,6 +29,7 @@ sk_element(
         "//perf/modules/errorMessage:index_ts_lib",
         "//elements-sk/modules:upgradeproperty_ts_lib",
         "//perf/modules/cid:cid_ts_lib",
+        "//perf/modules/telemetry:telemetry_ts_lib",
     ],
     ts_srcs = [
         "report-page-sk.ts",

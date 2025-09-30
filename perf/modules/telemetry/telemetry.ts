@@ -11,7 +11,6 @@
  * 1. Add the metric name to the `SummaryMetricName` type.
  * 2. Call the `recordSummary` function with the new metric name, value, and optional tags.
  */
-
 interface FrontendMetric {
   metric_name: string;
   metric_value: number;
@@ -20,12 +19,18 @@ interface FrontendMetric {
 }
 
 type CountMetricName =
+  // Counts data request failures
+  | 'fe_data_fetch_failure'
   // Counts the specific triage actions users perform (e.g., filing a bug, ignoring an anomaly).
-  'fe_triage_action_taken';
+  | 'fe_triage_action_taken';
 
 type SummaryMetricName =
+  // Measures the time it takes for google.graph to plot, when data is already fetched.
+  | 'fe_google_graph_plot_time_s'
   // Measures the time taken to fetch and process data when plotting new graphs.
-  'fe_multi_graph_data_load_time_s';
+  | 'fe_multi_graph_data_load_time_s'
+  // Measures the time it takes to render each individual graph
+  | 'fe_single_graph_load_time_s';
 
 export async function increaseCounter(metricName: CountMetricName, tags = {}) {
   sendMetrics([

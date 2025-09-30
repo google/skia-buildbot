@@ -41,6 +41,7 @@ sk_element(
         "//:node_modules/d3-scale",
         "//:node_modules/lit",
         "//perf/modules/common:anomaly-data_ts_lib",
+        "//perf/modules/telemetry:telemetry_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

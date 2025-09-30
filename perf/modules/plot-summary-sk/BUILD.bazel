@@ -23,6 +23,7 @@ sk_element(
         "//perf/modules/dataframe:dataframe_context_ts_lib",
         "//perf/modules/dataframe:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        "//perf/modules/telemetry:telemetry_ts_lib",
     ],
     ts_srcs = [
         "plot-summary-sk.ts",

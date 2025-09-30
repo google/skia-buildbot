@@ -32,6 +32,7 @@ import {
 } from '../dataframe/dataframe_context';
 import { range } from '../dataframe/index';
 import { define } from '../../../elements-sk/modules/define';
+import { recordSummary } from '../telemetry/telemetry';
 
 import { style } from './plot-summary-sk.css';
 import { HResizableBoxSk } from './h_resizable_box_sk';
@@ -97,6 +98,7 @@ export class PlotSummarySk extends LitElement {
   }
 
   private updateDataView(dt: DataTable, trace: string | null) {
+    const start = performance.now();
     const plot = this.plotElement.value;
     if (!plot || !dt) {
       if (dt) {
@@ -131,6 +133,9 @@ export class PlotSummarySk extends LitElement {
     view.setColumns(cols);
     plot.view = view;
     plot.options = options;
+    recordSummary('fe_google_graph_plot_time_s', (performance.now() - start) / 1000, {
+      type: 'summary',
+    });
   }
 
   // The div element that will host the plot on the summary.
