@@ -32,6 +32,7 @@ window.perf = {
   show_json_file_display: false,
   always_show_commit_info: false,
   show_triage_link: false,
+  show_bisect_btn: false,
 };
 
 const anomaly_table = [

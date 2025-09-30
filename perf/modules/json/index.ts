@@ -381,6 +381,7 @@ export interface SkPerfConfig {
 	enable_skia_bridge_aggregation: boolean;
 	show_json_file_display: boolean;
 	show_triage_link: boolean;
+	show_bisect_btn: boolean;
 	always_show_commit_info: boolean;
 }
 

@@ -78,5 +78,6 @@
         "default_range": 15552000
     },
     "optimize_sqltracestore": true,
-    "show_triage_link": true
+    "show_triage_link": true,
+    "show_bisect_btn": true
 }

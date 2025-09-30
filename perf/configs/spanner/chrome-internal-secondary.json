@@ -67,5 +67,6 @@
     "trace_format": "chrome",
     "need_alert_action": true,
     "optimize_sqltracestore": true,
-    "show_triage_link": false
+    "show_triage_link": false,
+    "show_bisect_btn": false
 }

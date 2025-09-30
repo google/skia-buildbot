@@ -112,5 +112,6 @@
       "always_show_commit_info": true
     },
     "optimize_sqltracestore": true,
-    "show_triage_link": true
+    "show_triage_link": true,
+    "show_bisect_btn": false
 }

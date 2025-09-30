@@ -289,6 +289,7 @@ type SkPerfConfig struct {
 	EnableSkiaBridgeAggregation bool               `json:"enable_skia_bridge_aggregation"`  // experimental flag to enable aggregation at skia_bridge.
 	ShowJsonResourceDisplay     bool               `json:"show_json_file_display"`          // Boolean to display json commit detail or not
 	ShowTriageLink              bool               `json:"show_triage_link"`                // Boolean to display traige link on side panel or not
+	ShowBisectBtn               bool               `json:"show_bisect_btn"`                 // Boolean to display bisect button or not
 	AlwaysShowCommitInfo        bool               `json:"always_show_commit_info"`         // Boolean to display commit author and hash.
 }
 

@@ -45,6 +45,7 @@ describe('ExploreMultiSk', () => {
       show_json_file_display: false,
       always_show_commit_info: false,
       show_triage_link: true,
+      show_bisect_btn: true,
     };
 
     fetchMock.config.overwriteRoutes = true;
@@ -148,6 +149,7 @@ describe('ExploreMultiSk', () => {
         show_json_file_display: false,
         always_show_commit_info: false,
         show_triage_link: true,
+        show_bisect_btn: true,
       };
       fetchMock.config.overwriteRoutes = true;
       fetchMock.get('/_/login/status', {
@@ -622,8 +624,8 @@ describe('ExploreMultiSk', () => {
   describe('mergeParamSets', () => {
     it('should merge ParamSets with overlapping keys and de-duplicate values', () => {
       const paramSets = [
-        { os: ['linux', 'windows'], arch: ['x86'] },
-        { os: ['mac', 'linux'], gpu: ['nvidia'] },
+        { os: ['linux', 'windows'], arch: ['x86'], gpu: [] },
+        { os: ['mac', 'linux'], gpu: ['nvidia'], arch: [] },
       ];
       const result = element['mergeParamSets'](paramSets);
       assert.isTrue(result.os.includes('linux'));

@@ -86,6 +86,9 @@ export class ChartTooltipSk extends ElementSk {
     'https://chromium.googlesource.com/chromium/src'
   );
 
+  private show_pinpoint_button =
+    window.perf.show_bisect_btn !== null ? window.perf.show_bisect_btn : false;
+
   private triageMenu: TriageMenuSk | null = null;
 
   private preloadBisectInputs: BisectPreloadParams | null = null;
@@ -188,7 +191,7 @@ export class ChartTooltipSk extends ElementSk {
       <triage-menu-sk id="triage-menu" ?hidden=${!(ele.anomaly && ele.anomaly!.bug_id === 0)}>
       </triage-menu-sk>
       <div class="buttons">
-        <button id="bisect" @click=${ele.openBisectDialog} ?hidden=${!ele._show_pinpoint_buttons}>
+        <button id="bisect" @click=${ele.openBisectDialog} ?hidden=${!ele.show_pinpoint_button}>
           Bisect
         </button>
         <button id="try-job" @click=${ele.openTryJobDialog} ?hidden=${!ele._show_pinpoint_buttons}>

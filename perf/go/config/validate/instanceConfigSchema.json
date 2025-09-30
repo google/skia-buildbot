@@ -376,6 +376,9 @@
         },
         "show_triage_link": {
           "type": "boolean"
+        },
+        "show_bisect_btn": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

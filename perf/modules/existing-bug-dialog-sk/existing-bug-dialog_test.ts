@@ -42,6 +42,7 @@ describe('existing-bug-dialog-sk', () => {
       show_json_file_display: false,
       always_show_commit_info: false,
       show_triage_link: true,
+      show_bisect_btn: true,
     };
 
     element = newInstance();

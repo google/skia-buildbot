@@ -124,6 +124,7 @@ describe('applyFuncToTraces', () => {
     show_json_file_display: false,
     always_show_commit_info: false,
     show_triage_link: true,
+    show_bisect_btn: true,
   };
 
   // Create a common element-sk to be used by all the tests.

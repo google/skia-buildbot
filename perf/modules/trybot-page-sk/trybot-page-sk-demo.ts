@@ -36,6 +36,7 @@ window.perf = {
   show_json_file_display: false,
   always_show_commit_info: false,
   show_triage_link: true,
+  show_bisect_btn: true,
 };
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');

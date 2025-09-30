@@ -69,5 +69,6 @@
   },
   "new_alerts_page": true,
   "optimize_sqltracestore": true,
-  "show_triage_link": true
+  "show_triage_link": true,
+  "show_bisect_btn": true
 }
