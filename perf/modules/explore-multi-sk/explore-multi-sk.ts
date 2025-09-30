@@ -1293,11 +1293,10 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private syncXAxisLabel(e: CustomEvent): void {
-    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
-    graphs.forEach((graph, i) => {
+    this.exploreElements.forEach((graph) => {
       // Skip graph that sent the event.
-      if (i !== e.detail.index) {
-        (graph as ExploreSimpleSk).updateXAxis(e.detail.domain);
+      if (graph.state.graph_index !== e.detail.index) {
+        graph.updateXAxis(e.detail.domain);
       }
     });
   }

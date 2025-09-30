@@ -338,6 +338,8 @@ describe('ExploreMultiSk', () => {
     it('syncs the x-axis label across all graphs', () => {
       const graph1 = element['addEmptyGraph']()!;
       const graph2 = element['addEmptyGraph']()!;
+      graph1.state.graph_index = 0;
+      graph2.state.graph_index = 1;
       // Need to add them to the graphDiv for querySelector to find them.
       element['graphDiv']!.appendChild(graph1);
       element['graphDiv']!.appendChild(graph2);
@@ -360,6 +362,48 @@ describe('ExploreMultiSk', () => {
       // but the other one should be.
       assert.isTrue(spy1.notCalled);
       assert.isTrue(spy2.calledOnceWith('date'));
+    });
+
+    it('syncs the x-axis label across all graphs with pagination', () => {
+      // Create three graphs.
+      const graph1 = element['addEmptyGraph']()!;
+      const graph2 = element['addEmptyGraph']()!;
+      const graph3 = element['addEmptyGraph']()!;
+
+      // Set their graph_index property as if they are all loaded.
+      graph1.state.graph_index = 0;
+      graph2.state.graph_index = 1;
+      graph3.state.graph_index = 2;
+
+      // Simulate being on page 2, where only graph3 is visible.
+      element.state.pageSize = 1;
+      element.state.pageOffset = 2;
+      element['currentPageExploreElements'] = [graph3];
+
+      // Add only the current page's graph to the DOM.
+      element['graphDiv']!.appendChild(graph3);
+
+      const spy1 = sinon.spy(graph1, 'updateXAxis');
+      const spy2 = sinon.spy(graph2, 'updateXAxis');
+      const spy3 = sinon.spy(graph3, 'updateXAxis');
+
+      const detail = {
+        index: 2, // Event is coming from the third graph (index 2).
+        domain: 'date',
+      };
+      const event = new CustomEvent('x-axis-toggled', {
+        detail,
+        bubbles: true,
+      });
+
+      element['graphDiv']!.dispatchEvent(event);
+
+      // The first two graphs should be updated, even though they are not
+      // on the current page. The third graph, which initiated the event,
+      // should not be updated.
+      assert.isTrue(spy1.calledOnceWith('date'));
+      assert.isTrue(spy2.calledOnceWith('date'));
+      assert.isTrue(spy3.notCalled);
     });
 
     it('syncs point selection across all graphs', () => {
