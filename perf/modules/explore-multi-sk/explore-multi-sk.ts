@@ -556,12 +556,17 @@ export class ExploreMultiSk extends ElementSk {
       elem.state.doNotQueryData = true;
       const traceset = elem.getTraceset() as TraceSet;
       elem.removeKeys(tracesToRemove, true);
-      if (elem.state.queries.length <= 1) {
-        // One or no queries, so update it with the new query based on params.
-        elem.state.queries = [Array.isArray(query) ? query[0] : query];
-      } else {
-        // Multiple queries, so remove the ones that match the deleted traces.
+      if (elem.state.queries.length > 0 && queriesToRemove.length > 0) {
+        // Remove any queries that match queriesToRemove.
         elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
+      }
+      // When one query exists, check if param/value matches and replace with new query.
+      if (elem.state.queries.length === 1) {
+        values.forEach((v) => {
+          if (elem.state.queries[0].includes(`${param}=${v}`)) {
+            elem.state.queries = [Array.isArray(query) ? query[0] : query];
+          }
+        });
       }
       if (elem.state.queries.length === 0) {
         elemsToRemove.push(elem);

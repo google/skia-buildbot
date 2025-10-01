@@ -2299,9 +2299,9 @@ export class ExploreSimpleSk extends ElementSk {
     const commitRangeSk = new CommitRangeSk();
     commitRangeSk.autoload = false;
     commitRangeSk!.trace = trace;
-    commitRangeSk!.commitIndex = x;
     commitRangeSk!.header = header;
     commitRangeSk!.hashes = hashes;
+    commitRangeSk!.commitIndex = x;
 
     if (anomaly !== null && anomaly.bug_id > 0) {
       this.bugId = anomaly.bug_id.toString();
@@ -3046,7 +3046,6 @@ export class ExploreSimpleSk extends ElementSk {
         // Let's simply make the selection on the summary.
         const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
         this.plotSummary.value?.SelectRange(updatedRange);
-        this.dataLoading = false;
       } else {
         return this.loadExtendedRangeData(selectedRange);
       }
