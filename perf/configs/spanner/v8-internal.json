@@ -4,6 +4,7 @@
   "landing_page_rel_path": "/m/",
   "contact": "https://bugs.chromium.org/p/v8/issues/list?q=component%3ATools&can=2",
   "trace_sample_proportion": 0.01,
+  "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
   "fetch_chrome_perf_anomalies": true,
   "bug_host_url": "https://issues.chromium.org",
   "feedback_url": "http://go/berf-skia-feedback",

@@ -8,6 +8,7 @@
     "bug_host_url": "https://issues.chromium.org",
     "feedback_url": "http://go/berf-skia-feedback",
     "trace_sample_proportion": 0.01,
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
     "instance_name": "fuchsia-internal",
     "notify_config": {
