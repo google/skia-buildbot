@@ -1323,7 +1323,6 @@ export class ExploreMultiSk extends ElementSk {
       numCommits: this.state.numCommits,
       summary: this.state.summary,
       xbaroffset: explore.state.xbaroffset,
-      autoRefresh: explore.state.autoRefresh,
       requestType: this.state.request_type,
       pivotRequest: explore.state.pivotRequest,
       sort: explore.state.sort,

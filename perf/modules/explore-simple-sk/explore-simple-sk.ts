@@ -150,9 +150,6 @@ const ZERO_NAME = 'special_zero';
 // A list of all special trace names.
 const SPECIAL_TRACE_NAMES = [ZERO_NAME];
 
-// How often to refresh if the auto-refresh checkmark is checked.
-const REFRESH_TIMEOUT = 30 * 1000; // milliseconds
-
 // Amount of datapoints that is expected to begin affecting performance.
 const DATAPOINT_THRESHOLD = 10000;
 
@@ -314,8 +311,6 @@ export class State {
 
   dots: boolean = true; // Whether to show dots when plotting traces.
 
-  autoRefresh: boolean = false;
-
   numCommits: number = 250;
 
   requestType: RequestType = 1; // 0 to use begin/end, 1 to use numCommits.
@@ -471,9 +466,6 @@ export class ExploreSimpleSk extends ElementSk {
   // The id of the current frame request. Will be the empty string if there
   // is no pending request.
   private _requestId = '';
-
-  // The id of the interval timer if we are refreshing.
-  private _refreshId = -1;
 
   // All the data converted into a CVS blob to download.
   private _csvBlobURL: string = '';
@@ -751,17 +743,6 @@ export class ExploreSimpleSk extends ElementSk {
                   ?selected=${ele._state!.dots}
                   @change=${() => ele.toggleDotsHandler()}></md-switch>
                 Dots on graph
-              </label>
-            </li>
-            <li ?hidden=${ele._state.show_google_plot}>
-              <label>
-                <md-switch
-                  form="form"
-                  id="auto-refresh-switch"
-                  ?selected=${ele._state.autoRefresh}
-                  @change=${(e: InputEvent) =>
-                    ele.autoRefreshHandler(e.target as MdSwitch)}></md-switch>
-                Auto refresh data
               </label>
             </li>
           </ul>
@@ -2864,32 +2845,6 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
-  private autoRefreshHandler(target: MdSwitch | null) {
-    this._state.autoRefresh = target!.selected;
-    this._stateHasChanged();
-    this.autoRefreshChanged();
-  }
-
-  private autoRefreshChanged() {
-    if (!this._state.autoRefresh) {
-      if (this._refreshId !== -1) {
-        clearInterval(this._refreshId);
-      }
-    } else {
-      this._refreshId = window.setInterval(() => this.autoRefresh(), REFRESH_TIMEOUT);
-    }
-  }
-
-  private autoRefresh() {
-    // Update end to be now.
-    this._state.end = Math.floor(Date.now() / 1000);
-    const body = this.requestFrameBodyFullFromState();
-    const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
-    this.requestFrame(body).then((json) => {
-      this.UpdateWithFrameResponse(json, body, switchToTab);
-    });
-  }
-
   /**
    * Add traces to the display. Always called from within the
    * this._requestFrame() callback.
@@ -3389,11 +3344,11 @@ export class ExploreSimpleSk extends ElementSk {
     this.tooltipSelected = false;
 
     this.closeTooltip();
+    // TODO(b/447355852) Remove All button doesn't do anything for Explore Simple
+    // (e.g. New Query charts). Leaving the original comment for future development.
     // force unset autorefresh so that it doesn't re-appear when we remove all the chart.
     // the removeAll button from "remove all" or "X" will call invoke removeAll()
     // with skipHistory = false, so state should be updated.
-    this._state.autoRefresh = false;
-    this.autoRefreshChanged();
 
     this.render();
     if (!skipHistory) {
@@ -3749,7 +3704,6 @@ export class ExploreSimpleSk extends ElementSk {
       this.updateTestPickerUrl();
     }
 
-    this.autoRefreshChanged();
     if (!state.doNotQueryData) {
       this.rangeChangeImpl();
     }

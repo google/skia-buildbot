@@ -504,7 +504,6 @@ describe('ExploreMultiSk', () => {
         xbaroffset: -1,
         showZero: false,
         dots: true,
-        autoRefresh: false,
         numCommits: 50,
         requestType: 1,
         pivotRequest: { group_by: [], operation: 'avg', summary: [] },
