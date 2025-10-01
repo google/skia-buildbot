@@ -12,7 +12,6 @@ import (
 )
 
 func TestCIPDRevisionFilter(t *testing.T) {
-
 	ctx := context.Background()
 	rf := &CIPDRevisionFilter{
 		client:    nil, // Filled in later.
@@ -124,4 +123,21 @@ func TestCIPDRevisionFilter(t *testing.T) {
 		client.AssertCalled(t, "SearchInstances", ctx, "my/pkg/2/linux-amd64", []string{tag})
 		client.AssertCalled(t, "SearchInstances", ctx, "my/pkg/2/mac-amd64", []string{tag})
 	})
+}
+
+func TestCIPDRevisionFilter_PlatformOptional(t *testing.T) {
+	client := &mocks.CIPDClient{}
+	rf := &CIPDRevisionFilter{
+		client:   client,
+		packages: []string{"my/pkg/1", "my/pkg/2"},
+	}
+	oneResult := common.PinSlice([]common.Pin{{}})
+	rev := revision.Revision{
+		Id: "version:abc123",
+	}
+	client.On("SearchInstances", t.Context(), "my/pkg/1", []string{rev.Id}).Return(oneResult, nil)
+	client.On("SearchInstances", t.Context(), "my/pkg/2", []string{rev.Id}).Return(oneResult, nil)
+	skipReason, err := rf.Skip(t.Context(), rev)
+	require.NoError(t, err)
+	require.Empty(t, "", skipReason)
 }

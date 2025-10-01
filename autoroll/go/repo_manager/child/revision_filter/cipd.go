@@ -29,22 +29,29 @@ func (f *CIPDRevisionFilter) Skip(ctx context.Context, r revision.Revision) (str
 	if _, _, err := cipd.SplitTag(tag); err != nil {
 		return fmt.Sprintf("%q doesn't follow CIPD tag format", tag), nil
 	}
+	var fullPathsToCheck []string
 	for _, pkg := range f.packages {
-		for _, platform := range f.platforms {
-			pkgFullPath := pkg + "/" + platform
-			// Note that this only works for rollers which use a tag as the
-			// Revision ID.  If the revision ID is the package ID, it is likely
-			// that this request will fail because the ID doesn't follow the
-			// expected "key:value" tag format, and if it doesn't fail it will
-			// only ever return an empty set of results because the package ID
-			// isn't a tag.
-			pins, err := f.client.SearchInstances(ctx, pkgFullPath, []string{tag})
-			if err != nil {
-				return "", skerr.Wrap(err)
+		if len(f.platforms) == 0 {
+			fullPathsToCheck = append(fullPathsToCheck, pkg)
+		} else {
+			for _, platform := range f.platforms {
+				fullPathsToCheck = append(fullPathsToCheck, pkg+"/"+platform)
 			}
-			if len(pins) == 0 {
-				return fmt.Sprintf("CIPD package %q does not exist at tag %q", pkgFullPath, tag), nil
-			}
+		}
+	}
+	for _, pkgFullPath := range fullPathsToCheck {
+		// Note that this only works for rollers which use a tag as the
+		// Revision ID.  If the revision ID is the package ID, it is likely
+		// that this request will fail because the ID doesn't follow the
+		// expected "key:value" tag format, and if it doesn't fail it will
+		// only ever return an empty set of results because the package ID
+		// isn't a tag.
+		pins, err := f.client.SearchInstances(ctx, pkgFullPath, []string{tag})
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		if len(pins) == 0 {
+			return fmt.Sprintf("CIPD package %q does not exist at tag %q", pkgFullPath, tag), nil
 		}
 	}
 	return "", nil

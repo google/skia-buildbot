@@ -1222,9 +1222,6 @@ func (c *CIPDRevisionFilterConfig) Validate() error {
 	if len(c.Package) == 0 {
 		return skerr.Fmt("At least one Package is required.")
 	}
-	if len(c.Platform) == 0 {
-		return skerr.Fmt("At least one Platform is required.")
-	}
 	if strings.Contains(c.TagKey, ":") {
 		return skerr.Fmt("TagKey cannot contain ':'.")
 	}
