@@ -19,7 +19,6 @@ import { ParamSet as CommonSkParamSet } from '../../../infra-sk/modules/query';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { escapeAndLinkifyToString } from '../../../infra-sk/modules/linkify';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 
 import '@material/web/button/outlined-button.js';
@@ -76,7 +75,6 @@ import {
   pivot,
   FrameResponseDisplayMode,
   ColumnHeader,
-  CIDHandlerResponse,
   QueryConfig,
   TraceSet,
   ReadOnlyParamSet,
@@ -86,7 +84,6 @@ import {
   TraceCommitLink,
 } from '../json';
 import { PlotSimpleSk, PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
-import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import {
   ParamSetSk,
   ParamSetSkCheckboxClickEventDetail,
@@ -95,7 +92,6 @@ import {
   ParamSetSkRemoveClickEventDetail,
 } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 import { AnomalyData } from '../common/anomaly-data';
-import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import {
   QuerySk,
   QuerySkQueryChangeEventDetail,
@@ -165,9 +161,6 @@ export const DEFAULT_RANGE_S = 24 * 60 * 60; // 2 days in seconds.
 
 // The index of the params tab.
 const PARAMS_TAB_INDEX = 0;
-
-// The index of the commit detail info tab.
-const COMMIT_TAB_INDEX = 1;
 
 // The percentage of the current zoom window to pan or zoom on a keypress.
 const ZOOM_JUMP_PERCENT = CommitNumber(0.1);
@@ -530,10 +523,6 @@ export class ExploreSimpleSk extends ElementSk {
 
   private _initialized: boolean = false;
 
-  private anomalyTable: AnomalySk | null = null;
-
-  private commits: CommitDetailPanelSk | null = null;
-
   private detailTab: TabsSk | null = null;
 
   private formula: HTMLTextAreaElement | null = null;
@@ -555,8 +544,6 @@ export class ExploreSimpleSk extends ElementSk {
   private queryCount: QueryCountSk | null = null;
 
   private range: DomainPickerSk | null = null;
-
-  private simpleParamset: ParamSetSk | null = null;
 
   private spinner: SpinnerSk | null = null;
 
@@ -1228,8 +1215,6 @@ export class ExploreSimpleSk extends ElementSk {
     this._initialized = true;
     this.render();
 
-    this.anomalyTable = this.querySelector('#anomaly');
-    this.commits = this.querySelector('#commits');
     this.detailTab = this.querySelector('#detailTab');
     this.formula = this.querySelector('#formula');
     this.logEntry = this.querySelector('#logEntry');
@@ -1241,7 +1226,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.query = this.querySelector('#query');
     this.queryCount = this.querySelector('query-count-sk');
     this.range = this.querySelector('#range');
-    this.simpleParamset = this.querySelector('#simple_paramset');
     this.spinner = this.querySelector('#spinner');
     this.summary = this.querySelector('#summary');
     this.commitTime = this.querySelector('#commit_time');
@@ -2387,11 +2371,9 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   /** Highlight a trace when it is clicked on. */
+  // TODO(b/447094435) I suspect that all values changed here are later
+  // overwritten by respective calls to plot-google. Need to verify.
   traceSelected({ detail }: CustomEvent<PlotSimpleSkTraceEventDetails>): void {
-    this.plotSimple.value!.highlight = [detail.name];
-    this.plotSimple.value!.xbar = detail.x;
-    this.commits!.details = [];
-
     // If traces are rendered and summary bar is enabled, show
     // summary for the trace clicked on the graph.
     if (this.summaryOptionsField.value) {
@@ -2440,27 +2422,18 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     // Find if selected point is an anomaly.
-    let selected_anomaly: Anomaly | null = null;
-    // TODO(b/362831653) - Update this to Google Chart once plot-simple-sk is deprecated.
-    if (detail.name in this.plotSimple.value!.anomalyDataMap) {
-      const anomalyData = this.plotSimple.value!.anomalyDataMap[detail.name];
-      for (let i = 0; i < anomalyData.length; i++) {
-        if (anomalyData[i].x === detail.x) {
-          selected_anomaly = anomalyData[i].anomaly;
-          break;
-        }
-      }
-    }
+    const selected_anomaly: Anomaly | null =
+      this.dfRepo.value?.getAnomaly(detail.name, detail.x) ?? null;
     this.selectedAnomaly = selected_anomaly;
 
     const paramset = ParamSet({});
-    this.simpleParamset!.paramsets = [];
+    let paramsets = [];
     const params: { [key: string]: string } = fromKey(detail.name);
     Object.keys(params).forEach((key) => {
       paramset[key] = [params[key]];
     });
 
-    this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
+    paramsets = [paramset as CommonSkParamSet];
 
     this.render();
 
@@ -2468,59 +2441,29 @@ export class ExploreSimpleSk extends ElementSk {
     this._state.selected.commit = commit;
     this._stateHasChanged();
 
-    // Request populated commits from the server.
-    fetch('/_/cid/', {
-      method: 'POST',
-      body: JSON.stringify(commits),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((json: CIDHandlerResponse) => {
-        this.commits!.details = json.commitSlice || [];
-        this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
-        this.logEntry!.innerHTML = escapeAndLinkifyToString(json.logEntry);
-        this.anomalyTable!.anomaly = selected_anomaly;
-        this.anomalyTable!.bugHostUrl = window.perf.bug_host_url;
-        this.detailTab!.selected = COMMIT_TAB_INDEX;
-        const parts: string[] = [];
-        this.story = this.getLastSubtest(this.simpleParamset!.paramsets[0]!)[0];
-        if (
-          this.simpleParamset!.paramsets[0]!.master &&
-          this.simpleParamset!.paramsets[0]!.master.length > 0
-        ) {
-          parts.push(this.simpleParamset!.paramsets[0]!.master[0]);
-        }
-        if (
-          this.simpleParamset!.paramsets[0]!.bot &&
-          this.simpleParamset!.paramsets[0]!.bot.length > 0
-        ) {
-          parts.push(this.simpleParamset!.paramsets[0]!.bot[0]);
-        }
-        if (
-          this.simpleParamset!.paramsets[0]!.benchmark &&
-          this.simpleParamset!.paramsets[0]!.benchmark.length > 0
-        ) {
-          parts.push(this.simpleParamset!.paramsets[0]!.benchmark[0]);
-        }
-        if (
-          this.simpleParamset!.paramsets[0]!.test &&
-          this.simpleParamset!.paramsets[0]!.test.length > 0
-        ) {
-          parts.push(this.simpleParamset!.paramsets[0]!.test[0]);
-        }
-        parts.push(this.story);
-        this.testPath = parts.join('/');
-        this.startCommit = prevCommit.toString();
-        this.endCommit = commit.toString();
-        if (selected_anomaly !== null && selected_anomaly.bug_id !== -1) {
-          this.bugId = selected_anomaly.bug_id.toString();
-        } else {
-          this.bugId = '';
-        }
-      })
-      .catch(errorMessage);
+    const parts: string[] = [];
+    this.story = this.getLastSubtest(paramsets[0]!)[0];
+    if (paramsets[0]!.master && paramsets[0]!.master.length > 0) {
+      parts.push(paramsets[0]!.master[0]);
+    }
+    if (paramsets[0]!.bot && paramsets[0]!.bot.length > 0) {
+      parts.push(paramsets[0]!.bot[0]);
+    }
+    if (paramsets[0]!.benchmark && paramsets[0]!.benchmark.length > 0) {
+      parts.push(paramsets[0]!.benchmark[0]);
+    }
+    if (paramsets[0]!.test && paramsets[0]!.test.length > 0) {
+      parts.push(paramsets[0]!.test[0]);
+    }
+    parts.push(this.story);
+    this.testPath = parts.join('/');
+    this.startCommit = prevCommit.toString();
+    this.endCommit = commit.toString();
+    if (selected_anomaly !== null && selected_anomaly.bug_id !== -1) {
+      this.bugId = selected_anomaly.bug_id.toString();
+    } else {
+      this.bugId = '';
+    }
 
     // Open the details section if it is currently collapsed
     if (!this.navOpen) {

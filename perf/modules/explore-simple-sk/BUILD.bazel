@@ -54,7 +54,6 @@ sk_element(
         "//perf/modules/window:window_ts_lib",
         "//perf/modules/pivotutil:index_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//infra-sk/modules:linkify_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
         "//perf/modules/const:const_ts_lib",
         "//elements-sk/modules:define_ts_lib",
