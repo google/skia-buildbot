@@ -1,0 +1,120 @@
+#!/bin/bash
+
+# Shell script to manually trigger production CBB runs.
+# Before running this script, please finish steps 1 through 3 given at
+# https://skia.googlesource.com/buildbot/+/HEAD/temporal/README.md#locally-trigger-production-workflow-follow-these-steps-with-care
+# For step 2, use `./kube/attach.sh skia-infra-corp`.
+
+# Check for 4 or 5 command line arguments
+if [ "$#" -lt 4 ] || [ "$#" -gt 5 ]; then
+    echo "Error: Expected 4 or 5 arguments: platform, browser, channel, commit position, benchmark."
+    echo "Usage: $0 <platform> <browser> <channel> <commit_position> [<benchmark>]"
+    exit 1
+fi
+
+PLATFORM="$1"
+BROWSER="$2"
+CHANNEL="$3"
+COMMIT_POSITION="$4"
+
+if [ -n "$5" ]; then
+    BENCHMARK="$5"
+else
+    BENCHMARK="full"
+fi
+
+# Map benchmark argument to full name
+case "$BENCHMARK" in
+    sp|sp3)
+        BENCHMARK="speedometer3"
+        ;;
+    js|js2)
+        BENCHMARK="jetstream2"
+        ;;
+    mm|mm13|mm1.3)
+        BENCHMARK="motionmark1.3"
+        ;;
+esac
+
+# Validate benchmark argument
+VALID_BENCHMARKS=("speedometer3" "jetstream2" "motionmark1.3" "full")
+if ! [[ " ${VALID_BENCHMARKS[*]} " =~ " ${BENCHMARK} " ]]; then
+    echo "Error: Invalid benchmark '$BENCHMARK'."
+    echo "Valid benchmarks are: speedometer3, jetstream2, motionmark1.3, full (or aliases sp, js, mm)."
+    exit 1
+fi
+
+# Map platform argument to full name
+case "$PLATFORM" in
+    m3)
+        PLATFORM="mac-m3-pro-perf-cbb"
+        ;;
+    victus)
+        PLATFORM="win-victus-perf-cbb"
+        ;;
+    plus)
+        PLATFORM="win-arm64-snapdragon-plus-perf-cbb"
+        ;;
+    elite)
+        PLATFORM="win-arm64-snapdragon-elite-perf-cbb"
+        ;;
+    tangor)
+        PLATFORM="android-pixel-tangor-perf-cbb"
+        ;;
+esac
+
+# Validate platform argument
+VALID_PLATFORMS=("mac-m3-pro-perf-cbb" "win-victus-perf-cbb" "win-arm64-snapdragon-plus-perf-cbb" "win-arm64-snapdragon-elite-perf-cbb" "android-pixel-tangor-perf-cbb")
+if ! [[ " ${VALID_PLATFORMS[*]} " =~ " ${PLATFORM} " ]]; then
+    echo "Error: Invalid platform '$PLATFORM'."
+    echo "Valid platforms are: ${VALID_PLATFORMS[*]}"
+    exit 1
+fi
+
+# Validate browser argument
+VALID_BROWSERS=("chrome" "safari" "edge")
+if ! [[ " ${VALID_BROWSERS[*]} " =~ " ${BROWSER} " ]]; then
+    echo "Error: Invalid browser '$BROWSER'."
+    echo "Valid browsers are: ${VALID_BROWSERS[*]}"
+    exit 1
+fi
+
+# Validate channel argument
+VALID_CHANNELS=("stable" "dev" "tp")
+if ! [[ " ${VALID_CHANNELS[*]} " =~ " ${CHANNEL} " ]]; then
+    echo "Error: Invalid channel '$CHANNEL'."
+    echo "Valid channels are: ${VALID_CHANNELS[*]}"
+    exit 1
+fi
+
+# Validate commit position argument (must be an integer)
+if ! [[ "$COMMIT_POSITION" =~ ^[0-9]+$ ]]; then
+    echo "Error: Commit position '$COMMIT_POSITION' must be an integer."
+    exit 1
+fi
+
+echo "Arguments validated successfully:"
+echo "Platform: $PLATFORM"
+echo "Browser: $BROWSER"
+echo "Channel: $CHANNEL"
+echo "Commit Position: $COMMIT_POSITION"
+echo "Benchmark: $BENCHMARK"
+
+# Check for running processes
+if ! pgrep -f "./kube/attach.sh skia-infra-corp" > /dev/null; then
+    echo "Error: Process './kube/attach.sh skia-infra-corp' not found."
+    echo "Did you forget to run step 2 at https://skia.googlesource.com/buildbot/+/HEAD/temporal/README.md#locally-trigger-production-workflow-follow-these-steps-with-care?"
+    exit 1
+fi
+
+if ! pgrep -f "kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233" > /dev/null; then
+    echo "Error: Process 'kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233' not found."
+    echo "Did you forget to run step 3 at https://skia.googlesource.com/buildbot/+/HEAD/temporal/README.md#locally-trigger-production-workflow-follow-these-steps-with-care?"
+    exit 1
+fi
+
+bazelisk run //pinpoint/go/workflows/sample -- \
+    --namespace=perf-internal --taskQueue=perf.perf-chrome-public.bisect \
+    --cbb-runner=true --no-wait=true \
+    --configuration=$PLATFORM --browser=$BROWSER \
+    --channel=$CHANNEL --commit-position=$COMMIT_POSITION --benchmark=$BENCHMARK
