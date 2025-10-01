@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -292,35 +291,6 @@ func TestDEPSRepoManagerCreateNewRollWithPatchRef(t *testing.T) {
 	patchRef := fmt.Sprintf("%s@%s:%s", repoUrl, childBranch, unsubmittedRev.Id)
 	require.Equal(t, patchRef, *patchRefInSyncCmd)
 	require.Equal(t, int64(123), issue)
-}
-
-// Verify that we ran the PreUploadSteps.
-func TestDEPSRepoManagerPreUploadSteps(t *testing.T) {
-
-	// Create a fake pre-upload step.
-	ran := false
-	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
-		ran = true
-		return nil
-	})
-
-	cfg := depsCfg(t)
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGerritParent).DepsLocalGerritParent.DepsLocal
-	parentCfg.PreUploadSteps = []config.PreUploadStep{stepName}
-
-	ctx, rm, _, _, _, _, _, _, urlmock, _, cleanup := setupDEPSRepoManager(t, cfg)
-	defer cleanup()
-
-	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	require.NoError(t, err)
-
-	// Mock the request to load the change.
-	mockGerritGetAndPublishChange(t, urlmock, cfg)
-
-	// Create a roll, assert that we ran the PreUploadSteps.
-	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
-	require.NoError(t, err)
-	require.True(t, ran)
 }
 
 // Verify that we properly utilize a gclient spec.

@@ -3,7 +3,6 @@ package repo_manager
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -14,7 +13,6 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -216,40 +214,6 @@ func TestAndroidRepoManager_CreateNewRollWithExternalChangeId(t *testing.T) {
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, false, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
-}
-
-// TestAndroidRepoManager_RanPreUploadSteps verifies that we ran the
-// PreUploadSteps.
-func TestAndroidRepoManager_RanPreUploadSteps(t *testing.T) {
-	ctx, reg, wd, cleanup := setupAndroid(t)
-	defer cleanup()
-
-	g := &mocks.GerritInterface{}
-	g.On("GetUserEmail", testutils.AnyContext).Return("fake-service-account", nil)
-	g.On("GetRepoUrl").Return(androidCfg().ParentRepoUrl)
-	g.On("Config").Return(gerrit.ConfigAndroid)
-	g.On("Search", testutils.AnyContext, 1, false, gerrit.SearchCommit("")).Return([]*gerrit.ChangeInfo{{Issue: androidIssueNum}}, nil)
-	g.On("GetIssueProperties", testutils.AnyContext, androidIssueNum).Return(&gerrit.ChangeInfo{Issue: androidIssueNum}, nil)
-	g.On("SetTopic", testutils.AnyContext, mock.AnythingOfType("string"), androidIssueNum).Return(nil)
-	g.On("SetReview", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	mockGerrit, _ := androidGerrit(t, g)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, true)
-	require.NoError(t, err)
-	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	require.NoError(t, err)
-
-	ran := false
-	rm.preUploadSteps = []parent.PreUploadStep{
-		func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
-			ran = true
-			return nil
-		},
-	}
-
-	// Create a roll, assert that we ran the PreUploadSteps.
-	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, false, false, fakeCommitMsg)
-	require.NoError(t, err)
-	require.True(t, ran)
 }
 
 func TestAndroidRepoManager_ConfigValidation(t *testing.T) {

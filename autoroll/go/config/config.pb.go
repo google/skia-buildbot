@@ -22,88 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// PreUploadStep lists the known pre-upload steps which may be run before roll
-// CLs are uploaded. These must be kept in sync with
-// go/repo_manager/parent/pre_upload_steps.go.
-type PreUploadStep int32
-
-const (
-	PreUploadStep_ANGLE_CODE_GENERATION               PreUploadStep = 0
-	PreUploadStep_ANGLE_GN_TO_BP                      PreUploadStep = 1
-	PreUploadStep_ANGLE_ROLL_CHROMIUM                 PreUploadStep = 2
-	PreUploadStep_GO_GENERATE_CIPD                    PreUploadStep = 3
-	PreUploadStep_FLUTTER_LICENSE_SCRIPTS             PreUploadStep = 4
-	PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_DART    PreUploadStep = 5
-	PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA PreUploadStep = 6
-	PreUploadStep_SKIA_GN_TO_BP                       PreUploadStep = 7
-	PreUploadStep_TRAIN_INFRA                         PreUploadStep = 8
-	PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART        PreUploadStep = 9
-	PreUploadStep_VULKAN_DEPS_UPDATE_COMMIT_MESSAGE   PreUploadStep = 10
-	PreUploadStep_UPDATE_BORINGSSL                    PreUploadStep = 11
-	PreUploadStep_CHROMIUM_ROLL_WEBGPU_CTS            PreUploadStep = 12
-)
-
-// Enum value maps for PreUploadStep.
-var (
-	PreUploadStep_name = map[int32]string{
-		0:  "ANGLE_CODE_GENERATION",
-		1:  "ANGLE_GN_TO_BP",
-		2:  "ANGLE_ROLL_CHROMIUM",
-		3:  "GO_GENERATE_CIPD",
-		4:  "FLUTTER_LICENSE_SCRIPTS",
-		5:  "FLUTTER_LICENSE_SCRIPTS_FOR_DART",
-		6:  "FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA",
-		7:  "SKIA_GN_TO_BP",
-		8:  "TRAIN_INFRA",
-		9:  "UPDATE_FLUTTER_DEPS_FOR_DART",
-		10: "VULKAN_DEPS_UPDATE_COMMIT_MESSAGE",
-		11: "UPDATE_BORINGSSL",
-		12: "CHROMIUM_ROLL_WEBGPU_CTS",
-	}
-	PreUploadStep_value = map[string]int32{
-		"ANGLE_CODE_GENERATION":               0,
-		"ANGLE_GN_TO_BP":                      1,
-		"ANGLE_ROLL_CHROMIUM":                 2,
-		"GO_GENERATE_CIPD":                    3,
-		"FLUTTER_LICENSE_SCRIPTS":             4,
-		"FLUTTER_LICENSE_SCRIPTS_FOR_DART":    5,
-		"FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA": 6,
-		"SKIA_GN_TO_BP":                       7,
-		"TRAIN_INFRA":                         8,
-		"UPDATE_FLUTTER_DEPS_FOR_DART":        9,
-		"VULKAN_DEPS_UPDATE_COMMIT_MESSAGE":   10,
-		"UPDATE_BORINGSSL":                    11,
-		"CHROMIUM_ROLL_WEBGPU_CTS":            12,
-	}
-)
-
-func (x PreUploadStep) Enum() *PreUploadStep {
-	p := new(PreUploadStep)
-	*p = x
-	return p
-}
-
-func (x PreUploadStep) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (PreUploadStep) Descriptor() protoreflect.EnumDescriptor {
-	return file_config_proto_enumTypes[0].Descriptor()
-}
-
-func (PreUploadStep) Type() protoreflect.EnumType {
-	return &file_config_proto_enumTypes[0]
-}
-
-func (x PreUploadStep) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use PreUploadStep.Descriptor instead.
-func (PreUploadStep) EnumDescriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{0}
-}
-
 // Mode describes the valid operating modes of an autoroller.
 // These must be kept in sync with autoroll/go/modes/modes.go.
 type Mode int32
@@ -153,11 +71,11 @@ func (x Mode) String() string {
 }
 
 func (Mode) Descriptor() protoreflect.EnumDescriptor {
-	return file_config_proto_enumTypes[1].Descriptor()
+	return file_config_proto_enumTypes[0].Descriptor()
 }
 
 func (Mode) Type() protoreflect.EnumType {
-	return &file_config_proto_enumTypes[1]
+	return &file_config_proto_enumTypes[0]
 }
 
 func (x Mode) Number() protoreflect.EnumNumber {
@@ -166,7 +84,7 @@ func (x Mode) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Mode.Descriptor instead.
 func (Mode) EnumDescriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{1}
+	return file_config_proto_rawDescGZIP(), []int{0}
 }
 
 // BuiltIn lists the built-in commit message templates.
@@ -211,11 +129,11 @@ func (x CommitMsgConfig_BuiltIn) String() string {
 }
 
 func (CommitMsgConfig_BuiltIn) Descriptor() protoreflect.EnumDescriptor {
-	return file_config_proto_enumTypes[2].Descriptor()
+	return file_config_proto_enumTypes[1].Descriptor()
 }
 
 func (CommitMsgConfig_BuiltIn) Type() protoreflect.EnumType {
-	return &file_config_proto_enumTypes[2]
+	return &file_config_proto_enumTypes[1]
 }
 
 func (x CommitMsgConfig_BuiltIn) Number() protoreflect.EnumNumber {
@@ -283,11 +201,11 @@ func (x GerritConfig_Config) String() string {
 }
 
 func (GerritConfig_Config) Descriptor() protoreflect.EnumDescriptor {
-	return file_config_proto_enumTypes[3].Descriptor()
+	return file_config_proto_enumTypes[2].Descriptor()
 }
 
 func (GerritConfig_Config) Type() protoreflect.EnumType {
-	return &file_config_proto_enumTypes[3]
+	return &file_config_proto_enumTypes[2]
 }
 
 func (x GerritConfig_Config) Number() protoreflect.EnumNumber {
@@ -339,11 +257,11 @@ func (x NotifierConfig_LogLevel) String() string {
 }
 
 func (NotifierConfig_LogLevel) Descriptor() protoreflect.EnumDescriptor {
-	return file_config_proto_enumTypes[4].Descriptor()
+	return file_config_proto_enumTypes[3].Descriptor()
 }
 
 func (NotifierConfig_LogLevel) Type() protoreflect.EnumType {
-	return &file_config_proto_enumTypes[4]
+	return &file_config_proto_enumTypes[3]
 }
 
 func (x NotifierConfig_LogLevel) Number() protoreflect.EnumNumber {
@@ -410,11 +328,11 @@ func (x NotifierConfig_MsgType) String() string {
 }
 
 func (NotifierConfig_MsgType) Descriptor() protoreflect.EnumDescriptor {
-	return file_config_proto_enumTypes[5].Descriptor()
+	return file_config_proto_enumTypes[4].Descriptor()
 }
 
 func (NotifierConfig_MsgType) Type() protoreflect.EnumType {
-	return &file_config_proto_enumTypes[5]
+	return &file_config_proto_enumTypes[4]
 }
 
 func (x NotifierConfig_MsgType) Number() protoreflect.EnumNumber {
@@ -458,7 +376,8 @@ type Config struct {
 	// TODO(borenet): Is this necessary?
 	IsInternal bool `protobuf:"varint,9,opt,name=is_internal,json=isInternal,proto3" json:"is_internal,omitempty"`
 	// reviewer are the email addresses to add as reviewers on rolls, or URL(s)
-	// from which to obtain those email addresses. At least one reviewer is required.
+	// from which to obtain those email addresses. At least one reviewer is
+	// required.
 	Reviewer []string `protobuf:"bytes,10,rep,name=reviewer,proto3" json:"reviewer,omitempty"`
 	// reviewer_backup are backup email addresses to add as reviewers on rolls,
 	// in case obtaining the email addresses from the URL fails. Only required
@@ -1368,8 +1287,6 @@ type AndroidRepoManagerConfig struct {
 	// should be empty, but if child_path is relative to the parent repo dir
 	// (eg. when DEPS specifies use_relative_paths), then this is required.
 	ChildSubdir string `protobuf:"bytes,7,opt,name=child_subdir,json=childSubdir,proto3" json:"child_subdir,omitempty"`
-	// pre_upload_steps are named steps to run before uploading roll CLs.
-	PreUploadSteps []PreUploadStep `protobuf:"varint,8,rep,packed,name=pre_upload_steps,json=preUploadSteps,proto3,enum=autoroll.config.PreUploadStep" json:"pre_upload_steps,omitempty"`
 	// metadata about the child project which should be updated in a file
 	// checked into the parent repo.
 	Metadata *AndroidRepoManagerConfig_ProjectMetadataFileConfig `protobuf:"bytes,9,opt,name=metadata,proto3" json:"metadata,omitempty"`
@@ -1466,13 +1383,6 @@ func (x *AndroidRepoManagerConfig) GetChildSubdir() string {
 		return x.ChildSubdir
 	}
 	return ""
-}
-
-func (x *AndroidRepoManagerConfig) GetPreUploadSteps() []PreUploadStep {
-	if x != nil {
-		return x.PreUploadSteps
-	}
-	return nil
 }
 
 func (x *AndroidRepoManagerConfig) GetMetadata() *AndroidRepoManagerConfig_ProjectMetadataFileConfig {
@@ -2310,9 +2220,8 @@ func (x *GitCheckoutGerritParentConfig) GetPreUploadCommands() *PreUploadConfig 
 // GitCheckoutGitHubFileParentConfig provides configuration for a Parent which
 // uses a local Git checkout and uploads pull requests to GitHub.
 type GitCheckoutGitHubFileParentConfig struct {
-	state          protoimpl.MessageState         `protogen:"open.v1"`
-	GitCheckout    *GitCheckoutGitHubParentConfig `protobuf:"bytes,1,opt,name=git_checkout,json=gitCheckout,proto3" json:"git_checkout,omitempty"`
-	PreUploadSteps []PreUploadStep                `protobuf:"varint,2,rep,packed,name=pre_upload_steps,json=preUploadSteps,proto3,enum=autoroll.config.PreUploadStep" json:"pre_upload_steps,omitempty"`
+	state       protoimpl.MessageState         `protogen:"open.v1"`
+	GitCheckout *GitCheckoutGitHubParentConfig `protobuf:"bytes,1,opt,name=git_checkout,json=gitCheckout,proto3" json:"git_checkout,omitempty"`
 	// pre_upload describes command(s) to run before uploading roll CLs.
 	PreUploadCommands *PreUploadConfig `protobuf:"bytes,3,opt,name=pre_upload_commands,json=preUploadCommands,proto3" json:"pre_upload_commands,omitempty"`
 	unknownFields     protoimpl.UnknownFields
@@ -2352,13 +2261,6 @@ func (*GitCheckoutGitHubFileParentConfig) Descriptor() ([]byte, []int) {
 func (x *GitCheckoutGitHubFileParentConfig) GetGitCheckout() *GitCheckoutGitHubParentConfig {
 	if x != nil {
 		return x.GitCheckout
-	}
-	return nil
-}
-
-func (x *GitCheckoutGitHubFileParentConfig) GetPreUploadSteps() []PreUploadStep {
-	if x != nil {
-		return x.PreUploadSteps
 	}
 	return nil
 }
@@ -2571,8 +2473,6 @@ type GoModParentConfig struct {
 	// previous primary revision ID should be replaced with the new primary
 	// revision ID.
 	FindAndReplace []string `protobuf:"bytes,3,rep,name=find_and_replace,json=findAndReplace,proto3" json:"find_and_replace,omitempty"`
-	// pre_upload_steps are steps to run before uploading the CL.
-	PreUploadSteps []PreUploadStep `protobuf:"varint,4,rep,packed,name=pre_upload_steps,json=preUploadSteps,proto3,enum=autoroll.config.PreUploadStep" json:"pre_upload_steps,omitempty"`
 	// pre_upload describes command(s) to run before uploading roll CLs.
 	PreUploadCommands *PreUploadConfig `protobuf:"bytes,5,opt,name=pre_upload_commands,json=preUploadCommands,proto3" json:"pre_upload_commands,omitempty"`
 	// go_cmd is an alternate command to run to invoke Go, eg. for hermetic
@@ -2633,13 +2533,6 @@ func (x *GoModParentConfig) GetFindAndReplace() []string {
 	return nil
 }
 
-func (x *GoModParentConfig) GetPreUploadSteps() []PreUploadStep {
-	if x != nil {
-		return x.PreUploadSteps
-	}
-	return nil
-}
-
 func (x *GoModParentConfig) GetPreUploadCommands() *PreUploadConfig {
 	if x != nil {
 		return x.PreUploadCommands
@@ -2670,8 +2563,6 @@ type DEPSLocalParentConfig struct {
 	CheckoutPath string `protobuf:"bytes,4,opt,name=checkout_path,json=checkoutPath,proto3" json:"checkout_path,omitempty"`
 	// gclient_spec overrides the default gclient spec.
 	GclientSpec string `protobuf:"bytes,5,opt,name=gclient_spec,json=gclientSpec,proto3" json:"gclient_spec,omitempty"`
-	// pre_upload_steps are steps to run before uploading the CL.
-	PreUploadSteps []PreUploadStep `protobuf:"varint,6,rep,packed,name=pre_upload_steps,json=preUploadSteps,proto3,enum=autoroll.config.PreUploadStep" json:"pre_upload_steps,omitempty"`
 	// run_hooks indicates whether to run "gclient runhooks" after syncing.
 	RunHooks bool `protobuf:"varint,7,opt,name=run_hooks,json=runHooks,proto3" json:"run_hooks,omitempty"`
 	// pre_upload describes command(s) to run before uploading roll CLs.
@@ -2747,13 +2638,6 @@ func (x *DEPSLocalParentConfig) GetGclientSpec() string {
 		return x.GclientSpec
 	}
 	return ""
-}
-
-func (x *DEPSLocalParentConfig) GetPreUploadSteps() []PreUploadStep {
-	if x != nil {
-		return x.PreUploadSteps
-	}
-	return nil
 }
 
 func (x *DEPSLocalParentConfig) GetRunHooks() bool {
@@ -4977,7 +4861,7 @@ const file_config_proto_rawDesc = "" +
 	"\x04disk\x18\x06 \x01(\tR\x04disk\x12\x14\n" +
 	"\x05image\x18\b \x01(\tR\x05image\x12\x1f\n" +
 	"\vextra_flags\x18\t \x03(\tR\n" +
-	"extraFlags\"\x8b\a\n" +
+	"extraFlags\"\xc1\x06\n" +
 	"\x18AndroidRepoManagerConfig\x12$\n" +
 	"\x0echild_repo_url\x18\x01 \x01(\tR\fchildRepoUrl\x12!\n" +
 	"\fchild_branch\x18\x02 \x01(\tR\vchildBranch\x12\x1d\n" +
@@ -4986,8 +4870,7 @@ const file_config_proto_rawDesc = "" +
 	"\x0fparent_repo_url\x18\x04 \x01(\tR\rparentRepoUrl\x12#\n" +
 	"\rparent_branch\x18\x05 \x01(\tR\fparentBranch\x12-\n" +
 	"\x13child_rev_link_tmpl\x18\x06 \x01(\tR\x10childRevLinkTmpl\x12!\n" +
-	"\fchild_subdir\x18\a \x01(\tR\vchildSubdir\x12H\n" +
-	"\x10pre_upload_steps\x18\b \x03(\x0e2\x1e.autoroll.config.PreUploadStepR\x0epreUploadSteps\x12_\n" +
+	"\fchild_subdir\x18\a \x01(\tR\vchildSubdir\x12_\n" +
 	"\bmetadata\x18\t \x01(\v2C.autoroll.config.AndroidRepoManagerConfig.ProjectMetadataFileConfigR\bmetadata\x12?\n" +
 	"\x1cinclude_authors_as_reviewers\x18\n" +
 	" \x01(\bR\x19includeAuthorsAsReviewers\x12P\n" +
@@ -5063,10 +4946,9 @@ const file_config_proto_rawDesc = "" +
 	"\rfork_repo_url\x18\x02 \x01(\tR\vforkRepoUrl\"\xbe\x01\n" +
 	"\x1dGitCheckoutGerritParentConfig\x12K\n" +
 	"\fgit_checkout\x18\x01 \x01(\v2(.autoroll.config.GitCheckoutParentConfigR\vgitCheckout\x12P\n" +
-	"\x13pre_upload_commands\x18\x02 \x01(\v2 .autoroll.config.PreUploadConfigR\x11preUploadCommands\"\x92\x02\n" +
+	"\x13pre_upload_commands\x18\x02 \x01(\v2 .autoroll.config.PreUploadConfigR\x11preUploadCommands\"\xc8\x01\n" +
 	"!GitCheckoutGitHubFileParentConfig\x12Q\n" +
-	"\fgit_checkout\x18\x01 \x01(\v2..autoroll.config.GitCheckoutGitHubParentConfigR\vgitCheckout\x12H\n" +
-	"\x10pre_upload_steps\x18\x02 \x03(\x0e2\x1e.autoroll.config.PreUploadStepR\x0epreUploadSteps\x12P\n" +
+	"\fgit_checkout\x18\x01 \x01(\v2..autoroll.config.GitCheckoutGitHubParentConfigR\vgitCheckout\x12P\n" +
 	"\x13pre_upload_commands\x18\x03 \x01(\v2 .autoroll.config.PreUploadConfigR\x11preUploadCommands\"\xbb\x01\n" +
 	"\x13GitilesParentConfig\x128\n" +
 	"\agitiles\x18\x01 \x01(\v2\x1e.autoroll.config.GitilesConfigR\agitiles\x123\n" +
@@ -5079,23 +4961,21 @@ const file_config_proto_rawDesc = "" +
 	"\x13default_bug_project\x18\x04 \x01(\tR\x11defaultBugProject\"\x8b\x01\n" +
 	"\x17GoModGerritParentConfig\x129\n" +
 	"\x06go_mod\x18\x01 \x01(\v2\".autoroll.config.GoModParentConfigR\x05goMod\x125\n" +
-	"\x06gerrit\x18\x02 \x01(\v2\x1d.autoroll.config.GerritConfigR\x06gerrit\"\xd8\x02\n" +
+	"\x06gerrit\x18\x02 \x01(\v2\x1d.autoroll.config.GerritConfigR\x06gerrit\"\x8e\x02\n" +
 	"\x11GoModParentConfig\x12E\n" +
 	"\fgit_checkout\x18\x01 \x01(\v2\".autoroll.config.GitCheckoutConfigR\vgitCheckout\x12\x1f\n" +
 	"\vmodule_path\x18\x02 \x01(\tR\n" +
 	"modulePath\x12(\n" +
-	"\x10find_and_replace\x18\x03 \x03(\tR\x0efindAndReplace\x12H\n" +
-	"\x10pre_upload_steps\x18\x04 \x03(\x0e2\x1e.autoroll.config.PreUploadStepR\x0epreUploadSteps\x12P\n" +
+	"\x10find_and_replace\x18\x03 \x03(\tR\x0efindAndReplace\x12P\n" +
 	"\x13pre_upload_commands\x18\x05 \x01(\v2 .autoroll.config.PreUploadConfigR\x11preUploadCommands\x12\x15\n" +
-	"\x06go_cmd\x18\x06 \x01(\tR\x05goCmd\"\xcc\x03\n" +
+	"\x06go_cmd\x18\x06 \x01(\tR\x05goCmd\"\x82\x03\n" +
 	"\x15DEPSLocalParentConfig\x12K\n" +
 	"\fgit_checkout\x18\x01 \x01(\v2(.autoroll.config.GitCheckoutParentConfigR\vgitCheckout\x12\x1d\n" +
 	"\n" +
 	"child_path\x18\x02 \x01(\tR\tchildPath\x12!\n" +
 	"\fchild_subdir\x18\x03 \x01(\tR\vchildSubdir\x12#\n" +
 	"\rcheckout_path\x18\x04 \x01(\tR\fcheckoutPath\x12!\n" +
-	"\fgclient_spec\x18\x05 \x01(\tR\vgclientSpec\x12H\n" +
-	"\x10pre_upload_steps\x18\x06 \x03(\x0e2\x1e.autoroll.config.PreUploadStepR\x0epreUploadSteps\x12\x1b\n" +
+	"\fgclient_spec\x18\x05 \x01(\tR\vgclientSpec\x12\x1b\n" +
 	"\trun_hooks\x18\a \x01(\bR\brunHooks\x12P\n" +
 	"\x13pre_upload_commands\x18\b \x01(\v2 .autoroll.config.PreUploadConfigR\x11preUploadCommands\x12#\n" +
 	"\rparent_subdir\x18\t \x01(\tR\fparentSubdir\"\x95\x01\n" +
@@ -5238,22 +5118,7 @@ const file_config_proto_rawDesc = "" +
 	"\x04path\x18\x02 \x01(\tR\x04path\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\tR\aversion\":\n" +
 	"\aConfigs\x12/\n" +
-	"\x06config\x18\x01 \x03(\v2\x17.autoroll.config.ConfigR\x06config*\xfa\x02\n" +
-	"\rPreUploadStep\x12\x19\n" +
-	"\x15ANGLE_CODE_GENERATION\x10\x00\x12\x12\n" +
-	"\x0eANGLE_GN_TO_BP\x10\x01\x12\x17\n" +
-	"\x13ANGLE_ROLL_CHROMIUM\x10\x02\x12\x14\n" +
-	"\x10GO_GENERATE_CIPD\x10\x03\x12\x1b\n" +
-	"\x17FLUTTER_LICENSE_SCRIPTS\x10\x04\x12$\n" +
-	" FLUTTER_LICENSE_SCRIPTS_FOR_DART\x10\x05\x12'\n" +
-	"#FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA\x10\x06\x12\x11\n" +
-	"\rSKIA_GN_TO_BP\x10\a\x12\x0f\n" +
-	"\vTRAIN_INFRA\x10\b\x12 \n" +
-	"\x1cUPDATE_FLUTTER_DEPS_FOR_DART\x10\t\x12%\n" +
-	"!VULKAN_DEPS_UPDATE_COMMIT_MESSAGE\x10\n" +
-	"\x12\x14\n" +
-	"\x10UPDATE_BORINGSSL\x10\v\x12\x1c\n" +
-	"\x18CHROMIUM_ROLL_WEBGPU_CTS\x10\f*:\n" +
+	"\x06config\x18\x01 \x03(\v2\x17.autoroll.config.ConfigR\x06config*:\n" +
 	"\x04Mode\x12\v\n" +
 	"\aRUNNING\x10\x00\x12\v\n" +
 	"\aSTOPPED\x10\x01\x12\v\n" +
@@ -5272,164 +5137,159 @@ func file_config_proto_rawDescGZIP() []byte {
 	return file_config_proto_rawDescData
 }
 
-var file_config_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_config_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
 var file_config_proto_msgTypes = make([]protoimpl.MessageInfo, 53)
 var file_config_proto_goTypes = []any{
-	(PreUploadStep)(0),                                         // 0: autoroll.config.PreUploadStep
-	(Mode)(0),                                                  // 1: autoroll.config.Mode
-	(CommitMsgConfig_BuiltIn)(0),                               // 2: autoroll.config.CommitMsgConfig.BuiltIn
-	(GerritConfig_Config)(0),                                   // 3: autoroll.config.GerritConfig.Config
-	(NotifierConfig_LogLevel)(0),                               // 4: autoroll.config.NotifierConfig.LogLevel
-	(NotifierConfig_MsgType)(0),                                // 5: autoroll.config.NotifierConfig.MsgType
-	(*Config)(nil),                                             // 6: autoroll.config.Config
-	(*CommitMsgConfig)(nil),                                    // 7: autoroll.config.CommitMsgConfig
-	(*GerritConfig)(nil),                                       // 8: autoroll.config.GerritConfig
-	(*GitHubConfig)(nil),                                       // 9: autoroll.config.GitHubConfig
-	(*Google3Config)(nil),                                      // 10: autoroll.config.Google3Config
-	(*KubernetesConfig)(nil),                                   // 11: autoroll.config.KubernetesConfig
-	(*AndroidRepoManagerConfig)(nil),                           // 12: autoroll.config.AndroidRepoManagerConfig
-	(*CommandRepoManagerConfig)(nil),                           // 13: autoroll.config.CommandRepoManagerConfig
-	(*FreeTypeRepoManagerConfig)(nil),                          // 14: autoroll.config.FreeTypeRepoManagerConfig
-	(*Google3RepoManagerConfig)(nil),                           // 15: autoroll.config.Google3RepoManagerConfig
-	(*ParentChildRepoManagerConfig)(nil),                       // 16: autoroll.config.ParentChildRepoManagerConfig
-	(*CopyParentConfig)(nil),                                   // 17: autoroll.config.CopyParentConfig
-	(*DEPSLocalGitHubParentConfig)(nil),                        // 18: autoroll.config.DEPSLocalGitHubParentConfig
-	(*DEPSLocalGerritParentConfig)(nil),                        // 19: autoroll.config.DEPSLocalGerritParentConfig
-	(*GitCheckoutGitHubParentConfig)(nil),                      // 20: autoroll.config.GitCheckoutGitHubParentConfig
-	(*GitCheckoutGerritParentConfig)(nil),                      // 21: autoroll.config.GitCheckoutGerritParentConfig
-	(*GitCheckoutGitHubFileParentConfig)(nil),                  // 22: autoroll.config.GitCheckoutGitHubFileParentConfig
-	(*GitilesParentConfig)(nil),                                // 23: autoroll.config.GitilesParentConfig
-	(*GitilesConfig)(nil),                                      // 24: autoroll.config.GitilesConfig
-	(*GoModGerritParentConfig)(nil),                            // 25: autoroll.config.GoModGerritParentConfig
-	(*GoModParentConfig)(nil),                                  // 26: autoroll.config.GoModParentConfig
-	(*DEPSLocalParentConfig)(nil),                              // 27: autoroll.config.DEPSLocalParentConfig
-	(*GitCheckoutParentConfig)(nil),                            // 28: autoroll.config.GitCheckoutParentConfig
-	(*FreeTypeParentConfig)(nil),                               // 29: autoroll.config.FreeTypeParentConfig
-	(*CIPDChildConfig)(nil),                                    // 30: autoroll.config.CIPDChildConfig
-	(*FuchsiaSDKChildConfig)(nil),                              // 31: autoroll.config.FuchsiaSDKChildConfig
-	(*SemVerGCSChildConfig)(nil),                               // 32: autoroll.config.SemVerGCSChildConfig
-	(*GCSChildConfig)(nil),                                     // 33: autoroll.config.GCSChildConfig
-	(*GitCheckoutChildConfig)(nil),                             // 34: autoroll.config.GitCheckoutChildConfig
-	(*GitCheckoutGitHubChildConfig)(nil),                       // 35: autoroll.config.GitCheckoutGitHubChildConfig
-	(*GitilesChildConfig)(nil),                                 // 36: autoroll.config.GitilesChildConfig
-	(*DockerChildConfig)(nil),                                  // 37: autoroll.config.DockerChildConfig
-	(*NotifierConfig)(nil),                                     // 38: autoroll.config.NotifierConfig
-	(*EmailNotifierConfig)(nil),                                // 39: autoroll.config.EmailNotifierConfig
-	(*ChatNotifierConfig)(nil),                                 // 40: autoroll.config.ChatNotifierConfig
-	(*MonorailNotifierConfig)(nil),                             // 41: autoroll.config.MonorailNotifierConfig
-	(*PubSubNotifierConfig)(nil),                               // 42: autoroll.config.PubSubNotifierConfig
-	(*ThrottleConfig)(nil),                                     // 43: autoroll.config.ThrottleConfig
-	(*TransitiveDepConfig)(nil),                                // 44: autoroll.config.TransitiveDepConfig
-	(*VersionFileConfig)(nil),                                  // 45: autoroll.config.VersionFileConfig
-	(*VersionFileConfig_File)(nil),                             // 46: autoroll.config.VersionFileConfig_File
-	(*DependencyConfig)(nil),                                   // 47: autoroll.config.DependencyConfig
-	(*GitCheckoutConfig)(nil),                                  // 48: autoroll.config.GitCheckoutConfig
-	(*BuildbucketRevisionFilterConfig)(nil),                    // 49: autoroll.config.BuildbucketRevisionFilterConfig
-	(*CIPDRevisionFilterConfig)(nil),                           // 50: autoroll.config.CIPDRevisionFilterConfig
-	(*ValidHttpRevisionFilterConfig)(nil),                      // 51: autoroll.config.ValidHttpRevisionFilterConfig
-	(*PreUploadConfig)(nil),                                    // 52: autoroll.config.PreUploadConfig
-	(*PreUploadCommandConfig)(nil),                             // 53: autoroll.config.PreUploadCommandConfig
-	(*PreUploadCIPDPackageConfig)(nil),                         // 54: autoroll.config.PreUploadCIPDPackageConfig
-	(*Configs)(nil),                                            // 55: autoroll.config.Configs
-	(*AndroidRepoManagerConfig_ProjectMetadataFileConfig)(nil), // 56: autoroll.config.AndroidRepoManagerConfig.ProjectMetadataFileConfig
-	(*CommandRepoManagerConfig_CommandConfig)(nil),             // 57: autoroll.config.CommandRepoManagerConfig.CommandConfig
-	(*CopyParentConfig_CopyEntry)(nil),                         // 58: autoroll.config.CopyParentConfig.CopyEntry
+	(Mode)(0),                                                  // 0: autoroll.config.Mode
+	(CommitMsgConfig_BuiltIn)(0),                               // 1: autoroll.config.CommitMsgConfig.BuiltIn
+	(GerritConfig_Config)(0),                                   // 2: autoroll.config.GerritConfig.Config
+	(NotifierConfig_LogLevel)(0),                               // 3: autoroll.config.NotifierConfig.LogLevel
+	(NotifierConfig_MsgType)(0),                                // 4: autoroll.config.NotifierConfig.MsgType
+	(*Config)(nil),                                             // 5: autoroll.config.Config
+	(*CommitMsgConfig)(nil),                                    // 6: autoroll.config.CommitMsgConfig
+	(*GerritConfig)(nil),                                       // 7: autoroll.config.GerritConfig
+	(*GitHubConfig)(nil),                                       // 8: autoroll.config.GitHubConfig
+	(*Google3Config)(nil),                                      // 9: autoroll.config.Google3Config
+	(*KubernetesConfig)(nil),                                   // 10: autoroll.config.KubernetesConfig
+	(*AndroidRepoManagerConfig)(nil),                           // 11: autoroll.config.AndroidRepoManagerConfig
+	(*CommandRepoManagerConfig)(nil),                           // 12: autoroll.config.CommandRepoManagerConfig
+	(*FreeTypeRepoManagerConfig)(nil),                          // 13: autoroll.config.FreeTypeRepoManagerConfig
+	(*Google3RepoManagerConfig)(nil),                           // 14: autoroll.config.Google3RepoManagerConfig
+	(*ParentChildRepoManagerConfig)(nil),                       // 15: autoroll.config.ParentChildRepoManagerConfig
+	(*CopyParentConfig)(nil),                                   // 16: autoroll.config.CopyParentConfig
+	(*DEPSLocalGitHubParentConfig)(nil),                        // 17: autoroll.config.DEPSLocalGitHubParentConfig
+	(*DEPSLocalGerritParentConfig)(nil),                        // 18: autoroll.config.DEPSLocalGerritParentConfig
+	(*GitCheckoutGitHubParentConfig)(nil),                      // 19: autoroll.config.GitCheckoutGitHubParentConfig
+	(*GitCheckoutGerritParentConfig)(nil),                      // 20: autoroll.config.GitCheckoutGerritParentConfig
+	(*GitCheckoutGitHubFileParentConfig)(nil),                  // 21: autoroll.config.GitCheckoutGitHubFileParentConfig
+	(*GitilesParentConfig)(nil),                                // 22: autoroll.config.GitilesParentConfig
+	(*GitilesConfig)(nil),                                      // 23: autoroll.config.GitilesConfig
+	(*GoModGerritParentConfig)(nil),                            // 24: autoroll.config.GoModGerritParentConfig
+	(*GoModParentConfig)(nil),                                  // 25: autoroll.config.GoModParentConfig
+	(*DEPSLocalParentConfig)(nil),                              // 26: autoroll.config.DEPSLocalParentConfig
+	(*GitCheckoutParentConfig)(nil),                            // 27: autoroll.config.GitCheckoutParentConfig
+	(*FreeTypeParentConfig)(nil),                               // 28: autoroll.config.FreeTypeParentConfig
+	(*CIPDChildConfig)(nil),                                    // 29: autoroll.config.CIPDChildConfig
+	(*FuchsiaSDKChildConfig)(nil),                              // 30: autoroll.config.FuchsiaSDKChildConfig
+	(*SemVerGCSChildConfig)(nil),                               // 31: autoroll.config.SemVerGCSChildConfig
+	(*GCSChildConfig)(nil),                                     // 32: autoroll.config.GCSChildConfig
+	(*GitCheckoutChildConfig)(nil),                             // 33: autoroll.config.GitCheckoutChildConfig
+	(*GitCheckoutGitHubChildConfig)(nil),                       // 34: autoroll.config.GitCheckoutGitHubChildConfig
+	(*GitilesChildConfig)(nil),                                 // 35: autoroll.config.GitilesChildConfig
+	(*DockerChildConfig)(nil),                                  // 36: autoroll.config.DockerChildConfig
+	(*NotifierConfig)(nil),                                     // 37: autoroll.config.NotifierConfig
+	(*EmailNotifierConfig)(nil),                                // 38: autoroll.config.EmailNotifierConfig
+	(*ChatNotifierConfig)(nil),                                 // 39: autoroll.config.ChatNotifierConfig
+	(*MonorailNotifierConfig)(nil),                             // 40: autoroll.config.MonorailNotifierConfig
+	(*PubSubNotifierConfig)(nil),                               // 41: autoroll.config.PubSubNotifierConfig
+	(*ThrottleConfig)(nil),                                     // 42: autoroll.config.ThrottleConfig
+	(*TransitiveDepConfig)(nil),                                // 43: autoroll.config.TransitiveDepConfig
+	(*VersionFileConfig)(nil),                                  // 44: autoroll.config.VersionFileConfig
+	(*VersionFileConfig_File)(nil),                             // 45: autoroll.config.VersionFileConfig_File
+	(*DependencyConfig)(nil),                                   // 46: autoroll.config.DependencyConfig
+	(*GitCheckoutConfig)(nil),                                  // 47: autoroll.config.GitCheckoutConfig
+	(*BuildbucketRevisionFilterConfig)(nil),                    // 48: autoroll.config.BuildbucketRevisionFilterConfig
+	(*CIPDRevisionFilterConfig)(nil),                           // 49: autoroll.config.CIPDRevisionFilterConfig
+	(*ValidHttpRevisionFilterConfig)(nil),                      // 50: autoroll.config.ValidHttpRevisionFilterConfig
+	(*PreUploadConfig)(nil),                                    // 51: autoroll.config.PreUploadConfig
+	(*PreUploadCommandConfig)(nil),                             // 52: autoroll.config.PreUploadCommandConfig
+	(*PreUploadCIPDPackageConfig)(nil),                         // 53: autoroll.config.PreUploadCIPDPackageConfig
+	(*Configs)(nil),                                            // 54: autoroll.config.Configs
+	(*AndroidRepoManagerConfig_ProjectMetadataFileConfig)(nil), // 55: autoroll.config.AndroidRepoManagerConfig.ProjectMetadataFileConfig
+	(*CommandRepoManagerConfig_CommandConfig)(nil),             // 56: autoroll.config.CommandRepoManagerConfig.CommandConfig
+	(*CopyParentConfig_CopyEntry)(nil),                         // 57: autoroll.config.CopyParentConfig.CopyEntry
 }
 var file_config_proto_depIdxs = []int32{
-	7,  // 0: autoroll.config.Config.commit_msg:type_name -> autoroll.config.CommitMsgConfig
-	8,  // 1: autoroll.config.Config.gerrit:type_name -> autoroll.config.GerritConfig
-	9,  // 2: autoroll.config.Config.github:type_name -> autoroll.config.GitHubConfig
-	10, // 3: autoroll.config.Config.google3:type_name -> autoroll.config.Google3Config
-	11, // 4: autoroll.config.Config.kubernetes:type_name -> autoroll.config.KubernetesConfig
-	16, // 5: autoroll.config.Config.parent_child_repo_manager:type_name -> autoroll.config.ParentChildRepoManagerConfig
-	12, // 6: autoroll.config.Config.android_repo_manager:type_name -> autoroll.config.AndroidRepoManagerConfig
-	13, // 7: autoroll.config.Config.command_repo_manager:type_name -> autoroll.config.CommandRepoManagerConfig
-	14, // 8: autoroll.config.Config.freetype_repo_manager:type_name -> autoroll.config.FreeTypeRepoManagerConfig
-	15, // 9: autoroll.config.Config.google3_repo_manager:type_name -> autoroll.config.Google3RepoManagerConfig
-	38, // 10: autoroll.config.Config.notifiers:type_name -> autoroll.config.NotifierConfig
-	43, // 11: autoroll.config.Config.safety_throttle:type_name -> autoroll.config.ThrottleConfig
-	44, // 12: autoroll.config.Config.transitive_deps:type_name -> autoroll.config.TransitiveDepConfig
-	1,  // 13: autoroll.config.Config.valid_modes:type_name -> autoroll.config.Mode
-	2,  // 14: autoroll.config.CommitMsgConfig.built_in:type_name -> autoroll.config.CommitMsgConfig.BuiltIn
-	3,  // 15: autoroll.config.GerritConfig.config:type_name -> autoroll.config.GerritConfig.Config
-	0,  // 16: autoroll.config.AndroidRepoManagerConfig.pre_upload_steps:type_name -> autoroll.config.PreUploadStep
-	56, // 17: autoroll.config.AndroidRepoManagerConfig.metadata:type_name -> autoroll.config.AndroidRepoManagerConfig.ProjectMetadataFileConfig
-	52, // 18: autoroll.config.AndroidRepoManagerConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
-	48, // 19: autoroll.config.CommandRepoManagerConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
-	57, // 20: autoroll.config.CommandRepoManagerConfig.get_tip_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
-	57, // 21: autoroll.config.CommandRepoManagerConfig.get_pinned_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
-	57, // 22: autoroll.config.CommandRepoManagerConfig.set_pinned_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
-	29, // 23: autoroll.config.FreeTypeRepoManagerConfig.parent:type_name -> autoroll.config.FreeTypeParentConfig
-	36, // 24: autoroll.config.FreeTypeRepoManagerConfig.child:type_name -> autoroll.config.GitilesChildConfig
-	17, // 25: autoroll.config.ParentChildRepoManagerConfig.copy_parent:type_name -> autoroll.config.CopyParentConfig
-	18, // 26: autoroll.config.ParentChildRepoManagerConfig.deps_local_github_parent:type_name -> autoroll.config.DEPSLocalGitHubParentConfig
-	19, // 27: autoroll.config.ParentChildRepoManagerConfig.deps_local_gerrit_parent:type_name -> autoroll.config.DEPSLocalGerritParentConfig
-	22, // 28: autoroll.config.ParentChildRepoManagerConfig.git_checkout_github_file_parent:type_name -> autoroll.config.GitCheckoutGitHubFileParentConfig
-	23, // 29: autoroll.config.ParentChildRepoManagerConfig.gitiles_parent:type_name -> autoroll.config.GitilesParentConfig
-	25, // 30: autoroll.config.ParentChildRepoManagerConfig.go_mod_gerrit_parent:type_name -> autoroll.config.GoModGerritParentConfig
-	21, // 31: autoroll.config.ParentChildRepoManagerConfig.git_checkout_gerrit_parent:type_name -> autoroll.config.GitCheckoutGerritParentConfig
-	30, // 32: autoroll.config.ParentChildRepoManagerConfig.cipd_child:type_name -> autoroll.config.CIPDChildConfig
-	31, // 33: autoroll.config.ParentChildRepoManagerConfig.fuchsia_sdk_child:type_name -> autoroll.config.FuchsiaSDKChildConfig
-	34, // 34: autoroll.config.ParentChildRepoManagerConfig.git_checkout_child:type_name -> autoroll.config.GitCheckoutChildConfig
-	35, // 35: autoroll.config.ParentChildRepoManagerConfig.git_checkout_github_child:type_name -> autoroll.config.GitCheckoutGitHubChildConfig
-	36, // 36: autoroll.config.ParentChildRepoManagerConfig.gitiles_child:type_name -> autoroll.config.GitilesChildConfig
-	32, // 37: autoroll.config.ParentChildRepoManagerConfig.semver_gcs_child:type_name -> autoroll.config.SemVerGCSChildConfig
-	37, // 38: autoroll.config.ParentChildRepoManagerConfig.docker_child:type_name -> autoroll.config.DockerChildConfig
-	49, // 39: autoroll.config.ParentChildRepoManagerConfig.buildbucket_revision_filter:type_name -> autoroll.config.BuildbucketRevisionFilterConfig
-	50, // 40: autoroll.config.ParentChildRepoManagerConfig.cipd_revision_filter:type_name -> autoroll.config.CIPDRevisionFilterConfig
-	51, // 41: autoroll.config.ParentChildRepoManagerConfig.valid_http_revision_filter:type_name -> autoroll.config.ValidHttpRevisionFilterConfig
-	23, // 42: autoroll.config.CopyParentConfig.gitiles:type_name -> autoroll.config.GitilesParentConfig
-	58, // 43: autoroll.config.CopyParentConfig.copies:type_name -> autoroll.config.CopyParentConfig.CopyEntry
-	27, // 44: autoroll.config.DEPSLocalGitHubParentConfig.deps_local:type_name -> autoroll.config.DEPSLocalParentConfig
-	9,  // 45: autoroll.config.DEPSLocalGitHubParentConfig.github:type_name -> autoroll.config.GitHubConfig
-	27, // 46: autoroll.config.DEPSLocalGerritParentConfig.deps_local:type_name -> autoroll.config.DEPSLocalParentConfig
-	8,  // 47: autoroll.config.DEPSLocalGerritParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
-	28, // 48: autoroll.config.GitCheckoutGitHubParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
-	28, // 49: autoroll.config.GitCheckoutGerritParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
-	52, // 50: autoroll.config.GitCheckoutGerritParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
-	20, // 51: autoroll.config.GitCheckoutGitHubFileParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutGitHubParentConfig
-	0,  // 52: autoroll.config.GitCheckoutGitHubFileParentConfig.pre_upload_steps:type_name -> autoroll.config.PreUploadStep
-	52, // 53: autoroll.config.GitCheckoutGitHubFileParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
-	24, // 54: autoroll.config.GitilesParentConfig.gitiles:type_name -> autoroll.config.GitilesConfig
-	47, // 55: autoroll.config.GitilesParentConfig.dep:type_name -> autoroll.config.DependencyConfig
-	8,  // 56: autoroll.config.GitilesParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
-	45, // 57: autoroll.config.GitilesConfig.dependencies:type_name -> autoroll.config.VersionFileConfig
-	26, // 58: autoroll.config.GoModGerritParentConfig.go_mod:type_name -> autoroll.config.GoModParentConfig
-	8,  // 59: autoroll.config.GoModGerritParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
-	48, // 60: autoroll.config.GoModParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
-	0,  // 61: autoroll.config.GoModParentConfig.pre_upload_steps:type_name -> autoroll.config.PreUploadStep
-	52, // 62: autoroll.config.GoModParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
-	28, // 63: autoroll.config.DEPSLocalParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
-	0,  // 64: autoroll.config.DEPSLocalParentConfig.pre_upload_steps:type_name -> autoroll.config.PreUploadStep
-	52, // 65: autoroll.config.DEPSLocalParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
-	48, // 66: autoroll.config.GitCheckoutParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
-	47, // 67: autoroll.config.GitCheckoutParentConfig.dep:type_name -> autoroll.config.DependencyConfig
-	23, // 68: autoroll.config.FreeTypeParentConfig.gitiles:type_name -> autoroll.config.GitilesParentConfig
-	24, // 69: autoroll.config.CIPDChildConfig.source_repo:type_name -> autoroll.config.GitilesConfig
-	33, // 70: autoroll.config.SemVerGCSChildConfig.gcs:type_name -> autoroll.config.GCSChildConfig
-	48, // 71: autoroll.config.GitCheckoutChildConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
-	34, // 72: autoroll.config.GitCheckoutGitHubChildConfig.git_checkout:type_name -> autoroll.config.GitCheckoutChildConfig
-	24, // 73: autoroll.config.GitilesChildConfig.gitiles:type_name -> autoroll.config.GitilesConfig
-	4,  // 74: autoroll.config.NotifierConfig.log_level:type_name -> autoroll.config.NotifierConfig.LogLevel
-	5,  // 75: autoroll.config.NotifierConfig.msg_type:type_name -> autoroll.config.NotifierConfig.MsgType
-	39, // 76: autoroll.config.NotifierConfig.email:type_name -> autoroll.config.EmailNotifierConfig
-	40, // 77: autoroll.config.NotifierConfig.chat:type_name -> autoroll.config.ChatNotifierConfig
-	41, // 78: autoroll.config.NotifierConfig.monorail:type_name -> autoroll.config.MonorailNotifierConfig
-	42, // 79: autoroll.config.NotifierConfig.pubsub:type_name -> autoroll.config.PubSubNotifierConfig
-	45, // 80: autoroll.config.TransitiveDepConfig.child:type_name -> autoroll.config.VersionFileConfig
-	45, // 81: autoroll.config.TransitiveDepConfig.parent:type_name -> autoroll.config.VersionFileConfig
-	46, // 82: autoroll.config.VersionFileConfig.file:type_name -> autoroll.config.VersionFileConfig_File
-	45, // 83: autoroll.config.DependencyConfig.primary:type_name -> autoroll.config.VersionFileConfig
-	44, // 84: autoroll.config.DependencyConfig.transitive:type_name -> autoroll.config.TransitiveDepConfig
-	45, // 85: autoroll.config.GitCheckoutConfig.dependencies:type_name -> autoroll.config.VersionFileConfig
-	54, // 86: autoroll.config.PreUploadConfig.cipd_package:type_name -> autoroll.config.PreUploadCIPDPackageConfig
-	53, // 87: autoroll.config.PreUploadConfig.command:type_name -> autoroll.config.PreUploadCommandConfig
-	6,  // 88: autoroll.config.Configs.config:type_name -> autoroll.config.Config
-	89, // [89:89] is the sub-list for method output_type
-	89, // [89:89] is the sub-list for method input_type
-	89, // [89:89] is the sub-list for extension type_name
-	89, // [89:89] is the sub-list for extension extendee
-	0,  // [0:89] is the sub-list for field type_name
+	6,  // 0: autoroll.config.Config.commit_msg:type_name -> autoroll.config.CommitMsgConfig
+	7,  // 1: autoroll.config.Config.gerrit:type_name -> autoroll.config.GerritConfig
+	8,  // 2: autoroll.config.Config.github:type_name -> autoroll.config.GitHubConfig
+	9,  // 3: autoroll.config.Config.google3:type_name -> autoroll.config.Google3Config
+	10, // 4: autoroll.config.Config.kubernetes:type_name -> autoroll.config.KubernetesConfig
+	15, // 5: autoroll.config.Config.parent_child_repo_manager:type_name -> autoroll.config.ParentChildRepoManagerConfig
+	11, // 6: autoroll.config.Config.android_repo_manager:type_name -> autoroll.config.AndroidRepoManagerConfig
+	12, // 7: autoroll.config.Config.command_repo_manager:type_name -> autoroll.config.CommandRepoManagerConfig
+	13, // 8: autoroll.config.Config.freetype_repo_manager:type_name -> autoroll.config.FreeTypeRepoManagerConfig
+	14, // 9: autoroll.config.Config.google3_repo_manager:type_name -> autoroll.config.Google3RepoManagerConfig
+	37, // 10: autoroll.config.Config.notifiers:type_name -> autoroll.config.NotifierConfig
+	42, // 11: autoroll.config.Config.safety_throttle:type_name -> autoroll.config.ThrottleConfig
+	43, // 12: autoroll.config.Config.transitive_deps:type_name -> autoroll.config.TransitiveDepConfig
+	0,  // 13: autoroll.config.Config.valid_modes:type_name -> autoroll.config.Mode
+	1,  // 14: autoroll.config.CommitMsgConfig.built_in:type_name -> autoroll.config.CommitMsgConfig.BuiltIn
+	2,  // 15: autoroll.config.GerritConfig.config:type_name -> autoroll.config.GerritConfig.Config
+	55, // 16: autoroll.config.AndroidRepoManagerConfig.metadata:type_name -> autoroll.config.AndroidRepoManagerConfig.ProjectMetadataFileConfig
+	51, // 17: autoroll.config.AndroidRepoManagerConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
+	47, // 18: autoroll.config.CommandRepoManagerConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
+	56, // 19: autoroll.config.CommandRepoManagerConfig.get_tip_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
+	56, // 20: autoroll.config.CommandRepoManagerConfig.get_pinned_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
+	56, // 21: autoroll.config.CommandRepoManagerConfig.set_pinned_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
+	28, // 22: autoroll.config.FreeTypeRepoManagerConfig.parent:type_name -> autoroll.config.FreeTypeParentConfig
+	35, // 23: autoroll.config.FreeTypeRepoManagerConfig.child:type_name -> autoroll.config.GitilesChildConfig
+	16, // 24: autoroll.config.ParentChildRepoManagerConfig.copy_parent:type_name -> autoroll.config.CopyParentConfig
+	17, // 25: autoroll.config.ParentChildRepoManagerConfig.deps_local_github_parent:type_name -> autoroll.config.DEPSLocalGitHubParentConfig
+	18, // 26: autoroll.config.ParentChildRepoManagerConfig.deps_local_gerrit_parent:type_name -> autoroll.config.DEPSLocalGerritParentConfig
+	21, // 27: autoroll.config.ParentChildRepoManagerConfig.git_checkout_github_file_parent:type_name -> autoroll.config.GitCheckoutGitHubFileParentConfig
+	22, // 28: autoroll.config.ParentChildRepoManagerConfig.gitiles_parent:type_name -> autoroll.config.GitilesParentConfig
+	24, // 29: autoroll.config.ParentChildRepoManagerConfig.go_mod_gerrit_parent:type_name -> autoroll.config.GoModGerritParentConfig
+	20, // 30: autoroll.config.ParentChildRepoManagerConfig.git_checkout_gerrit_parent:type_name -> autoroll.config.GitCheckoutGerritParentConfig
+	29, // 31: autoroll.config.ParentChildRepoManagerConfig.cipd_child:type_name -> autoroll.config.CIPDChildConfig
+	30, // 32: autoroll.config.ParentChildRepoManagerConfig.fuchsia_sdk_child:type_name -> autoroll.config.FuchsiaSDKChildConfig
+	33, // 33: autoroll.config.ParentChildRepoManagerConfig.git_checkout_child:type_name -> autoroll.config.GitCheckoutChildConfig
+	34, // 34: autoroll.config.ParentChildRepoManagerConfig.git_checkout_github_child:type_name -> autoroll.config.GitCheckoutGitHubChildConfig
+	35, // 35: autoroll.config.ParentChildRepoManagerConfig.gitiles_child:type_name -> autoroll.config.GitilesChildConfig
+	31, // 36: autoroll.config.ParentChildRepoManagerConfig.semver_gcs_child:type_name -> autoroll.config.SemVerGCSChildConfig
+	36, // 37: autoroll.config.ParentChildRepoManagerConfig.docker_child:type_name -> autoroll.config.DockerChildConfig
+	48, // 38: autoroll.config.ParentChildRepoManagerConfig.buildbucket_revision_filter:type_name -> autoroll.config.BuildbucketRevisionFilterConfig
+	49, // 39: autoroll.config.ParentChildRepoManagerConfig.cipd_revision_filter:type_name -> autoroll.config.CIPDRevisionFilterConfig
+	50, // 40: autoroll.config.ParentChildRepoManagerConfig.valid_http_revision_filter:type_name -> autoroll.config.ValidHttpRevisionFilterConfig
+	22, // 41: autoroll.config.CopyParentConfig.gitiles:type_name -> autoroll.config.GitilesParentConfig
+	57, // 42: autoroll.config.CopyParentConfig.copies:type_name -> autoroll.config.CopyParentConfig.CopyEntry
+	26, // 43: autoroll.config.DEPSLocalGitHubParentConfig.deps_local:type_name -> autoroll.config.DEPSLocalParentConfig
+	8,  // 44: autoroll.config.DEPSLocalGitHubParentConfig.github:type_name -> autoroll.config.GitHubConfig
+	26, // 45: autoroll.config.DEPSLocalGerritParentConfig.deps_local:type_name -> autoroll.config.DEPSLocalParentConfig
+	7,  // 46: autoroll.config.DEPSLocalGerritParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
+	27, // 47: autoroll.config.GitCheckoutGitHubParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
+	27, // 48: autoroll.config.GitCheckoutGerritParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
+	51, // 49: autoroll.config.GitCheckoutGerritParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
+	19, // 50: autoroll.config.GitCheckoutGitHubFileParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutGitHubParentConfig
+	51, // 51: autoroll.config.GitCheckoutGitHubFileParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
+	23, // 52: autoroll.config.GitilesParentConfig.gitiles:type_name -> autoroll.config.GitilesConfig
+	46, // 53: autoroll.config.GitilesParentConfig.dep:type_name -> autoroll.config.DependencyConfig
+	7,  // 54: autoroll.config.GitilesParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
+	44, // 55: autoroll.config.GitilesConfig.dependencies:type_name -> autoroll.config.VersionFileConfig
+	25, // 56: autoroll.config.GoModGerritParentConfig.go_mod:type_name -> autoroll.config.GoModParentConfig
+	7,  // 57: autoroll.config.GoModGerritParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
+	47, // 58: autoroll.config.GoModParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
+	51, // 59: autoroll.config.GoModParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
+	27, // 60: autoroll.config.DEPSLocalParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
+	51, // 61: autoroll.config.DEPSLocalParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
+	47, // 62: autoroll.config.GitCheckoutParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
+	46, // 63: autoroll.config.GitCheckoutParentConfig.dep:type_name -> autoroll.config.DependencyConfig
+	22, // 64: autoroll.config.FreeTypeParentConfig.gitiles:type_name -> autoroll.config.GitilesParentConfig
+	23, // 65: autoroll.config.CIPDChildConfig.source_repo:type_name -> autoroll.config.GitilesConfig
+	32, // 66: autoroll.config.SemVerGCSChildConfig.gcs:type_name -> autoroll.config.GCSChildConfig
+	47, // 67: autoroll.config.GitCheckoutChildConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
+	33, // 68: autoroll.config.GitCheckoutGitHubChildConfig.git_checkout:type_name -> autoroll.config.GitCheckoutChildConfig
+	23, // 69: autoroll.config.GitilesChildConfig.gitiles:type_name -> autoroll.config.GitilesConfig
+	3,  // 70: autoroll.config.NotifierConfig.log_level:type_name -> autoroll.config.NotifierConfig.LogLevel
+	4,  // 71: autoroll.config.NotifierConfig.msg_type:type_name -> autoroll.config.NotifierConfig.MsgType
+	38, // 72: autoroll.config.NotifierConfig.email:type_name -> autoroll.config.EmailNotifierConfig
+	39, // 73: autoroll.config.NotifierConfig.chat:type_name -> autoroll.config.ChatNotifierConfig
+	40, // 74: autoroll.config.NotifierConfig.monorail:type_name -> autoroll.config.MonorailNotifierConfig
+	41, // 75: autoroll.config.NotifierConfig.pubsub:type_name -> autoroll.config.PubSubNotifierConfig
+	44, // 76: autoroll.config.TransitiveDepConfig.child:type_name -> autoroll.config.VersionFileConfig
+	44, // 77: autoroll.config.TransitiveDepConfig.parent:type_name -> autoroll.config.VersionFileConfig
+	45, // 78: autoroll.config.VersionFileConfig.file:type_name -> autoroll.config.VersionFileConfig_File
+	44, // 79: autoroll.config.DependencyConfig.primary:type_name -> autoroll.config.VersionFileConfig
+	43, // 80: autoroll.config.DependencyConfig.transitive:type_name -> autoroll.config.TransitiveDepConfig
+	44, // 81: autoroll.config.GitCheckoutConfig.dependencies:type_name -> autoroll.config.VersionFileConfig
+	53, // 82: autoroll.config.PreUploadConfig.cipd_package:type_name -> autoroll.config.PreUploadCIPDPackageConfig
+	52, // 83: autoroll.config.PreUploadConfig.command:type_name -> autoroll.config.PreUploadCommandConfig
+	5,  // 84: autoroll.config.Configs.config:type_name -> autoroll.config.Config
+	85, // [85:85] is the sub-list for method output_type
+	85, // [85:85] is the sub-list for method input_type
+	85, // [85:85] is the sub-list for extension type_name
+	85, // [85:85] is the sub-list for extension extendee
+	0,  // [0:85] is the sub-list for field type_name
 }
 
 func init() { file_config_proto_init() }
@@ -5474,7 +5334,7 @@ func file_config_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_config_proto_rawDesc), len(file_config_proto_rawDesc)),
-			NumEnums:      6,
+			NumEnums:      5,
 			NumMessages:   53,
 			NumExtensions: 0,
 			NumServices:   0,

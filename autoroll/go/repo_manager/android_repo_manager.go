@@ -79,7 +79,7 @@ type androidRepoManager struct {
 	g                gerrit.GerritInterface
 	httpClient       *http.Client
 	parentBranch     *config_vars.Template
-	preUploadSteps   []parent.PreUploadStep
+	preUploadCfg     *config.PreUploadConfig
 	repoMtx          sync.RWMutex
 	workdir          string
 }
@@ -121,10 +121,6 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		if err := git.DeleteLockFiles(ctx, workdir); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-	}
-	preUploadSteps, err := parent.GetPreUploadSteps(c.PreUploadSteps, c.PreUploadCommands)
-	if err != nil {
-		return nil, skerr.Wrap(err)
 	}
 	childBranch, err := config_vars.NewTemplate(c.ChildBranch)
 	if err != nil {
@@ -192,7 +188,7 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		g:                g,
 		httpClient:       client,
 		parentBranch:     parentBranch,
-		preUploadSteps:   preUploadSteps,
+		preUploadCfg:     c.PreUploadCommands,
 		workdir:          workdir,
 	}
 	return r, nil
@@ -520,11 +516,9 @@ third_party {
 	}
 
 	// Run the pre-upload steps.
-	for _, s := range r.preUploadSteps {
-		if err := s(ctx, nil, r.httpClient, r.workdir, from, to); err != nil {
-			util.LogErr(r.abortMerge(ctx))
-			return 0, skerr.Wrapf(err, "Failed pre-upload step: %s", err)
-		}
+	if err := parent.RunPreUploadStep(ctx, r.preUploadCfg, nil, r.httpClient, r.workdir, from, to); err != nil {
+		util.LogErr(r.abortMerge(ctx))
+		return 0, skerr.Wrapf(err, "failed pre-upload step: %s", err)
 	}
 
 	// The pre-upload step may reintroduce submodule directories, remove them

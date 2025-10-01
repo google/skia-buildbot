@@ -2,9 +2,7 @@ package repo_manager
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,7 +16,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
-	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/bazel/go/bazel"
@@ -258,58 +255,6 @@ func TestGithubCipdDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
-}
-
-// Verify that we ran the PreUploadSteps.
-func TestGithubCipdDEPSRepoManagerPreUploadSteps(t *testing.T) {
-
-	// Create a fake pre-upload step.
-	ran := false
-	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
-		ran = true
-		return nil
-	})
-	cfg := githubCipdDEPSRmCfg(t)
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
-	parentCfg.DepsLocal.PreUploadSteps = []config.PreUploadStep{stepName}
-
-	ctx, rm, _, _, _, _, urlMock, cleanup := setupGithubCipdDEPS(t, cfg)
-	defer cleanup()
-
-	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	require.NoError(t, err)
-
-	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, parentCfg.ForkRepoUrl)
-	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
-	require.NoError(t, createErr)
-	require.True(t, ran)
-}
-
-// Verify that we fail when a PreUploadStep fails.
-func TestGithubCipdDEPSRepoManagerPreUploadStepsError(t *testing.T) {
-
-	ran := false
-	expectedErr := errors.New("Expected error")
-	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
-		ran = true
-		return expectedErr
-	})
-	cfg := githubCipdDEPSRmCfg(t)
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
-	parentCfg.DepsLocal.PreUploadSteps = []config.PreUploadStep{stepName}
-
-	ctx, rm, _, _, _, _, urlMock, cleanup := setupGithubCipdDEPS(t, cfg)
-	defer cleanup()
-
-	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	require.NoError(t, err)
-
-	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, parentCfg.ForkRepoUrl)
-	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
-	require.Error(t, expectedErr, createErr)
-	require.True(t, ran)
 }
 
 // TestGithubRepoManagerGetRevision tests GithubCipdDEPSRepoManager.GetRevision().

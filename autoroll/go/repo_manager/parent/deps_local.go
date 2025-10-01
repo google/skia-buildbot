@@ -107,13 +107,6 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		return skerr.Wrap(gclient(ctx, "recurse", "--no-progress", "-j1", gitPath, "clean", "-d", "-f"))
 	}
 
-	// Pre-upload steps are run after setting the new dependency version and
-	// syncing, but before committing and uploading.
-	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps, c.PreUploadCommands)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
 	// Clean up any lockfiles, in case the process was interrupted.
 	if err := git.DeleteLockFiles(ctx, workdir); err != nil {
 		return nil, skerr.Wrap(err)
@@ -186,11 +179,8 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		}
 
 		// Run the pre-upload steps.
-		sklog.Infof("Running %d pre-upload steps.", len(preUploadSteps))
-		for _, s := range preUploadSteps {
-			if err := s(ctx, depotToolsEnv, client, co.Dir(), from, to); err != nil {
-				return "", skerr.Wrapf(err, "failed pre-upload step")
-			}
+		if err := RunPreUploadStep(ctx, c.PreUploadCommands, depotToolsEnv, client, co.Dir(), from, to); err != nil {
+			return "", skerr.Wrapf(err, "failed pre-upload step: %s", err)
 		}
 
 		// Commit.

@@ -77,14 +77,6 @@ type RepoManagerConfig interface {
 }
 
 // Validate implements util.Validator.
-func (s PreUploadStep) Validate() error {
-	if _, ok := PreUploadStep_name[int32(s)]; !ok {
-		return skerr.Fmt("Unknown pre-upload step: %v", s)
-	}
-	return nil
-}
-
-// Validate implements util.Validator.
 func (c CommitMsgConfig_BuiltIn) Validate() error {
 	if _, ok := CommitMsgConfig_BuiltIn_name[int32(c)]; !ok {
 		return skerr.Fmt("Unknown CommitMsgConfig_BuiltIn: %v", c)
@@ -590,11 +582,6 @@ func (c *AndroidRepoManagerConfig) Validate() error {
 	if c.ParentBranch == "" {
 		return skerr.Fmt("ParentBranch is required.")
 	}
-	for _, step := range c.PreUploadSteps {
-		if err := step.Validate(); err != nil {
-			return skerr.Wrap(err)
-		}
-	}
 	if c.Metadata != nil {
 		if err := c.Metadata.Validate(); err != nil {
 			return skerr.Wrap(err)
@@ -969,11 +956,6 @@ func (c *GoModParentConfig) Validate() error {
 	if c.ModulePath == "" {
 		return skerr.Fmt("ModulePath is required.")
 	}
-	for _, step := range c.PreUploadSteps {
-		if err := step.Validate(); err != nil {
-			return skerr.Wrap(err)
-		}
-	}
 	return nil
 }
 
@@ -1120,11 +1102,6 @@ func (c *DEPSLocalParentConfig) Validate() error {
 	if err := c.GitCheckout.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
-	for _, step := range c.PreUploadSteps {
-		if err := step.Validate(); err != nil {
-			return skerr.Wrap(err)
-		}
-	}
 	return nil
 }
 
@@ -1169,11 +1146,6 @@ func (c *GitCheckoutGitHubFileParentConfig) Validate() error {
 	}
 	if err := c.GitCheckout.Validate(); err != nil {
 		return skerr.Wrap(err)
-	}
-	for _, step := range c.PreUploadSteps {
-		if err := step.Validate(); err != nil {
-			return skerr.Wrap(err)
-		}
 	}
 	return nil
 }

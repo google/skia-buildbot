@@ -3,7 +3,6 @@ package repo_manager
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -16,7 +15,6 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
-	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -236,56 +234,4 @@ func TestGithubRepoManagerCreateNewRoll(t *testing.T) {
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
-}
-
-// Verify that we ran the PreUploadSteps.
-func TestGithubRepoManagerPreUploadSteps(t *testing.T) {
-
-	cfg := githubRmCfg(t)
-	// Create a fake pre-upload step.
-	ran := false
-	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
-		ran = true
-		return nil
-	})
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
-	parentCfg.PreUploadSteps = []config.PreUploadStep{stepName}
-	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithub(t, cfg)
-	defer cleanup()
-
-	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	require.NoError(t, err)
-
-	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, parentCfg.GitCheckout.ForkRepoUrl)
-	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
-	require.NoError(t, createErr)
-	require.True(t, ran)
-}
-
-// Verify that we fail when a PreUploadStep fails.
-func TestGithubRepoManagerPreUploadStepsError(t *testing.T) {
-
-	cfg := githubRmCfg(t)
-	// Create a fake pre-upload step.
-	ran := false
-	expectedErr := errors.New("Expected error")
-	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
-		ran = true
-		return expectedErr
-	})
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
-	parentCfg.PreUploadSteps = []config.PreUploadStep{stepName}
-
-	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithub(t, cfg)
-	defer cleanup()
-
-	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	require.NoError(t, err)
-
-	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, parentCfg.GitCheckout.ForkRepoUrl)
-	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, fakeReviewers, false, false, fakeCommitMsg)
-	require.Error(t, expectedErr, createErr)
-	require.True(t, ran)
 }

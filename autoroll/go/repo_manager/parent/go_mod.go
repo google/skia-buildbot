@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/golang"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -71,13 +70,6 @@ func NewGoModParent(ctx context.Context, c *config.GoModParentConfig, reg *confi
 		return nil, skerr.Wrap(err)
 	}
 
-	// Pre-upload steps are run after setting the new dependency version and
-	// syncing, but before committing and uploading.
-	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps, c.PreUploadCommands)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
 	// Support a custom wrapper around Go, so that we can support hermetic
 	// installation eg. via Bazel.
 	var goCmd []string
@@ -104,11 +96,8 @@ func NewGoModParent(ctx context.Context, c *config.GoModParentConfig, reg *confi
 		}
 
 		// Run the pre-upload steps.
-		sklog.Infof("Running %d pre-upload steps.", len(preUploadSteps))
-		for _, s := range preUploadSteps {
-			if err := s(ctx, nil, client, co.Dir(), from, to); err != nil {
-				return "", skerr.Wrapf(err, "failed pre-upload step")
-			}
+		if err := RunPreUploadStep(ctx, c.PreUploadCommands, nil, client, co.Dir(), from, to); err != nil {
+			return "", skerr.Wrapf(err, "failed pre-upload step: %s", err)
 		}
 
 		// Commit.

@@ -1,21 +1,5 @@
 import {createTwirpRequest, throwTwirpError, Fetch} from './twirp';
 
-export enum PreUploadStep {
-  ANGLE_CODE_GENERATION = "ANGLE_CODE_GENERATION",
-  ANGLE_GN_TO_BP = "ANGLE_GN_TO_BP",
-  ANGLE_ROLL_CHROMIUM = "ANGLE_ROLL_CHROMIUM",
-  GO_GENERATE_CIPD = "GO_GENERATE_CIPD",
-  FLUTTER_LICENSE_SCRIPTS = "FLUTTER_LICENSE_SCRIPTS",
-  FLUTTER_LICENSE_SCRIPTS_FOR_DART = "FLUTTER_LICENSE_SCRIPTS_FOR_DART",
-  FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA = "FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA",
-  SKIA_GN_TO_BP = "SKIA_GN_TO_BP",
-  TRAIN_INFRA = "TRAIN_INFRA",
-  UPDATE_FLUTTER_DEPS_FOR_DART = "UPDATE_FLUTTER_DEPS_FOR_DART",
-  VULKAN_DEPS_UPDATE_COMMIT_MESSAGE = "VULKAN_DEPS_UPDATE_COMMIT_MESSAGE",
-  UPDATE_BORINGSSL = "UPDATE_BORINGSSL",
-  CHROMIUM_ROLL_WEBGPU_CTS = "CHROMIUM_ROLL_WEBGPU_CTS",
-}
-
 export enum Mode {
   RUNNING = "RUNNING",
   STOPPED = "STOPPED",
@@ -250,7 +234,6 @@ export interface AndroidRepoManagerConfig {
   parentBranch: string;
   childRevLinkTmpl: string;
   childSubdir: string;
-  preUploadSteps?: PreUploadStep[];
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfig;
   includeAuthorsAsReviewers: boolean;
   preUploadCommands?: PreUploadConfig;
@@ -266,7 +249,6 @@ interface AndroidRepoManagerConfigJSON {
   parent_branch?: string;
   child_rev_link_tmpl?: string;
   child_subdir?: string;
-  pre_upload_steps?: string[];
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfigJSON;
   include_authors_as_reviewers?: boolean;
   pre_upload_commands?: PreUploadConfigJSON;
@@ -426,13 +408,11 @@ interface GitCheckoutGerritParentConfigJSON {
 
 export interface GitCheckoutGitHubFileParentConfig {
   gitCheckout?: GitCheckoutGitHubParentConfig;
-  preUploadSteps?: PreUploadStep[];
   preUploadCommands?: PreUploadConfig;
 }
 
 interface GitCheckoutGitHubFileParentConfigJSON {
   git_checkout?: GitCheckoutGitHubParentConfigJSON;
-  pre_upload_steps?: string[];
   pre_upload_commands?: PreUploadConfigJSON;
 }
 
@@ -476,7 +456,6 @@ export interface GoModParentConfig {
   gitCheckout?: GitCheckoutConfig;
   modulePath: string;
   findAndReplace?: string[];
-  preUploadSteps?: PreUploadStep[];
   preUploadCommands?: PreUploadConfig;
   goCmd: string;
 }
@@ -485,7 +464,6 @@ interface GoModParentConfigJSON {
   git_checkout?: GitCheckoutConfigJSON;
   module_path?: string;
   find_and_replace?: string[];
-  pre_upload_steps?: string[];
   pre_upload_commands?: PreUploadConfigJSON;
   go_cmd?: string;
 }
@@ -496,7 +474,6 @@ export interface DEPSLocalParentConfig {
   childSubdir: string;
   checkoutPath: string;
   gclientSpec: string;
-  preUploadSteps?: PreUploadStep[];
   runHooks: boolean;
   preUploadCommands?: PreUploadConfig;
   parentSubdir: string;
@@ -508,7 +485,6 @@ interface DEPSLocalParentConfigJSON {
   child_subdir?: string;
   checkout_path?: string;
   gclient_spec?: string;
-  pre_upload_steps?: string[];
   run_hooks?: boolean;
   pre_upload_commands?: PreUploadConfigJSON;
   parent_subdir?: string;

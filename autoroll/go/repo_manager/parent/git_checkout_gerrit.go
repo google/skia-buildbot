@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 )
 
 // GitCheckoutUploadGerritRollFunc returns a GitCheckoutUploadRollFunc which
@@ -68,11 +67,6 @@ func NewGitCheckoutGerrit(ctx context.Context, c *config.GitCheckoutGerritParent
 	// See documentation for GitCheckoutUploadRollFunc.
 	uploadRoll := GitCheckoutUploadGerritRollFunc(gerritClient)
 
-	preUploadSteps, err := GetPreUploadSteps(nil, c.PreUploadCommands)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
 	createRollHelper := gitCheckoutFileCreateRollFunc(c.GitCheckout.Dep)
 	createRoll := func(ctx context.Context, co git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Run the helper to set the new dependency version(s).
@@ -81,11 +75,8 @@ func NewGitCheckoutGerrit(ctx context.Context, c *config.GitCheckoutGerritParent
 		}
 
 		// Run the pre-upload steps.
-		sklog.Infof("Running %d pre-upload steps.", len(preUploadSteps))
-		for _, s := range preUploadSteps {
-			if err := s(ctx, nil, client, co.Dir(), from, to); err != nil {
-				return "", skerr.Wrapf(err, "failed pre-upload step")
-			}
+		if err := RunPreUploadStep(ctx, c.PreUploadCommands, nil, client, co.Dir(), from, to); err != nil {
+			return "", skerr.Wrapf(err, "failed pre-upload step: %s", err)
 		}
 
 		// Commit.

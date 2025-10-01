@@ -12,19 +12,11 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 )
 
 // NewGitCheckoutGithubFile returns a Parent which uses a local checkout and a
 // version file (eg. DEPS) to manage dependencies.
 func NewGitCheckoutGithubFile(ctx context.Context, c *config.GitCheckoutGitHubFileParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
-	// Pre-upload steps are run after setting the new dependency version and
-	// syncing, but before committing and uploading.
-	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps, c.PreUploadCommands)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
 	createRollHelper := gitCheckoutFileCreateRollFunc(c.GitCheckout.GitCheckout.Dep)
 	createRoll := func(ctx context.Context, co git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Run the helper to add commits pointing to each of the Revision in the
@@ -41,11 +33,8 @@ func NewGitCheckoutGithubFile(ctx context.Context, c *config.GitCheckoutGitHubFi
 		}
 
 		// Run the pre-upload steps.
-		sklog.Infof("Running %d pre-upload steps.", len(preUploadSteps))
-		for _, s := range preUploadSteps {
-			if err := s(ctx, nil, client, co.Dir(), from, to); err != nil {
-				return "", skerr.Wrapf(err, "failed pre-upload step")
-			}
+		if err := RunPreUploadStep(ctx, c.PreUploadCommands, nil, client, co.Dir(), from, to); err != nil {
+			return "", skerr.Wrapf(err, "failed pre-upload step: %s", err)
 		}
 
 		// Commit.
