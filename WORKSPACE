@@ -475,7 +475,7 @@ container_pull(
 # Pulls the node:17-alpine container, needed by jsdoc.
 container_pull(
     name = "node_alpine",
-    digest = "sha256:44b4db12ba2899f92786aa7e98782eb6430e81d92488c59144a567853185c2bb",
+    digest = "sha256:4e87fa2c1aa4a31edfa4092cc50428e86bf129e5bb528e2b3bbc8661e2038339",
     registry = "index.docker.io",
     repository = "node",
 )
