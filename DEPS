@@ -10,7 +10,7 @@ vars = {
 
 deps = {
   'depot_tools': {
-    'url': 'https://chromium.googlesource.com/chromium/tools/depot_tools.git@49ffe22ecdd00d319d5750ba494e4ba5ac6bb855',
+    'url': 'https://chromium.googlesource.com/chromium/tools/depot_tools.git@6cac3e72abac6538822382a2814bebf7f39eb25f',
     'condition': 'False',
   },
   'cipd_bin_packages': {
