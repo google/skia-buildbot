@@ -20,7 +20,6 @@
     "min_db_connections": 5
   },
   "experiments": {
-    "in_memory_traceparams": true
   },
   "ingestion_config": {
     "source_config": {

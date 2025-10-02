@@ -34,8 +34,7 @@
     },
     "experiments": {
         "enable_skia_bridge_aggregation": true,
-        "prefetch_metadata": true,
-        "in_memory_traceparams": true
+        "prefetch_metadata": true
     },
     "ingestion_config": {
         "source_config": {

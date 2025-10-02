@@ -29,7 +29,6 @@
         "tile_size": 8192
     },
     "experiments": {
-        "in_memory_traceparams": true
     },
     "ingestion_config": {
         "source_config": {

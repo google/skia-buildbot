@@ -21,7 +21,6 @@
         "enable_follower_reads": true
     },
     "experiments": {
-      "in_memory_traceparams": true
     },
     "ingestion_config": {
         "source_config": {

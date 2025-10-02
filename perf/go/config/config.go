@@ -911,8 +911,6 @@ type Experiments struct {
 	RemoveDefaultStatValue bool `json:"remove_default_stat_value,omitempty"`
 	// Flag to enable aggregation in skia-bridge.
 	EnableSkiaBridgeAggregation bool `json:"enable_skia_bridge_aggregation,omitempty"`
-	// Flag to keep traceparams in-memory for querying trace ids
-	InMemoryTraceParams bool `json:"in_memory_traceparams,omitempty"`
 	// Flag specifying whether metadata should be prefetched during the query.
 	PrefetchMetadata bool `json:"prefetch_metadata,omitempty"`
 	// Flag specifying whether subqueries for keys already present in a dfbuilder's PreflightQuery

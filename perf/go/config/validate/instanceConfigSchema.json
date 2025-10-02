@@ -124,9 +124,6 @@
         "enable_skia_bridge_aggregation": {
           "type": "boolean"
         },
-        "in_memory_traceparams": {
-          "type": "boolean"
-        },
         "prefetch_metadata": {
           "type": "boolean"
         },
