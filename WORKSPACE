@@ -472,10 +472,10 @@ container_pull(
     repository = "envoyproxy/envoy-alpine",
 )
 
-# Pulls the node:17-alpine container, needed by jsdoc.
+# Pulls the node alpine container, needed by npm-audit-mirror.
 container_pull(
     name = "node_alpine",
-    digest = "sha256:4e87fa2c1aa4a31edfa4092cc50428e86bf129e5bb528e2b3bbc8661e2038339",
+    digest = "sha256:1e168eaa83acc4b002f7b91bd3584f6800c84737337fe665224c963ed6b5b1c0",  # index.docker.io/node:current-alpine3.21 as of Oct 2, 2025.
     registry = "index.docker.io",
     repository = "node",
 )
