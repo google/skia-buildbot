@@ -1333,7 +1333,6 @@ export class ExploreMultiSk extends ElementSk {
       begin: this.state.begin,
       end: this.state.end,
       showZero: this.state.showZero,
-      dots: this.state.dots,
       numCommits: this.state.numCommits,
       summary: this.state.summary,
       xbaroffset: explore.state.xbaroffset,

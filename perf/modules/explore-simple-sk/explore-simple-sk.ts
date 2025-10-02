@@ -309,8 +309,6 @@ export class State {
 
   showZero: boolean = false;
 
-  dots: boolean = true; // Whether to show dots when plotting traces.
-
   numCommits: number = 250;
 
   requestType: RequestType = 1; // 0 to use begin/end, 1 to use numCommits.
@@ -733,16 +731,6 @@ export class ExploreSimpleSk extends ElementSk {
                   ?selected="${ele.zoomDirectionSwitch}"
                   @change=${(e: InputEvent) => ele.switchZoom(e.target as MdSwitch)}></md-switch>
                 Switch Zoom Direction
-              </label>
-            </li>
-            <li ?hidden=${ele._state.show_google_plot}>
-              <label>
-                <md-switch
-                  form="form"
-                  id="dots-switch"
-                  ?selected=${ele._state!.dots}
-                  @change=${() => ele.toggleDotsHandler()}></md-switch>
-                Dots on graph
               </label>
             </li>
           </ul>
@@ -2837,14 +2825,6 @@ export class ExploreSimpleSk extends ElementSk {
     return loadingMore;
   }
 
-  private toggleDotsHandler() {
-    this._state.dots = !this._state.dots;
-    this._stateHasChanged();
-    if (this.plotSimple.value) {
-      this.plotSimple.value.dots = this._state.dots;
-    }
-  }
-
   /**
    * Add traces to the display. Always called from within the
    * this._requestFrame() callback.
@@ -3663,9 +3643,6 @@ export class ExploreSimpleSk extends ElementSk {
 
     this.render();
 
-    if (this.plotSimple.value) {
-      this.plotSimple.value!.dots = this._state.dots;
-    }
     // If there is at least one query, the use the last one to repopulate the
     // query-sk dialog.
     const numQueries = this._state.queries.length;
