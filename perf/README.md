@@ -189,6 +189,48 @@ denied for resource
   1.  Change `"notifications": "anomalygroup"` to `"notifications": "none"`.
   2.  Delete the entire `issue_tracker_config` section from the file.
 
+## Adding External Dependencies
+
+This project uses Bazel to manage dependencies, with `pnpm` to handle Node.js packages.
+
+1.  **Add the Dependency to `package.json`**
+
+    Manually add the new package to the `dependencies` section of the root `package.json` file.
+
+2.  **Update the Lockfile with `pnpm`**
+
+    This project uses `pnpm` to manage the Node.js dependency tree. It is critical to use `pnpm`
+    instead of `npm` to ensure the `pnpm-lock.yaml` file is correctly updated. Bazel's rules are
+    configured to read this specific lockfile.
+
+    If you do not have `pnpm` installed, you can install it with `npm`:
+
+    ```
+    npm install -g pnpm@8
+    ```
+
+    Run from the root of the repository:
+
+    ```
+    pnpm install
+    ```
+
+    This will update `pnpm-lock.yaml` with the new dependency.
+
+3.  **Synchronize Bazel's Dependency Graph**
+
+    ```
+    bazelisk sync --only=npm
+    ```
+
+4.  **Reference the New Dependency in `BUILD.bazel`**
+
+    You can now use the new package as a dependency in your `BUILD.bazel` files.
+
+    ```bazel
+    [ "//:node_modules/package-name", ],
+    ```
+
 ## Creating a CL
 
 To create a new CL (Change List) in Gerrit, follow these steps. For more
