@@ -328,6 +328,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		ShowJsonResourceDisplay:     config.Config.DataPointConfig.ShowJsonResourceDisplay,
 		AlwaysShowCommitInfo:        config.Config.DataPointConfig.AlwaysShowCommitInfo,
 		ShowTriageLink:              config.Config.ShowTriageLink,
+		ShowBisectBtn:               config.Config.ShowBisectBtn,
 	}
 
 	var buff bytes.Buffer
