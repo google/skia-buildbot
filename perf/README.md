@@ -56,6 +56,17 @@ bazelisk test --config=mayberemote //perf/...
 Note the first time you run this it will fail and inform you of the gcloud
 simulators that need to be running in the background and how to start them.
 
+Most of the time, you will need a local spanner instance.
+To set it up, run the following make command, and export the following:
+
+```
+make run-spanner-emulator
+export PGADAPTER_HOST=localhost:5432
+export SPANNER_EMULATOR_HOST=localhost:9010
+```
+
+Those are specific for this project, and top level scripts won't start them.
+
 ### Test parameters
 
 - `--test_output=streamed`: A blaze flag forcing tests to run locally and display logs directly to your terminal as they happen.
@@ -268,6 +279,18 @@ git fetch https://skia.googlesource.com/buildbot refs/changes/96/1052696/5 \
   to the same change. So, this fetches the state of the 5th version of change 1052696.
   You can check how many patch sets you have in the
   [Gerrit UI](https://screenshot.googleplex.com/8ZhhcoqmWku8xoF.png).
+
+## VSCode extensions
+
+The following VSCode extensions might prove useful for development:
+
+- [Golang support - Go](https://marketplace.visualstudio.com/items?itemName=golang.Go)
+- [Bazel](https://marketplace.visualstudio.com/items?itemName=BazelBuild.vscode-bazel)
+- [Formatter - Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+- [lit-plugin](https://marketplace.visualstudio.com/items?itemName=runem.lit-plugin)
+
+See [top-level STYLEGUIDE.md](../STYLEGUIDE.md) for information about registering
+components so that lit-plugin sees them.
 
 # Debugging and Profiling
 

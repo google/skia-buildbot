@@ -26,6 +26,12 @@ should be run above your `modules` sub-directory.
  bazelisk run //new_element:new_element "--run_under=cd $PWD &&" -- --element-name=<element name> --app-name=<app name>
 ```
 
+## Lit support
+
+You can use the [lit-plugin](https://marketplace.visualstudio.com/items?itemName=runem.lit-plugin)
+to get some support for HTML templates. When adding a new Element,
+you should also include it in the [text](elements.d.ts) file.
+
 # Python Style Guide
 
 Python code follows the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html).
