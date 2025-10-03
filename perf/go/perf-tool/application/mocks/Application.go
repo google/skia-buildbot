@@ -142,17 +142,17 @@ func (_m *Application) DatabaseRestoreShortcuts(instanceConfig *config.InstanceC
 	return r0
 }
 
-// IngestForceReingest provides a mock function with given fields: local, instanceConfig, start, stop, dryrun
-func (_m *Application) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start string, stop string, dryrun bool) error {
-	ret := _m.Called(local, instanceConfig, start, stop, dryrun)
+// IngestForceReingest provides a mock function with given fields: local, instanceConfig, start, stop, dryrun, pathFilter
+func (_m *Application) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start string, stop string, dryrun bool, pathFilter string) error {
+	ret := _m.Called(local, instanceConfig, start, stop, dryrun, pathFilter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for IngestForceReingest")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(bool, *config.InstanceConfig, string, string, bool) error); ok {
-		r0 = rf(local, instanceConfig, start, stop, dryrun)
+	if rf, ok := ret.Get(0).(func(bool, *config.InstanceConfig, string, string, bool, string) error); ok {
+		r0 = rf(local, instanceConfig, start, stop, dryrun, pathFilter)
 	} else {
 		r0 = ret.Error(0)
 	}

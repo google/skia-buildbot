@@ -24,6 +24,7 @@ import (
 const (
 	backupToDateFlagName     = "backup_to_date"
 	beginCommitFlagName      = "begin"
+	pathFilterFlagName       = "path_filter"
 	configFilenameFlagName   = "config_filename"
 	connectionStringFlagName = "connection_string"
 	dryrunFlagName           = "dryrun"
@@ -163,6 +164,12 @@ var verboseFlag = &cli.BoolFlag{
 	Name:  verboseFlagName,
 	Value: true,
 	Usage: "Verbose output.",
+}
+
+var pathFilterFlag = &cli.StringFlag{
+	Name:  pathFilterFlagName,
+	Value: "",
+	Usage: "Optional glob pattern to filter ingestion files by path. The pattern is relative to the hourly directories being processed (e.g., 'ingest/YYYY/MM/DD/HH/'). Use '*' to match within a single directory level and '**' to match recursively across directory levels. For example, to match files under a specific test suite, you might use 'MyTestSuite/**'.",
 }
 
 // instanceConfigFromFlags returns an InstanceConfig based
@@ -316,6 +323,7 @@ func actualMain(app application.Application) {
 							startTimeFlag,
 							stopTimeFlag,
 							dryrunFlag,
+							pathFilterFlag,
 						},
 						Action: func(c *cli.Context) error {
 							instanceConfig, err := instanceConfigFromFlags(c)
@@ -328,7 +336,8 @@ func actualMain(app application.Application) {
 								instanceConfig,
 								c.String(startTimeFlagName),
 								c.String(stopTimeFlagName),
-								c.Bool(dryrunFlagName))
+								c.Bool(dryrunFlagName),
+								c.String(pathFilterFlagName))
 						},
 					},
 					{

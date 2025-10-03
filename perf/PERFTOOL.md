@@ -113,6 +113,13 @@ Writes a JSON files with the traces that match --query for the given range of co
 
 **--stop**="": Ingest up to this time, of the form: 2006-01-02. Default to now.
 
+**--path_filter**="": Optional glob pattern to filter ingestion files by path.
+The pattern is relative to the hourly directories being processed
+(e.g., 'ingest/YYYY/MM/DD/HH/'). Use '\*' to match within a single
+directory level and '**' to match recursively across directory levels.
+For example, to match files under a specific test suite, you might use
+'MyTestSuite/**'.
+
 ### validate
 
 **--in**="": The input filename.

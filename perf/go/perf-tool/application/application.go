@@ -10,13 +10,13 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"path/filepath"
 	"sort"
 	"time"
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
@@ -47,7 +48,7 @@ type Application interface {
 	DatabaseRestoreRegressions(instanceConfig *config.InstanceConfig, inputFile string) error
 	TracesList(store tracestore.TraceStore, queryString string, tileNumber types.TileNumber) error
 	TracesExport(store tracestore.TraceStore, queryString string, begin, end types.CommitNumber, outputFile string) error
-	IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool) error
+	IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool, pathFilter string) error
 	IngestValidate(inputFile string, verbose bool) error
 }
 
@@ -670,8 +671,9 @@ func (app) TracesExport(store tracestore.TraceStore, queryString string, begin, 
 }
 
 // IngestForceReingest forces data to be reingested over the given time range.
-func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool) error {
+func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool, pathFilter string) error {
 	ctx := context.Background()
+	fileCount := 0
 	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadOnly)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -712,33 +714,66 @@ func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig
 		}
 
 		dirs := fileutil.GetHourlyDirs(u.Path[1:], startTime, stopTime)
+
 		for _, dir := range dirs {
 			sklog.Infof("Directory: %q", dir)
-			err := gcs.AllFilesInDir(gcsClient, u.Host, dir, func(item *storage.ObjectAttrs) {
-				// The PubSub event data is a JSON serialized storage.ObjectAttrs object.
-				// See https://cloud.google.com/storage/docs/pubsub-notifications#payload
+			var it *storage.ObjectIterator
+
+			if pathFilter != "" {
+				// Construct the full glob pattern including the directory prefix
+				fullGlob := filepath.Join(dir, pathFilter)
+				it = gcsClient.Bucket(u.Host).Objects(ctx, &storage.Query{
+					MatchGlob: fullGlob,
+				})
+				sklog.Infof("Applying GCS MatchGlob: %s", fullGlob)
+			} else {
+				it = gcsClient.Bucket(u.Host).Objects(ctx, &storage.Query{
+					Prefix: dir,
+				})
+			}
+
+			for {
+				attrs, err := it.Next()
+				if err == iterator.Done {
+					break
+				}
+				if err != nil {
+					return skerr.Wrap(err)
+				}
+
+				// We get ObjectAttrs directly from the iterator
+				item := attrs
 				sklog.Infof("File: %q", item.Name)
+				fileCount++
+
 				b, err := json.Marshal(storage.ObjectAttrs{
 					Name:   item.Name,
 					Bucket: u.Host,
 				})
+
 				if err != nil {
 					sklog.Errorf("Failed to serialize event: %s", err)
-					return
+					continue // Continue to the next file
 				}
+
 				if dryrun {
 					fmt.Println(item.Name, item.Bucket)
-					return
+					continue // Continue to the next file
 				}
+
 				topic.Publish(ctx, &pubsub.Message{
 					Data: b,
 				})
-			})
-			if err != nil {
-				return skerr.Wrap(err)
 			}
 		}
 	}
+
+	if dryrun {
+		fmt.Printf("\nDry run: Would process %d files.\n", fileCount)
+	} else {
+		fmt.Printf("\nProcessed %d files.\n", fileCount)
+	}
+
 	return nil
 }
 
