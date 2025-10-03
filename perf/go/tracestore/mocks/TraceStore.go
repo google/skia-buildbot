@@ -190,36 +190,6 @@ func (_m *TraceStore) GetSourceIds(ctx context.Context, commitNumbers []types.Co
 	return r0, r1
 }
 
-// GetTraceIDsBySource provides a mock function with given fields: ctx, sourceFilename, tileNumber
-func (_m *TraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename string, tileNumber types.TileNumber) ([]string, error) {
-	ret := _m.Called(ctx, sourceFilename, tileNumber)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetTraceIDsBySource")
-	}
-
-	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, types.TileNumber) ([]string, error)); ok {
-		return rf(ctx, sourceFilename, tileNumber)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, types.TileNumber) []string); ok {
-		r0 = rf(ctx, sourceFilename, tileNumber)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, types.TileNumber) error); ok {
-		r1 = rf(ctx, sourceFilename, tileNumber)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // OffsetFromCommitNumber provides a mock function with given fields: commitNumber
 func (_m *TraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) int32 {
 	ret := _m.Called(commitNumber)
@@ -451,34 +421,6 @@ func (_m *TraceStore) TileSize() int32 {
 	}
 
 	return r0
-}
-
-// TraceCount provides a mock function with given fields: ctx, tileNumber
-func (_m *TraceStore) TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
-	ret := _m.Called(ctx, tileNumber)
-
-	if len(ret) == 0 {
-		panic("no return value specified for TraceCount")
-	}
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber) (int64, error)); ok {
-		return rf(ctx, tileNumber)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber) int64); ok {
-		r0 = rf(ctx, tileNumber)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber) error); ok {
-		r1 = rf(ctx, tileNumber)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // WriteTraces provides a mock function with given fields: ctx, commitNumber, params, values, paramset, source, timestamp

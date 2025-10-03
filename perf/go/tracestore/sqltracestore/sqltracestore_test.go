@@ -211,66 +211,6 @@ func TestReadTracesForCommitRange_TwoCommits_Success(t *testing.T) {
 	}, ts)
 }
 
-func TestRestrictByCounting_EmptyPlan_ReturnsEmptyRestrictClause(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
-
-	const emptyTileNumber = types.TileNumber(1)
-	clause, key, planDisposition := s.restrictByCounting(ctx, emptyTileNumber, paramtools.NewParamSet())
-	require.Empty(t, key)
-	require.Empty(t, clause)
-	require.Equal(t, runnable, planDisposition)
-}
-
-func TestRestrictByCounting_OneKeyInPlan_ReturnsEmptyRestrictClause(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
-
-	const emptyTileNumber = types.TileNumber(1)
-	clause, key, planDisposition := s.restrictByCounting(ctx, emptyTileNumber, paramtools.ParamSet{"arch": []string{"x86"}})
-	require.Empty(t, key)
-	require.Empty(t, clause)
-	require.Equal(t, runnable, planDisposition)
-}
-
-func TestRestrictByCounting_TwoKeysInPlan_ReturnsNonEmptyRestrictClause(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
-
-	const emptyTileNumber = types.TileNumber(1)
-
-	plan := paramtools.ParamSet{
-		"config": []string{"565"}, // Matches one trace.
-		"arch":   []string{"x86"}, // Matches two traces.
-	}
-
-	// Should return 'config' as the key with the least matches.
-	clause, key, planDisposition := s.restrictByCounting(ctx, emptyTileNumber, plan)
-	require.Equal(t, "config", key)
-	expectedClause := `
-    AND trace_ID IN
-    (
-            '\x277262a9236d571883d47dab102070bc'
-    )`
-
-	require.Equal(t, expectedClause, clause)
-	require.Equal(t, runnable, planDisposition)
-}
-
-func TestRestrictByCounting_TwoKeysInPlanButOneKeyDoesNotMatchAnything_ReturnsSkippableDisposition(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
-
-	const emptyTileNumber = types.TileNumber(1)
-
-	plan := paramtools.ParamSet{
-		"unknownKey": []string{"blah-blah-blah"}, // Matches one trace.
-		"arch":       []string{"x86"},            // Matches two traces.
-	}
-
-	// Should return 'config' as the key with the least matches.
-	clause, key, planDisposition := s.restrictByCounting(ctx, emptyTileNumber, plan)
-	require.Equal(t, "", key)
-	require.Equal(t, "", clause)
-	require.Equal(t, skippable, planDisposition)
-}
-
 func TestQueryTracesIDOnly_EmptyQueryReturnsError(t *testing.T) {
 	ctx, s := commonTestSetup(t, true)
 
@@ -402,22 +342,6 @@ func TestQueryTraces_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
 	assert.NoError(t, err)
 	assertCommitNumbersMatch(t, commits, []types.CommitNumber{16, 17, 18, 19, 20, 21, 22, 23})
 	assert.Empty(t, ts)
-}
-
-func TestTraceCount(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
-
-	count, err := s.TraceCount(ctx, 0)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(2), count)
-
-	count, err = s.TraceCount(ctx, 1)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(2), count)
-
-	count, err = s.TraceCount(ctx, 2)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(0), count)
 }
 
 func TestParamSetForTile(t *testing.T) {
@@ -673,25 +597,6 @@ func TestGetLsatNSources_NoMatchesForTraceID_ReturnsEmptySlice(t *testing.T) {
 	require.NoError(t, err)
 	expected := []tracestore.Source{}
 	require.Equal(t, expected, sources)
-}
-
-func TestGetTraceIDsBySource_SourceInSecondTile_Success(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
-
-	secondTile := types.TileNumber(1)
-	traceIDs, err := s.GetTraceIDsBySource(ctx, file3, secondTile)
-	require.NoError(t, err)
-	expected := []string{",arch=x86,config=565,", ",arch=x86,config=8888,"}
-	require.ElementsMatch(t, expected, traceIDs)
-}
-
-func TestGetTraceIDsBySource_LookForSourceThatDoesNotExist_ReturnsEmptySlice(t *testing.T) {
-	ctx, s := commonTestSetup(t, true)
-
-	secondTile := types.TileNumber(1)
-	traceIDs, err := s.GetTraceIDsBySource(ctx, "gs://perf-bucket/this-file-does-not-exist.json", secondTile)
-	require.NoError(t, err)
-	require.Empty(t, traceIDs)
 }
 
 func TestWriteTraces_InsertDifferentValueAndFile_OverwriteExistingTraceValues(t *testing.T) {

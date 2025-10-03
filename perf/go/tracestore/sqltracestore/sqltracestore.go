@@ -145,7 +145,6 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 	"text/template"
@@ -187,18 +186,6 @@ const (
 
 	// The number of parallel writes when writing traces data.
 	writeTracesParallelPoolSize = 5
-
-	// queryTracesChunkSize is the number of traces we try to read trace values for
-	// at a time.
-	queryTracesChunkSize = 10000
-
-	// queryTraceParamsChunkSize is the number of traces we try to convert into
-	// params in a single request.
-	queryTraceParamsChunkSize = 2000
-
-	// Number of parallel requests sent to the database when servicing a single
-	// query. 30 matches the max number of cores we use on a clustering instance.
-	poolSize = 30
 
 	queryTracesIDOnlyByIndexChannelSize = 10000
 
@@ -274,14 +261,8 @@ const (
 	paramSetForTile
 	getSource
 	getSources
-	traceCount
-	queryTraceIDs
-	queryTraceIDsByKeyValue
 	readTraces
 	getLastNSources
-	getTraceIDsBySource
-	countMatchingTraces
-	restrictClause
 	deleteCommit
 	countCommitInCommitNumberRange
 	getCommitsFromCommitNumberRange
@@ -315,39 +296,6 @@ var templates = map[statement]string{
          SET trace_id=EXCLUDED.trace_id, commit_number=EXCLUDED.commit_number, val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id,
             benchmark=EXCLUDED.benchmark, bot=EXCLUDED.bot, test=EXCLUDED.test, subtest_1=EXCLUDED.subtest_1, subtest_2=EXCLUDED.subtest_2, subtest_3=EXCLUDED.subtest_3
         `,
-	queryTraceIDs: `
-        {{ $key := .Key }}
-        SELECT
-            trace_id
-        FROM
-            Postings
-        WHERE
-            tile_number = {{ .TileNumber }}
-            AND key_value IN
-            (
-                {{ range $index, $value :=  .Values -}}
-                    {{ if $index }},{{end}}
-                    '{{ $key }}={{ $value }}'
-                {{ end }}
-            )
-            {{ .RestrictClause }}
-		ORDER BY trace_id`,
-	queryTraceIDsByKeyValue: `
-		{{ $key := .Key }}
-		SELECT
-			trace_id
-		FROM
-			Postings
-		WHERE
-			tile_number = {{ .TileNumber }}
-			AND key_value IN
-			(
-				{{ range $index, $value :=  .Values -}}
-					{{ if $index }},{{end}}
-					'{{ $key }}={{ $value }}'
-				{{ end }}
-			)
-		ORDER BY trace_id`,
 	readTraces: `
         SELECT
             trace_id,
@@ -411,32 +359,6 @@ var templates = map[statement]string{
             ParamSets
         WHERE
             tile_number = {{ .TileNumber }}`,
-	countMatchingTraces: `
-        {{ $key := .Key }}
-        SELECT
-            count(*)
-        FROM (
-            SELECT
-               *
-            FROM
-               Postings
-            WHERE
-               tile_number = {{ .TileNumber }}
-               AND key_value IN
-               (
-                  {{ range $index, $value :=  .Values -}}
-                     {{ if $index }},{{end}}
-                     '{{ $key }}={{ $value }}'
-                  {{ end }}
-               )
-            LIMIT {{ .CountOptimizationThreshold }}
-        ) AS temp`,
-	restrictClause: `
-    AND trace_ID IN
-    ({{ range $index, $value := .Values -}}
-            {{ if $index }},{{end}}
-            '{{ $value }}'
-    {{ end }})`,
 }
 
 // replaceTraceValuesContext is the context for the replaceTraceValues template.
@@ -478,29 +400,6 @@ type replaceTraceNamesContext struct {
 	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
 	// the database will use to know the string is in hex.
 	MD5HexTraceID traceIDForSQL
-}
-
-// queryPlanContext is used in queryTracesContext.
-type queryPlanContext struct {
-	Key    string
-	Values []string
-}
-
-// queryTraceIDsContext is the context for the queryTraceIDsContext template.
-type queryTraceIDsContext struct {
-	TileNumber     types.TileNumber
-	Key            string
-	Values         []string
-	AsOf           string
-	RestrictClause string
-}
-
-// queryTraceIDsByKeyValueContext is the context for the queryTraceIDsByKeyValueContext template.
-type queryTraceIDsByKeyValueContext struct {
-	TileNumber types.TileNumber
-	Key        string
-	Values     []string
-	AsOf       string
 }
 
 // readTracesContext is the context for the readTraces template.
@@ -566,21 +465,6 @@ type paramSetForTileContext struct {
 	AsOf       string
 }
 
-// countMatchingTraces is the context for the countMatchingTraces template.
-type countMatchingTracesContext struct {
-	TileNumber                 types.TileNumber
-	Key                        string
-	Values                     []string
-	AsOf                       string
-	CountOptimizationThreshold int64
-}
-
-// restrictClauseContext is the context for the restrictClause template.
-type restrictClauseContext struct {
-	Key    string
-	Values []traceIDForSQL
-}
-
 var statements = map[statement]string{
 	insertIntoSourceFiles: `
         INSERT INTO
@@ -605,13 +489,6 @@ var statements = map[statement]string{
             tile_number DESC
         LIMIT
             1;`,
-	traceCount: `
-        SELECT
-            COUNT(DISTINCT trace_id)
-        FROM
-            Postings
-        WHERE
-          tile_number = $1`,
 	getLastNSources: `
         SELECT
             SourceFiles.source_file, TraceValues.commit_number
@@ -627,25 +504,6 @@ var statements = map[statement]string{
             TraceValues.commit_number DESC
         LIMIT
             $2`,
-	getTraceIDsBySource: `
-        SELECT
-            Postings.key_value, Postings.trace_id
-        FROM
-            SourceFiles
-            INNER JOIN
-                TraceValues
-            ON
-                TraceValues.source_file_id = SourceFiles.source_file_id
-            INNER JOIN
-                Postings
-            ON
-                TraceValues.trace_id = Postings.trace_id
-        WHERE
-            SourceFiles.source_file = $1
-        AND
-            Postings.tile_number= $2
-        ORDER BY
-            Postings.trace_id`,
 	countCommitInCommitNumberRange: `
 		SELECT
 			count(*)
@@ -709,7 +567,6 @@ type SQLTraceStore struct {
 	buildTracesContextsMetric              metrics2.Float64SummaryMetric
 	cacheMissMetric                        metrics2.Counter
 	orderedParamSetsCacheMissMetric        metrics2.Counter
-	queryUsesRestrictClause                metrics2.Counter
 	queryRestrictionMinKeyInPlan           metrics2.Float64SummaryMetric
 	orderedParamSetCacheLen                metrics2.Int64Metric
 	commitSliceFromCommitNumberRangeCalled metrics2.Counter
@@ -764,7 +621,6 @@ func New(db pool.Pool, datastoreConfig config.DataStoreConfig, traceParamStore t
 		writeTracesMetricSQL:                   metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces_sql"),
 		buildTracesContextsMetric:              metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_build_traces_context"),
 		cacheMissMetric:                        metrics2.GetCounter("perfserver_sqltracestore_cache_miss"),
-		queryUsesRestrictClause:                metrics2.GetCounter("perfserver_sqltracestore_restrict_clause_used"),
 		orderedParamSetsCacheMissMetric:        metrics2.GetCounter("perfserver_sqltracestore_ordered_paramsets_cache_miss"),
 		queryRestrictionMinKeyInPlan:           metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_min_key_in_plan"),
 		orderedParamSetCacheLen:                metrics2.GetInt64Metric("perfserver_sqltracestore_ordered_paramset_cache_len"),
@@ -1000,71 +856,6 @@ func (s *SQLTraceStore) GetLastNSources(ctx context.Context, traceID string, n i
 	return ret, nil
 }
 
-// GetTraceIDsBySource implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename string, tileNumber types.TileNumber) ([]string, error) {
-	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetTraceIDsBySource")
-	defer span.End()
-
-	rows, err := s.db.Query(ctx, s.statements[getTraceIDsBySource], sourceFilename, tileNumber)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed for sourceFilename=%q and tileNumber=%d", sourceFilename, tileNumber)
-	}
-
-	// We queried the Postings table, build up each traceid from all the
-	// key=value pairs returned.
-	var currentTraceIDAsBytes []byte
-	p := paramtools.Params{}
-	ret := []string{}
-	for rows.Next() {
-		var keyValue string
-		var traceIDAsBytes []byte
-		if err := rows.Scan(&keyValue, &traceIDAsBytes); err != nil {
-			return nil, skerr.Wrapf(err, "Failed scanning for sourceFilename=%q and tileNumber=%d", sourceFilename, tileNumber)
-		}
-		// If we hit a new trace_id then we have a complete traceID.
-		if !bytes.Equal(currentTraceIDAsBytes, traceIDAsBytes) {
-			if currentTraceIDAsBytes == nil {
-				// This is the first time going through this loop.
-				currentTraceIDAsBytes = make([]byte, len(traceIDAsBytes))
-			} else {
-				// Since traceIDAsBytes changed we are done building up the
-				// params for the traceID, so convert the params into a string.
-				traceID, err := query.MakeKey(p)
-				if err != nil {
-					return nil, skerr.Wrap(err)
-				}
-				ret = append(ret, traceID)
-			}
-			p = paramtools.Params{}
-			copy(currentTraceIDAsBytes, traceIDAsBytes)
-		}
-
-		// Add to the current Params.
-		parts := strings.SplitN(keyValue, "=", 2)
-		if len(parts) != 2 {
-			sklog.Warningf("Found invalid key=value pair in Postings: %q", keyValue)
-			continue
-		}
-		p[parts[0]] = parts[1]
-
-	}
-	if err := rows.Err(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	// Make sure to get the last trace id.
-	if currentTraceIDAsBytes != nil {
-		traceID, err := query.MakeKey(p)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-
-		ret = append(ret, traceID)
-	}
-
-	return ret, nil
-}
-
 // countCommitInCommitNumberRange counts the number of commits in a given commit number range.
 func (s *SQLTraceStore) countCommitInCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) (int, error) {
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.countCommitInCommitNumberRange")
@@ -1138,192 +929,6 @@ func (s *SQLTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNu
 
 	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
 	return s.readTracesByChannelForCommitRange(ctx, traceNames, beginCommit, endCommit)
-}
-
-// planCount is used in restrictByCounting to find how many traces match each
-// part of the query plan.
-type planCount struct {
-	key    string
-	values []string
-	count  int64
-}
-
-// planCountSlice is a slice of planCounts, that is sortable, since we want to
-// find the key in the plan with the smallest number of matches.
-type planCountSlice []*planCount
-
-func (p planCountSlice) Len() int { return len(p) }
-func (p planCountSlice) Less(i, j int) bool {
-	if p[i].count == p[j].count {
-		return strings.Compare(p[i].key, p[j].key) == -1
-	}
-	return p[i].count < p[j].count
-}
-func (p planCountSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
-
-// planDisposition encodes the disposition of the plan, i.e. is it still worth
-// running, or can it be skipped.
-type planDisposition int
-
-const (
-	skippable planDisposition = iota
-	runnable
-)
-
-// restrictByCounting analyzes the query plan buy running each part of the plan
-// under a count(*) query, and then returing the key of the part of the query
-// with the smallest number of matches.
-//
-// An AND clause to be appended to a WHERE clause is returned that contains all
-// the IDs of the part of the plan with the smallest number of matches, along
-// with the name of the key that had the smallest number of matches, and the
-// disposition of the plan.
-//
-// If the count queries take too long, or all the keys return too many matches,
-// then both the returned clause and key name will be the empty string.
-func (s *SQLTraceStore) restrictByCounting(ctx context.Context, tileNumber types.TileNumber, plan paramtools.ParamSet) (string, string, planDisposition) {
-	ctx, span := trace.StartSpan(ctx, "sqltracestore.restrictByCounting")
-	defer span.End()
-
-	if len(plan) < 2 {
-		return "", "", runnable
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, countingQueryDuration)
-	defer cancel()
-
-	// mutex protects planCounts and planDisposition.
-	var mutex sync.Mutex
-	// TODO(jcgregorio) To speed this up even more we should have an LRU cache
-	// with a timeout that caches (key,values,tileNumber) -> count. The value
-	// shouldn't change much and we don't need an exact count, only an
-	// approximation.
-	planCounts := make([]*planCount, 0, len(plan))
-	planDisposition := runnable
-
-	// For each key in the plan run a separate Go routine that counts how many
-	// traces in the tile match that query, storing the results for each key in
-	// planCounts.
-	var wg sync.WaitGroup
-	for key, values := range plan {
-		wg.Add(1)
-		go func(key string, values []string) {
-			defer wg.Done()
-			context := countMatchingTracesContext{
-				TileNumber:                 tileNumber,
-				Key:                        key,
-				Values:                     values,
-				AsOf:                       "",
-				CountOptimizationThreshold: countOptimizationThreshold,
-			}
-
-			// Expand the template for the SQL.
-			var b bytes.Buffer
-			if err := s.unpreparedStatements[countMatchingTraces].Execute(&b, context); err != nil {
-				sklog.Warningf("failed to expand countMatchingTraces template: %s", err)
-				return
-			}
-			sql := b.String()
-			row := s.db.QueryRow(ctx, sql)
-			var count int64
-			if err := row.Scan(&count); err != nil {
-				sklog.Warningf("failed to retrieve count in countMatchingTraces: %s", err)
-				return
-			}
-			if count == 0 {
-				// There are no traces that match this part of the query, so we
-				// know no traces will match the entire query, so set our
-				// disposition to 'skippable' so the full query is never run.
-				mutex.Lock()
-				defer mutex.Unlock()
-				planDisposition = skippable
-				return
-			}
-			mutex.Lock()
-			defer mutex.Unlock()
-			planCounts = append(planCounts, &planCount{
-				key:    key,
-				values: values,
-				count:  count,
-			})
-		}(key, values)
-	}
-	wg.Wait()
-	if planDisposition == skippable {
-		return "", "", skippable
-	}
-	if len(planCounts) == 0 {
-		return "", "", runnable
-	}
-
-	sort.Sort(planCountSlice(planCounts))
-
-	// optimal is the key with the smallest number of matches to the plan.
-	optimal := planCounts[0]
-
-	s.queryRestrictionMinKeyInPlan.Observe(float64(optimal.count))
-	span.AddAttributes(trace.Float64Attribute("minKeyInPlan", float64(optimal.count)))
-
-	// We want to avoid create too large of an "AND IN ()" clause, so if there
-	// are too many matches for the optimal key then just skip the restrict
-	// clause completely.
-	if optimal.count >= countOptimizationThreshold {
-		return "", "", runnable
-	}
-
-	// Now that we know the key in the plan with the smallest number of matching
-	// trace_ids, we can go back to the database and query for all those
-	// matching trace_ids.
-	context := queryTraceIDsByKeyValueContext{
-		TileNumber: tileNumber,
-		Key:        optimal.key,
-		Values:     optimal.values,
-		AsOf:       "",
-	}
-
-	// Expand the template for the SQL.
-	var b bytes.Buffer
-	if err := s.unpreparedStatements[queryTraceIDsByKeyValue].Execute(&b, context); err != nil {
-		sklog.Warningf("Failed to expand queryTraceIDsByKeyValue template: %s", err)
-		return "", "", runnable
-
-	}
-	sql := b.String()
-	rows, err := s.db.Query(ctx, sql)
-	if err != nil {
-		return "", "", runnable
-	}
-
-	ids := make([]traceIDForSQL, 0, optimal.count)
-	for rows.Next() {
-		var traceIDAsBytes []byte
-		if err := rows.Scan(&traceIDAsBytes); err != nil {
-			sklog.Errorf("Failed to scan traceIDAsBytes: %s", skerr.Wrap(err))
-			return "", "", runnable
-		}
-		if err := rows.Err(); err != nil {
-			if err == pgx.ErrNoRows {
-				return "", "", runnable
-			}
-			sklog.Errorf("Failed while reading traceIDAsBytes: %s", skerr.Wrap(err))
-			return "", "", runnable
-		}
-		ids = append(ids, traceIDForSQLFromTraceIDAsBytes(traceIDAsBytes))
-	}
-
-	// Now format the matching trace_ids for the optimal key into an "AND
-	// trace_id IN (...)" clause to speed up all the other queries in the plan.
-	b.Reset()
-	err = s.unpreparedStatements[restrictClause].Execute(&b, restrictClauseContext{
-		Key:    optimal.key,
-		Values: ids,
-	})
-	if err != nil {
-		sklog.Errorf("Failed to expand the restrictClause template: %s", err)
-		return "", "", runnable
-	}
-	s.queryUsesRestrictClause.Inc(1)
-	return b.String(), optimal.key, runnable
 }
 
 // QueryTracesIDOnly implements the tracestore.TraceStore interface.
@@ -1555,17 +1160,6 @@ func (s *SQLTraceStore) TileNumber(commitNumber types.CommitNumber) types.TileNu
 // TileSize implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) TileSize() int32 {
 	return s.tileSize
-}
-
-// TraceCount implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
-	ctx, span := trace.StartSpan(ctx, "sqltracestore.TraceCount")
-	defer span.End()
-
-	var ret int64
-	err := s.db.QueryRow(ctx, s.statements[traceCount], tileNumber).Scan(&ret)
-	span.AddAttributes(trace.Int64Attribute("count", ret))
-	return ret, skerr.Wrap(err)
 }
 
 // updateSourceFile writes the filename into the SourceFiles table and returns

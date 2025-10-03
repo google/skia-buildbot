@@ -45,10 +45,6 @@ type TraceStore interface {
 	// n commits to the given trace.
 	GetLastNSources(ctx context.Context, traceID string, n int) ([]Source, error)
 
-	// GetTraceIDsBySource returns all the traceIDs that came from a given
-	// ingested file.
-	GetTraceIDsBySource(ctx context.Context, sourceFilename string, tileNumber types.TileNumber) ([]string, error)
-
 	// OffsetFromCommitNumber returns the offset from within a Tile that a commit sits.
 	OffsetFromCommitNumber(commitNumber types.CommitNumber) int32
 
@@ -73,9 +69,6 @@ type TraceStore interface {
 
 	// TileSize returns the size of a Tile.
 	TileSize() int32
-
-	// TraceCount returns the number of traces in a tile.
-	TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error)
 
 	// WriteTraces writes the given values into the store.
 	//
