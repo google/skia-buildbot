@@ -558,18 +558,23 @@ export class ExploreMultiSk extends ElementSk {
 
       // Only proceed with updates if the element is affected.
       if (hasQueryToRemove || (elem.state.queries?.length && query !== undefined)) {
-        elem.state.doNotQueryData = true;
         const traceset = elem.getTraceset() as TraceSet;
-        elem.removeKeys(tracesToRemove, true);
+        elem.state.doNotQueryData = true;
         if (elem.state.queries.length > 0 && queriesToRemove.length > 0) {
+          const queryCount = elem.state.queries.length;
           // Remove any queries that match queriesToRemove.
           elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
+          // Only removeKeys and update Shortcut if queries were actually removed.
+          if (elem.state.queries.length !== queryCount) {
+            elem.removeKeys(tracesToRemove, true);
+          }
         }
         // When one query exists, check if param/value matches and replace with new query.
         if (elem.state.queries.length === 1) {
           values.forEach((v) => {
             if (elem.state.queries[0].includes(`${param}=${v}`)) {
               elem.state.queries = [Array.isArray(query) ? query[0] : query];
+              elem.removeKeys(tracesToRemove, true);
             }
           });
         }
