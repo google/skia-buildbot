@@ -122,6 +122,20 @@ func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *com
 		return nil, skerr.Wrapf(err, "no target found for (%s, %s)", bot, benchmark)
 	}
 
+	var patch []*buildbucketpb.GerritChange
+	if commit.Patch != nil {
+		// Our inputs put patch info inside CombinedCommit, but BuildChrome
+		// workflow requires it in a separate field. Also, the objects used to
+		// represent a patch are similar but slightly different. So some data
+		// movement is needed here.
+		patch = append(patch, &buildbucketpb.GerritChange{
+			Host:     commit.Patch.Host,
+			Project:  commit.Patch.Project,
+			Change:   commit.Patch.Change,
+			Patchset: commit.Patch.Patchset,
+		})
+	}
+
 	var b *workflows.Build
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.BuildChrome, workflows.BuildParams{
 		WorkflowID: jobID,
@@ -129,6 +143,7 @@ func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *com
 		Target:     t,
 		Commit:     commit,
 		Project:    "chromium",
+		Patch:      patch,
 	}).Get(ctx, &b); err != nil {
 		return nil, skerr.Wrap(err)
 	}

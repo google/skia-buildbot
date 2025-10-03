@@ -13,6 +13,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/backends"
@@ -36,6 +37,10 @@ var (
 	commit                    = flag.String("commit", "611b5a084486cd6d99a0dad63f34e320a2ebc2b3", "Git commit hash to build Chrome.")
 	startGitHash              = flag.String("start-git-hash", "c73e059a2ac54302b2951e4b4f1f7d94d92a707a", "Start git commit hash for bisect.")
 	endGitHash                = flag.String("end-git-hash", "979c9324d3c6474c15335e676ac7123312d5df82", "End git commit hash for bisect.")
+	patchHost                 = flag.String("patch-host", "chromium-review.googlesource.com", "Gerrit host of the patch")
+	patchProject              = flag.String("patch-project", "chromium/src", "Gerrit project of the patch")
+	patchId                   = flag.Int("patch-id", 0, "Gerrit patch ID (usually a 7-digit integer)")
+	patchSet                  = flag.Int("patch-set", 0, "Gerrit patch set (usually a very small integer)")
 	configuration             = flag.String("configuration", "mac-m2-pro-perf", "Bot configuration to use.")
 	benchmark                 = flag.String("benchmark", "speedometer3.crossbench", "Benchmark to run.")
 	story                     = flag.String("story", "default", "Story to run.")
@@ -217,6 +222,18 @@ func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 	if *extraArg != "" {
 		p.ExtraArgs = []string{*extraArg}
 	}
+	if *patchId != 0 {
+		if *patchSet == 0 {
+			return nil, errors.New("--patch-set is required when --patch-id is used")
+		}
+		p.CombinedCommit.Patch = &proto.GerritChange{
+			Host:     *patchHost,
+			Project:  *patchProject,
+			Change:   int64(*patchId),
+			Patchset: int64(*patchSet),
+		}
+	}
+
 	var cr *internal.CommitRun
 	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.SingleCommitRunner, p)
 	if err != nil {
