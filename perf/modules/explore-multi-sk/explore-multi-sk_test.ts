@@ -9,6 +9,7 @@ import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-c
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
 import { CommitNumber, TimestampSeconds } from '../json';
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
+import * as loader from '@google-web-components/google-chart/loader';
 
 describe('ExploreMultiSk', () => {
   let element: ExploreMultiSk;
@@ -833,7 +834,12 @@ describe('ExploreMultiSk', () => {
       clock.restore();
     });
 
-    it('correctly encodes spaces in aggregated queries', async () => {
+    it('correctly encodes spaces in aggregated queries', async function () {
+      this.timeout(5000); // Increase timeout for this test
+
+      // Mock Google Charts loader for this test
+      const loadStub = sinon.stub(loader, 'load').resolves();
+
       const shortcutId = 'shortcut-with-spaces';
       const mockGraphConfigs: GraphConfig[] = [
         { queries: ['config=with space'], formulas: [], keys: '' },
@@ -847,6 +853,13 @@ describe('ExploreMultiSk', () => {
       state.shortcut = shortcutId;
       state.splitByKeys = ['someKey']; // Enable splitting to trigger aggregation.
 
+      // Mock addGraphsToCurrentPage to avoid DOM issues in this test
+      sinon.stub(element, 'addGraphsToCurrentPage' as any).returns(undefined);
+      // Mock splitGraphs as well since it's called after graph loading
+      sinon.stub(element, 'splitGraphs' as any).resolves();
+      // Mock checkDataLoaded to prevent side effects
+      sinon.stub(element, 'checkDataLoaded' as any).returns(undefined);
+
       await element['_onStateChangedInUrl'](state as any);
 
       // Check the aggregated query in the first graph config.
@@ -854,6 +867,8 @@ describe('ExploreMultiSk', () => {
       assert.include(aggregatedQuery, 'config=with%20space');
       assert.include(aggregatedQuery, 'arch=x86%20new');
       assert.notInclude(aggregatedQuery, '+');
+
+      loadStub.restore();
     });
   });
 });

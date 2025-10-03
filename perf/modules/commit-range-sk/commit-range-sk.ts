@@ -150,7 +150,6 @@ export class CommitRangeSk extends ElementSk {
         if (url.includes('{end}')) {
           url = url.replace('{end}', this.hashes[1]);
         }
-
         if (isRange) {
           // Handle range URLs (Googlesource)
           if (url.includes('{begin}')) {

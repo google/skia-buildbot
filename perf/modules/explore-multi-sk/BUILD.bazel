@@ -58,6 +58,7 @@ karma_test(
     src = "explore-multi-sk_test.ts",
     deps = [
         ":explore-multi-sk",
+        "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/chai",
         "//:node_modules/@types/sinon",
         "//:node_modules/chai",

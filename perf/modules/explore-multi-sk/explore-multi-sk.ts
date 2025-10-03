@@ -323,8 +323,6 @@ export class ExploreMultiSk extends ElementSk {
         }
       }
     }
-    this._dataLoading = false;
-    this.testPicker?.setReadOnly(false);
   };
 
   // Event listener for when the Test Picker plot button is clicked.
@@ -513,6 +511,10 @@ export class ExploreMultiSk extends ElementSk {
     }
     this._dataLoading = true;
     this.testPicker?.setReadOnly(true);
+
+    // Yield to the browser to update the UI
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     const traceSet = this.getCompleteTraceset();
     const tracesToRemove: string[] = [];
     const queriesToRemove: string[] = [];
@@ -542,86 +544,93 @@ export class ExploreMultiSk extends ElementSk {
 
     if (Object.keys(traceSet).length === 0) {
       this.emptyCurrentPage();
+      await this.checkDataLoaded(); // Ensure readonly is reset
       return;
     }
 
     // Remove the traces from the current page explore elements.
     const elemsToRemove: ExploreSimpleSk[] = [];
     const updatePromises = this.exploreElements.map((elem) => {
-      // No query and no existing queries, so nothing to do.
-      if (!elem.state.queries?.length && query === undefined) {
-        return Promise.resolve();
-      }
+      const hasQueryToRemove =
+        elem.state.queries && queriesToRemove.some((qr) => elem.state.queries.includes(qr));
 
-      elem.state.doNotQueryData = true;
-      const traceset = elem.getTraceset() as TraceSet;
-      elem.removeKeys(tracesToRemove, true);
-      if (elem.state.queries.length > 0 && queriesToRemove.length > 0) {
-        // Remove any queries that match queriesToRemove.
-        elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
-      }
-      // When one query exists, check if param/value matches and replace with new query.
-      if (elem.state.queries.length === 1) {
-        values.forEach((v) => {
-          if (elem.state.queries[0].includes(`${param}=${v}`)) {
-            elem.state.queries = [Array.isArray(query) ? query[0] : query];
-          }
+      // Only proceed with updates if the element is affected.
+      if (hasQueryToRemove || (elem.state.queries?.length && query !== undefined)) {
+        elem.state.doNotQueryData = true;
+        const traceset = elem.getTraceset() as TraceSet;
+        elem.removeKeys(tracesToRemove, true);
+        if (elem.state.queries.length > 0 && queriesToRemove.length > 0) {
+          // Remove any queries that match queriesToRemove.
+          elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
+        }
+        // When one query exists, check if param/value matches and replace with new query.
+        if (elem.state.queries.length === 1) {
+          values.forEach((v) => {
+            if (elem.state.queries[0].includes(`${param}=${v}`)) {
+              elem.state.queries = [Array.isArray(query) ? query[0] : query];
+            }
+          });
+        }
+        if (elem.state.queries.length === 0) {
+          elemsToRemove.push(elem);
+          return Promise.resolve();
+        }
+        const params: ParamSet = ParamSet({});
+        Object.keys(traceset).forEach((trace) => {
+          addParamsToParamSet(params, fromKey(trace));
         });
-      }
-      if (elem.state.queries.length === 0) {
-        elemsToRemove.push(elem);
-        return Promise.resolve();
-      }
-      const params: ParamSet = ParamSet({});
-      Object.keys(traceset).forEach((trace) => {
-        addParamsToParamSet(params, fromKey(trace));
-      });
 
-      // Update the graph with the new traceSet and params.
-      const updatedRequest: FrameRequest = {
-        queries: elem.state.queries,
-        request_type: this.state.request_type,
-        begin: this.state.begin,
-        end: this.state.end,
-        tz: '',
-      };
-      const updatedResponse: FrameResponse = {
-        dataframe: {
-          traceset: traceset,
-          header: this.getHeader(),
-          paramset: ReadOnlyParamSet(params),
-          skip: 0,
-          traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(
-            Object.keys(traceset),
-            elem.getCommitLinks()
-          ),
-        },
-        anomalymap: this.getAnomalyMapForTraces(this.getFullAnomalyMap(), Object.keys(traceset)),
-        display_mode: 'display_plot',
-        msg: '',
-        skps: [],
-      };
-      return elem.UpdateWithFrameResponse(
-        updatedResponse,
-        updatedRequest,
-        true,
-        this.exploreElements[0].getSelectedRange()
-      );
+        // Update the graph with the new traceSet and params.
+        const updatedRequest: FrameRequest = {
+          queries: elem.state.queries,
+          request_type: this.state.request_type,
+          begin: this.state.begin,
+          end: this.state.end,
+          tz: '',
+        };
+        const updatedResponse: FrameResponse = {
+          dataframe: {
+            traceset: traceset,
+            header: this.getHeader(),
+            paramset: ReadOnlyParamSet(params),
+            skip: 0,
+            traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(
+              Object.keys(traceset),
+              elem.getCommitLinks()
+            ),
+          },
+          anomalymap: this.getAnomalyMapForTraces(this.getFullAnomalyMap(), Object.keys(traceset)),
+          display_mode: 'display_plot',
+          msg: '',
+          skps: [],
+        };
+        return elem.UpdateWithFrameResponse(
+          updatedResponse,
+          updatedRequest,
+          true,
+          this.exploreElements[0].getSelectedRange()
+        );
+      }
+      return Promise.resolve();
     });
 
     await Promise.all(updatePromises);
 
+    // This should be outside the map, so it always runs after promises.
     elemsToRemove.forEach((elem) => {
       this.removeExplore(elem);
     });
 
     this.exploreElements.forEach((elem, i) => {
-      this.graphConfigs[i].queries = elem.state.queries ?? [];
+      if (this.graphConfigs[i]) {
+        // Add check to prevent error
+        this.graphConfigs[i].queries = elem.state.queries ?? [];
+      }
     });
 
     if (this.stateHasChanged) {
       this.stateHasChanged();
-      this.checkDataLoaded();
+      await this.checkDataLoaded();
     }
   };
 
@@ -962,7 +971,7 @@ export class ExploreMultiSk extends ElementSk {
         0
       );
       if (this.state.splitByKeys.length === 0 || (!splitIfOnlyOneGraph && groupedLength === 1)) {
-        this.checkDataLoaded();
+        await this.checkDataLoaded();
         return;
       }
     }
@@ -1025,8 +1034,7 @@ export class ExploreMultiSk extends ElementSk {
     if (this.stateHasChanged) {
       this.stateHasChanged();
     }
-    this.setProgress('');
-    this.checkDataLoaded();
+    await this.checkDataLoaded();
   }
 
   /**
@@ -1154,7 +1162,6 @@ export class ExploreMultiSk extends ElementSk {
       if (this.stateHasChanged) this.stateHasChanged();
       this.addGraphsToCurrentPage(true);
     }
-    this.checkDataLoaded();
   }
 
   private resetGraphs() {
@@ -1192,14 +1199,14 @@ export class ExploreMultiSk extends ElementSk {
       this.currentPageGraphConfigs.push(this.graphConfigs[i]);
     }
 
-    const elementsToAdd: ExploreSimpleSk[] = [];
+    const fragment = document.createDocumentFragment();
     this.currentPageExploreElements.forEach((elem, i) => {
-      elementsToAdd.push(elem);
       const graphConfig = this.currentPageGraphConfigs[i];
       this.addStateToExplore(elem, graphConfig, doNotQueryData);
+      fragment.appendChild(elem);
     });
 
-    this.graphDiv!.append(...elementsToAdd);
+    this.graphDiv!.appendChild(fragment);
     this.updateChartHeights();
     this._render();
   }
