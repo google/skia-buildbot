@@ -407,7 +407,7 @@ rbe_exec_properties(
 # and looking for sha256 on the jsfiddle-final image.
 container_pull(
     name = "pinned_jsfiddle",
-    digest = "sha256:b7a1f5b22d0d8df43a64f61b6943e603c1c32b75b35f51d689edb225ff0a53e2",
+    digest = "sha256:63536a8edcc89c2c5950b58c00f1a484e4fc275c226565e7ce31ffde51e0c568",
     registry = "gcr.io",
     repository = "skia-public/jsfiddle-final",
 )
@@ -415,7 +415,7 @@ container_pull(
 # Debugger's version of CanvasKit is built with different flags
 container_pull(
     name = "pinned_debugger",
-    digest = "sha256:ee8a8d0b37e2d49d956589e316d754f7267861c39f9971cb771436f535331b6b",
+    digest = "sha256:3d2b9d9cbc5507200e17effc8110a16bf438f6e3dbe790b339cf0308d17a9858",
     registry = "gcr.io",
     repository = "skia-public/debugger-app-final",
 )
