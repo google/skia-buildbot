@@ -134,9 +134,11 @@ func main() {
 	// CBB workflows and activities registration.
 	w.RegisterActivity(internal.ReadGitFileActivity)
 	w.RegisterActivity(internal.GetChromeReleasesInfoActivity)
+	w.RegisterActivity(internal.CollectBrowserVersionsActivity)
 	w.RegisterActivity(internal.UploadCbbResultsActivity)
 	w.RegisterWorkflowWithOptions(internal.CbbRunnerWorkflow, workflow.RegisterOptions{Name: workflows.CbbRunner})
 	w.RegisterWorkflowWithOptions(internal.CbbNewReleaseDetectorWorkflow, workflow.RegisterOptions{Name: workflows.CbbNewReleaseDetector})
+	w.RegisterWorkflowWithOptions(internal.CbbGetBrowserVersionsWorkflow, workflow.RegisterOptions{Name: workflows.CbbGetBrowserVersions})
 
 	// TODO(b/322203189) - Remove Catapult workflows and activities once the backwards
 	// UI compatibility is no longer needed and thus the catapult package is deprecated.

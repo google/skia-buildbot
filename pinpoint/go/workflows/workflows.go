@@ -36,6 +36,7 @@ const (
 	CollectAndUpload                  = "perf.collect_and_upload"
 	CbbRunner                         = "perf.cbb_runner"
 	CbbNewReleaseDetector             = "perf.cbb_new_release_detector"
+	CbbGetBrowserVersions             = "perf.cbb_get_browser_versions"
 )
 
 const defaultPairwiseAttemptCount int32 = 30

@@ -107,4 +107,11 @@ var (
 			MaximumAttempts:    3,
 		},
 	}
+
+	getBrowerVersionsWorkflowOptions = workflow.ChildWorkflowOptions{
+		WorkflowExecutionTimeout: 2 * time.Hour,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 1,
+		},
+	}
 )

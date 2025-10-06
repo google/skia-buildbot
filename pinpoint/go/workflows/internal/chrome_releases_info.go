@@ -42,9 +42,9 @@ const (
 	// chromeExperimentBucket is the experimental bucket to save the build info JSON files.
 	chromeExperimentBucket = "chrome-perf-experiment-non-public"
 	// cbbRefInfoPath is the root of the build info files in the bucket.
-	cbbRefInfoPath = "cbb_ref_info/chrome/%s/%s.json"
+	cbbRefInfoPath = "cbb_ref_info/%s/%s/%s.json"
 	// cbbRefInfoRepo is the root of the build info files in the chromium/src.
-	cbbRefInfoRepo = "testing/perf/cbb_ref_info/chrome/%s/%s.json"
+	cbbRefInfoRepo = "testing/perf/cbb_ref_info/%s/%s/%s.json"
 	// cbbBranchName provides a default name to create a new branch.
 	cbbBranchName = "cbb-autoroll"
 	// cbbCommitMessage provides a default commit message.
@@ -72,17 +72,15 @@ var (
 
 // getChromiumDashInfo detects new Chrome releases, submits their info to the
 // main branch, and returns a commit position.
-func GetChromeReleasesInfoActivity(ctx context.Context, isDev bool) (*ChromeReleaseInfo, error) {
-	// TODO(b/388894957): Create HTTP Client in the Orchestrator to share.
-	httpClient = httputils.NewTimeoutClient()
-	resp, err := httputils.GetWithContext(ctx, httpClient, chromiumDashUrl)
+func GetChromeReleasesInfoActivity(ctx context.Context, otherBrowsers []BuildInfo, isDev bool) (*ChromeReleaseInfo, error) {
+	chromeBuilds, err := getChromeBuilds(ctx)
 	if err != nil {
-		sklog.Fatalf("Failed to get ChromiumDash response: %s", err)
+		return nil, skerr.Wrap(err)
 	}
+
 	var builds []BuildInfo
-	if err := json.NewDecoder(resp.Body).Decode(&builds); err != nil {
-		sklog.Fatalf("Invalid ChromiumDash response:%s, err: %s", resp.Body, err)
-	}
+	builds = append(builds, chromeBuilds...)
+	builds = append(builds, otherBrowsers...)
 
 	newBuilds, err := filterBuilds(ctx, builds, isDev)
 	if err != nil {
@@ -97,16 +95,17 @@ type buildInfoEx struct {
 	comparableVersion []byte
 }
 
-// filterBuilds finds the latest build from each supported channel/platform,
-// and then removes the builds if their version hasn't changed from previous run.
-func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildInfo, error) {
-	bucket := chromeInternalBucket
-	if isDev {
-		bucket = chromeExperimentBucket
-	}
-	var store, err = NewStore(ctx, bucket, true)
+// getChromeBuilds gets the latest Chrome builds for each supported channel/platform from ChromiumDash.
+func getChromeBuilds(ctx context.Context) ([]BuildInfo, error) {
+	// TODO(b/388894957): Create HTTP Client in the Orchestrator to share.
+	httpClient = httputils.NewTimeoutClient()
+	resp, err := httputils.GetWithContext(ctx, httpClient, chromiumDashUrl)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		sklog.Fatalf("Failed to get ChromiumDash response: %s", err)
+	}
+	var builds []BuildInfo
+	if err := json.NewDecoder(resp.Body).Decode(&builds); err != nil {
+		sklog.Fatalf("Invalid ChromiumDash response:%s, err: %s", resp.Body, err)
 	}
 
 	// A map to store the latest build for each supported channel/platform.
@@ -138,10 +137,28 @@ func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildI
 		}
 	}
 
-	var newBuilds []BuildInfo
+	builds = nil
 	for _, buildEx := range latestBuilds {
-		build := *buildEx.buildInfo
-		filePath := fmt.Sprintf(cbbRefInfoPath, build.Channel, build.Platform)
+		builds = append(builds, *buildEx.buildInfo)
+	}
+
+	return builds, nil
+}
+
+// filterBuilds removes the builds if their version hasn't changed from previous run.
+func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildInfo, error) {
+	bucket := chromeInternalBucket
+	if isDev {
+		bucket = chromeExperimentBucket
+	}
+	var store, err = NewStore(ctx, bucket, true)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	var newBuilds []BuildInfo
+	for _, build := range builds {
+		filePath := fmt.Sprintf(cbbRefInfoPath, build.Browser, build.Channel, build.Platform)
 		if store.Exists(filePath) {
 			var content, err = store.GetFileContent(filePath)
 			if err != nil {
@@ -175,7 +192,7 @@ func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildI
 
 // commitBuildsInfo creates JSON files and uploads the associated commit.
 func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*ChromeReleaseInfo, error) {
-	sklog.Infof("Builds to commit thier info: %v", builds)
+	sklog.Infof("Builds to commit their info: %v", builds)
 	if len(builds) == 0 {
 		sklog.Infof("No new build was detected.")
 		return nil, nil
@@ -191,7 +208,7 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*Chr
 	}
 	sklog.Infof("Gerrit change created successfully, change ID: %s", ci.Id)
 	for _, build := range builds {
-		filename := fmt.Sprintf(cbbRefInfoRepo, build.Channel, build.Platform)
+		filename := fmt.Sprintf(cbbRefInfoRepo, build.Browser, build.Channel, build.Platform)
 		jsonData, err := json.MarshalIndent(build, "", "  ")
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to convert %v to JSON", build)
@@ -211,6 +228,12 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*Chr
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to refresh change info after publishing edit.")
 	}
+
+	if isDev {
+		// During dev testing, we create the CL but doesn't submit it.
+		return nil, nil
+	}
+
 	labels := map[string]int{"Auto-Submit": 1}
 	reviewers := []string{"rubber-stamper@appspot.gserviceaccount.com"}
 	err = client.gerritClient.SetReview(client.ctx, ci, "", labels, reviewers, "", nil, "", 0, nil)
