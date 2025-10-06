@@ -53,9 +53,6 @@
       "wasm_mode",
       "js_mode"
     ],
-    "default_param_selections": {
-      "stat": ["value"]
-    },
     "default_url_values": {
       "plotSummary": "true",
       "showZero": "false",
