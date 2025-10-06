@@ -165,6 +165,10 @@ export class CommitRangeSk extends ElementSk {
             if (url.includes('{begin}')) {
               url = url.replace('{begin}', '');
             }
+            // If GitHub, show short hash instead of commit number.
+            if (url.includes('github')) {
+              text = this.hashes[1].substring(0, 7);
+            }
           }
         }
         this.htmlTemplate = html`<a href="${url}" target="_blank">${text}</a>`;
