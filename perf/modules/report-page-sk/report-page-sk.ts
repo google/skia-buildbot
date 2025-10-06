@@ -267,7 +267,7 @@ export class ReportPageSk extends ElementSk {
                 recordSummary(
                   'fe_single_graph_load_time_s',
                   (performance.now() - startTime) / 1000,
-                  { page: 'report' }
+                  { page: 'report', url: window.location.href }
                 );
                 graphElement.removeEventListener('data-loaded', listener);
                 loadedCount++;
