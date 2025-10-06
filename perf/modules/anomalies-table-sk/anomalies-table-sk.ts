@@ -62,10 +62,15 @@ export class AnomaliesTableSk extends ElementSk {
     return ['show-selected-groups-first'];
   }
 
-  public openAnomalyChartListener = (e: Event) => {
+  public openAnomalyChartListener = async (e: Event) => {
     const anomaly = (e as CustomEvent<Anomaly>).detail;
     if (anomaly) {
-      this.openMultiGraphUrl(anomaly);
+      const newTab = window.open('', '_blank');
+      if (newTab) {
+        newTab.document.write('Loading graph...');
+      }
+
+      await this.openMultiGraphUrl(anomaly, newTab);
     }
   };
 
@@ -544,9 +549,16 @@ export class AnomaliesTableSk extends ElementSk {
                   <button
                     id="trendingicon-link"
                     @click=${async () => {
+                      const newTab = window.open('', '_blank');
+                      if (newTab) {
+                        newTab.document.write('Loading graph...');
+                      }
+
                       this.loadingGraphForAnomaly.set(anomaly.id, true);
                       this._render();
-                      await this.openMultiGraphUrl(anomaly);
+
+                      await this.openMultiGraphUrl(anomaly, newTab);
+
                       this.loadingGraphForAnomaly.set(anomaly.id, false);
                       this._render();
                     }}>
@@ -883,23 +895,27 @@ export class AnomaliesTableSk extends ElementSk {
     this._render();
   }
 
-  public async openMultiGraphUrl(anomaly: Anomaly) {
+  // openMultiGraphLink generates a multi-graph url for the given parameters
+  public async openMultiGraphUrl(anomaly: Anomaly, newTab: Window | null) {
     await this.fetchGroupReportApi(String(anomaly.id));
+
     const urlList = await this.generateMultiGraphUrl(
       [anomaly],
       this.getGroupReportResponse!.timerange_map!
     );
-    return this.openAnomalyUrl(urlList.at(0));
+
+    this.openAnomalyUrl(urlList.at(0), newTab);
   }
 
-  //helper method to handle the async multi chart url opening
-  private async openAnomalyUrl(url: string | undefined): Promise<void> {
-    if (url) {
-      const resolvedUrl = url;
-      window.open(resolvedUrl, '_blank');
-    } else {
-      console.warn('multi chart not found');
+  private openAnomalyUrl(url: string | undefined, newTab: Window | null): void {
+    if (!newTab || !url) {
+      console.warn('Multi chart URL not found or tab was blocked.');
+      if (newTab) newTab.close(); // Clean up the blank tab on failure.
+      return;
     }
+
+    // Navigate the already-opened tab to the final destination.
+    newTab.location.href = url;
   }
 
   getCheckedAnomalies(): Anomaly[] {

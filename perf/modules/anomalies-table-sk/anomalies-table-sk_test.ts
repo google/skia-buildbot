@@ -448,18 +448,35 @@ describe('anomalies-table-sk', () => {
 
   describe('open multi graph url', () => {
     it('fetches the url if it does not exist in the map', async () => {
-      const spy = sinon.spy(window, 'open');
-      const anomaly = dummyAnomaly('1', 0, 0, 0, 'master/bot/suite/test');
-      fetchMock.post('begin:/_/anomalies/group_report', {
-        sid: 'test_sid',
-        timerange_map: { '1': { begin: 1, end: 2 } },
-      });
+      // A stub is better here because we can control the return value.
+      const mockTab = {
+        document: { write: () => {} },
+        location: { href: '' },
+      };
+      const openStub = sinon.stub(window, 'open').returns(mockTab as any);
+
+      const anomaly = dummyAnomaly('123', 0, 0, 0, 'master/bot/suite/test');
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
       await fetchMock.flush(true);
 
       window.history.pushState({}, '', '/a/');
-      await element.openMultiGraphUrl(anomaly);
-      assert.isTrue(spy.calledOnce);
+
+      // CORRECT: Call the function with both arguments.
+      // The call to window.open() is now conceptually part of the "user action"
+      // that the test is simulating.
+      const newTab = window.open('', '_blank');
+      await element.openMultiGraphUrl(anomaly, newTab);
+
+      // Assert that window.open was called as expected.
+      assert.isTrue(openStub.calledOnce);
+
+      // Assert that the tab was navigated to the correct URL.
+
+      const weekInSeconds = 604800; // 7 * 24 * 60 * 60
+      const expectedBegin = 100 - weekInSeconds;
+      const expectedEnd = 200 + weekInSeconds;
+      const expectedUrl = `/m/?begin=${expectedBegin}&end=${expectedEnd}&request_type=0&shortcut=test_shortcut&totalGraphs=1`;
+      assert.include(mockTab.location.href, expectedUrl);
     });
   });
 
