@@ -100,8 +100,12 @@ export class ExistingBugDialogSk extends ElementSk {
           </div>
           <div class="bug-list">${ele.associatedBugListTemplate()}<div>
           <div class="footer">
-            <button id="file-button" type="submit">Submit</button>
-            <button id="close-button" @click=${ele.closeDialog} type="close">Close</button>
+            <button id="file-button" class="submit" @click=${
+              ele.addAnomalyWithExistingBug
+            } type="submit">Submit</button>
+            <button id="close-button" class="close" @click=${
+              ele.closeDialog
+            } type="close">Close</button>
           </div>
         </form>
       </div>
