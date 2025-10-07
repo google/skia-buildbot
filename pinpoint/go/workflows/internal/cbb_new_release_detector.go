@@ -59,8 +59,7 @@ var platformBots = map[string][]string{
 }
 
 const (
-	// TODO(b/433796487): Add Safari.
-	// Pseudo benchmark and filename to retrieve Edge versions from devices.
+	// Pseudo benchmark and filename to retrieve Edge and Safari versions from devices.
 	// Must match the strings used in
 	// https://source.chromium.org/chromium/chromium/src/+/main:testing/scripts/run_performance_tests.py.
 	browserVersionsBenchmark = "browser_versions"
@@ -69,9 +68,15 @@ const (
 	// The Chromium commit to check out and build in order to run the browser_versions benchmark.
 	// Ideally this should be determined automatically, but since this is expected to change
 	// very rarely, it is hardcoded here for now.
-	browserVersionsCommit = "b580e2bfdfe367b03e3f0a6b0efb605d24d2691a"
+	browserVersionsCommit = "4b469edb71f12662c76458ba082dfa3a209a4586"
 )
 
+// All Mac bot config names, with the number of devices in each config.
+var safariConfigs = map[string]int32{
+	"mac-m3-pro-perf-cbb": 5,
+}
+
+// All Windows bot config names, with the number of devices in each config.
 var edgeConfigs = map[string]int32{
 	"win-victus-perf-cbb":                 4,
 	"win-arm64-snapdragon-plus-perf-cbb":  4,
@@ -86,17 +91,24 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 	isDev := strings.HasPrefix(workflow.GetActivityOptions(ctx).TaskQueue, "localhost.")
 
 	ctx = workflow.WithChildOptions(ctx, getBrowerVersionsWorkflowOptions)
-	var edgeVersions []BuildInfo
-	if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbGetBrowserVersions, "edge").Get(ctx, &edgeVersions); err != nil {
+	var safariVersions []BuildInfo
+	if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbGetBrowserVersions, "safari").Get(ctx, &safariVersions); err != nil {
 		// Log and ignore the error. This child workflow is expected to fail
 		// occasionally, when the browsers are in the middle of an update.
 		// Simply ignore that browser and try again next time. No need to fail
 		// the entire workflow.
+		sklog.Errorf("Unable to get current Safari versions: %v", err)
+	}
+
+	var edgeVersions []BuildInfo
+	if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbGetBrowserVersions, "edge").Get(ctx, &edgeVersions); err != nil {
 		sklog.Errorf("Unable to get current Edge versions: %v", err)
 	}
 
+	otherBrowsers := append(safariVersions, edgeVersions...)
+
 	var commitInfo ChromeReleaseInfo
-	if err := workflow.ExecuteActivity(ctx, GetChromeReleasesInfoActivity, edgeVersions, isDev).Get(ctx, &commitInfo); err != nil {
+	if err := workflow.ExecuteActivity(ctx, GetChromeReleasesInfoActivity, otherBrowsers, isDev).Get(ctx, &commitInfo); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	log.Printf("commitInfo:%v", commitInfo)
@@ -167,11 +179,14 @@ func CbbGetBrowserVersionsWorkflow(ctx workflow.Context, browser string) ([]Buil
 
 	var platform string
 	var configCounts map[string]int32
-	if browser == "edge" {
+	switch browser {
+	case "safari":
+		platform = "mac"
+		configCounts = safariConfigs
+	case "edge":
 		platform = "windows"
 		configCounts = edgeConfigs
-	} else {
-		// TODO(b/433796487): Add Mac
+	default:
 		return nil, fmt.Errorf("unsupported browser %s", browser)
 	}
 	var results []BuildInfo
