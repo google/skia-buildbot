@@ -1,0 +1,1 @@
+Read perf/README.md and perf/docs/ai_generated_doc.md for Performance Dashboard project context.
