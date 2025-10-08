@@ -290,11 +290,15 @@ export class ReportPageSk extends ElementSk {
   private async initializePage() {
     await this.anomaliesTable!.populateTable(this.anomalyTracker.toAnomalyList());
 
+    const urlParams = new URLSearchParams(window.location.search);
+    // This statement is for when anomalyIDs is set, e.g. anomalyIDs=123,124.
+    // Only those anomalies are selected for initial graphing.
     const selected = this.findRequestedAnomalies();
     if (selected.length > 0) {
       this.anomaliesTable!.checkSelectedAnomalies(selected);
-    } else {
-      // If no anomalies are requested, check all anomalies by default.
+    } else if (urlParams.has('sid')) {
+      // If 'sid' is requested, user has explicitly specified a set of anomalies from the
+      // 'Graph Selected' button. It's okay to assume user wants all of them graphed.
       this.anomaliesTable!.initialCheckAllCheckbox();
       this.anomalyTracker.toAnomalyList().forEach((anomaly) => {
         this.anomalyTracker.getAnomaly(anomaly.id)!.checked = true;

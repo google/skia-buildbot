@@ -198,41 +198,6 @@ describe('ReportPageSk', () => {
       assert.strictEqual(graphContainer.children[6], mockExploreInstances[6]);
     });
 
-    it('automatically selects all anomalies if none are initially selected', async () => {
-      const anomalyCount = 3;
-      const anomalies = Array.from({ length: anomalyCount }, (_, i) => createMockAnomaly(i));
-      const timerangeMap = anomalies.reduce(
-        (acc, anom) => {
-          acc[anom.id] = createMockTimerange();
-          return acc;
-        },
-        {} as { [key: string]: Timerange }
-      );
-
-      // Simulate no anomalies being initially selected.
-      fetchMock.post('/_/anomalies/group_report', {
-        anomaly_list: anomalies,
-        timerange_map: timerangeMap,
-        selected_keys: [], // No anomalies selected initially
-      });
-
-      const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
-      const appendSpy = sinon.spy(graphContainer, 'append');
-      const connectedCallbackPromise = element.connectedCallback();
-      await fetchMock.flush(true);
-
-      // Wait for the graphs to be added.
-      await waitUntil(() => appendSpy.callCount === anomalyCount);
-
-      // Simulate data-loaded events for all graphs.
-      for (let i = 0; i < anomalyCount; i++) {
-        mockExploreInstances[i].dispatchEvent(new CustomEvent('data-loaded'));
-      }
-
-      // This will be resolved only when all graphs are loaded.
-      await connectedCallbackPromise;
-    });
-
     it('does not update URL until all graphs are loaded', async () => {
       const anomalyCount = 3;
       const anomalies = Array.from({ length: anomalyCount }, (_, i) => createMockAnomaly(i));
@@ -279,6 +244,130 @@ describe('ReportPageSk', () => {
       };
       element['syncChartSelection'](eventDetails as any);
       assert.isTrue(mockExploreInstances[0].updateSelectedRangeWithPlotSummary.called);
+    });
+
+    it('load no anomalies when anomalyGroupID is in URL params', async () => {
+      const originalSearch = window.location.search;
+      window.history.replaceState({}, '', '?anomalyGroupID=789');
+
+      const anomalies = [createMockAnomaly(0), createMockAnomaly(1)];
+      const timerangeMap = anomalies.reduce(
+        (acc, anom) => {
+          acc[anom.id] = createMockTimerange();
+          return acc;
+        },
+        {} as { [key: string]: Timerange }
+      );
+
+      fetchMock.post('/_/anomalies/group_report', {
+        anomaly_list: anomalies,
+        timerange_map: timerangeMap,
+        selected_keys: [],
+      });
+
+      const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
+      const appendSpy = sinon.spy(graphContainer, 'append');
+
+      const connectedCallbackPromise = element.connectedCallback();
+      await fetchMock.flush(true);
+
+      // We don't expect any graphs to be loaded, so no need to wait for appendSpy.
+      // Instead, let the connectedCallbackPromise resolve.
+
+      await connectedCallbackPromise;
+
+      assert.strictEqual(appendSpy.callCount, 0, 'Should load no graphs');
+      assert.strictEqual(
+        element['anomalyTracker'].getSelectedAnomalies().length,
+        0,
+        'Should have no selected anomalies'
+      );
+
+      window.history.replaceState({}, '', originalSearch);
+    });
+
+    it('loads all anomaly graphs when sid is in URL params', async () => {
+      const originalSearch = window.location.search;
+      window.history.replaceState({}, '', '?sid=abc');
+
+      const anomalies = [createMockAnomaly(0), createMockAnomaly(1)];
+      const timerangeMap = anomalies.reduce(
+        (acc, anom) => {
+          acc[anom.id] = createMockTimerange();
+          return acc;
+        },
+        {} as { [key: string]: Timerange }
+      );
+
+      fetchMock.post('/_/anomalies/group_report', {
+        anomaly_list: anomalies,
+        timerange_map: timerangeMap,
+        selected_keys: [], // sid-based selection happens server-side
+      });
+
+      const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
+      const appendSpy = sinon.spy(graphContainer, 'append');
+      const table = element.querySelector<AnomaliesTableSk>('#anomaly-table')!;
+
+      const connectedCallbackPromise = element.connectedCallback();
+      await fetchMock.flush(true);
+
+      await waitUntil(() => appendSpy.callCount === anomalies.length);
+      mockExploreInstances.forEach((instance) =>
+        instance.dispatchEvent(new CustomEvent('data-loaded'))
+      );
+      await connectedCallbackPromise;
+
+      assert.strictEqual(appendSpy.callCount, anomalies.length);
+      assert.isTrue(
+        (table.initialCheckAllCheckbox as sinon.SinonStub).calledOnce,
+        'initialCheckAllCheckbox should be called'
+      );
+      assert.strictEqual(element['anomalyTracker'].getSelectedAnomalies().length, anomalies.length);
+
+      window.history.replaceState({}, '', originalSearch);
+    });
+
+    it('loads all anomaly graphs when specific anomalyIDs are in URL params', async () => {
+      const originalSearch = window.location.search;
+      window.history.replaceState({}, '', '?anomalyIDs=0,1');
+
+      const anomalies = [createMockAnomaly(0), createMockAnomaly(1)];
+      const timerangeMap = anomalies.reduce(
+        (acc, anom) => {
+          acc[anom.id] = createMockTimerange();
+          return acc;
+        },
+        {} as { [key: string]: Timerange }
+      );
+
+      fetchMock.post('/_/anomalies/group_report', {
+        anomaly_list: anomalies,
+        timerange_map: timerangeMap,
+        selected_keys: ['0', '1'],
+      });
+
+      const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
+      const appendSpy = sinon.spy(graphContainer, 'append');
+      const table = element.querySelector<AnomaliesTableSk>('#anomaly-table')!;
+
+      const connectedCallbackPromise = element.connectedCallback();
+      await fetchMock.flush(true);
+
+      await waitUntil(() => appendSpy.callCount === anomalies.length);
+      mockExploreInstances.forEach((instance) =>
+        instance.dispatchEvent(new CustomEvent('data-loaded'))
+      );
+      await connectedCallbackPromise;
+
+      assert.strictEqual(appendSpy.callCount, anomalies.length);
+      assert.isTrue(
+        (table.checkSelectedAnomalies as sinon.SinonStub).calledWith(anomalies),
+        'checkSelectedAnomalies should be called with all anomalies'
+      );
+      assert.strictEqual(element['anomalyTracker'].getSelectedAnomalies().length, anomalies.length);
+
+      window.history.replaceState({}, '', originalSearch);
     });
   });
 });
