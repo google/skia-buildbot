@@ -40,7 +40,7 @@ var (
 		},
 	}
 
-	httpClient *http.Client
+	httpClient *http.Client = httputils.NewTimeoutClient()
 )
 
 // ChromeReleaseInfo contains the detected new Chrome release info.
@@ -90,7 +90,6 @@ var edgeConfigs = map[string]int32{
 // CbbNewReleaseDetectorWorkflow is the most basic Workflow Defintion.
 func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, error) {
 	ctx = workflow.WithActivityOptions(ctx, releaseDetectorActivityOptions)
-	httpClient = httputils.NewTimeoutClient()
 
 	// Is this workflow running locally on a dev machine?
 	isDev := strings.HasPrefix(workflow.GetActivityOptions(ctx).TaskQueue, "localhost.")
