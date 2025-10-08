@@ -39,6 +39,7 @@ window.perf = {
   show_bisect_btn: true,
 };
 
+// TODO(b/450184956) Rewrite demo to plot-google-chart. This demo is unusable.
 customElements.whenDefined('explore-sk').then(() => {
   // Insert the element later, which should give enough time for fetchMock to be in place.
   document
@@ -52,11 +53,13 @@ customElements.whenDefined('explore-sk').then(() => {
 
   // Some utility functions used later.
 
+  // TODO(b/450184956) Rewrite demo to plot-google-chart
   // Clicks inside the canvas element inside the plot-simple-sk element.
   const clickOnPlot = () => {
     const rect = explore!.querySelector<HTMLCanvasElement>('canvas')!.getBoundingClientRect();
     // eslint-disable-next-line dot-notation
-    explore!['plotSimple'].value!.dispatchEvent(
+
+    explore!['googleChartPlot'].value!.dispatchEvent(
       new MouseEvent('click', {
         // Pick a point in the middle of the canvas.
         clientX: rect.left + rect.width / 2,
@@ -67,9 +70,11 @@ customElements.whenDefined('explore-sk').then(() => {
 
   // Calls itself via timeout until the plot-simple-sk element reports that it
   // has traces loaded, at which point it calls clickOnPlot.
+  // TODO(b/450184956) Rewrite demo to plot-google-chart
+
   const checkIfLoaded = () => {
     // eslint-disable-next-line dot-notation
-    if (explore!['plotSimple'].value!.getLineNames().length > 1) {
+    if (explore!['googleChartPlot'].value!.getAllTraces().length > 1) {
       clickOnPlot();
     } else {
       setTimeout(checkIfLoaded, 100);

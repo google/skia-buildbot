@@ -521,7 +521,6 @@ describe('ExploreMultiSk', () => {
         use_titles: false,
         useTestPicker: false,
         use_test_picker_query: false,
-        show_google_plot: false,
         enable_favorites: false,
         hide_paramset: false,
         horizontal_zoom: false,

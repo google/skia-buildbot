@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
-
+// TODO(b/450184956) Rewrite demo to plot-google-chart
 describe('explore-sk', () => {
   let testBed: TestBed;
   before(async () => {
