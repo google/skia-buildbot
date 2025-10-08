@@ -60,6 +60,7 @@ var (
 	triggerQueryPairwiseFlag  = flag.Bool("query-pairwise", false, "toggle true to trigger querying of pairwise flows")
 	triggerCbbRunnerFlag      = flag.Bool("cbb-runner", false, "toggle true to trigger CBB runner workflow")
 	triggerCbbNewReleaseFlag  = flag.Bool("cbb-new-release", false, "toggle true to trigger CbbNewReleaseDetectorWorkflow")
+	triggerCbbGetVersionsFlag = flag.Bool("cbb-get-versions", false, "toggle true to trigger CbbGetBrowserVersionsWorkflow")
 	// The following flags are used by cbb-runner only.
 	commitPosition = flag.Int("commit-position", 0, "Commit position (required for CBB).")
 	browser        = flag.String("browser", "chrome", "chrome or safari or edge (used by CBB only)")
@@ -462,6 +463,27 @@ func triggerCbbNewReleaseDetector(c client.Client) (*internal.ChromeReleaseInfo,
 	return result, nil
 }
 
+func triggerCbbGetBrowserVersions(c client.Client) ([]internal.BuildInfo, error) {
+	if len(flag.Args()) != 0 {
+		return nil, fmt.Errorf("Unrecognized command line arguments: %v", flag.Args())
+	}
+	if *browser != "safari" && *browser != "edge" {
+		return nil, errors.New("Either --browser=safari or --browser=edge is required")
+	}
+	ctx := context.Background()
+	var buildInfos []internal.BuildInfo
+	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.CbbGetBrowserVersions, *browser)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Unable to execute workflow")
+	}
+	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+	if err := we.Get(ctx, &buildInfos); err != nil {
+		return nil, skerr.Wrapf(err, "Unable to get result")
+	}
+	return buildInfos, nil
+}
+
 // Sample client to trigger a BuildChrome workflow.
 func main() {
 	flag.Parse()
@@ -510,9 +532,11 @@ func main() {
 	if *triggerCbbRunnerFlag {
 		result, err = triggerCbbRunner(c)
 	}
-
 	if *triggerCbbNewReleaseFlag {
 		result, err = triggerCbbNewReleaseDetector(c)
+	}
+	if *triggerCbbGetVersionsFlag {
+		result, err = triggerCbbGetBrowserVersions(c)
 	}
 
 	if err != nil {
