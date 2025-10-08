@@ -207,9 +207,10 @@ func TestTriggerTask(t *testing.T) {
 		client:      client,
 	}
 	expectRequest := &apipb.NewTaskRequest{
-		Name:        "task-name",
-		Priority:    swarming.RECOMMENDED_PRIORITY,
-		PubsubTopic: fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, s.pubSubTopic),
+		Name:             "task-name",
+		PoolTaskTemplate: apipb.NewTaskRequest_SKIP,
+		Priority:         swarming.RECOMMENDED_PRIORITY,
+		PubsubTopic:      fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, s.pubSubTopic),
 		TaskSlices: []*apipb.TaskSlice{
 			{
 				ExpirationSecs: int32(swarming.RECOMMENDED_EXPIRATION.Seconds()),
@@ -257,9 +258,10 @@ func TestTriggerTask_Minimal(t *testing.T) {
 		client:      client,
 	}
 	expectRequest := &apipb.NewTaskRequest{
-		Name:        "task-name",
-		Priority:    swarming.RECOMMENDED_PRIORITY,
-		PubsubTopic: fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, s.pubSubTopic),
+		Name:             "task-name",
+		PoolTaskTemplate: apipb.NewTaskRequest_SKIP,
+		Priority:         swarming.RECOMMENDED_PRIORITY,
+		PubsubTopic:      fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, s.pubSubTopic),
 		TaskSlices: []*apipb.TaskSlice{
 			{
 				ExpirationSecs: int32(swarming.RECOMMENDED_EXPIRATION.Seconds()),
@@ -308,7 +310,8 @@ func TestConvertTaskRequest_Minimal(t *testing.T) {
 		CasInput: fakeDigest,
 	}
 	expect := &apipb.NewTaskRequest{
-		Priority: swarming.RECOMMENDED_PRIORITY,
+		PoolTaskTemplate: apipb.NewTaskRequest_SKIP,
+		Priority:         swarming.RECOMMENDED_PRIORITY,
 		TaskSlices: []*apipb.TaskSlice{
 			{
 				ExpirationSecs: int32(swarming.RECOMMENDED_EXPIRATION.Seconds()),
@@ -373,8 +376,9 @@ func TestConvertTaskRequest_Full(t *testing.T) {
 		TaskSchedulerTaskID: "ts-task-id",
 	}
 	expect := &apipb.NewTaskRequest{
-		Name:     "task-name",
-		Priority: swarming.RECOMMENDED_PRIORITY,
+		Name:             "task-name",
+		PoolTaskTemplate: apipb.NewTaskRequest_SKIP,
+		Priority:         swarming.RECOMMENDED_PRIORITY,
 		TaskSlices: []*apipb.TaskSlice{
 			{
 				ExpirationSecs: int32((10 * time.Minute).Seconds()),

@@ -270,13 +270,14 @@ func (s *SwarmingV2TaskExecutor) convertTaskRequest(req *types.TaskRequest) (*ap
 	}
 	outputs := util.CopyStringSlice(req.Outputs)
 	rv := &apipb.NewTaskRequest{
-		Name:           req.Name,
-		Priority:       swarming.RECOMMENDED_PRIORITY,
-		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, s.pubSubTopic),
-		PubsubUserdata: req.TaskSchedulerTaskID,
-		Realm:          s.realm,
-		ServiceAccount: req.ServiceAccount,
-		Tags:           req.Tags,
+		Name:             req.Name,
+		PoolTaskTemplate: apipb.NewTaskRequest_SKIP,
+		Priority:         swarming.RECOMMENDED_PRIORITY,
+		PubsubTopic:      fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, s.pubSubTopic),
+		PubsubUserdata:   req.TaskSchedulerTaskID,
+		Realm:            s.realm,
+		ServiceAccount:   req.ServiceAccount,
+		Tags:             req.Tags,
 		TaskSlices: []*apipb.TaskSlice{
 			{
 				ExpirationSecs: expirationSecs,
