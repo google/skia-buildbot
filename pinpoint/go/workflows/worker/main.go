@@ -135,6 +135,7 @@ func main() {
 	w.RegisterActivity(internal.ReadGitFileActivity)
 	w.RegisterActivity(internal.GetChromeReleasesInfoActivity)
 	w.RegisterActivity(internal.CollectBrowserVersionsActivity)
+	w.RegisterActivity(internal.DownloadSafariTPActivity)
 	w.RegisterActivity(internal.UploadCbbResultsActivity)
 	w.RegisterWorkflowWithOptions(internal.CbbRunnerWorkflow, workflow.RegisterOptions{Name: workflows.CbbRunner})
 	w.RegisterWorkflowWithOptions(internal.CbbNewReleaseDetectorWorkflow, workflow.RegisterOptions{Name: workflows.CbbNewReleaseDetector})

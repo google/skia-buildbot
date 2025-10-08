@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/digest"
 	repb "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
 	"go.skia.org/infra/cabe/go/backends"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/common"
@@ -37,6 +39,8 @@ var (
 			MaximumAttempts: 1,
 		},
 	}
+
+	httpClient *http.Client
 )
 
 // ChromeReleaseInfo contains the detected new Chrome release info.
@@ -86,6 +90,7 @@ var edgeConfigs = map[string]int32{
 // CbbNewReleaseDetectorWorkflow is the most basic Workflow Defintion.
 func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, error) {
 	ctx = workflow.WithActivityOptions(ctx, releaseDetectorActivityOptions)
+	httpClient = httputils.NewTimeoutClient()
 
 	// Is this workflow running locally on a dev machine?
 	isDev := strings.HasPrefix(workflow.GetActivityOptions(ctx).TaskQueue, "localhost.")
@@ -145,6 +150,14 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 		}
 
 		wg.Wait(ctx)
+	}
+
+	// Check for new Safari Technology Preview and download it. This is
+	// intentionally done at the end of the workflow, to avoid new Safari TP
+	// being installed on test devices while we're running CBB benchmarks.
+	var stpVersion string
+	if err := workflow.ExecuteActivity(ctx, DownloadSafariTPActivity, isDev).Get(ctx, &stpVersion); err != nil {
+		return nil, skerr.Wrap(err)
 	}
 
 	return &commitInfo, nil

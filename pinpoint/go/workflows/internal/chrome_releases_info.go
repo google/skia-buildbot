@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"net/http"
 	"regexp"
 	"time"
 
@@ -66,8 +65,6 @@ var (
 		"Mac":     "mac",
 		"Windows": "windows",
 	}
-	// httpClient shares the http client object.
-	httpClient *http.Client
 )
 
 // getChromiumDashInfo detects new Chrome releases, submits their info to the
@@ -97,8 +94,6 @@ type buildInfoEx struct {
 
 // getChromeBuilds gets the latest Chrome builds for each supported channel/platform from ChromiumDash.
 func getChromeBuilds(ctx context.Context) ([]BuildInfo, error) {
-	// TODO(b/388894957): Create HTTP Client in the Orchestrator to share.
-	httpClient = httputils.NewTimeoutClient()
 	resp, err := httputils.GetWithContext(ctx, httpClient, chromiumDashUrl)
 	if err != nil {
 		sklog.Fatalf("Failed to get ChromiumDash response: %s", err)
