@@ -116,7 +116,7 @@ func extractFromHtml(doc *html.Node) *releaseInfo {
 // It returns a CIPD Client object, path to the directory where temp files are
 // stored (caller should clean up this directory after using CPID), and path
 // to the "cipd" executable file.
-func prepareCipd(ctx context.Context) (*cipd.Client, string, string, error) {
+func prepareCipd(ctx context.Context, isDev bool) (*cipd.Client, string, string, error) {
 	// Create a new temporary directory
 	tmpDir, err := os.MkdirTemp("", "cipd")
 	if err != nil {
@@ -135,6 +135,17 @@ func prepareCipd(ctx context.Context) (*cipd.Client, string, string, error) {
 	}
 
 	cipdBinPath := filepath.Join(tmpDir, cipd.PkgCIPD.Path, "cipd")
+
+	if !isDev {
+		// Authenticate against CIPD server
+		cmd := exec.Command(cipdBinPath, "auth-login", "-service-account-json", "gce")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return nil, "", "", skerr.Wrapf(err, "error authenticating cipd")
+		}
+	}
+
 	return cipdClient, tmpDir, cipdBinPath, nil
 }
 
@@ -212,7 +223,7 @@ func DownloadSafariTPActivity(ctx context.Context, isDev bool) (string, error) {
 	sklog.Infof("Release: %s\n", ri.release)
 	sklog.Infof("Download Links:\n  %s\n  %s\n", ri.linkTahoe, ri.linkSequoia)
 
-	cipdClient, cipdRootPath, cipdBinPath, err := prepareCipd(ctx)
+	cipdClient, cipdRootPath, cipdBinPath, err := prepareCipd(ctx, isDev)
 	if err != nil {
 		return "", err
 	}
