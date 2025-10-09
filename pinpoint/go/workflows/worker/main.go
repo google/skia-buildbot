@@ -39,10 +39,16 @@ var (
 func main() {
 	flag.Parse()
 
-	common.InitWithMust(
-		appName,
-		common.PrometheusOpt(promPort),
-	)
+	// Don't initialize Prometheus in local dev runs. This avoids port conflict
+	// when multiple workers are running on the same machine, allowing devs to
+	// easily test for race conditions that are only triggered when multiple
+	// workers are used.
+	if !*local {
+		common.InitWithMust(
+			appName,
+			common.PrometheusOpt(promPort),
+		)
+	}
 
 	if *taskQueue == "" {
 		if u, err := user.Current(); err != nil {
