@@ -1649,13 +1649,15 @@ func (s *TaskScheduler) updateUnfinishedTasks(ctx context.Context) error {
 
 	// Query for all unfinished tasks.
 	sklog.Infof("Querying states of %d unfinished tasks.", len(tasks))
-	unfinishedIDsByExecutor := map[string][]string{}
+	unfinishedTasksByExecutor := map[string][]*types.Task{}
 	for _, t := range tasks {
-		executor := t.TaskExecutor
-		unfinishedIDsByExecutor[executor] = append(unfinishedIDsByExecutor[executor], t.SwarmingTaskId)
+		unfinishedTasksByExecutor[t.TaskExecutor] = append(unfinishedTasksByExecutor[t.TaskExecutor], t)
 	}
-	for executorName := range unfinishedIDsByExecutor {
-		ids := unfinishedIDsByExecutor[executorName]
+	for executorName, tasks := range unfinishedTasksByExecutor {
+		ids := make([]string, 0, len(tasks))
+		for _, task := range tasks {
+			ids = append(ids, task.SwarmingTaskId)
+		}
 		taskExecutor := s.taskExecutors.Get(executorName)
 		if taskExecutor == nil {
 			return skerr.Fmt("Tasks use unknown task executor %q: %v", executorName, ids)
