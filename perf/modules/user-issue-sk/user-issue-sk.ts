@@ -6,6 +6,8 @@ import { errorMessage } from '../errorMessage';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/check-icon-sk';
+import { UserIssue } from '../json';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
 @customElement('user-issue-sk')
 export class UserIssueSk extends LitElement {
@@ -49,39 +51,6 @@ export class UserIssueSk extends LitElement {
       font-size: 14px;
     }
 
-    .new-issue-text-container {
-      display: flex;
-      align-items: center;
-      padding-top: 25px;
-      flex-direction: column;
-
-      .new-issue {
-        input {
-          color: var(--on-surface);
-          background: var(--surface);
-          border: solid 1px var(--on-surface);
-        }
-
-        span {
-          margin-left: 12px;
-
-          check-icon-sk {
-            fill: var(--positive);
-            cursor: pointer;
-            height: 24px;
-            width: 24px;
-          }
-
-          close-icon-sk {
-            fill: var(--negative);
-            cursor: pointer;
-            height: 24px;
-            width: 24px;
-          }
-        }
-      }
-    }
-
     .new-bug {
       align-items: center;
       background: transparent;
@@ -115,13 +84,6 @@ export class UserIssueSk extends LitElement {
   @property({ attribute: true })
   user_id: string = '';
 
-  // Used for capturing number input values
-  _input_val: number = 0;
-
-  // Indicates if the text input is active typically when adding a new issue.
-  @property({ attribute: false })
-  _text_input_active: boolean = false;
-
   // bug_id = 0 signifies no buganizer issue available in the database for the
   // data point. bug_id > 0 means we have an existing buganizer issue.
   @property({ attribute: true })
@@ -134,6 +96,11 @@ export class UserIssueSk extends LitElement {
   // Commit position of the data point
   @property({ attribute: true })
   commit_position: number = 0;
+
+  @property({ state: true })
+  issueExists = false;
+
+  private bugComponent = 'Blink>javascript';
 
   connectedCallback() {
     super.connectedCallback();
@@ -148,61 +115,13 @@ export class UserIssueSk extends LitElement {
     if (this.bug_id === -1) {
       return html``;
     }
-    return html`${this.bug_id === 0 ? this.addIssueTemplate() : this.showLinkTemplate()}`;
-  }
-
-  /* Template manipulation functions */
-  private activateTextInput() {
-    this._text_input_active = true;
-    this.render();
-  }
-
-  private changeHandler(e: InputEvent) {
-    this._input_val = +(e.target! as HTMLInputElement).value;
-  }
-
-  hideTextInput() {
-    this._input_val = 0;
-    this._text_input_active = false;
-    this.render();
-  }
-
-  /* Templates */
-
-  // Template for showing option to add an issue on the datapoint
-  // Only shown when the user is logged in
-  addIssueTemplate(): TemplateResult {
-    if (this.user_id === '') {
-      return html``;
+    if (this.issueExists && this.user_id !== '') {
+      return html`${this.showLinkTemplate()}`;
     }
-
-    if (this._text_input_active) {
-      return html`
-        <div class="new-issue-text-container">
-          <span class="new-issue">
-            <input
-              style="width: 100px;"
-              placeholder="eg: 3368155"
-              type="number"
-              min="0"
-              @input=${this.changeHandler} />
-          </span>
-          <span>
-            <check-icon-sk
-              @click=${() => {
-                this.addIssue();
-              }}></check-icon-sk>
-            <close-icon-sk @click=${this.hideTextInput}></close-icon-sk>
-          </span>
-        </div>
-      `;
+    if (this.user_id !== '') {
+      return html`<button id="add-issue-button" @click=${this.addOrFindIssue}>Add Issue</button>`;
     }
-
-    return html`
-      <div>
-        <button class="new-bug" @click=${this.activateTextInput}>Add Bug</button>
-      </div>
-    `;
+    return html``;
   }
 
   // If a bug is already associated with the data point show them the link.
@@ -230,43 +149,30 @@ export class UserIssueSk extends LitElement {
     `;
   }
 
-  /* API CALLS */
-
   // Makes an api call to save a buganizer issue
   // Also emits an event to refresh the existing list of user issues
   // with the newly added object.
-  private async addIssue() {
+  private async saveIssue() {
     const traceKey = this.trace_key;
     const commitPosition = this.commit_position;
-
-    if (this._input_val === 0) {
-      errorMessage(`Input a valid bug id. For example, 34243`);
-      return;
-    }
-
-    const req = {
+    const saveIssueRequest = {
       trace_key: traceKey,
       commit_position: commitPosition,
-      issue_id: this._input_val,
+      issue_id: this.bug_id,
     };
-    const resp = await fetch('/_/user_issue/save', {
+    const saveUserIssueResp = await fetch('/_/user_issue/save', {
       method: 'POST',
-      body: JSON.stringify(req),
+      body: JSON.stringify(saveIssueRequest),
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
-    if (!resp.ok) {
-      this.hideTextInput();
-      const msg = await resp.text();
-      errorMessage(`${resp.statusText}: ${msg}`);
+    if (!saveUserIssueResp.ok) {
+      const msg = await saveUserIssueResp.text();
+      errorMessage(`${saveUserIssueResp.statusText}: ${msg}`);
       return;
     }
-
-    this.bug_id = this._input_val;
-    this._input_val = 0;
-    this._text_input_active = false;
 
     this.dispatchEvent(
       new CustomEvent('user-issue-changed', {
@@ -278,8 +184,6 @@ export class UserIssueSk extends LitElement {
         bubbles: true,
       })
     );
-
-    this.render();
   }
 
   // Makes an api call to delete a buganizer issue
@@ -310,8 +214,7 @@ export class UserIssueSk extends LitElement {
     // Since the bug is deleted now, we set the bug_id to 0 for showing the
     // Add buganizer issue template
     this.bug_id = 0;
-    this._input_val = 0;
-    this._text_input_active = false;
+    this.issueExists = false;
 
     this.dispatchEvent(
       new CustomEvent('user-issue-changed', {
@@ -323,7 +226,80 @@ export class UserIssueSk extends LitElement {
         bubbles: true,
       })
     );
+  }
 
-    this.render();
+  /* API CALLS */
+  // Makes an api call to create a new buganizer issue if the bug not exists for the trace key
+  private async fileNewBug() {
+    const bugTitle = this.trace_key + 'at commit position: ' + this.commit_position;
+
+    const body = {
+      trace_names: [this.trace_key],
+      title: bugTitle,
+      ccs: this.user_id,
+      bug_component: this.bugComponent,
+      assignee: this.user_id,
+    };
+
+    await fetch('/_/triage/file_bug', {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        this.bug_id = json.bug_id;
+      })
+      .catch(() => {
+        errorMessage(
+          'File new bug request failed due to an internal server error. Please try again.'
+        );
+      });
+  }
+
+  private async addOrFindIssue() {
+    const traceKey = this.trace_key;
+    const commitPosition = this.commit_position;
+
+    //check if the issue already exists in the database. If it does not exist, create a
+    // new bug issue first, then add it to the bug issue list for the trace key
+    const getIssueRequest = {
+      trace_keys: traceKey,
+      begin_commit_position: commitPosition,
+      end_commit_position: commitPosition,
+    };
+    try {
+      const json = await fetch('/_/user_issues', {
+        method: 'POST',
+        body: JSON.stringify(getIssueRequest),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then(jsonOrThrow);
+
+      const userIssues: UserIssue[] = json.UserIssues;
+      let issueFound = false;
+      userIssues.forEach((userIssue) => {
+        if (userIssue.IssueId === this.bug_id) {
+          issueFound = true;
+        }
+      });
+
+      if (issueFound) {
+        this.issueExists = true;
+      } else {
+        await this.fileNewBug();
+        this.issueExists = true;
+      }
+      if (this.issueExists) {
+        await this.saveIssue();
+      }
+    } catch (json) {
+      const msg = await (json as Response).text();
+      errorMessage(`${(json as Response).statusText}: ${msg}`);
+      return;
+    }
   }
 }

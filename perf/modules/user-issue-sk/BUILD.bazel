@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
 sk_element(
     name = "user-issue-sk",
@@ -13,10 +13,26 @@ sk_element(
         "//:node_modules/lit-html",  # keep
         "//perf/modules/errorMessage:index_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "user-issue-sk.ts",
         "index.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "user-issue-sk_test",
+    src = "user-issue-sk_test.ts",
+    deps = [
+        ":user-issue-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//:node_modules/lit-html",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/anomaly-sk",
+    ],
 )

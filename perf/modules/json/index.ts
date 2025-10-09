@@ -301,6 +301,23 @@ export interface GetGroupReportResponse {
 	timerange_map: { [key: string]: Timerange } | null;
 }
 
+export interface GetUserIssuesForTraceKeysRequest {
+	trace_keys: string[] | null;
+	begin_commit_position: number;
+	end_commit_position: number;
+}
+
+export interface UserIssue {
+	UserId: string;
+	TraceKey: string;
+	CommitPosition: number;
+	IssueId: number;
+}
+
+export interface GetUserIssuesForTraceKeysResponse {
+	UserIssues: UserIssue[] | null;
+}
+
 export interface GetGraphsShortcutRequest {
 	id: string;
 }

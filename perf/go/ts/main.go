@@ -78,6 +78,8 @@ func main() {
 		frontendApi.CountHandlerResponse{},
 		frontendApi.GetAnomaliesResponse{},
 		frontendApi.GetGroupReportResponse{},
+		frontendApi.GetUserIssuesForTraceKeysRequest{},
+		frontendApi.GetUserIssuesForTraceKeysResponse{},
 		frontendApi.GetGraphsShortcutRequest{},
 		frontendApi.GetSheriffListResponse{},
 		frontendApi.NextParamListHandlerRequest{},

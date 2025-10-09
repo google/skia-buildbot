@@ -531,9 +531,6 @@ export class ChartTooltipSk extends ElementSk {
     this.commitRangeSk?.reset();
     this.pointLinks?.reset();
     this.bisectDialog?.reset();
-    if (this.userIssueSk) {
-      this.userIssueSk._text_input_active = false;
-    }
     this._render();
   }
 
