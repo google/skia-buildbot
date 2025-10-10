@@ -47,6 +47,7 @@ import {
   RequestType,
   TraceSet,
   Trace,
+  TraceMetadata,
 } from '../json';
 import { recordSummary } from '../telemetry/telemetry';
 
@@ -922,12 +923,9 @@ export class ExploreMultiSk extends ElementSk {
     let traceset = fullTraceSet as TraceSet;
     let paramset = mainParams;
     const commitLinks = this.exploreElements[0].getCommitLinks();
-    let traceMetadata = ExploreSimpleSk.getTraceMetadataFromCommitLinks(
-      Object.keys(fullTraceSet),
-      commitLinks
-    );
-    let anomalyMap = this.getAnomalyMapForTraces(fullAnomalyMap, Object.keys(fullTraceSet));
 
+    let traceMetadata: TraceMetadata[];
+    let anomalyMap: AnomalyMap;
     // If passing in traces, then create child specific requests per trace.
     if (traces) {
       const traceSet: TraceSet = TraceSet({});
@@ -940,6 +938,13 @@ export class ExploreMultiSk extends ElementSk {
       paramset = paramSet;
       traceMetadata = ExploreSimpleSk.getTraceMetadataFromCommitLinks(traces, commitLinks);
       anomalyMap = this.getAnomalyMapForTraces(fullAnomalyMap, traces);
+    } else {
+      // collect data for all traces.
+      traceMetadata = ExploreSimpleSk.getTraceMetadataFromCommitLinks(
+        Object.keys(fullTraceSet),
+        commitLinks
+      );
+      anomalyMap = this.getAnomalyMapForTraces(fullAnomalyMap, Object.keys(fullTraceSet));
     }
 
     const response: FrameResponse = {
