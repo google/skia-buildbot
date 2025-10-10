@@ -29,6 +29,16 @@ class AnomalyGroup {
   expanded: boolean = false;
 }
 
+interface ProcessedAnomaly {
+  bugId: number;
+  revision: number;
+  bot: string;
+  testsuite: string;
+  test: string;
+  delta: number;
+  isImprovement: boolean;
+}
+
 export class AnomaliesTableSk extends ElementSk {
   anomalyList: Anomaly[] = [];
 
@@ -483,7 +493,7 @@ export class AnomaliesTableSk extends ElementSk {
     this._render();
   }
 
-  private getProcessedAnomaly(anomaly: Anomaly) {
+  private getProcessedAnomaly(anomaly: Anomaly): ProcessedAnomaly {
     const bugId = anomaly.bug_id;
     const testPathPieces = anomaly.test_path.split('/');
     const bot = testPathPieces[1];
@@ -501,6 +511,7 @@ export class AnomaliesTableSk extends ElementSk {
       testsuite,
       test,
       delta,
+      isImprovement: anomaly.is_improvement,
     };
   }
 
@@ -515,7 +526,7 @@ export class AnomaliesTableSk extends ElementSk {
       const anomalySortValues = this.getProcessedAnomaly(anomalyGroup.anomalies[i]);
       const anomaly = anomalyGroup.anomalies[i];
       const processedAnomaly = this.getProcessedAnomaly(anomaly);
-      const anomalyClass = processedAnomaly.delta > 0 ? 'improvement' : 'regression';
+      const anomalyClass = processedAnomaly.isImprovement ? 'improvement' : 'regression';
       const isLoading = this.loadingGraphForAnomaly.get(anomaly.id) || false;
       rows.push(html`
         <tr
@@ -589,61 +600,74 @@ export class AnomaliesTableSk extends ElementSk {
     return rows;
   }
 
+  private _determineSummaryDelta(anomalyGroup: AnomalyGroup): [number, boolean] {
+    const regressions = anomalyGroup.anomalies.filter((a) => !a.is_improvement);
+    let targetAnomalies = anomalyGroup.anomalies;
+    if (regressions.length > 0) {
+      // If there are regressions, find the one with the largest magnitude.
+      targetAnomalies = regressions;
+    }
+
+    const biggestChangeAnomaly = targetAnomalies.reduce((prev, current) => {
+      const prevDelta = Math.abs(
+        AnomalySk.getPercentChange(prev.median_before_anomaly, prev.median_after_anomaly)
+      );
+      const currentDelta = Math.abs(
+        AnomalySk.getPercentChange(current.median_before_anomaly, current.median_after_anomaly)
+      );
+      return prevDelta > currentDelta ? prev : current;
+    });
+    return [
+      AnomalySk.getPercentChange(
+        biggestChangeAnomaly.median_before_anomaly,
+        biggestChangeAnomaly.median_after_anomaly
+      ),
+      regressions.length > 0,
+    ];
+  }
+
   private generateSummaryRow(anomalyGroup: AnomalyGroup, rowClass: string = ''): TemplateResult {
+    if (!anomalyGroup.anomalies || anomalyGroup.anomalies.length === 0) {
+      return html``; // Handle empty group
+    }
+
+    const [deltaValue, isSummaryRegression] = this._determineSummaryDelta(anomalyGroup);
+    const summaryClass = isSummaryRegression ? 'regression' : 'improvement';
+
     const firstAnomaly = anomalyGroup.anomalies[0];
-    const summary = {
-      bugId: 0,
-      startRevision: firstAnomaly.start_revision,
-      endRevision: firstAnomaly.end_revision,
-      bot: '*',
-      testsuite: '*',
-      test: '*',
-      delta: 0,
+    const processedAnomalies = anomalyGroup.anomalies.map((a) => this.getProcessedAnomaly(a));
+    const firstProcessed = processedAnomalies[0];
+
+    // Aggregate Revisions
+    const minStartRevision = Math.min(...anomalyGroup.anomalies.map((a) => a.start_revision));
+    const maxEndRevision = Math.max(...anomalyGroup.anomalies.map((a) => a.end_revision));
+
+    // Check for consistency
+    const allSameBot = processedAnomalies.every((p) => p.bot === firstProcessed.bot);
+    const allSameTestSuite = processedAnomalies.every(
+      (p) => p.testsuite === firstProcessed.testsuite
+    );
+
+    const summaryData = {
+      startRevision: minStartRevision,
+      endRevision: maxEndRevision,
+      bot: allSameBot ? firstProcessed.bot : '*',
+      testsuite: allSameTestSuite ? firstProcessed.testsuite : '*',
+      test: this.findLongestSubTestPath(anomalyGroup.anomalies),
+      delta: deltaValue,
     };
 
-    let sameBot = true;
-    let sameTestSuite = true;
-    const firstProcessed = this.getProcessedAnomaly(firstAnomaly);
-    summary.delta = firstProcessed.delta;
-    for (let i = 1; i < anomalyGroup.anomalies.length; i++) {
-      const processed = this.getProcessedAnomaly(anomalyGroup.anomalies[i]);
-      if (processed.bot !== firstProcessed.bot) {
-        sameBot = false;
-      }
-      if (processed.testsuite !== firstProcessed.testsuite) {
-        sameTestSuite = false;
-      }
-      if (summary.startRevision > anomalyGroup.anomalies[i].start_revision) {
-        summary.startRevision = anomalyGroup.anomalies[i].start_revision;
-      }
-      if (summary.endRevision < anomalyGroup.anomalies[i].end_revision) {
-        summary.endRevision = anomalyGroup.anomalies[i].end_revision;
-      }
-      const delta = AnomalySk.getPercentChange(
-        anomalyGroup.anomalies[i].median_before_anomaly,
-        anomalyGroup.anomalies[i].median_after_anomaly
-      );
-      if (summary.delta < delta) {
-        summary.delta = delta;
-      }
-    }
-    summary.test = this.findLongestSubTestPath(anomalyGroup.anomalies);
-
-    if (sameBot) {
-      summary.bot = firstProcessed.bot;
-    }
-    if (sameTestSuite) {
-      summary.testsuite = firstProcessed.testsuite;
-    }
     const anomalyForBugReportLink = this.getReportLinkForSummaryRowBugId(anomalyGroup);
+    const bugIdForLink = anomalyForBugReportLink ? anomalyForBugReportLink.bug_id : 0;
+
     return html`
       <tr
-        data-bugid="${anomalyForBugReportLink ? anomalyForBugReportLink.bug_id : 0}"
-        data-revisions="${summary.endRevision}"
-        data-bot="${summary.bot}"
-        data-testsuite="${summary.testsuite}"
-        data-test="${summary.test}"
-        data-delta="${summary.delta}"
+        data-bugid="${bugIdForLink}"
+        data-revisions="${summaryData.endRevision}"
+        data-bot="${summaryData.bot}"
+        data-testsuite="${summaryData.testsuite}"
+        data-test="${summaryData.test}"
+        data-delta="${summaryData.delta}"
         class="${this.getRowClass(0, anomalyGroup)} ${rowClass}">
         <td>
           <button
@@ -654,8 +678,8 @@ export class AnomaliesTableSk extends ElementSk {
           </button>
         </td>
         <td>
-          <label
-            ><input
+          <label>
+            <input
               type="checkbox"
               @change="${() => {
                 this.show_selected_groups_first = false;
@@ -669,28 +693,28 @@ export class AnomaliesTableSk extends ElementSk {
         </td>
         <td class="center-content"></td>
         <td>
-          ${this.getReportLinkForBugId(
-            anomalyForBugReportLink ? anomalyForBugReportLink.bug_id : 0
-          )}
+          ${this.getReportLinkForBugId(bugIdForLink)}
           <close-icon-sk
             id="btnUnassociate"
             @click=${() => {
               this.triageMenu!.makeEditAnomalyRequest(
-                [anomalyForBugReportLink ? anomalyForBugReportLink : firstAnomaly],
+                [anomalyForBugReportLink || firstAnomaly],
                 [],
                 'RESET'
               );
             }}
-            ?hidden=${anomalyForBugReportLink === undefined}>
+            ?hidden=${!anomalyForBugReportLink}>
           </close-icon-sk>
         </td>
         <td>
-          <span>${this.computeRevisionRange(summary.startRevision, summary.endRevision)}</span>
+          <span
+            >${this.computeRevisionRange(summaryData.startRevision, summaryData.endRevision)}</span
+          >
         </td>
-        <td>${summary.bot}</td>
-        <td>${summary.testsuite}</td>
-        <td>${summary.test}</td>
-        <td>${AnomalySk.formatPercentage(summary.delta)}%</td>
+        <td>${summaryData.bot}</td>
+        <td>${summaryData.testsuite}</td>
+        <td>${summaryData.test}</td>
+        <td class=${summaryClass}>${AnomalySk.formatPercentage(summaryData.delta)}%</td>
       </tr>
     `;
   }

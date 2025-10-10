@@ -480,6 +480,37 @@ describe('anomalies-table-sk', () => {
     });
   });
 
+  describe('generate summary row', () => {
+    it('correctly summarizes a group of anomalies', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1/sub1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test1/sub2'),
+        dummyAnomaly('3', 12345, 120, 220, 'master/bot/suite/test2/sub1'),
+      ];
+      anomalies[0].is_improvement = true;
+      anomalies[0].median_before_anomaly = 100;
+      anomalies[0].median_after_anomaly = 150; // +50% improvement
+      anomalies[1].is_improvement = false;
+      anomalies[1].median_before_anomaly = 100;
+      anomalies[1].median_after_anomaly = 80; // -20% regression
+      anomalies[2].is_improvement = false;
+      anomalies[2].median_before_anomaly = 100;
+      anomalies[2].median_after_anomaly = 90; // -10% regression
+
+      await element.populateTable(anomalies);
+
+      const summaryRow = element.querySelector('tr[data-bugid="12345"]');
+      assert.isNotNull(summaryRow);
+
+      const cells = summaryRow!.querySelectorAll('td');
+      assert.equal(cells[5].textContent?.trim(), 'bot');
+      assert.equal(cells[6].textContent?.trim(), 'suite');
+      assert.equal(cells[7].textContent?.trim(), 'test*');
+      assert.equal(cells[8].textContent?.trim(), '-20%');
+      assert.include(cells[8].className, 'regression');
+    });
+  });
+
   describe('get checked anomalies', () => {
     it('returns the currently checked anomalies', async () => {
       const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
@@ -585,6 +616,142 @@ describe('anomalies-table-sk', () => {
       assert.isTrue(checkbox1.checked, 'Checkbox should be checked after one click.');
       const checkedAnomalies = element.getCheckedAnomalies();
       assert.deepEqual(checkedAnomalies, [anomalies[0]]);
+    });
+  });
+
+  describe('individual anomaly styling', () => {
+    const createAndTestAnomaly = async (
+      id: string,
+      isImprovement: boolean,
+      before: number,
+      after: number,
+      expectedClass: 'improvement' | 'regression',
+      expectedDelta: string
+    ) => {
+      const anomaly = dummyAnomaly(id, 12345, 100, 200, 'master/bot/suite/test');
+      anomaly.is_improvement = isImprovement;
+      anomaly.median_before_anomaly = before;
+      anomaly.median_after_anomaly = after;
+
+      await element.populateTable([anomaly]);
+
+      const row = element.querySelector(`#anomaly-row-${id}`)!.closest('tr');
+      assert.isNotNull(row, `Row for anomaly ${id} should exist.`);
+
+      const deltaCell = row!.querySelector('td:last-child');
+      assert.isNotNull(deltaCell, `Delta cell for anomaly ${id} should exist.`);
+
+      assert.include(
+        deltaCell!.className,
+        expectedClass,
+        `Cell should have class '${expectedClass}'`
+      );
+      assert.notInclude(
+        deltaCell!.className,
+        expectedClass === 'improvement' ? 'regression' : 'improvement',
+        `Cell should not have class '${
+          expectedClass === 'improvement' ? 'regression' : 'improvement'
+        }'`
+      );
+      assert.equal(deltaCell!.textContent?.trim(), expectedDelta);
+    };
+
+    it('correctly styles a regression where lower is better', async () => {
+      await createAndTestAnomaly('1', false, 100, 120, 'regression', '+20%');
+    });
+
+    it('correctly styles an improvement where lower is better', async () => {
+      await createAndTestAnomaly('2', true, 100, 80, 'improvement', '-20%');
+    });
+
+    it('correctly styles a regression where greater is better', async () => {
+      await createAndTestAnomaly('3', false, 100, 80, 'regression', '-20%');
+    });
+
+    it('correctly styles an improvement where greater is better', async () => {
+      await createAndTestAnomaly('4', true, 100, 120, 'improvement', '+20%');
+    });
+  });
+
+  describe('summary row styling', () => {
+    const createAnomaly = (
+      id: string,
+      isImprovement: boolean,
+      before: number,
+      after: number
+    ): Anomaly => {
+      const anomaly = dummyAnomaly(id, 12345, 100, 200, 'master/bot/suite/test');
+      anomaly.is_improvement = isImprovement;
+      anomaly.median_before_anomaly = before;
+      anomaly.median_after_anomaly = after;
+      return anomaly;
+    };
+
+    it('shows largest improvement when there are no regressions', async () => {
+      const improvement1 = createAnomaly('1', true, 100, 150); // +50%
+      const improvement2 = createAnomaly('2', true, 100, 120); // +20%
+
+      await element.populateTable([improvement1, improvement2]);
+
+      const summaryRow = element.querySelector('tr[data-bugid="12345"]');
+      assert.isNotNull(summaryRow);
+      const summaryCell = summaryRow!.querySelector('td:last-child');
+      assert.isNotNull(summaryCell);
+      assert.include(summaryCell!.className, 'improvement');
+      assert.notInclude(summaryCell!.className, 'regression');
+      assert.equal(summaryCell!.textContent?.trim(), '+50%');
+    });
+
+    it('shows largest regression when there are only regressions', async () => {
+      const regression1 = createAnomaly('1', false, 100, 90); // -10%
+      const regression2 = createAnomaly('2', false, 100, 80); // -20%
+
+      await element.populateTable([regression1, regression2]);
+
+      const summaryRow = element.querySelector('tr[data-bugid="12345"]');
+      assert.isNotNull(summaryRow);
+      const summaryCell = summaryRow!.querySelector('td:last-child');
+      assert.isNotNull(summaryCell);
+      assert.include(summaryCell!.className, 'regression');
+      assert.notInclude(summaryCell!.className, 'improvement');
+      assert.equal(summaryCell!.textContent?.trim(), '-20%');
+    });
+
+    it('shows largest regression in a mixed group', async () => {
+      const improvement = createAnomaly('1', true, 100, 150); // +50%
+      const regression1 = createAnomaly('2', false, 100, 90); // -10%
+      const regression2 = createAnomaly('3', false, 100, 80); // -20%
+
+      await element.populateTable([improvement, regression1, regression2]);
+
+      const summaryRow = element.querySelector('tr[data-bugid="12345"]');
+      assert.isNotNull(summaryRow);
+      const summaryCell = summaryRow!.querySelector('td:last-child');
+      assert.isNotNull(summaryCell);
+      assert.include(summaryCell!.className, 'regression');
+      assert.notInclude(summaryCell!.className, 'improvement');
+      assert.equal(summaryCell!.textContent?.trim(), '-20%');
+    });
+
+    it('shows largest positive regression in a mixed group when lower is better', async () => {
+      // Simulates "lower is better". A positive delta is a regression.
+      const regression1 = createAnomaly('1', false, 100, 120); // +20% regression
+      const regression2 = createAnomaly('2', false, 100, 110); // +10% regression
+      const improvement = createAnomaly('3', true, 100, 90); // -10% improvement
+
+      await element.populateTable([regression1, regression2, improvement]);
+
+      const summaryRow = element.querySelector('tr[data-bugid="12345"]');
+      assert.isNotNull(summaryRow);
+      const summaryCell = summaryRow!.querySelector('td:last-child');
+      assert.isNotNull(summaryCell);
+
+      // The class should be 'regression' because regressions exist.
+      assert.include(summaryCell!.className, 'regression');
+      assert.notInclude(summaryCell!.className, 'improvement');
+
+      // The value should be the largest regression by magnitude, which is +20%.
+      assert.equal(summaryCell!.textContent?.trim(), '+20%');
     });
   });
 });
