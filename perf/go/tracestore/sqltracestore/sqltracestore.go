@@ -43,33 +43,6 @@ system with a tileSize of 256:
 	WHERE
 	    commit_number >= 0 AND commit_number < 256;
 
-The Postings table is our inverted index for looking up which trace ids contain
-which key=value pairs. For a good introduction to postings and search
-https://www.tbray.org/ongoing/When/200x/2003/06/18/HowSearchWorks is a good
-resource.
-
-Remember that each trace name is a structured key of the
-form,arch=x86,config=8888,..., and that over time traces may come and go, i.e.
-we may stop running a test, or start running new tests, so if we want to make
-searching for traces efficient we need to be aware of how those trace ids change
-over time. The answer is to break our store in Tiles, i.e. blocks of commits of
-tileSize length, and then for each Tile we keep an inverted index of the trace
-ids.
-
-In the table below we store a key_value which is the literal "key=value" part of
-a trace name, along with the tile_number and the md5 trace_id. Note that
-tile_number is just int(commitNumber/tileSize).
-
-	CREATE TABLE IF NOT EXISTS Postings (
-	    -- A types.TileNumber.
-	    tile_number INT,
-	    -- A key value pair from a structured key, e.g. "config=8888".
-	    key_value STRING NOT NULL,
-	    -- md5(trace_name)
-	    trace_id BYTES,
-	    PRIMARY KEY (tile_number, key_value, trace_id)
-	);
-
 Finally, to make it fast to turn UI queries into SQL queries we store the
 ParamSet representing all the trace names in the Tile.
 
@@ -100,23 +73,7 @@ To find the most recent tile:
 	    tile_number DESC LIMIT 1;
 
 To query for traces we first find the trace_ids of all the traces that would
-match the given query on a tile.
-
-	SELECT
-	    encode(trace_id, 'hex')
-	FROM
-	    Postings
-	WHERE
-	    key_value IN ('config=8888', 'config=565')
-	    AND tile_number = 0
-	INTERSECT
-	SELECT
-	    encode(trace_id, 'hex')
-	FROM
-	    Postings
-	WHERE
-	    key_value IN ('arch=x86', 'arch=risc-v')
-	    AND tile_number = 0;
+match the given query on a tile. This is done using the InMemoryTraceParams.
 
 Then once you have all the trace_ids, load the values from the TraceValues
 table.
@@ -179,11 +136,7 @@ const (
 	cacheMetricsRefreshDuration = 15 * time.Second
 
 	writeTracesValuesChunkSize    = 100
-	writeTracesPostingsChunkSize  = 100
 	writeTracesParamSetsChunkSize = 100
-	// The number of parallel writes when writing postings data.
-	writePostingsParallelPoolSize = 5
-
 	// The number of parallel writes when writing traces data.
 	writeTracesParallelPoolSize = 5
 
@@ -254,7 +207,6 @@ const (
 	insertIntoSourceFiles statement = iota
 	insertIntoTraceValues
 	insertIntoTraceValues2
-	insertIntoPostings
 	insertIntoParamSets
 	getSourceFileID
 	getLatestTile
@@ -333,15 +285,6 @@ var templates = map[statement]string{
         WHERE
             TraceValues.trace_id = '{{ .MD5HexTraceID }}'
             AND TraceValues.commit_number IN `,
-	insertIntoPostings: `
-        INSERT INTO
-            Postings (tile_number, key_value, trace_id)
-        VALUES
-            {{ range $index, $element :=  . -}}
-                {{ if $index }},{{end}}
-                ( {{ $element.TileNumber }}, '{{ $element.Key }}={{ $element.Value }}', '{{ $element.MD5HexTraceID }}' )
-            {{ end }}
-        ON CONFLICT (tile_number, key_value, trace_id) DO NOTHING`,
 	insertIntoParamSets: `
         INSERT INTO
             ParamSets (tile_number, param_key, param_value)
@@ -426,26 +369,6 @@ type getSourcesContext struct {
 	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
 	// query will use to know the string is in hex.
 	MD5HexTraceID traceIDForSQL
-}
-
-// insertIntoTilesContext is the context for the insertIntoTiles template.
-type insertIntoPostingsContext struct {
-	TileNumber types.TileNumber
-
-	// Key is a Params key.
-	Key string
-
-	// Value is the value for the Params key above.
-	Value string
-
-	// The MD5 sum of the trace name as a hex string, i.e.
-	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
-	// the database will use to know the string is in hex.
-	MD5HexTraceID traceIDForSQL
-
-	// cacheKey is the key for this entry in the local LRU cache. It is not used
-	// as part of the SQL template.
-	cacheKey string
 }
 
 // insertIntoParamSetsContext is the context for the insertIntoParamSets template.
@@ -1193,10 +1116,6 @@ func (s *SQLTraceStore) updateSourceFile(ctx context.Context, filename string) (
 	return ret, nil
 }
 
-func cacheKeyForPostings(tileNumber types.TileNumber, traceID traceIDForSQL) string {
-	return fmt.Sprintf("%d-%s", tileNumber, traceID)
-}
-
 func cacheKeyForParamSets(tileNumber types.TileNumber, paramKey, paramValue string) string {
 	return fmt.Sprintf("%d-%q-%q", tileNumber, paramKey, paramValue)
 }
@@ -1264,10 +1183,9 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 	}
 
 	// Build the 'context's which will be used to populate the SQL templates for
-	// the TraceValues and Postings tables.
+	// the TraceValues table.
 	t := timer.NewWithSummary("perfserver_sqltracestore_build_traces_contexts", s.buildTracesContextsMetric)
 	valuesTemplateContext := make([]insertIntoTraceValuesContext, 0, len(params))
-	postingsTemplateContext := []insertIntoPostingsContext{} // We have no idea how long this will be.
 
 	traceParams := map[string]paramtools.Params{}
 	for i, p := range params {
@@ -1285,52 +1203,11 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 			SourceFileID:  sourceID,
 		})
 
-		cacheKey := cacheKeyForPostings(tileNumber, traceID)
-		if !s.cache.Exists(cacheKey) {
-			s.cacheMissMetric.Inc(1)
-			for paramKey, paramValue := range p {
-				postingsTemplateContext = append(postingsTemplateContext, insertIntoPostingsContext{
-					TileNumber:    tileNumber,
-					Key:           paramKey,
-					Value:         paramValue,
-					MD5HexTraceID: traceID,
-					cacheKey:      cacheKey,
-				})
-			}
-		}
 	}
 	t.Stop()
 
 	// Now that the contexts are built, execute the SQL in batches.
 	defer timer.NewWithSummary("perfserver_sqltracestore_write_traces_sql_insert", s.writeTracesMetricSQL).Stop()
-	sklog.Infof("About to format %d postings names", len(params))
-
-	if len(postingsTemplateContext) > 0 {
-		var err error
-		err = util.ChunkIterParallelPool(ctx, len(postingsTemplateContext), writeTracesPostingsChunkSize, writePostingsParallelPoolSize, func(ctx context.Context, startIdx int, endIdx int) error {
-			ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writePostingsChunkParallel")
-			defer span.End()
-
-			var b bytes.Buffer
-			if err := s.unpreparedStatements[insertIntoPostings].Execute(&b, postingsTemplateContext[startIdx:endIdx]); err != nil {
-				return skerr.Wrapf(err, "failed to expand postings template on slice [%d, %d]", startIdx, endIdx)
-			}
-			sql := b.String()
-
-			if _, err := s.db.Exec(ctx, sql); err != nil {
-				return skerr.Wrapf(err, "Executing: %q", b.String())
-			}
-			return nil
-		})
-
-		if err != nil {
-			return err
-		}
-
-		for _, entry := range postingsTemplateContext {
-			s.cache.Add(entry.cacheKey)
-		}
-	}
 
 	sklog.Infof("Writing %d trace params entries", len(traceParams))
 	traceParamsError := s.traceParamStore.WriteTraceParams(ctx, traceParams)
