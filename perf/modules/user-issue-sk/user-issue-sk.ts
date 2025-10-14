@@ -6,7 +6,7 @@ import { errorMessage } from '../errorMessage';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/check-icon-sk';
-import { UserIssue } from '../json';
+import { GetUserIssuesForTraceKeysResponse, UserIssue } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
 @customElement('user-issue-sk')
@@ -266,12 +266,12 @@ export class UserIssueSk extends LitElement {
     //check if the issue already exists in the database. If it does not exist, create a
     // new bug issue first, then add it to the bug issue list for the trace key
     const getIssueRequest = {
-      trace_keys: traceKey,
+      trace_keys: [traceKey],
       begin_commit_position: commitPosition,
       end_commit_position: commitPosition,
     };
     try {
-      const json = await fetch('/_/user_issues', {
+      const json: GetUserIssuesForTraceKeysResponse = await fetch('/_/user_issues', {
         method: 'POST',
         body: JSON.stringify(getIssueRequest),
         headers: {
@@ -279,13 +279,15 @@ export class UserIssueSk extends LitElement {
         },
       }).then(jsonOrThrow);
 
-      const userIssues: UserIssue[] = json.UserIssues;
+      const userIssues: UserIssue[] = json.UserIssues || [];
       let issueFound = false;
-      userIssues.forEach((userIssue) => {
-        if (userIssue.IssueId === this.bug_id) {
-          issueFound = true;
-        }
-      });
+      if (userIssues.length !== 0) {
+        userIssues.forEach((userIssue) => {
+          if (userIssue.IssueId === this.bug_id) {
+            issueFound = true;
+          }
+        });
+      }
 
       if (issueFound) {
         this.issueExists = true;
