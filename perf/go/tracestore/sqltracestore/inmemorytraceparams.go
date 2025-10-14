@@ -2,6 +2,8 @@ package sqltracestore
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
 	"sync"
 	"time"
 
@@ -42,14 +44,19 @@ type InMemoryTraceParams struct {
 	dataLock sync.RWMutex
 }
 
+const (
+	// No of partitions to use when reading traceParams table.
+	traceParamsReadPartitionCount = 16
+	// Timeout for each worker reading a partition.
+	traceParamsWorkerTimeout = 5 * time.Minute
+)
+
 func (tp *InMemoryTraceParams) Refresh(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "InMemoryTraceParams.refresh")
 	defer span.End()
 	traceparams := [][]int32{}
 	paramCols := map[string]int32{}
 	colParams := map[int32]string{}
-	encoding := map[string]int32{}
-	rEncoding := map[int32]string{}
 
 	// Get latest tilenumber
 	const getLatestTile = `
@@ -99,43 +106,9 @@ func (tp *InMemoryTraceParams) Refresh(ctx context.Context) error {
 	}
 
 	// Get traceparams row data
-	rows, err := tp.db.Query(ctx, "SELECT trace_id, params FROM traceparams;")
+	traceparams, encoding, rEncoding, err := tp.readAllTraceParams(ctx, traceparams, paramCols)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil
-		}
 		return skerr.Wrap(err)
-	}
-	defer rows.Close()
-	var traceIdCount int = 0
-	var eCount int32 = 0
-	for rows.Next() {
-		var trace_id []byte
-		var params map[string]interface{}
-		err = rows.Scan(&trace_id, &params)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		// Try to read the string for each column
-		for param, paramCol := range paramCols {
-			var valueE int32 = -1
-			value, ok := params[param]
-			if ok {
-				valueString := value.(string)
-				valueE, ok = encoding[valueString]
-				if !ok {
-					// If string hasn't been encoded yet then map param values
-					// to number encoding, and back
-					valueE = eCount
-					encoding[valueString] = valueE
-					rEncoding[valueE] = valueString
-					eCount++
-				}
-			}
-			// Store encoded value for this row in column
-			traceparams[paramCol] = append(traceparams[paramCol], valueE)
-		}
-		traceIdCount++
 	}
 
 	tp.dataLock.Lock()
@@ -146,6 +119,148 @@ func (tp *InMemoryTraceParams) Refresh(ctx context.Context) error {
 	tp.encoding = encoding
 	tp.rEncoding = rEncoding
 	return nil
+}
+
+// Struct to hold the row data
+type TraceParam struct {
+	TraceID []byte
+	Params  map[string]interface{}
+}
+
+// readAllTraceParams reads the entire traceparams table and populates the data in the necessary
+// structures.
+//
+// Step 1: Start a goroutine that processes each row being read from the traceparams table.
+// Step 2: Create workers to read the table in parallel and report the rows to the traceparams
+// channel.
+// Step 3: Wait until all workers are done, and all rows are processed.
+//
+// We partition the table data based on the hex representation of the traceId and provide each
+// worker with a unique partition (i.e range of traceIds or rows) to read. This helps speed up
+// the reading of the entire table by running it in parallel without workers overlapping each other.
+func (tp *InMemoryTraceParams) readAllTraceParams(ctx context.Context, traceparams [][]int32, paramCols map[string]int32) ([][]int32, map[string]int32, map[int32]string, error) {
+	var wg sync.WaitGroup
+	var traceParamReadWg sync.WaitGroup
+	totalRows := int64(0)
+	errors := make(chan error, traceParamsReadPartitionCount)
+	traceParamsChan := make(chan TraceParam, 10000)
+	encoding := map[string]int32{}
+	rEncoding := map[int32]string{}
+
+	var traceIdCount int = 0
+	var eCount int32 = 0
+
+	totalRowMutex := sync.Mutex{}
+
+	// Start a goroutine that will read the traceparam entries being published by the workers.
+	traceParamReadWg.Add(1)
+	go func() {
+		defer traceParamReadWg.Done()
+		for traceParam := range traceParamsChan {
+			for param, paramCol := range paramCols {
+				var valueE int32 = -1
+				value, ok := traceParam.Params[param]
+				if ok {
+					valueString := value.(string)
+					valueE, ok = encoding[valueString]
+					if !ok {
+						// If string hasn't been encoded yet then map param values to number encoding, and back.
+						valueE = eCount
+						encoding[valueString] = valueE
+						rEncoding[valueE] = valueString
+						eCount++
+					}
+				}
+				// Store encoded value for this row in column
+				traceparams[paramCol] = append(traceparams[paramCol], valueE)
+			}
+			traceIdCount++
+		}
+	}()
+
+	sklog.Infof("Starting partitioned read with %d workers...", traceParamsReadPartitionCount)
+
+	for i := 0; i < traceParamsReadPartitionCount; i++ {
+		wg.Add(1)
+
+		// Calculate the start and end of the hex range for this partition (e.g., 0x00 to 0x0F, 0x10 to 0x1F)
+		startByte := fmt.Sprintf("%02X", i*256/traceParamsReadPartitionCount)     // 00, 10, 20, ... F0 (for 16 partitions)
+		endByte := fmt.Sprintf("%02X", (i+1)*256/traceParamsReadPartitionCount-1) // 0F, 1F, 2F, ... FF
+
+		// Create the full key range boundary conditions
+		// Note: The BETWEEN operator includes both bounds.
+		// For BYTEA, this is a lexicographical comparison.
+		lowerBound := startByte + "000000000000000000000000000000"
+		upperBound := endByte + "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+
+		// Decode hex to byte slices for correct SQL comparison
+		lowerBytes, _ := hex.DecodeString(lowerBound)
+		upperBytes, _ := hex.DecodeString(upperBound)
+
+		go func(workerID int, lower []byte, upper []byte) {
+			defer wg.Done()
+
+			// The SQL query uses the BETWEEN operator on the BYTEA primary key
+			sqlQuery := `
+				SELECT trace_id, params
+				FROM TraceParams
+				WHERE trace_id >= $1 AND trace_id <= $2
+			`
+
+			workerCtx, cancel := context.WithTimeout(ctx, traceParamsWorkerTimeout)
+			defer cancel()
+			rows, err := tp.db.Query(workerCtx, sqlQuery, lower, upper)
+			if err != nil {
+				if err != pgx.ErrNoRows {
+					errors <- skerr.Fmt("worker %d query failed for range %x-%x: %w", workerID, lower, upper, err)
+				}
+
+				return
+			}
+			defer rows.Close()
+
+			partitionRows := 0
+
+			for rows.Next() {
+				var traceParamRow TraceParam
+				if err := rows.Scan(&traceParamRow.TraceID, &traceParamRow.Params); err != nil {
+					errors <- skerr.Fmt("worker %d failed to scan row: %w", workerID, err)
+					return
+				}
+
+				// Publish the row data on the traceParams channel.
+				traceParamsChan <- traceParamRow
+				partitionRows++
+			}
+
+			if rows.Err() != nil {
+				errors <- skerr.Fmt("worker %d iteration error: %w", workerID, rows.Err())
+				return
+			}
+
+			sklog.Infof("Worker %d finished. Read %d rows in range %x-%x.", workerID, partitionRows, lower[:2], upper[:2])
+			totalRowMutex.Lock()
+			defer totalRowMutex.Unlock()
+			totalRows += int64(partitionRows)
+
+		}(i, lowerBytes, upperBytes)
+	}
+
+	// Wait for all workers to finish
+	wg.Wait()
+	close(errors)
+	close(traceParamsChan)
+
+	sklog.Infof("Ensuring all data has been read on traceparams channel.")
+	traceParamReadWg.Wait()
+
+	// Check for any errors
+	for err := range errors {
+		return nil, nil, nil, err // Return the first error encountered
+	}
+
+	sklog.Infof("TraceParams Partitioned Read complete. Total estimated rows processed: %d", totalRows)
+	return traceparams, encoding, rEncoding, nil
 }
 
 func (tp *InMemoryTraceParams) startRefresher(ctx context.Context) error {
