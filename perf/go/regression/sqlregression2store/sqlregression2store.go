@@ -3,12 +3,14 @@ package sqlregression2store
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"text/template"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -47,6 +49,7 @@ const (
 	readByIDs
 	readBySubName
 	deleteByCommit
+	readRangeFiltered
 )
 
 // statementContext provides a struct to expand sql statement templates.
@@ -86,6 +89,16 @@ var statementFormats = map[statementFormat]string{
 			commit_number >= $1
 			AND commit_number <= $2
 		`,
+	readRangeFiltered: `
+		SELECT
+			{{ .Columns }}
+		FROM
+			Regressions2
+		WHERE
+			commit_number >= $1
+			AND commit_number <= $2
+			AND (frame->'dataframe'->'traceset') ?| $3
+	`,
 	write: `
 		INSERT INTO
 			Regressions2 ({{ .Columns }})
@@ -189,6 +202,27 @@ func (s *SQLRegression2Store) Range(ctx context.Context, begin, end types.Commit
 			allForCommit.ByAlertID[alertIDString] = r
 		}
 		ret[r.CommitNumber] = allForCommit
+	}
+	return ret, nil
+}
+
+// RangeFiltered gets all regressions in the given commit range and trace names.
+func (s *SQLRegression2Store) RangeFiltered(ctx context.Context, begin, end types.CommitNumber, traceNames []string) ([]*regression.Regression, error) {
+	ret := []*regression.Regression{}
+	rows, err := s.db.Query(ctx, s.statements[readRangeFiltered], begin, end, traceNames)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			return nil, skerr.Wrapf(err, "Failed to read regressions in range [%d; %d] for %d traces. PgError %s: %s", begin, end, len(traceNames), pgErr.Code, pgErr.Message)
+		}
+		return nil, skerr.Wrapf(err, "Failed to read regressions in range [%d; %d] for %d traces.", begin, end, len(traceNames))
+	}
+	for rows.Next() {
+		r, err := convertRowToRegression(rows)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, r)
 	}
 	return ret, nil
 }

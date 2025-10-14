@@ -132,6 +132,11 @@ func (s *SQLRegressionStore) GetRegressionsBySubName(ctx context.Context, sub_na
 	return nil, nil
 }
 
+// Unimplemented: This function is implemented by regression2 store
+func (s *SQLRegressionStore) RangeFiltered(ctx context.Context, begin, end types.CommitNumber, traceNames []string) ([]*regression.Regression, error) {
+	return nil, skerr.Fmt("RangeFiltered is not implemented in old version of regression store.")
+}
+
 // Range implements the regression.Store interface.
 func (s *SQLRegressionStore) Range(ctx context.Context, begin, end types.CommitNumber) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
 	ret := map[types.CommitNumber]*regression.AllRegressionsForCommit{}

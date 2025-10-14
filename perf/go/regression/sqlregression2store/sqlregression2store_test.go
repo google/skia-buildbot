@@ -2,10 +2,13 @@ package sqlregression2store
 
 import (
 	"context"
+	"errors"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgconn"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/perf/go/alerts"
 	alerts_mock "go.skia.org/infra/perf/go/alerts/mock"
@@ -261,6 +264,68 @@ func TestMixedRegressionWrite(t *testing.T) {
 	assert.NotNil(t, reg)
 	assert.NotNil(t, reg.High)
 	assert.NotNil(t, reg.Low)
+}
+
+func TestRangeFiltered(t *testing.T) {
+	const (
+		traceKey1           = ",benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=test1,"
+		traceKey2           = ",benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=test2,"
+		nonExistentTraceKey = "non-existent-trace"
+	)
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+
+	// Add a regression with trace key 1.
+	r1 := generateNewRegression()
+	r1.CommitNumber = 12345
+	r1.Frame.DataFrame.TraceSet = types.TraceSet{traceKey1: {}}
+	_, err := store.WriteRegression(ctx, r1, nil)
+	assert.Nil(t, err)
+
+	// Add a regression with trace key 2.
+	r2 := generateNewRegression()
+	r2.CommitNumber = 12346
+	r2.Frame.DataFrame.TraceSet = types.TraceSet{traceKey2: {}}
+	_, err = store.WriteRegression(ctx, r2, nil)
+	assert.Nil(t, err)
+
+	// Filter by trace key 1.
+	regressionsFromDb, err := store.RangeFiltered(ctx, r1.CommitNumber, r1.CommitNumber, []string{traceKey1})
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if strings.Contains(pgErr.Message, "Postgres function jsonb_exists_any(jsonb, text[]) is not supported") {
+				// TODO(ansid): this can be removed when Spanner emulator image in gcloudsdk is updated.
+				// To test if it can be removed already, remove and run tests with "--config=remote".
+				t.Skip("Skiped test unsupported by Spanner emulator")
+				return
+			}
+		}
+	}
+	assert.Nil(t, err)
+	assert.NotNil(t, regressionsFromDb)
+	assert.Len(t, regressionsFromDb, 1)
+	assertRegression(t, r1, regressionsFromDb[0])
+
+	// Filter by trace key 2.
+	regressionsFromDb, err = store.RangeFiltered(ctx, r2.CommitNumber, r2.CommitNumber, []string{traceKey2})
+	assert.Nil(t, err)
+	assert.NotNil(t, regressionsFromDb)
+	assert.Len(t, regressionsFromDb, 1)
+	assertRegression(t, r2, regressionsFromDb[0])
+
+	// Filter by both trace keys.
+	regressionsFromDb, err = store.RangeFiltered(ctx, r1.CommitNumber, r2.CommitNumber, []string{traceKey1, traceKey2})
+	assert.Nil(t, err)
+	assert.NotNil(t, regressionsFromDb)
+	assert.Len(t, regressionsFromDb, 2)
+
+	// Filter by a non-existent trace key.
+	regressionsFromDb, err = store.RangeFiltered(ctx, r1.CommitNumber, r2.CommitNumber, []string{nonExistentTraceKey})
+	assert.Nil(t, err)
+	assert.Empty(t, regressionsFromDb)
 }
 
 func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool, alertsProvider alerts.ConfigProvider) {

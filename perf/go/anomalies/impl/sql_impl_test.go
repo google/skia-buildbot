@@ -143,8 +143,11 @@ func TestSqlAnomaliesStore_GetAnomalies(t *testing.T) {
 
 	t.Run("Success_WithRegressions_WithTraceFilter_Matching", func(t *testing.T) {
 		store, regStoreMock, _ := setupStore(t)
-		regStoreMock.On("Range", mock.Anything, types.CommitNumber(startCommit), types.CommitNumber(endCommit)).
-			Return(newTestRegresstionsMap(), nil).Once()
+		regressions := []*regression.Regression{
+			newTestRegression("alert_id_1", startCommit, endCommit, traceKey1, false, medianBefore, medianAfter),
+		}
+		regStoreMock.On("RangeFiltered", mock.Anything, types.CommitNumber(startCommit), types.CommitNumber(endCommit), []string{traceKey1}).
+			Return(regressions, nil).Once()
 
 		anomaliesMap, err := store.GetAnomalies(ctx, []string{traceKey1}, startCommit, endCommit)
 		require.NoError(t, err)
@@ -156,8 +159,8 @@ func TestSqlAnomaliesStore_GetAnomalies(t *testing.T) {
 
 	t.Run("Success_WithRegressions_WithTraceFilter_NoMatching", func(t *testing.T) {
 		store, regStoreMock, _ := setupStore(t)
-		regStoreMock.On("Range", mock.Anything, types.CommitNumber(startCommit), types.CommitNumber(endCommit)).
-			Return(newTestRegresstionsMap(), nil).Once()
+		regStoreMock.On("RangeFiltered", mock.Anything, types.CommitNumber(startCommit), types.CommitNumber(endCommit), []string{"non_existent_trace"}).
+			Return([]*regression.Regression{}, nil).Once()
 
 		anomaliesMap, err := store.GetAnomalies(ctx, []string{"non_existent_trace"}, startCommit, endCommit)
 		require.NoError(t, err)
@@ -203,8 +206,8 @@ func TestSqlAnomaliesStore_GetAnomaliesInTimeRange(t *testing.T) {
 		}
 		gitMock.On("CommitSliceFromTimeRange", mock.Anything, startTime, endTime).
 			Return(commits, nil).Once()
-		regStoreMock.On("Range", mock.Anything, types.CommitNumber(startCommit), types.CommitNumber(endCommit)).
-			Return(RegressionMap{}, nil).Once()
+		regStoreMock.On("RangeFiltered", mock.Anything, types.CommitNumber(startCommit), types.CommitNumber(endCommit), traceNames).
+			Return([]*regression.Regression{}, nil).Once()
 
 		_, err := store.GetAnomaliesInTimeRange(ctx, traceNames, startTime, endTime)
 

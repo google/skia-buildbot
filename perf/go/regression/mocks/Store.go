@@ -191,6 +191,36 @@ func (_m *Store) Range(ctx context.Context, begin types.CommitNumber, end types.
 	return r0, r1
 }
 
+// RangeFiltered provides a mock function with given fields: ctx, begin, end, traceNames
+func (_m *Store) RangeFiltered(ctx context.Context, begin types.CommitNumber, end types.CommitNumber, traceNames []string) ([]*regression.Regression, error) {
+	ret := _m.Called(ctx, begin, end, traceNames)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RangeFiltered")
+	}
+
+	var r0 []*regression.Regression
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, types.CommitNumber, []string) ([]*regression.Regression, error)); ok {
+		return rf(ctx, begin, end, traceNames)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, types.CommitNumber, []string) []*regression.Regression); ok {
+		r0 = rf(ctx, begin, end, traceNames)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*regression.Regression)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, types.CommitNumber, types.CommitNumber, []string) error); ok {
+		r1 = rf(ctx, begin, end, traceNames)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SetHigh provides a mock function with given fields: ctx, commitNumber, alertID, df, high
 func (_m *Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, string, error) {
 	ret := _m.Called(ctx, commitNumber, alertID, df, high)

@@ -42,37 +42,39 @@ func (s *sqlAnomaliesStore) GetAnomalies(ctx context.Context, traceNames []strin
 		return nil, skerr.Fmt("invalid commit range for GetAnomalies: [%d, %d]", startCommitPosition, endCommitPosition)
 	}
 
-	regressionsMap, err := s.regStore.Range(ctx, types.CommitNumber(startCommitPosition), types.CommitNumber(endCommitPosition))
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to load regressions from database")
-	}
-
-	targetTraceSet := make(map[string]bool, len(traceNames))
-	for _, tn := range traceNames {
-		targetTraceSet[tn] = true
-	}
-
-	for _, allRegressionsForCommit := range regressionsMap {
-		for _, reg := range allRegressionsForCommit.ByAlertID {
-			convertedAnomalies, err := compat.ConvertRegressionToAnomalies(reg)
-			if err != nil {
-				sklog.Warningf("Could not convert regression with id %s to anomalies: %s", reg.Id, err)
-				continue
+	var regressions []*regression.Regression
+	var err error
+	if len(traceNames) == 0 {
+		regressionsMap, err := s.regStore.Range(ctx, types.CommitNumber(startCommitPosition), types.CommitNumber(endCommitPosition))
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to load regressions from database")
+		}
+		for _, allRegressionsForCommit := range regressionsMap {
+			for _, reg := range allRegressionsForCommit.ByAlertID {
+				regressions = append(regressions, reg)
 			}
+		}
+	} else {
+		regressions, err = s.regStore.RangeFiltered(ctx, types.CommitNumber(startCommitPosition), types.CommitNumber(endCommitPosition), traceNames)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to load regressions from database")
+		}
+	}
 
-			for traceKey, commitMap := range convertedAnomalies {
-				// Applying filtering.
-				if len(targetTraceSet) > 0 && !targetTraceSet[traceKey] {
-					continue
-				}
+	for _, reg := range regressions {
+		convertedAnomalies, err := compat.ConvertRegressionToAnomalies(reg)
+		if err != nil {
+			sklog.Warningf("Could not convert regression with id %s to anomalies: %s", reg.Id, err)
+			continue
+		}
 
-				if _, ok := result[traceKey]; !ok {
-					result[traceKey] = chromeperf.CommitNumberAnomalyMap{}
-				}
-				for commitNumber, anomaly := range commitMap {
-					result[traceKey][commitNumber] = anomaly
-					sklog.Debugf("Constructed anomaly for trace %s: %+v", traceKey, anomaly)
-				}
+		for traceKey, commitMap := range convertedAnomalies {
+			if _, ok := result[traceKey]; !ok {
+				result[traceKey] = chromeperf.CommitNumberAnomalyMap{}
+			}
+			for commitNumber, anomaly := range commitMap {
+				result[traceKey][commitNumber] = anomaly
+				sklog.Debugf("Constructed anomaly for trace %s: %+v", traceKey, anomaly)
 			}
 		}
 	}

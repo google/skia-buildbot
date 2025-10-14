@@ -16,6 +16,9 @@ type Store interface {
 	// will be returned for begin.
 	Range(ctx context.Context, begin, end types.CommitNumber) (map[types.CommitNumber]*AllRegressionsForCommit, error)
 
+	// RangeFiltered gets all regressions in the given commit range and trace names.
+	RangeFiltered(ctx context.Context, begin, end types.CommitNumber, traceNames []string) ([]*Regression, error)
+
 	// SetHigh sets the ClusterSummary for a high regression at the given commit and alertID.
 	SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, string, error)
 
