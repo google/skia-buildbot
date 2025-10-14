@@ -25,6 +25,9 @@ type Store interface {
 	//   group, it will load the group for the info needed.
 	LoadById(ctx context.Context, group_id string) (*pb.AnomalyGroup, error)
 
+	// Get all anomaly IDs associated with an issue ID.
+	GetAnomalyIdsByIssueId(ctx context.Context, issueId string) ([]string, error)
+
 	FindExistingGroup(
 		ctx context.Context,
 		subscription_name string,

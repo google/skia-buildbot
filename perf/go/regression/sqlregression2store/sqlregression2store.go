@@ -304,6 +304,10 @@ func (s *SQLRegression2Store) GetRegressionsBySubName(ctx context.Context, sub_n
 
 // Get a list of regressions given a list of regression ids.
 func (s *SQLRegression2Store) GetByIDs(ctx context.Context, ids []string) ([]*regression.Regression, error) {
+	if len(ids) == 0 {
+		sklog.Warning("GetByIDs received an empty ids list.")
+		return nil, nil
+	}
 	statement := s.statements[readByIDs]
 	query := fmt.Sprintf(statement, quotedSlice(ids))
 	rows, err := s.db.Query(ctx, query)

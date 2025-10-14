@@ -319,3 +319,32 @@ func (s *AnomalyGroupStore) FindExistingGroup(
 	}
 	return groups, nil
 }
+
+func (s *AnomalyGroupStore) GetAnomalyIdsByIssueId(
+	ctx context.Context,
+	issueId string) ([]string, error) {
+	statement := `
+		SELECT
+			anomaly_ids
+		FROM
+			AnomalyGroups
+		WHERE
+			reported_issue_id=$1
+		`
+	rows, err := s.db.Query(ctx, statement, issueId)
+	if err != nil {
+		err_msg := fmt.Sprintf("failed to load the anomaly group by issue id: %s", issueId)
+		return nil, skerr.Wrapf(err, "%s", err_msg)
+	}
+
+	var all_anomaly_ids []string
+	for rows.Next() {
+		var anomaly_ids []string
+		if err = rows.Scan(&anomaly_ids); err != nil {
+			return nil, skerr.Wrapf(err, "error parsing the returned anomaly ids")
+		} else {
+			all_anomaly_ids = append(all_anomaly_ids, anomaly_ids...)
+		}
+	}
+	return all_anomaly_ids, nil
+}

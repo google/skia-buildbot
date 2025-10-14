@@ -40,6 +40,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/anomalies"
 	anomalies_impl "go.skia.org/infra/perf/go/anomalies/impl"
+	"go.skia.org/infra/perf/go/anomalygroup"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
@@ -123,6 +124,8 @@ type Frontend struct {
 	templates *template.Template
 
 	loadTemplatesOnce sync.Once
+
+	anomalygroupStore anomalygroup.Store
 
 	regStore regression.Store
 
@@ -549,6 +552,12 @@ func (f *Frontend) initialize() {
 	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, cfg, f.configProvider)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
+	}
+
+	sklog.Debug("Creating anomalygroup store.")
+	f.anomalygroupStore, err = builders.NewAnomalyGroupStoreFromConfig(ctx, config.Config)
+	if err != nil {
+		sklog.Fatalf("Error creating anomalygroup store. %s", err)
 	}
 
 	// Ongoing migration to Spanner.
@@ -1059,7 +1068,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 	return []api.FrontendApi{
 		api.NewFavoritesApi(f.loginProvider, f.favStore),
 		api.NewAlertsApi(f.loginProvider, f.configProvider, f.alertStore, f.notifier, f.subStore, f.dryrunRequests),
-		api.NewAnomaliesApi(f.loginProvider, f.chromeperfClient, f.perfGit, f.subStore, f.alertStore, f.regStore, !config.Config.FetchAnomaliesFromSql),
+		api.NewAnomaliesApi(f.loginProvider, f.chromeperfClient, f.perfGit, f.subStore, f.alertStore, f.regStore, f.anomalygroupStore, !config.Config.FetchAnomaliesFromSql),
 		api.NewRegressionsApi(f.loginProvider, f.configProvider, f.alertStore, f.regStore, f.perfGit, f.anomalyApiClient, f.urlProvider, f.graphsShortcutStore, f.alertGroupClient, f.progressTracker, f.shortcutStore, f.dfBuilder, f.paramsetRefresher),
 		api.NewQueryApi(f.paramsetRefresher),
 		api.NewShortCutsApi(f.shortcutStore, f.graphsShortcutStore),

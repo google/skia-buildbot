@@ -332,3 +332,75 @@ func TestFindGroup_InvalidCommit(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid params")
 }
+
+func TestGetAnomalyIdsByIssueId(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id_1, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+	new_group_id_2, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+	new_group_id_other_issue, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+
+	issueId := "24fa5591-946b-44e4-bf09-3fd271588ee5"
+	err = store.UpdateReportedIssueID(ctx, new_group_id_1, issueId)
+	require.NoError(t, err)
+	err = store.UpdateReportedIssueID(ctx, new_group_id_2, issueId)
+	require.NoError(t, err)
+
+	otherIssueId := "9fc415f0-42cf-4606-9a78-d2b9868a1f41"
+	err = store.UpdateReportedIssueID(ctx, new_group_id_other_issue, otherIssueId)
+	require.NoError(t, err)
+
+	anomaly_id_1 := "b1fb4036-1883-4d9e-85d4-ed607629017a"
+	anomaly_id_2 := "a60414c6-2495-4ef7-834a-829b1a929100"
+	anomaly_id_3 := "a1235d05-1512-fe41-cba8-32905ec2049a"
+	err = store.AddAnomalyID(ctx, new_group_id_1, anomaly_id_1)
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, new_group_id_2, anomaly_id_2)
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, new_group_id_2, anomaly_id_3)
+	require.NoError(t, err)
+
+	anomaly_id_other_issue := "204cdc89-2ca2-4897-b8e9-82e8058b4330"
+	err = store.AddAnomalyID(ctx, new_group_id_other_issue, anomaly_id_other_issue)
+	require.NoError(t, err)
+
+	anomaly_ids, err := store.GetAnomalyIdsByIssueId(ctx, issueId)
+	require.NoError(t, err)
+	// In this test, groups 1 and 2 have the same issue id. Anomalies belonging to them are 1, 2 and 3.
+	assert.ElementsMatch(t, []string{anomaly_id_1, anomaly_id_2, anomaly_id_3}, anomaly_ids)
+}
+
+func TestGetAnomalyIdsByIssueId_EmptyAnomalyList(t *testing.T) {
+	// No anomalies for groups with this issue id.
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id_1, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+	new_group_id_2, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+	new_group_id_other_issue, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+
+	issueId := "24fa5591-946b-44e4-bf09-3fd271588ee5"
+	err = store.UpdateReportedIssueID(ctx, new_group_id_1, issueId)
+	require.NoError(t, err)
+	err = store.UpdateReportedIssueID(ctx, new_group_id_2, issueId)
+	require.NoError(t, err)
+
+	otherIssueId := "9fc415f0-42cf-4606-9a78-d2b9868a1f41"
+	err = store.UpdateReportedIssueID(ctx, new_group_id_other_issue, otherIssueId)
+	require.NoError(t, err)
+
+	anomaly_id_other_issue := "204cdc89-2ca2-4897-b8e9-82e8058b4330"
+	err = store.AddAnomalyID(ctx, new_group_id_other_issue, anomaly_id_other_issue)
+	require.NoError(t, err)
+
+	anomaly_ids, err := store.GetAnomalyIdsByIssueId(ctx, issueId)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{}, anomaly_ids)
+}

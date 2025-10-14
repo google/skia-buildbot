@@ -73,6 +73,14 @@ func generateAndStoreNewRegression(ctx context.Context, t *testing.T, store *SQL
 	return r
 }
 
+func generateAndStoreNewRegressionImprovement(ctx context.Context, t *testing.T, store *SQLRegression2Store) *regression.Regression {
+	r := generateNewRegression()
+	r.IsImprovement = true
+	_, err := store.WriteRegression(ctx, r, nil)
+	assert.Nil(t, err)
+	return r
+}
+
 func assertRegression(t *testing.T, expected *regression.Regression, actual *regression.Regression) {
 	assert.Equal(t, expected.AlertId, actual.AlertId)
 	assert.Equal(t, expected.CommitNumber, actual.CommitNumber)
@@ -131,14 +139,57 @@ func TestGetByIDs_Success(t *testing.T) {
 	ctx := context.Background()
 	r := generateAndStoreNewRegression(ctx, t, store)
 	r2 := generateAndStoreNewRegression(ctx, t, store)
+	// Improvements are anomalies, and they are stored, too.
+	rImprovement := generateAndStoreNewRegressionImprovement(ctx, t, store)
 
-	regressionIDs := []string{r.Id, r2.Id}
-	regressions, err := store.GetByIDs(ctx, regressionIDs)
+	tests := []struct {
+		name             string
+		regressionIDs    []string
+		expectedLen      int
+		shouldContainIDs []string
+	}{
+		{
+			name:             "two regressions",
+			regressionIDs:    []string{r.Id, r2.Id},
+			expectedLen:      2,
+			shouldContainIDs: []string{r.Id, r2.Id},
+		},
+		{
+			name:             "two regressions and one improvement",
+			regressionIDs:    []string{r.Id, r2.Id, rImprovement.Id},
+			expectedLen:      3,
+			shouldContainIDs: []string{r.Id, r2.Id, rImprovement.Id},
+		},
+		{
+			name:             "empty ids list",
+			regressionIDs:    []string{},
+			expectedLen:      0,
+			shouldContainIDs: []string{},
+		},
+		{
+			name:             "just the improvement",
+			regressionIDs:    []string{rImprovement.Id},
+			expectedLen:      1,
+			shouldContainIDs: []string{rImprovement.Id},
+		},
+		{
+			name:             "duplicate ids are ignored",
+			regressionIDs:    []string{rImprovement.Id, rImprovement.Id, rImprovement.Id, r.Id, r.Id},
+			expectedLen:      2,
+			shouldContainIDs: []string{rImprovement.Id, r.Id},
+		},
+	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(regressions))
-	assert.Contains(t, regressionIDs, regressions[0].Id)
-	assert.Contains(t, regressionIDs, regressions[1].Id)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			regressions, err := store.GetByIDs(ctx, tc.regressionIDs)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expectedLen, len(regressions))
+			for _, r := range regressions {
+				assert.Contains(t, tc.shouldContainIDs, r.Id)
+			}
+		})
+	}
 }
 
 // TestHighRegression_KMeans_Triage sets a High regression into the database, triages it

@@ -108,6 +108,36 @@ func (_m *Store) FindExistingGroup(ctx context.Context, subscription_name string
 	return r0, r1
 }
 
+// GetAnomalyIdsByIssueId provides a mock function with given fields: ctx, issueId
+func (_m *Store) GetAnomalyIdsByIssueId(ctx context.Context, issueId string) ([]string, error) {
+	ret := _m.Called(ctx, issueId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAnomalyIdsByIssueId")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]string, error)); ok {
+		return rf(ctx, issueId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
+		r0 = rf(ctx, issueId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, issueId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // LoadById provides a mock function with given fields: ctx, group_id
 func (_m *Store) LoadById(ctx context.Context, group_id string) (*v1.AnomalyGroup, error) {
 	ret := _m.Called(ctx, group_id)
