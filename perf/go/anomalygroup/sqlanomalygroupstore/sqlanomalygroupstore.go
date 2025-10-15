@@ -329,11 +329,11 @@ func (s *AnomalyGroupStore) getAnomalyIds(ctx context.Context, stmt string, quer
 
 	var all_anomaly_ids []string
 	for rows.Next() {
-		var anomaly_ids []string
-		if err = rows.Scan(&anomaly_ids); err != nil {
+		var anomaly_id string
+		if err = rows.Scan(&anomaly_id); err != nil {
 			return nil, skerr.Wrapf(err, "error parsing the returned anomaly ids")
 		} else {
-			all_anomaly_ids = append(all_anomaly_ids, anomaly_ids...)
+			all_anomaly_ids = append(all_anomaly_ids, anomaly_id)
 		}
 	}
 	return all_anomaly_ids, nil
@@ -344,9 +344,10 @@ func (s *AnomalyGroupStore) GetAnomalyIdsByIssueId(
 	issueId string) ([]string, error) {
 	statement := `
 		SELECT
-			anomaly_ids
+			DISTINCT(anomaly_id)
 		FROM
-			AnomalyGroups
+			AnomalyGroups,
+			UNNEST(anomaly_ids) AS anomaly_id
 		WHERE
 			reported_issue_id=$1
 		`
@@ -358,9 +359,10 @@ func (s *AnomalyGroupStore) GetAnomalyIdsByAnomalyGroupId(
 	anomalyGroupId string) ([]string, error) {
 	statement := `
 		SELECT
-			anomaly_ids
+			DISTINCT(anomaly_id)
 		FROM
-			AnomalyGroups
+			AnomalyGroups,
+			UNNEST(anomaly_ids) AS anomaly_id
 		WHERE
 			id=$1
 		`

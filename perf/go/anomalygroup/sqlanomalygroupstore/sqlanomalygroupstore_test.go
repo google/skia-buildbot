@@ -374,6 +374,43 @@ func TestGetAnomalyIdsByIssueId(t *testing.T) {
 	assert.ElementsMatch(t, []string{anomaly_id_1, anomaly_id_2, anomaly_id_3}, anomaly_ids)
 }
 
+func TestGetAnomalyIdsByIssueId_AnomaliesDeduplicatedInSql(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id_1, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+	new_group_id_2, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+
+	issueId := "24fa5591-946b-44e4-bf09-3fd271588ee5"
+	err = store.UpdateReportedIssueID(ctx, new_group_id_1, issueId)
+	require.NoError(t, err)
+	err = store.UpdateReportedIssueID(ctx, new_group_id_2, issueId)
+	require.NoError(t, err)
+
+	anomaly_id_1 := "b1fb4036-1883-4d9e-85d4-ed607629017a"
+	anomaly_id_2 := "a60414c6-2495-4ef7-834a-829b1a929100"
+	anomaly_id_3 := "a1235d05-1512-fe41-cba8-32905ec2049a"
+	anomaly_id_1_copy := anomaly_id_1
+	err = store.AddAnomalyID(ctx, new_group_id_1, anomaly_id_1)
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, new_group_id_2, anomaly_id_2)
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, new_group_id_2, anomaly_id_3)
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, new_group_id_1, anomaly_id_1_copy)
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, new_group_id_2, anomaly_id_3)
+	require.NoError(t, err)
+
+	anomaly_ids, err := store.GetAnomalyIdsByIssueId(ctx, issueId)
+	require.NoError(t, err)
+	// Anomaly_id_1_copy is a duplicate that's ommited.
+	// Anomaly_id_3 is present in both G1 and G2.
+	assert.ElementsMatch(t, []string{anomaly_id_1, anomaly_id_2, anomaly_id_3}, anomaly_ids)
+}
+
 func TestGetAnomalyIdsByIssueId_EmptyAnomalyList(t *testing.T) {
 	// No anomalies for groups with this issue id.
 	store, _ := setUp(t)
@@ -434,6 +471,28 @@ func TestGetAnomalyIdsByAnomalyGroupId(t *testing.T) {
 	require.NoError(t, err)
 	// Anomalies belonging to group 2 are A2 and A3.
 	assert.ElementsMatch(t, []string{anomaly_id_2, anomaly_id_3}, anomaly_ids)
+}
+func TestGetAnomalyIdsByAnomalyGroupId_AnomalyIdDeduplicatedInSql(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+
+	anomaly_id_1 := "b1fb4036-1883-4d9e-85d4-ed607629017a"
+	anomaly_id_2 := "a60414c6-2495-4ef7-834a-829b1a929100"
+	anomaly_id_3 := anomaly_id_1
+	err = store.AddAnomalyID(ctx, group_id, anomaly_id_1)
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, group_id, anomaly_id_2)
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, group_id, anomaly_id_3)
+	require.NoError(t, err)
+
+	anomaly_ids, err := store.GetAnomalyIdsByAnomalyGroupId(ctx, group_id)
+	require.NoError(t, err)
+	// Duplicates should be removed, so A3 is not present because A1 is already there.
+	assert.ElementsMatch(t, []string{anomaly_id_1, anomaly_id_2}, anomaly_ids)
 }
 
 func TestGetAnomalyIdsByAnomalyGroupId_EmptyDb(t *testing.T) {
