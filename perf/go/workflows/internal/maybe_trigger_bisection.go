@@ -158,6 +158,18 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		}).Get(ctx, &notifyUserOfAnomalyResponse); err != nil {
 			return nil, err
 		}
+
+		// Step 5. Update the anomaly group with the reported issue id.
+		if notifyUserOfAnomalyResponse != nil && notifyUserOfAnomalyResponse.IssueId != "" {
+			var updateAnomalyGroupResponse *ag_pb.UpdateAnomalyGroupResponse
+			if err = workflow.ExecuteActivity(ctx, agsa.UpdateAnomalyGroup, input.AnomalyGroupServiceUrl, &ag_pb.UpdateAnomalyGroupRequest{
+				AnomalyGroupId: input.AnomalyGroupId,
+				IssueId:        notifyUserOfAnomalyResponse.IssueId,
+			}).Get(ctx, &updateAnomalyGroupResponse); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+		}
+
 		metrics2.GetCounter("anomalygroup_reported").Inc(1)
 		return &workflows.MaybeTriggerBisectionResult{}, nil
 	}

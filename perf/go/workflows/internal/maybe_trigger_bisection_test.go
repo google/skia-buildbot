@@ -287,11 +287,18 @@ func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 		Limit:          10}).
 		Return(
 			&anomalygroup_proto.FindTopAnomaliesResponse{Anomalies: mockAnomalies}, nil)
+	mockIssueId := "mock_issue_id"
 	c_server.On("NotifyUserOfAnomaly", mock.Anything, &culprit_proto.NotifyUserOfAnomalyRequest{
 		AnomalyGroupId: anomalyGroupId,
 		Anomaly:        mockCulpritAnomalies,
 	}).Return(
-		&culprit_proto.NotifyUserOfAnomalyResponse{}, nil)
+		&culprit_proto.NotifyUserOfAnomalyResponse{IssueId: mockIssueId}, nil)
+
+	ag_server.On("UpdateAnomalyGroup", mock.Anything, &anomalygroup_proto.UpdateAnomalyGroupRequest{
+		AnomalyGroupId: anomalyGroupId,
+		IssueId:        mockIssueId,
+	}).Return(
+		&anomalygroup_proto.UpdateAnomalyGroupResponse{}, nil)
 
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
 		AnomalyGroupServiceUrl: ag_addr,
