@@ -6,7 +6,7 @@
     "contact": "browser-perf-engprod@google.com",
     "instance_name": "chrome-experimental",
     "trace_sample_proportion": 1.0,
-    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-;])",
     "fetch_chrome_perf_anomalies": true,
     "use_regression2_schema": true,
     "bug_host_url": "https://issues.chromium.org",

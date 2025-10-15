@@ -181,22 +181,64 @@ func getParamsAndValuesFromVersion1Format(f format.Format, invalidParamCharRegex
 	paramSlice := []paramtools.Params{}
 	keyParams := paramtools.Params(f.Key)
 	measurementSlice := []float32{}
+
+	shouldLog := invalidParamCharRegex != query.InvalidChar
+
+	// This helper function now returns the cleaned map and a boolean indicating if changes were made.
+	sanitizeAndLog := func(params paramtools.Params) paramtools.Params {
+		cleanedParams := make(paramtools.Params, len(params))
+		for key, value := range params {
+			var invalidCharsFound []string
+			var wasModified bool = false
+
+			// Create the replacement function (a closure)
+			replacerFunc := func(match string) string {
+				if !wasModified {
+					wasModified = true
+					invalidCharsFound = []string{}
+				}
+				invalidCharsFound = append(invalidCharsFound, match)
+				return "_"
+			}
+
+			// Sanitize the key in a single pass
+			cleanedKey := invalidParamCharRegex.ReplaceAllStringFunc(key, replacerFunc)
+			if wasModified && shouldLog {
+				sklog.Warningf("Sanitized invalid param key. Original: '%s', Replaced Chars: %v", key, invalidCharsFound)
+				// Reset for the next check
+				wasModified = false
+				invalidCharsFound = nil
+			}
+
+			// Sanitize the value in a single pass
+			cleanedValue := invalidParamCharRegex.ReplaceAllStringFunc(value, replacerFunc)
+			if wasModified && shouldLog {
+				sklog.Warningf("Sanitized invalid value for key '%s'. Original: '%s', Replaced Chars: %v", cleanedKey, value, invalidCharsFound)
+			}
+			cleanedParams[cleanedKey] = cleanedValue
+		}
+		return cleanedParams
+	}
+
 	for _, result := range f.Results {
 		p := keyParams.Copy()
 		p.Add(result.Key)
 		if len(result.Measurements) == 0 {
-			paramSlice = append(paramSlice, query.ForceValidWithRegex(p, invalidParamCharRegex))
+			// Sanitize and log in one efficient step
+			cleaned := sanitizeAndLog(p)
+			paramSlice = append(paramSlice, cleaned)
 			measurementSlice = append(measurementSlice, result.Measurement)
 		} else {
 			for key, measurements := range result.Measurements {
 				for _, measurement := range measurements {
 					singleParam := p.Copy()
 					singleParam[key] = measurement.Value
-					paramSlice = append(paramSlice, query.ForceValidWithRegex(singleParam, invalidParamCharRegex))
+					// Sanitize and log in one efficient step
+					cleaned := sanitizeAndLog(singleParam)
+					paramSlice = append(paramSlice, cleaned)
 					measurementSlice = append(measurementSlice, measurement.Measurement)
 				}
 			}
-
 		}
 	}
 	return paramSlice, measurementSlice

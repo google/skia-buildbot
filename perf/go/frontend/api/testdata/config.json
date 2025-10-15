@@ -4,7 +4,7 @@
     "backend_host_url": "localhost:8003",
     "contact": "user@example.org",
     "trace_sample_proportion": 1.0,
-    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-;])",
     "fetch_chrome_perf_anomalies": true,
     "use_regression2_schema": true,
     "auth_config": {

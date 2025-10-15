@@ -5,7 +5,7 @@
     "allowed_hosts": [],
     "trace_sample_proportion": 0.01,
     "contact": "eskia-team@google.com",
-    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-;])",
     "feedback_url": "http://go/berf-skia-feedback",
     "chat_url": "http://go/berf-skia-chat",
     "notify_config": {
