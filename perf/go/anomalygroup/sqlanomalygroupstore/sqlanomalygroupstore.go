@@ -320,20 +320,10 @@ func (s *AnomalyGroupStore) FindExistingGroup(
 	return groups, nil
 }
 
-func (s *AnomalyGroupStore) GetAnomalyIdsByIssueId(
-	ctx context.Context,
-	issueId string) ([]string, error) {
-	statement := `
-		SELECT
-			anomaly_ids
-		FROM
-			AnomalyGroups
-		WHERE
-			reported_issue_id=$1
-		`
-	rows, err := s.db.Query(ctx, statement, issueId)
+func (s *AnomalyGroupStore) getAnomalyIds(ctx context.Context, stmt string, queryErrMsg string, queryArg string) ([]string, error) {
+	rows, err := s.db.Query(ctx, stmt, queryArg)
 	if err != nil {
-		err_msg := fmt.Sprintf("failed to load the anomaly group by issue id: %s", issueId)
+		err_msg := fmt.Sprintf("%s: %s", queryErrMsg, queryArg)
 		return nil, skerr.Wrapf(err, "%s", err_msg)
 	}
 
@@ -347,4 +337,32 @@ func (s *AnomalyGroupStore) GetAnomalyIdsByIssueId(
 		}
 	}
 	return all_anomaly_ids, nil
+}
+
+func (s *AnomalyGroupStore) GetAnomalyIdsByIssueId(
+	ctx context.Context,
+	issueId string) ([]string, error) {
+	statement := `
+		SELECT
+			anomaly_ids
+		FROM
+			AnomalyGroups
+		WHERE
+			reported_issue_id=$1
+		`
+	return s.getAnomalyIds(ctx, statement, "failed to load the anomaly group by issue id", issueId)
+}
+
+func (s *AnomalyGroupStore) GetAnomalyIdsByAnomalyGroupId(
+	ctx context.Context,
+	anomalyGroupId string) ([]string, error) {
+	statement := `
+		SELECT
+			anomaly_ids
+		FROM
+			AnomalyGroups
+		WHERE
+			id=$1
+		`
+	return s.getAnomalyIds(ctx, statement, "failed to load the anomaly group by anomaly group id", anomalyGroupId)
 }

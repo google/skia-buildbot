@@ -404,3 +404,43 @@ func TestGetAnomalyIdsByIssueId_EmptyAnomalyList(t *testing.T) {
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []string{}, anomaly_ids)
 }
+
+func TestGetAnomalyIdsByAnomalyGroupId(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id_1, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+	new_group_id_2, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+	new_group_id_other_issue, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+
+	anomaly_id_1 := "b1fb4036-1883-4d9e-85d4-ed607629017a"
+	anomaly_id_2 := "a60414c6-2495-4ef7-834a-829b1a929100"
+	anomaly_id_3 := "a1235d05-1512-fe41-cba8-32905ec2049a"
+	err = store.AddAnomalyID(ctx, new_group_id_1, anomaly_id_1)
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, new_group_id_2, anomaly_id_2)
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, new_group_id_2, anomaly_id_3)
+	require.NoError(t, err)
+
+	anomaly_id_other_issue := "204cdc89-2ca2-4897-b8e9-82e8058b4330"
+	err = store.AddAnomalyID(ctx, new_group_id_other_issue, anomaly_id_other_issue)
+	require.NoError(t, err)
+
+	anomaly_ids, err := store.GetAnomalyIdsByAnomalyGroupId(ctx, new_group_id_2)
+	require.NoError(t, err)
+	// Anomalies belonging to group 2 are A2 and A3.
+	assert.ElementsMatch(t, []string{anomaly_id_2, anomaly_id_3}, anomaly_ids)
+}
+
+func TestGetAnomalyIdsByAnomalyGroupId_EmptyDb(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	anomaly_ids, err := store.GetAnomalyIdsByAnomalyGroupId(ctx, "group that isn't there")
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{}, anomaly_ids)
+}

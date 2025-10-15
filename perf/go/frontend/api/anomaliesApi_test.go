@@ -105,6 +105,102 @@ func TestGetGroupReportByBugId(t *testing.T) {
 	regStore.AssertExpectations(t)
 }
 
+func TestGetGroupReportByAnomalyGroupId(t *testing.T) {
+	api, anomalygroupStore, regStore := setupAnomaliesApiWithMocks(t)
+
+	ctx := context.Background()
+	anomalyGroupId := "group-id-1"
+	anomalyIds := []string{"anom-id-1", "anom-id-2"}
+	traceset := ",arch=x86,bot=linux,benchmark=jetstream2,test=score,config=default,master=main,"
+
+	// Mock the response from the anomalygroupStore.
+	anomalygroupStore.On("GetAnomalyIdsByAnomalyGroupId", ctx, anomalyGroupId).Return(anomalyIds, nil).Once()
+
+	// Mock the response from the regStore.
+	regressions := []*regression.Regression{
+		{
+			Id: "anom-id-1",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						traceset: []float32{1.0},
+					},
+				},
+			},
+		},
+		{
+			Id: "anom-id-2",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						traceset: []float32{2.0},
+					},
+				},
+			},
+		},
+	}
+	regStore.On("GetByIDs", ctx, anomalyIds).Return(regressions, nil).Once()
+
+	// Create the request.
+	req := GetGroupReportRequest{
+		AnomalyGroupID: anomalyGroupId,
+	}
+
+	// Call the function under test.
+	resp, err := api.getGroupReportByAnomalyGroupId(ctx, req)
+
+	// Assert the results.
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Len(t, resp.Anomalies, 2)
+	// Note: compat.ConvertRegressionToAnomalies is not mocked, so we can't check all fields.
+	// We are just checking the Id.
+	for _, id := range anomalyIds {
+		idPresent := false
+		for _, anomaly := range resp.Anomalies {
+			if anomaly.Id == id {
+				idPresent = true
+				break
+			}
+		}
+		require.True(t, idPresent)
+	}
+	// Ensure the mocks were called as expected.
+	anomalygroupStore.AssertExpectations(t)
+	regStore.AssertExpectations(t)
+}
+
+func TestGetGroupReportByAnomalyGroupId_Empty(t *testing.T) {
+	api, anomalygroupStore, regStore := setupAnomaliesApiWithMocks(t)
+
+	ctx := context.Background()
+	anomalyGroupId := "group-id-1"
+	anomalyIds := []string{}
+
+	// Mock the response from the anomalygroupStore.
+	anomalygroupStore.On("GetAnomalyIdsByAnomalyGroupId", ctx, anomalyGroupId).Return(anomalyIds, nil).Once()
+
+	// Mock the response from the regStore.
+	regressions := []*regression.Regression{}
+	regStore.On("GetByIDs", ctx, anomalyIds).Return(regressions, nil).Once()
+
+	// Create the request.
+	req := GetGroupReportRequest{
+		AnomalyGroupID: anomalyGroupId,
+	}
+
+	// Call the function under test.
+	resp, err := api.getGroupReportByAnomalyGroupId(ctx, req)
+
+	// Assert the results.
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+
+	// Ensure the mocks were called as expected.
+	anomalygroupStore.AssertExpectations(t)
+	regStore.AssertExpectations(t)
+}
+
 func TestAnomaliesApi_CleanTestName_Default(t *testing.T) {
 	configFileBytes := testutils.ReadFileBytes(t, "config.json")
 	err := json.Unmarshal(configFileBytes, &config.Config)

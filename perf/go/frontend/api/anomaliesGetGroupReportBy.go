@@ -52,3 +52,14 @@ func (api anomaliesApi) getGroupReportByBugId(ctx context.Context, groupReportRe
 	// TODO(b/438183175) query from Culprits, too. Looks like reported_issue_id can be all null, even though we have ongoing bugs.
 	return api.getGroupReportByAnomalyIdList(ctx, &anomalyIds)
 }
+
+// GetGroupReport for regressions that match GetGroupReportRequest.AnomalyGroupId
+func (api anomaliesApi) getGroupReportByAnomalyGroupId(ctx context.Context, groupReportRequest GetGroupReportRequest) (*GetGroupReportResponse, error) {
+	id := groupReportRequest.AnomalyGroupID
+	anomalyIds, err := api.anomalygroupStore.GetAnomalyIdsByAnomalyGroupId(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get anomalyIds from anomalygroup Store by anomaly group ID: %s", err)
+	}
+
+	return api.getGroupReportByAnomalyIdList(ctx, &anomalyIds)
+}

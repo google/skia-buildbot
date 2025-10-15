@@ -473,9 +473,7 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		sklog.Debugf("Unsupported parameters for group report: %v", groupReportRequest)
 		return
 	} else if groupReportRequest.AnomalyGroupID != "" {
-		httputils.ReportError(w, errors.New("not implemented"), "This API is not implemented for this parameter.", http.StatusInternalServerError)
-		sklog.Debugf("Unsupported parameters for group report: %v", groupReportRequest)
-		return
+		groupReportResponse, err = api.getGroupReportByAnomalyGroupId(ctx, groupReportRequest)
 	} else {
 		httputils.ReportError(w, errors.New("invalid Request"), fmt.Sprintf("Group report request does not have valid parameters: %v", groupReportRequest), http.StatusBadRequest)
 		sklog.Debug("[SkiaTriage] Group report request does not have valid parameters")
