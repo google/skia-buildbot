@@ -377,6 +377,11 @@ func (s *SQLRegressionStore) GetByIDs(ctx context.Context, ids []string) ([]*reg
 	return nil, skerr.Fmt("GetByIDs are not implemented in old version of regression store.")
 }
 
+// Not implemented, old regression will not be developed
+func (s *SQLRegressionStore) GetByRevision(ctx context.Context, revision string) ([]*regression.Regression, error) {
+	return nil, skerr.Fmt("GetByRev is not implemented in old version of regression store.")
+}
+
 // GetOldestCommit implements the regression.Store interface. Gets the oldest commit in the table.
 func (s *SQLRegressionStore) GetOldestCommit(ctx context.Context) (*types.CommitNumber, error) {
 	var num int

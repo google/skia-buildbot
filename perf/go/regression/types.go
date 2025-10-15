@@ -44,6 +44,9 @@ type Store interface {
 	// return a list of regressions.
 	GetByIDs(ctx context.Context, ids []string) ([]*Regression, error)
 
+	// Return a list of regressions satisfying: previous_commit < rev <= commit.
+	GetByRevision(ctx context.Context, rev string) ([]*Regression, error)
+
 	// GetOldestCommit returns the commit with the lowest commit number
 	GetOldestCommit(ctx context.Context) (*types.CommitNumber, error)
 

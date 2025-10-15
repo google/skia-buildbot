@@ -469,9 +469,7 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		sklog.Debugf("Unsupported parameters for group report: %v", groupReportRequest)
 		return
 	} else if groupReportRequest.Revison != "" {
-		httputils.ReportError(w, errors.New("not implemented"), "This API is not implemented for this parameter.", http.StatusInternalServerError)
-		sklog.Debugf("Unsupported parameters for group report: %v", groupReportRequest)
-		return
+		groupReportResponse, err = api.getGroupReportByRevision(ctx, groupReportRequest)
 	} else if groupReportRequest.AnomalyGroupID != "" {
 		groupReportResponse, err = api.getGroupReportByAnomalyGroupId(ctx, groupReportRequest)
 	} else {

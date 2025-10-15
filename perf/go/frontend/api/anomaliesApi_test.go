@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/anomalygroup/mocks"
 	"go.skia.org/infra/perf/go/config"
@@ -196,6 +197,93 @@ func TestGetGroupReportByAnomalyGroupId_Empty(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
+	// Ensure the mocks were called as expected.
+	anomalygroupStore.AssertExpectations(t)
+	regStore.AssertExpectations(t)
+}
+
+func TestGetGroupReportByRevision(t *testing.T) {
+	api, anomalygroupStore, regStore := setupAnomaliesApiWithMocks(t)
+
+	ctx := context.Background()
+	anomalyIds := []string{"anom-id-1", "anom-id-2"}
+	traceset := ",arch=x86,bot=linux,benchmark=jetstream2,test=score,config=default,master=main,"
+	revision := "1"
+
+	// Mock the response from the regStore.
+	regressions := []*regression.Regression{
+		{
+			Id: "anom-id-1",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						traceset: []float32{1.0},
+					},
+				},
+			},
+		},
+		{
+			Id: "anom-id-2",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						traceset: []float32{2.0},
+					},
+				},
+			},
+		},
+	}
+	regStore.On("GetByRevision", ctx, revision).Return(regressions, nil).Once()
+
+	// Create the request.
+	req := GetGroupReportRequest{
+		Revison: revision,
+	}
+
+	// Call the function under test.
+	resp, err := api.getGroupReportByRevision(ctx, req)
+
+	// Assert the results.
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Len(t, resp.Anomalies, 2)
+	// Note: compat.ConvertRegressionToAnomalies is not mocked, so we can't check all fields.
+	// We are just checking the Id.
+	for _, id := range anomalyIds {
+		idPresent := false
+		for _, anomaly := range resp.Anomalies {
+			if anomaly.Id == id {
+				idPresent = true
+				break
+			}
+		}
+		require.True(t, idPresent)
+	}
+	// Ensure the mocks were called as expected.
+	anomalygroupStore.AssertExpectations(t)
+	regStore.AssertExpectations(t)
+}
+
+func TestGetGroupReportByRevision_InvalidRevisionsAreRejected(t *testing.T) {
+	api, anomalygroupStore, regStore := setupAnomaliesApiWithMocks(t)
+
+	ctx := context.Background()
+
+	badRevision := "not-a-number"
+
+	// Create the request.
+	req := GetGroupReportRequest{
+		Revison: badRevision,
+	}
+
+	regStore.On("GetByRevision", ctx, badRevision).Return(nil, skerr.Fmt("error"))
+
+	// Call the function under test.
+	resp, err := api.getGroupReportByRevision(ctx, req)
+
+	// Assert the results.
+	require.Error(t, err)
+	require.Nil(t, resp)
 	// Ensure the mocks were called as expected.
 	anomalygroupStore.AssertExpectations(t)
 	regStore.AssertExpectations(t)

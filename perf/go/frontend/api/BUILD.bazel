@@ -91,6 +91,7 @@ go_test(
         "//go/alogin",
         "//go/alogin/mocks",
         "//go/roles",
+        "//go/skerr",
         "//go/testutils",
         "//perf/go/anomalygroup/mocks",
         "//perf/go/config",

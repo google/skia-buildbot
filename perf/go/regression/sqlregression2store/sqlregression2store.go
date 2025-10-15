@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -46,6 +47,7 @@ const (
 	readCompat
 	readOldest
 	readRange
+	readByRev
 	readByIDs
 	readBySubName
 	deleteByCommit
@@ -89,6 +91,15 @@ var statementFormats = map[statementFormat]string{
 			commit_number >= $1
 			AND commit_number <= $2
 		`,
+	readByRev: `
+		SELECT
+			{{ .Columns }}
+		FROM
+			Regressions2
+		WHERE
+			prev_commit_number < $1
+			AND commit_number >= $1
+	`,
 	readRangeFiltered: `
 		SELECT
 			{{ .Columns }}
@@ -348,6 +359,30 @@ func (s *SQLRegression2Store) GetByIDs(ctx context.Context, ids []string) ([]*re
 	rows, err := s.db.Query(ctx, query)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get regressions by id list. Query: %s", query)
+	}
+
+	for rows.Next() {
+		r, err := convertRowToRegression(rows)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to convert row to regression.")
+		}
+		regressions = append(regressions, r)
+	}
+
+	return regressions, nil
+}
+
+// Get a list of regressions given a revision.
+func (s *SQLRegression2Store) GetByRevision(ctx context.Context, rev string) ([]*regression.Regression, error) {
+	var regressions []*regression.Regression
+	revInt, err := strconv.ParseInt(rev, 10, 64)
+	if err != nil {
+		return regressions, skerr.Fmt("failed to convert rev %s to int: %s", rev, err)
+	}
+	statement := s.statements[readByRev]
+	rows, err := s.db.Query(ctx, statement, revInt)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get regressions by revision")
 	}
 
 	for rows.Next() {

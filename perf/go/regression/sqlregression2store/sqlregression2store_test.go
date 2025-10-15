@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgconn"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/perf/go/alerts"
 	alerts_mock "go.skia.org/infra/perf/go/alerts/mock"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -76,14 +77,6 @@ func generateAndStoreNewRegression(ctx context.Context, t *testing.T, store *SQL
 	return r
 }
 
-func generateAndStoreNewRegressionImprovement(ctx context.Context, t *testing.T, store *SQLRegression2Store) *regression.Regression {
-	r := generateNewRegression()
-	r.IsImprovement = true
-	_, err := store.WriteRegression(ctx, r, nil)
-	assert.Nil(t, err)
-	return r
-}
-
 func assertRegression(t *testing.T, expected *regression.Regression, actual *regression.Regression) {
 	assert.Equal(t, expected.AlertId, actual.AlertId)
 	assert.Equal(t, expected.CommitNumber, actual.CommitNumber)
@@ -142,8 +135,13 @@ func TestGetByIDs_Success(t *testing.T) {
 	ctx := context.Background()
 	r := generateAndStoreNewRegression(ctx, t, store)
 	r2 := generateAndStoreNewRegression(ctx, t, store)
+
 	// Improvements are anomalies, and they are stored, too.
-	rImprovement := generateAndStoreNewRegressionImprovement(ctx, t, store)
+	rImprovement := generateNewRegression()
+	populateRegression2Fields(rImprovement)
+	rImprovement.IsImprovement = true
+	err := store.writeSingleRegression(ctx, rImprovement, nil)
+	assert.Nil(t, err)
 
 	tests := []struct {
 		name             string
@@ -188,6 +186,87 @@ func TestGetByIDs_Success(t *testing.T) {
 			regressions, err := store.GetByIDs(ctx, tc.regressionIDs)
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedLen, len(regressions))
+			for _, r := range regressions {
+				assert.Contains(t, tc.shouldContainIDs, r.Id)
+			}
+		})
+	}
+}
+
+// TestGetByIDs_Success reads the database using the
+// ids of the created regressions.
+func TestGetByRevision_Success(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+
+	generateRegression := func(previousCommit int64, commit int64) (r *regression.Regression) {
+		r = generateNewRegression()
+		populateRegression2Fields(r)
+		r.PrevCommitNumber = types.CommitNumber(previousCommit)
+		r.CommitNumber = types.CommitNumber(commit)
+		err := store.writeSingleRegression(ctx, r, nil)
+		require.NoError(t, err)
+		return
+	}
+
+	r100_200 := generateRegression(100, 200)
+	r101_200 := generateRegression(101, 200)
+	r300_301 := generateRegression(300, 301)
+
+	tests := []struct {
+		name             string
+		revision         string
+		shouldContainIDs []string
+	}{
+		{
+			name:             "revision inside two regressions",
+			revision:         "102",
+			shouldContainIDs: []string{r100_200.Id, r101_200.Id},
+		},
+		{
+			name:             "inside a regression and at the beginning of another",
+			revision:         "101",
+			shouldContainIDs: []string{r100_200.Id},
+		},
+		{
+			name:             "beginning of a regression and before others",
+			revision:         "100",
+			shouldContainIDs: []string{},
+		},
+		{
+			name:             "before all regressions",
+			revision:         "99",
+			shouldContainIDs: []string{},
+		},
+		{
+			name:             "just before the end of regressions",
+			revision:         "199",
+			shouldContainIDs: []string{r100_200.Id, r101_200.Id},
+		},
+		{
+			name:             "coinciding with the commit number of two regressions",
+			revision:         "200",
+			shouldContainIDs: []string{r100_200.Id, r101_200.Id},
+		},
+		{
+			name:             "right after some regressions",
+			revision:         "201",
+			shouldContainIDs: []string{},
+		},
+		{
+			name:             "inside a 1-wide regression",
+			revision:         "301",
+			shouldContainIDs: []string{r300_301.Id},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			regressions, err := store.GetByRevision(ctx, tc.revision)
+			assert.NoError(t, err)
+			assert.Equal(t, len(tc.shouldContainIDs), len(regressions))
 			for _, r := range regressions {
 				assert.Contains(t, tc.shouldContainIDs, r.Id)
 			}
