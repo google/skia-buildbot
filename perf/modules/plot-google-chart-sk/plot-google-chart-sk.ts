@@ -19,6 +19,7 @@ import { property } from 'lit/decorators.js';
 import { define } from '../../../elements-sk/modules/define';
 import { AnomalyMap } from '../json';
 import { defaultColors, mainChartOptions } from '../common/plot-builder';
+import { recordSummary } from '../telemetry/telemetry';
 import {
   dataframeAnomalyContext,
   dataframeUserIssueContext,
@@ -49,6 +50,8 @@ export interface PlotShowTooltipEventDetails {
 
 export class PlotGoogleChartSk extends LitElement {
   private static readonly MOUSE_DOWN_HOLD_TIMEOUT = 3000; // 3 seconds
+
+  private static readonly GRAPH_PERF_METRIC_NAME = 'fe_google_graph_plot_time_s';
 
   private mouseDownTimeoutId: number | null = null;
 
@@ -169,7 +172,7 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ attribute: false })
   data: DataTable = null;
 
-  @property({})
+  @property({ type: Array })
   selectedTraces: string[] | null = null;
 
   @property({ reflect: true })
@@ -370,6 +373,7 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private async updateDataView(dt: DataTable) {
+    const start = performance.now();
     await this.updateComplete;
     const plot = this.plotElement.value;
     if (!plot || !dt) {
@@ -421,6 +425,9 @@ export class PlotGoogleChartSk extends LitElement {
 
     plot.view = view;
     this.updateOptions();
+    recordSummary(PlotGoogleChartSk.GRAPH_PERF_METRIC_NAME, (performance.now() - start) / 1000, {
+      type: 'update-data-view',
+    });
   }
 
   // if new domain is commit, convert from date to commit and vice-versa
@@ -929,6 +936,7 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private drawAnomaly(chart: google.visualization.CoreChartBase) {
+    const start = performance.now();
     const layout = chart.getChartLayoutInterface();
     if (!this.anomalyMap) {
       return;
@@ -1051,9 +1059,13 @@ export class PlotGoogleChartSk extends LitElement {
     // them to the new locations, but the rendering internal may already do this for us.
     // We should only do this optimization if we see a performance issue.
     anomalyDiv.replaceChildren(...allDivs);
+    recordSummary(PlotGoogleChartSk.GRAPH_PERF_METRIC_NAME, (performance.now() - start) / 1000, {
+      type: 'draw-anomaly',
+    });
   }
 
   private drawUserIssues(chart: google.visualization.CoreChartBase) {
+    const start = performance.now();
     const layout = chart.getChartLayoutInterface();
     if (!this.userIssues) {
       return;
@@ -1153,6 +1165,9 @@ export class PlotGoogleChartSk extends LitElement {
     });
 
     userIssueDiv.replaceChildren(...allDivs);
+    recordSummary(PlotGoogleChartSk.GRAPH_PERF_METRIC_NAME, (performance.now() - start) / 1000, {
+      type: 'draw-user-issues',
+    });
   }
 
   private drawXbar(chart: google.visualization.CoreChartBase) {
@@ -1207,11 +1222,15 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onChartReady(e: CustomEvent) {
+    const start = performance.now();
     this.chart = e.detail.chart as google.visualization.CoreChartBase;
     // Only draw the anomaly when the chart is ready.
     this.drawAnomaly(this.chart);
     this.drawUserIssues(this.chart);
     this.drawXbar(this.chart);
+    recordSummary(PlotGoogleChartSk.GRAPH_PERF_METRIC_NAME, (performance.now() - start) / 1000, {
+      type: 'main-chart',
+    });
   }
 
   /**
@@ -1221,6 +1240,7 @@ export class PlotGoogleChartSk extends LitElement {
    * started and stopped. They can be in any order.
    */
   updateBounds(zoominRange: { begin: number; end: number }) {
+    const start = performance.now();
     const zoomRangeBox = this.zoomRangeBox.value!;
     if (zoomRangeBox?.startPosition) {
       const options = mainChartOptions(
@@ -1252,6 +1272,9 @@ export class PlotGoogleChartSk extends LitElement {
         plot.options = options;
       }
     }
+    recordSummary(PlotGoogleChartSk.GRAPH_PERF_METRIC_NAME, (performance.now() - start) / 1000, {
+      type: 'update-bounds',
+    });
   }
 
   // Reset to original view

@@ -101,7 +101,6 @@ import { MISSING_DATA_SENTINEL } from '../const/const';
 import { defaultColors } from '../common/plot-builder';
 import { IssueDetail, UserIssueMap } from '../dataframe/dataframe_context';
 import { AnomalyData } from '../common/anomaly-data';
-import { recordSummary } from '../telemetry/telemetry';
 
 //  Prefix for trace ids that are not real traces, such as special_zero. Special
 //  traces never receive focus and can't be clicked on.
@@ -1798,7 +1797,6 @@ export class PlotSimpleSk extends ElementSk {
   // Well, not quite everything, if we are drag zooming then we only redraw the
   // details and not the summary.
   private drawTracesCanvas() {
-    const start = performance.now();
     const width = this.ctx!.canvas.width;
     const height = this.ctx!.canvas.height;
     const ctx = this.ctx!;
@@ -1860,9 +1858,6 @@ export class PlotSimpleSk extends ElementSk {
     this.drawYAxis(ctx, this.detailArea);
 
     this.drawOverlayCanvas();
-    recordSummary('fe_google_graph_plot_time_s', (performance.now() - start) / 1000, {
-      type: 'simple',
-    });
   }
 
   // Draw a y-axis using the given context in the given area.
