@@ -40,6 +40,39 @@ export class UserIssueSk extends LitElement {
       }
     }
 
+    .new-issue-text-container {
+      display: flex;
+      align-items: center;
+      padding-top: 25px;
+      flex-direction: column;
+
+      .new-issue {
+        input {
+          color: var(--on-surface);
+          background: var(--surface);
+          border: solid 1px var(--on-surface);
+        }
+
+        span {
+          margin-left: 12px;
+
+          check-icon-sk {
+            fill: var(--positive);
+            cursor: pointer;
+            height: 24px;
+            width: 24px;
+          }
+
+          close-icon-sk {
+            fill: var(--negative);
+            cursor: pointer;
+            height: 24px;
+            width: 24px;
+          }
+        }
+      }
+    }
+
     .new-issue-label {
       background: none;
       background: none !important;
@@ -100,6 +133,15 @@ export class UserIssueSk extends LitElement {
   @property({ state: true })
   issueExists = false;
 
+  // Used for capturing number input values
+  _input_val: number = 0;
+
+  // Indicates if the text input is active typically when adding a new issue.
+  @property({ attribute: false })
+  _text_input_active: boolean = false;
+
+  // TODO(jiaxindong): b/452636637 Add a variable bugcompoent to assign different value
+  // based on instance url.
   private bugComponent = 'Blink>javascript';
 
   connectedCallback() {
@@ -118,10 +160,7 @@ export class UserIssueSk extends LitElement {
     if (this.issueExists && this.user_id !== '') {
       return html`${this.showLinkTemplate()}`;
     }
-    if (this.user_id !== '') {
-      return html`<button id="add-issue-button" @click=${this.addOrFindIssue}>Add Issue</button>`;
-    }
-    return html``;
+    return html`${this.addIssueTemplate()}`;
   }
 
   // If a bug is already associated with the data point show them the link.
@@ -145,6 +184,60 @@ export class UserIssueSk extends LitElement {
           ${AnomalySk.formatBug(window.perf.bug_host_url, this.bug_id)}
           <close-icon-sk @click=${this.removeIssue} ?hidden=${this.bug_id === 0}> </close-icon-sk>
         </span>
+      </div>
+    `;
+  }
+
+  private changeHandler(e: InputEvent) {
+    this._input_val = +(e.target! as HTMLInputElement).value;
+  }
+
+  private activateTextInput() {
+    this._text_input_active = true;
+    this.render();
+  }
+
+  hideTextInput() {
+    this._input_val = 0;
+    this._text_input_active = false;
+    this.render();
+  }
+
+  /* Templates */
+
+  // Template for showing option to add an issue on the datapoint
+  // Only shown when the user is logged in
+  addIssueTemplate(): TemplateResult {
+    if (this.user_id === '') {
+      return html``;
+    }
+
+    if (this._text_input_active) {
+      return html`
+        <div class="new-issue-text-container">
+          <span class="new-issue">
+            <input
+              style="width: 100px;"
+              placeholder="eg: 3368155"
+              type="number"
+              min="0"
+              @input=${this.changeHandler} />
+          </span>
+          <span>
+            <check-icon-sk
+              id="check-icon"
+              @click=${() => {
+                this.findOrAddIssue();
+              }}></check-icon-sk>
+            <close-icon-sk @click=${this.hideTextInput}></close-icon-sk>
+          </span>
+        </div>
+      `;
+    }
+
+    return html`
+      <div>
+        <button id="add-issue-button" @click=${this.activateTextInput}>Add Issue</button>
       </div>
     `;
   }
@@ -173,6 +266,9 @@ export class UserIssueSk extends LitElement {
       errorMessage(`${saveUserIssueResp.statusText}: ${msg}`);
       return;
     }
+
+    this._input_val = 0;
+    this._text_input_active = false;
 
     this.dispatchEvent(
       new CustomEvent('user-issue-changed', {
@@ -215,6 +311,8 @@ export class UserIssueSk extends LitElement {
     // Add buganizer issue template
     this.bug_id = 0;
     this.issueExists = false;
+    this._input_val = 0;
+    this._text_input_active = false;
 
     this.dispatchEvent(
       new CustomEvent('user-issue-changed', {
@@ -259,7 +357,7 @@ export class UserIssueSk extends LitElement {
       });
   }
 
-  private async addOrFindIssue() {
+  private async findOrAddIssue() {
     const traceKey = this.trace_key;
     const commitPosition = this.commit_position;
 
@@ -283,7 +381,8 @@ export class UserIssueSk extends LitElement {
       let issueFound = false;
       if (userIssues.length !== 0) {
         userIssues.forEach((userIssue) => {
-          if (userIssue.IssueId === this.bug_id) {
+          if (userIssue.IssueId === this._input_val) {
+            this.bug_id = this._input_val;
             issueFound = true;
           }
         });

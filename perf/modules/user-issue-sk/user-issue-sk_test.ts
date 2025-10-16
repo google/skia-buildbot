@@ -72,55 +72,81 @@ describe('user-issue-sk', () => {
     });
 
     it('renders bug link with delete when logged in and issue exists', async () => {
-      element.bug_id = 12345;
       element.user_id = 'test@example.com';
       element.issueExists = true;
+      await element.updateComplete;
+      const showLinkContainer = element.shadowRoot!.querySelector('.showLinkContainer');
+      expect(showLinkContainer).to.not.equal(null);
+
+      element.bug_id = 12345;
       await element.updateComplete;
       const bugLink = element.shadowRoot!.querySelector('a');
       expect(bugLink).to.not.equal(null);
       const deleteIcon = element.shadowRoot!.querySelector('close-icon-sk');
       expect(deleteIcon).to.not.equal(null);
     });
+
+    it('renders bug link without delete when not logged in and issue exists', async () => {
+      element.bug_id = 12345;
+      element.user_id = '';
+      element.issueExists = true;
+      await element.updateComplete;
+      const bugLink = element.shadowRoot!.querySelector('a');
+      expect(bugLink).to.equal(null);
+      const deleteIcon = element.shadowRoot!.querySelector('close-icon-sk');
+      expect(deleteIcon).to.equal(null);
+    });
   });
 
   describe('addOrFindIssue', () => {
     it('finds an existing issue and displays the link', async () => {
-      fetchMock.post('/_/user_issues', { UserIssues: [{ IssueId: 12345 }] });
-      fetchMock.post('/_/user_issue/save', {});
-
-      element.bug_id = 12345;
       element.user_id = 'test@example.com';
+      element.issueExists = false;
       await element.updateComplete;
-
       const addIssueBtn = element.shadowRoot!.querySelector(
         '#add-issue-button'
       ) as HTMLButtonElement;
       addIssueBtn.click();
+      element._input_val = 12345;
+      await element.updateComplete;
+
+      const checkIcon = element.shadowRoot!.querySelector('#check-icon') as HTMLButtonElement;
+      fetchMock.post('/_/user_issues', { UserIssues: [{ IssueId: 12345 }] });
+      fetchMock.post('/_/user_issue/save', {});
+      checkIcon.click();
       await fetchMock.flush(true);
 
-      await element.updateComplete;
+      expect(element.bug_id).to.equal(12345);
       const bugLink = element.shadowRoot!.querySelector('a');
       expect(bugLink).to.not.equal(null);
+      expect(bugLink!.href).to.equal('http://test.com/p/skia/issues/detail/12345');
     });
 
-    it('files a new bug and displays the link', async () => {
-      fetchMock.post('/_/user_issues', { UserIssues: [] });
-      fetchMock.post('/_/triage/file_bug', { bug_id: 54321 });
-      fetchMock.post('/_/user_issue/save', {});
+    it('If the bug not exists, files a new bug and displays the link', async () => {
       element.user_id = 'test@example.com';
       element.bug_id = 0;
 
       await element.updateComplete;
-
       const addIssueBtn = element.shadowRoot!.querySelector(
         '#add-issue-button'
       ) as HTMLButtonElement;
       addIssueBtn.click();
+      expect(element._text_input_active).to.equal(true);
+
+      element._input_val = 12345;
+      await element.updateComplete;
+      const checkIcon = element.shadowRoot!.querySelector('#check-icon') as HTMLButtonElement;
+      expect(checkIcon).to.not.equal(null);
+
+      fetchMock.post('/_/user_issues', { UserIssues: [{ IssueId: 11111 }] });
+      fetchMock.post('/_/triage/file_bug', { bug_id: 54321 });
+      fetchMock.post('/_/user_issue/save', {});
+      checkIcon.click();
       await fetchMock.flush(true);
       expect(element.bug_id).to.equal(54321);
 
-      await element.updateComplete;
       const bugLink = element.shadowRoot!.querySelector('a');
+      expect(bugLink).to.not.equal(null);
       expect(bugLink).to.not.equal(null);
     });
   });
