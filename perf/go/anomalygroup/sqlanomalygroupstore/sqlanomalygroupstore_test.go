@@ -161,7 +161,7 @@ func TestUpdateReportedIssueID(t *testing.T) {
 	assert.NotEmpty(t, new_group_id)
 
 	err = store.UpdateReportedIssueID(ctx, new_group_id,
-		"24fa5591-946b-44e4-bf09-3fd271588ee5")
+		"12345")
 	require.NoError(t, err)
 
 	group, err2 := store.LoadById(ctx, new_group_id)
@@ -178,9 +178,9 @@ func TestUpdateReportedIssueID_InvalidID(t *testing.T) {
 	assert.NotEmpty(t, new_group_id)
 
 	err = store.UpdateReportedIssueID(ctx, new_group_id,
-		"24fa5591-946b-44e4-bf09-3fd271588e=")
+		"abc")
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid UUID value")
+	assert.Contains(t, err.Error(), "invalid issue id")
 }
 
 func TestAddAnomalyID(t *testing.T) {
@@ -344,13 +344,13 @@ func TestGetAnomalyIdsByIssueId(t *testing.T) {
 	new_group_id_other_issue, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 
-	issueId := "24fa5591-946b-44e4-bf09-3fd271588ee5"
+	issueId := "12345"
 	err = store.UpdateReportedIssueID(ctx, new_group_id_1, issueId)
 	require.NoError(t, err)
 	err = store.UpdateReportedIssueID(ctx, new_group_id_2, issueId)
 	require.NoError(t, err)
 
-	otherIssueId := "9fc415f0-42cf-4606-9a78-d2b9868a1f41"
+	otherIssueId := "54321"
 	err = store.UpdateReportedIssueID(ctx, new_group_id_other_issue, otherIssueId)
 	require.NoError(t, err)
 
@@ -383,7 +383,7 @@ func TestGetAnomalyIdsByIssueId_AnomaliesDeduplicatedInSql(t *testing.T) {
 	new_group_id_2, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 
-	issueId := "24fa5591-946b-44e4-bf09-3fd271588ee5"
+	issueId := "12345"
 	err = store.UpdateReportedIssueID(ctx, new_group_id_1, issueId)
 	require.NoError(t, err)
 	err = store.UpdateReportedIssueID(ctx, new_group_id_2, issueId)
@@ -423,13 +423,13 @@ func TestGetAnomalyIdsByIssueId_EmptyAnomalyList(t *testing.T) {
 	new_group_id_other_issue, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 
-	issueId := "24fa5591-946b-44e4-bf09-3fd271588ee5"
+	issueId := "12345"
 	err = store.UpdateReportedIssueID(ctx, new_group_id_1, issueId)
 	require.NoError(t, err)
 	err = store.UpdateReportedIssueID(ctx, new_group_id_2, issueId)
 	require.NoError(t, err)
 
-	otherIssueId := "9fc415f0-42cf-4606-9a78-d2b9868a1f41"
+	otherIssueId := "54321"
 	err = store.UpdateReportedIssueID(ctx, new_group_id_other_issue, otherIssueId)
 	require.NoError(t, err)
 

@@ -108,28 +108,28 @@ func (s *anomalygroupService) UpdateAnomalyGroup(
 	if req.BisectionId != "" {
 		if err := s.anomalygroupStore.UpdateBisectID(
 			ctx, req.AnomalyGroupId, req.BisectionId); err != nil {
-			return nil, fmt.Errorf(
+			return nil, skerr.Wrapf(err,
 				"error updating the bisection id %s for anomaly group %s",
 				req.BisectionId, req.AnomalyGroupId)
 		}
 	} else if req.IssueId != "" {
 		if err := s.anomalygroupStore.UpdateReportedIssueID(
 			ctx, req.AnomalyGroupId, req.IssueId); err != nil {
-			return nil, fmt.Errorf(
+			return nil, skerr.Wrapf(err,
 				"error updating the reported issue id %s for anomaly group %s",
 				req.IssueId, req.AnomalyGroupId)
 		}
 	} else if req.AnomalyId != "" {
 		if err := s.anomalygroupStore.AddAnomalyID(
 			ctx, req.AnomalyGroupId, req.AnomalyId); err != nil {
-			return nil, fmt.Errorf(
+			return nil, skerr.Wrapf(err,
 				"error adding the anomaly id %s to anomaly group %s",
 				req.AnomalyId, req.AnomalyGroupId)
 		}
 	} else if len(req.CulpritIds) > 0 {
 		if err := s.anomalygroupStore.AddCulpritIDs(
 			ctx, req.AnomalyGroupId, req.CulpritIds); err != nil {
-			return nil, fmt.Errorf(
+			return nil, skerr.Wrapf(err,
 				"error adding the culprit ids %s to anomaly group %s",
 				req.CulpritIds, req.AnomalyGroupId)
 		}

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/skerr"
@@ -171,11 +172,8 @@ func (s *AnomalyGroupStore) UpdateBisectID(ctx context.Context, group_id string,
 }
 
 func (s *AnomalyGroupStore) UpdateReportedIssueID(ctx context.Context, group_id string, reported_issue_id string) error {
-	if len(reported_issue_id) > 0 {
-		if _, err := uuid.Parse(reported_issue_id); err != nil {
-			err_msg := fmt.Sprintf("invalid UUID value for updating reported_issue_id column with value %s ", reported_issue_id)
-			return errors.New(err_msg)
-		}
+	if _, err := strconv.Atoi(reported_issue_id); err != nil {
+		return skerr.Wrapf(err, "invalid issue id: %s", reported_issue_id)
 	}
 	statement := `
 		UPDATE

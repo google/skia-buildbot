@@ -89,11 +89,11 @@ func TestUpdateGroup_ReportedIssueID(t *testing.T) {
 	ctx := context.Background()
 	req := &ag.UpdateAnomalyGroupRequest{
 		AnomalyGroupId: "ce7107ae-3552-49e9-bd89-120ff97c3cea",
-		IssueId:        "24fa5591-946b-44e4-bf09-3fd271588ee5",
+		IssueId:        "12345",
 	}
 	store.On("UpdateReportedIssueID", mock.Anything,
 		"ce7107ae-3552-49e9-bd89-120ff97c3cea",
-		"24fa5591-946b-44e4-bf09-3fd271588ee5").Return(nil)
+		"12345").Return(nil)
 
 	_, err := service.UpdateAnomalyGroup(ctx, req)
 
