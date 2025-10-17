@@ -140,6 +140,9 @@ import { TryJobPreloadParams } from '../pinpoint-try-job-dialog-sk/pinpoint-try-
 import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
 
+const DOMAIN_DATE = 'date';
+const DOMAIN_COMMIT = 'commit';
+
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
 
@@ -320,7 +323,7 @@ export class State {
 
   selected: PointSelected = defaultPointSelected(); // The point on a trace that was clicked on.
 
-  domain: string = 'commit'; // The domain of the x-axis, either commit or date. Default commit.
+  domain: string = DOMAIN_COMMIT; // The domain of the x-axis, either commit or date. Default commit
 
   // Deprecated.
   labelMode: LabelMode = LabelMode.Date; // The label mode for the x-axis, date or commit.
@@ -1023,7 +1026,11 @@ export class ExploreSimpleSk extends ElementSk {
     return colHeader;
   }
 
-  private getCommitIndex(value: number, type: string = 'commit', max: boolean = false): number {
+  private getCommitIndex(
+    value: number,
+    type: string = DOMAIN_COMMIT,
+    max: boolean = false
+  ): number {
     // Ensure the index value is an integer.
     value = Math.round(value);
     const header = this.dfRepo.value?.header;
@@ -1031,7 +1038,7 @@ export class ExploreSimpleSk extends ElementSk {
       return -1;
     }
 
-    const prop = type === 'commit' ? 'offset' : 'timestamp';
+    const prop = type === DOMAIN_COMMIT ? 'offset' : 'timestamp';
 
     // First, try to find an exact match.
     let index = header.findIndex((h) => h?.[prop] === value);
@@ -1356,25 +1363,18 @@ export class ExploreSimpleSk extends ElementSk {
   // If the switch is selected, set the x-axis to date mode.
   switchXAxis(target: MdSwitch | null) {
     if (!target) return;
-    const newDomain = target.selected ? 'date' : 'commit';
-    if (this._state.domain !== newDomain) {
-      if (target.selected) {
-        this._state.labelMode = LabelMode.Date;
-        this._state.domain = 'date';
-      } else {
-        this._state.labelMode = LabelMode.CommitPosition;
-        this._state.domain = 'commit';
-      }
+    const newDomain = target.selected ? DOMAIN_DATE : DOMAIN_COMMIT;
 
-      if (this.is_chart_split) {
-        const detail = {
-          index: this.state.graph_index,
-          domain: this.state.domain,
-        };
-        this.dispatchEvent(new CustomEvent('x-axis-toggled', { detail, bubbles: true }));
-      }
-      this.updateXAxis(this._state.domain);
+    // Dispatch the event first to sync other charts.
+    if (this.is_chart_split) {
+      const detail = {
+        index: this.state.graph_index,
+        domain: newDomain,
+      };
+      this.dispatchEvent(new CustomEvent('x-axis-toggled', { detail, bubbles: true }));
     }
+    // Then update the current chart.
+    this.updateXAxis(newDomain);
   }
 
   // Set the x-axis domain to either commit or date.
@@ -1382,10 +1382,17 @@ export class ExploreSimpleSk extends ElementSk {
   // It also is an entry point from multichart to update related charts which is
   // why it has a separate method.
   updateXAxis(domain: string) {
-    if (this.state.domain !== domain) {
-      this.xAxisSwitch = !this.xAxisSwitch;
-      this._state.domain = domain;
+    if (this.state.domain === domain) {
+      return;
     }
+
+    this._updateSelectionRangeForDomainChange(domain);
+
+    // Now, update the state and the child components' domains.
+    this.xAxisSwitch = !this.xAxisSwitch;
+    this._state.domain = domain;
+    this._state.labelMode = domain === DOMAIN_DATE ? LabelMode.Date : LabelMode.CommitPosition;
+
     if (this.googleChartPlot.value) {
       this.googleChartPlot.value.domain = domain as 'commit' | 'date';
     }
@@ -1395,6 +1402,34 @@ export class ExploreSimpleSk extends ElementSk {
     }
     this.render();
     this._stateHasChanged();
+  }
+
+  private _updateSelectionRangeForDomainChange(newDomain: string) {
+    const header = this.dfRepo.value?.header;
+    const plotSummary = this.plotSummary.value;
+    const oldDomain = this.state.domain;
+
+    if (header && plotSummary && plotSummary.selectedValueRange) {
+      const currentRange = plotSummary.selectedValueRange;
+
+      const beginIndex = this.getCommitIndex(currentRange.begin, oldDomain);
+      const endIndex = this.getCommitIndex(currentRange.end, oldDomain, true);
+
+      if (beginIndex !== -1 && endIndex !== -1) {
+        const newBegin =
+          newDomain === DOMAIN_DATE ? header[beginIndex]!.timestamp : header[beginIndex]!.offset;
+        const newEnd =
+          newDomain === DOMAIN_DATE ? header[endIndex]!.timestamp : header[endIndex]!.offset;
+        const newRange = { begin: newBegin, end: newEnd };
+
+        // Set the cached value on the child. It will apply this selection once
+        // its internal chart has re-rendered with the new domain.
+        (plotSummary as any).cachedSelectedValueRange = newRange;
+        if (this.googleChartPlot.value) {
+          this.googleChartPlot.value.selectedValueRange = newRange;
+        }
+      }
+    }
   }
 
   // updates the chart height using a string input.
@@ -1906,7 +1941,7 @@ export class ExploreSimpleSk extends ElementSk {
 
       let beginValue: number = beginCommit!.offset;
       let endValue: number = endCommit!.offset;
-      if (this.state.domain === 'date') {
+      if (this.state.domain === DOMAIN_DATE) {
         beginValue = beginCommit!.timestamp;
         endValue = endCommit!.timestamp;
       }

@@ -53,6 +53,8 @@ ts_library(
         ":object_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
 )
 

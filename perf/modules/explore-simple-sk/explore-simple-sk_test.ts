@@ -9,6 +9,8 @@ import {
   TimestampSeconds,
   Trace,
   TraceSet,
+  DataFrame,
+  ReadOnlyParamSet,
 } from '../json';
 import { deepCopy } from '../../../infra-sk/modules/object';
 import {
@@ -23,14 +25,52 @@ import {
   updateShortcut,
   State,
 } from './explore-simple-sk';
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { MdDialog } from '@material/web/dialog/dialog';
+import { MdSwitch } from '@material/web/switch/switch';
+import { PlotSummarySk } from '../plot-summary-sk/plot-summary-sk';
+import { setUpElementUnderTest, waitForRender } from '../../../infra-sk/modules/test_util';
 import { generateFullDataFrame } from '../dataframe/test_utils';
 import sinon from 'sinon';
+// Import for side effects. Make `plotSummary`(has no direct interaction with the module)
+// work when run in isolation.
+import './explore-simple-sk';
 
 fetchMock.config.overwriteRoutes = true;
 
 const now = 1726081856; // an arbitrary UNIX time;
 const timeSpan = 89; // an arbitrary prime number for time span between commits .
+
+window.perf = {
+  instance_url: '',
+  radius: 2,
+  key_order: null,
+  num_shift: 50,
+  interesting: 2,
+  step_up_only: false,
+  commit_range_url: '',
+  demo: true,
+  display_group_by: false,
+  hide_list_of_commits_on_explore: false,
+  notifications: 'none',
+  fetch_chrome_perf_anomalies: false,
+  feedback_url: '',
+  chat_url: '',
+  help_url_override: '',
+  trace_format: '',
+  need_alert_action: false,
+  bug_host_url: '',
+  git_repo_url: '',
+  keys_for_commit_range: [],
+  keys_for_useful_links: [],
+  skip_commit_detail_display: false,
+  image_tag: 'fake-tag',
+  remove_default_stat_value: false,
+  enable_skia_bridge_aggregation: false,
+  show_json_file_display: false,
+  always_show_commit_info: false,
+  show_triage_link: true,
+  show_bisect_btn: true,
+};
 
 describe('calculateRangeChange', () => {
   const offsets: CommitRange = [100, 120] as CommitRange;
@@ -91,45 +131,6 @@ describe('calculateRangeChange', () => {
     const ret = calculateRangeChange(zoom, clampedZoom, offsets);
     assert.isFalse(ret.rangeChange);
   });
-});
-
-// this function is needed to support other unit tests
-describe('applyFuncToTraces', () => {
-  window.perf = {
-    instance_url: '',
-    radius: 2,
-    key_order: null,
-    num_shift: 50,
-    interesting: 2,
-    step_up_only: false,
-    commit_range_url: '',
-    demo: true,
-    display_group_by: false,
-    hide_list_of_commits_on_explore: false,
-    notifications: 'none',
-    fetch_chrome_perf_anomalies: false,
-    feedback_url: '',
-    chat_url: '',
-    help_url_override: '',
-    trace_format: '',
-    need_alert_action: false,
-    bug_host_url: '',
-    git_repo_url: '',
-    keys_for_commit_range: [],
-    keys_for_useful_links: [],
-    skip_commit_detail_display: false,
-    image_tag: 'fake-tag',
-    remove_default_stat_value: false,
-    enable_skia_bridge_aggregation: false,
-    show_json_file_display: false,
-    always_show_commit_info: false,
-    show_triage_link: true,
-    show_bisect_btn: true,
-  };
-
-  // Create a common element-sk to be used by all the tests.
-  const explore = document.createElement('explore-simple-sk') as ExploreSimpleSk;
-  document.body.appendChild(explore);
 });
 
 describe('PointSelected', () => {
@@ -696,5 +697,214 @@ describe('State Management', () => {
       updateTestPickerUrlStub.called,
       'URL update should not be called for identical queries'
     );
+  });
+});
+
+describe('x-axis domain switching', () => {
+  const INITIAL_TIMESTAMP_BEGIN = 1672531200;
+  const INITIAL_TIMESTAMP_END = 1672542000;
+  const COMMIT_101 = 101;
+  const COMMIT_102 = 102;
+  const TIMESTAMP_101 = 1672534800;
+  const TIMESTAMP_102 = 1672538400;
+  const ROUNDING_TOLERANCE_SECONDS = 120;
+  // A simple header for converting between commit offsets and timestamps.
+  const testHeader: ColumnHeader[] = [
+    {
+      offset: CommitNumber(100),
+      timestamp: TimestampSeconds(1672531200),
+      hash: 'h1',
+      author: '',
+      message: '',
+      url: '',
+    },
+    {
+      offset: CommitNumber(101),
+      timestamp: TimestampSeconds(1672534800),
+      hash: 'h2',
+      author: '',
+      message: '',
+      url: '',
+    },
+    {
+      offset: CommitNumber(102),
+      timestamp: TimestampSeconds(1672538400),
+      hash: 'h3',
+      author: '',
+      message: '',
+      url: '',
+    },
+    {
+      offset: CommitNumber(103),
+      timestamp: TimestampSeconds(1672542000),
+      hash: 'h4',
+      author: '',
+      message: '',
+      url: '',
+    },
+  ];
+
+  const testDataFrame: DataFrame = {
+    traceset: TraceSet({
+      ',config=test,': Trace([1, 2, 3, 4]),
+    }),
+    header: testHeader,
+    paramset: {} as ReadOnlyParamSet,
+    skip: 0,
+    traceMetadata: [],
+  };
+
+  const testFrameResponse: FrameResponse = {
+    dataframe: testDataFrame,
+    anomalymap: null,
+    display_mode: 'display_plot',
+    skps: [],
+    msg: '',
+  };
+
+  let explore: ExploreSimpleSk;
+
+  beforeEach(async () => {
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await window.customElements.whenDefined('explore-simple-sk');
+    await window.customElements.whenDefined('dataframe-repository-sk');
+    await window.customElements.whenDefined('plot-summary-sk');
+  });
+
+  // Helper function to set up the component for domain switching tests.
+  async function setupDomainSwitchTest(domain: 'date' | 'commit'): Promise<PlotSummarySk> {
+    explore.state = {
+      ...explore.state,
+      queries: ['config=test'],
+      domain: domain,
+      plotSummary: true,
+      begin: INITIAL_TIMESTAMP_BEGIN,
+      end: INITIAL_TIMESTAMP_END,
+      requestType: 0,
+    };
+    await waitForRender(explore);
+
+    // Provide data to the component.
+    await explore.UpdateWithFrameResponse(
+      testFrameResponse,
+      {
+        begin: explore.state.begin,
+        end: explore.state.end,
+        num_commits: 250,
+        request_type: 0,
+        formulas: [],
+        queries: ['config=test'],
+        keys: '',
+        tz: 'UTC',
+        pivot: null,
+        disable_filter_parent_traces: false,
+      },
+      false,
+      null,
+      false
+    );
+    await waitForRender(explore);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const plotSummary = explore.querySelector('plot-summary-sk') as PlotSummarySk;
+    assert.exists(plotSummary, 'The plot-summary-sk element should be in the DOM.');
+    return plotSummary;
+  }
+
+  it('preserves selection when switching from date to commit', async () => {
+    const plotSummary = await setupDomainSwitchTest('date');
+
+    // Set an initial time-based selection on plot-summary-sk
+    const initialSelection = { begin: TIMESTAMP_101, end: TIMESTAMP_102 };
+    plotSummary.selectedValueRange = initialSelection;
+    await plotSummary.updateComplete;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const settingsDialog = explore.querySelector('#settings-dialog') as MdDialog;
+    const switchEl = settingsDialog.querySelector('#commit-switch') as MdSwitch;
+    assert.exists(switchEl, '#commit-switch element not found.');
+
+    // Simulate switching to 'commit' domain (selected = false)
+    switchEl!.selected = false;
+    switchEl!.dispatchEvent(new Event('change'));
+
+    // Wait for ExploreSimpleSk to handle the change and update its children
+    await waitForRender(explore);
+    await plotSummary.updateComplete;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // rare, but can be flaky here. Since it wait for async event.
+    // Increase of timeout above can help.
+    assert.exists(
+      plotSummary.selectedValueRange,
+      'selectedValueRange should not be null after switch'
+    );
+
+    // Although the actual 'begin' and 'end' values are integers, they can be converted to
+    // floating-point numbers for UI rendering to prevent the graph from "jumping" when the x-axis
+    // domain is switched. The approximation in this test is used solely to prevent failures caused
+    // by floating-point arithmetic inaccuracies, e.g., 101 !== 101.000000001.
+    assert.approximately(
+      plotSummary.selectedValueRange.begin as number,
+      COMMIT_101,
+      1e-3,
+      'Selected range.begin did not convert correctly'
+    );
+
+    assert.approximately(
+      plotSummary.selectedValueRange.end as number,
+      COMMIT_102,
+      1e-3,
+      'Selected range.end did not convert correctly'
+    );
+
+    assert.equal(explore.state.domain, 'commit', 'Explore state domain should be commit');
+    assert.equal(plotSummary.domain, 'commit', 'PlotSummary domain property should be commit');
+  });
+
+  it('preserves selection when switching from commit to date', async () => {
+    const roundingToleranceSeconds = ROUNDING_TOLERANCE_SECONDS;
+    const plotSummary = await setupDomainSwitchTest('commit');
+
+    // Set an initial commit-based selection on plot-summary-sk
+    const initialSelection = { begin: COMMIT_101, end: COMMIT_102 };
+    plotSummary.selectedValueRange = initialSelection;
+    await plotSummary.updateComplete;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const settingsDialog = explore.querySelector('#settings-dialog') as MdDialog;
+    const switchEl = settingsDialog.querySelector('#commit-switch') as MdSwitch;
+    assert.exists(switchEl, '#commit-switch element not found.');
+
+    // Simulate switching to 'date' domain (selected = true)
+    switchEl!.selected = true;
+    switchEl!.dispatchEvent(new Event('change'));
+
+    await waitForRender(explore);
+    await plotSummary.updateComplete;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    assert.exists(
+      plotSummary.selectedValueRange,
+      'selectedValueRange should not be null after switch'
+    );
+
+    assert.approximately(
+      plotSummary.selectedValueRange.begin as number,
+      TIMESTAMP_101,
+      roundingToleranceSeconds,
+      'Selected range.begin did not convert correctly'
+    );
+
+    assert.approximately(
+      plotSummary.selectedValueRange.end as number,
+      TIMESTAMP_102,
+      roundingToleranceSeconds,
+      'Selected range.end did not convert correctly'
+    );
+
+    assert.equal(explore.state.domain, 'date', 'Explore state domain should be date');
+    assert.equal(plotSummary.domain, 'date', 'PlotSummary domain property should be date');
   });
 });

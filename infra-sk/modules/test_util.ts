@@ -9,6 +9,8 @@
 
 import { expect } from 'chai';
 import { deepCopy } from './object';
+import { LitElement } from 'lit';
+import { ElementSk } from './ElementSk';
 
 /**
  * Takes a DOM element name (e.g. 'my-component-sk') and returns a factory
@@ -313,4 +315,23 @@ export function expectQueryStringToEqual(expected: string) {
  */
 export function setQueryString(q: string) {
   window.history.pushState(null, '', window.location.origin + window.location.pathname + q);
+}
+
+/**
+ * Waits for the next render cycle of a LitElement or ElementSk component, including browser paint.
+ * Useful for ensuring DOM updates have completed in tests.
+ *
+ * @param el The element to wait for.
+ */
+export async function waitForRender(el: ElementSk | LitElement) {
+  const domUpdate = () => new Promise((resolve) => setTimeout(resolve, 0));
+  if (!el) return;
+  await domUpdate();
+  if (el instanceof LitElement && el.updateComplete) {
+    await el.updateComplete;
+  }
+  // LitElement updates are done, now wait for browser to paint
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  // Final yield
+  await domUpdate();
 }
