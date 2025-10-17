@@ -1,5 +1,33 @@
 {
   "compilerOptions": {
+    "plugins": [{
+      "name": "ts-lit-plugin",
+      "strict": true,
+      "securitySystem": "ClosureSafeTypes",
+      "rules": {
+        "no-unknown-tag-name": "warning",
+        "no-unclosed-tag": "warning",
+        "no-unknown-property": "warning",
+        "no-unintended-mixed-binding": "warning",
+        "no-invalid-boolean-binding": "warning",
+        "no-expressionless-property-binding": "warning",
+        "no-noncallable-event-binding": "warning",
+        "no-boolean-in-attribute-binding": "warning",
+        "no-complex-attribute-binding": "warning",
+        "no-nullable-attribute-binding": "warning",
+        "no-incompatible-type-binding": "warning",
+        "no-invalid-directive-binding": "warning",
+        "no-incompatible-property-type": "warning",
+        "no-unknown-property-converter": "warning",
+        "no-invalid-attribute-name": "warning",
+        "no-invalid-tag-name": "warning",
+        "no-missing-import": "off",
+        "no-unknown-attribute": "off",
+        "no-unknown-event": "off",
+        "no-unknown-slot": "off",
+        "no-invalid-css": "off"
+      }
+    }],
     "allowJs": true,
     "esModuleInterop": true,
     "module": "commonjs",
