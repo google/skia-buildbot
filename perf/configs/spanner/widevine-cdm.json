@@ -5,7 +5,7 @@
     "allowed_hosts": [],
     "trace_sample_proportion": 0.01,
     "contact": "browser-perf-engprod@google.com",
-    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-;])",
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
     "use_regression2_schema": true,
     "filter_parent_traces": true,
