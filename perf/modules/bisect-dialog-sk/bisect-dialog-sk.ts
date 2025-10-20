@@ -72,6 +72,8 @@ export class BisectDialogSk extends ElementSk {
 
   private jobId: string = '';
 
+  private _opened: boolean = false;
+
   private jobUrl: string = '';
 
   private closeBisectToastButton: HTMLButtonElement | null = null;
@@ -156,13 +158,18 @@ export class BisectDialogSk extends ElementSk {
   }
 
   open(): void {
-    this._render();
+    this._opened = true;
     this._dialog!.showModal();
     this.bisectButton!.disabled = false;
   }
 
   private closeBisectDialog(): void {
+    this._opened = false;
     this._dialog!.close();
+  }
+
+  get opened() {
+    return this._dialog!.open;
   }
 
   private postBisect(): void {
