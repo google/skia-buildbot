@@ -18,7 +18,7 @@ import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 import { Anomaly } from '../json';
 import { AnomalyData } from '../common/anomaly-data';
-import { increaseCounter } from '../telemetry/telemetry';
+import { CountMetric, telemetry } from '../telemetry/telemetry';
 
 import '../new-bug-dialog-sk/new-bug-dialog-sk';
 import '../existing-bug-dialog-sk/existing-bug-dialog-sk';
@@ -115,7 +115,7 @@ export class TriageMenuSk extends ElementSk {
   }
 
   fileBug() {
-    increaseCounter('fe_triage_action_taken', { action: 'file_bug' });
+    telemetry.increaseCounter(CountMetric.TriageActionTaken, { action: 'file_bug' });
     this.newBugDialog!.fileNewBug();
   }
 
@@ -124,12 +124,12 @@ export class TriageMenuSk extends ElementSk {
   }
 
   openExistingBugDialog() {
-    increaseCounter('fe_triage_action_taken', { action: 'associate_bug' });
+    telemetry.increaseCounter(CountMetric.TriageActionTaken, { action: 'associate_bug' });
     this.existingBugDialog!.open();
   }
 
   ignoreAnomaly() {
-    increaseCounter('fe_triage_action_taken', { action: 'ignore' });
+    telemetry.increaseCounter(CountMetric.TriageActionTaken, { action: 'ignore' });
     this.makeEditAnomalyRequest(this._anomalies, this._trace_names, 'IGNORE');
   }
 

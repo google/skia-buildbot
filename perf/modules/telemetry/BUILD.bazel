@@ -1,4 +1,16 @@
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
+
+karma_test(
+    name = "telemetry_test",
+    src = "telemetry_test.ts",
+    deps = [
+        ":telemetry_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/sinon",
+    ],
+)
 
 ts_library(
     name = "telemetry_ts_lib",

@@ -18,7 +18,7 @@ import { lookupCids } from '../cid/cid';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import '../../../elements-sk/modules/icons/camera-roll-icon-sk';
 import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
-import { increaseCounter, recordSummary } from '../telemetry/telemetry';
+import { CountMetric, SummaryMetric, telemetry } from '../telemetry/telemetry';
 
 const weekInSeconds = 7 * 24 * 60 * 60;
 
@@ -230,7 +230,7 @@ export class ReportPageSk extends ElementSk {
         this.setCurrentlyLoading('');
       })
       .catch((msg: any) => {
-        increaseCounter('fe_data_fetch_failure', {
+        telemetry.increaseCounter(CountMetric.DataFetchFailure, {
           page: 'report',
           endpoint: '/_/anomalies/group_report',
         });
@@ -264,10 +264,13 @@ export class ReportPageSk extends ElementSk {
               this.anomalyTracker.setGraph(anomaly.id, graphElement);
 
               const listener = () => {
-                recordSummary(
-                  'fe_single_graph_load_time_s',
+                telemetry.recordSummary(
+                  SummaryMetric.SingleGraphLoadTime,
                   (performance.now() - startTime) / 1000,
-                  { page: 'report', url: window.location.href }
+                  {
+                    page: 'report',
+                    url: window.location.href,
+                  }
                 );
                 graphElement.removeEventListener('data-loaded', listener);
                 loadedCount++;

@@ -19,7 +19,7 @@ import { property } from 'lit/decorators.js';
 import { define } from '../../../elements-sk/modules/define';
 import { AnomalyMap } from '../json';
 import { defaultColors, mainChartOptions } from '../common/plot-builder';
-import { recordSummary } from '../telemetry/telemetry';
+import { telemetry } from '../telemetry/telemetry';
 import {
   dataframeAnomalyContext,
   dataframeUserIssueContext,
@@ -33,6 +33,7 @@ import { range } from '../dataframe/index';
 import { VResizableBoxSk } from './v-resizable-box-sk';
 import { SidePanelCheckboxClickDetails, SidePanelSk } from './side-panel-sk';
 import { DragToZoomBox } from './drag-to-zoom-box-sk';
+import { SummaryMetric } from '../telemetry/telemetry';
 
 export interface PlotSelectionEventDetails {
   value: range;
@@ -50,8 +51,6 @@ export interface PlotShowTooltipEventDetails {
 
 export class PlotGoogleChartSk extends LitElement {
   private static readonly MOUSE_DOWN_HOLD_TIMEOUT = 3000; // 3 seconds
-
-  private static readonly GRAPH_PERF_METRIC_NAME = 'fe_google_graph_plot_time_s';
 
   private mouseDownTimeoutId: number | null = null;
 
@@ -425,7 +424,7 @@ export class PlotGoogleChartSk extends LitElement {
 
     plot.view = view;
     this.updateOptions();
-    recordSummary(PlotGoogleChartSk.GRAPH_PERF_METRIC_NAME, (performance.now() - start) / 1000, {
+    telemetry.recordSummary(SummaryMetric.GoogleGraphPlotTime, (performance.now() - start) / 1000, {
       type: 'update-data-view',
     });
   }
@@ -1059,7 +1058,7 @@ export class PlotGoogleChartSk extends LitElement {
     // them to the new locations, but the rendering internal may already do this for us.
     // We should only do this optimization if we see a performance issue.
     anomalyDiv.replaceChildren(...allDivs);
-    recordSummary(PlotGoogleChartSk.GRAPH_PERF_METRIC_NAME, (performance.now() - start) / 1000, {
+    telemetry.recordSummary(SummaryMetric.GoogleGraphPlotTime, (performance.now() - start) / 1000, {
       type: 'draw-anomaly',
     });
   }
@@ -1165,7 +1164,7 @@ export class PlotGoogleChartSk extends LitElement {
     });
 
     userIssueDiv.replaceChildren(...allDivs);
-    recordSummary(PlotGoogleChartSk.GRAPH_PERF_METRIC_NAME, (performance.now() - start) / 1000, {
+    telemetry.recordSummary(SummaryMetric.GoogleGraphPlotTime, (performance.now() - start) / 1000, {
       type: 'draw-user-issues',
     });
   }
@@ -1228,7 +1227,7 @@ export class PlotGoogleChartSk extends LitElement {
     this.drawAnomaly(this.chart);
     this.drawUserIssues(this.chart);
     this.drawXbar(this.chart);
-    recordSummary(PlotGoogleChartSk.GRAPH_PERF_METRIC_NAME, (performance.now() - start) / 1000, {
+    telemetry.recordSummary(SummaryMetric.GoogleGraphPlotTime, (performance.now() - start) / 1000, {
       type: 'main-chart',
     });
   }
@@ -1272,7 +1271,7 @@ export class PlotGoogleChartSk extends LitElement {
         plot.options = options;
       }
     }
-    recordSummary(PlotGoogleChartSk.GRAPH_PERF_METRIC_NAME, (performance.now() - start) / 1000, {
+    telemetry.recordSummary(SummaryMetric.GoogleGraphPlotTime, (performance.now() - start) / 1000, {
       type: 'update-bounds',
     });
   }

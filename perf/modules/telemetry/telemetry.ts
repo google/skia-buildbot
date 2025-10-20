@@ -1,15 +1,20 @@
 /**
- * @fileoverview This file defines functions for sending frontend telemetry metrics.
- * These metrics are used to track user interactions and performance within the
- * application.
+ * @fileoverview This file defines a Telemetry class for sending frontend metrics.
+ * A singleton instance is exported for application-wide use. These metrics are
+ * used to track user interactions and performance.
+ *
+ * Metrics are buffered on the frontend for 5 seconds before being sent in batches
+ * to the `/_/fe_telemetry` endpoint. This reduces network traffic. Any pending metrics
+ * are also sent when the page visibility changes to 'hidden' (e.g., when the user
+ * navigates away or closes the tab) to prevent data loss.
  *
  * To add a new counter metric:
- * 1. Add the metric name to the `CountMetricName` type.
- * 2. Call the `increaseCounter` function with the new metric name and optional tags.
+ * 1. Add the metric name to the `CountMetric` enum.
+ * 2. Call `telemetry.increaseCounter()` with the new metric name and optional tags.
  *
  * To add a new summary metric:
- * 1. Add the metric name to the `SummaryMetricName` type.
- * 2. Call the `recordSummary` function with the new metric name, value, and optional tags.
+ * 1. Add the metric name to the `SummaryMetric` enum.
+ * 2. Call `telemetry.recordSummary()` with the new metric name, value, and optional tags.
  */
 interface FrontendMetric {
   metric_name: string;
@@ -18,50 +23,121 @@ interface FrontendMetric {
   metric_type: 'counter' | 'summary';
 }
 
-type CountMetricName =
-  // Counts data request failures
-  | 'fe_data_fetch_failure'
-  // Counts the specific triage actions users perform (e.g., filing a bug, ignoring an anomaly).
-  | 'fe_triage_action_taken';
+export enum CountMetric {
+  // go/keep-sorted start
+  DataFetchFailure = 'fe_data_fetch_failure',
+  TriageActionTaken = 'fe_triage_action_taken',
+  // go/keep-sorted end
+}
 
-type SummaryMetricName =
-  // Measures the time it takes for google.graph to plot, when data is already fetched.
-  | 'fe_google_graph_plot_time_s'
-  // Measures the time taken to fetch and process data when plotting new graphs.
-  | 'fe_multi_graph_data_load_time_s'
-  // Measures the time it takes to render each individual graph
-  | 'fe_single_graph_load_time_s';
+export enum SummaryMetric {
+  // go/keep-sorted start
+  GoogleGraphPlotTime = 'fe_google_graph_plot_time_s',
+  MultiGraphDataLoadTime = 'fe_multi_graph_data_load_time_s',
+  ReportAnomaliesTableLoadTime = 'fe_report_anomalies_table_load_time_s',
+  ReportChartContainerLoadTime = 'fe_report_chart_container_load_time_s',
+  ReportGraphChunkLoadTime = 'fe_report_graph_chunk_load_time_s',
+  SingleGraphLoadTime = 'fe_single_graph_load_time_s',
+  // go/keep-sorted end
+}
 
-export async function increaseCounter(metricName: CountMetricName, tags = {}) {
-  sendMetrics([
-    {
-      metric_name: metricName as string,
+class Telemetry {
+  private static readonly BUFFER_FLUSH_INTERVAL_MS = 5000; // 5 seconds
+
+  private static readonly MAX_BUFFER_SIZE = 1000; // Max 1000 metrics in buffer
+
+  private metricsBuffer: FrontendMetric[] = [];
+
+  private timerId: number | null = null;
+
+  constructor() {
+    // When the page visibility changes, flush the buffer. This helps ensure we
+    // capture metrics before the user navigates away or closes the tab.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        if (this.timerId) {
+          clearTimeout(this.timerId);
+          this.timerId = null;
+        }
+        this.sendBufferedMetrics();
+      }
+    });
+  }
+
+  // Flushes the metrics buffer by sending the data to the telemetry endpoint.
+  private async sendBufferedMetrics() {
+    if (this.metricsBuffer.length === 0) {
+      return;
+    }
+
+    const metricsToSend = [...this.metricsBuffer];
+    this.metricsBuffer.length = 0;
+
+    try {
+      await fetch('/_/fe_telemetry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(metricsToSend),
+      });
+    } catch (e) {
+      console.error(e, 'Failed to send frontend metrics:', metricsToSend);
+      this.queueMetrics(metricsToSend);
+    }
+  }
+
+  private queueMetric(metric: FrontendMetric) {
+    this.queueMetrics([metric]);
+  }
+
+  private queueMetrics(metrics: FrontendMetric[]) {
+    for (const m of metrics) {
+      if (this.metricsBuffer.length >= Telemetry.MAX_BUFFER_SIZE) {
+        console.warn('Frontend metrics buffer full, removing oldest metric to make space.');
+        this.metricsBuffer.shift(); // Remove the oldest metric (FIFO)
+      }
+      this.metricsBuffer.push(m);
+    }
+
+    if (!this.timerId) {
+      this.timerId = window.setTimeout(() => {
+        this.sendBufferedMetrics();
+        this.timerId = null;
+      }, Telemetry.BUFFER_FLUSH_INTERVAL_MS);
+    }
+  }
+
+  increaseCounter(metricName: CountMetric, tags = {}) {
+    this.queueMetric({
+      metric_name: metricName,
       metric_value: 1,
       tags: tags,
       metric_type: 'counter',
-    },
-  ]);
-}
+    });
+  }
 
-export async function recordSummary(metricName: SummaryMetricName, val: number, tags = {}) {
-  sendMetrics([
-    {
-      metric_name: metricName as string,
+  recordSummary(metricName: SummaryMetric, val: number, tags = {}) {
+    this.queueMetric({
+      metric_name: metricName,
       metric_value: val,
       tags: tags,
       metric_type: 'summary',
+    });
+  }
+
+  // The following are exposed for testing purposes.
+  _forTesting = {
+    reset: () => {
+      this.metricsBuffer.length = 0;
+      if (this.timerId) {
+        clearTimeout(this.timerId);
+        this.timerId = null;
+      }
     },
-  ]);
+    getBuffer: () => this.metricsBuffer,
+    MAX_BUFFER_SIZE: Telemetry.MAX_BUFFER_SIZE,
+  };
 }
 
-async function sendMetrics(metrics: FrontendMetric[]) {
-  fetch('/_/fe_telemetry', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(metrics),
-  }).catch((e) => {
-    console.error(e, 'Failed to send frontend metrics:', metrics);
-  });
-}
+export const telemetry = new Telemetry();

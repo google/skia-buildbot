@@ -49,7 +49,7 @@ import {
   Trace,
   TraceMetadata,
 } from '../json';
-import { recordSummary } from '../telemetry/telemetry';
+import { SummaryMetric, telemetry } from '../telemetry/telemetry';
 
 import '../../../elements-sk/modules/spinner-sk';
 import '../explore-simple-sk';
@@ -442,9 +442,13 @@ export class ExploreMultiSk extends ElementSk {
     } catch (err: any) {
       errorMessage(err.message || "Something went wrong, can't plot the graphs.");
     } finally {
-      recordSummary('fe_multi_graph_data_load_time_s', (performance.now() - startTime) / 1000, {
-        url: window.location.href,
-      });
+      telemetry.recordSummary(
+        SummaryMetric.MultiGraphDataLoadTime,
+        (performance.now() - startTime) / 1000,
+        {
+          url: window.location.href,
+        }
+      );
       this.updateShortcutMultiview();
       this.setProgress('');
       this.checkDataLoaded();

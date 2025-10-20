@@ -19,7 +19,7 @@ import { SubscriptionTableSk } from '../subscription-table-sk/subscription-table
 import '@material/web/button/outlined-button.js';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
-import { increaseCounter } from '../telemetry/telemetry';
+import { CountMetric, telemetry } from '../telemetry/telemetry';
 
 // State is the local UI state of regressions-page-sk
 interface State {
@@ -184,7 +184,7 @@ export class RegressionsPageSk extends ElementSk {
         await this.anomaliesTable!.populateTable(this.cpAnomalies);
       })
       .catch((msg) => {
-        increaseCounter('fe_data_fetch_failure', {
+        telemetry.increaseCounter(CountMetric.DataFetchFailure, {
           page: 'regressions',
           endpoint: '/_/anomalies/anomaly_list',
         });
