@@ -138,6 +138,36 @@ func (_m *Store) GetAnomalyIdsByAnomalyGroupId(ctx context.Context, anomalyGroup
 	return r0, r1
 }
 
+// GetAnomalyIdsByAnomalyGroupIds provides a mock function with given fields: ctx, anomalyGroupIds
+func (_m *Store) GetAnomalyIdsByAnomalyGroupIds(ctx context.Context, anomalyGroupIds []string) ([]string, error) {
+	ret := _m.Called(ctx, anomalyGroupIds)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAnomalyIdsByAnomalyGroupIds")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]string, error)); ok {
+		return rf(ctx, anomalyGroupIds)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []string); ok {
+		r0 = rf(ctx, anomalyGroupIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, anomalyGroupIds)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAnomalyIdsByIssueId provides a mock function with given fields: ctx, issueId
 func (_m *Store) GetAnomalyIdsByIssueId(ctx context.Context, issueId string) ([]string, error) {
 	ret := _m.Called(ctx, issueId)

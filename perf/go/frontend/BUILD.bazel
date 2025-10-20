@@ -35,6 +35,7 @@ go_library(
         "//perf/go/chromeperf",
         "//perf/go/config",
         "//perf/go/config/validate",
+        "//perf/go/culprit:store",
         "//perf/go/dataframe",
         "//perf/go/dfbuilder",
         "//perf/go/dryrun",

@@ -63,6 +63,36 @@ func (_m *Store) Get(ctx context.Context, ids []string) ([]*v1.Culprit, error) {
 	return r0, r1
 }
 
+// GetAnomalyGroupIdsForIssueId provides a mock function with given fields: ctx, issueId
+func (_m *Store) GetAnomalyGroupIdsForIssueId(ctx context.Context, issueId string) ([]string, error) {
+	ret := _m.Called(ctx, issueId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAnomalyGroupIdsForIssueId")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]string, error)); ok {
+		return rf(ctx, issueId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
+		r0 = rf(ctx, issueId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, issueId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Upsert provides a mock function with given fields: ctx, anomaly_group_id, commits
 func (_m *Store) Upsert(ctx context.Context, anomaly_group_id string, commits []*v1.Commit) ([]string, error) {
 	ret := _m.Called(ctx, anomaly_group_id, commits)

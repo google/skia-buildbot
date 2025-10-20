@@ -503,3 +503,31 @@ func TestGetAnomalyIdsByAnomalyGroupId_EmptyDb(t *testing.T) {
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []string{}, anomaly_ids)
 }
+
+func TestGetAnomalyIdsByAnomalyGroupIds(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	anomaly_id_1 := "b1fb4036-1883-4d9e-85d4-ed607629017a"
+	group_id_1, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, group_id_1, anomaly_id_1)
+	require.NoError(t, err)
+
+	anomaly_id_2 := "a60414c6-2495-4ef7-834a-829b1a929100"
+	group_id_2, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, group_id_2, anomaly_id_2)
+	require.NoError(t, err)
+
+	// Group 3 is not selected.
+	anomaly_id_3 := "a8e0b97a-90ef-09bc-12a0-09a8423cf12e"
+	group_id_3, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, group_id_3, anomaly_id_3)
+	require.NoError(t, err)
+
+	anomaly_ids, err := store.GetAnomalyIdsByAnomalyGroupIds(ctx, []string{group_id_1, group_id_2})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{anomaly_id_1, anomaly_id_2}, anomaly_ids)
+}

@@ -31,6 +31,9 @@ type Store interface {
 	// Get all anomaly IDs associated with this group ID.
 	GetAnomalyIdsByAnomalyGroupId(ctx context.Context, anomalyGroupId string) ([]string, error)
 
+	// Get all anomaly IDs associated with those groups.
+	GetAnomalyIdsByAnomalyGroupIds(ctx context.Context, anomalyGroupIds []string) ([]string, error)
+
 	FindExistingGroup(
 		ctx context.Context,
 		subscription_name string,

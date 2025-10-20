@@ -6,11 +6,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/anomalygroup/mocks"
 	"go.skia.org/infra/perf/go/config"
+	culprit_mocks "go.skia.org/infra/perf/go/culprit/mocks"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
 	reg_mocks "go.skia.org/infra/perf/go/regression/mocks"
@@ -18,27 +20,34 @@ import (
 	"go.skia.org/infra/perf/go/ui/frame"
 )
 
-func setupAnomaliesApiWithMocks(t *testing.T) (anomaliesApi, *mocks.Store, *reg_mocks.Store) {
+func setupAnomaliesApiWithMocks(t *testing.T) (anomaliesApi, *mocks.Store, *culprit_mocks.Store, *reg_mocks.Store) {
 	anomalygroupStore := mocks.NewStore(t)
+	culpritStore := culprit_mocks.NewStore(t)
 	regStore := reg_mocks.NewStore(t)
 
 	api := anomaliesApi{
 		anomalygroupStore: anomalygroupStore,
+		culpritStore:      culpritStore,
 		regStore:          regStore,
 	}
-	return api, anomalygroupStore, regStore
+	return api, anomalygroupStore, culpritStore, regStore
 }
 
 func TestGetGroupReportByBugId(t *testing.T) {
-	api, anomalygroupStore, regStore := setupAnomaliesApiWithMocks(t)
+	api, anomalygroupStore, culpritStore, regStore := setupAnomaliesApiWithMocks(t)
 
 	ctx := context.Background()
 	bugId := "12345"
 	anomalyIds := []string{"anomaly-id-1", "anomaly-id-2", "anomaly-improvement"}
+	culrpitAnomalyIds := []string{"anomaly-id-4"}
+	allAnomalyIds := append(anomalyIds, culrpitAnomalyIds...)
 	traceset := ",arch=x86,bot=linux,benchmark=jetstream2,test=score,config=default,master=main,"
 
-	// Mock the response from the anomalygroupStore.
-	anomalygroupStore.On("GetAnomalyIdsByIssueId", ctx, bugId).Return(anomalyIds, nil)
+	anomalyGroupIds := []string{"agid-1"}
+	culpritStore.On("GetAnomalyGroupIdsForIssueId", mock.Anything, bugId).Return(anomalyGroupIds, nil).Once()
+	anomalygroupStore.On("GetAnomalyIdsByAnomalyGroupIds", mock.Anything, anomalyGroupIds).Return(culrpitAnomalyIds, nil).Once()
+
+	anomalygroupStore.On("GetAnomalyIdsByIssueId", mock.Anything, bugId).Return(anomalyIds, nil)
 
 	// Mock the response from the regStore.
 	regressions := []*regression.Regression{
@@ -73,8 +82,18 @@ func TestGetGroupReportByBugId(t *testing.T) {
 			},
 			IsImprovement: true,
 		},
+		{
+			Id: "anomaly-id-4",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						traceset: []float32{2.0},
+					},
+				},
+			},
+		},
 	}
-	regStore.On("GetByIDs", ctx, anomalyIds).Return(regressions, nil)
+	regStore.On("GetByIDs", mock.Anything, allAnomalyIds).Return(regressions, nil)
 
 	// Create the request.
 	req := GetGroupReportRequest{
@@ -87,10 +106,10 @@ func TestGetGroupReportByBugId(t *testing.T) {
 	// Assert the results.
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-	assert.Len(t, resp.Anomalies, 3)
+	assert.Len(t, resp.Anomalies, len(regressions))
 	// Note: compat.ConvertRegressionToAnomalies is not mocked, so we can't check all fields.
 	// We are just checking the Id.
-	for _, id := range anomalyIds {
+	for _, id := range allAnomalyIds {
 		idPresent := false
 		for _, anomaly := range resp.Anomalies {
 			if anomaly.Id == id {
@@ -107,7 +126,7 @@ func TestGetGroupReportByBugId(t *testing.T) {
 }
 
 func TestGetGroupReportByAnomalyGroupId(t *testing.T) {
-	api, anomalygroupStore, regStore := setupAnomaliesApiWithMocks(t)
+	api, anomalygroupStore, _, regStore := setupAnomaliesApiWithMocks(t)
 
 	ctx := context.Background()
 	anomalyGroupId := "group-id-1"
@@ -172,7 +191,7 @@ func TestGetGroupReportByAnomalyGroupId(t *testing.T) {
 }
 
 func TestGetGroupReportByAnomalyGroupId_Empty(t *testing.T) {
-	api, anomalygroupStore, regStore := setupAnomaliesApiWithMocks(t)
+	api, anomalygroupStore, _, regStore := setupAnomaliesApiWithMocks(t)
 
 	ctx := context.Background()
 	anomalyGroupId := "group-id-1"
@@ -203,7 +222,7 @@ func TestGetGroupReportByAnomalyGroupId_Empty(t *testing.T) {
 }
 
 func TestGetGroupReportByRevision(t *testing.T) {
-	api, anomalygroupStore, regStore := setupAnomaliesApiWithMocks(t)
+	api, anomalygroupStore, _, regStore := setupAnomaliesApiWithMocks(t)
 
 	ctx := context.Background()
 	anomalyIds := []string{"anom-id-1", "anom-id-2"}
@@ -265,7 +284,7 @@ func TestGetGroupReportByRevision(t *testing.T) {
 }
 
 func TestGetGroupReportByRevision_InvalidRevisionsAreRejected(t *testing.T) {
-	api, anomalygroupStore, regStore := setupAnomaliesApiWithMocks(t)
+	api, anomalygroupStore, _, regStore := setupAnomaliesApiWithMocks(t)
 
 	ctx := context.Background()
 

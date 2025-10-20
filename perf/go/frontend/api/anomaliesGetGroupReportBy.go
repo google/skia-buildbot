@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/chromeperf/compat"
 	"go.skia.org/infra/perf/go/regression"
+	"golang.org/x/sync/errgroup"
 )
 
 // GetGroupReport for regressions that match GetGroupReportRequest.anomalyIDs list
@@ -20,11 +21,46 @@ func (api anomaliesApi) getGroupReportByAnomalyId(ctx context.Context, groupRepo
 // GetGroupReport for regressions that match GetGroupReportRequest.BugID
 func (api anomaliesApi) getGroupReportByBugId(ctx context.Context, groupReportRequest GetGroupReportRequest) (*GetGroupReportResponse, error) {
 	id := groupReportRequest.BugID
-	anomalyIds, err := api.anomalygroupStore.GetAnomalyIdsByIssueId(ctx, id)
-	if err != nil {
-		return nil, skerr.Fmt("failed to get anomalyIds from anomalygroup Store by issue ID: %s", err)
+	errg, errgCtx := errgroup.WithContext(ctx)
+	anomalyIdsChan := make(chan []string, 2)
+
+	errg.Go(func() error {
+		anomalyGroupIdsFromCulprit, err := api.culpritStore.GetAnomalyGroupIdsForIssueId(errgCtx, id)
+		if err != nil {
+			return skerr.Fmt("failed to get anomaly group ids by issue id from culprit store: %s", err)
+		}
+		anomalyIdsRelatedToCulprit, err := api.anomalygroupStore.GetAnomalyIdsByAnomalyGroupIds(errgCtx, anomalyGroupIdsFromCulprit)
+		if err != nil {
+			return skerr.Fmt("failed to get anomaly ids for groups fetched earlier from culprit store: %s", err)
+		}
+		anomalyIdsChan <- anomalyIdsRelatedToCulprit
+		return nil
+	})
+
+	errg.Go(func() error {
+		anomalyIdsFromGroupStore, err := api.anomalygroupStore.GetAnomalyIdsByIssueId(errgCtx, id)
+		if err != nil {
+			return skerr.Fmt("failed to get anomalyIds from anomalygroup store by issue id: %s", err)
+		}
+		anomalyIdsChan <- anomalyIdsFromGroupStore
+		return nil
+	})
+
+	if err := errg.Wait(); err != nil {
+		return nil, err
 	}
-	// TODO(b/438183175) query from Culprits, too. Looks like reported_issue_id can be all null, even though we have ongoing bugs.
+
+	// We have two sources of anomalyIds, since we need to query Culprits and AnomalyGroup separately.
+	// For one anomalygroup there may be many culprits, and therefore many issue_ids.
+	// In this case, the expected value in anomalygroups would be null,
+	// and culprits table is the source of truth.
+	// This is because, when bisecting, we don't populate the anomalygroup's issue_id field at all,
+	// which is done by design.
+	anomalyIds := <-anomalyIdsChan
+	anomalyIds = append(anomalyIds, <-anomalyIdsChan...)
+
+	// TODO(b/438183175) CREATE INDEX idx_culprits_issue_ids ON Culprits USING GIN (issue_ids);
+
 	return api.getGroupReportByAnomalyIdList(ctx, &anomalyIds)
 }
 

@@ -307,3 +307,93 @@ func getCulpritsFromDb(t *testing.T, ctx context.Context, db pool.Pool) []schema
 	}
 	return actual
 }
+
+func TestGetAnomalyGroupIdsForIssueId_Success(t *testing.T) {
+	store, db := setUp(t)
+	ctx := context.Background()
+	populateDb(t, ctx, db, schema.CulpritSchema{
+		Id:              uuid.NewString(),
+		Host:            "chromium.googlesource.com",
+		Project:         "chromium/src",
+		Ref:             "refs/head/main",
+		Revision:        "123",
+		AnomalyGroupIDs: []string{"ag1", "ag2"},
+		IssueIds:        []string{"issue1"},
+	})
+	populateDb(t, ctx, db, schema.CulpritSchema{
+		Id:              uuid.NewString(),
+		Host:            "chromium.googlesource.com",
+		Project:         "chromium/src",
+		Ref:             "refs/head/main",
+		Revision:        "456",
+		AnomalyGroupIDs: []string{"ag3", "ag4"},
+		IssueIds:        []string{"issue1"},
+	})
+	populateDb(t, ctx, db, schema.CulpritSchema{
+		Id:              uuid.NewString(),
+		Host:            "chromium.googlesource.com",
+		Project:         "chromium/src",
+		Ref:             "refs/head/main",
+		Revision:        "789",
+		AnomalyGroupIDs: []string{"ag5", "ag6"},
+		IssueIds:        []string{"issue2"},
+	})
+
+	res, err := store.GetAnomalyGroupIdsForIssueId(ctx, "issue1")
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"ag1", "ag2", "ag3", "ag4"}, res)
+}
+
+func TestGetAnomalyGroupIdsForIssueId_NonExistentIssueId(t *testing.T) {
+	store, db := setUp(t)
+	ctx := context.Background()
+	populateDb(t, ctx, db, schema.CulpritSchema{
+		Id:              uuid.NewString(),
+		Host:            "chromium.googlesource.com",
+		Project:         "chromium/src",
+		Ref:             "refs/head/main",
+		Revision:        "123",
+		AnomalyGroupIDs: []string{"ag1", "ag2"},
+		IssueIds:        []string{"issue1"},
+	})
+
+	res, err := store.GetAnomalyGroupIdsForIssueId(ctx, "non-existent-issue")
+	require.NoError(t, err)
+	assert.Empty(t, res)
+}
+
+func TestGetAnomalyGroupIdsForIssueId_NoAssociatedGroups(t *testing.T) {
+	store, db := setUp(t)
+	ctx := context.Background()
+	populateDb(t, ctx, db, schema.CulpritSchema{
+		Id:              uuid.NewString(),
+		Host:            "chromium.googlesource.com",
+		Project:         "chromium/src",
+		Ref:             "refs/head/main",
+		Revision:        "123",
+		AnomalyGroupIDs: nil,
+		IssueIds:        []string{"issue1"},
+	})
+
+	res, err := store.GetAnomalyGroupIdsForIssueId(ctx, "issue1")
+	require.NoError(t, err)
+	assert.Empty(t, res)
+}
+
+func TestGetAnomalyGroupIdsForIssueId_EmptyIssueId(t *testing.T) {
+	store, db := setUp(t)
+	ctx := context.Background()
+	populateDb(t, ctx, db, schema.CulpritSchema{
+		Id:              uuid.NewString(),
+		Host:            "chromium.googlesource.com",
+		Project:         "chromium/src",
+		Ref:             "refs/head/main",
+		Revision:        "123",
+		AnomalyGroupIDs: []string{"ag1", "ag2"},
+		IssueIds:        []string{"issue1"},
+	})
+
+	res, err := store.GetAnomalyGroupIdsForIssueId(ctx, "")
+	require.NoError(t, err)
+	assert.Empty(t, res)
+}

@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/chromeperf/compat"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/culprit"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/subscription"
@@ -39,6 +40,7 @@ type anomaliesApi struct {
 	perfGit           perfgit.Git
 	subStore          subscription.Store
 	alertStore        alerts.Store
+	culpritStore      culprit.Store
 	regStore          regression.Store
 	anomalygroupStore anomalygroup.Store
 	preferLegacy      bool
@@ -125,13 +127,14 @@ func (api anomaliesApi) RegisterHandlers(router *chi.Mux) {
 	router.Get("/_/anomalies/anomaly_list_skia", api.GetAnomalyList)
 }
 
-func NewAnomaliesApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, perfGit perfgit.Git, subStore subscription.Store, alertStore alerts.Store, regStore regression.Store, anomalygroupStore anomalygroup.Store, preferLegacy bool) anomaliesApi {
+func NewAnomaliesApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, perfGit perfgit.Git, subStore subscription.Store, alertStore alerts.Store, culpritStore culprit.Store, regStore regression.Store, anomalygroupStore anomalygroup.Store, preferLegacy bool) anomaliesApi {
 	return anomaliesApi{
 		loginProvider:     loginProvider,
 		chromeperfClient:  chromeperfClient,
 		perfGit:           perfGit,
 		subStore:          subStore,
 		alertStore:        alertStore,
+		culpritStore:      culpritStore,
 		regStore:          regStore,
 		anomalygroupStore: anomalygroupStore,
 		preferLegacy:      preferLegacy,
@@ -478,8 +481,9 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to get group report", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to get group report: ", http.StatusInternalServerError)
 		sklog.Error(err)
+		return
 	}
 
 	if groupReportResponse.Error != "" {

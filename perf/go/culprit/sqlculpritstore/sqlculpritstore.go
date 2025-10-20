@@ -74,6 +74,23 @@ func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, er
 	return resp, nil
 }
 
+func (s *CulpritStore) GetAnomalyGroupIdsForIssueId(ctx context.Context, issueId string) ([]string, error) {
+	query := "SELECT agid FROM Culprits, UNNEST(anomaly_group_ids) as agid WHERE $1 = ANY(issue_ids)"
+	rows, err := s.db.Query(ctx, query, issueId)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to query anomaly group ids for issue id from culprit")
+	}
+	var res []string
+	for rows.Next() {
+		var agid string
+		if err := rows.Scan(&agid); err != nil {
+			return nil, skerr.Wrapf(err, "failed to read culprit results")
+		}
+		res = append(res, agid)
+	}
+	return res, nil
+}
+
 // Inserts the given culprit elements in the persistant storage. If a culprit already exists,
 // appends the anomaly_group_id into its corresponding field.
 func (s *CulpritStore) Upsert(ctx context.Context, anomaly_group_id string, ip_commits []*pb.Commit) ([]string, error) {

@@ -43,6 +43,7 @@ go_library(
         "//perf/go/chromeperf",
         "//perf/go/chromeperf/compat",
         "//perf/go/config",
+        "//perf/go/culprit:store",
         "//perf/go/dataframe",
         "//perf/go/dfbuilder",
         "//perf/go/dryrun",
@@ -71,6 +72,7 @@ go_library(
         "//pinpoint/proto/v1:proto",
         "@com_github_go_chi_chi_v5//:chi",
         "@io_opencensus_go//trace",
+        "@org_golang_x_sync//errgroup",
     ],
 )
 
@@ -95,6 +97,7 @@ go_test(
         "//go/testutils",
         "//perf/go/anomalygroup/mocks",
         "//perf/go/config",
+        "//perf/go/culprit/mocks",
         "//perf/go/dataframe",
         "//perf/go/dataframe/mocks",
         "//perf/go/favorites:store",

@@ -318,10 +318,10 @@ func (s *AnomalyGroupStore) FindExistingGroup(
 	return groups, nil
 }
 
-func (s *AnomalyGroupStore) getAnomalyIds(ctx context.Context, stmt string, queryErrMsg string, queryArg string) ([]string, error) {
-	rows, err := s.db.Query(ctx, stmt, queryArg)
+func (s *AnomalyGroupStore) getAnomalyIds(ctx context.Context, stmt string, queryErrMsg string, queryArgs ...interface{}) ([]string, error) {
+	rows, err := s.db.Query(ctx, stmt, queryArgs...)
 	if err != nil {
-		err_msg := fmt.Sprintf("%s: %s", queryErrMsg, queryArg)
+		err_msg := fmt.Sprintf("%s: %v", queryErrMsg, queryArgs)
 		return nil, skerr.Wrapf(err, "%s", err_msg)
 	}
 
@@ -352,9 +352,9 @@ func (s *AnomalyGroupStore) GetAnomalyIdsByIssueId(
 	return s.getAnomalyIds(ctx, statement, "failed to load the anomaly group by issue id", issueId)
 }
 
-func (s *AnomalyGroupStore) GetAnomalyIdsByAnomalyGroupId(
+func (s *AnomalyGroupStore) GetAnomalyIdsByAnomalyGroupIds(
 	ctx context.Context,
-	anomalyGroupId string) ([]string, error) {
+	anomalyGroupIds []string) ([]string, error) {
 	statement := `
 		SELECT
 			DISTINCT(anomaly_id)
@@ -362,7 +362,13 @@ func (s *AnomalyGroupStore) GetAnomalyIdsByAnomalyGroupId(
 			AnomalyGroups,
 			UNNEST(anomaly_ids) AS anomaly_id
 		WHERE
-			id=$1
+			id = ANY($1)
 		`
-	return s.getAnomalyIds(ctx, statement, "failed to load the anomaly group by anomaly group id", anomalyGroupId)
+	return s.getAnomalyIds(ctx, statement, "failed to load the anomaly group by anomaly group ids", anomalyGroupIds)
+}
+
+func (s *AnomalyGroupStore) GetAnomalyIdsByAnomalyGroupId(
+	ctx context.Context,
+	anomalyGroupId string) ([]string, error) {
+	return s.GetAnomalyIdsByAnomalyGroupIds(ctx, []string{anomalyGroupId})
 }
