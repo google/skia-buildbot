@@ -48,19 +48,19 @@ export interface BisectPreloadParams {
 }
 
 export class BisectDialogSk extends ElementSk {
-  private bugId: string = '';
+  bugId: string = '';
 
-  private startCommit: string = '';
+  startCommit: string = '';
 
-  private endCommit: string = '';
+  endCommit: string = '';
 
-  private story: string = '';
+  story: string = '';
 
-  private user: string = '';
+  user: string = '';
 
-  private testPath: string = '';
+  testPath: string = '';
 
-  private anomalyId: string = '';
+  anomalyId: string = '';
 
   private _dialog: HTMLDialogElement | null = null;
 
@@ -172,7 +172,7 @@ export class BisectDialogSk extends ElementSk {
     return this._dialog!.open;
   }
 
-  private postBisect(): void {
+  postBisect(): void {
     this.spinner!.active = true;
     this.bisectButton!.disabled = true;
     if (this.testPath === '') {
