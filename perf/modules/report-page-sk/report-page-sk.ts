@@ -129,6 +129,8 @@ export class ReportPageSk extends ElementSk {
 
   private _allGraphsLoaded: boolean = false;
 
+  private pageLoadStart: number = 0;
+
   private traceFormatter: ChromeTraceFormatter | null = null;
 
   private defaults: QueryConfig | null = null;
@@ -172,6 +174,7 @@ export class ReportPageSk extends ElementSk {
   }
 
   async connectedCallback() {
+    this.pageLoadStart = performance.now();
     super.connectedCallback();
     if (this._currentlyLoading !== '' || this._allGraphsLoaded) {
       return;
@@ -228,6 +231,13 @@ export class ReportPageSk extends ElementSk {
         this.setCurrentlyLoading('Loading graphs...');
         await this.loadGraphsInChunks();
         this.setCurrentlyLoading('');
+        telemetry.recordSummary(
+          SummaryMetric.ReportPageLoadTime,
+          (performance.now() - this.pageLoadStart) / 1000,
+          {
+            url: window.location.href,
+          }
+        );
       })
       .catch((msg: any) => {
         telemetry.increaseCounter(CountMetric.DataFetchFailure, {
@@ -245,6 +255,7 @@ export class ReportPageSk extends ElementSk {
    * after all graphs in the current batch have finished loading.
    */
   private async loadGraphsInChunks() {
+    const chartContainerLoadStart = performance.now();
     const anomaliesToLoad = this.anomalyTracker.getSelectedAnomalies();
     // Chunk size is selected arbitrarily, feel free to tweak.
     const chunkSize = 5;
@@ -253,6 +264,7 @@ export class ReportPageSk extends ElementSk {
     for (let i = 0; i < anomaliesToLoad.length; i += chunkSize) {
       this.setCurrentlyLoading(`Loading graphs (${loadedCount}/${anomaliesToLoad.length})...`);
       const chunk = anomaliesToLoad.slice(i, i + chunkSize);
+      const chunkLoadStart = performance.now();
       const promises = chunk.map(
         (anomaly) =>
           new Promise<void>((resolve) => {
@@ -285,13 +297,37 @@ export class ReportPageSk extends ElementSk {
           })
       );
       await Promise.all(promises);
+      telemetry.recordSummary(
+        SummaryMetric.ReportGraphChunkLoadTime,
+        (performance.now() - chunkLoadStart) / 1000,
+        {
+          url: window.location.href,
+          chunk_size: chunk.length.toString(),
+        }
+      );
     }
 
     this._allGraphsLoaded = true;
+    telemetry.recordSummary(
+      SummaryMetric.ReportChartContainerLoadTime,
+      (performance.now() - chartContainerLoadStart) / 1000,
+      {
+        url: window.location.href,
+        total_graphs: anomaliesToLoad.length.toString(),
+      }
+    );
   }
 
   private async initializePage() {
+    const tableLoadStart = performance.now();
     await this.anomaliesTable!.populateTable(this.anomalyTracker.toAnomalyList());
+    telemetry.recordSummary(
+      SummaryMetric.ReportAnomaliesTableLoadTime,
+      (performance.now() - tableLoadStart) / 1000,
+      {
+        url: window.location.href,
+      }
+    );
 
     const urlParams = new URLSearchParams(window.location.search);
     // This statement is for when anomalyIDs is set, e.g. anomalyIDs=123,124.

@@ -37,6 +37,7 @@ export enum SummaryMetric {
   ReportAnomaliesTableLoadTime = 'fe_report_anomalies_table_load_time_s',
   ReportChartContainerLoadTime = 'fe_report_chart_container_load_time_s',
   ReportGraphChunkLoadTime = 'fe_report_graph_chunk_load_time_s',
+  ReportPageLoadTime = 'fe_report_page_load_time_s',
   SingleGraphLoadTime = 'fe_single_graph_load_time_s',
   // go/keep-sorted end
 }
