@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "copy_data_to_experimental_db_lib",
+    srcs = ["copy_data.go"],
+    importpath = "go.skia.org/infra/perf/scripts/copy_data_to_experimental_db",
+    visibility = ["//visibility:private"],
+    deps = ["@com_github_jackc_pgx_v4//:pgx"],
+)
+
+go_binary(
+    name = "copy_data_to_experimental_db",
+    embed = [":copy_data_to_experimental_db_lib"],
+    visibility = ["//visibility:public"],
+)
