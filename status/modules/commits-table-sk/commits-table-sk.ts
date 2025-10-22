@@ -193,8 +193,6 @@ class Data {
 
   tasks: Map<TaskId, Task> = new Map();
 
-  tasksBySpec: Map<TaskSpec, Map<TaskId, Task>> = new Map();
-
   tasksByCommit: Map<CommitHash, Map<TaskSpec, Task>> = new Map();
 
   comments: Map<CommitHash, Map<TaskSpec, Array<Comment>>> = new Map();
@@ -262,7 +260,6 @@ class Data {
     this.commitsByHash = new Map();
     this.branchHeads = [];
     this.tasks = new Map();
-    this.tasksBySpec = new Map();
     this.tasksByCommit = new Map();
     this.comments = new Map();
     this.revertedMap = new Map();
@@ -572,12 +569,12 @@ export class CommitsTableSk extends ElementSk {
         <div class="refresh">
           <input-sk
             type="number"
-            textPrefix="Reload (s):&nbsp"
+            textPrefix="Reload (s):&nbsp;"
             id="reloadInput"
             @change=${() => el.update()}></input-sk>
           <input-sk
             type="number"
-            textPrefix="Commits:&nbsp&nbsp&nbsp"
+            textPrefix="Commits:&nbsp;&nbsp;&nbsp;"
             id="commitsInput"
             @change=${() => el.update()}>
           </input-sk>
@@ -795,7 +792,15 @@ export class CommitsTableSk extends ElementSk {
       const spec = target.getAttribute('title') || '';
       const comments = this.data.taskSpecs.get(spec)!.comments!;
       if (spec !== '' && comments !== undefined) {
-        dialog.displayTaskSpec(spec, comments);
+        // Find the taskExecutor of the most recent task within this TaskSpec,
+        // so that we can link to the correct Swarming host.
+        let taskExecutor;
+        for (const c of this.data.commits) {
+          if ((taskExecutor = this.data.tasksByCommit.get(c.hash)?.get(spec)?.taskExecutor)) {
+            break;
+          }
+        }
+        dialog.displayTaskSpec(taskExecutor || '', spec, comments);
       }
     } else if (target.classList.contains('commit')) {
       const commit = this.data.commits[Number(target.dataset.commitIndex)]!;

@@ -79,7 +79,8 @@ const taskTemplate: Task = {
   name: 'Build-Android-Stuff-Metal',
   revision: 'abc0',
   status: 'SUCCESS',
-  swarmingTaskId: 'idforswarming',
+  swarmingTaskId: 'idforswarming0',
+  taskExecutor: '',
 };
 const commits: Array<LongCommit> = [];
 const tasks: Array<Task> = [];

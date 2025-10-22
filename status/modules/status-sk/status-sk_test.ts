@@ -35,6 +35,11 @@ describe('status-sk', () => {
         ['infra', 'https://skia.googlesource.com/buildbot/+show/'],
         ['skcms', 'https://skia.googlesource.com/skcms/+show/'],
       ]),
+      repoToProject: new Map([
+        ['skia', 'skia'],
+        ['infra', 'skiabuildbot'],
+        ['skcms', 'skcms'],
+      ]),
     });
     fetchMock.getOnce('path:/loginstatus/', {});
     fetchMock.getOnce('https://skia-perf.luci.app/_/alerts/', <AlertsStatus>{

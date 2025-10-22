@@ -285,6 +285,7 @@ type Task struct {
 	Revision       string                 `protobuf:"bytes,4,opt,name=revision,proto3" json:"revision,omitempty"`
 	Status         string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
 	SwarmingTaskId string                 `protobuf:"bytes,6,opt,name=swarming_task_id,json=swarmingTaskId,proto3" json:"swarming_task_id,omitempty"`
+	TaskExecutor   string                 `protobuf:"bytes,7,opt,name=task_executor,json=taskExecutor,proto3" json:"task_executor,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -357,6 +358,13 @@ func (x *Task) GetStatus() string {
 func (x *Task) GetSwarmingTaskId() string {
 	if x != nil {
 		return x.SwarmingTaskId
+	}
+	return ""
+}
+
+func (x *Task) GetTaskExecutor() string {
+	if x != nil {
+		return x.TaskExecutor
 	}
 	return ""
 }
@@ -635,12 +643,14 @@ func (x *ResponseMetadata) GetTimestamp() *timestamppb.Timestamp {
 	return nil
 }
 
-// Request for adding a comment. this, along with timestamp, represent the comment in the DB.
+// Request for adding a comment. this, along with timestamp, represent the
+// comment in the DB.
 type AddCommentRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Repo  string                 `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
-	// Only one of commit, task_spec, and task_id will be set, based on if the comment is for a
-	// commit, task spec, or task. Oneof not used since TypeScript doesn't support it.
+	// Only one of commit, task_spec, and task_id will be set, based on if the
+	// comment is for a commit, task spec, or task. Oneof not used since
+	// TypeScript doesn't support it.
 	Commit        string `protobuf:"bytes,2,opt,name=commit,proto3" json:"commit,omitempty"`
 	TaskSpec      string `protobuf:"bytes,3,opt,name=task_spec,json=taskSpec,proto3" json:"task_spec,omitempty"`
 	TaskId        string `protobuf:"bytes,4,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
@@ -733,8 +743,8 @@ func (x *AddCommentRequest) GetIgnoreFailure() bool {
 // Response to AddComment, only success/failure needs to be conveyed.
 type AddCommentResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// We provide the timestamp used for the comment so the UI can immediately update, rather than
-	// waiting on polling to pick up the new comment.
+	// We provide the timestamp used for the comment so the UI can immediately
+	// update, rather than waiting on polling to pick up the new comment.
 	Timestamp     *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -777,7 +787,8 @@ func (x *AddCommentResponse) GetTimestamp() *timestamppb.Timestamp {
 	return nil
 }
 
-// Request for deleting a comment. All fields used to identify the comment in the DB.
+// Request for deleting a comment. All fields used to identify the comment in
+// the DB.
 type DeleteCommentRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Repo          string                 `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
@@ -854,7 +865,8 @@ func (x *DeleteCommentRequest) GetTimestamp() *timestamppb.Timestamp {
 	return nil
 }
 
-// Empty, valid response to DeleteComment, only success/failure needs to be conveyed.
+// Empty, valid response to DeleteComment, only success/failure needs to be
+// conveyed.
 type DeleteCommentResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1101,7 +1113,8 @@ func (*GetBotUsageRequest) Descriptor() ([]byte, []int) {
 	return file_status_proto_rawDescGZIP(), []int{15}
 }
 
-// Machine/device types, with associated tasks that run on them and data about those tasks.
+// Machine/device types, with associated tasks that run on them and data about
+// those tasks.
 type GetBotUsageResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BotSets       []*BotSet              `protobuf:"bytes,1,rep,name=bot_sets,json=botSets,proto3" json:"bot_sets,omitempty"`
@@ -1251,14 +1264,15 @@ const file_status_proto_rawDesc = "" +
 	"\bcomments\x18\x04 \x03(\v2\x0f.status.CommentR\bcomments\"0\n" +
 	"\x06Branch\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04head\x18\x02 \x01(\tR\x04head\"\xa2\x01\n" +
+	"\x04head\x18\x02 \x01(\tR\x04head\"\xc7\x01\n" +
 	"\x04Task\x12\x18\n" +
 	"\acommits\x18\x01 \x03(\tR\acommits\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x0e\n" +
 	"\x02id\x18\x03 \x01(\tR\x02id\x12\x1a\n" +
 	"\brevision\x18\x04 \x01(\tR\brevision\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\tR\x06status\x12(\n" +
-	"\x10swarming_task_id\x18\x06 \x01(\tR\x0eswarmingTaskId\"\xba\x01\n" +
+	"\x10swarming_task_id\x18\x06 \x01(\tR\x0eswarmingTaskId\x12#\n" +
+	"\rtask_executor\x18\a \x01(\tR\ftaskExecutor\"\xba\x01\n" +
 	"\n" +
 	"LongCommit\x12\x12\n" +
 	"\x04hash\x18\x01 \x01(\tR\x04hash\x12\x16\n" +

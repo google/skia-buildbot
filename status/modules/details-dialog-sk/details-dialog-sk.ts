@@ -154,7 +154,10 @@ export class DetailsDialogSk extends ElementSk {
       html`
         <h3>
           <span>${task.name}</span
-          ><a target="_blank" rel="noopener noreferrer" href="${logsUrl(task.swarmingTaskId)}"
+          ><a
+            target="_blank"
+            rel="noopener noreferrer"
+            href="${logsUrl(this.repo, task.swarmingTaskId)}"
             ><launch-icon-sk></launch-icon-sk>
           </a>
         </h3>
@@ -178,7 +181,7 @@ export class DetailsDialogSk extends ElementSk {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="${swarmingUrl()}/task?id=${task.swarmingTaskId}">
+                  href="${this.swarmingTaskUrl(task.taskExecutor, task.swarmingTaskId)}">
                   View on Swarming
                 </a>
               </td>
@@ -186,7 +189,10 @@ export class DetailsDialogSk extends ElementSk {
             <tr>
               <td>Other Tasks Like This:</td>
               <td>
-                <a target="_blank" rel="noopener noreferrer" href=${this.swarmingUrl(task.name)}>
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href=${this.swarmingTaskListUrl(task.taskExecutor, task.name)}>
                   View on Swarming
                 </a>
               </td>
@@ -221,7 +227,7 @@ export class DetailsDialogSk extends ElementSk {
     this.open();
   }
 
-  displayTaskSpec(taskspec: string, comments: Comment[]) {
+  displayTaskSpec(taskExecutor: string, taskspec: string, comments: Comment[]) {
     this.reset();
     this.showCommentsFlaky = true;
     this.showCommentsIgnoreFailure = true;
@@ -233,7 +239,10 @@ export class DetailsDialogSk extends ElementSk {
       repo: this.repo,
     };
     this.titleSection = html` <h3>
-      <a href="${this.swarmingUrl(taskspec)}" target="_blank" rel="noopener noreferrer">
+      <a
+        href="${this.swarmingTaskListUrl(taskExecutor, taskspec)}"
+        target="_blank"
+        rel="noopener noreferrer">
         ${taskspec}
       </a>
     </h3>`;
@@ -318,8 +327,12 @@ export class DetailsDialogSk extends ElementSk {
     return `${url}/task/${task.id}`;
   }
 
-  private swarmingUrl(taskSpec: string) {
-    return `${swarmingUrl()}/tasklist?f=sk_name%3A${taskSpec}`;
+  private swarmingTaskUrl(taskExecutor: string, swarmingTaskId: string) {
+    return `${swarmingUrl(taskExecutor)}/task?id=${swarmingTaskId}`;
+  }
+
+  private swarmingTaskListUrl(taskExecutor: string, taskSpec: string) {
+    return `${swarmingUrl(taskExecutor)}/tasklist?f=sk_name%3A${taskSpec}`;
   }
 
   private humanDate(timestamp: string) {

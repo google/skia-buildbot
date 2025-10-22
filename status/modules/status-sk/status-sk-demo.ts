@@ -34,6 +34,11 @@ SetTestSettings({
     ['infra', 'https://skia.googlesource.com/buildbot/+show/'],
     ['skcms', 'https://skia.googlesource.com/skcms/+show/'],
   ]),
+  repoToProject: new Map([
+    ['skia', 'skia'],
+    ['infra', 'skiabuildbot'],
+    ['skcms', 'skcms'],
+  ]),
 });
 
 const loginStatus: Status = {

@@ -28,16 +28,21 @@ import { SetTestSettings } from '../settings';
 describe('commits-table-sk', () => {
   const newTableInstance = setUpElementUnderTest('commits-table-sk');
   SetTestSettings({
-    swarmingUrl: 'example.com/swarming',
-    treeStatusBaseUrl: 'example.com/treestatus',
+    swarmingUrl: 'https://example-swarming.appspot.com',
+    treeStatusBaseUrl: 'https://example.com/treestatus',
     logsUrlTemplate:
-      'https://ci.chromium.org/raw/build/logs.chromium.org/skia/{{TaskID}}/+/annotations',
-    taskSchedulerUrl: 'example.com/ts',
+      'https://ci.chromium.org/raw/build/logs.chromium.org/{{LogsProject}}/{{TaskID}}/+/annotations',
+    taskSchedulerUrl: 'https://example.com/ts',
     defaultRepo: 'skia',
     repos: new Map([
       ['skia', 'https://skia.googlesource.com/skia/+show/'],
       ['infra', 'https://skia.googlesource.com/buildbot/+show/'],
       ['skcms', 'https://skia.googlesource.com/skcms/+show/'],
+    ]),
+    repoToProject: new Map([
+      ['skia', 'skia'],
+      ['infra', 'skiabuildbot'],
+      ['skcms', 'skcms'],
     ]),
   });
 
@@ -49,7 +54,7 @@ describe('commits-table-sk', () => {
   });
 
   afterEach(async () => {
-    expect(mocks.exhausted()).to.be.true;
+    expect(mocks.exhausted()).to.equal(true);
   });
 
   const setupWithResponse = async (
@@ -229,12 +234,9 @@ describe('commits-table-sk', () => {
 
   it('initial request uses repo from query string', async () => {
     setQueryString('?repo=infra');
-    const table = await setupWithResponse(
-      responseMultiCommitTask,
-      (req: GetIncrementalCommitsRequest) => {
-        expect(req.repoPath).to.equal('infra');
-      }
-    );
+    await setupWithResponse(responseMultiCommitTask, (req: GetIncrementalCommitsRequest) => {
+      expect(req.repoPath).to.equal('infra');
+    });
   });
 
   describe('dialog', () => {
@@ -259,6 +261,10 @@ describe('commits-table-sk', () => {
         'innerText',
         'Build-Some-Stuff'
       );
+      expect($$('details-dialog-sk .dialog h3 a', table)).to.have.property(
+        'href',
+        'https://ci.chromium.org/raw/build/logs.chromium.org/skia/swarmy1/+/annotations'
+      );
       expect($('details-dialog-sk .dialog table.blamelist tr', table)).to.have.length(1);
       expect($('details-dialog-sk .dialog table.comments tr.comment', table)).to.have.length(1);
     });
@@ -272,6 +278,25 @@ describe('commits-table-sk', () => {
         'Build-Some-Stuff'
       );
       expect($('details-dialog-sk .dialog table.comments tr.comment', table)).to.have.length(1);
+      expect($$('details-dialog-sk .dialog h3 a', table)).to.have.property(
+        'href',
+        'https://example-swarming.appspot.com/tasklist?f=sk_name%3ABuild-Some-Stuff'
+      );
+    });
+
+    it('displays taskSpecs with taskExecutor', async () => {
+      const table = await setupWithResponse(incrementalResponse0);
+      expect($('[title="Test-Some-Stuff"]', table)).to.have.length(1);
+      (<HTMLDivElement>$$('[title="Test-Some-Stuff"]', table)).click();
+      expect($$('details-dialog-sk .dialog h3', table)).to.have.property(
+        'innerText',
+        'Test-Some-Stuff'
+      );
+      expect($('details-dialog-sk .dialog table.comments tr.comment', table)).to.have.length(0);
+      expect($$('details-dialog-sk .dialog h3 a', table)).to.have.property(
+        'href',
+        'https://some-other-swarming.appspot.com/tasklist?f=sk_name%3ATest-Some-Stuff'
+      );
     });
 
     it('displays commits', async () => {
@@ -303,7 +328,8 @@ describe('commits-table-sk', () => {
         id: '99999',
         revision: 'abc123',
         status: 'SUCCESS',
-        swarmingTaskId: 'swarmy',
+        swarmingTaskId: 'swarmy0',
+        taskExecutor: '',
       });
       expect(commitsData.tasks.get('11111')).to.deep.equal({
         commits: ['parentofabc123'],
@@ -311,7 +337,8 @@ describe('commits-table-sk', () => {
         name: 'Test-Some-Stuff',
         revision: 'parentofabc123',
         status: 'FAILURE',
-        swarmingTaskId: 'swarmy',
+        swarmingTaskId: 'swarmy0',
+        taskExecutor: 'some-other-swarming.appspot.com',
       });
       expect(commitsData.tasks.get('77777')).to.deep.equal({
         commits: ['acommitthatisnotlisted'],
@@ -319,7 +346,8 @@ describe('commits-table-sk', () => {
         name: 'Upload-Some-Stuff',
         revision: 'acommitthatisnotlisted',
         status: 'SUCCESS',
-        swarmingTaskId: 'swarmy',
+        swarmingTaskId: 'swarmy0',
+        taskExecutor: '',
       });
       expect(commitsData.tasks).to.have.keys('99999', '11111', '77777');
     });

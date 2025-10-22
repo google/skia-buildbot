@@ -314,7 +314,9 @@ func ConvertUpdate(u *incremental.Update, podID string) *GetIncrementalCommitsRe
 			Id:             t.Id,
 			Revision:       t.Revision,
 			Status:         string(t.Status),
-			SwarmingTaskId: t.SwarmingTaskId})
+			SwarmingTaskId: t.SwarmingTaskId,
+			TaskExecutor:   t.TaskExecutor,
+		})
 	}
 	for hash, srcComments := range u.CommitComments {
 		for _, c := range srcComments {

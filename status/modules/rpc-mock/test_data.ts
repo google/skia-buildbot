@@ -68,7 +68,8 @@ const task0: Task = {
   name: 'Build-Some-Stuff',
   revision: 'abc123',
   status: 'SUCCESS',
-  swarmingTaskId: 'swarmy',
+  swarmingTaskId: 'swarmy0',
+  taskExecutor: '', // Default value.
 };
 const task1: Task = {
   commits: ['parentofabc123'],
@@ -76,7 +77,8 @@ const task1: Task = {
   name: 'Test-Some-Stuff',
   revision: 'parentofabc123',
   status: 'FAILURE',
-  swarmingTaskId: 'swarmy',
+  swarmingTaskId: 'swarmy0',
+  taskExecutor: 'some-other-swarming.appspot.com',
 };
 const task2: Task = {
   commits: ['acommitthatisnotlisted'],
@@ -84,7 +86,8 @@ const task2: Task = {
   name: 'Upload-Some-Stuff',
   revision: 'acommitthatisnotlisted',
   status: 'SUCCESS',
-  swarmingTaskId: 'swarmy',
+  swarmingTaskId: 'swarmy0',
+  taskExecutor: '',
 };
 const task3: Task = {
   commits: ['childofabc123'],
@@ -92,7 +95,8 @@ const task3: Task = {
   name: 'Build-Some-Stuff',
   revision: 'childofabc123',
   status: 'SUCCESS',
-  swarmingTaskId: 'swarmy',
+  swarmingTaskId: 'swarmy0',
+  taskExecutor: '',
 };
 const multicommitTask: Task = {
   commits: ['abc123', 'parentofabc123'],
@@ -100,7 +104,8 @@ const multicommitTask: Task = {
   name: 'Build-Some-Stuff',
   revision: 'abc123',
   status: 'FAILURE',
-  swarmingTaskId: 'swarmy',
+  swarmingTaskId: 'swarmy0',
+  taskExecutor: '',
 };
 const commit0: LongCommit = {
   hash: 'abc123',

@@ -7,13 +7,15 @@ import "google/protobuf/timestamp.proto";
 // API (non-page, non-resource) endpoints for Status.
 service StatusService {
   // Method to get updates to the lists of recent commits, their tasks, etc.
-  rpc GetIncrementalCommits(GetIncrementalCommitsRequest) returns (GetIncrementalCommitsResponse);
+  rpc GetIncrementalCommits(GetIncrementalCommitsRequest)
+      returns (GetIncrementalCommitsResponse);
   // Method to add a comment to a task, commit, or task spec.
   rpc AddComment(AddCommentRequest) returns (AddCommentResponse);
   // Method to delete a comment to a task, commit, or task spec.
   rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
   // Method to get latest status of various autorollers.
-  rpc GetAutorollerStatuses(GetAutorollerStatusesRequest) returns (GetAutorollerStatusesResponse);
+  rpc GetAutorollerStatuses(GetAutorollerStatusesRequest)
+      returns (GetAutorollerStatusesResponse);
   // Method to get latest bot usage / capacity metrics.
   rpc GetBotUsage(GetBotUsageRequest) returns (GetBotUsageResponse);
 }
@@ -56,6 +58,7 @@ message Task {
   string revision = 4;
   string status = 5;
   string swarming_task_id = 6;
+  string task_executor = 7;
 }
 
 // Represents a single commit in repo.
@@ -79,11 +82,11 @@ message Comment {
   string user = 4;
   string message = 5;
   bool deleted = 6;
-  bool ignore_failure = 7; // Only for commit and taskSpec comments.
-  bool flaky = 8; // Only for taskSpec comments.
-  string task_spec_name = 9; // Only for task and taskSpec comments
-  string task_id = 10; // Only for task comments
-  string commit = 11; // Only for commit comments.
+  bool ignore_failure = 7;    // Only for commit and taskSpec comments.
+  bool flaky = 8;             // Only for taskSpec comments.
+  string task_spec_name = 9;  // Only for task and taskSpec comments
+  string task_id = 10;        // Only for task comments
+  string commit = 11;         // Only for commit comments.
 }
 
 // Data about the response and how to apply its contents.
@@ -93,25 +96,28 @@ message ResponseMetadata {
   google.protobuf.Timestamp timestamp = 3;
 }
 
-// Request for adding a comment. this, along with timestamp, represent the comment in the DB.
+// Request for adding a comment. this, along with timestamp, represent the
+// comment in the DB.
 message AddCommentRequest {
   string repo = 1;
-  // Only one of commit, task_spec, and task_id will be set, based on if the comment is for a
-  // commit, task spec, or task. Oneof not used since TypeScript doesn't support it.
+  // Only one of commit, task_spec, and task_id will be set, based on if the
+  // comment is for a commit, task spec, or task. Oneof not used since
+  // TypeScript doesn't support it.
   string commit = 2;
   string task_spec = 3;
   string task_id = 4;
   string message = 5;
-  bool flaky = 6; // Only valid when task_spec is set.
+  bool flaky = 6;  // Only valid when task_spec is set.
   bool ignore_failure = 7;
 }
 // Response to AddComment, only success/failure needs to be conveyed.
-message AddCommentResponse{
-  // We provide the timestamp used for the comment so the UI can immediately update, rather than
-  // waiting on polling to pick up the new comment.
+message AddCommentResponse {
+  // We provide the timestamp used for the comment so the UI can immediately
+  // update, rather than waiting on polling to pick up the new comment.
   google.protobuf.Timestamp timestamp = 1;
 }
-// Request for deleting a comment. All fields used to identify the comment in the DB.
+// Request for deleting a comment. All fields used to identify the comment in
+// the DB.
 message DeleteCommentRequest {
   string repo = 1;
   string commit = 2;
@@ -119,11 +125,12 @@ message DeleteCommentRequest {
   string task_id = 4;
   google.protobuf.Timestamp timestamp = 5;
 }
-// Empty, valid response to DeleteComment, only success/failure needs to be conveyed.
-message DeleteCommentResponse{}
+// Empty, valid response to DeleteComment, only success/failure needs to be
+// conveyed.
+message DeleteCommentResponse {}
 
 // Empty, no parameters needed to ask for latest autoroller status info.
-message GetAutorollerStatusesRequest{}
+message GetAutorollerStatusesRequest {}
 
 message GetAutorollerStatusesResponse {
   repeated AutorollerStatus rollers = 1;
@@ -141,13 +148,14 @@ message AutorollerStatus {
 
 // Empty, no parameters needed to ask for latest bot usage data.
 message GetBotUsageRequest {}
-// Machine/device types, with associated tasks that run on them and data about those tasks.
+// Machine/device types, with associated tasks that run on them and data about
+// those tasks.
 message GetBotUsageResponse {
   repeated BotSet bot_sets = 1;
 }
 
 message BotSet {
-  map<string,string> dimensions = 1;
+  map<string, string> dimensions = 1;
   int32 bot_count = 2;
   int32 cq_tasks = 3;
   int64 ms_per_cq = 4;

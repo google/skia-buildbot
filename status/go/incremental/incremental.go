@@ -30,6 +30,7 @@ type Task struct {
 	Revision       string           `json:"revision"`
 	Status         types.TaskStatus `json:"status"`
 	SwarmingTaskId string           `json:"swarming_task_id"`
+	TaskExecutor   string           `json:"task_executor"`
 }
 
 // Update represents all of the new information we obtained in a single Update()
@@ -41,7 +42,6 @@ type Update struct {
 	CommitComments   map[string][]*CommitComment          `json:"commit_comments,omitempty"`
 	Commits          []*vcsinfo.LongCommit                `json:"commits,omitempty"`
 	StartOver        *bool                                `json:"start_over,omitempty"`
-	SwarmingUrl      string                               `json:"swarming_url,omitempty"`
 	TaskComments     map[string]map[string][]*TaskComment `json:"task_comments,omitempty"`
 	Tasks            []*Task                              `json:"tasks,omitempty"`
 	TaskSchedulerUrl string                               `json:"task_scheduler_url,omitempty"`
@@ -79,7 +79,6 @@ type IncrementalCacheImpl struct {
 	commits          *commitsCache
 	mtx              sync.RWMutex
 	numCommits       int
-	swarmingUrl      string
 	taskSchedulerUrl string
 	tasks            *taskCache
 	updateMtx        sync.Mutex
@@ -89,12 +88,11 @@ type IncrementalCacheImpl struct {
 }
 
 // NewIncrementalCacheImpl returns an IncrementalCacheImpl instance.
-func NewIncrementalCacheImpl(ctx context.Context, d db.RemoteDB, w window.Window, repos repograph.Map, numCommits int, swarmingUrl, taskSchedulerUrl string) (*IncrementalCacheImpl, error) {
+func NewIncrementalCacheImpl(ctx context.Context, d db.RemoteDB, w window.Window, repos repograph.Map, numCommits int, taskSchedulerUrl string) (*IncrementalCacheImpl, error) {
 	c := &IncrementalCacheImpl{
 		comments:         newCommentsCache(d, repos),
 		commits:          newCommitsCache(repos),
 		numCommits:       numCommits,
-		swarmingUrl:      swarmingUrl,
 		taskSchedulerUrl: taskSchedulerUrl,
 		tasks:            newTaskCache(ctx, d),
 		w:                w,
@@ -180,9 +178,7 @@ func (c *IncrementalCacheImpl) GetRange(repo string, from, to time.Time, maxComm
 		}
 		rv.Tasks = filteredTasks
 
-		// Also provide the Swarming and Task Scheduler URLs when
-		// starting over.
-		rv.SwarmingUrl = c.swarmingUrl
+		// Also provide the Task Scheduler URL when starting over.
 		rv.TaskSchedulerUrl = c.taskSchedulerUrl
 	}
 	return rv, nil

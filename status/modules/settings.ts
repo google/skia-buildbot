@@ -10,7 +10,7 @@ class StatusSettings {
 
   public treeStatusBaseUrl: string = '';
 
-  // Url with '{{TaskID}}' as a placeholder.
+  // Url with '{{LogsProject}}' and '{{TaskID}}' as placeholders.
   public logsUrlTemplate: string = '';
 
   public taskSchedulerUrl: string = '';
@@ -18,6 +18,8 @@ class StatusSettings {
   public defaultRepo: string = '';
 
   public repos: Map<string, string> = new Map();
+
+  public repoToProject: Map<string, string> = new Map();
 }
 
 function settings(): StatusSettings | undefined {
@@ -25,7 +27,10 @@ function settings(): StatusSettings | undefined {
 }
 
 // swarmingUrl: Base URL for linking to swarming task data.
-export function swarmingUrl() {
+export function swarmingUrl(taskExecutor: string) {
+  if (taskExecutor) {
+    return 'https://' + taskExecutor;
+  }
   return settings()?.swarmingUrl;
 }
 
@@ -40,19 +45,23 @@ export function taskSchedulerUrl() {
 }
 
 // logsUrl: Returns a logsUrl for the given taskId.
-export function logsUrl(taskId: string): string {
-  const temp = settings()?.logsUrlTemplate;
-  if (!temp) {
+export function logsUrl(repo: string, taskId: string): string {
+  const tmpl = settings()?.logsUrlTemplate;
+  if (!tmpl) {
     return '#';
   }
-  if (temp.includes('annotations')) {
+  if (tmpl.includes('annotations')) {
     if (!taskId.endsWith('0')) {
       return '#';
     }
     // Hack because chromium logs replaces a persistent trailing '0' with a '1' for log urls.
     taskId = `${taskId.slice(0, -1)}1`;
   }
-  return temp.replace('{{TaskID}}', taskId);
+  const project = settings()?.repoToProject.get(repo);
+  if (!project) {
+    return '#';
+  }
+  return tmpl.replace('{{LogsProject}}', project).replace('{{TaskID}}', taskId);
 }
 
 // defaultRepo: Repo to use on initial load.

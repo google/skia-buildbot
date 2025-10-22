@@ -113,7 +113,7 @@ var (
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	secretProject               = flag.String("secret-project", "skia-infra-public", "Name of the GCP project used for secret management.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
-	taskLogsUrlTemplate         = flag.String("task_logs_url_template", "https://ci.chromium.org/raw/build/logs.chromium.org/skia/{{TaskID}}/+/annotations", "Template URL for direct link to logs, with {{TaskID}} as placeholder.")
+	taskLogsUrlTemplate         = flag.String("task_logs_url_template", "https://ci.chromium.org/raw/build/logs.chromium.org/{{LogsProject}}/{{TaskID}}/+/annotations", "Template URL for direct link to logs, with {{LogsProject}} and {{TaskID}} as placeholders.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	treeStatusBaseUrl           = flag.String("tree_status_base_url", "https://tree-status.skia.org", "Repo specific tree status URLs will be created using this base url. Eg: https://tree-status.skia.org or https://skia-tree-status.corp.goog")
@@ -122,6 +122,8 @@ var (
 	repos repograph.Map
 	// Repos and associated templates for creating links to their commits.
 	repoURLsByName map[string]string
+	// Maps a repo name to LUCI project ID.
+	repoNameToProject map[string]string
 )
 
 // StringIsInteresting returns true iff the string contains non-whitespace characters.
@@ -137,7 +139,6 @@ func StringIsInteresting(s string) bool {
 func reloadTemplates() {
 	// Change the current working directory to two directories up from this source file so that we
 	// can read templates and serve static (res/) files.
-
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
@@ -209,6 +210,8 @@ func defaultHandler(w http.ResponseWriter, _ *http.Request) {
 		DefaultRepo       string
 		// Repo name to repo URL.
 		Repos map[string]string
+		// Repo name to LUCI project ID.
+		RepoToProject map[string]string
 	}{
 		Title:             fmt.Sprintf("Status: %s", defaultRepo),
 		SwarmingURL:       *swarmingUrl,
@@ -217,6 +220,7 @@ func defaultHandler(w http.ResponseWriter, _ *http.Request) {
 		TaskSchedulerURL:  *taskSchedulerUrl,
 		DefaultRepo:       defaultRepo,
 		Repos:             repoURLsByName,
+		RepoToProject:     repoNameToProject,
 	}
 
 	if err := commitsTemplate.Execute(w, d); err != nil {
@@ -243,13 +247,18 @@ func capacityHandler(w http.ResponseWriter, _ *http.Request) {
 		DefaultRepo      string
 		// Repo name to repo URL.
 		Repos map[string]string
+		// Repo name to LUCI project ID.
+		RepoToProject map[string]string
 	}{
-		Title:            "Capacity Statistics for Skia Bots",
+		Title: "Capacity Statistics for Skia Bots",
+		// TODO(borenet): Swarming links for capacity stats are broken due to
+		// support for multiple Swarming servers.
 		SwarmingURL:      *swarmingUrl,
 		LogsURLTemplate:  *taskLogsUrlTemplate,
 		TaskSchedulerURL: *taskSchedulerUrl,
 		DefaultRepo:      defaultRepo,
 		Repos:            repoURLsByName,
+		RepoToProject:    repoNameToProject,
 	}
 
 	if err := capacityTemplate.Execute(w, d); err != nil {
@@ -321,8 +330,15 @@ func main() {
 	}
 
 	repoURLsByName = make(map[string]string)
+	repoNameToProject = make(map[string]string)
 	for _, repoURL := range *repoUrls {
-		repoURLsByName[repoUrlToName(repoURL)] = fmt.Sprintf(gitiles.CommitURL, repoURL, "")
+		repoName := repoUrlToName(repoURL)
+		repoURLsByName[repoName] = fmt.Sprintf(gitiles.CommitURL, repoURL, "")
+		project, ok := common.REPO_PROJECT_MAPPING[repoURL]
+		if !ok {
+			sklog.Fatalf("%q is not in common.REPO_PROJECT_MAPPING", repoURL)
+		}
+		repoNameToProject[repoName] = project
 	}
 
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, bigtable.Scope, pubsub.ScopePubSub, datastore.ScopeDatastore)
@@ -372,7 +388,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}
-	iCache, err = incremental.NewIncrementalCacheImpl(ctx, taskDb, w, repos, maxCommitsToLoad, *swarmingUrl, *taskSchedulerUrl)
+	iCache, err = incremental.NewIncrementalCacheImpl(ctx, taskDb, w, repos, maxCommitsToLoad, *taskSchedulerUrl)
 	if err != nil {
 		sklog.Fatalf("Failed to create IncrementalCacheImpl: %s", err)
 	}

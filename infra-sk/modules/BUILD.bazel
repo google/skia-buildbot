@@ -50,6 +50,7 @@ ts_library(
     srcs = ["test_util.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        ":dom_ts_lib",
         ":object_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",

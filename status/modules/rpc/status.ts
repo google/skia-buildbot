@@ -90,6 +90,7 @@ export interface Task {
   revision: string;
   status: string;
   swarmingTaskId: string;
+  taskExecutor: string;
 }
 
 interface TaskJSON {
@@ -99,6 +100,7 @@ interface TaskJSON {
   revision?: string;
   status?: string;
   swarming_task_id?: string;
+  task_executor?: string;
 }
 
 const JSONToTask = (m: TaskJSON): Task => {
@@ -109,6 +111,7 @@ const JSONToTask = (m: TaskJSON): Task => {
     revision: m.revision || "",
     status: m.status || "",
     swarmingTaskId: m.swarming_task_id || "",
+    taskExecutor: m.task_executor || "",
   };
 };
 

@@ -8,9 +8,10 @@
  */
 
 import { expect } from 'chai';
-import { deepCopy } from './object';
 import { LitElement } from 'lit';
 import { ElementSk } from './ElementSk';
+import { $ } from './dom';
+import { deepCopy } from './object';
 
 /**
  * Takes a DOM element name (e.g. 'my-component-sk') and returns a factory
@@ -334,4 +335,18 @@ export async function waitForRender(el: ElementSk | LitElement) {
   await new Promise((resolve) => requestAnimationFrame(resolve));
   // Final yield
   await domUpdate();
+}
+
+/**
+ * Assert that the given element contains the given set of links.
+ *
+ * @param el The element containing the links.
+ * @param expectHrefs Array of URLs.
+ */
+export function expectLinks(el: HTMLElement, expectHrefs: string[]) {
+  const links: string[] = $('a', el).map((a: Element) => (<HTMLAnchorElement>a).href);
+  expect(links).to.have.length(expectHrefs.length);
+  links.forEach((actual: string, index: number) => {
+    expect(actual).to.equal(expectHrefs[index]);
+  });
 }

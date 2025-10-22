@@ -18,6 +18,11 @@
             ['{{$repo}}', '{{$url}}'],
           {{end}}
         ]),
+        repoToProject: new Map([
+          {{range $repo, $project := .RepoToProject}}
+            ['{{$repo}}', '{{$project}}'],
+          {{end}}
+        ]),
       };
     </script>
   </head>

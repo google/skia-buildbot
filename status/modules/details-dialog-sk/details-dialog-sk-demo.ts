@@ -18,6 +18,7 @@ SetTestSettings({
   taskSchedulerUrl: 'example.com/ts',
   defaultRepo: 'skia',
   repos: new Map([['skia', 'https://skia.googlesource.com/skia/+show/']]),
+  repoToProject: new Map([['skia', 'skia']]),
 });
 
 const element = document.querySelector('details-dialog-sk') as DetailsDialogSk;
@@ -38,7 +39,7 @@ document.addEventListener('click', async (e) => {
       element.displayCommit(commit, [comment]);
       return;
     case 'taskSpecButton':
-      element.displayTaskSpec('Test-Android-Clang-Nexus7-GPU-Tegra3-arm-Debug-All-Android', [
+      element.displayTaskSpec('', 'Test-Android-Clang-Nexus7-GPU-Tegra3-arm-Debug-All-Android', [
         comment,
       ]);
       return;

@@ -63,6 +63,7 @@ func mapTasks(tasks map[string]*types.Task) map[string][]*Task {
 			Revision:       t.Revision,
 			Status:         t.Status,
 			SwarmingTaskId: t.SwarmingTaskId,
+			TaskExecutor:   t.TaskExecutor,
 		})
 	}
 	if len(rv) == 0 {
