@@ -27,6 +27,7 @@ sk_element(
         "//:node_modules/@material/web",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
+        "//perf/modules/telemetry:telemetry_ts_lib",
     ],
     ts_srcs = [
         "anomalies-table-sk.ts",

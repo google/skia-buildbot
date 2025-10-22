@@ -487,6 +487,8 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if groupReportResponse.Error != "" {
+		// TODO(b/454277955) dead code? Since groupReportResponse is created here, not by chromeperf, we don't need to check this field here
+		// Quite possibly, this field is no longer needed in general.
 		httputils.ReportError(w, errors.New(groupReportResponse.Error), fmt.Sprintf("Error when getting the anomaly report group. Please double check each request parameter, and try again: %v", groupReportResponse.Error), http.StatusBadRequest)
 		sklog.Debugf("[SkiaTriage] Error when getting the anomaly report group: %v", groupReportResponse.Error)
 		return
@@ -502,12 +504,17 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	groupReportResponse.SelectedKeys = api.getSelectedKeys(groupReportResponse.Anomalies)
 	groupReportResponse.TimerangeMap, err = api.getTimerangeMap(ctx, groupReportResponse.Anomalies)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get timerange map.", http.StatusInternalServerError)
-		sklog.Debugf("[SkiaTriage] Failed to get timerange map: %v", err)
+		sklog.Errorf("[SkiaTriage] Failed to get timerange map: %v", err)
 		return
 	}
+
+	// TODO(b/454277955) Populate remaining fields of GetGroupReportResponse:
+	// StateId, Error
+	api.performNeedForSidCheck(groupReportResponse.SelectedKeys)
 
 	if err := json.NewEncoder(w).Encode(groupReportResponse); err != nil {
 		httputils.ReportError(w, err, "Failed to write anomaly report response.", http.StatusInternalServerError)
@@ -537,6 +544,14 @@ func IsGroupReportRequestValid(req GetGroupReportRequest) bool {
 		valid_param_count += 1
 	}
 	return valid_param_count == 1
+}
+
+func (api anomaliesApi) getSelectedKeys(anomalies []chromeperf.Anomaly) []string {
+	selectedKeys := make([]string, len(anomalies))
+	for i, anomaly := range anomalies {
+		selectedKeys[i] = anomaly.Id
+	}
+	return selectedKeys
 }
 
 func (api anomaliesApi) getTimerangeMap(ctx context.Context, anomalies []chromeperf.Anomaly) (map[string]Timerange, error) {
@@ -580,6 +595,14 @@ func (api anomaliesApi) getTimerangeMap(ctx context.Context, anomalies []chromep
 		timerangeMap[anomaly.Id] = Timerange{Begin: startTime, End: endTime}
 	}
 	return timerangeMap, nil
+}
+
+// Experimental, remove if we see the need to implement SID.
+func (api anomaliesApi) performNeedForSidCheck(selectedKeys []string) {
+	totalLen := len(url.QueryEscape(strings.Join(selectedKeys, ",")))
+	if totalLen > needForSidLimit {
+		sklog.Warningf("need-for-sid: length of anomaly ids reached %d, consider implementing sid", totalLen)
+	}
 }
 
 // cleanTestName cleans the given test name using the query.ForceValid function.

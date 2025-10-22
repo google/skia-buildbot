@@ -4,24 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/perf/go/anomalygroup/mocks"
+	anomalygroup_mocks "go.skia.org/infra/perf/go/anomalygroup/mocks"
+	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
 	culprit_mocks "go.skia.org/infra/perf/go/culprit/mocks"
 	"go.skia.org/infra/perf/go/dataframe"
+	perfgit_mocks "go.skia.org/infra/perf/go/git/mocks"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/regression"
 	reg_mocks "go.skia.org/infra/perf/go/regression/mocks"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
 
-func setupAnomaliesApiWithMocks(t *testing.T) (anomaliesApi, *mocks.Store, *culprit_mocks.Store, *reg_mocks.Store) {
-	anomalygroupStore := mocks.NewStore(t)
+func setupAnomaliesApiWithMocks(t *testing.T) (anomaliesApi, *anomalygroup_mocks.Store, *culprit_mocks.Store, *reg_mocks.Store) {
+	anomalygroupStore := anomalygroup_mocks.NewStore(t)
 	culpritStore := culprit_mocks.NewStore(t)
 	regStore := reg_mocks.NewStore(t)
 
@@ -332,4 +336,48 @@ func TestAnomaliesApi_CleanTestName_FromConfig(t *testing.T) {
 	cleanedName, err := cleanTestName(testName)
 
 	require.Equal(t, "master/bot/measurement/test/sub:test_1-name", cleanedName)
+}
+
+func TestGetTimeRangeMap(t *testing.T) {
+	ctx := context.Background()
+
+	// Create a mock perfgit.Git instance.
+	mockGit := &perfgit_mocks.Git{}
+
+	// Define the expected behavior of the mock.
+	startCommit := provider.Commit{Timestamp: 1672531200} // 2023-01-01 00:00:00
+	endCommit := provider.Commit{Timestamp: 1672617600}   // 2023-01-02 00:00:00
+	mockGit.On("CommitFromCommitNumber", ctx, types.CommitNumber(12345)).Return(startCommit, nil)
+	mockGit.On("CommitFromCommitNumber", ctx, types.CommitNumber(54321)).Return(endCommit, nil)
+
+	// Create an instance of anomaliesApi with the mockGit.
+	api := anomaliesApi{
+		perfGit: mockGit,
+	}
+
+	// Create sample anomalies.
+	anomalies := []chromeperf.Anomaly{
+		{
+			Id:            "anomaly1",
+			StartRevision: 12345,
+			EndRevision:   54321,
+		},
+	}
+
+	// Call the function under test.
+	timerangeMap, err := api.getTimerangeMap(ctx, anomalies)
+
+	// Assert the results.
+	assert.NoError(t, err)
+	assert.NotNil(t, timerangeMap)
+	assert.Len(t, timerangeMap, 1)
+
+	expectedTimerange := Timerange{
+		Begin: startCommit.Timestamp,
+		End:   time.Unix(endCommit.Timestamp, 0).AddDate(0, 0, 1).Unix(),
+	}
+	assert.Equal(t, expectedTimerange, timerangeMap["anomaly1"])
+
+	// Verify that the mock's expectations were met.
+	mockGit.AssertExpectations(t)
 }

@@ -145,7 +145,9 @@ describe('anomalies-table-sk', () => {
 
       await element.openAnomalyGroupReportPage();
 
-      assert.isTrue(openSpy.calledWith('/u/?sid=test_sid', '_blank'));
+      assert.isTrue(openSpy.calledWith(`/u/?anomalyIDs=${encodeURIComponent('1,2')}`, '_blank'));
+      assert.isTrue(openSpy.calledWith(`/u/?anomalyIDs=${encodeURIComponent('3,4')}`, '_blank'));
+      assert.isTrue(openSpy.calledWith(`/u/?anomalyIDs=${encodeURIComponent('5,6')}`, '_blank'));
       assert.isTrue(openSpy.calledThrice);
     });
 
@@ -166,7 +168,7 @@ describe('anomalies-table-sk', () => {
       assert.isTrue(openSpy.calledOnce);
     });
 
-    it('opens multi anomaly group with sid', async () => {
+    it('opens short multi anomaly group with anomalyIDs', async () => {
       const openSpy = sinon.spy(window, 'open');
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
 
@@ -186,7 +188,7 @@ describe('anomalies-table-sk', () => {
 
       await element.openAnomalyGroupReportPage();
 
-      assert.isTrue(openSpy.calledWith('/u/?sid=test_sid', '_blank'));
+      assert.isTrue(openSpy.calledWith(`/u/?anomalyIDs=${encodeURIComponent('1,2')}`, '_blank'));
       assert.isTrue(openSpy.calledOnce);
     });
 
@@ -218,7 +220,7 @@ describe('anomalies-table-sk', () => {
       await element.openAnomalyGroupReportPage();
 
       assert.isTrue(openSpy.calledTwice);
-      assert.isTrue(openSpy.calledWith('/u/?sid=test_sid', '_blank'));
+      assert.isTrue(openSpy.calledWith(`/u/?anomalyIDs=${encodeURIComponent('1,2')}`, '_blank'));
       assert.isTrue(openSpy.calledWith('/u/?anomalyIDs=3', '_blank'));
     });
   });

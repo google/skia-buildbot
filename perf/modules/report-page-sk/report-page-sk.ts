@@ -336,6 +336,10 @@ export class ReportPageSk extends ElementSk {
     if (selected.length > 0) {
       this.anomaliesTable!.checkSelectedAnomalies(selected);
     } else if (urlParams.has('sid')) {
+      telemetry.increaseCounter(CountMetric.SIDRequiringActionTaken, {
+        module: 'report-page-sk',
+        function: 'initializePage',
+      });
       // If 'sid' is requested, user has explicitly specified a set of anomalies from the
       // 'Graph Selected' button. It's okay to assume user wants all of them graphed.
       this.anomaliesTable!.initialCheckAllCheckbox();

@@ -33,6 +33,7 @@ import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import '../window/window';
+import { CountMetric, telemetry } from '../telemetry/telemetry';
 
 export class ExistingBugDialogSk extends ElementSk {
   _dialog: HTMLDialogElement | null = null;
@@ -238,12 +239,17 @@ export class ExistingBugDialogSk extends ElementSk {
       .then(jsonOrThrow)
       .then(async (json) => {
         // Make the .then callback async
-        if (json.sid !== null && !json.anomaly_list) {
-          const sid: string = json.sid;
-          await this.fetch_associated_bugs_withSid(sid);
-        } else {
+        // Prefer anomaly_list over making another call to get SID.
+        if (json.anomaly_list) {
           const anomalies: Anomaly[] = json.anomaly_list || [];
           this.getAssociatedBugList(anomalies);
+        } else {
+          const sid: string = json.sid;
+          telemetry.increaseCounter(CountMetric.SIDRequiringActionTaken, {
+            module: 'existing-bug-dialog-sk',
+            function: 'fetch_associated_bugs',
+          });
+          await this.fetch_associated_bugs_withSid(sid);
         }
         if (this._associatedBugIds.size !== 0) {
           await this.fetch_bug_titles(); // Await the fetch_bug_titles() call

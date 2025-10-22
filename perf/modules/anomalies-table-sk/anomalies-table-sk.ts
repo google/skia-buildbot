@@ -21,7 +21,10 @@ import { errorMessage } from '../errorMessage';
 import { updateShortcut } from '../explore-simple-sk/explore-simple-sk';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 import '../../../elements-sk/modules/spinner-sk';
+import { CountMetric, telemetry } from '../telemetry/telemetry';
 
+// Just below the 2000 limit - we need to leave some space for the instance address.
+const urlMaxLength = 1900;
 const weekInSeconds = 7 * 24 * 60 * 60;
 class AnomalyGroup {
   anomalies: Anomaly[] = [];
@@ -153,6 +156,17 @@ export class AnomaliesTableSk extends ElementSk {
     }
 
     const idString = idList.join(',');
+    const urlForAnomalyIDsList = `/u/?anomalyIDs=${encodeURIComponent(idString)}`;
+    if (urlForAnomalyIDsList.length < urlMaxLength) {
+      window.open(urlForAnomalyIDsList, '_blank');
+      return;
+    }
+
+    console.warn('anomalyIDs url would be too long, need to use SID');
+    telemetry.increaseCounter(CountMetric.SIDRequiringActionTaken, {
+      module: 'anomalies-table-sk',
+      function: 'openReportForAnomalyId',
+    });
     // TODO(wenbinzhang): ideally, we should open the url:
     //   /u/?keys=idString.
     // Then from the report-page-sk.ts, we can call

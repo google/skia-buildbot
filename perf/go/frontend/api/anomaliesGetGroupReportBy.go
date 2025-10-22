@@ -12,6 +12,11 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// Somewhat close to the url length limit, although some space left for the instance address.
+// This doesn't have to be precise - when we receive bug reports or see that users require long urls,
+// we will implement SID and remove the check that uses this constant.
+const needForSidLimit = 1900
+
 // GetGroupReport for regressions that match GetGroupReportRequest.anomalyIDs list
 func (api anomaliesApi) getGroupReportByAnomalyId(ctx context.Context, groupReportRequest GetGroupReportRequest) (*GetGroupReportResponse, error) {
 	anomalyIds := strings.Split(groupReportRequest.AnomalyIDs, ",")
@@ -83,7 +88,7 @@ func (api anomaliesApi) getGroupReportByRevision(ctx context.Context, groupRepor
 		return nil, skerr.Fmt("failed to get anomalyIds from anomalygroup Store by Revision: %s", err)
 	}
 
-	return prepareResponseFromRegressions(regressions)
+	return api.prepareResponseFromRegressions(ctx, regressions)
 }
 
 // Given a list of anomaly IDs, fill GetGroupReportResponse Anomalies list.
@@ -92,18 +97,16 @@ func (api anomaliesApi) getGroupReportByAnomalyIdList(ctx context.Context, anoma
 	if err != nil {
 		return nil, skerr.Fmt("failed to get regressions by ID: %s", err)
 	}
-	return prepareResponseFromRegressions(regressions)
+	return api.prepareResponseFromRegressions(ctx, regressions)
 }
 
-// TODO(b/438183175) Populate remaining fields of GetGroupReportResponse:
-// StateId, SelectedKeys, Error, TimerangeMap
-func prepareResponseFromRegressions(regressions []*regression.Regression) (*GetGroupReportResponse, error) {
-	groupReportResponse := &GetGroupReportResponse{}
+func (api anomaliesApi) prepareResponseFromRegressions(ctx context.Context, regressions []*regression.Regression) (groupReportResponse *GetGroupReportResponse, err error) {
+	groupReportResponse = &GetGroupReportResponse{}
 	groupReportResponse.Anomalies = make([]chromeperf.Anomaly, 0)
 	for _, reg := range regressions {
 		anomalies, err := compat.ConvertRegressionToAnomalies(reg)
 		if err != nil {
-			sklog.Warningf("Could not convert regression with id %s to anomalies: %s", reg.Id, err)
+			sklog.Warningf("could not convert regression with id %s to anomalies: %s", reg.Id, err)
 			continue
 		}
 		for _, commitNumberMap := range anomalies {
@@ -112,5 +115,6 @@ func prepareResponseFromRegressions(regressions []*regression.Regression) (*GetG
 			}
 		}
 	}
+
 	return groupReportResponse, nil
 }
