@@ -5,7 +5,10 @@ go_library(
     srcs = ["copy_data.go"],
     importpath = "go.skia.org/infra/perf/scripts/copy_data_to_experimental_db",
     visibility = ["//visibility:private"],
-    deps = ["@com_github_jackc_pgx_v4//:pgx"],
+    deps = [
+        "//perf/go/sql/spanner",
+        "@com_github_jackc_pgx_v4//:pgx",
+    ],
 )
 
 go_binary(

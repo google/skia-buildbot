@@ -1,53 +1,89 @@
-This suite of scripts allows you to copy data from production db to an experimental one.
+# Copy Spanner Data
 
-Assumptions:
+This suite of scripts allows you to copy data from a production database to an experimental one.
 
-- You have created a database in the [experimental](https://pantheon.corp.google.com/spanner/instances/tfgen-spanid-20250415224933743/details/databases?chat=true&e=-13802955&mods=component_inspector&project=skia-infra-corp) instance.
-- You have setup an empty table with the same name as the production one
-- You can find the DDL by nagivating to the source table schema [example](https://pantheon.corp.google.com/spanner/instances/tfgen-spanid-20241205020733610/databases/chrome_int/tables/regressions2/details/schema?chat=true&e=-13802955&mods=component_inspector&project=skia-infra-corp) and pressing "Show equivalent DDL".
+## Prerequisites
 
-First, you should execute `./run_two_spanners.sh` - this will start pgadapters to the source and destination dbs.
-You need to modify the script to connect to the right instances.
+- You have created a database in an experimental Spanner instance.
+- You have set up the necessary tables in your experimental database. You can do this in one of two ways:
+  - **For a single table:** Find the DDL by navigating to the source table schema in the Cloud Console and clicking "Show equivalent DDL". [example](https://pantheon.corp.google.com/spanner/instances/tfgen-spanid-20241205020733610/databases/chrome_int/tables/regressions2/details/schema?chat=true&e=-13802955&mods=component_inspector&project=skia-infra-corp)
+  - **For all tables:** Execute the DDL statements found in `perf/go/sql/spanner/schema_spanner.go` in your experimental Spanner database. This will create all tables required by the `copy_data` script when using the `--table-name all` option.
 
-Next, you should change the global constants/variables in `copy_data.go`.
+## Instructions
 
-- `testInstanceDb` should hold the name of destination db you are connecting to.
-- `tableName` holds the name of the table you are copying.
-- `columnNames` lists the columns that will be copied (most likely, all columns of the table).
+### 1. Run PGAdapter Containers
 
-After you have changed those variables, you can generate an executable by cd-ing to this folder and e.g. running `go build`.
-Simply run the script and wait a few moments while CopyFrom does all the work.
+The `run_two_spanners.sh` script starts two PGAdapter Docker containers, one for the source and one for the destination Spanner instance.
+
+**Usage:**
+
+```bash
+./run_two_spanners.sh -di <instance2> -dd <database2> [-si <instance1>] [-sd <database1>]
+```
+
+**Arguments:**
+
+- `-si`, `--source-instance`: The ID of the source Spanner instance. (Default: `tfgen-spanid-20241205020733610`)
+- `-sd`, `--source-database`: The name of the source database. (Default: `chrome_int`)
+- `-di`, `--destination-instance`: (Required) The ID of the destination Spanner instance.
+- `-dd`, `--destination-database`: (Required) The name of the destination database.
+
+This will expose the source database on `localhost:5432` and the destination database on `localhost:5433`.
+
+### 2. Copy the Data
+
+The `copy_data.go` script copies data from the source table to the destination table.
+
+**Usage:**
+
+First, build the script:
+
+```bash
+go build copy_data.go
+```
+
+Then, run the executable with the desired flags:
+
+```bash
+./copy_data --table-name <table_name> --db-name <db_name> --duration <duration>
+```
+
+**Arguments:**
+
+- `--table-name`: (Required) The name of the table to copy (e.g., `regressions2`), or `all` to copy all tables. The table name must be lowercase.
+- `--db-name`: (Required) The name of the destination database. This should match the `-d2` value you used with `run_two_spanners.sh`.
+- `--duration`: (Required) A duration to specify how far back in time to copy data (e.g., `168h` for the last 7 days) or `all` to copy all data.
+
+The script automatically fetches the correct column names based on the provided table name.
+
+## Example Workflow
+
+1.  **Start the PGAdapters:**
+    Start the PGAdapter containers, connecting to the default production instance and your experimental instance `my-instance` with database `my-test-db`.
+
+    ```bash
+    ./run_two_spanners.sh -i2 my-instance -d2 my-test-db
+    ```
+
+2.  **Create the destination table:**
+    In the Spanner console for your `my-test-db` database, create the `regressions2` table using the DDL from the production `chrome_int` database.
+
+3.  **Copy the data for a single table:**
+    Build and run the copy script to copy the last week of data from the `regressions2` table.
+
+    ```bash
+    go build copy_data.go
+    ./copy_data --table-name regressions2 --db-name my-test-db --duration 168h
+    ```
+
+4.  **Copy the data for all tables:**
+    Build and run the copy script to copy the last week of data from all tables.
+
+    ```bash
+    go build copy_data.go
+    ./copy_data --table-name all --db-name my-test-db --duration 168h
+    ```
 
 ## Note
 
-This script does not perform any validations whatsoever. It is strongly recommended that you don't have create (delete) permissions on the source db.
-
-## Example
-
-- Replace `TEST_DB_HERE` with `mordeckimarcin_test` inside `run_two_spanners.sh` and execute the script.
-- Create `regressions2` table inside `mordeckimarcin_test` with the following DDL: (you can execute it in Spanner studio, in experimental instance)
-
-```lang=sql
-CREATE TABLE regressions2 (
-  id character varying DEFAULT spanner.generate_uuid() NOT NULL,
-  commit_number bigint,
-  prev_commit_number bigint,
-  alert_id bigint,
-  creation_time timestamp with time zone,
-  median_before real,
-  median_after real,
-  is_improvement boolean,
-  cluster_type character varying,
-  cluster_summary jsonb,
-  frame jsonb,
-  triage_status character varying,
-  triage_message character varying,
-  createdat timestamp with time zone,
-  PRIMARY KEY(id)
-);
-```
-
-- set `testInstanceDb` with `mordeckimarcin_test`
-- set `tableName` with `regressions2`
-- set `columnNames` with `[]string{"id", "commit_number", "prev_commit_number", "alert_id", "creation_time", "median_before", "median_after", "is_improvement", "cluster_type", "cluster_summary", "frame", "triage_status", "triage_message", "createdat"}`
-- build the script (e.g. `go build`) and execute.
+While some checks are in place, this script should not be blindly trusted. It is strongly recommended that the service account used does not have create or delete permissions on the source database.
