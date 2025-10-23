@@ -14,17 +14,17 @@ type Store struct {
 	mock.Mock
 }
 
-// AddAnomalyID provides a mock function with given fields: ctx, group_id, anomaly_id
-func (_m *Store) AddAnomalyID(ctx context.Context, group_id string, anomaly_id string) error {
-	ret := _m.Called(ctx, group_id, anomaly_id)
+// AddAnomalyID provides a mock function with given fields: ctx, group_id, anomaly_id, anomaly_start_commit, anomaly_end_commit
+func (_m *Store) AddAnomalyID(ctx context.Context, group_id string, anomaly_id string, anomaly_start_commit int64, anomaly_end_commit int64) error {
+	ret := _m.Called(ctx, group_id, anomaly_id, anomaly_start_commit, anomaly_end_commit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddAnomalyID")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, group_id, anomaly_id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, int64, int64) error); ok {
+		r0 = rf(ctx, group_id, anomaly_id, anomaly_start_commit, anomaly_end_commit)
 	} else {
 		r0 = ret.Error(0)
 	}

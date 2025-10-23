@@ -297,7 +297,7 @@ func NewAnomalyGroupStoreFromConfig(ctx context.Context, instanceConfig *config.
 	if err != nil {
 		return nil, err
 	}
-	return ag_store.New(db, instanceConfig.DataStoreConfig.DataStoreType)
+	return ag_store.New(db)
 }
 
 // NewCulpritStoreFromConfig creates a new culprit.Store from the

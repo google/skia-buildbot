@@ -103,15 +103,24 @@ func TestUpdateGroup_ReportedIssueID(t *testing.T) {
 }
 
 func TestUpdateGroup_AnomalyID(t *testing.T) {
-	service, store, _ := setUp(t)
+	service, store, reg_store := setUp(t)
 	ctx := context.Background()
 	req := &ag.UpdateAnomalyGroupRequest{
-		AnomalyGroupId: "ce7107ae-3552-49e9-bd89-120ff97c3cea",
+		AnomalyGroupId: "ce7107ae-3552-49e9-bd-89-120ff97c3cea",
 		AnomalyId:      "b1fb4036-1883-4d9e-85d4-ed607629017a",
 	}
+	reg_store.On("GetByIDs", mock.Anything, []string{req.AnomalyId}).Return(
+		[]*reg.Regression{
+			{
+				CommitNumber:     200,
+				PrevCommitNumber: 100,
+			},
+		}, nil)
 	store.On("AddAnomalyID", mock.Anything,
-		"ce7107ae-3552-49e9-bd89-120ff97c3cea",
-		"b1fb4036-1883-4d9e-85d4-ed607629017a").Return(nil)
+		"ce7107ae-3552-49e9-bd-89-120ff97c3cea",
+		"b1fb4036-1883-4d9e-85d4-ed607629017a",
+		int64(101),
+		int64(200)).Return(nil)
 
 	_, err := service.UpdateAnomalyGroup(ctx, req)
 

@@ -55,9 +55,11 @@ type Store interface {
 	UpdateReportedIssueID(ctx context.Context, group_id string, reported_issue_id string) error
 
 	// Add one anoamly ID to an anomaly group's anomaly list.
-	// Example use case: when a new anomaly is detected and associated
-	//   with an existing group.
-	AddAnomalyID(ctx context.Context, group_id string, anomaly_id string) error
+	// When a new anomaly is added, the group's commit range is narrowed to the
+	// intersection of its current range and the new anomaly's range. This ensures
+	// that all anomalies within the group share a common revision range, preventing
+	// the grouping of anomalies that do not overlap in time.
+	AddAnomalyID(ctx context.Context, group_id string, anomaly_id string, anomaly_start_commit int64, anomaly_end_commit int64) error
 
 	// Add culprit IDs to an anomaly group's culprit list.
 	// Example use case: when an auto bisection job finished with

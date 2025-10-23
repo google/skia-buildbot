@@ -120,8 +120,17 @@ func (s *anomalygroupService) UpdateAnomalyGroup(
 				req.IssueId, req.AnomalyGroupId)
 		}
 	} else if req.AnomalyId != "" {
+		anomalies, err := s.regressionStore.GetByIDs(ctx, []string{req.AnomalyId})
+		if err != nil {
+			return nil, skerr.Wrapf(err, "error getting anomaly %s", req.AnomalyId)
+		}
+		if len(anomalies) == 0 {
+			return nil, skerr.Fmt("anomaly %s not found", req.AnomalyId)
+		}
+		anomaly := anomalies[0]
+
 		if err := s.anomalygroupStore.AddAnomalyID(
-			ctx, req.AnomalyGroupId, req.AnomalyId); err != nil {
+			ctx, req.AnomalyGroupId, req.AnomalyId, int64(anomaly.PrevCommitNumber)+1, int64(anomaly.CommitNumber)); err != nil {
 			return nil, skerr.Wrapf(err,
 				"error adding the anomaly id %s to anomaly group %s",
 				req.AnomalyId, req.AnomalyGroupId)

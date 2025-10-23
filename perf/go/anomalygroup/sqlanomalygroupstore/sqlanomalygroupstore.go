@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/sql/pool"
 
 	pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
-	"go.skia.org/infra/perf/go/config"
 )
 
 // statement is an SQL statement identifier.
@@ -41,14 +40,12 @@ var statements = map[statement]string{
 
 type AnomalyGroupStore struct {
 	//
-	db     pool.Pool
-	dbType config.DataStoreType
+	db pool.Pool
 }
 
-func New(db pool.Pool, dbType config.DataStoreType) (*AnomalyGroupStore, error) {
+func New(db pool.Pool) (*AnomalyGroupStore, error) {
 	return &AnomalyGroupStore{
-		db:     db,
-		dbType: dbType,
+		db: db,
 	}, nil
 }
 
@@ -189,33 +186,30 @@ func (s *AnomalyGroupStore) UpdateReportedIssueID(ctx context.Context, group_id 
 	return nil
 }
 
-func (s *AnomalyGroupStore) AddAnomalyID(ctx context.Context, group_id string, anomaly_id string) error {
+func (s *AnomalyGroupStore) AddAnomalyID(ctx context.Context, group_id string, anomaly_id string, anomaly_start_commit int64, anomaly_end_commit int64) error {
+	if anomaly_end_commit <= 0 || anomaly_start_commit <= 0 || anomaly_end_commit < anomaly_start_commit {
+		return fmt.Errorf("invalid anomaly position detected: [%d. %d]", anomaly_start_commit, anomaly_end_commit)
+	}
 	if len(anomaly_id) > 0 {
 		if _, err := uuid.Parse(anomaly_id); err != nil {
 			err_msg := fmt.Sprintf("invalid UUID value for updating anomaly_id column with value %s ", anomaly_id)
 			return errors.New(err_msg)
 		}
 	}
-	statement := `
+	var statement string
+	var err error
+	statement = `
 		UPDATE
 			AnomalyGroups
 		SET
-			anomaly_ids=array_append(anomaly_ids, $1)
+			anomaly_ids=COALESCE(anomaly_ids, ARRAY[]::text[]) || ARRAY[$1],
+			common_rev_start=GREATEST(common_rev_start, $2),
+			common_rev_end=LEAST(common_rev_end, $3)
 		WHERE
-			id=$2
+			id=$4
 	`
-	if s.dbType == config.SpannerDataStoreType {
-		statement = `
-			UPDATE
-				AnomalyGroups
-			SET
-				anomaly_ids=COALESCE(anomaly_ids, ARRAY[]::text[]) || ARRAY[$1]
-			WHERE
-				id=$2
-		`
-	}
-
-	if _, err := s.db.Exec(ctx, statement, anomaly_id, group_id); err != nil {
+	_, err = s.db.Exec(ctx, statement, anomaly_id, anomaly_start_commit, anomaly_end_commit, group_id)
+	if err != nil {
 		return fmt.Errorf("error updating anomaly group table: %s. %s", err, group_id)
 	}
 	return nil
@@ -232,20 +226,10 @@ func (s *AnomalyGroupStore) AddCulpritIDs(ctx context.Context, group_id string, 
 		UPDATE
 			AnomalyGroups
 		SET
-			culprit_ids=array_cat(culprit_ids, $1)
+			culprit_ids=COALESCE(culprit_ids, ARRAY[]::text[]) || $1
 		WHERE
 			id=$2
 	`
-	if s.dbType == config.SpannerDataStoreType {
-		statement = `
-			UPDATE
-				AnomalyGroups
-			SET
-				culprit_ids=COALESCE(culprit_ids, ARRAY[]::text[]) || $1
-			WHERE
-				id=$2
-		`
-	}
 	if _, err := s.db.Exec(ctx, statement, culprit_ids, group_id); err != nil {
 		return fmt.Errorf("error updating anomaly group table: %s. %s", err, group_id)
 	}
