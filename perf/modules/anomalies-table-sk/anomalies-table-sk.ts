@@ -22,6 +22,7 @@ import { updateShortcut } from '../explore-simple-sk/explore-simple-sk';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 import '../../../elements-sk/modules/spinner-sk';
 import { CountMetric, telemetry } from '../telemetry/telemetry';
+import { config } from './config';
 
 // Just below the 2000 limit - we need to leave some space for the instance address.
 const urlMaxLength = 1900;
@@ -154,35 +155,43 @@ export class AnomaliesTableSk extends ElementSk {
       window.open(`/u/?anomalyIDs=${key}`, '_blank');
       return;
     }
-
-    const idString = idList.join(',');
-    const urlForAnomalyIDsList = `/u/?anomalyIDs=${encodeURIComponent(idString)}`;
-    if (urlForAnomalyIDsList.length < urlMaxLength) {
-      window.open(urlForAnomalyIDsList, '_blank');
+    // TODO(b/454590264) Remove the else condition after BE migration is done.
+    if (config.fetchAnomaliesFromSql) {
+      const idString = idList.join(',');
+      const urlForAnomalyIDsList = `/u/?anomalyIDs=${encodeURIComponent(idString)}`;
+      if (urlForAnomalyIDsList.length < urlMaxLength) {
+        window.open(urlForAnomalyIDsList, '_blank');
+        return;
+      }
+      // TODO(b/454277955) We need to assess if anyone actually opens large groups.
+      // If not, SID might prove obsolete.
+      errorMessage(
+        'Tried to open a report page with too many anomalies. Please file a bug to request access.'
+      );
+      console.warn('anomalyIDs url would be too long, need to use SID');
+      telemetry.increaseCounter(CountMetric.SIDRequiringActionTaken, {
+        module: 'anomalies-table-sk',
+        function: 'openReportForAnomalyId',
+      });
       return;
+    } else {
+      const idString = idList.join(',');
+      // TODO(wenbinzhang): ideally, we should open the url:
+      //   /u/?keys=idString.
+      // Then from the report-page-sk.ts, we can call
+      //   /_anomalies/group_report?keys=idString.
+      // From the response, we can use the .anomaly_list to
+      // populate the tablem and use the .sid to update the url.
+      // As the report-page-sk.ts is not finalized yet, I'm puting
+      // the logic here to make the implementation more clear.
+      // Though, this will cause one extra call to Chromeperf, which
+      // will slow down the repsonse time.
+      // I will move this to report-page-sk when the page is ready.
+      await this.fetchGroupReportApi(idString);
+      const sid: string = this.getGroupReportResponse!.sid || '';
+      const url = `/u/?sid=${sid}`;
+      window.open(url, '_blank');
     }
-
-    console.warn('anomalyIDs url would be too long, need to use SID');
-    telemetry.increaseCounter(CountMetric.SIDRequiringActionTaken, {
-      module: 'anomalies-table-sk',
-      function: 'openReportForAnomalyId',
-    });
-    // TODO(wenbinzhang): ideally, we should open the url:
-    //   /u/?keys=idString.
-    // Then from the report-page-sk.ts, we can call
-    //   /_anomalies/group_report?keys=idString.
-    // From the response, we can use the .anomaly_list to
-    // populate the tablem and use the .sid to update the url.
-    // As the report-page-sk.ts is not finalized yet, I'm puting
-    // the logic here to make the implementation more clear.
-    // Though, this will cause one extra call to Chromeperf, which
-    // will slow down the repsonse time.
-    // I will move this to report-page-sk when the page is ready.
-    await this.fetchGroupReportApi(idString);
-
-    const sid: string = this.getGroupReportResponse!.sid || '';
-    const url = `/u/?sid=${sid}`;
-    window.open(url, '_blank');
   }
 
   async openReport() {

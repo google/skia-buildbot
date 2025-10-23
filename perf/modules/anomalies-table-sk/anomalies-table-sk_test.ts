@@ -2,6 +2,7 @@ import './index';
 import sinon from 'sinon';
 import { assert } from 'chai';
 import { AnomaliesTableSk } from './anomalies-table-sk';
+import { config } from './config';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { Anomaly } from '../json';
@@ -13,6 +14,7 @@ describe('anomalies-table-sk', () => {
 
   let element: AnomaliesTableSk;
   beforeEach(() => {
+    config.fetchAnomaliesFromSql = true;
     window.perf = {
       instance_url: '',
       commit_range_url: 'http://example.com/range/{begin}/{end}',
@@ -59,6 +61,7 @@ describe('anomalies-table-sk', () => {
   });
 
   afterEach(() => {
+    config.fetchAnomaliesFromSql = false;
     fetchMock.restore();
     sinon.restore();
   });

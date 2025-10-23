@@ -1,4 +1,11 @@
-load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_page",
+    "ts_library",
+)
 
 sk_element(
     name = "anomalies-table-sk",
@@ -28,6 +35,7 @@ sk_element(
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
         "//perf/modules/telemetry:telemetry_ts_lib",
+        ":config_ts_lib",
     ],
     ts_srcs = [
         "anomalies-table-sk.ts",
@@ -57,6 +65,7 @@ karma_test(
     src = "anomalies-table-sk_test.ts",
     deps = [
         ":anomalies-table-sk",
+        ":config_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/@types/sinon",
         "//:node_modules/chai",
@@ -65,4 +74,10 @@ karma_test(
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
+)
+
+ts_library(
+    name = "config_ts_lib",
+    srcs = ["config.ts"],
+    visibility = ["//visibility:public"],
 )
