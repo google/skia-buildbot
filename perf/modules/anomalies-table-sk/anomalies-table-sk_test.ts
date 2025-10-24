@@ -14,7 +14,8 @@ describe('anomalies-table-sk', () => {
 
   let element: AnomaliesTableSk;
   beforeEach(() => {
-    config.fetchAnomaliesFromSql = true;
+    // TODO(b/454590264) For now, sql anomalies are disabled. Change to true in the future.
+    config.fetchAnomaliesFromSql = false;
     window.perf = {
       instance_url: '',
       commit_range_url: 'http://example.com/range/{begin}/{end}',
@@ -61,6 +62,7 @@ describe('anomalies-table-sk', () => {
   });
 
   afterEach(() => {
+    // TODO(b/454590264) For now, sql anomalies are disabled. Change to true in the future.
     config.fetchAnomaliesFromSql = false;
     fetchMock.restore();
     sinon.restore();
@@ -123,7 +125,38 @@ describe('anomalies-table-sk', () => {
   });
 
   describe('open anomaly group report page', () => {
-    it('navigates to anomaly group report page', async () => {
+    it('navigates to anomaly group report page when sql anoms are disabled', async () => {
+      const openSpy = sinon.spy(window, 'open');
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
+        dummyAnomaly('3', 0, 300, 400, 'master/bot/suite/test3'),
+        dummyAnomaly('4', 0, 350, 450, 'master/bot/suite/test4'),
+        dummyAnomaly('5', 0, 500, 600, 'master/bot/suite2/test5'),
+        dummyAnomaly('6', 0, 700, 800, 'master/bot/suite2/test6'),
+      ];
+      element.anomalyList = anomalies;
+      await element.populateTable(anomalies);
+
+      for (const group of element.anomalyGroups) {
+        const summaryRowCheckboxId = element.getGroupId(group);
+        const groupCheckbox = element.querySelector<HTMLInputElement>(
+          `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+        );
+        groupCheckbox!.checked = true;
+      }
+
+      await element.openAnomalyGroupReportPage();
+
+      assert.isTrue(openSpy.calledWith('/u/?sid=test_sid', '_blank'));
+      assert.isTrue(openSpy.calledThrice);
+    });
+
+    it('navigates to anomaly group report page when sql anomalies are enabled', async () => {
+      config.fetchAnomaliesFromSql = true;
+
       const openSpy = sinon.spy(window, 'open');
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
 
@@ -171,7 +204,33 @@ describe('anomalies-table-sk', () => {
       assert.isTrue(openSpy.calledOnce);
     });
 
-    it('opens short multi anomaly group with anomalyIDs', async () => {
+    it('opens multi anomaly group with sid when sql anoms are disabled', async () => {
+      const openSpy = sinon.spy(window, 'open');
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
+      ];
+      element.anomalyList = anomalies;
+      await element.populateTable(anomalies);
+
+      const group = element.anomalyGroups[0];
+      const summaryRowCheckboxId = element.getGroupId(group);
+      const groupCheckbox = element.querySelector<HTMLInputElement>(
+        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+      );
+      groupCheckbox!.checked = true;
+
+      await element.openAnomalyGroupReportPage();
+
+      assert.isTrue(openSpy.calledWith('/u/?sid=test_sid', '_blank'));
+      assert.isTrue(openSpy.calledOnce);
+    });
+
+    it('opens short multi anomaly group with anomalyIDs using sql anomalies', async () => {
+      config.fetchAnomaliesFromSql = true;
+
       const openSpy = sinon.spy(window, 'open');
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
 
@@ -195,7 +254,41 @@ describe('anomalies-table-sk', () => {
       assert.isTrue(openSpy.calledOnce);
     });
 
-    it('opens both single and multi anomaly groups', async () => {
+    it('opens both single and multi anomaly groups when sql anoms are disabled', async () => {
+      const openSpy = sinon.spy(window, 'open');
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
+        dummyAnomaly('3', 54321, 100, 200, 'master/bot/suite/test3'),
+      ];
+      element.anomalyList = anomalies;
+      await element.populateTable(anomalies);
+
+      // Check multi-anomaly group.
+      const multiAnomalyGroup = element.anomalyGroups.find((g) => g.anomalies.length > 1)!;
+      const summaryRowCheckboxId = element.getGroupId(multiAnomalyGroup);
+      const groupCheckbox = element.querySelector<HTMLInputElement>(
+        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+      )!;
+      groupCheckbox.checked = true;
+
+      // Check single-anomaly group.
+      const singleAnomalyCheckbox =
+        element.querySelector<HTMLInputElement>(`input[id="anomaly-row-3"]`)!;
+      singleAnomalyCheckbox.checked = true;
+
+      await element.openAnomalyGroupReportPage();
+
+      assert.isTrue(openSpy.calledTwice);
+      assert.isTrue(openSpy.calledWith('/u/?sid=test_sid', '_blank'));
+      assert.isTrue(openSpy.calledWith('/u/?anomalyIDs=3', '_blank'));
+    });
+
+    it('opens both single and multi anomaly groups using sql anomalies', async () => {
+      config.fetchAnomaliesFromSql = true;
+
       const openSpy = sinon.spy(window, 'open');
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
 
