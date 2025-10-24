@@ -6,7 +6,8 @@ build: ./modules/json/index.ts
 
 generate_sql_schema:
 	cd ./go/sql; go run ./tosql
-	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema_spanner.json
+	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema_spanner.json \
+	--databaseType spanner
 
 .PHONY: docs
 docs:
