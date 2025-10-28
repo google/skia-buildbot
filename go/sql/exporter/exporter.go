@@ -33,6 +33,8 @@ type SpannerConverter struct {
 	TtlExcludeTables []string
 	primaryKeys      map[string]string
 	SkipCreatedAt    bool // If true, doesn't add a createdat column to the table.
+	GoogleSQL        bool
+	interleaves      map[string]string
 }
 
 func DefaultSpannerConverter() *SpannerConverter {
@@ -42,6 +44,7 @@ func DefaultSpannerConverter() *SpannerConverter {
 		indexNames:       []string{},
 		TtlExcludeTables: []string{},
 		primaryKeys:      map[string]string{},
+		interleaves:      map[string]string{},
 	}
 }
 
@@ -66,7 +69,11 @@ func (sc *SpannerConverter) getIndexDeclarations() string {
 	if len(sc.indices) > 0 {
 		indexBuilder := strings.Builder{}
 		for _, idx := range sc.indices {
-			indexBuilder.WriteString("CREATE INDEX IF NOT EXISTS " + idx + ";\n")
+			if sc.GoogleSQL {
+				indexBuilder.WriteString("CREATE UNIQUE INDEX IF NOT EXISTS " + idx + ";\n")
+			} else {
+				indexBuilder.WriteString("CREATE INDEX IF NOT EXISTS " + idx + ";\n")
+			}
 		}
 
 		return indexBuilder.String()
@@ -78,37 +85,51 @@ func (sc *SpannerConverter) getIndexDeclarations() string {
 // updateColumnTypesForSpanner updates the column types defined in the column string with types
 // compatible with Spanner postgres.
 func (sc *SpannerConverter) updateColumnTypesForSpanner(sqlColumnText string, tableName string) string {
-	typeReplacements := map[string]string{
-		"INT2":              "INT8",
-		"INT4":              "INT8",
-		"CHAR":              "VARCHAR(1)",
-		"STRING":            "TEXT",
-		"UUID":              "TEXT",
-		"BYTES":             "BYTEA",
-		"gen_random_uuid()": "spanner.generate_uuid()",
-		"UNIQUE":            "",
-		"SERIAL":            "INT8",
-	}
-
-	// unique_rowid() generates a unique integer identifier for int columns. This does not work in spanner.
-	// The replacement is basically to define a SEQUENCE and use nextval('<sequence_name>') to get the
-	// unique value. We keep a track of all the sequences we need to create and then create the generation
-	// statements later.
-	uniqueRowIdentifier := "unique_rowid()"
-	if strings.Contains(sqlColumnText, uniqueRowIdentifier) {
-		sequenceName := fmt.Sprintf("%s_seq", tableName)
-		sc.sequences = append(sc.sequences, sequenceName)
-
-		typeReplacements[uniqueRowIdentifier] = fmt.Sprintf("nextval('%s')", sequenceName)
-		if strings.Contains(sqlColumnText, "PRIMARY KEY") {
-			// The primary key statement should come after the columns when we
-			// are using nextval for generating unique row ids.
-			columnName := strings.Split(sqlColumnText, " ")[0]
-			sc.primaryKeys[tableName] = columnName
-			sqlColumnText = strings.Replace(sqlColumnText, " PRIMARY KEY", "", -1)
+	var typeReplacements map[string]string
+	if sc.GoogleSQL {
+		if strings.Contains(sqlColumnText, "PRIMARY KEY (") {
+			pkColumnStr := strings.Split(sqlColumnText, "PRIMARY KEY (")[1]
+			pkColumnStr = strings.Split(pkColumnStr, ")")[0]
+			sc.primaryKeys[tableName] = pkColumnStr
+			return ""
+		}
+		if strings.Contains(sqlColumnText, "INTERLEAVE") {
+			sc.interleaves[tableName] = sqlColumnText
+			return ""
 		}
 	}
+	if !sc.GoogleSQL {
+		typeReplacements = map[string]string{
+			"INT2":              "INT8",
+			"INT4":              "INT8",
+			"CHAR":              "VARCHAR(1)",
+			"STRING":            "TEXT",
+			"UUID":              "TEXT",
+			"BYTES":             "BYTEA",
+			"gen_random_uuid()": "spanner.generate_uuid()",
+			"UNIQUE":            "",
+			"SERIAL":            "INT8",
+		}
 
+		// unique_rowid() generates a unique integer identifier for int columns. This does not work in spanner.
+		// The replacement is basically to define a SEQUENCE and use nextval('<sequence_name>') to get the
+		// unique value. We keep a track of all the sequences we need to create and then create the generation
+		// statements later.
+		uniqueRowIdentifier := "unique_rowid()"
+		if strings.Contains(sqlColumnText, uniqueRowIdentifier) {
+			sequenceName := fmt.Sprintf("%s_seq", tableName)
+			sc.sequences = append(sc.sequences, sequenceName)
+
+			typeReplacements[uniqueRowIdentifier] = fmt.Sprintf("nextval('%s')", sequenceName)
+			if strings.Contains(sqlColumnText, "PRIMARY KEY") {
+				// The primary key statement should come after the columns when we
+				// are using nextval for generating unique row ids.
+				columnName := strings.Split(sqlColumnText, " ")[0]
+				sc.primaryKeys[tableName] = columnName
+				sqlColumnText = strings.Replace(sqlColumnText, " PRIMARY KEY", "", -1)
+			}
+		}
+	}
 	if strings.Contains(sqlColumnText, "INDEX") {
 
 		// This is a list of indices to ignore. When we switch to spanner,
@@ -214,16 +235,30 @@ func GenerateSQL(inputType interface{}, pkg string, opt Options, schemaTarget Sc
 			}
 		}
 		if sc != nil {
+			skipClose := false
 			if !sc.SkipCreatedAt {
 				// Automatically create a TTL column for tables in Spanner.
 				body.WriteString(",\n  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP")
 			}
 			if pk, ok := sc.primaryKeys[table.Name]; ok {
-				body.WriteString(",\n  PRIMARY KEY (" + pk + ")")
+				if sc.GoogleSQL {
+					body.WriteString("\n) PRIMARY KEY (" + pk + ")")
+					if sc.interleaves[table.Name] != "" {
+						body.WriteString(",\n  ")
+						body.WriteString(sc.interleaves[table.Name])
+					}
+
+					body.WriteString(";\n")
+					skipClose = true
+				} else {
+					body.WriteString(",\n  PRIMARY KEY (" + pk + ")")
+				}
 			}
 			// Do not add a TTL spec if the table is excluded.
 			if slices.Contains(sc.TtlExcludeTables, table.Name) {
-				body.WriteString("\n);\n")
+				if !skipClose {
+					body.WriteString("\n);\n")
+				}
 			} else {
 				// Add TTL spec of 3 years by default.
 				body.WriteString("\n) TTL INTERVAL '1095 days' ON createdat;\n")
