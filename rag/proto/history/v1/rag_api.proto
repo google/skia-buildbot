@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+// Working in progress protobuf and service definition.
+
+package historyrag.v1;
+
+option go_package = "go.skia.org/infra/go/rag/proto/history/v1";
+
+import "google/api/annotations.proto";
+
+// Service definition for the HistoryRag service.
+service HistoryRagApiService {
+    rpc GetBlames(GetBlamesRequest) returns (GetBlamesResponse) {
+        option (google.api.http) = {
+			get: "/historyrag/v1/blames"
+		};
+    }
+}
+
+// Request message for the GetBlames api.
+// TODO(ashwinpv): Add the necessary fields.
+message GetBlamesRequest {
+}
+
+// Response message for the GetBlames api.
+// TODO(ashwinpv): Add the necessary fields.
+message GetBlamesResponse {
+}

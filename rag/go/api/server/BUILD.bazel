@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "server_lib",
+    srcs = [
+        "config.go",
+        "main.go",
+        "server.go",
+    ],
+    importpath = "go.skia.org/infra/rag/go/api/server",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/cleanup",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/sklog/sklogimpl",
+        "//go/sklog/stdlogging",
+        "//go/urfavecli",
+        "//go/util",
+        "//rag/go/api/services/history",
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
+        "@com_github_urfave_cli_v2//:cli",
+        "@com_google_cloud_go_spanner//:spanner",
+        "@org_golang_google_grpc//:grpc",
+        "@org_golang_google_grpc//reflection",
+    ],
+)
+
+go_binary(
+    name = "server",
+    embed = [":server_lib"],
+    visibility = ["//visibility:public"],
+)

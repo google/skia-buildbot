@@ -15,6 +15,7 @@ require (
 	cloud.google.com/go/pubsub v1.47.0
 	cloud.google.com/go/redis v1.18.0
 	cloud.google.com/go/secretmanager v1.14.5
+	cloud.google.com/go/spanner v1.76.1
 	cloud.google.com/go/storage v1.50.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.4
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.19.1
@@ -39,7 +40,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-python/gpython v0.0.3
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
-	github.com/golang/mock v1.6.0
+	github.com/golang/mock v1.7.0-rc.1
 	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v29 v29.0.3
@@ -131,6 +132,7 @@ require (
 	cloud.google.com/go/container v1.42.2 // indirect
 	cloud.google.com/go/longrunning v0.6.6 // indirect
 	cloud.google.com/go/trace v1.11.3 // indirect
+	github.com/GoogleCloudPlatform/grpc-gcp-go/grpcgcp v1.5.2 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.25.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.50.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.50.0 // indirect

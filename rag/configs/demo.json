@@ -1,0 +1,7 @@
+{
+    "spanner_config": {
+        "project_id": "ashwinpv",
+        "instance_id": "history-rag-experiment",
+        "database_id": "chromium-historyrag"
+    }
+}
