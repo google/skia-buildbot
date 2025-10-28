@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/anomalies"
-	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
 	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 )
@@ -28,10 +27,10 @@ const (
 type triageApi struct {
 	// TODO(wenbinzhang): add pinpoint client and issuetracker client to complete
 	// the triage toolchain when skia backend is ready.
-	chromeperfClient chromeperf.ChromePerfClient
-	loginProvider    alogin.Login
-	anomalyStore     anomalies.Store
-	issueTracker     perf_issuetracker.IssueTracker
+	triageBackend TriageBackend
+	loginProvider alogin.Login
+	anomalyStore  anomalies.Store
+	issueTracker  perf_issuetracker.IssueTracker
 }
 
 // Request object for the request from new bug UI.
@@ -105,18 +104,18 @@ func (api triageApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/triage/list_issues", api.ListIssues)
 }
 
-func NewTriageApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, anomalyStore anomalies.Store, issueTracker perf_issuetracker.IssueTracker) triageApi {
+func NewTriageApi(loginProvider alogin.Login, triageBackend TriageBackend, anomalyStore anomalies.Store, issueTracker perf_issuetracker.IssueTracker) triageApi {
 	return triageApi{
-		loginProvider:    loginProvider,
-		chromeperfClient: chromeperfClient,
-		anomalyStore:     anomalyStore,
-		issueTracker:     issueTracker,
+		loginProvider: loginProvider,
+		triageBackend: triageBackend,
+		anomalyStore:  anomalyStore,
+		issueTracker:  issueTracker,
 	}
 }
 
 func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
-		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -134,24 +133,18 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithTimeout(r.Context(), defaultRequestProcessTimeout)
 	defer cancel()
-	chromeperfResponse := &ChromeperfFileBugResponse{}
 
-	err := api.chromeperfClient.SendPostRequest(ctx, "file_bug_skia", "", fileBugRequest, chromeperfResponse, []int{200, 400, 401, 500})
+	resp, err := api.triageBackend.FileBug(ctx, &fileBugRequest)
 	if err != nil {
 		httputils.ReportError(w, err, "File new bug request failed due to an internal server error. Please try again.", http.StatusInternalServerError)
 		return
 	}
 
-	if chromeperfResponse.Error != "" {
-		httputils.ReportError(w, errors.New(chromeperfResponse.Error), fmt.Sprintf("Error when filing a new bug. Please double check each request parameter, and try again: %v", chromeperfResponse.Error), http.StatusInternalServerError)
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(SkiaFileBugResponse{BugId: chromeperfResponse.BugId}); err != nil {
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		httputils.ReportError(w, err, "Failed to write bug id to SkiaFileBugResponse.", http.StatusInternalServerError)
 		return
 	}
-	sklog.Debugf("[SkiaTriage] b/%s is created.", chromeperfResponse.BugId)
+	sklog.Debugf("[SkiaTriage] b/%s is created.", resp.BugId)
 
 	return
 }
@@ -178,8 +171,6 @@ func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultEditAnomalyTimeout)
 	defer cancel()
 
-	editAnomalyResponse := &EditAnomaliesResponse{}
-
 	if editAnomaliesRequest.StartRevision < 0 || editAnomaliesRequest.EndRevision < 0 {
 		http.Error(w, "Invalid start or end revision.", http.StatusBadRequest)
 		return
@@ -198,28 +189,17 @@ func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing anomaly keys.", http.StatusBadRequest)
 		return
 	}
-
-	err := api.chromeperfClient.SendPostRequest(ctx, "edit_anomalies_skia", "", editAnomaliesRequest, editAnomalyResponse, []int{200, 400, 401, 500})
+	resp, err := api.triageBackend.EditAnomalies(ctx, &editAnomaliesRequest)
 	if err != nil {
 		httputils.ReportError(
 			w,
 			err,
-			"Edit anomalies request failed due to an internal server error. Please try again.",
+			"Chromeperf edit anomalies request failed.",
 			http.StatusInternalServerError)
 		return
 	}
 
-	if editAnomalyResponse.Error != "" {
-		httputils.ReportError(
-			w,
-			errors.New(editAnomalyResponse.Error),
-			fmt.Sprintf("Error when editing anomalies. Please double check each request parameter, and try again. %v",
-				editAnomalyResponse.Error),
-			http.StatusInternalServerError)
-		return
-	}
-
-	if error := json.NewEncoder(w).Encode(editAnomalyResponse); error != nil {
+	if error := json.NewEncoder(w).Encode(resp); error != nil {
 		httputils.ReportError(w, error, "Failed to enode JSON on edit anomalies response.", http.StatusInternalServerError)
 		return
 	}
@@ -247,27 +227,17 @@ func (api triageApi) AssociateAlerts(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultRequestProcessTimeout)
 	defer cancel()
 
-	skiaExistingBugResponse := &ChromeperfAssociateBugResponse{}
-	err := api.chromeperfClient.SendPostRequest(ctx, "associate_alerts_skia", "", associateBugRequest, skiaExistingBugResponse, []int{200, 400, 401, 500})
+	resp, err := api.triageBackend.AssociateAlerts(ctx, &associateBugRequest)
 	if err != nil {
 		httputils.ReportError(
 			w,
 			err,
-			"Associate alerts request failed due to an internal server error. Please try again.",
+			"Chromeperf associate request failed.",
 			http.StatusInternalServerError)
 		return
 	}
-	if error := json.NewEncoder(w).Encode(skiaExistingBugResponse); error != nil {
+	if error := json.NewEncoder(w).Encode(resp); error != nil {
 		httputils.ReportError(w, error, "Failed to enode JSON on associate bug response.", http.StatusInternalServerError)
-		return
-	}
-
-	if skiaExistingBugResponse.Error != "" {
-		httputils.ReportError(
-			w,
-			errors.New(skiaExistingBugResponse.Error),
-			fmt.Sprintf("Error when associating alerts with an existing bug. Please double check each request parameter, and try again. %v", skiaExistingBugResponse.Error),
-			http.StatusInternalServerError)
 		return
 	}
 	sklog.Debugf("[SkiaTriage] Alerts are associated with existing bug.")
