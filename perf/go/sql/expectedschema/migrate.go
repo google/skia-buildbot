@@ -41,17 +41,13 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNextSpanner = `
-	CREATE TABLE IF NOT EXISTS TraceParams (
-		trace_id BYTEA PRIMARY KEY,
-		params JSONB,
-		createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-	);
+	CREATE INDEX IF NOT EXISTS by_commit_and_prev_commit on Regressions2 (commit_number, prev_commit_number);
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLiveSpanner = `
-	DROP TABLE IF EXISTS TraceParams;
+	DROP INDEX by_commit_and_prev_commit;
 `
 
 // This function will check whether there's a new schema checked-in,

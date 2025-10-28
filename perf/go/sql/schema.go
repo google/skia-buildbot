@@ -100,7 +100,8 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
   triage_status TEXT,
   triage_message TEXT,
   INDEX by_alert_id (alert_id),
-  INDEX by_commit_alert (commit_number, alert_id)
+  INDEX by_commit_alert (commit_number, alert_id),
+  INDEX by_commit_and_prev_commit (commit_number, prev_commit_number)
 );
 CREATE TABLE IF NOT EXISTS ReverseKeyMap (
   modified_value TEXT,

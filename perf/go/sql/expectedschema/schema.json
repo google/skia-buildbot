@@ -113,6 +113,7 @@
     "postings.by_trace_id2",
     "postings.by_trace_id",
     "postings.by_key_value",
+    "regressions2.by_commit_and_prev_commit",
     "regressions2.by_commit_alert",
     "regressions2.by_alert_id",
     "sourcefiles.sourcefiles_source_file_key",

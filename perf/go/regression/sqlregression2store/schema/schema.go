@@ -52,4 +52,7 @@ type Regression2Schema struct {
 
 	// Index used to query regressions by commit and alert ids
 	byCommitAndAlertIndex struct{} `sql:"INDEX by_commit_alert (commit_number, alert_id)"`
+
+	// Index used to query regressions by revision number. Tailored for GetByRevision query.
+	byCommitAndPrevCommitIndex struct{} `sql:"INDEX by_commit_and_prev_commit (commit_number, prev_commit_number)"`
 }

@@ -48,6 +48,7 @@ const DropSpannerIndices = `
   DROP INDEX IF EXISTS by_source_file;
   DROP INDEX IF EXISTS by_source_file_id;
   DROP INDEX IF EXISTS by_trace_id_tv2;
+  DROP INDEX IF EXISTS by_commit_and_prev_commit;
 `
 
 // LiveSchemaSpanner has to reflect what's live in prod right now in spanner
@@ -189,6 +190,11 @@ CREATE TABLE IF NOT EXISTS Subscriptions (
   PRIMARY KEY(name, revision),
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS TraceParams (
+  trace_id BYTEA PRIMARY KEY,
+  params JSONB,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS TraceValues (
   trace_id BYTEA,
   commit_number INT,
