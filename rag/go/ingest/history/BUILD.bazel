@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "history",
+    srcs = ["ingester.go"],
+    importpath = "go.skia.org/infra/rag/go/ingest/history",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//rag/go/blamestore",
+    ],
+)
+
+go_test(
+    name = "history_test",
+    srcs = ["ingester_test.go"],
+    embed = [":history"],
+    deps = [
+        "//rag/go/blamestore",
+        "@com_github_stretchr_testify//assert",
+    ],
+)
