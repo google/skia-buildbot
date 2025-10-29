@@ -81,7 +81,7 @@ func (n *AnomalyGroupNotifier) RegressionFound(
 			ctx,
 			alert,
 			regressionID,
-			int64(previousCommit.CommitNumber),
+			int64(previousCommit.CommitNumber+1),
 			int64(commit.CommitNumber),
 			testPath,
 			paramset)
