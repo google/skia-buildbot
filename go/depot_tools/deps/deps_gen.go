@@ -74,32 +74,32 @@ var deps = deps_parser.DepsEntries{
 	},
 	"infra/3pp/tools/git/linux-amd64": {
 		Id:      "infra/3pp/tools/git/linux-amd64",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/3pp/tools/git/linux-arm64": {
 		Id:      "infra/3pp/tools/git/linux-arm64",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/3pp/tools/git/linux-armv6l": {
 		Id:      "infra/3pp/tools/git/linux-armv6l",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/3pp/tools/git/mac-amd64": {
 		Id:      "infra/3pp/tools/git/mac-amd64",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/3pp/tools/git/windows-386": {
 		Id:      "infra/3pp/tools/git/windows-386",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/3pp/tools/git/windows-amd64": {
 		Id:      "infra/3pp/tools/git/windows-amd64",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/tools/cipd/${os}-${arch}": {

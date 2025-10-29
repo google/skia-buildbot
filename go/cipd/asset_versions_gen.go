@@ -66,32 +66,32 @@ var PACKAGES = map[string]*Package{
 	"infra/3pp/tools/git/linux-amd64": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/linux-amd64",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 	},
 	"infra/3pp/tools/git/linux-arm64": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/linux-arm64",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 	},
 	"infra/3pp/tools/git/linux-armv6l": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/linux-armv6l",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 	},
 	"infra/3pp/tools/git/mac-amd64": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/mac-amd64",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 	},
 	"infra/3pp/tools/git/windows-386": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/windows-386",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 	},
 	"infra/3pp/tools/git/windows-amd64": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/windows-amd64",
-		Version: "version:3@2.51.1.chromium.11",
+		Version: "version:3@2.51.2.chromium.11",
 	},
 	"infra/tools/cipd/${os}-${arch}": {
 		Path:    ".",
