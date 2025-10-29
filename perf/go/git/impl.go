@@ -177,8 +177,6 @@ var statements = map[statement]string{
 // It stores a copy of the needed commit info in an SQL database for quicker
 // access, and runs a background Go routine that updates the database
 // periodically.
-//
-// Please see perf/sql/migrations for the database schema used.
 type Impl struct {
 	gp provider.Provider
 

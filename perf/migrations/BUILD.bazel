@@ -1,5 +1,0 @@
-filegroup(
-    name = "cockroachdb",
-    srcs = glob(["cockroachdb/**"]),
-    visibility = ["//perf:__subpackages__"],
-)

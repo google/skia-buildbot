@@ -1,6 +1,4 @@
 // Package storage implements culprit.Store using SQL.
-//
-// Please see perf/sql/migrations for the database schema used.
 package sqlculpritstore
 
 import (

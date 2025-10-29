@@ -1,7 +1,5 @@
 // Package sqlregressionstore implements the regression.Store interface on an
 // SQL database backend.
-//
-// To see the schema of the database used, see perf/sql/migrations.
 package sqlregressionstore
 
 import (
@@ -115,9 +113,6 @@ type SQLRegressionStore struct {
 }
 
 // New returns a new *SQLRegressionStore.
-//
-// We presume all migrations have been run against db before this function is
-// called.
 func New(db pool.Pool) (*SQLRegressionStore, error) {
 	return &SQLRegressionStore{
 		db:                         db,

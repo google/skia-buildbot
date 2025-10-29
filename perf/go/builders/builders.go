@@ -88,9 +88,6 @@ var singletonPool pool.Pool
 var singletonPoolMutex sync.Mutex
 
 // NewDBPoolFromConfig opens an existing database.
-//
-// No migrations are applied automatically, they must be applied by the
-// 'migrate' command line application.
 func NewDBPoolFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig, checkSchema bool) (pool.Pool, error) {
 	singletonPoolMutex.Lock()
 	defer singletonPoolMutex.Unlock()

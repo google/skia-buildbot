@@ -1,2 +1,0 @@
--- In theory a bunch of DROP TABLE statements should be here, but that seems
--- unneccessarily dangerous, so we'll leave them out for now.

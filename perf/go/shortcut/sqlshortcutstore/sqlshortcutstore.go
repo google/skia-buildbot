@@ -1,6 +1,4 @@
 // Package sqlshortcutstore implements shortcut.Store using an SQL database.
-//
-// Please see perf/sql/migrations for the database schema used.
 package sqlshortcutstore
 
 import (
@@ -67,9 +65,6 @@ type SQLShortcutStore struct {
 }
 
 // New returns a new *SQLShortcutStore.
-//
-// We presume all migrations have been run against db before this function is
-// called.
 func New(db pool.Pool) (*SQLShortcutStore, error) {
 	return &SQLShortcutStore{
 		db: db,

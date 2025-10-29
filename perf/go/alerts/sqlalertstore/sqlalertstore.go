@@ -1,6 +1,4 @@
 // Package sqlalertstore implements alerts.Store using SQL.
-//
-// Please see perf/sql/migrations for the database schema used.
 package sqlalertstore
 
 import (
@@ -103,9 +101,6 @@ type SQLAlertStore struct {
 }
 
 // New returns a new *SQLAlertStore.
-//
-// We presume all migrations have been run against db before this function is
-// called.
 func New(db pool.Pool) (*SQLAlertStore, error) {
 	return &SQLAlertStore{
 		db:         db,

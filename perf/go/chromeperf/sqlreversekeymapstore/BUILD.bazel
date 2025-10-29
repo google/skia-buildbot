@@ -17,7 +17,6 @@ go_library(
 go_test(
     name = "sqlreversekeymapstore_test",
     srcs = ["sqlreversekeymapstore_test.go"],
-    # data = ["//perf/migrations:cockroachdb"],
     embed = [":sqlreversekeymapstore"],
     deps = [
         "//go/sql/pool",

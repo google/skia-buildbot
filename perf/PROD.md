@@ -149,7 +149,3 @@ WHERE
     param_value>'showmap_granular' AND
     param_value<'showmap_granulas' LIMIT 100000
 ```
-
-The bash file `//perf/migrations/batch-delete.sh` does batches of deletes using
-`//perf/migrations/batch-delete.sql` as the SQL to run. Modify that file to
-control which params to delete.

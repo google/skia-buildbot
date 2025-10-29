@@ -91,9 +91,6 @@ table.
 	        '\xfe385b159ff55dca481069805e5ff050',
 	        '\x277262a9236d571883d47dab102070bc'
 	    );
-
-Look in migrations/cdb.sql for more example of raw queries using a simple
-example dataset.
 */
 package sqltracestore
 
@@ -496,9 +493,6 @@ type SQLTraceStore struct {
 }
 
 // New returns a new *SQLTraceStore.
-//
-// We presume all migrations have been run against db before this function is
-// called.
 func New(db pool.Pool, datastoreConfig config.DataStoreConfig, traceParamStore tracestore.TraceParamStore,
 	inMemoryTraceParams *InMemoryTraceParams) (*SQLTraceStore, error) {
 	unpreparedStatements := map[statement]*template.Template{}
