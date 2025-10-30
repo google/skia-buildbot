@@ -106,7 +106,7 @@ export class BisectDialogSk extends ElementSk {
       </div>
       </form>
     </dialog>
-    <toast-sk id="bisect_toast" duration="8000">
+    <toast-sk id="bisect_toast" duration="5000">
       <div id="bisect-url">
         <a href=${ele.jobUrl} target="_blank">Bisect job created: ${ele.jobId}</a>
       </div>
@@ -200,8 +200,8 @@ export class BisectDialogSk extends ElementSk {
     const patch = document.getElementById('patch')! as HTMLInputElement;
     const req: CreateBisectRequest = {
       comparison_mode: 'performance',
-      start_git_hash: startCommit.value,
-      end_git_hash: endCommit.value,
+      start_git_hash: startCommit.value === '' ? this.startCommit : startCommit.value,
+      end_git_hash: endCommit.value === '' ? this.endCommit : endCommit.value,
       configuration: this.testPath.split('/')[1],
       benchmark: this.testPath.split('/')[2],
       story: this.story,
@@ -214,6 +214,26 @@ export class BisectDialogSk extends ElementSk {
       user: this.user,
       alert_ids: '[' + this.anomalyId + ']',
     };
+
+    const validations = [
+      { value: req.start_git_hash, message: 'Start commit is required.' },
+      { value: req.end_git_hash, message: 'End commit is required.' },
+      { value: req.configuration, message: 'Configuration is missing in the request.' },
+      { value: req.benchmark, message: 'Benchmark is missing in the request.' },
+      { value: req.story, message: 'Story is required.' },
+      { value: req.chart, message: 'Chart is missing in the request.' },
+      { value: req.user, message: 'User is not logged in.' },
+    ];
+
+    for (const rule of validations) {
+      if (!rule.value) {
+        errorMessage(rule.message);
+        this.spinner!.active = false;
+        this.bisectButton!.disabled = false;
+        return;
+      }
+    }
+
     fetch('/_/bisect/create', {
       method: 'POST',
       body: JSON.stringify(req),

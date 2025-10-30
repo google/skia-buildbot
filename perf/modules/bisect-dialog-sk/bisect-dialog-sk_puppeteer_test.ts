@@ -12,10 +12,27 @@ describe('bisect-dialog-sk', () => {
   });
 
   beforeEach(async () => {
+    await testBed.page.setRequestInterception(true);
+    testBed.page.on('request', (request) => {
+      if (request.url().endsWith('/_/login/status')) {
+        request.respond({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ email: 'test@google.com', Roles: ['editor'] }),
+        });
+      } else if (request.url().endsWith('/_/bisect/create')) {
+        request.respond({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ jobId: '123', jobUrl: 'http://example.com' }),
+        });
+      } else {
+        request.continue();
+      }
+    });
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 600, height: 1000 });
     bisectDialogSkPO = new BisectDialogSkPO((await testBed.page.$('bisect-dialog-sk'))!);
-    await testBed.page.setRequestInterception(true);
   });
 
   afterEach(async () => {
@@ -71,7 +88,7 @@ describe('bisect-dialog-sk', () => {
 
       await bisectDialogSkPO.clickBisectBtn();
       assert.isTrue(await bisectDialogSkPO.isDialogOpen());
-      await takeScreenshot(testBed.page, 'perf', 'bisect-dialog-sk-closed');
+      await takeScreenshot(testBed.page, 'perf', 'bisect-dialog-sk-open');
     });
 
     it('closes the dialog', async () => {
