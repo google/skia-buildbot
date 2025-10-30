@@ -19,6 +19,9 @@ const (
 type BlameStore interface {
 	// WriteBlame writes the blame data into the database.
 	WriteBlame(ctx context.Context, blame *FileBlame) error
+
+	// ReadBlame reads the blame information for the given file path.
+	ReadBlame(ctx context.Context, filePath string) (*FileBlame, error)
 }
 
 type blameStoreImpl struct {
@@ -96,6 +99,64 @@ func (b *blameStoreImpl) WriteBlame(ctx context.Context, blame *FileBlame) error
 		return nil
 	})
 	return err
+}
+
+// ReadBlame returns the file blame data for the file path provided.
+func (b *blameStoreImpl) ReadBlame(ctx context.Context, filePath string) (*FileBlame, error) {
+	ret := &FileBlame{
+		FilePath: filePath,
+	}
+	stmt := spanner.NewStatement(`
+		SELECT
+			t1.file_hash,
+			t1.version,
+			t1.commit_hash,
+			t2.line_number,
+			t2.commit_hash AS line_commit_hash
+		FROM BlamedFiles AS t1
+		LEFT JOIN LineBlames AS t2 ON t1.id = t2.id
+		WHERE t1.file_path = @filePath
+	`)
+	stmt.Params["filePath"] = filePath
+	var fileBlamePopulated bool
+	err := b.spannerClient.Single().Query(ctx, stmt).Do(func(r *spanner.Row) error {
+		if !fileBlamePopulated {
+			if err := r.ColumnByName("file_hash", &ret.FileHash); err != nil {
+				return skerr.Wrap(err)
+			}
+			if err := r.ColumnByName("version", &ret.Version); err != nil {
+				return skerr.Wrap(err)
+			}
+			if err := r.ColumnByName("commit_hash", &ret.CommitHash); err != nil {
+				return skerr.Wrap(err)
+			}
+			fileBlamePopulated = true
+		}
+
+		var lineNumber spanner.NullInt64
+		if err := r.ColumnByName("line_number", &lineNumber); err != nil {
+			return skerr.Wrap(err)
+		}
+		var lineCommitHash spanner.NullString
+		if err := r.ColumnByName("line_commit_hash", &lineCommitHash); err != nil {
+			return skerr.Wrap(err)
+		}
+
+		if lineNumber.Valid && lineCommitHash.Valid {
+			lb := &LineBlame{
+				LineNumber: lineNumber.Int64,
+				CommitHash: lineCommitHash.StringVal,
+			}
+			ret.LineBlames = append(ret.LineBlames, lb)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return ret, nil
 }
 
 // New returns a new BlameStore instance.

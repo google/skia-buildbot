@@ -1,26 +1,14 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "services",
-    srcs = ["apiService.go"],
-    importpath = "go.skia.org/infra/rag/go/api/services",
-    visibility = ["//visibility:public"],
-    deps = [
-        "//go/sklog",
-        "//rag/proto/history/v1:proto",
-        "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
-        "@com_google_cloud_go_spanner//:spanner",
-        "@org_golang_google_grpc//:grpc",
-    ],
-)
-
-go_library(
     name = "history",
     srcs = ["apiService.go"],
     importpath = "go.skia.org/infra/rag/go/api/services/history",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/skerr",
         "//go/sklog",
+        "//rag/go/blamestore",
         "//rag/proto/history/v1:proto",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
         "@com_google_cloud_go_spanner//:spanner",

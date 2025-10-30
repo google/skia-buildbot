@@ -7,7 +7,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/rag/go/blamestore"
 	pb "go.skia.org/infra/rag/proto/history/v1"
 )
 
@@ -16,13 +18,13 @@ type ApiService struct {
 	pb.UnimplementedHistoryRagApiServiceServer
 
 	// Spanner database client.
-	dbClient *spanner.Client
+	blameStore blamestore.BlameStore
 }
 
 // NewApiService returns a new instance of the ApiService struct.
 func NewApiService(dbClient *spanner.Client) *ApiService {
 	return &ApiService{
-		dbClient: dbClient,
+		blameStore: blamestore.New(dbClient),
 	}
 }
 
@@ -42,10 +44,27 @@ func (service *ApiService) GetServiceDescriptor() grpc.ServiceDesc {
 }
 
 // GetBlames implements the GetBlames api endpoint.
-//
-// TODO(ashwinpv): Implement the api.
 func (service *ApiService) GetBlames(ctx context.Context, req *pb.GetBlamesRequest) (*pb.GetBlamesResponse, error) {
-	sklog.Infof("Received GetBlames request")
-	resp := &pb.GetBlamesResponse{}
+	if req.GetFilePath() == "" {
+		return nil, skerr.Fmt("filePath cannot be empty.")
+	}
+	fileBlames, err := service.blameStore.ReadBlame(ctx, req.GetFilePath())
+	if err != nil {
+		sklog.Errorf("Error retrieving blame data for file %s: %v", req.GetFilePath(), err)
+		return nil, err
+	}
+
+	// Populate the response.
+	resp := &pb.GetBlamesResponse{
+		FilePath: fileBlames.FilePath,
+		FileHash: fileBlames.FileHash,
+		Version:  fileBlames.Version,
+	}
+	for _, lb := range fileBlames.LineBlames {
+		resp.LineBlames = append(resp.LineBlames, &pb.GetBlamesResponse_LineBlame{
+			LineNumber: lb.LineNumber,
+			CommitHash: lb.CommitHash,
+		})
+	}
 	return resp, nil
 }

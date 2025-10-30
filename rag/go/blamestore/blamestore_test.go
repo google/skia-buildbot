@@ -117,3 +117,32 @@ func TestBlameStore_WriteBlame_Update(t *testing.T) {
 	}
 	assert.Equal(t, 2, count)
 }
+
+func TestBlameStore_ReadBlame_Insert(t *testing.T) {
+	store, _ := createBlameStoreForTests(t)
+
+	blame := &FileBlame{
+		FilePath:   "foo.go",
+		FileHash:   "123",
+		Version:    "1",
+		CommitHash: "abc",
+		LineBlames: []*LineBlame{
+			{LineNumber: 1, CommitHash: "abc"},
+			{LineNumber: 2, CommitHash: "abc"},
+		},
+	}
+
+	ctx := context.Background()
+
+	err := store.WriteBlame(ctx, blame)
+	assert.NoError(t, err)
+
+	retrievedBlame, err := store.ReadBlame(ctx, blame.FilePath)
+	assert.NoError(t, err)
+	assert.NotNil(t, retrievedBlame)
+	assert.Equal(t, blame.FilePath, retrievedBlame.FilePath)
+	assert.Equal(t, blame.FileHash, retrievedBlame.FileHash)
+	assert.Equal(t, blame.Version, retrievedBlame.Version)
+	assert.Equal(t, blame.CommitHash, retrievedBlame.CommitHash)
+	assert.Len(t, retrievedBlame.LineBlames, 2)
+}

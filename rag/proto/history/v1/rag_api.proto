@@ -18,11 +18,33 @@ service HistoryRagApiService {
 }
 
 // Request message for the GetBlames api.
-// TODO(ashwinpv): Add the necessary fields.
 message GetBlamesRequest {
+    // Path to the file to retrieve blames for.
+    string filePath = 1;
 }
 
 // Response message for the GetBlames api.
-// TODO(ashwinpv): Add the necessary fields.
 message GetBlamesResponse {
+    // File path.
+    string filePath = 1;
+
+    // Hash of the file.
+    string fileHash = 2;
+
+    // Version of the blame.
+    string version = 3;
+
+    // Commit hash for the blame.
+	string commitHash = 4;
+
+    // Message defining the line blame data.
+    message LineBlame {
+        // Line number in the file.
+        int64 lineNumber = 1;
+        // Commit hash for the line.
+        string commitHash = 2;
+    }
+
+    // Line blames for the file.
+	repeated LineBlame lineBlames = 5;
 }

@@ -17,6 +17,10 @@ func (m *mockBlameStore) WriteBlame(ctx context.Context, blame *blamestore.FileB
 	return nil
 }
 
+func (m *mockBlameStore) ReadBlame(ctx context.Context, filePath string) (*blamestore.FileBlame, error) {
+	return nil, nil
+}
+
 func TestHistoryIngester_IngestBlameFileData(t *testing.T) {
 	ctx := context.Background()
 	mockStore := &mockBlameStore{}

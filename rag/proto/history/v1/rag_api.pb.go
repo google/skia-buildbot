@@ -26,9 +26,10 @@ const (
 )
 
 // Request message for the GetBlames api.
-// TODO(ashwinpv): Add the necessary fields.
 type GetBlamesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Path to the file to retrieve blames for.
+	FilePath      string `protobuf:"bytes,1,opt,name=filePath,proto3" json:"filePath,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -63,10 +64,26 @@ func (*GetBlamesRequest) Descriptor() ([]byte, []int) {
 	return file_rag_api_proto_rawDescGZIP(), []int{0}
 }
 
+func (x *GetBlamesRequest) GetFilePath() string {
+	if x != nil {
+		return x.FilePath
+	}
+	return ""
+}
+
 // Response message for the GetBlames api.
-// TODO(ashwinpv): Add the necessary fields.
 type GetBlamesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// File path.
+	FilePath string `protobuf:"bytes,1,opt,name=filePath,proto3" json:"filePath,omitempty"`
+	// Hash of the file.
+	FileHash string `protobuf:"bytes,2,opt,name=fileHash,proto3" json:"fileHash,omitempty"`
+	// Version of the blame.
+	Version string `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
+	// Commit hash for the blame.
+	CommitHash string `protobuf:"bytes,4,opt,name=commitHash,proto3" json:"commitHash,omitempty"`
+	// Line blames for the file.
+	LineBlames    []*GetBlamesResponse_LineBlame `protobuf:"bytes,5,rep,name=lineBlames,proto3" json:"lineBlames,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -101,13 +118,120 @@ func (*GetBlamesResponse) Descriptor() ([]byte, []int) {
 	return file_rag_api_proto_rawDescGZIP(), []int{1}
 }
 
+func (x *GetBlamesResponse) GetFilePath() string {
+	if x != nil {
+		return x.FilePath
+	}
+	return ""
+}
+
+func (x *GetBlamesResponse) GetFileHash() string {
+	if x != nil {
+		return x.FileHash
+	}
+	return ""
+}
+
+func (x *GetBlamesResponse) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *GetBlamesResponse) GetCommitHash() string {
+	if x != nil {
+		return x.CommitHash
+	}
+	return ""
+}
+
+func (x *GetBlamesResponse) GetLineBlames() []*GetBlamesResponse_LineBlame {
+	if x != nil {
+		return x.LineBlames
+	}
+	return nil
+}
+
+// Message defining the line blame data.
+type GetBlamesResponse_LineBlame struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Line number in the file.
+	LineNumber int64 `protobuf:"varint,1,opt,name=lineNumber,proto3" json:"lineNumber,omitempty"`
+	// Commit hash for the line.
+	CommitHash    string `protobuf:"bytes,2,opt,name=commitHash,proto3" json:"commitHash,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBlamesResponse_LineBlame) Reset() {
+	*x = GetBlamesResponse_LineBlame{}
+	mi := &file_rag_api_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBlamesResponse_LineBlame) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBlamesResponse_LineBlame) ProtoMessage() {}
+
+func (x *GetBlamesResponse_LineBlame) ProtoReflect() protoreflect.Message {
+	mi := &file_rag_api_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBlamesResponse_LineBlame.ProtoReflect.Descriptor instead.
+func (*GetBlamesResponse_LineBlame) Descriptor() ([]byte, []int) {
+	return file_rag_api_proto_rawDescGZIP(), []int{1, 0}
+}
+
+func (x *GetBlamesResponse_LineBlame) GetLineNumber() int64 {
+	if x != nil {
+		return x.LineNumber
+	}
+	return 0
+}
+
+func (x *GetBlamesResponse_LineBlame) GetCommitHash() string {
+	if x != nil {
+		return x.CommitHash
+	}
+	return ""
+}
+
 var File_rag_api_proto protoreflect.FileDescriptor
 
 const file_rag_api_proto_rawDesc = "" +
 	"\n" +
-	"\rrag_api.proto\x12\rhistoryrag.v1\x1a\x1cgoogle/api/annotations.proto\"\x12\n" +
-	"\x10GetBlamesRequest\"\x13\n" +
-	"\x11GetBlamesResponse2\x85\x01\n" +
+	"\rrag_api.proto\x12\rhistoryrag.v1\x1a\x1cgoogle/api/annotations.proto\".\n" +
+	"\x10GetBlamesRequest\x12\x1a\n" +
+	"\bfilePath\x18\x01 \x01(\tR\bfilePath\"\x9e\x02\n" +
+	"\x11GetBlamesResponse\x12\x1a\n" +
+	"\bfilePath\x18\x01 \x01(\tR\bfilePath\x12\x1a\n" +
+	"\bfileHash\x18\x02 \x01(\tR\bfileHash\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\tR\aversion\x12\x1e\n" +
+	"\n" +
+	"commitHash\x18\x04 \x01(\tR\n" +
+	"commitHash\x12J\n" +
+	"\n" +
+	"lineBlames\x18\x05 \x03(\v2*.historyrag.v1.GetBlamesResponse.LineBlameR\n" +
+	"lineBlames\x1aK\n" +
+	"\tLineBlame\x12\x1e\n" +
+	"\n" +
+	"lineNumber\x18\x01 \x01(\x03R\n" +
+	"lineNumber\x12\x1e\n" +
+	"\n" +
+	"commitHash\x18\x02 \x01(\tR\n" +
+	"commitHash2\x85\x01\n" +
 	"\x14HistoryRagApiService\x12m\n" +
 	"\tGetBlames\x12\x1f.historyrag.v1.GetBlamesRequest\x1a .historyrag.v1.GetBlamesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/historyrag/v1/blamesB+Z)go.skia.org/infra/go/rag/proto/history/v1b\x06proto3"
 
@@ -123,19 +247,21 @@ func file_rag_api_proto_rawDescGZIP() []byte {
 	return file_rag_api_proto_rawDescData
 }
 
-var file_rag_api_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_rag_api_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_rag_api_proto_goTypes = []any{
-	(*GetBlamesRequest)(nil),  // 0: historyrag.v1.GetBlamesRequest
-	(*GetBlamesResponse)(nil), // 1: historyrag.v1.GetBlamesResponse
+	(*GetBlamesRequest)(nil),            // 0: historyrag.v1.GetBlamesRequest
+	(*GetBlamesResponse)(nil),           // 1: historyrag.v1.GetBlamesResponse
+	(*GetBlamesResponse_LineBlame)(nil), // 2: historyrag.v1.GetBlamesResponse.LineBlame
 }
 var file_rag_api_proto_depIdxs = []int32{
-	0, // 0: historyrag.v1.HistoryRagApiService.GetBlames:input_type -> historyrag.v1.GetBlamesRequest
-	1, // 1: historyrag.v1.HistoryRagApiService.GetBlames:output_type -> historyrag.v1.GetBlamesResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: historyrag.v1.GetBlamesResponse.lineBlames:type_name -> historyrag.v1.GetBlamesResponse.LineBlame
+	0, // 1: historyrag.v1.HistoryRagApiService.GetBlames:input_type -> historyrag.v1.GetBlamesRequest
+	1, // 2: historyrag.v1.HistoryRagApiService.GetBlames:output_type -> historyrag.v1.GetBlamesResponse
+	2, // [2:3] is the sub-list for method output_type
+	1, // [1:2] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_rag_api_proto_init() }
@@ -149,7 +275,7 @@ func file_rag_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_rag_api_proto_rawDesc), len(file_rag_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
