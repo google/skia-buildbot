@@ -12,6 +12,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/compute/metadata"
@@ -161,6 +162,19 @@ func generateCriticalValues(results []*cpb.AnalysisResult, use_fdr_control bool)
 	return criticalValues
 }
 
+func IsUpImprovement(benchmark string, workload string) bool {
+	if strings.HasPrefix(benchmark, "speedometer") {
+		return workload == "Score"
+	} else if strings.HasPrefix(benchmark, "jetstream") {
+		return true
+	} else if strings.HasPrefix(benchmark, "motionmark") || strings.HasPrefix(benchmark, "rendering") {
+		return true
+	} else if strings.Contains(workload, "RunsPerMinute") {
+		return true
+	}
+	return false
+}
+
 func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
@@ -196,6 +210,10 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 
 	analysis_results := &CQGetCabeAnalysisResults{}
 	analysis_results.Results = make(map[string]*cpb.Statistic)
+	benchmark := ""
+	if len(res) > 0 {
+		benchmark = res[0].ExperimentSpec.Analysis.Benchmark[0].Name
+	}
 	for i, r := range res {
 		stat := r.Statistic
 		workload := r.ExperimentSpec.Analysis.Benchmark[0].Workload[0]
@@ -203,8 +221,9 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 		// TODO(wenbinzhang): replace the hardcoded condition
 		// Currently only Speedometer3 is running and only Score has improvement directly
 		// as UP.
+		is_up_improvement := IsUpImprovement(benchmark, workload)
 		is_improvement := true
-		if workload == "Score" {
+		if is_up_improvement {
 			is_improvement = stat.TreatmentMedian > stat.ControlMedian
 		} else {
 			is_improvement = stat.TreatmentMedian < stat.ControlMedian
@@ -228,7 +247,7 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sklog.Debugf("[POC] cabe analysis returns %d regressions.", len(analysis_results.Results))
 	if len(analysis_results.Results) > 0 {
-		analysis_results.Benchmark = res[0].ExperimentSpec.Analysis.Benchmark[0].Name
+		analysis_results.Benchmark = benchmark
 	}
 	if err := json.NewEncoder(w).Encode(analysis_results); err != nil {
 		httputils.ReportError(w, err, "[POC] Failed to write results to response.", http.StatusInternalServerError)
