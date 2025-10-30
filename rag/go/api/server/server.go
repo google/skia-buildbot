@@ -8,9 +8,11 @@ import (
 
 	"cloud.google.com/go/spanner"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/rag/go/api/services/history"
+	"go.skia.org/infra/rag/go/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -25,6 +27,51 @@ type Service interface {
 
 	// GetServiceDescriptor returns the service descriptor for the service.
 	GetServiceDescriptor() grpc.ServiceDesc
+}
+
+// ApiServerFlags defines the commandline flags to start the api server.
+type ApiServerFlags struct {
+	ConfigFilename string
+	GrpcPort       string
+	HttpPort       string
+	PromPort       string
+	Services       cli.StringSlice
+}
+
+// AsCliFlags returns a slice of cli.Flag.
+func (flags *ApiServerFlags) AsCliFlags() []cli.Flag {
+	return []cli.Flag{
+		&cli.StringFlag{
+			Destination: &flags.ConfigFilename,
+			Name:        "config_filename",
+			Value:       "./configs/demo.json",
+			Usage:       "The name of the config file to use.",
+		},
+		&cli.StringSliceFlag{
+			Name:        "services",
+			Value:       cli.NewStringSlice("history"),
+			Usage:       "This list of RAG services to host on the api.",
+			Destination: &flags.Services,
+		},
+		&cli.StringFlag{
+			Destination: &flags.GrpcPort,
+			Name:        "grpc_port",
+			Value:       ":8000",
+			Usage:       "The port number to use for grpc server.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.HttpPort,
+			Name:        "http_port",
+			Value:       ":8002",
+			Usage:       "The port number to use for http server.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.PromPort,
+			Name:        "prom_port",
+			Value:       ":20000",
+			Usage:       "Metrics service address (e.g., ':10110')",
+		},
+	}
 }
 
 // apiServer defines a struct for creating the server.
@@ -46,7 +93,7 @@ type apiServer struct {
 func NewApiServer(flags *ApiServerFlags) (*apiServer, error) {
 	ctx := context.Background()
 	// Read the configuration.
-	config, err := NewApiServerConfigFromFile(flags.ConfigFilename)
+	config, err := config.NewApiServerConfigFromFile(flags.ConfigFilename)
 	if err != nil {
 		sklog.Errorf("Error reading config file %s: %v", flags.ConfigFilename, err)
 		return nil, err

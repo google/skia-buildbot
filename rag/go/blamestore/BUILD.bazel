@@ -10,6 +10,7 @@ go_library(
     importpath = "go.skia.org/infra/rag/go/blamestore",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/skerr",
         "@com_github_google_uuid//:uuid",
         "@com_google_cloud_go_spanner//:spanner",
     ],

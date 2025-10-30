@@ -5,6 +5,7 @@ import (
 
 	"cloud.google.com/go/spanner"
 	"github.com/google/uuid"
+	"go.skia.org/infra/go/skerr"
 )
 
 const (
@@ -35,7 +36,9 @@ func (b *blameStoreImpl) WriteBlame(ctx context.Context, blame *FileBlame) error
 		err := rwt.Query(ctx, stmt).Do(func(r *spanner.Row) error {
 			return r.ColumnByName("id", &existingID)
 		})
-
+		if err != nil {
+			return skerr.Wrap(err)
+		}
 		var mutations []*spanner.Mutation
 		var blamedFileID string
 		if existingID == "" {
@@ -50,8 +53,6 @@ func (b *blameStoreImpl) WriteBlame(ctx context.Context, blame *FileBlame) error
 				"last_updated": spanner.CommitTimestamp,
 			})
 			mutations = append(mutations, m)
-		} else if err != nil {
-			return err
 		} else {
 			// Found, update.
 			blamedFileID = existingID
@@ -83,7 +84,7 @@ func (b *blameStoreImpl) WriteBlame(ctx context.Context, blame *FileBlame) error
 			mutations = append(mutations, m)
 			if len(mutations) >= spannerMutationLimit {
 				if err := rwt.BufferWrite(mutations); err != nil {
-					return err
+					return skerr.Wrap(err)
 				}
 				mutations = nil
 			}
