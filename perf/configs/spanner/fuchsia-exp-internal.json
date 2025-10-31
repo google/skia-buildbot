@@ -1,0 +1,82 @@
+{
+    "URL": "https://fuchsia-exp-perf.corp.goog",
+    "ga_measurement_id": "G-8CM4NHWZ72",
+    "landing_page_rel_path": "/m/",
+    "allowed_hosts": [],
+    "contact": "browser-perf-engprod@google.com",
+    "chat_url": "http://go/berf-skia-chat",
+    "bug_host_url": "https://issues.chromium.org",
+    "feedback_url": "http://go/berf-skia-feedback",
+    "trace_sample_proportion": 0.01,
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "fetch_chrome_perf_anomalies": true,
+    "instance_name": "fuchsia-internal",
+    "notify_config": {
+      "notifications": "html_email"
+    },
+    "auth_config": {
+      "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+      "datastore_type": "spanner",
+      "connection_string": "postgresql://root@localhost:5432/fuchsia_exp_int?sslmode=disable",
+      "tile_size": 256
+    },
+    "experiments": {
+    },
+    "ingestion_config": {
+      "source_config": {
+        "source_type": "gcs",
+        "project": "skia-public",
+        "topic": "perf-ingestion-fuchsia-exp-internal-spanner",
+        "subscription": "perf-ingestion-fuchsia-exp-internal-spanner-prod",
+        "sources": [
+          "gs://fuchsia-perf-experiment-non-public/ingest"
+        ]
+      },
+      "branches": [],
+      "file_ingestion_pubsub_topic_name": ""
+    },
+    "issue_tracker_config": {
+      "notification_type": "issuetracker",
+      "issue_tracker_api_key_secret_project": "skia-infra-public",
+      "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    },
+    "git_repo_config": {
+      "provider": "gitiles",
+      "url": "https://turquoise-internal.googlesource.com/integration/",
+      "dir": "/tmp/checkout",
+      "debounce_commit_url": false,
+      "file_change_marker": "",
+        "start_commit": "a6d8ddf98b7419331049209ba89e3ac06455a016"
+    },
+    "query_config": {
+      "include_params": [
+        "benchmark",
+        "bot",
+        "test",
+        "subtest_1",
+        "subtest_2",
+        "subtest_3"
+      ],
+      "default_param_selections": {
+	      "stat": ["value"]
+      },
+      "default_url_values": {
+        "plotSummary": "true",
+        "useTestPicker": "true",
+        "showZero": "false",
+        "enable_chart_tooltip": "true",
+        "use_titles": "true",
+        "show_google_plot": "true"
+      }
+    },
+    "data_point_config": {
+      "keys_for_useful_links": ["Build Log"],
+      "skip_commit_detail_display": true,
+      "show_json_file_display": true
+    },
+    "optimize_sqltracestore": true,
+    "show_triage_link": true,
+    "show_bisect_btn": true
+  }
