@@ -24,6 +24,9 @@ import (
 	"encoding/json"
 	"io"
 	"sync"
+
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/config"
 )
 
 // Status of a process.
@@ -114,6 +117,9 @@ type Progress interface {
 
 	// JSON writes the data serialized as JSON. The shape is SerializedProgress.
 	JSON(w io.Writer) error
+
+	// For testing purposes
+	State() SerializedProgress
 }
 
 // progress implements Progress.
@@ -123,7 +129,11 @@ type progress struct {
 }
 
 // New returns a new Progress in the Running state.
-func New() *progress {
+func New() Progress {
+	useRedis := config.Config.Experiments.ProgressUseRedisCache
+	if useRedis {
+		sklog.Errorf("unimplemented use redis in progress.go")
+	}
 	return &progress{
 		state: SerializedProgress{
 			Status:    Running,
@@ -220,6 +230,13 @@ func (p *progress) JSON(w io.Writer) error {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	return json.NewEncoder(w).Encode(p.state)
+}
+
+// For testing purposes
+func (p *progress) State() SerializedProgress {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	return p.state
 }
 
 // Assert that progress implements the Progress interface.

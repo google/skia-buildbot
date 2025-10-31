@@ -919,6 +919,8 @@ type Experiments struct {
 	// which is more intuitive for the user, but requires a lot of extra queries,
 	// because for every key, we need to execute the preflight on less restrictive (so more expensive) query.
 	PreflightSubqueriesForExistingKeys bool `json:"preflight_subqueries_for_existing_keys,omitempty"`
+	// Flag specifying whether to use redis or local cache for Progress package.
+	ProgressUseRedisCache bool `json:"progress_use_redis_cache,omitempty"`
 }
 
 type CacheType string

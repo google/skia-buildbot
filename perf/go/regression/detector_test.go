@@ -75,6 +75,9 @@ func TestTooMuchMissingData(t *testing.T) {
 }
 
 func TestProcessRegressions_BadQueryValue_ReturnsError(t *testing.T) {
+	// TODO(b/451967534) Temporary - remove config.Config modifications after Redis is implemented.
+	config.Config = &config.InstanceConfig{}
+	config.Config.Experiments = config.Experiments{ProgressUseRedisCache: false}
 
 	alert := alerts.NewConfig() // A known query that will fail to parse.
 	alert.Query = "http://[::1]a"

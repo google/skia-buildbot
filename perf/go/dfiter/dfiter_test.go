@@ -104,6 +104,10 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, perf
 }
 
 func TestNewDataFrameIterator_MultipleDataframes_SingleFrameOfLengthThree(t *testing.T) {
+	// TODO(b/451967534) Temporary - remove config.Config modifications after Redis is implemented.
+	config.Config = &config.InstanceConfig{}
+	config.Config.Experiments = config.Experiments{ProgressUseRedisCache: false}
+
 	ctx, dfb, g, _ := newForTest(t)
 
 	// This is a MultipleDataframes request because Domain.Offset = 0.

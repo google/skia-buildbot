@@ -24,9 +24,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/perf/go/config"
 )
 
+func setupConfig(t *testing.T) {
+	// TODO(b/451967534) Temporary - remove config.Config modifications after Redis is implemented.
+	config.Config = &config.InstanceConfig{}
+	config.Config.Experiments = config.Experiments{ProgressUseRedisCache: false}
+}
+
 func TestProgress_AddMessage_MessageAppearsInJSON(t *testing.T) {
+	setupConfig(t)
 	p := New()
 	p.Message("foo", "bar")
 	var buf bytes.Buffer
@@ -35,6 +43,7 @@ func TestProgress_AddMessage_MessageAppearsInJSON(t *testing.T) {
 }
 
 func TestProgress_AddTwoMessages_MessagesAppearInJSONInTheOrderTheyWereAdded(t *testing.T) {
+	setupConfig(t)
 	p := New()
 	p.Message("foo", "bar")
 	p.Message("fizz", "buzz")
@@ -44,6 +53,7 @@ func TestProgress_AddTwoMessages_MessagesAppearInJSONInTheOrderTheyWereAdded(t *
 }
 
 func TestProgress_UpdateAnExistingMessage_MessageIsUpdatedInJSON(t *testing.T) {
+	setupConfig(t)
 	p := New()
 	p.Message("foo", "bar")
 	p.Message("foo", "buzz")
@@ -55,7 +65,7 @@ func TestProgress_UpdateAnExistingMessage_MessageIsUpdatedInJSON(t *testing.T) {
 				Value: "buzz",
 			},
 		},
-	}, p.state)
+	}, p.State())
 }
 
 type testResults struct {
@@ -63,6 +73,7 @@ type testResults struct {
 }
 
 func TestProgress_FinishProcessWithResults_StatusChangesToFinished(t *testing.T) {
+	setupConfig(t)
 	p := New()
 	p.FinishedWithResults(testResults{SomeResult: "foo"})
 	assert.Equal(t, SerializedProgress{
@@ -71,11 +82,12 @@ func TestProgress_FinishProcessWithResults_StatusChangesToFinished(t *testing.T)
 		Results: testResults{
 			SomeResult: "foo",
 		},
-	}, p.state)
+	}, p.State())
 	assert.Equal(t, Finished, p.Status())
 }
 
 func TestProgress_CallError_StatusChangesToError(t *testing.T) {
+	setupConfig(t)
 	p := New()
 	const errorMessage = "My error message"
 	p.Error(errorMessage)
@@ -87,11 +99,12 @@ func TestProgress_CallError_StatusChangesToError(t *testing.T) {
 				errorMessage,
 			},
 		},
-	}, p.state)
+	}, p.State())
 	assert.Equal(t, Error, p.Status())
 }
 
 func TestProgress_SetIntermediateResult_ResultAppearsButStatusStaysRunning(t *testing.T) {
+	setupConfig(t)
 	p := New()
 	p.Results(testResults{SomeResult: "foo"})
 	assert.Equal(t, SerializedProgress{
@@ -100,11 +113,12 @@ func TestProgress_SetIntermediateResult_ResultAppearsButStatusStaysRunning(t *te
 		Results: testResults{
 			SomeResult: "foo",
 		},
-	}, p.state)
+	}, p.State())
 	assert.Equal(t, Running, p.Status())
 }
 
 func TestProgress_CallURL_URLIsSet(t *testing.T) {
+	setupConfig(t)
 	p := New()
 	const url = "/_/next"
 	p.URL(url)
@@ -112,12 +126,12 @@ func TestProgress_CallURL_URLIsSet(t *testing.T) {
 		Status:    Running,
 		Messsages: []*Message{},
 		URL:       url,
-	}, p.state)
+	}, p.State())
 	assert.Equal(t, Running, p.Status())
 }
 
 func TestProgress_RequestForJSONWithUnSerializableResult_ReturnsError(t *testing.T) {
-
+	setupConfig(t)
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)
 	p := New()
@@ -129,7 +143,7 @@ func TestProgress_RequestForJSONWithUnSerializableResult_ReturnsError(t *testing
 }
 
 func TestProgress_FinishProgressTwice_Panics(t *testing.T) {
-
+	setupConfig(t)
 	p := New()
 	p.Finished()
 	assert.Panics(t, p.Finished)
@@ -137,7 +151,7 @@ func TestProgress_FinishProgressTwice_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishProgressThenSetMessage_Panics(t *testing.T) {
-
+	setupConfig(t)
 	p := New()
 	p.Finished()
 	assert.Panics(t, func() {
@@ -146,7 +160,7 @@ func TestProgress_FinishProgressThenSetMessage_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishProgressThenCallError_Panics(t *testing.T) {
-
+	setupConfig(t)
 	p := New()
 	p.Finished()
 	assert.Panics(t, func() {
@@ -155,7 +169,7 @@ func TestProgress_FinishProgressThenCallError_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishProgressThenSetResults_Panics(t *testing.T) {
-
+	setupConfig(t)
 	p := New()
 	p.Finished()
 	assert.Panics(t, func() {
@@ -164,7 +178,7 @@ func TestProgress_FinishProgressThenSetResults_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishProgressThenFinishWithResults_Panics(t *testing.T) {
-
+	setupConfig(t)
 	p := New()
 	p.Finished()
 	assert.Panics(t, func() {
@@ -173,7 +187,7 @@ func TestProgress_FinishProgressThenFinishWithResults_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishProgressThenURL_Panics(t *testing.T) {
-
+	setupConfig(t)
 	p := New()
 	p.Finished()
 	assert.Panics(t, func() {
@@ -182,7 +196,7 @@ func TestProgress_FinishProgressThenURL_Panics(t *testing.T) {
 }
 
 func TestProgress_FinishWithResultsThenFinish_Panics(t *testing.T) {
-
+	setupConfig(t)
 	p := New()
 	p.FinishedWithResults(nil)
 	assert.Panics(t, p.Finished)

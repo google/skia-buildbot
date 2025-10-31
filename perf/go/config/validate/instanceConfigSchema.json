@@ -129,6 +129,9 @@
         },
         "preflight_subqueries_for_existing_keys": {
           "type": "boolean"
+        },
+        "progress_use_redis_cache": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

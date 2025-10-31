@@ -90,6 +90,10 @@ func TestBuildNew(t *testing.T) {
 	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
+	// TODO(b/451967534) Temporary - remove config.Config modifications after Redis is implemented.
+	config.Config = &config.InstanceConfig{}
+	config.Config.Experiments = config.Experiments{ProgressUseRedisCache: false}
+
 	instanceConfig.DataStoreConfig.TileSize = 6
 
 	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)

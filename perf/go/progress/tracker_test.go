@@ -16,7 +16,7 @@ import (
 var testDate = time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC)
 
 // setup creates and returns a new Tracker with a new Progress added to it.
-func setup(t *testing.T) (*tracker, *progress) {
+func setup(t *testing.T) (*tracker, Progress) {
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)
 	p := New()
@@ -26,13 +26,13 @@ func setup(t *testing.T) (*tracker, *progress) {
 }
 
 func TestTracker_NewWithInvalidPath_ReturnsError(t *testing.T) {
-
+	setupConfig(t)
 	_, err := NewTracker("/does/not/end/with/slash")
 	require.Error(t, err)
 }
 
 func TestTracker_Add_ProgressAppearsInCacheAndMetrics(t *testing.T) {
-
+	setupConfig(t)
 	tr, _ := setup(t)
 	assert.Equal(t, 1, tr.cache.Len())
 	assert.Equal(t, int64(0), tr.numEntriesInCache.Get())
@@ -42,7 +42,7 @@ func TestTracker_Add_ProgressAppearsInCacheAndMetrics(t *testing.T) {
 }
 
 func TestTracker_ProgressIsFinished_ProgressStillAppearsInCacheAndMetrics(t *testing.T) {
-
+	setupConfig(t)
 	tr, p := setup(t)
 	p.Finished()
 
@@ -54,7 +54,7 @@ func TestTracker_ProgressIsFinished_ProgressStillAppearsInCacheAndMetrics(t *tes
 }
 
 func TestTracker_TimeAdvancesPastExpirationOfFinishedProgress_ProgressNoLongerAppearsInCacheAndMetrics(t *testing.T) {
-
+	setupConfig(t)
 	tr, p := setup(t)
 	p.Finished()
 
@@ -71,7 +71,7 @@ func TestTracker_TimeAdvancesPastExpirationOfFinishedProgress_ProgressNoLongerAp
 }
 
 func TestTracker_RequestForNonExistentProgress_HandlerReturns404(t *testing.T) {
-
+	setupConfig(t)
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)
 
@@ -82,13 +82,13 @@ func TestTracker_RequestForNonExistentProgress_HandlerReturns404(t *testing.T) {
 }
 
 func TestTracker_RequestForProgress_ReturnsSerializedProgress(t *testing.T) {
-
+	setupConfig(t)
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)
 	p := New()
 	tr.Add(p)
 
-	r := httptest.NewRequest("GET", p.state.URL, nil)
+	r := httptest.NewRequest("GET", p.State().URL, nil)
 	w := httptest.NewRecorder()
 	tr.Handler(w, r)
 	assert.Equal(t, 200, w.Result().StatusCode)
@@ -101,14 +101,14 @@ func TestTracker_RequestForProgress_ReturnsSerializedProgress(t *testing.T) {
 }
 
 func TestTracker_RequestForProgressWithUnSerializableResult_ReturnsError(t *testing.T) {
-
+	setupConfig(t)
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)
 	p := New()
 	p.Results(make(chan int)) // Not JSON serializable.
 	tr.Add(p)
 
-	r := httptest.NewRequest("GET", p.state.URL, nil)
+	r := httptest.NewRequest("GET", p.State().URL, nil)
 	w := httptest.NewRecorder()
 	tr.Handler(w, r)
 	assert.Equal(t, 500, w.Result().StatusCode)
