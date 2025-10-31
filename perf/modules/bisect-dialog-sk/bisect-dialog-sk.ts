@@ -182,7 +182,7 @@ export class BisectDialogSk extends ElementSk {
     }
     const parameters = this.testPath.split('/');
 
-    const test = parameters!.at(3);
+    const test = parameters!.at(3)!;
 
     const parts: string[] = test!.split(':');
     // Pop up the last element from the array if exists
@@ -197,7 +197,10 @@ export class BisectDialogSk extends ElementSk {
     const bugId = document.getElementById('bug-id')! as HTMLInputElement;
     const startCommit = document.getElementById('start-commit')! as HTMLInputElement;
     const endCommit = document.getElementById('end-commit')! as HTMLInputElement;
-    this.story = parameters.pop()!;
+    // Replace ':' with '_' for reduce errors when querying test paths in the legacy table
+    // TODO(jiaxindong) b/431213645 follow up with the team about data backfill
+    this.story = parameters.pop()!.replace(/:/g, '_');
+    chart = chart.replace(/:/g, '_');
     const patch = document.getElementById('patch')! as HTMLInputElement;
     const req: CreateBisectRequest = {
       comparison_mode: 'performance',

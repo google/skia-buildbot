@@ -90,12 +90,58 @@ describe('bisect-dialog-sk', () => {
       assert.equal(bisectBody.end_git_hash, 'c2');
       assert.equal(bisectBody.chart, 'test_suite');
       assert.equal(bisectBody.statistic, '');
-      assert.equal(bisectBody.story, 'subtest:avg');
+      assert.equal(bisectBody.story, 'subtest_avg');
       assert.equal(bisectBody.alert_ids, '[a1]');
       assert.equal(bisectBody.project, 'chromium');
       assert.equal(bisectBody.comparison_mode, 'performance');
       assert.equal(bisectBody.configuration, 'MacM1');
       assert.equal(bisectBody.benchmark, 'Blazor');
+    });
+
+    it('replaces colons in story', async () => {
+      const params: BisectPreloadParams = {
+        testPath: 'ChromiumPerf/MacM1/Blazor/test_suite/subtest:with:colons',
+        startCommit: 'c1',
+        endCommit: 'c2',
+        bugId: '123',
+        anomalyId: 'a1',
+      };
+      await element.setBisectInputParams(params);
+      element.user = 'test@example.com';
+
+      fetchMock.post('/_/bisect/create', { jobId: 'job1', jobUrl: '/job/1' });
+
+      await element.postBisect();
+      await fetchMock.flush(true);
+      const bisectRequest = fetchMock.lastOptions('/_/bisect/create');
+      const bisectBody = JSON.parse(
+        bisectRequest!.body as unknown as string
+      ) as CreateBisectRequest;
+
+      assert.equal(bisectBody.story, 'subtest_with_colons');
+    });
+
+    it('replaces colons in chart', async () => {
+      const params: BisectPreloadParams = {
+        testPath: 'ChromiumPerf/MacM1/Blazor/test:suite:with:colons/subtest',
+        startCommit: 'c1',
+        endCommit: 'c2',
+        bugId: '123',
+        anomalyId: 'a1',
+      };
+      await element.setBisectInputParams(params);
+      element.user = 'test@example.com';
+
+      fetchMock.post('/_/bisect/create', { jobId: 'job1', jobUrl: '/job/1' });
+
+      await element.postBisect();
+      await fetchMock.flush(true);
+      const bisectRequest = fetchMock.lastOptions('/_/bisect/create');
+      const bisectBody = JSON.parse(
+        bisectRequest!.body as unknown as string
+      ) as CreateBisectRequest;
+
+      assert.equal(bisectBody.chart, 'test_suite_with_colons');
     });
 
     it('shows an error message on failure', async () => {
