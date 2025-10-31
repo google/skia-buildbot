@@ -139,6 +139,10 @@ export class ExploreMultiSk extends ElementSk {
 
   private progress: string = '';
 
+  private initialLoadStartTime: number = 0;
+
+  private loadTrigger: string = '';
+
   private setProgress(value: string) {
     this.progress = value;
     this._render();
@@ -161,6 +165,8 @@ export class ExploreMultiSk extends ElementSk {
   };
 
   private _onStateChangedInUrl = async (hintableState: HintableObject) => {
+    this.initialLoadStartTime = performance.now();
+    this.loadTrigger = 'direct_link';
     const state = hintableState as unknown as State;
 
     // -- Domain Logic --
@@ -334,8 +340,9 @@ export class ExploreMultiSk extends ElementSk {
     this._dataLoading = true;
     this.testPicker?.setReadOnly(true);
     this.setProgress('Loading graphs...');
-    const startTime = performance.now();
     try {
+      this.initialLoadStartTime = performance.now();
+      this.loadTrigger = 'plot_button_clicked';
       if (this.state.splitByKeys.length === 0) {
         // Just load single graph.
         const newExplore = this.addEmptyGraph(true);
@@ -442,13 +449,6 @@ export class ExploreMultiSk extends ElementSk {
     } catch (err: any) {
       errorMessage(err.message || "Something went wrong, can't plot the graphs.");
     } finally {
-      telemetry.recordSummary(
-        SummaryMetric.MultiGraphDataLoadTime,
-        (performance.now() - startTime) / 1000,
-        {
-          url: window.location.href,
-        }
-      );
       this.updateShortcutMultiview();
       this.setProgress('');
       this.checkDataLoaded();
@@ -1434,10 +1434,27 @@ export class ExploreMultiSk extends ElementSk {
         this.testPicker.setReadOnly(false);
         return;
       }
-      if (this.exploreElements.every((e) => e.dataLoading)) {
+      if (this.exploreElements.some((e) => e.dataLoading)) {
         this._dataLoading = true;
         this.testPicker.setReadOnly(true);
       } else {
+        // Only record telemetry if a load was explicitly triggered (direct link or plot button).
+        // Resetting initialLoadStartTime and loadTrigger prevents duplicate telemetry reports.
+        if (this.initialLoadStartTime > 0 && this.loadTrigger) {
+          const selectionDays = Math.round((this.state.end - this.state.begin) / (60 * 60 * 24));
+          telemetry.recordSummary(
+            SummaryMetric.MultiGraphDataLoadTime,
+            (performance.now() - this.initialLoadStartTime) / 1000,
+            {
+              url: window.location.href,
+              trigger: this.loadTrigger,
+              selection_d: selectionDays.toString(),
+              total_graphs: this.state.totalGraphs.toString(),
+            }
+          );
+          this.initialLoadStartTime = 0;
+          this.loadTrigger = '';
+        }
         this._dataLoading = false;
         this.testPicker.setReadOnly(false);
       }
