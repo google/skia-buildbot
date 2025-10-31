@@ -141,6 +141,7 @@ export class BisectDialogSk extends ElementSk {
     LoggedIn()
       .then((status: LoginStatus) => {
         this.user = status.email;
+        this._render();
       })
       .catch(errorMessage);
   }
@@ -220,7 +221,7 @@ export class BisectDialogSk extends ElementSk {
       { value: req.end_git_hash, message: 'End commit is required.' },
       { value: req.configuration, message: 'Configuration is missing in the request.' },
       { value: req.benchmark, message: 'Benchmark is missing in the request.' },
-      { value: req.story, message: 'Story is required.' },
+      { value: req.story, message: 'Story is missing in the request.' },
       { value: req.chart, message: 'Chart is missing in the request.' },
       { value: req.user, message: 'User is not logged in.' },
     ];

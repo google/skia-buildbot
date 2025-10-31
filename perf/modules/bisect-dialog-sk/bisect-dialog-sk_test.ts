@@ -133,6 +133,27 @@ describe('bisect-dialog-sk', () => {
       anomalyId: 'a1',
     };
 
+    it('shows an error if user is not logged in', async () => {
+      const params: BisectPreloadParams = {
+        testPath: 'ChromiumPerf/MacM1/Blazor/test_suite/subtest:avg',
+        startCommit: 'c1',
+        endCommit: 'c2',
+        bugId: '123',
+        anomalyId: 'a1',
+      };
+      await element.setBisectInputParams(params);
+      element.user = ''; // Explicitly set user to empty.
+
+      const event = eventPromise('error-sk');
+      await element.postBisect();
+
+      const errEvent = await event;
+      const errMessage = (errEvent as CustomEvent).detail.message as string;
+
+      assert.isFalse(fetchMock.called('/_/bisect/create'));
+      assert.equal(errMessage, 'User is not logged in.');
+    });
+
     const testCases: {
       fieldToClear: keyof CreateBisectRequest;
       expectedError: string;
