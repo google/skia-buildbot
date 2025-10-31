@@ -16,27 +16,7 @@ deps = {
   'cipd_bin_packages': {
     'packages': [
       {
-        'package': 'infra/3pp/tools/git/linux-amd64',
-        'version': Var('tools_git_version'),
-      },
-      {
-        'package': 'infra/3pp/tools/git/linux-arm64',
-        'version': Var('tools_git_version'),
-      },
-      {
-        'package': 'infra/3pp/tools/git/linux-armv6l',
-        'version': Var('tools_git_version'),
-      },
-      {
-        'package': 'infra/3pp/tools/git/mac-amd64',
-        'version': Var('tools_git_version'),
-      },
-      {
-        'package': 'infra/3pp/tools/git/windows-386',
-        'version': Var('tools_git_version'),
-      },
-      {
-        'package': 'infra/3pp/tools/git/windows-amd64',
+        'package': 'infra/3pp/tools/git/${{platform}}',
         'version': Var('tools_git_version'),
       },
       {
@@ -87,60 +67,10 @@ deps = {
     'dep_type': 'cipd',
     'condition': 'False',
   },
-  'cipd_bin_packages/cpython': {
-    'packages': [
-      {
-        'package': 'infra/3pp/tools/cpython/linux-amd64',
-        'version': Var('cpython_version'),
-      },
-      {
-        'package': 'infra/3pp/tools/cpython/linux-arm64',
-        'version': Var('cpython_version'),
-      },
-      {
-        'package': 'infra/3pp/tools/cpython/linux-armv6l',
-        'version': Var('cpython_version'),
-      },
-      {
-        'package': 'infra/3pp/tools/cpython/mac-amd64',
-        'version': Var('cpython_version'),
-      },
-      {
-        'package': 'infra/3pp/tools/cpython/windows-386',
-        'version': Var('cpython_version'),
-      },
-      {
-        'package': 'infra/3pp/tools/cpython/windows-amd64',
-        'version': Var('cpython_version'),
-      },
-    ],
-    'dep_type': 'cipd',
-    'condition': 'False',
-  },
   'cipd_bin_packages/cpython3': {
     'packages': [
       {
-        'package': 'infra/3pp/tools/cpython3/linux-amd64',
-        'version': Var('cpython3_version')
-      },
-      {
-        'package': 'infra/3pp/tools/cpython3/linux-arm64',
-        'version': Var('cpython3_version')
-      },
-      {
-        'package': 'infra/3pp/tools/cpython3/linux-armv6l',
-        'version': Var('cpython3_version')
-      },
-      {
-        'package': 'infra/3pp/tools/cpython3/mac-amd64',
-        'version': Var('cpython3_version')
-      },
-      {
-        'package': 'infra/3pp/tools/cpython3/windows-386',
-        'version': Var('cpython3_version')
-      },
-      {
-        'package': 'infra/3pp/tools/cpython3/windows-amd64',
+        'package': 'infra/3pp/tools/cpython3/${{platform}}',
         'version': Var('cpython3_version')
       },
     ],

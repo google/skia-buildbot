@@ -3,94 +3,14 @@
 package cipd
 
 var PACKAGES = map[string]*Package{
-	"infra/3pp/tools/cpython/linux-amd64": {
-		Path:    "cipd_bin_packages/cpython",
-		Name:    "infra/3pp/tools/cpython/linux-amd64",
-		Version: "version:2@2.7.18.chromium.47",
-	},
-	"infra/3pp/tools/cpython/linux-arm64": {
-		Path:    "cipd_bin_packages/cpython",
-		Name:    "infra/3pp/tools/cpython/linux-arm64",
-		Version: "version:2@2.7.18.chromium.47",
-	},
-	"infra/3pp/tools/cpython/linux-armv6l": {
-		Path:    "cipd_bin_packages/cpython",
-		Name:    "infra/3pp/tools/cpython/linux-armv6l",
-		Version: "version:2@2.7.18.chromium.47",
-	},
-	"infra/3pp/tools/cpython/mac-amd64": {
-		Path:    "cipd_bin_packages/cpython",
-		Name:    "infra/3pp/tools/cpython/mac-amd64",
-		Version: "version:2@2.7.18.chromium.47",
-	},
-	"infra/3pp/tools/cpython/windows-386": {
-		Path:    "cipd_bin_packages/cpython",
-		Name:    "infra/3pp/tools/cpython/windows-386",
-		Version: "version:2@2.7.18.chromium.47",
-	},
-	"infra/3pp/tools/cpython/windows-amd64": {
-		Path:    "cipd_bin_packages/cpython",
-		Name:    "infra/3pp/tools/cpython/windows-amd64",
-		Version: "version:2@2.7.18.chromium.47",
-	},
-	"infra/3pp/tools/cpython3/linux-amd64": {
+	"infra/3pp/tools/cpython3/${platform}": {
 		Path:    "cipd_bin_packages/cpython3",
-		Name:    "infra/3pp/tools/cpython3/linux-amd64",
+		Name:    "infra/3pp/tools/cpython3/${platform}",
 		Version: "version:3@3.11.9.chromium.36",
 	},
-	"infra/3pp/tools/cpython3/linux-arm64": {
-		Path:    "cipd_bin_packages/cpython3",
-		Name:    "infra/3pp/tools/cpython3/linux-arm64",
-		Version: "version:3@3.11.9.chromium.36",
-	},
-	"infra/3pp/tools/cpython3/linux-armv6l": {
-		Path:    "cipd_bin_packages/cpython3",
-		Name:    "infra/3pp/tools/cpython3/linux-armv6l",
-		Version: "version:3@3.11.9.chromium.36",
-	},
-	"infra/3pp/tools/cpython3/mac-amd64": {
-		Path:    "cipd_bin_packages/cpython3",
-		Name:    "infra/3pp/tools/cpython3/mac-amd64",
-		Version: "version:3@3.11.9.chromium.36",
-	},
-	"infra/3pp/tools/cpython3/windows-386": {
-		Path:    "cipd_bin_packages/cpython3",
-		Name:    "infra/3pp/tools/cpython3/windows-386",
-		Version: "version:3@3.11.9.chromium.36",
-	},
-	"infra/3pp/tools/cpython3/windows-amd64": {
-		Path:    "cipd_bin_packages/cpython3",
-		Name:    "infra/3pp/tools/cpython3/windows-amd64",
-		Version: "version:3@3.11.9.chromium.36",
-	},
-	"infra/3pp/tools/git/linux-amd64": {
+	"infra/3pp/tools/git/${platform}": {
 		Path:    "cipd_bin_packages",
-		Name:    "infra/3pp/tools/git/linux-amd64",
-		Version: "version:3@2.51.2.chromium.11",
-	},
-	"infra/3pp/tools/git/linux-arm64": {
-		Path:    "cipd_bin_packages",
-		Name:    "infra/3pp/tools/git/linux-arm64",
-		Version: "version:3@2.51.2.chromium.11",
-	},
-	"infra/3pp/tools/git/linux-armv6l": {
-		Path:    "cipd_bin_packages",
-		Name:    "infra/3pp/tools/git/linux-armv6l",
-		Version: "version:3@2.51.2.chromium.11",
-	},
-	"infra/3pp/tools/git/mac-amd64": {
-		Path:    "cipd_bin_packages",
-		Name:    "infra/3pp/tools/git/mac-amd64",
-		Version: "version:3@2.51.2.chromium.11",
-	},
-	"infra/3pp/tools/git/windows-386": {
-		Path:    "cipd_bin_packages",
-		Name:    "infra/3pp/tools/git/windows-386",
-		Version: "version:3@2.51.2.chromium.11",
-	},
-	"infra/3pp/tools/git/windows-amd64": {
-		Path:    "cipd_bin_packages",
-		Name:    "infra/3pp/tools/git/windows-amd64",
+		Name:    "infra/3pp/tools/git/${platform}",
 		Version: "version:3@2.51.2.chromium.11",
 	},
 	"infra/tools/cipd/${os}-${arch}": {

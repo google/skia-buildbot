@@ -8,7 +8,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"sync"
 	"time"
 
@@ -253,65 +252,7 @@ func matchesAny(s string, xr []*regexp.Regexp) bool {
 }
 
 func getPythonCIPDPackages(bot *apipb.BotInfo) *apipb.CipdInput {
-	var os string
-	var arch string
-	for _, dim := range bot.Dimensions {
-		if dim.Key == "os" {
-			for _, value := range dim.Value {
-				if strings.Contains(value, "iOS") || strings.Contains(value, "Android") || strings.Contains(value, "ChromeOS") || strings.Contains(value, "Raspbian") {
-					// iOS, Android, and ChromeOS devices are hosted on RPis. We
-					// don't have a 32-bit ARM binary for Python in CIPD, so
-					// just use what's installed on the machine.
-					return nil
-				} else if strings.Contains(value, "Mac") {
-					os = "Mac"
-					break
-				} else if strings.Contains(value, "Linux") {
-					os = "Linux"
-					break
-				} else if strings.Contains(value, "Windows") {
-					os = "Windows"
-					break
-				}
-			}
-		} else if dim.Key == "cpu" {
-			for _, value := range dim.Value {
-				if strings.Contains(value, "arm64") {
-					arch = "arm64"
-					break
-				} else if strings.Contains(value, "x86-64") {
-					arch = "x86-64"
-					// Don't break, in case a bot has both "x86" and
-					// "x86-64" dimensions.
-				} else if strings.Contains(value, "x86-32") {
-					arch = "386"
-					// Don't break, in case a bot has both "x86" and
-					// "x86-64" dimensions.
-				}
-			}
-		}
-	}
-	var platform string
-	if os == "Linux" {
-		if arch == "arm64" {
-			platform = cipd.PlatformLinuxArm64
-		} else if arch == "x86-64" {
-			platform = cipd.PlatformLinuxAmd64
-		}
-	} else if os == "Windows" {
-		if arch == "386" {
-			platform = cipd.PlatformWindows386
-		} else {
-			platform = cipd.PlatformWindowsAmd64
-		}
-	} else if os == "Mac" {
-		platform = cipd.PlatformMacAmd64
-	}
-	var cipdInput *apipb.CipdInput
-	if platform != "" {
-		cipdInput = swarmingv2.ConvertCIPDInput(cipd.PkgsPython[platform])
-	}
-	return cipdInput
+	return swarmingv2.ConvertCIPDInput(cipd.PkgsPython)
 }
 
 func rerunPrevious(ctx context.Context, swarmingServer string, swarmApi swarmingv2.SwarmingV2Client, rerun string) {

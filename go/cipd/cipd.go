@@ -39,6 +39,7 @@ const (
 	PlatformLinuxArm64   = "linux-arm64"
 	PlatformLinuxArmv6l  = "linux-armv6l"
 	PlatformMacAmd64     = "mac-amd64"
+	PlatformMacArm64     = "mac-arm64"
 	PlatformWindows386   = "windows-386"
 	PlatformWindowsAmd64 = "windows-amd64"
 
@@ -47,13 +48,6 @@ const (
 
 	// This is the CIPD package containing CIPD itself.
 	PkgNameCIPD = "infra/tools/cipd/${os}-${arch}"
-
-	// Template for Git CIPD package for a particular platform.
-	pkgGitTmpl = "infra/3pp/tools/git/%s"
-
-	// Template for cpython CIPD package for a particular platform.
-	pkgCpythonTmpl  = "infra/3pp/tools/cpython/%s"
-	pkgCpython3Tmpl = "infra/3pp/tools/cpython3/%s"
 )
 
 var (
@@ -63,6 +57,7 @@ var (
 		PlatformLinuxArm64,
 		PlatformLinuxArmv6l,
 		PlatformMacAmd64,
+		PlatformMacArm64,
 		PlatformWindows386,
 		PlatformWindowsAmd64,
 	}
@@ -77,65 +72,16 @@ var (
 	PkgProtoc = MustGetPackage("skia/bots/protoc")
 
 	// CIPD packages required for using Git.
-	PkgsGit = map[string][]*Package{
-		PlatformLinuxAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformLinuxAmd64)),
-			MustGetPackage("infra/tools/git/${platform}"),
-			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
-		},
-		PlatformLinuxArm64: {
-			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformLinuxArm64)),
-			MustGetPackage("infra/tools/git/${platform}"),
-			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
-		},
-		PlatformLinuxArmv6l: {
-			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformLinuxArmv6l)),
-			MustGetPackage("infra/tools/git/${platform}"),
-			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
-		},
-		PlatformMacAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformMacAmd64)),
-			MustGetPackage("infra/tools/git/${platform}"),
-			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
-		},
-		PlatformWindows386: {
-			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformWindows386)),
-			MustGetPackage("infra/tools/git/${platform}"),
-			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
-		},
-		PlatformWindowsAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformWindowsAmd64)),
-			MustGetPackage("infra/tools/git/${platform}"),
-			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
-		},
+	PkgsGit = []*Package{
+		MustGetPackage("infra/3pp/tools/git/${platform}"),
+		MustGetPackage("infra/tools/git/${platform}"),
+		MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
 	}
 
 	// CIPD packages required for using Python.
-	PkgsPython = map[string][]*Package{
-		PlatformLinuxAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformLinuxAmd64)),
-			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
-		},
-		PlatformLinuxArm64: {
-			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformLinuxArm64)),
-			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
-		},
-		PlatformLinuxArmv6l: {
-			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformLinuxArmv6l)),
-			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
-		},
-		PlatformMacAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformMacAmd64)),
-			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
-		},
-		PlatformWindows386: {
-			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformWindows386)),
-			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
-		},
-		PlatformWindowsAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformWindowsAmd64)),
-			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
-		},
+	PkgsPython = []*Package{
+		MustGetPackage("infra/3pp/tools/cpython3/${platform}"),
+		MustGetPackage("infra/tools/luci/vpython3/${platform}"),
 	}
 )
 

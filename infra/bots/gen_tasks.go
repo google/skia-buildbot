@@ -138,7 +138,7 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 
 // Run the presubmit.
 func presubmit(b *specs.TasksCfgBuilder, name string) string {
-	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
 
 	cmd := []string{
 		"./presubmit",
@@ -224,7 +224,7 @@ func usesWrapperTaskDriver(b *specs.TasksCfgBuilder, name string, isTaskDriver b
 }
 
 func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
-	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
 
 	bazelCacheDir := "/dev/shm/bazel_cache"
 
@@ -266,7 +266,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
 }
 
 func bazelTest(b *specs.TasksCfgBuilder, name string) string {
-	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
 	pkgs = append(pkgs, specs.CIPD_PKGS_ISOLATE...)
 
 	cmd := []string{

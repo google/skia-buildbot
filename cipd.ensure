@@ -11,7 +11,7 @@ infra/tools/cipd/${os}-${arch} git_revision:ea661d8476392853fa83a97ceb8e6acb3c79
 infra/tools/luci/kitchen/${platform}                git_revision:ea661d8476392853fa83a97ceb8e6acb3c79aa9f
 
 @Subdir cipd_bin_packages
-infra/3pp/tools/git/linux-amd64                     version:3@2.51.2.chromium.11
+infra/3pp/tools/git/${platform}                     version:3@2.51.2.chromium.11
 infra/tools/git/${platform}                         git_revision:ea661d8476392853fa83a97ceb8e6acb3c79aa9f
 infra/tools/luci-auth/${platform}                   git_revision:ea661d8476392853fa83a97ceb8e6acb3c79aa9f
 infra/tools/luci/docker-credential-luci/${platform} git_revision:ea661d8476392853fa83a97ceb8e6acb3c79aa9f
@@ -24,11 +24,8 @@ skia/bots/gsutil                                    version:6
 skia/bots/patch_linux_amd64                         version:0
 skia/tools/goldctl/${platform}                      git_revision:ea661d8476392853fa83a97ceb8e6acb3c79aa9f
 
-@Subdir cipd_bin_packages/cpython
-infra/3pp/tools/cpython/linux-amd64                 version:2@2.7.18.chromium.47
-
 @Subdir cipd_bin_packages/cpython3
-infra/3pp/tools/cpython3/linux-amd64                version:3@3.11.9.chromium.36
+infra/3pp/tools/cpython3/${platform}                version:3@3.11.9.chromium.36
 
 @Subdir task_drivers
 skia/tools/bazel_build_all/${platform}              git_revision:e13d18f9806caa18956596f6801052c14a845553
