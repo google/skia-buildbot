@@ -226,7 +226,6 @@ export class BisectDialogSk extends ElementSk {
       { value: req.benchmark, message: 'Benchmark is missing in the request.' },
       { value: req.story, message: 'Story is missing in the request.' },
       { value: req.chart, message: 'Chart is missing in the request.' },
-      { value: req.user, message: 'User is not logged in.' },
     ];
 
     for (const rule of validations) {
