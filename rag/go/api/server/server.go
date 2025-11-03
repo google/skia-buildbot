@@ -10,6 +10,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/cleanup"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/rag/go/api/services/history"
 	"go.skia.org/infra/rag/go/config"
@@ -121,6 +122,9 @@ func NewApiServer(flags *ApiServerFlags) (*apiServer, error) {
 
 // initialize performs the init steps for the apiServer object.
 func (server *apiServer) initialize(ctx context.Context, flags *ApiServerFlags) error {
+	// Initialize metrics/
+	metrics2.InitPrometheus(flags.PromPort)
+
 	// Define the list of services to be hosted based on the "services" flag.
 	serviceList := []Service{}
 	var serviceMap = map[string]Service{

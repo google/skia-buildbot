@@ -1,5 +1,11 @@
 load("//bazel:skia_app_container.bzl", "skia_app_container")
 
+filegroup(
+    name = "configs",
+    srcs = glob(["configs/*.json"]),
+    visibility = ["//perf:__subpackages__"],
+)
+
 skia_app_container(
     name = "apiserver",
     base_image = "@base-cipd//image",
@@ -8,6 +14,12 @@ skia_app_container(
             [
                 "//rag/go/api/server:server",
                 "0755",
+            ],
+        ],
+        "/usr/local/share/configs": [
+            [
+                ":configs",
+                "0644",
             ],
         ],
     },
