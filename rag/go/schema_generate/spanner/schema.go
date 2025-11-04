@@ -18,7 +18,24 @@ CREATE TABLE IF NOT EXISTS LineBlames (
   commit_hash STRING(MAX) NOT NULL
 ) PRIMARY KEY (id, line_number),
   INTERLEAVE IN PARENT BlamedFiles ON DELETE CASCADE;
+CREATE TABLE IF NOT EXISTS Topics (
+  topic_id INT64 PRIMARY KEY,
+  title STRING(1024) NOT NULL,
+  topic_group STRING(256),
+  summary STRING(MAX) NOT NULL,
+  code_context STRING(MAX) NOT NULL,
+  commit_count INT64
+);
+CREATE TABLE IF NOT EXISTS TopicChunks (
+  topic_id INT64,
+  chunk_id INT64,
+  chunk_index INT64 NOT NULL,
+  chunk_content STRING(MAX) NOT NULL,
+  embedding ARRAY<FLOAT32>(vector_length=>768) NOT NULL
+) PRIMARY KEY (topic_id, chunk_id),
+  INTERLEAVE IN PARENT Topics ON DELETE CASCADE;
 CREATE UNIQUE INDEX IF NOT EXISTS by_file_path on BlamedFiles (file_path);
+CREATE VECTOR INDEX IF NOT EXISTS TopicChunksEmbeddingIndex on TopicChunks (embedding) OPTIONS (distance_type='COSINE');
 `
 
 var BlamedFiles = []string{
@@ -28,6 +45,7 @@ var BlamedFiles = []string{
 	"version",
 	"commit_hash",
 	"last_updated",
+	"UNIQUE",
 }
 
 var LineBlames = []string{
@@ -36,4 +54,23 @@ var LineBlames = []string{
 	"line_number",
 	"commit_hash",
 	"INTERLEAVE",
+}
+
+var Topics = []string{
+	"topic_id",
+	"title",
+	"topic_group",
+	"summary",
+	"code_context",
+	"commit_count",
+}
+
+var TopicChunks = []string{
+	"topic_id",
+	"chunk_id",
+	"chunk_index",
+	"chunk_content",
+	"embedding",
+	"INTERLEAVE",
+	"VECTOR",
 }

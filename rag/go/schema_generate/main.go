@@ -18,6 +18,8 @@ import (
 type Tables struct {
 	BlamedFiles []spanner.BlamedFiles
 	LineBlames  []spanner.LineBlames
+	Topics      []spanner.Topics
+	TopicChunks []spanner.TopicChunks
 }
 
 func main() {
@@ -40,6 +42,8 @@ func main() {
 	spannerConverter.TtlExcludeTables = []string{
 		"BlamedFiles",
 		"LineBlames",
+		"Topics",
+		"TopicChunks",
 	}
 	spannerConverter.SkipCreatedAt = true
 	generatedText := exporter.GenerateSQL(Tables{}, packageName, exporter.SchemaAndColumnNames, schemaTargetDB, spannerConverter)

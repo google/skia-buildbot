@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "topicstore",
+    srcs = [
+        "topic_data.go",
+        "topicstore.go",
+    ],
+    importpath = "go.skia.org/infra/rag/go/topicstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@com_github_google_uuid//:uuid",
+        "@com_google_cloud_go_spanner//:spanner",
+    ],
+)

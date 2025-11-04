@@ -33,5 +33,5 @@ type CulpritSchema struct {
 
 	// Index by (host, project, ref, revision). Revision is kept first to
 	// reduce hotspots
-	byRevisionIndex struct{} `sql:"UNIQUE INDEX by_revision (revision, host, project, ref)"`
+	byRevisionIndex struct{} `sql:"INDEX by_revision (revision, host, project, ref)"`
 }

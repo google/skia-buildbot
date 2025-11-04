@@ -80,6 +80,12 @@ func NewSpannerDBForTests(t *testing.T, databaseNamePrefix string) (*spanner.Cli
 	createStatements := strings.Split(ragSchema.Schema, ";")
 	filteredStmts := []string{}
 
+	// Queries that are not supported in spanner emulator.
+	// TODO(ashwinpv): Figure out a workaround to unit test this.
+	unsupportedTexts := []string{
+		"VECTOR INDEX",
+	}
+
 	// The splitting can potentially result in empty strings due to formatting.
 	// Ensure we have non empty statements for the DDL.
 	sklog.Infof("Found %d stmts", len(createStatements))
@@ -87,7 +93,16 @@ func NewSpannerDBForTests(t *testing.T, databaseNamePrefix string) (*spanner.Cli
 		if strings.TrimSpace(stmt) == "" {
 			continue
 		}
-		filteredStmts = append(filteredStmts, stmt)
+		add := true
+		for _, unsupportedText := range unsupportedTexts {
+			if strings.Contains(stmt, unsupportedText) {
+				add = false
+				break
+			}
+		}
+		if add {
+			filteredStmts = append(filteredStmts, stmt)
+		}
 	}
 	op, err := dbAdminClient.UpdateDatabaseDdl(ctx, &databasepb.UpdateDatabaseDdlRequest{
 		Database:   databasePath,

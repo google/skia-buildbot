@@ -232,7 +232,6 @@ var Culprits = []string{
 	"anomaly_group_ids",
 	"issue_ids",
 	"group_issue_map",
-	"UNIQUE",
 }
 
 var Favorites = []string{

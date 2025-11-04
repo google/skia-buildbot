@@ -9,7 +9,7 @@ type BlamedFiles struct {
 	Version       string            `sql:"version STRING(MAX) NOT NULL"`
 	CommitHash    string            `sql:"commit_hash STRING(MAX) NOT NULL"`
 	LastUpdated   datetime.DateTime `sql:"last_updated TIMESTAMP OPTIONS (allow_commit_timestamp=true)"`
-	byFilePathIdx struct{}          `sql:"INDEX by_file_path (file_path)"`
+	byFilePathIdx struct{}          `sql:"UNIQUE INDEX by_file_path (file_path)"`
 }
 
 type LineBlames struct {

@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS TaskResult (
   status TEXT NOT NULL DEFAULT '',
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
-CREATE INDEX IF NOT EXISTS dimensions_gin on Description (dimensions);
+CREATE INVERTED INDEX IF NOT EXISTS dimensions_gin on Description (dimensions);
 CREATE INDEX IF NOT EXISTS by_powercycle on Description (powercycle);
 CREATE INDEX IF NOT EXISTS by_running_task on Description (running_task);
 CREATE INDEX IF NOT EXISTS by_machine_id on TaskResult (machine_id);

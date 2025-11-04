@@ -69,11 +69,7 @@ func (sc *SpannerConverter) getIndexDeclarations() string {
 	if len(sc.indices) > 0 {
 		indexBuilder := strings.Builder{}
 		for _, idx := range sc.indices {
-			if sc.GoogleSQL {
-				indexBuilder.WriteString("CREATE UNIQUE INDEX IF NOT EXISTS " + idx + ";\n")
-			} else {
-				indexBuilder.WriteString("CREATE INDEX IF NOT EXISTS " + idx + ";\n")
-			}
+			indexBuilder.WriteString("CREATE " + idx + ";\n")
 		}
 
 		return indexBuilder.String()
@@ -131,7 +127,6 @@ func (sc *SpannerConverter) updateColumnTypesForSpanner(sqlColumnText string, ta
 		}
 	}
 	if strings.Contains(sqlColumnText, "INDEX") {
-
 		// This is a list of indices to ignore. When we switch to spanner,
 		// these will either be removed or updated with a compatible replacement.
 		ignoreIndices := map[string][]string{
@@ -139,9 +134,14 @@ func (sc *SpannerConverter) updateColumnTypesForSpanner(sqlColumnText string, ta
 			"Traces":       {"keys_idx", "keys_idx_1"},
 			"ValuesAtHead": {"keys_idx"},
 		}
-		// Index is specified as "INDEX <index_name> (index columns)"
-		indexSpecStartIdx := strings.Index(sqlColumnText, "INDEX") + 6
-		indexSpec := sqlColumnText[indexSpecStartIdx:]
+		// Index is specified as "<PREFIX> INDEX <index_name> (index columns)"
+		indexSpecStartIdx := strings.Index(sqlColumnText, "INDEX")
+		indexPrefix := strings.TrimSpace(sqlColumnText[0:indexSpecStartIdx])
+		if indexPrefix != "" {
+			// Add a space after the prefix if it's specified so that the statement below is generated properly.
+			indexPrefix = indexPrefix + " "
+		}
+		indexSpec := sqlColumnText[indexSpecStartIdx+6:]
 		splits := strings.SplitAfterN(indexSpec, " ", 2)
 		indexName := strings.TrimSpace(splits[0])
 		indexDetails := strings.TrimSpace(splits[1])
@@ -162,7 +162,7 @@ func (sc *SpannerConverter) updateColumnTypesForSpanner(sqlColumnText string, ta
 		sc.indexNames = append(sc.indexNames, indexName)
 
 		// Spanner expects the index definition to be "CREATE INDEX <index_name> on <table_name> (<columns>)"
-		sc.indices = append(sc.indices, fmt.Sprintf("%s on %s %s", indexName, tableName, indexDetails))
+		sc.indices = append(sc.indices, fmt.Sprintf("%sINDEX IF NOT EXISTS %s on %s %s", indexPrefix, indexName, tableName, indexDetails))
 
 		// The index is not specified in the schema as a column, so return empty string.
 		return ""
