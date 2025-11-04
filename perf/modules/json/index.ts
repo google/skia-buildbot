@@ -122,6 +122,22 @@ export interface RedisConfig {
 	cache_expiration_minutes?: number;
 }
 
+export interface TriggerCondition {
+	param: string;
+	values: string[] | null;
+}
+
+export interface ApplyDefault {
+	param: string;
+	values: string[] | null;
+	select_only_first: boolean;
+}
+
+export interface ConditionalDefaultRule {
+	trigger: TriggerCondition;
+	apply: ApplyDefault[] | null;
+}
+
 export interface QueryConfig {
 	include_params?: string[] | null;
 	default_param_selections?: { [key: string]: string[] | null } | null;
@@ -132,6 +148,8 @@ export interface QueryConfig {
 	max_empty_tiles?: number;
 	default_range?: number;
 	default_xaxis_domain?: string;
+	conditional_defaults?: ConditionalDefaultRule[] | null;
+	default_trigger_priority?: { [key: string]: string[] | null } | null;
 }
 
 export interface Commit {

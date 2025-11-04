@@ -135,12 +135,12 @@ export class TestPickerSk extends ElementSk {
    * initializes and populates the field, focuses it, and sets up event
    * listeners.
    */
-  private addChildField(readOnly: boolean) {
+  private addChildField(readOnly: boolean): Promise<void> {
     const currentIndex = this._currentIndex;
     const currentFieldInfo = this._fieldData[currentIndex];
     const param = currentFieldInfo.param;
 
-    const handler = (json: NextParamListHandlerResponse) => {
+    const handler = async (json: NextParamListHandlerResponse) => {
       this.updateCount(json.count);
 
       if (param in json.paramset && json.paramset[param] !== null) {
@@ -165,10 +165,32 @@ export class TestPickerSk extends ElementSk {
         }
 
         this.addValueUpdatedEventToField(currentIndex);
+
+        // Auto-select priority metric if none selected
+        const defaults = (document.querySelector('explore-multi-sk') as any)?.defaults;
+        if (
+          defaults?.default_trigger_priority &&
+          defaults.default_trigger_priority[param] &&
+          currentFieldInfo.value.length === 0
+        ) {
+          const priorityList = defaults.default_trigger_priority[param];
+          for (const priorityVal of priorityList) {
+            if (currentFieldInfo.field!.options.includes(priorityVal)) {
+              if (currentFieldInfo.onValueChanged) {
+                await currentFieldInfo.onValueChanged(
+                  new CustomEvent('value-changed', {
+                    detail: { value: [priorityVal], checkboxSelected: false },
+                  })
+                );
+              }
+              break;
+            }
+          }
+        }
       }
       this._render();
     };
-    this.callNextParamList(handler, currentIndex);
+    return this.callNextParamList(handler, currentIndex);
   }
 
   /**
@@ -254,7 +276,10 @@ export class TestPickerSk extends ElementSk {
    * @param handler - A callback function to handle the JSON response.
    * @param index - The index of the current field.
    */
-  private callNextParamList(handler: (json: NextParamListHandlerResponse) => void, index: number) {
+  private callNextParamList(
+    handler: (json: NextParamListHandlerResponse) => void,
+    index: number
+  ): Promise<void> {
     this.updateCount(-1);
     this._requestInProgress = true;
     // Allow multiple selections to continue.
@@ -268,7 +293,7 @@ export class TestPickerSk extends ElementSk {
       q: fieldData,
     };
 
-    fetch('/_/nextParamList/', {
+    return fetch('/_/nextParamList/', {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
@@ -287,6 +312,7 @@ export class TestPickerSk extends ElementSk {
         // If the request fails, we remove child fields to reset.
         this.removeChildFields(0);
         errorMessage(msg);
+        throw msg; // Re-throw to reject the promise
       });
   }
 
@@ -530,7 +556,7 @@ export class TestPickerSk extends ElementSk {
     }
 
     // Create and store the new listeners.
-    fieldInfo.onValueChanged = (e: Event) => {
+    fieldInfo.onValueChanged = async (e: Event) => {
       const value = (e as CustomEvent).detail.value as string[];
       const checkboxSelected = (e as CustomEvent).detail.checkboxSelected as boolean;
 
@@ -570,7 +596,8 @@ export class TestPickerSk extends ElementSk {
         this.setReadOnly(true);
       }
       this.updateGraph(value, fieldInfo, removed);
-      this.fetchExtraOptions(index);
+      await this.fetchExtraOptions(index);
+      await this.applyConditionalDefaults(fieldInfo.param, value);
     };
 
     fieldInfo.onSplitByChanged = (e: Event) => {
@@ -582,6 +609,43 @@ export class TestPickerSk extends ElementSk {
     // Add the new listeners.
     fieldInfo.field!.addEventListener('value-changed', fieldInfo.onValueChanged);
     fieldInfo.field.addEventListener('split-by-changed', fieldInfo.onSplitByChanged);
+  }
+
+  private async applyConditionalDefaults(triggerParam: string, triggerValues: string[]) {
+    const defaults = (document.querySelector('explore-multi-sk') as any)?.defaults;
+    if (!defaults || !defaults.conditional_defaults) {
+      return;
+    }
+
+    for (const rule of defaults.conditional_defaults) {
+      if (
+        rule.trigger.param === triggerParam &&
+        rule.trigger.values.some((v: string) => triggerValues.includes(v))
+      ) {
+        for (const applyItem of rule.apply) {
+          const targetFieldInfo = this._fieldData.find((f) => f.param === applyItem.param);
+          if (targetFieldInfo && targetFieldInfo.field) {
+            const availableOptions = new Set(targetFieldInfo.field.options);
+            let newSelectedItems: string[] = [];
+            if (applyItem.select_only_first) {
+              const firstAvailable = applyItem.values.find((v: string) => availableOptions.has(v));
+              if (firstAvailable) {
+                newSelectedItems = [firstAvailable];
+              }
+            } else {
+              newSelectedItems = applyItem.values.filter((v: string) => availableOptions.has(v));
+            }
+
+            if (newSelectedItems.length > 0) {
+              targetFieldInfo.value = newSelectedItems;
+              targetFieldInfo.field.selectedItems = newSelectedItems;
+              // We need to manually trigger the update for the next field
+              await this.fetchExtraOptions(targetFieldInfo.index);
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -626,8 +690,8 @@ export class TestPickerSk extends ElementSk {
    *
    * @param index
    */
-  private fetchExtraOptions(index: number) {
-    const handler = (json: NextParamListHandlerResponse) => {
+  private fetchExtraOptions(index: number): Promise<void> {
+    const handler = async (json: NextParamListHandlerResponse) => {
       const param = Object.keys(json.paramset)[0];
       const count: number = json.count || -1;
       if (param !== undefined) {
@@ -651,6 +715,29 @@ export class TestPickerSk extends ElementSk {
             fieldInfo.field.index = i;
             fieldInfo.field!.focus();
             this.addValueUpdatedEventToField(i);
+
+            // Auto-select priority metric if none selected
+            const defaults = (document.querySelector('explore-multi-sk') as any)?.defaults;
+            if (
+              defaults?.default_trigger_priority &&
+              defaults.default_trigger_priority[param] &&
+              fieldInfo.value.length === 0
+            ) {
+              const priorityList = defaults.default_trigger_priority[param];
+              for (const priorityVal of priorityList) {
+                if (fieldInfo.field!.options.includes(priorityVal)) {
+                  if (fieldInfo.onValueChanged) {
+                    await fieldInfo.onValueChanged(
+                      new CustomEvent('value-changed', {
+                        detail: { value: [priorityVal], checkboxSelected: false },
+                      })
+                    );
+                  }
+                  break;
+                }
+              }
+            }
+
             // Track the furthest index queried
             if (this._currentIndex <= i) {
               this._currentIndex = i;
@@ -666,7 +753,7 @@ export class TestPickerSk extends ElementSk {
       }
       this._render();
     };
-    this.callNextParamList(handler, index);
+    return this.callNextParamList(handler, index);
   }
 
   createParamSetFromFieldData(): ParamSet {
@@ -826,6 +913,10 @@ export class TestPickerSk extends ElementSk {
    *
    * @returns true if the first field is loaded, false otherwise.
    */
+  getFieldData(): FieldInfo[] {
+    return this._fieldData;
+  }
+
   isLoaded(): boolean {
     // If the first field is not loaded, then we are not ready.
     return (
@@ -854,11 +945,11 @@ export class TestPickerSk extends ElementSk {
     params: string[],
     defaultParams: { [key: string]: string[] | null },
     readOnly: boolean
-  ) {
+  ): Promise<void> {
     this._defaultParams = defaultParams;
     this.initializeFieldData(params);
-    this.addChildField(readOnly);
     this._render();
+    return this.addChildField(readOnly);
   }
 
   /**

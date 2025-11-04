@@ -901,8 +901,34 @@ type QueryConfig struct {
 	// ranges specified. Specified in seconds.
 	DefaultRange int64 `json:"default_range,omitempty"`
 
-	// DefaultXaxisDomain. Either 'commit' or 'date'. If empty will default to 'commit' in ts logic
-	DefaultXaxisDomain string `json:"default_xaxis_domain,omitempty"`
+	// DefaultXAxisDomain defines the default domain of the x-axis, either commit or date.
+	DefaultXAxisDomain string `json:"default_xaxis_domain,omitempty"`
+
+	// ConditionalDefaults defines rules for setting default values based on other selections.
+	ConditionalDefaults []ConditionalDefaultRule `json:"conditional_defaults,omitempty"`
+
+	// DefaultTriggerPriority defines a list of values to prioritize for auto-selection
+	// for a specific parameter (e.g. "metric").
+	DefaultTriggerPriority map[string][]string `json:"default_trigger_priority,omitempty"`
+}
+
+// TriggerCondition defines the condition to trigger a default.
+type TriggerCondition struct {
+	Param  string   `json:"param"`
+	Values []string `json:"values"`
+}
+
+// ConditionalDefaultRule defines a rule for setting default values.
+type ConditionalDefaultRule struct {
+	Trigger TriggerCondition `json:"trigger"`
+	Apply   []ApplyDefault   `json:"apply"`
+}
+
+// ApplyDefault defines the default values to apply.
+type ApplyDefault struct {
+	Param                string   `json:"param"`
+	Values               []string `json:"values"`
+	SelectFirstAvailable bool     `json:"select_only_first"`
 }
 
 // Experiments contains experiment flags for the instance.

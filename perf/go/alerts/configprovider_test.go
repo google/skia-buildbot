@@ -119,7 +119,7 @@ func TestCache_Expire(t *testing.T) {
 	assert.Equal(t, 2, store.GetListCount())
 
 	// Sleep for 1 sec to expire the cache
-	time.Sleep(1 * time.Second)
+	time.Sleep(1500 * time.Millisecond)
 
 	// Now call it again. It should hit the store obj
 	alerts, err = provider.GetAllAlertConfigs(context.Background(), false)

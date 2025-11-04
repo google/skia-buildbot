@@ -15,7 +15,7 @@ describe('ExploreMultiSk', () => {
   let element: ExploreMultiSk;
 
   // Common setup for most tests
-  const setupElement = async (mockDefaults: any = null) => {
+  const setupElement = async (mockDefaults: any = null, paramsMock: any = null) => {
     setUpExploreDemoEnv();
     window.perf = {
       instance_url: '',
@@ -63,6 +63,10 @@ describe('ExploreMultiSk', () => {
       include_params: ['config'],
     };
     fetchMock.get('/_/defaults/', defaultsResponse);
+
+    if (paramsMock) {
+      fetchMock.get('/_/Params/', paramsMock);
+    }
 
     // Mock the data fetch that new graphs will trigger.
     fetchMock.post('/_/frame/v2', {

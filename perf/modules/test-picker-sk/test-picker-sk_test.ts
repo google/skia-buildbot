@@ -14,8 +14,8 @@ describe('test-picker-sk', () => {
 
   beforeEach(async () => {
     // Mock the fetch function.
-    fetchMock = (_url: string, request: any) => {
-      const req = JSON.parse(request.body) as NextParamListHandlerRequest;
+    fetchMock = (_url: RequestInfo | URL, request: RequestInit | undefined) => {
+      const req = JSON.parse(request!.body as string) as NextParamListHandlerRequest;
       const params = toParamSet(req.q!);
       const paramset: any = {};
       if (Object.keys(params).length === 0) {
@@ -87,5 +87,94 @@ describe('test-picker-sk', () => {
     plotButton!.click();
     const e = await eventPromise;
     expect(e.detail.query).to.equal('');
+  });
+});
+
+describe('test-picker-sk conditional defaults', () => {
+  const newInstance = setUpElementUnderTest<TestPickerSk>('test-picker-sk');
+
+  let element: TestPickerSk;
+  let mockExplore: HTMLElement;
+
+  beforeEach(async () => {
+    // Mock explore-multi-sk in document
+    mockExplore = document.createElement('explore-multi-sk');
+    document.body.appendChild(mockExplore);
+
+    // Mock fetch
+    window.fetch = (_url: RequestInfo | URL, request: RequestInit | undefined) => {
+      const req = JSON.parse(request!.body as string) as NextParamListHandlerRequest;
+      const params = toParamSet(req.q!);
+      const paramset: any = {};
+
+      // Setup for: metric -> stat
+      if (Object.keys(params).length === 0) {
+        paramset['metric'] = ['timeNs', 'other'];
+      } else if (params.metric) {
+        paramset['stat'] = ['min', 'max', 'avg'];
+      }
+
+      const response: NextParamListHandlerResponse = {
+        paramset: paramset,
+        count: 10,
+      };
+      return Promise.resolve(new Response(JSON.stringify(response)));
+    };
+
+    element = newInstance((_el: TestPickerSk) => {});
+    // We don't initialize here, let individual tests do it if they need specific defaults first
+  });
+
+  afterEach(() => {
+    if (document.body.contains(mockExplore)) {
+      document.body.removeChild(mockExplore);
+    }
+  });
+
+  it('should apply conditional defaults', async () => {
+    (mockExplore as any).defaults = {
+      conditional_defaults: [
+        {
+          trigger: { param: 'metric', values: ['timeNs'] },
+          apply: [{ param: 'stat', values: ['min'], select_only_first: true }],
+        },
+      ],
+    };
+
+    element.initializeTestPicker(['metric', 'stat'], {}, false);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const metricField = element.querySelector<PickerFieldSk>('picker-field-sk');
+    expect(metricField!.label).to.equal('metric');
+
+    // Select 'timeNs'
+    metricField!.dispatchEvent(
+      new CustomEvent('value-changed', {
+        detail: { value: ['timeNs'] },
+      })
+    );
+
+    // Wait for async operations (fetchExtraOptions + applyConditionalDefaults)
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    const fields = element.querySelectorAll<PickerFieldSk>('picker-field-sk');
+    expect(fields.length).to.equal(2);
+    expect(fields[1].label).to.equal('stat');
+    expect(fields[1].selectedItems).to.deep.equal(['min']);
+  });
+
+  it('should auto-select priority metric', async () => {
+    (mockExplore as any).defaults = {
+      default_trigger_priority: {
+        metric: ['timeNs'],
+      },
+    };
+
+    // Re-initialize to trigger auto-selection on first field
+    element.initializeTestPicker(['metric', 'stat'], {}, false);
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    const metricField = element.querySelector<PickerFieldSk>('picker-field-sk');
+    expect(metricField!.selectedItems).to.deep.equal(['timeNs']);
   });
 });
