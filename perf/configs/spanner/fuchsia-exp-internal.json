@@ -28,8 +28,8 @@
       "source_config": {
         "source_type": "gcs",
         "project": "skia-public",
-        "topic": "perf-ingestion-fuchsia-exp-internal-spanner",
-        "subscription": "perf-ingestion-fuchsia-exp-internal-spanner-prod",
+        "topic": "perf-ingestion-fuchsia-exp-internal",
+        "subscription": "perf-ingestion-fuchsia-exp-internal-prod",
         "sources": [
           "gs://fuchsia-perf-experiment-non-public/ingest"
         ]
