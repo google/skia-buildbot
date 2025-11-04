@@ -10,6 +10,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/cleanup",
+        "//go/httputils",
         "//go/metrics2",
         "//go/sklog",
         "//go/sklog/sklogimpl",

@@ -10,6 +10,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/cleanup"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/rag/go/api/services/history"
@@ -191,7 +192,7 @@ func (server *apiServer) serve() error {
 	// The http server listens on the main thread.
 	httpServer := &http.Server{
 		Addr:    server.httpPort,
-		Handler: server.httpHandler,
+		Handler: httputils.HealthzAndHTTPS(server.httpHandler),
 	}
 	sklog.Infof("Listening HTTP at %s", server.httpPort)
 	if err := httpServer.ListenAndServe(); err != nil {
