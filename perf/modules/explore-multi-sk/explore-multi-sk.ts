@@ -463,6 +463,8 @@ export class ExploreMultiSk extends ElementSk {
   // selected test values.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private _onAddToGraph = async (e: Event) => {
+    this.initialLoadStartTime = performance.now();
+    this.loadTrigger = 'picker_add_trace';
     const query = (e as CustomEvent).detail.query;
     // Query is the same as the first graph, so do nothing.
     if (this.graphConfigs.length > 0 && query === this.graphConfigs[0].queries[0]) {
