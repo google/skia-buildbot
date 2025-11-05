@@ -1,11 +1,29 @@
 import { expect, assert } from 'chai';
-import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import {
+  addEventListenersToPuppeteerPage,
+  EventPromiseFactory,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed,
+} from '../../../puppeteer-tests/util';
 import { BisectDialogSkPO } from './bisect-dialog-sk_po';
 import { anomalies } from './test_data';
 
 describe('bisect-dialog-sk', () => {
   let testBed: TestBed;
   let bisectDialogSkPO: BisectDialogSkPO;
+  const mockResponses = {
+    '/_/login/status': {
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ email: 'test@google.com', Roles: ['editor'] }),
+    },
+    '/_/bisect/create': {
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ jobId: '123', jobUrl: 'http://example.com' }),
+    },
+  };
 
   before(async () => {
     testBed = await loadCachedTestBed();
@@ -13,19 +31,12 @@ describe('bisect-dialog-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.setRequestInterception(true);
+
     testBed.page.on('request', (request) => {
-      if (request.url().endsWith('/_/login/status')) {
-        request.respond({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ email: 'test@google.com', Roles: ['editor'] }),
-        });
-      } else if (request.url().endsWith('/_/bisect/create')) {
-        request.respond({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ jobId: '123', jobUrl: 'http://example.com' }),
-        });
+      const matchingPath = Object.keys(mockResponses).find((path) => request.url().endsWith(path));
+
+      if (matchingPath) {
+        request.respond(mockResponses[matchingPath as keyof typeof mockResponses]);
       } else {
         request.continue();
       }
@@ -94,6 +105,54 @@ describe('bisect-dialog-sk', () => {
     it('closes the dialog', async () => {
       await bisectDialogSkPO.clickCloseBtn();
       assert.isFalse(await bisectDialogSkPO.isDialogOpen());
+    });
+  });
+
+  describe('when not logged in', () => {
+    let eventPromise: EventPromiseFactory;
+
+    beforeEach(async () => {
+      // This test needs to set up its own mocks and navigate, so we
+      // clear the listeners from the parent beforeEach.
+      testBed.page.removeAllListeners('request');
+      await testBed.page.setRequestInterception(true);
+
+      eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['error-sk']);
+
+      testBed.page.on('request', (request) => {
+        // replace the login response with empty email
+        if (request.url().endsWith('/_/login/status')) {
+          request.respond({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ email: '' }),
+          });
+        } else {
+          request.continue();
+        }
+      });
+      await testBed.page.goto(testBed.baseUrl);
+      await testBed.page.setViewport({ width: 600, height: 1000 });
+      bisectDialogSkPO = new BisectDialogSkPO((await testBed.page.$('bisect-dialog-sk'))!);
+    });
+
+    it('shows an error toast when trying to submit', async () => {
+      const errorEvent = eventPromise('error-sk');
+
+      await testBed.page.click('#show-dialog');
+      assert.isTrue(await bisectDialogSkPO.isDialogOpen());
+
+      await bisectDialogSkPO.setTestPath(anomalies[0].test_path);
+      await bisectDialogSkPO.setBugId('12345');
+      await bisectDialogSkPO.setStartCommit(anomalies[0].start_revision.toString());
+      await bisectDialogSkPO.setEndCommit(anomalies[0].end_revision.toString());
+
+      await bisectDialogSkPO.clickBisectBtn();
+
+      const errEvent = await errorEvent;
+      const errMessage = (errEvent as any).message as string;
+
+      assert.equal(errMessage, 'User is not logged in.');
     });
   });
 });
