@@ -267,7 +267,6 @@ export class BisectDialogSk extends ElementSk {
     this.startCommit = '';
     this.endCommit = '';
     this.story = '';
-    this.user = '';
     this.testPath = '';
     this.anomalyId = '';
     this._render();
