@@ -8,7 +8,11 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
+        "//go/sklog",
         "//rag/go/blamestore",
+        "//rag/go/filereaders/npy",
+        "//rag/go/filereaders/pickle",
+        "//rag/go/topicstore",
     ],
 )
 

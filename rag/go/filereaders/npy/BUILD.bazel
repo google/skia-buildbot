@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "npy",
+    srcs = ["npy_reader.go"],
+    importpath = "go.skia.org/infra/rag/go/filereaders/npy",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_sbinet_npyio//:npyio",
+    ],
+)
+
+go_test(
+    name = "npy_test",
+    srcs = ["npy_reader_test.go"],
+    embed = [":npy"],
+    deps = [
+        "@com_github_sbinet_npyio//:npyio",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

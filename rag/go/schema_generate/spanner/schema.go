@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS Topics (
   topic_group STRING(256),
   summary STRING(MAX) NOT NULL,
   code_context STRING(MAX) NOT NULL,
+  code_context_lines INT64 NOT NULL,
   commit_count INT64
 );
 CREATE TABLE IF NOT EXISTS TopicChunks (
@@ -62,6 +63,7 @@ var Topics = []string{
 	"topic_group",
 	"summary",
 	"code_context",
+	"code_context_lines",
 	"commit_count",
 }
 

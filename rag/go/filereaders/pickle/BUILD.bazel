@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "pickle",
+    srcs = ["pkl_reader.go"],
+    importpath = "go.skia.org/infra/rag/go/filereaders/pickle",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_nlpodyssey_gopickle//pickle",
+        "@com_github_nlpodyssey_gopickle//types",
+    ],
+)
+
+go_test(
+    name = "pickle_test",
+    srcs = ["pkl_reader_test.go"],
+    embed = [":pickle"],
+    deps = ["@com_github_stretchr_testify//assert"],
+)

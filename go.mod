@@ -62,6 +62,7 @@ require (
 	github.com/mark3labs/mcp-go v0.31.0
 	github.com/miekg/dns v1.1.41
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/nlpodyssey/gopickle v0.3.0
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/otiai10/copy v1.10.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -72,6 +73,7 @@ require (
 	github.com/r3labs/sse/v2 v2.8.1
 	github.com/redis/go-redis/v9 v9.6.0
 	github.com/rs/cors v1.6.0
+	github.com/sbinet/npyio v0.9.0
 	github.com/sendgrid/sendgrid-go v3.11.1+incompatible
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
@@ -140,6 +142,7 @@ require (
 	github.com/apache/arrow/go/v15 v15.0.2 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/campoy/embedmd v1.0.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chigopher/pathlib v0.19.1 // indirect
@@ -261,6 +264,7 @@ require (
 	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
+	gonum.org/v1/gonum v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/bytestream v0.0.0-20250414145226-207652e42e2e // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect

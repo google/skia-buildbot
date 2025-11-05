@@ -17,6 +17,13 @@ import (
 	"go.skia.org/infra/rag/go/config"
 	"go.skia.org/infra/rag/go/ingest/history"
 	"go.skia.org/infra/rag/go/ingest/sources"
+	"go.skia.org/infra/rag/go/topicstore"
+)
+
+const (
+	embeddingFileName = "embeddings.npy"
+	indexFileName     = "index.pkl"
+	topicsDirName     = "topics"
 )
 
 // LocalIngesterFlags defines the commandline flags to start the local ingester.
@@ -78,8 +85,9 @@ func main() {
 
 					sklog.Infof("Creating a new blamestore instance")
 					blamestore := blamestore.New(spannerClient)
+					topicstore := topicstore.New(spannerClient)
 					sklog.Infof("Creating a new history ingester.")
-					ingester := history.New(blamestore)
+					ingester := history.New(blamestore, topicstore)
 
 					return filepath.WalkDir(flags.DirectoryPath, func(path string, d fs.DirEntry, err error) error {
 						if err != nil {
@@ -100,6 +108,39 @@ func main() {
 						}
 						return ingestFile(c.Context, ingester, path)
 					})
+				},
+			},
+			{
+				Name:        "topics",
+				Usage:       "The rag api service",
+				Description: "Runs the topic ingestion",
+				Flags:       (&flags).AsCliFlags(),
+				Action: func(c *cli.Context) error {
+					urfavecli.LogFlags(c)
+					sklog.Infof("Ingesting directory %s with config %s", flags.DirectoryPath, flags.ConfigFilename)
+					config, err := config.NewApiServerConfigFromFile(flags.ConfigFilename)
+					if err != nil {
+						sklog.Errorf("Error reading config file %s: %v", flags.ConfigFilename, err)
+						return err
+					}
+
+					// Generate the database identifier string and create the spanner client.
+					databaseName := fmt.Sprintf("projects/%s/instances/%s/databases/%s", config.SpannerConfig.ProjectID, config.SpannerConfig.InstanceID, config.SpannerConfig.DatabaseID)
+					spannerClient, err := spanner.NewClient(c.Context, databaseName)
+					if err != nil {
+						sklog.Errorf("Error creating a spanner client")
+						return err
+					}
+
+					sklog.Infof("Creating a new blamestore instance")
+					blamestore := blamestore.New(spannerClient)
+					topicStore := topicstore.New(spannerClient)
+					sklog.Infof("Creating a new history ingester.")
+					ingester := history.New(blamestore, topicStore)
+					embeddingFilePath := filepath.Join(flags.DirectoryPath, embeddingFileName)
+					indexFilePath := filepath.Join(flags.DirectoryPath, indexFileName)
+					topicsDirPath := filepath.Join(flags.DirectoryPath, topicsDirName)
+					return ingester.IngestTopics(c.Context, topicsDirPath, embeddingFilePath, indexFilePath)
 				},
 			},
 		},

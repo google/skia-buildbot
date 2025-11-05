@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/rag/go/config"
 	"go.skia.org/infra/rag/go/ingest/history"
 	"go.skia.org/infra/rag/go/ingest/sources"
+	"go.skia.org/infra/rag/go/topicstore"
 )
 
 // IngestionSubscriber provides a struct to manage ingestion from pubsub notifications.
@@ -33,8 +34,9 @@ func NewIngestionSubscriber(ctx context.Context, config config.ApiServerConfig) 
 
 	sklog.Infof("Creating a new blamestore instance")
 	blamestore := blamestore.New(spannerClient)
+	topicStore := topicstore.New(spannerClient)
 	sklog.Infof("Creating a new history ingester.")
-	ingester := history.New(blamestore)
+	ingester := history.New(blamestore, topicStore)
 
 	sub, err := sub.NewWithSubName(ctx, config.IngestionConfig.Project, config.IngestionConfig.Topic, config.IngestionConfig.Subscription, 1)
 	if err != nil {

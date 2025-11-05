@@ -2,12 +2,13 @@ package spanner
 
 // Topics stores the high-level, queryable information for each topic.
 type Topics struct {
-	TopicId     int64  `sql:"topic_id INT64 PRIMARY KEY"`
-	Title       string `sql:"title STRING(1024) NOT NULL"`
-	TopicGroup  string `sql:"topic_group STRING(256)"`
-	Summary     string `sql:"summary STRING(MAX) NOT NULL"`
-	CodeContext string `sql:"code_context STRING(MAX) NOT NULL"`
-	CommitCount int64  `sql:"commit_count INT64"`
+	TopicId          int64  `sql:"topic_id INT64 PRIMARY KEY"`
+	Title            string `sql:"title STRING(1024) NOT NULL"`
+	TopicGroup       string `sql:"topic_group STRING(256)"`
+	Summary          string `sql:"summary STRING(MAX) NOT NULL"`
+	CodeContext      string `sql:"code_context STRING(MAX) NOT NULL"`
+	CodeContextLines int64  `sql:"code_context_lines INT64 NOT NULL"`
+	CommitCount      int64  `sql:"commit_count INT64"`
 }
 
 // TopicChunks stores the individual text chunks of a topic's summary and their corresponding vector embeddings.

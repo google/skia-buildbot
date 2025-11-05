@@ -10,7 +10,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
-        "@com_github_google_uuid//:uuid",
+        "//go/sklog",
         "@com_google_cloud_go_spanner//:spanner",
     ],
 )
