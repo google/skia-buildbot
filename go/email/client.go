@@ -108,3 +108,23 @@ func (c *clientImpl) SendMail(ctx context.Context, in *SendMailRequest) (*SendMa
 	}
 	return &out, nil
 }
+
+// SendWithMarkup is a convenience function for call sites previously using
+// emailclient.SendWithMarkup.
+func SendWithMarkup(ctx context.Context, c Client, from string, to []string, subject, body, markup, threadingReference string) (string, error) {
+	req := &SendMailRequest{
+		Sender:   from,
+		To:       to,
+		Subject:  subject,
+		HtmlBody: markup + "\n" + body,
+	}
+	if threadingReference != "" {
+		req.InReplyTo = threadingReference
+		req.References = []string{threadingReference}
+	}
+	resp, err := c.SendMail(ctx, req)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return resp.MessageId, nil
+}

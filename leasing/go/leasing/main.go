@@ -83,7 +83,9 @@ func New() (baseapp.App, error) {
 	}
 
 	// Initialize mailing library.
-	MailInit()
+	if err := MailInit(ctx); err != nil {
+		sklog.Fatalf("Failed to init email: %s", err)
+	}
 
 	plogin = proxylogin.NewWithDefaults()
 

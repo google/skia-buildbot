@@ -5,13 +5,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/rotations"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -24,13 +25,18 @@ const (
 )
 
 var (
-	mail emailclient.Client
+	mail email.Client
 
 	httpClient = httputils.NewTimeoutClient()
 )
 
-func MailInit() {
-	mail = emailclient.NewAt(emailclient.NamespacedEmailServiceURL)
+func MailInit(ctx context.Context) error {
+	emailer, err := email.NewClient(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	mail = emailer
+	return nil
 }
 
 func getRecipients(taskOwner string) []string {
@@ -77,9 +83,9 @@ func SendStartEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, TaskIdF
 	body := fmt.Sprintf(bodyTemplate, taskLink, GetSwarmingBotLink(swarmingServer, swarmingBot), swarmingBot, sectionAboutIsolates, connectionInstructionsPage, fmt.Sprintf("https://%s%s", *host, myLeasesURI))
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
-		return "", fmt.Errorf("Failed to get view action markup: %s", err)
+		return "", skerr.Wrapf(err, "failed to get view action markup")
 	}
-	return mail.SendWithMarkup(leasingEmailDisplayName, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, "")
+	return email.SendWithMarkup(context.TODO(), mail, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, "")
 }
 
 func SendWarningEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, threadingReference string) error {
@@ -95,10 +101,10 @@ func SendWarningEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, threa
 	body := fmt.Sprintf(bodyTemplate, taskLink, fmt.Sprintf("https://%s%s", *host, myLeasesURI))
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
-		return fmt.Errorf("Failed to get view action markup: %s", err)
+		return skerr.Wrapf(err, "failed to get view action markup")
 	}
-	if _, err := mail.SendWithMarkup(leasingEmailDisplayName, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
-		return fmt.Errorf("Could not send warning email: %s", err)
+	if _, err := email.SendWithMarkup(context.TODO(), mail, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
+		return skerr.Wrapf(err, "could not send warning email")
 	}
 	return nil
 }
@@ -118,10 +124,10 @@ func SendFailureEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, swarm
 	body := fmt.Sprintf(bodyTemplate, taskLink, swarmingTaskState, *host)
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
-		return fmt.Errorf("Failed to get view action markup: %s", err)
+		return skerr.Wrapf(err, "failed to get view action markup")
 	}
-	if _, err := mail.SendWithMarkup(leasingEmailDisplayName, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
-		return fmt.Errorf("Could not send failure email: %s", err)
+	if _, err := email.SendWithMarkup(context.TODO(), mail, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
+		return skerr.Wrapf(err, "could not send failure email")
 	}
 	return nil
 }
@@ -139,10 +145,10 @@ func SendExtensionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, thr
 	body := fmt.Sprintf(bodyTemplate, taskLink, durationHrs, *host)
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
-		return fmt.Errorf("Failed to get view action markup: %s", err)
+		return skerr.Wrapf(err, "failed to get view action markup")
 	}
-	if _, err := mail.SendWithMarkup(leasingEmailDisplayName, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
-		return fmt.Errorf("Could not send completion email: %s", err)
+	if _, err := email.SendWithMarkup(context.TODO(), mail, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
+		return skerr.Wrapf(err, "could not send completion email")
 	}
 	return nil
 }
@@ -160,9 +166,9 @@ func SendCompletionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, th
 	body := fmt.Sprintf(bodyTemplate, taskLink, *host)
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
-		return fmt.Errorf("Failed to get view action markup: %s", err)
+		return skerr.Wrapf(err, "failed to get view action markup")
 	}
-	if _, err := mail.SendWithMarkup(leasingEmailDisplayName, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
+	if _, err := email.SendWithMarkup(context.TODO(), mail, leasingEmailAddress, getRecipients(ownerEmail), subject, body, markup, threadingReference); err != nil {
 		return fmt.Errorf("Could not send completion email: %s", err)
 	}
 	return nil
