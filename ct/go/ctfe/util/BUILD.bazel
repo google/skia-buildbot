@@ -10,7 +10,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//ct/go/util",
-        "//email/go/emailclient",
         "//go/email",
         "//go/httputils",
         "//go/skerr",

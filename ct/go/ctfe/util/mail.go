@@ -2,12 +2,12 @@
 package util
 
 import (
+	"context"
 	"fmt"
 	"html"
 	"strings"
 
 	ctutil "go.skia.org/infra/ct/go/util"
-	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/skerr"
 )
@@ -30,12 +30,7 @@ func ParseEmails(emails string) []string {
 
 // SendEmail sends an email with the specified header and body to the recipients.
 func SendEmail(recipients []string, subject, body string) error {
-	email := emailclient.NewAt(emailclient.NamespacedEmailServiceURL)
-	if _, err := email.SendWithMarkup(emailDisplayName, emailFromAddress, recipients, subject, body, "", ""); err != nil {
-		return skerr.Wrapf(err, "could not send email")
-	}
-
-	return nil
+	return SendEmailWithMarkup(recipients, subject, body, "")
 }
 
 // SendEmailWithMarkup sends an email with the specified header and body to the recipients. It also
@@ -43,11 +38,14 @@ func SendEmail(recipients []string, subject, body string) error {
 // Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
 func SendEmailWithMarkup(recipients []string, subject, body, markup string) error {
-	email := emailclient.NewAt(emailclient.NamespacedEmailServiceURL)
-	if _, err := email.SendWithMarkup(emailDisplayName, emailFromAddress, recipients, subject, body, markup, ""); err != nil {
-		return skerr.Wrapf(err, "could not send email with markup")
+	ctx := context.TODO()
+	client, err := email.NewClient(ctx)
+	if err != nil {
+		return skerr.Wrapf(err, "failed creating email client")
 	}
-
+	if _, err := email.SendWithMarkup(ctx, client, emailFromAddress, recipients, subject, body, markup, ""); err != nil {
+		return skerr.Wrapf(err, "could not send email")
+	}
 	return nil
 }
 
