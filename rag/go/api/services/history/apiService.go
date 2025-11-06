@@ -10,6 +10,8 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/rag/go/blamestore"
+	"go.skia.org/infra/rag/go/genai"
+	"go.skia.org/infra/rag/go/topicstore"
 	pb "go.skia.org/infra/rag/proto/history/v1"
 )
 
@@ -17,14 +19,31 @@ import (
 type ApiService struct {
 	pb.UnimplementedHistoryRagApiServiceServer
 
-	// Spanner database client.
+	// BlameStore instance.
 	blameStore blamestore.BlameStore
+
+	// TopicStore instance.
+	topicStore topicstore.TopicStore
+
+	// GenAI Client instance.
+	genAiClient genai.GenAIClient
+
+	// Embedding model to use for query.
+	queryEmbeddingModel string
 }
 
 // NewApiService returns a new instance of the ApiService struct.
-func NewApiService(dbClient *spanner.Client) *ApiService {
+func NewApiService(ctx context.Context, dbClient *spanner.Client, geminiApiKey string, queryEmbeddingModel string) *ApiService {
+	genAiClient, err := genai.NewGeminiClient(ctx, geminiApiKey)
+	if err != nil {
+		sklog.Errorf("Error creating new gemini client: %v", err)
+		return nil
+	}
 	return &ApiService{
-		blameStore: blamestore.New(dbClient),
+		blameStore:          blamestore.New(dbClient),
+		topicStore:          topicstore.New(dbClient),
+		genAiClient:         genAiClient,
+		queryEmbeddingModel: queryEmbeddingModel,
 	}
 }
 
@@ -65,6 +84,47 @@ func (service *ApiService) GetBlames(ctx context.Context, req *pb.GetBlamesReque
 			LineNumber: lb.LineNumber,
 			CommitHash: lb.CommitHash,
 		})
+	}
+	return resp, nil
+}
+
+// GetTopics implements the GetTopics endpoint.
+func (service *ApiService) GetTopics(ctx context.Context, req *pb.GetTopicsRequest) (*pb.GetTopicsResponse, error) {
+	query := req.GetQuery()
+	if query == "" {
+		return nil, skerr.Fmt("query cannot be empty.")
+	}
+
+	// Get the embedding vector for the input query.
+	queryEmbedding, err := service.genAiClient.GetEmbedding(ctx, service.queryEmbeddingModel, query)
+	if err != nil {
+		sklog.Errorf("Error getting embedding for query %s: %v", query, err)
+		return nil, err
+	}
+
+	// Search the relevant topics for the given query embedding.
+	topics, err := service.topicStore.SearchTopics(ctx, queryEmbedding)
+	if err != nil {
+		sklog.Errorf("Error searching for topics: %v", err)
+		return nil, err
+	}
+
+	// Generate the response.
+	resp := &pb.GetTopicsResponse{}
+	for _, topic := range topics {
+		respTopic := &pb.GetTopicsResponse_Topic{
+			TopicId:    int64(topic.ID),
+			TopicName:  topic.Title,
+			Similarity: float32(topic.Distance),
+		}
+		for _, chunk := range topic.Chunks {
+			respTopic.MatchingChunks = append(respTopic.MatchingChunks, &pb.GetTopicsResponse_Topic_Chunk{
+				ChunkId:      int64(chunk.ID),
+				ChunkContent: chunk.Chunk,
+				ChunkIndex:   int32(chunk.ChunkIndex),
+			})
+		}
+		resp.Topics = append(resp.Topics, respTopic)
 	}
 	return resp, nil
 }

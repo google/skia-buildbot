@@ -15,6 +15,11 @@ service HistoryRagApiService {
 			get: "/historyrag/v1/blames"
 		};
     }
+    rpc GetTopics(GetTopicsRequest) returns (GetTopicsResponse) {
+        option (google.api.http) = {
+			get: "/historyrag/v1/topics"
+		};
+    }
 }
 
 // Request message for the GetBlames api.
@@ -47,4 +52,46 @@ message GetBlamesResponse {
 
     // Line blames for the file.
 	repeated LineBlame lineBlames = 5;
+}
+
+// Request message for the GetTopics api.
+message GetTopicsRequest {
+    // Query to retrieve topics for.
+    string query = 1;
+
+    // No of topics to return.
+    int64 topic_count = 2;
+
+    // No of chunks to return.
+    int64 chunk_count = 3;
+}
+
+// Response message for the GetTopics api.
+message GetTopicsResponse {
+    // Message defining the topic data returned.
+    message Topic {
+        // ID of the topic.
+        int64 topic_id = 1;
+
+        // Name of the topic.
+        string topic_name = 2;
+
+        // Similarity score of the topic for the query.
+        float similarity = 3;
+
+        // Message defining the chunk data returned.
+        message Chunk {
+            // The content of the chunk.
+            string chunk_content = 1;
+            // ID of the chunk.
+            int64 chunk_id = 2;
+            // Index of the chunk.
+            int32 chunkIndex = 3;
+        }
+        // Matching chunks in the topic for the query.
+        repeated Chunk matching_chunks = 4;
+    }
+
+    // Topics retrieved for the query.
+    repeated Topic topics = 1;
 }

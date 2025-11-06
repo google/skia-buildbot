@@ -153,6 +153,116 @@ func (x *GetBlamesResponse) GetLineBlames() []*GetBlamesResponse_LineBlame {
 	return nil
 }
 
+// Request message for the GetTopics api.
+type GetTopicsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Query to retrieve topics for.
+	Query string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	// No of topics to return.
+	TopicCount int64 `protobuf:"varint,2,opt,name=topic_count,json=topicCount,proto3" json:"topic_count,omitempty"`
+	// No of chunks to return.
+	ChunkCount    int64 `protobuf:"varint,3,opt,name=chunk_count,json=chunkCount,proto3" json:"chunk_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTopicsRequest) Reset() {
+	*x = GetTopicsRequest{}
+	mi := &file_rag_api_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTopicsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTopicsRequest) ProtoMessage() {}
+
+func (x *GetTopicsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_rag_api_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTopicsRequest.ProtoReflect.Descriptor instead.
+func (*GetTopicsRequest) Descriptor() ([]byte, []int) {
+	return file_rag_api_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetTopicsRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *GetTopicsRequest) GetTopicCount() int64 {
+	if x != nil {
+		return x.TopicCount
+	}
+	return 0
+}
+
+func (x *GetTopicsRequest) GetChunkCount() int64 {
+	if x != nil {
+		return x.ChunkCount
+	}
+	return 0
+}
+
+// Response message for the GetTopics api.
+type GetTopicsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Topics retrieved for the query.
+	Topics        []*GetTopicsResponse_Topic `protobuf:"bytes,1,rep,name=topics,proto3" json:"topics,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTopicsResponse) Reset() {
+	*x = GetTopicsResponse{}
+	mi := &file_rag_api_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTopicsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTopicsResponse) ProtoMessage() {}
+
+func (x *GetTopicsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_rag_api_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTopicsResponse.ProtoReflect.Descriptor instead.
+func (*GetTopicsResponse) Descriptor() ([]byte, []int) {
+	return file_rag_api_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetTopicsResponse) GetTopics() []*GetTopicsResponse_Topic {
+	if x != nil {
+		return x.Topics
+	}
+	return nil
+}
+
 // Message defining the line blame data.
 type GetBlamesResponse_LineBlame struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -166,7 +276,7 @@ type GetBlamesResponse_LineBlame struct {
 
 func (x *GetBlamesResponse_LineBlame) Reset() {
 	*x = GetBlamesResponse_LineBlame{}
-	mi := &file_rag_api_proto_msgTypes[2]
+	mi := &file_rag_api_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -178,7 +288,7 @@ func (x *GetBlamesResponse_LineBlame) String() string {
 func (*GetBlamesResponse_LineBlame) ProtoMessage() {}
 
 func (x *GetBlamesResponse_LineBlame) ProtoReflect() protoreflect.Message {
-	mi := &file_rag_api_proto_msgTypes[2]
+	mi := &file_rag_api_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -208,6 +318,143 @@ func (x *GetBlamesResponse_LineBlame) GetCommitHash() string {
 	return ""
 }
 
+// Message defining the topic data returned.
+type GetTopicsResponse_Topic struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// ID of the topic.
+	TopicId int64 `protobuf:"varint,1,opt,name=topic_id,json=topicId,proto3" json:"topic_id,omitempty"`
+	// Name of the topic.
+	TopicName string `protobuf:"bytes,2,opt,name=topic_name,json=topicName,proto3" json:"topic_name,omitempty"`
+	// Similarity score of the topic for the query.
+	Similarity float32 `protobuf:"fixed32,3,opt,name=similarity,proto3" json:"similarity,omitempty"`
+	// Matching chunks in the topic for the query.
+	MatchingChunks []*GetTopicsResponse_Topic_Chunk `protobuf:"bytes,4,rep,name=matching_chunks,json=matchingChunks,proto3" json:"matching_chunks,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetTopicsResponse_Topic) Reset() {
+	*x = GetTopicsResponse_Topic{}
+	mi := &file_rag_api_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTopicsResponse_Topic) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTopicsResponse_Topic) ProtoMessage() {}
+
+func (x *GetTopicsResponse_Topic) ProtoReflect() protoreflect.Message {
+	mi := &file_rag_api_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTopicsResponse_Topic.ProtoReflect.Descriptor instead.
+func (*GetTopicsResponse_Topic) Descriptor() ([]byte, []int) {
+	return file_rag_api_proto_rawDescGZIP(), []int{3, 0}
+}
+
+func (x *GetTopicsResponse_Topic) GetTopicId() int64 {
+	if x != nil {
+		return x.TopicId
+	}
+	return 0
+}
+
+func (x *GetTopicsResponse_Topic) GetTopicName() string {
+	if x != nil {
+		return x.TopicName
+	}
+	return ""
+}
+
+func (x *GetTopicsResponse_Topic) GetSimilarity() float32 {
+	if x != nil {
+		return x.Similarity
+	}
+	return 0
+}
+
+func (x *GetTopicsResponse_Topic) GetMatchingChunks() []*GetTopicsResponse_Topic_Chunk {
+	if x != nil {
+		return x.MatchingChunks
+	}
+	return nil
+}
+
+// Message defining the chunk data returned.
+type GetTopicsResponse_Topic_Chunk struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The content of the chunk.
+	ChunkContent string `protobuf:"bytes,1,opt,name=chunk_content,json=chunkContent,proto3" json:"chunk_content,omitempty"`
+	// ID of the chunk.
+	ChunkId int64 `protobuf:"varint,2,opt,name=chunk_id,json=chunkId,proto3" json:"chunk_id,omitempty"`
+	// Index of the chunk.
+	ChunkIndex    int32 `protobuf:"varint,3,opt,name=chunkIndex,proto3" json:"chunkIndex,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTopicsResponse_Topic_Chunk) Reset() {
+	*x = GetTopicsResponse_Topic_Chunk{}
+	mi := &file_rag_api_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTopicsResponse_Topic_Chunk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTopicsResponse_Topic_Chunk) ProtoMessage() {}
+
+func (x *GetTopicsResponse_Topic_Chunk) ProtoReflect() protoreflect.Message {
+	mi := &file_rag_api_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTopicsResponse_Topic_Chunk.ProtoReflect.Descriptor instead.
+func (*GetTopicsResponse_Topic_Chunk) Descriptor() ([]byte, []int) {
+	return file_rag_api_proto_rawDescGZIP(), []int{3, 0, 0}
+}
+
+func (x *GetTopicsResponse_Topic_Chunk) GetChunkContent() string {
+	if x != nil {
+		return x.ChunkContent
+	}
+	return ""
+}
+
+func (x *GetTopicsResponse_Topic_Chunk) GetChunkId() int64 {
+	if x != nil {
+		return x.ChunkId
+	}
+	return 0
+}
+
+func (x *GetTopicsResponse_Topic_Chunk) GetChunkIndex() int32 {
+	if x != nil {
+		return x.ChunkIndex
+	}
+	return 0
+}
+
 var File_rag_api_proto protoreflect.FileDescriptor
 
 const file_rag_api_proto_rawDesc = "" +
@@ -231,9 +478,32 @@ const file_rag_api_proto_rawDesc = "" +
 	"lineNumber\x12\x1e\n" +
 	"\n" +
 	"commitHash\x18\x02 \x01(\tR\n" +
-	"commitHash2\x85\x01\n" +
+	"commitHash\"j\n" +
+	"\x10GetTopicsRequest\x12\x14\n" +
+	"\x05query\x18\x01 \x01(\tR\x05query\x12\x1f\n" +
+	"\vtopic_count\x18\x02 \x01(\x03R\n" +
+	"topicCount\x12\x1f\n" +
+	"\vchunk_count\x18\x03 \x01(\x03R\n" +
+	"chunkCount\"\xf7\x02\n" +
+	"\x11GetTopicsResponse\x12>\n" +
+	"\x06topics\x18\x01 \x03(\v2&.historyrag.v1.GetTopicsResponse.TopicR\x06topics\x1a\xa1\x02\n" +
+	"\x05Topic\x12\x19\n" +
+	"\btopic_id\x18\x01 \x01(\x03R\atopicId\x12\x1d\n" +
+	"\n" +
+	"topic_name\x18\x02 \x01(\tR\ttopicName\x12\x1e\n" +
+	"\n" +
+	"similarity\x18\x03 \x01(\x02R\n" +
+	"similarity\x12U\n" +
+	"\x0fmatching_chunks\x18\x04 \x03(\v2,.historyrag.v1.GetTopicsResponse.Topic.ChunkR\x0ematchingChunks\x1ag\n" +
+	"\x05Chunk\x12#\n" +
+	"\rchunk_content\x18\x01 \x01(\tR\fchunkContent\x12\x19\n" +
+	"\bchunk_id\x18\x02 \x01(\x03R\achunkId\x12\x1e\n" +
+	"\n" +
+	"chunkIndex\x18\x03 \x01(\x05R\n" +
+	"chunkIndex2\xf4\x01\n" +
 	"\x14HistoryRagApiService\x12m\n" +
-	"\tGetBlames\x12\x1f.historyrag.v1.GetBlamesRequest\x1a .historyrag.v1.GetBlamesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/historyrag/v1/blamesB+Z)go.skia.org/infra/go/rag/proto/history/v1b\x06proto3"
+	"\tGetBlames\x12\x1f.historyrag.v1.GetBlamesRequest\x1a .historyrag.v1.GetBlamesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/historyrag/v1/blames\x12m\n" +
+	"\tGetTopics\x12\x1f.historyrag.v1.GetTopicsRequest\x1a .historyrag.v1.GetTopicsResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/historyrag/v1/topicsB+Z)go.skia.org/infra/go/rag/proto/history/v1b\x06proto3"
 
 var (
 	file_rag_api_proto_rawDescOnce sync.Once
@@ -247,21 +517,29 @@ func file_rag_api_proto_rawDescGZIP() []byte {
 	return file_rag_api_proto_rawDescData
 }
 
-var file_rag_api_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_rag_api_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_rag_api_proto_goTypes = []any{
-	(*GetBlamesRequest)(nil),            // 0: historyrag.v1.GetBlamesRequest
-	(*GetBlamesResponse)(nil),           // 1: historyrag.v1.GetBlamesResponse
-	(*GetBlamesResponse_LineBlame)(nil), // 2: historyrag.v1.GetBlamesResponse.LineBlame
+	(*GetBlamesRequest)(nil),              // 0: historyrag.v1.GetBlamesRequest
+	(*GetBlamesResponse)(nil),             // 1: historyrag.v1.GetBlamesResponse
+	(*GetTopicsRequest)(nil),              // 2: historyrag.v1.GetTopicsRequest
+	(*GetTopicsResponse)(nil),             // 3: historyrag.v1.GetTopicsResponse
+	(*GetBlamesResponse_LineBlame)(nil),   // 4: historyrag.v1.GetBlamesResponse.LineBlame
+	(*GetTopicsResponse_Topic)(nil),       // 5: historyrag.v1.GetTopicsResponse.Topic
+	(*GetTopicsResponse_Topic_Chunk)(nil), // 6: historyrag.v1.GetTopicsResponse.Topic.Chunk
 }
 var file_rag_api_proto_depIdxs = []int32{
-	2, // 0: historyrag.v1.GetBlamesResponse.lineBlames:type_name -> historyrag.v1.GetBlamesResponse.LineBlame
-	0, // 1: historyrag.v1.HistoryRagApiService.GetBlames:input_type -> historyrag.v1.GetBlamesRequest
-	1, // 2: historyrag.v1.HistoryRagApiService.GetBlames:output_type -> historyrag.v1.GetBlamesResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	4, // 0: historyrag.v1.GetBlamesResponse.lineBlames:type_name -> historyrag.v1.GetBlamesResponse.LineBlame
+	5, // 1: historyrag.v1.GetTopicsResponse.topics:type_name -> historyrag.v1.GetTopicsResponse.Topic
+	6, // 2: historyrag.v1.GetTopicsResponse.Topic.matching_chunks:type_name -> historyrag.v1.GetTopicsResponse.Topic.Chunk
+	0, // 3: historyrag.v1.HistoryRagApiService.GetBlames:input_type -> historyrag.v1.GetBlamesRequest
+	2, // 4: historyrag.v1.HistoryRagApiService.GetTopics:input_type -> historyrag.v1.GetTopicsRequest
+	1, // 5: historyrag.v1.HistoryRagApiService.GetBlames:output_type -> historyrag.v1.GetBlamesResponse
+	3, // 6: historyrag.v1.HistoryRagApiService.GetTopics:output_type -> historyrag.v1.GetTopicsResponse
+	5, // [5:7] is the sub-list for method output_type
+	3, // [3:5] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_rag_api_proto_init() }
@@ -275,7 +553,7 @@ func file_rag_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_rag_api_proto_rawDesc), len(file_rag_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

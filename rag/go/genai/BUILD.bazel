@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "genai",
+    srcs = ["genai_client.go"],
+    importpath = "go.skia.org/infra/rag/go/genai",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "@org_golang_google_genai//:genai",
+    ],
+)

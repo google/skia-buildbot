@@ -16,6 +16,9 @@ type ApiServerConfig struct {
 
 	// Ingestion configuration
 	IngestionConfig IngestionConfig `json:"ingestion_config"`
+
+	// The embedding model to use for embedding the input query.
+	QueryEmbeddingModel string `json:"query_embedding_model"`
 }
 
 // SpannerConfig defines a struct to hold the spanner database configuration.

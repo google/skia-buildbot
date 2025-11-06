@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 
 	"cloud.google.com/go/spanner"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -79,7 +80,8 @@ func (flags *ApiServerFlags) AsCliFlags() []cli.Flag {
 // apiServer defines a struct for creating the server.
 type apiServer struct {
 	// Spanner database client.
-	dbClient *spanner.Client
+	dbClient            *spanner.Client
+	queryEmbeddingModel string
 
 	// Grpc server objects
 	grpcServer *grpc.Server
@@ -109,9 +111,10 @@ func NewApiServer(flags *ApiServerFlags) (*apiServer, error) {
 	}
 
 	server := &apiServer{
-		dbClient: spannerClient,
-		grpcPort: flags.GrpcPort,
-		httpPort: flags.HttpPort,
+		dbClient:            spannerClient,
+		queryEmbeddingModel: config.QueryEmbeddingModel,
+		grpcPort:            flags.GrpcPort,
+		httpPort:            flags.HttpPort,
 	}
 	err = server.initialize(ctx, flags)
 	if err != nil {
@@ -126,10 +129,18 @@ func (server *apiServer) initialize(ctx context.Context, flags *ApiServerFlags) 
 	// Initialize metrics/
 	metrics2.InitPrometheus(flags.PromPort)
 
+	// Get the api key from the env.
+	// TODO(ashwinpv): Get this from the secrets key store if not in the environment.
+	apiKey := os.Getenv("GEMINI_API_KEY")
+
+	if apiKey == "" {
+		sklog.Fatalf("GEMINI_API_KEY environment variable is not set.")
+	}
+
 	// Define the list of services to be hosted based on the "services" flag.
 	serviceList := []Service{}
 	var serviceMap = map[string]Service{
-		"history": history.NewApiService(server.dbClient),
+		"history": history.NewApiService(ctx, server.dbClient, apiKey, server.queryEmbeddingModel),
 	}
 	for _, serviceName := range flags.Services.Value() {
 		service, ok := serviceMap[serviceName]

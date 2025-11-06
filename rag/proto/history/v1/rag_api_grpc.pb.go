@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	HistoryRagApiService_GetBlames_FullMethodName = "/historyrag.v1.HistoryRagApiService/GetBlames"
+	HistoryRagApiService_GetTopics_FullMethodName = "/historyrag.v1.HistoryRagApiService/GetTopics"
 )
 
 // HistoryRagApiServiceClient is the client API for HistoryRagApiService service.
@@ -30,6 +31,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type HistoryRagApiServiceClient interface {
 	GetBlames(ctx context.Context, in *GetBlamesRequest, opts ...grpc.CallOption) (*GetBlamesResponse, error)
+	GetTopics(ctx context.Context, in *GetTopicsRequest, opts ...grpc.CallOption) (*GetTopicsResponse, error)
 }
 
 type historyRagApiServiceClient struct {
@@ -49,11 +51,21 @@ func (c *historyRagApiServiceClient) GetBlames(ctx context.Context, in *GetBlame
 	return out, nil
 }
 
+func (c *historyRagApiServiceClient) GetTopics(ctx context.Context, in *GetTopicsRequest, opts ...grpc.CallOption) (*GetTopicsResponse, error) {
+	out := new(GetTopicsResponse)
+	err := c.cc.Invoke(ctx, HistoryRagApiService_GetTopics_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // HistoryRagApiServiceServer is the server API for HistoryRagApiService service.
 // All implementations must embed UnimplementedHistoryRagApiServiceServer
 // for forward compatibility
 type HistoryRagApiServiceServer interface {
 	GetBlames(context.Context, *GetBlamesRequest) (*GetBlamesResponse, error)
+	GetTopics(context.Context, *GetTopicsRequest) (*GetTopicsResponse, error)
 	mustEmbedUnimplementedHistoryRagApiServiceServer()
 }
 
@@ -63,6 +75,9 @@ type UnimplementedHistoryRagApiServiceServer struct {
 
 func (UnimplementedHistoryRagApiServiceServer) GetBlames(context.Context, *GetBlamesRequest) (*GetBlamesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBlames not implemented")
+}
+func (UnimplementedHistoryRagApiServiceServer) GetTopics(context.Context, *GetTopicsRequest) (*GetTopicsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTopics not implemented")
 }
 func (UnimplementedHistoryRagApiServiceServer) mustEmbedUnimplementedHistoryRagApiServiceServer() {}
 
@@ -95,6 +110,24 @@ func _HistoryRagApiService_GetBlames_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _HistoryRagApiService_GetTopics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTopicsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HistoryRagApiServiceServer).GetTopics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: HistoryRagApiService_GetTopics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HistoryRagApiServiceServer).GetTopics(ctx, req.(*GetTopicsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // HistoryRagApiService_ServiceDesc is the grpc.ServiceDesc for HistoryRagApiService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -105,6 +138,10 @@ var HistoryRagApiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBlames",
 			Handler:    _HistoryRagApiService_GetBlames_Handler,
+		},
+		{
+			MethodName: "GetTopics",
+			Handler:    _HistoryRagApiService_GetTopics_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
