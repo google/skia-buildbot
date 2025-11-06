@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/notifier"
 )
 
@@ -31,7 +30,7 @@ func (n *testNotifier) Send(ctx context.Context, subject string, m *notifier.Mes
 func TestNotifier(t *testing.T) {
 
 	ctx := context.Background()
-	n, err := New(ctx, "childRepo", "parentRepo", "https://autoroll.skia.org/r/test-roller", nil, emailclient.New(), nil, nil)
+	n, err := New(ctx, "childRepo", "parentRepo", "https://autoroll.skia.org/r/test-roller", nil, nil, nil, nil)
 	require.NoError(t, err)
 	t1 := &testNotifier{}
 	n.Router().Add(t1, notifier.FILTER_DEBUG, nil, "")

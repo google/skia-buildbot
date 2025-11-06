@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/chatbot"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/sync/errgroup"
@@ -58,7 +58,7 @@ type filteredThreadedNotifier struct {
 type Router struct {
 	client       *http.Client
 	configReader chatbot.ConfigReader
-	emailer      emailclient.Client
+	emailer      email.Client
 	notifiers    []*filteredThreadedNotifier
 }
 
@@ -93,7 +93,7 @@ func (r *Router) Send(ctx context.Context, msg *Message) error {
 }
 
 // Return a Router instance.
-func NewRouter(client *http.Client, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader) *Router {
+func NewRouter(client *http.Client, emailer email.Client, chatBotConfigReader chatbot.ConfigReader) *Router {
 	return &Router{
 		client:       client,
 		configReader: chatBotConfigReader,

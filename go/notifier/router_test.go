@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/email/go/emailclient"
 )
 
 type sentMessage struct {
@@ -27,7 +26,7 @@ func (n *testNotifier) Send(_ context.Context, subject string, msg *Message) err
 
 func TestRouter(t *testing.T) {
 
-	m := NewRouter(nil, emailclient.New(), nil)
+	m := NewRouter(nil, nil, nil)
 	ctx := context.Background()
 
 	n1 := &testNotifier{}

@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/autoroll/go/roller_cleanup"
 	roller_cleanup_mocks "go.skia.org/infra/autoroll/go/roller_cleanup/mocks"
 	"go.skia.org/infra/autoroll/go/status"
-	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
@@ -191,7 +190,6 @@ func TestRepoManagerInitFailed(t *testing.T) {
 	urlmock := mockhttpclient.NewURLMock()
 	httpClient := urlmock.Client()
 	chatbotCfgReader := func() string { return "" }
-	emailer := emailclient.Client{}
 	gerritClient := &gerrit_mocks.GerritInterface{}
 	githubClient := (*github.GitHub)(nil)
 	workdir := t.TempDir()
@@ -262,7 +260,7 @@ func TestRepoManagerInitFailed(t *testing.T) {
 	}).Return(nil)
 
 	// Attempt to create the roller, ensure that it fails.
-	_, err := NewAutoRoller(ctx, cfg, emailer, chatbotCfgReader, gerritClient, githubClient, workdir, serverURL, gcsClient, httpClient, rollerName, local, statusDB, manualRollDB, cleanupDB)
+	_, err := NewAutoRoller(ctx, cfg, nil, chatbotCfgReader, gerritClient, githubClient, workdir, serverURL, gcsClient, httpClient, rollerName, local, statusDB, manualRollDB, cleanupDB)
 	require.ErrorContains(t, err, "mocked gclient error")
 
 	// Ensure all of our mocks were called.

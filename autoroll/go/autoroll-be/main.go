@@ -29,12 +29,12 @@ import (
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/roller_cleanup"
 	"go.skia.org/infra/autoroll/go/status"
-	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/du"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/firestore"
@@ -76,19 +76,18 @@ var hangOptions = []HangOption{hangNone, hangImmediately, hangBeforeRollerCreati
 
 // flags
 var (
-	configContents         = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
-	configFile             = common.NewMultiStringFlag("config_file", nil, "Configuration file(s) to use, mutually exclusive with --config.")
-	skipConfigFile         = common.NewMultiStringFlag("skip-config-file", nil, "Regular expression(s) indicating config files to skip. Only valid with --config_file.")
-	firestoreInstance      = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
-	local                  = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port                   = flag.String("port", ":8000", "HTTP service port.")
-	promPort               = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	workdir                = flag.String("workdir", ".", "Directory to use for scratch work.")
-	hang                   = flag.String("hang", string(hangNone), fmt.Sprintf("If set, just hang and do nothing, at specified points in the code. Options: %v", hangOptions))
-	namespacedEmailService = flag.Bool("namespaced-email-service", false, "If true then use the emailservice that's running in its own namespace.")
-	validateConfig         = flag.Bool("validate-config", false, "If set, validate the config and exit without running the autoroll backend.")
-	deepValidateConfig     = flag.Bool("deep-validate-config", false, "If set, validate the config deeply, making necessary network requests, and exit. Note: the caller must have all of the permissions that the roller itself has.")
-	genK8sConfig           = flag.String("gen-k8s-config", "", "Path to the root of the k8s-config repo. If set, generate a Kubernetes config file for the roller config(s) and write it in the given directory, without running the autoroll backend.")
+	configContents     = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
+	configFile         = common.NewMultiStringFlag("config_file", nil, "Configuration file(s) to use, mutually exclusive with --config.")
+	skipConfigFile     = common.NewMultiStringFlag("skip-config-file", nil, "Regular expression(s) indicating config files to skip. Only valid with --config_file.")
+	firestoreInstance  = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port               = flag.String("port", ":8000", "HTTP service port.")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	workdir            = flag.String("workdir", ".", "Directory to use for scratch work.")
+	hang               = flag.String("hang", string(hangNone), fmt.Sprintf("If set, just hang and do nothing, at specified points in the code. Options: %v", hangOptions))
+	validateConfig     = flag.Bool("validate-config", false, "If set, validate the config and exit without running the autoroll backend.")
+	deepValidateConfig = flag.Bool("deep-validate-config", false, "If set, validate the config deeply, making necessary network requests, and exit. Note: the caller must have all of the permissions that the roller itself has.")
+	genK8sConfig       = flag.String("gen-k8s-config", "", "Path to the root of the k8s-config repo. If set, generate a Kubernetes config file for the roller config(s) and write it in the given directory, without running the autoroll backend.")
 )
 
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
@@ -339,7 +338,7 @@ func main() {
 
 	chatbot.Init(fmt.Sprintf("%s -> %s AutoRoller", cfg.ChildDisplayName, cfg.ParentDisplayName))
 
-	var emailer emailclient.Client
+	var emailer email.Client
 	var chatBotConfigReader chatbot.ConfigReader
 	var gcsClient gcs.GCSClient
 	rollerName := cfg.RollerName
@@ -358,11 +357,10 @@ func main() {
 		sklog.Infof("Writing persistent data to gs://%s/%s", gsBucketAutoroll, rollerName)
 		gcsClient = gcsclient.New(s, gsBucketAutoroll)
 
-		emailServiceAddress := emailclient.DefaultEmailServiceURL
-		if *namespacedEmailService {
-			emailServiceAddress = emailclient.NamespacedEmailServiceURL
+		emailer, err = email.NewClient(ctx)
+		if err != nil {
+			sklog.Fatal(err)
 		}
-		emailer = emailclient.NewAt(emailServiceAddress)
 
 		chatBotConfigReader = func() string {
 			chatWebhooks, err := secretClient.Get(ctx, secretProject, secretChatWebhooks, secret.VersionLatest)

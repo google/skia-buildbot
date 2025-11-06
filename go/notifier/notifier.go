@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"cloud.google.com/go/pubsub"
-	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -81,7 +81,7 @@ func (c *Config) Validate() error {
 }
 
 // Create a Notifier from the Config.
-func (c *Config) Create(ctx context.Context, client *http.Client, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader) (Notifier, Filter, []string, string, error) {
+func (c *Config) Create(ctx context.Context, client *http.Client, emailer email.Client, chatBotConfigReader chatbot.ConfigReader) (Notifier, Filter, []string, string, error) {
 	if err := c.Validate(); err != nil {
 		return nil, FILTER_SILENT, nil, "", err
 	}
@@ -149,7 +149,7 @@ type EmailNotifierConfig struct {
 
 // Validate the EmailNotifierConfig.
 func (c *EmailNotifierConfig) Validate() error {
-	if c.Emails == nil || len(c.Emails) == 0 {
+	if len(c.Emails) == 0 {
 		return fmt.Errorf("Emails is required.")
 	}
 	return nil
@@ -159,28 +159,33 @@ func (c *EmailNotifierConfig) Validate() error {
 // parties.
 type emailNotifier struct {
 	from    string
-	emailer emailclient.Client
+	emailer email.Client
 	markup  string
 	to      []string
 }
 
 // See documentation for Notifier interface.
-func (n *emailNotifier) Send(_ context.Context, subject string, msg *Message) error {
-	if !n.emailer.Valid() {
-		sklog.Warning("No gmail API client; cannot send email!")
+func (n *emailNotifier) Send(ctx context.Context, subject string, msg *Message) error {
+	if n.emailer == nil {
+		sklog.Warning("No email client; cannot send email!")
 		return nil
 	}
-	// Replace all newlines with <br/> since gmail uses HTML format.
+	// Replace all newlines with <br/> so we can use HTML format.
 	body := strings.ReplaceAll(msg.Body, "\n", "<br/>")
 	recipients := append(util.CopyStringSlice(n.to), msg.ExtraRecipients...)
 	sklog.Infof("Sending email to %s: %s", strings.Join(recipients, ","), subject)
-	_, err := n.emailer.SendWithMarkup("", n.from, recipients, subject, body, n.markup, "")
+	_, err := n.emailer.SendMail(ctx, &email.SendMailRequest{
+		Sender:   n.from,
+		To:       recipients,
+		Subject:  subject,
+		HtmlBody: n.markup + "\n" + body,
+	})
 	return err
 }
 
 // EmailNotifier returns a Notifier which sends email to interested parties.
 // Sends the same ViewAction markup with each message.
-func EmailNotifier(emails []string, emailer emailclient.Client, markup string) (Notifier, error) {
+func EmailNotifier(emails []string, emailer email.Client, markup string) (Notifier, error) {
 	return &emailNotifier{
 		from:    emailFromAddress,
 		emailer: emailer,
@@ -326,12 +331,10 @@ func (n *monorailNotifier) Send(ctx context.Context, subject string, msg *Messag
 // MonorailNotifier returns a Notifier which files bugs in Monorail.
 func MonorailNotifier(c *http.Client, project, owner string, cc, components, labels []string) (Notifier, error) {
 	var personCC []issues.MonorailPerson
-	if cc != nil {
-		for _, name := range cc {
-			personCC = append(personCC, issues.MonorailPerson{
-				Name: name,
-			})
-		}
+	for _, name := range cc {
+		personCC = append(personCC, issues.MonorailPerson{
+			Name: name,
+		})
 	}
 	return &monorailNotifier{
 		tk:         issues.NewMonorailIssueTracker(c, project),

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/chatbot"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -164,14 +164,14 @@ type AutoRollNotifier struct {
 	childName    string
 	client       *http.Client
 	configReader chatbot.ConfigReader
-	emailer      emailclient.Client
+	emailer      email.Client
 	n            *notifier.Router
 	parentName   string
 	serverURL    string
 }
 
 // Return an AutoRollNotifier instance.
-func New(ctx context.Context, childName, parentName, serverURL string, client *http.Client, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader, configs []*notifier.Config) (*AutoRollNotifier, error) {
+func New(ctx context.Context, childName, parentName, serverURL string, client *http.Client, emailer email.Client, chatBotConfigReader chatbot.ConfigReader, configs []*notifier.Config) (*AutoRollNotifier, error) {
 	n := &AutoRollNotifier{
 		childName:    childName,
 		client:       client,
