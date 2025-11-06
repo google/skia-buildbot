@@ -2,6 +2,8 @@ import './index';
 import { $$ } from '../../../infra-sk/modules/dom';
 import '../../../elements-sk/modules/error-toast-sk';
 import { AnomaliesTableSk } from './anomalies-table-sk';
+import fetchMock from 'fetch-mock';
+import { anomaly_table, GROUP_REPORT_RESPONSE, GROUP_REPORT_RESPONSE_WITH_SID } from './test_data';
 
 window.perf = {
   instance_url: '',
@@ -35,117 +37,46 @@ window.perf = {
   show_bisect_btn: false,
 };
 
-const anomaly_table = [
-  {
-    id: '1',
-    test_path: 'ChromePerf/linux-perf/Speed/Total/Jet',
-    bug_id: 12345,
-    start_revision: 1234,
-    end_revision: 1239,
-    is_improvement: false,
-    recovered: true,
-    state: '',
-    statistic: '',
-    units: 'delta',
-    degrees_of_freedom: 0,
-    median_before_anomaly: 75.209091,
-    median_after_anomaly: 100.5023,
-    p_value: 0,
-    segment_size_after: 0,
-    segment_size_before: 0,
-    std_dev_before_anomaly: 0,
-    t_statistic: 0,
-    subscription_name: '',
-    bug_component: 'Component A',
-    bug_labels: [],
-    bug_cc_emails: [],
-    bisect_ids: [],
-  },
-  {
-    id: '2',
-    test_path: 'ChromePerf/mac-m1/Motion/Score/Motion',
-    bug_id: -1,
-    start_revision: 1234,
-    end_revision: 1234,
-    is_improvement: false,
-    recovered: true,
-    state: '',
-    statistic: '',
-    units: 'ms',
-    degrees_of_freedom: 0,
-    median_before_anomaly: 1.345,
-    median_after_anomaly: 2.403,
-    p_value: 0,
-    segment_size_after: 0,
-    segment_size_before: 0,
-    std_dev_before_anomaly: 0,
-    t_statistic: 0,
-    subscription_name: '',
-    bug_component: 'Component B',
-    bug_labels: [],
-    bug_cc_emails: [],
-    bisect_ids: [],
-  },
-  {
-    id: '3',
-    test_path: 'ChromePerf/mac-m1/Motion/Score/Motion',
-    bug_id: 12345,
-    start_revision: 34567,
-    end_revision: 34569,
-    is_improvement: true,
-    recovered: true,
-    state: '',
-    statistic: '',
-    units: 'ns',
-    degrees_of_freedom: 0,
-    median_before_anomaly: 72.209091,
-    median_after_anomaly: 73.5023,
-    p_value: 0,
-    segment_size_after: 0,
-    segment_size_before: 0,
-    std_dev_before_anomaly: 0,
-    t_statistic: 0,
-    subscription_name: '',
-    bug_component: 'Component B',
-    bug_labels: [],
-    bug_cc_emails: [],
-    bisect_ids: [],
-  },
-  {
-    id: '4',
-    test_path: 'ChromePerf/mac-m1/Motion/Score/Motion',
-    bug_id: -1,
-    start_revision: 1234,
-    end_revision: 1239,
-    is_improvement: false,
-    recovered: true,
-    state: '',
-    statistic: '',
-    units: 'ms',
-    degrees_of_freedom: 0,
-    median_before_anomaly: 75.209091,
-    median_after_anomaly: 100.5023,
-    p_value: 0,
-    segment_size_after: 0,
-    segment_size_before: 0,
-    std_dev_before_anomaly: 0,
-    t_statistic: 0,
-    subscription_name: '',
-    bug_component: 'Component C',
-    bug_labels: [],
-    bug_cc_emails: [],
-    bisect_ids: [],
-  },
-];
-
 $$('#populate-tables')?.addEventListener('click', () => {
-  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((ele) => {
-    ele.populateTable(anomaly_table);
+  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((table) => {
+    table.populateTable(anomaly_table);
   });
 });
 
 $$('#get-checked')?.addEventListener('click', () => {
-  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((ele) => {
-    console.log(ele.getCheckedAnomalies());
+  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((table) => {
+    console.log(table.getCheckedAnomalies());
   });
 });
+
+$$('#open-multi-graph')?.addEventListener('click', () => {
+  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((table) => {
+    table.shortcutUrl = `test_shortcut`;
+    table.openMultiGraphUrl(
+      anomaly_table[0],
+      window.open(
+        'http://localhost:46723/m/?begin=1729042589&end=11739042589&request_type=0&shortcut=1&totalGraphs=1',
+        '_blank'
+      )
+    );
+  });
+});
+
+fetchMock.post('/_/shortcut/update', () => ({
+  id: 'test_shortcut',
+}));
+
+// Mock for Request 2 (e.g., body contains { type: 'B' })
+fetchMock.post(
+  {
+    url: '/_/anomalies/group_report',
+    body: { anomalyIDs: '1,2,3' },
+    matchPartialBody: true,
+  },
+  () => ({
+    GROUP_REPORT_RESPONSE_WITH_SID,
+  })
+);
+
+// Fallback mock for any other POST to this URL
+fetchMock.post('/_/anomalies/group_report', GROUP_REPORT_RESPONSE);

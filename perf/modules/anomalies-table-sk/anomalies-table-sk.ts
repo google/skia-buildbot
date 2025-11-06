@@ -58,7 +58,7 @@ export class AnomaliesTableSk extends ElementSk {
 
   private traceFormatter: ChromeTraceFormatter | null = null;
 
-  private shortcutUrl: string = '';
+  shortcutUrl: string = '';
 
   getGroupReportResponse: GetGroupReportResponse | null = null;
 
