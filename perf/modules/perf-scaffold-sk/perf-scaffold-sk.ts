@@ -7,6 +7,7 @@
  *
  */
 import { html } from 'lit/html.js';
+import { choose } from 'lit/directives/choose.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/error-toast-sk';
@@ -21,15 +22,21 @@ import '../../../elements-sk/modules/icons/home-icon-sk';
 import '../../../elements-sk/modules/icons/multiline-chart-icon-sk';
 import '../../../elements-sk/modules/icons/sort-icon-sk';
 import '../../../elements-sk/modules/icons/trending-up-icon-sk';
+import '../../../elements-sk/modules/icons/launch-icon-sk';
+import '../../../elements-sk/modules/icons/chat-icon-sk';
+import '../../../elements-sk/modules/icons/lightbulb-outline-icon-sk';
+import '../../../elements-sk/modules/icons/settings-backup-restore-icon-sk';
 import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
-import '../window/window';
+import { getBuildTag } from '../window/window';
 
 // The ID of a top level element under perf-scaffold-sk that will be moved under
-// the right hand side nav bar.
+// the help dropdown (new UI) or right hand side nav bar (old UI).
 const SIDEBAR_HELP_ID = 'sidebar_help';
 
+const BUILDBOT_GIT = 'https://skia.googlesource.com/buildbot.git/+log/';
+const PINPOINT_URL = 'https://pinpoint-dot-chromeperf.appspot.com/';
 /**
  * Moves the elements from a list to be the children of the target element.
  *
@@ -47,6 +54,8 @@ export class PerfScaffoldSk extends ElementSk {
 
   private _chat: HTMLElement | null = null;
 
+  private hasHelpContent: boolean = false;
+
   private _helpUrl: string = 'http://go/perf-user-doc';
 
   private _reportBugUrl: string =
@@ -59,8 +68,16 @@ export class PerfScaffoldSk extends ElementSk {
     super(PerfScaffoldSk.template);
   }
 
-  private static template = (ele: PerfScaffoldSk) => html`
-  <app-sk>
+  private static template = (ele: PerfScaffoldSk) => {
+    if (localStorage.getItem('v2_ui') === 'true') {
+      return ele.renderV2UI(ele);
+    }
+    return ele.renderLegacyUI(ele);
+  };
+
+  private renderLegacyUI(ele: PerfScaffoldSk) {
+    return html`
+  <app-sk class="legacy-ui">
     <header id=topbar>
       <div class="header-brand">
         <a href="/">
@@ -85,7 +102,7 @@ export class PerfScaffoldSk extends ElementSk {
         <a href="/a" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a>
         <a href="/d" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
         <a href="/c" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering</span></a>
-        ${this.revisionLinkTemplate()}
+        ${PerfScaffoldSk.revisionLinkTemplateOld()}
         <a href="${ele._helpUrl}" target="_blank" tab-index=0 >
           <help-icon-sk></help-icon-sk><span>Help</span>
         </a>
@@ -98,22 +115,94 @@ export class PerfScaffoldSk extends ElementSk {
       </div>
       <div id=chat>
       </div>
+      <button @click=${() => ele.toggleUI(true)} class="try-v2-ui">Try V2 UI</button>
     </aside>
-    <main>
+    <main id="perf-content">
     </main>
     <footer class="glue-footer">
       <error-toast-sk></error-toast-sk>
     </footer>
   </app-sk>
 `;
+  }
 
-  private static revisionLinkTemplate = () => {
+  private renderV2UI(ele: PerfScaffoldSk) {
+    return html`
+  <app-sk class="v2-ui">
+    <header id=topbar>
+      <a class="header-brand" href="/">
+        <img src="/dist/images/chrome-logo.svg" alt="Chrome Logo" class="logo">
+        <h1 class=name>${ele.instanceTitleTemplate()}</h1>
+      </a>
+      <nav id="header-nav-items">
+        <a href="/e" tab-index=0 class="${ele.isPageActive('/e') ? 'active' : ''}">Explore</a>
+        <a href="/m" tab-index=0 class="${ele.isPageActive('/m') ? 'active' : ''}">MultiGraph</a>
+        <div class="triage-link" ?hidden=${!ele.isHiddenTriage}>
+          <a href="/t" tab-index=0 class="${ele.isPageActive('/t') ? 'active' : ''}">Triage</a>
+        </div>
+        <a href="/a" tab-index=0 class="${ele.isPageActive('/a') ? 'active' : ''}">Alerts</a>
+        <a href="/f" tab-index=0 class="${ele.isPageActive('/f') ? 'active' : ''}">Favorites</a>
+        <a href="/d" tab-index=0 class="${ele.isPageActive('/d') ? 'active' : ''}">Dry Run</a>
+        <a href="/c" tab-index=0 class="${ele.isPageActive('/c') ? 'active' : ''}">Clustering</a>
+        ${PerfScaffoldSk.revisionLinkTemplateNew(ele)}
+        <a href="${PINPOINT_URL}" target="_blank" tab-index="0">
+          Pinpoint
+          <launch-icon-sk></launch-icon-sk>
+        </a>
+      </nav>
+      <div id="header-aside-container">
+        <div id="header-aside">
+          <a href="${
+            ele._reportBugUrl
+          }" target="_blank" tab-index=0 title="Report Bug" class="aside-button">
+            <bug-report-icon-sk></bug-report-icon-sk>
+          </a>
+          ${ele.chatLinkTemplate()}
+          <button id="help-button" @click=${ele.toggleHelp} title="Help" class="aside-button">
+            <help-icon-sk></help-icon-sk>
+          </button>
+          <button id="legacy-ui-button" @click=${() =>
+            ele.toggleUI(false)} title="Back to Legacy UI" class="aside-button">
+            <settings-backup-restore-icon-sk></settings-backup-restore-icon-sk>
+          </button>
+          <alogin-sk url=/_/login/status></alogin-sk>
+          <theme-chooser-sk></theme-chooser-sk>
+        </div>
+      </div>
+      <div id="help-dropdown" class="hidden">
+        <a href="${ele._helpUrl}" target="_blank" class="help-link">
+          <span>Documentation</span>
+          <launch-icon-sk></launch-icon-sk>
+        </a>
+        <hr ?hidden=${!ele.hasHelpContent} />
+        <div id="help-content"></div>
+      </div>
+    </header>
+    <main id="perf-content">
+    </main>
+    <footer class="glue-footer">
+      <error-toast-sk></error-toast-sk>
+      ${ele.buildTagTemplate()}
+    </footer>
+  </app-sk>
+`;
+  }
+
+  private static revisionLinkTemplateOld = () => {
     if (window.perf.fetch_chrome_perf_anomalies) {
       return html`<a href="/v" tab-index="0"
         ><trending-up-icon-sk></trending-up-icon-sk><span>Revision Info</span></a
       >`;
     }
+    return html``;
+  };
 
+  private static revisionLinkTemplateNew = (ele: PerfScaffoldSk) => {
+    if (window.perf.fetch_chrome_perf_anomalies) {
+      return html`<a href="/v" tab-index="0" class="${ele.isPageActive('/v') ? 'active' : ''}"
+        >Revision Info</a
+      >`;
+    }
     return html``;
   };
 
@@ -159,20 +248,51 @@ export class PerfScaffoldSk extends ElementSk {
     return html`<a class="version" title="${appVersion}"><span>Ver: ${shortHash}</span></a>`;
   }
 
+  private chatLinkTemplate() {
+    if (window.perf.chat_url) {
+      return html`<a
+        href="${window.perf.chat_url}"
+        target="_blank"
+        tab-index="0"
+        class="aside-button"
+        title="Ask the team">
+        <chat-icon-sk></chat-icon-sk>
+      </a>`;
+    }
+    return html``;
+  }
+
+  private buildTagLinkTemplate(tag: string) {
+    return html`<a href="${BUILDBOT_GIT}${tag}" target="_blank" class="dashboard-version"
+      >Build: ${tag}</a
+    >`;
+  }
+
+  private buildTagTemplate() {
+    const buildTag = getBuildTag();
+    return html`${choose(
+      buildTag.type,
+      [
+        ['git', () => this.buildTagLinkTemplate(buildTag.tag!)],
+        ['louhi', () => this.buildTagLinkTemplate(buildTag.tag!)],
+        ['tag', () => html`<a class="dashboard-version">Build: ${buildTag.tag}</a>`],
+      ],
+      () => html`<a class="dashboard-version">Build: No Tag</a>`
+    )}`;
+  }
+
   private instanceTitleTemplate() {
     if (window.perf.instance_url) {
+      if (localStorage.getItem('v2_ui') === 'true') {
+        return html`${this.extractInstanceNameFromUrl(window.perf.instance_url)}`;
+      }
       return html`<a>${this.extractInstanceNameFromUrl(window.perf.instance_url)}</a>`;
     }
   }
 
-  // Extract the string between "https://" and the first "." in a URL,
-  // such as "https://androidx2-perf.luci.app"
   private extractInstanceNameFromUrl(url: string): string {
     const regex = /^https:\/\/(.*?)\./;
     const match = url.match(regex);
-
-    // If a match is found, the captured group (the part between https:// and .)
-    // will be at index 1 of the match array.
     if (match && match[1]) {
       return match[1].at(0)!.toUpperCase() + match[1].substring(1);
     }
@@ -181,44 +301,42 @@ export class PerfScaffoldSk extends ElementSk {
 
   connectedCallback(): void {
     super.connectedCallback();
-    // Don't call more than once.
     if (this._main) {
       return;
     }
-    // We aren't using shadow dom so we need to manually move the children of
-    // perf-scaffold-sk to be children of 'main'. We have to do this for the
-    // existing elements and for all future mutations.
 
-    // Create a temporary holding spot for elements we're moving.
+    if (localStorage.getItem('v2_ui') === 'true') {
+      this.injectFavicon();
+      this.updateTitle();
+    }
+
     const div = document.createElement('div');
     move(this.children, div);
 
-    // Override the help url if specified in the instance config
     if (window.perf.help_url_override && window.perf.help_url_override !== '') {
       this._helpUrl = window.perf.help_url_override;
     }
-
-    // Override the feedback / report bug url if specified in the instance config
     if (window.perf.feedback_url && window.perf.feedback_url !== '') {
       this._reportBugUrl = window.perf.feedback_url;
     }
 
-    // Now that we've moved all the old children out of the way we can render
-    // the template.
     this._render();
 
-    this._main = this.querySelector('main');
-    this._help = this.querySelector('#help');
+    // Use a specific ID to avoid finding <main> inside other components
+    // (like gemini-side-panel-sk).
+    this._main = this.querySelector('#perf-content');
+    if (!this._main) {
+      console.error('perf-scaffold-sk: #perf-content not found after _render()');
+    }
+    this._help = this.querySelector('#help-content') || this.querySelector('#help');
     this._chat = this.querySelector('#chat');
 
     if (this._chat !== null) {
       this.addUrlToElement(this._chat, 'Ask the team', window.perf.chat_url);
     }
 
-    // Move the old children back.
     this.redistributeAddedNodes(div.childNodes);
 
-    // Move all future children also.
     const observer = new MutationObserver((mutList) => {
       mutList.forEach((mut) => {
         this.redistributeAddedNodes(mut.addedNodes);
@@ -227,7 +345,28 @@ export class PerfScaffoldSk extends ElementSk {
     observer.observe(this, { childList: true });
   }
 
-  // addUrlToElement adds the provided url data inside the given html element.
+  private injectFavicon() {
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.type = 'image/svg+xml';
+    link.href = '/dist/images/line-chart.svg';
+  }
+
+  private updateTitle() {
+    const instanceName = this.extractInstanceNameFromUrl(window.perf.instance_url);
+    if (instanceName) {
+      document.title = `${instanceName} Performance Monitoring`;
+    }
+  }
+
+  private isPageActive(url: string): boolean {
+    return window.location.pathname.startsWith(url);
+  }
+
   private addUrlToElement(element: HTMLElement, urlText: string, urlHref: string) {
     element.hidden = true;
     if (urlHref && urlHref !== '') {
@@ -237,16 +376,39 @@ export class PerfScaffoldSk extends ElementSk {
     }
   }
 
-  // Place these newly added nodes in the right place under the perf-scaffold-sk
-  // element.
   private redistributeAddedNodes(from: NodeList) {
+    if (!this._main) {
+      this._main = this.querySelector('#perf-content');
+    }
     Array.prototype.slice.call(from).forEach((node: Node) => {
       if ((node as Element).id === SIDEBAR_HELP_ID) {
-        this._help!.appendChild(node);
+        if (this._help) {
+          this._help.appendChild(node);
+          if (localStorage.getItem('v2_ui') === 'true') {
+            this.hasHelpContent = true;
+            this._render();
+          }
+        }
       } else {
-        this._main!.appendChild(node);
+        if (this._main) {
+          this._main.appendChild(node);
+        } else {
+          console.error('perf-scaffold-sk: main element not found for node', node);
+        }
       }
     });
+  }
+
+  private toggleHelp() {
+    const dropdown = this.querySelector('#help-dropdown');
+    if (dropdown) {
+      dropdown.classList.toggle('hidden');
+    }
+  }
+
+  private toggleUI(enable: boolean) {
+    localStorage.setItem('v2_ui', String(enable));
+    window.location.reload();
   }
 }
 

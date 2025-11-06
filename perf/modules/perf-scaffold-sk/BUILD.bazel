@@ -33,6 +33,10 @@ sk_element(
         "//elements-sk/modules/icons/bug-report-icon-sk",
         "//elements-sk/modules/icons/event-icon-sk",
         "//elements-sk/modules/icons/folder-icon-sk",
+        "//elements-sk/modules/icons/launch-icon-sk",
+        "//elements-sk/modules/icons/settings-backup-restore-icon-sk",
+        "//elements-sk/modules/icons/chat-icon-sk",
+        "//elements-sk/modules/icons/lightbulb-outline-icon-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
