@@ -107,7 +107,7 @@ func ParseRFC2822Message(body []byte) (string, []string, string, string, error) 
 	// Subject: subject
 	// To: A Display Name <a@example.com>, B <b@example.org>
 	match := fromRegex.FindSubmatch(body)
-	if match == nil || len(match) < 2 {
+	if len(match) < 2 {
 		return "", nil, "", "", skerr.Fmt("Failed to find a From: line in message.")
 	}
 	from := string(match[1])
@@ -119,7 +119,7 @@ func ParseRFC2822Message(body []byte) (string, []string, string, string, error) 
 	}
 
 	match = toRegex.FindSubmatch(body)
-	if match == nil || len(match) < 2 {
+	if len(match) < 2 {
 		return "", nil, "", "", skerr.Fmt("Failed to find a To: line in message.")
 	}
 	to := []string{}

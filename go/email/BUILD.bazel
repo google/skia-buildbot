@@ -3,10 +3,19 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "email",
-    srcs = ["email.go"],
+    srcs = [
+        "client.go",
+        "email.go",
+    ],
     importpath = "go.skia.org/infra/go/email",
     visibility = ["//visibility:public"],
-    deps = ["//go/skerr"],
+    deps = [
+        "//go/auth",
+        "//go/skerr",
+        "//go/util",
+        "@org_golang_x_oauth2//:oauth2",
+        "@org_golang_x_oauth2//google",
+    ],
 )
 
 go_test(

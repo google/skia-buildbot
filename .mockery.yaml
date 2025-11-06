@@ -77,6 +77,9 @@ packages:
   go.skia.org/infra/go/docker:
     interfaces:
       Client:
+  go.skia.org/infra/go/email:
+    interfaces:
+      Client:
   go.skia.org/infra/go/gcs:
     interfaces:
       GCSClient:
