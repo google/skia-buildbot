@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/am/go/reminder"
 	"go.skia.org/infra/am/go/silence"
 	"go.skia.org/infra/am/go/types"
-	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/alogin"
@@ -31,6 +30,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/pubsub/sub"
@@ -116,7 +116,11 @@ func New() (baseapp.App, error) {
 	srv.loadTemplates()
 
 	// Start goroutine to send reminders to active alert owners.
-	reminder.StartReminderTicker(srv.incidentStore, srv.silenceStore, emailclient.New())
+	emailer, err := email.NewClient(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	reminder.StartReminderTicker(srv.incidentStore, srv.silenceStore, emailer)
 
 	// livenesses gets populated as notifications arrive.
 	livenesses := map[string]metrics2.Liveness{}
