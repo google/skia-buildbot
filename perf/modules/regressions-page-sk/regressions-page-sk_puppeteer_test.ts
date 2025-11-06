@@ -22,12 +22,12 @@ describe('regressions-page-sk', () => {
     });
 
     it('displays empty table if no regressions for selected subscription', async () => {
-      await testBed.page.select('#filter', 'Sheriff Config 3');
+      await testBed.page.select('select[id^="filter-"]', 'Sheriff Config 3');
       await takeScreenshot(testBed.page, 'perf', 'regressions-page-sk-no-regs');
     });
 
     it('displays table if some regressions present for selected subscription', async () => {
-      await testBed.page.select('#filter', 'Sheriff Config 2');
+      await testBed.page.select('select[id^="filter-"]', 'Sheriff Config 2');
       await takeScreenshot(testBed.page, 'perf', 'regressions-page-sk-some-regs');
     });
   });

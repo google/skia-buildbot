@@ -42,6 +42,11 @@ const LAST_SELECTED_SHERIFF_KEY = 'perf-last-selected-sheriff';
  * for a given subscription.
  */
 export class RegressionsPageSk extends ElementSk {
+  private static nextUniqueId = 0;
+
+  private readonly uniqueId = `${RegressionsPageSk.nextUniqueId++}`;
+
+  // This is a test comment.
   state: State = {
     selectedSubscription: '',
     showTriaged: false,
@@ -223,9 +228,9 @@ export class RegressionsPageSk extends ElementSk {
   }
 
   private static template = (ele: RegressionsPageSk) => html`
-    <label for="filter">Sheriff:</label>
+    <label for="filter-${ele.uniqueId}">Sheriff:</label>
     <select
-      id="filter"
+      id="filter-${ele.uniqueId}"
       @input=${(e: InputEvent) => ele.filterChange((e.target as HTMLInputElement).value)}>
       <option disabled selected value>-- select an option --</option>
       ${RegressionsPageSk.allSubscriptions(ele)}]

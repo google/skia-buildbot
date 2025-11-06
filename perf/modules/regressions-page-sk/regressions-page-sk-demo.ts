@@ -69,6 +69,10 @@ fetchMock.get('/_/subscriptions', () => [
   },
 ]);
 
+fetchMock.get('/_/anomalies/sheriff_list', {
+  sheriff_list: ['Sheriff Config 1', 'Sheriff Config 2', 'Sheriff Config 3'],
+});
+
 fetchMock.get(`/_/regressions?sub_name=Sheriff%20Config%201&limit=10&offset=0`, [
   {
     id: 'id1',

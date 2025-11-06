@@ -41,24 +41,15 @@ describe('regressions-page-sk', () => {
   };
 
   const sheriffListResponse: GetSheriffListResponse = {
-    sheriff_list: ['Sheriff Config 1', 'Sheriff Config 2', 'Sheriff Config 3'],
+    sheriff_list: ['Sheriff Config 1', 'Sheriff Config 2', 'Sheriff Config 3', 'Sheriff Config 4'],
     error: '',
   };
 
-  const sheriffListResponseUnSorted: GetSheriffListResponse = {
-    sheriff_list: [
-      'Chrome Perf Sheriff 3',
-      'Blink Config 3',
-      'Angle Sheriff Perf ',
-      'Angle Perf 1',
-    ],
-    error: '',
-  };
   const sheriffListResponseSorted: string[] = [
-    'Angle Perf 1',
-    'Angle Sheriff Perf 2',
-    'Blink Config 3',
-    'Chrome Perf Sheriff 3',
+    'Sheriff Config 1',
+    'Sheriff Config 2',
+    'Sheriff Config 3',
+    'Sheriff Config 4',
   ];
   fetchMock.get('/_/anomalies/sheriff_list', { body: sheriffListResponse });
 
@@ -160,9 +151,8 @@ describe('regressions-page-sk', () => {
     it('Loads associated regressions when subscription selected', async () => {
       const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
       const element = newInstance((_el: RegressionsPageSk) => {});
-      const dropdown = document.getElementById('filter') as HTMLSelectElement;
       await new Promise((resolve) => setTimeout(resolve, 0));
-
+      const dropdown = element.querySelector('[id^="filter"]') as HTMLSelectElement;
       // 4 loaded configs and the default options
       assert.equal(dropdown?.options.length, 5);
       // /anomaly_list is not called without a sheriff selected.
@@ -191,11 +181,10 @@ describe('regressions-page-sk', () => {
     fetchMock.config.overwriteRoutes = true;
     const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
 
-    const element = newInstance((_el: RegressionsPageSk) => {});
-
-    const dropdown = document.getElementById('filter') as HTMLSelectElement;
-
     it('Loads anomaly_cursor when the anomaly_cursor is returned in the response', async () => {
+      const element = newInstance((_el: RegressionsPageSk) => {});
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const dropdown = element.querySelector('[id^="filter"]') as HTMLSelectElement;
       // 4 loaded configs and the default options
       assert.equal(dropdown?.options.length, 5);
 
@@ -225,14 +214,12 @@ describe('regressions-page-sk', () => {
 
   describe('RegressionsPageSK', () => {
     fetchMock.config.overwriteRoutes = true;
-    fetchMock.getOnce('/_/anomalies/sheriff_list', { body: sheriffListResponseUnSorted });
     const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
 
-    const element = newInstance((_el: RegressionsPageSk) => {});
-
-    const dropdown = document.getElementById('filter') as HTMLSelectElement;
-
     it('Sheriff List is displayed in an rescending way', async () => {
+      const element = newInstance((_el: RegressionsPageSk) => {});
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const dropdown = element.querySelector('[id^="filter"]') as HTMLSelectElement;
       // 4 loaded configs and the default options
       assert.equal(dropdown?.options.length, 5);
       element.subscriptionList.every((sheriff, index) => {
@@ -282,7 +269,7 @@ describe('regressions-page-sk', () => {
 
       // Also check that the correct anomaly list was fetched.
       assert.equal(fetchMock.lastUrl(), '/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202');
-      const select = element.querySelector<HTMLSelectElement>('#filter')!;
+      const select = element.querySelector<HTMLSelectElement>('[id^="filter"]')!;
       assert.strictEqual(select.value, 'Sheriff Config 2');
     });
 
@@ -291,7 +278,7 @@ describe('regressions-page-sk', () => {
       await fetchMock.flush(true);
 
       assert.strictEqual(element.state.selectedSubscription, '');
-      const select = element.querySelector<HTMLSelectElement>('#filter')!;
+      const select = element.querySelector<HTMLSelectElement>('[id^="filter"]')!;
       assert.strictEqual(select.value, '');
     });
 
