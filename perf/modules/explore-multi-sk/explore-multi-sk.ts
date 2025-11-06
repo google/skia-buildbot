@@ -49,7 +49,7 @@ import {
   Trace,
   TraceMetadata,
 } from '../json';
-import { SummaryMetric, telemetry } from '../telemetry/telemetry';
+import { CountMetric, SummaryMetric, telemetry } from '../telemetry/telemetry';
 
 import '../../../elements-sk/modules/spinner-sk';
 import '../explore-simple-sk';
@@ -1443,17 +1443,15 @@ export class ExploreMultiSk extends ElementSk {
         // Only record telemetry if a load was explicitly triggered (direct link or plot button).
         // Resetting initialLoadStartTime and loadTrigger prevents duplicate telemetry reports.
         if (this.initialLoadStartTime > 0 && this.loadTrigger) {
-          const selectionDays = Math.round((this.state.end - this.state.begin) / (60 * 60 * 24));
           telemetry.recordSummary(
             SummaryMetric.MultiGraphDataLoadTime,
             (performance.now() - this.initialLoadStartTime) / 1000,
-            {
-              url: window.location.href,
-              trigger: this.loadTrigger,
-              selection_d: selectionDays.toString(),
-              total_graphs: this.state.totalGraphs.toString(),
-            }
+            { url: window.location.href }
           );
+          telemetry.increaseCounter(CountMetric.MultiGraphVisit, {
+            trigger: this.loadTrigger,
+            total_graphs: this.state.totalGraphs.toString(),
+          });
           this.initialLoadStartTime = 0;
           this.loadTrigger = '';
         }

@@ -26,6 +26,8 @@ interface FrontendMetric {
 export enum CountMetric {
   // go/keep-sorted start
   DataFetchFailure = 'fe_data_fetch_failure',
+  MultiGraphVisit = 'fe_multi_graph_page_visit',
+  ReportPageVisit = 'fe_report_page_visit',
   SIDRequiringActionTaken = 'fe_sid_requiring_action_taken',
   TriageActionTaken = 'fe_triage_action_taken',
   // go/keep-sorted end

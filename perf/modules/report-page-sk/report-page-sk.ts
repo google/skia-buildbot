@@ -173,6 +173,18 @@ export class ReportPageSk extends ElementSk {
     this._render();
   }
 
+  private stopTimerAndRecord(metric: SummaryMetric, tags: { [key: string]: string } = {}) {
+    if (this.pageLoadStart) {
+      const duration = (performance.now() - this.pageLoadStart) / 1000;
+      telemetry.recordSummary(metric, duration, {
+        ...tags,
+        url: window.location.href,
+      });
+      telemetry.increaseCounter(CountMetric.ReportPageVisit);
+      this.pageLoadStart = 0;
+    }
+  }
+
   async connectedCallback() {
     this.pageLoadStart = performance.now();
     super.connectedCallback();
@@ -197,6 +209,7 @@ export class ReportPageSk extends ElementSk {
       this.anomalyTracker.getAnomaly(detail.anomaly.id)!.checked = detail.checked;
       this.updateGraphs(detail.anomaly, detail.checked);
     });
+    this.stopTimerAndRecord(SummaryMetric.ReportPageLoadTime);
   }
 
   async fetchAnomalies() {
@@ -231,19 +244,8 @@ export class ReportPageSk extends ElementSk {
         this.setCurrentlyLoading('Loading graphs...');
         await this.loadGraphsInChunks();
         this.setCurrentlyLoading('');
-        telemetry.recordSummary(
-          SummaryMetric.ReportPageLoadTime,
-          (performance.now() - this.pageLoadStart) / 1000,
-          {
-            url: window.location.href,
-          }
-        );
       })
       .catch((msg: any) => {
-        telemetry.increaseCounter(CountMetric.DataFetchFailure, {
-          page: 'report',
-          endpoint: '/_/anomalies/group_report',
-        });
         errorMessage(msg);
         this.setCurrentlyLoading('');
         this._render();
@@ -255,7 +257,6 @@ export class ReportPageSk extends ElementSk {
    * after all graphs in the current batch have finished loading.
    */
   private async loadGraphsInChunks() {
-    const chartContainerLoadStart = performance.now();
     const anomaliesToLoad = this.anomalyTracker.getSelectedAnomalies();
     // Chunk size is selected arbitrarily, feel free to tweak.
     const chunkSize = 5;
@@ -264,26 +265,16 @@ export class ReportPageSk extends ElementSk {
     for (let i = 0; i < anomaliesToLoad.length; i += chunkSize) {
       this.setCurrentlyLoading(`Loading graphs (${loadedCount}/${anomaliesToLoad.length})...`);
       const chunk = anomaliesToLoad.slice(i, i + chunkSize);
-      const chunkLoadStart = performance.now();
       const promises = chunk.map(
         (anomaly) =>
           new Promise<void>((resolve) => {
             const dataPoint = this.anomalyTracker.getAnomaly(anomaly.id);
 
             if (dataPoint && !dataPoint.graph) {
-              const startTime = performance.now();
               const graphElement = this.addGraph(anomaly);
               this.anomalyTracker.setGraph(anomaly.id, graphElement);
 
               const listener = () => {
-                telemetry.recordSummary(
-                  SummaryMetric.SingleGraphLoadTime,
-                  (performance.now() - startTime) / 1000,
-                  {
-                    page: 'report',
-                    url: window.location.href,
-                  }
-                );
                 graphElement.removeEventListener('data-loaded', listener);
                 loadedCount++;
                 resolve();
@@ -297,37 +288,13 @@ export class ReportPageSk extends ElementSk {
           })
       );
       await Promise.all(promises);
-      telemetry.recordSummary(
-        SummaryMetric.ReportGraphChunkLoadTime,
-        (performance.now() - chunkLoadStart) / 1000,
-        {
-          url: window.location.href,
-          chunk_size: chunk.length.toString(),
-        }
-      );
     }
 
     this._allGraphsLoaded = true;
-    telemetry.recordSummary(
-      SummaryMetric.ReportChartContainerLoadTime,
-      (performance.now() - chartContainerLoadStart) / 1000,
-      {
-        url: window.location.href,
-        total_graphs: anomaliesToLoad.length.toString(),
-      }
-    );
   }
 
   private async initializePage() {
-    const tableLoadStart = performance.now();
     await this.anomaliesTable!.populateTable(this.anomalyTracker.toAnomalyList());
-    telemetry.recordSummary(
-      SummaryMetric.ReportAnomaliesTableLoadTime,
-      (performance.now() - tableLoadStart) / 1000,
-      {
-        url: window.location.href,
-      }
-    );
 
     const urlParams = new URLSearchParams(window.location.search);
     // This statement is for when anomalyIDs is set, e.g. anomalyIDs=123,124.
