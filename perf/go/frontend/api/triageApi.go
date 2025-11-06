@@ -76,7 +76,7 @@ type ChromeperfFileBugResponse struct {
 
 // Request object for the request from the following triage actions:
 //   - Ignore
-//   - X button (untriage the anomaly)
+//   - Reset - X button (untriage the anomaly)
 //   - Nudge (move the anomaly position to adjacent datapoints)
 type EditAnomaliesRequest struct {
 	Keys          []int    `json:"keys"`
@@ -153,6 +153,7 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 // edit_anomalies_skia. The "keys", is a required field. They map to ndb Anomaly keys in
 // Datastore and are used to fetch the Anomaly object and updated with the new details,
 // whether that be the Bug ID due to triage or end revision due to nudging.
+// TODO(b/455571863) Update this description after migration is implemented.
 func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
 		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
