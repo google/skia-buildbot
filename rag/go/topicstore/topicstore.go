@@ -5,7 +5,6 @@ import (
 
 	"cloud.google.com/go/spanner"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -84,7 +83,6 @@ func (s *topicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
 		var mutations []*spanner.Mutation
 		topicID := topic.ID
 
-		sklog.Infof("Writing topic %d", topicID)
 		if existingID == -1 {
 			// Not found, insert
 			m := spanner.InsertMap("Topics", map[string]interface{}{
@@ -109,7 +107,6 @@ func (s *topicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
 				"topic_id": topicID,
 				"title":    topic.Title,
 			})
-			sklog.Infof("Deleting old chunks for topic")
 			mutations = append(mutations, m)
 		}
 

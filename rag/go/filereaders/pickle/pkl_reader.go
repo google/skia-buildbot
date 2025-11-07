@@ -9,22 +9,22 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-// indexChunk defines a struct for a chunk object in the index pkl file.
-type indexChunk struct {
+// IndexChunk defines a struct for a chunk object in the index pkl file.
+type IndexChunk struct {
 	ChunkId        int64  `json:"chunk_id"`
 	ChunkContent   string `json:"chunk_content"`
 	EmbeddingIndex int    `json:"embedding_index"`
 }
 
-// indexEntry defines a struct for an entry in the index pkl file.
-type indexEntry struct {
+// IndexEntry defines a struct for an entry in the index pkl file.
+type IndexEntry struct {
 	TopicID          int64        `json:"topic_id"`
 	Title            string       `json:"title"`
 	Group            string       `json:"group"`
 	Keywords         []string     `json:"keywords"`
 	CommitCount      int          `json:"commit_count"`
 	CodeContextLines int          `json:"code_context_lines"`
-	Chunks           []indexChunk `json:"chunks"`
+	Chunks           []IndexChunk `json:"chunks"`
 }
 
 // PickeReader provides a struct to read the pkl file.
@@ -42,7 +42,7 @@ func NewPickleReader(filepath string) *PickleReader {
 // Read reads the pkl file and returns the index contents.
 //
 // The returned map is keyed on the topicID and value is the indexEntry for the topic.
-func (r *PickleReader) Read() (map[int64]indexEntry, error) {
+func (r *PickleReader) Read() (map[int64]IndexEntry, error) {
 	// 1. Open the pickle file
 	f, err := os.Open(r.filepath)
 	if err != nil {
@@ -85,7 +85,7 @@ func (r *PickleReader) Read() (map[int64]indexEntry, error) {
 		}
 	*/
 	root_dict := obj.(*types.Dict)
-	indexEntries := map[int64]indexEntry{}
+	indexEntries := map[int64]IndexEntry{}
 
 	var topicData interface{}
 	var ok bool
@@ -96,11 +96,11 @@ func (r *PickleReader) Read() (map[int64]indexEntry, error) {
 	for i := 0; i < topicList.Len(); i++ {
 		topicItem := topicList.Get(i).(*types.Dict)
 
-		indexEntry := indexEntry{
-			Chunks: []indexChunk{},
+		indexEntry := IndexEntry{
+			Chunks: []IndexChunk{},
 		}
 		if topicId, ok := topicItem.Get("topic_id"); ok {
-			indexEntry.TopicID = topicId.(int64)
+			indexEntry.TopicID = int64(topicId.(int))
 		}
 		if title, ok := topicItem.Get("title"); ok {
 			indexEntry.Title = title.(string)
@@ -124,9 +124,9 @@ func (r *PickleReader) Read() (map[int64]indexEntry, error) {
 			chunkList := chunks.(*types.List)
 			for j := 0; j < chunkList.Len(); j++ {
 				chunkItem := chunkList.Get(j).(*types.Dict)
-				chunk := indexChunk{}
+				chunk := IndexChunk{}
 				if chunkId, ok := chunkItem.Get("chunk_id"); ok {
-					chunk.ChunkId = chunkId.(int64)
+					chunk.ChunkId = int64(chunkId.(int))
 				}
 				if chunkContent, ok := chunkItem.Get("chunk_content"); ok {
 					chunk.ChunkContent = chunkContent.(string)

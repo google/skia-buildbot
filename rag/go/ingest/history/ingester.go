@@ -13,6 +13,12 @@ import (
 	"go.skia.org/infra/rag/go/filereaders/npy"
 	"go.skia.org/infra/rag/go/filereaders/pickle"
 	"go.skia.org/infra/rag/go/topicstore"
+	"golang.org/x/sync/errgroup"
+)
+
+const (
+	topicIngestionParallelism = 50
+	spannerStringMaxBytes     = 2097152
 )
 
 // HistoryIngester provides a struct for performing ingestion for history rag.
@@ -68,6 +74,7 @@ func (ingester *HistoryIngester) IngestBlameFileData(ctx context.Context, filePa
 func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath string, embeddingsFilePath string, indexPickleFilePath string) error {
 	// 1. Read the embeddings into memory.
 	npyReader := npy.NewNpyReader(embeddingsFilePath)
+	sklog.Infof("Reading embeddings data from %s.", embeddingsFilePath)
 	embeddings, err := npyReader.ReadFloat32()
 	if err != nil {
 		return err
@@ -75,6 +82,7 @@ func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath
 
 	// 2. Read the index into memory.
 	pickleReader := pickle.NewPickleReader(indexPickleFilePath)
+	sklog.Infof("Reading index pickle data from %s.", indexPickleFilePath)
 	indexEntries, err := pickleReader.Read()
 
 	if err != nil {
@@ -83,8 +91,12 @@ func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath
 
 	sklog.Infof("Embeddings: %d, IndexEntries: %d", len(embeddings), len(indexEntries))
 
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.SetLimit(topicIngestionParallelism)
+	problematicFiles := map[string]error{}
+
 	// Now we read all the topics from the topic files.
-	return filepath.WalkDir(topicsDirPath, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(topicsDirPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -92,39 +104,84 @@ func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath
 			return nil
 		}
 
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		var topicJson topicstore.TopicJSON
-		if err := json.Unmarshal(content, &topicJson); err != nil {
-			return err
-		}
-
-		// Create the Topic object using the values from the json, index and embeddings data.
-		indexEntry := indexEntries[topicJson.TopicID]
-		chunksFromIndex := indexEntry.Chunks
-
-		topic := &topicstore.Topic{
-			ID:               topicJson.TopicID,
-			Title:            indexEntry.Title,
-			TopicGroup:       indexEntry.Group,
-			CommitCount:      indexEntry.CommitCount,
-			Summary:          topicJson.Summary,
-			CodeContext:      topicJson.CodeContext,
-			CodeContextLines: indexEntry.CodeContextLines,
-		}
-
-		for _, chunkFromIndex := range chunksFromIndex {
-			chunk := &topicstore.TopicChunk{
-				ID:        chunkFromIndex.ChunkId,
-				Chunk:     chunkFromIndex.ChunkContent,
-				Embedding: embeddings[chunkFromIndex.EmbeddingIndex],
+		sklog.Infof("Ingesting file: %s", path)
+		eg.Go(func() error {
+			err := ingester.ingestTopicFile(ctx, path, embeddings, indexEntries)
+			if err != nil {
+				// Let's catch the error but allow processing to continue.
+				sklog.Errorf("Error ingesting file %s: %v", path, err)
+				problematicFiles[path] = err
 			}
-			topic.Chunks = append(topic.Chunks, chunk)
-		}
-
-		return ingester.topicStore.WriteTopic(ctx, topic)
+			return nil
+		})
+		return nil
 	})
+	if err != nil {
+		return err
+	}
+	err = eg.Wait()
+	if err != nil {
+		return err
+	}
+
+	// Log the errors encountered.
+	if len(problematicFiles) > 0 {
+		sklog.Infof("The following %d files encountered errors during ingestion", len(problematicFiles))
+		for file, err := range problematicFiles {
+			sklog.Errorf("File: %s, Error: %v", file, err)
+		}
+	}
+
+	return nil
+}
+
+// ingestTopicFile performs topic ingestion for a single file.
+func (ingester *HistoryIngester) ingestTopicFile(ctx context.Context, filePath string, embeddings [][]float32, indexEntries map[int64]pickle.IndexEntry) error {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	var topicJson topicstore.TopicJSON
+	if err := json.Unmarshal(content, &topicJson); err != nil {
+		return err
+	}
+
+	// Create the Topic object using the values from the json, index and embeddings data.
+	indexEntry := indexEntries[topicJson.TopicID]
+	chunksFromIndex := indexEntry.Chunks
+
+	isTrimmed := trimTopicDataIfNecessary(&topicJson)
+	if isTrimmed {
+		sklog.Warningf("Trimmed topic data for file %s, TopicID: %d, Title: %s", filepath.Base(filePath), topicJson.TopicID, indexEntry.Title)
+	}
+	topic := &topicstore.Topic{
+		ID:               topicJson.TopicID,
+		Title:            indexEntry.Title,
+		TopicGroup:       indexEntry.Group,
+		CommitCount:      indexEntry.CommitCount,
+		Summary:          topicJson.Summary,
+		CodeContext:      topicJson.CodeContext,
+		CodeContextLines: indexEntry.CodeContextLines,
+	}
+
+	for _, chunkFromIndex := range chunksFromIndex {
+		chunk := &topicstore.TopicChunk{
+			ID:        chunkFromIndex.ChunkId,
+			Chunk:     chunkFromIndex.ChunkContent,
+			Embedding: embeddings[chunkFromIndex.EmbeddingIndex],
+		}
+		topic.Chunks = append(topic.Chunks, chunk)
+	}
+
+	return ingester.topicStore.WriteTopic(ctx, topic)
+}
+
+// trimTopicDataIfNecessary ensures that the data we write is within spanner's limits.
+func trimTopicDataIfNecessary(topicData *topicstore.TopicJSON) bool {
+	if len(topicData.CodeContext) > spannerStringMaxBytes {
+		topicData.CodeContext = topicData.CodeContext[:spannerStringMaxBytes]
+		return true
+	}
+	return false
 }

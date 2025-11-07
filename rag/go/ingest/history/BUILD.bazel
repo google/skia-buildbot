@@ -13,6 +13,7 @@ go_library(
         "//rag/go/filereaders/npy",
         "//rag/go/filereaders/pickle",
         "//rag/go/topicstore",
+        "@org_golang_x_sync//errgroup",
     ],
 )
 

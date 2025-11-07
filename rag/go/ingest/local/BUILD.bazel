@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/rag/go/ingest/local",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/skerr",
         "//go/sklog",
         "//go/sklog/sklogimpl",
         "//go/sklog/stdlogging",
