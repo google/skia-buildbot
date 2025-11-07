@@ -22,6 +22,3 @@ release-api-ci:
 	$(BAZEL) run --config=mayberemote //api:push_api_container --workspace_status_command=bazel/override_container_label.sh
 	# Cleanup the doc directory (silently).
 	git clean -f -d -q docs/
-
-push: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout api

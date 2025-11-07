@@ -4,10 +4,6 @@ include ../make/bazel.mk
 release:
 	$(BAZEL) run --config=mayberemote //proberk:push_proberk-base
 
-.PHONY: push
-push:
-	$(BAZEL) run --config=mayberemote //proberk:pushk_proberk-base
-
 run-local-instance:
 ifndef K8S_CONFIG
 	$(error K8S_CONFIG environment variable must be set)

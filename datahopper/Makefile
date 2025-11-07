@@ -7,7 +7,3 @@ build: build
 .PHONY: release
 release: build
 	$(BAZEL) run --config=mayberemote //datahopper:push_datahopper_container
-
-.PHONY: push
-push: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout datahopper

@@ -12,9 +12,6 @@ test:
 release: build
 	$(BAZEL) run --config=mayberemote //docsyserver:push_docsyserver_container
 
-push: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout docsyserver
-
 # The docker image has two scripts that allow seeing what docs would look like
 # when rendered with Hugo/Docsy.
 #

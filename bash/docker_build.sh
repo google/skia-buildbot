@@ -16,8 +16,6 @@
 # ---
 # If TAG is set then it is used as the tag for the docker image, otherwise a
 # unique tag is generated from the time/date, user, git hash and repo state.
-# This should never be set for application images, i.e. ones that will
-# participate in pushk, which expects the auto generated tag format.
 #
 # SKIP_UPLOAD
 # -----------

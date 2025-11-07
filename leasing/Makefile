@@ -17,6 +17,3 @@ frontend:
 
 release: build
 	$(BAZEL) run --config=mayberemote //leasing:push_leasing_container
-
-push: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout leasing

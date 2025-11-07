@@ -23,11 +23,5 @@ frontend:
 release: build
 	$(BAZEL) run --config=mayberemote //tree_status:push_tree_status_container
 
-push: release
-	pushk tree_status
-
-push_internal: release
-	pushk --only-cluster skia-corp tree_status
-
 testgo:
 	go test ./go/...

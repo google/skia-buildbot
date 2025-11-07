@@ -20,22 +20,18 @@ Reserving a named global IP address:
 
     gcloud compute addresses create skia-org --global
 
-## pushk and kube/clusters/config.json
+## kube/clusters/config.json
 
 The definitive list of clusters and how to talk to each one is stored in
 `kube/clusters/config.json`.
 
 This config file also defines the git repo where YAML files are stored and where
-to checkout that repo when pushing. The location of the checkout can be set by
-setting the PUSHK_GITDIR environment variable.
+to checkout that repo when pushing.
 
 The k8s YAML files are checked into https://skia.googlesource.com/k8s-config/,
 with one sub-directory for each cluster.
 
 See http://go/corp-ssh-helper for details on setting up SSH.
-
-When you run pushk it will update the images for all the clusters and then run
-`kubectl apply` for each file and for each cluster.
 
 ## Standing up a new cluster in a different project
 

@@ -23,8 +23,6 @@ def skia_app_container(
                         if run_commands_root is specified.
     * "<name>_run_skia" target to execute run commands as the "skia" user on the image.
                         Will be created only if run_commands_skia is specified.
-    * "push_<name>" target to push the container to GCR.
-    * "pushk_<name>" target to push the container to GCR, and deploy <name> to production via pushk.
 
     Example:
 
@@ -78,19 +76,6 @@ def skia_app_container(
         $ bazel run //myapp:push_myapp
         ...
         Successfully pushed Docker image to gcr.io/skia-public/myapp:...
-    ```
-
-    To push the app to production (assuming the app is compatible with pushk):
-
-    ```
-        $ bazel run //myapp:pushk_myapp
-    ```
-
-    Which is equivalent to:
-
-    ```
-        $ bazel run //myapp:push_myapp
-        $ pushk myapp
     ```
 
     Args:
@@ -221,43 +206,4 @@ def skia_app_container(
             # running. This is not possible inside RBE.
             "no-remote",
         ],
-    )
-
-    # pushk expects the second half of the repository name as an argument.
-    pushk_image_name = repository.split("/")[1]
-
-    # The container_push rule outputs two files: <name>, which is a script that uploads the
-    # container to GCR, and <name>.digest, which contains the SHA256 digest of the container.
-    #
-    # Because the container_push rule outputs multiple files, we cannot use $$(rootpath push_<name>)
-    # to get the path to <name>, so we use $$(rootpaths push_<name>), which returns the list of all
-    # output files, then take the base directory of an arbitrary file, and append <name> to it to
-    # get the path to the desired script.
-    pushk_script = "\n".join([
-        "container_push_outputs=($(rootpaths push_%s))",
-        "container_push_base_dir=$$(dirname $${container_push_outputs[0]})",
-        "container_push_script=$${container_push_base_dir}/push_%s",
-        "",
-        "$$container_push_script && $(rootpath //kube/go/pushk) --use-temp-checkout %s",
-    ]) % (name, name, pushk_image_name)
-
-    native.genrule(
-        name = "gen_pushk_" + name,
-        srcs = [
-            "push_" + name,
-            "//kube/go/pushk",
-        ],
-        outs = ["pushk_%s.sh" % name],
-        cmd = "echo '%s' > $@" % pushk_script,
-        tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
-    )
-
-    native.sh_binary(
-        name = "pushk_" + name,
-        srcs = ["gen_pushk_" + name],
-        data = [
-            "push_" + name,
-            "//kube/go/pushk",
-        ],
-        tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
     )

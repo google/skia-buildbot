@@ -23,10 +23,6 @@ wasm_libs:
 	    sh -c "cp -r /tmp/canvaskit /tmp/VERSION /OUT/"
 	echo "const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
-.PHONY: push
-push: release
-	$(BAZEL) run --config=mayberemote //shaders:pushk_shader_container
-
 .PHONY: release-base
 release-base:
 	$(BAZEL) run --config=mayberemote //shaders:push_shaders_container-base

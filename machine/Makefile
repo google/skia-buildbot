@@ -24,9 +24,6 @@ testjs:
 release:
 	$(BAZEL) run --config=mayberemote //machine:push_machineserver
 
-push:
-	$(BAZEL) run --config=mayberemote //machine:pushk_machineserver
-
 # Make our own firestore emulator image.
 # https://issuetracker.google.com/issues/153087269
 release_firestore_emulator:

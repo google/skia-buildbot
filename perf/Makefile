@@ -19,10 +19,6 @@ docs:
 release:
 	$(BAZEL) run --config=mayberemote //perf:push_perfserver
 
-.PHONY: push
-push:
-	$(BAZEL) run --config=mayberemote //perf:pushk_perfserver
-
 # Run a spanner emulator locally.
 run-spanner-emulator:
 	sudo docker ps -q | xargs -r sudo docker rm -vf

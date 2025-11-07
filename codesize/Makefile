@@ -14,6 +14,3 @@ watch-local-instance:
 
 release:
 	$(BAZEL) run --config=mayberemote //codesize:push_codesizeserver
-
-push: release
-	$(BAZEL) run --config=mayberemote //codesize:pushk_codesizeserver

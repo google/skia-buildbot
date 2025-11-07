@@ -1,6 +1,3 @@
-pushk:
-	go install ../kube/go/pushk
-
 kube-conf-gen:
 	go install -v ../kube/go/kube-conf-gen
 

@@ -76,7 +76,6 @@ It is customary to have the following commands in a Makefile for the service.
   command is for running the server, but also making changes to the front end.
 - `release` : Build a Docker container with the front end and backend parts in
   it (see below).
-- `push` : Depends on release, and then pushes to GKE using `pushk`.
 
 ## Docker
 
@@ -208,8 +207,8 @@ via the package manager in your Docker image.
   [k8s-config](https://skia.googlesource.com/k8s-config/+show/master/) This
   controls how your app will be run in GKE. See
   [these docs](https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/)
-  for more on the schema. Commit this, then run `pushk appname` to make the
-  configuration active.
+  for more on the schema. Commit this, then watch the cluster to ensure that the
+  service is auto-deployed.
 - Metrics are customarily made available at port 20000. To configure metrics
   scraping the port should be named 'prom'. See [go/skia-infra-metrics](http://go/skia-infra-metrics)
   for more details.
@@ -284,7 +283,7 @@ spec:
 
 - It is possible to test your service/config without making it publicly visible.
 
-  - Deploy your `app.yaml` either with `pushk` or `kubectl apply -f app.yaml`
+  - Wait for your `app.yaml` to be auto-deployed.
   - Identify a pod name, `kubectl get pods | grep [my-app]` where my-app is the
     name of the new service.
   - Forward a local port (e.g. 8083) to a port on the pod (e.g. the HTTP port

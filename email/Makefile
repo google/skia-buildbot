@@ -10,7 +10,3 @@ send-from-local-instance:
 .PHONY: release
 release:
 	$(BAZEL) run --config=mayberemote //email:push_emailservice
-
-.PHONY: push
-push:
-	$(BAZEL) run --config=mayberemote //email:pushk_emailservice

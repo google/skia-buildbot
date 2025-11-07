@@ -12,10 +12,6 @@ test:
 release: build
 	$(BAZEL) run --config=mayberemote //android_ingest:push_android_ingest_container
 
-.PHONY: push
-push: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout androidingest
-
 # Get the exact service account key, so we know that it has access to the API.
 service-account.json:
 	kubectl get secrets skia-android-ingest -o json | jq -r  '.data."key.json"' | base64 -d  > service-account.json

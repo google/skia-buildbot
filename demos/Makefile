@@ -19,6 +19,3 @@ local-instance-with-sync:
 
 release:
 	$(BAZEL) run --config=mayberemote //demos:push_demos_container
-
-push: release
-	pushk demoserver

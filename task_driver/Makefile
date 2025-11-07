@@ -8,10 +8,6 @@ build:
 release: build
 	$(BAZEL) run --config=mayberemote //task_driver:push_task_driver_container
 
-.PHONY: push
-push: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-driver-server
-
 .PHONY: serve
 serve:
 	@echo "Bazel doesn't have a serve-all option."

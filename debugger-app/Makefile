@@ -22,12 +22,6 @@ get_latest_skia:
 	    sh -c "cp -r /tmp/canvaskit /tmp/VERSION /OUT/"
 	echo "const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
-.PHONY: push
-push: release
-    # Please do not bypass the override dirty image because that will overwrite all the
-    # old versions of debugger.
-	pushk --do-not-override-dirty-image debugger-app
-
 # Default port is 8000, but setting this environment variable can override that
 # https://stackoverflow.com/a/53370979
 DEBUGGER_LOCAL_PORT ?= :8000

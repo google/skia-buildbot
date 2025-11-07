@@ -17,6 +17,3 @@ build:
 
 release: build
 	$(BAZEL) run --config=mayberemote //status:push_status_container
-
-push: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout status

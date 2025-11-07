@@ -24,7 +24,3 @@ build: generate
 
 release: build
 	$(BAZEL) run --config=mayberemote //bugs-central:push_bugs_central_container
-
-push: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout bugs-central
-

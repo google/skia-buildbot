@@ -28,9 +28,6 @@ build-am: generate
 release-am: build-am
 	$(BAZEL) run --config=mayberemote //am:push_alert-manager
 
-push-am: release-am
-	$(BAZEL) run --config=mayberemote //am:pushk_alert-manager
-
 
 # ALERT-TO-PUBSUB TARGETS
 
@@ -39,9 +36,6 @@ build-atp:
 
 release-atp:
 	$(BAZEL) run --config=mayberemote //am:push_alert-to-pubsub
-
-push-atp:
-	$(BAZEL) run --config=mayberemote //am:pushk_alert-to-pubsub
 
 VERSION := $(shell ../bash/release_tag.sh)
 

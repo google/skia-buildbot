@@ -28,9 +28,6 @@ build-fe: generate
 release-fe: build-fe
 	$(BAZEL) run --config=mayberemote //skcq:push_skcq_fe_container
 
-push-fe: release-fe
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout skcq-fe
-
 
 # BACKEND TARGETS
 
@@ -43,14 +40,9 @@ build-be: generate
 release-be: build-be
 	$(BAZEL) run --config=mayberemote //skcq:push_skcq_be_container
 
-push-be: release-be
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout skcq-be
-
 
 # FRONTEND+BACKEND TARGETS
 
 build-all: build-fe build-be
 
 release-all: release-fe release-be
-
-push-all: push-fe push-be

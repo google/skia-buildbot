@@ -45,18 +45,6 @@ release-fe: task-scheduler-fe
 release-jc: task-scheduler-jc
 	$(BAZEL) run --config=mayberemote //task_scheduler:push_task_scheduler_jc_container
 
-.PHONY: push-be
-push-be: release-be
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-be
-
-.PHONY: push-fe
-push-fe: release-fe
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-fe
-
-.PHONY: push-jc
-push-jc: release-jc
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-jc
-
 .PHONY: validate_db
 validate_db:
 	go install -v ./go/db/validate_db

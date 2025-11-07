@@ -14,6 +14,3 @@ build: generate
 
 release: build
 	$(BAZEL) run --config=mayberemote //npm-audit-mirror:push_npm_audit_mirror_container
-
-push: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout npm-audit-mirror

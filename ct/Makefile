@@ -27,7 +27,3 @@ build: generate
 
 release: build
 	$(BAZEL) run --config=mayberemote //ct:push_ctfe_container
-
-push: release
-	$(BAZEL) run --config=mayberemote //kube/go/pushk -- --use-temp-checkout ctfe
-
