@@ -3,15 +3,13 @@ package notify
 import (
 	"context"
 	"errors"
-	"io"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/email/go/emailclient"
+	"go.skia.org/infra/go/email"
+	email_mocks "go.skia.org/infra/go/email/mocks"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
@@ -246,22 +244,20 @@ func TestExampleSendWithHTMLFormatter_SendNewRegressionReturnsError_ReturnsError
 func TestExampleSendWithHTMLFormatterAndEMailTransport_HappyPath(t *testing.T) {
 	const expectedMessageID = "<the-actual-message-id>"
 
+	emailClient := &email_mocks.Client{}
+	tr := EmailTransport{
+		client: emailClient,
+	}
 	subjects := []string{newHTMLSubject, missingHTMLSubject}
 	subjectIndex := 0
-	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
-		require.Contains(t, string(b), "<b>Alert</b>")
-		require.Contains(t, string(b), subjects[subjectIndex])
+	emailClient.On("SendMail", testutils.AnyContext, mock.MatchedBy(func(req *email.SendMailRequest) bool {
+		require.Contains(t, req.HtmlBody, "<b>Alert</b>")
+		require.Contains(t, req.Subject, subjects[subjectIndex])
 		subjectIndex++
-
-		w.Header().Add("x-message-id", mockThreadingID)
-		w.WriteHeader(http.StatusOK)
-	}))
-	tr := NewEmailTransport()
-	emailClient := emailclient.NewAt(s.URL)
-	tr.client = emailClient
-
+		return true
+	})).Return(&email.SendMailResponse{
+		MessageId: mockThreadingID,
+	}, nil)
 	ndp := mocks.NewNotificationDataProvider(t)
 	ndp.On("GetNotificationDataRegressionFound", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
 		Body:    newHTMLMessage,

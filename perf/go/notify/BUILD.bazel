@@ -18,7 +18,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/notify",
     visibility = ["//visibility:public"],
     deps = [
-        "//email/go/emailclient",
+        "//go/email",
         "//go/issuetracker/v1:issuetracker",
         "//go/metrics2",
         "//go/now",
@@ -62,7 +62,8 @@ go_test(
     data = ["//perf:configs_spanner"],
     embed = [":notify"],
     deps = [
-        "//email/go/emailclient",
+        "//go/email",
+        "//go/email/mocks",
         "//go/now",
         "//go/paramtools",
         "//go/query",

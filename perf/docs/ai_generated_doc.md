@@ -6330,7 +6330,7 @@ The notification system is built around a few key abstractions:
     formatted notification is actually sent. Implementations include:
 
     - `EmailTransport` (`email.go`): Sends notifications via email using the
-      `emailclient` module.
+      `email` module.
     - `IssueTrackerTransport` (`issuetracker.go`): Interacts with an issue
       tracking system (configured for Google's Issue Tracker/Buganizer) to
       create or update issues. It uses the `go/issuetracker/v1` client and
@@ -6442,8 +6442,8 @@ Regression Detected --> Notifier.RegressionFound(...)
 - **`email.go` & `issuetracker.go` & `noop.go`**:
 
   - Implement the `Transport` interface.
-  - `email.go`: Uses `emailclient` to send emails. Splits
-    comma/space-separated recipient lists.
+  - `email.go`: Uses `email` to send emails. Splits comma/space-separated
+    recipient lists.
   - `issuetracker.go`: Interacts with the Google Issue Tracker API. It
     requires API key secrets (configured via `NotifyConfig`) and uses OAuth2
     for authentication. It can create new issues and update existing ones

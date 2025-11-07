@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"go.skia.org/infra/email/go/emailclient"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/alerts"
 )
@@ -25,16 +25,20 @@ func splitEmails(s string) []string {
 	return ret
 }
 
-// EmailTransport implements Transport using emailclient.
+// EmailTransport implements Transport using email.Client.
 type EmailTransport struct {
-	client emailclient.Client
+	client email.Client
 }
 
 // NewEmailTransport returns a new EmailService instance.
-func NewEmailTransport() EmailTransport {
-	return EmailTransport{
-		client: emailclient.New(),
+func NewEmailTransport() (EmailTransport, error) {
+	client, err := email.NewClient(context.TODO())
+	if err != nil {
+		return EmailTransport{}, skerr.Wrapf(err, "creating email client")
 	}
+	return EmailTransport{
+		client: client,
+	}, nil
 }
 
 // SendNewRegression implements Transport.
@@ -43,7 +47,7 @@ func (e EmailTransport) SendNewRegression(ctx context.Context, alert *alerts.Ale
 		return "", fmt.Errorf("No notification sent. No email address set for alert #%s", alert.IDAsString)
 	}
 
-	threadingReference, err := e.client.SendWithMarkup("", fromAddress, splitEmails(alert.Alert), subject, "", body, "")
+	threadingReference, err := email.SendWithMarkup(ctx, e.client, fromAddress, splitEmails(alert.Alert), subject, "", body, "")
 	if err != nil {
 		return "", skerr.Wrapf(err, "sending notification by email")
 	}
@@ -57,7 +61,7 @@ func (e EmailTransport) SendRegressionMissing(ctx context.Context, threadingRefe
 		return skerr.Fmt("No notification sent. No email address set for alert #%s", alert.IDAsString)
 	}
 
-	_, err := e.client.SendWithMarkup("", fromAddress, splitEmails(alert.Alert), subject, "", body, threadingReference)
+	_, err := email.SendWithMarkup(ctx, e.client, fromAddress, splitEmails(alert.Alert), subject, "", body, threadingReference)
 	if err != nil {
 		return skerr.Wrapf(err, "sending notification by email")
 	}

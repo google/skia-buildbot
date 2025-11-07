@@ -243,7 +243,11 @@ func New(ctx context.Context, cfg *config.NotifyConfig, itCfg *config.IssueTrack
 	case notifytypes.None:
 		return newNotifier(notificationDataProvider, formatter, NewNoopTransport(), URL, traceStore, fs), nil
 	case notifytypes.HTMLEmail:
-		return newNotifier(notificationDataProvider, formatter, NewEmailTransport(), URL, traceStore, fs), nil
+		tp, err := NewEmailTransport()
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return newNotifier(notificationDataProvider, formatter, tp, URL, traceStore, fs), nil
 	case notifytypes.MarkdownIssueTracker:
 		tracker, err := NewIssueTrackerTransport(ctx, cfg)
 		if err != nil {

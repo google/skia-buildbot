@@ -9,15 +9,17 @@ import (
 )
 
 func TestEmailTransportSendNewRegression_EmailIsMissing_ReturnsError(t *testing.T) {
-	e := NewEmailTransport()
-	_, err := e.SendNewRegression(context.Background(), &alerts.Alert{}, "", "")
+	e, err := NewEmailTransport()
+	require.NoError(t, err)
+	_, err = e.SendNewRegression(context.Background(), &alerts.Alert{}, "", "")
 	require.Contains(t, err.Error(), "No email address")
 
 }
 
 func TestEmailTransportSendRegressionMissing_EmailIsMissing_ReturnsError(t *testing.T) {
-	e := NewEmailTransport()
-	err := e.SendRegressionMissing(context.Background(), "", &alerts.Alert{}, "", "")
+	e, err := NewEmailTransport()
+	require.NoError(t, err)
+	err = e.SendRegressionMissing(context.Background(), "", &alerts.Alert{}, "", "")
 	require.Contains(t, err.Error(), "No email address")
 
 }
