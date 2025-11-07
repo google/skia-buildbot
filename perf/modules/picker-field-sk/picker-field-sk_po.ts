@@ -1,48 +1,32 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 
-/**
- * Page Object for the PickerFieldSk component.
- */
 export class PickerFieldSkPO extends PageObject {
-  private get vaadinComboBox(): PageObjectElement {
+  get comboBox(): PageObjectElement {
     return this.bySelector('vaadin-multi-select-combo-box');
   }
 
-  async click() {
-    await this.vaadinComboBox.click();
+  get splitByCheckbox(): PageObjectElement {
+    return this.bySelector('checkbox-sk#split-by');
   }
 
-  async getSelectedItems(): Promise<string | null> {
-    return this.vaadinComboBox.value;
+  get selectPrimaryCheckbox(): PageObjectElement {
+    return this.bySelector('checkbox-sk#select-primary');
   }
 
-  async setPatchset(value: string) {
-    await this.vaadinComboBox.enterValue(value);
+  get selectAllCheckbox(): PageObjectElement {
+    return this.bySelector('checkbox-sk#select-all');
   }
 
-  async getLabel(): Promise<string | null> {
-    return this.vaadinComboBox!.getAttribute('label');
+  async getSelectedItems(): Promise<string[]> {
+    return this.comboBox.applyFnToDOMNode((n) => (n as any).selectedItems);
   }
 
-  /**
-   * Gets the array of selected items in the picker field.
-   */
-  get selectedItems(): string[] {
-    const selectedItems = this.vaadinComboBox?.getAttribute('selectedItems');
-    if (selectedItems && Array.isArray(selectedItems)) {
-      return selectedItems as string[];
-    }
-    return [];
-  }
-
-  /**
-   * Opens the overlay of the picker field.
-   */
   async openOverlay(): Promise<void> {
-    if (!this.vaadinComboBox) {
-      throw new Error('Vaadin combo box not found');
-    }
-    this.vaadinComboBox.click();
+    await this.comboBox.click();
+  }
+
+  async isDisabled(): Promise<boolean> {
+    return this.comboBox.hasAttribute('readonly');
   }
 }
