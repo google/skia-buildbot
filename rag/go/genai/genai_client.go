@@ -20,7 +20,26 @@ type GeminiClient struct {
 }
 
 // NewGeminiClient returns a new instance of the GeminiClient.
-func NewGeminiClient(ctx context.Context, apiKey string) (*GeminiClient, error) {
+func NewGeminiClient(ctx context.Context, project, location string) (*GeminiClient, error) {
+	genAiClient, err := genai.NewClient(ctx, &genai.ClientConfig{
+		Backend:  genai.BackendGeminiAPI,
+		Project:  project,
+		Location: location,
+	})
+	if err != nil {
+		sklog.Errorf("Error creating new gemini client: %v", err)
+		return nil, err
+	}
+
+	return &GeminiClient{
+		genAiClient: genAiClient,
+	}, nil
+}
+
+// NewLocalGeminiClient returns a new instance of the GeminiClient using an api key.
+//
+// This is not intended for production purposes.
+func NewLocalGeminiClient(ctx context.Context, apiKey string) (*GeminiClient, error) {
 	genAiClient, err := genai.NewClient(ctx, &genai.ClientConfig{
 		APIKey:  apiKey,
 		Backend: genai.BackendGeminiAPI,

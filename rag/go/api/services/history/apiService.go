@@ -2,6 +2,7 @@ package history
 
 import (
 	"context"
+	"os"
 
 	"cloud.google.com/go/spanner"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -13,6 +14,12 @@ import (
 	"go.skia.org/infra/rag/go/genai"
 	"go.skia.org/infra/rag/go/topicstore"
 	pb "go.skia.org/infra/rag/proto/history/v1"
+)
+
+const (
+	geminiApiKeyEnvVar   = "GEMINI_API_KEY"
+	geminiProjectEnvVar  = "GEMINI_PROJECT"
+	geminiLocationEnvVar = "GEMINI_LOCATION"
 )
 
 // ApiService provides a struct for the HistoryRag api implementation.
@@ -33,8 +40,25 @@ type ApiService struct {
 }
 
 // NewApiService returns a new instance of the ApiService struct.
-func NewApiService(ctx context.Context, dbClient *spanner.Client, geminiApiKey string, queryEmbeddingModel string) *ApiService {
-	genAiClient, err := genai.NewGeminiClient(ctx, geminiApiKey)
+func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbeddingModel string) *ApiService {
+	var genAiClient *genai.GeminiClient
+	var err error
+	// Get the api key from the env.
+	apiKey := os.Getenv(geminiApiKeyEnvVar)
+
+	if apiKey != "" {
+		sklog.Infof("Gemini api key specified in the environment, creating a local client.")
+		genAiClient, err = genai.NewLocalGeminiClient(ctx, apiKey)
+	} else {
+		projectId := os.Getenv(geminiProjectEnvVar)
+		location := os.Getenv(geminiLocationEnvVar)
+		if projectId == "" || location == "" {
+			sklog.Fatalf("%s and %s environment variables need to be set.", geminiProjectEnvVar, geminiLocationEnvVar)
+		}
+		sklog.Infof("Creating a new Gemini client for project %s and location %s", projectId, location)
+		genAiClient, err = genai.NewGeminiClient(ctx, projectId, location)
+	}
+
 	if err != nil {
 		sklog.Errorf("Error creating new gemini client: %v", err)
 		return nil
