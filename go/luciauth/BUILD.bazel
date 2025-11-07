@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/go/luciauth",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/auth",
         "@org_chromium_go_luci//auth",
         "@org_golang_x_oauth2//:oauth2",
     ],

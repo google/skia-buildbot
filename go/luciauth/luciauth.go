@@ -4,6 +4,7 @@ import (
 	"context"
 
 	luci_auth "go.chromium.org/luci/auth"
+	"go.skia.org/infra/go/auth"
 	"golang.org/x/oauth2"
 )
 
@@ -19,7 +20,7 @@ import (
 func NewLUCIContextTokenSource(scopes ...string) (oauth2.TokenSource, error) {
 	authenticator := luci_auth.NewAuthenticator(context.Background(), luci_auth.SilentLogin, luci_auth.Options{
 		Method: luci_auth.LUCIContextMethod,
-		Scopes: append(scopes, luci_auth.OAuthScopeEmail),
+		Scopes: append(scopes, auth.ScopeUserinfoEmail),
 	})
 	return authenticator.TokenSource()
 }
