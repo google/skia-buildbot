@@ -508,6 +508,7 @@ type FrontendFlags struct {
 	FetchChromePerfAnomalies   bool
 	FeedbackURL                string
 	DisableMetricsUpdate       bool
+	VersionFile                string
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -680,6 +681,12 @@ show up as a query option in the UI for the "test" key.
 			Name:        "disable_metrics_update",
 			Value:       false,
 			Usage:       "Disables updating of the database metrics",
+		},
+		&cli.StringFlag{
+			Destination: &flags.VersionFile,
+			Name:        "version_file",
+			Value:       "/usr/local/share/skiaperf/VERSION.txt",
+			Usage:       "Path to the file containing the application build version (git hash).",
 		},
 	}
 }

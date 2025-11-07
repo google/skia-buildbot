@@ -193,6 +193,8 @@ type Frontend struct {
 	urlProvider *urlprovider.URLProvider
 
 	issuetracker issuetracker.IssueTracker
+
+	appVersion string
 }
 
 // New returns a new Frontend instance.
@@ -297,6 +299,7 @@ type SkPerfConfig struct {
 	ShowTriageLink              bool               `json:"show_triage_link"`                // Boolean to display traige link on side panel or not
 	ShowBisectBtn               bool               `json:"show_bisect_btn"`                 // Boolean to display bisect button or not
 	AlwaysShowCommitInfo        bool               `json:"always_show_commit_info"`         // Boolean to display commit author and hash.
+	AppVersion                  string             `json:"app_version"`                     // The git revision of the buildbot repo this instance was built from.
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -335,6 +338,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		AlwaysShowCommitInfo:        config.Config.DataPointConfig.AlwaysShowCommitInfo,
 		ShowTriageLink:              config.Config.ShowTriageLink,
 		ShowBisectBtn:               config.Config.ShowBisectBtn,
+		AppVersion:                  f.appVersion,
 	}
 
 	var buff bytes.Buffer
@@ -389,8 +393,17 @@ func (f *Frontend) initialize() {
 	metrics2.InitPrometheus(f.flags.PromPort)
 	_ = metrics2.NewLiveness("uptime", nil)
 
+	// Read the application version file.
+	versionData, err := os.ReadFile(f.flags.VersionFile)
+	if err != nil {
+		sklog.Warningf("Failed to read version file at %s: %s", f.flags.VersionFile, err)
+		f.appVersion = "unknown"
+	} else {
+		f.appVersion = strings.TrimSpace(string(versionData))
+	}
+	sklog.Infof("Application version: %s", f.appVersion)
+
 	// Add tracker for long running requests.
-	var err error
 	f.progressTracker, err = progress.NewTracker("/_/status/")
 	if err != nil {
 		sklog.Fatalf("Failed to initialize Tracker: %s", err)
