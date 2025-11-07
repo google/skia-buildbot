@@ -29,6 +29,10 @@ export const PivotQueryChangedEventName = 'pivot-changed';
  * for the pivot.Request.group_by.
  */
 export class PivotQuerySk extends ElementSk {
+  private static nextUniqueId = 0;
+
+  private readonly uniqueId = `${PivotQuerySk.nextUniqueId++}`;
+
   private _paramset = ParamSet({});
 
   private _pivotRequest: pivot.Request | null = null;
@@ -38,23 +42,23 @@ export class PivotQuerySk extends ElementSk {
   }
 
   private static template = (ele: PivotQuerySk) => html`
-    <label for="group_by">
+    <label for="group_by-${ele.uniqueId}">
       <p>Which keys should traces be grouped by:</p>
-      <multi-select-sk id="group_by" @selection-changed=${ele.groupByChanged}>
+      <multi-select-sk id="group_by-${ele.uniqueId}" @selection-changed=${ele.groupByChanged}>
         ${ele.groupByOptions()}
       </multi-select-sk>
     </label>
 
-    <label for="operation">
+    <label for="operation-${ele.uniqueId}">
       <p>What operation should be applied:</p>
-      <select id="operation" @change=${ele.operationChanged}>
+      <select id="operation-${ele.uniqueId}" @change=${ele.operationChanged}>
         ${ele.operationOptions()}
       </select>
     </label>
 
-    <label for="summary">
+    <label for="summary-${ele.uniqueId}">
       <p>Optional: Choose summary statistics to calculate for each group:</p>
-      <multi-select-sk id="summary" @selection-changed=${ele.summaryChanged}>
+      <multi-select-sk id="summary-${ele.uniqueId}" @selection-changed=${ele.summaryChanged}>
         ${ele.summaryOptions()}
       </multi-select-sk>
     </label>

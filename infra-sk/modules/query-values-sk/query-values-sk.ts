@@ -34,28 +34,36 @@ export interface QueryValuesSkQueryValuesChangedEventDetail {
 export class QueryValuesSk extends ElementSk {
   private static template = (ele: QueryValuesSk) => html`
     <checkbox-sk
-      id="invert"
+      id="invert-${ele.uniqueId}"
       @change=${ele._invertChange}
       title="Match items not selected below."
       label="Invert"
       ?hidden=${ele.hide_invert}></checkbox-sk>
     <checkbox-sk
-      id="regex"
+      id="regex-${ele.uniqueId}"
+      class="regex"
       @change=${ele._regexChange}
       title="Match items via regular expression."
       label="Regex"
       ?hidden=${ele.hide_regex}></checkbox-sk>
-    <input type="text" id="regexValue" class="hidden" @input=${ele._regexInputChange} />
+    <input
+      type="text"
+      id="regexValue-${ele.uniqueId}"
+      class="regexValue"
+      @input=${ele._regexInputChange} />
     <div class="filtering">
       <input
-        id="filter"
+        id="filter-${ele.uniqueId}"
         @input=${ele._fastFilter}
         placeholder="Filter Values"
         name="query-value-sk-filter-val"
         autocomplete="off" />
       ${QueryValuesSk.clearFilterButton(ele)}
     </div>
-    <multi-select-sk id="values" @selection-changed=${ele._selectionChange}>
+    <multi-select-sk
+      id="values-${ele.uniqueId}"
+      class="values"
+      @selection-changed=${ele._selectionChange}>
       ${QueryValuesSk.valuesTemplate(ele)}
     </multi-select-sk>
   `;
@@ -102,6 +110,10 @@ export class QueryValuesSk extends ElementSk {
 
   private _values: MultiSelectSk | null = null;
 
+  private static nextUniqueId = 0;
+
+  readonly uniqueId = `${QueryValuesSk.nextUniqueId++}`;
+
   constructor() {
     super(QueryValuesSk.template);
   }
@@ -109,11 +121,11 @@ export class QueryValuesSk extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
-    this._invert = this.querySelector('#invert');
-    this._regex = this.querySelector('#regex');
-    this._values = this.querySelector('#values');
-    this._regexValue = this.querySelector('#regexValue');
-    this._filterInput = this.querySelector('#filter');
+    this._invert = this.querySelector(`#invert-${this.uniqueId}`);
+    this._regex = this.querySelector(`#regex-${this.uniqueId}`);
+    this._values = this.querySelector(`#values-${this.uniqueId}`);
+    this._regexValue = this.querySelector(`#regexValue-${this.uniqueId}`);
+    this._filterInput = this.querySelector(`#filter-${this.uniqueId}`);
     this._upgradeProperty('options');
     this._upgradeProperty('selected');
     this._upgradeProperty('hide_invert');

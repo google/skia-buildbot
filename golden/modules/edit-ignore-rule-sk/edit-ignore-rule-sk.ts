@@ -19,14 +19,20 @@ import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-s
 import '../../../infra-sk/modules/query-sk';
 
 export class EditIgnoreRuleSk extends ElementSk {
+  private static nextUniqueId = 0;
+
+  private readonly uniqueId = `${EditIgnoreRuleSk.nextUniqueId++}`;
+
   private static template = (ele: EditIgnoreRuleSk) => html`
     <div class="columns">
-      <label for="expires">Expires in</label>
-      <input placeholder="(e.g. 2w, 4h)" id="expires" value=${ele._expires} />
+      <label for="expires-${ele.uniqueId}">Expires in</label>
+      <input placeholder="(e.g. 2w, 4h)" id="expires-${ele.uniqueId}" value=${ele._expires} />
     </div>
 
     <div class="columns">
-      <textarea placeholder="Enter a note, e.g 'skia:1234'" id="note">${ele._note}</textarea>
+      <textarea placeholder="Enter a note, e.g 'skia:1234'" id="note-${ele.uniqueId}">
+${ele._note}</textarea
+      >
       <div class="query">${humanReadableQuery(ele.query)}</div>
     </div>
 
@@ -106,7 +112,7 @@ export class EditIgnoreRuleSk extends ElementSk {
    */
   get expires(): string {
     // Note, this is a string like 2w, 3h - it will be parsed server-side.
-    return this.querySelector<HTMLInputElement>('#expires')!.value;
+    return this.querySelector<HTMLInputElement>(`#expires-${this.uniqueId}`)!.value;
   }
 
   set expires(d: string) {
@@ -125,7 +131,7 @@ export class EditIgnoreRuleSk extends ElementSk {
 
   /** A note, usually a comment, to accompany the ignore rule. */
   get note(): string {
-    return this.querySelector<HTMLInputElement>('#note')!.value;
+    return this.querySelector<HTMLTextAreaElement>(`#note-${this.uniqueId}`)!.value;
   }
 
   set note(n: string) {

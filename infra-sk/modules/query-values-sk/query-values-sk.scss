@@ -3,15 +3,15 @@
 @import '../../themes.scss';
 
 query-values-sk {
-  #regex ~ #values,
-  #regex ~ .filtering,
-  #regex[checked] + #regexValue {
+  .regex ~ .values,
+  .regex ~ .filtering,
+  .regex[checked] + .regexValue {
     display: inline-block;
   }
 
-  #regex[checked] ~ #values,
-  #regex[checked] ~ .filtering,
-  #regex + #regexValue {
+  .regex[checked] ~ .values,
+  .regex[checked] ~ .filtering,
+  .regex + .regexValue {
     display: none;
   }
 

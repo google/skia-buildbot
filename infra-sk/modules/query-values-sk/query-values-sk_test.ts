@@ -23,12 +23,12 @@ describe('query-values-sk', () => {
       assert.deepEqual(['ar'], queryValuesSk.selected);
     });
 
-    it('removes checks', () => {
+    it('removes exclamation marks', () => {
       queryValuesSk.selected = ['!x86', '!arm'];
       assert.deepEqual(['x86', 'arm'], queryValuesSk.selected);
     });
 
-    it('leaves the value unchanged if it does not contain checks or tildes', () => {
+    it('leaves the value unchanged if it does not contain exclamation marks or tildes', () => {
       queryValuesSk.selected = ['x86', 'arm'];
       assert.deepEqual(['x86', 'arm'], queryValuesSk.selected);
     });
@@ -101,7 +101,7 @@ describe('query-values-sk', () => {
 
     it('can change the selection via the UI', async () => {
       await queryValuesSkPO.setSelected(['x86']);
-      assert.deepEqual(['x86'], queryValuesSk.selected);
+      assert.deepEqual(['x86'], await queryValuesSkPO.getSelected());
     });
 
     it('toggles invert correctly for invert click', async () => {
@@ -194,17 +194,17 @@ describe('query-values-sk', () => {
 
       const event = queryValuesChangedEventPromise();
       await queryValuesSkPO.clickOption('x86');
-      let value = (await event).detail;
+      const value = (await event).detail;
       assert.deepEqual(
         { invert: true, regex: false, values: ['!x86', '!arm'] },
         value,
         'Event was sent.'
       );
 
-      value = await clickInvertAndWaitForEvent();
+      const value2 = await clickInvertAndWaitForEvent();
       assert.deepEqual(
         { invert: false, regex: false, values: ['x86', 'arm'] },
-        value,
+        value2,
         'Event was sent.'
       );
       assert.isFalse(await queryValuesSkPO.isRegexCheckboxChecked());

@@ -2,31 +2,36 @@ import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-
 import { PageObject } from '../page_object/page_object';
 import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
 import { asyncForEach } from '../async';
+import { QueryValuesSk } from './query-values-sk';
 
 /** A page object for the QueryValuesSk component. */
 export class QueryValuesSkPO extends PageObject {
-  private get invertCheckBox(): PageObjectElement {
-    return this.bySelector('checkbox-sk#invert');
+  private uniqueIdPromise: Promise<string> = this.element.applyFnToDOMNode(
+    (el) => (el as QueryValuesSk).uniqueId
+  );
+
+  private async getInvertCheckBox(): Promise<PageObjectElement> {
+    return this.bySelector(`checkbox-sk#invert-${await this.uniqueIdPromise}`);
   }
 
-  private get regexCheckBox(): PageObjectElement {
-    return this.bySelector('checkbox-sk#regex');
+  private async getRegexCheckBox(): Promise<PageObjectElement> {
+    return this.bySelector(`checkbox-sk#regex-${await this.uniqueIdPromise}`);
   }
 
-  private get regexInput(): PageObjectElement {
-    return this.bySelector('#regexValue');
+  private async getRegexInput(): Promise<PageObjectElement> {
+    return this.bySelector(`#regexValue-${await this.uniqueIdPromise}`);
   }
 
-  private get filterInput(): PageObjectElement {
-    return this.bySelector('#filter');
+  private async getFilterInput(): Promise<PageObjectElement> {
+    return this.bySelector(`#filter-${await this.uniqueIdPromise}`);
   }
 
-  private get options(): PageObjectElementList {
-    return this.bySelectorAll('multi-select-sk#values div');
+  private async getOptionsList(): Promise<PageObjectElementList> {
+    return this.bySelectorAll(`multi-select-sk#values-${await this.uniqueIdPromise} div`);
   }
 
-  private get selectedOptions(): PageObjectElementList {
-    return this.bySelectorAll('multi-select-sk#values div[selected]');
+  private async getSelectedOptionsList(): Promise<PageObjectElementList> {
+    return this.bySelectorAll(`multi-select-sk#values-${await this.uniqueIdPromise} div[selected]`);
   }
 
   private get clearFiltersBtn(): PageObjectElement {
@@ -34,49 +39,53 @@ export class QueryValuesSkPO extends PageObject {
   }
 
   async isInvertCheckboxChecked() {
-    return (await this.invertCheckBox).applyFnToDOMNode(
+    return (await this.getInvertCheckBox()).applyFnToDOMNode(
       (c: Element) => (c as CheckOrRadio).checked
     );
   }
 
   async isRegexCheckboxChecked() {
-    return (await this.regexCheckBox).applyFnToDOMNode((c: Element) => (c as CheckOrRadio).checked);
+    return (await this.getRegexCheckBox()).applyFnToDOMNode(
+      (c: Element) => (c as CheckOrRadio).checked
+    );
   }
 
   async clickInvertCheckbox() {
-    await (await this.invertCheckBox).click();
+    await (await this.getInvertCheckBox()).click();
   }
 
   async clickRegexCheckbox() {
-    await (await this.regexCheckBox).click();
+    await (await this.getRegexCheckBox()).click();
   }
 
   async isInvertCheckboxHidden() {
-    return (await this.invertCheckBox).hasAttribute('hidden');
+    return (await this.getInvertCheckBox()).hasAttribute('hidden');
   }
 
   async isRegexCheckboxHidden() {
-    return (await this.regexCheckBox).hasAttribute('hidden');
+    return (await this.getRegexCheckBox()).hasAttribute('hidden');
   }
 
   async getRegexValue() {
-    return (await this.regexInput).value;
+    return (await this.getRegexInput()).value;
   }
 
   async setRegexValue(value: string) {
-    await (await this.regexInput).enterValue(value);
+    await (await this.getRegexInput()).enterValue(value);
   }
 
   async getFilterInputValue() {
-    return (await this.filterInput).value;
+    return (await this.getFilterInput()).value;
   }
 
   async setFilterInputValue(value: string) {
-    await (await this.filterInput).enterValue(value);
+    await (await this.getFilterInput()).enterValue(value);
   }
 
   async clickOption(option: string) {
-    const optionDiv = await this.options.find((div) => div.isInnerTextEqualTo(option));
+    const optionDiv = await (
+      await this.getOptionsList()
+    ).find((div) => div.isInnerTextEqualTo(option));
     await optionDiv?.click();
   }
 
@@ -84,12 +93,12 @@ export class QueryValuesSkPO extends PageObject {
     await this.clearFiltersBtn.click();
   }
 
-  getOptions() {
-    return this.options.map((option) => option.innerText);
+  async getOptions() {
+    return (await this.getOptionsList()).map((option) => option.innerText);
   }
 
-  getSelectedOptions() {
-    return this.selectedOptions.map((option) => option.innerText);
+  async getSelectedOptions() {
+    return (await this.getSelectedOptionsList()).map((option) => option.innerText);
   }
 
   /** Analogous to the "selected" property getter. */
@@ -123,6 +132,7 @@ export class QueryValuesSkPO extends PageObject {
       // Enter the regex value.
       const regex = selected[0].substring(1); // Remove the tilde at the beginning.
       await this.setRegexValue(regex);
+      return; // A regex cannot be combined with other selections.
     }
 
     // Is it an inverted selection?
@@ -137,12 +147,13 @@ export class QueryValuesSkPO extends PageObject {
         await this.clickInvertCheckbox();
       }
 
-      selected = selected.map((value) => value.substring(1)); // Remove checks.
+      selected = selected.map((value) => value.substring(1)); // Remove "!" prefixes.
     }
 
     // Set the selection by clicking on the options as needed.
     const currentlySelectedOptions = await this.getSelectedOptions();
-    await asyncForEach(this.getOptions(), async (option) => {
+    const allOptions = await this.getOptions();
+    await asyncForEach(allOptions, async (option) => {
       const isSelected = currentlySelectedOptions.includes(option);
       const shouldBeSelected = selected.includes(option);
       if (isSelected !== shouldBeSelected) {

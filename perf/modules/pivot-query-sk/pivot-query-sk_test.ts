@@ -39,7 +39,7 @@ describe('pivot-query-sk', () => {
         PivotQueryChangedEventName
       );
       // Click 'arch' which will be first, but isn't in the pivot.Request yet.
-      $$<HTMLDivElement>('#group_by div', element)!.click();
+      $$<HTMLDivElement>('[id^="group_by-"] div', element)!.click();
       const e = await ep;
       assert.isTrue(e.detail!.group_by!.includes('arch'));
     });
@@ -51,7 +51,7 @@ describe('pivot-query-sk', () => {
         PivotQueryChangedEventName
       );
       // Click 'avg' which will be first, but isn't in the pivot.Request yet.
-      $$<HTMLDivElement>('#summary div', element)!.click();
+      $$<HTMLDivElement>('[id^="summary-"] div', element)!.click();
       const e = await ep;
       assert.isTrue(e.detail!.summary!.includes('avg'));
     });

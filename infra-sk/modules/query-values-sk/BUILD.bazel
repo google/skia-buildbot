@@ -38,6 +38,7 @@ ts_library(
     srcs = ["query-values-sk_po.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        ":query-values-sk",
         "//elements-sk/modules/checkbox-sk",
         "//infra-sk/modules:async_ts_lib",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",

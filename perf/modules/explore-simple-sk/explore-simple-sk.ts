@@ -620,6 +620,10 @@ export class ExploreSimpleSk extends ElementSk {
 
   public isReportPage: boolean = false;
 
+  private static nextUniqueId = 0;
+
+  private readonly uniqueId = `${ExploreSimpleSk.nextUniqueId++}`;
+
   public get dataLoading(): boolean {
     return this.dfRepo.value?.loading ?? false;
   }
@@ -812,7 +816,7 @@ export class ExploreSimpleSk extends ElementSk {
           <div class=formulas>
             <label>
               Enter a formula:
-              <textarea id=formula rows=3 cols=80></textarea>
+              <textarea id=formula-${ele.uniqueId} rows=3 cols=80></textarea>
             </label>
             <div>
               <button @click=${() => ele.add(true, 'formula')} class=action>Plot</button>
@@ -831,7 +835,7 @@ export class ExploreSimpleSk extends ElementSk {
           </pivot-query-sk>
           <div>
             <button
-              id=pivot-display-button
+              id=pivot-display-button-${ele.uniqueId}
               @click=${() => ele.add(true, 'pivot')}
               class=action
               .disabled=${validatePivotRequest(ele._state.pivotRequest) !== ''}

@@ -16,6 +16,10 @@ import '../calendar-sk';
 import { CalendarSk } from '../calendar-sk/calendar-sk';
 
 export class CalendarInputSk extends ElementSk {
+  private static nextUniqueId = 0;
+
+  private readonly uniqueId = `${CalendarInputSk.nextUniqueId++}`;
+
   private dialog: HTMLDialogElement | null = null;
 
   private calendar: CalendarSk | null = null;
@@ -47,7 +51,7 @@ export class CalendarInputSk extends ElementSk {
       <span class="invalid" aria-live="polite" title="Date is invalid."> &cross; </span>
     </label>
     <button
-      id="cal-button"
+      id="cal-button-${ele.uniqueId}"
       class="action"
       @click=${ele.openHandler}
       title="Open calendar dialog to choose the date.">

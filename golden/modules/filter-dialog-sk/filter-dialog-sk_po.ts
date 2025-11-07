@@ -51,19 +51,19 @@ export class FilterDialogSkPO extends PageObject {
   }
 
   get minRGBADeltaPO(): NumericParamPO {
-    return this.poBySelector('#min-rgba-delta-numeric-param', NumericParamPO);
+    return this.poBySelector('[id^="min-rgba-delta-"][id$="-numeric-param"]', NumericParamPO);
   }
 
   get maxRGBADeltaPO(): NumericParamPO {
-    return this.poBySelector('#max-rgba-delta-numeric-param', NumericParamPO);
+    return this.poBySelector('[id^="max-rgba-delta-"][id$="-numeric-param"]', NumericParamPO);
   }
 
   private get mustHaveReferenceImageCheckBox(): PageObjectElement {
-    return this.bySelector('#must-have-reference-image');
+    return this.bySelector('[id^="must-have-reference-image-"]');
   }
 
   private get sortOrderDropDown(): PageObjectElement {
-    return this.bySelector('select#sort-order');
+    return this.bySelector('select[id^="sort-order-"]');
   }
 
   private get filterDialog(): PageObjectElement {

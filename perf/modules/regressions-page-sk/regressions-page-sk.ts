@@ -148,7 +148,7 @@ export class RegressionsPageSk extends ElementSk {
     if (this.anomalyCursor) {
       queryMap.set('anomaly_cursor', this.anomalyCursor);
     }
-    const queryPairs = [];
+    const queryPairs: string[] = [];
     let queryStr = '';
     if (queryMap.size > 0) {
       for (const [key, value] of queryMap.entries()) {

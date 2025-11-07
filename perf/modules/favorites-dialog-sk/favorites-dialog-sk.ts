@@ -16,6 +16,10 @@ import '../../../elements-sk/modules/icons/close-icon-sk';
 // FavoritesDialogSk is a modal that contains a form to capture user
 // input for adding/editing a new favorite.
 export class FavoritesDialogSk extends ElementSk {
+  private static nextUniqueId = 0;
+
+  private readonly uniqueId = `${FavoritesDialogSk.nextUniqueId++}`;
+
   favId: string = '';
 
   name: string = '';
@@ -143,10 +147,10 @@ export class FavoritesDialogSk extends ElementSk {
         </div>
 
         <span class="label">
-          <label for="name">Name*</label>
+          <label for="name-${ele.uniqueId}">Name*</label>
         </span>
         <input
-          id="name"
+          id="name-${ele.uniqueId}"
           placeholder="Name"
           .value="${ele.name}"
           @input=${(e: Event) => ele.filterName(e)}>
@@ -154,20 +158,20 @@ export class FavoritesDialogSk extends ElementSk {
         <br/>
 
         <span class="label">
-          <label for="desc">Description</label>
+          <label for="desc-${ele.uniqueId}">Description</label>
         </span>
         <input
-          id="desc"
+          id="desc-${ele.uniqueId}"
           placeholder="Description"
           .value="${ele.description}"
           @input=${(e: Event) => ele.filterDescription(e)}></input>
         <br/>
 
         <span class="label">
-          <label for="url">URL*</label>
+          <label for="url-${ele.uniqueId}">URL*</label>
         </span>
         <input
-          id="url"
+          id="url-${ele.uniqueId}"
           placeholder="URL"
           value="${ele.url}"
           @input=${(e: Event) => ele.filterUrl(e)}></input>

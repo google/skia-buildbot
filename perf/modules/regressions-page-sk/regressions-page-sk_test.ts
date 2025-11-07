@@ -45,13 +45,22 @@ describe('regressions-page-sk', () => {
     error: '',
   };
 
+  const sheriffListResponseUnSorted: GetSheriffListResponse = {
+    sheriff_list: [
+      'Chrome Perf Sheriff 3',
+      'Blink Config 3',
+      'Angle Sheriff Perf ',
+      'Angle Perf 1',
+    ],
+    error: '',
+  };
+
   const sheriffListResponseSorted: string[] = [
-    'Sheriff Config 1',
-    'Sheriff Config 2',
-    'Sheriff Config 3',
-    'Sheriff Config 4',
+    'Angle Perf 1',
+    'Angle Sheriff Perf ',
+    'Blink Config 3',
+    'Chrome Perf Sheriff 3',
   ];
-  fetchMock.get('/_/anomalies/sheriff_list', { body: sheriffListResponse });
 
   const anomalyListResponse: GetAnomaliesResponse = {
     anomaly_list: [
@@ -121,6 +130,8 @@ describe('regressions-page-sk', () => {
     subscription: null,
   };
 
+  const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
+
   beforeEach(() => {
     setQueryString('');
     localStorage.clear();
@@ -148,13 +159,18 @@ describe('regressions-page-sk', () => {
   });
 
   describe('RegressionsPageSk - Filter Changes and API Calls', () => {
+    let element: RegressionsPageSk;
+    beforeEach(async () => {
+      element = newInstance();
+      await fetchMock.flush(true);
+    });
+
     it('Loads associated regressions when subscription selected', async () => {
-      const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
-      const element = newInstance((_el: RegressionsPageSk) => {});
-      await new Promise((resolve) => setTimeout(resolve, 0));
       const dropdown = element.querySelector('[id^="filter"]') as HTMLSelectElement;
+      assert.isNotNull(dropdown);
+
       // 4 loaded configs and the default options
-      assert.equal(dropdown?.options.length, 5);
+      assert.equal(dropdown.options.length, 5);
       // /anomaly_list is not called without a sheriff selected.
       assert.equal(fetchMock.lastCall()![0], '/_/anomalies/sheriff_list');
 
@@ -178,20 +194,24 @@ describe('regressions-page-sk', () => {
   });
 
   describe('RegressionsPageSk - Anomaly Cursor Handling', () => {
-    fetchMock.config.overwriteRoutes = true;
-    const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
+    let element: RegressionsPageSk;
+    beforeEach(async () => {
+      element = newInstance();
+      await fetchMock.flush(true);
+    });
 
     it('Loads anomaly_cursor when the anomaly_cursor is returned in the response', async () => {
-      const element = newInstance((_el: RegressionsPageSk) => {});
-      await new Promise((resolve) => setTimeout(resolve, 0));
       const dropdown = element.querySelector('[id^="filter"]') as HTMLSelectElement;
+      assert.isNotNull(dropdown);
+
       // 4 loaded configs and the default options
-      assert.equal(dropdown?.options.length, 5);
+      assert.equal(dropdown.options.length, 5);
 
       await element.filterChange('Sheriff Config 2');
       fetchMock.getOnce(
         '/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202',
-        anomalyListResponseWithAnomalyCursor
+        anomalyListResponseWithAnomalyCursor,
+        { overwriteRoutes: true }
       );
 
       await element.fetchRegressions();
@@ -212,16 +232,21 @@ describe('regressions-page-sk', () => {
     });
   });
 
-  describe('RegressionsPageSK', () => {
-    fetchMock.config.overwriteRoutes = true;
-    const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
-
+  describe('RegressionsPageSK - Sorting', () => {
     it('Sheriff List is displayed in an rescending way', async () => {
-      const element = newInstance((_el: RegressionsPageSk) => {});
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      fetchMock.getOnce(
+        '/_/anomalies/sheriff_list',
+        { body: sheriffListResponseUnSorted },
+        { overwriteRoutes: true }
+      );
+      const element = newInstance();
+      await fetchMock.flush(true);
+
       const dropdown = element.querySelector('[id^="filter"]') as HTMLSelectElement;
+      assert.isNotNull(dropdown);
+
       // 4 loaded configs and the default options
-      assert.equal(dropdown?.options.length, 5);
+      assert.equal(dropdown.options.length, 5);
       element.subscriptionList.every((sheriff, index) => {
         assert.equal(sheriff, sheriffListResponseSorted.at(index));
       });
@@ -230,13 +255,15 @@ describe('regressions-page-sk', () => {
 
   describe('Selector Persistence', () => {
     const LAST_SELECTED_SHERIFF_KEY = 'perf-last-selected-sheriff';
-    const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
 
     let originalPath: string;
+    let element: RegressionsPageSk;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       // Store the original path to restore later
       originalPath = window.location.pathname + window.location.search;
+      element = newInstance();
+      await fetchMock.flush(true);
     });
 
     afterEach(() => {
@@ -246,9 +273,6 @@ describe('regressions-page-sk', () => {
 
     it('should save selection to localStorage and restore it on new instances', async () => {
       // 1. Initial load.
-      let element = newInstance();
-      await fetchMock.flush(true);
-
       assert.strictEqual(element.state.selectedSubscription, '');
       assert.isNull(localStorage.getItem(LAST_SELECTED_SHERIFF_KEY));
 
@@ -270,15 +294,14 @@ describe('regressions-page-sk', () => {
       // Also check that the correct anomaly list was fetched.
       assert.equal(fetchMock.lastUrl(), '/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202');
       const select = element.querySelector<HTMLSelectElement>('[id^="filter"]')!;
+      assert.isNotNull(select);
       assert.strictEqual(select.value, 'Sheriff Config 2');
     });
 
     it('should initialize with default when no value is in uri nor in LocalCtorage', async () => {
-      const element = newInstance();
-      await fetchMock.flush(true);
-
       assert.strictEqual(element.state.selectedSubscription, '');
       const select = element.querySelector<HTMLSelectElement>('[id^="filter"]')!;
+      assert.isNotNull(select);
       assert.strictEqual(select.value, '');
     });
 
@@ -290,7 +313,7 @@ describe('regressions-page-sk', () => {
       // Verify that window.location.search is updated
       assert.strictEqual(window.location.search, testSearch);
 
-      const element = newInstance();
+      element = newInstance();
       await fetchMock.flush(true);
 
       assert.strictEqual(element.state.selectedSubscription, 'Sheriff Config 2');

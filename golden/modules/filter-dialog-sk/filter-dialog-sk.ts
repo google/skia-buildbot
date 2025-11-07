@@ -75,6 +75,10 @@ const numericParamTemplate = (
 };
 
 export class FilterDialogSk extends ElementSk {
+  private static nextUniqueId = 0;
+
+  private readonly uniqueId = `${FilterDialogSk.nextUniqueId++}`;
+
   // The live() directive is required because the value attributes will change outside of lit-html,
   // e.g. on user input. Without it, said attributes won't be updated next time this template is
   // rendered with the same bound values, leaving the user's input intact.
@@ -93,7 +97,7 @@ export class FilterDialogSk extends ElementSk {
         </trace-filter-sk>
 
         ${numericParamTemplate(
-          'min-rgba-delta',
+          `min-rgba-delta-${el.uniqueId}`,
           'Min RGBA delta:',
           /* setterFn= */ (val) => (el._filters!.minRGBADelta = val),
           /* value= */ el._filters?.minRGBADelta,
@@ -102,7 +106,7 @@ export class FilterDialogSk extends ElementSk {
           /* step= */ 1
         )}
         ${numericParamTemplate(
-          'max-rgba-delta',
+          `max-rgba-delta-${el.uniqueId}`,
           'Max RGBA delta:',
           /* setterFn= */ (val) => (el._filters!.maxRGBADelta = val),
           /* value= */ el._filters?.maxRGBADelta,
@@ -111,9 +115,9 @@ export class FilterDialogSk extends ElementSk {
           /* step= */ 1
         )}
 
-        <label for="sort-order">Sort order:</label>
+        <label for="sort-order-${el.uniqueId}">Sort order:</label>
         <select
-          id="sort-order"
+          id="sort-order-${el.uniqueId}"
           .value=${live(el._filters?.sortOrder)}
           @change=${el._sortOrderChanged}>
           <option value="ascending">Ascending</option>
@@ -121,7 +125,7 @@ export class FilterDialogSk extends ElementSk {
         </select>
 
         <checkbox-sk
-          id="must-have-reference-image"
+          id="must-have-reference-image-${el.uniqueId}"
           label="Must have a reference image."
           ?checked=${live(el._filters?.mustHaveReferenceImage)}
           @change=${el._mustHaveReferenceImageChanged}>

@@ -9,11 +9,11 @@ export class EditIgnoreRuleSkPO extends PageObject {
   }
 
   private get expiresInput(): PageObjectElement {
-    return this.bySelector('#expires');
+    return this.bySelector('[id^="expires-"]');
   }
 
   private get noteInput(): PageObjectElement {
-    return this.bySelector('#note');
+    return this.bySelector('[id^="note-"]');
   }
 
   private get customKeyInput(): PageObjectElement {
