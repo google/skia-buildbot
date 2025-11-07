@@ -1,4 +1,11 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load(
+    "//infra-sk:index.bzl",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+    "ts_library",
+)
 
 sk_element(
     name = "commit-detail-panel-sk",
@@ -34,10 +41,33 @@ sk_element_puppeteer_test(
     src = "commit-detail-panel-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        ":commit-detail-panel-sk",
+        ":commit-detail-panel-sk_po_ts_lib",
+        ":test_data_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//perf/modules/common:puppeteer-test-util_ts_lib",
         "//puppeteer-tests:util_ts_lib",
     ],
+)
+
+ts_library(
+    name = "commit-detail-panel-sk_po_ts_lib",
+    srcs = ["commit-detail-panel-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":commit-detail-panel-sk",
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//perf/modules/json:index_ts_lib"],
 )
 
 sk_demo_page_server(

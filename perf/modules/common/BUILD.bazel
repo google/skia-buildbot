@@ -40,3 +40,9 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = ["//perf/modules/json:index_ts_lib"],
 )
+
+ts_library(
+    name = "puppeteer-test-util_ts_lib",
+    srcs = ["puppeteer-test-util.ts"],
+    visibility = ["//visibility:public"],
+)

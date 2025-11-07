@@ -98,6 +98,9 @@ export class CommitDetailPanelSk extends ElementSk {
   }
 
   private _click(e: MouseEvent) {
+    if (!this.selectable) {
+      return;
+    }
     const ele = findParent(e.target as HTMLElement, 'TR');
     if (!ele) {
       return;
