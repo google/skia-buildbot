@@ -1,4 +1,12 @@
-load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+    "ts_library",
+)
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -47,5 +55,28 @@ karma_test(
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",
+    ],
+)
+
+ts_library(
+    name = "commit-range-sk_po_ts_lib",
+    srcs = ["commit-range-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+    ],
+)
+
+sk_element_puppeteer_test(
+    name = "commit-range-sk_puppeteer_test",
+    src = "commit-range-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":commit-range-sk_po_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/puppeteer",
+        "//puppeteer-tests:util_ts_lib",
     ],
 )
