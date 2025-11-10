@@ -37,7 +37,6 @@ window.perf = {
   always_show_commit_info: false,
   show_triage_link: true,
   show_bisect_btn: true,
-  app_version: 'test-version',
 };
 
 // TODO(b/450184956) Rewrite demo to plot-google-chart. This demo is unusable.
