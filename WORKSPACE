@@ -415,7 +415,7 @@ container_pull(
 # Debugger's version of CanvasKit is built with different flags
 container_pull(
     name = "pinned_debugger",
-    digest = "sha256:2b9128684d0a6fa50916d46699e44207d48a73df32eda86da1edc3b5695beeac",
+    digest = "sha256:1cf08708279f956c09cd9233c36dfc2015b3bd37a999343c121f56b0e1412a0f",
     registry = "gcr.io",
     repository = "skia-public/debugger-app-final",
 )
