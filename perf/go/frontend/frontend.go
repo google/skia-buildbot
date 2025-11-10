@@ -193,6 +193,8 @@ type Frontend struct {
 	urlProvider *urlprovider.URLProvider
 
 	issuetracker issuetracker.IssueTracker
+
+	appVersion string
 }
 
 // New returns a new Frontend instance.
@@ -297,6 +299,7 @@ type SkPerfConfig struct {
 	ShowTriageLink              bool               `json:"show_triage_link"`                // Boolean to display traige link on side panel or not
 	ShowBisectBtn               bool               `json:"show_bisect_btn"`                 // Boolean to display bisect button or not
 	AlwaysShowCommitInfo        bool               `json:"always_show_commit_info"`         // Boolean to display commit author and hash.
+	AppVersion                  string             `json:"app_version"`                     // The git revision of the buildbot repo this instance was built from.
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -335,6 +338,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		AlwaysShowCommitInfo:        config.Config.DataPointConfig.AlwaysShowCommitInfo,
 		ShowTriageLink:              config.Config.ShowTriageLink,
 		ShowBisectBtn:               config.Config.ShowBisectBtn,
+		AppVersion:                  f.appVersion,
 	}
 
 	var buff bytes.Buffer
@@ -375,6 +379,22 @@ func newParamsetProvider(pf psrefresh.ParamSetRefresher) regression.ParamsetProv
 	}
 }
 
+func (f *Frontend) loadAppVersion() {
+	// Read the application version file.
+	if f.flags.VersionFile == "" {
+		f.appVersion = fmt.Sprintf("dev-%s", time.Now().Format(time.RFC3339))
+	} else {
+		versionData, err := os.ReadFile(f.flags.VersionFile)
+		if err != nil {
+			sklog.Errorf("Failed to read version file at %s: %s", f.flags.VersionFile, err)
+			f.appVersion = ""
+		} else {
+			f.appVersion = strings.TrimSpace(string(versionData))
+		}
+	}
+	sklog.Infof("Application version: %s", f.appVersion)
+}
+
 // initialize the application.
 func (f *Frontend) initialize() {
 	rand.Seed(time.Now().UnixNano())
@@ -388,6 +408,8 @@ func (f *Frontend) initialize() {
 	// Init metrics.
 	metrics2.InitPrometheus(f.flags.PromPort)
 	_ = metrics2.NewLiveness("uptime", nil)
+
+	f.loadAppVersion()
 
 	// Add tracker for long running requests.
 	var err error

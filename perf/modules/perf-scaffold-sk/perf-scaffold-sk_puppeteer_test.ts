@@ -40,6 +40,48 @@ describe('perf-scaffold-sk', () => {
     expect(href).to.contain('/dist/images/line-chart.svg');
   });
 
+  it('renders git hash version', async () => {
+    await testBed.page.evaluateOnNewDocument(() => {
+      (window as any).perf = {
+        app_version: '83cd5d7049b8b69435b93c4778235f5ce8816ac3',
+        git_repo_url: 'https://repo',
+      };
+    });
+    await testBed.page.goto(testBed.baseUrl);
+    const versionLink = await testBed.page.$('#links a.version');
+    expect(versionLink).to.not.equal(null);
+    const text = await testBed.page.evaluate((el) => el!.textContent, versionLink);
+    expect(text).to.contain('Ver: 83cd5d7');
+    const href = await testBed.page.evaluate((el) => el!.getAttribute('href'), versionLink);
+    expect(href).to.equal('https://repo/+/83cd5d7049b8b69435b93c4778235f5ce8816ac3');
+  });
+
+  it('renders dev timestamp version', async () => {
+    await testBed.page.evaluateOnNewDocument(() => {
+      (window as any).perf = {
+        app_version: 'dev-2025-11-10T21:55:47Z',
+      };
+    });
+    await testBed.page.goto(testBed.baseUrl);
+    const versionLink = await testBed.page.$('#links a.version');
+    expect(versionLink).to.not.equal(null);
+    const text = await testBed.page.evaluate((el) => el!.textContent, versionLink);
+    expect(text).to.contain('dev-build (2025-11-10 21:55 UTC)');
+  });
+
+  it('renders fallback when app_version is missing', async () => {
+    await testBed.page.evaluateOnNewDocument(() => {
+      (window as any).perf = {
+        app_version: '',
+      };
+    });
+    await testBed.page.goto(testBed.baseUrl);
+    const versionLink = await testBed.page.$('#links a.version');
+    expect(versionLink).to.not.equal(null);
+    const text = await testBed.page.evaluate((el) => el!.textContent, versionLink);
+    expect(text).to.contain('dev-build (');
+  });
+
   describe('screenshots', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'perf', 'perf-scaffold-sk');

@@ -99,6 +99,9 @@ def skia_app_container(
         like skfe requires the default user to be "root".
     """
 
+    if type(entrypoint) == "string":
+        entrypoint = [entrypoint]
+
     # According to the container_image rule's docs[1], the recommended way to place files in
     # specific directories is via the pkg_tar rule.
     #
@@ -133,7 +136,7 @@ def skia_app_container(
         # entrypoint.
         # We will set the entrypoint back after the container_run_and_commit
         # rule is executed.
-        entrypoint = None if (run_commands_root or run_commands_skia) else [entrypoint],
+        entrypoint = None if (run_commands_root or run_commands_skia) else entrypoint,
         tars = pkg_tars,
         user = default_user,
         tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
@@ -185,7 +188,7 @@ def skia_app_container(
         container_image(
             name = rule_name,
             base = image_name,
-            entrypoint = [entrypoint],
+            entrypoint = entrypoint,
             user = default_user,
             tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             env = env,

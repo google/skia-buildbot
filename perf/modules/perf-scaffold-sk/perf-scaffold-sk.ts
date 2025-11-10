@@ -7,7 +7,6 @@
  *
  */
 import { html } from 'lit/html.js';
-import { choose } from 'lit/directives/choose.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/error-toast-sk';
@@ -25,13 +24,11 @@ import '../../../elements-sk/modules/icons/trending-up-icon-sk';
 import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
-import { getBuildTag } from '../window/window';
+import '../window/window';
 
 // The ID of a top level element under perf-scaffold-sk that will be moved under
 // the right hand side nav bar.
 const SIDEBAR_HELP_ID = 'sidebar_help';
-
-const BUILDBOT_GIT = 'https://skia.googlesource.com/buildbot.git/+log/';
 
 /**
  * Moves the elements from a list to be the children of the target element.
@@ -95,7 +92,7 @@ export class PerfScaffoldSk extends ElementSk {
         <a href="${ele._reportBugUrl}" target="_blank" tab-index=0 >
           <bug-report-icon-sk></bug-report-icon-sk><span>Report Bug</span>
         </a>
-        ${ele.buildTagTemplate()}
+        ${ele.appVersionTemplate()}
       </div>
       <div id=help>
       </div>
@@ -120,21 +117,46 @@ export class PerfScaffoldSk extends ElementSk {
     return html``;
   };
 
-  private buildTagLinkTemplate(tag: string) {
-    return html`<a href="${BUILDBOT_GIT}${tag}" target="_blank">Build: ${tag}</a>`;
-  }
+  private appVersionTemplate() {
+    const appVersion = window.perf.app_version || `dev-${new Date().toISOString()}`;
 
-  private buildTagTemplate() {
-    const buildTag = getBuildTag();
-    return html`${choose(
-      buildTag.type,
-      [
-        ['git', () => this.buildTagLinkTemplate(buildTag.tag!)],
-        ['louhi', () => this.buildTagLinkTemplate(buildTag.tag!)],
-        ['tag', () => html`<a>Build: ${buildTag.tag}</a>`],
-      ],
-      () => html`<a>Build: No Tag</a>`
-    )}`;
+    // 1. Try to parse as a dev date (with or without 'dev-' prefix)
+
+    const dateStr = appVersion.startsWith('dev-') ? appVersion.substring(4) : appVersion;
+
+    const date = new Date(dateStr);
+
+    // Check if it's a valid date and looks like a timestamp (e.g. has '-' and ':')
+
+    // to avoid false positives with some hash-like strings that might parse as dates.
+
+    if (!isNaN(date.getTime()) && dateStr.includes('-') && dateStr.includes(':')) {
+      const pad = (n: number) => n.toString().padStart(2, '0');
+
+      const formattedDate = `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(
+        date.getUTCDate()
+      )} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())} UTC`;
+
+      return html`<a class="version" title="${appVersion}"
+        ><span>dev-build (${formattedDate})</span></a
+      >`;
+    }
+
+    // 2. Treat as git hash (long or short)
+
+    const shortHash = appVersion.length >= 7 ? appVersion.substring(0, 7) : appVersion;
+
+    if (window.perf.git_repo_url) {
+      return html`<a
+        class="version"
+        href="${window.perf.git_repo_url}/+/${appVersion}"
+        target="_blank"
+        title="${appVersion}">
+        <span>Ver: ${shortHash}</span>
+      </a>`;
+    }
+
+    return html`<a class="version" title="${appVersion}"><span>Ver: ${shortHash}</span></a>`;
   }
 
   private instanceTitleTemplate() {

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"testing"
 	"testing/fstest"
 
@@ -214,4 +216,41 @@ func TestFrontend_StripSlashes(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestFrontend_loadAppVersion_NoFile_SetsDevVersion(t *testing.T) {
+	f := &Frontend{
+		flags: &config.FrontendFlags{
+			VersionFile: "",
+		},
+	}
+	f.loadAppVersion()
+	require.Contains(t, f.appVersion, "dev-")
+}
+
+func TestFrontend_loadAppVersion_WithFile_SetsVersionFromFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "VERSION.txt")
+	err := os.WriteFile(tmpFile, []byte("git-hash-123\n"), 0644)
+	require.NoError(t, err)
+
+	f := &Frontend{
+		flags: &config.FrontendFlags{
+			VersionFile: tmpFile,
+		},
+	}
+	f.loadAppVersion()
+	require.Equal(t, "git-hash-123", f.appVersion)
+}
+
+func TestFrontend_loadAppVersion_FileReadError_SetsEmptyVersion(t *testing.T) {
+	f := &Frontend{
+		flags: &config.FrontendFlags{
+			VersionFile: "/non/existent/file",
+		},
+	}
+	require.NotPanics(t, func() {
+		f.loadAppVersion()
+	})
+	require.Equal(t, "", f.appVersion)
 }
