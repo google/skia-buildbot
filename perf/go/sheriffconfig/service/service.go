@@ -25,7 +25,7 @@ import (
 const (
 	defaultBugPriority = 2
 	defaultBugSeverity = 2
-	defaultRadius      = 1
+	defaultRadius      = 3
 	defaultStepUpOnly  = false
 	defaultMinimumNum  = 1
 	defaultSparse      = false
