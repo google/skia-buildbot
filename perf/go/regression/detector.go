@@ -2,6 +2,7 @@ package regression
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -47,6 +48,12 @@ const (
 
 	// maxK is the largest K used for clustering.
 	maxK = 200
+)
+
+var (
+	timeoutCounter = func(alertName string) metrics2.Counter {
+		return metrics2.GetCounter("perf_regression_detection_timeout", map[string]string{"alert": alertName})
+	}
 )
 
 // DetectorResponseProcessor is a callback that is called with RegressionDetectionResponses as a RegressionDetectionRequest is being processed.
@@ -180,7 +187,10 @@ func ProcessRegressions(ctx context.Context,
 
 		iter, err := dfiter.NewDataFrameIterator(timeoutContext, req.Progress, dfBuilder, perfGit, iterErrorCallback, req.Query(), req.Domain, req.Alert, anomalyConfig)
 		if err != nil {
-			if iteration == ContinueOnError {
+			if errors.Is(err, context.DeadlineExceeded) {
+				timeoutCounter(req.Alert.DisplayName).Inc(1)
+				sklog.Errorf("Failed with timeout. Query: %s, err: %v", req.Query(), err)
+			} else if iteration == ContinueOnError {
 				// Don't log if we just didn't get enough data.
 				if err != dfiter.ErrInsufficientData {
 					sklog.Warning(err)
@@ -199,6 +209,10 @@ func ProcessRegressions(ctx context.Context,
 		}
 		detectionProcess.iter = iter
 		if err := detectionProcess.run(timeoutContext); err != nil {
+			if errors.Is(err, context.DeadlineExceeded) {
+				timeoutCounter(req.Alert.DisplayName).Inc(1)
+				sklog.Errorf("Failed with timeout. Query: %s, err: %v", req.Query(), err)
+			}
 			return skerr.Wrapf(err, "Failed to run a sub-query: %q", req.Query())
 		}
 	}
