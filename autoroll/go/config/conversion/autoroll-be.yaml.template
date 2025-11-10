@@ -40,9 +40,8 @@ spec:
             - "--firestore_instance=production"
             - "--port=:8000"
             - "--prom_port=:20000"
-            - "--workdir={{if .kubernetes.disk}}/data{{else}}/tmp{{end}}"
-            {{range .kubernetes.extraFlags}}- "{{.}}"
-            {{end}}
+            - "--workdir={{if .kubernetes.disk}}/data{{else}}/tmp{{end}}"{{range .kubernetes.extraFlags}}
+            - "{{.}}"{{end}}
           ports:
             - containerPort: 8000
             - containerPort: 20000
