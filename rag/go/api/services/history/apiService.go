@@ -20,6 +20,7 @@ const (
 	geminiApiKeyEnvVar   = "GEMINI_API_KEY"
 	geminiProjectEnvVar  = "GEMINI_PROJECT"
 	geminiLocationEnvVar = "GEMINI_LOCATION"
+	defaultTopicCount    = 20
 )
 
 // ApiService provides a struct for the HistoryRag api implementation.
@@ -127,7 +128,11 @@ func (service *ApiService) GetTopics(ctx context.Context, req *pb.GetTopicsReque
 	}
 
 	// Search the relevant topics for the given query embedding.
-	topics, err := service.topicStore.SearchTopics(ctx, queryEmbedding)
+	topicCount := defaultTopicCount
+	if req.GetTopicCount() > 0 {
+		topicCount = int(req.GetTopicCount())
+	}
+	topics, err := service.topicStore.SearchTopics(ctx, queryEmbedding, topicCount)
 	if err != nil {
 		sklog.Errorf("Error searching for topics: %v", err)
 		return nil, err

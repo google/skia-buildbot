@@ -44,7 +44,7 @@ type TopicStore interface {
 	ReadTopic(ctx context.Context, topicID int64) (*Topic, error)
 
 	// SearchTopics searches for the most relevant topics for the given query embedding.
-	SearchTopics(ctx context.Context, queryEmbedding []float32) ([]*FoundTopic, error)
+	SearchTopics(ctx context.Context, queryEmbedding []float32, topicCount int) ([]*FoundTopic, error)
 }
 
 // FoundTopic is a struct that contains the topic information that was found in a search.
@@ -198,7 +198,7 @@ func (s *topicStoreImpl) ReadTopic(ctx context.Context, topicID int64) (*Topic, 
 }
 
 // SearchTopics searches for the most relevant topics for the given query embedding.
-func (s *topicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []float32) ([]*FoundTopic, error) {
+func (s *topicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []float32, topicCount int) ([]*FoundTopic, error) {
 	stmt := spanner.NewStatement(`
 		SELECT
 			t.topic_id,
@@ -213,9 +213,10 @@ func (s *topicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []floa
 			Topics AS t ON c.topic_id = t.topic_id
 		ORDER BY
 			distance
-		LIMIT 10
+		LIMIT @topicCount
 	`)
 	stmt.Params["queryEmbedding"] = queryEmbedding
+	stmt.Params["topicCount"] = topicCount
 	var ret []*FoundTopic
 	topicMap := make(map[int64]*FoundTopic)
 	err := s.spannerClient.Single().Query(ctx, stmt).Do(func(r *spanner.Row) error {

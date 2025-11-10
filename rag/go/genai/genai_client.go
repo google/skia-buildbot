@@ -22,7 +22,7 @@ type GeminiClient struct {
 // NewGeminiClient returns a new instance of the GeminiClient.
 func NewGeminiClient(ctx context.Context, project, location string) (*GeminiClient, error) {
 	genAiClient, err := genai.NewClient(ctx, &genai.ClientConfig{
-		Backend:  genai.BackendGeminiAPI,
+		Backend:  genai.BackendVertexAI,
 		Project:  project,
 		Location: location,
 	})
