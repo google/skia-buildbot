@@ -4,5 +4,6 @@
         "instance_id": "tfgen-spanid-20251103181235093",
         "database_id": "chrome-internal"
     },
-    "query_embedding_model": "text-embedding-005"
+    "query_embedding_model": "gemini-embedding-001",
+    "output_dimensionality": 768
 }

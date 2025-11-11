@@ -38,10 +38,13 @@ type ApiService struct {
 
 	// Embedding model to use for query.
 	queryEmbeddingModel string
+
+	// Output dimensionality for query embedding.
+	dimensionality int32
 }
 
 // NewApiService returns a new instance of the ApiService struct.
-func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbeddingModel string) *ApiService {
+func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbeddingModel string, dimensionality int32) *ApiService {
 	var genAiClient *genai.GeminiClient
 	var err error
 	// Get the api key from the env.
@@ -69,6 +72,7 @@ func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbedding
 		topicStore:          topicstore.New(dbClient),
 		genAiClient:         genAiClient,
 		queryEmbeddingModel: queryEmbeddingModel,
+		dimensionality:      dimensionality,
 	}
 }
 
@@ -121,7 +125,7 @@ func (service *ApiService) GetTopics(ctx context.Context, req *pb.GetTopicsReque
 	}
 
 	// Get the embedding vector for the input query.
-	queryEmbedding, err := service.genAiClient.GetEmbedding(ctx, service.queryEmbeddingModel, query)
+	queryEmbedding, err := service.genAiClient.GetEmbedding(ctx, service.queryEmbeddingModel, service.dimensionality, query)
 	if err != nil {
 		sklog.Errorf("Error getting embedding for query %s: %v", query, err)
 		return nil, err
@@ -145,6 +149,7 @@ func (service *ApiService) GetTopics(ctx context.Context, req *pb.GetTopicsReque
 			TopicId:    int64(topic.ID),
 			TopicName:  topic.Title,
 			Similarity: float32(topic.Distance),
+			Summary:    topic.Summary,
 		}
 		for _, chunk := range topic.Chunks {
 			respTopic.MatchingChunks = append(respTopic.MatchingChunks, &pb.GetTopicsResponse_Topic_Chunk{

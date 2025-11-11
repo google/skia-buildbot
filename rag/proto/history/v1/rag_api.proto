@@ -90,6 +90,9 @@ message GetTopicsResponse {
         }
         // Matching chunks in the topic for the query.
         repeated Chunk matching_chunks = 4;
+
+        // Topic summary.
+        string summary = 5;
     }
 
     // Topics retrieved for the query.

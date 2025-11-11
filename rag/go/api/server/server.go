@@ -19,6 +19,8 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+const defaultOutputDimensionality = 768
+
 // Service defines an interface for a service hosted by the HistoryRag server.
 type Service interface {
 	// RegisterGrpc registers the grpc service with the server instance.
@@ -81,6 +83,7 @@ type apiServer struct {
 	// Spanner database client.
 	dbClient            *spanner.Client
 	queryEmbeddingModel string
+	dimensionality      int32
 
 	// Grpc server objects
 	grpcServer *grpc.Server
@@ -109,9 +112,15 @@ func NewApiServer(flags *ApiServerFlags) (*apiServer, error) {
 		return nil, err
 	}
 
+	dimensionality := int32(config.OutputDimensionality)
+	if dimensionality == 0 {
+		dimensionality = defaultOutputDimensionality
+	}
+
 	server := &apiServer{
 		dbClient:            spannerClient,
 		queryEmbeddingModel: config.QueryEmbeddingModel,
+		dimensionality:      dimensionality,
 		grpcPort:            flags.GrpcPort,
 		httpPort:            flags.HttpPort,
 	}
@@ -131,7 +140,7 @@ func (server *apiServer) initialize(ctx context.Context, flags *ApiServerFlags) 
 	// Define the list of services to be hosted based on the "services" flag.
 	serviceList := []Service{}
 	var serviceMap = map[string]Service{
-		"history": history.NewApiService(ctx, server.dbClient, server.queryEmbeddingModel),
+		"history": history.NewApiService(ctx, server.dbClient, server.queryEmbeddingModel, server.dimensionality),
 	}
 	for _, serviceName := range flags.Services.Value() {
 		service, ok := serviceMap[serviceName]

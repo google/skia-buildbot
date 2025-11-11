@@ -329,8 +329,10 @@ type GetTopicsResponse_Topic struct {
 	Similarity float32 `protobuf:"fixed32,3,opt,name=similarity,proto3" json:"similarity,omitempty"`
 	// Matching chunks in the topic for the query.
 	MatchingChunks []*GetTopicsResponse_Topic_Chunk `protobuf:"bytes,4,rep,name=matching_chunks,json=matchingChunks,proto3" json:"matching_chunks,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Topic summary.
+	Summary       string `protobuf:"bytes,5,opt,name=summary,proto3" json:"summary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetTopicsResponse_Topic) Reset() {
@@ -389,6 +391,13 @@ func (x *GetTopicsResponse_Topic) GetMatchingChunks() []*GetTopicsResponse_Topic
 		return x.MatchingChunks
 	}
 	return nil
+}
+
+func (x *GetTopicsResponse_Topic) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
 }
 
 // Message defining the chunk data returned.
@@ -484,9 +493,9 @@ const file_rag_api_proto_rawDesc = "" +
 	"\vtopic_count\x18\x02 \x01(\x03R\n" +
 	"topicCount\x12\x1f\n" +
 	"\vchunk_count\x18\x03 \x01(\x03R\n" +
-	"chunkCount\"\xf7\x02\n" +
+	"chunkCount\"\x91\x03\n" +
 	"\x11GetTopicsResponse\x12>\n" +
-	"\x06topics\x18\x01 \x03(\v2&.historyrag.v1.GetTopicsResponse.TopicR\x06topics\x1a\xa1\x02\n" +
+	"\x06topics\x18\x01 \x03(\v2&.historyrag.v1.GetTopicsResponse.TopicR\x06topics\x1a\xbb\x02\n" +
 	"\x05Topic\x12\x19\n" +
 	"\btopic_id\x18\x01 \x01(\x03R\atopicId\x12\x1d\n" +
 	"\n" +
@@ -494,7 +503,8 @@ const file_rag_api_proto_rawDesc = "" +
 	"\n" +
 	"similarity\x18\x03 \x01(\x02R\n" +
 	"similarity\x12U\n" +
-	"\x0fmatching_chunks\x18\x04 \x03(\v2,.historyrag.v1.GetTopicsResponse.Topic.ChunkR\x0ematchingChunks\x1ag\n" +
+	"\x0fmatching_chunks\x18\x04 \x03(\v2,.historyrag.v1.GetTopicsResponse.Topic.ChunkR\x0ematchingChunks\x12\x18\n" +
+	"\asummary\x18\x05 \x01(\tR\asummary\x1ag\n" +
 	"\x05Chunk\x12#\n" +
 	"\rchunk_content\x18\x01 \x01(\tR\fchunkContent\x12\x19\n" +
 	"\bchunk_id\x18\x02 \x01(\x03R\achunkId\x12\x1e\n" +

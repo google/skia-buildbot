@@ -52,6 +52,7 @@ type FoundTopic struct {
 	ID       int64
 	Title    string
 	Distance float64
+	Summary  string
 	Chunks   []*TopicChunk
 }
 
@@ -203,6 +204,7 @@ func (s *topicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []floa
 		SELECT
 			t.topic_id,
 			t.title,
+			t.summary,
 			c.chunk_id AS chunk_id,
 			c.chunk_content,
 			c.embedding,
@@ -228,6 +230,10 @@ func (s *topicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []floa
 		if err := r.ColumnByName("title", &title); err != nil {
 			return skerr.Wrap(err)
 		}
+		var summary string
+		if err := r.ColumnByName("summary", &summary); err != nil {
+			return skerr.Wrap(err)
+		}
 		var chunkID int64
 		if err := r.ColumnByName("chunk_id", &chunkID); err != nil {
 			return skerr.Wrap(err)
@@ -250,6 +256,7 @@ func (s *topicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []floa
 				ID:       topicID,
 				Title:    title,
 				Distance: distance,
+				Summary:  summary,
 			}
 			topicMap[topicID] = ft
 			ret = append(ret, ft)

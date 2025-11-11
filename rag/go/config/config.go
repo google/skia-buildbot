@@ -19,6 +19,9 @@ type ApiServerConfig struct {
 
 	// The embedding model to use for embedding the input query.
 	QueryEmbeddingModel string `json:"query_embedding_model"`
+
+	// The output dimensionality to use for input query embedding.
+	OutputDimensionality int `json:"output_dimensionality"`
 }
 
 // SpannerConfig defines a struct to hold the spanner database configuration.

@@ -2,7 +2,8 @@
     "spanner_config": {
         "project_id": "ashwinpv-sandbox-790703",
         "instance_id": "history-rag-experiment",
-        "database_id": "historyrag"
+        "database_id": "chrome"
     },
-    "query_embedding_model": "text-embedding-005"
+    "query_embedding_model": "gemini-embedding-001",
+    "output_dimensionality": 768
 }
