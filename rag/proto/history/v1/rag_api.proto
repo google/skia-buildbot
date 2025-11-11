@@ -20,6 +20,11 @@ service HistoryRagApiService {
 			get: "/historyrag/v1/topics"
 		};
     }
+    rpc GetTopicDetails(GetTopicDetailsRequest) returns (GetTopicDetailsResponse) {
+        option (google.api.http) = {
+			get: "/historyrag/v1/topic_details"
+		};
+    }
 }
 
 // Request message for the GetBlames api.
@@ -76,8 +81,8 @@ message GetTopicsResponse {
         // Name of the topic.
         string topic_name = 2;
 
-        // Similarity score of the topic for the query.
-        float similarity = 3;
+        // Cosine distance score of the topic for the query.
+        float cosine_distance = 3;
 
         // Message defining the chunk data returned.
         message Chunk {
@@ -98,3 +103,35 @@ message GetTopicsResponse {
     // Topics retrieved for the query.
     repeated Topic topics = 1;
 }
+
+// Request message for the GetTopicDetails api.
+message GetTopicDetailsRequest {
+    // IDs of the topics to retrieve details for.
+    repeated int64 topic_ids = 1;
+    // Whether to include code chunks in the response.
+    bool include_code = 2;
+    // Whether to include tests in the response.
+    bool include_tests = 3;
+}
+
+// Response message for the GetTopicDetails api.
+message GetTopicDetailsResponse {
+    // Message defining the topic data returned.
+    message Topic {
+        // ID of the topic.
+        int64 topic_id = 1;
+
+        // Name of the topic.
+        string topic_name = 2;
+
+        // Summary of the topic.
+        string summary = 3;
+
+        // Code chunks for the topic.
+        repeated string code_chunks = 4;
+    }
+
+    // Topic details.
+    repeated Topic topics = 1;
+}
+

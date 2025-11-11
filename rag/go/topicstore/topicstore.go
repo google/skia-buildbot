@@ -145,54 +145,45 @@ func (s *topicStoreImpl) ReadTopic(ctx context.Context, topicID int64) (*Topic, 
 	}
 	stmt := spanner.NewStatement(`
 		SELECT
-			t1.display_name,
-			t2.id AS chunk_id,
-			t2.chunk,
-			t2.embedding
+			t1.title,
+			t1.summary,
+			t1.code_context,
+			t1.code_context_lines,
+			t1.commit_count
 		FROM Topics AS t1
-		LEFT JOIN TopicChunks AS t2 ON t1.id = t2.topic_id
-		WHERE t1.id = @topicID
+		WHERE t1.topic_id = @topicID
 	`)
 	stmt.Params["topicID"] = topicID
 	var topicPopulated bool
 	err := s.spannerClient.Single().Query(ctx, stmt).Do(func(r *spanner.Row) error {
 		if !topicPopulated {
-			if err := r.ColumnByName("display_name", &ret.Title); err != nil {
+			if err := r.ColumnByName("title", &ret.Title); err != nil {
 				return skerr.Wrap(err)
 			}
 			topicPopulated = true
 		}
 
-		var chunkID spanner.NullInt64
-		if err := r.ColumnByName("chunk_id", &chunkID); err != nil {
+		if err := r.ColumnByName("summary", &ret.Summary); err != nil {
 			return skerr.Wrap(err)
 		}
-		var chunk spanner.NullString
-		if err := r.ColumnByName("chunk", &chunk); err != nil {
+		if err := r.ColumnByName("code_context", &ret.CodeContext); err != nil {
 			return skerr.Wrap(err)
 		}
-		var embedding []float32
-		if err := r.ColumnByName("embedding", &embedding); err != nil {
+		var codeContextLines int64
+		if err := r.ColumnByName("code_context_lines", &codeContextLines); err != nil {
 			return skerr.Wrap(err)
 		}
-
-		if chunkID.Valid && chunk.Valid {
-			tc := &TopicChunk{
-				ID:        chunkID.Int64,
-				TopicID:   topicID,
-				Chunk:     chunk.StringVal,
-				Embedding: embedding,
-			}
-			ret.Chunks = append(ret.Chunks, tc)
+		ret.CodeContextLines = int(codeContextLines)
+		var commitCount int64
+		if err := r.ColumnByName("commit_count", &commitCount); err != nil {
+			return skerr.Wrap(err)
 		}
+		ret.CommitCount = int(commitCount)
 		return nil
 	})
 
 	if err != nil {
 		return nil, skerr.Wrap(err)
-	}
-	if !topicPopulated {
-		return nil, nil // Not found
 	}
 
 	return ret, nil

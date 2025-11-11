@@ -22,8 +22,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	HistoryRagApiService_GetBlames_FullMethodName = "/historyrag.v1.HistoryRagApiService/GetBlames"
-	HistoryRagApiService_GetTopics_FullMethodName = "/historyrag.v1.HistoryRagApiService/GetTopics"
+	HistoryRagApiService_GetBlames_FullMethodName       = "/historyrag.v1.HistoryRagApiService/GetBlames"
+	HistoryRagApiService_GetTopics_FullMethodName       = "/historyrag.v1.HistoryRagApiService/GetTopics"
+	HistoryRagApiService_GetTopicDetails_FullMethodName = "/historyrag.v1.HistoryRagApiService/GetTopicDetails"
 )
 
 // HistoryRagApiServiceClient is the client API for HistoryRagApiService service.
@@ -32,6 +33,7 @@ const (
 type HistoryRagApiServiceClient interface {
 	GetBlames(ctx context.Context, in *GetBlamesRequest, opts ...grpc.CallOption) (*GetBlamesResponse, error)
 	GetTopics(ctx context.Context, in *GetTopicsRequest, opts ...grpc.CallOption) (*GetTopicsResponse, error)
+	GetTopicDetails(ctx context.Context, in *GetTopicDetailsRequest, opts ...grpc.CallOption) (*GetTopicDetailsResponse, error)
 }
 
 type historyRagApiServiceClient struct {
@@ -60,12 +62,22 @@ func (c *historyRagApiServiceClient) GetTopics(ctx context.Context, in *GetTopic
 	return out, nil
 }
 
+func (c *historyRagApiServiceClient) GetTopicDetails(ctx context.Context, in *GetTopicDetailsRequest, opts ...grpc.CallOption) (*GetTopicDetailsResponse, error) {
+	out := new(GetTopicDetailsResponse)
+	err := c.cc.Invoke(ctx, HistoryRagApiService_GetTopicDetails_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // HistoryRagApiServiceServer is the server API for HistoryRagApiService service.
 // All implementations must embed UnimplementedHistoryRagApiServiceServer
 // for forward compatibility
 type HistoryRagApiServiceServer interface {
 	GetBlames(context.Context, *GetBlamesRequest) (*GetBlamesResponse, error)
 	GetTopics(context.Context, *GetTopicsRequest) (*GetTopicsResponse, error)
+	GetTopicDetails(context.Context, *GetTopicDetailsRequest) (*GetTopicDetailsResponse, error)
 	mustEmbedUnimplementedHistoryRagApiServiceServer()
 }
 
@@ -78,6 +90,9 @@ func (UnimplementedHistoryRagApiServiceServer) GetBlames(context.Context, *GetBl
 }
 func (UnimplementedHistoryRagApiServiceServer) GetTopics(context.Context, *GetTopicsRequest) (*GetTopicsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTopics not implemented")
+}
+func (UnimplementedHistoryRagApiServiceServer) GetTopicDetails(context.Context, *GetTopicDetailsRequest) (*GetTopicDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTopicDetails not implemented")
 }
 func (UnimplementedHistoryRagApiServiceServer) mustEmbedUnimplementedHistoryRagApiServiceServer() {}
 
@@ -128,6 +143,24 @@ func _HistoryRagApiService_GetTopics_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _HistoryRagApiService_GetTopicDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTopicDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HistoryRagApiServiceServer).GetTopicDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: HistoryRagApiService_GetTopicDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HistoryRagApiServiceServer).GetTopicDetails(ctx, req.(*GetTopicDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // HistoryRagApiService_ServiceDesc is the grpc.ServiceDesc for HistoryRagApiService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -142,6 +175,10 @@ var HistoryRagApiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTopics",
 			Handler:    _HistoryRagApiService_GetTopics_Handler,
+		},
+		{
+			MethodName: "GetTopicDetails",
+			Handler:    _HistoryRagApiService_GetTopicDetails_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

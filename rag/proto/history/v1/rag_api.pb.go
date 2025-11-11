@@ -263,6 +263,116 @@ func (x *GetTopicsResponse) GetTopics() []*GetTopicsResponse_Topic {
 	return nil
 }
 
+// Request message for the GetTopicDetails api.
+type GetTopicDetailsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// IDs of the topics to retrieve details for.
+	TopicIds []int64 `protobuf:"varint,1,rep,packed,name=topic_ids,json=topicIds,proto3" json:"topic_ids,omitempty"`
+	// Whether to include code chunks in the response.
+	IncludeCode bool `protobuf:"varint,2,opt,name=include_code,json=includeCode,proto3" json:"include_code,omitempty"`
+	// Whether to include tests in the response.
+	IncludeTests  bool `protobuf:"varint,3,opt,name=include_tests,json=includeTests,proto3" json:"include_tests,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTopicDetailsRequest) Reset() {
+	*x = GetTopicDetailsRequest{}
+	mi := &file_rag_api_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTopicDetailsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTopicDetailsRequest) ProtoMessage() {}
+
+func (x *GetTopicDetailsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_rag_api_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTopicDetailsRequest.ProtoReflect.Descriptor instead.
+func (*GetTopicDetailsRequest) Descriptor() ([]byte, []int) {
+	return file_rag_api_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetTopicDetailsRequest) GetTopicIds() []int64 {
+	if x != nil {
+		return x.TopicIds
+	}
+	return nil
+}
+
+func (x *GetTopicDetailsRequest) GetIncludeCode() bool {
+	if x != nil {
+		return x.IncludeCode
+	}
+	return false
+}
+
+func (x *GetTopicDetailsRequest) GetIncludeTests() bool {
+	if x != nil {
+		return x.IncludeTests
+	}
+	return false
+}
+
+// Response message for the GetTopicDetails api.
+type GetTopicDetailsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Topic details.
+	Topics        []*GetTopicDetailsResponse_Topic `protobuf:"bytes,1,rep,name=topics,proto3" json:"topics,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTopicDetailsResponse) Reset() {
+	*x = GetTopicDetailsResponse{}
+	mi := &file_rag_api_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTopicDetailsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTopicDetailsResponse) ProtoMessage() {}
+
+func (x *GetTopicDetailsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_rag_api_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTopicDetailsResponse.ProtoReflect.Descriptor instead.
+func (*GetTopicDetailsResponse) Descriptor() ([]byte, []int) {
+	return file_rag_api_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetTopicDetailsResponse) GetTopics() []*GetTopicDetailsResponse_Topic {
+	if x != nil {
+		return x.Topics
+	}
+	return nil
+}
+
 // Message defining the line blame data.
 type GetBlamesResponse_LineBlame struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -276,7 +386,7 @@ type GetBlamesResponse_LineBlame struct {
 
 func (x *GetBlamesResponse_LineBlame) Reset() {
 	*x = GetBlamesResponse_LineBlame{}
-	mi := &file_rag_api_proto_msgTypes[4]
+	mi := &file_rag_api_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -288,7 +398,7 @@ func (x *GetBlamesResponse_LineBlame) String() string {
 func (*GetBlamesResponse_LineBlame) ProtoMessage() {}
 
 func (x *GetBlamesResponse_LineBlame) ProtoReflect() protoreflect.Message {
-	mi := &file_rag_api_proto_msgTypes[4]
+	mi := &file_rag_api_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -325,8 +435,8 @@ type GetTopicsResponse_Topic struct {
 	TopicId int64 `protobuf:"varint,1,opt,name=topic_id,json=topicId,proto3" json:"topic_id,omitempty"`
 	// Name of the topic.
 	TopicName string `protobuf:"bytes,2,opt,name=topic_name,json=topicName,proto3" json:"topic_name,omitempty"`
-	// Similarity score of the topic for the query.
-	Similarity float32 `protobuf:"fixed32,3,opt,name=similarity,proto3" json:"similarity,omitempty"`
+	// Cosine distance score of the topic for the query.
+	CosineDistance float32 `protobuf:"fixed32,3,opt,name=cosine_distance,json=cosineDistance,proto3" json:"cosine_distance,omitempty"`
 	// Matching chunks in the topic for the query.
 	MatchingChunks []*GetTopicsResponse_Topic_Chunk `protobuf:"bytes,4,rep,name=matching_chunks,json=matchingChunks,proto3" json:"matching_chunks,omitempty"`
 	// Topic summary.
@@ -337,7 +447,7 @@ type GetTopicsResponse_Topic struct {
 
 func (x *GetTopicsResponse_Topic) Reset() {
 	*x = GetTopicsResponse_Topic{}
-	mi := &file_rag_api_proto_msgTypes[5]
+	mi := &file_rag_api_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -349,7 +459,7 @@ func (x *GetTopicsResponse_Topic) String() string {
 func (*GetTopicsResponse_Topic) ProtoMessage() {}
 
 func (x *GetTopicsResponse_Topic) ProtoReflect() protoreflect.Message {
-	mi := &file_rag_api_proto_msgTypes[5]
+	mi := &file_rag_api_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -379,9 +489,9 @@ func (x *GetTopicsResponse_Topic) GetTopicName() string {
 	return ""
 }
 
-func (x *GetTopicsResponse_Topic) GetSimilarity() float32 {
+func (x *GetTopicsResponse_Topic) GetCosineDistance() float32 {
 	if x != nil {
-		return x.Similarity
+		return x.CosineDistance
 	}
 	return 0
 }
@@ -415,7 +525,7 @@ type GetTopicsResponse_Topic_Chunk struct {
 
 func (x *GetTopicsResponse_Topic_Chunk) Reset() {
 	*x = GetTopicsResponse_Topic_Chunk{}
-	mi := &file_rag_api_proto_msgTypes[6]
+	mi := &file_rag_api_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -427,7 +537,7 @@ func (x *GetTopicsResponse_Topic_Chunk) String() string {
 func (*GetTopicsResponse_Topic_Chunk) ProtoMessage() {}
 
 func (x *GetTopicsResponse_Topic_Chunk) ProtoReflect() protoreflect.Message {
-	mi := &file_rag_api_proto_msgTypes[6]
+	mi := &file_rag_api_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -464,6 +574,79 @@ func (x *GetTopicsResponse_Topic_Chunk) GetChunkIndex() int32 {
 	return 0
 }
 
+// Message defining the topic data returned.
+type GetTopicDetailsResponse_Topic struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// ID of the topic.
+	TopicId int64 `protobuf:"varint,1,opt,name=topic_id,json=topicId,proto3" json:"topic_id,omitempty"`
+	// Name of the topic.
+	TopicName string `protobuf:"bytes,2,opt,name=topic_name,json=topicName,proto3" json:"topic_name,omitempty"`
+	// Summary of the topic.
+	Summary string `protobuf:"bytes,3,opt,name=summary,proto3" json:"summary,omitempty"`
+	// Code chunks for the topic.
+	CodeChunks    []string `protobuf:"bytes,4,rep,name=code_chunks,json=codeChunks,proto3" json:"code_chunks,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTopicDetailsResponse_Topic) Reset() {
+	*x = GetTopicDetailsResponse_Topic{}
+	mi := &file_rag_api_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTopicDetailsResponse_Topic) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTopicDetailsResponse_Topic) ProtoMessage() {}
+
+func (x *GetTopicDetailsResponse_Topic) ProtoReflect() protoreflect.Message {
+	mi := &file_rag_api_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTopicDetailsResponse_Topic.ProtoReflect.Descriptor instead.
+func (*GetTopicDetailsResponse_Topic) Descriptor() ([]byte, []int) {
+	return file_rag_api_proto_rawDescGZIP(), []int{5, 0}
+}
+
+func (x *GetTopicDetailsResponse_Topic) GetTopicId() int64 {
+	if x != nil {
+		return x.TopicId
+	}
+	return 0
+}
+
+func (x *GetTopicDetailsResponse_Topic) GetTopicName() string {
+	if x != nil {
+		return x.TopicName
+	}
+	return ""
+}
+
+func (x *GetTopicDetailsResponse_Topic) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *GetTopicDetailsResponse_Topic) GetCodeChunks() []string {
+	if x != nil {
+		return x.CodeChunks
+	}
+	return nil
+}
+
 var File_rag_api_proto protoreflect.FileDescriptor
 
 const file_rag_api_proto_rawDesc = "" +
@@ -493,16 +676,14 @@ const file_rag_api_proto_rawDesc = "" +
 	"\vtopic_count\x18\x02 \x01(\x03R\n" +
 	"topicCount\x12\x1f\n" +
 	"\vchunk_count\x18\x03 \x01(\x03R\n" +
-	"chunkCount\"\x91\x03\n" +
+	"chunkCount\"\x9a\x03\n" +
 	"\x11GetTopicsResponse\x12>\n" +
-	"\x06topics\x18\x01 \x03(\v2&.historyrag.v1.GetTopicsResponse.TopicR\x06topics\x1a\xbb\x02\n" +
+	"\x06topics\x18\x01 \x03(\v2&.historyrag.v1.GetTopicsResponse.TopicR\x06topics\x1a\xc4\x02\n" +
 	"\x05Topic\x12\x19\n" +
 	"\btopic_id\x18\x01 \x01(\x03R\atopicId\x12\x1d\n" +
 	"\n" +
-	"topic_name\x18\x02 \x01(\tR\ttopicName\x12\x1e\n" +
-	"\n" +
-	"similarity\x18\x03 \x01(\x02R\n" +
-	"similarity\x12U\n" +
+	"topic_name\x18\x02 \x01(\tR\ttopicName\x12'\n" +
+	"\x0fcosine_distance\x18\x03 \x01(\x02R\x0ecosineDistance\x12U\n" +
 	"\x0fmatching_chunks\x18\x04 \x03(\v2,.historyrag.v1.GetTopicsResponse.Topic.ChunkR\x0ematchingChunks\x12\x18\n" +
 	"\asummary\x18\x05 \x01(\tR\asummary\x1ag\n" +
 	"\x05Chunk\x12#\n" +
@@ -510,10 +691,24 @@ const file_rag_api_proto_rawDesc = "" +
 	"\bchunk_id\x18\x02 \x01(\x03R\achunkId\x12\x1e\n" +
 	"\n" +
 	"chunkIndex\x18\x03 \x01(\x05R\n" +
-	"chunkIndex2\xf4\x01\n" +
+	"chunkIndex\"}\n" +
+	"\x16GetTopicDetailsRequest\x12\x1b\n" +
+	"\ttopic_ids\x18\x01 \x03(\x03R\btopicIds\x12!\n" +
+	"\finclude_code\x18\x02 \x01(\bR\vincludeCode\x12#\n" +
+	"\rinclude_tests\x18\x03 \x01(\bR\fincludeTests\"\xdd\x01\n" +
+	"\x17GetTopicDetailsResponse\x12D\n" +
+	"\x06topics\x18\x01 \x03(\v2,.historyrag.v1.GetTopicDetailsResponse.TopicR\x06topics\x1a|\n" +
+	"\x05Topic\x12\x19\n" +
+	"\btopic_id\x18\x01 \x01(\x03R\atopicId\x12\x1d\n" +
+	"\n" +
+	"topic_name\x18\x02 \x01(\tR\ttopicName\x12\x18\n" +
+	"\asummary\x18\x03 \x01(\tR\asummary\x12\x1f\n" +
+	"\vcode_chunks\x18\x04 \x03(\tR\n" +
+	"codeChunks2\xfd\x02\n" +
 	"\x14HistoryRagApiService\x12m\n" +
 	"\tGetBlames\x12\x1f.historyrag.v1.GetBlamesRequest\x1a .historyrag.v1.GetBlamesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/historyrag/v1/blames\x12m\n" +
-	"\tGetTopics\x12\x1f.historyrag.v1.GetTopicsRequest\x1a .historyrag.v1.GetTopicsResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/historyrag/v1/topicsB+Z)go.skia.org/infra/go/rag/proto/history/v1b\x06proto3"
+	"\tGetTopics\x12\x1f.historyrag.v1.GetTopicsRequest\x1a .historyrag.v1.GetTopicsResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/historyrag/v1/topics\x12\x86\x01\n" +
+	"\x0fGetTopicDetails\x12%.historyrag.v1.GetTopicDetailsRequest\x1a&.historyrag.v1.GetTopicDetailsResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/historyrag/v1/topic_detailsB+Z)go.skia.org/infra/go/rag/proto/history/v1b\x06proto3"
 
 var (
 	file_rag_api_proto_rawDescOnce sync.Once
@@ -527,29 +722,35 @@ func file_rag_api_proto_rawDescGZIP() []byte {
 	return file_rag_api_proto_rawDescData
 }
 
-var file_rag_api_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_rag_api_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_rag_api_proto_goTypes = []any{
 	(*GetBlamesRequest)(nil),              // 0: historyrag.v1.GetBlamesRequest
 	(*GetBlamesResponse)(nil),             // 1: historyrag.v1.GetBlamesResponse
 	(*GetTopicsRequest)(nil),              // 2: historyrag.v1.GetTopicsRequest
 	(*GetTopicsResponse)(nil),             // 3: historyrag.v1.GetTopicsResponse
-	(*GetBlamesResponse_LineBlame)(nil),   // 4: historyrag.v1.GetBlamesResponse.LineBlame
-	(*GetTopicsResponse_Topic)(nil),       // 5: historyrag.v1.GetTopicsResponse.Topic
-	(*GetTopicsResponse_Topic_Chunk)(nil), // 6: historyrag.v1.GetTopicsResponse.Topic.Chunk
+	(*GetTopicDetailsRequest)(nil),        // 4: historyrag.v1.GetTopicDetailsRequest
+	(*GetTopicDetailsResponse)(nil),       // 5: historyrag.v1.GetTopicDetailsResponse
+	(*GetBlamesResponse_LineBlame)(nil),   // 6: historyrag.v1.GetBlamesResponse.LineBlame
+	(*GetTopicsResponse_Topic)(nil),       // 7: historyrag.v1.GetTopicsResponse.Topic
+	(*GetTopicsResponse_Topic_Chunk)(nil), // 8: historyrag.v1.GetTopicsResponse.Topic.Chunk
+	(*GetTopicDetailsResponse_Topic)(nil), // 9: historyrag.v1.GetTopicDetailsResponse.Topic
 }
 var file_rag_api_proto_depIdxs = []int32{
-	4, // 0: historyrag.v1.GetBlamesResponse.lineBlames:type_name -> historyrag.v1.GetBlamesResponse.LineBlame
-	5, // 1: historyrag.v1.GetTopicsResponse.topics:type_name -> historyrag.v1.GetTopicsResponse.Topic
-	6, // 2: historyrag.v1.GetTopicsResponse.Topic.matching_chunks:type_name -> historyrag.v1.GetTopicsResponse.Topic.Chunk
-	0, // 3: historyrag.v1.HistoryRagApiService.GetBlames:input_type -> historyrag.v1.GetBlamesRequest
-	2, // 4: historyrag.v1.HistoryRagApiService.GetTopics:input_type -> historyrag.v1.GetTopicsRequest
-	1, // 5: historyrag.v1.HistoryRagApiService.GetBlames:output_type -> historyrag.v1.GetBlamesResponse
-	3, // 6: historyrag.v1.HistoryRagApiService.GetTopics:output_type -> historyrag.v1.GetTopicsResponse
-	5, // [5:7] is the sub-list for method output_type
-	3, // [3:5] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	6, // 0: historyrag.v1.GetBlamesResponse.lineBlames:type_name -> historyrag.v1.GetBlamesResponse.LineBlame
+	7, // 1: historyrag.v1.GetTopicsResponse.topics:type_name -> historyrag.v1.GetTopicsResponse.Topic
+	9, // 2: historyrag.v1.GetTopicDetailsResponse.topics:type_name -> historyrag.v1.GetTopicDetailsResponse.Topic
+	8, // 3: historyrag.v1.GetTopicsResponse.Topic.matching_chunks:type_name -> historyrag.v1.GetTopicsResponse.Topic.Chunk
+	0, // 4: historyrag.v1.HistoryRagApiService.GetBlames:input_type -> historyrag.v1.GetBlamesRequest
+	2, // 5: historyrag.v1.HistoryRagApiService.GetTopics:input_type -> historyrag.v1.GetTopicsRequest
+	4, // 6: historyrag.v1.HistoryRagApiService.GetTopicDetails:input_type -> historyrag.v1.GetTopicDetailsRequest
+	1, // 7: historyrag.v1.HistoryRagApiService.GetBlames:output_type -> historyrag.v1.GetBlamesResponse
+	3, // 8: historyrag.v1.HistoryRagApiService.GetTopics:output_type -> historyrag.v1.GetTopicsResponse
+	5, // 9: historyrag.v1.HistoryRagApiService.GetTopicDetails:output_type -> historyrag.v1.GetTopicDetailsResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_rag_api_proto_init() }
@@ -563,7 +764,7 @@ func file_rag_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_rag_api_proto_rawDesc), len(file_rag_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

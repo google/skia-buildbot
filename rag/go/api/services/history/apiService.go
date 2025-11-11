@@ -2,7 +2,9 @@ package history
 
 import (
 	"context"
+	"encoding/json"
 	"os"
+	"strings"
 
 	"cloud.google.com/go/spanner"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -17,10 +19,11 @@ import (
 )
 
 const (
-	geminiApiKeyEnvVar   = "GEMINI_API_KEY"
-	geminiProjectEnvVar  = "GEMINI_PROJECT"
-	geminiLocationEnvVar = "GEMINI_LOCATION"
-	defaultTopicCount    = 20
+	geminiApiKeyEnvVar     = "GEMINI_API_KEY"
+	geminiProjectEnvVar    = "GEMINI_PROJECT"
+	geminiLocationEnvVar   = "GEMINI_LOCATION"
+	defaultTopicCount      = 20
+	maxTopicResponseLength = 450000
 )
 
 // ApiService provides a struct for the HistoryRag api implementation.
@@ -146,10 +149,10 @@ func (service *ApiService) GetTopics(ctx context.Context, req *pb.GetTopicsReque
 	resp := &pb.GetTopicsResponse{}
 	for _, topic := range topics {
 		respTopic := &pb.GetTopicsResponse_Topic{
-			TopicId:    int64(topic.ID),
-			TopicName:  topic.Title,
-			Similarity: float32(topic.Distance),
-			Summary:    topic.Summary,
+			TopicId:        int64(topic.ID),
+			TopicName:      topic.Title,
+			CosineDistance: float32(topic.Distance),
+			Summary:        topic.Summary,
 		}
 		for _, chunk := range topic.Chunks {
 			respTopic.MatchingChunks = append(respTopic.MatchingChunks, &pb.GetTopicsResponse_Topic_Chunk{
@@ -159,6 +162,81 @@ func (service *ApiService) GetTopics(ctx context.Context, req *pb.GetTopicsReque
 			})
 		}
 		resp.Topics = append(resp.Topics, respTopic)
+	}
+	return resp, nil
+}
+
+// GetTopicDetails implements the GetTopicDetails endpoint.
+func (service *ApiService) GetTopicDetails(ctx context.Context, req *pb.GetTopicDetailsRequest) (*pb.GetTopicDetailsResponse, error) {
+	// Get all the topic ids from the request.
+	topicIds := req.GetTopicIds()
+	if len(topicIds) == 0 {
+		return nil, skerr.Fmt("topicIds cannot be empty.")
+	}
+
+	resp := &pb.GetTopicDetailsResponse{}
+
+	// Process all the topics one by one.
+	// TODO(ashwinpv): We can potentially do this in one db call.
+	for _, topicId := range topicIds {
+		if topicId < 0 {
+			return nil, skerr.Fmt("topicIds cannot be negative.")
+		}
+
+		// Read the topic data from the db.
+		topic, err := service.topicStore.ReadTopic(ctx, topicId)
+		if err != nil {
+			sklog.Errorf("Error reading topic %d: %v", topicId, err)
+			return nil, err
+		}
+
+		respTopic := &pb.GetTopicDetailsResponse_Topic{
+			TopicId:   topic.ID,
+			TopicName: topic.Title,
+			Summary:   topic.Summary,
+		}
+
+		// To ensure that the size of the response is kept within a reasonable limit,
+		// we keep a track of the length and check whether we exceed the max limit.
+		jsonResponse, err := json.Marshal(respTopic)
+		if err != nil {
+			sklog.Errorf("Error marshalling response: %v", err)
+			return nil, err
+		}
+		currentTopicResponseLength := len(jsonResponse)
+		if topic.CodeContext != "" {
+			testChunks := []string{}
+			// Add the code chunks if specified.
+			if req.IncludeCode {
+				allTopicCode := strings.Split(topic.CodeContext, "\n\n")
+				for _, code := range allTopicCode {
+					// Check if this is a test file.
+					fileName := strings.TrimSpace(strings.Split(code, "\n")[0])
+					isTestFile := strings.Contains(strings.ToLower(fileName), "test")
+					if !isTestFile {
+						if currentTopicResponseLength+len(code) > maxTopicResponseLength {
+							break
+						}
+						respTopic.CodeChunks = append(respTopic.CodeChunks, code)
+						currentTopicResponseLength += len(code)
+					} else if req.IncludeTests {
+						testChunks = append(testChunks, code)
+					}
+				}
+
+				// If include tests is specified, add the test chunks.
+				if req.IncludeTests && len(testChunks) > 0 {
+					for _, testChunk := range testChunks {
+						if currentTopicResponseLength+len(testChunk) > maxTopicResponseLength {
+							break
+						}
+						respTopic.CodeChunks = append(respTopic.CodeChunks, testChunk)
+						currentTopicResponseLength += len(testChunk)
+					}
+				}
+			}
+			resp.Topics = append(resp.Topics, respTopic)
+		}
 	}
 	return resp, nil
 }
