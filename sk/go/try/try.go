@@ -9,12 +9,17 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"golang.org/x/oauth2/google"
 
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
@@ -26,6 +31,11 @@ import (
 const (
 	bbBucketPublic  = "skia/skia.primary"
 	bbBucketPrivate = "skia-internal/skia.internal"
+
+	gerritURL = "https://skia-review.googlesource.com"
+
+	tsJobURLPublic  = "https://task-scheduler.skia.org/job/%s"
+	tsJobURLPrivate = "https://skia-task-scheduler.corp.goog/job/%s"
 )
 
 var (
@@ -54,33 +64,64 @@ var (
 		"internal_test":                 bbBucketPrivate,
 		"k8s-config":                    bbBucketPrivate,
 	}
+
+	// bbBucketToTaskSchedulerURL maps buildbucket buckets to a task scheduler
+	// job URL.
+	bbBucketToTaskSchedulerURL = map[string]string{
+		bbBucketPublic:  tsJobURLPublic,
+		bbBucketPrivate: tsJobURLPrivate,
+	}
 )
 
 // Command returns a cli.Command instance which represents the "try" command.
-func Command() *cli.Command {
+func Command() []*cli.Command {
 	yFlag := "y"
 	bucketFlag := "bucket"
-	return &cli.Command{
-		Name:        "try",
-		Usage:       "try [-y] [job name or regex]...",
-		Description: "Run try jobs against the active CL",
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:  yFlag,
-				Value: false,
-				Usage: "Trigger all matching try jobs without asking for confirmation.",
+	issueFlag := "issue"
+	patchSetFlag := "patchset"
+	return []*cli.Command{
+		{
+			Name:        "try",
+			Usage:       "try [-y] [job name or regex]...",
+			Description: "Run try jobs against the active CL",
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:  yFlag,
+					Value: false,
+					Usage: "Trigger all matching try jobs without asking for confirmation.",
+				},
+				&cli.StringFlag{
+					Name:  bucketFlag,
+					Value: "",
+					Usage: "Override the Buildbucket bucket used to trigger try jobs.",
+				},
 			},
-			&cli.StringFlag{
-				Name:  bucketFlag,
-				Value: "",
-				Usage: "Override the Buildbucket bucket used to trigger try jobs.",
+			Action: func(ctx *cli.Context) error {
+				if err := fixupIssue(ctx.Context); err != nil {
+					return err
+				}
+				return try(ctx.Context, ctx.Args().Slice(), ctx.Bool(yFlag), ctx.String(bucketFlag))
 			},
 		},
-		Action: func(ctx *cli.Context) error {
-			if err := fixupIssue(ctx.Context); err != nil {
-				return err
-			}
-			return try(ctx.Context, ctx.Args().Slice(), ctx.Bool(yFlag), ctx.String(bucketFlag))
+		{
+			Name:        "try-results",
+			Usage:       "try-results",
+			Description: "Retrieve try jobs for the active CL",
+			Flags: []cli.Flag{
+				&cli.Int64Flag{
+					Name:  issueFlag,
+					Value: 0,
+					Usage: "Retrieve try jobs for this issue instead of the one for the current branch.",
+				},
+				&cli.Int64Flag{
+					Name:  patchSetFlag,
+					Value: 0,
+					Usage: "Retrieve try jobs for this patch set instead of the most recent.",
+				},
+			},
+			Action: func(ctx *cli.Context) error {
+				return tryResults(ctx.Context, ctx.Int64(issueFlag), ctx.Int64(patchSetFlag))
+			},
 		},
 	}
 }
@@ -127,11 +168,11 @@ func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool, o
 	if count == 0 {
 		return skerr.Fmt("Found no jobs matching %v", jobRequests)
 	}
-	fmt.Println(fmt.Sprintf("Found %d jobs:", count))
+	fmt.Printf("Found %d jobs:\n", count)
 	for bucket, jobList := range filteredJobs {
-		fmt.Println(fmt.Sprintf("  %s:", bucket))
+		fmt.Printf("  %s:\n", bucket)
 		for _, job := range jobList {
-			fmt.Println(fmt.Sprintf("    %s", job))
+			fmt.Printf("    %s\n", job)
 		}
 	}
 	if len(jobRequests) == 0 || count == 0 {
@@ -257,18 +298,8 @@ func (r *tryJobReaderImpl) getTryJobs(ctx context.Context) (map[string][]string,
 
 	// Attempt to determine which Buildbucket bucket to use by obtaining
 	// information about the active CL.
-	out, err := exec.RunCwd(ctx, ".", "git", "cl", "issue", "--json=-")
+	props, err := getLocalIssueProperties(ctx)
 	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	// Strip the first line of non-JSON output.
-	out = strings.Join(strings.Split(out, "\n")[1:], "\n")
-	// Parse the JSON.
-	type issueProperties struct {
-		GerritProject string `json:"gerrit_project"`
-	}
-	var props issueProperties
-	if err := json.NewDecoder(bytes.NewReader([]byte(out))).Decode(&props); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	bbBucket, ok := gerritProjectToBucket[props.GerritProject]
@@ -278,4 +309,122 @@ func (r *tryJobReaderImpl) getTryJobs(ctx context.Context) (map[string][]string,
 	return map[string][]string{
 		bbBucket: jobs,
 	}, nil
+}
+
+type issueProperties struct {
+	GerritHost    string `json:"gerrit_host"`
+	GerritProject string `json:"gerrit_project"`
+	IssueURL      string `json:"issue_url"`
+	Issue         int64  `json:"issue"`
+}
+
+func getLocalIssueProperties(ctx context.Context) (*issueProperties, error) {
+	out, err := exec.RunCwd(ctx, ".", "git", "cl", "issue", "--json=-")
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// Strip the first line of non-JSON output.
+	out = strings.Join(strings.Split(out, "\n")[1:], "\n")
+	// Parse the JSON.
+	var props issueProperties
+	if err := json.NewDecoder(bytes.NewReader([]byte(out))).Decode(&props); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &props, nil
+}
+
+func tryResults(ctx context.Context, issue, patchset int64) error {
+	// Set up HTTP client.
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+
+	// Find the issue ID if not provided.
+	if issue == 0 {
+		if err := fixupIssue(ctx); err != nil {
+			return err
+		}
+		props, err := getLocalIssueProperties(ctx)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		issue = props.Issue
+	}
+
+	// Find the patchset ID if not provided.
+	if patchset == 0 {
+		g, err := gerrit.NewGerrit(gerritURL, httpClient)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		ci, err := g.GetIssueProperties(ctx, issue)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		patchsets := ci.GetPatchsetIDs()
+		patchset = patchsets[len(patchsets)-1]
+	}
+
+	// Retrieve Buildbucket builds for the issue+patchset.
+	bbClient := buildbucket.NewClient(httpClient)
+	builds, err := bbClient.GetTrybotsForCL(ctx, issue, patchset, gerritURL, nil)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Group by status.
+	buildsByStatus := map[buildbucketpb.Status][]*buildbucketpb.Build{}
+	for _, build := range builds {
+		buildsByStatus[build.Status] = append(buildsByStatus[build.Status], build)
+	}
+	statuses := make([]buildbucketpb.Status, 0, len(buildsByStatus))
+	for status := range buildsByStatus {
+		statuses = append(statuses, status)
+	}
+	slices.Sort(statuses)
+
+	// Print results.
+	fmt.Printf("Patchset %d:\n", patchset)
+	for _, s := range statuses {
+		colorLogf(s, "  %s:\n", s.String())
+		for _, build := range builds {
+			colorLogf(s, "    %s: %s\n", build.Builder.Builder, jobURLForBuild(build))
+		}
+	}
+	return nil
+}
+
+func colorLogf(status buildbucketpb.Status, format string, a ...interface{}) {
+	_, _ = getColor(status).Printf(format, a...)
+}
+
+var statusToColor = map[buildbucketpb.Status]*color.Color{
+	buildbucketpb.Status_CANCELED:           color.New(color.FgCyan),
+	buildbucketpb.Status_FAILURE:            color.New(color.FgRed),
+	buildbucketpb.Status_STARTED:            color.New(color.FgYellow),
+	buildbucketpb.Status_SUCCESS:            color.New(color.FgGreen),
+	buildbucketpb.Status_STATUS_UNSPECIFIED: color.New(color.Reset),
+}
+
+func getColor(status buildbucketpb.Status) *color.Color {
+	color, ok := statusToColor[status]
+	if !ok {
+		color = statusToColor[buildbucketpb.Status_STATUS_UNSPECIFIED]
+	}
+	return color
+}
+
+func jobURLForBuild(build *buildbucketpb.Build) string {
+	var jobID string
+	if build.Infra != nil && build.Infra.Backend != nil && build.Infra.Backend.Task != nil && build.Infra.Backend.Task.Id != nil {
+		jobID = build.Infra.Backend.Task.Id.Id
+	}
+	if jobID == "" {
+		return "(not started yet)"
+	}
+	bucket := fmt.Sprintf("%s/%s", build.Builder.Project, build.Builder.Bucket)
+	tsURL := bbBucketToTaskSchedulerURL[bucket]
+	return fmt.Sprintf(tsURL, jobID)
 }

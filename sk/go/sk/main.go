@@ -12,11 +12,10 @@ func main() {
 	app := &cli.App{
 		Name:        "sk",
 		Description: `sk provides developer workflow tools for Skia.`,
-		Commands: []*cli.Command{
+		Commands: append([]*cli.Command{
 			asset.Command(),
 			release_branch.Command(),
-			try.Command(),
-		},
+		}, try.Command()...),
 		Usage: "sk <subcommand>",
 	}
 	app.RunAndExitOnError()

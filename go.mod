@@ -35,6 +35,7 @@ require (
 	github.com/cockroachdb/cockroach-go/v2 v2.1.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/dustin/go-humanize v1.0.1
+	github.com/fatih/color v1.15.0
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/go-chi/chi/v5 v5.0.8
@@ -74,7 +75,6 @@ require (
 	github.com/redis/go-redis/v9 v9.6.0
 	github.com/rs/cors v1.6.0
 	github.com/sbinet/npyio v0.9.0
-	github.com/sendgrid/sendgrid-go v3.11.1+incompatible
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/skia-dev/protoc-gen-twirp_typescript v0.0.0-20220429132620-ad26708b7787
@@ -232,7 +232,6 @@ require (
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.1.1 // indirect
-	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.12.0 // indirect

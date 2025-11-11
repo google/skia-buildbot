@@ -2025,18 +2025,6 @@ def go_repositories():
         version = "v0.9.0",
     )
     go_repository(
-        name = "com_github_sendgrid_rest",
-        importpath = "github.com/sendgrid/rest",
-        sum = "h1:1EyIcsNdn9KIisLW50MKwmSRSK+ekueiEMJ7NEoxJo0=",
-        version = "v2.6.9+incompatible",
-    )
-    go_repository(
-        name = "com_github_sendgrid_sendgrid_go",
-        importpath = "github.com/sendgrid/sendgrid-go",
-        sum = "h1:ai0+woZ3r/+tKLQExznak5XerOFoD6S7ePO0lMV8WXo=",
-        version = "v3.11.1+incompatible",
-    )
-    go_repository(
         name = "com_github_sergi_go_diff",
         importpath = "github.com/sergi/go-diff",
         sum = "h1:xkr+Oxo4BOQKmkn/B9eMK0g5Kg/983T9DqqPHwYqD+8=",

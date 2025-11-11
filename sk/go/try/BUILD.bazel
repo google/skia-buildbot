@@ -7,13 +7,17 @@ go_library(
     importpath = "go.skia.org/infra/sk/go/try",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/auth",
+        "//go/buildbucket",
         "//go/exec",
         "//go/gerrit",
         "//go/httputils",
         "//go/repo_root",
         "//go/skerr",
         "//task_scheduler/go/specs",
+        "@com_github_fatih_color//:color",
         "@com_github_urfave_cli_v2//:cli",
+        "@org_chromium_go_luci//buildbucket/proto",
         "@org_golang_x_oauth2//google",
     ],
 )
