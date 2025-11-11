@@ -65,6 +65,11 @@ export class PerfScaffoldSk extends ElementSk {
   private static template = (ele: PerfScaffoldSk) => html`
   <app-sk>
     <header id=topbar>
+      <div class="header-brand">
+        <a href="/">
+          <img class="logo" src="/dist/images/chrome-logo.svg?v=1" alt="Chrome" />
+        </a>
+      </div>
       <h1 class=name>${ele.instanceTitleTemplate()}</h1>
       <div class=spacer></div>
       <alogin-sk url=/_/login/status></alogin-sk>

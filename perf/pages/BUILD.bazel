@@ -66,6 +66,16 @@ sk_page(
 sk_page(
     name = "newindex",
     assets_serving_path = "/dist",
+    copy_files = [
+        {
+            "src": "//am/images:line-chart.svg",
+            "dst": "images/line-chart.svg",
+        },
+        {
+            "src": "//am/images:chrome-logo.svg",
+            "dst": "images/chrome-logo.svg",
+        },
+    ],
     html_file = "newindex.html",
     nonce = "{% .Nonce %}",
     production_sourcemap = True,

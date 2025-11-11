@@ -3,6 +3,12 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_pu
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":perf-scaffold-sk-demo",
+    static_assets = {
+        "/dist/images": [
+            "//am/images:chrome-logo.svg",
+            "//am/images:line-chart.svg",
+        ],
+    },
 )
 
 sk_element(
@@ -18,15 +24,15 @@ sk_element(
         "//elements-sk/modules/error-toast-sk",
         "//elements-sk/modules/icons/add-alert-icon-sk",
         "//elements-sk/modules/icons/build-icon-sk",
-        "//elements-sk/modules/icons/event-icon-sk",
         "//elements-sk/modules/icons/favorite-icon-sk",
-        "//elements-sk/modules/icons/folder-icon-sk",
         "//elements-sk/modules/icons/help-icon-sk",
         "//elements-sk/modules/icons/home-icon-sk",
         "//elements-sk/modules/icons/multiline-chart-icon-sk",
         "//elements-sk/modules/icons/sort-icon-sk",
         "//elements-sk/modules/icons/trending-up-icon-sk",
         "//elements-sk/modules/icons/bug-report-icon-sk",
+        "//elements-sk/modules/icons/event-icon-sk",
+        "//elements-sk/modules/icons/folder-icon-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

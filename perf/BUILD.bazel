@@ -38,6 +38,16 @@ skia_app_container(
                 "0644",
             ],
         ],
+        "/usr/local/share/skiaperf/dist/images": [
+            [
+                "//am/images:line-chart.svg",
+                "0644",
+            ],
+            [
+                "//am/images:chrome-logo.svg",
+                "0644",
+            ],
+        ],
         "/usr/local/share/skiaperf/dist": [
             [
                 "//perf/pages:production/%s.%s" % (page, ext),
