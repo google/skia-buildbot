@@ -1,0 +1,60 @@
+{
+    "URL": "https://germanium-evals.luci.app",
+    "landing_page_rel_path": "/e/",
+    "allowed_hosts": [],
+    "trace_sample_proportion": 0.01,
+    "contact": "bsheedy@google.com",
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "feedback_url": "http://go/berf-skia-feedback",
+    "chat_url": "http://go/berf-skia-chat",
+    "notify_config": {
+        "notifications": "none"
+    },
+    "auth_config": {
+        "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+        "datastore_type": "spanner",
+        "connection_string": "postgresql://root@localhost:5432/germanium_evals?sslmode=disable",
+        "tile_size": 8192,
+        "enable_follower_reads": true
+    },
+    "experiments": {
+    },
+    "ingestion_config": {
+        "source_config": {
+            "source_type": "gcs",
+            "project": "skia-public",
+            "topic": "perf-ingestion-germanium-public",
+            "subscription": "perf-ingestion-germanium-public-prod",
+            "sources": [
+                "gs://germanium-evals/ingest"
+            ]
+        },
+        "branches": [],
+        "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+        "provider": "gitiles",
+        "url": "https://chromium.googlesource.com/chromium/src",
+        "dir": "/tmp/checkout",
+        "debounce_commit_url": false,
+        "start_commit": "1b0cecca0dd78c06b811bee6215c963d0d230567"
+    },
+    "issue_tracker_config": {
+        "notification_type": "issuetracker",
+        "issue_tracker_api_key_secret_project": "skia-infra-public",
+        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    },
+    "query_config": {
+        "default_url_values": {
+            "show_google_plot": "true",
+            "plotSummary": "true",
+            "enable_chart_tooltip": "true",
+            "use_titles": "true"
+        }
+    },
+    "optimize_sqltracestore": true,
+    "show_triage_link": true,
+    "show_bisect_btn": false
+}
