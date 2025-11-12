@@ -26,9 +26,9 @@ genrule(
     name = "gen_script",
     outs = ["go.sh"],
     cmd = "echo '%s' > $@" % _SCRIPT,
-    exec_tools = [
-        "@go_sdk//:files",
+    tools = [
         "@go_sdk//:bin/go",
+        "@go_sdk//:files",
     ],
 )
 

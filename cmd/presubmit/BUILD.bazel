@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//bazel/external/buildifier",
         "//go/deepequal",
+        "//go/util",
     ],
 )
 

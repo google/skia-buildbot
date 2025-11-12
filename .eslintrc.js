@@ -16,7 +16,7 @@ module.exports = {
   },
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    ecmaVersion: 2018,
+    ecmaVersion: 11,
     sourceType: 'module',
   },
   ignorePatterns: ['dist/', 'build/', '_bazel*', 'new_element/templates/'],
@@ -143,7 +143,7 @@ module.exports = {
       rules: {
         // Prevents Chai.js assertions such as expect(foo).to.be.true from causing "Expected an
         // assignment or function call and instead saw an expression." linting errors.
-        'no-unused-expressions': 'off',
+        '@typescript-eslint/no-unused-expressions': 'off',
       },
     },
   ],
