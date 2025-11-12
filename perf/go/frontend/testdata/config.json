@@ -1,5 +1,6 @@
 {
     "URL": "http://localhost:8001",
+    "instance_name": "chrome-perf-test",
     "ga_measurement_id": "G-FAKE-MEASUREMENT-ID",
     "backend_host_url": "localhost:8003",
     "contact": "user@example.org",

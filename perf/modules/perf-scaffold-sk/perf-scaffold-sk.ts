@@ -298,6 +298,13 @@ export class PerfScaffoldSk extends ElementSk {
   }
 
   private instanceTitleTemplate() {
+    if (window.perf.instance_name) {
+      let name = window.perf.instance_name;
+      if (name.length > 64) {
+        name = name.substring(0, 64);
+      }
+      return html`<a>${name}</a>`;
+    }
     if (window.perf.instance_url) {
       if (localStorage.getItem('v2_ui') === 'true') {
         return html`${this.extractInstanceNameFromUrl(window.perf.instance_url)}`;

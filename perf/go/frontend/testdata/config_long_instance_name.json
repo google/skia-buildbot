@@ -1,0 +1,4 @@
+{
+    "URL": "https://perf.luci.app",
+    "instance_name": "this-is-a-long-instance-name-that-exceeds-the-limit-of-64-chars-by-a-bit"
+}

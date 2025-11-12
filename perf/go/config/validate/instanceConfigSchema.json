@@ -308,6 +308,9 @@
         "URL": {
           "type": "string"
         },
+        "instance_name": {
+          "type": "string"
+        },
         "landing_page_rel_path": {
           "type": "string"
         },
@@ -319,9 +322,6 @@
             "type": "string"
           },
           "type": "array"
-        },
-        "instance_name": {
-          "type": "string"
         },
         "contact": {
           "type": "string"

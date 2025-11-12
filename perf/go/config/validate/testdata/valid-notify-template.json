@@ -1,5 +1,6 @@
 {
     "URL": "https://perf.skia.org",
+    "instance_name": "chrome-perf-test",
     "allowed_hosts": [
         "status.skia.org"
     ],

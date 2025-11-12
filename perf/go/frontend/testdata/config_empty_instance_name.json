@@ -1,11 +1,10 @@
 {
     "URL": "http://localhost:8001",
-    "instance_name": "chrome-perf-test",
+    "instance_name": "",
     "ga_measurement_id": "G-FAKE-MEASUREMENT-ID",
     "backend_host_url": "localhost:8003",
     "contact": "user@example.org",
     "trace_sample_proportion": 1.0,
-    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
     "use_regression2_schema": true,
     "auth_config": {
@@ -22,7 +21,7 @@
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
     },
     "data_store_config": {
-        "datastore_type": "cockroachdb",
+        "datastore_type": "postgresql",
         "connection_string": "postgresql://root@localhost:26257/demo?sslmode=disable",
         "tile_size": 256
     },
@@ -83,5 +82,6 @@
             }
         ]
     },
-    "need_alert_action": true
+    "need_alert_action": true,
+    "new_alerts_page": true
 }

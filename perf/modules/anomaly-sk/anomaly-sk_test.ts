@@ -187,6 +187,7 @@ describe('formatRevisionRange', () => {
 
     window.perf = {
       instance_url: '',
+      instance_name: 'chrome-perf-test',
       commit_range_url: 'http://example.com/range/{begin}/{end}',
       key_order: ['config'],
       demo: true,

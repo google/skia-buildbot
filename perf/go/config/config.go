@@ -988,6 +988,9 @@ type InstanceConfig struct {
 	// URL is the root URL at which this instance is available, for example: "https://example.com".
 	URL string `json:"URL"`
 
+	// Name this instance calls itself (eg. in tracing)
+	InstanceName string `json:"instance_name,omitempty"`
+
 	// LandingPageRelPath is the relative path to the landing page.
 	// This path is used to redirect the user when they access the root URL.
 	LandingPageRelPath string `json:"landing_page_rel_path,omitempty"`
@@ -996,9 +999,6 @@ type InstanceConfig struct {
 
 	// Other domain names that are allowed to make cross-site requests to this instance.
 	AllowedHosts []string `json:"allowed_hosts,omitempty"`
-
-	// Name this instance calls itself (eg. in tracing)
-	InstanceName string `json:"instance_name,omitempty"`
 
 	// Contact is the best way to contact the team for this instance.
 	Contact string `json:"contact"`

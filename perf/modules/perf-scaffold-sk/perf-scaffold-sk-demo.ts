@@ -4,6 +4,7 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 window.perf = Object.assign(
   {
     instance_url: '',
+    instance_name: 'chrome-perf-demo',
     commit_range_url: '',
     key_order: ['config'],
     demo: true,

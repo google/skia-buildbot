@@ -9,6 +9,7 @@ import { QuerySk } from '../../../infra-sk/modules/query-sk/query-sk';
 
 window.perf = {
   instance_url: '',
+  instance_name: 'chrome-perf-demo',
   commit_range_url: '',
   key_order: ['config'],
   demo: true,

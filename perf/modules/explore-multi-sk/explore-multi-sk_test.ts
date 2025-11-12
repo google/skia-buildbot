@@ -19,6 +19,7 @@ describe('ExploreMultiSk', () => {
     setUpExploreDemoEnv();
     window.perf = {
       instance_url: '',
+      instance_name: 'chrome-perf-test',
       commit_range_url: '',
       key_order: ['config'],
       demo: true,
@@ -128,6 +129,7 @@ describe('ExploreMultiSk', () => {
       setUpExploreDemoEnv();
       window.perf = {
         instance_url: '',
+        instance_name: '',
         commit_range_url: '',
         key_order: ['config'],
         demo: true,

@@ -254,3 +254,37 @@ func TestFrontend_loadAppVersion_FileReadError_SetsEmptyVersion(t *testing.T) {
 	})
 	require.Equal(t, "", f.appVersion)
 }
+
+func TestFrontend_GetPageContext_InstanceName(t *testing.T) {
+	f := &Frontend{
+		flags: &config.FrontendFlags{},
+	}
+	// Save original config to restore later if needed, though tests should be isolated.
+	// Better to just set it and let other tests set it if they need it.
+	// Assuming config.Config is global and mutable.
+	originalConfig := config.Config
+	defer func() { config.Config = originalConfig }()
+
+	config.Config = &config.InstanceConfig{
+		URL: "https://perf.luci.app",
+	}
+
+	// Case 1: No instance_name
+	ctx, err := f.getPageContext()
+	require.NoError(t, err)
+	require.Contains(t, string(ctx), "\"instance_name\": \"\"")
+
+	// Case 2: With instance_name
+	config.Config.InstanceName = "chrome-perf-test"
+	ctx, err = f.getPageContext()
+	require.NoError(t, err)
+	require.Contains(t, string(ctx), "\"instance_name\": \"chrome-perf-test\"")
+
+	// Case 3: With long instance_name
+	config.Config.InstanceName = "this-is-a-long-instance-name-that-exceeds-the-limit-of-64-chars-by-a-bit"
+	ctx, err = f.getPageContext()
+	require.NoError(t, err)
+	// It should NOT be truncated in the JSON context, only in the UI display if needed.
+	// The backend just passes it through.
+	require.Contains(t, string(ctx), "\"instance_name\": \"this-is-a-long-instance-name-that-exceeds-the-limit-of-64-chars-by-a-bit\"")
+}
