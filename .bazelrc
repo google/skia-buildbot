@@ -188,3 +188,8 @@ try-import %workspace%/bazel/user/bazelrc
 #
 # Bazel complains if --config=mayberemote is undefined, so a default "no-op" definition is needed.
 build:mayberemote --color=auto # Does nothing: --color is "auto" by default.
+
+# See https://github.com/buildfarm/buildfarm/issues/1446
+build --@io_bazel_rules_docker//transitions:enable=false
+query --@io_bazel_rules_docker//transitions:enable=false
+fetch --@io_bazel_rules_docker//transitions:enable=false
