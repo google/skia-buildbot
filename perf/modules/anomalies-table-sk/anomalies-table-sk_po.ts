@@ -30,11 +30,11 @@ export class AnomaliesTableSkPO extends PageObject {
   }
 
   get triageButton(): PageObjectElement {
-    return this.bySelector('#triage-button');
+    return this.bySelector('[id^="triage-button-"]');
   }
 
   get openReport(): PageObjectElement {
-    return this.bySelector('#graph-button');
+    return this.bySelector('[id^="graph-button-"]');
   }
 
   get expandButton(): PageObjectElement {
@@ -42,7 +42,7 @@ export class AnomaliesTableSkPO extends PageObject {
   }
 
   get headerCheckbox(): PageObjectElement {
-    return this.bySelector('#header-checkbox');
+    return this.bySelector('[id^="header-checkbox-"]');
   }
 
   get checkboxes(): PageObjectElementList {

@@ -68,6 +68,9 @@ export class AnomaliesTableSk extends ElementSk {
 
   private isParentRow = false;
 
+  private uniqueId =
+    'anomalies-table-sk-' + new Date().getTime() + '-' + Math.floor(Math.random() * 1000);
+
   constructor() {
     super(AnomaliesTableSk.template);
   }
@@ -92,13 +95,15 @@ export class AnomaliesTableSk extends ElementSk {
     super.connectedCallback();
     this._render();
 
-    this.triageMenu = this.querySelector('#triage-menu');
+    this.triageMenu = this.querySelector(`#triage-menu-${this.uniqueId}`);
     this.triageMenu!.disableNudge();
     this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
-    this.headerCheckbox = this.querySelector('#header-checkbox') as HTMLInputElement;
+    this.headerCheckbox = this.querySelector(
+      `#header-checkbox-${this.uniqueId}`
+    ) as HTMLInputElement;
     this.traceFormatter = new ChromeTraceFormatter();
     this.addEventListener('click', (e: Event) => {
-      const triageButton = this.querySelector('#triage-button');
+      const triageButton = this.querySelector(`#triage-button-${this.uniqueId}`);
       const popup = this.querySelector('.popup');
       if (this.showPopup && !popup!.contains(e.target as Node) && e.target !== triageButton) {
         this.showPopup = false;
@@ -117,19 +122,19 @@ export class AnomaliesTableSk extends ElementSk {
   private static template = (ele: AnomaliesTableSk) => html`
     <div class="filter-buttons" ?hidden="${ele.anomalyList.length === 0}">
       <button
-        id="triage-button"
+        id="triage-button-${ele.uniqueId}"
         @click="${ele.togglePopup}"
         ?disabled="${ele.checkedAnomaliesSet.size === 0}">
         Triage Selected
       </button>
       <button
-        id="graph-button"
+        id="graph-button-${ele.uniqueId}"
         @click="${ele.openReport}"
         ?disabled="${ele.checkedAnomaliesSet.size === 0}">
         Graph Selected
       </button>
       <button
-        id="open-group-button"
+        id="open-group-button-${ele.uniqueId}"
         @click="${ele.openAnomalyGroupReportPage}"
         ?disabled="${ele.checkedAnomaliesSet.size === 0}">
         Graph Selected by Group
@@ -137,11 +142,11 @@ export class AnomaliesTableSk extends ElementSk {
     </div>
     <div class="popup-container" ?hidden="${!ele.showPopup}">
       <div class="popup">
-        <triage-menu-sk id="triage-menu"></triage-menu-sk>
+        <triage-menu-sk id="triage-menu-${ele.uniqueId}"></triage-menu-sk>
       </div>
     </div>
     ${ele.generateTable()}
-    <h1 id="clear-msg" hidden>All anomalies are triaged!</h1>
+    <h1 id="clear-msg-${ele.uniqueId}" hidden>All anomalies are triaged!</h1>
   `;
 
   async openReportForAnomalyIds(anomalies: Anomaly[]) {
@@ -204,12 +209,12 @@ export class AnomaliesTableSk extends ElementSk {
       if (group.anomalies.length > 1) {
         const summaryRowCheckboxId = this.getGroupId(group);
         groupCheckbox = this.querySelector<HTMLInputElement>(
-          `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+          `input[id="anomaly-row-${this.uniqueId}-${summaryRowCheckboxId}"]`
         );
       } else {
         const anomaly = group.anomalies[0];
         groupCheckbox = this.querySelector<HTMLInputElement>(
-          `input[id="anomaly-row-${anomaly.id}"]`
+          `input[id="anomaly-row-${this.uniqueId}-${anomaly.id}"]`
         );
       }
       if (groupCheckbox && groupCheckbox.checked) {
@@ -221,7 +226,7 @@ export class AnomaliesTableSk extends ElementSk {
   togglePopup() {
     this.showPopup = !this.showPopup;
     if (this.showPopup) {
-      const triageMenu = this.querySelector('#triage-menu') as TriageMenuSk;
+      const triageMenu = this.querySelector(`#triage-menu-${this.uniqueId}`) as TriageMenuSk;
       triageMenu.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
     }
     this._render();
@@ -361,30 +366,34 @@ export class AnomaliesTableSk extends ElementSk {
 
   private generateTable() {
     return html`
-      <sort-sk id="as_table" target="rows">
-        <table id="anomalies-table" hidden>
+      <sort-sk id="as_table-${this.uniqueId}" target="rows-${this.uniqueId}">
+        <table id="anomalies-table-${this.uniqueId}" hidden>
           <tr class="headers">
-            <th id="group"></th>
-            <th id="checkbox">
-              <label for="header-checkbox"
+            <th id="group-${this.uniqueId}"></th>
+            <th id="checkbox-${this.uniqueId}">
+              <label for="header-checkbox-${this.uniqueId}"
                 ><input
                   type="checkbox"
-                  id="header-checkbox"
+                  id="header-checkbox-${this.uniqueId}"
                   @change=${() => {
                     this.toggleAllCheckboxes();
                     this.show_selected_groups_first = false;
                   }}
               /></label>
             </th>
-            <th id="graph_header">Chart</th>
-            <th id="bug_id" data-key="bugid">Bug ID</th>
-            <th id="revision_range" data-key="revisions" data-default="down">Revisions</th>
-            <th id="bot" data-key="bot" data-sort-type="alpha">Bot</th>
-            <th id="testsuite" data-key="testsuite" data-sort-type="alpha">Test Suite</th>
-            <th id="test" data-key="test" data-sort-type="alpha">Test</th>
-            <th id="percent_changed" data-key="delta">Delta %</th>
+            <th id="graph_header-${this.uniqueId}">Chart</th>
+            <th id="bug_id-${this.uniqueId}" data-key="bugid">Bug ID</th>
+            <th id="revision_range-${this.uniqueId}" data-key="revisions" data-default="down">
+              Revisions
+            </th>
+            <th id="bot-${this.uniqueId}" data-key="bot" data-sort-type="alpha">Bot</th>
+            <th id="testsuite-${this.uniqueId}" data-key="testsuite" data-sort-type="alpha">
+              Test Suite
+            </th>
+            <th id="test-${this.uniqueId}" data-key="test" data-sort-type="alpha">Test</th>
+            <th id="percent_changed-${this.uniqueId}" data-key="delta">Delta %</th>
           </tr>
-          <tbody id="rows">
+          <tbody id="rows-${this.uniqueId}">
             ${this.generateGroups()}
           </tbody>
         </table>
@@ -464,7 +473,7 @@ export class AnomaliesTableSk extends ElementSk {
     if (group && group.anomalies.length > 1) {
       const summaryRowCheckboxId = this.getGroupId(group);
       const summaryCheckbox = this.querySelector<HTMLInputElement>(
-        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+        `input[id="anomaly-row-${this.uniqueId}-${summaryRowCheckboxId}"]`
       );
       if (summaryCheckbox) {
         let checkedCount = 0;
@@ -573,7 +582,7 @@ export class AnomaliesTableSk extends ElementSk {
                   this.anomalyChecked(e.target as HTMLInputElement, anomaly, anomalyGroup);
                 }}
                 ?checked=${this.checkedAnomaliesSet.has(anomaly)}
-                id="anomaly-row-${anomaly.id}"
+                id="anomaly-row-${this.uniqueId}-${anomaly.id}"
             /></label>
           </td>
           <td class="center-content">
@@ -711,7 +720,7 @@ export class AnomaliesTableSk extends ElementSk {
                 this.toggleChildrenCheckboxes(anomalyGroup);
               }}"
               ?checked=${this.isGroupSelected(anomalyGroup)}
-              id="anomaly-row-${this.getGroupId(anomalyGroup)}" />
+              id="anomaly-row-${this.uniqueId}-${this.getGroupId(anomalyGroup)}" />
           </label>
         </td>
         <td class="center-content"></td>
@@ -821,8 +830,8 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   async populateTable(anomalyList: Anomaly[]): Promise<void> {
-    const msg = this.querySelector('#clear-msg') as HTMLHeadingElement;
-    const table = this.querySelector('#anomalies-table') as HTMLTableElement;
+    const msg = this.querySelector(`#clear-msg-${this.uniqueId}`) as HTMLHeadingElement;
+    const table = this.querySelector(`#anomalies-table-${this.uniqueId}`) as HTMLTableElement;
     if (anomalyList.length > 0) {
       msg.hidden = true;
       table.hidden = false;
@@ -849,7 +858,7 @@ export class AnomaliesTableSk extends ElementSk {
 
   private checkAnomaly(checkedAnomaly: Anomaly) {
     const checkbox = this.querySelector(
-      `input[id="anomaly-row-${checkedAnomaly.id}"]`
+      `input[id="anomaly-row-${this.uniqueId}-${checkedAnomaly.id}"]`
     ) as HTMLInputElement;
     if (checkbox !== null) {
       checkbox.checked = true;
@@ -864,13 +873,13 @@ export class AnomaliesTableSk extends ElementSk {
    */
   toggleChildrenCheckboxes(anomalyGroup: AnomalyGroup) {
     const summaryRowCheckbox = this.querySelector<HTMLInputElement>(
-      `input[id="anomaly-row-${this.getGroupId(anomalyGroup)}"]`
+      `input[id="anomaly-row-${this.uniqueId}-${this.getGroupId(anomalyGroup)}"]`
     ) as HTMLInputElement;
     const checked = summaryRowCheckbox.checked;
 
     anomalyGroup.anomalies.forEach((anomaly) => {
       const checkbox = this.querySelector<HTMLInputElement>(
-        `input[id="anomaly-row-${anomaly.id}"]`
+        `input[id="anomaly-row-${this.uniqueId}-${anomaly.id}"]`
       ) as HTMLInputElement;
       checkbox.checked = checked;
       if (checked) {
@@ -916,7 +925,7 @@ export class AnomaliesTableSk extends ElementSk {
     this.anomalyGroups.forEach((group) => {
       if (group.anomalies.length > 1) {
         const summaryRowCheckbox = this.querySelector<HTMLInputElement>(
-          `input[id=anomaly-row-${this.getGroupId(group)}]`
+          `input[id=anomaly-row-${this.uniqueId}-${this.getGroupId(group)}]`
         );
         if (summaryRowCheckbox) {
           summaryRowCheckbox.indeterminate = false;
@@ -926,7 +935,7 @@ export class AnomaliesTableSk extends ElementSk {
 
       group.anomalies.forEach((anomaly) => {
         const checkbox = this.querySelector<HTMLInputElement>(
-          `input[id="anomaly-row-${anomaly.id}"]`
+          `input[id="anomaly-row-${this.uniqueId}-${anomaly.id}"]`
         );
         if (checkbox) {
           checkbox.checked = checked;

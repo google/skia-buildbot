@@ -144,7 +144,7 @@ describe('anomalies-table-sk', () => {
       for (const group of element.anomalyGroups) {
         const summaryRowCheckboxId = element.getGroupId(group);
         const groupCheckbox = element.querySelector<HTMLInputElement>(
-          `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+          `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
         );
         groupCheckbox!.checked = true;
       }
@@ -175,7 +175,7 @@ describe('anomalies-table-sk', () => {
       for (const group of element.anomalyGroups) {
         const summaryRowCheckboxId = element.getGroupId(group);
         const groupCheckbox = element.querySelector<HTMLInputElement>(
-          `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+          `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
         );
         groupCheckbox!.checked = true;
       }
@@ -196,7 +196,9 @@ describe('anomalies-table-sk', () => {
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
 
-      const anomalyCheckbox = element.querySelector<HTMLInputElement>(`input[id="anomaly-row-1"]`);
+      const anomalyCheckbox = element.querySelector<HTMLInputElement>(
+        `input[id^="anomaly-row-"][id$="-1"]`
+      );
       anomalyCheckbox!.checked = true;
 
       await element.openAnomalyGroupReportPage();
@@ -219,7 +221,7 @@ describe('anomalies-table-sk', () => {
       const group = element.anomalyGroups[0];
       const summaryRowCheckboxId = element.getGroupId(group);
       const groupCheckbox = element.querySelector<HTMLInputElement>(
-        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+        `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
       );
       groupCheckbox!.checked = true;
 
@@ -245,7 +247,7 @@ describe('anomalies-table-sk', () => {
       const group = element.anomalyGroups[0];
       const summaryRowCheckboxId = element.getGroupId(group);
       const groupCheckbox = element.querySelector<HTMLInputElement>(
-        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+        `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
       );
       groupCheckbox!.checked = true;
 
@@ -271,13 +273,14 @@ describe('anomalies-table-sk', () => {
       const multiAnomalyGroup = element.anomalyGroups.find((g) => g.anomalies.length > 1)!;
       const summaryRowCheckboxId = element.getGroupId(multiAnomalyGroup);
       const groupCheckbox = element.querySelector<HTMLInputElement>(
-        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+        `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
       )!;
       groupCheckbox.checked = true;
 
       // Check single-anomaly group.
-      const singleAnomalyCheckbox =
-        element.querySelector<HTMLInputElement>(`input[id="anomaly-row-3"]`)!;
+      const singleAnomalyCheckbox = element.querySelector<HTMLInputElement>(
+        `input[id^="anomaly-row-"][id$="-3"]`
+      )!;
       singleAnomalyCheckbox.checked = true;
 
       await element.openAnomalyGroupReportPage();
@@ -305,13 +308,14 @@ describe('anomalies-table-sk', () => {
       const multiAnomalyGroup = element.anomalyGroups.find((g) => g.anomalies.length > 1)!;
       const summaryRowCheckboxId = element.getGroupId(multiAnomalyGroup);
       const groupCheckbox = element.querySelector<HTMLInputElement>(
-        `input[id="anomaly-row-${summaryRowCheckboxId}"]`
+        `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
       )!;
       groupCheckbox.checked = true;
 
       // Check single-anomaly group.
-      const singleAnomalyCheckbox =
-        element.querySelector<HTMLInputElement>(`input[id="anomaly-row-3"]`)!;
+      const singleAnomalyCheckbox = element.querySelector<HTMLInputElement>(
+        `input[id^="anomaly-row-"][id$="-3"]`
+      )!;
       singleAnomalyCheckbox.checked = true;
 
       await element.openAnomalyGroupReportPage();
@@ -494,7 +498,7 @@ describe('anomalies-table-sk', () => {
       await element.populateTable(anomalies);
       await element.checkSelectedAnomalies(anomalies);
       await fetchMock.flush(true);
-      const checkbox = element.querySelector('#anomaly-row-1') as HTMLInputElement;
+      const checkbox = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
       assert.isTrue(checkbox.checked);
     });
   });
@@ -512,13 +516,13 @@ describe('anomalies-table-sk', () => {
       const group = element.anomalyGroups[0];
       const suummarycheckboxid = element.getGroupId(group);
       const summarycheckbox = element.querySelector(
-        `input[id="anomaly-row-${suummarycheckboxid}"]`
+        `input[id^="anomaly-row-"][id$="-${suummarycheckboxid}"]`
       ) as HTMLInputElement;
       summarycheckbox.checked = true;
       element.toggleChildrenCheckboxes(group);
 
-      const checkbox1 = element.querySelector('#anomaly-row-1') as HTMLInputElement;
-      const checkbox2 = element.querySelector('#anomaly-row-2') as HTMLInputElement;
+      const checkbox1 = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
+      const checkbox2 = element.querySelector('[id^="anomaly-row-"][id$="-2"]') as HTMLInputElement;
       assert.isTrue(checkbox1.checked);
       assert.isTrue(checkbox2.checked);
     });
@@ -535,11 +539,11 @@ describe('anomalies-table-sk', () => {
       await fetchMock.flush(true);
       await element.populateTable(anomalies);
 
-      const headerCheckbox = element.querySelector('#header-checkbox') as HTMLInputElement;
+      const headerCheckbox = element.querySelector('[id^="header-checkbox-"]') as HTMLInputElement;
       headerCheckbox.checked = true;
       element.toggleAllCheckboxes();
-      const checkbox1 = element.querySelector('#anomaly-row-1') as HTMLInputElement;
-      const checkbox2 = element.querySelector('#anomaly-row-2') as HTMLInputElement;
+      const checkbox1 = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
+      const checkbox2 = element.querySelector('[id^="anomaly-row-"][id$="-2"]') as HTMLInputElement;
       assert.isTrue(checkbox1.checked);
       assert.isTrue(checkbox2.checked);
     });
@@ -656,8 +660,8 @@ describe('anomalies-table-sk', () => {
       ];
       await element.populateTable(anomalies);
       element.initialCheckAllCheckbox();
-      const checkbox1 = element.querySelector('#anomaly-row-1') as HTMLInputElement;
-      const checkbox2 = element.querySelector('#anomaly-row-2') as HTMLInputElement;
+      const checkbox1 = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
+      const checkbox2 = element.querySelector('[id^="anomaly-row-"][id$="-2"]') as HTMLInputElement;
       assert.isTrue(checkbox1.checked);
       assert.isTrue(checkbox2.checked);
     });
@@ -673,12 +677,21 @@ describe('anomalies-table-sk', () => {
       element.initialCheckAllCheckbox();
 
       // Check individual anomaly checkboxes
-      assert.isTrue((element.querySelector('#anomaly-row-1') as HTMLInputElement).checked);
-      assert.isTrue((element.querySelector('#anomaly-row-2') as HTMLInputElement).checked);
-      assert.isTrue((element.querySelector('#anomaly-row-3') as HTMLInputElement).checked);
+      assert.isTrue(
+        (element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement).checked
+      );
+      assert.isTrue(
+        (element.querySelector('[id^="anomaly-row-"][id$="-2"]') as HTMLInputElement).checked
+      );
+      assert.isTrue(
+        (element.querySelector('[id^="anomaly-row-"][id$="-3"]') as HTMLInputElement).checked
+      );
 
       // Check group summary checkboxes (assuming grouping logic creates groups)
-      assert.isTrue((element.querySelector('#anomaly-row-group-1-2') as HTMLInputElement).checked);
+      assert.isTrue(
+        (element.querySelector('[id^="anomaly-row-"][id$="-group-1-2"]') as HTMLInputElement)
+          .checked
+      );
     });
   });
 
@@ -705,7 +718,7 @@ describe('anomalies-table-sk', () => {
       const group = element.anomalyGroups[0];
       element.expandGroup(group);
 
-      const checkbox1 = element.querySelector('#anomaly-row-1') as HTMLInputElement;
+      const checkbox1 = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
       assert.isNotNull(checkbox1, 'Checkbox for anomaly 1 should exist.');
       assert.isFalse(checkbox1.checked, 'Checkbox should not be checked initially.');
 
@@ -734,7 +747,7 @@ describe('anomalies-table-sk', () => {
 
       await element.populateTable([anomaly]);
 
-      const row = element.querySelector(`#anomaly-row-${id}`)!.closest('tr');
+      const row = element.querySelector(`[id^="anomaly-row-"][id$="-${id}"]`)!.closest('tr');
       assert.isNotNull(row, `Row for anomaly ${id} should exist.`);
 
       const deltaCell = row!.querySelector('td:last-child');
