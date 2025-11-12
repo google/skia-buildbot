@@ -14,8 +14,6 @@ import (
 
 const (
 	emailDisplayName = "Cluster Telemetry"
-
-	emailFromAddress = "ct@skia.org"
 )
 
 // ParseEmails returns an array containing emails from the provided comma
@@ -43,7 +41,7 @@ func SendEmailWithMarkup(recipients []string, subject, body, markup string) erro
 	if err != nil {
 		return skerr.Wrapf(err, "failed creating email client")
 	}
-	if _, err := email.SendWithMarkup(ctx, client, emailFromAddress, recipients, subject, body, markup, ""); err != nil {
+	if _, err := email.SendWithMarkup(ctx, client, recipients, subject, body, markup, ""); err != nil {
 		return skerr.Wrapf(err, "could not send email")
 	}
 	return nil

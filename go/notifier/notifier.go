@@ -17,7 +17,10 @@ import (
 )
 
 const (
-	emailFromAddress = "noreply@skia.org"
+	// We use a separate service to send emails with its own sender. Overriding
+	// it would require us to authorize our sender, which we are not currently
+	// able to do.
+	emailFromAddress = ""
 )
 
 // Notifier is an interface used for sending notifications from an AutoRoller.
@@ -158,7 +161,6 @@ func (c *EmailNotifierConfig) Validate() error {
 // emailNotifier is a Notifier implementation which sends email to interested
 // parties.
 type emailNotifier struct {
-	from    string
 	emailer email.Client
 	markup  string
 	to      []string
@@ -175,7 +177,6 @@ func (n *emailNotifier) Send(ctx context.Context, subject string, msg *Message) 
 	recipients := append(util.CopyStringSlice(n.to), msg.ExtraRecipients...)
 	sklog.Infof("Sending email to %s: %s", strings.Join(recipients, ","), subject)
 	_, err := n.emailer.SendMail(ctx, &email.SendMailRequest{
-		Sender:   n.from,
 		To:       recipients,
 		Subject:  subject,
 		HtmlBody: n.markup + "\n" + body,
@@ -187,7 +188,6 @@ func (n *emailNotifier) Send(ctx context.Context, subject string, msg *Message) 
 // Sends the same ViewAction markup with each message.
 func EmailNotifier(emails []string, emailer email.Client, markup string) (Notifier, error) {
 	return &emailNotifier{
-		from:    emailFromAddress,
 		emailer: emailer,
 		markup:  markup,
 		to:      emails,

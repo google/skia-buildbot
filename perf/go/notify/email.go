@@ -47,7 +47,7 @@ func (e EmailTransport) SendNewRegression(ctx context.Context, alert *alerts.Ale
 		return "", fmt.Errorf("No notification sent. No email address set for alert #%s", alert.IDAsString)
 	}
 
-	threadingReference, err := email.SendWithMarkup(ctx, e.client, fromAddress, splitEmails(alert.Alert), subject, "", body, "")
+	threadingReference, err := email.SendWithMarkup(ctx, e.client, splitEmails(alert.Alert), subject, "", body, "")
 	if err != nil {
 		return "", skerr.Wrapf(err, "sending notification by email")
 	}
@@ -61,7 +61,7 @@ func (e EmailTransport) SendRegressionMissing(ctx context.Context, threadingRefe
 		return skerr.Fmt("No notification sent. No email address set for alert #%s", alert.IDAsString)
 	}
 
-	_, err := email.SendWithMarkup(ctx, e.client, fromAddress, splitEmails(alert.Alert), subject, "", body, threadingReference)
+	_, err := email.SendWithMarkup(ctx, e.client, splitEmails(alert.Alert), subject, "", body, threadingReference)
 	if err != nil {
 		return skerr.Wrapf(err, "sending notification by email")
 	}

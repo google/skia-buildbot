@@ -38,10 +38,6 @@ type Transport interface {
 	UpdateRegressionNotification(ctx context.Context, alert *alerts.Alert, body, notificationId string) (err error)
 }
 
-const (
-	fromAddress = "alertserver@skia.org"
-)
-
 // TemplateContext is used in expanding the message templates.
 type TemplateContext struct {
 	// URL is the root URL of the Perf instance.

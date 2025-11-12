@@ -148,7 +148,6 @@ func (et emailTicker) remindAlertOwners() error {
 			return fmt.Errorf("Failed to get view action markup: %s", err)
 		}
 		if _, err := et.email.SendMail(context.TODO(), &email.SendMailRequest{
-			Sender:   "alertserver@skia.org",
 			To:       []string{o},
 			Subject:  emailSubject,
 			HtmlBody: viewActionMarkup + "\n" + emailBytes.String(),

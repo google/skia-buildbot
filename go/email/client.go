@@ -43,7 +43,6 @@ import (
 
 type SendMailRequest struct {
 	RequestId  string   `json:"request_id,omitempty"`
-	Sender     string   `json:"sender,omitempty"`
 	ReplyTo    string   `json:"reply_to,omitempty"`
 	To         []string `json:"to,omitempty"`
 	Cc         []string `json:"cc,omitempty"`
@@ -86,7 +85,7 @@ func NewClient(ctx context.Context) (*clientImpl, error) {
 func (c *clientImpl) SendMail(ctx context.Context, in *SendMailRequest) (*SendMailResponse, error) {
 	b, err := json.Marshal(in)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "failed SendMail; failed to encode request as JSON")
 	}
 	resp, err := c.c.Post("https://notify.api.luci.app/prpc/luci.mailer.v1.Mailer/SendMail", "application/json; charset=utf-8", bytes.NewReader(b))
 	if err != nil {
@@ -95,15 +94,15 @@ func (c *clientImpl) SendMail(ctx context.Context, in *SendMailRequest) (*SendMa
 	defer util.Close(resp.Body)
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "failed reading response body")
+		return nil, skerr.Wrapf(err, "failed SendMail; failed reading response body")
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, skerr.Fmt("Got unexpected status %s: %s", resp.Status, string(body))
+		return nil, skerr.Fmt("failed SendMail; got unexpected status %s: %s", resp.Status, string(body))
 	}
 	var out SendMailResponse
 	if len(body) > 0 {
 		if err := json.Unmarshal(body, &out); err != nil {
-			return nil, skerr.Wrapf(err, "failed decoding response body")
+			return nil, skerr.Wrapf(err, "failed SendMail; failed decoding response body")
 		}
 	}
 	return &out, nil
@@ -111,9 +110,8 @@ func (c *clientImpl) SendMail(ctx context.Context, in *SendMailRequest) (*SendMa
 
 // SendWithMarkup is a convenience function for call sites previously using
 // emailclient.SendWithMarkup.
-func SendWithMarkup(ctx context.Context, c Client, from string, to []string, subject, body, markup, threadingReference string) (string, error) {
+func SendWithMarkup(ctx context.Context, c Client, to []string, subject, body, markup, threadingReference string) (string, error) {
 	req := &SendMailRequest{
-		Sender:   from,
 		To:       to,
 		Subject:  subject,
 		HtmlBody: markup + "\n" + body,
