@@ -14,7 +14,7 @@ import { expect } from 'chai';
 // See https://docs.aspect.build/rulesets/aspect_rules_js/docs/js_binary#js_binary.
 const runfilesDir = process.env.JS_BINARY__RUNFILES!;
 
-const locationBase = '_main/infra-sk/esbuild/test';
+const locationBase = 'skia_infra/infra-sk/esbuild/test';
 
 function doesRunfileExist(filename: string): boolean {
   return fs.existsSync(path.join(runfilesDir, locationBase, filename));

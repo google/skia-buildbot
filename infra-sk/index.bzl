@@ -206,6 +206,7 @@ def nodejs_test(
         entry_point = src,
         deps = [src_lib],
         output = "%s_js_entry_point.js" % name,
+        external = ["eventsource-parser/stream"],
     )
 
     # See https://docs.aspect.build/rulesets/aspect_rules_js/docs/#using-binaries-published-to-npm.
@@ -216,26 +217,15 @@ def nodejs_test(
             # Pulls any transitives not included in the JS bundle, such as Puppeteer's Chromium
             # binary.
             src_lib,
-            "@rules_browsers//browsers/chromium",
         ],
         fixed_args = [
             "--timeout 60000",
             "--colors",
             "$(rootpath %s)" % "%s_js_entry_point.js" % name,
         ] + (["--inspect-brk"] if wait_for_debugger else []),
+        env = env,
         tags = tags,
         visibility = visibility,
-        # Use the @rules_browsers toolchain which supplies the
-        # CHROME-HEADLESS-SHELL and CHROMEDRIVER env variables, which we pass
-        # along to //puppeteer-tests/util.ts so that it can launch the browser
-        # for puppeteer to use.
-        #
-        # Note we also need the "@rules_browsers//browsers/chromium" in the deps
-        # above to make this work.
-        env = env | {
-            "CHROME_BIN": "$(CHROME-HEADLESS-SHELL)",
-        },
-        toolchains = ["@rules_browsers//browsers/chromium:toolchain_alias"],
     )
 
 def nodejs_binary(
@@ -338,8 +328,6 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
         srcs = [src],
         deps = deps,
     )
-
-    # Maybe this would be better to be controlled by flags?
 
     for debug, headful in [(False, False), (True, False), (True, True)]:
         suffix = ""
@@ -616,9 +604,7 @@ def sk_page(
         srcs = [
             "production/%s.html" % name,
             "production/%s.js" % name,
-            #            "production/%s.js.map" % name,
             "production/%s.css" % name,
-            #            "production/%s.css.map" % name,
         ],
         visibility = ["//visibility:public"],
     )

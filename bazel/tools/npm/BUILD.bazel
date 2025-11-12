@@ -4,13 +4,14 @@
 # We cannot use single quotes here because of the "echo '%s' > $@" command in the below genrule.
 _SCRIPT_TEMPLATE = """
 # The "realpath" comand gives us an absolute path where any symlinks are resolved.
-NPM_BIN=$$(realpath $(rootpath {npm_bin}))
+NPM_BIN=$$(realpath $(rootpath {nodejs_root}//:bin/nodejs/bin/npm))
 
 # We need to make sure the Bazel-downloaded "node" binary comes first in the PATH environment
 # variable, or "npm" might fail if it picks up the system "node" binary and its version is too
 # old.
-NODE_BIN_DIR=$$(realpath $$(dirname $(rootpath {node_bin})))
+NODE_BIN_DIR=$$(realpath $$(dirname $(rootpath {nodejs_root}//:bin/nodejs/bin/node)))
 export PATH=$$NODE_BIN_DIR:$$PATH
+
 
 # Change into the directory where Bazel was invoked to ensure that "npm" finds the correct
 # package.json and package-lock.json files. See
@@ -21,15 +22,38 @@ $$NPM_BIN $$@
 """
 
 genrule(
-    name = "gen_script",
-    outs = ["npm.sh"],
+    name = "gen_script_linux_x64",
+    outs = ["npm_linux_x64.sh"],
     cmd = "echo '%s' > $@" % _SCRIPT_TEMPLATE.format(
-        node_bin = "@nodejs//:node_bin",
-        npm_bin = "@nodejs//:npm_bin",
+        nodejs_root = "@nodejs_linux_amd64",
     ),
-    tools = [
-        "@nodejs//:node_bin",
-        "@nodejs//:npm_bin",
+    exec_tools = [
+        "@nodejs_linux_amd64//:bin/nodejs/bin/npm",
+        "@nodejs_linux_amd64//:bin/nodejs/bin/node",
+    ],
+)
+
+genrule(
+    name = "gen_script_mac_x64",
+    outs = ["npm_mac_x64.sh"],
+    cmd = "echo '%s' > $@" % _SCRIPT_TEMPLATE.format(
+        nodejs_root = "@nodejs_darwin_amd64",
+    ),
+    exec_tools = [
+        "@nodejs_darwin_amd64//:bin/nodejs/bin/npm",
+        "@nodejs_darwin_amd64//:bin/nodejs/bin/node",
+    ],
+)
+
+genrule(
+    name = "gen_script_mac_arm64",
+    outs = ["npm_mac_arm64.sh"],
+    cmd = "echo '%s' > $@" % _SCRIPT_TEMPLATE.format(
+        nodejs_root = "@nodejs_darwin_arm64",
+    ),
+    exec_tools = [
+        "@nodejs_darwin_arm64//:bin/nodejs/bin/npm",
+        "@nodejs_darwin_arm64//:bin/nodejs/bin/node",
     ],
 )
 
@@ -41,10 +65,24 @@ genrule(
 # Reference: https://bazel.build/reference/be/shell#sh_binary.
 sh_binary(
     name = "npm",
-    srcs = ["npm.sh"],
-    data = [
-        "@nodejs//:node_bin",
-        "@nodejs//:npm_bin",
-    ],
+    srcs = select({
+        "//bazel/constraints:linux_x64": ["npm_linux_x64.sh"],
+        "//bazel/constraints:mac_x64": ["npm_mac_x64.sh"],
+        "//bazel/constraints:mac_arm64": ["npm_mac_arm64.sh"],
+    }),
+    data = select({
+        "//bazel/constraints:linux_x64": [
+            "@nodejs_linux_amd64//:bin/nodejs/bin/node",
+            "@nodejs_linux_amd64//:bin/nodejs/bin/npm",
+        ],
+        "//bazel/constraints:mac_x64": [
+            "@nodejs_darwin_amd64//:bin/nodejs/bin/node",
+            "@nodejs_darwin_amd64//:bin/nodejs/bin/npm",
+        ],
+        "//bazel/constraints:mac_arm64": [
+            "@nodejs_darwin_arm64//:bin/nodejs/bin/node",
+            "@nodejs_darwin_arm64//:bin/nodejs/bin/npm",
+        ],
+    }),
     visibility = ["//visibility:public"],
 )

@@ -4,7 +4,6 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 load("@exec_properties//:constants.bzl", "NETWORK_ON")
 load("@npm//:defs.bzl", "npm_link_all_packages")
-load(":puppeteerrc.bzl", "puppeteerrc_js")
 
 # Disable generation of go_proto_library targets. Let Gazelle use checked-in .pb.go files instead.
 #
@@ -307,16 +306,5 @@ alias(
 alias(
     name = "rbe_configs_gen",
     actual = "@rbe_configs_gen_linux_amd64//file:rbe_configs_gen",
-    visibility = ["//visibility:public"],
-)
-
-#############################################################
-# Create puppeteer.js that points to the downloaded Chrome. #
-#############################################################
-
-puppeteerrc_js(
-    name = "puppeteerrc_js_expanded",
-    template = "puppeteerrc.js.tpl",
-    toolchains = ["@rules_browsers//browsers/chromium:toolchain_alias"],
     visibility = ["//visibility:public"],
 )

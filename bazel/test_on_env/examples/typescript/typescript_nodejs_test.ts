@@ -5,27 +5,32 @@
 import { expect } from 'chai';
 import fs from 'fs';
 import path from 'path';
-import { Browser, launch, Page } from 'puppeteer';
+import puppeteer from 'puppeteer';
+import { CHROME_EXECUTABLE_PATH } from '../../../../puppeteer-tests/chrome_downloader/chrome_executable_path';
 
 const ENV_PORT_FILE_BASE_NAME = 'port';
 
 const readPort = () => {
   const envDir = process.env.ENV_DIR;
-  if (!envDir) {
-    throw new Error('required environment variable ENV_DIR is unset');
-  }
-  return parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'), 10);
+  if (!envDir) throw new Error('required environment variable ENV_DIR is unset');
+  return parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'));
 };
 
 describe('example test', () => {
   let baseUrl: string;
-  let browser: Browser;
-  let page: Page;
+  let browser: puppeteer.Browser;
+  let page: puppeteer.Page;
 
   before(async () => {
     baseUrl = `http://localhost:${readPort()}`;
-    browser = await launch({
-      executablePath: process.env.CHROME_BIN,
+    const bazelRunfilesDir = path.join(process.env.RUNFILES_DIR!, process.env.TEST_WORKSPACE!);
+    browser = await puppeteer.launch({
+      executablePath: path.join(
+        bazelRunfilesDir,
+        'puppeteer-tests',
+        'chrome',
+        CHROME_EXECUTABLE_PATH
+      ),
       args: ['--disable-dev-shm-usage', '--no-sandbox'],
     });
   });

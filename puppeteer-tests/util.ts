@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import puppeteer, { Page, Browser, ElementHandle } from 'puppeteer';
+import puppeteer, { Browser } from 'puppeteer';
+import { CHROME_EXECUTABLE_PATH } from './chrome_downloader/chrome_executable_path';
 
 // File inside $ENV_DIR containing the demo page server's TCP port. Only applies to Bazel tests
 // using the test_on_env rule.
@@ -35,10 +36,12 @@ export type EventPromiseFactory = <T>(eventName: EventName) => Promise<T>;
  * order that they were created, i.e. one caught event resolves the oldest
  * pending promise.
  */
-export const addEventListenersToPuppeteerPage = async (page: Page, eventNames: EventName[]) => {
+export const addEventListenersToPuppeteerPage = async (
+  page: puppeteer.Page,
+  eventNames: EventName[]
+) => {
   // Maps event names to FIFO queues of promise resolver functions.
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  const resolverFnQueues = new Map<EventName, Function[]>();
+  const resolverFnQueues = new Map<EventName, ((evt: any) => void)[]>();
   eventNames.forEach((eventName) => resolverFnQueues.set(eventName, []));
 
   // Use an unlikely prefix to reduce chances of name collision.
@@ -80,17 +83,30 @@ export const addEventListenersToPuppeteerPage = async (page: Page, eventNames: E
 };
 
 /**
+ * Returns the path to the Bazel runfiles directory.
+ *
+ * See:
+ *  - https://docs.bazel.build/versions/master/skylark/rules.html#runfiles-location
+ *  - https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions
+ */
+const bazelRunfilesDir = () => path.join(process.env.RUNFILES_DIR!, process.env.TEST_WORKSPACE!);
+
+/**
  * Launches a Puppeteer browser. Set showBrowser to true to see the browser as it executes tests.
  * This can be handy for debugging.
  */
 export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
-  console.log('===============================================================');
-  // Use the downloaded Chrome we get from the toolchain in @rules_browsers.
-  const executablePath = process.env.CHROME_BIN;
+  // TODO(lovisolo): Do we need this? Can't we use //puppeteer-tests:chrome for everything?
+  const fontconfigSysroot = path.join(bazelRunfilesDir(), 'external', 'google_chrome');
   return puppeteer.launch({
-    executablePath: executablePath,
-
-    //
+    // Use the hermetically-downloaded Chrome binary, which we get via the //puppeteer-tests:chrome
+    // Bazel target, which in turn uses the @puppeteer/browsers NPM package.
+    executablePath: path.join(
+      bazelRunfilesDir(),
+      'puppeteer-tests',
+      'chrome',
+      CHROME_EXECUTABLE_PATH
+    ),
     // These options are required to run Puppeteer from within a Docker container, as is the case
     // under Bazel and RBE. See
     // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.
@@ -106,6 +122,7 @@ export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
     headless: !showBrowser,
     env: {
       ...process.env, // Headful mode breaks without this line (e.g. "unable to open X display").
+      FONTCONFIG_SYSROOT: fontconfigSysroot,
     },
   });
 };
@@ -118,7 +135,7 @@ export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
  * each test case is executed.
  */
 export interface TestBed {
-  page: Page;
+  page: puppeteer.Page;
   baseUrl: string;
 }
 
@@ -153,20 +170,18 @@ export const outputDir = () => {
  * and increases consistency among test names.
  */
 export function takeScreenshot(
-  handle: Page | ElementHandle,
+  handle: puppeteer.Page | puppeteer.ElementHandle,
   appName: string,
   testName: string
-): Promise<Uint8Array | string> {
-  const pngPathNameWithoutExt = path.join(outputDir(), `${appName}_${testName}`);
-  // const pngPath = path.join(outputDir(), `${appName}_${testName}.png`);
-
+): Promise<Buffer | string> {
+  const pngPath = path.join(outputDir(), `${appName}_${testName}.png`);
   // Typescript is unhappy about the type union due to the ElementHandle having a "this"
   // typing. Both Page and ElementHandle have a screenshot method, so we can just
   // pretend it's one of those two.
-  return (handle as Page).screenshot({ path: `${pngPathNameWithoutExt}.png` });
+  return (handle as puppeteer.Page).screenshot({ path: pngPath });
 }
 
-let browser: Browser;
+let browser: puppeteer.Browser;
 let testBed: Partial<TestBed>;
 
 /**
@@ -184,7 +199,7 @@ let testBed: Partial<TestBed>;
  *
  * When debugging, it can be handy to set showBrowser to true.
  */
-export async function loadCachedTestBed(showBrowser?: boolean): Promise<TestBed> {
+export async function loadCachedTestBed(showBrowser?: boolean) {
   if (testBed) {
     return testBed as TestBed;
   }
@@ -193,7 +208,7 @@ export async function loadCachedTestBed(showBrowser?: boolean): Promise<TestBed>
   // Read the demo page server's TCP port.
   const envDir = process.env.ENV_DIR; // This is set by the test_on_env Bazel rule.
   if (!envDir) throw new Error('required environment variable ENV_DIR is unset');
-  const port = parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'), 10);
+  const port = parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'));
   newTestBed.baseUrl = `http://localhost:${port}`;
 
   if (typeof showBrowser === 'undefined') {
@@ -213,6 +228,15 @@ export async function loadCachedTestBed(showBrowser?: boolean): Promise<TestBed>
 function setBeforeAfterHooks() {
   beforeEach(async () => {
     testBed.page = await browser.newPage(); // Make page available to tests.
+
+    testBed.page.on('console', (msg) => console.log(`PAGE LOG[${msg.type()}]: ${msg.text()}`));
+    testBed.page.on('pageerror', (message) => console.log('PAGE ERROR: ', message));
+    testBed.page.on('response', (response) =>
+      console.log(`RESPONSE LOG[${response.status()}]: ${response.url()}`)
+    );
+    testBed.page.on('requestfailed', (request) =>
+      console.log(`REQUEST FAILED: [${request.url()}] ${request.failure()?.errorText}`)
+    );
 
     // Tell demo pages this is a Puppeteer test. Demo pages should not fake RPC
     // latency, render animations or exhibit any other non-deterministic
