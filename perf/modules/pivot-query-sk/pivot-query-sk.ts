@@ -42,12 +42,13 @@ export class PivotQuerySk extends ElementSk {
   }
 
   private static template = (ele: PivotQuerySk) => html`
-    <label for="group_by-${ele.uniqueId}">
-      <p>Which keys should traces be grouped by:</p>
-      <multi-select-sk id="group_by-${ele.uniqueId}" @selection-changed=${ele.groupByChanged}>
-        ${ele.groupByOptions()}
-      </multi-select-sk>
-    </label>
+    <p id="group_by_label-${ele.uniqueId}">Which keys should traces be grouped by:</p>
+    <multi-select-sk
+      id="group_by-${ele.uniqueId}"
+      aria-labelledby="group_by_label-${ele.uniqueId}"
+      @selection-changed=${ele.groupByChanged}>
+      ${ele.groupByOptions()}
+    </multi-select-sk>
 
     <label for="operation-${ele.uniqueId}">
       <p>What operation should be applied:</p>
@@ -56,12 +57,15 @@ export class PivotQuerySk extends ElementSk {
       </select>
     </label>
 
-    <label for="summary-${ele.uniqueId}">
-      <p>Optional: Choose summary statistics to calculate for each group:</p>
-      <multi-select-sk id="summary-${ele.uniqueId}" @selection-changed=${ele.summaryChanged}>
-        ${ele.summaryOptions()}
-      </multi-select-sk>
-    </label>
+    <p id="summary_label-${ele.uniqueId}">
+      Optional: Choose summary statistics to calculate for each group:
+    </p>
+    <multi-select-sk
+      id="summary-${ele.uniqueId}"
+      aria-labelledby="summary_label-${ele.uniqueId}"
+      @selection-changed=${ele.summaryChanged}>
+      ${ele.summaryOptions()}
+    </multi-select-sk>
   `;
 
   connectedCallback(): void {

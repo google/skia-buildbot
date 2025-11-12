@@ -39,8 +39,10 @@ export class CalendarInputSk extends ElementSk {
   }
 
   private static template = (ele: CalendarInputSk) => html`
-    <label>
+    <label for="date-${ele.uniqueId}">
       <input
+        id="date-${ele.uniqueId}"
+        name="date-${ele.uniqueId}"
         @input=${ele.inputChangeHandler}
         type="text"
         pattern="[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}"

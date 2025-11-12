@@ -52,6 +52,10 @@ import { define } from '../define';
 import { upgradeProperty } from '../upgradeProperty';
 
 export class CheckOrRadio extends HTMLElement {
+  private static nextUniqueId = 0;
+
+  protected readonly uniqueId = `${CheckOrRadio.nextUniqueId++}`;
+
   protected get _role() {
     return 'checkbox';
   }
@@ -64,8 +68,9 @@ export class CheckOrRadio extends HTMLElement {
 
   private _input: HTMLInputElement | null = null;
 
-  content: string = `<label><input type=${this._role}></input>
-  <span class=icons>
+  content: string = `<label for="${this._role}-${this.uniqueId}">
+    <input type=${this._role} id="${this._role}-${this.uniqueId}"></input>
+    <span class=icons>
     <span class="icon-sk unchecked">check_box_outline_blank</span>
     <span class="icon-sk checked">check_box</span>
   </span>

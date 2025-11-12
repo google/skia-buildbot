@@ -37,4 +37,18 @@ describe('checkbox-sk', () => {
     checkOrRadio.click();
     assert.isFalse(checkOrRadio.checked);
   });
+
+  it('has a unique ID for the input and matching label for', () => {
+    const input = checkOrRadio.querySelector('input')!;
+    const label = checkOrRadio.querySelector('label')!;
+    assert.ok(input.id);
+    assert.equal(label.getAttribute('for'), input.id);
+  });
+
+  it('generates unique IDs across instances', () => {
+    const other = newInstance();
+    const input1 = checkOrRadio.querySelector('input')!;
+    const input2 = other.querySelector('input')!;
+    assert.notEqual(input1.id, input2.id);
+  });
 });

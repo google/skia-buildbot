@@ -56,4 +56,23 @@ describe('pivot-query-sk', () => {
       assert.isTrue(e.detail!.summary!.includes('avg'));
     });
   });
+
+  describe('accessibility', () => {
+    it('has unique IDs and correct aria-labelledby for multi-select-sk', () => {
+      const groupBy = element.querySelector('[id^="group_by-"]')!;
+      const groupByLabel = element.querySelector('[id^="group_by_label-"]')!;
+      assert.equal(groupBy.getAttribute('aria-labelledby'), groupByLabel.id);
+
+      const summary = element.querySelector('[id^="summary-"]')!;
+      const summaryLabel = element.querySelector('[id^="summary_label-"]')!;
+      assert.equal(summary.getAttribute('aria-labelledby'), summaryLabel.id);
+    });
+
+    it('has unique IDs across instances', () => {
+      const other = newInstance();
+      const groupBy1 = element.querySelector('[id^="group_by-"]')!;
+      const groupBy2 = other.querySelector('[id^="group_by-"]')!;
+      assert.notEqual(groupBy1.id, groupBy2.id);
+    });
+  });
 });
