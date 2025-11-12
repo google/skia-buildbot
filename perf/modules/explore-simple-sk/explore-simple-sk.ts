@@ -1180,12 +1180,12 @@ export class ExploreSimpleSk extends ElementSk {
     this.render();
 
     this.detailTab = this.querySelector('#detailTab');
-    this.formula = this.querySelector('#formula');
+    this.formula = this.querySelector(`#formula-${this.uniqueId}`);
     this.logEntry = this.querySelector('#logEntry');
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
     this.pivotControl = this.querySelector('pivot-query-sk');
-    this.pivotDisplayButton = this.querySelector('#pivot-display-button');
+    this.pivotDisplayButton = this.querySelector(`#pivot-display-button-${this.uniqueId}`);
     this.pivotTable = this.querySelector('pivot-table-sk');
     this.query = this.querySelector('#query');
     this.queryCount = this.querySelector('query-count-sk');
