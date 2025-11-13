@@ -4,6 +4,8 @@ import { JSONSourceSk } from './json-source-sk';
 import '../../../elements-sk/modules/error-toast-sk';
 import { CommitNumber } from '../json';
 
+(window as any).fetchMock = fetchMock;
+
 fetchMock.post('/_/details/', () => ({ Hello: 'world!' }));
 
 window.customElements.whenDefined('json-source-sk').then(() => {

@@ -86,24 +86,26 @@ export class JSONSourceSk extends ElementSk {
   }
 
   private async _loadSource() {
-    this._loadSourceImpl(false);
-    this.openJsonDialog();
+    if (await this._loadSourceImpl(false)) {
+      this.openJsonDialog();
+    }
   }
 
   private async _loadSourceSmall() {
-    this._loadSourceImpl(true);
-    this.openJsonDialog();
+    if (await this._loadSourceImpl(true)) {
+      this.openJsonDialog();
+    }
   }
 
   private async _loadSourceImpl(isSmall: boolean) {
     if (this._spinner!.active === true) {
-      return;
+      return false;
     }
     if (!this.validTraceID()) {
-      return;
+      return false;
     }
     if (this.cid === -1) {
-      return;
+      return false;
     }
     const body: CommitDetailsRequest = {
       cid: this.cid,
@@ -114,7 +116,7 @@ export class JSONSourceSk extends ElementSk {
     if (isSmall) {
       url += '?results=false';
     }
-    await fetch(url, {
+    return await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -126,10 +128,12 @@ export class JSONSourceSk extends ElementSk {
         this._json = JSON.stringify(json, null, '  ');
         this._spinner!.active = false;
         this._render();
+        return true;
       })
       .catch((e) => {
         this._spinner!.active = false;
         errorMessage(e);
+        return false;
       });
   }
 
