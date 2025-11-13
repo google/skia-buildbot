@@ -317,6 +317,7 @@ export interface GetGroupReportResponse {
 	selected_keys: string[] | null;
 	error: string;
 	timerange_map: { [key: string]: Timerange } | null;
+	is_commit_number_based: boolean;
 }
 
 export interface GetUserIssuesForTraceKeysRequest {

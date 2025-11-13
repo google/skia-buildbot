@@ -114,6 +114,10 @@ type GetGroupReportResponse struct {
 	// List of timeranges that will let report page know in what range to render
 	// each graph.
 	TimerangeMap map[string]Timerange `json:"timerange_map"`
+
+	// Indicates if the instance uses standard integer commit numbers.
+	// True if config.Config.GitRepoConfig.CommitNumberRegex is empty.
+	IsCommitNumberBased bool `json:"is_commit_number_based"`
 }
 
 func (api anomaliesApi) RegisterHandlers(router *chi.Mux) {
@@ -323,6 +327,8 @@ func (api anomaliesApi) GetGroupReportLegacy(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	groupReportResponse.IsCommitNumberBased = config.Config.GitRepoConfig.CommitNumberRegex != ""
+
 	if err := json.NewEncoder(w).Encode(groupReportResponse); err != nil {
 		httputils.ReportError(w, err, "Failed to write anomaly report response.", http.StatusInternalServerError)
 		sklog.Debugf("[SkiaTriage] Failed to write anomaly report response: %v", err)
@@ -515,6 +521,8 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 	// TODO(b/454277955) Populate remaining fields of GetGroupReportResponse:
 	// StateId, Error
 	api.performNeedForSidCheck(groupReportResponse.SelectedKeys)
+
+	groupReportResponse.IsCommitNumberBased = config.Config.GitRepoConfig.CommitNumberRegex != ""
 
 	if err := json.NewEncoder(w).Encode(groupReportResponse); err != nil {
 		httputils.ReportError(w, err, "Failed to write anomaly report response.", http.StatusInternalServerError)

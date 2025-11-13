@@ -138,6 +138,7 @@ export const GROUP_REPORT_RESPONSE_WITH_SID: GetGroupReportResponse = {
   },
   selected_keys: null,
   error: '',
+  is_commit_number_based: true,
 };
 
 export const GROUP_REPORT_RESPONSE: GetGroupReportResponse = {
@@ -149,6 +150,7 @@ export const GROUP_REPORT_RESPONSE: GetGroupReportResponse = {
   },
   selected_keys: null,
   error: '',
+  is_commit_number_based: true,
 };
 
 export const graphConfig: GraphConfig[] = [

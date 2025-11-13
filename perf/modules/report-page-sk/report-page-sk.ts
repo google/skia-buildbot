@@ -237,10 +237,16 @@ export class ReportPageSk extends ElementSk {
           this.requestAnomalies.push(...selectedKey);
         }
         this.setCurrentlyLoading('Loading anomalies details and common commits...');
-        await Promise.all([
-          this.initializePage(),
-          this.listAllCommits(this.anomalyTracker.toAnomalyList()),
-        ]);
+        const loadingPromises = [this.initializePage()];
+
+        // Only attempt to fetch and list common commits if the instance is configured
+        // for standard integer commit numbers.
+        if (json.is_commit_number_based) {
+          loadingPromises.push(this.listAllCommits(this.anomalyTracker.toAnomalyList()));
+        }
+
+        await Promise.all(loadingPromises);
+
         this.setCurrentlyLoading('Loading graphs...');
         await this.loadGraphsInChunks();
         this.setCurrentlyLoading('');
