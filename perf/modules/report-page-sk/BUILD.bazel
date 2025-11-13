@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -50,10 +50,7 @@ sk_page(
     sk_element_deps = [
         ":report-page-sk",
     ],
-    ts_deps = [
-        "//:node_modules/fetch-mock",
-        "//infra-sk/modules:dom_ts_lib",
-    ],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "report-page-sk-demo.ts",
 )
 
@@ -71,4 +68,36 @@ karma_test(
         "//perf/modules/anomalies-table-sk",
         "//perf/modules/json:index_ts_lib",
     ],
+)
+
+ts_library(
+    name = "report-page-sk_po_ts_lib",
+    srcs = ["report-page-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+        "//perf/modules/anomalies-table-sk:anomalies-table-sk_po_ts_lib",
+        "//perf/modules/explore-simple-sk:explore-simple-sk_po_ts_lib",
+    ],
+)
+
+sk_element_puppeteer_test(
+    name = "report-page-sk_puppeteer_test",
+    src = "report-page-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":report-page-sk_po_ts_lib",
+        ":test_data_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//perf/modules/json:index_ts_lib"],
 )
