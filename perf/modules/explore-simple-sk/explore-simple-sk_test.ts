@@ -848,7 +848,7 @@ describe('x-axis domain switching', () => {
     // Wait for ExploreSimpleSk to handle the change and update its children
     await waitForRender(explore);
     await plotSummary.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     // rare, but can be flaky here. Since it wait for async event.
     // Increase of timeout above can help.
@@ -900,7 +900,7 @@ describe('x-axis domain switching', () => {
     // Wait for ExploreSimpleSk to handle the change and update its children
     await waitForRender(explore);
     await plotSummary.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     assert.exists(
       plotSummary.selectedValueRange,

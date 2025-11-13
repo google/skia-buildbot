@@ -214,7 +214,7 @@ func TestGetMetadataForTraces_Success(t *testing.T) {
 }
 
 func TestProcessFrameRequest_InvalidQuery_ReturnsError(t *testing.T) {
-
+	config.Config = &config.InstanceConfig{}
 	fr := &FrameRequest{
 		Queries:  []string{"http://[::1]a"}, // A known query that will fail to parse.
 		Progress: progress.New(),
@@ -236,6 +236,9 @@ func TestProcessFrameRequest_InvalidQuery_ReturnsError(t *testing.T) {
 //	[",arch=x86,config=565,"]  = {2, 4, 6}
 func frameRequestForTest(t *testing.T) (*mocks.DataFrameBuilder, *dataframe.DataFrame, *frameRequestProcess) {
 	t.Helper()
+	if config.Config == nil {
+		config.Config = &config.InstanceConfig{}
+	}
 	dfbMock := &mocks.DataFrameBuilder{}
 	ssMock := &shortcutStoreMock.Store{}
 
