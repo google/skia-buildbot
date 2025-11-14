@@ -270,6 +270,22 @@ export class PerfScaffoldSk extends ElementSk {
 
   private buildTagTemplate() {
     const buildTag = getBuildTag();
+    if (buildTag.type === 'invalid') {
+      const appVersion = window.perf.app_version || `dev-${new Date().toISOString()}`;
+      let displayVersion = appVersion;
+      const dateStr = appVersion.startsWith('dev-') ? appVersion.substring(4) : appVersion;
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime()) && dateStr.includes('-') && dateStr.includes(':')) {
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        displayVersion = `dev-build (${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(
+          date.getUTCDate()
+        )})`;
+      } else {
+        displayVersion = appVersion.length >= 7 ? appVersion.substring(0, 7) : appVersion;
+      }
+      return html`<a class="dashboard-version" title="${appVersion}">Build: ${displayVersion}</a>`;
+    }
+
     return html`${choose(
       buildTag.type,
       [

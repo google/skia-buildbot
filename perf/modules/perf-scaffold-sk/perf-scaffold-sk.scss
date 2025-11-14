@@ -3,7 +3,6 @@
 perf-scaffold-sk {
   display: block;
   height: 100vh;
-  overflow: hidden;
 }
 
 // Common styles
@@ -28,6 +27,8 @@ perf-scaffold-sk app-sk {
 // =========================================
 perf-scaffold-sk app-sk.legacy-ui {
   --sidebar-width: 130px;
+  height: 100%;
+  overflow: hidden;
 
   main {
     // We don't want to use 100vw since that includes the scrollbar width as
@@ -35,6 +36,9 @@ perf-scaffold-sk app-sk.legacy-ui {
     // 99vw carries all the contents without any change whatsoever removing
     // the redundant horizontal scroller.
     width: calc(99vw - var(--sidebar-width));
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   aside#sidebar {
@@ -42,6 +46,8 @@ perf-scaffold-sk app-sk.legacy-ui {
     flex-direction: column;
     padding: 16px 8px 0 8px;
     gap: 16px;
+    overflow-y: auto;
+    min-height: 0;
 
     .try-v2-ui {
       width: 100%;

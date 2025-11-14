@@ -88,6 +88,7 @@ describe('report-page-sk', () => {
               '2': { begin: 1676307170, end: 1676307170 },
             },
             selected_keys: ['1', '2'],
+            is_commit_number_based: true,
           }),
         },
       },
