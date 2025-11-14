@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "explore-sk",
@@ -58,5 +58,21 @@ sk_element_puppeteer_test(
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "explore-sk_test",
+    src = "explore-sk_test.ts",
+    deps = [
+        ":explore-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//:node_modules/sinon",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/common:test-util_ts_lib",
+        "//perf/modules/explore-simple-sk",
     ],
 )

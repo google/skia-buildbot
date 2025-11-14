@@ -77,6 +77,11 @@ export class ExploreSk extends ElementSk {
       this._render();
     });
 
+    // Event listener for when the Remove All button is clicked.
+    this.addEventListener('remove-explore', () => {
+      this.exploreSimpleSk!.reset();
+    });
+
     LoggedIn()
       .then((status: LoginStatus) => {
         this.userEmail = status.email;
@@ -134,11 +139,6 @@ export class ExploreSk extends ElementSk {
         const query = this.testPicker!.createQueryFromFieldData();
         explore.addFromQueryOrFormula(true, 'query', query, '');
       }
-    });
-
-    // Event listener for when the Remove All button is clicked.
-    this.addEventListener('remove-all', () => {
-      this._render();
     });
 
     // Event listener for when the "Query Highlighted" button is clicked.

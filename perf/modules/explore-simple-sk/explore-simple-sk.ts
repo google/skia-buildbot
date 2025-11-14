@@ -981,6 +981,13 @@ export class ExploreSimpleSk extends ElementSk {
     this.dispatchEvent(new CustomEvent('remove-explore', { detail: detail, bubbles: true }));
   }
 
+  reset() {
+    this.removeAll(false);
+    if (this.openQueryByDefault) {
+      this.openQuery();
+    }
+  }
+
   // Show full graph title if the graph title exists.
   showFullTitle() {
     if (this.graphTitle === null || this.graphTitle === undefined) {
@@ -3278,12 +3285,8 @@ export class ExploreSimpleSk extends ElementSk {
     this.commitLinks = [];
     this.tooltipSelected = false;
 
+    this.dfRepo.value?.clear();
     this.closeTooltip();
-    // TODO(b/447355852) Remove All button doesn't do anything for Explore Simple
-    // (e.g. New Query charts). Leaving the original comment for future development.
-    // force unset autorefresh so that it doesn't re-appear when we remove all the chart.
-    // the removeAll button from "remove all" or "X" will call invoke removeAll()
-    // with skipHistory = false, so state should be updated.
 
     this.render();
     if (!skipHistory) {

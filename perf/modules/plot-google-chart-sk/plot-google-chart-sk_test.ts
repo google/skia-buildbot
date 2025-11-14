@@ -7,6 +7,7 @@ import sinon from 'sinon';
 // Mock the google.visualization object.
 const mockDataTable = {
   getNumberOfRows: () => 3,
+  getNumberOfColumns: () => 2,
   getValue: (rowIndex: number, colIndex: number) => {
     if (colIndex === 0) {
       return rowIndex + 1;
@@ -105,6 +106,22 @@ describe('plot-google-chart-sk', () => {
 
       expect(element.selectedRange.begin).to.equal(new Date(2025, 1, 1).getTime() / 1000);
       expect(element.selectedRange.end).to.equal(new Date(2025, 1, 3).getTime() / 1000);
+    });
+  });
+
+  describe('hidden attribute', () => {
+    it('is present when there is no data', async () => {
+      element.data = null;
+      await element.updateComplete;
+      const chart = element.shadowRoot!.querySelector('google-chart');
+      assert.isTrue(chart!.hasAttribute('hidden'));
+    });
+
+    it('is not present when there is data', async () => {
+      element.data = new google.visualization.DataTable();
+      await element.updateComplete;
+      const chart = element.shadowRoot!.querySelector('google-chart');
+      assert.isFalse(chart!.hasAttribute('hidden'));
     });
   });
 });

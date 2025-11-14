@@ -299,6 +299,7 @@ export class PlotGoogleChartSk extends LitElement {
       <div class="container">
         <google-chart
           ${ref(this.plotElement)}
+          ?hidden=${!this.data}
           class="plot"
           type="line"
           .events=${['onmouseover', 'onmouseout', 'select']}

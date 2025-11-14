@@ -909,3 +909,39 @@ describe('x-axis domain switching', () => {
     assert.equal(plotSummary.domain, 'date', 'PlotSummary domain property should be date');
   });
 });
+
+describe('reset', () => {
+  let explore: ExploreSimpleSk;
+
+  beforeEach(async () => {
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await fetchMock.flush(true);
+    explore.state.queries = ['a=b'];
+    explore.state.formulas = ['norm()'];
+    explore.state.keys = 'somekeys';
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('should call removeAll and queryDialog.show when use_test_picker_query is false', async () => {
+    explore.openQueryByDefault = true;
+    explore.reset();
+    await waitForRender(explore);
+    assert.isTrue(explore['_dialogOn']);
+    assert.isEmpty(explore.state.queries);
+    assert.isEmpty(explore.state.formulas);
+    assert.isEmpty(explore.state.keys);
+  });
+
+  it('should only call removeAll when use_test_picker_query is true', async () => {
+    explore.openQueryByDefault = false;
+    explore.reset();
+    await waitForRender(explore);
+    assert.isFalse(explore['_dialogOn']);
+    assert.isEmpty(explore.state.queries);
+    assert.isEmpty(explore.state.formulas);
+    assert.isEmpty(explore.state.keys);
+  });
+});
