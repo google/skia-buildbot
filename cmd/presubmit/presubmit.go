@@ -25,6 +25,7 @@ import (
 
 	"go.skia.org/infra/bazel/external/buildifier"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/util"
 )
 
 func main() {
@@ -639,7 +640,16 @@ func checkNonASCII(ctx context.Context, files []fileWithChanges) bool {
 func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithChanges, branchBaseCommit string) bool {
 	args := []string{"-lint=warn", "-mode=fix"}
 	foundAny := false
+	// Note: This duplicates exlude_patterns in //BUILD.bazel, but because the
+	// file list passed to buildifier overrides any exlude_patterns we need to
+	// avoid including those files here.
+	excludes := []string{
+		"bazel/rbe/generated/",
+	}
 	for _, f := range files {
+		if util.HasPrefixAny(f.fileName, excludes) {
+			continue
+		}
 		if filepath.Base(f.fileName) == "BUILD.bazel" || filepath.Ext(f.fileName) == ".bzl" {
 			args = append(args, f.fileName)
 			foundAny = true

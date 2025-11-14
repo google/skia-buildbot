@@ -61,6 +61,16 @@ func ContainsAny(s string, a []string) bool {
 	return false
 }
 
+// HasPrefixAny returns true if |s| has any element of |a| as a prefix.
+func HasPrefixAny(s string, a []string) bool {
+	for _, prefix := range a {
+		if strings.HasPrefix(s, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 // Index returns the index of |s| *in* |a| slice, and -1 if not found.
 func Index(s string, a []string) int {
 	for i, x := range a {

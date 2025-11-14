@@ -20,38 +20,6 @@ http_archive(
     ],
 )
 
-#################
-# Python rules. #
-#################
-
-http_archive(
-    name = "rules_python",
-    sha256 = "c68bdc4fbec25de5b5493b8819cfc877c4ea299c0dcb15c244c5a00208cde311",
-    strip_prefix = "rules_python-0.31.0",
-    urls = gcs_mirror_url(
-        sha256 = "c68bdc4fbec25de5b5493b8819cfc877c4ea299c0dcb15c244c5a00208cde311",
-        # Update after a release with https://github.com/bazelbuild/rules_python/pull/1032 lands
-        url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.31.0.tar.gz",
-    ),
-)
-
-load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
-
-# Load transitive dependencies for rules_python.
-py_repositories()
-
-# Hermetically downloads Python 3.
-python_register_toolchains(
-    name = "python3_11",
-    # Our Louhi builds run as root in order to prevent "permission denied"
-    # errors when attempting to write to mounted directories controlled by
-    # Google Cloud Build.
-    ignore_root_user_error = True,
-    # Taken from
-    # https://github.com/bazelbuild/rules_python/blob/1f17637b88489a5c35a5c83595c0e8dbb6d983e9/python/versions.bzl#L372.
-    python_version = "3.11",
-)
-
 ##############################
 # Go rules and dependencies. #
 ##############################
@@ -231,99 +199,6 @@ http_archive(
     ),
 )
 
-#############
-# rules_js. #
-#############
-
-http_archive(
-    name = "aspect_rules_js",
-    sha256 = "76a04ef2120ee00231d85d1ff012ede23963733339ad8db81f590791a031f643",
-    strip_prefix = "rules_js-1.34.1",
-    urls = gcs_mirror_url(
-        sha256 = "76a04ef2120ee00231d85d1ff012ede23963733339ad8db81f590791a031f643",
-        url = "https://github.com/aspect-build/rules_js/releases/download/v1.34.1/rules_js-v1.34.1.tar.gz",
-    ),
-)
-
-load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
-
-rules_js_dependencies()
-
-load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
-
-nodejs_register_toolchains(
-    name = "nodejs",
-    node_version = "18.17.0",
-)
-
-load("@aspect_rules_js//npm:repositories.bzl", "npm_translate_lock")
-
-# See https://docs.aspect.build/rulesets/aspect_rules_js/docs/pnpm to learn about how the rules_js
-# ruleset uses the //pnpm-lock.yaml, //package.json and //package-lock.json files.
-#
-# See also: https://docs.aspect.build/rulesets/aspect_rules_js/docs/npm_translate_lock/.
-npm_translate_lock(
-    name = "npm",
-    data = [
-        "//:package.json",
-    ],
-    npm_package_lock = "//:package-lock.json",
-    npmrc = "//:.npmrc",
-    pnpm_lock = "//:pnpm-lock.yaml",
-    update_pnpm_lock = False,
-    verify_node_modules_ignored = "//:.bazelignore",
-)
-
-load("@npm//:repositories.bzl", "npm_repositories")
-
-npm_repositories()
-
-#############
-# rules_ts. #
-#############
-
-http_archive(
-    name = "aspect_rules_ts",
-    sha256 = "bd3e7b17e677d2b8ba1bac3862f0f238ab16edb3e43fb0f0b9308649ea58a2ad",
-    strip_prefix = "rules_ts-2.1.0",
-    urls = gcs_mirror_url(
-        sha256 = "bd3e7b17e677d2b8ba1bac3862f0f238ab16edb3e43fb0f0b9308649ea58a2ad",
-        url = "https://github.com/aspect-build/rules_ts/releases/download/v2.1.0/rules_ts-v2.1.0.tar.gz",
-    ),
-)
-
-load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
-
-rules_ts_dependencies(
-    # This keeps the TypeScript version in-sync with the editor, which is typically best.
-    ts_version_from = "//:package.json",
-)
-
-##################
-# rules_esbuild. #
-##################
-
-http_archive(
-    name = "aspect_rules_esbuild",
-    sha256 = "46aab76044f040c1c0bd97672d56324619af4913cb9e96606ec37ddd4605831d",
-    strip_prefix = "rules_esbuild-0.16.0",
-    urls = gcs_mirror_url(
-        sha256 = "46aab76044f040c1c0bd97672d56324619af4913cb9e96606ec37ddd4605831d",
-        url = "https://github.com/aspect-build/rules_esbuild/releases/download/v0.16.0/rules_esbuild-v0.16.0.tar.gz",
-    ),
-)
-
-load("@aspect_rules_esbuild//esbuild:dependencies.bzl", "rules_esbuild_dependencies")
-
-rules_esbuild_dependencies()
-
-load("@aspect_rules_esbuild//esbuild:repositories.bzl", "LATEST_ESBUILD_VERSION", "esbuild_register_toolchains")
-
-esbuild_register_toolchains(
-    name = "esbuild",
-    esbuild_version = LATEST_ESBUILD_VERSION,
-)
-
 ########################################################
 # rules_pkg, required by the skia_app_container macro. #
 ########################################################
@@ -350,11 +225,10 @@ rules_pkg_dependencies()
 
 http_archive(
     name = "io_bazel_rules_docker",
-    sha256 = "27d53c1d646fc9537a70427ad7b034734d08a9c38924cc6357cc973fed300820",
-    strip_prefix = "rules_docker-0.24.0",
+    sha256 = "b1e80761a8a8243d03ebca8845e9cc1ba6c82ce7c5179ce2b295cd36f7e394bf",
     urls = gcs_mirror_url(
-        sha256 = "27d53c1d646fc9537a70427ad7b034734d08a9c38924cc6357cc973fed300820",
-        url = "https://github.com/bazelbuild/rules_docker/releases/download/v0.24.0/rules_docker-v0.24.0.tar.gz",
+        sha256 = "b1e80761a8a8243d03ebca8845e9cc1ba6c82ce7c5179ce2b295cd36f7e394bf",
+        url = "https://github.com/bazelbuild/rules_docker/releases/download/v0.25.0/rules_docker-v0.25.0.tar.gz",
     ),
 )
 

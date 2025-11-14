@@ -12,3 +12,4 @@ declared action inputs or the action commandline changes.
 /usr/include/c++/12
 /usr/include/x86_64-linux-gnu/c++/12
 /usr/include/c++/12/backward
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk

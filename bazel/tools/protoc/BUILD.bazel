@@ -36,13 +36,13 @@ protoc $$@
         cmd = "echo '%s' > $@" % _SCRIPT_TEMPLATE.format(
             protoc_label = protoc_label,
         ),
-        exec_tools = [
+        tools = [
             protoc_label,
             "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway",
-            "@com_github_twitchtv_twirp//protoc-gen-twirp",
             "@com_github_skia_dev_protoc_gen_twirp_typescript//:protoc-gen-twirp_typescript",
-            "@org_golang_google_protobuf//cmd/protoc-gen-go",
+            "@com_github_twitchtv_twirp//protoc-gen-twirp",
             "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
+            "@org_golang_google_protobuf//cmd/protoc-gen-go",
         ],
     )
     for script_suffix, protoc_label in [
