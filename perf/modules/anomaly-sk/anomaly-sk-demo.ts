@@ -5,6 +5,7 @@ import { Anomaly } from '../json';
 import { AnomalySk } from './anomaly-sk';
 
 window.perf = {
+  dev_mode: false,
   instance_url: '',
   instance_name: 'chrome-perf-demo',
   header_image_url: '',

@@ -46,6 +46,7 @@ describe('ExploreSk', () => {
       instance_name: 'chrome-perf-test',
       header_image_url: '',
       enable_v2_ui: false,
+      dev_mode: false,
     };
 
     fetchMock.config.overwriteRoutes = true;

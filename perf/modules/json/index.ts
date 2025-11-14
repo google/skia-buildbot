@@ -425,6 +425,7 @@ export interface SkPerfConfig {
 	always_show_commit_info: boolean;
 	app_version: string;
 	enable_v2_ui: boolean;
+	dev_mode: boolean;
 }
 
 export interface TriageRequest {

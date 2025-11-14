@@ -18,6 +18,7 @@ describe('ExploreMultiSk', () => {
   const setupElement = async (mockDefaults: any = null, paramsMock: any = null) => {
     setUpExploreDemoEnv();
     window.perf = {
+      dev_mode: false,
       instance_url: '',
       instance_name: 'chrome-perf-test',
       header_image_url: '',
@@ -131,6 +132,7 @@ describe('ExploreMultiSk', () => {
       // This setup is slightly different as we need to mock a network failure for defaults.
       setUpExploreDemoEnv();
       window.perf = {
+        dev_mode: false,
         instance_url: '',
         instance_name: '',
         header_image_url: '',

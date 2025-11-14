@@ -68,6 +68,7 @@ describe('ReportPageSk', () => {
   beforeEach(() => {
     // Mock the window.perf global object.
     window.perf = {
+      dev_mode: false,
       instance_url: '',
       instance_name: 'chrome-perf-test',
       header_image_url: '',

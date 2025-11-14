@@ -66,6 +66,7 @@ sk_element(
         "//elements-sk/modules/icons/folder-icon-sk",
         "//elements-sk/modules/icons/launch-icon-sk",
         "//elements-sk/modules/icons/settings-backup-restore-icon-sk",
+        "//elements-sk/modules/icons/autorenew-icon-sk",
         "//elements-sk/modules/icons/chat-icon-sk",
         "//elements-sk/modules/icons/lightbulb-outline-icon-sk",
     ],
@@ -92,17 +93,6 @@ sk_page(
     ts_entry_point = "perf-scaffold-sk-demo.ts",
 )
 
-karma_test(
-    name = "perf-scaffold-sk_test",
-    src = "perf-scaffold-sk_test.ts",
-    deps = [
-        ":perf-scaffold-sk",
-        "//:node_modules/@types/chai",
-        "//:node_modules/chai",
-        "//infra-sk/modules:test_util_ts_lib",
-    ],
-)
-
 sk_page(
     name = "perf-scaffold-sk-v2-demo",
     html_file = "perf-scaffold-sk-v2-demo.html",
@@ -121,5 +111,18 @@ sk_element_puppeteer_test(
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "perf-scaffold-sk_test",
+    src = "perf-scaffold-sk_test.ts",
+    deps = [
+        ":perf-scaffold-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
 )

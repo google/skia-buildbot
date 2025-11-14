@@ -288,3 +288,17 @@ func TestFrontend_GetPageContext_InstanceName(t *testing.T) {
 	// The backend just passes it through.
 	require.Contains(t, string(ctx), "\"instance_name\": \"this-is-a-long-instance-name-that-exceeds-the-limit-of-64-chars-by-a-bit\"")
 }
+
+func TestFrontend_devVersionHandler_ReturnsVersion(t *testing.T) {
+	f := &Frontend{
+		appVersion: "test-version-123",
+	}
+
+	r := httptest.NewRequest("GET", "/_/dev/version", nil)
+	w := httptest.NewRecorder()
+
+	f.devVersionHandler(w, r)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.JSONEq(t, `{"version": "test-version-123"}`, w.Body.String())
+}

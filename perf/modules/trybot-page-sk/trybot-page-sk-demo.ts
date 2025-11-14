@@ -8,6 +8,7 @@ import { CommitDetailPickerSk } from '../commit-detail-picker-sk/commit-detail-p
 import { QuerySk } from '../../../infra-sk/modules/query-sk/query-sk';
 
 window.perf = {
+  dev_mode: false,
   instance_url: '',
   instance_name: 'chrome-perf-demo',
   header_image_url: '',

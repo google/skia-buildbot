@@ -116,6 +116,8 @@ var (
 	// of the body element otherwise.
 	//go:embed cookieconsent.html
 	cookieConsentSnippet string
+
+	serverStartupTime = time.Now().Unix()
 )
 
 // Frontend is the server for the Perf web UI.
@@ -304,6 +306,7 @@ type SkPerfConfig struct {
 	AlwaysShowCommitInfo        bool               `json:"always_show_commit_info"`         // Boolean to display commit author and hash.
 	AppVersion                  string             `json:"app_version"`                     // The git revision of the buildbot repo this instance was built from.
 	EnableV2UI                  bool               `json:"enable_v2_ui"`                    // True if V2 UI can be toggled.
+	DevMode                     bool               `json:"dev_mode"`
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -313,6 +316,9 @@ type SkPerfConfig struct {
 // expansion correctly renders this as executable JS.
 func (f *Frontend) getPageContext() (template.JS, error) {
 	imageTag := os.Getenv("IMAGE_TAG")
+	if f.flags.DevMode {
+		imageTag = fmt.Sprintf("Dev Server: %s", time.Unix(serverStartupTime, 0).Format("06/01/02 3:04 PM MST"))
+	}
 
 	pc := SkPerfConfig{
 		InstanceUrl:                 config.Config.URL,
@@ -349,6 +355,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		ShowBisectBtn:               config.Config.ShowBisectBtn,
 		AppVersion:                  f.appVersion,
 		EnableV2UI:                  config.Config.EnableV2UI,
+		DevMode:                     f.flags.DevMode,
 	}
 
 	var buff bytes.Buffer
@@ -975,7 +982,13 @@ func (f *Frontend) feTelemetryHandler(w http.ResponseWriter, r *http.Request) {
 func (f *Frontend) makeDistHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.StripPrefix("/dist", http.FileServer(f.distFileSystem))
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", "max-age=300")
+		if f.flags.DevMode {
+			w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
+			w.Header().Set("Pragma", "no-cache")
+			w.Header().Set("Expires", "0")
+		} else {
+			w.Header().Add("Cache-Control", "max-age=300")
+		}
 		fileServer.ServeHTTP(w, r)
 	}
 }
@@ -1103,6 +1116,10 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.Get("/_/revision", f.revisionHandler)
 	router.Get("/_/json/", Proxy_GetHandler)
 
+	if f.flags.DevMode {
+		router.Get("/_/dev/version", f.devVersionHandler)
+	}
+
 	return router
 }
 
@@ -1158,4 +1175,15 @@ func (f *Frontend) Serve() {
 		Handler: h,
 	}
 	sklog.Fatal(server.ListenAndServe())
+}
+
+func (f *Frontend) devVersionHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(struct {
+		Version string `json:"version"`
+	}{
+		Version: f.appVersion,
+	}); err != nil {
+		httputils.ReportError(w, err, "Failed to encode version", http.StatusInternalServerError)
+	}
 }

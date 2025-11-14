@@ -2,6 +2,7 @@ import './index';
 import fetchMock from 'fetch-mock';
 
 window.perf = {
+  dev_mode: false,
   instance_url: '',
   instance_name: 'chrome-perf-demo',
   header_image_url: '',

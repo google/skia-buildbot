@@ -7,6 +7,7 @@ import './index';
 import { CommitNumber, TimestampSeconds } from '../json';
 
 window.perf = {
+  dev_mode: false,
   instance_url: '',
   instance_name: 'chrome-perf-demo',
   header_image_url: '',

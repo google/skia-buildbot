@@ -26,6 +26,7 @@ import '../../../elements-sk/modules/icons/launch-icon-sk';
 import '../../../elements-sk/modules/icons/chat-icon-sk';
 import '../../../elements-sk/modules/icons/lightbulb-outline-icon-sk';
 import '../../../elements-sk/modules/icons/settings-backup-restore-icon-sk';
+import '../../../elements-sk/modules/icons/autorenew-icon-sk';
 import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
@@ -65,12 +66,27 @@ export class PerfScaffoldSk extends ElementSk {
   private isHiddenTriage =
     window.perf.show_triage_link !== null ? window.perf.show_triage_link : true;
 
+  private _isRefreshing: boolean = false;
+
+  private _pollInterval: number | null = null;
+
   constructor() {
     super(PerfScaffoldSk.template);
   }
 
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    if (this._pollInterval) {
+      window.clearInterval(this._pollInterval);
+      this._pollInterval = null;
+    }
+  }
+
   private static template = (ele: PerfScaffoldSk) => {
-    if (window.perf.enable_v2_ui && localStorage.getItem('v2_ui') === 'true') {
+    const isV2Default = window.perf.enable_v2_ui;
+    const storedPreference = localStorage.getItem('v2_ui');
+
+    if (storedPreference === 'true' || (storedPreference === null && isV2Default)) {
       return ele.renderV2UI(ele);
     }
     return ele.renderLegacyUI(ele);
@@ -127,11 +143,7 @@ export class PerfScaffoldSk extends ElementSk {
       </div>
       <div id=chat>
       </div>
-      ${
-        window.perf.enable_v2_ui
-          ? html` <button @click=${() => ele.toggleUI(true)} class="try-v2-ui">Try V2 UI</button> `
-          : ''
-      }
+      <button @click=${() => ele.toggleUI(true)} class="try-v2-ui">Try V2 UI</button>
     </aside>
     <main id="perf-content">
     </main>
@@ -283,6 +295,15 @@ export class PerfScaffoldSk extends ElementSk {
   }
 
   private buildTagTemplate() {
+    if (window.perf.dev_mode) {
+      return html` <a class="dashboard-version dev-mode">
+        <autorenew-icon-sk
+          class="${this._isRefreshing ? 'refreshing' : ''}"
+          @click=${() => this._reload()}
+          title="Force reload"></autorenew-icon-sk>
+        ${window.perf.image_tag}
+      </a>`;
+    }
     const buildTag = getBuildTag();
     return html`${choose(
       buildTag.type,
@@ -323,6 +344,24 @@ export class PerfScaffoldSk extends ElementSk {
     return '';
   }
 
+  private startDevPoll() {
+    let currentVersion = 0;
+    this._pollInterval = window.setInterval(() => {
+      fetch('/_/dev/version')
+        .then((resp) => resp.json())
+        .then((json) => {
+          if (currentVersion === 0) {
+            currentVersion = json.version;
+          } else if (currentVersion !== json.version) {
+            this._isRefreshing = true;
+            this._render();
+            this._reload();
+          }
+        })
+        .catch(() => {});
+    }, 2000);
+  }
+
   connectedCallback(): void {
     super.connectedCallback();
     if (this._main) {
@@ -342,6 +381,10 @@ export class PerfScaffoldSk extends ElementSk {
     }
     if (window.perf.feedback_url && window.perf.feedback_url !== '') {
       this._reportBugUrl = window.perf.feedback_url;
+    }
+
+    if (window.perf.dev_mode) {
+      this.startDevPoll();
     }
 
     this._render();
@@ -432,6 +475,10 @@ export class PerfScaffoldSk extends ElementSk {
 
   private toggleUI(enable: boolean) {
     localStorage.setItem('v2_ui', String(enable));
+    this._reload();
+  }
+
+  private _reload() {
     window.location.reload();
   }
 }

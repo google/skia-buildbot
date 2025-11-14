@@ -2,15 +2,21 @@ import './index';
 import { PerfScaffoldSk } from './perf-scaffold-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { assert } from 'chai';
+import { SkPerfConfig } from '../json';
+import fetchMock from 'fetch-mock';
+
+declare const sinon: any;
 
 describe('perf-scaffold-sk', () => {
   const newInstance = setUpElementUnderTest<PerfScaffoldSk>('perf-scaffold-sk');
 
   beforeEach(() => {
-    // Reset window.perf to default values
+    // Default window.perf to something safe.
     window.perf = {
+      instance_url: '',
+      instance_name: 'chrome-perf-test',
       commit_range_url: '',
-      key_order: [],
+      key_order: ['config'],
       demo: true,
       radius: 7,
       num_shift: 10,
@@ -24,7 +30,7 @@ describe('perf-scaffold-sk', () => {
       feedback_url: '',
       chat_url: '',
       help_url_override: '',
-      trace_format: '',
+      trace_format: 'chrome',
       need_alert_action: false,
       bug_host_url: '',
       git_repo_url: '',
@@ -32,10 +38,21 @@ describe('perf-scaffold-sk', () => {
       keys_for_useful_links: [],
       skip_commit_detail_display: false,
       image_tag: 'fake-tag',
-      header_image_url: '',
-      instance_url: 'https://perf.skia.org',
-      instance_name: 'chrome-perf-test',
-    } as any;
+      remove_default_stat_value: false,
+      enable_skia_bridge_aggregation: false,
+      show_json_file_display: false,
+      always_show_commit_info: false,
+      show_triage_link: true,
+      show_bisect_btn: true,
+      app_version: 'test-version',
+      enable_v2_ui: false,
+      dev_mode: false,
+    } as unknown as SkPerfConfig;
+    window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    fetchMock.reset();
   });
 
   it('renders with default logo when header_image_url is empty', async () => {
@@ -137,5 +154,40 @@ describe('perf-scaffold-sk', () => {
     });
     const title = element.querySelector('.name');
     assert.equal(title?.textContent, 'Bar');
+  });
+
+  describe('auto-refresh', () => {
+    let clock: any;
+
+    afterEach(() => {
+      if (clock) {
+        clock.restore();
+        clock = null;
+      }
+    });
+
+    it('does not poll in prod mode', async () => {
+      window.perf.dev_mode = false;
+      fetchMock.get('/_/dev/version', { version: 123 });
+
+      clock = sinon.useFakeTimers();
+      newInstance();
+
+      // Fast forward time to trigger interval
+      clock.tick(2010);
+      assert.isFalse(fetchMock.called('/_/dev/version'));
+    });
+
+    it('starts polling in dev mode', async () => {
+      window.perf.dev_mode = true;
+      fetchMock.get('/_/dev/version', { version: 123 });
+
+      clock = sinon.useFakeTimers();
+      newInstance();
+
+      // Fast forward time to trigger interval
+      clock.tick(2010);
+      assert.isTrue(fetchMock.called('/_/dev/version'));
+    });
   });
 });

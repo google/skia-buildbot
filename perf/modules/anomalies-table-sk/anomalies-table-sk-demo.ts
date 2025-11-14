@@ -6,6 +6,7 @@ import fetchMock from 'fetch-mock';
 import { anomaly_table, GROUP_REPORT_RESPONSE, GROUP_REPORT_RESPONSE_WITH_SID } from './test_data';
 
 window.perf = {
+  dev_mode: false,
   instance_url: '',
   instance_name: 'chrome-perf-demo',
   header_image_url: '',

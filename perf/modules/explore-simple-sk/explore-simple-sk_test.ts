@@ -41,6 +41,7 @@ const now = 1726081856; // an arbitrary UNIX time;
 const timeSpan = 89; // an arbitrary prime number for time span between commits .
 
 window.perf = {
+  dev_mode: false,
   instance_url: '',
   radius: 2,
   key_order: null,
