@@ -8,6 +8,7 @@ import { anomaly_table, GROUP_REPORT_RESPONSE, GROUP_REPORT_RESPONSE_WITH_SID } 
 window.perf = {
   instance_url: '',
   instance_name: 'chrome-perf-demo',
+  header_image_url: '',
   commit_range_url: 'http://example.com/range/{begin}/{end}',
   key_order: ['config'],
   demo: true,

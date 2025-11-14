@@ -991,6 +991,10 @@ type InstanceConfig struct {
 	// Name this instance calls itself (eg. in tracing)
 	InstanceName string `json:"instance_name,omitempty"`
 
+	// HeaderImageURL is the URL of the image to display in the header.
+	// If not supplied, the default Chrome logo will be used.
+	HeaderImageURL string `json:"header_image_url,omitempty"`
+
 	// LandingPageRelPath is the relative path to the landing page.
 	// This path is used to redirect the user when they access the root URL.
 	LandingPageRelPath string `json:"landing_page_rel_path,omitempty"`

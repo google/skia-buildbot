@@ -416,7 +416,7 @@ func extractChangedAndDeletedFiles(diffOutput string) ([]fileWithChanges, []stri
 // Based on https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/19b3eb5adbe00e9da40375cb5dc47380a46f3041/presubmit_canned_checks.py#488
 func checkLongLines(ctx context.Context, files []fileWithChanges) bool {
 	const maxLineLength = 100
-	ignoreFileExts := []string{".go", ".html", ".py"}
+	ignoreFileExts := []string{".go", ".html", ".py", ".svg"}
 	ignoreFiles := []string{"package-lock.json", "pnpm-lock.yaml", "go.sum", "infra/bots/tasks.json", "WORKSPACE",
 		"golden/k8s-config-templates/gold-common.json5", "go.mod", "go_repositories.bzl", "licenses/LICENSES.md", "elements.d.ts", "perf/scripts/copy_data_to_experimental_db/README.md", "perf/scripts/copy_data_to_experimental_db/run_two_spanners.sh"}
 	ok := true

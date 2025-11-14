@@ -72,6 +72,7 @@ window.perf = {
   show_bisect_btn: true,
   app_version: 'test-version',
   instance_name: 'chrome-perf-test',
+  header_image_url: '',
 };
 
 describe('calculateRangeChange', () => {

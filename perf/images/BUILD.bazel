@@ -1,0 +1,5 @@
+exports_files([
+    "chrome-logo.svg",
+    "line-chart.svg",
+    "v8.svg",
+])

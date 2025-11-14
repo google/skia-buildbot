@@ -15,6 +15,7 @@ describe('user-issue-sk', () => {
     window.perf = {
       instance_url: '',
       instance_name: 'chrome-perf-test',
+      header_image_url: '',
       commit_range_url: 'http://example.com/range/{begin}/{end}',
       key_order: ['config'],
       demo: true,

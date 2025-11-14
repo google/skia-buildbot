@@ -98,5 +98,7 @@ fetchMock.get('/loginstatus/', {
 });
 
 window.perf = window.perf || {};
+window.perf.instance_name = 'demo';
+window.perf.header_image_url = '';
 window.perf.key_order = [];
 window.perf.demo = true;

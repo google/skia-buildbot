@@ -311,6 +311,9 @@
         "instance_name": {
           "type": "string"
         },
+        "header_image_url": {
+          "type": "string"
+        },
         "landing_page_rel_path": {
           "type": "string"
         },

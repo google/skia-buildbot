@@ -4,6 +4,8 @@ import { Alert, ParamSet, SerializesToString } from '../json';
 import '../../../elements-sk/modules/error-toast-sk';
 
 window.perf = window.perf || {};
+window.perf.instance_name = 'demo';
+window.perf.header_image_url = '';
 window.perf.key_order = [];
 window.perf.display_group_by = true;
 window.perf.notifications = 'none';

@@ -75,13 +75,24 @@ export class PerfScaffoldSk extends ElementSk {
     return ele.renderLegacyUI(ele);
   };
 
+  private fallbackLogo(e: Event) {
+    const img = e.target as HTMLImageElement;
+    // Prevent infinite loop if the default image also fails
+    if (img.src.indexOf('/dist/images/chrome-logo.svg') >= 0) {
+      return;
+    }
+    img.src = '/dist/images/chrome-logo.svg';
+  }
+
   private renderLegacyUI(ele: PerfScaffoldSk) {
     return html`
   <app-sk class="legacy-ui">
     <header id=topbar>
       <div class="header-brand">
         <a href="/">
-          <img class="logo" src="/dist/images/chrome-logo.svg?v=1" alt="Chrome" />
+          <img class="logo" src="${
+            window.perf.header_image_url || '/dist/images/chrome-logo.svg?v=1'
+          }" alt="Logo" @error=${ele.fallbackLogo} />
         </a>
       </div>
       <h1 class=name>${ele.instanceTitleTemplate()}</h1>
@@ -131,7 +142,9 @@ export class PerfScaffoldSk extends ElementSk {
   <app-sk class="v2-ui">
     <header id=topbar>
       <a class="header-brand" href="/">
-        <img src="/dist/images/chrome-logo.svg" alt="Chrome Logo" class="logo">
+        <img src="${
+          window.perf.header_image_url || '/dist/images/chrome-logo.svg'
+        }" alt="Logo" class="logo" @error=${ele.fallbackLogo}>
         <h1 class=name>${ele.instanceTitleTemplate()}</h1>
       </a>
       <nav id="header-nav-items">
@@ -298,6 +311,8 @@ export class PerfScaffoldSk extends ElementSk {
   }
 
   private instanceTitleTemplate() {
+    // Use the instance name from the config if it's available.
+    // This allows us to set a custom name that might not match the URL.
     if (window.perf.instance_name) {
       let name = window.perf.instance_name;
       if (name.length > 64) {
@@ -305,6 +320,7 @@ export class PerfScaffoldSk extends ElementSk {
       }
       return html`<a>${name}</a>`;
     }
+    // Fallback to extracting the name from the URL if no config name is provided.
     if (window.perf.instance_url) {
       if (localStorage.getItem('v2_ui') === 'true') {
         return html`${this.extractInstanceNameFromUrl(window.perf.instance_url)}`;

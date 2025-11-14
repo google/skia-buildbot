@@ -30,6 +30,18 @@ perf-scaffold-sk app-sk.legacy-ui {
   height: 100%;
   overflow: hidden;
 
+  .header-brand {
+    display: inline-block;
+    .logo {
+      max-height: 48px;
+      max-width: 48px;
+      height: auto;
+      width: auto;
+      object-fit: contain;
+      display: inline-block;
+    }
+  }
+
   main {
     // We don't want to use 100vw since that includes the scrollbar width as
     // well which brings a unnecessary horizontal scroller.
@@ -141,7 +153,9 @@ perf-scaffold-sk app-sk.v2-ui {
       color: inherit;
 
       .logo {
-        height: 32px;
+        max-height: 48px;
+        max-width: 48px;
+        height: auto;
         width: auto;
         margin-right: 12px;
       }

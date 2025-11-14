@@ -10,6 +10,7 @@ setUpExploreDemoEnv();
 window.perf = {
   instance_url: '',
   instance_name: 'chrome-perf-demo',
+  header_image_url: '',
   commit_range_url: '',
   key_order: ['config'],
   demo: true,

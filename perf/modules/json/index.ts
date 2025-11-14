@@ -392,6 +392,7 @@ export interface ShiftResponse {
 export interface SkPerfConfig {
 	instance_url: string;
 	instance_name: string;
+	header_image_url: string;
 	radius: number;
 	key_order: string[] | null;
 	num_shift: number;

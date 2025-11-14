@@ -68,12 +68,16 @@ sk_page(
     assets_serving_path = "/dist",
     copy_files = [
         {
-            "src": "//am/images:line-chart.svg",
+            "src": "//perf/images:line-chart.svg",
             "dst": "images/line-chart.svg",
         },
         {
-            "src": "//am/images:chrome-logo.svg",
+            "src": "//perf/images:chrome-logo.svg",
             "dst": "images/chrome-logo.svg",
+        },
+        {
+            "src": "//perf/images:v8.svg",
+            "dst": "images/v8.svg",
         },
     ],
     html_file = "newindex.html",

@@ -1,12 +1,20 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+)
 
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":perf-scaffold-sk-demo",
     static_assets = {
         "/dist/images": [
-            "//am/images:chrome-logo.svg",
-            "//am/images:line-chart.svg",
+            "//perf/images:chrome-logo.svg",
+            "//perf/images:line-chart.svg",
+            "//perf/images:v8.svg",
         ],
     },
 )
@@ -59,6 +67,17 @@ sk_page(
         ":perf-scaffold-sk",
     ],
     ts_entry_point = "perf-scaffold-sk-demo.ts",
+)
+
+karma_test(
+    name = "perf-scaffold-sk_test",
+    src = "perf-scaffold-sk_test.ts",
+    deps = [
+        ":perf-scaffold-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
 )
 
 sk_element_puppeteer_test(

@@ -272,6 +272,7 @@ func (f *Frontend) loadTemplates() {
 type SkPerfConfig struct {
 	InstanceUrl                 string             `json:"instance_url"`                    // The root host url of the running instance.
 	InstanceName                string             `json:"instance_name"`                   // The name of the instance.
+	HeaderImageURL              string             `json:"header_image_url"`                // The URL of the image to display in the header.
 	Radius                      int                `json:"radius"`                          // The number of commits when doing clustering.
 	KeyOrder                    []string           `json:"key_order"`                       // The order of the keys to appear first in query-sk elements.
 	NumShift                    int                `json:"num_shift"`                       // The number of commits the shift navigation buttons should jump.
@@ -312,6 +313,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 	pc := SkPerfConfig{
 		InstanceUrl:                 config.Config.URL,
 		InstanceName:                config.Config.InstanceName,
+		HeaderImageURL:              config.Config.HeaderImageURL,
 		Radius:                      f.flags.Radius,
 		KeyOrder:                    strings.Split(f.flags.KeyOrder, ","),
 		NumShift:                    f.flags.NumShift,

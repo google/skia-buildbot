@@ -5,6 +5,7 @@ import { ReportPageSk } from './report-page-sk';
 window.perf = {
   instance_url: 'https://chrome-perf.corp.goog',
   instance_name: 'chrome-perf-demo',
+  header_image_url: '',
   commit_range_url: 'https://chromium.googlesource.com/chromium/src/+log/{begin}..{end}',
   key_order: ['config'],
   demo: true,

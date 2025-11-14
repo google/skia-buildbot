@@ -47,11 +47,15 @@ skia_app_container(
         ],
         "/usr/local/share/skiaperf/dist/images": [
             [
-                "//am/images:line-chart.svg",
+                "//perf/images:line-chart.svg",
                 "0644",
             ],
             [
-                "//am/images:chrome-logo.svg",
+                "//perf/images:chrome-logo.svg",
+                "0644",
+            ],
+            [
+                "//perf/images:v8.svg",
                 "0644",
             ],
         ],
