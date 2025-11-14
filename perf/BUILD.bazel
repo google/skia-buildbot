@@ -93,7 +93,10 @@ skia_app_container(
             ],
         ],
     },
-    entrypoint = "/usr/local/bin/perfserver",
+    entrypoint = [
+        "/usr/local/bin/perfserver",
+        "--version_file=/usr/local/share/skiaperf/VERSION.txt",
+    ],
     repository = "skia-public/perfserver",
 )
 
