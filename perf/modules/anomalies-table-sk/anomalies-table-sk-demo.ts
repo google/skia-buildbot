@@ -38,6 +38,7 @@ window.perf = {
   show_triage_link: false,
   show_bisect_btn: false,
   app_version: 'test-version',
+  enable_v2_ui: false,
 };
 
 $$('#populate-tables')?.addEventListener('click', () => {

@@ -73,6 +73,7 @@ window.perf = {
   app_version: 'test-version',
   instance_name: 'chrome-perf-test',
   header_image_url: '',
+  enable_v2_ui: false,
 };
 
 describe('calculateRangeChange', () => {
@@ -768,6 +769,17 @@ describe('x-axis domain switching', () => {
   let explore: ExploreSimpleSk;
 
   beforeEach(async () => {
+    fetchMock.get(/.*\/_\/initpage\/.*/, {
+      dataframe: { paramset: {} },
+    });
+    fetchMock.get('/_/login/status', {
+      email: 'someone@example.org',
+      roles: ['editor'],
+    });
+    fetchMock.post('/_/count/', {
+      count: 117,
+      paramset: {},
+    });
     explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     await window.customElements.whenDefined('explore-simple-sk');
     await window.customElements.whenDefined('dataframe-repository-sk');
@@ -833,6 +845,7 @@ describe('x-axis domain switching', () => {
     switchEl!.dispatchEvent(new Event('change'));
 
     // Wait for ExploreSimpleSk to handle the change and update its children
+    // Wait for ExploreSimpleSk to handle the change and update its children
     await waitForRender(explore);
     await plotSummary.updateComplete;
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -884,6 +897,7 @@ describe('x-axis domain switching', () => {
     switchEl!.selected = true;
     switchEl!.dispatchEvent(new Event('change'));
 
+    // Wait for ExploreSimpleSk to handle the change and update its children
     await waitForRender(explore);
     await plotSummary.updateComplete;
     await new Promise((resolve) => setTimeout(resolve, 100));

@@ -69,7 +69,8 @@ describe('plot-summary-sk', () => {
         element.Select(header![start]!, header![end]!);
 
         assert.isNull(element['chartLayout']);
-        assert.approximately(element.selectedValueRange!.begin!, 0, 1e-3);
+        assert.approximately(element.selectedValueRange!.begin!, header[start]!.offset, 1e-3);
+        assert.approximately(element.selectedValueRange!.end!, header[end]!.offset, 1e-3);
 
         await chartReady(() => {
           return element;

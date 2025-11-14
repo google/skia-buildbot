@@ -1436,9 +1436,6 @@ export class ExploreSimpleSk extends ElementSk {
         // Set the cached value on the child. It will apply this selection once
         // its internal chart has re-rendered with the new domain.
         (plotSummary as any).cachedSelectedValueRange = newRange;
-        if (this.googleChartPlot.value) {
-          this.googleChartPlot.value.selectedValueRange = newRange;
-        }
       }
     }
   }

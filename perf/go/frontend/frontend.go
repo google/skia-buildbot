@@ -302,6 +302,7 @@ type SkPerfConfig struct {
 	ShowBisectBtn               bool               `json:"show_bisect_btn"`                 // Boolean to display bisect button or not
 	AlwaysShowCommitInfo        bool               `json:"always_show_commit_info"`         // Boolean to display commit author and hash.
 	AppVersion                  string             `json:"app_version"`                     // The git revision of the buildbot repo this instance was built from.
+	EnableV2UI                  bool               `json:"enable_v2_ui"`                    // True if V2 UI can be toggled.
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -310,6 +311,8 @@ type SkPerfConfig struct {
 // should be present on every page. Returned as template.JS so that the template
 // expansion correctly renders this as executable JS.
 func (f *Frontend) getPageContext() (template.JS, error) {
+	imageTag := os.Getenv("IMAGE_TAG")
+
 	pc := SkPerfConfig{
 		InstanceUrl:                 config.Config.URL,
 		InstanceName:                config.Config.InstanceName,
@@ -335,7 +338,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		KeysForCommitRange:          config.Config.DataPointConfig.KeysForCommitRange,
 		KeysForUsefulLinks:          config.Config.DataPointConfig.KeysForUsefulLinks,
 		SkipCommitDetailDisplay:     config.Config.DataPointConfig.SkipCommitDetailDisplay,
-		ImageTag:                    os.Getenv("IMAGE_TAG"),
+		ImageTag:                    imageTag,
 		RemoveDefaultStatValue:      config.Config.Experiments.RemoveDefaultStatValue,
 		EnableSkiaBridgeAggregation: config.Config.Experiments.EnableSkiaBridgeAggregation,
 		ShowJsonResourceDisplay:     config.Config.DataPointConfig.ShowJsonResourceDisplay,
@@ -343,6 +346,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		ShowTriageLink:              config.Config.ShowTriageLink,
 		ShowBisectBtn:               config.Config.ShowBisectBtn,
 		AppVersion:                  f.appVersion,
+		EnableV2UI:                  config.Config.EnableV2UI,
 	}
 
 	var buff bytes.Buffer

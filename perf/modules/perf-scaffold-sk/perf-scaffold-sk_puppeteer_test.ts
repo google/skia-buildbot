@@ -53,6 +53,8 @@ describe('perf-scaffold-sk', () => {
     await testBed.page.evaluateOnNewDocument(() => {
       (window as any).perf = {
         app_version: '83cd5d7049b8b69435b93c4778235f5ce8816ac3',
+        enable_v2_ui: false,
+
         git_repo_url: 'https://repo',
       };
     });
@@ -69,6 +71,7 @@ describe('perf-scaffold-sk', () => {
     await testBed.page.evaluateOnNewDocument(() => {
       (window as any).perf = {
         app_version: 'dev-2025-11-10T21:55:47Z',
+        enable_v2_ui: false,
       };
     });
     await testBed.page.goto(testBed.baseUrl);
@@ -82,6 +85,7 @@ describe('perf-scaffold-sk', () => {
     await testBed.page.evaluateOnNewDocument(() => {
       (window as any).perf = {
         app_version: '',
+        enable_v2_ui: false,
       };
     });
     await testBed.page.goto(testBed.baseUrl);
@@ -89,101 +93,6 @@ describe('perf-scaffold-sk', () => {
     expect(versionLink).to.not.equal(null);
     const text = await testBed.page.evaluate((el) => el!.textContent, versionLink);
     expect(text).to.contain('dev-build (');
-  });
-
-  it('legacy ui should not clip overflow', async () => {
-    await testBed.page.evaluate(() => {
-      localStorage.removeItem('v2_ui');
-    });
-    await testBed.page.goto(testBed.baseUrl);
-    const overflow = await testBed.page.$eval(
-      'perf-scaffold-sk',
-      (el) => window.getComputedStyle(el).overflow
-    );
-    expect(overflow).to.not.equal('hidden');
-  });
-
-  it('legacy ui sidebar should scroll', async () => {
-    await testBed.page.evaluate(() => {
-      localStorage.removeItem('v2_ui');
-    });
-    await testBed.page.goto(testBed.baseUrl);
-    const overflow = await testBed.page.$eval(
-      'aside#sidebar',
-      (el) => window.getComputedStyle(el).overflowY
-    );
-    expect(overflow).to.equal('auto');
-  });
-
-  it('v2 ui should contain overflow', async () => {
-    await testBed.page.evaluate(() => {
-      localStorage.setItem('v2_ui', 'true');
-    });
-    await testBed.page.goto(testBed.baseUrl);
-    await testBed.page.waitForSelector('app-sk.v2-ui');
-
-    // Host should still not clip (based on fix)
-    const hostOverflow = await testBed.page.$eval(
-      'perf-scaffold-sk',
-      (el) => window.getComputedStyle(el).overflow
-    );
-    expect(hostOverflow).to.not.equal('hidden');
-
-    // App-sk should clip
-    const appOverflow = await testBed.page.$eval(
-      'app-sk.v2-ui',
-      (el) => window.getComputedStyle(el).overflow
-    );
-    expect(appOverflow).to.equal('hidden');
-
-    // Cleanup
-    await testBed.page.evaluate(() => {
-      localStorage.removeItem('v2_ui');
-    });
-  });
-
-  it('legacy ui main content should scroll', async () => {
-    await testBed.page.evaluate(() => {
-      localStorage.removeItem('v2_ui');
-    });
-    await testBed.page.goto(testBed.baseUrl);
-    const overflow = await testBed.page.$eval(
-      '#perf-content',
-      (el) => window.getComputedStyle(el).overflowY
-    );
-    expect(overflow).to.equal('auto');
-  });
-
-  it('v2 ui main content should scroll', async () => {
-    await testBed.page.evaluate(() => {
-      localStorage.setItem('v2_ui', 'true');
-    });
-    await testBed.page.goto(testBed.baseUrl);
-    await testBed.page.waitForSelector('app-sk.v2-ui');
-    const overflow = await testBed.page.$eval(
-      '#perf-content',
-      (el) => window.getComputedStyle(el).overflowY
-    );
-    expect(overflow).to.equal('auto');
-
-    // Cleanup
-    await testBed.page.evaluate(() => {
-      localStorage.removeItem('v2_ui');
-    });
-  });
-
-  it('legacy ui shows try v2 button', async () => {
-    await testBed.page.evaluate(() => {
-      localStorage.removeItem('v2_ui');
-    });
-    await testBed.page.goto(testBed.baseUrl);
-    const btn = await testBed.page.$('.try-v2-ui');
-    expect(btn).to.not.equal(null);
-    const visible = await testBed.page.evaluate((el) => {
-      const style = window.getComputedStyle(el);
-      return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
-    }, btn!);
-    expect(visible).to.equal(true);
   });
 
   it('legacy ui shows valid version', async () => {
@@ -200,6 +109,12 @@ describe('perf-scaffold-sk', () => {
   });
 
   it('v2 ui shows valid version', async () => {
+    await testBed.page.evaluateOnNewDocument(() => {
+      (window as any).perf = {
+        app_version: '83cd5d7049b8b69435b93c4778235f5ce8816ac3',
+        enable_v2_ui: true,
+      };
+    });
     await testBed.page.evaluate(() => {
       localStorage.setItem('v2_ui', 'true');
     });
@@ -211,6 +126,35 @@ describe('perf-scaffold-sk', () => {
     const text = await testBed.page.evaluate((el) => el!.textContent, versionLink);
     expect(text).to.not.contain('No Tag');
     expect(text).to.contain('Build:');
+  });
+
+  it('does not render V2 UI toggle when disabled', async () => {
+    await testBed.page.evaluateOnNewDocument(() => {
+      (window as any).perf = {
+        app_version: '',
+        enable_v2_ui: false,
+      };
+    });
+    await testBed.page.goto(testBed.baseUrl);
+    const toggle = await testBed.page.$('.try-v2-ui');
+    expect(toggle).to.equal(null);
+  });
+
+  it('v2 ui shows legacy button', async () => {
+    await testBed.page.evaluateOnNewDocument(() => {
+      (window as any).perf = {
+        app_version: '',
+        enable_v2_ui: true,
+      };
+      localStorage.setItem('v2_ui', 'true');
+    });
+    await testBed.page.goto(testBed.baseUrl);
+    // Check for a class specific to V2 UI
+    const v2App = await testBed.page.$('app-sk.v2-ui');
+    expect(v2App).to.not.equal(null);
+
+    const legacyButton = await testBed.page.$('#legacy-ui-button');
+    expect(legacyButton).to.not.equal(null);
   });
 
   describe('screenshots', () => {

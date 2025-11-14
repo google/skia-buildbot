@@ -422,6 +422,7 @@ export interface SkPerfConfig {
 	show_bisect_btn: boolean;
 	always_show_commit_info: boolean;
 	app_version: string;
+	enable_v2_ui: boolean;
 }
 
 export interface TriageRequest {

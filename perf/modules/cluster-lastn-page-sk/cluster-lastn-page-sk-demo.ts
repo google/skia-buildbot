@@ -102,3 +102,4 @@ window.perf.instance_name = 'demo';
 window.perf.header_image_url = '';
 window.perf.key_order = [];
 window.perf.demo = true;
+window.perf.enable_v2_ui = false;

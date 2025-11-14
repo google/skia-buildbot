@@ -40,6 +40,7 @@ window.perf = {
   show_triage_link: true,
   show_bisect_btn: true,
   app_version: 'test-version',
+  enable_v2_ui: false,
 };
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');

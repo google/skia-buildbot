@@ -1089,6 +1089,9 @@ type InstanceConfig struct {
 
 	// wheter or not to show Bisect button in the chart-tooltip
 	ShowBisectBtn bool `json:"show_bisect_btn,omitempty"`
+
+	// EnableV2UI if true allows users to toggle the V2 UI.
+	EnableV2UI bool `json:"enable_v2_ui,omitempty"`
 }
 
 // Config is the currently running config.

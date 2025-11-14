@@ -10,6 +10,7 @@ window.perf.key_order = [];
 window.perf.display_group_by = true;
 window.perf.notifications = 'none';
 window.perf.need_alert_action = false;
+window.perf.enable_v2_ui = false;
 
 // Force all the alert-config-sk controls on the page to re-render.
 const refreshControls = () => {

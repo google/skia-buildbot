@@ -7,6 +7,8 @@ load(
     "sk_page",
 )
 
+# gazelle:exclude perf-scaffold-sk-v2-demo.ts
+
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":perf-scaffold-sk-demo",
@@ -18,6 +20,18 @@ sk_demo_page_server(
         ],
     },
 )
+
+sk_demo_page_server(
+    name = "demo_page_server_v2",
+    sk_page = ":perf-scaffold-sk-v2-demo",
+    static_assets = {
+        "/dist/images": [
+            "//perf/images:chrome-logo.svg",
+            "//perf/images:line-chart.svg",
+            "//perf/images:v8.svg",
+        ],
+    },
+)  # keep
 
 sk_element(
     name = "perf-scaffold-sk",
@@ -79,6 +93,16 @@ karma_test(
         "//infra-sk/modules:test_util_ts_lib",
     ],
 )
+
+sk_page(
+    name = "perf-scaffold-sk-v2-demo",
+    html_file = "perf-scaffold-sk-v2-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":perf-scaffold-sk",
+    ],
+    ts_entry_point = "perf-scaffold-sk-v2-demo.ts",
+)  # keep
 
 sk_element_puppeteer_test(
     name = "perf-scaffold-sk_puppeteer_test",

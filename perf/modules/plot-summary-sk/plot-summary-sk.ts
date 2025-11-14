@@ -287,6 +287,9 @@ export class PlotSummarySk extends LitElement {
 
   // Get the current selected value range.
   get selectedValueRange(): range | null {
+    if (this.cachedSelectedValueRange) {
+      return this.cachedSelectedValueRange;
+    }
     const chart = this.chartLayout;
     if (!chart) {
       return { begin: 0, end: 0 };

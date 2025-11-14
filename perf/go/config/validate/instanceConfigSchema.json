@@ -424,6 +424,9 @@
         },
         "show_bisect_btn": {
           "type": "boolean"
+        },
+        "enable_v2_ui": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

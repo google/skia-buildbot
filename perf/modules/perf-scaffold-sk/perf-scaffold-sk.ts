@@ -37,6 +37,7 @@ const SIDEBAR_HELP_ID = 'sidebar_help';
 
 const BUILDBOT_GIT = 'https://skia.googlesource.com/buildbot.git/+log/';
 const PINPOINT_URL = 'https://pinpoint-dot-chromeperf.appspot.com/';
+
 /**
  * Moves the elements from a list to be the children of the target element.
  *
@@ -69,7 +70,7 @@ export class PerfScaffoldSk extends ElementSk {
   }
 
   private static template = (ele: PerfScaffoldSk) => {
-    if (localStorage.getItem('v2_ui') === 'true') {
+    if (window.perf.enable_v2_ui && localStorage.getItem('v2_ui') === 'true') {
       return ele.renderV2UI(ele);
     }
     return ele.renderLegacyUI(ele);
@@ -126,7 +127,11 @@ export class PerfScaffoldSk extends ElementSk {
       </div>
       <div id=chat>
       </div>
-      <button @click=${() => ele.toggleUI(true)} class="try-v2-ui">Try V2 UI</button>
+      ${
+        window.perf.enable_v2_ui
+          ? html` <button @click=${() => ele.toggleUI(true)} class="try-v2-ui">Try V2 UI</button> `
+          : ''
+      }
     </aside>
     <main id="perf-content">
     </main>
@@ -283,22 +288,6 @@ export class PerfScaffoldSk extends ElementSk {
 
   private buildTagTemplate() {
     const buildTag = getBuildTag();
-    if (buildTag.type === 'invalid') {
-      const appVersion = window.perf.app_version || `dev-${new Date().toISOString()}`;
-      let displayVersion = appVersion;
-      const dateStr = appVersion.startsWith('dev-') ? appVersion.substring(4) : appVersion;
-      const date = new Date(dateStr);
-      if (!isNaN(date.getTime()) && dateStr.includes('-') && dateStr.includes(':')) {
-        const pad = (n: number) => n.toString().padStart(2, '0');
-        displayVersion = `dev-build (${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(
-          date.getUTCDate()
-        )})`;
-      } else {
-        displayVersion = appVersion.length >= 7 ? appVersion.substring(0, 7) : appVersion;
-      }
-      return html`<a class="dashboard-version" title="${appVersion}">Build: ${displayVersion}</a>`;
-    }
-
     return html`${choose(
       buildTag.type,
       [
@@ -322,7 +311,7 @@ export class PerfScaffoldSk extends ElementSk {
     }
     // Fallback to extracting the name from the URL if no config name is provided.
     if (window.perf.instance_url) {
-      if (localStorage.getItem('v2_ui') === 'true') {
+      if (window.perf.enable_v2_ui && localStorage.getItem('v2_ui') === 'true') {
         return html`${this.extractInstanceNameFromUrl(window.perf.instance_url)}`;
       }
       return html`<a>${this.extractInstanceNameFromUrl(window.perf.instance_url)}</a>`;
@@ -344,7 +333,7 @@ export class PerfScaffoldSk extends ElementSk {
       return;
     }
 
-    if (localStorage.getItem('v2_ui') === 'true') {
+    if (window.perf.enable_v2_ui && localStorage.getItem('v2_ui') === 'true') {
       this.injectFavicon();
       this.updateTitle();
     }
@@ -423,7 +412,7 @@ export class PerfScaffoldSk extends ElementSk {
       if ((node as Element).id === SIDEBAR_HELP_ID) {
         if (this._help) {
           this._help.appendChild(node);
-          if (localStorage.getItem('v2_ui') === 'true') {
+          if (window.perf.enable_v2_ui && localStorage.getItem('v2_ui') === 'true') {
             this.hasHelpContent = true;
             this._render();
           }

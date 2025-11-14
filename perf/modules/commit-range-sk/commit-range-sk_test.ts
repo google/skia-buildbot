@@ -43,6 +43,7 @@ describe('commit-range-sk', () => {
       show_triage_link: true,
       show_bisect_btn: true,
       app_version: 'test-version',
+      enable_v2_ui: false,
     };
 
     element = newInstance((el: CommitRangeSk) => {

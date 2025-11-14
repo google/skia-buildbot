@@ -9,6 +9,7 @@ window.perf.header_image_url = '';
 window.perf.key_order = [];
 window.perf.display_group_by = true;
 window.perf.notifications = 'markdown_issuetracker';
+window.perf.enable_v2_ui = false;
 
 fetchMock.get('/_/login/status', {
   email: 'someone@example.org',

@@ -4,8 +4,6 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 window.perf = Object.assign(
   {
     instance_url: '',
-    instance_name: 'chrome-perf-demo',
-    header_image_url: '',
     commit_range_url: '',
     key_order: ['config'],
     demo: true,
@@ -35,10 +33,13 @@ window.perf = Object.assign(
     show_triage_link: true,
     show_bisect_btn: true,
     app_version: '33f07b6a266149a5355120d8b082880b2e98b73e',
-    enable_v2_ui: false,
+    enable_v2_ui: true,
   },
   window.perf || {}
 );
+
+// Automatically enable V2 UI for this demo
+localStorage.setItem('v2_ui', 'true');
 
 document.querySelector('.component-goes-here')!.innerHTML = `
 <perf-scaffold-sk>

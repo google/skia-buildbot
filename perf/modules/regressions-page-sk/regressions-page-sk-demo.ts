@@ -34,6 +34,7 @@ window.perf = {
   show_triage_link: true,
   show_bisect_btn: true,
   app_version: 'test-version',
+  enable_v2_ui: false,
 };
 
 fetchMock.get('/_/subscriptions', () => [
