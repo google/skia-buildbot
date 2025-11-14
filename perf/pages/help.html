@@ -3,7 +3,7 @@
 
 <head>
   {%- template "googleanalytics" . -%}
-  <title>Skia Performance Monitoring | Help</title>
+  <title>{% if .InstanceName %}{% .InstanceName %} Perf{% else %}Performance Monitoring{% end %} | Help</title>
   <script type="text/javascript" charset="utf-8" nonce="{% .Nonce %}">
     window.perf = {% .Context %};
   </script>

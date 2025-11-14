@@ -366,7 +366,8 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 			"context":                      context,
 			"GoogleAnalyticsMeasurementID": config.Config.GoogleAnalyticsMeasurementID,
 			// Look in //machine/pages/BUILD.bazel for where the nonce templates are injected.
-			"Nonce": secure.CSPNonce(r.Context()),
+			"Nonce":        secure.CSPNonce(r.Context()),
+			"InstanceName": config.Config.InstanceName,
 		}); err != nil {
 			sklog.Errorf("Failed to expand template: %v", err)
 		}
@@ -689,11 +690,13 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 			Funcs                        map[string]calc.Func
 			GoogleAnalyticsMeasurementID string
 			Context                      template.JS
+			InstanceName                 string
 		}{
 			Nonce:                        secure.CSPNonce(r.Context()),
 			Funcs:                        calcContext.Funcs,
 			GoogleAnalyticsMeasurementID: config.Config.GoogleAnalyticsMeasurementID,
 			Context:                      context,
+			InstanceName:                 config.Config.InstanceName,
 		}
 		if err := f.templates.ExecuteTemplate(w, "help.html", templateContext); err != nil {
 			sklog.Errorf("Failed to expand template: %v", err)
