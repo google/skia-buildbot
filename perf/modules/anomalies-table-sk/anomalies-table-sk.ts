@@ -945,6 +945,15 @@ export class AnomaliesTableSk extends ElementSk {
         } else {
           this.checkedAnomaliesSet.delete(anomaly);
         }
+        this.dispatchEvent(
+          new CustomEvent('anomalies_checked', {
+            detail: {
+              anomaly: anomaly,
+              checked: checked,
+            },
+            bubbles: true,
+          })
+        );
       });
     });
     this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
