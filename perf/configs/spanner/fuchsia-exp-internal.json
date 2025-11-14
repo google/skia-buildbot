@@ -76,6 +76,7 @@
       "skip_commit_detail_display": true,
       "show_json_file_display": true
     },
+    "enable_sheriff_config": true,
     "optimize_sqltracestore": true,
     "show_triage_link": true,
     "show_bisect_btn": true
