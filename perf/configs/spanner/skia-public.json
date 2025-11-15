@@ -1,5 +1,6 @@
 {
   "URL": "https://skia-perf.luci.app",
+  "header_image_url": "/dist/images/skia.svg",
   "allowed_hosts": [
     "status.skia.org"
   ],

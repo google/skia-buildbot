@@ -58,6 +58,42 @@ skia_app_container(
                 "//perf/images:v8.svg",
                 "0644",
             ],
+            [
+                "//perf/images:flutter.svg",
+                "0644",
+            ],
+            [
+                "//perf/images:webrtc.png",
+                "0644",
+            ],
+            [
+                "//perf/images:androidx.svg",
+                "0644",
+            ],
+            [
+                "//perf/images:fuchsia.svg",
+                "0644",
+            ],
+            [
+                "//perf/images:skia.svg",
+                "0644",
+            ],
+            [
+                "//perf/images:widevine.svg",
+                "0644",
+            ],
+            [
+                "//perf/images:germanium.webp",
+                "0644",
+            ],
+            [
+                "//perf/images:alpine.png",
+                "0644",
+            ],
+            [
+                "//perf/images:alpine_transparent.png",
+                "0644",
+            ],
         ],
         "/usr/local/share/skiaperf/dist": [
             [

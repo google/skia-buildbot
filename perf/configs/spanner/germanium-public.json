@@ -1,5 +1,6 @@
 {
     "URL": "https://germanium-evals.luci.app",
+    "header_image_url": "/dist/images/alpine_transparent.png",
     "landing_page_rel_path": "/e/",
     "allowed_hosts": [],
     "trace_sample_proportion": 0.01,

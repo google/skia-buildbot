@@ -1,5 +1,6 @@
 {
     "URL": "https://fuchsia-perf.luci.app",
+    "header_image_url": "/dist/images/fuchsia.svg",
     "ga_measurement_id": "G-LM90RZSZR1",
     "landing_page_rel_path": "/m/",
     "allowed_hosts": [],

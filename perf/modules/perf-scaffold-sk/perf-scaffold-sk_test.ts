@@ -43,7 +43,7 @@ describe('perf-scaffold-sk', () => {
       localStorage.removeItem('v2_ui');
     });
     const img = element.querySelector('.logo') as HTMLImageElement;
-    assert.include(img.src, 'chrome-logo.svg');
+    assert.include(img.src, 'alpine_transparent.png');
   });
 
   it('renders with configured logo when header_image_url is set', async () => {
@@ -65,7 +65,7 @@ describe('perf-scaffold-sk', () => {
     // Simulate error
     img.dispatchEvent(new Event('error'));
 
-    assert.include(img.src, 'chrome-logo.svg');
+    assert.include(img.src, 'alpine_transparent.png');
   });
 
   it('V2 UI: renders with default logo when header_image_url is empty', async () => {
@@ -74,7 +74,7 @@ describe('perf-scaffold-sk', () => {
       localStorage.setItem('v2_ui', 'true');
     });
     const img = element.querySelector('.logo') as HTMLImageElement;
-    assert.include(img.src, 'chrome-logo.svg');
+    assert.include(img.src, 'alpine_transparent.png');
   });
 
   it('V2 UI: falls back to default logo on error', async () => {
@@ -87,6 +87,54 @@ describe('perf-scaffold-sk', () => {
     // Simulate error
     img.dispatchEvent(new Event('error'));
 
-    assert.include(img.src, 'chrome-logo.svg');
+    assert.include(img.src, 'alpine_transparent.png');
+  });
+
+  it('displays instance_name from config', async () => {
+    window.perf.instance_name = 'Test Instance';
+    const element = newInstance((_) => {
+      localStorage.removeItem('v2_ui');
+    });
+    const title = element.querySelector('.name');
+    assert.equal(title?.textContent, 'Test Instance');
+  });
+
+  it('falls back to extracting name from URL if instance_name is empty', async () => {
+    window.perf.instance_name = '';
+    window.perf.instance_url = 'https://foo.perf.skia.org';
+    const element = newInstance((_) => {
+      localStorage.removeItem('v2_ui');
+    });
+    const title = element.querySelector('.name');
+    assert.equal(title?.textContent, 'Foo');
+  });
+
+  it('truncates long instance names', async () => {
+    const longName = 'A'.repeat(70);
+    window.perf.instance_name = longName;
+    const element = newInstance((_) => {
+      localStorage.removeItem('v2_ui');
+    });
+    const title = element.querySelector('.name');
+    assert.equal(title?.textContent, 'A'.repeat(64));
+  });
+
+  it('V2 UI: displays instance_name from config', async () => {
+    window.perf.instance_name = 'Test Instance V2';
+    const element = newInstance((_) => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+    const title = element.querySelector('.name');
+    assert.equal(title?.textContent, 'Test Instance V2');
+  });
+
+  it('V2 UI: falls back to extracting name from URL if instance_name is empty', async () => {
+    window.perf.instance_name = '';
+    window.perf.instance_url = 'https://bar.perf.skia.org';
+    const element = newInstance((_) => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+    const title = element.querySelector('.name');
+    assert.equal(title?.textContent, 'Bar');
   });
 });

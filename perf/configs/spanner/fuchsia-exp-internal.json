@@ -1,6 +1,7 @@
 {
     "URL": "https://fuchsia-exp-perf.corp.goog",
     "ga_measurement_id": "G-8CM4NHWZ72",
+    "header_image_url": "/dist/images/fuchsia.svg",
     "landing_page_rel_path": "/m/",
     "allowed_hosts": [],
     "contact": "browser-perf-engprod@google.com",

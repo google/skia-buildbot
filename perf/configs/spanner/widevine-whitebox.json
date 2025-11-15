@@ -1,5 +1,6 @@
 {
     "URL": "https://widevine-whitebox-perf.corp.goog",
+    "header_image_url": "/dist/images/alpine_transparent.png",
     "landing_page_rel_path": "/m/",
     "ga_measurement_id": "G-000BBGCM1T",
     "allowed_hosts": [],

@@ -1,5 +1,6 @@
 {
     "URL": "https://webrtc-perf.luci.app",
+    "header_image_url": "/dist/images/webrtc.png",
     "landing_page_rel_path": "/m/",
     "ga_measurement_id": "G-KNK8Q3101G",
     "allowed_hosts": [],

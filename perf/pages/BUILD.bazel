@@ -79,6 +79,42 @@ sk_page(
             "src": "//perf/images:v8.svg",
             "dst": "images/v8.svg",
         },
+        {
+            "src": "//perf/images:flutter.svg",
+            "dst": "images/flutter.svg",
+        },
+        {
+            "src": "//perf/images:webrtc.png",
+            "dst": "images/webrtc.png",
+        },
+        {
+            "src": "//perf/images:androidx.svg",
+            "dst": "images/androidx.svg",
+        },
+        {
+            "src": "//perf/images:fuchsia.svg",
+            "dst": "images/fuchsia.svg",
+        },
+        {
+            "src": "//perf/images:skia.svg",
+            "dst": "images/skia.svg",
+        },
+        {
+            "src": "//perf/images:widevine.svg",
+            "dst": "images/widevine.svg",
+        },
+        {
+            "src": "//perf/images:germanium.webp",
+            "dst": "images/germanium.webp",
+        },
+        {
+            "src": "//perf/images:alpine.png",
+            "dst": "images/alpine.png",
+        },
+        {
+            "src": "//perf/images:alpine_transparent.png",
+            "dst": "images/alpine_transparent.png",
+        },
     ],
     html_file = "newindex.html",
     nonce = "{% .Nonce %}",

@@ -79,10 +79,10 @@ export class PerfScaffoldSk extends ElementSk {
   private fallbackLogo(e: Event) {
     const img = e.target as HTMLImageElement;
     // Prevent infinite loop if the default image also fails
-    if (img.src.indexOf('/dist/images/chrome-logo.svg') >= 0) {
+    if (img.src.indexOf('/dist/images/alpine_transparent.png') >= 0) {
       return;
     }
-    img.src = '/dist/images/chrome-logo.svg';
+    img.src = '/dist/images/alpine_transparent.png';
   }
 
   private renderLegacyUI(ele: PerfScaffoldSk) {
@@ -92,7 +92,7 @@ export class PerfScaffoldSk extends ElementSk {
       <div class="header-brand">
         <a href="/">
           <img class="logo" src="${
-            window.perf.header_image_url || '/dist/images/chrome-logo.svg?v=1'
+            window.perf.header_image_url || '/dist/images/alpine_transparent.png'
           }" alt="Logo" @error=${ele.fallbackLogo} />
         </a>
       </div>
@@ -148,7 +148,7 @@ export class PerfScaffoldSk extends ElementSk {
     <header id=topbar>
       <a class="header-brand" href="/">
         <img src="${
-          window.perf.header_image_url || '/dist/images/chrome-logo.svg'
+          window.perf.header_image_url || '/dist/images/alpine_transparent.png'
         }" alt="Logo" class="logo" @error=${ele.fallbackLogo}>
         <h1 class=name>${ele.instanceTitleTemplate()}</h1>
       </a>

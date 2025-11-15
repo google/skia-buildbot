@@ -31,14 +31,13 @@ perf-scaffold-sk app-sk.legacy-ui {
   overflow: hidden;
 
   .header-brand {
-    display: inline-block;
+    display: flex;
+    align-items: center;
+
     .logo {
-      max-height: 48px;
-      max-width: 48px;
-      height: auto;
-      width: auto;
+      height: 48px;
+      width: 48px;
       object-fit: contain;
-      display: inline-block;
     }
   }
 
@@ -153,10 +152,9 @@ perf-scaffold-sk app-sk.v2-ui {
       color: inherit;
 
       .logo {
-        max-height: 48px;
-        max-width: 48px;
-        height: auto;
-        width: auto;
+        height: 48px;
+        width: 48px;
+        object-fit: contain;
         margin-right: 12px;
       }
 

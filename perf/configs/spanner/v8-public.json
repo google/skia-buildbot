@@ -1,5 +1,6 @@
 {
   "URL": "https://v8-perf.luci.app",
+  "header_image_url": "/dist/images/v8.svg",
   "contact": "https://bugs.chromium.org/p/v8/issues/list?q=component%3ATools&can=2",
   "ga_measurement_id": "G-L2RB15ST9C",
   "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",

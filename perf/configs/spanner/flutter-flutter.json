@@ -1,5 +1,6 @@
 {
     "URL": "https://flutter-flutter-perf.luci.app",
+    "header_image_url": "/dist/images/flutter.svg",
     "contact": "https://mail.google.com/chat/u/0/?zx=s88snihcl7ie#chat/space/AAAAm69vf-M",
     "ga_measurement_id": "G-5DKS3KF8TE",
     "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",

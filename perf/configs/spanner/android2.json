@@ -1,6 +1,7 @@
 {
     "URL": "https://androidx2-perf.skia.org",
     "instance_name": "AndroidX",
+    "header_image_url": "/dist/images/androidx.svg",
     "contact": "http://go/androidx-discuss",
     "ga_measurement_id": "G-YDQJ6YQGFM",
     "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",

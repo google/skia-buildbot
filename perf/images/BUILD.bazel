@@ -2,4 +2,13 @@ exports_files([
     "chrome-logo.svg",
     "line-chart.svg",
     "v8.svg",
+    "flutter.svg",
+    "webrtc.png",
+    "androidx.svg",
+    "fuchsia.svg",
+    "skia.svg",
+    "widevine.svg",
+    "germanium.webp",
+    "alpine.png",
+    "alpine_transparent.png",
 ])

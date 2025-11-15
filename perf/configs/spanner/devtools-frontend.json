@@ -1,5 +1,6 @@
 {
     "URL": "https://devtools-frontend-perf.corp.goog",
+    "header_image_url": "/dist/images/alpine_transparent.png",
     "ga_measurement_id": "G-B2XGPX4X21",
     "landing_page_rel_path": "/m/",
     "allowed_hosts": [],

@@ -1,5 +1,6 @@
 {
   "URL": "https://emscripten-perf.luci.app",
+  "header_image_url": "/dist/images/alpine_transparent.png",
   "contact": "https://github.com/emscripten-core/emscripten/issues",
   "ga_measurement_id": "G-WK60ZQQ1P1",
   "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",
