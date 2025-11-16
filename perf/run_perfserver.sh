@@ -63,6 +63,7 @@ chrome   $CORP $SPAN_CORP chrome_int      chrome-internal.json  $GSRC chromium/s
 v8       $CORP $SPAN_CORP v8_int          v8-internal.json      $GSRC v8/v8
 fuchsia  $CORP $SPAN_CORP fuchsia_int     fuchsia-internal.json $TSRC integration
 android  $PUB  $SPAN_PUB  androidx        android2.json         $ASRC platform/frameworks/support
+angle    $PUB  $SPAN_PUB  angle           angle.json            $GSRC angle/angle
 flutter  $PUB  $SPAN_PUB  flutter_flutter flutter-flutter.json  $GSRC flutter/flutter
 widevine $CORP $SPAN_CORP widevine_cdm    widevine-cdm.json     $GSRC chromium/src
 webrtc   $PUB  $SPAN_PUB  webrtc_pub      webrtc-public.json    $GSRC chromium/src
