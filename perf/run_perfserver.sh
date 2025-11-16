@@ -420,7 +420,7 @@ while true; do
   # Watch for changes in Go files, BUILD files, and a few other common types
   CHANGED_FILES=$(find ./perf -type f \
     \( -name '*.go' -o -name 'BUILD.bazel' -o -name '*.html' -o -name '*.ts' \
-    -o -name '*.scss' -o -name '*.json' \) \
+    -o -name '*.scss' -o -name '*.json' -o -name '*.css' -o -name '*.png' -o -name '*.svg' \) \
     -newer "$MARKER_FILE")
 
   if [ -n "$CHANGED_FILES" ]; then
