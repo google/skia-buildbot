@@ -40,9 +40,7 @@ export class GraphTitleSk extends ElementSk {
   }
 
   private static template = (ele: GraphTitleSk) => html`
-    <div id="container" ?hidden=${ele.titleEntries === null || ele.titleEntries.size === 0}>
-      ${ele.getTitleHtml()}
-    </div>
+    <div id="container" ?hidden=${ele.numTraces === 0}>${ele.getTitleHtml()}</div>
   `;
 
   connectedCallback(): void {
