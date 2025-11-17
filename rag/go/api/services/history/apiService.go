@@ -204,39 +204,44 @@ func (service *ApiService) GetTopicDetails(ctx context.Context, req *pb.GetTopic
 			return nil, err
 		}
 		currentTopicResponseLength := len(jsonResponse)
-		if topic.CodeContext != "" {
+		// Process the code context if code or tests are to be included in the response.
+		if topic.CodeContext != "" && (req.IncludeCode || req.IncludeTests) {
 			testChunks := []string{}
-			// Add the code chunks if specified.
-			if req.IncludeCode {
-				allTopicCode := strings.Split(topic.CodeContext, "\n\n")
-				for _, code := range allTopicCode {
-					// Check if this is a test file.
-					fileName := strings.TrimSpace(strings.Split(code, "\n")[0])
-					isTestFile := strings.Contains(strings.ToLower(fileName), "test")
-					if !isTestFile {
-						if currentTopicResponseLength+len(code) > maxTopicResponseLength {
-							break
-						}
-						respTopic.CodeChunks = append(respTopic.CodeChunks, code)
-						currentTopicResponseLength += len(code)
-					} else if req.IncludeTests {
-						testChunks = append(testChunks, code)
-					}
-				}
+			isTestFile := func(fileName string) bool {
+				return strings.Contains(strings.ToLower(fileName), "test")
+			}
+			allTopicCode := strings.Split(topic.CodeContext, "\n\n")
+			for _, code := range allTopicCode {
+				// Check if this is a test file.
+				fileName := strings.TrimSpace(strings.Split(code, "\n")[0])
 
-				// If include tests is specified, add the test chunks.
-				if req.IncludeTests && len(testChunks) > 0 {
-					for _, testChunk := range testChunks {
-						if currentTopicResponseLength+len(testChunk) > maxTopicResponseLength {
-							break
-						}
-						respTopic.CodeChunks = append(respTopic.CodeChunks, testChunk)
-						currentTopicResponseLength += len(testChunk)
+				// Prioritize code files if specified and collect their chunks first.
+				if req.IncludeCode && !isTestFile(fileName) {
+					if currentTopicResponseLength+len(code) > maxTopicResponseLength {
+						break
 					}
+					respTopic.CodeChunks = append(respTopic.CodeChunks, code)
+					currentTopicResponseLength += len(code)
+				}
+				// Keep a track of the test files to be added later if IncludeTests=true.
+				if req.IncludeTests && isTestFile(fileName) {
+					testChunks = append(testChunks, code)
 				}
 			}
-			resp.Topics = append(resp.Topics, respTopic)
+
+			// If there are test chunks to be added, let's add those now.
+			if len(testChunks) > 0 {
+				for _, testChunk := range testChunks {
+					if currentTopicResponseLength+len(testChunk) > maxTopicResponseLength {
+						break
+					}
+					respTopic.CodeChunks = append(respTopic.CodeChunks, testChunk)
+					currentTopicResponseLength += len(testChunk)
+				}
+			}
 		}
+
+		resp.Topics = append(resp.Topics, respTopic)
 	}
 	return resp, nil
 }
