@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/urfavecli"
 	"go.skia.org/infra/rag/go/config"
+	"go.skia.org/infra/rag/go/tracing"
 )
 
 // IngesterFlags defines the commandline flags to start the ingester.
@@ -49,6 +50,11 @@ func main() {
 				Flags:       (&flags).AsCliFlags(),
 				Action: func(c *cli.Context) error {
 					urfavecli.LogFlags(c)
+					err := tracing.Init(false, "historyrag-api", 0.1)
+					if err != nil {
+						sklog.Errorf("Error initializing tracing: %v", err)
+						return err
+					}
 					config, err := config.NewApiServerConfigFromFile(flags.ConfigFilename)
 					if err != nil {
 						sklog.Errorf("Error reading config file %s: %v", flags.ConfigFilename, err)

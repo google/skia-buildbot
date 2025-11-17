@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/rag/go/api/services/history",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
         "//rag/go/blamestore",
@@ -14,6 +15,7 @@ go_library(
         "//rag/proto/history/v1:proto",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
         "@com_google_cloud_go_spanner//:spanner",
+        "@io_opencensus_go//trace",
         "@org_golang_google_grpc//:grpc",
     ],
 )

@@ -9,7 +9,9 @@ go_library(
     importpath = "go.skia.org/infra/rag/go/topicstore",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/metrics2",
         "//go/skerr",
         "@com_google_cloud_go_spanner//:spanner",
+        "@io_opencensus_go//trace",
     ],
 )

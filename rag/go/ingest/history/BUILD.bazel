@@ -7,12 +7,14 @@ go_library(
     importpath = "go.skia.org/infra/rag/go/ingest/history",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
         "//rag/go/blamestore",
         "//rag/go/filereaders/npy",
         "//rag/go/filereaders/pickle",
         "//rag/go/topicstore",
+        "@io_opencensus_go//trace",
         "@org_golang_x_sync//errgroup",
     ],
 )

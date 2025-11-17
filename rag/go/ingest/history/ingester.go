@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/rag/go/blamestore"
@@ -28,6 +30,9 @@ type HistoryIngester struct {
 
 	// Store impl for managing topic data.
 	topicStore topicstore.TopicStore
+
+	// Counter metric for no of topics ingested.
+	topicCounterMetric metrics2.Counter
 }
 
 // New returns a new instance of the history ingester.
@@ -35,6 +40,9 @@ func New(blameStore blamestore.BlameStore, topicStore topicstore.TopicStore) *Hi
 	return &HistoryIngester{
 		blameStore: blameStore,
 		topicStore: topicStore,
+
+		// Init the metric objects.
+		topicCounterMetric: metrics2.GetCounter("historyrag_ingestedTopics_count"),
 	}
 }
 
@@ -72,6 +80,9 @@ func (ingester *HistoryIngester) IngestBlameFileData(ctx context.Context, filePa
 
 // IngestTopics ingests the topic data from the provided paths to the configured database.
 func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath string, embeddingsFilePath string, indexPickleFilePath string) error {
+	ctx, span := trace.StartSpan(ctx, "historyrag.ingester.IngestTopics")
+	defer span.End()
+
 	// 1. Read the embeddings into memory.
 	npyReader := npy.NewNpyReader(embeddingsFilePath)
 	sklog.Infof("Reading embeddings data from %s.", embeddingsFilePath)
@@ -112,6 +123,7 @@ func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath
 				sklog.Errorf("Error ingesting file %s: %v", path, err)
 				problematicFiles[path] = err
 			}
+			ingester.topicCounterMetric.Inc(1)
 			return nil
 		})
 		return nil
@@ -137,6 +149,9 @@ func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath
 
 // ingestTopicFile performs topic ingestion for a single file.
 func (ingester *HistoryIngester) ingestTopicFile(ctx context.Context, filePath string, embeddings [][]float32, indexEntries map[int64]pickle.IndexEntry) error {
+	ctx, span := trace.StartSpan(ctx, "historyrag.ingester.IngestTopicFile")
+	defer span.End()
+
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return err

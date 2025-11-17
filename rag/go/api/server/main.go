@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/urfavecli"
+	"go.skia.org/infra/rag/go/tracing"
 )
 
 func main() {
@@ -29,6 +30,10 @@ func main() {
 				Flags:       (&flags).AsCliFlags(),
 				Action: func(c *cli.Context) error {
 					urfavecli.LogFlags(c)
+					err := tracing.Init(flags.Local, "historyrag-api", 0.5)
+					if err != nil {
+						return err
+					}
 					server, err := NewApiServer(&flags)
 					if err != nil {
 						return err

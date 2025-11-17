@@ -20,6 +20,7 @@ go_library(
         "//rag/go/ingest/history",
         "//rag/go/ingest/sources",
         "//rag/go/topicstore",
+        "//rag/go/tracing",
         "@com_github_urfave_cli_v2//:cli",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@com_google_cloud_go_spanner//:spanner",

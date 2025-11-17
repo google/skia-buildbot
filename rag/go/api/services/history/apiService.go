@@ -8,8 +8,10 @@ import (
 
 	"cloud.google.com/go/spanner"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/rag/go/blamestore"
@@ -44,6 +46,11 @@ type ApiService struct {
 
 	// Output dimensionality for query embedding.
 	dimensionality int32
+
+	// Metric to count GetTopics calls.
+	getTopicsCounterMetric metrics2.Counter
+	// Metric to count GetTopicDetails calls.
+	getTopicDetailsCounterMetric metrics2.Counter
 }
 
 // NewApiService returns a new instance of the ApiService struct.
@@ -76,6 +83,10 @@ func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbedding
 		genAiClient:         genAiClient,
 		queryEmbeddingModel: queryEmbeddingModel,
 		dimensionality:      dimensionality,
+
+		// Initialize the metric objects.
+		getTopicsCounterMetric:       metrics2.GetCounter("historyrag_getTopics_count"),
+		getTopicDetailsCounterMetric: metrics2.GetCounter("historyrag_getTopicDetails_count"),
 	}
 }
 
@@ -126,6 +137,9 @@ func (service *ApiService) GetTopics(ctx context.Context, req *pb.GetTopicsReque
 	if query == "" {
 		return nil, skerr.Fmt("query cannot be empty.")
 	}
+	service.getTopicsCounterMetric.Inc(1)
+	ctx, span := trace.StartSpan(ctx, "historyrag.service.GetTopics")
+	defer span.End()
 
 	// Get the embedding vector for the input query.
 	queryEmbedding, err := service.genAiClient.GetEmbedding(ctx, service.queryEmbeddingModel, service.dimensionality, query)
@@ -173,6 +187,10 @@ func (service *ApiService) GetTopicDetails(ctx context.Context, req *pb.GetTopic
 	if len(topicIds) == 0 {
 		return nil, skerr.Fmt("topicIds cannot be empty.")
 	}
+
+	service.getTopicDetailsCounterMetric.Inc(1)
+	ctx, span := trace.StartSpan(ctx, "historyrag.service.GetTopicDetails")
+	defer span.End()
 
 	resp := &pb.GetTopicDetailsResponse{}
 

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"cloud.google.com/go/spanner"
+	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -59,17 +61,38 @@ type FoundTopic struct {
 type topicStoreImpl struct {
 	// spannerClient is used to insert data into Spanner.
 	spannerClient *spanner.Client
+
+	// metric for write operations for topics.
+	writeMetrics metrics2.Timer
+
+	// metric for topic read operations.
+	readMetrics metrics2.Timer
+
+	// metric for topic search operations.
+	searchMetrics metrics2.Timer
 }
 
 // New returns a new TopicStore instance.
 func New(spannerClient *spanner.Client) TopicStore {
 	return &topicStoreImpl{
 		spannerClient: spannerClient,
+		writeMetrics:  metrics2.NewTimer("history_rag_write_topic"),
+		readMetrics:   metrics2.NewTimer("history_rag_read_topic"),
+		searchMetrics: metrics2.NewTimer("history_rag_search_topics"),
 	}
 }
 
 // WriteTopic writes the topic data into the database.
 func (s *topicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
+	s.writeMetrics.Start()
+	defer s.writeMetrics.Stop()
+
+	ctx, span := trace.StartSpan(ctx, "historyrag.topicstore.WriteTopic")
+	defer span.End()
+
+	span.AddAttributes(trace.Int64Attribute("topic_id", topic.ID))
+	span.AddAttributes(trace.Int64Attribute("chunk_count", int64(len(topic.Chunks))))
+
 	_, err := s.spannerClient.ReadWriteTransaction(ctx, func(ctx context.Context, rwt *spanner.ReadWriteTransaction) error {
 		// Check if the topic already exists.
 		stmt := spanner.NewStatement("SELECT topic_id FROM Topics WHERE topic_id = @topicID")
@@ -140,6 +163,14 @@ func (s *topicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
 
 // ReadTopic returns the topic data for the topic id provided.
 func (s *topicStoreImpl) ReadTopic(ctx context.Context, topicID int64) (*Topic, error) {
+	s.readMetrics.Start()
+	defer s.readMetrics.Stop()
+
+	ctx, span := trace.StartSpan(ctx, "historyrag.topicstore.ReadTopic")
+	defer span.End()
+
+	span.AddAttributes(trace.Int64Attribute("topic_id", topicID))
+
 	ret := &Topic{
 		ID: topicID,
 	}
@@ -191,6 +222,12 @@ func (s *topicStoreImpl) ReadTopic(ctx context.Context, topicID int64) (*Topic, 
 
 // SearchTopics searches for the most relevant topics for the given query embedding.
 func (s *topicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []float32, topicCount int) ([]*FoundTopic, error) {
+	s.searchMetrics.Start()
+	defer s.searchMetrics.Stop()
+
+	ctx, span := trace.StartSpan(ctx, "historyrag.topicstore.SearchTopics")
+	defer span.End()
+
 	stmt := spanner.NewStatement(`
 		SELECT
 			t.topic_id,

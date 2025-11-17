@@ -40,6 +40,7 @@ type ApiServerFlags struct {
 	HttpPort       string
 	PromPort       string
 	Services       cli.StringSlice
+	Local          bool
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -74,6 +75,11 @@ func (flags *ApiServerFlags) AsCliFlags() []cli.Flag {
 			Name:        "prom_port",
 			Value:       ":20000",
 			Usage:       "Metrics service address (e.g., ':10110')",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.Local,
+			Name:        "local",
+			Value:       false,
 		},
 	}
 }

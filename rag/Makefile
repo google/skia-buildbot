@@ -1,6 +1,9 @@
 generate_sql_schema:
 	cd ./go/schema_generate; go run main.go
 
+build:
+	bazelisk build --config=mayberemote -c dbg //rag/...
+
 run-auth-proxy:
 	bazelisk run //kube/cmd/auth-proxy -- \
 		--prom-port=:20003 \
@@ -9,10 +12,11 @@ run-auth-proxy:
 		--mock_user=$(USER)@google.com \
 		--port=:8003 \
 		--passive \
-		--target_port=http://127.0.0.1:8002 \
+		--target_port=:8002
+
+run-history-api: build
+	../_bazel_bin/rag/go/api/server/server_/server api \
+		--config_filename=./configs/chrome-internal.json \
 		--local
 
-run-history-api:
-	bazelisk run //rag/go/api/server -- \
-		api \
-		--config_filename=./configs/chrome-internal.json
+run-history-api-local: run-auth-proxy run-history-api
