@@ -137,6 +137,7 @@ func (service *ApiService) GetTopics(ctx context.Context, req *pb.GetTopicsReque
 	if query == "" {
 		return nil, skerr.Fmt("query cannot be empty.")
 	}
+	sklog.Infof("Received GetTopics request with query: %s", query)
 	service.getTopicsCounterMetric.Inc(1)
 	ctx, span := trace.StartSpan(ctx, "historyrag.service.GetTopics")
 	defer span.End()
@@ -177,6 +178,7 @@ func (service *ApiService) GetTopics(ctx context.Context, req *pb.GetTopicsReque
 		}
 		resp.Topics = append(resp.Topics, respTopic)
 	}
+	sklog.Infof("Returning %d topics", len(resp.Topics))
 	return resp, nil
 }
 
