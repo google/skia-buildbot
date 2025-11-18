@@ -78,5 +78,6 @@
     "enable_sheriff_config": true,
     "optimize_sqltracestore": true,
     "show_triage_link": true,
+    "new_alerts_page": true,
     "show_bisect_btn": true
   }
