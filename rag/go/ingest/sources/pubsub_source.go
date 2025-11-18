@@ -10,9 +10,13 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/rag/go/filereaders/zip"
 	"go.skia.org/infra/rag/go/ingest/history"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -48,7 +52,8 @@ func (source *PubSubSource) Ingest(ctx context.Context) error {
 		return err
 	}
 
-	objectName := event.Name
+	sklog.Infof("Ingesting file %s", event.Name)
+	objectName := filepath.Base(event.Name)
 	if !strings.HasSuffix(objectName, ".zip") {
 		sklog.Warningf("Invalid object name %s in the pubsub event", objectName)
 		return nil
@@ -68,6 +73,7 @@ func (source *PubSubSource) Ingest(ctx context.Context) error {
 
 	tempDir, err := os.MkdirTemp("", "index-"+objectName)
 	if err != nil {
+		sklog.Errorf("Error creating temp directory: %v", err)
 		return err
 	}
 	defer func() {
@@ -77,6 +83,7 @@ func (source *PubSubSource) Ingest(ctx context.Context) error {
 		}
 	}()
 
+	sklog.Infof("Extracting zip file to %s", tempDir)
 	err = zip.ExtractZipData(content, tempDir)
 	if err != nil {
 		return err
@@ -89,9 +96,19 @@ func (source *PubSubSource) Ingest(ctx context.Context) error {
 }
 
 // NewPubSubSource returns a new instance of PubSubSource.
-func NewPubSubSource(message *pubsub.Message, ingester *history.HistoryIngester) *PubSubSource {
-	return &PubSubSource{
-		message:  message,
-		ingester: ingester,
+func NewPubSubSource(ctx context.Context, message *pubsub.Message, ingester *history.HistoryIngester) (*PubSubSource, error) {
+	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadOnly, pubsub.ScopePubSub)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	client, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &PubSubSource{
+		message:       message,
+		ingester:      ingester,
+		storageClient: client,
+	}, nil
 }

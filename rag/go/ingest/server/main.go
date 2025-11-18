@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/sklog"
@@ -16,6 +17,7 @@ import (
 // IngesterFlags defines the commandline flags to start the ingester.
 type IngesterFlags struct {
 	ConfigFilename string
+	Local          bool
 }
 
 // AsCliFlags returns the cli flags for the ingester.
@@ -27,6 +29,12 @@ func (flags *IngesterFlags) AsCliFlags() []cli.Flag {
 			Value:       "./configs/demo.json",
 			Usage:       "The name of the config file to use.",
 		},
+		&cli.BoolFlag{
+			Destination: &flags.Local,
+			Name:        "local",
+			Value:       false,
+			Usage:       "Set to true if running in non-production environment",
+		},
 	}
 }
 
@@ -36,7 +44,7 @@ func main() {
 	cli.MarkdownDocTemplate = urfavecli.MarkdownDocTemplate
 	cliApp := &cli.App{
 		Name:  "RAG ingest",
-		Usage: "Command line tool that runs the RAG ingester from local disk.",
+		Usage: "Command line tool that runs the RAG ingester subscribing to a pubsub.",
 		Before: func(c *cli.Context) error {
 			// Log to stdout.
 			sklogimpl.SetLogger(stdlogging.New(os.Stdout))
@@ -44,13 +52,13 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			{
-				Name:        "blames",
-				Usage:       "The rag blames ingester service",
-				Description: "Runs the process that runs the RAG blames ingester.",
+				Name:        "topics",
+				Usage:       "The rag topics ingester service",
+				Description: "Runs the process that runs the RAG topics ingester.",
 				Flags:       (&flags).AsCliFlags(),
 				Action: func(c *cli.Context) error {
 					urfavecli.LogFlags(c)
-					err := tracing.Init(false, "historyrag-api", 0.1)
+					err := tracing.Init(flags.Local, "historyrag-ingester", 0.1)
 					if err != nil {
 						sklog.Errorf("Error initializing tracing: %v", err)
 						return err
@@ -64,7 +72,11 @@ func main() {
 					if err != nil {
 						return err
 					}
-					subscriber.Start(c.Context)
+					sklog.Infof("Starting subscriber")
+					var wg sync.WaitGroup
+					wg.Add(1)
+					subscriber.Start(c.Context, &wg)
+					wg.Wait()
 					return nil
 				},
 			},

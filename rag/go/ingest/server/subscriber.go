@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/spanner"
@@ -50,7 +51,7 @@ func NewIngestionSubscriber(ctx context.Context, config config.ApiServerConfig) 
 }
 
 // Start creates a goroutine that listens for incoming pubsub messages to ingest.
-func (subscriber *IngestionSubscriber) Start(ctx context.Context) {
+func (subscriber *IngestionSubscriber) Start(ctx context.Context, wg *sync.WaitGroup) {
 	// Process all incoming PubSub requests.
 	go func() {
 		for {
@@ -58,6 +59,7 @@ func (subscriber *IngestionSubscriber) Start(ctx context.Context) {
 			err := subscriber.subscription.Receive(ctx, subscriber.processPubSubMessage)
 			if err != nil {
 				sklog.Errorf("Failed receiving pubsub message: %s", err)
+				wg.Done()
 			}
 		}
 	}()
@@ -65,9 +67,17 @@ func (subscriber *IngestionSubscriber) Start(ctx context.Context) {
 
 // processPubSubMessage handles a single pubsub message.
 func (s *IngestionSubscriber) processPubSubMessage(ctx context.Context, msg *pubsub.Message) {
-	pubsubSource := sources.NewPubSubSource(msg, s.historyIngestor)
-	err := pubsubSource.Ingest(ctx)
+	sklog.Infof("Received pubsub message: %v", msg)
+	pubsubSource, err := sources.NewPubSubSource(ctx, msg, s.historyIngestor)
+	if err != nil {
+		sklog.Errorf("Error creating pubsub source: %v", err)
+	}
+	err = pubsubSource.Ingest(ctx)
 	if err != nil {
 		sklog.Errorf("Error processing file: %v", err)
+		msg.Nack()
+	} else {
+		msg.Ack()
+		sklog.Infof("Ack'd message")
 	}
 }

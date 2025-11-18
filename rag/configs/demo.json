@@ -4,6 +4,11 @@
         "instance_id": "history-rag-experiment",
         "database_id": "chrome"
     },
+    "ingestion_config": {
+        "topic": "historyrag-rag-test",
+        "subscription": "historyrag-rag-test-sub",
+        "project": "ashwinpv-sandbox-790703"
+    },
     "query_embedding_model": "gemini-embedding-001",
     "output_dimensionality": 768
 }

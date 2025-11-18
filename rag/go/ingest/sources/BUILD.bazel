@@ -10,10 +10,14 @@ go_library(
     importpath = "go.skia.org/infra/rag/go/ingest/sources",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/httputils",
+        "//go/skerr",
         "//go/sklog",
         "//rag/go/filereaders/zip",
         "//rag/go/ingest/history",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )

@@ -26,3 +26,24 @@ skia_app_container(
     entrypoint = "/usr/local/bin/server",
     repository = "skia-public/historyrag_apiserver",
 )
+
+skia_app_container(
+    name = "ingester",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//rag/go/ingest/server:server",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/configs": [
+            [
+                ":configs",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/server",
+    repository = "skia-public/historyrag_ingester",
+)
