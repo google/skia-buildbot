@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "docker-run-wrapper_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/go/docker/cmd/docker-run-wrapper",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/docker",
+        "//go/exec",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_go_chi_chi_v5//:chi",
+        "@com_github_urfave_cli_v2//:cli",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_binary(
+    name = "docker-run-wrapper",
+    embed = [":docker-run-wrapper_lib"],
+    visibility = ["//visibility:public"],
+)

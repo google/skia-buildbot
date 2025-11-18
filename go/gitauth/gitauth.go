@@ -33,7 +33,7 @@ type GitAuth struct {
 func (g *GitAuth) updateCookie(ctx context.Context) (time.Duration, error) {
 	token, err := g.tokenSource.Token()
 	if err != nil {
-		return RETRY_INTERVAL, fmt.Errorf("Failed to retrieve token: %s", err)
+		return RETRY_INTERVAL, skerr.Wrapf(err, "failed to retrieve token")
 	}
 	refresh_in := token.Expiry.Sub(now.Now(ctx))
 	refresh_in -= REFRESH
@@ -49,7 +49,7 @@ func (g *GitAuth) updateCookie(ctx context.Context) (time.Duration, error) {
 		return err
 	})
 	if err != nil {
-		return RETRY_INTERVAL, fmt.Errorf("Failed to write new cookie file: %s", err)
+		return RETRY_INTERVAL, skerr.Wrapf(err, "failed to write new cookie file")
 	}
 	sklog.Infof("Refreshing cookie in %v", refresh_in)
 

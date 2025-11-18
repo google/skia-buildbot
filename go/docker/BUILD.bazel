@@ -3,13 +3,17 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "docker",
-    srcs = ["docker.go"],
+    srcs = [
+        "auth.go",
+        "docker.go",
+    ],
     importpath = "go.skia.org/infra/go/docker",
     visibility = ["//visibility:public"],
     deps = [
         "//go/auth",
         "//go/httputils",
         "//go/skerr",
+        "//go/sklog",
         "//go/util",
         "@org_golang_x_oauth2//google",
     ],
