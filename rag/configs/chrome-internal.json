@@ -4,6 +4,11 @@
         "instance_id": "tfgen-spanid-20251103181235093",
         "database_id": "chrome-internal"
     },
+    "ingestion_config": {
+        "topic": "historyrag-ingest-chrome-internal",
+        "subscription": "historyrag-ingest-chrome-internal-prod",
+        "project": "skia-infra-corp"
+    },
     "query_embedding_model": "gemini-embedding-001",
     "output_dimensionality": 768
 }

@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "zip",
+    srcs = ["zip_reader.go"],
+    importpath = "go.skia.org/infra/rag/go/filereaders/zip",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "zip_test",
+    srcs = ["zip_reader_test.go"],
+    embed = [":zip"],
+    deps = [
+        "//go/sklog",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
