@@ -11,8 +11,6 @@ import (
 
 // FS is a filesystem with the schema.json file.
 //
-//go:embed schema.json
-//go:embed schema_prev.json
 //go:embed schema_spanner.json
 //go:embed schema_prev_spanner.json
 var FS embed.FS

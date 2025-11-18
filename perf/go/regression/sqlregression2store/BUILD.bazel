@@ -16,7 +16,7 @@ go_library(
         "//perf/go/alerts",
         "//perf/go/clustering2",
         "//perf/go/regression",
-        "//perf/go/sql",
+        "//perf/go/sql/spanner",
         "//perf/go/stepfit",
         "//perf/go/types",
         "//perf/go/ui/frame",

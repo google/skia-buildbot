@@ -23,10 +23,7 @@ func main() {
 		sklog.Fatalf("Error parsing arguments: %v", err)
 	}
 
-	schema := sql.Schema
-	if dbType == "spanner" {
-		schema = spanner.Schema
-	}
+	schema := spanner.Schema
 	err = exportschema.Main(out, dbType, sql.Tables{}, schema)
 	if err != nil {
 		sklog.Fatal(err)

@@ -18,15 +18,6 @@ import (
 	"go.skia.org/infra/perf/go/sql/spanner"
 )
 
-// NewCockroachDBForTests creates a new temporary CockroachDB database with all
-// the Schema applied for testing. It also returns a function to call to clean
-// up the database after the tests have completed.
-//
-// We pass in a database name prefix so that different tests work in different
-// databases, even though they may be in the same CockroachDB instance, so that
-// if a test fails it doesn't leave the database in a bad state for a subsequent
-// test. A random number will be appended to the database name prefix.
-
 // NewSpannerDBForTests returns a connection to a local spanner emulator database to
 // be used for executing unit tests.
 func NewSpannerDBForTests(t *testing.T, databaseNamePrefix string) pool.Pool {

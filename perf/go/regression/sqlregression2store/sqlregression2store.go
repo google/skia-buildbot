@@ -22,7 +22,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/regression"
-	"go.skia.org/infra/perf/go/sql"
+	"go.skia.org/infra/perf/go/sql/spanner"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
@@ -157,8 +157,8 @@ var statementFormats = map[statementFormat]string{
 func New(db pool.Pool, alertConfigProvider alerts.ConfigProvider) (*SQLRegression2Store, error) {
 	templates := map[statementFormat]string{}
 	context := statementContext{
-		Columns:            strings.Join(sql.Regressions2, ","),
-		ValuesPlaceholders: sqlutil.ValuesPlaceholders(len(sql.Regressions2), 1),
+		Columns:            strings.Join(spanner.Regressions2, ","),
+		ValuesPlaceholders: sqlutil.ValuesPlaceholders(len(spanner.Regressions2), 1),
 	}
 	for key, tmpl := range statementFormats {
 		t, err := template.New("").Parse(tmpl)

@@ -3,10 +3,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "sql",
-    srcs = [
-        "schema.go",
-        "tables.go",
-    ],
+    srcs = ["tables.go"],
     importpath = "go.skia.org/infra/perf/go/sql",
     visibility = ["//visibility:public"],
     deps = [

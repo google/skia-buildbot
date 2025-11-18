@@ -9,8 +9,6 @@ go_library(
         "traceparams_schema.go",
     ],
     embedsrcs = [
-        "schema.json",
-        "schema_prev.json",
         "schema_spanner.json",
         "schema_prev_spanner.json",
     ],
@@ -31,10 +29,7 @@ go_library(
 
 go_test(
     name = "expectedschema_test",
-    srcs = [
-        "migrate_spanner_test.go",
-        "migrate_test.go",
-    ],
+    srcs = ["migrate_spanner_test.go"],
     deps = [
         ":expectedschema",
         "//go/deepequal/assertdeep",
