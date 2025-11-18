@@ -21,5 +21,6 @@ go_test(
         "//go/vec32",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )
