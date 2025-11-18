@@ -36,8 +36,8 @@ import { getBuildTag } from '../window/window';
 const SIDEBAR_HELP_ID = 'sidebar_help';
 
 const BUILDBOT_GIT = 'https://skia.googlesource.com/buildbot.git/+log/';
+const SKIA_INFRA_REPO = 'https://skia.googlesource.com/buildbot.git';
 const PINPOINT_URL = 'https://pinpoint-dot-chromeperf.appspot.com/';
-
 /**
  * Moves the elements from a list to be the children of the target element.
  *
@@ -253,17 +253,13 @@ export class PerfScaffoldSk extends ElementSk {
 
     const shortHash = appVersion.length >= 7 ? appVersion.substring(0, 7) : appVersion;
 
-    if (window.perf.git_repo_url) {
-      return html`<a
-        class="version"
-        href="${window.perf.git_repo_url}/+/${appVersion}"
-        target="_blank"
-        title="${appVersion}">
-        <span>Ver: ${shortHash}</span>
-      </a>`;
-    }
-
-    return html`<a class="version" title="${appVersion}"><span>Ver: ${shortHash}</span></a>`;
+    return html`<a
+      class="version"
+      href="${SKIA_INFRA_REPO}/+/${appVersion}"
+      target="_blank"
+      title="${appVersion}">
+      <span>Ver: ${shortHash}</span>
+    </a>`;
   }
 
   private chatLinkTemplate() {

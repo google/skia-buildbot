@@ -54,8 +54,6 @@ describe('perf-scaffold-sk', () => {
       (window as any).perf = {
         app_version: '83cd5d7049b8b69435b93c4778235f5ce8816ac3',
         enable_v2_ui: false,
-
-        git_repo_url: 'https://repo',
       };
     });
     await testBed.page.goto(testBed.baseUrl);
@@ -64,7 +62,9 @@ describe('perf-scaffold-sk', () => {
     const text = await testBed.page.evaluate((el) => el!.textContent, versionLink);
     expect(text).to.contain('Ver: 83cd5d7');
     const href = await testBed.page.evaluate((el) => el!.getAttribute('href'), versionLink);
-    expect(href).to.equal('https://repo/+/83cd5d7049b8b69435b93c4778235f5ce8816ac3');
+    expect(href).to.equal(
+      'https://skia.googlesource.com/buildbot.git/+/83cd5d7049b8b69435b93c4778235f5ce8816ac3'
+    );
   });
 
   it('renders dev timestamp version', async () => {
