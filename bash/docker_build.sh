@@ -56,7 +56,7 @@ fi
 copy_release_files
 
 if [ -z "$SKIP_BUILD" ]; then
-docker build -t ${APPNAME} ${ROOT}
+docker build --progress=plain -t ${APPNAME} ${ROOT}
 
   if [ -z "$SKIP_UPLOAD" ]; then
     docker tag ${APPNAME} gcr.io/${PROJECT}/${APPNAME}:${TAG}
