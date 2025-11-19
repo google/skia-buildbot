@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>chart-tooltip-sk</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body class="body-sk">
-  <h1>chart-tooltip-sk</h1>
-  <div class="selectedTooltipContainer">
-    <chart-tooltip-sk></chart-tooltip-sk>
-  </div>
-  <div class="hoverTooltipContainer">
-    <chart-tooltip-sk></chart-tooltip-sk>
-  </div>
-  <div class="buganizerTooltipContainer">
-    <chart-tooltip-sk></chart-tooltip-sk>
-  </div>
-</body>
+  <head>
+    <title>chart-tooltip-sk demo</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <section class="body-sk font-sk">
+      <chart-tooltip-sk></chart-tooltip-sk>
+    </section>
+    <button id="reset-tooltip">Reset Tooltip</button>
+    <button id="load-initial-data">Load Initial Data</button>
+    <button id="load-data-with-anomaly">Load Data Anomaly</button>
+    <button id="load-data-without-anomaly">Load Data Without Anomaly</button>
+    <button id="load-bisect-dialog">Load Bisect Dialog</button>
+    <error-toast-sk> </error-toast-sk>
+    <bisect-dialog-sk id="bisect-dialog"></bisect-dialog-sk>
+    <triage-menu-sk></triage-menu-sk>
+    <new-bug-dialog-sk></new-bug-dialog-sk>
+    <existing-bug-dialog-sk></existing-bug-dialog-sk>
+  </body>
 </html>

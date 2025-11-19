@@ -5,6 +5,7 @@ load(
     "sk_element",
     "sk_element_puppeteer_test",
     "sk_page",
+    "ts_library",
 )
 
 sk_demo_page_server(
@@ -51,14 +52,26 @@ sk_element(
 
 sk_page(
     name = "chart-tooltip-sk-demo",
+    assets_serving_path = "/dist",
     html_file = "chart-tooltip-sk-demo.html",
-    scss_entry_point = "chart-tooltip-sk-demo.scss",
     sk_element_deps = [":chart-tooltip-sk"],
     ts_deps = [
-        "//perf/modules/json:index_ts_lib",
-        "//:node_modules/fetch-mock",
+        ":test_data_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "chart-tooltip-sk-demo.ts",
+)
+
+ts_library(
+    name = "chart-tooltip-sk_po_ts_lib",
+    srcs = ["chart-tooltip-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+        "//perf/modules/commit-range-sk:commit-range-sk_po_ts_lib",
+        "//perf/modules/triage-menu-sk:triage-menu-sk_po_ts_lib",
+    ],
 )
 
 sk_element_puppeteer_test(
@@ -66,8 +79,10 @@ sk_element_puppeteer_test(
     src = "chart-tooltip-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        ":chart-tooltip-sk_po_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//:node_modules/puppeteer",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -82,4 +97,11 @@ karma_test(
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//perf/modules/json:index_ts_lib"],
 )

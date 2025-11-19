@@ -1,54 +1,61 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 
-/** A page object for the BisectDialogSk component. */
 export class BisectDialogSkPO extends PageObject {
-  private get dialog(): PageObjectElement {
-    return this.bySelector('dialog#bisect-dialog');
+  get dialog(): PageObjectElement {
+    return this.bySelector('#bisect-dialog');
   }
 
-  private get toastDialog(): PageObjectElement {
-    return this.bySelector('toast-sk#bisect_toast');
+  get closeIcon(): PageObjectElement {
+    return this.bySelector('#bisectCloseIcon');
   }
 
-  private get testPathInput(): PageObjectElement {
-    return this.bySelector('input#testpath');
+  get testPathInput(): PageObjectElement {
+    return this.bySelector('#testpath');
   }
 
-  private get bugIdInput(): PageObjectElement {
-    return this.bySelector('input#bug-id');
+  get bugIdInput(): PageObjectElement {
+    return this.bySelector('#bug-id');
   }
 
-  private get startCommitInput(): PageObjectElement {
-    return this.bySelector('input#start-commit');
+  get startCommitInput(): PageObjectElement {
+    return this.bySelector('#start-commit');
   }
 
-  private get endCommitInput(): PageObjectElement {
-    return this.bySelector('input#end-commit');
+  get endCommitInput(): PageObjectElement {
+    return this.bySelector('#end-commit');
   }
 
-  private get storyInput(): PageObjectElement {
-    return this.bySelector('input#story');
+  get storyInput(): PageObjectElement {
+    return this.bySelector('#story');
   }
 
-  private get patchInput(): PageObjectElement {
-    return this.bySelector('input#patch');
+  get patchInput(): PageObjectElement {
+    return this.bySelector('#patch');
   }
 
-  private get bisectBtn(): PageObjectElement {
-    return this.bySelector('button#submit-button');
+  get bisectButton(): PageObjectElement {
+    return this.bySelector('#submit-button');
   }
 
-  private get closeBtn(): PageObjectElement {
-    return this.bySelector('button#close-btn');
+  get closeButton(): PageObjectElement {
+    return this.bySelector('#close-btn');
+  }
+
+  get spinner(): PageObjectElement {
+    return this.bySelector('#dialog-spinner');
+  }
+
+  get bisectJobToast(): PageObjectElement {
+    return this.bySelector('#bisect_toast');
+  }
+
+  get bisectJobUrl(): PageObjectElement {
+    return this.bySelector('#bisect-url a');
   }
 
   async isDialogOpen(): Promise<boolean> {
-    return this.dialog.applyFnToDOMNode((d) => (d as HTMLDialogElement).open);
-  }
-
-  async isToastDialogOpen(): Promise<boolean> {
-    return this.toastDialog.hasAttribute('shown');
+    return this.dialog.applyFnToDOMNode((el) => (el as HTMLDialogElement).open);
   }
 
   async getTestPath(): Promise<string> {
@@ -100,10 +107,10 @@ export class BisectDialogSkPO extends PageObject {
   }
 
   async clickBisectBtn(): Promise<void> {
-    await this.bisectBtn.click();
+    await this.bisectButton.click();
   }
 
   async clickCloseBtn(): Promise<void> {
-    await this.closeBtn.click();
+    await this.closeButton.click();
   }
 }

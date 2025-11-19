@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page", "ts_library")
 
 sk_element(
     name = "new-bug-dialog-sk",
@@ -47,6 +47,16 @@ sk_page(
         "//perf/modules/json:index_ts_lib",
     ],
     ts_entry_point = "new-bug-dialog-sk-demo.ts",
+)
+
+ts_library(
+    name = "new-bug-dialog-sk_po_ts_lib",
+    srcs = ["new-bug-dialog-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+    ],
 )
 
 karma_test(
