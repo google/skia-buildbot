@@ -232,6 +232,7 @@ export interface Regression {
 	commit_number: CommitNumber;
 	prev_commit_number: CommitNumber;
 	alert_id: number;
+	bug_id: number;
 	creation_time: string;
 	median_before: number;
 	median_after: number;

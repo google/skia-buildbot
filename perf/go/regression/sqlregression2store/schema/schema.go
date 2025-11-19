@@ -20,6 +20,9 @@ type Regression2Schema struct {
 	// The id of an Alert, i.e. the id from the Alerts table.
 	AlertID int `sql:"alert_id INT"`
 
+	// Id of the bug created by manual triage.
+	BugID int `sql:"bug_id INT"`
+
 	// The timestamp when the anomaly group is created.
 	CreationTime time.Time `sql:"creation_time TIMESTAMPTZ DEFAULT now()"`
 

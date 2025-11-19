@@ -42,6 +42,7 @@ func generateNewRegression() *regression.Regression {
 	r.Id = uuid.NewString()
 	r.CommitNumber = 12345
 	r.AlertId = alertId
+	r.BugId = 0
 	r.CreationTime = time.Now()
 	r.IsImprovement = false
 	r.MedianBefore = 1.0

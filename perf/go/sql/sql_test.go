@@ -234,6 +234,7 @@ CREATE INDEX IF NOT EXISTS by_trace_id2 on Postings (tile_number, trace_id);
 CREATE INDEX IF NOT EXISTS by_key_value on Postings (tile_number, key_value);
 CREATE INDEX IF NOT EXISTS by_alert_id on Regressions2 (alert_id);
 CREATE INDEX IF NOT EXISTS by_commit_alert on Regressions2 (commit_number, alert_id);
+CREATE INDEX IF NOT EXISTS by_commit_and_prev_commit on Regressions2 (commit_number, prev_commit_number);
 CREATE INDEX IF NOT EXISTS by_source_file on SourceFiles (source_file, source_file_id);
 CREATE INDEX IF NOT EXISTS by_source_file_id on TraceValues (source_file_id, trace_id);
 CREATE INDEX IF NOT EXISTS by_trace_id_tv2 on TraceValues2 (trace_id, benchmark, bot, test, subtest_1, subtest_2, subtest_3);

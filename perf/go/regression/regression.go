@@ -75,6 +75,7 @@ type Regression struct {
 	CommitNumber     types.CommitNumber `json:"commit_number"`
 	PrevCommitNumber types.CommitNumber `json:"prev_commit_number"`
 	AlertId          int64              `json:"alert_id"`
+	BugId            int64              `json:"bug_id"`
 	CreationTime     time.Time          `json:"creation_time"`
 	MedianBefore     float32            `json:"median_before"`
 	MedianAfter      float32            `json:"median_after"`

@@ -41,13 +41,13 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNextSpanner = `
-	CREATE INDEX IF NOT EXISTS by_commit_and_prev_commit on Regressions2 (commit_number, prev_commit_number);
+	ALTER TABLE Regressions2 ADD COLUMN bug_id INT;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLiveSpanner = `
-	DROP INDEX by_commit_and_prev_commit;
+	ALTER TABLE Regressions2 DROP COLUMN bug_id;
 `
 
 // This function will check whether there's a new schema checked-in,
