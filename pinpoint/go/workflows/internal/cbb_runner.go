@@ -189,8 +189,6 @@ func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
 		bot = "m3"
 	case "win-victus-perf-cbb":
 		bot = "vic"
-	case "win-arm64-snapdragon-plus-perf-cbb":
-		bot = "plus"
 	case "win-arm64-snapdragon-elite-perf-cbb":
 		bot = "elite"
 	}

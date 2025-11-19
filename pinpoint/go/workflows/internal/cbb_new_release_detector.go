@@ -56,7 +56,6 @@ var platformBots = map[string][]string{
 	"mac": {"mac-m3-pro-perf-cbb"},
 	"windows": {
 		"win-victus-perf-cbb",
-		"win-arm64-snapdragon-plus-perf-cbb",
 		"win-arm64-snapdragon-elite-perf-cbb",
 	},
 	"android": {"android-pixel-tangor-perf-cbb"},
@@ -83,7 +82,6 @@ var safariConfigs = map[string]int32{
 // All Windows bot config names, with the number of devices in each config.
 var edgeConfigs = map[string]int32{
 	"win-victus-perf-cbb":                 4,
-	"win-arm64-snapdragon-plus-perf-cbb":  4,
 	"win-arm64-snapdragon-elite-perf-cbb": 4,
 }
 
