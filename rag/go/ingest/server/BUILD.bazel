@@ -9,6 +9,7 @@ go_library(
     importpath = "go.skia.org/infra/rag/go/ingest/server",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/metrics2",
         "//go/pubsub/sub",
         "//go/skerr",
         "//go/sklog",

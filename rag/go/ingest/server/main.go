@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/urfave/cli/v2"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/go/sklog/stdlogging"
@@ -18,6 +19,7 @@ import (
 type IngesterFlags struct {
 	ConfigFilename string
 	Local          bool
+	PromPort       string
 }
 
 // AsCliFlags returns the cli flags for the ingester.
@@ -34,6 +36,12 @@ func (flags *IngesterFlags) AsCliFlags() []cli.Flag {
 			Name:        "local",
 			Value:       false,
 			Usage:       "Set to true if running in non-production environment",
+		},
+		&cli.StringFlag{
+			Destination: &flags.PromPort,
+			Name:        "prom_port",
+			Value:       ":20000",
+			Usage:       "Prometheus metrics port",
 		},
 	}
 }
@@ -58,6 +66,8 @@ func main() {
 				Flags:       (&flags).AsCliFlags(),
 				Action: func(c *cli.Context) error {
 					urfavecli.LogFlags(c)
+
+					metrics2.InitPrometheus(flags.PromPort)
 					err := tracing.Init(flags.Local, "historyrag-ingester", 0.1)
 					if err != nil {
 						sklog.Errorf("Error initializing tracing: %v", err)
