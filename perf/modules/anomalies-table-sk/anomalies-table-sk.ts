@@ -22,7 +22,6 @@ import { updateShortcut } from '../explore-simple-sk/explore-simple-sk';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 import '../../../elements-sk/modules/spinner-sk';
 import { CountMetric, telemetry } from '../telemetry/telemetry';
-import { config } from './config';
 
 // Just below the 2000 limit - we need to leave some space for the instance address.
 const urlMaxLength = 1900;
@@ -161,7 +160,7 @@ export class AnomaliesTableSk extends ElementSk {
       return;
     }
     // TODO(b/454590264) Remove the else condition after BE migration is done.
-    if (config.fetchAnomaliesFromSql) {
+    if (window.perf.fetch_anomalies_from_sql) {
       const idString = idList.join(',');
       const urlForAnomalyIDsList = `/u/?anomalyIDs=${encodeURIComponent(idString)}`;
       if (urlForAnomalyIDsList.length < urlMaxLength) {

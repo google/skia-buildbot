@@ -200,6 +200,7 @@ describe('formatRevisionRange', () => {
       hide_list_of_commits_on_explore: false,
       notifications: 'none',
       fetch_chrome_perf_anomalies: false,
+      fetch_anomalies_from_sql: false,
       feedback_url: '',
       chat_url: '',
       help_url_override: '',

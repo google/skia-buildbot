@@ -2,7 +2,6 @@ import './index';
 import sinon from 'sinon';
 import { assert } from 'chai';
 import { AnomaliesTableSk } from './anomalies-table-sk';
-import { config } from './config';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { Anomaly } from '../json';
@@ -14,8 +13,6 @@ describe('anomalies-table-sk', () => {
 
   let element: AnomaliesTableSk;
   beforeEach(() => {
-    // TODO(b/454590264) For now, sql anomalies are disabled. Change to true in the future.
-    config.fetchAnomaliesFromSql = false;
     window.perf = {
       instance_url: '',
       instance_name: 'chrome-perf-test',
@@ -31,6 +28,8 @@ describe('anomalies-table-sk', () => {
       hide_list_of_commits_on_explore: false,
       notifications: 'none',
       fetch_chrome_perf_anomalies: false,
+      // TODO(b/454590264) For now, sql anomalies are disabled. Change to true in the future.
+      fetch_anomalies_from_sql: false,
       feedback_url: '',
       chat_url: '',
       help_url_override: '',
@@ -67,7 +66,7 @@ describe('anomalies-table-sk', () => {
 
   afterEach(() => {
     // TODO(b/454590264) For now, sql anomalies are disabled. Change to true in the future.
-    config.fetchAnomaliesFromSql = false;
+    window.perf.fetch_anomalies_from_sql = false;
     fetchMock.restore();
     sinon.restore();
   });
@@ -159,7 +158,7 @@ describe('anomalies-table-sk', () => {
     });
 
     it('navigates to anomaly group report page when sql anomalies are enabled', async () => {
-      config.fetchAnomaliesFromSql = true;
+      window.perf.fetch_anomalies_from_sql = true;
 
       const openSpy = sinon.spy(window, 'open');
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
@@ -235,7 +234,7 @@ describe('anomalies-table-sk', () => {
     });
 
     it('opens short multi anomaly group with anomalyIDs using sql anomalies', async () => {
-      config.fetchAnomaliesFromSql = true;
+      window.perf.fetch_anomalies_from_sql = true;
 
       const openSpy = sinon.spy(window, 'open');
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
@@ -294,7 +293,7 @@ describe('anomalies-table-sk', () => {
     });
 
     it('opens both single and multi anomaly groups using sql anomalies', async () => {
-      config.fetchAnomaliesFromSql = true;
+      window.perf.fetch_anomalies_from_sql = true;
 
       const openSpy = sinon.spy(window, 'open');
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });

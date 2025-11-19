@@ -284,6 +284,7 @@ type SkPerfConfig struct {
 	HideListOfCommitsOnExplore  bool               `json:"hide_list_of_commits_on_explore"` // True if the commit-detail-panel-sk element on the Explore details tab should be hidden.
 	Notifications               notifytypes.Type   `json:"notifications"`                   // The type of notifications that can be sent.
 	FetchChromePerfAnomalies    bool               `json:"fetch_chrome_perf_anomalies"`     // If true explore-sk will show the bisect button
+	FetchAnomaliesFromSql       bool               `json:"fetch_anomalies_from_sql"`        // If true new anomalies API will be used.
 	FeedbackURL                 string             `json:"feedback_url"`                    // The URL for the Provide Feedback link
 	ChatURL                     string             `json:"chat_url"`                        // The URL for the Ask the Team link
 	HelpURLOverride             string             `json:"help_url_override"`               // If specified, this URL will override the help link
@@ -328,6 +329,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		HideListOfCommitsOnExplore:  f.flags.HideListOfCommitsOnExplore,
 		Notifications:               config.Config.NotifyConfig.Notifications,
 		FetchChromePerfAnomalies:    config.Config.FetchChromePerfAnomalies,
+		FetchAnomaliesFromSql:       config.Config.FetchAnomaliesFromSql,
 		FeedbackURL:                 config.Config.FeedbackURL,
 		ChatURL:                     config.Config.ChatURL,
 		HelpURLOverride:             config.Config.HelpURLOverride,
