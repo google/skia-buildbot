@@ -35,7 +35,7 @@ sudo docker run -d -p 127.0.0.1:5432:5432 \
   -p $p -i $i -d $d -c /acct_credentials.json -x
 # Now that pgadapter is connected to the spanner instance, let's run the local frontend
 # pointed to pgadapter using the supplied config file. First, build the perfserver.
-bazelisk build --config=mayberemote -c dbg //perf/... || {
+bazelisk build --config=mayberemote -c dbg //perf/go/perfserver //perf/pages/... || {
   echo "Build failed, exiting (not trying to run outdated perfserver)."
   exit 1
 }
