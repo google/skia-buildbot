@@ -529,7 +529,7 @@
         "bzlTransitiveDigest": "25n5BHszsoidcCJPv4PIOP5VHUNHHdu7CoI46TM/fGk=",
         "usagesDigest": "/pQjDhHkU2r9N2XDfh/YHTA7U8Wqqe9w/DuIWQ4qNzk=",
         "recordedFileInputs": {
-          "@@//package.json": "7bdd1d99859699aeeb32ec15a68637b70c494b911a21f6814758b52ea0c1efb1",
+          "@@//package.json": "88d7a6ff1ca747b481a74d11566da68595ce2d29b04b0ce376b63de5691dbf13",
           "@@rules_browsers~//package.json": "0d8cc69cc2c9ecf0eff677fa86843ad9146eca22462aace022a09c3adcb979f8"
         },
         "recordedDirentsInputs": {},

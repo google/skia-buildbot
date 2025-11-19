@@ -290,6 +290,12 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+alias(
+    name = "pylint",
+    actual = "@pypi_pylint//:rules_python_wheel_entry_point_pylint",
+    visibility = ["//visibility:public"],
+)
+
 ######
 # sk #
 ######

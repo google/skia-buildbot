@@ -103,6 +103,13 @@
     "zod": "^3.25.55"
   },
   "scripts": {
+    "lint": "npm run lint:ts && npm run lint:go && npm run lint:py && npm run lint:sh",
+    "lint:ts": "ESLINT_USE_FLAT_CONFIG=false eslint .",
+    "lint:go": "npm run lint:go:fmt && npm run lint:go:vet",
+    "lint:go:fmt": "bazelisk run --config=mayberemote //:gofmt -- -d .",
+    "lint:go:vet": "bazelisk run --config=mayberemote //:go -- vet ./...",
+    "lint:py": "./run_lint.sh py",
+    "lint:sh": "./run_lint.sh sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -110,5 +117,8 @@
     "url": "https://skia.googlesource.com/buildbot.git"
   },
   "author": "",
-  "license": "BSD"
+  "license": "BSD",
+  "devDependencies": {
+    "shellcheck": "^4.1.0"
+  }
 }

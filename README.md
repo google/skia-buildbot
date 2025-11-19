@@ -47,6 +47,18 @@ go install go.chromium.org/luci/client/cmd/...@latest
 export PATH=$PATH:$(go env GOPATH)/bin
 ```
 
+## Install Node.js and npm
+
+You will need Node.js and npm installed to run web infrastructure tests and linters.
+We recommend using [nvm](https://github.com/nvm-sh/nvm) to manage Node versions.
+
+After installing Node.js, run the following command to install repository dependencies (including
+linter tools):
+
+```bash
+npm install
+```
+
 ## Install other dependencies:
 
 ```
