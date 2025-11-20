@@ -1,0 +1,26 @@
+load("//infra-sk:index.bzl", "nodejs_test")
+
+nodejs_test(
+    name = "perf-page-load_nodejs_test",
+    src = "perf-page-load_nodejs_test.ts",
+    tags = ["manual"],
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/google-auth-library",
+        "//:node_modules/puppeteer",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+nodejs_test(
+    name = "perf-chrome-public-load-a_nodejs_test",
+    src = "perf-chrome-public-load-a_nodejs_test.ts",
+    tags = ["manual"],
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/puppeteer",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
