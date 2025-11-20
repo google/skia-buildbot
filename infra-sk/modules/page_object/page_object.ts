@@ -56,6 +56,14 @@ export abstract class PageObject {
   }
 
   /**
+   * Returns the result of calling PageObjectElement#bySelectorShadow() on the underlying
+   * PageObjectElement.
+   */
+  protected bySelectorShadow(selector: string): PageObjectElement {
+    return this.element.bySelectorShadow(selector);
+  }
+
+  /**
    * Returns the result of calling PageObjectElement#bySelectorAll() on the underlying
    * PageObjectElement.
    */
@@ -69,6 +77,14 @@ export abstract class PageObject {
     ctor: { new (...args: any): T }
   ): T {
     return new ctor(this.bySelector(selector));
+  }
+
+  /** Instantiates a PageObject with the first element that matches the given selector. */
+  protected poBySelectorShadow<T extends PageObject>(
+    selector: string,
+    ctor: { new (...args: any): T }
+  ): T {
+    return new ctor(this.bySelectorShadow(selector));
   }
 
   /** Instantiates one PageObject for each element that match the given selector. */

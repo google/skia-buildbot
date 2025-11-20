@@ -222,6 +222,31 @@ export class PageObjectElement {
       })
     );
   }
+
+  /** Analogous to Element#querySelector() within the Shadow DOM. */
+  bySelectorShadow(selector: string): PageObjectElement {
+    return new PageObjectElement(
+      this.elementPromise.then((element) => {
+        if (!element) {
+          return null;
+        }
+
+        const queryShadow = (el: Element, sel: string) => {
+          if (!el.shadowRoot) {
+            throw new Error('Element does not have a shadowRoot');
+          }
+          return el.shadowRoot.querySelector<Element>(sel);
+        };
+
+        if (isPptrElement(element)) {
+          return (element as ElementHandle).evaluateHandle(queryShadow, selector) as Promise<
+            ElementHandle<Element>
+          >;
+        }
+        return new Promise((resolve) => resolve(queryShadow(element as Element, selector)));
+      })
+    );
+  }
 }
 
 /** Convenience wrapper around a promise that returns a list. */

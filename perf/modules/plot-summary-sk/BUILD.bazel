@@ -1,4 +1,12 @@
-load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+    "ts_library",
+)
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -54,6 +62,7 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         ":plot-summary-sk",
+        ":plot-summary-sk_po_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//:node_modules/lit",
@@ -102,4 +111,14 @@ sk_element(
     ts_deps = ["//:node_modules/lit"],
     ts_srcs = ["plot-summary-sk.css.ts"],
     visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "plot-summary-sk_po_ts_lib",
+    srcs = ["plot-summary-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+    ],
 )
