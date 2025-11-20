@@ -11,9 +11,4 @@ skia_app_container(
         ],
     },
     repository = "skia-public/cherrypick-watcher",
-    run_commands_root = [
-        "apk update",
-        # Install packages useful for debugging on the pod.
-        "apk add --no-cache bash procps",
-    ],
 )

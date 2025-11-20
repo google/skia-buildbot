@@ -31,11 +31,6 @@ skia_app_container(
         ],
     },
     repository = "skia-public/skcq-fe",
-    run_commands_root = [
-        "apk update",
-        # Install packages useful for debugging on the pod.
-        "apk add --no-cache bash procps",
-    ],
 )
 
 skia_app_container(
@@ -49,9 +44,4 @@ skia_app_container(
         ],
     },
     repository = "skia-public/skcq-be",
-    run_commands_root = [
-        "apk update",
-        # Install packages useful for debugging on the pod.
-        "apk add --no-cache bash procps",
-    ],
 )

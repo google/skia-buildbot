@@ -28,9 +28,4 @@ skia_app_container(
     },
     entrypoint = "/usr/local/bin/tree_status",
     repository = "skia-public/tree_status",
-    run_commands_root = [
-        "apk update",
-        # Install packages useful for debugging on the pod.
-        "apk add --no-cache bash procps",
-    ],
 )

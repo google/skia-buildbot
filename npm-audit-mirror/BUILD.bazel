@@ -19,7 +19,7 @@ skia_app_container(
         "adduser -u 2000 -S skia -G skia",
         "apk update",
         # Install packages useful for debugging on the pod.
-        "apk add --no-cache bash procps wget",
+        "apk add --no-cache wget",
         # Install verdaccio.
         "npm install --global verdaccio@5.7.0",
     ],
