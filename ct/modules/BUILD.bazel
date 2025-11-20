@@ -1,33 +1,4 @@
-load("//infra-sk:index.bzl", "karma_test", "sass_library", "ts_library")
-
-karma_test(
-    name = "ctfe_utils_test",
-    src = "ctfe_utils_test.ts",
-    deps = [
-        ":ctfe_utils_ts_lib",
-        "//:node_modules/@types/chai",
-        "//:node_modules/chai",
-    ],
-)
-
-ts_library(
-    name = "ctfe_utils_ts_lib",
-    srcs = ["ctfe_utils.ts"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//ct/modules/json:index_ts_lib",
-        "//elements-sk/modules:errormessage_ts_lib",
-        "//infra-sk/modules:human_ts_lib",
-        "//infra-sk/modules:jsonorthrow_ts_lib",
-        "//infra-sk/modules:query_ts_lib",
-    ],
-)
-
-sass_library(
-    name = "style_sass_lib",
-    srcs = ["style.scss"],
-    visibility = ["//visibility:public"],
-)
+load("//infra-sk:index.bzl", "sass_library")
 
 sass_library(
     name = "colors_sass_lib",

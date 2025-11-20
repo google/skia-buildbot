@@ -26,7 +26,6 @@ const (
 	DEBIAN_SOURCE_IMAGE_INTERNAL = "skia-swarming-base-v2020-03-31-000"
 	WIN_SOURCE_IMAGE             = "projects/windows-cloud/global/images/windows-server-2019-dc-v20200114"
 
-	INSTANCE_TYPE_CT            = "ct"
 	INSTANCE_TYPE_LINUX_MICRO   = "linux-micro"
 	INSTANCE_TYPE_LINUX_SMALL   = "linux-small"
 	INSTANCE_TYPE_LINUX_MEDIUM  = "linux-medium"
@@ -142,16 +141,6 @@ func Dev(vm *gce.Instance) *gce.Instance {
 	for _, d := range append(vm.DataDisks, vm.BootDisk) {
 		d.Name = externalNamePrefixRegexp.ReplaceAllString(d.Name, DEV_NAME_PREFIX)
 	}
-	return vm
-}
-
-// Skia CT bots.
-func SkiaCT(num int) *gce.Instance {
-	vm := swarming20180406(fmt.Sprintf("skia-ct-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptLinuxCTSH, DEBIAN_SOURCE_IMAGE_EXTERNAL)
-	vm.Metadata["node-setup-script"] = nodeSetup6xScript
-	vm.DataDisks[0].SizeGb = 3000
-	// SkiaCT bots use a datadisk with a snapshot that is prepopulated with 1M SKPS.
-	vm.DataDisks[0].SourceSnapshot = "skia-ct-skps-snapshot-3"
 	return vm
 }
 

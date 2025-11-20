@@ -281,26 +281,6 @@ func TestMakeVMsToCreate_External_600To699Range_WinLarge_Success(t *testing.T) {
 	})
 }
 
-func TestMakeVMsToCreate_External_0To99Range_CT_Success(t *testing.T) {
-	testVMsToCreate(t, vmsToCreateTestCase{
-		kind:                         kindExternal,
-		instanceType:                 instance_types.INSTANCE_TYPE_CT,
-		nums:                         []int{0, 1, 98, 99},
-		expectedZone:                 "us-central1-c",
-		expectedProject:              "skia-swarming-bots",
-		expectedConfiguredViaAnsible: false,
-		expectedMachineType:          "n1-standard-16",
-		expectedSourceImage:          instance_types.DEBIAN_SOURCE_IMAGE_EXTERNAL,
-		expectedServiceAccount:       gce.SERVICE_ACCOUNT_CHROMIUM_SWARM,
-		expectedNames: []string{
-			"skia-ct-gce-000",
-			"skia-ct-gce-001",
-			"skia-ct-gce-098",
-			"skia-ct-gce-099",
-		},
-	})
-}
-
 func TestMakeVMsToCreate_Internal_100To199Range_LinuxSmall_Success(t *testing.T) {
 	testVMsToCreate(t, vmsToCreateTestCase{
 		kind:                         kindInternal,
@@ -434,28 +414,6 @@ func TestMakeVMsToCreate_ForceInstanceType_Success(t *testing.T) {
 		test(899, kindExternal, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
 		test(900, kindExternal, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
 		test(999, kindExternal, instance_types.INSTANCE_TYPE_LINUX_LARGE, wrongNumberErr)
-
-		// skia-ct-gce-* instances.
-		//
-		// We don't test range 0-99 because that is the valid range for CT machines.
-		test(100, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(199, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(200, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(299, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(300, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(399, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(400, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(499, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(500, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(599, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(600, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(699, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongInstanceTypeErr)
-		test(700, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongNumberErr)
-		test(799, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongNumberErr)
-		test(800, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongNumberErr)
-		test(899, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongNumberErr)
-		test(900, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongNumberErr)
-		test(999, kindExternal, instance_types.INSTANCE_TYPE_CT, wrongNumberErr)
 
 		// skia-i-gce-* instances.
 		test(0, kindInternal, instance_types.INSTANCE_TYPE_LINUX_MICRO, wrongNumberErr)

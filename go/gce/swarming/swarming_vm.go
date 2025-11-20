@@ -52,7 +52,6 @@ var (
 	}
 
 	validInstanceTypes = []string{
-		instance_types.INSTANCE_TYPE_CT,
 		instance_types.INSTANCE_TYPE_LINUX_MICRO,
 		instance_types.INSTANCE_TYPE_LINUX_SMALL,
 		instance_types.INSTANCE_TYPE_LINUX_MEDIUM,
@@ -118,16 +117,13 @@ func makeVMsToCreate(ctx context.Context, kind, instanceType string, forceInstan
 	}
 
 	retval := vmsToCreate{
-		zone:    gce.ZONE_DEFAULT,
-		project: gce.PROJECT_ID_SWARMING,
-		// CT instances are the only ones that we do not configure via Ansible.
-		configuredViaAnsible: instanceType != instance_types.INSTANCE_TYPE_CT,
+		zone:                 gce.ZONE_DEFAULT,
+		project:              gce.PROJECT_ID_SWARMING,
+		configuredViaAnsible: true,
 	}
 
 	var getInstance func(int) *gce.Instance
 	switch instanceType {
-	case instance_types.INSTANCE_TYPE_CT:
-		getInstance = func(num int) *gce.Instance { return instance_types.SkiaCT(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_MICRO:
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMicro(num) }
 	case instance_types.INSTANCE_TYPE_LINUX_SMALL:
