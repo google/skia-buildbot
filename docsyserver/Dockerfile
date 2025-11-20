@@ -28,7 +28,8 @@ RUN cd /home/skia \
 RUN cd /home/skia \
     && git clone https://github.com/gohugoio/hugo.git --depth=1 --revision=803f572e66c5e22213ddcc994c41b3e80e9c1f35 \
     && cd hugo \
-    && ~/go/bin/go install --tags extended
+    && ~/go/bin/go install --tags extended  # This ends up in ~/go/bin/hugo
+ENV PATH="/home/skia/go/bin:$PATH"
 
 # Install node.
 RUN cd /home/skia \
