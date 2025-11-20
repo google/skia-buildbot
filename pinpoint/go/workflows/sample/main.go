@@ -402,6 +402,7 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 		p.Benchmarks = []internal.BenchmarkRunConfig{
 			{Benchmark: "speedometer3", Iterations: int32(*iterations)},
 			{Benchmark: "jetstream2", Iterations: int32(*iterations)},
+			{Benchmark: "jetstream3", Iterations: int32(*iterations)},
 			{Benchmark: "motionmark1.3", Iterations: int32(*iterations)},
 		}
 	default:

@@ -37,6 +37,8 @@ var waterfallEnabledGtests = util.NewStringSet([]string{
 // https://chromium.googlesource.com/catapult/+/HEAD/dashboard/dashboard/pinpoint/models/quest/run_telemetry_test.py
 var crossbenchBenchmarks = map[string]string{
 	"jetstream2.crossbench":      "jetstream_2.2",
+	"jetstream3.crossbench":      "jetstream_main",
+	"jetstream-main.crossbench":  "jetstream_main",
 	"motionmark1.3.crossbench":   "motionmark_1.3",
 	"speedometer2.crossbench":    "speedometer_2",
 	"speedometer2.0.crossbench":  "speedometer_2.0",

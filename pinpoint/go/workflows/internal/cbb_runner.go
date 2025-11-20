@@ -86,6 +86,7 @@ func setupBenchmarks(cbb *CbbRunnerParams) []BenchmarkRunConfig {
 	}
 
 	benchmarks = append(benchmarks, BenchmarkRunConfig{"jetstream2", 22})
+	benchmarks = append(benchmarks, BenchmarkRunConfig{"jetstream3", 22})
 	benchmarks = append(benchmarks, BenchmarkRunConfig{"motionmark1.3", 22})
 
 	// TODO(b/433537961) Double number of iterations on Android until we
@@ -196,8 +197,10 @@ func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
 	// Shorten benchmark name.
 	if strings.HasPrefix(benchmark, "speedometer") {
 		benchmark = "SP"
-	} else if strings.HasPrefix(benchmark, "jetstream") {
-		benchmark = "JS"
+	} else if strings.HasPrefix(benchmark, "jetstream2") {
+		benchmark = "JS2"
+	} else if strings.HasPrefix(benchmark, "jetstream3") {
+		benchmark = "JS3"
 	} else if strings.HasPrefix(benchmark, "motionmark") {
 		benchmark = "MM"
 	}
