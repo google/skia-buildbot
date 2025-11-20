@@ -25,7 +25,7 @@ import (
 const (
 	defaultBugPriority = 2
 	defaultBugSeverity = 2
-	defaultRadius      = 3
+	defaultRadius      = 4 // minimal for Cohen and medians computation
 	defaultStepUpOnly  = false
 	defaultMinimumNum  = 1
 	defaultSparse      = false
