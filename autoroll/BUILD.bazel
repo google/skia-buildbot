@@ -10,10 +10,8 @@ skia_app_container(
             ],
         ],
     },
+    empty_dirs = {"/mnt/pd0/autoroll_workdir": "0777"},
     repository = "skia-public/autoroll-google3",
-    run_commands_root = [
-        "mkdir -p -m 777 /mnt/pd0/autoroll_workdir",
-    ],
 )
 
 skia_app_container(
@@ -25,19 +23,20 @@ skia_app_container(
                 "//autoroll/go/autoroll-be:autoroll-be",
                 "0755",
             ],
+            [
+                "@bazelisk//file",
+                "0755",
+            ],
         ],
     },
     env = {
-        "PATH": "/cipd/go/bin:$${PATH}",
+        "PATH": "/go/bin:$${PATH}",
     },
-    repository = "skia-public/autoroll-be",
-    run_commands_root = [
-        "apt-get update",
-        "apt-get install -y wget openssh-client curl procps unzip vim less build-essential g++ g++-12 gcc gcc-12 gcc-12-base cpp cpp-12 libgcc-12-dev libstdc++-12-dev cmake pkg-config",
-        "wget --output-document=/usr/local/bin/bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.14.0/bazelisk-linux-amd64",
-        "chmod a+x /usr/local/bin/bazelisk",
-        "cipd install --root=/cipd skia/bots/go version:18",
+    extra_tars = [
+        "@autoroll-be-apt-install//:flat",
+        "//bazel/go:go_toolchain_tar",
     ],
+    repository = "skia-public/autoroll-be",
 )
 
 skia_app_container(

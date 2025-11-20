@@ -1,4 +1,22 @@
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
+
 exports_files(
     srcs = ["go_test.bzl"],
+    visibility = ["//visibility:public"],
+)
+
+pkg_tar(
+    name = "go_toolchain_tar",
+    srcs = ["@go_sdk//:files"],
+    # It seems like we should be able to use:
+    #
+    #     strip_prefix = "external/go_sdk",
+    #     package_dir = "go",
+    #
+    # But strip_prefix doesn't seem to work in this case. Therefore, we use
+    # remap_paths in combination with strip_prefix (to preserve the directory
+    # structure), which does work.
+    remap_paths = {"external/go_sdk/": "go/"},
+    strip_prefix = ".",  # Preserve the folder structure.
     visibility = ["//visibility:public"],
 )

@@ -1,0 +1,29 @@
+version: 1
+
+sources:
+  - channel: trixie main
+    url: https://snapshot-cloudflare.debian.org/archive/debian/20251119T143347Z
+
+archs:
+  - amd64
+
+packages:
+  - wget
+  - openssh-client
+  - curl
+  - procps
+  - unzip
+  - vim
+  - less
+  - build-essential
+  - g++
+  - g++-12
+  - gcc
+  - gcc-12
+  - gcc-12-base
+  - cpp
+  - cpp-12
+  - libgcc-12-dev
+  - libstdc++-12-dev
+  - cmake
+  - pkg-config

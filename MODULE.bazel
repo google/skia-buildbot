@@ -5,8 +5,12 @@ bazel_dep(name = "aspect_rules_esbuild", version = "0.22.1")
 bazel_dep(name = "aspect_rules_js", version = "2.5.0")
 bazel_dep(name = "aspect_rules_ts", version = "3.7.0")
 bazel_dep(name = "rules_browsers", version = "0.2.0")
+bazel_dep(name = "rules_distroless", version = "0.6.1")
 bazel_dep(name = "rules_nodejs", version = "6.5.0")
+bazel_dep(name = "rules_pkg", version = "1.1.0")
 bazel_dep(name = "rules_python", version = "0.31.0")
+
+http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 
 ####################################################################################################
 # aspect_rules_ts setup
@@ -96,3 +100,31 @@ python.toolchain(
     python_version = "3.11",
 )
 use_repo(python, "python_3_11")
+
+####################################################################################################
+# rules_distroless setup
+####################################################################################################
+
+apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
+
+# These are sets of packages installed in various images.
+apt.install(
+    name = "autoroll-be-apt-install",
+    lock = "//autoroll:autoroll-be.lock.json",
+    manifest = "//autoroll:autoroll-be.yaml",
+)
+use_repo(apt, "autoroll-be-apt-install")
+
+####################################################################################################
+# Bazelisk
+####################################################################################################
+
+# This is sort of a circular dependency, but some of our Docker images need a
+# copy of Bazelisk to perform builds. It's convenient to define that here.
+http_file(
+    name = "bazelisk",
+    downloaded_file_path = "bazelisk",
+    executable = True,
+    sha256 = "e1508323f347ad1465a887bc5d2bfb91cffc232d11e8e997b623227c6b32fb76",
+    url = "https://github.com/bazelbuild/bazelisk/releases/download/v1.27.0/bazelisk-linux-amd64",
+)

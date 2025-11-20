@@ -8,12 +8,14 @@ def skia_app_container(
         name,
         repository,
         dirs,
+        empty_dirs = None,
         entrypoint = "",
         run_commands_root = None,
         run_commands_skia = None,
         base_image = "@basealpine//image",
         env = None,
-        default_user = "skia"):
+        default_user = "skia",
+        extra_tars = None):
     """Builds a Docker container for a Skia app, and generates a target to push it to GCR.
 
     This macro produces the following:
@@ -85,6 +87,7 @@ def skia_app_container(
         within the container (e.g. "/usr/local/share/myapp"), and the values are an array of
         [Bazel label, mode] tuples indicating which files should be copied into the directory (e.g.
         ["//myapp/go:mybinary", "755"]).
+      empty_dirs: Mapping of directory paths to file modes of empty directories to create.
       entrypoint: The entrypoint of the container, which can be a string or an array (e.g.
         "/usr/local/share/myapp/mybinary", or ["/usr/local/share/myapp/mybinary", "--someflag"]).
         Optional.
@@ -97,6 +100,7 @@ def skia_app_container(
         container. Optional.
       default_user: The user the container will be run with. Defaults to "skia" but some apps
         like skfe requires the default user to be "root".
+      extra_tars: A list of target names of tarballs to be added to the image.
     """
 
     if type(entrypoint) == "string":
@@ -124,6 +128,20 @@ def skia_app_container(
                 tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             )
 
+    if empty_dirs:
+        pkg_tar_name = name + "_pkg_tar_" + str(i)
+        i += 1
+        pkg_tars.append(pkg_tar_name)
+        pkg_tar(
+            name = pkg_tar_name,
+            empty_dirs = empty_dirs.keys(),
+            modes = empty_dirs,
+            tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        )
+
+    if extra_tars:
+        pkg_tars.extend(extra_tars)
+
     image_name = (name + "_base") if (run_commands_root or run_commands_skia) else name
 
     container_image(
@@ -136,7 +154,7 @@ def skia_app_container(
         # entrypoint.
         # We will set the entrypoint back after the container_run_and_commit
         # rule is executed.
-        entrypoint = None if (run_commands_root or run_commands_skia) else entrypoint,
+        entrypoint = None if run_commands_root else entrypoint,
         tars = pkg_tars,
         user = default_user,
         tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
