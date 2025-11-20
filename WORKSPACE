@@ -333,7 +333,7 @@ container_pull(
 # Pulls the gcr.io/skia-public/docsyserver-base container, needed by docsyserver.
 container_pull(
     name = "docsyserver-base",
-    digest = "sha256:ca63ba5a92e1adbe49eb6e6e1262ee4724e572f87e54eea01737cbb2a73fde6c",
+    digest = "sha256:c92739a43735be44a28135c9eac75753c64c2d3b9ba5c97efcaf57d5bd2ab12a",
     registry = "gcr.io",
     repository = "skia-public/docsyserver-base",
 )
