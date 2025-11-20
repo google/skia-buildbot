@@ -25,11 +25,10 @@ skia_app_container(
             ],
         ],
     },
-    repository = "skia-public/task-scheduler-jc",
-    run_commands_root = [
-        "apt-get update",
-        "apt-get install -y curl procps",
+    extra_tars = [
+        "@task-scheduler-jc-apt-install//:flat",
     ],
+    repository = "skia-public/task-scheduler-jc",
 )
 
 skia_app_container(

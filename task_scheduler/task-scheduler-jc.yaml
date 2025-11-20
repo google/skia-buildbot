@@ -1,0 +1,12 @@
+version: 1
+
+sources:
+  - channel: trixie main
+    url: https://snapshot-cloudflare.debian.org/archive/debian/20251119T143347Z
+
+archs:
+  - amd64
+
+packages:
+  - curl
+  - procps

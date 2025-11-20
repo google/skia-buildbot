@@ -114,6 +114,12 @@ apt.install(
     manifest = "//autoroll:autoroll-be.yaml",
 )
 use_repo(apt, "autoroll-be-apt-install")
+apt.install(
+    name = "task-scheduler-jc-apt-install",
+    lock = "//task_scheduler:task-scheduler-jc.lock.json",
+    manifest = "//task_scheduler:task-scheduler-jc.yaml",
+)
+use_repo(apt, "task-scheduler-jc-apt-install")
 
 ####################################################################################################
 # Bazelisk
