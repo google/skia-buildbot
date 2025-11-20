@@ -3,6 +3,7 @@ package sqlregression2store
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
@@ -408,9 +409,14 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 	var clusterSummary clustering2.ClusterSummary
 	var triageStatus string
 	var triageMessage string
-	err := rows.Scan(&r.Id, &r.CommitNumber, &r.PrevCommitNumber, &r.AlertId, &r.BugId, &r.CreationTime, &r.MedianBefore, &r.MedianAfter, &r.IsImprovement, &clusterType, &clusterSummary, &r.Frame, &triageStatus, &triageMessage)
+	var bugId sql.NullInt64
+	err := rows.Scan(&r.Id, &r.CommitNumber, &r.PrevCommitNumber, &r.AlertId, &bugId, &r.CreationTime, &r.MedianBefore, &r.MedianAfter, &r.IsImprovement, &clusterType, &clusterSummary, &r.Frame, &triageStatus, &triageMessage)
 	if err != nil {
 		return nil, err
+	}
+
+	if bugId.Valid {
+		r.BugId = bugId.Int64
 	}
 
 	r.ClusterType = string(clusterType)
