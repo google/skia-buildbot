@@ -1,6 +1,7 @@
 {
     "URL": "https://perf-exp.luci.app",
     "landing_page_rel_path": "/m/",
+    "header_image_url": "/dist/images/chrome-logo.svg",
     "ga_measurement_id": "G-23HVB1PMVN",
     "allowed_hosts": [],
     "instance_name": "chrome-public-exp",

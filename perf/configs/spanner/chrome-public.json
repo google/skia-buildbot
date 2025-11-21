@@ -1,6 +1,7 @@
 {
     "URL": "https://perf.luci.app",
     "landing_page_rel_path": "/m/",
+    "header_image_url": "/dist/images/chrome-logo.svg",
     "ga_measurement_id": "G-JBCDDZBVFF",
     "allowed_hosts": [],
     "backend_host_url": "perf-be-chrome-public.perf.svc.cluster.local:8000",

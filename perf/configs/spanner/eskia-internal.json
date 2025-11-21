@@ -2,6 +2,7 @@
     "URL": "https://eskia-perf.corp.goog",
     "ga_measurement_id": "G-3G1YN6EEKN",
     "landing_page_rel_path": "/m/",
+    "header_image_url": "/dist/images/skia.svg",
     "allowed_hosts": [],
     "trace_sample_proportion": 0.01,
     "contact": "eskia-team@google.com",

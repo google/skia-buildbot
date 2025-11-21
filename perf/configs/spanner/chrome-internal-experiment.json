@@ -1,6 +1,7 @@
 {
     "URL": "https://chrome-perf-experiment.corp.goog",
     "landing_page_rel_path": "/m/",
+    "header_image_url": "/dist/images/chrome-logo.svg",
     "ga_measurement_id": "G-YSL2BSH0BN",
     "allowed_hosts": [],
     "contact": "browser-perf-engprod@google.com",
