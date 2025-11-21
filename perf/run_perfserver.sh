@@ -36,6 +36,15 @@ if [ ! -f "$ADC_FILE" ]; then
   exit 1
 fi
 
+# --- Docker Permission Check ---
+DOCKER_CMD="docker"
+if ! docker ps > /dev/null 2>&1; then
+    if sudo docker ps > /dev/null 2>&1; then
+        DOCKER_CMD="sudo docker"
+        echo "Docker requires sudo. Using 'sudo docker'."
+    fi
+fi
+
 # --- Configuration presets ---
 # Common constants to reduce redundancy and line length
 CORP="skia-infra-corp"
@@ -260,8 +269,8 @@ start_server() {
       echo -e "\n--- Last 100 lines of perfserver log ---"
       tail -n 100 "$LOG_FILE"
       echo -e "\n--- Last 50 lines of pgadapter log ---"
-      docker logs "$CONTAINER_NAME" 2>&1 | tail -n 50
-      if docker logs "$CONTAINER_NAME" 2>&1 | \
+      $DOCKER_CMD logs "$CONTAINER_NAME" 2>&1 | tail -n 50
+      if $DOCKER_CMD logs "$CONTAINER_NAME" 2>&1 | \
          grep -q "PERMISSION_DENIED: Cloud Monitoring API has not been used in project"; then
          echo -e "\n*** DETECTED WRONG PROJECT CONFIGURATION ***"
          echo "Your credentials are likely configured with an incorrect quota project."
@@ -332,7 +341,7 @@ cleanup() {
 
   if [ -n "$CONTAINER_NAME" ]; then
     echo "Stopping pgadapter container..."
-    docker rm -f "$CONTAINER_NAME" > /dev/null 2>&1
+    $DOCKER_CMD rm -f "$CONTAINER_NAME" > /dev/null 2>&1
   fi
   rm -f "$LOCKFILE"
   rm -f "$MARKER_FILE"
@@ -348,11 +357,11 @@ trap cleanup INT TERM
 
 # First delete any existing docker container for this instance to start clean.
 echo "Removing any existing docker container for this instance..."
-docker rm -f "$CONTAINER_NAME" > /dev/null 2>&1
+$DOCKER_CMD rm -f "$CONTAINER_NAME" > /dev/null 2>&1
 
 # Now let's run pgadapter connected to the supplied spanner database.
 echo "Starting pgadapter on port $PG_PORT..."
-docker run -d --rm --name "$CONTAINER_NAME" -p 127.0.0.1:$PG_PORT:5432 \
+$DOCKER_CMD run -d --rm --name "$CONTAINER_NAME" -p 127.0.0.1:$PG_PORT:5432 \
   -e GOOGLE_CLOUD_PROJECT="$PROJECT" \
   -e GOOGLE_CLOUD_QUOTA_PROJECT="$PROJECT" \
   -v "$ADC_FILE":/acct_credentials.json \
@@ -369,9 +378,9 @@ while ! nc -z 127.0.0.1 $PG_PORT > /dev/null 2>&1; do
   PG_COUNT=$((PG_COUNT + 1))
   if [ $PG_COUNT -ge $MAX_PG_TRIES ]; then
     echo -e "\nError: pgadapter failed to become ready after $MAX_PG_TRIES seconds."
-    if ! docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+    if ! $DOCKER_CMD ps -q -f name="$CONTAINER_NAME" | grep -q .; then
        echo "pgadapter container died. Docker logs:"
-       docker logs "$CONTAINER_NAME"
+       $DOCKER_CMD logs "$CONTAINER_NAME"
     fi
     exit 1
   fi
