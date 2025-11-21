@@ -3,6 +3,7 @@ load("//bazel:skia_app_container.bzl", "skia_app_container")
 skia_app_container(
     name = "k8s_deployer_container",
     base_image = "@kubectl//image",
+    create_skia_user = True,
     dirs = {
         "/usr/local/bin": [
             [
@@ -13,11 +14,4 @@ skia_app_container(
     },
     entrypoint = "/usr/local/bin/k8s-deployer",
     repository = "skia-public/k8s-deployer",
-    run_commands_root = [
-        # Create the skia user.
-        "addgroup --gid 2000 skia",
-        "useradd --uid 2000 --gid 2000 skia",
-        "mkdir -p /home/skia",
-        "chown skia:skia /home/skia",
-    ],
 )

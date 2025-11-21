@@ -2,6 +2,7 @@
 
 load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
+load("@rules_distroless//distroless:defs.bzl", "group", "home", "passwd")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
 def skia_app_container(
@@ -14,6 +15,7 @@ def skia_app_container(
         run_commands_skia = None,
         base_image = "@basealpine//image",
         env = None,
+        create_skia_user = False,
         default_user = "skia",
         extra_tars = None):
     """Builds a Docker container for a Skia app, and generates a target to push it to GCR.
@@ -98,6 +100,7 @@ def skia_app_container(
       base_image: The image to base the container_image on. Optional.
       env: A {"var": "val"} dictionary with the environment variables to use when building the
         container. Optional.
+      create_skia_user: Whether or not to create the "skia" user with uid 2000 and gid 2000.
       default_user: The user the container will be run with. Defaults to "skia" but some apps
         like skfe requires the default user to be "root".
       extra_tars: A list of target names of tarballs to be added to the image.
@@ -136,6 +139,68 @@ def skia_app_container(
             name = pkg_tar_name,
             empty_dirs = empty_dirs.keys(),
             modes = empty_dirs,
+            tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        )
+
+    if create_skia_user:
+        username = "skia"
+        uid = "2000"
+        gid = "2000"
+
+        create_home_name = name + "_create_home"
+        pkg_tars.append(create_home_name)
+        home(
+            name = create_home_name,
+            dirs = [
+                dict(
+                    home = "/home/" + username,
+                    uid = uid,
+                    gid = gid,
+                ),
+                dict(
+                    home = "/root",
+                    uid = 0,
+                    gid = 0,
+                ),
+            ],
+            tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        )
+
+        create_passwd_name = name + "_create_passwd"
+        pkg_tars.append(create_passwd_name)
+        passwd(
+            name = create_passwd_name,
+            entries = [
+                dict(
+                    gecos = [username],
+                    gid = gid,
+                    home = "/home/" + username,
+                    shell = "/bin/sh",
+                    uid = uid,
+                    username = username,
+                ),
+                dict(
+                    gecos = ["root"],
+                    gid = 0,
+                    home = "/root",
+                    shell = "/bin/sh",
+                    uid = 0,
+                    username = "root",
+                ),
+            ],
+            tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        )
+
+        create_groups_name = name + "_groups"
+        pkg_tars.append(create_groups_name)
+        group(
+            name = create_groups_name,
+            entries = [
+                dict(
+                    name = username,
+                    gid = gid,
+                ),
+            ],
             tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
         )
 
