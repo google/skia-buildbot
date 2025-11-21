@@ -1,3 +1,4 @@
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 skia_app_container(
@@ -12,6 +13,13 @@ skia_app_container(
     },
     empty_dirs = {"/mnt/pd0/autoroll_workdir": "0777"},
     repository = "skia-public/autoroll-google3",
+)
+
+pkg_tar(
+    name = "autoroll_be_cc_symlink",
+    symlinks = {
+        "/usr/bin/cc": "/usr/bin/gcc",
+    },
 )
 
 skia_app_container(
@@ -35,6 +43,7 @@ skia_app_container(
     extra_tars = [
         "@autoroll-be-apt-install//:flat",
         "//bazel/go:go_toolchain_tar",
+        ":autoroll_be_cc_symlink",
     ],
     repository = "skia-public/autoroll-be",
 )
