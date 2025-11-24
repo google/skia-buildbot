@@ -44,10 +44,8 @@ const (
 	cbbRefInfoPath = "cbb_ref_info/%s/%s/%s.json"
 	// cbbRefInfoRepo is the root of the build info files in the chromium/src.
 	cbbRefInfoRepo = "testing/perf/cbb_ref_info/%s/%s/%s.json"
-	// cbbBranchName provides a default name to create a new branch.
-	cbbBranchName = "cbb-autoroll"
 	// cbbCommitMessage provides a default commit message.
-	cbbCommitMessage = "Update CBB autorolll for the builds refs\n\nNo-try: true"
+	cbbCommitMessage = "Update CBB autoroll for the builds refs\n\nNo-try: true"
 	// clCommitNumber to get CL commit number from `git cl status` output.
 	// e.g. "  Cr-Commit-Position: refs/heads/main@{#99999}"
 	// match[1] == "99999"
