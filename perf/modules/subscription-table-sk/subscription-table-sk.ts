@@ -31,7 +31,7 @@ export class SubscriptionTableSk extends ElementSk {
     html`${ele.subscription
       ? html`
           <div class="subscription-details">
-            <h2>${ele.subscription.name} (${ele.alerts?.length || 0} Alerts Configured)</h2>
+            <h2>${ele.subscription.name} (${ele.alerts?.length || 0} Alert(s) Configured)</h2>
             <p><strong>Contact Email:</strong> ${ele.subscription.contact_email || ''}</p>
             <p><strong>Revision:</strong> ${ele.formatRevision(ele.subscription.revision!)}</p>
             <p><strong>Component:</strong> ${ele.subscription.bug_component || ''}</p>
@@ -44,8 +44,8 @@ export class SubscriptionTableSk extends ElementSk {
           </div>
           <button id="btn-toggle-alerts" @click=${() => ele.toggleAlerts()}>
             ${ele.showAlerts
-              ? 'Hide Alert Configurations '
-              : `Show ${ele.alerts?.length || 0} Alert Configurations`}
+              ? 'Hide Alert Configuration(s) '
+              : `Show ${ele.alerts?.length || 0} Alert Configuration(s)`}
           </button>
         `
       : html``}
@@ -54,7 +54,7 @@ export class SubscriptionTableSk extends ElementSk {
           <table id="alerts-table">
             <thead>
               <tr>
-                <th id="configuration">Configuration</th>
+                <th id="configuration">Configuration(s)</th>
                 <th id="algorithm">Step Algorithm</th>
                 <th id="radius">Radius</th>
                 <th id="k">K</th>

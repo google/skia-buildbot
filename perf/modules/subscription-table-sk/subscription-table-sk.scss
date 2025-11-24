@@ -3,31 +3,41 @@
 @import '../themes/themes.scss';
 
 subscription-table-sk {
+  display: block;
+  margin-bottom: 20px;
+
   .subscription-details {
-    padding: 10px;
-    border: 1px solid var(--on-surface);
-    border-radius: 5px;
-    margin: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    padding: 12px; // Reduced padding
+    margin-bottom: 16px;
+    border-radius: 4px;
   }
 
   .subscription-details h2 {
-    margin-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 10px; // Reduced margin
+    color: #333;
   }
 
   .subscription-details p {
-    margin: 2px;
+    margin: 4px 0; // Reduced margin
+    line-height: 1.4; // Reduced line-height
+    color: #555;
   }
 
   #alerts-table {
-    border-collapse: collapse;
     border-spacing: 0;
     font-size: small;
     width: 100%;
+    border-collapse: collapse;
     margin: 20px;
+
     th,
     td {
       text-align: center;
     }
+
     #interesting,
     #minimum-num,
     #k,
