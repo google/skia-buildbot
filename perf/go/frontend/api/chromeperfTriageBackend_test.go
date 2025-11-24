@@ -9,13 +9,14 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	mocks "go.skia.org/infra/perf/go/chromeperf/mock"
+	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 )
 
 func TestChromeperfFileBug_Success(t *testing.T) {
 	mockClient := &mocks.ChromePerfClient{}
 	backend := NewChromeperfTriageBackend(mockClient)
 
-	req := &FileBugRequest{
+	req := &perf_issuetracker.FileBugRequest{
 		Title: "Test Bug",
 	}
 
@@ -43,7 +44,7 @@ func TestChromeperfFileBug_ApiError(t *testing.T) {
 	mockClient := &mocks.ChromePerfClient{}
 	backend := NewChromeperfTriageBackend(mockClient)
 
-	req := &FileBugRequest{
+	req := &perf_issuetracker.FileBugRequest{
 		Title: "Test Bug",
 	}
 
@@ -71,7 +72,7 @@ func TestChromeperfFileBug_RequestError(t *testing.T) {
 	mockClient := &mocks.ChromePerfClient{}
 	backend := NewChromeperfTriageBackend(mockClient)
 
-	req := &FileBugRequest{
+	req := &perf_issuetracker.FileBugRequest{
 		Title: "Test Bug",
 	}
 

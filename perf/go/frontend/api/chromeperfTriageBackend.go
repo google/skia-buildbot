@@ -5,6 +5,7 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/chromeperf"
+	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 )
 
 // ChromeperfTriageBackend implements the TriageBackend interface using the chromeperf client.
@@ -20,7 +21,7 @@ func NewChromeperfTriageBackend(client chromeperf.ChromePerfClient) *ChromeperfT
 	}
 }
 
-func (b *ChromeperfTriageBackend) FileBug(ctx context.Context, req *FileBugRequest) (*SkiaFileBugResponse, error) {
+func (b *ChromeperfTriageBackend) FileBug(ctx context.Context, req *perf_issuetracker.FileBugRequest) (*SkiaFileBugResponse, error) {
 	chromeperfResponse := &ChromeperfFileBugResponse{}
 	err := b.chromeperfClient.SendPostRequest(ctx, "file_bug_skia", "", req, chromeperfResponse, acceptedStatusCodes)
 	if err != nil {

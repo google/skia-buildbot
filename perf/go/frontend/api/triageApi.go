@@ -33,19 +33,6 @@ type triageApi struct {
 	issueTracker  perf_issuetracker.IssueTracker
 }
 
-// Request object for the request from new bug UI.
-type FileBugRequest struct {
-	Keys        []int    `json:"keys"`
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	Component   string   `json:"component"`
-	Assignee    string   `json:"assignee,omitempty"`
-	Ccs         []string `json:"ccs,omitempty"`
-	Labels      []string `json:"labels,omitempty"`
-	TraceNames  []string `json:"trace_names,omitempty"`
-	Host        string   `json:"host,omitempty"`
-}
-
 // Existing bug request object to asscociate alerts from new bug UI.
 type SkiaAssociateBugRequest struct {
 	BugId      int      `json:"bug_id"`
@@ -119,7 +106,7 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var fileBugRequest FileBugRequest
+	var fileBugRequest perf_issuetracker.FileBugRequest
 	if err := json.NewDecoder(r.Body).Decode(&fileBugRequest); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON on new bug request.", http.StatusInternalServerError)
 		return

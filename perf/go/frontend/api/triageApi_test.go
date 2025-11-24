@@ -25,7 +25,7 @@ type MockTriageBackend struct {
 	mock.Mock
 }
 
-func (m *MockTriageBackend) FileBug(ctx context.Context, req *FileBugRequest) (*SkiaFileBugResponse, error) {
+func (m *MockTriageBackend) FileBug(ctx context.Context, req *perf_issuetracker.FileBugRequest) (*SkiaFileBugResponse, error) {
 	args := m.Called(ctx, req)
 	return args.Get(0).(*SkiaFileBugResponse), args.Error(1)
 }
@@ -87,11 +87,11 @@ func TestFileNewBug_BackendError(t *testing.T) {
 	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
 
 	mockBackend := &MockTriageBackend{}
-	mockBackend.On("FileBug", testutils.AnyContext, mock.AnythingOfType("*api.FileBugRequest")).Return(&SkiaFileBugResponse{}, errors.New("backend error"))
+	mockBackend.On("FileBug", testutils.AnyContext, mock.AnythingOfType("*issuetracker.FileBugRequest")).Return(&SkiaFileBugResponse{}, errors.New("backend error"))
 
 	api := NewTriageApi(login, mockBackend, nil, nil)
 
-	fileBugRequest := FileBugRequest{
+	fileBugRequest := perf_issuetracker.FileBugRequest{
 		Title:       "Test Bug",
 		Description: "This is a test bug.",
 		Component:   "Test>Component",
@@ -119,11 +119,11 @@ func TestFileNewBug_Success(t *testing.T) {
 
 	mockBackend := &MockTriageBackend{}
 	expectedBugID := 12345
-	mockBackend.On("FileBug", testutils.AnyContext, mock.AnythingOfType("*api.FileBugRequest")).Return(&SkiaFileBugResponse{BugId: expectedBugID}, nil)
+	mockBackend.On("FileBug", testutils.AnyContext, mock.AnythingOfType("*issuetracker.FileBugRequest")).Return(&SkiaFileBugResponse{BugId: expectedBugID}, nil)
 
 	api := NewTriageApi(login, mockBackend, nil, nil)
 
-	fileBugRequest := FileBugRequest{
+	fileBugRequest := perf_issuetracker.FileBugRequest{
 		Title:       "Test Bug",
 		Description: "This is a test bug.",
 		Component:   "Test>Component",

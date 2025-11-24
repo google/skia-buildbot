@@ -5,11 +5,12 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 )
 
 // TriageBackend defines the interface for triaging operations.
 type TriageBackend interface {
-	FileBug(ctx context.Context, req *FileBugRequest) (*SkiaFileBugResponse, error)
+	FileBug(ctx context.Context, req *perf_issuetracker.FileBugRequest) (*SkiaFileBugResponse, error)
 	EditAnomalies(ctx context.Context, req *EditAnomaliesRequest) (*EditAnomaliesResponse, error)
 	AssociateAlerts(ctx context.Context, req *SkiaAssociateBugRequest) (*SkiaAssociateBugResponse, error)
 }
@@ -21,7 +22,7 @@ func NewTriageBackend() TriageBackend {
 	return &triageBackend{}
 }
 
-func (t *triageBackend) FileBug(ctx context.Context, req *FileBugRequest) (*SkiaFileBugResponse, error) {
+func (t *triageBackend) FileBug(ctx context.Context, req *perf_issuetracker.FileBugRequest) (*SkiaFileBugResponse, error) {
 	panic("unimplemented!")
 }
 

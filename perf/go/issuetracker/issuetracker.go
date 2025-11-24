@@ -50,6 +50,19 @@ type CreateCommentResponse struct {
 	CommentNumber int64 `json:"comment_number"`
 }
 
+// FileBugRequest is the request object for filing a bug.
+type FileBugRequest struct {
+	Keys        []int    `json:"keys"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Component   string   `json:"component"`
+	Assignee    string   `json:"assignee,omitempty"`
+	Ccs         []string `json:"ccs,omitempty"`
+	Labels      []string `json:"labels,omitempty"`
+	TraceNames  []string `json:"trace_names,omitempty"`
+	Host        string   `json:"host,omitempty"`
+}
+
 // NewIssueTracker returns a new issueTracker object.
 func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig) (IssueTracker, error) {
 	secretClient, err := secret.NewClient(ctx)
