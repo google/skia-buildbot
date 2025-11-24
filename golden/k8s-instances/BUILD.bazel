@@ -7,6 +7,7 @@ FULL_INSTANCES = [
     "eskia",
     "flutter",
     "flutter-engine",
+    "flutter-packages",
     "koru",
     "lottie",
     "lottie-spec",
