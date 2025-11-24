@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"go.chromium.org/luci/cipd/client/cipd/pkg"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -114,43 +114,25 @@ func extractFromHtml(doc *html.Node) *releaseInfo {
 
 // prepareCipd makes all the preparations needed to access the CIPD repository.
 // It returns a CIPD Client object, path to the directory where temp files are
-// stored (caller should clean up this directory after using CPID), and path
-// to the "cipd" executable file.
-func prepareCipd(ctx context.Context, isDev bool) (*cipd.Client, string, string, error) {
+// stored (caller should clean up this directory after using CPID), and
+// possible error.
+func prepareCipd(ctx context.Context) (*cipd.Client, string, error) {
 	// Create a new temporary directory
 	tmpDir, err := os.MkdirTemp("", "cipd")
 	if err != nil {
-		return nil, "", "", skerr.Wrapf(err, "error creating temp dir for CIPD")
+		return nil, "", skerr.Wrapf(err, "error creating temp dir for CIPD")
 	}
 
 	cipdClient, err := cipd.NewClient(ctx, tmpDir, cipd.DefaultServiceURL)
 	if err != nil {
-		return nil, "", "", skerr.Wrapf(err, "unable to create CIPD client")
+		return nil, "", skerr.Wrapf(err, "unable to create CIPD client")
 	}
 
-	cipd.PkgCIPD.Path = "cipd"
-	err = cipdClient.Ensure(ctx, false, cipd.PkgCIPD)
-	if err != nil {
-		return nil, "", "", skerr.Wrapf(err, "unable to install CIPD package")
-	}
-
-	cipdBinPath := filepath.Join(tmpDir, cipd.PkgCIPD.Path, "cipd")
-
-	if !isDev {
-		// Authenticate against CIPD server
-		cmd := exec.Command(cipdBinPath, "auth-login", "-service-account-json", "gce")
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			return nil, "", "", skerr.Wrapf(err, "error authenticating cipd")
-		}
-	}
-
-	return cipdClient, tmpDir, cipdBinPath, nil
+	return cipdClient, tmpDir, nil
 }
 
 // createCipd downloads an STP installation image, and creates a CIPD package form it.
-func createCipd(cipdBinPath string, cipdPath string, url string, refs []string) error {
+func createCipd(ctx context.Context, cipdClient *cipd.Client, cipdPath string, url string, refs []string) error {
 	// Create a new temporary directory
 	tmpDir, err := os.MkdirTemp("", "stp")
 	if err != nil {
@@ -181,17 +163,9 @@ func createCipd(cipdBinPath string, cipdPath string, url string, refs []string) 
 	tmpfile.Close()
 
 	// Upload to CIPD
-	args := []string{
-		"create", "-in", tmpDir, "-name", cipdPath,
-	}
-	for _, ref := range refs {
-		args = append(args, "-ref", ref)
-	}
-	cmd := exec.Command(cipdBinPath, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return skerr.Wrapf(err, "error running cipd %v", args)
+	_, err = cipdClient.Create(ctx, cipdPath, tmpDir, pkg.InstallModeSymlink, nil, refs, nil, nil)
+	if err != nil {
+		return skerr.Wrapf(err, "error creating CIPD package")
 	}
 
 	sklog.Infof("Successfully uploaded %s to CIPD at %s with refs %v\n", dmgPath, cipdPath, refs)
@@ -223,14 +197,14 @@ func DownloadSafariTPActivity(ctx context.Context, isDev bool) (string, error) {
 	sklog.Infof("Release: %s\n", ri.release)
 	sklog.Infof("Download Links:\n  %s\n  %s\n", ri.linkTahoe, ri.linkSequoia)
 
-	cipdClient, cipdRootPath, cipdBinPath, err := prepareCipd(ctx, isDev)
+	cipdClient, cipdRootPath, err := prepareCipd(ctx)
 	if err != nil {
 		return "", err
 	}
-	sklog.Infof("cipdBinPath %s", cipdBinPath)
 	defer func() { _ = os.RemoveAll(cipdRootPath) }()
 
-	cipdPath := cipdPathProd
+	// TODO(b/433796487): Change back to cipdPathProd after verifying the code.
+	cipdPath := cipdPathExp // cipdPathProd
 	if isDev {
 		cipdPath = cipdPathExp
 	}
@@ -249,13 +223,13 @@ func DownloadSafariTPActivity(ctx context.Context, isDev bool) (string, error) {
 	// point to the same version as the "stable" ref.
 	// The other refs are for informational purposes only.
 	err = createCipd(
-		cipdBinPath, cipdPath, ri.linkSequoia,
+		ctx, cipdClient, cipdPath, ri.linkSequoia,
 		[]string{ri.release + "-macos15", "stable", "canary", "latest"})
 	if err != nil {
 		return "", skerr.Wrapf(err, "unable to create CIPD package for MacOS 15")
 	}
 	err = createCipd(
-		cipdBinPath, cipdPath, ri.linkTahoe, []string{ri.release + "-macos26"})
+		ctx, cipdClient, cipdPath, ri.linkTahoe, []string{ri.release + "-macos26"})
 	if err != nil {
 		return "", skerr.Wrapf(err, "unable to create CIPD package for MacOS 26")
 	}

@@ -152,11 +152,10 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 	// Check for new Safari Technology Preview and download it. This is
 	// intentionally done at the end of the workflow, to avoid new Safari TP
 	// being installed on test devices while we're running CBB benchmarks.
-	// TODO(b/433796487): STP download isn't currently working on production.
-	// var stpVersion string
-	// if err := workflow.ExecuteActivity(ctx, DownloadSafariTPActivity, isDev).Get(ctx, &stpVersion); err != nil {
-	// 	return nil, skerr.Wrap(err)
-	// }
+	var stpVersion string
+	if err := workflow.ExecuteActivity(ctx, DownloadSafariTPActivity, isDev).Get(ctx, &stpVersion); err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	return &commitInfo, nil
 }
