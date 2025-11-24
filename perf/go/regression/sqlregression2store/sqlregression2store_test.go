@@ -489,3 +489,70 @@ func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool, alertsP
 		assert.Equal(t, regression.TriageStatus{}, reg.HighStatus)
 	}
 }
+
+// TestGetRegressionsBySubName tests the GetRegressionsBySubName method.
+func TestGetRegressionsBySubName(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+
+	// 1. Insert a regression.
+	r1 := generateAndStoreNewRegression(ctx, t, store)
+
+	// 2. Update the alert in the database to have the sub_name.
+	// We need to do this manually since the store doesn't do it.
+	// In a real scenario, the alerts would be created with sub_names.
+	_, err := store.db.Exec(ctx, "INSERT INTO Alerts (id, sub_name) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET id=EXCLUDED.id, sub_name = EXCLUDED.sub_name", r1.AlertId, "my-sub")
+	require.NoError(t, err)
+
+	// 3. Test cases.
+	tests := []struct {
+		name         string
+		subName      string
+		limit        int
+		offset       int
+		expectedLen  int
+		expectedRegs []*regression.Regression
+	}{
+		{
+			name:         "happy path",
+			subName:      "my-sub",
+			limit:        10,
+			offset:       0,
+			expectedLen:  1,
+			expectedRegs: []*regression.Regression{r1},
+		},
+		{
+			name:        "no regressions for sub name",
+			subName:     "non-existent-sub",
+			limit:       10,
+			offset:      0,
+			expectedLen: 0,
+		},
+		{
+			name:        "limit works",
+			subName:     "my-sub",
+			limit:       0,
+			offset:      0,
+			expectedLen: 0,
+		},
+		{
+			name:        "offset works",
+			subName:     "my-sub",
+			limit:       10,
+			offset:      1,
+			expectedLen: 0,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			regs, err := store.GetRegressionsBySubName(ctx, tc.subName, tc.limit, tc.offset)
+			require.NoError(t, err)
+			assert.Len(t, regs, tc.expectedLen)
+			if tc.expectedLen > 0 {
+				assert.Equal(t, tc.expectedRegs[0].Id, regs[0].Id)
+			}
+		})
+	}
+}

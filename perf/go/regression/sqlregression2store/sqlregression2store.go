@@ -133,7 +133,7 @@ var statementFormats = map[statementFormat]string{
 		`,
 	readBySubName: `
 		SELECT
-			r.id, commit_number, prev_commit_number, alert_id, creation_time, median_before, median_after, is_improvement, cluster_type, cluster_summary, frame, triage_status, triage_message
+			r.id, commit_number, prev_commit_number, alert_id, bug_id, creation_time, median_before, median_after, is_improvement, cluster_type, cluster_summary, frame, triage_status, triage_message
 		FROM
 			Regressions2 r
 		INNER JOIN
