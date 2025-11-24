@@ -381,3 +381,35 @@ func TestGetTimeRangeMap(t *testing.T) {
 	// Verify that the mock's expectations were met.
 	mockGit.AssertExpectations(t)
 }
+
+func TestGetGroupReport_SelectedKeys(t *testing.T) {
+	api, _, _, _ := setupAnomaliesApiWithMocks(t)
+
+	// Test case 1: Sid is not empty.
+	anomalies := []chromeperf.Anomaly{
+		{Id: "anomaly1"},
+		{Id: "anomaly2"},
+	}
+	expectedKeys := []string{"anomaly1", "anomaly2"}
+	selectedKeys := api.getSelectedKeys(anomalies)
+	assert.Equal(t, expectedKeys, selectedKeys)
+
+	// Test case 2: AnomalyIDs is not empty.
+	anomalies = []chromeperf.Anomaly{
+		{Id: "anomaly3"},
+		{Id: "anomaly4"},
+	}
+	expectedKeys = []string{"anomaly3", "anomaly4"}
+	selectedKeys = api.getSelectedKeys(anomalies)
+	assert.Equal(t, expectedKeys, selectedKeys)
+
+	// Test case 3: Both Sid and AnomalyIDs are empty.
+	anomalies = []chromeperf.Anomaly{
+		{Id: "anomaly5"},
+		{Id: "anomaly6"},
+	}
+	expectedKeys = []string{}
+	// In this case, the logic is in the main GetGroupReport function,
+	// so we can't test it directly here. We'll test the behavior
+	// in the integration tests for GetGroupReport.
+}

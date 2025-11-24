@@ -510,7 +510,12 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	groupReportResponse.SelectedKeys = api.getSelectedKeys(groupReportResponse.Anomalies)
+	if groupReportRequest.Sid != "" || groupReportRequest.AnomalyIDs != "" {
+		groupReportResponse.SelectedKeys = api.getSelectedKeys(groupReportResponse.Anomalies)
+	} else {
+		groupReportResponse.SelectedKeys = []string{}
+	}
+
 	groupReportResponse.TimerangeMap, err = api.getTimerangeMap(ctx, groupReportResponse.Anomalies)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get timerange map.", http.StatusInternalServerError)
