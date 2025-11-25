@@ -203,8 +203,7 @@ func DownloadSafariTPActivity(ctx context.Context, isDev bool) (string, error) {
 	}
 	defer func() { _ = os.RemoveAll(cipdRootPath) }()
 
-	// TODO(b/433796487): Change back to cipdPathProd after verifying the code.
-	cipdPath := cipdPathExp // cipdPathProd
+	cipdPath := cipdPathProd
 	if isDev {
 		cipdPath = cipdPathExp
 	}
