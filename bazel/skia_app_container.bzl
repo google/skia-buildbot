@@ -4,6 +4,16 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_image", "cont
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
 load("@rules_distroless//distroless:defs.bzl", "group", "home", "passwd")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
+load(
+    "//bazel:owners_layers.bzl",
+    "ROOT_GID",
+    "ROOT_UID",
+    "ROOT_USERNAME",
+    "SKIA_GID",
+    "SKIA_UID",
+    "SKIA_USERNAME",
+    "get_fixup_owners_layers",
+)
 
 def skia_app_container(
         name,
@@ -17,7 +27,8 @@ def skia_app_container(
         env = None,
         create_skia_user = False,
         default_user = "skia",
-        extra_tars = None):
+        extra_tars = None,
+        owners = None):
     """Builds a Docker container for a Skia app, and generates a target to push it to GCR.
 
     This macro produces the following:
@@ -104,10 +115,23 @@ def skia_app_container(
       default_user: The user the container will be run with. Defaults to "skia" but some apps
         like skfe requires the default user to be "root".
       extra_tars: A list of target names of tarballs to be added to the image.
+      owners: Optional. A dictionary where keys are absolute directory paths within the
+        container (e.g., "/home/skia"), and values are the desired owner in "uid.gid"
+        format (e.g., "2000.2000"). The macro will ensure these directories and their
+        subdirectories (created via 'dirs') have the specified ownership.
     """
 
     if type(entrypoint) == "string":
         entrypoint = [entrypoint]
+
+    # Derive the ownership fixup layers. We'll use them to set ownership for
+    # 'dirs' and then fixup directory owners later. See documentation in
+    # owners_layers.bzl for more information.
+    fixup_owners_layers = get_fixup_owners_layers(dirs.keys(), owners or {})
+    owners_lookup = {}
+    for layer in fixup_owners_layers:
+        for path in layer.paths:
+            owners_lookup[path] = layer.owner
 
     # According to the container_image rule's docs[1], the recommended way to place files in
     # specific directories is via the pkg_tar rule.
@@ -123,11 +147,14 @@ def skia_app_container(
             i += 1
             pkg_tars.append(pkg_tar_name)
 
+            fixed_dir = dir if dir == "/" else dir.removesuffix("/")
+            owner = owners_lookup[fixed_dir]
             pkg_tar(
                 name = pkg_tar_name,
                 srcs = [file],
-                package_dir = dir,
+                package_dir = fixed_dir,
                 mode = mode,
+                owner = owner,
                 tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             )
 
@@ -143,24 +170,20 @@ def skia_app_container(
         )
 
     if create_skia_user:
-        username = "skia"
-        uid = "2000"
-        gid = "2000"
-
         create_home_name = name + "_create_home"
         pkg_tars.append(create_home_name)
         home(
             name = create_home_name,
             dirs = [
                 dict(
-                    home = "/home/" + username,
-                    uid = uid,
-                    gid = gid,
+                    home = "/home/" + SKIA_USERNAME,
+                    uid = SKIA_UID,
+                    gid = SKIA_GID,
                 ),
                 dict(
-                    home = "/root",
-                    uid = 0,
-                    gid = 0,
+                    home = "/" + ROOT_USERNAME,
+                    uid = ROOT_UID,
+                    gid = ROOT_GID,
                 ),
             ],
             tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
@@ -172,20 +195,20 @@ def skia_app_container(
             name = create_passwd_name,
             entries = [
                 dict(
-                    gecos = [username],
-                    gid = gid,
-                    home = "/home/" + username,
+                    gecos = [SKIA_USERNAME],
+                    gid = SKIA_GID,
+                    home = "/home/" + SKIA_USERNAME,
                     shell = "/bin/sh",
-                    uid = uid,
-                    username = username,
+                    uid = SKIA_UID,
+                    username = SKIA_USERNAME,
                 ),
                 dict(
-                    gecos = ["root"],
-                    gid = 0,
-                    home = "/root",
+                    gecos = [ROOT_USERNAME],
+                    gid = ROOT_GID,
+                    home = "/" + ROOT_USERNAME,
                     shell = "/bin/sh",
-                    uid = 0,
-                    username = "root",
+                    uid = ROOT_UID,
+                    username = ROOT_USERNAME,
                 ),
             ],
             tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
@@ -197,8 +220,8 @@ def skia_app_container(
             name = create_groups_name,
             entries = [
                 dict(
-                    name = username,
-                    gid = gid,
+                    name = SKIA_USERNAME,
+                    gid = SKIA_GID,
                 ),
             ],
             tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
@@ -207,7 +230,7 @@ def skia_app_container(
     if extra_tars:
         pkg_tars.extend(extra_tars)
 
-    image_name = (name + "_base") if (run_commands_root or run_commands_skia) else name
+    image_name = (name + "_base") if (run_commands_root or run_commands_skia or owners) else name
 
     container_image(
         name = image_name,
@@ -247,7 +270,7 @@ def skia_app_container(
         container_run_and_commit(
             name = rule_name,
             commands = run_commands_skia,
-            docker_run_flags = ["--user", "skia"],
+            docker_run_flags = ["--user", SKIA_USERNAME],
             # If run_commands_root was specified then the image_name already contains
             # ".tar" suffix. Make sure we do not add a double ".tar" suffix here.
             image = image_name if image_name.endswith(".tar") else image_name + ".tar",
@@ -267,6 +290,38 @@ def skia_app_container(
         #
         # Now execute container_image using the previous image as base to set
         # back skia as the default user and to set back the original entrypoint.
+        rule_name = name
+        container_image(
+            name = rule_name,
+            base = image_name,
+            entrypoint = entrypoint,
+            user = default_user,
+            tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
+            env = env,
+        )
+        image_name = ":" + rule_name
+
+    if owners:
+        for i, layer in enumerate(fixup_owners_layers):
+            fixup_layer_name = name + "_fixup_owners_%d" % i
+            tar_name = fixup_layer_name + "_tar"
+            pkg_tar(
+                name = tar_name,
+                empty_dirs = layer.paths,
+                owner = layer.owner,
+                tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
+            )
+            container_image(
+                name = fixup_layer_name,
+                base = image_name,
+                entrypoint = entrypoint,
+                user = default_user,
+                tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
+                tars = [tar_name],
+                env = env,
+            )
+            image_name = fixup_layer_name
+
         rule_name = name
         container_image(
             name = rule_name,

@@ -1,0 +1,5 @@
+load(":owners_layers_test.bzl", "get_fixup_owners_layers_test_suite")
+
+get_fixup_owners_layers_test_suite(
+    name = "get_fixup_owners_layers_test",
+)

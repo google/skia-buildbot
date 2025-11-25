@@ -47,5 +47,8 @@ skia_app_container(
     env = {
         "PATH": "$$PATH:/home/skia/node-v14.16.0-linux-x64/bin",
     },
+    owners = {
+        "/home/skia": "2000.2000",
+    },
     repository = "skia-public/docsyserver",
 )
