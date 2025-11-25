@@ -46,6 +46,34 @@ func (_m *IssueTracker) CreateComment(ctx context.Context, req *issuetracker.Cre
 	return r0, r1
 }
 
+// FileBug provides a mock function with given fields: ctx, req
+func (_m *IssueTracker) FileBug(ctx context.Context, req *issuetracker.FileBugRequest) (int, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FileBug")
+	}
+
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *issuetracker.FileBugRequest) (int, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *issuetracker.FileBugRequest) int); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *issuetracker.FileBugRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListIssues provides a mock function with given fields: ctx, requestObj
 func (_m *IssueTracker) ListIssues(ctx context.Context, requestObj issuetracker.ListIssuesRequest) ([]*v1.Issue, error) {
 	ret := _m.Called(ctx, requestObj)

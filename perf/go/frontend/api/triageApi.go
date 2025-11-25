@@ -121,6 +121,11 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultRequestProcessTimeout)
 	defer cancel()
 
+	if len(fileBugRequest.Keys) < 1 {
+		http.Error(w, "File new bug request: anomalies list cannot be empty", http.StatusBadRequest)
+		return
+	}
+
 	resp, err := api.triageBackend.FileBug(ctx, &fileBugRequest)
 	if err != nil {
 		httputils.ReportError(w, err, "File new bug request failed due to an internal server error. Please try again.", http.StatusInternalServerError)
@@ -131,7 +136,7 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to write bug id to SkiaFileBugResponse.", http.StatusInternalServerError)
 		return
 	}
-	sklog.Debugf("[SkiaTriage] b/%s is created.", resp.BugId)
+	sklog.Debugf("[SkiaTriage] b/%d is created.", resp.BugId)
 
 	return
 }

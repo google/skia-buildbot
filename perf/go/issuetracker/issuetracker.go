@@ -26,6 +26,9 @@ type IssueTracker interface {
 
 	// CreateComment adds a new comment to a existing bug given the bug id and the comment body.
 	CreateComment(ctx context.Context, req *CreateCommentRequest) (*CreateCommentResponse, error)
+
+	// FileBug craetes a new bug.
+	FileBug(ctx context.Context, req *FileBugRequest) (int, error)
 }
 
 // / IssueTrackerImpl implements IssueTracker using the issue tracker API
@@ -136,4 +139,46 @@ func (s *issueTrackerImpl) ListIssues(ctx context.Context, requestObj ListIssues
 	}
 
 	return resp.Issues, nil
+}
+
+// TODO(mordeckimarcin) Inspect filed bugs. Determine whether Keys, TraceNames, Host, or Label
+// should be included. In particular, labels will be missing in the new bugs.
+func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (int, error) {
+	if req == nil {
+		return 0, skerr.Fmt("File bug request is null.")
+	}
+
+	componentID, err := strconv.ParseInt(req.Component, 10, 64)
+	if err != nil {
+		return 0, skerr.Wrapf(err, "invalid component id: %s", req.Component)
+	}
+
+	var ccs []*issuetracker.User
+	for _, cc := range req.Ccs {
+		ccs = append(ccs, &issuetracker.User{EmailAddress: cc})
+	}
+
+	newIssue := &issuetracker.Issue{
+		IssueComment: &issuetracker.IssueComment{
+			Comment:        req.Description,
+			FormattingMode: "MARKDOWN",
+		},
+		IssueState: &issuetracker.IssueState{
+			ComponentId: componentID,
+			Priority:    "P2",
+			Severity:    "S2",
+			Status:      "NEW",
+			Title:       req.Title,
+			Assignee: &issuetracker.User{
+				EmailAddress: req.Assignee,
+			},
+			Ccs: ccs,
+		},
+	}
+
+	resp, err := s.client.Issues.Create(newIssue).TemplateOptionsApplyTemplate(true).Do()
+	if err != nil {
+		return 0, skerr.Wrapf(err, "creating issue")
+	}
+	return int(resp.IssueId), nil
 }

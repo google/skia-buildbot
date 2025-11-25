@@ -89,6 +89,7 @@ go_test(
         "mcpApi_test.go",
         "regressionApi_test.go",
         "triageApi_test.go",
+        "triageBackend_test.go",
         "userIssueApi_test.go",
     ],
     data = glob(["testdata/**"]),

@@ -16,14 +16,33 @@ type TriageBackend interface {
 }
 
 type triageBackend struct {
+	issueTracker perf_issuetracker.IssueTracker
 }
 
-func NewTriageBackend() TriageBackend {
-	return &triageBackend{}
+func NewTriageBackend(issueTracker perf_issuetracker.IssueTracker) TriageBackend {
+	return &triageBackend{
+		issueTracker: issueTracker,
+	}
 }
 
 func (t *triageBackend) FileBug(ctx context.Context, req *perf_issuetracker.FileBugRequest) (*SkiaFileBugResponse, error) {
-	panic("unimplemented!")
+	// TODO(b/455571922) Perform integration tests when Associate Alerts is done.
+	bugId, err := t.issueTracker.FileBug(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	_, err = t.AssociateAlerts(ctx, &SkiaAssociateBugRequest{
+		BugId:      bugId,
+		Keys:       req.Keys,
+		TraceNames: req.TraceNames,
+	})
+	if err != nil {
+		return &SkiaFileBugResponse{BugId: bugId}, skerr.Wrapf(err,
+			`Bug with id = %d has been filed. Failed to associate %d anomalies with this bug.
+			A sheriff must manually assign the newly filed bug to those anomalies, or close it.`,
+			bugId, len(req.Keys))
+	}
+	return &SkiaFileBugResponse{BugId: bugId}, nil
 }
 
 func (t *triageBackend) EditAnomalies(ctx context.Context, req *EditAnomaliesRequest) (*EditAnomaliesResponse, error) {
@@ -42,7 +61,7 @@ func (t *triageBackend) EditAnomalies(ctx context.Context, req *EditAnomaliesReq
 }
 
 func (t *triageBackend) AssociateAlerts(ctx context.Context, req *SkiaAssociateBugRequest) (*SkiaAssociateBugResponse, error) {
-	panic("unimplemented!")
+	return nil, skerr.Fmt("unimplemented call to associate alerts")
 }
 
 func (t *triageBackend) ignoreAnomalies(ctx context.Context, req *EditAnomaliesRequest) (*EditAnomaliesResponse, error) {

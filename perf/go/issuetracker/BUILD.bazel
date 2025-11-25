@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "issuetracker",
@@ -13,5 +14,16 @@ go_library(
         "//perf/go/config",
         "@org_golang_google_api//option",
         "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "issuetracker_test",
+    srcs = ["issuetracker_test.go"],
+    embed = [":issuetracker"],
+    deps = [
+        "//go/issuetracker/v1:issuetracker",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_google_api//option",
     ],
 )
