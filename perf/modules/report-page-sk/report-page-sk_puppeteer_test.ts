@@ -2,6 +2,7 @@ import { assert, expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { ReportPageSkPO } from './report-page-sk_po';
 import { anomalies, defaultConfig } from './test_data';
+import { Page } from 'puppeteer';
 
 describe('report-page-sk', () => {
   let testBed: TestBed;
@@ -203,4 +204,58 @@ describe('report-page-sk', () => {
       expect(await graph2PO.getXAxisDomain()).to.equal('commit');
     });
   });
+
+  describe('anomalies table interactions', () => {
+    it('should open the trending link in a new tab when the trending icon is clicked', async () => {
+      await testBed.page.click('#open-trending-icon');
+      const anomaliesTablePO = reportPageSkPO.anomaliesTable;
+      await anomaliesTablePO.clickTrendingIconButton(0);
+
+      const reportPageUrl = await navigateTo(
+        testBed.page,
+        testBed.baseUrl,
+        `/m/?begin=1729042589&end=11739042589&request_type=0&shortcut=1&totalGraphs=1`
+      );
+      assert.exists(reportPageUrl);
+    });
+
+    it('should be able to click expand buttons in the anomalies table', async () => {
+      const anomaliesTablePO = reportPageSkPO.anomaliesTable;
+      const expandBtnLength = (await anomaliesTablePO.expandButton).length;
+
+      for (let i = 0; i < (await expandBtnLength); i++) {
+        await anomaliesTablePO.clickExpandButton(i);
+      }
+      // Only 1 Summary row
+      const parentExpandRowCount = await anomaliesTablePO.getParentExpandRowCount();
+      expect(parentExpandRowCount).to.equal(1);
+      // there're 2 child rows total
+      const childExpandRowCount = await anomaliesTablePO.getChildRowCount();
+      expect(childExpandRowCount).to.equal(2);
+      // After clicking expand button, the hidden child rows are visible
+      expect(await anomaliesTablePO.isRowHidden(1)).equal(false);
+      expect(await anomaliesTablePO.isRowHidden(2)).equal(false);
+      await takeScreenshot(testBed.page, 'perf', 'report-page-sk-anomalies-table-checkboxes');
+    });
+
+    it('expand button inner text should be equal to the grouped row count', async () => {
+      const anomaliesTablePO = reportPageSkPO.anomaliesTable;
+      const expandBtnLength = await anomaliesTablePO.expandButton;
+      const expandBtnInnerText = await (await expandBtnLength.item(0)).innerText;
+      // The first expand button contains 2 rows, which means the inner text is '2'.
+      expect(Number(expandBtnInnerText)).to.equal(2);
+      await takeScreenshot(testBed.page, 'perf', 'report-page-sk-anomalies-table-header-checkbox');
+    });
+
+    it('should be able to click header checkbox in the anomalies table', async () => {
+      const anomaliesTablePO = reportPageSkPO.anomaliesTable;
+      await anomaliesTablePO.clickHeaderCheckbox();
+      await takeScreenshot(testBed.page, 'perf', 'report-page-sk-anomalies-table-header-checkbox');
+    });
+  });
+
+  async function navigateTo(page: Page, base: string, queryParams = ''): Promise<ReportPageSkPO> {
+    await page.goto(`${base}${queryParams}`);
+    return new ReportPageSkPO(page.$('report-page-sk'));
+  }
 });

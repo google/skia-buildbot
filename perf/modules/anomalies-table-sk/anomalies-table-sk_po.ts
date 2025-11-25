@@ -37,8 +37,8 @@ export class AnomaliesTableSkPO extends PageObject {
     return this.bySelector('[id^="graph-button-"]');
   }
 
-  get expandButton(): PageObjectElement {
-    return this.bySelector('button.expand-button');
+  get expandButton(): PageObjectElementList {
+    return this.bySelectorAll('button.expand-button');
   }
 
   get headerCheckbox(): PageObjectElement {
@@ -49,8 +49,8 @@ export class AnomaliesTableSkPO extends PageObject {
     return this.bySelectorAll('tbody input[type="checkbox"]');
   }
 
-  get trendingIconLink(): PageObjectElement {
-    return this.bySelector('button#trendingicon-link');
+  get trendingIconLink(): PageObjectElementList {
+    return this.bySelectorAll('button#trendingicon-link');
   }
 
   async getBugId(row: PageObjectElement): Promise<string> {
@@ -82,12 +82,17 @@ export class AnomaliesTableSkPO extends PageObject {
     return await this.testPaths.map((testPath) => testPath.innerText);
   }
 
-  async clickTrendingIconButton(): Promise<void> {
-    await this.trendingIconLink.click();
+  async clickTrendingIconButton(index: number): Promise<void> {
+    const trendingLinkList = await this.trendingIconLink;
+    const trendingLink = trendingLinkList.item(index);
+    await this.clickExpandButton(index);
+    await (await trendingLink).click();
   }
 
-  async clickExpandButton(): Promise<void> {
-    await this.expandButton.click();
+  async clickExpandButton(index: number): Promise<void> {
+    const expandButtons = await this.expandButton;
+    const expandButton = expandButtons.item(index);
+    await (await expandButton).click();
   }
 
   async clickHeaderCheckbox(): Promise<void> {
@@ -104,5 +109,11 @@ export class AnomaliesTableSkPO extends PageObject {
     const links = await this.multiChartUrls;
     const link = links.item(index);
     await (await link).click();
+  }
+
+  async isRowHidden(index: number): Promise<boolean> {
+    const rows = await this.rows;
+    const row = await rows.item(index);
+    return row.isHidden();
   }
 }

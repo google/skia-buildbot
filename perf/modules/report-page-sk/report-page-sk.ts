@@ -121,7 +121,7 @@ export class ReportPageSk extends ElementSk {
   private anomalyTracker = new AnomalyTracker();
 
   // Reference to anomalies table element.
-  private anomaliesTable: AnomaliesTableSk | null = null;
+  anomaliesTable: AnomaliesTableSk | null = null;
 
   private graphDiv: Element | null = null;
 

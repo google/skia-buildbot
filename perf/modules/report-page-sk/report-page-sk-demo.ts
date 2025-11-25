@@ -1,6 +1,7 @@
 import './index';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ReportPageSk } from './report-page-sk';
+import { anomaly_table } from '../anomalies-table-sk/test_data';
 
 window.perf = {
   instance_url: 'https://chrome-perf.corp.goog',
@@ -41,7 +42,20 @@ window.perf = {
 };
 
 $$('#load-anomalies')?.addEventListener('click', () => {
-  window.perf = window.perf;
   const ele = document.querySelector('report-page-sk') as ReportPageSk;
   ele.fetchAnomalies();
+});
+
+$$('#open-trending-icon')?.addEventListener('click', () => {
+  document.querySelectorAll<ReportPageSk>('report-page-sk').forEach((ele) => {
+    ele.fetchAnomalies();
+    ele.anomaliesTable!.openMultiGraphUrl(
+      anomaly_table[0],
+      window.open(
+        'http://localhost:46723/m/?' +
+          'begin=1729042589&end=11739042589&request_type=0&shortcut=1&totalGraphs=1',
+        '_blank'
+      )
+    );
+  });
 });

@@ -50,7 +50,10 @@ sk_page(
     sk_element_deps = [
         ":report-page-sk",
     ],
-    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+        "//perf/modules/anomalies-table-sk:test_data_ts_lib",
+    ],
     ts_entry_point = "report-page-sk-demo.ts",
 )
 
@@ -91,6 +94,7 @@ sk_element_puppeteer_test(
         ":test_data_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//:node_modules/puppeteer",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

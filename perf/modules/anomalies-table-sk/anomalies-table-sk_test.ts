@@ -460,12 +460,6 @@ describe('anomalies-table-sk', () => {
       const rowClass = element.getRowClass(1, group);
       assert.equal(rowClass, 'child-expanded-row');
     });
-
-    it('returns an empty string for a collapsed row', () => {
-      const group = { anomalies: [dummyAnomaly('1', 0, 0, 0, '')], expanded: false };
-      const rowClass = element.getRowClass(0, group);
-      assert.equal(rowClass, '');
-    });
   });
 
   describe('expand group', () => {

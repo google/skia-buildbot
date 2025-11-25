@@ -801,7 +801,7 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   getRowClass(index: number, anomalyGroup: AnomalyGroup) {
-    if (anomalyGroup.expanded) {
+    if (anomalyGroup.expanded === true) {
       if (index === 0) {
         this.isParentRow = true;
         return 'parent-expanded-row';

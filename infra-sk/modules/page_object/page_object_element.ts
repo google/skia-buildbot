@@ -173,6 +173,11 @@ export class PageObjectElement {
     return fn(element as Element, ...args);
   }
 
+  /** Returns true if the element is hidden. */
+  async isHidden(): Promise<boolean> {
+    return this.applyFnToDOMNode((el) => (el as HTMLElement).hidden);
+  }
+
   /// /////////////////////////////////////////////////////////////////
   // Query selectors and convenience methods using query selectors. //
   /// /////////////////////////////////////////////////////////////////

@@ -59,7 +59,7 @@ describe('anomalies-table-sk', () => {
 
     it('should be able to expand collapsed rows', async () => {
       const initialRowCount = await anomaliesTableSkPO.getRowCount();
-      await anomaliesTableSkPO.clickExpandButton();
+      await anomaliesTableSkPO.clickExpandButton(0);
       const expandedRowCount = await anomaliesTableSkPO.getRowCount();
       expect(expandedRowCount).to.be.equal(initialRowCount);
     });
@@ -77,7 +77,7 @@ describe('anomalies-table-sk', () => {
     });
 
     it('should be able to click expand checkbox', async () => {
-      await anomaliesTableSkPO.clickExpandButton();
+      await anomaliesTableSkPO.clickExpandButton(0);
       const summaryRowCount: number = await anomaliesTableSkPO.getParentExpandRowCount();
       expect(summaryRowCount).to.equal(1);
     });
@@ -108,7 +108,7 @@ describe('anomalies-table-sk', () => {
     });
 
     it('opens a new report page with the correct URL for a multiple anomalies', async () => {
-      await anomaliesTableSkPO.clickExpandButton();
+      await anomaliesTableSkPO.clickExpandButton(0);
       await anomaliesTableSkPO.clickCheckbox(0);
       await anomaliesTableSkPO.clickCheckbox(1);
 
@@ -140,7 +140,7 @@ describe('anomalies-table-sk', () => {
     });
 
     it('opens a new report page with the correct URL for single anomaly', async () => {
-      await anomaliesTableSkPO.clickExpandButton();
+      await anomaliesTableSkPO.clickExpandButton(0);
       await anomaliesTableSkPO.clickCheckbox(0);
       await anomaliesTableSkPO.clickCheckbox(1);
 
