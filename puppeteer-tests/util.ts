@@ -79,17 +79,15 @@ export const addEventListenersToPuppeteerPage = async (page: Page, eventNames: E
   return eventPromiseFactory;
 };
 
-/**
- * Launches a Puppeteer browser. Set showBrowser to true to see the browser as it executes tests.
- * This can be handy for debugging.
- */
-export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
-  console.log('===============================================================');
-  // Use the downloaded Chrome we get from the toolchain in @rules_browsers.
-  const executablePath = process.env.CHROME_BIN;
+const executeLaunchBrowser = (
+  executablePath: string | undefined,
+  slowMo: number | undefined,
+  headless: boolean | undefined,
+  argEnv: Record<string, string> | undefined
+): Promise<Browser> => {
   return puppeteer.launch({
     executablePath: executablePath,
-
+    slowMo: slowMo,
     //
     // These options are required to run Puppeteer from within a Docker container, as is the case
     // under Bazel and RBE. See
@@ -103,10 +101,34 @@ export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
     //     for more information on developing with the SUID sandbox. If you want to live
     //     dangerously and need an immediate workaround, you can try using --no-sandbox.
     args: ['--disable-dev-shm-usage', '--no-sandbox'],
-    headless: !showBrowser,
+    headless: headless,
     env: {
-      ...process.env, // Headful mode breaks without this line (e.g. "unable to open X display").
+      ...argEnv,
+      ...process.env,
     },
+  });
+};
+
+/**
+ * Launches a Puppeteer browser. Set showBrowser to true to see the browser as it executes tests.
+ * This can be handy for debugging.
+ */
+export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
+  console.log('===============================================================');
+  // Use the downloaded Chrome we get from the toolchain in @rules_browsers.
+  const executablePath = process.env.CHROME_BIN;
+  return executeLaunchBrowser(executablePath, undefined, !showBrowser, undefined);
+};
+
+// Launches a Puppeteer browser in a non-headless mode on a gCloud Cloudtop.
+// Everything should be the same as in launchBrowser, except that we add slowMo
+// for smoother debugging experience, set executable to a non-headless one,
+// and use a display.
+export const launchBrowserForCloudtopDebug = (slowMo: number = 250): Promise<Browser> => {
+  const cloudtopChrome = '/usr/bin/google-chrome';
+  const headless = false;
+  return executeLaunchBrowser(cloudtopChrome, slowMo, headless, {
+    DISPLAY: ':20',
   });
 };
 
