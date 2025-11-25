@@ -30,6 +30,8 @@ import '../../../elements-sk/modules/icons/autorenew-icon-sk';
 import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
+import '../gemini-side-panel-sk/gemini-side-panel-sk';
+import { GeminiSidePanelSk } from '../gemini-side-panel-sk/gemini-side-panel-sk';
 import { getBuildTag } from '../window/window';
 
 // The ID of a top level element under perf-scaffold-sk that will be moved under
@@ -188,6 +190,9 @@ export class PerfScaffoldSk extends ElementSk {
             <bug-report-icon-sk></bug-report-icon-sk>
           </a>
           ${ele.chatLinkTemplate()}
+          <button @click=${ele.toggleGemini} title="Ask Gemini" class="aside-button">
+            <lightbulb-outline-icon-sk></lightbulb-outline-icon-sk>
+          </button>
           <button id="help-button" @click=${ele.toggleHelp} title="Help" class="aside-button">
             <help-icon-sk></help-icon-sk>
           </button>
@@ -210,6 +215,7 @@ export class PerfScaffoldSk extends ElementSk {
     </header>
     <main id="perf-content">
     </main>
+    <gemini-side-panel-sk></gemini-side-panel-sk>
     <footer class="glue-footer">
       <error-toast-sk></error-toast-sk>
       ${ele.buildTagTemplate()}
@@ -470,6 +476,13 @@ export class PerfScaffoldSk extends ElementSk {
     const dropdown = this.querySelector('#help-dropdown');
     if (dropdown) {
       dropdown.classList.toggle('hidden');
+    }
+  }
+
+  private toggleGemini() {
+    const gemini = this.querySelector('gemini-side-panel-sk') as GeminiSidePanelSk;
+    if (gemini) {
+      gemini.toggle();
     }
   }
 

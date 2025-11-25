@@ -1123,6 +1123,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.Get("/_/defaults", f.defaultsHandler)
 	router.Get("/_/revision", f.revisionHandler)
 	router.Get("/_/json/", Proxy_GetHandler)
+	router.Post("/_/chat", f.chatHandler)
 
 	if f.flags.DevMode {
 		router.Get("/_/dev/version", f.devVersionHandler)
@@ -1202,5 +1203,28 @@ func (f *Frontend) devVersionHandler(w http.ResponseWriter, r *http.Request) {
 		Version: f.appVersion,
 	}); err != nil {
 		httputils.ReportError(w, err, "Failed to encode version", http.StatusInternalServerError)
+	}
+}
+
+func (f *Frontend) chatHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var req struct {
+		Query string `json:"query"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusBadRequest)
+		return
+	}
+
+	// Mock response
+	resp := struct {
+		Response string `json:"response"`
+	}{
+		Response: "This is a mock response from Gemini side panel. Backend integration pending.",
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to encode response: %s", err)
+		// Attempt to report error, though response might be partially written.
+		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 	}
 }

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>gemini-side-panel-sk demo</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <h1>gemini-side-panel-sk demo</h1>
+    <button id="toggle">Toggle Panel</button>
+    <gemini-side-panel-sk></gemini-side-panel-sk>
+
+    <script type="module">
+      import './gemini-side-panel-sk-demo';
+      (async () => {
+        await customElements.whenDefined('gemini-side-panel-sk');
+        const panel = document.querySelector('gemini-side-panel-sk');
+        document.querySelector('#toggle').addEventListener('click', () => {
+          panel.toggle();
+        });
+      })();
+    </script>
+  </body>
+</html>

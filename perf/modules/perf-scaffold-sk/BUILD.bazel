@@ -69,6 +69,7 @@ sk_element(
         "//elements-sk/modules/icons/autorenew-icon-sk",
         "//elements-sk/modules/icons/chat-icon-sk",
         "//elements-sk/modules/icons/lightbulb-outline-icon-sk",
+        "//perf/modules/gemini-side-panel-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",

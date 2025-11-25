@@ -156,6 +156,42 @@ describe('perf-scaffold-sk', () => {
     assert.equal(title?.textContent, 'Bar');
   });
 
+  it('renders gemini-side-panel-sk in V2 UI', async () => {
+    window.perf.enable_v2_ui = true;
+    const element = newInstance((_) => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+    assert.isNotNull(element.querySelector('gemini-side-panel-sk'));
+  });
+
+  it('does not render gemini-side-panel-sk in Legacy UI', async () => {
+    window.perf.enable_v2_ui = false;
+    const element = newInstance((_) => {
+      localStorage.removeItem('v2_ui');
+    });
+    assert.isNull(element.querySelector('gemini-side-panel-sk'));
+  });
+
+  it('toggles gemini-side-panel-sk when button is clicked', async () => {
+    window.perf.enable_v2_ui = true;
+    const element = newInstance((_) => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+
+    const button = element.querySelector('button[title="Ask Gemini"]') as HTMLButtonElement;
+    const panel = element.querySelector('gemini-side-panel-sk') as any;
+
+    assert.isNotNull(button);
+    assert.isNotNull(panel);
+    assert.isFalse(panel.open);
+
+    button.click();
+    assert.isTrue(panel.open);
+
+    button.click();
+    assert.isFalse(panel.open);
+  });
+
   describe('auto-refresh', () => {
     let clock: any;
 

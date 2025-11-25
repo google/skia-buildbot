@@ -1,0 +1,57 @@
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":gemini-side-panel-sk-demo",
+)
+
+sk_element(
+    name = "gemini-side-panel-sk",
+    sk_element_deps = [
+        "//elements-sk/modules/icons/close-icon-sk",
+        "//elements-sk/modules/icons/send-icon-sk",
+        "//elements-sk/modules/spinner-sk",
+    ],
+    ts_deps = ["//:node_modules/lit"],
+    ts_srcs = [
+        "gemini-side-panel-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "gemini-side-panel-sk-demo",
+    html_file = "gemini-side-panel-sk-demo.html",
+    sk_element_deps = [":gemini-side-panel-sk"],
+    ts_entry_point = "gemini-side-panel-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "gemini-side-panel-sk_puppeteer_test",
+    src = "gemini-side-panel-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "gemini-side-panel-sk_test",
+    src = "gemini-side-panel-sk_test.ts",
+    deps = [
+        ":gemini-side-panel-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
+)
