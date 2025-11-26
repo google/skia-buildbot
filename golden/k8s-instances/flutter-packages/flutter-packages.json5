@@ -11,7 +11,7 @@
   gcs_bucket: "gold-flutter-packages",
   git_repo_branch: "main",
   git_repo_url: "https://github.com/flutter/packages",
-  pubsub_project_id: "skia-public",
+  pubsub_project_id: "skia-infra-public",
   site_url: "https://flutter-packages-gold.luci.app",
   sql_connection: "root@localhost:5432",
   sql_database: "flutter_packages",
