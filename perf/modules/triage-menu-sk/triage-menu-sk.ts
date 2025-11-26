@@ -189,7 +189,7 @@ export class TriageMenuSk extends ElementSk {
    * @param editAction - An action that corresponds to different behaviors.
    */
   makeEditAnomalyRequest(anomalies: Anomaly[], traceNames: string[], editAction: string): void {
-    const keys: number[] = anomalies.map((a) => Number(a.id));
+    const keys: string[] = anomalies.map((a) => a.id);
     const body: any = {
       keys: keys,
       trace_names: traceNames,
@@ -246,7 +246,7 @@ export class TriageMenuSk extends ElementSk {
    * values, as well as its selected value.
    */
   makeNudgeRequest(anomalies: Anomaly[], traceNames: string[], entry: NudgeEntry): void {
-    const keys: number[] = anomalies.map((a) => Number(a.id));
+    const keys: string[] = anomalies.map((a) => a.id);
     const body: any = {
       keys: keys,
       trace_names: traceNames,

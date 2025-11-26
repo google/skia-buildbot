@@ -1136,7 +1136,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewGraphApi(f.flags.NumParamSetsForQueries, config.Config.QueryConfig.CommitChunkSize, config.Config.QueryConfig.MaxEmptyTilesForQuery, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.metadataStore, f.traceCache, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
 		api.NewPinpointApi(f.loginProvider, f.pinpoint),
 		api.NewSheriffConfigApi(f.loginProvider),
-		api.NewTriageApi(f.loginProvider, triageClient, f.anomalyStore, f.issuetracker),
+		api.NewTriageApi(f.loginProvider, triageClient, f.issuetracker),
 		api.NewUserIssueApi(f.loginProvider, f.userIssueStore),
 		api.NewMcpApi(f.dfBuilder),
 	}

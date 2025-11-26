@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/issuetracker/v1"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/config"
 	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 )
@@ -29,14 +28,13 @@ type triageApi struct {
 	// the triage toolchain when skia backend is ready.
 	triageBackend TriageBackend
 	loginProvider alogin.Login
-	anomalyStore  anomalies.Store
 	issueTracker  perf_issuetracker.IssueTracker
 }
 
 // Existing bug request object to asscociate alerts from new bug UI.
 type SkiaAssociateBugRequest struct {
 	BugId      int      `json:"bug_id"`
-	Keys       []int    `json:"keys"`
+	Keys       []string `json:"keys"`
 	TraceNames []string `json:"trace_names"`
 }
 
@@ -66,7 +64,7 @@ type ChromeperfFileBugResponse struct {
 //   - Reset - X button (untriage the anomaly)
 //   - Nudge (move the anomaly position to adjacent datapoints)
 type EditAnomaliesRequest struct {
-	Keys          []int    `json:"keys"`
+	Keys          []string `json:"keys"`
 	Action        string   `json:"action"`
 	StartRevision int      `json:"start_revision,omitempty"`
 	EndRevision   int      `json:"end_revision,omitempty"`
@@ -91,11 +89,10 @@ func (api triageApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/triage/list_issues", api.ListIssues)
 }
 
-func NewTriageApi(loginProvider alogin.Login, triageBackend TriageBackend, anomalyStore anomalies.Store, issueTracker perf_issuetracker.IssueTracker) triageApi {
+func NewTriageApi(loginProvider alogin.Login, triageBackend TriageBackend, issueTracker perf_issuetracker.IssueTracker) triageApi {
 	return triageApi{
 		loginProvider: loginProvider,
 		triageBackend: triageBackend,
-		anomalyStore:  anomalyStore,
 		issueTracker:  issueTracker,
 	}
 }

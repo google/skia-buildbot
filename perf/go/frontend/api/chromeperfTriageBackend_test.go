@@ -20,11 +20,16 @@ func TestChromeperfFileBug_Success(t *testing.T) {
 		Title: "Test Bug",
 	}
 
+	reqInternal := &FileBugRequestForChromePerf{
+		Title: req.Title,
+		Keys:  make([]int, 0),
+	}
+
 	mockClient.On("SendPostRequest",
 		mock.Anything,
 		"file_bug_skia",
 		"",
-		req,
+		reqInternal,
 		mock.AnythingOfType("*api.ChromeperfFileBugResponse"),
 		[]int{200, 400, 401, 500},
 	).Run(func(args mock.Arguments) {
@@ -48,11 +53,16 @@ func TestChromeperfFileBug_ApiError(t *testing.T) {
 		Title: "Test Bug",
 	}
 
+	reqInternal := &FileBugRequestForChromePerf{
+		Title: req.Title,
+		Keys:  make([]int, 0),
+	}
+
 	mockClient.On("SendPostRequest",
 		mock.Anything,
 		"file_bug_skia",
 		"",
-		req,
+		reqInternal,
 		mock.AnythingOfType("*api.ChromeperfFileBugResponse"),
 		[]int{200, 400, 401, 500},
 	).Run(func(args mock.Arguments) {
@@ -76,11 +86,16 @@ func TestChromeperfFileBug_RequestError(t *testing.T) {
 		Title: "Test Bug",
 	}
 
+	reqInternal := &FileBugRequestForChromePerf{
+		Title: req.Title,
+		Keys:  make([]int, 0),
+	}
+
 	mockClient.On("SendPostRequest",
 		mock.Anything,
 		"file_bug_skia",
 		"",
-		req,
+		reqInternal,
 		mock.AnythingOfType("*api.ChromeperfFileBugResponse"),
 		[]int{200, 400, 401, 500},
 	).Return(errors.New("request error"))
@@ -101,11 +116,16 @@ func TestChromeperfEditAnomalies_Success(t *testing.T) {
 		Action: "ignore",
 	}
 
+	reqInternal := &EditAnomaliesRequestForChromePerf{
+		Action: "ignore",
+		Keys:   make([]int, 0),
+	}
+
 	mockClient.On("SendPostRequest",
 		mock.Anything,
 		"edit_anomalies_skia",
 		"",
-		req,
+		reqInternal,
 		mock.AnythingOfType("*api.EditAnomaliesResponse"),
 		[]int{200, 400, 401, 500},
 	).Return(nil)
@@ -126,11 +146,16 @@ func TestChromeperfEditAnomalies_ApiError(t *testing.T) {
 		Action: "ignore",
 	}
 
+	reqInternal := &EditAnomaliesRequestForChromePerf{
+		Action: "ignore",
+		Keys:   make([]int, 0),
+	}
+
 	mockClient.On("SendPostRequest",
 		mock.Anything,
 		"edit_anomalies_skia",
 		"",
-		req,
+		reqInternal,
 		mock.AnythingOfType("*api.EditAnomaliesResponse"),
 		[]int{200, 400, 401, 500},
 	).Run(func(args mock.Arguments) {
@@ -154,11 +179,16 @@ func TestChromeperfAssociateAlerts_Success(t *testing.T) {
 		BugId: 12345,
 	}
 
+	reqInternal := &SkiaAssociateBugRequestForChromePerf{
+		BugId: req.BugId,
+		Keys:  make([]int, 0),
+	}
+
 	mockClient.On("SendPostRequest",
 		mock.Anything,
 		"associate_alerts_skia",
 		"",
-		req,
+		reqInternal,
 		mock.AnythingOfType("*api.ChromeperfAssociateBugResponse"),
 		[]int{200, 400, 401, 500},
 	).Return(nil)

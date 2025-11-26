@@ -55,7 +55,7 @@ type CreateCommentResponse struct {
 
 // FileBugRequest is the request object for filing a bug.
 type FileBugRequest struct {
-	Keys        []int    `json:"keys"`
+	Keys        []string `json:"keys"`
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	Component   string   `json:"component"`

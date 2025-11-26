@@ -360,7 +360,7 @@ export class NewBugDialogSk extends ElementSk {
       }
     });
 
-    const keys: number[] = this._anomalies.map((a) => Number(a.id));
+    const keys: string[] = this._anomalies.map((a) => a.id);
 
     const body = {
       title: title.value,

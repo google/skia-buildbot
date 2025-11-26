@@ -41,7 +41,7 @@ func (m *MockTriageBackend) AssociateAlerts(ctx context.Context, req *SkiaAssoci
 }
 
 func newTestTriageApi(login alogin.Login, backend TriageBackend) triageApi {
-	return NewTriageApi(login, backend, nil, nil)
+	return NewTriageApi(login, backend, nil)
 }
 
 func TestFileNewBug_NotLoggedIn(t *testing.T) {
@@ -50,7 +50,7 @@ func TestFileNewBug_NotLoggedIn(t *testing.T) {
 	login := &aloginMocks.Login{}
 	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail(""))
 
-	api := NewTriageApi(login, nil, nil, nil)
+	api := NewTriageApi(login, nil, nil)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/_/triage/file_bug", nil)
@@ -68,7 +68,7 @@ func TestFileNewBug_InvalidJson(t *testing.T) {
 	login := &aloginMocks.Login{}
 	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
 
-	api := NewTriageApi(login, nil, nil, nil)
+	api := NewTriageApi(login, nil, nil)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/_/triage/file_bug", bytes.NewBufferString("invalid json"))
@@ -89,13 +89,13 @@ func TestFileNewBug_BackendError(t *testing.T) {
 	mockBackend := &MockTriageBackend{}
 	mockBackend.On("FileBug", testutils.AnyContext, mock.AnythingOfType("*issuetracker.FileBugRequest")).Return(&SkiaFileBugResponse{}, errors.New("backend error"))
 
-	api := NewTriageApi(login, mockBackend, nil, nil)
+	api := NewTriageApi(login, mockBackend, nil)
 
 	fileBugRequest := perf_issuetracker.FileBugRequest{
 		Title:       "Test Bug",
 		Description: "This is a test bug.",
 		Component:   "Test>Component",
-		Keys:        []int{1, 2, 3},
+		Keys:        []string{"1", "2", "3"},
 	}
 	body, _ := json.Marshal(fileBugRequest)
 
@@ -121,13 +121,13 @@ func TestFileNewBug_Success(t *testing.T) {
 	expectedBugID := 12345
 	mockBackend.On("FileBug", testutils.AnyContext, mock.AnythingOfType("*issuetracker.FileBugRequest")).Return(&SkiaFileBugResponse{BugId: expectedBugID}, nil)
 
-	api := NewTriageApi(login, mockBackend, nil, nil)
+	api := NewTriageApi(login, mockBackend, nil)
 
 	fileBugRequest := perf_issuetracker.FileBugRequest{
 		Title:       "Test Bug",
 		Description: "This is a test bug.",
 		Component:   "Test>Component",
-		Keys:        []int{1, 2, 3},
+		Keys:        []string{"1", "2", "3"},
 	}
 	body, _ := json.Marshal(fileBugRequest)
 
@@ -212,7 +212,7 @@ func TestEditAnomalies_InvalidRequest(t *testing.T) {
 		},
 		{
 			name:    "Missing anomaly keys",
-			request: EditAnomaliesRequest{Action: "ignore", Keys: []int{}},
+			request: EditAnomaliesRequest{Action: "ignore", Keys: []string{}},
 			message: "Missing anomaly keys.",
 		},
 	}
@@ -244,7 +244,7 @@ func TestEditAnomalies_BackendError(t *testing.T) {
 	api := newTestTriageApi(login, mockBackend)
 
 	editAnomaliesRequest := EditAnomaliesRequest{
-		Keys:   []int{1, 2, 3},
+		Keys:   []string{"1", "2", "3"},
 		Action: "ignore",
 	}
 	body, _ := json.Marshal(editAnomaliesRequest)
@@ -272,7 +272,7 @@ func TestEditAnomalies_Success(t *testing.T) {
 	api := newTestTriageApi(login, mockBackend)
 
 	editAnomaliesRequest := EditAnomaliesRequest{
-		Keys:   []int{1, 2, 3},
+		Keys:   []string{"1", "2", "3"},
 		Action: "ignore",
 	}
 	body, _ := json.Marshal(editAnomaliesRequest)
@@ -336,7 +336,7 @@ func TestAssociateAlerts_BackendError(t *testing.T) {
 
 	associateBugRequest := SkiaAssociateBugRequest{
 		BugId: 12345,
-		Keys:  []int{1, 2, 3},
+		Keys:  []string{"1", "2", "3"},
 	}
 	body, _ := json.Marshal(associateBugRequest)
 
@@ -366,7 +366,7 @@ func TestAssociateAlerts_Success(t *testing.T) {
 
 	associateBugRequest := SkiaAssociateBugRequest{
 		BugId: expectedBugID,
-		Keys:  []int{1, 2, 3},
+		Keys:  []string{"1", "2", "3"},
 	}
 	body, _ := json.Marshal(associateBugRequest)
 
@@ -391,7 +391,7 @@ func TestListIssues_NotLoggedIn(t *testing.T) {
 	login := &aloginMocks.Login{}
 	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail(""))
 
-	api := NewTriageApi(login, nil, nil, &issueTrackerMock.IssueTracker{})
+	api := NewTriageApi(login, nil, &issueTrackerMock.IssueTracker{})
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/_/triage/list_issues", nil)
@@ -409,7 +409,7 @@ func TestListIssues_IssueTrackerNotAvailable(t *testing.T) {
 	login := &aloginMocks.Login{}
 	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
 
-	api := NewTriageApi(login, nil, nil, nil)
+	api := NewTriageApi(login, nil, nil)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/_/triage/list_issues", nil)
@@ -427,7 +427,7 @@ func TestListIssues_InvalidJson(t *testing.T) {
 	login := &aloginMocks.Login{}
 	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
 
-	api := NewTriageApi(login, nil, nil, &issueTrackerMock.IssueTracker{})
+	api := NewTriageApi(login, nil, &issueTrackerMock.IssueTracker{})
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/_/triage/list_issues", bytes.NewBufferString("invalid json"))
@@ -448,7 +448,7 @@ func TestListIssues_BackendError(t *testing.T) {
 	mockIssueTracker := &issueTrackerMock.IssueTracker{}
 	mockIssueTracker.On("ListIssues", testutils.AnyContext, mock.AnythingOfType("issuetracker.ListIssuesRequest")).Return(nil, errors.New("backend error"))
 
-	api := NewTriageApi(login, nil, nil, mockIssueTracker)
+	api := NewTriageApi(login, nil, mockIssueTracker)
 
 	listIssuesRequest := perf_issuetracker.ListIssuesRequest{
 		IssueIds: []int{12345},
@@ -485,7 +485,7 @@ func TestListIssues_Success(t *testing.T) {
 	mockIssueTracker := &issueTrackerMock.IssueTracker{}
 	mockIssueTracker.On("ListIssues", testutils.AnyContext, mock.AnythingOfType("issuetracker.ListIssuesRequest")).Return(expectedIssues, nil)
 
-	api := NewTriageApi(login, nil, nil, mockIssueTracker)
+	api := NewTriageApi(login, nil, mockIssueTracker)
 
 	listIssuesRequest := perf_issuetracker.ListIssuesRequest{
 		IssueIds: []int{12345},

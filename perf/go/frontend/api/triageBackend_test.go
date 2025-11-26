@@ -49,7 +49,7 @@ func TestFileBug_Success(t *testing.T) {
 
 	req := &perf_issuetracker.FileBugRequest{
 		Title:      "Test Bug",
-		Keys:       []int{1, 2, 3},
+		Keys:       []string{"1", "2", "3"},
 		TraceNames: []string{"trace1", "trace2"},
 	}
 
@@ -96,10 +96,9 @@ func TestFileBug_AssociateAlertsError(t *testing.T) {
 			return nil, expectedErr
 		},
 	}
-
 	req := &perf_issuetracker.FileBugRequest{
 		Title:      "Test Bug",
-		Keys:       []int{1, 2, 3},
+		Keys:       []string{"1", "2", "3"},
 		TraceNames: []string{"trace1", "trace2"},
 	}
 
