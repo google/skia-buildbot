@@ -34,7 +34,11 @@ export class SubscriptionTableSk extends ElementSk {
             <h2>${ele.subscription.name} (${ele.alerts?.length || 0} Alert(s) Configured)</h2>
             <p><strong>Contact Email:</strong> ${ele.subscription.contact_email || ''}</p>
             <p><strong>Revision:</strong> ${ele.formatRevision(ele.subscription.revision!)}</p>
-            <p><strong>Component:</strong> ${ele.subscription.bug_component || ''}</p>
+            <p>
+              <strong>Component:</strong> ${ele.formatBugComponent(
+                ele.subscription.bug_component || ''
+              )}
+            </p>
             <p><strong>Hotlists:</strong> ${ele.subscription.hotlists?.join(', ') || ''}</p>
             <p>
               <strong>Priority:</strong> ${ele.subscription.bug_priority},
@@ -122,6 +126,20 @@ export class SubscriptionTableSk extends ElementSk {
       href="https://chrome-internal.googlesource.com/infra/infra_internal/+/${revision}/infra/config/generated/skia-sheriff-configs.cfg"
       >${revision}</a
     >`;
+  }
+
+  /** * Formats the bug component string as a link to the issue tracker.
+   * Assumes the component string is an ID (e.g. "1547614").
+   */
+  private formatBugComponent(component: string) {
+    if (!component) return html``;
+
+    // Construct the URL with the component ID
+    const queryValue = `status:open componentid:${component}`;
+    const encodedQuery = encodeURIComponent(queryValue);
+    const url = `https://g-issues.chromium.org/issues?q=${encodedQuery}&s=created_time:desc`;
+
+    return html`<a href="${url}" target="_blank" rel="noopener noreferrer">${component}</a>`;
   }
 }
 
