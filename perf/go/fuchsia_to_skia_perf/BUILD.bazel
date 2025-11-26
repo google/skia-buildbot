@@ -1,15 +1,4 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
-load("//bazel/go:go_test.bzl", "go_test")
-
-go_library(
-    name = "fuchsia_to_skia_perf_lib",
-    srcs = [
-        "lib.go",
-        "main.go",
-    ],
-    importpath = "go.skia.org/infra/perf/go/fuchsia_to_skia_perf",
-    visibility = ["//visibility:private"],
-)
 
 go_binary(
     name = "fuchsia_to_skia_perf",
@@ -17,8 +6,10 @@ go_binary(
     visibility = ["//visibility:public"],
 )
 
-go_test(
-    name = "fuchsia_to_skia_perf_test",
-    srcs = ["main_test.go"],
-    embed = [":fuchsia_to_skia_perf_lib"],
+go_library(
+    name = "fuchsia_to_skia_perf_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/fuchsia_to_skia_perf",
+    visibility = ["//visibility:private"],
+    deps = ["//perf/go/fuchsia_to_skia_perf/convert"],
 )

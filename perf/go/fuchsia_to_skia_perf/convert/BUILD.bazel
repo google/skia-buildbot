@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "convert",
+    srcs = [
+        "lib.go",
+        "types.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/fuchsia_to_skia_perf/convert",
+    visibility = ["//perf/go/fuchsia_to_skia_perf:__subpackages__"],
+)
+
+go_test(
+    name = "convert_test",
+    srcs = ["lib_test.go"],
+    embed = [":convert"],
+    deps = ["//go/deepequal/assertdeep"],
+)

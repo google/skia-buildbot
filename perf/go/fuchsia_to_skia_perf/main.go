@@ -4,11 +4,14 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"go.skia.org/infra/perf/go/fuchsia_to_skia_perf/convert"
 )
 
 var (
-	inputFile  = flag.String("input", "", "Path to the input Fuchsia JSON file.")
-	outputFile = flag.String("output", "", "Path to the output Skia Perf JSON file.")
+	inputFile = flag.String("input", "", "Path to the input Fuchsia JSON file.")
+	outputDir = flag.String("output_dir", "", "Path to the output directory for Skia Perf JSON files.")
+	master    = flag.String("master", "", "The master name to use in the output key.")
 )
 
 func main() {
@@ -20,18 +23,25 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *outputFile == "" {
-		fmt.Fprintln(os.Stderr, "Error: -output flag is required")
+	if *outputDir == "" {
+		fmt.Fprintln(os.Stderr, "Error: -output_dir flag is required")
 		flag.Usage()
 		os.Exit(1)
 	}
 
-	cfg := Config{
-		InputFile:  *inputFile,
-		OutputFile: *outputFile,
+	if *master == "" {
+		fmt.Fprintln(os.Stderr, "Error: -master flag is required")
+		flag.Usage()
+		os.Exit(1)
 	}
 
-	if err := Run(cfg); err != nil {
+	cfg := convert.Config{
+		InputFile: *inputFile,
+		OutputDir: *outputDir,
+		Master:    *master,
+	}
+
+	if err := convert.Run(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
