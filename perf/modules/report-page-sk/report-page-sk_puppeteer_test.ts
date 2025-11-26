@@ -254,6 +254,18 @@ describe('report-page-sk', () => {
     });
   });
 
+  it('should be able to scroll up and down', async () => {
+    // Scroll down by 1000px.
+    await testBed.page.evaluate(() => window.scrollBy(0, 1000));
+    const scrollYAfterScrollDown = await testBed.page.evaluate(() => window.scrollY);
+    expect(scrollYAfterScrollDown).to.be.greaterThan(0);
+
+    // Scroll up by 1000px.
+    await testBed.page.evaluate(() => window.scrollBy(0, -1000));
+    const scrollYAfterScrollUp = await testBed.page.evaluate(() => window.scrollY);
+    expect(scrollYAfterScrollUp).to.equal(0);
+  });
+
   async function navigateTo(page: Page, base: string, queryParams = ''): Promise<ReportPageSkPO> {
     await page.goto(`${base}${queryParams}`);
     return new ReportPageSkPO(page.$('report-page-sk'));

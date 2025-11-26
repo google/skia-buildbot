@@ -114,6 +114,7 @@ export class AnomaliesTableSkPO extends PageObject {
   async isRowHidden(index: number): Promise<boolean> {
     const rows = await this.rows;
     const row = await rows.item(index);
+    await row.applyFnToDOMNode((el) => el.outerHTML);
     return row.isHidden();
   }
 }

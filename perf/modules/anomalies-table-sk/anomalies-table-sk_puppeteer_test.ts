@@ -57,6 +57,31 @@ describe('anomalies-table-sk', () => {
       expect(rowCount).to.equal(anomaly_table.length + groupRowsCount);
     });
 
+    it('should be able to scroll up and down', async () => {
+      // Scroll down by 1000px.
+      await testBed.page.evaluate(() => window.scrollBy(0, 1000));
+      const scrollYAfterScrollDown = await testBed.page.evaluate(() => window.scrollY);
+      expect(scrollYAfterScrollDown).to.be.greaterThan(0);
+
+      // Scroll up by 1000px.
+      await testBed.page.evaluate(() => window.scrollBy(0, -1000));
+      const scrollYAfterScrollUp = await testBed.page.evaluate(() => window.scrollY);
+      expect(scrollYAfterScrollUp).to.equal(0);
+    });
+
+    it('should be able to hide and show rows', async () => {
+      // Initially, the child row should be hidden.
+      expect(await anomaliesTableSkPO.getChildRowCount()).to.equal(0);
+
+      // Click the expand button of the first group.
+      await anomaliesTableSkPO.clickExpandButton(0);
+      expect(await anomaliesTableSkPO.getChildRowCount()).to.be.greaterThan(0);
+
+      // Click it again to collapse.
+      await anomaliesTableSkPO.clickExpandButton(0);
+      expect(await anomaliesTableSkPO.getChildRowCount()).to.equal(0);
+    });
+
     it('should be able to expand collapsed rows', async () => {
       const initialRowCount = await anomaliesTableSkPO.getRowCount();
       await anomaliesTableSkPO.clickExpandButton(0);
