@@ -309,6 +309,7 @@ def skia_app_container(
                 name = tar_name,
                 empty_dirs = layer.paths,
                 owner = layer.owner,
+                mode = "0755",
                 tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             )
             container_image(
