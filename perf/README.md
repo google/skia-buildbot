@@ -292,6 +292,10 @@ The following VSCode extensions might prove useful for development:
 See [top-level STYLEGUIDE.md](../STYLEGUIDE.md) for information about registering
 components so that lit-plugin sees them.
 
+## Cider Workspace Setup
+
+Please go to the go/browser-perf-engprod
+
 # Debugging and Profiling
 
 When running the application locally, a debug server is also started on port 9000. This server exposes Go's standard `pprof` profiling data, which is useful
