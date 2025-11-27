@@ -1,0 +1,83 @@
+{
+    "URL": "https://webrtc-perf-ng.luci.app",
+    "header_image_url": "/dist/images/webrtc.png",
+    "landing_page_rel_path": "/m/",
+    "ga_measurement_id": "G-KNK8Q3101G",
+    "allowed_hosts": [],
+    "trace_sample_proportion": 0.2,
+    "contact": "browser-perf-engprod@google.com",
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "fetch_chrome_perf_anomalies": true,
+    "fetch_anomalies_from_sql": true,
+    "instance_name": "webrtc-perf-ng",
+    "bug_host_url": "https://bugs.webrtc.org",
+    "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",
+    "notify_config": {
+        "notifications": "html_email"
+    },
+    "auth_config": {
+        "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+        "datastore_type": "spanner",
+        "connection_string": "postgresql://root@localhost:5432/webrtc_pub?sslmode=disable",
+        "tile_size": 8192
+    },
+    "experiments": {
+        "prefetch_metadata": true
+    },
+    "ingestion_config": {
+        "source_config": {
+            "source_type": "gcs",
+            "project": "skia-public",
+            "topic": "perf-ingestion-webrtc-public-spanner",
+            "subscription": "perf-ingestion-webrtc-public-spanner-prod",
+            "dl_topic": "perf-ingestion-webrtc-public-dl",
+            "dl_subscription": "perf-ingestion-webrtc-public-dl-prod",
+            "sources": [
+                "gs://webrtc-perf-public/ingest-cp"
+            ]
+        },
+        "branches": [],
+        "file_ingestion_pubsub_topic_name": "perf-cluster-webrtc-public"
+    },
+    "issue_tracker_config": {
+        "notification_type": "issuetracker",
+        "issue_tracker_api_key_secret_project": "skia-infra-public",
+        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    },
+    "git_repo_config": {
+        "provider": "gitiles",
+        "url": "https://webrtc.googlesource.com/src",
+        "dir": "/tmp/checkout",
+        "debounce_commit_url": false,
+	"file_change_marker": "",
+        "start_commit": "6725b648c869689fd28038f95124e1de239b2ef1",
+	"commit_number_regex": "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
+    },
+    "query_config": {
+      "include_params": [
+        "benchmark",
+        "bot",
+        "test",
+        "subtest_1",
+        "unit"
+     ],
+      "default_param_selections": {
+        "stat": ["value"]
+      },
+      "default_url_values": {
+        "plotSummary": "true",
+        "showZero": "false",
+        "useTestPicker": "true",
+        "enable_chart_tooltip": "true",
+        "use_titles": "true",
+        "show_google_plot": "true"
+      },
+      "query_commit_chunk_size": 10000
+    },
+    "optimize_sqltracestore": true,
+    "enable_sheriff_config": true,
+    "show_triage_link": true,
+    "show_bisect_btn": true
+}

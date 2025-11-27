@@ -1,0 +1,118 @@
+{
+    "URL": "https://chrome-perf-ng.corp.goog",
+    "landing_page_rel_path": "/m/",
+    "ga_measurement_id": "G-PFC9BX9411",
+    "allowed_hosts": [],
+    "backend_host_url": "perf-be-chrome-non-public.perf.svc.cluster.local:8000",
+    "contact": "browser-perf-engprod@google.com",
+    "instance_name": "chrome-internal-ng",
+    "trace_sample_proportion": 0.01,
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "fetch_chrome_perf_anomalies": true,
+    "fetch_anomalies_from_sql": true,
+    "use_regression2_schema": true,
+    "bug_host_url": "https://issues.chromium.org",
+    "feedback_url": "http://go/berf-skia-feedback",
+    "chat_url": "http://go/berf-skia-chat",
+    "filter_parent_traces": true,
+    "notify_config": {
+        "notifications": "anomalygroup"
+    },
+    "issue_tracker_config": {
+        "notification_type": "issuetracker",
+        "issue_tracker_api_key_secret_project": "skia-infra-public",
+        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    },
+    "auth_config": {
+        "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+        "datastore_type": "spanner",
+        "connection_string": "postgresql://root@localhost:5432/chrome_int?sslmode=disable",
+        "tile_size": 8192,
+        "enable_follower_reads": true,
+        "min_db_connections": 5
+    },
+    "experiments": {
+        "enable_skia_bridge_aggregation": true,
+        "prefetch_metadata": true
+    },
+    "ingestion_config": {
+        "source_config": {
+            "source_type": "gcs",
+            "project": "skia-public",
+            "topic": "perf-ingestion-chrome-internal-spanner",
+            "subscription": "perf-ingestion-chrome-internal-spanner-prod",
+            "dl_topic": "perf-ingestion-chrome-non-public-dl",
+            "dl_subscription": "perf-ingestion-chrome-non-public-dl-prod",
+            "sources": [
+                "gs://chrome-perf-non-public/ingest"
+            ]
+        },
+        "branches": [],
+        "file_ingestion_pubsub_topic_name": "perf-cluster-chrome-non-public"
+    },
+    "git_repo_config": {
+        "provider": "gitiles",
+        "url": "https://chromium.googlesource.com/chromium/src",
+        "dir": "/tmp/checkout",
+        "debounce_commit_url": false,
+        "file_change_marker": "",
+        "start_commit": "b7fa4587f55a066e97f79b4c97ed785dc217064b",
+        "commit_number_regex": "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
+    },
+    "query_config": {
+        "include_params": [
+            "benchmark",
+            "bot",
+            "test",
+            "subtest_1",
+            "subtest_2",
+            "subtest_3"
+        ],
+        "default_param_selections": {
+            "stat": ["value"]
+        },
+        "default_url_values": {
+            "plotSummary": "true",
+            "useTestPicker": "true",
+            "showZero": "false",
+            "enable_chart_tooltip": "true",
+            "use_titles": "true",
+            "show_google_plot": "true"
+        },
+        "default_range": 604800,
+        "cache_config": {
+            "type": "redis",
+            "level1_cache_key": "benchmark",
+            "level2_cache_key": "bot",
+            "enabled": true
+        },
+        "redis_config": {
+            "project": "skia-infra-corp",
+            "zone": "us-central1",
+            "instance": "chrome-internal-ng",
+            "cache_expiration_minutes": 300
+        }
+    },
+    "data_point_config": {
+        "keys_for_commit_range": ["V8", "WebRTC", "V8 Git Hash", "WebRTC Git Hash"],
+        "keys_for_useful_links": ["Build Page", "Tracing uri", "Browser Version"],
+        "skip_commit_detail_display": true,
+        "show_json_file_display": false
+    },
+    "temporal_config": {
+        "host_port": "temporal.temporal:7233",
+        "namespace": "perf-internal",
+        "grouping_task_queue": "perf.perf-chrome-internal.grouping",
+        "pinpoint_task_queue": "perf.perf-chrome-public.bisect"
+    },
+    "enable_sheriff_config": true,
+    "help_url_override": "http://go/chrome-perf-user-doc",
+    "trace_format": "chrome",
+    "need_alert_action": true,
+    "optimize_sqltracestore": true,
+    "new_alerts_page": true,
+    "show_triage_link": false,
+    "show_bisect_btn": true
+}
