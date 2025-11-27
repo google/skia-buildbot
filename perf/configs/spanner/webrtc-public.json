@@ -38,7 +38,7 @@
             ]
         },
         "branches": [],
-        "file_ingestion_pubsub_topic_name": ""
+        "file_ingestion_pubsub_topic_name": "perf-cluster-webrtc-public"
     },
     "issue_tracker_config": {
         "notification_type": "issuetracker",
