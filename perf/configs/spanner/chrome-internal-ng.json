@@ -91,7 +91,7 @@
         "redis_config": {
             "project": "skia-infra-corp",
             "zone": "us-central1",
-            "instance": "chrome-internal-ng",
+            "instance": "chrome-internal",
             "cache_expiration_minutes": 300
         }
     },
