@@ -4,6 +4,7 @@ package issuetracker
 
 import (
 	"context"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -66,26 +67,47 @@ type FileBugRequest struct {
 	Host        string   `json:"host,omitempty"`
 }
 
-// NewIssueTracker returns a new issueTracker object.
-func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig) (IssueTracker, error) {
+func setupSecretClient(ctx context.Context, cfg config.IssueTrackerConfig, options []option.ClientOption) (*http.Client, []option.ClientOption, error) {
 	secretClient, err := secret.NewClient(ctx)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "creating secret client")
+		return nil, nil, skerr.Wrapf(err, "creating secret client")
 	}
 	apiKey, err := secretClient.Get(ctx, cfg.IssueTrackerAPIKeySecretProject, cfg.IssueTrackerAPIKeySecretName, secret.VersionLatest)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "loading API Key secrets from project: %q  name: %q", cfg.IssueTrackerAPIKeySecretProject, cfg.IssueTrackerAPIKeySecretName)
+		return nil, nil, skerr.Wrapf(err, "loading API Key secrets from project: %q  name: %q", cfg.IssueTrackerAPIKeySecretProject, cfg.IssueTrackerAPIKeySecretName)
 	}
+	options = append(options, option.WithAPIKey(apiKey))
 
 	client, err := google.DefaultClient(context.Background(), "https://www.googleapis.com/auth/buganizer")
-	if err != nil {
-		return nil, skerr.Wrapf(err, "creating authorized HTTP client")
+	return client, options, err
+}
+
+// NewIssueTracker returns a new issueTracker object.
+func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig, devMode bool) (IssueTracker, error) {
+	var client *http.Client
+	var err error
+	var options []option.ClientOption
+
+	if devMode {
+		sklog.Warning("Using a mock issue tracker.")
+		client = http.DefaultClient
+	} else {
+		client, options, err = setupSecretClient(ctx, cfg, options)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "creating authorized HTTP client")
+		}
 	}
-	c, err := issuetracker.NewService(ctx, option.WithAPIKey(apiKey), option.WithHTTPClient(client))
+	options = append(options, option.WithHTTPClient(client))
+	c, err := issuetracker.NewService(ctx, options...)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "creating issuetracker service")
 	}
-	c.BasePath = "https://issuetracker.googleapis.com"
+
+	if devMode {
+		c.BasePath = "http://localhost:8081"
+	} else {
+		c.BasePath = "https://issuetracker.googleapis.com"
+	}
 
 	return &issueTrackerImpl{
 		client: c,

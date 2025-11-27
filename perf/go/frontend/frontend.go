@@ -582,7 +582,7 @@ func (f *Frontend) initialize() {
 	if f.flags.NoEmail {
 		config.Config.NotifyConfig.Notifications = notifytypes.None
 	}
-	f.notifier, err = notify.New(ctx, &config.Config.NotifyConfig, &config.Config.IssueTrackerConfig, config.Config.URL, f.flags.CommitRangeURL, f.traceStore, f.ingestedFS)
+	f.notifier, err = notify.New(ctx, &config.Config.NotifyConfig, &config.Config.IssueTrackerConfig, config.Config.URL, f.flags.CommitRangeURL, f.traceStore, f.ingestedFS, f.flags.DevMode)
 	if err != nil {
 		sklog.Fatalf("Failed to create issue tracker: %v", err)
 	}
@@ -648,7 +648,7 @@ func (f *Frontend) initialize() {
 		}
 
 		if cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretProject != "" && cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretName != "" {
-			f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig)
+			f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig, f.flags.DevMode)
 			if err != nil {
 				sklog.Fatalf("Failed to build issuetracker client: %s", err)
 			}

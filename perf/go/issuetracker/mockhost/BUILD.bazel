@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_binary(
+    name = "mock",
+    embed = [":mockhost_lib"],
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "mockhost_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/issuetracker/mockhost",
+    tags = ["manual"],
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/issuetracker/v1:issuetracker",
+        "//go/sklog",
+        "@com_github_go_chi_chi_v5//:chi",
+    ],
+)

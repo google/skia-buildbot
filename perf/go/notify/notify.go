@@ -219,7 +219,7 @@ func (n *defaultNotifier) UpdateNotification(ctx context.Context, commit, previo
 }
 
 // New returns a Notifier of the selected type.
-func New(ctx context.Context, cfg *config.NotifyConfig, itCfg *config.IssueTrackerConfig, URL, commitRangeURITemplate string, traceStore tracestore.TraceStore, fs fs.FS) (Notifier, error) {
+func New(ctx context.Context, cfg *config.NotifyConfig, itCfg *config.IssueTrackerConfig, URL, commitRangeURITemplate string, traceStore tracestore.TraceStore, fs fs.FS, devMode bool) (Notifier, error) {
 	formatter, err := getFormatter(cfg, commitRangeURITemplate)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -253,10 +253,12 @@ func New(ctx context.Context, cfg *config.NotifyConfig, itCfg *config.IssueTrack
 	case notifytypes.ChromeperfAlerting:
 		return NewChromePerfNotifier(ctx, nil)
 	case notifytypes.AnomalyGrouper:
-		if itCfg == nil || itCfg.IssueTrackerAPIKeySecretProject == "" || itCfg.IssueTrackerAPIKeySecretName == "" {
-			return nil, skerr.Fmt("Invalid issue tracker configs. It is required by anomalygroup notifier type.")
+		if !devMode {
+			if itCfg == nil || itCfg.IssueTrackerAPIKeySecretProject == "" || itCfg.IssueTrackerAPIKeySecretName == "" {
+				return nil, skerr.Fmt("Invalid issue tracker configs. It is required by anomalygroup notifier type.")
+			}
 		}
-		perfIssueTracker, err := perf_issuetracker.NewIssueTracker(ctx, *itCfg)
+		perfIssueTracker, err := perf_issuetracker.NewIssueTracker(ctx, *itCfg, devMode)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

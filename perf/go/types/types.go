@@ -234,7 +234,6 @@ const (
 	// IssueTracker means send Markdown formatted notifications to the
 	// issue tracker.
 	IssueNotify AnomalyDetectionNotifyType = "issuetracker"
-
 	// None means do not send any notification.
 	NoneNotify AnomalyDetectionNotifyType = "none"
 )
