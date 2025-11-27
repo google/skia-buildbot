@@ -346,7 +346,7 @@ func TestAssociateAlerts_BackendError(t *testing.T) {
 	api.AssociateAlerts(w, r)
 
 	require.Equal(http.StatusInternalServerError, w.Code)
-	require.Contains(w.Body.String(), "Chromeperf associate request failed.")
+	require.Contains(w.Body.String(), "Associate request failed.")
 	login.AssertExpectations(t)
 	mockBackend.AssertExpectations(t)
 }

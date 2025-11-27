@@ -56,6 +56,9 @@ type Store interface {
 	// DeleteByCommit deletes a regression from the Regression table via the CommitNumber.
 	// Use with caution.
 	DeleteByCommit(ctx context.Context, commitNumber types.CommitNumber, tx pgx.Tx) error
+
+	// SetBugID associates a set of regressions, identified by their IDs, with a bug ID.
+	SetBugID(ctx context.Context, regressionIDs []string, bugID int) error
 }
 
 // FullSummary describes a single regression.

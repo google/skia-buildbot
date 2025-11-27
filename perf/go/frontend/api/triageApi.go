@@ -222,7 +222,7 @@ func (api triageApi) AssociateAlerts(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(
 			w,
 			err,
-			"Chromeperf associate request failed.",
+			"Associate request failed.",
 			http.StatusInternalServerError)
 		return
 	}

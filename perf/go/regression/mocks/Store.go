@@ -251,6 +251,24 @@ func (_m *Store) RangeFiltered(ctx context.Context, begin types.CommitNumber, en
 	return r0, r1
 }
 
+// SetBugID provides a mock function with given fields: ctx, regressionIDs, bugID
+func (_m *Store) SetBugID(ctx context.Context, regressionIDs []string, bugID int) error {
+	ret := _m.Called(ctx, regressionIDs, bugID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetBugID")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string, int) error); ok {
+		r0 = rf(ctx, regressionIDs, bugID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SetHigh provides a mock function with given fields: ctx, commitNumber, alertID, df, high
 func (_m *Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, string, error) {
 	ret := _m.Called(ctx, commitNumber, alertID, df, high)

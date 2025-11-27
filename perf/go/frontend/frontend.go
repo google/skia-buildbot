@@ -1125,7 +1125,13 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 
 // getFrontendApis returns a list of apis supported by the Frontend service.
 func (f *Frontend) getFrontendApis() []api.FrontendApi {
-	triageClient := api.NewChromeperfTriageBackend(f.chromeperfClient)
+
+	var triageClient api.TriageBackend
+	if config.Config.FetchAnomaliesFromSql {
+		triageClient = api.NewTriageBackend(f.issuetracker, f.regStore)
+	} else {
+		triageClient = api.NewChromeperfTriageBackend(f.chromeperfClient)
+	}
 	return []api.FrontendApi{
 		api.NewFavoritesApi(f.loginProvider, f.favStore),
 		api.NewAlertsApi(f.loginProvider, f.configProvider, f.alertStore, f.notifier, f.subStore, f.dryrunRequests),

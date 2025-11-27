@@ -173,6 +173,7 @@ export class ExistingBugDialogSk extends ElementSk {
       });
       anomalyKeys = [this.bug_id.toString()];
     }
+
     const requestBody = {
       bug_id: this.bug_id,
       keys: anomalyKeys,

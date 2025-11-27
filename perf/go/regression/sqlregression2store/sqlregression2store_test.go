@@ -556,3 +556,50 @@ func TestGetRegressionsBySubName(t *testing.T) {
 		})
 	}
 }
+
+func TestSetBugID_Success(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+	// Insert some regressions to update.
+	regressions := []*regression.Regression{
+		generateNewRegression(),
+		generateNewRegression(),
+		generateNewRegression(),
+	}
+	regIDs := []string{}
+	for _, reg := range regressions {
+		_, err := store.WriteRegression(ctx, reg, nil)
+		require.NoError(t, err)
+		regIDs = append(regIDs, reg.Id)
+	}
+
+	bugID := 12345
+	idsToUpdate := []string{regIDs[0], regIDs[1]}
+
+	err := store.SetBugID(ctx, idsToUpdate, bugID)
+	require.NoError(t, err)
+
+	// Verify that the bug_id was updated for reg1 and reg2.
+	for _, id := range idsToUpdate {
+		regs, err := store.GetByIDs(ctx, []string{id})
+		require.NoError(t, err)
+		require.Len(t, regs, 1)
+		assert.Equal(t, int64(bugID), regs[0].BugId)
+	}
+
+	// Verify that bug_id was not updated for reg3.
+	regs, err := store.GetByIDs(ctx, []string{regIDs[2]})
+	require.NoError(t, err)
+	require.Len(t, regs, 1)
+	assert.Equal(t, int64(0), regs[0].BugId)
+}
+
+func TestSetBugID_NoIDs(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+
+	err := store.SetBugID(ctx, []string{}, 12345)
+	require.NoError(t, err)
+}

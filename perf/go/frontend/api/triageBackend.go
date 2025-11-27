@@ -6,6 +6,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
+	"go.skia.org/infra/perf/go/regression"
 )
 
 // TriageBackend defines the interface for triaging operations.
@@ -17,11 +18,13 @@ type TriageBackend interface {
 
 type triageBackend struct {
 	issueTracker perf_issuetracker.IssueTracker
+	regStore     regression.Store
 }
 
-func NewTriageBackend(issueTracker perf_issuetracker.IssueTracker) TriageBackend {
+func NewTriageBackend(issueTracker perf_issuetracker.IssueTracker, regStore regression.Store) TriageBackend {
 	return &triageBackend{
 		issueTracker: issueTracker,
+		regStore:     regStore,
 	}
 }
 
@@ -61,7 +64,18 @@ func (t *triageBackend) EditAnomalies(ctx context.Context, req *EditAnomaliesReq
 }
 
 func (t *triageBackend) AssociateAlerts(ctx context.Context, req *SkiaAssociateBugRequest) (*SkiaAssociateBugResponse, error) {
-	return nil, skerr.Fmt("unimplemented call to associate alerts")
+	if req.BugId <= 0 {
+		return nil, skerr.Fmt("BugId must be a positive integer")
+	}
+	if len(req.Keys) == 0 {
+		return nil, skerr.Fmt("Keys are required")
+	}
+
+	if err := t.regStore.SetBugID(ctx, req.Keys, req.BugId); err != nil {
+		return nil, skerr.Wrapf(err, "failed to associate alerts with bug id %d", req.BugId)
+	}
+
+	return &SkiaAssociateBugResponse{}, nil
 }
 
 func (t *triageBackend) ignoreAnomalies(ctx context.Context, req *EditAnomaliesRequest) (*EditAnomaliesResponse, error) {

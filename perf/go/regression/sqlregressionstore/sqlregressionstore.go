@@ -399,5 +399,9 @@ func (s *SQLRegressionStore) DeleteByCommit(ctx context.Context, num types.Commi
 	return err
 }
 
+func (s *SQLRegressionStore) SetBugID(ctx context.Context, regressionIDs []string, bugID int) error {
+	return skerr.Fmt("SetBugID is not implemented in old version of regression store.")
+}
+
 // Confirm that SQLRegressionStore implements regression.Store.
 var _ regression.Store = (*SQLRegressionStore)(nil)

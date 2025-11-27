@@ -53,6 +53,7 @@ const (
 	readBySubName
 	deleteByCommit
 	readRangeFiltered
+	setBugID
 )
 
 // statementContext provides a struct to expand sql statement templates.
@@ -151,6 +152,11 @@ var statementFormats = map[statementFormat]string{
 			Regressions2
 		WHERE
 			commit_number=$1
+		`,
+	setBugID: `
+		UPDATE Regressions2
+		SET bug_id = $1
+		WHERE id = ANY($2)
 		`,
 }
 
@@ -649,6 +655,23 @@ func (s *SQLRegression2Store) DeleteByCommit(ctx context.Context, num types.Comm
 	}
 
 	return err
+}
+
+// SetBugID associates a set of regressions, identified by their IDs, with a bug ID.
+func (s *SQLRegression2Store) SetBugID(ctx context.Context, regressionIDs []string, bugID int) error {
+	if len(regressionIDs) == 0 {
+		return nil // Nothing to update
+	}
+
+	args := []interface{}{bugID, regressionIDs}
+
+	cmdTag, err := s.db.Exec(ctx, s.statements[setBugID], args...)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to update bug_id for regressions")
+	}
+
+	sklog.Infof("Set bug_id=%d for %d regressions", bugID, cmdTag.RowsAffected())
+	return nil
 }
 
 // Confirm that SQLRegressionStore implements regression.Store.
