@@ -9,6 +9,7 @@ go_library(
     ],
     importpath = "go.skia.org/infra/perf/go/fuchsia_to_skia_perf/convert",
     visibility = ["//perf/go/fuchsia_to_skia_perf:__subpackages__"],
+    deps = ["@com_google_cloud_go_storage//:storage"],
 )
 
 go_test(

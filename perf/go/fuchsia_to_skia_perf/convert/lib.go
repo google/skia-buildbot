@@ -1,12 +1,14 @@
 package convert
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var (
@@ -75,12 +77,23 @@ func stdDev(values []float64) float64 {
 
 // Run performs the JSON conversion.
 func Run(cfg Config) error {
+	ctx := context.Background()
 	if cfg.Master == "" {
 		return fmt.Errorf("master is required")
 	}
 	fmt.Printf("Input file: %s\n", cfg.InputFile)
 	fmt.Printf("Output directory: %s\n", cfg.OutputDir)
 	fmt.Printf("Master: %s\n", cfg.Master)
+
+	gcsPathPrefix := ""
+	if cfg.Date != "" {
+		t, err := time.Parse("2006-01-02", cfg.Date)
+		if err != nil {
+			return fmt.Errorf("invalid date format: %w", err) // Should have been caught in main
+		}
+		gcsPathPrefix = filepath.Join("ingest", t.Format("2006/01/02"))
+		fmt.Printf("GCS Path Prefix: %s\n", gcsPathPrefix)
+	}
 
 	// Read the input file
 	inputData, err := os.ReadFile(cfg.InputFile)
@@ -123,11 +136,13 @@ func Run(cfg Config) error {
 		}
 	}
 
-	// Prepare output directory
-	if err := os.MkdirAll(cfg.OutputDir, 0755); err != nil {
-		return fmt.Errorf("failed to create output directory: %w", err)
+	// Prepare output directory if provided
+	if cfg.OutputDir != "" {
+		if err := os.MkdirAll(cfg.OutputDir, 0755); err != nil {
+			return fmt.Errorf("failed to create output directory: %w", err)
+		}
+		fmt.Printf("Output directory: %s\n", cfg.OutputDir)
 	}
-	fmt.Printf("Output directory: %s\n", cfg.OutputDir)
 
 	// Process each top-level record (build) separately
 	for _, record := range fuchsiaResults {
@@ -154,17 +169,41 @@ func Run(cfg Config) error {
 			}
 
 			outputFileName := fmt.Sprintf("%s-%s-%s-%s.json", record.BuildID, benchmark, record.Builder, cfg.Master)
-			outputFilePath := filepath.Join(cfg.OutputDir, outputFileName)
 
-			fmt.Printf("  Writing to Output File Path: %s\n", outputFilePath)
 			skiaResultJSON, err := json.MarshalIndent(skiaResult, "", "  ")
+
 			if err != nil {
+
 				return fmt.Errorf("failed to marshal SkiaPerfResult for build %s, benchmark %s: %w", record.BuildID, benchmark, err)
+
 			}
 
-			err = os.WriteFile(outputFilePath, skiaResultJSON, 0644)
-			if err != nil {
-				return fmt.Errorf("failed to write output file for build %s, benchmark %s: %w", record.BuildID, benchmark, err)
+			if cfg.OutputDir != "" {
+
+				outputFilePath := filepath.Join(cfg.OutputDir, outputFileName)
+				fmt.Printf("  Writing to Output File Path: %s\n", outputFilePath)
+				if err := os.WriteFile(outputFilePath, skiaResultJSON, 0644); err != nil {
+					return fmt.Errorf("failed to write output file for build %s, benchmark %s: %w", record.BuildID, benchmark, err)
+				}
+			}
+
+			// Upload to GCS if client is configured
+			if cfg.GCSClient != nil {
+				destPath := filepath.Join(gcsPathPrefix, outputFileName)
+				wc := cfg.GCSClient.Bucket(cfg.GCSBucket).Object(destPath).NewWriter(ctx)
+				wc.ContentType = "application/json"
+
+				if _, err := wc.Write(skiaResultJSON); err != nil {
+					fmt.Printf("Error: Failed to write to GCS object %s: %v\n", destPath, err)
+					// Optionally continue to the next file if one upload fails
+					continue
+				}
+				if err := wc.Close(); err != nil {
+					fmt.Printf("Error: Failed to close GCS writer for %s: %v\n", destPath, err)
+					// Optionally continue to the next file
+					continue
+				}
+				fmt.Printf("  Successfully uploaded to gs://%s/%s\n", cfg.GCSBucket, destPath)
 			}
 		}
 	}

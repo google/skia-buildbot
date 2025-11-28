@@ -11,5 +11,10 @@ go_library(
     srcs = ["main.go"],
     importpath = "go.skia.org/infra/perf/go/fuchsia_to_skia_perf",
     visibility = ["//visibility:private"],
-    deps = ["//perf/go/fuchsia_to_skia_perf/convert"],
+    deps = [
+        "//perf/go/fuchsia_to_skia_perf/convert",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
+    ],
 )

@@ -1,10 +1,15 @@
 package convert
 
+import "cloud.google.com/go/storage"
+
 // Config for the conversion process.
 type Config struct {
 	InputFile string
 	OutputDir string
 	Master    string
+	GCSClient *storage.Client
+	GCSBucket string
+	Date      string
 }
 
 // FuchsiaPerfResultItem represents a single performance result from the input.
