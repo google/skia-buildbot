@@ -655,6 +655,14 @@ func (f *Frontend) initialize() {
 		}
 	}
 
+	// Build mock issuetracker
+	if f.flags.DevMode && f.issuetracker == nil {
+		f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig, f.flags.DevMode)
+		if err != nil {
+			sklog.Fatalf("Failed to build issuetracker client: %s", err)
+		}
+	}
+
 	f.subStore, err = builders.NewSubscriptionStoreFromConfig(ctx, cfg)
 	if err != nil {
 		sklog.Fatalf("Failed to build subscription.Store: %s", err)
@@ -1128,6 +1136,9 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 
 	var triageClient api.TriageBackend
 	if config.Config.FetchAnomaliesFromSql {
+		if f.issuetracker == nil {
+			sklog.Fatalf("New triage backend requires issuetracker to run.")
+		}
 		triageClient = api.NewTriageBackend(f.issuetracker, f.regStore)
 	} else {
 		triageClient = api.NewChromeperfTriageBackend(f.chromeperfClient)

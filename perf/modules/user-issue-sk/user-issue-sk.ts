@@ -334,7 +334,7 @@ export class UserIssueSk extends LitElement {
     const body = {
       trace_names: [this.trace_key],
       title: bugTitle,
-      ccs: this.user_id,
+      ccs: [this.user_id],
       bug_component: this.bugComponent,
       assignee: this.user_id,
     };

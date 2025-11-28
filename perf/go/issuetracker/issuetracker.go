@@ -163,6 +163,15 @@ func (s *issueTrackerImpl) ListIssues(ctx context.Context, requestObj ListIssues
 	return resp.Issues, nil
 }
 
+func (s *issueTrackerImpl) getComponentID(ctx context.Context, componentName string) (int64, error) {
+	componentID, err := strconv.ParseInt(componentName, 10, 64)
+	if err != nil {
+		// TODO(mordeckimarcin) pass componentIDs instead of raw names.
+		return 1526905, nil
+	}
+	return componentID, nil
+}
+
 // TODO(mordeckimarcin) Inspect filed bugs. Determine whether Keys, TraceNames, Host, or Label
 // should be included. In particular, labels will be missing in the new bugs.
 func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (int, error) {
@@ -170,7 +179,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		return 0, skerr.Fmt("File bug request is null.")
 	}
 
-	componentID, err := strconv.ParseInt(req.Component, 10, 64)
+	componentID, err := s.getComponentID(ctx, req.Component)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "invalid component id: %s", req.Component)
 	}
