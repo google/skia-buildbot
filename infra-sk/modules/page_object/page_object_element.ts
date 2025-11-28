@@ -134,6 +134,37 @@ export class PageObjectElement {
   }
 
   /**
+   * Types the given text into the element.
+   */
+  async type(text: string): Promise<void> {
+    const element = await this.elementPromise;
+    if (isPptrElement(element!)) {
+      await (element as ElementHandle).type(text);
+      return;
+    }
+    // Browser fallback
+    for (const char of text) {
+      await this.typeKey(char);
+    }
+  }
+
+  /**
+   * Presses a key.
+   */
+  async press(key: string): Promise<void> {
+    const element = await this.elementPromise;
+    if (isPptrElement(element!)) {
+      await (element as ElementHandle).press(key as any);
+      return;
+    }
+    // Browser fallback
+    const ele = element as Element;
+    ele.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: key }));
+    ele.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, key: key }));
+    ele.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: key }));
+  }
+
+  /**
    * Analogous to the Element#value property setter (e.g. for text inputs, selects, etc.).
    *
    * Simulates events "input" and "change".

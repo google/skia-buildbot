@@ -375,7 +375,7 @@ export class TestPickerSk extends ElementSk {
    */
   populateFieldDataFromQuery(query: string, params: string[], paramSet: ParamSet) {
     const selectedParams: ParamSet = toParamSet(query);
-    if (paramSet) {
+    if (paramSet && Object.keys(paramSet).length > 0) {
       const paramKeys: string[] = Object.keys(paramSet).filter((key) => key in selectedParams);
       this.initializeFieldData(paramKeys);
     } else {

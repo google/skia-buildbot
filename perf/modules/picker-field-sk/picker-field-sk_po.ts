@@ -26,6 +26,16 @@ export class PickerFieldSkPO extends PageObject {
     await this.comboBox.click();
   }
 
+  async search(value: string): Promise<void> {
+    await this.openOverlay();
+    await this.comboBox.type(value);
+    await this.comboBox.press('Enter');
+  }
+
+  async clear(): Promise<void> {
+    await this.comboBox.applyFnToDOMNode((n) => ((n as any).selectedItems = []));
+  }
+
   async isDisabled(): Promise<boolean> {
     return this.comboBox.hasAttribute('readonly');
   }

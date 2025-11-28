@@ -75,7 +75,7 @@ window.customElements.whenDefined('test-picker-sk').then(() => {
 });
 
 $$('#populate-query')?.addEventListener('click', () => {
-  const ele = document.querySelector('#test-picker-dark') as TestPickerSk;
+  const ele = document.querySelector('test-picker-sk') as TestPickerSk;
   const query = {
     benchmark: ['blink_perf.css'],
     bot: ['ToTLinuxTSan'],
@@ -89,7 +89,7 @@ $$('#populate-query')?.addEventListener('click', () => {
 });
 
 $$('#populate-partial-query')?.addEventListener('click', () => {
-  const ele = document.querySelector('#test-picker-dark') as TestPickerSk;
+  const ele = document.querySelector('test-picker-sk') as TestPickerSk;
   const query = {
     benchmark: ['blink_perf.css'],
     bot: ['ToTLinuxTSan'],
@@ -104,13 +104,31 @@ $$('#populate-partial-query')?.addEventListener('click', () => {
 
 fetchMock.post('/_/nextParamList/', async (_, opts) => {
   const request = JSON.parse(opts.body!.toString()) as NextParamListHandlerRequest;
-  const paramSet = toParamSet(request.q);
+  const currentParamSet = toParamSet(request.q);
+  let nextParam = '';
+
+  // Find the first param from our list that isn't in the current query.
+  for (const param of params) {
+    if (!(param in currentParamSet)) {
+      nextParam = param;
+      break;
+    }
+  }
+
+  const responseParamSet: any = {};
+  if (nextParam && nextParam in paramset) {
+    // Return only the next param and its options.
+    responseParamSet[nextParam] = (paramset as any)[nextParam];
+  }
+
+  // Calculate a mock count based on how many fields are left to fill.
   let emptyValues = 0;
   params.forEach((param) => {
-    if (!(param in paramSet)) {
+    if (!(param in currentParamSet)) {
       emptyValues += 1;
     }
   });
-  await delay(1000);
-  return { paramset: paramset, count: emptyValues * 5 + 1 };
+
+  await delay(100); // Reduced delay for faster tests
+  return { paramset: responseParamSet, count: emptyValues * 5 + 1 };
 });
