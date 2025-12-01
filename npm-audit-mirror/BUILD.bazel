@@ -1,8 +1,23 @@
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
+load("//bazel:node_modules.bzl", "node_module_tar")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+node_module_tar(
+    name = "verdaccio_tar",
+    mode = "a+rx",
+    package = "verdaccio",
+    package_dir = "/usr/local/lib/node_modules/verdaccio",
+)
+
+pkg_tar(
+    name = "verdaccio_symlink",
+    symlinks = {"/usr/local/bin/verdaccio": "/usr/local/lib/node_modules/verdaccio/bin/verdaccio"},
+)
 
 skia_app_container(
     name = "npm_audit_mirror_container",
     base_image = "@node_alpine//image",
+    create_skia_user = True,
     dirs = {
         "/usr/local/bin": [
             [
@@ -12,15 +27,9 @@ skia_app_container(
         ],
     },
     entrypoint = "/usr/local/bin/npm-audit-mirror",
-    repository = "skia-public/npm-audit-mirror",
-    run_commands_root = [
-        # Create the skia user.
-        "addgroup -g 2000 -S skia",
-        "adduser -u 2000 -S skia -G skia",
-        "apk update",
-        # Install packages useful for debugging on the pod.
-        "apk add --no-cache wget",
-        # Install verdaccio.
-        "npm install --global verdaccio@5.7.0",
+    extra_tars = [
+        ":verdaccio_tar",
+        ":verdaccio_symlink",
     ],
+    repository = "skia-public/npm-audit-mirror",
 )

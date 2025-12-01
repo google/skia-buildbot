@@ -67,6 +67,7 @@ gazelle(
 exports_files(
     [
         "package.json",
+        "package-lock.json",
         "tsconfig.json",
         ".puppeteerrc.js",
     ],

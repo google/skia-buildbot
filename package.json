@@ -93,13 +93,14 @@
     "sass": "^1.69.5",
     "sinon": "^7.5.0",
     "socket.io-parser": "^4.2.3",
-    "streamx": "^2.15.5",
     "source-map-support": "^0.5.21",
+    "streamx": "^2.15.5",
     "supports-color": "^10.2.0",
     "typescript": "5.2.2",
     "ua-parser-js": "^0.7.34",
     "utf-8-validate": "^5.0.10",
     "vanilla-jsoneditor": "^0.23.2",
+    "verdaccio": "^5.7.0",
     "zod": "^3.25.55"
   },
   "scripts": {
