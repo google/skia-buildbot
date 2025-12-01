@@ -335,6 +335,22 @@ describe('ExploreMultiSk', () => {
       assert.equal(element['exploreElements'].length, initialGraphCount - 1);
     });
 
+    it('removes all graphs when a remove-explore event is dispatched with null detail', async () => {
+      await element['initializeTestPicker'](); // Initialize to attach the listener.
+      element['addEmptyGraph']();
+      const initialGraphCount = element['exploreElements'].length;
+      assert.isAbove(initialGraphCount, 0);
+
+      const event = new CustomEvent('remove-explore', {
+        bubbles: true,
+        composed: true,
+        // No detail provided, simulating the bug/feature
+      });
+      element.dispatchEvent(event);
+
+      assert.equal(element['exploreElements'].length, 0);
+    });
+
     it('resets pagination when the last graph is removed', async () => {
       await element['initializeTestPicker']();
       const graph1 = element['addEmptyGraph']()!;
@@ -790,7 +806,7 @@ describe('ExploreMultiSk', () => {
       loadExtendedSpy = sinon.stub(mainGraph, 'loadExtendedRangeData').resolves();
       sinon.stub(mainGraph, 'getSelectedRange').returns({ begin: 0, end: 1 });
       // Ensure that awaiting 'requestComplete' doesn't hang the test.
-      sinon.stub(mainGraph, 'requestComplete').get(() => Promise.resolve());
+      sinon.stub(mainGraph, 'requestComplete').get(async () => await Promise.resolve());
 
       // We stub 'addEmptyGraph' to ensure it returns our controlled instance
       // of ExploreSimpleSk, allowing us to spy on its methods.

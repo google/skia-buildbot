@@ -14,7 +14,7 @@ describe('test-picker-sk', () => {
 
   beforeEach(async () => {
     // Mock the fetch function.
-    fetchMock = (_url: RequestInfo | URL, request: RequestInit | undefined) => {
+    fetchMock = async (_url: RequestInfo | URL, request: RequestInit | undefined) => {
       const req = JSON.parse(request!.body as string) as NextParamListHandlerRequest;
       const params = toParamSet(req.q!);
       const paramset: any = {};
@@ -27,7 +27,7 @@ describe('test-picker-sk', () => {
         paramset: paramset,
         count: 10,
       };
-      return Promise.resolve(new Response(JSON.stringify(response)));
+      return await Promise.resolve(new Response(JSON.stringify(response)));
     };
     window.fetch = fetchMock;
 
@@ -88,6 +88,33 @@ describe('test-picker-sk', () => {
     const e = await eventPromise;
     expect(e.detail.query).to.equal('');
   });
+
+  it('should emit remove-explore event when count exceeds limit and graph is present', async () => {
+    // Mock the presence of a graph in the container.
+    const graphDiv = document.createElement('div');
+    graphDiv.id = 'graphContainer';
+    graphDiv.appendChild(document.createElement('div')); // Add a child to simulate a loaded graph.
+    document.body.appendChild(graphDiv);
+
+    // Re-initialize element to pick up the graphDiv.
+    element = newInstance((_el: TestPickerSk) => {});
+    element.initializeTestPicker(['benchmark'], {}, false);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Listen for the event.
+    let eventCaught = false;
+    element.addEventListener('remove-explore', () => {
+      eventCaught = true;
+    });
+
+    // Manually trigger updateCount with a large number.
+    (element as any).updateCount(201);
+
+    expect(eventCaught).to.be.true;
+
+    // Cleanup
+    document.body.removeChild(graphDiv);
+  });
 });
 
 describe('test-picker-sk conditional defaults', () => {
@@ -102,7 +129,7 @@ describe('test-picker-sk conditional defaults', () => {
     document.body.appendChild(mockExplore);
 
     // Mock fetch
-    window.fetch = (_url: RequestInfo | URL, request: RequestInit | undefined) => {
+    window.fetch = async (_url: RequestInfo | URL, request: RequestInit | undefined) => {
       const req = JSON.parse(request!.body as string) as NextParamListHandlerRequest;
       const params = toParamSet(req.q!);
       const paramset: any = {};
@@ -118,7 +145,7 @@ describe('test-picker-sk conditional defaults', () => {
         paramset: paramset,
         count: 10,
       };
-      return Promise.resolve(new Response(JSON.stringify(response)));
+      return await Promise.resolve(new Response(JSON.stringify(response)));
     };
 
     element = newInstance((_el: TestPickerSk) => {});
