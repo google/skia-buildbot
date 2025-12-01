@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { live } from 'lit/directives/live.js';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/send-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
@@ -152,9 +153,13 @@ export class GeminiSidePanelSk extends LitElement {
       <footer>
         <input
           type="text"
-          .value=${this.input}
+          .value=${live(this.input)}
           @input=${this.onInput}
-          @keydown=${(e: KeyboardEvent) => e.key === 'Enter' && this.send()}
+          @keydown=${async (e: KeyboardEvent) => {
+            if (e.key === 'Enter') {
+              await this.send();
+            }
+          }}
           placeholder="Ask something..."
           aria-label="Chat input" />
         <send-icon-sk

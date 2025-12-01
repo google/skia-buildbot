@@ -50,6 +50,7 @@ describe('gemini-side-panel-sk', () => {
 
     input.value = 'Hello Gemini';
     input.dispatchEvent(new Event('input'));
+    await element.updateComplete;
 
     sendButton.click();
 
@@ -105,5 +106,65 @@ describe('gemini-side-panel-sk', () => {
     const messages = element.shadowRoot!.querySelectorAll('.message');
     assert.equal(messages.length, 2);
     assert.include(messages[1].textContent, 'Error sending message');
+  });
+
+  it('does nothing when input is empty', async () => {
+    fetchMock.post('/_/chat', { response: 'Should not happen' });
+
+    const input = element.shadowRoot!.querySelector('input')!;
+    const sendButton = element.shadowRoot!.querySelector('send-icon-sk') as HTMLElement;
+
+    input.value = '   ';
+    input.dispatchEvent(new Event('input'));
+
+    sendButton.click();
+
+    await element.updateComplete;
+
+    assert.isFalse(fetchMock.called('/_/chat'));
+    const messages = element.shadowRoot!.querySelectorAll('.message');
+    assert.equal(messages.length, 0);
+  });
+
+  it('sends message on Enter key', async () => {
+    fetchMock.post('/_/chat', {
+      response: 'Hello from backend',
+    });
+
+    const input = element.shadowRoot!.querySelector('input')!;
+
+    input.value = 'Hello Gemini';
+    input.dispatchEvent(new Event('input'));
+
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+    // Wait for async operations
+    await element.updateComplete;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await element.updateComplete;
+
+    assert.isTrue(fetchMock.called('/_/chat'));
+    const messages = element.shadowRoot!.querySelectorAll('.message');
+    assert.equal(messages.length, 2);
+  });
+
+  it('clears input after sending', async () => {
+    fetchMock.post('/_/chat', {
+      response: 'Hello from backend',
+    });
+
+    const input = element.shadowRoot!.querySelector('input')!;
+    const sendButton = element.shadowRoot!.querySelector('send-icon-sk') as HTMLElement;
+
+    input.value = 'Hello Gemini';
+    input.dispatchEvent(new Event('input'));
+
+    sendButton.click();
+
+    await element.updateComplete;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await element.updateComplete;
+
+    assert.equal(input.value, '');
   });
 });
