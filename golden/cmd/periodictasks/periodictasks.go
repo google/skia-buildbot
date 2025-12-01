@@ -1223,8 +1223,10 @@ func runCachingTasks(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.P
 	})
 
 	go util.RepeatCtx(ctx, time.Minute*time.Duration(ptc.CachingFrequencyMinutes), func(ctx context.Context) {
-		populateSearchCache(ctx, ptc, db, cache)
-		liveness.Reset()
+		err := populateSearchCache(ctx, ptc, db, cache)
+		if err == nil {
+			liveness.Reset()
+		}
 	})
 
 	commitliveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
@@ -1232,28 +1234,34 @@ func runCachingTasks(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.P
 	})
 
 	go util.RepeatCtx(ctx, time.Minute*time.Duration(ptc.CachingFrequencyMinutes), func(ctx context.Context) {
-		populateCommitsCache(ctx, ptc, db, cache)
-		commitliveness.Reset()
+		err := populateCommitsCache(ctx, ptc, db, cache)
+		if err == nil {
+			commitliveness.Reset()
+		}
 	})
 }
 
 // Runs the caching tasks related to the search functionality.
-func populateSearchCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool, cache cache.Cache) {
+func populateSearchCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool, cache cache.Cache) error {
 	searchCacheManager := searchCache.New(cache, db, ptc.CachingCorpora, ptc.WindowSize)
 	searchCacheManager.SetDatabaseType(ptc.SQLDatabaseType)
 	err := searchCacheManager.RunCachePopulation(ctx)
 	if err != nil {
-		sklog.Fatalf("Error running search cache population: %v", err)
+		sklog.Errorf("Error running search cache population: %v", err)
+		return err
 	}
+	return nil
 }
 
 // populateCommitsCache runs the caching tasks to populate commit information.
-func populateCommitsCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool, cache cache.Cache) {
+func populateCommitsCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool, cache cache.Cache) error {
 	commitsProvider := providers.NewCommitsProvider(db, cache, ptc.WindowSize)
 	err := commitsProvider.PopulateCommitCache(ctx)
 	if err != nil {
-		sklog.Fatalf("Error running commits cache population: %v", err)
+		sklog.Errorf("Error running commits cache population: %v", err)
+		return err
 	}
+	return nil
 }
 
 // runExpiryMonitoringTasks executes the tasks to monitor and update expiry of data.
