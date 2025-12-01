@@ -304,7 +304,7 @@ rbe_exec_properties(
 # and looking for sha256 on the jsfiddle-final image.
 container_pull(
     name = "pinned_jsfiddle",
-    digest = "sha256:843c9396daa61f4674b1868f3a27d6490d624fc0038e5912efec77ba94df6cf3",
+    digest = "sha256:92efb0ddb9b813915cd8db3163942521a7066605797adc8e6c691479c5f52c1b",
     registry = "gcr.io",
     repository = "skia-public/jsfiddle-final",
 )
