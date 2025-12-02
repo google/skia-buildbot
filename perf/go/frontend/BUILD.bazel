@@ -47,6 +47,7 @@ go_library(
         "//perf/go/notify",
         "//perf/go/notifytypes",
         "//perf/go/pinpoint",
+        "//perf/go/playground/anomaly",
         "//perf/go/progress",
         "//perf/go/psrefresh",
         "//perf/go/regression",

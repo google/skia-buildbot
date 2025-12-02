@@ -57,6 +57,7 @@ import (
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/pinpoint"
+	"go.skia.org/infra/perf/go/playground/anomaly"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression"
@@ -228,6 +229,7 @@ var templateFilenames = []string{
 	"newindex.html",
 	"multiexplore.html",
 	"clusters2.html",
+	"playground.html",
 	"triage.html",
 	"alerts.html",
 	"help.html",
@@ -1075,6 +1077,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.HandleFunc("/e", f.templateHandler("newindex.html"))
 	router.HandleFunc("/m", f.templateHandler("multiexplore.html"))
 	router.HandleFunc("/c", f.templateHandler("clusters2.html"))
+	router.HandleFunc("/pg", f.templateHandler("playground.html"))
 	router.HandleFunc("/t", f.templateHandler("triage.html"))
 	router.HandleFunc("/d", f.templateHandler("dryrunalert.html"))
 	router.HandleFunc("/r", f.templateHandler("trybot.html"))
@@ -1122,6 +1125,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.Post("/_/fe_telemetry", f.feTelemetryHandler)
 	router.Get("/_/defaults", f.defaultsHandler)
 	router.Get("/_/revision", f.revisionHandler)
+	router.Post("/_/playground/anomaly/v1/detect", anomaly.Handler)
 	router.Get("/_/json/", Proxy_GetHandler)
 	router.Post("/_/chat", f.chatHandler)
 
