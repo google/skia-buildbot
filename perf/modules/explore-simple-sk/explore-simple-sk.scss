@@ -192,6 +192,10 @@ explore-simple-sk {
     flex-direction: row;
     padding: 0;
 
+    &[hidden] {
+      display: none !important;
+    }
+
     md-icon-button,
     md-ripple {
       height: 48px;

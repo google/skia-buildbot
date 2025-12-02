@@ -52,6 +52,20 @@ sk_page(
 )
 
 sk_page(
+    name = "playground",
+    assets_serving_path = "/dist",
+    html_file = "playground.html",
+    nonce = "{% .Nonce %}",
+    production_sourcemap = True,
+    scss_entry_point = "playground.scss",
+    sk_element_deps = [
+        "//perf/modules/anomaly-playground-sk",
+        "//perf/modules/perf-scaffold-sk",
+    ],
+    ts_entry_point = "playground.ts",
+)
+
+sk_page(
     name = "help",
     assets_serving_path = "/dist",
     html_file = "help.html",

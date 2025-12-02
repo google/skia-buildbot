@@ -584,6 +584,12 @@ export class ExploreSimpleSk extends ElementSk {
 
   enableRemoveButton: boolean = true;
 
+  disablePointLinks: boolean = false;
+
+  showHeader: boolean = true;
+
+  showTabs: boolean = true;
+
   private xAxisSwitch = false;
 
   private zoomDirectionSwitch = false;
@@ -667,7 +673,9 @@ export class ExploreSimpleSk extends ElementSk {
       </button>
     </div>
 
-    <div id=chartHeader class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
+    <div id=chartHeader
+      ?hidden=${!ele.showHeader}
+      class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
       <graph-title-sk id=graphTitle style="flex-grow:  1;"></graph-title-sk>
       <a href="${ele.testPickerUrl}">
         <md-icon-button
@@ -2136,21 +2144,23 @@ export class ExploreSimpleSk extends ElementSk {
     this.startCommit = prevCommitPos?.toString() || '';
     this.endCommit = commitPosition.toString();
 
-    tooltipElem!
-      .loadPointLinks(
-        commitPosition,
-        prevCommitPos,
-        traceName,
-        window.perf.keys_for_commit_range!,
-        window.perf.keys_for_useful_links!,
-        this.commitLinks
-      )
-      .then((links) => {
-        this.commitLinks = links;
-      })
-      .catch((errorMessage) => {
-        console.error('Error loading point links:', errorMessage);
-      });
+    if (!this.disablePointLinks) {
+      tooltipElem!
+        .loadPointLinks(
+          commitPosition,
+          prevCommitPos,
+          traceName,
+          window.perf.keys_for_commit_range!,
+          window.perf.keys_for_useful_links!,
+          this.commitLinks
+        )
+        .then((links) => {
+          this.commitLinks = links;
+        })
+        .catch((errorMessage) => {
+          console.error('Error loading point links:', errorMessage);
+        });
+    }
     // TODO(b/370804498): To be refactored into google plot / dataframe.
     // The anomaly data is indirectly referenced from simple-plot, and the anomaly data gets
     // updated in place in triage popup. This may cause the data inconsistency to manipulate
@@ -3738,6 +3748,17 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     return DEFAULT_RANGE_S;
+  }
+
+  public clearHighlightedCircles() {
+    this._state.highlight_anomalies = [];
+    this._stateHasChanged();
+    this.render();
+  }
+
+  public clearAnomalyMap() {
+    this.dfRepo.value?.clearAnomalyMap();
+    this.clearHighlightedCircles();
   }
 }
 

@@ -133,6 +133,10 @@ export class PerfScaffoldSk extends ElementSk {
         <a href="/d" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
         <a href="/c" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering</span></a>
         ${PerfScaffoldSk.revisionLinkTemplateOld()}
+        <!-- TODO(sergeirudenkov) uncomment when under feature flag -->
+        <!-- <a href="/pg" tab-index=0 ><lightbulb-outline-icon-sk></lightbulb-outline-icon-sk>
+          <span>Playground</span>
+        </a> -->
         <a href="${ele._helpUrl}" target="_blank" tab-index=0 >
           <help-icon-sk></help-icon-sk><span>Help</span>
         </a>
@@ -176,6 +180,7 @@ export class PerfScaffoldSk extends ElementSk {
         <a href="/f" tab-index=0 class="${ele.isPageActive('/f') ? 'active' : ''}">Favorites</a>
         <a href="/d" tab-index=0 class="${ele.isPageActive('/d') ? 'active' : ''}">Dry Run</a>
         <a href="/c" tab-index=0 class="${ele.isPageActive('/c') ? 'active' : ''}">Clustering</a>
+        <a href="/pg" tab-index=0 class="${ele.isPageActive('/pg') ? 'active' : ''}">Playground</a>
         ${PerfScaffoldSk.revisionLinkTemplateNew(ele)}
         <a href="${PINPOINT_URL}" target="_blank" tab-index="0">
           Pinpoint

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>anomaly-playground-sk</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    window.perf = {
+      instance_url: 'https://chrome-perf.corp.goog',
+      instance_name: 'chrome-perf-demo',
+      header_image_url: '',
+      commit_range_url: 'https://chromium.googlesource.com/chromium/src/+log/{begin}..{end}',
+      key_order: ['config'],
+      demo: true,
+      radius: 7,
+      num_shift: 10,
+      interesting: 25,
+      step_up_only: false,
+      display_group_by: false,
+      hide_list_of_commits_on_explore: true,
+      notifications: 'none',
+      fetch_chrome_perf_anomalies: false,
+      fetch_anomalies_from_sql: false,
+      feedback_url: '',
+      chat_url: '',
+      help_url_override: '',
+      trace_format: 'chrome',
+      need_alert_action: false,
+      bug_host_url: 'b',
+      git_repo_url: 'https://chromium.googlesource.com/chromium/src',
+      keys_for_commit_range: [],
+      keys_for_useful_links: [],
+      skip_commit_detail_display: false,
+      image_tag: 'fake-tag',
+      remove_default_stat_value: false,
+      enable_skia_bridge_aggregation: false,
+      show_json_file_display: false,
+      always_show_commit_info: false,
+      show_triage_link: false,
+      show_bisect_btn: true,
+      app_version: 'test-version',
+      enable_v2_ui: false,
+      dev_mode: false,
+    };
+  </script>
+</head>
+<body class="body-sk">
+  <h1>anomaly-playground-sk</h1>
+  <anomaly-playground-sk></anomaly-playground-sk>
+
+  <h2>Events</h2>
+  <pre id=events></pre>
+
+  <error-toast-sk> </error-toast-sk>
+</body>
+</html>

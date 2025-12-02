@@ -676,4 +676,11 @@ export class DataFrameRepository extends LitElement {
     this.anomaly = null;
     this.userIssues = null;
   }
+
+  /**
+   * Clears just the anomaly map.
+   */
+  clearAnomalyMap() {
+    this.anomaly = null;
+  }
 }

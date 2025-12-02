@@ -938,12 +938,13 @@ export class PlotGoogleChartSk extends LitElement {
   private drawAnomaly(chart: google.visualization.CoreChartBase) {
     const start = performance.now();
     const layout = chart.getChartLayoutInterface();
-    if (!this.anomalyMap) {
+    const anomalyDiv = this.anomalyDiv.value;
+    if (!anomalyDiv) {
       return;
     }
 
-    const anomalyDiv = this.anomalyDiv.value;
-    if (!anomalyDiv) {
+    if (!this.anomalyMap) {
+      anomalyDiv.replaceChildren();
       return;
     }
 
@@ -1067,12 +1068,13 @@ export class PlotGoogleChartSk extends LitElement {
   private drawUserIssues(chart: google.visualization.CoreChartBase) {
     const start = performance.now();
     const layout = chart.getChartLayoutInterface();
-    if (!this.userIssues) {
+    const userIssueDiv = this.userIssueDiv.value;
+    if (!userIssueDiv) {
       return;
     }
 
-    const userIssueDiv = this.userIssueDiv.value;
-    if (!userIssueDiv) {
+    if (!this.userIssues) {
+      userIssueDiv.replaceChildren();
       return;
     }
 
@@ -1172,12 +1174,13 @@ export class PlotGoogleChartSk extends LitElement {
 
   private drawXbar(chart: google.visualization.CoreChartBase) {
     const layout = chart.getChartLayoutInterface();
-    if (this.xbar === -1) {
+    const xbarDiv = this.xbarDiv.value;
+    if (!xbarDiv) {
       return;
     }
 
-    const xbarDiv = this.xbarDiv.value;
-    if (!xbarDiv) {
+    if (this.xbar === -1) {
+      xbarDiv.replaceChildren();
       return;
     }
 
