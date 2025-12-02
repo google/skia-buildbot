@@ -10,9 +10,12 @@ declare const sinon: any;
 describe('perf-scaffold-sk', () => {
   const newInstance = setUpElementUnderTest<PerfScaffoldSk>('perf-scaffold-sk');
 
+  let element: PerfScaffoldSk;
+
   beforeEach(() => {
     // Default window.perf to something safe.
     window.perf = {
+      header_image_url: '',
       instance_url: '',
       instance_name: 'chrome-perf-test',
       commit_range_url: '',
@@ -57,7 +60,7 @@ describe('perf-scaffold-sk', () => {
 
   it('renders with default logo when header_image_url is empty', async () => {
     window.perf.header_image_url = '';
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
     const img = element.querySelector('.logo') as HTMLImageElement;
@@ -66,7 +69,7 @@ describe('perf-scaffold-sk', () => {
 
   it('renders with configured logo when header_image_url is set', async () => {
     window.perf.header_image_url = 'http://example.com/logo.png';
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
     const img = element.querySelector('.logo') as HTMLImageElement;
@@ -75,7 +78,7 @@ describe('perf-scaffold-sk', () => {
 
   it('falls back to default logo on error', async () => {
     window.perf.header_image_url = 'http://example.com/invalid.png';
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
     const img = element.querySelector('.logo') as HTMLImageElement;
@@ -88,7 +91,7 @@ describe('perf-scaffold-sk', () => {
 
   it('V2 UI: renders with default logo when header_image_url is empty', async () => {
     window.perf.header_image_url = '';
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'true');
     });
     const img = element.querySelector('.logo') as HTMLImageElement;
@@ -97,7 +100,7 @@ describe('perf-scaffold-sk', () => {
 
   it('V2 UI: falls back to default logo on error', async () => {
     window.perf.header_image_url = 'http://example.com/invalid.png';
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'true');
     });
     const img = element.querySelector('.logo') as HTMLImageElement;
@@ -110,7 +113,7 @@ describe('perf-scaffold-sk', () => {
 
   it('displays instance_name from config', async () => {
     window.perf.instance_name = 'Test Instance';
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
     const title = element.querySelector('.name');
@@ -120,7 +123,7 @@ describe('perf-scaffold-sk', () => {
   it('falls back to extracting name from URL if instance_name is empty', async () => {
     window.perf.instance_name = '';
     window.perf.instance_url = 'https://foo.perf.skia.org';
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
     const title = element.querySelector('.name');
@@ -130,7 +133,7 @@ describe('perf-scaffold-sk', () => {
   it('truncates long instance names', async () => {
     const longName = 'A'.repeat(70);
     window.perf.instance_name = longName;
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
     const title = element.querySelector('.name');
@@ -139,7 +142,7 @@ describe('perf-scaffold-sk', () => {
 
   it('V2 UI: displays instance_name from config', async () => {
     window.perf.instance_name = 'Test Instance V2';
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'true');
     });
     const title = element.querySelector('.name');
@@ -149,7 +152,7 @@ describe('perf-scaffold-sk', () => {
   it('V2 UI: falls back to extracting name from URL if instance_name is empty', async () => {
     window.perf.instance_name = '';
     window.perf.instance_url = 'https://bar.perf.skia.org';
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'true');
     });
     const title = element.querySelector('.name');
@@ -190,6 +193,74 @@ describe('perf-scaffold-sk', () => {
 
     button.click();
     assert.isFalse(panel.open);
+  });
+
+  it('defaults to legacy UI when enable_v2_ui is false', async () => {
+    window.perf.enable_v2_ui = false;
+    element = newInstance((_) => {
+      localStorage.clear();
+    });
+    assert.isNotNull(element.querySelector('.legacy-ui'));
+    assert.isNull(element.querySelector('.v2-ui'));
+  });
+
+  it('defaults to V2 UI when enable_v2_ui is true', async () => {
+    window.perf.enable_v2_ui = true;
+    element = newInstance((_) => {
+      localStorage.clear();
+    });
+    assert.isNotNull(element.querySelector('.v2-ui'));
+    assert.isNull(element.querySelector('.legacy-ui'));
+  });
+
+  it('honors localStorage preference "false" even if enable_v2_ui is true', async () => {
+    window.perf.enable_v2_ui = true;
+    element = newInstance((_) => {
+      localStorage.setItem('v2_ui', 'false');
+    });
+    assert.isNotNull(element.querySelector('.legacy-ui'));
+    assert.isNull(element.querySelector('.v2-ui'));
+  });
+
+  it('renders V2 UI toggle even when enable_v2_ui is false', async () => {
+    window.perf.enable_v2_ui = false;
+    element = newInstance((_) => {
+      localStorage.clear();
+    });
+    const toggle = element.querySelector('.try-v2-ui');
+    assert.isNotNull(toggle);
+  });
+
+  it('toggles to V2 UI when "Try V2 UI" is clicked', async () => {
+    window.perf.enable_v2_ui = false;
+    element = newInstance((_) => {
+      localStorage.clear();
+    });
+    // Stub _reload to prevent page reload during test
+    (element as any)._reload = sinon.spy();
+
+    const toggle = element.querySelector('.try-v2-ui') as HTMLButtonElement;
+    assert.isNotNull(toggle);
+    toggle.click();
+
+    assert.equal(localStorage.getItem('v2_ui'), 'true');
+    assert.isTrue((element as any)._reload.called);
+  });
+
+  it('toggles to Legacy UI when "Back to Legacy UI" is clicked', async () => {
+    window.perf.enable_v2_ui = true; // Start with V2 UI
+    element = newInstance((_) => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+    // Stub _reload to prevent page reload during test
+    (element as any)._reload = sinon.spy();
+
+    const toggle = element.querySelector('#legacy-ui-button') as HTMLButtonElement;
+    assert.isNotNull(toggle);
+    toggle.click();
+
+    assert.equal(localStorage.getItem('v2_ui'), 'false');
+    assert.isTrue((element as any)._reload.called);
   });
 
   describe('auto-refresh', () => {

@@ -85,6 +85,7 @@ export class PerfScaffoldSk extends ElementSk {
   }
 
   private static template = (ele: PerfScaffoldSk) => {
+    // Check for V2 UI preference.
     const isV2Default = window.perf.enable_v2_ui;
     const storedPreference = localStorage.getItem('v2_ui');
 
