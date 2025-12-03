@@ -14,8 +14,8 @@ release:
 .PHONY: wasm_libs
 wasm_libs:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
-	rm -rf build/canvaskit build/pathkit build/debugger
-	mkdir -p build/canvaskit build/pathkit
+	rm -rf build/canvaskit build/debugger
+	mkdir -p build/canvaskit
 	# Extract them from the most recently built docker container. This is built
 	# with @skia//docker/skia-wasm-release/Dockerfile
 	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
@@ -40,9 +40,7 @@ run-with-custom:
 .PHONY: build-placeholders
 build-placeholders:
 	rm -rf build
-	mkdir -p build/canvaskit build/pathkit
-	touch build/pathkit/pathkit.js
-	touch build/pathkit/pathkit.wasm
+	mkdir -p build/canvaskit
 	touch build/canvaskit/canvaskit.js
 	touch build/canvaskit/canvaskit.wasm
 	touch build/version.js

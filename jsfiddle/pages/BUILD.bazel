@@ -21,21 +21,3 @@ sk_page(
     sk_element_deps = ["//jsfiddle/modules/canvaskit-fiddle-sk"],
     ts_entry_point = "canvaskit-index.ts",
 )
-
-sk_page(
-    name = "pathkit-index",
-    assets_serving_path = "/res",
-    copy_files = [
-        {
-            "src": "//jsfiddle/wasm_libs:pathkit.js",
-            "dst": "pathkit.js",
-        },
-        {
-            "src": "//jsfiddle/wasm_libs:pathkit.wasm",
-            "dst": "pathkit.wasm",
-        },
-    ],
-    html_file = "pathkit-index.html",
-    sk_element_deps = ["//jsfiddle/modules/pathkit-fiddle-sk"],
-    ts_entry_point = "pathkit-index.ts",
-)

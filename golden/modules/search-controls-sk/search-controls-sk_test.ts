@@ -14,7 +14,7 @@ import {
 import { SearchControlsSkPO } from './search-controls-sk_po';
 import { testOnlySetSettings } from '../settings';
 
-const corpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];
+const corpora = ['canvaskit', 'colorImage', 'gm', 'image', 'skp', 'svg'];
 
 const paramSet: ParamSet = {
   'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],

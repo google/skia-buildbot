@@ -16,8 +16,6 @@ extract_files_from_skia_wasm_container(
         "/usr/local/share/jsfiddle/dist/index.d.ts": "from_container/canvaskit.d.ts",
         "/usr/local/share/jsfiddle/dist/canvaskit.js": "from_container/canvaskit.js",
         "/usr/local/share/jsfiddle/dist/canvaskit.wasm": "from_container/canvaskit.wasm",
-        "/usr/local/share/jsfiddle/dist/pathkit.js": "from_container/pathkit.js",
-        "/usr/local/share/jsfiddle/dist/pathkit.wasm": "from_container/pathkit.wasm",
     },
     enabled_flag = ":use_libraries_from_container",
     visibility = ["//jsfiddle:__subpackages__"],
@@ -46,24 +44,6 @@ filegroup(
     srcs = select({
         ":use_libraries_from_container_true": ["from_container/canvaskit.wasm"],
         ":use_libraries_from_container_false": ["local_build/canvaskit.wasm"],
-    }),
-    visibility = ["//jsfiddle:__subpackages__"],
-)
-
-filegroup(
-    name = "pathkit.js",
-    srcs = select({
-        ":use_libraries_from_container_true": ["from_container/pathkit.js"],
-        ":use_libraries_from_container_false": ["local_build/pathkit.js"],
-    }),
-    visibility = ["//jsfiddle:__subpackages__"],
-)
-
-filegroup(
-    name = "pathkit.wasm",
-    srcs = select({
-        ":use_libraries_from_container_true": ["from_container/pathkit.wasm"],
-        ":use_libraries_from_container_false": ["local_build/pathkit.wasm"],
     }),
     visibility = ["//jsfiddle:__subpackages__"],
 )

@@ -18,7 +18,7 @@
 
   K8S_CPU: "300m",
   K8S_MEMORY: "100Mi",
-  cache_corpora: ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"],
+  cache_corpora: ["canvaskit", "colorImage", "gm", "image", "skp", "svg"],
   caching_frequency_minutes: 5,
 
   expiration_monitor_batch_size: 200,

@@ -35,10 +35,9 @@ var (
 
 const maxFiddleSize = 100 * 1024 // 100KB ought to be enough for anyone.
 
-var pathkitPage []byte
 var canvaskitPage []byte
 
-var knownTypes = []string{"pathkit", "canvaskit"}
+var knownTypes = []string{"canvaskit"}
 
 var fiddleStore store.Store
 
@@ -124,12 +123,6 @@ func codeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loadPages() {
-	if p, err := os.ReadFile(filepath.Join(*resourcesDir, "pathkit-index.html")); err != nil {
-		sklog.Fatalf("Could not find pathkit html: %s", err)
-	} else {
-		pathkitPage = p
-	}
-
 	if p, err := os.ReadFile(filepath.Join(*resourcesDir, "canvaskit-index.html")); err != nil {
 		sklog.Fatalf("Could not find canvaskit html: %s", err)
 	} else {
@@ -167,7 +160,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO(kjlubick) have a nicer landing page, maybe one that shows canvaskit and pathkit.
+	// TODO(kjlubick) have a nicer landing page, maybe one that shows canvaskit.
 	http.Redirect(w, r, "/canvaskit", http.StatusFound)
 }
 
@@ -215,8 +208,6 @@ func addHandlers(r chi.Router) {
 	r.Get("/res/*", makeResourceHandler())
 	r.Get("/canvaskit", cspHandler(htmlHandler(canvaskitPage)))
 	r.Get("/canvaskit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(canvaskitPage)))
-	r.Get("/pathkit", cspHandler(htmlHandler(pathkitPage)))
-	r.Get("/pathkit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(pathkitPage)))
 	r.Get("/scrap/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}", scrapHandler)
 	r.Get("/", mainHandler)
 	r.Put("/_/save", saveHandler)

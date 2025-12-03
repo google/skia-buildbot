@@ -23,18 +23,6 @@ skia_app_container(
                 "//jsfiddle/pages:production/canvaskit-index.css",
                 "0644",
             ],
-            [
-                "//jsfiddle/pages:production/pathkit-index.html",
-                "0644",
-            ],
-            [
-                "//jsfiddle/pages:production/pathkit-index.js",
-                "0644",
-            ],
-            [
-                "//jsfiddle/pages:production/pathkit-index.css",
-                "0644",
-            ],
         ],
     },
     entrypoint = "/usr/local/bin/jsfiddle",

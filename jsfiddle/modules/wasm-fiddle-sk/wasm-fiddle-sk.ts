@@ -23,7 +23,7 @@ type PathKit = any;
 type LibraryName = 'CanvasKit' | 'PathKit';
 
 /** The backend name for the fiddle e.g. 'canvasKit'. */
-type FiddleType = 'canvaskit' | 'pathkit';
+type FiddleType = 'canvaskit';
 
 /** Uses the regular expression to pull out either the slider or color pickers
  * from the code. */
@@ -103,8 +103,8 @@ export class WasmFiddle extends HTMLElement {
 
     this.wasmPromise = wasmPromise;
     this.templateFunc = templateFunc;
-    this.libraryName = libraryName; // e.g. 'CanvasKit' , 'PathKit'
-    this.fiddleType = fiddleType; // e.g. 'canvaskit', 'pathkit'
+    this.libraryName = libraryName; // e.g. 'CanvasKit'
+    this.fiddleType = fiddleType; // e.g. 'canvaskit'
   }
 
   /**
@@ -123,7 +123,7 @@ export class WasmFiddle extends HTMLElement {
 
   static lineNumber = (n: number): TemplateResult => html`<div id=${`L${n}`}>${n}</div>`;
 
-  static codeEditor = (ele: WasmFiddle): TemplateResult => html`<div id="editor"></div>`;
+  static codeEditor = (_: WasmFiddle): TemplateResult => html`<div id="editor"></div>`;
 
   static floatSlider = (name: string, i: number): TemplateResult => {
     if (!name) {

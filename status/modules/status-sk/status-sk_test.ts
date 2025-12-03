@@ -51,7 +51,6 @@ describe('status-sk', () => {
         { name: 'colorImage', untriagedCount: 0 },
         { name: 'gm', untriagedCount: 13 },
         { name: 'image', untriagedCount: 0 },
-        { name: 'pathkit', untriagedCount: 0 },
         { name: 'skp', untriagedCount: 0 },
         { name: 'svg', untriagedCount: 27 },
       ],

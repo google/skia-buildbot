@@ -18,7 +18,6 @@ describe('gold-status-sk', () => {
         { name: 'colorImage', untriagedCount: 0 },
         { name: 'gm', untriagedCount: 13 },
         { name: 'image', untriagedCount: 0 },
-        { name: 'pathkit', untriagedCount: 0 },
         { name: 'skp', untriagedCount: 0 },
         { name: 'svg', untriagedCount: 27 },
       ],
@@ -29,7 +28,7 @@ describe('gold-status-sk', () => {
 
   describe('displays', () => {
     it('untriaged', () => {
-      expect($('.tr', element)).to.have.length(7);
+      expect($('.tr', element)).to.have.length(6);
       expect($$('.value', element)).to.have.property('innerText', '27');
     });
   });

@@ -177,10 +177,6 @@ gold_launcher(
             "name",
             "source_type",
         ],
-        "pathkit": [
-            "name",
-            "source_type",
-        ],
         "skp": [
             "name",
             "source_type",
@@ -232,10 +228,6 @@ gold_launcher(
             "source_type",
         ],
         "old-skp": [
-            "name",
-            "source_type",
-        ],
-        "pathkit": [
             "name",
             "source_type",
         ],
@@ -366,7 +358,6 @@ gold_launcher(
                 "ShuttleC",
             ],
         },
-        "pathkit": {},
         "skp": {
             "model": [
                 "AcerChromebook13_CB5_311",

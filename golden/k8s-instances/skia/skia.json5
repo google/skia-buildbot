@@ -23,7 +23,6 @@
     gm: ["name", "source_type"],
     image: ["name", "source_type"],
     "old-skp": ["name", "source_type"],
-    pathkit: ["name", "source_type"],
     skp: ["name", "source_type"],
     svg: ["name", "source_type"],
   },

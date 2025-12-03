@@ -3,7 +3,7 @@ import { ParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { SearchControlsSk, SearchCriteria } from './search-controls-sk';
 
-const corpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];
+const corpora = ['canvaskit', 'colorImage', 'gm', 'image', 'skp', 'svg'];
 
 const paramSet: ParamSet = {
   'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],

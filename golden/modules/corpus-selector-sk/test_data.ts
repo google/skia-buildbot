@@ -1,5 +1,5 @@
 /** Simple test corpora composed of plain string objects. */
-export const stringCorpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];
+export const stringCorpora = ['canvaskit', 'colorImage', 'gm', 'image', 'skp', 'svg'];
 
 /** A custom corpus object type with various fields. */
 export interface TestCorpus {
@@ -39,13 +39,6 @@ export const customTypeCorpora: TestCorpus[] = [
     minCommitHash: '',
     untriagedCount: 22,
     negativeCount: 35,
-  },
-  {
-    name: 'pathkit',
-    ok: true,
-    minCommitHash: '',
-    untriagedCount: 0,
-    negativeCount: 0,
   },
   {
     name: 'skp',

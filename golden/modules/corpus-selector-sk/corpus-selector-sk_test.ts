@@ -35,7 +35,6 @@ describe('corpus-selector-sk', () => {
         'colorImage',
         'gm',
         'image',
-        'pathkit',
         'skp',
         'svg',
       ]);
@@ -48,7 +47,6 @@ describe('corpus-selector-sk', () => {
         '(colorImage)',
         '(gm)',
         '(image)',
-        '(pathkit)',
         '(skp)',
         '(svg)',
       ]);
@@ -119,7 +117,6 @@ describe('corpus-selector-sk', () => {
         'colorImage : 0 / 1',
         'gm : 61 / 1494',
         'image : 22 / 35',
-        'pathkit : 0 / 0',
         'skp : 0 / 1',
         'svg : 19 / 21',
       ]);
