@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	issuetracker "go.skia.org/infra/go/issuetracker/v1"
 	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	"go.skia.org/infra/perf/go/issuetracker/mocks"
 	regmocks "go.skia.org/infra/perf/go/regression/mocks"
@@ -19,6 +20,9 @@ func TestFileBug_Success(t *testing.T) {
 	expectedBugID := 12345
 
 	mockIssueTracker.On("FileBug", mock.Anything, mock.AnythingOfType("*issuetracker.FileBugRequest")).Return(expectedBugID, nil)
+	// We need to mock the call to ListIssues since it is called inside AssociateAlerts.
+	mockIssueTracker.On("ListIssues", mock.Anything, perf_issuetracker.ListIssuesRequest{
+		IssueIds: []int{expectedBugID}}).Return([]*issuetracker.Issue{{IssueId: int64(expectedBugID)}}, nil)
 
 	backend := NewTriageBackend(mockIssueTracker, mockRegStore)
 
@@ -35,6 +39,7 @@ func TestFileBug_Success(t *testing.T) {
 	assert.Equal(t, expectedBugID, resp.BugId)
 
 	mockIssueTracker.AssertExpectations(t)
+	mockRegStore.AssertExpectations(t)
 }
 
 func TestFileBug_FileBugError(t *testing.T) {
@@ -66,6 +71,9 @@ func TestFileBug_AssociateAlertsError(t *testing.T) {
 	expectedErr := errors.New("regression store error")
 
 	mockIssueTracker.On("FileBug", mock.Anything, mock.AnythingOfType("*issuetracker.FileBugRequest")).Return(expectedBugID, nil)
+	// We need to mock the call to ListIssues since it is called inside AssociateAlerts.
+	mockIssueTracker.On("ListIssues", mock.Anything, perf_issuetracker.ListIssuesRequest{
+		IssueIds: []int{expectedBugID}}).Return([]*issuetracker.Issue{{IssueId: int64(expectedBugID)}}, nil)
 	mockRegStore.On("SetBugID", context.Background(), []string{"1", "2", "3"}, expectedBugID).Return(expectedErr)
 
 	backend := NewTriageBackend(mockIssueTracker, mockRegStore)
@@ -90,16 +98,21 @@ func TestTriageBackend_AssociateAlerts_Success(t *testing.T) {
 
 	mockStore := regmocks.NewStore(t)
 	backend := NewTriageBackend(mockIssueTracker, mockStore)
+	bugId := 12345
 
 	req := &SkiaAssociateBugRequest{
-		BugId: 12345,
+		BugId: bugId,
 		Keys:  []string{"alert1", "alert2"},
 	}
 
+	// We need to mock the call to ListIssues since it is called inside AssociateAlerts.
+	mockIssueTracker.On("ListIssues", mock.Anything, perf_issuetracker.ListIssuesRequest{
+		IssueIds: []int{bugId}}).Return([]*issuetracker.Issue{{IssueId: int64(bugId)}}, nil)
 	mockStore.On("SetBugID", context.Background(), req.Keys, req.BugId).Return(nil)
 
-	_, err := backend.AssociateAlerts(context.Background(), req)
+	res, err := backend.AssociateAlerts(context.Background(), req)
 	require.NoError(t, err)
+	require.Equal(t, bugId, res.BugId)
 	mockStore.AssertExpectations(t)
 }
 
@@ -132,4 +145,31 @@ func TestTriageBackend_AssociateAlerts_MissingKeys(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Keys are required")
 	mockStore.AssertExpectations(t)
+}
+
+func TestTriageBackend_AssociateAlerts_EmptyIssueList(t *testing.T) {
+	mockIssueTracker := &mocks.IssueTracker{}
+	mockRegStore := regmocks.NewStore(t)
+
+	backend := NewTriageBackend(mockIssueTracker, mockRegStore)
+
+	req := &SkiaAssociateBugRequest{
+		BugId: 12345,
+		Keys:  []string{"alert1", "alert2"},
+	}
+
+	// Configure mockIssueTracker.ListIssues to return an empty slice of issues.
+	mockIssueTracker.On("ListIssues", mock.Anything, perf_issuetracker.ListIssuesRequest{IssueIds: []int{req.BugId}}).Return(nil, nil)
+
+	// Configure mockRegStore.SetBugID to *not* be called.
+	mockRegStore.AssertNotCalled(t, "SetBugID", mock.Anything, mock.Anything, mock.Anything)
+
+	_, err := backend.AssociateAlerts(context.Background(), req)
+
+	// Assert that an error is returned and its content matches the expected error message.
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Failed to associate alert with a non-existent issue")
+
+	mockIssueTracker.AssertExpectations(t)
+	mockRegStore.AssertExpectations(t)
 }

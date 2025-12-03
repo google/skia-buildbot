@@ -64,18 +64,28 @@ func (t *triageBackend) EditAnomalies(ctx context.Context, req *EditAnomaliesReq
 }
 
 func (t *triageBackend) AssociateAlerts(ctx context.Context, req *SkiaAssociateBugRequest) (*SkiaAssociateBugResponse, error) {
+	// Shortcircuit checks to avoid sending unnecessary requests through Issuetracker.
+	// BugIDs should be positive.
 	if req.BugId <= 0 {
 		return nil, skerr.Fmt("BugId must be a positive integer")
 	}
 	if len(req.Keys) == 0 {
 		return nil, skerr.Fmt("Keys are required")
 	}
+	// Verify the issue exists
+	issue, err := t.issueTracker.ListIssues(ctx, perf_issuetracker.ListIssuesRequest{IssueIds: []int{req.BugId}})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to list issue with bug_id = %d", req.BugId)
+	}
+	if len(issue) == 0 {
+		return nil, skerr.Fmt("Failed to associate alert with a non-existent issue")
+	}
 
 	if err := t.regStore.SetBugID(ctx, req.Keys, req.BugId); err != nil {
 		return nil, skerr.Wrapf(err, "failed to associate alerts with bug id %d", req.BugId)
 	}
 
-	return &SkiaAssociateBugResponse{}, nil
+	return &SkiaAssociateBugResponse{req.BugId}, nil
 }
 
 func (t *triageBackend) ignoreAnomalies(ctx context.Context, req *EditAnomaliesRequest) (*EditAnomaliesResponse, error) {
