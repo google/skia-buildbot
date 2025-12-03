@@ -31,15 +31,19 @@ type HistoryIngester struct {
 	// Store impl for managing topic data.
 	topicStore topicstore.TopicStore
 
+	// The output dimensionality for the instance.
+	outputDimensionality int
+
 	// Counter metric for no of topics ingested.
 	topicCounterMetric metrics2.Counter
 }
 
 // New returns a new instance of the history ingester.
-func New(blameStore blamestore.BlameStore, topicStore topicstore.TopicStore) *HistoryIngester {
+func New(blameStore blamestore.BlameStore, topicStore topicstore.TopicStore, dimensionality int) *HistoryIngester {
 	return &HistoryIngester{
-		blameStore: blameStore,
-		topicStore: topicStore,
+		blameStore:           blameStore,
+		topicStore:           topicStore,
+		outputDimensionality: dimensionality,
 
 		// Init the metric objects.
 		topicCounterMetric: metrics2.GetCounter("historyrag_ingestedTopics_count"),
@@ -91,6 +95,12 @@ func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath
 		return err
 	}
 
+	// Verify that the embeddings are the length configured.
+	for _, embedding := range embeddings {
+		if len(embedding) != ingester.outputDimensionality {
+			return skerr.Fmt("Invalid embedding length %d. Expected embeddings of length %d", len(embedding), ingester.outputDimensionality)
+		}
+	}
 	// 2. Read the index into memory.
 	pickleReader := pickle.NewPickleReader(indexPickleFilePath)
 	sklog.Infof("Reading index pickle data from %s.", indexPickleFilePath)

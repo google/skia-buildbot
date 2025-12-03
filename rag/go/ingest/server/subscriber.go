@@ -37,7 +37,7 @@ func NewIngestionSubscriber(ctx context.Context, config config.ApiServerConfig) 
 	blamestore := blamestore.New(spannerClient)
 	topicStore := topicstore.New(spannerClient)
 	sklog.Infof("Creating a new history ingester.")
-	ingester := history.New(blamestore, topicStore)
+	ingester := history.New(blamestore, topicStore, config.OutputDimensionality)
 
 	sub, err := sub.NewWithSubName(ctx, config.IngestionConfig.Project, config.IngestionConfig.Topic, config.IngestionConfig.Subscription, 1)
 	if err != nil {

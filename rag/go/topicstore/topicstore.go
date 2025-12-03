@@ -33,7 +33,7 @@ type TopicChunk struct {
 	ID         int64
 	TopicID    int64
 	Chunk      string
-	ChunkIndex int
+	ChunkIndex int64
 	Embedding  []float32
 }
 
@@ -158,7 +158,7 @@ func (s *topicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
 		}
 		return nil
 	})
-	return err
+	return skerr.Wrap(err)
 }
 
 // ReadTopic returns the topic data for the topic id provided.

@@ -24,7 +24,7 @@ func (m *mockBlameStore) ReadBlame(ctx context.Context, filePath string) (*blame
 func TestHistoryIngester_IngestBlameFileData(t *testing.T) {
 	ctx := context.Background()
 	mockStore := &mockBlameStore{}
-	ingester := New(mockStore, nil)
+	ingester := New(mockStore, nil, 768)
 
 	filePath := "foo.go"
 	fileContent := []byte(`{
