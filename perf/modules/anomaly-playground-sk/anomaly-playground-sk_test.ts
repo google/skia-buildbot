@@ -196,4 +196,44 @@ describe('anomaly-playground-sk', () => {
       'Anomaly map should be empty after detection returns no anomalies'
     );
   });
+
+  it('reflects state to the URL', async () => {
+    await waitForRender(element);
+    const traceInput = element.querySelector('#trace-input') as any;
+    const algoSelect = element.querySelector('#algorithm-selector') as any;
+    const directionSelect = element.querySelector('#direction-selector') as any;
+    const radiusInput = element.querySelector('#radius-input') as any;
+    const thresholdInput = element.querySelector('#threshold-input') as any;
+    const groupCheckbox = element.querySelector('#group-anomalies') as any;
+
+    traceInput.value = '10, 20, 30';
+    traceInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    algoSelect.value = 'percent';
+    algoSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+    directionSelect.value = 'DOWN';
+    directionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+    radiusInput.value = '10';
+    radiusInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    thresholdInput.value = '5.5';
+    thresholdInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    groupCheckbox.click();
+    groupCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+
+    await waitForRender(element);
+
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+
+    assert.equal(params.get('trace'), '10, 20, 30');
+    assert.equal(params.get('algo'), 'percent');
+    assert.equal(params.get('direction'), 'DOWN');
+    assert.equal(params.get('radius'), '10');
+    assert.equal(params.get('threshold'), '5.5');
+    assert.equal(params.get('group'), 'false');
+  });
 });

@@ -23,6 +23,8 @@ import {
   FrameRequest,
 } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
 
 import '@material/web/button/filled-button';
@@ -104,6 +106,8 @@ export class AnomalyPlaygroundSk extends ElementSk {
 
   private detectButtonDisabled: boolean = true;
 
+  private stateHasChanged: () => void = () => {};
+
   constructor() {
     super(AnomalyPlaygroundSk.template);
   }
@@ -138,17 +142,44 @@ export class AnomalyPlaygroundSk extends ElementSk {
     this.exploreSimpleSk.state.hide_paramset = true;
     this.graphContainer!.appendChild(this.exploreSimpleSk);
 
+    this.stateHasChanged = stateReflector(
+      () => ({
+        trace: this.traceInput?.value || '',
+        algo: this.algorithmSelector?.value || '',
+        direction: this.directionSelector?.value || 'UP',
+        radius: this.radiusInput ? parseFloat(this.radiusInput.value) : 5,
+        threshold: this.thresholdInput ? parseFloat(this.thresholdInput.value) : 3.0,
+        group: this.groupAnomaliesCheckbox?.checked ?? true,
+      }),
+      (state: HintableObject) => {
+        if (!this.traceInput) return;
+        this.traceInput.value = state.trace as string;
+        this.algorithmSelector!.value = state.algo as string;
+        this.directionSelector!.value = state.direction as string;
+        this.radiusInput!.value = String(state.radius);
+        this.thresholdInput!.value = String(state.threshold);
+        this.groupAnomaliesCheckbox!.checked = state.group as boolean;
+
+        this.checkInputs();
+        this.plot();
+      }
+    );
+
     this.traceInput!.addEventListener('input', () => {
       this.exploreSimpleSk!.clearAnomalyMap();
       this.plot();
+      this.stateHasChanged();
     });
 
-    this.addEventListener('input', () => this.checkInputs());
-    this.addEventListener('change', () => this.checkInputs());
+    this.addEventListener('input', () => {
+      this.checkInputs();
+      this.stateHasChanged();
+    });
+    this.addEventListener('change', () => {
+      this.checkInputs();
+      this.stateHasChanged();
+    });
     this.checkInputs();
-
-    // Plot the initial data.
-    setTimeout(() => this.plot(), 0);
   }
 
   private checkInputs() {
