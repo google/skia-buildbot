@@ -25,7 +25,8 @@ def skia_app_container(
         create_skia_user = False,
         default_user = "skia",
         extra_tars = None,
-        owners = None):
+        owners = None,
+        workdir = None):
     """Builds a Docker container for a Skia app, and generates a target to push it to GCR.
 
     This macro produces the following:
@@ -107,6 +108,7 @@ def skia_app_container(
         container (e.g., "/home/skia"), and values are the desired owner in "uid.gid"
         format (e.g., "2000.2000"). The macro will ensure these directories and their
         subdirectories (created via 'dirs') have the specified ownership.
+      workdir: Optional. Default working directory within the image.
     """
 
     if type(entrypoint) == "string":
@@ -228,6 +230,7 @@ def skia_app_container(
         user = default_user,
         tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
         env = env,
+        workdir = workdir,
     )
 
     if owners:
@@ -260,6 +263,7 @@ def skia_app_container(
             user = default_user,
             tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             env = env,
+            workdir = workdir,
         )
         image_name = ":" + rule_name
 

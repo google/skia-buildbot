@@ -13,7 +13,10 @@ import (
 	_ "github.com/google/go-licenses/v2"
 	_ "github.com/kisielk/errcheck"
 	_ "github.com/skia-dev/protoc-gen-twirp_typescript"
+	_ "github.com/temporalio/cli/cmd/temporal"
+	_ "github.com/temporalio/ui-server/v2/server"
 	_ "github.com/twitchtv/twirp/protoc-gen-twirp"
 	_ "github.com/vektra/mockery/v2"
+	_ "go.temporal.io/server/cmd/server"
 	_ "golang.org/x/tools/cmd/goimports"
 )

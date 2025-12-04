@@ -212,36 +212,6 @@ http_archive(
     ),
 )
 
-http_archive(
-    name = "com_github_temporal",
-    build_file = "//temporal:temporal.BUILD",
-    strip_prefix = "./temporal-1.23.1",
-    urls = gcs_mirror_url(
-        sha256 = "3110fa0df19de58d6afa9b1af3dd7274a5e37d5082e424c114d7b29c696ceae1",
-        url = "https://github.com/temporalio/temporal/archive/refs/tags/v1.23.1.tar.gz",
-    ),
-)
-
-http_archive(
-    name = "com_github_temporal_cli",
-    build_file = "//temporal:temporal-cli.BUILD",
-    strip_prefix = "./cli-0.13.1",
-    urls = gcs_mirror_url(
-        sha256 = "9d8812c96d3404490659fec3915dcd23c4142b421ef4cb7e9622bd9a459e1f74",
-        url = "https://github.com/temporalio/cli/archive/refs/tags/v0.13.1.tar.gz",
-    ),
-)
-
-http_archive(
-    name = "com_github_temporal_ui",
-    build_file = "//temporal:temporal-ui.BUILD",
-    strip_prefix = "./ui-server-2.27.3",
-    urls = gcs_mirror_url(
-        sha256 = "b9ecf1afadce3e693c852b4bbe0dce5639998c10384692ca23b6a94e0d64642d",
-        url = "https://github.com/temporalio/ui-server/archive/refs/tags/v2.27.3.tar.gz",
-    ),
-)
-
 ##################################
 # Docker rules and dependencies. #
 ##################################

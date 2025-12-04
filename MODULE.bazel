@@ -11,6 +11,8 @@ bazel_dep(name = "rules_pkg", version = "1.1.0")
 bazel_dep(name = "rules_python", version = "0.31.0")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 
 ####################################################################################################
@@ -143,4 +145,22 @@ http_file(
 # These are used for unit tests.
 register_toolchains(
     "@bazel_skylib//toolchains/unittest:cmd_toolchain",
+)
+
+####################################################################################################
+# Dockerize
+####################################################################################################
+
+# This is used by temporal.
+http_archive(
+    name = "dockerize",
+    build_file_content = """
+filegroup(
+    name = "executable",
+    srcs = ["dockerize"],
+    visibility = ["//visibility:public"]
+)
+""",
+    sha256 = "bb9b55630aa63da22bafb2132f06fe00f298ef16272a99134e69495c37b33ce9",
+    url = "https://github.com/jwilder/dockerize/releases/download/v0.7.0/dockerize-linux-amd64-v0.7.0.tar.gz",
 )

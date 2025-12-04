@@ -1,90 +1,154 @@
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
-load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("//bazel:skia_app_container.bzl", "skia_app_container")
 
-container_image(
-    name = "base",
-    base = "@basealpine//image",
-    tags = [
-        "manual",  # Exclusion from presubmit and RBE as it requires docker.
-        "no-remote",
-    ],
-    user = "root",
-    workdir = "/etc/temporal",
-)
-
-container_run_and_commit_layer(
+pkg_tar(
     name = "config",
-    # Temporal will need to generate yml file under config folder using
-    # environment vars. It needs root and access to the folder config.
-    commands = [
-        "mkdir -p /etc/temporal/config",
-        "chmod ugo+w /etc/temporal/config",
-        "wget -O - https://github.com/jwilder/dockerize/releases/download/v0.7.0/dockerize-linux-amd64-v0.7.0.tar.gz | tar xzf - -C /usr/bin",
-    ],
-    image = ":base.tar",
-    tags = [
-        "manual",  # Exclusion from presubmit and RBE as it requires docker.
-        "no-remote",
-    ],
+    empty_dirs = ["/etc/temporal/config"],
+    modes = {"/etc/temporal/config": "777"},
 )
 
-# Docker image with Temporal server and tools to admin the server.
-container_image(
-    name = "temporal-server",
-    base = ":base.tar",
+pkg_files(
+    name = "temporal-bins",
+    srcs = [
+        "@com_github_temporalio_cli//cmd/temporal",
+        "@io_temporal_go_server//cmd/server",
+        "@io_temporal_go_server//cmd/tools/sql",
+        "@io_temporal_go_server//cmd/tools/tdbg",
+    ],
+    attributes = pkg_attributes(mode = "0755"),
+    renames = {
+        "@io_temporal_go_server//cmd/server": "temporal-server",
+        "@io_temporal_go_server//cmd/tools/sql": "temporal-sql-tool",
+        "@io_temporal_go_server//cmd/tools/tdbg": "tdbg",
+        "@com_github_temporalio_cli//cmd/temporal": "temporal",
+    },
+)
+
+pkg_tar(
+    name = "temporal-schemas",
+    srcs = [
+        "@@io_temporal_go_server//:schemas",
+    ],
+    # It seems like we should be able to use:
+    #
+    #     strip_prefix = "external/io_temporal_go_server",
+    #     package_dir = "/etc/temporal",
+    #
+    # But strip_prefix doesn't seem to work in this case. Therefore, we use
+    # remap_paths in combination with strip_prefix (to preserve the directory
+    # structure), which does work.
+    remap_paths = {"external/io_temporal_go_server/": "/etc/temporal/"},
+    strip_prefix = ".",  # Preserve the folder structure.
+)
+
+pkg_tar(
+    name = "empty_dynamicconfig_docker_yaml",
     empty_files = [
         # The default dynamic config placeholder with empty content.
         "/etc/temporal/config/dynamicconfig/docker.yaml",
     ],
+)
+
+# Docker image with Temporal server and tools to admin the server.
+skia_app_container(
+    name = "temporal-server",
+    base_image = "@basealpine//image",
+    default_user = "root",
+    dirs = {
+        "/": [
+            [
+                "docker/entrypoint.sh",
+                "555",
+            ],
+            [
+                "docker/env-default.sh",
+                "555",
+            ],
+            [
+                "docker/utils.sh",
+                "555",
+            ],
+            [
+                "docker/config_template.yaml",
+                "666",
+            ],
+            [
+                "@@io_temporal_go_server//:docker_config_template",
+                "666",
+            ],
+        ],
+        "/usr/bin": [
+            [
+                "@dockerize//:executable",
+                "555",
+            ],
+        ],
+        "/etc/temporal": [
+            [
+                ":temporal-bins",
+                "555",
+            ],
+        ],
+    },
     entrypoint = "/entrypoint.sh",
-    files = glob([
-        "docker/*.sh",
-        "docker/*.yaml",
-    ]),
-    layers = [
+    extra_tars = [
         ":config",
+        ":empty_dynamicconfig_docker_yaml",
+        ":temporal-schemas",
     ],
-    tags = [
-        "manual",  # Exclusion from presubmit and RBE as it requires docker.
-        "no-remote",
+    repository = "skia-public/temporal",
+    workdir = "/etc/temporal",
+)
+
+pkg_files(
+    name = "temporalui-bin",
+    srcs = [
+        "@com_github_temporalio_ui_server_v2//cmd/server",
     ],
-    tars = [
-        "@com_github_temporal//:temporal",
-        "@com_github_temporal_cli//:temporal-cli",
-    ],
+    attributes = pkg_attributes(mode = "0755"),
+    renames = {
+        "@com_github_temporalio_ui_server_v2//cmd/server": "ui-server",
+    },
 )
 
 # Docker image with Temporal UI
 # Launch with TEMPORAL_ADDRESS set to Temporal server, defaults to localhost.
-container_image(
+skia_app_container(
     name = "temporal-ui",
-    base = ":base.tar",
-    entrypoint = "sh /etc/temporal/start-ui-server.sh",
-    layers = [
+    base_image = "@basealpine//image",
+    default_user = "root",
+    dirs = {
+        "/usr/bin": [
+            [
+                "@dockerize//:executable",
+                "555",
+            ],
+        ],
+        "/etc/temporal": [
+            [
+                ":temporalui-bin",
+                "555",
+            ],
+            [
+                "@com_github_temporalio_ui_server_v2//:docker",
+                "555",
+            ],
+        ],
+    },
+    entrypoint = [
+        "sh",
+        "/etc/temporal/start-ui-server.sh",
+    ],
+    extra_tars = [
         ":config",
     ],
-    tags = [
-        "manual",  # Exclusion from presubmit and RBE as it requires docker.
-        "no-remote",
-    ],
-    tars = [
-        "@com_github_temporal_ui//:temporalui-pkg",
-    ],
+    repository = "skia-public/temporal-ui",
+    workdir = "/etc/temporal",
 )
 
-genrule(
+alias(
     name = "temporal-cli",
-    srcs = [
-        "@com_github_temporal_cli//:temporal-cli",
-    ],
-    outs = ["temporal-cli-bin"],
-    cmd = """
-      tar -x -f $(location @com_github_temporal_cli//:temporal-cli) ./etc/temporal/temporal;
-      cp ./etc/temporal/temporal $@;
-    """,
-    executable = True,
-    tags = [
-        "manual",  # Exclusion from presubmit and RBE as it requires docker.
-        "no-remote",
-    ],
+    actual = "@com_github_temporalio_cli//cmd/temporal",
+    visibility = ["//visibility:public"],
 )

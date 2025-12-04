@@ -1,0 +1,56 @@
+diff --git BUILD.bazel BUILD.bazel
+new file mode 100644
+index 000000000..72171938d
+--- /dev/null
++++ BUILD.bazel
+@@ -0,0 +1,16 @@
++filegroup(
++    name = "schemas",
++    srcs = [
++        "//schema/postgresql/v96/temporal:all_files",
++        "//schema/postgresql/v96/visibility:all_files",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++filegroup(
++    name = "docker_config_template",
++    srcs = [
++        ":docker/config_template.yaml",
++    ],
++    visibility = ["//visibility:public"],
++)
+diff --git schema/postgresql/v96/temporal/BUILD.bazel schema/postgresql/v96/temporal/BUILD.bazel
+new file mode 100644
+index 000000000..81f8c0b88
+--- /dev/null
++++ schema/postgresql/v96/temporal/BUILD.bazel
+@@ -0,0 +1,11 @@
++filegroup(
++    name = "all_files",
++    srcs = glob(
++        [
++            "**/*",
++        ],
++        allow_empty = False,
++        exclude = ["BUILD.bazel"],
++    ),
++    visibility = ["//visibility:public"],
++)
+diff --git schema/postgresql/v96/visibility/BUILD.bazel schema/postgresql/v96/visibility/BUILD.bazel
+new file mode 100644
+index 000000000..81f8c0b88
+--- /dev/null
++++ schema/postgresql/v96/visibility/BUILD.bazel
+@@ -0,0 +1,11 @@
++filegroup(
++    name = "all_files",
++    srcs = glob(
++        [
++            "**/*",
++        ],
++        allow_empty = False,
++        exclude = ["BUILD.bazel"],
++    ),
++    visibility = ["//visibility:public"],
++)
