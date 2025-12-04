@@ -4,4 +4,7 @@ get_fixup_owners_layers_test_suite(
     name = "get_fixup_owners_layers_test",
 )
 
-exports_files(["strip-package-lock.py"])
+exports_files([
+    "oci-extract.py",
+    "strip-package-lock.py",
+])

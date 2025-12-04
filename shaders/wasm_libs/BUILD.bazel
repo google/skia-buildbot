@@ -1,5 +1,6 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
-load("//infra-sk:index.bzl", "bool_flag", "extract_files_from_skia_wasm_container")
+load("//bazel:oci-extract.bzl", "oci_extract")
+load("//infra-sk:index.bzl", "bool_flag")
 
 bool_flag(
     default = True,
@@ -9,16 +10,17 @@ bool_flag(
 # This target makes the canvaskit js and wasm binaries available for tests. This is not the same
 # as ../build because we want to be able to control which binaries get used when we deploy a
 # container, but we are less stringent when running tests on the infra CI.
-extract_files_from_skia_wasm_container(
+oci_extract(
     name = "fetch_canvaskit_wasm",
     testonly = True,
-    container = "@pinned_jsfiddle",
-    container_files = {
+    # TODO(borenet): Remove //image when we move to oci_image.
+    image = "@pinned_jsfiddle//image",
+    paths = {
         "/usr/local/share/jsfiddle/dist/index.d.ts": "from_container/canvaskit.d.ts",
         "/usr/local/share/jsfiddle/dist/canvaskit.js": "from_container/canvaskit.js",
         "/usr/local/share/jsfiddle/dist/canvaskit.wasm": "from_container/canvaskit.wasm",
     },
-    enabled_flag = ":use_canvaskit_from_container",
+    tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
     visibility = ["//shaders:__subpackages__"],
 )
 

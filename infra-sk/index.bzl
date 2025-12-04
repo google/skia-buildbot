@@ -4,7 +4,6 @@ load("@aspect_rules_js//js:defs.bzl", "js_binary")
 
 # https://github.com/bazelbuild/bazel-skylib/blob/main/rules/common_settings.bzl
 load("@bazel_skylib//rules:common_settings.bzl", skylib_bool_flag = "bool_flag")
-load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
 load("@npm//:mocha/package_json.bzl", _mocha_bin = "bin")
 load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 load("//infra-sk/esbuild:esbuild.bzl", "esbuild_dev_bundle", "esbuild_node_bundle", "esbuild_prod_bundle")
@@ -621,109 +620,6 @@ def sk_page(
             #            "production/%s.css.map" % name,
         ],
         visibility = ["//visibility:public"],
-    )
-
-def extract_files_from_skia_wasm_container(name, container, container_files, enabled_flag, **kwargs):
-    """Extracts files from the Skia WASM container image (gcr.io/skia-public/skia-wasm-release).
-
-    This macro takes as inputs a list of paths inside the Docker container (container_files
-    argument), and a list of the same length with the destination paths for each of the files to
-    extract (outs argument), relative to the directory where the macro is instantiated.
-
-    This image will be pulled if the enabled_flag is true, so users who need to set that flag to
-    true (e.g. infra folks pushing a clean image) should be granted permissions and have Docker
-    authentication set up. Users who are working with a local build should set the flag to false
-    and not need Docker authentication.
-
-    Args:
-      name: Name of the target.
-      container: The name of the docker container (defined in //WORKSPACE) which contains the files.
-      container_files: Dictionary of absolute paths inside the Docker container to extract mapped to
-          the path they should be extracted to.
-      enabled_flag: Label. If set, should be the name of a bool_flag. If the bool_flag
-          is True, the real skia_wasm_container image will be pulled and the images loaded as per
-          usual. If the bool_flag is false, the container will not be loaded, but any outs will be
-          created as empty files to make dependent rules happy. It is up to the caller to use that
-          same flag to properly ignore those empty files if the flag is false (e.g. via a select).
-      **kwargs: Any flags that should be forwarded to the generated rule
-    """
-
-    # Generates a .tar file with the contents of the image's filesystem (and a .json metadata file
-    # which we ignore).
-    #
-    # See the rule implementation here:
-    # https://github.com/bazelbuild/rules_docker/blob/02ad0a48fac9afb644908a634e8b2139c5e84670/container/flatten.bzl#L48
-    #
-    # Notes:
-    #  - It is unclear whether container_flatten is part of the public API because it is not
-    #    documented. But the fact that container_flatten is re-exported along with other, well
-    #    documented rules in rules_docker suggests that it might indeed be part of the public API
-    #    (see [1] and [2]).
-    #  - If they ever make breaking changes to container_flatten, then it is probably best to fork
-    #    it. The rule itself is relatively small; it is just a wrapper around a Go program that does
-    #    all the heavy lifting.
-    #  - This rule was chosen because most other rules in the rules_docker repository produce .tar
-    #    files with layered outputs, which means we would have to do the flattening ourselves.
-    #
-    # [1] https://github.com/bazelbuild/rules_docker/blob/6c29619903b6bc533ad91967f41f2a3448758e6f/container/container.bzl#L28
-    # [2] https://github.com/bazelbuild/rules_docker/blob/e290d0975ab19f9811933d2c93be275b6daf7427/container/BUILD#L158
-
-    # We expect enabled_flag to be a bool_flag, which means we should have two labels defined
-    # based on the passed in flag name, one with a _true suffix and one with a _false suffix. If
-    # the flag is set to false, we pull from a public image that has no files in it.
-    container_flatten(
-        name = name + "_skia_wasm_container_filesystem",
-        image = select({
-            enabled_flag + "_true": container + "//image",
-            enabled_flag + "_false": "@empty_container//image",
-        }),
-    )
-
-    # Name of the .tar file produced by the container_flatten target.
-    skia_wasm_filesystem_tar = name + "_skia_wasm_container_filesystem.tar"
-
-    # Shell command that returns the directory of the BUILD file where this macro was instantiated.
-    #
-    # This works because:
-    #  - The $< variable[1] is expanded by the below genrule to the path of its only input file.
-    #  - The only input file to the genrule is the .tar file produced by the above container_flatten
-    #    target (see the genrule's srcs attribute).
-    #  - Said .tar file is produced in the directory of the BUILD file where this macro was
-    #    instantiated.
-    #
-    # [1] https://bazel.build/reference/be/make-variables
-    output_dir = "$$(dirname $<)"
-
-    # Directory where we will untar the .tar file produced by the container_flatten target.
-    skia_wasm_filesystem_dir = output_dir + "/" + skia_wasm_filesystem_tar + "_untarred"
-
-    # Untar the .tar file produced by the container_flatten rule.
-    cmd = ("mkdir -p " + skia_wasm_filesystem_dir +
-           " && tar xf $< -C " + skia_wasm_filesystem_dir)
-
-    outs = []
-
-    # Copy each requested file from the container filesystem to its desired destination.
-    for src in container_files:
-        dst = container_files[src]
-        copy = " && (cp %s/%s %s/%s" % (skia_wasm_filesystem_dir, src, output_dir, dst)
-
-        # If the enabled_flag is False, we will be loading from an empty image and thus the
-        # files will not exist. As such, we need to create them or Bazel will fail because the
-        # expected generated files will not be created. It is up to the dependent rules to properly
-        # ignore these files. We cannot easily have the genrule change its behavior depending on
-        # how the flag is set, so we always touch the file as a backup. We write stderr to
-        # /dev/null to squash any errors about files not existing.
-        copy += " 2>/dev/null || touch %s/%s) " % (output_dir, dst)
-        cmd += copy
-        outs.append(dst)
-
-    native.genrule(
-        name = name,
-        srcs = [skia_wasm_filesystem_tar],
-        outs = outs,
-        cmd = cmd,
-        **kwargs
     )
 
 def bool_flag(flag_name, default = True, name = ""):  # buildifier: disable=unused-variable
