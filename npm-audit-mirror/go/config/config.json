@@ -57,16 +57,6 @@
         "owner": "dtu@google.com"
       }
     },
-    "luci-analysis": {
-      "repo_url": "https://chromium.googlesource.com/infra/luci/luci-go",
-      "git_branch": "main",
-      "package_json_dir": "analysis/frontend/ui",
-      "packages_allow_list": [],
-      "trusted_scopes": [],
-      "issue_tracker_config": {
-        "owner": "mdraz@google.com"
-      }
-    },
     "luci-milo": {
       "repo_url": "https://chromium.googlesource.com/infra/luci/luci-go",
       "git_branch": "main",
@@ -75,12 +65,16 @@
         {
           "name": "fast-loops",
           "version": "1.1.4"
+        },
+        {
+          "name": "react",
+          "version": "19.2.1"
         }
       ],
       "trusted_scopes": ["@chopsui/"],
       "audit_dev_dependencies": true,
       "issue_tracker_config": {
-        "owner": "weiweilin@google.com"
+        "owner": "mdraz@google.com"
       }
     },
     "testhaus": {
