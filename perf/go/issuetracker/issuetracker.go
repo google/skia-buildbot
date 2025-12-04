@@ -209,7 +209,12 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 
 	resp, err := s.client.Issues.Create(newIssue).TemplateOptionsApplyTemplate(true).Do()
 	if err != nil {
-		return 0, skerr.Wrapf(err, "creating issue")
+		return 0, skerr.Wrapf(err,
+			"[Perf_issuetracker] failed to create issue: Title=%q, Assignee=%q, ComponentID=%d",
+			newIssue.IssueState.Title,
+			newIssue.IssueState.Assignee.EmailAddress,
+			newIssue.IssueState.ComponentId,
+		)
 	}
 	return int(resp.IssueId), nil
 }
