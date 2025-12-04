@@ -167,7 +167,7 @@ func (s *issueTrackerImpl) getComponentID(ctx context.Context, componentName str
 	componentID, err := strconv.ParseInt(componentName, 10, 64)
 	if err != nil {
 		// TODO(mordeckimarcin) pass componentIDs instead of raw names.
-		return 1526905, nil
+		return 1325852, nil
 	}
 	return componentID, nil
 }
