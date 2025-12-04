@@ -67,23 +67,23 @@
                 "name": "Comparative Browser Benchmarking (CBB)",
                 "links": [
                     {
-                        "text": "Speedometer3",
-                        "href": "https://chrome-perf.corp.goog/m/?begin=1752000000&end=1780000000&shortcut=7bd8bba5abb81582cffb5cb8578011b2&splitByKeys=bot&totalGraphs=4",
+                        "text": "Speedometer3 (go/cbb-sp3)",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=7bd8bba5abb81582cffb5cb8578011b2&splitByKeys=bot&totalGraphs=4",
                         "description": "CBB Speedometer3 results"
                     },
                     {
-                        "text": "JetStream2",
-                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&shortcut=c68938c0463f91bfc8b1e9a8aca18499&splitByKeys=bot&totalGraphs=4",
+                        "text": "JetStream2 (go/cbb-js2)",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=c68938c0463f91bfc8b1e9a8aca18499&splitByKeys=bot&totalGraphs=4",
                         "description": "CBB JetStream2 results"
                     },
                     {
-                        "text": "JetStream3",
-                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&shortcut=996f59da14c437bbef118c9514ea4724&splitByKeys=bot&totalGraphs=4",
+                        "text": "JetStream3 (go/cbb-js3)",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=996f59da14c437bbef118c9514ea4724&splitByKeys=bot&totalGraphs=4",
                         "description": "CBB JetStream3 results"
                     },
                     {
-                        "text": "MotionMark",
-                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&shortcut=598f56484c8e1602be056849b115e0b8&splitByKeys=bot&totalGraphs=1",
+                        "text": "MotionMark (go/cbb-mm)",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=598f56484c8e1602be056849b115e0b8&splitByKeys=bot&totalGraphs=1",
                         "description": "CBB MotionMark results"
                     }
                 ]
