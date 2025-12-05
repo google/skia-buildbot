@@ -13,15 +13,6 @@ import (
 	"go.skia.org/infra/task_driver/go/td"
 )
 
-func TestBazelTargetToDockerTag(t *testing.T) {
-	tc := map[string]string{
-		"//task_scheduler:task_scheduler_jc_container": "bazel/task_scheduler:task_scheduler_jc_container",
-	}
-	for input, expect := range tc {
-		require.Equal(t, expect, bazelTargetToDockerTag(input))
-	}
-}
-
 func TestShallowClone_InputsThreadedThrough(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		mock, ctx := commandCollectorWithStubbedGit(ctx)

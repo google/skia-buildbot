@@ -52,11 +52,11 @@ func TestBuild_SingleTarget_OutputJSONFileCreated(t *testing.T) {
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
 			{fakeGitPath, "checkout", "FETCH_HEAD"},
 			{"bazelisk", "run", "--config=extra", "//skfe:skfe_container"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:2023-07-01T02_03_04Z-louhi-aabbccd-clean"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:git-aabbccddeeff00112233445566778899aabbccdd"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:latest"},
 		}, executedCommands)
 
@@ -190,7 +190,7 @@ func TestBuild_SingleTarget_DockerErrorCausesFailure(t *testing.T) {
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
 			{fakeGitPath, "checkout", "FETCH_HEAD"},
 			{"bazelisk", "run", "//skfe:skfe_container"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:2023-07-01T02_03_04Z-louhi-aabbccd-clean"},
 		}, executedCommands)
 
@@ -284,19 +284,19 @@ func TestBuild_MultipleTarget_OutputJSONFileCreated(t *testing.T) {
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
 			{fakeGitPath, "checkout", "FETCH_HEAD"},
 			{"bazelisk", "run", "//skfe:skfe_container"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:2023-07-07T08_09_10Z-louhi-0011223-clean"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:git-00112233445566778899aaabbbcccdddeeefff00"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:latest"},
 
 			{"bazelisk", "run", "//prober:proberk_container"},
-			{"docker", "tag", "bazel/prober:proberk_container",
+			{"docker", "tag", "gcr.io/skia-public/proberk:latest",
 				"louhi_ws/gcr.io/skia-public/proberk:2023-07-07T08_09_10Z-louhi-0011223-clean"},
-			{"docker", "tag", "bazel/prober:proberk_container",
+			{"docker", "tag", "gcr.io/skia-public/proberk:latest",
 				"louhi_ws/gcr.io/skia-public/proberk:git-00112233445566778899aaabbbcccdddeeefff00"},
-			{"docker", "tag", "bazel/prober:proberk_container",
+			{"docker", "tag", "gcr.io/skia-public/proberk:latest",
 				"louhi_ws/gcr.io/skia-public/proberk:latest"},
 		}, executedCommands)
 
@@ -346,11 +346,11 @@ func TestBuild_SingleTargetMultipleTimes_Deduplicated(t *testing.T) {
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
 			{fakeGitPath, "checkout", "FETCH_HEAD"},
 			{"bazelisk", "run", "//skfe:skfe_container"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:2023-07-01T02_03_04Z-louhi-aabbccd-clean"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:git-aabbccddeeff00112233445566778899aabbccdd"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:latest"},
 		}, executedCommands)
 
@@ -406,11 +406,11 @@ func TestBuild_MultipleExtraArgs_PreservedInOrder(t *testing.T) {
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
 			{fakeGitPath, "checkout", "FETCH_HEAD"},
 			{"bazelisk", "run", "--config=one", "--config=two", "--verbose", "//skfe:skfe_container"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:2023-07-01T02_03_04Z-louhi-aabbccd-clean"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:git-aabbccddeeff00112233445566778899aabbccdd"},
-			{"docker", "tag", "bazel/skfe:skfe_container",
+			{"docker", "tag", "gcr.io/skia-public/envoy_skia_org:latest",
 				"louhi_ws/gcr.io/skia-public/envoy_skia_org:latest"},
 		}, executedCommands)
 

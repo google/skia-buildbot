@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"path"
 	"strings"
 
 	"go.skia.org/infra/go/exec"
@@ -77,22 +76,16 @@ nextTarget:
 			Image: imagePath,
 			Tag:   imageTag,
 		})
-		if err := bazelRun(ctx, checkoutDir, bazelTarget, tags, extraArgs); err != nil {
+		if err := bazelRun(ctx, checkoutDir, bazelTarget, imagePath, tags, extraArgs); err != nil {
 			return td.FailStep(ctx, err)
 		}
 	}
 	return writeBuildImagesJSON(ctx, workspace, imageInfo)
 }
 
-// bazelTargetToDockerTag converts a Bazel target specification to a Docker
-// image tag which is applied to the image during the Bazel build.
-func bazelTargetToDockerTag(target string) string {
-	return path.Join("bazel", target)
-}
-
 // bazelRun executes `bazel run` for the given target and applies the given tag
 // to the resulting image.
-func bazelRun(ctx context.Context, cwd, target string, tags []string, extraArgs []string) error {
+func bazelRun(ctx context.Context, cwd, target, imageURI string, tags []string, extraArgs []string) error {
 	ctx = td.StartStep(ctx, td.Props(fmt.Sprintf("Build %s", target)))
 	defer td.EndStep(ctx)
 
@@ -104,7 +97,7 @@ func bazelRun(ctx context.Context, cwd, target string, tags []string, extraArgs 
 	if _, err := exec.RunCwd(ctx, cwd, cmd...); err != nil {
 		return td.FailStep(ctx, err)
 	}
-	srcTag := bazelTargetToDockerTag(target)
+	srcTag := fmt.Sprintf("%s:latest", imageURI)
 	for _, tag := range tags {
 		if _, err := exec.RunCwd(ctx, cwd, "docker", "tag", srcTag, tag); err != nil {
 			return td.FailStep(ctx, err)
