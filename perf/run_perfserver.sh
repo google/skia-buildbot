@@ -84,14 +84,18 @@ EOF
 VALID_INSTANCES="${!PROJECTS[@]}"
 
 usage() {
-  echo "Usage: $0 --instance <instance_type> [--proxy]"
+  echo "Usage: $0 --instance <instance_type> [--proxy] [--prod] [--breakglass]"
   echo "  Valid instance types are: ${VALID_INSTANCES// / | }"
   echo "  --proxy: Build and run the auth-proxy in the background."
+  echo "  --prod: Disable --localToProd flag."
+  echo "  --breakglass: Request breakglass access before starting."
   exit 1
 }
 
 INSTANCE=""
 RUN_PROXY=false
+USE_LOCAL_TO_PROD=true
+RUN_BREAKGLASS=false
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
@@ -102,6 +106,12 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --proxy)
             RUN_PROXY=true
+            ;;
+        --prod)
+            USE_LOCAL_TO_PROD=false
+            ;;
+        --breakglass)
+            RUN_BREAKGLASS=true
             ;;
         --help|-h)
             usage
@@ -158,11 +168,13 @@ while true; do
     PG_PORT=$((5432 + OFFSET))
     PROXY_PORT=$((8003 + OFFSET))
     PROXY_PROM_PORT=$((20003 + OFFSET))
+    INTERNAL_PORT=$((9000 + OFFSET))
 
     # Check if main ports are in use
     if nc -z 127.0.0.1 $PERF_PORT >/dev/null 2>&1 || \
        nc -z 127.0.0.1 $PERF_PROM_PORT >/dev/null 2>&1 || \
-       nc -z 127.0.0.1 $PG_PORT >/dev/null 2>&1; then
+       nc -z 127.0.0.1 $PG_PORT >/dev/null 2>&1 || \
+       nc -z 127.0.0.1 $INTERNAL_PORT >/dev/null 2>&1; then
        OFFSET=$((OFFSET + STEP))
        continue
     fi
@@ -245,12 +257,18 @@ start_server() {
   LOG_FILE="/tmp/perfserver_${INSTANCE}_$(date +%Y%m%d_%H%M%S).log"
   echo "Log file: $LOG_FILE"
 
+  LOCAL_TO_PROD_FLAG=""
+  if [ "$USE_LOCAL_TO_PROD" = true ]; then
+      LOCAL_TO_PROD_FLAG="--localToProd"
+  fi
+
   _bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
       --dev_mode \
-      --localToProd \
+      $LOCAL_TO_PROD_FLAG \
       --do_clustering=false \
       --port=:$PERF_PORT \
       --prom_port=:$PERF_PROM_PORT \
+      --internal_port=:$INTERNAL_PORT \
       --config_filename="$TEMP_CONFIG" \
       --display_group_by=false \
       --disable_metrics_update=true \
@@ -333,6 +351,7 @@ cleanup() {
   # Failsafe: ensure ports are cleared
   fuser -k $PERF_PORT/tcp >/dev/null 2>&1
   fuser -k $PERF_PROM_PORT/tcp >/dev/null 2>&1
+  fuser -k $INTERNAL_PORT/tcp >/dev/null 2>&1
   fuser -k $PG_PORT/tcp >/dev/null 2>&1
   if [ "$RUN_PROXY" = true ]; then
       fuser -k $PROXY_PORT/tcp >/dev/null 2>&1
@@ -407,6 +426,63 @@ if [ "$RUN_PROXY" = true ]; then
   AUTH_PROXY_PID=$!
   echo "Auth proxy PID: $AUTH_PROXY_PID"
   sleep 2 # Give proxy time to start
+fi
+
+if [ "$RUN_BREAKGLASS" = true ]; then
+  echo "Breakglass requested."
+  read -p "Enter Bug Number (e.g. 123456): " BUG_NUM
+  read -p "Enter Reason (e.g. debugging prod issue): " REASON_TEXT
+
+  APPROVERS=""
+  read -p "Do you want to assign a specific reviewer? [y/N] (default: auto-assign): " WANT_REVIEWER
+  if [[ "$WANT_REVIEWER" =~ ^[Yy] ]]; then
+      read -p "Enter Reviewer LDAP: " APPROVERS
+  else
+      echo "Using auto-assign."
+  fi
+
+  # Format: b/<bug> <reason>
+  FULL_REASON="b/$BUG_NUM $REASON_TEXT"
+  GRANTS_LOG="/tmp/grants_breakglass_$$.log"
+
+  echo "Running grants command in background..."
+  echo "Reason: $FULL_REASON"
+  if [ -n "$APPROVERS" ]; then
+      echo "Approvers: $APPROVERS"
+  fi
+
+  # Construct command arguments
+  GRANTS_ARGS=(add --wait_for_twosync --reason="$FULL_REASON")
+  if [ -n "$APPROVERS" ]; then
+      GRANTS_ARGS+=(--preferred_approvers="$APPROVERS")
+  fi
+  GRANTS_ARGS+=("skia-infra-breakglass-policy:20h")
+
+  # Run grants command in background and capture output
+  grants "${GRANTS_ARGS[@]}" > "$GRANTS_LOG" 2>&1 &
+  GRANTS_PID=$!
+
+  echo "Waiting for approval URL..."
+
+  # Poll the log file for the URL
+  FOUND_URL=false
+  while kill -0 "$GRANTS_PID" > /dev/null 2>&1; do
+      if grep -q "https://" "$GRANTS_LOG"; then
+          URL=$(grep -o "https://[^ ]*" "$GRANTS_LOG" | head -n 1)
+          echo "--------------------------------------------------------"
+          echo "Approval URL: $URL"
+          echo "Please click the URL to approve the breakglass request."
+          echo "--------------------------------------------------------"
+          FOUND_URL=true
+          break
+      fi
+      sleep 1
+  done
+
+  if [ "$FOUND_URL" = false ]; then
+      echo "Grants command finished without providing a URL. Checking log..."
+      cat "$GRANTS_LOG"
+  fi
 fi
 
 # Initial build and run
