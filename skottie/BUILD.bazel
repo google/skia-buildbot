@@ -36,7 +36,7 @@ copy_file_from_npm_pkg(
 
 skia_app_container(
     name = "skottie_container-base",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin": [
             [

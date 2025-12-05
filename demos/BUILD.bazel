@@ -2,7 +2,7 @@ load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 skia_app_container(
     name = "demos_container",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin": [
             [

@@ -13,8 +13,7 @@ bool_flag(
 oci_extract(
     name = "fetch_debugger_wasm",
     testonly = True,
-    # TODO(borenet): Remove //image when we move to oci_image.
-    image = "@pinned_debugger//image",
+    image = "@pinned_debugger",
     paths = {
         "/usr/local/share/debugger-app/index.d.ts": "from_container/canvaskit.d.ts",
         "/usr/local/share/debugger-app/canvaskit.js": "from_container/canvaskit.js",

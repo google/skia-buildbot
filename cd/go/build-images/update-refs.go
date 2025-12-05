@@ -153,11 +153,21 @@ func findRegexesAndReplaces(image *SingleImageInfo, digest string) ([]*regexp.Re
 
 	// Replace Bazel container_pull specifications.
 	cpRegex, cpReplace := bazelRegexAndReplaceForContainerPull(image, digest)
-	return []*regexp.Regexp{ymlRegex, ymlTagRegex, cpRegex}, []string{ymlReplace, ymlTagReplace, cpReplace}
+	ociRegex, ociReplace := bazelRegexAndReplaceForOCIPull(image, digest)
+	return []*regexp.Regexp{ymlRegex, ymlTagRegex, cpRegex, ociRegex}, []string{ymlReplace, ymlTagReplace, cpReplace, ociReplace}
 }
 
 func bazelRegexAndReplaceForContainerPull(image *SingleImageInfo, digest string) (*regexp.Regexp, string) {
 	const regexTmpl = `(container_pull\(\s*name\s*=\s*"%s",\s*digest\s*=\s*)"sha256:[a-f0-9]+",`
+	regex := regexp.MustCompile(fmt.Sprintf(regexTmpl, path.Base(image.Image)))
+
+	const replTmpl = `$1"%s",`
+	replace := fmt.Sprintf(replTmpl, digest)
+	return regex, replace
+}
+
+func bazelRegexAndReplaceForOCIPull(image *SingleImageInfo, digest string) (*regexp.Regexp, string) {
+	const regexTmpl = `(oci\.pull\(\s*name\s*=\s*"%s",\s*digest\s*=\s*)"sha256:[a-f0-9]+",`
 	regex := regexp.MustCompile(fmt.Sprintf(regexTmpl, path.Base(image.Image)))
 
 	const replTmpl = `$1"%s",`

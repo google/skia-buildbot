@@ -1,6 +1,9 @@
 load("//bazel:skia_app_container.bzl", "skia_app_container")
 
-exports_files(["docs"])
+filegroup(
+    name = "docs",
+    srcs = glob(["docs/**"]),
+)
 
 skia_app_container(
     name = "api_container",
@@ -11,9 +14,9 @@ skia_app_container(
                 "0755",
             ],
         ],
-        "/usr/local/share/api": [
+        "/usr/local/share/api/docs": [
             [
-                "//api:docs",
+                ":docs",
                 "0755",
             ],
         ],

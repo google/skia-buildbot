@@ -50,7 +50,7 @@ skia_app_container(
 
 skia_app_container(
     name = "fiddler_container-base",
-    base_image = "@fiddler-build-skia//image",
+    base_image = "@fiddler-build-skia",
     dirs = {
         "/usr/local/bin": [
             [

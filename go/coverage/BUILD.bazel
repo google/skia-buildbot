@@ -29,8 +29,8 @@ go_library(
 )
 
 skia_app_container(
-    name = "coverageserver",
-    base_image = "@base-cipd//image",
+    name = "coverageserver_container",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin/coverageserver": [
             [

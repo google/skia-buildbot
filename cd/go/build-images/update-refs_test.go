@@ -76,6 +76,38 @@ container_pull(
     repository = "skia-public/cd-base",
 )`)
 
+	test("oci.pull one affected", "gcr.io/skia-public/cd-base", "sha256:f5f1c8737cd424ada212bac65e965ebf44e7a8237b03c2ec2614a83246181e71", "unused",
+		`# Pulls the gcr.io/skia-public/base-cipd container, needed by some apps that use the
+# skia_app_container macro.
+oci.pull(
+    name = "base-cipd",
+    digest = "sha256:0ae30b768fb1bdcbea5b6721075b758806c4076a74a8a99a67ff3632df87cf5a",
+    repository = "gcr.io/skia-public/base-cipd",
+)
+
+# Pulls the gcr.io/skia-public/cd-base container, needed by some apps that use the
+# skia_app_container macro.
+oci.pull(
+    name = "cd-base",
+    digest = "sha256:17e18164238a4162ce2c30b7328a7e44fbe569e56cab212ada424dc7378c1f5f",
+    repository = "gcr.io/skia-public/cd-base",
+)`,
+		`# Pulls the gcr.io/skia-public/base-cipd container, needed by some apps that use the
+# skia_app_container macro.
+oci.pull(
+    name = "base-cipd",
+    digest = "sha256:0ae30b768fb1bdcbea5b6721075b758806c4076a74a8a99a67ff3632df87cf5a",
+    repository = "gcr.io/skia-public/base-cipd",
+)
+
+# Pulls the gcr.io/skia-public/cd-base container, needed by some apps that use the
+# skia_app_container macro.
+oci.pull(
+    name = "cd-base",
+    digest = "sha256:f5f1c8737cd424ada212bac65e965ebf44e7a8237b03c2ec2614a83246181e71",
+    repository = "gcr.io/skia-public/cd-base",
+)`)
+
 	// This is a snippet of a yaml file used to configure an app. It should be changed because
 	// it matches the target image.
 	test("yaml_file matches", "gcr.io/skia-public/ctfe", "sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff", "git-621749e49293c7c5dd07823a24670891288c2c0a",
@@ -162,6 +194,21 @@ container_pull(
 )
 `
 
+const fakeModuleContents = `
+# This is a comment
+oci.pull(
+    name = "envoy_skia_org",
+    digest = "sha256:04ec75f15a12ae03ef1436fcd67b8bb918fb6c1e577b12dfd25a501a83c9074d",
+    repository = "gcr.io/skia-public/envoy_skia_org",
+)
+
+oci.pull(
+    name = "debugger-app-base",
+    digest = "sha256:6820bee4d8f062bfac1a370fa66ea83e8ad67443f603f843c62367ab486b1506",
+    repository = "gcr.io/skia-public/debugger-app-base",
+)
+`
+
 // useFakeCheckout creates the following file system under the directory that git checkout is run:
 //
 //	nested/Dockerfile
@@ -176,6 +223,7 @@ func useFakeCheckout(t *testing.T) commandMatcher {
 			// Make the permissions different to make sure they are preserved
 			require.NoError(t, os.WriteFile(filepath.Join(w, "Dockerfile"), []byte(fakeDockerfileContents), 0744))
 			require.NoError(t, os.WriteFile(filepath.Join(cmd.Dir, "WORKSPACE.bazel"), []byte(fakeWorkspaceContents), 0644))
+			require.NoError(t, os.WriteFile(filepath.Join(cmd.Dir, "MODULE.bazel"), []byte(fakeModuleContents), 0644))
 			return nil
 		}
 		return nil
@@ -268,6 +316,21 @@ container_pull(
     digest = "sha256:6820bee4d8f062bfac1a370fa66ea83e8ad67443f603f843c62367ab486b1506",
     registry = "gcr.io",
     repository = "skia-public/debugger-app-base",
+)
+`)
+
+		assertFileMatches(t, filepath.Join(gitCheckoutDir, "MODULE.bazel"), 0644, `
+# This is a comment
+oci.pull(
+    name = "envoy_skia_org",
+    digest = "sha256:0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff",
+    repository = "gcr.io/skia-public/envoy_skia_org",
+)
+
+oci.pull(
+    name = "debugger-app-base",
+    digest = "sha256:6820bee4d8f062bfac1a370fa66ea83e8ad67443f603f843c62367ab486b1506",
+    repository = "gcr.io/skia-public/debugger-app-base",
 )
 `)
 

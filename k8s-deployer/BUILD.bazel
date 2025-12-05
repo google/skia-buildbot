@@ -2,7 +2,7 @@ load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 skia_app_container(
     name = "k8s_deployer_container",
-    base_image = "@kubectl//image",
+    base_image = "@kubectl",
     create_skia_user = True,
     dirs = {
         "/usr/local/bin": [

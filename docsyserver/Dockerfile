@@ -1,5 +1,5 @@
-# TODO(borenet): Obtain this from MODULE.bazel!
-FROM gcr.io/skia-public/base-cipd@sha256:d775388db67ebb4d9cd36a759aaee785a3cf4a3999120f57ed9135e1445eb9d5
+ARG BASE
+FROM $BASE
 
 USER root
 RUN apt-get update \

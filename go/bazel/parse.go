@@ -153,15 +153,30 @@ func ParseDeps(content string) (map[DependencyID]Dependency, error) {
 // version is defined, if a dependency can be found. The boolean return value
 // indicates whether a dependency was found.
 func parseCall(call *ast.Call) (Dependency, bool, error) {
-	funcName := string(call.Func.(*ast.Name).Id)
+	var funcName string
+	fn, ok := call.Func.(*ast.Name)
+	if ok {
+		funcName = string(fn.Id)
+	} else {
+		attr, ok := call.Func.(*ast.Attribute)
+		if !ok {
+			return Dependency{}, false, skerr.Fmt("Unknown type for function call at line %d", call.Lineno)
+		}
+		obj, ok := attr.Value.(*ast.Name)
+		if !ok {
+			return Dependency{}, false, skerr.Fmt("Unknown type for attribute value on function call at line %d", call.Lineno)
+		}
+		funcName = string(obj.Id) + "." + string(attr.Attr)
+	}
 	parseFn := map[string]func(*ast.Call) (Dependency, error){
 		"cipd_install":   parseDepFromCallFunc("cipd_package", "tag"),
 		"container_pull": parseContainerPull,
+		"oci.pull":       parseOCIPull,
 	}[funcName]
 	if parseFn != nil {
 		dep, err := parseFn(call)
 		if err != nil {
-			return Dependency{}, false, skerr.Wrapf(err, "parsing %q call at line %d", funcName, call.Func.(*ast.Name).Lineno)
+			return Dependency{}, false, skerr.Wrapf(err, "parsing %q call at line %d", funcName, call.Lineno)
 		}
 		return dep, true, nil
 	}
@@ -212,6 +227,26 @@ func parseContainerPull(call *ast.Call) (Dependency, error) {
 	}
 	return Dependency{
 		ID:         DependencyID(id),
+		Version:    digest,
+		versionPos: digestPos,
+		SHA256:     digest,
+		sha256Pos:  digestPos,
+	}, nil
+}
+
+// parseOCIPull parses a call to oci_pull to return a dependency and
+// the position where the version is defined.
+func parseOCIPull(call *ast.Call) (Dependency, error) {
+	repository, _, err := getCallArgValueString(call, "repository")
+	if err != nil {
+		return Dependency{}, skerr.Wrap(err)
+	}
+	digest, digestPos, err := getCallArgValueString(call, "digest")
+	if err != nil {
+		return Dependency{}, skerr.Wrap(err)
+	}
+	return Dependency{
+		ID:         DependencyID(repository),
 		Version:    digest,
 		versionPos: digestPos,
 		SHA256:     digest,

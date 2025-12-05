@@ -1,7 +1,7 @@
 """This module defines the skia_app_container macro."""
 
-load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
 load("@rules_distroless//distroless:defs.bzl", "group", "home", "passwd")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load(
     "//bazel:owners_layers.bzl",
@@ -20,7 +20,7 @@ def skia_app_container(
         dirs,
         empty_dirs = None,
         entrypoint = "",
-        base_image = "@basealpine//image",
+        base_image = "@basealpine",
         env = None,
         create_skia_user = False,
         default_user = "skia",
@@ -65,17 +65,17 @@ def skia_app_container(
     To build the container and load it into Docker:
 
     ```
-        $ bazel run //myapp:myapp
+        $ bazel run //myapp:load_myapp
         ...
         Loaded image ID: sha256:c0decafe
-        Tagging c0decafe as bazel/myapp:myapp
+        Tagging c0decafe as gcr.io/skia-public/myapp:latest
     ```
 
     To debug the container locally:
 
     ```
-        $ docker run bazel/myapp:myapp
-        $ docker run -it --entrypoint /bin/sh bazel/myapp:myapp
+        $ docker run gcr.io/skia-public/myapp:latest
+        $ docker run -it --entrypoint /bin/sh gcr.io/skia-public/myapp:latest
     ```
 
     To push the container to GCR:
@@ -83,7 +83,7 @@ def skia_app_container(
     ```
         $ bazel run //myapp:push_myapp
         ...
-        Successfully pushed Docker image to gcr.io/skia-public/myapp:...
+        Successfully pushed Docker image to gcr.io/skia-public/myapp:latest
     ```
 
     Args:
@@ -97,7 +97,7 @@ def skia_app_container(
       entrypoint: The entrypoint of the container, which can be a string or an array (e.g.
         "/usr/local/share/myapp/mybinary", or ["/usr/local/share/myapp/mybinary", "--someflag"]).
         Optional.
-      base_image: The image to base the container_image on. Optional.
+      base_image: The image to base the oci_image on. Optional.
       env: A {"var": "val"} dictionary with the environment variables to use when building the
         container. Optional.
       create_skia_user: Whether or not to create the "skia" user with uid 2000 and gid 2000.
@@ -123,12 +123,7 @@ def skia_app_container(
         for path in layer.paths:
             owners_lookup[path] = layer.owner
 
-    # According to the container_image rule's docs[1], the recommended way to place files in
-    # specific directories is via the pkg_tar rule.
-    #
-    # The below loop creates one pkg_tar rule for each file in the container.
-    #
-    # [1] https://github.com/bazelbuild/rules_docker/blob/454981e65fa100d37b19210ee85fedb2f7af9626/README.md#container_image
+    # The below loop creates one pkg_tar rule for each file in the image.
     pkg_tars = []
     i = 0
     for dir in dirs:
@@ -145,7 +140,6 @@ def skia_app_container(
                 package_dir = fixed_dir,
                 mode = mode,
                 owner = owner,
-                tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             )
 
     if empty_dirs:
@@ -156,7 +150,6 @@ def skia_app_container(
             name = pkg_tar_name,
             empty_dirs = empty_dirs.keys(),
             modes = empty_dirs,
-            tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
         )
 
     if create_skia_user:
@@ -176,7 +169,6 @@ def skia_app_container(
                     gid = ROOT_GID,
                 ),
             ],
-            tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
         )
 
         create_passwd_name = name + "_create_passwd"
@@ -201,7 +193,6 @@ def skia_app_container(
                     username = ROOT_USERNAME,
                 ),
             ],
-            tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
         )
 
         create_groups_name = name + "_groups"
@@ -214,25 +205,26 @@ def skia_app_container(
                     gid = SKIA_GID,
                 ),
             ],
-            tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
         )
 
     if extra_tars:
         pkg_tars.extend(extra_tars)
 
+    # Add all of the pkg_tars created above to a new image. If we don't need
+    # owners fixup layers, this is the final image.
     image_name = (name + "_base") if owners else name
 
-    container_image(
+    oci_image(
         name = image_name,
         base = base_image,
         entrypoint = entrypoint,
         tars = pkg_tars,
         user = default_user,
-        tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
         env = env,
         workdir = workdir,
     )
 
+    # Add owners fixup layers if necessary.
     if owners:
         for i, layer in enumerate(fixup_owners_layers):
             fixup_layer_name = name + "_fixup_owners_%d" % i
@@ -242,43 +234,37 @@ def skia_app_container(
                 empty_dirs = layer.paths,
                 owner = layer.owner,
                 mode = "0755",
-                tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             )
-            container_image(
+            oci_image(
                 name = fixup_layer_name,
                 base = image_name,
                 entrypoint = entrypoint,
                 user = default_user,
-                tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
                 tars = [tar_name],
-                env = env,
             )
             image_name = fixup_layer_name
 
+        # Create the final image.
         rule_name = name
-        container_image(
+        oci_image(
             name = rule_name,
             base = image_name,
             entrypoint = entrypoint,
             user = default_user,
-            tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             env = env,
             workdir = workdir,
         )
         image_name = ":" + rule_name
 
-    container_push(
-        name = "push_" + name,
-        format = "Docker",
+    oci_load(
+        name = "load_" + name,
         image = image_name,
-        registry = "gcr.io",
-        repository = repository,
-        stamp = "@io_bazel_rules_docker//stamp:always",
-        tag = "{STABLE_DOCKER_TAG}",
-        tags = [
-            "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
-            # container_push requires the docker daemon to be
-            # running. This is not possible inside RBE.
-            "no-remote",
-        ],
+        repo_tags = ["gcr.io/" + repository + ":latest"],
+    )
+
+    oci_push(
+        name = "push_" + name,
+        image = image_name,
+        repository = "gcr.io/" + repository,
+        remote_tags = ["latest"],
     )

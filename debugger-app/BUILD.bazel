@@ -4,7 +4,7 @@ load("//bazel:skia_app_container.bzl", "skia_app_container")
 # Skia components. These (CanvasKit) will be added in a later step.
 skia_app_container(
     name = "debugger_container-base",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin": [
             [

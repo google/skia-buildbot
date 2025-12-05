@@ -52,32 +52,6 @@ def extract_members(input_path, members, dest_dir):
         raise Exception("Failed to find and extract files from %s: %s" % (input_path, ", ".join(members.keys())))
 
 
-# TODO(borenet): Remove once we've switched to oci_image.
-def extract_members_legacy(input_path, members, dest_dir):
-    with tarfile.open(input_path) as input:
-        manifest_tar = input.extractfile("manifest.json")
-        manifest_list = json.load(manifest_tar)
-
-        # We iterate in reverse, because later layers override the earlier ones and
-        # we want the "final" version of the file.
-        for manifest in reversed(manifest_list):
-            for layer in reversed(manifest["Layers"]):
-                layer_tar = tarfile.open(
-                    fileobj=input.extractfile(layer), mode="r")
-                for src_path in list(members.keys()):
-                    try:
-                        member = layer_tar.getmember(src_path)
-                    except KeyError:
-                        continue
-                    dst_path = os.path.join(dest_dir, members[src_path])
-                    layer_tar.extract(member, filter=make_extraction_filter(dst_path))
-                    del members[src_path]
-
-    if len(members) > 0:
-        raise Exception("Failed to find and extract files from %s: %s" % (input_path, ", ".join(members.keys())))
-
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input")
@@ -94,7 +68,7 @@ def main():
         dst = split[1]
         members[src] = dst
 
-    extract_members_legacy(args.input, members, args.dest)
+    extract_members(args.input, members, args.dest)
 
 
 if __name__ == "__main__":

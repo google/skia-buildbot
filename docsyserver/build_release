@@ -13,4 +13,7 @@ INSTALL_DIR="install -d --verbose --backup=none"
 ${INSTALL} --mode=644 -T Dockerfile ${ROOT}/Dockerfile
 }
 
+BASE=$(cat ../MODULE.bazel.lock | jq -r "(.moduleExtensions.[\"@@rules_oci~//oci:extensions.bzl%oci\"].general.generatedRepoSpecs.[\"base-cipd\"].attributes.registry + \"/\" + .moduleExtensions.[\"@@rules_oci~//oci:extensions.bzl%oci\"].general.generatedRepoSpecs.[\"base-cipd\"].attributes.repository + \"@\" + .moduleExtensions.[\"@@rules_oci~//oci:extensions.bzl%oci\"].general.generatedRepoSpecs.[\"base-cipd\"].attributes.identifier)")
+BUILD_ARGS="--build-arg BASE=${BASE}"
+
 source ../bash/docker_build.sh

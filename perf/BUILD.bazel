@@ -21,7 +21,7 @@ filegroup(
 
 skia_app_container(
     name = "perfserver",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin": [
             [
@@ -136,7 +136,7 @@ skia_app_container(
 
 skia_app_container(
     name = "backendserver",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin/backendserver": [
             [

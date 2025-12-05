@@ -24,7 +24,7 @@ pkg_tar(
 
 skia_app_container(
     name = "autoroll_be_container",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin": [
             [

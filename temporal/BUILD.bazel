@@ -53,7 +53,7 @@ pkg_tar(
 # Docker image with Temporal server and tools to admin the server.
 skia_app_container(
     name = "temporal-server",
-    base_image = "@basealpine//image",
+    base_image = "@basealpine",
     default_user = "root",
     dirs = {
         "/": [
@@ -116,7 +116,7 @@ pkg_files(
 # Launch with TEMPORAL_ADDRESS set to Temporal server, defaults to localhost.
 skia_app_container(
     name = "temporal-ui",
-    base_image = "@basealpine//image",
+    base_image = "@basealpine",
     default_user = "root",
     dirs = {
         "/usr/bin": [

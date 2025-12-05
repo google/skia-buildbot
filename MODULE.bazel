@@ -10,6 +10,7 @@ bazel_dep(name = "rules_nodejs", version = "6.5.0")
 bazel_dep(name = "rules_pkg", version = "1.1.0")
 bazel_dep(name = "rules_python", version = "0.31.0")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "rules_oci", version = "2.2.7")
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -137,6 +138,128 @@ http_file(
     sha256 = "e1508323f347ad1465a887bc5d2bfb91cffc232d11e8e997b623227c6b32fb76",
     url = "https://github.com/bazelbuild/bazelisk/releases/download/v1.27.0/bazelisk-linux-amd64",
 )
+
+######################
+# Docker containers. #
+######################
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+
+# This is a pinned version of JS fiddle - we use the canvaskit.js/canvaskit.wasm inside it
+# when running apps (e.g. skottie.skia.org) locally. All our apps (except debugger) use the stock
+# version of CanvasKit, so they can share this. If there is an update to CanvasKit APIs and we want
+# to test them out locally, we should update this to a newer version. See the k8s-config repo
+# for a recent commit to use. You can also get the latest sha256 by either:
+# 1. Running `docker pull gcr.io/skia-public/jsfiddle-final:latest` and looking for the sha256
+# in the log. This requires docker to be installed and authenticated through gcloud.
+# 2. Going to https://skia.googlesource.com/k8s-config/+/refs/heads/main/skia-infra-public/jsfiddle.yaml
+# and looking for sha256 on the jsfiddle-final image.
+oci.pull(
+    name = "pinned_jsfiddle",
+    digest = "sha256:92efb0ddb9b813915cd8db3163942521a7066605797adc8e6c691479c5f52c1b",
+    image = "gcr.io/skia-public/jsfiddle-final",
+)
+use_repo(oci, "pinned_jsfiddle")
+
+# Debugger's version of CanvasKit is built with different flags
+oci.pull(
+    name = "pinned_debugger",
+    digest = "sha256:6e0291dcb56a7da29ebcfc332384fc8ea5c4beb84aee985da31d317cef41bb5e",
+    image = "gcr.io/skia-public/debugger-app-final",
+)
+use_repo(oci, "pinned_debugger")
+
+# This is an arbitrary version of the public Alpine image. Given our current rules, we must pull
+# a docker container and extract some files, even if we are just building local versions (e.g.
+# of debugger or skottie), so this is the image for that.
+oci.pull(
+    name = "empty_container",
+    digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
+    image = "index.docker.io/alpine",
+)
+use_repo(oci, "empty_container")
+
+# Pulls the gcr.io/skia-public/basealpine container, needed by the skia_app_container macro.
+oci.pull(
+    name = "basealpine",
+    digest = "sha256:5474db9668fb91cbf71b160e41047ca48a7686a25b7e3d38da9f1c720683e2c7",
+    image = "gcr.io/skia-public/basealpine",
+)
+use_repo(oci, "basealpine")
+
+# Pulls the gcr.io/skia-public/base-cipd container, needed by some apps that use the
+# skia_app_container macro.
+oci.pull(
+    name = "base-cipd",
+    digest = "sha256:d775388db67ebb4d9cd36a759aaee785a3cf4a3999120f57ed9135e1445eb9d5",
+    image = "gcr.io/skia-public/base-cipd",
+)
+use_repo(oci, "base-cipd")
+
+# Pulls the gcr.io/skia-public/cd-base container, needed by some apps that use the
+# skia_app_container macro.
+oci.pull(
+    name = "cd-base",
+    digest = "sha256:59412eeaf3336f14a8fef1b0b02134c9877bf5aba16549e8c59d5e4de29719b8",
+    image = "gcr.io/skia-public/cd-base",
+)
+use_repo(oci, "cd-base")
+
+# Pulls the gcr.io/skia-public/docsyserver-base container, needed by docsyserver.
+oci.pull(
+    name = "docsyserver-base",
+    digest = "sha256:c92739a43735be44a28135c9eac75753c64c2d3b9ba5c97efcaf57d5bd2ab12a",
+    image = "gcr.io/skia-public/docsyserver-base",
+)
+use_repo(oci, "docsyserver-base")
+
+# Pulls the envoyproxy/envoy-alpine:v1.16.1 container, needed by skfe.
+oci.pull(
+    name = "envoy_alpine",
+    digest = "sha256:061559f887b6b7980ea1ebb5af636079858d8b0f51cd803b9fe16f87811ff7d3",
+    image = "index.docker.io/envoyproxy/envoy-alpine",
+)
+use_repo(oci, "envoy_alpine")
+
+# Pulls the node alpine container, needed by npm-audit-mirror.
+oci.pull(
+    name = "node_alpine",
+    digest = "sha256:1e168eaa83acc4b002f7b91bd3584f6800c84737337fe665224c963ed6b5b1c0",  # index.docker.io/node:current-alpine3.21 as of Oct 2, 2025.
+    image = "docker.io/library/node",
+)
+use_repo(oci, "node_alpine")
+
+# Pulls the https://gcr.io/cloud-builders/kubectl container, needed by apps that use kubectl.
+oci.pull(
+    name = "kubectl",
+    digest = "sha256:63553d791cbdd3aa9fc2bc0b3a6a6d33130c1b8927b2db368c756aa45c89a356",  # 25 Oct 2023
+    image = "gcr.io/cloud-builders/kubectl",
+)
+use_repo(oci, "kubectl")
+
+# Pulls the gcr.io/google.com/cloudsdktool/cloud-sdk:latest container needed by Perf backup.
+oci.pull(
+    name = "cloudsdk",
+    digest = "sha256:900b74f1fb2c9f93c6d4b121a7f23981143496f36aacb72e596ccaedad640cf1",  # @latest as of Apr 27, 2022.
+    image = "gcr.io/google.com/cloudsdktool/cloud-sdk",
+)
+use_repo(oci, "cloudsdk")
+
+# Pulls the google-go.pkg.dev/golang image.
+oci.pull(
+    name = "golang",
+    digest = "sha256:80ccdc8f8ac8d819cdbc15a33334125e0288c09ac030307dcd893d2b5c6179ae",
+    image = "google-go.pkg.dev/golang",
+)
+use_repo(oci, "golang")
+
+# Pulls the gcr.io/skia-public/fiddler-build-skia image.
+oci.pull(
+    name = "fiddler-build-skia",
+    digest = "sha256:8eea043f967e6850c3ea97d1b1a6e9a5faa704fdc86138ac5444f56af0b258c5",
+    image = "gcr.io/skia-public/fiddler-build-skia",
+)
+use_repo(oci, "fiddler-build-skia")
 
 ####################################################################################################
 # bazel_skylib

@@ -2,7 +2,7 @@ load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 skia_app_container(
     name = "task_scheduler_be_container",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin": [
             [
@@ -16,7 +16,7 @@ skia_app_container(
 
 skia_app_container(
     name = "task_scheduler_jc_container",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin": [
             [
@@ -33,7 +33,7 @@ skia_app_container(
 
 skia_app_container(
     name = "task_scheduler_fe_container",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin": [
             [
@@ -72,7 +72,7 @@ skia_app_container(
 
 skia_app_container(
     name = "task_scheduler_bbfe_container",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin": [
             [

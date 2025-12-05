@@ -8,7 +8,7 @@ filegroup(
 
 skia_app_container(
     name = "apiserver",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin": [
             [
@@ -29,7 +29,7 @@ skia_app_container(
 
 skia_app_container(
     name = "ingester",
-    base_image = "@base-cipd//image",
+    base_image = "@base-cipd",
     dirs = {
         "/usr/local/bin": [
             [

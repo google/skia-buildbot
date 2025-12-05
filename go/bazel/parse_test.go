@@ -80,7 +80,41 @@ cipd_install(
 )
 `
 
-func TestParseDeps_ReturnsMapOfAllDependencies(t *testing.T) {
+const fakeModule = `
+module(name = "test_module", version = "")
+
+# Pulls the gcr.io/skia-public/skia-wasm-release container with the Skia WASM build.
+oci.pull(
+    name = "oci.pull_skia_wasm",
+    digest = "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
+    repository = "gcr.io/skia-public/skia-wasm-release",
+)
+
+# This is an arbitrary version of the public Alpine image. Given our current rules, we must pull
+# a docker container and extract some files, even if we are just building local versions (e.g.
+# of debugger or skottie), so this is the image for that.
+oci.pull(
+    name = "empty_container",
+    digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
+    repository = "index.docker.io/alpine",
+)
+
+cipd_install(
+    name = "git_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/3pp/tools/git/linux-amd64",
+    postinstall_cmds_posix = [
+        "mkdir etc",
+        "bin/git config --system user.name \"Bazel Test User\"",
+        "bin/git config --system user.email \"bazel-test-user@example.com\"",
+    ],
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
+    sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+    tag = "version:2.29.2.chromium.6",
+)
+`
+
+func TestParseDeps_ReturnsMapOfAllDependencies_WORKSPACE(t *testing.T) {
 	actual, err := ParseDeps(fakeWorkspace)
 	require.NoError(t, err)
 	require.Equal(t, map[DependencyID]Dependency{
@@ -126,7 +160,53 @@ func TestParseDeps_ReturnsMapOfAllDependencies(t *testing.T) {
 	}, actual)
 }
 
-func TestParseDeps_InvalidFile(t *testing.T) {
+func TestParseDeps_ReturnsMapOfAllDependencies_MODULE(t *testing.T) {
+	actual, err := ParseDeps(fakeModule)
+	require.NoError(t, err)
+	require.Equal(t, map[DependencyID]Dependency{
+		"gcr.io/skia-public/skia-wasm-release": {
+			ID:      "gcr.io/skia-public/skia-wasm-release",
+			Version: "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
+			versionPos: &ast.Pos{
+				Lineno:    7,
+				ColOffset: 13,
+			},
+			SHA256: "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
+			sha256Pos: &ast.Pos{
+				Lineno:    7,
+				ColOffset: 13,
+			},
+		},
+		"index.docker.io/alpine": {
+			ID:      "index.docker.io/alpine",
+			Version: "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
+			versionPos: &ast.Pos{
+				Lineno:    16,
+				ColOffset: 13,
+			},
+			SHA256: "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
+			sha256Pos: &ast.Pos{
+				Lineno:    16,
+				ColOffset: 13,
+			},
+		},
+		"infra/3pp/tools/git/linux-amd64": {
+			ID:      "infra/3pp/tools/git/linux-amd64",
+			Version: "version:2.29.2.chromium.6",
+			versionPos: &ast.Pos{
+				Lineno:    31,
+				ColOffset: 10,
+			},
+			SHA256: "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+			sha256Pos: &ast.Pos{
+				Lineno:    30,
+				ColOffset: 13,
+			},
+		},
+	}, actual)
+}
+
+func TestParseDeps_InvalidFile_WORKSPACE(t *testing.T) {
 	check := func(name, errContains, content string) {
 		t.Run(name, func(t *testing.T) {
 			actual, err := ParseDeps(content)
@@ -283,7 +363,144 @@ cipd_install(
 `)
 }
 
-func TestGetDep_ReturnsRequestedDependency(t *testing.T) {
+func TestParseDeps_InvalidFile_MODULE(t *testing.T) {
+	check := func(name, errContains, content string) {
+		t.Run(name, func(t *testing.T) {
+			actual, err := ParseDeps(content)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), errContains)
+			require.Nil(t, actual)
+		})
+	}
+	check("Not Python", "invalid syntax", `rm -rf /`)
+	check("Missing Commas", "invalid syntax", `
+oci.pull(
+    name = "empty_container",
+    digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801"
+    repository = "index.docker.io/alpine"
+)
+`)
+	check("Missing Repository", `no keyword argument "repository" found for call`, `
+oci.pull(
+    name = "empty_container",
+    digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
+)
+`)
+	check("Empty Repository", `found empty string for argument "repository"`, `
+oci.pull(
+    name = "empty_container",
+    digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
+	repository = "",
+)
+`)
+
+	check("Missing Digest", `no keyword argument "digest" found for call`, `
+oci.pull(
+    name = "empty_container",
+    repository = "index.docker.io/alpine",
+)
+`)
+	check("Empty Digest", `found empty string for argument "digest"`, `
+oci.pull(
+    name = "empty_container",
+    digest = "",
+    repository = "index.docker.io/alpine",
+)
+`)
+
+	check("Missing CIPD Package", `no keyword argument "cipd_package" found for call`, `
+cipd_install(
+    name = "git_amd64_linux",
+    build_file_content = all_cipd_files(),
+    postinstall_cmds_posix = [
+        "mkdir etc",
+        "bin/git config --system user.name \"Bazel Test User\"",
+        "bin/git config --system user.email \"bazel-test-user@example.com\"",
+    ],
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
+    sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+)
+`)
+
+	check("Empty CIPD Package", `found empty string for argument "cipd_package"`, `
+cipd_install(
+    name = "git_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "",
+    postinstall_cmds_posix = [
+        "mkdir etc",
+        "bin/git config --system user.name \"Bazel Test User\"",
+        "bin/git config --system user.email \"bazel-test-user@example.com\"",
+    ],
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
+    sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+)
+`)
+
+	check("Missing SHA256", `no keyword argument "tag" found for call`, `
+cipd_install(
+    name = "git_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/3pp/tools/git/linux-amd64",
+    postinstall_cmds_posix = [
+        "mkdir etc",
+        "bin/git config --system user.name \"Bazel Test User\"",
+        "bin/git config --system user.email \"bazel-test-user@example.com\"",
+    ],
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
+    sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+)
+`)
+
+	check("Empty SHA256", `found empty string for argument "tag"`, `
+cipd_install(
+    name = "git_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/3pp/tools/git/linux-amd64",
+    postinstall_cmds_posix = [
+        "mkdir etc",
+        "bin/git config --system user.name \"Bazel Test User\"",
+        "bin/git config --system user.email \"bazel-test-user@example.com\"",
+    ],
+    tag = "",
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
+    sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+)
+`)
+
+	check("Missing SHA256", `no keyword argument "sha256" found for call`, `
+cipd_install(
+    name = "git_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/3pp/tools/git/linux-amd64",
+    postinstall_cmds_posix = [
+        "mkdir etc",
+        "bin/git config --system user.name \"Bazel Test User\"",
+        "bin/git config --system user.email \"bazel-test-user@example.com\"",
+    ],
+    tag = "latest",
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
+)
+`)
+
+	check("Empty SHA256", `found empty string for argument "sha256"`, `
+cipd_install(
+    name = "git_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "infra/3pp/tools/git/linux-amd64",
+    postinstall_cmds_posix = [
+        "mkdir etc",
+        "bin/git config --system user.name \"Bazel Test User\"",
+        "bin/git config --system user.email \"bazel-test-user@example.com\"",
+    ],
+    tag = "latest",
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
+    sha256 = "",
+)
+`)
+}
+
+func TestGetDep_ReturnsRequestedDependency_WORKSPACE(t *testing.T) {
 	check := func(id DependencyID, expect Dependency) {
 		actual, err := GetDep(fakeWorkspace, id)
 		require.NoError(t, err)
@@ -330,7 +547,54 @@ func TestGetDep_ReturnsRequestedDependency(t *testing.T) {
 	})
 }
 
-func TestGetDep_ErrorForUnknownID(t *testing.T) {
+func TestGetDep_ReturnsRequestedDependency_MODULE(t *testing.T) {
+	check := func(id DependencyID, expect Dependency) {
+		actual, err := GetDep(fakeModule, id)
+		require.NoError(t, err)
+		require.Equal(t, expect, actual)
+	}
+	check("gcr.io/skia-public/skia-wasm-release", Dependency{
+		ID:      "gcr.io/skia-public/skia-wasm-release",
+		Version: "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
+		versionPos: &ast.Pos{
+			Lineno:    7,
+			ColOffset: 13,
+		},
+		SHA256: "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
+		sha256Pos: &ast.Pos{
+			Lineno:    7,
+			ColOffset: 13,
+		},
+	})
+	check("index.docker.io/alpine", Dependency{
+		ID:      "index.docker.io/alpine",
+		Version: "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
+		versionPos: &ast.Pos{
+			Lineno:    16,
+			ColOffset: 13,
+		},
+		SHA256: "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
+		sha256Pos: &ast.Pos{
+			Lineno:    16,
+			ColOffset: 13,
+		},
+	})
+	check("infra/3pp/tools/git/linux-amd64", Dependency{
+		ID:      "infra/3pp/tools/git/linux-amd64",
+		Version: "version:2.29.2.chromium.6",
+		versionPos: &ast.Pos{
+			Lineno:    31,
+			ColOffset: 10,
+		},
+		SHA256: "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+		sha256Pos: &ast.Pos{
+			Lineno:    30,
+			ColOffset: 13,
+		},
+	})
+}
+
+func TestGetDep_ErrorForUnknownID_WORKSPACE(t *testing.T) {
 	check := func(id DependencyID) {
 		_, err := GetDep(fakeWorkspace, id)
 		require.Error(t, err)
@@ -340,7 +604,17 @@ func TestGetDep_ErrorForUnknownID(t *testing.T) {
 	check("../../")
 }
 
-func TestSetDep_RoundTripsContentWithGetDep(t *testing.T) {
+func TestGetDep_ErrorForUnknownID_MODULE(t *testing.T) {
+	check := func(id DependencyID) {
+		_, err := GetDep(fakeWorkspace, id)
+		require.Error(t, err)
+	}
+	check("container_pull_skia_wasm")
+	check("bogus-id")
+	check("../../")
+}
+
+func TestSetDep_RoundTripsContentWithGetDep_WORKSPACE(t *testing.T) {
 	const fakeNewVersion = "fake-new-version"
 	const fakeNewSHA256 = "fake-new-sha256"
 	check := func(id DependencyID, versionIsSHA256 bool) {
@@ -358,7 +632,25 @@ func TestSetDep_RoundTripsContentWithGetDep(t *testing.T) {
 	check("infra/3pp/tools/git/linux-amd64", false)
 }
 
-func TestSetDep_MatchesExpectedContent(t *testing.T) {
+func TestSetDep_RoundTripsContentWithGetDep_MODULE(t *testing.T) {
+	const fakeNewVersion = "fake-new-version"
+	const fakeNewSHA256 = "fake-new-sha256"
+	check := func(id DependencyID, versionIsSHA256 bool) {
+		newContents, err := SetDep(fakeWorkspace, id, fakeNewVersion, fakeNewSHA256)
+		require.NoError(t, err)
+		actual, err := GetDep(newContents, id)
+		require.NoError(t, err)
+		require.Equal(t, fakeNewVersion, actual.Version)
+		if !versionIsSHA256 {
+			require.Equal(t, fakeNewSHA256, actual.SHA256)
+		}
+	}
+	check("gcr.io/skia-public/skia-wasm-release", true)
+	check("index.docker.io/alpine", true)
+	check("infra/3pp/tools/git/linux-amd64", false)
+}
+
+func TestSetDep_MatchesExpectedContent_WORKSPACE(t *testing.T) {
 	input := `
 container_pull(
   name = "empty_container",
@@ -380,7 +672,38 @@ container_pull(
 	require.Equal(t, expect, actual)
 }
 
-func TestSetDep_ErrorForUnknownID(t *testing.T) {
+func TestSetDep_MatchesExpectedContent_MODULE(t *testing.T) {
+	input := `
+oci.pull(
+  name = "empty_container",
+  digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
+  repository = "index.docker.io/alpine",
+)
+`
+	expect := `
+oci.pull(
+  name = "empty_container",
+  digest = "fake-new-version",
+  repository = "index.docker.io/alpine",
+)
+`
+	actual, err := SetDep(input, "index.docker.io/alpine", "fake-new-version", "fake-new-sha256")
+	require.NoError(t, err)
+	require.Equal(t, expect, actual)
+}
+
+func TestSetDep_ErrorForUnknownID_WORKSPACE(t *testing.T) {
+	check := func(id DependencyID) {
+		actual, err := SetDep(fakeWorkspace, id, "fake-new-version", "fake-new-sha256")
+		require.Empty(t, actual)
+		require.Error(t, err)
+	}
+	check("container_pull_skia_wasm")
+	check("bogus-id")
+	check("../../")
+}
+
+func TestSetDep_ErrorForUnknownID_MODULE(t *testing.T) {
 	check := func(id DependencyID) {
 		actual, err := SetDep(fakeWorkspace, id, "fake-new-version", "fake-new-sha256")
 		require.Empty(t, actual)

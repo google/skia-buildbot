@@ -2,7 +2,7 @@ load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 skia_app_container(
     name = "docsyserver_container",
-    base_image = "@docsyserver-base//image",
+    base_image = "@docsyserver-base",
     dirs = {
         "/usr/local/bin": [
             [
@@ -45,7 +45,7 @@ skia_app_container(
     },
     entrypoint = "/usr/local/bin/docsyserver",
     env = {
-        "PATH": "$$PATH:/home/skia/node-v14.16.0-linux-x64/bin",
+        "PATH": "$PATH:/home/skia/node-v14.16.0-linux-x64/bin",
     },
     owners = {
         "/home/skia": "2000.2000",
