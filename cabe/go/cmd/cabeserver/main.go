@@ -194,13 +194,15 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 
 	c := analyzer.NewChecker(analyzer.DefaultCheckerOpts...)
 	if err := analy.RunChecker(ctx, c); err != nil {
-		httputils.ReportError(w, err, "[POC] run checker error.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "[POC] run checker error. Error: "+err.Error(),
+			http.StatusInternalServerError)
 		return
 	}
 	sklog.Infof("[POC] checker findings: %v", c.Findings())
 
 	if _, err := analy.Run(ctx); err != nil {
-		httputils.ReportError(w, err, "[POC] error running analyzer.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "[POC] error running analyzer. Error: "+err.Error(),
+			http.StatusInternalServerError)
 		return
 	}
 
@@ -250,7 +252,8 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 		analysis_results.Benchmark = benchmark
 	}
 	if err := json.NewEncoder(w).Encode(analysis_results); err != nil {
-		httputils.ReportError(w, err, "[POC] Failed to write results to response.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "[POC] Failed to write results to response. Error: "+err.Error(),
+			http.StatusInternalServerError)
 		return
 	}
 	sklog.Debugf("[POC] getCQCabeAnalysisHandle returning respose: %v", analysis_results)
