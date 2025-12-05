@@ -7,9 +7,12 @@
     display: flex;
     align-items: flex-end;
     flex-direction: column;
+    position: relative;
     #split-by-container {
       position: absolute;
       display: flex;
+      top: -25px;
+      right: 0;
     }
   }
   vaadin-multi-select-combo-box {
@@ -45,6 +48,7 @@
     }
   }
 }
+
 .darkmode picker-field-sk {
   vaadin-multi-select-combo-box::part(label) {
     transition: color 0.3s ease;
