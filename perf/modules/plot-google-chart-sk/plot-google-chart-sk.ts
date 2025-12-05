@@ -200,6 +200,9 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ attribute: false })
   showZero: boolean = false;
 
+  @property({ type: Boolean, reflect: true })
+  useDiscreteAxis = false;
+
   // The slots to place in the templated icons for anomalies.
   private slots = {
     untriage: createRef<HTMLSlotElement>(),
@@ -277,6 +280,12 @@ export class PlotGoogleChartSk extends LitElement {
   constructor() {
     super();
     this.addEventListeners();
+    // TODO(eduardoyap): Adding this for test purposes. Should be added as a toggle once
+    // the feature is verified.
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('enable_discrete') === 'true') {
+      this.useDiscreteAxis = true;
+    }
   }
 
   connectedCallback(): void {
@@ -348,8 +357,12 @@ export class PlotGoogleChartSk extends LitElement {
     }
 
     let dataViewUpdated = false;
-    // If domain or data changes, we must rebuild the data view.
-    if (changedProperties.has('domain') || changedProperties.has('data')) {
+    // If domain, data, or useDiscreteAxis changes, we must rebuild the data view.
+    if (
+      changedProperties.has('domain') ||
+      changedProperties.has('data') ||
+      changedProperties.has('useDiscreteAxis')
+    ) {
       // Do not attempt to render the view until the domain is set.
       if (this.domain) {
         this.updateDataView(this.data);
@@ -387,7 +400,19 @@ export class PlotGoogleChartSk extends LitElement {
     const ncols = view.getNumberOfColumns();
 
     // The first two columns are the commit position and the date.
-    const cols = [this.domain === 'commit' ? 0 : 1];
+    const domainColIndex = this.domain === 'commit' ? 0 : 1;
+    let cols: any[] = [domainColIndex];
+
+    if (this.useDiscreteAxis) {
+      // For discrete axis, cast the domain column to string.
+      cols = [
+        {
+          calc: (dt: any, row: number) => dt.getFormattedValue(row, domainColIndex),
+          type: 'string',
+          label: view.getColumnLabel(domainColIndex),
+        },
+      ];
+    }
     const hiddenColumns: number[] = [];
     const newTraceColorMap = new Map();
     let modified = false;
@@ -496,10 +521,72 @@ export class PlotGoogleChartSk extends LitElement {
     const begin = this.selectedRange?.begin;
     const end = this.selectedRange?.end;
     const commitScale = this.domain === 'commit';
-    options.hAxis!.viewWindow = {
-      min: commitScale ? begin : (new Date(begin! * 1000) as any),
-      max: commitScale ? end : (new Date(end! * 1000) as any),
-    };
+
+    if (this.useDiscreteAxis) {
+      // For discrete axes, the domain are strings, rather than numbers or dates.
+      // Therefore, to establish the visible range, google plot requires us to
+      // specify the exact indexes to view. We have to perform a linear search
+      // against begin and end to find these indexes.
+      let startIndex = 0;
+      let endIndex = this.data ? this.data.getNumberOfRows() : 0;
+
+      if (this.selectedRange && this.data) {
+        const begin = this.selectedRange.begin;
+        const end = this.selectedRange.end;
+        const domainColIndex = this.domain === 'commit' ? 0 : 1;
+        const numRows = this.data.getNumberOfRows();
+        let foundStart = false;
+
+        // Linear search to find the start and end row indices
+        // corresponding to the selectedRange
+        for (let i = 0; i < numRows; i++) {
+          let val = this.data.getValue(i, domainColIndex);
+          if (this.domain === 'date') {
+            val = (val as any).getTime() / 1000;
+          }
+
+          // Find the first row index where the domain value is >= selectedRange.begin
+          if (!foundStart && val >= begin) {
+            startIndex = i;
+            foundStart = true;
+          }
+
+          // Find the first row index where the domain value is > selectedRange.end
+          // This will be the upper bound (exclusive) for the viewWindow.max
+          if (val > end) {
+            endIndex = i;
+            break; // Stop searching once the end index is found
+          }
+
+          // If the loop completes without finding a value > end, it means the range includes the last element.
+          if (i === numRows - 1) {
+            endIndex = numRows;
+          }
+        }
+
+        // If selectedRange.begin is greater than all domain values
+        if (!foundStart) {
+          startIndex = numRows;
+        }
+      }
+      // Set the viewWindow to the half-open interval [startIndex, endIndex)
+      options.hAxis!.viewWindow = { min: startIndex, max: endIndex };
+
+      const visiblePoints = endIndex - startIndex;
+
+      // Target roughly 15 ticks across the screen to ensure readability
+      const targetTickCount = 10;
+
+      // Calculate step: e.g. if 100 points visible, show every 6th label
+      const step = Math.max(1, Math.ceil(visiblePoints / targetTickCount));
+
+      options.hAxis!.showTextEvery = step;
+    } else {
+      options.hAxis!.viewWindow = {
+        min: commitScale ? begin : (new Date(begin! * 1000) as any),
+        max: commitScale ? end : (new Date(end! * 1000) as any),
+      };
+    }
 
     options.colors = [];
     // Get internal indices of visible columns.
@@ -1350,12 +1437,19 @@ export class PlotGoogleChartSk extends LitElement {
     }
     const domainColumn = this.domain === 'commit' ? 0 : 1;
     const layout = (this.chart as google.visualization.LineChart).getChartLayoutInterface();
-    const xValue = this.data!.getValue(index.tableRow, domainColumn);
     const yValue = this.data!.getValue(index.tableRow, index.tableCol);
-    return {
-      x: layout.getXLocation(xValue),
-      y: layout.getYLocation(yValue),
-    };
+
+    let xValue: any;
+
+    if (this.useDiscreteAxis) {
+      xValue = index.tableRow;
+    } else {
+      xValue = this.data!.getValue(index.tableRow, domainColumn);
+    }
+
+    const x = layout.getXLocation(xValue);
+    const y = layout.getYLocation(yValue);
+    return { x, y };
   }
 
   /**
