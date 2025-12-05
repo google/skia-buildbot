@@ -32,8 +32,8 @@ type CbbRunnerParams struct {
 	// Name of the Browser to test. Supports "chrome", "safari", and "edge".
 	Browser string
 
-	// Browser channel to test. All browsers support "Stable". Chrome and Edge
-	// also support "Dev", while Safari also supports "tp" (Technology Preview).
+	// Browser channel to test. All browsers support "stable". Chrome and Edge
+	// also support "dev", while Safari also supports "technology-preview".
 	Channel string
 
 	// The set of benchmarks to run, and the number of iterations for each.
@@ -148,8 +148,8 @@ func setupBrowser(cbb *CbbRunnerParams, bi *browserInfo) string {
 func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
 	// Shorten browser/channel name.
 	// * Browser name is shortened to 3 characters.
-	// * Channel name is omitted if it is "Stable".
-	// * Special case: Safari Technology Preview is abbreviated as "STP".
+	// * Channel name is omitted if it is "stable".
+	// * Special case: safari technology-preview is abbreviated as "stp".
 	browser := bi.Browser[:3]
 	if bi.Channel != "stable" {
 		if bi.Browser == "safari" && bi.Channel == "technology-preview" {
@@ -163,8 +163,8 @@ func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
 	// * Safari Stable version looks like "1.2.3 (12345.6.7.8)". Truncate at the space.
 	// * STP version looks like "1.2.3 (Release 123, 12345.6.7.8)". Keep only the release number.
 	version := bi.Version
-	if bi.Browser == "Safari" {
-		if bi.Channel == "Stable" {
+	if bi.Browser == "safari" {
+		if bi.Channel == "stable" {
 			space := strings.Index(version, " ")
 			if space != -1 {
 				version = version[:space]
@@ -269,7 +269,7 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 
 			var gsPath string
 			err = workflow.ExecuteActivity(
-				ctx, UploadCbbResultsActivity, startTime, cbb.BotConfig, p.Benchmark, swc.builder.String(), cbb.Bucket).Get(ctx, &gsPath)
+				ctx, UploadCbbResultsActivity, startTime, cbb, p.Benchmark, swc.builder.String()).Get(ctx, &gsPath)
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
@@ -367,11 +367,11 @@ func formatResult(cr *CommitRun, bot string, benchmark string, bi *browserInfo) 
 }
 
 // Activity to upload CBB results to cloud storage, for import into perf dashboard.
-func UploadCbbResultsActivity(ctx context.Context, t time.Time, bot string, benchmark string, results string, bucket string) (string, error) {
-	if bucket == "" {
+func UploadCbbResultsActivity(ctx context.Context, t time.Time, cbb CbbRunnerParams, benchmark string, results string) (string, error) {
+	if cbb.Bucket == "" {
 		return "", nil
 	}
-	store, err := NewStore(ctx, bucket, false)
+	store, err := NewStore(ctx, cbb.Bucket, false)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
@@ -380,16 +380,18 @@ func UploadCbbResultsActivity(ctx context.Context, t time.Time, bot string, benc
 	datePath := fmt.Sprintf("%04d/%02d/%02d", t.Year(), t.Month(), t.Day())
 	timestamp := fmt.Sprintf("%02d%02d%02d", t.Hour(), t.Minute(), t.Second())
 	filename := fmt.Sprintf(
-		"skia_results_%s_%s_%04d_%02d_%02d_%02d_%02d_%02d.json",
-		benchmark, bot, t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(),
+		"cbb_results_%s_%s_%s_%s_%04d_%02d_%02d_%02d_%02d_%02d.json",
+		benchmark, cbb.BotConfig, cbb.Browser, cbb.Channel,
+		t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(),
 	)
-	storeFilePath := path.Join("ingest", datePath, "ChromiumPerf", bot, timestamp, benchmark, filename)
+	storeFilePath := path.Join(
+		"ingest", datePath, "ChromiumPerf", cbb.BotConfig, timestamp, benchmark, filename)
 
 	err = store.WriteFile(storeFilePath, results)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
 
-	gsPath := fmt.Sprintf("gs://%s/%s", bucket, storeFilePath)
+	gsPath := fmt.Sprintf("gs://%s/%s", cbb.Bucket, storeFilePath)
 	return gsPath, nil
 }
