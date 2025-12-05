@@ -166,6 +166,17 @@ run_frontend:
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:5432/demo?sslmode=disable
 
+run_frontend_with_clustering:
+	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
+		--dev_mode \
+		--do_clustering=true \
+		--port=:8002 \
+		--prom_port=:20001 \
+		--config_filename=./configs/demo_spanner.json \
+		--display_group_by=false \
+		--resources_dir=../_bazel_bin/perf/pages/development/ \
+		--connection_string=postgresql://root@127.0.0.1:5432/demo?sslmode=disable
+
 run-demo-instance: run-spanner-emulator initdemo ingest_demo run_frontend
 run-demo-instance-db-persist: initdemo run_frontend
 
@@ -209,3 +220,12 @@ run-auth-proxy-before-backend:
 		--target_port=:8005 \
 		--local \
 		--self_sign_localhost_tls
+
+insert-demo-alert-to-demo-db:
+	./scripts/add_demo_alert_to_demo_db.sh
+
+.PHONY: run-demo-instance-with-clustering
+run-demo-instance-with-clustering:
+	@echo "starting frontend with clustering and a sample alert"
+	$(MAKE) initdemo ingest_demo insert-demo-alert-to-demo-db run_frontend_with_clustering
+

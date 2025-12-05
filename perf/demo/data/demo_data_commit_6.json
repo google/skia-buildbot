@@ -2,8 +2,9 @@
   "version": 1,
   "git_hash": "6d65a77667b810f159f689a1d6838f0c443322ff",
   "key": {
-    "arch": "x86",
-    "config": "8888"
+    "benchmark": "8888",
+    "bot": "x86",
+    "master": "demo"
   },
   "results": [
     {
@@ -14,11 +15,11 @@
         "test": [
           {
             "value": "encode",
-            "measurement": 51.54564
+            "measurement": 50.197124
           },
           {
             "value": "decode",
-            "measurement": 12.81364
+            "measurement": 12.153212
           }
         ]
       }

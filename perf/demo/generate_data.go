@@ -36,6 +36,10 @@ func main() {
 
 	for i, hash := range hashes {
 		encode := 50 + 3*rand.Float32()
+		if i == 4 {
+			// this helps trigger anomalies
+			encode += 40
+		}
 		multiplier := float32(1.0)
 		if i >= 5 {
 			multiplier = 1.2
@@ -46,8 +50,9 @@ func main() {
 			Version: format.FileFormatVersion,
 			GitHash: hash,
 			Key: map[string]string{
-				"arch":   "x86",
-				"config": "8888",
+				"master":    "demo",
+				"bot":       "x86",
+				"benchmark": "8888",
 			},
 			Results: []format.Result{
 				{

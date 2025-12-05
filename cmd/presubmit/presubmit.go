@@ -419,7 +419,9 @@ func checkLongLines(ctx context.Context, files []fileWithChanges) bool {
 	const maxLineLength = 100
 	ignoreFileExts := []string{".go", ".html", ".py", ".svg"}
 	ignoreFiles := []string{"package-lock.json", "pnpm-lock.yaml", "go.sum", "infra/bots/tasks.json", "WORKSPACE",
-		"golden/k8s-config-templates/gold-common.json5", "go.mod", "go_repositories.bzl", "licenses/LICENSES.md", "elements.d.ts", "perf/scripts/copy_data_to_experimental_db/README.md", "perf/scripts/copy_data_to_experimental_db/run_two_spanners.sh"}
+		"golden/k8s-config-templates/gold-common.json5", "go.mod", "go_repositories.bzl", "licenses/LICENSES.md",
+		"elements.d.ts", "perf/scripts/copy_data_to_experimental_db/README.md", "perf/scripts/copy_data_to_experimental_db/run_two_spanners.sh",
+		"perf/scripts/add_demo_alert_to_demo_db.sh"}
 	ok := true
 	for _, f := range files {
 		if contains(ignoreFiles, f.fileName) {

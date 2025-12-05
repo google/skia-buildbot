@@ -6,12 +6,16 @@
     "contact": "user@example.org",
     "trace_sample_proportion": 1.0,
     "fetch_chrome_perf_anomalies": true,
+    "fetch_anomalies_from_sql": true,
     "use_regression2_schema": true,
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"
     },
     "notify_config": {
-        "notifications": "none",
+        "notifications": "none"
+    },
+    "issue_tracker_config": {
+        "notification_type": "issuetracker",
         "issue_tracker_api_key_secret_project": "skia-infra-public",
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
     },
@@ -43,16 +47,16 @@
     },
     "query_config": {
         "include_params": [
-            "arch",
-            "config",
+            "bot",
+            "benchmark",
             "test",
             "units"
         ],
         "cache_config": {
             "type": "local",
             "enabled": true,
-            "level1_cache_key": "arch",
-            "level2_cache_key": "config"
+            "level1_cache_key": "bot",
+            "level2_cache_key": "benchmark"
         },
         "default_url_values": {
             "plotSummary": "true",
