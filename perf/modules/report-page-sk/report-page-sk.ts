@@ -381,7 +381,6 @@ export class ReportPageSk extends ElementSk {
 
     const query = this.getQueryFromAnomaly(anomaly);
     const state = new State();
-    state.plotSummary = true;
     const timerange = this.anomalyTracker.getAnomaly(anomaly.id)!.timerange;
     explore.state = {
       ...state,

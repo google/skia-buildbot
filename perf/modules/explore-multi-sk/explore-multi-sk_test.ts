@@ -200,7 +200,7 @@ describe('ExploreMultiSk', () => {
       const initialGraphCount = element['exploreElements'].length;
       element['addEmptyGraph']();
       assert.equal(element['exploreElements'].length, initialGraphCount + 1);
-      assert.equal(element['allGraphConfigs'].length, initialGraphCount + 1);
+      assert.equal(element['graphConfigs'].length, initialGraphCount + 1);
     });
 
     it('removes a graph when a remove-explore event is dispatched', async () => {
@@ -216,7 +216,6 @@ describe('ExploreMultiSk', () => {
       element.dispatchEvent(event);
 
       assert.equal(element['exploreElements'].length, initialGraphCount - 1);
-      assert.equal(element['allGraphConfigs'].length, initialGraphCount - 1);
     });
 
     it('resets pagination when the last graph is removed', async () => {
@@ -232,7 +231,6 @@ describe('ExploreMultiSk', () => {
       element.dispatchEvent(event);
 
       assert.equal(element['exploreElements'].length, 0);
-      assert.equal(element['allGraphConfigs'].length, 0);
 
       assert.equal(element.state.totalGraphs, 0);
       // However, the page offset is correctly reset to 0 by a different
@@ -285,7 +283,7 @@ describe('ExploreMultiSk', () => {
       const newShortcutId = 'new-shortcut-id';
       fetchMock.post('/_/shortcut/update', { id: newShortcutId });
 
-      element['allGraphConfigs'] = [{ queries: ['config=new'], formulas: [], keys: '' }];
+      element['graphConfigs'] = [{ queries: ['config=new'], formulas: [], keys: '' }];
       // stateHasChanged needs to be non-null for the update to be pushed.
       element['stateHasChanged'] = () => {};
       element['updateShortcutMultiview']();
@@ -348,34 +346,6 @@ describe('ExploreMultiSk', () => {
   describe('Graph Splitting', () => {
     beforeEach(async () => {
       await setupElement();
-    });
-
-    it('does not leak exploreElements on repeated splitGraphs', async () => {
-      // Initial state: 0 graphs (connectedCallback might not add one if no shortcut/params)
-      // Let's add one manually to start with a known state.
-      element['addEmptyGraph']();
-      assert.equal(element['exploreElements'].length, 1);
-
-      // Mock grouping to always return 1 group to simulate steady state
-      sinon.stub(element, 'groupTracesBySplitKey' as any).returns(new Map([['key', ['trace1']]]));
-
-      // Mock methods called by splitGraphs
-      sinon.stub(element, 'createFrameRequest' as any).returns({});
-      sinon.stub(element, 'createFrameResponse' as any).returns({});
-      sinon.stub(element, 'renderCurrentPage' as any);
-      sinon.stub(element, 'checkDataLoaded' as any);
-
-      // Force totalGraphs to > 1 so splitGraphs doesn't return early
-      element.state.totalGraphs = 2;
-
-      await element['splitGraphs'](false, true);
-
-      // Should be reset to 2 (1 Master + 1 group)
-      assert.equal(element['exploreElements'].length, 2, 'exploreElements should be reset');
-
-      // Run again
-      await element['splitGraphs'](false, true);
-      assert.equal(element['exploreElements'].length, 2, 'exploreElements should remain stable');
     });
   });
 
@@ -463,7 +433,7 @@ describe('ExploreMultiSk', () => {
       const spy2 = sinon.spy(graph2, 'updateSelectedRangeWithPlotSummary');
 
       // Manually set the internal state to use our mocks.
-      element['currentPageExploreElements'] = [graph1 as any, graph2 as any];
+      element['exploreElements'] = [graph1 as any, graph2 as any];
 
       const detail: PlotSelectionEventDetails = {
         domain: 'commit',
@@ -572,12 +542,9 @@ describe('ExploreMultiSk', () => {
         horizontal_zoom: false,
         graph_index: 0,
         doNotQueryData: false,
-        dots: true,
-        autoRefresh: false,
-        show_google_plot: false,
       };
 
-      element['addStateToExplore'](simpleSk, new GraphConfig(), false, 0);
+      element['addStateToExplore'](simpleSk, new GraphConfig(), false);
 
       assert.equal(simpleSk.state.begin, 1000);
       assert.equal(simpleSk.state.end, 2000);
@@ -644,7 +611,6 @@ describe('ExploreMultiSk', () => {
         { queries: ['config=test1'], formulas: [], keys: '' },
         { queries: ['config=test2'], formulas: [], keys: '' },
       ];
-      element['allGraphConfigs'] = element['graphConfigs'];
       element.state.splitByKeys = ['config'];
 
       await element['loadAllCharts']();
@@ -808,16 +774,14 @@ describe('ExploreMultiSk', () => {
 
       // After the initial chunked load, the `exploreElements` array is populated.
       // Let's simulate the state after `_onPlotButtonClicked` has run.
-      // The stub for `splitGraphs` prevents `renderCurrentPage` from being called
+      // The stub for `splitGraphs` prevents `addGraphsToCurrentPage` from being called
       // in a way that's useful for this test's setup, so we call it manually.
       element['exploreElements'] = [
         mainGraph,
         ...Array(totalSplitGraphs).fill(new ExploreSimpleSk()),
       ];
       element['graphConfigs'] = Array(totalSplitGraphs + 1).fill(new GraphConfig());
-      element['allGraphConfigs'] = element['graphConfigs'];
-      element.state.pageSize = 2;
-      element['renderCurrentPage'](true); // This will respect the small pageSize.
+      element['addGraphsToCurrentPage'](true); // This will respect the small pageSize.
 
       assert.equal(
         element['currentPageExploreElements'].length,
@@ -849,7 +813,7 @@ describe('ExploreMultiSk', () => {
       assert.equal(element.state.pageOffset, 0, 'Page offset should be reset');
       assert.isTrue(splitGraphsSpy.called, 'splitGraphs should be called to reload');
 
-      element['renderCurrentPage']();
+      element['addGraphsToCurrentPage']();
       assert.equal(
         element['currentPageExploreElements'].length,
         totalSplitGraphs,
@@ -903,8 +867,8 @@ describe('ExploreMultiSk', () => {
       state.shortcut = shortcutId;
       state.splitByKeys = ['someKey']; // Enable splitting to trigger aggregation.
 
-      // Mock renderCurrentPage to avoid DOM issues in this test
-      sinon.stub(element, 'renderCurrentPage' as any).returns(undefined);
+      // Mock addGraphsToCurrentPage to avoid DOM issues in this test
+      sinon.stub(element, 'addGraphsToCurrentPage' as any).returns(undefined);
       // Mock splitGraphs as well since it's called after graph loading
       sinon.stub(element, 'splitGraphs' as any).resolves();
       // Mock checkDataLoaded to prevent side effects

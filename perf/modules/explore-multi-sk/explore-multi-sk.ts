@@ -113,14 +113,6 @@ export class State {
 }
 
 export class ExploreMultiSk extends ElementSk {
-  private allGraphConfigs: GraphConfig[] = [];
-
-  private allFrameResponses: FrameResponse[] = [];
-
-  private allFrameRequests: FrameRequest[] = [];
-
-  private mainGraphSelectedRange: { begin: number; end: number } | null = null;
-
   private graphConfigs: GraphConfig[] = [];
 
   private exploreElements: ExploreSimpleSk[] = [];
@@ -290,7 +282,7 @@ export class ExploreMultiSk extends ElementSk {
     }
     await load();
 
-    await this.renderCurrentPage();
+    await this.addGraphsToCurrentPage();
     // If a key is specified on initial load, we must wait for the
     // shortcut's graphs to load their data before we can split them.
     if (this.state.splitByKeys.length > 0 && this.exploreElements.length > 0) {
@@ -369,7 +361,7 @@ export class ExploreMultiSk extends ElementSk {
             check();
           });
         }
-        this.renderCurrentPage(false);
+        this.addGraphsToCurrentPage(false);
         const query = this.testPicker!.createQueryFromFieldData();
         await newExplore.addFromQueryOrFormula(true, 'query', query, '');
       } else {
@@ -397,7 +389,7 @@ export class ExploreMultiSk extends ElementSk {
           return;
         }
         await mainGraph.requestComplete;
-        this.renderCurrentPage(false);
+        this.addGraphsToCurrentPage(false);
 
         const CHUNK_SIZE = 5;
         const groupdToLoadInChunks = Math.min(this.state.pageSize, groups.length);
@@ -499,7 +491,7 @@ export class ExploreMultiSk extends ElementSk {
             check();
           });
         }
-        this.renderCurrentPage(true);
+        this.addGraphsToCurrentPage(true);
         explore = newExplore;
       } else {
         return;
@@ -902,8 +894,8 @@ export class ExploreMultiSk extends ElementSk {
       traces.forEach((trace) => {
         queries.push(queryFromKey(trace));
       });
-    } else if (this.allGraphConfigs.length > 0) {
-      queries.push(...this.allGraphConfigs[0].queries);
+    } else {
+      queries.push(...this.graphConfigs[0].queries);
     }
     const request: FrameRequest = {
       queries: queries,
@@ -1011,24 +1003,16 @@ export class ExploreMultiSk extends ElementSk {
     }
     */
 
-    this.mainGraphSelectedRange = this.exploreElements[0].getSelectedRange();
+    const selectedRange = this.exploreElements[0].getSelectedRange();
 
     // Create the main graph config containing all trace data.
     const mainRequest: FrameRequest = this.createFrameRequest();
     const mainResponse: FrameResponse = this.createFrameResponse();
 
-    this.allFrameRequests = [mainRequest];
-    this.allFrameResponses = [mainResponse];
+    const frameRequests: FrameRequest[] = [mainRequest];
+    const frameResponses: FrameResponse[] = [mainResponse];
 
     this.clearGraphs();
-
-    // Add the main graph back so it occupies index 0.
-    this.addEmptyGraph();
-    // Ensure the main graph config (index 0) has the queries for all data.
-    if (this.allGraphConfigs.length > 0) {
-      this.allGraphConfigs[0].queries = mainRequest.queries || [];
-    }
-
     // Create the graph configs for each group.
     Array.from(groupedTraces.values()).forEach((traces, i) => {
       this.addEmptyGraph();
@@ -1040,13 +1024,31 @@ export class ExploreMultiSk extends ElementSk {
       // Main graph config is always at index 0.
       this.graphConfigs[i + 1] = graphConfig;
 
-      this.allFrameRequests.push(exploreRequest);
-      this.allFrameResponses.push(exploreResponse);
+      frameRequests.push(exploreRequest);
+      frameResponses.push(exploreResponse);
     });
 
     // Now add the graphs that have been configured to the page.
-    this.renderCurrentPage();
+    this.addGraphsToCurrentPage(true);
 
+    const isSplitChart: boolean = this.exploreElements.length > 1;
+    // Limit page size to the number of graphs available.
+    const limit = Math.min(
+      this.state.pageSize + this.state.pageOffset + 1,
+      this.exploreElements.length
+    );
+
+    // If graph is being split, skip the primary graph (index 0), as it contains all the data.
+    // This is to avoid displaying the primary graph in the pagination view.
+    const offset = isSplitChart ? this.state.pageOffset + 1 : 0;
+    for (let i = offset; i < limit; i++) {
+      this.exploreElements[i].UpdateWithFrameResponse(
+        frameResponses[i],
+        frameRequests[i],
+        false,
+        selectedRange
+      );
+    }
     if (this.stateHasChanged) {
       this.stateHasChanged();
     }
@@ -1105,7 +1107,7 @@ export class ExploreMultiSk extends ElementSk {
       const checkTracesets = () => {
         const currentTracesets = this.getTracesets();
         if (
-          currentTracesets.length === this.currentPageExploreElements.length &&
+          currentTracesets.length === this.exploreElements.length &&
           currentTracesets.some((ts) => ts.length > 0)
         ) {
           resolve(currentTracesets);
@@ -1137,7 +1139,7 @@ export class ExploreMultiSk extends ElementSk {
 
     this.testPicker!.populateFieldDataFromParamSet(paramSets, paramSet);
     this.testPicker!.setReadOnly(false);
-    this.currentPageExploreElements[0].useBrowserURL(false);
+    this.exploreElements[0].useBrowserURL(false);
     this.testPicker!.scrollIntoView();
   }
 
@@ -1169,28 +1171,26 @@ export class ExploreMultiSk extends ElementSk {
         const numPages = Math.ceil(this.state.totalGraphs / this.state.pageSize);
         const maxValidPageOffset = Math.max(0, (numPages - 1) * this.state.pageSize);
         this.state.pageOffset = Math.min(this.state.pageOffset, maxValidPageOffset);
-        this.renderCurrentPage();
+        this.addGraphsToCurrentPage(true);
       }
       this.updateShortcutMultiview();
     } else {
-      this.state.totalGraphs = this.exploreElements.length;
+      const numElements = this.exploreElements.length;
+      this.state.totalGraphs = numElements > 1 ? numElements - 1 : 1;
       if (this.stateHasChanged) this.stateHasChanged();
-      this.renderCurrentPage();
+      this.addGraphsToCurrentPage(true);
     }
   }
 
   private resetGraphs() {
     this.emptyCurrentPage();
-    this.currentPageExploreElements = [];
-    this.allGraphConfigs = [];
     this.exploreElements = [];
-    this.allFrameRequests = [];
-    this.allFrameResponses = [];
+    this.graphConfigs = [];
   }
 
   private clearGraphs() {
-    this.allGraphConfigs = [];
-    this.exploreElements = [];
+    this.exploreElements.splice(1);
+    this.graphConfigs.splice(1);
   }
 
   private emptyCurrentPage(): void {
@@ -1199,36 +1199,30 @@ export class ExploreMultiSk extends ElementSk {
     this.currentPageGraphConfigs = [];
   }
 
-  private renderCurrentPage(doNotQueryData: boolean = true): void {
-    this.state.totalGraphs = this.allGraphConfigs.length > 1 ? this.allGraphConfigs.length - 1 : 1;
+  private addGraphsToCurrentPage(doNotQueryData: boolean = false): void {
+    this.state.totalGraphs = this.exploreElements.length > 1 ? this.exploreElements.length - 1 : 1;
     this.emptyCurrentPage();
-    let startIndex = this.allGraphConfigs.length > 1 ? this.state.pageOffset : 0;
+    let startIndex = this.exploreElements.length > 1 ? this.state.pageOffset : 0;
 
-    if (this.allGraphConfigs.length > 1) {
+    if (this.exploreElements.length > 1) {
       startIndex++;
     }
     let endIndex = startIndex + this.state.pageSize - 1;
-    if (this.allGraphConfigs.length <= endIndex) {
-      endIndex = this.allGraphConfigs.length - 1;
+    if (this.exploreElements.length <= endIndex) {
+      endIndex = this.exploreElements.length - 1;
+    }
+
+    for (let i = startIndex; i <= endIndex; i++) {
+      this.currentPageExploreElements.push(this.exploreElements[i]);
+      this.currentPageGraphConfigs.push(this.graphConfigs[i]);
     }
 
     const fragment = document.createDocumentFragment();
-    for (let i = startIndex; i <= endIndex; i++) {
-      const graphConfig = this.allGraphConfigs[i];
-      if (!graphConfig) {
-        continue;
-      }
-      const explore = this.createExploreSimpleSk();
-      this.currentPageExploreElements.push(explore);
-      this.addStateToExplore(explore, graphConfig, doNotQueryData, i);
-      fragment.appendChild(explore);
-      explore.UpdateWithFrameResponse(
-        this.allFrameResponses[i],
-        this.allFrameRequests[i],
-        false,
-        this.mainGraphSelectedRange
-      );
-    }
+    this.currentPageExploreElements.forEach((elem, i) => {
+      const graphConfig = this.currentPageGraphConfigs[i];
+      this.addStateToExplore(elem, graphConfig, doNotQueryData);
+      fragment.appendChild(elem);
+    });
 
     this.graphDiv!.appendChild(fragment);
     this.updateChartHeights();
@@ -1244,14 +1238,12 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private async syncRange(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
-    const graphs = this.currentPageExploreElements;
+    const graphs = this.exploreElements;
     const offset = e.detail.offsetInSeconds;
     const range = e.detail.value;
     // It is possible when loading split graphs on start that the first element
     // hasnt selected a range yet.
-    const selectedRange = this.currentPageExploreElements
-      .map((e) => e.getSelectedRange())
-      .find((r) => !!r);
+    const selectedRange = this.exploreElements.map((e) => e.getSelectedRange()).find((r) => !!r);
 
     // Sets dataLoading state across all graphs since the main graph is only one doing work.
     graphs.forEach((graph, i) => {
@@ -1263,7 +1255,7 @@ export class ExploreMultiSk extends ElementSk {
 
     // Extend range of primary graph first, so that the other graphs can use
     // the updated range when they are updated.
-    await this.currentPageExploreElements[0].extendRange(range, offset);
+    await this.exploreElements[0].extendRange(range, offset);
 
     // Once extended, then update each split graph.
     graphs.forEach((graph, i) => {
@@ -1288,7 +1280,7 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private async syncChartSelection(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
-    const graphs = this.currentPageExploreElements;
+    const graphs = this.exploreElements;
     if (!e.detail.value) {
       return;
     }
@@ -1342,9 +1334,9 @@ export class ExploreMultiSk extends ElementSk {
   private addStateToExplore(
     explore: ExploreSimpleSk,
     graphConfig: GraphConfig,
-    doNotQueryData: boolean,
-    index: number
+    doNotQueryData: boolean
   ) {
+    const index = this.exploreElements.indexOf(explore);
     const newState: ExploreState = {
       formulas: graphConfig.formulas || [],
       queries: graphConfig.queries || [],
@@ -1375,15 +1367,13 @@ export class ExploreMultiSk extends ElementSk {
       hide_paramset: true,
       graph_index: index,
       doNotQueryData: doNotQueryData,
-      dots: this.state.dots,
-      autoRefresh: false,
-      show_google_plot: this.state.show_google_plot,
     };
     explore.state = newState;
   }
 
-  private createExploreSimpleSk(): ExploreSimpleSk {
+  private addEmptyGraph(unshift?: boolean): ExploreSimpleSk | null {
     const explore: ExploreSimpleSk = new ExploreSimpleSk(this.useTestPicker);
+    const graphConfig = new GraphConfig();
     explore.defaults = this.defaults;
     explore.openQueryByDefault = false;
     explore.navOpen = false;
@@ -1391,25 +1381,33 @@ export class ExploreMultiSk extends ElementSk {
     if (this.userEmail) {
       explore.user = this.userEmail;
     }
+    if (unshift) {
+      this.exploreElements.unshift(explore);
+      this.graphConfigs.unshift(graphConfig);
+    } else {
+      this.exploreElements.push(explore);
+      this.graphConfigs.push(graphConfig);
+    }
     explore.addEventListener('state_changed', () => {
       const elemState = explore.state;
       let stateChanged = false;
-      if (this.allGraphConfigs[elemState.graph_index].formulas !== elemState.formulas) {
-        this.allGraphConfigs[elemState.graph_index].formulas = elemState.formulas || [];
+      if (this.graphConfigs[elemState.graph_index].formulas !== elemState.formulas) {
+        graphConfig.formulas = elemState.formulas || [];
         stateChanged = true;
       }
 
-      if (this.allGraphConfigs[elemState.graph_index].queries[0] !== elemState.queries[0]) {
-        this.allGraphConfigs[elemState.graph_index].queries = elemState.queries || [];
+      if (this.graphConfigs[elemState.graph_index].queries[0] !== elemState.queries[0]) {
+        graphConfig.queries = elemState.queries || [];
         stateChanged = true;
       }
 
-      if (this.allGraphConfigs[elemState.graph_index].keys !== elemState.keys) {
-        this.allGraphConfigs[elemState.graph_index].keys = elemState.keys || '';
+      if (this.graphConfigs[elemState.graph_index].keys !== elemState.keys) {
+        graphConfig.keys = elemState.keys || '';
         stateChanged = true;
       }
 
       if (stateChanged) {
+        this.graphConfigs[elemState.graph_index] = graphConfig;
         this.updateShortcutMultiview();
       }
     });
@@ -1534,10 +1532,7 @@ export class ExploreMultiSk extends ElementSk {
    * @returns
    */
   private getHeader(): (ColumnHeader | null)[] | null {
-    if (this.currentPageExploreElements.length === 0) {
-      return null;
-    }
-    return this.currentPageExploreElements[0].getHeader();
+    return this.exploreElements[0].getHeader();
   }
 
   /**
@@ -1548,7 +1543,7 @@ export class ExploreMultiSk extends ElementSk {
   private getCompleteTraceset(): { [key: string]: number[] } {
     const fullTraceSet: { [key: string]: number[] } = {};
 
-    this.currentPageExploreElements.forEach((elem) => {
+    this.exploreElements.forEach((elem) => {
       const headerLength = elem.getHeader()?.length;
       // Check that header lengths are the same, otherwise ignore.
       if (headerLength === this.getHeader()?.length) {
@@ -1571,7 +1566,7 @@ export class ExploreMultiSk extends ElementSk {
    */
   private getAllCommitLinks(): (CommitLinks | null)[] {
     const commitLinks: (CommitLinks | null)[] = [];
-    this.currentPageExploreElements.forEach((elem) => {
+    this.exploreElements.forEach((elem) => {
       const elemLinks = elem.getCommitLinks();
       if (elemLinks.length > 0) {
         commitLinks.push(...elemLinks);
@@ -1583,7 +1578,7 @@ export class ExploreMultiSk extends ElementSk {
 
   private getFullAnomalyMap(): AnomalyMap {
     const anomalyMap: AnomalyMap = {};
-    this.currentPageExploreElements.forEach((elem) => {
+    this.exploreElements.forEach((elem) => {
       const anomalies = elem.getAnomalyMap();
       Object.keys(anomalies!).forEach((traceId) => {
         const existingEntry = anomalyMap[traceId];
@@ -1638,7 +1633,7 @@ export class ExploreMultiSk extends ElementSk {
    *
    */
   private updateShortcutMultiview() {
-    updateShortcut(this.allGraphConfigs)
+    updateShortcut(this.graphConfigs)
       .then((shortcut) => {
         if (shortcut === '') {
           this.state.shortcut = '';
@@ -1659,7 +1654,7 @@ export class ExploreMultiSk extends ElementSk {
       this.state.pageOffset + e.detail.delta * this.state.pageSize
     );
     this.stateHasChanged!();
-    this.renderCurrentPage();
+    this.splitGraphs();
   }
 
   private pageSizeChanged(e: MouseEvent) {
@@ -1667,20 +1662,7 @@ export class ExploreMultiSk extends ElementSk {
     this.testPicker?.setReadOnly(true);
     this.state.pageSize = +(e.target! as HTMLInputElement).value;
     this.stateHasChanged!();
-    this.renderCurrentPage();
-  }
-
-  private addEmptyGraph(unshift?: boolean): ExploreSimpleSk {
-    const explore = this.createExploreSimpleSk();
-    const graphConfig = new GraphConfig();
-    if (unshift) {
-      this.exploreElements.unshift(explore);
-      this.allGraphConfigs.unshift(graphConfig);
-    } else {
-      this.exploreElements.push(explore);
-      this.allGraphConfigs.push(graphConfig);
-    }
-    return explore;
+    this.splitGraphs();
   }
 
   private async loadAllCharts() {
@@ -1697,4 +1679,5 @@ export class ExploreMultiSk extends ElementSk {
     }
   }
 }
+
 define('explore-multi-sk', ExploreMultiSk);

@@ -113,18 +113,6 @@ export class PlotSummarySk extends LitElement {
     const options = SummaryChartOptions(getComputedStyle(this), this.domain);
     options.colors = [];
 
-    // Downsample the data if there are too many points.
-    const numRows = dt.getNumberOfRows();
-    const maxPoints = 1000;
-    if (numRows > maxPoints) {
-      const sampleRate = Math.ceil(numRows / maxPoints);
-      const rowsToKeep = [];
-      for (let i = 0; i < numRows; i += sampleRate) {
-        rowsToKeep.push(i);
-      }
-      view.setRows(rowsToKeep);
-    }
-
     // The first two columns are the commit position and the date.
     const cols = [this.domain === 'commit' ? 0 : 1];
     for (let i = 2; i < dt.getNumberOfColumns(); i++) {
