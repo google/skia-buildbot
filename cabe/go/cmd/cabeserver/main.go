@@ -125,7 +125,7 @@ func (a *App) swarmingTaskReader(ctx context.Context, pinpointJobID string) ([]*
 // If use_fdr_control is True, the critical value will be (alpha * rank / len(results));
 // else, the critical value will be alpha itself (0.05 by default)
 // https://en.wikipedia.org/wiki/False_discovery_rate#Benjamini%E2%80%93Hochberg_procedure
-func generateCriticalValues(results []*cpb.AnalysisResult, use_fdr_control bool) []float64 {
+func generateCriticalValues(results []*cpb.AnalysisResult, use_fdr_control bool, alpha float64) []float64 {
 	// sort the result list by each result's p-value (all NaN will be pushed to the end)
 	sort.Slice(results, func(i, j int) bool {
 		vi, vj := results[i].Statistic.PValue, results[j].Statistic.PValue
@@ -152,9 +152,9 @@ func generateCriticalValues(results []*cpb.AnalysisResult, use_fdr_control bool)
 	for i := 0; i < pValueCount; i++ {
 		if use_fdr_control {
 			// the rank is i+1 for a sorted 0-based list.
-			criticalValues[i] = (float64(i+1) * defaultAlpha) / float64(pValueCount)
+			criticalValues[i] = (float64(i+1) * alpha) / float64(pValueCount)
 		} else {
-			criticalValues[i] = defaultAlpha
+			criticalValues[i] = alpha
 		}
 	}
 	sklog.Debugf("[POC] critical values generated: %f", criticalValues)
@@ -184,6 +184,12 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 		use_fdr_control = false
 	}
 	sklog.Debugf("[POC] FDR procedure in use? %s", use_fdr_control)
+	alpha, err := strconv.ParseFloat(r.URL.Query().Get("alpha"), 64)
+	if err != nil {
+		// if alpha is not set or in invalid format.
+		alpha = defaultAlpha
+	}
+	sklog.Debugf("[POC] Alpha value override? %f", alpha)
 
 	analy := analyzer.New(
 		job_id,
@@ -208,7 +214,7 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 
 	res := analy.AnalysisResults()
 	// generate the critical values for comparison. Note that the res will be sorted by each p-value.
-	criticalValues := generateCriticalValues(res, use_fdr_control)
+	criticalValues := generateCriticalValues(res, use_fdr_control, alpha)
 
 	analysis_results := &CQGetCabeAnalysisResults{}
 	analysis_results.Results = make(map[string]*cpb.Statistic)
