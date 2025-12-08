@@ -653,7 +653,6 @@ func populateRegression2Fields(regression *regression.Regression) {
 	regression.MedianAfter = medianAfter
 
 	regression.IsImprovement = isRegressionImprovement(regression.Frame.DataFrame.ParamSet, clusterSummary.StepFit.Status)
-	regression.BugId = 0
 }
 
 // isRegressionImprovement returns true if the metric has moved towards the improvement direction.

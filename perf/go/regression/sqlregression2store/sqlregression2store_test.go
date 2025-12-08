@@ -616,8 +616,17 @@ func TestResetAnomalies_Success(t *testing.T) {
 		generateNewRegression(),
 		generateNewRegression(),
 	}
+
+	bugIdDefault := int64(1)
+	statusDefault := regression.Negative
+	messageDefault := "foo"
+
 	regIDs := []string{}
 	for _, reg := range regressions {
+		// set the following fields to see if reset works.
+		reg.BugId = bugIdDefault
+		reg.HighStatus.Status = statusDefault
+		reg.HighStatus.Message = messageDefault
 		_, err := store.WriteRegression(ctx, reg, nil)
 		require.NoError(t, err)
 		regIDs = append(regIDs, reg.Id)
@@ -643,8 +652,9 @@ func TestResetAnomalies_Success(t *testing.T) {
 	regs, err := store.GetByIDs(ctx, []string{regIDs[2]})
 	require.NoError(t, err)
 	require.Len(t, regs, 1)
-	assert.Equal(t, int64(0), regs[0].BugId)
-	assert.NotEqual(t, regression.Untriaged, regs[0].HighStatus.Status)
+	assert.Equal(t, bugIdDefault, regs[0].BugId)
+	assert.Equal(t, statusDefault, regs[0].HighStatus.Status)
+	assert.Equal(t, messageDefault, regs[0].HighStatus.Message)
 }
 
 func TestIgnoreAnomalies_Success(t *testing.T) {
@@ -694,9 +704,20 @@ func TestNudgeAndResetAnomalies_ResetsStatus(t *testing.T) {
 	regressions := []*regression.Regression{
 		generateNewRegression(),
 		generateNewRegression(),
+		generateNewRegression(),
 	}
+	// store.TriageHigh sets status and message on all regressions with the same commit number and alert id.
+	// That's why we change this regression to be on a different commit number.
+	regressions[2].CommitNumber = regressions[2].CommitNumber + 1
+	bugIdDefault := int64(1)
+	statusDefault := regression.Negative
+	messageDefault := "foo"
+
 	regIDs := []string{}
 	for _, reg := range regressions {
+		reg.BugId = bugIdDefault
+		reg.HighStatus.Status = statusDefault
+		reg.HighStatus.Message = messageDefault
 		_, err := store.WriteRegression(ctx, reg, nil)
 		require.NoError(t, err)
 		regIDs = append(regIDs, reg.Id)
@@ -727,4 +748,11 @@ func TestNudgeAndResetAnomalies_ResetsStatus(t *testing.T) {
 		assert.Equal(t, regression.Untriaged, regs[0].HighStatus.Status)
 		assert.Equal(t, regression.NudgedMessage, regs[0].HighStatus.Message)
 	}
+	// Verify that nothing was updated for reg3.
+	regs, err := store.GetByIDs(ctx, []string{regIDs[2]})
+	require.NoError(t, err)
+	require.Len(t, regs, 1)
+	assert.Equal(t, bugIdDefault, regs[0].BugId)
+	assert.Equal(t, statusDefault, regs[0].HighStatus.Status)
+	assert.Equal(t, messageDefault, regs[0].HighStatus.Message)
 }
