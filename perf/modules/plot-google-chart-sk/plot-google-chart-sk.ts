@@ -1108,8 +1108,17 @@ export class PlotGoogleChartSk extends LitElement {
             );
             continue;
           }
-          const xValue =
-            this.domain === 'commit' ? data.getValue(rowIndex, 0) : data.getValue(rowIndex, 1);
+          let xValue;
+          // TODO(b/418808644): Add test coverage for discrete axis anomaly plotting.
+          if (this.useDiscreteAxis) {
+            // In discrete mode, the chart plots based on the row index (0, 1, 2...),
+            // not the commit value.
+            xValue = rowIndex;
+          } else {
+            // In continuous mode, it plots based on the actual value (Commit or Date).
+            xValue =
+              this.domain === 'commit' ? data.getValue(rowIndex, 0) : data.getValue(rowIndex, 1);
+          }
           const yValue = data.getValue(rowIndex, traceCol);
           const x = layout.getXLocation(xValue);
           const y = layout.getYLocation(yValue);
