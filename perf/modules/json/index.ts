@@ -909,7 +909,7 @@ export type CommitNumberAnomalyMap = { [key: number]: Anomaly } | null;
 
 export type AnomalyMap = { [key: string]: CommitNumberAnomalyMap } | null;
 
-export type Status = '' | 'positive' | 'negative' | 'untriaged';
+export type Status = '' | 'positive' | 'negative' | 'untriaged' | 'ignored';
 
 export type RequestType = 0 | 1;
 

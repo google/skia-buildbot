@@ -59,6 +59,16 @@ type Store interface {
 
 	// SetBugID associates a set of regressions, identified by their IDs, with a bug ID.
 	SetBugID(ctx context.Context, regressionIDs []string, bugID int) error
+
+	// IgnoreAnomalies sets the triage status to Ignored and message to IgnoredMessage for the given regressions.
+	IgnoreAnomalies(ctx context.Context, regressionIDs []string) error
+
+	// ResetAnomalies sets the triage status to Untriaged, message to ResetMessage, and bugID to 0 for the given regressions.
+	ResetAnomalies(ctx context.Context, regressionIDs []string) error
+
+	// NudgeAndResetAnomalies updates the commit number and previous commit number for the given regressions,
+	// and also sets the triage status to Untriaged, message to NudgedMessage, and bugID to 0.
+	NudgeAndResetAnomalies(ctx context.Context, regressionIDs []string, commitNumber, prevCommitNumber types.CommitNumber) error
 }
 
 // FullSummary describes a single regression.

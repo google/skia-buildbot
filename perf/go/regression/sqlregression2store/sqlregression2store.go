@@ -54,6 +54,9 @@ const (
 	deleteByCommit
 	readRangeFiltered
 	setBugID
+	ignoreAnomalies
+	resetAnomalies
+	nudgeAndReset
 )
 
 // statementContext provides a struct to expand sql statement templates.
@@ -157,6 +160,21 @@ var statementFormats = map[statementFormat]string{
 		UPDATE Regressions2
 		SET bug_id = $1
 		WHERE id = ANY($2)
+		`,
+	ignoreAnomalies: `
+		UPDATE Regressions2
+		SET triage_status = 'ignored', triage_message = 'Ignored via Triage Menu'
+		WHERE id = ANY($1)
+		`,
+	resetAnomalies: `
+		UPDATE Regressions2
+		SET triage_status = 'untriaged', triage_message = '', bug_id = 0
+		WHERE id = ANY($1)
+		`,
+	nudgeAndReset: `
+		UPDATE Regressions2
+		SET commit_number = $1, prev_commit_number = $2, triage_status = 'untriaged', triage_message = 'Nudged', bug_id = 0
+		WHERE id = ANY($3)
 		`,
 }
 
@@ -663,14 +681,52 @@ func (s *SQLRegression2Store) SetBugID(ctx context.Context, regressionIDs []stri
 		return nil // Nothing to update
 	}
 
-	args := []interface{}{bugID, regressionIDs}
-
-	cmdTag, err := s.db.Exec(ctx, s.statements[setBugID], args...)
+	cmdTag, err := s.db.Exec(ctx, s.statements[setBugID], bugID, regressionIDs)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to update bug_id for regressions")
 	}
 
 	sklog.Infof("Set bug_id=%d for %d regressions", bugID, cmdTag.RowsAffected())
+	return nil
+}
+
+// IgnoreAnomalies sets the triage status to Ignored and message to IgnoredMessage for the given regressions.
+func (s *SQLRegression2Store) IgnoreAnomalies(ctx context.Context, regressionIDs []string) error {
+	if len(regressionIDs) == 0 {
+		return nil
+	}
+	_, err := s.db.Exec(ctx, s.statements[ignoreAnomalies], regressionIDs)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to set triage status to ignored for %v", regressionIDs)
+	}
+	return nil
+}
+
+// ResetAnomalies sets the triage status to Untriaged, message to ResetMessage, and bugID to 0 for the given regressions.
+func (s *SQLRegression2Store) ResetAnomalies(ctx context.Context, regressionIDs []string) error {
+	if len(regressionIDs) == 0 {
+		return nil
+	}
+	_, err := s.db.Exec(ctx, s.statements[resetAnomalies], regressionIDs)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to reset anomalies for %v", regressionIDs)
+	}
+	return nil
+}
+
+// NudgeAndResetAnomalies updates the commit number and previous commit number for the given regressions,
+// and also sets the triage status to Untriaged, message to NudgedMessage, and bugID to 0.
+func (s *SQLRegression2Store) NudgeAndResetAnomalies(ctx context.Context, regressionIDs []string, commitNumber, prevCommitNumber types.CommitNumber) error {
+	if len(regressionIDs) == 0 {
+		return nil
+	}
+
+	_, err := s.db.Exec(ctx, s.statements[nudgeAndReset], commitNumber, prevCommitNumber, regressionIDs)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to nudge regressions %v", regressionIDs)
+	}
+
+	sklog.Infof("Nudged and updated triage status for %d regressions", len(regressionIDs))
 	return nil
 }
 

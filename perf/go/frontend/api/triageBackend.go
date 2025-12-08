@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // TriageBackend defines the interface for triaging operations.
@@ -92,13 +93,22 @@ func (t *triageBackend) AssociateAlerts(ctx context.Context, req *SkiaAssociateB
 }
 
 func (t *triageBackend) ignoreAnomalies(ctx context.Context, req *EditAnomaliesRequest) (*EditAnomaliesResponse, error) {
-	panic("unimplemented")
+	if err := t.regStore.IgnoreAnomalies(ctx, req.Keys); err != nil {
+		return nil, skerr.Wrapf(err, "failed to ignore anomalies")
+	}
+	return &EditAnomaliesResponse{}, nil
 }
 
 func (t *triageBackend) resetAnomalies(ctx context.Context, req *EditAnomaliesRequest) (*EditAnomaliesResponse, error) {
-	panic("unimplemented")
+	if err := t.regStore.ResetAnomalies(ctx, req.Keys); err != nil {
+		return nil, skerr.Wrapf(err, "failed to reset anomalies triage status and bug id")
+	}
+	return &EditAnomaliesResponse{}, nil
 }
 
 func (t *triageBackend) nudgeAnomalies(ctx context.Context, req *EditAnomaliesRequest) (*EditAnomaliesResponse, error) {
-	panic("unimplemented")
+	if err := t.regStore.NudgeAndResetAnomalies(ctx, req.Keys, types.CommitNumber(req.EndRevision), types.CommitNumber(req.StartRevision)); err != nil {
+		return nil, skerr.Wrapf(err, "failed to nudge anomalies and reset triage status")
+	}
+	return &EditAnomaliesResponse{}, nil
 }

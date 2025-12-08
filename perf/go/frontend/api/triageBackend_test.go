@@ -8,10 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/issuetracker/v1"
+	issuetracker "go.skia.org/infra/go/issuetracker/v1"
 	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	"go.skia.org/infra/perf/go/issuetracker/mocks"
 	regmocks "go.skia.org/infra/perf/go/regression/mocks"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func TestFileBug_Success(t *testing.T) {
@@ -137,6 +138,59 @@ func TestTriageBackend_AssociateAlerts_MissingKeys(t *testing.T) {
 	_, err := backend.AssociateAlerts(context.Background(), req)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Keys are required")
+	mockStore.AssertExpectations(t)
+}
+
+func TestEditAnomalies_Ignore(t *testing.T) {
+	mockIssueTracker := &mocks.IssueTracker{}
+	mockStore := regmocks.NewStore(t)
+	backend := NewTriageBackend(mockIssueTracker, mockStore)
+
+	req := &EditAnomaliesRequest{
+		Keys:   []string{"a1", "a2"},
+		Action: "IGNORE",
+	}
+
+	mockStore.On("IgnoreAnomalies", context.Background(), req.Keys).Return(nil)
+
+	_, err := backend.EditAnomalies(context.Background(), req)
+	require.NoError(t, err)
+	mockStore.AssertExpectations(t)
+}
+
+func TestEditAnomalies_Reset(t *testing.T) {
+	mockIssueTracker := &mocks.IssueTracker{}
+	mockStore := regmocks.NewStore(t)
+	backend := NewTriageBackend(mockIssueTracker, mockStore)
+
+	req := &EditAnomaliesRequest{
+		Keys:   []string{"a1", "a2"},
+		Action: "RESET",
+	}
+
+	mockStore.On("ResetAnomalies", context.Background(), req.Keys).Return(nil)
+
+	_, err := backend.EditAnomalies(context.Background(), req)
+	require.NoError(t, err)
+	mockStore.AssertExpectations(t)
+}
+
+func TestEditAnomalies_Nudge(t *testing.T) {
+	mockIssueTracker := &mocks.IssueTracker{}
+	mockStore := regmocks.NewStore(t)
+	backend := NewTriageBackend(mockIssueTracker, mockStore)
+
+	req := &EditAnomaliesRequest{
+		Keys:          []string{"a1", "a2"},
+		Action:        "NUDGE",
+		StartRevision: 100,
+		EndRevision:   200,
+	}
+
+	mockStore.On("NudgeAndResetAnomalies", mock.Anything, []string{"a1", "a2"}, types.CommitNumber(200), types.CommitNumber(100)).Return(nil)
+
+	_, err := backend.EditAnomalies(context.Background(), req)
+	require.NoError(t, err)
 	mockStore.AssertExpectations(t)
 }
 

@@ -405,3 +405,18 @@ func (s *SQLRegressionStore) SetBugID(ctx context.Context, regressionIDs []strin
 
 // Confirm that SQLRegressionStore implements regression.Store.
 var _ regression.Store = (*SQLRegressionStore)(nil)
+
+// IgnoreAnomalies implements the regression.Store interface.
+func (s *SQLRegressionStore) IgnoreAnomalies(ctx context.Context, regressionIDs []string) error {
+	return skerr.Fmt("IgnoreAnomalies not implemented for SQLRegressionStore")
+}
+
+// ResetAnomalies implements the regression.Store interface.
+func (s *SQLRegressionStore) ResetAnomalies(ctx context.Context, regressionIDs []string) error {
+	return skerr.Fmt("ResetAnomalies not implemented for SQLRegressionStore")
+}
+
+// NudgeAndResetAnomalies implements the regression.Store interface.
+func (s *SQLRegressionStore) NudgeAndResetAnomalies(ctx context.Context, regressionIDs []string, commitNumber, prevCommitNumber types.CommitNumber) error {
+	return skerr.Fmt("NudgeAndResetAnomalies not implemented for SQLRegressionStore")
+}

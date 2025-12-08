@@ -34,14 +34,24 @@ const (
 	// Untriaged means the regression has not been triaged.
 	Untriaged Status = "untriaged"
 
+	// Ignored means the regression has been ignored.
+	Ignored Status = "ignored"
+
 	// Available cluster types in regression2
 	HighClusterType ClusterType = "high"
 	LowClusterType  ClusterType = "low"
 	NoneClusterType ClusterType = "none"
+
+	// IgnoredMessage is the message used when a regression is ignored via the triage menu.
+	IgnoredMessage = "Ignored via Triage Menu"
+	// NudgedMessage is the message used when a regression is nudged.
+	NudgedMessage = "Nudged"
+	// ResetMessage is the message used when a regression triage status is reset.
+	ResetMessage = ""
 )
 
 // AllStatus is a slice of all values of type Status.
-var AllStatus = []Status{None, Positive, Negative, Untriaged}
+var AllStatus = []Status{None, Positive, Negative, Untriaged, Ignored}
 
 // AllRegressionsForCommit is a map[alertid]Regression.
 type AllRegressionsForCommit struct {

@@ -191,6 +191,42 @@ func (_m *Store) GetRegressionsBySubName(ctx context.Context, sub_name string, l
 	return r0, r1
 }
 
+// IgnoreAnomalies provides a mock function with given fields: ctx, regressionIDs
+func (_m *Store) IgnoreAnomalies(ctx context.Context, regressionIDs []string) error {
+	ret := _m.Called(ctx, regressionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IgnoreAnomalies")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) error); ok {
+		r0 = rf(ctx, regressionIDs)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// NudgeAndResetAnomalies provides a mock function with given fields: ctx, regressionIDs, commitNumber, prevCommitNumber
+func (_m *Store) NudgeAndResetAnomalies(ctx context.Context, regressionIDs []string, commitNumber types.CommitNumber, prevCommitNumber types.CommitNumber) error {
+	ret := _m.Called(ctx, regressionIDs, commitNumber, prevCommitNumber)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NudgeAndResetAnomalies")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string, types.CommitNumber, types.CommitNumber) error); ok {
+		r0 = rf(ctx, regressionIDs, commitNumber, prevCommitNumber)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Range provides a mock function with given fields: ctx, begin, end
 func (_m *Store) Range(ctx context.Context, begin types.CommitNumber, end types.CommitNumber) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
 	ret := _m.Called(ctx, begin, end)
@@ -249,6 +285,24 @@ func (_m *Store) RangeFiltered(ctx context.Context, begin types.CommitNumber, en
 	}
 
 	return r0, r1
+}
+
+// ResetAnomalies provides a mock function with given fields: ctx, regressionIDs
+func (_m *Store) ResetAnomalies(ctx context.Context, regressionIDs []string) error {
+	ret := _m.Called(ctx, regressionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResetAnomalies")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) error); ok {
+		r0 = rf(ctx, regressionIDs)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // SetBugID provides a mock function with given fields: ctx, regressionIDs, bugID
