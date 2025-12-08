@@ -35,9 +35,21 @@ fetchMock.post('/_/details/?results=false', (_url, request) => {
   }
 });
 
+const returnLinks = {
+  buildKey: 'https://v8/builder/build1',
+  traceKey: 'https://traceViewer/trace',
+};
+
+fetchMock.post('/_/links/', {
+  version: 1,
+  links: returnLinks,
+});
+
+// Expose fetchMock globally and ensure it intercepts fetch calls.
+// This is crucial for Puppeteer tests where fetchMock needs to be active on the page.
+(window as any).fetchMock = fetchMock;
+
 window.customElements.whenDefined('point-links-sk').then(() => {
   const links1 = document.getElementById('different-commits') as PointLinksSk;
-  const links2 = document.getElementById('same-commits') as PointLinksSk;
   links1.load(CommitNumber(12), CommitNumber(11), 'foo', ['V8 Git Hash'], ['Build Page'], []);
-  links2.load(CommitNumber(10), CommitNumber(11), 'foo', ['V8 Git Hash'], ['Build Page'], []);
 });

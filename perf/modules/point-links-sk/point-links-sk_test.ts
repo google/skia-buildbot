@@ -10,7 +10,10 @@ describe('point-links-sk', () => {
   const newInstance = setUpElementUnderTest<PointLinksSk>('point-links-sk');
 
   let element: PointLinksSk;
-  beforeEach(() => {});
+  beforeEach(() => {
+    element = newInstance();
+    fetchMock.reset();
+  });
 
   describe('Load links for a commit.', () => {
     const commitLinks: CommitLinks = {
@@ -23,12 +26,6 @@ describe('point-links-sk', () => {
         key4: 'Commit Link',
       },
     };
-
-    beforeEach(() => {
-      element = newInstance();
-      fetchMock.reset();
-    });
-
     it('With no eligible links.', () => {
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);

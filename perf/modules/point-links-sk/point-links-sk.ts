@@ -119,9 +119,9 @@ export class PointLinksSk extends ElementSk {
       return html` <li>
         <span id="tooltip-key">${keyText}</span>
         <span id="tooltip-text"> ${link.startsWith('http') ? htmlUrl : link} </span>
-        <md-icon-button @click=${() => this.copyToClipboard(link)}>
-          <md-icon id="copy-icon">content_copy</md-icon>
-        </md-icon-button>
+        <md-outlined-icon-button id="copy-link-button" @click=${() => this.copyToClipboard(link)}>
+          <md-icon id="copy-icon" .icon=${'content_copy'}></md-icon>
+        </md-outlined-icon-button>
       </li>`;
     };
     const htmlPromises = keys.map(getHtml);
@@ -247,7 +247,7 @@ export class PointLinksSk extends ElementSk {
         // Reuse the existing links
         this.displayUrls = existingLink.displayUrls || {};
         this.displayTexts = existingLink.displayTexts || {};
-        this.renderPointLinks();
+        await this.renderPointLinks();
         return Promise.resolve(commitLinks);
       }
     }
@@ -328,7 +328,7 @@ export class PointLinksSk extends ElementSk {
 
       this.displayTexts = displayTexts;
       this.displayUrls = displayUrls;
-      this.renderPointLinks();
+      await this.renderPointLinks();
 
       // Before adding a new commit link, check if it already exists in the array.
       // This should not be necessary, but it is a safeguard due to async calls.
@@ -352,11 +352,11 @@ export class PointLinksSk extends ElementSk {
   }
 
   /** Clear Point Links */
-  reset(): void {
+  async reset(): Promise<void> {
     this.commitPosition = null;
     this.displayUrls = {};
     this.displayTexts = {};
-    this.renderPointLinks();
+    await this.renderPointLinks();
   }
 
   render(): void {
@@ -454,7 +454,7 @@ export class PointLinksSk extends ElementSk {
       const json = await jsonOrThrow(resp);
       const format = json as ingest.Format;
       response = format.links!;
-      // Currently in fuchsia json response, the key-value pair is not "Build Log": "url".
+      // Currently in fuchsia json response. The key-value pair is not "Build Log": "url".
       // For example, the key-value format for fuchsia instance is:
       // Test stdio: '[Build Log](https://ci.chromium.org/b/8719307892946930401)'
       if (format.links && format.links![this.fuchsiaBuildLogKey]) {

@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -37,13 +37,27 @@ sk_page(
     ts_entry_point = "point-links-sk-demo.ts",
 )
 
+ts_library(
+    name = "point-links-sk_po_ts_lib",
+    srcs = ["point-links-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+        "//perf/modules/common:puppeteer-test-util_ts_lib",
+    ],
+)
+
 sk_element_puppeteer_test(
     name = "point-links-sk_puppeteer_test",
     src = "point-links-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        ":point-links-sk_po_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//:node_modules/puppeteer",
+        "//perf/modules/common:puppeteer-test-util_ts_lib",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
