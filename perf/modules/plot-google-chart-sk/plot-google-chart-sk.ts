@@ -581,6 +581,8 @@ export class PlotGoogleChartSk extends LitElement {
       const step = Math.max(1, Math.ceil(visiblePoints / targetTickCount));
 
       options.hAxis!.showTextEvery = step;
+      options.hAxis!.slantedText = false;
+      options.hAxis!.minTextSpacing = 0;
     } else {
       options.hAxis!.viewWindow = {
         min: commitScale ? begin : (new Date(begin! * 1000) as any),
