@@ -70,18 +70,10 @@ export class PerfScaffoldSk extends ElementSk {
 
   private _isRefreshing: boolean = false;
 
-  private _pollInterval: number | null = null;
+  private _devVersion: number = 0;
 
   constructor() {
     super(PerfScaffoldSk.template);
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    if (this._pollInterval) {
-      window.clearInterval(this._pollInterval);
-      this._pollInterval = null;
-    }
   }
 
   private static template = (ele: PerfScaffoldSk) => {
@@ -356,22 +348,16 @@ export class PerfScaffoldSk extends ElementSk {
     return '';
   }
 
-  private startDevPoll() {
-    let currentVersion = 0;
-    this._pollInterval = window.setInterval(() => {
-      fetch('/_/dev/version')
-        .then((resp) => resp.json())
-        .then((json) => {
-          if (currentVersion === 0) {
-            currentVersion = json.version;
-          } else if (currentVersion !== json.version) {
-            this._isRefreshing = true;
-            this._render();
-            this._reload();
-          }
-        })
-        .catch(() => {});
-    }, 2000);
+  private checkDevVersion() {
+    if (this._devVersion !== 0) {
+      return;
+    }
+    fetch('/_/dev/version')
+      .then((resp) => resp.json())
+      .then((json) => {
+        this._devVersion = json.version;
+      })
+      .catch(() => {});
   }
 
   connectedCallback(): void {
@@ -396,7 +382,7 @@ export class PerfScaffoldSk extends ElementSk {
     }
 
     if (window.perf.dev_mode) {
-      this.startDevPoll();
+      this.checkDevVersion();
     }
 
     this._render();

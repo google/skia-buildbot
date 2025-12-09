@@ -285,16 +285,20 @@ describe('perf-scaffold-sk', () => {
       assert.isFalse(fetchMock.called('/_/dev/version'));
     });
 
-    it('starts polling in dev mode', async () => {
+    it('checks version in dev mode', async () => {
       window.perf.dev_mode = true;
       fetchMock.get('/_/dev/version', { version: 123 });
 
       clock = sinon.useFakeTimers();
       newInstance();
 
-      // Fast forward time to trigger interval
-      clock.tick(2010);
+      // Ensure it's called once immediately (or microtask soon)
       assert.isTrue(fetchMock.called('/_/dev/version'));
+
+      // Advance time to verify it does NOT poll
+      fetchMock.resetHistory();
+      clock.tick(2010);
+      assert.isFalse(fetchMock.called('/_/dev/version'));
     });
   });
 });
