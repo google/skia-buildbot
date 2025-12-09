@@ -97,13 +97,24 @@ use_repo(
 # rules_python setup
 ####################################################################################################
 
+python_version = "3.11"
+
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     configure_coverage_tool = True,
     ignore_root_user_error = True,
-    python_version = "3.11",
+    python_version = python_version,
 )
 use_repo(python, "python_3_11")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    download_only = True,
+    hub_name = "pypi",
+    python_version = python_version,
+    requirements_lock = "//:requirements.txt",
+)
+use_repo(pip, "pypi")
 
 ####################################################################################################
 # rules_distroless setup

@@ -291,9 +291,16 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+##########
+# pylint #
+##########
 alias(
     name = "pylint",
-    actual = "@pypi_pylint//:rules_python_wheel_entry_point_pylint",
+    actual = "@pypi//pylint",
+    # TODO(borenet): this fails, asking for a username and password for me
+    # locally. Making it manual prevents it from being attempted when using
+    # "//..." and other wildcards.
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
 

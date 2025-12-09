@@ -20,49 +20,6 @@ http_archive(
     ],
 )
 
-#################
-# Python rules. #
-#################
-
-http_archive(
-    name = "rules_python",
-    sha256 = "c68bdc4fbec25de5b5493b8819cfc877c4ea299c0dcb15c244c5a00208cde311",
-    strip_prefix = "rules_python-0.31.0",
-    urls = gcs_mirror_url(
-        sha256 = "c68bdc4fbec25de5b5493b8819cfc877c4ea299c0dcb15c244c5a00208cde311",
-        # Update after a release with https://github.com/bazelbuild/rules_python/pull/1032 lands
-        url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.31.0.tar.gz",
-    ),
-)
-
-load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
-
-# Load transitive dependencies for rules_python.
-py_repositories()
-
-# Hermetically downloads Python 3.
-python_register_toolchains(
-    name = "python3_11",
-    # Our Louhi builds run as root in order to prevent "permission denied"
-    # errors when attempting to write to mounted directories controlled by
-    # Google Cloud Build.
-    ignore_root_user_error = True,
-    # Taken from
-    # https://github.com/bazelbuild/rules_python/blob/1f17637b88489a5c35a5c83595c0e8dbb6d983e9/python/versions.bzl#L372.
-    python_version = "3.11",
-)
-
-load("@rules_python//python:pip.bzl", "pip_parse")
-
-pip_parse(
-    name = "pypi",
-    requirements_lock = "//:requirements.txt",
-)
-
-load("@pypi//:requirements.bzl", "install_deps")
-
-install_deps()
-
 ##############################
 # Go rules and dependencies. #
 ##############################
