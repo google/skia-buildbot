@@ -1,6 +1,6 @@
-"""This module defines the cipd_install repository rule.
+"""This module defines the cipd module extension.
 
-The cipd_install repository rule hermetically installs a CIPD package as an external Bazel
+This extension hermetically installs a CIPD package as an external Bazel
 repository.
 
 Files in the CIPD package can be added as dependencies to other Bazel targets in two ways: either
@@ -16,10 +16,9 @@ If a Bazel target adds a CIPD package as a dependency, its contents will appear 
 directory. Example:
 
 ```
-# WORKSPACE
-cipd_install(
+# MODULE.bazel
+cipd.package(
     name = "git_amd64_linux",
-    build_file_content = all_cipd_files(),
     cipd_package = "infra/3pp/tools/git/linux-amd64",
     sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
     tag = "version:2.29.2.chromium.6",
@@ -41,7 +40,7 @@ import (
 )
 
 func FindGitBinary() string {
-    return filepath.Join(bazel.RunfilesDir(), "external/git_amd64_linux/bin/git")
+    return filepath.Join(bazel.RunfilesDir(), "external/_main~cipd~git_amd64_linux/bin/git")
 }
 ```
 
@@ -54,61 +53,8 @@ Note that runfile generation is disabled on Windows by default, and must be enab
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-def cipd_install(
-        name,
-        build_file_content,
-        cipd_package,
-        sha256,
-        tag,
-        postinstall_cmds_posix = None,
-        postinstall_cmds_win = None):
-    """Download and extract the zipped archive from CIPD, making it available for Bazel rules.
-
-    This is a wrapper around the built-in http_archive rule.
-
-    Args:
-        name: The name of the Bazel "repository" created. For example, if name is "alpha_beta",
-              the full Bazel label will start with @alpha_beta//
-        build_file_content: CIPD packages do not come with BUILD.bazel files, so we must supply
-                            one. This should generally contain exports_files or filegroup.
-                            See also all_cipd_files() and export_cipd_files for helpers to create
-                            these contents.
-        cipd_package: The full name of the CIPD package. This is a "path" from the root of CIPD.
-                      This should be a publicly accessible package, as authentication is not
-                      supported.
-        sha256: The sha256 hash of the zip archive downloaded from CIPD. This should match the
-                official CIPD website.
-        tag: Represents the version of the CIPD package to download.
-             For example, git_revision:abc123...
-        postinstall_cmds_posix: Optional Bash commands to run on Mac/Linux after download.
-        postinstall_cmds_win: Optional Powershell commands to run on Windows after download.
-    """
-    cipd_url = "https://chrome-infra-packages.appspot.com/dl/"
-    cipd_url += cipd_package
-    cipd_url += "/+/"
-    cipd_url += tag
-
-    mirror_url = "https://cdn.skia.org/bazel/"
-    mirror_url += sha256
-    mirror_url += ".zip"
-
-    # https://bazel.build/rules/lib/repo/http#http_archive
-    http_archive(
-        name = name,
-        build_file_content = build_file_content,
-        sha256 = sha256,
-        urls = [
-            cipd_url,
-            mirror_url,
-        ],
-        patch_cmds = postinstall_cmds_posix,
-        patch_cmds_win = postinstall_cmds_win,
-        type = "zip",
-    )
-
-def all_cipd_files():
-    """Returns the contents of a BUILD file which export all files in all subdirectories."""
-    return """
+# Contents of a BUILD file which export all files in all subdirectories.
+_all_cipd_files = """
 filegroup(
   name = "all_files",
   # The exclude pattern prevents files with spaces in their names from tripping up Bazel.
@@ -116,22 +62,41 @@ filegroup(
   visibility = ["//visibility:public"],
 )"""
 
-def export_cipd_files(list_of_files):
-    """Returns the contents of a BUILD file which exports only the given files.
+_package = tag_class(attrs = {
+    "name": attr.string(),
+    "cipd_package": attr.string(),
+    "build_file_content": attr.string(),
+    "postinstall_cmds_posix": attr.string_list(),
+    "postinstall_cmds_win": attr.string_list(),
+    "sha256": attr.string(),
+    "tag": attr.string(),
+})
 
-    Args:
-        list_of_files: list of strings containing paths relative to the root of the extracted files.
-    Returns:
-        A string containing a public export_files rule.
-    """
-    contents = """
-exports_files(
-    ["""
-    for file in list_of_files:
-        contents += '"' + file + '",'
+def _cipd_impl(ctx):
+    for mod in ctx.modules:
+        for package in mod.tags.package:
+            cipd_url = "https://chrome-infra-packages.appspot.com/dl/{package}/+/{tag}".format(
+                package = package.cipd_package,
+                tag = package.tag,
+            )
+            mirror_url = "https://cdn.skia.org/bazel/{sha256}.zip".format(sha256 = package.sha256)
+            http_archive(
+                name = package.name,
+                build_file_content = package.build_file_content or _all_cipd_files,
+                sha256 = package.sha256,
+                urls = [
+                    cipd_url,
+                    mirror_url,
+                ],
+                patch_cmds = package.postinstall_cmds_posix,
+                patch_cmds_win = package.postinstall_cmds_win,
+                type = "zip",
+            )
 
-    contents += """],
-    visibility = ["//visibility:public"]
+cipd = module_extension(
+    doc = """Bzlmod extension used to download CIPD packages.""",
+    implementation = _cipd_impl,
+    tag_classes = {
+        "package": _package,
+    },
 )
-"""
-    return contents

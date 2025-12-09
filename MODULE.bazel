@@ -519,3 +519,54 @@ filegroup(
     sha256 = "bb9b55630aa63da22bafb2132f06fe00f298ef16272a99134e69495c37b33ce9",
     url = "https://github.com/jwilder/dockerize/releases/download/v0.7.0/dockerize-linux-amd64-v0.7.0.tar.gz",
 )
+
+####################################################################################################
+# CIPD packages.
+####################################################################################################
+
+cipd = use_extension("//bazel/external:cipd_install.bzl", "cipd")
+cipd.package(
+    name = "git_amd64_linux",
+    cipd_package = "infra/3pp/tools/git/linux-amd64",
+    postinstall_cmds_posix = [
+        "mkdir etc",
+        "bin/git config --system user.name \"Bazel Test User\"",
+        "bin/git config --system user.email \"bazel-test-user@example.com\"",
+    ],
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
+    sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+    tag = "version:2.29.2.chromium.6",
+)
+use_repo(cipd, "git_amd64_linux")
+
+cipd.package(
+    name = "git_amd64_windows",
+    cipd_package = "infra/3pp/tools/git/windows-amd64",
+    postinstall_cmds_win = [
+        "mkdir etc",
+        "bin/git.exe config --system user.name \"Bazel Test User\"",
+        "bin/git.exe config --system user.email \"bazel-test-user@example.com\"",
+    ],
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/windows-amd64/+/version:2.29.2.chromium.6
+    sha256 = "9caaf2c6066bdcfa94f917323c4031cf7e32572848f8621ecd0d328babee220a",
+    tag = "version:2.29.2.chromium.6",
+)
+use_repo(cipd, "git_amd64_windows")
+
+cipd.package(
+    name = "vpython_amd64_linux",
+    cipd_package = "infra/tools/luci/vpython/linux-amd64",
+    # From https://chrome-infra-packages.appspot.com/p/infra/tools/luci/vpython/linux-amd64/+/git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
+    sha256 = "ec210b3873665208c42e80883546d22d5f448f04e736f1e1fc015da7fc3003a3",
+    tag = "git_revision:31868238187077557113efa2bd4e2c7e3b3ec970",
+)
+use_repo(cipd, "vpython_amd64_linux")
+
+cipd.package(
+    name = "cpython3_amd64_linux",
+    cipd_package = "infra/3pp/tools/cpython3/linux-amd64",
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/cpython3/linux-amd64/+/version:2@3.11.7.chromium.31
+    sha256 = "0ff2955adf65e2921c4abd8e2848862d3c7731feeda5c506f44e796aa4af2dc7",
+    tag = "version:2@3.11.7.chromium.31",
+)
+use_repo(cipd, "cpython3_amd64_linux")

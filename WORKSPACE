@@ -34,67 +34,6 @@ rbe_exec_properties(
     name = "exec_properties",
 )
 
-##################
-# CIPD packages. #
-##################
-
-load("//bazel/external:cipd_install.bzl", "all_cipd_files", "cipd_install")
-
-cipd_install(
-    name = "git_amd64_linux",
-    build_file_content = all_cipd_files(),
-    cipd_package = "infra/3pp/tools/git/linux-amd64",
-    postinstall_cmds_posix = [
-        "mkdir etc",
-        "bin/git config --system user.name \"Bazel Test User\"",
-        "bin/git config --system user.email \"bazel-test-user@example.com\"",
-    ],
-    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
-    sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
-    tag = "version:2.29.2.chromium.6",
-)
-
-cipd_install(
-    name = "git_amd64_windows",
-    build_file_content = all_cipd_files(),
-    cipd_package = "infra/3pp/tools/git/windows-amd64",
-    postinstall_cmds_win = [
-        "mkdir etc",
-        "bin/git.exe config --system user.name \"Bazel Test User\"",
-        "bin/git.exe config --system user.email \"bazel-test-user@example.com\"",
-    ],
-    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/windows-amd64/+/version:2.29.2.chromium.6
-    sha256 = "9caaf2c6066bdcfa94f917323c4031cf7e32572848f8621ecd0d328babee220a",
-    tag = "version:2.29.2.chromium.6",
-)
-
-cipd_install(
-    name = "vpython_amd64_linux",
-    build_file_content = all_cipd_files(),
-    cipd_package = "infra/tools/luci/vpython/linux-amd64",
-    # From https://chrome-infra-packages.appspot.com/p/infra/tools/luci/vpython/linux-amd64/+/git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
-    sha256 = "ec210b3873665208c42e80883546d22d5f448f04e736f1e1fc015da7fc3003a3",
-    tag = "git_revision:31868238187077557113efa2bd4e2c7e3b3ec970",
-)
-
-cipd_install(
-    name = "cpython3_amd64_linux",
-    build_file_content = all_cipd_files(),
-    cipd_package = "infra/3pp/tools/cpython3/linux-amd64",
-    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/cpython3/linux-amd64/+/version:2@3.11.7.chromium.31
-    sha256 = "0ff2955adf65e2921c4abd8e2848862d3c7731feeda5c506f44e796aa4af2dc7",
-    tag = "version:2@3.11.7.chromium.31",
-)
-
-cipd_install(
-    name = "patch_amd64_linux",
-    build_file_content = all_cipd_files(),
-    cipd_package = "skia/bots/patch_linux_amd64",
-    # From https://chrome-infra-packages.appspot.com/p/skia/bots/patch/+/version:0
-    sha256 = "757fd36db06f291f77a91aa314b855af449665a606d627ce16c36813464e1df6",
-    tag = "version:0",
-)
-
 #############################################################
 # Google Cloud SDK (needed for the Google Cloud Emulators). #
 #############################################################
@@ -142,9 +81,9 @@ filegroup(
     urls = ["https://storage.googleapis.com/pgadapter-jar-releases/pgadapter-v0.47.1.tar.gz"],
 )
 
-#################################################################################
-# Google Chrome and Fonts (needed for Karma and Puppeteer tests, respectively). #
-#################################################################################
+# #################################################################################
+# # Google Chrome and Fonts (needed for Karma and Puppeteer tests, respectively). #
+# #################################################################################
 
 # TODO(borenet): we should be able to use this from rules_browsers.
 load("//bazel/external:google_chrome.bzl", "google_chrome")

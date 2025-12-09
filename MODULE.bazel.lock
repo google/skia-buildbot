@@ -443,6 +443,92 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "//bazel/external:cipd_install.bzl%cipd": {
+      "general": {
+        "bzlTransitiveDigest": "iOQdTX1kPeFffAhMQyXEEBGwZtzzt1jcDL6rwnsaP98=",
+        "usagesDigest": "r4D+3oMsPEbdwqxvMqmwIgw6XcuaD2TAn/4HLtWoVMA=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "git_amd64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "build_file_content": "\nfilegroup(\n  name = \"all_files\",\n  # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n  srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n  visibility = [\"//visibility:public\"],\n)",
+              "sha256": "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+              "urls": [
+                "https://chrome-infra-packages.appspot.com/dl/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6",
+                "https://cdn.skia.org/bazel/36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa.zip"
+              ],
+              "patch_cmds": [
+                "mkdir etc",
+                "bin/git config --system user.name \"Bazel Test User\"",
+                "bin/git config --system user.email \"bazel-test-user@example.com\""
+              ],
+              "patch_cmds_win": [],
+              "type": "zip"
+            }
+          },
+          "git_amd64_windows": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "build_file_content": "\nfilegroup(\n  name = \"all_files\",\n  # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n  srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n  visibility = [\"//visibility:public\"],\n)",
+              "sha256": "9caaf2c6066bdcfa94f917323c4031cf7e32572848f8621ecd0d328babee220a",
+              "urls": [
+                "https://chrome-infra-packages.appspot.com/dl/infra/3pp/tools/git/windows-amd64/+/version:2.29.2.chromium.6",
+                "https://cdn.skia.org/bazel/9caaf2c6066bdcfa94f917323c4031cf7e32572848f8621ecd0d328babee220a.zip"
+              ],
+              "patch_cmds": [],
+              "patch_cmds_win": [
+                "mkdir etc",
+                "bin/git.exe config --system user.name \"Bazel Test User\"",
+                "bin/git.exe config --system user.email \"bazel-test-user@example.com\""
+              ],
+              "type": "zip"
+            }
+          },
+          "vpython_amd64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "build_file_content": "\nfilegroup(\n  name = \"all_files\",\n  # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n  srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n  visibility = [\"//visibility:public\"],\n)",
+              "sha256": "ec210b3873665208c42e80883546d22d5f448f04e736f1e1fc015da7fc3003a3",
+              "urls": [
+                "https://chrome-infra-packages.appspot.com/dl/infra/tools/luci/vpython/linux-amd64/+/git_revision:31868238187077557113efa2bd4e2c7e3b3ec970",
+                "https://cdn.skia.org/bazel/ec210b3873665208c42e80883546d22d5f448f04e736f1e1fc015da7fc3003a3.zip"
+              ],
+              "patch_cmds": [],
+              "patch_cmds_win": [],
+              "type": "zip"
+            }
+          },
+          "cpython3_amd64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "build_file_content": "\nfilegroup(\n  name = \"all_files\",\n  # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n  srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n  visibility = [\"//visibility:public\"],\n)",
+              "sha256": "0ff2955adf65e2921c4abd8e2848862d3c7731feeda5c506f44e796aa4af2dc7",
+              "urls": [
+                "https://chrome-infra-packages.appspot.com/dl/infra/3pp/tools/cpython3/linux-amd64/+/version:2@3.11.7.chromium.31",
+                "https://cdn.skia.org/bazel/0ff2955adf65e2921c4abd8e2848862d3c7731feeda5c506f44e796aa4af2dc7.zip"
+              ],
+              "patch_cmds": [],
+              "patch_cmds_win": [],
+              "type": "zip"
+            }
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "",
+            "bazel_tools",
+            "bazel_tools"
+          ]
+        ]
+      }
+    },
     "@@aspect_rules_esbuild~//esbuild:extensions.bzl%esbuild": {
       "general": {
         "bzlTransitiveDigest": "+aIYaFYUljeMoi6CCcA8uQQ5jkf4AYNyxgg6wU3l9mQ=",
