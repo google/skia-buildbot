@@ -446,6 +446,30 @@ describe('anomalies-table-sk', () => {
       const anomaly = element.getReportLinkForSummaryRowBugId(group);
       assert.isUndefined(anomaly);
     });
+
+    it('returns the first anomaly if all bug_ids are -2', () => {
+      const anomaly1 = dummyAnomaly('1', -2, 0, 0, '');
+      const anomaly2 = dummyAnomaly('2', -2, 0, 0, '');
+      const group = { anomalies: [anomaly1, anomaly2], expanded: false };
+      const result = element.getReportLinkForSummaryRowBugId(group);
+      assert.deepEqual(result, anomaly1);
+    });
+
+    it('returns the anomaly with a valid bug_id when mixed with bug_id -2', () => {
+      const anomalyWithBug = dummyAnomaly('1', 12345, 0, 0, '');
+      const anomalyIgnored = dummyAnomaly('2', -2, 0, 0, '');
+      const group = { anomalies: [anomalyIgnored, anomalyWithBug], expanded: false };
+      const result = element.getReportLinkForSummaryRowBugId(group);
+      assert.deepEqual(result, anomalyWithBug);
+    });
+
+    it('returns undefined if all bug_ids are 0 or -2, but not all are -2', () => {
+      const anomaly1 = dummyAnomaly('1', 0, 0, 0, '');
+      const anomaly2 = dummyAnomaly('2', -2, 0, 0, '');
+      const group = { anomalies: [anomaly1, anomaly2], expanded: false };
+      const result = element.getReportLinkForSummaryRowBugId(group);
+      assert.isUndefined(result);
+    });
   });
 
   describe('get row class', () => {

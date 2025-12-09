@@ -792,8 +792,11 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   getReportLinkForSummaryRowBugId(anomalyGroup: AnomalyGroup): Anomaly | undefined {
+    if (anomalyGroup.anomalies.every((a) => a.bug_id === -2)) {
+      return anomalyGroup.anomalies[0];
+    }
     for (const anomaly of anomalyGroup.anomalies) {
-      if (anomaly.bug_id !== null && anomaly.bug_id !== 0) {
+      if (anomaly.bug_id !== null && anomaly.bug_id !== 0 && anomaly.bug_id !== -2) {
         return anomaly;
       }
     }
