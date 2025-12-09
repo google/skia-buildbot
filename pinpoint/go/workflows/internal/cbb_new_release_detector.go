@@ -67,11 +67,6 @@ const (
 	// https://source.chromium.org/chromium/chromium/src/+/main:testing/scripts/run_performance_tests.py.
 	browserVersionsBenchmark = "browser_versions"
 	browserVersionsFilename  = "browser_versions.json"
-
-	// The Chromium commit to check out and build in order to run the browser_versions benchmark.
-	// Ideally this should be determined automatically, but since this is expected to change
-	// very rarely, it is hardcoded here for now.
-	browserVersionsCommit = "4b469edb71f12662c76458ba082dfa3a209a4586"
 )
 
 // All Mac bot config names, with the number of devices in each config.
@@ -206,7 +201,7 @@ func CbbGetBrowserVersionsWorkflow(ctx workflow.Context, browser string) ([]Buil
 			BotConfig:      config,
 			Benchmark:      browserVersionsBenchmark,
 			Story:          "default",
-			CombinedCommit: common.NewCombinedCommit(common.NewChromiumCommit(browserVersionsCommit)),
+			CombinedCommit: common.NewCombinedCommit(nil),
 			Iterations:     count,
 		}
 		var cr *CommitRun

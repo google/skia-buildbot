@@ -126,6 +126,13 @@ func (b *buildbucketClient) createSearchBuildRequest(builderName, bucket, commit
 			Value: fmt.Sprintf(DefaultBuildsetValue, commit),
 		},
 	}
+	status := bpb.Status_STATUS_UNSPECIFIED
+	if commit == "" {
+		// An empty commit means the caller doesn't care which commit to use.
+		// Just look for any successful build.
+		tags = nil
+		status = bpb.Status_SUCCESS
+	}
 
 	// PageSize defaults to 100, with a maximum of 1000 builds.
 	req := &bpb.SearchBuildsRequest{
@@ -137,6 +144,7 @@ func (b *buildbucketClient) createSearchBuildRequest(builderName, bucket, commit
 			},
 			Tags:          tags,
 			GerritChanges: patches,
+			Status:        status,
 		},
 		Mask: &bpb.BuildMask{
 			Fields: &fieldmaskpb.FieldMask{
