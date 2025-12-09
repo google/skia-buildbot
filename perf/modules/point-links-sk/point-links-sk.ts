@@ -228,7 +228,7 @@ export class PointLinksSk extends ElementSk {
     const signal = this.abortController.signal;
 
     this.commitPosition = commit_position;
-    this.reset();
+    await this.reset();
     if (commit_position === null) {
       return Promise.resolve(commitLinks);
     }

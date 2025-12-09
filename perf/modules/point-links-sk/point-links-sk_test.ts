@@ -26,12 +26,12 @@ describe('point-links-sk', () => {
         key4: 'Commit Link',
       },
     };
-    it('With no eligible links.', () => {
+    it('With no eligible links.', async () => {
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
       const keysForCommitRange: string[] = [];
       const keysForUsefulLinks: string[] = [];
-      element.load(
+      await element.load(
         currentCommitId,
         prevCommitId,
         'my trace',
@@ -43,7 +43,7 @@ describe('point-links-sk', () => {
       assert.isEmpty(element.displayTexts, 'No display texts expected.');
     });
 
-    it('With links already stored.', () => {
+    it('With links already stored.', async () => {
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
       const keysForCommitRange: string[] = [];
@@ -52,7 +52,7 @@ describe('point-links-sk', () => {
         key4: 'https://commit/link1',
       };
 
-      element.load(
+      await element.load(
         currentCommitId,
         prevCommitId,
         'my trace',
