@@ -9,7 +9,7 @@
   "bug_host_url": "https://issues.chromium.org",
   "feedback_url": "http://go/berf-skia-feedback",
   "chat_url": "http://go/berf-skia-chat",
-  "instance_name": "v8-internal",
+  "instance_name": "V8 Perf",
   "header_image_url": "/dist/images/v8.svg",
   "notify_config": {
     "notifications": "none"

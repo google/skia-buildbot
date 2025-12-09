@@ -5,7 +5,7 @@
     "ga_measurement_id": "G-YSL2BSH0BN",
     "allowed_hosts": [],
     "contact": "browser-perf-engprod@google.com",
-    "instance_name": "chrome-experimental",
+    "instance_name": "Chrome Perf (Experimental)",
     "trace_sample_proportion": 1.0,
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,

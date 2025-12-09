@@ -2,6 +2,7 @@
   "URL": "https://angle-perf.luci.app",
   "header_image_url": "/dist/images/alpine_transparent.png",
   "contact": "https://bugs.chromium.org/p/angle/issues/list?q=component%3ATools&can=2",
+  "instance_name": "Angle Perf",
   "ga_measurement_id": "G-94G59ZPQ5W",
   "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",
   "trace_sample_proportion": 0.01,

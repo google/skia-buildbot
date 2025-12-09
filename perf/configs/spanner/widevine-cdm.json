@@ -1,11 +1,12 @@
 {
     "URL": "https://widevine-cdm-perf.corp.goog",
-    "header_image_url": "/dist/images/alpine_transparent.png",
+    "header_image_url": "/dist/images/widevine.svg",
     "landing_page_rel_path": "/m/",
     "ga_measurement_id": "G-FDBM26CXS6",
     "allowed_hosts": [],
     "trace_sample_proportion": 0.01,
     "contact": "browser-perf-engprod@google.com",
+    "instance_name": "Widevine (CDM)",
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
     "use_regression2_schema": true,

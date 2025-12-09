@@ -1,6 +1,6 @@
 {
     "URL": "https://germanium-evals.corp.goog",
-    "header_image_url": "/dist/images/alpine_transparent.png",
+    "header_image_url": "/dist/images/germanium.webp",
     "landing_page_rel_path": "/e/",
     "allowed_hosts": [],
     "trace_sample_proportion": 0.01,
