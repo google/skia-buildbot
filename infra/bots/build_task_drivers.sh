@@ -14,7 +14,7 @@ cd ../..
 PLATFORM=${2:-linux_amd64} # use linux_amd64 if not specified
 
 # Build the executables and extract them to the folder in the first argument.
-bazelisk build //:all_task_drivers --platforms=@io_bazel_rules_go//go/toolchain:${PLATFORM}
+bazelisk build //:all_task_drivers --platforms=@rules_go//go/toolchain:${PLATFORM}
 tar -xf _bazel_bin/built_task_drivers.tar -C ${1}
 # Bazel outputs are write-protected, so we make sure everybody can write them. This way there
 # are no expected errors in deleting them later.

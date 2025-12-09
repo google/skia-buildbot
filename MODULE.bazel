@@ -5,7 +5,7 @@ bazel_dep(name = "aspect_rules_esbuild", version = "0.22.1")
 bazel_dep(name = "aspect_rules_js", version = "2.5.0")
 bazel_dep(name = "aspect_rules_ts", version = "3.7.0")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.1")
-bazel_dep(name = "rules_go", version = "0.58.3", repo_name = "io_bazel_rules_go")  # Needs to go before Gazelle.
+bazel_dep(name = "rules_go", version = "0.58.3")  # Needs to go before Gazelle.
 bazel_dep(name = "gazelle", version = "0.47.0")
 bazel_dep(name = "protobuf", version = "33.0", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_browsers", version = "0.2.0")
@@ -45,7 +45,7 @@ use_repo(rules_ts_ext, "npm_typescript")
 
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 
-go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
+go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
 
 go_deps.from_file(go_mod = "//:go.mod")
 go_deps.module_override(
@@ -234,7 +234,7 @@ inject_repo(
 
 inject_repo(
     go_deps,
-    rules_go = "io_bazel_rules_go",
+    rules_go = "rules_go",
 )
 
 inject_repo(
@@ -248,7 +248,7 @@ go_sdk.from_file(
 )
 use_repo(go_sdk, "go_sdk")
 
-register_toolchains("@io_bazel_rules_go//go/toolchain:all")
+register_toolchains("@rules_go//go/toolchain:all")
 
 ####################################################################################################
 # pnpm setup

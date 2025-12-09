@@ -13,7 +13,7 @@
       argv:
         - bazelisk
         - build
-        - --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64
+        - --platforms=@rules_go//go/toolchain:windows_amd64
         - //skolo/go/getgpu
 
   - name: Create Temp

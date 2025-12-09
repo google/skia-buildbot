@@ -73,7 +73,7 @@ build:remote --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/local/go/bin
 #
 # This prevents errors due to missing dynamic libraries, e.g. when running Bazel-built binaries
 # inside Docker containers based on the gcr.io/skia-public/basealpine image.
-build --@io_bazel_rules_go//go/config:pure
+build --@rules_go//go/config:pure
 
 # Depending on how many machines are in the remote execution instance, setting
 # this higher can make builds faster by allowing more jobs to run in parallel.

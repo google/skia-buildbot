@@ -1,6 +1,6 @@
 """This module defines a custom go_test macro that produces separate targets for manual tests."""
 
-load("@io_bazel_rules_go//go:def.bzl", _go_test = "go_test")
+load("@rules_go//go:def.bzl", _go_test = "go_test")
 
 def go_test(name, srcs, tags = [], args = [], **kwargs):
     """Wrapper around go_test that splits manual and non-manual tests into separate targets.
