@@ -67,6 +67,26 @@
                 "name": "Comparative Browser Benchmarking (CBB)",
                 "links": [
                     {
+                        "text": "Mac (go/cbb-mac)",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=dd0dd339ebb06e5f01e64de82f3977d1&splitByKeys=benchmark&totalGraphs=4",
+                        "description": "CBB results on Mac"
+                    },
+                    {
+                        "text": "Windows x64 (go/cbb-win)",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=8e3d2605de2b3e17fa257ea47275ee0a&splitByKeys=benchmark&totalGraphs=4",
+                        "description": "CBB results on Windows (Intel CPU)"
+                    },
+                    {
+                        "text": "Windows ARM64 (go/cbb-win-arm)",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=1adc4014bca70f8245c3250c46ff2abc&splitByKeys=benchmark&totalGraphs=4",
+                        "description": "CBB results on Windows (ARM64 CPU)"
+                    },
+                    {
+                        "text": "Pixel Tablet (go/cbb-tangor)",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=35&shortcut=ebd83355ba9a7dc7c7a8957e8f3c533e&splitByKeys=benchmark&totalGraphs=4",
+                        "description": "CBB results on Pixel Tablet (Tangor)"
+                    },
+                    {
                         "text": "Speedometer3 (go/cbb-sp3)",
                         "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=7bd8bba5abb81582cffb5cb8578011b2&splitByKeys=bot&totalGraphs=4",
                         "description": "CBB Speedometer3 results"
@@ -83,8 +103,13 @@
                     },
                     {
                         "text": "MotionMark (go/cbb-mm)",
-                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=598f56484c8e1602be056849b115e0b8&splitByKeys=bot&totalGraphs=1",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=598f56484c8e1602be056849b115e0b8&splitByKeys=bot&totalGraphs=4",
                         "description": "CBB MotionMark results"
+                    },
+                    {
+                        "text": "Overall results (go/cbb-all)",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=cfc726db99370e5e789af5ca314b5e3c&splitByKeys=benchmark&totalGraphs=4",
+                        "description": "CBB results for all benchmarks and platforms"
                     }
                 ]
             }
