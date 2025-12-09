@@ -21,7 +21,7 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//task_scheduler/go/specs",
-        "@com_github_bazelbuild_buildtools//build:go_default_library",
+        "@com_github_bazelbuild_buildtools//build",
         "@com_github_golang_protobuf//ptypes",
         "@org_chromium_go_luci//buildbucket/proto",
     ],
@@ -38,7 +38,7 @@ go_test(
     deps = [
         "//go/git",
         "//go/testutils",
-        "@com_github_bazelbuild_buildtools//build:go_default_library",
+        "@com_github_bazelbuild_buildtools//build",
         "@com_github_stretchr_testify//require",
     ],
 )

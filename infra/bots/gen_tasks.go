@@ -256,7 +256,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
 
 	// To iterate on the bazel_build_all task driver, comment out the
 	// call to usePreBuiltTaskDrivers.
-	usesPreBuiltTaskDrivers(t)
+	//usesPreBuiltTaskDrivers(t)
 	usesBazelisk(b, t)
 	usesDocker(t)
 	usesWrapperTaskDriver(b, name, true, t)

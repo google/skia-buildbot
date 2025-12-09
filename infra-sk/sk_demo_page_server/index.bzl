@@ -1,5 +1,7 @@
 """This module defines the sk_demo_page_server macro."""
 
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
 _demo_page_server = "//infra-sk/sk_demo_page_server:demo_page_server"
 
 _demo_server_script_template = """#!/bin/bash
@@ -75,7 +77,7 @@ def sk_demo_page_server(name, sk_page, static_assets = None, port = 8080):
         executable = 1,
     )
 
-    native.sh_binary(
+    sh_binary(
         name = name,
         srcs = [name + "_genrule"],
         data = [

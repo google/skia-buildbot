@@ -1,4 +1,4 @@
-load("@bazel_gazelle//:def.bzl", "gazelle_binary")
+load("@gazelle//:def.bzl", "gazelle_binary")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("//bazel/go:go_test.bzl", "go_test")
 
@@ -9,7 +9,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//bazel/gazelle/frontend/language",
-        "@bazel_gazelle//language:go_default_library",
+        "@gazelle//language",
     ],
 )
 
@@ -22,8 +22,8 @@ go_test(
     deps = [
         "//bazel/go/bazel",
         "//go/testutils/unittest",
-        "@bazel_gazelle//testtools:go_default_library",
         "@com_github_stretchr_testify//require",
+        "@gazelle//testtools",
     ],
 )
 

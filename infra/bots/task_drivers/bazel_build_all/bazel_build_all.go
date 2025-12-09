@@ -97,12 +97,6 @@ func main() {
 	}
 	failIfNonEmptyGitDiff()
 
-	// Regenerate //go_repositories.bzl from //go.mod with Gazelle, and fail if there are any diffs.
-	if _, err := bzl.DoOnRBE(ctx, "run", "//:gazelle", "--", "update-repos", "-from_file=go.mod", "-to_macro=go_repositories.bzl%go_repositories"); err != nil {
-		td.Fatal(ctx, err)
-	}
-	failIfNonEmptyGitDiff()
-
 	// Update all Go BUILD targets with Gazelle, and fail if there are any diffs.
 	if _, err := bzl.DoOnRBE(ctx, "run", "//:gazelle", "--", "update", "."); err != nil {
 		td.Fatal(ctx, err)

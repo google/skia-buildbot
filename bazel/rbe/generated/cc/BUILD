@@ -129,7 +129,7 @@ cc_toolchain_config(
         "/usr/include/x86_64-linux-gnu/c++/12",
         "/usr/include/c++/12/backward",
     ],
-    cxx_flags = ["-std=c++14"],
+    cxx_flags = ["-std=c++17"],
     dbg_compile_flags = ["-g"],
     extra_flags_per_feature = {"use_module_maps": ["-Xclang", "-fno-cxx-modules"]},
     host_system_name = "i686-unknown-linux-gnu",

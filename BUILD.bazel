@@ -1,9 +1,10 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
-load("@bazel_gazelle//:def.bzl", "gazelle")
-load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@exec_properties//:constants.bzl", "NETWORK_ON")
+load("@gazelle//:def.bzl", "gazelle")
 load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load(":puppeteerrc.bzl", "puppeteerrc_js")
 
 # Disable generation of go_proto_library targets. Let Gazelle use checked-in .pb.go files instead.
@@ -56,6 +57,10 @@ load(":puppeteerrc.bzl", "puppeteerrc_js")
 
 # The new_element directory has templates which do not compile/run.
 # gazelle:exclude new_element*
+
+# By default, Gazelle wants to use the go_default_library target in the
+# remote-apis repo, which is incorrect. This points it to the correct target.
+# gazelle:resolve go github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2 @com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:remote_execution_go_proto
 
 # gazelle:prefix go.skia.org/infra
 gazelle(

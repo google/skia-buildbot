@@ -1,3 +1,5 @@
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
 # Non-predefined variables must be escaped with "$$" (e.g. "$$FOO"); see
 # https://bazel.build/reference/be/make-variables#predefined_label_variables.
 _SCRIPT = """

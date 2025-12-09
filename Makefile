@@ -20,16 +20,9 @@ tags:
 buildall:
 	go build ./...
 
-.PHONY: update-go-bazel-files
-update-go-bazel-files:
-	$(BAZEL) run --config=mayberemote //:gazelle -- update ./
-
-.PHONY: update-go-bazel-deps
-update-go-bazel-deps:
-	$(BAZEL) run --config=mayberemote //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories -prune
-
 .PHONY: gazelle
-gazelle: update-go-bazel-deps update-go-bazel-files
+gazelle:
+	$(BAZEL) run --config=mayberemote //:gazelle -- update ./
 
 # Run this if we need to update our JS/TS packages
 .PHONY: update-npm

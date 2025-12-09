@@ -20,155 +20,6 @@ http_archive(
     ],
 )
 
-##############################
-# Go rules and dependencies. #
-##############################
-
-http_archive(
-    name = "io_bazel_rules_go",
-    sha256 = "f2d15bea3e241aa0e3a90fb17a82e6a8ab12214789f6aeddd53b8d04316d2b7c",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.54.0/rules_go-v0.54.0.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.54.0/rules_go-v0.54.0.zip",
-    ],
-)
-
-http_archive(
-    name = "bazel_gazelle",
-    sha256 = "8ad77552825b078a10ad960bec6ef77d2ff8ec70faef2fd038db713f410f5d87",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.38.0/bazel-gazelle-v0.38.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.38.0/bazel-gazelle-v0.38.0.tar.gz",
-    ],
-)
-
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
-load("//:go_repositories.bzl", "go_repositories")
-
-# gazelle:repository_macro go_repositories.bzl%go_repositories
-go_repositories()
-
-go_rules_dependencies()
-
-go_register_toolchains(version = "1.24.2")
-
-gazelle_dependencies()
-
-##########################
-# Other Go dependencies. #
-##########################
-
-load("//bazel/external:go_googleapis_compatibility_hack.bzl", "go_googleapis_compatibility_hack")
-
-# Compatibility hack to make the github.com/bazelbuild/remote-apis Go module work with rules_go
-# v0.41.0 or newer. See the go_googleapis() rule's docstring for details.
-go_googleapis_compatibility_hack(
-    name = "go_googleapis",
-)
-
-# Needed by @com_github_bazelbuild_remote_apis.
-http_archive(
-    name = "com_google_protobuf",
-    sha256 = "da288bf1daa6c04d03a9051781caa52aceb9163586bff9aa6cfb12f69b9395aa",
-    strip_prefix = "protobuf-27.0",
-    urls = gcs_mirror_url(
-        sha256 = "da288bf1daa6c04d03a9051781caa52aceb9163586bff9aa6cfb12f69b9395aa",
-        url = "https://github.com/protocolbuffers/protobuf/releases/download/v27.0/protobuf-27.0.tar.gz",
-    ),
-)
-
-# Originally, we pulled protobuf dependencies as follows:
-#
-#     load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-#     protobuf_deps()
-#
-# The protobuf_deps() macro brings in a bunch of dependencies, but by copying the macro body here
-# and removing dependencies one by one, "rules_proto" was identified as the only dependency that is
-# required to build this repository.
-
-http_archive(
-    name = "com_google_absl",
-    sha256 = "f49929d22751bf70dd61922fb1fd05eb7aec5e7a7f870beece79a6e28f0a06c1",
-    strip_prefix = "abseil-cpp-4a2c63365eff8823a5221db86ef490e828306f9d",
-    # Abseil LTS 20240116.0
-    urls = ["https://github.com/abseil/abseil-cpp/archive/4a2c63365eff8823a5221db86ef490e828306f9d.zip"],
-)
-
-http_archive(
-    name = "rules_proto",
-    sha256 = "6fb6767d1bef535310547e03247f7518b03487740c11b6c6adb7952033fe1295",
-    strip_prefix = "rules_proto-6.0.2",
-    url = "https://github.com/bazelbuild/rules_proto/releases/download/6.0.2/rules_proto-6.0.2.tar.gz",
-)
-
-load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
-
-rules_proto_dependencies()
-
-load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
-
-rules_proto_setup()
-
-load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
-
-rules_proto_toolchains()
-
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-
-protobuf_deps()
-
-# Needed by @com_github_bazelbuild_remote_apis for the googleapis protos.
-http_archive(
-    name = "googleapis",
-    build_file = "//bazel/external:googleapis.BUILD",
-    sha256 = "b28c13e99001664eac5f1fb81b44d912d19fbc041e30772263251da131f6573c",
-    strip_prefix = "googleapis-bb964feba5980ed70c9fb8f84fe6e86694df65b0",
-    urls = gcs_mirror_url(
-        sha256 = "b28c13e99001664eac5f1fb81b44d912d19fbc041e30772263251da131f6573c",
-        # b/267219467
-        url = "https://github.com/googleapis/googleapis/archive/bb964feba5980ed70c9fb8f84fe6e86694df65b0.zip",
-    ),
-)
-
-load("@googleapis//:repository_rules.bzl", googleapis_imports_switched_rules_by_language = "switched_rules_by_language")
-
-googleapis_imports_switched_rules_by_language(
-    name = "com_google_googleapis_imports",
-    go = True,
-    grpc = True,
-)
-
-# Needed by @com_github_bazelbuild_remote_apis for gRPC.
-http_archive(
-    name = "com_github_grpc_grpc",
-    sha256 = "b391a327429279f6f29b9ae7e5317cd80d5e9d49cc100e6d682221af73d984a6",
-    strip_prefix = "grpc-93e8830070e9afcbaa992c75817009ee3f4b63a0",  # v1.24.3 with fixes
-    urls = gcs_mirror_url(
-        sha256 = "b391a327429279f6f29b9ae7e5317cd80d5e9d49cc100e6d682221af73d984a6",
-        # Fix after https://github.com/grpc/grpc/issues/32259 is resolved
-        url = "https://github.com/grpc/grpc/archive/93e8830070e9afcbaa992c75817009ee3f4b63a0.zip",
-    ),
-)
-
-# Originally, we pulled gRPC dependencies as follows:
-#
-#     load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
-#     grpc_deps()
-#
-# The grpc_deps() macro brings in a bunch of dependencies, but by copying the macro body here
-# and removing dependencies one by one, "zlib" was identified as the only dependency that is
-# required to build this repository.
-http_archive(
-    name = "zlib",
-    build_file = "@com_github_grpc_grpc//third_party:zlib.BUILD",
-    strip_prefix = "zlib-cacf7f1d4e3d44d871b605da3b647f07d718623f",
-    urls = gcs_mirror_url(
-        sha256 = "6d4d6640ca3121620995ee255945161821218752b551a1a180f4215f7d124d45",
-        url = "https://github.com/madler/zlib/archive/cacf7f1d4e3d44d871b605da3b647f07d718623f.tar.gz",
-    ),
-)
-
 ##################
 # Miscellaneous. #
 ##################
@@ -295,6 +146,7 @@ filegroup(
 # Google Chrome and Fonts (needed for Karma and Puppeteer tests, respectively). #
 #################################################################################
 
+# TODO(borenet): we should be able to use this from rules_browsers.
 load("//bazel/external:google_chrome.bzl", "google_chrome")
 
 google_chrome(name = "google_chrome")
@@ -312,46 +164,6 @@ http_file(
         ext = "",
         sha256 = "1206e8a79b41cb22524f73afa4f4ee648478f46ef6990d78e7cc953665a1db89",
         url = "https://github.com/bazelbuild/bazel-toolchains/releases/download/v5.1.2/rbe_configs_gen_linux_amd64",
-    ),
-)
-
-##########################
-# Buildifier (prebuilt). #
-##########################
-
-http_file(
-    name = "buildifier_linux_amd64",
-    downloaded_file_path = "buildifier",
-    executable = True,
-    sha256 = "52bf6b102cb4f88464e197caac06d69793fa2b05f5ad50a7e7bf6fbd656648a3",
-    urls = gcs_mirror_url(
-        ext = "",
-        sha256 = "52bf6b102cb4f88464e197caac06d69793fa2b05f5ad50a7e7bf6fbd656648a3",
-        url = "https://github.com/bazelbuild/buildtools/releases/download/5.1.0/buildifier-linux-amd64",
-    ),
-)
-
-http_file(
-    name = "buildifier_macos_arm64",
-    downloaded_file_path = "buildifier",
-    executable = True,
-    sha256 = "745feb5ea96cb6ff39a76b2821c57591fd70b528325562486d47b5d08900e2e4",
-    urls = gcs_mirror_url(
-        ext = "",
-        sha256 = "745feb5ea96cb6ff39a76b2821c57591fd70b528325562486d47b5d08900e2e4",
-        url = "https://github.com/bazelbuild/buildtools/releases/download/5.1.0/buildifier-darwin-arm64",
-    ),
-)
-
-http_file(
-    name = "buildifier_macos_amd64",
-    downloaded_file_path = "buildifier",
-    executable = True,
-    sha256 = "c9378d9f4293fc38ec54a08fbc74e7a9d28914dae6891334401e59f38f6e65dc",
-    urls = gcs_mirror_url(
-        ext = "",
-        sha256 = "c9378d9f4293fc38ec54a08fbc74e7a9d28914dae6891334401e59f38f6e65dc",
-        url = "https://github.com/bazelbuild/buildtools/releases/download/5.1.0/buildifier-darwin-amd64",
     ),
 )
 

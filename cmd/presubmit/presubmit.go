@@ -418,10 +418,22 @@ func extractChangedAndDeletedFiles(diffOutput string) ([]fileWithChanges, []stri
 func checkLongLines(ctx context.Context, files []fileWithChanges) bool {
 	const maxLineLength = 100
 	ignoreFileExts := []string{".go", ".html", ".py", ".svg"}
-	ignoreFiles := []string{"package-lock.json", "pnpm-lock.yaml", "go.sum", "infra/bots/tasks.json", "WORKSPACE",
-		"golden/k8s-config-templates/gold-common.json5", "go.mod", "go_repositories.bzl", "licenses/LICENSES.md",
-		"elements.d.ts", "perf/scripts/copy_data_to_experimental_db/README.md", "perf/scripts/copy_data_to_experimental_db/run_two_spanners.sh",
-		"perf/scripts/add_demo_alert_to_demo_db.sh"}
+	ignoreFiles := []string{
+		"package-lock.json",
+		"pnpm-lock.yaml",
+		"go.sum",
+		"infra/bots/tasks.json",
+		"WORKSPACE",
+		"golden/k8s-config-templates/gold-common.json5",
+		"go.mod",
+		"go_repositories.bzl",
+		"licenses/LICENSES.md",
+		"MODULE.bazel.lock",
+		"elements.d.ts",
+		"perf/scripts/copy_data_to_experimental_db/README.md",
+		"perf/scripts/copy_data_to_experimental_db/run_two_spanners.sh",
+		"perf/scripts/add_demo_alert_to_demo_db.sh",
+	}
 	ok := true
 	for _, f := range files {
 		if contains(ignoreFiles, f.fileName) {
@@ -686,7 +698,7 @@ func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot, b
 	}
 
 	// -w means "write", as in, modify the files that need formatting.
-	bazelGoPath := "_bazel_bin/bazel/tools/go/go.runfiles/go_sdk/bin"
+	bazelGoPath := "_bazel_bin/bazel/tools/go/go.runfiles/rules_go~~go_sdk~go_sdk/bin"
 	runUnderCmd := fmt.Sprintf("cd %s && export PATH=\"$(pwd)/%s:$PATH\" &&", workspaceRoot, bazelGoPath)
 	args := []string{"run", "--config=mayberemote", "//:goimports", "--run_under=" + runUnderCmd, "--", "-w"}
 	foundAny := false
@@ -851,16 +863,6 @@ func runGazelle(ctx context.Context, changedFiles []fileWithChanges, deletedFile
 	// No need to run gazelle
 	if !regenEverything && len(foldersToCheck) == 0 {
 		return true
-	}
-	if regenEverything {
-		cmd := exec.CommandContext(ctx, "bazelisk", "run", "--config=mayberemote", "//:gazelle", "--", "update-repos",
-			"-from_file=go.mod", "-to_macro=go_repositories.bzl%go_repositories")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			log(ctx, string(output))
-			log(ctx, "Could not regenerate go_repositories.bzl!\n")
-			return false
-		}
 	}
 
 	args := []string{"run", "--config=mayberemote", "//:gazelle", "--", "update"}

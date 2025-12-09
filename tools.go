@@ -14,9 +14,16 @@ import (
 	_ "github.com/kisielk/errcheck"
 	_ "github.com/skia-dev/protoc-gen-twirp_typescript"
 	_ "github.com/temporalio/cli/cmd/temporal"
+
+	// TODO(borenet): I had to add this in order for Gazelle to generate BUILD
+	// files for this transitive dependency, even though Gazelle itself
+	// generated the BUILD file pointing to the missing target.
+	_ "github.com/temporalio/tctl-kit/pkg/color"
 	_ "github.com/temporalio/ui-server/v2/server"
 	_ "github.com/twitchtv/twirp/protoc-gen-twirp"
 	_ "github.com/vektra/mockery/v2"
 	_ "go.temporal.io/server/cmd/server"
 	_ "golang.org/x/tools/cmd/goimports"
+	_ "google.golang.org/genproto/googleapis/api"
+	_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
 )

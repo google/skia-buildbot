@@ -26,8 +26,8 @@ require (
 	github.com/aclements/go-moremath v0.0.0-20190830160640-d16893ddf098
 	github.com/bazelbuild/bazel-gazelle v0.33.0
 	github.com/bazelbuild/buildtools v0.0.0-20231017121127-23aa65d4e117
-	github.com/bazelbuild/remote-apis v0.0.0-20230822133051-6c32c3b917cc
-	github.com/bazelbuild/remote-apis-sdks v0.0.0-20231114220034-042d9851eb28
+	github.com/bazelbuild/remote-apis v0.0.0-20251110153243-3860ca2d3e55
+	github.com/bazelbuild/remote-apis-sdks v0.0.0-20251202150838-a01d8dc79d0d
 	github.com/blakesmith/ar v0.0.0-20190502131153-809d4375e1fb
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
 	github.com/cenkalti/backoff v2.2.1+incompatible
@@ -83,6 +83,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07
 	github.com/temporalio/cli v0.12.0
+	github.com/temporalio/tctl-kit v0.0.0-20230328153839-577f95d16fa0
 	github.com/temporalio/ui-server/v2 v2.26.2
 	github.com/texttheater/golang-levenshtein v1.0.1
 	github.com/twitchtv/twirp v7.1.0+incompatible
@@ -117,6 +118,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20250414145226-207652e42e2e
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250428153025-10db94c68c34
 	google.golang.org/grpc v1.71.1
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/olivere/elastic.v5 v5.0.86
@@ -157,7 +159,7 @@ require (
 	github.com/chigopher/pathlib v0.19.1 // indirect
 	github.com/cncf/xds/go v0.0.0-20250121191232-2f005788dc42 // indirect
 	github.com/coreos/go-oidc/v3 v3.1.0 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/danjacques/gofslock v0.0.0-20230728142113-ae8f59f9e88b // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
@@ -215,7 +217,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.17.2 // indirect
+	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/labstack/echo/v4 v4.9.1 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
@@ -233,7 +235,6 @@ require (
 	github.com/moby/spdystream v0.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/mostynb/zstdpool-syncpool v0.0.12 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
@@ -277,6 +278,7 @@ require (
 	github.com/twmb/murmur3 v1.1.8 // indirect
 	github.com/uber-common/bark v1.3.0 // indirect
 	github.com/uber-go/tally/v4 v4.1.17-0.20240412215630-22fe011f5ff0 // indirect
+	github.com/urfave/cli v1.22.16 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

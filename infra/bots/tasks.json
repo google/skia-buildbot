@@ -282,14 +282,12 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
         "--cipd",
-        "task_drivers:skia/tools/bazel_build_all/${platform}@git_revision:ca3eb8741f1801efd29c4ca4b6e256eccf5baa6e",
-        "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/docker-credential-luci/${platform}@git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
         "--command-is-task-driver",
         "--",
-        "./task_drivers/bazel_build_all",
+        "./bazel_build_all",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
@@ -310,6 +308,9 @@
         "<(CODEREVIEW_SERVER)",
         "--bazel_cache_dir",
         "/dev/shm/bazel_cache"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
       ],
       "dimensions": [
         "pool:Skia",

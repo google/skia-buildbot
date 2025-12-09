@@ -26,6 +26,11 @@ build --workspace_status_command=bazel/get_workspace_status.sh
 # https://github.com/bazelbuild/bazel/issues/8830.
 build --experimental_allow_tags_propagation
 
+# Required for newer versions of abseil-cpp.
+build --action_env=BAZEL_CXXOPTS="-std=c++17"
+# This appears to have no effect because of the generated toolchain.
+build:remote --action_env=BAZEL_CXXOPTS="-std=c++17"
+
 # Pipe through the host system's *_EMULATOR_HOST environment variables to Bazel tests.
 #
 # We unset said environment variables under RBE because emulator tests under RBE spin up their own

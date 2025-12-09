@@ -1,3 +1,4 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 genrule(

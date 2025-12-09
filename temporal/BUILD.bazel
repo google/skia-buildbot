@@ -28,7 +28,7 @@ pkg_files(
 pkg_tar(
     name = "temporal-schemas",
     srcs = [
-        "@@io_temporal_go_server//:schemas",
+        "@io_temporal_go_server//:schemas",
     ],
     # It seems like we should be able to use:
     #
@@ -74,7 +74,7 @@ skia_app_container(
                 "666",
             ],
             [
-                "@@io_temporal_go_server//:docker_config_template",
+                "@io_temporal_go_server//:docker_config_template",
                 "666",
             ],
         ],
