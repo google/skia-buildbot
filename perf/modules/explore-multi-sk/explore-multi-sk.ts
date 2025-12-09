@@ -409,6 +409,7 @@ export class ExploreMultiSk extends ElementSk {
             'query',
             fromParamSet(this.mergeParamSets(chunk)),
             '',
+            '',
             // Important! Do not load extended range data. Otherwise it produces a lot of
             // queries fetching the same data + creates concurrency issues.
             /*loadExtendedRange=*/ false
@@ -437,6 +438,7 @@ export class ExploreMultiSk extends ElementSk {
             /*replace=*/ true,
             'query',
             fromParamSet(this.mergeParamSets(groups)),
+            '',
             '',
             /*loadExtendedRange=*/ true
           );

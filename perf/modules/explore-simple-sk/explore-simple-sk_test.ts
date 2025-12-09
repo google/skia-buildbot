@@ -540,427 +540,597 @@ describe('updateTestPickerUrl', () => {
       done();
     });
   });
-});
 
-describe('Incremental Trace Loading', () => {
-  let explore: ExploreSimpleSk;
+  describe('JSON Input', () => {
+    let explore: ExploreSimpleSk;
 
-  // Define clean queries and comma-wrapped keys separately.
-  const initialQuery = 'arch=x86&config=original';
-  const initialTraceKey = `,${initialQuery},`; // Comma-wrapped for traceset
-  const newQuery = 'arch=arm&config=new';
-  const newTraceKey = `,${newQuery},`; // Comma-wrapped for traceset
-
-  // Generate a dataframe and ensure it has traceMetadata.
-  const initialDataFrame = generateFullDataFrame(
-    { begin: 1, end: 100 },
-    now,
-    1,
-    [timeSpan],
-    [[10, 20]],
-    [initialTraceKey]
-  );
-  initialDataFrame.traceMetadata = []; // Ensure traceMetadata exists.
-
-  const initialFrameResponse: FrameResponse = {
-    dataframe: initialDataFrame,
-    anomalymap: {},
-    skps: [],
-    msg: '',
-    display_mode: 'display_plot',
-  };
-
-  // Generate the second dataframe and ensure it has traceMetadata.
-  const newDataFrame = generateFullDataFrame(
-    { begin: 1, end: 100 },
-    now,
-    1,
-    [timeSpan],
-    [[30, 40]],
-    [newTraceKey]
-  );
-  newDataFrame.traceMetadata = []; // Ensure traceMetadata exists.
-
-  const newFrameResponse: FrameResponse = {
-    dataframe: newDataFrame,
-    anomalymap: {},
-    skps: [],
-    msg: '',
-    display_mode: 'display_plot',
-  };
-
-  beforeEach(() => {
-    fetchMock.reset();
-    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-
-    fetchMock.get('/_/login/status', {
-      email: 'someone@example.org',
-      roles: ['editor'],
-    });
-    fetchMock.get('path:/_/defaults/', {
-      status: 200,
-      body: JSON.stringify({}),
-    });
-    fetchMock.post('/_/frame/start', {});
-    fetchMock.post('/_/user_issues/', { UserIssues: [] });
-    fetchMock.flush(true);
-  });
-
-  it('only fetches new data when adding a trace', async () => {
-    // Original data.
-    fetchMock.postOnce('/_/frame/start', (_url, opts) => {
-      const body = JSON.parse(opts.body as string);
-      assert.deepEqual(body.queries, [initialQuery]);
-      return {
+    beforeEach(async () => {
+      fetchMock.get(/.*\/_\/initpage\/.*/, {
+        dataframe: { paramset: {} },
+      });
+      fetchMock.get('/_/login/status', {
+        email: 'someone@example.org',
+        roles: ['editor'],
+      });
+      fetchMock.post('/_/frame/start', {
         status: 'Finished',
-        results: initialFrameResponse,
-        messages: [],
-      };
-    });
-    await explore.addFromQueryOrFormula(true, 'query', initialQuery, '');
-    await fetchMock.flush(true);
+        results: { dataframe: { traceset: {} } },
+      });
 
-    // Verify the initial data is present.
-    assert.containsAllKeys(explore['_dataframe'].traceset, [initialTraceKey]);
-    assert.lengthOf(Object.keys(explore['_dataframe'].traceset), 1);
-
-    // New data, expect incremental fetch.
-    fetchMock.postOnce('/_/frame/start', (_url, opts) => {
-      const body = JSON.parse(opts.body as string);
-      assert.deepEqual(body.queries, [newQuery]);
-      return {
-        status: 'Finished',
-        results: newFrameResponse,
-        messages: [],
-      };
+      explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      await fetchMock.flush(true);
     });
 
-    await explore.addFromQueryOrFormula(false, 'query', newQuery, '');
-    await fetchMock.flush(true);
-
-    const finalTraceset = explore['_dataframe'].traceset;
-    assert.containsAllKeys(finalTraceset, [initialTraceKey, newTraceKey]);
-    assert.lengthOf(Object.keys(finalTraceset), 2);
-  });
-});
-
-describe('State Management', () => {
-  let explore: ExploreSimpleSk;
-  let updateTestPickerUrlStub: sinon.SinonStub;
-
-  beforeEach(async () => {
-    // Mock all fetches that can be triggered by element creation.
-    fetchMock.get(/.*\/_\/initpage\/.*/, {
-      dataframe: { paramset: {} },
-    });
-    fetchMock.get('/_/login/status', {
-      email: 'someone@example.org',
-      roles: ['editor'],
-    });
-    fetchMock.post('/_/frame/start', {
-      status: 'Finished',
-      results: { dataframe: { traceset: {} } },
+    afterEach(() => {
+      fetchMock.reset();
     });
 
-    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-    await fetchMock.flush(true);
+    it('parses valid JSON and updates state', async () => {
+      const json = JSON.stringify({
+        graphs: [
+          {
+            queries: ['config=test'],
+            formulas: ['formula1'],
+            keys: 'key1',
+          },
+        ],
+      });
 
-    // Stub the method that gets called when a state change is detected.
-    updateTestPickerUrlStub = sinon.stub(explore, 'updateTestPickerUrl' as any);
-  });
+      await explore.addFromQueryOrFormula(true, 'json', '', '', json);
 
-  afterEach(() => {
-    fetchMock.reset();
-    sinon.restore();
+      assert.deepEqual(explore.state.queries, ['config=test']);
+      assert.deepEqual(explore.state.formulas, ['formula1']);
+      assert.equal(explore.state.keys, 'key1');
+    });
+
+    it('handles empty JSON gracefully', async () => {
+      await explore.addFromQueryOrFormula(true, 'json', '', '', '');
+      // Should not update state if JSON is empty (errorMessage is called, but state remains)
+    });
+
+    it('handles invalid JSON gracefully', async () => {
+      await explore.addFromQueryOrFormula(true, 'json', '', '', '{invalid');
+      // Should catch error and return.
+    });
+
+    it('reads JSON from URL param', async () => {
+      const json = JSON.stringify({
+        graphs: [
+          {
+            queries: ['config=url'],
+          },
+        ],
+      });
+      const url = new URL(window.location.href);
+      url.searchParams.set('json', json);
+      window.history.pushState({}, 'Test', url.toString());
+
+      const spy = sinon.spy(explore, 'addFromQueryOrFormula');
+      explore.useBrowserURL();
+
+      assert.isTrue(spy.calledWith(true, 'json'));
+    });
   });
 
-  it('detects query changes with special characters due to encoding', () => {
-    const state1 = new State();
-    state1.queries = ['config=a b'];
-    explore.state = state1;
+  describe('Incremental Trace Loading', () => {
+    let explore: ExploreSimpleSk;
 
-    // Reset the stub after the initial state setting.
-    updateTestPickerUrlStub.resetHistory();
+    // Define clean queries and comma-wrapped keys separately.
+    const initialQuery = 'arch=x86&config=original';
+    const initialTraceKey = `,${initialQuery},`; // Comma-wrapped for traceset
+    const newQuery = 'arch=arm&config=new';
+    const newTraceKey = `,${newQuery},`; // Comma-wrapped for traceset
 
-    const state2 = new State();
-    state2.queries = ['config=a+b'];
-    explore.state = state2;
-
-    // 'a b' and 'a+b' are different strings, so a change should be detected.
-    assert.isTrue(
-      updateTestPickerUrlStub.called,
-      "URL update should be called for different queries ('a b' vs 'a+b')"
+    // Generate a dataframe and ensure it has traceMetadata.
+    const initialDataFrame = generateFullDataFrame(
+      { begin: 1, end: 100 },
+      now,
+      1,
+      [timeSpan],
+      [[10, 20]],
+      [initialTraceKey]
     );
+    initialDataFrame.traceMetadata = []; // Ensure traceMetadata exists.
 
-    updateTestPickerUrlStub.resetHistory();
-
-    const state3 = new State();
-    state3.queries = ['config=a+b'];
-    explore.state = state3;
-
-    // The queries are identical, so no change should be detected.
-    assert.isFalse(
-      updateTestPickerUrlStub.called,
-      'URL update should not be called for identical queries'
-    );
-  });
-});
-
-describe('x-axis domain switching', () => {
-  const INITIAL_TIMESTAMP_BEGIN = 1672531200;
-  const INITIAL_TIMESTAMP_END = 1672542000;
-  const COMMIT_101 = 101;
-  const COMMIT_102 = 102;
-  const TIMESTAMP_101 = 1672534800;
-  const TIMESTAMP_102 = 1672538400;
-  const ROUNDING_TOLERANCE_SECONDS = 120;
-  // A simple header for converting between commit offsets and timestamps.
-  const testHeader: ColumnHeader[] = [
-    {
-      offset: CommitNumber(100),
-      timestamp: TimestampSeconds(1672531200),
-      hash: 'h1',
-      author: '',
-      message: '',
-      url: '',
-    },
-    {
-      offset: CommitNumber(101),
-      timestamp: TimestampSeconds(1672534800),
-      hash: 'h2',
-      author: '',
-      message: '',
-      url: '',
-    },
-    {
-      offset: CommitNumber(102),
-      timestamp: TimestampSeconds(1672538400),
-      hash: 'h3',
-      author: '',
-      message: '',
-      url: '',
-    },
-    {
-      offset: CommitNumber(103),
-      timestamp: TimestampSeconds(1672542000),
-      hash: 'h4',
-      author: '',
-      message: '',
-      url: '',
-    },
-  ];
-
-  const testDataFrame: DataFrame = {
-    traceset: TraceSet({
-      ',config=test,': Trace([1, 2, 3, 4]),
-    }),
-    header: testHeader,
-    paramset: {} as ReadOnlyParamSet,
-    skip: 0,
-    traceMetadata: [],
-  };
-
-  const testFrameResponse: FrameResponse = {
-    dataframe: testDataFrame,
-    anomalymap: null,
-    display_mode: 'display_plot',
-    skps: [],
-    msg: '',
-  };
-
-  let explore: ExploreSimpleSk;
-
-  beforeEach(async () => {
-    fetchMock.get(/.*\/_\/initpage\/.*/, {
-      dataframe: { paramset: {} },
-    });
-    fetchMock.get('/_/login/status', {
-      email: 'someone@example.org',
-      roles: ['editor'],
-    });
-    fetchMock.post('/_/count/', {
-      count: 117,
-      paramset: {},
-    });
-    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-    await window.customElements.whenDefined('explore-simple-sk');
-    await window.customElements.whenDefined('dataframe-repository-sk');
-    await window.customElements.whenDefined('plot-summary-sk');
-  });
-
-  // Helper function to set up the component for domain switching tests.
-  async function setupDomainSwitchTest(domain: 'date' | 'commit'): Promise<PlotSummarySk> {
-    explore.state = {
-      ...explore.state,
-      queries: ['config=test'],
-      domain: domain,
-      plotSummary: true,
-      begin: INITIAL_TIMESTAMP_BEGIN,
-      end: INITIAL_TIMESTAMP_END,
-      requestType: 0,
+    const initialFrameResponse: FrameResponse = {
+      dataframe: initialDataFrame,
+      anomalymap: {},
+      skps: [],
+      msg: '',
+      display_mode: 'display_plot',
     };
-    await waitForRender(explore);
 
-    // Provide data to the component.
-    await explore.UpdateWithFrameResponse(
-      testFrameResponse,
+    // Generate the second dataframe and ensure it has traceMetadata.
+    const newDataFrame = generateFullDataFrame(
+      { begin: 1, end: 100 },
+      now,
+      1,
+      [timeSpan],
+      [[30, 40]],
+      [newTraceKey]
+    );
+    newDataFrame.traceMetadata = []; // Ensure traceMetadata exists.
+
+    const newFrameResponse: FrameResponse = {
+      dataframe: newDataFrame,
+      anomalymap: {},
+      skps: [],
+      msg: '',
+      display_mode: 'display_plot',
+    };
+
+    beforeEach(() => {
+      fetchMock.reset();
+      explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+
+      fetchMock.get('/_/login/status', {
+        email: 'someone@example.org',
+        roles: ['editor'],
+      });
+      fetchMock.get('path:/_/defaults/', {
+        status: 200,
+        body: JSON.stringify({}),
+      });
+      fetchMock.post('/_/frame/start', {});
+      fetchMock.post('/_/user_issues/', { UserIssues: [] });
+      fetchMock.flush(true);
+    });
+
+    it('only fetches new data when adding a trace', async () => {
+      // Original data.
+      fetchMock.postOnce('/_/frame/start', (_url, opts) => {
+        const body = JSON.parse(opts.body as string);
+        assert.deepEqual(body.queries, [initialQuery]);
+        return {
+          status: 'Finished',
+          results: initialFrameResponse,
+          messages: [],
+        };
+      });
+      await explore.addFromQueryOrFormula(true, 'query', initialQuery, '');
+      await fetchMock.flush(true);
+
+      // Verify the initial data is present.
+      assert.containsAllKeys(explore['_dataframe'].traceset, [initialTraceKey]);
+      assert.lengthOf(Object.keys(explore['_dataframe'].traceset), 1);
+
+      // New data, expect incremental fetch.
+      fetchMock.postOnce('/_/frame/start', (_url, opts) => {
+        const body = JSON.parse(opts.body as string);
+        assert.deepEqual(body.queries, [newQuery]);
+        return {
+          status: 'Finished',
+          results: newFrameResponse,
+          messages: [],
+        };
+      });
+
+      await explore.addFromQueryOrFormula(false, 'query', newQuery, '');
+      await fetchMock.flush(true);
+
+      const finalTraceset = explore['_dataframe'].traceset;
+      assert.containsAllKeys(finalTraceset, [initialTraceKey, newTraceKey]);
+      assert.lengthOf(Object.keys(finalTraceset), 2);
+    });
+  });
+
+  describe('State Management', () => {
+    let explore: ExploreSimpleSk;
+    let updateTestPickerUrlStub: sinon.SinonStub;
+
+    beforeEach(async () => {
+      // Mock all fetches that can be triggered by element creation.
+      fetchMock.get(/.*\/_\/initpage\/.*/, {
+        dataframe: { paramset: {} },
+      });
+      fetchMock.get('/_/login/status', {
+        email: 'someone@example.org',
+        roles: ['editor'],
+      });
+      fetchMock.post('/_/frame/start', {
+        status: 'Finished',
+        results: { dataframe: { traceset: {} } },
+      });
+
+      explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      await fetchMock.flush(true);
+
+      // Stub the method that gets called when a state change is detected.
+      updateTestPickerUrlStub = sinon.stub(explore, 'updateTestPickerUrl' as any);
+    });
+
+    afterEach(() => {
+      fetchMock.reset();
+      sinon.restore();
+    });
+
+    it('detects query changes with special characters due to encoding', () => {
+      const state1 = new State();
+      state1.queries = ['config=a b'];
+      explore.state = state1;
+
+      // Reset the stub after the initial state setting.
+      updateTestPickerUrlStub.resetHistory();
+
+      const state2 = new State();
+      state2.queries = ['config=a+b'];
+      explore.state = state2;
+
+      // 'a b' and 'a+b' are different strings, so a change should be detected.
+      assert.isTrue(
+        updateTestPickerUrlStub.called,
+        "URL update should be called for different queries ('a b' vs 'a+b')"
+      );
+
+      updateTestPickerUrlStub.resetHistory();
+
+      const state3 = new State();
+      state3.queries = ['config=a+b'];
+      explore.state = state3;
+
+      // The queries are identical, so no change should be detected.
+      assert.isFalse(
+        updateTestPickerUrlStub.called,
+        'URL update should not be called for identical queries'
+      );
+    });
+  });
+
+  describe('x-axis domain switching', () => {
+    const INITIAL_TIMESTAMP_BEGIN = 1672531200;
+    const INITIAL_TIMESTAMP_END = 1672542000;
+    const COMMIT_101 = 101;
+    const COMMIT_102 = 102;
+    const TIMESTAMP_101 = 1672534800;
+    const TIMESTAMP_102 = 1672538400;
+    const ROUNDING_TOLERANCE_SECONDS = 120;
+    // A simple header for converting between commit offsets and timestamps.
+    const testHeader: ColumnHeader[] = [
       {
-        begin: explore.state.begin,
-        end: explore.state.end,
-        num_commits: 250,
-        request_type: 0,
-        formulas: [],
-        queries: ['config=test'],
-        keys: '',
-        tz: 'UTC',
-        pivot: null,
-        disable_filter_parent_traces: false,
+        offset: CommitNumber(100),
+        timestamp: TimestampSeconds(1672531200),
+        hash: 'h1',
+        author: '',
+        message: '',
+        url: '',
       },
-      false,
-      null,
-      false
-    );
-    await waitForRender(explore);
+      {
+        offset: CommitNumber(101),
+        timestamp: TimestampSeconds(1672534800),
+        hash: 'h2',
+        author: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(102),
+        timestamp: TimestampSeconds(1672538400),
+        hash: 'h3',
+        author: '',
+        message: '',
+        url: '',
+      },
+      {
+        offset: CommitNumber(103),
+        timestamp: TimestampSeconds(1672542000),
+        hash: 'h4',
+        author: '',
+        message: '',
+        url: '',
+      },
+    ];
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    const testDataFrame: DataFrame = {
+      traceset: TraceSet({
+        ',config=test,': Trace([1, 2, 3, 4]),
+      }),
+      header: testHeader,
+      paramset: {} as ReadOnlyParamSet,
+      skip: 0,
+      traceMetadata: [],
+    };
 
-    const plotSummary = explore.querySelector('plot-summary-sk') as PlotSummarySk;
-    assert.exists(plotSummary, 'The plot-summary-sk element should be in the DOM.');
-    return plotSummary;
-  }
+    const testFrameResponse: FrameResponse = {
+      dataframe: testDataFrame,
+      anomalymap: null,
+      display_mode: 'display_plot',
+      skps: [],
+      msg: '',
+    };
 
-  it('preserves selection when switching from date to commit', async () => {
-    const plotSummary = await setupDomainSwitchTest('date');
+    let explore: ExploreSimpleSk;
 
-    // Set an initial time-based selection on plot-summary-sk
-    const initialSelection = { begin: TIMESTAMP_101, end: TIMESTAMP_102 };
-    plotSummary.selectedValueRange = initialSelection;
-    await plotSummary.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    beforeEach(async () => {
+      fetchMock.get(/.*\/_\/initpage\/.*/, {
+        dataframe: { paramset: {} },
+      });
+      fetchMock.get('/_/login/status', {
+        email: 'someone@example.org',
+        roles: ['editor'],
+      });
+      fetchMock.post('/_/count/', {
+        count: 117,
+        paramset: {},
+      });
+      explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      await window.customElements.whenDefined('explore-simple-sk');
+      await window.customElements.whenDefined('dataframe-repository-sk');
+      await window.customElements.whenDefined('plot-summary-sk');
+    });
 
-    const settingsDialog = explore.querySelector('#settings-dialog') as MdDialog;
-    const switchEl = settingsDialog.querySelector('#commit-switch') as MdSwitch;
-    assert.exists(switchEl, '#commit-switch element not found.');
+    // Helper function to set up the component for domain switching tests.
+    async function setupDomainSwitchTest(domain: 'date' | 'commit'): Promise<PlotSummarySk> {
+      explore.state = {
+        ...explore.state,
+        queries: ['config=test'],
+        domain: domain,
+        plotSummary: true,
+        begin: INITIAL_TIMESTAMP_BEGIN,
+        end: INITIAL_TIMESTAMP_END,
+        requestType: 0,
+      };
+      await waitForRender(explore);
 
-    // Simulate switching to 'commit' domain (selected = false)
-    switchEl!.selected = false;
-    switchEl!.dispatchEvent(new Event('change'));
+      // Provide data to the component.
+      await explore.UpdateWithFrameResponse(
+        testFrameResponse,
+        {
+          begin: explore.state.begin,
+          end: explore.state.end,
+          num_commits: 250,
+          request_type: 0,
+          formulas: [],
+          queries: ['config=test'],
+          keys: '',
+          tz: 'UTC',
+          pivot: null,
+          disable_filter_parent_traces: false,
+        },
+        false,
+        null,
+        false
+      );
+      await waitForRender(explore);
 
-    // Wait for ExploreSimpleSk to handle the change and update its children
-    // Wait for ExploreSimpleSk to handle the change and update its children
-    await waitForRender(explore);
-    await plotSummary.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-    // rare, but can be flaky here. Since it wait for async event.
-    // Increase of timeout above can help.
-    assert.exists(
-      plotSummary.selectedValueRange,
-      'selectedValueRange should not be null after switch'
-    );
+      const plotSummary = explore.querySelector('plot-summary-sk') as PlotSummarySk;
+      assert.exists(plotSummary, 'The plot-summary-sk element should be in the DOM.');
+      return plotSummary;
+    }
 
-    // Although the actual 'begin' and 'end' values are integers, they can be converted to
-    // floating-point numbers for UI rendering to prevent the graph from "jumping" when the x-axis
-    // domain is switched. The approximation in this test is used solely to prevent failures caused
-    // by floating-point arithmetic inaccuracies, e.g., 101 !== 101.000000001.
-    assert.approximately(
-      plotSummary.selectedValueRange.begin as number,
-      COMMIT_101,
-      1e-3,
-      'Selected range.begin did not convert correctly'
-    );
+    it('preserves selection when switching from date to commit', async () => {
+      const plotSummary = await setupDomainSwitchTest('date');
 
-    assert.approximately(
-      plotSummary.selectedValueRange.end as number,
-      COMMIT_102,
-      1e-3,
-      'Selected range.end did not convert correctly'
-    );
+      // Set an initial time-based selection on plot-summary-sk
+      const initialSelection = { begin: TIMESTAMP_101, end: TIMESTAMP_102 };
+      plotSummary.selectedValueRange = initialSelection;
+      await plotSummary.updateComplete;
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-    assert.equal(explore.state.domain, 'commit', 'Explore state domain should be commit');
-    assert.equal(plotSummary.domain, 'commit', 'PlotSummary domain property should be commit');
+      const settingsDialog = explore.querySelector('#settings-dialog') as MdDialog;
+      const switchEl = settingsDialog.querySelector('#commit-switch') as MdSwitch;
+      assert.exists(switchEl, '#commit-switch element not found.');
+
+      // Simulate switching to 'commit' domain (selected = false)
+      switchEl!.selected = false;
+      switchEl!.dispatchEvent(new Event('change'));
+
+      // Wait for ExploreSimpleSk to handle the change and update its children
+      // Wait for ExploreSimpleSk to handle the change and update its children
+      await waitForRender(explore);
+      await plotSummary.updateComplete;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // rare, but can be flaky here. Since it wait for async event.
+      // Increase of timeout above can help.
+      assert.exists(
+        plotSummary.selectedValueRange,
+        'selectedValueRange should not be null after switch'
+      );
+
+      // Although the actual 'begin' and 'end' values are integers, they can be converted to
+      // floating-point numbers for UI rendering to prevent the graph from "jumping" when the x-axis
+      // domain is switched. The approximation in this test is used solely to prevent failures caused
+      // by floating-point arithmetic inaccuracies, e.g., 101 !== 101.000000001.
+      assert.approximately(
+        plotSummary.selectedValueRange.begin as number,
+        COMMIT_101,
+        1e-3,
+        'Selected range.begin did not convert correctly'
+      );
+
+      assert.approximately(
+        plotSummary.selectedValueRange.end as number,
+        COMMIT_102,
+        1e-3,
+        'Selected range.end did not convert correctly'
+      );
+
+      assert.equal(explore.state.domain, 'commit', 'Explore state domain should be commit');
+      assert.equal(plotSummary.domain, 'commit', 'PlotSummary domain property should be commit');
+    });
+
+    it('preserves selection when switching from commit to date', async () => {
+      const roundingToleranceSeconds = ROUNDING_TOLERANCE_SECONDS;
+      const plotSummary = await setupDomainSwitchTest('commit');
+
+      // Set an initial commit-based selection on plot-summary-sk
+      const initialSelection = { begin: COMMIT_101, end: COMMIT_102 };
+      plotSummary.selectedValueRange = initialSelection;
+      await plotSummary.updateComplete;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const settingsDialog = explore.querySelector('#settings-dialog') as MdDialog;
+      const switchEl = settingsDialog.querySelector('#commit-switch') as MdSwitch;
+      assert.exists(switchEl, '#commit-switch element not found.');
+
+      // Simulate switching to 'date' domain (selected = true)
+      switchEl!.selected = true;
+      switchEl!.dispatchEvent(new Event('change'));
+
+      // Wait for ExploreSimpleSk to handle the change and update its children
+      await waitForRender(explore);
+      await plotSummary.updateComplete;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      assert.exists(
+        plotSummary.selectedValueRange,
+        'selectedValueRange should not be null after switch'
+      );
+
+      assert.approximately(
+        plotSummary.selectedValueRange.begin as number,
+        TIMESTAMP_101,
+        roundingToleranceSeconds,
+        'Selected range.begin did not convert correctly'
+      );
+
+      assert.approximately(
+        plotSummary.selectedValueRange.end as number,
+        TIMESTAMP_102,
+        roundingToleranceSeconds,
+        'Selected range.end did not convert correctly'
+      );
+
+      assert.equal(explore.state.domain, 'date', 'Explore state domain should be date');
+      assert.equal(plotSummary.domain, 'date', 'PlotSummary domain property should be date');
+    });
   });
 
-  it('preserves selection when switching from commit to date', async () => {
-    const roundingToleranceSeconds = ROUNDING_TOLERANCE_SECONDS;
-    const plotSummary = await setupDomainSwitchTest('commit');
+  describe('reset', () => {
+    let explore: ExploreSimpleSk;
 
-    // Set an initial commit-based selection on plot-summary-sk
-    const initialSelection = { begin: COMMIT_101, end: COMMIT_102 };
-    plotSummary.selectedValueRange = initialSelection;
-    await plotSummary.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    beforeEach(async () => {
+      explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      await fetchMock.flush(true);
+      explore.state.queries = ['a=b'];
+      explore.state.formulas = ['norm()'];
+      explore.state.keys = 'somekeys';
+    });
 
-    const settingsDialog = explore.querySelector('#settings-dialog') as MdDialog;
-    const switchEl = settingsDialog.querySelector('#commit-switch') as MdSwitch;
-    assert.exists(switchEl, '#commit-switch element not found.');
+    afterEach(() => {
+      sinon.restore();
+    });
 
-    // Simulate switching to 'date' domain (selected = true)
-    switchEl!.selected = true;
-    switchEl!.dispatchEvent(new Event('change'));
+    it('should call removeAll and queryDialog.show when use_test_picker_query is false', async () => {
+      explore.openQueryByDefault = true;
+      explore.reset();
+      await waitForRender(explore);
+      assert.isTrue(explore['_dialogOn']);
+      assert.isEmpty(explore.state.queries);
+      assert.isEmpty(explore.state.formulas);
+      assert.isEmpty(explore.state.keys);
+    });
 
-    // Wait for ExploreSimpleSk to handle the change and update its children
-    await waitForRender(explore);
-    await plotSummary.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    assert.exists(
-      plotSummary.selectedValueRange,
-      'selectedValueRange should not be null after switch'
-    );
-
-    assert.approximately(
-      plotSummary.selectedValueRange.begin as number,
-      TIMESTAMP_101,
-      roundingToleranceSeconds,
-      'Selected range.begin did not convert correctly'
-    );
-
-    assert.approximately(
-      plotSummary.selectedValueRange.end as number,
-      TIMESTAMP_102,
-      roundingToleranceSeconds,
-      'Selected range.end did not convert correctly'
-    );
-
-    assert.equal(explore.state.domain, 'date', 'Explore state domain should be date');
-    assert.equal(plotSummary.domain, 'date', 'PlotSummary domain property should be date');
-  });
-});
-
-describe('reset', () => {
-  let explore: ExploreSimpleSk;
-
-  beforeEach(async () => {
-    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-    await fetchMock.flush(true);
-    explore.state.queries = ['a=b'];
-    explore.state.formulas = ['norm()'];
-    explore.state.keys = 'somekeys';
+    it('should only call removeAll when use_test_picker_query is true', async () => {
+      explore.openQueryByDefault = false;
+      explore.reset();
+      await waitForRender(explore);
+      assert.isFalse(explore['_dialogOn']);
+      assert.isEmpty(explore.state.queries);
+      assert.isEmpty(explore.state.formulas);
+      assert.isEmpty(explore.state.keys);
+    });
   });
 
-  afterEach(() => {
-    sinon.restore();
-  });
+  describe('JSON Input', () => {
+    let explore: ExploreSimpleSk;
 
-  it('should call removeAll and queryDialog.show when use_test_picker_query is false', async () => {
-    explore.openQueryByDefault = true;
-    explore.reset();
-    await waitForRender(explore);
-    assert.isTrue(explore['_dialogOn']);
-    assert.isEmpty(explore.state.queries);
-    assert.isEmpty(explore.state.formulas);
-    assert.isEmpty(explore.state.keys);
-  });
+    beforeEach(async () => {
+      fetchMock.get(/.*\/_\/initpage\/.*/, {
+        dataframe: { paramset: {} },
+      });
+      fetchMock.get('/_/login/status', {
+        email: 'someone@example.org',
+        roles: ['editor'],
+      });
+      fetchMock.post('/_/frame/start', {
+        status: 'Finished',
+        results: {
+          dataframe: {
+            traceset: {},
+            header: [
+              { offset: 100, timestamp: 1000 },
+              { offset: 101, timestamp: 1001 },
+            ],
+            paramset: {},
+          },
+          skps: [],
+          msg: '',
+        },
+        messages: [],
+      });
+      fetchMock.post('/_/shortcut/update', { id: '123' });
 
-  it('should only call removeAll when use_test_picker_query is true', async () => {
-    explore.openQueryByDefault = false;
-    explore.reset();
-    await waitForRender(explore);
-    assert.isFalse(explore['_dialogOn']);
-    assert.isEmpty(explore.state.queries);
-    assert.isEmpty(explore.state.formulas);
-    assert.isEmpty(explore.state.keys);
+      explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      await fetchMock.flush(true);
+    });
+
+    afterEach(() => {
+      fetchMock.reset();
+    });
+
+    it('parses valid JSON and updates state', async () => {
+      const json = JSON.stringify({
+        graphs: [
+          {
+            queries: ['config=test'],
+            formulas: ['formula1'],
+            keys: 'key1',
+          },
+        ],
+      });
+
+      await explore.addFromQueryOrFormula(true, 'json', '', '', json);
+
+      assert.deepEqual(explore.state.queries, ['config=test']);
+      assert.deepEqual(explore.state.formulas, ['formula1']);
+      assert.equal(explore.state.keys, 'key1');
+    });
+
+    it('handles empty JSON gracefully', async () => {
+      await explore.addFromQueryOrFormula(true, 'json', '', '', '');
+    });
+
+    it('handles invalid JSON gracefully', async () => {
+      await explore.addFromQueryOrFormula(true, 'json', '', '', '{invalid');
+    });
+
+    describe('JSON Input', () => {
+      let pushStateStub: sinon.SinonStub;
+
+      beforeEach(() => {
+        const desc = Object.getOwnPropertyDescriptor(window.history, 'pushState');
+        console.log('DEBUG: pushState descriptor', desc);
+        pushStateStub = sinon.stub(window.history, 'pushState');
+      });
+
+      afterEach(() => {
+        pushStateStub.restore();
+      });
+
+      it('reads JSON from URL param', async () => {
+        const json = JSON.stringify({
+          graphs: [
+            {
+              queries: ['config=url'],
+              formulas: [],
+              keys: '',
+            },
+          ],
+        });
+        const url = new URL(window.location.href);
+        url.searchParams.set('json', json);
+
+        const stub = sinon.stub(explore, 'addFromQueryOrFormula').callsFake(() => {
+          return Promise.resolve();
+        });
+        explore.useBrowserURL(true, url);
+
+        assert.isTrue(stub.calledWith(true, 'json'));
+      });
+    });
   });
 });
 

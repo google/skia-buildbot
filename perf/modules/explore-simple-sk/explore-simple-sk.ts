@@ -147,7 +147,7 @@ const DOMAIN_DATE = 'date';
 const DOMAIN_COMMIT = 'commit';
 
 /** The type of trace we are adding to a plot. */
-type addPlotType = 'query' | 'formula' | 'pivot';
+type addPlotType = 'query' | 'formula' | 'pivot' | 'json';
 
 // The trace id of the zero line, a trace of all zeros.
 const ZERO_NAME = 'special_zero';
@@ -520,6 +520,8 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
   private formula: HTMLTextAreaElement | null = null;
 
+  private json: HTMLTextAreaElement | null = null;
+
   private logEntry: HTMLPreElement | null = null;
 
   private paramset: ParamSetSk | null = null;
@@ -817,6 +819,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         <button>Plot</button>
         <button>Calculations</button>
         <button>Pivot</button>
+        <button>JSON</button>
       </tabs-sk>
       <tabs-panel-sk>
         <div>
@@ -852,6 +855,21 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
               class=action
               .disabled=${validatePivotRequest(ele._state.pivotRequest) !== ''}
             >Display</button>
+          </div>
+        </div>
+        <div>
+          <div class=formulas>
+            <label>
+              Enter a JSON:
+              <textarea id=json-${ele.uniqueId} rows=10 cols=80></textarea>
+            </label>
+            <div>
+              <button @click=${() => ele.add(true, 'json')} class=action>Plot</button>
+              <button @click=${() => ele.add(false, 'json')}>Add to Plot</button>
+              <a href=/help/ target=_blank>
+                <help-icon-sk></help-icon-sk>
+              </a>
+            </div>
           </div>
         </div>
       </tabs-panel-sk>
@@ -1204,6 +1222,22 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
     this.detailTab = this.querySelector('#detailTab');
     this.formula = this.querySelector(`#formula-${this.uniqueId}`);
+    this.json = this.querySelector(`#json-${this.uniqueId}`);
+    if (this.json && this.json.value === '') {
+      this.json.value = JSON.stringify(
+        {
+          graphs: [
+            {
+              queries: [],
+              formulas: [],
+              keys: '',
+            },
+          ],
+        },
+        null,
+        2
+      );
+    }
     this.logEntry = this.querySelector('#logEntry');
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
@@ -1915,9 +1949,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
   private clearBrowserURL(): void {
     const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.delete('graph');
-    currentUrl.searchParams.delete('commit');
-    currentUrl.searchParams.delete('trace');
+    currentUrl.search = '';
     window.history.pushState(null, '', currentUrl.toString());
   }
 
@@ -1934,15 +1966,26 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
    *    'trace' (column) on the chart.
    * 3. Split by Key (splitByKey): If the 'splitByKey' param is present, it will
    *    trigger the action to split the chart by that parameter key.
+   * 4. JSON (json): If the 'json' param is present, it will parse it and load the graph.
    *
    * @param selection - If true, it will select the commit and trace specified in the URL.
    *                    This is needed when popping the selection too early.
+   * @param url - Optional URL to use instead of window.location.href. Useful for testing.
    */
-  useBrowserURL(selection: boolean = true): void {
+  useBrowserURL(selection: boolean = true, url: URL = new URL(window.location.href)): void {
     if (this.isReportPage) {
       return;
     }
-    const currentUrl = new URL(window.location.href);
+    const currentUrl = url;
+    const json = currentUrl.searchParams.get('json');
+    if (json) {
+      if (this.json) {
+        this.json.value = json;
+      }
+      this.add(true, 'json');
+      return;
+    }
+
     const commit: number = parseInt(
       currentUrl.searchParams.get('commit') ?? String(this._state.selected.commit)
     );
@@ -3005,13 +3048,45 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   add(replace: boolean, plotType: addPlotType): void {
     const q = this.query!.current_query;
     const f = this.formula!.value;
-    this.addFromQueryOrFormula(replace, plotType, q, f);
+    let j = this.json!.value;
+    if (plotType === 'json' && j === '') {
+      // If JSON is empty, check URL.
+      const currentUrl = new URL(window.location.href);
+      const jsonParam = currentUrl.searchParams.get('json');
+      if (jsonParam) {
+        j = jsonParam;
+        // Populate the text area so the user sees it.
+        this.json!.value = j;
+      }
+    }
+    this.addFromQueryOrFormula(replace, plotType, q, f, j);
   }
 
   /** Create a FrameRequest for just a single query or formula. */
-  private requestFrameBodyForTrace(plotType: addPlotType, q: string, f: string): FrameRequest {
-    const formulas = plotType === 'formula' ? [f] : [];
-    const queries = plotType === 'query' ? [q] : [];
+  private requestFrameBodyForTrace(
+    plotType: addPlotType,
+    q: string,
+    f: string,
+    j: string
+  ): FrameRequest {
+    let formulas: string[] = [];
+    let queries: string[] = [];
+    let keys = '';
+
+    if (plotType === 'formula') {
+      formulas = [f];
+    } else if (plotType === 'query') {
+      queries = [q];
+    } else if (plotType === 'json') {
+      const graphConfig = JSON.parse(j);
+      // TODO(b/381139433): Support multiple graphs.
+      if (graphConfig.graphs && graphConfig.graphs.length > 0) {
+        queries = graphConfig.graphs[0].queries || [];
+        formulas = graphConfig.graphs[0].formulas || [];
+        keys = graphConfig.graphs[0].keys || '';
+      }
+    }
+
     return {
       begin: this._state.begin,
       end: this._state.end,
@@ -3019,7 +3094,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       request_type: this._state.requestType,
       formulas: formulas,
       queries: queries,
-      keys: '',
+      keys: keys,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       pivot: null,
       disable_filter_parent_traces: this._state.disable_filter_parent_traces,
@@ -3039,6 +3114,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     plotType: addPlotType,
     q: string,
     f: string,
+    j: string = '',
     loadExtendedRange: boolean = true
   ): Promise<void> {
     if (this.queryDialog !== null) {
@@ -3068,6 +3144,17 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         errorMessage(pivotMsg);
         return;
       }
+    } else if (plotType === 'json') {
+      if (j.trim() === '') {
+        errorMessage('The JSON must not be empty.');
+        return;
+      }
+      try {
+        JSON.parse(j);
+      } catch (e) {
+        errorMessage(`Invalid JSON: ${e}`);
+        return;
+      }
     } else {
       errorMessage('Unknown plotType');
       return;
@@ -3087,6 +3174,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     const createFromScratch =
       replace ||
       plotType === 'pivot' ||
+      plotType === 'json' ||
       (this._state.formulas.length === 0 && this._state.queries.length === 0);
 
     if (createFromScratch) {
@@ -3110,6 +3198,14 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         this._state.queries.push(q);
       }
       this._state.pivotRequest = this.pivotControl!.pivotRequest!;
+    } else if (plotType === 'json') {
+      const graphConfig = JSON.parse(j);
+      // TODO(b/381139433): Support multiple graphs.
+      if (graphConfig.graphs && graphConfig.graphs.length > 0) {
+        this._state.queries = graphConfig.graphs[0].queries || [];
+        this._state.formulas = graphConfig.graphs[0].formulas || [];
+        this._state.keys = graphConfig.graphs[0].keys || '';
+      }
     }
 
     this.applyQueryDefaultsIfMissing();
@@ -3130,7 +3226,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
           );
         });
       } else {
-        const requestNewData = this.requestFrameBodyForTrace(plotType, q, f);
+        const requestNewData = this.requestFrameBodyForTrace(plotType, q, f, j);
         const requestAllData = this.requestFrameBodyFullFromState();
         return this.requestFrame(requestNewData).then(async (json) => {
           // Merge new data with the existing state.
@@ -3587,7 +3683,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       this.spinner!,
       (prog: progress.SerializedProgress) => {
         if (this.percent !== null) {
-          this.percent!.textContent = messagesToPreString(prog.messages);
+          this.percent!.textContent = messagesToPreString(prog.messages || []);
         }
       }
     );

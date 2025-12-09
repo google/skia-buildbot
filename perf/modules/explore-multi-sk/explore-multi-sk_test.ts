@@ -836,15 +836,15 @@ describe('ExploreMultiSk', () => {
 
       // Verify that `loadExtendedRange` was correctly set to false for all chunk-loading calls.
       assert.isFalse(
-        addFromQuerySpy.firstCall.args[4],
+        addFromQuerySpy.firstCall.args[5],
         'loadExtendedRange should be false for the first chunk'
       );
       assert.isFalse(
-        addFromQuerySpy.secondCall.args[4],
+        addFromQuerySpy.secondCall.args[5],
         'loadExtendedRange should be false for the second chunk'
       );
       assert.isFalse(
-        addFromQuerySpy.thirdCall.args[4],
+        addFromQuerySpy.thirdCall.args[5],
         'loadExtendedRange should be false for the third chunk'
       );
 
