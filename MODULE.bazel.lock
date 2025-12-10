@@ -529,6 +529,23 @@
         ]
       }
     },
+    "//bazel/external:google_chrome.bzl%google_chrome": {
+      "general": {
+        "bzlTransitiveDigest": "Kz6fBuXNPFW7vH7PHm6B4pOagVR/c+l/U0GP9HVPtFU=",
+        "usagesDigest": "2WnOQ+ua0wVn1JhYwBT/5KBZEvSM2qtReJtdWTYfsWI=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "google_chrome": {
+            "bzlFile": "@@//bazel/external:google_chrome.bzl",
+            "ruleClassName": "_google_chrome",
+            "attributes": {}
+          }
+        },
+        "recordedRepoMappingEntries": []
+      }
+    },
     "//bazel/external:google_cloud_sdk.bzl%google_cloud_sdk": {
       "general": {
         "bzlTransitiveDigest": "gs49vO1ZJ4cpUNwWnL65KWdtKd9E0NcJqih5wyOlU08=",

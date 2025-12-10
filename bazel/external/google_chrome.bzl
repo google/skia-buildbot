@@ -53,7 +53,7 @@ _DEB_PACKAGES_LINUX_AMD64 = [
     },
 ]
 
-def _google_chrome_impl(repository_ctx):
+def _google_chrome_repo_impl(repository_ctx):
     is_linux = repository_ctx.os.name.lower().startswith("linux")
 
     if not is_linux:
@@ -395,7 +395,24 @@ filegroup(
 )
 """)
 
-google_chrome = repository_rule(
-    implementation = _google_chrome_impl,
+_google_chrome = repository_rule(
+    implementation = _google_chrome_repo_impl,
     doc = "Hermetically installs Google Chrome, and all required libraries and fonts.",
+)
+
+_download = tag_class(attrs = {
+    "name": attr.string(mandatory = True),
+})
+
+def _google_chrome_impl(ctx):
+    for module in ctx.modules:
+        for tag in module.tags.download:
+            _google_chrome(name = tag.name)
+
+google_chrome = module_extension(
+    doc = "Bzlmod extension used to hermetically download Google Chrome, and all required libraries and fonts.",
+    implementation = _google_chrome_impl,
+    tag_classes = {
+        "download": _download,
+    },
 )

@@ -32,12 +32,3 @@ load("@bazel_toolchains//rules/exec_properties:exec_properties.bzl", "rbe_exec_p
 rbe_exec_properties(
     name = "exec_properties",
 )
-
-# #################################################################################
-# # Google Chrome and Fonts (needed for Karma and Puppeteer tests, respectively). #
-# #################################################################################
-
-# TODO(borenet): we should be able to use this from rules_browsers.
-load("//bazel/external:google_chrome.bzl", "google_chrome")
-
-google_chrome(name = "google_chrome")

@@ -33,7 +33,7 @@ const isBazelTest = !process.env.BUILD_WORKSPACE_DIRECTORY; // Set when running 
 const bazelRunfilesDir = `${process.env.RUNFILES_DIR}/${process.env.TEST_WORKSPACE}`;
 
 // Forces Karma to use the Bazel-downloaded Google Chrome browser.
-process.env.CHROME_BIN = `${bazelRunfilesDir}/external/google_chrome/opt/google/chrome/chrome`;
+process.env.CHROME_BIN = `${bazelRunfilesDir}/external/_main~google_chrome~google_chrome/opt/google/chrome/chrome`;
 
 module.exports = function (config) {
   config.set({

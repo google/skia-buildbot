@@ -650,3 +650,12 @@ http_file(
 google_cloud_sdk = use_extension("//bazel/external:google_cloud_sdk.bzl", "google_cloud_sdk")
 google_cloud_sdk.download(name = "google_cloud_sdk")
 use_repo(google_cloud_sdk, "google_cloud_sdk")
+
+####################################################################################################
+# Google Chrome and Fonts (needed for Karma and Puppeteer tests, respectively).
+####################################################################################################
+
+# TODO(borenet): we should be able to use this from rules_browsers.
+google_chrome = use_extension("//bazel/external:google_chrome.bzl", "google_chrome")
+google_chrome.download(name = "google_chrome")
+use_repo(google_chrome, "google_chrome")
