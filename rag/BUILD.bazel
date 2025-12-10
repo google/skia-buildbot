@@ -24,7 +24,7 @@ skia_app_container(
         ],
     },
     entrypoint = "/usr/local/bin/server",
-    repository = "skia-public/historyrag_apiserver",
+    repository = "skia-public/historyrag-apiserver",
 )
 
 skia_app_container(
@@ -45,5 +45,5 @@ skia_app_container(
         ],
     },
     entrypoint = "/usr/local/bin/server",
-    repository = "skia-public/historyrag_ingester",
+    repository = "skia-public/historyrag-ingester",
 )
