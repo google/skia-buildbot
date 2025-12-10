@@ -563,6 +563,31 @@
         "recordedRepoMappingEntries": []
       }
     },
+    "//bazel/external:rbe_exec_properties.bzl%rbe_exec_properties": {
+      "general": {
+        "bzlTransitiveDigest": "cjFTTDaIMlF9RvzWrz7GalnOcnOpzHimWEWWr4O8DPg=",
+        "usagesDigest": "MJ0vI5eTiulZuV3riaoG+cpQ/jXxgIiWGV0kLvjsCcA=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "exec_properties": {
+            "bzlFile": "@@_main~_repo_rules~bazel_toolchains//rules/exec_properties:exec_properties.bzl",
+            "ruleClassName": "_exec_property_sets_repository",
+            "attributes": {
+              "constants_bzl_content": "NETWORK_ON = {\"dockerNetwork\": \"standard\"}\nNETWORK_OFF = {\"dockerNetwork\": \"off\"}\nDOCKER_PRIVILEGED = {\"dockerPrivileged\": \"True\"}\nNOT_DOCKER_PRIVILEGED = {\"dockerPrivileged\": \"False\"}\nDOCKER_RUN_AS_ROOT = {\"dockerRunAsRoot\": \"True\"}\nNOT_DOCKER_RUN_AS_ROOT = {\"dockerRunAsRoot\": \"False\"}\nDOCKER_SIBLINGS_CONTAINERS = {\"dockerSiblingContainers\": \"True\"}\nNOT_DOCKER_SIBLINGS_CONTAINERS = {\"dockerSiblingContainers\": \"False\"}\nDOCKER_USE_URANDOM = {\"dockerUseURandom\": \"True\"}\nNOT_DOCKER_USE_URANDOM = {\"dockerUseURandom\": \"False\"}\nLINUX = {\"OSFamily\": \"Linux\"}\nWINDOWS = {\"OSFamily\": \"Windows\"}\n"
+            }
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "",
+            "bazel_toolchains",
+            "_main~_repo_rules~bazel_toolchains"
+          ]
+        ]
+      }
+    },
     "@@aspect_rules_esbuild~//esbuild:extensions.bzl%esbuild": {
       "general": {
         "bzlTransitiveDigest": "+aIYaFYUljeMoi6CCcA8uQQ5jkf4AYNyxgg6wU3l9mQ=",

@@ -635,6 +635,21 @@ filegroup(
 # bazel-toolchains rbe_configs_gen (prebuilt).
 ####################################################################################################
 
+# Read the instructions in //bazel/rbe/generated/README.md before updating this repository.
+http_archive(
+    name = "bazel_toolchains",
+    sha256 = "179ec02f809e86abf56356d8898c8bd74069f1bd7c56044050c2cd3d79d0e024",
+    strip_prefix = "bazel-toolchains-4.1.0",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/releases/download/4.1.0/bazel-toolchains-4.1.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-toolchains/releases/download/4.1.0/bazel-toolchains-4.1.0.tar.gz",
+    ],
+)
+
+rbe_exec_properties = use_extension("//bazel/external:rbe_exec_properties.bzl", "rbe_exec_properties")
+rbe_exec_properties.setup(name = "exec_properties")
+use_repo(rbe_exec_properties, "exec_properties")
+
 http_file(
     name = "rbe_configs_gen_linux_amd64",
     downloaded_file_path = "rbe_configs_gen",
