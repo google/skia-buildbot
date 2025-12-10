@@ -144,13 +144,7 @@ describe('anomalies-table-sk', () => {
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
 
-      for (const group of element.anomalyGroups) {
-        const summaryRowCheckboxId = element.getGroupId(group);
-        const groupCheckbox = element.querySelector<HTMLInputElement>(
-          `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
-        );
-        groupCheckbox!.checked = true;
-      }
+      element.checkSelectedAnomalies(anomalies);
 
       await element.openAnomalyGroupReportPage();
 
@@ -175,13 +169,7 @@ describe('anomalies-table-sk', () => {
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
 
-      for (const group of element.anomalyGroups) {
-        const summaryRowCheckboxId = element.getGroupId(group);
-        const groupCheckbox = element.querySelector<HTMLInputElement>(
-          `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
-        );
-        groupCheckbox!.checked = true;
-      }
+      element.checkSelectedAnomalies(anomalies);
 
       await element.openAnomalyGroupReportPage();
 
@@ -199,10 +187,7 @@ describe('anomalies-table-sk', () => {
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
 
-      const anomalyCheckbox = element.querySelector<HTMLInputElement>(
-        `input[id^="anomaly-row-"][id$="-1"]`
-      );
-      anomalyCheckbox!.checked = true;
+      element.checkSelectedAnomalies(anomalies);
 
       await element.openAnomalyGroupReportPage();
 
@@ -221,12 +206,7 @@ describe('anomalies-table-sk', () => {
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
 
-      const group = element.anomalyGroups[0];
-      const summaryRowCheckboxId = element.getGroupId(group);
-      const groupCheckbox = element.querySelector<HTMLInputElement>(
-        `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
-      );
-      groupCheckbox!.checked = true;
+      element.checkSelectedAnomalies(anomalies);
 
       await element.openAnomalyGroupReportPage();
 
@@ -247,12 +227,7 @@ describe('anomalies-table-sk', () => {
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
 
-      const group = element.anomalyGroups[0];
-      const summaryRowCheckboxId = element.getGroupId(group);
-      const groupCheckbox = element.querySelector<HTMLInputElement>(
-        `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
-      );
-      groupCheckbox!.checked = true;
+      element.checkSelectedAnomalies(anomalies);
 
       await element.openAnomalyGroupReportPage();
 
@@ -273,18 +248,7 @@ describe('anomalies-table-sk', () => {
       await element.populateTable(anomalies);
 
       // Check multi-anomaly group.
-      const multiAnomalyGroup = element.anomalyGroups.find((g) => g.anomalies.length > 1)!;
-      const summaryRowCheckboxId = element.getGroupId(multiAnomalyGroup);
-      const groupCheckbox = element.querySelector<HTMLInputElement>(
-        `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
-      )!;
-      groupCheckbox.checked = true;
-
-      // Check single-anomaly group.
-      const singleAnomalyCheckbox = element.querySelector<HTMLInputElement>(
-        `input[id^="anomaly-row-"][id$="-3"]`
-      )!;
-      singleAnomalyCheckbox.checked = true;
+      element.checkSelectedAnomalies(anomalies);
 
       await element.openAnomalyGroupReportPage();
 
@@ -308,18 +272,7 @@ describe('anomalies-table-sk', () => {
       await element.populateTable(anomalies);
 
       // Check multi-anomaly group.
-      const multiAnomalyGroup = element.anomalyGroups.find((g) => g.anomalies.length > 1)!;
-      const summaryRowCheckboxId = element.getGroupId(multiAnomalyGroup);
-      const groupCheckbox = element.querySelector<HTMLInputElement>(
-        `input[id^="anomaly-row-"][id$="-${summaryRowCheckboxId}"]`
-      )!;
-      groupCheckbox.checked = true;
-
-      // Check single-anomaly group.
-      const singleAnomalyCheckbox = element.querySelector<HTMLInputElement>(
-        `input[id^="anomaly-row-"][id$="-3"]`
-      )!;
-      singleAnomalyCheckbox.checked = true;
+      element.checkSelectedAnomalies(anomalies);
 
       await element.openAnomalyGroupReportPage();
 
@@ -973,6 +926,91 @@ describe('anomalies-table-sk', () => {
 
       // The value should be the largest regression by magnitude, which is +20%.
       assert.equal(summaryCell!.textContent?.trim(), '+20%');
+    });
+  });
+
+  describe('keyboard shortcuts', () => {
+    it('triggers triage actions on key press', async () => {
+      const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+      await element.populateTable(anomalies);
+
+      // Select an anomaly
+      const checkbox = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
+      checkbox.click();
+
+      // Mock triage menu methods
+      const triageMenu = element.querySelector('triage-menu-sk') as any;
+      triageMenu.fileBug = sinon.spy();
+      triageMenu.ignoreAnomaly = sinon.spy();
+      triageMenu.openExistingBugDialog = sinon.spy();
+      triageMenu.setAnomalies = sinon.spy();
+
+      // Trigger 'p'
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'p' }));
+      assert.isTrue(triageMenu.fileBug.calledOnce);
+      assert.isTrue(element.showPopup);
+
+      // Reset popup
+      element.showPopup = false;
+
+      // Trigger 'n'
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'n' }));
+      assert.isTrue(triageMenu.ignoreAnomaly.calledOnce);
+      assert.isTrue(element.showPopup);
+
+      // Reset popup
+      element.showPopup = false;
+
+      // Trigger 'e'
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
+      assert.isTrue(triageMenu.openExistingBugDialog.calledOnce);
+      assert.isTrue(element.showPopup);
+    });
+
+    it('triggers graph actions on key press', async () => {
+      const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+      await element.populateTable(anomalies);
+
+      // Select an anomaly
+      const checkbox = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
+      checkbox.click();
+
+      const openReportSpy = sinon.spy(element, 'openReport');
+      const openGroupReportSpy = sinon.spy(element, 'openAnomalyGroupReportPage');
+
+      // Trigger 'g'
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'g' }));
+      assert.isTrue(openReportSpy.calledOnce);
+
+      // Trigger 'G'
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'G' }));
+      assert.isTrue(openGroupReportSpy.calledOnce);
+    });
+
+    it('triggers graph actions on key press with partially selected group', async () => {
+      const anomaly1 = dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test');
+      const anomaly2 = dummyAnomaly('2', 12345, 100, 200, 'master/bot/suite/test');
+      const anomalies = [anomaly1, anomaly2];
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+      await element.populateTable(anomalies);
+
+      // Select only one anomaly in the group
+      const checkbox = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
+      checkbox.click();
+
+      const openGroupReportSpy = sinon.spy(element, 'openAnomalyGroupReportPage');
+      const openReportForAnomalyIdsSpy = sinon.spy(element, 'openReportForAnomalyIds');
+
+      // Trigger 'G'
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'G' }));
+      assert.isTrue(openGroupReportSpy.calledOnce);
+
+      // Verify it tries to open report for BOTH anomalies in the group
+      assert.isTrue(openReportForAnomalyIdsSpy.calledOnce);
+      const args = openReportForAnomalyIdsSpy.firstCall.args[0];
+      assert.equal(args.length, 2);
     });
   });
 });

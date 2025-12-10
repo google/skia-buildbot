@@ -22,6 +22,10 @@ import { updateShortcut } from '../explore-simple-sk/explore-simple-sk';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 import '../../../elements-sk/modules/spinner-sk';
 import { CountMetric, telemetry } from '../telemetry/telemetry';
+import '../../../elements-sk/modules/icons/help-icon-sk';
+import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
+import '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
+import { KeyboardShortcutsHelpSk } from '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
 
 // Just below the 2000 limit - we need to leave some space for the instance address.
 const urlMaxLength = 1900;
@@ -42,7 +46,12 @@ interface ProcessedAnomaly {
   isImprovement: boolean;
 }
 
-export class AnomaliesTableSk extends ElementSk {
+export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandler {
+  onOpenHelp(): void {
+    const help = this.querySelector('keyboard-shortcuts-help-sk') as KeyboardShortcutsHelpSk;
+    help.open();
+  }
+
   anomalyList: Anomaly[] = [];
 
   anomalyGroups: AnomalyGroup[] = [];
@@ -113,11 +122,59 @@ export class AnomaliesTableSk extends ElementSk {
     });
     this.addEventListener('open-anomaly-chart', this.openAnomalyChartListener);
     this._upgradeProperty('show_requested_groups_first');
+    window.addEventListener('keydown', this.keyDown);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this.removeEventListener('open-anomaly-chart', this.openAnomalyChartListener);
+    window.removeEventListener('keydown', this.keyDown);
+  }
+
+  private keyDown = (e: KeyboardEvent) => {
+    // Ignore if no anomalies selected
+    if (this.checkedAnomaliesSet.size === 0) {
+      return;
+    }
+
+    if (!this.triageMenu) return;
+
+    handleKeyboardShortcut(e, this);
+  };
+
+  onTriagePositive(): void {
+    this.showPopup = true;
+    this._render();
+    // The second and third arguments are empty arrays because we are only
+    // triaging anomalies, not trace keys or graph configs.
+    this.triageMenu!.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
+    this.triageMenu!.fileBug();
+  }
+
+  onTriageNegative(): void {
+    this.showPopup = true;
+    this._render();
+    // The second and third arguments are empty arrays because we are only
+    // triaging anomalies, not trace keys or graph configs.
+    this.triageMenu!.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
+    this.triageMenu!.ignoreAnomaly();
+  }
+
+  onTriageExisting(): void {
+    this.showPopup = true;
+    this._render();
+    // The second and third arguments are empty arrays because we are only
+    // triaging anomalies, not trace keys or graph configs.
+    this.triageMenu!.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
+    this.triageMenu!.openExistingBugDialog();
+  }
+
+  onOpenReport(): void {
+    this.openReport();
+  }
+
+  onOpenGroupReport(): void {
+    this.openAnomalyGroupReportPage();
   }
 
   private static template = (ele: AnomaliesTableSk) => html`
@@ -206,19 +263,8 @@ export class AnomaliesTableSk extends ElementSk {
 
   async openAnomalyGroupReportPage() {
     for (const group of this.anomalyGroups) {
-      let groupCheckbox: HTMLInputElement | null;
-      if (group.anomalies.length > 1) {
-        const summaryRowCheckboxId = this.getGroupId(group);
-        groupCheckbox = this.querySelector<HTMLInputElement>(
-          `input[id="anomaly-row-${this.uniqueId}-${summaryRowCheckboxId}"]`
-        );
-      } else {
-        const anomaly = group.anomalies[0];
-        groupCheckbox = this.querySelector<HTMLInputElement>(
-          `input[id="anomaly-row-${this.uniqueId}-${anomaly.id}"]`
-        );
-      }
-      if (groupCheckbox && groupCheckbox.checked) {
+      const isGroupSelected = group.anomalies.some((a) => this.checkedAnomaliesSet.has(a));
+      if (isGroupSelected) {
         await this.openReportForAnomalyIds(group.anomalies);
       }
     }
@@ -408,6 +454,7 @@ export class AnomaliesTableSk extends ElementSk {
           </tbody>
         </table>
       </sort-sk>
+      <keyboard-shortcuts-help-sk .handler=${this}></keyboard-shortcuts-help-sk>
     `;
   }
 

@@ -55,7 +55,7 @@ export class AnomaliesTableSkPO extends PageObject {
 
   async getBugId(row: PageObjectElement): Promise<string> {
     const link = await row.bySelector('td:nth-child(4) a');
-    return link?.innerText || '';
+    return await (link?.innerText || '');
   }
 
   async clickTriageButton(): Promise<void> {
@@ -67,19 +67,25 @@ export class AnomaliesTableSkPO extends PageObject {
   }
 
   async getRowCount(): Promise<number> {
-    return (await this.rows).length;
+    return await (
+      await this.rows
+    ).length;
   }
 
   async getParentExpandRowCount(): Promise<number> {
-    return (await this.parentExpandRow).length;
+    return await (
+      await this.parentExpandRow
+    ).length;
   }
 
   async getChildRowCount(): Promise<number> {
-    return (await this.childRows).length;
+    return await (
+      await this.childRows
+    ).length;
   }
 
   async getTestPath(): Promise<string[]> {
-    return await this.testPaths.map((testPath) => testPath.innerText);
+    return await this.testPaths.map(async (testPath) => await testPath.innerText);
   }
 
   async clickTrendingIconButton(index: number): Promise<void> {
@@ -115,6 +121,6 @@ export class AnomaliesTableSkPO extends PageObject {
     const rows = await this.rows;
     const row = await rows.item(index);
     await row.applyFnToDOMNode((el) => el.outerHTML);
-    return row.isHidden();
+    return await row.isHidden();
   }
 }
