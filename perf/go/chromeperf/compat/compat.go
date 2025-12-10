@@ -21,7 +21,9 @@ func ConvertRegressionToAnomalies(reg *regression.Regression) (chromeperf.Anomal
 			continue
 		}
 		anomaly := chromeperf.Anomaly{
-			Id:                  reg.Id,
+			Id: reg.Id,
+			// TODO(mordeckimarcin) add remaining fields that bug_id can come from.
+			BugId:               int(reg.BugId),
 			TestPath:            testPath,
 			StartRevision:       int(reg.PrevCommitNumber),
 			EndRevision:         int(reg.CommitNumber),

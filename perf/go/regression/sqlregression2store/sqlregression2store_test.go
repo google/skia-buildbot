@@ -586,6 +586,7 @@ func TestSetBugID_Success(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, regs, 1)
 		assert.Equal(t, int64(bugID), regs[0].BugId)
+		assert.Equal(t, regression.Negative, regs[0].HighStatus.Status)
 	}
 
 	// Verify that bug_id was not updated for reg3.
@@ -593,6 +594,7 @@ func TestSetBugID_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, regs, 1)
 	assert.Equal(t, int64(0), regs[0].BugId)
+	assert.NotEqual(t, regression.Negative, regs[0].HighStatus.Status)
 }
 
 func TestSetBugID_NoIDs(t *testing.T) {

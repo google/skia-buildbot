@@ -227,5 +227,6 @@ insert-demo-alert-to-demo-db:
 .PHONY: run-demo-instance-with-clustering
 run-demo-instance-with-clustering:
 	@echo "starting frontend with clustering and a sample alert"
-	$(MAKE) initdemo ingest_demo insert-demo-alert-to-demo-db run_frontend_with_clustering
+	$(MAKE) run-spanner-emulator initdemo ingest_demo \
+	insert-demo-alert-to-demo-db run_frontend_with_clustering
 

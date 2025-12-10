@@ -158,7 +158,10 @@ var statementFormats = map[statementFormat]string{
 		`,
 	setBugID: `
 		UPDATE Regressions2
-		SET bug_id = $1
+		SET
+			bug_id = $1,
+			triage_status = 'negative',
+			triage_message = 'triaged'
 		WHERE id = ANY($2)
 		`,
 	ignoreAnomalies: `

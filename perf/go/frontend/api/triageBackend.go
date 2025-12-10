@@ -107,7 +107,8 @@ func (t *triageBackend) resetAnomalies(ctx context.Context, req *EditAnomaliesRe
 }
 
 func (t *triageBackend) nudgeAnomalies(ctx context.Context, req *EditAnomaliesRequest) (*EditAnomaliesResponse, error) {
-	if err := t.regStore.NudgeAndResetAnomalies(ctx, req.Keys, types.CommitNumber(req.EndRevision), types.CommitNumber(req.StartRevision)); err != nil {
+	// Start revision means inclusive, previous_commit means exclusive. Thus, we subtract -1.
+	if err := t.regStore.NudgeAndResetAnomalies(ctx, req.Keys, types.CommitNumber(req.EndRevision), types.CommitNumber(req.StartRevision-1)); err != nil {
 		return nil, skerr.Wrapf(err, "failed to nudge anomalies and reset triage status")
 	}
 	return &EditAnomaliesResponse{}, nil
