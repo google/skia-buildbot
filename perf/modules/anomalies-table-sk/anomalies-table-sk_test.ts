@@ -2,6 +2,15 @@ import './index';
 import sinon from 'sinon';
 import { assert } from 'chai';
 import { AnomaliesTableSk } from './anomalies-table-sk';
+import {
+  doRangesOverlap,
+  groupAnomalies,
+  isSameBenchmark,
+  isSameRevision,
+  isSameBot,
+  isSameTest,
+  AnomalyGroupingConfig,
+} from './grouping';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { Anomaly } from '../json';
@@ -292,22 +301,136 @@ describe('anomalies-table-sk', () => {
     });
   });
 
-  describe('group anomalies', () => {
-    it('groups anomalies by bug id, revision overlap, and benchmark', () => {
-      const anomalies = [
-        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
-        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
-        dummyAnomaly('3', 0, 300, 400, 'master/bot/suite/test3'),
-        dummyAnomaly('4', 0, 350, 450, 'master/bot/suite/test4'),
-        dummyAnomaly('5', 0, 500, 600, 'master/bot/suite2/test5'),
-        dummyAnomaly('6', 0, 700, 800, 'master/bot/suite2/test6'),
+  describe('groupAnomalies function', () => {
+    let anomalies: Anomaly[];
+    beforeEach(() => {
+      anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot1/suite1/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot2/suite1/test2'),
+        dummyAnomaly('3', 0, 300, 400, 'master/bot1/suite1/test1'),
+        dummyAnomaly('4', 0, 350, 450, 'master/bot1/suite1/test2'),
+        dummyAnomaly('5', 0, 500, 600, 'master/bot2/suite2/test3'),
+        dummyAnomaly('6', 0, 500, 600, 'master/bot2/suite2/test3'),
+        dummyAnomaly('7', 0, 700, 800, 'master/bot1/suite2/test4'),
       ];
-      element.anomalyList = anomalies;
-      element.groupAnomalies();
-      assert.lengthOf(element.anomalyGroups, 3);
-      assert.lengthOf(element.anomalyGroups[0].anomalies, 2);
-      assert.lengthOf(element.anomalyGroups[1].anomalies, 2);
-      assert.lengthOf(element.anomalyGroups[2].anomalies, 2);
+    });
+
+    it('groups by bug_id first', () => {
+      const config: AnomalyGroupingConfig = {
+        revisionMode: 'ANY',
+        groupBy: new Set(),
+        groupSingles: false,
+      };
+      const groups = groupAnomalies(anomalies, config);
+      const bugGroup = groups.find((g) => g.anomalies.some((a) => a.id === '1' || a.id === '2'));
+      assert.isDefined(bugGroup);
+      assert.lengthOf(bugGroup!.anomalies, 2);
+    });
+
+    it('handles revisionMode: EXACT', () => {
+      const config: AnomalyGroupingConfig = {
+        revisionMode: 'EXACT',
+        groupBy: new Set(),
+        groupSingles: false,
+      };
+      const groups = groupAnomalies(anomalies, config);
+      // anoms 5 and 6 should be in a group.
+      const exactGroup = groups.find((g) => g.anomalies.some((a) => a.id === '5' || a.id === '6'));
+      assert.isDefined(exactGroup);
+      assert.lengthOf(exactGroup!.anomalies, 2);
+      // check that 3 and 4 are not grouped.
+      const anom3group = groups.find((g) => g.anomalies.some((a) => a.id === '3'));
+      assert.lengthOf(anom3group!.anomalies, 1);
+    });
+
+    it('handles revisionMode: OVERLAPPING', () => {
+      const config: AnomalyGroupingConfig = {
+        revisionMode: 'OVERLAPPING',
+        groupBy: new Set(),
+        groupSingles: false,
+      };
+      const groups = groupAnomalies(anomalies, config);
+      // anoms 3 and 4 should be in a group.
+      const overlapGroup = groups.find((g) =>
+        g.anomalies.some((a) => a.id === '3' || a.id === '4')
+      );
+      assert.isDefined(overlapGroup);
+      assert.lengthOf(overlapGroup!.anomalies, 2);
+    });
+
+    it('handles revisionMode: ANY', () => {
+      const config: AnomalyGroupingConfig = {
+        revisionMode: 'ANY',
+        groupBy: new Set(),
+        groupSingles: false,
+      };
+      const groups = groupAnomalies(anomalies, config);
+      // all non-bug anomalies are grouped
+      const anyGroup = groups.find((g) => g.anomalies.length === 5); // 7 total - 2 with bug_id
+      assert.isDefined(anyGroup);
+    });
+
+    it('splits revision groups by BOT', () => {
+      const localAnomalies = [
+        dummyAnomaly('3', 0, 300, 400, 'master/bot1/suite1/test1'),
+        dummyAnomaly('4', 0, 300, 400, 'master/bot2/suite1/test1'),
+      ];
+      const config: AnomalyGroupingConfig = {
+        revisionMode: 'EXACT',
+        groupBy: new Set(['BOT']),
+        groupSingles: false,
+      };
+      const groups = groupAnomalies(localAnomalies, config);
+      assert.lengthOf(groups, 2); // Split into two groups of 1.
+      assert.lengthOf(groups[0].anomalies, 1);
+      assert.lengthOf(groups[1].anomalies, 1);
+    });
+
+    it('groups singles by BENCHMARK when groupSingles is true', () => {
+      const localAnomalies = [
+        dummyAnomaly('1', 0, 100, 100, 'master/bot1/suite1/test1'),
+        dummyAnomaly('2', 0, 200, 200, 'master/bot1/suite1/test2'),
+      ];
+      const config: AnomalyGroupingConfig = {
+        revisionMode: 'EXACT',
+        groupBy: new Set(['BENCHMARK']),
+        groupSingles: true,
+      };
+      const groups = groupAnomalies(localAnomalies, config);
+      assert.lengthOf(groups, 1);
+      assert.lengthOf(groups[0].anomalies, 2);
+    });
+
+    it('does not group singles when groupSingles is false', () => {
+      const localAnomalies = [
+        dummyAnomaly('1', 0, 100, 100, 'master/bot1/suite1/test1'),
+        dummyAnomaly('2', 0, 200, 200, 'master/bot1/suite1/test2'),
+      ];
+      const config: AnomalyGroupingConfig = {
+        revisionMode: 'EXACT',
+        groupBy: new Set(['BENCHMARK']),
+        groupSingles: false,
+      };
+      const groups = groupAnomalies(localAnomalies, config);
+      assert.lengthOf(groups, 2);
+    });
+
+    it('groups by multiple criteria (BOT and BENCHMARK)', () => {
+      const localAnomalies = [
+        dummyAnomaly('1', 0, 100, 100, 'master/bot1/suite1/test1'), // Group A
+        dummyAnomaly('2', 0, 100, 100, 'master/bot1/suite1/test2'), // Group A
+        dummyAnomaly('3', 0, 100, 100, 'master/bot2/suite1/test1'), // single
+        dummyAnomaly('4', 0, 100, 100, 'master/bot1/suite2/test1'), // single
+      ];
+      const config: AnomalyGroupingConfig = {
+        revisionMode: 'EXACT',
+        groupBy: new Set(['BOT', 'BENCHMARK']),
+        groupSingles: false,
+      };
+      const groups = groupAnomalies(localAnomalies, config);
+      assert.lengthOf(groups, 3);
+      const groupA = groups.find((g) => g.anomalies.length === 2);
+      assert.isDefined(groupA);
     });
   });
 
@@ -315,13 +438,13 @@ describe('anomalies-table-sk', () => {
     it('returns true if ranges overlap', () => {
       const a = dummyAnomaly('1', 0, 100, 200, '');
       const b = dummyAnomaly('2', 0, 150, 250, '');
-      assert.isTrue(element.doRangesOverlap(a, b));
+      assert.isTrue(doRangesOverlap(a, b));
     });
 
     it('returns false if ranges do not overlap', () => {
       const a = dummyAnomaly('1', 0, 100, 200, '');
       const b = dummyAnomaly('2', 0, 300, 400, '');
-      assert.isFalse(element.doRangesOverlap(a, b));
+      assert.isFalse(doRangesOverlap(a, b));
     });
   });
 
@@ -329,13 +452,13 @@ describe('anomalies-table-sk', () => {
     it('returns true if revisions are the same', () => {
       const a = dummyAnomaly('1', 0, 100, 200, '');
       const b = dummyAnomaly('2', 0, 100, 200, '');
-      assert.isTrue(element.isSameRevision(a, b));
+      assert.isTrue(isSameRevision(a, b));
     });
 
     it('returns false if revisions are different', () => {
       const a = dummyAnomaly('1', 0, 100, 200, '');
       const b = dummyAnomaly('2', 0, 100, 201, '');
-      assert.isFalse(element.isSameRevision(a, b));
+      assert.isFalse(isSameRevision(a, b));
     });
   });
 
@@ -343,13 +466,41 @@ describe('anomalies-table-sk', () => {
     it('returns true if benchmarks are the same', () => {
       const a = dummyAnomaly('1', 0, 0, 0, 'master/bot/suite/test1');
       const b = dummyAnomaly('2', 0, 0, 0, 'master/bot/suite/test2');
-      assert.isTrue(element.isSameBenchmark(a, b));
+      assert.isTrue(isSameBenchmark(a, b));
     });
 
     it('returns false if benchmarks are different', () => {
       const a = dummyAnomaly('1', 0, 0, 0, 'master/bot/suite1/test1');
       const b = dummyAnomaly('2', 0, 0, 0, 'master/bot/suite2/test2');
-      assert.isFalse(element.isSameBenchmark(a, b));
+      assert.isFalse(isSameBenchmark(a, b));
+    });
+  });
+
+  describe('is same bot', () => {
+    it('returns true if bots are the same', () => {
+      const a = dummyAnomaly('1', 0, 0, 0, 'master/bot1/suite/test1');
+      const b = dummyAnomaly('2', 0, 0, 0, 'master/bot1/suite/test2');
+      assert.isTrue(isSameBot(a, b));
+    });
+
+    it('returns false if bots are different', () => {
+      const a = dummyAnomaly('1', 0, 0, 0, 'master/bot1/suite1/test1');
+      const b = dummyAnomaly('2', 0, 0, 0, 'master/bot2/suite2/test2');
+      assert.isFalse(isSameBot(a, b));
+    });
+  });
+
+  describe('is same test', () => {
+    it('returns true if the main test part is the same, ignoring subtests', () => {
+      const a = dummyAnomaly('1', 0, 0, 0, 'master/bot1/suite1/test1/sub1');
+      const b = dummyAnomaly('2', 0, 0, 0, 'master/bot2/suite2/test1/sub2'); // Different subtest
+      assert.isTrue(isSameTest(a, b));
+    });
+
+    it('returns false if tests are different', () => {
+      const a = dummyAnomaly('1', 0, 0, 0, 'master/bot1/suite1/test1/sub1');
+      const b = dummyAnomaly('2', 0, 0, 0, 'master/bot2/suite2/test2/sub2');
+      assert.isFalse(isSameTest(a, b));
     });
   });
 
@@ -844,6 +995,33 @@ describe('anomalies-table-sk', () => {
 
     it('correctly styles an improvement where greater is better', async () => {
       await createAndTestAnomaly('4', true, 100, 120, 'improvement', '+20%');
+    });
+  });
+
+  describe('localStorage config', () => {
+    const GROUPING_CONFIG_STORAGE_KEY = 'perf-grouping-config';
+    it('loads grouping config from localStorage', () => {
+      const storedConfig: AnomalyGroupingConfig = {
+        revisionMode: 'EXACT',
+        groupBy: new Set(['BOT', 'TEST']),
+        groupSingles: false,
+      };
+
+      // localStorage stores sets as arrays.
+      const storableConfig = {
+        ...storedConfig,
+        groupBy: Array.from(storedConfig.groupBy),
+      };
+
+      localStorage.setItem(GROUPING_CONFIG_STORAGE_KEY, JSON.stringify(storableConfig));
+
+      // Create a new element to trigger connectedCallback and load from storage.
+      const newElement = newInstance();
+
+      assert.deepEqual(newElement.currentConfig, storedConfig);
+
+      // Clean up localStorage.
+      localStorage.removeItem(GROUPING_CONFIG_STORAGE_KEY);
     });
   });
 

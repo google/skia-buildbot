@@ -161,4 +161,97 @@ export const graphConfig: GraphConfig[] = [
   },
 ];
 
-export const groupRowsCount = 2;
+const BASE_ANOMALY = {
+  recovered: true,
+  state: '',
+  statistic: '',
+  degrees_of_freedom: 0,
+  p_value: 0,
+  segment_size_after: 0,
+  segment_size_before: 0,
+  std_dev_before_anomaly: 0,
+  t_statistic: 0,
+  subscription_name: '',
+  bug_labels: [],
+  bug_cc_emails: [],
+  bisect_ids: [],
+  units: 'ms',
+  is_improvement: false,
+  median_before_anomaly: 75,
+  median_after_anomaly: 100,
+  bug_component: 'Test>Component',
+};
+
+export const anomaly_table_for_grouping = [
+  // --- BUG ID GROUP (Always together) ---
+  {
+    ...BASE_ANOMALY,
+    id: 'bug-1',
+    bug_id: 12345,
+    test_path: 'Master/BotA/BenchX/Test1/Sub',
+    start_revision: 100,
+    end_revision: 200, // Range doesn't matter
+  },
+  {
+    ...BASE_ANOMALY,
+    id: 'bug-2',
+    bug_id: 12345,
+    test_path: 'Master/BotB/BenchY/Test2/Sub', // Different attributes
+    start_revision: 800,
+    end_revision: 900, // Different range
+  },
+
+  // --- REVISION GROUP A: Exact Match (100-200) ---
+  {
+    ...BASE_ANOMALY,
+    id: 'rev-a-1',
+    bug_id: 0,
+    test_path: 'Master/BotA/BenchX/Test1/Sub',
+    start_revision: 100,
+    end_revision: 200,
+  },
+  {
+    ...BASE_ANOMALY,
+    id: 'rev-a-2', // Identical to a-1
+    bug_id: 0,
+    test_path: 'Master/BotA/BenchX/Test1/Sub',
+    start_revision: 100,
+    end_revision: 200,
+  },
+  {
+    ...BASE_ANOMALY,
+    id: 'rev-a-3', // Same Rev, Different Bot
+    bug_id: 0,
+    test_path: 'Master/BotB/BenchX/Test1/Sub',
+    start_revision: 100,
+    end_revision: 200,
+  },
+
+  // --- REVISION GROUP B: Overlapping with A (150-250) ---
+  {
+    ...BASE_ANOMALY,
+    id: 'rev-b-1',
+    bug_id: 0,
+    test_path: 'Master/BotA/BenchX/Test1/Sub',
+    start_revision: 150,
+    end_revision: 250,
+  },
+
+  // --- REVISION GROUP C: Disjoint / Singles (800-900) ---
+  {
+    ...BASE_ANOMALY,
+    id: 'single-1',
+    bug_id: 0,
+    test_path: 'Master/BotA/BenchZ/Test9/Sub',
+    start_revision: 800,
+    end_revision: 900,
+  },
+  {
+    ...BASE_ANOMALY,
+    id: 'single-2',
+    bug_id: 0,
+    test_path: 'Master/BotA/BenchZ/Test9/Sub',
+    start_revision: 950,
+    end_revision: 1000, // Disjoint from single-1
+  },
+];

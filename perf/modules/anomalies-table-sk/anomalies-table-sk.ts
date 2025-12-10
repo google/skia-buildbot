@@ -11,6 +11,13 @@ import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import '../../../infra-sk/modules/sort-sk';
 import { Anomaly, GetGroupReportResponse, Timerange } from '../json';
+import {
+  AnomalyGroup,
+  AnomalyGroupingConfig,
+  groupAnomalies,
+  RevisionGroupingMode,
+  GroupingCriteria,
+} from './grouping';
 import { GraphConfig } from '../explore-simple-sk/explore-simple-sk';
 import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import '../window/window';
@@ -30,11 +37,8 @@ import { KeyboardShortcutsHelpSk } from '../keyboard-shortcuts-help-sk/keyboard-
 // Just below the 2000 limit - we need to leave some space for the instance address.
 const urlMaxLength = 1900;
 const weekInSeconds = 7 * 24 * 60 * 60;
-class AnomalyGroup {
-  anomalies: Anomaly[] = [];
 
-  expanded: boolean = false;
-}
+const GROUPING_CONFIG_STORAGE_KEY = 'perf-grouping-config';
 
 interface ProcessedAnomaly {
   bugId: number;
@@ -81,6 +85,12 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
   private uniqueId =
     'anomalies-table-sk-' + new Date().getTime() + '-' + Math.floor(Math.random() * 1000);
 
+  currentConfig: AnomalyGroupingConfig = {
+    revisionMode: 'OVERLAPPING',
+    groupBy: new Set(['BENCHMARK']),
+    groupSingles: true,
+  };
+
   constructor() {
     super(AnomaliesTableSk.template);
   }
@@ -103,6 +113,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
   async connectedCallback() {
     super.connectedCallback();
+    this.loadGroupingConfig();
     this._render();
 
     this.triageMenu = this.querySelector(`#triage-menu-${this.uniqueId}`);
@@ -177,6 +188,132 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     this.openAnomalyGroupReportPage();
   }
 
+  private groupingSettingsTemplate() {
+    return html`
+      <details class="grouping-settings">
+        <summary>Grouping Settings</summary>
+        <div class="grouping-settings-panel">
+          <div class="grouping-setting-group">
+            <label class="grouping-setting-label">Commit Range Strategy</label>
+            <select
+              id="revision-mode-select-${this.uniqueId}"
+              @change=${(e: Event) => this.onRevisionModeChange(e)}>
+              <option
+                value="OVERLAPPING"
+                ?selected=${this.currentConfig.revisionMode === 'OVERLAPPING'}>
+                Overlapping Ranges
+              </option>
+              <option value="EXACT" ?selected=${this.currentConfig.revisionMode === 'EXACT'}>
+                Exact Range Only
+              </option>
+              <option value="ANY" ?selected=${this.currentConfig.revisionMode === 'ANY'}>
+                Ignore Range (Group All)
+              </option>
+            </select>
+          </div>
+
+          <div class="grouping-setting-group">
+            <label class="grouping-setting-label">Singles Strategy</label>
+            <div class="checkbox-container">
+              <label title="If unchecked, single anomalies will not be forced into groups">
+                <input
+                  type="checkbox"
+                  ?checked=${this.currentConfig.groupSingles}
+                  @change=${(e: Event) => this.onGroupSinglesChange(e)} />
+                Group remaining singles by selected criteria (may lead to grouping of unrelated
+                anomalies!)
+              </label>
+            </div>
+          </div>
+
+          <div class="grouping-setting-group">
+            <label class="grouping-setting-label">Split Groups By</label>
+            <div class="checkbox-container">
+              <label>
+                <input
+                  type="checkbox"
+                  value="BENCHMARK"
+                  ?checked=${this.currentConfig.groupBy.has('BENCHMARK')}
+                  @change=${(e: Event) => this.onGroupByChange(e, 'BENCHMARK')} />
+                Benchmark
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  value="BOT"
+                  ?checked=${this.currentConfig.groupBy.has('BOT')}
+                  @change=${(e: Event) => this.onGroupByChange(e, 'BOT')} />
+                Bot
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  value="TEST"
+                  ?checked=${this.currentConfig.groupBy.has('TEST')}
+                  @change=${(e: Event) => this.onGroupByChange(e, 'TEST')} />
+                Test (without subtests)
+              </label>
+            </div>
+          </div>
+        </div>
+      </details>
+    `;
+  }
+
+  private onRevisionModeChange(e: Event) {
+    const select = e.target as HTMLSelectElement;
+    this.currentConfig.revisionMode = select.value as RevisionGroupingMode;
+    this.refreshGrouping();
+  }
+
+  private onGroupByChange(e: Event, criteria: GroupingCriteria) {
+    const checkbox = e.target as HTMLInputElement;
+    if (checkbox.checked) {
+      this.currentConfig.groupBy.add(criteria);
+    } else {
+      this.currentConfig.groupBy.delete(criteria);
+    }
+    this.refreshGrouping();
+  }
+
+  private onGroupSinglesChange(e: Event) {
+    const checkbox = e.target as HTMLInputElement;
+    this.currentConfig.groupSingles = checkbox.checked;
+    this.refreshGrouping();
+  }
+
+  private refreshGrouping() {
+    this.saveGroupingConfig();
+    this.anomalyGroups = groupAnomalies(this.anomalyList, this.currentConfig);
+    this._render();
+  }
+
+  private loadGroupingConfig() {
+    const storedConfig = localStorage.getItem(GROUPING_CONFIG_STORAGE_KEY);
+    if (storedConfig) {
+      try {
+        const parsed = JSON.parse(storedConfig);
+        // Need to convert groupBy from array to Set.
+        if (parsed.groupBy && Array.isArray(parsed.groupBy)) {
+          parsed.groupBy = new Set(parsed.groupBy);
+        }
+        this.currentConfig = { ...this.currentConfig, ...parsed };
+      } catch (e) {
+        console.error('Failed to parse grouping config from localStorage', e);
+        localStorage.removeItem(GROUPING_CONFIG_STORAGE_KEY);
+      }
+    }
+  }
+
+  private saveGroupingConfig() {
+    // Need to convert Set to array for JSON serialization.
+    const configToStore = {
+      ...this.currentConfig,
+      groupBy: Array.from(this.currentConfig.groupBy),
+    };
+    localStorage.setItem(GROUPING_CONFIG_STORAGE_KEY, JSON.stringify(configToStore));
+  }
+
   private static template = (ele: AnomaliesTableSk) => html`
     <div class="filter-buttons" ?hidden="${ele.anomalyList.length === 0}">
       <button
@@ -197,6 +334,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
         ?disabled="${ele.checkedAnomaliesSet.size === 0}">
         Graph Selected by Group
       </button>
+      ${ele.groupingSettingsTemplate()}
     </div>
     <div class="popup-container" ?hidden="${!ele.showPopup}">
       <div class="popup">
@@ -277,138 +415,6 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       triageMenu.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
     }
     this._render();
-  }
-
-  doRangesOverlap(a: Anomaly, b: Anomaly): boolean {
-    if (a.start_revision > b.start_revision) {
-      [a, b] = [b, a];
-    }
-
-    if (
-      a.start_revision === null ||
-      a.end_revision === null ||
-      b.start_revision === null ||
-      b.end_revision === null
-    ) {
-      return false;
-    }
-    return a.start_revision <= b.end_revision && a.end_revision >= b.start_revision;
-  }
-
-  /**
-   * Helper method to group anomalies based on a predicate.
-   *
-   * It takes a list of anomalies, groups them, and then partitions the result
-   * into groups containing multiple items and a flat list of anomalies that
-   * remained in single-item groups.
-   *
-   * @param anomalies - The list of anomalies to group.
-   * @param predicate - A function that returns true if two anomalies belong in the same group.
-   * @returns An object containing the grouped anomalies and the remaining single anomalies.
-   */
-  private groupAndPartition(
-    anomalies: Anomaly[],
-    predicate: (a: Anomaly, b: Anomaly) => boolean
-  ): { multiItemGroups: AnomalyGroup[]; singleAnomalies: Anomaly[] } {
-    if (!anomalies.length) {
-      return { multiItemGroups: [], singleAnomalies: [] };
-    }
-
-    // Use reduce to iterate once and create all groups.
-    const allGroups = anomalies.reduce((groups: AnomalyGroup[], anomaly) => {
-      const existingGroup = groups.find((g) =>
-        g.anomalies.every((other) => predicate(anomaly, other))
-      );
-
-      if (existingGroup) {
-        existingGroup.anomalies.push(anomaly);
-      } else {
-        groups.push({ anomalies: [anomaly], expanded: false });
-      }
-      return groups;
-    }, []);
-
-    // Now, partition the results into multi-item groups and singles.
-    const multiItemGroups: AnomalyGroup[] = [];
-    const singleAnomalies: Anomaly[] = [];
-    for (const group of allGroups) {
-      if (group.anomalies.length > 1) {
-        multiItemGroups.push(group);
-      } else {
-        singleAnomalies.push(group.anomalies[0]);
-      }
-    }
-
-    return { multiItemGroups, singleAnomalies };
-  }
-
-  /**
-   * Groups anomalies based on a hierarchy of criteria:
-   * 1. By shared bug_id.
-   * 2. By overlapping revision range.
-   * 3. By the exact same revision.
-   * 4. By the same benchmark.
-   * Any remaining anomalies are left in their own individual groups.
-   */
-  groupAnomalies() {
-    // First, separate anomalies that have a bug_id from those that don't.
-    const withBugId: Anomaly[] = [];
-    const withoutBugId: Anomaly[] = [];
-    for (const anomaly of this.anomalyList) {
-      if (anomaly.bug_id && anomaly.bug_id > 0) {
-        withBugId.push(anomaly);
-      } else {
-        withoutBugId.push(anomaly);
-      }
-    }
-
-    // Second, create groups for anomalies sharing a bug_id.
-    const bugIdGroupMap = withBugId.reduce((map, anomaly) => {
-      const bugId = anomaly.bug_id!;
-      const group = map.get(bugId) || [];
-      map.set(bugId, [...group, anomaly]);
-      return map;
-    }, new Map<number, Anomaly[]>());
-
-    const bugIdGroups: AnomalyGroup[] = Array.from(bugIdGroupMap.values()).map((anomalies) => ({
-      anomalies,
-      expanded: false,
-    }));
-
-    // Third, sequentially group the remaining anomalies using the helper.
-    const { multiItemGroups: revisionGroups, singleAnomalies: remainingAfterRevision } =
-      this.groupAndPartition(withoutBugId, (a, b) => this.isSameRevision(a, b));
-
-    const { multiItemGroups: sameRevisionGroups, singleAnomalies: remainingAfterSameRevision } =
-      this.groupAndPartition(remainingAfterRevision, (a, b) => this.doRangesOverlap(a, b));
-
-    const { multiItemGroups: sameBenchmarkGroups, singleAnomalies: finalSingles } =
-      this.groupAndPartition(remainingAfterSameRevision, (a, b) => this.isSameBenchmark(a, b));
-
-    // Fourth, any anomalies that were never grouped become their own single-item groups.
-    const singleAnomalyGroups: AnomalyGroup[] = finalSingles.map((anomaly) => ({
-      anomalies: [anomaly],
-      expanded: false,
-    }));
-
-    // Last, combine all groups into the final list.
-    this.anomalyGroups = [
-      ...bugIdGroups,
-      ...revisionGroups,
-      ...sameRevisionGroups,
-      ...sameBenchmarkGroups,
-      ...singleAnomalyGroups,
-    ];
-  }
-
-  isSameBenchmark(a: Anomaly, b: Anomaly) {
-    const testSuiteA = a.test_path.split('/').length > 2 ? a.test_path.split('/')[2] : '';
-    const testSuiteB = b.test_path.split('/').length > 2 ? b.test_path.split('/')[2] : '';
-    return testSuiteA === testSuiteB;
-  }
-
-  isSameRevision(a: Anomaly, b: Anomaly) {
-    return a.start_revision === b.start_revision && a.end_revision === b.end_revision;
   }
 
   private generateTable() {
@@ -907,7 +913,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       msg.hidden = true;
       table.hidden = false;
       this.anomalyList = anomalyList;
-      this.groupAnomalies();
+      this.anomalyGroups = groupAnomalies(this.anomalyList, this.currentConfig);
       this._render();
     } else {
       msg.hidden = false;

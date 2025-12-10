@@ -39,6 +39,7 @@ sk_element(
         "//perf/modules/telemetry:telemetry_ts_lib",
         "//perf/modules/window:window_ts_lib",
         "//perf/modules/common:keyboard-shortcuts_ts_lib",
+        ":grouping_ts_lib",
     ],
     ts_srcs = [
         "anomalies-table-sk.ts",
@@ -103,6 +104,7 @@ karma_test(
     src = "anomalies-table-sk_test.ts",
     deps = [
         ":anomalies-table-sk",
+        ":grouping_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/@types/sinon",
         "//:node_modules/chai",
@@ -111,4 +113,11 @@ karma_test(
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
+)
+
+ts_library(
+    name = "grouping_ts_lib",
+    srcs = ["grouping.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//perf/modules/json:index_ts_lib"],
 )

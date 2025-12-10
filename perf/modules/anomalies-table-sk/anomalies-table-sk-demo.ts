@@ -3,7 +3,12 @@ import { $$ } from '../../../infra-sk/modules/dom';
 import '../../../elements-sk/modules/error-toast-sk';
 import { AnomaliesTableSk } from './anomalies-table-sk';
 import fetchMock from 'fetch-mock';
-import { anomaly_table, GROUP_REPORT_RESPONSE, GROUP_REPORT_RESPONSE_WITH_SID } from './test_data';
+import {
+  anomaly_table,
+  anomaly_table_for_grouping,
+  GROUP_REPORT_RESPONSE,
+  GROUP_REPORT_RESPONSE_WITH_SID,
+} from './test_data';
 
 window.perf = {
   dev_mode: false,
@@ -46,6 +51,12 @@ window.perf = {
 $$('#populate-tables')?.addEventListener('click', () => {
   document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((table) => {
     table.populateTable(anomaly_table);
+  });
+});
+
+$$('#populate-tables-for-grouping')?.addEventListener('click', () => {
+  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((table) => {
+    table.populateTable(anomaly_table_for_grouping);
   });
 });
 

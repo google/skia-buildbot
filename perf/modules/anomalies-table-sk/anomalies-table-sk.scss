@@ -171,3 +171,92 @@ anomalies-table-sk {
     opacity: 1;
   }
 }
+
+details.grouping-settings {
+  display: inline-block;
+  margin-left: auto;
+  position: relative;
+  vertical-align: middle;
+}
+
+// Override the default style.
+details.grouping-settings[open] {
+  border: none !important;
+  padding: 0px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+details.grouping-settings summary {
+  cursor: pointer;
+  padding: 8px 16px;
+  background: var(--surface);
+  border: 1px solid var(--surface-1dp);
+  border-radius: 4px;
+  user-select: none;
+}
+
+.grouping-settings-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 100; /* Match popup z-index */
+  background-color: var(--background);
+  color: var(--on-background);
+  border: 1px solid var(--surface-1dp, #ccc);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  padding: 16px;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.grouping-setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grouping-setting-group select {
+  width: 100%;
+  padding: 8px;
+  background-color: var(--surface);
+  color: var(--on-surface);
+  border: 1px solid var(--surface-1dp);
+  border-radius: 4px;
+  outline: none;
+  margin: 0px !important;
+}
+
+.grouping-setting-group select:focus {
+  border-color: var(--primary);
+}
+
+.grouping-setting-label {
+  display: block;
+  font-weight: bold;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--primary);
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--surface-1dp);
+  padding-bottom: 4px;
+}
+
+.checkbox-container label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--on-surface);
+  line-height: 1.4;
+}
+
+.checkbox-container label:hover {
+  background-color: var(--surface-1dp);
+}

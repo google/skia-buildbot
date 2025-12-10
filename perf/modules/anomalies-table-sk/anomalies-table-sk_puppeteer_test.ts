@@ -1,9 +1,9 @@
 import { expect } from 'chai';
-import { loadCachedTestBed, TestBed } from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { AnomaliesTableSkPO } from './anomalies-table-sk_po';
 import {
   anomaly_table,
-  groupRowsCount,
+  anomaly_table_for_grouping,
   GROUP_REPORT_RESPONSE_WITH_SID,
   GROUP_REPORT_RESPONSE,
 } from './test_data';
@@ -54,7 +54,7 @@ describe('anomalies-table-sk', () => {
 
     it('shows the default view', async () => {
       const rowCount = await anomaliesTableSkPO.getRowCount();
-      expect(rowCount).to.equal(anomaly_table.length + groupRowsCount);
+      expect(rowCount).to.be.greaterThanOrEqual(anomaly_table.length);
     });
 
     it('should be able to scroll up and down', async () => {
@@ -94,11 +94,6 @@ describe('anomalies-table-sk', () => {
       await anomaliesTableSkPO.clickTriageButton();
       const triageMenu = await testBed.page.$('triage-menu-sk');
       assert.isNotNull(triageMenu);
-    });
-
-    it('should render the correct number of rows', async () => {
-      const totalRowCount: number = await anomaliesTableSkPO.getRowCount();
-      expect(totalRowCount).to.equal(anomaly_table.length + groupRowsCount);
     });
 
     it('should be able to click expand checkbox', async () => {
@@ -172,6 +167,85 @@ describe('anomalies-table-sk', () => {
       await anomaliesTableSkPO.clickGraphButton();
       const reportPageUrl = await navigateTo(testBed.page, testBed.baseUrl, `/u/?anomalyIDs=1`);
       assert.exists(reportPageUrl);
+    });
+  });
+
+  describe('grouping configuration', () => {
+    const TOTAL_ITEMS = anomaly_table_for_grouping.length; // 8 items
+
+    beforeEach(async () => {
+      testBed.page.removeAllListeners('request');
+      await testBed.page.setRequestInterception(true);
+      testBed.page.on('request', (request) => {
+        if (request.url().endsWith('/_/anomalies/group_report') && request.method() === 'POST') {
+          request.respond({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(GROUP_REPORT_RESPONSE),
+          });
+        } else {
+          request.continue();
+        }
+      });
+      await testBed.page.click('#populate-tables-for-grouping');
+
+      await anomaliesTableSkPO.setRevisionMode('OVERLAPPING');
+      await anomaliesTableSkPO.setGroupBy('BENCHMARK', true);
+      await anomaliesTableSkPO.setGroupBy('BOT', false);
+      await anomaliesTableSkPO.setGroupBy('TEST', false);
+      await anomaliesTableSkPO.setGroupSingles(false);
+    });
+
+    afterEach(async () => {
+      await testBed.page.setRequestInterception(false);
+      testBed.page.removeAllListeners('request');
+    });
+
+    it('1. Revision: EXACT | GroupBy: NONE', async () => {
+      await anomaliesTableSkPO.setRevisionMode('EXACT');
+      await anomaliesTableSkPO.setGroupBy('BENCHMARK', false);
+
+      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-1');
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 2 + 1);
+    });
+
+    it('2. Revision: OVERLAPPING | GroupBy: NONE', async () => {
+      await anomaliesTableSkPO.setGroupBy('BENCHMARK', false);
+
+      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-2');
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 2 + 1);
+    });
+
+    it('3. Revision: ANY | GroupBy: NONE', async () => {
+      await anomaliesTableSkPO.setRevisionMode('ANY');
+      await anomaliesTableSkPO.setGroupBy('BENCHMARK', false);
+
+      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-3');
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 2 + 1);
+    });
+
+    it('4. Revision: ANY | GroupBy: BOT', async () => {
+      await anomaliesTableSkPO.setRevisionMode('ANY');
+      await anomaliesTableSkPO.setGroupBy('BENCHMARK', false);
+      await anomaliesTableSkPO.setGroupBy('BOT', true);
+
+      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-4');
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 2 + 1);
+    });
+
+    it('5. Revision: ANY | GroupBy: BENCHMARK', async () => {
+      await anomaliesTableSkPO.setRevisionMode('ANY');
+
+      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-5');
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 3 + 1);
+    });
+
+    it('6. GroupSingles: TRUE | Revision: EXACT | GroupBy: BENCHMARK', async () => {
+      await anomaliesTableSkPO.setRevisionMode('EXACT');
+      await anomaliesTableSkPO.setGroupSingles(true);
+
+      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-6');
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 3 + 1);
     });
   });
 

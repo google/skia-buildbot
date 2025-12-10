@@ -53,6 +53,10 @@ export class AnomaliesTableSkPO extends PageObject {
     return this.bySelectorAll('button#trendingicon-link');
   }
 
+  get groupingSettingsDetails(): PageObjectElement {
+    return this.bySelector('details.grouping-settings');
+  }
+
   async getBugId(row: PageObjectElement): Promise<string> {
     const link = await row.bySelector('td:nth-child(4) a');
     return await (link?.innerText || '');
@@ -122,5 +126,60 @@ export class AnomaliesTableSkPO extends PageObject {
     const row = await rows.item(index);
     await row.applyFnToDOMNode((el) => el.outerHTML);
     return await row.isHidden();
+  }
+
+  async toggleGroupingSettings(shouldBeOpen: boolean): Promise<void> {
+    const details = this.groupingSettingsDetails;
+    const isOpen = await details.hasAttribute('open');
+
+    // Only click if the current state is different from the desired state
+    if (isOpen !== shouldBeOpen) {
+      const summary = await details.bySelector('summary');
+      await summary.click();
+    }
+  }
+
+  async setRevisionMode(mode: 'EXACT' | 'OVERLAPPING' | 'ANY'): Promise<void> {
+    await this.toggleGroupingSettings(true); // Open
+
+    const select = await this.groupingSettingsDetails.bySelector(
+      'select[id^="revision-mode-select-"]'
+    );
+
+    await select.applyFnToDOMNode((el, mode) => {
+      const selectEl = el as HTMLSelectElement;
+      if (selectEl.value !== mode) {
+        selectEl.value = mode as string;
+        selectEl.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+      }
+    }, mode);
+
+    await this.toggleGroupingSettings(false); // Close
+  }
+
+  async setGroupBy(criteria: 'BENCHMARK' | 'BOT' | 'TEST', checked: boolean): Promise<void> {
+    await this.toggleGroupingSettings(true); // Open
+
+    const checkbox = await this.groupingSettingsDetails.bySelector(`input[value="${criteria}"]`);
+    const isChecked = await checkbox.applyFnToDOMNode((el) => (el as HTMLInputElement).checked);
+    if (isChecked !== checked) {
+      await checkbox.click();
+    }
+
+    await this.toggleGroupingSettings(false); // Close
+  }
+
+  async setGroupSingles(checked: boolean): Promise<void> {
+    await this.toggleGroupingSettings(true); // Open
+
+    const checkbox = await this.groupingSettingsDetails.bySelector(
+      'input[type="checkbox"]:not([value])'
+    );
+    const isChecked = await checkbox.applyFnToDOMNode((el) => (el as HTMLInputElement).checked);
+    if (isChecked !== checked) {
+      await checkbox.click();
+    }
+
+    await this.toggleGroupingSettings(false); // Close
   }
 }
