@@ -1,0 +1,32 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
+
+karma_test(
+    name = "keyboard-shortcuts-help-sk_test",
+    src = "keyboard-shortcuts-help-sk_test.ts",
+    deps = [
+        ":keyboard-shortcuts-help-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/common:keyboard-shortcuts_ts_lib",
+    ],
+)
+
+sk_element(
+    name = "keyboard-shortcuts-help-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["keyboard-shortcuts-help-sk.scss"],
+    ts_deps = [
+        "//:node_modules/@material/web",
+        "//:node_modules/lit",
+        "//:node_modules/lit-html",  # keep
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/common:keyboard-shortcuts_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "keyboard-shortcuts-help-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

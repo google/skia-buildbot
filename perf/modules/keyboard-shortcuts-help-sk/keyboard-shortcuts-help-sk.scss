@@ -1,0 +1,27 @@
+@import '../themes/themes.scss';
+
+keyboard-shortcuts-help-sk {
+  .shortcuts-table {
+    border-collapse: collapse;
+    width: 100%;
+
+    td {
+      padding: 8px;
+      border-bottom: 1px solid var(--surface-variant);
+    }
+  }
+
+  .key-cell {
+    font-family: monospace;
+    font-weight: bold;
+    white-space: nowrap;
+    color: var(--primary);
+  }
+
+  .category-header {
+    font-weight: bold;
+    padding-top: 16px;
+    padding-bottom: 8px;
+    color: var(--on-surface-variant);
+  }
+}

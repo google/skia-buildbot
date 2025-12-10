@@ -354,7 +354,37 @@ export function setUpExploreDemoEnv() {
       skps: [],
       msg: '',
       display_mode: 'display_plot',
-      anomalymap: {},
+      anomalymap: {
+        ',arch=arm,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=SnapdragonQM215,extra_config=Android,model=JioNext,name=AndroidCodec_01_original.jpg_SampleSize2,os=Android,source_type=image,sub_result=min_ms,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,':
+          {
+            67130: {
+              id: '123',
+              test_path:
+                ',arch=arm,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=SnapdragonQM215,extra_config=Android,model=JioNext,name=AndroidCodec_01_original.jpg_SampleSize2,os=Android,source_type=image,sub_result=min_ms,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,',
+              bug_id: 0,
+              start_revision: 67129,
+              end_revision: 67130,
+              is_improvement: false,
+              recovered: false,
+              state: 'untriaged',
+              statistic: 'avg',
+              units: 'ms',
+              degrees_of_freedom: 1,
+              median_before_anomaly: 60.830208,
+              median_after_anomaly: 60.854946,
+              p_value: 0.01,
+              segment_size_after: 10,
+              segment_size_before: 10,
+              std_dev_before_anomaly: 1,
+              t_statistic: 5,
+              subscription_name: 'test',
+              bug_component: '',
+              bug_labels: [],
+              bug_cc_emails: [],
+              bisect_ids: [],
+            },
+          },
+      },
     },
     url: '/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1',
   };

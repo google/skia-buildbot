@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
 
 ts_library(
     name = "plot-builder_ts_lib",
@@ -45,4 +45,20 @@ ts_library(
     name = "puppeteer-test-util_ts_lib",
     srcs = ["puppeteer-test-util.ts"],
     visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "keyboard-shortcuts_ts_lib",
+    srcs = ["keyboard-shortcuts.ts"],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "keyboard-shortcuts_test",
+    src = "keyboard-shortcuts_test.ts",
+    deps = [
+        ":keyboard-shortcuts_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+    ],
 )
