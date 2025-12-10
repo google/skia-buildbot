@@ -51,6 +51,8 @@ export class AnomaliesTableSk extends ElementSk {
 
   private checkedAnomaliesSet: Set<Anomaly> = new Set<Anomaly>();
 
+  private initiallyRequestedAnomalyIDs: Set<string> = new Set<string>();
+
   private triageMenu: TriageMenuSk | null = null;
 
   private headerCheckbox: HTMLInputElement | null = null;
@@ -75,7 +77,7 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   static get observedAttributes() {
-    return ['show-selected-groups-first'];
+    return ['show-requested-groups-first'];
   }
 
   public openAnomalyChartListener = async (e: Event) => {
@@ -110,7 +112,7 @@ export class AnomaliesTableSk extends ElementSk {
       }
     });
     this.addEventListener('open-anomaly-chart', this.openAnomalyChartListener);
-    this._upgradeProperty('show_selected_groups_first');
+    this._upgradeProperty('show_requested_groups_first');
   }
 
   disconnectedCallback() {
@@ -364,6 +366,14 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   private generateTable() {
+    const totalCount = this.anomalyList.length;
+    const selectedCount = this.checkedAnomaliesSet.size;
+
+    // Checked only if ALL are selected
+    const isAllSelected = totalCount > 0 && selectedCount === totalCount;
+    // Indeterminate if SOME (but not all) are selected
+    const isIndeterminate = selectedCount > 0 && selectedCount < totalCount;
+
     return html`
       <sort-sk id="as_table-${this.uniqueId}" target="rows-${this.uniqueId}">
         <table id="anomalies-table-${this.uniqueId}" hidden>
@@ -374,9 +384,10 @@ export class AnomaliesTableSk extends ElementSk {
                 ><input
                   type="checkbox"
                   id="header-checkbox-${this.uniqueId}"
+                  .checked=${isAllSelected}
+                  .indeterminate=${isIndeterminate}
                   @change=${() => {
                     this.toggleAllCheckboxes();
-                    this.show_selected_groups_first = false;
                   }}
               /></label>
             </th>
@@ -400,33 +411,35 @@ export class AnomaliesTableSk extends ElementSk {
     `;
   }
 
+  private isGroupInitiallyRequested(group: AnomalyGroup): boolean {
+    return group.anomalies.some((anomaly) => this.initiallyRequestedAnomalyIDs.has(anomaly.id));
+  }
+
   private isGroupSelected(group: AnomalyGroup): boolean {
     return group.anomalies.some((anomaly) => this.checkedAnomaliesSet.has(anomaly));
   }
 
   private generateGroups() {
-    if (!this.show_selected_groups_first || this.checkedAnomaliesSet.size === 0) {
+    if (!this.show_requested_groups_first || this.initiallyRequestedAnomalyIDs.size === 0) {
       return this.anomalyGroups.map((group) => this.generateRows(group));
     }
 
-    const selectedGroups: AnomalyGroup[] = [];
-    const unselectedGroups: AnomalyGroup[] = [];
+    const requestedGroups: AnomalyGroup[] = [];
+    const otherGroups: AnomalyGroup[] = [];
 
     for (const group of this.anomalyGroups) {
-      if (this.isGroupSelected(group)) {
-        selectedGroups.push(group);
+      if (this.isGroupInitiallyRequested(group)) {
+        requestedGroups.push(group);
       } else {
-        unselectedGroups.push(group);
+        otherGroups.push(group);
       }
     }
 
-    const renderedSelected = selectedGroups.map((group) => this.generateRows(group));
-    const renderedUnselected = unselectedGroups.map((group) =>
-      this.generateRows(group, 'unselected-group')
-    );
+    const renderedRequested = requestedGroups.map((group) => this.generateRows(group));
+    const renderedOthers = otherGroups.map((group) => this.generateRows(group, 'other-group'));
 
-    if (selectedGroups.length === 0 || unselectedGroups.length === 0) {
-      return [...renderedSelected, ...renderedUnselected];
+    if (requestedGroups.length === 0 || otherGroups.length === 0) {
+      return [...renderedRequested, ...renderedOthers];
     }
 
     const separatorRow = html`
@@ -435,7 +448,7 @@ export class AnomaliesTableSk extends ElementSk {
           <div class="separator-container">
             <span class="separator-line"></span>
             <span class="separator-text"
-              >Other groups, related to selected ones (with overlapping commits range)</span
+              >Other groups, related to requested ones (with overlapping commits range)</span
             >
             <span class="separator-line"></span>
           </div>
@@ -443,7 +456,7 @@ export class AnomaliesTableSk extends ElementSk {
       </tr>
     `;
 
-    return [...renderedSelected, [separatorRow], ...renderedUnselected];
+    return [...renderedRequested, [separatorRow], ...renderedOthers];
   }
 
   private findGroupForAnomaly(anomaly: Anomaly): AnomalyGroup | null {
@@ -577,7 +590,6 @@ export class AnomaliesTableSk extends ElementSk {
               ><input
                 type="checkbox"
                 @change=${(e: Event) => {
-                  this.show_selected_groups_first = false;
                   this.anomalyChecked(e.target as HTMLInputElement, anomaly, anomalyGroup);
                 }}
                 ?checked=${this.checkedAnomaliesSet.has(anomaly)}
@@ -662,6 +674,16 @@ export class AnomaliesTableSk extends ElementSk {
       return html``; // Handle empty group
     }
 
+    const selectedCount = anomalyGroup.anomalies.filter((a) =>
+      this.checkedAnomaliesSet.has(a)
+    ).length;
+    const totalCount = anomalyGroup.anomalies.length;
+
+    // It is checked ONLY if ALL are selected
+    const isChecked = totalCount > 0 && selectedCount === totalCount;
+    // It is indeterminate if SOME (but not all) are selected
+    const isIndeterminate = selectedCount > 0 && selectedCount < totalCount;
+
     const [deltaValue, isSummaryRegression] = this._determineSummaryDelta(anomalyGroup);
     const summaryClass = isSummaryRegression ? 'regression' : 'improvement';
 
@@ -713,12 +735,10 @@ export class AnomaliesTableSk extends ElementSk {
             <input
               type="checkbox"
               @change="${() => {
-                this.show_selected_groups_first = false;
-                // If the summary row checkbox gets checked and the
-                // group is not expanded, check all children anomalies.
                 this.toggleChildrenCheckboxes(anomalyGroup);
               }}"
-              ?checked=${this.isGroupSelected(anomalyGroup)}
+              .checked=${isChecked}
+              .indeterminate=${isIndeterminate}
               id="anomaly-row-${this.uniqueId}-${this.getGroupId(anomalyGroup)}" />
           </label>
         </td>
@@ -832,6 +852,8 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   async populateTable(anomalyList: Anomaly[]): Promise<void> {
+    this.initiallyRequestedAnomalyIDs.clear();
+    this.checkedAnomaliesSet.clear();
     const msg = this.querySelector(`#clear-msg-${this.uniqueId}`) as HTMLHeadingElement;
     const table = this.querySelector(`#anomalies-table-${this.uniqueId}`) as HTMLTableElement;
     if (anomalyList.length > 0) {
@@ -851,8 +873,11 @@ export class AnomaliesTableSk extends ElementSk {
    * @param anomalyList
    */
   checkSelectedAnomalies(anomalyList: Anomaly[]): void {
-    anomalyList.forEach((anomaly) => {
-      this.checkAnomaly(anomaly);
+    this.initiallyRequestedAnomalyIDs = new Set<string>(anomalyList.map((a) => a.id));
+    this.anomalyList.forEach((anomaly) => {
+      if (this.initiallyRequestedAnomalyIDs.has(anomaly.id)) {
+        this.checkedAnomaliesSet.add(anomaly);
+      }
     });
 
     this._render();
@@ -882,8 +907,10 @@ export class AnomaliesTableSk extends ElementSk {
     anomalyGroup.anomalies.forEach((anomaly) => {
       const checkbox = this.querySelector<HTMLInputElement>(
         `input[id="anomaly-row-${this.uniqueId}-${anomaly.id}"]`
-      ) as HTMLInputElement;
-      checkbox.checked = checked;
+      );
+      if (checkbox) {
+        checkbox.checked = checked;
+      }
       if (checked) {
         this.checkedAnomaliesSet.add(anomaly);
       } else {
@@ -1081,15 +1108,15 @@ export class AnomaliesTableSk extends ElementSk {
       .join('-')}`;
   }
 
-  get show_selected_groups_first(): boolean {
-    return this.hasAttribute('show_selected_groups_first');
+  get show_requested_groups_first(): boolean {
+    return this.hasAttribute('show_requested_groups_first');
   }
 
-  set show_selected_groups_first(val: boolean) {
+  set show_requested_groups_first(val: boolean) {
     if (val) {
-      this.setAttribute('show_selected_groups_first', '');
+      this.setAttribute('show_requested_groups_first', '');
     } else {
-      this.removeAttribute('show_selected_groups_first');
+      this.removeAttribute('show_requested_groups_first');
     }
   }
 }

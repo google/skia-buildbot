@@ -114,6 +114,15 @@ anomalies-table-sk {
   .child-expanded-row > td:first-child {
     background-color: var(--background);
   }
+
+  tr:has(input[type='checkbox']:checked) > td,
+  .child-expanded-row:has(input[type='checkbox']:checked) > td:not(:first-child) {
+    background-color: rgba(63, 81, 181, 0.1);
+  }
+  .child-expanded-row:has(input[type='checkbox']:checked) > td:first-child {
+    background-color: var(--background);
+  }
+
   .popup-container {
     position: relative;
   }
@@ -143,7 +152,7 @@ anomalies-table-sk {
   .separator-line {
     flex-grow: 1;
     height: 1px;
-    background-color: var(--surface-3dp);
+    background-color: var(--surface-1dp);
     margin: 0 10px;
   }
 
@@ -153,12 +162,12 @@ anomalies-table-sk {
     white-space: nowrap;
   }
 
-  .unselected-group {
+  .other-group {
     opacity: 0.65;
     transition: opacity 0.2s ease-in-out;
   }
 
-  .unselected-group:hover {
+  .other-group:hover {
     opacity: 1;
   }
 }

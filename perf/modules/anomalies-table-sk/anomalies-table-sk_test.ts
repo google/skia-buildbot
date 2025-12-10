@@ -512,15 +512,27 @@ describe('anomalies-table-sk', () => {
   });
 
   describe('check selected anomalies', () => {
-    it('checks the checkboxes for the given anomalies', async () => {
-      const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
+    it('checks the checkboxes for the given anomalies correctly using ID matching', async () => {
+      // Create two separate objects with the same ID to ensure we are matching by ID
+      // and not by object reference, which was the cause of the original bug.
+      const originalAnomaly = dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test');
+      const anomalyRequest = dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test');
+
       // Mock shortcut update call to prevent console errors in test
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
-      await element.populateTable(anomalies);
-      await element.checkSelectedAnomalies(anomalies);
+      await element.populateTable([originalAnomaly]);
+
+      // Pass the *duplicate* object, which should trigger a selection on the *original* object
+      await element.checkSelectedAnomalies([anomalyRequest]);
       await fetchMock.flush(true);
+
       const checkbox = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
       assert.isTrue(checkbox.checked);
+
+      // Verify internal state matches the original object, not the requested copy
+      const checkedSet = element.getCheckedAnomalies();
+      assert.equal(checkedSet.length, 1);
+      assert.strictEqual(checkedSet[0], originalAnomaly);
     });
   });
 
@@ -567,6 +579,82 @@ describe('anomalies-table-sk', () => {
       const checkbox2 = element.querySelector('[id^="anomaly-row-"][id$="-2"]') as HTMLInputElement;
       assert.isTrue(checkbox1.checked);
       assert.isTrue(checkbox2.checked);
+    });
+  });
+
+  describe('checkbox visual states (checked/indeterminate)', () => {
+    it('sets group checkbox to INDETERMINATE when partially selected', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 0, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
+      ];
+      await element.populateTable(anomalies);
+
+      // Select only one anomaly (id: 1)
+      await element.checkSelectedAnomalies([anomalies[0]]);
+
+      const group = element.anomalyGroups[0];
+      const summaryCheckboxId = element.getGroupId(group);
+      const groupCheckbox = element.querySelector(
+        `input[id^="anomaly-row-"][id$="-${summaryCheckboxId}"]`
+      ) as HTMLInputElement;
+
+      // Group should be Indeterminate, NOT Checked
+      assert.isTrue(groupCheckbox.indeterminate, 'Group checkbox should be indeterminate');
+      assert.isFalse(groupCheckbox.checked, 'Group checkbox should not be fully checked');
+    });
+
+    it('sets group checkbox to CHECKED when all children selected', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 0, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
+      ];
+      await element.populateTable(anomalies);
+
+      // Select ALL anomalies
+      await element.checkSelectedAnomalies(anomalies);
+
+      const group = element.anomalyGroups[0];
+      const summaryCheckboxId = element.getGroupId(group);
+      const groupCheckbox = element.querySelector(
+        `input[id^="anomaly-row-"][id$="-${summaryCheckboxId}"]`
+      ) as HTMLInputElement;
+
+      // Group should be Checked, NOT Indeterminate
+      assert.isFalse(groupCheckbox.indeterminate, 'Group checkbox should not be indeterminate');
+      assert.isTrue(groupCheckbox.checked, 'Group checkbox should be fully checked');
+    });
+
+    it('sets header checkbox to INDETERMINATE when partially selected', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 0, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
+      ];
+      await element.populateTable(anomalies);
+
+      // Select only one anomaly
+      await element.checkSelectedAnomalies([anomalies[0]]);
+
+      const headerCheckbox = element.querySelector('[id^="header-checkbox-"]') as HTMLInputElement;
+
+      assert.isTrue(headerCheckbox.indeterminate, 'Header checkbox should be indeterminate');
+      assert.isFalse(headerCheckbox.checked, 'Header checkbox should not be fully checked');
+    });
+
+    it('sets header checkbox to CHECKED when all selected', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 0, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
+      ];
+      await element.populateTable(anomalies);
+
+      // Select all anomalies
+      await element.checkSelectedAnomalies(anomalies);
+
+      const headerCheckbox = element.querySelector('[id^="header-checkbox-"]') as HTMLInputElement;
+
+      assert.isFalse(headerCheckbox.indeterminate, 'Header checkbox should not be indeterminate');
+      assert.isTrue(headerCheckbox.checked, 'Header checkbox should be fully checked');
     });
   });
 
