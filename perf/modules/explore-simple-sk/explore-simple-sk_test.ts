@@ -1192,3 +1192,82 @@ describe('Keyboard Shortcuts', () => {
     assert.isTrue(tooltip.openExistingBug.calledOnce, 'e key should trigger openExistingBug');
   });
 });
+
+describe('Even X-Axis Spacing toggle', () => {
+  let explore: ExploreSimpleSk;
+  let switchEl: MdSwitch;
+  let eventSpy: sinon.SinonSpy;
+  let setUseDiscreteAxisSpy: sinon.SinonSpy;
+
+  beforeEach(async () => {
+    fetchMock.get(/.*\/_\/initpage\/.*/, {
+      dataframe: { paramset: {} },
+    });
+    fetchMock.get('/_/login/status', {
+      email: 'someone@example.org',
+      roles: ['editor'],
+    });
+    setUseDiscreteAxisSpy = sinon.spy(ExploreSimpleSk.prototype, 'setUseDiscreteAxis');
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await waitForRender(explore);
+    const settingsDialog = explore.querySelector('#settings-dialog') as MdDialog;
+    switchEl = settingsDialog.querySelector('#even-x-axis-spacing-switch') as MdSwitch;
+    eventSpy = sinon.spy();
+    explore.addEventListener('even-x-axis-spacing-changed', eventSpy);
+  });
+
+  afterEach(() => {
+    setUseDiscreteAxisSpy.restore();
+  });
+
+  it('should have the switch element', () => {
+    assert.exists(switchEl);
+  });
+
+  it('should be unchecked by default', () => {
+    assert.isFalse(switchEl.selected);
+    assert.isFalse(explore.state.evenXAxisSpacing);
+  });
+
+  it('should update state and fire event when toggled on', async () => {
+    switchEl.selected = true;
+    switchEl.dispatchEvent(new Event('change'));
+
+    await waitForRender(explore);
+
+    assert.isTrue(explore.state.evenXAxisSpacing);
+    assert.isTrue(setUseDiscreteAxisSpy.calledOnceWith(true));
+    assert.isTrue(eventSpy.calledOnce);
+
+    const event = eventSpy.firstCall.args[0];
+
+    assert.equal(event.type, 'even-x-axis-spacing-changed');
+    assert.deepEqual(event.detail, { value: true, graph_index: 0 });
+  });
+
+  it('should update state and fire event when toggled off', async () => {
+    // Turn it on first
+
+    switchEl.selected = true;
+    switchEl.dispatchEvent(new Event('change'));
+
+    await waitForRender(explore);
+
+    eventSpy.resetHistory();
+
+    // Turn it off
+    switchEl.selected = false;
+    switchEl.dispatchEvent(new Event('change'));
+
+    await waitForRender(explore);
+
+    assert.isFalse(explore.state.evenXAxisSpacing);
+    assert.isTrue(setUseDiscreteAxisSpy.lastCall.calledWith(false));
+    assert.isTrue(eventSpy.calledOnce);
+
+    const event = eventSpy.firstCall.args[0];
+
+    assert.equal(event.type, 'even-x-axis-spacing-changed');
+    assert.deepEqual(event.detail, { value: false, graph_index: 0 });
+  });
+});

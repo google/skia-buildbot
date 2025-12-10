@@ -570,6 +570,47 @@ describe('ExploreMultiSk', () => {
     });
   });
 
+  describe('Even X-Axis Spacing Sync', () => {
+    beforeEach(async () => {
+      await setupElement();
+      // Add a couple of graphs for testing sync
+      element['addEmptyGraph']();
+      element['addEmptyGraph']();
+      element['exploreElements'][0].state.graph_index = 0;
+      element['exploreElements'][1].state.graph_index = 1;
+      // Add to DOM for event propagation
+      element['graphDiv']!.appendChild(element['exploreElements'][0]);
+      element['graphDiv']!.appendChild(element['exploreElements'][1]);
+    });
+
+    it('syncs enableDiscrete state to other graphs', async () => {
+      const graph1 = element['exploreElements'][0];
+      const graph2 = element['exploreElements'][1];
+
+      const spy1 = sinon.spy(graph1, 'setUseDiscreteAxis');
+      const spy2 = sinon.spy(graph2, 'setUseDiscreteAxis');
+
+      // Simulate event from graph1
+      const event = new CustomEvent('even-x-axis-spacing-changed', {
+        detail: { value: true, graph_index: 0 },
+        bubbles: true,
+      });
+      graph1.dispatchEvent(event);
+
+      assert.isTrue(element.state.evenXAxisSpacing, 'MultiSk state should be updated');
+      assert.isTrue(spy1.notCalled, 'Source graph setUseDiscreteAxis should not be called by sync');
+      assert.isTrue(spy2.calledOnceWith(true), 'Target graph setUseDiscreteAxis should be called');
+      assert.isTrue(graph2.state.evenXAxisSpacing, 'Target graph state should be updated');
+    });
+
+    it('initializes new graphs with the current enableDiscrete state', () => {
+      element.state.evenXAxisSpacing = true;
+      const newGraph = element['addEmptyGraph']()!;
+      element['addStateToExplore'](newGraph, new GraphConfig(), false);
+      assert.isTrue(newGraph.state.evenXAxisSpacing);
+    });
+  });
+
   describe('Pagination', () => {
     beforeEach(async () => {
       await setupElement();
@@ -659,6 +700,7 @@ describe('ExploreMultiSk', () => {
         horizontal_zoom: false,
         graph_index: 0,
         doNotQueryData: false,
+        evenXAxisSpacing: false,
       };
 
       element['addStateToExplore'](simpleSk, new GraphConfig(), false);

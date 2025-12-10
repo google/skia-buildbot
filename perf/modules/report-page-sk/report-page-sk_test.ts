@@ -25,12 +25,7 @@ describe('ReportPageSk', () => {
   };
 
   let element: ReportPageSk;
-  const mockExploreInstances: (HTMLElement & {
-    extendRange: sinon.SinonSpy;
-    updateChartHeight: sinon.SinonSpy;
-    updateSelectedRangeWithPlotSummary: sinon.SinonSpy;
-    state: object;
-  })[] = [];
+  const mockExploreInstances: any[] = [];
 
   // Helper to create a mock Anomaly.
   const createMockAnomaly = (id: number): Anomaly => ({
@@ -128,6 +123,8 @@ describe('ReportPageSk', () => {
       mockInstance.state = {};
       mockInstance.extendRange = sinon.spy(() => Promise.resolve());
       mockInstance.updateSelectedRangeWithPlotSummary = sinon.spy();
+      mockInstance.setUseDiscreteAxis = sinon.spy();
+      mockInstance.render = sinon.spy();
       mockExploreInstances.push(mockInstance);
       return mockInstance;
     };
@@ -375,6 +372,83 @@ describe('ReportPageSk', () => {
       assert.strictEqual(element['anomalyTracker'].getSelectedAnomalies().length, anomalies.length);
 
       window.history.replaceState({}, '', originalSearch);
+    });
+  });
+
+  describe('Even X-Axis Spacing Synchronization', () => {
+    beforeEach(async () => {
+      // Setup with a few mock graphs
+      const anomalies = Array.from({ length: 3 }, (_, i) => createMockAnomaly(i));
+      const timerangeMap = anomalies.reduce(
+        (acc, anom) => {
+          acc[anom.id] = createMockTimerange();
+          return acc;
+        },
+        {} as { [key: string]: Timerange }
+      );
+
+      fetchMock.post('/_/anomalies/group_report', {
+        anomaly_list: anomalies,
+        timerange_map: timerangeMap,
+        selected_keys: anomalies.map((a) => a.id),
+      });
+
+      const connectedCallbackPromise = element.connectedCallback();
+      await fetchMock.flush(true);
+
+      // Wait for all graphs to be appended
+      const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
+      await waitUntil(() => graphContainer.children.length === anomalies.length);
+
+      // Simulate data-loaded for all graphs
+      mockExploreInstances.forEach((instance) =>
+        instance.dispatchEvent(new CustomEvent('data-loaded'))
+      );
+      await connectedCallbackPromise;
+    });
+
+    it('syncs evenXAxisSpacing state to other graphs when event is received', async () => {
+      const graph1 = mockExploreInstances[0];
+      const graph2 = mockExploreInstances[1];
+      const graph3 = mockExploreInstances[2];
+
+      // Add setUseDiscreteAxis spies to the mock instances
+      mockExploreInstances.forEach((instance) => {
+        instance.setUseDiscreteAxis = sinon.spy();
+      });
+
+      // Simulate event from graph1
+      const event = new CustomEvent('even-x-axis-spacing-changed', {
+        detail: { value: true, graph_index: 0 },
+        bubbles: true,
+      });
+      graph1.dispatchEvent(event);
+
+      // Check that setUseDiscreteAxis was called on the other graphs
+      assert.isTrue(graph2.setUseDiscreteAxis.calledOnceWith(true), 'graph2 should be updated');
+      assert.isTrue(graph3.setUseDiscreteAxis.calledOnceWith(true), 'graph3 should be updated');
+
+      // The graph originating the event should not have its method called by the handler
+      assert.isTrue(graph1.setUseDiscreteAxis.notCalled, 'graph1 should not be updated by handler');
+    });
+
+    it('does not sync to the source graph', async () => {
+      const graph1 = mockExploreInstances[0];
+      const graph2 = mockExploreInstances[1];
+
+      mockExploreInstances.forEach((instance) => {
+        instance.setUseDiscreteAxis = sinon.spy();
+      });
+
+      // Simulate event from graph2
+      const event = new CustomEvent('even-x-axis-spacing-changed', {
+        detail: { value: false, graph_index: 1 },
+        bubbles: true,
+      });
+      graph2.dispatchEvent(event);
+
+      assert.isTrue(graph1.setUseDiscreteAxis.calledOnceWith(false), 'graph1 should be updated');
+      assert.isTrue(graph2.setUseDiscreteAxis.notCalled, 'graph2 should not be updated by handler');
     });
   });
 });

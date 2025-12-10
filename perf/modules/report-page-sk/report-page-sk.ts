@@ -159,6 +159,7 @@ export class ReportPageSk extends ElementSk {
       @x-axis-toggled=${ele.syncXAxisLabel}
       @range-changing-in-multi=${ele.syncExtendRangeOnSummaryBar}
       @selection-changing-in-multi=${ele.syncChartSelection}
+      @even-x-axis-spacing-changed=${ele.syncEvenXAxisSpacing}
       @open-anomaly-chart=${(e: CustomEvent<Anomaly>) =>
         ele.anomaliesTable!.openAnomalyChartListener(e)}></div>
   `;
@@ -476,6 +477,21 @@ export class ReportPageSk extends ElementSk {
     const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
     graphs.forEach((graph) => {
       (graph as ExploreSimpleSk).switchXAxis(e.detail);
+    });
+  }
+
+  // This ensures that all charts use the same x-axis type (continuous or discrete).
+  private syncEvenXAxisSpacing(e: CustomEvent): void {
+    const newValue = e.detail.value;
+    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
+    graphs.forEach((graphNode) => {
+      const graph = graphNode as ExploreSimpleSk;
+      // Skip graph that sent the event.
+      if (graph.state.graph_index !== e.detail.graph_index) {
+        graph.state.evenXAxisSpacing = newValue;
+        graph.setUseDiscreteAxis(newValue);
+        graph.render();
+      }
     });
   }
 

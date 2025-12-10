@@ -110,6 +110,9 @@ export class State {
   dayRange: number = -1;
 
   dateAxis: boolean = false;
+
+  // boolean indicating if the chart should space x-axis points evenly, treating them as categories.
+  evenXAxisSpacing: boolean = false;
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -733,7 +736,8 @@ export class ExploreMultiSk extends ElementSk {
         id="graphContainer"
         @x-axis-toggled=${ele.syncXAxisLabel}
         @range-changing-in-multi=${ele.syncRange}
-        @selection-changing-in-multi=${ele.syncChartSelection}></div>
+        @selection-changing-in-multi=${ele.syncChartSelection}
+        @even-x-axis-spacing-changed=${ele.syncEvenXAxisSpacing}></div>
       <pagination-sk
         offset=${ele.state.pageOffset}
         page_size=${ele.state.pageSize}
@@ -1339,6 +1343,25 @@ export class ExploreMultiSk extends ElementSk {
     });
   }
 
+  private syncEvenXAxisSpacing(e: CustomEvent): void {
+    const newValue = e.detail.value;
+    if (this.state.evenXAxisSpacing === newValue) {
+      return;
+    }
+    this.state.evenXAxisSpacing = newValue;
+    this.exploreElements.forEach((graph) => {
+      // Skip graph that sent the event.
+      if (graph.state.graph_index !== e.detail.graph_index) {
+        graph.state.evenXAxisSpacing = newValue;
+        graph.setUseDiscreteAxis(newValue);
+        graph.render();
+      }
+    });
+    if (this.stateHasChanged) {
+      this.stateHasChanged();
+    }
+  }
+
   private addStateToExplore(
     explore: ExploreSimpleSk,
     graphConfig: GraphConfig,
@@ -1375,6 +1398,7 @@ export class ExploreMultiSk extends ElementSk {
       hide_paramset: true,
       graph_index: index,
       doNotQueryData: doNotQueryData,
+      evenXAxisSpacing: this.state.evenXAxisSpacing,
     };
     explore.state = newState;
   }

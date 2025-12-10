@@ -364,6 +364,9 @@ export class State {
 
   // boolean indicating if the element should disable querying of data from backend.
   doNotQueryData: boolean = false;
+
+  // boolean indicating if the chart should space x-axis points evenly, treating them as categories.
+  evenXAxisSpacing: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -747,6 +750,17 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
                 Switch Zoom Direction
               </label>
             </li>
+            <li>
+              <label>
+                <md-switch
+                  form="form"
+                  id="even-x-axis-spacing-switch"
+                  ?selected="${ele._state.evenXAxisSpacing}"
+                  @change=${(e: InputEvent) =>
+                    ele.switchEvenXAxisSpacing(e.target as MdSwitch)}></md-switch>
+                Even X-Axis Spacing
+              </label>
+            </li>
           </ul>
         </div>
       </md-dialog>
@@ -758,6 +772,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
           .domain=${ele._state.domain}
           ${ref(ele.googleChartPlot)}
           .highlightAnomalies=${ele._state.highlight_anomalies}
+          .useDiscreteAxis=${ele._state.evenXAxisSpacing}
           @plot-data-select=${ele.onChartSelect}
           @plot-data-mouseover=${ele.onChartOver}
           @plot-data-mousedown=${ele.onChartMouseDown}
@@ -1576,6 +1591,26 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       key: this.state.horizontal_zoom,
     };
     this.dispatchEvent(new CustomEvent('switch-zoom', { detail: detail, bubbles: true }));
+  }
+
+  private switchEvenXAxisSpacing(target: MdSwitch | null) {
+    if (!target) return;
+    this._state.evenXAxisSpacing = target.selected;
+    this.setUseDiscreteAxis(this._state.evenXAxisSpacing);
+    this.render();
+    this.dispatchEvent(
+      new CustomEvent('even-x-axis-spacing-changed', {
+        detail: { value: this._state.evenXAxisSpacing, graph_index: this._state.graph_index },
+        bubbles: true,
+      })
+    );
+    this._stateHasChanged();
+  }
+
+  public setUseDiscreteAxis(value: boolean) {
+    if (this.googleChartPlot.value) {
+      this.googleChartPlot.value.useDiscreteAxis = value;
+    }
   }
 
   private closeQueryDialog(): void {

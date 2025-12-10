@@ -280,12 +280,6 @@ export class PlotGoogleChartSk extends LitElement {
   constructor() {
     super();
     this.addEventListeners();
-    // TODO(eduardoyap): Adding this for test purposes. Should be added as a toggle once
-    // the feature is verified.
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('enable_discrete') === 'true') {
-      this.useDiscreteAxis = true;
-    }
   }
 
   connectedCallback(): void {
