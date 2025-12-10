@@ -33,14 +33,6 @@ rbe_exec_properties(
     name = "exec_properties",
 )
 
-#############################################################
-# Google Cloud SDK (needed for the Google Cloud Emulators). #
-#############################################################
-
-load("//bazel/external:google_cloud_sdk.bzl", "google_cloud_sdk")
-
-google_cloud_sdk(name = "google_cloud_sdk")
-
 # #################################################################################
 # # Google Chrome and Fonts (needed for Karma and Puppeteer tests, respectively). #
 # #################################################################################

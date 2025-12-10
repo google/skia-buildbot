@@ -18,7 +18,7 @@ func FindGcloud() (string, error) {
 		return exec.LookPath("gcloud")
 	}
 	if runtime.GOOS == "linux" {
-		return filepath.Join(bazel.RunfilesDir(), "external", "google_cloud_sdk", "google-cloud-sdk", "bin", "gcloud"), nil
+		return filepath.Join(bazel.RunfilesDir(), "external", "_main~google_cloud_sdk~google_cloud_sdk", "google-cloud-sdk", "bin", "gcloud"), nil
 	}
 	return "", skerr.Fmt("unsupported runtime.GOOS: %q", runtime.GOOS)
 }

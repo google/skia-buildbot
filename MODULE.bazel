@@ -642,3 +642,11 @@ http_file(
     sha256 = "1206e8a79b41cb22524f73afa4f4ee648478f46ef6990d78e7cc953665a1db89",
     url = "https://github.com/bazelbuild/bazel-toolchains/releases/download/v5.1.2/rbe_configs_gen_linux_amd64",
 )
+
+####################################################################################################
+# Google Cloud SDK (needed for the Google Cloud Emulators).
+####################################################################################################
+
+google_cloud_sdk = use_extension("//bazel/external:google_cloud_sdk.bzl", "google_cloud_sdk")
+google_cloud_sdk.download(name = "google_cloud_sdk")
+use_repo(google_cloud_sdk, "google_cloud_sdk")

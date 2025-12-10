@@ -87,7 +87,7 @@ filegroup(
     )
     fail_if_nonzero_status(exec_result, "Failed to install Cloud Emulators.")
 
-google_cloud_sdk = repository_rule(
+_google_cloud_sdk = repository_rule(
     implementation = _google_cloud_sdk_impl,
     attrs = {
         "quiet": attr.bool(
@@ -101,4 +101,21 @@ This rule hermetically downloads the Google Cloud SDK, then installs the Cloud E
 `gcloud components install ...` command, which is not guaranteed to always download the emulators
 at the same exact revision. Therefore, this rule cannot be considered to be fully hermetic.
 """,
+)
+
+_download = tag_class(attrs = {
+    "name": attr.string(mandatory = True),
+})
+
+def _gcloud_sdk_impl(ctx):
+    for module in ctx.modules:
+        for tag in module.tags.download:
+            _google_cloud_sdk(name = tag.name)
+
+google_cloud_sdk = module_extension(
+    doc = "Bzlmod extension used to download the Google Cloud SDK and emulators.",
+    implementation = _gcloud_sdk_impl,
+    tag_classes = {
+        "download": _download,
+    },
 )

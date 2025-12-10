@@ -529,6 +529,23 @@
         ]
       }
     },
+    "//bazel/external:google_cloud_sdk.bzl%google_cloud_sdk": {
+      "general": {
+        "bzlTransitiveDigest": "gs49vO1ZJ4cpUNwWnL65KWdtKd9E0NcJqih5wyOlU08=",
+        "usagesDigest": "9MA/RD+AuBZxRa3FZsL9YI6N3pLxW8HcUqXD3DVpHvY=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "google_cloud_sdk": {
+            "bzlFile": "@@//bazel/external:google_cloud_sdk.bzl",
+            "ruleClassName": "_google_cloud_sdk",
+            "attributes": {}
+          }
+        },
+        "recordedRepoMappingEntries": []
+      }
+    },
     "@@aspect_rules_esbuild~//esbuild:extensions.bzl%esbuild": {
       "general": {
         "bzlTransitiveDigest": "+aIYaFYUljeMoi6CCcA8uQQ5jkf4AYNyxgg6wU3l9mQ=",
