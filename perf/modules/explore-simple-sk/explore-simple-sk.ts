@@ -2737,7 +2737,7 @@ export class ExploreSimpleSk extends ElementSk {
           errorMessage('Failed to find any matching traces.');
           return;
         }
-        return this.UpdateWithFrameResponse(json, body, switchToTab);
+        return this.UpdateWithFrameResponse(json, body, switchToTab, null, true, true);
       })
       .catch(() => {
         errorMessage('Failed to find any matching traces.');
@@ -2755,7 +2755,8 @@ export class ExploreSimpleSk extends ElementSk {
     frameRequest: FrameRequest | null,
     switchToTab: boolean,
     selectedRange: range | null = null,
-    extendRange: boolean = true
+    extendRange: boolean = true,
+    replaceAnomalies: boolean = false
   ): Promise<void> {
     this.render();
     if (
@@ -2773,7 +2774,8 @@ export class ExploreSimpleSk extends ElementSk {
     await this.dfRepo.value?.resetWithDataframeAndRequest(
       frameResponse.dataframe!,
       frameResponse.anomalymap,
-      frameRequest!
+      frameRequest!,
+      replaceAnomalies
     );
     // Code previously in .then() now runs after await.
     const loadingMore: Promise<void> = this.addTraces(
@@ -3099,7 +3101,8 @@ export class ExploreSimpleSk extends ElementSk {
             body,
             /*switchToTab=*/ true,
             this.getSelectedRange(),
-            loadExtendedRange
+            loadExtendedRange,
+            true
           );
         });
       } else {

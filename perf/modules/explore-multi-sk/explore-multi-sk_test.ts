@@ -7,9 +7,9 @@ import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { setUpExploreDemoEnv } from '../common/test-util';
 import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
-import { CommitNumber, TimestampSeconds } from '../json';
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 import * as loader from '@google-web-components/google-chart/loader';
+import { Anomaly, CommitNumber, TimestampSeconds } from '../json';
 
 describe('ExploreMultiSk', () => {
   let element: ExploreMultiSk;
@@ -74,23 +74,140 @@ describe('ExploreMultiSk', () => {
       fetchMock.get('/_/Params/', paramsMock);
     }
 
-    // Mock the data fetch that new graphs will trigger.
-    fetchMock.post('/_/frame/v2', {
-      dataframe: {
-        traceset: { ',config=test,': [1, 2, 3] },
-        header: [],
-        paramset: { config: ['test'] },
+    const anomaly: Anomaly = {
+      id: '123',
+      test_path: '',
+      bug_id: 123,
+      start_revision: 101,
+      end_revision: 101,
+      is_improvement: false,
+      recovered: false,
+      state: 'regression',
+      statistic: 'avg',
+      units: 'ms',
+      degrees_of_freedom: 0,
+      median_before_anomaly: 0,
+      median_after_anomaly: 0,
+      p_value: 0,
+      segment_size_after: 0,
+      segment_size_before: 0,
+      std_dev_before_anomaly: 0,
+      t_statistic: 0,
+      subscription_name: '',
+      bug_component: '',
+      bug_labels: [],
+      bug_cc_emails: [],
+      bisect_ids: [],
+    };
+    fetchMock.post('/_/fe_telemetry', {});
+    fetchMock.post('/_/keys/', { id: 'test-key-id' });
+    fetchMock.post('/_/frame/start', {
+      status: 'Finished',
+      messages: [],
+      url: '',
+      results: {
+        dataframe: {
+          traceset: {
+            ',arch=x86,config=test,os=linux,': [1, 2, 3],
+            ',arch=x86,config=test,os=android,': [4, 5, 6],
+          },
+          header: [
+            { offset: 100, timestamp: 1000, hash: 'a', author: 'me', message: 'm', url: '' },
+            { offset: 101, timestamp: 1001, hash: 'b', author: 'me', message: 'm', url: '' },
+            { offset: 102, timestamp: 1002, hash: 'c', author: 'me', message: 'm', url: '' },
+          ] as any,
+          paramset: { config: ['test'], arch: ['x86'], os: ['linux', 'android'] },
+        },
+        anomalymap: {
+          ',arch=x86,config=test,os=linux,': {
+            101: anomaly,
+          },
+          ',arch=x86,config=test,os=android,': {
+            101: anomaly,
+          },
+        },
       },
     });
 
-    element = setUpElementUnderTest<ExploreMultiSk>('explore-multi-sk')();
-    // Wait for connectedCallback to finish, including initializeDefaults
+    element = document.createElement('explore-multi-sk') as ExploreMultiSk;
+    document.body.appendChild(element);
     await fetchMock.flush(true);
+    // Allow for connectedCallback and stateReflector to process
+    await new Promise((resolve) => setTimeout(resolve, 0));
   };
 
   afterEach(() => {
     fetchMock.restore();
     sinon.restore();
+  });
+
+  describe('Anomaly management', () => {
+    beforeEach(async () => {
+      await setupElement({
+        default_param_selections: {},
+        default_url_values: {
+          useTestPicker: 'true',
+        },
+        include_params: ['config', 'os'],
+      });
+      await element['initializeTestPicker']();
+    });
+
+    it('removes anomalies and traces when remove-trace event is received', async function () {
+      this.timeout(5000); // Increase timeout for this test
+      const RENDER_AWAIT_MS = 2000;
+
+      const androidTrace = ',arch=x86,config=test,os=android,';
+      const linuxTrace = ',arch=x86,config=test,os=linux,';
+
+      // plot graph
+      const event = new CustomEvent('add-to-graph', {
+        detail: { query: 'config=test' },
+        bubbles: true,
+      });
+      element.dispatchEvent(event);
+      await element['exploreElements'][0].requestComplete;
+
+      assert.equal(element['exploreElements'].length, 1);
+
+      const graph = element['exploreElements'][0];
+      // spy on UpdateWithFrameResponse to ensure replaceAnomalies is called
+      const updateFrameSpy = sinon.spy(graph, 'UpdateWithFrameResponse');
+
+      // traces and anomalies are on the chart
+      await new Promise((resolve) => setTimeout(resolve, RENDER_AWAIT_MS));
+      const plot = element.querySelector('plot-google-chart-sk') as any;
+      const traceset = graph.getTraceset()!;
+      assert.isDefined(traceset[androidTrace], 'Android trace should be present');
+      assert.isDefined(plot.anomalyMap[androidTrace], 'Android anomaly should be present');
+      assert.isDefined(traceset[linuxTrace], 'Linux trace should be present');
+      assert.isDefined(plot.anomalyMap[linuxTrace], 'Linux anomaly should be present');
+
+      // Remove os=android
+      const removeEvent = new CustomEvent('remove-trace', {
+        detail: {
+          param: 'os',
+          value: ['android'],
+          query: ['config=test'],
+        },
+        bubbles: true,
+      });
+      element.dispatchEvent(removeEvent);
+
+      await new Promise((resolve) => setTimeout(resolve, RENDER_AWAIT_MS));
+      await fetchMock.flush(true);
+      await plot.updateComplete;
+
+      // Check that android trace is gone
+      assert.isDefined(traceset[linuxTrace], 'Linux trace should remain');
+      assert.isDefined(plot.anomalyMap[linuxTrace], 'Linux anomaly should stay');
+      assert.isUndefined(traceset[androidTrace], 'Android trace should be removed');
+      assert.isUndefined(plot.anomalyMap[androidTrace], 'Android anomaly should be removed');
+
+      // Check that replaceAnomalies (6th arg) was true
+      assert.isTrue(updateFrameSpy.called);
+      assert.isTrue(updateFrameSpy.lastCall.args[5], 'replaceAnomalies should be true');
+    });
   });
 
   describe('State management', () => {

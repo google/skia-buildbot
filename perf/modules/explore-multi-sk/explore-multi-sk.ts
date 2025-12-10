@@ -572,7 +572,7 @@ export class ExploreMultiSk extends ElementSk {
           // Remove any queries that match queriesToRemove.
           elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
           // Only removeKeys and update Shortcut if queries were actually removed.
-          if (elem.state.queries.length !== queryCount) {
+          if (elem.state.queries.length !== queryCount || tracesToRemove.length > 0) {
             elem.removeKeys(tracesToRemove, true);
           }
         }
@@ -621,8 +621,10 @@ export class ExploreMultiSk extends ElementSk {
         return elem.UpdateWithFrameResponse(
           updatedResponse,
           updatedRequest,
-          true,
-          this.exploreElements[0].getSelectedRange()
+          /* switchToTab= */ true,
+          this.exploreElements[0].getSelectedRange(),
+          /* extendRange= */ true,
+          /* replaceAnomalies= */ true
         );
       }
       return Promise.resolve();
@@ -1045,8 +1047,10 @@ export class ExploreMultiSk extends ElementSk {
       this.exploreElements[i].UpdateWithFrameResponse(
         frameResponses[i],
         frameRequests[i],
-        false,
-        selectedRange
+        /* switchToTab= */ false,
+        selectedRange,
+        /* extendRange= */ true,
+        /* replaceAnomalies= */ false
       );
     }
     if (this.stateHasChanged) {
@@ -1271,8 +1275,10 @@ export class ExploreMultiSk extends ElementSk {
         (graph as ExploreSimpleSk).UpdateWithFrameResponse(
           frameResponse,
           frameRequest,
-          true,
-          selectedRange
+          /* switchToTab= */ true,
+          selectedRange,
+          /* extendRange= */ true,
+          /* replaceAnomalies= */ false
         );
         graph.dataLoading = false;
       }

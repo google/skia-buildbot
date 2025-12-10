@@ -415,12 +415,17 @@ export class DataFrameRepository extends LitElement {
   async resetWithDataframeAndRequest(
     dataframe: DataFrame,
     anomalies: AnomalyMap,
-    request: FrameRequest
+    request: FrameRequest,
+    replaceAnomalies: boolean = false
   ) {
     this._baseRequest = request;
     this._baseRequest.request_type = 0; // change to timestamp-based query.
 
-    this.anomaly = mergeAnomaly(this.anomaly, anomalies);
+    if (replaceAnomalies) {
+      this.anomaly = mergeAnomaly(null, anomalies);
+    } else {
+      this.anomaly = mergeAnomaly(this.anomaly, anomalies);
+    }
     this._header = dataframe.header || [];
     this._traceset = dataframe.traceset;
     this._traceMetadata = dataframe.traceMetadata;
