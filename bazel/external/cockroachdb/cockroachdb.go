@@ -18,7 +18,7 @@ func FindCockroach() (string, error) {
 		return exec.LookPath("cockroach")
 	}
 	if runtime.GOOS == "linux" {
-		return filepath.Join(bazel.RunfilesDir(), "external", "cockroachdb_linux", "cockroach"), nil
+		return filepath.Join(bazel.RunfilesDir(), "external", "_main~_repo_rules~cockroachdb_linux", "cockroach"), nil
 	}
 	return "", skerr.Fmt("unsupported runtime.GOOS: %q", runtime.GOOS)
 }

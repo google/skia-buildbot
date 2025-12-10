@@ -445,7 +445,7 @@
   "moduleExtensions": {
     "//bazel/external:cipd_install.bzl%cipd": {
       "general": {
-        "bzlTransitiveDigest": "iOQdTX1kPeFffAhMQyXEEBGwZtzzt1jcDL6rwnsaP98=",
+        "bzlTransitiveDigest": "/SahvrLBQonGHYQ53PA3mmp1Ii1kG+Y19wbfgGpyrP8=",
         "usagesDigest": "r4D+3oMsPEbdwqxvMqmwIgw6XcuaD2TAn/4HLtWoVMA=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
