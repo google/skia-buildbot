@@ -301,7 +301,7 @@ export class ClusterSummary2Sk extends ElementSk {
     this.triage = this.triage;
   }
 
-  private update() {
+  update() {
     const columnHeader = this.summary.step_point!;
     const detail: ClusterSummary2SkTriagedEventDetail = {
       columnHeader,
@@ -315,7 +315,7 @@ export class ClusterSummary2Sk extends ElementSk {
     );
   }
 
-  private openShortcut() {
+  openShortcut() {
     const detail: ClusterSummary2SkOpenKeysEventDetail = {
       shortcut: this.summary.shortcut,
       begin: this.frame!.dataframe!.header![0]!.timestamp,

@@ -1,0 +1,178 @@
+import './index';
+import { TriagePageSk } from './triage-page-sk';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { assert } from 'chai';
+import fetchMock from 'fetch-mock';
+import { ClusterSummary2Sk } from '../cluster-summary2-sk/cluster-summary2-sk';
+import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triage-status-sk';
+import { CommitNumber, ReadOnlyParamSet, TimestampSeconds, TraceSet } from '../json';
+
+describe('triage-page-sk', () => {
+  const newInstance = setUpElementUnderTest<TriagePageSk>('triage-page-sk');
+
+  let element: TriagePageSk;
+
+  beforeEach(() => {
+    element = newInstance((_) => {
+      // Mock fetch calls to avoid errors during connection
+      fetchMock.post('/_/reg/', {
+        header: [],
+        table: [],
+        categories: [],
+      });
+    });
+  });
+
+  afterEach(() => {
+    fetchMock.reset();
+  });
+
+  describe('keyboard shortcuts', () => {
+    let clusterSummary: ClusterSummary2Sk;
+    let dialog: HTMLDialogElement;
+
+    beforeEach(async () => {
+      // Simulate starting triage to open the dialog and render cluster-summary2-sk
+      dialog = element.querySelector('dialog')!;
+      const eventDetails: TriageStatusSkStartTriageEventDetails = {
+        alert: {
+          bug_uri_template: '',
+          algo: 'kmeans',
+          display_name: '',
+          interesting: 0,
+          owner: '',
+          query: '',
+          sparse: false,
+          state: 'ACTIVE',
+          step_up_only: false,
+          sub_name: '',
+          id_as_string: '123',
+          issue_tracker_component: '123' as any,
+          alert: '',
+          step: '',
+          direction: 'BOTH',
+          radius: 0,
+          k: 0,
+          group_by: '',
+          minimum_num: 0,
+          category: '',
+        },
+        cluster_type: 'low',
+        full_summary: {
+          frame: {
+            dataframe: {
+              traceset: {} as TraceSet,
+              header: [],
+              paramset: {} as ReadOnlyParamSet,
+              skip: 0,
+              traceMetadata: [],
+            },
+            skps: [],
+            msg: '',
+            display_mode: 'display_plot',
+            anomalymap: {},
+          },
+          summary: {
+            centroid: [],
+            shortcut: 'test_shortcut',
+            step_fit: {
+              least_squares: 0,
+              turning_point: 0,
+              step_size: 0,
+              regression: 0,
+              status: 'Low',
+            },
+            step_point: {
+              offset: CommitNumber(0),
+              timestamp: TimestampSeconds(0),
+              hash: '',
+              author: '',
+              message: '',
+              url: '',
+            },
+            num: 0,
+            ts: '',
+            param_summaries2: [],
+          },
+          triage: {
+            message: '',
+            status: 'untriaged',
+          },
+        },
+        triage: {
+          message: '',
+          status: 'untriaged',
+        },
+        element: element.querySelector('triage-status-sk')!,
+      };
+
+      // We need to trigger the triage_start method.
+      // Since it's private, we can dispatch the event it listens to,
+      // OR we can just manually set the state and call render if we could access it.
+      // But the event listener is on the table, which is in the template.
+      // Let's try calling the private method via 'any' cast or dispatching event on the table.
+      // The table has `@start-triage=${ele.triage_start}`.
+      // Call triage_start manually to ensure it runs
+      (element as any).triage_start(
+        new CustomEvent<TriageStatusSkStartTriageEventDetails>('start-triage', {
+          detail: eventDetails,
+          bubbles: true,
+        })
+      );
+
+      // Wait for render
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      clusterSummary = element.querySelector('cluster-summary2-sk')!;
+      assert.isNotNull(clusterSummary);
+      assert.isTrue(dialog.open);
+    });
+
+    it('sets status to positive on "p" key', () => {
+      let updateCalled = false;
+      clusterSummary.update = () => {
+        updateCalled = true;
+      };
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'p' }));
+
+      assert.equal(clusterSummary.triage.status, 'positive');
+      assert.isTrue(updateCalled);
+    });
+
+    it('sets status to negative on "n" key', () => {
+      let updateCalled = false;
+      clusterSummary.update = () => {
+        updateCalled = true;
+      };
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'n' }));
+
+      assert.equal(clusterSummary.triage.status, 'negative');
+      assert.isTrue(updateCalled);
+    });
+
+    it('opens shortcut on "g" key', () => {
+      let openShortcutCalled = false;
+      clusterSummary.openShortcut = () => {
+        openShortcutCalled = true;
+      };
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'g' }));
+
+      assert.isTrue(openShortcutCalled);
+    });
+
+    it('does not trigger if dialog is closed', () => {
+      dialog.close();
+      let updateCalled = false;
+      clusterSummary.update = () => {
+        updateCalled = true;
+      };
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'n' }));
+
+      assert.isFalse(updateCalled);
+    });
+  });
+});

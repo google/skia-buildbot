@@ -39,8 +39,13 @@ import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triag
 import {
   ClusterSummary2SkTriagedEventDetail,
   ClusterSummary2SkOpenKeysEventDetail,
+  ClusterSummary2Sk,
 } from '../cluster-summary2-sk/cluster-summary2-sk';
 import { DayRangeSkChangeDetail } from '../day-range-sk/day-range-sk';
+import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
+import '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
+import { KeyboardShortcutsHelpSk } from '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
 
 function _full_summary(frame: FrameResponse, summary: ClusterSummary): FullSummary {
   return {
@@ -67,7 +72,12 @@ interface ValueOptions {
   display: string;
 }
 
-export class TriagePageSk extends ElementSk {
+export class TriagePageSk extends ElementSk implements KeyboardShortcutHandler {
+  onOpenHelp(): void {
+    const help = this.querySelector('keyboard-shortcuts-help-sk') as KeyboardShortcutsHelpSk;
+    help.open();
+  }
+
   private state: State;
 
   private triageInProgress: boolean;
@@ -159,6 +169,13 @@ export class TriagePageSk extends ElementSk {
           begin=${ele.state.begin}
           end=${ele.state.end}></day-range-sk>
       </details>
+      <button
+        class="action"
+        @click=${ele.onOpenHelp}
+        title="Keyboard Shortcuts"
+        style="margin-left: auto;">
+        <help-icon-sk></help-icon-sk>
+      </button>
     </header>
     <spinner-sk ?active=${ele.triageInProgress || ele.refreshRangeInProgress}></spinner-sk>
 
@@ -173,6 +190,7 @@ export class TriagePageSk extends ElementSk {
         <button @click=${ele.close}>Close</button>
       </div>
     </dialog>
+    <keyboard-shortcuts-help-sk .handler=${ele}></keyboard-shortcuts-help-sk>
 
     <table @start-triage=${ele.triage_start}>
       <tr>
@@ -318,7 +336,7 @@ export class TriagePageSk extends ElementSk {
     this.firstConnect = true;
 
     this._render();
-    this.dialog = this.querySelector('triage-page-sk > dialog');
+    this.dialog = this.querySelector('dialog');
     this.stateHasChanged = stateReflector(
       () => this.state as unknown as HintableObject,
       (state) => {
@@ -331,6 +349,47 @@ export class TriagePageSk extends ElementSk {
         this.updateRange();
       }
     );
+    window.addEventListener('keydown', this.keyDown);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    window.removeEventListener('keydown', this.keyDown);
+  }
+
+  private keyDown = (e: KeyboardEvent) => {
+    if (!this.dialog || !this.dialog.open) {
+      return;
+    }
+    // Ignore if typing in input
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    handleKeyboardShortcut(e, this);
+  };
+
+  onTriagePositive(): void {
+    const clusterSummary = this.querySelector('cluster-summary2-sk') as ClusterSummary2Sk;
+    if (clusterSummary) {
+      clusterSummary.triage = { ...clusterSummary.triage, status: 'positive' };
+      clusterSummary.update();
+    }
+  }
+
+  onTriageNegative(): void {
+    const clusterSummary = this.querySelector('cluster-summary2-sk') as ClusterSummary2Sk;
+    if (clusterSummary) {
+      clusterSummary.triage = { ...clusterSummary.triage, status: 'negative' };
+      clusterSummary.update();
+    }
+  }
+
+  onOpenReport(): void {
+    const clusterSummary = this.querySelector('cluster-summary2-sk') as ClusterSummary2Sk;
+    if (clusterSummary) {
+      clusterSummary.openShortcut();
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -351,6 +410,7 @@ export class TriagePageSk extends ElementSk {
   private triage_start(e: CustomEvent<TriageStatusSkStartTriageEventDetails>) {
     this.dialogState = e.detail;
     this._render();
+    this.dialog = this.querySelector('dialog');
     this.dialog!.showModal();
   }
 
@@ -433,7 +493,7 @@ export class TriagePageSk extends ElementSk {
       num_commits: 50,
       request_type: 1,
     };
-    window.open(`/e/?${fromObject(query)}`, '_blank');
+    window.open(`/ e /? ${fromObject(query)} `, '_blank');
   }
 
   private rangeChange(e: CustomEvent<DayRangeSkChangeDetail>) {
@@ -497,9 +557,9 @@ export class TriagePageSk extends ElementSk {
       this.reg.categories.forEach((cat) => {
         const displayName = cat || '(default)';
         opts.push({
-          value: `cat:${cat}`,
+          value: `cat:${cat} `,
           title: `Show only the alerts in the ${displayName} category.`,
-          display: `Category: ${displayName}`,
+          display: `Category: ${displayName} `,
         });
       });
     }
