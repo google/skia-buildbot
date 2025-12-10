@@ -963,3 +963,62 @@ describe('reset', () => {
     assert.isEmpty(explore.state.keys);
   });
 });
+
+describe('Keyboard Shortcuts', () => {
+  let explore: ExploreSimpleSk;
+
+  beforeEach(async () => {
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    fetchMock.post('/_/fe_telemetry', 200);
+    await fetchMock.flush(true);
+  });
+
+  it('triggers triage actions on key press', async () => {
+    // Mock tooltip and its methods
+    const tooltip = explore.querySelector('chart-tooltip-sk') as any;
+    tooltip.openNewBug = sinon.spy();
+    tooltip.openExistingBug = sinon.spy();
+    tooltip.ignoreAnomaly = sinon.spy();
+
+    // Mock anomaly presence
+    const anomaly = {
+      id: '123',
+      bug_id: 0,
+      test_path: 'master/bot/benchmark/test',
+      start_revision: 123,
+      end_revision: 125,
+      is_improvement: false,
+      recovered: false,
+      state: 'regression',
+      statistic: 'avg',
+      units: 'ms',
+      degrees_of_freedom: 1,
+      median_before_anomaly: 10,
+      median_after_anomaly: 20,
+      p_value: 0.01,
+      segment_size_after: 10,
+      segment_size_before: 10,
+      std_dev_before_anomaly: 1,
+      t_statistic: 5,
+      subscription_name: 'sub',
+      bug_component: '',
+      bug_labels: [],
+      bug_cc_emails: [],
+      bisect_ids: [],
+    };
+    tooltip.anomaly = anomaly;
+    (explore as any).selectedAnomaly = anomaly;
+
+    // Trigger 'p' key for New Bug
+    explore.keyDown(new KeyboardEvent('keydown', { key: 'p' }));
+    assert.isTrue(tooltip.openNewBug.calledOnce, 'p key should trigger openNewBug');
+
+    // Trigger 'n' key for Ignore
+    explore.keyDown(new KeyboardEvent('keydown', { key: 'n' }));
+    assert.isTrue(tooltip.ignoreAnomaly.calledOnce, 'n key should trigger ignoreAnomaly');
+
+    // Trigger 'e' key for Existing Bug
+    explore.keyDown(new KeyboardEvent('keydown', { key: 'e' }));
+    assert.isTrue(tooltip.openExistingBug.calledOnce, 'e key should trigger openExistingBug');
+  });
+});

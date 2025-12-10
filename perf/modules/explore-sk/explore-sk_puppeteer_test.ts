@@ -35,9 +35,24 @@ describe('explore-sk', () => {
 
     it('loads shows the help dialog on a keypress of ?', async () => {
       await testBed.page.click('#demo-show-help');
-      await testBed.page.waitForSelector('#help', {
-        visible: true,
+      await testBed.page.waitForSelector('keyboard-shortcuts-help-sk');
+
+      // Wait for the help dialog to be visible, handling both Light and Shadow DOM.
+      await testBed.page.waitForFunction(() => {
+        const help = document.querySelector('keyboard-shortcuts-help-sk');
+        if (!help) {
+          return false;
+        }
+        const dialog = help.shadowRoot
+          ? help.shadowRoot.querySelector('#help-dialog')
+          : help.querySelector('#help-dialog');
+        if (!dialog) {
+          return false;
+        }
+        const style = window.getComputedStyle(dialog);
+        return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
       });
+
       await takeScreenshot(testBed.page, 'perf', 'explore-sk_help_dialog');
     });
   });

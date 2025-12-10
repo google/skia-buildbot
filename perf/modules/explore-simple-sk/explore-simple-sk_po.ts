@@ -16,7 +16,7 @@ export class ExploreSimpleSkPO extends PageObject {
   }
 
   async getXAxisDomain(): Promise<string> {
-    return this.googleChart.applyFnToDOMNode((c: any) => c.domain);
+    return await this.googleChart.applyFnToDOMNode((c: any) => c.domain);
   }
 
   get xAxisSwitchSelector(): string {

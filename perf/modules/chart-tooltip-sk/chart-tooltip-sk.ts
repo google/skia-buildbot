@@ -676,6 +676,24 @@ export class ChartTooltipSk extends ElementSk {
     this._show_json_source = val;
     this._render();
   }
+
+  openNewBug(): void {
+    if (this.triageMenu) {
+      this.triageMenu.fileBug();
+    }
+  }
+
+  openExistingBug(): void {
+    if (this.triageMenu) {
+      this.triageMenu.openExistingBugDialog();
+    }
+  }
+
+  ignoreAnomaly(): void {
+    if (this.triageMenu) {
+      this.triageMenu.ignoreAnomaly();
+    }
+  }
 }
 
 define('chart-tooltip-sk', ChartTooltipSk);

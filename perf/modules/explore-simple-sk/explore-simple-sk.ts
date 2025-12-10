@@ -26,6 +26,8 @@ import '@material/web/icon/icon.js';
 import '@material/web/iconbutton/outlined-icon-button.js';
 import '@material/web/switch/switch.js';
 import '@material/web/dialog/dialog.js';
+import '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
+import { KeyboardShortcutsHelpSk } from '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
 
 import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/collapse-sk';
@@ -139,6 +141,7 @@ import { BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
 import { TryJobPreloadParams } from '../pinpoint-try-job-dialog-sk/pinpoint-try-job-dialog-sk';
 import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
+import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
 
 const DOMAIN_DATE = 'date';
 const DOMAIN_COMMIT = 'commit';
@@ -274,7 +277,7 @@ export const updateShortcut = async (graphConfigs: GraphConfig[]): Promise<strin
     graphs: graphConfigs,
   };
 
-  return fetch('/_/shortcut/update', {
+  return await fetch('/_/shortcut/update', {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {
@@ -437,7 +440,7 @@ export function calculateRangeChange(
   };
 }
 
-export class ExploreSimpleSk extends ElementSk {
+export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandler {
   private _dataframe: DataFrame = {
     traceset: TraceSet({}),
     header: [],
@@ -829,7 +832,8 @@ export class ExploreSimpleSk extends ElementSk {
             <div>
               <button @click=${() => ele.add(true, 'formula')} class=action>Plot</button>
               <button @click=${() => ele.add(false, 'formula')}>Add to Plot</button>
-              <a href=/help/ target=_blank>
+              <button @click=${ele.onOpenHelp} title="Keyboard Shortcuts">Shortcuts</button>
+              <a href=/help/ target=_blank title="Documentation">
                 <help-icon-sk></help-icon-sk>
               </a>
             </div>
@@ -878,6 +882,8 @@ export class ExploreSimpleSk extends ElementSk {
         <button class=action @click=${ele.closeHelp}>Close</button>
       </div>
     </dialog>
+
+    <keyboard-shortcuts-help-sk .handler=${ele}></keyboard-shortcuts-help-sk>
 
     ${
       ele.state.hide_paramset
@@ -1037,7 +1043,7 @@ export class ExploreSimpleSk extends ElementSk {
    */
   private getCommitDetails(commitPosition: CommitNumber | null): ColumnHeader | null {
     let colHeader = this.dfRepo.value?.header.find(
-      (colHeader) => colHeader?.offset === commitPosition
+      (colHeader: ColumnHeader | null) => colHeader?.offset === commitPosition
     );
     if (colHeader === undefined) {
       colHeader = null;
@@ -1060,13 +1066,15 @@ export class ExploreSimpleSk extends ElementSk {
     const prop = type === DOMAIN_COMMIT ? 'offset' : 'timestamp';
 
     // First, try to find an exact match.
-    let index = header.findIndex((h) => h?.[prop] === value);
+    let index = header.findIndex((h: ColumnHeader | null) => h?.[prop] === value);
     if (index !== -1) {
       return index;
     }
 
     // If no exact match, find the index of the first element greater than value.
-    index = header.findIndex((h) => h !== undefined && h !== null && h[prop] > value);
+    index = header.findIndex(
+      (h: ColumnHeader | null) => h !== undefined && h !== null && h[prop] > value
+    );
 
     // If no element is greater, 'value' is larger than all elements.
     // The closest is the last one.
@@ -1542,7 +1550,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._dialogOn = false;
   }
 
-  keyDown(e: KeyboardEvent) {
+  keyDown = (e: KeyboardEvent) => {
     // Ignore IME composition events.
     if (this._dialogOn || e.isComposing || e.keyCode === 229) {
       return;
@@ -1560,40 +1568,54 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
 
-    // Allow user to type and not pan graph if an input box is active.
-    const activeElement = document.activeElement;
-    if (activeElement instanceof HTMLInputElement) {
+    if (e.key === 'Escape') {
+      this.closeTooltip();
       return;
     }
 
-    switch (e.key) {
-      case '?':
-        this.helpDialog!.showModal();
-        break;
-      case ',': // dvorak
-      case 'w':
-        this.zoomInKey();
-        break;
-      case 'o': // dvorak
-      case 's':
-        this.zoomOutKey();
-        break;
-      case 'a':
-        this.zoomLeftKey();
-        break;
-      case 'e': // dvorak
-      case 'd':
-        this.zoomRightKey();
-        break;
-      case `Escape`:
-        this.closeTooltip();
-        break;
-      case `Esc`:
-        this.closeTooltip();
-        break;
-      default:
-        break;
+    handleKeyboardShortcut(e, this);
+  };
+
+  onZoomIn(): void {
+    this.zoomInKey();
+  }
+
+  onZoomOut(): void {
+    this.zoomOutKey();
+  }
+
+  onPanLeft(): void {
+    this.zoomLeftKey();
+  }
+
+  onPanRight(): void {
+    this.zoomRightKey();
+  }
+
+  onTriagePositive(): void {
+    const tooltip = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+    if (tooltip && tooltip.anomaly && tooltip.anomaly.bug_id === 0) {
+      tooltip.openNewBug();
     }
+  }
+
+  onTriageNegative(): void {
+    const tooltip = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+    if (tooltip && tooltip.anomaly && tooltip.anomaly.bug_id === 0) {
+      tooltip.ignoreAnomaly();
+    }
+  }
+
+  onTriageExisting(): void {
+    const tooltip = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+    if (tooltip && tooltip.anomaly && tooltip.anomaly.bug_id === 0) {
+      tooltip.openExistingBug();
+    }
+  }
+
+  onOpenHelp(): void {
+    const help = this.querySelector('keyboard-shortcuts-help-sk') as KeyboardShortcutsHelpSk;
+    help.open();
   }
 
   /**
@@ -1817,11 +1839,13 @@ export class ExploreSimpleSk extends ElementSk {
     const end = Math.ceil(detail.value.end) ?? 0;
     const invalidRange = begin === 0 || end === 0;
     if (dfRepo !== null && dfRepo !== undefined && !invalidRange) {
-      dfRepo.getUserIssues(Object.keys(dfRepo.traces), begin, end).then((userIssues) => {
-        if (Object.keys(userIssues || {}).length > 0) {
-          this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
-        }
-      });
+      dfRepo
+        .getUserIssues(Object.keys(dfRepo.traces), begin, end)
+        .then((userIssues: UserIssueMap) => {
+          if (Object.keys(userIssues || {}).length > 0) {
+            this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
+          }
+        });
     }
     detail.start = this.getCommitIndex(begin, this.state.domain);
     detail.end = this.getCommitIndex(end, this.state.domain, true);
@@ -2732,12 +2756,12 @@ export class ExploreSimpleSk extends ElementSk {
     }
     const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body)
-      .then((json) => {
+      .then(async (json) => {
         if (json === null || json === undefined) {
           errorMessage('Failed to find any matching traces.');
           return;
         }
-        return this.UpdateWithFrameResponse(json, body, switchToTab, null, true, true);
+        return await this.UpdateWithFrameResponse(json, body, switchToTab, null, true, true);
       })
       .catch(() => {
         errorMessage('Failed to find any matching traces.');
@@ -2797,7 +2821,7 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
     this.render();
-    return loadingMore;
+    return await loadingMore;
   }
 
   /**
@@ -2884,7 +2908,7 @@ export class ExploreSimpleSk extends ElementSk {
       // Asynchronously fetch the user issues for the rendered traces.
       this.dfRepo.value
         ?.getUserIssues(Object.keys(dataframe.traceset), selectedRange.begin, selectedRange.end)
-        .then((_) => {
+        .then((_: UserIssueMap) => {
           this.updateSelectedRangeWithUpdatedDataframe(
             selectedRange!,
             this.state.domain as 'date' | 'commit'
@@ -2900,7 +2924,7 @@ export class ExploreSimpleSk extends ElementSk {
         const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
         this.plotSummary.value?.SelectRange(updatedRange);
       } else {
-        return this.loadExtendedRangeData(selectedRange);
+        return await this.loadExtendedRangeData(selectedRange);
       }
     }
   }
@@ -3095,8 +3119,8 @@ export class ExploreSimpleSk extends ElementSk {
     try {
       if (createFromScratch) {
         const body = this.requestFrameBodyFullFromState();
-        return this.requestFrame(body).then((json) => {
-          return this.UpdateWithFrameResponse(
+        return this.requestFrame(body).then(async (json) => {
+          return await this.UpdateWithFrameResponse(
             json,
             body,
             /*switchToTab=*/ true,
@@ -3108,14 +3132,14 @@ export class ExploreSimpleSk extends ElementSk {
       } else {
         const requestNewData = this.requestFrameBodyForTrace(plotType, q, f);
         const requestAllData = this.requestFrameBodyFullFromState();
-        return this.requestFrame(requestNewData).then((json) => {
+        return this.requestFrame(requestNewData).then(async (json) => {
           // Merge new data with the existing state.
           const frameResponse = json as FrameResponse;
           const newDf = frameResponse.dataframe!;
           const mergedDataFrame = joinDataframes(this._dataframe, newDf);
           frameResponse.dataframe = mergedDataFrame;
           // Don't merge anomalies because DataFrameRepository already does that.
-          return this.UpdateWithFrameResponse(
+          return await this.UpdateWithFrameResponse(
             frameResponse,
             requestAllData,
             /*switchToTab=*/ true,

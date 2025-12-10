@@ -44,6 +44,7 @@ sk_element(
         "//perf/modules/bisect-dialog-sk",
         "//perf/modules/favorites-dialog-sk",
         "//perf/modules/pinpoint-try-job-dialog-sk",
+        "//perf/modules/keyboard-shortcuts-help-sk",
     ],
     ts_deps = [
         "//:node_modules/@material/web",
@@ -67,6 +68,7 @@ sk_element(
         "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
         "//perf/modules/window:window_ts_lib",
         "//perf/modules/common:anomaly-data_ts_lib",
+        "//perf/modules/common:keyboard-shortcuts_ts_lib",
     ],
     ts_srcs = [
         "explore-simple-sk.ts",
