@@ -118,6 +118,12 @@ For example, to run against the internal Chrome perf instance:
 ./run_with_spanner.sh p=skia-infra-corp i=tfgen-spanid-20241205020733610 d=chrome_int config=./configs/spanner/chrome-internal.json
 ```
 
+or internal v8 perf instance (loads faster):
+
+```
+./run_with_spanner.sh p=skia-infra-corp i=tfgen-spanid-20241205020733610 d=v8_int config=./configs/spanner/v8-internal.json
+```
+
 **Parameters:**
 
 - `p`: The GCP project. `skia-infra-corp` for internal instances,
@@ -126,6 +132,15 @@ For example, to run against the internal Chrome perf instance:
 - `d`: The Spanner database name.
 - `config`: Path to the instance configuration file. See `perf/configs/` for
   examples.
+
+### Rebuilding frontend only (for faster development)
+
+You don't need to restart the Go server each time you made a change to web pages.
+Rebuild them on the fly with
+
+```
+bazelisk build --config=mayberemote -c dbg //perf/pages/...
+```
 
 ### Running with authentication
 
@@ -137,7 +152,7 @@ authentication before forwarding requests to it. To start this setup:
 make run-auth-proxy-before-demo-instance
 ```
 
-Then run the server
+Keep it running. In a separate terminal run the server
 [as described above](#running-against-a-production-database).
 
 After the server starts, navigate to http://localhost:8003.
@@ -190,15 +205,9 @@ sudo apt install entr
   gcloud auth application-default login
   ```
 
-- If you see a `PermissionDenied` error related to the issue tracker API key
-  when running locally (e.g., `failed to access secret version: rpc error:
-code = PermissionDenied desc = Permission 'secretmanager.versions.access'
-denied for resource
-'projects/skia-infra-public/secrets/perf-issue-tracker-apikey/versions/latest'`),
-  you can disable issue tracker integration in your local configuration file.
-  For example, if you are using `perf/configs/spanner/chrome-internal.json`:
-  1.  Change `"notifications": "anomalygroup"` to `"notifications": "none"`.
-  2.  Delete the entire `issue_tracker_config` section from the file.
+  (don't confuse this with `gcloud auth login` - it generates credentials to be used solely by
+  gcloud. `gcloud auth application-default login` generates credentials to be used by Client
+  Libraries in general).
 
 ## Adding External Dependencies
 
@@ -264,21 +273,7 @@ detailed information and best practices, please refer to the
 
 ### Pulling changes from the CL
 
-Instead of a `git pull`, you need to `cherry-pick` the patch from the remote to your local branch.
-
-Command example:
-
-```
-git fetch https://skia.googlesource.com/buildbot refs/changes/96/1052696/5 \
-&& git cherry-pick FETCH_HEAD
-```
-
-- `96`: This is the last two digits of the change number.
-- `1052696`: This is the full change number in Gerrit.
-- `5`: This is the patch set number. Gerrit creates a new patch set for each revision uploaded
-  to the same change. So, this fetches the state of the 5th version of change 1052696.
-  You can check how many patch sets you have in the
-  [Gerrit UI](https://screenshot.googleplex.com/8ZhhcoqmWku8xoF.png).
+Use `git cl patch <change_number`.
 
 ## VSCode extensions
 
@@ -292,9 +287,9 @@ The following VSCode extensions might prove useful for development:
 See [top-level STYLEGUIDE.md](../STYLEGUIDE.md) for information about registering
 components so that lit-plugin sees them.
 
-## Cider Workspace Setup
+## Cider-G Workspace Setup
 
-Please go to the go/browser-perf-engprod
+Please go to the [go/browser-perf-engprod](http://go/browser-perf-engprod).
 
 # Debugging and Profiling
 
