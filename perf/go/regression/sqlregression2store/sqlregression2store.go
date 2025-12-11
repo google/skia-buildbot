@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -57,6 +58,7 @@ const (
 	ignoreAnomalies
 	resetAnomalies
 	nudgeAndReset
+	readBugsForRegressions
 )
 
 // statementContext provides a struct to expand sql statement templates.
@@ -179,6 +181,20 @@ var statementFormats = map[statementFormat]string{
 		SET commit_number = $1, prev_commit_number = $2, triage_status = 'untriaged', triage_message = 'Nudged', bug_id = 0
 		WHERE id = ANY($3)
 		`,
+	readBugsForRegressions: `
+		select
+			regressions2.id as regression2_id,
+			anomalygroups.id as anomalygroups_id,
+			reported_issue_id as anomalygroups_reported_issue_id,
+			culprits.id as culprits_id,
+			COALESCE(issue_ids, '{}') as culprits_issue_ids,
+			culprits.group_issue_map as culprits_group_issue_map
+		from
+			regressions2 left join anomalygroups on (regressions2.id = any(anomaly_ids))
+			left join culprits on (anomalygroups.id = any(anomaly_group_ids))
+		where regressions2.id = ANY($1)
+		order by regressions2.id
+	`,
 }
 
 // New returns a new instance of SQLRegression2Store
@@ -216,11 +232,12 @@ func (s *SQLRegression2Store) Range(ctx context.Context, begin, end types.Commit
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read regressions in range: %d %d", begin, end)
 	}
-	for rows.Next() {
-		r, err := convertRowToRegression(rows)
-		if err != nil {
-			return nil, err
-		}
+	regressions, err := s.convertRowsIntoRegressions(rows)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to convert rows into regressions")
+	}
+
+	for _, r := range regressions {
 		allForCommit, ok := ret[r.CommitNumber]
 		if !ok {
 			allForCommit = regression.New()
@@ -242,12 +259,12 @@ func (s *SQLRegression2Store) Range(ctx context.Context, begin, end types.Commit
 		}
 		ret[r.CommitNumber] = allForCommit
 	}
+
 	return ret, nil
 }
 
 // RangeFiltered gets all regressions in the given commit range and trace names.
 func (s *SQLRegression2Store) RangeFiltered(ctx context.Context, begin, end types.CommitNumber, traceNames []string) ([]*regression.Regression, error) {
-	ret := []*regression.Regression{}
 	rows, err := s.db.Query(ctx, s.statements[readRangeFiltered], begin, end, traceNames)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -256,14 +273,11 @@ func (s *SQLRegression2Store) RangeFiltered(ctx context.Context, begin, end type
 		}
 		return nil, skerr.Wrapf(err, "Failed to read regressions in range [%d; %d] for %d traces.", begin, end, len(traceNames))
 	}
-	for rows.Next() {
-		r, err := convertRowToRegression(rows)
-		if err != nil {
-			return nil, err
-		}
-		ret = append(ret, r)
+	regressions, err := s.convertRowsIntoRegressions(rows)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to convert rows into regressions")
 	}
-	return ret, nil
+	return regressions, nil
 }
 
 // SetHigh implements the regression.Store interface.
@@ -363,13 +377,9 @@ func (s *SQLRegression2Store) GetRegressionsBySubName(ctx context.Context, sub_n
 		return nil, skerr.Wrapf(err, "failed to get regressions. Query: %s", statement)
 	}
 
-	regressions := []*regression.Regression{}
-	for rows.Next() {
-		r, err := convertRowToRegression(rows)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "failed to convert row to regression.")
-		}
-		regressions = append(regressions, r)
+	regressions, err := s.convertRowsIntoRegressions(rows)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to convert rows into regressions")
 	}
 
 	return regressions, nil
@@ -377,10 +387,9 @@ func (s *SQLRegression2Store) GetRegressionsBySubName(ctx context.Context, sub_n
 
 // Get a list of regressions given a list of regression ids.
 func (s *SQLRegression2Store) GetByIDs(ctx context.Context, ids []string) ([]*regression.Regression, error) {
-	var regressions []*regression.Regression
 	if len(ids) == 0 {
 		sklog.Warning("GetByIDs received an empty ids list.")
-		return regressions, nil
+		return []*regression.Regression{}, nil
 	}
 	statement := s.statements[readByIDs]
 	query := fmt.Sprintf(statement, quotedSlice(ids))
@@ -389,12 +398,9 @@ func (s *SQLRegression2Store) GetByIDs(ctx context.Context, ids []string) ([]*re
 		return nil, skerr.Wrapf(err, "failed to get regressions by id list. Query: %s", query)
 	}
 
-	for rows.Next() {
-		r, err := convertRowToRegression(rows)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "failed to convert row to regression.")
-		}
-		regressions = append(regressions, r)
+	regressions, err := s.convertRowsIntoRegressions(rows)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to convert rows into regressions")
 	}
 
 	return regressions, nil
@@ -402,10 +408,9 @@ func (s *SQLRegression2Store) GetByIDs(ctx context.Context, ids []string) ([]*re
 
 // Get a list of regressions given a revision.
 func (s *SQLRegression2Store) GetByRevision(ctx context.Context, rev string) ([]*regression.Regression, error) {
-	var regressions []*regression.Regression
 	revInt, err := strconv.ParseInt(rev, 10, 64)
 	if err != nil {
-		return regressions, skerr.Fmt("failed to convert rev %s to int: %s", rev, err)
+		return []*regression.Regression{}, skerr.Fmt("failed to convert rev %s to int: %s", rev, err)
 	}
 	statement := s.statements[readByRev]
 	rows, err := s.db.Query(ctx, statement, revInt)
@@ -413,14 +418,10 @@ func (s *SQLRegression2Store) GetByRevision(ctx context.Context, rev string) ([]
 		return nil, skerr.Wrapf(err, "failed to get regressions by revision")
 	}
 
-	for rows.Next() {
-		r, err := convertRowToRegression(rows)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "failed to convert row to regression.")
-		}
-		regressions = append(regressions, r)
+	regressions, err := s.convertRowsIntoRegressions(rows)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to convert rows into regressions")
 	}
-
 	return regressions, nil
 }
 
@@ -442,8 +443,9 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 		return nil, err
 	}
 
-	if bugId.Valid {
-		r.BugId = bugId.Int64
+	// We are not storing bugId = 0 (which means no bug assigned) to save up some space and avoid deduplication.
+	if bugId.Valid && bugId.Int64 != int64(0) {
+		r.Bugs = []regression.RegressionBug{{BugId: fmt.Sprint(bugId.Int64), Type: regression.ManualTriage}}
 	}
 
 	r.ClusterType = string(clusterType)
@@ -467,21 +469,146 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 	return r, nil
 }
 
+func (s *SQLRegression2Store) GetBugIdsForRegressions(ctx context.Context, regressions []*regression.Regression) ([]*regression.Regression, error) {
+	ids := make([]string, len(regressions))
+	idBugs := map[string][]regression.RegressionBug{}
+	for i, r := range regressions {
+		ids[i] = r.Id
+		for _, bug := range r.Bugs {
+			if bug.Type == regression.ManualTriage {
+				idBugs[r.Id] = append(idBugs[r.Id], bug)
+			}
+		}
+		// Invariant: there is at most 1 manually assigned bug.
+		if len(idBugs[r.Id]) > 1 {
+			return nil, skerr.Fmt("regression %s has %d - more than 1 manually assigned bugs", r.Id, len(idBugs[r.Id]))
+		}
+	}
+	statement := s.statements[readBugsForRegressions]
+	rows, err := s.db.Query(ctx, statement, ids)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to query bug ids for %d regressions due to %s", len(regressions), err)
+	}
+
+	for rows.Next() {
+		var regression_id string
+		var agid sql.NullString
+		var reported_issue_id sql.NullString
+		var culprit_id sql.NullString
+		var culprit_issue_ids []string
+		var group_issue_map sql.NullString
+
+		err = rows.Scan(&regression_id, &agid, &reported_issue_id, &culprit_id, &culprit_issue_ids, &group_issue_map)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to read bug ids from query")
+		}
+
+		if reported_issue_id.Valid {
+			idBugs[regression_id] = append(idBugs[regression_id], regression.RegressionBug{
+				BugId: reported_issue_id.String,
+				Type:  regression.AutoTriage,
+			})
+		}
+		idBugs[regression_id] = append(idBugs[regression_id], extractBugFromCulprit(
+			agid, culprit_id, culprit_issue_ids, group_issue_map,
+		)...)
+	}
+
+	for i, r := range regressions {
+		regressions[i].Bugs = idBugs[r.Id]
+		regressions[i].AllBugsFetched = true
+	}
+
+	return regressions, nil
+}
+
+func extractBugFromCulprit(agid, culprit_id sql.NullString, culprit_issue_ids []string, group_issue_map sql.NullString) []regression.RegressionBug {
+	if !culprit_id.Valid {
+		return []regression.RegressionBug{}
+	}
+	if !agid.Valid {
+		sklog.Errorf("sqlregression2store: culprit id is valid but anomaly group id is not")
+		return []regression.RegressionBug{}
+	}
+	if group_issue_map.Valid {
+		var issueMap map[string]string
+		err := json.Unmarshal([]byte(group_issue_map.String), &issueMap)
+		if err != nil {
+			sklog.Errorf("failed to unmarshall group issue map: %s", err)
+			return []regression.RegressionBug{}
+		}
+		// If culpritId is valid, anomalygroup should be, too.
+		v, ok := issueMap[agid.String]
+		if !ok {
+			sklog.Errorf("anomalygroup id was not present on the culprit issueMap %s", group_issue_map.String)
+			return []regression.RegressionBug{}
+		}
+		return []regression.RegressionBug{{BugId: v, Type: regression.AutoBisect}}
+	}
+	sklog.Warningf("sqlregression2store: group_issue_map is not valid, but unexpectedly, culprit id %s is.", culprit_id.String)
+	// We use coalesce with an empty array, so culprit issue ids is never null.
+	result := make([]regression.RegressionBug, len(culprit_issue_ids))
+	for i, r := range culprit_issue_ids {
+		result[i] = regression.RegressionBug{
+			BugId: r,
+			Type:  regression.AutoBisect,
+		}
+	}
+	return result
+}
+
+func (s *SQLRegression2Store) convertRowsIntoRegressions(rows pgx.Rows) ([]*regression.Regression, error) {
+	var regressions []*regression.Regression
+	for rows.Next() {
+		r, err := convertRowToRegression(rows)
+		if err != nil {
+			return nil, err
+		}
+		regressions = append(regressions, r)
+	}
+	return regressions, nil
+}
+
 // writeSingleRegression writes the regression.Regression object to the database.
 // If the tx is specified, the write occurs within the transaction.
 func (s *SQLRegression2Store) writeSingleRegression(ctx context.Context, r *regression.Regression, tx pgx.Tx) error {
 	clusterType, clusterSummary, triage := r.GetClusterTypeAndSummaryAndTriageStatus()
 	r.CreationTime = time.Now()
 	var err error
+	manualTriageBugId, err := selectManualBugFromRegression(r)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	if tx == nil {
-		_, err = s.db.Exec(ctx, s.statements[write], r.Id, r.CommitNumber, r.PrevCommitNumber, r.AlertId, r.BugId, r.CreationTime, r.MedianBefore, r.MedianAfter, r.IsImprovement, clusterType, clusterSummary, r.Frame, triage.Status, triage.Message)
+		_, err = s.db.Exec(ctx, s.statements[write], r.Id, r.CommitNumber, r.PrevCommitNumber, r.AlertId, manualTriageBugId, r.CreationTime, r.MedianBefore, r.MedianAfter, r.IsImprovement, clusterType, clusterSummary, r.Frame, triage.Status, triage.Message)
 	} else {
-		_, err = tx.Exec(ctx, s.statements[write], r.Id, r.CommitNumber, r.PrevCommitNumber, r.AlertId, r.BugId, r.CreationTime, r.MedianBefore, r.MedianAfter, r.IsImprovement, clusterType, clusterSummary, r.Frame, triage.Status, triage.Message)
+		_, err = tx.Exec(ctx, s.statements[write], r.Id, r.CommitNumber, r.PrevCommitNumber, r.AlertId, manualTriageBugId, r.CreationTime, r.MedianBefore, r.MedianAfter, r.IsImprovement, clusterType, clusterSummary, r.Frame, triage.Status, triage.Message)
 	}
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to write single regression with id %s", r.Id)
 	}
 	return nil
+}
+
+func selectManualBugFromRegression(r *regression.Regression) (sql.NullInt64, error) {
+	var bugId int
+	for _, b := range r.Bugs {
+		if b.Type == regression.ManualTriage {
+			bug, err := strconv.Atoi(b.BugId)
+			if err != nil {
+				return sql.NullInt64{Valid: false}, skerr.Wrapf(err, "failed to convert bug id: %s", b.BugId)
+			}
+			// Should never happen unless there's a bug in the program
+			if bugId != 0 {
+				return sql.NullInt64{Valid: false}, skerr.Fmt("found more than one manually triaged bugs for regression %s: %d and %d", r.Id, bugId, bug)
+			}
+			bugId = bug
+		}
+	}
+	if bugId == 0 {
+		return sql.NullInt64{Valid: false}, nil
+	}
+	return sql.NullInt64{Valid: true, Int64: int64(bugId)}, nil
 }
 
 // updateBasedOnAlertAlgo updates the regression based on the Algo specified in the

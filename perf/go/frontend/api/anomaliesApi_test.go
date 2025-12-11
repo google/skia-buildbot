@@ -50,7 +50,6 @@ func TestGetGroupReportByBugId(t *testing.T) {
 	anomalyGroupIds := []string{"agid-1"}
 	culpritStore.On("GetAnomalyGroupIdsForIssueId", mock.Anything, bugId).Return(anomalyGroupIds, nil).Once()
 	anomalygroupStore.On("GetAnomalyIdsByAnomalyGroupIds", mock.Anything, anomalyGroupIds).Return(culrpitAnomalyIds, nil).Once()
-
 	anomalygroupStore.On("GetAnomalyIdsByIssueId", mock.Anything, bugId).Return(anomalyIds, nil)
 
 	// Mock the response from the regStore.
@@ -98,6 +97,9 @@ func TestGetGroupReportByBugId(t *testing.T) {
 		},
 	}
 	regStore.On("GetByIDs", mock.Anything, allAnomalyIds).Return(regressions, nil)
+	// We will not check bug_id field in this test, so we return plain regressions.
+	// TODO(b/462782068) add unit tests verifying we are returning bug_id-related data.
+	regStore.On("GetBugIdsForRegressions", mock.Anything, regressions).Return(regressions, nil)
 
 	// Create the request.
 	req := GetGroupReportRequest{
@@ -164,6 +166,8 @@ func TestGetGroupReportByAnomalyGroupId(t *testing.T) {
 		},
 	}
 	regStore.On("GetByIDs", ctx, anomalyIds).Return(regressions, nil).Once()
+	// Again, we will not check bug_id field in this test, so we return plain regressions.
+	regStore.On("GetBugIdsForRegressions", mock.Anything, regressions).Return(regressions, nil)
 
 	// Create the request.
 	req := GetGroupReportRequest{
@@ -207,6 +211,8 @@ func TestGetGroupReportByAnomalyGroupId_Empty(t *testing.T) {
 	// Mock the response from the regStore.
 	regressions := []*regression.Regression{}
 	regStore.On("GetByIDs", ctx, anomalyIds).Return(regressions, nil).Once()
+	// Again, we will not check bug_id field in this test, so we return plain regressions.
+	regStore.On("GetBugIdsForRegressions", mock.Anything, regressions).Return(regressions, nil)
 
 	// Create the request.
 	req := GetGroupReportRequest{
@@ -257,6 +263,8 @@ func TestGetGroupReportByRevision(t *testing.T) {
 		},
 	}
 	regStore.On("GetByRevision", ctx, revision).Return(regressions, nil).Once()
+	// Again, we will not check bug_id field in this test, so we return plain regressions.
+	regStore.On("GetBugIdsForRegressions", mock.Anything, regressions).Return(regressions, nil)
 
 	// Create the request.
 	req := GetGroupReportRequest{

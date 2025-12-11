@@ -403,6 +403,10 @@ func (s *SQLRegressionStore) SetBugID(ctx context.Context, regressionIDs []strin
 	return skerr.Fmt("SetBugID is not implemented in old version of regression store.")
 }
 
+func (s *SQLRegressionStore) GetBugIdsForRegressions(ctx context.Context, regressions []*regression.Regression) ([]*regression.Regression, error) {
+	return nil, skerr.Fmt("GetBugIdsForRegressions is not implemented in old version of regression store.")
+}
+
 // Confirm that SQLRegressionStore implements regression.Store.
 var _ regression.Store = (*SQLRegressionStore)(nil)
 

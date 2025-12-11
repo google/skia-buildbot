@@ -3,6 +3,7 @@ package sqlregression2store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -42,7 +43,7 @@ func generateNewRegression() *regression.Regression {
 	r.Id = uuid.NewString()
 	r.CommitNumber = 12345
 	r.AlertId = alertId
-	r.BugId = 0
+	r.Bugs = []regression.RegressionBug{}
 	r.CreationTime = time.Now()
 	r.IsImprovement = false
 	r.MedianBefore = 1.0
@@ -585,7 +586,8 @@ func TestSetBugID_Success(t *testing.T) {
 		regs, err := store.GetByIDs(ctx, []string{id})
 		require.NoError(t, err)
 		require.Len(t, regs, 1)
-		assert.Equal(t, int64(bugID), regs[0].BugId)
+		assert.Equal(t, 1, len(regs[0].Bugs))
+		assert.Equal(t, fmt.Sprint(bugID), regs[0].Bugs[0].BugId)
 		assert.Equal(t, regression.Negative, regs[0].HighStatus.Status)
 	}
 
@@ -593,7 +595,7 @@ func TestSetBugID_Success(t *testing.T) {
 	regs, err := store.GetByIDs(ctx, []string{regIDs[2]})
 	require.NoError(t, err)
 	require.Len(t, regs, 1)
-	assert.Equal(t, int64(0), regs[0].BugId)
+	assert.Equal(t, 0, len(regs[0].Bugs))
 	assert.NotEqual(t, regression.Negative, regs[0].HighStatus.Status)
 }
 
@@ -624,7 +626,7 @@ func TestResetAnomalies_Success(t *testing.T) {
 	regIDs := []string{}
 	for _, reg := range regressions {
 		// set the following fields to see if reset works.
-		reg.BugId = bugIdDefault
+		reg.Bugs = []regression.RegressionBug{{BugId: fmt.Sprint(bugIdDefault), Type: regression.ManualTriage}}
 		reg.HighStatus.Status = statusDefault
 		reg.HighStatus.Message = messageDefault
 		_, err := store.WriteRegression(ctx, reg, nil)
@@ -642,7 +644,7 @@ func TestResetAnomalies_Success(t *testing.T) {
 		regs, err := store.GetByIDs(ctx, []string{id})
 		require.NoError(t, err)
 		require.Len(t, regs, 1)
-		assert.Equal(t, int64(0), regs[0].BugId)
+		assert.Equal(t, 0, len(regs[0].Bugs))
 		// generateNewRegression sets High, so we expect HighStatus to be updated.
 		assert.Equal(t, regression.Untriaged, regs[0].HighStatus.Status)
 		assert.Equal(t, regression.ResetMessage, regs[0].HighStatus.Message)
@@ -652,7 +654,9 @@ func TestResetAnomalies_Success(t *testing.T) {
 	regs, err := store.GetByIDs(ctx, []string{regIDs[2]})
 	require.NoError(t, err)
 	require.Len(t, regs, 1)
-	assert.Equal(t, bugIdDefault, regs[0].BugId)
+	assert.Equal(t, 1, len(regs[0].Bugs))
+	assert.Equal(t, fmt.Sprint(1), regs[0].Bugs[0].BugId)
+	assert.NotEqual(t, regression.Untriaged, regs[0].HighStatus.Status)
 	assert.Equal(t, statusDefault, regs[0].HighStatus.Status)
 	assert.Equal(t, messageDefault, regs[0].HighStatus.Message)
 }
@@ -715,7 +719,7 @@ func TestNudgeAndResetAnomalies_ResetsStatus(t *testing.T) {
 
 	regIDs := []string{}
 	for _, reg := range regressions {
-		reg.BugId = bugIdDefault
+		reg.Bugs = []regression.RegressionBug{{BugId: fmt.Sprint(bugIdDefault), Type: regression.ManualTriage}}
 		reg.HighStatus.Status = statusDefault
 		reg.HighStatus.Message = messageDefault
 		_, err := store.WriteRegression(ctx, reg, nil)
@@ -741,7 +745,7 @@ func TestNudgeAndResetAnomalies_ResetsStatus(t *testing.T) {
 		regs, err := store.GetByIDs(ctx, []string{id})
 		require.NoError(t, err)
 		require.Len(t, regs, 1)
-		assert.Equal(t, int64(0), regs[0].BugId)
+		assert.Equal(t, 0, len(regs[0].Bugs))
 		assert.Equal(t, newCommitNumber, regs[0].CommitNumber)
 		assert.Equal(t, newPrevCommitNumber, regs[0].PrevCommitNumber)
 		// generateNewRegression sets High, so we expect HighStatus to be updated.
@@ -752,7 +756,8 @@ func TestNudgeAndResetAnomalies_ResetsStatus(t *testing.T) {
 	regs, err := store.GetByIDs(ctx, []string{regIDs[2]})
 	require.NoError(t, err)
 	require.Len(t, regs, 1)
-	assert.Equal(t, bugIdDefault, regs[0].BugId)
+	assert.Equal(t, 1, len(regs[0].Bugs))
+	assert.Equal(t, fmt.Sprint(bugIdDefault), regs[0].Bugs[0].BugId)
 	assert.Equal(t, statusDefault, regs[0].HighStatus.Status)
 	assert.Equal(t, messageDefault, regs[0].HighStatus.Message)
 }

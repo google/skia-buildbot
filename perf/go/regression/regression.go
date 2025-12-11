@@ -65,6 +65,21 @@ type TriageStatus struct {
 	Message string `json:"message"`
 }
 
+type BugType string
+
+const (
+	ManualTriage = "manual"
+	AutoTriage   = "auto-triage"
+	AutoBisect   = "auto-bisect"
+)
+
+// RegressionBug is a type that binds bug id and it's source together.
+// In other words, it allows us to determine which sheriff action created this association.
+type RegressionBug struct {
+	BugId string
+	Type  BugType
+}
+
 // Regression tracks the status of the Low and High regression clusters, if they
 // exist for a given CommitID and alertid.
 //
@@ -85,7 +100,8 @@ type Regression struct {
 	CommitNumber     types.CommitNumber `json:"commit_number"`
 	PrevCommitNumber types.CommitNumber `json:"prev_commit_number"`
 	AlertId          int64              `json:"alert_id"`
-	BugId            int64              `json:"bug_id"`
+	Bugs             []RegressionBug    `json:"bugs"`
+	AllBugsFetched   bool               `json:"all_bugs_fetched"`
 	CreationTime     time.Time          `json:"creation_time"`
 	MedianBefore     float32            `json:"median_before"`
 	MedianAfter      float32            `json:"median_after"`

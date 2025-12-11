@@ -1,6 +1,8 @@
 package compat
 
 import (
+	"strconv"
+
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/regression"
@@ -21,15 +23,29 @@ func ConvertRegressionToAnomalies(reg *regression.Regression) (chromeperf.Anomal
 			continue
 		}
 		anomaly := chromeperf.Anomaly{
-			Id: reg.Id,
-			// TODO(mordeckimarcin) add remaining fields that bug_id can come from.
-			BugId:               int(reg.BugId),
+			Id:                  reg.Id,
 			TestPath:            testPath,
 			StartRevision:       int(reg.PrevCommitNumber),
 			EndRevision:         int(reg.CommitNumber),
 			IsImprovement:       reg.IsImprovement,
 			MedianBeforeAnomaly: float64(reg.MedianBefore),
 			MedianAfterAnomaly:  float64(reg.MedianAfter),
+		}
+
+		arbitraryBugIdSelectedWarningDisplayed := false
+		// TODO(b/462782068) change anomalymap to contain all bug ids.
+		// This is a temporary logic.
+		if len(reg.Bugs) > 0 {
+			anomaly.BugId, err = strconv.Atoi(reg.Bugs[0].BugId)
+			if err != nil {
+				// Again, if one conversion fails, we continue with others.
+				sklog.Errorf("Failed to convert bug id from %s", reg.Bugs[0].BugId)
+			}
+			// Let's not display this warning too often.
+			if len(reg.Bugs) > 1 && !arbitraryBugIdSelectedWarningDisplayed {
+				arbitraryBugIdSelectedWarningDisplayed = true
+				sklog.Warningf("Some regression has %d bug ids to choose from, we selected the first one from the list.", len(reg.Bugs))
+			}
 		}
 
 		commitMap := chromeperf.CommitNumberAnomalyMap{

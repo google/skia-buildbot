@@ -69,6 +69,9 @@ type Store interface {
 	// NudgeAndResetAnomalies updates the commit number and previous commit number for the given regressions,
 	// and also sets the triage status to Untriaged, message to NudgedMessage, and bugID to 0.
 	NudgeAndResetAnomalies(ctx context.Context, regressionIDs []string, commitNumber, prevCommitNumber types.CommitNumber) error
+
+	// GetBugIdsForRegressions queries all bugs from regressions2, culprits and anomalygroups for given regressions.
+	GetBugIdsForRegressions(ctx context.Context, regressions []*Regression) ([]*Regression, error)
 }
 
 // FullSummary describes a single regression.

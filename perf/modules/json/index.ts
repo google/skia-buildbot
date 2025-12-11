@@ -222,6 +222,11 @@ export interface TriageStatus {
 	message: string;
 }
 
+export interface RegressionBug {
+	BugId: string;
+	Type: BugType;
+}
+
 export interface Regression {
 	low: ClusterSummary | null;
 	high: ClusterSummary | null;
@@ -232,7 +237,8 @@ export interface Regression {
 	commit_number: CommitNumber;
 	prev_commit_number: CommitNumber;
 	alert_id: number;
-	bug_id: number;
+	bugs: RegressionBug[] | null;
+	all_bugs_fetched: boolean;
 	creation_time: string;
 	median_before: number;
 	median_after: number;
@@ -910,6 +916,20 @@ export type CommitNumberAnomalyMap = { [key: number]: Anomaly } | null;
 export type AnomalyMap = { [key: string]: CommitNumberAnomalyMap } | null;
 
 export type Status = '' | 'positive' | 'negative' | 'untriaged' | 'ignored';
+
+export type BugType = string & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_bugTypeBrand: 'type alias for string'
+};
+
+export function BugType(v: string): BugType {
+	return v as BugType;
+};
 
 export type RequestType = 0 | 1;
 
