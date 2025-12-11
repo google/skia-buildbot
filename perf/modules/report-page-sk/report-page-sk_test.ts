@@ -149,6 +149,27 @@ describe('ReportPageSk', () => {
     mockExploreInstances.length = 0;
   });
 
+  describe('Page Title', () => {
+    it('updates the title with bug ID', async () => {
+      const originalSearch = window.location.search;
+      window.history.replaceState({}, '', '?bugID=12345');
+
+      const anomalies = [createMockAnomaly(0)];
+      const timerangeMap = { '0': createMockTimerange() };
+
+      fetchMock.post('/_/anomalies/group_report', {
+        anomaly_list: anomalies,
+        timerange_map: timerangeMap,
+        selected_keys: [],
+      });
+
+      await element.connectedCallback();
+
+      assert.equal(document.title, `Report for bug: 12345`);
+      window.history.replaceState({}, '', originalSearch);
+    });
+  });
+
   describe('Graph Loading Functionality', () => {
     it('loads selected graphs in chunks and appends them to the bottom', async () => {
       const anomalyCount = 7;

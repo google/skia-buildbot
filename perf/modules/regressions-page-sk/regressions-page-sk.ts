@@ -187,6 +187,7 @@ export class RegressionsPageSk extends ElementSk {
         this.cpAnomalies = this.cpAnomalies.concat([...regs]);
         this.anomalyCursor = json.anomaly_cursor;
         await this.anomaliesTable!.populateTable(this.cpAnomalies);
+        this.updatePageTitle();
       })
       .catch((msg) => {
         telemetry.increaseCounter(CountMetric.DataFetchFailure, {
@@ -221,6 +222,7 @@ export class RegressionsPageSk extends ElementSk {
     this.subscriptionList = [...sortedSubscriptions];
     this.regressions = [];
     this.cpAnomalies = [];
+    this.updatePageTitle();
     this.showMoreAnomalies = false;
     this.anomaliesLoadingSpinner = false;
     this.stateHasChanged();
@@ -281,6 +283,7 @@ export class RegressionsPageSk extends ElementSk {
     this.btnTriaged!.disabled = false;
     this.btnImprovement!.disabled = false;
     this.cpAnomalies = [];
+    this.updatePageTitle();
     this.showMoreAnomalies = false;
     this.anomalyCursor = null;
     this.stateHasChanged();
@@ -342,6 +345,16 @@ export class RegressionsPageSk extends ElementSk {
       </tr>
       ${regs.map((regression) => RegressionsPageSk.regRowTemplate(regression))}
     </table>`;
+  }
+
+  private updatePageTitle(): void {
+    const anomalyCount = this.cpAnomalies.length;
+    let title = 'Regressions';
+    if (anomalyCount > 0) {
+      const triagedText = this.state.showTriaged ? ' total' : ' untriaged';
+      title = `Regressions (${anomalyCount}${triagedText})`;
+    }
+    document.title = title;
   }
 }
 

@@ -325,4 +325,34 @@ describe('regressions-page-sk', () => {
       assert.strictEqual(element.state.selectedSubscription, 'Sheriff Config 2');
     });
   });
+
+  describe('Page Title', () => {
+    let element: RegressionsPageSk;
+    beforeEach(async () => {
+      element = newInstance();
+      void (await fetchMock.flush(true));
+    });
+
+    it('shows untriaged in the title when showTriaged is false', async () => {
+      const response = anomalyListResponse;
+      response.anomaly_list![0].bug_id = 0;
+      fetchMock.get('/_/anomalies/anomaly_list?sheriff=SheriffWithUntriaged', {
+        body: response,
+      });
+      element = newInstance();
+      void (await fetchMock.flush(true));
+      await element.filterChange('SheriffWithUntriaged');
+      assert.strictEqual(document.title, 'Regressions (1 untriaged)');
+    });
+
+    it('shows total in the title when showTriaged is true', async () => {
+      await element.triagedChange();
+      assert.strictEqual(document.title, 'Regressions (1 total)');
+    });
+
+    it('shows default title when there are no anomalies', async () => {
+      console.log(anomalyListResponse);
+      assert.strictEqual(document.title, 'Regressions');
+    });
+  });
 });

@@ -189,6 +189,7 @@ export class ReportPageSk extends ElementSk {
   async connectedCallback() {
     this.pageLoadStart = performance.now();
     super.connectedCallback();
+    this.updatePageTitle();
     if (this._currentlyLoading !== '' || this._allGraphsLoaded) {
       return;
     }
@@ -233,6 +234,7 @@ export class ReportPageSk extends ElementSk {
       .then(jsonOrThrow)
       .then(async (json) => {
         this.anomalyTracker.load(json.anomaly_list, json.timerange_map, json.selected_keys);
+        this.updatePageTitle();
         const selectedKey: string[] = json.selected_keys;
         if (selectedKey && selectedKey.length > 0) {
           this.requestAnomalies.push(...selectedKey);
@@ -361,6 +363,27 @@ export class ReportPageSk extends ElementSk {
         commitUrlSet.add(commit.url);
       });
     }
+  }
+
+  private updatePageTitle(): void {
+    const urlParams = new URLSearchParams(window.location.search);
+    const bugID = urlParams.get('bugID');
+    const anomalyIDs = urlParams.get('anomalyIDs');
+    const anomalyGroupID = urlParams.get('anomalyGroupID');
+    const sid = urlParams.get('sid');
+
+    let title = 'Report';
+    if (bugID) {
+      title = `Report for bug: ${bugID}`;
+    } else if (anomalyIDs) {
+      title = `Report for anomalies: ${anomalyIDs}`;
+    } else if (anomalyGroupID) {
+      title = `Report for anomaly group: ${anomalyGroupID}`;
+    } else if (sid) {
+      title = `Report for selected: ${sid}`;
+    }
+
+    document.title = title;
   }
 
   private getQueryFromAnomaly(anomaly: Anomaly) {
