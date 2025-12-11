@@ -316,28 +316,20 @@ export class ExploreMultiSk extends ElementSk {
   private _onRemoveExplore = (e: Event) => {
     this._dataLoading = true;
     this.testPicker?.setReadOnly(true);
-    const detail = (e as CustomEvent).detail;
-    const exploreElemToRemove = detail ? (detail.elem as ExploreSimpleSk) : null;
-    if (exploreElemToRemove === null) {
-      // Remove all explore elements.
-      this.resetGraphs();
+    const exploreElemToRemove = (e as CustomEvent).detail.elem as ExploreSimpleSk;
+    if (this.exploreElements.length === 1) {
+      this.removeExplore(exploreElemToRemove);
+      e.stopPropagation();
     } else {
-      if (this.exploreElements.length === 1) {
-        this.removeExplore(exploreElemToRemove);
-        e.stopPropagation();
-      } else {
-        const param = this.state.splitByKeys[0];
-        if (exploreElemToRemove.state.queries.length > 0) {
-          const query = exploreElemToRemove.state.queries[0];
-          const valueToRemove = new URLSearchParams(query).get(param);
-          if (valueToRemove) {
-            this.testPicker?.removeItemFromChart(param, [valueToRemove]);
-          }
+      const param = this.state.splitByKeys[0];
+      if (exploreElemToRemove.state.queries.length > 0) {
+        const query = exploreElemToRemove.state.queries[0];
+        const valueToRemove = new URLSearchParams(query).get(param);
+        if (valueToRemove) {
+          this.testPicker?.removeItemFromChart(param, [valueToRemove]);
         }
       }
     }
-    this._dataLoading = false;
-    this.testPicker?.setReadOnly(false);
   };
 
   // Event listener for when the Test Picker plot button is clicked.
@@ -569,7 +561,7 @@ export class ExploreMultiSk extends ElementSk {
 
     // Remove the traces from the current page explore elements.
     const elemsToRemove: ExploreSimpleSk[] = [];
-    const updatePromises = this.exploreElements.map(async (elem) => {
+    const updatePromises = this.exploreElements.map((elem) => {
       const hasQueryToRemove =
         elem.state.queries && queriesToRemove.some((qr) => elem.state.queries.includes(qr));
 
@@ -597,7 +589,7 @@ export class ExploreMultiSk extends ElementSk {
         }
         if (elem.state.queries.length === 0) {
           elemsToRemove.push(elem);
-          return await Promise.resolve();
+          return Promise.resolve();
         }
         const params: ParamSet = ParamSet({});
         Object.keys(traceset).forEach((trace) => {
@@ -628,7 +620,7 @@ export class ExploreMultiSk extends ElementSk {
           msg: '',
           skps: [],
         };
-        return await elem.UpdateWithFrameResponse(
+        return elem.UpdateWithFrameResponse(
           updatedResponse,
           updatedRequest,
           /* switchToTab= */ true,
@@ -637,7 +629,7 @@ export class ExploreMultiSk extends ElementSk {
           /* replaceAnomalies= */ true
         );
       }
-      return await Promise.resolve();
+      return Promise.resolve();
     });
 
     await Promise.all(updatePromises);
@@ -1085,7 +1077,7 @@ export class ExploreMultiSk extends ElementSk {
       }
 
       const readOnly = this.exploreElements.length > 0;
-      await this.testPicker!.initializeTestPicker(testPickerParams!, defaultParams, readOnly);
+      this.testPicker!.initializeTestPicker(testPickerParams!, defaultParams, readOnly);
       this._render();
     }
 

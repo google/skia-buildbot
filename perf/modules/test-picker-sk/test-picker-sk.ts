@@ -121,10 +121,7 @@ export class TestPickerSk extends ElementSk {
 
     this._containerDiv = this.querySelector('#fieldContainer');
     this._plotButton = this.querySelector('#plot-button');
-    // Using document.querySelector('#graphContainer') fails when ExploreMultiSk uses Shadow DOM.
-    // Instead, find the graph container in the same root (shadow or light) as this element.
-    const root = this.getRootNode() as ParentNode;
-    this._graphDiv = root.querySelector ? root.querySelector('#graphContainer') : null;
+    this._graphDiv = document.querySelector('#graphContainer');
 
     window.addEventListener('data-loaded', () => {
       this._dataLoading = false;
@@ -138,7 +135,7 @@ export class TestPickerSk extends ElementSk {
    * initializes and populates the field, focuses it, and sets up event
    * listeners.
    */
-  private async addChildField(readOnly: boolean): Promise<void> {
+  private addChildField(readOnly: boolean): Promise<void> {
     const currentIndex = this._currentIndex;
     const currentFieldInfo = this._fieldData[currentIndex];
     const param = currentFieldInfo.param;
@@ -193,7 +190,7 @@ export class TestPickerSk extends ElementSk {
       }
       this._render();
     };
-    return await this.callNextParamList(handler, currentIndex);
+    return this.callNextParamList(handler, currentIndex);
   }
 
   /**
@@ -279,7 +276,7 @@ export class TestPickerSk extends ElementSk {
    * @param handler - A callback function to handle the JSON response.
    * @param index - The index of the current field.
    */
-  private async callNextParamList(
+  private callNextParamList(
     handler: (json: NextParamListHandlerResponse) => void,
     index: number
   ): Promise<void> {
@@ -296,7 +293,7 @@ export class TestPickerSk extends ElementSk {
       q: fieldData,
     };
 
-    return await fetch('/_/nextParamList/', {
+    return fetch('/_/nextParamList/', {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
@@ -693,7 +690,7 @@ export class TestPickerSk extends ElementSk {
    *
    * @param index
    */
-  private async fetchExtraOptions(index: number): Promise<void> {
+  private fetchExtraOptions(index: number): Promise<void> {
     const handler = async (json: NextParamListHandlerResponse) => {
       const param = Object.keys(json.paramset)[0];
       const count: number = json.count || -1;
@@ -756,7 +753,7 @@ export class TestPickerSk extends ElementSk {
       }
       this._render();
     };
-    return await this.callNextParamList(handler, index);
+    return this.callNextParamList(handler, index);
   }
 
   createParamSetFromFieldData(): ParamSet {
@@ -863,33 +860,19 @@ export class TestPickerSk extends ElementSk {
     }
 
     this.setReadOnly(false);
-
-    // 1. Check if we need to clear existing graphs due to high count.
-    if (this._graphDiv && this._graphDiv.children.length > 0 && count > PLOT_MAXIMUM) {
-      this.dispatchEvent(
-        new CustomEvent('remove-explore', {
-          bubbles: true,
-          composed: true,
-        })
-      );
-    }
-
     this._count = count;
-
-    // 2. Handle invalid count (too many or none).
     if (count > PLOT_MAXIMUM || count <= 0) {
+      // Disable plotting if there are too many or no traces.
       this.autoAddTrace = false;
-      this._plotButton!.title = count > PLOT_MAXIMUM ? 'Too many traces.' : 'No traces.';
+      this._plotButton!.title = this._count > PLOT_MAXIMUM ? 'Too many traces.' : 'No traces.';
       this._plotButton!.disabled = true;
       return;
     }
-
-    // 3. Handle valid count.
     if (this._graphDiv && this._graphDiv.children.length > 0) {
-      // Graph loaded, auto-add changes.
+      // Graph is already loaded, so allow new changes automatically.
       this.autoAddTrace = true;
     } else {
-      // No graph, ready to plot.
+      // No graph loaded yet, so allow plotting.
       this._plotButton!.title = 'Plot graph';
       this.autoAddTrace = false;
       this._plotButton!.disabled = false;
@@ -958,7 +941,7 @@ export class TestPickerSk extends ElementSk {
    * queries will automatically get "bot=linux-perf" appended. The exception
    * is if bot is already specified in the query, then no defaults are applied.
    */
-  async initializeTestPicker(
+  initializeTestPicker(
     params: string[],
     defaultParams: { [key: string]: string[] | null },
     readOnly: boolean
@@ -966,7 +949,7 @@ export class TestPickerSk extends ElementSk {
     this._defaultParams = defaultParams;
     this.initializeFieldData(params);
     this._render();
-    return await this.addChildField(readOnly);
+    return this.addChildField(readOnly);
   }
 
   /**
