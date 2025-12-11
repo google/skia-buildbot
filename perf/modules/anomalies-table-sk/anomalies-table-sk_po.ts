@@ -128,6 +128,26 @@ export class AnomaliesTableSkPO extends PageObject {
     return await row.isHidden();
   }
 
+  async getDeltaCellColor(rowIndex: number): Promise<string> {
+    const row = await this.rows.item(rowIndex);
+    const deltaCell = await row.bySelector('td:nth-child(9)'); // 9th column is Delta %
+    return deltaCell.applyFnToDOMNode((el) => window.getComputedStyle(el).color);
+  }
+
+  async getGroupedRowCount(index: number): Promise<number> {
+    const expandButtons = await this.expandButton;
+    const expandButton = await expandButtons.item(index);
+    const text = await expandButton.innerText;
+    const parts = text.split(' | ');
+    if (parts.length === 2) {
+      const regressions = parseInt(parts[0], 10) || 0;
+      const improvements = parseInt(parts[1], 10) || 0;
+      return regressions + improvements;
+    }
+    // Fallback for the old format, just in case.
+    return parseInt(text, 10) || 0;
+  }
+
   async toggleGroupingSettings(shouldBeOpen: boolean): Promise<void> {
     const details = this.groupingSettingsDetails;
     const isOpen = await details.hasAttribute('open');

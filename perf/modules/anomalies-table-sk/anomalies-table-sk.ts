@@ -727,6 +727,8 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       return html``; // Handle empty group
     }
 
+    const improvements = anomalyGroup.anomalies.filter((a) => a.is_improvement).length;
+    const regressions = anomalyGroup.anomalies.length - improvements;
     const selectedCount = anomalyGroup.anomalies.filter((a) =>
       this.checkedAnomaliesSet.has(a)
     ).length;
@@ -780,7 +782,8 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
             class="expand-button"
             @click=${() => this.expandGroup(anomalyGroup)}
             ?hidden=${anomalyGroup.anomalies.length === 1}>
-            ${anomalyGroup.anomalies.length}
+            <span class="regression">${regressions}</span> |
+            <span class="improvement">${improvements}</span>
           </button>
         </td>
         <td>

@@ -51,10 +51,10 @@ anomalies-table-sk {
       width: 130px;
     }
     .improvement {
-      color: var(--secondary);
+      color: rgb(0, 128, 0);
     }
     .regression {
-      color: var(--error);
+      color: rgb(255, 0, 0);
     }
     #change_direction {
       text-align: center;

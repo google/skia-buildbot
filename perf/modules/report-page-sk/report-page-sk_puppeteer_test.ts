@@ -240,10 +240,11 @@ describe('report-page-sk', () => {
 
     it('expand button inner text should be equal to the grouped row count', async () => {
       const anomaliesTablePO = reportPageSkPO.anomaliesTable;
-      const expandBtnLength = await anomaliesTablePO.expandButton;
-      const expandBtnInnerText = await (await expandBtnLength.item(0)).innerText;
-      // The first expand button contains 2 rows, which means the inner text is '2'.
-      expect(Number(expandBtnInnerText)).to.equal(2);
+      const rowCount = await anomaliesTablePO.getGroupedRowCount(0);
+      const expandBtn = await anomaliesTablePO.expandButton;
+      const expandBtnInnerText = (await expandBtn.item(0)).innerText;
+      expect(await expandBtnInnerText).to.equal('2\n|\n0');
+      expect(rowCount).to.equal(2);
       await takeScreenshot(testBed.page, 'perf', 'report-page-sk-anomalies-table-header-checkbox');
     });
 
