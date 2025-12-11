@@ -60,7 +60,15 @@
             "enable_chart_tooltip": "true",
             "use_titles": "true",
             "useTestPicker": "true"
-        }
+        },
+	"include_params": [
+            "benchmark",
+            "bot",
+            "test",
+            "subtest_1",
+            "subtest_2",
+            "subtest_3"
+        ]
     },
     "optimize_sqltracestore": true,
     "show_triage_link": true,

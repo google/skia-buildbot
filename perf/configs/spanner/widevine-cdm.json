@@ -62,12 +62,13 @@
             "improvement_direction": ["down"],
             "stat": ["value"]
         },
-          "include_params": [
+	"include_params": [
             "benchmark",
             "bot",
-            "subtest_1",
             "test",
-            "unit"
+            "subtest_1",
+            "subtest_2",
+            "subtest_3"
         ],
         "default_url_values": {
             "show_google_plot": "true",
