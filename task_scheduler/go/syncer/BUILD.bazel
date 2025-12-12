@@ -8,7 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//bazel/external/cipd/cpython3",
-        "//bazel/external/cipd/vpython",
+        "//bazel/external/cipd/vpython3",
         "//bazel/go/bazel",
         "//go/exec",
         "//go/git",

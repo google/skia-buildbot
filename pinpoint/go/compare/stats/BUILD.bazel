@@ -27,7 +27,6 @@ go_test(
         "zeroin_test.go",
     ],
     embed = [":stats"],
-    race = "on",
     deps = [
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

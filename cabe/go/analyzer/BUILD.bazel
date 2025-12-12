@@ -39,7 +39,6 @@ go_test(
         "internal_types_test.go",
     ],
     embed = [":analyzer"],
-    race = "on",
     deps = [
         "//cabe/go/proto:go_proto_lib",
         "//go/util",

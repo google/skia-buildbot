@@ -35,7 +35,7 @@ func StartCockroachDBIfNotRunning() (bool, error) {
 	if isRunning {
 		return false, nil
 	}
-	cockroachExe, err := cockroachdb.FindCockroach()
+	cockroachExe, err := cockroachdb.Find()
 	if err != nil {
 		return false, skerr.Wrapf(err, "finding Bazel-downloaded cockroach command")
 	}

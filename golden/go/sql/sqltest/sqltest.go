@@ -32,7 +32,7 @@ import (
 func NewCockroachDBForTests(ctx context.Context, t testing.TB) *pgxpool.Pool {
 	cockroachdb_instance.Require(t)
 
-	cockroach, err := cockroachdb.FindCockroach()
+	cockroach, err := cockroachdb.Find()
 	require.NoError(t, err)
 
 	out, err := exec.Command(cockroach, "version").CombinedOutput()

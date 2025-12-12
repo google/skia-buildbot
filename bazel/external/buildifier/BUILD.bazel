@@ -1,17 +1,24 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/external:runfile_paths.bzl", "generate_go_runfile_path")
 
+gen_filename, data = generate_go_runfile_path(
+    name = "generate_go_runfile_path",
+    go_library_name = "buildifier",
+    path = "buildifier/buildifier",
+    platform_mapping = {
+        "//conditions:default": "@buildifier_prebuilt//buildifier",
+    },
+)
+
+# gazelle:ignore
 go_library(
     name = "buildifier",
-    srcs = ["buildifier.go"],
-    data = select({
-        "//bazel/constraints:linux_x64": ["@buildifier_prebuilt//buildifier"],
-        "//bazel/constraints:mac_x64": ["@buildifier_prebuilt//buildifier"],
-        "//bazel/constraints:mac_arm64": ["@buildifier_prebuilt//buildifier"],
-    }),
+    srcs = [
+        "buildifier.go",
+        gen_filename,
+    ],
+    data = data,
     importpath = "go.skia.org/infra/bazel/external/buildifier",
     visibility = ["//visibility:public"],
-    deps = [
-        "//bazel/go/bazel",
-        "//go/skerr",
-    ],
+    deps = ["//bazel/go/bazel"],
 )

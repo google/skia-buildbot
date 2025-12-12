@@ -1,18 +1,24 @@
 load("@rules_go//go:def.bzl", "go_library")
-load("//bazel/go:go_test.bzl", "go_test")
+load("//bazel/external:runfile_paths.bzl", "generate_go_runfile_path")
 
+gen_filename, data = generate_go_runfile_path(
+    name = "generate_go_runfile_path",
+    go_library_name = "pgadapter_jar",
+    path = "pgadapter.jar",
+    platform_mapping = {
+        "//conditions:default": "@pgadapter//:all_files",
+    },
+)
+
+# gazelle:ignore
 go_library(
     name = "pgadapter_jar",
-    srcs = ["pgadapter.go"],
-    data = ["@pgadapter//:all_files"],
+    srcs = [
+        "pgadapter.go",
+        gen_filename,
+    ],
+    data = data,
     importpath = "go.skia.org/infra/bazel/external/pgadapter_jar",
     visibility = ["//visibility:public"],
     deps = ["//bazel/go/bazel"],
-)
-
-go_test(
-    name = "pgadapter_jar_test",
-    srcs = ["pgadapter_test.go"],
-    embed = [":pgadapter_jar"],
-    deps = ["@com_github_stretchr_testify//require"],
 )

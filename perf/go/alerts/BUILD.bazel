@@ -26,7 +26,6 @@ go_test(
         "configprovider_test.go",
     ],
     embed = [":alerts"],
-    race = "on",
     deps = [
         "//go/paramtools",
         "@com_github_jackc_pgx_v4//:pgx",

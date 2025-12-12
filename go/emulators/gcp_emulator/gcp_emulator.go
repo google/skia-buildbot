@@ -126,13 +126,13 @@ func startSpannerEmulatorIfNotRunning() (bool, error) {
 }
 
 func runGCloudCmd(args ...string) error {
-	gcloud, err := google_cloud_sdk.FindGcloud()
+	gcloud, err := google_cloud_sdk.Find()
 	if err != nil {
 		return skerr.Wrapf(err, "finding Bazel-downloaded gcloud command")
 	}
 
 	// Add Bazel-downloaded `python3` binary to the PATH. The `gcloud` comand requires this.
-	python3, err := rules_python.FindPython3()
+	python3, err := rules_python.Find()
 	if err != nil {
 		return skerr.Wrap(err)
 	}

@@ -43,7 +43,6 @@ go_test(
         "regression_test.go",
         "stepfit_test.go",
     ],
-    data = glob(["testdata/**"]),
     embed = [":regression"],
     deps = [
         "//go/paramtools",

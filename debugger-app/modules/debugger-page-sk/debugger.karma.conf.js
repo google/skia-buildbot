@@ -15,14 +15,11 @@ const debuggerWASMFile = process.argv[startIdx + 5];
 const isBazelTest = !process.env.BUILD_WORKSPACE_DIRECTORY; // Set when running via "bazel run".
 
 // Returns the path to the Bazel runfiles directory.
-//
-// See:
-//  - https://docs.bazel.build/versions/master/skylark/rules.html#runfiles-location
-//  - https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions
-const bazelRunfilesDir = `${process.env.RUNFILES_DIR}/${process.env.TEST_WORKSPACE}`;
+const bazelRunfilesDir = `${process.env.RUNFILES_DIR}`;
 
 // Forces Karma to use the Bazel-downloaded Google Chrome browser.
-process.env.CHROME_BIN = `${bazelRunfilesDir}/external/_main~google_chrome~google_chrome/opt/google/chrome/chrome`;
+process.env.CHROME_BIN =
+  `${bazelRunfilesDir}` + '/+google_chrome+google_chrome/opt/google/chrome/chrome';
 
 module.exports = function (config) {
   config.set({
@@ -41,16 +38,16 @@ module.exports = function (config) {
     files: [
       // We want the WASM file to be available for loading by the debugger JS file.
       {
-        pattern: `${bazelRunfilesDir}/${debuggerWASMFile}`,
+        pattern: `${bazelRunfilesDir}/_main/${debuggerWASMFile}`,
         included: false,
         served: true,
       },
       // We want the version.js file to be run before the tests so SKIA_VERSION is defined.
-      { pattern: `${bazelRunfilesDir}/${versionJSFile}` },
+      { pattern: `${bazelRunfilesDir}/_main/${versionJSFile}` },
       // We want the debugger.js file to be run before the tests so DebuggerInit is defined.
-      { pattern: `${bazelRunfilesDir}/${debuggerJSFile}` },
+      { pattern: `${bazelRunfilesDir}/_main/${debuggerJSFile}` },
       {
-        pattern: `${bazelRunfilesDir}/${jsTestFile}`,
+        pattern: `${bazelRunfilesDir}/_main/${jsTestFile}`,
         // Force the test files to be served from disk on each request. Without this, interactive
         // mode with ibazel does not work (e.g. "ibazel run //path/to/my:karma_test").
         nocache: true,
@@ -60,7 +57,7 @@ module.exports = function (config) {
     proxies: {
       // This lets our tests just try to load /dist/debugger.wasm instead of the
       // actual path (which is deep inside Bazel's output directory)
-      '/dist/debugger.wasm': `${bazelRunfilesDir}/${debuggerWASMFile}`,
+      '/dist/debugger.wasm': `${bazelRunfilesDir}/_main/${debuggerWASMFile}`,
     },
 
     // Only use a headless browser when running as a test (i.e. "bazel test").

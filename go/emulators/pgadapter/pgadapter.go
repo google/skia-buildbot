@@ -29,7 +29,10 @@ func StartPGAdapterIfNotRunning() (bool, error) {
 	if isRunning {
 		return false, nil
 	}
-	pgAdapterJarPath := pgadapter_jar.FindPGAdapterJar()
+	pgAdapterJarPath, err := pgadapter_jar.Find()
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
 
 	cmd := exec.CommandContext(context.Background(), "java",
 		"-jar", pgAdapterJarPath,

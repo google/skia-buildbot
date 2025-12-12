@@ -5,4 +5,5 @@ go_library(
     srcs = ["bazel.go"],
     importpath = "go.skia.org/infra/bazel/go/bazel",
     visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
 )

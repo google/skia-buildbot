@@ -63,7 +63,7 @@ func setUpEmulatorBazelRBEOnly(t sktest.TestingT, emulator Emulator, fn Emulator
 	// cause flakes.
 	if started {
 		// TODO(kjlubick) use emulator health checks instead of just sleeping
-		time.Sleep(5 * time.Second)
+		time.Sleep(10 * time.Second)
 		fmt.Println("Finished sleeping waiting for emulator to boot")
 	}
 

@@ -131,7 +131,7 @@ var numberedStepsTokenHandler = RegexpTokenHandler(numberedStepsRe)
 // runPythonScript writes the given Python script to a temporary file and runs
 // a Task Driver which uses log_parser.Run with the given TokenHandler.
 func runPythonScript(t *testing.T, fn TokenHandler, script string) *td.StepReport {
-	python3, err := rules_python.FindPython3()
+	python3, err := rules_python.Find()
 	require.NoError(t, err)
 
 	// Write a script to generate steps.

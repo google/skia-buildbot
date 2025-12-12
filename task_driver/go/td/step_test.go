@@ -103,7 +103,7 @@ func TestExec(t *testing.T) {
 		require.Equal(t, 2, *counter)
 
 		// Ensure that we collect stdout.
-		python3, err := rules_python.FindPython3()
+		python3, err := rules_python.Find()
 		require.NoError(t, err)
 		out, err := exec.RunCwd(ctx, ".", python3, "-c", "print('hello world')")
 		require.NoError(t, err)

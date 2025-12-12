@@ -8,6 +8,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//bazel/external/buildifier",
+        "//bazel/external/rules_go",
         "//go/deepequal",
         "//go/util",
     ],

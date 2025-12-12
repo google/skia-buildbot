@@ -19,10 +19,10 @@ func TestInBazel(t *testing.T) {
 	require.True(t, bazel.InBazelTest())
 }
 
-func TestRunfilesDir_UsedToLocateAKnownRunfile_Success(t *testing.T) {
+func TestTestWorkspaceDir_UsedToLocateAKnownRunfile_Success(t *testing.T) {
 	unittest.BazelOnlyTest(t)
 
-	runfile := filepath.Join(bazel.RunfilesDir(), "bazel/go/bazel/test/testdata/hello.txt")
+	runfile := filepath.Join(bazel.TestWorkspaceDir(), "bazel/go/bazel/test/testdata/hello.txt")
 	bytes, err := os.ReadFile(runfile)
 	require.NoError(t, err)
 	require.Equal(t, "Hello, world!", strings.TrimSpace(string(bytes)))

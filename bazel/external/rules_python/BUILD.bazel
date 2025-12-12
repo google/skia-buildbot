@@ -1,27 +1,24 @@
 load("@rules_go//go:def.bzl", "go_library")
-load("//bazel/go:go_test.bzl", "go_test")
+load("//bazel/external:runfile_paths.bzl", "generate_go_runfile_path")
 
-go_library(
-    name = "rules_python",
-    srcs = ["rules_python.go"],
-    data = select({
-        "@platforms//os:linux": ["@python_3_11//:files"],
-        "//conditions:default": [],  # Prevent errors on platforms without this package.
-    }),
-    importpath = "go.skia.org/infra/bazel/external/rules_python",
-    visibility = ["//visibility:public"],
-    deps = [
-        "//bazel/go/bazel",
-        "//go/skerr",
-    ],
+gen_filename, data = generate_go_runfile_path(
+    name = "generate_go_runfile_path",
+    go_library_name = "rules_python",
+    path = "bin/python3",
+    platform_mapping = {
+        "@platforms//os:linux": "@python_3_11//:files",
+    },
 )
 
-go_test(
-    name = "rules_python_test",
-    srcs = ["rules_python_test.go"],
-    embed = [":rules_python"],
-    deps = [
-        "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//require",
+# gazelle:ignore
+go_library(
+    name = "rules_python",
+    srcs = [
+        "rules_python.go",
+        gen_filename,
     ],
+    data = data,
+    importpath = "go.skia.org/infra/bazel/external/rules_python",
+    visibility = ["//visibility:public"],
+    deps = ["//bazel/go/bazel"],
 )

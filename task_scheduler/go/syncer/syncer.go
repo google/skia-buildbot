@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/bazel/external/cipd/cpython3"
-	"go.skia.org/infra/bazel/external/cipd/vpython"
+	"go.skia.org/infra/bazel/external/cipd/vpython3"
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -265,11 +265,11 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	vpythonBinary := "vpython3"
 	if bazel.InBazelTest() {
 		var err error
-		vpythonBinary, err = vpython.FindVPython3()
+		vpythonBinary, err = vpython3.Find()
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to find vpython3 binary from CIPD")
 		}
-		pythonBinary, err := cpython3.FindPythonBinary()
+		pythonBinary, err := cpython3.Find()
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to find python3.8 binary from CIPD")
 		}

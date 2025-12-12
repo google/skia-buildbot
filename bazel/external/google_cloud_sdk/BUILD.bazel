@@ -1,24 +1,24 @@
 load("@rules_go//go:def.bzl", "go_library")
-load("//bazel/go:go_test.bzl", "go_test")
+load("//bazel/external:runfile_paths.bzl", "generate_go_runfile_path")
 
-go_library(
-    name = "google_cloud_sdk",
-    srcs = ["google_cloud_sdk.go"],
-    data = ["@google_cloud_sdk//:all_files"],  # Provides access to the "gcloud" binary downloaded by Bazel.
-    importpath = "go.skia.org/infra/bazel/external/google_cloud_sdk",
-    visibility = ["//visibility:public"],
-    deps = [
-        "//bazel/go/bazel",
-        "//go/skerr",
-    ],
+gen_filename, data = generate_go_runfile_path(
+    name = "generate_go_runfile_path",
+    go_library_name = "google_cloud_sdk",
+    path = "google-cloud-sdk/bin/gcloud",
+    platform_mapping = {
+        "@platforms//os:linux": "@google_cloud_sdk//:all_files",
+    },
 )
 
-go_test(
-    name = "google_cloud_sdk_test",
-    srcs = ["google_cloud_sdk_test.go"],
-    embed = [":google_cloud_sdk"],
-    deps = [
-        "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//require",
+# gazelle:ignore
+go_library(
+    name = "google_cloud_sdk",
+    srcs = [
+        "google_cloud_sdk.go",
+        gen_filename,
     ],
+    data = data,
+    importpath = "go.skia.org/infra/bazel/external/google_cloud_sdk",
+    visibility = ["//visibility:public"],
+    deps = ["//bazel/go/bazel"],
 )

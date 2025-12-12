@@ -3,22 +3,25 @@ load("//bazel/external:runfile_paths.bzl", "generate_go_runfile_path")
 
 gen_filename, data = generate_go_runfile_path(
     name = "generate_go_runfile_path",
-    go_library_name = "rules_go",
-    path = "bin/go",  # TODO(borenet): .exe on windows?
+    go_library_name = "vpython3",
+    path = "vpython3",
     platform_mapping = {
-        "//conditions:default": "@go_sdk",
+        "@platforms//os:linux": "@vpython_amd64_linux//:all_files",
     },
 )
 
 # gazelle:ignore
 go_library(
-    name = "rules_go",
+    name = "vpython3",
     srcs = [
-        "rules_go.go",
+        "vpython3.go",
         gen_filename,
     ],
     data = data,
-    importpath = "go.skia.org/infra/bazel/external/rules_go",
+    importpath = "go.skia.org/infra/bazel/external/cipd/vpython3",
     visibility = ["//visibility:public"],
-    deps = ["//bazel/go/bazel"],
+    deps = [
+        "//bazel/go/bazel",
+        "@rules_go//go/runfiles",
+    ],
 )

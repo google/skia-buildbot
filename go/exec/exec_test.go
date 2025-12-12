@@ -417,7 +417,7 @@ func TestRunCommand(t *testing.T) {
 }
 
 func findPython3(t *testing.T) string {
-	python3, err := rules_python.FindPython3()
+	python3, err := rules_python.Find()
 	require.NoError(t, err)
 	return python3
 }

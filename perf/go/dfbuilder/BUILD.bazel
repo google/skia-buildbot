@@ -31,7 +31,6 @@ go_library(
 go_test(
     name = "dfbuilder_test",
     srcs = ["dfbuilder_test.go"],
-    data = glob(["testdata/**"]),
     embed = [":dfbuilder"],
     deps = [
         "//go/cache/local",

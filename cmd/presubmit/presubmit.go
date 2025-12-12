@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/bazel/external/buildifier"
+	"go.skia.org/infra/bazel/external/rules_go"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/util"
 )
@@ -49,10 +50,6 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-
-	// The pre-built binaries we need are relative to the path that Bazel starts us in.
-	// We need to get those paths before we re-locate to the git repo we are testing.
-	buildifierPath := buildifier.MustFindBuildifier()
 
 	if err := os.Chdir(*repoDir); err != nil {
 		logf(ctx, "Could not cd to %s\n", *repoDir)
@@ -105,7 +102,7 @@ func main() {
 	// a previous check.
 	anyErrors := false
 	trackErrors := func(ok bool) { anyErrors = anyErrors || !ok }
-	trackErrors(runBuildifier(ctx, buildifierPath, changedFiles, branchBaseCommit))
+	trackErrors(runBuildifier(ctx, changedFiles, branchBaseCommit))
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	trackErrors(runGoimports(ctx, changedFiles, *repoDir, branchBaseCommit))
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
@@ -651,7 +648,8 @@ func checkNonASCII(ctx context.Context, files []fileWithChanges) bool {
 // well as check them for linting errors. If buildifier has no output and a non-zero exit code,
 // that is interpreted as "all good" and we return true. If there are issues, we print the
 // buildifier output (which has files and line numbers) and return false.
-func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithChanges, branchBaseCommit string) bool {
+func runBuildifier(ctx context.Context, files []fileWithChanges, branchBaseCommit string) bool {
+	buildifierPath := buildifier.MustFind()
 	args := []string{"-lint=warn", "-mode=fix"}
 	foundAny := false
 	// Note: This duplicates exlude_patterns in //BUILD.bazel, but because the
@@ -698,8 +696,13 @@ func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot, b
 	}
 
 	// -w means "write", as in, modify the files that need formatting.
-	bazelGoPath := "_bazel_bin/bazel/tools/go/go.runfiles/rules_go~~go_sdk~go_sdk/bin"
-	runUnderCmd := fmt.Sprintf("cd %s && export PATH=\"$(pwd)/%s:$PATH\" &&", workspaceRoot, bazelGoPath)
+	goBin, err := rules_go.Find()
+	if err != nil {
+		logf(ctx, "Failed to find Go: %s", err.Error())
+		return false
+	}
+	bazelGoPath := filepath.Dir(goBin)
+	runUnderCmd := fmt.Sprintf("cd %s && export PATH=\"%s:$PATH\" &&", workspaceRoot, bazelGoPath)
 	args := []string{"run", "--config=mayberemote", "//:goimports", "--run_under=" + runUnderCmd, "--", "-w"}
 	foundAny := false
 	for _, f := range files {

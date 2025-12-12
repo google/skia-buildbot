@@ -20,7 +20,7 @@ import (
 // this cannot run on production servers.
 func Get() (string, error) {
 	if bazel.InBazelTest() {
-		return bazel.RunfilesDir(), nil
+		return bazel.TestWorkspaceDir(), nil
 	}
 
 	dir, err := os.Getwd()

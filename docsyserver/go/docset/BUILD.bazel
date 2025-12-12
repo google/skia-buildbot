@@ -22,7 +22,6 @@ go_library(
 go_test(
     name = "docset_test",
     srcs = ["docset_test.go"],
-    data = glob(["testdata/**"]),
     embed = [":docset"],
     deps = [
         "//bazel/external/cipd/git",

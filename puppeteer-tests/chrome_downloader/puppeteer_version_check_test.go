@@ -58,7 +58,7 @@ See the following links for a list of valid versions:
 }
 
 func parseDepsFromPackageJSONFile(t *testing.T) map[string]string {
-	b, err := os.ReadFile(filepath.Join(bazel.RunfilesDir(), "package.json"))
+	b, err := os.ReadFile(filepath.Join(bazel.TestWorkspaceDir(), "package.json"))
 	require.NoError(t, err)
 	var packageJSON struct {
 		Dependencies map[string]string `json:"dependencies"`

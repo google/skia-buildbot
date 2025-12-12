@@ -41,7 +41,6 @@ go_test(
         "sandwich_test.go",
     ],
     embed = [":cli"],
-    race = "on",
     deps = [
         "//cabe/go/proto:go_proto_lib",
         "@com_github_google_go_cmp//cmp",

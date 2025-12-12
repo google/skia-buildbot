@@ -17,7 +17,7 @@ import (
 // [1] https://github.com/bazelbuild/rules_go
 func FindGo() (string, error) {
 	if bazel.InBazelTest() {
-		goBin, err := rules_go.FindGo()
+		goBin, err := rules_go.Find()
 		if err != nil {
 			return "", skerr.Wrapf(err, "Failed to find go in Bazel runfiles")
 		}

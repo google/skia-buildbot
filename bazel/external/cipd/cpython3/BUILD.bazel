@@ -1,16 +1,24 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/external:runfile_paths.bzl", "generate_go_runfile_path")
 
+gen_filename, data = generate_go_runfile_path(
+    name = "generate_go_runfile_path",
+    go_library_name = "cpython3",
+    path = "bin/python3.11",
+    platform_mapping = {
+        "@platforms//os:linux": "@cpython3_amd64_linux//:all_files",
+    },
+)
+
+# gazelle:ignore
 go_library(
     name = "cpython3",
-    srcs = ["cpython3.go"],
-    data = select({
-        "@platforms//os:linux": ["@cpython3_amd64_linux//:all_files"],
-        "//conditions:default": [],  # Prevent errors on platforms without this CIPD package.
-    }),
+    srcs = [
+        "cpython3.go",
+        gen_filename,
+    ],
+    data = data,
     importpath = "go.skia.org/infra/bazel/external/cipd/cpython3",
     visibility = ["//visibility:public"],
-    deps = [
-        "//bazel/go/bazel",
-        "//go/skerr",
-    ],
+    deps = ["//bazel/go/bazel"],
 )

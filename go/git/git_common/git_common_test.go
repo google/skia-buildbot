@@ -15,7 +15,7 @@ func TestFindGit_WithGitFinder(t *testing.T) {
 	execCount := 0
 	gitFinder := func() (string, error) {
 		execCount++
-		return cipd_git.FindGit()
+		return cipd_git.Find()
 	}
 	ctx := git_common.WithGitFinder(context.Background(), gitFinder)
 

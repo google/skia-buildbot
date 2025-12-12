@@ -40,7 +40,7 @@ import (
 )
 
 func FindGitBinary() string {
-    return filepath.Join(bazel.RunfilesDir(), "external/_main~cipd~git_amd64_linux/bin/git")
+    return filepath.Join(bazel.RunfilesDir(), "+cipd+git_amd64_linux/bin/git")
 }
 ```
 

@@ -23,10 +23,11 @@ const isBazelTest = !process.env.BUILD_WORKSPACE_DIRECTORY; // Set when running 
 // See:
 //  - https://docs.bazel.build/versions/master/skylark/rules.html#runfiles-location
 //  - https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions
-const bazelRunfilesDir = `${process.env.RUNFILES_DIR}/${process.env.TEST_WORKSPACE}`;
+const bazelRunfilesDir = `${process.env.RUNFILES_DIR}`;
 
 // Forces Karma to use the Bazel-downloaded Google Chrome browser.
-process.env.CHROME_BIN = `${bazelRunfilesDir}/external/_main~google_chrome~google_chrome/opt/google/chrome/chrome`;
+process.env.CHROME_BIN =
+  `${bazelRunfilesDir}` + '/+google_chrome+google_chrome/opt/google/chrome/chrome';
 
 module.exports = function (config) {
   config.set({
@@ -44,7 +45,7 @@ module.exports = function (config) {
 
     files: [
       {
-        pattern: `${bazelRunfilesDir}/${jsTestFile}`,
+        pattern: `${bazelRunfilesDir}/_main/${jsTestFile}`,
         // Force the test files to be served from disk on each request. Without this, interactive
         // mode with ibazel does not work (e.g. "ibazel run //path/to/my:karma_test").
         nocache: true,

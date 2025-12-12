@@ -1345,7 +1345,7 @@ sk_demo_page_server(
 // test runs Gazelle on a temporary directory with the given input files, and asserts that Gazelle
 // generated the expected output files.
 func test(t *testing.T, inputFiles, expectedOutputFiles []testtools.FileSpec) {
-	gazelleAbsPath := filepath.Join(bazel.RunfilesDir(), "bazel/gazelle/frontend/gazelle_frontend_test_binary_/gazelle_frontend_test_binary")
+	gazelleAbsPath := filepath.Join(bazel.TestWorkspaceDir(), "bazel/gazelle/frontend/gazelle_frontend_test_binary_/gazelle_frontend_test_binary")
 
 	// Write the input files to a temporary directory.
 	dir, cleanup := testtools.CreateFiles(t, inputFiles)
