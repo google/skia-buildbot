@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"path"
 	"strings"
 	"time"
@@ -255,7 +256,7 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 			return nil, skerr.Wrap(err)
 		}
 
-		r := formatResult(cr, cbb.BotConfig, p.Benchmark, bi)
+		r := formatResult(ctx, cr, cbb.BotConfig, p.Benchmark, bi, startTime, p.PinpointJobID)
 		results[b.Benchmark] = r
 
 		if cbb.Bucket != "" {
@@ -298,7 +299,37 @@ func (StringWriterCloser) Close() error {
 
 // Taking all swarming task results for one benchmark on one bot config,
 // and convert the results into the format required by the perf dashboard.
-func formatResult(cr *CommitRun, bot string, benchmark string, bi *browserInfo) *format.Format {
+func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark string, bi *browserInfo, startTime time.Time, jobId string) *format.Format {
+	// Create a link to the Temporal workflow that is currently running.
+	// This link will be included in the pop-up for the result, to help debugging.
+	isDev := strings.HasPrefix(workflow.GetActivityOptions(ctx).TaskQueue, "localhost.")
+	var temporalHost string
+	if isDev {
+		temporalHost = "temporal-ui-dev.corp.goog"
+	} else {
+		temporalHost = "skia-temporal-ui.corp.goog"
+	}
+	exec := workflow.GetInfo(ctx).WorkflowExecution
+	workflowLink := fmt.Sprintf(
+		"https://%s/namespaces/perf-internal/workflows/%s/%s/history",
+		temporalHost, exec.ID, exec.RunID)
+
+	// Create a link to all swarming tasks associated with these results.
+	// The link has these parameters:
+	// * c=... selects the columns to display.
+	// * st=%d Start time of the display.
+	// * et=%d End time of the display. Set to the current time, as the
+	//   benchmark runs have just ended. Since the link is saved with the test
+	//   results, some additional Pinpoint jobs with the same name might have
+	//   run by the time a user clicks on the link, in which case we don't want
+	//   the future tasks to be included. Having a time range should also speed
+	//   up retrieving the task list.
+	// * n=false Sets the "Now" flag to false. Without this, the end time would be ignored.
+	// * f=... Filter to select the tasks with the expected Pinpoint job ID.
+	swarmingLink := fmt.Sprintf(
+		"https://chrome-swarming.appspot.com/tasklist?c=name&c=duration&c=bot&c=state&st=%d&et=%d&n=false&f=pinpoint_job_id-tag%%3A%s",
+		startTime.UnixMilli(), time.Now().UnixMilli(), url.PathEscape(jobId))
+
 	data := format.Format{
 		Version: 1,
 		GitHash: fmt.Sprintf("CP:%d", cr.Build.Commit.Main.CommitPosition),
@@ -309,6 +340,8 @@ func formatResult(cr *CommitRun, bot string, benchmark string, bi *browserInfo) 
 		},
 		Links: map[string]string{
 			"Browser Version": bi.Version,
+			"Workflow":        workflowLink,
+			"Swarming Tasks":  swarmingLink,
 		},
 	}
 

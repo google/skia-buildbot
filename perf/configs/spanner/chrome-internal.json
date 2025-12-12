@@ -151,7 +151,8 @@
     },
     "data_point_config": {
         "keys_for_commit_range": ["V8", "WebRTC", "V8 Git Hash", "WebRTC Git Hash"],
-        "keys_for_useful_links": ["Build Page", "Tracing uri", "Browser Version"],
+        "keys_for_useful_links": [
+            "Build Page", "Tracing uri", "Browser Version", "Workflow", "Swarming Tasks"],
         "skip_commit_detail_display": true,
         "show_json_file_display": false
     },
