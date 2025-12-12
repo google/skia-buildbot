@@ -177,6 +177,101 @@ const (
 		"webrtc_branch": "4472"
 	}
 ]`
+
+	fakeData3 = `[
+	{
+		"angle_branch": "4606",
+		"bling_ldap": "harrysouders",
+		"bling_owner": "Harry Souders",
+		"chromium_branch": "4606",
+		"chromium_main_branch_hash": "35b0d5a9dc8362adfd44e2614f0d5b7402ef63d0",
+		"chromium_main_branch_position": 911515,
+		"clank_ldap": "govind",
+		"clank_owner": "Krishna Govind",
+		"cros_ldap": "matthewjoseph",
+		"cros_owner": "Matt Nelson",
+		"dawn_branch": "4606",
+		"desktop_ldap": "srinivassista",
+		"desktop_owner": "Srinivas Sista",
+		"devtools_branch": "4606",
+		"milestone": 94,
+		"pdfium_branch": "4606",
+		"schedule_active": true,
+		"schedule_phase": "branch",
+		"skia_branch": "m94",
+		"v8_branch": "9.4-lkgr",
+		"webrtc_branch": "4606"
+	},
+	{
+		"angle_branch": "4577",
+		"bling_ldap": "govind",
+		"bling_owner": "Krishna Govind",
+		"chromium_branch": "4577",
+		"chromium_main_branch_hash": "761ddde228655e313424edec06497d0c56b0f3c4",
+		"chromium_main_branch_position": 902210,
+		"clank_ldap": "benmason",
+		"clank_owner": "Ben Mason",
+		"cros_ldap": "geohsu",
+		"cros_owner": "Geo Hsu",
+		"dawn_branch": "4577",
+		"desktop_ldap": "pbommana",
+		"desktop_owner": "Prudhvi Bommana",
+		"devtools_branch": "4577",
+		"milestone": 93,
+		"pdfium_branch": "4577",
+		"schedule_active": true,
+		"schedule_phase": "beta",
+		"skia_branch": "m93",
+		"v8_branch": "9.3-lkgr",
+		"webrtc_branch": "4577"
+	},
+	{
+		"angle_branch": "4515",
+		"bling_ldap": "benmason",
+		"bling_owner": "Ben Mason",
+		"chromium_branch": "4515",
+		"chromium_main_branch_hash": "488fc70865ddaa05324ac00a54a6eb783b4bc41c",
+		"chromium_main_branch_position": 885287,
+		"clank_ldap": "govind",
+		"clank_owner": "Krishna Govind",
+		"cros_ldap": "dgagnon",
+		"cros_owner": "Daniel Gagnon",
+		"dawn_branch": "4515",
+		"desktop_ldap": "srinivassista",
+		"desktop_owner": "Srinivas Sista",
+		"devtools_branch": "4515",
+		"milestone": 92,
+		"pdfium_branch": "4515",
+		"schedule_active": true,
+		"schedule_phase": "stable",
+		"skia_branch": "m92",
+		"v8_branch": "9.2-lkgr",
+		"webrtc_branch": "4515"
+	},
+	{
+		"angle_branch": "4472",
+		"bling_ldap": "bindusuvarna",
+		"bling_owner": "Bindu Suvarna",
+		"chromium_branch": "4472",
+		"chromium_main_branch_hash": "3d60439cfb36485e76a1c5bb7f513d3721b20da1",
+		"chromium_main_branch_position": 870763,
+		"clank_ldap": "benmason",
+		"clank_owner": "Ben Mason",
+		"cros_ldap": "marinakz",
+		"cros_owner": "Marina Kazatcker",
+		"dawn_branch": null,
+		"desktop_ldap": "pbommana",
+		"desktop_owner": "Prudhvi Bommana",
+		"devtools_branch": "4472",
+		"milestone": 91,
+		"pdfium_branch": "4472",
+		"schedule_active": true,
+		"schedule_phase": "stable",
+		"skia_branch": "m91",
+		"v8_branch": "9.1-lkgr",
+		"webrtc_branch": "4472"
+	}
+]`
 )
 
 func fakeBranches() *Branches {
@@ -402,4 +497,26 @@ func TestGetSecondDataSet(t *testing.T) {
 	require.Nil(t, b)
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "Beta branch is invalid: Milestone is required"), err)
+}
+
+func TestGetThirdDataSet(t *testing.T) {
+
+	ctx := context.Background()
+	urlmock := mockhttpclient.NewURLMock()
+	c := urlmock.Client()
+
+	// Everything okay. This data set has two "stable" branches in
+	// schedule_phase, so we use the highest milestone number.
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(fakeData3)))
+	b, _, err := Get(ctx, c)
+	require.NoError(t, err)
+	expect := fakeBranches()
+	expect.Main.Milestone = 95
+	expect.Dev = &Branch{
+		Milestone: 94,
+		Number:    4606,
+		Ref:       fmt.Sprintf(refTmplRelease, 4606),
+		V8Branch:  "9.4",
+	}
+	require.Equal(t, expect, b)
 }

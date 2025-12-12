@@ -175,7 +175,10 @@ func Get(ctx context.Context, c *http.Client) (*Branches, []*Branch, error) {
 		}
 		branch.Number = number
 		branch.Ref = ReleaseBranchRef(number)
-		byPhase[milestone.SchedulePhase] = branch
+		existingBranch, ok := byPhase[milestone.SchedulePhase]
+		if !ok || existingBranch.Milestone < branch.Milestone {
+			byPhase[milestone.SchedulePhase] = branch
+		}
 		byMilestone[milestone.Milestone] = branch
 		if milestone.ScheduleActive {
 			activeMilestones = append(activeMilestones, branch)
