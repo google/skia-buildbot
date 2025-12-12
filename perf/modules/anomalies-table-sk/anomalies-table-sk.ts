@@ -654,7 +654,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
               ? html`<spinner-sk active></spinner-sk>` // Show spinner if loading
               : html`
                   <button
-                    id="trendingicon-link"
+                    class="trendingicon-link"
                     @click=${async () => {
                       const newTab = window.open('', '_blank');
                       if (newTab) {

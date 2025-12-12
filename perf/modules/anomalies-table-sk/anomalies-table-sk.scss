@@ -56,6 +56,14 @@ anomalies-table-sk {
     .regression {
       color: rgb(255, 0, 0);
     }
+
+    td.delta.improvement {
+      color: rgb(0, 128, 0);
+    }
+    td.delta.regression {
+      color: rgb(255, 0, 0);
+    }
+
     #change_direction {
       text-align: center;
       width: var(--percent-changed-width, 50px);

@@ -50,7 +50,7 @@ export class AnomaliesTableSkPO extends PageObject {
   }
 
   get trendingIconLink(): PageObjectElementList {
-    return this.bySelectorAll('button#trendingicon-link');
+    return this.bySelectorAll('button.trendingicon-link');
   }
 
   get groupingSettingsDetails(): PageObjectElement {
@@ -93,9 +93,9 @@ export class AnomaliesTableSkPO extends PageObject {
   }
 
   async clickTrendingIconButton(index: number): Promise<void> {
+    await this.clickExpandButton(index);
     const trendingLinkList = await this.trendingIconLink;
     const trendingLink = trendingLinkList.item(index);
-    await this.clickExpandButton(index);
     await (await trendingLink).click();
   }
 
