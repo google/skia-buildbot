@@ -48,7 +48,6 @@ import '../commit-detail-panel-sk';
 import '../commit-range-sk';
 import '../domain-picker-sk';
 import '../json-source-sk';
-import '../ingest-file-links-sk';
 import '../picker-field-sk';
 import '../pivot-query-sk';
 import '../pivot-table-sk';

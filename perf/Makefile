@@ -88,10 +88,6 @@ demo_day-range-sk:
 demo_domain-picker-sk:
 	$(BAZEL) run --config=mayberemote //perf/modules/domain-picker-sk:demo_page_server
 
-.PHONY: demo_ingest-file-links-sk
-demo_ingest-file-links-sk:
-	$(BAZEL) run --config=mayberemote //perf/modules/ingest-file-links-sk:demo_page_server
-
 .PHONY: demo_json-source-sk
 demo_json-source-sk:
 	$(BAZEL) run --config=mayberemote //perf/modules/json-source-sk:demo_page_server

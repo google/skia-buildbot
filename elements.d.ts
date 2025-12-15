@@ -96,7 +96,6 @@ import { IgnoresPageSk } from './golden/modules/ignores-page-sk/ignores-page-sk'
 import { ImageCompareSk } from './golden/modules/image-compare-sk/image-compare-sk';
 import { IncidentSk } from './am/modules/incident-sk/incident-sk';
 import { IndexPageSk } from './codesize/modules/index-page-sk/index-page-sk';
-import { IngestFileLinksSk } from './perf/modules/ingest-file-links-sk/ingest-file-links-sk';
 import { JobSearchSk } from './task_scheduler/modules/job-search-sk/job-search-sk';
 import { JobSk } from './task_scheduler/modules/job-sk/job-sk';
 import { JobTimelineSk } from './task_scheduler/modules/job-timeline-sk/job-timeline-sk';
@@ -1295,7 +1294,6 @@ declare global {
     'image-compare-sk': ImageCompareSk;
     'incident-sk': IncidentSk;
     'index-page-sk': IndexPageSk;
-    'ingest-file-links-sk': IngestFileLinksSk;
     'input-sk': InputSk;
     'job-search-sk': JobSearchSk;
     'job-sk': JobSk;

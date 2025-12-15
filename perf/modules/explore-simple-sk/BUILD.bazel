@@ -16,7 +16,6 @@ sk_element(
         "//perf/modules/json-source-sk",
         "//perf/modules/plot-simple-sk",
         "//perf/modules/query-count-sk",
-        "//perf/modules/ingest-file-links-sk",
         "//perf/modules/pivot-query-sk",
         "//perf/modules/pivot-table-sk",
         "//perf/modules/commit-range-sk",
