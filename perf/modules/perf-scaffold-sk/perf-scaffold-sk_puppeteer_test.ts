@@ -218,6 +218,77 @@ describe('perf-scaffold-sk', () => {
     expect(legacyButton).to.not.equal(null);
   });
 
+  it('v2 ui toggles help dropdown', async () => {
+    await testBed.page.evaluate(() => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+    await testBed.page.goto(testBed.baseUrl);
+    await testBed.page.waitForSelector('app-sk.v2-ui');
+
+    const helpButton = await testBed.page.$('#help-button');
+    expect(helpButton).to.not.equal(null);
+
+    // Initial state: hidden
+    let dropdown = await testBed.page.$('#help-dropdown.hidden');
+    expect(dropdown).to.not.equal(null);
+
+    // Click to open
+    await helpButton!.click();
+    dropdown = await testBed.page.$('#help-dropdown.hidden');
+    expect(dropdown).to.equal(null); // Should not have .hidden class
+
+    // Check content
+    const helpContent = await testBed.page.$('#help-content');
+    const text = await testBed.page.evaluate((el) => el!.textContent, helpContent);
+    expect(text).to.contain('Helpful stuff goes here.');
+  });
+
+  it('v2 ui toggles gemini side panel', async () => {
+    await testBed.page.evaluate(() => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+    await testBed.page.goto(testBed.baseUrl);
+    await testBed.page.waitForSelector('app-sk.v2-ui');
+
+    const geminiButton = await testBed.page.$('button[title="Ask Gemini"]');
+    expect(geminiButton).to.not.equal(null);
+
+    const sidePanel = await testBed.page.$('gemini-side-panel-sk');
+    expect(sidePanel).to.not.equal(null);
+
+    let isOpen = await testBed.page.evaluate((el) => (el as any).open, sidePanel);
+    expect(isOpen).to.equal(false);
+
+    await geminiButton!.click();
+
+    isOpen = await testBed.page.evaluate((el) => (el as any).open, sidePanel);
+    expect(isOpen).to.equal(true);
+  });
+
+  it('hides triage link when configured', async () => {
+    await testBed.page.evaluateOnNewDocument(() => {
+      (window as any).perf = {
+        show_triage_link: false,
+      };
+    });
+    await testBed.page.goto(testBed.baseUrl);
+
+    // Check legacy UI
+    // In legacy UI, the link is hidden but still in DOM
+    const legacyTriage = await testBed.page.$('aside#sidebar .triage-link[hidden]');
+    expect(legacyTriage).to.not.equal(null);
+
+    // Check V2 UI
+    await testBed.page.evaluate(() => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+    await testBed.page.reload();
+    await testBed.page.waitForSelector('app-sk.v2-ui');
+
+    const v2Triage = await testBed.page.$('#header-nav-items .triage-link[hidden]');
+    expect(v2Triage).to.not.equal(null);
+  });
+
   describe('screenshots', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'perf', 'perf-scaffold-sk');
