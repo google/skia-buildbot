@@ -670,8 +670,6 @@ describe('ExploreMultiSk', () => {
 
   describe('loadAllCharts', () => {
     beforeEach(() => {
-      // Mock window.confirm to always return true for these tests.
-      sinon.stub(window, 'confirm').returns(true);
       element['stateHasChanged'] = sinon.spy();
       sinon.stub(element, '_render' as any);
       sinon.stub(element, 'updateChartHeights' as any);
@@ -913,15 +911,11 @@ describe('ExploreMultiSk', () => {
       const loadAllButton = element.querySelector<HTMLButtonElement>('div#pagination > button');
       assert.isNotNull(loadAllButton, 'Load All Charts button should be visible');
 
-      // Stub window.confirm to simulate user confirmation.
-      const confirmStub = sinon.stub(window, 'confirm').returns(true);
-
       // The real `loadAllCharts` calls `splitGraphs`. We'll spy on it.
       const splitGraphsSpy = element['splitGraphs'] as sinon.SinonSpy;
 
       await element['loadAllCharts']();
 
-      assert.isTrue(confirmStub.calledOnce, 'window.confirm should be called');
       assert.equal(
         element.state.pageSize,
         totalSplitGraphs,

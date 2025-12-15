@@ -1674,17 +1674,11 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private async loadAllCharts() {
-    if (
-      window.confirm(
-        'Loading all charts at once may cause performance issues or page crashes. Proceed?'
-      )
-    ) {
-      const pageSize = this.exploreElements.length > 0 ? this.exploreElements.length - 1 : 1;
-      this.state.pageSize = pageSize;
-      this.state.pageOffset = 0;
-      this.stateHasChanged!();
-      await this.splitGraphs();
-    }
+    const pageSize = this.exploreElements.length > 0 ? this.exploreElements.length - 1 : 1;
+    this.state.pageSize = pageSize;
+    this.state.pageOffset = 0;
+    this.stateHasChanged!();
+    await this.splitGraphs();
   }
 }
 
