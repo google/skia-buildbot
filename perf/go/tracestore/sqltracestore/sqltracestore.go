@@ -1189,7 +1189,12 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 			continue
 		}
 		traceID := traceIDForSQLFromTraceName(traceName)
-		traceParams[string(traceID)] = p
+		traceIDKey := string(traceID)
+		if _, exists := traceParams[traceIDKey]; exists {
+			sklog.Warningf("Many values for the same trace name found, skipping all but the first: %s", traceName)
+			continue
+		}
+		traceParams[traceIDKey] = p
 		valuesTemplateContext = append(valuesTemplateContext, insertIntoTraceValuesContext{
 			MD5HexTraceID: traceID,
 			CommitNumber:  commitNumber,

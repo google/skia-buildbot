@@ -657,6 +657,34 @@ func TestWriteTraces_InsertDifferentValueAndFile_OverwriteExistingTraceValues(t 
 	assert.Equal(t, float32(2.4), trace[1])
 }
 
+func TestWriteTraces_DuplicateTraceIDsInBatch_Succeeds(t *testing.T) {
+	ctx, s := commonTestSetupWithCommits(t)
+	// We are simulating a scenario where the ingestion process sends two values
+	// for the exactly same trace in a single batch.
+	traceNames := []paramtools.Params{
+		{"config": "8888", "arch": "x86"}, // Entry A
+		{"config": "8888", "arch": "x86"}, // Entry A (Duplicate of above)
+	}
+	values := []float32{1.0, 99.0}
+	ps := paramtools.ParamSet{
+		"config": {"8888"},
+		"arch":   {"x86"},
+	}
+
+	err := s.WriteTraces(ctx, types.CommitNumber(2), traceNames, values, ps, file1, time.Time{})
+	require.NoError(t, err)
+
+	keys := []string{",arch=x86,config=8888,"}
+	ts, _, _, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
+	require.NoError(t, err)
+	trace := ts[",arch=x86,config=8888,"]
+	actualValue := trace[2]
+	// Verify that the stored value is one of the inputs.
+	// We don't care if it's 1.0 (first-write-wins) or 99.0 (last-write-wins),
+	// as long as the write succeeded and data is present.
+	assert.Contains(t, []float32{1.0, 99.0}, actualValue, "The stored value should be one of the input values from the batch")
+}
+
 func TestReadTraces_WithDiscontinueCommitNumbers_Succeed(t *testing.T) {
 	ctx, s := commonTestSetupWithCommits(t)
 
