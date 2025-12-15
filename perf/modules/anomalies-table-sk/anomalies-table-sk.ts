@@ -213,15 +213,15 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
           </div>
 
           <div class="grouping-setting-group">
-            <label class="grouping-setting-label">Singles Strategy</label>
+            <label class="grouping-setting-label">Single Anomalies Strategy</label>
             <div class="checkbox-container">
               <label title="If unchecked, single anomalies will not be forced into groups">
                 <input
                   type="checkbox"
                   ?checked=${this.currentConfig.groupSingles}
                   @change=${(e: Event) => this.onGroupSinglesChange(e)} />
-                Group remaining singles by selected criteria (may lead to grouping of unrelated
-                anomalies!)
+                Group remaining single anomalies by selected criteria (may lead to grouping of
+                unrelated anomalies!)
               </label>
             </div>
           </div>
