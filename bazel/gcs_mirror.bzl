@@ -1,5 +1,7 @@
 """This module provides the gcs_mirror_url macro."""
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+
 # Set to True to force the macro to only return the mirror URL.
 _TEST_GCS_MIRROR = False
 
@@ -37,3 +39,62 @@ def gcs_mirror_url(url, sha256, ext = None):
 
     mirror_url = "%s/%s%s" % (_GCS_MIRROR_PREFIX, sha256, extension)
     return [mirror_url] if _TEST_GCS_MIRROR else [mirror_url, url]
+
+def _gcs_mirror_impl(ctx):
+    def _url_helper(tag):
+        # This is a weird effect resulting from the combination of
+        # gcs_mirror_url treatment of None vs "" and the fact that
+        # attrs.string() cannot be None.
+        ext = tag.ext
+        if tag.no_extension:
+            ext = ""
+        elif tag.ext == "":
+            ext = None
+        return gcs_mirror_url(tag.url, tag.sha256, ext)
+
+    for mod in ctx.modules:
+        for tag in mod.tags.http_archive:
+            http_archive(
+                name = tag.name,
+                build_file_content = tag.build_file_content,
+                sha256 = tag.sha256,
+                strip_prefix = tag.strip_prefix,
+                urls = _url_helper(tag),
+            )
+        for tag in mod.tags.http_file:
+            http_file(
+                name = tag.name,
+                downloaded_file_path = tag.downloaded_file_path,
+                executable = tag.executable,
+                sha256 = tag.sha256,
+                urls = _url_helper(tag),
+            )
+
+_http_archive = tag_class(attrs = {
+    "name": attr.string(),
+    "build_file_content": attr.string(),
+    "ext": attr.string(),
+    "no_extension": attr.bool(),
+    "url": attr.string(),
+    "sha256": attr.string(),
+    "strip_prefix": attr.string(),
+})
+
+_http_file = tag_class(attrs = {
+    "name": attr.string(),
+    "downloaded_file_path": attr.string(),
+    "executable": attr.bool(),
+    "ext": attr.string(),
+    "no_extension": attr.bool(),
+    "sha256": attr.string(),
+    "url": attr.string(),
+})
+
+gcs_mirror = module_extension(
+    doc = """Bzlmod extension wrapper around gcs_mirror_url.""",
+    implementation = _gcs_mirror_impl,
+    tag_classes = {
+        "http_archive": _http_archive,
+        "http_file": _http_file,
+    },
+)

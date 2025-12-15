@@ -443,6 +443,72 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "//bazel:gcs_mirror.bzl%gcs_mirror": {
+      "general": {
+        "bzlTransitiveDigest": "jdW+wRYbJnW1LhtYTEmLeaqbAiWx9f3njqO9DpL7HVM=",
+        "usagesDigest": "s0hX+i5luSwt4hmFJGQ/C9neQojyrAzv0ICtKI5zuYQ=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "protoc_linux_x64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nexports_files([\"bin/protoc\"], visibility = [\"//visibility:public\"])\n",
+              "sha256": "3a4c1e5f2516c639d3079b1586e703fc7bcfa2136d58bda24d1d54f949c315e8",
+              "strip_prefix": "",
+              "urls": [
+                "https://cdn.skia.org/bazel/3a4c1e5f2516c639d3079b1586e703fc7bcfa2136d58bda24d1d54f949c315e8.zip",
+                "https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-linux-x86_64.zip"
+              ]
+            }
+          },
+          "protoc_mac_x64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nexports_files([\"bin/protoc\"], visibility = [\"//visibility:public\"])\n",
+              "sha256": "9448ff40278504a7ae5139bb70c962acc78c32d8fc54b4890a55c14c68b9d10a",
+              "strip_prefix": "",
+              "urls": [
+                "https://cdn.skia.org/bazel/9448ff40278504a7ae5139bb70c962acc78c32d8fc54b4890a55c14c68b9d10a.zip",
+                "https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-osx-x86_64.zip"
+              ]
+            }
+          },
+          "cockroachdb_linux": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nfilegroup(\n    name = \"all_files\",\n    srcs = glob([\"**/*\"]),\n    visibility = [\"//visibility:public\"]\n)\n",
+              "sha256": "05293e76dfb6443790117b6c6c05b1152038b49c83bd4345589e15ced8717be3",
+              "strip_prefix": "cockroach-v21.1.9.linux-amd64",
+              "urls": [
+                "https://cdn.skia.org/bazel/05293e76dfb6443790117b6c6c05b1152038b49c83bd4345589e15ced8717be3.tgz",
+                "https://binaries.cockroachdb.com/cockroach-v21.1.9.linux-amd64.tgz"
+              ]
+            }
+          },
+          "rbe_configs_gen_linux_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "downloaded_file_path": "rbe_configs_gen",
+              "executable": true,
+              "sha256": "1206e8a79b41cb22524f73afa4f4ee648478f46ef6990d78e7cc953665a1db89",
+              "urls": [
+                "https://cdn.skia.org/bazel/1206e8a79b41cb22524f73afa4f4ee648478f46ef6990d78e7cc953665a1db89",
+                "https://github.com/bazelbuild/bazel-toolchains/releases/download/v5.1.2/rbe_configs_gen_linux_amd64"
+              ]
+            }
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "",
+            "bazel_tools",
+            "bazel_tools"
+          ]
+        ]
+      }
+    },
     "//bazel/external:cipd_install.bzl%cipd": {
       "general": {
         "bzlTransitiveDigest": "5gDWHMyjD8lyuAj8EdWpS5UotJ1RRlz9xYI8CV6uU0U=",
@@ -527,7 +593,7 @@
     },
     "//bazel/external:google_chrome.bzl%google_chrome": {
       "general": {
-        "bzlTransitiveDigest": "Kz6fBuXNPFW7vH7PHm6B4pOagVR/c+l/U0GP9HVPtFU=",
+        "bzlTransitiveDigest": "E+XnxbnIbTgEnozsQ7jjEDzk9TmIMEwTRnYTYue5jTs=",
         "usagesDigest": "c24MqPemcsLTHVN8+nLVtBm6O49hBwrVdM/g5TZ11j8=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -538,7 +604,13 @@
             "attributes": {}
           }
         },
-        "recordedRepoMappingEntries": []
+        "recordedRepoMappingEntries": [
+          [
+            "",
+            "bazel_tools",
+            "bazel_tools"
+          ]
+        ]
       }
     },
     "//bazel/external:google_cloud_sdk.bzl%google_cloud_sdk": {
