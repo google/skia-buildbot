@@ -1,8 +1,20 @@
 import './index';
 import '../../../elements-sk/modules/error-toast-sk';
 import { setUpExploreDemoEnv } from '../common/test-util';
+import fetchMock from 'fetch-mock';
 
 setUpExploreDemoEnv();
+
+// Override defaults to enable test picker, which is required to attach the add-to-graph listener.
+fetchMock.get(
+  '/_/defaults/',
+  {
+    default_param_selections: null,
+    default_url_values: { useTestPicker: 'true' },
+    include_params: ['arch', 'os'],
+  },
+  { overwriteRoutes: true }
+);
 
 window.perf = {
   dev_mode: false,
@@ -43,7 +55,6 @@ window.perf = {
 };
 
 customElements.whenDefined('explore-multi-sk').then(() => {
-  document
-    .querySelector('h1')!
-    .insertAdjacentElement('afterend', document.createElement('explore-multi-sk'));
+  const explore = document.createElement('explore-multi-sk');
+  document.querySelector('h1')!.insertAdjacentElement('afterend', explore);
 });

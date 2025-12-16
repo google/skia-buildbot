@@ -3,6 +3,8 @@ import fetchMock from 'fetch-mock';
 import { Status } from '../../../infra-sk/modules/json';
 import { QueryConfig } from '../json';
 
+const NEXT_PARAM_COUNT = 4;
+
 const getCookieValue = (name: string) =>
   document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || '';
 
@@ -20,25 +22,7 @@ export function setUpExploreDemoEnv() {
 
   const paramSet = {
     arch: ['arm', 'arm64', 'x86_64'],
-    bench_type: ['skandroidcodec'],
-    compiler: ['Clang'],
-    config: ['nonrendering'],
-    configuration: ['OptimizeForSize'],
-    cpu_or_gpu: ['CPU'],
-    cpu_or_gpu_value: ['AVX2', 'AVX512', 'Snapdragon855', 'SnapdragonQM215'],
-    extra_config: [
-      'Android',
-      'Android_Wuffs',
-      'ColorSpaces',
-      'Fast',
-      'SK_FORCE_RASTER_PIPELINE_BLITTER',
-      'Wuffs',
-    ],
-    model: ['GCE', 'JioNext', 'MacBookPro11.5', 'NUC9i7QN', 'Pixel4'],
-    name: ['AndroidCodec_01_original.jpg_SampleSize2'],
-    os: ['Android', 'Debian10', 'Debian11', 'Mac10.13', 'Win2019'],
-    source_type: ['image'],
-    sub_result: ['min_ms', 'min_ratio'],
+    os: ['Android', 'Debian10', 'Debian11', 'Mac10.13', 'Win2019', 'Ubuntu'],
   };
 
   fetchMock.get(/_\/initpage\/.*/, () => ({
@@ -58,19 +42,53 @@ export function setUpExploreDemoEnv() {
     paramset: paramSet,
   });
 
-  fetchMock.post('/_/frame/start', {
-    status: 'Running',
-    messages: [],
-    url: '/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1',
+  let currentQueries: string[] = [];
+
+  fetchMock.post('/_/frame/start', (_url, opts) => {
+    const body = JSON.parse(opts.body as string);
+    currentQueries = body.queries || [];
+    return {
+      status: 'Running',
+      messages: [],
+      url: '/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1',
+    };
   });
 
   const defaultConfig: QueryConfig = {
     default_param_selections: null,
     default_url_values: null,
-    include_params: ['arch', 'config', 'bench_type', 'compiler', 'model', 'os', 'sub_result'],
+    include_params: ['arch', 'os'],
   };
 
   fetchMock.get('/_/defaults/', defaultConfig);
+
+  fetchMock.post('/_/nextParamList/', (_url, opts) => {
+    const body = JSON.parse(opts.body as string);
+    const q = body.q || '';
+    const params = new URLSearchParams(q);
+
+    // hierarchy order
+    const order = ['arch', 'os'];
+
+    let nextParam = '';
+    for (let i = 0; i < order.length; i++) {
+      if (!params.has(order[i])) {
+        nextParam = order[i];
+        break;
+      }
+    }
+
+    // Construct response paramset with only the next param
+    const responseParamSet: any = {};
+    if (paramSet[nextParam as keyof typeof paramSet]) {
+      responseParamSet[nextParam] = paramSet[nextParam as keyof typeof paramSet];
+    }
+
+    return {
+      paramset: responseParamSet,
+      count: NEXT_PARAM_COUNT,
+    };
+  });
 
   const normalTracesResponse = {
     status: 'Finished',
@@ -83,46 +101,18 @@ export function setUpExploreDemoEnv() {
     results: {
       dataframe: {
         traceset: {
-          ',arch=arm,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=SnapdragonQM215,extra_config=Android,model=JioNext,name=AndroidCodec_01_original.jpg_SampleSize2,os=Android,source_type=image,sub_result=min_ms,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,':
-            [
-              61.2075, 60.687603, 61.30078, 61.660313, 60.830208, 60.854946, 60.8525, 61.43297,
-              61.24557, 61.098125, 61.284843, 60.7938, 61.741615, 62.60328, 60.93729, 60.925156,
-              63.232346, 61.770676, 62.252968, 61.87958, 61.140102, 62.40708, 62.869167, 60.893852,
-              61.042187, 61.17974, 61.73057, 61.754063, 60.726772, 61.837135, 61.868282, 61.161095,
-              61.88469, 60.81271, 61.4625, 60.91443, 60.806095, 60.81344, 61.624477, 60.98828,
-              60.838856, 61.989845, 60.84349, 61.973698, 61.97073, 60.615208, 62.083595, 61.148228,
-              1e32, 1e32,
-            ],
-          ',arch=arm,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=SnapdragonQM215,extra_config=Android,model=JioNext,name=AndroidCodec_01_original.jpg_SampleSize2,os=Android,source_type=image,sub_result=min_ratio,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,':
-            [
-              1.0053873, 1.0019164, 1.0029848, 1.002643, 1.0012664, 1.0028929, 1.0037411, 1.003003,
-              1.0050658, 1.007233, 1.0022581, 1.001872, 1.0027552, 1.0019709, 1.0021086, 1.0030998,
-              1.0080754, 1.0013162, 1.0025258, 1.0044054, 1.0017514, 1.0026898, 1.0032914,
-              1.0032947, 1.0027568, 1.0056816, 1.0076947, 1.0022088, 1.0029486, 1.0037018,
-              1.0043061, 1.0032768, 1.0015746, 1.0046197, 1.0041125, 1.0060117, 1.0032651,
-              1.0015031, 1.0050989, 1.0046166, 1.0052769, 1.0035608, 1.0040259, 1.002186, 1.0046998,
-              1.0016583, 1.0048993, 1.0062689, 1e32, 1e32,
-            ],
-          ',arch=arm64,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=Snapdragon855,extra_config=Android_Wuffs,model=Pixel4,name=AndroidCodec_01_original.jpg_SampleSize2,os=Android,source_type=image,sub_result=min_ms,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,':
-            [
-              13.51672, 13.434168, 13.47146, 13.494012, 13.464116, 13.450209, 13.423439, 13.434011,
-              13.502189, 13.435418, 13.398959, 13.401876, 13.412658, 13.531095, 13.503022,
-              13.520366, 13.41073, 13.391043, 13.389377, 13.370262, 13.394116, 13.366512, 13.373126,
-              13.494376, 13.482189, 13.390887, 13.423231, 13.388387, 13.369949, 13.377084,
-              13.387605, 13.409533, 13.423283, 13.372189, 13.372918, 13.435366, 13.38495, 13.405939,
-              13.390105, 13.502606, 13.381928, 13.329532, 13.420783, 13.419793, 13.440002, 1e32,
-              13.488907, 1e32, 13.49323, 1e32,
-            ],
-          ',arch=arm64,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=Snapdragon855,extra_config=Android_Wuffs,model=Pixel4,name=AndroidCodec_01_original.jpg_SampleSize2,os=Android,source_type=image,sub_result=min_ratio,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,':
-            [
-              1.0060265, 1.0050516, 1.0032824, 1.0048633, 1.0030173, 1.0089877, 1.005564, 1.0143331,
-              1.0087292, 1.004551, 1.0055237, 1.0070225, 1.0050403, 1.0034873, 1.0055274, 1.0046265,
-              1.0032196, 1.0046984, 1.0029291, 1.0070547, 1.0091536, 1.007189, 1.0019591, 1.0073526,
-              1.0068724, 1.0070788, 1.0009079, 1.0057614, 1.0018076, 1.0048864, 1.0045946,
-              1.0053095, 1.0055135, 1.0083896, 1.007283, 1.009362, 1.0063659, 1.0073311, 1.0077171,
-              1.0068235, 1.0078387, 1.010589, 1.0133693, 1.001502, 1.0090255, 1e32, 1.0033516, 1e32,
-              1.0042962, 1e32,
-            ],
+          ',arch=arm,os=Android,': [
+            61.2075, 60.687603, 61.30078, 61.660313, 60.830208, 75.2, 74.9, 75.3, 75.1, 75.4, 75.0,
+            75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2,
+            75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1,
+            75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3,
+          ],
+          ',arch=arm,os=Ubuntu,': [
+            13.51672, 13.434168, 13.47146, 13.494012, 13.464116, 18.2, 17.9, 18.3, 18.1, 18.4, 18.0,
+            18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2,
+            18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1,
+            18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4,
+          ],
         },
         header: [
           {
@@ -328,26 +318,7 @@ export function setUpExploreDemoEnv() {
         ],
         paramset: {
           arch: ['arm', 'arm64', 'x86_64'],
-          bench_type: ['skandroidcodec'],
-          compiler: ['Clang'],
-          config: ['nonrendering'],
-          configuration: ['OptimizeForSize'],
-          cpu_or_gpu: ['CPU'],
-          cpu_or_gpu_value: ['AVX2', 'AVX512', 'Snapdragon855', 'SnapdragonQM215'],
-          extra_config: [
-            'Android',
-            'Android_Wuffs',
-            'ColorSpaces',
-            'Fast',
-            'SK_FORCE_RASTER_PIPELINE_BLITTER',
-            'Wuffs',
-          ],
-          model: ['GCE', 'JioNext', 'MacBookPro11.5', 'NUC9i7QN', 'Pixel4'],
-          name: ['AndroidCodec_01_original.jpg_SampleSize2'],
-          os: ['Android', 'Debian10', 'Debian11', 'Mac10.13', 'Win2019'],
-          source_type: ['image'],
-          sub_result: ['min_ms', 'min_ratio'],
-          test: ['AndroidCodec_01_original.jpg_SampleSize2_640_480'],
+          os: ['Android', 'Debian10', 'Debian11', 'Mac10.13', 'Win2019', 'Ubuntu'],
         },
         skip: 0,
       },
@@ -355,41 +326,135 @@ export function setUpExploreDemoEnv() {
       msg: '',
       display_mode: 'display_plot',
       anomalymap: {
-        ',arch=arm,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=SnapdragonQM215,extra_config=Android,model=JioNext,name=AndroidCodec_01_original.jpg_SampleSize2,os=Android,source_type=image,sub_result=min_ms,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,':
-          {
-            67130: {
-              id: '123',
-              test_path:
-                ',arch=arm,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=SnapdragonQM215,extra_config=Android,model=JioNext,name=AndroidCodec_01_original.jpg_SampleSize2,os=Android,source_type=image,sub_result=min_ms,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,',
-              bug_id: 0,
-              start_revision: 67129,
-              end_revision: 67130,
-              is_improvement: false,
-              recovered: false,
-              state: 'untriaged',
-              statistic: 'avg',
-              units: 'ms',
-              degrees_of_freedom: 1,
-              median_before_anomaly: 60.830208,
-              median_after_anomaly: 60.854946,
-              p_value: 0.01,
-              segment_size_after: 10,
-              segment_size_before: 10,
-              std_dev_before_anomaly: 1,
-              t_statistic: 5,
-              subscription_name: 'test',
-              bug_component: '',
-              bug_labels: [],
-              bug_cc_emails: [],
-              bisect_ids: [],
-            },
+        ',arch=arm,os=Android,': {
+          67130: {
+            id: '123',
+            test_path: ',arch=arm,os=Android,',
+            bug_id: 0,
+            start_revision: 67129,
+            end_revision: 67130,
+            is_improvement: false,
+            recovered: false,
+            state: 'untriaged',
+            statistic: 'avg',
+            units: 'ms',
+            degrees_of_freedom: 1,
+            median_before_anomaly: 60.830208,
+            median_after_anomaly: 75.2,
+            p_value: 0.01,
+            segment_size_after: 10,
+            segment_size_before: 10,
+            std_dev_before_anomaly: 1,
+            t_statistic: 5,
+            subscription_name: 'test',
+            bug_component: '',
+            bug_labels: [],
+            bug_cc_emails: [],
+            bisect_ids: [],
           },
+        },
+        ',arch=arm,os=Ubuntu,': {
+          67130: {
+            id: '456',
+            test_path: ',arch=arm,os=Ubuntu,',
+            bug_id: 0,
+            start_revision: 67129,
+            end_revision: 67130,
+            is_improvement: false,
+            recovered: false,
+            state: 'untriaged',
+            statistic: 'avg',
+            units: 'ms',
+            degrees_of_freedom: 1,
+            median_before_anomaly: 13.464116,
+            median_after_anomaly: 18.2,
+            p_value: 0.01,
+            segment_size_after: 10,
+            segment_size_before: 10,
+            std_dev_before_anomaly: 1,
+            t_statistic: 5,
+            subscription_name: 'test',
+            bug_component: '',
+            bug_labels: [],
+            bug_cc_emails: [],
+            bisect_ids: [],
+          },
+        },
       },
     },
     url: '/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1',
   };
 
-  fetchMock.get('/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1', normalTracesResponse);
+  fetchMock.get('/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1', () => {
+    if (currentQueries.length === 0) {
+      return {
+        ...normalTracesResponse,
+        results: {
+          ...normalTracesResponse.results,
+          dataframe: { ...normalTracesResponse.results.dataframe, traceset: {}, anomalymap: {} },
+        },
+      };
+    }
+
+    const filteredTraceSet: any = {};
+    const filteredAnomalyMap: any = {};
+
+    Object.keys(normalTracesResponse.results.dataframe.traceset).forEach((traceKey) => {
+      // Check if trace matches ANY of the current queries
+      const matches = currentQueries.some((query) => {
+        const params = new URLSearchParams(query);
+        const queryMap = new Map<string, Set<string>>();
+        for (const [key, value] of params) {
+          if (!queryMap.has(key)) {
+            queryMap.set(key, new Set());
+          }
+          queryMap.get(key)!.add(value);
+        }
+
+        for (const [key, values] of queryMap) {
+          let keyMatch = false;
+          for (const value of values) {
+            if (traceKey.includes(`,${key}=${value},`)) {
+              keyMatch = true;
+              break;
+            }
+          }
+          if (!keyMatch) return false;
+        }
+        return true;
+      });
+
+      if (matches) {
+        filteredTraceSet[traceKey] =
+          normalTracesResponse.results.dataframe.traceset[
+            traceKey as keyof typeof normalTracesResponse.results.dataframe.traceset
+          ];
+        if (
+          normalTracesResponse.results.anomalymap &&
+          normalTracesResponse.results.anomalymap[
+            traceKey as keyof typeof normalTracesResponse.results.anomalymap
+          ]
+        ) {
+          filteredAnomalyMap[traceKey] =
+            normalTracesResponse.results.anomalymap[
+              traceKey as keyof typeof normalTracesResponse.results.anomalymap
+            ];
+        }
+      }
+    });
+
+    return {
+      ...normalTracesResponse,
+      results: {
+        ...normalTracesResponse.results,
+        dataframe: {
+          ...normalTracesResponse.results.dataframe,
+          traceset: filteredTraceSet,
+        },
+        anomalymap: filteredAnomalyMap,
+      },
+    };
+  });
 
   fetchMock.post('/_/cid/', {
     commitSlice: [
@@ -437,12 +502,18 @@ export function setUpExploreDemoEnv() {
     },
   });
 
-  fetchMock.post('/_/nextParamList/', {
-    paramset: paramSet,
-    count: 4,
-  });
-
   fetchMock.post('/_/shortcut/update', {
     id: 'aaab78c9711cb79197d47f448ba51338',
   });
+
+  fetchMock.post('/_/links/', {
+    version: 1,
+    links: {
+      'Demo Link': 'https://example.com',
+    },
+  });
+
+  fetchMock.post('/_/keys/', { id: 'test-key-id' });
+
+  fetchMock.post('/_/fe_telemetry', {});
 }

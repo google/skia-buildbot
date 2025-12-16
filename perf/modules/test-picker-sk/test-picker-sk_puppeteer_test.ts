@@ -36,32 +36,32 @@ describe('test-picker-sk', () => {
     await testPickerPO.waitForPickerField(0);
     const benchmarkField = await testPickerPO.getPickerField(0);
     // 'blink_perf.css' is a valid option.
-    await benchmarkField.search(BENCHMARK);
+    await benchmarkField.select(BENCHMARK);
     await testPickerPO.waitForSpinnerInactive();
     await takeScreenshot(testBed.page, 'perf', 'test-picker-sk-benchmark-selected');
 
     // Wait for the next field to appear (Bot).
     await testPickerPO.waitForPickerField(1);
     const botField = await testPickerPO.getPickerField(1);
-    await botField.search(BOT);
+    await botField.select(BOT);
     await testPickerPO.waitForSpinnerInactive();
 
     // Wait for the next field (Test).
     await testPickerPO.waitForPickerField(2);
     const testField = await testPickerPO.getPickerField(2);
-    await testField.search(TEST);
+    await testField.select(TEST);
     await testPickerPO.waitForSpinnerInactive();
 
     // Wait for the next field (Subtest1).
     await testPickerPO.waitForPickerField(3);
     const subtest1Field = await testPickerPO.getPickerField(3);
-    await subtest1Field.search(SUBTEST_1);
+    await subtest1Field.select(SUBTEST_1);
     await testPickerPO.waitForSpinnerInactive();
 
     // Wait for the next field (Subtest2).
     await testPickerPO.waitForPickerField(4);
     const subtest2Field = await testPickerPO.getPickerField(4);
-    await subtest2Field.search(SUBTEST_2);
+    await subtest2Field.select(SUBTEST_2);
     await testPickerPO.waitForSpinnerInactive();
 
     // Click the plot button.
@@ -95,31 +95,31 @@ describe('test-picker-sk', () => {
     // Benchmark
     await testPickerPO.waitForPickerField(0);
     const benchmarkField = await testPickerPO.getPickerField(0);
-    await benchmarkField.search(BENCHMARK);
+    await benchmarkField.select(BENCHMARK);
     await testPickerPO.waitForSpinnerInactive();
 
     // Bot
     await testPickerPO.waitForPickerField(1);
     const botField = await testPickerPO.getPickerField(1);
-    await botField.search(BOT);
+    await botField.select(BOT);
     await testPickerPO.waitForSpinnerInactive();
 
     // Test
     await testPickerPO.waitForPickerField(2);
     const testField = await testPickerPO.getPickerField(2);
-    await testField.search(TEST);
+    await testField.select(TEST);
     await testPickerPO.waitForSpinnerInactive();
 
     // Subtest1
     await testPickerPO.waitForPickerField(3);
     const subtest1Field = await testPickerPO.getPickerField(3);
-    await subtest1Field.search(SUBTEST_1);
+    await subtest1Field.select(SUBTEST_1);
     await testPickerPO.waitForSpinnerInactive();
 
     // Subtest2
     await testPickerPO.waitForPickerField(4);
     const subtest2Field = await testPickerPO.getPickerField(4);
-    await subtest2Field.search(SUBTEST_2);
+    await subtest2Field.select(SUBTEST_2);
     await testPickerPO.waitForSpinnerInactive();
 
     // 2. Delete in the middle (Test field)
@@ -128,19 +128,19 @@ describe('test-picker-sk', () => {
 
     // 3. Refill with another path
     // Refill Test
-    await testField.search(TEST_NEW);
+    await testField.select(TEST_NEW);
     await testPickerPO.waitForSpinnerInactive();
 
     // Refill Subtest1
     await testPickerPO.waitForPickerField(3);
     const subtest1FieldNew = await testPickerPO.getPickerField(3);
-    await subtest1FieldNew.search(SUBTEST_1_NEW);
+    await subtest1FieldNew.select(SUBTEST_1_NEW);
     await testPickerPO.waitForSpinnerInactive();
 
     // Refill Subtest2
     await testPickerPO.waitForPickerField(4);
     const subtest2FieldNew = await testPickerPO.getPickerField(4);
-    await subtest2FieldNew.search(SUBTEST_2_NEW);
+    await subtest2FieldNew.select(SUBTEST_2_NEW);
     await testPickerPO.waitForSpinnerInactive();
 
     // Click plot
