@@ -52,24 +52,6 @@ go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
 
 go_deps.from_file(go_mod = "//:go.mod")
-go_deps.module_override(
-    patches = [
-        "temporal/com_github_temporalio_ui_server_v2.patch",
-    ],
-    path = "github.com/temporalio/ui-server/v2",
-)
-go_deps.module_override(
-    patches = [
-        "temporal/io_temporal_go_server.patch",
-    ],
-    path = "go.temporal.io/server",
-)
-go_deps.gazelle_override(
-    directives = [
-        "gazelle:go_generate_proto false",
-    ],
-    path = "go.temporal.io/server",
-)
 go_deps.gazelle_override(
     # Causes Gazelle to update references to the @go_googleapis external repository in
     # https://github.com/bazelbuild/remote-apis-sdks/blob/e00bd323ce426cd1c55dec2f152ffcc20eb4f503/go/pkg/client/BUILD.bazel#L39C20-L39C20
@@ -153,9 +135,6 @@ use_repo(
     "com_github_stretchr_testify",
     "com_github_syndtr_goleveldb",
     "com_github_tarm_serial",
-    "com_github_temporalio_cli",
-    "com_github_temporalio_tctl_kit",
-    "com_github_temporalio_ui_server_v2",
     "com_github_texttheater_golang_levenshtein",
     "com_github_twitchtv_twirp",
     "com_github_unrolled_secure",
@@ -199,7 +178,6 @@ use_repo(
     "io_temporal_go_api",
     "io_temporal_go_sdk",
     "io_temporal_go_sdk_contrib_opentelemetry",
-    "io_temporal_go_server",
     "net_howett_plist",
     "org_chromium_go_luci",
     "org_golang_google_api",
@@ -505,24 +483,6 @@ use_repo(oci, "fiddler-build-skia")
 # These are used for unit tests.
 register_toolchains(
     "@bazel_skylib//toolchains/unittest:cmd_toolchain",
-)
-
-####################################################################################################
-# Dockerize
-####################################################################################################
-
-# This is used by temporal.
-http_archive(
-    name = "dockerize",
-    build_file_content = """
-filegroup(
-    name = "executable",
-    srcs = ["dockerize"],
-    visibility = ["//visibility:public"]
-)
-""",
-    sha256 = "bb9b55630aa63da22bafb2132f06fe00f298ef16272a99134e69495c37b33ce9",
-    url = "https://github.com/jwilder/dockerize/releases/download/v0.7.0/dockerize-linux-amd64-v0.7.0.tar.gz",
 )
 
 ####################################################################################################

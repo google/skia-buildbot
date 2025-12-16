@@ -593,7 +593,7 @@
     },
     "//bazel/external:google_chrome.bzl%google_chrome": {
       "general": {
-        "bzlTransitiveDigest": "E+XnxbnIbTgEnozsQ7jjEDzk9TmIMEwTRnYTYue5jTs=",
+        "bzlTransitiveDigest": "n1Pbg4y+H2/iiy3XfRtv7f9M4enir9ncp5nNVtLN6R8=",
         "usagesDigest": "c24MqPemcsLTHVN8+nLVtBm6O49hBwrVdM/g5TZ11j8=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
