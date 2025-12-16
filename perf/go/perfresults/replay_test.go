@@ -7,7 +7,6 @@ import (
 	"flag"
 	"net/http"
 	"os"
-	"path"
 	"strings"
 	"testing"
 
@@ -22,14 +21,24 @@ import (
 	"google.golang.org/grpc/credentials/oauth"
 )
 
-var recordPath = flag.String("record_path", "", "The path the replayer writes real backend responses.")
+var record = flag.Bool("record", false, "If set, record HTTP requests and responses to testdata.")
 
 func setupReplay(t *testing.T, replayName string) *http.Client {
-	// if the recordPath is not given, then we will replay from the testdata;
-	// otherwise we will record the traffic and save to the given path;
-	if *recordPath == "" {
-		hr, err := httpreplay.NewReplayer(testutils.TestDataFilename(t, replayName))
+	ignoreHeaders := []string{
+		"User-Agent",
+		"X-Goog-User-Project",
+		"X-Prpc-Max-Response-Size",
+	}
+	// if the record is not set, then we will replay from the testdata;
+	// otherwise we will record the traffic and save to the testdata.
+	testDataFile := testutils.TestDataFilename(t, replayName)
+	if !*record {
+		httpreplay.DebugHeaders()
+		hr, err := httpreplay.NewReplayer(testDataFile)
 		require.NoError(t, err)
+		for _, header := range ignoreHeaders {
+			hr.IgnoreHeader(header)
+		}
 
 		ctx, cancel := context.WithCancel(context.Background())
 		c, err := hr.Client(ctx)
@@ -41,9 +50,9 @@ func setupReplay(t *testing.T, replayName string) *http.Client {
 		return c
 	}
 
-	replayFile := path.Join(*recordPath, replayName)
-	hr, err := httpreplay.NewRecorder(replayFile, nil)
+	hr, err := httpreplay.NewRecorder(testDataFile, nil)
 	require.NoError(t, err)
+	hr.RemoveRequestHeaders(ignoreHeaders...)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	c, err := hr.Client(ctx)
@@ -68,8 +77,9 @@ func newRBEReplay(t *testing.T, ctx context.Context, casInstance string, replayN
 		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})),
 	}
 
-	if *recordPath == "" {
-		f := testutils.GetReader(t, replayName+".rpc")
+	testDataBaseName := replayName + ".rpc"
+	if !*record {
+		f := testutils.GetReader(t, testDataBaseName)
 		gr, err := gzip.NewReader(f)
 		require.NoError(t, err)
 
@@ -82,7 +92,7 @@ func newRBEReplay(t *testing.T, ctx context.Context, casInstance string, replayN
 			f.Close()
 		})
 	} else {
-		replayFile := path.Join(*recordPath, replayName)
+		replayFile := testutils.TestDataFilename(t, testDataBaseName)
 		f, err := os.Create(replayFile + ".rpc")
 		require.NoError(t, err)
 		gw := gzip.NewWriter(f)

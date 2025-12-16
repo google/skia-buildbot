@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	buildbucketgrpcpb "go.chromium.org/luci/buildbucket/proto/grpcpb"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/now"
@@ -20,6 +21,7 @@ import (
 
 // TaskBackend implements TaskBackendServer in terms of Task Scheduler Jobs.
 type TaskBackend struct {
+	buildbucketgrpcpb.UnimplementedTaskBackendServer
 	bb2                buildbucket.BuildBucketInterface
 	buildbucketTarget  string
 	db                 db.JobDB
@@ -240,7 +242,7 @@ func (tb *TaskBackend) ValidateConfigs(ctx context.Context, req *buildbucketpb.V
 }
 
 // Assert that TaskBackend implements TaskBackendServer.
-var _ buildbucketpb.TaskBackendServer = &TaskBackend{}
+var _ buildbucketgrpcpb.TaskBackendServer = &TaskBackend{}
 
 // JobStatusToBuildbucketStatus converts a types.JobStatus to a
 // buildbucketpb.Status.

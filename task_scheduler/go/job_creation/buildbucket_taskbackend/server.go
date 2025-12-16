@@ -3,7 +3,7 @@ package buildbucket_taskbackend
 import (
 	"net/http"
 
-	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto/grpcpb"
 	"go.chromium.org/luci/grpc/prpc"
 	"go.chromium.org/luci/server/router"
 	"go.skia.org/infra/go/buildbucket"

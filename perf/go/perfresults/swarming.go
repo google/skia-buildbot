@@ -9,6 +9,7 @@ import (
 	"go.chromium.org/luci/common/retry"
 	"go.chromium.org/luci/grpc/prpc"
 	swarmingv2 "go.chromium.org/luci/swarming/proto/api_v2"
+	swarmingv2grpc "go.chromium.org/luci/swarming/proto/api_v2/grpcpb"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"golang.org/x/oauth2/google"
@@ -16,7 +17,7 @@ import (
 
 // swarmingClient wraps swarmingv2.TasksClient to provide convenient functions
 type swarmingClient struct {
-	swarmingv2.TasksClient
+	swarmingv2grpc.TasksClient
 }
 
 func newSwarmingClient(ctx context.Context, swarmingHost string, client *http.Client) (*swarmingClient, error) {
@@ -46,7 +47,7 @@ func newSwarmingClient(ctx context.Context, swarmingHost string, client *http.Cl
 		},
 	}
 	return &swarmingClient{
-		TasksClient: swarmingv2.NewTasksClient(prpc),
+		TasksClient: swarmingv2grpc.NewTasksClient(prpc),
 	}, nil
 }
 

@@ -166,7 +166,7 @@ func main() {
 			sklog.Info(bot.BotId)
 			continue
 		}
-		cipdInput := getPythonCIPDPackages(bot)
+		cipdInput := swarmingv2.ConvertCIPDInput(cipd.PkgsPython)
 
 		wg.Add(1)
 		go func(id string) {
@@ -249,10 +249,6 @@ func matchesAny(s string, xr []*regexp.Regexp) bool {
 		}
 	}
 	return false
-}
-
-func getPythonCIPDPackages(bot *apipb.BotInfo) *apipb.CipdInput {
-	return swarmingv2.ConvertCIPDInput(cipd.PkgsPython)
 }
 
 func rerunPrevious(ctx context.Context, swarmingServer string, swarmApi swarmingv2.SwarmingV2Client, rerun string) {

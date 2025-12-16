@@ -52,7 +52,7 @@ func NewApiClient(ctx context.Context, local bool) (*apiClient, error) {
 		return nil, skerr.Fmt("Failed to get credentials to access LUCI Config: %s", err)
 	}
 
-	service, err := luci_config.NewV2(ctx, luci_config.V2Options{
+	service, err := luci_config.New(ctx, luci_config.Options{
 		Host:      SERVICE_HOST,
 		Creds:     oauth.TokenSource{TokenSource: ts},
 		UserAgent: "SkiaPerf",

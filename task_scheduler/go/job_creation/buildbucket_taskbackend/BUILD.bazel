@@ -18,6 +18,7 @@ go_library(
         "//task_scheduler/go/db",
         "//task_scheduler/go/types",
         "@org_chromium_go_luci//buildbucket/proto",
+        "@org_chromium_go_luci//buildbucket/proto/grpcpb",
         "@org_chromium_go_luci//grpc/prpc",
         "@org_chromium_go_luci//server/router",
         "@org_golang_google_genproto_googleapis_rpc//status",

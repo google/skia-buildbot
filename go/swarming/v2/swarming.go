@@ -13,6 +13,7 @@ import (
 	"go.chromium.org/luci/common/retry"
 	"go.chromium.org/luci/grpc/prpc"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	apigrpcpb "go.chromium.org/luci/swarming/proto/api_v2/grpcpb"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/skerr"
@@ -22,22 +23,22 @@ import (
 
 // SwarmingV2Client wraps a Swarming BotsClient and TasksClient.
 type SwarmingV2Client interface {
-	apipb.BotsClient
-	apipb.TasksClient
+	apigrpcpb.BotsClient
+	apigrpcpb.TasksClient
 }
 
 // WrappedClient implements SwarmingV2Client by wrapping a BotsClient and a
 // TasksClient
 type WrappedClient struct {
-	apipb.BotsClient
-	apipb.TasksClient
+	apigrpcpb.BotsClient
+	apigrpcpb.TasksClient
 }
 
 // NewClient returns a SwarmingV2Client implementation.
 func NewClient(prpcClient *prpc.Client) *WrappedClient {
 	return &WrappedClient{
-		BotsClient:  apipb.NewBotsClient(prpcClient),
-		TasksClient: apipb.NewTasksClient(prpcClient),
+		BotsClient:  apigrpcpb.NewBotsClient(prpcClient),
+		TasksClient: apigrpcpb.NewTasksClient(prpcClient),
 	}
 }
 
@@ -75,7 +76,7 @@ var _ SwarmingV2Client = &WrappedClient{}
 
 // ListBotsHelper makes multiple paginated requests to ListBots to retrieve all
 // results.
-func ListBotsHelper(ctx context.Context, c apipb.BotsClient, req *apipb.BotsRequest) ([]*apipb.BotInfo, error) {
+func ListBotsHelper(ctx context.Context, c apigrpcpb.BotsClient, req *apipb.BotsRequest) ([]*apipb.BotInfo, error) {
 	// Taken from https://source.chromium.org/chromium/infra/infra/+/main:go/src/go.chromium.org/luci/swarming/client/swarming/client.go;l=473
 	req.Limit = 1000
 	req.Cursor = ""
@@ -95,7 +96,7 @@ func ListBotsHelper(ctx context.Context, c apipb.BotsClient, req *apipb.BotsRequ
 }
 
 // ListBotsForPool retrieves all of the bots in the given pool.
-func ListBotsForPool(ctx context.Context, c apipb.BotsClient, pool string) ([]*apipb.BotInfo, error) {
+func ListBotsForPool(ctx context.Context, c apigrpcpb.BotsClient, pool string) ([]*apipb.BotInfo, error) {
 	return ListBotsHelper(ctx, c, &apipb.BotsRequest{
 		Dimensions: []*apipb.StringPair{
 			{Key: swarming.DIMENSION_POOL_KEY, Value: pool},
@@ -105,7 +106,7 @@ func ListBotsForPool(ctx context.Context, c apipb.BotsClient, pool string) ([]*a
 
 // ListTasksHelper makes multiple paginated requests to ListTasks to retrieve
 // all results.
-func ListTasksHelper(ctx context.Context, c apipb.TasksClient, req *apipb.TasksWithPerfRequest) ([]*apipb.TaskResultResponse, error) {
+func ListTasksHelper(ctx context.Context, c apigrpcpb.TasksClient, req *apipb.TasksWithPerfRequest) ([]*apipb.TaskResultResponse, error) {
 	// Taken from https://source.chromium.org/chromium/infra/infra/+/main:go/src/go.chromium.org/luci/swarming/client/swarming/client.go;l=282
 	req.Limit = 1000
 	req.Cursor = ""
@@ -126,7 +127,7 @@ func ListTasksHelper(ctx context.Context, c apipb.TasksClient, req *apipb.TasksW
 
 // GetRequestMetadataForTasks returns the apipb.TaskRequestMetadataResponse for
 // each of the given apipb.TaskResultResponses.
-func GetRequestMetadataForTasks(ctx context.Context, c apipb.TasksClient, tasks []*apipb.TaskResultResponse) ([]*apipb.TaskRequestMetadataResponse, error) {
+func GetRequestMetadataForTasks(ctx context.Context, c apigrpcpb.TasksClient, tasks []*apipb.TaskResultResponse) ([]*apipb.TaskRequestMetadataResponse, error) {
 	rv := make([]*apipb.TaskRequestMetadataResponse, len(tasks))
 	g := multierror.Group{}
 	for idx, task := range tasks {
@@ -156,7 +157,7 @@ func GetRequestMetadataForTasks(ctx context.Context, c apipb.TasksClient, tasks 
 // ListTaskRequestMetadataHelper is like ListTasksHelper but retrieves the
 // apipb.TaskRequestMetadataResponse for each of the task. This is significantly
 // more expensive, so it should only be used where necessary.
-func ListTaskRequestMetadataHelper(ctx context.Context, c apipb.TasksClient, req *apipb.TasksWithPerfRequest) ([]*apipb.TaskRequestMetadataResponse, error) {
+func ListTaskRequestMetadataHelper(ctx context.Context, c apigrpcpb.TasksClient, req *apipb.TasksWithPerfRequest) ([]*apipb.TaskRequestMetadataResponse, error) {
 	tasks, err := ListTasksHelper(ctx, c, req)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -165,7 +166,7 @@ func ListTaskRequestMetadataHelper(ctx context.Context, c apipb.TasksClient, req
 }
 
 // DeleteBots performs multiple calls to DeleteBot in parallel.
-func DeleteBots(ctx context.Context, c apipb.BotsClient, botIds []string) error {
+func DeleteBots(ctx context.Context, c apigrpcpb.BotsClient, botIds []string) error {
 	g := multierror.Group{}
 	for _, botId := range botIds {
 		botId := botId // https://golang.org/doc/faq#closures_and_goroutines

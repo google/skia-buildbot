@@ -15,7 +15,7 @@ import (
 	"regexp"
 	"strings"
 
-	api "go.chromium.org/luci/cipd/api/cipd/v1"
+	api "go.chromium.org/luci/cipd/api/cipd/v1/caspb"
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/client/cipd/builder"
 	"go.chromium.org/luci/cipd/client/cipd/ensure"

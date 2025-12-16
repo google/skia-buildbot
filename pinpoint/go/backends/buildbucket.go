@@ -22,6 +22,7 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	bpb "go.chromium.org/luci/buildbucket/proto"
+	bgrpcpb "go.chromium.org/luci/buildbucket/proto/grpcpb"
 	spb "google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -109,10 +110,10 @@ type BuildbucketClient interface {
 // This extends Skia's Buildbucket wrapper as our single use-case is to create
 // builds at specific commits.
 type buildbucketClient struct {
-	client bpb.BuildsClient
+	client bgrpcpb.BuildsClient
 }
 
-func NewBuildbucketClient(bc bpb.BuildsClient) *buildbucketClient {
+func NewBuildbucketClient(bc bgrpcpb.BuildsClient) *buildbucketClient {
 	return &buildbucketClient{
 		client: bc,
 	}
@@ -186,7 +187,7 @@ func (b *buildbucketClient) CancelBuild(ctx context.Context, buildID int64, summ
 // Incomplete builds have default endtime of 1970-01-01 00:00 UTC.
 func (b *buildbucketClient) isBuildTooOld(build *bpb.Build) bool {
 	return (build.Status.Number() > bpb.Status_ENDED_MASK.Number() &&
-		time.Now().Sub(build.EndTime.AsTime()).Hours()/24 > float64(CasExpiration))
+		time.Since(build.EndTime.AsTime()).Hours()/24 > float64(CasExpiration))
 }
 
 // checkMatchingDeps returns whether the deps overrides from a build input match the deps provided.
@@ -399,7 +400,7 @@ func (b *buildbucketClient) createChromeBuildRequest(pinpointJobID, requestID, b
 		},
 	}
 
-	if deps != nil && len(deps) > 0 {
+	if len(deps) > 0 {
 		fields := make(map[string]*spb.Value, 0)
 		for url, rev := range deps {
 			fields[url] = &spb.Value{
@@ -523,7 +524,7 @@ func DefaultClientConfig() BuildbucketClientConfig {
 // WithClient returns a BuildbucketClient as configured by the ClientConfig
 func (bc BuildbucketClientConfig) WithClient(c *http.Client) *buildbucketClient {
 	return &buildbucketClient{
-		client: bpb.NewBuildsPRPCClient(
+		client: bgrpcpb.NewBuildsClient(
 			&prpc.Client{
 				C:    c,
 				Host: bc.Host,

@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/buildbucket"
 
 	bpb "go.chromium.org/luci/buildbucket/proto"
+	bgrpcpb "go.chromium.org/luci/buildbucket/proto/grpcpb"
 	spb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -64,7 +65,7 @@ func TestCancelBuild_ValidRequest_NoError(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := &bpb.CancelBuildRequest{
@@ -86,7 +87,7 @@ func TestCancelBuild_ValidRequest_Error(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := &bpb.CancelBuildRequest{
@@ -118,7 +119,7 @@ func TestGetBuildWithPatches_OnePatch_MatchFound(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := c.createSearchBuildRequest(builder, DefaultBucket, commit, patches)
@@ -155,7 +156,7 @@ func TestGetBuildWithPatches_OldBuild_NoMatch(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := c.createSearchBuildRequest(builder, DefaultBucket, commit, patches)
@@ -183,7 +184,7 @@ func TestGetBuildWithPatches_FailedBuild_NoMatch(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := c.createSearchBuildRequest(builder, DefaultBucket, commit, patches)
@@ -210,7 +211,7 @@ func TestGetBuildWithPatches_NilPatches_NoMatch(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := c.createSearchBuildRequest(builder, DefaultBucket, commit, nil)
@@ -238,7 +239,7 @@ func TestGetBuildWithDeps_ValidInputs_MatchingBuild(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := c.createSearchBuildRequest(builder, DefaultBucket, commit, nil)
@@ -308,7 +309,7 @@ func TestGetBuildFromWaterfall_ExistingMapping_BuildFound(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := c.createSearchBuildRequest(mirror, WaterfallBucket, commit, nil)
@@ -334,7 +335,7 @@ func TestGetBuildFromWaterfall_UnsupportedBuilder_Error(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	b, err := c.GetBuildFromWaterfall(ctx, "builder", commit)
@@ -349,7 +350,7 @@ func TestGetBuildStatus_ValidRequest_StatusStarted(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := &bpb.GetBuildStatusRequest{
@@ -370,7 +371,7 @@ func TestGetBuildStatus_Error_BuildStatusUnspecified(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := &bpb.GetBuildStatusRequest{
@@ -422,7 +423,7 @@ func TestGetCASReference_ValidRequest_CASResponse(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := c.createCASReferenceRequest(buildID)
@@ -447,7 +448,7 @@ func TestGetCASReference_BuildInProgress_Error(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 	req := c.createCASReferenceRequest(buildID)
 	resp := &bpb.Build{
@@ -471,7 +472,7 @@ func TestGetCASReference_MissingTargetInResponse_Error(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := c.createCASReferenceRequest(buildID)
@@ -493,7 +494,7 @@ func TestGetCASReference_ModifiedCasHashFormat_Error(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	req := c.createCASReferenceRequest(buildID)
@@ -515,7 +516,7 @@ func TestStartChromeBuild_BuildWithDeps_SuccessfullyScheduled(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	mbc := bpb.NewMockBuildsClient(ctl)
+	mbc := bgrpcpb.NewMockBuildsClient(ctl)
 	c := NewBuildbucketClient(mbc)
 
 	webrtc := "https://webrtc.googlesource.com/src"

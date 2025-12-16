@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	buildbucketgrpcpb "go.chromium.org/luci/buildbucket/proto/grpcpb"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/buildbucket/common"
 	"go.skia.org/infra/go/sktest"
@@ -25,13 +26,13 @@ var MockBBURL = "mock-buildbucket.appspot.com"
 // be returned.
 type MockClient struct {
 	*buildbucket.Client
-	mock *buildbucketpb.MockBuildsClient
+	mock *buildbucketgrpcpb.MockBuildsClient
 	t    sktest.TestingT
 }
 
 func NewMockClient(t sktest.TestingT) *MockClient {
 	ctrl := gomock.NewController(t)
-	mock := buildbucketpb.NewMockBuildsClient(ctrl)
+	mock := buildbucketgrpcpb.NewMockBuildsClient(ctrl)
 	return &MockClient{
 		Client: buildbucket.NewTestingClient(mock, MockBBURL),
 		mock:   mock,

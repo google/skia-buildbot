@@ -8,6 +8,7 @@ import (
 	"time"
 
 	bpb "go.chromium.org/luci/buildbucket/proto"
+	bgrpbpb "go.chromium.org/luci/buildbucket/proto/grpcpb"
 	"go.chromium.org/luci/common/retry"
 	"go.chromium.org/luci/grpc/prpc"
 	"go.skia.org/infra/go/httputils"
@@ -23,7 +24,7 @@ const (
 
 // bbClient wraps bpb.BuildsClient to provide convenient functions
 type bbClient struct {
-	bpb.BuildsClient
+	bgrpbpb.BuildsClient
 }
 
 // BuildInfo contains info that are useful for identifying the perf results.
@@ -73,7 +74,7 @@ func newBuildsClient(ctx context.Context, client *http.Client) (*bbClient, error
 	}
 
 	return &bbClient{
-		BuildsClient: bpb.NewBuildsPRPCClient(&prpc.Client{
+		BuildsClient: bgrpbpb.NewBuildsClient(&prpc.Client{
 			C:    client,
 			Host: buildbucketHost,
 			Options: &prpc.Options{

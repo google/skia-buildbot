@@ -13,7 +13,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "@org_chromium_go_luci//cipd/api/cipd/v1:cipd",
+        "@org_chromium_go_luci//cipd/api/cipd/v1/caspb",
         "@org_chromium_go_luci//cipd/client/cipd",
         "@org_chromium_go_luci//cipd/client/cipd/builder",
         "@org_chromium_go_luci//cipd/client/cipd/ensure",

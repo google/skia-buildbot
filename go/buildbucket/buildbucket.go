@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	buildbucketgrpcpb "go.chromium.org/luci/buildbucket/proto/grpcpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -66,8 +67,8 @@ type BuildBucketInterface interface {
 
 // Client is used for interacting with the BuildBucket API.
 type Client struct {
-	builds   buildbucketpb.BuildsClient
-	builders buildbucketpb.BuildersClient
+	builds   buildbucketgrpcpb.BuildsClient
+	builders buildbucketgrpcpb.BuildersClient
 	host     string
 }
 
@@ -79,14 +80,14 @@ func NewClient(c *http.Client) *Client {
 		Host: host,
 	}
 	return &Client{
-		builds:   buildbucketpb.NewBuildsPRPCClient(prpcClient),
-		builders: buildbucketpb.NewBuildersClient(prpcClient),
+		builds:   buildbucketgrpcpb.NewBuildsClient(prpcClient),
+		builders: buildbucketgrpcpb.NewBuildersClient(prpcClient),
 		host:     host,
 	}
 }
 
 // NewTestingClient lets the MockClient inject a mock BuildsClient and host.
-func NewTestingClient(bc buildbucketpb.BuildsClient, host string) *Client {
+func NewTestingClient(bc buildbucketgrpcpb.BuildsClient, host string) *Client {
 	return &Client{
 		builds: bc,
 		host:   host,
