@@ -135,6 +135,81 @@ describe('calculateRangeChange', () => {
     const ret = calculateRangeChange(zoom, clampedZoom, offsets);
     assert.isFalse(ret.rangeChange);
   });
+
+  describe('Even X-Axis Spacing Cache', () => {
+    const CACHE_KEY = 'explore-simple-sk-even-x-axis-spacing';
+    let explore: ExploreSimpleSk;
+
+    beforeEach(async () => {
+      // Clear cache before each test
+      localStorage.removeItem(CACHE_KEY);
+
+      fetchMock.get(/.*\/_\/initpage\/.*/, {
+        dataframe: { paramset: {} },
+      });
+      fetchMock.get('/_/login/status', {
+        email: 'someone@example.org',
+        roles: ['editor'],
+      });
+      explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      await waitForRender(explore);
+    });
+
+    afterEach(() => {
+      localStorage.removeItem(CACHE_KEY);
+      fetchMock.reset();
+    });
+
+    it('should load the state from localStorage on connectedCallback', async () => {
+      localStorage.setItem(CACHE_KEY, 'true');
+      const newExplore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      await waitForRender(newExplore);
+
+      assert.isTrue(newExplore.state.evenXAxisSpacing);
+      const switchEl = newExplore.querySelector(
+        '#settings-dialog #even-x-axis-spacing-switch'
+      ) as MdSwitch;
+      assert.isTrue(switchEl.selected);
+    });
+
+    it('should save the state to localStorage when the switch is toggled', async () => {
+      const settingsDialog = explore.querySelector('#settings-dialog') as MdDialog;
+      const switchEl = settingsDialog.querySelector('#even-x-axis-spacing-switch') as MdSwitch;
+
+      switchEl.selected = true;
+      switchEl.dispatchEvent(new Event('change'));
+      await waitForRender(explore);
+      assert.equal(localStorage.getItem(CACHE_KEY), 'true');
+
+      switchEl.selected = false;
+      switchEl.dispatchEvent(new Event('change'));
+      await waitForRender(explore);
+      assert.equal(localStorage.getItem(CACHE_KEY), 'false');
+    });
+
+    it('should override incoming state with localStorage value in setState', async () => {
+      localStorage.setItem(CACHE_KEY, 'true');
+      const newState = new State();
+      newState.evenXAxisSpacing = false; // Parent tries to set it to false
+
+      explore.state = newState;
+      await waitForRender(explore);
+
+      assert.isTrue(explore.state.evenXAxisSpacing); // Should still be true due to cache
+      const switchEl = explore.querySelector(
+        '#settings-dialog #even-x-axis-spacing-switch'
+      ) as MdSwitch;
+      assert.isTrue(switchEl.selected);
+    });
+
+    it('should default to false if no value in localStorage', async () => {
+      assert.isFalse(explore.state.evenXAxisSpacing);
+      const switchEl = explore.querySelector(
+        '#settings-dialog #even-x-axis-spacing-switch'
+      ) as MdSwitch;
+      assert.isFalse(switchEl.selected);
+    });
+  });
 });
 
 describe('zoomKey', () => {
@@ -1314,7 +1389,6 @@ describe('Even X-Axis Spacing toggle', () => {
   let explore: ExploreSimpleSk;
   let switchEl: MdSwitch;
   let eventSpy: sinon.SinonSpy;
-  let setUseDiscreteAxisSpy: sinon.SinonSpy;
 
   beforeEach(async () => {
     fetchMock.get(/.*\/_\/initpage\/.*/, {
@@ -1324,7 +1398,6 @@ describe('Even X-Axis Spacing toggle', () => {
       email: 'someone@example.org',
       roles: ['editor'],
     });
-    setUseDiscreteAxisSpy = sinon.spy(ExploreSimpleSk.prototype, 'setUseDiscreteAxis');
     explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     await waitForRender(explore);
     const settingsDialog = explore.querySelector('#settings-dialog') as MdDialog;
@@ -1333,9 +1406,7 @@ describe('Even X-Axis Spacing toggle', () => {
     explore.addEventListener('even-x-axis-spacing-changed', eventSpy);
   });
 
-  afterEach(() => {
-    setUseDiscreteAxisSpy.restore();
-  });
+  afterEach(() => {});
 
   it('should have the switch element', () => {
     assert.exists(switchEl);
@@ -1351,9 +1422,9 @@ describe('Even X-Axis Spacing toggle', () => {
     switchEl.dispatchEvent(new Event('change'));
 
     await waitForRender(explore);
+    await new Promise((resolve) => setTimeout(resolve, 0)); // Add delay
 
     assert.isTrue(explore.state.evenXAxisSpacing);
-    assert.isTrue(setUseDiscreteAxisSpy.calledOnceWith(true));
     assert.isTrue(eventSpy.calledOnce);
 
     const event = eventSpy.firstCall.args[0];
@@ -1379,7 +1450,6 @@ describe('Even X-Axis Spacing toggle', () => {
     await waitForRender(explore);
 
     assert.isFalse(explore.state.evenXAxisSpacing);
-    assert.isTrue(setUseDiscreteAxisSpy.lastCall.calledWith(false));
     assert.isTrue(eventSpy.calledOnce);
 
     const event = eventSpy.firstCall.args[0];

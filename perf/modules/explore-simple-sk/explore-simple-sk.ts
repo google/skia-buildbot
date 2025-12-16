@@ -142,6 +142,8 @@ import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
 import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
 
+const CACHE_KEY_EVEN_X_AXIS_SPACING = 'explore-simple-sk-even-x-axis-spacing';
+
 const DOMAIN_DATE = 'date';
 const DOMAIN_COMMIT = 'commit';
 
@@ -1237,6 +1239,13 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     if (this._initialized) {
       return;
     }
+
+    const cachedEvenSpacing = localStorage.getItem(CACHE_KEY_EVEN_X_AXIS_SPACING);
+    if (cachedEvenSpacing !== null) {
+      this._state.evenXAxisSpacing = cachedEvenSpacing === 'true';
+    }
+    this.setUseDiscreteAxis(this._state.evenXAxisSpacing);
+
     this._initialized = true;
     this.render();
 
@@ -1602,6 +1611,9 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   private switchEvenXAxisSpacing(target: MdSwitch | null) {
     if (!target) return;
     this._state.evenXAxisSpacing = target.selected;
+
+    localStorage.setItem(CACHE_KEY_EVEN_X_AXIS_SPACING, String(this._state.evenXAxisSpacing));
+
     this.setUseDiscreteAxis(this._state.evenXAxisSpacing);
     this.render();
     this.dispatchEvent(
@@ -3863,6 +3875,12 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     const prevKeys = this._state?.keys;
 
     state = this.rationalizeTimeRange(state);
+
+    const cachedEvenSpacing = localStorage.getItem(CACHE_KEY_EVEN_X_AXIS_SPACING);
+    if (cachedEvenSpacing !== null) {
+      state.evenXAxisSpacing = cachedEvenSpacing === 'true';
+    }
+
     this._state = state;
 
     // Synchronize the xAxisSwitch with the state's domain
