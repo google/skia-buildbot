@@ -146,6 +146,8 @@ var statementFormats = map[statementFormat]string{
 			Alerts a ON r.alert_id=a.id
 		WHERE
 			a.sub_name = $1
+		ORDER BY
+  		r.creation_time DESC
 		LIMIT
 			$2
 		OFFSET

@@ -497,31 +497,63 @@ func TestGetRegressionsBySubName(t *testing.T) {
 	store := setupStore(t, alertsProvider)
 	ctx := context.Background()
 
-	// 1. Insert a regression.
+	// 1. Setup: Insert two regressions to test sorting and pagination.
 	r1 := generateAndStoreNewRegression(ctx, t, store)
+	r2 := generateAndStoreNewRegression(ctx, t, store)
 
-	// 2. Update the alert in the database to have the sub_name.
-	// We need to do this manually since the store doesn't do it.
-	// In a real scenario, the alerts would be created with sub_names.
-	_, err := store.db.Exec(ctx, "INSERT INTO Alerts (id, sub_name) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET id=EXCLUDED.id, sub_name = EXCLUDED.sub_name", r1.AlertId, "my-sub")
+	// Ensure r1 is older than r2.
+	olderTime := time.Now().Add(-1 * time.Hour)
+	_, err := store.db.Exec(ctx, "UPDATE Regressions2 SET creation_time = $1 WHERE id = $2", olderTime, r1.Id)
 	require.NoError(t, err)
+
+	// 2. Associate both regressions with the same subscription (sub_name).
+	setupAlertSubName := func(alertID int64, subName string) {
+		query := `
+			INSERT INTO Alerts (id, sub_name)
+			VALUES ($1, $2)
+			ON CONFLICT (id)
+			DO UPDATE SET
+				id = EXCLUDED.id,
+				sub_name = EXCLUDED.sub_name`
+		_, err := store.db.Exec(ctx, query, alertID, subName)
+		require.NoError(t, err)
+	}
+	setupAlertSubName(r1.AlertId, "my-sub")
+	setupAlertSubName(r2.AlertId, "my-sub")
 
 	// 3. Test cases.
 	tests := []struct {
-		name         string
-		subName      string
-		limit        int
-		offset       int
-		expectedLen  int
-		expectedRegs []*regression.Regression
+		name        string
+		subName     string
+		limit       int
+		offset      int
+		expectedLen int
+		// expectedIDs is used to verify the exact order of return
+		expectedIDs []string
 	}{
 		{
-			name:         "happy path",
-			subName:      "my-sub",
-			limit:        10,
-			offset:       0,
-			expectedLen:  1,
-			expectedRegs: []*regression.Regression{r1},
+			name:        "happy path - get all (newest first)",
+			subName:     "my-sub",
+			limit:       10,
+			offset:      0,
+			expectedLen: 2,
+			expectedIDs: []string{r2.Id, r1.Id}, // Expect r2 (newer) then r1 (older)
+		},
+		{
+			name:        "pagination - limit 1 (get newest)",
+			subName:     "my-sub",
+			limit:       1,
+			offset:      0,
+			expectedLen: 1,
+			expectedIDs: []string{r2.Id},
+		},
+		{
+			name:        "pagination - offset 1 (get older)",
+			subName:     "my-sub",
+			limit:       10,
+			offset:      1,
+			expectedLen: 1,
+			expectedIDs: []string{r1.Id},
 		},
 		{
 			name:        "no regressions for sub name",
@@ -529,20 +561,15 @@ func TestGetRegressionsBySubName(t *testing.T) {
 			limit:       10,
 			offset:      0,
 			expectedLen: 0,
+			expectedIDs: []string{},
 		},
 		{
-			name:        "limit works",
+			name:        "limit 0 returns nothing",
 			subName:     "my-sub",
 			limit:       0,
 			offset:      0,
 			expectedLen: 0,
-		},
-		{
-			name:        "offset works",
-			subName:     "my-sub",
-			limit:       10,
-			offset:      1,
-			expectedLen: 0,
+			expectedIDs: []string{},
 		},
 	}
 
@@ -551,8 +578,12 @@ func TestGetRegressionsBySubName(t *testing.T) {
 			regs, err := store.GetRegressionsBySubName(ctx, tc.subName, tc.limit, tc.offset)
 			require.NoError(t, err)
 			assert.Len(t, regs, tc.expectedLen)
+
+			// Verify the order
 			if tc.expectedLen > 0 {
-				assert.Equal(t, tc.expectedRegs[0].Id, regs[0].Id)
+				for i, expectedID := range tc.expectedIDs {
+					assert.Equal(t, expectedID, regs[i].Id, "Regression at index %d did not match expected ID", i)
+				}
 			}
 		})
 	}
