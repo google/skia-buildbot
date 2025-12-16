@@ -192,7 +192,7 @@ export class PlotGoogleChartSk extends LitElement {
   private deltaRangeOn = false;
 
   @property({ attribute: false })
-  private showResetButton = false;
+  showResetButton = false;
 
   @property({ type: Array })
   highlightAnomalies: string[] = [];

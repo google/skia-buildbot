@@ -1,15 +1,59 @@
 import { expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import { ElementHandle } from 'puppeteer';
+import { PlotGoogleChartSkPO } from './plot-google-chart-sk_po';
 
 describe('plot-google-chart-sk', () => {
   let testBed: TestBed;
+  let plotGoogleChartSk: ElementHandle;
+  let plotGoogleChartSkPO: PlotGoogleChartSkPO;
   before(async () => {
     testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
-    await testBed.page.setViewport({ width: 400, height: 550 });
+    await testBed.page.setViewport({ width: 800, height: 600 });
+    plotGoogleChartSk = (await testBed.page.$('plot-google-chart-sk'))!;
+    if (!plotGoogleChartSk) {
+      throw new Error('plot-google-chart-sk not found');
+    }
+
+    // Set up sample data for the chart to be visible
+    await plotGoogleChartSk.evaluate((el) => {
+      // The 'data' property expects a google.visualization.DataTable.
+      // We can create one in the browser context for the test.
+      // This requires the 'google' global to be available on the test page.
+      const sampleData = new (window as any).google.visualization.DataTable();
+      sampleData.addColumn('number', 'Commit');
+      sampleData.addColumn('number', 'Trace 1');
+      sampleData.addRows([
+        [1, 10],
+        [2, 12],
+        [3, 8],
+        [4, 15],
+      ]);
+      (el as any).data = sampleData;
+    });
+
+    plotGoogleChartSkPO = new PlotGoogleChartSkPO(plotGoogleChartSk);
+  });
+
+  it('should render the chart', async () => {
+    expect(plotGoogleChartSkPO).to.exist;
+    expect(await plotGoogleChartSkPO.isChartVisible()).to.be.true;
+
+    await takeScreenshot(testBed.page, 'plot-google-chart-sk', 'default-render');
+  });
+
+  it('should display chart', async () => {
+    // The component should now render the chart.
+    expect(await plotGoogleChartSkPO.isChartVisible()).to.be.true;
+
+    const chartObject = await plotGoogleChartSkPO.getGoogleChartObject();
+    expect(chartObject).to.not.be.null;
+
+    await takeScreenshot(testBed.page, 'plot-google-chart-sk', 'with-data');
   });
 
   it('should render the demo page (smoke test)', async () => {
@@ -20,5 +64,26 @@ describe('plot-google-chart-sk', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'perf', 'plot-google-chart-sk');
     });
+  });
+
+  it('should get chart type', async () => {
+    // Assuming the chart type is set as 'line' in the demo or default
+    expect(await plotGoogleChartSkPO.getChartType()).to.equal('line');
+  });
+
+  it('should show reset button after zoom and hide after click', async () => {
+    // Simulate a zoom action to make the reset button visible
+    // This requires interacting with the chart. Since we can't directly trigger a zoom
+    // via a simple method without full chart interaction, we'll simulate setting
+    // the property that would normally make it visible.
+    await plotGoogleChartSk.evaluate(async (el: any) => {
+      el.showResetButton = true;
+    });
+
+    expect(await plotGoogleChartSkPO.isResetButtonVisible()).to.be.true;
+
+    await plotGoogleChartSkPO.clickResetButton();
+
+    expect(await plotGoogleChartSkPO.isResetButtonVisible()).to.be.false;
   });
 });
