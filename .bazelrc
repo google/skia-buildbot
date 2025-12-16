@@ -24,7 +24,7 @@ build --workspace_status_command=bazel/get_workspace_status.sh
 
 # Tags such as no-remote and no-cache have no effect without this. See
 # https://github.com/bazelbuild/bazel/issues/8830.
-build --experimental_allow_tags_propagation
+build --incompatible_allow_tags_propagation
 
 # Required for newer versions of abseil-cpp.
 build --action_env=BAZEL_CXXOPTS="-std=c++17"
@@ -85,10 +85,6 @@ build:remote --jobs=50
 # properties.
 # These flags should only be used as is for the rbe-ubuntu16-04 container
 # and need to be adapted to work with other toolchain containers.
-build:remote --host_javabase=//bazel/rbe/generated/java:jdk
-build:remote --javabase=//bazel/rbe/generated/java:jdk
-build:remote --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_hostjdk8
-build:remote --java_toolchain=@bazel_tools//tools/jdk:toolchain_hostjdk8
 build:remote --crosstool_top=//bazel/rbe/generated/cc:toolchain
 build:remote --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 # Platform flags:

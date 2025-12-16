@@ -93,7 +93,7 @@ def generate_go_runfile_path(name, go_library_name, path, platform_mapping):
 
     go_file_name = go_library_name + "_gen.go"
     native.genrule(
-        name = go_file_name,
+        name = go_file_name + "_rule",
         srcs = select(srcs_map),
         outs = [go_file_name],
         cmd = select(cmd_map),
@@ -102,7 +102,7 @@ def generate_go_runfile_path(name, go_library_name, path, platform_mapping):
     # Now, generate a Go test file and a go_test target for it.
     test_file_name = go_library_name + "_gen_test.go"
     write_file(
-        name = test_file_name,
+        name = test_file_name + "_rule",
         out = test_file_name,
         content = ("""package %s
 
