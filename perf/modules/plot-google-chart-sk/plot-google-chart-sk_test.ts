@@ -1,11 +1,11 @@
 import './index';
-import { assert, expect } from 'chai';
+import { assert } from 'chai';
 import { PlotGoogleChartSk } from './plot-google-chart-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import sinon from 'sinon';
 
 // Mock the google.visualization object.
-const mockDataTable = {
+const createMockDataTable = () => ({
   getNumberOfRows: () => 3,
   getNumberOfColumns: () => 2,
   getValue: (rowIndex: number, colIndex: number) => {
@@ -24,88 +24,116 @@ const mockDataTable = {
     }
     return rows;
   },
-};
+  getColumnLabel: (colIndex: number) => `Col ${colIndex}`,
+  getViewColumns: () => [0, 1, 2],
+  getViewColumnIndex: (colIndex: number) => colIndex,
+  getColumnIndex: (_label: string) => 0,
+});
 
-// TODO(b/362831653): Add unit tests for plot-google-chart
+// Mock google chart object
+const createMockChart = () => ({
+  getChartLayoutInterface: () => ({
+    getChartAreaBoundingBox: () => ({ top: 0, left: 0, width: 100, height: 100 }),
+    getVAxisValue: (y: number) => y,
+    getHAxisValue: (x: number) => x,
+    getXLocation: (x: number) => x,
+    getYLocation: (y: number) => y,
+  }),
+  setSelection: () => {},
+  getSelection: () => [],
+  draw: () => {},
+  clearChart: () => {},
+});
+
 describe('plot-google-chart-sk', () => {
-  // trace samples for determineYAxisTitle unit tests
-  const ms_down = 'unit=ms,improvement_direction=down';
-  const ms_up = 'unit=ms,improvement_direction=up';
-  const score_down = 'unit=score,improvement_direction=down';
-
   const newInstance = setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
   let element: PlotGoogleChartSk;
+  let originalGoogle: any;
 
   beforeEach(() => {
+    originalGoogle = window.google;
     element = newInstance(() => {});
     // @ts-expect-error - mocking google.visualization
     window.google = {
       visualization: {
-        DataTable: sinon.stub().returns(mockDataTable),
+        DataTable: sinon.stub().callsFake(createMockDataTable),
+        DataView: sinon.stub().callsFake(createMockDataTable),
+        LineChart: sinon.stub().callsFake(createMockChart),
+        events: {
+          addListener: sinon.stub(),
+          trigger: sinon.stub(),
+        },
       } as any,
     };
   });
 
-  describe('some action', () => {
-    it('some result', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      expect(element).to.not.be.null;
-    });
+  afterEach(() => {
+    if (originalGoogle) {
+      window.google = originalGoogle;
+    } else {
+      // @ts-expect-error - clean up global mock
+      delete window.google;
+    }
   });
 
   describe('determineYAxisTitle', () => {
-    it('empty', () => {
+    // trace samples for determineYAxisTitle unit tests
+    const ms_down = 'unit=ms,improvement_direction=down';
+    const ms_up = 'unit=ms,improvement_direction=up';
+    const score_down = 'unit=score,improvement_direction=down';
+
+    it('returns empty string for empty input', () => {
       assert.isEmpty(element.determineYAxisTitle([]));
     });
 
-    it('unit and improvement direction same', () => {
-      assert.strictEqual('ms - down', element.determineYAxisTitle([ms_down, ms_down]));
+    it('returns formatted title when unit and improvement direction are same', () => {
+      assert.strictEqual(element.determineYAxisTitle([ms_down, ms_down]), 'ms - down');
     });
 
-    it('unit same, improvement direction different', () => {
-      assert.strictEqual('ms', element.determineYAxisTitle([ms_down, ms_up]));
+    it('returns unit only when improvement direction differs', () => {
+      assert.strictEqual(element.determineYAxisTitle([ms_down, ms_up]), 'ms');
     });
 
-    it('unit different, improvement direction same', () => {
-      assert.strictEqual('down', element.determineYAxisTitle([ms_down, score_down]));
+    it('returns direction only when unit differs', () => {
+      assert.strictEqual(element.determineYAxisTitle([ms_down, score_down]), 'down');
     });
 
-    it('all different', () => {
+    it('returns empty string when all differ', () => {
       assert.isEmpty(element.determineYAxisTitle([ms_up, score_down]));
     });
   });
 
-  describe('willUpdate', () => {
-    it('converts selection range from date to commit', () => {
+  describe('domain change conversion', () => {
+    it('converts selection range from date to commit', async () => {
       element.data = new google.visualization.DataTable();
-      element.domain = 'commit';
+      element.domain = 'date';
       element.selectedRange = {
         begin: new Date(2025, 1, 1).getTime() / 1000,
         end: new Date(2025, 1, 3).getTime() / 1000,
       };
+      await element.updateComplete;
 
-      const changedProperties = new Map();
-      changedProperties.set('domain', 'date');
-      (element as any).willUpdate(changedProperties);
+      element.domain = 'commit';
+      await element.updateComplete;
 
-      expect(element.selectedRange.begin).to.equal(1);
-      expect(element.selectedRange.end).to.equal(3);
+      assert.equal(element.selectedRange!.begin, 1);
+      assert.equal(element.selectedRange!.end, 3);
     });
 
-    it('converts selection range from commit to date', () => {
+    it('converts selection range from commit to date', async () => {
       element.data = new google.visualization.DataTable();
-      element.domain = 'date';
+      element.domain = 'commit';
       element.selectedRange = {
         begin: 1,
         end: 3,
       };
+      await element.updateComplete;
 
-      const changedProperties = new Map();
-      changedProperties.set('domain', 'commit');
-      (element as any).willUpdate(changedProperties);
+      element.domain = 'date';
+      await element.updateComplete;
 
-      expect(element.selectedRange.begin).to.equal(new Date(2025, 1, 1).getTime() / 1000);
-      expect(element.selectedRange.end).to.equal(new Date(2025, 1, 3).getTime() / 1000);
+      assert.equal(element.selectedRange!.begin, new Date(2025, 1, 1).getTime() / 1000);
+      assert.equal(element.selectedRange!.end, new Date(2025, 1, 3).getTime() / 1000);
     });
   });
 
@@ -122,6 +150,71 @@ describe('plot-google-chart-sk', () => {
       await element.updateComplete;
       const chart = element.shadowRoot!.querySelector('google-chart');
       assert.isFalse(chart!.hasAttribute('hidden'));
+    });
+  });
+
+  describe('vertical zoom persistence', () => {
+    it('preserves vertical zoom when horizontal zoom changes', async () => {
+      // Setup data
+      element.data = new google.visualization.DataTable();
+      await element.updateComplete;
+
+      // 1. Set Vertical Zoom
+      element.isHorizontalZoom = false; // Vertical zoom mode
+      element.updateBounds({ begin: 10, end: 50 });
+
+      // Verify vertical zoom is set in state
+      const zoomedVRange = (element as any).zoomedVRange;
+      assert.isNotNull(zoomedVRange);
+      assert.equal(zoomedVRange.min, 10);
+      assert.equal(zoomedVRange.max, 50);
+
+      // 2. Change Horizontal Zoom (selectedRange)
+      element.selectedRange = { begin: 5, end: 25 };
+      await element.updateComplete;
+
+      // Vertical zoom should persist in state
+      const persistedVRange = (element as any).zoomedVRange;
+      assert.isNotNull(persistedVRange);
+      assert.equal(persistedVRange.min, 10, 'Vertical zoom min should persist');
+      assert.equal(persistedVRange.max, 50, 'Vertical zoom max should persist');
+    });
+
+    it('preserves horizontal zoom logic when vertical zoom changes', async () => {
+      // Setup data
+      element.data = new google.visualization.DataTable();
+      await element.updateComplete;
+
+      // 1. Set Horizontal Zoom (selectedRange)
+      element.selectedRange = { begin: 100, end: 200 };
+      await element.updateComplete;
+
+      // Verify no vertical zoom initially
+      assert.isNull((element as any).zoomedVRange);
+
+      // 2. Change Vertical Zoom
+      element.isHorizontalZoom = false; // Vertical zoom mode
+      element.updateBounds({ begin: 10, end: 50 });
+
+      // Verify vertical zoom is updated in state
+      const zoomedVRange = (element as any).zoomedVRange;
+      assert.isNotNull(zoomedVRange);
+      assert.equal(zoomedVRange.min, 10);
+      assert.equal(zoomedVRange.max, 50);
+
+      // Verify horizontal zoom (selectedRange) is preserved
+      assert.equal(element.selectedRange!.begin, 100);
+      assert.equal(element.selectedRange!.end, 200);
+
+      // 3. Update Horizontal Zoom again (simulate user action or data update)
+      element.selectedRange = { begin: 150, end: 250 };
+      await element.updateComplete;
+
+      // Vertical zoom state should persist
+      const persistedVRange = (element as any).zoomedVRange;
+      assert.isNotNull(persistedVRange);
+      assert.equal(persistedVRange.min, 10);
+      assert.equal(persistedVRange.max, 50);
     });
   });
 });

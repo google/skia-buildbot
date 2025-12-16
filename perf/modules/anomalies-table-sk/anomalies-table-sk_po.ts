@@ -95,7 +95,29 @@ export class AnomaliesTableSkPO extends PageObject {
   async clickTrendingIconButton(index: number): Promise<void> {
     await this.clickExpandButton(index);
     const trendingLinkList = await this.trendingIconLink;
-    const trendingLink = trendingLinkList.item(index);
+    const trendingLink = await trendingLinkList.item(index);
+
+    // Expand the group if the row is hidden.
+    await trendingLink.applyFnToDOMNode((btn: Element) => {
+      const row = btn.closest('tr');
+      // Check for 'hidden' attribute or property.
+      if (row && (row.hidden || row.hasAttribute('hidden'))) {
+        // Traverse backwards to find the summary row with the expand button.
+        let sibling = row.previousElementSibling;
+        while (sibling) {
+          const expandBtn = sibling.querySelector('button.expand-button');
+          if (expandBtn) {
+            (expandBtn as HTMLElement).click();
+            return;
+          }
+          // If we hit another child row (no expand button), keep going back.
+          // If we hit a summary row (has expand button), we clicked it and stopped.
+          // If we hit start of table, we stop.
+          sibling = sibling.previousElementSibling;
+        }
+      }
+    });
+
     await (await trendingLink).click();
   }
 

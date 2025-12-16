@@ -501,6 +501,9 @@ export class PlotGoogleChartSk extends LitElement {
     this.updateOptions();
   }
 
+  // Vertical zoom range persistence
+  private zoomedVRange: { min: number; max: number } | null = null;
+
   private updateOptions() {
     const plot = this.plotElement.value;
     if (!plot) {
@@ -515,6 +518,14 @@ export class PlotGoogleChartSk extends LitElement {
     const begin = this.selectedRange?.begin;
     const end = this.selectedRange?.end;
     const commitScale = this.domain === 'commit';
+
+    // Apply persisted vertical zoom if it exists
+    if (this.zoomedVRange) {
+      options.vAxis!.viewWindow = {
+        min: this.zoomedVRange.min,
+        max: this.zoomedVRange.max,
+      };
+    }
 
     if (this.useDiscreteAxis) {
       // For discrete axes, the domain are strings, rather than numbers or dates.
@@ -1358,6 +1369,7 @@ export class PlotGoogleChartSk extends LitElement {
           min: min,
           max: max,
         };
+        this.zoomedVRange = { min, max };
         options.hAxis!.viewWindow = {
           min: this.selectedRange?.begin,
           max: this.selectedRange?.end,
