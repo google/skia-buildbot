@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import { PivotQuerySkPO } from './pivot-query-sk_po';
 
 describe('pivot-query-sk', () => {
   let testBed: TestBed;
@@ -29,6 +30,44 @@ describe('pivot-query-sk', () => {
     );
     expect(ids).to.have.length(2);
     expect(ids[0]).to.not.equal(ids[1]);
+  });
+
+  describe('interactions', () => {
+    let po: PivotQuerySkPO;
+
+    beforeEach(async () => {
+      const element = await testBed.page.$('#valid');
+      expect(element).to.not.be.null;
+      po = new PivotQuerySkPO(element!);
+    });
+
+    it('emits pivot-changed when group_by is changed', async () => {
+      await po.setGroupBy('model');
+
+      // Check results
+      await testBed.page.waitForFunction(() => {
+        const res = document.querySelector('#results')?.textContent || '';
+        return res.includes('"group_by":') && res.includes('"model"');
+      });
+    });
+
+    it('emits pivot-changed when operation is changed', async () => {
+      await po.setOperation('sum');
+
+      await testBed.page.waitForFunction(() => {
+        const res = document.querySelector('#results')?.textContent || '';
+        return res.includes('"operation": "sum"');
+      });
+    });
+
+    it('emits pivot-changed when summary is changed', async () => {
+      await po.setSummary('Count');
+
+      await testBed.page.waitForFunction(() => {
+        const res = document.querySelector('#results')?.textContent || '';
+        return res.includes('"summary":') && res.includes('"count"'); // Summary keys are lowercase operations
+      });
+    });
   });
 
   describe('screenshots', () => {

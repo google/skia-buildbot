@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -47,9 +47,20 @@ sk_element_puppeteer_test(
     src = "pivot-query-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        ":pivot-query-sk_po_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+ts_library(
+    name = "pivot-query-sk_po_ts_lib",
+    srcs = ["pivot-query-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
     ],
 )
 
