@@ -66,13 +66,18 @@ func (s State) IsTaskFinished() bool {
 // terminal failure - swarming task did not complete benchmark
 // execution due to a failure
 func (s State) IsTaskTerminalFailure() bool {
-	return s.IsTaskFinished() && !s.IsTaskBenchmarkFailure() && !s.IsTaskSuccessful()
+	return s.IsTaskFinished() && !s.IsTaskBenchmarkFailure() && !s.IsTaskTimedOut() && !s.IsTaskSuccessful()
 }
 
 // IsTaskBenchmarkFailure checks if a swarming task state
 // is a completed run benchmark failure
 func (s State) IsTaskBenchmarkFailure() bool {
 	return string(s) == backends.RunBenchmarkFailure
+}
+
+// IsTaskTimedOut checks if a swarming task state is timed out
+func (s State) IsTaskTimedOut() bool {
+	return string(s) == swarming.TASK_STATE_TIMED_OUT
 }
 
 // IsTaskSuccessful checks if a swarming task state is successful

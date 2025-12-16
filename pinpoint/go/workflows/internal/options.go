@@ -87,7 +87,10 @@ var (
 	}
 
 	runBenchmarkActivityOption = workflow.ActivityOptions{
-		ScheduleToCloseTimeout: run_benchmark.ExecutionTimeoutSecs * time.Second,
+		// Make timeout of Temporal activity 1 minute longer than swarming task timeout,
+		// so that after a swarming task times out, Temporal activity has some extra
+		// time to handle it.
+		ScheduleToCloseTimeout: (run_benchmark.ExecutionTimeoutSecs + 60) * time.Second,
 		HeartbeatTimeout:       6 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    15 * time.Second,

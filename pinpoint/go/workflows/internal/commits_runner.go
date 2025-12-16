@@ -188,7 +188,7 @@ func runBenchmark(ctx workflow.Context, cc *common.CombinedCommit, cas *apipb.CA
 		// TODO(b/327224992): Handle retry logic for non-terminal benchmark failures
 		// For now, assume all retryable errors are terminal
 		return nil, skerr.Fmt("test run (%v) terminally failed with status (%v)", tr.TaskID, tr.Status)
-	case s.IsTaskBenchmarkFailure():
+	case s.IsTaskBenchmarkFailure(), s.IsTaskTimedOut():
 		return tr, nil
 	}
 

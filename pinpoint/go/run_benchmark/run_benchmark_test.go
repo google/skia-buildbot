@@ -116,7 +116,6 @@ func TestIsTaskTerminalFailure_GivenTerminalState_ReturnsTrue(t *testing.T) {
 	states := []State{
 		swarming.TASK_STATE_BOT_DIED,
 		swarming.TASK_STATE_CANCELED,
-		swarming.TASK_STATE_TIMED_OUT,
 	}
 	for _, s := range states {
 		out := s.IsTaskTerminalFailure()
@@ -129,6 +128,7 @@ func TestIsTaskTerminalFailure_GivenNonTerminalState_ReturnsFalse(t *testing.T) 
 		swarming.TASK_STATE_RUNNING,
 		backends.RunBenchmarkFailure,
 		swarming.TASK_STATE_COMPLETED,
+		swarming.TASK_STATE_TIMED_OUT,
 	}
 	for _, s := range states {
 		out := s.IsTaskTerminalFailure()
