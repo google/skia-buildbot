@@ -80,6 +80,16 @@ Those are specific for this project, and top level scripts won't start them.
 2. Open the application in your browser on port `9876`. [Screenshot 1](https://screenshot.googleplex.com/7K5Jr4PBz5hCB3d.png).
 3. See assertion errors in the console if any. Find your sources, add a debug breakpoint. Rerun the test by refreshing the page. [Screenshot 2](https://screenshot.googleplex.com/Bq4QfPLMrBdAbyT.png).
 
+### Debug Puppeteer tests
+
+Through screenshots:
+
+1. Add `await takeScreenshot(testBed.page, 'test_name', 'step_name');` from `puppeteer-tests/util`
+2. After test run copy screenshots from the remote machine to local machine, unzip it. Example of query:
+   `scp -r $USER@$USER.c.googlers.com:/usr/local/google/home/$USER/.cache/bazel/_bazel_$USER/b94e5a721a59a936c04032522dbb25a3/execroot/_main/bazel-out/k8-fastbuild/testlogs/perf/modules/explore-multi-sk/explore-multi-sk_puppeteer_test/test.outputs/ ~/Downloads  && unzip ~/Downloads/test.outputs/outputs.zip -d ~/Downloads`
+
+   You can find out the output path by running: `bazelisk info output_path`
+
 ## Running locally
 
 There are several ways to run Perf locally depending on your needs.
