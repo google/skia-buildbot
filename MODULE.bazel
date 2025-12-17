@@ -476,6 +476,15 @@ oci.pull(
 )
 use_repo(oci, "fiddler-build-skia")
 
+# docker.io/temporalio/server:???? as of 12/16/2025.
+oci.pull(
+    name = "temporal-server",
+    digest = "sha256:6831458b0f15efc3aa9f1df82d9e3da9f78c18e1eb310b67ffb6040362ed2f9d",
+    image = "docker.io/temporalio/server",
+    platforms = ["linux/amd64"],
+)
+use_repo(oci, "temporal-server")
+
 ####################################################################################################
 # bazel_skylib
 ####################################################################################################

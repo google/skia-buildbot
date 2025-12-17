@@ -1,0 +1,19 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+# Docker image with Temporal server and tools to admin the server.
+skia_app_container(
+    name = "temporal-server",
+    base_image = "@temporal-server",
+    default_user = "root",
+    dirs = {
+        "/etc/temporal/config": [
+            [
+                "docker/config_template.yaml",
+                "644",
+            ],
+        ],
+    },
+    entrypoint = "/etc/temporal/entrypoint.sh",
+    repository = "skia-public/temporal",
+    workdir = "/etc/temporal",
+)

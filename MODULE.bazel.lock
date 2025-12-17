@@ -1415,7 +1415,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "T0UwKf/jOTmbLbjt/KI3k//yiC+8chvR8Fo6Xnn61ZI=",
+        "usagesDigest": "vgqzNsOXSMdHbY8n2zNCiagABLyjFgQcVLf9fb47CHA=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1771,6 +1771,35 @@
               "reproducible": true
             }
           },
+          "temporal-server_linux_amd64": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
+            "attributes": {
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "temporalio/server",
+              "identifier": "sha256:6831458b0f15efc3aa9f1df82d9e3da9f78c18e1eb310b67ffb6040362ed2f9d",
+              "platform": "linux/amd64",
+              "target_name": "temporal-server_linux_amd64",
+              "bazel_tags": []
+            }
+          },
+          "temporal-server": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_alias",
+            "attributes": {
+              "target_name": "temporal-server",
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "temporalio/server",
+              "identifier": "sha256:6831458b0f15efc3aa9f1df82d9e3da9f78c18e1eb310b67ffb6040362ed2f9d",
+              "platforms": {
+                "@@platforms//cpu:x86_64": "@temporal-server_linux_amd64"
+              },
+              "bzlmod_repository": "temporal-server",
+              "reproducible": true
+            }
+          },
           "oci_crane_darwin_amd64": {
             "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
             "attributes": {
@@ -1899,7 +1928,9 @@
             "kubectl",
             "cloudsdk",
             "golang",
-            "fiddler-build-skia"
+            "fiddler-build-skia",
+            "temporal-server",
+            "temporal-server_linux_amd64"
           ],
           "explicitRootModuleDirectDevDeps": [],
           "useAllRepos": "NO",
