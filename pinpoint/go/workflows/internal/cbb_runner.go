@@ -89,6 +89,12 @@ func setupBenchmarks(cbb *CbbRunnerParams) []BenchmarkRunConfig {
 	benchmarks = append(benchmarks, BenchmarkRunConfig{"jetstream2", 22})
 	benchmarks = append(benchmarks, BenchmarkRunConfig{"jetstream3", 22})
 	benchmarks = append(benchmarks, BenchmarkRunConfig{"motionmark1.3", 22})
+	if strings.HasPrefix(botConfig, "android-") {
+		// Loadline2 is only available on Android. It also takes considerably
+		// longer than other benchmarks, having 50 iterations built-in,
+		// so give it a lower repetition count here.
+		benchmarks = append(benchmarks, BenchmarkRunConfig{"loadline2_tablet", 8})
+	}
 
 	// TODO(b/433537961) Double number of iterations on Android until we
 	// figure out why benchmarks fail frequently on it.
@@ -202,6 +208,8 @@ func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
 		benchmark = "JS2"
 	} else if strings.HasPrefix(benchmark, "jetstream3") {
 		benchmark = "JS3"
+	} else if strings.HasPrefix(benchmark, "loadline2") {
+		benchmark = "LL2"
 	} else if strings.HasPrefix(benchmark, "motionmark") {
 		benchmark = "MM"
 	}

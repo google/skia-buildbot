@@ -36,18 +36,20 @@ var waterfallEnabledGtests = util.NewStringSet([]string{
 // Also keep it in sync with legacy Pinpoint while it still exists:
 // https://chromium.googlesource.com/catapult/+/HEAD/dashboard/dashboard/pinpoint/models/quest/run_telemetry_test.py
 var crossbenchBenchmarks = map[string]string{
-	"jetstream2.crossbench":      "jetstream_2.2",
-	"jetstream3.crossbench":      "jetstream_main",
-	"jetstream-main.crossbench":  "jetstream_main",
-	"motionmark1.3.crossbench":   "motionmark_1.3",
-	"speedometer2.crossbench":    "speedometer_2",
-	"speedometer2.0.crossbench":  "speedometer_2.0",
-	"speedometer2.1.crossbench":  "speedometer_2.1",
-	"speedometer3.crossbench":    "speedometer_3",
-	"speedometer3.0.crossbench":  "speedometer_3.0",
-	"speedometer3.1.crossbench":  "speedometer_3.1",
-	"loadline_phone.crossbench":  "loadline-phone-fast",
-	"loadline_tablet.crossbench": "loadline-tablet-fast",
+	"jetstream2.crossbench":       "jetstream_2.2",
+	"jetstream3.crossbench":       "jetstream_main",
+	"jetstream-main.crossbench":   "jetstream_main",
+	"motionmark1.3.crossbench":    "motionmark_1.3",
+	"speedometer2.crossbench":     "speedometer_2",
+	"speedometer2.0.crossbench":   "speedometer_2.0",
+	"speedometer2.1.crossbench":   "speedometer_2.1",
+	"speedometer3.crossbench":     "speedometer_3",
+	"speedometer3.0.crossbench":   "speedometer_3.0",
+	"speedometer3.1.crossbench":   "speedometer_3.1",
+	"loadline_phone.crossbench":   "loadline-phone-fast",
+	"loadline_tablet.crossbench":  "loadline-tablet-fast",
+	"loadline2_phone.crossbench":  "loadline2-phone",
+	"loadline2_tablet.crossbench": "loadline2-tablet",
 }
 
 type telemetryTest struct {
