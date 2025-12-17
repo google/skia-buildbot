@@ -24,6 +24,8 @@ const (
 	FindFuncName     = "find"
 	FindTimeFuncName = "find_time"
 	GetFuncName      = "get"
+	// IgnoreBugIDFlag is the bug ID used to indicate that an anomaly should be ignored.
+	IgnoreBugIDFlag = -2
 )
 
 var statToSuffixMap = map[string]string{

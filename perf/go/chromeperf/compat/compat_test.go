@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/perf/go/chromeperf"
+	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/types"
@@ -88,4 +90,68 @@ func TestConvertRegressionToAnomalies_TraceNameError(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, anomalies)
 	assert.Empty(t, anomalies)
+}
+
+func TestConvertRegressionToAnomalies_Status(t *testing.T) {
+	tests := []struct {
+		name          string
+		triageStatus  regression.Status
+		expectedBugId int
+	}{
+		{
+			name:          "Ignored",
+			triageStatus:  regression.Ignored,
+			expectedBugId: chromeperf.IgnoreBugIDFlag,
+		},
+		{
+			name:          "Untriaged",
+			triageStatus:  regression.Untriaged,
+			expectedBugId: 0,
+		},
+		{
+			name:          "Positive",
+			triageStatus:  regression.Positive,
+			expectedBugId: 0,
+		},
+		{
+			name:          "None",
+			triageStatus:  regression.None,
+			expectedBugId: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			reg := &regression.Regression{
+				Id:               "test_regression_" + tt.name,
+				CommitNumber:     12345,
+				PrevCommitNumber: 12340,
+				IsImprovement:    false,
+				MedianBefore:     10.0,
+				MedianAfter:      20.0,
+				Frame: &frame.FrameResponse{
+					DataFrame: &dataframe.DataFrame{
+						TraceSet: map[string]types.Trace{
+							",master=ChromiumPerf,bot=mac-m1,benchmark=MyBench,test=MyTest,subtest_1=sub1,": {},
+						},
+					},
+				},
+				Low: &clustering2.ClusterSummary{},
+				LowStatus: regression.TriageStatus{
+					Status: tt.triageStatus,
+				},
+			}
+
+			anomalies, err := ConvertRegressionToAnomalies(reg)
+			assert.NoError(t, err)
+			assert.NotNil(t, anomalies)
+
+			key := ",master=ChromiumPerf,bot=mac-m1,benchmark=MyBench,test=MyTest,subtest_1=sub1,"
+			commitMap := anomalies[key]
+			anomaly := commitMap[types.CommitNumber(12345)]
+
+			assert.Equal(t, string(tt.triageStatus), anomaly.State)
+			assert.Equal(t, tt.expectedBugId, anomaly.BugId)
+		})
+	}
 }

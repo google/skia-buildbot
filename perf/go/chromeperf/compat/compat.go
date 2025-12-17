@@ -32,6 +32,12 @@ func ConvertRegressionToAnomalies(reg *regression.Regression) (chromeperf.Anomal
 			MedianAfterAnomaly:  float64(reg.MedianAfter),
 		}
 
+		_, _, triageStatus := reg.GetClusterTypeAndSummaryAndTriageStatus()
+		anomaly.State = string(triageStatus.Status)
+		if triageStatus.Status == regression.Ignored {
+			anomaly.BugId = chromeperf.IgnoreBugIDFlag
+		}
+
 		arbitraryBugIdSelectedWarningDisplayed := false
 		// TODO(b/462782068) change anomalymap to contain all bug ids.
 		// This is a temporary logic.

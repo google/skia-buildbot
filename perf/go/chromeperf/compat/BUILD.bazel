@@ -18,6 +18,8 @@ go_test(
     srcs = ["compat_test.go"],
     embed = [":compat"],
     deps = [
+        "//perf/go/chromeperf",
+        "//perf/go/clustering2",
         "//perf/go/dataframe",
         "//perf/go/regression",
         "//perf/go/types",
