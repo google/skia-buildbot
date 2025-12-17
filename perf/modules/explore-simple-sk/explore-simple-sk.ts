@@ -427,14 +427,20 @@ export function calculateRangeChange(
     // shift left
     return {
       rangeChange: true,
-      newOffsets: [clampToNonNegative(offsets[0] - offsetDelta) as CommitNumber, offsets[1]],
+      newOffsets: [
+        clampToNonNegative(offsets[0] - offsetDelta) as CommitNumber,
+        (offsets[1] - offsetDelta) as CommitNumber,
+      ],
     };
   }
   if (exceedsRightEdge) {
     // shift right
     return {
       rangeChange: true,
-      newOffsets: [offsets[0], (offsets[1] + offsetDelta) as CommitNumber],
+      newOffsets: [
+        (offsets[0] + offsetDelta) as CommitNumber,
+        (offsets[1] + offsetDelta) as CommitNumber,
+      ],
     };
   }
   return {
@@ -1645,19 +1651,19 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   };
 
   onZoomIn(): void {
-    this.zoomInKey();
+    this.applyZoomOrPan(1, 0);
   }
 
   onZoomOut(): void {
-    this.zoomOutKey();
+    this.applyZoomOrPan(-1, 0);
   }
 
   onPanLeft(): void {
-    this.zoomLeftKey();
+    this.applyZoomOrPan(0, -1);
   }
 
   onPanRight(): void {
-    this.zoomRightKey();
+    this.applyZoomOrPan(0, 1);
   }
 
   onTriagePositive(): void {
@@ -1696,7 +1702,47 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
    *   }
    */
   private getCurrentZoom(): ZoomWithDelta {
-    const zoom = [0, this._dataframe.header!.length - 1];
+    const header = this._dataframe.header;
+    // Default to the full range
+    const zoom: [number, number] = [0, (header?.length || 1) - 1];
+
+    const plot = this.googleChartPlot.value;
+    if (header && header.length > 0 && plot && plot.selectedRange) {
+      // If we have a selected range, we need to map the begin/end values back to
+      // indices in the dataframe header.
+      const isDate = this._state.domain === DOMAIN_DATE;
+      const { begin, end } = plot.selectedRange;
+
+      // Find the index that corresponds to the begin value.
+      // We assume the header is sorted.
+      const beginIndex = header.findIndex((h) => {
+        if (!h) return false;
+        const val = isDate ? h.timestamp : h.offset;
+        return val >= begin;
+      });
+
+      // Find the index that corresponds to the end value.
+      let endIndex = header.findIndex((h) => {
+        if (!h) return false;
+        const val = isDate ? h.timestamp : h.offset;
+        return val > end;
+      });
+
+      // If endIndex is -1, it means the end value is beyond the last element,
+      // so we select up to the last element.
+      if (endIndex === -1) {
+        endIndex = header.length;
+      }
+      // The endIndex from findIndex is the *first* element > endVal, so the
+      // actual range inclusive end index is endIndex - 1.
+      endIndex = endIndex - 1;
+
+      if (beginIndex !== -1 && endIndex !== -1 && beginIndex <= endIndex) {
+        zoom[0] = beginIndex;
+        zoom[1] = endIndex;
+      }
+    }
+
     let delta = zoom[1] - zoom[0];
     if (delta < MIN_ZOOM_RANGE) {
       const mid = (zoom[0] + zoom[1]) / 2;
@@ -1781,6 +1827,26 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
           this.rangeChangeImpl();
         })
         .catch(errorMessage);
+    } else {
+      const header = this._dataframe.header;
+      const plot = this.googleChartPlot.value;
+
+      if (!header || !plot) {
+        return;
+      }
+
+      const isDate = this._state.domain === DOMAIN_DATE;
+      const getValue = (idx: number) => {
+        const h = header[idx];
+        return isDate ? h!.timestamp : h!.offset;
+      };
+
+      // If the zoom is within the current dataframe, we don't need to fetch
+      // new data, but we do need to update the chart.
+      plot.selectedValueRange = {
+        begin: getValue(zoom[0]),
+        end: getValue(zoom[1]),
+      };
     }
   }
 
@@ -1796,40 +1862,91 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     }
   }
 
-  private zoomInKey() {
-    const cz = this.getCurrentZoom();
-    const zoom: CommitRange = [
-      (cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
-      (cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
-    ];
-    this.zoomOrRangeChange(zoom);
-  }
+  /**
+   * Applies zoom or pan operations to the current chart selection.
+   *
+   * This method calculates the new selection range based on the current selection
+   * and the desired zoom/pan direction. It handles two scenarios:
+   * 1. The new range is within the currently loaded data bounds:
+   *    - Directly updates the visual selection (via plotSummary or googleChartPlot)
+   *    - Triggers a 'summary_selected' event to update the main chart view.
+   * 2. The new range extends beyond the loaded data:
+   *    - Calls `zoomOrRangeChange` to initiate a data fetch for the new range.
+   *
+   * The logric uses the exact values (Commit Offsets or Timestamps) rather than indices
+   * to ensue consistency across different chart components.
+   *
+   * @param zoomDir 1 for Zoom In (shrink range), -1 for Zoom Out (expand range).
+   * @param panDir -1 for Pan Left (shift range left), 1 for Pan Right (shift range right), 0 for none.
+   */
+  private applyZoomOrPan(zoomDir: number, panDir: number) {
+    // We update the selection on the plot summary, which will trigger an event
+    // to update the main plot.
+    const plotSummary = this.plotSummary.value;
+    const dfRepo = this.dfRepo.value;
+    if (!plotSummary || !dfRepo) {
+      return;
+    }
+    const currentRange = plotSummary.selectedValueRange;
+    if (!currentRange) {
+      return;
+    }
 
-  private zoomOutKey() {
-    const cz = this.getCurrentZoom();
-    const zoom: CommitRange = [
-      (cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
-      (cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
-    ];
-    this.zoomOrRangeChange(zoom);
-  }
+    const width = currentRange.end - currentRange.begin;
+    // We rely on the decimal precision here to ensure smooth zooming.
+    // If we rounded to integers, consecutive small zooms might cancel out or stuck
+    // (e.g. 10 * 0.1 = 1, but if width is 5, 5 * 0.1 = 0.5 -> rounds to 0 or 1).
+    // The visualization (Google Chart) handles floating point ranges correctly.
+    const zoomDelta = width * ZOOM_JUMP_PERCENT;
 
-  private zoomLeftKey() {
-    const cz = this.getCurrentZoom();
-    const zoom: CommitRange = [
-      (cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
-      (cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
-    ];
-    this.zoomOrRangeChange(zoom);
-  }
+    let newBegin = currentRange.begin;
+    let newEnd = currentRange.end;
 
-  private zoomRightKey() {
-    const cz = this.getCurrentZoom();
-    const zoom: CommitRange = [
-      (cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
-      (cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
-    ];
-    this.zoomOrRangeChange(zoom);
+    if (panDir !== 0) {
+      newBegin += panDir * zoomDelta;
+      newEnd += panDir * zoomDelta;
+    } else {
+      newBegin += zoomDir * zoomDelta;
+      newEnd -= zoomDir * zoomDelta;
+    }
+
+    // Clamp to the loaded data range.
+    const header = dfRepo.dataframe.header;
+    if (!header || header.length === 0) {
+      return;
+    }
+    const isDate = this._state.domain === DOMAIN_DATE;
+    const dataBegin = isDate ? header[0]!.timestamp : header[0]!.offset;
+    const dataEnd = isDate
+      ? header[header.length - 1]!.timestamp
+      : header[header.length - 1]!.offset;
+
+    // Check if we need to fetch more data.
+    // If we are panning/zooming out beyond the loaded data, we need to fetch.
+    if (newBegin < dataBegin || newEnd > dataEnd) {
+      const cz = this.getCurrentZoom();
+      const zoom: CommitRange = [
+        (cz.zoom[0] +
+          (panDir !== 0 ? panDir : zoomDir) * ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
+        (cz.zoom[1] +
+          (panDir !== 0 ? panDir : -zoomDir) * ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
+      ];
+      this.zoomOrRangeChange(zoom);
+      return;
+    }
+
+    // Apply visual update
+    plotSummary.selectedValueRange = { begin: newBegin, end: newEnd };
+    this.summarySelected(
+      new CustomEvent('summary_selected', {
+        detail: {
+          value: { begin: newBegin, end: newEnd },
+          domain: this._state.domain as 'commit' | 'date',
+          start: 0,
+          end: 0,
+        },
+      })
+    );
   }
 
   /**  Returns true if we have any traces to be displayed. */

@@ -88,9 +88,8 @@ describe('calculateRangeChange', () => {
     const ret = calculateRangeChange(zoom, clampedZoom, offsets);
     assert.isTrue(ret.rangeChange);
 
-    // We shift the beginning of the range by RANGE_CHANGE_ON_ZOOM_PERCENT of
-    // the total range.
-    assert.deepEqual(ret.newOffsets, [90, 120]);
+    // We shift left by RANGE_CHANGE_ON_ZOOM_PERCENT of the total range.
+    assert.deepEqual(ret.newOffsets, [90, 110]);
   });
 
   it('finds a right range increase', () => {
@@ -100,9 +99,8 @@ describe('calculateRangeChange', () => {
     const ret = calculateRangeChange(zoom, clampedZoom, offsets);
     assert.isTrue(ret.rangeChange);
 
-    // We shift the end of the range by RANGE_CHANGE_ON_ZOOM_PERCENT of the
-    // total range.
-    assert.deepEqual(ret.newOffsets, [100, 130]);
+    // We shift right by RANGE_CHANGE_ON_ZOOM_PERCENT of the total range.
+    assert.deepEqual(ret.newOffsets, [110, 130]);
   });
 
   it('find an increase in the range in both directions', () => {
@@ -136,6 +134,125 @@ describe('calculateRangeChange', () => {
 
     const ret = calculateRangeChange(zoom, clampedZoom, offsets);
     assert.isFalse(ret.rangeChange);
+  });
+});
+
+describe('zoomKey', () => {
+  let element: ExploreSimpleSk;
+
+  beforeEach(async () => {
+    // We need to flush the fetch mock to ensure the element is initialized
+    fetchMock.get(/.*\/_\/initpage\/.*/, {
+      dataframe: { paramset: {} },
+    });
+    fetchMock.get('/_/login/status', {
+      email: 'someone@example.org',
+      roles: ['editor'],
+    });
+    fetchMock.post('/_/frame/start', {
+      status: 'Finished',
+      results: { dataframe: { traceset: {} } },
+    });
+    element = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await fetchMock.flush(true);
+
+    (element as any).plotSummary = {
+      value: {
+        selectedValueRange: { begin: 100, end: 200 },
+      },
+    } as any;
+    (element as any).dfRepo = {
+      value: {
+        dataframe: {
+          header: [
+            { offset: 0, timestamp: 1000 },
+            { offset: 300, timestamp: 2000 },
+          ],
+        },
+      } as any,
+    } as any;
+    // Mock summarySelected to verify it's called
+    sinon.stub(element, 'summarySelected');
+    element.state.domain = 'commit';
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('zooms in', () => {
+    // Zoom in by 10% of 100 (range 100-200) = 10.
+    // New range should be [110, 190].
+    element.onZoomIn();
+
+    assert.isTrue((element.summarySelected as sinon.SinonStub).calledOnce);
+    const event = (element.summarySelected as sinon.SinonStub).firstCall.args[0] as CustomEvent;
+    assert.deepEqual(event.detail.value, { begin: 110, end: 190 });
+    assert.deepEqual((element as any).plotSummary.value.selectedValueRange, {
+      begin: 110,
+      end: 190,
+    });
+  });
+
+  it('zooms out', () => {
+    // Zoom out by 10% of 100 (range 100-200) = 10.
+    // New range should be [90, 210].
+    element.onZoomOut();
+
+    assert.isTrue((element.summarySelected as sinon.SinonStub).calledOnce);
+    const event = (element.summarySelected as sinon.SinonStub).firstCall.args[0] as CustomEvent;
+    assert.deepEqual(event.detail.value, { begin: 90, end: 210 });
+    assert.deepEqual((element as any).plotSummary.value.selectedValueRange, {
+      begin: 90,
+      end: 210,
+    });
+  });
+
+  it('pans left', () => {
+    // Pan left by 10% of 100 = 10.
+    // New range should be [90, 190].
+    element.onPanLeft();
+
+    assert.isTrue((element.summarySelected as sinon.SinonStub).calledOnce);
+    const event = (element.summarySelected as sinon.SinonStub).firstCall.args[0] as CustomEvent;
+    assert.deepEqual(event.detail.value, { begin: 90, end: 190 });
+    assert.deepEqual((element as any).plotSummary.value.selectedValueRange, {
+      begin: 90,
+      end: 190,
+    });
+  });
+
+  it('pans right', () => {
+    // Pan right by 10% of 100 = 10.
+    // New range should be [110, 210].
+    element.onPanRight();
+
+    assert.isTrue((element.summarySelected as sinon.SinonStub).calledOnce);
+    const event = (element.summarySelected as sinon.SinonStub).firstCall.args[0] as CustomEvent;
+    assert.deepEqual(event.detail.value, { begin: 110, end: 210 });
+    assert.deepEqual((element as any).plotSummary.value.selectedValueRange, {
+      begin: 110,
+      end: 210,
+    });
+  });
+
+  it('triggers fetch when zooming out of bounds', () => {
+    // Mock zoomOrRangeChange to verify it's called fallback
+    const zoomOrRangeChangeStub = sinon.stub(element as any, 'zoomOrRangeChange');
+    fetchMock.post('/_/shift/', {
+      begin: 0,
+      end: 300,
+    });
+
+    // Set range close to edge [0, 100] with data [0, 300]
+    (element as any).plotSummary.value.selectedValueRange = { begin: 0, end: 100 };
+
+    // Zoom out will try to go to [-5, 105]. -5 is out of bounds [0, 300].
+    // Should trigger zoomOrRangeChange (fallback path).
+    element.onZoomOut();
+
+    assert.isTrue(zoomOrRangeChangeStub.calledOnce);
+    assert.isFalse((element.summarySelected as sinon.SinonStub).called);
   });
 });
 
