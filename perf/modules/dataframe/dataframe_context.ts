@@ -642,7 +642,9 @@ export class DataFrameRepository extends LitElement {
     // those functions from the traceKey. This is done to make sure
     // the user issue is reflected for the normalized, etc transformations of
     // the graph.
-    const modifiedTraceKey = formatSpecialFunctions(traceKey);
+    const modifiedTraceKey_preTempFix = formatSpecialFunctions(traceKey);
+    // TODO(b/469649488) remove leading / trailing commas from the DB
+    const modifiedTraceKey = ',' + modifiedTraceKey_preTempFix + ',';
 
     const updatedIssue = { bugId: bugId, x: -1, y: -1 };
     if (issues === null) {

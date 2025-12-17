@@ -202,15 +202,15 @@ describe('dataframe-repository', () => {
     const obj2 = { 3: { bugId: 3453, x: 8, y: 20 }, 8: { bugId: 5345, x: 29, y: 45 } };
     const obj3 = { 5: { bugId: 5675, x: 10, y: 30 } };
     dfRepo.userIssues = {
-      'key=0': obj1,
-      'key=1': obj2,
-      'key=2': obj3,
+      ',key=0,': obj1,
+      ',key=1,': obj2,
+      ',key=2,': obj3,
     };
 
     const expected = {
-      'key=0': obj1,
-      'key=1': { 3: { bugId: 345, x: -1, y: -1 }, 8: { bugId: 5345, x: 29, y: 45 } },
-      'key=2': obj3,
+      ',key=0,': obj1,
+      ',key=1,': { 3: { bugId: 345, x: -1, y: -1 }, 8: { bugId: 5345, x: 29, y: 45 } },
+      ',key=2,': obj3,
     };
 
     await dfRepo.updateUserIssue('key=1', 3, 345);
@@ -227,19 +227,19 @@ describe('dataframe-repository', () => {
     const obj2 = { 3: { bugId: 3453, x: 8, y: 20 }, 8: { bugId: 5345, x: 29, y: 45 } };
     const obj3 = { 5: { bugId: 5675, x: 10, y: 30 } };
     dfRepo.userIssues = {
-      'key=0': obj1,
-      'key=1': obj2,
-      'key=2': obj3,
+      ',key=0,': obj1,
+      ',key=1,': obj2,
+      ',key=2,': obj3,
     };
 
     const expected = {
-      'key=0': obj1,
-      'key=1': obj2,
-      'key=2': obj3,
-      'key=3': { 6: { bugId: 6767, x: -1, y: -1 } },
+      ',key=0,': obj1,
+      ',key=1,': obj2,
+      ',key=2,': obj3,
+      ',key=3,': { 6: { bugId: 6767, x: -1, y: -1 } },
     };
 
-    await dfRepo.updateUserIssue('key=3', 6, 6767);
+    await dfRepo.updateUserIssue(',key=3,', 6, 6767);
 
     assert.deepEqual(dfRepo.userIssues, expected);
   });
@@ -251,11 +251,47 @@ describe('dataframe-repository', () => {
     const dfRepo = newEl();
 
     const expected = {
-      'key=k': { 6: { bugId: 6767, x: -1, y: -1 } },
+      ',key=k,': { 6: { bugId: 6767, x: -1, y: -1 } },
     };
 
     await dfRepo.updateUserIssue('key=k', 6, 6767);
 
+    assert.deepEqual(dfRepo.userIssues, expected);
+  });
+
+  it('getUserIssues ensures traceKeys have leading/trailing commas', async () => {
+    // Mock the backend response with traceKeys with leading/trailing commas
+    // and ensure the frontend keeps them.
+    fetchMock.post('glob:/_/user_issues/', {
+      body: JSON.stringify({
+        UserIssues: [
+          { UserId: 'test', TraceKey: ',a=1,', CommitPosition: 1, IssueId: 2345 },
+          { UserId: 'test', TraceKey: ',b=1,', CommitPosition: 3, IssueId: 3456 },
+        ],
+      }),
+      status: 200,
+    });
+
+    const dfRepo = newEl();
+    await dfRepo.getUserIssues([',a=1,', ',b=1,'], 100, 200);
+
+    const expected = {
+      ',a=1,': { 1: { bugId: 2345, x: -1, y: -1 } },
+      ',b=1,': { 3: { bugId: 3456, x: -1, y: -1 } },
+    };
+    assert.deepEqual(dfRepo.userIssues, expected);
+  });
+
+  it('updateUserIssue ensures traceKey has leading/trailing commas', async () => {
+    const dfRepo = newEl();
+    dfRepo.userIssues = {}; // Start with an empty userIssues map
+
+    // Call updateUserIssue with a traceKey *without* leading/trailing commas
+    await dfRepo.updateUserIssue('newKey=1', 10, 9999);
+
+    const expected = {
+      ',newKey=1,': { 10: { bugId: 9999, x: -1, y: -1 } },
+    };
     assert.deepEqual(dfRepo.userIssues, expected);
   });
 
