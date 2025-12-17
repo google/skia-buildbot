@@ -11,7 +11,7 @@ anomalies-table-sk {
     display: none;
   }
 
-  #anomalies-table {
+  .anomalies-table {
     spinner-sk {
       width: 24px;
       height: 24px;
@@ -50,17 +50,11 @@ anomalies-table-sk {
     #bug_id {
       width: 130px;
     }
+
     .improvement {
       color: rgb(0, 128, 0);
     }
     .regression {
-      color: rgb(255, 0, 0);
-    }
-
-    td.delta.improvement {
-      color: rgb(0, 128, 0);
-    }
-    td.delta.regression {
       color: rgb(255, 0, 0);
     }
 

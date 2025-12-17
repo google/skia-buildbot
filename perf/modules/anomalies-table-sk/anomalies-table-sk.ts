@@ -428,7 +428,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
     return html`
       <sort-sk id="as_table-${this.uniqueId}" target="rows-${this.uniqueId}">
-        <table id="anomalies-table-${this.uniqueId}" hidden>
+        <table id="anomalies-table-${this.uniqueId}" class="anomalies-table" hidden>
           <tr class="headers">
             <th id="group-${this.uniqueId}"></th>
             <th id="checkbox-${this.uniqueId}">
