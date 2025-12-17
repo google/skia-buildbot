@@ -112,7 +112,6 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 
 	if len(commitInfo.Builds) > 0 {
 		// Trigger CBB benchmark runs.
-		ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
 		commit := common.NewCombinedCommit(common.NewChromiumCommit(commitInfo.CommitHash))
 		cp, err := strconv.ParseInt(commitInfo.CommitPosition, 10, 32)
 		if err != nil {
@@ -133,6 +132,12 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 						Benchmarks: nil, // nil means run the standard set of benchmarks
 						Bucket:     "chrome-perf-non-public",
 					}
+					options := runBenchmarkWorkflowOptions
+					options.WorkflowID = fmt.Sprintf(
+						"cbb_runner-%s-%s-%d",
+						getShortBrowserName(build.Browser, build.Channel),
+						getShortBotName(bot), commit.Main.CommitPosition)
+					ctx = workflow.WithChildOptions(ctx, options)
 					var cr *CommitRun
 					if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbRunner, p).Get(gCtx, &cr); err != nil {
 						sklog.Errorf("Error in CBB runner %#v: %v", p, err)
