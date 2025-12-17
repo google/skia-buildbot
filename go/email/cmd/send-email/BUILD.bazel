@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/email",
         "//go/sklog",
+        "@org_chromium_go_luci//mailer/api/mailer",
     ],
 )
 

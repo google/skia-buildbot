@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"go.chromium.org/luci/mailer/api/mailer"
 
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/silence"
@@ -147,7 +148,7 @@ func (et emailTicker) remindAlertOwners() error {
 		if err != nil {
 			return fmt.Errorf("Failed to get view action markup: %s", err)
 		}
-		if _, err := et.email.SendMail(context.TODO(), &email.SendMailRequest{
+		if _, err := et.email.SendMail(context.TODO(), &mailer.SendMailRequest{
 			To:       []string{o},
 			Subject:  emailSubject,
 			HtmlBody: viewActionMarkup + "\n" + emailBytes.String(),

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/pubsub"
+	"go.chromium.org/luci/mailer/api/mailer"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
@@ -176,7 +177,7 @@ func (n *emailNotifier) Send(ctx context.Context, subject string, msg *Message) 
 	body := strings.ReplaceAll(msg.Body, "\n", "<br/>")
 	recipients := append(util.CopyStringSlice(n.to), msg.ExtraRecipients...)
 	sklog.Infof("Sending email to %s: %s", strings.Join(recipients, ","), subject)
-	_, err := n.emailer.SendMail(ctx, &email.SendMailRequest{
+	_, err := n.emailer.SendMail(ctx, &mailer.SendMailRequest{
 		To:       recipients,
 		Subject:  subject,
 		HtmlBody: n.markup + "\n" + body,

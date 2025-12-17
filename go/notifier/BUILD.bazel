@@ -18,6 +18,7 @@ go_library(
         "//go/sklog",
         "//go/util",
         "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_chromium_go_luci//mailer/api/mailer",
         "@org_golang_x_sync//errgroup",
     ],
 )

@@ -62,7 +62,6 @@ go_test(
     data = ["//perf:configs_spanner"],
     embed = [":notify"],
     deps = [
-        "//go/email",
         "//go/email/mocks",
         "//go/now",
         "//go/paramtools",
@@ -85,5 +84,6 @@ go_test(
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//mailer/api/mailer",
     ],
 )

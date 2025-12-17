@@ -15,6 +15,7 @@ go_library(
         "//go/rotations",
         "//go/sklog",
         "@com_google_cloud_go_datastore//:datastore",
+        "@org_chromium_go_luci//mailer/api/mailer",
     ],
 )
 

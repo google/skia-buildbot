@@ -6,7 +6,8 @@ go_library(
     importpath = "go.skia.org/infra/go/email/mocks",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/email",
         "@com_github_stretchr_testify//mock",
+        "@org_chromium_go_luci//mailer/api/mailer",
+        "@org_golang_google_grpc//:grpc",
     ],
 )

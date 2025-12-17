@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 
+	"go.chromium.org/luci/mailer/api/mailer"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/sklog"
 )
@@ -44,7 +45,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	resp, err := client.SendMail(ctx, &email.SendMailRequest{
+	resp, err := client.SendMail(ctx, &mailer.SendMailRequest{
 		//Sender:   from,
 		To:       to,
 		Subject:  subject,

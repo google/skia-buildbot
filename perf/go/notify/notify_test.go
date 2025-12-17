@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/email"
+	"go.chromium.org/luci/mailer/api/mailer"
 	email_mocks "go.skia.org/infra/go/email/mocks"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
@@ -250,12 +250,12 @@ func TestExampleSendWithHTMLFormatterAndEMailTransport_HappyPath(t *testing.T) {
 	}
 	subjects := []string{newHTMLSubject, missingHTMLSubject}
 	subjectIndex := 0
-	emailClient.On("SendMail", testutils.AnyContext, mock.MatchedBy(func(req *email.SendMailRequest) bool {
+	emailClient.On("SendMail", testutils.AnyContext, mock.MatchedBy(func(req *mailer.SendMailRequest) bool {
 		require.Contains(t, req.HtmlBody, "<b>Alert</b>")
 		require.Contains(t, req.Subject, subjects[subjectIndex])
 		subjectIndex++
 		return true
-	})).Return(&email.SendMailResponse{
+	})).Return(&mailer.SendMailResponse{
 		MessageId: mockThreadingID,
 	}, nil)
 	ndp := mocks.NewNotificationDataProvider(t)
