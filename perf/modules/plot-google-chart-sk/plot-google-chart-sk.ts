@@ -1096,7 +1096,12 @@ export class PlotGoogleChartSk extends LitElement {
         const traceCol = this.data!.getColumnIndex(key)!;
         for (const cp in anomalies) {
           const offset = Number(cp);
+          // The anomaly map keys (offsets) are always commit positions.
+          // If we are in 'commit' mode, selectedRange is also in commit positions, so we can
+          // filter. If we are in 'date' mode, selectedRange is in timestamps,
+          // so we cannot compare it to offset.
           if (
+            this.domain === 'commit' &&
             this.selectedRange &&
             (offset < this.selectedRange.begin || offset > this.selectedRange.end)
           ) {
@@ -1225,6 +1230,7 @@ export class PlotGoogleChartSk extends LitElement {
       for (const [cp, issueDetail] of Object.entries(userIssues)) {
         const offset = Number(cp);
         if (
+          this.domain === 'commit' &&
           this.selectedRange &&
           (offset < this.selectedRange.begin || offset > this.selectedRange.end)
         ) {

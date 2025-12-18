@@ -1,10 +1,15 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 import { errorMessage } from '../errorMessage';
+import { ChartTooltipSkPO } from '../chart-tooltip-sk/chart-tooltip-sk_po';
 
 export class ExploreSimpleSkPO extends PageObject {
   get googleChart(): PageObjectElement {
     return this.bySelector('plot-google-chart-sk');
+  }
+
+  get chartTooltip(): ChartTooltipSkPO {
+    return this.poBySelector('chart-tooltip-sk', ChartTooltipSkPO);
   }
 
   get plotSummary(): PageObjectElement {
