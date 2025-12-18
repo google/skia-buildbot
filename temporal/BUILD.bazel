@@ -1,4 +1,15 @@
+load("//bazel:oci-extract.bzl", "oci_extract")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+# Extract some tools from the temporal-admin-tools image.
+oci_extract(
+    name = "extract_admin_tools",
+    image = "@temporal-admin-tools",
+    paths = {
+        "/usr/local/bin/temporal-sql-tool": "temporal-sql-tool",
+    },
+    tags = ["manual"],
+)
 
 # Docker image with Temporal server and tools to admin the server.
 skia_app_container(
@@ -12,8 +23,29 @@ skia_app_container(
                 "644",
             ],
         ],
+        "/etc/temporal": [
+            [
+                "docker/entrypoint.sh",
+                "755",
+            ],
+            [
+                "docker/env-default.sh",
+                "644",
+            ],
+            [
+                "docker/utils.sh",
+                "644",
+            ],
+        ],
+        "/usr/local/bin": [
+            [
+                "temporal-sql-tool",
+                "755",
+            ],
+        ],
     },
     entrypoint = "/etc/temporal/entrypoint.sh",
+    extra_tars = ["@com_github_temporal//:schemas"],
     repository = "skia-public/temporal",
     workdir = "/etc/temporal",
 )

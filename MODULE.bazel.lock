@@ -446,7 +446,7 @@
     "//bazel:gcs_mirror.bzl%gcs_mirror": {
       "general": {
         "bzlTransitiveDigest": "jdW+wRYbJnW1LhtYTEmLeaqbAiWx9f3njqO9DpL7HVM=",
-        "usagesDigest": "ZQAZa46rGUE3ncjuMrneoAee+56DOvTZBhbYVfMPf58=",
+        "usagesDigest": "HT+xU1IL+QNEHld2uMFu0L+ACTqTI5saqMbFQbpmw9A=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -484,6 +484,18 @@
               "urls": [
                 "https://cdn.skia.org/bazel/05293e76dfb6443790117b6c6c05b1152038b49c83bd4345589e15ced8717be3.tgz",
                 "https://binaries.cockroachdb.com/cockroach-v21.1.9.linux-amd64.tgz"
+              ]
+            }
+          },
+          "com_github_temporal": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_pkg//:pkg.bzl\", \"pkg_tar\")\n\npkg_tar(\n    name = \"schemas\",\n    srcs = glob([\n        \"schema/postgresql/v96/**/*.sql\",\n        \"schema/postgresql/v96/**/*.json\",\n    ]),\n    strip_prefix = \"external/+gcs_mirror+com_github_temporal\",\n    package_dir = \"/etc/temporal\",\n    visibility = [\"//visibility:public\"],\n)\n",
+              "sha256": "3110fa0df19de58d6afa9b1af3dd7274a5e37d5082e424c114d7b29c696ceae1",
+              "strip_prefix": "./temporal-1.23.1",
+              "urls": [
+                "https://cdn.skia.org/bazel/3110fa0df19de58d6afa9b1af3dd7274a5e37d5082e424c114d7b29c696ceae1.tar.gz",
+                "https://github.com/temporalio/temporal/archive/refs/tags/v1.23.1.tar.gz"
               ]
             }
           },
@@ -1490,7 +1502,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "P92Bj1GizifvizvZp9KA49YsEy8jAeTRJz6/qcK3Zvs=",
+        "usagesDigest": "UfjX6kLsih5VBJfphMjdXcT4lNcwciisPBjRHLzXPkM=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1875,6 +1887,35 @@
               "reproducible": true
             }
           },
+          "temporal-admin-tools_linux_amd64": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
+            "attributes": {
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "temporalio/admin-tools",
+              "identifier": "sha256:c2954b70ed48ba715ba53684e9ee81e094a5619879398042db9cffe7b8aa9d50",
+              "platform": "linux/amd64",
+              "target_name": "temporal-admin-tools_linux_amd64",
+              "bazel_tags": []
+            }
+          },
+          "temporal-admin-tools": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_alias",
+            "attributes": {
+              "target_name": "temporal-admin-tools",
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "temporalio/admin-tools",
+              "identifier": "sha256:c2954b70ed48ba715ba53684e9ee81e094a5619879398042db9cffe7b8aa9d50",
+              "platforms": {
+                "@@platforms//cpu:x86_64": "@temporal-admin-tools_linux_amd64"
+              },
+              "bzlmod_repository": "temporal-admin-tools",
+              "reproducible": true
+            }
+          },
           "oci_crane_darwin_amd64": {
             "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
             "attributes": {
@@ -2005,7 +2046,9 @@
             "golang",
             "fiddler-build-skia",
             "temporal-server",
-            "temporal-server_linux_amd64"
+            "temporal-server_linux_amd64",
+            "temporal-admin-tools",
+            "temporal-admin-tools_linux_amd64"
           ],
           "explicitRootModuleDirectDevDeps": [],
           "useAllRepos": "NO",

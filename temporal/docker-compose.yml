@@ -1,0 +1,111 @@
+# The local cluster playground setup using Docker
+# The composer uses the local built image:
+#   `bazelisk run //temporal:temporal-server`
+#   `bazelisk run @com_github_temporal_ui//:temporal-ui`
+#
+# The local instances can be started from the root dir:
+#   `docker volume create dbdata`
+#   `docker compose -f temporal/docker-compose.yml up`
+version: "3.5"
+services:
+  cockroach:
+    cap_drop:
+      - ALL
+    command:
+      - start-single-node
+      - --insecure
+    container_name: temporal-cockroach
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health?ready=1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    hostname: cockroach
+    image: cockroachdb/cockroach
+    networks:
+      - temporal-network
+    ports:
+      - 26257:26257
+    restart: on-failure:5
+    security_opt:
+      - no-new-privileges
+    tty: false
+    volumes:
+      - dbdata:/cockroach/cockroach-data
+  temporal-init-db:
+    container_name: temporal-init-db
+    depends_on:
+      cockroach:
+        condition: service_healthy
+    environment:
+      - DB=postgresql
+      - DB_PORT=26257
+      - POSTGRES_USER=root
+      - POSTGRES_PWD=
+      - POSTGRES_SEEDS=postgres
+    image: gcr.io/skia-public/temporal:latest
+    links:
+      - cockroach:postgres
+    networks:
+      - temporal-network
+    ports:
+      - 7233:7233
+    entrypoint: /etc/temporal/entrypoint.sh init-db
+  temporal-init:
+    container_name: temporal-init
+    depends_on:
+      temporal-init-db:
+        condition: service_completed_successfully
+    image: gcr.io/skia-public/temporal:latest
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - DB=postgresql
+      - DB_PORT=26257
+      - POSTGRES_USER=root
+      - POSTGRES_PWD=
+      - POSTGRES_SEEDS=postgres
+    networks:
+      - temporal-network
+    entrypoint: /etc/temporal/entrypoint.sh setup-server
+  temporal:
+    container_name: temporal
+    depends_on:
+      temporal-init:
+        condition: service_completed_successfully
+    environment:
+      - DB=postgresql
+      - DB_PORT=26257
+      - POSTGRES_USER=root
+      - POSTGRES_PWD=
+      - POSTGRES_SEEDS=postgres
+    image: gcr.io/skia-public/temporal:latest
+    links:
+      - cockroach:postgres
+    networks:
+      - temporal-network
+    ports:
+      - 7233:7233
+    entrypoint: /etc/temporal/entrypoint.sh start-server
+  temporal-ui:
+    container_name: temporal-ui
+    depends_on:
+      temporal:
+        condition: service_healthy
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    image: docker.io/temporalio/ui@sha256:bb9e9bc2ecb4962f43ef72b7f03a3d3f22f0df3eb5ec7c409bcae3d0135b88bc
+    networks:
+      - temporal-network
+    ports:
+      - 8080:8080
+networks:
+  temporal-network:
+    driver: bridge
+    name: temporal-network
+volumes:
+  # Run `docker volume create dbdata` to create a volume first
+  # so the data can be persisted.
+  dbdata:
+    external: true

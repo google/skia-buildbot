@@ -481,7 +481,7 @@ oci.pull(
 )
 use_repo(oci, "fiddler-build-skia")
 
-# docker.io/temporalio/server:???? as of 12/16/2025.
+# docker.io/temporalio/server:1.23.1 as of 12/16/2025.
 oci.pull(
     name = "temporal-server",
     digest = "sha256:6831458b0f15efc3aa9f1df82d9e3da9f78c18e1eb310b67ffb6040362ed2f9d",
@@ -489,6 +489,15 @@ oci.pull(
     platforms = ["linux/amd64"],
 )
 use_repo(oci, "temporal-server")
+
+# docker.io/temporalio/admin-tools:1.23.1.1-tctl-1.18.1-cli-0.12.0 as of 12/16/2025.
+oci.pull(
+    name = "temporal-admin-tools",
+    digest = "sha256:c2954b70ed48ba715ba53684e9ee81e094a5619879398042db9cffe7b8aa9d50",
+    image = "docker.io/temporalio/admin-tools",
+    platforms = ["linux/amd64"],
+)
+use_repo(oci, "temporal-admin-tools")
 
 ####################################################################################################
 # bazel_skylib
@@ -656,3 +665,29 @@ use_repo(google_cloud_sdk, "google_cloud_sdk")
 google_chrome = use_extension("//bazel/external:google_chrome.bzl", "google_chrome")
 google_chrome.download(name = "google_chrome")
 use_repo(google_chrome, "google_chrome")
+
+####################################################################################################
+# Temporal repo, used to package DB schemas into the temporal-server image.
+####################################################################################################
+
+gcs_mirror.http_archive(
+    name = "com_github_temporal",
+    build_file_content = """
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
+
+pkg_tar(
+    name = "schemas",
+    srcs = glob([
+        "schema/postgresql/v96/**/*.sql",
+        "schema/postgresql/v96/**/*.json",
+    ]),
+    strip_prefix = "external/+gcs_mirror+com_github_temporal",
+    package_dir = "/etc/temporal",
+    visibility = ["//visibility:public"],
+)
+""",
+    sha256 = "3110fa0df19de58d6afa9b1af3dd7274a5e37d5082e424c114d7b29c696ceae1",
+    strip_prefix = "./temporal-1.23.1",
+    url = "https://github.com/temporalio/temporal/archive/refs/tags/v1.23.1.tar.gz",
+)
+use_repo(gcs_mirror, "com_github_temporal")

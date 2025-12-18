@@ -20,8 +20,8 @@ release:
 
 # Run a spanner emulator locally.
 run-spanner-emulator:
-	sudo docker ps -q | xargs -r sudo docker rm -vf
-	sudo docker run -d -p 5432:5432 gcr.io/cloud-spanner-pg-adapter/pgadapter-emulator
+	docker ps -q | xargs -r docker rm -vf
+	docker run -d -p 5432:5432 gcr.io/cloud-spanner-pg-adapter/pgadapter-emulator
 
 # First create a list of all the modules that ./go/ts depends upon.
 tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/perf/go/ts/  )
