@@ -376,9 +376,13 @@ func (a *Analyzer) RunChecker(ctx context.Context, c Checker) error {
 func (a *Analyzer) inferExperimentSpec(pairs []pairedTasks) (*cpb.ExperimentSpec, error) {
 	controlTaskResults, treatmentTaskResults := []map[string]perfresults.PerfResults{}, []map[string]perfresults.PerfResults{}
 	controlArmSpecs, treatmentArmSpecs := []*cpb.ArmSpec{}, []*cpb.ArmSpec{}
+	treatmentFailures := 0
 	for replicaNumber, pair := range pairs {
 		if pair.hasTaskFailures() {
 			sklog.Infof("excluding replica %d from spec inference because it contains failures", replicaNumber)
+			if pair.treatment.taskInfo.TaskResult.ExitCode != 0 {
+				treatmentFailures++
+			}
 			continue
 		}
 
@@ -394,6 +398,14 @@ func (a *Analyzer) inferExperimentSpec(pairs []pairedTasks) (*cpb.ExperimentSpec
 			return nil, err
 		}
 		treatmentArmSpecs = append(treatmentArmSpecs, tSpec)
+	}
+
+	// If all treatment tests fail, we have no valid pair to compare.
+	// We have specific error message since it is likely related to CL changes.
+	if treatmentFailures > 0 && treatmentFailures == len(pairs) {
+		// This error is used in Perf On CQ builds to identify whether CL changes cause the failure.
+		// Please do not update unless necessary.
+		return nil, fmt.Errorf("no valid result in all tests on treatment spec")
 	}
 
 	experimentSpec, err := inferExperimentSpec(controlArmSpecs, treatmentArmSpecs, controlTaskResults, treatmentTaskResults)

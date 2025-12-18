@@ -212,9 +212,9 @@ func (a *processedExperimentTasks) pairedTasks(excludedSwarmingTasks map[string]
 
 		if c.taskInfo.TaskResult.BotId == t.taskInfo.TaskResult.BotId && c.runConfig == t.runConfig && c.buildConfig == t.buildConfig {
 			if _, ok := excludedSwarmingTasks[c.taskID]; ok {
-				sklog.Warningf("Exclude swarming tasks: %s and %s, since the control task %s is in the exclude list", c.taskID, t.taskID, c.taskID)
+				sklog.Warningf("Exclude swarming tasks: %s and %s, since the control task %s is in the exclude list: %s", c.taskID, t.taskID, c.taskID, excludedSwarmingTasks[c.taskID].Message)
 			} else if _, ok := excludedSwarmingTasks[t.taskID]; ok {
-				sklog.Warningf("Exclude swarming tasks: %s and %s, since the treatment task %s is in the exclude list", c.taskID, t.taskID, t.taskID)
+				sklog.Warningf("Exclude swarming tasks: %s and %s, since the treatment task %s is in the exclude list: %s", c.taskID, t.taskID, t.taskID, excludedSwarmingTasks[t.taskID].Message)
 			} else {
 				ret = append(ret, pairedTasks{c, t})
 			}
