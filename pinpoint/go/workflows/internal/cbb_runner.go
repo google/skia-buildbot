@@ -153,7 +153,11 @@ func setupBrowser(cbb *CbbRunnerParams, bi *browserInfo) string {
 
 // Generate Pinpoint job ID. Uses abbreviations to keep the job ID short.
 func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
-	browser := getShortBrowserName(bi.Browser, bi.Channel)
+	// Shorten browser/channel name.
+	// * Browser name is shortened to 3 characters.
+	// * Channel name is omitted if it is "stable".
+	// * Special case: safari technology-preview is abbreviated as "stp".
+	browser := bi.Browser[:3]
 	if bi.Channel != "stable" {
 		if bi.Browser == "safari" && bi.Channel == "technology-preview" {
 			browser = "stp"
@@ -184,7 +188,18 @@ func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
 		}
 	}
 
-	bot := getShortBotName(cbb.BotConfig)
+	// Shorten bot name.
+	bot := cbb.BotConfig
+	switch bot {
+	case "android-pixel-tangor-perf-cbb":
+		bot = "tang"
+	case "mac-m3-pro-perf-cbb":
+		bot = "m3"
+	case "win-victus-perf-cbb":
+		bot = "vic"
+	case "win-arm64-snapdragon-elite-perf-cbb":
+		bot = "elite"
+	}
 
 	// Shorten benchmark name.
 	if strings.HasPrefix(benchmark, "speedometer") {
@@ -202,43 +217,12 @@ func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
 	return fmt.Sprintf("CBB %s %s %s %s", browser, version, bot, benchmark)
 }
 
-// getShortBrowserName returns a shortened version of the browser name,
-// together with the channel name if it is not Stable.
-func getShortBrowserName(browser, channel string) string {
-	// * Browser name is shortened to 3 characters.
-	// * Channel name is omitted if it is "stable".
-	// * Special case: safari technology-preview is abbreviated as "stp".
-	browser = browser[:3]
-	if channel != "stable" {
-		if browser == "safari" && channel == "technology-preview" {
-			browser = "stp"
-		} else {
-			browser += "-" + channel
-		}
-	}
-	return browser
-}
-
-// getShortBotName returns a shortened version of the bot name.
-func getShortBotName(bot string) string {
-	switch bot {
-	case "android-pixel-tangor-perf-cbb":
-		return "tang"
-	case "mac-m3-pro-perf-cbb":
-		return "m3"
-	case "win-victus-perf-cbb":
-		return "vic"
-	case "win-arm64-snapdragon-elite-perf-cbb":
-		return "elite"
-	}
-	return bot
-}
-
 // Workflow to run all CBB benchmarks on a particular browser / bot config and upload the results.
 func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]*format.Format, error) {
 	startTime := time.Now()
 
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
+	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
 
 	err := validateParameters(cbb)
 	if err != nil {
@@ -275,9 +259,6 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 			p.Benchmark += ".crossbench"
 		}
 
-		options := runBenchmarkWorkflowOptions
-		options.WorkflowID = p.PinpointJobID
-		ctx = workflow.WithChildOptions(ctx, options)
 		var cr *CommitRun
 		if err := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, p).Get(ctx, &cr); err != nil {
 			return nil, skerr.Wrap(err)
