@@ -1,5 +1,10 @@
 """Bazel Modules used by the Skia Infra repository."""
 
+module(
+    name = "skia-infra",
+    version = "0.0.1",
+)
+
 bazel_dep(name = "aspect_bazel_lib", version = "2.21.1")
 bazel_dep(name = "aspect_rules_esbuild", version = "0.22.1")
 bazel_dep(name = "aspect_rules_js", version = "2.5.0")
