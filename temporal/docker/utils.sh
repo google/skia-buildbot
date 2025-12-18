@@ -203,7 +203,7 @@ start_server(){
         SERVICES="${SERVICES//,/ }"
         for i in $SERVICES; do flags="${flags} --service=$i"; done
     fi
-    dockerize -template /config_template.yaml:/etc/temporal/config/docker.yaml
+    dockerize -template /etc/temporal/config_template.yaml:/etc/temporal/config/docker.yaml
 
     exec /etc/temporal/temporal-server --env docker start $flags
 }
