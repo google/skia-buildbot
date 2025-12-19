@@ -83,7 +83,7 @@
                     },
                     {
                         "text": "Pixel Tablet (go/cbb-tangor)",
-                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=35&shortcut=ebd83355ba9a7dc7c7a8957e8f3c533e&splitByKeys=benchmark&totalGraphs=4",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=35&shortcut=134f1b581613f1f4bbe63b66719ff588&splitByKeys=benchmark&totalGraphs=5",
                         "description": "CBB results on Pixel Tablet (Tangor)"
                     },
                     {
@@ -107,8 +107,13 @@
                         "description": "CBB MotionMark results"
                     },
                     {
+                        "text": "Loadline 2 (go/cbb-ll)",
+                        "href": "https://chrome-perf.corp.goog/m/?begin=1752000000&end=1780000000&numCommits=20&shortcut=3d5e9ef84f6673ca273c3cabb4297113&totalGraphs=1",
+                        "description": "CBB Loadline 2 results (Android only)"
+                    },
+                    {
                         "text": "Overall results (go/cbb-all)",
-                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=cfc726db99370e5e789af5ca314b5e3c&splitByKeys=benchmark&totalGraphs=4",
+                        "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=81ad17a19b621a127443d95ffe7e28b3&splitByKeys=benchmark&totalGraphs=5",
                         "description": "CBB results for all benchmarks and platforms"
                     }
                 ]
