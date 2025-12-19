@@ -219,7 +219,7 @@ func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
 
 // Workflow to run all CBB benchmarks on a particular browser / bot config and upload the results.
 func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]*format.Format, error) {
-	startTime := time.Now()
+	startTime := workflow.Now(ctx)
 
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
@@ -336,7 +336,7 @@ func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark str
 	// * f=... Filter to select the tasks with the expected Pinpoint job ID.
 	swarmingLink := fmt.Sprintf(
 		"https://chrome-swarming.appspot.com/tasklist?c=name&c=duration&c=bot&c=state&st=%d&et=%d&n=false&f=pinpoint_job_id-tag%%3A%s",
-		startTime.UnixMilli(), time.Now().UnixMilli(), url.PathEscape(jobId))
+		startTime.UnixMilli(), workflow.Now(ctx).UnixMilli(), url.PathEscape(jobId))
 
 	data := format.Format{
 		Version: 1,
