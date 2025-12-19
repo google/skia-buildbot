@@ -205,5 +205,5 @@ start_server(){
     fi
     dockerize -template /etc/temporal/config/config_template.yaml:/etc/temporal/config/docker.yaml
 
-    exec /etc/temporal/temporal-server --env docker start $flags
+    exec temporal-server --env docker start $flags
 }
