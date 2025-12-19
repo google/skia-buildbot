@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
@@ -163,11 +164,18 @@ func main() {
 
 	reviewSystems := mustInitializeReviewSystems(fsc, client)
 
-	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB, publiclyViewableParams, reviewSystems)
+	cacheClient, err := fsc.GetCacheClient(ctx)
+	if err != nil {
+		sklog.Fatalf("Error while trying to create a new cache client: %v", err)
+	}
+	if cacheClient == nil {
+		sklog.Fatalf("Cache is not configured correctly for this instance.")
+	}
+	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB, publiclyViewableParams, reviewSystems, cacheClient)
 
 	plogin := proxylogin.NewWithDefaults()
 
-	handlers := mustMakeWebHandlers(ctx, fsc, sqlDB, gsClient, ignoreStore, reviewSystems, s2a, plogin)
+	handlers := mustMakeWebHandlers(ctx, fsc, sqlDB, gsClient, ignoreStore, reviewSystems, s2a, plogin, cacheClient)
 
 	rootRouter := mustMakeRootRouter(fsc, handlers, plogin)
 
@@ -176,18 +184,10 @@ func main() {
 	sklog.Fatal(http.ListenAndServe(fsc.ReadyPort, rootRouter))
 }
 
-func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pgxpool.Pool, publiclyViewableParams publicparams.Matcher, systems []clstore.ReviewSystem) *search.Impl {
+func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pgxpool.Pool, publiclyViewableParams publicparams.Matcher, systems []clstore.ReviewSystem, cacheClient cache.Cache) *search.Impl {
 	templates := map[string]string{}
 	for _, crs := range systems {
 		templates[crs.ID] = crs.URLTemplate
-	}
-
-	cacheClient, err := fsc.GetCacheClient(ctx)
-	if err != nil {
-		sklog.Fatalf("Error while trying to create a new cache client: %v", err)
-	}
-	if cacheClient == nil {
-		sklog.Fatalf("Cache is not configured correctly for this instance.")
 	}
 
 	s2a := search.New(sqlDB, fsc.WindowSize, cacheClient, fsc.CachingCorpora)
@@ -195,7 +195,7 @@ func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pg
 	s2a.SetDatabaseType(fsc.SQLDatabaseType)
 	s2a.SetReviewSystemTemplates(templates)
 	sklog.Infof("SQL Search loaded with CRS templates %s", templates)
-	err = s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.WindowSize)
+	err := s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.WindowSize)
 	if err != nil {
 		sklog.Fatalf("Cannot load caches for search2 backend: %s", err)
 	}
@@ -372,7 +372,7 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client) []c
 }
 
 // mustMakeWebHandlers returns a new web.Handlers.
-func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool, gsClient storage.GCSClient, ignoreStore ignore.Store, reviewSystems []clstore.ReviewSystem, s2a search.API, alogin alogin.Login) *web.Handlers {
+func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool, gsClient storage.GCSClient, ignoreStore ignore.Store, reviewSystems []clstore.ReviewSystem, s2a search.API, alogin alogin.Login, cacheClient cache.Cache) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
 		DB:                        db,
 		GCSClient:                 gsClient,
@@ -381,6 +381,7 @@ func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgx
 		Search2API:                s2a,
 		WindowSize:                fsc.WindowSize,
 		GroupingParamKeysByCorpus: fsc.GroupingParamKeysByCorpus,
+		CacheClient:               cacheClient,
 	}, web.FullFrontEnd, alogin)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)

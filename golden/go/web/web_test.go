@@ -18,6 +18,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	ttlcache "github.com/patrickmn/go-cache"
 	"go.skia.org/infra/go/cache/local"
+	mockCache "go.skia.org/infra/go/cache/mock"
 	"go.skia.org/infra/go/roles"
 
 	"github.com/google/uuid"
@@ -104,9 +105,12 @@ func TestStubbedAuthAs_OverridesLoginLogicWithHardCodedEmail(t *testing.T) {
 // TestNewHandlers_BaselineSubset_HasAllPieces_Success makes sure we can create a web.Handlers
 // using the BaselineSubset of inputs.
 func TestNewHandlers_BaselineSubset_HasAllPieces_Success(t *testing.T) {
+	lc, err := local.New(100)
+	require.NoError(t, err)
 	hc := HandlersConfig{
-		GCSClient: &mocks.GCSClient{},
-		DB:        &pgxpool.Pool{},
+		GCSClient:   &mocks.GCSClient{},
+		DB:          &pgxpool.Pool{},
+		CacheClient: lc,
 		ReviewSystems: []clstore.ReviewSystem{
 			{
 				ID:     "whatever",
@@ -114,7 +118,7 @@ func TestNewHandlers_BaselineSubset_HasAllPieces_Success(t *testing.T) {
 			},
 		},
 	}
-	_, err := NewHandlers(hc, BaselineSubset, proxylogin.NewWithDefaults())
+	_, err = NewHandlers(hc, BaselineSubset, proxylogin.NewWithDefaults())
 	require.NoError(t, err)
 }
 
@@ -3585,4 +3589,184 @@ func initCaches(handlers *Handlers) *Handlers {
 // copy of the original request).
 func overwriteNow(r *http.Request, fakeNow time.Time) *http.Request {
 	return r.WithContext(context.WithValue(r.Context(), now.ContextKey, fakeNow))
+}
+
+func TestBaselineHandlerV2_WithCacheManager_CacheHit_ReturnsCachedBaseline(t *testing.T) {
+	lc, err := local.New(100)
+	require.NoError(t, err)
+
+	wh := Handlers{
+		// We pass nil for the DB to ensure it's not used.
+		// A real DB connection is not necessary for this test.
+		HandlersConfig: HandlersConfig{
+			DB: nil, // Should not be called
+			ReviewSystems: []clstore.ReviewSystem{
+				{ID: dks.GerritCRS},
+			},
+			CacheClient: lc,
+		},
+		baselineCache: ttlcache.New(time.Minute, 10*time.Minute), // The old cache, should not be used.
+	}
+	wh.cacheManager = NewCacheManager(lc)
+
+	ctx := context.Background()
+	const crs = "gerrit"
+	const clID = "CL_fix_ios"
+	expectedResponse := frontend.BaselineV2Response{
+		ChangelistID:     clID,
+		CodeReviewSystem: crs,
+		Expectations: expectations.Baseline{
+			"test1": {
+				"digest1": expectations.Positive,
+			},
+		},
+	}
+	// Manually populate the cache.
+	jsonBytes, err := json.Marshal(expectedResponse)
+	require.NoError(t, err)
+	err = lc.SetValue(ctx, "baseline_gerrit_CL_fix_ios", string(jsonBytes))
+	require.NoError(t, err)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=gerrit", nil)
+
+	wh.BaselineHandlerV2(w, r)
+	var actualResponse frontend.BaselineV2Response
+	respBody := assertJSONResponseAndReturnBody(t, http.StatusOK, w)
+	err = json.Unmarshal(respBody, &actualResponse)
+	require.NoError(t, err)
+
+	assert.Equal(t, expectedResponse, actualResponse)
+
+	// Make sure the old cache was not used.
+	_, found := wh.baselineCache.Get("gerrit_CL_fix_ios")
+	assert.False(t, found)
+}
+
+func TestBaselineHandlerV2_WithCacheManager_CacheMiss_FetchesFromDBAndPopulatesCache(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	lc, err := local.New(100)
+	require.NoError(t, err)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{
+				{ID: dks.GerritCRS},
+			},
+			CacheClient: lc,
+		},
+		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
+	}
+	wh.cacheManager = NewCacheManager(lc)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=gerrit", nil)
+
+	wh.BaselineHandlerV2(w, r)
+	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+	// Check that the remote cache was populated.
+	cachedJSON, err := lc.GetValue(ctx, "baseline_gerrit_CL_fix_ios")
+	require.NoError(t, err)
+	assert.NotEmpty(t, cachedJSON)
+
+	var fromCache frontend.BaselineV2Response
+	err = json.Unmarshal([]byte(cachedJSON), &fromCache)
+	require.NoError(t, err)
+	assert.Equal(t, "CL_fix_ios", fromCache.ChangelistID)
+	assert.Equal(t, "gerrit", fromCache.CodeReviewSystem)
+	// from dks data, we expect some expectations here.
+	assert.NotEmpty(t, fromCache.Expectations)
+
+	// Make sure the old cache was also populated for backwards compatibility / graceful rollout.
+	_, found := wh.baselineCache.Get("gerrit_CL_fix_ios")
+	assert.True(t, found)
+}
+
+func TestBaselineHandlerV2_WithCacheManager_ErrorOnGet_FallsBackToDBAndStillSetsCache(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	mc := &mockCache.Cache{}
+	defer mc.AssertExpectations(t)
+
+	mc.On("GetValue", testutils.AnyContext, "baseline_gerrit_CL_fix_ios").Return("", errors.New("cache machine broke")).Once()
+	// SetValue should be called when we populate the cache after DB lookup.
+	mc.On("SetValueWithExpiry", testutils.AnyContext, "baseline_gerrit_CL_fix_ios", mock.AnythingOfType("string"), mock.AnythingOfType("time.Duration")).Return(nil).Once()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{
+				{ID: dks.GerritCRS},
+			},
+			CacheClient: mc,
+		},
+		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
+	}
+	wh.cacheManager = NewCacheManager(mc)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=gerrit", nil)
+
+	wh.BaselineHandlerV2(w, r)
+	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+	// Check that the old cache was populated as a fallback.
+	_, found := wh.baselineCache.Get("gerrit_CL_fix_ios")
+	assert.True(t, found)
+
+	var actualResponse frontend.BaselineV2Response
+	respBody := assertJSONResponseAndReturnBody(t, http.StatusOK, w)
+	err := json.Unmarshal(respBody, &actualResponse)
+	require.NoError(t, err)
+	assert.NotEmpty(t, actualResponse.Expectations)
+}
+
+func TestBaselineHandlerV2_WithCacheManager_ErrorOnSet_LogsErrorAndSucceeds(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	mc := &mockCache.Cache{}
+	defer mc.AssertExpectations(t)
+
+	mc.On("GetValue", testutils.AnyContext, "baseline_gerrit_CL_fix_ios").Return("", nil).Once() // cache miss
+	mc.On("SetValueWithExpiry", testutils.AnyContext, "baseline_gerrit_CL_fix_ios", mock.AnythingOfType("string"), mock.AnythingOfType("time.Duration")).Return(errors.New("cache machine still broke")).Once()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{
+				{ID: dks.GerritCRS},
+			},
+			CacheClient: mc,
+		},
+		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
+	}
+	wh.cacheManager = NewCacheManager(mc)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=gerrit", nil)
+
+	wh.BaselineHandlerV2(w, r)
+	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+	// Check that the old cache was populated.
+	_, found := wh.baselineCache.Get("gerrit_CL_fix_ios")
+	assert.True(t, found)
+
+	var actualResponse frontend.BaselineV2Response
+	respBody := assertJSONResponseAndReturnBody(t, http.StatusOK, w)
+	err := json.Unmarshal(respBody, &actualResponse)
+	require.NoError(t, err)
+	assert.NotEmpty(t, actualResponse.Expectations)
 }

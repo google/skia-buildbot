@@ -3,6 +3,7 @@ package local
 
 import (
 	"context"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"go.skia.org/infra/go/cache"
@@ -38,6 +39,11 @@ func (c *Cache) Exists(key string) bool {
 func (c *Cache) SetValue(ctx context.Context, key string, value string) error {
 	_ = c.cache.Add(key, value)
 	return nil
+}
+
+func (c *Cache) SetValueWithExpiry(ctx context.Context, key string, value string, expiry time.Duration) error {
+	// TTL is not currently supported in local cache.
+	return c.SetValue(ctx, key, value)
 }
 
 func (c *Cache) GetValue(ctx context.Context, key string) (string, error) {

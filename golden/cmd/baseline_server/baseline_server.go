@@ -106,6 +106,11 @@ func main() {
 		reviewSystems = append(reviewSystems, clstore.ReviewSystem{ID: cfg.ID})
 	}
 
+	cacheClient, err := bsc.GetCacheClient(ctx)
+	if err != nil {
+		sklog.Errorf("Failed to create cache client: %v", err)
+	}
+
 	// We only need to fill in the HandlersConfig struct with the following subset, since the baseline
 	// server only supplies a subset of the functionality.
 	handlers, err := web.NewHandlers(web.HandlersConfig{
@@ -113,6 +118,7 @@ func main() {
 		GCSClient:                 gsClient,
 		ReviewSystems:             reviewSystems,
 		GroupingParamKeysByCorpus: bsc.GroupingParamKeysByCorpus,
+		CacheClient:               cacheClient,
 	}, web.BaselineSubset, proxylogin.NewWithDefaults())
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)

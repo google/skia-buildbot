@@ -26,6 +26,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	ttlcache "github.com/patrickmn/go-cache"
 	"go.opencensus.io/trace"
+	infra_cache "go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/roles"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
@@ -101,6 +102,7 @@ type HandlersConfig struct {
 	Search2API                search.API
 	WindowSize                int
 	GroupingParamKeysByCorpus map[string][]string
+	CacheClient               infra_cache.Cache
 }
 
 // Handlers represents all the handlers (e.g. JSON endpoints) of Gold.
@@ -114,6 +116,8 @@ type Handlers struct {
 
 	clSummaryCache *lru.Cache
 	baselineCache  *ttlcache.Cache
+
+	cacheManager *webCacheManager
 
 	statusCache      frontend.GUIStatus
 	statusCacheMutex sync.RWMutex
@@ -158,6 +162,7 @@ func NewHandlers(conf HandlersConfig, val validateFields, alogin alogin.Login) (
 		anonymousGerritQuota:    rate.NewLimiter(maxAnonQPSGerritPlugin, maxAnonBurstGerritPlugin),
 		clSummaryCache:          clcache,
 		baselineCache:           ttlcache.New(baselineCachePrimaryBranchEntryTTL, baselineCacheCleanupInterval),
+		cacheManager:            NewCacheManager(conf.CacheClient),
 		alogin:                  alogin,
 	}, nil
 }
@@ -1965,6 +1970,24 @@ func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) (fronte
 
 	span.AddAttributes(trace.BoolAttribute("fromCache", false))
 
+	if wh.cacheManager != nil {
+		sklog.Info("Using the cache manager for fetching baseline.")
+		res, err := wh.cacheManager.GetBaseline(ctx, crs, clID)
+		if err != nil {
+			// Log the error and let it fall back to the older method.
+			sklog.Errorf("Error fetching baseline from remote cache: %v", err)
+		} else {
+			if res != nil {
+				span.AddAttributes(
+					trace.BoolAttribute("fromRemoteCache", true),
+					trace.Int64Attribute("numExpectationsReturned", int64(len(res.Expectations))))
+				return *res, nil
+			} else {
+				sklog.Infof("No baseline found in cache. Falling back to database search.")
+			}
+		}
+	}
+
 	// Return the baseline from the cache if possible.
 	baselineCacheKey := "primary"
 	if clID != "" {
@@ -2052,6 +2075,12 @@ WHERE label = 'n' OR label = 'p'`
 		baselineCacheEntryTTL = baselineCacheSecondaryBranchEntryTTL
 	}
 	wh.baselineCache.Set(baselineCacheKey, response, baselineCacheEntryTTL)
+	if wh.cacheManager != nil {
+		err := wh.cacheManager.SetBaseline(ctx, crs, clID, response, baselineCacheEntryTTL)
+		if err != nil {
+			sklog.Errorf("Error adding the baseline to remote cache: %v", err)
+		}
+	}
 
 	return response, nil
 }

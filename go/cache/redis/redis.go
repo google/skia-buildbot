@@ -95,6 +95,10 @@ func (r *redisCache) SetValue(ctx context.Context, key string, value string) err
 	return r.redisClient.Set(ctx, key, value, expiryDuration).Err()
 }
 
+func (r *redisCache) SetValueWithExpiry(ctx context.Context, key string, value string, expiry time.Duration) error {
+	return r.redisClient.Set(ctx, key, value, expiry).Err()
+}
+
 // GetValue returns the value for the key in the redis cache.
 func (r *redisCache) GetValue(ctx context.Context, key string) (string, error) {
 	value, err := r.redisClient.Get(ctx, key).Result()

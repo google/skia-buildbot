@@ -4,6 +4,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "web",
     srcs = [
+        "caching.go",
         "helpers.go",
         "web.go",
     ],
@@ -11,6 +12,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/alogin",
+        "//go/cache",
         "//go/httputils",
         "//go/human",
         "//go/now",
@@ -48,13 +50,17 @@ go_library(
 
 go_test(
     name = "web_test",
-    srcs = ["web_test.go"],
+    srcs = [
+        "caching_test.go",
+        "web_test.go",
+    ],
     embed = [":web"],
     deps = [
         "//go/alogin",
         "//go/alogin/mocks",
         "//go/alogin/proxylogin",
         "//go/cache/local",
+        "//go/cache/mock",
         "//go/now",
         "//go/paramtools",
         "//go/roles",

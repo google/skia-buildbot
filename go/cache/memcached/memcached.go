@@ -91,6 +91,10 @@ func (c *Cache) SetValue(ctx context.Context, key string, value string) error {
 	panic(errors.ErrUnsupported)
 }
 
+func (c *Cache) SetValueWithExpiry(ctx context.Context, key string, value string, expiry time.Duration) error {
+	panic(errors.ErrUnsupported)
+}
+
 func (c *Cache) GetValue(ctx context.Context, key string) (string, error) {
 	panic(errors.ErrUnsupported)
 }

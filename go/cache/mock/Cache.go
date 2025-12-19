@@ -4,6 +4,7 @@ package mocks
 
 import (
 	context "context"
+	time "time"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -75,6 +76,24 @@ func (_m *Cache) SetValue(ctx context.Context, key string, value string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
 		r0 = rf(ctx, key, value)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SetValueWithExpiry provides a mock function with given fields: ctx, key, value, expiry
+func (_m *Cache) SetValueWithExpiry(ctx context.Context, key string, value string, expiry time.Duration) error {
+	ret := _m.Called(ctx, key, value, expiry)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetValueWithExpiry")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, time.Duration) error); ok {
+		r0 = rf(ctx, key, value, expiry)
 	} else {
 		r0 = ret.Error(0)
 	}
