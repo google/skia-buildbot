@@ -68,10 +68,10 @@ var PACKAGES = map[string]*Package{
 		Name:    "skia/bots/bazel",
 		Version: "version:3",
 	},
-	"skia/bots/bazelisk": {
-		Path:    "bazelisk",
-		Name:    "skia/bots/bazelisk",
-		Version: "version:0",
+	"skia/bots/bazelisk_linux_amd64": {
+		Path:    "bazelisk_linux_amd64",
+		Name:    "skia/bots/bazelisk_linux_amd64",
+		Version: "version:1",
 	},
 	"skia/bots/cockroachdb": {
 		Path:    "cockroachdb",

@@ -84,8 +84,8 @@ func envPrefixes(t *specs.TaskSpec, key string, values ...string) {
 }
 
 func usesBazelisk(b *specs.TasksCfgBuilder, t *specs.TaskSpec) {
-	t.CipdPackages = append(t.CipdPackages, b.MustGetCipdPackageFromAsset("bazelisk"))
-	envPrefixes(t, "PATH", "bazelisk")
+	t.CipdPackages = append(t.CipdPackages, b.MustGetCipdPackageFromAsset("bazelisk_linux_amd64"))
+	envPrefixes(t, "PATH", "bazelisk_linux_amd64")
 	if t.Environment == nil {
 		t.Environment = map[string]string{}
 	}

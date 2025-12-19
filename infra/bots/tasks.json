@@ -69,7 +69,7 @@
         "--cipd",
         "task_drivers:skia/tools/presubmit/${platform}@git_revision:d92d34850aac79594a53d234b20f67a613844071",
         "--cipd",
-        "bazelisk:skia/bots/bazelisk@version:0",
+        "bazelisk_linux_amd64:skia/bots/bazelisk_linux_amd64@version:1",
         "--command-is-task-driver",
         "--",
         "./task_drivers/presubmit",
@@ -107,7 +107,7 @@
       },
       "env_prefixes": {
         "PATH": [
-          "bazelisk",
+          "bazelisk_linux_amd64",
           "cipd_bin_packages",
           "cipd_bin_packages/bin"
         ]
@@ -135,7 +135,7 @@
         "--workdir",
         ".",
         "--cipd",
-        "bazelisk:skia/bots/bazelisk@version:0",
+        "bazelisk_linux_amd64:skia/bots/bazelisk_linux_amd64@version:1",
         "--",
         "/bin/bash",
         "buildbot/infra/bots/build_task_drivers.sh",
@@ -155,7 +155,7 @@
       },
       "env_prefixes": {
         "PATH": [
-          "bazelisk"
+          "bazelisk_linux_amd64"
         ]
       },
       "idempotent": true,
@@ -181,7 +181,7 @@
         "--workdir",
         ".",
         "--cipd",
-        "bazelisk:skia/bots/bazelisk@version:0",
+        "bazelisk_linux_amd64:skia/bots/bazelisk_linux_amd64@version:1",
         "--",
         "/bin/bash",
         "buildbot/infra/bots/build_task_drivers.sh",
@@ -201,7 +201,7 @@
       },
       "env_prefixes": {
         "PATH": [
-          "bazelisk"
+          "bazelisk_linux_amd64"
         ]
       },
       "idempotent": true,
@@ -227,7 +227,7 @@
         "--workdir",
         ".",
         "--cipd",
-        "bazelisk:skia/bots/bazelisk@version:0",
+        "bazelisk_linux_amd64:skia/bots/bazelisk_linux_amd64@version:1",
         "--",
         "/bin/bash",
         "buildbot/infra/bots/build_task_drivers.sh",
@@ -247,7 +247,7 @@
       },
       "env_prefixes": {
         "PATH": [
-          "bazelisk"
+          "bazelisk_linux_amd64"
         ]
       },
       "idempotent": true,
@@ -286,7 +286,7 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
         "--cipd",
-        "bazelisk:skia/bots/bazelisk@version:0",
+        "bazelisk_linux_amd64:skia/bots/bazelisk_linux_amd64@version:1",
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/docker-credential-luci/${platform}@git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
         "--command-is-task-driver",
@@ -329,7 +329,7 @@
       },
       "env_prefixes": {
         "PATH": [
-          "bazelisk",
+          "bazelisk_linux_amd64",
           "cipd_bin_packages",
           "cipd_bin_packages/bin"
         ]
@@ -373,7 +373,7 @@
         "--cipd",
         "task_drivers:skia/tools/bazel_test_all/${platform}@git_revision:d92d34850aac79594a53d234b20f67a613844071",
         "--cipd",
-        "bazelisk:skia/bots/bazelisk@version:0",
+        "bazelisk_linux_amd64:skia/bots/bazelisk_linux_amd64@version:1",
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/docker-credential-luci/${platform}@git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
         "--command-is-task-driver",
@@ -415,7 +415,7 @@
       },
       "env_prefixes": {
         "PATH": [
-          "bazelisk",
+          "bazelisk_linux_amd64",
           "cipd_bin_packages",
           "cipd_bin_packages/bin"
         ]
