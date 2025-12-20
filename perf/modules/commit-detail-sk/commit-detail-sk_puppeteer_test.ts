@@ -21,5 +21,10 @@ describe('commit-detail-sk', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'perf', 'commit-detail-sk');
     });
+
+    it('hovers over a button', async () => {
+      await testBed.page.hover('md-outlined-button');
+      await takeScreenshot(testBed.page, 'perf', 'commit-detail-sk_hover');
+    });
   });
 });

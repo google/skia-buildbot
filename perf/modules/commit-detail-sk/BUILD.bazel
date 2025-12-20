@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "commit-detail-sk",
@@ -46,4 +46,16 @@ sk_element_puppeteer_test(
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":commit-detail-sk-demo",
+)
+
+karma_test(
+    name = "commit-detail-sk_test",
+    src = "commit-detail-sk_test.ts",
+    deps = [
+        ":commit-detail-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
 )
