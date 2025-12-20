@@ -72,7 +72,7 @@ describe('alerts-page-sk', () => {
         } as Alert,
       ]);
       element = newInstance();
-      await fetchMock.flush(true);
+      await fetchMock.flush(true).then(() => {});
       // Wait for Promise.all in connectedCallback to finish.
       await new Promise((resolve) => setTimeout(resolve, 0));
     } finally {
@@ -83,7 +83,9 @@ describe('alerts-page-sk', () => {
 
   it('renders alerts', async () => {
     await setupElement();
-    const rows = element.querySelectorAll('table#alerts-table > tbody > tr');
+    const rows = element.querySelectorAll(
+      'table#alerts-table > tr, table#alerts-table > tbody > tr'
+    );
     // Header + 1 alert row.
     assert.equal(rows.length, 2);
     assert.include(rows[1].textContent, 'Alert 1');
@@ -104,10 +106,12 @@ describe('alerts-page-sk', () => {
       { overwriteRoutes: true }
     );
     element = newInstance();
-    await fetchMock.flush(true);
+    await fetchMock.flush(true).then(() => {});
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const rows = element.querySelectorAll('table#alerts-table > tbody > tr');
+    const rows = element.querySelectorAll(
+      'table#alerts-table > tr, table#alerts-table > tbody > tr'
+    );
     assert.include(rows[1].textContent, 'An alert must have a non-empty query.');
   });
 
@@ -121,7 +125,9 @@ describe('alerts-page-sk', () => {
     await setupElement(false, 'markdown_issuetracker');
     const headers = element.querySelectorAll('table#alerts-table th');
     assert.equal(headers[3].textContent?.trim(), 'Component');
-    const rows = element.querySelectorAll('table#alerts-table > tbody > tr');
+    const rows = element.querySelectorAll(
+      'table#alerts-table > tr, table#alerts-table > tbody > tr'
+    );
     assert.include(rows[1].innerHTML, 'issuetracker.google.com');
   });
 
@@ -180,9 +186,11 @@ describe('alerts-page-sk', () => {
 
     const checkbox = element.querySelector<HTMLInputElement>('#showDeletedConfigs')!;
     checkbox.click();
-    await fetchMock.flush(true);
+    await fetchMock.flush(true).then(() => {});
 
-    const rows = element.querySelectorAll('table#alerts-table > tbody > tr');
+    const rows = element.querySelectorAll(
+      'table#alerts-table > tr, table#alerts-table > tbody > tr'
+    );
     assert.equal(rows.length, 3);
     assert.include(rows[2].textContent, 'Deleted Alert');
     assert.include(rows[2].textContent, 'Archived');
@@ -214,7 +222,7 @@ describe('alerts-page-sk', () => {
     fetchMock.get('/_/alert/new', newAlert);
 
     element.querySelector<HTMLButtonElement>('button.action')!.click();
-    await fetchMock.flush(true);
+    await fetchMock.flush(true).then(() => {});
 
     const dialog = element.querySelector<HTMLDialogElement>('dialog')!;
     assert.isTrue(dialog.open);
@@ -227,10 +235,12 @@ describe('alerts-page-sk', () => {
     fetchMock.get('/_/alert/list/false', [], { overwriteRoutes: true });
 
     element.querySelector<HTMLElement>('delete-icon-sk')!.click();
-    await fetchMock.flush(true);
+    await fetchMock.flush(true).then(() => {});
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const rows = element.querySelectorAll('table#alerts-table > tbody > tr');
+    const rows = element.querySelectorAll(
+      'table#alerts-table > tr, table#alerts-table > tbody > tr'
+    );
     assert.equal(rows.length, 1); // Only header remains.
   });
 
@@ -277,11 +287,13 @@ describe('alerts-page-sk', () => {
     };
 
     element.querySelector<HTMLButtonElement>('button.accept')!.click();
-    await fetchMock.flush(true);
+    await fetchMock.flush(true).then(() => {});
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     assert.isFalse(dialog.open);
-    const rows = element.querySelectorAll('table#alerts-table > tbody > tr');
+    const rows = element.querySelectorAll(
+      'table#alerts-table > tr, table#alerts-table > tbody > tr'
+    );
     assert.include(rows[1].textContent, 'Updated Alert');
   });
 
@@ -315,7 +327,7 @@ describe('alerts-page-sk', () => {
 
     element.querySelector<HTMLElement>('create-icon-sk')!.click();
     element.querySelector<HTMLButtonElement>('button.accept')!.click();
-    await fetchMock.flush(true);
+    await fetchMock.flush(true).then(() => {});
 
     assert.isTrue(fetchMock.called('/_/alert/update'));
     await errorPromise;

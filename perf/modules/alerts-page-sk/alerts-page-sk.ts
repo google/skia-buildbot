@@ -50,7 +50,7 @@ export class AlertsPageSk extends ElementSk {
 
   constructor() {
     super(AlertsPageSk.template);
-    LoggedIn().then((value: Status) => {
+    void LoggedIn().then((value: Status) => {
       if (!value.roles) {
         return;
       }
@@ -193,8 +193,8 @@ export class AlertsPageSk extends ElementSk {
    *
    * @returns {Promise} The started fetch().
    */
-  private listPromise() {
-    return fetch(`/_/alert/list/${this.showDeleted}`).then(jsonOrThrow);
+  private async listPromise() {
+    return await fetch(`/_/alert/list/${this.showDeleted}`).then(jsonOrThrow);
   }
 
   /**

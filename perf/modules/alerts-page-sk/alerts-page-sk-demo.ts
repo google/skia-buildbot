@@ -20,7 +20,9 @@ fetchMock.post(
   '/_/count/',
   // Wait 1s before returning the content so we can see the spinner in action.
   async () =>
-    new Promise((res) => setTimeout(() => res({ count: Math.floor(Math.random() * 2000) }), 1000))
+    await new Promise((res) =>
+      setTimeout(() => res({ count: Math.floor(Math.random() * 2000) }), 1000)
+    )
 );
 
 fetchMock.post('/_/alert/update', 200);
@@ -178,7 +180,7 @@ fetchMock.get(
 );
 
 // Insert the element later, which should given enough time for fetchMock to be in place.
-customElements.whenDefined('alerts-page-sk').then(() => {
+void customElements.whenDefined('alerts-page-sk').then(() => {
   document.querySelectorAll('h1').forEach((header) => {
     header.insertAdjacentElement('afterend', document.createElement('alerts-page-sk'));
   });

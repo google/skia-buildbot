@@ -17254,7 +17254,6 @@ showcases various states of the `graph-title-sk` element, including:
   where `numTraces` is 0 and the map is also empty, which would result in no
   title being displayed).
 
-
 # Module: /modules/json
 
 ## JSON Module Documentation
