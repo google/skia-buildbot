@@ -42,7 +42,9 @@
         "23",
         "24",
         "26",
-        "28"
+        "28",
+        "35",
+        "36"
       ]
     },
     "android-vr-render-tests": {}, // Everything public for this corpus

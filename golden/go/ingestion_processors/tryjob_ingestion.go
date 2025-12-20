@@ -429,7 +429,7 @@ func (g *goldTryjobProcessor) lookupAndCreatePS(ctx context.Context, client code
 	// In rare cases for GitHub, we see the same commit uploaded to different PRs. This
 	// causes an issue because the default primary key for the patchset is based on the
 	// git hash. See skbug.com/12580
-	if ok, err := g.psAlreadyExistsForAnotherCL(ctx, qualifiedPSID, qualifiedPSID); err != nil {
+	if ok, err := g.psAlreadyExistsForAnotherCL(ctx, qualifiedPSID, qualifiedCLID); err != nil {
 		sklog.Errorf("Error checking existence of patchset %#v: %s", ps, err)
 		return "", ingestion.ErrRetryable
 	} else if ok {
