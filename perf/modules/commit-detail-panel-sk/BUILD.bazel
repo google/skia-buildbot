@@ -1,5 +1,6 @@
 load(
     "//infra-sk:index.bzl",
+    "karma_test",
     "sk_demo_page_server",
     "sk_element",
     "sk_element_puppeteer_test",
@@ -73,4 +74,16 @@ ts_library(
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":commit-detail-panel-sk-demo",
+)
+
+karma_test(
+    name = "commit-detail-panel-sk_test",
+    src = "commit-detail-panel-sk_test.ts",
+    deps = [
+        ":commit-detail-panel-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
 )

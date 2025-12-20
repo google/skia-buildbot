@@ -6,9 +6,9 @@ import { CommitDetailPanelSkCommitSelectedDetails } from './commit-detail-panel-
 import { DEFAULT_VIEWPORT } from '../common/puppeteer-test-util';
 
 // Helper function to await the 'commit-selected' event.
-const awaitCommitSelectedEvent = (page: any) => {
-  return page.evaluate(() => {
-    return new Promise((resolve) => {
+const awaitCommitSelectedEvent = async (page: any): Promise<any> => {
+  return page.evaluate(async () => {
+    return await new Promise((resolve) => {
       document.addEventListener(
         'commit-selected',
         (e) => {
@@ -56,6 +56,9 @@ describe('commit-detail-panel-sk', () => {
 
       // Get the promise BEFORE the click.
       const commitSelectedEvent = awaitCommitSelectedEvent(testBed.page);
+
+      // Small delay to ensure the listener is registered in the browser.
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Now click, which will trigger the event.
       await commitDetailPanelSkPO.clickRow(1);

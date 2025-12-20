@@ -22,7 +22,7 @@ export class CommitDetailPanelSkPO extends PageObject {
   }
 
   async getRowCount(): Promise<number> {
-    return this.rows.length;
+    return await this.rows.length;
   }
 
   async clickRow(index: number): Promise<void> {
@@ -31,19 +31,21 @@ export class CommitDetailPanelSkPO extends PageObject {
   }
 
   // Helper to get a property from the underlying component.
-  private _getProperty<K extends ReadableProps>(propertyName: K): Promise<CommitDetailPanelSk[K]> {
-    return this.element.applyFnToDOMNode(
+  private async _getProperty<K extends ReadableProps>(
+    propertyName: K
+  ): Promise<CommitDetailPanelSk[K]> {
+    return await this.element.applyFnToDOMNode(
       (el, name) => (el as CommitDetailPanelSk)[name as K],
       propertyName
     );
   }
 
   // Helper to set a property on the underlying component.
-  private _setProperty<K extends WritableProps>(
+  private async _setProperty<K extends WritableProps>(
     propertyName: K,
     value: CommitDetailPanelSk[K]
   ): Promise<void> {
-    return this.element.applyFnToDOMNode(
+    return await this.element.applyFnToDOMNode(
       (el, name, val) => {
         (el as any)[name as K] = val;
       },
@@ -53,7 +55,7 @@ export class CommitDetailPanelSkPO extends PageObject {
   }
 
   async isSelectable(): Promise<boolean> {
-    return this._getProperty('selectable');
+    return await this._getProperty('selectable');
   }
 
   async setSelectable(selectable: boolean): Promise<void> {
@@ -61,7 +63,7 @@ export class CommitDetailPanelSkPO extends PageObject {
   }
 
   async getSelectedRow(): Promise<number> {
-    return this._getProperty('selected');
+    return await this._getProperty('selected');
   }
 
   async setSelectedRow(index: number): Promise<void> {
@@ -69,7 +71,7 @@ export class CommitDetailPanelSkPO extends PageObject {
   }
 
   async isHidden(): Promise<boolean> {
-    return this._getProperty('hide');
+    return await this._getProperty('hide');
   }
 
   async setHidden(hidden: boolean): Promise<void> {
@@ -77,7 +79,7 @@ export class CommitDetailPanelSkPO extends PageObject {
   }
 
   async getDetails(): Promise<Commit[]> {
-    return this._getProperty('details');
+    return await this._getProperty('details');
   }
 
   async setDetails(details: Commit[]): Promise<void> {
