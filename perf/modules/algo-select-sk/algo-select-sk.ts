@@ -39,12 +39,14 @@ export class AlgoSelectSk extends ElementSk {
   private static template = (ele: AlgoSelectSk) => html`
     <select-sk @selection-changed=${ele._selectionChanged}>
       <div
+        class="kmeans"
         value="kmeans"
         ?selected=${ele.algo === 'kmeans'}
         title="Use k-means clustering on the trace shapes and look for a step on the cluster centroid.">
         K-Means
       </div>
       <div
+        class="stepfit"
         value="stepfit"
         ?selected=${ele.algo === 'stepfit'}
         title="Look for a step in each individual trace.">
