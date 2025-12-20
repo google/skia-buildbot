@@ -43,9 +43,7 @@ describe('commit-detail-sk', () => {
 
     for (const button of Array.from(buttons)) {
       button.click();
-      // Yield to the event loop to ensure the click handler (which might be
-      // async due to the use of Material web components) is processed.
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await Promise.resolve();
     }
 
     assert.deepEqual(openedUrls, [
