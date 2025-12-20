@@ -29,7 +29,7 @@ const okOrThrow = async (resp: Response) => {
   }
 };
 
-class AlertsPageSk extends ElementSk {
+export class AlertsPageSk extends ElementSk {
   private _cfg: Alert | null = null;
 
   private paramset = ReadOnlyParamSet({});
@@ -67,8 +67,8 @@ class AlertsPageSk extends ElementSk {
         .paramset=${ele.paramset}
         .config=${ele.cfg}></alert-config-sk>
       <div class="dialogButtons">
-        <button @click=${ele.cancel}>Cancel</button>
-        <button @click=${ele.accept}>Accept</button>
+        <button class="cancel" @click=${ele.cancel}>Cancel</button>
+        <button class="accept" @click=${ele.accept}>Accept</button>
       </div>
     </dialog>
     <button class="action" @click=${ele.add} ?disabled=${!ele.isEditor} title="Create a new alert.">
@@ -143,7 +143,7 @@ class AlertsPageSk extends ElementSk {
     if (window.perf.notifications !== 'markdown_issuetracker') {
       return item.alert;
     }
-    const issueTracker = html`https://issuetracker.google.com/issues?q=status:open%20componentid:`;
+    const issueTracker = 'https://issuetracker.google.com/issues?q=status:open%20componentid:';
     return html`<a href="${issueTracker}${item.issue_tracker_component}%26s=created_time:desc"
       >${item.issue_tracker_component}</a
     >`;
