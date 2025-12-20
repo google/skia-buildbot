@@ -1,7 +1,17 @@
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
 
 ts_library(
     name = "index_ts_lib",
     srcs = ["index.ts"],
     visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "json_test",
+    src = "json_test.ts",
+    deps = [
+        ":index_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+    ],
 )

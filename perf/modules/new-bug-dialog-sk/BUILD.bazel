@@ -8,7 +8,7 @@ sk_element(
     ],
     sass_srcs = ["new-bug-dialog-sk.scss"],
     sk_element_deps = [
-        "//infra-sk/modules/alogin-sk",
+        "//infra-sk/modules/alogin-sk",  # gazelle:keep
         "//elements-sk/modules/icons/close-icon-sk",
         "//elements-sk/modules/spinner-sk",
     ],

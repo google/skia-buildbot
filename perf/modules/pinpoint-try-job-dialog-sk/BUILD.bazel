@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
 sk_element(
     name = "pinpoint-try-job-dialog-sk",
@@ -27,4 +27,17 @@ sk_element(
         "pinpoint-try-job-dialog-sk.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "pinpoint-try-job-dialog-sk_test",
+    src = "pinpoint-try-job-dialog-sk_test.ts",
+    deps = [
+        ":pinpoint-try-job-dialog-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//infra-sk/modules/alogin-sk",
+    ],
 )

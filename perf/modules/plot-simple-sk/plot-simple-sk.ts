@@ -816,6 +816,9 @@ export class PlotSimpleSk extends ElementSk {
         return;
       }
       const closest = this.pointSearch.nearest(pt);
+      if (!closest) {
+        return;
+      }
       const detail = {
         x: closest.sx,
         y: closest.sy,
@@ -1129,21 +1132,23 @@ export class PlotSimpleSk extends ElementSk {
       // Update _hoverPt if needed.
       if (this.pointSearch) {
         const closest = this.pointSearch.nearest(pt);
-        const detail = {
-          x: closest.sx,
-          y: closest.sy,
-          xPos: closest.x / this.scale,
-          yPos: closest.y / this.scale,
-          name: closest.name,
-        };
-        if (detail.x !== this.hoverPt.x || detail.y !== this.hoverPt.y) {
-          this.hoverPt = detail;
-          this.dispatchEvent(
-            new CustomEvent<PlotSimpleSkTraceEventDetails>('trace_focused', {
-              detail,
-              bubbles: true,
-            })
-          );
+        if (closest) {
+          const detail = {
+            x: closest.sx,
+            y: closest.sy,
+            xPos: closest.x / this.scale,
+            yPos: closest.y / this.scale,
+            name: closest.name,
+          };
+          if (detail.x !== this.hoverPt.x || detail.y !== this.hoverPt.y) {
+            this.hoverPt = detail;
+            this.dispatchEvent(
+              new CustomEvent<PlotSimpleSkTraceEventDetails>('trace_focused', {
+                detail,
+                bubbles: true,
+              })
+            );
+          }
         }
       }
 

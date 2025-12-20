@@ -21,6 +21,13 @@ export const defaultStatusURL = '/_/login/status';
 let loggedInPromise: Promise<Status> | null = null;
 
 /**
+ * Resets the loggedInPromise cache. Should only be used for testing.
+ */
+export const resetLoggedInPromise = (): void => {
+  loggedInPromise = null;
+};
+
+/**
  * Returns a Promise that resolves when we have received the login status, and
  * rejects if there was an error retrieving the login status. The result is
  * cached, so this will only result in a single fetch call.

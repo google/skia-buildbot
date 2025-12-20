@@ -107,11 +107,14 @@ export class FavoritesSk extends ElementSk {
                     <td>${link.description}</td>
                     <td>
                       <button
+                        class="edit-favorite"
                         @click=${() =>
                           this.editFavorite(link.id, link.text, link.description, link.href)}>
                         Edit
                       </button>
-                      <button @click=${() => this.deleteFavoriteConfirm(link.id, link.text)}>
+                      <button
+                        class="delete-favorite"
+                        @click=${() => this.deleteFavoriteConfirm(link.id, link.text)}>
                         Delete
                       </button>
                     </td>
@@ -156,11 +159,7 @@ export class FavoritesSk extends ElementSk {
     super.connectedCallback();
     this._render();
     if (this.favoritesConfig === null) {
-      try {
-        this.fetchFavorites();
-      } catch (error) {
-        errorMessage(String(error));
-      }
+      this.fetchFavorites().catch(errorMessage);
     }
   }
 }

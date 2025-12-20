@@ -67,6 +67,7 @@ import {
   Anomaly,
   DataFrame,
   RequestType,
+  Params,
   ParamSet,
   FrameRequest,
   FrameResponse,
@@ -142,10 +143,10 @@ import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
 import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
 
-const CACHE_KEY_EVEN_X_AXIS_SPACING = 'explore-simple-sk-even-x-axis-spacing';
-
 const DOMAIN_DATE = 'date';
 const DOMAIN_COMMIT = 'commit';
+
+const CACHE_KEY_EVEN_X_AXIS_SPACING = 'explore-simple-sk-even-x-axis-spacing';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot' | 'json';
@@ -287,13 +288,14 @@ export const updateShortcut = async (graphConfigs: GraphConfig[]): Promise<strin
   })
     .then(jsonOrThrow)
     .then((json) => json.id)
-    .catch((msg: any) => {
+    .catch((msg: unknown) => {
       // Catch errors from sendFrameRequest itself
       if (msg) {
-        if (msg.status === 500) {
+        const m = msg as { status?: number; message?: string };
+        if (m.status === 500) {
           errorMessage('Unable to update shortcut.', 2000);
         } else {
-          errorMessage(msg.message || msg.toString());
+          errorMessage(m.message || m.toString());
         }
       }
     });
@@ -483,7 +485,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
   private fromParamsKey: string = '';
 
-  private buildTestPath(params: any) {
+  private buildTestPath(params: Params) {
     const parts = [];
     if (params.test) {
       parts.push(params.test);
@@ -1514,7 +1516,9 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
         // Set the cached value on the child. It will apply this selection once
         // its internal chart has re-rendered with the new domain.
-        (plotSummary as any).cachedSelectedValueRange = newRange;
+        (
+          plotSummary as unknown as { cachedSelectedValueRange: range | null }
+        ).cachedSelectedValueRange = newRange;
       }
     }
   }
@@ -1626,6 +1630,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   }
 
   public setUseDiscreteAxis(value: boolean) {
+    this._state.evenXAxisSpacing = value;
     if (this.googleChartPlot.value) {
       this.googleChartPlot.value.useDiscreteAxis = value;
     }
@@ -2814,10 +2819,11 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     // used to signify a trace not having any values for a particular param.
     // We ignore this.
     const shortTraceIds: string[] = [];
-    getLegend(dt).forEach((traceObject: { [key: string]: any }) => {
+    getLegend(dt).forEach((traceObject: object) => {
       let shortTraceId = '';
-      Object.keys(traceObject).forEach((k) => {
-        const v = String(traceObject[k]);
+      const to = traceObject as { [key: string]: string | number };
+      Object.keys(to).forEach((k) => {
+        const v = String(to[k]);
         shortTraceId += v !== 'untitled_key' ? `${k}=${v},` : '';
       });
 
@@ -3139,7 +3145,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   // Checks to ensure enough points exist, if not, then extends the range to the
   // total MIN_POINTS points in the header.
   private extendRangeToMinimumAllowed(
-    header: string | any[] | null,
+    header: string | (ColumnHeader | null)[] | null,
     selectedRange: { begin: number; end: number }
   ) {
     // Ensure at least the Minimum Points are displayed.
@@ -3379,19 +3385,24 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       if (createFromScratch) {
         const body = this.requestFrameBodyFullFromState();
         return this.requestFrame(body).then(async (json) => {
-          return await this.UpdateWithFrameResponse(
-            json,
-            body,
-            /*switchToTab=*/ true,
-            this.getSelectedRange(),
-            loadExtendedRange,
-            true
-          );
+          if (json) {
+            return await this.UpdateWithFrameResponse(
+              json,
+              body,
+              /*switchToTab=*/ true,
+              this.getSelectedRange(),
+              loadExtendedRange,
+              true
+            );
+          }
         });
       } else {
         const requestNewData = this.requestFrameBodyForTrace(plotType, q, f, j);
         const requestAllData = this.requestFrameBodyFullFromState();
         return this.requestFrame(requestNewData).then(async (json) => {
+          if (!json) {
+            return;
+          }
           // Merge new data with the existing state.
           const frameResponse = json as FrameResponse;
           const newDf = frameResponse.dataframe!;
@@ -3763,10 +3774,10 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   }
 
   /** Common catch function for _requestFrame and _checkFrameRequestStatus. */
-  private catch(msg: any) {
+  private catch(msg: unknown) {
     this._requestId = '';
     if (msg) {
-      errorMessage(msg);
+      errorMessage(msg as string);
     }
     this.percent!.textContent = '';
     this.spinning = false;
@@ -3803,28 +3814,26 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
    * @returns A Promise that resolves with the decoded JSON body
    * of the response once it's available.
    */
-  private async requestFrame(body: FrameRequest): Promise<FrameResponse> {
+  private async requestFrame(body: FrameRequest): Promise<FrameResponse | null> {
     if (this._requestId !== '') {
       const err = new Error('There is a pending query already running.');
       errorMessage(err.message);
-      throw err;
+      return null;
     }
-
-    // _requestId is used as a lock, any non-empty string works for that.
-    this._requestId = 'Request in progress';
+    this._requestId = 'foo';
     this.spinning = true;
     this.dataLoading = true;
-
     try {
       const jsonResponse = await this.sendFrameRequest(body);
       return jsonResponse;
-    } catch (err: any) {
+    } catch (err: unknown) {
       // This catches errors from sendFrameRequest (e.g., status !== 'Finished')
       if (this.percent) {
         this.percent.textContent = '';
       }
-      // Re-throw the error for the caller to handle
-      throw err;
+      this.spinning = false;
+      errorMessage(err as string);
+      return null;
     } finally {
       // Ensuring the state is always cleaned up.
       this.spinning = false;

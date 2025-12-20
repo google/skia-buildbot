@@ -1,9 +1,13 @@
 import { assert } from 'chai';
 import {
   findTraceByLabel,
+  findTracesForParam,
+  getAttributes,
   getLegend,
   getLegendKeysTitle,
   getTitle,
+  isSingleTrace,
+  legendFormatter,
   titleFormatter,
 } from './traceset';
 import { generateFullDataFrame } from './test_utils';
@@ -470,5 +474,135 @@ describe('find and return matched label from Google chart', () => {
     );
     console.log(actualValue);
     assert.deepEqual(actualValue, null);
+  });
+});
+
+describe('getAttributes', () => {
+  it('extracts unique attributes from traces', () => {
+    const keys = [
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,',
+      ',benchmark=Speedometer,bot=Linux,ref_mode=ref,',
+    ];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [null],
+      keys
+    );
+    const attributes = getAttributes(df);
+    assert.sameMembers(attributes, ['benchmark', 'bot', 'ref_mode']);
+  });
+});
+
+describe('legendFormatter', () => {
+  it('formats legend correctly', () => {
+    const legend = [
+      { story: 'Total', test: 'avg' },
+      { story: 'Air', test: 'std' },
+    ];
+    const formatted = legendFormatter(legend);
+    assert.deepEqual(formatted, ['Total/avg', 'Air/std']);
+  });
+
+  it('filters empty values', () => {
+    const legend = [
+      { story: 'Total', test: '' },
+      { story: '', test: 'std' },
+    ];
+    const formatted = legendFormatter(legend);
+    assert.deepEqual(formatted, ['Total', 'std']);
+  });
+});
+
+describe('isSingleTrace', () => {
+  it('returns true for single trace', async () => {
+    const keys = [',benchmark=JetStream2,'];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [null],
+      keys
+    );
+    // Load Google Chart API for DataTable.
+    setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
+    await load();
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+    assert.isTrue(isSingleTrace(dt));
+  });
+
+  it('returns false for multiple traces', async () => {
+    const keys = [',benchmark=JetStream2,', ',benchmark=Speedometer,'];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [null],
+      keys
+    );
+    // Load Google Chart API for DataTable.
+    setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
+    await load();
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+    assert.isFalse(isSingleTrace(dt));
+  });
+
+  it('returns null for undefined dt', () => {
+    assert.isNull(isSingleTrace(undefined));
+  });
+});
+
+describe('findTracesForParam', () => {
+  it('finds traces matching param', async () => {
+    const keys = [
+      ',benchmark=JetStream2,bot=MacM1,',
+      ',benchmark=Speedometer,bot=MacM1,',
+      ',benchmark=JetStream2,bot=Linux,',
+    ];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [null],
+      keys
+    );
+    // Load Google Chart API for DataTable.
+    setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
+    await load();
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+
+    const traces = findTracesForParam(dt, 'benchmark', ['JetStream2']);
+    assert.sameMembers(traces!, [
+      ',benchmark=JetStream2,bot=MacM1,',
+      ',benchmark=JetStream2,bot=Linux,',
+    ]);
+  });
+
+  it('returns empty array if no match', async () => {
+    const keys = [',benchmark=JetStream2,bot=MacM1,'];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [null],
+      keys
+    );
+    // Load Google Chart API for DataTable.
+    setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
+    await load();
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+
+    const traces = findTracesForParam(dt, 'benchmark', ['Speedometer']);
+    assert.isEmpty(traces);
+  });
+
+  it('returns null for undefined dt', () => {
+    assert.isNull(findTracesForParam(undefined, 'key', ['val']));
   });
 });

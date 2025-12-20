@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
 
 ts_library(
     name = "cid_ts_lib",
@@ -6,6 +6,18 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "cid_test",
+    src = "cid_test.ts",
+    deps = [
+        ":cid_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
         "//perf/modules/json:index_ts_lib",
     ],
 )

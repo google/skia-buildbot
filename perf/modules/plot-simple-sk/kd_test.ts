@@ -49,4 +49,31 @@ describe('KDTree search', () => {
     const nearest = tree.nearest({ x: 4.5, y: 7 });
     assert.deepEqual(nearest, { x: 6, y: 6 });
   });
+
+  it('handles empty points', () => {
+    const emptyTree = new KDTree([], distance, ['x', 'y']);
+    const nearest = emptyTree.nearest({ x: 0, y: 0 });
+    assert.isNull(nearest);
+  });
+
+  it('works with unbalanced tree (right child only)', () => {
+    // Constructed to force right-heavy tree if possible, or just exercise one-sided logic
+    const pts: KDPoint[] = [
+      { x: 1, y: 1 },
+      { x: 2, y: 2 },
+    ];
+    const t = new KDTree(pts, distance, ['x', 'y']);
+    const nearest = t.nearest({ x: 1.9, y: 1.9 });
+    assert.deepEqual(nearest, { x: 2, y: 2 });
+  });
+
+  it('works with unbalanced tree (left child only)', () => {
+    const pts: KDPoint[] = [
+      { x: 2, y: 2 },
+      { x: 1, y: 1 },
+    ];
+    const t = new KDTree(pts, distance, ['x', 'y']);
+    const nearest = t.nearest({ x: 1.1, y: 1.1 });
+    assert.deepEqual(nearest, { x: 1, y: 1 });
+  });
 });

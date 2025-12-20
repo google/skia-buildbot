@@ -111,7 +111,6 @@ export class State {
 
   dateAxis: boolean = false;
 
-  // boolean indicating if the chart should space x-axis points evenly, treating them as categories.
   evenXAxisSpacing: boolean = false;
 
   // TODO(eduardoyap): Fix graph removal in manual_plot_mode.
@@ -458,8 +457,8 @@ export class ExploreMultiSk extends ElementSk {
         await mainGraph.requestComplete;
         await this.splitGraphs();
       }
-    } catch (err: any) {
-      errorMessage(err.message || "Something went wrong, can't plot the graphs.");
+    } catch (err: unknown) {
+      errorMessage(err as string);
     } finally {
       this.updateShortcutMultiview();
       this.setProgress('');
@@ -671,6 +670,21 @@ export class ExploreMultiSk extends ElementSk {
     this.populateTestPicker((e as CustomEvent).detail);
   };
 
+  // Event listener for when the "Even X Axis Spacing" toggle is clicked.
+  // It will sync the state across all the graphs.
+  private _onEvenXAxisSpacingChanged = (e: Event) => {
+    const detail = (e as CustomEvent).detail;
+    this.state.evenXAxisSpacing = detail.value;
+    this.exploreElements.forEach((elem) => {
+      if (elem !== e.target) {
+        elem.setUseDiscreteAxis(detail.value);
+      }
+    });
+    if (this.stateHasChanged) {
+      this.stateHasChanged();
+    }
+  };
+
   constructor() {
     super(ExploreMultiSk.template);
   }
@@ -743,10 +757,10 @@ export class ExploreMultiSk extends ElementSk {
 
       <div
         id="graphContainer"
-        @x-axis-toggled=${ele.syncXAxisLabel}
-        @range-changing-in-multi=${ele.syncRange}
+        @remove-explore=${ele.removeExploreEvent}
         @selection-changing-in-multi=${ele.syncChartSelection}
-        @even-x-axis-spacing-changed=${ele.syncEvenXAxisSpacing}></div>
+        @x-axis-toggled=${ele.syncXAxisLabel}
+        @even-x-axis-spacing-changed=${ele._onEvenXAxisSpacingChanged}></div>
       <pagination-sk
         offset=${ele.state.pageOffset}
         page_size=${ele.state.pageSize}
@@ -773,9 +787,10 @@ export class ExploreMultiSk extends ElementSk {
       });
       const json = await jsonOrThrow(response);
       this.defaults = json;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching defaults:', error);
-      errorMessage(`Failed to load default configuration: ${error.message || error}`);
+      const e = error as { message?: string };
+      errorMessage(`Failed to load default configuration: ${e.message || error}`);
       this.defaults = null;
     }
 
@@ -1152,8 +1167,9 @@ export class ExploreMultiSk extends ElementSk {
     let allTracesets: string[][];
     try {
       allTracesets = await Promise.race([tracesetsReadyPromise, timeoutPromise]);
-    } catch (error: any) {
-      errorMessage(error.message || 'An unknown error occurred while getting tracesets.');
+    } catch (error: unknown) {
+      const e = error as { message?: string };
+      errorMessage(e.message || 'An unknown error occurred while getting tracesets.');
       return;
     }
 
@@ -1168,6 +1184,10 @@ export class ExploreMultiSk extends ElementSk {
     this.exploreElements[0].useBrowserURL(false);
     this.testPicker!.scrollIntoView();
   }
+
+  private removeExploreEvent = (e: Event) => {
+    this.removeExplore((e as CustomEvent).detail as ExploreSimpleSk);
+  };
 
   private removeExplore(elem: ExploreSimpleSk | null = null): void {
     const indexToRemove = this.exploreElements.findIndex((e) => e === elem);
@@ -1377,25 +1397,6 @@ export class ExploreMultiSk extends ElementSk {
         graph.updateXAxis(e.detail.domain);
       }
     });
-  }
-
-  private syncEvenXAxisSpacing(e: CustomEvent): void {
-    const newValue = e.detail.value;
-    if (this.state.evenXAxisSpacing === newValue) {
-      return;
-    }
-    this.state.evenXAxisSpacing = newValue;
-    this.exploreElements.forEach((graph) => {
-      // Skip graph that sent the event.
-      if (graph.state.graph_index !== e.detail.graph_index) {
-        graph.state.evenXAxisSpacing = newValue;
-        graph.setUseDiscreteAxis(newValue);
-        graph.render();
-      }
-    });
-    if (this.stateHasChanged) {
-      this.stateHasChanged();
-    }
   }
 
   private addStateToExplore(
@@ -1744,11 +1745,17 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private async loadAllCharts() {
-    const pageSize = this.exploreElements.length > 0 ? this.exploreElements.length - 1 : 1;
-    this.state.pageSize = pageSize;
-    this.state.pageOffset = 0;
-    this.stateHasChanged!();
-    await this.splitGraphs();
+    if (
+      window.confirm(
+        'Loading all charts at once may cause performance issues or page crashes. Proceed?'
+      )
+    ) {
+      const pageSize = this.exploreElements.length > 0 ? this.exploreElements.length - 1 : 1;
+      this.state.pageSize = pageSize;
+      this.state.pageOffset = 0;
+      this.stateHasChanged!();
+      await this.splitGraphs();
+    }
   }
 }
 

@@ -1,1 +1,1 @@
-import './alogin-sk';
+export * from './alogin-sk';

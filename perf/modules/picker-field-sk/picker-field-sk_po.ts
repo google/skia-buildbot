@@ -37,6 +37,10 @@ export class PickerFieldSkPO extends PageObject {
     await this.comboBox.press('Enter');
   }
 
+  async search(value: string): Promise<void> {
+    await this.select(value);
+  }
+
   async clear(): Promise<void> {
     await this.comboBox.applyFnToDOMNode((n) => ((n as any).selectedItems = []));
   }

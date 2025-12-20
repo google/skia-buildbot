@@ -769,7 +769,7 @@ describe('anomalies-table-sk', () => {
         document: { write: () => {} },
         location: { href: '' },
       };
-      const openStub = sinon.stub(window, 'open').returns(mockTab as any);
+      const openStub = sinon.stub(window, 'open').returns(mockTab as unknown as Window);
 
       const anomaly = dummyAnomaly('123', 0, 0, 0, 'master/bot/suite/test');
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
@@ -1118,7 +1118,12 @@ describe('anomalies-table-sk', () => {
       checkbox.click();
 
       // Mock triage menu methods
-      const triageMenu = element.querySelector('triage-menu-sk') as any;
+      const triageMenu = element.querySelector('triage-menu-sk') as HTMLElement & {
+        fileBug: sinon.SinonSpy;
+        ignoreAnomaly: sinon.SinonSpy;
+        openExistingBugDialog: sinon.SinonSpy;
+        setAnomalies: sinon.SinonSpy;
+      };
       triageMenu.fileBug = sinon.spy();
       triageMenu.ignoreAnomaly = sinon.spy();
       triageMenu.openExistingBugDialog = sinon.spy();

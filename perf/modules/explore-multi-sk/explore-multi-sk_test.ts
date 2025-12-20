@@ -136,6 +136,10 @@ describe('ExploreMultiSk', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
   };
 
+  beforeEach(() => {
+    sinon.stub(window, 'confirm').returns(true);
+  });
+
   afterEach(() => {
     fetchMock.restore();
     sinon.restore();

@@ -55,6 +55,7 @@ window.perf = {
 };
 
 customElements.whenDefined('explore-multi-sk').then(() => {
-  const explore = document.createElement('explore-multi-sk');
-  document.querySelector('h1')!.insertAdjacentElement('afterend', explore);
+  document
+    .querySelector('h1')!
+    .insertAdjacentElement('afterend', document.createElement('explore-multi-sk'));
 });

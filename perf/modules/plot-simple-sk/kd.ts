@@ -80,9 +80,12 @@ export class KDTree<Point extends KDPoint> {
    *     We pass back the original object since it might have extra info
    *     beyond just the coordinates, such as trace id.
    */
-  nearest(point: KDPoint): Point {
-    let bestNode = {
-      node: this.root,
+  nearest(point: KDPoint): Point | null {
+    let bestNode: {
+      node: Node<Point> | null;
+      distance: number;
+    } = {
+      node: null,
       distance: Number.MAX_VALUE,
     };
 
@@ -150,7 +153,11 @@ export class KDTree<Point extends KDPoint> {
       nearestSearch(this.root);
     }
 
-    return bestNode.node!.obj;
+    if (bestNode.node === null) {
+      return null;
+    }
+
+    return bestNode.node.obj;
   }
 
   /**

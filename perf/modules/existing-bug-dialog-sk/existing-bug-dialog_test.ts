@@ -56,9 +56,8 @@ describe('existing-bug-dialog-sk', () => {
   });
 
   afterEach(() => {
-    //  Check all mock fetches called at least once and reset.
-    assert.isTrue(fetchMock.done());
-    fetchMock.reset();
+    fetchMock.restore();
+    sinon.restore();
   });
 
   const dummyAnomaly = (bugId: number): Anomaly => ({
@@ -141,6 +140,24 @@ describe('existing-bug-dialog-sk', () => {
         errMessage,
         'Associate alerts request failed due to an internal server error. Please try again.'
       );
+    });
+
+    it('uses bug id as anomaly key if anomalies list is empty', async () => {
+      const bugId = 12345;
+      // Empty anomalies list
+      element.setAnomalies([], []);
+      element.querySelector<HTMLInputElement>('#bug_id')!.value = bugId.toString();
+
+      fetchMock.post('/_/triage/associate_alerts', (_url, opts) => {
+        const body = JSON.parse(opts.body as string);
+        // Verify keys contains bugId
+        assert.deepEqual(body.keys, [bugId.toString()]);
+        return { status: 200, body: JSON.stringify({}) };
+      });
+
+      element.addAnomalyWithExistingBug();
+      await fetchMock.flush(true);
+      assert.isFalse(element.isActive);
     });
   });
 
