@@ -1,0 +1,67 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+filegroup(
+    name = "mock_dist_files",
+    srcs = [
+        "//perf/pages:production/%s.%s" % (page, ext)
+        for page in [
+            "alerts",
+            "clusters2",
+            "dryrunalert",
+            "help",
+            "multiexplore",
+            "newindex",
+            "triage",
+            "trybot",
+            "favorites",
+            "revisions",
+            "regressions",
+            "report",
+            "playground",
+        ]
+        for ext in [
+            "css",
+            "html",
+            "js",
+            "css.map",
+            "js.map",
+        ]
+    ] + [
+        "//perf/images:alpine.png",
+        "//perf/images:alpine_transparent.png",
+        "//perf/images:androidx.svg",
+        "//perf/images:chrome-logo.svg",
+        "//perf/images:flutter.svg",
+        "//perf/images:fuchsia.svg",
+        "//perf/images:germanium.webp",
+        "//perf/images:line-chart.svg",
+        "//perf/images:skia.svg",
+        "//perf/images:v8.svg",
+        "//perf/images:webrtc.png",
+        "//perf/images:widevine.svg",
+    ],
+)
+
+go_binary(
+    name = "frontend_mock_server",
+    data = [":mock_dist_files"],
+    embed = [":mock_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "mock_lib",
+    srcs = [
+        "frontend_mock_api_impl.go",
+        "frontend_mock_for_demo.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/frontend/mock",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//perf/go/frontend",
+        "@com_github_go_chi_chi_v5//:chi",
+        "@com_github_go_chi_chi_v5//middleware",
+        "@com_github_unrolled_secure//:secure",
+    ],
+)

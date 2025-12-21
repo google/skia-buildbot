@@ -1232,3 +1232,25 @@ func (f *Frontend) chatHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 	}
 }
+
+// TODO(ansid): This is a temporary solution to allow the mock server to
+// access the template engine. Ideally, we should find a better way to do this.
+// InitForMock sets up the minimal fields needed to serve templates.
+func (f *Frontend) InitForMock(dist http.FileSystem) {
+	f.distFileSystem = dist
+	f.loadTemplatesImpl()
+}
+
+// TODO(ansid): This is a temporary solution to allow the mock server to
+// access the template engine. Ideally, we should find a better way to do this.
+// GetTemplates gives the mock access to the parsed template engine.
+func (f *Frontend) GetTemplates() *template.Template {
+	return f.templates
+}
+
+// TODO(ansid): This is a temporary solution to allow the mock server to
+// access the dist handler. Ideally, we should find a better way to do this.
+// MockDistHandler serves the /dist files using the production logic.
+func (f *Frontend) MockDistHandler(w http.ResponseWriter, r *http.Request) {
+	f.makeDistHandler()(w, r)
+}

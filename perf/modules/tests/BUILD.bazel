@@ -1,0 +1,16 @@
+load(
+    "//infra-sk:index.bzl",
+    "sk_element_puppeteer_test",
+)
+
+# gazelle dosn't like frontend_mock_server.
+# gazelle:ignore
+sk_element_puppeteer_test(
+    name = "explore_multi_page_test",
+    src = "explore_multi_page_puppeteer_test.ts",
+    sk_demo_page_server = "//perf/go/frontend/mock:frontend_mock_server",
+    deps = [
+        "//:node_modules/puppeteer",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
