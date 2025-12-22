@@ -24,7 +24,6 @@ import (
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	ttlcache "github.com/patrickmn/go-cache"
 	"go.opencensus.io/trace"
 	infra_cache "go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/roles"
@@ -115,7 +114,6 @@ type Handlers struct {
 	anonymousGerritQuota    *rate.Limiter
 
 	clSummaryCache *lru.Cache
-	baselineCache  *ttlcache.Cache
 
 	cacheManager *webCacheManager
 
@@ -161,7 +159,6 @@ func NewHandlers(conf HandlersConfig, val validateFields, alogin alogin.Login) (
 		anonymousCheapQuota:     rate.NewLimiter(maxAnonQPSCheap, maxAnonBurstCheap),
 		anonymousGerritQuota:    rate.NewLimiter(maxAnonQPSGerritPlugin, maxAnonBurstGerritPlugin),
 		clSummaryCache:          clcache,
-		baselineCache:           ttlcache.New(baselineCachePrimaryBranchEntryTTL, baselineCacheCleanupInterval),
 		cacheManager:            NewCacheManager(conf.CacheClient),
 		alogin:                  alogin,
 	}, nil
@@ -1968,7 +1965,7 @@ func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) (fronte
 	ctx, span := trace.StartSpan(ctx, "fetchBaseline")
 	defer span.End()
 
-	span.AddAttributes(trace.BoolAttribute("fromCache", false))
+	span.AddAttributes(trace.BoolAttribute("fromRemoteCache", false))
 
 	if wh.cacheManager != nil {
 		sklog.Info("Using the cache manager for fetching baseline.")
@@ -1986,19 +1983,6 @@ func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) (fronte
 				sklog.Infof("No baseline found in cache. Falling back to database search.")
 			}
 		}
-	}
-
-	// Return the baseline from the cache if possible.
-	baselineCacheKey := "primary"
-	if clID != "" {
-		baselineCacheKey = fmt.Sprintf("%s_%s", crs, clID)
-	}
-	if val, ok := wh.baselineCache.Get(baselineCacheKey); ok {
-		res := val.(frontend.BaselineV2Response)
-		span.AddAttributes(
-			trace.BoolAttribute("fromCache", true),
-			trace.Int64Attribute("numExpectationsReturned", int64(len(res.Expectations))))
-		return res, nil
 	}
 
 	statement := `WITH
@@ -2074,7 +2058,6 @@ WHERE label = 'n' OR label = 'p'`
 	if clID != "" {
 		baselineCacheEntryTTL = baselineCacheSecondaryBranchEntryTTL
 	}
-	wh.baselineCache.Set(baselineCacheKey, response, baselineCacheEntryTTL)
 	if wh.cacheManager != nil {
 		err := wh.cacheManager.SetBaseline(ctx, crs, clID, response, baselineCacheEntryTTL)
 		if err != nil {

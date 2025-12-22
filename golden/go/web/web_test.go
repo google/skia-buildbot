@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	ttlcache "github.com/patrickmn/go-cache"
 	"go.skia.org/infra/go/cache/local"
 	mockCache "go.skia.org/infra/go/cache/mock"
 	"go.skia.org/infra/go/roles"
@@ -465,7 +464,6 @@ func TestBaselineHandlerV2_PrimaryBranch_Success(t *testing.T) {
 		HandlersConfig: HandlersConfig{
 			DB: db,
 		},
-		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2, nil)
@@ -491,7 +489,6 @@ func TestBaselineHandlerV2_ValidChangelist_Success(t *testing.T) {
 				},
 			},
 		},
-		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=gerrit", nil)
@@ -522,7 +519,6 @@ func TestBaselineHandlerV2_ValidChangelistWithNewTests_Success(t *testing.T) {
 				},
 			},
 		},
-		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_new_tests&crs=gerrit-internal", nil)
@@ -549,7 +545,6 @@ func TestBaselineHandlerV2_InvalidCRS_ReturnsError(t *testing.T) {
 				},
 			},
 		},
-		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=wrong", nil)
@@ -574,67 +569,11 @@ func TestBaselineHandlerV2_NewCL_ReturnsPrimaryBaseline(t *testing.T) {
 				},
 			},
 		},
-		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=NewCLID&crs=gerrit", nil)
 
 	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b01b01b01b01b01b01b01b01b01b01b0":"positive","b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}},"cl_id":"NewCLID","crs":"gerrit"}`
-
-	wh.BaselineHandlerV2(w, r)
-	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
-}
-
-func TestBaselineHandlerV2_CachedPrimaryBranch_ReturnsCachedBaseline(t *testing.T) {
-	// Note that we do not initialize a test database. This is intentional: reading from the
-	// database would defeat the purpose of caching, and such an attempt would make this test fail.
-	wh := Handlers{
-		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
-	}
-	wh.baselineCache.Set("primary", frontend.BaselineV2Response{
-		Expectations: expectations.Baseline{
-			dks.CircleTest: {
-				dks.DigestA01Pos: expectations.Positive,
-			},
-		},
-	}, ttlcache.DefaultExpiration)
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2, nil)
-
-	expectedJSONResponse := `{"primary":{"circle":{"a01a01a01a01a01a01a01a01a01a01a0":"positive"}}}`
-
-	wh.BaselineHandlerV2(w, r)
-	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
-}
-
-func TestBaselineHandlerV2_CachedChangelist_ReturnsCachedBaseline(t *testing.T) {
-	// Note that we do not initialize a test database. This is intentional: reading from the
-	// database would defeat the purpose of caching, and such an attempt would make this test fail.
-	wh := Handlers{
-		HandlersConfig: HandlersConfig{
-			ReviewSystems: []clstore.ReviewSystem{
-				{
-					ID: dks.GerritCRS,
-				},
-			},
-		},
-		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
-	}
-	wh.baselineCache.Set("gerrit_CLID", frontend.BaselineV2Response{
-		CodeReviewSystem: dks.GerritCRS,
-		ChangelistID:     "CLID",
-		Expectations: expectations.Baseline{
-			dks.CircleTest: {
-				dks.DigestA01Pos: expectations.Positive,
-			},
-		},
-	}, ttlcache.DefaultExpiration)
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CLID&crs=gerrit", nil)
-
-	expectedJSONResponse := `{"primary":{"circle":{"a01a01a01a01a01a01a01a01a01a01a0":"positive"}},"cl_id":"CLID","crs":"gerrit"}`
 
 	wh.BaselineHandlerV2(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
@@ -3605,7 +3544,6 @@ func TestBaselineHandlerV2_WithCacheManager_CacheHit_ReturnsCachedBaseline(t *te
 			},
 			CacheClient: lc,
 		},
-		baselineCache: ttlcache.New(time.Minute, 10*time.Minute), // The old cache, should not be used.
 	}
 	wh.cacheManager = NewCacheManager(lc)
 
@@ -3637,10 +3575,6 @@ func TestBaselineHandlerV2_WithCacheManager_CacheHit_ReturnsCachedBaseline(t *te
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedResponse, actualResponse)
-
-	// Make sure the old cache was not used.
-	_, found := wh.baselineCache.Get("gerrit_CL_fix_ios")
-	assert.False(t, found)
 }
 
 func TestBaselineHandlerV2_WithCacheManager_CacheMiss_FetchesFromDBAndPopulatesCache(t *testing.T) {
@@ -3660,7 +3594,6 @@ func TestBaselineHandlerV2_WithCacheManager_CacheMiss_FetchesFromDBAndPopulatesC
 			},
 			CacheClient: lc,
 		},
-		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	wh.cacheManager = NewCacheManager(lc)
 
@@ -3682,10 +3615,6 @@ func TestBaselineHandlerV2_WithCacheManager_CacheMiss_FetchesFromDBAndPopulatesC
 	assert.Equal(t, "gerrit", fromCache.CodeReviewSystem)
 	// from dks data, we expect some expectations here.
 	assert.NotEmpty(t, fromCache.Expectations)
-
-	// Make sure the old cache was also populated for backwards compatibility / graceful rollout.
-	_, found := wh.baselineCache.Get("gerrit_CL_fix_ios")
-	assert.True(t, found)
 }
 
 func TestBaselineHandlerV2_WithCacheManager_ErrorOnGet_FallsBackToDBAndStillSetsCache(t *testing.T) {
@@ -3709,7 +3638,6 @@ func TestBaselineHandlerV2_WithCacheManager_ErrorOnGet_FallsBackToDBAndStillSets
 			},
 			CacheClient: mc,
 		},
-		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	wh.cacheManager = NewCacheManager(mc)
 
@@ -3718,10 +3646,6 @@ func TestBaselineHandlerV2_WithCacheManager_ErrorOnGet_FallsBackToDBAndStillSets
 
 	wh.BaselineHandlerV2(w, r)
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
-
-	// Check that the old cache was populated as a fallback.
-	_, found := wh.baselineCache.Get("gerrit_CL_fix_ios")
-	assert.True(t, found)
 
 	var actualResponse frontend.BaselineV2Response
 	respBody := assertJSONResponseAndReturnBody(t, http.StatusOK, w)
@@ -3750,7 +3674,6 @@ func TestBaselineHandlerV2_WithCacheManager_ErrorOnSet_LogsErrorAndSucceeds(t *t
 			},
 			CacheClient: mc,
 		},
-		baselineCache: ttlcache.New(time.Minute, 10*time.Minute),
 	}
 	wh.cacheManager = NewCacheManager(mc)
 
@@ -3759,10 +3682,6 @@ func TestBaselineHandlerV2_WithCacheManager_ErrorOnSet_LogsErrorAndSucceeds(t *t
 
 	wh.BaselineHandlerV2(w, r)
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
-
-	// Check that the old cache was populated.
-	_, found := wh.baselineCache.Get("gerrit_CL_fix_ios")
-	assert.True(t, found)
 
 	var actualResponse frontend.BaselineV2Response
 	respBody := assertJSONResponseAndReturnBody(t, http.StatusOK, w)
