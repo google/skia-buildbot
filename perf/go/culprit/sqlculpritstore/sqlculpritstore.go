@@ -41,6 +41,8 @@ func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, er
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query Culprit")
 	}
+	defer rows.Close()
+
 	var resp []*pb.Culprit
 	for rows.Next() {
 		var id string
@@ -78,6 +80,7 @@ func (s *CulpritStore) GetAnomalyGroupIdsForIssueId(ctx context.Context, issueId
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to query anomaly group ids for issue id from culprit")
 	}
+	defer rows.Close()
 	var res []string
 	for rows.Next() {
 		var agid string
@@ -119,6 +122,7 @@ func (s *CulpritStore) Upsert(ctx context.Context, anomaly_group_id string, ip_c
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query Culprit")
 	}
+	defer rows.Close()
 
 	// Collect anomaly_group_ids and merge with anomaly_group_id in request
 	culprits_map := convertProtoToSchema(anomaly_group_id, ip_commits)

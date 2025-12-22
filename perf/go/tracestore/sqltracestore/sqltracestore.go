@@ -615,6 +615,7 @@ func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.Ti
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed querying - tileNumber=%d", tileNumber)
 	}
+	defer rows.Close()
 	ps := paramtools.NewParamSet()
 	for rows.Next() {
 		var key string
@@ -730,6 +731,7 @@ func (s *SQLTraceStore) GetSources(ctx context.Context, traceName string, commit
 	if err != nil {
 		return nil, skerr.Wrapf(err, "commitNumber=%v traceName=%q traceID=%q", commits, traceName, traceID)
 	}
+	defer rows.Close()
 
 	sourceData := map[types.CommitNumber]string{}
 	for rows.Next() {
@@ -754,7 +756,7 @@ func (s *SQLTraceStore) GetLastNSources(ctx context.Context, traceID string, n i
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed for traceID=%q and n=%d", traceID, n)
 	}
-
+	defer rows.Close()
 	ret := []tracestore.Source{}
 	for rows.Next() {
 		var filename string
@@ -1003,6 +1005,7 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 	if err != nil {
 		return skerr.Wrapf(err, "SQL: %q", sql)
 	}
+	defer rows.Close()
 
 	// Create a local map to store results from this chunk. This avoids
 	// holding the main lock while iterating over every row.

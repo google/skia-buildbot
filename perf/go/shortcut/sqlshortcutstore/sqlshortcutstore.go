@@ -123,6 +123,7 @@ func (s *SQLShortcutStore) GetAll(ctx context.Context) (<-chan *shortcut.Shortcu
 	}
 
 	go func() {
+		defer rows.Close()
 		defer close(ret)
 
 		var encoded string

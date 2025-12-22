@@ -192,6 +192,7 @@ func (s *SubscriptionStore) GetAllSubscriptions(ctx context.Context) ([]*pb.Subs
 		return nil, skerr.Wrapf(err, "Failed to load subscriptions.")
 	}
 
+	defer rows.Close()
 	subscriptions := []*pb.Subscription{}
 	for rows.Next() {
 		sub := &pb.Subscription{}

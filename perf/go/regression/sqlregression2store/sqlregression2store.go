@@ -234,6 +234,7 @@ func (s *SQLRegression2Store) Range(ctx context.Context, begin, end types.Commit
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read regressions in range: %d %d", begin, end)
 	}
+	defer rows.Close()
 	regressions, err := s.convertRowsIntoRegressions(rows)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to convert rows into regressions")
@@ -275,6 +276,7 @@ func (s *SQLRegression2Store) RangeFiltered(ctx context.Context, begin, end type
 		}
 		return nil, skerr.Wrapf(err, "Failed to read regressions in range [%d; %d] for %d traces.", begin, end, len(traceNames))
 	}
+	defer rows.Close()
 	regressions, err := s.convertRowsIntoRegressions(rows)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to convert rows into regressions")
@@ -378,6 +380,7 @@ func (s *SQLRegression2Store) GetRegressionsBySubName(ctx context.Context, sub_n
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get regressions. Query: %s", statement)
 	}
+	defer rows.Close()
 
 	regressions, err := s.convertRowsIntoRegressions(rows)
 	if err != nil {
@@ -399,6 +402,7 @@ func (s *SQLRegression2Store) GetByIDs(ctx context.Context, ids []string) ([]*re
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get regressions by id list. Query: %s", query)
 	}
+	defer rows.Close()
 
 	regressions, err := s.convertRowsIntoRegressions(rows)
 	if err != nil {
@@ -419,6 +423,7 @@ func (s *SQLRegression2Store) GetByRevision(ctx context.Context, rev string) ([]
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get regressions by revision")
 	}
+	defer rows.Close()
 
 	regressions, err := s.convertRowsIntoRegressions(rows)
 	if err != nil {
@@ -491,6 +496,7 @@ func (s *SQLRegression2Store) GetBugIdsForRegressions(ctx context.Context, regre
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query bug ids for %d regressions due to %s", len(regressions), err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var regression_id string

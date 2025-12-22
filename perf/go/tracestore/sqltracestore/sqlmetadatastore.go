@@ -126,6 +126,7 @@ func (s *SQLMetadataStore) GetMetadataMultiple(ctx context.Context, sourceFileNa
 			}
 			return skerr.Wrap(err)
 		}
+		defer sourceFileRows.Close()
 		sourceMap := map[int]string{}
 		sourceFileIds := []string{}
 		for sourceFileRows.Next() {
@@ -194,6 +195,7 @@ func (s *SQLMetadataStore) GetMetadataForSourceFileIDs(ctx context.Context, sour
 			}
 			return skerr.Wrap(err)
 		}
+		defer rows.Close()
 		// Need to add a mutex to avoid concurrent map writes on fileLinksAggregate.
 		addMetadata := func(sourceFileId int64, links map[string]string) {
 			mutex.Lock()

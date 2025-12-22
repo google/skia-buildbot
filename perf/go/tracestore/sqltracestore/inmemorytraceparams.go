@@ -93,6 +93,7 @@ func (tp *InMemoryTraceParams) Refresh(ctx context.Context) error {
 		}
 		return skerr.Wrap(err)
 	}
+	defer paramsRows.Close()
 	var pCount int32 = 0
 	for paramsRows.Next() {
 		var key string

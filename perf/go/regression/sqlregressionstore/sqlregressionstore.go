@@ -139,6 +139,7 @@ func (s *SQLRegressionStore) Range(ctx context.Context, begin, end types.CommitN
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read regressions in range: %d %d", begin, end)
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var commitID types.CommitNumber
 		var alertID int64
@@ -334,6 +335,7 @@ func (s *SQLRegressionStore) GetRegressionsToMigrate(ctx context.Context, batchS
 	if rows, err = s.db.Query(ctx, s.statements[batchReadMigration], batchSize); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read regressions for migration")
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var commitID types.CommitNumber
 		var alertID int64

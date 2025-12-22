@@ -279,6 +279,8 @@ func (s *AnomalyGroupStore) FindExistingGroup(
 			end_commit, start_commit)
 		return nil, skerr.Wrapf(err, "%s", err_msg)
 	}
+	defer rows.Close()
+
 	var groups []*pb.AnomalyGroup
 	for rows.Next() {
 		var loaded_group_id string
@@ -308,6 +310,7 @@ func (s *AnomalyGroupStore) getAnomalyIds(ctx context.Context, stmt string, quer
 		err_msg := fmt.Sprintf("%s: %v", queryErrMsg, queryArgs)
 		return nil, skerr.Wrapf(err, "%s", err_msg)
 	}
+	defer rows.Close()
 
 	var all_anomaly_ids []string
 	for rows.Next() {

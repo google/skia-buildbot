@@ -135,6 +135,7 @@ func (s *UserIssueStore) GetUserIssuesForTraceKeys(ctx context.Context, traceKey
 		return nil, err
 	}
 
+	defer rows.Close()
 	output := []userissue.UserIssue{}
 	for rows.Next() {
 		userissueobj := userissue.UserIssue{}

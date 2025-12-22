@@ -146,6 +146,7 @@ func (s *FavoriteStore) List(ctx context.Context, userId string) ([]*favorites.F
 		return nil, err
 	}
 
+	defer rows.Close()
 	ret := []*favorites.Favorite{}
 	for rows.Next() {
 		f := &favorites.Favorite{}

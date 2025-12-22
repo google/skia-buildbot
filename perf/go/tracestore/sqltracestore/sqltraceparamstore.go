@@ -74,6 +74,7 @@ func (s *SQLTraceParamStore) ReadParams(ctx context.Context, traceIds []string) 
 		return nil, err
 	}
 
+	defer rows.Close()
 	traceParams := map[string]paramtools.Params{}
 	for rows.Next() {
 		var trace_id []byte
