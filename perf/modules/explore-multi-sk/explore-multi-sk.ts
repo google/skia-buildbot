@@ -113,6 +113,11 @@ export class State {
 
   // boolean indicating if the chart should space x-axis points evenly, treating them as categories.
   evenXAxisSpacing: boolean = false;
+
+  // TODO(eduardoyap): Fix graph removal in manual_plot_mode.
+  // TODO(eduardoyap): Handle browser history changes correctly in manual_plot_mode.
+  // TODO(eduardoyap): Ensure new graphs in manual_plot_mode sync time ranges.
+  manual_plot_mode: boolean = false;
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -364,7 +369,9 @@ export class ExploreMultiSk extends ElementSk {
             check();
           });
         }
-        this.addGraphsToCurrentPage(false);
+        const shouldPreserveExistingData = this.state.manual_plot_mode;
+        this.addGraphsToCurrentPage(shouldPreserveExistingData);
+
         const query = this.testPicker!.createQueryFromFieldData();
         await newExplore.addFromQueryOrFormula(true, 'query', query, '');
       } else {
@@ -458,7 +465,9 @@ export class ExploreMultiSk extends ElementSk {
       this.setProgress('');
       this.checkDataLoaded();
     }
-    if (this.testPicker) {
+
+    // Prevent auto-add trace behavior in independent mode
+    if (this.testPicker && !this.state.manual_plot_mode) {
       this.testPicker.autoAddTrace = true;
     }
   };
@@ -1080,8 +1089,15 @@ export class ExploreMultiSk extends ElementSk {
         defaultParams = {};
       }
 
-      const readOnly = this.exploreElements.length > 0;
-      this.testPicker!.initializeTestPicker(testPickerParams!, defaultParams, readOnly);
+      const readOnly = this.state.manual_plot_mode ? false : this.exploreElements.length > 0;
+
+      // Pass the manual_plot_mode flag to force manual plotting if true.
+      this.testPicker!.initializeTestPicker(
+        testPickerParams!,
+        defaultParams,
+        readOnly,
+        this.state.manual_plot_mode
+      );
       this._render();
     }
 
@@ -1210,13 +1226,21 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private addGraphsToCurrentPage(doNotQueryData: boolean = false): void {
-    this.state.totalGraphs = this.exploreElements.length > 1 ? this.exploreElements.length - 1 : 1;
-    this.emptyCurrentPage();
-    let startIndex = this.exploreElements.length > 1 ? this.state.pageOffset : 0;
+    // Logic: In Standard Mode (not manual), if we have multiple graphs,
+    // the first one (Index 0) is the "Summary" and is hidden from pagination.
+    const isSummaryView = !this.state.manual_plot_mode && this.exploreElements.length > 1;
 
-    if (this.exploreElements.length > 1) {
-      startIndex++;
+    if (isSummaryView) {
+      this.state.totalGraphs = this.exploreElements.length - 1;
+    } else {
+      // In manual mode, or if there is only 1 graph, we count everything.
+      this.state.totalGraphs = this.exploreElements.length || 1;
     }
+
+    this.emptyCurrentPage();
+    const indexShift = isSummaryView ? 1 : 0;
+    const startIndex = this.state.pageOffset + indexShift;
+
     let endIndex = startIndex + this.state.pageSize - 1;
     if (this.exploreElements.length <= endIndex) {
       endIndex = this.exploreElements.length - 1;
@@ -1230,7 +1254,19 @@ export class ExploreMultiSk extends ElementSk {
     const fragment = document.createDocumentFragment();
     this.currentPageExploreElements.forEach((elem, i) => {
       const graphConfig = this.currentPageGraphConfigs[i];
-      this.addStateToExplore(elem, graphConfig, doNotQueryData);
+
+      let shouldQuery = !doNotQueryData;
+
+      // OPTIMIZATION: In Manual Mode, if doNotQueryData is true (context: adding a new graph),
+      // we strictly ONLY want to query the NEW graph (which is at global index 0).
+      if (this.state.manual_plot_mode && doNotQueryData) {
+        const globalIndex = this.exploreElements.indexOf(elem);
+        shouldQuery = globalIndex === 0;
+      }
+
+      // Note: addStateToExplore takes 'doNotQueryData' (boolean true = silence).
+      // So we pass !shouldQuery.
+      this.addStateToExplore(elem, graphConfig, !shouldQuery);
       fragment.appendChild(elem);
     });
 
@@ -1403,6 +1439,12 @@ export class ExploreMultiSk extends ElementSk {
     explore.state = newState;
   }
 
+  private _reindexGraphs(): void {
+    this.exploreElements.forEach((elem, index) => {
+      elem.state.graph_index = index;
+    });
+  }
+
   private addEmptyGraph(unshift?: boolean): ExploreSimpleSk | null {
     const explore: ExploreSimpleSk = new ExploreSimpleSk(this.useTestPicker);
     const graphConfig = new GraphConfig();
@@ -1420,6 +1462,7 @@ export class ExploreMultiSk extends ElementSk {
       this.exploreElements.push(explore);
       this.graphConfigs.push(graphConfig);
     }
+    this._reindexGraphs();
     explore.addEventListener('state_changed', () => {
       const elemState = explore.state;
       let stateChanged = false;
@@ -1459,14 +1502,17 @@ export class ExploreMultiSk extends ElementSk {
     if (this.progress) {
       return;
     }
+
     if (this.testPicker) {
-      if (!this.testPicker.isLoaded() && this.exploreElements.length > 0) {
-        this.populateTestPicker(this.exploreElements[0].getParamSet());
+      // CHANGE: Only sync graph state back to picker if NOT manual_plot_mode
+      if (!this.state.manual_plot_mode) {
+        if (!this.testPicker.isLoaded() && this.exploreElements.length > 0) {
+          this.populateTestPicker(this.exploreElements[0].getParamSet());
+        }
       }
+
       if (this.exploreElements.length === 0) {
         this._dataLoading = false;
-        this.testPicker.setReadOnly(false);
-        return;
       }
       if (this.exploreElements.some((e) => e.dataLoading)) {
         this._dataLoading = true;

@@ -460,6 +460,113 @@ describe('ExploreMultiSk', () => {
     });
   });
 
+  describe('Manual Plot Graph Mode', () => {
+    beforeEach(async () => {
+      // Setup with manual_plot_mode true by default for these tests
+      await setupElement({
+        default_param_selections: {},
+        default_url_values: {
+          summary: 'true',
+          useTestPicker: 'true',
+          manual_plot_mode: 'true',
+        },
+        include_params: ['config'],
+      });
+      element.state.useTestPicker = true;
+      await element['initializeTestPicker']();
+    });
+
+    it('initial load with manual_plot_mode=true', async () => {
+      const shortcutId = 'multi-graph-shortcut';
+      const mockGraphConfigs: GraphConfig[] = [
+        { queries: ['config=test1'], formulas: [], keys: '' },
+        { queries: ['config=test2'], formulas: [], keys: '' },
+      ];
+      fetchMock.post('/_/shortcut/get', {
+        graphs: mockGraphConfigs,
+      });
+
+      // Trigger state change to load from shortcut
+      const state = new State();
+      state.shortcut = shortcutId;
+      state.manual_plot_mode = true;
+      await element['_onStateChangedInUrl'](state as any);
+
+      await fetchMock.flush(true);
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for updates
+
+      assert.equal(element['exploreElements'].length, 2, 'Should have 2 graphs');
+      element['exploreElements'].forEach((graph: ExploreSimpleSk, index: number) => {
+        assert.isFalse(
+          graph.state.doNotQueryData,
+          `Graph ${index} should load data on initial load`
+        );
+      });
+    });
+
+    it('adds a graph in manual plot mode', async () => {
+      // Start with one graph
+      element['graphConfigs'] = [{ queries: ['config=initial'], formulas: [], keys: '' }];
+      element['exploreElements'] = [element['addEmptyGraph']()!];
+      element['exploreElements'][0].state.graph_index = 0;
+      element.state.manual_plot_mode = true;
+      element['addGraphsToCurrentPage'](); // Initial render
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for updates
+
+      const initialGraphCount = element['exploreElements'].length;
+      assert.equal(initialGraphCount, 1);
+
+      // Simulate test picker returning a query
+      const testPicker = element.querySelector('test-picker-sk') as TestPickerSk;
+      sinon.stub(testPicker, 'createQueryFromFieldData').returns('config=new');
+
+      // Spy on addFromQueryOrFormula for the new graph
+      const newGraphSpy = sinon.spy(ExploreSimpleSk.prototype, 'addFromQueryOrFormula');
+
+      // Dispatch plot event
+      const event = new CustomEvent('plot-button-clicked', { bubbles: true });
+      element.dispatchEvent(event);
+
+      // Wait for async operations in the event handler
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await fetchMock.flush(true);
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for updates
+
+      assert.equal(
+        element['exploreElements'].length,
+        initialGraphCount + 1,
+        'Should have added a graph'
+      );
+
+      const newGraph = element['exploreElements'][0];
+      const oldGraph = element['exploreElements'][1];
+
+      assert.equal(newGraph.state.graph_index, 0, 'New graph should be index 0');
+      assert.equal(oldGraph.state.graph_index, 1, 'Old graph should be index 1');
+
+      // Check that addStateToExplore was called with correct doNotQueryData values
+      assert.isFalse(newGraph.state.doNotQueryData, 'New graph (index 0) should query data');
+      assert.isTrue(oldGraph.state.doNotQueryData, 'Old graph (index 1) should NOT query data');
+
+      // Verify newGraph.addFromQueryOrFormula was called
+      assert.isTrue(newGraphSpy.called, 'addFromQueryOrFormula should be called on the new graph');
+    });
+
+    it('reflects manual_plot_mode in URL', async () => {
+      element.state.manual_plot_mode = true;
+      element['stateHasChanged']!(); // Trigger URL update
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for updates
+      const url = new URL(window.location.href);
+      assert.equal(url.searchParams.get('manual_plot_mode'), 'true');
+
+      element.state.manual_plot_mode = false;
+      element['stateHasChanged']!(); // Trigger URL update
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for updates
+      const url2 = new URL(window.location.href);
+      assert.isNull(url2.searchParams.get('manual_plot_mode'), 'Should be null when false');
+    });
+  });
+
   describe('Graph Splitting', () => {
     beforeEach(async () => {
       await setupElement();

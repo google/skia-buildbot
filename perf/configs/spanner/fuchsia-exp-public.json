@@ -67,7 +67,8 @@
         "showZero": "false",
         "enable_chart_tooltip": "true",
         "use_titles": "true",
-        "show_google_plot": "true"
+        "show_google_plot": "true",
+        "manual_plot_mode": "true"
       }
     },
     "data_point_config": {

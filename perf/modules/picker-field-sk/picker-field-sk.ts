@@ -58,14 +58,18 @@ export class PickerFieldSk extends ElementSk {
 
   private _checkboxSelected: boolean = false;
 
+  private _splitDisabled: boolean = false;
+
   /**
    * Creates an instance of PickerFieldSk.
    * @param label The label for the picker field.
+   * @param disableSplit (Optional) Whether to permanently disable/hide the split functionality.
    */
-  constructor(label: string) {
+  constructor(label: string, disableSplit: boolean = false) {
     super(PickerFieldSk.template);
 
     this._label = label;
+    this._splitDisabled = disableSplit;
   }
 
   private static template = (ele: PickerFieldSk) => html`
@@ -200,6 +204,10 @@ export class PickerFieldSk extends ElementSk {
     this._splitBox = this.querySelector('checkbox-sk#split-by');
     this._allSelected = this.querySelector('checkbox-sk#select-all');
     this._primarySelected = this.querySelector('checkbox-sk#select-primary');
+
+    if (this._splitDisabled) {
+      this.disableSplit();
+    }
   }
 
   /**
@@ -302,6 +310,7 @@ export class PickerFieldSk extends ElementSk {
     if (this._splitBox !== null) {
       this._split = false;
       this._splitBox.setAttribute('disabled', '');
+      this._splitBox.setAttribute('hidden', '');
     }
     this._render();
   }
@@ -501,6 +510,9 @@ export class PickerFieldSk extends ElementSk {
    * @returns True if the "Split" checkbox should be shown, false otherwise.
    */
   get showSplit(): boolean {
+    if (this._splitDisabled) {
+      return false;
+    }
     return this.selectedItems.length > 1 && this.index > 0;
   }
 

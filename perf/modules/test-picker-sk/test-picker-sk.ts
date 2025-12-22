@@ -83,6 +83,8 @@ export class TestPickerSk extends ElementSk {
 
   private _dataLoading: boolean = false;
 
+  private _forceManualPlot: boolean = false;
+
   constructor() {
     super(TestPickerSk.template);
   }
@@ -146,7 +148,7 @@ export class TestPickerSk extends ElementSk {
       if (param in json.paramset && json.paramset[param] !== null) {
         const options = json.paramset[param].filter((option: string) => !option.includes('.'));
         options.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
-        const field: PickerFieldSk = new PickerFieldSk(param);
+        const field: PickerFieldSk = new PickerFieldSk(param, this._forceManualPlot);
         currentFieldInfo.field = field;
         this._containerDiv!.appendChild(field);
         this.setReadOnly(readOnly);
@@ -384,7 +386,7 @@ export class TestPickerSk extends ElementSk {
     for (let i = 0; i < this._fieldData.length; i++) {
       const fieldInfo = this._fieldData[i];
       const param = fieldInfo.param;
-      const field: PickerFieldSk = new PickerFieldSk(param);
+      const field: PickerFieldSk = new PickerFieldSk(param, this._forceManualPlot);
       fieldInfo.field = field;
       fieldInfo.field.index = i;
       this._containerDiv!.appendChild(field);
@@ -425,14 +427,14 @@ export class TestPickerSk extends ElementSk {
     this.initializeFieldData(uniqueParamKeys);
     this._currentIndex = 0; // Reset current index for proper field initialization
     // If no params are provided, then chart is loaded with all traces.
-    if (Object.keys(paramSet).length === 0) {
+    if (Object.keys(paramSet).length === 0 && !this._forceManualPlot) {
       this.autoAddTrace = true;
     }
 
     for (let i = 0; i < this._fieldData.length; i++) {
       const fieldInfo = this._fieldData[i];
       const param = fieldInfo.param;
-      fieldInfo.field = new PickerFieldSk(param);
+      fieldInfo.field = new PickerFieldSk(param, this._forceManualPlot);
       // Combine options from both paramSets and paramSet for the current param.
       const allOptions = [
         ...new Set([...(paramSets[param] || []), ...(paramSet[param] || [])]),
@@ -475,6 +477,10 @@ export class TestPickerSk extends ElementSk {
    * @param removedValue The values that were removed from the selection.
    */
   private updateGraph(value: string[], fieldInfo: FieldInfo, removedValue: string[]) {
+    if (this._forceManualPlot) {
+      return;
+    }
+
     // No valid data, so remove entire graph.
     if (fieldInfo.index === 0 && value.length === 0) {
       const detail = {
@@ -699,7 +705,7 @@ export class TestPickerSk extends ElementSk {
           const fieldInfo = this._fieldData[i];
           if (fieldInfo.param === param) {
             if (fieldInfo.field === null) {
-              const field: PickerFieldSk = new PickerFieldSk(param);
+              const field: PickerFieldSk = new PickerFieldSk(param, this._forceManualPlot);
               fieldInfo.field = field;
               this._containerDiv!.appendChild(field);
             }
@@ -868,7 +874,7 @@ export class TestPickerSk extends ElementSk {
       this._plotButton!.disabled = true;
       return;
     }
-    if (this._graphDiv && this._graphDiv.children.length > 0) {
+    if (this._graphDiv && this._graphDiv.children.length > 0 && !this._forceManualPlot) {
       // Graph is already loaded, so allow new changes automatically.
       this.autoAddTrace = true;
     } else {
@@ -889,10 +895,13 @@ export class TestPickerSk extends ElementSk {
    */
   set autoAddTrace(autoAdd: boolean) {
     this._autoAddTrace = autoAdd;
+
     if (this._plotButton !== null) {
       if (this._count > 0) {
-        this._plotButton.disabled = autoAdd;
-        this._plotButton!.title = autoAdd ? 'Traces are added automatically' : 'Plot a graph';
+        this._plotButton.disabled = this._autoAddTrace;
+        this._plotButton!.title = this._autoAddTrace
+          ? 'Traces are added automatically'
+          : 'Plot a graph';
       }
     }
   }
@@ -944,8 +953,10 @@ export class TestPickerSk extends ElementSk {
   initializeTestPicker(
     params: string[],
     defaultParams: { [key: string]: string[] | null },
-    readOnly: boolean
+    readOnly: boolean,
+    forceManualPlot: boolean = false
   ): Promise<void> {
+    this._forceManualPlot = forceManualPlot;
     this._defaultParams = defaultParams;
     this.initializeFieldData(params);
     this._render();
@@ -986,7 +997,7 @@ export class TestPickerSk extends ElementSk {
         });
       });
     }
-    if (this._graphDiv && this._graphDiv.children.length > 0) {
+    if (this._graphDiv && this._graphDiv.children.length > 0 && !this._forceManualPlot) {
       this.autoAddTrace = true;
     }
   }
