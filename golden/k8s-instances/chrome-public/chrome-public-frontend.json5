@@ -35,7 +35,8 @@
         "Nexus 5X",
         "Nexus 7",
         "Pixel 2",
-        "Pixel 3 XL"
+        "Pixel 3 XL",
+        "sdk_gphone64_x86_64"
       ],
       sdk_version: [
         "22",
