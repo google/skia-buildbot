@@ -21,5 +21,24 @@ describe('commit-detail-picker-sk', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'perf', 'commit-detail-picker-sk');
     });
+
+    it('opens the dialog', async () => {
+      await testBed.page.$eval('commit-detail-picker-sk:nth-of-type(1) button', (el) =>
+        (el as HTMLElement).click()
+      );
+      await testBed.page.waitForSelector('commit-detail-picker-sk:nth-of-type(1) dialog[open]');
+      await takeScreenshot(testBed.page, 'perf', 'commit-detail-picker-sk_open');
+    });
+
+    it('opens the date range details', async () => {
+      await testBed.page.$eval('commit-detail-picker-sk:nth-of-type(1) button', (el) =>
+        (el as HTMLElement).click()
+      );
+      await testBed.page.waitForSelector('commit-detail-picker-sk:nth-of-type(1) dialog[open]');
+      await testBed.page.$eval('commit-detail-picker-sk:nth-of-type(1) summary', (el) =>
+        (el as HTMLElement).click()
+      );
+      await takeScreenshot(testBed.page, 'perf', 'commit-detail-picker-sk_date_range');
+    });
   });
 });

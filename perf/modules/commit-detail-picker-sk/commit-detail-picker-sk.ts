@@ -65,7 +65,7 @@ export class CommitDetailPickerSk extends ElementSk {
         .details="${ele.details}"
         selectable
         selected=${ele.selected}></commit-detail-panel-sk>
-      <button @click=${ele.close}>Close</button>
+      <button class="close-dialog" @click=${ele.close}>Close</button>
 
       <hr />
       <p class="tiny">Change the range of commits displayed:</p>
@@ -87,7 +87,7 @@ export class CommitDetailPickerSk extends ElementSk {
     this._upgradeProperty('selection');
     this._render();
     this.dialog = this.querySelector('dialog')!;
-    this.updateCommitSelections();
+    void this.updateCommitSelections();
   }
 
   attributeChangedCallback(): void {
@@ -96,7 +96,7 @@ export class CommitDetailPickerSk extends ElementSk {
 
   private rangeChange(e: CustomEvent<DayRangeSkChangeDetail>) {
     this.range = e.detail;
-    this.updateCommitSelections();
+    void this.updateCommitSelections();
   }
 
   private async updateCommitSelections() {
@@ -162,7 +162,7 @@ export class CommitDetailPickerSk extends ElementSk {
 
   set selection(val: CommitNumber) {
     this._selection = val;
-    this.updateCommitSelections();
+    void this.updateCommitSelections();
   }
 }
 

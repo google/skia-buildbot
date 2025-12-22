@@ -57,9 +57,6 @@ describe('commit-detail-panel-sk', () => {
       // Get the promise BEFORE the click.
       const commitSelectedEvent = awaitCommitSelectedEvent(testBed.page);
 
-      // Small delay to ensure the listener is registered in the browser.
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
       // Now click, which will trigger the event.
       await commitDetailPanelSkPO.clickRow(1);
 
