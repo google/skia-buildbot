@@ -340,34 +340,35 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
 
     # Maybe this would be better to be controlled by flags?
 
-    for debug, headful in [(False, False), (True, False), (True, True)]:
-        suffix = ""
-        if debug:
-            suffix += "_debug"
-        if headful:
-            suffix += "_headful"
+    for debug in [False, True]:
+        for headful in [False, True]:
+            suffix = ""
+            if debug:
+                suffix += "_debug"
+            if headful:
+                suffix += "_headful"
 
-        nodejs_test(
-            name = name + "_test_only" + suffix,
-            src = src,
-            src_lib = name + "_ts_lib",
-            tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test //...".
-            deps = deps,
-            wait_for_debugger = debug,
-            env = {"PUPPETEER_TEST_SHOW_BROWSER": "true"} if headful else {},
-            _internal_skip_naming_convention_enforcement = True,
-        )
+            nodejs_test(
+                name = name + "_test_only" + suffix,
+                src = src,
+                src_lib = name + "_ts_lib",
+                tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test //...".
+                deps = deps,
+                wait_for_debugger = debug,
+                env = {"PUPPETEER_TEST_SHOW_BROWSER": "true"} if headful else {},
+                _internal_skip_naming_convention_enforcement = True,
+            )
 
-        test_on_env(
-            name = name + suffix,
-            env = sk_demo_page_server,
-            test = name + "_test_only" + suffix,
-            timeout_secs = 60 * 60 * 24 * 365 if debug else 10,
-            tags = ([
-                "manual",  # Exclude it from wildcards, e.g. "bazel test //...".
-                "no-remote",  # Do not run on RBE.
-            ] if debug or headful else []),
-        )
+            test_on_env(
+                name = name + suffix,
+                env = sk_demo_page_server,
+                test = name + "_test_only" + suffix,
+                timeout_secs = 60 * 60 * 24 * 365 if debug else 10,
+                tags = ([
+                    "manual",  # Exclude it from wildcards, e.g. "bazel test //...".
+                    "no-remote",  # Do not run on RBE.
+                ] if debug or headful else []),
+            )
 
 def copy_file(name, src, dst, visibility = None):
     """Copies a single file to a destination path, making parent directories as needed."""

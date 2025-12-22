@@ -116,9 +116,13 @@ const executeLaunchBrowser = (
  */
 export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
   console.log('===============================================================');
-  // Use the downloaded Chrome we get from the toolchain in @rules_browsers.
-  const executablePath = process.env.CHROME_BIN;
-  return executeLaunchBrowser(executablePath, undefined, !showBrowser, undefined);
+  // Prefer the env var if it exists (via --test_env=CHROME_BIN_OVERRIDE),
+  // default to the downloaded Chrome from the toolchain in @rules_browsers.
+  const executablePath = process.env.CHROME_BIN_OVERRIDE || process.env.CHROME_BIN;
+  // If we're debugging, we want to run a bit slower to be able to step through
+  // things w/ a debugger. Usage: --test_env=SLOW_MO=250.
+  const slowMo = process.env.SLOW_MO ? parseInt(process.env.SLOW_MO, 10) : undefined;
+  return executeLaunchBrowser(executablePath, slowMo, !showBrowser, undefined);
 };
 
 // Launches a Puppeteer browser in a non-headless mode on a gCloud Cloudtop.
