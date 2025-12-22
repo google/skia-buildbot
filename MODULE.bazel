@@ -206,10 +206,9 @@ inject_repo(
 )
 
 go_sdk.from_file(
-    name = "go_sdk",
     go_mod = "//:go.mod",
 )
-use_repo(go_sdk, "go_sdk")
+use_repo(go_sdk, go_sdk = "go_default_sdk")
 
 register_toolchains("@rules_go//go/toolchain:all")
 
