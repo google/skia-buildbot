@@ -46,3 +46,15 @@ nodejs_test(
         "//:node_modules/puppeteer",
     ],
 )
+
+nodejs_test(
+    name = "cluster_nodejs_test",
+    src = "cluster_nodejs_test.ts",
+    tags = ["manual"],
+    deps = [
+        ":utils_ts_lib",
+        "//:node_modules/google-auth-library",
+        "//:node_modules/puppeteer",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
