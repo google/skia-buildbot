@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
@@ -43,9 +44,14 @@ const (
 	// only when not doing event driven regression detection.
 	pollingClusteringDelay = 5 * time.Second
 
-	checkIfRegressionIsDoneDuration = 100 * time.Millisecond
-
 	doNotOverrideQuery = ""
+
+	// This is the no of parallel goroutines that will process the traces for a
+	// given alert config.
+	processAlertConfigForTracesWorkerCount = 20
+
+	// This is the no of traces per chunk that is provided to each worker.
+	processAlertConfigForTracesChunkSize = 1
 
 	timeoutForProcessAlertConfigPerTrace time.Duration = time.Minute
 )
@@ -482,14 +488,23 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, config alerts.Alert, traceIds []string) {
 	ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessAlertConfigForTraces")
 	defer span.End()
+	span.AddAttributes(trace.Int64Attribute("trace_count", int64(len(traceIds))))
 
-	// Convert each traceId into a query for regression detection.
-	for _, traceId := range traceIds {
-		sklog.Debugf("[AG] Processing trace id: %s", traceId)
-		paramset := paramtools.NewParamSet()
-		paramset.AddParamsFromKey(traceId)
-		queryOverride := c.urlProvider.GetQueryStringFromParameters(paramset)
-		c.ProcessAlertConfig(ctx, &config, queryOverride)
+	// Let's process the traces in parallel. Provide one trace per worker in parallel.
+	err := util.ChunkIterParallelPool(ctx, len(traceIds), processAlertConfigForTracesChunkSize, processAlertConfigForTracesWorkerCount, func(ctx context.Context, startIdx, endIdx int) error {
+		// Convert each traceId into a query for regression detection.
+		for _, traceId := range traceIds[startIdx:endIdx] {
+			sklog.Debugf("[AG] Processing trace id: %s", traceId)
+			paramset := paramtools.NewParamSet()
+			paramset.AddParamsFromKey(traceId)
+			queryOverride := c.urlProvider.GetQueryStringFromParameters(paramset)
+			c.ProcessAlertConfig(ctx, &config, queryOverride)
+		}
+
+		return nil
+	})
+	if err != nil {
+		sklog.Errorf("Error processing alert config for traces: %v", err)
 	}
 }
 
