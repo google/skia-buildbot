@@ -23,6 +23,7 @@ go_library(
         "@com_github_google_uuid//:uuid",
         "@com_github_jackc_pgconn//:pgconn",
         "@com_github_jackc_pgx_v4//:pgx",
+        "@io_opencensus_go//trace",
     ],
 )
 

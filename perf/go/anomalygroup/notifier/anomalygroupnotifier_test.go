@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/alerts"
 	ag_mock "go.skia.org/infra/perf/go/anomalygroup/utils/mocks"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -50,7 +51,7 @@ func TestSuccess(t *testing.T) {
 	ag_notifier := NewAnomalyGroupNotifier(ctx, mockAnomalyGrouper, mockIssuetracker)
 	regression_id := "550c78a3-ff99-4f28-8a46-106f81a34840"
 	mockAnomalyGrouper.On("ProcessRegressionInGroup",
-		ctx, alert, regression_id, int64(101), int64(200), "m/b/be/me/t", paramset).Return("", nil)
+		testutils.AnyContext, alert, regression_id, int64(101), int64(200), "m/b/be/me/t", paramset).Return("", nil)
 
 	_, err := ag_notifier.RegressionFound(ctx, provider.Commit{CommitNumber: 200}, provider.Commit{CommitNumber: 100}, alert, &cl, &frame, regression_id)
 	assert.NoError(t, err)
@@ -86,7 +87,7 @@ func TestFailedProcess(t *testing.T) {
 	ag_notifier := NewAnomalyGroupNotifier(ctx, mockAnomalyGrouper, mockIssuetracker)
 	regression_id := "550c78a3-ff99-4f28-8a46-106f81a34840"
 	mockAnomalyGrouper.On("ProcessRegressionInGroup",
-		ctx, alert, regression_id, int64(101), int64(200), "m/b/be/me/t", paramset).Return("", errors.New(("oops")))
+		testutils.AnyContext, alert, regression_id, int64(101), int64(200), "m/b/be/me/t", paramset).Return("", errors.New(("oops")))
 
 	_, err := ag_notifier.RegressionFound(ctx, provider.Commit{CommitNumber: 200}, provider.Commit{CommitNumber: 100}, alert, &cl, &frame, regression_id)
 	assert.Error(t, err)

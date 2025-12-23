@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -44,6 +45,8 @@ func (n *AnomalyGroupNotifier) RegressionFound(
 	cl *clustering2.ClusterSummary,
 	frame *frame.FrameResponse,
 	regressionID string) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "anomalygroupnotifier.RegressionFound")
+	defer span.End()
 
 	sklog.Infof("[AG] %d traces in regression found information for alert %s", len(frame.DataFrame.TraceSet), alert.DisplayName)
 

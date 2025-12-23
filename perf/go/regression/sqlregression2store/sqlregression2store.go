@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -286,6 +287,8 @@ func (s *SQLRegression2Store) RangeFiltered(ctx context.Context, begin, end type
 
 // SetHigh implements the regression.Store interface.
 func (s *SQLRegression2Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, string, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlregression2store.SetHigh")
+	defer span.End()
 	ret := false
 	regressionID, err := s.updateBasedOnAlertAlgo(ctx, commitNumber, alertID, df, false, func(r *regression.Regression) {
 		if r.Frame == nil {
@@ -304,6 +307,9 @@ func (s *SQLRegression2Store) SetHigh(ctx context.Context, commitNumber types.Co
 
 // SetLow implements the regression.Store interface.
 func (s *SQLRegression2Store) SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, string, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlregression2store.SetLow")
+	defer span.End()
+
 	ret := false
 	regressionID, err := s.updateBasedOnAlertAlgo(ctx, commitNumber, alertID, df, false /* mustExist*/, func(r *regression.Regression) {
 		if r.Frame == nil {

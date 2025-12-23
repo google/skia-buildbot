@@ -318,6 +318,9 @@ func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan c
 
 func (c *Continuous) updateStoreAndNotification(ctx context.Context, resp *regression.RegressionDetectionResponse, cfg *alerts.Alert, commitNumber types.CommitNumber,
 	cl *clustering2.ClusterSummary, details provider.Commit, previousCommitDetails provider.Commit, key string, isLow bool) {
+	ctx, span := trace.StartSpan(ctx, "regression.continuous.updateStoreAndNotification")
+	defer span.End()
+
 	updateNotification := true
 	regression, err := c.store.GetRegression(ctx, commitNumber, key)
 	if err != nil {

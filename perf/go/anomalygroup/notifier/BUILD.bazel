@@ -17,6 +17,7 @@ go_library(
         "//perf/go/git/provider",
         "//perf/go/issuetracker",
         "//perf/go/ui/frame",
+        "@io_opencensus_go//trace",
     ],
 )
 
@@ -26,6 +27,7 @@ go_test(
     embed = [":notifier"],
     deps = [
         "//go/query",
+        "//go/testutils",
         "//perf/go/alerts",
         "//perf/go/anomalygroup/utils/mocks",
         "//perf/go/clustering2",
