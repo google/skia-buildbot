@@ -21,6 +21,7 @@ sk_element(
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "explore-sk.ts",

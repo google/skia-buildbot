@@ -4,6 +4,7 @@
  *
  * Main page of Perf, for exploring data.
  */
+import 'lit-html';
 import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import {
@@ -43,7 +44,7 @@ export class ExploreSk extends ElementSk {
     super(ExploreSk.template);
   }
 
-  async connectedCallback() {
+  connectedCallback() {
     super.connectedCallback();
     this._render();
 
@@ -51,21 +52,7 @@ export class ExploreSk extends ElementSk {
     this.exploreSimpleSk = this.querySelector('explore-simple-sk');
     this.exploreSimpleSk!.navOpen = true;
 
-    await this.initializeDefaults();
-
-    this.stateHasChanged = stateReflector(
-      () => this.exploreSimpleSk!.state as unknown as HintableObject,
-      async (hintableState) => {
-        const state = hintableState as unknown as ExploreSimpleSkState;
-        this.exploreSimpleSk!.openQueryByDefault = true;
-        this.exploreSimpleSk!.state = state;
-        this.exploreSimpleSk!.useTestPicker = false;
-        if (state.use_test_picker_query) {
-          await this.initializeTestPicker();
-        }
-        this.exploreSimpleSk!.render();
-      }
-    );
+    void this.init();
 
     document.addEventListener('keydown', (e) => this.exploreSimpleSk!.keyDown(e));
 
@@ -88,6 +75,24 @@ export class ExploreSk extends ElementSk {
         this.exploreSimpleSk!.state.enable_favorites = status.email !== null && status.email !== '';
       })
       .catch(errorMessage);
+  }
+
+  private async init() {
+    await this.initializeDefaults();
+
+    this.stateHasChanged = stateReflector(
+      () => this.exploreSimpleSk!.state as unknown as HintableObject,
+      async (hintableState) => {
+        const state = hintableState as unknown as ExploreSimpleSkState;
+        this.exploreSimpleSk!.openQueryByDefault = true;
+        this.exploreSimpleSk!.state = state;
+        this.exploreSimpleSk!.useTestPicker = false;
+        if (state.use_test_picker_query) {
+          await this.initializeTestPicker();
+        }
+        this.exploreSimpleSk!.render();
+      }
+    );
   }
 
   private static template = (_ele: ExploreSk) => html`
@@ -117,13 +122,13 @@ export class ExploreSk extends ElementSk {
     this.testPicker!.classList.remove('hidden');
 
     if (this.exploreSimpleSk!.state.queries && this.exploreSimpleSk!.state.queries.length > 0) {
-      this.testPicker!.populateFieldDataFromQuery(
+      await this.testPicker!.populateFieldDataFromQuery(
         this.exploreSimpleSk!.state.queries.join('&'),
         testPickerParams!,
         {}
       );
     } else {
-      this.testPicker!.initializeTestPicker(
+      await this.testPicker!.initializeTestPicker(
         testPickerParams!,
         this.defaults?.default_param_selections ?? {},
         false
@@ -133,20 +138,24 @@ export class ExploreSk extends ElementSk {
     // Event listener for when the Test Picker plot button is clicked.
     // This will create a new empty Graph at the top and plot it with the
     // selected test values.
-    this.addEventListener('plot-button-clicked', (_e) => {
+    this.addEventListener('plot-button-clicked', async (_e) => {
       const explore = this.exploreSimpleSk!;
       if (explore) {
         const query = this.testPicker!.createQueryFromFieldData();
-        explore.addFromQueryOrFormula(true, 'query', query, '');
+        await explore.addFromQueryOrFormula(true, 'query', query, '');
       }
     });
 
     // Event listener for when the "Query Highlighted" button is clicked.
     // It will populate the Test Picker with the keys from the highlighted
     // trace.
-    this.addEventListener('populate-query', (e) => {
+    this.addEventListener('populate-query', async (e) => {
       const trace_key = (e as CustomEvent).detail.key;
-      this.testPicker!.populateFieldDataFromQuery(queryFromKey(trace_key), testPickerParams!, {});
+      await this.testPicker!.populateFieldDataFromQuery(
+        queryFromKey(trace_key),
+        testPickerParams!,
+        {}
+      );
       this.testPicker!.scrollIntoView();
     });
   }

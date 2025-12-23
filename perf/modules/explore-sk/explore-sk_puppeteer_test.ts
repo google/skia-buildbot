@@ -8,8 +8,8 @@ describe('explore-sk', () => {
   });
 
   beforeEach(async () => {
-    testBed.page.on('dialog', async (dialog) => {
-      await dialog.accept();
+    testBed.page.on('dialog', (dialog) => {
+      void dialog.accept();
     });
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 1600, height: 1600 });
@@ -18,7 +18,7 @@ describe('explore-sk', () => {
 
   it('should render the demo page', async () => {
     // Smoke test.
-    assert.equal(await (await testBed.page.$$('explore-sk')).length, 1);
+    assert.equal((await testBed.page.$$('explore-sk')).length, 1);
   });
 
   describe('screenshots', () => {

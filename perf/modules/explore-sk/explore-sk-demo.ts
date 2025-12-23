@@ -46,7 +46,7 @@ window.perf = {
 };
 
 // TODO(b/450184956) Rewrite demo to plot-google-chart. This demo is unusable.
-customElements.whenDefined('explore-sk').then(() => {
+void customElements.whenDefined('explore-sk').then(() => {
   // Insert the element later, which should give enough time for fetchMock to be in place.
   document
     .querySelector('h1')!

@@ -375,7 +375,7 @@ export class TestPickerSk extends ElementSk {
    * @param paramSet - A ParamSet object containing available options for each
    * parameter.
    */
-  populateFieldDataFromQuery(query: string, params: string[], paramSet: ParamSet) {
+  async populateFieldDataFromQuery(query: string, params: string[], paramSet: ParamSet) {
     const selectedParams: ParamSet = toParamSet(query);
     if (paramSet && Object.keys(paramSet).length > 0) {
       const paramKeys: string[] = Object.keys(paramSet).filter((key) => key in selectedParams);
@@ -404,7 +404,7 @@ export class TestPickerSk extends ElementSk {
 
       // Add event listener for value changes
       this.addValueUpdatedEventToField(i);
-      this.fetchExtraOptions(i);
+      await this.fetchExtraOptions(i);
 
       field.focus();
       this._render();
