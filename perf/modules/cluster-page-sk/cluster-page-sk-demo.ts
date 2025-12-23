@@ -97,8 +97,8 @@ fetchMock.get('https://skia.org/loginstatus/', () => ({
   IsViewer: true,
 }));
 
-customElements.whenDefined('cluster-page-sk').then(() => {
-  // Insert the element later, which should given enough time for fetchMock to be in place.
+void customElements.whenDefined('cluster-page-sk').then(() => {
+  // Insert the element later, which should give enough time for fetchMock to be in place.
   document
     .querySelector('h1')!
     .insertAdjacentElement('afterend', document.createElement('cluster-page-sk'));

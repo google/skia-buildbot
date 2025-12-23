@@ -147,21 +147,21 @@ export class ClusterPageSk extends ElementSk {
       <div id="inputs">
         <label for="k_input">
           K (A value of 0 means the server chooses).
-          <input id="k_input" .value=${ele.state.k.toString()} @input=${ele.kChange} />e.kChange} />
+          <input id="k_input" .value=${ele.state.k.toString()} @input=${ele.kChange} />
         </label>
         <label for="radius_input">
           Number of commits to include on either side.
           <input
             id="radius_input"
             .value=${ele.state.radius.toString()}
-            @input=${ele.radiusChange} />e.radiusChange} />
+            @input=${ele.radiusChange} />
         </label>
         <label for="interesting_input">
           Clusters are interesting if regression score &gt;= this.
           <input
             id="interesting_input"
             .value=${ele.state.interesting.toString()}
-            @input=${ele.interestingChange} />e.interestingChange} />
+            @input=${ele.interestingChange} />
         </label>
         <checkbox-sk
           ?checked=${ele.state.sparse}
@@ -332,8 +332,8 @@ export class ClusterPageSk extends ElementSk {
         body,
         300,
         this.spinner!,
-        (prog: progress.SerializedProgress) => {
-          this.runningStatus = prog.messages.map((msg) => `${msg.key}: ${msg.value}`).join('\n');
+        (p: progress.SerializedProgress) => {
+          this.runningStatus = p.messages.map((msg) => `${msg.key}: ${msg.value}`).join('\n');
           this._render();
         }
       );
