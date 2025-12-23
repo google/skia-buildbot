@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sass_library", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sass_library", "sk_page")
 
 sk_page(
     name = "alerts",
@@ -245,4 +245,26 @@ sk_page(
         "//perf/modules/report-page-sk",
     ],
     ts_entry_point = "report.ts",
+)
+
+karma_test(
+    name = "pages_test",
+    src = "pages_test.ts",
+    deps = [
+        ":alerts_ts_lib",
+        ":clusters2_ts_lib",
+        ":dryrunalert_ts_lib",
+        ":favorites_ts_lib",
+        ":help_ts_lib",
+        ":multiexplore_ts_lib",
+        ":newindex_ts_lib",
+        ":playground_ts_lib",
+        ":regressions_ts_lib",
+        ":report_ts_lib",
+        ":revisions_ts_lib",
+        ":triage_ts_lib",
+        ":trybot_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+    ],
 )
