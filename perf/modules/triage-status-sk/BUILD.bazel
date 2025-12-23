@@ -1,8 +1,10 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
-
-sk_demo_page_server(
-    name = "demo_page_server",
-    sk_page = ":triage-status-sk-demo",
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
 )
 
 sk_element(
@@ -13,14 +15,14 @@ sk_element(
     sass_srcs = ["triage-status-sk.scss"],
     sk_element_deps = ["//perf/modules/tricon2-sk"],
     ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
     ts_srcs = [
-        "index.ts",
         "triage-status-sk.ts",
+        "index.ts",
     ],
     visibility = ["//visibility:public"],
 )
@@ -40,5 +42,21 @@ sk_element_puppeteer_test(
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":triage-status-sk-demo",
+)
+
+karma_test(
+    name = "triage-status-sk_test",
+    src = "triage-status-sk_test.ts",
+    deps = [
+        ":triage-status-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
     ],
 )
