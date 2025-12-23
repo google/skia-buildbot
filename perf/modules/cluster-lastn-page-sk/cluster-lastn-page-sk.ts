@@ -68,13 +68,21 @@ export class ClusterLastNPageSk extends ElementSk {
   // The regressions detected from the dryrun.
   private regressions: (RegressionAtCommit | null)[] = [];
 
-  private alertDialog: HTMLDialogElement | null = null;
+  private get alertDialog() {
+    return this.querySelector<HTMLDialogElement>('#alert-config-dialog');
+  }
 
-  private triageDialog: HTMLDialogElement | null = null;
+  private get triageDialog() {
+    return this.querySelector<HTMLDialogElement>('#triage-cluster-dialog');
+  }
 
-  private alertConfig: AlertConfigSk | null = null;
+  private get alertConfig() {
+    return this.querySelector<AlertConfigSk>('alert-config-sk');
+  }
 
-  private runSpinner: SpinnerSk | null = null;
+  private get runSpinner() {
+    return this.querySelector<SpinnerSk>('#run-spinner');
+  }
 
   // Email of the logged in user. Empty string otherwise
   user_id: string = '';
@@ -114,7 +122,9 @@ export class ClusterLastNPageSk extends ElementSk {
         Use this page to test out an Alert configuration. Configure the Alert by pressing the button
         below.
       </p>
-      <button @click=${ele.alertEdit}>${ClusterLastNPageSk.configTitle(ele)}</button>
+      <button id="config-button" @click=${ele.alertEdit}>
+        ${ClusterLastNPageSk.configTitle(ele)}
+      </button>
       <p>You can optionally change the range of commits over which the Alert is run:</p>
       <details>
         <summary>Range</summary>
@@ -125,7 +135,11 @@ export class ClusterLastNPageSk extends ElementSk {
       </details>
       <p>Once configured, you can run the Alert and see the regressions it detects.</p>
       <div class="running">
-        <button class="action" ?disabled=${!ele.state!.query || !!ele.requestId} @click=${ele.run}>
+        <button
+          id="run-button"
+          class="action"
+          ?disabled=${!ele.state!.query || !!ele.requestId}
+          @click=${ele.run}>
           Run
         </button>
         <spinner-sk id="run-spinner"></spinner-sk>
@@ -283,7 +297,7 @@ ${ele.runningStatus}</pre
       return html` No regressions found yet. `;
     }
     return html`
-      <table @start-triage=${ele.triageStart}>
+      <table id="regressions-table" @start-triage=${ele.triageStart}>
         <tr>
           <th>Commit</th>
           <th colspan="2">Regressions</th>
@@ -299,9 +313,11 @@ ${ele.runningStatus}</pre
   connectedCallback(): void {
     super.connectedCallback();
 
-    LoggedIn().then((status) => {
-      this.user_id = status.email;
-    });
+    LoggedIn()
+      .then((status) => {
+        this.user_id = status.email;
+      })
+      .catch(errorMessage);
     const init = fetch('/_/initpage/')
       .then(jsonOrThrow)
       .then((json: FrameResponse) => {
@@ -317,10 +333,6 @@ ${ele.runningStatus}</pre
     Promise.all([init, alertNew])
       .then(() => {
         this._render();
-        this.alertDialog = this.querySelector('#alert-config-dialog');
-        this.triageDialog = this.querySelector('#triage-cluster-dialog');
-        this.alertConfig = this.querySelector('alert-config-sk');
-        this.runSpinner = this.querySelector('#run-spinner');
         this.stateHasChanged = stateReflector(
           () => this.state as unknown as HintableObject,
           (state) => {
@@ -384,7 +396,7 @@ ${ele.runningStatus}</pre
   private triageStart(e: CustomEvent<TriageStatusSkStartTriageEventDetails>) {
     this.dialogState = e.detail;
     this._render();
-    this.triageDialog!.show();
+    this.triageDialog!.showModal();
   }
 
   private triageClose() {

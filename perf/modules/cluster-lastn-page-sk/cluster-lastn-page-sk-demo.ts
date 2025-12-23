@@ -86,7 +86,7 @@ fetchMock.post('/_/count/', {
   paramset: paramSet,
 });
 
-customElements.whenDefined('cluster-lastn-page-sk').then(() => {
+void customElements.whenDefined('cluster-lastn-page-sk').then(() => {
   // Insert the element later, which should given enough time for fetchMock to be in place.
   document
     .querySelector('h1')!
