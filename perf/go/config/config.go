@@ -940,8 +940,6 @@ type Experiments struct {
 	RemoveDefaultStatValue bool `json:"remove_default_stat_value,omitempty"`
 	// Flag to enable aggregation in skia-bridge.
 	EnableSkiaBridgeAggregation bool `json:"enable_skia_bridge_aggregation,omitempty"`
-	// Flag specifying whether metadata should be prefetched during the query.
-	PrefetchMetadata bool `json:"prefetch_metadata,omitempty"`
 	// Flag specifying whether subqueries for keys already present in a dfbuilder's PreflightQuery
 	// should be executed. If false, those keys will be populated using all possible values.
 	// If true, those keys will be filtered using the remaining keys from the query,

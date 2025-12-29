@@ -158,7 +158,7 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit
 		return ret.reportError(err, "Failed to get skps.")
 	}
 
-	if metadataStore != nil && config.Config.Experiments.PrefetchMetadata {
+	if metadataStore != nil {
 		// Get the metadata for the retrieved traces.
 		traceMetadata, err := getMetadataForTraces(ctx, df, metadataStore)
 		if err != nil {

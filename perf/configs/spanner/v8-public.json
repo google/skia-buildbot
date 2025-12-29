@@ -19,7 +19,6 @@
     "min_db_connections": 5
   },
   "experiments": {
-    "prefetch_metadata": true
   },
   "ingestion_config": {
     "source_config": {

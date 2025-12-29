@@ -17,7 +17,6 @@
         "tile_size": 4096
     },
     "experiments": {
-        "prefetch_metadata": true
     },
     "ingestion_config": {
         "source_config": {

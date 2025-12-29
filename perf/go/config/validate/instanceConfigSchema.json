@@ -166,9 +166,6 @@
         "enable_skia_bridge_aggregation": {
           "type": "boolean"
         },
-        "prefetch_metadata": {
-          "type": "boolean"
-        },
         "preflight_subqueries_for_existing_keys": {
           "type": "boolean"
         },
