@@ -21,7 +21,7 @@ import { property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 
-import { defaultColors, SummaryChartOptions } from '../common/plot-builder';
+import { SummaryChartOptions, getTraceColor } from '../common/plot-builder';
 import { ColumnHeader } from '../json';
 import {
   dataframeLoadingContext,
@@ -79,9 +79,6 @@ export class PlotSummarySk extends LitElement {
   // Maps a trace to a color.
   private traceColorMap = new Map<string, string>();
 
-  // Index to keep track of which colors we've used so far.
-  private colorIndex = 0;
-
   constructor() {
     super();
     this.addEventListeners();
@@ -120,8 +117,7 @@ export class PlotSummarySk extends LitElement {
 
       // Assign a specific color to all labels if not already present.
       if (!this.traceColorMap.has(traceKey)) {
-        this.traceColorMap.set(traceKey, defaultColors[this.colorIndex % defaultColors.length]);
-        this.colorIndex++;
+        this.traceColorMap.set(traceKey, getTraceColor(traceKey));
       }
 
       if (!trace || trace === traceKey) {

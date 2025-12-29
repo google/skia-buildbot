@@ -3,10 +3,12 @@ import './index';
 import { load } from '@google-web-components/google-chart/loader';
 import { assert } from 'chai';
 import { LitElement } from 'lit';
+import sinon from 'sinon';
 
 import { PlotSummarySk } from './plot-summary-sk';
+import { PlotGoogleChartSk } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { generateFullDataFrame } from '../dataframe/test_utils';
-import { convertFromDataframe } from '../common/plot-builder';
+import { convertFromDataframe, getTraceColor } from '../common/plot-builder';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('plot-summary-sk', () => {
@@ -34,6 +36,70 @@ describe('plot-summary-sk', () => {
     }).then((el) => {
       return el.updateComplete;
     });
+
+  describe('trace colors', () => {
+    it('assigns deterministic colors based on trace name', async () => {
+      const element = newEl((el) => {
+        el.style.width = '100px';
+      });
+      await element.updateComplete;
+      await chartReady(() => {
+        element.data = dt;
+        return element;
+      });
+
+      const traceKey = Object.keys(df.traceset)[0];
+      const expectedColor = getTraceColor(traceKey);
+      const actualColor = (element as any).traceColorMap.get(traceKey);
+
+      assert.equal(actualColor, expectedColor);
+    });
+  });
+
+  describe('trace colors consistency', () => {
+    let fetchStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      fetchStub = sinon.stub(window, 'fetch').resolves({
+        ok: true,
+        text: () => Promise.resolve(''),
+        json: () => Promise.resolve({}),
+      } as Response);
+    });
+
+    afterEach(() => {
+      fetchStub.restore();
+    });
+
+    it('matches PlotGoogleChartSk color for the same trace', async () => {
+      // Setup PlotSummarySk
+      const summaryElement = newEl((el) => {
+        el.style.width = '100px';
+      });
+      await summaryElement.updateComplete;
+      await chartReady(() => {
+        summaryElement.data = dt;
+        return summaryElement;
+      });
+
+      // Setup PlotGoogleChartSk
+      const googleChartElement = new PlotGoogleChartSk();
+      document.body.appendChild(googleChartElement);
+      googleChartElement.data = dt;
+      await googleChartElement.updateComplete;
+      // Allow async updateDataView to finish
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await googleChartElement.updateComplete;
+
+      const traceKey = Object.keys(df.traceset)[0];
+      const summaryColor = (summaryElement as any).traceColorMap.get(traceKey);
+      const googleChartColor = googleChartElement.traceColorMap.get(traceKey);
+
+      assert.equal(summaryColor, googleChartColor);
+
+      document.body.removeChild(googleChartElement);
+    });
+  });
 
   ['material'].forEach((mode) =>
     describe(`selection in mode ${mode}`, () => {

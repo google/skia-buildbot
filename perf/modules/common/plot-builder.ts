@@ -262,3 +262,21 @@ export function SummaryChartOptions(
     colors: [style.color],
   };
 }
+
+/**
+ * Returns a consistent color for a given trace name.
+ *
+ * @param {string} traceName - The name of the trace.
+ * @return {string} The hex color string.
+ */
+export function getTraceColor(traceName: string): string {
+  let hash = 0;
+  for (let i = traceName.length - 1; i >= 0; i--) {
+    // eslint-disable-next-line no-bitwise
+    hash = (hash << 5) - hash + traceName.charCodeAt(i);
+    // eslint-disable-next-line no-bitwise
+    hash |= 0;
+  }
+  hash = Math.abs(hash);
+  return defaultColors[hash % defaultColors.length];
+}

@@ -2,6 +2,7 @@ import './index';
 import { assert } from 'chai';
 import { PlotGoogleChartSk } from './plot-google-chart-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { getTraceColor } from '../common/plot-builder';
 import sinon from 'sinon';
 
 // Mock the google.visualization object.
@@ -74,6 +75,37 @@ describe('plot-google-chart-sk', () => {
       // @ts-expect-error - clean up global mock
       delete window.google;
     }
+  });
+
+  describe('trace colors', () => {
+    it('assigns deterministic colors based on trace name', async () => {
+      const traceName = 'trace_A';
+      const expectedColor = getTraceColor(traceName);
+
+      // Override the default mock to return our specific trace name
+      const mockDataTable = createMockDataTable();
+      mockDataTable.getNumberOfColumns = () => 3;
+      mockDataTable.getColumnLabel = (colIndex: number) => (colIndex === 2 ? traceName : 'Domain');
+
+      // Mock DataView constructor
+      const MockDataView = function () {
+        return mockDataTable;
+      } as any;
+
+      (window.google.visualization as any).DataTable = sinon.stub().returns(mockDataTable);
+
+      window.google.visualization.DataView = MockDataView;
+
+      element.data = new google.visualization.DataTable();
+      await element.updateComplete;
+
+      // updateDataView is async and runs after the first update.
+      // We yield to the event loop to allow it to run and update traceColorMap.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
+
+      assert.equal(element.traceColorMap.get(traceName), expectedColor);
+    });
   });
 
   describe('determineYAxisTitle', () => {

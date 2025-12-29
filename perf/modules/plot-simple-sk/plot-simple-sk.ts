@@ -98,7 +98,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { KDTree, KDPoint } from './kd';
 import { tick } from './ticks';
 import { MISSING_DATA_SENTINEL } from '../const/const';
-import { defaultColors } from '../common/plot-builder';
+import { getTraceColor } from '../common/plot-builder';
 import { IssueDetail, UserIssueMap } from '../dataframe/dataframe_context';
 import { AnomalyData } from '../common/anomaly-data';
 
@@ -1194,25 +1194,6 @@ export class PlotSimpleSk extends ElementSk {
     this.mouseMoveRaw = null;
   }
 
-  /**
-   * This is a super simple hash (h = h * 31 + x_i) currently used
-   * for things like assigning colors to graphs based on trace ids. It
-   * shouldn't be used for anything more serious than that.
-   *
-   * @param {String} s - A string to hash.
-   * @return {Number} A 32 bit hash for the given string.
-   */
-  private hashString(s: string) {
-    let hash = 0;
-    for (let i = s.length - 1; i >= 0; i--) {
-      // eslint-disable-next-line no-bitwise
-      hash = (hash << 5) - hash + s.charCodeAt(i);
-      // eslint-disable-next-line no-bitwise
-      hash |= 0;
-    }
-    return Math.abs(hash);
-  }
-
   // Rebuilds our cache of Path2D objects we use for quick rendering.
   private recalcSummaryPaths() {
     this.lineData.forEach((line) => {
@@ -1220,7 +1201,7 @@ export class PlotSimpleSk extends ElementSk {
       if (line.name.startsWith(SPECIAL)) {
         line.color = this.LABEL_COLOR;
       } else {
-        line.color = defaultColors[(this.hashString(line.name) % (defaultColors.length - 1)) + 1];
+        line.color = getTraceColor(line.name);
       }
 
       const summaryBuilder = new PathBuilder(
@@ -1252,7 +1233,7 @@ export class PlotSimpleSk extends ElementSk {
       if (line.name.startsWith(SPECIAL)) {
         line.color = this.LABEL_COLOR;
       } else {
-        line.color = defaultColors[(this.hashString(line.name) % (defaultColors.length - 1)) + 1];
+        line.color = getTraceColor(line.name);
       }
 
       const detailBuilder = new PathBuilder(

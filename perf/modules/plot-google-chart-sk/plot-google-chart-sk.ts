@@ -18,7 +18,7 @@ import { ref, Ref, createRef } from 'lit/directives/ref.js';
 import { property } from 'lit/decorators.js';
 import { define } from '../../../elements-sk/modules/define';
 import { AnomalyMap } from '../json';
-import { defaultColors, mainChartOptions } from '../common/plot-builder';
+import { mainChartOptions, getTraceColor } from '../common/plot-builder';
 import { telemetry } from '../telemetry/telemetry';
 import {
   dataframeAnomalyContext,
@@ -238,9 +238,6 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ attribute: false })
   traceColorMap = new Map<string, string>();
 
-  // Index to keep track of which colors we've used so far.
-  private colorIndex = 0;
-
   // Whether we are interacting with the chart that takes higher prioritiy than navigations.
   private chartInteracting = false;
 
@@ -415,11 +412,10 @@ export class PlotGoogleChartSk extends LitElement {
       cols.push(index);
 
       // Assign a specific color to all labels.
-      if (this.traceColorMap.has(label)) {
-        newTraceColorMap.set(label, this.traceColorMap.get(label)!);
-      } else {
-        newTraceColorMap.set(label, defaultColors[this.colorIndex % defaultColors.length]);
-        this.colorIndex++;
+      const color = getTraceColor(label);
+      newTraceColorMap.set(label, color);
+
+      if (this.traceColorMap.get(label) !== color) {
         modified = true;
       }
 
@@ -428,7 +424,7 @@ export class PlotGoogleChartSk extends LitElement {
       }
     }
 
-    if (this.traceColorMap.size > newTraceColorMap.size) {
+    if (this.traceColorMap.size !== newTraceColorMap.size) {
       // An item was removed.
       modified = true;
     }

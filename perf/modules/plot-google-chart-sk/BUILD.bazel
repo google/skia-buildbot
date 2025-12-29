@@ -77,6 +77,7 @@ karma_test(
         "//:node_modules/chai",
         "//:node_modules/sinon",
         "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
     ],
 )
 

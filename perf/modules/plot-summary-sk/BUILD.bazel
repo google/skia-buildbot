@@ -77,11 +77,14 @@ karma_test(
         ":plot-summary-sk",
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
         "//:node_modules/chai",
         "//:node_modules/lit",
+        "//:node_modules/sinon",
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/dataframe:test_utils_ts_lib",
+        "//perf/modules/plot-google-chart-sk",
     ],
 )
 
