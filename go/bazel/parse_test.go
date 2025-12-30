@@ -87,7 +87,7 @@ module(name = "test_module", version = "")
 oci.pull(
     name = "oci.pull_skia_wasm",
     digest = "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
-    repository = "gcr.io/skia-public/skia-wasm-release",
+    image = "gcr.io/skia-public/skia-wasm-release",
 )
 
 # This is an arbitrary version of the public Alpine image. Given our current rules, we must pull
@@ -96,12 +96,11 @@ oci.pull(
 oci.pull(
     name = "empty_container",
     digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
-    repository = "index.docker.io/alpine",
+    image = "index.docker.io/alpine",
 )
 
-cipd_install(
+cipd.package(
     name = "git_amd64_linux",
-    build_file_content = all_cipd_files(),
     cipd_package = "infra/3pp/tools/git/linux-amd64",
     postinstall_cmds_posix = [
         "mkdir etc",
@@ -194,12 +193,12 @@ func TestParseDeps_ReturnsMapOfAllDependencies_MODULE(t *testing.T) {
 			ID:      "infra/3pp/tools/git/linux-amd64",
 			Version: "version:2.29.2.chromium.6",
 			versionPos: &ast.Pos{
-				Lineno:    31,
+				Lineno:    30,
 				ColOffset: 10,
 			},
 			SHA256: "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
 			sha256Pos: &ast.Pos{
-				Lineno:    30,
+				Lineno:    29,
 				ColOffset: 13,
 			},
 		},
@@ -377,34 +376,34 @@ func TestParseDeps_InvalidFile_MODULE(t *testing.T) {
 oci.pull(
     name = "empty_container",
     digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801"
-    repository = "index.docker.io/alpine"
+    image = "index.docker.io/alpine"
 )
 `)
-	check("Missing Repository", `no keyword argument "repository" found for call`, `
+	check("Missing Image", `no keyword argument "image" found for call`, `
 oci.pull(
     name = "empty_container",
     digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
 )
 `)
-	check("Empty Repository", `found empty string for argument "repository"`, `
+	check("Empty Image", `found empty string for argument "image"`, `
 oci.pull(
     name = "empty_container",
     digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
-	repository = "",
+	image = "",
 )
 `)
 
 	check("Missing Digest", `no keyword argument "digest" found for call`, `
 oci.pull(
     name = "empty_container",
-    repository = "index.docker.io/alpine",
+    image = "index.docker.io/alpine",
 )
 `)
 	check("Empty Digest", `found empty string for argument "digest"`, `
 oci.pull(
     name = "empty_container",
     digest = "",
-    repository = "index.docker.io/alpine",
+    image = "index.docker.io/alpine",
 )
 `)
 
@@ -583,12 +582,12 @@ func TestGetDep_ReturnsRequestedDependency_MODULE(t *testing.T) {
 		ID:      "infra/3pp/tools/git/linux-amd64",
 		Version: "version:2.29.2.chromium.6",
 		versionPos: &ast.Pos{
-			Lineno:    31,
+			Lineno:    30,
 			ColOffset: 10,
 		},
 		SHA256: "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
 		sha256Pos: &ast.Pos{
-			Lineno:    30,
+			Lineno:    29,
 			ColOffset: 13,
 		},
 	})
@@ -606,7 +605,7 @@ func TestGetDep_ErrorForUnknownID_WORKSPACE(t *testing.T) {
 
 func TestGetDep_ErrorForUnknownID_MODULE(t *testing.T) {
 	check := func(id DependencyID) {
-		_, err := GetDep(fakeWorkspace, id)
+		_, err := GetDep(fakeModule, id)
 		require.Error(t, err)
 	}
 	check("container_pull_skia_wasm")
@@ -677,14 +676,14 @@ func TestSetDep_MatchesExpectedContent_MODULE(t *testing.T) {
 oci.pull(
   name = "empty_container",
   digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
-  repository = "index.docker.io/alpine",
+  image = "index.docker.io/alpine",
 )
 `
 	expect := `
 oci.pull(
   name = "empty_container",
   digest = "fake-new-version",
-  repository = "index.docker.io/alpine",
+  image = "index.docker.io/alpine",
 )
 `
 	actual, err := SetDep(input, "index.docker.io/alpine", "fake-new-version", "fake-new-sha256")
@@ -705,7 +704,7 @@ func TestSetDep_ErrorForUnknownID_WORKSPACE(t *testing.T) {
 
 func TestSetDep_ErrorForUnknownID_MODULE(t *testing.T) {
 	check := func(id DependencyID) {
-		actual, err := SetDep(fakeWorkspace, id, "fake-new-version", "fake-new-sha256")
+		actual, err := SetDep(fakeModule, id, "fake-new-version", "fake-new-sha256")
 		require.Empty(t, actual)
 		require.Error(t, err)
 	}

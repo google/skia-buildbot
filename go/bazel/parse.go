@@ -170,6 +170,7 @@ func parseCall(call *ast.Call) (Dependency, bool, error) {
 	}
 	parseFn := map[string]func(*ast.Call) (Dependency, error){
 		"cipd_install":   parseDepFromCallFunc("cipd_package", "tag"),
+		"cipd.package":   parseDepFromCallFunc("cipd_package", "tag"),
 		"container_pull": parseContainerPull,
 		"oci.pull":       parseOCIPull,
 	}[funcName]
@@ -237,7 +238,7 @@ func parseContainerPull(call *ast.Call) (Dependency, error) {
 // parseOCIPull parses a call to oci_pull to return a dependency and
 // the position where the version is defined.
 func parseOCIPull(call *ast.Call) (Dependency, error) {
-	repository, _, err := getCallArgValueString(call, "repository")
+	repository, _, err := getCallArgValueString(call, "image")
 	if err != nil {
 		return Dependency{}, skerr.Wrap(err)
 	}
