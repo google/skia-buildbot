@@ -1,15 +1,59 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
+import { QuerySkPO } from '../../../infra-sk/modules/query-sk/query-sk_po';
+import { PlotGoogleChartSkPO } from '../plot-google-chart-sk/plot-google-chart-sk_po';
+import { PivotTableSkPO } from '../pivot-table-sk/pivot-table-sk_po';
 import { errorMessage } from '../errorMessage';
 import { ChartTooltipSkPO } from '../chart-tooltip-sk/chart-tooltip-sk_po';
+import { GraphTitleSkPO } from '../graph-title-sk/graph-title-sk_po';
 
 export class ExploreSimpleSkPO extends PageObject {
+  get pickerField(): PageObjectElement {
+    return this.bySelector('picker-field-sk:nth-of-type(1)');
+  }
+
+  get queryCountSk(): PageObjectElement {
+    return this.bySelector('query-count-sk');
+  }
+
+  get querySk(): QuerySkPO {
+    return this.poBySelector('query-sk', QuerySkPO);
+  }
+
+  get graphTitleSk(): GraphTitleSkPO {
+    return this.poBySelector('graph-title-sk', GraphTitleSkPO);
+  }
+
+  get plotGoogleChartSk(): PlotGoogleChartSkPO {
+    return this.poBySelector('plot-google-chart-sk', PlotGoogleChartSkPO);
+  }
+
+  get pivotTableSk(): PivotTableSkPO {
+    return this.poBySelector('pivot-table-sk', PivotTableSkPO);
+  }
+
+  get openQueryDialogButton(): PageObjectElement {
+    return this.bySelector('#open_query_dialog');
+  }
+
+  get queryDialog(): PageObjectElement {
+    return this.bySelector('#query-dialog');
+  }
+
+  get closeQueryDialogButton(): PageObjectElement {
+    return this.bySelector('#close_query_dialog');
+  }
+
   get googleChart(): PageObjectElement {
     return this.bySelector('plot-google-chart-sk');
   }
 
   get chartTooltip(): ChartTooltipSkPO {
     return this.poBySelector('chart-tooltip-sk', ChartTooltipSkPO);
+  }
+
+  get googleChartPO(): PlotGoogleChartSkPO {
+    return this.poBySelector('plot-google-chart-sk', PlotGoogleChartSkPO);
   }
 
   get plotSummary(): PageObjectElement {
@@ -20,8 +64,25 @@ export class ExploreSimpleSkPO extends PageObject {
     return this.bySelector('#commit-switch');
   }
 
+  get plotButton(): PageObjectElement {
+    return this.bySelector('dialog#query-dialog button.action');
+  }
+
+  get spinner(): PageObjectElement {
+    return this.bySelector('spinner-sk');
+  }
+
   async getXAxisDomain(): Promise<string> {
     return await this.googleChart.applyFnToDOMNode((c: any) => c.domain);
+  }
+
+  async clickPlotButton(): Promise<void> {
+    // Clicks the plot button inside the query dialog.
+    const plotButton = await this.bySelector('dialog#query-dialog button.action');
+    if (!plotButton) {
+      throw new Error('Plot button not found');
+    }
+    await plotButton.click();
   }
 
   get xAxisSwitchSelector(): string {

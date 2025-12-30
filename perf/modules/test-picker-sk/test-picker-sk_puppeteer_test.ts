@@ -2,17 +2,16 @@ import { expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { TestPickerSkPO } from './test-picker-sk_po';
 import { DEFAULT_VIEWPORT } from '../common/puppeteer-test-util';
-
-const BENCHMARK = 'blink_perf.css';
-const BOT = 'ToTLinuxTSan';
-const TEST =
-  'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_space:effective_size_max';
-const SUBTEST_1 = 'link_invalidation_document_rules.html';
-const SUBTEST_2 = 'AdsAdSenseAsyncAds_warm';
-
-const TEST_NEW = 'motion_mark_canvas_fill_shapes';
-const SUBTEST_1_NEW = 'line-layout.html';
-const SUBTEST_2_NEW = 'AdsAdSenseAsyncAds_cold';
+import {
+  BENCHMARK,
+  BOT,
+  SUBTEST_1,
+  SUBTEST_1_NEW,
+  SUBTEST_2,
+  SUBTEST_2_NEW,
+  TEST,
+  TEST_NEW,
+} from './test_data';
 
 describe('test-picker-sk', () => {
   let testBed: TestBed;

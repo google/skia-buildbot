@@ -51,7 +51,7 @@ export abstract class PageObject {
    * Returns the result of calling PageObjectElement#bySelector() on the underlying
    * PageObjectElement.
    */
-  protected bySelector(selector: string): PageObjectElement {
+  public bySelector(selector: string): PageObjectElement {
     return this.element.bySelector(selector);
   }
 
@@ -59,7 +59,7 @@ export abstract class PageObject {
    * Returns the result of calling PageObjectElement#bySelectorShadow() on the underlying
    * PageObjectElement.
    */
-  protected bySelectorShadow(selector: string): PageObjectElement {
+  public bySelectorShadow(selector: string): PageObjectElement {
     return this.element.bySelectorShadow(selector);
   }
 

@@ -11,6 +11,7 @@ import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 import * as loader from '@google-web-components/google-chart/loader';
 import { Anomaly, CommitNumber, TimestampSeconds } from '../json';
 
+fetchMock.config.overwriteRoutes = true;
 describe('ExploreMultiSk', () => {
   let element: ExploreMultiSk;
 

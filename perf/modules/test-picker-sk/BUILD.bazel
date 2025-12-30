@@ -71,6 +71,7 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         ":test-picker-sk_po_ts_lib",
+        ":test_data_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//perf/modules/common:puppeteer-test-util_ts_lib",
@@ -90,4 +91,10 @@ karma_test(
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/picker-field-sk",
     ],
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
 )

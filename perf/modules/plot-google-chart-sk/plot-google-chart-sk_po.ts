@@ -8,6 +8,9 @@ export class PlotGoogleChartSkPO extends PageObject {
 
   async isChartVisible(): Promise<boolean> {
     const chartElement = this.bySelectorShadow('google-chart');
+    if (await chartElement.isEmpty()) {
+      return false;
+    }
     return !(await chartElement.hasAttribute('hidden'));
   }
 
@@ -24,5 +27,10 @@ export class PlotGoogleChartSkPO extends PageObject {
   async clickResetButton(): Promise<void> {
     const resetButton = this.bySelectorShadow('#reset-view #closeIcon');
     await resetButton.click();
+  }
+
+  async getChartData(): Promise<any> {
+    const chartElement = await this.bySelectorShadow('google-chart');
+    return chartElement.applyFnToDOMNode((el) => (el as any).data);
   }
 }

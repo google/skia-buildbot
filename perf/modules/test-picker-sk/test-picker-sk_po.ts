@@ -47,6 +47,10 @@ export class TestPickerSkPO extends PageObject {
     await this.plotButton.click();
   }
 
+  async isPlotBtnDisabled() {
+    return this.plotButton.hasAttribute('disabled');
+  }
+
   private async poll(
     checkFn: () => Promise<boolean>,
     message: string,

@@ -7,6 +7,7 @@ import { ExploreSimpleSk } from '../explore-simple-sk/explore-simple-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { setUpExploreDemoEnv } from '../common/test-util';
 
+fetchMock.config.overwriteRoutes = true;
 describe('ExploreSk', () => {
   let element: ExploreSk;
   const setupElement = async (mockDefaults: any = null, paramsMock: any = null) => {
