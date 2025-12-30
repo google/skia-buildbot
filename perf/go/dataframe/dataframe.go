@@ -32,12 +32,12 @@ type DataFrameBuilder interface {
 	// the given time range [begin, end) and the passed in query, or a non-nil
 	// error if the traces can't be retrieved. The 'progress' callback is called
 	// periodically as the query is processed.
-	NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, downsample bool, progress progress.Progress) (*DataFrame, error)
+	NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, progress progress.Progress) (*DataFrame, error)
 
 	// NewFromKeysAndRange returns a populated DataFrame of the traces that match
 	// the given set of 'keys' over the range of [begin, end). The 'progress'
 	// callback is called periodically as the query is processed.
-	NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, progress progress.Progress) (*DataFrame, error)
+	NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, progress progress.Progress) (*DataFrame, error)
 
 	// NewNFromQuery returns a populated DataFrame of condensed traces of N data
 	// points ending at the given 'end' time that match the given query.
@@ -306,11 +306,8 @@ func (d *DataFrame) Compress() *DataFrame {
 // FromTimeRange returns the slices of ColumnHeader and int32. The slices
 // are for the commits that fall in the given time range [begin, end).
 //
-// If 'downsample' is true then the number of commits returned is limited
-// to MAX_SAMPLE_SIZE.
-// TODO(jcgregorio) Remove downsample, it is currently ignored.
 // The value for 'skip', the number of commits skipped, is also returned.
-func FromTimeRange(ctx context.Context, git perfgit.Git, begin, end time.Time, downsample bool) ([]*ColumnHeader, []types.CommitNumber, int, error) {
+func FromTimeRange(ctx context.Context, git perfgit.Git, begin, end time.Time) ([]*ColumnHeader, []types.CommitNumber, int, error) {
 	commits, err := git.CommitSliceFromTimeRange(ctx, begin, end)
 	if err != nil {
 		return nil, nil, 0, skerr.Wrapf(err, "Failed to get headers and commit numbers from time range.")
@@ -343,12 +340,9 @@ func NewEmpty() *DataFrame {
 
 // NewHeaderOnly returns a DataFrame with a populated Header, with no traces.
 // The 'progress' callback is called periodically as the query is processed.
-//
-// If 'downsample' is true then the number of commits returned is limited
-// to MAX_SAMPLE_SIZE.
-func NewHeaderOnly(ctx context.Context, git perfgit.Git, begin, end time.Time, downsample bool) (*DataFrame, error) {
+func NewHeaderOnly(ctx context.Context, git perfgit.Git, begin, end time.Time) (*DataFrame, error) {
 	defer timer.New("NewHeaderOnly time").Stop()
-	colHeaders, _, skip, err := FromTimeRange(ctx, git, begin, end, downsample)
+	colHeaders, _, skip, err := FromTimeRange(ctx, git, begin, end)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed creating header only dataframe.")
 	}

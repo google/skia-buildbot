@@ -243,7 +243,7 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 
 	if len(df.Header) == 0 {
 		var err error
-		df, err = dataframe.NewHeaderOnly(ctx, p.perfGit, begin, end, true)
+		df, err = dataframe.NewHeaderOnly(ctx, p.perfGit, begin, end)
 		if err != nil {
 			return nil, p.reportError(err, "Failed to load dataframe.")
 		}
@@ -578,7 +578,7 @@ func (p *frameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 	}
 	p.request.Progress.Message("Query", q.String())
 	if p.request.RequestType == REQUEST_TIME_RANGE {
-		return p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.request.Progress)
+		return p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, p.request.Progress)
 	}
 	return p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.request.Progress)
 
@@ -592,7 +592,7 @@ func (p *frameRequestProcess) doKeys(ctx context.Context, keyID string, begin, e
 		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
-		return p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.request.Progress)
+		return p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, p.request.Progress)
 	}
 	return p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.request.Progress)
 
@@ -617,7 +617,7 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
-			df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.request.Progress)
+			df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, p.request.Progress)
 		} else {
 			df, err = p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.request.Progress)
 		}
@@ -638,7 +638,7 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
-			df, err = p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.request.Progress)
+			df, err = p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, p.request.Progress)
 		} else {
 			df, err = p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.request.Progress)
 		}

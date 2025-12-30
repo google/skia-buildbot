@@ -125,7 +125,7 @@ func TestBuildNew(t *testing.T) {
 	assert.NoError(t, err)
 	now := gittest.StartTime.Add(7 * time.Minute)
 
-	df, err := builder.NewFromQueryAndRange(ctx, now.Add(-8*time.Minute), now.Add(time.Second), q, false, progress.New())
+	df, err := builder.NewFromQueryAndRange(ctx, now.Add(-8*time.Minute), now.Add(time.Second), q, progress.New())
 	require.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 3)
@@ -161,13 +161,13 @@ func TestBuildNew(t *testing.T) {
 	q, err = query.New(url.Values{"config": []string{"nvpr"}})
 	assert.NoError(t, err)
 
-	df, err = builder.NewFromQueryAndRange(ctx, now.Add(-8*time.Minute), now.Add(time.Second), q, false, progress.New())
+	df, err = builder.NewFromQueryAndRange(ctx, now.Add(-8*time.Minute), now.Add(time.Second), q, progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 0)
 	assert.Len(t, df.Header, 0)
 
 	// NewFromKeysAndRange.
-	df, err = builder.NewFromKeysAndRange(ctx, []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, now.Add(-8*time.Minute), now.Add(time.Second), false, progress.New())
+	df, err = builder.NewFromKeysAndRange(ctx, []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, now.Add(-8*time.Minute), now.Add(time.Second), progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 3)
@@ -203,7 +203,7 @@ func TestBuildNew(t *testing.T) {
 	assert.Len(t, df.Header, 0)
 
 	// Empty set of keys should not fail.
-	df, err = builder.NewFromKeysAndRange(ctx, []string{}, now.Add(-8*time.Minute), now.Add(time.Second), false, progress.New())
+	df, err = builder.NewFromKeysAndRange(ctx, []string{}, now.Add(-8*time.Minute), now.Add(time.Second), progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 0)
 	assert.Len(t, df.Header, 0)
@@ -218,7 +218,7 @@ func TestBuildNew(t *testing.T) {
 	// This query will only encode for one tile and should still succeed.
 	q, err = query.New(url.Values{"model": []string{"Pixel"}})
 	assert.NoError(t, err)
-	df, err = builder.NewFromQueryAndRange(ctx, now.Add(-8*time.Minute), now.Add(time.Second), q, false, progress.New())
+	df, err = builder.NewFromQueryAndRange(ctx, now.Add(-8*time.Minute), now.Add(time.Second), q, progress.New())
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 1)
 	assert.Len(t, df.Header, 1)

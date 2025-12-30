@@ -138,7 +138,7 @@ func TestFromTimeRange_Success(t *testing.T) {
 	g, err := perfgit.New(ctx, false, db, instanceConfig)
 	require.NoError(t, err)
 
-	columnHeaders, commitNumbers, _, err := FromTimeRange(ctx, g, gittest.StartTime, gittest.StartTime.Add(2*time.Minute), false)
+	columnHeaders, commitNumbers, _, err := FromTimeRange(ctx, g, gittest.StartTime, gittest.StartTime.Add(2*time.Minute))
 	require.NoError(t, err)
 	assert.Equal(t, 3, len(columnHeaders))
 	assert.Equal(t, types.CommitNumber(0), columnHeaders[0].Offset)
@@ -154,7 +154,7 @@ func TestFromTimeRange_EmptySlicesIfNothingInTimeRange(t *testing.T) {
 	require.NoError(t, err)
 
 	// Query outside the time of any commit.
-	columnHeaders, commitNumbers, _, err := FromTimeRange(ctx, g, gittest.StartTime.Add(-time.Hour), gittest.StartTime.Add(-time.Hour+2*time.Minute), false)
+	columnHeaders, commitNumbers, _, err := FromTimeRange(ctx, g, gittest.StartTime.Add(-time.Hour), gittest.StartTime.Add(-time.Hour+2*time.Minute))
 	require.NoError(t, err)
 	assert.Empty(t, columnHeaders)
 	assert.Empty(t, commitNumbers)

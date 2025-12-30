@@ -296,7 +296,7 @@ func TestDoSearch_ValidQueryTimeRange_ReturnsDataFrameWithQueryResults(t *testin
 	dfbMock, df, fr := frameRequestForTest(t)
 	fr.request.RequestType = REQUEST_TIME_RANGE
 
-	dfbMock.On("NewFromQueryAndRange", testutils.AnyContext, testTimeBegin, testTimeEnd, mock.Anything, true, fr.request.Progress).Return(df, nil)
+	dfbMock.On("NewFromQueryAndRange", testutils.AnyContext, testTimeBegin, testTimeEnd, mock.Anything, fr.request.Progress).Return(df, nil)
 
 	actualDf, err := fr.doSearch(context.Background(), "config=8888", testTimeBegin, testTimeEnd)
 	require.NoError(t, err)
@@ -351,7 +351,7 @@ func TestDoKeys_ValidKeyIDTimeRange_ReturnsDataFrameWithTracesFromShortcut(t *te
 	}
 
 	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(shortCut, nil)
-	dfbMock.On("NewFromKeysAndRange", testutils.AnyContext, shortCut.Keys, testTimeBegin, testTimeEnd, true, fr.request.Progress).Return(df, nil)
+	dfbMock.On("NewFromKeysAndRange", testutils.AnyContext, shortCut.Keys, testTimeBegin, testTimeEnd, fr.request.Progress).Return(df, nil)
 	actualDf, err := fr.doKeys(context.Background(), testShortcutKey, testTimeBegin, testTimeEnd)
 
 	require.NoError(t, err)
@@ -388,7 +388,7 @@ func TestDoCalc_ValidQueryTimeRange_ReturnsDataFrameWithCalculatedTraces(t *test
 
 	fr.request.RequestType = REQUEST_TIME_RANGE
 
-	dfbMock.On("NewFromQueryAndRange", testutils.AnyContext, testTimeBegin, testTimeEnd, mock.Anything, true, fr.request.Progress).Return(df, nil)
+	dfbMock.On("NewFromQueryAndRange", testutils.AnyContext, testTimeBegin, testTimeEnd, mock.Anything, fr.request.Progress).Return(df, nil)
 
 	actualDf, err := fr.doCalc(context.Background(), `sum(filter("arch=x86"))`, testTimeBegin, testTimeEnd)
 	require.NoError(t, err)
@@ -444,7 +444,7 @@ func TestDoCalc_ValidFormulaValidShortcutTimeRange_ReturnsDataFrameWithCalculate
 	}
 
 	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(shortCut, nil)
-	dfbMock.On("NewFromKeysAndRange", testutils.AnyContext, shortCut.Keys, testTimeBegin, testTimeEnd, true, fr.request.Progress).Return(df, nil)
+	dfbMock.On("NewFromKeysAndRange", testutils.AnyContext, shortCut.Keys, testTimeBegin, testTimeEnd, fr.request.Progress).Return(df, nil)
 
 	formula := fmt.Sprintf(`sum(shortcut("%s"))`, testShortcutKey)
 	actualDf, err := fr.doCalc(context.Background(), formula, testTimeBegin, testTimeEnd)

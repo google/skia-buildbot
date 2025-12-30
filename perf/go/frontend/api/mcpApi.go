@@ -78,7 +78,7 @@ func (m mcpApi) getTraceDataHandler(w http.ResponseWriter, r *http.Request) {
 
 	prog := progress.New()
 
-	df, err := m.dfBuilder.NewFromQueryAndRange(ctx, beginTime, endTime, queryObj, false, prog)
+	df, err := m.dfBuilder.NewFromQueryAndRange(ctx, beginTime, endTime, queryObj, prog)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to build dataframe.", http.StatusInternalServerError)
 		return

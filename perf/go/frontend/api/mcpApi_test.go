@@ -31,7 +31,7 @@ func TestGetTraceDataHandler_Success(t *testing.T) {
 			{Offset: 3, Timestamp: 1672531320},
 		},
 	}
-	dfb.On("NewFromQueryAndRange", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, false, mock.Anything).Return(expectedDF, nil)
+	dfb.On("NewFromQueryAndRange", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(expectedDF, nil)
 
 	// Create the request.
 	req := httptest.NewRequest("GET", "/mcp/data?query=benchmark%3Dspeedometer%26test%3DTotal&begin=1672531200&end=1675468800", nil)
@@ -138,7 +138,7 @@ func TestGetTraceDataHandler_DataFrameBuilderError(t *testing.T) {
 
 	// Mock the DataFrameBuilder to return an error.
 	expectedErr := errors.New("something went wrong")
-	dfb.On("NewFromQueryAndRange", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, false, mock.Anything).Return(nil, expectedErr)
+	dfb.On("NewFromQueryAndRange", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, expectedErr)
 
 	// Create the request.
 	req := httptest.NewRequest("GET", "/mcp/data?query=benchmark%3Dspeedometer&begin=1672531200&end=1675468800", nil)

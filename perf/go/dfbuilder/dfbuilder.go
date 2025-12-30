@@ -34,7 +34,6 @@ type Filtering bool
 const (
 	// newNMaxSearch is the minimum number of queries to perform that returned
 	// no data before giving up.
-	// TODO(jcgregorio) Make this either a flag or config value.
 	newNMaxSearch = 40
 
 	// It is possible for some ParamSet tiles to have "bad" data, for example, a
@@ -158,7 +157,6 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 	ctx, span := trace.StartSpan(ctx, "dfbuilder.new")
 	defer span.End()
 
-	// TODO tickle progress as each Go routine completes.
 	defer timer.NewWithSummary("perfserver_dfbuilder_new", b.newTimer).Stop()
 	// Determine which tiles we are querying over, and how each tile maps into our results.
 	tilesToQuery := sliceOfTileNumbersFromCommits(indices, b.store)
@@ -186,8 +184,6 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 	// For each tile.
 	for _, tileNumber := range tilesToQuery {
 		tileNumber := tileNumber
-		// TODO(jcgregorio) If we query across a large number of tiles N then this will spawn N*8 Go routines
-		// all hitting the backend at the same time. Maybe we need a worker pool if this becomes a problem.
 		g.Go(func() error {
 			defer timer.NewWithSummary("perfserver_dfbuilder_new_by_tile", b.newByTileTimer).Stop()
 
@@ -232,13 +228,13 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, downsample bool, progress progress.Progress) (*dataframe.DataFrame, error) {
+func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, progress progress.Progress) (*dataframe.DataFrame, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewFromQueryAndRange")
 	defer span.End()
 
 	defer timer.NewWithSummary("perfserver_dfbuilder_NewFromQueryAndRange", b.newFromQueryAndRangeTimer).Stop()
 
-	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end, downsample)
+	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -246,13 +242,12 @@ func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, progress progress.Progress) (*dataframe.DataFrame, error) {
+func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, progress progress.Progress) (*dataframe.DataFrame, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewFromKeysAndRange")
 	defer span.End()
 
-	// TODO tickle progress as each Go routine completes.
 	defer timer.NewWithSummary("perfserver_dfbuilder_NewFromKeysAndRange", b.newFromKeysAndRangeTimer).Stop()
-	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end, downsample)
+	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -298,18 +293,12 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 					trace = types.NewTrace(len(indices))
 				}
 				for i, c := range commits {
-					// dstIndex := traceMap[b.store.OffsetFromCommitNumber(c.CommitNumber)]
 					dstIndex, ok := commitNumberToOutputIndex[c.CommitNumber]
 					if !ok {
 						continue
 					}
 					trace[dstIndex] = tileTrace[i]
 				}
-				/*
-					for srcIndex, dstIndex := range traceMap {
-						trace[dstIndex] = tileTrace[srcIndex]
-					}
-				*/
 				traceSet[key] = trace
 				p, err := query.ParseKey(key)
 				if err != nil {

@@ -22,9 +22,9 @@ type DataFrameBuilder struct {
 	mock.Mock
 }
 
-// NewFromKeysAndRange provides a mock function with given fields: ctx, keys, begin, end, downsample, _a5
-func (_m *DataFrameBuilder) NewFromKeysAndRange(ctx context.Context, keys []string, begin time.Time, end time.Time, downsample bool, _a5 progress.Progress) (*dataframe.DataFrame, error) {
-	ret := _m.Called(ctx, keys, begin, end, downsample, _a5)
+// NewFromKeysAndRange provides a mock function with given fields: ctx, keys, begin, end, _a4
+func (_m *DataFrameBuilder) NewFromKeysAndRange(ctx context.Context, keys []string, begin time.Time, end time.Time, _a4 progress.Progress) (*dataframe.DataFrame, error) {
+	ret := _m.Called(ctx, keys, begin, end, _a4)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NewFromKeysAndRange")
@@ -32,19 +32,19 @@ func (_m *DataFrameBuilder) NewFromKeysAndRange(ctx context.Context, keys []stri
 
 	var r0 *dataframe.DataFrame
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string, time.Time, time.Time, bool, progress.Progress) (*dataframe.DataFrame, error)); ok {
-		return rf(ctx, keys, begin, end, downsample, _a5)
+	if rf, ok := ret.Get(0).(func(context.Context, []string, time.Time, time.Time, progress.Progress) (*dataframe.DataFrame, error)); ok {
+		return rf(ctx, keys, begin, end, _a4)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string, time.Time, time.Time, bool, progress.Progress) *dataframe.DataFrame); ok {
-		r0 = rf(ctx, keys, begin, end, downsample, _a5)
+	if rf, ok := ret.Get(0).(func(context.Context, []string, time.Time, time.Time, progress.Progress) *dataframe.DataFrame); ok {
+		r0 = rf(ctx, keys, begin, end, _a4)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*dataframe.DataFrame)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []string, time.Time, time.Time, bool, progress.Progress) error); ok {
-		r1 = rf(ctx, keys, begin, end, downsample, _a5)
+	if rf, ok := ret.Get(1).(func(context.Context, []string, time.Time, time.Time, progress.Progress) error); ok {
+		r1 = rf(ctx, keys, begin, end, _a4)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -52,9 +52,9 @@ func (_m *DataFrameBuilder) NewFromKeysAndRange(ctx context.Context, keys []stri
 	return r0, r1
 }
 
-// NewFromQueryAndRange provides a mock function with given fields: ctx, begin, end, q, downsample, _a5
-func (_m *DataFrameBuilder) NewFromQueryAndRange(ctx context.Context, begin time.Time, end time.Time, q *query.Query, downsample bool, _a5 progress.Progress) (*dataframe.DataFrame, error) {
-	ret := _m.Called(ctx, begin, end, q, downsample, _a5)
+// NewFromQueryAndRange provides a mock function with given fields: ctx, begin, end, q, _a4
+func (_m *DataFrameBuilder) NewFromQueryAndRange(ctx context.Context, begin time.Time, end time.Time, q *query.Query, _a4 progress.Progress) (*dataframe.DataFrame, error) {
+	ret := _m.Called(ctx, begin, end, q, _a4)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NewFromQueryAndRange")
@@ -62,19 +62,19 @@ func (_m *DataFrameBuilder) NewFromQueryAndRange(ctx context.Context, begin time
 
 	var r0 *dataframe.DataFrame
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, *query.Query, bool, progress.Progress) (*dataframe.DataFrame, error)); ok {
-		return rf(ctx, begin, end, q, downsample, _a5)
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, *query.Query, progress.Progress) (*dataframe.DataFrame, error)); ok {
+		return rf(ctx, begin, end, q, _a4)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, *query.Query, bool, progress.Progress) *dataframe.DataFrame); ok {
-		r0 = rf(ctx, begin, end, q, downsample, _a5)
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, *query.Query, progress.Progress) *dataframe.DataFrame); ok {
+		r0 = rf(ctx, begin, end, q, _a4)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*dataframe.DataFrame)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, time.Time, time.Time, *query.Query, bool, progress.Progress) error); ok {
-		r1 = rf(ctx, begin, end, q, downsample, _a5)
+	if rf, ok := ret.Get(1).(func(context.Context, time.Time, time.Time, *query.Query, progress.Progress) error); ok {
+		r1 = rf(ctx, begin, end, q, _a4)
 	} else {
 		r1 = ret.Error(1)
 	}
