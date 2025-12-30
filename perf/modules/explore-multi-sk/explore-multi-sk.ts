@@ -113,11 +113,12 @@ export class State {
 
   evenXAxisSpacing: boolean = false;
 
-  // TODO(eduardoyap): Fix graph removal in manual_plot_mode.
   // TODO(eduardoyap): Handle browser history changes correctly in manual_plot_mode.
   // TODO(eduardoyap): Ensure new graphs in manual_plot_mode sync time ranges.
   manual_plot_mode: boolean = false;
 }
+
+type QueryStrategy = 'all' | 'none' | number;
 
 export class ExploreMultiSk extends ElementSk {
   private graphConfigs: GraphConfig[] = [];
@@ -321,9 +322,17 @@ export class ExploreMultiSk extends ElementSk {
   // Event listener to remove the explore object from the list if the user
   // close it in a Multiview window.
   private _onRemoveExplore = (e: Event) => {
+    const exploreElemToRemove = (e as CustomEvent).detail.elem as ExploreSimpleSk;
+
+    if (this.state.manual_plot_mode) {
+      this.removeExplore(exploreElemToRemove);
+      e.stopPropagation();
+      return;
+    }
+
     this._dataLoading = true;
     this.testPicker?.setReadOnly(true);
-    const exploreElemToRemove = (e as CustomEvent).detail.elem as ExploreSimpleSk;
+
     if (this.exploreElements.length === 1) {
       this.removeExplore(exploreElemToRemove);
       e.stopPropagation();
@@ -368,8 +377,8 @@ export class ExploreMultiSk extends ElementSk {
             check();
           });
         }
-        const shouldPreserveExistingData = this.state.manual_plot_mode;
-        this.addGraphsToCurrentPage(shouldPreserveExistingData);
+        const strategy = this.state.manual_plot_mode ? 0 : 'all';
+        this.addGraphsToCurrentPage(strategy);
 
         const query = this.testPicker!.createQueryFromFieldData();
         await newExplore.addFromQueryOrFormula(true, 'query', query, '');
@@ -398,7 +407,7 @@ export class ExploreMultiSk extends ElementSk {
           return;
         }
         await mainGraph.requestComplete;
-        this.addGraphsToCurrentPage(false);
+        this.addGraphsToCurrentPage('all');
 
         const CHUNK_SIZE = 5;
         const groupdToLoadInChunks = Math.min(this.state.pageSize, groups.length);
@@ -504,7 +513,7 @@ export class ExploreMultiSk extends ElementSk {
             check();
           });
         }
-        this.addGraphsToCurrentPage(true);
+        this.addGraphsToCurrentPage('none');
         explore = newExplore;
       } else {
         return;
@@ -1062,7 +1071,7 @@ export class ExploreMultiSk extends ElementSk {
     });
 
     // Now add the graphs that have been configured to the page.
-    this.addGraphsToCurrentPage(true);
+    this.addGraphsToCurrentPage('none');
 
     const isSplitChart: boolean = this.exploreElements.length > 1;
     // Limit page size to the number of graphs available.
@@ -1199,11 +1208,13 @@ export class ExploreMultiSk extends ElementSk {
       // Re-index the remaining graphs. This ensures that the graph_index property
       // in each element's state correctly reflects its position in the exploreElements array,
       // which is important for syncing actions between graphs.
-      this.exploreElements.forEach((elem, index) => {
-        elem.state.graph_index = index;
-      });
+      this._reindexGraphs();
       const numElements = this.exploreElements.length;
-      this.state.totalGraphs = numElements > 1 ? numElements - 1 : 0;
+      if (this.state.manual_plot_mode) {
+        this.state.totalGraphs = numElements;
+      } else {
+        this.state.totalGraphs = numElements > 1 ? numElements - 1 : 0;
+      }
 
       // Adjust pagination: if there are no graphs left, reset page offset to 0.
       if (this.state.totalGraphs === 0) {
@@ -1218,14 +1229,14 @@ export class ExploreMultiSk extends ElementSk {
         const numPages = Math.ceil(this.state.totalGraphs / this.state.pageSize);
         const maxValidPageOffset = Math.max(0, (numPages - 1) * this.state.pageSize);
         this.state.pageOffset = Math.min(this.state.pageOffset, maxValidPageOffset);
-        this.addGraphsToCurrentPage(true);
+        this.addGraphsToCurrentPage('none');
       }
       this.updateShortcutMultiview();
     } else {
       const numElements = this.exploreElements.length;
       this.state.totalGraphs = numElements > 1 ? numElements - 1 : 1;
       if (this.stateHasChanged) this.stateHasChanged();
-      this.addGraphsToCurrentPage(true);
+      this.addGraphsToCurrentPage('none');
     }
   }
 
@@ -1246,7 +1257,17 @@ export class ExploreMultiSk extends ElementSk {
     this.currentPageGraphConfigs = [];
   }
 
-  private addGraphsToCurrentPage(doNotQueryData: boolean = false): void {
+  /**
+   * Renders the graphs for the current page based on pagination state.
+   * It clears the current graphs in the DOM and appends the ones
+   * belonging to the current page.
+   *
+   * @param {QueryStrategy} queryStrategy - Determines which graphs should fetch data.
+   *  - 'all': All graphs on the current page will fetch data.
+   *  - 'none': No graphs on the current page will fetch data (data is assumed to be present).
+   *  - number: Only the graph at the specified index in `this.exploreElements` will fetch data.
+   */
+  private addGraphsToCurrentPage(queryStrategy: QueryStrategy = 'all'): void {
     // Logic: In Standard Mode (not manual), if we have multiple graphs,
     // the first one (Index 0) is the "Summary" and is hidden from pagination.
     const isSummaryView = !this.state.manual_plot_mode && this.exploreElements.length > 1;
@@ -1276,13 +1297,13 @@ export class ExploreMultiSk extends ElementSk {
     this.currentPageExploreElements.forEach((elem, i) => {
       const graphConfig = this.currentPageGraphConfigs[i];
 
-      let shouldQuery = !doNotQueryData;
+      let shouldQuery = true;
 
-      // OPTIMIZATION: In Manual Mode, if doNotQueryData is true (context: adding a new graph),
-      // we strictly ONLY want to query the NEW graph (which is at global index 0).
-      if (this.state.manual_plot_mode && doNotQueryData) {
+      if (queryStrategy === 'none') {
+        shouldQuery = false;
+      } else if (typeof queryStrategy === 'number') {
         const globalIndex = this.exploreElements.indexOf(elem);
-        shouldQuery = globalIndex === 0;
+        shouldQuery = globalIndex === queryStrategy;
       }
 
       // Note: addStateToExplore takes 'doNotQueryData' (boolean true = silence).

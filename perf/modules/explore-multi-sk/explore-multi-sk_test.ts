@@ -570,6 +570,102 @@ describe('ExploreMultiSk', () => {
       const url2 = new URL(window.location.href);
       assert.isNull(url2.searchParams.get('manual_plot_mode'), 'Should be null when false');
     });
+
+    it('removes a graph in manual plot mode and updates URL', async () => {
+      element.state.manual_plot_mode = true;
+      const updateShortcutSpy = sinon.spy(element, 'updateShortcutMultiview' as any);
+
+      // Mock the shortcut update response
+      fetchMock.post('/_/shortcut/update', { id: 'new-shortcut-id' }, { overwriteRoutes: true });
+
+      // Add three graphs
+      const graph1 = element['addEmptyGraph']()!;
+      graph1.state.queries = ['config=test1'];
+      const graph2 = element['addEmptyGraph']()!;
+      graph2.state.queries = ['config=test2'];
+      const graph3 = element['addEmptyGraph']()!;
+      graph3.state.queries = ['config=test3'];
+      element['graphConfigs'] = [
+        { queries: ['config=test1'], formulas: [], keys: '' },
+        { queries: ['config=test2'], formulas: [], keys: '' },
+        { queries: ['config=test3'], formulas: [], keys: '' },
+      ];
+      element['addGraphsToCurrentPage']();
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for updates
+
+      assert.equal(element['exploreElements'].length, 3, 'Should have 3 graphs initially');
+      assert.equal(graph1.state.graph_index, 0);
+      assert.equal(graph2.state.graph_index, 1);
+      assert.equal(graph3.state.graph_index, 2);
+
+      // Simulate removing the second graph
+      const event = new CustomEvent('remove-explore', {
+        detail: { elem: graph2 },
+        bubbles: true,
+      });
+      element.dispatchEvent(event);
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for updates
+      await fetchMock.flush(true);
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for URL update
+
+      assert.equal(element['exploreElements'].length, 2, 'Should have 2 graphs after removal');
+      assert.equal(element['exploreElements'][0].state.graph_index, 0, 'Graph 1 index should be 0');
+      assert.equal(
+        element['exploreElements'][1].state.graph_index,
+        1,
+        'Graph 3 index should be updated to 1'
+      );
+      assert.deepEqual(element['exploreElements'], [graph1, graph3]);
+
+      assert.isTrue(updateShortcutSpy.calledOnce, 'updateShortcutMultiview should be called');
+
+      // Check URL for updated shortcut
+      const updatedUrl = new URL(window.location.href);
+      const updatedShortcut = updatedUrl.searchParams.get('shortcut');
+      assert.equal(updatedShortcut, 'new-shortcut-id', 'Shortcut param should be updated in URL');
+    });
+
+    it('removes all graphs and updates URL in manual plot mode', async () => {
+      element.state.manual_plot_mode = true;
+      const updateShortcutSpy = sinon.spy(element, 'updateShortcutMultiview' as any);
+
+      // Add two graphs
+      const graph1 = element['addEmptyGraph']()!;
+      const graph2 = element['addEmptyGraph']()!;
+      element['addGraphsToCurrentPage']();
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for updates
+
+      assert.equal(element['exploreElements'].length, 2, 'Should have 2 graphs initially');
+
+      // Remove graph1
+      element.dispatchEvent(
+        new CustomEvent('remove-explore', {
+          detail: { elem: graph1 },
+          bubbles: true,
+        })
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Remove graph2
+      element.dispatchEvent(
+        new CustomEvent('remove-explore', {
+          detail: { elem: graph2 },
+          bubbles: true,
+        })
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      assert.equal(element['exploreElements'].length, 0, 'Should have 0 graphs after removal');
+      assert.equal(element['graphConfigs'].length, 0, 'Should have 0 graphConfigs');
+      assert.isTrue(
+        updateShortcutSpy.calledTwice,
+        'updateShortcutMultiview should be called twice'
+      );
+
+      // Check URL
+      const url = new URL(window.location.href);
+      assert.isNull(url.searchParams.get('shortcut'), 'Shortcut param should be removed from URL');
+    });
   });
 
   describe('Graph Splitting', () => {
@@ -1050,7 +1146,7 @@ describe('ExploreMultiSk', () => {
         ...Array(totalSplitGraphs).fill(new ExploreSimpleSk()),
       ];
       element['graphConfigs'] = Array(totalSplitGraphs + 1).fill(new GraphConfig());
-      element['addGraphsToCurrentPage'](true); // This will respect the small pageSize.
+      element['addGraphsToCurrentPage']('none'); // This will respect the small pageSize.
 
       assert.equal(
         element['currentPageExploreElements'].length,
