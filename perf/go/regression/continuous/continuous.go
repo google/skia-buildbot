@@ -50,9 +50,6 @@ const (
 	// given alert config.
 	processAlertConfigForTracesWorkerCount = 20
 
-	// This is the no of traces per chunk that is provided to each worker.
-	processAlertConfigForTracesChunkSize = 1
-
 	timeoutForProcessAlertConfigPerTrace time.Duration = time.Minute
 )
 
@@ -249,6 +246,7 @@ func (c *Continuous) buildTraceConfigsMapChannelEventDriven(ctx context.Context)
 					}
 					// If any configs match then emit the configsAndParamSet.
 					if len(matchingConfigs) > 0 {
+						sklog.Infof("Found %d matching configs for file %s", len(matchingConfigs), ie.Filename)
 						ret <- matchingConfigs
 					}
 					success = true
@@ -472,36 +470,60 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 	// and a list of matching alert configs as the value. These are processed
 	// from the file that was just ingested and notification received over pubsub.
 	for traceConfigMap := range c.buildTraceConfigsMapChannelEventDriven(ctx) {
-		for config, traces := range traceConfigMap {
-			sklog.Infof("Clustering over %d traces for config %s", len(traces), config.IDAsString)
-			// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
-			// we need to only query the paramset of the incoming data point instead of
-			// the entire query in the alert.
-			if config.Algo == types.StepFitGrouping {
-				c.ProcessAlertConfigForTraces(ctx, config, traces)
-			} else {
-				c.ProcessAlertConfig(ctx, &config, doNotOverrideQuery)
+		func(traceConfigMap configTracesMap) {
+			ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessPubsubEvent")
+			defer span.End()
+			span.AddAttributes(trace.Int64Attribute("config_count", int64(len(traceConfigMap))))
+			for config, traces := range traceConfigMap {
+				sklog.Infof("Clustering over %d traces for config %s", len(traces), config.IDAsString)
+				// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
+				// we need to only query the paramset of the incoming data point instead of
+				// the entire query in the alert.
+				if config.Algo == types.StepFitGrouping {
+					c.ProcessAlertConfigForTraces(ctx, config, traces)
+				} else {
+					c.ProcessAlertConfig(ctx, &config, doNotOverrideQuery)
+				}
+				sklog.Infof("Done with clustering over %d traces for config %s", len(traces), config.IDAsString)
 			}
-			sklog.Infof("Done with clustering over %d traces for config %s", len(traces), config.IDAsString)
-		}
+		}(traceConfigMap)
 	}
 }
 
 // ProcessAlertConfigForTrace runs the alert config on a specific trace id
-func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, config alerts.Alert, traceIds []string) {
+func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfig alerts.Alert, traceIds []string) {
 	ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessAlertConfigForTraces")
 	defer span.End()
 	span.AddAttributes(trace.Int64Attribute("trace_count", int64(len(traceIds))))
 
+	processAlertConfigForTracesChunkSize := 1
+	if config.Config.Experiments.DfIterTraceSlicer {
+		// TODO(ashwinpv): We can potentially increase this number once verified.
+		processAlertConfigForTracesChunkSize = 20
+	}
+
 	// Let's process the traces in parallel. Provide one trace per worker in parallel.
+	// TODO(ashwinpv): It may be more deterministic to have the ability to query by
+	// specific traceIds in dfbuilder instead of converting traceId to a query string.
 	err := util.ChunkIterParallelPool(ctx, len(traceIds), processAlertConfigForTracesChunkSize, processAlertConfigForTracesWorkerCount, func(ctx context.Context, startIdx, endIdx int) error {
-		// Convert each traceId into a query for regression detection.
-		for _, traceId := range traceIds[startIdx:endIdx] {
-			sklog.Debugf("[AG] Processing trace id: %s", traceId)
+		if config.Config.Experiments.DfIterTraceSlicer {
+			sklog.Infof("Trace Slicer enabled. Grouping traces into a single query.")
 			paramset := paramtools.NewParamSet()
-			paramset.AddParamsFromKey(traceId)
+			// Group all traceIds into a single query for regression detection.
+			for _, traceId := range traceIds[startIdx:endIdx] {
+				paramset.AddParamsFromKey(traceId)
+			}
 			queryOverride := c.urlProvider.GetQueryStringFromParameters(paramset)
-			c.ProcessAlertConfig(ctx, &config, queryOverride)
+			c.ProcessAlertConfig(ctx, &alertConfig, queryOverride)
+		} else {
+			// Convert each traceId into a query for regression detection.
+			for _, traceId := range traceIds[startIdx:endIdx] {
+				sklog.Debugf("[AG] Processing trace id: %s", traceId)
+				paramset := paramtools.NewParamSet()
+				paramset.AddParamsFromKey(traceId)
+				queryOverride := c.urlProvider.GetQueryStringFromParameters(paramset)
+				c.ProcessAlertConfig(ctx, &alertConfig, queryOverride)
+			}
 		}
 
 		return nil

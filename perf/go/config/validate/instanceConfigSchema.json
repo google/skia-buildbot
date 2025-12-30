@@ -174,6 +174,9 @@
         },
         "progress_use_redis_cache": {
           "type": "boolean"
+        },
+        "df_iter_trace_slicer": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

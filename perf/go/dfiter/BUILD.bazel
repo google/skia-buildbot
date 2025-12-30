@@ -3,12 +3,16 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "dfiter",
-    srcs = ["dfiter.go"],
+    srcs = [
+        "dfiter.go",
+        "traceSlicer.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/dfiter",
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",
         "//go/now",
+        "//go/paramtools",
         "//go/query",
         "//go/skerr",
         "//go/sklog",
@@ -24,7 +28,10 @@ go_library(
 
 go_test(
     name = "dfiter_test",
-    srcs = ["dfiter_test.go"],
+    srcs = [
+        "dfiter_test.go",
+        "traceSlicer_test.go",
+    ],
     embed = [":dfiter"],
     deps = [
         "//go/now",

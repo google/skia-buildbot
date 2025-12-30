@@ -160,6 +160,12 @@ func NewDataFrameIterator(
 	// fron the database. Since we know the size of a float we can use this to
 	// roughly estimate the MB/s of regression detection.
 	metrics2.GetCounter("perf_regression_detection_floats").Inc(int64(len(df.Header) * len(df.TraceSet)))
+
+	// The DfTraceSlicer will only work for stepfit (i.e individual and not kmeans)
+	if config.Config.Experiments.DfIterTraceSlicer && alert.Algo == types.StepFitGrouping {
+		return NewDfTraceSlicer(df), nil
+	}
+
 	return &dataframeSlicer{
 		df:     df,
 		size:   2*alert.Radius + 1,
