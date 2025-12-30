@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"path"
 
 	"go.skia.org/infra/task_driver/go/lib/bazel"
@@ -53,7 +54,8 @@ func main() {
 
 	// Causes the tryjob to fail in the presence of diffs, e.g. as a consequence of running Gazelle.
 	failIfNonEmptyGitDiff := func() {
-		if _, err := gitDir.Git(ctx, "diff", "--no-ext-diff", "--exit-code"); err != nil {
+		if output, err := gitDir.Git(ctx, "diff", "--no-ext-diff", "--exit-code"); err != nil {
+			fmt.Println(output)
 			td.Fatal(ctx, err)
 		}
 	}
@@ -72,6 +74,8 @@ func main() {
 	if _, err := bzl.Do(ctx, "version"); err != nil {
 		td.Fatal(ctx, err)
 	}
+
+	defer failIfNonEmptyGitDiff()
 
 	// Run "go generate" and fail it there are any diffs.
 	if _, err := bzl.DoOnRBE(ctx, "run", "//:go", "--", "generate", "./..."); err != nil {

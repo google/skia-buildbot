@@ -102,6 +102,7 @@
         "machine_type:n1-standard-16"
       ],
       "environment": {
+        "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
         "USE_BAZEL_FALLBACK_VERSION": "error"
       },
       "env_prefixes": {
@@ -149,6 +150,7 @@
         "machine_type:n1-standard-16"
       ],
       "environment": {
+        "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
         "USE_BAZEL_FALLBACK_VERSION": "error"
       },
       "env_prefixes": {
@@ -194,6 +196,7 @@
         "machine_type:n1-standard-16"
       ],
       "environment": {
+        "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
         "USE_BAZEL_FALLBACK_VERSION": "error"
       },
       "env_prefixes": {
@@ -239,6 +242,7 @@
         "machine_type:n1-standard-16"
       ],
       "environment": {
+        "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
         "USE_BAZEL_FALLBACK_VERSION": "error"
       },
       "env_prefixes": {
@@ -320,6 +324,7 @@
         "machine_type:n1-highcpu-64"
       ],
       "environment": {
+        "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
         "USE_BAZEL_FALLBACK_VERSION": "error"
       },
       "env_prefixes": {
@@ -405,6 +410,7 @@
         "machine_type:n1-highcpu-64"
       ],
       "environment": {
+        "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
         "USE_BAZEL_FALLBACK_VERSION": "error"
       },
       "env_prefixes": {

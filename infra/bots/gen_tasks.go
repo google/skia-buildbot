@@ -90,6 +90,10 @@ func usesBazelisk(b *specs.TasksCfgBuilder, t *specs.TaskSpec) {
 		t.Environment = map[string]string{}
 	}
 	t.Environment["USE_BAZEL_FALLBACK_VERSION"] = "error"
+	// Causes pnpm-lock.json not to be updated on CI. We're finding differences
+	// between developer machines and CI, where CI will produce diffs that we
+	// don't see locally and then fail.
+	t.Environment["ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK"] = "1"
 }
 
 func usesDocker(t *specs.TaskSpec) {
