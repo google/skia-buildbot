@@ -54,8 +54,10 @@ sk_element_puppeteer_test(
     src = "query-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        ":query-sk_po_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//:node_modules/puppeteer",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
