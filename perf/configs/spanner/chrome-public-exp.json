@@ -44,8 +44,7 @@
             ]
         },
         "branches": [],
-        "file_ingestion_pubsub_topic_name": "",
-        "tracevalues_table_inline_params": true
+        "file_ingestion_pubsub_topic_name": ""
     },
     "git_repo_config": {
         "provider": "gitiles",

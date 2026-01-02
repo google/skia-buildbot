@@ -81,7 +81,6 @@ type TraceStore interface {
 	// Note that 'params' and 'values' are parallel slices and thus need to
 	// match.
 	WriteTraces(ctx context.Context, commitNumber types.CommitNumber, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error
-	WriteTraces2(ctx context.Context, commitNumber types.CommitNumber, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error
 
 	// StartBackgroundMetricsGathering runs metrics collection in the background
 	StartBackgroundMetricsGathering()

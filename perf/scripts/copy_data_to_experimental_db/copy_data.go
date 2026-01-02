@@ -31,7 +31,6 @@ var tableToColumns = map[string][]string{
 	"subscriptions":   spanner.Subscriptions,
 	"traceparams":     spanner.TraceParams,
 	"tracevalues":     spanner.TraceValues,
-	"tracevalues2":    spanner.TraceValues2,
 	"userissues":      spanner.UserIssues,
 	// go/keep-sorted end
 }
@@ -83,7 +82,7 @@ func connectToDB(ctx context.Context, dbURL string) (*pgx.Conn, error) {
 
 // checkExistingData checks if the destination table already contains data for the specified duration.
 func checkExistingData(ctx context.Context, destConn *pgx.Conn, tableName, durationStr string) error {
-	if tableName == "tracevalues" || tableName == "tracevalues2" {
+	if tableName == "tracevalues" {
 		fmt.Println("No data duplication check is performed for tracevalues. Assume you know what you are doing.")
 		return nil
 	}
@@ -126,10 +125,10 @@ func copyData(ctx context.Context, sourceConn, destConn *pgx.Conn, tableName, du
 	var query string
 	var args []interface{}
 
-	// The tracevalues and tracevalues2 tables are very large (8TB+ in chrome_int).
+	// The tracevalues table is very large (8TB+ in chrome_int).
 	// To optimize, we filter them based on the creation time of their associated source files
 	// rather than their own creation time.
-	if tableName == "tracevalues" || tableName == "tracevalues2" {
+	if tableName == "tracevalues" {
 		columns := "t." + strings.Join(columnNames, ", t.")
 		query = fmt.Sprintf(`
 			SELECT %s
@@ -146,7 +145,7 @@ func copyData(ctx context.Context, sourceConn, destConn *pgx.Conn, tableName, du
 			return fmt.Errorf("invalid duration format: %w", err)
 		}
 		since := time.Now().Add(-duration)
-		if tableName == "tracevalues" || tableName == "tracevalues2" {
+		if tableName == "tracevalues" {
 			query += " WHERE s.createdat > $1"
 		} else {
 			query += " WHERE createdat > $1"

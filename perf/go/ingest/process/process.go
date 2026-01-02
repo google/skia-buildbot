@@ -218,15 +218,10 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 	const retries = writeRetries
 	i := 0
 	writeFailed := false
-	inlineParams := w.instanceConfig != nil && w.instanceConfig.IngestionConfig.TraceValuesTableInlineParams
 	for {
 		// Write data to the trace store.
 		var err error = nil
-		if !inlineParams {
-			err = w.store.WriteTraces(ctx, commitNumber, params, values, ps, f.Name, time.Now())
-		} else {
-			err = w.store.WriteTraces2(ctx, commitNumber, params, values, ps, f.Name, time.Now())
-		}
+		err = w.store.WriteTraces(ctx, commitNumber, params, values, ps, f.Name, time.Now())
 		if err == nil {
 			break
 		}
@@ -256,12 +251,10 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 		w.successfulWriteCount.Inc(int64(len(params)))
 	}
 
-	if !inlineParams {
-		if err := sendPubSubEvent(ctx, w.pubSubClient, w.instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps.Freeze(), f.Name); err != nil {
-			sklog.Errorf("Failed to send pubsub event: %s", err)
-		} else {
-			sklog.Info("FileIngestionTopicName pubsub message sent.")
-		}
+	if err := sendPubSubEvent(ctx, w.pubSubClient, w.instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps.Freeze(), f.Name); err != nil {
+		sklog.Errorf("Failed to send pubsub event: %s", err)
+	} else {
+		sklog.Info("FileIngestionTopicName pubsub message sent.")
 	}
 
 	if fileLinks != nil {

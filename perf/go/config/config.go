@@ -274,10 +274,6 @@ type IngestionConfig struct {
 	// an interface that ingests files and optionally provides a channel
 	// of events when a file is ingested.
 	FileIngestionTopicName string `json:"file_ingestion_pubsub_topic_name"`
-
-	// Should param values be inlined into the TraceValues table, on column per param?
-	// Turning this on is experimental, leave off by default.
-	TraceValuesTableInlineParams bool `json:"tracevalues_table_inline_params,omitempty"`
 }
 
 // GitAuthType is the type of authentication Git should use, if any.

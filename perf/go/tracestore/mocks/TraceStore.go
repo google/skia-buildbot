@@ -441,24 +441,6 @@ func (_m *TraceStore) WriteTraces(ctx context.Context, commitNumber types.Commit
 	return r0
 }
 
-// WriteTraces2 provides a mock function with given fields: ctx, commitNumber, params, values, paramset, source, timestamp
-func (_m *TraceStore) WriteTraces2(ctx context.Context, commitNumber types.CommitNumber, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error {
-	ret := _m.Called(ctx, commitNumber, params, values, paramset, source, timestamp)
-
-	if len(ret) == 0 {
-		panic("no return value specified for WriteTraces2")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, []paramtools.Params, []float32, paramtools.ParamSet, string, time.Time) error); ok {
-		r0 = rf(ctx, commitNumber, params, values, paramset, source, timestamp)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // NewTraceStore creates a new instance of TraceStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewTraceStore(t interface {

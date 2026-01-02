@@ -203,7 +203,6 @@ type statement int
 const (
 	insertIntoSourceFiles statement = iota
 	insertIntoTraceValues
-	insertIntoTraceValues2
 	insertIntoParamSets
 	getSourceFileID
 	getLatestTile
@@ -229,21 +228,6 @@ var templates = map[statement]string{
         {{ end }}
         ON CONFLICT (trace_id, commit_number) DO UPDATE
         SET trace_id=EXCLUDED.trace_id, commit_number=EXCLUDED.commit_number, val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id
-        `,
-	insertIntoTraceValues2: `INSERT INTO
-            TraceValues2 (trace_id, commit_number, val, source_file_id, benchmark, bot, test, subtest_1, subtest_2, subtest_3)
-        VALUES
-        {{ range $index, $element :=  . -}}
-            {{ if $index }},{{end}}
-            (
-                '{{ $element.MD5HexTraceID }}', {{ $element.CommitNumber }}, {{ $element.Val }}, {{ $element.SourceFileID }},
-				'{{ $element.Benchmark }}', '{{ $element.Bot }}', '{{ $element.Test }}', '{{ $element.Subtest_1 }}',
-				'{{ $element.Subtest_2 }}', '{{ $element.Subtest_3 }}'
-            )
-        {{ end }}
-         ON CONFLICT (trace_id, commit_number) DO UPDATE
-         SET trace_id=EXCLUDED.trace_id, commit_number=EXCLUDED.commit_number, val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id,
-            benchmark=EXCLUDED.benchmark, bot=EXCLUDED.bot, test=EXCLUDED.test, subtest_1=EXCLUDED.subtest_1, subtest_2=EXCLUDED.subtest_2, subtest_3=EXCLUDED.subtest_3
         `,
 	readTraces: `
         SELECT
@@ -311,35 +295,6 @@ type insertIntoTraceValuesContext struct {
 	CommitNumber types.CommitNumber
 	Val          float32
 	SourceFileID sourceFileIDFromSQL
-}
-
-// replaceTraceValuesContext is the context for the replaceTraceValues2 template.
-type insertIntoTraceValuesContext2 struct {
-	// The MD5 sum of the trace name as a hex string, i.e.
-	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
-	// the database will use to know the string is in hex.
-	MD5HexTraceID traceIDForSQL
-
-	CommitNumber types.CommitNumber
-	Val          float32
-	SourceFileID sourceFileIDFromSQL
-	Benchmark    string
-	Bot          string
-	Test         string
-	Subtest_1    string
-	Subtest_2    string
-	Subtest_3    string
-}
-
-// replaceTraceNamesContext is the context for the replaceTraceNames template.
-type replaceTraceNamesContext struct {
-	// The trace's Params serialize as JSON.
-	JSONParams string
-
-	// The MD5 sum of the trace name as a hex string, i.e.
-	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
-	// the database will use to know the string is in hex.
-	MD5HexTraceID traceIDForSQL
 }
 
 // readTracesContext is the context for the readTraces template.
@@ -1241,91 +1196,6 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 	}
 
 	sklog.Info("Finished writing trace values.")
-
-	return nil
-}
-
-func (s *SQLTraceStore) WriteTraces2(ctx context.Context, commitNumber types.CommitNumber, params []paramtools.Params, values []float32, ps paramtools.ParamSet, source string, _ time.Time) error {
-	ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces2")
-	defer span.End()
-
-	defer timer.NewWithSummary("perfserver_sqltracestore_write_traces2", s.writeTracesMetric).Stop()
-
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Minute)
-	defer cancel()
-
-	// Write the source file entry and the id.
-	sourceID, err := s.updateSourceFile(ctx, source)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-
-	// Build the 'context's which will be used to populate the SQL templates for
-	// the TraceValues table.
-	t := timer.NewWithSummary("perfserver_sqltracestore_build_traces_contexts2", s.buildTracesContextsMetric)
-	valuesTemplateContext2 := make([]insertIntoTraceValuesContext2, 0, len(params))
-
-	for i, p := range params {
-		traceName, err := query.MakeKey(p)
-		if err != nil {
-			sklog.Errorf("Somehow still invalid: %v", p)
-			continue
-		}
-		traceID := traceIDForSQLFromTraceName(traceName)
-		insertContext := insertIntoTraceValuesContext2{
-			MD5HexTraceID: traceID,
-			CommitNumber:  commitNumber,
-			Val:           values[i],
-			SourceFileID:  sourceID,
-		}
-		if v, ok := p["benchmark"]; ok {
-			insertContext.Benchmark = v
-		}
-		if v, ok := p["bot"]; ok {
-			insertContext.Bot = v
-		}
-		if v, ok := p["test"]; ok {
-			insertContext.Test = v
-		}
-		if v, ok := p["subtest_1"]; ok {
-			insertContext.Subtest_1 = v
-		}
-		if v, ok := p["subtest_2"]; ok {
-			insertContext.Subtest_2 = v
-		}
-		if v, ok := p["subtest_3"]; ok {
-			insertContext.Subtest_3 = v
-		}
-		valuesTemplateContext2 = append(valuesTemplateContext2, insertContext)
-	}
-	t.Stop()
-
-	// Now that the contexts are built, execute the SQL in batches.
-	defer timer.NewWithSummary("perfserver_sqltracestore_write_traces2_sql_insert", s.writeTracesMetricSQL).Stop()
-
-	sklog.Infof("About to format %d trace values 2", len(valuesTemplateContext2))
-
-	err = util.ChunkIterParallelPool(ctx, len(valuesTemplateContext2), writeTracesValuesChunkSize, writeTracesParallelPoolSize, func(ctx context.Context, startIdx int, endIdx int) error {
-		ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces2.writeTraceValuesChunkParallel")
-		defer span.End()
-
-		var b bytes.Buffer
-		if err := s.unpreparedStatements[insertIntoTraceValues2].Execute(&b, valuesTemplateContext2[startIdx:endIdx]); err != nil {
-			return skerr.Wrapf(err, "failed to expand trace values2 template")
-		}
-
-		sql := b.String()
-		if _, err := s.db.Exec(ctx, sql); err != nil {
-			return skerr.Wrapf(err, "Executing: %q", sql)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return err
-	}
-
-	sklog.Info("Finished writing trace values 2.")
 
 	return nil
 }
