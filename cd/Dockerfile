@@ -59,3 +59,5 @@ ENV GOPATH=/go
 RUN mkdir -p ${GOPATH}
 ENV PATH="${CIPD_ROOT}/bin:${CIPD_ROOT}/go/bin:${CIPD_ROOT}:${GOPATH}/bin:${PATH}"
 RUN go install github.com/mikefarah/yq/v4@v4.28.1
+ENV ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK=1
+ENV USE_BAZEL_FALLBACK_VERSION=error
