@@ -292,6 +292,7 @@ use_repo(python, "python_3_11")
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
     download_only = True,
+    extra_pip_args = ["--index-url=https://pypi.org/simple"],
     hub_name = "pypi",
     python_version = python_version,
     requirements_lock = "//:requirements.txt",
