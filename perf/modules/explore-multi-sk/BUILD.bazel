@@ -10,6 +10,7 @@ load(
 
 sk_element(
     name = "explore-multi-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
     sass_srcs = ["explore-multi-sk.scss"],
     sk_element_deps = [
         "//perf/modules/explore-simple-sk",

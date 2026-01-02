@@ -162,6 +162,7 @@ export class ReportPageSk extends ElementSk {
       @even-x-axis-spacing-changed=${ele.syncEvenXAxisSpacing}
       @open-anomaly-chart=${(e: CustomEvent<Anomaly>) =>
         ele.anomaliesTable!.openAnomalyChartListener(e)}></div>
+    <div id="bottom-spacer"></div>
   `;
 
   constructor() {

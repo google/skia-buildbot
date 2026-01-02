@@ -767,6 +767,7 @@ export class ExploreMultiSk extends ElementSk {
         total=${ele.state.totalGraphs}
         @page-changed=${ele.pageChanged}>
       </pagination-sk>
+      <div id="bottom-spacer"></div>
     </div>
   `;
 
