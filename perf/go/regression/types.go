@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/perf/go/clustering2"
+	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
@@ -72,6 +73,9 @@ type Store interface {
 
 	// GetBugIdsForRegressions queries all bugs from regressions2, culprits and anomalygroups for given regressions.
 	GetBugIdsForRegressions(ctx context.Context, regressions []*Regression) ([]*Regression, error)
+
+	// GetSubscriptionsForRegressions returns a subset of subscription fields for given regressions, together with regression and alert ids.
+	GetSubscriptionsForRegressions(ctx context.Context, regressionIDs []string) ([]string, []int64, []*pb.Subscription, error)
 }
 
 // FullSummary describes a single regression.

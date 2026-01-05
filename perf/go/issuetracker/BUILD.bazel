@@ -12,6 +12,8 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//perf/go/config",
+        "//perf/go/regression",
+        "//perf/go/subscription/proto/v1",
         "@org_golang_google_api//option",
         "@org_golang_x_oauth2//google",
     ],
@@ -23,6 +25,9 @@ go_test(
     embed = [":issuetracker"],
     deps = [
         "//go/issuetracker/v1:issuetracker",
+        "//perf/go/regression/mocks",
+        "//perf/go/subscription/proto/v1",
+        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_api//option",
     ],

@@ -18,6 +18,7 @@ import (
 	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	"go.skia.org/infra/perf/go/notify/common"
 	"go.skia.org/infra/perf/go/notifytypes"
+	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
@@ -219,7 +220,7 @@ func (n *defaultNotifier) UpdateNotification(ctx context.Context, commit, previo
 }
 
 // New returns a Notifier of the selected type.
-func New(ctx context.Context, cfg *config.NotifyConfig, itCfg *config.IssueTrackerConfig, URL, commitRangeURITemplate string, traceStore tracestore.TraceStore, fs fs.FS, devMode bool) (Notifier, error) {
+func New(ctx context.Context, cfg *config.NotifyConfig, itCfg *config.IssueTrackerConfig, URL, commitRangeURITemplate string, traceStore tracestore.TraceStore, regressionStore regression.Store, fs fs.FS, devMode bool) (Notifier, error) {
 	formatter, err := getFormatter(cfg, commitRangeURITemplate)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -258,7 +259,7 @@ func New(ctx context.Context, cfg *config.NotifyConfig, itCfg *config.IssueTrack
 				return nil, skerr.Fmt("Invalid issue tracker configs. It is required by anomalygroup notifier type.")
 			}
 		}
-		perfIssueTracker, err := perf_issuetracker.NewIssueTracker(ctx, *itCfg, devMode)
+		perfIssueTracker, err := perf_issuetracker.NewIssueTracker(ctx, *itCfg, config.Config.FetchAnomaliesFromSql, regressionStore, devMode)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

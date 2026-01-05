@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/regression"
+	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
@@ -425,4 +426,8 @@ func (s *SQLRegressionStore) ResetAnomalies(ctx context.Context, regressionIDs [
 // NudgeAndResetAnomalies implements the regression.Store interface.
 func (s *SQLRegressionStore) NudgeAndResetAnomalies(ctx context.Context, regressionIDs []string, commitNumber, prevCommitNumber types.CommitNumber) error {
 	return skerr.Fmt("NudgeAndResetAnomalies not implemented for SQLRegressionStore")
+}
+
+func (s *SQLRegressionStore) GetSubscriptionsForRegressions(ctx context.Context, regressionIDs []string) ([]string, []int64, []*pb.Subscription, error) {
+	return nil, nil, nil, skerr.Fmt("GetSubscriptionsForRegressions not implemented for SQLRegressionStore")
 }

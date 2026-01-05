@@ -792,3 +792,144 @@ func TestNudgeAndResetAnomalies_ResetsStatus(t *testing.T) {
 	assert.Equal(t, statusDefault, regs[0].HighStatus.Status)
 	assert.Equal(t, messageDefault, regs[0].HighStatus.Message)
 }
+
+func TestGetSubscriptionsForRegressions(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+
+	alertId1 := int64(1)
+	alertId2 := int64(2)
+	alertId3 := int64(3)
+	component1 := "123456"
+	component2 := "123467"
+
+	// 1. Setup: Insert regressions, alerts, and subscriptions.
+	reg1 := generateNewRegression()
+	reg1.AlertId = alertId1
+	_, err := store.WriteRegression(ctx, reg1, nil)
+	assert.Nil(t, err)
+
+	reg2 := generateNewRegression()
+	reg2.AlertId = alertId2
+	_, err = store.WriteRegression(ctx, reg2, nil)
+	assert.Nil(t, err)
+
+	reg3WithoutSubscription := generateNewRegression()
+	reg3WithoutSubscription.AlertId = alertId3
+	_, err = store.WriteRegression(ctx, reg3WithoutSubscription, nil)
+	assert.Nil(t, err)
+
+	// Setup Alerts
+	setupAlert := func(alertID int64, subName string, subRevision string) {
+		query := `
+			INSERT INTO Alerts (id, sub_name, sub_revision)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (id)
+			DO UPDATE SET
+				id = EXCLUDED.id,
+				sub_name = EXCLUDED.sub_name,
+				sub_revision = EXCLUDED.sub_revision`
+		_, err := store.db.Exec(ctx, query, alertID, subName, subRevision)
+		require.NoError(t, err)
+	}
+	setupAlert(reg1.AlertId, "sub1", "1")
+	setupAlert(reg2.AlertId, "sub2", "1")
+	setupAlert(reg3WithoutSubscription.AlertId, "sub-without-subscription", "1")
+
+	// Setup Subscriptions
+	setupSubscription := func(name string, revision string, component string) {
+		query := `
+			INSERT INTO Subscriptions (name, revision, bug_component)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (name, revision)
+			DO UPDATE SET
+				name = EXCLUDED.name,
+				revision = EXCLUDED.revision,
+				bug_component = EXCLUDED.bug_component`
+		_, err := store.db.Exec(ctx, query, name, revision, component)
+		require.NoError(t, err)
+	}
+	setupSubscription("sub1", "1", component1)
+	setupSubscription("sub2", "1", component2)
+
+	// 2. Test Cases
+	tests := []struct {
+		name                  string
+		regressionIDs         []string
+		expectedRegressionIDs []string
+		expectedAlertIDs      []int64
+		expectedBugComponents []string
+		expectError           bool
+		expectedErrorContains string
+	}{
+		{
+			name:                  "happy path - get multiple subscriptions",
+			regressionIDs:         []string{reg1.Id, reg2.Id},
+			expectedRegressionIDs: []string{reg1.Id, reg2.Id},
+			expectedAlertIDs:      []int64{reg1.AlertId, reg2.AlertId},
+			expectedBugComponents: []string{component1, component2},
+		},
+		{
+			name:                  "single regression",
+			regressionIDs:         []string{reg1.Id},
+			expectedRegressionIDs: []string{reg1.Id},
+			expectedAlertIDs:      []int64{reg1.AlertId},
+			expectedBugComponents: []string{component1},
+		},
+		{
+			name:                  "regression without subscription",
+			regressionIDs:         []string{reg3WithoutSubscription.Id},
+			expectedRegressionIDs: nil,
+			expectedAlertIDs:      nil,
+			expectedBugComponents: nil,
+		},
+		{
+			name:                  "non-existent regression ID",
+			regressionIDs:         []string{"non-existent-id"},
+			expectedRegressionIDs: nil,
+			expectedAlertIDs:      nil,
+			expectedBugComponents: nil,
+		},
+		{
+			name:                  "empty regression IDs",
+			regressionIDs:         []string{},
+			expectedRegressionIDs: nil,
+			expectedAlertIDs:      nil,
+			expectedBugComponents: nil,
+		},
+		{
+			name:                  "mixed existent and non-existent",
+			regressionIDs:         []string{reg1.Id, "non-existent-id"},
+			expectedRegressionIDs: []string{reg1.Id},
+			expectedAlertIDs:      []int64{reg1.AlertId},
+			expectedBugComponents: []string{component1},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			regressionIDs, alertIDs, subs, err := store.GetSubscriptionsForRegressions(ctx, tc.regressionIDs)
+
+			if tc.expectError {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.expectedErrorContains)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.ElementsMatch(t, tc.expectedRegressionIDs, regressionIDs)
+			assert.ElementsMatch(t, tc.expectedAlertIDs, alertIDs)
+
+			if len(tc.expectedBugComponents) > 0 {
+				bugComponents := []string{}
+				for _, sub := range subs {
+					bugComponents = append(bugComponents, sub.BugComponent)
+				}
+				assert.ElementsMatch(t, tc.expectedBugComponents, bugComponents)
+			} else {
+				assert.Empty(t, subs)
+			}
+		})
+	}
+}

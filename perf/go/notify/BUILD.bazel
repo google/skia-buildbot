@@ -40,6 +40,7 @@ go_library(
         "//perf/go/issuetracker",
         "//perf/go/notify/common",
         "//perf/go/notifytypes",
+        "//perf/go/regression",
         "//perf/go/stepfit",
         "//perf/go/tracestore",
         "//perf/go/types",

@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//perf/go/clustering2",
         "//perf/go/regression",
+        "//perf/go/subscription/proto/v1",
         "//perf/go/types",
         "//perf/go/ui/frame",
         "@com_github_jackc_pgx_v4//:pgx",

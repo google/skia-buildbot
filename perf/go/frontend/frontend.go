@@ -584,19 +584,10 @@ func (f *Frontend) initialize() {
 	if f.flags.NoEmail {
 		config.Config.NotifyConfig.Notifications = notifytypes.None
 	}
-	f.notifier, err = notify.New(ctx, &config.Config.NotifyConfig, &config.Config.IssueTrackerConfig, config.Config.URL, f.flags.CommitRangeURL, f.traceStore, f.ingestedFS, f.flags.DevMode)
-	if err != nil {
-		sklog.Fatalf("Failed to create issue tracker: %v", err)
-	}
 
 	f.configProvider, err = alerts.NewConfigProvider(ctx, f.alertStore, 600)
 	if err != nil {
 		sklog.Fatalf("Failed to create alerts configprovider: %s", err)
-	}
-
-	f.culpritStore, err = builders.NewCulpritStoreFromConfig(ctx, cfg)
-	if err != nil {
-		sklog.Fatalf("Failed to build culprit.Store: %s", err)
 	}
 
 	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, cfg, f.configProvider)
@@ -604,10 +595,35 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
 	}
 
+	f.notifier, err = notify.New(ctx, &config.Config.NotifyConfig, &config.Config.IssueTrackerConfig, config.Config.URL, f.flags.CommitRangeURL, f.traceStore, f.regStore, f.ingestedFS, f.flags.DevMode)
+	if err != nil {
+		sklog.Fatalf("Failed to create issue tracker: %v", err)
+	}
+
+	f.culpritStore, err = builders.NewCulpritStoreFromConfig(ctx, cfg)
+	if err != nil {
+		sklog.Fatalf("Failed to build culprit.Store: %s", err)
+	}
+
 	sklog.Debug("Creating anomalygroup store.")
 	f.anomalygroupStore, err = builders.NewAnomalyGroupStoreFromConfig(ctx, config.Config)
 	if err != nil {
 		sklog.Fatalf("Error creating anomalygroup store. %s", err)
+	}
+
+	f.subStore, err = builders.NewSubscriptionStoreFromConfig(ctx, cfg)
+	if err != nil {
+		sklog.Fatalf("Failed to build subscription.Store: %s", err)
+	}
+
+	f.favStore, err = builders.NewFavoriteStoreFromConfig(ctx, cfg)
+	if err != nil {
+		sklog.Fatalf("Failed to build favorite.Store: %s", err)
+	}
+
+	f.userIssueStore, err = builders.NewUserIssueStoreFromConfig(ctx, cfg)
+	if err != nil {
+		sklog.Fatalf("Failed to build userissue.Store: %s", err)
 	}
 
 	// Ongoing migration to Spanner.
@@ -650,7 +666,7 @@ func (f *Frontend) initialize() {
 		}
 
 		if cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretProject != "" && cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretName != "" {
-			f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig, f.flags.DevMode)
+			f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig, config.Config.FetchAnomaliesFromSql, f.regStore, f.flags.DevMode)
 			if err != nil {
 				sklog.Fatalf("Failed to build issuetracker client: %s", err)
 			}
@@ -659,25 +675,10 @@ func (f *Frontend) initialize() {
 
 	// Build mock issuetracker
 	if f.flags.DevMode && f.issuetracker == nil {
-		f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig, f.flags.DevMode)
+		f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig, config.Config.FetchAnomaliesFromSql, f.regStore, f.flags.DevMode)
 		if err != nil {
 			sklog.Fatalf("Failed to build issuetracker client: %s", err)
 		}
-	}
-
-	f.subStore, err = builders.NewSubscriptionStoreFromConfig(ctx, cfg)
-	if err != nil {
-		sklog.Fatalf("Failed to build subscription.Store: %s", err)
-	}
-
-	f.favStore, err = builders.NewFavoriteStoreFromConfig(ctx, cfg)
-	if err != nil {
-		sklog.Fatalf("Failed to build favorite.Store: %s", err)
-	}
-
-	f.userIssueStore, err = builders.NewUserIssueStoreFromConfig(ctx, cfg)
-	if err != nil {
-		sklog.Fatalf("Failed to build userissue.Store: %s", err)
 	}
 
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)

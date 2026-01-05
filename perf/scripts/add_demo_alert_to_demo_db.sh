@@ -34,7 +34,7 @@ ALERT_JSON='{
 
 # --- Define the other required values ---
 SUB_NAME="test_subscription"
-SUB_REVISION="initial_rev"
+SUB_REVISION="123456"
 
 # --- Execute the SQL Insertion using a Here Document (<<EOF) ---
 # The -w flag tells psql to prompt for a password if required.
@@ -59,8 +59,31 @@ psql -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USER}" -d "${DB_NAME}" -v ON_ERROR
         '${SUB_REVISION}'
     );
 
+    INSERT INTO Subscriptions (
+        name,
+        revision,
+        bug_component,
+        bug_priority,
+        bug_severity,
+        bug_cc_emails,
+        contact_email,
+        is_active
+    )
+    VALUES (
+        '${SUB_NAME}',
+        '${SUB_REVISION}',
+        98765,
+        2,
+        2,
+        ARRAY['cc@example.com', 'cc1@example.com'],
+        'contact@mail.com',
+        true
+    );
+
     -- Optional: Print the inserted row (assuming 'id' is auto-generated)
     SELECT * FROM Alerts ORDER BY id DESC LIMIT 1;
+    SELECT * FROM Subscriptions ORDER BY id DESC LIMIT 1;
 EOF
 
-echo "--- Alert inserted successfully. ---"
+echo "--- Alert and Subscription inserted successfully. ---"
+

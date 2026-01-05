@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/sql/spanner"
 	"go.skia.org/infra/perf/go/stepfit"
+	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
@@ -60,6 +61,7 @@ const (
 	resetAnomalies
 	nudgeAndReset
 	readBugsForRegressions
+	getSubscriptionsForRegressions
 )
 
 // statementContext provides a struct to expand sql statement templates.
@@ -197,6 +199,24 @@ var statementFormats = map[statementFormat]string{
 			left join culprits on (anomalygroups.id = any(anomaly_group_ids))
 		where regressions2.id = ANY($1)
 		order by regressions2.id
+	`,
+	getSubscriptionsForRegressions: `
+		SELECT
+			regressions2.id AS regression2_id,
+			alerts.id AS alert_id,
+			COALESCE(subscriptions.bug_component, ''),
+			subscriptions.bug_priority,
+			subscriptions.bug_severity,
+			COALESCE(subscriptions.bug_cc_emails, '{}'::TEXT[]),
+			COALESCE(subscriptions.contact_email, '')
+		FROM
+			regressions2 JOIN alerts
+			ON regressions2.alert_id = alerts.id
+			JOIN subscriptions
+			ON alerts.sub_name = subscriptions.name AND
+				alerts.sub_revision = subscriptions.revision
+		WHERE regressions2.id=ANY($1)
+		ORDER BY regressions2.id
 	`,
 }
 
@@ -871,6 +891,47 @@ func (s *SQLRegression2Store) NudgeAndResetAnomalies(ctx context.Context, regres
 
 	sklog.Infof("Nudged and updated triage status for %d regressions", len(regressionIDs))
 	return nil
+}
+
+// GetAlertIDsFromRegressionIDs retrieves all distinct alert_ids for the given regression IDs.
+func (s *SQLRegression2Store) GetSubscriptionsForRegressions(ctx context.Context, regressionIDs []string) ([]string, []int64, []*pb.Subscription, error) {
+	if len(regressionIDs) == 0 {
+		return nil, nil, nil, nil
+	}
+
+	rows, err := s.db.Query(ctx, s.statements[getSubscriptionsForRegressions], regressionIDs)
+	if err != nil {
+		return nil, nil, nil, skerr.Wrapf(err, "failed to get alert_ids for regressions")
+	}
+	defer rows.Close()
+
+	var regressionIDsFromSql []string
+	var alertIDs []int64
+	var subscriptions []*pb.Subscription
+	for rows.Next() {
+		var regressionID string
+		var alertID int64
+		var subscription pb.Subscription
+		var bugPriority sql.NullInt64
+		var bugSeverity sql.NullInt64
+
+		if err := rows.Scan(&regressionID, &alertID, &subscription.BugComponent, &bugPriority, &bugSeverity, &subscription.BugCcEmails, &subscription.ContactEmail); err != nil {
+			return nil, nil, nil, skerr.Wrap(err)
+		}
+
+		if bugPriority.Valid {
+			subscription.BugPriority = int32(bugPriority.Int64)
+		}
+		if bugSeverity.Valid {
+			subscription.BugSeverity = int32(bugSeverity.Int64)
+		}
+
+		regressionIDsFromSql = append(regressionIDsFromSql, regressionID)
+		alertIDs = append(alertIDs, alertID)
+		subscriptions = append(subscriptions, &subscription)
+	}
+
+	return regressionIDsFromSql, alertIDs, subscriptions, nil
 }
 
 // Confirm that SQLRegressionStore implements regression.Store.

@@ -28,6 +28,7 @@ go_library(
         "//perf/go/progress",
         "//perf/go/shortcut",
         "//perf/go/stepfit",
+        "//perf/go/subscription/proto/v1",
         "//perf/go/types",
         "//perf/go/ui/frame",
         "@com_github_google_uuid//:uuid",

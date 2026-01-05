@@ -4,11 +4,13 @@ package issuetracker
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/regression"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
@@ -17,6 +19,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 
 	issuetracker "go.skia.org/infra/go/issuetracker/v1"
+	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 )
 
 // IssueTracker defines an interface for accessing issuetracker v1 api.
@@ -34,7 +37,9 @@ type IssueTracker interface {
 
 // / IssueTrackerImpl implements IssueTracker using the issue tracker API
 type issueTrackerImpl struct {
-	client *issuetracker.Service
+	client                *issuetracker.Service
+	FetchAnomaliesFromSql bool
+	regStore              regression.Store
 }
 
 // ListIssuesRequest defines the request object for ListIssues.
@@ -83,7 +88,7 @@ func setupSecretClient(ctx context.Context, cfg config.IssueTrackerConfig, optio
 }
 
 // NewIssueTracker returns a new issueTracker object.
-func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig, devMode bool) (IssueTracker, error) {
+func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig, fetchAnomFromSql bool, regStore regression.Store, devMode bool) (IssueTracker, error) {
 	var client *http.Client
 	var err error
 	var options []option.ClientOption
@@ -110,7 +115,9 @@ func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig, devMode
 	}
 
 	return &issueTrackerImpl{
-		client: c,
+		client:                c,
+		FetchAnomaliesFromSql: fetchAnomFromSql,
+		regStore:              regStore,
 	}, nil
 }
 
@@ -163,26 +170,65 @@ func (s *issueTrackerImpl) ListIssues(ctx context.Context, requestObj ListIssues
 	return resp.Issues, nil
 }
 
-func (s *issueTrackerImpl) getComponentID(ctx context.Context, componentName string) (int64, error) {
-	componentID, err := strconv.ParseInt(componentName, 10, 64)
-	if err != nil {
-		// TODO(mordeckimarcin) pass componentIDs instead of raw names.
-		return 1325852, nil
+func (s *issueTrackerImpl) getComponentID(ctx context.Context, subscriptions []*pb.Subscription) (int64, error) {
+	componentID := int64(-1)
+	for _, sub := range subscriptions {
+		id, err := strconv.ParseInt(sub.BugComponent, 10, 64)
+		if err != nil {
+			return -1, err
+		}
+		if componentID == -1 {
+			componentID = id
+			continue
+		}
+		if componentID != id {
+			return -1, skerr.Fmt("cannot file a bug against multiple components at once")
+		}
+	}
+	if componentID == -1 {
+		return -1, skerr.Fmt("failed to retrieve the bug component from a subscription list of length %d", len(subscriptions))
 	}
 	return componentID, nil
 }
 
-// TODO(mordeckimarcin) Inspect filed bugs. Determine whether Keys, TraceNames, Host, or Label
+// TODO(b/454614028) Inspect filed bugs. Determine whether Keys, TraceNames, Host, or Label
 // should be included. In particular, labels will be missing in the new bugs.
 func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (int, error) {
 	if req == nil {
 		return 0, skerr.Fmt("File bug request is null.")
 	}
 
-	componentID, err := s.getComponentID(ctx, req.Component)
-	if err != nil {
-		return 0, skerr.Wrapf(err, "invalid component id: %s", req.Component)
+	if !s.FetchAnomaliesFromSql {
+		return 0, skerr.Fmt("this implementation is supposed to use the DB. Please contact BERF engineers at go/berf-skia-chat.")
 	}
+
+	regressionIds := req.Keys
+	regressionIdsFromSql, alertsIds, subscriptions, err := s.regStore.GetSubscriptionsForRegressions(ctx, regressionIds)
+	if err != nil {
+		return 0, skerr.Wrapf(err, "failed to get alert ids for regressions.")
+	}
+
+	if len(regressionIdsFromSql) != len(regressionIds) {
+		return 0, skerr.Fmt("could not find alert configurations or subscriptions for some regressions")
+	}
+
+	// TODO(b/454614028) Not sure alertsIds will be useful.
+	_ = alertsIds
+
+	componentID, err := s.getComponentID(ctx, subscriptions)
+	if err != nil {
+		return 0, err
+	}
+
+	// Most fields should be present in the DB
+	if req.Component != fmt.Sprintf("%d", componentID) {
+		sklog.Warningf("we ignore componentID passed by fe and use data from the db")
+	}
+
+	// TODO(b/454614028) remove this assignment after migration is done.
+	// This is to prevent spamming other teams while testing.
+	sklog.Warningf("File Bug would use the following component: %d. Using a default component until migration is done.", componentID)
+	componentID = 1325852
 
 	var ccs []*issuetracker.User
 	for _, cc := range req.Ccs {
