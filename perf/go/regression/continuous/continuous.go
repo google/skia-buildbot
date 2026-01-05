@@ -48,7 +48,11 @@ const (
 
 	// This is the no of parallel goroutines that will process the traces for a
 	// given alert config.
-	processAlertConfigForTracesWorkerCount = 20
+	processAlertConfigForTracesWorkerCount = 5
+
+	// This is the no of parallel goroutines that will process alert configs for
+	// the incoming event.
+	processAlertConfigsWorkerCount = 20
 
 	timeoutForProcessAlertConfigPerTrace time.Duration = time.Minute
 )
@@ -474,17 +478,34 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 			ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessPubsubEvent")
 			defer span.End()
 			span.AddAttributes(trace.Int64Attribute("config_count", int64(len(traceConfigMap))))
-			for config, traces := range traceConfigMap {
-				sklog.Infof("Clustering over %d traces for config %s", len(traces), config.IDAsString)
-				// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
-				// we need to only query the paramset of the incoming data point instead of
-				// the entire query in the alert.
-				if config.Algo == types.StepFitGrouping {
-					c.ProcessAlertConfigForTraces(ctx, config, traces)
+			alertConfigs := make([]alerts.Alert, 0, len(traceConfigMap))
+			for alertConfig := range traceConfigMap {
+				alertConfigs = append(alertConfigs, alertConfig)
+			}
+
+			// At this point we have N alert configs matching the event, with T(n) matching traces per config.
+			// We spawn $processAlertConfigsWorkerCount threads to process these in parallel (1 config per thread).
+			// Each of these threads can spawn $processAlertConfigForTracesWorkerCount to gather trace data.
+			err := util.ChunkIterParallelPool(ctx, len(alertConfigs), 1, processAlertConfigsWorkerCount, func(ctx context.Context, startIdx, endIdx int) error {
+				config := alertConfigs[startIdx]
+				if traces, ok := traceConfigMap[config]; ok {
+					sklog.Infof("Clustering over %d traces for config %s", len(traces), config.IDAsString)
+					// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
+					// we need to only query the paramset of the incoming data point instead of
+					// the entire query in the alert.
+					if config.Algo == types.StepFitGrouping {
+						c.ProcessAlertConfigForTraces(ctx, config, traces)
+					} else {
+						c.ProcessAlertConfig(ctx, &config, doNotOverrideQuery)
+					}
+					sklog.Infof("Done with clustering over %d traces for config %s", len(traces), config.IDAsString)
+					return nil
 				} else {
-					c.ProcessAlertConfig(ctx, &config, doNotOverrideQuery)
+					return skerr.Fmt("Alert config not found in traceConfigMap: %v", config)
 				}
-				sklog.Infof("Done with clustering over %d traces for config %s", len(traces), config.IDAsString)
+			})
+			if err != nil {
+				sklog.Errorf("Error processing alert configs: %v", err)
 			}
 		}(traceConfigMap)
 	}
@@ -498,8 +519,7 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 
 	processAlertConfigForTracesChunkSize := 1
 	if config.Config.Experiments.DfIterTraceSlicer {
-		// TODO(ashwinpv): We can potentially increase this number once verified.
-		processAlertConfigForTracesChunkSize = 20
+		processAlertConfigForTracesChunkSize = 50
 	}
 
 	// Let's process the traces in parallel. Provide one trace per worker in parallel.
