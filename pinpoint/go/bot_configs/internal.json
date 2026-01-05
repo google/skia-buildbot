@@ -70,6 +70,31 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
+  "win-arm64-snapdragon-elite-perf": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "win-arm64-builder-perf",
+    "dimensions": [
+      {
+        "key": "cpu",
+        "value": "arm64-64-Snapdragon(R)_X_Elite_-_X1E80100_-_Qualcomm(R)_Oryon(TM)_CPU"
+      },
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "Latitude 7455 (Dell Inc.)"
+      },
+      {
+        "key": "os",
+        "value": "Windows-11"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
   "win-arm64-snapdragon-elite-perf-cbb": {
     "browser": "release",
     "bucket": "luci.chrome.try",
