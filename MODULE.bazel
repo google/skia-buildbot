@@ -488,7 +488,7 @@ register_toolchains(
 ####################################################################################################
 
 cipd = use_extension("//bazel/external:cipd_install.bzl", "cipd")
-cipd.package(
+cipd.download_http(
     name = "git_amd64_linux",
     cipd_package = "infra/3pp/tools/git/linux-amd64",
     postinstall_cmds_posix = [
@@ -502,7 +502,7 @@ cipd.package(
 )
 use_repo(cipd, "git_amd64_linux")
 
-cipd.package(
+cipd.download_http(
     name = "git_amd64_windows",
     cipd_package = "infra/3pp/tools/git/windows-amd64",
     postinstall_cmds_win = [
@@ -516,7 +516,7 @@ cipd.package(
 )
 use_repo(cipd, "git_amd64_windows")
 
-cipd.package(
+cipd.download_http(
     name = "vpython_amd64_linux",
     cipd_package = "infra/tools/luci/vpython/linux-amd64",
     # From https://chrome-infra-packages.appspot.com/p/infra/tools/luci/vpython/linux-amd64/+/git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
@@ -525,7 +525,7 @@ cipd.package(
 )
 use_repo(cipd, "vpython_amd64_linux")
 
-cipd.package(
+cipd.download_http(
     name = "cpython3_amd64_linux",
     cipd_package = "infra/3pp/tools/cpython3/linux-amd64",
     # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/cpython3/linux-amd64/+/version:2@3.11.7.chromium.31

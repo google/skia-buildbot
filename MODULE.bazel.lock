@@ -521,8 +521,8 @@
     },
     "//bazel/external:cipd_install.bzl%cipd": {
       "general": {
-        "bzlTransitiveDigest": "5gDWHMyjD8lyuAj8EdWpS5UotJ1RRlz9xYI8CV6uU0U=",
-        "usagesDigest": "6PzTruXAVrd206QkrXBNu8rs2dKylVpSHytFUJQOUIE=",
+        "bzlTransitiveDigest": "0YGaTmwEB9gvZhd53o+SuZz6yViXhgHF9FeSpzWlYLE=",
+        "usagesDigest": "qSyFWuSLkX4JlVmQ0lZoDRCZMumwAP6xeIxWlBU2UD8=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -530,7 +530,7 @@
           "git_amd64_linux": {
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
-              "build_file_content": "\nfilegroup(\n  name = \"all_files\",\n  # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n  srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n  visibility = [\"//visibility:public\"],\n)",
+              "build_file_content": "\n# To add a specific file inside this CIPD package as a dependency, use a label such as\n# @my_cipd_pkg//:path/to/file.\n# The exclude pattern prevents files with spaces in their names from tripping up Bazel.\nexports_files(glob(include=[\"**/*\"], exclude=[\"**/* *\"]))\n\n# Convenience filegroup to add all files in this CIPD package as dependencies.\nfilegroup(\n    name = \"all_files\",\n    # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n    srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
               "sha256": "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
               "urls": [
                 "https://chrome-infra-packages.appspot.com/dl/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6",
@@ -548,7 +548,7 @@
           "git_amd64_windows": {
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
-              "build_file_content": "\nfilegroup(\n  name = \"all_files\",\n  # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n  srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n  visibility = [\"//visibility:public\"],\n)",
+              "build_file_content": "\n# To add a specific file inside this CIPD package as a dependency, use a label such as\n# @my_cipd_pkg//:path/to/file.\n# The exclude pattern prevents files with spaces in their names from tripping up Bazel.\nexports_files(glob(include=[\"**/*\"], exclude=[\"**/* *\"]))\n\n# Convenience filegroup to add all files in this CIPD package as dependencies.\nfilegroup(\n    name = \"all_files\",\n    # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n    srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
               "sha256": "9caaf2c6066bdcfa94f917323c4031cf7e32572848f8621ecd0d328babee220a",
               "urls": [
                 "https://chrome-infra-packages.appspot.com/dl/infra/3pp/tools/git/windows-amd64/+/version:2.29.2.chromium.6",
@@ -566,7 +566,7 @@
           "vpython_amd64_linux": {
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
-              "build_file_content": "\nfilegroup(\n  name = \"all_files\",\n  # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n  srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n  visibility = [\"//visibility:public\"],\n)",
+              "build_file_content": "\n# To add a specific file inside this CIPD package as a dependency, use a label such as\n# @my_cipd_pkg//:path/to/file.\n# The exclude pattern prevents files with spaces in their names from tripping up Bazel.\nexports_files(glob(include=[\"**/*\"], exclude=[\"**/* *\"]))\n\n# Convenience filegroup to add all files in this CIPD package as dependencies.\nfilegroup(\n    name = \"all_files\",\n    # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n    srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
               "sha256": "ec210b3873665208c42e80883546d22d5f448f04e736f1e1fc015da7fc3003a3",
               "urls": [
                 "https://chrome-infra-packages.appspot.com/dl/infra/tools/luci/vpython/linux-amd64/+/git_revision:31868238187077557113efa2bd4e2c7e3b3ec970",
@@ -580,7 +580,7 @@
           "cpython3_amd64_linux": {
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
-              "build_file_content": "\nfilegroup(\n  name = \"all_files\",\n  # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n  srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n  visibility = [\"//visibility:public\"],\n)",
+              "build_file_content": "\n# To add a specific file inside this CIPD package as a dependency, use a label such as\n# @my_cipd_pkg//:path/to/file.\n# The exclude pattern prevents files with spaces in their names from tripping up Bazel.\nexports_files(glob(include=[\"**/*\"], exclude=[\"**/* *\"]))\n\n# Convenience filegroup to add all files in this CIPD package as dependencies.\nfilegroup(\n    name = \"all_files\",\n    # The exclude pattern prevents files with spaces in their names from tripping up Bazel.\n    srcs = glob(include=[\"**/*\"], exclude=[\"**/* *\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
               "sha256": "0ff2955adf65e2921c4abd8e2848862d3c7731feeda5c506f44e796aa4af2dc7",
               "urls": [
                 "https://chrome-infra-packages.appspot.com/dl/infra/3pp/tools/cpython3/linux-amd64/+/version:2@3.11.7.chromium.31",
