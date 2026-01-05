@@ -58,6 +58,7 @@
         "0x3e9b", // Intel UHD 630 (2016/2019 Macbook Pro)
         "0x41333430", // Qualcomm Adreno 680/685/690
         "0x4680", // Intel UHD 770
+        "0x4d4f4351", // Qualcomm Snapdragon X Elite SoC
         "0x679e", // AMD HD 7870 XT (Mac Pro)
         "0x70930000", // Fuchsia Astro/Nelson devices
         "0x72120000", // Fuchsia Sherlock devices
