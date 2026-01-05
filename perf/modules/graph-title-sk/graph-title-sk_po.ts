@@ -10,43 +10,45 @@ export class GraphTitleSkPO extends PageObject {
     return this.bySelector('#container');
   }
 
-  private get multiTraceTitle(): PageObjectElement {
-    return this.bySelector('h1');
-  }
-
-  private get columns(): PageObjectElementList {
-    return this.bySelectorAll('.column');
-  }
-
   private get showMoreButton(): PageObjectElement {
-    return this.bySelector('.showMore');
+    return this.bySelector('md-text-button.showMore');
   }
 
-  async isContainerHidden(): Promise<boolean> {
-    return this.container.hasAttribute('hidden');
+  private get paramNames(): PageObjectElementList {
+    return this.bySelectorAll('.param');
   }
 
-  async getMultiTraceTitle(): Promise<string> {
-    return this.multiTraceTitle.innerText;
+  private get paramValues(): PageObjectElementList {
+    return this.bySelectorAll('.hover-to-show-text');
   }
 
-  async getParamAndValuePairs(): Promise<{ param: string; value: string }[]> {
-    const pairs: { param: string; value: string }[] = [];
-    const len = await this.columns.length;
-    for (let i = 0; i < len; i++) {
-      const col = await this.columns.item(i);
-      const param = await col.bySelector('.param').innerText;
-      const value = await col.bySelector('.hover-to-show-text').innerText;
-      pairs.push({ param, value });
-    }
-    return pairs;
+  async isHidden(): Promise<boolean> {
+    return await this.container.hasAttribute('hidden');
   }
 
-  async isShowMoreButtonVisible(): Promise<boolean> {
+  async getTitleText(): Promise<string> {
+    return await this.element.innerText;
+  }
+
+  async getParamCount(): Promise<number> {
+    return this.paramNames.length;
+  }
+
+  async getParamName(index: number): Promise<string> {
+    const el = await this.paramNames.item(index);
+    return el.innerText;
+  }
+
+  async getParamValue(index: number): Promise<string> {
+    const el = await this.paramValues.item(index);
+    return el.innerText;
+  }
+
+  async isShowMoreVisible(): Promise<boolean> {
     return !(await this.showMoreButton.isEmpty());
   }
 
-  async clickShowMoreButton(): Promise<void> {
+  async clickShowMore(): Promise<void> {
     await this.showMoreButton.click();
   }
 }

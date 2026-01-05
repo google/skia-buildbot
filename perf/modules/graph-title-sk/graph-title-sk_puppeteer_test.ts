@@ -53,7 +53,7 @@ describe('graph-title-sk', () => {
     });
 
     it('shows the long title expanded', async () => {
-      await longTitlePO.clickShowMoreButton();
+      await longTitlePO.clickShowMore();
       const element = await testBed.page.$('#partial');
       await takeScreenshot(element!, 'perf', 'graph-title-sk-long-expanded');
     });
@@ -61,59 +61,56 @@ describe('graph-title-sk', () => {
 
   describe('default title', () => {
     it('is not hidden', async () => {
-      assert.isFalse(await defaultPO.isContainerHidden());
+      assert.isFalse(await defaultPO.isHidden());
     });
 
     it('shows the correct params', async () => {
-      const pairs = await defaultPO.getParamAndValuePairs();
-      expect(pairs).to.have.length(3); // one value is empty, so it's skipped
-      expect(pairs[0]).to.deep.equal({ param: 'bot', value: 'linux-perf' });
-      expect(pairs[1]).to.deep.equal({ param: 'benchmark', value: 'Speedometer2' });
-      expect(pairs[2]).to.deep.equal({
-        param: 'subtest_1',
-        value: '100_objects_allocated_at_initialization',
-      });
+      expect(await defaultPO.getParamCount()).to.equal(3); // one value is empty, so it's skipped
+      expect(await defaultPO.getParamName(0)).to.equal('bot');
+      expect(await defaultPO.getParamValue(0)).to.equal('linux-perf');
+      expect(await defaultPO.getParamName(1)).to.equal('benchmark');
+      expect(await defaultPO.getParamValue(1)).to.equal('Speedometer2');
+      expect(await defaultPO.getParamName(2)).to.equal('subtest_1');
+      expect(await defaultPO.getParamValue(2)).to.equal('100_objects_allocated_at_initialization');
     });
 
     it('does not have a show more button', async () => {
-      assert.isFalse(await defaultPO.isShowMoreButtonVisible());
+      assert.isFalse(await defaultPO.isShowMoreVisible());
     });
   });
 
   describe('long title', () => {
     it('is not hidden', async () => {
-      assert.isFalse(await longTitlePO.isContainerHidden());
+      assert.isFalse(await longTitlePO.isHidden());
     });
 
     it('has a show more button', async () => {
-      assert.isTrue(await longTitlePO.isShowMoreButtonVisible());
+      assert.isTrue(await longTitlePO.isShowMoreVisible());
     });
 
     it('initially shows a truncated list of params', async () => {
-      const pairs = await longTitlePO.getParamAndValuePairs();
-      expect(pairs).to.have.length(8);
+      expect(await longTitlePO.getParamCount()).to.equal(8);
     });
 
     it('shows all params after clicking show more', async () => {
-      await longTitlePO.clickShowMoreButton();
-      const pairs = await longTitlePO.getParamAndValuePairs();
-      expect(pairs).to.have.length(9);
-      assert.isFalse(await longTitlePO.isShowMoreButtonVisible());
+      await longTitlePO.clickShowMore();
+      expect(await longTitlePO.getParamCount()).to.equal(9);
+      assert.isFalse(await longTitlePO.isShowMoreVisible());
     });
   });
 
   describe('multi trace title', () => {
     it('is not hidden', async () => {
-      assert.isFalse(await multiTracePO.isContainerHidden());
+      assert.isFalse(await multiTracePO.isHidden());
     });
     it('shows the correct title', async () => {
-      expect(await multiTracePO.getMultiTraceTitle()).to.equal('Multi-trace Graph (5 traces)');
+      expect(await multiTracePO.getTitleText()).to.equal('Multi-trace Graph (5 traces)');
     });
   });
 
   describe('no traces title', () => {
     it('is hidden', async () => {
-      assert.isTrue(await noTracesPO.isContainerHidden());
+      assert.isTrue(await noTracesPO.isHidden());
     });
   });
 });

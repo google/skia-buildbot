@@ -1,12 +1,12 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 sk_element(
     name = "graph-title-sk",
     sass_srcs = ["graph-title-sk.scss"],
     ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
     ],
     ts_srcs = [
         "graph-title-sk.ts",
@@ -15,27 +15,20 @@ sk_element(
     visibility = ["//visibility:public"],
 )
 
-sk_demo_page_server(
-    name = "demo_page_server",
-    sk_page = ":graph-title-sk-demo",
-)
-
 sk_page(
     name = "graph-title-sk-demo",
     html_file = "graph-title-sk-demo.html",
     sk_element_deps = [":graph-title-sk"],
-    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+    ],
     ts_entry_point = "graph-title-sk-demo.ts",
 )
 
 ts_library(
-    name = "graph-title-sk_po_ts_lib",
-    srcs = ["graph-title-sk_po.ts"],
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
     visibility = ["//visibility:public"],
-    deps = [
-        "//infra-sk/modules/page_object:page_object_element_ts_lib",
-        "//infra-sk/modules/page_object:page_object_ts_lib",
-    ],
 )
 
 sk_element_puppeteer_test(
@@ -53,7 +46,27 @@ sk_element_puppeteer_test(
 )
 
 ts_library(
-    name = "test_data_ts_lib",
-    srcs = ["test_data.ts"],
+    name = "graph-title-sk_po_ts_lib",
+    srcs = ["graph-title-sk_po.ts"],
     visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":graph-title-sk-demo",
+)
+
+karma_test(
+    name = "graph-title-sk_test",
+    src = "graph-title-sk_test.ts",
+    deps = [
+        ":graph-title-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
 )
