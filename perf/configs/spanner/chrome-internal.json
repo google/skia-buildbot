@@ -7,7 +7,7 @@
     "backend_host_url": "perf-be-chrome-non-public.perf.svc.cluster.local:8000",
     "contact": "browser-perf-engprod@google.com",
     "instance_name": "chrome-internal",
-    "trace_sample_proportion": 0.01,
+    "trace_sample_proportion": 0.1,
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
     "use_regression2_schema": true,

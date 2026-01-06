@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -48,7 +49,7 @@ const (
 
 	// This is the no of parallel goroutines that will process the traces for a
 	// given alert config.
-	processAlertConfigForTracesWorkerCount = 5
+	processAlertConfigForTracesWorkerCount = 20
 
 	// This is the no of parallel goroutines that will process alert configs for
 	// the incoming event.
@@ -478,6 +479,9 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 			ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessPubsubEvent")
 			defer span.End()
 			span.AddAttributes(trace.Int64Attribute("config_count", int64(len(traceConfigMap))))
+
+			defer timer.New("ProcessPubsubEvent - Complete").Stop()
+
 			alertConfigs := make([]alerts.Alert, 0, len(traceConfigMap))
 			for alertConfig := range traceConfigMap {
 				alertConfigs = append(alertConfigs, alertConfig)
