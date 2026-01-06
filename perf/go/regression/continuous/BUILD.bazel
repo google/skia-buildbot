@@ -20,6 +20,7 @@ go_library(
         "//perf/go/clustering2",
         "//perf/go/config",
         "//perf/go/dataframe",
+        "//perf/go/dfiter",
         "//perf/go/git",
         "//perf/go/git/provider",
         "//perf/go/ingestevents",

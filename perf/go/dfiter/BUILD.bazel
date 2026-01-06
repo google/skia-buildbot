@@ -4,6 +4,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "dfiter",
     srcs = [
+        "dfIterProvider.go",
         "dfiter.go",
         "traceSlicer.go",
     ],
@@ -23,12 +24,14 @@ go_library(
         "//perf/go/progress",
         "//perf/go/types",
         "@io_opencensus_go//trace",
+        "@org_golang_x_sync//singleflight",
     ],
 )
 
 go_test(
     name = "dfiter_test",
     srcs = [
+        "dfIterProvider_test.go",
         "dfiter_test.go",
         "traceSlicer_test.go",
     ],
@@ -37,9 +40,11 @@ go_test(
         "//go/now",
         "//go/paramtools",
         "//go/query",
+        "//go/testutils",
         "//perf/go/alerts",
         "//perf/go/config",
         "//perf/go/dataframe",
+        "//perf/go/dataframe/mocks",
         "//perf/go/dfbuilder",
         "//perf/go/git",
         "//perf/go/git/gittest",
@@ -48,6 +53,7 @@ go_test(
         "//perf/go/tracestore/sqltracestore",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],
 )

@@ -130,7 +130,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier(), regression.ExpandBaseAlertByGroupBy, regression.ContinueOnError, config.Config.AnomalyConfig)
+		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier(), regression.ExpandBaseAlertByGroupBy, regression.ContinueOnError, config.Config.AnomalyConfig, nil)
 		if err != nil {
 			req.Progress.Error(err.Error())
 		} else {

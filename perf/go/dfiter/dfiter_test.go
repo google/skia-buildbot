@@ -124,7 +124,7 @@ func TestNewDataFrameIterator_MultipleDataframes_SingleFrameOfLengthThree(t *tes
 		Offset: 0,
 	}
 	query := "arch=x86"
-	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, query, domain, alert, defaultAnomalyConfig)
+	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, query, domain, alert, defaultAnomalyConfig, nil)
 	require.NoError(t, err)
 	require.True(t, iter.Next())
 	df, err := iter.Value(ctx)
@@ -165,7 +165,7 @@ func TestNewDataFrameIterator_MultipleDataframes_TwoFramesOfLengthTwo(t *testing
 		Offset: 0,
 	}
 	query := "arch=x86"
-	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, query, domain, alert, defaultAnomalyConfig)
+	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, query, domain, alert, defaultAnomalyConfig, nil)
 	require.NoError(t, err)
 
 	require.True(t, iter.Next())
@@ -214,7 +214,7 @@ func TestNewDataFrameIterator_InsufficientData_ReturnsError(t *testing.T) {
 	}
 	query := "arch=x86"
 	pc := &progressCapture{}
-	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, query, domain, alert, defaultAnomalyConfig)
+	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, query, domain, alert, defaultAnomalyConfig, nil)
 	require.Error(t, err)
 	require.Equal(t, "Query didn't return enough data points: Got 2. Want 11.", pc.message)
 }
@@ -235,7 +235,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit
 	}
 	q := "arch=x86"
 	pc := &progressCapture{}
-	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, q, domain, alert, defaultAnomalyConfig)
+	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, q, domain, alert, defaultAnomalyConfig, nil)
 	require.Contains(t, err.Error(), "Failed to look up CommitNumber")
 	require.Equal(t, "Not a valid commit number 31. Make sure you choose a commit old enough to have 1 commits before it and 0 commits after it.", pc.message)
 }
@@ -252,7 +252,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_Success(t *testing.T) {
 		Offset: 6, // Start at 6 with a radius of 1 to get the commit at 7.
 	}
 	q := "arch=x86"
-	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert, defaultAnomalyConfig)
+	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert, defaultAnomalyConfig, nil)
 	require.NoError(t, err)
 	require.True(t, iter.Next())
 	df, err := iter.Value(ctx)
@@ -261,6 +261,39 @@ func TestNewDataFrameIterator_ExactDataframeRequest_Success(t *testing.T) {
 	assert.Equal(t, types.CommitNumber(0), df.Header[0].Offset)
 	assert.Equal(t, types.CommitNumber(1), df.Header[1].Offset)
 	assert.Equal(t, types.CommitNumber(7), df.Header[2].Offset)
+}
+
+func TestNewDataFrameIterator_WithDfProvider_Success(t *testing.T) {
+	ctx, dfb, g, _ := newForTest(t)
+
+	// This is an ExactDataframeRequest because Offset != 0.
+	alert := &alerts.Alert{
+		Radius: 1,
+		Algo:   types.StepFitGrouping,
+	}
+	domain := types.Domain{
+		N: 3,
+	}
+	q := "arch=x86"
+	dfProvider := NewDfProvider()
+	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert, defaultAnomalyConfig, dfProvider)
+	require.NoError(t, err)
+	require.True(t, iter.Next())
+	df, err := iter.Value(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 3, len(df.Header))
+	assert.Equal(t, types.CommitNumber(1), df.Header[0].Offset)
+	assert.Equal(t, types.CommitNumber(7), df.Header[1].Offset)
+	assert.Equal(t, types.CommitNumber(8), df.Header[2].Offset)
+
+	// Test that the dfprovider has the dataframe in cache.
+	query, err := query.NewFromString(q)
+	assert.Nil(t, err)
+	provKey := key(query, domain.End, domain.N)
+	dfFromCache := dfProvider.readFromCache(provKey)
+	assert.NotNil(t, dfFromCache, "Expected the dataframe to be in the cache.")
+	assert.Equal(t, df.TraceSet, dfFromCache.TraceSet)
+	assert.Equal(t, df.Header, dfFromCache.Header)
 }
 
 func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstCommit(t *testing.T) {
@@ -279,7 +312,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstComm
 	}
 	q := "arch=x86"
 	pc := &progressCapture{}
-	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, q, domain, alert, defaultAnomalyConfig)
+	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, q, domain, alert, defaultAnomalyConfig, nil)
 	require.Contains(t, err.Error(), "Failed to look up CommitNumber")
 	require.Equal(t, "Not a valid commit number -4. Make sure you choose a commit old enough to have 1 commits before it and 0 commits after it.", pc.message)
 }
@@ -301,7 +334,7 @@ func TestNewDataFrameIterator_MultipleDataframes_ErrIfWeSearchBeforeFirstCommit(
 	}
 	q := "arch=x86"
 	pc := &progressCapture{}
-	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, q, domain, alert, defaultAnomalyConfig)
+	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, q, domain, alert, defaultAnomalyConfig, nil)
 	require.Contains(t, err.Error(), "Failed to build dataframe iterator")
 	require.Equal(t, "Failed querying the data due to an internal error.", pc.message)
 }
@@ -329,7 +362,7 @@ func TestNewDataFrameIterator_MultipleDataframesWithSettlingTime_OneFramesOfLeng
 	}
 
 	ctx := now.TimeTravelingContext(t.Context(), lastTimeStamp)
-	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, query, domain, alert, anomalyConfig)
+	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, query, domain, alert, anomalyConfig, nil)
 	require.NoError(t, err)
 
 	require.True(t, iter.Next())

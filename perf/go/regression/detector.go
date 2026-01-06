@@ -162,6 +162,7 @@ func ProcessRegressions(ctx context.Context,
 	expandBaseRequest BaseAlertHandling,
 	iteration Iteration,
 	anomalyConfig config.AnomalyConfig,
+	dfProvider *dfiter.DfProvider,
 ) error {
 	ctx, span := trace.StartSpan(ctx, "ProcessRegressions")
 	defer span.End()
@@ -185,7 +186,7 @@ func ProcessRegressions(ctx context.Context,
 			req.Progress.Message("Iteration", msg)
 		}
 
-		iter, err := dfiter.NewDataFrameIterator(timeoutContext, req.Progress, dfBuilder, perfGit, iterErrorCallback, req.Query(), req.Domain, req.Alert, anomalyConfig)
+		iter, err := dfiter.NewDataFrameIterator(timeoutContext, req.Progress, dfBuilder, perfGit, iterErrorCallback, req.Query(), req.Domain, req.Alert, anomalyConfig, dfProvider)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
 				timeoutCounter(req.Alert.DisplayName).Inc(1)

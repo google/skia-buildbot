@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/dfiter"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/ingestevents"
@@ -487,6 +488,8 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 				alertConfigs = append(alertConfigs, alertConfig)
 			}
 
+			dfProvider := dfiter.NewDfProvider()
+
 			// At this point we have N alert configs matching the event, with T(n) matching traces per config.
 			// We spawn $processAlertConfigsWorkerCount threads to process these in parallel (1 config per thread).
 			// Each of these threads can spawn $processAlertConfigForTracesWorkerCount to gather trace data.
@@ -498,9 +501,9 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 					// we need to only query the paramset of the incoming data point instead of
 					// the entire query in the alert.
 					if config.Algo == types.StepFitGrouping {
-						c.ProcessAlertConfigForTraces(ctx, config, traces)
+						c.ProcessAlertConfigForTraces(ctx, config, traces, dfProvider)
 					} else {
-						c.ProcessAlertConfig(ctx, &config, doNotOverrideQuery)
+						c.ProcessAlertConfig(ctx, &config, doNotOverrideQuery, nil)
 					}
 					sklog.Infof("Done with clustering over %d traces for config %s", len(traces), config.IDAsString)
 					return nil
@@ -516,7 +519,7 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 }
 
 // ProcessAlertConfigForTrace runs the alert config on a specific trace id
-func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfig alerts.Alert, traceIds []string) {
+func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfig alerts.Alert, traceIds []string, dfProvider *dfiter.DfProvider) {
 	ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessAlertConfigForTraces")
 	defer span.End()
 	span.AddAttributes(trace.Int64Attribute("trace_count", int64(len(traceIds))))
@@ -538,7 +541,7 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 				paramset.AddParamsFromKey(traceId)
 			}
 			queryOverride := c.urlProvider.GetQueryStringFromParameters(paramset)
-			c.ProcessAlertConfig(ctx, &alertConfig, queryOverride)
+			c.ProcessAlertConfig(ctx, &alertConfig, queryOverride, dfProvider)
 		} else {
 			// Convert each traceId into a query for regression detection.
 			for _, traceId := range traceIds[startIdx:endIdx] {
@@ -546,7 +549,7 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 				paramset := paramtools.NewParamSet()
 				paramset.AddParamsFromKey(traceId)
 				queryOverride := c.urlProvider.GetQueryStringFromParameters(paramset)
-				c.ProcessAlertConfig(ctx, &alertConfig, queryOverride)
+				c.ProcessAlertConfig(ctx, &alertConfig, queryOverride, nil)
 			}
 		}
 
@@ -570,7 +573,7 @@ func (c *Continuous) RunContinuousClustering(ctx context.Context) {
 	for cnp := range c.buildConfigAndParamsetChannel(ctx) {
 		clusteringLatency.Start()
 		for _, cfg := range cnp.configs {
-			c.ProcessAlertConfig(ctx, cfg, doNotOverrideQuery)
+			c.ProcessAlertConfig(ctx, cfg, doNotOverrideQuery, nil)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()
@@ -580,7 +583,7 @@ func (c *Continuous) RunContinuousClustering(ctx context.Context) {
 }
 
 // ProcessAlertConfig processes the supplied alert config to detect regressions
-func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, queryOverride string) {
+func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, queryOverride string, dfProvider *dfiter.DfProvider) {
 	ctx, cancel := context.WithTimeout(ctx, timeoutForProcessAlertConfigPerTrace)
 	defer cancel()
 
@@ -656,7 +659,7 @@ func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, 
 
 	var err error
 	ctxutil.WithContextTimeout(ctx, config.QueryMaxRunTime, func(ctx context.Context) {
-		err = regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest, regression.ContinueOnError, c.instanceConfig.AnomalyConfig)
+		err = regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest, regression.ContinueOnError, c.instanceConfig.AnomalyConfig, dfProvider)
 	})
 	if err != nil {
 		sklog.Warningf("Failed regression detection: Query: %q Error: %s", req.Query, err)

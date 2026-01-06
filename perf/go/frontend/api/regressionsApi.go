@@ -651,7 +651,7 @@ func (rApi regressionsApi) clusterStartHandler(w http.ResponseWriter, r *http.Re
 
 	go func() {
 		// This intentionally does not use r.Context() because we want it to outlive this request.
-		err := regression.ProcessRegressions(context.Background(), req, cb, rApi.perfGit, rApi.shortcutStore, rApi.dfBuilder, rApi.paramsetRefresher.GetAll(), regression.ExpandBaseAlertByGroupBy, regression.ReturnOnError, config.Config.AnomalyConfig)
+		err := regression.ProcessRegressions(context.Background(), req, cb, rApi.perfGit, rApi.shortcutStore, rApi.dfBuilder, rApi.paramsetRefresher.GetAll(), regression.ExpandBaseAlertByGroupBy, regression.ReturnOnError, config.Config.AnomalyConfig, nil)
 		if err != nil {
 			sklog.Errorf("ProcessRegressions returned: %s", err)
 			req.Progress.Error("Failed to load data.")

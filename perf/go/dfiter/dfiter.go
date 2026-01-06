@@ -78,6 +78,7 @@ func NewDataFrameIterator(
 	domain types.Domain,
 	alert *alerts.Alert,
 	anomalyConfig config.AnomalyConfig,
+	dfProvider *DfProvider,
 ) (DataFrameIterator, error) {
 	ctx, span := trace.StartSpan(ctx, "dfiter.NewDataFrameIterator")
 	defer span.End()
@@ -102,7 +103,17 @@ func NewDataFrameIterator(
 			}
 		}
 
-		df, err = dfBuilder.NewNFromQuery(ctx, domain.End, q, domain.N, progress)
+		if dfProvider != nil {
+			df, err = dfProvider.GetDataFrame(ctx, dfBuilder, q, domain.End, domain.N, progress)
+			if err != nil {
+				// Log the error and fall back to the usual NewNFromQuery.
+				sklog.Errorf("Failed to get DataFrame from cache: %v", err)
+			}
+		}
+		if df == nil {
+			df, err = dfBuilder.NewNFromQuery(ctx, domain.End, q, domain.N, progress)
+		}
+
 		if err != nil {
 			if regressionStateCallback != nil {
 				regressionStateCallback("Failed querying the data due to an internal error.")

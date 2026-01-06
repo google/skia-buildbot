@@ -87,7 +87,7 @@ func TestProcessRegressions_BadQueryValue_ReturnsError(t *testing.T) {
 	}
 
 	dfb := &mocks.DataFrameBuilder{}
-	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet(), ExpandBaseAlertByGroupBy, ReturnOnError, defaultAnomalyConfig)
+	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet(), ExpandBaseAlertByGroupBy, ReturnOnError, defaultAnomalyConfig, nil)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Invalid query")
 	assert.Equal(t, progress.Running, req.Progress.Status())
