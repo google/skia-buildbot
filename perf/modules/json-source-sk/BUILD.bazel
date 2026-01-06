@@ -1,30 +1,27 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
-
-sk_demo_page_server(
-    name = "demo_page_server",
-    sk_page = ":json-source-sk-demo",
-)
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 sk_element(
     name = "json-source-sk",
-    sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
+    sass_deps = [
+        "//elements-sk/modules/styles:buttons_sass_lib",
+    ],
     sass_srcs = ["json-source-sk.scss"],
     sk_element_deps = ["//elements-sk/modules/spinner-sk"],
     ts_deps = [
-        "//:node_modules/@material/web",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
+        "//:node_modules/@material/web",
     ],
     ts_srcs = [
-        "index.ts",
         "json-source-sk.ts",
+        "index.ts",
     ],
     visibility = ["//visibility:public"],
 )
@@ -37,20 +34,10 @@ sk_page(
         "//elements-sk/modules/error-toast-sk",
     ],
     ts_deps = [
-        "//:node_modules/fetch-mock",
         "//perf/modules/json:index_ts_lib",
+        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "json-source-sk-demo.ts",
-)
-
-ts_library(
-    name = "json-source-sk_po_ts_lib",
-    srcs = ["json-source-sk_po.ts"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//infra-sk/modules/page_object:page_object_element_ts_lib",
-        "//infra-sk/modules/page_object:page_object_ts_lib",
-    ],
 )
 
 sk_element_puppeteer_test(
@@ -63,5 +50,33 @@ sk_element_puppeteer_test(
         "//:node_modules/chai",
         "//:node_modules/puppeteer",
         "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+ts_library(
+    name = "json-source-sk_po_ts_lib",
+    srcs = ["json-source-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":json-source-sk-demo",
+)
+
+karma_test(
+    name = "json-source-sk_test",
+    src = "json-source-sk_test.ts",
+    deps = [
+        ":json-source-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
 )

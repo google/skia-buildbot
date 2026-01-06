@@ -8,7 +8,7 @@ import { CommitNumber } from '../json';
 
 fetchMock.post('/_/details/', () => ({ Hello: 'world!' }));
 
-window.customElements.whenDefined('json-source-sk').then(() => {
+void window.customElements.whenDefined('json-source-sk').then(() => {
   const sources = document.querySelectorAll<JSONSourceSk>('json-source-sk')!;
   sources.forEach((source) => {
     source.traceid = ',foo=bar,';

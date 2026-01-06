@@ -152,6 +152,7 @@ export class JSONSourceSk extends ElementSk {
 
   private closeJsonDialog(): void {
     this._json = '';
+    this._render();
     this.showJsonDialog!.close();
   }
 }
