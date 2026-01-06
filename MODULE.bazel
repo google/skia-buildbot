@@ -472,7 +472,12 @@ oci.pull(
     image = "docker.io/temporalio/admin-tools",
     platforms = ["linux/amd64"],
 )
-use_repo(oci, "temporal-admin-tools")
+use_repo(
+    oci,
+    "temporal-admin-tools",
+    "temporal-admin-tools_linux_amd64",
+    "temporal-server_linux_amd64",
+)
 
 ####################################################################################################
 # bazel_skylib

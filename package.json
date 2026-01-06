@@ -111,6 +111,10 @@
     "lint:go:vet": "bazelisk run --config=mayberemote //:go -- vet ./...",
     "lint:py": "./run_lint.sh py",
     "lint:sh": "./run_lint.sh sh",
+    "perf-type-coverage": "./perf-coverage.sh type",
+    "perf-test-coverage": "./perf-coverage.sh test",
+    "perf-mutation-testing": "./perf-coverage.sh mutation",
+    "perf-coverage": "./perf-coverage.sh all",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -120,6 +124,22 @@
   "author": "",
   "license": "BSD",
   "devDependencies": {
-    "shellcheck": "^4.1.0"
+    "shellcheck": "^4.1.0",
+    "@stryker-mutator/core": "^8.2.6",
+    "@stryker-mutator/mocha-runner": "^8.2.6",
+    "@stryker-mutator/typescript-checker": "^8.2.6",
+    "babel-plugin-istanbul": "^6.1.1",
+    "c8": "^10.1.3",
+    "istanbul-lib-instrument": "^6.0.2",
+    "jsdom": "^24.0.0",
+    "jsdom-global": "^3.0.2",
+    "karma-coverage": "^2.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "semantic-ui-css": "^2.5.0",
+    "semantic-ui-react": "^2.1.5",
+    "ts-node": "^10.9.2",
+    "type-coverage": "^2.29.7",
+    "typescript-coverage-report": "^1.1.1"
   }
 }
