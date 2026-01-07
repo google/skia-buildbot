@@ -76,6 +76,14 @@ export class ExploreSimpleSkPO extends PageObject {
     return await this.googleChart.applyFnToDOMNode((c: any) => c.domain);
   }
 
+  get removeAllButton(): PageObjectElement {
+    return this.bySelector('#removeAll');
+  }
+
+  async clickRemoveAllButton(): Promise<void> {
+    await this.removeAllButton.click();
+  }
+
   async clickPlotButton(): Promise<void> {
     // Clicks the plot button inside the query dialog.
     const plotButton = await this.bySelector('dialog#query-dialog button.action');

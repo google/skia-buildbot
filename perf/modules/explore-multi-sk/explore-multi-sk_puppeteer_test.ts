@@ -255,4 +255,103 @@ describe('Manual Plot Mode', () => {
     currentUrl = new URL(await testBed.page.url());
     expect(currentUrl.searchParams.get('totalGraphs')).to.equal('2');
   });
+
+  it('adds three graphs and removes them in specific order (middle, first, last)', async () => {
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    // SETUP: CREATE 3 DISTINCT GRAPHS
+    // Graph 1: Arch=arm, OS=Android
+    await testPickerPO.waitForPickerField(0);
+    const archField = await testPickerPO.getPickerField(0);
+    await archField.select('arm');
+    await testPickerPO.waitForSpinnerInactive();
+
+    await testPickerPO.waitForPickerField(1);
+    const osField = await testPickerPO.getPickerField(1);
+    await osField.select('Android');
+    await testPickerPO.waitForSpinnerInactive();
+
+    await testPickerPO.clickPlotButton();
+    await explorePO.waitForGraph(0);
+
+    // Graph 2: Arch=arm, OS=Ubuntu
+    await osField.clear();
+    await osField.select('Ubuntu');
+    await testPickerPO.waitForSpinnerInactive();
+    await testPickerPO.clickPlotButton();
+    await explorePO.waitForGraphCount(2);
+    await explorePO.waitForGraph(0);
+
+    // Graph 3: Arch=x86, OS=Ubuntu
+    await osField.clear();
+    await osField.select('Android');
+    await testPickerPO.clickPlotButton();
+    await explorePO.waitForGraphCount(3);
+    await explorePO.waitForGraph(0);
+
+    // VERIFY INITIAL STATE
+    // Index 0 (Newest): Android
+    // Index 1 (Middle): Ubuntu
+    // Index 2 (Oldest): Android (Graph 1)
+
+    // Verify URL has 3 graphs
+    let currentUrl = new URL(await testBed.page.url());
+    expect(currentUrl.searchParams.get('totalGraphs')).to.equal('3');
+    expect(currentUrl.searchParams.get('shortcut')).to.not.be.null;
+
+    // Verify Traces match expected position
+    const traces0 = await explorePO.getGraph(0).getTraceKeys();
+    expect(traces0).to.have.lengthOf(1);
+    expect(traces0[0]).to.equal(',arch=arm,os=Android,');
+
+    const traces1 = await explorePO.getGraph(1).getTraceKeys();
+    expect(traces1).to.have.lengthOf(1);
+    expect(traces1[0]).to.equal(',arch=arm,os=Ubuntu,');
+
+    const traces2 = await explorePO.getGraph(2).getTraceKeys();
+    expect(traces2).to.have.lengthOf(1);
+    expect(traces2[0]).to.equal(',arch=arm,os=Android,');
+
+    // REMOVE MIDDLE
+    const middleGraph = explorePO.getGraph(1);
+    await middleGraph.clickRemoveAllButton();
+    await explorePO.waitForGraphCount(2);
+
+    const tracesPostRem1_0 = await explorePO.getGraph(0).getTraceKeys();
+    expect(tracesPostRem1_0).to.have.lengthOf(1);
+    expect(tracesPostRem1_0[0]).to.equal(',arch=arm,os=Android,');
+
+    const tracesPostRem1_1 = await explorePO.getGraph(1).getTraceKeys();
+    expect(tracesPostRem1_1).to.have.lengthOf(1);
+    expect(tracesPostRem1_1[0]).to.equal(',arch=arm,os=Android,');
+
+    currentUrl = new URL(await testBed.page.url());
+    expect(currentUrl.searchParams.get('totalGraphs')).to.equal('2');
+
+    // REMOVE FIRST
+    const firstGraph = explorePO.getGraph(0);
+    await firstGraph.clickRemoveAllButton();
+
+    await explorePO.waitForGraphCount(1);
+
+    const tracesPostRem2_0 = await explorePO.getGraph(0).getTraceKeys();
+    expect(tracesPostRem2_0).to.have.lengthOf(1);
+    expect(tracesPostRem2_0[0]).to.equal(',arch=arm,os=Android,');
+
+    currentUrl = new URL(await testBed.page.url());
+    expect(currentUrl.searchParams.get('totalGraphs')).to.equal('1');
+
+    // REMOVE LAST
+    const lastGraph = explorePO.getGraph(0);
+    await lastGraph.clickRemoveAllButton();
+
+    await explorePO.waitForGraphCount(0);
+
+    currentUrl = new URL(await testBed.page.url());
+    expect(currentUrl.searchParams.get('totalGraphs')).to.be.null;
+
+    const finalShortcut = currentUrl.searchParams.get('shortcut');
+    expect(finalShortcut).to.satisfy((s: string) => s === null || s === '');
+  });
 });
