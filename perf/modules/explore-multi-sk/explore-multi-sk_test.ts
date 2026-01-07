@@ -805,17 +805,9 @@ describe('ExploreMultiSk', () => {
       });
       graph1.dispatchEvent(event);
 
-      assert.isTrue(element.state.evenXAxisSpacing, 'MultiSk state should be updated');
       assert.isTrue(spy1.notCalled, 'Source graph setUseDiscreteAxis should not be called by sync');
       assert.isTrue(spy2.calledOnceWith(true), 'Target graph setUseDiscreteAxis should be called');
-      assert.isTrue(graph2.state.evenXAxisSpacing, 'Target graph state should be updated');
-    });
-
-    it('initializes new graphs with the current enableDiscrete state', () => {
-      element.state.evenXAxisSpacing = true;
-      const newGraph = element['addEmptyGraph']()!;
-      element['addStateToExplore'](newGraph, new GraphConfig(), false);
-      assert.isTrue(newGraph.state.evenXAxisSpacing);
+      assert.isTrue(graph2.evenXAxisSpacing, 'Target graph state should be updated');
     });
   });
 
@@ -907,8 +899,7 @@ describe('ExploreMultiSk', () => {
         hide_paramset: false,
         horizontal_zoom: false,
         graph_index: 0,
-        doNotQueryData: false,
-        evenXAxisSpacing: false,
+        doNotQueryData: true,
       };
 
       element['addStateToExplore'](simpleSk, new GraphConfig(), false);

@@ -165,7 +165,7 @@ describe('calculateRangeChange', () => {
       const newExplore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
       await waitForRender(newExplore);
 
-      assert.isTrue(newExplore.state.evenXAxisSpacing);
+      assert.isTrue(newExplore.evenXAxisSpacing);
       const switchEl = newExplore.querySelector(
         '#settings-dialog #even-x-axis-spacing-switch'
       ) as MdSwitch;
@@ -190,12 +190,12 @@ describe('calculateRangeChange', () => {
     it('should override incoming state with localStorage value in setState', async () => {
       localStorage.setItem(CACHE_KEY, 'true');
       const newState = new State();
-      newState.evenXAxisSpacing = false; // Parent tries to set it to false
+      explore.setUseDiscreteAxis(false); // Parent tries to set it to false
 
       explore.state = newState;
       await waitForRender(explore);
 
-      assert.isTrue(explore.state.evenXAxisSpacing); // Should still be true due to cache
+      assert.isTrue(explore.evenXAxisSpacing); // Should still be true due to cache
       const switchEl = explore.querySelector(
         '#settings-dialog #even-x-axis-spacing-switch'
       ) as MdSwitch;
@@ -203,7 +203,7 @@ describe('calculateRangeChange', () => {
     });
 
     it('should default to false if no value in localStorage', async () => {
-      assert.isFalse(explore.state.evenXAxisSpacing);
+      assert.isFalse(explore.evenXAxisSpacing);
       const switchEl = explore.querySelector(
         '#settings-dialog #even-x-axis-spacing-switch'
       ) as MdSwitch;
@@ -1414,7 +1414,7 @@ describe('Even X-Axis Spacing toggle', () => {
 
   it('should be unchecked by default', () => {
     assert.isFalse(switchEl.selected);
-    assert.isFalse(explore.state.evenXAxisSpacing);
+    assert.isFalse(explore.evenXAxisSpacing);
   });
 
   it('should update state and fire event when toggled on', async () => {
@@ -1424,7 +1424,7 @@ describe('Even X-Axis Spacing toggle', () => {
     await waitForRender(explore);
     await new Promise((resolve) => setTimeout(resolve, 0)); // Add delay
 
-    assert.isTrue(explore.state.evenXAxisSpacing);
+    assert.isTrue(explore.evenXAxisSpacing);
     assert.isTrue(eventSpy.calledOnce);
 
     const event = eventSpy.firstCall.args[0];
@@ -1449,7 +1449,7 @@ describe('Even X-Axis Spacing toggle', () => {
 
     await waitForRender(explore);
 
-    assert.isFalse(explore.state.evenXAxisSpacing);
+    assert.isFalse(explore.evenXAxisSpacing);
     assert.isTrue(eventSpy.calledOnce);
 
     const event = eventSpy.firstCall.args[0];
