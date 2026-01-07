@@ -53,6 +53,8 @@ export class ScreencastRecorder {
     }
     fs.mkdirSync(this.sessionOutputDir, { recursive: true });
 
+    await this.enableUrlOverlay(page);
+
     try {
       this.client = await page.target().createCDPSession();
 
@@ -117,6 +119,57 @@ export class ScreencastRecorder {
     if (this.frameCount > 0) {
       this.createVideo();
     }
+  }
+
+  /**
+   * Injects a sticky header to display the current URL.
+   */
+  private async enableUrlOverlay(page: Page) {
+    const injectStyles = async () => {
+      await page.evaluate(() => {
+        if (document.getElementById('puppeteer-url-overlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'puppeteer-url-overlay';
+        overlay.style.position = 'fixed';
+
+        // Move to top
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+
+        overlay.style.backgroundColor = '#ffeb3b'; // Yellow background
+        overlay.style.color = 'black';
+        overlay.style.zIndex = '999999';
+        overlay.style.fontFamily = 'monospace';
+        overlay.style.fontSize = '12px';
+        overlay.style.padding = '4px 8px';
+
+        // Border on bottom
+        overlay.style.borderBottom = '1px solid #ccc';
+
+        overlay.style.whiteSpace = 'nowrap';
+        overlay.style.overflow = 'hidden';
+        overlay.style.textOverflow = 'ellipsis';
+        overlay.style.opacity = '0.9';
+        overlay.textContent = window.location.href;
+        document.body.appendChild(overlay);
+      });
+    };
+
+    // Inject immediately
+    await injectStyles();
+
+    // Re-inject/Update on navigation
+    page.on('framenavigated', async (frame) => {
+      if (frame === page.mainFrame()) {
+        await injectStyles();
+        await page.evaluate(() => {
+          const overlay = document.getElementById('puppeteer-url-overlay');
+          if (overlay) overlay.textContent = window.location.href;
+        });
+      }
+    });
   }
 
   private createVideo() {
