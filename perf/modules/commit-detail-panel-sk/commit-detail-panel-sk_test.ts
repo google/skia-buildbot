@@ -90,4 +90,71 @@ describe('commit-detail-panel-sk', () => {
     assert.isFalse(eventEmitted);
     assert.equal(element.selected, -1);
   });
+
+  it('renders nothing if details list is empty', () => {
+    element.details = [];
+    assert.equal(element.querySelectorAll('tr').length, 0);
+  });
+
+  it('highlights the selected row when selected property is set', async () => {
+    element.details = commits;
+    element.selectable = true;
+    element.selected = 1;
+
+    // Wait for render
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const rows = element.querySelectorAll('tr');
+    assert.isFalse(rows[0].hasAttribute('selected'));
+    assert.isTrue(rows[1].hasAttribute('selected'));
+  });
+
+  it('enables selection when selectable is toggled to true', async () => {
+    element.details = commits;
+    element.selectable = false;
+    element.selectable = true;
+
+    const eventPromise = new Promise<CustomEvent<CommitDetailPanelSkCommitSelectedDetails>>(
+      (resolve) => {
+        element.addEventListener(
+          'commit-selected',
+          (e) => {
+            resolve(e as CustomEvent<CommitDetailPanelSkCommitSelectedDetails>);
+          },
+          { once: true }
+        );
+      }
+    );
+
+    const firstRow = element.querySelectorAll('tr')[0];
+    firstRow.click();
+
+    const event = await eventPromise;
+    assert.equal(event.detail.selected, 0);
+  });
+
+  it('selects correctly when clicking a nested element', async () => {
+    element.details = commits;
+    element.selectable = true;
+
+    const eventPromise = new Promise<CustomEvent<CommitDetailPanelSkCommitSelectedDetails>>(
+      (resolve) => {
+        element.addEventListener(
+          'commit-selected',
+          (e) => {
+            resolve(e as CustomEvent<CommitDetailPanelSkCommitSelectedDetails>);
+          },
+          { once: true }
+        );
+      }
+    );
+
+    // Click the commit-detail-sk inside the cell, which is nested in the tr
+    const nestedElement = element.querySelector('commit-detail-sk');
+    assert.isNotNull(nestedElement);
+    (nestedElement as HTMLElement).click();
+
+    const event = await eventPromise;
+    assert.equal(event.detail.selected, 0);
+  });
 });
