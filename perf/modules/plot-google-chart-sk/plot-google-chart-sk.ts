@@ -33,7 +33,7 @@ import { range } from '../dataframe/index';
 import { VResizableBoxSk } from './v-resizable-box-sk';
 import { SidePanelCheckboxClickDetails, SidePanelSk } from './side-panel-sk';
 import { DragToZoomBox } from './drag-to-zoom-box-sk';
-import { SummaryMetric } from '../telemetry/telemetry';
+import { CountMetric, SummaryMetric } from '../telemetry/telemetry';
 
 export interface PlotSelectionEventDetails {
   value: range;
@@ -1090,6 +1090,11 @@ export class PlotGoogleChartSk extends LitElement {
       if (!this.removedLabelsCache.includes(key)) {
         const anomalies = this.anomalyMap![key];
         const traceCol = this.data!.getColumnIndex(key)!;
+        if (traceCol === -1) {
+          telemetry.increaseCounter(CountMetric.AnomalyDataRaceTraceNotFound);
+          console.error(`AnomalyDataRaceTraceNotFound: Trace key '${key}' not found in DataTable.`);
+          return;
+        }
         for (const cp in anomalies) {
           const offset = Number(cp);
           // The anomaly map keys (offsets) are always commit positions.
@@ -1223,6 +1228,11 @@ export class PlotGoogleChartSk extends LitElement {
     traceKeys.forEach((key) => {
       const userIssues = this.userIssues![key];
       const traceCol = this.data!.getColumnIndex(key)!;
+      if (traceCol === -1) {
+        telemetry.increaseCounter(CountMetric.AnomalyDataRaceTraceNotFound);
+        console.error(`AnomalyDataRaceTraceNotFound: Trace key '${key}' not found in DataTable.`);
+        return;
+      }
       for (const [cp, issueDetail] of Object.entries(userIssues)) {
         const offset = Number(cp);
         if (

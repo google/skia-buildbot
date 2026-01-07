@@ -421,16 +421,18 @@ export class DataFrameRepository extends LitElement {
     this._baseRequest = request;
     this._baseRequest.request_type = 0; // change to timestamp-based query.
 
+    let newAnomalyMap: AnomalyMap;
     if (replaceAnomalies) {
-      this.anomaly = mergeAnomaly(null, anomalies);
+      newAnomalyMap = mergeAnomaly(null, anomalies);
     } else {
-      this.anomaly = mergeAnomaly(this.anomaly, anomalies);
+      newAnomalyMap = mergeAnomaly(this.anomaly, anomalies);
     }
     this._header = dataframe.header || [];
     this._traceset = dataframe.traceset;
     this._traceMetadata = dataframe.traceMetadata;
 
     await this.setDataFrame(dataframe);
+    this.anomaly = newAnomalyMap;
   }
 
   /**

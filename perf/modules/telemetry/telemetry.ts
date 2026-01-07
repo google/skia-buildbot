@@ -25,6 +25,9 @@ interface FrontendMetric {
 
 export enum CountMetric {
   // go/keep-sorted start
+  // AnomalyDataRaceTraceNotFound - Anomalies miss on graph due to race condition,
+  // trace was not there yet during anomalies assigment.
+  AnomalyDataRaceTraceNotFound = 'fe_anomaly_data_race_trace_not_found',
   DataFetchFailure = 'fe_data_fetch_failure',
   MultiGraphVisit = 'fe_multi_graph_page_visit',
   ReportPageVisit = 'fe_report_page_visit',
