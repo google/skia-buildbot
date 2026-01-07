@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import puppeteer, { Page, Browser, ElementHandle } from 'puppeteer';
 import { outputDir } from './paths';
+import { ScreencastRecorder } from './screencast';
 
 // File inside $ENV_DIR containing the demo page server's TCP port. Only applies to Bazel tests
 // using the test_on_env rule.
@@ -216,7 +217,11 @@ export async function loadCachedTestBed(showBrowser?: boolean): Promise<TestBed>
 // This sets up some handy helpers to load a new page and shut it down w/o having to expose
 // the puppeteer.Browser object to the callers.
 function setBeforeAfterHooks() {
-  beforeEach(async () => {
+  let recorder: ScreencastRecorder | null = null;
+  const SHOULD_RECORD = process.env.RECORD_VIDEO === 'true';
+
+  // Use 'async function' instead of 'async () =>' to access 'this.currentTest'
+  beforeEach(async function () {
     testBed.page = await browser.newPage(); // Make page available to tests.
 
     // Tell demo pages this is a Puppeteer test. Demo pages should not fake RPC
@@ -228,9 +233,19 @@ function setBeforeAfterHooks() {
       name: 'puppeteer',
       value: 'true',
     });
+
+    if (SHOULD_RECORD && this.currentTest) {
+      const testName = this.currentTest.fullTitle() || 'unknown_test';
+      recorder = new ScreencastRecorder(testName);
+      await recorder.start(testBed.page);
+    }
   });
 
   afterEach(async () => {
+    if (recorder) {
+      await recorder.stop();
+      recorder = null;
+    }
     await testBed.page!.close();
   });
 

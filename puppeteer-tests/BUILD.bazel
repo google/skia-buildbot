@@ -20,6 +20,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":paths_ts_lib",
+        ":screencast_ts_lib",
         "//:node_modules/puppeteer",
     ],
 )

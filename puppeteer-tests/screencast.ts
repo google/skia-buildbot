@@ -18,6 +18,9 @@ import { outputDir } from './paths';
  * await recorder.stop();
  * ```
  *
+ * To record a video, run the test with the following flag:
+ * bazelisk test --test_env=RECORD_VIDEO=true //perf/modules/explore-multi-sk/...
+ *
  * The resulting mp4 video will be under this path:
  * OUTPUT=$(bazelisk info output_path)
  * $OUTPUT/k8-fastbuild/testlogs/perf/modules/{module_name}/{test_name}/test.outputs/screencast.mp4
