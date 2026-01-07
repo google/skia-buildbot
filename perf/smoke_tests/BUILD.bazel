@@ -82,3 +82,15 @@ nodejs_test(
         "//puppeteer-tests:util_ts_lib",
     ],
 )
+
+nodejs_test(
+    name = "triage_nodejs_test",
+    src = "triage_nodejs_test.ts",
+    tags = ["manual"],
+    deps = [
+        ":utils_ts_lib",
+        "//:node_modules/google-auth-library",
+        "//:node_modules/puppeteer",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)

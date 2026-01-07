@@ -6,8 +6,7 @@ import { launchBrowser, takeScreenshot } from '../../puppeteer-tests/util';
 // TODO(mordeckimarcin): Automate puppeteer tests.
 // Make it possible to hit internal instances.
 // ----------------------------------------------------------------------
-// Replace with your IAP Client ID. You can find this in the IAP settings
-// in your Google Cloud Console for the chrome-perf.corp.goog application.
+// TODO(b/473814161): Update IAP_CLIENT_ID with correct value.
 const IAP_CLIENT_ID = 'YOUR_IAP_CLIENT_ID.apps.googleusercontent.com';
 
 async function pageWithAuth(browser: Browser) {
