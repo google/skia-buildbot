@@ -441,3 +441,44 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneHighRegressionFoundA
 
 	require.Equal(t, notificationID, resp[0].Summary.Clusters[0].NotificationID)
 }
+
+func TestGetQueryWithDefaultsIfNeeded(t *testing.T) {
+	// Backup original config.
+	originalConfig := config.Config
+	defer func() { config.Config = originalConfig }()
+
+	// Test case 1: With defaults.
+	config.Config = &config.InstanceConfig{
+		QueryConfig: config.QueryConfig{
+			DefaultParamSelections: map[string][]string{
+				"stat": {"value"},
+			},
+		},
+	}
+	q, err := getQueryWithDefaultsIfNeeded("test=1")
+	require.NoError(t, err)
+	assert.Equal(t, "stat=[value]test=[1]", q.KeyValueString())
+
+	// Test case 2: Without defaults.
+	config.Config = &config.InstanceConfig{
+		QueryConfig: config.QueryConfig{
+			DefaultParamSelections: nil,
+		},
+	}
+	q, err = getQueryWithDefaultsIfNeeded("test=1")
+	require.NoError(t, err)
+	assert.Equal(t, "test=[1]", q.KeyValueString())
+
+	// Test case 3: Query containing some params that are present in default.
+	config.Config = &config.InstanceConfig{
+		QueryConfig: config.QueryConfig{
+			DefaultParamSelections: map[string][]string{
+				"stat": {"value"},
+				"type": {"canvas"},
+			},
+		},
+	}
+	q, err = getQueryWithDefaultsIfNeeded("test=1&stat=other")
+	require.NoError(t, err)
+	assert.Equal(t, "stat=[other]test=[1]type=[canvas]", q.KeyValueString())
+}

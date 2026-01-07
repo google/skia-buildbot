@@ -394,7 +394,7 @@ func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) con
 		return matchingConfigs
 	}
 	for _, config := range configs {
-		q, err := query.NewFromString(config.Query)
+		q, err := getQueryWithDefaultsIfNeeded(config.Query)
 		if err != nil {
 			sklog.Errorf("An alert %q has an invalid query %q: %s", config.IDAsString, config.Query, err)
 			continue
@@ -419,6 +419,51 @@ func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) con
 		}
 	}
 	return matchingConfigs
+}
+
+// getQueryWithDefaultsIfNeeded applies default param selections if specified in the config.
+//
+// If the key specified for default is already a part of the input query string, then
+// the default values are not applied and we use the params as specified in the query.
+// If a default key is not a part, then the default values are applied.
+func getQueryWithDefaultsIfNeeded(queryString string) (*query.Query, error) {
+	if config.Config == nil || config.Config.QueryConfig.DefaultParamSelections == nil {
+		return query.NewFromString(queryString)
+	}
+
+	defaults := config.Config.QueryConfig.DefaultParamSelections
+	if len(defaults) == 0 {
+		return query.NewFromString(queryString)
+	}
+
+	defaultsToAdd := map[string][]string{}
+	values, err := url.ParseQuery(queryString)
+	if err != nil {
+		return nil, err
+	}
+	for paramKey, paramValues := range defaults {
+		keyPresentInQuery := false
+
+		// First check if the key has been specified in the query.
+		for key := range values {
+			if key == paramKey {
+				keyPresentInQuery = true
+				break
+			}
+		}
+		if !keyPresentInQuery {
+			// The key was not a part of the query, so let's apply default values.
+			defaultsToAdd[paramKey] = paramValues
+		}
+	}
+
+	if len(defaultsToAdd) > 0 {
+		for defaultKey, defaultValues := range defaultsToAdd {
+			values[defaultKey] = defaultValues
+		}
+	}
+
+	return query.New(values)
 }
 
 func getNotificationId(regression *regression.Regression) string {
