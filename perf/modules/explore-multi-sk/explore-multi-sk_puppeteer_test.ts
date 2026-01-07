@@ -182,3 +182,77 @@ describe('Anomalies and Traces', () => {
     await poll(async () => !(await triageMenuPO.isEmpty()), 'Triage menu did not appear');
   });
 });
+
+describe('Manual Plot Mode', () => {
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed();
+  });
+
+  beforeEach(async () => {
+    await testBed.page.goto(`${testBed.baseUrl}?manual_plot_mode=true`);
+    await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
+  });
+
+  it('plot two graphs in manual plot mode', async () => {
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    // ==========================================
+    // 1. ADD FIRST GRAPH (Selection: Android)
+    // ==========================================
+    await testPickerPO.waitForPickerField(0);
+    const archField = await testPickerPO.getPickerField(0);
+    await archField.select('arm');
+    await testPickerPO.waitForSpinnerInactive();
+
+    await testPickerPO.waitForPickerField(1);
+    const osField = await testPickerPO.getPickerField(1);
+    await osField.select('Android');
+    await testPickerPO.waitForSpinnerInactive();
+
+    await testPickerPO.clickPlotButton();
+    await explorePO.waitForGraph(0);
+
+    // Verify First Graph (Index 0)
+    expect(await explorePO.getGraphCount()).to.equal(1);
+    const graph1PO = explorePO.getGraph(0);
+    const traces1 = await graph1PO.getTraceKeys();
+    expect(traces1).to.include(',arch=arm,os=Android,');
+
+    let currentUrl = new URL(await testBed.page.url());
+    expect(currentUrl.searchParams.get('totalGraphs')).to.equal('1');
+
+    // ==========================================
+    // 2. ADD SECOND GRAPH (Selection: Android + Ubuntu)
+    // ==========================================
+    // We select 'Ubuntu'. In this mode, 'Android' remains selected in the picker.
+    // The picker state is now: { arch: 'arm', os: ['Android', 'Ubuntu'] }
+    await osField.select('Ubuntu');
+    await testPickerPO.waitForSpinnerInactive();
+
+    await testPickerPO.clickPlotButton();
+
+    await explorePO.waitForGraphCount(2);
+    await explorePO.waitForGraph(0);
+
+    // --- VERIFY TOP GRAPH (Index 0) ---
+    // Should reflect the CURRENT picker state (Android + Ubuntu)
+    const graphTopPO = explorePO.getGraph(0);
+    const tracesTop = await graphTopPO.getTraceKeys();
+    expect(tracesTop).to.include(',arch=arm,os=Ubuntu,');
+    expect(tracesTop).to.include(',arch=arm,os=Android,');
+
+    // --- VERIFY BOTTOM GRAPH (Index 1) ---
+    // Should remain a snapshot of the PAST state (Only Android)
+    // This proves the old graph wasn't mutated by the new plot action
+    const graphBottomPO = explorePO.getGraph(1);
+    const tracesBottom = await graphBottomPO.getTraceKeys();
+    expect(tracesBottom).to.include(',arch=arm,os=Android,');
+    expect(tracesBottom).to.not.include(',arch=arm,os=Ubuntu,');
+
+    // Check URL state after adding the second graph
+    currentUrl = new URL(await testBed.page.url());
+    expect(currentUrl.searchParams.get('totalGraphs')).to.equal('2');
+  });
+});
