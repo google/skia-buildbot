@@ -1,0 +1,24 @@
+extra-links-sk {
+  display: block;
+  padding: 16px;
+  td {
+    padding: 0.2em 1em;
+  }
+
+  td > a {
+    color: var(--primary);
+  }
+
+  table > tbody > tr > td {
+    border-bottom: solid var(--on-surface) 1px;
+  }
+
+  table {
+    border-collapse: separate;
+    border-spacing: 1em;
+  }
+
+  .section {
+    margin: 1em;
+  }
+}

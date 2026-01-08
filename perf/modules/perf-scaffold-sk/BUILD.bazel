@@ -55,6 +55,7 @@ sk_element(
         "//elements-sk/modules/error-toast-sk",
         "//elements-sk/modules/icons/add-alert-icon-sk",
         "//elements-sk/modules/icons/build-icon-sk",
+        "//elements-sk/modules/icons/compare-arrows-icon-sk",
         "//elements-sk/modules/icons/favorite-icon-sk",
         "//elements-sk/modules/icons/help-icon-sk",
         "//elements-sk/modules/icons/home-icon-sk",

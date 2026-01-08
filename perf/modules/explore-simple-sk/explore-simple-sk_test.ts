@@ -76,6 +76,7 @@ window.perf = {
   header_image_url: '',
   enable_v2_ui: false,
   dev_mode: false,
+  extra_links: null,
 };
 
 describe('calculateRangeChange', () => {
