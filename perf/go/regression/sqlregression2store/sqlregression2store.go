@@ -197,7 +197,9 @@ var statementFormats = map[statementFormat]string{
 		from
 			regressions2 left join anomalygroups on (regressions2.id = any(anomaly_ids))
 			left join culprits on (anomalygroups.id = any(anomaly_group_ids))
-		where regressions2.id = ANY($1)
+		where
+			regressions2.id = ANY($1) AND
+			anomalygroups.common_rev_start <= anomalygroups.common_rev_end
 		order by regressions2.id
 	`,
 	getSubscriptionsForRegressions: `

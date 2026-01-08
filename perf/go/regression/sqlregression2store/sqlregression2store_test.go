@@ -933,3 +933,178 @@ func TestGetSubscriptionsForRegressions(t *testing.T) {
 		})
 	}
 }
+
+func TestGetBugIdsForRegressions(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+
+	// Test case 1: No bugs.
+	t.Run("No bugs", func(t *testing.T) {
+		r := generateAndStoreNewRegression(ctx, t, store)
+		regressions, err := store.GetBugIdsForRegressions(ctx, []*regression.Regression{r})
+		require.NoError(t, err)
+		require.Len(t, regressions, 1)
+		assert.Empty(t, regressions[0].Bugs)
+		assert.True(t, regressions[0].AllBugsFetched)
+	})
+
+	// Test case 2: Manual bug only.
+	t.Run("Manual bug only", func(t *testing.T) {
+		r := generateNewRegression()
+		manualBug := regression.RegressionBug{BugId: "12345", Type: regression.ManualTriage}
+		r.Bugs = []regression.RegressionBug{manualBug}
+		_, err := store.WriteRegression(ctx, r, nil)
+		require.NoError(t, err)
+
+		// Get the regression from DB to make sure manual bug is loaded.
+		regressionsFromDB, err := store.GetByIDs(ctx, []string{r.Id})
+		require.NoError(t, err)
+		require.Len(t, regressionsFromDB, 1)
+
+		regressions, err := store.GetBugIdsForRegressions(ctx, regressionsFromDB)
+		require.NoError(t, err)
+		require.Len(t, regressions, 1)
+		assert.ElementsMatch(t, []regression.RegressionBug{manualBug}, regressions[0].Bugs)
+		assert.True(t, regressions[0].AllBugsFetched)
+	})
+
+	// Test case 3: Auto-triaged bug.
+	t.Run("Auto-triaged bug", func(t *testing.T) {
+		r := generateAndStoreNewRegression(ctx, t, store)
+		agID := uuid.NewString()
+		reportedIssueID := "123456"
+		_, err := store.db.Exec(ctx, `
+			INSERT INTO AnomalyGroups (id, anomaly_ids, common_rev_start, common_rev_end, reported_issue_id)
+			VALUES ($1, $2, $3, $4, $5)`,
+			agID, []string{r.Id}, r.PrevCommitNumber, r.CommitNumber, reportedIssueID)
+		require.NoError(t, err)
+
+		regressions, err := store.GetBugIdsForRegressions(ctx, []*regression.Regression{r})
+		require.NoError(t, err)
+		require.Len(t, regressions, 1)
+		expectedBugs := []regression.RegressionBug{
+			{BugId: reportedIssueID, Type: regression.AutoTriage},
+		}
+		assert.ElementsMatch(t, expectedBugs, regressions[0].Bugs)
+		assert.True(t, regressions[0].AllBugsFetched)
+	})
+
+	// Test case 4: Auto-triaged bug with invalid (start > end) groups.
+	// We have to filter out groups with start > end revisions as they are incorrect.
+	t.Run("Auto-triaged bug with invalid groups", func(t *testing.T) {
+		r := generateAndStoreNewRegression(ctx, t, store)
+		agID := uuid.NewString()
+		reportedIssueID := "123456"
+		_, err := store.db.Exec(ctx, `
+			INSERT INTO AnomalyGroups (id, anomaly_ids, common_rev_start, common_rev_end, reported_issue_id)
+			VALUES ($1, $2, $3, $4, $5)`,
+			agID, []string{r.Id}, r.PrevCommitNumber, r.CommitNumber, reportedIssueID)
+		require.NoError(t, err)
+
+		agID2 := uuid.NewString()
+		reportedIssueID2 := "67"
+		_, err = store.db.Exec(ctx, `
+			INSERT INTO AnomalyGroups (id, anomaly_ids, common_rev_start, common_rev_end, reported_issue_id)
+			VALUES ($1, $2, $3, $4, $5)`,
+			agID2, []string{r.Id}, r.CommitNumber+1, r.CommitNumber, reportedIssueID2)
+		require.NoError(t, err)
+
+		regressions, err := store.GetBugIdsForRegressions(ctx, []*regression.Regression{r})
+		require.NoError(t, err)
+		require.Len(t, regressions, 1)
+		expectedBugs := []regression.RegressionBug{
+			{BugId: reportedIssueID, Type: regression.AutoTriage},
+		}
+		assert.ElementsMatch(t, expectedBugs, regressions[0].Bugs)
+		assert.True(t, regressions[0].AllBugsFetched)
+	})
+
+	// Test case 5: Auto-bisect bug from culprit (group_issue_map).
+	t.Run("Auto-bisect bug from group_issue_map", func(t *testing.T) {
+		r := generateAndStoreNewRegression(ctx, t, store)
+		r2 := generateAndStoreNewRegression(ctx, t, store)
+		agID := uuid.NewString()
+		agID2 := uuid.NewString()
+		culpritID := uuid.NewString()
+		bisectIssueID := "1234567"
+		bisectIssueID2 := "12345672"
+		groupIssueMap := fmt.Sprintf(`{"%s": "%s", "%s": "%s"}`, agID, bisectIssueID, agID2, bisectIssueID2)
+
+		_, err := store.db.Exec(ctx, `
+			INSERT INTO AnomalyGroups (id, anomaly_ids, common_rev_start, common_rev_end)
+			VALUES ($1, $2, $3, $4)`,
+			agID, []string{r.Id}, r.PrevCommitNumber, r.CommitNumber)
+		require.NoError(t, err)
+
+		_, err = store.db.Exec(ctx, `
+			INSERT INTO AnomalyGroups (id, anomaly_ids, common_rev_start, common_rev_end)
+			VALUES ($1, $2, $3, $4)`,
+			agID2, []string{r2.Id}, r2.PrevCommitNumber, r2.CommitNumber)
+		require.NoError(t, err)
+
+		_, err = store.db.Exec(ctx, `
+			INSERT INTO Culprits (id, host, project, ref, revision, anomaly_group_ids, group_issue_map, issue_ids)
+			VALUES ($1, 'host', 'project', 'ref', 'rev', $2, $3, $4)`,
+			culpritID, []string{agID, agID2}, groupIssueMap, []string{bisectIssueID, bisectIssueID2})
+		require.NoError(t, err)
+
+		regressions, err := store.GetBugIdsForRegressions(ctx, []*regression.Regression{r})
+		require.NoError(t, err)
+		require.Len(t, regressions, 1)
+		expectedBugs := []regression.RegressionBug{
+			{BugId: bisectIssueID, Type: regression.AutoBisect},
+		}
+		assert.ElementsMatch(t, expectedBugs, regressions[0].Bugs)
+	})
+
+	// Test case 6: All bug types together.
+	t.Run("All bug types together", func(t *testing.T) {
+		r := generateNewRegression()
+		manualBug := regression.RegressionBug{BugId: "123", Type: regression.ManualTriage}
+		r.Bugs = []regression.RegressionBug{manualBug}
+		_, err := store.WriteRegression(ctx, r, nil)
+		require.NoError(t, err)
+
+		// Auto-triage bug
+		agID1 := uuid.NewString()
+		reportedIssueID := "456"
+		_, err = store.db.Exec(ctx, `
+			INSERT INTO AnomalyGroups (id, anomaly_ids, common_rev_start, common_rev_end, reported_issue_id)
+			VALUES ($1, $2, $3, $4, $5)`,
+			agID1, []string{r.Id}, r.PrevCommitNumber, r.CommitNumber, reportedIssueID)
+		require.NoError(t, err)
+
+		// Auto-bisect bug
+		agID2 := uuid.NewString()
+		culpritID := uuid.NewString()
+		bisectIssueID := "789"
+		groupIssueMap := fmt.Sprintf(`{"%s": "%s"}`, agID2, bisectIssueID)
+		_, err = store.db.Exec(ctx, `
+			INSERT INTO AnomalyGroups (id, anomaly_ids, common_rev_start, common_rev_end)
+			VALUES ($1, $2, $3, $4)`,
+			agID2, []string{r.Id}, r.PrevCommitNumber, r.CommitNumber)
+		require.NoError(t, err)
+		_, err = store.db.Exec(ctx, `
+			INSERT INTO Culprits (id, host, project, ref, revision, anomaly_group_ids, group_issue_map, issue_ids)
+			VALUES ($1, 'host', 'project', 'ref', 'rev', $2, $3, $4)`,
+			culpritID, []string{agID2}, groupIssueMap, []string{bisectIssueID})
+		require.NoError(t, err)
+
+		// Fetch the manual bug first.
+		regressionsFromDB, err := store.GetByIDs(ctx, []string{r.Id})
+		require.NoError(t, err)
+		require.Len(t, regressionsFromDB, 1)
+
+		regressions, err := store.GetBugIdsForRegressions(ctx, regressionsFromDB)
+		require.NoError(t, err)
+		require.Len(t, regressions, 1)
+
+		expectedBugs := []regression.RegressionBug{
+			manualBug,
+			{BugId: reportedIssueID, Type: regression.AutoTriage},
+			{BugId: bisectIssueID, Type: regression.AutoBisect},
+		}
+		assert.ElementsMatch(t, expectedBugs, regressions[0].Bugs)
+	})
+}
