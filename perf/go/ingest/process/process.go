@@ -3,6 +3,7 @@ package process
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"time"
 
@@ -40,14 +41,7 @@ func sendPubSubEvent(ctx context.Context, pubSubClient *pubsub.Client, topicName
 	if topicName == "" {
 		return nil
 	}
-	traceIDs := make([]string, 0, len(params))
-	for _, p := range params {
-		key, err := query.MakeKey(p)
-		if err != nil {
-			continue
-		}
-		traceIDs = append(traceIDs, key)
-	}
+	traceIDs := getTraceIdsForClustering(params)
 	ie := &ingestevents.IngestEvent{
 		TraceIDs: traceIDs,
 		ParamSet: paramset,
@@ -374,4 +368,67 @@ func nackMessageIfNecessary(dlEnabled bool, f file.File) {
 		f.PubSubMsg.Nack()
 		sklog.Debugf("Message nacked during message process: %v", f.PubSubMsg)
 	}
+}
+
+// getTraceIdsForClustering collects all the trace IDs together based on the given params.
+// If any of the params has a value for the filtered key ending with the given filteredSuffixes,
+// it verifies if there is a trace with the key without the suffix and the corresponding value for key "stat".
+// If a non-suffix param exists with the corresponding stat, it only keeps that in the final list.
+// Otherwise, it keeps the suffixed one.
+func getTraceIdsForClustering(params []paramtools.Params) []string {
+	traceIDs := []string{}
+
+	filteredParamKey := "test"
+	filterSuffixes := map[string]string{
+		"_avg":   "value",
+		"_min":   "min",
+		"_max":   "max",
+		"_count": "count",
+	}
+
+	// Create a map of all existing trace keys for quick lookup.
+	existingKeys := make(map[string]struct{}, len(params))
+	for _, p := range params {
+		key, err := query.MakeKey(p)
+		if err == nil {
+			existingKeys[key] = struct{}{}
+		}
+	}
+
+	// Iterate through params and decide whether to include each trace ID.
+	for _, p := range params {
+		shouldSkip := false
+		if value, ok := p[filteredParamKey]; ok {
+			// Check if the parameter value has any of the filtered suffixes.
+			for suffix, statVal := range filterSuffixes {
+				if strings.HasSuffix(value, suffix) {
+					// Verify if there is a trace with the key without the suffix and the corresponding value for key "stat".
+					canonicalParams := p.Copy()
+					canonicalParams[filteredParamKey] = strings.TrimSuffix(value, suffix)
+					canonicalParams["stat"] = statVal
+
+					canonicalKey, err := query.MakeKey(canonicalParams)
+					if err == nil {
+						// If a non-suffix param exists with the corresponding stat, only keep that in the final list returned.
+						if _, ok := existingKeys[canonicalKey]; ok {
+							shouldSkip = true
+							break
+						}
+					}
+				}
+			}
+		}
+
+		// If no canonical counterpart was found (or it wasn't a suffixed trace), keep the trace ID.
+		if !shouldSkip {
+			key, err := query.MakeKey(p)
+			if err != nil {
+				sklog.Errorf("Error converting params to key: %v", err)
+				continue
+			}
+			traceIDs = append(traceIDs, key)
+		}
+	}
+
+	return traceIDs
 }

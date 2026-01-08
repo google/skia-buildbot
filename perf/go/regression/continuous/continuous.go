@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/google/uuid"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/ctxutil"
 	"go.skia.org/infra/go/metrics2"
@@ -57,6 +58,8 @@ const (
 	processAlertConfigsWorkerCount = 20
 
 	timeoutForProcessAlertConfigPerTrace time.Duration = time.Minute
+
+	correlationIdKey = "correlationId"
 )
 
 // Continuous is used to run clustering on the last numCommits commits and
@@ -516,17 +519,21 @@ func (c *Continuous) Run(ctx context.Context) {
 
 // RunEventDrivenClustering executes the regression detection based on events
 // received from data ingestion.
-func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
+func (c *Continuous) RunEventDrivenClustering(parentCtx context.Context) {
 	// Range over a channel that returns a map containing the traceId as the key
 	// and a list of matching alert configs as the value. These are processed
 	// from the file that was just ingested and notification received over pubsub.
-	for traceConfigMap := range c.buildTraceConfigsMapChannelEventDriven(ctx) {
+	for traceConfigMap := range c.buildTraceConfigsMapChannelEventDriven(parentCtx) {
 		func(traceConfigMap configTracesMap) {
+			correlationId := uuid.New().String()
+			ctx := context.WithValue(parentCtx, correlationIdKey, correlationId)
 			ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessPubsubEvent")
 			defer span.End()
-			span.AddAttributes(trace.Int64Attribute("config_count", int64(len(traceConfigMap))))
+			span.AddAttributes(
+				trace.StringAttribute("correlation_id", correlationId),
+				trace.Int64Attribute("config_count", int64(len(traceConfigMap))))
 
-			defer timer.New("ProcessPubsubEvent - Complete").Stop()
+			defer timer.New("[ID: " + correlationId + "] ProcessPubsubEvent - Complete").Stop()
 
 			alertConfigs := make([]alerts.Alert, 0, len(traceConfigMap))
 			for alertConfig := range traceConfigMap {
@@ -541,7 +548,7 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 			err := util.ChunkIterParallelPool(ctx, len(alertConfigs), 1, processAlertConfigsWorkerCount, func(ctx context.Context, startIdx, endIdx int) error {
 				config := alertConfigs[startIdx]
 				if traces, ok := traceConfigMap[config]; ok {
-					sklog.Infof("Clustering over %d traces for config %s", len(traces), config.IDAsString)
+					sklog.Infof("[ID: %s] Clustering over %d traces for config %s", correlationIdFromContext(ctx), len(traces), config.IDAsString)
 					// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
 					// we need to only query the paramset of the incoming data point instead of
 					// the entire query in the alert.
@@ -550,14 +557,14 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 					} else {
 						c.ProcessAlertConfig(ctx, &config, doNotOverrideQuery, nil)
 					}
-					sklog.Infof("Done with clustering over %d traces for config %s", len(traces), config.IDAsString)
+					sklog.Infof("[ID: %s] Done with clustering over %d traces for config %s", correlationIdFromContext(ctx), len(traces), config.IDAsString)
 					return nil
 				} else {
-					return skerr.Fmt("Alert config not found in traceConfigMap: %v", config)
+					return skerr.Fmt("[ID: %s] Alert config not found in traceConfigMap: %v", correlationIdFromContext(ctx), config)
 				}
 			})
 			if err != nil {
-				sklog.Errorf("Error processing alert configs: %v", err)
+				sklog.Errorf("[ID: %s] Error processing alert configs: %v", correlationIdFromContext(ctx), err)
 			}
 		}(traceConfigMap)
 	}
@@ -567,7 +574,9 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfig alerts.Alert, traceIds []string, dfProvider *dfiter.DfProvider) {
 	ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessAlertConfigForTraces")
 	defer span.End()
-	span.AddAttributes(trace.Int64Attribute("trace_count", int64(len(traceIds))))
+	span.AddAttributes(
+		trace.StringAttribute("alert_id", alertConfig.IDAsString),
+		trace.Int64Attribute("trace_count", int64(len(traceIds))))
 
 	processAlertConfigForTracesChunkSize := 1
 	if config.Config.Experiments.DfIterTraceSlicer {
@@ -579,7 +588,7 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 	// specific traceIds in dfbuilder instead of converting traceId to a query string.
 	err := util.ChunkIterParallelPool(ctx, len(traceIds), processAlertConfigForTracesChunkSize, processAlertConfigForTracesWorkerCount, func(ctx context.Context, startIdx, endIdx int) error {
 		if config.Config.Experiments.DfIterTraceSlicer {
-			sklog.Infof("Trace Slicer enabled. Grouping traces into a single query.")
+			sklog.Infof("[ID: %s] Trace Slicer enabled. Grouping traces into a single query.", correlationIdFromContext(ctx))
 			paramset := paramtools.NewParamSet()
 			// Group all traceIds into a single query for regression detection.
 			for _, traceId := range traceIds[startIdx:endIdx] {
@@ -601,7 +610,7 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 		return nil
 	})
 	if err != nil {
-		sklog.Errorf("Error processing alert config for traces: %v", err)
+		sklog.Errorf("[ID: %s] Error processing alert config for traces: %v", correlationIdFromContext(ctx), err)
 	}
 }
 
@@ -671,8 +680,6 @@ func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, 
 			return
 		}
 		sklog.Infof("Alert %q passed smoketest.", cfg.DisplayName)
-	} else {
-		sklog.Info("Not a GroupBy Alert.")
 	}
 
 	clusterResponseProcessor := func(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, message string) {
@@ -709,4 +716,13 @@ func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, 
 	if err != nil {
 		sklog.Warningf("Failed regression detection: Query: %q Error: %s", req.Query, err)
 	}
+}
+
+// correlationIdFromContext returns the correlation id from the context object.
+func correlationIdFromContext(ctx context.Context) string {
+	correlationId, ok := ctx.Value(correlationIdKey).(string)
+	if !ok {
+		return ""
+	}
+	return correlationId
 }

@@ -30,6 +30,7 @@ go_library(
         "//perf/go/stepfit",
         "//perf/go/types",
         "//perf/go/urlprovider",
+        "@com_github_google_uuid//:uuid",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@io_opencensus_go//trace",
     ],
