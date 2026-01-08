@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -69,5 +69,17 @@ sk_element_puppeteer_test(
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "trybot-page-sk_test",
+    src = "trybot-page-sk_test.ts",
+    deps = [
+        ":trybot-page-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//infra-sk/modules:test_util_ts_lib",
     ],
 )
