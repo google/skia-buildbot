@@ -1458,3 +1458,42 @@ describe('Even X-Axis Spacing toggle', () => {
     assert.deepEqual(event.detail, { value: false, graph_index: 0 });
   });
 });
+
+describe('clearTooltipDataFromURL', () => {
+  let explore: ExploreSimpleSk;
+  let pushStateStub: sinon.SinonStub;
+
+  beforeEach(async () => {
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await fetchMock.flush(true);
+  });
+
+  afterEach(() => {
+    if (pushStateStub) {
+      pushStateStub.restore();
+    }
+  });
+
+  it('removes graph, commit, and trace params from URL', () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('graph', '1');
+    url.searchParams.set('commit', '123');
+    url.searchParams.set('trace', '456');
+    url.searchParams.set('sid', '12345');
+
+    window.history.pushState(null, '', url.toString());
+
+    pushStateStub = sinon.stub(window.history, 'pushState');
+
+    (explore as any).clearTooltipDataFromURL();
+
+    assert.isTrue(pushStateStub.calledOnce);
+    // history.pushState(state, title, url)
+    const urlPositionIndex = 2;
+    const newUrl = new URL(pushStateStub.firstCall.args[urlPositionIndex] as string);
+    assert.isNull(newUrl.searchParams.get('graph'));
+    assert.isNull(newUrl.searchParams.get('commit'));
+    assert.isNull(newUrl.searchParams.get('trace'));
+    assert.equal(newUrl.searchParams.get('sid'), '12345');
+  });
+});

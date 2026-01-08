@@ -2116,9 +2116,11 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
   }
 
-  private clearBrowserURL(): void {
+  private clearTooltipDataFromURL(): void {
     const currentUrl = new URL(window.location.href);
-    currentUrl.search = '';
+    currentUrl.searchParams.delete('graph');
+    currentUrl.searchParams.delete('commit');
+    currentUrl.searchParams.delete('trace');
     window.history.pushState(null, '', currentUrl.toString());
   }
 
@@ -2547,7 +2549,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     tooltipElem!.moveTo(null);
     if (this.tooltipSelected) {
       this.clearSelectedState();
-      this.clearBrowserURL();
+      this.clearTooltipDataFromURL();
     }
     this.tooltipSelected = false;
     tooltipElem?.reset();
