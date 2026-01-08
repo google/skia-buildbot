@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+# TODO(faridzad): Add unit tests when it runs e2e tests.
+go_library(
+    name = "test_runner_lib",
+    srcs = ["test_runner.go"],
+    importpath = "go.skia.org/infra/perf/go/e2e",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "e2e-test-runner",
+    embed = [":test_runner_lib"],
+    visibility = ["//visibility:public"],
+)
