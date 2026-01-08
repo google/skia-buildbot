@@ -14,7 +14,6 @@ import '../../../elements-sk/modules/error-toast-sk';
 import '../../../elements-sk/modules/icons/add-alert-icon-sk';
 import '../../../elements-sk/modules/icons/build-icon-sk';
 import '../../../elements-sk/modules/icons/bug-report-icon-sk';
-import '../../../elements-sk/modules/icons/compare-arrows-icon-sk';
 import '../../../elements-sk/modules/icons/event-icon-sk';
 import '../../../elements-sk/modules/icons/favorite-icon-sk';
 import '../../../elements-sk/modules/icons/folder-icon-sk';
@@ -120,12 +119,6 @@ export class PerfScaffoldSk extends ElementSk {
         <a href="/m" tab-index=0 >
           <multiline-chart-icon-sk></multiline-chart-icon-sk><span>MultiGraph</span>
         </a>
-        <div ?hidden=${!window.perf.extra_links}>
-          <a href="/l" tab-index=0 >
-            <compare-arrows-icon-sk></compare-arrows-icon-sk>
-            <span>${window.perf.extra_links?.name}</span>
-          </a>
-        </div>
         <div class="triage-link" ?hidden=${!ele.isHiddenTriage}>
         <a href="/t" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a>
         </div>
@@ -178,11 +171,6 @@ export class PerfScaffoldSk extends ElementSk {
         </div>
         <a href="/a" tab-index=0 class="${ele.isPageActive('/a') ? 'active' : ''}">Alerts</a>
         <a href="/f" tab-index=0 class="${ele.isPageActive('/f') ? 'active' : ''}">Favorites</a>
-        <div ?hidden=${!window.perf.extra_links}>
-          <a href="/l" tab-index=0 class="${ele.isPageActive('/l') ? 'active' : ''}">
-            ${window.perf.extra_links?.name}
-          </a>
-        </div>
         <a href="/d" tab-index=0 class="${ele.isPageActive('/d') ? 'active' : ''}">Dry Run</a>
         <a href="/c" tab-index=0 class="${ele.isPageActive('/c') ? 'active' : ''}">Clustering</a>
         <a href="/pg" tab-index=0 class="${ele.isPageActive('/pg') ? 'active' : ''}">Playground</a>

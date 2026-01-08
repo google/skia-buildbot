@@ -179,29 +179,6 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "ExtraLinks": {
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "links": {
-          "items": {
-            "$ref": "#/$defs/FavoritesSectionLinkConfig"
-          },
-          "type": "array"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "name",
-        "title",
-        "links"
-      ]
-    },
     "Favorites": {
       "properties": {
         "sections": {
@@ -372,9 +349,6 @@
         },
         "favorites": {
           "$ref": "#/$defs/Favorites"
-        },
-        "extra_links": {
-          "$ref": "#/$defs/ExtraLinks"
         },
         "filter_parent_traces": {
           "type": "boolean"

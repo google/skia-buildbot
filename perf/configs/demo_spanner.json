@@ -97,21 +97,5 @@
             }
         ]
     },
-    "extra_links": {
-        "name": "Extra Links",
-        "title": "Additional Links",
-        "links": [
-            {
-                "text": "link1",
-                "href": "https://example.com/test1",
-                "description": "Additional Link #1"
-            },
-            {
-                "text": "link2",
-                "href": "https://example.com/test2",
-                "description": "Additional Link #2"
-            }
-        ]
-    },
     "need_alert_action": true
 }

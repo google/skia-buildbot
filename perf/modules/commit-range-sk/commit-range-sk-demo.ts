@@ -42,7 +42,6 @@ window.perf = {
   show_bisect_btn: true,
   app_version: 'test-version',
   enable_v2_ui: false,
-  extra_links: null,
 };
 
 // The response to a POST of [64809, 64811] to /_/cid/.

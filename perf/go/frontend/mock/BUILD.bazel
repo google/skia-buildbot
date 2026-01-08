@@ -8,7 +8,6 @@ filegroup(
             "alerts",
             "clusters2",
             "dryrunalert",
-            "extralinks",
             "help",
             "multiexplore",
             "newindex",

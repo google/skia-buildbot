@@ -57,7 +57,6 @@ window.perf = {
   instance_name: 'chrome-perf-test',
   header_image_url: '',
   enable_v2_ui: false,
-  extra_links: null,
 };
 
 describe('anomaly-playground-sk', () => {

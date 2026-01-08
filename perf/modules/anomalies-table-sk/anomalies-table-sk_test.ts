@@ -59,7 +59,6 @@ describe('anomalies-table-sk', () => {
       show_bisect_btn: true,
       app_version: 'test-version',
       enable_v2_ui: false,
-      extra_links: null,
     };
 
     fetchMock.post('begin:/_/anomalies/group_report', {

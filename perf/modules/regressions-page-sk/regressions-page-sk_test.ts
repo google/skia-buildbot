@@ -44,7 +44,6 @@ describe('regressions-page-sk', () => {
     show_bisect_btn: true,
     app_version: 'test-version',
     enable_v2_ui: false,
-    extra_links: null,
   };
 
   const sheriffListResponse: GetSheriffListResponse = {
