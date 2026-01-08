@@ -28,7 +28,7 @@ skia/tools/goldctl/${platform}                      git_revision:808a00437f24bb4
 infra/3pp/tools/cpython3/${platform}                version:3@3.11.9.chromium.36
 
 @Subdir task_drivers
-skia/tools/bazel_build_all/${platform}              git_revision:57be449cafdcc7d568449622784675ca1d4466ff
-skia/tools/bazel_test_all/${platform}               git_revision:57be449cafdcc7d568449622784675ca1d4466ff
-skia/tools/command_wrapper/${platform}              git_revision:57be449cafdcc7d568449622784675ca1d4466ff
-skia/tools/presubmit/${platform}                    git_revision:57be449cafdcc7d568449622784675ca1d4466ff
+skia/tools/bazel_build_all/${platform}              git_revision:902045eb126a9e28ab8790d9f0e4bcd1cb3275ef
+skia/tools/bazel_test_all/${platform}               git_revision:902045eb126a9e28ab8790d9f0e4bcd1cb3275ef
+skia/tools/command_wrapper/${platform}              git_revision:902045eb126a9e28ab8790d9f0e4bcd1cb3275ef
+skia/tools/presubmit/${platform}                    git_revision:902045eb126a9e28ab8790d9f0e4bcd1cb3275ef
