@@ -31,17 +31,17 @@ export class GraphTitleSkPO extends PageObject {
   }
 
   async getParamCount(): Promise<number> {
-    return this.paramNames.length;
+    return await this.paramNames.length;
   }
 
   async getParamName(index: number): Promise<string> {
     const el = await this.paramNames.item(index);
-    return el.innerText;
+    return await el.innerText;
   }
 
   async getParamValue(index: number): Promise<string> {
     const el = await this.paramValues.item(index);
-    return el.innerText;
+    return await el.innerText;
   }
 
   async isShowMoreVisible(): Promise<boolean> {

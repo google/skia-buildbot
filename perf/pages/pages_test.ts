@@ -15,30 +15,38 @@ import './trybot';
 import { assert } from 'chai';
 
 describe('Perf Pages', () => {
-  it('should import all page modules and define custom elements', () => {
-    const expectedElements = [
-      'alerts-page-sk',
-      'cluster-page-sk',
-      'cluster-lastn-page-sk',
-      'favorites-sk',
-      'explore-multi-sk',
-      'explore-sk',
-      'extra-links-sk',
-      'anomaly-playground-sk',
-      'regressions-page-sk',
-      'report-page-sk',
-      'revision-info-sk',
-      'triage-page-sk',
-      'trybot-page-sk',
-    ];
-    expectedElements.forEach((el) => {
-      assert.isNotNull(customElements.get(el), `Element ${el} should be defined`);
-    });
+  const expectedElements = [
+    'alerts-page-sk',
+    'cluster-page-sk',
+    'cluster-lastn-page-sk',
+    'favorites-sk',
+    'explore-multi-sk',
+    'explore-sk',
+    'extra-links-sk',
+    'anomaly-playground-sk',
+    'regressions-page-sk',
+    'report-page-sk',
+    'revision-info-sk',
+    'triage-page-sk',
+    'trybot-page-sk',
+  ];
+
+  beforeEach(() => {
+    (window as any).perf = {
+      radius: 7,
+      interesting: 0.1,
+      demo: false,
+      key_order: ['config'],
+      git_repo_url: 'https://skia.googlesource.com/skia',
+    };
   });
 
-  it('can instantiate explore-sk', () => {
-    const explore = document.createElement('explore-sk');
-    assert.isNotNull(explore);
-    assert.equal(explore.tagName, 'EXPLORE-SK');
+  expectedElements.forEach((el) => {
+    it(`can instantiate ${el}`, () => {
+      assert.isNotNull(customElements.get(el), `Element ${el} should be defined`);
+      const instance = document.createElement(el);
+      assert.isNotNull(instance);
+      assert.equal(instance.tagName, el.toUpperCase());
+    });
   });
 });
