@@ -967,6 +967,39 @@ describe('updateTestPickerUrl', () => {
         'URL update should not be called for identical queries'
       );
     });
+
+    it('correctly syncs state to the domain picker on connectedCallback', async () => {
+      // Create a new element to test connectedCallback in isolation.
+      const testElement = document.createElement('explore-simple-sk') as ExploreSimpleSk;
+
+      // Set an initial state before the element is connected.
+      const initialState = new State();
+      initialState.begin = 1000;
+      initialState.end = 2000;
+      initialState.numCommits = 150;
+      initialState.requestType = 1;
+      testElement.state = initialState;
+
+      // The range picker should not exist yet.
+      assert.isNull(testElement.querySelector('domain-picker-sk'));
+
+      // Append to the DOM to trigger connectedCallback.
+      document.body.appendChild(testElement);
+      await waitForRender(testElement);
+
+      // Now, the range picker should exist and its state should be synced.
+      const rangePicker = testElement.querySelector('domain-picker-sk') as any;
+      assert.isNotNull(rangePicker);
+      assert.deepEqual(rangePicker.state, {
+        begin: 1000,
+        end: 2000,
+        num_commits: 150,
+        request_type: 1,
+      });
+
+      // Cleanup
+      document.body.removeChild(testElement);
+    });
   });
 
   describe('x-axis domain switching', () => {

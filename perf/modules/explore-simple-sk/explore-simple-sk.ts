@@ -1294,6 +1294,16 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     this.graphTitle = this.querySelector<GraphTitleSk>('#graphTitle');
     this.is_anomaly_table = document.querySelector('#anomaly-table') ? true : false;
 
+    // Update the range picker's state from our own state, since our state may
+    // have been set before we were attached to the DOM and this.range was populated.
+    if (this.range) {
+      this.range.state = {
+        begin: this._state.begin,
+        end: this._state.end,
+        num_commits: this._state.numCommits,
+        request_type: this._state.requestType,
+      };
+    }
     // material UI stuff
     this.settingsDialog = this.querySelector<MdDialog>('#settings-dialog');
 
