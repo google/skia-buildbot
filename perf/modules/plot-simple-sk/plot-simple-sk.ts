@@ -743,8 +743,12 @@ export class PlotSimpleSk extends ElementSk {
         // We need to dynamically resize the canvas elements since they don't do
         // that themselves.
         entries.forEach((entry) => {
-          this.width = entry.contentRect.width;
-          this.height = entry.contentRect.height;
+          if (entry.contentRect.width > 0) {
+            this.width = entry.contentRect.width;
+          }
+          if (entry.contentRect.height > 0) {
+            this.height = entry.contentRect.height;
+          }
         });
       });
     });
@@ -805,33 +809,6 @@ export class PlotSimpleSk extends ElementSk {
         this.doDetailsZoom();
       }
       this.inZoomDrag = 'no-zoom';
-    });
-
-    this.addEventListener('click', (e) => {
-      const pt = this.eventToCanvasPt(e);
-      if (!inRect(pt, this.detailArea.rect)) {
-        return;
-      }
-      if (!this.pointSearch) {
-        return;
-      }
-      const closest = this.pointSearch.nearest(pt);
-      if (!closest) {
-        return;
-      }
-      const detail = {
-        x: closest.sx,
-        y: closest.sy,
-        xPos: closest.x / this.scale,
-        yPos: closest.y / this.scale,
-        name: closest.name,
-      };
-      this.dispatchEvent(
-        new CustomEvent<PlotSimpleSkTraceEventDetails>('trace_selected', {
-          detail,
-          bubbles: true,
-        })
-      );
     });
 
     // If the user toggles the theme to/from darkmode then redraw.
@@ -1188,7 +1165,7 @@ export class PlotSimpleSk extends ElementSk {
         clampToRect(pt, this.detailArea.rect);
         this.zoomRect.width = pt.x - this.zoomRect.x;
         this.zoomRect.height = pt.y - this.zoomRect.y;
-        //this.drawOverlayCanvas();
+        this.drawOverlayCanvas();
       }
     }
     this.mouseMoveRaw = null;

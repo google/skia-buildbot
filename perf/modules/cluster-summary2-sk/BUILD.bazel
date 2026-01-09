@@ -1,4 +1,11 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+)
 
 sk_element(
     name = "cluster-summary2-sk",
@@ -56,4 +63,17 @@ sk_element_puppeteer_test(
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":cluster-summary2-sk-demo",
+)
+
+karma_test(
+    name = "cluster-summary2-sk_test",
+    src = "cluster-summary2-sk_test.ts",
+    deps = [
+        ":cluster-summary2-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
 )

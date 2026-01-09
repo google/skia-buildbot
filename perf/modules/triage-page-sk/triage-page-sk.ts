@@ -179,7 +179,7 @@ export class TriagePageSk extends ElementSk implements KeyboardShortcutHandler {
     </header>
     <spinner-sk ?active=${ele.triageInProgress || ele.refreshRangeInProgress}></spinner-sk>
 
-    <dialog>
+    <dialog id="triage-dialog">
       <cluster-summary2-sk
         @open-keys=${ele.openKeys}
         @triaged=${ele.triaged}
@@ -407,12 +407,23 @@ export class TriagePageSk extends ElementSk implements KeyboardShortcutHandler {
     this.stateHasChanged();
   }
 
-  private triage_start(e: CustomEvent<TriageStatusSkStartTriageEventDetails>) {
+  private triage_start = (e: CustomEvent<TriageStatusSkStartTriageEventDetails>) => {
     this.dialogState = e.detail;
     this._render();
-    this.dialog = this.querySelector('dialog');
-    this.dialog!.showModal();
-  }
+    const dialog = this.querySelector<HTMLDialogElement>('#triage-dialog');
+    if (dialog) {
+      this.dialog = dialog;
+      try {
+        if (!this.dialog.open) {
+          this.dialog.showModal();
+        }
+      } catch (err) {
+        errorMessage(`Failed to open dialog: ${err}`);
+        // Fallback to non-modal open if showModal fails
+        this.dialog.open = true;
+      }
+    }
+  };
 
   private triaged(e: CustomEvent<ClusterSummary2SkTriagedEventDetail>) {
     e.stopPropagation();

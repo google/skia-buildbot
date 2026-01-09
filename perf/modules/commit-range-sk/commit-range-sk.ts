@@ -120,11 +120,21 @@ export class CommitRangeSk extends ElementSk {
       return;
     }
 
-    this._commitIds = this.setCommitIds(this._commitIndex);
-    if (!this._commitIds || this._commitIds.length !== 2) {
+    const newCommitIds = this.setCommitIds(this._commitIndex);
+    if (!newCommitIds || newCommitIds.length !== 2) {
       this.clear();
       return;
     }
+
+    // If the commit IDs have changed then the hashes are no longer valid.
+    if (
+      !this._commitIds ||
+      this._commitIds[0] !== newCommitIds[0] ||
+      this._commitIds[1] !== newCommitIds[1]
+    ) {
+      this._hashes = null;
+    }
+    this._commitIds = newCommitIds;
 
     try {
       let text = `${this._commitIds[1]}`;

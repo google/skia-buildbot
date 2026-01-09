@@ -216,7 +216,7 @@ export class ClusterSummary2Sk extends ElementSk {
   private static template = (ele: ClusterSummary2Sk) => html`
     <div class="regression ${ele.statusClass()}">
       ${ele.labels.regression}
-      <span>${ele.labels.regressionFormatter(ele.summary!.step_fit!.regression)}</span>
+      <span>${ele.labels.regressionFormatter(ele.summary.step_fit?.regression || 0)}</span>
     </div>
     <div class="stats">
       <div class="labelled">
@@ -226,7 +226,7 @@ export class ClusterSummary2Sk extends ElementSk {
       ${ClusterSummary2Sk.leastSquares(ele)}
       <div class="labelled">
         ${ele.labels.stepSize}
-        <span>${ele.labels.stepSizeFormatter(ele.summary!.step_fit!.step_size)}</span>
+        <span>${ele.labels.stepSizeFormatter(ele.summary.step_fit?.step_size || 0)}</span>
       </div>
       ${ele.summary.notification_id
         ? html` <div>
@@ -263,7 +263,7 @@ export class ClusterSummary2Sk extends ElementSk {
       <button @click=${ele.toggleWordCloud}>Word Cloud</button>
       <a id="permalink" class=${ele.hiddenClass()} href=${ele.permaLink()}> Permlink </a>
       <commit-range-sk
-        .trace=${ele.summary.centroid}
+        .trace=${ele.summary.centroid || []}
         .commitIndex=${ele.graph?.xbar || -1}
         .header=${ele.frame?.dataframe?.header || null}></commit-range-sk>
     </div>
@@ -275,7 +275,7 @@ export class ClusterSummary2Sk extends ElementSk {
   private static leastSquares = (ele: ClusterSummary2Sk) => html`
     <div class="labelled">
       ${ele.labels.lse}
-      <span>${ele.labels.lseFormatter(ele.summary!.step_fit!.least_squares)}</span>
+      <span>${ele.labels.lseFormatter(ele.summary.step_fit?.least_squares || 0)}</span>
     </div>
   `;
 
@@ -362,7 +362,7 @@ export class ClusterSummary2Sk extends ElementSk {
     if (!this.summary) {
       return '';
     }
-    const status = this.summary!.step_fit!.status || '';
+    const status = this.summary.step_fit?.status || '';
     return status.toLowerCase();
   }
 
@@ -379,10 +379,7 @@ export class ClusterSummary2Sk extends ElementSk {
   }
 
   set full_summary(val: FullSummary | null) {
-    if (!val) {
-      return;
-    }
-    if (!val.frame) {
+    if (!val || !val.frame) {
       return;
     }
     this.fullSummary = val;
@@ -394,40 +391,54 @@ export class ClusterSummary2Sk extends ElementSk {
 
     // Set the data- attributes used for sorting cluster summaries.
     this.dataset.clustersize = this.summary.num.toString();
-    this.dataset.steplse = this.summary!.step_fit!.least_squares.toPrecision(2);
-    this.dataset.stepsize = this.summary!.step_fit!.step_size.toPrecision(2);
-    this.dataset.stepregression = this.summary!.step_fit!.regression.toPrecision(2);
+    const step_fit = this.summary.step_fit;
+    if (step_fit) {
+      this.dataset.steplse = step_fit.least_squares.toPrecision(2);
+      this.dataset.stepsize = step_fit.step_size.toPrecision(2);
+      this.dataset.stepregression = step_fit.regression.toPrecision(2);
+    }
     // We take in a ClusterSummary, but need to transform all that data
     // into a format that plot-sk can handle.
     this.graph.removeAll();
     const labels: Date[] = [];
-    this.full_summary!.frame!.dataframe!.header!.forEach((header) => {
-      labels.push(new Date(header!.timestamp * 1000));
-    });
-    this.graph.addLines({ centroid: this.summary.centroid! }, ticks(labels));
+    const headers = this.frame.dataframe?.header;
+    if (headers) {
+      headers.forEach((header) => {
+        if (header) {
+          labels.push(new Date(header.timestamp * 1000));
+        }
+      });
+    }
+
+    if (this.summary.centroid) {
+      this.graph.addLines({ centroid: this.summary.centroid }, ticks(labels));
+    }
+
     // Set the x-bar but only if status != uninteresting.
-    if (this.summary!.step_fit!.status !== 'Uninteresting') {
+    if (step_fit && step_fit.status !== 'Uninteresting') {
       // Loop through the dataframe header to find the location we should
       // place the x-bar at.
       const step = this.summary.step_point;
-      let xbar = -1;
-      this.frame!.dataframe!.header!.forEach((h, i) => {
-        if (h!.offset === step!.offset) {
-          xbar = i;
+      if (step && headers) {
+        let xbar = -1;
+        headers.forEach((h, i) => {
+          if (h && h.offset === step.offset) {
+            xbar = i;
+          }
+        });
+        if (xbar !== -1) {
+          this.graph.xbar = xbar;
         }
-      });
-      if (xbar !== -1) {
-        this.graph.xbar = xbar;
-      }
 
-      // If step_point is set then display the commit
-      // details for the xbar location.
-      if (step && step.offset > 0) {
-        ClusterSummary2Sk.lookupCids([step.offset])
-          .then((json) => {
-            this.commits!.details = json.commitSlice || [];
-          })
-          .catch(errorMessage);
+        // If step_point is set then display the commit
+        // details for the xbar location.
+        if (step.offset > 0) {
+          ClusterSummary2Sk.lookupCids([step.offset])
+            .then((json) => {
+              this.commits!.details = json.commitSlice || [];
+            })
+            .catch(errorMessage);
+        }
       }
     }
 
@@ -465,7 +476,7 @@ export class ClusterSummary2Sk extends ElementSk {
       return;
     }
     this._alert = val;
-    this.labels = labelsForStepDetection[val!.step];
+    this.labels = labelsForStepDetection[val!.step] || labelsForStepDetection[''];
     this._render();
   }
 }

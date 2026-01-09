@@ -33,7 +33,7 @@ describe('triage-page-sk', () => {
 
     beforeEach(async () => {
       // Simulate starting triage to open the dialog and render cluster-summary2-sk
-      dialog = element.querySelector('dialog')!;
+      dialog = element.querySelector('#triage-dialog')!;
       const eventDetails: TriageStatusSkStartTriageEventDetails = {
         alert: {
           bug_uri_template: '',
@@ -173,6 +173,23 @@ describe('triage-page-sk', () => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'n' }));
 
       assert.isFalse(updateCalled);
+    });
+
+    it('opens the correct dialog (avoiding ambiguity with calendar-input-sk)', () => {
+      assert.equal(dialog.id, 'triage-dialog');
+      assert.isTrue(dialog.open);
+
+      // Ensure we didn't accidentally open a calendar dialog (which doesn't have this ID)
+      const allDialogs = element.querySelectorAll('dialog');
+      // Triage dialog + 2 calendar input dialogs (begin/end) = 3 dialogs total
+      // But only triage dialog should be open.
+
+      let openDialogCount = 0;
+      allDialogs.forEach((d) => {
+        if (d.open) openDialogCount++;
+      });
+
+      assert.equal(openDialogCount, 1, 'Only one dialog should be open');
     });
   });
 });

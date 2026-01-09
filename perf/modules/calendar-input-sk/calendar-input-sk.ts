@@ -129,12 +129,16 @@ export class CalendarInputSk extends ElementSk {
 
   private calendarChangeHandler(e: CustomEvent<Date>) {
     this.dialog!.close();
-    this.resolve!(e.detail);
+    if (this.resolve) {
+      this.resolve(e.detail);
+    }
   }
 
   private dialogCancelHandler() {
     this.dialog!.close();
-    this.reject!();
+    if (this.reject) {
+      this.reject();
+    }
   }
 
   /** The default date, if not set defaults to today. */

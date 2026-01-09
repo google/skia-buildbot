@@ -23,5 +23,10 @@ describe('calendar-input-sk', () => {
       window.customElements.whenDefined('calendar-input-sk').then(async () => {
         assert.equal(calendarInputSk.querySelector<HTMLInputElement>('input')!.value, '2020-5-21');
       }));
+
+    it('does not crash if cancelled without opening', () => {
+      // This should not throw 'TypeError: this.reject is not a function'
+      (calendarInputSk as any).dialogCancelHandler();
+    });
   });
 });
