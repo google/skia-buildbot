@@ -163,6 +163,21 @@ skia_app_container(
     repository = "skia-public/backendserver",
 )
 
+skia_app_container(
+    name = "perf_e2e_test_runner",
+    base_image = "@base-cipd",
+    dirs = {
+        "/usr/local/bin/e2e": [
+            [
+                "//perf/go/e2e:e2e-test-runner",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/e2e/e2e-test-runner",
+    repository = "skia-public/perf_e2e_test_runner",
+)
+
 sh_test(
     name = "gen_version_test",
     srcs = ["gen_version_test.sh"],
