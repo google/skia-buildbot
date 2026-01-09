@@ -666,7 +666,7 @@ func (f *Frontend) initialize() {
 		}
 
 		if cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretProject != "" && cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretName != "" {
-			f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig, config.Config.FetchAnomaliesFromSql, f.regStore, f.flags.DevMode)
+			f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig, config.Config.FetchAnomaliesFromSql, f.regStore, f.flags.DevMode, cfg.URL)
 			if err != nil {
 				sklog.Fatalf("Failed to build issuetracker client: %s", err)
 			}
@@ -675,7 +675,7 @@ func (f *Frontend) initialize() {
 
 	// Build mock issuetracker
 	if f.flags.DevMode && f.issuetracker == nil {
-		f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig, config.Config.FetchAnomaliesFromSql, f.regStore, f.flags.DevMode)
+		f.issuetracker, err = issuetracker.NewIssueTracker(ctx, cfg.IssueTrackerConfig, config.Config.FetchAnomaliesFromSql, f.regStore, f.flags.DevMode, cfg.URL)
 		if err != nil {
 			sklog.Fatalf("Failed to build issuetracker client: %s", err)
 		}

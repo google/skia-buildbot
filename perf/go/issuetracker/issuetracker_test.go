@@ -42,7 +42,7 @@ func TestFileBug_Success(t *testing.T) {
 	s, regStore, ts := createIssueTrackerForTest(t)
 	defer ts.Close()
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return(nil, nil, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
 		{
 			BugComponent: "1235",
 		},
@@ -54,6 +54,7 @@ func TestFileBug_Success(t *testing.T) {
 		Component:   "1234",
 		Assignee:    "test@google.com",
 		Ccs:         []string{"test2@google.com"},
+		Keys:        []string{"1"},
 	}
 
 	issueID, err := s.FileBug(context.Background(), req)
@@ -72,7 +73,7 @@ func TestFileBug_InvalidComponent(t *testing.T) {
 	s, regStore, ts := createIssueTrackerForTest(t)
 	defer ts.Close()
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return(nil, nil, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
 		{
 			BugComponent: "-1",
 		},
@@ -80,6 +81,7 @@ func TestFileBug_InvalidComponent(t *testing.T) {
 
 	req := &FileBugRequest{
 		Component: "invalid",
+		Keys:      []string{"1"},
 	}
 	_, err := s.FileBug(context.Background(), req)
 	require.Error(t, err)
@@ -102,7 +104,7 @@ func TestFileBug_APIError(t *testing.T) {
 		regStore:              regStore,
 	}
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return(nil, nil, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
 		{
 			BugComponent: "1325852",
 		},
@@ -113,6 +115,7 @@ func TestFileBug_APIError(t *testing.T) {
 		Description: "This is a test bug.",
 		Assignee:    "test@google.com",
 		Ccs:         []string{"test2@google.com"},
+		Keys:        []string{"1"},
 	}
 
 	_, err = s.FileBug(context.Background(), req)
@@ -147,7 +150,7 @@ func TestFileBug_RequestBody(t *testing.T) {
 		regStore:              regStore,
 	}
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return(nil, nil, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
 		{
 			BugComponent: "8765",
 		},
@@ -159,6 +162,7 @@ func TestFileBug_RequestBody(t *testing.T) {
 		Component:   "5678",
 		Assignee:    "assignee@google.com",
 		Ccs:         []string{"cc1@google.com", "cc2@google.com"},
+		Keys:        []string{"1"},
 	}
 
 	_, err = s.FileBug(context.Background(), req)
@@ -174,4 +178,110 @@ func TestFileBug_RequestBody(t *testing.T) {
 	require.Len(t, receivedReq.IssueState.Ccs, 2)
 	require.Equal(t, "cc1@google.com", receivedReq.IssueState.Ccs[0].EmailAddress)
 	require.Equal(t, "cc2@google.com", receivedReq.IssueState.Ccs[1].EmailAddress)
+}
+
+func TestFileBug_EmptyDescription(t *testing.T) {
+	var receivedReq issuetracker.Issue
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		err = json.Unmarshal(body, &receivedReq)
+		require.NoError(t, err)
+
+		w.Header().Set("Content-Type", "application/json")
+		resp := &issuetracker.Issue{
+			IssueId: 12345,
+		}
+		err = json.NewEncoder(w).Encode(resp)
+		require.NoError(t, err)
+	}))
+	defer ts.Close()
+
+	c, err := issuetracker.NewService(context.Background(), option.WithEndpoint(ts.URL), option.WithoutAuthentication())
+	require.NoError(t, err)
+
+	regStore := &regMocks.Store{}
+	s := &issueTrackerImpl{
+		client:                c,
+		FetchAnomaliesFromSql: true,
+		regStore:              regStore,
+		urlBase:               "http://test.com",
+	}
+
+	req := &FileBugRequest{
+		Title:     "Test Bug Title",
+		Component: "5678",
+		Assignee:  "assignee@google.com",
+		Ccs:       []string{"cc1@google.com", "cc2@google.com"},
+		Keys:      []string{"key1", "key2"},
+	}
+
+	alertIDs := make([]int64, len(req.Keys))
+
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return(req.Keys, alertIDs, []*pb.Subscription{
+		{
+			BugComponent: "8765",
+		},
+	}, nil)
+
+	_, err = s.FileBug(context.Background(), req)
+	require.NoError(t, err)
+
+	require.Equal(t, "Link to graph with regressions: http://test.com/u?anomalyIDs=key1,key2", receivedReq.IssueComment.Comment)
+}
+
+func TestFileBug_EmptyDescriptionTooManyKeys(t *testing.T) {
+	var receivedReq issuetracker.Issue
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		err = json.Unmarshal(body, &receivedReq)
+		require.NoError(t, err)
+
+		w.Header().Set("Content-Type", "application/json")
+		resp := &issuetracker.Issue{
+			IssueId: 12345,
+		}
+		err = json.NewEncoder(w).Encode(resp)
+		require.NoError(t, err)
+	}))
+	defer ts.Close()
+
+	c, err := issuetracker.NewService(context.Background(), option.WithEndpoint(ts.URL), option.WithoutAuthentication())
+	require.NoError(t, err)
+
+	regStore := &regMocks.Store{}
+	s := &issueTrackerImpl{
+		client:                c,
+		FetchAnomaliesFromSql: true,
+		regStore:              regStore,
+		urlBase:               "http://test.com",
+	}
+
+	keys := []string{}
+	alertIDs := []int64{}
+	for i := 0; i < 200; i++ {
+		keys = append(keys, "aLongKeyThatWillMakeTheUrlExceedTheMaximumLength")
+		alertIDs = append(alertIDs, int64(i))
+	}
+	req := &FileBugRequest{
+		Title:     "Test Bug Title",
+		Component: "5678",
+		Assignee:  "assignee@google.com",
+		Ccs:       []string{"cc1@google.com", "cc2@google.com"},
+		Keys:      keys,
+	}
+
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return(req.Keys, alertIDs, []*pb.Subscription{
+		{
+			BugComponent: "8765",
+		},
+	}, nil)
+
+	_, err = s.FileBug(context.Background(), req)
+	require.NoError(t, err)
+
+	require.Contains(t, receivedReq.IssueComment.Comment, "The link to a graph with all regressions would be too long.")
 }

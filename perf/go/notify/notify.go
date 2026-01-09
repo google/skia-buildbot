@@ -259,7 +259,7 @@ func New(ctx context.Context, cfg *config.NotifyConfig, itCfg *config.IssueTrack
 				return nil, skerr.Fmt("Invalid issue tracker configs. It is required by anomalygroup notifier type.")
 			}
 		}
-		perfIssueTracker, err := perf_issuetracker.NewIssueTracker(ctx, *itCfg, config.Config.FetchAnomaliesFromSql, regressionStore, devMode)
+		perfIssueTracker, err := perf_issuetracker.NewIssueTracker(ctx, *itCfg, config.Config.FetchAnomaliesFromSql, regressionStore, devMode, URL)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

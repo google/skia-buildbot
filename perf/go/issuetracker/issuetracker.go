@@ -40,6 +40,7 @@ type issueTrackerImpl struct {
 	client                *issuetracker.Service
 	FetchAnomaliesFromSql bool
 	regStore              regression.Store
+	urlBase               string
 }
 
 // ListIssuesRequest defines the request object for ListIssues.
@@ -88,7 +89,7 @@ func setupSecretClient(ctx context.Context, cfg config.IssueTrackerConfig, optio
 }
 
 // NewIssueTracker returns a new issueTracker object.
-func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig, fetchAnomFromSql bool, regStore regression.Store, devMode bool) (IssueTracker, error) {
+func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig, fetchAnomFromSql bool, regStore regression.Store, devMode bool, urlBase string) (IssueTracker, error) {
 	var client *http.Client
 	var err error
 	var options []option.ClientOption
@@ -118,6 +119,7 @@ func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig, fetchAn
 		client:                c,
 		FetchAnomaliesFromSql: fetchAnomFromSql,
 		regStore:              regStore,
+		urlBase:               urlBase,
 	}, nil
 }
 
@@ -170,32 +172,15 @@ func (s *issueTrackerImpl) ListIssues(ctx context.Context, requestObj ListIssues
 	return resp.Issues, nil
 }
 
-func (s *issueTrackerImpl) getComponentID(ctx context.Context, subscriptions []*pb.Subscription) (int64, error) {
-	componentID := int64(-1)
-	for _, sub := range subscriptions {
-		id, err := strconv.ParseInt(sub.BugComponent, 10, 64)
-		if err != nil {
-			return -1, err
-		}
-		if componentID == -1 {
-			componentID = id
-			continue
-		}
-		if componentID != id {
-			return -1, skerr.Fmt("cannot file a bug against multiple components at once")
-		}
-	}
-	if componentID == -1 {
-		return -1, skerr.Fmt("failed to retrieve the bug component from a subscription list of length %d", len(subscriptions))
-	}
-	return componentID, nil
-}
-
 // TODO(b/454614028) Inspect filed bugs. Determine whether Keys, TraceNames, Host, or Label
 // should be included. In particular, labels will be missing in the new bugs.
 func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (int, error) {
 	if req == nil {
 		return 0, skerr.Fmt("File bug request is null.")
+	}
+
+	if len(req.Keys) == 0 {
+		return 0, skerr.Fmt("File bug received an empty list of regression ids..")
 	}
 
 	if !s.FetchAnomaliesFromSql {
@@ -215,7 +200,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 	// TODO(b/454614028) Not sure alertsIds will be useful.
 	_ = alertsIds
 
-	componentID, err := s.getComponentID(ctx, subscriptions)
+	componentID, err := s.getComponentID(subscriptions)
 	if err != nil {
 		return 0, err
 	}
@@ -235,9 +220,12 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		ccs = append(ccs, &issuetracker.User{EmailAddress: cc})
 	}
 
+	// TODO(b/464211673) Make sure the links lead to correct graphs.
+	description := s.createDescription(req.Description, req.Keys)
+
 	newIssue := &issuetracker.Issue{
 		IssueComment: &issuetracker.IssueComment{
-			Comment:        req.Description,
+			Comment:        description,
 			FormattingMode: "MARKDOWN",
 		},
 		IssueState: &issuetracker.IssueState{
@@ -263,4 +251,54 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		)
 	}
 	return int(resp.IssueId), nil
+}
+
+func (s *issueTrackerImpl) getComponentID(subscriptions []*pb.Subscription) (int64, error) {
+	componentID := int64(-1)
+	for _, sub := range subscriptions {
+		id, err := strconv.ParseInt(sub.BugComponent, 10, 64)
+		if err != nil {
+			return -1, err
+		}
+		if componentID == -1 {
+			componentID = id
+			continue
+		}
+		if componentID != id {
+			return -1, skerr.Fmt("cannot file a bug against multiple components at once")
+		}
+	}
+	if componentID == -1 {
+		return -1, skerr.Fmt("failed to retrieve the bug component from a subscription list of length %d", len(subscriptions))
+	}
+	return componentID, nil
+}
+
+func (s *issueTrackerImpl) createDescription(reqDescription string, keys []string) string {
+	if reqDescription != "" {
+		return reqDescription
+	}
+
+	anomalyIdsLink := "anomalyIDs"
+	graphLink := fmt.Sprintf("%s/u?%s=", s.urlBase, anomalyIdsLink)
+	description := fmt.Sprintf("Link to graph with regressions: %s", graphLink)
+
+	// TODO(b/454277955) Links longer than 2k might be problematic. We should use SID instead.
+	MAX_LEN := 2000
+	urlLength := len(graphLink)
+
+	for _, key := range keys {
+		if urlLength+len(key)+1 >= MAX_LEN {
+			sklog.Warningf("URL is too long, need to use SID - there are %d regressions", len(keys))
+			prefix := "The link to a graph with all regressions would be too long.\n"
+			prefix += "Please contact BERF engineers at go/berf-skia-chat.\n"
+			prefix += "The graph will not contain all regressions!"
+			description = prefix + description
+			break
+		}
+		description += key + ","
+		urlLength += len(key) + 1
+	}
+	// Trim the last comma.
+	return strings.TrimSuffix(description, ",")
 }
