@@ -48,6 +48,7 @@ describe('user-issue-sk', () => {
       show_bisect_btn: false,
       app_version: 'test-version',
       enable_v2_ui: false,
+      extra_links: null,
     };
   });
 

@@ -52,6 +52,7 @@ window.perf = {
   show_bisect_btn: true,
   app_version: 'test-version',
   enable_v2_ui: false,
+  extra_links: null,
 };
 
 customElements.whenDefined('explore-multi-sk').then(() => {

@@ -105,6 +105,7 @@ skia_app_container(
                 "alerts",
                 "clusters2",
                 "dryrunalert",
+                "extralinks",
                 "help",
                 "multiexplore",
                 "newindex",

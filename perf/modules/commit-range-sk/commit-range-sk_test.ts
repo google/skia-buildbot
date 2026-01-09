@@ -46,6 +46,7 @@ describe('commit-range-sk', () => {
       show_bisect_btn: true,
       app_version: 'test-version',
       enable_v2_ui: false,
+      extra_links: null,
     };
 
     element = newInstance((el: CommitRangeSk) => {

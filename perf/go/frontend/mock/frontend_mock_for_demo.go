@@ -140,7 +140,7 @@ func main() {
 		"/pg": "playground.html", "/t": "triage.html", "/d": "dryrunalert.html",
 		"/r": "trybot.html", "/f": "favorites.html", "/v": "revisions.html",
 		"/u": "report.html", "/help": "help.html", "/a": "regressions.html",
-		"/admin/alerts": "alerts.html",
+		"/admin/alerts": "alerts.html", "/l": "extralinks.html",
 	}
 	for route, tmpl := range routes {
 		r.HandleFunc(route, m.render(tmpl))

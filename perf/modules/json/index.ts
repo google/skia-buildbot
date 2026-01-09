@@ -396,6 +396,12 @@ export interface ShiftResponse {
 	end: number;
 }
 
+export interface ExtraLinks {
+	name: string;
+	title: string;
+	links: FavoritesSectionLinkConfig[] | null;
+}
+
 export interface SkPerfConfig {
 	instance_url: string;
 	instance_name: string;
@@ -432,6 +438,7 @@ export interface SkPerfConfig {
 	app_version: string;
 	enable_v2_ui: boolean;
 	dev_mode: boolean;
+	extra_links: ExtraLinks | null;
 }
 
 export interface TriageRequest {

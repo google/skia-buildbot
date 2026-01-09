@@ -203,6 +203,21 @@ sk_page(
 )
 
 sk_page(
+    name = "extralinks",
+    assets_serving_path = "/dist",
+    html_file = "extralinks.html",
+    nonce = "{% .Nonce %}",
+    production_sourcemap = True,
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "extralinks.scss",
+    sk_element_deps = [
+        "//perf/modules/extra-links-sk",
+        "//perf/modules/perf-scaffold-sk",
+    ],
+    ts_entry_point = "extralinks.ts",
+)
+
+sk_page(
     name = "regressions",
     assets_serving_path = "/dist",
     html_file = "regressions.html",
@@ -254,6 +269,7 @@ karma_test(
         ":alerts_ts_lib",
         ":clusters2_ts_lib",
         ":dryrunalert_ts_lib",
+        ":extralinks_ts_lib",
         ":favorites_ts_lib",
         ":help_ts_lib",
         ":multiexplore_ts_lib",

@@ -54,6 +54,7 @@ describe('ExploreMultiSk', () => {
       show_bisect_btn: true,
       app_version: 'test-version',
       enable_v2_ui: false,
+      extra_links: null,
     };
 
     fetchMock.config.overwriteRoutes = true;
@@ -289,6 +290,7 @@ describe('ExploreMultiSk', () => {
         show_bisect_btn: true,
         app_version: 'test-version',
         enable_v2_ui: false,
+        extra_links: null,
       };
       fetchMock.config.overwriteRoutes = true;
       fetchMock.get('/_/login/status', {

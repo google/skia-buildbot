@@ -832,6 +832,15 @@ type Favorites struct {
 	Sections []FavoritesSectionConfig `json:"sections"`
 }
 
+type ExtraLinks struct {
+	// Name of the page, i.e., the link text displayed in the margin of perf dashboard
+	Name string `json:"name"`
+	// Title of the page, displayed at the top of the extra link page
+	Title string `json:"title"`
+	// The links to display on the page
+	Links []FavoritesSectionLinkConfig `json:"links"`
+}
+
 // TemporalConfig contains properties of the temporal instance used by the client in the backend.
 type TemporalConfig struct {
 	// The host and port of the temporal instance.
@@ -1034,6 +1043,9 @@ type InstanceConfig struct {
 
 	// Favorites configuration for the instance
 	Favorites Favorites `json:"favorites,omitempty"`
+
+	// ExtraLinks to be displayed for the instance; currently used by CBB
+	ExtraLinks *ExtraLinks `json:"extra_links,omitempty"`
 
 	// If true, filter out parent traces if child traces satisfy query
 	FilterParentTraces bool `json:"filter_parent_traces,omitempty"`

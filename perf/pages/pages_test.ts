@@ -1,6 +1,7 @@
 import './alerts';
 import './clusters2';
 import './dryrunalert';
+import './extralinks';
 import './favorites';
 import './help';
 import './multiexplore';
@@ -22,6 +23,7 @@ describe('Perf Pages', () => {
       'favorites-sk',
       'explore-multi-sk',
       'explore-sk',
+      'extra-links-sk',
       'anomaly-playground-sk',
       'regressions-page-sk',
       'report-page-sk',

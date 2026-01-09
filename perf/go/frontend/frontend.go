@@ -236,6 +236,7 @@ var templateFilenames = []string{
 	"dryrunalert.html",
 	"trybot.html",
 	"favorites.html",
+	"extralinks.html",
 	"revisions.html",
 	"regressions.html",
 	"report.html",
@@ -309,6 +310,7 @@ type SkPerfConfig struct {
 	AppVersion                  string             `json:"app_version"`                     // The git revision of the buildbot repo this instance was built from.
 	EnableV2UI                  bool               `json:"enable_v2_ui"`                    // True if V2 UI can be toggled.
 	DevMode                     bool               `json:"dev_mode"`
+	ExtraLinks                  *config.ExtraLinks `json:"extra_links"` // Extra links to be display on a dedicated page.
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -358,6 +360,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		AppVersion:                  f.appVersion,
 		EnableV2UI:                  config.Config.EnableV2UI,
 		DevMode:                     f.flags.DevMode,
+		ExtraLinks:                  config.Config.ExtraLinks,
 	}
 
 	var buff bytes.Buffer
@@ -1083,6 +1086,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.HandleFunc("/d", f.templateHandler("dryrunalert.html"))
 	router.HandleFunc("/r", f.templateHandler("trybot.html"))
 	router.HandleFunc("/f", f.templateHandler("favorites.html"))
+	router.HandleFunc("/l", f.templateHandler("extralinks.html"))
 	router.HandleFunc("/v", f.templateHandler("revisions.html"))
 	router.HandleFunc("/u", f.templateHandler("report.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
