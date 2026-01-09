@@ -579,14 +579,13 @@ export class ExploreMultiSk extends ElementSk {
 
     // Remove the traces from the current page explore elements.
     const elemsToRemove: ExploreSimpleSk[] = [];
+
     const updatePromises = this.exploreElements.map((elem) => {
       const hasQueryToRemove =
         elem.state.queries && queriesToRemove.some((qr) => elem.state.queries.includes(qr));
 
       // Only proceed with updates if the element is affected.
       if (hasQueryToRemove || (elem.state.queries?.length && query !== undefined)) {
-        const traceset = elem.getTraceset() as TraceSet;
-        elem.state.doNotQueryData = true;
         if (elem.state.queries.length > 0 && queriesToRemove.length > 0) {
           const queryCount = elem.state.queries.length;
           // Remove any queries that match queriesToRemove.
@@ -609,10 +608,49 @@ export class ExploreMultiSk extends ElementSk {
           elemsToRemove.push(elem);
           return Promise.resolve();
         }
+
+        const elemTraceset = elem.getTraceset() as TraceSet;
+        const elemHeader = elem.getHeader();
+        let updatedTraceset = traceSet as TraceSet;
+        let headerToUse = this.getHeader();
+
+        // We can compare the data length of a common trace to determine which set is "better".
+        // We pick the first key from the local traceset that isn't being removed.
+        const commonKey = Object.keys(elemTraceset).find((key) =>
+          this.shouldKeepTrace(key, param, values)
+        );
+
+        if (commonKey && traceSet[commonKey] && elemTraceset[commonKey]) {
+          if (elemTraceset[commonKey].length > traceSet[commonKey].length) {
+            // Local data is better. Filter out the removed trace from the local set.
+            const filteredLocalTraceset = TraceSet({});
+            Object.keys(elemTraceset).forEach((key) => {
+              if (this.shouldKeepTrace(key, param, values)) {
+                filteredLocalTraceset[key] = elemTraceset[key];
+              }
+            });
+            updatedTraceset = filteredLocalTraceset;
+            headerToUse = elemHeader;
+          }
+        }
+
         const params: ParamSet = ParamSet({});
-        Object.keys(traceset).forEach((trace) => {
+        Object.keys(updatedTraceset).forEach((trace) => {
           addParamsToParamSet(params, fromKey(trace));
         });
+
+        // If we filtered the traceset but didn't update the queries (because the removal logic didn't match),
+        // we should update the queries to reflect the remaining data. This prevents future fetches from
+        // bringing back the removed trace and ensures consistency.
+        // We only do this if we are not clearing the graph.
+        if (Object.keys(updatedTraceset).length > 0) {
+          // We construct a new query from the remaining params.
+          // However, we should respect the include_params defaults if possible, to avoid over-specifying.
+          // But here we want to be safe and match the data.
+          // Let's use the params derived from the traceset.
+          const newQuery = fromParamSet(params);
+          elem.state.queries = [newQuery];
+        }
 
         // Update the graph with the new traceSet and params.
         const updatedRequest: FrameRequest = {
@@ -624,16 +662,19 @@ export class ExploreMultiSk extends ElementSk {
         };
         const updatedResponse: FrameResponse = {
           dataframe: {
-            traceset: traceset,
-            header: this.getHeader(),
+            traceset: updatedTraceset,
+            header: headerToUse ? [...headerToUse] : null,
             paramset: ReadOnlyParamSet(params),
             skip: 0,
             traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(
-              Object.keys(traceset),
+              Object.keys(updatedTraceset),
               elem.getCommitLinks()
             ),
           },
-          anomalymap: this.getAnomalyMapForTraces(this.getFullAnomalyMap(), Object.keys(traceset)),
+          anomalymap: this.getAnomalyMapForTraces(
+            this.getFullAnomalyMap(),
+            Object.keys(updatedTraceset)
+          ),
           display_mode: 'display_plot',
           msg: '',
           skps: [],
@@ -643,7 +684,7 @@ export class ExploreMultiSk extends ElementSk {
           updatedRequest,
           /* switchToTab= */ true,
           this.exploreElements[0].getSelectedRange(),
-          /* extendRange= */ true,
+          /* extendRange= */ false,
           /* replaceAnomalies= */ true
         );
       }
@@ -664,11 +705,18 @@ export class ExploreMultiSk extends ElementSk {
       }
     });
 
-    if (this.stateHasChanged) {
-      this.stateHasChanged();
-      await this.checkDataLoaded();
-    }
+    this.updateShortcutMultiview();
+    await this.checkDataLoaded();
   };
+
+  /**
+   * Helper to check if a trace should be kept based on the removal criteria.
+   * Returns true if the trace does NOT match the parameter and value being removed.
+   */
+  private shouldKeepTrace(key: string, param: string, values: string[]): boolean {
+    const traceParams = fromKey(key);
+    return !(traceParams[param] && values.includes(traceParams[param]));
+  }
 
   // Event listener for when the "Query Highlighted" button is clicked.
   // It will populate the Test Picker with the keys from the highlighted
