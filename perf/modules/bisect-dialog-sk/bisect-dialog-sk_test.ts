@@ -59,8 +59,11 @@ describe('bisect-dialog-sk', () => {
   });
 
   describe('postBisect', () => {
-    it('does nothing if testPath is empty', async () => {
-      element.testPath = '';
+    it('does not send a bisect request if testPath is empty', async () => {
+      element.startCommit = 'c1';
+      element.endCommit = 'c2';
+      element.bugId = '123';
+      element.testPath = ''; // Explicitly empty
       element.postBisect();
       assert.isFalse(fetchMock.called());
     });
