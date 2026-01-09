@@ -133,6 +133,36 @@ func (_m *Store) GetByRevision(ctx context.Context, rev string) ([]*regression.R
 	return r0, r1
 }
 
+// GetIdsByManualTriageBugID provides a mock function with given fields: ctx, bugID
+func (_m *Store) GetIdsByManualTriageBugID(ctx context.Context, bugID int) ([]string, error) {
+	ret := _m.Called(ctx, bugID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetIdsByManualTriageBugID")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int) ([]string, error)); ok {
+		return rf(ctx, bugID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int) []string); ok {
+		r0 = rf(ctx, bugID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, bugID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetOldestCommit provides a mock function with given fields: ctx
 func (_m *Store) GetOldestCommit(ctx context.Context) (*types.CommitNumber, error) {
 	ret := _m.Called(ctx)

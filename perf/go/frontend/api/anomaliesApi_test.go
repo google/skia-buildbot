@@ -42,15 +42,19 @@ func TestGetGroupReportByBugId(t *testing.T) {
 
 	ctx := context.Background()
 	bugId := "12345"
+	bugIdNum := 12345
 	anomalyIds := []string{"anomaly-id-1", "anomaly-id-2", "anomaly-improvement"}
 	culrpitAnomalyIds := []string{"anomaly-id-4"}
+	regAnomalyIds := []string{"reg-anomaly-id-5"}
 	allAnomalyIds := append(anomalyIds, culrpitAnomalyIds...)
+	allAnomalyIds = append(allAnomalyIds, regAnomalyIds...)
 	traceset := ",arch=x86,bot=linux,benchmark=jetstream2,test=score,config=default,master=main,"
 
 	anomalyGroupIds := []string{"agid-1"}
 	culpritStore.On("GetAnomalyGroupIdsForIssueId", mock.Anything, bugId).Return(anomalyGroupIds, nil).Once()
 	anomalygroupStore.On("GetAnomalyIdsByAnomalyGroupIds", mock.Anything, anomalyGroupIds).Return(culrpitAnomalyIds, nil).Once()
 	anomalygroupStore.On("GetAnomalyIdsByIssueId", mock.Anything, bugId).Return(anomalyIds, nil)
+	regStore.On("GetIdsByManualTriageBugID", mock.Anything, bugIdNum).Return(regAnomalyIds, nil)
 
 	// Mock the response from the regStore.
 	regressions := []*regression.Regression{
@@ -95,8 +99,18 @@ func TestGetGroupReportByBugId(t *testing.T) {
 				},
 			},
 		},
+		{
+			Id: "reg-anomaly-id-5",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						traceset: []float32{2.0},
+					},
+				},
+			},
+		},
 	}
-	regStore.On("GetByIDs", mock.Anything, allAnomalyIds).Return(regressions, nil)
+	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return(regressions, nil)
 	// We will not check bug_id field in this test, so we return plain regressions.
 	// TODO(b/462782068) add unit tests verifying we are returning bug_id-related data.
 	regStore.On("GetBugIdsForRegressions", mock.Anything, regressions).Return(regressions, nil)
@@ -129,6 +143,7 @@ func TestGetGroupReportByBugId(t *testing.T) {
 	// Ensure the mocks were called as expected.
 	anomalygroupStore.AssertExpectations(t)
 	regStore.AssertExpectations(t)
+	culpritStore.AssertExpectations(t)
 }
 
 func TestGetGroupReportByAnomalyGroupId(t *testing.T) {

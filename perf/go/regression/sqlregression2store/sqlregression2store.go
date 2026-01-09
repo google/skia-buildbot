@@ -53,6 +53,7 @@ const (
 	readRange
 	readByRev
 	readByIDs
+	readIdsByManualTriageBugId
 	readBySubName
 	deleteByCommit
 	readRangeFiltered
@@ -139,6 +140,14 @@ var statementFormats = map[statementFormat]string{
 			Regressions2
 		WHERE
 			id IN (%s)
+		`,
+	readIdsByManualTriageBugId: `
+		SELECT
+			distinct id
+		FROM
+			Regressions2
+		WHERE
+			bug_id = $1
 		`,
 	readBySubName: `
 		SELECT
@@ -438,6 +447,28 @@ func (s *SQLRegression2Store) GetByIDs(ctx context.Context, ids []string) ([]*re
 	}
 
 	return regressions, nil
+}
+
+// Get a list of regressions given a manual triage bug id.
+func (s *SQLRegression2Store) GetIdsByManualTriageBugID(ctx context.Context, bugId int) ([]string, error) {
+	statement := s.statements[readIdsByManualTriageBugId]
+	rows, err := s.db.Query(ctx, statement, bugId)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get regressions by manual triage bug id")
+	}
+	defer rows.Close()
+
+	regIDs := []string{}
+	for rows.Next() {
+		var id string
+		if err = rows.Scan(&id); err != nil {
+			return nil, skerr.Wrapf(err, "error parsing the returned regression ids")
+		} else {
+			regIDs = append(regIDs, id)
+		}
+	}
+
+	return regIDs, nil
 }
 
 // Get a list of regressions given a revision.

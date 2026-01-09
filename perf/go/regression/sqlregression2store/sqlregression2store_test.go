@@ -1108,3 +1108,70 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 		assert.ElementsMatch(t, expectedBugs, regressions[0].Bugs)
 	})
 }
+
+// TestGetIdsByManualTriageBugID tests the GetIdsByManualTriageBugID method.
+func TestGetIdsByManualTriageBugID(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+
+	// 1. Setup: Insert some regressions and assign manual triage bug IDs.
+	r1 := generateAndStoreNewRegression(ctx, t, store)
+	r2 := generateAndStoreNewRegression(ctx, t, store)
+	r3 := generateAndStoreNewRegression(ctx, t, store)
+
+	bugID1 := 10001
+	bugID2 := 10002
+
+	err := store.SetBugID(ctx, []string{r1.Id, r2.Id}, bugID1)
+	require.NoError(t, err)
+
+	err = store.SetBugID(ctx, []string{r3.Id}, bugID2)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name          string
+		bugID         int
+		expectedCount int
+		expectedIDs   []string
+	}{
+		{
+			name:          "find two regressions with bugID1",
+			bugID:         bugID1,
+			expectedCount: 2,
+			expectedIDs:   []string{r1.Id, r2.Id},
+		},
+		{
+			name:          "find one regression with bugID2",
+			bugID:         bugID2,
+			expectedCount: 1,
+			expectedIDs:   []string{r3.Id},
+		},
+		{
+			name:          "no regressions found for non-existent bug ID",
+			bugID:         99999,
+			expectedCount: 0,
+			expectedIDs:   []string{},
+		},
+		{
+			name:          "zero bug ID returns nothing",
+			bugID:         0,
+			expectedCount: 0,
+			expectedIDs:   []string{},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			regIds, err := store.GetIdsByManualTriageBugID(ctx, tc.bugID)
+			require.NoError(t, err)
+			assert.Len(t, regIds, tc.expectedCount)
+
+			actualIDs := []string{}
+			for _, regId := range regIds {
+				actualIDs = append(actualIDs, regId)
+			}
+			assert.ElementsMatch(t, tc.expectedIDs, actualIDs)
+		})
+	}
+}

@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/skerr"
@@ -27,7 +28,7 @@ func (api anomaliesApi) getGroupReportByAnomalyId(ctx context.Context, groupRepo
 func (api anomaliesApi) getGroupReportByBugId(ctx context.Context, groupReportRequest GetGroupReportRequest) (*GetGroupReportResponse, error) {
 	id := groupReportRequest.BugID
 	errg, errgCtx := errgroup.WithContext(ctx)
-	anomalyIdsChan := make(chan []string, 2)
+	anomalyIdsChan := make(chan []string, 3)
 
 	errg.Go(func() error {
 		anomalyGroupIdsFromCulprit, err := api.culpritStore.GetAnomalyGroupIdsForIssueId(errgCtx, id)
@@ -51,17 +52,32 @@ func (api anomaliesApi) getGroupReportByBugId(ctx context.Context, groupReportRe
 		return nil
 	})
 
+	errg.Go(func() error {
+		bugId, err := strconv.Atoi(id)
+		if err != nil {
+			return skerr.Fmt("failed to convert bug id %s to int", id)
+		}
+		anomalyIdsFromRegressionStore, err := api.regStore.GetIdsByManualTriageBugID(errgCtx, bugId)
+		if err != nil {
+			return skerr.Fmt("failed to get anomalyIds from regression store by triage bug id: %s", err)
+		}
+		anomalyIdsChan <- anomalyIdsFromRegressionStore
+		return nil
+	})
+
 	if err := errg.Wait(); err != nil {
 		return nil, err
 	}
 
-	// We have two sources of anomalyIds, since we need to query Culprits and AnomalyGroup separately.
+	// We have three sources of anomalyIds, since we need to query Regressions, Culprits,
+	// and AnomalyGroup separately.
 	// For one anomalygroup there may be many culprits, and therefore many issue_ids.
 	// In this case, the expected value in anomalygroups would be null,
 	// and culprits table is the source of truth.
 	// This is because, when bisecting, we don't populate the anomalygroup's issue_id field at all,
 	// which is done by design.
 	anomalyIds := <-anomalyIdsChan
+	anomalyIds = append(anomalyIds, <-anomalyIdsChan...)
 	anomalyIds = append(anomalyIds, <-anomalyIdsChan...)
 
 	// TODO(b/438183175) CREATE INDEX idx_culprits_issue_ids ON Culprits USING GIN (issue_ids);
