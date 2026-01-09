@@ -151,7 +151,7 @@ export class SidePanelSk extends LitElement {
   }
 
   protected willUpdate(changedProperties: PropertyValues): void {
-    if (changedProperties.has('traceColorMap') && this.data) {
+    if (changedProperties.has('traceColorMap') || (changedProperties.has('data') && this.data)) {
       this.updateLegendItems();
     }
   }

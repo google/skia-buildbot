@@ -2,11 +2,13 @@ import { expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { ElementHandle } from 'puppeteer';
 import { PlotGoogleChartSkPO } from './plot-google-chart-sk_po';
+import { SidePanelSkPO } from './side-panel-sk_po';
 
 describe('plot-google-chart-sk', () => {
   let testBed: TestBed;
   let plotGoogleChartSk: ElementHandle;
   let plotGoogleChartSkPO: PlotGoogleChartSkPO;
+  let sidePanelSkPO: SidePanelSkPO;
   before(async () => {
     testBed = await loadCachedTestBed();
   });
@@ -85,5 +87,90 @@ describe('plot-google-chart-sk', () => {
     await plotGoogleChartSkPO.clickResetButton();
 
     expect(await plotGoogleChartSkPO.isResetButtonVisible()).to.be.false;
+  });
+
+  describe('side-panel-sk', () => {
+    beforeEach(async () => {
+      // This function runs in the browser, finds the <side-panel-sk> element,
+      // and waits for it to be ready.
+      const sidePanelElementHandle = await testBed.page.evaluateHandle(async () => {
+        // Wait for the components to be defined.
+        await Promise.all([
+          customElements.whenDefined('side-panel-sk-demo'),
+          customElements.whenDefined('dataframe-repository-sk'),
+          customElements.whenDefined('side-panel-sk'),
+        ]);
+
+        const demo = document.querySelector('side-panel-sk-demo')!;
+        await (demo as any).updateComplete;
+
+        const repo = demo.shadowRoot!.querySelector('dataframe-repository-sk')!;
+        await (repo as any).updateComplete;
+
+        // Wait until the repository is done loading data.
+        await new Promise<void>((resolve) => {
+          const checkForLoading = () => {
+            if (!(repo as any).loading) {
+              resolve();
+            } else {
+              setTimeout(checkForLoading, 100);
+            }
+          };
+          checkForLoading();
+        });
+
+        const sidePanel = repo.querySelector('side-panel-sk')!;
+        await (sidePanel as any).updateComplete;
+
+        return sidePanel;
+      });
+
+      sidePanelSkPO = new SidePanelSkPO(sidePanelElementHandle as ElementHandle<Element>);
+    });
+
+    it('should have the panel open by default', async () => {
+      expect(await sidePanelSkPO.isPanelOpen()).to.be.true;
+    });
+
+    it('should toggle the panel closed and open it', async () => {
+      // The panel is open by default.
+      expect(await sidePanelSkPO.isPanelOpen()).to.be.true;
+
+      // First toggle should close
+      let eventPromise = testBed.page.evaluate(
+        () =>
+          new Promise((resolve) =>
+            document.addEventListener(
+              'side-panel-toggle',
+              (e) => resolve((e as CustomEvent).detail),
+              {
+                once: true,
+              }
+            )
+          )
+      );
+      await sidePanelSkPO.clickToggle();
+      expect(await sidePanelSkPO.isPanelOpen()).to.be.false;
+      let eventDetail = await eventPromise;
+      expect(eventDetail).to.deep.equal({ open: false });
+
+      // Second toggle should open
+      eventPromise = testBed.page.evaluate(
+        () =>
+          new Promise((resolve) =>
+            document.addEventListener(
+              'side-panel-toggle',
+              (e) => resolve((e as CustomEvent).detail),
+              {
+                once: true,
+              }
+            )
+          )
+      );
+      await sidePanelSkPO.clickToggle();
+      expect(await sidePanelSkPO.isPanelOpen()).to.be.true;
+      eventDetail = await eventPromise;
+      expect(eventDetail).to.deep.equal({ open: true });
+    });
   });
 });

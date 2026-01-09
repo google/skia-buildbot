@@ -26,7 +26,15 @@ import { AsyncList, PageObjectElement, PageObjectElementList } from './page_obje
  * [3] https://github.com/google/pageloader/blob/master/best_practices.md
  */
 export abstract class PageObject {
-  protected element: PageObjectElement;
+  private elementInternal: PageObjectElement;
+
+  public get element(): PageObjectElement {
+    return this.elementInternal;
+  }
+
+  public set element(value: PageObjectElement) {
+    this.elementInternal = value;
+  }
 
   constructor(
     element:
@@ -36,9 +44,9 @@ export abstract class PageObject {
       | PageObjectElement
   ) {
     if (element instanceof PageObjectElement) {
-      this.element = element;
+      this.elementInternal = element;
     } else {
-      this.element = new PageObjectElement(element);
+      this.elementInternal = new PageObjectElement(element);
     }
   }
 

@@ -13,6 +13,8 @@ import {
 import { addParamSet, addParamsToParamSet, fromKey, toReadOnlyParamSet } from '../paramtools';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 
+export type { ColumnHeader };
+
 // Simple type denoting the begin and end of the range.
 export type range = { begin: number; end: number };
 

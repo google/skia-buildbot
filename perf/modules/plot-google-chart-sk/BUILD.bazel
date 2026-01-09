@@ -47,9 +47,11 @@ sk_page(
     scss_entry_point = "plot-google-chart-sk-demo.scss",
     sk_element_deps = [":plot-google-chart-sk"],
     ts_deps = [
+        "//:node_modules/lit",
         "//infra-sk/modules:dom_ts_lib",
         "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        "//perf/modules/dataframe:dataframe_context_ts_lib",
     ],
     ts_entry_point = "plot-google-chart-sk-demo.ts",
 )
@@ -60,6 +62,7 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         ":plot-google-chart-sk_po_ts_lib",
+        ":side-panel-sk_po_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//:node_modules/puppeteer",
@@ -95,6 +98,24 @@ sk_element(
     visibility = ["//visibility:public"],
 )
 
+ts_library(
+    name = "plot-google-chart-sk_po_ts_lib",
+    srcs = ["plot-google-chart-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//infra-sk/modules/page_object:page_object_ts_lib"],
+)
+
+# Rules for side-panel-sk test
+ts_library(
+    name = "side-panel-sk_po_ts_lib",
+    srcs = ["side-panel-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+    ],
+)
+
 sk_element(
     name = "side-panel-sk_ts_lib",
     ts_deps = [
@@ -110,11 +131,4 @@ sk_element(
     ],
     ts_srcs = ["side-panel-sk.ts"],
     visibility = ["//visibility:public"],
-)
-
-ts_library(
-    name = "plot-google-chart-sk_po_ts_lib",
-    srcs = ["plot-google-chart-sk_po.ts"],
-    visibility = ["//visibility:public"],
-    deps = ["//infra-sk/modules/page_object:page_object_ts_lib"],
 )

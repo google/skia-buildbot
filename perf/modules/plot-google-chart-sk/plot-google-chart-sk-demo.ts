@@ -2,7 +2,19 @@ import './index';
 import { $ } from '../../../infra-sk/modules/dom';
 import { PlotGoogleChartSk } from './plot-google-chart-sk';
 import { ChartAxisFormat, ChartData } from '../common/plot-builder';
-import { Anomaly } from '../json';
+import {
+  Anomaly,
+  ColumnHeader,
+  CommitNumber,
+  DataFrame,
+  ReadOnlyParamSet,
+  TimestampSeconds,
+  Trace,
+  TraceSet,
+} from '../json';
+import { html, LitElement, TemplateResult } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { DataFrameRepository } from '../dataframe/dataframe_context';
 
 document.querySelector('plot-google-chart-sk')!.addEventListener('some-event-name', (e) => {
   document.querySelector('#events')!.textContent = JSON.stringify(e, null, '  ');
@@ -84,4 +96,65 @@ window.customElements.whenDefined('plot-google-chart-sk').then(() => {
   $<PlotGoogleChartSk>('plot-google-chart-sk').forEach((plot) => {
     plot.updateChartData(chartData);
   });
+});
+
+//side-panel-sk demo data setup
+// prettier-ignore
+const TestData = {
+  traceset: {
+    ',arch=x86,config=8888,test=a,': [1, 2, 3],
+    ',arch=x86,config=565,test=b,': [4, 5, 6],
+    ',arch=arm,config=8888,test=c,': [7, 8, 9],
+  },
+};
+
+@customElement('side-panel-sk-demo')
+export class SidePanelSkDemo extends LitElement {
+  private dfRepo: DataFrameRepository | null = null;
+
+  render(): TemplateResult {
+    return html`
+      <dataframe-repository-sk>
+        <side-panel-sk style="width: 250px; height: 300px;"></side-panel-sk>
+      </dataframe-repository-sk>
+    `;
+  }
+
+  firstUpdated() {
+    this.dfRepo = this.shadowRoot!.querySelector<DataFrameRepository>('dataframe-repository-sk');
+    if (this.dfRepo) {
+      const traceset: TraceSet = TraceSet({});
+      const header: ColumnHeader[] = [];
+
+      Object.keys(TestData.traceset).forEach((key, index) => {
+        traceset[key] = Trace(TestData.traceset[key as keyof typeof TestData.traceset]);
+        // Create dummy ColumnHeaders for the demo
+        header.push({
+          offset: CommitNumber(index),
+          timestamp: TimestampSeconds(Date.now() / 1000 + index * 60),
+          hash: `hash_${index}`,
+          author: `author_${index}`,
+          message: `message_${index}`,
+          url: `url_${index}`,
+        });
+      });
+
+      const dummyDataFrame: DataFrame = {
+        traceset: traceset,
+        header: header,
+        paramset: ReadOnlyParamSet({}),
+        skip: 0,
+        traceMetadata: [],
+      };
+      this.dfRepo.dataframe = dummyDataFrame;
+    }
+  }
+}
+
+// Log events for debugging in the browser.
+window.addEventListener('side-panel-toggle', (e) => {
+  console.log('side-panel-toggle event:', (e as CustomEvent).detail);
+});
+window.addEventListener('side-panel-selected-trace-change', (e) => {
+  console.log('side-panel-selected-trace-change event:', (e as CustomEvent).detail);
 });
