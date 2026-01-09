@@ -3,6 +3,7 @@ import { TriagePageSk } from './triage-page-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
+import sinon from 'sinon';
 import { ClusterSummary2Sk } from '../cluster-summary2-sk/cluster-summary2-sk';
 import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triage-status-sk';
 import { CommitNumber, ReadOnlyParamSet, TimestampSeconds, TraceSet } from '../json';
@@ -62,7 +63,16 @@ describe('triage-page-sk', () => {
           frame: {
             dataframe: {
               traceset: {} as TraceSet,
-              header: [],
+              header: [
+                {
+                  offset: CommitNumber(100),
+                  timestamp: TimestampSeconds(1234567890),
+                  hash: 'abc',
+                  author: 'me',
+                  message: 'msg',
+                  url: 'http://example.com',
+                },
+              ],
               paramset: {} as ReadOnlyParamSet,
               skip: 0,
               traceMetadata: [],
@@ -152,15 +162,27 @@ describe('triage-page-sk', () => {
       assert.isTrue(updateCalled);
     });
 
-    it('opens shortcut on "g" key', () => {
-      let openShortcutCalled = false;
-      clusterSummary.openShortcut = () => {
-        openShortcutCalled = true;
-      };
+    it('opens dashboard with correct URL format on "g" key', () => {
+      const windowOpenStub = sinon.stub(window, 'open');
 
+      // Simulate "g" key press which triggers
+      // onOpenReport -> clusterSummary.openShortcut -> openKeys
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'g' }));
 
-      assert.isTrue(openShortcutCalled);
+      assert.isTrue(windowOpenStub.calledOnce);
+      const url = windowOpenStub.firstCall.args[0] as string;
+
+      // Verify no spaces around 'e' and query params
+      assert.match(url, /^\/e\/\?/, 'URL should start with /e/?');
+      assert.notMatch(url, /%20/, 'URL should not contain encoded spaces');
+
+      // Verify important query parameters are present
+      assert.include(url, 'keys=test_shortcut', 'URL should contain correct keys');
+      assert.include(url, 'xbaroffset=0', 'URL should contain correct xbaroffset');
+      assert.include(url, 'num_commits=50', 'URL should contain num_commits');
+      assert.include(url, 'request_type=1', 'URL should contain request_type');
+
+      windowOpenStub.restore();
     });
 
     it('does not trigger if dialog is closed', () => {

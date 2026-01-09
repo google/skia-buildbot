@@ -504,7 +504,7 @@ export class TriagePageSk extends ElementSk implements KeyboardShortcutHandler {
       num_commits: 50,
       request_type: 1,
     };
-    window.open(`/ e /? ${fromObject(query)} `, '_blank');
+    window.open(`/e/?${fromObject(query)}`, '_blank');
   }
 
   private rangeChange(e: CustomEvent<DayRangeSkChangeDetail>) {

@@ -257,7 +257,10 @@ export class ClusterSummary2Sk extends ElementSk {
         label="Message" />
       <button class="action" @click=${ele.update}>Update</button>
     </div>
-    <commit-detail-panel-sk id="commits" selectable></commit-detail-panel-sk>
+    <commit-detail-panel-sk
+      id="commits"
+      selectable
+      .trace_id=${ele.summary.shortcut}></commit-detail-panel-sk>
     <div class="actions">
       <button id="shortcut" @click=${ele.openShortcut}>View on dashboard</button>
       <button @click=${ele.toggleWordCloud}>Word Cloud</button>

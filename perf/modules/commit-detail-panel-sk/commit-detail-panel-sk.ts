@@ -43,6 +43,8 @@ export class CommitDetailPanelSk extends ElementSk {
 
   private _hide: boolean = false;
 
+  private _trace_id: string = '';
+
   constructor() {
     super(CommitDetailPanelSk.template);
   }
@@ -55,7 +57,7 @@ export class CommitDetailPanelSk extends ElementSk {
       (item, index) => html`
         <tr data-id="${index}" ?selected="${ele._isSelected(index)}">
           <td>
-            <commit-detail-sk .cid=${item}></commit-detail-sk>
+            <commit-detail-sk .cid=${item} .trace_id=${ele.trace_id}></commit-detail-sk>
           </td>
         </tr>
       `
@@ -74,6 +76,7 @@ export class CommitDetailPanelSk extends ElementSk {
     this._upgradeProperty('selected');
     this._upgradeProperty('selectable');
     this._upgradeProperty('hide');
+    this._upgradeProperty('trace_id');
     this._render();
   }
 
@@ -90,6 +93,15 @@ export class CommitDetailPanelSk extends ElementSk {
 
   set details(val: Commit[]) {
     this._details = val;
+    this._render();
+  }
+
+  get trace_id(): string {
+    return this._trace_id;
+  }
+
+  set trace_id(val: string) {
+    this._trace_id = val;
     this._render();
   }
 
