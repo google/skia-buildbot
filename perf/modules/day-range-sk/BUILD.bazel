@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "day-range-sk",
@@ -40,4 +40,17 @@ sk_element_puppeteer_test(
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":day-range-sk-demo",
+)
+
+karma_test(
+    name = "day-range-sk_test",
+    src = "day-range-sk_test.ts",
+    deps = [
+        ":day-range-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/sinon",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
 )
