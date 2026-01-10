@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "alert-config-sk",
@@ -60,4 +60,17 @@ sk_element_puppeteer_test(
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":alert-config-sk-demo",
+)
+
+karma_test(
+    name = "alert-config-sk_test",
+    src = "alert-config-sk_test.ts",
+    deps = [
+        ":alert-config-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//elements-sk/modules/checkbox-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
 )

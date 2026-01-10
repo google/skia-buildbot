@@ -262,6 +262,7 @@ export class AlertConfigSk extends ElementSk {
 
     <h4>Sparse</h4>
     <checkbox-sk
+      id="sparse"
       ?checked=${ele._config.sparse}
       @input=${(e: InputEvent) => (ele._config.sparse = (e.target! as HTMLInputElement).checked)}
       label="Data is sparse, so only include commits that have data."></checkbox-sk>
@@ -500,12 +501,8 @@ export class AlertConfigSk extends ElementSk {
       return;
     }
     this._config = val;
-    if (this._config.interesting === 0) {
-      this._config.interesting = window.perf?.interesting || 0;
-    }
-    if (this._config.radius === 0) {
-      this._config.radius = window.perf?.radius || 0;
-    }
+    this._config.interesting = this._config.interesting ?? window.perf?.interesting ?? 0;
+    this._config.radius = this._config.radius ?? window.perf?.radius ?? 0;
     this._render();
   }
 
