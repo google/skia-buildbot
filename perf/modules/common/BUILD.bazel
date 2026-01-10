@@ -66,3 +66,15 @@ karma_test(
         "//:node_modules/chai",
     ],
 )
+
+karma_test(
+    name = "plot-builder_test",
+    src = "plot-builder_test.ts",
+    deps = [
+        ":plot-builder_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//perf/modules/const:const_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+)
