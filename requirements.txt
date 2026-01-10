@@ -5,3 +5,5 @@ tomlkit==0.12.3
 platformdirs==4.2.0
 astroid==3.0.3
 mccabe==0.7.0
+beautifulsoup4==4.12.3
+lxml==5.1.0

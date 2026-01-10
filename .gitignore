@@ -123,3 +123,5 @@ GEMINI.md
 
 # Dotenv
 .env
+perf/coverage-reports/
+stryker-tmp/

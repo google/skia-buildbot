@@ -893,7 +893,7 @@
         "bzlTransitiveDigest": "CeK+NldP1nUPjYpJZMVsvmIIJKmHgNzDaZXR4tV8UcM=",
         "usagesDigest": "ELk2NwCdsNRciFj9dVciSXkk0k6usD+KefHwmcxQHPg=",
         "recordedFileInputs": {
-          "@@//package.json": "53078f11ff913e7ff5c54d715c1dc9f7b433e31d65b4b157e1e9717624f0b5a3",
+          "@@//package.json": "815aa0c166eec168e4457c6e63faa9c3caa2d710c4c263dbb43b828cc59dc880",
           "@@rules_browsers+//package.json": "0d8cc69cc2c9ecf0eff677fa86843ad9146eca22462aace022a09c3adcb979f8"
         },
         "recordedDirentsInputs": {},

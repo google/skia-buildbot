@@ -92,9 +92,6 @@ importers:
       '@types/node':
         specifier: ^20.0.1
         version: 20.19.0
-      '@types/sinon':
-        specifier: ^17.0.4
-        version: 17.0.4
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.5.0
         version: 8.5.0(@typescript-eslint/parser@8.5.0(eslint@8.57.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.2.2))(eslint@8.57.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.2.2)
@@ -251,9 +248,6 @@ importers:
       sass:
         specifier: ^1.69.5
         version: 1.76.0
-      sinon:
-        specifier: ^7.5.0
-        version: 7.5.0
       socket.io-parser:
         specifier: ^4.2.3
         version: 4.2.4(supports-color@10.2.2)
@@ -294,6 +288,9 @@ importers:
       '@stryker-mutator/typescript-checker':
         specifier: ^8.2.6
         version: 8.7.1(@stryker-mutator/core@8.7.1(supports-color@10.2.2))(typescript@5.2.2)
+      '@types/sinon':
+        specifier: ^7.5.2
+        version: 7.5.2
       babel-plugin-istanbul:
         specifier: ^6.1.1
         version: 6.1.1(supports-color@10.2.2)
@@ -318,6 +315,9 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.3.1(react@18.3.1)
+      rfdc:
+        specifier: ^1.3.0
+        version: 1.3.0
       semantic-ui-css:
         specifier: ^2.5.0
         version: 2.5.0
@@ -327,6 +327,9 @@ importers:
       shellcheck:
         specifier: ^4.1.0
         version: 4.1.0(supports-color@10.2.2)
+      sinon:
+        specifier: ^7.5.0
+        version: 7.5.0
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@20.19.0)(typescript@5.2.2)
@@ -862,8 +865,8 @@ packages:
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
     engines: {node: '>=18'}
 
-  '@sinonjs/commons@1.8.3':
-    resolution: {integrity: sha512-xkNcLAn/wZaX14RPlwizcKicDk9G3F8m2nU3L7Ukm5zBgTwiT0wsoFAHx9Jq56fJA1z/7uKGtCRu16sOUCLIHQ==}
+  '@sinonjs/commons@1.8.6':
+    resolution: {integrity: sha512-Ky+XkAkqPZSm3NLBeUng77EBQl3cmeJhITaGHdYH8kjVB+aun3S4XBRti2zt17mtt0mIUDiNxYeoJm6drVvBJQ==}
 
   '@sinonjs/formatio@3.2.2':
     resolution: {integrity: sha512-B8SEsgd8gArBLMD6zpRw3juQ2FVSsmdd7qlevyDqzS9WTCtvF55/gAL+h6gue8ZvPYcdiPdvueM/qm//9XzyTQ==}
@@ -871,8 +874,8 @@ packages:
   '@sinonjs/samsam@3.3.3':
     resolution: {integrity: sha512-bKCMKZvWIjYD0BLGnNrxVuw4dkWCYsLqFOUWw8VgKF/+5Y+mE7LfHWPIYoDXowH+3a9LsWDMo0uAP8YDosPvHQ==}
 
-  '@sinonjs/text-encoding@0.7.1':
-    resolution: {integrity: sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==}
+  '@sinonjs/text-encoding@0.7.3':
+    resolution: {integrity: sha512-DE427ROAphMQzU4ENbliGYrBSYPXF+TtLg9S8vzeA+OF4ZKzoDdzfL8sxuMUGS/lgRhM6j1URSk9ghf7Xo1tyA==}
 
   '@socket.io/component-emitter@3.1.0':
     resolution: {integrity: sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==}
@@ -1040,11 +1043,8 @@ packages:
   '@types/serve-static@1.13.9':
     resolution: {integrity: sha512-ZFqF6qa48XsPdjXV5Gsz0Zqmux2PerNd3a/ktL45mHpa19cuMi/cL8tcxdAx497yRh+QtYPuofjT9oWw9P7nkA==}
 
-  '@types/sinon@17.0.4':
-    resolution: {integrity: sha512-RHnIrhfPO3+tJT0s7cFaXGZvsL4bbR3/k7z3P312qMS4JaS2Tk+KiwiLx1S0rQ56ERj00u1/BtdyVd0FY+Pdew==}
-
-  '@types/sinonjs__fake-timers@8.1.5':
-    resolution: {integrity: sha512-mQkU2jY8jJEF7YHjHvsQO8+3ughTL1mcnn96igfhONmR+fUPSKIkefQYpSe8bsly2Ep7oQbn/6VG5/9/0qcArQ==}
+  '@types/sinon@7.5.2':
+    resolution: {integrity: sha512-T+m89VdXj/eidZyejvmoP9jivXgBDdkOSBVQjU9kF349NEx10QdPNGxHeZUaj1IlJ32/ewdyXJjnJxyxJroYwg==}
 
   '@types/tern@0.23.4':
     resolution: {integrity: sha512-JAUw1iXGO1qaWwEOzxTKJZ/5JxVeON9kvGZ/osgZaJImBnyjyn0cjovPsf6FNLmyGY8Vw9DoXZCMlfMkMwHRWg==}
@@ -3779,8 +3779,8 @@ packages:
   path-to-regexp@0.1.7:
     resolution: {integrity: sha512-5DFkuoqlv1uYQKxy8omFBeJPQcdoE07Kv2sferDCrAq1ohOU+MSDswDIbnx3YAM60qIOnYa53wBhXW0EbMonrQ==}
 
-  path-to-regexp@1.8.0:
-    resolution: {integrity: sha512-n43JRhlUKUAlibEJhPeir1ncUID16QnEjNpwzNdO3Lm4ywrBpBZ5oLD0I6br9evr1Y9JTqwRtAh7JLoOzAQdVA==}
+  path-to-regexp@1.9.0:
+    resolution: {integrity: sha512-xIp7/apCFJuUHdDLWe8O1HIkb0kQrOMb/0u6FXQjemHn/ii5LrIzU6bdECnsiTF/GjZkMEKg1xdiZwNqDYlZ6g==}
 
   path-to-regexp@2.4.0:
     resolution: {integrity: sha512-G6zHoVqC6GGTQkZwF4lkuEyMbVOjoBKAEybQUypI1WTkqinCOrq2x6U2+phkJ1XsEMTy4LjtwPI7HW+NVrRR2w==}
@@ -5731,22 +5731,22 @@ snapshots:
 
   '@sindresorhus/merge-streams@4.0.0': {}
 
-  '@sinonjs/commons@1.8.3':
+  '@sinonjs/commons@1.8.6':
     dependencies:
       type-detect: 4.0.8
 
   '@sinonjs/formatio@3.2.2':
     dependencies:
-      '@sinonjs/commons': 1.8.3
+      '@sinonjs/commons': 1.8.6
       '@sinonjs/samsam': 3.3.3
 
   '@sinonjs/samsam@3.3.3':
     dependencies:
-      '@sinonjs/commons': 1.8.3
+      '@sinonjs/commons': 1.8.6
       array-from: 2.1.1
       lodash: 4.17.21
 
-  '@sinonjs/text-encoding@0.7.1': {}
+  '@sinonjs/text-encoding@0.7.3': {}
 
   '@socket.io/component-emitter@3.1.0': {}
 
@@ -5966,11 +5966,7 @@ snapshots:
       '@types/mime': 1.3.2
       '@types/node': 22.19.3
 
-  '@types/sinon@17.0.4':
-    dependencies:
-      '@types/sinonjs__fake-timers': 8.1.5
-
-  '@types/sinonjs__fake-timers@8.1.5': {}
+  '@types/sinon@7.5.2': {}
 
   '@types/tern@0.23.4':
     dependencies:
@@ -8755,7 +8751,7 @@ snapshots:
 
   lolex@5.1.2:
     dependencies:
-      '@sinonjs/commons': 1.8.3
+      '@sinonjs/commons': 1.8.6
 
   loose-envify@1.4.0:
     dependencies:
@@ -8992,10 +8988,10 @@ snapshots:
   nise@1.5.3:
     dependencies:
       '@sinonjs/formatio': 3.2.2
-      '@sinonjs/text-encoding': 0.7.1
+      '@sinonjs/text-encoding': 0.7.3
       just-extend: 4.2.1
       lolex: 5.1.2
-      path-to-regexp: 1.8.0
+      path-to-regexp: 1.9.0
 
   node-fetch@2.6.7(encoding@0.1.13):
     dependencies:
@@ -9176,7 +9172,7 @@ snapshots:
 
   path-to-regexp@0.1.7: {}
 
-  path-to-regexp@1.8.0:
+  path-to-regexp@1.9.0:
     dependencies:
       isarray: 0.0.1
 
@@ -9768,7 +9764,7 @@ snapshots:
 
   sinon@7.5.0:
     dependencies:
-      '@sinonjs/commons': 1.8.3
+      '@sinonjs/commons': 1.8.6
       '@sinonjs/formatio': 3.2.2
       '@sinonjs/samsam': 3.3.3
       diff: 3.5.0

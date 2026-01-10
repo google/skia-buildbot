@@ -1,0 +1,20 @@
+{
+  "include": [
+    "perf/**/*.ts"
+  ],
+  "exclude": [
+    "**/*_test.ts",
+    "**/BUILD.bazel",
+    "perf/mocha-setup.ts"
+  ],
+  "extension": [
+    ".ts"
+  ],
+  "reporter": [
+    "html",
+    "text",
+    "lcov"
+  ],
+  "reports-dir": "perf/coverage-reports/test-coverage",
+  "all": true
+}

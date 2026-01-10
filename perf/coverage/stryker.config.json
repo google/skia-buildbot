@@ -1,0 +1,25 @@
+{
+  "packageManager": "npm",
+  "reporters": ["html", "clear-text", "progress"],
+  "testRunner": "mocha",
+  "mochaOptions": {
+    "spec": ["perf/modules/**/!(*_puppeteer)_test.ts"],
+    "require": ["ts-node/register", "perf/mocha-setup.ts"]
+  },
+  "mutate": ["perf/**/*.ts", "!perf/**/*_test.ts", "!perf/**/*.po.ts"],
+  "tempDirName": "stryker-tmp",
+  "htmlReporter": {
+    "fileName": "perf/coverage-reports/mutation-testing/index.html"
+  },
+  "ignorePatterns": [
+    "**",
+    "!perf/**",
+    "!infra-sk/modules/**",
+    "!elements-sk/modules/**",
+    "!golden/modules/**",
+    "!package.json",
+    "!tsconfig.json",
+    "!perf/mocha-setup.ts",
+    "!tsconfig.coverage.json"
+  ]
+}

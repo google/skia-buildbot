@@ -1,5 +1,6 @@
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
+load("//infra-sk:index.bzl", "ts_library")
 
 genrule(
     name = "gen_version",
@@ -182,4 +183,10 @@ sh_test(
     name = "gen_version_test",
     srcs = ["gen_version_test.sh"],
     data = [":gen_version"],
+)
+
+ts_library(
+    name = "mocha-setup_ts_lib",
+    srcs = ["mocha-setup.ts"],
+    visibility = ["//visibility:public"],
 )

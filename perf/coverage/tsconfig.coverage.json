@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true
+  },
+  "include": [
+    "perf/**/*.ts"
+  ],
+  "exclude": [
+    "perf/**/*_test.ts",
+    "perf/**/*_po.ts",
+    "perf/**/*-demo.ts"
+  ]
+}
