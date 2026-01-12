@@ -562,10 +562,12 @@ Command types can also be filted by clicking on their names in the histogram"
     // JSON.stringify adds some quotes around the magic word.
     // including these in our delimiter removes them.
     const jsonparts = strung.split(`"${magic}"`);
-    const result = [html`${jsonparts[0]}`];
+    // Helper for converting \n into actual line breaks
+    const unescapeNewlines = (str: string) => str.replace(/\\n/g, '\n');
+    const result = [html`${unescapeNewlines(jsonparts[0])}`];
     for (let i = 1; i < jsonparts.length; i++) {
       result.push(inserts[i - 1]);
-      result.push(html`${jsonparts[i]}`);
+      result.push(html`${unescapeNewlines(jsonparts[i])}`);
     }
     return html`<pre>${result}</pre>`;
   }
