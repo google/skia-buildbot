@@ -207,7 +207,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 
 	// Most fields should be present in the DB
 	if req.Component != fmt.Sprintf("%d", componentID) {
-		sklog.Warningf("we ignore componentID passed by fe and use data from the db")
+		sklog.Warningf("we ignore componentID: %s passed by fe and use data from the db: %d", req.Component, componentID)
 	}
 
 	// TODO(b/454614028) remove this assignment after migration is done.

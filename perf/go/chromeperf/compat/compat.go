@@ -51,6 +51,14 @@ func ConvertRegressionToAnomalies(reg *regression.Regression) (chromeperf.Anomal
 			if len(reg.Bugs) > 1 && !arbitraryBugIdSelectedWarningDisplayed {
 				arbitraryBugIdSelectedWarningDisplayed = true
 				sklog.Warningf("Some regression has %d bug ids to choose from, we selected the first one from the list.", len(reg.Bugs))
+				sklog.Warningf("Showing up to 5 first bugs from the list:")
+				maxCount := len(reg.Bugs)
+				if maxCount > 5 {
+					maxCount = 5
+				}
+				for i := range maxCount {
+					sklog.Warningf("bug %d out of %d has id %s and is of type %s", i, len(reg.Bugs), reg.Bugs[i].BugId, reg.Bugs[i].Type)
+				}
 			}
 		}
 
