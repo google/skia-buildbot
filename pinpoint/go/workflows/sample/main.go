@@ -382,6 +382,18 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 	}
 	p.Commit.Main.CommitPosition = int32(*commitPosition)
 
+	if *patchId != 0 {
+		if *patchSet == 0 {
+			return nil, errors.New("--patch-set is required when --patch-id is used")
+		}
+		p.Commit.Patch = &proto.GerritChange{
+			Host:     *patchHost,
+			Project:  *patchProject,
+			Change:   int64(*patchId),
+			Patchset: int64(*patchSet),
+		}
+	}
+
 	if p.Channel == "tp" {
 		p.Channel = "technology-preview"
 	}
