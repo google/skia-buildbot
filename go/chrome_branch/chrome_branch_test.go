@@ -276,12 +276,6 @@ const (
 func fakeBranches() *Branches {
 	m := fakeMilestones()
 	return &Branches{
-		Main: &Branch{
-			Milestone: 94,
-			Number:    0,
-			Ref:       RefMain,
-			V8Branch:  RefMain,
-		},
 		Beta:   m[0],
 		Stable: m[1],
 	}
@@ -313,7 +307,6 @@ func TestBranchCopy(t *testing.T) {
 func TestBranchesCopy(t *testing.T) {
 
 	b := fakeBranches()
-	b.Main.Milestone = 95
 	b.Dev = &Branch{
 		Milestone: 94,
 		Number:    4606,
@@ -380,9 +373,6 @@ func TestBranchesValidate(t *testing.T) {
 	test(func(b *Branches) {
 		b.Stable = nil
 	}, "Stable branch is missing")
-	test(func(b *Branches) {
-		b.Main = nil
-	}, "Main branch is missing")
 
 	// Each Branch should be validated.
 	test(func(b *Branches) {
@@ -391,9 +381,6 @@ func TestBranchesValidate(t *testing.T) {
 	test(func(b *Branches) {
 		b.Stable.Number = 0
 	}, "Number is required")
-	test(func(b *Branches) {
-		b.Main.Number = 42
-	}, "Number must be zero for main branch.")
 }
 
 func TestGet(t *testing.T) {
@@ -458,7 +445,6 @@ func TestGetSecondDataSet(t *testing.T) {
 	b, _, err := Get(ctx, c)
 	require.NoError(t, err)
 	expect := fakeBranches()
-	expect.Main.Milestone = 95
 	expect.Dev = &Branch{
 		Milestone: 94,
 		Number:    4606,
@@ -510,7 +496,6 @@ func TestGetThirdDataSet(t *testing.T) {
 	b, _, err := Get(ctx, c)
 	require.NoError(t, err)
 	expect := fakeBranches()
-	expect.Main.Milestone = 95
 	expect.Dev = &Branch{
 		Milestone: 94,
 		Number:    4606,

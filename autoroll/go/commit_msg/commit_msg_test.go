@@ -62,7 +62,6 @@ func fakeRegistry(t *testing.T) *config_vars.Registry {
 		},
 	}
 	cbc.On("Get", testutils.AnyContext).Return(&chrome_branch.Branches{
-		Main:   mockBranches[0],
 		Beta:   mockBranches[1],
 		Stable: mockBranches[2],
 	}, mockBranches, nil)

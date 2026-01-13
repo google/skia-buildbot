@@ -65,8 +65,8 @@ func TestBranchesValidate(t *testing.T) {
 
 	// Should call chrome_branch.Branches.Validate().
 	test(func(b *Branches) {
-		b.Chromium.Main = nil
-	}, "Main branch is missing")
+		b.Chromium.Stable = nil
+	}, "Stable branch is missing")
 }
 
 func TestTemplate(t *testing.T) {

@@ -76,7 +76,6 @@ func FakeVars() *Vars {
 		Branches: &Branches{
 			ActiveMilestones: activeMilestones,
 			Chromium: &chrome_branch.Branches{
-				Main:   activeMilestones[0],
 				Beta:   activeMilestones[1],
 				Stable: activeMilestones[2],
 			},
