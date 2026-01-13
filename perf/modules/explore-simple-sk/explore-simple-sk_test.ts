@@ -1498,3 +1498,41 @@ describe('clearTooltipDataFromURL', () => {
     assert.equal(newUrl.searchParams.get('sid'), '12345');
   });
 });
+
+describe('after initial data load', () => {
+  let explore: ExploreSimpleSk;
+
+  beforeEach(async () => {
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await fetchMock.flush(true);
+  });
+
+  describe('Pivot Table Sort', () => {
+    it('updates state on sort change', () => {
+      const pivotTable = explore.querySelector('pivot-table-sk');
+      assert.isNotNull(pivotTable);
+
+      pivotTable!.dispatchEvent(new CustomEvent('change', { detail: 'sort_order' }));
+      assert.equal(explore.state.sort, 'sort_order');
+    });
+  });
+
+  describe('Details Toggle', () => {
+    it('toggles navOpen', () => {
+      // Force hide_paramset to false so the collapse button is rendered
+      explore.state.hide_paramset = false;
+      explore.render();
+
+      const collapseButton = explore.querySelector('#collapseButton') as HTMLElement;
+      assert.isNotNull(collapseButton);
+
+      assert.isFalse(explore.navOpen);
+
+      collapseButton.click();
+      assert.isTrue(explore.navOpen);
+
+      collapseButton.click();
+      assert.isFalse(explore.navOpen);
+    });
+  });
+});
