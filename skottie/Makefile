@@ -13,19 +13,6 @@ release:
 gazelle:
 	$(BAZEL) run //:gazelle -- update ./
 
-.PHONY: get_latest_skia
-get_latest_skia:
-	docker pull gcr.io/skia-public/skia-wasm-release:prod
-	rm -rf build
-	# Make docker happy by having these folders already exist.
-	mkdir -p build/canvaskit
-	# Extract them from the most recently built docker container. This is built
-	# with @skia//docker/skia-wasm-release/Dockerfile
-	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
-	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
-	    sh -c "cp -r /tmp/canvaskit /tmp/VERSION /OUT/"
-	echo "const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
-
 .PHONY: test
 test:
 	$(BAZEL) test --config=mayberemote --test_output=errors //skottie/...
