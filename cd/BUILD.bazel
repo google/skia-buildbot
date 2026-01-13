@@ -10,6 +10,10 @@ skia_app_container(
                 "//cd/go/build-images:build-images",
                 "0755",
             ],
+            [
+                "//cd/cmd/stagemanager:stagemanager",
+                "0755",
+            ],
         ],
     },
     repository = "skia-public/cd",
