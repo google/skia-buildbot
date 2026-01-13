@@ -110,11 +110,10 @@ func (b *Branches) Copy() *Branches {
 
 // Validate returns an error if the Branches are not valid.
 func (b *Branches) Validate() error {
-	if b.Beta == nil {
-		return skerr.Fmt("Beta branch is missing.")
-	}
-	if err := b.Beta.Validate(); err != nil {
-		return skerr.Wrapf(err, "Beta branch is invalid")
+	if b.Beta != nil {
+		if err := b.Beta.Validate(); err != nil {
+			return skerr.Wrapf(err, "Beta branch is invalid")
+		}
 	}
 
 	if b.Dev != nil {
