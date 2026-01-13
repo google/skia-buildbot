@@ -272,6 +272,7 @@ def _download_package_http(name, cipd_package, tag, sha256, build_file_content =
     )
 
 def _cipd_impl(ctx):
+    direct_deps = []
     for mod in ctx.modules:
         for package in mod.tags.download_http:
             _download_package_http(
@@ -284,6 +285,7 @@ def _cipd_impl(ctx):
                 postinstall_cmds_win = package.postinstall_cmds_win,
                 sha256 = package.sha256,
             )
+            direct_deps.append(package.name)
         for package in mod.tags.download_cipd:
             _cipd_install(
                 name = package.name,
@@ -294,6 +296,21 @@ def _cipd_impl(ctx):
                 postinstall_cmds_win = package.postinstall_cmds_win,
                 sha256 = package.sha256,
             )
+            direct_deps.append(package.name)
+
+    # https://bazel.build/rules/lib/builtins/module_ctx#extension_metadata
+    return ctx.extension_metadata(
+        # By specifying the direct dependencies, bazel mod tidy will automatically
+        # update the use_repo call to add or remove dependencies to the list.
+        root_module_direct_deps = direct_deps,
+        root_module_direct_dev_deps = [],
+        # By setting this line, we are telling Bazel that the generated rules are
+        # hermetic all on their own. This *is* the case because we are downloading
+        # from CIPD by tag and verifying the sha256 sum.
+        # This is a big deal because it means our autorollers can update only the MODULE.bazel
+        # file and don't have to update anything in the MODULE.bazel.lock file after.
+        reproducible = True,
+    )
 
 cipd = module_extension(
     doc = """Bzlmod extension used to download CIPD packages.""",
