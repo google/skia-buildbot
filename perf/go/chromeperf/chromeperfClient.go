@@ -80,6 +80,8 @@ func (client *chromePerfClientImpl) SendGetRequest(ctx context.Context, apiName 
 	targetUrl := generateTargetUrl(client.urlOverride, client.directCallLegacy, apiName, functionName)
 	targetUrl = fmt.Sprintf("%s?%s", targetUrl, queryParams.Encode())
 
+	// TODO(b/475429610) this is for monitoring chromeperf usage on the ng instances.
+	sklog.Warningf("chromeperf usage warning: sending get request to %s", targetUrl)
 	httpResponse, err := httputils.GetWithContext(ctx, client.httpClient, targetUrl)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to get chrome perf response.")
@@ -120,6 +122,8 @@ func (client *chromePerfClientImpl) SendPostRequest(ctx context.Context, apiName
 	requestBodyJSONStr := buff.String()
 	sklog.Debugf("Sending Post request to chromePerf: %s", requestBodyJSONStr)
 
+	// TODO(b/475429610) this is for monitoring chromeperf usage on the ng instances.
+	sklog.Warningf("chromeperf usage warning: sending post request to %s", targetUrl)
 	httpResponse, err := httputils.PostWithContext(
 		ctx,
 		client.httpClient,
