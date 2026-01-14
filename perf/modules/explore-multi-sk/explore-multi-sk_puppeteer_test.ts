@@ -1,7 +1,11 @@
 import { expect } from 'chai';
 import { loadCachedTestBed, TestBed } from '../../../puppeteer-tests/util';
 import { ExploreMultiSkPO } from './explore-multi-sk_po';
-import { STANDARD_LAPTOP_VIEWPORT, poll } from '../common/puppeteer-test-util';
+import {
+  STANDARD_LAPTOP_VIEWPORT,
+  poll,
+  waitForElementNotHidden,
+} from '../common/puppeteer-test-util';
 
 describe('Anomalies and Traces', () => {
   let testBed: TestBed;
@@ -353,5 +357,94 @@ describe('Manual Plot Mode', () => {
 
     const finalShortcut = currentUrl.searchParams.get('shortcut');
     expect(finalShortcut).to.satisfy((s: string) => s === null || s === '');
+  });
+});
+
+describe('Split Graph Functionality', function () {
+  this.timeout(60000);
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed();
+  });
+
+  beforeEach(async () => {
+    await testBed.page.goto(testBed.baseUrl);
+    await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
+  });
+
+  it('splits graph when split-by checkbox is checked', async () => {
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    // 1. Select Arch = arm
+    await testPickerPO.waitForPickerField(0);
+    const archField = await testPickerPO.getPickerField(0);
+    await archField.select('arm');
+    await testPickerPO.waitForSpinnerInactive();
+
+    // 2. Select OS = Android, Ubuntu
+    await testPickerPO.waitForPickerField(1);
+    const osField = await testPickerPO.getPickerField(1);
+    await osField.select('Android');
+    await testPickerPO.waitForSpinnerInactive();
+    await osField.select('Ubuntu');
+    await testPickerPO.waitForSpinnerInactive();
+
+    // 3. Plot first (Merged) to ensure two traces appear on one chart
+    await testPickerPO.clickPlotButton();
+    await explorePO.waitForGraph(0);
+    const mergedGraphInitial = explorePO.getGraph(0);
+    const tracesMergedInitial = await mergedGraphInitial.getTraceKeys();
+    expect(tracesMergedInitial).to.have.lengthOf(2);
+
+    // 4. Click "Split" checkbox on OS field
+    const splitCheckbox = osField.splitByCheckbox;
+    // Ensure it is visible (poll until not hidden)
+    await waitForElementNotHidden(splitCheckbox);
+
+    await osField.checkSplit();
+
+    // 5. Wait for 2 graphs
+    await explorePO.waitForGraphCount(2);
+
+    // 6. Verify contents
+    const graph0 = explorePO.getGraph(0);
+    // Wait for data to load in the first graph
+    await explorePO.waitForGraph(0);
+    const traces0 = await graph0.getTraceKeys();
+
+    const graph1 = explorePO.getGraph(1);
+    // Wait for data to load in the second graph
+    await explorePO.waitForGraph(1);
+    const traces1 = await graph1.getTraceKeys();
+
+    // Collect all traces from all graphs
+    const allTraces = [...traces0, ...traces1];
+    expect(allTraces).to.include(',arch=arm,os=Android,');
+    expect(allTraces).to.include(',arch=arm,os=Ubuntu,');
+    expect(traces0.length).to.equal(1);
+    expect(traces1.length).to.equal(1);
+    expect(traces0[0]).to.not.equal(traces1[0]); // Ensure they are different
+
+    // 7. Uncheck "Split" checkbox to merge back
+    await osField.uncheckSplit();
+
+    // 8. Wait for graph count to be 1
+    await explorePO.waitForGraphCount(1);
+    const mergedGraph = explorePO.getGraph(0);
+    await explorePO.waitForGraph(0);
+
+    // 9. Verify merged content
+    const mergedTraces = await mergedGraph.getTraceKeys();
+    expect(mergedTraces).to.have.lengthOf(2);
+    expect(mergedTraces).to.include(',arch=arm,os=Android,');
+    expect(mergedTraces).to.include(',arch=arm,os=Ubuntu,');
+
+    // 10. Verify anomalies are present
+    await mergedGraph.verifyAnomaliesPresent();
+
+    // 11. Interact with anomaly tooltip
+    await mergedGraph.clickFirstAnomaly(testBed.page);
+    await mergedGraph.waitForAnomalyTooltip();
   });
 });

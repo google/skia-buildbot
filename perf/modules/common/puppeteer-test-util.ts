@@ -54,3 +54,16 @@ export async function waitForReady(po: PageObject): Promise<void> {
     throw new Error(e as string);
   }
 }
+
+export async function waitForElementNotHidden(
+  element: PageObjectElement,
+  timeout = 5000
+): Promise<void> {
+  await poll(
+    async () => {
+      return await element.applyFnToDOMNode((el) => !el.hasAttribute('hidden'));
+    },
+    'Waiting for element to be not hidden',
+    timeout
+  );
+}

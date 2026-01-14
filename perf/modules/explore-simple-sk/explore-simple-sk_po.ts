@@ -6,6 +6,7 @@ import { PivotTableSkPO } from '../pivot-table-sk/pivot-table-sk_po';
 import { errorMessage } from '../errorMessage';
 import { ChartTooltipSkPO } from '../chart-tooltip-sk/chart-tooltip-sk_po';
 import { GraphTitleSkPO } from '../graph-title-sk/graph-title-sk_po';
+import { poll } from '../common/puppeteer-test-util';
 
 export class ExploreSimpleSkPO extends PageObject {
   get pickerField(): PageObjectElement {
@@ -175,5 +176,52 @@ export class ExploreSimpleSkPO extends PageObject {
       },
       { traceKey, pointIndex }
     );
+  }
+
+  /**
+   * Verifies that anomalies are present in the chart.
+   */
+  async verifyAnomaliesPresent(): Promise<void> {
+    const anomalyMap = await this.getAnomalyMap();
+    if (!anomalyMap || Object.keys(anomalyMap).length === 0) {
+      throw new Error('No anomalies found in the map');
+    }
+  }
+
+  /**
+   * Clicks on the first visible anomaly in the chart.
+   * @param page The Puppeteer Page object to perform the click.
+   */
+  async clickFirstAnomaly(page: any): Promise<void> {
+    const anomalyRect = await this.googleChart.applyFnToDOMNode((el) => {
+      const anomalyIcon = el.shadowRoot!.querySelector('div.anomaly > .anomaly');
+      if (!anomalyIcon) return null;
+      const rect = anomalyIcon.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    });
+
+    if (!anomalyRect) {
+      throw new Error('No anomaly icon found to click.');
+    }
+
+    await page.mouse.click(
+      anomalyRect.x + anomalyRect.width / 2,
+      anomalyRect.y + anomalyRect.height / 2
+    );
+  }
+
+  /**
+   * Waits for the anomaly tooltip to appear and show "Anomaly".
+   */
+  async waitForAnomalyTooltip(): Promise<void> {
+    const containerPO = this.chartTooltip.container;
+    await poll(async () => {
+      if (await containerPO.isEmpty()) return false;
+      return await containerPO.applyFnToDOMNode((el) => {
+        if ((el as HTMLElement).style.display === 'none') return false;
+        const h3 = el.querySelector('h3');
+        return h3?.textContent?.includes('Anomaly') || false;
+      });
+    }, 'Tooltip did not show Anomaly or was not visible');
   }
 }

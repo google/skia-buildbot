@@ -1,5 +1,6 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 
 export class PickerFieldSkPO extends PageObject {
   get comboBox(): PageObjectElement {
@@ -8,6 +9,22 @@ export class PickerFieldSkPO extends PageObject {
 
   get splitByCheckbox(): PageObjectElement {
     return this.bySelector('checkbox-sk#split-by');
+  }
+
+  async isSplitChecked(): Promise<boolean> {
+    return this.splitByCheckbox.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
+  }
+
+  async checkSplit(): Promise<void> {
+    if (!(await this.isSplitChecked())) {
+      await this.splitByCheckbox.click();
+    }
+  }
+
+  async uncheckSplit(): Promise<void> {
+    if (await this.isSplitChecked()) {
+      await this.splitByCheckbox.click();
+    }
   }
 
   get selectPrimaryCheckbox(): PageObjectElement {
