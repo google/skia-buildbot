@@ -219,6 +219,36 @@ func TestCreateStartBuildRequest_NoDeps_ValidResponse(t *testing.T) {
 	assert.Equal(t, workflowId, pinpointJobIdTag.Value)
 }
 
+func TestCreateStartBuildRequest_WithPatch_ValidResponse(t *testing.T) {
+	device := "linux-r350-perf"
+	workflowId := uuid.New().String()
+	params := workflows.BuildParams{
+		Device: device,
+		Commit: common.NewCombinedCommit(common.NewChromiumCommit("random_hash")),
+		Patch: []*buildbucketpb.GerritChange{
+			{
+				Host:     "chromium-review.googlesource.com",
+				Change:   1318136,
+				Patchset: 1,
+			},
+		},
+		WorkflowID: workflowId,
+	}
+
+	client := &buildChromeClient{
+		BuildbucketClient: &mocks.BuildbucketClient{},
+	}
+	startReq, err := client.CreateStartBuildRequest(params)
+	require.NoError(t, err)
+
+	assert.Equal(t, DefaultBucket, startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Builder.Bucket)
+	assert.Equal(t, 4, len(startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Properties.Fields))
+	pinpointJobIdTag := startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Tags[0]
+	assert.Equal(t, 1, len(startReq.Request.(*buildbucketpb.ScheduleBuildRequest).GerritChanges))
+	assert.Equal(t, params.Patch[0], startReq.Request.(*buildbucketpb.ScheduleBuildRequest).GerritChanges[0])
+	assert.Equal(t, workflowId, pinpointJobIdTag.Value)
+}
+
 func TestStartBuild_ValidReq_NoError(t *testing.T) {
 	ctx := context.Background()
 	device := "linux-r350-perf"

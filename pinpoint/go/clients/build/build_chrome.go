@@ -231,6 +231,9 @@ func (b *buildChromeClient) CreateStartBuildRequest(params workflows.BuildParams
 		GitilesCommit: b.buildRequestGitilesCommit(commit),
 		Tags:          b.buildRequestTags(params.WorkflowID, commit),
 	}
+	if len(params.Patch) > 0 {
+		scheduleReq.GerritChanges = params.Patch
+	}
 	return &StartBuildRequest{
 		Request: scheduleReq,
 	}, nil
