@@ -21,15 +21,21 @@ func Extract(workspaceDir, targetDir string) error {
 		return skerr.Wrap(err)
 	}
 
-	// Find all outputs.zip files under //_bazel_testlogs, which contain the undeclared outputs
+	// Bazel <8: find all outputs.zip files under //_bazel_testlogs, which contain the undeclared outputs
 	// produced by all tests.
 	var allOutputsZipPaths []string
+	// Bazel 8 stopped zipping undeclared test outputs and instead just deposits them directly in the
+	// outputs folder.
+	var allUnzippedScreenshots []string
 	if err := filepath.Walk(bazelTestlogsDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return skerr.Wrap(err)
 		}
 		if strings.HasSuffix(path, "/test.outputs/outputs.zip") {
 			allOutputsZipPaths = append(allOutputsZipPaths, path)
+		}
+		if strings.Contains(path, "/test.outputs/puppeteer-test-screenshots/") && strings.HasSuffix(path, ".png") {
+			allUnzippedScreenshots = append(allUnzippedScreenshots, path)
 		}
 		return nil
 	}); err != nil {
@@ -42,6 +48,16 @@ func Extract(workspaceDir, targetDir string) error {
 		if err := extractPuppeteerScreenshotsFromOutputsZip(zipFilePath, targetDir); err != nil {
 			return skerr.Wrap(err)
 		}
+	}
+
+	// Copy all screenshots into the output directory.
+	for _, screenshotPath := range allUnzippedScreenshots {
+		fileName := filepath.Base(screenshotPath)
+		destPath := filepath.Join(targetDir, fileName)
+		if err := util.CopyFile(screenshotPath, destPath); err != nil {
+			return skerr.Wrap(err)
+		}
+		sklog.Infof("Copied screenshot: %s\n", destPath)
 	}
 
 	return nil

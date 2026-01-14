@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"fmt"
+
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/task_driver/go/lib/bazel"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
@@ -79,7 +81,12 @@ func main() {
 	//
 	// We invoke Bazel with --remote_download_minimal to avoid "no space left on device errors". See
 	// https://bazel.build/reference/command-line-reference#flag--remote_download_minimal.
-	if _, err := bzl.DoOnRBE(ctx, "test", "//...", "--remote_download_minimal", "--test_output=errors"); err != nil {
+	//
+	// We use --remote_download_regex to explicitly download the outputs.zip files, which contain
+	// the Puppeteer screenshots required by the uploadPuppeteerScreenshotsToGold step.
+	// We also match the puppeteer-test-screenshots directory in case the outputs are not zipped (Bazel 8+).
+	// See https://bazel.build/reference/command-line-reference#flag--remote_download_regex.
+	if _, err := bzl.DoOnRBE(ctx, "test", "//...", "--remote_download_minimal", "--remote_download_regex=.*(outputs.zip|puppeteer-test-screenshots/.*)", "--test_output=errors"); err != nil {
 		td.Fatal(ctx, err)
 	}
 
@@ -161,7 +168,7 @@ func uploadPuppeteerScreenshotsToGold(ctx context.Context, bzl *bazel.Bazel) err
 	if err != nil {
 		return err
 	}
-	err = td.Do(ctx, td.Props("Add images to goldctl"), func(ctx context.Context) error {
+	err = td.Do(ctx, td.Props(fmt.Sprintf("Add %d images to goldctl", len(fileInfos))), func(ctx context.Context) error {
 		for _, fileInfo := range fileInfos {
 			testName := strings.TrimSuffix(filepath.Base(fileInfo.Name()), filepath.Ext(fileInfo.Name()))
 			args := []string{
