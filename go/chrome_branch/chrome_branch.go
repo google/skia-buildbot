@@ -92,6 +92,7 @@ func (b *Branch) Validate() error {
 // Branches describes the mapping from Chrome release channel name to branch
 // number.
 type Branches struct {
+	Main   *Branch `json:"main"`
 	Dev    *Branch `json:"dev"`
 	Beta   *Branch `json:"beta"`
 	Stable *Branch `json:"stable"`
@@ -100,6 +101,7 @@ type Branches struct {
 // Copy the Branches.
 func (b *Branches) Copy() *Branches {
 	return &Branches{
+		Main:   b.Main.Copy(),
 		Dev:    b.Dev.Copy(),
 		Beta:   b.Beta.Copy(),
 		Stable: b.Stable.Copy(),
@@ -108,10 +110,11 @@ func (b *Branches) Copy() *Branches {
 
 // Validate returns an error if the Branches are not valid.
 func (b *Branches) Validate() error {
-	if b.Beta != nil {
-		if err := b.Beta.Validate(); err != nil {
-			return skerr.Wrapf(err, "Beta branch is invalid")
-		}
+	if b.Beta == nil {
+		return skerr.Fmt("Beta branch is missing.")
+	}
+	if err := b.Beta.Validate(); err != nil {
+		return skerr.Wrapf(err, "Beta branch is invalid")
 	}
 
 	if b.Dev != nil {
@@ -125,6 +128,13 @@ func (b *Branches) Validate() error {
 	}
 	if err := b.Stable.Validate(); err != nil {
 		return skerr.Wrapf(err, "Stable branch is invalid")
+	}
+
+	if b.Main == nil {
+		return skerr.Fmt("Main branch is missing.")
+	}
+	if err := b.Main.Validate(); err != nil {
+		return skerr.Wrapf(err, "Main branch is invalid")
 	}
 
 	return nil
@@ -183,6 +193,18 @@ func Get(ctx context.Context, c *http.Client) (*Branches, []*Branch, error) {
 	}
 	if rv.Beta == nil && rv.Stable != nil {
 		rv.Beta = byMilestone[rv.Stable.Milestone+1]
+	}
+	if rv.Beta != nil {
+		mainMilestoneMinusOne := rv.Beta.Milestone
+		if rv.Dev != nil && rv.Dev.Milestone > mainMilestoneMinusOne {
+			mainMilestoneMinusOne = rv.Dev.Milestone
+		}
+		rv.Main = &Branch{
+			Milestone: mainMilestoneMinusOne + 1,
+			Number:    0,
+			Ref:       RefMain,
+			V8Branch:  RefMain,
+		}
 	}
 	if err := rv.Validate(); err != nil {
 		return nil, nil, err

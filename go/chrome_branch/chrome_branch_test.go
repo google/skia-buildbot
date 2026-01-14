@@ -3,6 +3,7 @@ package chrome_branch
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -271,11 +272,116 @@ const (
 		"webrtc_branch": "4472"
 	}
 ]`
+
+	fakeData4 = `[
+  {
+    "angle_branch": "7632",
+    "bling_ldap": null,
+    "bling_owner": null,
+    "chromium_branch": "7632",
+    "chromium_main_branch_hash": "0bbdf2913883391365383b0a5dfe7bf9fd1a5213",
+    "chromium_main_branch_position": 1568190,
+    "clank_ldap": null,
+    "clank_owner": null,
+    "cros_ldap": "andywu",
+    "cros_owner": "Andy Wu",
+    "dawn_branch": "7632",
+    "desktop_ldap": null,
+    "desktop_ldap_emea": null,
+    "desktop_ldap_us": "srinivassista",
+    "desktop_owner": null,
+    "desktop_owner_emea": null,
+    "desktop_owner_us": "Srinivas Sista",
+    "devtools_branch": "7632",
+    "merge_phase": "low_priority",
+    "milestone": 145,
+    "mobile_ldap_emea": "eakpobaro",
+    "mobile_ldap_us": "harrysouders",
+    "mobile_owner_emea": "Erhu Akpobaro",
+    "mobile_owner_us": "Harry Souders",
+    "pdfium_branch": "7632",
+    "schedule_active": true,
+    "schedule_phase": "branch",
+    "skia_branch": "m145",
+    "v8_branch": "14.5",
+    "webrtc_branch": "7632"
+  },
+  {
+    "angle_branch": "7559",
+    "bling_ldap": null,
+    "bling_owner": null,
+    "chromium_branch": "7559",
+    "chromium_main_branch_hash": "223dfbac1c7542a06b422390d954afe5b560b607",
+    "chromium_main_branch_position": 1552494,
+    "clank_ldap": null,
+    "clank_owner": null,
+    "cros_ldap": "alonbajayo",
+    "cros_owner": "Alon Bajayo",
+    "dawn_branch": "7559",
+    "desktop_ldap": null,
+    "desktop_ldap_emea": null,
+    "desktop_ldap_us": "srinivassista",
+    "desktop_owner": null,
+    "desktop_owner_emea": null,
+    "desktop_owner_us": "Srinivas Sista",
+    "devtools_branch": "7559",
+    "merge_phase": "high_priority",
+    "milestone": 144,
+    "mobile_ldap_emea": "eakpobaro",
+    "mobile_ldap_us": "govind",
+    "mobile_owner_emea": "Erhu Akpobaro",
+    "mobile_owner_us": "Krishna Govind",
+    "pdfium_branch": "7559",
+    "schedule_active": true,
+    "schedule_phase": "stable",
+    "skia_branch": "m144",
+    "v8_branch": "14.4",
+    "webrtc_branch": "7559"
+  },
+  {
+    "angle_branch": "7499",
+    "bling_ldap": null,
+    "bling_owner": null,
+    "chromium_branch": "7499",
+    "chromium_main_branch_hash": "b30439823e5177773584139e72e0593e36863899",
+    "chromium_main_branch_position": 1536371,
+    "clank_ldap": null,
+    "clank_owner": null,
+    "cros_ldap": "lmenezes",
+    "cros_owner": "Luis Menezes",
+    "dawn_branch": "7499",
+    "desktop_ldap": null,
+    "desktop_ldap_emea": "danielyip",
+    "desktop_ldap_us": "srinivassista",
+    "desktop_owner": null,
+    "desktop_owner_emea": "Daniel Yip",
+    "desktop_owner_us": "Srinivas Sista",
+    "devtools_branch": "7499",
+    "merge_phase": "high_priority",
+    "milestone": 143,
+    "mobile_ldap_emea": "eakpobaro",
+    "mobile_ldap_us": "harrysouders",
+    "mobile_owner_emea": "Erhu Akpobaro",
+    "mobile_owner_us": "Harry Souders",
+    "pdfium_branch": "7499",
+    "schedule_active": true,
+    "schedule_phase": "stable",
+    "skia_branch": "m143",
+    "v8_branch": "14.3",
+    "webrtc_branch": "7499"
+  }
+]`
 )
 
 func fakeBranches() *Branches {
 	m := fakeMilestones()
 	return &Branches{
+		Main: &Branch{
+			Milestone: 94,
+			Number:    0,
+			Ref:       RefMain,
+			V8Branch:  RefMain,
+		},
 		Beta:   m[0],
 		Stable: m[1],
 	}
@@ -299,14 +405,13 @@ func fakeMilestones() []*Branch {
 }
 
 func TestBranchCopy(t *testing.T) {
-
 	b := fakeBranches()
 	assertdeep.Copy(t, b.Beta, b.Beta.Copy())
 }
 
 func TestBranchesCopy(t *testing.T) {
-
 	b := fakeBranches()
+	b.Main.Milestone = 95
 	b.Dev = &Branch{
 		Milestone: 94,
 		Number:    4606,
@@ -317,7 +422,6 @@ func TestBranchesCopy(t *testing.T) {
 }
 
 func TestBranchValidate(t *testing.T) {
-
 	test := func(fn func(*Branch), expectErr string) {
 		b := fakeBranches().Beta
 		fn(b)
@@ -350,7 +454,6 @@ func TestBranchValidate(t *testing.T) {
 }
 
 func TestBranchesValidate(t *testing.T) {
-
 	test := func(fn func(*Branches), expectErr string) {
 		b := fakeBranches()
 		fn(b)
@@ -367,12 +470,15 @@ func TestBranchesValidate(t *testing.T) {
 	test(func(b *Branches) {}, "")
 
 	// Missing branch.
-	// test(func(b *Branches) {
-	// 	b.Beta = nil
-	// }, "Beta branch is missing")
+	test(func(b *Branches) {
+		b.Beta = nil
+	}, "Beta branch is missing")
 	test(func(b *Branches) {
 		b.Stable = nil
 	}, "Stable branch is missing")
+	test(func(b *Branches) {
+		b.Main = nil
+	}, "Main branch is missing")
 
 	// Each Branch should be validated.
 	test(func(b *Branches) {
@@ -381,10 +487,12 @@ func TestBranchesValidate(t *testing.T) {
 	test(func(b *Branches) {
 		b.Stable.Number = 0
 	}, "Number is required")
+	test(func(b *Branches) {
+		b.Main.Number = 42
+	}, "Number must be zero for main branch.")
 }
 
 func TestGet(t *testing.T) {
-
 	ctx := context.Background()
 	urlmock := mockhttpclient.NewURLMock()
 	c := urlmock.Client()
@@ -404,12 +512,12 @@ func TestGet(t *testing.T) {
 	require.Equal(t, fakeMilestones(), m)
 
 	// Beta channel is actually missing.
-	// noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData, schedulePhaseBeta, "dev"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
-	// urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(noBeta)))
-	// b, m, err = Get(ctx, c)
-	// require.Nil(t, b)
-	// require.NotNil(t, err)
-	// require.True(t, strings.Contains(err.Error(), "Beta branch is missing"), err)
+	noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData, schedulePhaseBeta, "dev"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(noBeta)))
+	b, m, err = Get(ctx, c)
+	require.Nil(t, b)
+	require.NotNil(t, err)
+	require.True(t, strings.Contains(err.Error(), "Beta branch is missing"), err)
 
 	// Stable channel is missing.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, schedulePhaseStable, "dev"))))
@@ -434,7 +542,6 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetSecondDataSet(t *testing.T) {
-
 	ctx := context.Background()
 	urlmock := mockhttpclient.NewURLMock()
 	c := urlmock.Client()
@@ -445,6 +552,7 @@ func TestGetSecondDataSet(t *testing.T) {
 	b, _, err := Get(ctx, c)
 	require.NoError(t, err)
 	expect := fakeBranches()
+	expect.Main.Milestone = 95
 	expect.Dev = &Branch{
 		Milestone: 94,
 		Number:    4606,
@@ -454,12 +562,12 @@ func TestGetSecondDataSet(t *testing.T) {
 	require.Equal(t, expect, b)
 
 	// Beta channel is actually missing.
-	// noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData2, schedulePhaseStableCut, "dev"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
-	// urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(noBeta)))
-	// b, _, err = Get(ctx, c)
-	// require.Nil(t, b)
-	// require.NotNil(t, err)
-	// require.True(t, strings.Contains(err.Error(), "Beta branch is missing"), err)
+	noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData2, schedulePhaseStableCut, "dev"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(noBeta)))
+	b, _, err = Get(ctx, c)
+	require.Nil(t, b)
+	require.NotNil(t, err)
+	require.True(t, strings.Contains(err.Error(), "Beta branch is missing"), err)
 
 	// Stable channel is missing.
 	noStable := strings.ReplaceAll(fakeData2, fmt.Sprintf("\"%s\"", schedulePhaseStable), "\"dev\"")
@@ -485,7 +593,6 @@ func TestGetSecondDataSet(t *testing.T) {
 }
 
 func TestGetThirdDataSet(t *testing.T) {
-
 	ctx := context.Background()
 	urlmock := mockhttpclient.NewURLMock()
 	c := urlmock.Client()
@@ -496,11 +603,50 @@ func TestGetThirdDataSet(t *testing.T) {
 	b, _, err := Get(ctx, c)
 	require.NoError(t, err)
 	expect := fakeBranches()
+	expect.Main.Milestone = 95
 	expect.Dev = &Branch{
 		Milestone: 94,
 		Number:    4606,
 		Ref:       fmt.Sprintf(refTmplRelease, 4606),
 		V8Branch:  "9.4",
+	}
+	require.Equal(t, expect, b)
+}
+
+func TestGetFourthDataSet(t *testing.T) {
+	ctx := context.Background()
+	urlmock := mockhttpclient.NewURLMock()
+	c := urlmock.Client()
+
+	// Everything okay. This data set has no "beta" branch; instead there's a
+	// "branch". Ensure that Beta falls back to using that.
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(fakeData4)))
+	b, _, err := Get(ctx, c)
+	require.NoError(t, err)
+	expect := &Branches{
+		Main: &Branch{
+			Milestone: 146,
+			Ref:       "refs/heads/main",
+			V8Branch:  "refs/heads/main",
+		},
+		Beta: &Branch{
+			Milestone: 145,
+			Number:    7632,
+			Ref:       fmt.Sprintf(refTmplRelease, 7632),
+			V8Branch:  "14.5",
+		},
+		Dev: &Branch{
+			Milestone: 145,
+			Number:    7632,
+			Ref:       fmt.Sprintf(refTmplRelease, 7632),
+			V8Branch:  "14.5",
+		},
+		Stable: &Branch{
+			Milestone: 144,
+			Number:    7559,
+			Ref:       "refs/branch-heads/7559",
+			V8Branch:  "14.4",
+		},
 	}
 	require.Equal(t, expect, b)
 }

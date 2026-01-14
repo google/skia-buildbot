@@ -288,7 +288,7 @@ func createTemplateVars(ctx context.Context, client *http.Client, privacySandbox
 		var eg errgroup.Group
 		repo := gitiles.NewRepo(privacySandboxAndroidRepoURL, client)
 		var mtx sync.Mutex
-		milestones := vars.Branches.ActiveMilestones
+		milestones := append(vars.Branches.ActiveMilestones, vars.Branches.Chromium.Main)
 		for _, m := range milestones {
 			m := m // https://golang.org/doc/faq#closures_and_goroutines
 			eg.Go(func() error {
