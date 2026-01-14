@@ -8,6 +8,11 @@ const NEXT_PARAM_COUNT = 4;
 const getCookieValue = (name: string) =>
   document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || '';
 
+export const paramSet = {
+  arch: ['arm', 'arm64', 'x86_64'],
+  os: ['Android', 'Debian10', 'Debian11', 'Mac10.13', 'Win2019', 'Ubuntu'],
+};
+
 export function setUpExploreDemoEnv() {
   // The demo server will inject this cookie if there is a backend.
   if (getCookieValue('proxy_endpoint')) {
@@ -19,11 +24,6 @@ export function setUpExploreDemoEnv() {
   };
 
   fetchMock.get('/_/login/status', status);
-
-  const paramSet = {
-    arch: ['arm', 'arm64', 'x86_64'],
-    os: ['Android', 'Debian10', 'Debian11', 'Mac10.13', 'Win2019', 'Ubuntu'],
-  };
 
   fetchMock.get(/_\/initpage\/.*/, () => ({
     dataframe: {

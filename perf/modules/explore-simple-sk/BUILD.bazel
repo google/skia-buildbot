@@ -121,9 +121,7 @@ sk_page(
     ts_deps = [
         "//perf/modules/common:test-util_ts_lib",
         "//:node_modules/fetch-mock",
-        ":test_data_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//infra-sk/modules:query_ts_lib",
     ],
     ts_entry_point = "explore-simple-sk-demo.ts",
 )
@@ -145,11 +143,12 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         ":explore-simple-sk_po_ts_lib",
+        ":test_data_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//:node_modules/puppeteer",
-        "//infra-sk/modules:query_ts_lib",
         "//perf/modules/common:puppeteer-test-util_ts_lib",
+        "//perf/modules/common:test-util_ts_lib",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

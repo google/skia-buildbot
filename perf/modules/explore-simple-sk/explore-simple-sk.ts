@@ -725,6 +725,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         <md-icon id="icon">favorite</md-icon>
       </md-icon-button>
       <md-icon-button
+      id="showSettingsDialog"
         title="Show Settings Dialog"
         @click=${ele.showSettingsDialog}>
         <md-icon id="icon">settings</md-icon>

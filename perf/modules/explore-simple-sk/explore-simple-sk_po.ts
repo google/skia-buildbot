@@ -60,16 +60,28 @@ export class ExploreSimpleSkPO extends PageObject {
     return this.bySelector('plot-summary-sk');
   }
 
+  get chartContainer(): PageObjectElement {
+    return this.bySelector('#chart-container');
+  }
+
   get xAxisSwitch(): PageObjectElement {
     return this.bySelector('#commit-switch');
   }
 
   get plotButton(): PageObjectElement {
-    return this.bySelector('dialog#query-dialog button.action');
+    return this.bySelector('tabs-panel-sk button.action');
   }
 
   get spinner(): PageObjectElement {
     return this.bySelector('spinner-sk');
+  }
+
+  get showSettingDialigButton(): PageObjectElement {
+    return this.bySelector('#showSettingsDialog');
+  }
+
+  get settingDialog(): PageObjectElement {
+    return this.bySelector('#settings-dialog');
   }
 
   async getXAxisDomain(): Promise<string> {
@@ -85,12 +97,7 @@ export class ExploreSimpleSkPO extends PageObject {
   }
 
   async clickPlotButton(): Promise<void> {
-    // Clicks the plot button inside the query dialog.
-    const plotButton = await this.bySelector('dialog#query-dialog button.action');
-    if (!plotButton) {
-      throw new Error('Plot button not found');
-    }
-    await plotButton.click();
+    await this.plotButton.click();
   }
 
   get xAxisSwitchSelector(): string {
@@ -104,8 +111,8 @@ export class ExploreSimpleSkPO extends PageObject {
   }
 
   async clickXAxisSwitch(): Promise<void> {
+    await this.clickShowSettingsDialog();
     try {
-      // Wait for the element to be in the DOM and visible
       await this.bySelector(this.xAxisSwitchSelector);
     } catch (e) {
       await errorMessage(e as Error);
@@ -115,15 +122,15 @@ export class ExploreSimpleSkPO extends PageObject {
     if (!switchEl) {
       throw new Error('X-Axis switch element not found after visibility wait.');
     }
-
-    // The element is visible, now attempt the click.
     try {
       await switchEl.click();
     } catch (e) {
-      // Optional: Add more debug info if click still fails
-      console.error('Error clicking the x-axis switch:', e);
-      throw e;
+      await errorMessage(e as Error);
     }
+  }
+
+  async clickShowSettingsDialog(): Promise<void> {
+    await this.showSettingDialigButton.click();
   }
 
   async getAnomalyMap(): Promise<any> {

@@ -2,8 +2,6 @@ import './index';
 import '../../../elements-sk/modules/error-toast-sk';
 import { setUpExploreDemoEnv } from '../common/test-util';
 import fetchMock from 'fetch-mock';
-import { BENCHMARK, BOT, SUBTEST_1, SUBTEST_2, TEST } from './test_data';
-import { ParamSet } from '../../../infra-sk/modules/query';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ExploreSimpleSk } from './explore-simple-sk';
 
@@ -19,50 +17,6 @@ fetchMock.get(
   },
   { overwriteRoutes: true }
 );
-
-// Mock data for /_/nextParamList/
-const mockNextParamListResponse = (opts: any) => {
-  const body = JSON.parse(opts.body as string);
-  const q: string = body.q;
-
-  let paramset: ParamSet = {};
-  let count = 0;
-
-  if (q === '') {
-    paramset = {
-      benchmark: [BENCHMARK, 'other_benchmark'],
-    };
-    count = 100;
-  } else if (q === `benchmark=${BENCHMARK}`) {
-    paramset = {
-      bot: [BOT, 'other_bot'],
-    };
-    count = 50;
-  } else if (q === `benchmark=${BENCHMARK}&bot=${BOT}`) {
-    paramset = {
-      test: [encodeURIComponent(TEST), 'other_test'],
-    };
-    count = 20;
-  } else if (q === `benchmark=${BENCHMARK}&bot=${BOT}&test=${encodeURIComponent(TEST)}`) {
-    paramset = {
-      subtest_1: [SUBTEST_1, SUBTEST_2],
-    };
-    count = 10;
-  } else if (
-    q ===
-    `benchmark=${BENCHMARK}&bot=${BOT}&test=${encodeURIComponent(TEST)}&subtest_1=${SUBTEST_1}`
-  ) {
-    paramset = {}; // No more fields to select
-    count = 5;
-  } else {
-    paramset = {};
-    count = 0;
-  }
-
-  return { count, paramset };
-};
-
-fetchMock.post('/_/nextParamList/', mockNextParamListResponse, { overwriteRoutes: true });
 
 window.perf = {
   dev_mode: false,
@@ -103,9 +57,17 @@ window.perf = {
   extra_links: null,
 };
 
-$$('#open_query_dialog')?.addEventListener('click', () => {
+customElements.whenDefined('explore-simple-sk').then(() => {
+  document
+    .querySelector('h1')!
+    .insertAdjacentElement('afterend', document.createElement('explore-simple-sk'));
+});
+
+$$('#demo-show-query-dialog')?.addEventListener('click', () => {
   document.querySelectorAll<ExploreSimpleSk>('explore-simple-sk').forEach((ele) => {
     ele.useTestPicker = false;
-    ele.render();
+    ele.navOpen = true;
+    $$<HTMLButtonElement>('#open_query_dialog')!.click();
+    $$<HTMLDetailsElement>('#time-range-summary')!.open = true;
   });
 });

@@ -13,6 +13,8 @@ export const POLLING_CONSTANT = {
 
 export const CLIPBOARD_READ_TIMEOUT_MS = 5000; // 5 second timeout
 
+export const DEFAULT_WAIT_FOR_FUNNCTION_MS = 3000;
+
 export async function poll(
   checkFn: () => Promise<boolean>,
   message: string,

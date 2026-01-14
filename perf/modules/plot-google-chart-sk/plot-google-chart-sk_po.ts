@@ -1,4 +1,5 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
+import { poll } from '../common/puppeteer-test-util';
 
 export class PlotGoogleChartSkPO extends PageObject {
   async getGoogleChartObject(): Promise<any> {
@@ -12,6 +13,30 @@ export class PlotGoogleChartSkPO extends PageObject {
       return false;
     }
     return !(await chartElement.hasAttribute('hidden'));
+  }
+
+  async waitForChartVisible(options: { timeout?: number } = {}): Promise<boolean> {
+    const timeout = options.timeout ?? 10000;
+    try {
+      await poll(
+        async () => {
+          const chartElement = this.bySelectorShadow('google-chart');
+
+          if (!chartElement) return false;
+          // Adjust selector for what indicates a rendered chart:
+          const hasPaths = !!chartElement?.bySelectorShadow('svg g > path');
+          if (!hasPaths) return false;
+          return true;
+        },
+        `Waiting for graph to load`,
+        timeout
+      );
+    } catch (e) {
+      throw new Error(
+        `Chart did not become visible within ${timeout}ms.Error: ${e instanceof Error}`
+      );
+    }
+    return true;
   }
 
   async getChartType(): Promise<string | null> {
