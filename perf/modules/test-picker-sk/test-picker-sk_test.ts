@@ -178,3 +178,139 @@ describe('test-picker-sk conditional defaults', () => {
     expect(metricField!.selectedItems).to.deep.equal(['timeNs']);
   });
 });
+
+describe('test-picker-sk default option inference', () => {
+  const newInstance = setUpElementUnderTest<TestPickerSk>('test-picker-sk');
+
+  let element: TestPickerSk;
+  let fetchMock: any;
+
+  beforeEach(async () => {
+    // Mock the fetch function.
+    fetchMock = (_url: RequestInfo | URL, request: RequestInit | undefined) => {
+      const req = JSON.parse(request!.body as string) as NextParamListHandlerRequest;
+      const params = toParamSet(req.q!);
+      const paramset: any = {};
+      let count = 0;
+
+      // Initial load
+      if (Object.keys(params).length === 0) {
+        paramset['benchmark'] = ['b1'];
+        count = 10;
+      }
+      // Select benchmark=b1
+      else if (params.benchmark && !params.bot) {
+        // Here we simulate the scenario:
+        // We have 3 traces:
+        // 1. benchmark=b1, bot=bot1
+        // 2. benchmark=b1, bot=bot2
+        // 3. benchmark=b1 (no bot)
+
+        // Count should be 3.
+        // paramset for 'bot' should be ['bot1', 'bot2', ''].
+        paramset['bot'] = ['bot1', 'bot2', ''];
+        count = 3;
+      }
+
+      const response: NextParamListHandlerResponse = {
+        paramset: paramset,
+        count: count,
+      };
+      return Promise.resolve(new Response(JSON.stringify(response)));
+    };
+    window.fetch = fetchMock;
+
+    element = newInstance((_el: TestPickerSk) => {});
+    element.initializeTestPicker(['benchmark', 'bot'], {}, false);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  });
+
+  it('should show (default) option when backend returns empty string', async () => {
+    const field = element.querySelector<PickerFieldSk>('picker-field-sk');
+    expect(field!.label).to.equal('benchmark');
+
+    // Select 'b1'
+    field!.dispatchEvent(
+      new CustomEvent('value-changed', {
+        detail: { value: ['b1'] },
+      })
+    );
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const fields = element.querySelectorAll<PickerFieldSk>('picker-field-sk');
+    expect(fields.length).to.equal(2);
+    const botField = fields[1];
+    expect(botField.label).to.equal('bot');
+
+    expect(botField.options).to.include('Default');
+  });
+
+  it('should generate query with empty string when (default) is selected', async () => {
+    const field = element.querySelector<PickerFieldSk>('picker-field-sk');
+    // Select 'b1'
+    field!.dispatchEvent(
+      new CustomEvent('value-changed', {
+        detail: { value: ['b1'] },
+      })
+    );
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const fields = element.querySelectorAll<PickerFieldSk>('picker-field-sk');
+    const botField = fields[1];
+
+    // Select 'Default'
+    botField.dispatchEvent(
+      new CustomEvent('value-changed', {
+        detail: { value: ['Default'] },
+      })
+    );
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Verify query
+    const query = element.createQueryFromFieldData();
+    // Expect benchmark=b1&bot=__missing__
+    expect(query).to.contain('benchmark=b1');
+    expect(query).to.contain('bot=__missing__');
+    // Ensure it doesn't contain 'bot=Default'
+    expect(query).to.not.contain('bot=Default');
+  });
+
+  it('should remove __missing__ from query when Default is deselected', async () => {
+    const field = element.querySelector<PickerFieldSk>('picker-field-sk');
+    field!.dispatchEvent(new CustomEvent('value-changed', { detail: { value: ['b1'] } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const botField = element.querySelectorAll<PickerFieldSk>('picker-field-sk')[1];
+
+    // Select Default
+    botField.dispatchEvent(new CustomEvent('value-changed', { detail: { value: ['Default'] } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Deselect Default
+    botField.dispatchEvent(new CustomEvent('value-changed', { detail: { value: [] } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const query = element.createQueryFromFieldData();
+    expect(query).to.contain('benchmark=b1');
+    expect(query).to.not.contain('bot=__missing__');
+  });
+
+  it('should include value and __missing__ when Default and other are selected', async () => {
+    const field = element.querySelector<PickerFieldSk>('picker-field-sk');
+    field!.dispatchEvent(new CustomEvent('value-changed', { detail: { value: ['b1'] } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const botField = element.querySelectorAll<PickerFieldSk>('picker-field-sk')[1];
+
+    // Select Default AND bot1
+    botField.dispatchEvent(
+      new CustomEvent('value-changed', { detail: { value: ['Default', 'bot1'] } })
+    );
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const query = element.createQueryFromFieldData();
+    expect(query).to.contain('benchmark=b1');
+    expect(query).to.contain('bot=__missing__');
+    expect(query).to.contain('bot=bot1');
+  });
+});

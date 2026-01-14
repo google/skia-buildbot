@@ -82,6 +82,36 @@ func (_m *DataFrameBuilder) NewFromQueryAndRange(ctx context.Context, begin time
 	return r0, r1
 }
 
+// NewFromQueryAndRangeKeepParents provides a mock function with given fields: ctx, begin, end, q, _a4
+func (_m *DataFrameBuilder) NewFromQueryAndRangeKeepParents(ctx context.Context, begin time.Time, end time.Time, q *query.Query, _a4 progress.Progress) (*dataframe.DataFrame, error) {
+	ret := _m.Called(ctx, begin, end, q, _a4)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewFromQueryAndRangeKeepParents")
+	}
+
+	var r0 *dataframe.DataFrame
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, *query.Query, progress.Progress) (*dataframe.DataFrame, error)); ok {
+		return rf(ctx, begin, end, q, _a4)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, *query.Query, progress.Progress) *dataframe.DataFrame); ok {
+		r0 = rf(ctx, begin, end, q, _a4)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*dataframe.DataFrame)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, time.Time, time.Time, *query.Query, progress.Progress) error); ok {
+		r1 = rf(ctx, begin, end, q, _a4)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewNFromKeys provides a mock function with given fields: ctx, end, keys, n, _a4
 func (_m *DataFrameBuilder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, _a4 progress.Progress) (*dataframe.DataFrame, error) {
 	ret := _m.Called(ctx, end, keys, n, _a4)
@@ -118,6 +148,36 @@ func (_m *DataFrameBuilder) NewNFromQuery(ctx context.Context, end time.Time, q 
 
 	if len(ret) == 0 {
 		panic("no return value specified for NewNFromQuery")
+	}
+
+	var r0 *dataframe.DataFrame
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, *query.Query, int32, progress.Progress) (*dataframe.DataFrame, error)); ok {
+		return rf(ctx, end, q, n, _a4)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, *query.Query, int32, progress.Progress) *dataframe.DataFrame); ok {
+		r0 = rf(ctx, end, q, n, _a4)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*dataframe.DataFrame)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, time.Time, *query.Query, int32, progress.Progress) error); ok {
+		r1 = rf(ctx, end, q, n, _a4)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// NewNFromQueryKeepParents provides a mock function with given fields: ctx, end, q, n, _a4
+func (_m *DataFrameBuilder) NewNFromQueryKeepParents(ctx context.Context, end time.Time, q *query.Query, n int32, _a4 progress.Progress) (*dataframe.DataFrame, error) {
+	ret := _m.Called(ctx, end, q, n, _a4)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewNFromQueryKeepParents")
 	}
 
 	var r0 *dataframe.DataFrame

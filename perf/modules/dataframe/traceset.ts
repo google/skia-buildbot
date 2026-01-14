@@ -147,7 +147,7 @@ export const getLegend = (dt: DataTable): object[] => {
     Array.from(allKeys)
       .sort() // Sort the keys alphabetically
       .forEach((key) => {
-        newObj[key] = obj[key] ? obj[key] : 'untitled_key';
+        newObj[key] = obj[key] ? obj[key] : 'Default';
       });
     return newObj;
   });

@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/pivot"
+	pqp "go.skia.org/infra/perf/go/preflightqueryprocessor"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -572,15 +573,37 @@ func (p *frameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse query: %s", err)
 	}
+
 	q, err := query.New(urlValues)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid Query: %s", err)
 	}
+
+	keysWithMissingSentinel := pqp.PrepareQueryWithSentinel(q)
+
 	p.request.Progress.Message("Query", q.String())
+	var df *dataframe.DataFrame
 	if p.request.RequestType == REQUEST_TIME_RANGE {
-		return p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, p.request.Progress)
+		if p.request.DoNotFilterParentTraces {
+			df, err = p.dfBuilder.NewFromQueryAndRangeKeepParents(ctx, begin, end, q, p.request.Progress)
+		} else {
+			df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, p.request.Progress)
+		}
+	} else {
+		if p.request.DoNotFilterParentTraces {
+			df, err = p.dfBuilder.NewNFromQueryKeepParents(ctx, end, q, p.request.NumCommits, p.request.Progress)
+		} else {
+			df, err = p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.request.Progress)
+		}
 	}
-	return p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.request.Progress)
+
+	if err != nil {
+		return nil, err
+	}
+
+	filterTraceSet(df, keysWithMissingSentinel)
+
+	return df, nil
 
 }
 
@@ -612,18 +635,33 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 		if err != nil {
 			return nil, err
 		}
+
 		q, err := query.New(urlValues)
 		if err != nil {
 			return nil, err
 		}
+
+		keysWithMissingSentinel := pqp.PrepareQueryWithSentinel(q)
+
 		if p.request.RequestType == REQUEST_TIME_RANGE {
-			df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, p.request.Progress)
+			if p.request.DoNotFilterParentTraces {
+				df, err = p.dfBuilder.NewFromQueryAndRangeKeepParents(ctx, begin, end, q, p.request.Progress)
+			} else {
+				df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, p.request.Progress)
+			}
 		} else {
-			df, err = p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.request.Progress)
+			if p.request.DoNotFilterParentTraces {
+				df, err = p.dfBuilder.NewNFromQueryKeepParents(ctx, end, q, p.request.NumCommits, p.request.Progress)
+			} else {
+				df, err = p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.request.Progress)
+			}
 		}
 		if err != nil {
 			return nil, err
 		}
+
+		filterTraceSet(df, keysWithMissingSentinel)
+
 		// DataFrames are float32, but calc does its work in float64.
 		rows := types.TraceSet{}
 		for k, v := range df.TraceSet {
@@ -670,4 +708,22 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 	df.ParamSet = paramtools.NewReadOnlyParamSet()
 
 	return df, nil
+}
+
+// filterTraceSet filters the DataFrame in-memory based on the keysWithMissingSentinel map.
+// It keeps traces where the key is missing (or empty) OR the key's value matches one of the allowed values.
+func filterTraceSet(df *dataframe.DataFrame, keysWithMissingSentinel map[string]map[string]bool) {
+	if len(keysWithMissingSentinel) == 0 {
+		return
+	}
+	for key := range df.TraceSet {
+		params, err := query.ParseKey(key)
+		if err != nil {
+			continue
+		}
+		if !pqp.FilterParams(params, keysWithMissingSentinel) {
+			delete(df.TraceSet, key)
+		}
+	}
+	df.BuildParamSet()
 }

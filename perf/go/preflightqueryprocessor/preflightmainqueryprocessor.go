@@ -1,25 +1,27 @@
 package preflightqueryprocessor
 
-import "go.skia.org/infra/go/paramtools"
+import (
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
+)
 
 // Type that manages count of traces.
 // Note that it uses the sharedMux from the Base struct.
 // Implements both ParamSetAggregator and PreflightQueryResultCollector.
 type preflightMainQueryProcessor struct {
 	preflightQueryBaseProcessor
-	sharedCount *int
+	sharedCount         *int
+	keysToDetectMissing []string
+	uniqueTraceIDs      map[string]bool
+	filterMap           map[string]map[string]bool
+}
+
+func (p *preflightMainQueryProcessor) SetKeysToDetectMissing(keys []string) {
+	p.keysToDetectMissing = keys
 }
 
 func (p *preflightMainQueryProcessor) UpdateCount(tileOneCount int) {
-	p.sharedMux.Lock()
-	defer p.sharedMux.Unlock()
-
-	// TODO(mordeckimarcin) To be honest, I'm not sure why are we selecting max.
-	// Isn't it possible that the latest tile contains a trace X and the previous tile
-	// contains a trace Y, both being matched by the query?
-	if tileOneCount > *p.sharedCount {
-		*p.sharedCount = tileOneCount
-	}
+	// No-op, count is tracked via uniqueTraceIDs
 }
 
 func (p *preflightMainQueryProcessor) GetParamSet() *paramtools.ParamSet {
@@ -31,20 +33,40 @@ func (p *preflightMainQueryProcessor) GetParamSet() *paramtools.ParamSet {
 func (p *preflightMainQueryProcessor) GetCount() int {
 	p.sharedMux.Lock()
 	defer p.sharedMux.Unlock()
-	return *p.sharedCount
+	return len(p.uniqueTraceIDs)
 }
 
 // For the main query, we just add collected params to our resulting paramset and count them.
 func (p *preflightMainQueryProcessor) ProcessTraceIds(out <-chan paramtools.Params) []paramtools.Params {
 	traceIdsForTile := []paramtools.Params{}
-	count := 0
 	for outParam := range out {
-		count++
+		// Filter traces based on the sentinel logic.
+		if !FilterParams(outParam, p.filterMap) {
+			continue
+		}
+
 		p.AddParams(outParam)
+
+		if len(p.keysToDetectMissing) > 0 {
+			missingParams := paramtools.Params{}
+			for _, key := range p.keysToDetectMissing {
+				if _, ok := outParam[key]; !ok {
+					missingParams[key] = ""
+				}
+			}
+			if len(missingParams) > 0 {
+				p.AddParams(missingParams)
+			}
+		}
+
+		key, _ := query.MakeKey(outParam)
+		p.sharedMux.Lock()
+		p.uniqueTraceIDs[key] = true
+		p.sharedMux.Unlock()
+
 		traceIdsForTile = append(traceIdsForTile, outParam)
 	}
 
-	p.UpdateCount(count)
 	return traceIdsForTile
 }
 

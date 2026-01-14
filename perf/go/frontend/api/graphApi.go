@@ -149,7 +149,8 @@ func (api graphApi) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 			dfbuilder.Filtering(false),
 			api.queryCommitChunkSize,
 			api.maxEmptyTiles,
-			config.Config.Experiments.PreflightSubqueriesForExistingKeys)
+			config.Config.Experiments.PreflightSubqueriesForExistingKeys,
+			[]string{}) // Empty includedParams for frame requests
 	}
 	api.progressTracker.Add(fr.Progress)
 	go func() {

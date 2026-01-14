@@ -32,6 +32,7 @@ sk_element(
         "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        "//perf/modules/const:const_ts_lib",
     ],
     ts_srcs = [
         "test-picker-sk.ts",

@@ -68,6 +68,7 @@ type builder struct {
 	maxEmptyTiles                      int
 	tracecache                         *tracecache.TraceCache
 	preflightSubqueriesForExistingKeys bool
+	includedParams                     []string
 
 	newTimer                      metrics2.Float64SummaryMetric
 	newByTileTimer                metrics2.Float64SummaryMetric
@@ -80,7 +81,7 @@ type builder struct {
 }
 
 // NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
-func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceStore, traceCache *tracecache.TraceCache, numPreflightTiles int, filterParentTraces Filtering, queryCommitChunkSize int, maxEmptyTiles int, preflightSubqueriesForExistingKeys bool) dataframe.DataFrameBuilder {
+func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceStore, traceCache *tracecache.TraceCache, numPreflightTiles int, filterParentTraces Filtering, queryCommitChunkSize int, maxEmptyTiles int, preflightSubqueriesForExistingKeys bool, includedParams []string) dataframe.DataFrameBuilder {
 	if maxEmptyTiles <= 0 {
 		maxEmptyTiles = newNMaxSearch
 	}
@@ -94,6 +95,7 @@ func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceSt
 		QueryCommitChunkSize:               queryCommitChunkSize,
 		maxEmptyTiles:                      maxEmptyTiles,
 		preflightSubqueriesForExistingKeys: preflightSubqueriesForExistingKeys,
+		includedParams:                     includedParams,
 		newTimer:                           metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_new"),
 		newByTileTimer:                     metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newByTile"),
 		newFromQueryAndRangeTimer:          metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromQueryAndRange"),
@@ -229,6 +231,15 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 
 // See DataFrameBuilder.
 func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, progress progress.Progress) (*dataframe.DataFrame, error) {
+	return b.newFromQueryAndRange(ctx, begin, end, q, false, progress)
+}
+
+// See DataFrameBuilder.
+func (b *builder) NewFromQueryAndRangeKeepParents(ctx context.Context, begin, end time.Time, q *query.Query, progress progress.Progress) (*dataframe.DataFrame, error) {
+	return b.newFromQueryAndRange(ctx, begin, end, q, true, progress)
+}
+
+func (b *builder) newFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, disableFilterParentTraces bool, progress progress.Progress) (*dataframe.DataFrame, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewFromQueryAndRange")
 	defer span.End()
 
@@ -238,7 +249,15 @@ func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return b.new(ctx, colHeaders, indices, q, progress, skip)
+	df, err := b.new(ctx, colHeaders, indices, q, progress, skip)
+	if err != nil {
+		return nil, err
+	}
+
+	if b.filterParentTraces == doFilterParentTraces && !disableFilterParentTraces {
+		df.TraceSet = filterParentTraces(df.TraceSet)
+	}
+	return df, nil
 }
 
 // See DataFrameBuilder.
@@ -341,6 +360,15 @@ func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (types.Co
 
 // See DataFrameBuilder.
 func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress progress.Progress) (*dataframe.DataFrame, error) {
+	return b.newNFromQuery(ctx, end, q, n, false, progress)
+}
+
+// See DataFrameBuilder.
+func (b *builder) NewNFromQueryKeepParents(ctx context.Context, end time.Time, q *query.Query, n int32, progress progress.Progress) (*dataframe.DataFrame, error) {
+	return b.newNFromQuery(ctx, end, q, n, true, progress)
+}
+
+func (b *builder) newNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, disableFilterParentTraces bool, progress progress.Progress) (*dataframe.DataFrame, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewNFromQuery")
 	defer span.End()
 
@@ -462,7 +490,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 	}
 	ps.Normalize()
 	ret.ParamSet = ps.Freeze()
-	if b.filterParentTraces == doFilterParentTraces {
+	if b.filterParentTraces == doFilterParentTraces && !disableFilterParentTraces {
 		ret.TraceSet = filterParentTraces(ret.TraceSet)
 	}
 
@@ -673,6 +701,7 @@ func (b *builder) PreflightQuery(ctx context.Context, mainQuery *query.Query, re
 	// In particular, we don't want to put all values for benchmark without any filtering
 	// if there are other keys in the main query that can limit the possible options.
 	mainQueryObj := pqp.NewPreflightMainQueryProcessor(mainQuery)
+	mainQueryObj.SetKeysToDetectMissing(b.includedParams)
 	tileNumberClone := tileNumber
 	errg.Go(func() error {
 		return b.preflightProcessRecentTiles(ectx, mainQueryObj, tileNumberClone)

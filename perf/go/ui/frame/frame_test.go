@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/anomalies/cache"
 	"go.skia.org/infra/perf/go/chromeperf"
@@ -279,6 +280,36 @@ func TestDoSearch_InvalidQuery_ReturnsError(t *testing.T) {
 	_, err := fr.doSearch(context.Background(), "http://[::1]a", testTimeBegin, testTimeEnd)
 
 	require.Error(t, err)
+}
+
+func TestDoSearch_QueryWithSentinelAndValue_Success(t *testing.T) {
+	dfbMock, df, fr := frameRequestForTest(t)
+
+	// Set up the DataFrame returned by the builder to contain a mix of traces.
+	// One has 'config', one does not.
+	df.TraceSet = types.TraceSet{
+		",arch=x86,config=8888,": types.Trace{1, 2, 3}, // Has config=8888
+		",arch=x86,":             types.Trace{4, 5, 6}, // Missing config
+		",arch=x86,config=565,":  types.Trace{7, 8, 9}, // Has config=565
+	}
+
+	// The query passed to the builder should have 'config' removed.
+	// Original query: arch=x86&config=__missing__&config=8888
+	// Expected query to builder: arch=x86
+	dfbMock.On("NewNFromQuery", testutils.AnyContext, testTimeEnd, mock.MatchedBy(func(q *query.Query) bool {
+		s := q.String()
+		// "config" should NOT be present in the query string passed to the builder.
+		return !strings.Contains(s, "config=")
+	}), fr.request.NumCommits, fr.request.Progress).Return(df, nil)
+
+	actualDf, err := fr.doSearch(context.Background(), "arch=x86&config=__missing__&config=8888", testTimeBegin, testTimeEnd)
+	require.NoError(t, err)
+
+	// The result should be filtered to only contain the trace where 'config' is missing OR config is 8888.
+	assert.Len(t, actualDf.TraceSet, 2)
+	assert.Contains(t, actualDf.TraceSet, ",arch=x86,")
+	assert.Contains(t, actualDf.TraceSet, ",arch=x86,config=8888,")
+	assert.NotContains(t, actualDf.TraceSet, ",arch=x86,config=565,")
 }
 
 func TestDoSearch_ValidQueryCompact_ReturnsDataFrameWithQueryResults(t *testing.T) {

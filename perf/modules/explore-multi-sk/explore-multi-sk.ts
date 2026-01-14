@@ -63,6 +63,7 @@ import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
+import { MISSING_VALUE_SENTINEL } from '../const/const';
 
 export class State {
   begin: number = -1;
@@ -536,6 +537,7 @@ export class ExploreMultiSk extends ElementSk {
 
     if (values.length === 0) {
       this.resetGraphs();
+      this.checkDataLoaded();
       return;
     }
     this._dataLoading = true;
@@ -551,7 +553,8 @@ export class ExploreMultiSk extends ElementSk {
     // Check through all existing TraceSets and find matches.
     Object.keys(traceSet).forEach((trace) => {
       const traceParams = fromKey(trace);
-      if (traceParams[param] && values.includes(traceParams[param])) {
+      const traceVal = traceParams[param] || MISSING_VALUE_SENTINEL;
+      if (values.includes(traceVal)) {
         // Load remove array and delete from existing traceSet.
         tracesToRemove.push(trace);
         let query = queryFromKey(trace);
@@ -652,6 +655,13 @@ export class ExploreMultiSk extends ElementSk {
           elem.state.queries = [newQuery];
         }
 
+        // Check if any remaining trace is missing the parameter or has an empty value.
+        // If so, we need to disable parent trace filtering on the backend.
+        const hasMissingParam = Object.keys(updatedTraceset).some((key) => {
+          const p = fromKey(key);
+          return !p[param] || p[param] === '';
+        });
+
         // Update the graph with the new traceSet and params.
         const updatedRequest: FrameRequest = {
           queries: elem.state.queries,
@@ -659,6 +669,8 @@ export class ExploreMultiSk extends ElementSk {
           begin: this.state.begin,
           end: this.state.end,
           tz: '',
+          disable_filter_parent_traces:
+            elem.state.queries.some((q) => q.includes(MISSING_VALUE_SENTINEL)) || hasMissingParam,
         };
         const updatedResponse: FrameResponse = {
           dataframe: {
@@ -715,7 +727,9 @@ export class ExploreMultiSk extends ElementSk {
    */
   private shouldKeepTrace(key: string, param: string, values: string[]): boolean {
     const traceParams = fromKey(key);
-    return !(traceParams[param] && values.includes(traceParams[param]));
+    // For info on default key behavior, see: go/pdeio-perf-default-key-doc
+    const traceVal = traceParams[param] || MISSING_VALUE_SENTINEL;
+    return !values.includes(traceVal);
   }
 
   // Event listener for when the "Query Highlighted" button is clicked.
@@ -1227,7 +1241,16 @@ export class ExploreMultiSk extends ElementSk {
 
     allTracesets.forEach((traceset) => {
       traceset.forEach((trace) => {
-        addParamsToParamSet(paramSets, fromKey(trace));
+        const params = fromKey(trace);
+        // Explicitly check for missing keys from include_params
+        if (this.defaults?.include_params) {
+          this.defaults.include_params.forEach((key) => {
+            if (params[key] === undefined) {
+              params[key] = MISSING_VALUE_SENTINEL; // Use sentinel
+            }
+          });
+        }
+        addParamsToParamSet(paramSets, params);
       });
     });
 

@@ -37,11 +37,14 @@ import '../picker-field-sk';
 import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import '../../../elements-sk/modules/spinner-sk';
+import { MISSING_VALUE_SENTINEL } from '../const/const';
 
 // The maximum number of matches before Plotting is enabled.
 const PLOT_MAXIMUM: number = 200;
 
 const MAX_MESSAGE = 'Reduce Traces';
+
+const DEFAULT_OPTION_LABEL = 'Default';
 
 // Data Structure to keep track of field information.
 class FieldInfo {
@@ -146,7 +149,8 @@ export class TestPickerSk extends ElementSk {
       this.updateCount(json.count);
 
       if (param in json.paramset && json.paramset[param] !== null) {
-        const options = json.paramset[param].filter((option: string) => !option.includes('.'));
+        let options = json.paramset[param].filter((option: string) => !option.includes('.'));
+        options = options.map((o) => (o === '' ? DEFAULT_OPTION_LABEL : o));
         options.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
         const field: PickerFieldSk = new PickerFieldSk(param, this._forceManualPlot);
         currentFieldInfo.field = field;
@@ -331,7 +335,8 @@ export class TestPickerSk extends ElementSk {
 
     const handler = (json: NextParamListHandlerResponse) => {
       if (param in json.paramset && json.paramset[param] !== null) {
-        const options = json.paramset[param].filter((option: string) => !option.includes('.'));
+        let options = json.paramset[param].filter((option: string) => !option.includes('.'));
+        options = options.map((o) => (o === '' ? DEFAULT_OPTION_LABEL : o));
         field!.options = options;
         this.updateCount(json.count);
         field!.focus();
@@ -392,7 +397,10 @@ export class TestPickerSk extends ElementSk {
       this._containerDiv!.appendChild(field);
 
       // Set selected items from the query
-      const selectedValue = selectedParams[fieldInfo.param] || [];
+      let selectedValue = selectedParams[fieldInfo.param] || [];
+      selectedValue = selectedValue.map((v) =>
+        v === MISSING_VALUE_SENTINEL || v === '' ? DEFAULT_OPTION_LABEL : v
+      );
       field.selectedItems = selectedValue;
       fieldInfo.value = selectedValue;
 
@@ -436,10 +444,12 @@ export class TestPickerSk extends ElementSk {
       const param = fieldInfo.param;
       fieldInfo.field = new PickerFieldSk(param, this._forceManualPlot);
       // Combine options from both paramSets and paramSet for the current param.
-      const allOptions = [
-        ...new Set([...(paramSets[param] || []), ...(paramSet[param] || [])]),
-      ].sort();
-      const value = paramSets[param] || [];
+      let value = paramSets[param] || [];
+      value = value.map((v) =>
+        v === MISSING_VALUE_SENTINEL || v === '' ? DEFAULT_OPTION_LABEL : v
+      );
+      const allOptions = [...new Set([...value, ...(paramSet[param] || [])])].sort();
+
       if (value.length === 0) {
         break; // Stop after the first field without a value
       }
@@ -481,12 +491,17 @@ export class TestPickerSk extends ElementSk {
       return;
     }
 
+    const mappedValue = value.map((v) => (v === DEFAULT_OPTION_LABEL ? MISSING_VALUE_SENTINEL : v));
+    const mappedRemovedValue = removedValue.map((v) =>
+      v === DEFAULT_OPTION_LABEL ? MISSING_VALUE_SENTINEL : v
+    );
+
     // No valid data, so remove entire graph.
     if (fieldInfo.index === 0 && value.length === 0) {
       const detail = {
         query: this.createQueryFromFieldData(),
         param: fieldInfo.param,
-        value: value.length > 0 ? removedValue : value,
+        value: value.length > 0 ? mappedRemovedValue : mappedValue,
       };
       this.dispatchEvent(
         new CustomEvent('remove-trace', {
@@ -511,7 +526,7 @@ export class TestPickerSk extends ElementSk {
       const detail = {
         query: this.createQueryFromFieldData(),
         param: fieldInfo.param,
-        value: value.length > 0 ? removedValue : value,
+        value: value.length > 0 ? mappedRemovedValue : mappedValue,
       };
       if (removedValue.length > 0) {
         // Remove item from chart, no need to requery.
@@ -709,9 +724,10 @@ export class TestPickerSk extends ElementSk {
               fieldInfo.field = field;
               this._containerDiv!.appendChild(field);
             }
-            fieldInfo.field!.options = json.paramset[param].filter(
-              (option: string) => !option.includes('.')
-            );
+            fieldInfo.field!.options = json.paramset[param]
+              .filter((option: string) => !option.includes('.'))
+              .map((o) => (o === '' ? DEFAULT_OPTION_LABEL : o));
+
             const extraTests = json.paramset[param].filter((option: string) =>
               option.includes('.')
             );
@@ -770,7 +786,9 @@ export class TestPickerSk extends ElementSk {
 
     this._fieldData.forEach((fieldInfo) => {
       if (fieldInfo.value !== null) {
-        paramSet[fieldInfo.param] = fieldInfo.value;
+        paramSet[fieldInfo.param] = fieldInfo.value.map((v) =>
+          v === DEFAULT_OPTION_LABEL ? MISSING_VALUE_SENTINEL : v
+        );
       }
     });
 
@@ -819,7 +837,9 @@ export class TestPickerSk extends ElementSk {
     for (let i = 0; i <= index; i++) {
       const fieldInfo = this._fieldData[i];
       if (fieldInfo.value !== null) {
-        paramSet[fieldInfo.param] = fieldInfo.value;
+        paramSet[fieldInfo.param] = fieldInfo.value.map((v) =>
+          v === DEFAULT_OPTION_LABEL ? MISSING_VALUE_SENTINEL : v
+        );
       }
     }
 

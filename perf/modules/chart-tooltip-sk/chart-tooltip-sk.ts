@@ -167,7 +167,7 @@ export class ChartTooltipSk extends ElementSk {
       </button>
       <h3>
         <span style="color:${ele.color}">
-          ${ele.test_name || `untitled_key`}
+          ${ele.test_name || `Default`}
           <span ?hidden=${!ele.anomaly}> [Anomaly] </span>
         </span>
       </h3>

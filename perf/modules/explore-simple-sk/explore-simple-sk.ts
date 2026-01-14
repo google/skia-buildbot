@@ -110,7 +110,7 @@ import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pi
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
 import { fromKey } from '../paramtools';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
-import { MISSING_DATA_SENTINEL } from '../const/const';
+import { MISSING_DATA_SENTINEL, MISSING_VALUE_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { findSubDataframe, range } from '../dataframe';
@@ -2943,7 +2943,9 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       pivot:
         validatePivotRequest(this._state.pivotRequest) === '' ? this._state.pivotRequest : null,
-      disable_filter_parent_traces: this._state.disable_filter_parent_traces,
+      disable_filter_parent_traces:
+        this._state.disable_filter_parent_traces ||
+        this._state.queries.some((q) => q.includes(MISSING_VALUE_SENTINEL)),
     };
   }
 
@@ -3269,7 +3271,9 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       keys: keys,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       pivot: null,
-      disable_filter_parent_traces: this._state.disable_filter_parent_traces,
+      disable_filter_parent_traces:
+        this._state.disable_filter_parent_traces ||
+        queries.some((q) => q.includes(MISSING_VALUE_SENTINEL)),
     };
   }
 

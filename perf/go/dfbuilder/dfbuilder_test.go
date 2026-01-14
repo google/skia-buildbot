@@ -98,7 +98,7 @@ func TestBuildNew(t *testing.T) {
 
 	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag, nil)
 
 	// Add some points to the first and second tile.
 	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
@@ -263,7 +263,7 @@ func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 
 	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag, nil)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
@@ -289,7 +289,7 @@ func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 
 	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag, nil)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
@@ -331,7 +331,7 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 
 	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag, nil)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
@@ -379,7 +379,7 @@ func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 
 	store, _ := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag, nil)
 	q, err := query.NewFromString("")
 	require.NoError(t, err)
 	_, err = builder.NumMatches(ctx, q)
@@ -395,7 +395,7 @@ func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 
 	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag, nil)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
@@ -423,7 +423,7 @@ func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCounts
 
 	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag, nil)
 
 	// Add some points to the latest tile.
 	err = addValuesAtIndex(store, inMemoryTraceParams, types.CommitNumber(instanceConfig.DataStoreConfig.TileSize+1), map[string]float32{
@@ -464,7 +464,7 @@ func TestPreflightQuery_Cache_Success(t *testing.T) {
 
 	traceCache := tracecache.New(cache)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, traceCache, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, traceCache, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag, nil)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
@@ -514,7 +514,7 @@ func TestPreflightQuery_Cache_Query_Success(t *testing.T) {
 
 	store.On("TileSize").Return(int32(6))
 	store.On("GetLatestTile", testutils.AnyContext).Return(types.TileNumber(0), nil)
-	builder := NewDataFrameBuilderFromTraceStore(g, store, traceCache, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, traceCache, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag, nil)
 
 	// Create a query that will match two of the points.
 	q, err := query.NewFromString("config=8888")
@@ -599,7 +599,7 @@ func TestPreflightQuery_SingleConstraintFiltering(t *testing.T) {
 	instanceConfig.DataStoreConfig.TileSize = 6
 
 	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
-	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, true)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, true, nil)
 
 	// Add traces that will exercise the filtering logic.
 	err = addValuesAtIndex(store, inMemoryTraceParams, 0, map[string]float32{
@@ -720,7 +720,7 @@ func TestPreflightQuery_MultiConstraintFiltering(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, tc.enableSubqueries)
+			builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, tc.enableSubqueries, nil)
 
 			// Execute the function under test.
 			count, ps, err := builder.PreflightQuery(ctx, q, referenceParamSet)

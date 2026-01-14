@@ -34,6 +34,12 @@ type DataFrameBuilder interface {
 	// periodically as the query is processed.
 	NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, progress progress.Progress) (*DataFrame, error)
 
+	// NewFromQueryAndRangeKeepParents returns a populated DataFrame of the traces that match
+	// the given time range [begin, end) and the passed in query, or a non-nil
+	// error if the traces can't be retrieved. The 'progress' callback is called
+	// periodically as the query is processed. This method does not filter out parent traces.
+	NewFromQueryAndRangeKeepParents(ctx context.Context, begin, end time.Time, q *query.Query, progress progress.Progress) (*DataFrame, error)
+
 	// NewFromKeysAndRange returns a populated DataFrame of the traces that match
 	// the given set of 'keys' over the range of [begin, end). The 'progress'
 	// callback is called periodically as the query is processed.
@@ -42,6 +48,11 @@ type DataFrameBuilder interface {
 	// NewNFromQuery returns a populated DataFrame of condensed traces of N data
 	// points ending at the given 'end' time that match the given query.
 	NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress progress.Progress) (*DataFrame, error)
+
+	// NewNFromQueryKeepParents returns a populated DataFrame of condensed traces of N data
+	// points ending at the given 'end' time that match the given query. This method does not
+	// filter out parent traces.
+	NewNFromQueryKeepParents(ctx context.Context, end time.Time, q *query.Query, n int32, progress progress.Progress) (*DataFrame, error)
 
 	// NewNFromQuery returns a populated DataFrame of condensed traces of N data
 	// points ending at the given 'end' time for the given keys.

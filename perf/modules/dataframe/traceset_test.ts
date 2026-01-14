@@ -277,15 +277,15 @@ describe('getLegend', () => {
       {
         bot: 'MacM1',
         ref_mode: 'ref',
-        subtest: 'untitled_key',
+        subtest: 'Default',
       },
       {
-        bot: 'untitled_key',
+        bot: 'Default',
         ref_mode: 'ref',
-        subtest: 'untitled_key',
+        subtest: 'Default',
       },
       {
-        bot: 'untitled_key',
+        bot: 'Default',
         ref_mode: 'avg',
         subtest: 'jetstream2',
       },
@@ -315,7 +315,7 @@ describe('getLegend', () => {
     assert.equal(legend.length, keys.length);
     assert.deepEqual(legend, [
       {
-        bot: 'untitled_key',
+        bot: 'Default',
         ref_mode: 'ref',
       },
       {
@@ -324,7 +324,7 @@ describe('getLegend', () => {
       },
       {
         bot: 'win-10-perf',
-        ref_mode: 'untitled_key',
+        ref_mode: 'Default',
       },
     ]);
   });
@@ -348,8 +348,8 @@ describe('getLegend', () => {
     assert.equal(legend.length, keys.length);
     assert.deepEqual(legend, [
       {
-        benchmark: 'untitled_key',
-        ref_mode: 'untitled_key',
+        benchmark: 'Default',
+        ref_mode: 'Default',
       },
       {
         benchmark: 'JetStream2',
@@ -366,7 +366,7 @@ describe('getLegend', () => {
 describe('get titleFormatter', () => {
   it(
     'Empty legend values and empty trace titles return a string that ' +
-      'combined untitled_key with a slash',
+      'combined Default with a slash',
     async () => {
       const keys = ['', ',benchmark=JetStream2,ref_mode=ref,', ',benchmark=,ref_mode='];
       const df = generateFullDataFrame(
@@ -388,11 +388,7 @@ describe('get titleFormatter', () => {
         formattedTitles.push(titleFormatter(entry));
       });
       assert.equal(legend.length, keys.length);
-      assert.deepEqual(formattedTitles, [
-        'untitled_key/untitled_key',
-        'JetStream2/ref',
-        'untitled_key/untitled_key',
-      ]);
+      assert.deepEqual(formattedTitles, ['Default/Default', 'JetStream2/ref', 'Default/Default']);
     }
   );
 });

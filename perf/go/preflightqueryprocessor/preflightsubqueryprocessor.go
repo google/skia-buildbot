@@ -18,6 +18,9 @@ func (p *preflightSubQueryProcessor) ProcessTraceIds(out <-chan paramtools.Param
 	// This reduces the number of mutex lock/unlocks, which should save some time.
 	valsForTile := []string{}
 	for outParam := range out {
+		if !FilterParams(outParam, p.filterMap) {
+			continue
+		}
 		traceIdsForTile = append(traceIdsForTile, outParam)
 		if val, ok := outParam[key]; ok {
 			valsForTile = append(valsForTile, val)

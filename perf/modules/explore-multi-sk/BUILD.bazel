@@ -37,6 +37,7 @@ sk_element(
         "//perf/modules/window:window_ts_lib",
         "//infra-sk/modules:query_ts_lib",
         "//perf/modules/telemetry:telemetry_ts_lib",
+        "//perf/modules/const:const_ts_lib",
     ],
     ts_srcs = [
         "explore-multi-sk.ts",

@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "preflightqueryprocessor",
@@ -13,5 +14,16 @@ go_library(
     deps = [
         "//go/paramtools",
         "//go/query",
+    ],
+)
+
+go_test(
+    name = "preflightqueryprocessor_test",
+    srcs = ["preflightmainqueryprocessor_test.go"],
+    embed = [":preflightqueryprocessor"],
+    deps = [
+        "//go/paramtools",
+        "//go/query",
+        "@com_github_stretchr_testify//assert",
     ],
 )

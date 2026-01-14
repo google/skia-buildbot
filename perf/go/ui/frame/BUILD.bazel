@@ -19,6 +19,7 @@ go_library(
         "//perf/go/dataframe",
         "//perf/go/git",
         "//perf/go/pivot",
+        "//perf/go/preflightqueryprocessor",
         "//perf/go/progress",
         "//perf/go/shortcut",
         "//perf/go/tracestore",
@@ -32,6 +33,7 @@ go_test(
     srcs = ["frame_test.go"],
     embed = [":frame"],
     deps = [
+        "//go/query",
         "//go/testutils",
         "//perf/go/anomalies/cache",
         "//perf/go/chromeperf",
