@@ -3335,7 +3335,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       errorMessage('Unknown plotType');
       return;
     }
-    if (this.range !== null) {
+    if (this.range !== null && !this.useTestPicker) {
       // Only lengthen the time range, do not shorten.
       if (this.range.state.begin < this._state.begin) {
         this._state.begin = this.range.state.begin;

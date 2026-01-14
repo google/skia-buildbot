@@ -1536,3 +1536,94 @@ describe('after initial data load', () => {
     });
   });
 });
+
+describe('Domain Picker Interaction', () => {
+  let explore: ExploreSimpleSk;
+
+  beforeEach(async () => {
+    fetchMock.get(/.*\/_\/initpage\/.*/, {
+      dataframe: { paramset: {} },
+    });
+    fetchMock.get('/_/login/status', {
+      email: 'someone@example.org',
+      roles: ['editor'],
+    });
+    fetchMock.post('/_/frame/start', {
+      status: 'Finished',
+      results: { dataframe: { traceset: {} } },
+    });
+    fetchMock.post('/_/count/', {
+      count: 0,
+      paramset: {},
+    });
+
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await fetchMock.flush(true);
+  });
+
+  afterEach(() => {
+    fetchMock.reset();
+    sinon.restore();
+  });
+
+  it('should NOT sync range from domain-picker when useTestPicker is true', async () => {
+    (explore as any).useTestPicker = true;
+    const initialBegin = 1000;
+    const initialEnd = 2000;
+    explore.state = {
+      ...explore.state,
+      begin: initialBegin,
+      end: initialEnd,
+      queries: ['config=test'],
+    };
+
+    // Mock the domain-picker (this.range) to have a LARGER range.
+    // The current logic only lengthens the range if the picker's range is wider.
+    const pickerBegin = 900;
+    const pickerEnd = 2100;
+    const mockRange = {
+      state: {
+        begin: pickerBegin,
+        end: pickerEnd,
+        num_commits: 50,
+        request_type: 0,
+      },
+    };
+    (explore as any).range = mockRange;
+
+    await explore.addFromQueryOrFormula(true, 'query', 'config=test', '');
+
+    assert.equal(explore.state.begin, initialBegin, 'Begin time should not sync with picker');
+    assert.equal(explore.state.end, initialEnd, 'End time should not sync with picker');
+  });
+
+  it('should sync range from domain-picker when useTestPicker is false', async () => {
+    (explore as any).useTestPicker = false;
+    const initialBegin = 1000;
+    const initialEnd = 2000;
+    explore.state = {
+      ...explore.state,
+      begin: initialBegin,
+      end: initialEnd,
+      queries: ['config=test'],
+    };
+
+    // Mock the domain-picker to have a LARGER range.
+    const pickerBegin = 900;
+    const pickerEnd = 2100;
+    const mockRange = {
+      state: {
+        begin: pickerBegin,
+        end: pickerEnd,
+        num_commits: 50,
+        request_type: 0,
+      },
+    };
+    (explore as any).range = mockRange;
+
+    await explore.addFromQueryOrFormula(true, 'query', 'config=test', '');
+
+    assert.equal(explore.state.begin, pickerBegin, 'Begin time should sync with picker');
+    assert.equal(explore.state.end, pickerEnd, 'End time should sync with picker');
+  });
+});
