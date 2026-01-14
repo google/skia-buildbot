@@ -112,7 +112,8 @@ export class ExploreSk extends ElementSk {
       .then((json) => {
         this.exploreSimpleSk!.defaults = json;
         this.defaults = json;
-      });
+      })
+      .catch(errorMessage);
   }
 
   // Initialize TestPickerSk

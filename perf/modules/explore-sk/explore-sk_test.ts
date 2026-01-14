@@ -4,14 +4,16 @@ import fetchMock from 'fetch-mock';
 import sinon from 'sinon';
 import { ExploreSk } from './explore-sk';
 import { ExploreSimpleSk } from '../explore-simple-sk/explore-simple-sk';
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { setUpExploreDemoEnv } from '../common/test-util';
 
 fetchMock.config.overwriteRoutes = true;
 describe('ExploreSk', () => {
+  const newInstance = setUpElementUnderTest<ExploreSk>('explore-sk');
   let element: ExploreSk;
-  const setupElement = async (mockDefaults: any = null, paramsMock: any = null) => {
-    setUpExploreDemoEnv();
+
+  const setupWindowPerf = () => {
     window.perf = {
       instance_url: '',
       commit_range_url: '',
@@ -50,6 +52,11 @@ describe('ExploreSk', () => {
       dev_mode: false,
       extra_links: null,
     };
+  };
+
+  const setupElement = async (mockDefaults: any = null, paramsMock: any = null) => {
+    setUpExploreDemoEnv();
+    setupWindowPerf();
 
     fetchMock.config.overwriteRoutes = true;
     const defaultsResponse = mockDefaults || {
@@ -63,7 +70,7 @@ describe('ExploreSk', () => {
       fetchMock.get('/_/Params/', 1);
     }
 
-    element = setUpElementUnderTest<ExploreSk>('explore-sk')();
+    element = newInstance();
     // Wait for connectedCallback to finish, including initializeDefaults
     const _ = await fetchMock.flush(true);
     // Yield to let init() and initializeTestPicker() finish
@@ -74,9 +81,26 @@ describe('ExploreSk', () => {
     await setupElement();
   });
 
+  afterEach(() => {
+    sinon.restore();
+  });
+
   it('renders initial state', async () => {
     assert.isNotNull(element.querySelector('explore-simple-sk'));
     assert.isNotNull(element.querySelector('#test-picker'));
+  });
+
+  it('handles defaults failure', async () => {
+    // Overwrite defaults with error
+    fetchMock.get('/_/defaults/', 500);
+
+    const ep = eventPromise('error-sk');
+
+    element = newInstance();
+    await fetchMock.flush(true);
+
+    const evt = await ep;
+    assert.isNotNull(evt);
   });
 
   it('updates state when explore-simple-sk emits state_changed', async () => {
@@ -103,6 +127,21 @@ describe('ExploreSk', () => {
 
     const testPicker = element.querySelector<any>('#test-picker')!;
     assert.isFalse(testPicker.classList.contains('hidden'));
+  });
+
+  it('initializes test picker with existing queries', async () => {
+    const populateSpy = sinon.stub(TestPickerSk.prototype, 'populateFieldDataFromQuery').resolves();
+
+    // Manually set URL
+    const query = encodeURIComponent('config=8888');
+    window.history.pushState(null, '', `?queries=${query}`);
+
+    await setupElement({
+      include_params: ['config'],
+      default_url_values: { use_test_picker_query: 'true' },
+    });
+
+    assert.isTrue(populateSpy.called);
   });
 
   it('handles plot-button-clicked event', async () => {
