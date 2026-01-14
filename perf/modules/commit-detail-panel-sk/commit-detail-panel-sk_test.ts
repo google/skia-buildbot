@@ -157,4 +157,14 @@ describe('commit-detail-panel-sk', () => {
     const event = await eventPromise;
     assert.equal(event.detail.selected, 0);
   });
+
+  it('passes trace_id to children', async () => {
+    element.details = commits;
+    element.trace_id = 'test_trace_id';
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const detail = element.querySelector('commit-detail-sk');
+    assert.isNotNull(detail);
+    assert.equal((detail as any).trace_id, 'test_trace_id');
+  });
 });
