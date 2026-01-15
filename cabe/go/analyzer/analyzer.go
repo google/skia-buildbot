@@ -416,6 +416,10 @@ func (a *Analyzer) inferExperimentSpec(pairs []pairedTasks) (*cpb.ExperimentSpec
 	return experimentSpec, nil
 }
 
+func isSwarmingTaskCompletedSuccessfully(task *apipb.TaskRequestMetadataResponse) bool {
+	return task.TaskResult.State == apipb.TaskState_COMPLETED && !task.TaskResult.Failure
+}
+
 func (a *Analyzer) extractTaskOutputs(ctx context.Context, processedArms *processedExperimentTasks) error {
 	// This is currently un-sliced. As in, it lumps all runconfigs together. This is fine if you only
 	// have one runconfig (say, you only asked to analyze Mac results).
@@ -429,7 +433,7 @@ func (a *Analyzer) extractTaskOutputs(ctx context.Context, processedArms *proces
 
 		controlDigests := map[int]*apipb.CASReference{}
 		for n, t := range processedArms.control.tasks {
-			if t.taskInfo.TaskResult.State != apipb.TaskState_COMPLETED {
+			if !isSwarmingTaskCompletedSuccessfully(t.taskInfo) {
 				continue
 			}
 			controlDigests[n] = t.taskInfo.TaskResult.CasOutputRoot
@@ -450,7 +454,7 @@ func (a *Analyzer) extractTaskOutputs(ctx context.Context, processedArms *proces
 
 		treatmentDigests := map[int]*apipb.CASReference{}
 		for n, t := range processedArms.treatment.tasks {
-			if t.taskInfo.TaskResult.State != apipb.TaskState_COMPLETED {
+			if !isSwarmingTaskCompletedSuccessfully(t.taskInfo) {
 				continue
 			}
 			treatmentDigests[n] = t.taskInfo.TaskResult.CasOutputRoot
@@ -556,8 +560,8 @@ func (a *Analyzer) processPinpointTryjobTasks(tasks []*apipb.TaskRequestMetadata
 			a.diagnostics.excludeSwarmingTask(task, msg)
 		}
 
-		if task.TaskResult.State != apipb.TaskState_COMPLETED {
-			msg := fmt.Sprintf("task result is in state %q, not %q", task.TaskResult.State, taskCompletedState)
+		if !isSwarmingTaskCompletedSuccessfully(task) {
+			msg := fmt.Sprintf("excluding task result is in state: %q, failure: %v", task.TaskResult.State, task.TaskResult.Failure)
 			a.diagnostics.excludeSwarmingTask(task, msg)
 		} else {
 			a.diagnostics.includeSwarmingTask(task)
