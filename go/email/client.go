@@ -2,18 +2,16 @@ package email
 
 import (
 	"context"
-	"crypto/tls"
 
+	"go.chromium.org/luci/grpc/prpc"
 	"go.chromium.org/luci/mailer/api/mailer"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/oauth"
 )
 
-const luciNotifyServiceURL = "luci-notify.appspot.com"
+const luciNotifyServiceURL = "notify.api.luci.app"
 
 // Client sends email via LUCI Notify.
 type Client interface {
@@ -26,15 +24,11 @@ func NewClient(ctx context.Context) (Client, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	conn, err := grpc.NewClient(
-		luciNotifyServiceURL,
-		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})),
-		grpc.WithPerRPCCredentials(oauth.TokenSource{TokenSource: ts}),
-	)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return mailer.NewMailerClient(conn), nil
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	return mailer.NewMailerClient(&prpc.Client{
+		C:    httpClient,
+		Host: luciNotifyServiceURL,
+	}), nil
 }
 
 // SendWithMarkup is a convenience function for call sites previously using

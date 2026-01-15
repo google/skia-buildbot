@@ -11,11 +11,10 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/auth",
+        "//go/httputils",
         "//go/skerr",
+        "@org_chromium_go_luci//grpc/prpc",
         "@org_chromium_go_luci//mailer/api/mailer",
-        "@org_golang_google_grpc//:grpc",
-        "@org_golang_google_grpc//credentials",
-        "@org_golang_google_grpc//credentials/oauth",
         "@org_golang_x_oauth2//google",
     ],
 )
