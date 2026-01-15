@@ -6,12 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
 
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/iterator"
 )
 
@@ -120,7 +120,7 @@ func uploadFile(ctx context.Context, filePath string) error {
 		return fmt.Errorf("failed to close GCS writer: %w", err)
 	}
 
-	log.Printf("Successfully uploaded test result to gs://%s/%s", *bucketName, objectName)
+	sklog.Infof("Successfully uploaded test result to gs://%s/%s", *bucketName, objectName)
 	return nil
 }
 
@@ -157,28 +157,28 @@ func main() {
 	flag.Parse()
 
 	if *outputPath == "" {
-		log.Fatal("The --output flag must be provided.")
+		sklog.Fatal("The --output flag must be provided.")
 	}
 
 	xmlBytes, err := generateDummyTestResult()
 	if err != nil {
-		log.Fatalf("Failed to generate test result: %v", err)
+		sklog.Fatalf("Failed to generate test result: %v", err)
 	}
 
 	if *bucketName == "" {
 		if _, err := os.Stat(*outputPath); os.IsNotExist(err) {
 			if err := os.MkdirAll(*outputPath, 0755); err != nil {
-				log.Fatalf("Failed to create output directory %s: %v", *outputPath, err)
+				sklog.Fatalf("Failed to create output directory %s: %v", *outputPath, err)
 			}
 		}
 	}
 	filePath := filepath.Join(*outputPath, testResultsFileName)
 	if err := os.WriteFile(filePath, xmlBytes, 0644); err != nil {
-		log.Fatalf("Failed to write to test result file: %v", err)
+		sklog.Fatalf("Failed to write to test result file: %v", err)
 	}
-	log.Printf("Successfully generated test result at %s", filePath)
+	sklog.Infof("Successfully generated test result at %s", filePath)
 
 	if err := uploadFile(context.Background(), filePath); err != nil {
-		log.Fatalf("Failed to upload test result to GCS: %v", err)
+		sklog.Fatalf("Failed to upload test result to GCS: %v", err)
 	}
 }

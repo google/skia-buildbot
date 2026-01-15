@@ -7,6 +7,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/e2e",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/sklog",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//iterator",
     ],
