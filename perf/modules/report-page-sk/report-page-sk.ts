@@ -512,6 +512,7 @@ export class ReportPageSk extends ElementSk {
       const graph = graphNode as ExploreSimpleSk;
       // Skip graph that sent the event.
       if (graph.state.graph_index !== e.detail.graph_index) {
+        graph.state.evenXAxisSpacing = newValue;
         graph.setUseDiscreteAxis(newValue);
         graph.render();
       }

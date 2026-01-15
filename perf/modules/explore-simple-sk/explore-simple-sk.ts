@@ -368,6 +368,9 @@ export class State {
 
   // boolean indicating if the element should disable querying of data from backend.
   doNotQueryData: boolean = false;
+
+  // boolean indicating if the chart should space x-axis points evenly, treating them as categories.
+  evenXAxisSpacing: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -644,12 +647,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
   private readonly uniqueId = `${ExploreSimpleSk.nextUniqueId++}`;
 
-  private _evenXAxisSpacing: boolean = false;
-
-  public get evenXAxisSpacing(): boolean {
-    return this._evenXAxisSpacing;
-  }
-
   public get dataLoading(): boolean {
     return this.dfRepo.value?.loading ?? false;
   }
@@ -769,7 +766,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
                 <md-switch
                   form="form"
                   id="even-x-axis-spacing-switch"
-                  ?selected="${ele.evenXAxisSpacing}"
+                  ?selected="${ele._state.evenXAxisSpacing}"
                   @change=${(e: InputEvent) =>
                     ele.switchEvenXAxisSpacing(e.target as MdSwitch)}></md-switch>
                 Even X-Axis Spacing
@@ -786,7 +783,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
           .domain=${ele._state.domain}
           ${ref(ele.googleChartPlot)}
           .highlightAnomalies=${ele._state.highlight_anomalies}
-          .useDiscreteAxis=${ele.evenXAxisSpacing}
+          .useDiscreteAxis=${ele._state.evenXAxisSpacing}
           @plot-data-select=${ele.onChartSelect}
           @plot-data-mouseover=${ele.onChartOver}
           @plot-data-mousedown=${ele.onChartMouseDown}
@@ -1247,8 +1244,11 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     }
 
     const cachedEvenSpacing = localStorage.getItem(CACHE_KEY_EVEN_X_AXIS_SPACING);
-    this._evenXAxisSpacing = cachedEvenSpacing === 'true';
-    this.setUseDiscreteAxis(this._evenXAxisSpacing);
+    if (cachedEvenSpacing === 'true') {
+      this._state.evenXAxisSpacing = true;
+    }
+
+    this.setUseDiscreteAxis(this._state.evenXAxisSpacing);
 
     this._initialized = true;
     this.render();
@@ -1626,26 +1626,26 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
   private switchEvenXAxisSpacing(target: MdSwitch | null) {
     if (!target) return;
-    const newValue = target.selected;
+    this._state.evenXAxisSpacing = target.selected;
 
-    localStorage.setItem(CACHE_KEY_EVEN_X_AXIS_SPACING, String(newValue));
+    localStorage.setItem(CACHE_KEY_EVEN_X_AXIS_SPACING, String(this._state.evenXAxisSpacing));
 
-    this._evenXAxisSpacing = newValue;
-    this.setUseDiscreteAxis(this._evenXAxisSpacing);
+    this.setUseDiscreteAxis(this._state.evenXAxisSpacing);
+    this.render();
     this.dispatchEvent(
       new CustomEvent('even-x-axis-spacing-changed', {
-        detail: { value: newValue, graph_index: this._state.graph_index },
+        detail: { value: this._state.evenXAxisSpacing, graph_index: this._state.graph_index },
         bubbles: true,
       })
     );
+    this._stateHasChanged();
   }
 
   public setUseDiscreteAxis(value: boolean) {
-    this._evenXAxisSpacing = value;
+    this._state.evenXAxisSpacing = value;
     if (this.googleChartPlot.value) {
       this.googleChartPlot.value.useDiscreteAxis = value;
     }
-    this.render();
   }
 
   private closeQueryDialog(): void {
@@ -3904,8 +3904,9 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     state = this.rationalizeTimeRange(state);
 
     const cachedEvenSpacing = localStorage.getItem(CACHE_KEY_EVEN_X_AXIS_SPACING);
-    this._evenXAxisSpacing = cachedEvenSpacing === 'true';
-
+    if (cachedEvenSpacing === 'true') {
+      state.evenXAxisSpacing = true;
+    }
     this._state = state;
 
     // Synchronize the xAxisSwitch with the state's domain
