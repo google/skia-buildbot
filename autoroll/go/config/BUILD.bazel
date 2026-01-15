@@ -10,15 +10,12 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/config",
     visibility = ["//visibility:public"],
     deps = [
-        "//autoroll/go/config_vars",
         "//autoroll/go/strategy",
         "//autoroll/go/time_window",
-        "//go/chrome_branch/mocks",
         "//go/deepequal",
         "//go/deepequal/assertdeep",
         "//go/skerr",
         "//go/util",
-        "@com_github_stretchr_testify//mock",
         "@org_golang_google_protobuf//reflect/protoreflect",
         "@org_golang_google_protobuf//runtime/protoimpl",
     ],
@@ -29,10 +26,7 @@ go_test(
     srcs = ["config_test.go"],
     embed = [":config"],
     deps = [
-        "//autoroll/go/config_vars",
-        "//go/chrome_branch/mocks",
         "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],
 )

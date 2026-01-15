@@ -64,12 +64,11 @@ func copyCfg() *config.ParentChildRepoManagerConfig {
 }
 
 func setupCopy(t *testing.T) (*parentChildRepoManager, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface, *gitiles_mocks.GitilesRepo) {
-	reg := setupRegistry(t)
 	cfg := copyCfg()
 	childCfg := cfg.GetGitilesChild()
-	c, childGitiles := child.NewGitilesForTesting(t, childCfg, reg)
+	c, childGitiles := child.NewGitilesForTesting(t, childCfg)
 	parentCfg := cfg.GetCopyParent()
-	p, parentGitiles, parentGerrit := parent.NewCopyForTesting(t, parentCfg, reg, c)
+	p, parentGitiles, parentGerrit := parent.NewCopyForTesting(t, parentCfg, c)
 
 	// Create the RepoManager.
 	rm := &parentChildRepoManager{

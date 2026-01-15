@@ -11,7 +11,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	autoroll_git_common "go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
@@ -32,17 +31,9 @@ const (
 
 // NewDEPSLocal returns a Parent which uses a local checkout and DEPS to manage
 // dependencies.
-func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, cr codereview.CodeReview, childBranch *config_vars.Template, uploadRoll autoroll_git_common.UploadRollFunc, applyExternalChangeFunc autoroll_git_common.ApplyExternalChangeFunc) (*GitCheckoutParent, error) {
+func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, client *http.Client, serverURL, workdir string, cr codereview.CodeReview, childBranch string, uploadRoll autoroll_git_common.UploadRollFunc, applyExternalChangeFunc autoroll_git_common.ApplyExternalChangeFunc) (*GitCheckoutParent, error) {
 	// Validation.
 	if err := c.Validate(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	branch, err := config_vars.NewTemplate(c.GitCheckout.GitCheckout.Branch)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := reg.Register(branch); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
@@ -147,13 +138,13 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 
 		syncExtraArgs := []string{}
 		if strings.HasPrefix(to.Id, gerrit.ChangeRefPrefix) {
-			if childBranch == nil {
+			if childBranch == "" {
 				return "", skerr.Fmt("No child branch is available; don't know where to base the CL")
 			}
 			// If the rev is a patch ref then add patch-ref args to gclient sync. Syncing
 			// the child repo will not work without these args.
 			syncExtraArgs = append(syncExtraArgs,
-				"--patch-ref", fmt.Sprintf("%s@%s:%s", c.GitCheckout.Dep.Primary.Id, childBranch.String(), to.Id),
+				"--patch-ref", fmt.Sprintf("%s@%s:%s", c.GitCheckout.Dep.Primary.Id, childBranch, to.Id),
 				"--no-rebase-patch-ref",
 				"--no-reset-patch-ref",
 			)
@@ -200,7 +191,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		return nil, skerr.Wrap(err)
 	}
 	co := git.CheckoutDir(checkoutPath)
-	return NewGitCheckout(ctx, c.GitCheckout, reg, checkoutPath, cr, co, createRoll, uploadRoll)
+	return NewGitCheckout(ctx, c.GitCheckout, checkoutPath, cr, co, createRoll, uploadRoll)
 }
 
 // GetDEPSCheckoutPath returns the path to the checkout within the workdir,
@@ -221,13 +212,13 @@ func GetDEPSCheckoutPath(c *config.DEPSLocalParentConfig, parentCheckoutDir stri
 
 // NewDEPSLocalGitHub returns a DEPSLocal parent which creates GitHub pull
 // requests.
-func NewDEPSLocalGitHub(ctx context.Context, c *config.DEPSLocalGitHubParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName string, cr codereview.CodeReview, childBranch *config_vars.Template) (*GitCheckoutParent, error) {
+func NewDEPSLocalGitHub(ctx context.Context, c *config.DEPSLocalGitHubParentConfig, client *http.Client, serverURL, workdir, rollerName string, cr codereview.CodeReview, childBranch string) (*GitCheckoutParent, error) {
 	githubClient, ok := cr.Client().(*github.GitHub)
 	if !ok {
 		return nil, skerr.Fmt("DEPSLocalGitHub must use GitHub for code review.")
 	}
 	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName(), rollerName, c.ForkRepoUrl)
-	parentRM, err := NewDEPSLocal(ctx, c.DepsLocal, reg, client, serverURL, workdir, cr, childBranch, uploadRoll, ApplyExternalChangeGithubFunc())
+	parentRM, err := NewDEPSLocal(ctx, c.DepsLocal, client, serverURL, workdir, cr, childBranch, uploadRoll, ApplyExternalChangeGithubFunc())
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -238,13 +229,13 @@ func NewDEPSLocalGitHub(ctx context.Context, c *config.DEPSLocalGitHubParentConf
 }
 
 // NewDEPSLocalGerrit returns a DEPSLocal parent which creates CLs in Gerrit.
-func NewDEPSLocalGerrit(ctx context.Context, c *config.DEPSLocalGerritParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName string, cr codereview.CodeReview, childBranch *config_vars.Template) (*GitCheckoutParent, error) {
+func NewDEPSLocalGerrit(ctx context.Context, c *config.DEPSLocalGerritParentConfig, client *http.Client, serverURL, workdir, rollerName string, cr codereview.CodeReview, childBranch string) (*GitCheckoutParent, error) {
 	gerritClient, ok := cr.Client().(gerrit.GerritInterface)
 	if !ok {
 		return nil, skerr.Fmt("DEPSLocalGitHub must use GitHub for code review.")
 	}
 	uploadRoll := GitCheckoutUploadGerritRollFunc(gerritClient)
-	parentRM, err := NewDEPSLocal(ctx, c.DepsLocal, reg, client, serverURL, workdir, cr, childBranch, uploadRoll, nil)
+	parentRM, err := NewDEPSLocal(ctx, c.DepsLocal, client, serverURL, workdir, cr, childBranch, uploadRoll, nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

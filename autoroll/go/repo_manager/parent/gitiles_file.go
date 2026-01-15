@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -25,10 +24,10 @@ func gitilesFileGetChangesForRollFunc(dep *config.DependencyConfig) gitilesGetCh
 
 // NewGitilesFile returns a Parent implementation which uses Gitiles to roll
 // a dependency.
-func NewGitilesFile(ctx context.Context, c *config.GitilesParentConfig, reg *config_vars.Registry, client *http.Client, serverURL string) (*gitilesParent, error) {
+func NewGitilesFile(ctx context.Context, c *config.GitilesParentConfig, client *http.Client, serverURL string) (*gitilesParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	getChangesForRoll := gitilesFileGetChangesForRollFunc(c.Dep)
-	return newGitiles(ctx, c, reg, client, serverURL, getChangesForRoll)
+	return newGitiles(ctx, c, client, serverURL, getChangesForRoll)
 }

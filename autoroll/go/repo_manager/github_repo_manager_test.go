@@ -126,7 +126,7 @@ func setupGithub(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (contex
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
 	g, urlMock := setupFakeGithub(ctx, t, childCommits)
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "rollerName", "fake.server.com", urlMock.Client(), githubCR(t, g))
+	rm, err := newParentChildRepoManager(ctx, cfg, wd, "rollerName", "fake.server.com", urlMock.Client(), githubCR(t, g))
 	require.NoError(t, err)
 
 	cleanup := func() {

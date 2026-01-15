@@ -16,7 +16,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
@@ -71,21 +70,21 @@ type androidRepoManager struct {
 
 	projectMetadataFileConfig *config.AndroidRepoManagerConfig_ProjectMetadataFileConfig
 
-	childBranch      *config_vars.Template
+	childBranch      string
 	childDir         string
 	childPath        string
 	childRepo        git.Checkout
 	childRevLinkTmpl string
 	g                gerrit.GerritInterface
 	httpClient       *http.Client
-	parentBranch     *config_vars.Template
+	parentBranch     string
 	preUploadCfg     *config.PreUploadConfig
 	repoMtx          sync.RWMutex
 	workdir          string
 }
 
 // NewAndroidRepoManager returns an androidRepoManager instance.
-func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal, local bool) (*androidRepoManager, error) {
+func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConfig, workdir string, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal, local bool) (*androidRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -121,20 +120,6 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		if err := git.DeleteLockFiles(ctx, workdir); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-	}
-	childBranch, err := config_vars.NewTemplate(c.ChildBranch)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := reg.Register(childBranch); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	parentBranch, err := config_vars.NewTemplate(c.ParentBranch)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := reg.Register(parentBranch); err != nil {
-		return nil, skerr.Wrap(err)
 	}
 
 	androidRemoteName := "aosp"
@@ -180,14 +165,14 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		defaultBugProject:         c.DefaultBugProject,
 		includeAuthorsAsReviewers: c.IncludeAuthorsAsReviewers,
 
-		childBranch:      childBranch,
+		childBranch:      c.ChildBranch,
 		childDir:         childDir,
 		childPath:        c.ChildPath,
 		childRepo:        childRepo,
 		childRevLinkTmpl: c.ChildRevLinkTmpl,
 		g:                g,
 		httpClient:       client,
-		parentBranch:     parentBranch,
+		parentBranch:     c.ParentBranch,
 		preUploadCfg:     c.PreUploadCommands,
 		workdir:          workdir,
 	}
@@ -229,7 +214,7 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 		"python3", r.repoToolPath, "init",
 		"-u", fmt.Sprintf("%s/a/platform/manifest", r.parentRepoURL),
 		"-g", "all,-notdefault,-darwin",
-		"-b", r.parentBranch.String(),
+		"-b", r.parentBranch,
 		"--use-superproject",
 	}
 	if _, err := exec.RunCwd(ctx, r.workdir, initCmd...); err != nil {
@@ -677,7 +662,7 @@ func (r *androidRepoManager) GetNotSubmittedReason(ctx context.Context, rev *rev
 	// r.childRepo into GetNotSubmittedReason. Instead we assume that there's a
 	// Gitiles repo associated with the child and use that.
 	gitilesRepo := gitiles.NewRepo(r.childRepoURL, r.httpClient)
-	return git_common.GetNotSubmittedReason(ctx, gitilesRepo, rev.Id, r.childBranch.String())
+	return git_common.GetNotSubmittedReason(ctx, gitilesRepo, rev.Id, r.childBranch)
 }
 
 // assert that androidRepoManager implements RepoManager.

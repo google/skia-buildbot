@@ -87,10 +87,9 @@ func fuchsiaCfg() *config.ParentChildRepoManagerConfig {
 }
 
 func setupFuchsiaSDK(t *testing.T) (*parentChildRepoManager, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface, *mockhttpclient.URLMock) {
-	reg := setupRegistry(t)
 	cfg := fuchsiaCfg()
 	parentCfg := cfg.GetGitilesParent()
-	p, parentGitiles, parentGerrit := parent.NewGitilesFileForTesting(t, parentCfg, reg)
+	p, parentGitiles, parentGerrit := parent.NewGitilesFileForTesting(t, parentCfg)
 
 	urlmock := mockhttpclient.NewURLMock()
 	c, err := child.NewFuchsiaSDK(t.Context(), cfg.GetFuchsiaSdkChild(), urlmock.Client())

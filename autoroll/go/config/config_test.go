@@ -4,10 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/go/chrome_branch/mocks"
 )
 
 func makeConfig() *Config {
@@ -168,45 +165,32 @@ func TestValidation_RollerName(t *testing.T) {
 }
 
 func TestParseTrybotName(t *testing.T) {
-	cbc := &mocks.Client{}
-	fakeVars := config_vars.FakeVars()
-	cbc.On("Get", mock.Anything).Return(fakeVars.Branches.Chromium, fakeVars.Branches.ActiveMilestones, nil)
-	reg, err := config_vars.NewRegistry(t.Context(), cbc)
-	require.NoError(t, err)
-
 	t.Run("luci.project.bucket:builder format", func(t *testing.T) {
-		project, bucket, builders, err := ParseTrybotName(reg, "luci.chromium.try:dawn-linux-x64-deps-rel")
+		project, bucket, builders, err := ParseTrybotName("luci.chromium.try:dawn-linux-x64-deps-rel")
 		assert.NoError(t, err)
 		assert.Equal(t, "chromium", project)
 		assert.Equal(t, "try", bucket)
 		assert.Equal(t, []string{"dawn-linux-x64-deps-rel"}, builders)
 	})
 	t.Run("project/bucket:builder format", func(t *testing.T) {
-		project, bucket, builders, err := ParseTrybotName(reg, "skia/skia.primary:Build-Ubuntu24.04-Clang-x86_64-Release-ANGLE")
+		project, bucket, builders, err := ParseTrybotName("skia/skia.primary:Build-Ubuntu24.04-Clang-x86_64-Release-ANGLE")
 		assert.NoError(t, err)
 		assert.Equal(t, "skia", project)
 		assert.Equal(t, "skia.primary", bucket)
 		assert.Equal(t, []string{"Build-Ubuntu24.04-Clang-x86_64-Release-ANGLE"}, builders)
 	})
 	t.Run("multiple builders", func(t *testing.T) {
-		project, bucket, builders, err := ParseTrybotName(reg, "luci.chromium.try:android-11-x86-rel,android-webview-10-x86-rel-tests")
+		project, bucket, builders, err := ParseTrybotName("luci.chromium.try:android-11-x86-rel,android-webview-10-x86-rel-tests")
 		assert.NoError(t, err)
 		assert.Equal(t, "chromium", project)
 		assert.Equal(t, "try", bucket)
 		assert.Equal(t, []string{"android-11-x86-rel", "android-webview-10-x86-rel-tests"}, builders)
 	})
-	t.Run("templated builder", func(t *testing.T) {
-		project, bucket, builders, err := ParseTrybotName(reg, "luci.chrome-m{{.Branches.Chromium.Beta.Milestone}}.try:linux-chrome")
-		assert.NoError(t, err)
-		assert.Equal(t, "chrome-m81", project)
-		assert.Equal(t, "try", bucket)
-		assert.Equal(t, []string{"linux-chrome"}, builders)
-	})
 
 	// Failure cases.
 	testFailure := func(name, input string) {
 		t.Run(name, func(t *testing.T) {
-			project, bucket, builders, err := ParseTrybotName(reg, input)
+			project, bucket, builders, err := ParseTrybotName(input)
 			assert.Error(t, err, "got project=%s bucket=%s builders=%v", project, bucket, builders)
 		})
 	}
@@ -215,5 +199,4 @@ func TestParseTrybotName(t *testing.T) {
 	testFailure("builder without bucket", "luci.some-project:builder-without-bucket")
 	testFailure("multiple builders without project or bucket", "multiple,builders,without,project")
 	testFailure("empty name", "")
-	testFailure("bad template", "luci.chromium.try/builder-at-{{.SomethingBogus}}")
 }

@@ -7,7 +7,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
@@ -30,30 +29,20 @@ type parentChildRepoManager struct {
 
 // newParentChildRepoManager returns a RepoManager which pairs a Parent with a
 // Child.
-func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, serverURL string, client *http.Client, cr codereview.CodeReview) (*parentChildRepoManager, error) {
+func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoManagerConfig, workdir, rollerName, serverURL string, client *http.Client, cr codereview.CodeReview) (*parentChildRepoManager, error) {
 	cipdClient, err := cipd.NewClient(ctx, workdir, cipd.DefaultServiceURL)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// Get the child branch, if any.
-	var childBranchTmpl string
+	var childBranch string
 	if c.GetGitilesChild() != nil {
-		childBranchTmpl = c.GetGitilesChild().Gitiles.Branch
+		childBranch = c.GetGitilesChild().Gitiles.Branch
 	} else if c.GetGitCheckoutChild() != nil {
-		childBranchTmpl = c.GetGitCheckoutChild().GitCheckout.Branch
+		childBranch = c.GetGitCheckoutChild().GitCheckout.Branch
 	} else if c.GetGitCheckoutGithubChild() != nil {
-		childBranchTmpl = c.GetGitCheckoutGithubChild().GitCheckout.GitCheckout.Branch
-	}
-	var childBranch *config_vars.Template
-	if childBranchTmpl != "" {
-		childBranch, err = config_vars.NewTemplate(childBranchTmpl)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		if err := reg.Register(childBranch); err != nil {
-			return nil, skerr.Wrap(err)
-		}
+		childBranch = c.GetGitCheckoutGithubChild().GitCheckout.GitCheckout.Branch
 	}
 
 	var childRM child.Child
@@ -70,7 +59,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		}
 		childFullPath := filepath.Join(workdir, childPath)
 		childCheckout = git.CheckoutDir(childFullPath)
-		parentRM, err = parent.NewDEPSLocalGerrit(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr, childBranch)
+		parentRM, err = parent.NewDEPSLocalGerrit(ctx, parentCfg, client, serverURL, workdir, rollerName, cr, childBranch)
 	} else if c.GetDepsLocalGithubParent() != nil {
 		parentCfg := c.GetDepsLocalGithubParent()
 		childPath := parentCfg.DepsLocal.ChildPath
@@ -79,15 +68,15 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		}
 		childFullPath := filepath.Join(workdir, childPath)
 		childCheckout = git.CheckoutDir(childFullPath)
-		parentRM, err = parent.NewDEPSLocalGitHub(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr, childBranch)
+		parentRM, err = parent.NewDEPSLocalGitHub(ctx, parentCfg, client, serverURL, workdir, rollerName, cr, childBranch)
 	} else if c.GetGitCheckoutGerritParent() != nil {
-		parentRM, err = parent.NewGitCheckoutGerrit(ctx, c.GetGitCheckoutGerritParent(), reg, client, serverURL, workdir, rollerName, cr)
+		parentRM, err = parent.NewGitCheckoutGerrit(ctx, c.GetGitCheckoutGerritParent(), client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitCheckoutGithubFileParent() != nil {
-		parentRM, err = parent.NewGitCheckoutGithubFile(ctx, c.GetGitCheckoutGithubFileParent(), reg, client, serverURL, workdir, rollerName, cr)
+		parentRM, err = parent.NewGitCheckoutGithubFile(ctx, c.GetGitCheckoutGithubFileParent(), client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitilesParent() != nil {
-		parentRM, err = parent.NewGitilesFile(ctx, c.GetGitilesParent(), reg, client, serverURL)
+		parentRM, err = parent.NewGitilesFile(ctx, c.GetGitilesParent(), client, serverURL)
 	} else if c.GetGoModGerritParent() != nil {
-		parentRM, err = parent.NewGoModGerritParent(ctx, c.GetGoModGerritParent(), reg, client, workdir, cr)
+		parentRM, err = parent.NewGoModGerritParent(ctx, c.GetGoModGerritParent(), client, workdir, cr)
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -95,17 +84,17 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 
 	// Create the Child.
 	if c.GetCipdChild() != nil {
-		childRM, err = child.NewCIPD(ctx, c.GetCipdChild(), reg, client, cipdClient, workdir)
+		childRM, err = child.NewCIPD(ctx, c.GetCipdChild(), client, cipdClient, workdir)
 	} else if c.GetFuchsiaSdkChild() != nil {
 		childRM, err = child.NewFuchsiaSDK(ctx, c.GetFuchsiaSdkChild(), client)
 	} else if c.GetGitilesChild() != nil {
-		childRM, err = child.NewGitiles(ctx, c.GetGitilesChild(), reg, client)
+		childRM, err = child.NewGitiles(ctx, c.GetGitilesChild(), client)
 	} else if c.GetGitCheckoutChild() != nil {
-		childRM, err = child.NewGitCheckout(ctx, c.GetGitCheckoutChild(), reg, workdir, cr, childCheckout)
+		childRM, err = child.NewGitCheckout(ctx, c.GetGitCheckoutChild(), workdir, cr, childCheckout)
 	} else if c.GetGitCheckoutGithubChild() != nil {
-		childRM, err = child.NewGitCheckoutGithub(ctx, c.GetGitCheckoutGithubChild(), reg, workdir, cr, childCheckout)
+		childRM, err = child.NewGitCheckoutGithub(ctx, c.GetGitCheckoutGithubChild(), workdir, cr, childCheckout)
 	} else if c.GetSemverGcsChild() != nil {
-		childRM, err = child.NewSemVerGCS(ctx, c.GetSemverGcsChild(), reg, client)
+		childRM, err = child.NewSemVerGCS(ctx, c.GetSemverGcsChild(), client)
 	} else if c.GetDockerChild() != nil {
 		dockerClient, err := docker.NewClient(ctx)
 		if err != nil {
@@ -122,7 +111,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 
 	// Some Parent implementations require a Child to be passed in.
 	if c.GetCopyParent() != nil {
-		parentRM, err = parent.NewCopy(ctx, c.GetCopyParent(), reg, client, serverURL, childRM)
+		parentRM, err = parent.NewCopy(ctx, c.GetCopyParent(), client, serverURL, childRM)
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)

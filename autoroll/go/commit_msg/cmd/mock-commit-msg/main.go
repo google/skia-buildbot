@@ -15,13 +15,11 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/commit_msg"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/firestore"
@@ -146,12 +144,7 @@ func main() {
 			}
 		}
 
-		reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
-		if err != nil {
-			log.Fatalf("Failed to create config var registry: %s", err)
-		}
-
-		rm, err := repo_manager.New(ctx, cfg.GetRepoManagerConfig(), reg, *workdir, cfg.RollerName, *serverURL, cfg.ServiceAccount, client, cr, cfg.IsInternal, true)
+		rm, err := repo_manager.New(ctx, cfg.GetRepoManagerConfig(), *workdir, cfg.RollerName, *serverURL, cfg.ServiceAccount, client, cr, cfg.IsInternal, true)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -232,11 +225,7 @@ func main() {
 	}
 
 	// Create the commit message builder.
-	reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
-	if err != nil {
-		log.Fatalf("Failed to create config var registry: %s", err)
-	}
-	b, err := commit_msg.NewBuilder(cfg.CommitMsg, reg, cfg.ChildDisplayName, cfg.ParentDisplayName, *serverURL, cfg.ChildBugLink, cfg.ParentBugLink, cfg.TransitiveDeps)
+	b, err := commit_msg.NewBuilder(cfg.CommitMsg, cfg.ChildDisplayName, cfg.ParentDisplayName, *serverURL, cfg.ChildBugLink, cfg.ParentBugLink, cfg.TransitiveDeps)
 	if err != nil {
 		log.Fatalf("Failed to create commit message builder: %s", err)
 	}

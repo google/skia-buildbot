@@ -3,7 +3,6 @@ package child
 import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/go/git"
 	gitiles_mocks "go.skia.org/infra/go/gitiles/mocks"
 	"go.skia.org/infra/go/sktest"
@@ -11,8 +10,8 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-func NewGitilesForTesting(t sktest.TestingT, cfg *config.GitilesChildConfig, reg *config_vars.Registry) (*gitilesChild, *gitiles_mocks.GitilesRepo) {
-	c, err := NewGitiles(t.Context(), cfg, reg, nil)
+func NewGitilesForTesting(t sktest.TestingT, cfg *config.GitilesChildConfig) (*gitilesChild, *gitiles_mocks.GitilesRepo) {
+	c, err := NewGitiles(t.Context(), cfg, nil)
 	require.NoError(t, err)
 	gitiles := &gitiles_mocks.GitilesRepo{}
 	gitiles.On("URL").Return(cfg.Gitiles.RepoUrl)

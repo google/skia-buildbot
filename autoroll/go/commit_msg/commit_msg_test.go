@@ -1,16 +1,11 @@
 package commit_msg
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/go/chrome_branch"
-	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/testutils"
 )
 
 const (
@@ -24,7 +19,7 @@ func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
 	c := &config.CommitMsgConfig{
 		BugProject:           fakeBugProject,
 		ChildLogUrlTmpl:      "https://fake-child-log/{{.RollingFrom}}..{{.RollingTo}}",
-		CqExtraTrybots:       []string{"luci.fakeproject.try:some-trybot-on-m{{.Branches.Chromium.Beta.Milestone}}"},
+		CqExtraTrybots:       []string{"luci.fakeproject.try:some-trybot"},
 		CqDoNotCancelTrybots: true,
 		ExtraFooters:         []string{"My-Footer: BlahBlah", "My-Other-Footer: Blah"},
 		IncludeLog:           true,
@@ -38,58 +33,21 @@ func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
 	return c
 }
 
-// fakeRegistry returns a config_vars.Registry instance.
-func fakeRegistry(t *testing.T) *config_vars.Registry {
-	cbc := &mocks.Client{}
-	mockBranches := []*chrome_branch.Branch{
-		{
-			Milestone: 93,
-			Number:    4577,
-			Ref:       "refs/branch-heads/4577",
-			V8Branch:  "9.3",
-		},
-		{
-			Milestone: 92,
-			Number:    4515,
-			Ref:       "refs/branch-heads/4515",
-			V8Branch:  "9.2",
-		},
-		{
-			Milestone: 91,
-			Number:    4472,
-			Ref:       "refs/branch-heads/4472",
-			V8Branch:  "9.1",
-		},
-	}
-	cbc.On("Get", testutils.AnyContext).Return(&chrome_branch.Branches{
-		Main:   mockBranches[0],
-		Beta:   mockBranches[1],
-		Stable: mockBranches[2],
-	}, mockBranches, nil)
-	reg, err := config_vars.NewRegistry(context.Background(), cbc)
-	require.NoError(t, err)
-	return reg
-}
-
 // fakeBuilder returns a Builder instance.
 func fakeBuilder(t *testing.T) *Builder {
-	reg := fakeRegistry(t)
-	b, err := NewBuilder(fakeCommitMsgConfig(t), reg, fakeChildName, fakeParentName, fakeServerURL, "", "", fakeTransitiveDeps)
+	b, err := NewBuilder(fakeCommitMsgConfig(t), fakeChildName, fakeParentName, fakeServerURL, "", "", fakeTransitiveDeps)
 	require.NoError(t, err)
 	return b
 }
 
 func TestMakeVars(t *testing.T) {
-
-	reg := fakeRegistry(t)
-
 	check := func(fn func(*Builder)) {
 		c := fakeCommitMsgConfig(t)
-		b, err := NewBuilder(c, reg, fakeChildName, fakeParentName, fakeServerURL, fakeChildBugLink, fakeParentBugLink, fakeTransitiveDeps)
+		b, err := NewBuilder(c, fakeChildName, fakeParentName, fakeServerURL, fakeChildBugLink, fakeParentBugLink, fakeTransitiveDeps)
 		require.NoError(t, err)
 		fn(b)
 		from, to, revs, reviewers, contacts, _, manualRollRequester := FakeCommitMsgInputs()
-		vars, err := makeVars(c, reg.Vars(), b.childName, b.parentName, b.serverURL, fakeChildBugLink, fakeParentBugLink, b.transitiveDeps, from, to, revs, reviewers, contacts, manualRollRequester)
+		vars, err := makeVars(c, b.childName, b.parentName, b.serverURL, fakeChildBugLink, fakeParentBugLink, b.transitiveDeps, from, to, revs, reviewers, contacts, manualRollRequester)
 		require.NoError(t, err)
 
 		// Bugs.
@@ -105,7 +63,7 @@ func TestMakeVars(t *testing.T) {
 
 		// CqExtratrybots.
 		require.Len(t, vars.CqExtraTrybots, 1)
-		require.Equal(t, "luci.fakeproject.try:some-trybot-on-m92", vars.CqExtraTrybots[0])
+		require.Equal(t, "luci.fakeproject.try:some-trybot", vars.CqExtraTrybots[0])
 
 		// Log URL.
 		if c.ChildLogUrlTmpl == "" {
@@ -191,8 +149,7 @@ func TestQuotedLines(t *testing.T) {
 {{ end }}
 {{ end -}}
 `
-	reg := fakeRegistry(t)
-	b, err := NewBuilder(c, reg, fakeChildName, fakeParentName, fakeServerURL, "", "", fakeTransitiveDeps)
+	b, err := NewBuilder(c, fakeChildName, fakeParentName, fakeServerURL, "", "", fakeTransitiveDeps)
 	require.NoError(t, err)
 
 	from, to, revs, reviewers, contacts, _, manualRollRequester := FakeCommitMsgInputs()
@@ -239,7 +196,7 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: luci.fakeproject.try:some-trybot-on-m92
+Cq-Include-Trybots: luci.fakeproject.try:some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com

@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gitiles"
@@ -19,35 +18,28 @@ import (
 // GitilesRepo provides helpers for dealing with repos which use Gitiles.
 type GitilesRepo struct {
 	gitiles.GitilesRepo
-	branch            *config_vars.Template
+	branch            string
 	defaultBugProject string
 	deps              []*config.VersionFileConfig
 }
 
 // NewGitilesRepo returns a GitilesRepo instance.
-func NewGitilesRepo(ctx context.Context, c *config.GitilesConfig, reg *config_vars.Registry, client *http.Client) (*GitilesRepo, error) {
+func NewGitilesRepo(ctx context.Context, c *config.GitilesConfig, client *http.Client) (*GitilesRepo, error) {
 	if err := c.Validate(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	branch, err := config_vars.NewTemplate(c.Branch)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := reg.Register(branch); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	repo := gitiles.NewRepo(c.RepoUrl, client)
 	return &GitilesRepo{
 		GitilesRepo:       repo,
-		branch:            branch,
+		branch:            c.Branch,
 		deps:              c.Dependencies,
 		defaultBugProject: c.DefaultBugProject,
 	}, nil
 }
 
-// Branch returns the resolved name of the branch tracked by this GitilesRepo.
+// Branch returns the name of the branch tracked by this GitilesRepo.
 func (r *GitilesRepo) Branch() string {
-	return r.branch.String()
+	return r.branch
 }
 
 // GetRevision returns a revision.Revision instance associated with the given
@@ -99,8 +91,7 @@ func (r *GitilesRepo) LogRevisions(ctx context.Context, from, to *revision.Revis
 // GetTipRevision returns a revision.Revision instance associated with the
 // current tip of the branch tracked by this GitilesRepo.
 func (r *GitilesRepo) GetTipRevision(ctx context.Context) (*revision.Revision, error) {
-	branch := r.branch.String()
-	return r.GetRevision(ctx, branch)
+	return r.GetRevision(ctx, r.branch)
 }
 
 // ConvertRevisions converts the given slice of LongCommits to Revisions.

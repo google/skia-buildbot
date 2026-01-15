@@ -145,7 +145,7 @@ deps = {
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
 	parentCfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl = parent.RepoUrl()
 	parentCfg.ForkRepoUrl = fork.RepoUrl()
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", "fake.server.com", nil, githubCR(t, g))
+	rm, err := newParentChildRepoManager(ctx, cfg, wd, "test_roller_name", "fake.server.com", nil, githubCR(t, g))
 	require.NoError(t, err)
 	mockCipd := getCipdMock(ctx)
 	rm.Child.(*child.CIPDChild).SetClientForTesting(mockCipd)

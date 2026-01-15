@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -66,7 +65,7 @@ func androidCfg() *config.AndroidRepoManagerConfig {
 	}
 }
 
-func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string, func()) {
+func setupAndroid(t *testing.T) (context.Context, string, func()) {
 	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	// We do not actually want to shell out to git, as that would require having an actual
@@ -141,19 +140,19 @@ func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string,
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
 	}
-	return ctx, setupRegistry(t), wd, cleanup
+	return ctx, wd, cleanup
 }
 
 // TestAndroidRepoManager_Update tests AndroidRepoManager.Update.
 func TestAndroidRepoManager_Update(t *testing.T) {
-	ctx, reg, wd, cleanup := setupAndroid(t)
+	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 	g := &mocks.GerritInterface{}
 	g.On("GetUserEmail", testutils.AnyContext).Return("fake-service-account", nil)
 	g.On("GetRepoUrl").Return(androidCfg().ParentRepoUrl)
 	g.On("Config").Return(gerrit.ConfigAndroid)
 	mockGerrit, _ := androidGerrit(t, g)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, true)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, true)
 	require.NoError(t, err)
 	lastRollRev, tipRev, _, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -165,7 +164,7 @@ func TestAndroidRepoManager_Update(t *testing.T) {
 
 // TestAndroidRepoManager_CreateNewRoll tests creating a new roll.
 func TestAndroidRepoManager_CreateNewRoll(t *testing.T) {
-	ctx, reg, wd, cleanup := setupAndroid(t)
+	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
 	g := &mocks.GerritInterface{}
@@ -177,7 +176,7 @@ func TestAndroidRepoManager_CreateNewRoll(t *testing.T) {
 	g.On("SetTopic", testutils.AnyContext, "child_merge_12345", androidIssueNum).Return(nil)
 	g.On("SetReview", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	mockGerrit, _ := androidGerrit(t, g)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, true)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, true)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -191,7 +190,7 @@ func TestAndroidRepoManager_CreateNewRoll(t *testing.T) {
 // roll with an external change ID specified in the target revision.
 func TestAndroidRepoManager_CreateNewRollWithExternalChangeId(t *testing.T) {
 	testTopicName := "test_topic_name"
-	ctx, reg, wd, cleanup := setupAndroid(t)
+	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
 	g := &mocks.GerritInterface{}
@@ -203,7 +202,7 @@ func TestAndroidRepoManager_CreateNewRollWithExternalChangeId(t *testing.T) {
 	g.On("SetTopic", testutils.AnyContext, testTopicName, androidIssueNum).Return(nil)
 	g.On("SetReview", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	mockGerrit, _ := androidGerrit(t, g)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, true)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, true)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -227,7 +226,7 @@ func TestAndroidRepoManager_ConfigValidation(t *testing.T) {
 }
 
 func TestAndroidRepoManager_GetNotSubmittedReason(t *testing.T) {
-	ctx, reg, wd, cleanup := setupAndroid(t)
+	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 	g := &mocks.GerritInterface{}
 	g.On("GetUserEmail", testutils.AnyContext).Return("fake-service-account", nil)
@@ -235,12 +234,12 @@ func TestAndroidRepoManager_GetNotSubmittedReason(t *testing.T) {
 	g.On("Config").Return(gerrit.ConfigAndroid)
 	mockGerrit, _ := androidGerrit(t, g)
 	urlMock := mockhttpclient.NewURLMock()
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", urlMock.Client(), mockGerrit, true, true)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, "fake.server.com", "fake-service-account", urlMock.Client(), mockGerrit, true, true)
 	require.NoError(t, err)
 
 	// The revision was submitted.
 	fakeRev := &revision.Revision{Id: androidChildCommits[0]}
-	gitiles_testutils.MockGetCommit(t, urlMock, rm.childRepoURL, rm.childBranch.String(), &gitiles.Commit{
+	gitiles_testutils.MockGetCommit(t, urlMock, rm.childRepoURL, rm.childBranch, &gitiles.Commit{
 		Commit: androidChildCommits[0],
 		Author: &gitiles.Author{
 			Time: time.Now().Format(gitiles.DateFormatNoTZ),

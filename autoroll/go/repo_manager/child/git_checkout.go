@@ -5,7 +5,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
@@ -21,8 +20,8 @@ type GitCheckoutChild struct {
 
 // NewGitCheckout returns an implementation of Child which uses a local Git
 // checkout.
-func NewGitCheckout(ctx context.Context, c *config.GitCheckoutChildConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co git.Checkout) (*GitCheckoutChild, error) {
-	checkout, err := git_common.NewCheckout(ctx, c.GitCheckout, reg, workdir, cr.UserName(), cr.UserEmail(), co)
+func NewGitCheckout(ctx context.Context, c *config.GitCheckoutChildConfig, workdir string, cr codereview.CodeReview, co git.Checkout) (*GitCheckoutChild, error) {
+	checkout, err := git_common.NewCheckout(ctx, c.GitCheckout, workdir, cr.UserName(), cr.UserEmail(), co)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -49,7 +48,7 @@ func (c *GitCheckoutChild) VFS(ctx context.Context, rev *revision.Revision) (vfs
 
 // GetNotSubmittedReason implements Child.
 func (c *GitCheckoutChild) GetNotSubmittedReason(ctx context.Context, rev *revision.Revision) (string, error) {
-	return git_common.GetNotSubmittedReason(ctx, c.Checkout, rev.Id, c.Branch.String())
+	return git_common.GetNotSubmittedReason(ctx, c.Checkout, rev.Id, c.Branch)
 }
 
 // GitCheckoutChild implements Child.

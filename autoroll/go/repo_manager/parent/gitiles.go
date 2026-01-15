@@ -13,7 +13,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -46,7 +45,7 @@ type gitilesParent struct {
 }
 
 // newGitiles returns a base for implementations of Parent which use Gitiles.
-func newGitiles(ctx context.Context, c *config.GitilesParentConfig, reg *config_vars.Registry, client *http.Client, serverURL string, getChangesForRoll gitilesGetChangesForRollFunc) (*gitilesParent, error) {
+func newGitiles(ctx context.Context, c *config.GitilesParentConfig, client *http.Client, serverURL string, getChangesForRoll gitilesGetChangesForRollFunc) (*gitilesParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -57,7 +56,7 @@ func newGitiles(ctx context.Context, c *config.GitilesParentConfig, reg *config_
 	}
 	// TODO(borenet): No modification of passed-in configs!
 	c.Gitiles.Dependencies = deps
-	gr, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, reg, client)
+	gr, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, client)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

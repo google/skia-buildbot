@@ -16,7 +16,6 @@ import (
 	"go.chromium.org/luci/cipd/common"
 
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/cipd"
@@ -39,7 +38,7 @@ var (
 // NewCIPD returns an implementation of Child which deals with a CIPD package.
 // If the caller calls CIPDChild.Download, the destination must be a descendant of
 // the provided workdir.
-func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Registry, client *http.Client, cipdClient cipd.CIPDClient, workdir string) (*CIPDChild, error) {
+func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, client *http.Client, cipdClient cipd.CIPDClient, workdir string) (*CIPDChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -53,23 +52,16 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Re
 	var gitilesRepo *gitiles_common.GitilesRepo
 	var err error
 	if gitilesConfig != nil {
-		gitilesRepo, err = gitiles_common.NewGitilesRepo(ctx, gitilesConfig, reg, client)
+		gitilesRepo, err = gitiles_common.NewGitilesRepo(ctx, gitilesConfig, client)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-	}
-	tagTmpl, err := config_vars.NewTemplate(c.Tag)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := reg.Register(tagTmpl); err != nil {
-		return nil, skerr.Wrap(err)
 	}
 	return &CIPDChild{
 		client:                cipdClient,
 		name:                  c.Name,
 		root:                  workdir,
-		tag:                   tagTmpl,
+		tag:                   c.Tag,
 		gitRepo:               gitilesRepo,
 		revisionIdTag:         c.RevisionIdTag,
 		revisionIdTagStripKey: c.RevisionIdTagStripKey,
@@ -81,7 +73,7 @@ type CIPDChild struct {
 	client                cipd.CIPDClient
 	name                  string
 	root                  string
-	tag                   *config_vars.Template
+	tag                   string
 	gitRepo               *gitiles_common.GitilesRepo
 	revisionIdTag         string
 	revisionIdTagStripKey bool
@@ -175,10 +167,9 @@ func (c *CIPDChild) LogRevisions(ctx context.Context, from, to *revision.Revisio
 // Update implements Child.
 // Note: that this just finds the newest version of the CIPD package.
 func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
-	tag := c.tag.String()
-	head, err := c.client.ResolveVersion(ctx, c.name, tag)
+	head, err := c.client.ResolveVersion(ctx, c.name, c.tag)
 	if err != nil {
-		return nil, nil, skerr.Wrapf(err, "failed to resolve tag %q of %q", tag, c.name)
+		return nil, nil, skerr.Wrapf(err, "failed to resolve tag %q of %q", c.tag, c.name)
 	}
 	tipRev, err := c.GetRevision(ctx, head.InstanceID)
 	if err != nil {

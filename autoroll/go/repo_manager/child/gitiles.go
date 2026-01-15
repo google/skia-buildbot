@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -25,8 +24,8 @@ type gitilesChild struct {
 
 // NewGitiles returns an implementation of Child which uses Gitiles rather
 // than a local checkout.
-func NewGitiles(ctx context.Context, c *config.GitilesChildConfig, reg *config_vars.Registry, client *http.Client) (*gitilesChild, error) {
-	g, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, reg, client)
+func NewGitiles(ctx context.Context, c *config.GitilesChildConfig, client *http.Client) (*gitilesChild, error) {
+	g, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, client)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

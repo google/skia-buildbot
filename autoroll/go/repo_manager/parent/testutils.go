@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/go/gerrit"
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
@@ -19,8 +18,8 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-func NewGitilesFileForTesting(t sktest.TestingT, cfg *config.GitilesParentConfig, reg *config_vars.Registry) (*gitilesParent, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface) {
-	p, err := NewGitilesFile(t.Context(), cfg, reg, http.DefaultClient /* NewGerrit checks for nil client */, "")
+func NewGitilesFileForTesting(t sktest.TestingT, cfg *config.GitilesParentConfig) (*gitilesParent, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface) {
+	p, err := NewGitilesFile(t.Context(), cfg, http.DefaultClient /* NewGerrit checks for nil client */, "")
 	require.NoError(t, err)
 	gitiles := &gitiles_mocks.GitilesRepo{}
 	p.GitilesRepo.GitilesRepo = gitiles
@@ -29,8 +28,8 @@ func NewGitilesFileForTesting(t sktest.TestingT, cfg *config.GitilesParentConfig
 	return p, gitiles, gerrit
 }
 
-func NewCopyForTesting(t sktest.TestingT, cfg *config.CopyParentConfig, reg *config_vars.Registry, child child.Child) (*gitilesParent, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface) {
-	p, err := NewCopy(t.Context(), cfg, reg, http.DefaultClient /* NewGerrit checks for nil client */, "", child)
+func NewCopyForTesting(t sktest.TestingT, cfg *config.CopyParentConfig, child child.Child) (*gitilesParent, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface) {
+	p, err := NewCopy(t.Context(), cfg, http.DefaultClient /* NewGerrit checks for nil client */, "", child)
 	require.NoError(t, err)
 	gitiles := &gitiles_mocks.GitilesRepo{}
 	p.GitilesRepo.GitilesRepo = gitiles
@@ -39,10 +38,10 @@ func NewCopyForTesting(t sktest.TestingT, cfg *config.CopyParentConfig, reg *con
 	return p, gitiles, gerrit
 }
 
-func NewFreeTypeForTesting(t sktest.TestingT, cfg *config.FreeTypeParentConfig, reg *config_vars.Registry) (*gitilesParent, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface, func()) {
+func NewFreeTypeForTesting(t sktest.TestingT, cfg *config.FreeTypeParentConfig) (*gitilesParent, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface, func()) {
 	workdir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
-	p, err := NewFreeTypeParent(t.Context(), cfg, reg, workdir, http.DefaultClient /* NewGerrit checks for nil client */, "")
+	p, err := NewFreeTypeParent(t.Context(), cfg, workdir, http.DefaultClient /* NewGerrit checks for nil client */, "")
 	require.NoError(t, err)
 	gitiles := &gitiles_mocks.GitilesRepo{}
 	p.GitilesRepo.GitilesRepo = gitiles

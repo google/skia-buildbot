@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/commit_msg"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
@@ -30,7 +29,6 @@ import (
 	"go.skia.org/infra/autoroll/go/unthrottle"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/chatbot"
-	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/email"
@@ -86,7 +84,6 @@ type AutoRoller struct {
 	notifier              *arb_notifier.AutoRollNotifier
 	notRolledRevs         []*revision.Revision
 	recent                *recent_rolls.RecentRolls
-	reg                   *config_vars.Registry
 	rm                    repo_manager.RepoManager
 	roller                string
 	rollUploadAttempts    metrics2.Counter
@@ -128,10 +125,6 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer email.Client, 
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to initialize code review")
 	}
-	reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create config var registry")
-	}
 
 	// Create the AutoRoller struct.
 	arb := &AutoRoller{
@@ -141,7 +134,6 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer email.Client, 
 		codereview:         cr,
 		liveness:           metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
 		manualRollDB:       manualRollDB,
-		reg:                reg,
 		roller:             rollerName,
 		rollUploadAttempts: metrics2.GetCounter("autoroll_cl_upload_attempts", map[string]string{"roller": c.RollerName}),
 		rollUploadFailures: metrics2.GetCounter("autoroll_cl_upload_failures", map[string]string{"roller": c.RollerName}),
@@ -165,7 +157,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer email.Client, 
 	}
 
 	// Create the RepoManager.
-	rm, err := repo_manager.New(ctx, c.GetRepoManagerConfig(), reg, workdir, rollerName, serverURL, c.ServiceAccount, client, cr, c.IsInternal, local)
+	rm, err := repo_manager.New(ctx, c.GetRepoManagerConfig(), workdir, rollerName, serverURL, c.ServiceAccount, client, cr, c.IsInternal, local)
 	if err := deleteLocalDataOnFailure("creating RepoManager", err); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -316,7 +308,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer email.Client, 
 	}
 	arb.timeWindow = tw
 
-	commitMsgBuilder, err := commit_msg.NewBuilder(c.CommitMsg, reg, c.ChildDisplayName, c.ParentDisplayName, serverURL, c.ChildBugLink, c.ParentBugLink, c.TransitiveDeps)
+	commitMsgBuilder, err := commit_msg.NewBuilder(c.CommitMsg, c.ChildDisplayName, c.ParentDisplayName, serverURL, c.ChildBugLink, c.ParentBugLink, c.TransitiveDeps)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -876,11 +868,6 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 		// TODO(borenet): Should we instead pass in a cancel function for the
 		// top-level Context, so that things can shut down cleanly?
 		os.Exit(0)
-	}
-
-	// Update the config vars.
-	if err := r.reg.Update(ctx); err != nil {
-		sklog.Errorf("Failed to update config registry; continuing, but config may be out of date: %s", err)
 	}
 
 	// Determine if we should unthrottle.

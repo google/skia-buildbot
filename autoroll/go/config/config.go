@@ -7,15 +7,11 @@ package config
 //go:generate bazelisk run --config=mayberemote //:protoc -- --twirp_typescript_out=../../modules/config ./config.proto
 
 import (
-	"context"
 	"regexp"
 	"strings"
 
-	"github.com/stretchr/testify/mock"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/time_window"
-	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/skerr"
@@ -319,17 +315,9 @@ var trybotProjectBucketRegex = regexp.MustCompile(`^(?P<project>[a-zA-Z0-9_-]+)(
 
 // ParseTrybotName parses a trybot name, eg. "luci.chromium.try:some-trybot",
 // and returns its project, bucket, and builder names, or any error which
-// occurred. Requires a config_vars.Registry instance because trybot names might
-// be templated.
-func ParseTrybotName(reg *config_vars.Registry, trybot string) (string, string, []string, error) {
-	tmpl, err := config_vars.NewTemplate(trybot)
-	if err != nil {
-		return "", "", nil, skerr.Wrap(err)
-	}
-	if err := reg.Register(tmpl); err != nil {
-		return "", "", nil, skerr.Wrap(err)
-	}
-	trybot = strings.TrimPrefix(tmpl.String(), "luci.")
+// occurred.
+func ParseTrybotName(trybot string) (string, string, []string, error) {
+	trybot = strings.TrimPrefix(trybot, "luci.")
 	split := strings.SplitN(trybot, ":", 2)
 	if len(split) != 2 {
 		return "", "", nil, skerr.Fmt("invalid trybot name %q, expected a colon", trybot)
@@ -344,15 +332,8 @@ func ParseTrybotName(reg *config_vars.Registry, trybot string) (string, string, 
 
 // Validate implements util.Validator.
 func (c *CommitMsgConfig) Validate() error {
-	cbc := &mocks.Client{}
-	fakeVars := config_vars.FakeVars()
-	cbc.On("Get", mock.Anything).Return(fakeVars.Branches.Chromium, fakeVars.Branches.ActiveMilestones, nil)
-	reg, err := config_vars.NewRegistry(context.TODO(), cbc)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
 	for _, trybot := range c.CqExtraTrybots {
-		if _, _, _, err := ParseTrybotName(reg, trybot); err != nil {
+		if _, _, _, err := ParseTrybotName(trybot); err != nil {
 			return skerr.Wrap(err)
 		}
 	}

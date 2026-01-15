@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/gerrit"
@@ -93,7 +92,7 @@ func setupGoModGerrit(t *testing.T) (context.Context, *goModParent, *gerrit_test
 	})
 	cr, err := codereview.NewGerrit(cfg.Gerrit, g.Gerrit, urlmock.Client())
 	require.NoError(t, err)
-	p, err := NewGoModGerritParent(ctx, cfg, &config_vars.Registry{}, urlmock.Client(), tmp, cr)
+	p, err := NewGoModGerritParent(ctx, cfg, urlmock.Client(), tmp, cr)
 	require.NoError(t, err)
 	return ctx, p, g, func() {
 		g.AssertEmpty()

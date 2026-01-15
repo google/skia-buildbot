@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -64,14 +63,13 @@ type Builder struct {
 	childName      string
 	parentBugLink  string
 	parentName     string
-	reg            *config_vars.Registry
 	serverURL      string
 	transitiveDeps []*config.TransitiveDepConfig
 	wordWrapChars  int
 }
 
 // NewBuilder returns a Builder instance.
-func NewBuilder(c *config.CommitMsgConfig, reg *config_vars.Registry, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig) (*Builder, error) {
+func NewBuilder(c *config.CommitMsgConfig, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig) (*Builder, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -92,7 +90,6 @@ func NewBuilder(c *config.CommitMsgConfig, reg *config_vars.Registry, childName,
 		childBugLink:   childBugLink,
 		parentBugLink:  parentBugLink,
 		parentName:     parentName,
-		reg:            reg,
 		serverURL:      serverURL,
 		transitiveDeps: transitiveDeps,
 		wordWrapChars:  int(c.WordWrap),
@@ -101,12 +98,12 @@ func NewBuilder(c *config.CommitMsgConfig, reg *config_vars.Registry, childName,
 
 // Build a commit message for the given roll.
 func (b *Builder) Build(from, to *revision.Revision, rolling []*revision.Revision, reviewers, contacts []string, canary bool, manualRollRequester string) (string, error) {
-	return buildCommitMsg(b.cfg, b.reg.Vars(), b.childName, b.parentName, b.serverURL, b.childBugLink, b.parentBugLink, b.transitiveDeps, from, to, rolling, reviewers, contacts, canary, manualRollRequester, b.wordWrapChars)
+	return buildCommitMsg(b.cfg, b.childName, b.parentName, b.serverURL, b.childBugLink, b.parentBugLink, b.transitiveDeps, from, to, rolling, reviewers, contacts, canary, manualRollRequester, b.wordWrapChars)
 }
 
 // buildCommitMsg builds a commit message for the given roll.
-func buildCommitMsg(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers, contacts []string, canary bool, manualRollRequester string, wordWrapChars int) (string, error) {
-	vars, err := makeVars(c, cv, childName, parentName, serverURL, childBugLink, parentBugLink, transitiveDeps, from, to, rolling, reviewers, contacts, manualRollRequester)
+func buildCommitMsg(c *config.CommitMsgConfig, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers, contacts []string, canary bool, manualRollRequester string, wordWrapChars int) (string, error) {
+	vars, err := makeVars(c, childName, parentName, serverURL, childBugLink, parentBugLink, transitiveDeps, from, to, rolling, reviewers, contacts, manualRollRequester)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
@@ -157,7 +154,7 @@ func fixupRevision(rev *revision.Revision) *revision.Revision {
 }
 
 // makeVars derives commitMsgVars from the CommitMsgConfig for the given roll.
-func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, revisions []*revision.Revision, reviewers, contacts []string, manualRollRequester string) (*commitMsgVars, error) {
+func makeVars(c *config.CommitMsgConfig, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, revisions []*revision.Revision, reviewers, contacts []string, manualRollRequester string) (*commitMsgVars, error) {
 	// Create the commitMsgVars object to be used as input to the template.
 	revsCopy := make([]*revision.Revision, 0, len(revisions))
 	for _, rev := range revisions {
@@ -165,10 +162,10 @@ func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parent
 	}
 	vars := &commitMsgVars{
 		CommitMsgConfig:     c,
-		Vars:                cv,
 		ChildName:           childName,
 		ChildBugLink:        childBugLink,
 		Contacts:            contacts,
+		CqExtraTrybots:      c.CqExtraTrybots,
 		ExternalChangeId:    to.ExternalChangeId,
 		ManualRollRequester: manualRollRequester,
 		ParentName:          parentName,
@@ -200,24 +197,6 @@ func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parent
 				vars.Bugs = append(vars.Bugs, bugStr)
 			}
 			sort.Strings(vars.Bugs)
-		}
-	}
-
-	// CqExtraTrybots.
-	if c.CqExtraTrybots != nil {
-		vars.CqExtraTrybots = make([]string, 0, len(c.CqExtraTrybots))
-		for _, trybot := range c.CqExtraTrybots {
-			// Note: it'd be slightly more efficient to keep these
-			// templates around, but that would require passing them
-			// in to this function, which is a bit ugly.
-			tmpl, err := config_vars.NewTemplate(trybot)
-			if err != nil {
-				return nil, skerr.Wrap(err)
-			}
-			if err := tmpl.Update(cv); err != nil {
-				return nil, skerr.Wrap(err)
-			}
-			vars.CqExtraTrybots = append(vars.CqExtraTrybots, tmpl.String())
 		}
 	}
 
@@ -299,7 +278,6 @@ func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parent
 // commitMsgVars contains variables used to fill in a commit message template.
 type commitMsgVars struct {
 	*config.CommitMsgConfig
-	*config_vars.Vars
 	Bugs                []string
 	ChildBugLink        string
 	ChildLogURL         string

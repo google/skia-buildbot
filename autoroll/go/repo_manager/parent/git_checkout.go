@@ -12,7 +12,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -34,7 +33,7 @@ type GitCheckoutParent struct {
 
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
-func NewGitCheckout(ctx context.Context, c *config.GitCheckoutParentConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co git.Checkout, createRoll git_common.CreateRollFunc, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckout(ctx context.Context, c *config.GitCheckoutParentConfig, workdir string, cr codereview.CodeReview, co git.Checkout, createRoll git_common.CreateRollFunc, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -46,7 +45,7 @@ func NewGitCheckout(ctx context.Context, c *config.GitCheckoutParentConfig, reg 
 		deps = append(deps, td.Parent)
 	}
 	c.GitCheckout.Dependencies = deps
-	checkout, err := git_common.NewCheckout(ctx, c.GitCheckout, reg, workdir, cr.UserName(), cr.UserEmail(), co)
+	checkout, err := git_common.NewCheckout(ctx, c.GitCheckout, workdir, cr.UserName(), cr.UserEmail(), co)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

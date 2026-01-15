@@ -73,11 +73,10 @@ func updateAndAssert(t *testing.T, rm RepoManager, mocks ...hasAssertExpectation
 }
 
 func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (*parentChildRepoManager, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface, *gitiles_mocks.GitilesRepo) {
-	reg := setupRegistry(t)
 	parentCfg := cfg.GetGitilesParent()
-	p, parentGitiles, parentGerrit := parent.NewGitilesFileForTesting(t, parentCfg, reg)
+	p, parentGitiles, parentGerrit := parent.NewGitilesFileForTesting(t, parentCfg)
 	childCfg := cfg.GetGitilesChild()
-	c, childGitiles := child.NewGitilesForTesting(t, childCfg, reg)
+	c, childGitiles := child.NewGitilesForTesting(t, childCfg)
 
 	// Create the RepoManager.
 	rm := &parentChildRepoManager{

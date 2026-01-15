@@ -5,14 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/chrome_branch"
-	chrome_branch_mocks "go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/vfs"
@@ -46,12 +42,7 @@ func TestCIPDChild_VCS(t *testing.T) {
 	cipdClient, err := cipd.NewClient(ctx, wd, cipd.DefaultServiceURL)
 	require.NoError(t, err)
 
-	cbc := &chrome_branch_mocks.Client{}
-	cbc.On("Get", mock.Anything).Return(&chrome_branch.Branches{}, []*chrome_branch.Branch{{Milestone: 123}}, nil)
-	reg, err := config_vars.NewRegistry(t.Context(), cbc)
-	require.NoError(t, err)
-
-	c, err := NewCIPD(ctx, &cfg, reg, client, cipdClient, wd)
+	c, err := NewCIPD(ctx, &cfg, client, cipdClient, wd)
 	require.NoError(t, err)
 
 	// Download.

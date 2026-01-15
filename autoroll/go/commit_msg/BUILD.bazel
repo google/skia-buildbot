@@ -13,7 +13,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//autoroll/go/config",
-        "//autoroll/go/config_vars",
         "//autoroll/go/revision",
         "//go/skerr",
         "//go/util",
@@ -31,11 +30,7 @@ go_test(
     embed = [":commit_msg"],
     deps = [
         "//autoroll/go/config",
-        "//autoroll/go/config_vars",
-        "//go/chrome_branch",
-        "//go/chrome_branch/mocks",
         "//go/deepequal/assertdeep",
-        "//go/testutils",
         "@com_github_stretchr_testify//require",
     ],
 )

@@ -6,7 +6,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
 )
@@ -38,7 +37,7 @@ type RepoManager interface {
 }
 
 // New returns a RepoManager instance based on the given RepoManagerConfig.
-func New(ctx context.Context, c config.RepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal bool, local bool) (RepoManager, error) {
+func New(ctx context.Context, c config.RepoManagerConfig, workdir, rollerName, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal bool, local bool) (RepoManager, error) {
 	if c == nil {
 		return nil, skerr.Fmt("No RepoManagerConfig was provided.")
 	}
@@ -46,13 +45,13 @@ func New(ctx context.Context, c config.RepoManagerConfig, reg *config_vars.Regis
 		return nil, skerr.Wrap(err)
 	}
 	if rmc, ok := c.(*config.AndroidRepoManagerConfig); ok {
-		return NewAndroidRepoManager(ctx, rmc, reg, workdir, serverURL, serviceAccount, client, cr, isInternal, local)
+		return NewAndroidRepoManager(ctx, rmc, workdir, serverURL, serviceAccount, client, cr, isInternal, local)
 	} else if rmc, ok := c.(*config.CommandRepoManagerConfig); ok {
-		return NewCommandRepoManager(ctx, rmc, reg, workdir, serverURL, cr, client)
+		return NewCommandRepoManager(ctx, rmc, workdir, serverURL, cr, client)
 	} else if rmc, ok := c.(*config.FreeTypeRepoManagerConfig); ok {
-		return NewFreeTypeRepoManager(ctx, rmc, reg, workdir, serverURL, client, cr, local)
+		return NewFreeTypeRepoManager(ctx, rmc, workdir, serverURL, client, cr, local)
 	} else if rmc, ok := c.(*config.ParentChildRepoManagerConfig); ok {
-		return newParentChildRepoManager(ctx, rmc, reg, workdir, rollerName, serverURL, client, cr)
+		return newParentChildRepoManager(ctx, rmc, workdir, rollerName, serverURL, client, cr)
 	}
 	return nil, skerr.Fmt("Unknown RepoManager type.")
 }

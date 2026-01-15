@@ -14,7 +14,6 @@ import (
 	"go.chromium.org/luci/common/errors"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
@@ -22,7 +21,6 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/docker"
 	"go.skia.org/infra/go/exec"
@@ -42,11 +40,6 @@ import (
 // actually exist. This builds on the simple Validate() methods of the config
 // structs.
 func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c *config.Config) error {
-	cbc := chrome_branch.NewClient(client)
-	reg, err := config_vars.NewRegistry(ctx, cbc)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
 	bbClient := buildbucket.NewClient(client)
 	cipdClient, err := cipd.NewClient(ctx, "", cipd.DefaultServiceURL)
 	if err != nil {
@@ -61,7 +54,6 @@ func DeepValidate(ctx context.Context, client, githubHttpClient *http.Client, c 
 		client:           client,
 		cipdClient:       cipdClient,
 		dockerClient:     dockerClient,
-		reg:              reg,
 		githubHttpClient: githubHttpClient,
 	}
 
@@ -141,7 +133,6 @@ type deepvalidator struct {
 	client           *http.Client
 	cipdClient       cipd.CIPDClient
 	dockerClient     docker.Client
-	reg              *config_vars.Registry
 	githubHttpClient *http.Client
 }
 
@@ -277,21 +268,12 @@ func makeGitilesGetFileFunc(repo gitiles.GitilesRepo, branch string) version_fil
 
 func (dv *deepvalidator) makeGitilesGetFileFuncFromConfig(c *config.GitilesConfig) (version_file_common.GetFileFunc, error) {
 	repo := gitiles.NewRepo(c.RepoUrl, dv.client)
-	branchTmpl, err := config_vars.NewTemplate(c.Branch)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := dv.reg.Register(branchTmpl); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	branch := branchTmpl.String()
-	return makeGitilesGetFileFunc(repo, branch), nil
+	return makeGitilesGetFileFunc(repo, c.Branch), nil
 }
 
 // deepValidateGitilesRepo performs deep validation of a Gitiles repo.
-func (dv *deepvalidator) deepValidateGitilesRepo(ctx context.Context, repoUrl string, branchTmpl *config_vars.Template) (version_file_common.GetFileFunc, *revision.Revision, error) {
+func (dv *deepvalidator) deepValidateGitilesRepo(ctx context.Context, repoUrl, branch string) (version_file_common.GetFileFunc, *revision.Revision, error) {
 	repo := gitiles.NewRepo(repoUrl, dv.client)
-	branch := branchTmpl.String()
 	details, err := repo.Details(ctx, branch)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "failed to resolve branch %q of repo %q", branch, repoUrl)
@@ -301,7 +283,7 @@ func (dv *deepvalidator) deepValidateGitilesRepo(ctx context.Context, repoUrl st
 }
 
 // deepValidateGitHubRepo performs deep validation of a GitHub repo.
-func (dv *deepvalidator) deepValidateGitHubRepo(ctx context.Context, repoUrl string, branchTmpl *config_vars.Template) (version_file_common.GetFileFunc, *revision.Revision, error) {
+func (dv *deepvalidator) deepValidateGitHubRepo(ctx context.Context, repoUrl, branch string) (version_file_common.GetFileFunc, *revision.Revision, error) {
 	repoOwner, repoName, err := github.ParseRepoOwnerAndName(repoUrl)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
@@ -310,7 +292,6 @@ func (dv *deepvalidator) deepValidateGitHubRepo(ctx context.Context, repoUrl str
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
-	branch := branchTmpl.String()
 	ref, err := gh.GetReference(repoOwner, repoName, git_common.RefsHeadsPrefix+branch)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "failed GetReference for %s/%s @ %s", repoOwner, repoName, branch)
@@ -327,17 +308,10 @@ func (dv *deepvalidator) deepValidateGitHubRepo(ctx context.Context, repoUrl str
 
 // deepValidateGitRepo performs deep validation of an arbitrary Git repo.
 func (dv *deepvalidator) deepValidateGitRepo(ctx context.Context, repoUrl, branch string) (version_file_common.GetFileFunc, *revision.Revision, error) {
-	branchTmpl, err := config_vars.NewTemplate(branch)
-	if err != nil {
-		return nil, nil, skerr.Wrap(err)
-	}
-	if err := dv.reg.Register(branchTmpl); err != nil {
-		return nil, nil, skerr.Wrap(err)
-	}
 	if strings.Contains(repoUrl, "googlesource") {
-		return dv.deepValidateGitilesRepo(ctx, repoUrl, branchTmpl)
+		return dv.deepValidateGitilesRepo(ctx, repoUrl, branch)
 	} else if strings.Contains(repoUrl, "github") {
-		return dv.deepValidateGitHubRepo(ctx, repoUrl, branchTmpl)
+		return dv.deepValidateGitHubRepo(ctx, repoUrl, branch)
 	} else {
 		return nil, nil, skerr.Fmt("unknown git repo source for %q", repoUrl)
 	}
@@ -529,7 +503,7 @@ func (dv *deepvalidator) gitCheckoutConfig(ctx context.Context, c *config.GitChe
 // gitilesChildConfig performs validation of the GitilesChildConfig,
 // making external network requests as needed.
 func (dv *deepvalidator) gitilesChildConfig(ctx context.Context, c *config.GitilesChildConfig) (version_file_common.GetFileFunc, *revision.Revision, error) {
-	child, err := child.NewGitiles(ctx, c, dv.reg, dv.client)
+	child, err := child.NewGitiles(ctx, c, dv.client)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
@@ -558,7 +532,7 @@ func (dv *deepvalidator) freeTypeParentConfig(ctx context.Context, c *config.Fre
 // gitilesParentConfig performs validation of the GitilesParentConfig,
 // making external network requests as needed.
 func (dv *deepvalidator) gitilesParentConfig(ctx context.Context, c *config.GitilesParentConfig, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
-	p, err := parent.NewGitilesFile(ctx, c, dv.reg, dv.client, "")
+	p, err := parent.NewGitilesFile(ctx, c, dv.client, "")
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -641,7 +615,7 @@ func (dv *deepvalidator) fuchsiaSDKChildConfig(ctx context.Context, c *config.Fu
 // cipdChildConfig performs validation of the CIPDChildConfig, making
 // external network requests as needed.
 func (dv *deepvalidator) cipdChildConfig(ctx context.Context, c *config.CIPDChildConfig) (*revision.Revision, error) {
-	cipdChild, err := child.NewCIPD(ctx, c, dv.reg, dv.client, dv.cipdClient, "")
+	cipdChild, err := child.NewCIPD(ctx, c, dv.client, dv.cipdClient, "")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create cipd child")
 	}
@@ -686,7 +660,7 @@ func (dv *deepvalidator) gitCheckoutChildConfig(ctx context.Context, c *config.G
 // semVerGCSChildConfig performs validation of the
 // SemVerGCSChildConfig, making external network requests as needed.
 func (dv *deepvalidator) semVerGCSChildConfig(ctx context.Context, c *config.SemVerGCSChildConfig) (*revision.Revision, error) {
-	semverChild, err := child.NewSemVerGCS(ctx, c, dv.reg, dv.client)
+	semverChild, err := child.NewSemVerGCS(ctx, c, dv.client)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create semver gcs child")
 	}
@@ -706,7 +680,7 @@ func (dv *deepvalidator) semVerGCSChildConfig(ctx context.Context, c *config.Sem
 // copyParentConfig performs validation of the CopyParentConfig, making
 // external network requests as needed.
 func (dv *deepvalidator) copyParentConfig(ctx context.Context, c *config.CopyParentConfig, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
-	p, err := parent.NewCopy(ctx, c, dv.reg, dv.client, "", nil)
+	p, err := parent.NewCopy(ctx, c, dv.client, "", nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -745,14 +719,7 @@ func (dv *deepvalidator) depsLocalGitHubParentConfig(ctx context.Context, c *con
 	if err := dv.gitHubConfig(ctx, c.Github); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	forkTmpl, err := config_vars.NewTemplate(git.MainBranch)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := dv.reg.Register(forkTmpl); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if _, _, err := dv.deepValidateGitHubRepo(ctx, c.ForkRepoUrl, forkTmpl); err != nil {
+	if _, _, err := dv.deepValidateGitHubRepo(ctx, c.ForkRepoUrl, git.MainBranch); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return dv.depsLocalParentConfig(ctx, c.DepsLocal, tipRev, getFileChild)
@@ -814,14 +781,7 @@ func (dv *deepvalidator) gitCheckoutGitHubFileParentConfig(ctx context.Context, 
 // GitCheckoutGitHubParentConfig, making external network requests as needed.
 func (dv *deepvalidator) gitCheckoutGitHubParentConfig(ctx context.Context, c *config.GitCheckoutGitHubParentConfig, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
 	// TODO(borenet): Can we rely on main being present?
-	branchTmpl, err := config_vars.NewTemplate(git.MainBranch)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := dv.reg.Register(branchTmpl); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if _, _, err := dv.deepValidateGitHubRepo(ctx, c.ForkRepoUrl, branchTmpl); err != nil {
+	if _, _, err := dv.deepValidateGitHubRepo(ctx, c.ForkRepoUrl, git.MainBranch); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return dv.gitCheckoutParentConfig(ctx, c.GitCheckout, getFileChild)
@@ -920,7 +880,7 @@ func (dv *deepvalidator) reviewer(ctx context.Context, reviewer string) error {
 // cqExtraTrybot performs validation of the cqExtraTrybot, making external
 // network requests as needed.
 func (dv *deepvalidator) cqExtraTrybot(ctx context.Context, trybot string) error {
-	project, bucket, builders, err := config.ParseTrybotName(dv.reg, trybot)
+	project, bucket, builders, err := config.ParseTrybotName(trybot)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

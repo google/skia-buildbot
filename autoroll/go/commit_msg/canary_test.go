@@ -26,7 +26,7 @@ To report a problem with the AutoRoller itself, please file a bug:
 https://issues.skia.org/issues/new?component=1389291&template=1850622
 
 Commit: false
-Cq-Include-Trybots: luci.fakeproject.try:some-trybot-on-m92
+Cq-Include-Trybots: luci.fakeproject.try:some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
 `, result)
 }
@@ -55,7 +55,7 @@ To report a problem with the AutoRoller itself, please file a bug:
 https://issues.skia.org/issues/new?component=1389291&template=1850622
 
 Commit: false
-Cq-Include-Trybots: luci.fakeproject.try:some-trybot-on-m92
+Cq-Include-Trybots: luci.fakeproject.try:some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
 `, result)
 }

@@ -11,7 +11,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	autoroll_git_common "go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
@@ -37,7 +36,7 @@ type goModParent struct {
 
 // NewGoModGerritParent returns a Parent which updates go.mod and uploads CLs to
 // Gerrit.
-func NewGoModGerritParent(ctx context.Context, c *config.GoModGerritParentConfig, reg *config_vars.Registry, client *http.Client, workdir string, cr codereview.CodeReview) (*goModParent, error) {
+func NewGoModGerritParent(ctx context.Context, c *config.GoModGerritParentConfig, client *http.Client, workdir string, cr codereview.CodeReview) (*goModParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -46,7 +45,7 @@ func NewGoModGerritParent(ctx context.Context, c *config.GoModGerritParentConfig
 		return nil, skerr.Fmt("GitCheckoutGithub must use GitHub for code review.")
 	}
 	uploadRoll := GitCheckoutUploadGerritRollFunc(gerritClient)
-	parentRM, err := NewGoModParent(ctx, c.GoMod, reg, client, workdir, cr, uploadRoll)
+	parentRM, err := NewGoModParent(ctx, c.GoMod, client, workdir, cr, uploadRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -57,11 +56,11 @@ func NewGoModGerritParent(ctx context.Context, c *config.GoModGerritParentConfig
 }
 
 // NewGoModParent returns a Parent which updates go.mod.
-func NewGoModParent(ctx context.Context, c *config.GoModParentConfig, reg *config_vars.Registry, client *http.Client, workdir string, cr codereview.CodeReview, uploadRoll autoroll_git_common.UploadRollFunc) (*goModParent, error) {
+func NewGoModParent(ctx context.Context, c *config.GoModParentConfig, client *http.Client, workdir string, cr codereview.CodeReview, uploadRoll autoroll_git_common.UploadRollFunc) (*goModParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	co, err := git_common.NewCheckout(ctx, c.GitCheckout, reg, workdir, cr.UserName(), cr.UserEmail(), nil)
+	co, err := git_common.NewCheckout(ctx, c.GitCheckout, workdir, cr.UserName(), cr.UserEmail(), nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

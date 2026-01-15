@@ -93,14 +93,13 @@ func gerritCR(t *testing.T, g gerrit.GerritInterface, client *http.Client) coder
 }
 
 func setupAfdo(t *testing.T) (*parentChildRepoManager, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface, *mockhttpclient.URLMock) {
-	reg := setupRegistry(t)
 	cfg := afdoCfg()
 
 	parentCfg := cfg.GetGitilesParent()
-	p, parentGitiles, parentGerrit := parent.NewGitilesFileForTesting(t, parentCfg, reg)
+	p, parentGitiles, parentGerrit := parent.NewGitilesFileForTesting(t, parentCfg)
 
 	urlmock := mockhttpclient.NewURLMock()
-	c, err := child.NewSemVerGCS(t.Context(), cfg.GetSemverGcsChild(), reg, urlmock.Client())
+	c, err := child.NewSemVerGCS(t.Context(), cfg.GetSemverGcsChild(), urlmock.Client())
 	require.NoError(t, err)
 
 	// Create the RepoManager.

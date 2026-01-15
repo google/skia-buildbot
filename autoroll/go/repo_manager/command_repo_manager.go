@@ -10,7 +10,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
@@ -37,7 +36,7 @@ type CommandTmplVars struct {
 // configured commands to perform all of the work.
 type commandRepoManager struct {
 	co            *git_common.Checkout
-	shortRevRegex *config_vars.Template
+	shortRevRegex string
 	getTipRev     *config.CommandRepoManagerConfig_CommandConfig
 	getPinnedRev  *config.CommandRepoManagerConfig_CommandConfig
 	setPinnedRev  *config.CommandRepoManagerConfig_CommandConfig
@@ -48,20 +47,9 @@ type commandRepoManager struct {
 
 // NewCommandRepoManager returns a RepoManager implementation which rolls
 // trace_processor_shell into Chrome.
-func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConfig, reg *config_vars.Registry, workdir, serverURL string, cr codereview.CodeReview, client *http.Client) (*commandRepoManager, error) {
+func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConfig, workdir, serverURL string, cr codereview.CodeReview, client *http.Client) (*commandRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
-	}
-	var shortRevRegex *config_vars.Template
-	if c.ShortRevRegex != "" {
-		var err error
-		shortRevRegex, err = config_vars.NewTemplate(c.ShortRevRegex)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		if err := reg.Register(shortRevRegex); err != nil {
-			return nil, skerr.Wrap(err)
-		}
 	}
 	var rm *commandRepoManager
 	createRoll := func(ctx context.Context, co git.Checkout, from, to *revision.Revision, _ []*revision.Revision, commitMsg string) (string, error) {
@@ -86,7 +74,7 @@ func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConf
 		return nil, skerr.Fmt("CommandRepoManager must use Gerrit for code review.")
 	}
 	uploadRoll := parent.GitCheckoutUploadGerritRollFunc(g)
-	co, err := git_common.NewCheckout(ctx, c.GitCheckout, reg, workdir, cr.UserName(), cr.UserEmail(), nil)
+	co, err := git_common.NewCheckout(ctx, c.GitCheckout, workdir, cr.UserName(), cr.UserEmail(), nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -95,7 +83,7 @@ func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConf
 	}
 	rm = &commandRepoManager{
 		co:            co,
-		shortRevRegex: shortRevRegex,
+		shortRevRegex: c.ShortRevRegex,
 		getTipRev:     c.GetTipRev,
 		getPinnedRev:  c.GetPinnedRev,
 		setPinnedRev:  c.SetPinnedRev,
@@ -183,8 +171,8 @@ func (rm *commandRepoManager) GetRevision(ctx context.Context, id string) (*revi
 	// us in JSON format or something, but I'm not sure how valuable that would
 	// be.
 	rev := &revision.Revision{Id: id}
-	if rm.shortRevRegex != nil {
-		shortRev, err := child.ShortRev(rm.shortRevRegex.String(), rev.Id)
+	if rm.shortRevRegex != "" {
+		shortRev, err := child.ShortRev(rm.shortRevRegex, rev.Id)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

@@ -86,10 +86,9 @@ func setupFreeType(t *testing.T) (context.Context, *config.FreeTypeRepoManagerCo
 			},
 		},
 	}
-	reg := setupRegistry(t)
 
-	p, parentGitiles, parentGerrit, cleanup := parent.NewFreeTypeForTesting(t, cfg.Parent, reg)
-	c, err := child.NewGitiles(ctx, cfg.Child, reg, urlmock.Client())
+	p, parentGitiles, parentGerrit, cleanup := parent.NewFreeTypeForTesting(t, cfg.Parent)
+	c, err := child.NewGitiles(ctx, cfg.Child, urlmock.Client())
 	require.NoError(t, err)
 
 	// Create the RepoManager.

@@ -135,7 +135,7 @@ func setupGithubDEPS(t *testing.T, c *config.ParentChildRepoManagerConfig) (cont
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
 	g, urlmock := setupFakeGithubDEPS(ctx, t)
-	rm, err := newParentChildRepoManager(ctx, c, setupRegistry(t), wd, "test_roller_name", "fake.server.com", nil, githubCR(t, g))
+	rm, err := newParentChildRepoManager(ctx, c, wd, "test_roller_name", "fake.server.com", nil, githubCR(t, g))
 	require.NoError(t, err)
 
 	cleanup := func() {

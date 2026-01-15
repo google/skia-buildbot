@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -132,29 +131,12 @@ func semVerShortRev(reTmpl string, id string) string {
 
 // NewSemVerGCS returns a Child which uses semantic versioning to compare object
 // versions in GCS.
-func NewSemVerGCS(ctx context.Context, c *config.SemVerGCSChildConfig, reg *config_vars.Registry, client *http.Client) (*gcsChild, error) {
+func NewSemVerGCS(ctx context.Context, c *config.SemVerGCSChildConfig, client *http.Client) (*gcsChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	versionRegex, err := config_vars.NewTemplate(c.VersionRegex)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := reg.Register(versionRegex); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	var shortRevRegex *config_vars.Template
-	if c.ShortRevRegex != "" {
-		shortRevRegex, err = config_vars.NewTemplate(c.ShortRevRegex)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		if err := reg.Register(shortRevRegex); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-	}
 	getGCSVersion := func(rev *revision.Revision) (gcsVersion, error) {
-		versionRegex, err := regexp.Compile(versionRegex.String())
+		versionRegex, err := regexp.Compile(c.VersionRegex)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -163,7 +145,7 @@ func NewSemVerGCS(ctx context.Context, c *config.SemVerGCSChildConfig, reg *conf
 	getGCSPrefix := func() (string, error) {
 		// LiteralPrefix gives the literal string before any special regex
 		// characters. The leading caret obscures the prefix we want to find.
-		versionRegexStr := strings.TrimPrefix(versionRegex.String(), "^")
+		versionRegexStr := strings.TrimPrefix(c.VersionRegex, "^")
 		versionRegex, err := regexp.Compile(versionRegexStr)
 		if err != nil {
 			return "", skerr.Wrap(err)
@@ -173,8 +155,8 @@ func NewSemVerGCS(ctx context.Context, c *config.SemVerGCSChildConfig, reg *conf
 		return prefix, nil
 	}
 	shortRevFn := func(id string) string {
-		if shortRevRegex != nil {
-			return semVerShortRev(shortRevRegex.String(), id)
+		if c.ShortRevRegex != "" {
+			return semVerShortRev(c.ShortRevRegex, id)
 		}
 		return id
 	}

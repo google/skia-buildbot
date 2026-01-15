@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
@@ -25,7 +24,7 @@ const (
 // Checkout provides common functionality for git checkouts.
 type Checkout struct {
 	git.Checkout
-	Branch            *config_vars.Template
+	Branch            string
 	defaultBugProject string
 	Dependencies      []*config.VersionFileConfig
 	RepoURL           string
@@ -33,17 +32,9 @@ type Checkout struct {
 }
 
 // NewCheckout returns a Checkout instance.
-func NewCheckout(ctx context.Context, c *config.GitCheckoutConfig, reg *config_vars.Registry, workdir, userName, userEmail string, co git.Checkout) (*Checkout, error) {
+func NewCheckout(ctx context.Context, c *config.GitCheckoutConfig, workdir, userName, userEmail string, co git.Checkout) (*Checkout, error) {
 	// Clean up any lockfiles, in case the process was interrupted.
 	if err := git.DeleteLockFiles(ctx, workdir); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	// Register the configured branch template.
-	branch, err := config_vars.NewTemplate(c.Branch)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := reg.Register(branch); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	// Create the local checkout.
@@ -63,7 +54,7 @@ func NewCheckout(ctx context.Context, c *config.GitCheckoutConfig, reg *config_v
 	}
 	return &Checkout{
 		Checkout:          co,
-		Branch:            branch,
+		Branch:            c.Branch,
 		defaultBugProject: c.DefaultBugProject,
 		Dependencies:      c.Dependencies,
 		RepoURL:           c.RepoUrl,
@@ -99,15 +90,14 @@ func (c *Checkout) Download(ctx context.Context, rev *revision.Revision, dest st
 // newest Revision on the resulting branch and returns both the revision and
 // resolved branch name.
 func (c *Checkout) Update(ctx context.Context) (*revision.Revision, string, error) {
-	branch := c.Branch.String()
-	if err := c.UpdateBranch(ctx, branch); err != nil {
+	if err := c.UpdateBranch(ctx, c.Branch); err != nil {
 		return nil, "", skerr.Wrap(err)
 	}
 	tipRev, err := c.GetRevision(ctx, "HEAD")
 	if err != nil {
 		return nil, "", skerr.Wrap(err)
 	}
-	return tipRev, branch, nil
+	return tipRev, c.Branch, nil
 }
 
 // LogRevisions implements Child.

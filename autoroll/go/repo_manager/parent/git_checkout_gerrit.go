@@ -8,7 +8,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -54,7 +53,7 @@ func GitCheckoutUploadGerritRollFunc(g gerrit.GerritInterface) git_common.Upload
 
 // NewGitCheckoutGerrit returns an implementation of Parent which uses a local
 // git checkout and uploads pull requests to Github.
-func NewGitCheckoutGerrit(ctx context.Context, c *config.GitCheckoutGerritParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
+func NewGitCheckoutGerrit(ctx context.Context, c *config.GitCheckoutGerritParentConfig, client *http.Client, serverURL, workdir, rollerName string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -91,7 +90,7 @@ func NewGitCheckoutGerrit(ctx context.Context, c *config.GitCheckoutGerritParent
 	}
 
 	// Create the GitCheckout Parent.
-	p, err := NewGitCheckout(ctx, c.GitCheckout, reg, workdir, cr, nil, createRoll, uploadRoll)
+	p, err := NewGitCheckout(ctx, c.GitCheckout, workdir, cr, nil, createRoll, uploadRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

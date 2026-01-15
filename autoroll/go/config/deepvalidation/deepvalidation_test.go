@@ -13,19 +13,15 @@ import (
 	"time"
 
 	"github.com/google/go-github/v29/github"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	luci_cipd "go.chromium.org/luci/cipd/client/cipd"
 	cipd_common "go.chromium.org/luci/cipd/common"
 
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/revision"
 	buildbucket_mocks "go.skia.org/infra/go/buildbucket/mocks"
-	"go.skia.org/infra/go/chrome_branch"
-	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/cipd"
 	cipd_mocks "go.skia.org/infra/go/cipd/mocks"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
@@ -67,16 +63,11 @@ const (
 // newTestDeepValidator creates a deepvalidator instance for testing.
 func newTestDeepValidator(t *testing.T) (*deepvalidator, *mockhttpclient.URLMock) {
 	urlMock := mockhttpclient.NewURLMock()
-	cbc := &mocks.Client{}
-	cbc.On("Get", mock.Anything).Return(&chrome_branch.Branches{}, []*chrome_branch.Branch{{Milestone: 123}}, nil)
-	reg, err := config_vars.NewRegistry(context.Background(), cbc)
-	require.NoError(t, err)
 	return &deepvalidator{
 		bbClient:         &buildbucket_mocks.BuildBucketInterface{},
 		client:           urlMock.Client(),
 		cipdClient:       &cipd_mocks.CIPDClient{},
 		dockerClient:     &docker_mocks.Client{},
-		reg:              reg,
 		githubHttpClient: urlMock.Client(),
 	}, urlMock
 }
@@ -356,20 +347,16 @@ func TestDeepValidator_deepValidateGitilesRepo(t *testing.T) {
 	defer urlMock.AssertExpectations(t)
 
 	repoURL := fakeGitRepo
-	branchTmpl, err := config_vars.NewTemplate(git.MainBranch)
-	require.NoError(t, err)
-	require.NoError(t, dv.reg.Register(branchTmpl))
-
 	t.Run("Success", func(t *testing.T) {
 		gitiles_testutils.MockGetCommit(t, urlMock, repoURL, git.MainBranch, makeFakeCommit())
-		_, _, err := dv.deepValidateGitilesRepo(t.Context(), repoURL, branchTmpl)
+		_, _, err := dv.deepValidateGitilesRepo(t.Context(), repoURL, git.MainBranch)
 		require.NoError(t, err)
 		urlMock.AssertExpectations(t)
 	})
 
 	t.Run("Not Found", func(t *testing.T) {
 		urlMock.MockOnce(repoURL+"/+show/main?format=JSON", mockhttpclient.MockGetError("not found", http.StatusNotFound))
-		_, _, err := dv.deepValidateGitilesRepo(t.Context(), repoURL, branchTmpl)
+		_, _, err := dv.deepValidateGitilesRepo(t.Context(), repoURL, git.MainBranch)
 		require.Error(t, err)
 		urlMock.AssertExpectations(t)
 	})
@@ -379,14 +366,10 @@ func TestDeepValidator_deepValidateGitHubRepo(t *testing.T) {
 	dv, urlMock := newTestDeepValidator(t)
 	defer urlMock.AssertExpectations(t)
 
-	repoURL := fakeGitHubRepo
-	branchTmpl, err := config_vars.NewTemplate(git.MainBranch)
-	require.NoError(t, err)
-	require.NoError(t, dv.reg.Register(branchTmpl))
-
+	repoURL := fmt.Sprintf("https://github.com/%s/%s", fakeGitHubRepoOwner, fakeGitHubRepoName)
 	t.Run("Success", func(t *testing.T) {
 		mockGitHubAPICalls(t, urlMock, repoURL)
-		_, _, err := dv.deepValidateGitHubRepo(t.Context(), repoURL, branchTmpl)
+		_, _, err := dv.deepValidateGitHubRepo(t.Context(), repoURL, git.MainBranch)
 		require.NoError(t, err)
 		urlMock.AssertExpectations(t)
 	})
@@ -394,7 +377,7 @@ func TestDeepValidator_deepValidateGitHubRepo(t *testing.T) {
 	t.Run("Not Found", func(t *testing.T) {
 		refURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/git/%s", fakeGitHubRepoOwner, fakeGitHubRepoName, fakeGitHubRef)
 		urlMock.MockOnce(refURL, mockhttpclient.MockGetError("not found", http.StatusNotFound))
-		_, _, err = dv.deepValidateGitHubRepo(t.Context(), repoURL, branchTmpl)
+		_, _, err := dv.deepValidateGitHubRepo(t.Context(), repoURL, git.MainBranch)
 		require.Error(t, err)
 		urlMock.AssertExpectations(t)
 	})

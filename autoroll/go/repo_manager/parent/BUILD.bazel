@@ -23,7 +23,6 @@ go_library(
     deps = [
         "//autoroll/go/codereview",
         "//autoroll/go/config",
-        "//autoroll/go/config_vars",
         "//autoroll/go/repo_manager/child",
         "//autoroll/go/repo_manager/common/gerrit_common",
         "//autoroll/go/repo_manager/common/git_common",
@@ -67,7 +66,6 @@ go_test(
     deps = [
         "//autoroll/go/codereview",
         "//autoroll/go/config",
-        "//autoroll/go/config_vars",
         "//autoroll/go/revision",
         "//bazel/external/cipd/git",
         "//go/cipd",
