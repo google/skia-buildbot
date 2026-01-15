@@ -1,17 +1,32 @@
 package main
 
 import (
+	"context"
 	"encoding/xml"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
+
+	"cloud.google.com/go/storage"
+	"google.golang.org/api/iterator"
 )
 
 // flags
 var (
-	outputPath = flag.String("output", "test_result.xml", "File path for dropping the generated test result file.")
+	outputPath = flag.String("output", "local-test-results", "Test result output path.")
+	bucketName = flag.String("bucket", "", "The GCS bucket name to upload the test result to.")
+)
+
+var (
+	testResultsFileName = "test_result.xml"
+)
+
+const (
+	maxObjectPrefixRetries = 10
 )
 
 // TestSuites is the root element for xUnit XML reports.
@@ -42,9 +57,76 @@ type TestCase struct {
 	Time      string   `xml:"time,attr"`
 }
 
-// generateDummyTestResultFile generates a dummy test results xml file.
+// generateUniqueObjectPrefix creates a unique GCS object prefix.
+func generateUniqueObjectPrefix(ctx context.Context, client *storage.Client) (string, error) {
+	now := time.Now().UTC()
+	basePrefix := now.Format("2006-01-02/15-04-05")
+	objectPrefix := basePrefix
+	counter := 0
+
+	// Create a unique GCS folder for storing the test result.
+	for {
+		it := client.Bucket(*bucketName).Objects(ctx, &storage.Query{Prefix: objectPrefix + "/"})
+		_, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return "", fmt.Errorf("failed to check for existing GCS objects: %w", err)
+		}
+
+		counter++
+		if counter > maxObjectPrefixRetries {
+			return "", fmt.Errorf("failed to find a unique object prefix after %d tries", counter)
+		}
+		objectPrefix = fmt.Sprintf("%s_%d", basePrefix, counter)
+	}
+	return objectPrefix, nil
+}
+
+// uploadFile uploads the given file to GCS.
+func uploadFile(ctx context.Context, filePath string) error {
+	if *bucketName == "" {
+		return nil
+	}
+
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return fmt.Errorf("storage.NewClient: %w", err)
+	}
+	defer client.Close()
+
+	objectPrefix, err := generateUniqueObjectPrefix(ctx, client)
+	if err != nil {
+		return fmt.Errorf("failed to generate unique object name: %w", err)
+	}
+	objectName := filepath.Join(objectPrefix, testResultsFileName)
+
+	// Open local file.
+	f, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("os.Open: %w", err)
+	}
+	defer f.Close()
+
+	wc := client.Bucket(*bucketName).Object(objectName).NewWriter(ctx)
+	wc.ContentType = "application/xml"
+
+	if _, err := io.Copy(wc, f); err != nil {
+		return fmt.Errorf("io.Copy: %w", err)
+	}
+
+	if err := wc.Close(); err != nil {
+		return fmt.Errorf("failed to close GCS writer: %w", err)
+	}
+
+	log.Printf("Successfully uploaded test result to gs://%s/%s", *bucketName, objectName)
+	return nil
+}
+
+// generateDummyTestResult generates a dummy test results xml.
 // After adding real tests, this function must be removed.
-func generateDummyTestResultFile(outputPath string) error {
+func generateDummyTestResult() ([]byte, error) {
 	suites := TestSuites{
 		Name: "results",
 		TestSuite: []TestSuite{
@@ -65,22 +147,38 @@ func generateDummyTestResultFile(outputPath string) error {
 
 	xmlBytes, err := xml.MarshalIndent(suites, "", "  ")
 	if err != nil {
-		return fmt.Errorf("error marshalling XML: %w", err)
+		return nil, fmt.Errorf("error marshalling XML: %w", err)
 	}
 
-	if err := os.WriteFile(outputPath, xmlBytes, 0644); err != nil {
-		return fmt.Errorf("error writing file: %w", err)
-	}
-	return nil
+	return xmlBytes, nil
 }
 
 func main() {
 	flag.Parse()
 
-	// TODO(faridzad): Remove this after adding e2e tests.
-	if err := generateDummyTestResultFile(*outputPath); err != nil {
-		log.Fatalf("Failed to generate test result file: %v", err)
+	if *outputPath == "" {
+		log.Fatal("The --output flag must be provided.")
 	}
 
-	log.Printf("Successfully generated dummy test result at %s", *outputPath)
+	xmlBytes, err := generateDummyTestResult()
+	if err != nil {
+		log.Fatalf("Failed to generate test result: %v", err)
+	}
+
+	if *bucketName == "" {
+		if _, err := os.Stat(*outputPath); os.IsNotExist(err) {
+			if err := os.MkdirAll(*outputPath, 0755); err != nil {
+				log.Fatalf("Failed to create output directory %s: %v", *outputPath, err)
+			}
+		}
+	}
+	filePath := filepath.Join(*outputPath, testResultsFileName)
+	if err := os.WriteFile(filePath, xmlBytes, 0644); err != nil {
+		log.Fatalf("Failed to write to test result file: %v", err)
+	}
+	log.Printf("Successfully generated test result at %s", filePath)
+
+	if err := uploadFile(context.Background(), filePath); err != nil {
+		log.Fatalf("Failed to upload test result to GCS: %v", err)
+	}
 }

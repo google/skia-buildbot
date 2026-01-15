@@ -6,6 +6,10 @@ go_library(
     srcs = ["test_runner.go"],
     importpath = "go.skia.org/infra/perf/go/e2e",
     visibility = ["//visibility:private"],
+    deps = [
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//iterator",
+    ],
 )
 
 go_binary(
