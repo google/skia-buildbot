@@ -121,7 +121,9 @@ ts_library(
     srcs = ["plot-summary-sk_po.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//:node_modules/puppeteer",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
+        "//perf/modules/common:puppeteer-test-util_ts_lib",
     ],
 )

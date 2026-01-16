@@ -360,6 +360,57 @@ describe('Manual Plot Mode', () => {
   });
 });
 
+describe('Explore Multi Sk with plotSummary', () => {
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed();
+  });
+
+  beforeEach(async () => {
+    // Navigate with plotSummary=true
+    await testBed.page.goto(`${testBed.baseUrl}?plotSummary=true`);
+    await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
+  });
+
+  it('should allow selecting a range on plot-summary-sk and zoom the graph', async () => {
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    await testPickerPO.waitForPickerField(0);
+    const archField = await testPickerPO.getPickerField(0);
+    await archField.select('arm');
+    await testPickerPO.waitForSpinnerInactive();
+
+    await testPickerPO.waitForPickerField(1);
+    const osField = await testPickerPO.getPickerField(1);
+    await osField.select('Android');
+    await testPickerPO.waitForSpinnerInactive();
+
+    await testPickerPO.clickPlotButton();
+    await explorePO.waitForGraph(0);
+
+    const simpleGraphPO = explorePO.getGraph(0);
+    const plotSummaryPO = simpleGraphPO.plotSummary;
+    await plotSummaryPO.waitForPlotSummaryToLoad();
+
+    const initialUrl = new URL(testBed.page.url());
+    const initialBegin = initialUrl.searchParams.get('begin');
+    const initialEnd = initialUrl.searchParams.get('end');
+
+    await plotSummaryPO.selectRange(testBed.page, 0.25, 0.75);
+
+    const finalUrl = new URL(testBed.page.url());
+    const finalBegin = finalUrl.searchParams.get('begin');
+    const finalEnd = finalUrl.searchParams.get('end');
+
+    expect(finalBegin).to.not.equal(initialBegin);
+    expect(finalEnd).to.not.equal(initialEnd);
+
+    expect(Number(finalBegin)).to.not.be.NaN;
+    expect(Number(finalEnd)).to.not.be.NaN;
+  });
+});
+
 describe('Split Graph Functionality', function () {
   this.timeout(60000);
   let testBed: TestBed;

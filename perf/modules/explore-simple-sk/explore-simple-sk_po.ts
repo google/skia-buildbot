@@ -7,6 +7,7 @@ import { errorMessage } from '../errorMessage';
 import { ChartTooltipSkPO } from '../chart-tooltip-sk/chart-tooltip-sk_po';
 import { GraphTitleSkPO } from '../graph-title-sk/graph-title-sk_po';
 import { poll } from '../common/puppeteer-test-util';
+import { PlotSummarySkPO } from '../plot-summary-sk/plot-summary-sk_po';
 
 export class ExploreSimpleSkPO extends PageObject {
   get pickerField(): PageObjectElement {
@@ -57,8 +58,8 @@ export class ExploreSimpleSkPO extends PageObject {
     return this.poBySelector('plot-google-chart-sk', PlotGoogleChartSkPO);
   }
 
-  get plotSummary(): PageObjectElement {
-    return this.bySelector('plot-summary-sk');
+  get plotSummary(): PlotSummarySkPO {
+    return this.poBySelector('plot-summary-sk', PlotSummarySkPO);
   }
 
   get chartContainer(): PageObjectElement {

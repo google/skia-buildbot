@@ -22,19 +22,6 @@ describe('plot-summary-sk', () => {
     );
   });
 
-  const select = async (plotSummarySkPO: PlotSummarySkPO, x: number, offset: number) => {
-    const boundingBox = await plotSummarySkPO.boundingBox;
-    if (!boundingBox) {
-      throw new Error('Chart bounding box not found');
-    }
-
-    const y = boundingBox.y + boundingBox.height / 2;
-    await testBed.page.mouse.move(x, y);
-    await testBed.page.mouse.down();
-    await testBed.page.mouse.move(x + offset, y);
-    await testBed.page.mouse.up();
-  };
-
   const waitPlotSummary = (sel: string) =>
     testBed.page.$eval(sel, (plot) => (plot as LitElement).updateComplete);
 
@@ -72,7 +59,7 @@ describe('plot-summary-sk', () => {
 
       it('draw from left to right', async () => {
         await waitPlotSummary(plot.id);
-        await select(plotSummarySkPO, 100, 120);
+        await plotSummarySkPO.selectRange(testBed.page, 0.24, 0.552);
         const json = await getEventText();
         const detail = JSON.parse(json!) as PlotSummarySkSelectionEventDetails;
 
@@ -82,7 +69,7 @@ describe('plot-summary-sk', () => {
 
       it('draw from right to left', async () => {
         await waitPlotSummary(plot.id);
-        await select(plotSummarySkPO, 220, -120);
+        await plotSummarySkPO.selectRange(testBed.page, 0.552, 0.24);
         const json = await getEventText();
         const detail = JSON.parse(json!) as PlotSummarySkSelectionEventDetails;
 
@@ -92,8 +79,9 @@ describe('plot-summary-sk', () => {
 
       it('draw and move the selection', async () => {
         await waitPlotSummary(plot.id);
-        await select(plotSummarySkPO, 240, -120);
-        await select(plotSummarySkPO, 200, -20);
+        await plotSummarySkPO.selectRange(testBed.page, 0.604, 0.292);
+        await plotSummarySkPO.selectRange(testBed.page, 0.5, 0.448);
+
         const json = await getEventText();
         const detail = JSON.parse(json!) as PlotSummarySkSelectionEventDetails;
 
