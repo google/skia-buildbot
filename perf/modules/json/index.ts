@@ -207,6 +207,7 @@ export interface Anomaly {
 	bug_cc_emails: string[] | null;
 	bisect_ids: string[] | null;
 	timestamp?: string;
+	multiplicity?: number;
 }
 
 export interface FrameResponse {

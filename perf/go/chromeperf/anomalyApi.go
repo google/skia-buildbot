@@ -83,6 +83,7 @@ type Anomaly struct {
 	BugCcEmails         []string `json:"bug_cc_emails"`
 	BisectIDs           []string `json:"bisect_ids"`
 	Timestamp           string   `json:"timestamp,omitempty"`
+	Multiplicity        int      `json:"multiplicity,omitempty"`
 }
 
 // UnmarshalJSON handles the fact that anomaly IDs can be sent as either a

@@ -337,6 +337,14 @@ export class ChartTooltipSk extends ElementSk {
             [${this.anomalyChange()}%]
           </span>
         </li>
+        ${this.anomaly!.multiplicity
+          ? // multiplicity is only populated in perf/anomalies/impl/sql_impl.go,
+            // so only when we fetch anomalies from sql.
+            html` <li>
+              <span id="tooltip-key">Multiplicity</span>
+              <span id="tooltip-text"> ${this.anomaly!.multiplicity} </span>
+            </li>`
+          : ''}
         ${this.anomaly!.bug_id
           ? html` <li>
               <span id="tooltip-key">Bug ID</span>

@@ -61,6 +61,7 @@ func (s *sqlAnomaliesStore) GetAnomalies(ctx context.Context, traceNames []strin
 		}
 	}
 
+	multiplicities := map[string]map[types.CommitNumber]int{}
 	for _, reg := range regressions {
 		convertedAnomalies, err := compat.ConvertRegressionToAnomalies(reg)
 		if err != nil {
@@ -71,8 +72,11 @@ func (s *sqlAnomaliesStore) GetAnomalies(ctx context.Context, traceNames []strin
 		for traceKey, commitMap := range convertedAnomalies {
 			if _, ok := result[traceKey]; !ok {
 				result[traceKey] = chromeperf.CommitNumberAnomalyMap{}
+				multiplicities[traceKey] = map[types.CommitNumber]int{}
 			}
 			for commitNumber, anomaly := range commitMap {
+				multiplicities[traceKey][commitNumber]++
+				anomaly.Multiplicity = multiplicities[traceKey][commitNumber]
 				result[traceKey][commitNumber] = anomaly
 				sklog.Debugf("Constructed anomaly for trace %s: %+v", traceKey, anomaly)
 			}
