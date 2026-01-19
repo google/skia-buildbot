@@ -143,6 +143,7 @@ func uploadPuppeteerScreenshotsToGold(ctx context.Context, bzl *bazel.Bazel) err
 	// Initialize goldctl.
 	args := []string{
 		"imgtest", "init",
+		"--passfail", // Enable blocking on mismatch.
 		"--work-dir", goldctlWorkDir,
 		"--instance", "skia-infra",
 		"--git_hash", *checkoutFlags.Revision,
@@ -169,6 +170,7 @@ func uploadPuppeteerScreenshotsToGold(ctx context.Context, bzl *bazel.Bazel) err
 		return err
 	}
 	err = td.Do(ctx, td.Props(fmt.Sprintf("Add %d images to goldctl", len(fileInfos))), func(ctx context.Context) error {
+		var anyErr error
 		for _, fileInfo := range fileInfos {
 			testName := strings.TrimSuffix(filepath.Base(fileInfo.Name()), filepath.Ext(fileInfo.Name()))
 			args := []string{
@@ -178,10 +180,10 @@ func uploadPuppeteerScreenshotsToGold(ctx context.Context, bzl *bazel.Bazel) err
 				"--test-name", testName,
 			}
 			if err := goldctl(ctx, bzl, args...); err != nil {
-				return err
+				anyErr = err
 			}
 		}
-		return nil
+		return anyErr
 	})
 	if err != nil {
 		return err
