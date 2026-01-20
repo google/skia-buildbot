@@ -194,6 +194,10 @@ func Get(ctx context.Context, c *http.Client) (*Branches, []*Branch, error) {
 	if rv.Beta == nil && rv.Stable != nil {
 		rv.Beta = byMilestone[rv.Stable.Milestone+1]
 	}
+	if rv.Beta == nil && rv.Dev != nil {
+		rv.Beta = rv.Dev
+		rv.Dev = nil
+	}
 	if rv.Beta != nil {
 		mainMilestoneMinusOne := rv.Beta.Milestone
 		if rv.Dev != nil && rv.Dev.Milestone > mainMilestoneMinusOne {

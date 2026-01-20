@@ -561,13 +561,13 @@ func TestGetSecondDataSet(t *testing.T) {
 	}
 	require.Equal(t, expect, b)
 
-	// Beta channel is actually missing.
-	noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData2, schedulePhaseStableCut, "dev"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
+	// "stable_cut" is missing, so we fall back to using "branch"
+	noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData2, schedulePhaseStableCut, "other"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(noBeta)))
 	b, _, err = Get(ctx, c)
-	require.Nil(t, b)
-	require.NotNil(t, err)
-	require.True(t, strings.Contains(err.Error(), "Beta branch is missing"), err)
+	require.NoError(t, err)
+	expect.Beta = expect.Dev
+	expect.Dev = nil
 
 	// Stable channel is missing.
 	noStable := strings.ReplaceAll(fakeData2, fmt.Sprintf("\"%s\"", schedulePhaseStable), "\"dev\"")
