@@ -37,7 +37,6 @@ import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
 
 import '@material/web/icon/icon.js';
-import '@material/web/iconbutton/outlined-icon-button.js';
 
 export interface CommitLinks {
   traceid: string;
@@ -119,9 +118,6 @@ export class PointLinksSk extends ElementSk {
       return html` <li>
         <span id="tooltip-key">${keyText}</span>
         <span id="tooltip-text"> ${link.startsWith('http') ? htmlUrl : link} </span>
-        <md-outlined-icon-button id="copy-link-button" @click=${() => this.copyToClipboard(link)}>
-          <md-icon id="copy-icon" .icon=${'content_copy'}></md-icon>
-        </md-outlined-icon-button>
       </li>`;
     };
     const htmlPromises = keys.map(getHtml);
