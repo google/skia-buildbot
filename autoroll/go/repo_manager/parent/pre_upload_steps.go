@@ -166,11 +166,23 @@ func RunPreUploadStep(ctx context.Context, cfg *config.PreUploadConfig, env []st
 	}
 	for idx, cmd := range cmds {
 		sklog.Infof("Running command: %s %s", cmd.Name, strings.Join(cmd.Args, " "))
-		if _, err := exec.RunCommand(ctx, cmd); err != nil {
+		output, err := exec.RunCommand(ctx, cmd)
+		if err != nil {
 			if cfg.Command[idx].IgnoreFailure {
 				sklog.Errorf("%s", err)
 			} else {
 				return skerr.Wrap(err)
+			}
+		} else {
+			dumpLogs := false
+			for _, arg := range append([]string{cmd.Name}, cmd.Args...) {
+				if strings.Contains(arg, "roll_chromium_deps") {
+					dumpLogs = true
+					break
+				}
+			}
+			if dumpLogs {
+				sklog.Info(output)
 			}
 		}
 	}
