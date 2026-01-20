@@ -356,4 +356,33 @@ describe('regressions-page-sk', () => {
       assert.strictEqual(document.title, 'Regressions');
     });
   });
+
+  describe('RegressionsPageSk - Anomaly List Clearing', () => {
+    let element: RegressionsPageSk;
+    beforeEach(async () => {
+      element = newInstance();
+      await fetchMock.flush(true);
+      // Ensure element starts with some anomalies
+      await element.fetchRegressions();
+      assert.equal(element.cpAnomalies.length, 1);
+    });
+
+    it('clears anomaly list on improvementChange and prevents duplication on refetch', async () => {
+      await element.improvementChange();
+      assert.equal(
+        element.cpAnomalies.length,
+        1,
+        'cpAnomalies should not contain duplicates after refetch'
+      );
+    });
+
+    it('clears anomaly list on triagedChange and prevents duplication on refetch', async () => {
+      await element.triagedChange();
+      assert.equal(
+        element.cpAnomalies.length,
+        1,
+        'cpAnomalies should not contain duplicates after triagedChange'
+      );
+    });
+  });
 });

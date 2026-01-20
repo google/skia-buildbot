@@ -260,6 +260,7 @@ export class RegressionsPageSk extends ElementSk {
     } else {
       this.btnImprovement!.textContent = 'Show Improvements';
     }
+    this.cpAnomalies = [];
     this.stateHasChanged();
     await this.fetchRegressions();
     this._render();
@@ -272,6 +273,7 @@ export class RegressionsPageSk extends ElementSk {
     } else {
       this.btnTriaged!.textContent = 'Show Triaged';
     }
+    this.cpAnomalies = [];
     this.stateHasChanged();
     await this.fetchRegressions();
     this._render();
