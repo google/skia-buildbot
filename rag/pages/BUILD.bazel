@@ -1,0 +1,19 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "index",
+    assets_serving_path = "/dist",
+    copy_files = [
+        {
+            "src": "//rag/images:chrome-logo.svg",
+            "dst": "images/chrome-logo.svg",
+        },
+    ],
+    html_file = "index.html",
+    production_sourcemap = True,
+    scss_entry_point = "index.scss",
+    sk_element_deps = [
+        "//rag/modules/rag-app-sk",
+    ],
+    ts_entry_point = "index.ts",
+)

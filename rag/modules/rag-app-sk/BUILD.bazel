@@ -1,0 +1,43 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_element(
+    name = "rag-app-sk",
+    ts_deps = [
+        "//:node_modules/lit",
+        "//:node_modules/marked",
+        "//:node_modules/@types/marked",
+        "//:node_modules/@material/web",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "rag-app-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "rag-app-sk-demo",
+    html_file = "rag-app-sk-demo.html",
+    ts_deps = [
+        "//:node_modules/fetch-mock",
+    ],
+    ts_entry_point = "rag-app-sk-demo.ts",
+)
+
+karma_test(
+    name = "rag-app-sk_test",
+    src = "rag-app-sk_test.ts",
+    deps = [
+        ":rag-app-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":rag-app-sk-demo",
+)

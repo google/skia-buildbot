@@ -22,6 +22,28 @@ skia_app_container(
                 "0644",
             ],
         ],
+        "/usr/local/share/dist": [
+            [
+                "//rag/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in [
+                "index",
+            ]
+            for ext in [
+                "css",
+                "css.map",
+                "html",
+                "js",
+                "js.map",
+            ]
+        ],
+        "/usr/local/share/dist/images": [
+            [
+                "//rag/images:chrome-logo.svg",
+                "0644",
+            ],
+        ],
     },
     entrypoint = "/usr/local/bin/server",
     repository = "skia-public/historyrag-apiserver",

@@ -227,6 +227,9 @@ importers:
       lottie-web:
         specifier: ^5.9.6
         version: 5.9.6
+      marked:
+        specifier: ^4.0.12
+        version: 4.0.12
       mime:
         specifier: ^4.0.7
         version: 4.0.7
@@ -288,6 +291,9 @@ importers:
       '@stryker-mutator/typescript-checker':
         specifier: ^8.2.6
         version: 8.7.1(@stryker-mutator/core@8.7.1(supports-color@10.2.2))(typescript@5.2.2)
+      '@types/marked':
+        specifier: ^4.3.2
+        version: 4.3.2
       '@types/sinon':
         specifier: ^7.5.2
         version: 7.5.2
@@ -1009,6 +1015,9 @@ packages:
 
   '@types/markdown-it@12.2.3':
     resolution: {integrity: sha512-GKMHFfv3458yYy+v/N8gjufHO6MSZKCOXpZc5GXIWWy8uldwfmPn98vp81gZ5f9SVw8YYBctgfJ22a2d7AOMeQ==}
+
+  '@types/marked@4.3.2':
+    resolution: {integrity: sha512-a79Yc3TOk6dGdituy8hmTTJXjOkZ7zsFYV10L337ttq/rec8lRMDBpV7fL3uLx6TgbFCa5DU/h8FmIBQPSbU0w==}
 
   '@types/mdurl@1.0.2':
     resolution: {integrity: sha512-eC4U9MlIcu2q0KQmXszyn5Akca/0jrQmwDRgpAMJai7qBWq4amIQhZyNau4VYGtCeALvW1/NtjzJJ567aZxfKA==}
@@ -5931,6 +5940,8 @@ snapshots:
     dependencies:
       '@types/linkify-it': 3.0.2
       '@types/mdurl': 1.0.2
+
+  '@types/marked@4.3.2': {}
 
   '@types/mdurl@1.0.2': {}
 

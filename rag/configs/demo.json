@@ -10,5 +10,7 @@
         "project": "ashwinpv-sandbox-790703"
     },
     "query_embedding_model": "gemini-embedding-001",
-    "output_dimensionality": 768
+    "output_dimensionality": 768,
+    "instance_name": "Chrome History RAG (Demo)",
+    "header_icon_url": "/dist/images/chrome-logo.svg"
 }

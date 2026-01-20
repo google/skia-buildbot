@@ -22,6 +22,12 @@ type ApiServerConfig struct {
 
 	// The output dimensionality to use for input query embedding.
 	OutputDimensionality int `json:"output_dimensionality"`
+
+	// The name of the instance.
+	InstanceName string `json:"instance_name"`
+
+	// The URL of the image to display in the header.
+	HeaderIconUrl string `json:"header_icon_url"`
 }
 
 // SpannerConfig defines a struct to hold the spanner database configuration.

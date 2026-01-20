@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
+	"path/filepath"
 
 	"cloud.google.com/go/spanner"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -41,6 +43,7 @@ type ApiServerFlags struct {
 	PromPort       string
 	Services       cli.StringSlice
 	Local          bool
+	ResourcesDir   string
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -81,6 +84,12 @@ func (flags *ApiServerFlags) AsCliFlags() []cli.Flag {
 			Name:        "local",
 			Value:       false,
 		},
+		&cli.StringFlag{
+			Destination: &flags.ResourcesDir,
+			Name:        "resources_dir",
+			Value:       "./dist",
+			Usage:       "The directory to serve static files from.",
+		},
 	}
 }
 
@@ -97,8 +106,11 @@ type apiServer struct {
 	grpcPort   string
 
 	// HTTP server objects
-	httpHandler *runtime.ServeMux
-	httpPort    string
+	httpHandler   http.Handler
+	httpPort      string
+	resourcesDir  string
+	instanceName  string
+	headerIconUrl string
 }
 
 // NewApiServer returns a new instance of the api server based on the provided flags.
@@ -129,6 +141,9 @@ func NewApiServer(flags *ApiServerFlags) (*apiServer, error) {
 		dimensionality:      dimensionality,
 		grpcPort:            flags.GrpcPort,
 		httpPort:            flags.HttpPort,
+		resourcesDir:        flags.ResourcesDir,
+		instanceName:        config.InstanceName,
+		headerIconUrl:       config.HeaderIconUrl,
 	}
 	err = server.initialize(ctx, flags)
 	if err != nil {
@@ -165,10 +180,16 @@ func (server *apiServer) initialize(ctx context.Context, flags *ApiServerFlags) 
 	reflection.Register(server.grpcServer)
 
 	// Create the HTTP server.
-	server.httpHandler = runtime.NewServeMux()
+	gwmux := runtime.NewServeMux()
 
 	sklog.Info("Registering individual services.")
-	server.registerServices(ctx, serviceList)
+	server.registerServices(ctx, serviceList, gwmux)
+
+	rootMux := http.NewServeMux()
+	rootMux.Handle("/historyrag/", gwmux)
+
+	server.registerUIHandlers(rootMux)
+	server.httpHandler = rootMux
 
 	// Set up the TCP listener for the GRPC server.
 	var err error
@@ -185,14 +206,42 @@ func (server *apiServer) initialize(ctx context.Context, flags *ApiServerFlags) 
 }
 
 // registerServices registers all the hosted services with the server instances.
-func (server *apiServer) registerServices(ctx context.Context, serviceList []Service) {
+func (server *apiServer) registerServices(ctx context.Context, serviceList []Service, gwmux *runtime.ServeMux) {
 	for _, service := range serviceList {
 		service.RegisterGrpc(server.grpcServer)
-		err := service.RegisterHttp(ctx, server.httpHandler)
+		err := service.RegisterHttp(ctx, gwmux)
 		if err != nil {
 			sklog.Fatalf("Error registering http handler for service %v", err)
 		}
 	}
+}
+
+// registerUIHandlers registers the handler required to serve the UI pages.
+func (server *apiServer) registerUIHandlers(serverMux *http.ServeMux) {
+	// Add the handler to serve static content.
+	serverMux.Handle("/dist/", http.StripPrefix("/dist/", http.FileServer(http.Dir(server.resourcesDir))))
+
+	// Add the handler for the home page.
+	serverMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		http.ServeFile(w, r, filepath.Join(server.resourcesDir, "index.html"))
+	})
+
+	// Add the handler for retrieving config data.
+	serverMux.HandleFunc("/config", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		resp := struct {
+			InstanceName  string `json:"instance_name"`
+			HeaderIconUrl string `json:"header_icon_url"`
+		}{
+			InstanceName:  server.instanceName,
+			HeaderIconUrl: server.headerIconUrl,
+		}
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			httputils.ReportError(w, err, "Failed to encode config", http.StatusInternalServerError)
+		}
+	})
 }
 
 // server sets up the server instances to start listening for incoming requests.
