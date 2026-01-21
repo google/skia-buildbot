@@ -101,6 +101,8 @@ go_test(
         "//go/roles",
         "//go/skerr",
         "//go/testutils",
+        "//perf/go/alerts",
+        "//perf/go/alerts/mock",
         "//perf/go/anomalygroup/mocks",
         "//perf/go/chromeperf",
         "//perf/go/chromeperf/mock",

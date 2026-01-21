@@ -3,14 +3,21 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/alogin"
+	alogin_mocks "go.skia.org/infra/go/alogin/mocks"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/perf/go/alerts"
+	alerts_mock "go.skia.org/infra/perf/go/alerts/mock"
 	anomalygroup_mocks "go.skia.org/infra/perf/go/anomalygroup/mocks"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
@@ -20,6 +27,8 @@ import (
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/regression"
 	reg_mocks "go.skia.org/infra/perf/go/regression/mocks"
+	subscription_mocks "go.skia.org/infra/perf/go/subscription/mocks"
+	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
@@ -435,4 +444,111 @@ func TestGetGroupReport_SelectedKeys(t *testing.T) {
 	// In this case, the logic is in the main GetGroupReport function,
 	// so we can't test it directly here. We'll test the behavior
 	// in the integration tests for GetGroupReport.
+}
+
+func TestGetAnomalyList_Pagination(t *testing.T) {
+	loginMock := alogin_mocks.NewLogin(t)
+	subStore := subscription_mocks.NewStore(t)
+	alertStore := alerts_mock.NewStore(t)
+	regStore := reg_mocks.NewStore(t)
+
+	api := anomaliesApi{
+		loginProvider: loginMock,
+		subStore:      subStore,
+		alertStore:    alertStore,
+		regStore:      regStore,
+	}
+
+	sheriff := "test-sheriff"
+	paginationOffset := 100
+	loginMock.On("LoggedInAs", mock.Anything).Return(alogin.EMail("user@google.com"))
+
+	sub := &pb.Subscription{Name: sheriff}
+	subStore.On("GetActiveSubscription", mock.Anything, sheriff).Return(sub, nil)
+
+	alertStore.On("ListForSubscription", mock.Anything, sheriff).Return([]*alerts.Alert{}, nil)
+
+	traceset := ",arch=x86,bot=linux,benchmark=jetstream2,test=score,config=default,master=main,"
+	regressions := []*regression.Regression{
+		{
+			Id: "reg-1",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						traceset: []float32{1.0},
+					},
+				},
+			},
+		},
+	}
+	regStore.On("GetRegressionsBySubName", mock.Anything, sheriff, regressionsPageSize, paginationOffset).Return(regressions, nil)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", fmt.Sprintf("/_/anomalies/anomaly_list_skia?sheriff=%s&pagination_offset=%d", sheriff, paginationOffset), nil)
+
+	api.GetAnomalyList(w, r)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	var resp GetAnomaliesResponse
+	err := json.NewDecoder(w.Body).Decode(&resp)
+	require.NoError(t, err)
+	assert.Equal(t, "maybe_more_anomalies", resp.QueryCursor)
+
+	loginMock.AssertExpectations(t)
+	subStore.AssertExpectations(t)
+	alertStore.AssertExpectations(t)
+	regStore.AssertExpectations(t)
+}
+
+func TestGetAnomalyList_DefaultPagination(t *testing.T) {
+	loginMock := alogin_mocks.NewLogin(t)
+	subStore := subscription_mocks.NewStore(t)
+	alertStore := alerts_mock.NewStore(t)
+	regStore := reg_mocks.NewStore(t)
+
+	api := anomaliesApi{
+		loginProvider: loginMock,
+		subStore:      subStore,
+		alertStore:    alertStore,
+		regStore:      regStore,
+	}
+
+	sheriff := "test-sheriff"
+	loginMock.On("LoggedInAs", mock.Anything).Return(alogin.EMail("user@google.com"))
+
+	sub := &pb.Subscription{Name: sheriff}
+	subStore.On("GetActiveSubscription", mock.Anything, sheriff).Return(sub, nil)
+
+	alertStore.On("ListForSubscription", mock.Anything, sheriff).Return([]*alerts.Alert{}, nil)
+
+	traceset := ",arch=x86,bot=linux,benchmark=jetstream2,test=score,config=default,master=main,"
+	regressions := []*regression.Regression{
+		{
+			Id: "reg-1",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						traceset: []float32{1.0},
+					},
+				},
+			},
+		},
+	}
+	regStore.On("GetRegressionsBySubName", mock.Anything, sheriff, regressionsPageSize, 0).Return(regressions, nil)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", fmt.Sprintf("/_/anomalies/anomaly_list_skia?sheriff=%s", sheriff), nil)
+
+	api.GetAnomalyList(w, r)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	var resp GetAnomaliesResponse
+	err := json.NewDecoder(w.Body).Decode(&resp)
+	require.NoError(t, err)
+	assert.Equal(t, "maybe_more_anomalies", resp.QueryCursor)
+
+	loginMock.AssertExpectations(t)
+	subStore.AssertExpectations(t)
+	alertStore.AssertExpectations(t)
+	regStore.AssertExpectations(t)
 }

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,6 +33,7 @@ import (
 
 const (
 	defaultAnomaliesRequestTimeout = time.Second * 30
+	regressionsPageSize            = 50
 )
 
 type anomaliesApi struct {
@@ -54,11 +56,12 @@ type GetSheriffListResponse struct {
 
 // Request object for the request from the anomaly table UI.
 type GetAnomaliesRequest struct {
-	Sheriff             string `json:"sheriff"`
+	SubName             string `json:"sheriff"`
 	IncludeTriaged      bool   `json:"triaged"`
 	IncludeImprovements bool   `json:"improvements"`
 	QueryCursor         string `json:"anomaly_cursor"`
 	Host                string `json:"host"`
+	PaginationOffset    int    `json:"pagination_offset,omitempty"`
 }
 
 // Response object for the request from the anomaly table UI.
@@ -171,7 +174,7 @@ func (api anomaliesApi) GetGroupReportDefault(w http.ResponseWriter, r *http.Req
 
 func (api anomaliesApi) GetSheriffListLegacy(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
-		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -199,13 +202,11 @@ func (api anomaliesApi) GetSheriffListLegacy(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	sklog.Debugf("[SkiaTriage] sheriff config list is loaded: %v", getSheriffListResponse.SheriffList)
-
-	return
 }
 
 func (api anomaliesApi) GetAnomalyListLegacy(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
-		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -237,15 +238,13 @@ func (api anomaliesApi) GetAnomalyListLegacy(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	sklog.Debugf("[SkiaTriage] %d anomalies are received.", len(getAnoamliesResponse.Anomalies))
-
-	return
 }
 
 // This function is to redirect the report page request to the group_report
 // endpoint in Chromeperf.
 func (api anomaliesApi) GetGroupReportLegacy(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
-		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -340,7 +339,7 @@ func (api anomaliesApi) GetGroupReportLegacy(w http.ResponseWriter, r *http.Requ
 // GetSheriffListSkia handles requests to retrieve the list of sheriffs from the Skia internal store.
 func (api anomaliesApi) GetSheriffList(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
-		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -369,28 +368,25 @@ func (api anomaliesApi) GetSheriffList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sklog.Debugf("[SkiaTriage] sheriff config list is loaded: %v", getSheriffListResponse.SheriffList)
-
-	return
 }
 
 // GetAnomalyListSkia handles requests to retrieve the list of anomalies from the Skia internal store as
 // well as Subscription and Alert information.
 func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
-		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
-	query_values := r.URL.Query()
 	w.Header().Set("Content-Type", "application/json")
 
-	subName := query_values.Get("sheriff")
+	queryValues := parseGetAnomalyListRequest(r)
 
 	ctx, cancel := context.WithTimeout(r.Context(), defaultAnomaliesRequestTimeout)
 	defer cancel()
 
 	getAnomaliesResponse := &GetAnomaliesResponse{}
-	sub, err := api.subStore.GetActiveSubscription(ctx, subName)
+	sub, err := api.subStore.GetActiveSubscription(ctx, queryValues.SubName)
 	if sub == nil {
 		httputils.ReportError(w, err, "No matching subscription found", http.StatusNotFound)
 		return
@@ -402,7 +398,7 @@ func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 
 	getAnomaliesResponse.Subscription = sub
 
-	alertsFromStore, err := api.alertStore.ListForSubscription(ctx, subName)
+	alertsFromStore, err := api.alertStore.ListForSubscription(ctx, queryValues.SubName)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get list of alerts", http.StatusInternalServerError)
 		return
@@ -416,7 +412,8 @@ func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 	}
 	getAnomaliesResponse.Alerts = alertsForResponse
 
-	regressions, err := api.regStore.GetRegressionsBySubName(ctx, subName, 50, 0)
+	regressions, err := api.regStore.GetRegressionsBySubName(ctx,
+		queryValues.SubName, regressionsPageSize, queryValues.PaginationOffset)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get regressions", http.StatusInternalServerError)
 		return
@@ -436,6 +433,9 @@ func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	getAnomaliesResponse.Anomalies = anomalies
+	if len(anomalies) > 0 {
+		getAnomaliesResponse.QueryCursor = "maybe_more_anomalies"
+	}
 
 	if err := json.NewEncoder(w).Encode(getAnomaliesResponse); err != nil {
 		httputils.ReportError(w, err, "Failed to write get anoamlies response.", http.StatusInternalServerError)
@@ -446,7 +446,7 @@ func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 
 func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
-		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -638,4 +638,29 @@ func cleanTestName(testName string) (string, error) {
 	}
 	// Join the cleaned parts back together.
 	return strings.Join(parts, "/"), nil
+}
+
+func parseGetAnomalyListRequest(r *http.Request) GetAnomaliesRequest {
+	query := r.URL.Query()
+	includeTriaged, err := strconv.ParseBool(query.Get("triaged"))
+	if err != nil {
+		includeTriaged = false
+	}
+	includeImprovements, err := strconv.ParseBool(query.Get("improvements"))
+	if err != nil {
+		includeImprovements = false
+	}
+	paginationOffset, err := strconv.Atoi(query.Get("pagination_offset"))
+	if err != nil {
+		paginationOffset = 0
+	}
+	queryValues := GetAnomaliesRequest{
+		SubName:             query.Get("sheriff"),
+		IncludeTriaged:      includeTriaged,
+		IncludeImprovements: includeImprovements,
+		QueryCursor:         query.Get("anomaly_cursor"),
+		Host:                query.Get("host"),
+		PaginationOffset:    paginationOffset,
+	}
+	return queryValues
 }

@@ -148,6 +148,13 @@ export class RegressionsPageSk extends ElementSk {
     if (this.anomalyCursor) {
       queryMap.set('anomaly_cursor', this.anomalyCursor);
     }
+
+    // This is used only when fetching regressions from SQL, fetching from
+    // chromeperf does not utilize this param.
+    if (this.state.useSkia && this.cpAnomalies.length > 0) {
+      queryMap.set('pagination_offset', this.cpAnomalies.length);
+    }
+
     const queryPairs: string[] = [];
     let queryStr = '';
     if (queryMap.size > 0) {
