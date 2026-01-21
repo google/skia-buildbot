@@ -1418,7 +1418,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "BI6PGebfRQ5f6Zd+vyBVubF8clsDBGm0s0NJJ67X078=",
+        "usagesDigest": "ZyL+nfD3XJTrOh5qT11YS+4l68Zn5siAmWvOMV4aG3E=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1565,7 +1565,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "skia-public/cd-base",
-              "identifier": "sha256:59412eeaf3336f14a8fef1b0b02134c9877bf5aba16549e8c59d5e4de29719b8",
+              "identifier": "sha256:62533dc4836cd2c152a6a637126e784879081af4364f5acbdc5aa5df614dad25",
               "target_name": "cd-base_single",
               "bazel_tags": []
             }
@@ -1578,7 +1578,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "skia-public/cd-base",
-              "identifier": "sha256:59412eeaf3336f14a8fef1b0b02134c9877bf5aba16549e8c59d5e4de29719b8",
+              "identifier": "sha256:62533dc4836cd2c152a6a637126e784879081af4364f5acbdc5aa5df614dad25",
               "platforms": {},
               "platform": "@@rules_oci+//oci:cd-base_single",
               "bzlmod_repository": "cd-base",
