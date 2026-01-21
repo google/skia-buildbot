@@ -3,9 +3,11 @@ package cacher
 import (
 	"context"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/cas"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -44,14 +46,16 @@ type CacherImpl struct {
 	rbeCas cas.CAS
 	s      *syncer.Syncer
 	tcc    task_cfg_cache.TaskCfgCache
+	gerrit gerrit.GerritInterface
 }
 
 // New creates a Cacher instance.
-func New(s *syncer.Syncer, tcc task_cfg_cache.TaskCfgCache, rbeCas cas.CAS) *CacherImpl {
+func New(s *syncer.Syncer, tcc task_cfg_cache.TaskCfgCache, rbeCas cas.CAS, g gerrit.GerritInterface) *CacherImpl {
 	return &CacherImpl{
 		rbeCas: rbeCas,
 		s:      s,
 		tcc:    tcc,
+		gerrit: g,
 	}
 }
 
@@ -64,6 +68,20 @@ func (c *CacherImpl) GetOrCacheRepoState(ctx context.Context, rs types.RepoState
 
 	// Obtain the TasksCfg.
 	cv, err := c.tcc.SetIfUnset(ctx, rs, func(ctx context.Context) (*task_cfg_cache.CachedValue, error) {
+		if rs.IsTryJob() {
+			issue, err := strconv.ParseInt(rs.Issue, 10, 64)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "issue number isn't parseable as integer")
+			}
+			m, err := c.gerrit.GetMergeable(ctx, issue, rs.Patchset)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "failed to determine if CL is mergeable")
+			}
+			if !m.Mergeable {
+				return nil, skerr.Fmt("CL is not mergeable (issue %s patchset %s)", rs.Issue, rs.Patchset)
+			}
+		}
+
 		var tasksCfg *specs.TasksCfg
 		err := ltgr.Do(ctx, func(co *git.TempCheckout) error {
 			cfg, err := specs.ReadTasksCfg(co.Dir())

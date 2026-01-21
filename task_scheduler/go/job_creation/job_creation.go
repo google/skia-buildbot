@@ -99,7 +99,7 @@ func newJobCreatorWithoutInit(ctx context.Context, d db.DB, period time.Duration
 		return nil, skerr.Wrapf(err, "failed to create Syncer")
 	}
 
-	chr := cacher.New(sc, taskCfgCache, rbe)
+	chr := cacher.New(sc, taskCfgCache, rbe, gerrit)
 
 	tryjobs, err := tryjobs.NewTryJobIntegrator(ctx, buildbucketProject, buildbucketTarget, buildbucketBucket, host, c, d, jCache, projectRepoMapping, repos, taskCfgCache, chr, gerrit, pubsubClient)
 	if err != nil {

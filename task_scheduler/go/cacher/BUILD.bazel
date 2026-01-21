@@ -8,6 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/cas",
+        "//go/gerrit",
         "//go/git",
         "//go/skerr",
         "//task_scheduler/go/specs",
@@ -26,6 +27,8 @@ go_test(
         "//go/cas/rbe",
         "//go/deepequal/assertdeep",
         "//go/depot_tools/testutils",
+        "//go/gerrit",
+        "//go/gerrit/mocks",
         "//go/git/repograph",
         "//go/git/testutils",
         "//go/testutils",

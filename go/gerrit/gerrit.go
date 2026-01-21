@@ -437,6 +437,17 @@ type Revision struct {
 	Ref           string    `json:"ref"`
 }
 
+// MergeableInfo contains information about the mergeability of a change.
+type MergeableInfo struct {
+	SubmitType    string   `json:"submit_type"`
+	Strategy      string   `json:"strategy,omitempty"`
+	Mergeable     bool     `json:"mergeable"`
+	CommitMerged  *bool    `json:"commit_merged,omitempty"`
+	ContentMerged *bool    `json:"content_merged,omitempty"`
+	Conflicts     []string `json:"conflicts,omitempty"`
+	MergeableInto []string `json:"mergeable_into,omitempty"`
+}
+
 // GerritInterface describes interactions with a Gerrit host.
 type GerritInterface interface {
 	Abandon(context.Context, *ChangeInfo, string) error
@@ -460,6 +471,7 @@ type GerritInterface interface {
 	GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error)
 	GetFilesToContent(ctx context.Context, issue int64, revision string) (map[string]string, error)
 	GetIssueProperties(context.Context, int64) (*ChangeInfo, error)
+	GetMergeable(ctx context.Context, issue int64, revision string) (*MergeableInfo, error)
 	GetPatch(context.Context, int64, string, string) (string, error)
 	GetRepoUrl() string
 	GetTrybotResults(context.Context, int64, int64) ([]*buildbucketpb.Build, error)
@@ -1724,7 +1736,7 @@ func UnsetLabels(ci *ChangeInfo, labels map[string]int) {
 func ParseChangeId(msg string) (string, error) {
 	for _, line := range strings.Split(msg, "\n") {
 		m := changeIdRegex.FindStringSubmatch(line)
-		if m != nil && len(m) == 2 {
+		if len(m) == 2 {
 			return m[1], nil
 		}
 	}
@@ -1762,4 +1774,14 @@ func (g *Gerrit) doRequest(req *http.Request) (*http.Response, error) {
 		err = skerr.Wrapf(err, "trace ID %q", traceID)
 	}
 	return resp, skerr.Wrap(err)
+}
+
+// GetMergeable implements GerritInterface.
+func (g *Gerrit) GetMergeable(ctx context.Context, issue int64, revision string) (*MergeableInfo, error) {
+	url := fmt.Sprintf("/changes/%d/revisions/%s/mergeable", issue, revision)
+	var mergeableInfo MergeableInfo
+	if err := g.get(ctx, url, &mergeableInfo, nil); err != nil {
+		return nil, skerr.Wrapf(err, "failed to retrieve MergeableInfo")
+	}
+	return &mergeableInfo, nil
 }

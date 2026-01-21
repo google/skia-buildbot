@@ -11,6 +11,8 @@ import (
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
+	"go.skia.org/infra/go/gerrit"
+	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
@@ -41,7 +43,8 @@ func setup(t *testing.T) (context.Context, *CacherImpl, task_cfg_cache.TaskCfgCa
 	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	require.NoError(t, err)
 	cas := &mocks.CAS{}
-	c := New(s, tcc, cas)
+	g := &gerrit_mocks.GerritInterface{}
+	c := New(s, tcc, cas, g)
 	return ctx, c, tcc, cas, rs, gb, func() {
 		testutils.RemoveAll(t, wd)
 		gb.Cleanup()
@@ -120,4 +123,61 @@ func TestGetOrCacheRepoState_Unset_RBE(t *testing.T) {
 	require.Nil(t, cachedErr)
 	require.NotNil(t, cached)
 	require.Equal(t, "fake-digest", cached.CasSpecs["my-cas"].Digest)
+}
+
+func TestGetOrCacheRepoState_Tryjob_Mergeable(t *testing.T) {
+	ctx, c, tcc, _, rs, gb, cleanup := setup(t)
+	defer cleanup()
+
+	rs.Server = "fake-review.googlesource.com"
+	rs.Issue = "12345"
+	rs.Patchset = "1"
+	gb.CreateFakeGerritCLGen(ctx, rs.Issue, rs.Patchset)
+
+	// Verify that the cache entry doesn't exist yet.
+	cached, cachedErr, err := tcc.Get(ctx, rs)
+	require.EqualError(t, task_cfg_cache.ErrNoSuchEntry, err.Error())
+	require.Nil(t, cachedErr)
+	require.Nil(t, cached)
+
+	// Run GetOrCacheRepoState to populate the cache.
+	c.gerrit.(*gerrit_mocks.GerritInterface).On("GetMergeable", testutils.AnyContext, int64(12345), "1").Return(&gerrit.MergeableInfo{
+		Mergeable: true,
+	}, nil)
+	_, err = c.GetOrCacheRepoState(ctx, rs)
+	require.NoError(t, err)
+
+	// Verify that the cache entry now exists.
+	cached, cachedErr, err = tcc.Get(ctx, rs)
+	require.NoError(t, err)
+	require.Nil(t, cachedErr)
+	require.NotNil(t, cached)
+}
+
+func TestGetOrCacheRepoState_Tryjob_NotMergeable(t *testing.T) {
+	ctx, c, tcc, _, rs, _, cleanup := setup(t)
+	defer cleanup()
+
+	rs.Server = "fake-review.googlesource.com"
+	rs.Issue = "12345"
+	rs.Patchset = "1"
+
+	// Verify that the cache entry doesn't exist yet.
+	cached, cachedErr, err := tcc.Get(ctx, rs)
+	require.EqualError(t, task_cfg_cache.ErrNoSuchEntry, err.Error())
+	require.Nil(t, cachedErr)
+	require.Nil(t, cached)
+
+	// Run GetOrCacheRepoState to populate the cache.
+	c.gerrit.(*gerrit_mocks.GerritInterface).On("GetMergeable", testutils.AnyContext, int64(12345), "1").Return(&gerrit.MergeableInfo{
+		Mergeable: false,
+	}, nil)
+	_, err = c.GetOrCacheRepoState(ctx, rs)
+	require.ErrorContains(t, err, "CL is not mergeable")
+
+	// Verify that the cache entry does not exist.
+	cached, cachedErr, err = tcc.Get(ctx, rs)
+	require.EqualError(t, task_cfg_cache.ErrNoSuchEntry, err.Error())
+	require.Nil(t, cachedErr)
+	require.Nil(t, cached)
 }
