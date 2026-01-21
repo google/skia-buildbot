@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/anomalygroup"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/chromeperf/compat"
@@ -52,16 +53,6 @@ type anomaliesApi struct {
 type GetSheriffListResponse struct {
 	SheriffList []string `json:"sheriff_list"`
 	Error       string   `json:"error"`
-}
-
-// Request object for the request from the anomaly table UI.
-type GetAnomaliesRequest struct {
-	SubName             string `json:"sheriff"`
-	IncludeTriaged      bool   `json:"triaged"`
-	IncludeImprovements bool   `json:"improvements"`
-	QueryCursor         string `json:"anomaly_cursor"`
-	Host                string `json:"host"`
-	PaginationOffset    int    `json:"pagination_offset,omitempty"`
 }
 
 // Response object for the request from the anomaly table UI.
@@ -412,8 +403,7 @@ func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 	}
 	getAnomaliesResponse.Alerts = alertsForResponse
 
-	regressions, err := api.regStore.GetRegressionsBySubName(ctx,
-		queryValues.SubName, regressionsPageSize, queryValues.PaginationOffset)
+	regressions, err := api.regStore.GetRegressionsBySubName(ctx, queryValues, regressionsPageSize)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get regressions", http.StatusInternalServerError)
 		return
@@ -640,7 +630,7 @@ func cleanTestName(testName string) (string, error) {
 	return strings.Join(parts, "/"), nil
 }
 
-func parseGetAnomalyListRequest(r *http.Request) GetAnomaliesRequest {
+func parseGetAnomalyListRequest(r *http.Request) anomalies.GetAnomaliesRequest {
 	query := r.URL.Query()
 	includeTriaged, err := strconv.ParseBool(query.Get("triaged"))
 	if err != nil {
@@ -654,7 +644,7 @@ func parseGetAnomalyListRequest(r *http.Request) GetAnomaliesRequest {
 	if err != nil {
 		paginationOffset = 0
 	}
-	queryValues := GetAnomaliesRequest{
+	queryValues := anomalies.GetAnomaliesRequest{
 		SubName:             query.Get("sheriff"),
 		IncludeTriaged:      includeTriaged,
 		IncludeImprovements: includeImprovements,

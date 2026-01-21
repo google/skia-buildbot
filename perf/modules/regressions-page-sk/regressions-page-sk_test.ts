@@ -385,4 +385,27 @@ describe('regressions-page-sk', () => {
       );
     });
   });
+
+  describe('RegressionsPageSk - fetchRegressions with showTriaged', () => {
+    let element: RegressionsPageSk;
+    beforeEach(async () => {
+      element = newInstance();
+      await fetchMock.flush(true);
+      // Reset any previous state for fetchRegressions
+      element.anomalyCursor = '';
+      element.cpAnomalies = [];
+    });
+
+    it('should call anomaly_list without triaged=true when showTriaged is false', async () => {
+      await element.fetchRegressions();
+      // Verify that the call was made without triaged=true, and potentially without triaged at all if that\'s the default API behavior for false.
+      // The current setup has a mock for \'/_\/anomalies/anomaly_list\' for the default case (triaged=false implicitly)
+      assert.equal(fetchMock.lastUrl(), '/_/anomalies/anomaly_list');
+    });
+
+    it('should call anomaly_list with triaged=true when showTriaged is true', async () => {
+      await element.triagedChange();
+      assert.equal(fetchMock.lastUrl(), '/_/anomalies/anomaly_list?triaged=true');
+    });
+  });
 });

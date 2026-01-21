@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
@@ -376,25 +377,19 @@ func (rApi regressionsApi) unixTimestampRangeToCommitNumberRange(ctx context.Con
 }
 
 // regressionsHandler returns a list of regressions for a given subscription.
+// TODO(b/477238168) Unused outside regressions demo. This is doubled by anomaly api's GetAnomalyList.
 func (rApi regressionsApi) regressionsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
 	ctx, span := trace.StartSpan(ctx, "regressionsQueryRequest")
 	defer span.End()
 
-	sub_name := r.URL.Query().Get("sub_name")
-	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	limit, req, err := parseQueryValues(r, w)
 	if err != nil {
-		httputils.ReportError(w, err, "Limit value is not an integer", http.StatusBadRequest)
-		return
+		httputils.ReportError(w, err, "malformed regressions request", http.StatusBadRequest)
 	}
-	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-	if err != nil {
-		httputils.ReportError(w, err, "Offset value is not an integer", http.StatusBadRequest)
-		return
-	}
-
-	regressionsList, err := rApi.regStore.GetRegressionsBySubName(ctx, sub_name, limit, offset)
+	// GetAnomalyList request does not contain a "limit" field, so we provide it separately.
+	regressionsList, err := rApi.regStore.GetRegressionsBySubName(ctx, req, limit)
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to fetch regressions", http.StatusInternalServerError)
 		return
@@ -669,4 +664,41 @@ func getGraphQueryParamsForAnomalyId(anomalyIds []string) url.Values {
 	return url.Values{
 		"highlight_anomalies": anomalyIds,
 	}
+}
+
+func parseQueryValues(r *http.Request, w http.ResponseWriter) (int, anomalies.GetAnomaliesRequest, error) {
+	query := r.URL.Query()
+	subName := query.Get("sub_name")
+	limit, err := strconv.Atoi(query.Get("limit"))
+	if err != nil {
+		return 0, anomalies.GetAnomaliesRequest{}, skerr.Wrapf(err, "limit value is not an integer")
+	}
+	offset, err := strconv.Atoi(query.Get("offset"))
+	if err != nil {
+		return 0, anomalies.GetAnomaliesRequest{}, skerr.Wrapf(err, "offset value is not an integer")
+	}
+	triagedStr := query.Get("triaged")
+	if triagedStr == "" {
+		triagedStr = "false"
+	}
+	triaged, err := strconv.ParseBool(triagedStr)
+	if err != nil {
+		return 0, anomalies.GetAnomaliesRequest{}, skerr.Wrapf(err, "include triaged value is not boolean")
+	}
+	improvementsStr := query.Get("improvements")
+	if improvementsStr == "" {
+		improvementsStr = "false"
+	}
+	improvements, err := strconv.ParseBool(improvementsStr)
+	if err != nil {
+		return 0, anomalies.GetAnomaliesRequest{}, skerr.Wrapf(err, "include improvements value is not boolean")
+	}
+
+	req := anomalies.GetAnomaliesRequest{
+		SubName:             subName,
+		PaginationOffset:    offset,
+		IncludeTriaged:      triaged,
+		IncludeImprovements: improvements,
+	}
+	return limit, req, nil
 }

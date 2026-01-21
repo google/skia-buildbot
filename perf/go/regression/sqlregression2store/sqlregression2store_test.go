@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/perf/go/alerts"
 	alerts_mock "go.skia.org/infra/perf/go/alerts/mock"
+	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
@@ -500,13 +501,22 @@ func TestGetRegressionsBySubName(t *testing.T) {
 	// 1. Setup: Insert two regressions to test sorting and pagination.
 	r1 := generateAndStoreNewRegression(ctx, t, store)
 	r2 := generateAndStoreNewRegression(ctx, t, store)
+	rImp := generateNewRegression()
+	rImp.Frame.DataFrame.ParamSet = map[string][]string{
+		"improvement_direction": {"down"},
+	}
+	if rImp.High != nil && rImp.High.StepFit != nil {
+		rImp.High.StepFit.Status = stepfit.LOW
+	}
+	_, err := store.WriteRegression(ctx, rImp, nil)
+	assert.Nil(t, err)
 
 	// Ensure r1 is older than r2.
 	olderTime := time.Now().Add(-1 * time.Hour)
-	_, err := store.db.Exec(ctx, "UPDATE Regressions2 SET creation_time = $1 WHERE id = $2", olderTime, r1.Id)
+	_, err = store.db.Exec(ctx, "UPDATE Regressions2 SET creation_time = $1 WHERE id = $2", olderTime, r1.Id)
 	require.NoError(t, err)
 
-	// 2. Associate both regressions with the same subscription (sub_name).
+	// 2. Associate all regressions with the same subscription (sub_name).
 	setupAlertSubName := func(alertID int64, subName string) {
 		query := `
 			INSERT INTO Alerts (id, sub_name)
@@ -520,62 +530,87 @@ func TestGetRegressionsBySubName(t *testing.T) {
 	}
 	setupAlertSubName(r1.AlertId, "my-sub")
 	setupAlertSubName(r2.AlertId, "my-sub")
+	setupAlertSubName(rImp.AlertId, "my-sub")
+
+	// Sorted from newest to oldest
+	rIds := []string{rImp.Id, r2.Id, r1.Id}
 
 	// 3. Test cases.
 	tests := []struct {
-		name        string
-		subName     string
-		limit       int
-		offset      int
-		expectedLen int
+		name         string
+		subName      string
+		limit        int
+		offset       int
+		expectedLen  int
+		improvements bool
 		// expectedIDs is used to verify the exact order of return
 		expectedIDs []string
 	}{
 		{
-			name:        "happy path - get all (newest first)",
-			subName:     "my-sub",
-			limit:       10,
-			offset:      0,
-			expectedLen: 2,
-			expectedIDs: []string{r2.Id, r1.Id}, // Expect r2 (newer) then r1 (older)
+			name:         "happy path - get all (newest first)",
+			subName:      "my-sub",
+			limit:        10,
+			offset:       0,
+			expectedLen:  3,
+			improvements: true,
+			expectedIDs:  rIds,
 		},
 		{
-			name:        "pagination - limit 1 (get newest)",
-			subName:     "my-sub",
-			limit:       1,
-			offset:      0,
-			expectedLen: 1,
-			expectedIDs: []string{r2.Id},
+			name:         "pagination - limit 1 (get newest)",
+			subName:      "my-sub",
+			limit:        1,
+			offset:       0,
+			expectedLen:  1,
+			improvements: true,
+			expectedIDs:  []string{rImp.Id},
 		},
 		{
-			name:        "pagination - offset 1 (get older)",
-			subName:     "my-sub",
-			limit:       10,
-			offset:      1,
-			expectedLen: 1,
-			expectedIDs: []string{r1.Id},
+			name:         "pagination - get oldest via offset manipulation",
+			subName:      "my-sub",
+			limit:        10,
+			offset:       len(rIds) - 1,
+			expectedLen:  1,
+			improvements: true,
+			expectedIDs:  []string{r1.Id},
 		},
 		{
-			name:        "no regressions for sub name",
-			subName:     "non-existent-sub",
-			limit:       10,
-			offset:      0,
-			expectedLen: 0,
-			expectedIDs: []string{},
+			name:         "no regressions for sub name",
+			subName:      "non-existent-sub",
+			limit:        10,
+			offset:       0,
+			expectedLen:  0,
+			improvements: true,
+			expectedIDs:  []string{},
 		},
 		{
-			name:        "limit 0 returns nothing",
-			subName:     "my-sub",
-			limit:       0,
-			offset:      0,
-			expectedLen: 0,
-			expectedIDs: []string{},
+			name:         "limit 0 returns nothing",
+			subName:      "my-sub",
+			limit:        0,
+			offset:       0,
+			expectedLen:  0,
+			improvements: true,
+			expectedIDs:  []string{},
+		},
+		{
+			name:         "hide improvements",
+			subName:      "my-sub",
+			limit:        10,
+			offset:       0,
+			expectedLen:  2,
+			improvements: false,
+			expectedIDs:  []string{r2.Id, r1.Id}, // Expect r2 (newer) then r1 (older)
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			regs, err := store.GetRegressionsBySubName(ctx, tc.subName, tc.limit, tc.offset)
+			req := anomalies.GetAnomaliesRequest{
+				SubName:             tc.subName,
+				PaginationOffset:    tc.offset,
+				IncludeImprovements: tc.improvements,
+				IncludeTriaged:      true,
+			}
+			regs, err := store.GetRegressionsBySubName(ctx, req, tc.limit)
 			require.NoError(t, err)
 			assert.Len(t, regs, tc.expectedLen)
 

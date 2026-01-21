@@ -3,9 +3,10 @@
 package mocks
 
 import (
-	context "context"
-
+	anomalies "go.skia.org/infra/perf/go/anomalies"
 	clustering2 "go.skia.org/infra/perf/go/clustering2"
+
+	context "context"
 
 	frame "go.skia.org/infra/perf/go/ui/frame"
 
@@ -223,9 +224,9 @@ func (_m *Store) GetRegression(ctx context.Context, commitNumber types.CommitNum
 	return r0, r1
 }
 
-// GetRegressionsBySubName provides a mock function with given fields: ctx, sub_name, limit, offset
-func (_m *Store) GetRegressionsBySubName(ctx context.Context, sub_name string, limit int, offset int) ([]*regression.Regression, error) {
-	ret := _m.Called(ctx, sub_name, limit, offset)
+// GetRegressionsBySubName provides a mock function with given fields: ctx, req, limit
+func (_m *Store) GetRegressionsBySubName(ctx context.Context, req anomalies.GetAnomaliesRequest, limit int) ([]*regression.Regression, error) {
+	ret := _m.Called(ctx, req, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRegressionsBySubName")
@@ -233,19 +234,19 @@ func (_m *Store) GetRegressionsBySubName(ctx context.Context, sub_name string, l
 
 	var r0 []*regression.Regression
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) ([]*regression.Regression, error)); ok {
-		return rf(ctx, sub_name, limit, offset)
+	if rf, ok := ret.Get(0).(func(context.Context, anomalies.GetAnomaliesRequest, int) ([]*regression.Regression, error)); ok {
+		return rf(ctx, req, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) []*regression.Regression); ok {
-		r0 = rf(ctx, sub_name, limit, offset)
+	if rf, ok := ret.Get(0).(func(context.Context, anomalies.GetAnomaliesRequest, int) []*regression.Regression); ok {
+		r0 = rf(ctx, req, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*regression.Regression)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, int, int) error); ok {
-		r1 = rf(ctx, sub_name, limit, offset)
+	if rf, ok := ret.Get(1).(func(context.Context, anomalies.GetAnomaliesRequest, int) error); ok {
+		r1 = rf(ctx, req, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

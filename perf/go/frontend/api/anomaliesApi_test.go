@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/alerts"
 	alerts_mock "go.skia.org/infra/perf/go/alerts/mock"
+	"go.skia.org/infra/perf/go/anomalies"
 	anomalygroup_mocks "go.skia.org/infra/perf/go/anomalygroup/mocks"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
@@ -481,7 +482,11 @@ func TestGetAnomalyList_Pagination(t *testing.T) {
 			},
 		},
 	}
-	regStore.On("GetRegressionsBySubName", mock.Anything, sheriff, regressionsPageSize, paginationOffset).Return(regressions, nil)
+	req := anomalies.GetAnomaliesRequest{
+		SubName:          sheriff,
+		PaginationOffset: paginationOffset,
+	}
+	regStore.On("GetRegressionsBySubName", mock.Anything, req, regressionsPageSize).Return(regressions, nil)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", fmt.Sprintf("/_/anomalies/anomaly_list_skia?sheriff=%s&pagination_offset=%d", sheriff, paginationOffset), nil)
@@ -534,7 +539,11 @@ func TestGetAnomalyList_DefaultPagination(t *testing.T) {
 			},
 		},
 	}
-	regStore.On("GetRegressionsBySubName", mock.Anything, sheriff, regressionsPageSize, 0).Return(regressions, nil)
+	req := anomalies.GetAnomaliesRequest{
+		SubName:          sheriff,
+		PaginationOffset: 0,
+	}
+	regStore.On("GetRegressionsBySubName", mock.Anything, req, regressionsPageSize).Return(regressions, nil)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", fmt.Sprintf("/_/anomalies/anomaly_list_skia?sheriff=%s", sheriff), nil)

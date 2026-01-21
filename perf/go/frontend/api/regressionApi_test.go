@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/alogin/mocks"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/regression"
 	regressionMocks "go.skia.org/infra/perf/go/regression/mocks"
 )
@@ -26,7 +27,13 @@ func setupForTest(t *testing.T, userIsEditor bool) (*httptest.ResponseRecorder, 
 
 func TestFrontendRegressionsHandler_Success(t *testing.T) {
 	regMock := regressionMocks.NewStore(t)
-	regMock.On("GetRegressionsBySubName", testutils.AnyContext, "test", 10, 10).Return(
+	req := anomalies.GetAnomaliesRequest{
+		SubName:             "test",
+		PaginationOffset:    10,
+		IncludeTriaged:      false,
+		IncludeImprovements: false,
+	}
+	regMock.On("GetRegressionsBySubName", testutils.AnyContext, req, 10).Return(
 		[]*regression.Regression{
 			{
 				Id:      "r1",
@@ -45,6 +52,45 @@ func TestFrontendRegressionsHandler_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	r := httptest.NewRequest("GET", "/_/regressions?sub_name=test&limit=10&offset=10", nil)
+	f.regressionsHandler(w, r)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.Contains(t, w.Body.String(), "r1")
+	require.Contains(t, w.Body.String(), "r2")
+	require.Contains(t, w.Body.String(), "r3")
+}
+
+func TestFrontendRegressionsHandler_ShowTriagedAndImprovements(t *testing.T) {
+	regMock := regressionMocks.NewStore(t)
+	req := anomalies.GetAnomaliesRequest{
+		SubName:             "test",
+		PaginationOffset:    10,
+		IncludeTriaged:      true,
+		IncludeImprovements: true,
+	}
+	// TODO(b/477238168) determine what "triaged" really means.
+	regMock.On("GetRegressionsBySubName", testutils.AnyContext, req, 10).Return(
+		[]*regression.Regression{
+			{
+				Id:            "r1",
+				AlertId:       1,
+				IsImprovement: true,
+			},
+			{
+				Id:            "r2",
+				AlertId:       1,
+				IsImprovement: true,
+			},
+			{
+				Id:            "r3",
+				AlertId:       2,
+				IsImprovement: true,
+			},
+		}, nil)
+	f := NewRegressionsApi(nil, nil, nil, regMock, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	w := httptest.NewRecorder()
+
+	r := httptest.NewRequest("GET", "/_/regressions?sub_name=test&limit=10&offset=10&triaged=true&improvements=true", nil)
 	f.regressionsHandler(w, r)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
