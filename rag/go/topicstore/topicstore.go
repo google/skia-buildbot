@@ -128,8 +128,13 @@ func (s *topicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
 				Kind:  spanner.ClosedClosed,
 			}))
 			m := spanner.UpdateMap("Topics", map[string]interface{}{
-				"topic_id": topicID,
-				"title":    topic.Title,
+				"topic_id":           topicID,
+				"title":              topic.Title,
+				"topic_group":        topic.TopicGroup,
+				"commit_count":       topic.CommitCount,
+				"summary":            topic.Summary,
+				"code_context":       topic.CodeContext,
+				"code_context_lines": topic.CodeContextLines,
 			})
 			mutations = append(mutations, m)
 		}
