@@ -6,7 +6,7 @@ module(
 )
 
 bazel_dep(name = "aspect_bazel_lib", version = "2.21.1")
-bazel_dep(name = "aspect_rules_esbuild", version = "0.22.1")
+bazel_dep(name = "aspect_rules_esbuild", version = "0.25.0")
 bazel_dep(name = "aspect_rules_js", version = "2.5.0")
 bazel_dep(name = "aspect_rules_ts", version = "3.7.0")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.1")
