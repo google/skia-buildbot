@@ -113,6 +113,38 @@ cipd.package(
 )
 `
 
+const fakeModule2 = `
+module(name = "test_module", version = "")
+
+cipd = use_extension("@skia-infra//bazel/external:cipd_install.bzl", "cipd")
+
+_single_cipd_file = """
+exports_files(
+    [
+        "%s",
+    ],
+    visibility = ["//visibility:public"]
+)
+"""
+
+cipd.download_http(
+    name = "autoroll-config-generator",
+    build_file_content = _single_cipd_file % "autoroll-config-generator",
+    cipd_package = "skia/tools/autoroll-config-generator/linux-amd64",
+    sha256 = "d634b39d83a6caab822f6b7f6511edf35559bc42db15e05daea564f086515ee0",
+    tag = "git_revision:22e0531dac73e5a70136e50f84ce2e435a5060bf",
+)
+use_repo(cipd, "autoroll-config-generator")
+
+cipd.download_cipd(
+    name = "via-cipd",
+    cipd_package = "skia/internal/third_party/via-cipd",
+    sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+    tag = "version:2.2.1",
+)
+use_repo(cipd, "via-cipd")
+`
+
 func TestParseDeps_ReturnsMapOfAllDependencies_WORKSPACE(t *testing.T) {
 	actual, err := ParseDeps(fakeWorkspace)
 	require.NoError(t, err)
@@ -199,6 +231,39 @@ func TestParseDeps_ReturnsMapOfAllDependencies_MODULE(t *testing.T) {
 			SHA256: "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
 			sha256Pos: &ast.Pos{
 				Lineno:    29,
+				ColOffset: 13,
+			},
+		},
+	}, actual)
+}
+
+func TestParseDeps_ReturnsMapOfAllDependencies_MODULE2(t *testing.T) {
+	actual, err := ParseDeps(fakeModule2)
+	require.NoError(t, err)
+	require.Equal(t, map[DependencyID]Dependency{
+		"skia/tools/autoroll-config-generator/linux-amd64": {
+			ID:      "skia/tools/autoroll-config-generator/linux-amd64",
+			Version: "git_revision:22e0531dac73e5a70136e50f84ce2e435a5060bf",
+			versionPos: &ast.Pos{
+				Lineno:    20,
+				ColOffset: 10,
+			},
+			SHA256: "d634b39d83a6caab822f6b7f6511edf35559bc42db15e05daea564f086515ee0",
+			sha256Pos: &ast.Pos{
+				Lineno:    19,
+				ColOffset: 13,
+			},
+		},
+		"skia/internal/third_party/via-cipd": {
+			ID:      "skia/internal/third_party/via-cipd",
+			Version: "version:2.2.1",
+			versionPos: &ast.Pos{
+				Lineno:    28,
+				ColOffset: 10,
+			},
+			SHA256: "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
+			sha256Pos: &ast.Pos{
+				Lineno:    27,
 				ColOffset: 13,
 			},
 		},

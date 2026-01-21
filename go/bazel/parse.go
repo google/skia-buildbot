@@ -169,10 +169,12 @@ func parseCall(call *ast.Call) (Dependency, bool, error) {
 		funcName = string(obj.Id) + "." + string(attr.Attr)
 	}
 	parseFn := map[string]func(*ast.Call) (Dependency, error){
-		"cipd_install":   parseDepFromCallFunc("cipd_package", "tag"),
-		"cipd.package":   parseDepFromCallFunc("cipd_package", "tag"),
-		"container_pull": parseContainerPull,
-		"oci.pull":       parseOCIPull,
+		"cipd_install":       parseDepFromCallFunc("cipd_package", "tag"),
+		"cipd.package":       parseDepFromCallFunc("cipd_package", "tag"),
+		"cipd.download_http": parseDepFromCallFunc("cipd_package", "tag"),
+		"cipd.download_cipd": parseDepFromCallFunc("cipd_package", "tag"),
+		"container_pull":     parseContainerPull,
+		"oci.pull":           parseOCIPull,
 	}[funcName]
 	if parseFn != nil {
 		dep, err := parseFn(call)
