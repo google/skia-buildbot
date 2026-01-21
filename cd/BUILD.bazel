@@ -15,6 +15,13 @@ skia_app_container(
                 "0755",
             ],
         ],
+        "/cipd": [
+            [
+                "@bazelisk//file",
+                "0755",
+            ],
+        ],
     },
+    empty_dirs = {"/cipd": "0777"},
     repository = "skia-public/cd",
 )

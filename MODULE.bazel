@@ -395,7 +395,7 @@ use_repo(oci, "base-cipd")
 # skia_app_container macro.
 oci.pull(
     name = "cd-base",
-    digest = "sha256:62533dc4836cd2c152a6a637126e784879081af4364f5acbdc5aa5df614dad25",
+    digest = "sha256:59412eeaf3336f14a8fef1b0b02134c9877bf5aba16549e8c59d5e4de29719b8",
     image = "gcr.io/skia-public/cd-base",
 )
 use_repo(oci, "cd-base")
