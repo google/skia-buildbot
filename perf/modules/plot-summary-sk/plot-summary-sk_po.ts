@@ -86,4 +86,8 @@ export class PlotSummarySkPO extends PageObject {
     await page.mouse.move(endX, centerY, { steps: 10 });
     await page.mouse.up();
   }
+
+  async getSelectedRange(): Promise<{ begin: number; end: number } | null> {
+    return await this.element.applyFnToDOMNode((el: any) => el.selectedValueRange);
+  }
 }

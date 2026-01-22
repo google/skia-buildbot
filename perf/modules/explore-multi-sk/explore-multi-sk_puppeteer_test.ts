@@ -358,6 +358,72 @@ describe('Manual Plot Mode', () => {
     const finalShortcut = currentUrl.searchParams.get('shortcut');
     expect(finalShortcut).to.satisfy((s: string) => s === null || s === '');
   });
+
+  describe('with Plot Summary', () => {
+    beforeEach(async () => {
+      await testBed.page.goto(`${testBed.baseUrl}?manual_plot_mode=true&plotSummary=true`);
+    });
+
+    it('zooms both graphs when range selected in one', async () => {
+      const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+      const testPickerPO = explorePO.testPicker;
+
+      await testPickerPO.waitForPickerField(0);
+      const archField = await testPickerPO.getPickerField(0);
+      await archField.select('arm');
+      await testPickerPO.waitForSpinnerInactive();
+
+      await testPickerPO.waitForPickerField(1);
+      const osField = await testPickerPO.getPickerField(1);
+      await osField.select('Android');
+      await testPickerPO.waitForSpinnerInactive();
+
+      await testPickerPO.clickPlotButton();
+      await explorePO.waitForGraph(0);
+      const graph0 = explorePO.getGraph(0);
+      const plotSummaryPO0 = graph0.plotSummary;
+      await plotSummaryPO0.waitForPlotSummaryToLoad();
+
+      await osField.clear();
+      await osField.select('Ubuntu');
+      await testPickerPO.waitForSpinnerInactive();
+      await testPickerPO.clickPlotButton();
+      await explorePO.waitForGraphCount(2);
+      await explorePO.waitForGraph(0);
+      const graph1 = explorePO.getGraph(0);
+      const plotSummaryPO1 = graph1.plotSummary;
+      await plotSummaryPO1.waitForPlotSummaryToLoad();
+
+      const initialRange0 = await plotSummaryPO0.getSelectedRange();
+      const initialRange1 = await plotSummaryPO1.getSelectedRange();
+      const width0 = initialRange0!.end - initialRange0!.begin;
+      const width1 = initialRange1!.end - initialRange1!.begin;
+
+      const initialUrl = new URL(testBed.page.url());
+      const initialBegin = initialUrl.searchParams.get('begin');
+      const initialEnd = initialUrl.searchParams.get('end');
+
+      await plotSummaryPO0.selectRange(testBed.page, 0.25, 0.75);
+
+      const finalUrl = new URL(testBed.page.url());
+      const finalBegin = finalUrl.searchParams.get('begin');
+      const finalEnd = finalUrl.searchParams.get('end');
+
+      expect(finalBegin).to.not.equal(initialBegin);
+      expect(finalEnd).to.not.equal(initialEnd);
+      expect(Number(finalBegin)).to.not.be.NaN;
+      expect(Number(finalEnd)).to.not.be.NaN;
+
+      const finalRange0 = await plotSummaryPO0.getSelectedRange();
+      const finalRange1 = await plotSummaryPO1.getSelectedRange();
+      const finalWidth0 = finalRange0!.end - finalRange0!.begin;
+      const finalWidth1 = finalRange1!.end - finalRange1!.begin;
+
+      expect(finalWidth0).to.not.equal(width0);
+      expect(finalWidth1).to.not.equal(width1);
+      expect(finalWidth0).to.equal(finalWidth1);
+    });
+  });
 });
 
 describe('Explore Multi Sk with plotSummary', () => {
