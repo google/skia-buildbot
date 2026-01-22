@@ -65,6 +65,7 @@ var (
 	commitPosition = flag.Int("commit-position", 0, "Commit position (required for CBB).")
 	browser        = flag.String("browser", "chrome", "chrome or safari or edge (used by CBB only)")
 	channel        = flag.String("channel", "stable", "stable, dev or tp (used by CBB only)")
+	skipFinch      = flag.Bool("skip-finch", false, "Skip Finch config (used by CBB on desktop Chrome only)")
 	bucket         = flag.String("bucket", "prod", "GS bucket to upload results to (prod, exp, or none; used by CBB only)")
 	noWait         = flag.Bool("no-wait", false, "if true, don't wait for workflow to finish (used by CBB only)")
 )
@@ -379,6 +380,7 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 		Commit:    common.NewCombinedCommit(common.NewChromiumCommit(*commit)),
 		Browser:   *browser,
 		Channel:   *channel,
+		SkipFinch: *skipFinch,
 	}
 	p.Commit.Main.CommitPosition = int32(*commitPosition)
 

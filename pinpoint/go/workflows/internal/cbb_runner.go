@@ -37,6 +37,12 @@ type CbbRunnerParams struct {
 	// also support "dev", while Safari also supports "technology-preview".
 	Channel string
 
+	// SkipFinch is a bool flag used to disable certain Finch variation control.
+	// Only used for Chrome on desktop platforms.
+	// For Chrome Dev, it means passing --disable-field-trial-config to Chrome.
+	// For Chrome Stable, it means not using Finch top variations seed file.
+	SkipFinch bool
+
 	// The set of benchmarks to run, and the number of iterations for each.
 	// If nil, use default.
 	Benchmarks []BenchmarkRunConfig
@@ -166,6 +172,10 @@ func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
 		}
 	}
 
+	if cbb.SkipFinch {
+		browser += " sf"
+	}
+
 	// Chrome and Edge versions are used as-is, but Safari versions are too long.
 	// * Safari Stable version looks like "1.2.3 (12345.6.7.8)". Truncate at the space.
 	// * STP version looks like "1.2.3 (Release 123, 12345.6.7.8)". Keep only the release number.
@@ -238,8 +248,19 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 	browser := setupBrowser(cbb, bi)
 
 	extra_args := []string{browser}
-	if bi.Browser == "chrome" && bi.Channel == "stable" && bi.Platform != "android" {
-		extra_args = append(extra_args, "--disable-field-trial-config")
+	if bi.Browser == "chrome" && bi.Platform != "android" {
+		switch bi.Channel {
+		case "stable":
+			if !cbb.SkipFinch {
+				extra_args = append(
+					extra_args,
+					"--variations-test-seed-path=../../components/variations/test_data/cipd/single_group_per_study_prefer_existing_behavior/seed.json")
+			}
+		case "dev":
+			if cbb.SkipFinch {
+				extra_args = append(extra_args, "--disable-field-trial-config")
+			}
+		}
 	}
 
 	results := map[string]*format.Format{}
@@ -264,7 +285,7 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 			return nil, skerr.Wrap(err)
 		}
 
-		r := formatResult(ctx, cr, cbb.BotConfig, p.Benchmark, bi, startTime, p.PinpointJobID)
+		r := formatResult(ctx, cr, cbb.BotConfig, p.Benchmark, bi, cbb.SkipFinch, startTime, p.PinpointJobID)
 		results[b.Benchmark] = r
 
 		if cbb.Bucket != "" {
@@ -307,7 +328,7 @@ func (StringWriterCloser) Close() error {
 
 // Taking all swarming task results for one benchmark on one bot config,
 // and convert the results into the format required by the perf dashboard.
-func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark string, bi *browserInfo, startTime time.Time, jobId string) *format.Format {
+func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark string, bi *browserInfo, skipFinch bool, startTime time.Time, jobId string) *format.Format {
 	// Create a link to the Temporal workflow that is currently running.
 	// This link will be included in the pop-up for the result, to help debugging.
 	isDev := strings.HasPrefix(workflow.GetActivityOptions(ctx).TaskQueue, "localhost.")
@@ -368,6 +389,9 @@ func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark str
 	browser_id := fmt.Sprintf("%s %s", bi.Browser, bi.Channel)
 	browser_id = strings.ReplaceAll(browser_id, "-", " ")
 	browser_id = strings.Title(browser_id)
+	if skipFinch {
+		browser_id += " Without Finch"
+	}
 
 	for c, v := range values {
 		h := perfresults.Histogram{
