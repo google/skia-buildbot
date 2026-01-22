@@ -1,7 +1,9 @@
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { messageByName, messagesToErrorString, startRequest } from './progress';
 import { progress } from '../json';
+import '../../../elements-sk/modules/spinner-sk';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -23,23 +25,27 @@ const intermediateStepBody: progress.SerializedProgress = {
 };
 
 describe('startRequest', () => {
+  // Create a common spinner-sk to be used by all the tests.
+  const spinner = document.createElement('spinner-sk') as SpinnerSk;
+  document.body.appendChild(spinner);
+
   it('handles the first request returing as Finished', async () => {
     fetchMock.post(startURL, finishedBody);
-    const res = await startRequest(startURL, {}, { pollingIntervalMs: 1 });
+    const res = await startRequest(startURL, {}, 1, spinner, null);
     assert.deepEqual(res, finishedBody);
   });
 
   it('starts polling the URL returned in the SerializedProgress', async () => {
     fetchMock.post(startURL, intermediateStepBody);
     fetchMock.get(pollingURL, finishedBody);
-    const res = await startRequest(startURL, {}, { pollingIntervalMs: 1 });
+    const res = await startRequest(startURL, {}, 1, spinner, null);
     assert.deepEqual(res, finishedBody);
   });
 
   it('rejects the returned Promise on a fetch error', async () => {
     fetchMock.post(startURL, 500);
     try {
-      await startRequest(startURL, {}, { pollingIntervalMs: 1 });
+      await startRequest(startURL, {}, 1, spinner, null);
       assert.fail('Should never get here.');
     } catch (err) {
       assert.match((err as Error).message, /Bad network response/);
@@ -59,7 +65,7 @@ describe('startRequest', () => {
       index++;
     };
 
-    const res = await startRequest(startURL, {}, { pollingIntervalMs: 1, onProgressUpdate: cb });
+    const res = await startRequest(startURL, {}, 1, spinner, cb);
     assert.deepEqual(res, finishedBody);
     assert.equal(index, 2);
   });

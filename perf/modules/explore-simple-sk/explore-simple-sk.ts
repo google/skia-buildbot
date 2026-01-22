@@ -10,6 +10,7 @@ import { ref, createRef, Ref } from 'lit/directives/ref.js';
 import { MdDialog } from '@material/web/dialog/dialog.js';
 import { MdSwitch } from '@material/web/switch/switch.js';
 import { define } from '../../../elements-sk/modules/define';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { AnomalyData } from '../common/anomaly-data';
 import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { TabsSk } from '../../../elements-sk/modules/tabs-sk/tabs-sk';
@@ -72,6 +73,7 @@ import {
   FrameResponse,
   ShiftRequest,
   ShiftResponse,
+  progress,
   pivot,
   FrameResponseDisplayMode,
   ColumnHeader,
@@ -97,6 +99,12 @@ import {
 } from '../../../infra-sk/modules/query-sk/query-sk';
 import { QueryCountSk } from '../query-count-sk/query-count-sk';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
+import {
+  messageByName,
+  messagesToErrorString,
+  messagesToPreString,
+  startRequest,
+} from '../progress/progress';
 import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
@@ -134,7 +142,6 @@ import { TryJobPreloadParams } from '../pinpoint-try-job-dialog-sk/pinpoint-try-
 import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
 import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
-import { DataService, DataServiceError } from '../data-service';
 
 const DOMAIN_DATE = 'date';
 const DOMAIN_COMMIT = 'commit';
@@ -262,7 +269,34 @@ export class GraphConfig {
  *
  */
 export const updateShortcut = async (graphConfigs: GraphConfig[]): Promise<string> => {
-  return await DataService.getInstance().updateShortcut(graphConfigs);
+  if (graphConfigs.length === 0) {
+    return '';
+  }
+
+  const body = {
+    graphs: graphConfigs,
+  };
+
+  return await fetch('/_/shortcut/update', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+    .then(jsonOrThrow)
+    .then((json) => json.id)
+    .catch((msg: unknown) => {
+      // Catch errors from sendFrameRequest itself
+      if (msg) {
+        const m = msg as { status?: number; message?: string };
+        if (m.status === 500) {
+          errorMessage('Unable to update shortcut.', 2000);
+        } else {
+          errorMessage(m.message || m.toString());
+        }
+      }
+    });
 };
 
 // State is reflected to the URL via stateReflector.
@@ -417,8 +451,6 @@ export function calculateRangeChange(
 }
 
 export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandler {
-  private dataService = DataService.getInstance();
-
   private _dataframe: DataFrame = {
     traceset: TraceSet({}),
     header: [],
@@ -1279,8 +1311,10 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         .catch(errorMessage);
     }
     if (this.state.graph_index === 0) {
-      this.dataService
-        .getInitPage(tz)
+      fetch(`/_/initpage/?tz=${tz}`, {
+        method: 'GET',
+      })
+        .then(jsonOrThrow)
         .then((json) => {
           this.range!.state = {
             begin: this._state.begin,
@@ -1296,13 +1330,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
           // Remove the paramset so it doesn't get displayed in the Params tab.
           json.dataframe.paramset = {};
         })
-        .catch((msg) => {
-          if (msg instanceof DataServiceError) {
-            errorMessage(msg.message);
-          } else {
-            errorMessage(msg);
-          }
-        });
+        .catch(errorMessage);
     }
     this.closePinpointToastButton!.addEventListener('click', () => this.pinpointJobToast?.hide());
     this.closeTriageToastButton!.addEventListener('click', () => this.triageResultToast?.hide());
@@ -1556,9 +1584,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         }
       })
       .catch((error) => {
-        if (error instanceof DataServiceError && error.status === 500) {
-          errorMessage('Unable to update shortcut.', 2000);
-        }
         console.error('Failed to update shortcut for Test Picker URL:', error);
         if (this.testPickerUrl !== '#') {
           this.testPickerUrl = '#';
@@ -1806,8 +1831,14 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         begin: result.newOffsets![0],
         end: result.newOffsets![1],
       };
-      this.dataService
-        .shift(req)
+      fetch('/_/shift/', {
+        method: 'POST',
+        body: JSON.stringify(req),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(jsonOrThrow)
         .then((json: ShiftResponse) => {
           this._state.begin = json.begin;
           this._state.end = json.end;
@@ -1815,13 +1846,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
           this._stateHasChanged();
           this.rangeChangeImpl();
         })
-        .catch((msg) => {
-          if (msg instanceof DataServiceError) {
-            errorMessage(msg.message);
-          } else {
-            errorMessage(msg);
-          }
-        });
+        .catch(errorMessage);
     } else {
       const header = this._dataframe.header;
       const plot = this.googleChartPlot.value;
@@ -3604,8 +3629,14 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     const state = {
       keys,
     };
-    return this.dataService
-      .createShortcut(state)
+    return fetch('/_/keys/', {
+      method: 'POST',
+      body: JSON.stringify(state),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
       .then((json) => {
         this._state.keys = json.id;
         this._state.queries = [];
@@ -3613,13 +3644,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         this._stateHasChanged();
         this.render();
       })
-      .catch((msg) => {
-        if (msg instanceof DataServiceError) {
-          errorMessage(msg.message);
-        } else {
-          errorMessage(msg);
-        }
-      });
+      .catch(errorMessage);
   }
 
   public createGraphConfigs(traceSet: TraceSet, attribute?: string): GraphConfig[] {
@@ -3655,29 +3680,19 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       this._dataframe.traceset,
       detail.attribute
     );
-    try {
-      const newShortcut = await updateShortcut(graphConfigs);
+    const newShortcut = await updateShortcut(graphConfigs);
 
-      if (newShortcut === '') {
-        return;
-      }
-
-      window.open(
-        `/m/?begin=${this._state.begin}&end=${this._state.end}` +
-          `&pageSize=${chartsPerPage}&shortcut=${newShortcut}` +
-          `&totalGraphs=${graphConfigs.length}` +
-          `&show_google_plot=true`,
-        '_self'
-      );
-    } catch (msg) {
-      if (msg instanceof DataServiceError && msg.status === 500) {
-        errorMessage('Unable to update shortcut.', 2000);
-      } else if (msg instanceof DataServiceError) {
-        errorMessage(msg.message);
-      } else {
-        errorMessage(msg as any);
-      }
+    if (newShortcut === '') {
+      return;
     }
+
+    window.open(
+      `/m/?begin=${this._state.begin}&end=${this._state.end}` +
+        `&pageSize=${chartsPerPage}&shortcut=${newShortcut}` +
+        `&totalGraphs=${graphConfigs.length}` +
+        `&show_google_plot=true`,
+      '_self'
+    );
   }
 
   removeKeys(keysToRemove: string[], updateShortcut: boolean) {
@@ -3840,18 +3855,29 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
    * Starts the frame request and returns the resulting data.
    */
   private async sendFrameRequest(body: FrameRequest): Promise<FrameResponse> {
-    return await this.dataService.sendFrameRequest(body, {
-      onProgress: (prog: string) => {
+    body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const finishedProg = await startRequest(
+      '/_/frame/start',
+      body,
+      200,
+      this.spinner!,
+      (prog: progress.SerializedProgress) => {
         if (this.percent !== null) {
-          this.percent!.textContent = prog;
+          this.percent!.textContent = messagesToPreString(prog.messages || []);
         }
-      },
-      onMessage: (msg: string) => {
-        errorMessage(msg);
-      },
-      onStart: () => (this.spinner!.active = true),
-      onSettled: () => (this.spinner!.active = false),
-    });
+      }
+    );
+
+    if (finishedProg.status !== 'Finished') {
+      throw new Error(messagesToErrorString(finishedProg.messages));
+    }
+    const msg = messageByName(finishedProg.messages, 'Message');
+    if (msg) {
+      errorMessage(msg);
+    }
+
+    return finishedProg.results as FrameResponse;
   }
 
   get state(): State {

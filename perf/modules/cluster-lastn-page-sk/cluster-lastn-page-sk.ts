@@ -443,18 +443,19 @@ ${ele.runningStatus}</pre
 
     try {
       this.requestId = 'running';
-      const finalProg = await startRequest('/_/dryrun/start', body, {
-        pollingIntervalMs: 300,
-        onProgressUpdate: (prog: progress.SerializedProgress) => {
+      const finalProg = await startRequest(
+        '/_/dryrun/start',
+        body,
+        300,
+        this.runSpinner!,
+        (prog: progress.SerializedProgress) => {
           if (prog.results) {
             this.regressions = prog.results;
           }
           this.runningStatus = prog.messages.map((msg) => `${msg.key}: ${msg.value}`).join('\n');
           this._render();
-        },
-        onStart: () => (this.runSpinner!.active = true),
-        onSettled: () => (this.runSpinner!.active = false),
-      });
+        }
+      );
       if (finalProg.status !== 'Finished') {
         throw new Error(messagesToErrorString(finalProg.messages));
       }

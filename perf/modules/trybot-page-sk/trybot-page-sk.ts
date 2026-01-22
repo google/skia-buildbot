@@ -328,11 +328,7 @@ export class TrybotPageSk extends ElementSk {
     this.byParamsTraceID!.innerText = '';
     this._render();
     try {
-      const prog = await startRequest('/_/trybot/load/', this.state, {
-        pollingIntervalMs: 200,
-        onStart: () => (this.spinner!.active = true),
-        onSettled: () => (this.spinner!.active = false),
-      });
+      const prog = await startRequest('/_/trybot/load/', this.state, 200, this.spinner!, null);
       if (prog.status === 'Finished') {
         this.results = prog.results! as TryBotResponse;
         this.byParams = byParams(this.results!);

@@ -335,9 +335,7 @@ export class DataFrameRepository extends LitElement {
       return {} as FrameResponse;
     }
 
-    const resp = await startRequest(DataFrameRepository.frameStartUrl, req, {
-      pollingIntervalMs: 1000,
-    }).catch(() => {
+    const resp = await startRequest(DataFrameRepository.frameStartUrl, req, 1000).catch(() => {
       return null;
     });
     if (resp === null) {

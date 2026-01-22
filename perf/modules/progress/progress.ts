@@ -1,23 +1,9 @@
 // A module to start and monitor the progress of long running server tasks.
 
+import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { progress } from '../json';
 
-export interface RequestOptions {
-  /** Triggered when the request process is initiated. */
-  onStart?: () => void;
-
-  /** Triggered each time a progress update is received from the server. */
-  onProgressUpdate?: (data: progress.SerializedProgress) => void;
-
-  /** Triggered only upon successful completion of the long-running process. */
-  onSuccess?: (data: progress.SerializedProgress) => void;
-
-  /** Triggered when the process ends, whether it succeeded or failed (like 'finally'). */
-  onSettled?: () => void;
-
-  /** Time between poll requests in milliseconds. Defaults to 200. */
-  pollingIntervalMs?: number;
-}
+export type callback = (arg: progress.SerializedProgress) => void;
 
 /**
  * startRequest returns a Promise that resolves then the long running server
@@ -29,20 +15,22 @@ export interface RequestOptions {
  * @param startingURL - The URL to make the first request to.
  * @param body - The body to sent in a POST request to the first URL. Will be
  *        serialized to JSON before sending.
- * @param options - Optional configuration for the request lifecycle and polling.
+ * @param period - How often to check on the status of the long running proces.
+ * @param spinner - The spinner-sk to start and stop.
+ * @param cb - An optional callback that will be called every update period.
  */
 export const startRequest = (
   startingURL: string,
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   body: any,
-  options: RequestOptions = {}
+  period: number,
+  spinner?: SpinnerSk | null,
+  cb?: callback | null
 ): Promise<progress.SerializedProgress> =>
   new Promise<progress.SerializedProgress>((resolve, reject) => {
-    if (options.onStart) {
-      options.onStart();
+    if (spinner) {
+      spinner.active = true;
     }
-
-    const pollingInterval = options.pollingIntervalMs || 200;
 
     // Regardless if this is the first fetch, or any of the subsequent polling
     // fetches, we do the same exact processing on the Promise, so consolidate all
@@ -56,8 +44,8 @@ export const startRequest = (
           return resp.json();
         })
         .then((json: progress.SerializedProgress) => {
-          if (options.onProgressUpdate) {
-            options.onProgressUpdate(json);
+          if (cb) {
+            cb(json);
           }
           if (json.status === 'Running') {
             window.setTimeout(() => {
@@ -66,20 +54,17 @@ export const startRequest = (
                   method: 'GET',
                 })
               );
-            }, pollingInterval);
+            }, period);
           } else {
-            if (options.onSuccess) {
-              options.onSuccess(json);
-            }
-            if (options.onSettled) {
-              options.onSettled();
+            if (spinner) {
+              spinner.active = false;
             }
             resolve(json);
           }
         })
         .catch((msg) => {
-          if (options.onSettled) {
-            options.onSettled();
+          if (spinner) {
+            spinner.active = false;
           }
           reject(msg);
         });
