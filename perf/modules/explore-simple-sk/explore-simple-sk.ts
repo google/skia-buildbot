@@ -146,8 +146,6 @@ import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keybo
 const DOMAIN_DATE = 'date';
 const DOMAIN_COMMIT = 'commit';
 
-const CACHE_KEY_EVEN_X_AXIS_SPACING = 'explore-simple-sk-even-x-axis-spacing';
-
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot' | 'json';
 
@@ -1243,11 +1241,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       return;
     }
 
-    const cachedEvenSpacing = localStorage.getItem(CACHE_KEY_EVEN_X_AXIS_SPACING);
-    if (cachedEvenSpacing === 'true') {
-      this._state.evenXAxisSpacing = true;
-    }
-
     this.setUseDiscreteAxis(this._state.evenXAxisSpacing);
 
     this._initialized = true;
@@ -1627,8 +1620,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   private switchEvenXAxisSpacing(target: MdSwitch | null) {
     if (!target) return;
     this._state.evenXAxisSpacing = target.selected;
-
-    localStorage.setItem(CACHE_KEY_EVEN_X_AXIS_SPACING, String(this._state.evenXAxisSpacing));
 
     this.setUseDiscreteAxis(this._state.evenXAxisSpacing);
     this.render();
@@ -3903,10 +3894,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
     state = this.rationalizeTimeRange(state);
 
-    const cachedEvenSpacing = localStorage.getItem(CACHE_KEY_EVEN_X_AXIS_SPACING);
-    if (cachedEvenSpacing === 'true') {
-      state.evenXAxisSpacing = true;
-    }
     this._state = state;
 
     // Synchronize the xAxisSwitch with the state's domain

@@ -65,6 +65,8 @@ import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagi
 import { CommitLinks } from '../point-links-sk/point-links-sk';
 import { MISSING_VALUE_SENTINEL } from '../const/const';
 
+const CACHE_KEY_EVEN_X_AXIS_SPACING = 'even_xaxis_spacing';
+
 export class State {
   begin: number = -1;
 
@@ -112,7 +114,7 @@ export class State {
 
   dateAxis: boolean = false;
 
-  evenXAxisSpacing: boolean = false;
+  evenXAxisSpacing: 'true' | 'false' | 'use_cache' = 'use_cache';
 
   // TODO(eduardoyap): Handle browser history changes correctly in manual_plot_mode.
   // TODO(eduardoyap): Ensure new graphs in manual_plot_mode sync time ranges.
@@ -745,15 +747,13 @@ export class ExploreMultiSk extends ElementSk {
   // It will sync the state across all the graphs.
   private _onEvenXAxisSpacingChanged = (e: Event) => {
     const detail = (e as CustomEvent).detail;
-    this.state.evenXAxisSpacing = detail.value;
+    localStorage.setItem(CACHE_KEY_EVEN_X_AXIS_SPACING, String(detail.value));
+
     this.exploreElements.forEach((elem) => {
       if (elem !== e.target) {
         elem.setUseDiscreteAxis(detail.value);
       }
     });
-    if (this.stateHasChanged) {
-      this.stateHasChanged();
-    }
   };
 
   constructor() {
@@ -1528,7 +1528,10 @@ export class ExploreMultiSk extends ElementSk {
       hide_paramset: true,
       graph_index: index,
       doNotQueryData: doNotQueryData,
-      evenXAxisSpacing: this.state.evenXAxisSpacing,
+      evenXAxisSpacing:
+        this.state.evenXAxisSpacing !== 'use_cache'
+          ? this.state.evenXAxisSpacing === 'true'
+          : localStorage.getItem(CACHE_KEY_EVEN_X_AXIS_SPACING) === 'true',
     };
     explore.state = newState;
   }
