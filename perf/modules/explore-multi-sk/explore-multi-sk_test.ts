@@ -710,6 +710,30 @@ describe('ExploreMultiSk', () => {
       assert.isTrue(spy2.calledOnceWith('date'));
     });
 
+    it('syncs extend range across all graphs', async () => {
+      const graph1 = element['addEmptyGraph']()!;
+      const graph2 = element['addEmptyGraph']()!;
+
+      const stub1 = sinon.stub(graph1, 'extendRange').resolves();
+      const stub2 = sinon.stub(graph2, 'extendRange').resolves();
+
+      const detail = {
+        value: { begin: 1000, end: 2000 },
+        offsetInSeconds: -3600,
+      };
+      element['graphDiv']!.dispatchEvent(
+        new CustomEvent('range-changing-in-multi', {
+          detail,
+          bubbles: true,
+        })
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      assert.isTrue(stub1.calledOnceWith(detail.value, detail.offsetInSeconds));
+      assert.isTrue(stub2.calledOnceWith(detail.value, detail.offsetInSeconds));
+    });
+
     it('syncs the x-axis label across all graphs with pagination', () => {
       // Create three graphs.
       const graph1 = element['addEmptyGraph']()!;

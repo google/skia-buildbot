@@ -829,6 +829,7 @@ export class ExploreMultiSk extends ElementSk {
       <div
         id="graphContainer"
         @remove-explore=${ele.removeExploreEvent}
+        @range-changing-in-multi=${ele.syncExtendRange}
         @selection-changing-in-multi=${ele.syncChartSelection}
         @x-axis-toggled=${ele.syncXAxisLabel}
         @even-x-axis-spacing-changed=${ele._onEvenXAxisSpacingChanged}></div>
@@ -1438,6 +1439,29 @@ export class ExploreMultiSk extends ElementSk {
         graph.dataLoading = false;
       }
     });
+  }
+
+  private async syncExtendRange(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
+    const graphs = this.exploreElements;
+    const offset = e.detail.offsetInSeconds;
+    const range = e.detail.value;
+
+    if (!offset) {
+      return;
+    }
+
+    const promises = graphs.map(async (graph) => {
+      try {
+        await graph.extendRange(range, offset);
+      } catch (error) {
+        errorMessage(`Error in graph.extendRange: ${error}`);
+      }
+    });
+    await Promise.allSettled(promises);
+
+    if (this.stateHasChanged) {
+      this.stateHasChanged();
+    }
   }
 
   private async syncChartSelection(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
