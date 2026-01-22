@@ -174,16 +174,7 @@ func RunPreUploadStep(ctx context.Context, cfg *config.PreUploadConfig, env []st
 				return skerr.Wrap(err)
 			}
 		} else {
-			dumpLogs := false
-			for _, arg := range append([]string{cmd.Name}, cmd.Args...) {
-				if strings.Contains(arg, "roll_chromium_deps") {
-					dumpLogs = true
-					break
-				}
-			}
-			if dumpLogs {
-				sklog.Info(output)
-			}
+			sklog.Info(output)
 		}
 	}
 	preUploadStepFailure = 0
