@@ -109,6 +109,24 @@ describe('explore-simple-sk', () => {
       const initialValue = await querySkPO.getCurrentQuery();
       expect(initialValue).is.not.null;
     });
+
+    it('should update query values when a key is clicked', async () => {
+      await testBed.page.click('#demo-show-query-dialog');
+      const querySkPO = await simplePageSkPO.querySk;
+      const initialKeys = await querySkPO.getKeys();
+      expect(initialKeys).to.have.length.greaterThan(0);
+
+      const keyToClick = initialKeys[0]; // Pick the first key to click
+      await querySkPO.clickKey(keyToClick);
+
+      // After clicking a key, the displayed values should update for that key.
+      const selectedKey = await querySkPO.getSelectedKey();
+      expect(selectedKey).to.equal(keyToClick);
+
+      // It's hard to predict exact options without more context, so just check it's an array for now.
+      const availableOptions = await querySkPO.queryValuesSkPO.getOptions();
+      expect(availableOptions).to.be.an('array');
+    });
   });
 
   describe('plot-google-chart-sk display', () => {
@@ -168,6 +186,40 @@ describe('explore-simple-sk', () => {
       await simplePageSkPO.clickXAxisSwitch();
       // After click, should be 'date'
       expect(await simplePageSkPO.getXAxisDomain()).to.equal('date');
+    });
+
+    it('switches zoom direction to horizontal', async () => {
+      await testBed.page.click('#demo-show-query-dialog');
+      const querySkPO = await simplePageSkPO.querySk;
+      await querySkPO.setCurrentQuery(paramSet);
+
+      const tabPanel = await testBed.page.waitForSelector('tabs-panel-sk');
+      const btn = await tabPanel!.waitForSelector('button.action');
+      await btn!.click();
+
+      const plotPO = await simplePageSkPO.plotGoogleChartSk;
+      await plotPO.waitForChartVisible({ timeout: CLIPBOARD_READ_TIMEOUT_MS });
+      expect(await simplePageSkPO.getHorizontalZoom()).to.be.false;
+      await simplePageSkPO.clickZoomDirectionSwitch();
+      // After click, should be true
+      expect(await simplePageSkPO.getHorizontalZoom()).to.be.true;
+    });
+
+    it('switches to even x-axis spacing', async () => {
+      await testBed.page.click('#demo-show-query-dialog');
+      const querySkPO = await simplePageSkPO.querySk;
+      await querySkPO.setCurrentQuery(paramSet);
+
+      const tabPanel = await testBed.page.waitForSelector('tabs-panel-sk');
+      const btn = await tabPanel!.waitForSelector('button.action');
+      await btn!.click();
+
+      const plotPO = await simplePageSkPO.plotGoogleChartSk;
+      await plotPO.waitForChartVisible({ timeout: CLIPBOARD_READ_TIMEOUT_MS });
+      expect(await simplePageSkPO.getEvenXAxisSpacing()).to.be.false;
+      await simplePageSkPO.clickEvenXAxisSpacingSwitch();
+      // After click, should be true
+      expect(await simplePageSkPO.getEvenXAxisSpacing()).to.be.true;
     });
   });
 });

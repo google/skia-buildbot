@@ -70,6 +70,14 @@ export class ExploreSimpleSkPO extends PageObject {
     return this.bySelector('#commit-switch');
   }
 
+  get zoomDirectionSwitch(): PageObjectElement {
+    return this.bySelector('#zoom-direction-switch');
+  }
+
+  get evenXAxisSpacingSwitch(): PageObjectElement {
+    return this.bySelector('#even-x-axis-spacing-switch');
+  }
+
   get plotButton(): PageObjectElement {
     return this.bySelector('tabs-panel-sk button.action');
   }
@@ -90,6 +98,14 @@ export class ExploreSimpleSkPO extends PageObject {
     return await this.googleChart.applyFnToDOMNode((c: any) => c.domain);
   }
 
+  async getHorizontalZoom(): Promise<boolean> {
+    return await this.zoomDirectionSwitch.applyFnToDOMNode((c: any) => c.selected);
+  }
+
+  async getEvenXAxisSpacing(): Promise<boolean> {
+    return await this.googleChart.applyFnToDOMNode((c: any) => c.useDiscreteAxis);
+  }
+
   get removeAllButton(): PageObjectElement {
     return this.bySelector('#removeAll');
   }
@@ -108,8 +124,24 @@ export class ExploreSimpleSkPO extends PageObject {
     return '#commit-switch';
   }
 
+  get zoomDirectionSwitchSelector(): string {
+    return '#zoom-direction-switch';
+  }
+
+  get evenXAxisSpacingSwitchSelector(): string {
+    return '#even-x-axis-spacing-switch';
+  }
+
   get getXAxisSwitch(): PageObjectElement {
     return this.bySelector(this.xAxisSwitchSelector);
+  }
+
+  get getZoomDirectionSwitch(): PageObjectElement {
+    return this.bySelector(this.zoomDirectionSwitchSelector);
+  }
+
+  get getEvenXAxisSpacingSwitch(): PageObjectElement {
+    return this.bySelector(this.evenXAxisSpacingSwitchSelector);
   }
 
   async clickXAxisSwitch(): Promise<void> {
@@ -123,6 +155,44 @@ export class ExploreSimpleSkPO extends PageObject {
     const switchEl = await this.getXAxisSwitch;
     if (!switchEl) {
       throw new Error('X-Axis switch element not found after visibility wait.');
+    }
+    try {
+      await switchEl.click();
+    } catch (e) {
+      await errorMessage(e as Error);
+    }
+  }
+
+  async clickZoomDirectionSwitch(): Promise<void> {
+    await this.clickShowSettingsDialog();
+    try {
+      await this.bySelector(this.zoomDirectionSwitchSelector);
+    } catch (e) {
+      await errorMessage(e as Error);
+    }
+
+    const switchEl = await this.getZoomDirectionSwitch;
+    if (!switchEl) {
+      throw new Error('Zoom direction switch element not found after visibility wait.');
+    }
+    try {
+      await switchEl.click();
+    } catch (e) {
+      await errorMessage(e as Error);
+    }
+  }
+
+  async clickEvenXAxisSpacingSwitch(): Promise<void> {
+    await this.clickShowSettingsDialog();
+    try {
+      await this.bySelector(this.evenXAxisSpacingSwitchSelector);
+    } catch (e) {
+      await errorMessage(e as Error);
+    }
+
+    const switchEl = await this.getEvenXAxisSpacingSwitch;
+    if (!switchEl) {
+      throw new Error('Even X-Axis spacing switch element not found after visibility wait.');
     }
     try {
       await switchEl.click();
