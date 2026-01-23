@@ -174,8 +174,20 @@ skia_app_container(
                 "0755",
             ],
         ],
+        "/usr/local/bin": [
+            [
+                "@bazelisk//file",
+                "0755",
+            ],
+        ],
     },
     entrypoint = "/usr/local/bin/e2e/e2e-test-runner",
+    env = {
+        "PATH": "/go/bin:$${PATH}",
+    },
+    extra_tars = [
+        "//bazel/go:go_toolchain_tar",
+    ],
     repository = "skia-public/perf_e2e_test_runner",
 )
 
