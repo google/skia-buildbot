@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
@@ -666,16 +665,16 @@ func getGraphQueryParamsForAnomalyId(anomalyIds []string) url.Values {
 	}
 }
 
-func parseQueryValues(r *http.Request, w http.ResponseWriter) (int, anomalies.GetAnomaliesRequest, error) {
+func parseQueryValues(r *http.Request, w http.ResponseWriter) (int, regression.GetAnomalyListRequest, error) {
 	query := r.URL.Query()
 	subName := query.Get("sub_name")
 	limit, err := strconv.Atoi(query.Get("limit"))
 	if err != nil {
-		return 0, anomalies.GetAnomaliesRequest{}, skerr.Wrapf(err, "limit value is not an integer")
+		return 0, regression.GetAnomalyListRequest{}, skerr.Wrapf(err, "limit value is not an integer")
 	}
 	offset, err := strconv.Atoi(query.Get("offset"))
 	if err != nil {
-		return 0, anomalies.GetAnomaliesRequest{}, skerr.Wrapf(err, "offset value is not an integer")
+		return 0, regression.GetAnomalyListRequest{}, skerr.Wrapf(err, "offset value is not an integer")
 	}
 	triagedStr := query.Get("triaged")
 	if triagedStr == "" {
@@ -683,7 +682,7 @@ func parseQueryValues(r *http.Request, w http.ResponseWriter) (int, anomalies.Ge
 	}
 	triaged, err := strconv.ParseBool(triagedStr)
 	if err != nil {
-		return 0, anomalies.GetAnomaliesRequest{}, skerr.Wrapf(err, "include triaged value is not boolean")
+		return 0, regression.GetAnomalyListRequest{}, skerr.Wrapf(err, "include triaged value is not boolean")
 	}
 	improvementsStr := query.Get("improvements")
 	if improvementsStr == "" {
@@ -691,10 +690,10 @@ func parseQueryValues(r *http.Request, w http.ResponseWriter) (int, anomalies.Ge
 	}
 	improvements, err := strconv.ParseBool(improvementsStr)
 	if err != nil {
-		return 0, anomalies.GetAnomaliesRequest{}, skerr.Wrapf(err, "include improvements value is not boolean")
+		return 0, regression.GetAnomalyListRequest{}, skerr.Wrapf(err, "include improvements value is not boolean")
 	}
 
-	req := anomalies.GetAnomaliesRequest{
+	req := regression.GetAnomalyListRequest{
 		SubName:             subName,
 		PaginationOffset:    offset,
 		IncludeTriaged:      triaged,

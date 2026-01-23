@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/anomalygroup"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/chromeperf/compat"
@@ -630,7 +629,7 @@ func cleanTestName(testName string) (string, error) {
 	return strings.Join(parts, "/"), nil
 }
 
-func parseGetAnomalyListRequest(r *http.Request) anomalies.GetAnomaliesRequest {
+func parseGetAnomalyListRequest(r *http.Request) regression.GetAnomalyListRequest {
 	query := r.URL.Query()
 	includeTriaged, err := strconv.ParseBool(query.Get("triaged"))
 	if err != nil {
@@ -644,7 +643,7 @@ func parseGetAnomalyListRequest(r *http.Request) anomalies.GetAnomaliesRequest {
 	if err != nil {
 		paginationOffset = 0
 	}
-	queryValues := anomalies.GetAnomaliesRequest{
+	queryValues := regression.GetAnomalyListRequest{
 		SubName:             query.Get("sheriff"),
 		IncludeTriaged:      includeTriaged,
 		IncludeImprovements: includeImprovements,

@@ -6,7 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/regression/mocks",
     visibility = ["//visibility:public"],
     deps = [
-        "//perf/go/anomalies",
         "//perf/go/clustering2",
         "//perf/go/regression",
         "//perf/go/subscription/proto/v1",

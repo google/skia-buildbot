@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/alogin/mocks"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/regression"
 	regressionMocks "go.skia.org/infra/perf/go/regression/mocks"
 )
@@ -27,7 +26,7 @@ func setupForTest(t *testing.T, userIsEditor bool) (*httptest.ResponseRecorder, 
 
 func TestFrontendRegressionsHandler_Success(t *testing.T) {
 	regMock := regressionMocks.NewStore(t)
-	req := anomalies.GetAnomaliesRequest{
+	req := regression.GetAnomalyListRequest{
 		SubName:             "test",
 		PaginationOffset:    10,
 		IncludeTriaged:      false,
@@ -62,7 +61,7 @@ func TestFrontendRegressionsHandler_Success(t *testing.T) {
 
 func TestFrontendRegressionsHandler_ShowTriagedAndImprovements(t *testing.T) {
 	regMock := regressionMocks.NewStore(t)
-	req := anomalies.GetAnomaliesRequest{
+	req := regression.GetAnomalyListRequest{
 		SubName:             "test",
 		PaginationOffset:    10,
 		IncludeTriaged:      true,

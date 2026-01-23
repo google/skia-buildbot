@@ -12,7 +12,6 @@ go_library(
         "//go/sklog",
         "//go/sql/pool",
         "//perf/go/alerts",
-        "//perf/go/anomalies",
         "//perf/go/clustering2",
         "//perf/go/regression",
         "//perf/go/subscription/proto/v1",

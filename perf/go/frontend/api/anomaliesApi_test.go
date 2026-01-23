@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/alerts"
 	alerts_mock "go.skia.org/infra/perf/go/alerts/mock"
-	"go.skia.org/infra/perf/go/anomalies"
 	anomalygroup_mocks "go.skia.org/infra/perf/go/anomalygroup/mocks"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
@@ -482,7 +481,7 @@ func TestGetAnomalyList_Pagination(t *testing.T) {
 			},
 		},
 	}
-	req := anomalies.GetAnomaliesRequest{
+	req := regression.GetAnomalyListRequest{
 		SubName:          sheriff,
 		PaginationOffset: paginationOffset,
 	}
@@ -539,7 +538,7 @@ func TestGetAnomalyList_DefaultPagination(t *testing.T) {
 			},
 		},
 	}
-	req := anomalies.GetAnomaliesRequest{
+	req := regression.GetAnomalyListRequest{
 		SubName:          sheriff,
 		PaginationOffset: 0,
 	}

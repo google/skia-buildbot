@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v4"
-	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/clustering2"
 	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/types"
@@ -40,7 +39,7 @@ type Store interface {
 	// Given the subscription name GetRegressionsBySubName gets all the regressions against
 	// the specified subscription. The response will be paginated according to the provided
 	// limit and offset.
-	GetRegressionsBySubName(ctx context.Context, req anomalies.GetAnomaliesRequest, limit int) ([]*Regression, error)
+	GetRegressionsBySubName(ctx context.Context, req GetAnomalyListRequest, limit int) ([]*Regression, error)
 
 	// Given a list of regression IDs (only in the regression2store),
 	// return a list of regressions.
@@ -87,4 +86,14 @@ type FullSummary struct {
 	Summary clustering2.ClusterSummary `json:"summary"`
 	Triage  TriageStatus               `json:"triage"`
 	Frame   frame.FrameResponse        `json:"frame"`
+}
+
+// Request object for the request from the anomaly table UI.
+type GetAnomalyListRequest struct {
+	SubName             string `json:"sheriff"`
+	IncludeTriaged      bool   `json:"triaged"`
+	IncludeImprovements bool   `json:"improvements"`
+	QueryCursor         string `json:"anomaly_cursor"`
+	Host                string `json:"host"`
+	PaginationOffset    int    `json:"pagination_offset,omitempty"`
 }

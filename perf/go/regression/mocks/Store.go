@@ -3,10 +3,9 @@
 package mocks
 
 import (
-	anomalies "go.skia.org/infra/perf/go/anomalies"
-	clustering2 "go.skia.org/infra/perf/go/clustering2"
-
 	context "context"
+
+	clustering2 "go.skia.org/infra/perf/go/clustering2"
 
 	frame "go.skia.org/infra/perf/go/ui/frame"
 
@@ -225,7 +224,7 @@ func (_m *Store) GetRegression(ctx context.Context, commitNumber types.CommitNum
 }
 
 // GetRegressionsBySubName provides a mock function with given fields: ctx, req, limit
-func (_m *Store) GetRegressionsBySubName(ctx context.Context, req anomalies.GetAnomaliesRequest, limit int) ([]*regression.Regression, error) {
+func (_m *Store) GetRegressionsBySubName(ctx context.Context, req regression.GetAnomalyListRequest, limit int) ([]*regression.Regression, error) {
 	ret := _m.Called(ctx, req, limit)
 
 	if len(ret) == 0 {
@@ -234,10 +233,10 @@ func (_m *Store) GetRegressionsBySubName(ctx context.Context, req anomalies.GetA
 
 	var r0 []*regression.Regression
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, anomalies.GetAnomaliesRequest, int) ([]*regression.Regression, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, regression.GetAnomalyListRequest, int) ([]*regression.Regression, error)); ok {
 		return rf(ctx, req, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, anomalies.GetAnomaliesRequest, int) []*regression.Regression); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, regression.GetAnomalyListRequest, int) []*regression.Regression); ok {
 		r0 = rf(ctx, req, limit)
 	} else {
 		if ret.Get(0) != nil {
@@ -245,7 +244,7 @@ func (_m *Store) GetRegressionsBySubName(ctx context.Context, req anomalies.GetA
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, anomalies.GetAnomaliesRequest, int) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, regression.GetAnomalyListRequest, int) error); ok {
 		r1 = rf(ctx, req, limit)
 	} else {
 		r1 = ret.Error(1)

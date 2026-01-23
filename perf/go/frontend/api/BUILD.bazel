@@ -103,7 +103,6 @@ go_test(
         "//go/testutils",
         "//perf/go/alerts",
         "//perf/go/alerts/mock",
-        "//perf/go/anomalies",
         "//perf/go/anomalygroup/mocks",
         "//perf/go/chromeperf",
         "//perf/go/chromeperf/mock",

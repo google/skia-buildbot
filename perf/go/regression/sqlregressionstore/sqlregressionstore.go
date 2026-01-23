@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/regression"
 	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
@@ -125,7 +124,7 @@ func New(db pool.Pool) (*SQLRegressionStore, error) {
 }
 
 // Unimplemented: This function is implemented by regression2 store
-func (s *SQLRegressionStore) GetRegressionsBySubName(ctx context.Context, req anomalies.GetAnomaliesRequest, limit int) ([]*regression.Regression, error) {
+func (s *SQLRegressionStore) GetRegressionsBySubName(ctx context.Context, req regression.GetAnomalyListRequest, limit int) ([]*regression.Regression, error) {
 	return nil, skerr.Fmt("GetRegressionsBySubName is not implemented in old version of regression store.")
 }
 

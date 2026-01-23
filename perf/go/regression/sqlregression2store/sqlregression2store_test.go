@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/perf/go/alerts"
 	alerts_mock "go.skia.org/infra/perf/go/alerts/mock"
-	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
@@ -604,7 +603,7 @@ func TestGetRegressionsBySubName(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			req := anomalies.GetAnomaliesRequest{
+			req := regression.GetAnomalyListRequest{
 				SubName:             tc.subName,
 				PaginationOffset:    tc.offset,
 				IncludeImprovements: tc.improvements,
