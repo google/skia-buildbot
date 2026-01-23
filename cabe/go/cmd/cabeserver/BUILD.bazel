@@ -43,7 +43,10 @@ go_binary(
 
 go_test(
     name = "cabeserver_test",
-    srcs = ["main_test.go"],
+    srcs = [
+        "cq_analysis_test.go",
+        "main_test.go",
+    ],
     embed = [":cabeserver_lib"],
     deps = [
         "//cabe/go/proto:go_proto_lib",

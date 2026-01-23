@@ -216,6 +216,17 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 	// generate the critical values for comparison. Note that the res will be sorted by each p-value.
 	criticalValues := generateCriticalValues(res, use_fdr_control, alpha)
 
+	analysis_results := computeCQCabeAnalysisResults(res, criticalValues)
+
+	if err := json.NewEncoder(w).Encode(analysis_results); err != nil {
+		httputils.ReportError(w, err, "[POC] Failed to write results to response. Error: "+err.Error(),
+			http.StatusInternalServerError)
+		return
+	}
+	sklog.Debugf("[POC] getCQCabeAnalysisHandle returning respose: %v", analysis_results)
+}
+
+func computeCQCabeAnalysisResults(res []*cpb.AnalysisResult, criticalValues []float64) *CQGetCabeAnalysisResults {
 	analysis_results := &CQGetCabeAnalysisResults{}
 	analysis_results.Results = make(map[string]*cpb.Statistic)
 	benchmark := ""
@@ -232,17 +243,17 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 		is_up_improvement := IsUpImprovement(benchmark, workload)
 		is_improvement := true
 		if is_up_improvement {
-			is_improvement = stat.TreatmentMedian > stat.ControlMedian
+			is_improvement = stat.TreatmentMedian >= stat.ControlMedian
 		} else {
-			is_improvement = stat.TreatmentMedian < stat.ControlMedian
+			is_improvement = stat.TreatmentMedian <= stat.ControlMedian
 		}
 		// Using the same logic as in legacy cabe service.
 		// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/sandwich_verification/main.py;l=224
-		if stat.PValue == math.NaN() {
-			if stat.Lower != math.Inf(1) && stat.Upper != math.Inf(1) && stat.Lower*stat.Upper > 0 {
+		if math.IsNaN(stat.PValue) {
+			if !math.IsInf(stat.Lower, 0) && !math.IsInf(stat.Upper, 0) && stat.Lower*stat.Upper > 0 {
 				is_significant = true
 			}
-		} else if stat.Lower == math.NaN() || stat.Upper == math.NaN() || stat.Lower == math.Inf(1) || stat.Upper == math.Inf(1) {
+		} else if math.IsNaN(stat.Lower) || math.IsNaN(stat.Upper) || math.IsInf(stat.Lower, 0) || math.IsInf(stat.Upper, 0) {
 			if stat.PValue < criticalValues[i] {
 				is_significant = true
 			}
@@ -257,12 +268,7 @@ func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 	if len(analysis_results.Results) > 0 {
 		analysis_results.Benchmark = benchmark
 	}
-	if err := json.NewEncoder(w).Encode(analysis_results); err != nil {
-		httputils.ReportError(w, err, "[POC] Failed to write results to response. Error: "+err.Error(),
-			http.StatusInternalServerError)
-		return
-	}
-	sklog.Debugf("[POC] getCQCabeAnalysisHandle returning respose: %v", analysis_results)
+	return analysis_results
 }
 
 // Init creates listeners for required service ports and prepares the App for serving.
