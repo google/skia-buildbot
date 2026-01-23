@@ -1,0 +1,11 @@
+load("//infra-sk:index.bzl", "nodejs_test")
+
+nodejs_test(
+    name = "example_nodejs_test",
+    src = "example_nodejs_test.ts",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/puppeteer",
+    ],
+)
