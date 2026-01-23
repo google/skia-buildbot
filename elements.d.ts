@@ -1,6 +1,6 @@
 // Enable lit-plugin support.
 
-import { BugTooltipSk } from './perf/modules/anomalies-table-sk/bug-tooltip-sk/bug-tooltip-sk';
+import { BugTooltipSk } from './perf/modules/bug-tooltip-sk/bug-tooltip-sk';
 import { AlertConfigSk } from './perf/modules/alert-config-sk/alert-config-sk';
 import { AlertManagerSk } from './am/modules/alert-manager-sk/alert-manager-sk';
 import { AlgoSelectSk } from './perf/modules/algo-select-sk/algo-select-sk';

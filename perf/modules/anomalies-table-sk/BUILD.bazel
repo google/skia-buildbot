@@ -23,6 +23,7 @@ sk_element(
         "//perf/modules/anomaly-sk",
         "//perf/modules/keyboard-shortcuts-help-sk",
         "//perf/modules/triage-menu-sk",
+        "//perf/modules/bug-tooltip-sk",
     ],
     ts_deps = [
         "//:node_modules/@material/web",
@@ -83,6 +84,7 @@ sk_element_puppeteer_test(
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//:node_modules/puppeteer",
+        "//perf/modules/bug-tooltip-sk:bug-tooltip-sk_po_ts_lib",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

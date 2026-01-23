@@ -1,7 +1,8 @@
+import { BugTooltipSkPO } from '../bug-tooltip-sk/bug-tooltip-sk_po';
 import { expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { AnomaliesTableSkPO } from './anomalies-table-sk_po';
-import { anomaly_table, GROUP_REPORT_RESPONSE_WITH_SID, GROUP_REPORT_RESPONSE } from './test_data';
+import { anomaly_table } from './test_data';
 import { ElementHandle } from 'puppeteer';
 import { Page } from 'puppeteer';
 import { assert } from 'chai';
@@ -27,25 +28,8 @@ describe('anomalies-table-sk', () => {
 
   describe('with anomalies', () => {
     beforeEach(async () => {
-      await testBed.page.setRequestInterception(true);
-      testBed.page.on('request', (request) => {
-        if (request.url().endsWith('/_/anomalies/group_report') && request.method() === 'POST') {
-          request.respond({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(GROUP_REPORT_RESPONSE_WITH_SID),
-          });
-        } else {
-          request.continue();
-        }
-      });
-      await testBed.page.click('#populate-tables');
-    });
-
-    afterEach(async () => {
-      await testBed.page.setRequestInterception(false);
       testBed.page.removeAllListeners('request');
-      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk');
+      await testBed.page.click('#populate-tables');
     });
 
     it('shows the default view', async () => {
@@ -135,24 +119,69 @@ describe('anomalies-table-sk', () => {
     });
   });
 
+  describe('bug tooltip', () => {
+    let bugTooltipSkPO: BugTooltipSkPO;
+    let bugTooltipHandle: ElementHandle<Element>;
+
+    const hoverOnBugTooltip = async () => {
+      await bugTooltipSkPO.hoverOverBugCountContainer();
+    };
+
+    const waitForBugTooltip = async () => {
+      await testBed.page.waitForSelector('bug-tooltip-sk');
+      bugTooltipHandle = (await testBed.page.$('bug-tooltip-sk'))!;
+      bugTooltipSkPO = new BugTooltipSkPO(bugTooltipHandle);
+      await testBed.page.waitForFunction(
+        () =>
+          !document
+            .querySelector('bug-tooltip-sk')
+            ?.querySelector('.bug-count-container')
+            ?.hasAttribute('hidden')
+      );
+    };
+
+    it('shows the tooltip on hover', async () => {
+      await testBed.page.click('#populate-tables-it');
+      await waitForBugTooltip();
+      await hoverOnBugTooltip();
+      expect(await bugTooltipSkPO.isTooltipVisible()).to.be.true;
+    });
+
+    it('tooltip scrollable if many items are present', async () => {
+      await testBed.page.click('#populate-tables-it');
+      await waitForBugTooltip();
+      await hoverOnBugTooltip();
+      const content = await bugTooltipSkPO.getContent();
+      expect(content).to.contain('12345');
+      expect(content).to.contain('67890');
+      expect(content).to.contain('11121');
+      expect(content).to.contain('11122');
+      expect(content).to.contain('11123');
+      expect(content).to.contain('11124');
+      expect(await bugTooltipSkPO.isScrollable()).to.be.true;
+    });
+
+    it('tooltip not scrollable if few items are present', async () => {
+      await testBed.page.click('#populate-tables-it1');
+      await waitForBugTooltip();
+      await hoverOnBugTooltip();
+      const content = await bugTooltipSkPO.getContent();
+      expect(content).to.contain('54321');
+      expect(await bugTooltipSkPO.isScrollable()).to.be.false;
+    });
+
+    it('no text is shown if there are no bugs', async () => {
+      await testBed.page.click('#populate-tables-it2');
+      await testBed.page.waitForSelector('bug-tooltip-sk');
+      bugTooltipHandle = (await testBed.page.$('bug-tooltip-sk'))!;
+      bugTooltipSkPO = new BugTooltipSkPO(bugTooltipHandle);
+      const visible = await bugTooltipSkPO.isBugContainerVisible();
+      expect(visible).to.equal(false);
+    });
+  });
+
   describe('open report page with single anomaly id', async () => {
     beforeEach(async () => {
-      // This test needs to set up its own mocks and navigate, so we
-      // clear the listeners from the parent beforeEach.
-      testBed.page.removeAllListeners('request');
-      await testBed.page.setRequestInterception(true);
-
-      testBed.page.on('request', (request) => {
-        if (request.url().endsWith('/_/anomalies/group_report') && request.method() === 'POST') {
-          request.respond({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(GROUP_REPORT_RESPONSE),
-          });
-        } else {
-          request.continue();
-        }
-      });
       await testBed.page.click('#populate-tables');
     });
 
@@ -169,19 +198,6 @@ describe('anomalies-table-sk', () => {
 
   describe('grouping configuration', () => {
     beforeEach(async () => {
-      testBed.page.removeAllListeners('request');
-      await testBed.page.setRequestInterception(true);
-      testBed.page.on('request', (request) => {
-        if (request.url().endsWith('/_/anomalies/group_report') && request.method() === 'POST') {
-          request.respond({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(GROUP_REPORT_RESPONSE),
-          });
-        } else {
-          request.continue();
-        }
-      });
       await testBed.page.click('#populate-tables-for-grouping');
 
       await anomaliesTableSkPO.setRevisionMode('OVERLAPPING');
@@ -192,8 +208,6 @@ describe('anomalies-table-sk', () => {
     });
 
     afterEach(async () => {
-      await testBed.page.setRequestInterception(false);
-      testBed.page.removeAllListeners('request');
       await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk_grouping');
     });
 

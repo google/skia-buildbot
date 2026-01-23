@@ -1,4 +1,4 @@
-import { GetGroupReportResponse, GraphConfig } from '../json';
+import { Anomaly, BugType, GetGroupReportResponse, GraphConfig } from '../json';
 
 export const anomaly_table = [
   {
@@ -255,3 +255,89 @@ export const anomaly_table_for_grouping = [
     end_revision: 1000, // Disjoint from single-1
   },
 ];
+
+export const anomaly_table_for_tooltip: Anomaly[] = [
+  {
+    ...BASE_ANOMALY,
+    id: 'multiple-bugs',
+    bug_id: 12345,
+    test_path: 'Master/BotA/BenchX/Test1/Sub',
+    start_revision: 100,
+    end_revision: 200,
+    bugs: [
+      {
+        bug_id: '12345',
+        bug_type: BugType('manual'),
+      },
+      {
+        bug_id: '67890',
+        bug_type: BugType('auto-triage'),
+      },
+      {
+        bug_id: '11121',
+        bug_type: BugType('auto-bisect'),
+      },
+      {
+        bug_id: '11122',
+        bug_type: BugType('auto-bisect'),
+      },
+      {
+        bug_id: '11123',
+        bug_type: BugType('auto-bisect'),
+      },
+      {
+        bug_id: '11124',
+        bug_type: BugType('auto-bisect'),
+      },
+    ],
+  },
+  {
+    ...BASE_ANOMALY,
+    id: 'single-bug',
+    bug_id: 54321,
+    test_path: 'Master/BotB/BenchY/Test2/Sub',
+    start_revision: 800,
+    end_revision: 900,
+    bugs: [
+      {
+        bug_id: '54321',
+        bug_type: BugType('auto-triage'),
+      },
+    ],
+  },
+  {
+    ...BASE_ANOMALY,
+    id: 'no-bugs',
+    bug_id: 0,
+    test_path: 'Master/BotC/BenchZ/Test3/Sub',
+    start_revision: 1000,
+    end_revision: 1100,
+  },
+];
+
+export const GROUP_REPORT_RESPONSE_MULTIPLE_BUGS: GetGroupReportResponse = {
+  sid: 'multiple-bugs-sid',
+  anomaly_list: [anomaly_table_for_tooltip[0]],
+  timerange_map: {},
+  selected_keys: null,
+  error: '',
+  is_commit_number_based: true,
+};
+
+export const GROUP_REPORT_RESPONSE_SINGLE_BUG: GetGroupReportResponse = {
+  sid: 'single-bug-sid',
+  anomaly_list: [anomaly_table_for_tooltip[1]],
+  timerange_map: {},
+  selected_keys: null,
+  error: '',
+  is_commit_number_based: true,
+};
+
+export const GROUP_REPORT_RESPONSE_EMPTY_BUGS: GetGroupReportResponse = {
+  sid: 'empty-bugs-sid',
+  anomaly_list: [anomaly_table_for_tooltip[2]],
+  timerange_map: {},
+  selected_keys: null,
+  error: '',
+  is_commit_number_based: true,
+};

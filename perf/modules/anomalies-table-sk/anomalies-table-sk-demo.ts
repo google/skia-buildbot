@@ -6,6 +6,7 @@ import fetchMock from 'fetch-mock';
 import {
   anomaly_table,
   anomaly_table_for_grouping,
+  anomaly_table_for_tooltip,
   GROUP_REPORT_RESPONSE,
   GROUP_REPORT_RESPONSE_WITH_SID,
 } from './test_data';
@@ -58,6 +59,27 @@ $$('#populate-tables')?.addEventListener('click', () => {
 $$('#populate-tables-for-grouping')?.addEventListener('click', () => {
   document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((table) => {
     table.populateTable(anomaly_table_for_grouping);
+  });
+});
+
+$$('#populate-tables-it')?.addEventListener('click', async () => {
+  // The anomly_list in the response is what is passed to the anomalies table.
+  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((table) => {
+    table.populateTable([anomaly_table_for_tooltip[0]]);
+  });
+});
+
+$$('#populate-tables-it1')?.addEventListener('click', async () => {
+  // The anomly_list in the response is what is passed to the anomalies table.
+  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((table) => {
+    table.populateTable([anomaly_table_for_tooltip[1]]);
+  });
+});
+
+$$('#populate-tables-it2')?.addEventListener('click', async () => {
+  // The anomly_list in the response is what is passed to the anomalies table.
+  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((table) => {
+    table.populateTable([anomaly_table_for_tooltip[2]]);
   });
 });
 

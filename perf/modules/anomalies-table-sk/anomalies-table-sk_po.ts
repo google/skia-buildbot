@@ -57,6 +57,16 @@ export class AnomaliesTableSkPO extends PageObject {
     return this.bySelector('details.grouping-settings');
   }
 
+  get bugTooltips(): PageObjectElementList {
+    return this.bySelectorAll('tbody tr td:nth-child(4) bug-tooltip-sk');
+  }
+
+  async populateTable(data: any): Promise<void> {
+    await this.element.applyFnToDOMNode((el: any, data: any) => {
+      el.populateTable(data);
+    }, data);
+  }
+
   async getBugId(row: PageObjectElement): Promise<string> {
     const link = await row.bySelector('td:nth-child(4) a');
     return await (link?.innerText || '');
@@ -168,6 +178,11 @@ export class AnomaliesTableSkPO extends PageObject {
     }
     // Fallback for the old format, just in case.
     return parseInt(text, 10) || 0;
+  }
+
+  async getBugTooltip(index: number): Promise<PageObjectElement> {
+    const bugTooltips = await this.bugTooltips;
+    return bugTooltips.item(index);
   }
 
   async toggleGroupingSettings(shouldBeOpen: boolean): Promise<void> {

@@ -10,7 +10,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import '../../../infra-sk/modules/sort-sk';
-import { Anomaly, GetGroupReportResponse, Timerange } from '../json';
+import { Anomaly, GetGroupReportResponse, RegressionBug, Timerange } from '../json';
 import {
   AnomalyGroup,
   AnomalyGroupingConfig,
@@ -32,6 +32,7 @@ import '../../../elements-sk/modules/icons/help-icon-sk';
 import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
 import '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
 import { KeyboardShortcutsHelpSk } from '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
+import '../bug-tooltip-sk/bug-tooltip-sk';
 
 // Just below the 2000 limit - we need to leave some space for the instance address.
 const urlMaxLength = 1900;
@@ -639,7 +640,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
                   </button>
                 `}
           </td>
-          <td>
+          <td class="tooltip-cell">
             ${this.getReportLinkForBugId(anomaly.bug_id)}
             <close-icon-sk
               id="btnUnassociate"
@@ -648,6 +649,9 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
               }}
               ?hidden=${anomaly!.bug_id === 0}>
             </close-icon-sk>
+            <bug-tooltip-sk
+              .bugs=${anomalyGroup.anomalies[i].bugs || []}
+              totalLabel="total"></bug-tooltip-sk>
           </td>
           <td>
             <span>${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span>
@@ -733,6 +737,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
     const anomalyForBugReportLink = this.getReportLinkForSummaryRowBugId(anomalyGroup);
     const bugIdForLink = anomalyForBugReportLink ? anomalyForBugReportLink.bug_id : 0;
+    const summaryBugs = this.getSummaryBugs(anomalyGroup.anomalies);
 
     return html`
       <tr
@@ -765,7 +770,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
           </label>
         </td>
         <td class="center-content"></td>
-        <td>
+        <td class="tooltip-cell">
           ${this.getReportLinkForBugId(bugIdForLink)}
           <close-icon-sk
             id="btnUnassociate"
@@ -778,6 +783,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
             }}
             ?hidden=${!anomalyForBugReportLink}>
           </close-icon-sk>
+          <bug-tooltip-sk .bugs=${summaryBugs || []} totalLabel="distinct total"></bug-tooltip-sk>
         </td>
         <td>
           <span
@@ -856,6 +862,22 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       }
     }
     return '';
+  }
+
+  // Returns all distinct bugs in this FE group.
+  getSummaryBugs(anomalies: Anomaly[]) {
+    const distinctBugsMap = new Map<string, RegressionBug>();
+    anomalies
+      .flatMap((a) => a.bugs || [])
+      .forEach((bug) => {
+        if (bug) {
+          const key = `${bug.bug_id}-${bug.bug_type}`;
+          if (!distinctBugsMap.has(key)) {
+            distinctBugsMap.set(key, bug);
+          }
+        }
+      });
+    return Array.from(distinctBugsMap.values());
   }
 
   expandGroup(anomalyGroup: AnomalyGroup) {

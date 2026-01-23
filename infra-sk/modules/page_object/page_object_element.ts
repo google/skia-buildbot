@@ -90,6 +90,12 @@ export class PageObjectElement {
     await element.click();
   }
 
+  /** Hovers over the element. */
+  async hover() {
+    const element = (await this.elementPromise) as ElementHandle;
+    await element.hover();
+  }
+
   /** Analogous to Element#hasAttribute(). */
   async hasAttribute(attribute: string): Promise<boolean> {
     return this.applyFnToDOMNode(
@@ -198,7 +204,13 @@ export class PageObjectElement {
     ...args: Serializable[]
   ): Promise<T> {
     const element = await this.elementPromise;
-    if (isPptrElement(element!)) {
+    if (!element) {
+      throw new Error(
+        'Cannot apply function to DOM node because the element is null. ' +
+          'This usually means a selector did not find a matching element on the page.'
+      );
+    }
+    if (isPptrElement(element)) {
       return (await (element as ElementHandle<Element>).evaluate(fn, ...args)) as T;
     }
     return fn(element as Element, ...args);

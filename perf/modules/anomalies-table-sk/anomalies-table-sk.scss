@@ -34,6 +34,11 @@ anomalies-table-sk {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    td.tooltip-cell {
+      overflow: visible;
+    }
+
     a,
     th {
       // Make the header look clicky on hover.
@@ -261,4 +266,8 @@ details.grouping-settings summary {
 
 .checkbox-container label:hover {
   background-color: var(--surface-1dp);
+}
+
+.anomalies-table td {
+  position: relative;
 }

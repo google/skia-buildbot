@@ -1,0 +1,55 @@
+@import '../themes/themes.scss';
+
+bug-tooltip-sk {
+  .bug-count-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .bug-count-container[hidden] {
+    display: none;
+  }
+
+  .bug-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    background-color: #333;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 5px 10px;
+    position: absolute;
+    z-index: 1000;
+    bottom: 125%; /* Position above the container */
+    left: 50%;
+    transform: translateX(-50%);
+    transition: opacity 0.7s;
+    min-width: 220px; /* Increased width */
+    max-height: 80px; /* Limit height to avoid overflow
+    outside the perf content div.*/
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    white-space: normal; /* Allow text to wrap */
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .bug-tooltip ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: block;
+  }
+
+  .bug-tooltip ul li {
+    white-space: nowrap;
+  }
+  .bug-tooltip a {
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  .bug-count-container:hover .bug-tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+}
