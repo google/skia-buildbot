@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"text/template"
@@ -140,6 +141,8 @@ var statementFormats = map[statementFormat]string{
 			Regressions2
 		WHERE
 			id IN (%s)
+		ORDER BY
+			id
 		`,
 	readIdsByManualTriageBugId: `
 		SELECT
@@ -148,6 +151,8 @@ var statementFormats = map[statementFormat]string{
 			Regressions2
 		WHERE
 			bug_id = $1
+		ORDER BY
+			id
 		`,
 	readBySubName: `
 		SELECT
@@ -512,7 +517,7 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 
 	// We are not storing bugId = 0 (which means no bug assigned) to save up some space and avoid deduplication.
 	if bugId.Valid && bugId.Int64 != int64(0) {
-		r.Bugs = []regression.RegressionBug{{BugId: fmt.Sprint(bugId.Int64), Type: regression.ManualTriage}}
+		r.Bugs = []types.RegressionBug{{BugId: fmt.Sprint(bugId.Int64), Type: types.ManualTriage}}
 	}
 
 	r.ClusterType = string(clusterType)
@@ -538,11 +543,11 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 
 func (s *SQLRegression2Store) GetBugIdsForRegressions(ctx context.Context, regressions []*regression.Regression) ([]*regression.Regression, error) {
 	ids := make([]string, len(regressions))
-	idBugs := map[string][]regression.RegressionBug{}
+	idBugs := map[string][]types.RegressionBug{}
 	for i, r := range regressions {
 		ids[i] = r.Id
 		for _, bug := range r.Bugs {
-			if bug.Type == regression.ManualTriage {
+			if bug.Type == types.ManualTriage {
 				idBugs[r.Id] = append(idBugs[r.Id], bug)
 			}
 		}
@@ -572,9 +577,9 @@ func (s *SQLRegression2Store) GetBugIdsForRegressions(ctx context.Context, regre
 		}
 
 		if reported_issue_id.Valid {
-			idBugs[regression_id] = append(idBugs[regression_id], regression.RegressionBug{
+			idBugs[regression_id] = append(idBugs[regression_id], types.RegressionBug{
 				BugId: reported_issue_id.String,
-				Type:  regression.AutoTriage,
+				Type:  types.AutoTriage,
 			})
 		}
 		idBugs[regression_id] = append(idBugs[regression_id], extractBugFromCulprit(
@@ -583,46 +588,95 @@ func (s *SQLRegression2Store) GetBugIdsForRegressions(ctx context.Context, regre
 	}
 
 	for i, r := range regressions {
-		regressions[i].Bugs = idBugs[r.Id]
+		regressions[i].Bugs = sortBugs(idBugs[r.Id])
 		regressions[i].AllBugsFetched = true
 	}
 
 	return regressions, nil
 }
 
-func extractBugFromCulprit(agid, culprit_id sql.NullString, culprit_issue_ids []string, group_issue_map sql.NullString) []regression.RegressionBug {
+func extractBugFromCulprit(agid, culprit_id sql.NullString, culprit_issue_ids []string, group_issue_map sql.NullString) []types.RegressionBug {
 	if !culprit_id.Valid {
-		return []regression.RegressionBug{}
+		return []types.RegressionBug{}
 	}
 	if !agid.Valid {
 		sklog.Errorf("sqlregression2store: culprit id is valid but anomaly group id is not")
-		return []regression.RegressionBug{}
+		return []types.RegressionBug{}
 	}
 	if group_issue_map.Valid {
 		var issueMap map[string]string
 		err := json.Unmarshal([]byte(group_issue_map.String), &issueMap)
 		if err != nil {
 			sklog.Errorf("failed to unmarshall group issue map: %s", err)
-			return []regression.RegressionBug{}
+			return []types.RegressionBug{}
 		}
 		// If culpritId is valid, anomalygroup should be, too.
 		v, ok := issueMap[agid.String]
 		if !ok {
 			sklog.Errorf("anomalygroup id was not present on the culprit issueMap %s", group_issue_map.String)
-			return []regression.RegressionBug{}
+			return []types.RegressionBug{}
 		}
-		return []regression.RegressionBug{{BugId: v, Type: regression.AutoBisect}}
+		return []types.RegressionBug{{BugId: v, Type: types.AutoBisect}}
 	}
 	sklog.Warningf("sqlregression2store: group_issue_map is not valid, but unexpectedly, culprit id %s is.", culprit_id.String)
 	// We use coalesce with an empty array, so culprit issue ids is never null.
-	result := make([]regression.RegressionBug, len(culprit_issue_ids))
+	result := make([]types.RegressionBug, len(culprit_issue_ids))
 	for i, r := range culprit_issue_ids {
-		result[i] = regression.RegressionBug{
+		result[i] = types.RegressionBug{
 			BugId: r,
-			Type:  regression.AutoBisect,
+			Type:  types.AutoBisect,
 		}
 	}
 	return result
+}
+
+func sortBugs(bugs []types.RegressionBug) []types.RegressionBug {
+	typeRank := map[types.BugType]int{
+		types.ManualTriage: 1,
+		types.AutoTriage:   2,
+		types.AutoBisect:   3,
+	}
+
+	slices.SortFunc(bugs, func(a, b types.RegressionBug) int {
+		// Unidentified bug types will be sorted at the end.
+		ranki, ok := typeRank[a.Type]
+		if !ok {
+			ranki = 4
+		}
+		rankj, ok := typeRank[b.Type]
+		if !ok {
+			rankj = 4
+		}
+		if ranki != rankj {
+			return ranki - rankj
+		}
+
+		// if types are the same, sort by bugId
+		// bugIds are ints as long as we're using buganizer.
+		aBugId, err := strconv.Atoi(a.BugId)
+		compareAsStrings := false
+		if err != nil {
+			sklog.Error("failed to compare bug ids, comparing as strings instead")
+			compareAsStrings = true
+		}
+		bBugId, err := strconv.Atoi(b.BugId)
+		if err != nil {
+			sklog.Error("failed to compare bug ids, comparing as strings instead")
+			compareAsStrings = true
+		}
+		if compareAsStrings {
+			if a.BugId < b.BugId {
+				return -1
+			}
+			if a.BugId > b.BugId {
+				return 1
+			}
+			return 0
+		}
+		return aBugId - bBugId
+	})
+
+	return bugs
 }
 
 func (s *SQLRegression2Store) convertRowsIntoRegressions(rows pgx.Rows) ([]*regression.Regression, error) {
@@ -661,7 +715,7 @@ func (s *SQLRegression2Store) writeSingleRegression(ctx context.Context, r *regr
 func selectManualBugFromRegression(r *regression.Regression) (sql.NullInt64, error) {
 	var bugId int
 	for _, b := range r.Bugs {
-		if b.Type == regression.ManualTriage {
+		if b.Type == types.ManualTriage {
 			bug, err := strconv.Atoi(b.BugId)
 			if err != nil {
 				return sql.NullInt64{Valid: false}, skerr.Wrapf(err, "failed to convert bug id: %s", b.BugId)

@@ -43,7 +43,7 @@ func generateNewRegression() *regression.Regression {
 	r.Id = uuid.NewString()
 	r.CommitNumber = 12345
 	r.AlertId = alertId
-	r.Bugs = []regression.RegressionBug{}
+	r.Bugs = []types.RegressionBug{}
 	r.CreationTime = time.Now()
 	r.IsImprovement = false
 	r.MedianBefore = 1.0
@@ -691,7 +691,7 @@ func TestResetAnomalies_Success(t *testing.T) {
 	regIDs := []string{}
 	for _, reg := range regressions {
 		// set the following fields to see if reset works.
-		reg.Bugs = []regression.RegressionBug{{BugId: fmt.Sprint(bugIdDefault), Type: regression.ManualTriage}}
+		reg.Bugs = []types.RegressionBug{{BugId: fmt.Sprint(bugIdDefault), Type: types.ManualTriage}}
 		reg.HighStatus.Status = statusDefault
 		reg.HighStatus.Message = messageDefault
 		_, err := store.WriteRegression(ctx, reg, nil)
@@ -784,7 +784,7 @@ func TestNudgeAndResetAnomalies_ResetsStatus(t *testing.T) {
 
 	regIDs := []string{}
 	for _, reg := range regressions {
-		reg.Bugs = []regression.RegressionBug{{BugId: fmt.Sprint(bugIdDefault), Type: regression.ManualTriage}}
+		reg.Bugs = []types.RegressionBug{{BugId: fmt.Sprint(bugIdDefault), Type: types.ManualTriage}}
 		reg.HighStatus.Status = statusDefault
 		reg.HighStatus.Message = messageDefault
 		_, err := store.WriteRegression(ctx, reg, nil)
@@ -986,8 +986,8 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 	// Test case 2: Manual bug only.
 	t.Run("Manual bug only", func(t *testing.T) {
 		r := generateNewRegression()
-		manualBug := regression.RegressionBug{BugId: "12345", Type: regression.ManualTriage}
-		r.Bugs = []regression.RegressionBug{manualBug}
+		manualBug := types.RegressionBug{BugId: "12345", Type: types.ManualTriage}
+		r.Bugs = []types.RegressionBug{manualBug}
 		_, err := store.WriteRegression(ctx, r, nil)
 		require.NoError(t, err)
 
@@ -999,7 +999,7 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 		regressions, err := store.GetBugIdsForRegressions(ctx, regressionsFromDB)
 		require.NoError(t, err)
 		require.Len(t, regressions, 1)
-		assert.ElementsMatch(t, []regression.RegressionBug{manualBug}, regressions[0].Bugs)
+		assert.ElementsMatch(t, []types.RegressionBug{manualBug}, regressions[0].Bugs)
 		assert.True(t, regressions[0].AllBugsFetched)
 	})
 
@@ -1017,8 +1017,8 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 		regressions, err := store.GetBugIdsForRegressions(ctx, []*regression.Regression{r})
 		require.NoError(t, err)
 		require.Len(t, regressions, 1)
-		expectedBugs := []regression.RegressionBug{
-			{BugId: reportedIssueID, Type: regression.AutoTriage},
+		expectedBugs := []types.RegressionBug{
+			{BugId: reportedIssueID, Type: types.AutoTriage},
 		}
 		assert.ElementsMatch(t, expectedBugs, regressions[0].Bugs)
 		assert.True(t, regressions[0].AllBugsFetched)
@@ -1047,8 +1047,8 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 		regressions, err := store.GetBugIdsForRegressions(ctx, []*regression.Regression{r})
 		require.NoError(t, err)
 		require.Len(t, regressions, 1)
-		expectedBugs := []regression.RegressionBug{
-			{BugId: reportedIssueID, Type: regression.AutoTriage},
+		expectedBugs := []types.RegressionBug{
+			{BugId: reportedIssueID, Type: types.AutoTriage},
 		}
 		assert.ElementsMatch(t, expectedBugs, regressions[0].Bugs)
 		assert.True(t, regressions[0].AllBugsFetched)
@@ -1086,8 +1086,8 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 		regressions, err := store.GetBugIdsForRegressions(ctx, []*regression.Regression{r})
 		require.NoError(t, err)
 		require.Len(t, regressions, 1)
-		expectedBugs := []regression.RegressionBug{
-			{BugId: bisectIssueID, Type: regression.AutoBisect},
+		expectedBugs := []types.RegressionBug{
+			{BugId: bisectIssueID, Type: types.AutoBisect},
 		}
 		assert.ElementsMatch(t, expectedBugs, regressions[0].Bugs)
 	})
@@ -1095,8 +1095,8 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 	// Test case 6: All bug types together.
 	t.Run("All bug types together", func(t *testing.T) {
 		r := generateNewRegression()
-		manualBug := regression.RegressionBug{BugId: "123", Type: regression.ManualTriage}
-		r.Bugs = []regression.RegressionBug{manualBug}
+		manualBug := types.RegressionBug{BugId: "123", Type: types.ManualTriage}
+		r.Bugs = []types.RegressionBug{manualBug}
 		_, err := store.WriteRegression(ctx, r, nil)
 		require.NoError(t, err)
 
@@ -1134,12 +1134,107 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, regressions, 1)
 
-		expectedBugs := []regression.RegressionBug{
+		expectedBugs := []types.RegressionBug{
 			manualBug,
-			{BugId: reportedIssueID, Type: regression.AutoTriage},
-			{BugId: bisectIssueID, Type: regression.AutoBisect},
+			{BugId: reportedIssueID, Type: types.AutoTriage},
+			{BugId: bisectIssueID, Type: types.AutoBisect},
 		}
 		assert.ElementsMatch(t, expectedBugs, regressions[0].Bugs)
+	})
+
+	// Test case 7: Sorting order of bugs (manual, autotriage, autobisect, then by ID).
+	t.Run("Bug sorting order", func(t *testing.T) {
+		r := generateNewRegression()
+		r1 := generateNewRegression()
+		if r.Id > r1.Id {
+			r.Id, r1.Id = r1.Id, r.Id
+		}
+		assert.True(t, r.Id < r1.Id)
+		_, err := store.WriteRegression(ctx, r, nil)
+		require.NoError(t, err)
+		_, err = store.WriteRegression(ctx, r1, nil)
+		require.NoError(t, err)
+
+		// Initialize with a mixed order to ensure sorting works
+
+		manualBug1 := types.RegressionBug{BugId: "100", Type: types.ManualTriage}
+		err = store.SetBugID(ctx, []string{r.Id}, 100)
+		require.NoError(t, err)
+
+		manualBug2 := types.RegressionBug{BugId: "399", Type: types.ManualTriage}
+		err = store.SetBugID(ctx, []string{r1.Id}, 399)
+		require.NoError(t, err)
+
+		autoTriageBug1 := types.RegressionBug{BugId: "250", Type: types.AutoTriage}
+		autoTriageBug2 := types.RegressionBug{BugId: "200", Type: types.AutoTriage}
+		autoBisectBug1 := types.RegressionBug{BugId: "301", Type: types.AutoBisect}
+		autoBisectBug2 := types.RegressionBug{BugId: "99", Type: types.AutoBisect} // For tie-breaking
+
+		// Auto-triage bug
+		agID1 := uuid.NewString()
+		_, err = store.db.Exec(ctx, `
+			INSERT INTO AnomalyGroups (id, anomaly_ids, common_rev_start, common_rev_end, reported_issue_id)
+			VALUES ($1, $2, $3, $4, $5)`,
+			agID1, []string{r.Id, r1.Id}, r.PrevCommitNumber, r.CommitNumber, autoTriageBug1.BugId)
+		require.NoError(t, err)
+
+		// Auto-triage bug
+		agID4 := uuid.NewString()
+		_, err = store.db.Exec(ctx, `
+			INSERT INTO AnomalyGroups (id, anomaly_ids, common_rev_start, common_rev_end, reported_issue_id)
+			VALUES ($1, $2, $3, $4, $5)`,
+			agID4, []string{r1.Id}, r.PrevCommitNumber, r.CommitNumber, autoTriageBug2.BugId)
+		require.NoError(t, err)
+
+		// Auto-bisect bugs
+		agID2 := uuid.NewString()
+		agID3 := uuid.NewString() // For the second auto-bisect bug
+		culpritID := uuid.NewString()
+		groupIssueMap := fmt.Sprintf(`{"%s": "%s", "%s": "%s"}`, agID2, autoBisectBug1.BugId, agID3, autoBisectBug2.BugId)
+
+		_, err = store.db.Exec(ctx, `
+			INSERT INTO AnomalyGroups (id, anomaly_ids, common_rev_start, common_rev_end)
+			VALUES ($1, $2, $3, $4)`,
+			agID2, []string{r.Id, r1.Id}, r.PrevCommitNumber, r.CommitNumber)
+		require.NoError(t, err)
+
+		_, err = store.db.Exec(ctx, `
+			INSERT INTO AnomalyGroups (id, anomaly_ids, common_rev_start, common_rev_end)
+			VALUES ($1, $2, $3, $4)`,
+			agID3, []string{r.Id}, r.PrevCommitNumber, r.CommitNumber)
+		require.NoError(t, err)
+
+		_, err = store.db.Exec(ctx, `
+			INSERT INTO Culprits (id, host, project, ref, revision, anomaly_group_ids, group_issue_map, issue_ids)
+			VALUES ($1, 'host', 'project', 'ref', 'rev', $2, $3, $4)`,
+			culpritID, []string{agID2, agID3}, groupIssueMap, []string{autoBisectBug1.BugId, autoBisectBug2.BugId})
+		require.NoError(t, err)
+
+		regressionsFromDB, err := store.GetByIDs(ctx, []string{r.Id, r1.Id})
+		require.NoError(t, err)
+		require.Len(t, regressionsFromDB, 2)
+
+		regressions, err := store.GetBugIdsForRegressions(ctx, regressionsFromDB)
+		require.NoError(t, err)
+		require.Len(t, regressions, len(regressionsFromDB))
+
+		expectedBugs := []types.RegressionBug{
+			manualBug1,
+			autoTriageBug1,
+			autoBisectBug2,
+			autoBisectBug1,
+		}
+		expectedBugs1 := []types.RegressionBug{
+			manualBug2,
+			autoTriageBug2,
+			autoTriageBug1,
+			autoBisectBug1,
+		}
+		assert.Equal(t, regressions[0].Id, r.Id)
+		assert.Equal(t, expectedBugs, regressions[0].Bugs)
+		assert.Equal(t, expectedBugs1, regressions[1].Bugs)
+		assert.True(t, regressions[0].AllBugsFetched)
+		assert.True(t, regressions[1].AllBugsFetched)
 	})
 }
 

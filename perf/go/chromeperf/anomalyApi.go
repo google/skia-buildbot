@@ -52,11 +52,12 @@ type AnomalyMap map[string]CommitNumberAnomalyMap
 // instead of Chrome Perf API, so chromeperf.Anomaly should be renamed to
 // something more generic.
 type Anomaly struct {
-	Id            string `json:"id"`
-	TestPath      string `json:"test_path"`
-	BugId         int    `json:"bug_id"`
-	StartRevision int    `json:"start_revision"`
-	EndRevision   int    `json:"end_revision"`
+	Id            string                `json:"id"`
+	TestPath      string                `json:"test_path"`
+	BugId         int                   `json:"bug_id"`         // For compatiblity with chromeperf
+	Bugs          []types.RegressionBug `json:"bugs,omitempty"` // Populated exclusively when using sql anomalies
+	StartRevision int                   `json:"start_revision"`
+	EndRevision   int                   `json:"end_revision"`
 
 	// The hashes below are needed for cases where the commit numbers are
 	// different in chromeperf and in the perf instance. We can use these

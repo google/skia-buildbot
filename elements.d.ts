@@ -1,5 +1,6 @@
 // Enable lit-plugin support.
 
+import { BugTooltipSk } from './perf/modules/anomalies-table-sk/bug-tooltip-sk/bug-tooltip-sk';
 import { AlertConfigSk } from './perf/modules/alert-config-sk/alert-config-sk';
 import { AlertManagerSk } from './am/modules/alert-manager-sk/alert-manager-sk';
 import { AlgoSelectSk } from './perf/modules/algo-select-sk/algo-select-sk';
@@ -1223,6 +1224,7 @@ declare global {
     'bugs-chart-sk': BugsChartSk;
     'bugs-slo-popup-sk': BugsSLOPopupSk;
     'bugs-status-sk': BugsStatusSk;
+    'bug-tooltip-sk': BugTooltipSk;
     'bulk-triage-sk': BulkTriageSk;
     'byblame-page-sk': ByBlamePageSk;
     'byblameentry-sk': ByBlameEntrySk;

@@ -332,3 +332,18 @@ func (ts *TraceSourceInfo) GetAllCommitNumbers() []CommitNumber {
 	}
 	return ret
 }
+
+type BugType string
+
+const (
+	ManualTriage = "manual"
+	AutoTriage   = "auto-triage"
+	AutoBisect   = "auto-bisect"
+)
+
+// RegressionBug is a type that binds bug id and it's source together.
+// In other words, it allows us to determine which sheriff action created this association.
+type RegressionBug struct {
+	BugId string  `json:"bug_id"`
+	Type  BugType `json:"bug_type"`
+}

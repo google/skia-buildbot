@@ -30,6 +30,7 @@ func ConvertRegressionToAnomalies(reg *regression.Regression) (chromeperf.Anomal
 			IsImprovement:       reg.IsImprovement,
 			MedianBeforeAnomaly: float64(reg.MedianBefore),
 			MedianAfterAnomaly:  float64(reg.MedianAfter),
+			Bugs:                reg.Bugs,
 		}
 
 		_, _, triageStatus := reg.GetClusterTypeAndSummaryAndTriageStatus()

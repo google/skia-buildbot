@@ -180,10 +180,16 @@ export interface DataFrame {
 	traceMetadata: TraceMetadata[] | null;
 }
 
+export interface RegressionBug {
+	bug_id: string;
+	bug_type: BugType;
+}
+
 export interface Anomaly {
 	id: string;
 	test_path: string;
 	bug_id: number;
+	bugs?: RegressionBug[] | null;
 	start_revision: number;
 	end_revision: number;
 	start_revision_hash?: string;
@@ -221,11 +227,6 @@ export interface FrameResponse {
 export interface TriageStatus {
 	status: Status;
 	message: string;
-}
-
-export interface RegressionBug {
-	BugId: string;
-	Type: BugType;
 }
 
 export interface Regression {
@@ -919,12 +920,6 @@ export function CacheType(v: string): CacheType {
 
 export type FrameResponseDisplayMode = 'display_query_only' | 'display_plot' | 'display_pivot_table' | 'display_pivot_plot' | 'display_spinner';
 
-export type CommitNumberAnomalyMap = { [key: number]: Anomaly } | null;
-
-export type AnomalyMap = { [key: string]: CommitNumberAnomalyMap } | null;
-
-export type Status = '' | 'positive' | 'negative' | 'untriaged' | 'ignored';
-
 export type BugType = string & {
 	/**
 	* WARNING: Do not reference this field from application code.
@@ -938,6 +933,12 @@ export type BugType = string & {
 export function BugType(v: string): BugType {
 	return v as BugType;
 };
+
+export type CommitNumberAnomalyMap = { [key: number]: Anomaly } | null;
+
+export type AnomalyMap = { [key: string]: CommitNumberAnomalyMap } | null;
+
+export type Status = '' | 'positive' | 'negative' | 'untriaged' | 'ignored';
 
 export type RequestType = 0 | 1;
 
