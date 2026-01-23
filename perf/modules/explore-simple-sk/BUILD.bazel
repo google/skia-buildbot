@@ -110,6 +110,7 @@ ts_library(
         "//perf/modules/pivot-table-sk:pivot-table-sk_po_ts_lib",
         "//perf/modules/plot-google-chart-sk:plot-google-chart-sk_po_ts_lib",
         "//perf/modules/plot-summary-sk:plot-summary-sk_po_ts_lib",
+        "//perf/modules/query-count-sk:query-count-sk_po_ts_lib",
     ],
 )
 
@@ -122,7 +123,6 @@ sk_page(
     ],
     ts_deps = [
         "//perf/modules/common:test-util_ts_lib",
-        "//:node_modules/fetch-mock",
         "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "explore-simple-sk-demo.ts",

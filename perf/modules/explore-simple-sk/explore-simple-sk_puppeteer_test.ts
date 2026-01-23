@@ -6,6 +6,7 @@ import { CLIPBOARD_READ_TIMEOUT_MS, DEFAULT_VIEWPORT } from '../common/puppeteer
 import { paramSet1 } from './test_data';
 import { paramSet } from '../common/test-util';
 
+const EXPECTED_QUERY_COUNT = 117;
 describe('explore-simple-sk', () => {
   let testBed: TestBed;
   let exploreSimpleSk: ElementHandle;
@@ -78,7 +79,7 @@ describe('explore-simple-sk', () => {
     expect(await testBed.page.$$('explore-simple-sk')).to.have.length(1); // Smoke test.
   });
 
-  describe('query dialog interaction', async () => {
+  describe('query dialog interaction', () => {
     it('should have the query dialog element in the page on initial load', async () => {
       await testBed.page.click('#demo-show-query-dialog');
       const dialogHandle = await testBed.page.waitForSelector('#query-dialog', {
@@ -86,9 +87,27 @@ describe('explore-simple-sk', () => {
       });
       expect(dialogHandle).to.not.be.null;
     });
+
+    it('should display the correct count for a query', async () => {
+      await testBed.page.click('#demo-show-query-dialog');
+      const querySkPO = await simplePageSkPO.querySk;
+      await querySkPO.setCurrentQuery(paramSet);
+
+      const initialKeys = await querySkPO.getKeys();
+      expect(initialKeys.length).to.deep.equal(2);
+
+      const keyToClick = initialKeys[0]; // Pick the first key to click
+      await querySkPO.clickKey(keyToClick);
+      await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
+      await querySkPO.clickValue('arm');
+
+      await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
+      const query = await simplePageSkPO.queryCountSkPO.getCount();
+      expect(query).to.equal(EXPECTED_QUERY_COUNT);
+    });
   });
 
-  describe('query-sk interactions', () => {
+  describe('query-sk interactions', async () => {
     it('should allow updating the query', async () => {
       await testBed.page.click('#demo-show-query-dialog');
       const querySkPO = await simplePageSkPO.querySk;
@@ -138,7 +157,7 @@ describe('explore-simple-sk', () => {
     });
   });
 
-  describe('Graph interactions', async () => {
+  describe('Graph interactions', () => {
     it('plots a graph and verifies traces', async () => {
       await testBed.page.click('#demo-show-query-dialog');
       const querySkPO = await simplePageSkPO.querySk;

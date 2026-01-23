@@ -1,22 +1,10 @@
 import './index';
 import '../../../elements-sk/modules/error-toast-sk';
 import { setUpExploreDemoEnv } from '../common/test-util';
-import fetchMock from 'fetch-mock';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ExploreSimpleSk } from './explore-simple-sk';
 
 setUpExploreDemoEnv();
-
-// Override defaults to enable test picker, which is required to attach the add-to-graph listener.
-fetchMock.get(
-  '/_/defaults/',
-  {
-    default_param_selections: null,
-    default_url_values: { useTestPicker: 'false' },
-    include_params: ['arch', 'os'],
-  },
-  { overwriteRoutes: true }
-);
 
 window.perf = {
   dev_mode: false,

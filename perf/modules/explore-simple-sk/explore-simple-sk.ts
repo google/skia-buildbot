@@ -2009,6 +2009,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       // Only update the filter query if there's one string in the formula.
       this.formula!.value = formula.replace(/".*"/, `"${query}"`);
     }
+    this.queryCount!.current_query = this.applyDefaultsToQuery(e.detail.q);
   }
 
   private pivotTableSortChange(e: CustomEvent<PivotTableSkChangeEventDetail>): void {

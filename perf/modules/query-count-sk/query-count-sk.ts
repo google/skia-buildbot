@@ -21,7 +21,7 @@ import { CountHandlerRequest, CountHandlerResponse, ReadOnlyParamSet } from '../
 import '../../../elements-sk/modules/spinner-sk';
 
 export class QueryCountSk extends ElementSk {
-  private _count = '';
+  private _count = 0;
 
   private _requestInProgress = false;
 
@@ -29,7 +29,7 @@ export class QueryCountSk extends ElementSk {
 
   constructor() {
     super(QueryCountSk.template);
-    this._count = '';
+    this._count = 0;
     this._requestInProgress = false;
   }
 
@@ -87,7 +87,7 @@ export class QueryCountSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((json: CountHandlerResponse) => {
-        this._count = `${json.count}`;
+        this._count = json.count;
         this._requestInProgress = false;
         this._render();
         this.dispatchEvent(
@@ -126,7 +126,7 @@ export class QueryCountSk extends ElementSk {
 
   set current_query(val: string) {
     this.setAttribute('current_query', val);
-    this._count = '';
+    this._count = 0;
     this._render();
   }
 }

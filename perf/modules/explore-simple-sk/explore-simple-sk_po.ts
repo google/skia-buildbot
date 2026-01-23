@@ -8,14 +8,23 @@ import { ChartTooltipSkPO } from '../chart-tooltip-sk/chart-tooltip-sk_po';
 import { GraphTitleSkPO } from '../graph-title-sk/graph-title-sk_po';
 import { poll } from '../common/puppeteer-test-util';
 import { PlotSummarySkPO } from '../plot-summary-sk/plot-summary-sk_po';
+import { QueryCountSkPO } from '../query-count-sk/query-count-sk_po';
 
 export class ExploreSimpleSkPO extends PageObject {
   get pickerField(): PageObjectElement {
     return this.bySelector('picker-field-sk:nth-of-type(1)');
   }
 
+  get queryCountSkPO(): QueryCountSkPO {
+    return this.poBySelector('query-count-sk', QueryCountSkPO);
+  }
+
   get queryCountSk(): PageObjectElement {
     return this.bySelector('query-count-sk');
+  }
+
+  get queryCountText(): PageObjectElement {
+    return this.queryCountSkPO.bySelector('span');
   }
 
   get querySk(): QuerySkPO {
@@ -92,6 +101,25 @@ export class ExploreSimpleSkPO extends PageObject {
 
   get settingDialog(): PageObjectElement {
     return this.bySelector('#settings-dialog');
+  }
+
+  get paramsTab(): PageObjectElement {
+    return this.bySelector('tabs-sk#detailTab > button');
+  }
+
+  get paramsetSk(): PageObjectElement {
+    return this.bySelector('paramset-sk#paramset');
+  }
+
+  get collapseButton(): PageObjectElement {
+    return this.bySelector('#collapseButton');
+  }
+
+  async clickParam(key: string, value: string) {
+    const paramElement = this.paramsetSk.bySelector(
+      `div[data-key='${key}'][data-value='${value}']`
+    );
+    await paramElement.click();
   }
 
   async getXAxisDomain(): Promise<string> {
