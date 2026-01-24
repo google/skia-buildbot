@@ -37,6 +37,10 @@ export class PlotSummarySkPO extends PageObject {
     await this.rightLoadButton.click();
   }
 
+  get resizableBox(): PageObjectElement {
+    return this.bySelectorShadow('h-resizable-box-sk');
+  }
+
   async waitForPlotSummaryToLoad(): Promise<void> {
     await poll(async () => {
       return await this.element.applyFnToDOMNode((el) => {
@@ -80,6 +84,49 @@ export class PlotSummarySkPO extends PageObject {
     const centerY = rect.y + rect.height / 2;
     const startX = Math.round(rect.x + rect.width * startRatio);
     const endX = Math.round(rect.x + rect.width * endRatio);
+
+    await page.mouse.move(startX, centerY);
+    await page.mouse.down();
+    await page.mouse.move(endX, centerY, { steps: 10 });
+    await page.mouse.up();
+  }
+
+  /**
+   * Resizes an existing selection by dragging its left or right edge.
+   *
+   * @param page Puppeteer page
+   * @param edge Which edge to drag ('left' or 'right')
+   * @param targetRatio Where to drag the edge to (0.0 to 1.0 relative to chart width)
+   */
+  async resizeSelection(page: Page, edge: 'left' | 'right', targetRatio: number): Promise<void> {
+    const containerRect = await this.resizableBox.applyFnToDOMNode((el) => {
+      const r = el.getBoundingClientRect();
+      return { x: r.left, y: r.top, width: r.width, height: r.height };
+    });
+
+    if (containerRect.width === 0) throw new Error('resizeSelection failed: Container width is 0');
+
+    const surfaceRect = await this.resizableBox.applyFnToDOMNode((el) => {
+      const s = el.shadowRoot!.querySelector('.surface');
+      if (!s) return null;
+      const r = s.getBoundingClientRect();
+      return { x: r.left, y: r.top, width: r.width, height: r.height };
+    });
+
+    if (!surfaceRect) {
+      throw new Error('resizeSelection failed: No existing selection found to resize.');
+    }
+
+    const centerY = Math.round(surfaceRect.y + surfaceRect.height / 2);
+    let startX: number;
+
+    if (edge === 'left') {
+      startX = Math.round(surfaceRect.x);
+    } else {
+      startX = Math.round(surfaceRect.x + surfaceRect.width);
+    }
+
+    const endX = Math.round(containerRect.x + containerRect.width * targetRatio);
 
     await page.mouse.move(startX, centerY);
     await page.mouse.down();

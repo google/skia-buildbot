@@ -14,7 +14,8 @@ describe('Anomalies and Traces', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(testBed.baseUrl);
+    const queryParams = '?begin=1687855198&end=1687961973';
+    await testBed.page.goto(testBed.baseUrl + queryParams);
     await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
   });
 
@@ -403,7 +404,7 @@ describe('Manual Plot Mode', () => {
       const initialBegin = initialUrl.searchParams.get('begin');
       const initialEnd = initialUrl.searchParams.get('end');
 
-      await plotSummaryPO0.selectRange(testBed.page, 0.25, 0.75);
+      await plotSummaryPO0.resizeSelection(testBed.page, 'right', 0.75);
 
       const finalUrl = new URL(testBed.page.url());
       const finalBegin = finalUrl.searchParams.get('begin');
@@ -463,7 +464,7 @@ describe('Explore Multi Sk with plotSummary', () => {
     const initialBegin = initialUrl.searchParams.get('begin');
     const initialEnd = initialUrl.searchParams.get('end');
 
-    await plotSummaryPO.selectRange(testBed.page, 0.25, 0.75);
+    await plotSummaryPO.resizeSelection(testBed.page, 'right', 0.75);
 
     const finalUrl = new URL(testBed.page.url());
     const finalBegin = finalUrl.searchParams.get('begin');
@@ -485,7 +486,8 @@ describe('Split Graph Functionality', function () {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(testBed.baseUrl);
+    const queryParams = '?begin=1687855198&end=1687961973';
+    await testBed.page.goto(testBed.baseUrl + queryParams);
     await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
   });
 

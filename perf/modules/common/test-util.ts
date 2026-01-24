@@ -14,6 +14,26 @@ export const paramSet = {
 };
 
 export function setUpExploreDemoEnv() {
+  // June 28, 2023 at 14:19:33 UTC
+  const RAW_TIMESTAMP_SECONDS = 1687961973;
+
+  const MOCKED_NOW_MS = RAW_TIMESTAMP_SECONDS * 1000;
+
+  Date.now = () => MOCKED_NOW_MS;
+
+  const OriginalDate = Date;
+
+  window.Date = class extends OriginalDate {
+    constructor(...args: any[]) {
+      if (args.length === 0) {
+        super(MOCKED_NOW_MS);
+      } else {
+        // @ts-expect-error: type definition does not support spread arguments.
+        super(...args);
+      }
+    }
+  } as any;
+
   // The demo server will inject this cookie if there is a backend.
   if (getCookieValue('proxy_endpoint')) {
     return;
@@ -43,10 +63,14 @@ export function setUpExploreDemoEnv() {
   });
 
   let currentQueries: string[] = [];
+  let currentBegin = 1687855197;
+  let currentEnd = 1687961973;
 
   fetchMock.post('/_/frame/start', (_url, opts) => {
     const body = JSON.parse(opts.body as string);
     currentQueries = body.queries || [];
+    currentBegin = body.begin > 0 ? body.begin : currentBegin;
+    currentEnd = body.end > 0 ? body.end : currentEnd;
     return {
       status: 'Running',
       messages: [],
@@ -396,11 +420,37 @@ export function setUpExploreDemoEnv() {
       };
     }
 
+    const df = normalTracesResponse.results.dataframe;
+
+    let startIndex = df.header.findIndex((h) => h.timestamp >= currentBegin);
+    if (startIndex === -1) {
+      startIndex = df.header.length;
+    }
+
+    let endIndex = df.header.findIndex((h) => h.timestamp > currentEnd);
+    if (endIndex === -1) {
+      endIndex = df.header.length;
+    }
+
+    if (startIndex > endIndex) {
+      startIndex = 0;
+      endIndex = 0;
+    }
+
+    const slicedHeader = df.header.slice(startIndex, endIndex);
+
+    let minOffset = -1;
+    let maxOffset = -1;
+
+    if (slicedHeader.length > 0) {
+      minOffset = slicedHeader[0].offset;
+      maxOffset = slicedHeader[slicedHeader.length - 1].offset;
+    }
+
     const filteredTraceSet: any = {};
     const filteredAnomalyMap: any = {};
 
-    Object.keys(normalTracesResponse.results.dataframe.traceset).forEach((traceKey) => {
-      // Check if trace matches ANY of the current queries
+    Object.keys(df.traceset).forEach((traceKey) => {
       const matches = currentQueries.some((query) => {
         const params = new URLSearchParams(query);
         const queryMap = new Map<string, Set<string>>();
@@ -425,20 +475,28 @@ export function setUpExploreDemoEnv() {
       });
 
       if (matches) {
-        filteredTraceSet[traceKey] =
-          normalTracesResponse.results.dataframe.traceset[
-            traceKey as keyof typeof normalTracesResponse.results.dataframe.traceset
-          ];
-        if (
-          normalTracesResponse.results.anomalymap &&
-          normalTracesResponse.results.anomalymap[
-            traceKey as keyof typeof normalTracesResponse.results.anomalymap
-          ]
-        ) {
-          filteredAnomalyMap[traceKey] =
-            normalTracesResponse.results.anomalymap[
-              traceKey as keyof typeof normalTracesResponse.results.anomalymap
-            ];
+        const originalTrace = (df.traceset as any)[traceKey];
+        filteredTraceSet[traceKey] = originalTrace.slice(startIndex, endIndex);
+
+        const sourceAnomalies = (normalTracesResponse.results.anomalymap as any)?.[traceKey];
+
+        if (sourceAnomalies) {
+          const filteredTraceAnomalies: any = {};
+
+          // Iterate over each anomaly (key is the revision offset)
+          Object.keys(sourceAnomalies).forEach((revisionStr) => {
+            const revision = Number(revisionStr);
+
+            // Only include if the revision is within our visible header range
+            if (revision >= minOffset && revision <= maxOffset) {
+              filteredTraceAnomalies[revisionStr] = sourceAnomalies[revisionStr];
+            }
+          });
+
+          // Only add to the map if we actually have anomalies left
+          if (Object.keys(filteredTraceAnomalies).length > 0) {
+            filteredAnomalyMap[traceKey] = filteredTraceAnomalies;
+          }
         }
       }
     });
@@ -450,6 +508,7 @@ export function setUpExploreDemoEnv() {
         dataframe: {
           ...normalTracesResponse.results.dataframe,
           traceset: filteredTraceSet,
+          header: slicedHeader,
         },
         anomalymap: filteredAnomalyMap,
       },
