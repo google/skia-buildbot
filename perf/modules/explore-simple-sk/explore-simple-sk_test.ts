@@ -5,6 +5,7 @@ import {
   ColumnHeader,
   CommitNumber,
   FrameResponse,
+  FrameRequest,
   QueryConfig,
   TimestampSeconds,
   Trace,
@@ -34,6 +35,7 @@ import sinon from 'sinon';
 // Import for side effects. Make `plotSummary`(has no direct interaction with the module)
 // work when run in isolation.
 import './explore-simple-sk';
+import { DataService } from '../data-service';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -1583,5 +1585,45 @@ describe('Domain Picker Interaction', () => {
 
     assert.equal(explore.state.begin, pickerBegin, 'Begin time should sync with picker');
     assert.equal(explore.state.end, pickerEnd, 'End time should sync with picker');
+  });
+
+  describe('sendFrameRequest', () => {
+    let element: ExploreSimpleSk;
+    let dataServiceStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      element = new ExploreSimpleSk();
+      // Do NOT append to document.body to simulate disconnected state where this.spinner is null.
+      dataServiceStub = sinon.stub(DataService.prototype, 'sendFrameRequest');
+    });
+
+    afterEach(() => {
+      dataServiceStub.restore();
+    });
+
+    it('does not crash if element is not connected (spinner is null)', async () => {
+      // Setup the stub to call the lifecycle callbacks which interact with this.spinner
+      dataServiceStub.callsFake(async (_body: any, options: any) => {
+        if (options.onStart) options.onStart();
+        if (options.onSettled) options.onSettled();
+        return Promise.resolve({
+          dataframe: { traceset: {}, header: [], paramset: {}, skip: 0, traceMetadata: [] },
+          anomalymap: {},
+        });
+      });
+
+      const body: FrameRequest = {
+        queries: ['test=q'],
+        request_type: 1,
+        begin: 100,
+        end: 200,
+        tz: 'US/Pacific',
+      };
+
+      // Call the private method
+      await (element as any).sendFrameRequest(body);
+
+      assert.isTrue(dataServiceStub.calledOnce);
+    });
   });
 });

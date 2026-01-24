@@ -38,6 +38,7 @@ sk_element(
         "//infra-sk/modules:query_ts_lib",
         "//perf/modules/telemetry:telemetry_ts_lib",
         "//perf/modules/const:const_ts_lib",
+        "//perf/modules/data-service:index_ts_lib",
     ],
     ts_srcs = [
         "explore-multi-sk.ts",
@@ -80,6 +81,7 @@ karma_test(
         "//golden/modules/pagination-sk",
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/common:test-util_ts_lib",
+        "//perf/modules/data-service:index_ts_lib",
         "//perf/modules/explore-simple-sk",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/plot-google-chart-sk",

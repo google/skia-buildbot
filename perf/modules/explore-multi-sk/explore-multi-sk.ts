@@ -20,7 +20,6 @@ import {
   State as ExploreState,
   GraphConfig,
   LabelMode,
-  updateShortcut,
 } from '../explore-simple-sk/explore-simple-sk';
 import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { load } from '@google-web-components/google-chart/loader';
@@ -64,6 +63,7 @@ import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
 import { MISSING_VALUE_SENTINEL } from '../const/const';
+import { DataService, DataServiceError } from '../data-service';
 
 const CACHE_KEY_EVEN_X_AXIS_SPACING = 'even_xaxis_spacing';
 
@@ -1810,21 +1810,13 @@ export class ExploreMultiSk extends ElementSk {
    * @returns - List of Graph Configs matching the shortcut ID in the GraphsShortcut table
    * or undefined if the ID doesn't exist.
    */
-  private getConfigsFromShortcut(shortcut: string): Promise<GraphConfig[]> | GraphConfig[] {
-    const body = {
-      ID: shortcut,
-    };
-
-    return fetch('/_/shortcut/get', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((json) => json.graphs)
-      .catch(errorMessage);
+  private async getConfigsFromShortcut(shortcut: string): Promise<GraphConfig[]> {
+    return (await DataService.getInstance()
+      .getShortcut(shortcut)
+      .catch((msg) => {
+        errorMessage(msg);
+        return [];
+      })) as unknown as GraphConfig[];
   }
 
   /**
@@ -1832,7 +1824,8 @@ export class ExploreMultiSk extends ElementSk {
    *
    */
   private updateShortcutMultiview() {
-    updateShortcut(this.graphConfigs)
+    DataService.getInstance()
+      .updateShortcut(this.graphConfigs)
       .then((shortcut) => {
         if (shortcut === '') {
           this.state.shortcut = '';
@@ -1842,7 +1835,13 @@ export class ExploreMultiSk extends ElementSk {
         this.state.shortcut = shortcut;
         this.stateHasChanged!();
       })
-      .catch(errorMessage);
+      .catch((err) => {
+        if (err instanceof DataServiceError) {
+          errorMessage(err.message);
+        } else {
+          errorMessage(err);
+        }
+      });
   }
 
   private pageChanged(e: CustomEvent<PaginationSkPageChangedEventDetail>) {

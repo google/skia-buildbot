@@ -8,7 +8,6 @@ karma_test(
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//:node_modules/fetch-mock",
-        "//elements-sk/modules/spinner-sk",
         "//perf/modules/json:index_ts_lib",
     ],
 )
@@ -17,8 +16,5 @@ ts_library(
     name = "progress_ts_lib",
     srcs = ["progress.ts"],
     visibility = ["//visibility:public"],
-    deps = [
-        "//elements-sk/modules/spinner-sk",
-        "//perf/modules/json:index_ts_lib",
-    ],
+    deps = ["//perf/modules/json:index_ts_lib"],
 )

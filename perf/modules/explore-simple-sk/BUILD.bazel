@@ -51,7 +51,6 @@ sk_element(
         "//:node_modules/lit-html",  # keep
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
@@ -63,11 +62,11 @@ sk_element(
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
         "//perf/modules/pivotutil:index_ts_lib",
-        "//perf/modules/progress:progress_ts_lib",
         "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
         "//perf/modules/window:window_ts_lib",
         "//perf/modules/common:anomaly-data_ts_lib",
         "//perf/modules/common:keyboard-shortcuts_ts_lib",
+        "//perf/modules/data-service:index_ts_lib",
     ],
     ts_srcs = [
         "explore-simple-sk.ts",
@@ -89,6 +88,7 @@ karma_test(
         "//:node_modules/sinon",
         "//infra-sk/modules:object_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/data-service:index_ts_lib",
         "//perf/modules/dataframe:test_utils_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/plot-summary-sk",

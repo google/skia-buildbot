@@ -327,16 +327,15 @@ export class ClusterPageSk extends ElementSk {
     this._render();
 
     try {
-      const prog = await startRequest(
-        '/_/cluster/start',
-        body,
-        300,
-        this.spinner!,
-        (p: progress.SerializedProgress) => {
+      const prog = await startRequest('/_/cluster/start', body, {
+        pollingIntervalMs: 300,
+        onProgressUpdate: (p: progress.SerializedProgress) => {
           this.runningStatus = p.messages.map((msg) => `${msg.key}: ${msg.value}`).join('\n');
           this._render();
-        }
-      );
+        },
+        onStart: () => (this.spinner!.active = true),
+        onSettled: () => (this.spinner!.active = false),
+      });
       if (prog.status === 'Error') {
         throw new Error(messagesToErrorString(prog.messages));
       }

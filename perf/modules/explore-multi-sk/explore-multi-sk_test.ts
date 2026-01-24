@@ -10,6 +10,7 @@ import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagi
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 import * as loader from '@google-web-components/google-chart/loader';
 import { Anomaly, CommitNumber, TimestampSeconds } from '../json';
+import { DataService } from '../data-service';
 
 fetchMock.config.overwriteRoutes = true;
 describe('ExploreMultiSk', () => {
@@ -395,17 +396,20 @@ describe('ExploreMultiSk', () => {
       const mockGraphConfigs: GraphConfig[] = [
         { queries: ['config=test'], formulas: [], keys: '' },
       ];
-      fetchMock.post('/_/shortcut/get', {
-        graphs: mockGraphConfigs,
-      });
+      const getShortcutStub = sinon
+        .stub(DataService.prototype, 'getShortcut')
+        .resolves(mockGraphConfigs);
 
       const configs = await element['getConfigsFromShortcut'](shortcutId);
       assert.deepEqual(configs, mockGraphConfigs);
+      getShortcutStub.restore();
     });
 
     it('updates the shortcut when graph configs change', async () => {
       const newShortcutId = 'new-shortcut-id';
-      fetchMock.post('/_/shortcut/update', { id: newShortcutId });
+      const updateShortcutStub = sinon
+        .stub(DataService.prototype, 'updateShortcut')
+        .resolves(newShortcutId);
 
       element['graphConfigs'] = [{ queries: ['config=new'], formulas: [], keys: '' }];
       // stateHasChanged needs to be non-null for the update to be pushed.
@@ -416,6 +420,7 @@ describe('ExploreMultiSk', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       assert.equal(element.state.shortcut, newShortcutId);
+      updateShortcutStub.restore();
     });
   });
 
