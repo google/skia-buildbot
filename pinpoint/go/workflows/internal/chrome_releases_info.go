@@ -20,13 +20,17 @@ import (
 
 // BuildInfo fromt the ChromiumDash response.
 type BuildInfo struct {
-	// Browser contains 'Chrome', 'Edge', 'Safari'
+	// Browser contains "chrome", "edge", or "safari".
 	Browser string `json:"browser"`
 
-	// Channel contains 'Canary', 'Dev', 'Beta', 'Stable'
+	// Channel contains "stable", "dev", or "technology-preview".
+	// (When we receive the data from Chromium Dash, channel names are spelled
+	// as "Stable", "Dev", etc, but we normalize it to all lowercase letters.)
 	Channel string `json:"channel"`
 
-	// Platform contains the build platform. e.g. 'Windows'
+	// Platform contains "windows", "mac", or "android".
+	// (When we receive the data from Chromium Dash, platform names are spelled
+	// as "Windows", "Mac", etc, but we normalize it to all lowercase letters.)
 	Platform string `json:"platform"`
 
 	// Version contains the latest Chrome build version e.g. `136.0.7103.153`
@@ -223,7 +227,7 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*Chr
 	}
 
 	if isDev {
-		// During dev testing, we create the CL but doesn't submit it.
+		// During dev testing, we create the CL but don't submit it.
 		return nil, nil
 	}
 

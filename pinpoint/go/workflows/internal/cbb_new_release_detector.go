@@ -87,6 +87,13 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 	// Is this workflow running locally on a dev machine?
 	isDev := strings.HasPrefix(workflow.GetActivityOptions(ctx).TaskQueue, "localhost.")
 
+	var bucket string
+	if isDev {
+		bucket = "chrome-perf-experiment-non-public"
+	} else {
+		bucket = "chrome-perf-non-public"
+	}
+
 	ctx = workflow.WithChildOptions(ctx, getBrowerVersionsWorkflowOptions)
 	var safariVersions []BuildInfo
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbGetBrowserVersions, "safari").Get(ctx, &safariVersions); err != nil {
@@ -130,12 +137,21 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 						Commit:     commit,
 						Browser:    build.Browser,
 						Channel:    build.Channel,
+						SkipFinch:  false,
 						Benchmarks: nil, // nil means run the standard set of benchmarks
-						Bucket:     "chrome-perf-non-public",
+						Bucket:     bucket,
 					}
 					var cr *CommitRun
 					if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbRunner, p).Get(gCtx, &cr); err != nil {
 						sklog.Errorf("Error in CBB runner %#v: %v", p, err)
+					}
+
+					if build.Browser == "chrome" && build.Platform != "android" {
+						// With Chrome on desktop, re-run all benchmarks with Finch control disabled.
+						p.SkipFinch = true
+						if err = workflow.ExecuteChildWorkflow(ctx, workflows.CbbRunner, p).Get(gCtx, &cr); err != nil {
+							sklog.Errorf("Error in CBB runner %#v: %v", p, err)
+						}
 					}
 				})
 			}
