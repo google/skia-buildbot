@@ -281,6 +281,12 @@ export class State {
 
   showZero: boolean = false;
 
+  dots: boolean = true;
+
+  autoRefresh: boolean = false;
+
+  show_google_plot: boolean = false;
+
   numCommits: number = 250;
 
   requestType: RequestType = 1; // 0 to use begin/end, 1 to use numCommits.

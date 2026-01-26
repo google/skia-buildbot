@@ -52,6 +52,86 @@ describe('report-page-sk', () => {
 
     const apiMocks = [
       {
+        name: 'Frame Start',
+        matches: (url: string) => url.includes('/_/frame/start'),
+        response: {
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            status: 'Finished',
+            results: {
+              dataframe: {
+                traceset: {
+                  ',config=test,': [1, 2, 3, 4],
+                },
+                header: [
+                  {
+                    offset: 100,
+                    timestamp: 1676307170,
+                    hash: 'h1',
+                    author: 'a',
+                    message: 'm',
+                    url: 'u',
+                  },
+                  {
+                    offset: 101,
+                    timestamp: 1676307171,
+                    hash: 'h2',
+                    author: 'a',
+                    message: 'm',
+                    url: 'u',
+                  },
+                  {
+                    offset: 102,
+                    timestamp: 1676307172,
+                    hash: 'h3',
+                    author: 'a',
+                    message: 'm',
+                    url: 'u',
+                  },
+                  {
+                    offset: 103,
+                    timestamp: 1676307173,
+                    hash: 'h4',
+                    author: 'a',
+                    message: 'm',
+                    url: 'u',
+                  },
+                ],
+                paramset: {
+                  config: ['test'],
+                },
+                skip: 0,
+                traceMetadata: [],
+              },
+              anomalymap: {},
+              skps: [],
+              msg: '',
+              display_mode: 'display_plot',
+            },
+            messages: [],
+          }),
+        },
+      },
+      {
+        name: 'User Issues',
+        matches: (url: string) => url.includes('/_/user_issues/'),
+        response: {
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ UserIssues: [] }),
+        },
+      },
+      {
+        name: 'Telemetry',
+        matches: (url: string) => url.includes('/_/fe_telemetry'),
+        response: {
+          status: 200,
+          contentType: 'text/plain',
+          body: '',
+        },
+      },
+      {
         name: 'CID Details',
         matches: (url: string) => url.endsWith('/_/cid/'),
         response: {
@@ -174,6 +254,8 @@ describe('report-page-sk', () => {
       // The selected anomalies should be checked by default because of selected_keys.
       const graphs = await reportPageSkPO.graphs;
       expect(await graphs.length).to.equal(2);
+      // Wait for graphs to fully render
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       await takeScreenshot(testBed.page, 'perf', 'report-page-sk');
     });
 
@@ -235,6 +317,8 @@ describe('report-page-sk', () => {
       // After clicking expand button, the hidden child rows are visible
       expect(await anomaliesTablePO.isRowHidden(1)).equal(false);
       expect(await anomaliesTablePO.isRowHidden(2)).equal(false);
+      // Wait for table expansion animation/render
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       await takeScreenshot(testBed.page, 'perf', 'report-page-sk-anomalies-table-checkboxes');
     });
 
@@ -245,7 +329,7 @@ describe('report-page-sk', () => {
       const expandBtnInnerText = (await expandBtn.item(0)).innerText;
       expect(await expandBtnInnerText).to.equal('2\n|\n0');
       expect(rowCount).to.equal(2);
-      await takeScreenshot(testBed.page, 'perf', 'report-page-sk-anomalies-table-header-checkbox');
+      await takeScreenshot(testBed.page, 'perf', 'report-page-sk-anomalies-table-expand-button');
     });
 
     it('should be able to click header checkbox in the anomalies table', async () => {

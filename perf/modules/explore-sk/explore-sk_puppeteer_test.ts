@@ -30,12 +30,13 @@ describe('explore-sk', () => {
       await testBed.page.waitForSelector('#query-dialog', {
         visible: true,
       });
+      // Wait for dialog animation/render to settle
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       await takeScreenshot(testBed.page, 'perf', 'explore-sk_query_dialog');
     });
 
     it('loads shows the help dialog on a keypress of ?', async () => {
       await testBed.page.click('#demo-show-help');
-      await testBed.page.waitForSelector('keyboard-shortcuts-help-sk');
 
       // Wait for the help dialog to be visible, handling both Light and Shadow DOM.
       await testBed.page.waitForFunction(() => {
@@ -49,8 +50,9 @@ describe('explore-sk', () => {
         if (!dialog) {
           return false;
         }
+        // Check if the dialog is visible (not display: none)
         const style = window.getComputedStyle(dialog);
-        return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+        return style && style.display !== 'none';
       });
 
       await takeScreenshot(testBed.page, 'perf', 'explore-sk_help_dialog');

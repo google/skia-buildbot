@@ -47,18 +47,23 @@ export class ExploreMultiSkPO extends PageObject {
    * Waits for a specific graph to be fully loaded (displaying the plot).
    * We use bySelector directly here to access applyFnToDOMNode.
    * * @param index The index of the graph to wait for (default: 0)
+   * * @param timeoutMs Optional timeout in milliseconds.
    */
-  async waitForGraph(index: number = 0): Promise<void> {
-    await poll(async () => {
-      const graphElement = this.bySelector(`explore-simple-sk:nth-of-type(${index + 1})`);
+  async waitForGraph(index: number = 0, timeoutMs?: number): Promise<void> {
+    await poll(
+      async () => {
+        const graphElement = this.bySelector(`explore-simple-sk:nth-of-type(${index + 1})`);
 
-      if (await graphElement.isEmpty()) return false;
+        if (await graphElement.isEmpty()) return false;
 
-      return await graphElement.applyFnToDOMNode((el) => {
-        const root = el.shadowRoot || el;
-        const exploreDiv = root.querySelector('#explore');
-        return exploreDiv ? exploreDiv.classList.contains('display_plot') : false;
-      });
-    }, `Waiting for graph [${index}] to load (display_plot class)`);
+        return await graphElement.applyFnToDOMNode((el) => {
+          const root = el.shadowRoot || el;
+          const exploreDiv = root.querySelector('#explore');
+          return exploreDiv ? exploreDiv.classList.contains('display_plot') : false;
+        });
+      },
+      `Waiting for graph [${index}] to load (display_plot class)`,
+      timeoutMs
+    );
   }
 }

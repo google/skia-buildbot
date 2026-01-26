@@ -244,7 +244,7 @@ export class AlertsPageSk extends ElementSk {
   }
 
   private startEditing(cfg: Alert) {
-    this.origCfg = JSON.parse(JSON.stringify(this._cfg)) as Alert;
+    this.origCfg = structuredClone(this._cfg);
     this.cfg = cfg;
     this.dialog!.showModal();
   }
@@ -291,7 +291,7 @@ export class AlertsPageSk extends ElementSk {
   }
 
   set cfg(val) {
-    this._cfg = JSON.parse(JSON.stringify(val)) as Alert;
+    this._cfg = structuredClone(val);
     if (this._cfg && !this._cfg.owner) {
       this._cfg.owner = this.email;
     }

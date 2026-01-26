@@ -291,6 +291,19 @@ export class PlotGoogleChartSk extends LitElement {
     resizeObserver.observe(this);
   }
 
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.clear();
+    window.removeEventListener('mousemove', this.onWindowMouseMove);
+    window.removeEventListener('mouseup', this.onWindowMouseUp);
+  }
+
+  public clear(): void {
+    if (this.chart) {
+      this.chart.clearChart();
+    }
+  }
+
   protected render() {
     // TODO(b/370804498): Break out plot panel into a separate module
     // and create a new module that combines google chart and the

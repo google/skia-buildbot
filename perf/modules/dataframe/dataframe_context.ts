@@ -130,6 +130,8 @@ export const dataframeRepoContext = createContext<DataFrameRepository>(
 
 const emptyResolver = (_1: number) => {};
 
+const MAX_DATAPOINTS = 5000;
+
 @customElement('dataframe-repository-sk')
 export class DataFrameRepository extends LitElement {
   // The promise that resolves when the Google Chart API is loaded.
@@ -255,6 +257,21 @@ export class DataFrameRepository extends LitElement {
         .concat(...traceset[key])
         .concat(traceTail[key] || []) as Trace;
     });
+
+    if (this._header.length > MAX_DATAPOINTS) {
+      const excess = this._header.length - MAX_DATAPOINTS;
+      if (isAfter) {
+        this._header.splice(0, excess);
+        Object.keys(this._traceset).forEach((key) => {
+          (this._traceset[key] as number[]).splice(0, excess);
+        });
+      } else {
+        this._header.splice(MAX_DATAPOINTS);
+        Object.keys(this._traceset).forEach((key) => {
+          (this._traceset[key] as number[]).splice(MAX_DATAPOINTS);
+        });
+      }
+    }
 
     if (traceMetadata !== null) {
       if (this._traceMetadata === null) {
