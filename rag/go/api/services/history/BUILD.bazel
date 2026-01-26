@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "history",
@@ -17,5 +18,20 @@ go_library(
         "@com_google_cloud_go_spanner//:spanner",
         "@io_opencensus_go//trace",
         "@org_golang_google_grpc//:grpc",
+    ],
+)
+
+go_test(
+    name = "history_test",
+    srcs = ["apiService_test.go"],
+    embed = [":history"],
+    deps = [
+        "//go/metrics2",
+        "//rag/go/genai/mocks",
+        "//rag/go/topicstore",
+        "//rag/go/topicstore/mocks",
+        "//rag/proto/history/v1:proto",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
     ],
 )

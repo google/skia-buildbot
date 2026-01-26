@@ -98,6 +98,7 @@ type apiServer struct {
 	// Spanner database client.
 	dbClient            *spanner.Client
 	queryEmbeddingModel string
+	summaryModel        string
 	dimensionality      int32
 
 	// Grpc server objects
@@ -138,6 +139,7 @@ func NewApiServer(flags *ApiServerFlags) (*apiServer, error) {
 	server := &apiServer{
 		dbClient:            spannerClient,
 		queryEmbeddingModel: config.QueryEmbeddingModel,
+		summaryModel:        config.SummaryModel,
 		dimensionality:      dimensionality,
 		grpcPort:            flags.GrpcPort,
 		httpPort:            flags.HttpPort,
@@ -161,7 +163,7 @@ func (server *apiServer) initialize(ctx context.Context, flags *ApiServerFlags) 
 	// Define the list of services to be hosted based on the "services" flag.
 	serviceList := []Service{}
 	var serviceMap = map[string]Service{
-		"history": history.NewApiService(ctx, server.dbClient, server.queryEmbeddingModel, server.dimensionality),
+		"history": history.NewApiService(ctx, server.dbClient, server.queryEmbeddingModel, server.summaryModel, server.dimensionality),
 	}
 	for _, serviceName := range flags.Services.Value() {
 		service, ok := serviceMap[serviceName]

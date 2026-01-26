@@ -9,6 +9,7 @@
         "subscription": "historyrag-ingest-chrome-internal-staging-prod",
         "project": "skia-infra-corp"
     },
-    "query_embedding_model": "gemini-embedding-001",
-    "output_dimensionality": 768
-}
+        "query_embedding_model": "gemini-embedding-001",
+        "output_dimensionality": 768,
+        "summary_model": "gemini-3-flash-preview"
+    }

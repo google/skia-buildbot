@@ -1,0 +1,12 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = ["TopicStore.go"],
+    importpath = "go.skia.org/infra/rag/go/topicstore/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//rag/go/topicstore",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

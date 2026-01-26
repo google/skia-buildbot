@@ -11,6 +11,9 @@ import (
 type GenAIClient interface {
 	// GetEmbedding returns the embedding vector for the given input.
 	GetEmbedding(ctx context.Context, model string, dimensionality int32, input string) ([]float32, error)
+
+	// GetSummary returns the summary for the given input.
+	GetSummary(ctx context.Context, model string, input string) (string, error)
 }
 
 // GeminiClient implements GenAIClient, defines a struct to access Gemini api.
@@ -74,4 +77,30 @@ func (c *GeminiClient) GetEmbedding(ctx context.Context, model string, dimension
 		return nil, err
 	}
 	return resp.Embeddings[0].Values, nil
+}
+
+// GetSummary returns the summary for the input using the supplied model.
+func (c *GeminiClient) GetSummary(ctx context.Context, model string, input string) (string, error) {
+	resp, err := c.genAiClient.Models.GenerateContent(
+		ctx,
+		model,
+		[]*genai.Content{
+			{
+				Parts: []*genai.Part{
+					genai.NewPartFromText(input),
+				},
+			},
+		},
+		nil,
+	)
+	if err != nil {
+		sklog.Errorf("Error getting summary: %v", err)
+		return "", err
+	}
+
+	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
+		return "", nil
+	}
+
+	return resp.Candidates[0].Content.Parts[0].Text, nil
 }

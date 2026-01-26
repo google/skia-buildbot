@@ -94,4 +94,38 @@ describe('rag-app-sk', () => {
     const spinnerOverlay = element.shadowRoot!.querySelector('.spinner-overlay');
     assert.isNotNull(spinnerOverlay);
   });
+
+  it('automatically generates AI summary when checkbox is checked', async () => {
+    await waitForRender(element);
+
+    const mockTopics: Topic[] = [{ topicId: 1, topicName: 'Topic 1', summary: 'Summary 1' }];
+    const mockSummary = 'This is a mock AI summary.';
+
+    fetchMock.get('/historyrag/v1/topics?query=test&topic_count=10', { topics: mockTopics });
+    fetchMock.post('/historyrag/v1/summary', { summary: mockSummary });
+
+    // Set query and trigger search
+    const input = element.shadowRoot!.querySelector('md-outlined-text-field.query-input') as any;
+    input.value = 'test';
+    input.dispatchEvent(new Event('input'));
+
+    // Check the AI Summary checkbox
+    const checkbox = element.shadowRoot!.querySelector('md-checkbox') as any;
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new Event('change'));
+
+    const searchButton = element.shadowRoot!.querySelector('md-filled-button') as HTMLElement;
+    searchButton.click();
+
+    await waitForRender(element);
+
+    // Verify both search and summary requests were made
+    assert.isTrue(fetchMock.called('/historyrag/v1/topics?query=test&topic_count=10'));
+    assert.isTrue(fetchMock.called('/historyrag/v1/summary'));
+
+    // Verify summary is displayed
+    const summarySection = element.shadowRoot!.querySelector('.ai-summary-content');
+    assert.isNotNull(summarySection);
+    assert.include(summarySection!.textContent!, 'This is a mock AI summary.');
+  });
 });

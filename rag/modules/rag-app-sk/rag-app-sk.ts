@@ -4,10 +4,12 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { marked } from 'marked';
 import '@material/web/button/filled-button.js';
 import '@material/web/textfield/outlined-text-field.js';
+import '@material/web/checkbox/checkbox.js';
 import '@material/web/icon/icon.js';
 import '@material/web/iconbutton/outlined-icon-button.js';
 import '@material/web/progress/circular-progress.js';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { MdCheckbox } from '@material/web/checkbox/checkbox.js';
 
 // Interface definitions based on the proto
 export interface Topic {
@@ -39,7 +41,13 @@ export class RagAppSk extends LitElement {
 
   @state() private selectedTopic: TopicDetails | null = null;
 
+  @state() private aiSummary = '';
+
   @state() private isLoading = false;
+
+  @state() private isSummaryLoading = false;
+
+  @state() private autoSummary = false;
 
   @state() private topicCount = 10;
 
@@ -58,11 +66,16 @@ export class RagAppSk extends LitElement {
       font-family: Roboto, sans-serif;
     }
 
+    :host * {
+      box-sizing: border-box;
+    }
+
     .title-bar {
       display: flex;
       align-items: center;
       gap: 12px;
       margin-bottom: 16px;
+      flex-shrink: 0;
     }
 
     .title-bar img {
@@ -82,10 +95,12 @@ export class RagAppSk extends LitElement {
       gap: 16px;
       margin-bottom: 16px;
       align-items: center;
+      flex-shrink: 0;
     }
 
     md-outlined-text-field.query-input {
-      flex-grow: 1;
+      flex: 1;
+      min-width: 200px;
     }
 
     .counter-wrapper {
@@ -93,6 +108,7 @@ export class RagAppSk extends LitElement {
       align-items: center;
       gap: 8px;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .counter {
@@ -112,6 +128,10 @@ export class RagAppSk extends LitElement {
       text-align: center;
     }
 
+    md-filled-button {
+      flex-shrink: 0;
+    }
+
     md-outlined-icon-button {
       --md-outlined-icon-button-container-size: 40px;
       --md-outlined-icon-button-icon-size: 20px;
@@ -126,16 +146,75 @@ export class RagAppSk extends LitElement {
     }
 
     #topic-list {
-      width: 30%;
+      width: 20%;
+      min-width: 200px;
       border-right: 1px solid #ccc;
       overflow-y: auto;
       padding: 8px;
     }
 
     #topic-details {
-      width: 70%;
+      flex: 1;
+      border-right: 1px solid #ccc;
       overflow-y: auto;
       padding: 16px;
+    }
+
+    #ai-summary {
+      width: 25%;
+      min-width: 250px;
+      overflow-y: auto;
+      padding: 16px;
+      background-color: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ai-summary-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      color: #1a73e8;
+    }
+
+    .ai-summary-header h2 {
+      margin: 0;
+      font-size: 1.2em;
+    }
+
+    .gemini-icon {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .gemini-icon path {
+      fill: url(#gemini-gradient);
+    }
+
+    .ai-summary-centered {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      color: #888;
+      text-align: center;
+      gap: 16px;
+    }
+
+    .ai-summary-content {
+      line-height: 1.5;
+    }
+
+    .ai-summary-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+      user-select: none;
     }
 
     .topic-item {
@@ -202,6 +281,7 @@ export class RagAppSk extends LitElement {
     this.isLoading = true;
     this.selectedTopic = null;
     this.topics = [];
+    this.aiSummary = '';
 
     try {
       const resp = (await fetch(
@@ -210,11 +290,41 @@ export class RagAppSk extends LitElement {
         }`
       ).then(jsonOrThrow)) as GetTopicsResponse;
       this.topics = resp.topics || [];
+
+      if (this.autoSummary && this.topics.length > 0) {
+        this.getAiSummary();
+      }
     } catch (error) {
       console.error(error);
       // Optionally show toast
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  private async getAiSummary() {
+    if (this.topics.length === 0) return;
+
+    this.isSummaryLoading = true;
+    this.aiSummary = '';
+    try {
+      const topicIds = this.topics.map((t) => t.topicId);
+      const resp = (await fetch('/historyrag/v1/summary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: this.query,
+          topic_ids: topicIds,
+        }),
+      }).then(jsonOrThrow)) as { summary: string };
+
+      this.aiSummary = resp.summary;
+    } catch (error) {
+      console.error(error);
+    } finally {
+      this.isSummaryLoading = false;
     }
   }
 
@@ -244,6 +354,9 @@ export class RagAppSk extends LitElement {
       };
       this.instanceName = config.instance_name;
       this.headerIconUrl = config.header_icon_url;
+      if (this.instanceName) {
+        document.title = this.instanceName;
+      }
     } catch (error) {
       console.error('Failed to fetch config', error);
     }
@@ -287,6 +400,24 @@ export class RagAppSk extends LitElement {
         <md-filled-button @click=${this.search} ?disabled=${this.isLoading}
           >Search</md-filled-button
         >
+        <label
+          class="ai-summary-checkbox-label"
+          title="Automatically generate an LLM summary of the search results using Gemini.">
+          <md-checkbox
+            ?checked=${this.autoSummary}
+            @change=${(e: Event) => {
+              this.autoSummary = (e.target as MdCheckbox).checked;
+              if (
+                this.autoSummary &&
+                this.topics.length > 0 &&
+                !this.aiSummary &&
+                !this.isSummaryLoading
+              ) {
+                this.getAiSummary();
+              }
+            }}></md-checkbox>
+          AI Summary
+        </label>
       </header>
 
       <main>
@@ -333,6 +464,41 @@ export class RagAppSk extends LitElement {
                   Select a topic to view details
                 </div>
               `}
+        </div>
+
+        <div id="ai-summary">
+          <div class="ai-summary-header">
+            <svg class="gemini-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="gemini-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#9b72cb;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#d96570;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M12 2C12 2 12.5 7.5 14.5 9.5C16.5 11.5 22 12 22 12C22 12 16.5 12.5 14.5 14.5C12.5 16.5 12 22 12 22C12 22 11.5 16.5 9.5 14.5C7.5 12.5 2 12 2 12C2 12 7.5 11.5 9.5 9.5C11.5 7.5 12 2 12 2Z" />
+            </svg>
+            <h2>AI Summary</h2>
+          </div>
+          ${this.isSummaryLoading
+            ? html`
+                <div class="ai-summary-centered">
+                  <md-circular-progress indeterminate></md-circular-progress>
+                  <span>Generating summary...</span>
+                </div>
+              `
+            : this.aiSummary
+              ? html`
+                  <div class="ai-summary-content">${unsafeHTML(marked.parse(this.aiSummary))}</div>
+                `
+              : html`
+                  <div class="ai-summary-centered">
+                    ${this.autoSummary
+                      ? 'Summary will appear here after search'
+                      : 'Check "AI Summary" to generate a summary of the results'}
+                  </div>
+                `}
         </div>
       </main>
     `;

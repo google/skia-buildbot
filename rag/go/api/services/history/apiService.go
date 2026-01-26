@@ -3,6 +3,7 @@ package history
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 
@@ -26,6 +27,7 @@ const (
 	geminiLocationEnvVar   = "GEMINI_LOCATION"
 	defaultTopicCount      = 20
 	maxTopicResponseLength = 450000
+	maxPromptLength        = 450000
 )
 
 // ApiService provides a struct for the HistoryRag api implementation.
@@ -44,6 +46,9 @@ type ApiService struct {
 	// Embedding model to use for query.
 	queryEmbeddingModel string
 
+	// Model to use for summary.
+	summaryModel string
+
 	// Output dimensionality for query embedding.
 	dimensionality int32
 
@@ -51,10 +56,12 @@ type ApiService struct {
 	getTopicsCounterMetric metrics2.Counter
 	// Metric to count GetTopicDetails calls.
 	getTopicDetailsCounterMetric metrics2.Counter
+	// Metric to count GetSummary calls.
+	getSummaryCounterMetric metrics2.Counter
 }
 
 // NewApiService returns a new instance of the ApiService struct.
-func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbeddingModel string, dimensionality int32) *ApiService {
+func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbeddingModel, summaryModel string, dimensionality int32) *ApiService {
 	var genAiClient *genai.GeminiClient
 	var err error
 	// Get the api key from the env.
@@ -82,11 +89,13 @@ func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbedding
 		topicStore:          topicstore.New(dbClient),
 		genAiClient:         genAiClient,
 		queryEmbeddingModel: queryEmbeddingModel,
+		summaryModel:        summaryModel,
 		dimensionality:      dimensionality,
 
 		// Initialize the metric objects.
 		getTopicsCounterMetric:       metrics2.GetCounter("historyrag_getTopics_count"),
 		getTopicDetailsCounterMetric: metrics2.GetCounter("historyrag_getTopicDetails_count"),
+		getSummaryCounterMetric:      metrics2.GetCounter("historyrag_getSummary_count"),
 	}
 }
 
@@ -264,4 +273,60 @@ func (service *ApiService) GetTopicDetails(ctx context.Context, req *pb.GetTopic
 		resp.Topics = append(resp.Topics, respTopic)
 	}
 	return resp, nil
+}
+
+// GetSummary implements the GetSummary endpoint.
+func (service *ApiService) GetSummary(ctx context.Context, req *pb.GetSummaryRequest) (*pb.GetSummaryResponse, error) {
+	query := req.GetQuery()
+	if query == "" {
+		return nil, skerr.Fmt("query cannot be empty.")
+	}
+	topicIds := req.GetTopicIds()
+	if len(topicIds) == 0 {
+		return nil, skerr.Fmt("topicIds cannot be empty.")
+	}
+
+	service.getSummaryCounterMetric.Inc(1)
+	ctx, span := trace.StartSpan(ctx, "historyrag.service.GetSummary")
+	defer span.End()
+
+	// Construct the prompt for the LLM.
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("Based on the following search results for the query \"%s\", please provide a concise and helpful summary.\n\n", query))
+
+	for _, topicId := range topicIds {
+		topic, err := service.topicStore.ReadTopic(ctx, topicId)
+		if err != nil {
+			sklog.Errorf("Error reading topic %d: %v", topicId, err)
+			return nil, err
+		}
+
+		sb.WriteString(fmt.Sprintf("Topic: %s\n", topic.Title))
+		sb.WriteString(fmt.Sprintf("Summary: %s\n", topic.Summary))
+		if topic.CodeContext != "" {
+			sb.WriteString("Code Chunks:\n")
+			// We split the code context and add it to the prompt.
+			// To keep the prompt size reasonable, we can potentially truncate here as well.
+			allTopicCode := strings.Split(topic.CodeContext, "\n\n")
+			currentLength := sb.Len()
+			for _, code := range allTopicCode {
+				if currentLength+len(code) > maxPromptLength {
+					break
+				}
+				sb.WriteString(fmt.Sprintf("%s\n", code))
+				currentLength += len(code)
+			}
+		}
+		sb.WriteString("\n")
+	}
+
+	summary, err := service.genAiClient.GetSummary(ctx, service.summaryModel, sb.String())
+	if err != nil {
+		sklog.Errorf("Error getting summary from Gemini: %v", err)
+		return nil, err
+	}
+
+	return &pb.GetSummaryResponse{
+		Summary: summary,
+	}, nil
 }

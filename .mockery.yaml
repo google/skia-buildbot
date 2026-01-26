@@ -373,6 +373,16 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       Store:
+  go.skia.org/infra/rag/go/topicstore:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
+    interfaces:
+      TopicStore:
+  go.skia.org/infra/rag/go/genai:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
+    interfaces:
+      GenAIClient:
   go.skia.org/infra/temporal/go/client:
     interfaces:
       TemporalProvider:

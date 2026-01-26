@@ -23,6 +23,9 @@ type ApiServerConfig struct {
 	// The output dimensionality to use for input query embedding.
 	OutputDimensionality int `json:"output_dimensionality"`
 
+	// The model to use for generating summaries.
+	SummaryModel string `json:"summary_model"`
+
 	// The name of the instance.
 	InstanceName string `json:"instance_name"`
 
