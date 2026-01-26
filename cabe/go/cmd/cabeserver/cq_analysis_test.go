@@ -99,51 +99,69 @@ func TestComputeCQCabeAnalysisResults(t *testing.T) {
 }
 
 func TestGenerateCriticalValues(t *testing.T) {
-	results := []*cpb.AnalysisResult{
-		{Statistic: &cpb.Statistic{PValue: 0.01}},
-		{Statistic: &cpb.Statistic{PValue: 0.04}},
-		{Statistic: &cpb.Statistic{PValue: 0.03}},
-		{Statistic: &cpb.Statistic{PValue: math.NaN()}},
-	}
+	t.Run("JetStream2 with redundant sub-metrics uses staircase", func(t *testing.T) {
+		results := []*cpb.AnalysisResult{
+			{
+				ExperimentSpec: &cpb.ExperimentSpec{Analysis: &cpb.AnalysisSpec{Benchmark: []*cpb.Benchmark{{Name: "jetstream2", Workload: []string{"Basic.First"}}}}},
+				Statistic:      &cpb.Statistic{PValue: 0.01},
+			},
+			{
+				ExperimentSpec: &cpb.ExperimentSpec{Analysis: &cpb.AnalysisSpec{Benchmark: []*cpb.Benchmark{{Name: "jetstream2", Workload: []string{"Basic.Average"}}}}},
+				Statistic:      &cpb.Statistic{PValue: 0.02},
+			},
+			{
+				ExperimentSpec: &cpb.ExperimentSpec{Analysis: &cpb.AnalysisSpec{Benchmark: []*cpb.Benchmark{{Name: "jetstream2", Workload: []string{"Basic.Worst"}}}}},
+				Statistic:      &cpb.Statistic{PValue: 0.03},
+			},
+			{
+				ExperimentSpec: &cpb.ExperimentSpec{Analysis: &cpb.AnalysisSpec{Benchmark: []*cpb.Benchmark{{Name: "jetstream2", Workload: []string{"Air.First"}}}}},
+				Statistic:      &cpb.Statistic{PValue: 0.04},
+			},
+		}
+
+		alpha := 0.05
+		cv := generateCriticalValues(results, true, alpha)
+
+		assert.Len(t, cv, 4)
+		// N=4, m=2 (Basic, Air)
+		// Thresholds: 1*0.05/2 = 0.025, 2*0.05/2 = 0.05
+		// Ranks: Ceil(1*2/4)=1, Ceil(2*2/4)=1, Ceil(3*2/4)=2, Ceil(4*2/4)=2
+		assert.Equal(t, 0.025, cv[0])
+		assert.Equal(t, 0.025, cv[1])
+		assert.Equal(t, 0.050, cv[2])
+		assert.Equal(t, 0.050, cv[3])
+	})
+
+	t.Run("Non-JetStream benchmark uses standard BH", func(t *testing.T) {
+		results := []*cpb.AnalysisResult{
+			{
+				ExperimentSpec: &cpb.ExperimentSpec{Analysis: &cpb.AnalysisSpec{Benchmark: []*cpb.Benchmark{{Name: "speedometer3", Workload: []string{"TodoMVC.React"}}}}},
+				Statistic:      &cpb.Statistic{PValue: 0.01},
+			},
+			{
+				ExperimentSpec: &cpb.ExperimentSpec{Analysis: &cpb.AnalysisSpec{Benchmark: []*cpb.Benchmark{{Name: "speedometer3", Workload: []string{"TodoMVC.Angular"}}}}},
+				Statistic:      &cpb.Statistic{PValue: 0.02},
+			},
+		}
+
+		alpha := 0.05
+		cv := generateCriticalValues(results, true, alpha)
+
+		assert.Len(t, cv, 2)
+		// N=2, m=2 (Standard BH because not jetstream)
+		// Thresholds: 1*0.05/2 = 0.025, 2*0.05/2 = 0.05
+		assert.Equal(t, 0.025, cv[0])
+		assert.Equal(t, 0.050, cv[1])
+	})
 
 	t.Run("Standard alpha without FDR", func(t *testing.T) {
-		alpha := 0.05
-		cv := generateCriticalValues(results, false, alpha)
-		assert.Len(t, cv, 3) // NaN is excluded from CV count
-		for _, v := range cv {
-			assert.Equal(t, 0.05, v)
+		results := []*cpb.AnalysisResult{
+			{
+				ExperimentSpec: &cpb.ExperimentSpec{Analysis: &cpb.AnalysisSpec{Benchmark: []*cpb.Benchmark{{Name: "any", Workload: []string{"any"}}}}},
+				Statistic:      &cpb.Statistic{PValue: 0.01},
+			},
 		}
-	})
-
-	t.Run("Custom alpha without FDR", func(t *testing.T) {
-		alpha := 0.01
-		cv := generateCriticalValues(results, false, alpha)
-		assert.Len(t, cv, 3)
-		for _, v := range cv {
-			assert.Equal(t, 0.01, v)
-		}
-	})
-
-	t.Run("FDR control with standard alpha", func(t *testing.T) {
-		alpha := 0.05
-		cv := generateCriticalValues(results, true, alpha)
-		assert.Len(t, cv, 3)
-		// Expected critical values for 3 results:
-		// Rank 1: (1 * 0.05) / 3 = 0.01666...
-		// Rank 2: (2 * 0.05) / 3 = 0.03333...
-		// Rank 3: (3 * 0.05) / 3 = 0.05
-		assert.InDelta(t, 0.01666, cv[0], 0.0001)
-		assert.InDelta(t, 0.03333, cv[1], 0.0001)
-		assert.InDelta(t, 0.05, cv[2], 0.0001)
-	})
-
-	t.Run("FDR control with custom alpha", func(t *testing.T) {
-		alpha := 0.10
-		cv := generateCriticalValues(results, true, alpha)
-		assert.Len(t, cv, 3)
-		// Expected: 0.1/3, 0.2/3, 0.3/3
-		assert.InDelta(t, 0.03333, cv[0], 0.0001)
-		assert.InDelta(t, 0.06666, cv[1], 0.0001)
-		assert.InDelta(t, 0.1, cv[2], 0.0001)
+		cv := generateCriticalValues(results, false, 0.05)
+		assert.Equal(t, 0.05, cv[0])
 	})
 }

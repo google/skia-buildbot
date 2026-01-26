@@ -147,15 +147,49 @@ func generateCriticalValues(results []*cpb.AnalysisResult, use_fdr_control bool,
 	}
 
 	criticalValues := make([]float64, pValueCount)
-	// if use_fdr_control is true, we will compare the p-value with the adjusted critical value;
-	// else, we compare the p-value with the default alpha 0.05.
-	for i := 0; i < pValueCount; i++ {
-		if use_fdr_control {
-			// the rank is i+1 for a sorted 0-based list.
-			criticalValues[i] = (float64(i+1) * alpha) / float64(pValueCount)
-		} else {
+
+	// if use_fdr_control is not true, we compare the p-value with the same critical value (alpha).
+	// else, we will compare the p-value with the adjusted critical value;
+	if !use_fdr_control {
+		for i := 0; i < pValueCount; i++ {
 			criticalValues[i] = alpha
 		}
+		sklog.Infof("[POC] Not using FDR control. Using constant alpha=%v for %d results as critical values: %v", alpha, pValueCount, criticalValues)
+		return criticalValues
+	}
+
+	benchmark := ""
+	if len(results) > 0 {
+		benchmark = results[0].ExperimentSpec.Analysis.Benchmark[0].Name
+	}
+
+	// find the number of base tests used for alpha dilution.
+	baseTestCount := float64(pValueCount)
+	// For JetStream, we group sub-metrics (e.g., Basic.First, Basic.Average) under their
+	// base workload to avoid over-diluting alpha with redundant measurements.
+	if strings.HasPrefix(benchmark, "jetstream") {
+		baseWorkloads := make(map[string]bool)
+		for _, r := range results {
+			if !math.IsNaN(r.Statistic.PValue) {
+				workload := r.ExperimentSpec.Analysis.Benchmark[0].Workload[0]
+				base := strings.Split(workload, ".")[0]
+				baseWorkloads[base] = true
+			}
+		}
+		baseTestCount = float64(len(baseWorkloads))
+		sklog.Infof("[POC] JetStream sub-metric grouping for %q: baseTestCount=%v (reduced from %v)", benchmark, baseTestCount, pValueCount)
+	}
+
+	sklog.Infof("[POC] Using FDR control for %q. alpha=%v, testResultCount=%v, baseTestCount=%v", benchmark, alpha, pValueCount, baseTestCount)
+	// compute critical values using the adjusted rank procedure
+	testResultCount := float64(pValueCount)
+	for i := 0; i < pValueCount; i++ {
+		// rank is the effective rank in a list of base tests.
+		// for jetstream, this "duplicates" thresholds for variants. E.g., if there are 4 results but only 2 base tests,
+		// the ranks will be 1,1,2,2 (instead of 1,2,3,4).
+		// for others (where baseTestCount >= testResultCount), it simplifies to standard BH: rank = i+1.
+		rank := math.Ceil(float64(i+1) * baseTestCount / testResultCount)
+		criticalValues[i] = (rank * alpha) / baseTestCount
 	}
 	sklog.Debugf("[POC] critical values generated: %f", criticalValues)
 
