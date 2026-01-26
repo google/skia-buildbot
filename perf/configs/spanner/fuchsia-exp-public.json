@@ -67,8 +67,7 @@
         "showZero": "false",
         "enable_chart_tooltip": "true",
         "use_titles": "true",
-        "show_google_plot": "true",
-        "manual_plot_mode": "true"
+        "show_google_plot": "true"
       }
     },
     "data_point_config": {
@@ -81,5 +80,7 @@
     "show_triage_link": true,
     "new_alerts_page": true,
     "show_bisect_btn": true,
-    "fetch_anomalies_from_sql": true
+    "fetch_anomalies_from_sql": true,
+    "use_regression2_schema": true,
+    "trace_format": "chrome"
   }
