@@ -389,8 +389,12 @@ func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark str
 	browser_id := fmt.Sprintf("%s %s", bi.Browser, bi.Channel)
 	browser_id = strings.ReplaceAll(browser_id, "-", " ")
 	browser_id = strings.Title(browser_id)
-	if skipFinch {
-		browser_id += " Without Finch"
+	if bi.Browser == "chrome" && bi.Platform != "android" {
+		if bi.Channel == "stable" && !skipFinch {
+			browser_id += " (Top Finch Variations)"
+		} else if bi.Channel == "dev" && skipFinch {
+			browser_id += " (Disable Field Trial)"
+		}
 	}
 
 	for c, v := range values {
