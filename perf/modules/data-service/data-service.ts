@@ -2,10 +2,12 @@ import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import {
   FrameRequest,
   FrameResponse,
+  GetUserIssuesForTraceKeysRequest,
+  GetUserIssuesForTraceKeysResponse,
+  GraphConfig,
   ShiftRequest,
   ShiftResponse,
   progress,
-  GraphConfig,
 } from '../json';
 import {
   messageByName,
@@ -33,20 +35,18 @@ export interface SendFrameRequestOptions {
   onProgress?: (msg: string) => void;
   onMessage?: (msg: string) => void;
   onSettled?: () => void;
+  pollingIntervalMs?: number;
 }
 
 /**
  * Handles all data fetching and manipulation requests to the backend.
  */
 export class DataService {
-  private static instance: DataService;
+  private static instance: DataService = new DataService();
 
   private constructor() {}
 
   public static getInstance(): DataService {
-    if (!DataService.instance) {
-      DataService.instance = new DataService();
-    }
     return DataService.instance;
   }
 
@@ -125,6 +125,21 @@ export class DataService {
   }
 
   /**
+   * Fetches user issues for the given trace keys and commit range.
+   */
+  async getUserIssues(
+    req: GetUserIssuesForTraceKeysRequest
+  ): Promise<GetUserIssuesForTraceKeysResponse> {
+    return await this.fetchJson('/_/user_issues/', {
+      method: 'POST',
+      body: JSON.stringify(req),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  /**
    * Creates a shortcut for the keys.
    */
   async createShortcut(state: { keys: string[] }): Promise<{ id: string }> {
@@ -152,6 +167,7 @@ export class DataService {
     const requestOptions: RequestOptions = {
       onStart: options.onStart,
       onSettled: options.onSettled,
+      pollingIntervalMs: options.pollingIntervalMs,
       onProgressUpdate: (prog: progress.SerializedProgress) => {
         if (options.onProgress) {
           options.onProgress(messagesToPreString(prog.messages || []));

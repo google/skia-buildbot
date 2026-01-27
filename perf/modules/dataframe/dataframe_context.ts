@@ -32,12 +32,18 @@ import { customElement } from 'lit/decorators.js';
 
 import { mergeAnomaly, removeAnomaly, range } from './index';
 import { fromParamSet } from '../../../infra-sk/modules/query';
-import { AnomalyMap, ColumnHeader, ShiftRequest, ShiftResponse, TraceMetadata } from '../json';
+import {
+  AnomalyMap,
+  ColumnHeader,
+  GetUserIssuesForTraceKeysRequest,
+  ShiftRequest,
+  TraceMetadata,
+} from '../json';
 import { DataFrame, FrameRequest, FrameResponse, Trace, TraceSet, ReadOnlyParamSet } from '../json';
-import { startRequest, messageByName } from '../progress/progress';
 import { convertFromDataframe } from '../common/plot-builder';
 import { formatSpecialFunctions } from '../paramtools';
 import { MISSING_DATA_SENTINEL } from '../const/const';
+import { DataService, DataServiceError } from '../data-service/data-service';
 
 // Holds issue data for a single data point.
 // x and y corresponds to the location of the data point on the chart
@@ -49,26 +55,6 @@ export interface IssueDetail {
 
 // A map of user reported issues generally constructed from UserIssueResponse
 export type UserIssueMap = { [key: string]: { [key: number]: IssueDetail } } | null;
-
-// Request format for _/user_issues/ API call
-export interface UserIssuesRequest {
-  trace_keys: string[];
-  begin_commit_position: number;
-  end_commit_position: number;
-}
-
-// UserIssue represents a single user issue
-export interface UserIssue {
-  UserId: string;
-  TraceKey: string;
-  CommitPosition: number;
-  IssueId: number;
-}
-
-// Response format for _/user_issues/ API call
-export interface UserIssueResponse {
-  UserIssues: UserIssue[];
-}
 
 // Shift the range by offset.
 // Note, shitf [0, 10] by 10 will give [1, 11].
@@ -146,12 +132,6 @@ const emptyResolver = (_1: number) => {};
 
 @customElement('dataframe-repository-sk')
 export class DataFrameRepository extends LitElement {
-  private static shiftUrl = '/_/shift/';
-
-  private static frameStartUrl = '/_/frame/start';
-
-  private static userIssuesUrl = '/_/user_issues/';
-
   // The promise that resolves when the Google Chart API is loaded.
   private static loadPromise = load();
 
@@ -335,34 +315,32 @@ export class DataFrameRepository extends LitElement {
       return {} as FrameResponse;
     }
 
-    const resp = await startRequest(DataFrameRepository.frameStartUrl, req, {
-      pollingIntervalMs: 1000,
-    }).catch(() => {
-      return null;
-    });
-    if (resp === null) {
-      // We silently fails when the server returns an error for now.
-      console.log('fetch frame response failed.');
+    try {
+      const resp = await DataService.getInstance().sendFrameRequest(req, {
+        onMessage: (msg) => {
+          throw new Error(msg);
+        },
+        pollingIntervalMs: 1000,
+      });
+      return resp;
+    } catch (e: any) {
+      if (e instanceof DataServiceError) {
+        console.log(
+          'request range (',
+          new Date(range.begin * 1000),
+          new Date(range.end * 1000),
+          ') failed with msg:',
+          e.message
+        );
+        return {} as FrameResponse;
+      }
+
+      if (e.message) {
+        return Promise.reject(e.message);
+      }
+      console.log('fetch frame response failed.', e);
       return {} as FrameResponse;
     }
-    if (resp?.status !== 'Finished') {
-      // This usually happens when there is no commits for the  given date,
-      // We emit an empty range so the UI still functions just w/o any data,
-      // The caller may handle this empty return gracefully on its own.
-      console.log(
-        'request range (',
-        new Date(range.begin * 1000),
-        new Date(range.end * 1000),
-        ') failed with msg:',
-        resp?.messages
-      );
-      return {} as FrameResponse;
-    }
-    const msg = messageByName(resp.messages, 'Message');
-    if (msg) {
-      return Promise.reject(msg);
-    }
-    return resp.results as FrameResponse;
   }
 
   private async setDataFrame(df: DataFrame) {
@@ -577,17 +555,7 @@ export class DataFrameRepository extends LitElement {
 
   protected async shift(commitRange: range, offset: number = -200) {
     const req = deltaRange(commitRange, offset) as ShiftRequest;
-    const resp = await fetch(DataFrameRepository.shiftUrl, {
-      method: 'POST',
-      body: JSON.stringify(req),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    if (!resp.ok) {
-      return Promise.reject(resp.statusText);
-    }
-    return (await resp.json()) as ShiftResponse;
+    return await DataService.getInstance().shift(req);
   }
 
   // Makes an API call to fetch the comments in the given commit position range.
@@ -603,34 +571,25 @@ export class DataFrameRepository extends LitElement {
         return ',' + trace + ',';
       });
 
-    const req: UserIssuesRequest = {
+    const req: GetUserIssuesForTraceKeysRequest = {
       trace_keys: modifiedTraceKeys,
       begin_commit_position: begin,
       end_commit_position: end,
     };
-    const resp = await fetch(DataFrameRepository.userIssuesUrl, {
-      method: 'POST',
-      body: JSON.stringify(req),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    if (!resp.ok) {
-      return Promise.reject(resp.statusText);
-    }
+    const resp = await DataService.getInstance().getUserIssues(req);
 
-    const jsonResp = await resp.json();
-    const respJson = jsonResp as UserIssueResponse;
     const output: UserIssueMap = {};
-    respJson.UserIssues.forEach((issue) => {
-      const traceKey = issue.TraceKey;
-      const commitPos = issue.CommitPosition;
-      const issueId = issue.IssueId;
-      if (!(traceKey in output)) {
-        output[traceKey] = {};
-      }
-      output[traceKey][commitPos] = { bugId: issueId, x: -1, y: -1 };
-    });
+    if (resp.UserIssues) {
+      resp.UserIssues.forEach((issue) => {
+        const traceKey = issue.TraceKey;
+        const commitPos = issue.CommitPosition;
+        const issueId = issue.IssueId;
+        if (!(traceKey in output)) {
+          output[traceKey] = {};
+        }
+        output[traceKey][commitPos] = { bugId: issueId, x: -1, y: -1 };
+      });
+    }
 
     this.userIssues = output;
     return output;

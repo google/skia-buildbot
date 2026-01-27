@@ -51,9 +51,9 @@ ts_library(
         "//infra-sk/modules:query_ts_lib",
         "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/const:const_ts_lib",
+        "//perf/modules/data-service:data-service_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
-        "//perf/modules/progress:progress_ts_lib",
     ],
 )
 

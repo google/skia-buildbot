@@ -113,6 +113,34 @@ describe('DataService', () => {
     });
   });
 
+  describe('getUserIssues', () => {
+    it('sends POST request', async () => {
+      const req = {
+        trace_keys: ['k1', 'k2'],
+        begin_commit_position: 100,
+        end_commit_position: 200,
+      };
+      const response = {
+        UserIssues: [
+          {
+            UserId: 'user@example.com',
+            TraceKey: 'k1',
+            CommitPosition: 150,
+            IssueId: 12345,
+          },
+        ],
+      };
+      fetchMock.post('/_/user_issues/', response);
+
+      const result = await dataService.getUserIssues(req);
+      assert.deepEqual(result, response);
+      const options = fetchMock.lastOptions('/_/user_issues/');
+      assert.isDefined(options);
+      assert.equal(options!.method, 'POST');
+      assert.deepEqual(JSON.parse(options!.body as unknown as string), req);
+    });
+  });
+
   describe('createShortcut', () => {
     it('sends POST request', async () => {
       const state = { keys: ['k1', 'k2'] };
