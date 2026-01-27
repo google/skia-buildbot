@@ -89,6 +89,7 @@ func (c *GeminiClient) GetSummary(ctx context.Context, model string, input strin
 				Parts: []*genai.Part{
 					genai.NewPartFromText(input),
 				},
+				Role: "user",
 			},
 		},
 		nil,
