@@ -15,7 +15,7 @@
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "eskia",
   known_hashes_gcs_path: "skia-gold-eskia/hash_files/gold-eskia-hashes.txt",
-  window_size: 20,
+  window_size: 200,
 
   grouping_param_keys_by_corpus: {
     "eskia": ["name", "source_type"],
