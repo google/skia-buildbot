@@ -1429,7 +1429,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "m4clyHgHQwinNlNQDTHn40lnk7EDeVqhkZeusj+FBWA=",
+        "usagesDigest": "3N8dkUzFq7uSmekYGUpUfNMhlNF1VPeg1c2Bv1dwlFg=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1549,7 +1549,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "skia-public/base-cipd",
-              "identifier": "sha256:d775388db67ebb4d9cd36a759aaee785a3cf4a3999120f57ed9135e1445eb9d5",
+              "identifier": "sha256:119fcb1381e046c1168131f3c5db88cf72555876eaf220cd6ecfd0c854f6ea5c",
               "target_name": "base-cipd_single",
               "bazel_tags": []
             }
@@ -1562,7 +1562,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "skia-public/base-cipd",
-              "identifier": "sha256:d775388db67ebb4d9cd36a759aaee785a3cf4a3999120f57ed9135e1445eb9d5",
+              "identifier": "sha256:119fcb1381e046c1168131f3c5db88cf72555876eaf220cd6ecfd0c854f6ea5c",
               "platforms": {},
               "platform": "@@rules_oci+//oci:base-cipd_single",
               "bzlmod_repository": "base-cipd",

@@ -386,7 +386,7 @@ use_repo(oci, "basealpine")
 # skia_app_container macro.
 oci.pull(
     name = "base-cipd",
-    digest = "sha256:d775388db67ebb4d9cd36a759aaee785a3cf4a3999120f57ed9135e1445eb9d5",
+    digest = "sha256:119fcb1381e046c1168131f3c5db88cf72555876eaf220cd6ecfd0c854f6ea5c",
     image = "gcr.io/skia-public/base-cipd",
 )
 use_repo(oci, "base-cipd")
