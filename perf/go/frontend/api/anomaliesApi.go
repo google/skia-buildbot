@@ -563,7 +563,7 @@ func (api anomaliesApi) getTimerangeMap(ctx context.Context, anomalies []chromep
 		var startTime int64
 		var endTime int64
 
-		if strings.Contains(config.Config.InstanceName, "fuchsia") {
+		if strings.Contains(config.Config.InstanceName, "fuchsia") && api.preferLegacy {
 			timestampStr := anomaly.Timestamp
 			const layout = "2006-01-02T15:04:05.999999" // Layout for "ISO Format"
 
