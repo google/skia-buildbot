@@ -47,6 +47,10 @@ import (
 const (
 	appName      = "cabe"
 	defaultAlpha = 0.05
+	// When FDR control is used, we should use a different alpha to avoid over-correction.
+	// Based on b/478243891#comment12, we consider 0.075 is a good starting point.
+	// Users can override it via the "alpha" query parameter.
+	defaultFDRAlpha = 0.075
 )
 
 func init() {
@@ -209,20 +213,32 @@ func IsUpImprovement(benchmark string, workload string) bool {
 	return false
 }
 
+func pickUseFDRControl(val string) bool {
+	res, err := strconv.ParseBool(val)
+	if err != nil {
+		return false
+	}
+	return res
+}
+
+func pickAlpha(alphaVal string, useFDR bool) float64 {
+	alpha, err := strconv.ParseFloat(alphaVal, 64)
+	if err != nil {
+		if useFDR {
+			return defaultFDRAlpha
+		}
+		return defaultAlpha
+	}
+	return alpha
+}
+
 func (a *App) getCQCabeAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	job_id := chi.URLParam(r, "pinpoint_job_id")
-	use_fdr_control, err := strconv.ParseBool(r.URL.Query().Get("use_fdr_control"))
-	if err != nil {
-		use_fdr_control = false
-	}
-	sklog.Debugf("[POC] FDR procedure in use? %s", use_fdr_control)
-	alpha, err := strconv.ParseFloat(r.URL.Query().Get("alpha"), 64)
-	if err != nil {
-		// if alpha is not set or in invalid format.
-		alpha = defaultAlpha
-	}
+	use_fdr_control := pickUseFDRControl(r.URL.Query().Get("use_fdr_control"))
+	sklog.Debugf("[POC] FDR procedure in use? %v", use_fdr_control)
+	alpha := pickAlpha(r.URL.Query().Get("alpha"), use_fdr_control)
 	sklog.Debugf("[POC] Alpha value override? %f", alpha)
 
 	analy := analyzer.New(

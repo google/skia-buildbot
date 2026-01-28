@@ -164,4 +164,37 @@ func TestGenerateCriticalValues(t *testing.T) {
 		cv := generateCriticalValues(results, false, 0.05)
 		assert.Equal(t, 0.05, cv[0])
 	})
+
+	t.Run("Default FDR alpha with FDR enabled", func(t *testing.T) {
+		results := []*cpb.AnalysisResult{
+			{
+				ExperimentSpec: &cpb.ExperimentSpec{Analysis: &cpb.AnalysisSpec{Benchmark: []*cpb.Benchmark{{Name: "any", Workload: []string{"any"}}}}},
+				Statistic:      &cpb.Statistic{PValue: 0.01},
+			},
+		}
+		cv := generateCriticalValues(results, true, defaultFDRAlpha)
+		assert.Equal(t, defaultFDRAlpha, cv[0])
+	})
+}
+
+func TestPickUseFDRControl(t *testing.T) {
+	assert.True(t, pickUseFDRControl("true"))
+	assert.True(t, pickUseFDRControl("1"))
+	assert.False(t, pickUseFDRControl("false"))
+	assert.False(t, pickUseFDRControl(""))
+	assert.False(t, pickUseFDRControl("not-a-bool"))
+}
+
+func TestPickAlpha(t *testing.T) {
+	// alpha provided
+	assert.Equal(t, 0.1, pickAlpha("0.1", true))
+	assert.Equal(t, 0.1, pickAlpha("0.1", false))
+
+	// alpha not provided, use_fdr_control is true
+	assert.Equal(t, defaultFDRAlpha, pickAlpha("", true))
+	assert.Equal(t, defaultFDRAlpha, pickAlpha("not-a-float", true))
+
+	// alpha not provided, use_fdr_control is false
+	assert.Equal(t, defaultAlpha, pickAlpha("", false))
+	assert.Equal(t, defaultAlpha, pickAlpha("not-a-float", false))
 }
