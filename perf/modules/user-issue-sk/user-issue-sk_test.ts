@@ -74,7 +74,7 @@ describe('user-issue-sk', () => {
       element.bug_id = 0;
       element.user_id = 'test@example.com';
       await element.updateComplete;
-      const addIssue = element.shadowRoot!.querySelector('#add-issue-button') as HTMLElement;
+      const addIssue = element.shadowRoot!.querySelector('.add-issue') as HTMLElement;
       expect(addIssue).to.not.equal(null);
     });
 
@@ -110,9 +110,7 @@ describe('user-issue-sk', () => {
       element.user_id = 'test@example.com';
       element.issueExists = false;
       await element.updateComplete;
-      const addIssueBtn = element.shadowRoot!.querySelector(
-        '#add-issue-button'
-      ) as HTMLButtonElement;
+      const addIssueBtn = element.shadowRoot!.querySelector('.add-issue') as HTMLButtonElement;
       addIssueBtn.click();
       element._input_val = 12345;
       await element.updateComplete;
@@ -134,9 +132,7 @@ describe('user-issue-sk', () => {
       element.bug_id = 0;
 
       await element.updateComplete;
-      const addIssueBtn = element.shadowRoot!.querySelector(
-        '#add-issue-button'
-      ) as HTMLButtonElement;
+      const addIssueBtn = element.shadowRoot!.querySelector('.add-issue') as HTMLButtonElement;
       addIssueBtn.click();
       expect(element._text_input_active).to.equal(true);
 
@@ -174,7 +170,7 @@ describe('user-issue-sk', () => {
       expect(element.issueExists).to.equal(false);
 
       await element.updateComplete;
-      const addIssue = element.shadowRoot!.querySelector('#add-issue-button') as HTMLElement;
+      const addIssue = element.shadowRoot!.querySelector('.add-issue') as HTMLElement;
       expect(addIssue).to.not.equal(null);
     });
   });

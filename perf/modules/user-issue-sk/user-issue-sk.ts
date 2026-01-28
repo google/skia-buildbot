@@ -84,7 +84,7 @@ export class UserIssueSk extends LitElement {
       font-size: 14px;
     }
 
-    .new-bug {
+    .add-issue {
       align-items: center;
       background: transparent;
       border-radius: 4px;
@@ -237,7 +237,7 @@ export class UserIssueSk extends LitElement {
 
     return html`
       <div>
-        <button id="add-issue-button" @click=${this.activateTextInput}>Add Issue</button>
+        <button class="add-issue" @click=${this.activateTextInput}>Add Issue</button>
       </div>
     `;
   }
