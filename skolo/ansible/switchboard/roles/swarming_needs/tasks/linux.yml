@@ -74,7 +74,7 @@
   become: true
   apt:
     pkg:
-      - python3-distutils
+      - python3-setuptools
       - python3-certifi
 
 # Recipes need a /usr/bin/python.
