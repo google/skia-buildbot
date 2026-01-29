@@ -348,6 +348,7 @@ message ParentChildRepoManagerConfig {
     GitCheckoutChildConfig git_checkout_child = 8;
     GitCheckoutGitHubChildConfig git_checkout_github_child = 9;
     GitilesChildConfig gitiles_child = 10;
+    GitSemVerChildConfig git_semver_child = 18;
     SemVerGCSChildConfig semver_gcs_child = 11;
     DockerChildConfig docker_child = 16;
   }
@@ -591,6 +592,13 @@ message GitilesChildConfig {
   // may produce strange results if the Git history for the path is not
   // linear.
   string path = 2;
+}
+
+// GitSemVerChildConfig provides configuration for a Child which rolls using
+// semantically-versioned git tags.
+message GitSemVerChildConfig {
+  GitilesConfig gitiles = 1;
+  string version_regex = 2;
 }
 
 // DockerChildConfig provides configuration for a Child which uses Docker.

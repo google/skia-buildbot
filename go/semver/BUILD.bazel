@@ -1,0 +1,17 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "semver",
+    srcs = ["semver.go"],
+    importpath = "go.skia.org/infra/go/semver",
+    visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
+)
+
+go_test(
+    name = "semver_test",
+    srcs = ["semver_test.go"],
+    embed = [":semver"],
+    deps = ["@com_github_stretchr_testify//require"],
+)

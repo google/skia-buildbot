@@ -3,84 +3,25 @@ package child
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/semver"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
-// parseSemanticVersion returns the set of integer versions which make up the
-// given semantic version, as specified by the capture groups in the given
-// Regexp.
-func parseSemanticVersion(regex *regexp.Regexp, ver string) ([]int, error) {
-	matches := regex.FindStringSubmatch(ver)
-	if len(matches) > 1 {
-		matchInts := make([]int, len(matches)-1)
-		for idx, a := range matches[1:] {
-			i, err := strconv.Atoi(a)
-			if err != nil {
-				return matchInts, fmt.Errorf("Failed to parse int from regex match string; is the regex incorrect?")
-			}
-			matchInts[idx] = i
-		}
-		return matchInts, nil
-	}
-	return nil, errInvalidGCSVersion
+type gcsSemVersion semver.Version
+
+func (v *gcsSemVersion) Compare(other gcsVersion) int {
+	return (*semver.Version)(v).Compare((*semver.Version)(other.(*gcsSemVersion)))
 }
 
-// compareSemanticVersions returns 1 if A comes before B, -1 if A comes
-// after B, and 0 if they are equal.
-func compareSemanticVersions(a, b []int) int {
-	for i := 0; ; i++ {
-		if i == len(a) && i == len(b) {
-			return 0
-		} else if i == len(a) {
-			return 1
-		} else if i == len(b) {
-			return -1
-		}
-		if a[i] < b[i] {
-			return 1
-		} else if a[i] > b[i] {
-			return -1
-		}
-	}
-}
-
-// semVersion is an implementation of gcsVersion which uses semantic versioning.
-type semVersion struct {
-	id      string
-	version []int
-}
-
-// See documentation for gcsVersion interface.
-func (v *semVersion) Compare(other gcsVersion) int {
-	a := v.version
-	b := other.(*semVersion).version
-	return compareSemanticVersions(a, b)
-}
-
-// See documentation for gcsVersion interface.
-func (v *semVersion) Id() string {
-	return v.id
-}
-
-// See documentation for getGCSVersionFunc.
-func getSemanticGCSVersion(regex *regexp.Regexp, rev *revision.Revision) (gcsVersion, error) {
-	ver, err := parseSemanticVersion(regex, rev.Id)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return &semVersion{
-		id:      rev.Id,
-		version: ver,
-	}, nil
+func (v *gcsSemVersion) Id() string {
+	return (*semver.Version)(v).String()
 }
 
 // ErrShortRevNoMatch is returned by ShortRev when the revision ID does not
@@ -135,12 +76,16 @@ func NewSemVerGCS(ctx context.Context, c *config.SemVerGCSChildConfig, client *h
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	parser, err := semver.NewParser(c.VersionRegex)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	getGCSVersion := func(rev *revision.Revision) (gcsVersion, error) {
-		versionRegex, err := regexp.Compile(c.VersionRegex)
+		semVer, err := parser.Parse(rev.Id)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return getSemanticGCSVersion(versionRegex, rev)
+		return (*gcsSemVersion)(semVer), nil
 	}
 	getGCSPrefix := func() (string, error) {
 		// LiteralPrefix gives the literal string before any special regex

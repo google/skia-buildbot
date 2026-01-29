@@ -317,6 +317,7 @@ export interface ParentChildRepoManagerConfig {
   gitCheckoutChild?: GitCheckoutChildConfig;
   gitCheckoutGithubChild?: GitCheckoutGitHubChildConfig;
   gitilesChild?: GitilesChildConfig;
+  gitSemverChild?: GitSemVerChildConfig;
   semverGcsChild?: SemVerGCSChildConfig;
   dockerChild?: DockerChildConfig;
   buildbucketRevisionFilter?: BuildbucketRevisionFilterConfig[];
@@ -337,6 +338,7 @@ interface ParentChildRepoManagerConfigJSON {
   git_checkout_child?: GitCheckoutChildConfigJSON;
   git_checkout_github_child?: GitCheckoutGitHubChildConfigJSON;
   gitiles_child?: GitilesChildConfigJSON;
+  git_semver_child?: GitSemVerChildConfigJSON;
   semver_gcs_child?: SemVerGCSChildConfigJSON;
   docker_child?: DockerChildConfigJSON;
   buildbucket_revision_filter?: BuildbucketRevisionFilterConfigJSON[];
@@ -594,6 +596,16 @@ export interface GitilesChildConfig {
 interface GitilesChildConfigJSON {
   gitiles?: GitilesConfigJSON;
   path?: string;
+}
+
+export interface GitSemVerChildConfig {
+  gitiles?: GitilesConfig;
+  versionRegex: string;
+}
+
+interface GitSemVerChildConfigJSON {
+  gitiles?: GitilesConfigJSON;
+  version_regex?: string;
 }
 
 export interface DockerChildConfig {

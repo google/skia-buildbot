@@ -270,7 +270,7 @@ func (x NotifierConfig_LogLevel) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use NotifierConfig_LogLevel.Descriptor instead.
 func (NotifierConfig_LogLevel) EnumDescriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{32, 0}
+	return file_config_proto_rawDescGZIP(), []int{33, 0}
 }
 
 // MsgType categorizes notifications based on their type.
@@ -341,7 +341,7 @@ func (x NotifierConfig_MsgType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use NotifierConfig_MsgType.Descriptor instead.
 func (NotifierConfig_MsgType) EnumDescriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{32, 1}
+	return file_config_proto_rawDescGZIP(), []int{33, 1}
 }
 
 // Config provides configuration for one AutoRoller.
@@ -1639,6 +1639,7 @@ type ParentChildRepoManagerConfig struct {
 	//	*ParentChildRepoManagerConfig_GitCheckoutChild
 	//	*ParentChildRepoManagerConfig_GitCheckoutGithubChild
 	//	*ParentChildRepoManagerConfig_GitilesChild
+	//	*ParentChildRepoManagerConfig_GitSemverChild
 	//	*ParentChildRepoManagerConfig_SemverGcsChild
 	//	*ParentChildRepoManagerConfig_DockerChild
 	Child isParentChildRepoManagerConfig_Child `protobuf_oneof:"child"`
@@ -1803,6 +1804,15 @@ func (x *ParentChildRepoManagerConfig) GetGitilesChild() *GitilesChildConfig {
 	return nil
 }
 
+func (x *ParentChildRepoManagerConfig) GetGitSemverChild() *GitSemVerChildConfig {
+	if x != nil {
+		if x, ok := x.Child.(*ParentChildRepoManagerConfig_GitSemverChild); ok {
+			return x.GitSemverChild
+		}
+	}
+	return nil
+}
+
 func (x *ParentChildRepoManagerConfig) GetSemverGcsChild() *SemVerGCSChildConfig {
 	if x != nil {
 		if x, ok := x.Child.(*ParentChildRepoManagerConfig_SemverGcsChild); ok {
@@ -1914,6 +1924,10 @@ type ParentChildRepoManagerConfig_GitilesChild struct {
 	GitilesChild *GitilesChildConfig `protobuf:"bytes,10,opt,name=gitiles_child,json=gitilesChild,proto3,oneof"`
 }
 
+type ParentChildRepoManagerConfig_GitSemverChild struct {
+	GitSemverChild *GitSemVerChildConfig `protobuf:"bytes,18,opt,name=git_semver_child,json=gitSemverChild,proto3,oneof"`
+}
+
 type ParentChildRepoManagerConfig_SemverGcsChild struct {
 	SemverGcsChild *SemVerGCSChildConfig `protobuf:"bytes,11,opt,name=semver_gcs_child,json=semverGcsChild,proto3,oneof"`
 }
@@ -1931,6 +1945,8 @@ func (*ParentChildRepoManagerConfig_GitCheckoutChild) isParentChildRepoManagerCo
 func (*ParentChildRepoManagerConfig_GitCheckoutGithubChild) isParentChildRepoManagerConfig_Child() {}
 
 func (*ParentChildRepoManagerConfig_GitilesChild) isParentChildRepoManagerConfig_Child() {}
+
+func (*ParentChildRepoManagerConfig_GitSemverChild) isParentChildRepoManagerConfig_Child() {}
 
 func (*ParentChildRepoManagerConfig_SemverGcsChild) isParentChildRepoManagerConfig_Child() {}
 
@@ -3251,6 +3267,60 @@ func (x *GitilesChildConfig) GetPath() string {
 	return ""
 }
 
+// GitSemVerChildConfig provides configuration for a Child which rolls using
+// semantically-versioned git tags.
+type GitSemVerChildConfig struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Gitiles       *GitilesConfig         `protobuf:"bytes,1,opt,name=gitiles,proto3" json:"gitiles,omitempty"`
+	VersionRegex  string                 `protobuf:"bytes,2,opt,name=version_regex,json=versionRegex,proto3" json:"version_regex,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GitSemVerChildConfig) Reset() {
+	*x = GitSemVerChildConfig{}
+	mi := &file_config_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GitSemVerChildConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GitSemVerChildConfig) ProtoMessage() {}
+
+func (x *GitSemVerChildConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_config_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GitSemVerChildConfig.ProtoReflect.Descriptor instead.
+func (*GitSemVerChildConfig) Descriptor() ([]byte, []int) {
+	return file_config_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *GitSemVerChildConfig) GetGitiles() *GitilesConfig {
+	if x != nil {
+		return x.Gitiles
+	}
+	return nil
+}
+
+func (x *GitSemVerChildConfig) GetVersionRegex() string {
+	if x != nil {
+		return x.VersionRegex
+	}
+	return ""
+}
+
 // DockerChildConfig provides configuration for a Child which uses Docker.
 type DockerChildConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -3266,7 +3336,7 @@ type DockerChildConfig struct {
 
 func (x *DockerChildConfig) Reset() {
 	*x = DockerChildConfig{}
-	mi := &file_config_proto_msgTypes[31]
+	mi := &file_config_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3278,7 +3348,7 @@ func (x *DockerChildConfig) String() string {
 func (*DockerChildConfig) ProtoMessage() {}
 
 func (x *DockerChildConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[31]
+	mi := &file_config_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3291,7 +3361,7 @@ func (x *DockerChildConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DockerChildConfig.ProtoReflect.Descriptor instead.
 func (*DockerChildConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{31}
+	return file_config_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *DockerChildConfig) GetRegistry() string {
@@ -3342,7 +3412,7 @@ type NotifierConfig struct {
 
 func (x *NotifierConfig) Reset() {
 	*x = NotifierConfig{}
-	mi := &file_config_proto_msgTypes[32]
+	mi := &file_config_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3354,7 +3424,7 @@ func (x *NotifierConfig) String() string {
 func (*NotifierConfig) ProtoMessage() {}
 
 func (x *NotifierConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[32]
+	mi := &file_config_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3367,7 +3437,7 @@ func (x *NotifierConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NotifierConfig.ProtoReflect.Descriptor instead.
 func (*NotifierConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{32}
+	return file_config_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *NotifierConfig) GetLogLevel() NotifierConfig_LogLevel {
@@ -3473,7 +3543,7 @@ type EmailNotifierConfig struct {
 
 func (x *EmailNotifierConfig) Reset() {
 	*x = EmailNotifierConfig{}
-	mi := &file_config_proto_msgTypes[33]
+	mi := &file_config_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3485,7 +3555,7 @@ func (x *EmailNotifierConfig) String() string {
 func (*EmailNotifierConfig) ProtoMessage() {}
 
 func (x *EmailNotifierConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[33]
+	mi := &file_config_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3498,7 +3568,7 @@ func (x *EmailNotifierConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailNotifierConfig.ProtoReflect.Descriptor instead.
 func (*EmailNotifierConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{33}
+	return file_config_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *EmailNotifierConfig) GetEmails() []string {
@@ -3519,7 +3589,7 @@ type ChatNotifierConfig struct {
 
 func (x *ChatNotifierConfig) Reset() {
 	*x = ChatNotifierConfig{}
-	mi := &file_config_proto_msgTypes[34]
+	mi := &file_config_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3531,7 +3601,7 @@ func (x *ChatNotifierConfig) String() string {
 func (*ChatNotifierConfig) ProtoMessage() {}
 
 func (x *ChatNotifierConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[34]
+	mi := &file_config_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3544,7 +3614,7 @@ func (x *ChatNotifierConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatNotifierConfig.ProtoReflect.Descriptor instead.
 func (*ChatNotifierConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{34}
+	return file_config_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ChatNotifierConfig) GetRoomId() string {
@@ -3574,7 +3644,7 @@ type MonorailNotifierConfig struct {
 
 func (x *MonorailNotifierConfig) Reset() {
 	*x = MonorailNotifierConfig{}
-	mi := &file_config_proto_msgTypes[35]
+	mi := &file_config_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3586,7 +3656,7 @@ func (x *MonorailNotifierConfig) String() string {
 func (*MonorailNotifierConfig) ProtoMessage() {}
 
 func (x *MonorailNotifierConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[35]
+	mi := &file_config_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3599,7 +3669,7 @@ func (x *MonorailNotifierConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MonorailNotifierConfig.ProtoReflect.Descriptor instead.
 func (*MonorailNotifierConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{35}
+	return file_config_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *MonorailNotifierConfig) GetProject() string {
@@ -3648,7 +3718,7 @@ type PubSubNotifierConfig struct {
 
 func (x *PubSubNotifierConfig) Reset() {
 	*x = PubSubNotifierConfig{}
-	mi := &file_config_proto_msgTypes[36]
+	mi := &file_config_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3660,7 +3730,7 @@ func (x *PubSubNotifierConfig) String() string {
 func (*PubSubNotifierConfig) ProtoMessage() {}
 
 func (x *PubSubNotifierConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[36]
+	mi := &file_config_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3673,7 +3743,7 @@ func (x *PubSubNotifierConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PubSubNotifierConfig.ProtoReflect.Descriptor instead.
 func (*PubSubNotifierConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{36}
+	return file_config_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *PubSubNotifierConfig) GetTopic() string {
@@ -3698,7 +3768,7 @@ type ThrottleConfig struct {
 
 func (x *ThrottleConfig) Reset() {
 	*x = ThrottleConfig{}
-	mi := &file_config_proto_msgTypes[37]
+	mi := &file_config_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3710,7 +3780,7 @@ func (x *ThrottleConfig) String() string {
 func (*ThrottleConfig) ProtoMessage() {}
 
 func (x *ThrottleConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[37]
+	mi := &file_config_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3723,7 +3793,7 @@ func (x *ThrottleConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ThrottleConfig.ProtoReflect.Descriptor instead.
 func (*ThrottleConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{37}
+	return file_config_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ThrottleConfig) GetAttemptCount() int32 {
@@ -3758,7 +3828,7 @@ type TransitiveDepConfig struct {
 
 func (x *TransitiveDepConfig) Reset() {
 	*x = TransitiveDepConfig{}
-	mi := &file_config_proto_msgTypes[38]
+	mi := &file_config_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3770,7 +3840,7 @@ func (x *TransitiveDepConfig) String() string {
 func (*TransitiveDepConfig) ProtoMessage() {}
 
 func (x *TransitiveDepConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[38]
+	mi := &file_config_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3783,7 +3853,7 @@ func (x *TransitiveDepConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransitiveDepConfig.ProtoReflect.Descriptor instead.
 func (*TransitiveDepConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{38}
+	return file_config_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *TransitiveDepConfig) GetChild() *VersionFileConfig {
@@ -3823,7 +3893,7 @@ type VersionFileConfig struct {
 
 func (x *VersionFileConfig) Reset() {
 	*x = VersionFileConfig{}
-	mi := &file_config_proto_msgTypes[39]
+	mi := &file_config_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3835,7 +3905,7 @@ func (x *VersionFileConfig) String() string {
 func (*VersionFileConfig) ProtoMessage() {}
 
 func (x *VersionFileConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[39]
+	mi := &file_config_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3848,7 +3918,7 @@ func (x *VersionFileConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VersionFileConfig.ProtoReflect.Descriptor instead.
 func (*VersionFileConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{39}
+	return file_config_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *VersionFileConfig) GetId() string {
@@ -3911,7 +3981,7 @@ type VersionFileConfig_File struct {
 
 func (x *VersionFileConfig_File) Reset() {
 	*x = VersionFileConfig_File{}
-	mi := &file_config_proto_msgTypes[40]
+	mi := &file_config_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3923,7 +3993,7 @@ func (x *VersionFileConfig_File) String() string {
 func (*VersionFileConfig_File) ProtoMessage() {}
 
 func (x *VersionFileConfig_File) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[40]
+	mi := &file_config_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3936,7 +4006,7 @@ func (x *VersionFileConfig_File) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VersionFileConfig_File.ProtoReflect.Descriptor instead.
 func (*VersionFileConfig_File) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{40}
+	return file_config_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *VersionFileConfig_File) GetPath() string {
@@ -3978,7 +4048,7 @@ type DependencyConfig struct {
 
 func (x *DependencyConfig) Reset() {
 	*x = DependencyConfig{}
-	mi := &file_config_proto_msgTypes[41]
+	mi := &file_config_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3990,7 +4060,7 @@ func (x *DependencyConfig) String() string {
 func (*DependencyConfig) ProtoMessage() {}
 
 func (x *DependencyConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[41]
+	mi := &file_config_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4003,7 +4073,7 @@ func (x *DependencyConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DependencyConfig.ProtoReflect.Descriptor instead.
 func (*DependencyConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{41}
+	return file_config_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *DependencyConfig) GetPrimary() *VersionFileConfig {
@@ -4051,7 +4121,7 @@ type GitCheckoutConfig struct {
 
 func (x *GitCheckoutConfig) Reset() {
 	*x = GitCheckoutConfig{}
-	mi := &file_config_proto_msgTypes[42]
+	mi := &file_config_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4063,7 +4133,7 @@ func (x *GitCheckoutConfig) String() string {
 func (*GitCheckoutConfig) ProtoMessage() {}
 
 func (x *GitCheckoutConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[42]
+	mi := &file_config_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4076,7 +4146,7 @@ func (x *GitCheckoutConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GitCheckoutConfig.ProtoReflect.Descriptor instead.
 func (*GitCheckoutConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{42}
+	return file_config_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *GitCheckoutConfig) GetBranch() string {
@@ -4128,7 +4198,7 @@ type BuildbucketRevisionFilterConfig struct {
 
 func (x *BuildbucketRevisionFilterConfig) Reset() {
 	*x = BuildbucketRevisionFilterConfig{}
-	mi := &file_config_proto_msgTypes[43]
+	mi := &file_config_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4140,7 +4210,7 @@ func (x *BuildbucketRevisionFilterConfig) String() string {
 func (*BuildbucketRevisionFilterConfig) ProtoMessage() {}
 
 func (x *BuildbucketRevisionFilterConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[43]
+	mi := &file_config_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4153,7 +4223,7 @@ func (x *BuildbucketRevisionFilterConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BuildbucketRevisionFilterConfig.ProtoReflect.Descriptor instead.
 func (*BuildbucketRevisionFilterConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{43}
+	return file_config_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *BuildbucketRevisionFilterConfig) GetProject() string {
@@ -4198,7 +4268,7 @@ type CIPDRevisionFilterConfig struct {
 
 func (x *CIPDRevisionFilterConfig) Reset() {
 	*x = CIPDRevisionFilterConfig{}
-	mi := &file_config_proto_msgTypes[44]
+	mi := &file_config_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4210,7 +4280,7 @@ func (x *CIPDRevisionFilterConfig) String() string {
 func (*CIPDRevisionFilterConfig) ProtoMessage() {}
 
 func (x *CIPDRevisionFilterConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[44]
+	mi := &file_config_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4223,7 +4293,7 @@ func (x *CIPDRevisionFilterConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CIPDRevisionFilterConfig.ProtoReflect.Descriptor instead.
 func (*CIPDRevisionFilterConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{44}
+	return file_config_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *CIPDRevisionFilterConfig) GetPackage() []string {
@@ -4264,7 +4334,7 @@ type ValidHttpRevisionFilterConfig struct {
 
 func (x *ValidHttpRevisionFilterConfig) Reset() {
 	*x = ValidHttpRevisionFilterConfig{}
-	mi := &file_config_proto_msgTypes[45]
+	mi := &file_config_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4276,7 +4346,7 @@ func (x *ValidHttpRevisionFilterConfig) String() string {
 func (*ValidHttpRevisionFilterConfig) ProtoMessage() {}
 
 func (x *ValidHttpRevisionFilterConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[45]
+	mi := &file_config_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4289,7 +4359,7 @@ func (x *ValidHttpRevisionFilterConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidHttpRevisionFilterConfig.ProtoReflect.Descriptor instead.
 func (*ValidHttpRevisionFilterConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{45}
+	return file_config_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ValidHttpRevisionFilterConfig) GetFileUrl() string {
@@ -4321,7 +4391,7 @@ type PreUploadConfig struct {
 
 func (x *PreUploadConfig) Reset() {
 	*x = PreUploadConfig{}
-	mi := &file_config_proto_msgTypes[46]
+	mi := &file_config_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4333,7 +4403,7 @@ func (x *PreUploadConfig) String() string {
 func (*PreUploadConfig) ProtoMessage() {}
 
 func (x *PreUploadConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[46]
+	mi := &file_config_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4346,7 +4416,7 @@ func (x *PreUploadConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreUploadConfig.ProtoReflect.Descriptor instead.
 func (*PreUploadConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{46}
+	return file_config_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *PreUploadConfig) GetCipdPackage() []*PreUploadCIPDPackageConfig {
@@ -4380,7 +4450,7 @@ type PreUploadCommandConfig struct {
 
 func (x *PreUploadCommandConfig) Reset() {
 	*x = PreUploadCommandConfig{}
-	mi := &file_config_proto_msgTypes[47]
+	mi := &file_config_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4392,7 +4462,7 @@ func (x *PreUploadCommandConfig) String() string {
 func (*PreUploadCommandConfig) ProtoMessage() {}
 
 func (x *PreUploadCommandConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[47]
+	mi := &file_config_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4405,7 +4475,7 @@ func (x *PreUploadCommandConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreUploadCommandConfig.ProtoReflect.Descriptor instead.
 func (*PreUploadCommandConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{47}
+	return file_config_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *PreUploadCommandConfig) GetCommand() string {
@@ -4451,7 +4521,7 @@ type PreUploadCIPDPackageConfig struct {
 
 func (x *PreUploadCIPDPackageConfig) Reset() {
 	*x = PreUploadCIPDPackageConfig{}
-	mi := &file_config_proto_msgTypes[48]
+	mi := &file_config_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4463,7 +4533,7 @@ func (x *PreUploadCIPDPackageConfig) String() string {
 func (*PreUploadCIPDPackageConfig) ProtoMessage() {}
 
 func (x *PreUploadCIPDPackageConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[48]
+	mi := &file_config_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4476,7 +4546,7 @@ func (x *PreUploadCIPDPackageConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreUploadCIPDPackageConfig.ProtoReflect.Descriptor instead.
 func (*PreUploadCIPDPackageConfig) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{48}
+	return file_config_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *PreUploadCIPDPackageConfig) GetName() string {
@@ -4510,7 +4580,7 @@ type Configs struct {
 
 func (x *Configs) Reset() {
 	*x = Configs{}
-	mi := &file_config_proto_msgTypes[49]
+	mi := &file_config_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4522,7 +4592,7 @@ func (x *Configs) String() string {
 func (*Configs) ProtoMessage() {}
 
 func (x *Configs) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[49]
+	mi := &file_config_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4535,7 +4605,7 @@ func (x *Configs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Configs.ProtoReflect.Descriptor instead.
 func (*Configs) Descriptor() ([]byte, []int) {
-	return file_config_proto_rawDescGZIP(), []int{49}
+	return file_config_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *Configs) GetConfig() []*Config {
@@ -4567,7 +4637,7 @@ type AndroidRepoManagerConfig_ProjectMetadataFileConfig struct {
 
 func (x *AndroidRepoManagerConfig_ProjectMetadataFileConfig) Reset() {
 	*x = AndroidRepoManagerConfig_ProjectMetadataFileConfig{}
-	mi := &file_config_proto_msgTypes[50]
+	mi := &file_config_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4579,7 +4649,7 @@ func (x *AndroidRepoManagerConfig_ProjectMetadataFileConfig) String() string {
 func (*AndroidRepoManagerConfig_ProjectMetadataFileConfig) ProtoMessage() {}
 
 func (x *AndroidRepoManagerConfig_ProjectMetadataFileConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[50]
+	mi := &file_config_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4654,7 +4724,7 @@ type CommandRepoManagerConfig_CommandConfig struct {
 
 func (x *CommandRepoManagerConfig_CommandConfig) Reset() {
 	*x = CommandRepoManagerConfig_CommandConfig{}
-	mi := &file_config_proto_msgTypes[51]
+	mi := &file_config_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4666,7 +4736,7 @@ func (x *CommandRepoManagerConfig_CommandConfig) String() string {
 func (*CommandRepoManagerConfig_CommandConfig) ProtoMessage() {}
 
 func (x *CommandRepoManagerConfig_CommandConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[51]
+	mi := &file_config_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4715,7 +4785,7 @@ type CopyParentConfig_CopyEntry struct {
 
 func (x *CopyParentConfig_CopyEntry) Reset() {
 	*x = CopyParentConfig_CopyEntry{}
-	mi := &file_config_proto_msgTypes[52]
+	mi := &file_config_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4727,7 +4797,7 @@ func (x *CopyParentConfig_CopyEntry) String() string {
 func (*CopyParentConfig_CopyEntry) ProtoMessage() {}
 
 func (x *CopyParentConfig_CopyEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_config_proto_msgTypes[52]
+	mi := &file_config_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4900,7 +4970,7 @@ const file_config_proto_rawDesc = "" +
 	"\x18Google3RepoManagerConfig\x12!\n" +
 	"\fchild_branch\x18\x01 \x01(\tR\vchildBranch\x12\x1d\n" +
 	"\n" +
-	"child_repo\x18\x02 \x01(\tR\tchildRepo\"\xe2\f\n" +
+	"child_repo\x18\x02 \x01(\tR\tchildRepo\"\xb5\r\n" +
 	"\x1cParentChildRepoManagerConfig\x12D\n" +
 	"\vcopy_parent\x18\x01 \x01(\v2!.autoroll.config.CopyParentConfigH\x00R\n" +
 	"copyParent\x12g\n" +
@@ -4917,6 +4987,7 @@ const file_config_proto_rawDesc = "" +
 	"\x19git_checkout_github_child\x18\t \x01(\v2-.autoroll.config.GitCheckoutGitHubChildConfigH\x01R\x16gitCheckoutGithubChild\x12J\n" +
 	"\rgitiles_child\x18\n" +
 	" \x01(\v2#.autoroll.config.GitilesChildConfigH\x01R\fgitilesChild\x12Q\n" +
+	"\x10git_semver_child\x18\x12 \x01(\v2%.autoroll.config.GitSemVerChildConfigH\x01R\x0egitSemverChild\x12Q\n" +
 	"\x10semver_gcs_child\x18\v \x01(\v2%.autoroll.config.SemVerGCSChildConfigH\x01R\x0esemverGcsChild\x12G\n" +
 	"\fdocker_child\x18\x10 \x01(\v2\".autoroll.config.DockerChildConfigH\x01R\vdockerChild\x12p\n" +
 	"\x1bbuildbucket_revision_filter\x18\f \x03(\v20.autoroll.config.BuildbucketRevisionFilterConfigR\x19buildbucketRevisionFilter\x12[\n" +
@@ -5017,7 +5088,10 @@ const file_config_proto_rawDesc = "" +
 	"\trepo_name\x18\x03 \x01(\tR\brepoName\"b\n" +
 	"\x12GitilesChildConfig\x128\n" +
 	"\agitiles\x18\x01 \x01(\v2\x1e.autoroll.config.GitilesConfigR\agitiles\x12\x12\n" +
-	"\x04path\x18\x02 \x01(\tR\x04path\"a\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\"u\n" +
+	"\x14GitSemVerChildConfig\x128\n" +
+	"\agitiles\x18\x01 \x01(\v2\x1e.autoroll.config.GitilesConfigR\agitiles\x12#\n" +
+	"\rversion_regex\x18\x02 \x01(\tR\fversionRegex\"a\n" +
 	"\x11DockerChildConfig\x12\x1a\n" +
 	"\bregistry\x18\x01 \x01(\tR\bregistry\x12\x1e\n" +
 	"\n" +
@@ -5138,7 +5212,7 @@ func file_config_proto_rawDescGZIP() []byte {
 }
 
 var file_config_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_config_proto_msgTypes = make([]protoimpl.MessageInfo, 53)
+var file_config_proto_msgTypes = make([]protoimpl.MessageInfo, 54)
 var file_config_proto_goTypes = []any{
 	(Mode)(0),                                                  // 0: autoroll.config.Mode
 	(CommitMsgConfig_BuiltIn)(0),                               // 1: autoroll.config.CommitMsgConfig.BuiltIn
@@ -5176,28 +5250,29 @@ var file_config_proto_goTypes = []any{
 	(*GitCheckoutChildConfig)(nil),                             // 33: autoroll.config.GitCheckoutChildConfig
 	(*GitCheckoutGitHubChildConfig)(nil),                       // 34: autoroll.config.GitCheckoutGitHubChildConfig
 	(*GitilesChildConfig)(nil),                                 // 35: autoroll.config.GitilesChildConfig
-	(*DockerChildConfig)(nil),                                  // 36: autoroll.config.DockerChildConfig
-	(*NotifierConfig)(nil),                                     // 37: autoroll.config.NotifierConfig
-	(*EmailNotifierConfig)(nil),                                // 38: autoroll.config.EmailNotifierConfig
-	(*ChatNotifierConfig)(nil),                                 // 39: autoroll.config.ChatNotifierConfig
-	(*MonorailNotifierConfig)(nil),                             // 40: autoroll.config.MonorailNotifierConfig
-	(*PubSubNotifierConfig)(nil),                               // 41: autoroll.config.PubSubNotifierConfig
-	(*ThrottleConfig)(nil),                                     // 42: autoroll.config.ThrottleConfig
-	(*TransitiveDepConfig)(nil),                                // 43: autoroll.config.TransitiveDepConfig
-	(*VersionFileConfig)(nil),                                  // 44: autoroll.config.VersionFileConfig
-	(*VersionFileConfig_File)(nil),                             // 45: autoroll.config.VersionFileConfig_File
-	(*DependencyConfig)(nil),                                   // 46: autoroll.config.DependencyConfig
-	(*GitCheckoutConfig)(nil),                                  // 47: autoroll.config.GitCheckoutConfig
-	(*BuildbucketRevisionFilterConfig)(nil),                    // 48: autoroll.config.BuildbucketRevisionFilterConfig
-	(*CIPDRevisionFilterConfig)(nil),                           // 49: autoroll.config.CIPDRevisionFilterConfig
-	(*ValidHttpRevisionFilterConfig)(nil),                      // 50: autoroll.config.ValidHttpRevisionFilterConfig
-	(*PreUploadConfig)(nil),                                    // 51: autoroll.config.PreUploadConfig
-	(*PreUploadCommandConfig)(nil),                             // 52: autoroll.config.PreUploadCommandConfig
-	(*PreUploadCIPDPackageConfig)(nil),                         // 53: autoroll.config.PreUploadCIPDPackageConfig
-	(*Configs)(nil),                                            // 54: autoroll.config.Configs
-	(*AndroidRepoManagerConfig_ProjectMetadataFileConfig)(nil), // 55: autoroll.config.AndroidRepoManagerConfig.ProjectMetadataFileConfig
-	(*CommandRepoManagerConfig_CommandConfig)(nil),             // 56: autoroll.config.CommandRepoManagerConfig.CommandConfig
-	(*CopyParentConfig_CopyEntry)(nil),                         // 57: autoroll.config.CopyParentConfig.CopyEntry
+	(*GitSemVerChildConfig)(nil),                               // 36: autoroll.config.GitSemVerChildConfig
+	(*DockerChildConfig)(nil),                                  // 37: autoroll.config.DockerChildConfig
+	(*NotifierConfig)(nil),                                     // 38: autoroll.config.NotifierConfig
+	(*EmailNotifierConfig)(nil),                                // 39: autoroll.config.EmailNotifierConfig
+	(*ChatNotifierConfig)(nil),                                 // 40: autoroll.config.ChatNotifierConfig
+	(*MonorailNotifierConfig)(nil),                             // 41: autoroll.config.MonorailNotifierConfig
+	(*PubSubNotifierConfig)(nil),                               // 42: autoroll.config.PubSubNotifierConfig
+	(*ThrottleConfig)(nil),                                     // 43: autoroll.config.ThrottleConfig
+	(*TransitiveDepConfig)(nil),                                // 44: autoroll.config.TransitiveDepConfig
+	(*VersionFileConfig)(nil),                                  // 45: autoroll.config.VersionFileConfig
+	(*VersionFileConfig_File)(nil),                             // 46: autoroll.config.VersionFileConfig_File
+	(*DependencyConfig)(nil),                                   // 47: autoroll.config.DependencyConfig
+	(*GitCheckoutConfig)(nil),                                  // 48: autoroll.config.GitCheckoutConfig
+	(*BuildbucketRevisionFilterConfig)(nil),                    // 49: autoroll.config.BuildbucketRevisionFilterConfig
+	(*CIPDRevisionFilterConfig)(nil),                           // 50: autoroll.config.CIPDRevisionFilterConfig
+	(*ValidHttpRevisionFilterConfig)(nil),                      // 51: autoroll.config.ValidHttpRevisionFilterConfig
+	(*PreUploadConfig)(nil),                                    // 52: autoroll.config.PreUploadConfig
+	(*PreUploadCommandConfig)(nil),                             // 53: autoroll.config.PreUploadCommandConfig
+	(*PreUploadCIPDPackageConfig)(nil),                         // 54: autoroll.config.PreUploadCIPDPackageConfig
+	(*Configs)(nil),                                            // 55: autoroll.config.Configs
+	(*AndroidRepoManagerConfig_ProjectMetadataFileConfig)(nil), // 56: autoroll.config.AndroidRepoManagerConfig.ProjectMetadataFileConfig
+	(*CommandRepoManagerConfig_CommandConfig)(nil),             // 57: autoroll.config.CommandRepoManagerConfig.CommandConfig
+	(*CopyParentConfig_CopyEntry)(nil),                         // 58: autoroll.config.CopyParentConfig.CopyEntry
 }
 var file_config_proto_depIdxs = []int32{
 	6,  // 0: autoroll.config.Config.commit_msg:type_name -> autoroll.config.CommitMsgConfig
@@ -5210,18 +5285,18 @@ var file_config_proto_depIdxs = []int32{
 	12, // 7: autoroll.config.Config.command_repo_manager:type_name -> autoroll.config.CommandRepoManagerConfig
 	13, // 8: autoroll.config.Config.freetype_repo_manager:type_name -> autoroll.config.FreeTypeRepoManagerConfig
 	14, // 9: autoroll.config.Config.google3_repo_manager:type_name -> autoroll.config.Google3RepoManagerConfig
-	37, // 10: autoroll.config.Config.notifiers:type_name -> autoroll.config.NotifierConfig
-	42, // 11: autoroll.config.Config.safety_throttle:type_name -> autoroll.config.ThrottleConfig
-	43, // 12: autoroll.config.Config.transitive_deps:type_name -> autoroll.config.TransitiveDepConfig
+	38, // 10: autoroll.config.Config.notifiers:type_name -> autoroll.config.NotifierConfig
+	43, // 11: autoroll.config.Config.safety_throttle:type_name -> autoroll.config.ThrottleConfig
+	44, // 12: autoroll.config.Config.transitive_deps:type_name -> autoroll.config.TransitiveDepConfig
 	0,  // 13: autoroll.config.Config.valid_modes:type_name -> autoroll.config.Mode
 	1,  // 14: autoroll.config.CommitMsgConfig.built_in:type_name -> autoroll.config.CommitMsgConfig.BuiltIn
 	2,  // 15: autoroll.config.GerritConfig.config:type_name -> autoroll.config.GerritConfig.Config
-	55, // 16: autoroll.config.AndroidRepoManagerConfig.metadata:type_name -> autoroll.config.AndroidRepoManagerConfig.ProjectMetadataFileConfig
-	51, // 17: autoroll.config.AndroidRepoManagerConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
-	47, // 18: autoroll.config.CommandRepoManagerConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
-	56, // 19: autoroll.config.CommandRepoManagerConfig.get_tip_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
-	56, // 20: autoroll.config.CommandRepoManagerConfig.get_pinned_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
-	56, // 21: autoroll.config.CommandRepoManagerConfig.set_pinned_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
+	56, // 16: autoroll.config.AndroidRepoManagerConfig.metadata:type_name -> autoroll.config.AndroidRepoManagerConfig.ProjectMetadataFileConfig
+	52, // 17: autoroll.config.AndroidRepoManagerConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
+	48, // 18: autoroll.config.CommandRepoManagerConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
+	57, // 19: autoroll.config.CommandRepoManagerConfig.get_tip_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
+	57, // 20: autoroll.config.CommandRepoManagerConfig.get_pinned_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
+	57, // 21: autoroll.config.CommandRepoManagerConfig.set_pinned_rev:type_name -> autoroll.config.CommandRepoManagerConfig.CommandConfig
 	28, // 22: autoroll.config.FreeTypeRepoManagerConfig.parent:type_name -> autoroll.config.FreeTypeParentConfig
 	35, // 23: autoroll.config.FreeTypeRepoManagerConfig.child:type_name -> autoroll.config.GitilesChildConfig
 	16, // 24: autoroll.config.ParentChildRepoManagerConfig.copy_parent:type_name -> autoroll.config.CopyParentConfig
@@ -5236,60 +5311,62 @@ var file_config_proto_depIdxs = []int32{
 	33, // 33: autoroll.config.ParentChildRepoManagerConfig.git_checkout_child:type_name -> autoroll.config.GitCheckoutChildConfig
 	34, // 34: autoroll.config.ParentChildRepoManagerConfig.git_checkout_github_child:type_name -> autoroll.config.GitCheckoutGitHubChildConfig
 	35, // 35: autoroll.config.ParentChildRepoManagerConfig.gitiles_child:type_name -> autoroll.config.GitilesChildConfig
-	31, // 36: autoroll.config.ParentChildRepoManagerConfig.semver_gcs_child:type_name -> autoroll.config.SemVerGCSChildConfig
-	36, // 37: autoroll.config.ParentChildRepoManagerConfig.docker_child:type_name -> autoroll.config.DockerChildConfig
-	48, // 38: autoroll.config.ParentChildRepoManagerConfig.buildbucket_revision_filter:type_name -> autoroll.config.BuildbucketRevisionFilterConfig
-	49, // 39: autoroll.config.ParentChildRepoManagerConfig.cipd_revision_filter:type_name -> autoroll.config.CIPDRevisionFilterConfig
-	50, // 40: autoroll.config.ParentChildRepoManagerConfig.valid_http_revision_filter:type_name -> autoroll.config.ValidHttpRevisionFilterConfig
-	22, // 41: autoroll.config.CopyParentConfig.gitiles:type_name -> autoroll.config.GitilesParentConfig
-	57, // 42: autoroll.config.CopyParentConfig.copies:type_name -> autoroll.config.CopyParentConfig.CopyEntry
-	26, // 43: autoroll.config.DEPSLocalGitHubParentConfig.deps_local:type_name -> autoroll.config.DEPSLocalParentConfig
-	8,  // 44: autoroll.config.DEPSLocalGitHubParentConfig.github:type_name -> autoroll.config.GitHubConfig
-	26, // 45: autoroll.config.DEPSLocalGerritParentConfig.deps_local:type_name -> autoroll.config.DEPSLocalParentConfig
-	7,  // 46: autoroll.config.DEPSLocalGerritParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
-	27, // 47: autoroll.config.GitCheckoutGitHubParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
-	27, // 48: autoroll.config.GitCheckoutGerritParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
-	51, // 49: autoroll.config.GitCheckoutGerritParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
-	19, // 50: autoroll.config.GitCheckoutGitHubFileParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutGitHubParentConfig
-	51, // 51: autoroll.config.GitCheckoutGitHubFileParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
-	23, // 52: autoroll.config.GitilesParentConfig.gitiles:type_name -> autoroll.config.GitilesConfig
-	46, // 53: autoroll.config.GitilesParentConfig.dep:type_name -> autoroll.config.DependencyConfig
-	7,  // 54: autoroll.config.GitilesParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
-	44, // 55: autoroll.config.GitilesConfig.dependencies:type_name -> autoroll.config.VersionFileConfig
-	25, // 56: autoroll.config.GoModGerritParentConfig.go_mod:type_name -> autoroll.config.GoModParentConfig
-	7,  // 57: autoroll.config.GoModGerritParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
-	47, // 58: autoroll.config.GoModParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
-	51, // 59: autoroll.config.GoModParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
-	27, // 60: autoroll.config.DEPSLocalParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
-	51, // 61: autoroll.config.DEPSLocalParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
-	47, // 62: autoroll.config.GitCheckoutParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
-	46, // 63: autoroll.config.GitCheckoutParentConfig.dep:type_name -> autoroll.config.DependencyConfig
-	22, // 64: autoroll.config.FreeTypeParentConfig.gitiles:type_name -> autoroll.config.GitilesParentConfig
-	23, // 65: autoroll.config.CIPDChildConfig.source_repo:type_name -> autoroll.config.GitilesConfig
-	32, // 66: autoroll.config.SemVerGCSChildConfig.gcs:type_name -> autoroll.config.GCSChildConfig
-	47, // 67: autoroll.config.GitCheckoutChildConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
-	33, // 68: autoroll.config.GitCheckoutGitHubChildConfig.git_checkout:type_name -> autoroll.config.GitCheckoutChildConfig
-	23, // 69: autoroll.config.GitilesChildConfig.gitiles:type_name -> autoroll.config.GitilesConfig
-	3,  // 70: autoroll.config.NotifierConfig.log_level:type_name -> autoroll.config.NotifierConfig.LogLevel
-	4,  // 71: autoroll.config.NotifierConfig.msg_type:type_name -> autoroll.config.NotifierConfig.MsgType
-	38, // 72: autoroll.config.NotifierConfig.email:type_name -> autoroll.config.EmailNotifierConfig
-	39, // 73: autoroll.config.NotifierConfig.chat:type_name -> autoroll.config.ChatNotifierConfig
-	40, // 74: autoroll.config.NotifierConfig.monorail:type_name -> autoroll.config.MonorailNotifierConfig
-	41, // 75: autoroll.config.NotifierConfig.pubsub:type_name -> autoroll.config.PubSubNotifierConfig
-	44, // 76: autoroll.config.TransitiveDepConfig.child:type_name -> autoroll.config.VersionFileConfig
-	44, // 77: autoroll.config.TransitiveDepConfig.parent:type_name -> autoroll.config.VersionFileConfig
-	45, // 78: autoroll.config.VersionFileConfig.file:type_name -> autoroll.config.VersionFileConfig_File
-	44, // 79: autoroll.config.DependencyConfig.primary:type_name -> autoroll.config.VersionFileConfig
-	43, // 80: autoroll.config.DependencyConfig.transitive:type_name -> autoroll.config.TransitiveDepConfig
-	44, // 81: autoroll.config.GitCheckoutConfig.dependencies:type_name -> autoroll.config.VersionFileConfig
-	53, // 82: autoroll.config.PreUploadConfig.cipd_package:type_name -> autoroll.config.PreUploadCIPDPackageConfig
-	52, // 83: autoroll.config.PreUploadConfig.command:type_name -> autoroll.config.PreUploadCommandConfig
-	5,  // 84: autoroll.config.Configs.config:type_name -> autoroll.config.Config
-	85, // [85:85] is the sub-list for method output_type
-	85, // [85:85] is the sub-list for method input_type
-	85, // [85:85] is the sub-list for extension type_name
-	85, // [85:85] is the sub-list for extension extendee
-	0,  // [0:85] is the sub-list for field type_name
+	36, // 36: autoroll.config.ParentChildRepoManagerConfig.git_semver_child:type_name -> autoroll.config.GitSemVerChildConfig
+	31, // 37: autoroll.config.ParentChildRepoManagerConfig.semver_gcs_child:type_name -> autoroll.config.SemVerGCSChildConfig
+	37, // 38: autoroll.config.ParentChildRepoManagerConfig.docker_child:type_name -> autoroll.config.DockerChildConfig
+	49, // 39: autoroll.config.ParentChildRepoManagerConfig.buildbucket_revision_filter:type_name -> autoroll.config.BuildbucketRevisionFilterConfig
+	50, // 40: autoroll.config.ParentChildRepoManagerConfig.cipd_revision_filter:type_name -> autoroll.config.CIPDRevisionFilterConfig
+	51, // 41: autoroll.config.ParentChildRepoManagerConfig.valid_http_revision_filter:type_name -> autoroll.config.ValidHttpRevisionFilterConfig
+	22, // 42: autoroll.config.CopyParentConfig.gitiles:type_name -> autoroll.config.GitilesParentConfig
+	58, // 43: autoroll.config.CopyParentConfig.copies:type_name -> autoroll.config.CopyParentConfig.CopyEntry
+	26, // 44: autoroll.config.DEPSLocalGitHubParentConfig.deps_local:type_name -> autoroll.config.DEPSLocalParentConfig
+	8,  // 45: autoroll.config.DEPSLocalGitHubParentConfig.github:type_name -> autoroll.config.GitHubConfig
+	26, // 46: autoroll.config.DEPSLocalGerritParentConfig.deps_local:type_name -> autoroll.config.DEPSLocalParentConfig
+	7,  // 47: autoroll.config.DEPSLocalGerritParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
+	27, // 48: autoroll.config.GitCheckoutGitHubParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
+	27, // 49: autoroll.config.GitCheckoutGerritParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
+	52, // 50: autoroll.config.GitCheckoutGerritParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
+	19, // 51: autoroll.config.GitCheckoutGitHubFileParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutGitHubParentConfig
+	52, // 52: autoroll.config.GitCheckoutGitHubFileParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
+	23, // 53: autoroll.config.GitilesParentConfig.gitiles:type_name -> autoroll.config.GitilesConfig
+	47, // 54: autoroll.config.GitilesParentConfig.dep:type_name -> autoroll.config.DependencyConfig
+	7,  // 55: autoroll.config.GitilesParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
+	45, // 56: autoroll.config.GitilesConfig.dependencies:type_name -> autoroll.config.VersionFileConfig
+	25, // 57: autoroll.config.GoModGerritParentConfig.go_mod:type_name -> autoroll.config.GoModParentConfig
+	7,  // 58: autoroll.config.GoModGerritParentConfig.gerrit:type_name -> autoroll.config.GerritConfig
+	48, // 59: autoroll.config.GoModParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
+	52, // 60: autoroll.config.GoModParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
+	27, // 61: autoroll.config.DEPSLocalParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutParentConfig
+	52, // 62: autoroll.config.DEPSLocalParentConfig.pre_upload_commands:type_name -> autoroll.config.PreUploadConfig
+	48, // 63: autoroll.config.GitCheckoutParentConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
+	47, // 64: autoroll.config.GitCheckoutParentConfig.dep:type_name -> autoroll.config.DependencyConfig
+	22, // 65: autoroll.config.FreeTypeParentConfig.gitiles:type_name -> autoroll.config.GitilesParentConfig
+	23, // 66: autoroll.config.CIPDChildConfig.source_repo:type_name -> autoroll.config.GitilesConfig
+	32, // 67: autoroll.config.SemVerGCSChildConfig.gcs:type_name -> autoroll.config.GCSChildConfig
+	48, // 68: autoroll.config.GitCheckoutChildConfig.git_checkout:type_name -> autoroll.config.GitCheckoutConfig
+	33, // 69: autoroll.config.GitCheckoutGitHubChildConfig.git_checkout:type_name -> autoroll.config.GitCheckoutChildConfig
+	23, // 70: autoroll.config.GitilesChildConfig.gitiles:type_name -> autoroll.config.GitilesConfig
+	23, // 71: autoroll.config.GitSemVerChildConfig.gitiles:type_name -> autoroll.config.GitilesConfig
+	3,  // 72: autoroll.config.NotifierConfig.log_level:type_name -> autoroll.config.NotifierConfig.LogLevel
+	4,  // 73: autoroll.config.NotifierConfig.msg_type:type_name -> autoroll.config.NotifierConfig.MsgType
+	39, // 74: autoroll.config.NotifierConfig.email:type_name -> autoroll.config.EmailNotifierConfig
+	40, // 75: autoroll.config.NotifierConfig.chat:type_name -> autoroll.config.ChatNotifierConfig
+	41, // 76: autoroll.config.NotifierConfig.monorail:type_name -> autoroll.config.MonorailNotifierConfig
+	42, // 77: autoroll.config.NotifierConfig.pubsub:type_name -> autoroll.config.PubSubNotifierConfig
+	45, // 78: autoroll.config.TransitiveDepConfig.child:type_name -> autoroll.config.VersionFileConfig
+	45, // 79: autoroll.config.TransitiveDepConfig.parent:type_name -> autoroll.config.VersionFileConfig
+	46, // 80: autoroll.config.VersionFileConfig.file:type_name -> autoroll.config.VersionFileConfig_File
+	45, // 81: autoroll.config.DependencyConfig.primary:type_name -> autoroll.config.VersionFileConfig
+	44, // 82: autoroll.config.DependencyConfig.transitive:type_name -> autoroll.config.TransitiveDepConfig
+	45, // 83: autoroll.config.GitCheckoutConfig.dependencies:type_name -> autoroll.config.VersionFileConfig
+	54, // 84: autoroll.config.PreUploadConfig.cipd_package:type_name -> autoroll.config.PreUploadCIPDPackageConfig
+	53, // 85: autoroll.config.PreUploadConfig.command:type_name -> autoroll.config.PreUploadCommandConfig
+	5,  // 86: autoroll.config.Configs.config:type_name -> autoroll.config.Config
+	87, // [87:87] is the sub-list for method output_type
+	87, // [87:87] is the sub-list for method input_type
+	87, // [87:87] is the sub-list for extension type_name
+	87, // [87:87] is the sub-list for extension extendee
+	0,  // [0:87] is the sub-list for field type_name
 }
 
 func init() { file_config_proto_init() }
@@ -5320,10 +5397,11 @@ func file_config_proto_init() {
 		(*ParentChildRepoManagerConfig_GitCheckoutChild)(nil),
 		(*ParentChildRepoManagerConfig_GitCheckoutGithubChild)(nil),
 		(*ParentChildRepoManagerConfig_GitilesChild)(nil),
+		(*ParentChildRepoManagerConfig_GitSemverChild)(nil),
 		(*ParentChildRepoManagerConfig_SemverGcsChild)(nil),
 		(*ParentChildRepoManagerConfig_DockerChild)(nil),
 	}
-	file_config_proto_msgTypes[32].OneofWrappers = []any{
+	file_config_proto_msgTypes[33].OneofWrappers = []any{
 		(*NotifierConfig_Email)(nil),
 		(*NotifierConfig_Chat)(nil),
 		(*NotifierConfig_Monorail)(nil),
@@ -5335,7 +5413,7 @@ func file_config_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_config_proto_rawDesc), len(file_config_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   53,
+			NumMessages:   54,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -77,6 +77,9 @@ type Revision struct {
 
 	// URL used by a human to view the Revision.
 	URL string `json:"url"`
+
+	// Release version associated with this Revision.
+	Release string `json:"release"`
 }
 
 // Copy the Revision.
@@ -102,6 +105,7 @@ func (r *Revision) Copy() *Revision {
 		Tests:            util.CopyStringSlice(r.Tests),
 		Timestamp:        r.Timestamp,
 		URL:              r.URL,
+		Release:          r.Release,
 	}
 }
 

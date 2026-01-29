@@ -89,6 +89,8 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		childRM, err = child.NewFuchsiaSDK(ctx, c.GetFuchsiaSdkChild(), client)
 	} else if c.GetGitilesChild() != nil {
 		childRM, err = child.NewGitiles(ctx, c.GetGitilesChild(), client)
+	} else if c.GetGitSemverChild() != nil {
+		childRM, err = child.NewGitSemVerChild(ctx, c.GetGitSemverChild(), client)
 	} else if c.GetGitCheckoutChild() != nil {
 		childRM, err = child.NewGitCheckout(ctx, c.GetGitCheckoutChild(), workdir, cr, childCheckout)
 	} else if c.GetGitCheckoutGithubChild() != nil {
