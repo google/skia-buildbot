@@ -94,6 +94,8 @@ export class RegressionsPageSk extends ElementSk {
     this.btnImprovement = document.getElementById('btnImprovements') as HTMLButtonElement;
     this.btnImprovement!.disabled = true;
 
+    this.state.useSkia = (window as any).perf.fetch_anomalies_from_sql;
+
     // Set up the state reflector to update the selected subscription
     // in the url as well as the sheriff dropdown.
     this.stateHasChanged = stateReflector(
