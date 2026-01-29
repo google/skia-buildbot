@@ -72,6 +72,10 @@ func generateNewRegression() *regression.Regression {
 	}
 
 	r.High = clusterSummary
+	r.HighStatus = regression.TriageStatus{
+		Status:  regression.Untriaged,
+		Message: "",
+	}
 	r.Frame = df
 	return r
 }
@@ -636,6 +640,91 @@ func TestGetRegressionsBySubName(t *testing.T) {
 	}
 }
 
+// TestGetRegressionsBySubName tests the GetRegressionsBySubName method.
+func TestGetRegressionsBySubName_ShowHideTriaged(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+
+	// Untriaged anomaly
+	rUntriaged := generateAndStoreNewRegression(ctx, t, store)
+	// Both FileBug and AssociateAlerts just executes SetBugID (consider integration testing)
+	rBugAssociated := generateAndStoreNewRegression(ctx, t, store)
+	err := store.SetBugID(ctx, []string{rBugAssociated.Id}, 1)
+	require.NoError(t, err)
+	// First associate a bug, then reset
+	rReset := generateAndStoreNewRegression(ctx, t, store)
+	err = store.SetBugID(ctx, []string{rReset.Id}, 1)
+	require.NoError(t, err)
+	err = store.ResetAnomalies(ctx, []string{rReset.Id})
+	require.NoError(t, err)
+	// Ignore anomaly
+	rIgnore := generateAndStoreNewRegression(ctx, t, store)
+	err = store.IgnoreAnomalies(ctx, []string{rIgnore.Id})
+	require.NoError(t, err)
+
+	rIds := []string{rIgnore.Id, rReset.Id, rBugAssociated.Id, rUntriaged.Id}
+
+	// Associate all regressions with the same subscription (sub_name).
+	setupAlertSubName := func(alertID int64, subName string) {
+		query := `
+			INSERT INTO Alerts (id, sub_name)
+			VALUES ($1, $2)
+			ON CONFLICT (id)
+			DO UPDATE SET
+				id = EXCLUDED.id,
+				sub_name = EXCLUDED.sub_name`
+		_, err := store.db.Exec(ctx, query, alertID, subName)
+		require.NoError(t, err)
+	}
+	commonSubname := "my-sub"
+	setupAlertSubName(rUntriaged.AlertId, commonSubname)
+	setupAlertSubName(rBugAssociated.AlertId, commonSubname)
+	setupAlertSubName(rIgnore.AlertId, commonSubname)
+	setupAlertSubName(rReset.AlertId, commonSubname)
+
+	// 3. Test cases.
+	tests := []struct {
+		name        string
+		showTriaged bool
+		// expectedIDs is used to verify the exact order of return
+		expectedIDs []string
+	}{
+		{
+			name:        "Hide triaged",
+			showTriaged: false,
+			expectedIDs: []string{rReset.Id, rUntriaged.Id},
+		},
+		{
+			name:        "Show triaged",
+			showTriaged: true,
+			expectedIDs: rIds,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			req := regression.GetAnomalyListRequest{
+				SubName:             commonSubname,
+				IncludeImprovements: false,
+				IncludeTriaged:      tc.showTriaged,
+			}
+			regs, err := store.GetRegressionsBySubName(ctx, req, 50)
+			require.NoError(t, err)
+			assert.Len(t, regs, len(tc.expectedIDs))
+
+			ids := make([]string, len(regs))
+			for i, r := range regs {
+				ids[i] = r.Id
+			}
+
+			for _, id := range tc.expectedIDs {
+				require.Contains(t, ids, id)
+			}
+		})
+	}
+}
+
 func TestSetBugID_Success(t *testing.T) {
 	alertsProvider := alerts_mock.NewConfigProvider(t)
 	store := setupStore(t, alertsProvider)
@@ -798,8 +887,10 @@ func TestNudgeAndResetAnomalies_ResetsStatus(t *testing.T) {
 	regIDs := []string{}
 	for _, reg := range regressions {
 		reg.Bugs = []types.RegressionBug{{BugId: fmt.Sprint(bugIdDefault), Type: types.ManualTriage}}
-		reg.HighStatus.Status = statusDefault
-		reg.HighStatus.Message = messageDefault
+		reg.HighStatus = regression.TriageStatus{
+			Status:  statusDefault,
+			Message: messageDefault,
+		}
 		_, err := store.WriteRegression(ctx, reg, nil)
 		require.NoError(t, err)
 		regIDs = append(regIDs, reg.Id)

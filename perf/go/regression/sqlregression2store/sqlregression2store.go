@@ -176,13 +176,14 @@ var statementFormats = map[statementFormat]string{
 			Alerts a ON r.alert_id=a.id
 		WHERE
 			a.sub_name = $1 and
-			(r.is_improvement = $2 OR r.is_improvement = false) -- toggle improvements on the flag, show regressions always
+			(r.is_improvement = $2 OR r.is_improvement = false) AND -- toggle improvements on the flag, show regressions always
+			(r.triage_status = 'untriaged' OR (r.triage_status != '' AND $3 = true)) -- show untriaged always, and show all statuses except for NONE if showTriaged is true
 		ORDER BY
   		r.creation_time DESC
 		LIMIT
-			$3
-		OFFSET
 			$4
+		OFFSET
+			$5
 		`,
 	deleteByCommit: `
 		DELETE
@@ -433,7 +434,7 @@ func (s *SQLRegression2Store) Write(ctx context.Context, regressions map[types.C
 // limit and offset.
 func (s *SQLRegression2Store) GetRegressionsBySubName(ctx context.Context, req regression.GetAnomalyListRequest, limit int) ([]*regression.Regression, error) {
 	statement := s.statements[readBySubName]
-	rows, err := s.db.Query(ctx, statement, req.SubName, req.IncludeImprovements, limit, req.PaginationOffset)
+	rows, err := s.db.Query(ctx, statement, req.SubName, req.IncludeImprovements, req.IncludeTriaged, limit, req.PaginationOffset)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get regressions. Query: %s", statement)
 	}
