@@ -106,18 +106,75 @@ export class PlotSummarySk extends LitElement {
       return;
     }
 
-    const view = new google.visualization.DataView(dt!);
+    let view: google.visualization.DataView;
 
-    // Downsample the data if there are too many points.
+    // Downsample the data using Min-Max bucketing if there are too many points.
+    // This preserves visual spikes by plotting the range (min and max) for each bucket.
     const numRows = dt.getNumberOfRows();
-    const maxPoints = 1000;
+    const maxPoints = 1000; // Target resolution (approximate pairs of min/max)
+
     if (numRows > maxPoints) {
-      const sampleRate = Math.ceil(numRows / maxPoints);
-      const rowsToKeep = [];
-      for (let i = 0; i < numRows; i += sampleRate) {
-        rowsToKeep.push(i);
+      // We want ~maxPoints visualization points. Since we generate 2 rows per bucket,
+      // we need maxPoints / 2 buckets.
+      const bucketSize = Math.ceil((2 * numRows) / maxPoints);
+
+      const newData = new google.visualization.DataTable();
+
+      // 1. Copy Column Structure
+      const numCols = dt.getNumberOfColumns();
+      for (let i = 0; i < numCols; i++) {
+        newData.addColumn(dt.getColumnType(i), dt.getColumnLabel(i));
       }
-      view.setRows(rowsToKeep);
+
+      // 2. Aggregate Data into Buckets
+      for (let i = 0; i < numRows; i += bucketSize) {
+        const bucketEndIndex = Math.min(i + bucketSize, numRows);
+
+        // Initialize Row Structures
+        // We'll have two rows: one for Min values, one for Max values.
+        // For the Domain columns (0 and 1: Commit/Date), we use start and end times.
+        const minRow = new Array(numCols);
+        const maxRow = new Array(numCols);
+
+        // Set Domain (Time/Commit) values
+        // Row 1 uses the Start of the bucket
+        minRow[0] = dt.getValue(i, 0);
+        minRow[1] = dt.getValue(i, 1);
+
+        // Row 2 uses the End of the bucket (last element)
+        // This spreads the visual "ink" across the time interval.
+        const lastIdx = bucketEndIndex - 1;
+        maxRow[0] = dt.getValue(lastIdx, 0);
+        maxRow[1] = dt.getValue(lastIdx, 1);
+
+        // Initialize Data columns (2+) with null values for comparison
+        for (let col = 2; col < numCols; col++) {
+          minRow[col] = null;
+          maxRow[col] = null;
+        }
+
+        // 3. Scan the bucket to find Min/Max for each column
+        let hasData = false;
+        for (let r = i; r < bucketEndIndex; r++) {
+          for (let col = 2; col < numCols; col++) {
+            const val = dt.getValue(r, col);
+            if (typeof val === 'number') {
+              if (minRow[col] === null || val < minRow[col]) minRow[col] = val;
+              if (maxRow[col] === null || val > maxRow[col]) maxRow[col] = val;
+              hasData = true;
+            }
+          }
+        }
+
+        // 4. Add the synthesized rows
+        if (hasData) {
+          newData.addRow(minRow);
+          newData.addRow(maxRow);
+        }
+      }
+      view = new google.visualization.DataView(newData);
+    } else {
+      view = new google.visualization.DataView(dt!);
     }
 
     const options = SummaryChartOptions(getComputedStyle(this), this.domain);
