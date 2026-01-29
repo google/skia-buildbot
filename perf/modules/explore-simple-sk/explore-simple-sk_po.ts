@@ -9,6 +9,7 @@ import { GraphTitleSkPO } from '../graph-title-sk/graph-title-sk_po';
 import { poll } from '../common/puppeteer-test-util';
 import { PlotSummarySkPO } from '../plot-summary-sk/plot-summary-sk_po';
 import { QueryCountSkPO } from '../query-count-sk/query-count-sk_po';
+import { ParamSetSkPO } from '../../../infra-sk/modules/paramset-sk/paramset-sk_po';
 
 export class ExploreSimpleSkPO extends PageObject {
   get pickerField(): PageObjectElement {
@@ -85,6 +86,10 @@ export class ExploreSimpleSkPO extends PageObject {
 
   get evenXAxisSpacingSwitch(): PageObjectElement {
     return this.bySelector('#even-x-axis-spacing-switch');
+  }
+
+  get summaryParamsetSkPO(): ParamSetSkPO {
+    return this.poBySelector('#query-dialog paramset-sk#summary', ParamSetSkPO);
   }
 
   get plotButton(): PageObjectElement {

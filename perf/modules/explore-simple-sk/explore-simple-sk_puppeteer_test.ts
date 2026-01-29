@@ -40,6 +40,7 @@ describe('explore-simple-sk', () => {
         customElements.whenDefined('query-count-sk'),
         customElements.whenDefined('md-dialog'),
         customElements.whenDefined('dataframe-repository-sk'),
+        customElements.whenDefined('chart-tooltip-sk'),
       ]);
     });
     try {
@@ -76,7 +77,7 @@ describe('explore-simple-sk', () => {
   });
 
   it('should render the demo page', async () => {
-    expect(await testBed.page.$$('explore-simple-sk')).to.have.length(1); // Smoke test.
+    expect(await testBed.page.$$('explore-simple-sk')).to.have.lengthOf(1); // Smoke test.
   });
 
   describe('query dialog interaction', () => {
@@ -90,7 +91,7 @@ describe('explore-simple-sk', () => {
 
     it('should display the correct count for a query', async () => {
       await testBed.page.click('#demo-show-query-dialog');
-      const querySkPO = await simplePageSkPO.querySk;
+      const querySkPO = simplePageSkPO.querySk;
       await querySkPO.setCurrentQuery(paramSet);
 
       const initialKeys = await querySkPO.getKeys();
@@ -105,12 +106,72 @@ describe('explore-simple-sk', () => {
       const query = await simplePageSkPO.queryCountSkPO.getCount();
       expect(query).to.equal(EXPECTED_QUERY_COUNT);
     });
+
+    it('should update matches count after clearing selections via query-sk cancel button', async () => {
+      await testBed.page.click('#demo-show-query-dialog');
+      const querySkPO = simplePageSkPO.querySk;
+
+      await querySkPO.setCurrentQuery(paramSet);
+      await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
+
+      const initialCount = await simplePageSkPO.queryCountSkPO.getCount();
+      expect(initialCount).to.be.greaterThan(0);
+
+      await querySkPO.clickClearSelections();
+
+      await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
+      const updatedCount = await simplePageSkPO.queryCountSkPO.getCount();
+
+      // Assert that the updated query count is different.
+      expect(updatedCount).to.equal(0);
+      expect(updatedCount).to.not.equal(initialCount);
+    });
+
+    it('should update matches count when a query is refined and then a parameter is removed from paramset-sk', async () => {
+      await simplePageSkPO.openQueryDialogButton.click();
+      await testBed.page.waitForSelector('#query-dialog', { visible: true });
+
+      const querySkPO = simplePageSkPO.querySk;
+
+      await querySkPO.setCurrentQuery(paramSet);
+      await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
+      const initialKeys = await querySkPO.getKeys();
+      const initialCount = await simplePageSkPO.queryCountSkPO.getCount();
+      expect(initialKeys).to.have.length.greaterThan(0);
+
+      const keyToClick = initialKeys[0];
+      await querySkPO.clickKey(keyToClick);
+      await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
+
+      await querySkPO.clickValue(paramSet[keyToClick as keyof typeof paramSet][0]);
+      await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
+      const refinedQuery = { ...paramSet, config: ['8888'] }; // Add a filter
+      await querySkPO.setCurrentQuery(refinedQuery);
+      await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
+      const countAfterRefinement = await querySkPO.getKeys();
+      expect(initialKeys.length).to.be.lessThanOrEqual(
+        countAfterRefinement.length,
+        'Count should decrease after refining query'
+      );
+
+      const keyToRemove = initialKeys[0];
+      const valueToRemove = paramSet[keyToClick as keyof typeof paramSet][0];
+      await simplePageSkPO.summaryParamsetSkPO.removeSelectedValue(keyToRemove, valueToRemove);
+      await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
+
+      const finalCount = await simplePageSkPO.queryCountSkPO.getCount();
+      // Expect the count to revert to the initial broad query's count.
+      expect(finalCount).to.equal(
+        initialCount,
+        'Count should revert to initial broad query count after removal'
+      );
+    });
   });
 
   describe('query-sk interactions', async () => {
     it('should allow updating the query', async () => {
       await testBed.page.click('#demo-show-query-dialog');
-      const querySkPO = await simplePageSkPO.querySk;
+      const querySkPO = simplePageSkPO.querySk;
 
       await querySkPO.setCurrentQuery(paramSet);
       const currentValue1 = await querySkPO.getCurrentQuery();
@@ -124,14 +185,14 @@ describe('explore-simple-sk', () => {
       const simplePageSkPO = new ExploreSimpleSkPO((await testBed.page.$('explore-simple-sk'))!);
       await testBed.page.click('#demo-show-query-dialog');
 
-      const querySkPO = await simplePageSkPO.querySk;
+      const querySkPO = simplePageSkPO.querySk;
       const initialValue = await querySkPO.getCurrentQuery();
       expect(initialValue).is.not.null;
     });
 
     it('should update query values when a key is clicked', async () => {
       await testBed.page.click('#demo-show-query-dialog');
-      const querySkPO = await simplePageSkPO.querySk;
+      const querySkPO = simplePageSkPO.querySk;
       const initialKeys = await querySkPO.getKeys();
       expect(initialKeys).to.have.length.greaterThan(0);
 
@@ -150,7 +211,7 @@ describe('explore-simple-sk', () => {
 
   describe('plot-google-chart-sk display', () => {
     it('should not render the chart on initial load', async () => {
-      await simplePageSkPO.querySk;
+      simplePageSkPO.querySk;
       await testBed.page.waitForSelector('explore-simple-sk');
       const plotPO = await simplePageSkPO.plotGoogleChartSk;
       expect(await plotPO.isChartVisible()).to.be.false;
@@ -160,7 +221,7 @@ describe('explore-simple-sk', () => {
   describe('Graph interactions', () => {
     it('plots a graph and verifies traces', async () => {
       await testBed.page.click('#demo-show-query-dialog');
-      const querySkPO = await simplePageSkPO.querySk;
+      const querySkPO = simplePageSkPO.querySk;
       await querySkPO.setCurrentQuery(paramSet1);
 
       await simplePageSkPO.clickPlotButton();
@@ -192,7 +253,7 @@ describe('explore-simple-sk', () => {
 
     it('switches x-axis to "date" mode', async () => {
       await testBed.page.click('#demo-show-query-dialog');
-      const querySkPO = await simplePageSkPO.querySk;
+      const querySkPO = simplePageSkPO.querySk;
       await querySkPO.setCurrentQuery(paramSet);
 
       const tabPanel = await testBed.page.waitForSelector('tabs-panel-sk');
@@ -209,7 +270,7 @@ describe('explore-simple-sk', () => {
 
     it('switches zoom direction to horizontal', async () => {
       await testBed.page.click('#demo-show-query-dialog');
-      const querySkPO = await simplePageSkPO.querySk;
+      const querySkPO = simplePageSkPO.querySk;
       await querySkPO.setCurrentQuery(paramSet);
 
       const tabPanel = await testBed.page.waitForSelector('tabs-panel-sk');
@@ -226,7 +287,7 @@ describe('explore-simple-sk', () => {
 
     it('switches to even x-axis spacing', async () => {
       await testBed.page.click('#demo-show-query-dialog');
-      const querySkPO = await simplePageSkPO.querySk;
+      const querySkPO = simplePageSkPO.querySk;
       await querySkPO.setCurrentQuery(paramSet);
 
       const tabPanel = await testBed.page.waitForSelector('tabs-panel-sk');
@@ -239,6 +300,28 @@ describe('explore-simple-sk', () => {
       await simplePageSkPO.clickEvenXAxisSpacingSwitch();
       // After click, should be true
       expect(await simplePageSkPO.getEvenXAxisSpacing()).to.be.true;
+    });
+  });
+
+  describe('Scrolling', () => {
+    it('should scroll up and down', async () => {
+      // Ensure the page is long enough to scroll.
+      await testBed.page.setViewport({ width: 800, height: 300 });
+
+      const getScrollY = () => testBed.page.evaluate(() => window.scrollY);
+
+      const initialScrollY = await getScrollY();
+      expect(initialScrollY).to.equal(0);
+
+      // Scroll down.
+      await testBed.page.evaluate(() => window.scrollBy(0, 200));
+      let newScrollY = await getScrollY();
+      expect(newScrollY).to.be.greaterThan(initialScrollY);
+
+      // Scroll back up.
+      await testBed.page.evaluate(() => window.scrollTo(0, 0));
+      newScrollY = await getScrollY();
+      expect(newScrollY).to.equal(0);
     });
   });
 });

@@ -1,6 +1,7 @@
 import { ParamSet } from '../query';
 import { PageObject } from '../page_object/page_object';
 import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
+import { poll } from '../../../perf/modules/common/puppeteer-test-util';
 
 /**
  * A (ParamSet index, key, value) tuple used by ParamSetSkPO to refer to specific key/value pairs
@@ -97,7 +98,12 @@ export class ParamSetSkPO extends PageObject {
   }
 
   async removeSelectedValue(key: string, value: string): Promise<void> {
-    const cancelIcon = this.bySelector(`#${key}-${value}-remove`);
+    const selector = `#${key}-${value}-remove`;
+    await poll(
+      async () => !(await this.bySelector(selector).isEmpty()),
+      `Cancel icon with selector ${selector} did not become visible.`
+    );
+    const cancelIcon = this.bySelector(selector);
     await cancelIcon?.click();
   }
 

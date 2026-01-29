@@ -102,6 +102,7 @@ ts_library(
     deps = [
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
+        "//infra-sk/modules/paramset-sk:paramset-sk_po_ts_lib",
         "//infra-sk/modules/query-sk:query-sk_po_ts_lib",
         "//perf/modules/chart-tooltip-sk:chart-tooltip-sk_po_ts_lib",
         "//perf/modules/common:puppeteer-test-util_ts_lib",
