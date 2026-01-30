@@ -26,7 +26,7 @@ import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-c
 import { load } from '@google-web-components/google-chart/loader';
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 
-import { addParamsToParamSet, fromKey, queryFromKey } from '../paramtools';
+import { addParamSet, addParamsToParamSet, fromKey, queryFromKey } from '../paramtools';
 import {
   ParamSet as QueryParamSet,
   fromParamSet,
@@ -1226,6 +1226,17 @@ export class ExploreMultiSk extends ElementSk {
     const timeoutMs = 50000; // Timeout for waiting for non-empty tracesets.
     const pollIntervalMs = 500; // Interval to re-check.
 
+    const backfillMissingParams = (params: any, isParamSet: boolean = false) => {
+      if (this.defaults?.include_params) {
+        this.defaults.include_params.forEach((key) => {
+          if (params[key] === undefined) {
+            params[key] = isParamSet ? [MISSING_VALUE_SENTINEL] : MISSING_VALUE_SENTINEL;
+          }
+        });
+      }
+      return params;
+    };
+
     // Create a promise that resolves when the tracesets are ready.
     // This checks if all explore elements have reported a traceset,
     // and at least one of those tracesets contains actual trace strings.
@@ -1249,29 +1260,25 @@ export class ExploreMultiSk extends ElementSk {
       setTimeout(() => reject(new Error('Getting Tracesets timed out.')), timeoutMs);
     });
 
-    let allTracesets: string[][];
-    try {
-      allTracesets = await Promise.race([tracesetsReadyPromise, timeoutPromise]);
-    } catch (error: unknown) {
-      const e = error as { message?: string };
-      errorMessage(e.message || 'An unknown error occurred while getting tracesets.');
-      return;
-    }
+    if (this.state.manual_plot_mode) {
+      addParamSet(paramSets, backfillMissingParams(paramSet, true));
+    } else {
+      let allTracesets: string[][];
+      try {
+        allTracesets = await Promise.race([tracesetsReadyPromise, timeoutPromise]);
+      } catch (error: unknown) {
+        const e = error as { message?: string };
+        errorMessage(e.message || 'An unknown error occurred while getting tracesets.');
+        return;
+      }
 
-    allTracesets.forEach((traceset) => {
-      traceset.forEach((trace) => {
-        const params = fromKey(trace);
-        // Explicitly check for missing keys from include_params
-        if (this.defaults?.include_params) {
-          this.defaults.include_params.forEach((key) => {
-            if (params[key] === undefined) {
-              params[key] = MISSING_VALUE_SENTINEL; // Use sentinel
-            }
-          });
-        }
-        addParamsToParamSet(paramSets, params);
+      allTracesets.forEach((traceset) => {
+        traceset.forEach((trace) => {
+          const params = fromKey(trace);
+          addParamsToParamSet(paramSets, backfillMissingParams(params));
+        });
       });
-    });
+    }
 
     this.testPicker!.populateFieldDataFromParamSet(paramSets, paramSet);
     this.testPicker!.setReadOnly(false);

@@ -100,7 +100,7 @@ import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
-import { fromKey } from '../paramtools';
+import { addParamsToParamSet, fromKey, validKey } from '../paramtools';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL, MISSING_VALUE_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
@@ -666,13 +666,24 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       ?hidden=${!ele.showHeader}
       class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
       <graph-title-sk id=graphTitle style="flex-grow:  1;"></graph-title-sk>
-      <a href="${ele.testPickerUrl}">
-        <md-icon-button
-          title="Load Test Picker with current Query"
-          ?disabled=${ele.is_chart_split && !ele.useTestPicker}>
-          <md-icon id="icon">north_west</md-icon>
-        </md-icon-button>
-      </a>
+      ${
+        ele.isReportPage
+          ? html`
+              <a href="${ele.testPickerUrl}">
+                <md-icon-button title="Open in Multigraph">
+                  <md-icon id="icon">north_west</md-icon>
+                </md-icon-button>
+              </a>
+            `
+          : html`
+              <md-icon-button
+                title="Load Test Picker with current Query"
+                ?disabled=${ele.is_chart_split && !ele.useTestPicker}
+                @click=${ele.loadDataFromExistingChart}>
+                <md-icon id="icon">north_west</md-icon>
+              </md-icon-button>
+            `
+      }
       <md-icon-button
         title="Show Zero on Axis"
         @click=${() => {
@@ -972,36 +983,22 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   };
 
   private loadDataFromExistingChart = async () => {
-    if (this.is_chart_split) {
-      return;
-    }
-    const googleChart = this.googleChartPlot.value;
-    // Check that data is fully loaded before triggering event.
-    if (googleChart && googleChart.data) {
-      if (this.is_anomaly_table) {
-        const anomalyId: string | undefined = this.googleChartPlot.value?.highlightAnomalies[0];
-        if (anomalyId && anomalyId !== undefined) {
-          const anomaly = { id: anomalyId } as unknown as Anomaly;
-          // Open new tab with existing chart from report page.
-          this.dispatchEvent(
-            new CustomEvent('open-anomaly-chart', {
-              detail: anomaly,
-              composed: true,
-              bubbles: true, // Bubbling is still good practice even for window events
-            })
-          );
+    const traceset = this.getTraceset();
+    const paramSet = ParamSet({});
+    if (traceset) {
+      Object.keys(traceset).forEach((key) => {
+        if (validKey(key)) {
+          addParamsToParamSet(paramSet, fromKey(key));
         }
-      } else {
-        // Get primary trace from googleChart and pass along traceid and paramset
-        // to the test picker to be used with multi chart.
-        this.dispatchEvent(
-          new CustomEvent('populate-query', {
-            detail: this.getParamSet(),
-            bubbles: true,
-          })
-        );
-      }
+      });
     }
+
+    this.dispatchEvent(
+      new CustomEvent('populate-query', {
+        detail: paramSet,
+        bubbles: true,
+      })
+    );
   };
 
   private closeExplore() {
