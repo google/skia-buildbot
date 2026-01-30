@@ -13,7 +13,6 @@ fetchMock.config.overwriteRoutes = true;
 const TRACE_KEY = ',arch=arm,os=Android,';
 
 const filteredResults = {
-  ...normalTracesResponse.results,
   dataframe: {
     ...normalTracesResponse.results.dataframe,
     traceset: {
