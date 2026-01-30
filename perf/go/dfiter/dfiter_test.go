@@ -274,7 +274,7 @@ func TestNewDataFrameIterator_WithDfProvider_Success(t *testing.T) {
 	domain := types.Domain{
 		N: 3,
 	}
-	q := "arch=x86"
+	q := "arch=x86&config=565"
 	dfProvider := NewDfProvider()
 	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert, defaultAnomalyConfig, dfProvider)
 	require.NoError(t, err)

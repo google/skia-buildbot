@@ -37,30 +37,6 @@ type DataFrameIterator interface {
 	Value(ctx context.Context) (*dataframe.DataFrame, error)
 }
 
-// dataframeSlicer implements DataFrameIterator by slicing sub-dataframes from
-// a larger dataframe.
-type dataframeSlicer struct {
-	df     *dataframe.DataFrame
-	size   int
-	offset int
-}
-
-// See DataFrameIterator.
-func (d *dataframeSlicer) Next() bool {
-	return d.offset+d.size <= len(d.df.Header)
-}
-
-// See DataFrameIterator.
-func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, error) {
-	// Slice off a sub-dataframe from d.df.
-	df, err := d.df.Slice(d.offset, d.size)
-	if err != nil {
-		return nil, err
-	}
-	d.offset += 1
-	return df, nil
-}
-
 // NewDataFrameIterator returns a DataFrameIterator that produces a set of
 // dataframes for the given query, domain, and alert.
 //
@@ -174,12 +150,8 @@ func NewDataFrameIterator(
 
 	// The DfTraceSlicer will only work for stepfit (i.e individual and not kmeans)
 	if config.Config.Experiments.DfIterTraceSlicer && alert.Algo == types.StepFitGrouping {
-		return NewDfTraceSlicer(df), nil
+		return NewStepFitDfTraceSlicer(df, alert.Radius), nil
+	} else {
+		return NewKmeansDataframeSlicer(df, alert.Radius), nil
 	}
-
-	return &dataframeSlicer{
-		df:     df,
-		size:   2*alert.Radius + 1,
-		offset: 0,
-	}, nil
 }
