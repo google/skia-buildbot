@@ -27,7 +27,6 @@ sk_element(
         "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
-        "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",

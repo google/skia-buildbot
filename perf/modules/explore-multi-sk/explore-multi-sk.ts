@@ -57,7 +57,6 @@ import '../test-picker-sk';
 import '../../../golden/modules/pagination-sk/pagination-sk';
 import '../window/window';
 
-import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
@@ -875,11 +874,7 @@ export class ExploreMultiSk extends ElementSk {
    */
   private async initializeDefaults() {
     try {
-      const response = await fetch(`/_/defaults/`, {
-        method: 'GET',
-      });
-      const json = await jsonOrThrow(response);
-      this.defaults = json;
+      this.defaults = await DataService.getInstance().getDefaults();
     } catch (error: unknown) {
       console.error('Error fetching defaults:', error);
       const e = error as { message?: string };

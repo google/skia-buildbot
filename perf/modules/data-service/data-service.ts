@@ -8,6 +8,7 @@ import {
   ShiftRequest,
   ShiftResponse,
   progress,
+  QueryConfig,
 } from '../json';
 import {
   messageByName,
@@ -113,6 +114,15 @@ export class DataService {
    */
   async getInitPage(tz: string): Promise<any> {
     return await this.fetchJson(`/_/initpage/?tz=${tz}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * Fetches the default configuration.
+   */
+  async getDefaults(): Promise<QueryConfig> {
+    return await this.fetchJson('/_/defaults/', {
       method: 'GET',
     });
   }

@@ -95,6 +95,16 @@ describe('DataService', () => {
     });
   });
 
+  describe('getDefaults', () => {
+    it('sends GET request', async () => {
+      const response = { default_range: 1234 };
+      fetchMock.get('/_/defaults/', response);
+
+      const result = await dataService.getDefaults();
+      assert.deepEqual(result, response);
+    });
+  });
+
   describe('shift', () => {
     it('sends POST request', async () => {
       const req: ShiftRequest = {
