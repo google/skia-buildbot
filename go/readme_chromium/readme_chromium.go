@@ -1,0 +1,159 @@
+package readme_chromium
+
+/*
+	This package contains utilities for working with README.chromium files.
+*/
+
+import (
+	"bytes"
+	"fmt"
+	"reflect"
+	"regexp"
+	"strings"
+
+	"go.skia.org/infra/go/skerr"
+)
+
+const FileName = "README.chromium"
+
+type UpdateMechanism string
+
+const (
+	UpdateMechanism_Autoroll       UpdateMechanism = "Autoroll"
+	UpdateMechanism_Manual         UpdateMechanism = "Manual"
+	UpdateMechanism_Static         UpdateMechanism = "Static"
+	UpdateMechanism_StaticHardFork UpdateMechanism = "Static.HardFork"
+)
+
+// ReadmeChromiumFile represents the contents of a README.chromium file.
+type ReadmeChromiumFile struct {
+	originalContentLines [][]byte
+	fields               []*field
+
+	Name                     string
+	ShortName                string
+	URL                      string
+	Version                  string
+	Date                     string
+	Revision                 string
+	UpdateMechanism          UpdateMechanism
+	License                  string
+	LicenseFile              string
+	Shipped                  bool
+	SecurityCritical         bool
+	LicenseAndroidCompatible bool
+	CPEPrefix                string
+
+	// Note: according to the template[1] we've skipped Description and
+	// LocalModifications. These are multiline sections which may or may not be
+	// present, which makes it difficult to parse them. We'll revisit if
+	// necessary.
+	// [1] https://chromium.googlesource.com/chromium/src.git/+/main/third_party/README.chromium.template
+}
+
+// Parse and return a ReadmeChromiumFile file with the given contents.
+func Parse(content []byte) (*ReadmeChromiumFile, error) {
+	rv := &ReadmeChromiumFile{
+		originalContentLines: bytes.Split(content, []byte("\n")),
+		fields:               makeFields(),
+	}
+	val := reflect.ValueOf(rv).Elem()
+	for _, f := range rv.fields {
+		regex := regexForField(f)
+		for lineNo, line := range rv.originalContentLines {
+			matches := regex.FindSubmatchIndex(line)
+			// [startOfOverallMatch, endOfOverallMatch, startOfSubMatch, endOfSubMatch]
+			if len(matches) == 4 {
+				f.LineNo = lineNo
+				f.StartIndex = matches[2]
+				f.EndIndex = matches[3]
+				break
+			}
+		}
+
+		if f.Required && f.LineNo == 0 && f.StartIndex == 0 && f.EndIndex == 0 {
+			return nil, skerr.Fmt("failed to find field %q using regex %q", f.Name, regex.String())
+		}
+
+		// Assign the field to the return value.
+		strVal := string(rv.originalContentLines[f.LineNo][f.StartIndex:f.EndIndex])
+		field := val.FieldByName(strings.ReplaceAll(f.Name, " ", ""))
+		if !field.IsValid() {
+			return nil, skerr.Fmt("field %q is invalid", f.Name)
+		}
+		if !field.CanSet() {
+			return nil, skerr.Fmt("field %q cannot be set", f.Name)
+		}
+		if field.Kind() == reflect.String {
+			field.SetString(strVal)
+		} else if field.Kind() == reflect.Bool {
+			field.SetBool(strVal == "yes")
+		}
+	}
+	return rv, nil
+}
+
+// NewContent returns the updated README.chromium file content, incorporating
+// any changes to the fields of the ReadmeChromiumFile.
+func (file *ReadmeChromiumFile) NewContent() ([]byte, error) {
+	val := reflect.ValueOf(file).Elem()
+	newContentLines := make([][]byte, 0, len(file.originalContentLines))
+	for _, line := range file.originalContentLines {
+		newContentLines = append(newContentLines, line)
+	}
+
+	for _, f := range file.fields {
+		if f.LineNo == 0 && f.StartIndex == 0 && f.EndIndex == 0 {
+			// This field isn't set, so we can't update it.
+			continue
+		}
+
+		oldValue := newContentLines[f.LineNo][f.StartIndex:f.EndIndex]
+
+		field := val.FieldByName(strings.ReplaceAll(f.Name, " ", ""))
+		if !field.IsValid() {
+			return nil, skerr.Fmt("field %q is invalid", f.Name)
+		}
+		newValue := field.String()
+		if field.Kind() == reflect.Bool {
+			if field.Bool() {
+				newValue = "yes"
+			} else {
+				newValue = "no"
+			}
+		}
+
+		newContentLines[f.LineNo] = bytes.Replace(newContentLines[f.LineNo], oldValue, []byte(newValue), 1)
+	}
+	return bytes.Join(newContentLines, []byte("\n")), nil
+}
+
+type field struct {
+	Name       string
+	LineNo     int
+	StartIndex int
+	EndIndex   int
+	Required   bool
+}
+
+func makeFields() []*field {
+	return []*field{
+		{Name: "Name", Required: true},
+		{Name: "Short Name"},
+		{Name: "URL", Required: true},
+		{Name: "Version", Required: true},
+		{Name: "Date"},
+		{Name: "Revision"},
+		{Name: "Update Mechanism", Required: true},
+		{Name: "License", Required: true},
+		{Name: "License File"},
+		{Name: "Shipped"},
+		{Name: "Security Critical"},
+		{Name: "License Android Compatible"},
+		{Name: "CPEPrefix"},
+	}
+}
+
+func regexForField(f *field) *regexp.Regexp {
+	return regexp.MustCompile(fmt.Sprintf(`^%s:\s+(.+)$`, f.Name))
+}

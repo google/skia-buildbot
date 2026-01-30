@@ -12,8 +12,10 @@ go_library(
         "//autoroll/go/revision",
         "//go/bazel",
         "//go/depot_tools/deps_parser",
+        "//go/readme_chromium",
         "//go/skerr",
         "//go/sklog",
+        "//go/util",
     ],
 )
 

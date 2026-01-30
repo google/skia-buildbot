@@ -1,0 +1,17 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "readme_chromium",
+    srcs = ["readme_chromium.go"],
+    importpath = "go.skia.org/infra/go/readme_chromium",
+    visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
+)
+
+go_test(
+    name = "readme_chromium_test",
+    srcs = ["readme_chromium_test.go"],
+    embed = [":readme_chromium"],
+    deps = ["@com_github_stretchr_testify//require"],
+)

@@ -2,6 +2,7 @@ package version_file_common
 
 import (
 	"context"
+	"path"
 	"regexp"
 	"strings"
 
@@ -10,8 +11,10 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/bazel"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
+	"go.skia.org/infra/go/readme_chromium"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 func getUsingRegex(dep *config.VersionFileConfig_File, contents string) ([]string, []string, error) {
@@ -54,6 +57,12 @@ func getPinnedRevInFile(id string, file *config.VersionFileConfig_File, contents
 			return "", skerr.Wrap(err)
 		}
 		return depsEntry.Version, nil
+	} else if path.Base(file.Path) == readme_chromium.FileName {
+		rcf, err := readme_chromium.Parse([]byte(contents))
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		return rcf.Revision, nil
 	} else if strings.HasSuffix(file.Path, ".pyl") {
 		return pyl.Get(contents, id)
 	} else if bazel.IsBazelFile(file.Path) {
@@ -120,6 +129,26 @@ func setPinnedRevInFile(id string, dep *config.VersionFileConfig_File, newRev *r
 	} else if dep.Path == deps_parser.DepsFileName {
 		newContents, err := deps_parser.SetDep(oldContents, id, newRev.Id)
 		return newContents, skerr.Wrap(err)
+	} else if path.Base(dep.Path) == readme_chromium.FileName {
+		rcf, err := readme_chromium.Parse([]byte(oldContents))
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		rcf.Revision = newRev.Id
+		rcf.Version = "N/A"
+		if newRev.Release != "" {
+			rcf.Version = newRev.Release
+		}
+		rcf.Date = ""
+		if !util.TimeIsZero(newRev.Timestamp) {
+			rcf.Date = newRev.Timestamp.Format("2006-01-02")
+		}
+		rcf.UpdateMechanism = readme_chromium.UpdateMechanism_Autoroll
+		newContents, err := rcf.NewContent()
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		return string(newContents), nil
 	} else if strings.HasSuffix(dep.Path, ".pyl") {
 		return pyl.Set(oldContents, id, newRev.Id)
 	} else if bazel.IsBazelFile(dep.Path) {

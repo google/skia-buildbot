@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
@@ -34,6 +35,28 @@ func TestGetPinnedRev(t *testing.T) {
 				"my-dep-path": "my-dep@my-rev",
 			}`,
 		"my-rev",
+	)
+	test("README.chromium",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: "path/to/README.chromium",
+				},
+			},
+		},
+		`Name: Abseil
+Short Name: absl
+URL: https://github.com/abseil/abseil-cpp
+License: Apache-2.0
+License File: LICENSE
+Version: N/A
+Revision: 0437a6d16a02455a07bb59da6f08ef01c6a20682
+Update Mechanism: Manual
+Security Critical: yes
+Shipped: yes
+`,
+		"0437a6d16a02455a07bb59da6f08ef01c6a20682",
 	)
 	test("PlainVersionFile",
 		&config.VersionFileConfig{
@@ -135,6 +158,86 @@ func TestSetPinnedRev(t *testing.T) {
 				"my-dep-path": "my-dep@new-rev",
 			}`,
 	)
+	test("README.chromium",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: "path/to/README.chromium",
+				},
+			},
+		},
+		`Name: Abseil
+Short Name: absl
+URL: https://github.com/abseil/abseil-cpp
+License: Apache-2.0
+License File: LICENSE
+Version: N/A
+Revision: 0437a6d16a02455a07bb59da6f08ef01c6a20682
+Date: 2025-09-23
+Update Mechanism: Manual
+Security Critical: yes
+Shipped: yes
+`,
+		&revision.Revision{
+			Id:        "new-rev",
+			Release:   "v1.2.3",
+			Timestamp: time.Date(2026, time.January, 25, 0, 0, 0, 0, time.UTC),
+		},
+		`Name: Abseil
+Short Name: absl
+URL: https://github.com/abseil/abseil-cpp
+License: Apache-2.0
+License File: LICENSE
+Version: v1.2.3
+Revision: new-rev
+Date: 2026-01-25
+Update Mechanism: Autoroll
+Security Critical: yes
+Shipped: yes
+`,
+	)
+
+	test("README.chromium_NoRelease",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: "path/to/README.chromium",
+				},
+			},
+		},
+		`Name: Abseil
+Short Name: absl
+URL: https://github.com/abseil/abseil-cpp
+License: Apache-2.0
+License File: LICENSE
+Version: N/A
+Revision: 0437a6d16a02455a07bb59da6f08ef01c6a20682
+Date: 2025-09-23
+Update Mechanism: Manual
+Security Critical: yes
+Shipped: yes
+`,
+		&revision.Revision{
+			Id:        "new-rev",
+			Release:   "",
+			Timestamp: time.Date(2026, time.January, 25, 0, 0, 0, 0, time.UTC),
+		},
+		`Name: Abseil
+Short Name: absl
+URL: https://github.com/abseil/abseil-cpp
+License: Apache-2.0
+License File: LICENSE
+Version: N/A
+Revision: new-rev
+Date: 2026-01-25
+Update Mechanism: Autoroll
+Security Critical: yes
+Shipped: yes
+`,
+	)
+
 	test("PlainVersionFile",
 		&config.VersionFileConfig{
 			Id: "my-dep",
