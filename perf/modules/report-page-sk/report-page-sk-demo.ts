@@ -1,13 +1,46 @@
 import './index';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ReportPageSk } from './report-page-sk';
-import { anomaly_table } from '../anomalies-table-sk/test_data';
+import fetchMock from 'fetch-mock';
+import { setUpExploreDemoEnv, anomalyTable, normalTracesResponse } from '../common/test-util';
+
+anomalyTable[0].test_path = 'ChromiumPerf/mac-m1_mini_2020-perf/jetstream2/Babylon.First';
+
+setUpExploreDemoEnv();
+
+fetchMock.config.overwriteRoutes = true;
+
+const TRACE_KEY = ',arch=arm,os=Android,';
+
+const filteredResults = {
+  ...normalTracesResponse.results,
+  dataframe: {
+    ...normalTracesResponse.results.dataframe,
+    traceset: {
+      [TRACE_KEY]: normalTracesResponse.results.dataframe.traceset[TRACE_KEY],
+    },
+  },
+  anomalymap: {
+    [TRACE_KEY]: normalTracesResponse.results.anomalymap![TRACE_KEY],
+  },
+  ticks: normalTracesResponse.results.ticks,
+  skps: normalTracesResponse.results.skps,
+  msg: normalTracesResponse.results.msg,
+  display_mode: normalTracesResponse.results.display_mode,
+};
+
+fetchMock.post('/_/frame/start', {
+  results: filteredResults,
+  status: 'Finished',
+  messages: [],
+  url: '',
+});
 
 window.perf = {
-  instance_url: 'https://chrome-perf.corp.goog',
+  instance_url: '',
   instance_name: 'chrome-perf-demo',
   header_image_url: '',
-  commit_range_url: 'https://chromium.googlesource.com/chromium/src/+log/{begin}..{end}',
+  commit_range_url: 'http://example.com/range/{begin}/{end}',
   key_order: ['config'],
   demo: true,
   radius: 7,
@@ -47,16 +80,8 @@ $$('#load-anomalies')?.addEventListener('click', () => {
   ele.fetchAnomalies();
 });
 
-$$('#open-trending-icon')?.addEventListener('click', () => {
-  document.querySelectorAll<ReportPageSk>('report-page-sk').forEach((ele) => {
-    ele.fetchAnomalies();
-    ele.anomaliesTable!.openMultiGraphUrl(
-      anomaly_table[0],
-      window.open(
-        'http://localhost:46723/m/?' +
-          'begin=1729042589&end=11739042589&request_type=0&shortcut=1&totalGraphs=1',
-        '_blank'
-      )
-    );
-  });
+customElements.whenDefined('report-page-sk').then(() => {
+  document
+    .querySelector('h1')!
+    .insertAdjacentElement('afterend', document.createElement('report-page-sk'));
 });

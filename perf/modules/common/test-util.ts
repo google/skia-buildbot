@@ -1,7 +1,7 @@
 // Functions to be used by test and demo files. These helps create dummy data and API mocks.
 import fetchMock from 'fetch-mock';
 import { Status } from '../../../infra-sk/modules/json';
-import { QueryConfig } from '../json';
+import { QueryConfig, GetGroupReportResponse } from '../json';
 
 const NEXT_PARAM_COUNT = 4;
 
@@ -11,6 +11,323 @@ const getCookieValue = (name: string) =>
 export const paramSet = {
   arch: ['arm', 'arm64', 'x86_64'],
   os: ['Android', 'Debian10', 'Debian11', 'Mac10.13', 'Win2019', 'Ubuntu'],
+};
+
+export const anomalyTable = [
+  {
+    id: '123',
+    test_path: ',arch=arm,os=Android,',
+    bug_id: 0,
+    start_revision: 67129,
+    end_revision: 67130,
+    is_improvement: false,
+    recovered: false,
+    state: 'untriaged',
+    statistic: 'avg',
+    units: 'ms',
+    degrees_of_freedom: 1,
+    median_before_anomaly: 60.830208,
+    median_after_anomaly: 75.2,
+    p_value: 0.01,
+    segment_size_after: 10,
+    segment_size_before: 10,
+    std_dev_before_anomaly: 1,
+    t_statistic: 5,
+    subscription_name: 'test',
+    bug_component: '',
+    bug_labels: [],
+    bug_cc_emails: [],
+    bisect_ids: [],
+  },
+  {
+    id: '456',
+    test_path: ',arch=arm,os=Ubuntu,',
+    bug_id: 0,
+    start_revision: 67129,
+    end_revision: 67130,
+    is_improvement: false,
+    recovered: false,
+    state: 'untriaged',
+    statistic: 'avg',
+    units: 'ms',
+    degrees_of_freedom: 1,
+    median_before_anomaly: 13.464116,
+    median_after_anomaly: 18.2,
+    p_value: 0.01,
+    segment_size_after: 10,
+    segment_size_before: 10,
+    std_dev_before_anomaly: 1,
+    t_statistic: 5,
+    subscription_name: 'test',
+    bug_component: '',
+    bug_labels: [],
+    bug_cc_emails: [],
+    bisect_ids: [],
+  },
+];
+
+const GROUP_REPORT_RESPONSE: GetGroupReportResponse = {
+  sid: '',
+  anomaly_list: anomalyTable,
+  timerange_map: {
+    '123': { begin: 1687870256, end: 1687872763 },
+    '456': { begin: 1687870256, end: 1687872763 },
+  },
+  selected_keys: ['123'], // Pre-select the first anomaly
+  error: '',
+  is_commit_number_based: true,
+};
+
+const STATUS_ID = 'd25fedcc-7e36-47e4-83d5-58ab76b2d3d1';
+
+export const normalTracesResponse = {
+  status: 'Finished',
+  messages: [
+    {
+      key: 'Step',
+      value: '1/1',
+    },
+  ],
+  results: {
+    dataframe: {
+      traceset: {
+        ',arch=arm,os=Android,': [
+          61.2075, 60.687603, 61.30078, 61.660313, 60.830208, 75.2, 74.9, 75.3, 75.1, 75.4, 75.0,
+          75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3,
+          75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0,
+          75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3,
+        ],
+        ',arch=arm,os=Ubuntu,': [
+          13.51672, 13.434168, 13.47146, 13.494012, 13.464116, 18.2, 17.9, 18.3, 18.1, 18.4, 18.0,
+          18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3,
+          18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0,
+          18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4,
+        ],
+      },
+      header: [
+        {
+          offset: 67125,
+          timestamp: 1687855198,
+        },
+        {
+          offset: 67126,
+          timestamp: 1687857789,
+        },
+        {
+          offset: 67127,
+          timestamp: 1687868015,
+        },
+        {
+          offset: 67128,
+          timestamp: 1687868368,
+        },
+        {
+          offset: 67129,
+          timestamp: 1687870256,
+        },
+        {
+          offset: 67130,
+          timestamp: 1687872763,
+        },
+        {
+          offset: 67131,
+          timestamp: 1687877748,
+        },
+        {
+          offset: 67132,
+          timestamp: 1687878083,
+        },
+        {
+          offset: 67133,
+          timestamp: 1687878588,
+        },
+        {
+          offset: 67134,
+          timestamp: 1687878658,
+        },
+        {
+          offset: 67135,
+          timestamp: 1687878976,
+        },
+        {
+          offset: 67136,
+          timestamp: 1687879230,
+        },
+        {
+          offset: 67137,
+          timestamp: 1687881375,
+        },
+        {
+          offset: 67138,
+          timestamp: 1687884748,
+        },
+        {
+          offset: 67139,
+          timestamp: 1687885047,
+        },
+        {
+          offset: 67140,
+          timestamp: 1687885507,
+        },
+        {
+          offset: 67141,
+          timestamp: 1687886132,
+        },
+        {
+          offset: 67142,
+          timestamp: 1687886787,
+        },
+        {
+          offset: 67143,
+          timestamp: 1687887013,
+        },
+        {
+          offset: 67144,
+          timestamp: 1687888513,
+        },
+        {
+          offset: 67145,
+          timestamp: 1687891891,
+        },
+        {
+          offset: 67146,
+          timestamp: 1687891925,
+        },
+        {
+          offset: 67147,
+          timestamp: 1687895229,
+        },
+        {
+          offset: 67148,
+          timestamp: 1687895693,
+        },
+        {
+          offset: 67149,
+          timestamp: 1687896092,
+        },
+        {
+          offset: 67150,
+          timestamp: 1687896114,
+        },
+        {
+          offset: 67151,
+          timestamp: 1687896459,
+        },
+        {
+          offset: 67152,
+          timestamp: 1687900291,
+        },
+        {
+          offset: 67153,
+          timestamp: 1687900389,
+        },
+        {
+          offset: 67154,
+          timestamp: 1687900992,
+        },
+        {
+          offset: 67155,
+          timestamp: 1687904682,
+        },
+        {
+          offset: 67156,
+          timestamp: 1687907669,
+        },
+        {
+          offset: 67157,
+          timestamp: 1687909158,
+        },
+        {
+          offset: 67158,
+          timestamp: 1687910749,
+        },
+        {
+          offset: 67159,
+          timestamp: 1687911636,
+        },
+        {
+          offset: 67160,
+          timestamp: 1687911698,
+        },
+        {
+          offset: 67161,
+          timestamp: 1687913983,
+        },
+        {
+          offset: 67162,
+          timestamp: 1687914369,
+        },
+        {
+          offset: 67163,
+          timestamp: 1687917173,
+        },
+        {
+          offset: 67164,
+          timestamp: 1687927827,
+        },
+        {
+          offset: 67165,
+          timestamp: 1687928532,
+        },
+        {
+          offset: 67166,
+          timestamp: 1687928754,
+        },
+        {
+          offset: 67167,
+          timestamp: 1687930648,
+        },
+        {
+          offset: 67168,
+          timestamp: 1687933565,
+        },
+        {
+          offset: 67169,
+          timestamp: 1687936673,
+        },
+        {
+          offset: 67170,
+          timestamp: 1687958245,
+        },
+        {
+          offset: 67171,
+          timestamp: 1687958371,
+        },
+        {
+          offset: 67172,
+          timestamp: 1687958912,
+        },
+        {
+          offset: 67173,
+          timestamp: 1687960354,
+        },
+        {
+          offset: 67174,
+          timestamp: 1687961972,
+        },
+      ],
+      paramset: {
+        arch: ['arm', 'arm64', 'x86_64'],
+        os: ['Android', 'Debian10', 'Debian11', 'Mac10.13', 'Win2019', 'Ubuntu'],
+      },
+      skip: 0,
+      traceMetadata: [],
+      bands: [],
+    },
+    ticks: [],
+    skps: [],
+    msg: '',
+    display_mode: 'display_plot',
+    anomalymap: {
+      ',arch=arm,os=Android,': {
+        67130: anomalyTable[0],
+      },
+      ',arch=arm,os=Ubuntu,': {
+        67130: anomalyTable[1],
+      },
+    },
+  },
+  url: `/_/status/${STATUS_ID}`,
 };
 
 export function setUpExploreDemoEnv() {
@@ -42,8 +359,19 @@ export function setUpExploreDemoEnv() {
     email: 'user@google.com',
     roles: ['viewer', 'admin', 'editor', 'bisecter'],
   };
+  fetchMock.post('/_/user_issues/', {
+    UserIssues: [
+      {
+        UserId: 'user@google.com',
+        TraceKey: ',arch=arm,os=Android,',
+        CommitPosition: 67130,
+        IssueId: 2345,
+      },
+    ],
+  });
 
   fetchMock.get('/_/login/status', status);
+  fetchMock.post('/_/anomalies/group_report', GROUP_REPORT_RESPONSE);
 
   fetchMock.get(/_\/initpage\/.*/, () => ({
     dataframe: {
@@ -74,7 +402,7 @@ export function setUpExploreDemoEnv() {
     return {
       status: 'Running',
       messages: [],
-      url: '/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1',
+      url: `/_/status/${STATUS_ID}`,
     };
   });
 
@@ -114,302 +442,7 @@ export function setUpExploreDemoEnv() {
     };
   });
 
-  const normalTracesResponse = {
-    status: 'Finished',
-    messages: [
-      {
-        key: 'Step',
-        value: '1/1',
-      },
-    ],
-    results: {
-      dataframe: {
-        traceset: {
-          ',arch=arm,os=Android,': [
-            61.2075, 60.687603, 61.30078, 61.660313, 60.830208, 75.2, 74.9, 75.3, 75.1, 75.4, 75.0,
-            75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2,
-            75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1,
-            75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3,
-          ],
-          ',arch=arm,os=Ubuntu,': [
-            13.51672, 13.434168, 13.47146, 13.494012, 13.464116, 18.2, 17.9, 18.3, 18.1, 18.4, 18.0,
-            18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2,
-            18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1,
-            18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4,
-          ],
-        },
-        header: [
-          {
-            offset: 67125,
-            timestamp: 1687855198,
-          },
-          {
-            offset: 67126,
-            timestamp: 1687857789,
-          },
-          {
-            offset: 67127,
-            timestamp: 1687868015,
-          },
-          {
-            offset: 67128,
-            timestamp: 1687868368,
-          },
-          {
-            offset: 67129,
-            timestamp: 1687870256,
-          },
-          {
-            offset: 67130,
-            timestamp: 1687872763,
-          },
-          {
-            offset: 67131,
-            timestamp: 1687877748,
-          },
-          {
-            offset: 67132,
-            timestamp: 1687878083,
-          },
-          {
-            offset: 67133,
-            timestamp: 1687878588,
-          },
-          {
-            offset: 67134,
-            timestamp: 1687878658,
-          },
-          {
-            offset: 67135,
-            timestamp: 1687878976,
-          },
-          {
-            offset: 67136,
-            timestamp: 1687879230,
-          },
-          {
-            offset: 67137,
-            timestamp: 1687881375,
-          },
-          {
-            offset: 67138,
-            timestamp: 1687884748,
-          },
-          {
-            offset: 67139,
-            timestamp: 1687885047,
-          },
-          {
-            offset: 67140,
-            timestamp: 1687885507,
-          },
-          {
-            offset: 67141,
-            timestamp: 1687886132,
-          },
-          {
-            offset: 67142,
-            timestamp: 1687886787,
-          },
-          {
-            offset: 67143,
-            timestamp: 1687887013,
-          },
-          {
-            offset: 67144,
-            timestamp: 1687888513,
-          },
-          {
-            offset: 67145,
-            timestamp: 1687891891,
-          },
-          {
-            offset: 67146,
-            timestamp: 1687891925,
-          },
-          {
-            offset: 67147,
-            timestamp: 1687895229,
-          },
-          {
-            offset: 67148,
-            timestamp: 1687895693,
-          },
-          {
-            offset: 67149,
-            timestamp: 1687896092,
-          },
-          {
-            offset: 67150,
-            timestamp: 1687896114,
-          },
-          {
-            offset: 67151,
-            timestamp: 1687896459,
-          },
-          {
-            offset: 67152,
-            timestamp: 1687900291,
-          },
-          {
-            offset: 67153,
-            timestamp: 1687900389,
-          },
-          {
-            offset: 67154,
-            timestamp: 1687900992,
-          },
-          {
-            offset: 67155,
-            timestamp: 1687904682,
-          },
-          {
-            offset: 67156,
-            timestamp: 1687907669,
-          },
-          {
-            offset: 67157,
-            timestamp: 1687909158,
-          },
-          {
-            offset: 67158,
-            timestamp: 1687910749,
-          },
-          {
-            offset: 67159,
-            timestamp: 1687911636,
-          },
-          {
-            offset: 67160,
-            timestamp: 1687911698,
-          },
-          {
-            offset: 67161,
-            timestamp: 1687913983,
-          },
-          {
-            offset: 67162,
-            timestamp: 1687914369,
-          },
-          {
-            offset: 67163,
-            timestamp: 1687917173,
-          },
-          {
-            offset: 67164,
-            timestamp: 1687927827,
-          },
-          {
-            offset: 67165,
-            timestamp: 1687928532,
-          },
-          {
-            offset: 67166,
-            timestamp: 1687928754,
-          },
-          {
-            offset: 67167,
-            timestamp: 1687930648,
-          },
-          {
-            offset: 67168,
-            timestamp: 1687933565,
-          },
-          {
-            offset: 67169,
-            timestamp: 1687936673,
-          },
-          {
-            offset: 67170,
-            timestamp: 1687958245,
-          },
-          {
-            offset: 67171,
-            timestamp: 1687958371,
-          },
-          {
-            offset: 67172,
-            timestamp: 1687958912,
-          },
-          {
-            offset: 67173,
-            timestamp: 1687960354,
-          },
-          {
-            offset: 67174,
-            timestamp: 1687961972,
-          },
-        ],
-        paramset: {
-          arch: ['arm', 'arm64', 'x86_64'],
-          os: ['Android', 'Debian10', 'Debian11', 'Mac10.13', 'Win2019', 'Ubuntu'],
-        },
-        skip: 0,
-      },
-      skps: [],
-      msg: '',
-      display_mode: 'display_plot',
-      anomalymap: {
-        ',arch=arm,os=Android,': {
-          67130: {
-            id: '123',
-            test_path: ',arch=arm,os=Android,',
-            bug_id: 0,
-            start_revision: 67129,
-            end_revision: 67130,
-            is_improvement: false,
-            recovered: false,
-            state: 'untriaged',
-            statistic: 'avg',
-            units: 'ms',
-            degrees_of_freedom: 1,
-            median_before_anomaly: 60.830208,
-            median_after_anomaly: 75.2,
-            p_value: 0.01,
-            segment_size_after: 10,
-            segment_size_before: 10,
-            std_dev_before_anomaly: 1,
-            t_statistic: 5,
-            subscription_name: 'test',
-            bug_component: '',
-            bug_labels: [],
-            bug_cc_emails: [],
-            bisect_ids: [],
-          },
-        },
-        ',arch=arm,os=Ubuntu,': {
-          67130: {
-            id: '456',
-            test_path: ',arch=arm,os=Ubuntu,',
-            bug_id: 0,
-            start_revision: 67129,
-            end_revision: 67130,
-            is_improvement: false,
-            recovered: false,
-            state: 'untriaged',
-            statistic: 'avg',
-            units: 'ms',
-            degrees_of_freedom: 1,
-            median_before_anomaly: 13.464116,
-            median_after_anomaly: 18.2,
-            p_value: 0.01,
-            segment_size_after: 10,
-            segment_size_before: 10,
-            std_dev_before_anomaly: 1,
-            t_statistic: 5,
-            subscription_name: 'test',
-            bug_component: '',
-            bug_labels: [],
-            bug_cc_emails: [],
-            bisect_ids: [],
-          },
-        },
-      },
-    },
-    url: '/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1',
-  };
-
-  fetchMock.get('/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1', () => {
+  fetchMock.get(`/_/status/${STATUS_ID}`, () => {
     if (currentQueries.length === 0) {
       return {
         ...normalTracesResponse,
