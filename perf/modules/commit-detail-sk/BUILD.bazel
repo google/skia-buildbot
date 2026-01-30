@@ -40,6 +40,7 @@ sk_element_puppeteer_test(
     deps = [
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//perf/modules/json:index_ts_lib",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

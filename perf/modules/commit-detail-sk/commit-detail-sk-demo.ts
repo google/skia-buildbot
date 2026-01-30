@@ -14,5 +14,4 @@ document.querySelectorAll<CommitDetailSk>('commit-detail-sk').forEach((ele) => {
     offset: CommitNumber(0),
     body: '',
   };
-  ele.querySelector('div')!.click();
 });
