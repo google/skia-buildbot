@@ -1401,4 +1401,148 @@ describe('ExploreMultiSk', () => {
       loadStub.restore();
     });
   });
+
+  describe('Performance Verification', () => {
+    beforeEach(async () => {
+      await setupElement();
+    });
+
+    it('limits DOM nodes via pagination (DOM Weight)', async () => {
+      // Simulate 20 graphs, PageSize 5
+
+      const totalGraphs = 20;
+
+      const pageSize = 5;
+
+      element.state.totalGraphs = totalGraphs;
+
+      element.state.pageSize = pageSize;
+
+      element.state.pageOffset = 0;
+
+      element.state.manual_plot_mode = true; // Ensure index 0 is included
+
+      // Populate config
+
+      element['allGraphConfigs'] = Array(totalGraphs).fill({
+        queries: ['config=test'],
+
+        formulas: [],
+
+        keys: '',
+      });
+
+      element['allFrameRequests'] = Array(totalGraphs).fill({});
+
+      element['allFrameResponses'] = Array(totalGraphs).fill({});
+
+      // Use real elements so appendChild works
+
+      const mockElements: ExploreSimpleSk[] = [];
+
+      for (let i = 0; i < totalGraphs; i++) {
+        const el = document.createElement('div') as unknown as ExploreSimpleSk;
+
+        (el as any).state = {};
+
+        (el as any).UpdateWithFrameResponse = sinon.stub().resolves();
+
+        (el as any).updateComplete = Promise.resolve();
+
+        (el as any).setUseDiscreteAxis = sinon.stub();
+
+        (el as any).updateChartHeight = sinon.stub();
+
+        mockElements.push(el);
+      }
+
+      element['exploreElements'] = mockElements;
+
+      // Mock _render to avoid actual lit-html work
+
+      sinon.stub(element, '_render' as any);
+
+      sinon.stub(element, 'updateChartHeights' as any);
+
+      await element['renderCurrentPage'](true);
+
+      // Verify only pageSize elements are in the "current page" list
+
+      assert.equal(element['currentPageExploreElements'].length, pageSize);
+
+      assert.equal(element['graphDiv']!.childElementCount, pageSize);
+    });
+
+    it('only triggers data updates for visible graphs', async () => {
+      // Setup 20 graphs, PageSize 5
+
+      const total = 20;
+
+      const pageSize = 5;
+
+      element.state.pageSize = pageSize;
+
+      element.state.manual_plot_mode = true; // Ensure index 0 is included
+
+      element['allGraphConfigs'] = Array(total).fill({
+        queries: ['config=test'],
+
+        formulas: [],
+
+        keys: '',
+      });
+
+      element['allFrameRequests'] = Array(total).fill({});
+
+      element['allFrameResponses'] = Array(total).fill({});
+
+      const updateSpies: sinon.SinonStub[] = [];
+
+      const exploreMocks: ExploreSimpleSk[] = [];
+
+      for (let i = 0; i < total; i++) {
+        const el = document.createElement('div') as unknown as ExploreSimpleSk;
+
+        (el as any).state = {};
+
+        const stub = sinon.stub().resolves();
+
+        (el as any).UpdateWithFrameResponse = stub;
+
+        (el as any).updateComplete = Promise.resolve();
+
+        (el as any).setUseDiscreteAxis = sinon.stub();
+
+        (el as any).updateChartHeight = sinon.stub();
+
+        updateSpies.push(stub);
+
+        exploreMocks.push(el);
+      }
+
+      element['exploreElements'] = exploreMocks;
+
+      // Mock other dependencies
+
+      sinon.stub(element, '_render' as any);
+
+      sinon.stub(element, 'updateChartHeights' as any);
+
+      // Render page 0 (indices 0-4)
+
+      element.state.pageOffset = 0;
+
+      await element['renderCurrentPage'](false); // false = query data
+
+      // Verify first 5 updated, others not
+
+      for (let i = 0; i < total; i++) {
+        if (i < pageSize) {
+          assert.isTrue(updateSpies[i].called, `Graph ${i} should be updated`);
+        } else {
+          assert.isFalse(updateSpies[i].called, `Graph ${i} should NOT be updated`);
+        }
+      }
+    });
+  });
 });

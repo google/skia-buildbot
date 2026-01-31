@@ -419,6 +419,10 @@ export class PlotSummarySk extends LitElement {
       this.requestUpdate();
     });
   }
+
+  get _viewForTesting(): google.visualization.DataView | null {
+    return this.plotElement.value?.view || null;
+  }
 }
 
 define('plot-summary-sk', PlotSummarySk);

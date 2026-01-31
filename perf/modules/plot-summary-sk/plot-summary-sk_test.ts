@@ -167,4 +167,50 @@ describe('plot-summary-sk', () => {
       });
     })
   );
+
+  describe('performance with downsampling', () => {
+    it('efficiently handles large datasets using min-max bucketing', async () => {
+      const element = newEl((el) => {
+        el.style.width = '100px';
+      });
+      await element.updateComplete;
+
+      // Create a large dataset (e.g., 20,000 rows)
+      const numRows = 20000;
+      const data = new google.visualization.DataTable();
+      data.addColumn('number', 'offset');
+      data.addColumn('datetime', 'timestamp');
+      data.addColumn('number', 'trace1');
+
+      const dataRows = [];
+      for (let i = 0; i < numRows; i++) {
+        dataRows.push([i, new Date(now + i * 1000), Math.sin(i / 100) * 100]);
+      }
+      data.addRows(dataRows);
+
+      const start = performance.now();
+
+      // Trigger the update (which includes downsampling logic)
+      element.data = data;
+      // We access the private method directly or trigger it via property change.
+      // Property 'data' change calls 'updateDataView'.
+
+      // Wait for it to settle? updateDataView is synchronous in logic but might trigger async rendering.
+      // The downsampling calculation happens synchronously in updateDataView.
+      await element.updateComplete;
+
+      const end = performance.now();
+      const duration = end - start;
+      assert.isBelow(duration, 200, 'Downsampling should be fast (< 200ms)');
+
+      // Verify downsampling occurred by checking the view in the chart
+      const view = (element as any)._viewForTesting;
+      assert.isNotNull(view);
+      const numDownsampledRows = view.getNumberOfRows();
+      assert.isBelow(numDownsampledRows, numRows, 'Data should be downsampled');
+      // We expect ~1000 rows (target resolution)
+      assert.isBelow(numDownsampledRows, 1100, 'Downsampled size should be close to target (1000)');
+      assert.isAbove(numDownsampledRows, 900, 'Downsampled size should be close to target (1000)');
+    });
+  });
 });
