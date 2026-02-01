@@ -116,6 +116,10 @@ const (
 	// empty string so we pick up the right default from old alerts.
 	OriginalStep StepDetection = ""
 
+	// RatioStep is exactly like OriginalStep except it uses RMSE as the 
+	// fitness function to calculate the regression ratio.
+	RatioStep StepDetection = "ratio"
+
 	// AbsoluteStep is a step detection that looks for an absolute magnitude
 	// change.
 	AbsoluteStep StepDetection = "absolute"
