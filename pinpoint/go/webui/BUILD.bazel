@@ -1,0 +1,19 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_binary(
+    name = "webui",
+    embed = [":webui_lib"],
+    importpath = "go.skia.org/infra/pinpoint/go/webui",
+    visibility = ["//pinpoint:__subpackages__"],
+)
+
+go_library(
+    name = "webui_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/pinpoint/go/webui",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/sklog",
+    ],
+)

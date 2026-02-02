@@ -14,3 +14,18 @@ skia_app_container(
     entrypoint = "/usr/local/bin/cmd",
     repository = "skia-public/jobsserver",
 )
+
+skia_app_container(
+    name = "pinpoint_webui",
+    base_image = "@base-cipd",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//pinpoint/go/webui",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/webui",
+    repository = "skia-public/pinpoint_webui",
+)
