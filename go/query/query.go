@@ -226,11 +226,12 @@ func ParseKeyFast(key string) (map[string]string, error) {
 type QueryParam struct {
 	KeyMatch    string         // The param key, including the leading "," and trailing "=".
 	KeyMatchLen int            // The length of keyMatch.
-	IsWildCard  bool           // True if this is a wildcard value match.
-	IsRegex     bool           // True if this is a regex value match.
-	IsNegative  bool           // True if this is a negative value match.
+	MatchAny    bool           // MatchAny is true if the query matches any value for this key.
 	Values      []string       // The potential matches for the value.
 	Reg         *regexp.Regexp // The regexp to match against, if a regexp search.
+
+	NegativeValues []string       // The potential negative matches for the value.
+	NegativeReg    *regexp.Regexp // The regexp to match against for negative exclusions.
 }
 
 // Key returns the parameter key, removing the leading "," and trailing "=".
@@ -239,6 +240,39 @@ func (q QueryParam) Key() string {
 		return ""
 	}
 	return q.KeyMatch[1 : len(q.KeyMatch)-1]
+}
+
+// MatchesValue returns true if the given value matches the QueryParam constraints.
+func (q QueryParam) MatchesValue(value string) bool {
+	// 1. Check exclusions (Negative)
+	if len(q.NegativeValues) > 0 {
+		if util.In(value, q.NegativeValues) {
+			return false
+		}
+	}
+	if q.NegativeReg != nil {
+		if q.NegativeReg.MatchString(value) {
+			return false
+		}
+	}
+
+	if q.MatchAny {
+		return true
+	}
+
+	// 2. Check inclusions (Positive)
+	// If there are ANY positive constraints (literal or regex), the value must match one of them.
+	hasPositiveConstraints := len(q.Values) > 0 || q.Reg != nil
+
+	if hasPositiveConstraints {
+		isLiteralMatch := len(q.Values) > 0 && util.In(value, q.Values)
+		isRegexMatch := q.Reg != nil && q.Reg.MatchString(value)
+		if !isLiteralMatch && !isRegexMatch {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Query represents a query against a key, i.e. Query.Matches can return true
@@ -273,10 +307,10 @@ func (q QueryParam) Key() string {
 // parameter with a value of 'desk_nytimes.skp', a 'config' param that does not
 // equal '565' or '8888', and has an 'extra_config' parameter of any value.
 //
-//		  q := New(url.Values{
-//	       "name": "desk_nytimes.skp",
-//	       "config": []string{"!565", "8888"},
-//	       "extra_config": []string{"*"}})
+//	q := New(url.Values{
+//	   "name": "desk_nytimes.skp",
+//	   "config": []string{"!565", "8888"},
+//	   "extra_config": []string{"*"}})
 type Query struct {
 	// These are in alphabetical order of parameter name.
 	Params []QueryParam
@@ -323,55 +357,86 @@ func New(q url.Values) (*Query, error) {
 
 	params := make([]QueryParam, 0, len(q))
 	for _, key := range keys {
-		keyMatch := "," + key + "="
-		isWildCard := false
-		isRegex := false
-		isNegative := false
-		values := q[key]
-		var reg *regexp.Regexp
-		var err error
-		// Is this param query a wildcard?
-		if len(q[key]) == 1 {
-			if q[key][0] == "" {
-				return nil, fmt.Errorf("Invalid query")
-			}
-			if q[key][0] == "*" {
-				isWildCard = true
-			}
-			if q[key][0][:1] == "~" {
-				isRegex = true
-				reg, err = regexp.Compile(q[key][0][1:])
-				if err != nil {
-					return nil, fmt.Errorf("Error compiling regexp %q: %s", q[key][0][1:], err)
-				}
-			}
+		param, err := parseQueryParam(key, q[key])
+		if err != nil {
+			return nil, err
 		}
-		// Is this param query a negative match?
-		if len(q[key]) >= 1 {
-			if strings.HasPrefix(q[key][0], "!") {
-				isNegative = true
-				values = []string{}
-				for _, v := range q[key] {
-					if strings.HasPrefix(v, "!") {
-						values = append(values, v[1:])
-					} else {
-						values = append(values, v)
-					}
-				}
-			}
-		}
-		params = append(params, QueryParam{
-			KeyMatch:    keyMatch,
-			KeyMatchLen: len(keyMatch),
-			IsWildCard:  isWildCard,
-			IsRegex:     isRegex,
-			IsNegative:  isNegative,
-			Values:      values,
-			Reg:         reg,
-		})
+		params = append(params, param)
 	}
 
 	return &Query{Params: params}, nil
+}
+
+func parseQueryParam(key string, keyValues []string) (QueryParam, error) {
+	keyMatch := "," + key + "="
+	matchAny := false
+	values := []string{}
+	negativeValues := []string{}
+
+	var posRegs []string
+	var negRegs []string
+
+	for _, v := range keyValues {
+		if v == "" {
+			return QueryParam{}, fmt.Errorf("Invalid query")
+		}
+		if v == "*" {
+			matchAny = true
+			continue
+		}
+
+		isNeg := strings.HasPrefix(v, "!")
+		clean := v
+		if isNeg {
+			clean = v[1:]
+		}
+
+		if strings.HasPrefix(clean, "~") {
+			regexBody := clean[1:]
+			if _, err := regexp.Compile(regexBody); err != nil {
+				return QueryParam{}, fmt.Errorf("Error compiling regexp %q: %s", regexBody, err)
+			}
+			if isNeg {
+				negRegs = append(negRegs, regexBody)
+			} else {
+				posRegs = append(posRegs, regexBody)
+			}
+		} else {
+			if isNeg {
+				negativeValues = append(negativeValues, clean)
+			} else {
+				values = append(values, clean)
+			}
+		}
+	}
+
+	var reg *regexp.Regexp
+	if len(posRegs) > 0 {
+		var err error
+		reg, err = regexp.Compile("(" + strings.Join(posRegs, ")|(") + ")")
+		if err != nil {
+			return QueryParam{}, fmt.Errorf("Error compiling combined positive regex: %s", err)
+		}
+	}
+
+	var negativeReg *regexp.Regexp
+	if len(negRegs) > 0 {
+		var err error
+		negativeReg, err = regexp.Compile("(" + strings.Join(negRegs, ")|(") + ")")
+		if err != nil {
+			return QueryParam{}, fmt.Errorf("Error compiling combined negative regex: %s", err)
+		}
+	}
+
+	return QueryParam{
+		KeyMatch:       keyMatch,
+		KeyMatchLen:    len(keyMatch),
+		MatchAny:       matchAny,
+		Values:         values,
+		Reg:            reg,
+		NegativeValues: negativeValues,
+		NegativeReg:    negativeReg,
+	}, nil
 }
 
 // Empty returns true of the Query is empty, i.e. it will match any trace.
@@ -394,19 +459,15 @@ func (q *Query) Matches(s string) bool {
 		}
 		// Truncate to the key.
 		s = s[keyIndex+part.KeyMatchLen:]
-		if part.IsWildCard {
-			continue
-		}
+
 		// Extract the value string.
 		valueIndex := strings.Index(s, ",")
 		value := s[:valueIndex]
-		if part.IsRegex {
-			if !part.Reg.MatchString(value) {
-				return false
-			}
-		} else if part.IsNegative == util.In(value, part.Values) {
+
+		if !part.MatchesValue(value) {
 			return false
 		}
+
 		// Truncate to the value.
 		s = s[valueIndex:]
 	}
@@ -454,11 +515,11 @@ func appendValueForFilter(key string, values []string, part QueryParam, ret *par
 // And a ParamSet:
 //
 //	ps := &paramtools.ParamSet{
-//		ParamSet: paramtools.ParamSet{
-//		  "config": []string{"565", "8888", "gpu"},
-//		  "arch":   []string{"x86", "arm", "riscv"},
-//		  "foo":    []string{"bar"},
-//		},
+//	  ParamSet: paramtools.ParamSet{
+//	    "config": []string{"565", "8888", "gpu"},
+//	    "arch":   []string{"x86", "arm", "riscv"},
+//	    "foo":    []string{"bar"},
+//	  },
 //	}
 //
 // It would return the ParamSet:
@@ -487,21 +548,12 @@ func (q *Query) QueryPlan(ps paramtools.ReadOnlyParamSet) (paramtools.ParamSet, 
 			return nil, skerr.Fmt("Unknown key for paramset: %s", partKey)
 		}
 		var err error = nil
-		if part.IsWildCard {
-			ret[partKey] = append([]string{}, ps[partKey]...)
-		} else if part.IsRegex {
-			err = appendValueForFilter(partKey, values, part, &ret, func(value string) bool {
-				return part.Reg.MatchString(value)
-			})
-		} else if part.IsNegative {
-			err = appendValueForFilter(partKey, values, part, &ret, func(value string) bool {
-				return !util.In(value, part.Values)
-			})
-		} else {
-			err = appendValueForFilter(partKey, values, part, &ret, func(value string) bool {
-				return util.In(value, part.Values)
-			})
-		}
+
+		// Filter logic must match Matches()
+		err = appendValueForFilter(partKey, values, part, &ret, func(value string) bool {
+			return part.MatchesValue(value)
+		})
+
 		if err != nil {
 			return nil, err
 		}

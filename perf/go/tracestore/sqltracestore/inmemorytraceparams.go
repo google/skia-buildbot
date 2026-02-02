@@ -330,49 +330,95 @@ func (tp *InMemoryTraceParams) QueryTraceIDs(ctx context.Context, tileNumber typ
 				// Iterate over queryParams, narrowing down set of traceIds each iteration
 				for _, queryParam := range q.Params {
 					key := queryParam.Key()
-					values := queryParam.Values
-					colIndex := tp.paramCols[key]
+					colIndex, ok := tp.paramCols[key]
+					if !ok {
+						traceidCount = 0
+						break
+					}
 					column := tp.traceparams[colIndex]
-					// Encode param values in query up-front to avoid doing it
-					// repeatedly looping over traceids
-					var eParamValues []int32 = []int32{}
-					for _, paramValue := range values {
+
+					// Encode positive param values
+					var eValues []int32 = []int32{}
+					for _, paramValue := range queryParam.Values {
 						e, ok := tp.encoding[paramValue]
 						if ok {
-							eParamValues = append(eParamValues, e)
+							eValues = append(eValues, e)
 						}
 					}
+
+					// Encode negative param values
+					var eNegativeValues []int32 = []int32{}
+					for _, paramValue := range queryParam.NegativeValues {
+						e, ok := tp.encoding[paramValue]
+						if ok {
+							eNegativeValues = append(eNegativeValues, e)
+						}
+					}
+
+					hasPositiveConstraints := len(queryParam.Values) > 0 || queryParam.Reg != nil
 
 					// Iterate over traceids and keep them only if they match the query
 					nextTraceidCount := 0
 					for i := range traceidCount {
 						traceIdIdx := traceids[i]
-						if queryParam.IsRegex {
-							// Keep traceid if the unencoded string matches the regex
-							if queryParam.Reg.String() != "" &&
-								queryParam.Reg.MatchString(tp.rEncoding[column[traceIdIdx]]) {
-								traceids[nextTraceidCount] = traceIdIdx
-								nextTraceidCount++
-							}
-						} else if queryParam.IsNegative {
-							// Keep traceid if it does not match encoded param value
-							for _, eParamValue := range eParamValues {
-								if column[traceIdIdx] != eParamValue {
-									traceids[nextTraceidCount] = traceIdIdx
-									nextTraceidCount++
-								}
-							}
+						val := column[traceIdIdx]
 
-						} else {
-							// Keep traceid if it matches any encoded param value
-							for _, eParamValue := range eParamValues {
-								if column[traceIdIdx] == eParamValue {
-									traceids[nextTraceidCount] = traceIdIdx
-									nextTraceidCount++
+						if val == -1 {
+							continue
+						}
+
+						// Check negative values (exclusion)
+						excluded := false
+						for _, eNeg := range eNegativeValues {
+							if val == eNeg {
+								excluded = true
+								break
+							}
+						}
+						if excluded {
+							continue
+						}
+
+						// String decoding lazily
+						var valStr string
+						valStrDecoded := false
+
+						if queryParam.NegativeReg != nil {
+							valStr = tp.rEncoding[val]
+							valStrDecoded = true
+							if queryParam.NegativeReg.MatchString(valStr) {
+								continue
+							}
+						}
+
+						// Check positive constraints
+						if hasPositiveConstraints {
+							matched := false
+							// Check positive values
+							for _, ePos := range eValues {
+								if val == ePos {
+									matched = true
 									break
 								}
 							}
+							// Check positive regex
+							if !matched && queryParam.Reg != nil {
+								if !valStrDecoded {
+									valStr = tp.rEncoding[val]
+									valStrDecoded = true
+								}
+								if queryParam.Reg.MatchString(valStr) {
+									matched = true
+								}
+							}
+
+							if !matched {
+								continue
+							}
 						}
+
+						traceids[nextTraceidCount] = traceIdIdx
+						nextTraceidCount++
 					}
 					traceidCount = nextTraceidCount
 				}

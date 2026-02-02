@@ -204,12 +204,12 @@ func TestNew(t *testing.T) {
 	q, err := New(url.Values{"config": []string{"565", "8888"}})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(q.Params))
-	assert.Equal(t, false, q.Params[0].IsWildCard)
+	assert.Equal(t, false, q.Params[0].MatchAny)
 
 	q, err = NewFromString("config=565&config=8888")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(q.Params))
-	assert.Equal(t, false, q.Params[0].IsWildCard)
+	assert.Equal(t, false, q.Params[0].MatchAny)
 
 	q, err = NewFromString("config=%ZZ")
 	assert.Error(t, err, "Invalid query strings are caught.")
@@ -219,36 +219,30 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, 2, len(q.Params))
 	assert.Equal(t, ",config=", q.Params[0].KeyMatch)
 	assert.Equal(t, ",debug=", q.Params[1].KeyMatch)
-	assert.Equal(t, false, q.Params[0].IsWildCard)
-	assert.Equal(t, false, q.Params[1].IsWildCard)
-	assert.Equal(t, false, q.Params[0].IsNegative)
-	assert.Equal(t, false, q.Params[1].IsNegative)
+	assert.Equal(t, false, q.Params[0].MatchAny)
+	assert.Equal(t, false, q.Params[1].MatchAny)
 
 	q, err = New(url.Values{"debug": []string{"*"}})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(q.Params))
 	assert.Equal(t, ",debug=", q.Params[0].KeyMatch)
-	assert.Equal(t, true, q.Params[0].IsWildCard)
-	assert.Equal(t, false, q.Params[0].IsNegative)
+	assert.Equal(t, true, q.Params[0].MatchAny)
 
 	q, err = New(url.Values{"config": []string{"!565"}})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(q.Params))
 	assert.Equal(t, ",config=", q.Params[0].KeyMatch)
-	assert.Equal(t, false, q.Params[0].IsWildCard)
-	assert.Equal(t, true, q.Params[0].IsNegative)
+	assert.Equal(t, false, q.Params[0].MatchAny)
 
 	q, err = New(url.Values{"config": []string{"!565", "!8888"}, "debug": []string{"*"}})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(q.Params))
 	assert.Equal(t, ",config=", q.Params[0].KeyMatch)
-	assert.Equal(t, "565", q.Params[0].Values[0])
-	assert.Equal(t, "8888", q.Params[0].Values[1])
+	assert.Equal(t, "565", q.Params[0].NegativeValues[0])
+	assert.Equal(t, "8888", q.Params[0].NegativeValues[1])
 	assert.Equal(t, ",debug=", q.Params[1].KeyMatch)
-	assert.Equal(t, false, q.Params[0].IsWildCard)
-	assert.Equal(t, true, q.Params[0].IsNegative)
-	assert.Equal(t, true, q.Params[1].IsWildCard)
-	assert.Equal(t, false, q.Params[1].IsNegative)
+	assert.Equal(t, false, q.Params[0].MatchAny)
+	assert.Equal(t, true, q.Params[1].MatchAny)
 
 	q, err = New(url.Values{})
 	assert.NoError(t, err)
@@ -387,6 +381,24 @@ func TestMatches(t *testing.T) {
 			query:   url.Values{"arch": []string{"~^y.*"}, "config": []string{"!565"}, "debug": []string{"*"}},
 			matches: false,
 			reason:  "Negative, wildcard, and miss regexp",
+		},
+		{
+			key:     ",test=foo,",
+			query:   url.Values{"test": []string{"!~^f.*"}},
+			matches: false,
+			reason:  "Negative regex match = no match",
+		},
+		{
+			key:     ",benchmark=v8.browsing_mobile,master=ChromiumPerf,test=memory:unknown_browser:renderer_processes:reported_by_chrome:v8:shared:allocated_objects_size,",
+			query:   url.Values{"benchmark": []string{"~v8\\.browsing_.*"}, "master": []string{"ChromiumPerf"}, "test": []string{"!~.*(_avg|_min|_max|_sum|_count|_std)$", "~.*v8.*"}},
+			matches: true,
+			reason:  "Negative regex match + positive regex match = no match",
+		},
+		{
+			key:     ",benchmark=v8.browsing_mobile,master=ChromiumPerf,test=memory:unknown_browser:renderer_processes:reported_by_chrome:v8:shared:allocated_objects_size,",
+			query:   url.Values{"benchmark": []string{"~v8\\.browsing_.*"}, "master": []string{"ChromiumPerf"}, "test": []string{"!~.*(_avg|_min|_max|_sum|_count|_std)$", "Compile-Background:duration"}},
+			matches: false,
+			reason:  "Negative regex match + positive literal match = no match",
 		},
 	}
 

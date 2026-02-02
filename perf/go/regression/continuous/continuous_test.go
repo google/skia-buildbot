@@ -164,6 +164,47 @@ func TestMatchingConfigsFromTraceIDs_MultipleGroupByPartsMatchTrace_ReturnsConfi
 	}
 }
 
+func TestMatchingConfigsFromTraceIDs_MixedPositiveAndNegativeRegex(t *testing.T) {
+	// Setup a config that mimics the bug report:
+	// 1. benchmark: Matches regex ~v8\.browsing_.*
+	// 2. master: Exact match ChromiumPerf
+	// 3. test: Negative Regex (Must NOT end in _avg, _min, etc)
+	// 4. test: Positive Regex (Must contain 'v8')
+	config := alerts.NewConfig()
+	config.Query = "benchmark=~v8\\.browsing_.*&master=ChromiumPerf&test=!~.*(_avg|_min|_max|_sum|_count|_std)$&test=~.*v8.*"
+
+	t.Run("Matches_WhenTraceSatisfiesBothRegexes", func(t *testing.T) {
+		// Trace contains 'v8' (satisfies positive) and does NOT end in _avg (satisfies negative)
+		trace := ",benchmark=v8.browsing_mobile,master=ChromiumPerf,test=memory:unknown_browser:renderer_processes:reported_by_chrome:v8:shared:allocated_objects_size,"
+
+		matchingConfigs := matchingConfigsFromTraceIDs([]string{trace}, []*alerts.Alert{config})
+
+		require.Len(t, matchingConfigs, 1)
+		for _, traces := range matchingConfigs {
+			require.Equal(t, trace, traces[0])
+		}
+	})
+
+	t.Run("Fails_WhenPositiveRegexIsMissing", func(t *testing.T) {
+		// Trace is missing 'v8' (fails positive match), even though it satisfies the negative match (no _avg)
+		// We replaced 'v8' with 'native'
+		trace := ",benchmark=v8.browsing_mobile,master=ChromiumPerf,test=memory:unknown_browser:renderer_processes:reported_by_chrome:native:shared:allocated_objects_size,"
+
+		matchingConfigs := matchingConfigsFromTraceIDs([]string{trace}, []*alerts.Alert{config})
+
+		require.Empty(t, matchingConfigs, "Should fail because the 'test' key does not contain 'v8'")
+	})
+
+	t.Run("Fails_WhenNegativeRegexIsPresent", func(t *testing.T) {
+		// Trace ends in '_avg' (fails negative match), even though it satisfies the positive match (has 'v8')
+		trace := ",benchmark=v8.browsing_mobile,master=ChromiumPerf,test=memory:unknown_browser:renderer_processes:reported_by_chrome:v8:shared:allocated_objects_size_avg,"
+
+		matchingConfigs := matchingConfigsFromTraceIDs([]string{trace}, []*alerts.Alert{config})
+
+		require.Empty(t, matchingConfigs, "Should fail because the 'test' key ends in '_avg'")
+	})
+}
+
 type allMocks struct {
 	perfGit          *gitmocks.Git
 	shortcutStore    *shortcutmocks.Store
