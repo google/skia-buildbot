@@ -5,7 +5,6 @@ package readme_chromium
 */
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -27,7 +26,7 @@ const (
 
 // ReadmeChromiumFile represents the contents of a README.chromium file.
 type ReadmeChromiumFile struct {
-	originalContentLines [][]byte
+	originalContentLines []string
 	fields               []*field
 
 	Name                     string
@@ -52,16 +51,16 @@ type ReadmeChromiumFile struct {
 }
 
 // Parse and return a ReadmeChromiumFile file with the given contents.
-func Parse(content []byte) (*ReadmeChromiumFile, error) {
+func Parse(content string) (*ReadmeChromiumFile, error) {
 	rv := &ReadmeChromiumFile{
-		originalContentLines: bytes.Split(content, []byte("\n")),
+		originalContentLines: strings.Split(content, "\n"),
 		fields:               makeFields(),
 	}
 	val := reflect.ValueOf(rv).Elem()
 	for _, f := range rv.fields {
 		regex := regexForField(f)
 		for lineNo, line := range rv.originalContentLines {
-			matches := regex.FindSubmatchIndex(line)
+			matches := regex.FindStringSubmatchIndex(line)
 			// [startOfOverallMatch, endOfOverallMatch, startOfSubMatch, endOfSubMatch]
 			if len(matches) == 4 {
 				f.LineNo = lineNo
@@ -95,9 +94,9 @@ func Parse(content []byte) (*ReadmeChromiumFile, error) {
 
 // NewContent returns the updated README.chromium file content, incorporating
 // any changes to the fields of the ReadmeChromiumFile.
-func (file *ReadmeChromiumFile) NewContent() ([]byte, error) {
+func (file *ReadmeChromiumFile) NewContent() (string, error) {
 	val := reflect.ValueOf(file).Elem()
-	newContentLines := make([][]byte, 0, len(file.originalContentLines))
+	newContentLines := make([]string, 0, len(file.originalContentLines))
 	for _, line := range file.originalContentLines {
 		newContentLines = append(newContentLines, line)
 	}
@@ -112,7 +111,7 @@ func (file *ReadmeChromiumFile) NewContent() ([]byte, error) {
 
 		field := val.FieldByName(strings.ReplaceAll(f.Name, " ", ""))
 		if !field.IsValid() {
-			return nil, skerr.Fmt("field %q is invalid", f.Name)
+			return "", skerr.Fmt("field %q is invalid", f.Name)
 		}
 		newValue := field.String()
 		if field.Kind() == reflect.Bool {
@@ -123,9 +122,47 @@ func (file *ReadmeChromiumFile) NewContent() ([]byte, error) {
 			}
 		}
 
-		newContentLines[f.LineNo] = bytes.Replace(newContentLines[f.LineNo], oldValue, []byte(newValue), 1)
+		newContentLines[f.LineNo] = strings.Replace(newContentLines[f.LineNo], oldValue, newValue, 1)
 	}
-	return bytes.Join(newContentLines, []byte("\n")), nil
+	return strings.Join(newContentLines, "\n"), nil
+}
+
+// dependencyDividerRegex is used to find the separator between sections in a
+// README.chromium file containing metadata about multiple dependencies. Note
+// that we use a regex for parsing, in case a file contains a slightly different
+// number of dashes.
+var dependencyDividerRegex = regexp.MustCompile(`(?m)^-+ DEPENDENCY DIVIDER -+$`)
+
+// dependencyDivider is a separator between sections in a README.chromium file
+// containing metadata about multiple dependencies. Note that we use a regex for
+// parsing, in case a file contains a slightly different number of dashes.
+const dependencyDivider = "-------------------- DEPENDENCY DIVIDER --------------------"
+
+// ParseMulti parses at least one ReadmeChromiumFile from the given contents.
+func ParseMulti(contents string) ([]*ReadmeChromiumFile, error) {
+	sections := dependencyDividerRegex.Split(contents, -1)
+	rv := make([]*ReadmeChromiumFile, 0, len(sections))
+	for _, section := range sections {
+		f, err := Parse(section)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, f)
+	}
+	return rv, nil
+}
+
+// WriteMulti returns the content of multiple ReadmeChromiumFiles.
+func WriteMulti(files []*ReadmeChromiumFile) (string, error) {
+	allContents := make([]string, 0, len(files))
+	for _, f := range files {
+		content, err := f.NewContent()
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		allContents = append(allContents, content)
+	}
+	return strings.Join(allContents, dependencyDivider), nil
 }
 
 type field struct {

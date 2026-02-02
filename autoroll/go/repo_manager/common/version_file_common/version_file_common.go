@@ -58,7 +58,11 @@ func getPinnedRevInFile(id string, file *config.VersionFileConfig_File, contents
 		}
 		return depsEntry.Version, nil
 	} else if path.Base(file.Path) == readme_chromium.FileName {
-		rcf, err := readme_chromium.Parse([]byte(contents))
+		files, err := readme_chromium.ParseMulti(contents)
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		rcf, err := findMatchingReadmeChromiumFile(id, file.Path, files)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
@@ -130,9 +134,13 @@ func setPinnedRevInFile(id string, dep *config.VersionFileConfig_File, newRev *r
 		newContents, err := deps_parser.SetDep(oldContents, id, newRev.Id)
 		return newContents, skerr.Wrap(err)
 	} else if path.Base(dep.Path) == readme_chromium.FileName {
-		rcf, err := readme_chromium.Parse([]byte(oldContents))
+		files, err := readme_chromium.ParseMulti(oldContents)
 		if err != nil {
 			return "", skerr.Wrap(err)
+		}
+		rcf, err := findMatchingReadmeChromiumFile(id, dep.Path, files)
+		if rcf == nil {
+			return "", skerr.Fmt("failed to find %s in %s", id, dep.Path)
 		}
 		rcf.Revision = newRev.Id
 		rcf.Version = "N/A"
@@ -144,7 +152,7 @@ func setPinnedRevInFile(id string, dep *config.VersionFileConfig_File, newRev *r
 			rcf.Date = newRev.Timestamp.Format("2006-01-02")
 		}
 		rcf.UpdateMechanism = readme_chromium.UpdateMechanism_Autoroll
-		newContents, err := rcf.NewContent()
+		newContents, err := readme_chromium.WriteMulti(files)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
@@ -285,4 +293,30 @@ func UpdateDep(ctx context.Context, primaryDep *config.DependencyConfig, rev *re
 	}
 
 	return changes, nil
+}
+
+// findMatchingReadmeChromiumFile attempts to find the ReadmeChromiumFile
+// matching the given dependency ID.
+func findMatchingReadmeChromiumFile(id, path string, files []*readme_chromium.ReadmeChromiumFile) (*readme_chromium.ReadmeChromiumFile, error) {
+	if len(files) == 0 {
+		return nil, skerr.Fmt("found no README.chromium files")
+	} else if len(files) == 1 {
+		return files[0], nil
+	}
+	// Try to match the URL with the dependency ID using substring match.
+	// The idea is that most of the URL fields are something like:
+	// https://github.com/some-org/some-repo
+	// but the dependency ID is:
+	// https://chromium.googlesource.com/third_party/github.com/some-org/some-repo
+
+	// TODO(borenet): This is very brittle; it would probably be better
+	// to add a configuration option to match the name or URL
+	// explicitly.
+	for _, file := range files {
+		trimmed := strings.Replace(file.URL, "https://", "", 1)
+		if strings.Contains(id, trimmed) {
+			return file, nil
+		}
+	}
+	return nil, skerr.Fmt("failed to find %s in %s", id, path)
 }

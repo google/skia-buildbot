@@ -3,6 +3,7 @@ package version_file_common
 import (
 	"context"
 	"fmt"
+	"path"
 	"testing"
 	"time"
 
@@ -617,4 +618,219 @@ func TestUpdateDep_UsesChangeCache(t *testing.T) {
 			"my-dep-path": "my-dep@new-rev",
 		}`,
 	}, changes)
+}
+
+const exampleMulti = `Name: OpenXR SDK
+Short Name: OpenXR
+URL: https://github.com/KhronosGroup/OpenXR-SDK
+Version: 1.1.53
+Revision: 75c53b6e853dc12c7b3c771edc9c9c841b15faaa
+Update Mechanism: Manual
+License: Apache-2.0
+License File: src/LICENSE
+Security Critical: yes
+Shipped: yes
+
+Description:
+OpenXR is a royalty-free, open standard that provides high-performance access to
+Augmented Reality (AR) and Virtual Reality (VR)—collectively known as
+XR—platforms and devices.
+
+Local Modifications:
+No modifications to upstream files. BUILD.gn contains all of the configurations
+needed to build the OpenXR loader in Chromium, along with its dependencies. The
+readme was expanded with information about transitive dependencies that are
+copied directly into the OpenXR SDK repository. An openxr.def file works around
+the fact that attributes aren't exposed by default for the compiler we use on
+windows in component builds.
+
+Added dev/xr_android.h for prototyping xr_android extensions that are currently
+under active development and not in any openxr release at present. This file is
+expected to be superceded by any official definitions and may require additional
+work before a roll containing those definitions can be conducted.
+
+Copied src/.clang-format into src_overrides/.clang-format and disabled
+clang-format in src_overrides/src/external to mimic how khronos gitlab seems to
+behave. This allows forked files to more closely match the base-files and allow
+for easier "Compare with clipboard" comparisons.
+
+The following changes should be reflected in 'src_overrides/patches':
+* Forked android_utilites.cpp and manifest_file.cpp to allow for customizing to
+ignore loading in Android ContentProvider supplied paths while investigating and
+waiting for upstreaming.
+* Forked AndroidManifest.xml.in to remove unnecessary fields that prevent
+merging with Chrome's AndroidManifest.xml
+
+-------------------- DEPENDENCY DIVIDER --------------------
+
+Name: JNIPP
+Short Name: JNIPP
+URL: https://github.com/mitchdowd/jnipp
+Version: v1.0.0-13-gcdd6293
+Revision: cdd6293fca985993129f5ef5441709fc49ee507f
+Update Mechanism: Manual
+License: MIT
+License File: src/src/external/jnipp/LICENSE
+Security Critical: yes
+Shipped: yes
+
+Description:
+JNIPP is just a C++ wrapper for the standard Java Native Interface (JNI).It
+tries to take some of the long-winded annoyance out of integrating your Java
+and C++ code.
+
+Local Modifications:
+No modifications to upstream files. BUILD.gn contains all of the configurations
+needed to build the library in Chromium.
+
+-------------------- DEPENDENCY DIVIDER --------------------
+
+Name: android-jni-wrappers
+Short Name: android-jni-wrappers
+URL: https://gitlab.freedesktop.org/monado/utilities/android-jni-wrappers
+Version: N/A
+Date: 2023-12-13
+Update Mechanism: Manual
+License: Apache-2.0
+License File: src/LICENSES/Apache-2.0.txt
+Security Critical: yes
+Shipped: yes
+
+Description:
+Python tool to generate C++ wrappers for (mostly Android-related) JNI/Java
+objects. Generated files are typically slightly hand-modified.
+
+Local Modifications:
+No modifications to upstream files. BUILD.gn contains all of the configurations
+needed to build the library in Chromium, along with its dependencies. Since it
+is a transitive dependency that was directly included in OpenXR SDK repository,
+the exact revision is unknown. The library also does not have any versioned
+releases. The library contains auto-generated files with unknown hand-made
+modifications. The library is triple-licensed, and the copy from OpenXR SDK
+repository does not include a LICENSE file.
+`
+
+func TestGetPinnedRev_ReadmeChromium_Multi(t *testing.T) {
+	file := &config.VersionFileConfig_File{
+		Path: "path/to/README.chromium",
+	}
+	test := func(id, expectRev string) {
+		name := path.Base(id)
+		t.Run(name, func(t *testing.T) {
+			actual, err := getPinnedRevInFile(id, file, exampleMulti)
+			require.NoError(t, err)
+			require.Equal(t, expectRev, actual)
+		})
+	}
+
+	// This one has the GitHub URL in README.chromium but googlesource in DEPS.
+	test("https://chromium.googlesource.com/external/github.com/KhronosGroup/OpenXR-SDK", "75c53b6e853dc12c7b3c771edc9c9c841b15faaa")
+
+	// This isn't in DEPS but we'll query it by URL anyway.
+	test("https://github.com/mitchdowd/jnipp", "cdd6293fca985993129f5ef5441709fc49ee507f")
+
+	// Empty Revision field
+	test("https://gitlab.freedesktop.org/monado/utilities/android-jni-wrappers", "")
+}
+
+func TestSetPinnedRev_ReadmeChromium_Multi(t *testing.T) {
+	file := &config.VersionFileConfig_File{
+		Path: "path/to/README.chromium",
+	}
+	depId := "https://chromium.googlesource.com/external/github.com/KhronosGroup/OpenXR-SDK"
+	rev := &revision.Revision{
+		Id:      "newRev",
+		Release: "2.1.86",
+	}
+	actual, err := setPinnedRevInFile(depId, file, rev, exampleMulti)
+	require.NoError(t, err)
+	require.Equal(t, `Name: OpenXR SDK
+Short Name: OpenXR
+URL: https://github.com/KhronosGroup/OpenXR-SDK
+Version: 2.1.86
+Revision: newRev
+Update Mechanism: Autoroll
+License: Apache-2.0
+License File: src/LICENSE
+Security Critical: yes
+Shipped: yes
+
+Description:
+OpenXR is a royalty-free, open standard that provides high-performance access to
+Augmented Reality (AR) and Virtual Reality (VR)—collectively known as
+XR—platforms and devices.
+
+Local Modifications:
+No modifications to upstream files. BUILD.gn contains all of the configurations
+needed to build the OpenXR loader in Chromium, along with its dependencies. The
+readme was expanded with information about transitive dependencies that are
+copied directly into the OpenXR SDK repository. An openxr.def file works around
+the fact that attributes aren't exposed by default for the compiler we use on
+windows in component builds.
+
+Added dev/xr_android.h for prototyping xr_android extensions that are currently
+under active development and not in any openxr release at present. This file is
+expected to be superceded by any official definitions and may require additional
+work before a roll containing those definitions can be conducted.
+
+Copied src/.clang-format into src_overrides/.clang-format and disabled
+clang-format in src_overrides/src/external to mimic how khronos gitlab seems to
+behave. This allows forked files to more closely match the base-files and allow
+for easier "Compare with clipboard" comparisons.
+
+The following changes should be reflected in 'src_overrides/patches':
+* Forked android_utilites.cpp and manifest_file.cpp to allow for customizing to
+ignore loading in Android ContentProvider supplied paths while investigating and
+waiting for upstreaming.
+* Forked AndroidManifest.xml.in to remove unnecessary fields that prevent
+merging with Chrome's AndroidManifest.xml
+
+-------------------- DEPENDENCY DIVIDER --------------------
+
+Name: JNIPP
+Short Name: JNIPP
+URL: https://github.com/mitchdowd/jnipp
+Version: v1.0.0-13-gcdd6293
+Revision: cdd6293fca985993129f5ef5441709fc49ee507f
+Update Mechanism: Manual
+License: MIT
+License File: src/src/external/jnipp/LICENSE
+Security Critical: yes
+Shipped: yes
+
+Description:
+JNIPP is just a C++ wrapper for the standard Java Native Interface (JNI).It
+tries to take some of the long-winded annoyance out of integrating your Java
+and C++ code.
+
+Local Modifications:
+No modifications to upstream files. BUILD.gn contains all of the configurations
+needed to build the library in Chromium.
+
+-------------------- DEPENDENCY DIVIDER --------------------
+
+Name: android-jni-wrappers
+Short Name: android-jni-wrappers
+URL: https://gitlab.freedesktop.org/monado/utilities/android-jni-wrappers
+Version: N/A
+Date: 2023-12-13
+Update Mechanism: Manual
+License: Apache-2.0
+License File: src/LICENSES/Apache-2.0.txt
+Security Critical: yes
+Shipped: yes
+
+Description:
+Python tool to generate C++ wrappers for (mostly Android-related) JNI/Java
+objects. Generated files are typically slightly hand-modified.
+
+Local Modifications:
+No modifications to upstream files. BUILD.gn contains all of the configurations
+needed to build the library in Chromium, along with its dependencies. Since it
+is a transitive dependency that was directly included in OpenXR SDK repository,
+the exact revision is unknown. The library also does not have any versioned
+releases. The library contains auto-generated files with unknown hand-made
+modifications. The library is triple-licensed, and the copy from OpenXR SDK
+repository does not include a LICENSE file.
+`, actual)
 }
