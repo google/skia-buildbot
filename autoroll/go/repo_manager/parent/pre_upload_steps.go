@@ -95,7 +95,7 @@ func (p Placeholders) Command(ctx context.Context, cmd []string, cwd string, env
 	cmd = p.Strings(cmd)
 	executable, err := exec.LookPath(ctx, cmd[0], pathVar)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "failed to find %q in %q", cmd[0], pathVar)
 	}
 
 	return &exec.Command{
