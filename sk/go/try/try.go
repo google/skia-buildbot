@@ -98,7 +98,7 @@ func Command() []*cli.Command {
 			},
 			Action: func(ctx *cli.Context) error {
 				if err := fixupIssue(ctx.Context); err != nil {
-					return err
+					return skerr.Wrap(err)
 				}
 				return try(ctx.Context, ctx.Args().Slice(), ctx.Bool(yFlag), ctx.String(bucketFlag))
 			},
@@ -132,7 +132,7 @@ func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool, o
 	// Setup.
 	jobs, err := tryjobs.getTryJobs(ctx)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 
 	// Filter by the given requested job names/regexes.
@@ -142,7 +142,7 @@ func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool, o
 		for _, jobRequest := range jobRequests {
 			jobRegex, err := regexp.Compile(jobRequest)
 			if err != nil {
-				return err
+				return skerr.Wrap(err)
 			}
 			jobRegexes = append(jobRegexes, jobRegex)
 		}
@@ -185,7 +185,7 @@ func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool, o
 		reader := bufio.NewReader(stdin)
 		read, err := reader.ReadString('\n')
 		if err != nil {
-			return err
+			return skerr.Wrap(err)
 		}
 		read = strings.TrimSpace(read)
 		if read != "y" && read != "i" {
@@ -198,7 +198,7 @@ func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool, o
 					fmt.Printf("Trigger %s? (y/n):\n", job)
 					trigger, err := reader.ReadString('\n')
 					if err != nil {
-						return err
+						return skerr.Wrap(err)
 					}
 					if strings.TrimSpace(trigger) == "y" {
 						jobsToTrigger[bucket] = append(jobsToTrigger[bucket], job)
@@ -218,7 +218,7 @@ func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool, o
 			cmd = append(cmd, "-b", job)
 		}
 		if _, err := exec.RunCwd(ctx, ".", cmd...); err != nil {
-			return err
+			return skerr.Wrap(err)
 		}
 	}
 	return nil
@@ -231,7 +231,7 @@ func fixupIssue(ctx context.Context) error {
 	// will already be present in the git config.
 	output, err := exec.RunCwd(ctx, ".", "git", "branch", "--show-current")
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	branch := strings.TrimSpace(output)
 
@@ -243,28 +243,28 @@ func fixupIssue(ctx context.Context) error {
 	// and obtain the issue number using that.
 	output, err = exec.RunCwd(ctx, ".", "git", "log", "-n1", branch)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	changeId, err := gerrit.ParseChangeId(output)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	ts, err := google.DefaultTokenSource(ctx, gerrit.AuthScope)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 	g, err := gerrit.NewGerrit(gerrit.GerritSkiaURL, client)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	ci, err := g.GetChange(ctx, changeId)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	issue := fmt.Sprintf("%d", ci.Issue)
 	if _, err := exec.RunCwd(ctx, ".", "git", "cl", "issue", issue); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	return nil
 }
@@ -344,7 +344,7 @@ func tryResults(ctx context.Context, issue, patchset int64) error {
 	// Find the issue ID if not provided.
 	if issue == 0 {
 		if err := fixupIssue(ctx); err != nil {
-			return err
+			return skerr.Wrap(err)
 		}
 		props, err := getLocalIssueProperties(ctx)
 		if err != nil {
