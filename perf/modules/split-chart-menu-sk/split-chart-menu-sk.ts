@@ -72,10 +72,6 @@ export class SplitChartMenuSk extends LitElement {
     `;
   }
 
-  constructor() {
-    super();
-  }
-
   private bubbleAttribute(attribute: string) {
     this.dispatchEvent(
       new CustomEvent<SplitChartSelectionEventDetails>('split-chart-selection', {

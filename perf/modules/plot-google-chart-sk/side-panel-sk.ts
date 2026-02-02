@@ -146,10 +146,6 @@ export class SidePanelSk extends LitElement {
   @property({ attribute: false, reflect: true })
   private legendKeysFormat = '';
 
-  constructor() {
-    super();
-  }
-
   protected willUpdate(changedProperties: PropertyValues): void {
     if (changedProperties.has('traceColorMap') || (changedProperties.has('data') && this.data)) {
       this.updateLegendItems();

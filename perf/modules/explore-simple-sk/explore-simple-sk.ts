@@ -2248,7 +2248,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       }
     } catch (error) {
       console.error('Failed to update state to URL:', error);
-      return;
     }
   }
 

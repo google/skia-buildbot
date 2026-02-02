@@ -26,8 +26,6 @@ async function waitForTableOrClear(page: Page, testTimeout: number) {
   // Otherwise, we expect to see the "All anomalies are triaged!" message.
   const foundElem = await Promise.race([anomalyTablePromise, allTriagedPromise]);
   void expect(foundElem).to.not.be.null;
-
-  return;
 }
 
 describe('Regressions page test', async () => {

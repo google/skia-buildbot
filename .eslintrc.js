@@ -44,6 +44,17 @@ module.exports = {
     'space-before-function-paren': ['off'],
     eqeqeq: ['error'],
 
+    'no-useless-backreference': ['error'],
+    'no-useless-call': ['error'],
+    'no-useless-catch': ['error'],
+    'no-useless-computed-key': ['error'],
+    'no-useless-concat': ['error'],
+    'no-useless-escape': ['error'],
+    'no-useless-rename': ['error'],
+    'no-useless-return': ['error'],
+    'no-unused-labels': ['error'],
+    'no-unused-private-class-members': ['error'],
+
     // All of these should be turned back to errors once all the instances are
     // found and fixed.
     'prefer-promise-reject-errors': ['warn'],
@@ -93,6 +104,7 @@ module.exports = {
         '@typescript-eslint/no-inferrable-types': 'off',
 
         '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/no-useless-constructor': ['error'],
 
         '@stylistic/type-annotation-spacing': [
           'error',

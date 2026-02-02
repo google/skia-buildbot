@@ -1723,7 +1723,6 @@ export class PlotSimpleSk extends ElementSk {
           anomaliesOnTrace.forEach((a) => {
             if (a.x === issue.x && a.y === issue.y) {
               isAnomaly = true;
-              return;
             }
           });
         }

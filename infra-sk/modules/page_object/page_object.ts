@@ -108,7 +108,7 @@ export abstract class PageObject {
 
 /** Convenience wrapper around a promise of a list of page objects. */
 export class PageObjectList<T extends PageObject> extends AsyncList<T> {
-  // eslint-disable-next-line no-useless-constructor
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
   constructor(itemsPromise: Promise<T[]>) {
     super(itemsPromise);
   }

@@ -400,7 +400,6 @@ export class UserIssueSk extends LitElement {
     } catch (json) {
       const msg = await (json as Response).text();
       errorMessage(`${(json as Response).statusText}: ${msg}`);
-      return;
     }
   }
 }

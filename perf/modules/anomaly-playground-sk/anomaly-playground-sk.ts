@@ -227,7 +227,7 @@ export class AnomalyPlaygroundSk extends ElementSk {
     }
 
     const traceset = TraceSet({
-      [',name=playground,']: trace as Trace,
+      ',name=playground,': trace as Trace,
     });
     this.dataframe = {
       traceset: traceset,

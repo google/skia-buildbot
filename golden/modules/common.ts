@@ -81,8 +81,9 @@ export function diffPageHref(
     return '';
   }
 
-  const u =
-    `/diff?grouping=${encodeURIComponent(fromObject(grouping))}` + `&left=${left}&right=${right}`;
+  const u = `/diff?grouping=${encodeURIComponent(
+    fromObject(grouping)
+  )}&left=${left}&right=${right}`;
   if (clID) {
     return `${u}&changelist_id=${clID}&crs=${crs}`;
   }

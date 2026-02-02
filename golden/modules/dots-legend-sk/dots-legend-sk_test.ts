@@ -54,7 +54,7 @@ describe('dots-legend-sk', () => {
 
     it('renders digest links correctly', async () => {
       const digestHrefFor = (d: string) =>
-        '/detail?' + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&' + `digest=${d}`;
+        `/detail?grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&digest=${d}`;
       expect(await dotsLegendSkPO.getDigestHrefs()).to.deep.equal([
         digestHrefFor('00000000000000000000000000000000'),
         digestHrefFor('11111111111111111111111111111111'),

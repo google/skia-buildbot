@@ -19,10 +19,6 @@ export class GeminiSidePanelSk extends LitElement {
   @property({ type: Boolean, reflect: true })
   open: boolean = false;
 
-  constructor() {
-    super();
-  }
-
   toggle() {
     this.open = !this.open;
   }

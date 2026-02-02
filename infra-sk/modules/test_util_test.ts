@@ -43,7 +43,7 @@ describe('test utilities', () => {
         ).to.have.length(0);
         expect(
           element.parentElement,
-          'element under test should be detached from its parent node ' + 'after each test case'
+          'element under test should be detached from its parent node after each test case'
         ).to.be.null;
       });
 

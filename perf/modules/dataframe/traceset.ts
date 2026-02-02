@@ -2,7 +2,7 @@ import '@google-web-components/google-chart';
 
 import { DataFrame } from '../json';
 import { DataTable } from './dataframe_context';
-import { formatSpecialFunctions as formatSpecialFunctions } from '../paramtools';
+import { formatSpecialFunctions } from '../paramtools';
 
 export const labelKeys = [
   'master',

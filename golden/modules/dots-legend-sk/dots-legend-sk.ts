@@ -59,8 +59,7 @@ export class DotsLegendSk extends ElementSk {
   `;
 
   private static dotTemplate = (index: number) => {
-    const style =
-      `border-color: ${DOT_STROKE_COLORS[index]};` + `background-color: ${DOT_FILL_COLORS[index]};`;
+    const style = `border-color: ${DOT_STROKE_COLORS[index]}; background-color: ${DOT_FILL_COLORS[index]};`;
     return html`<div class="dot" style="${style}"></div>`;
   };
 

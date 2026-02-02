@@ -379,7 +379,6 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
         module: 'anomalies-table-sk',
         function: 'openReportForAnomalyId',
       });
-      return;
     } else {
       const idString = idList.join(',');
       // TODO(wenbinzhang): ideally, we should open the url:
