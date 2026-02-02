@@ -1496,8 +1496,17 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   // updates the chart height using a string input.
   // typically 500px for a single chart and 250px for multiple charts
   updateChartHeight(height: string) {
-    const chart = this.querySelector('div.chart-container');
-    (chart as HTMLElement).style.height = height;
+    const chart = this.querySelector('div.chart-container') as HTMLElement;
+    chart.classList.remove('small-height', 'medium-height');
+    chart.style.height = '';
+
+    if (height === '250px') {
+      chart.classList.add('small-height');
+    } else if (height === '500px') {
+      chart.classList.add('medium-height');
+    } else {
+      chart.style.height = height;
+    }
   }
 
   /**

@@ -514,16 +514,19 @@ export class ExploreMultiSk extends ElementSk {
       // Reset pagination and re-render to ensure we are targeting the main graph (index 0).
       // This collapses any existing split view back to a single master graph.
       this.state.pageOffset = 0;
-      this.renderCurrentPage(false);
-      explore = this.currentPageExploreElements[0];
 
-      this.currentPageExploreElements.splice(1);
       this.exploreElements.splice(1);
       this.allGraphConfigs.splice(1);
+      this.allFrameRequests.splice(1);
+      this.allFrameResponses.splice(1);
       this.state.totalGraphs = this.exploreElements.length;
+
+      // Ensure the main graph is in the DOM so it can process data.
+      await this.renderCurrentPage(false);
+      explore = this.currentPageExploreElements[0];
       explore.state.doNotQueryData = false;
     }
-    await explore.addFromQueryOrFormula(true, 'query', query, '');
+    await explore.addFromQueryOrFormula(true, 'query', query, '', '', false);
     await this.splitGraphs();
   };
 
@@ -580,7 +583,7 @@ export class ExploreMultiSk extends ElementSk {
     // Remove the traces from the current page explore elements.
     const elemsToRemove: ExploreSimpleSk[] = [];
 
-    const updatePromises = this.exploreElements.map(async (elem) => {
+    const updatePromises = this.exploreElements.map((elem, index) => {
       const hasQueryToRemove =
         elem.state.queries && queriesToRemove.some((qr) => elem.state.queries.includes(qr));
 
@@ -617,12 +620,23 @@ export class ExploreMultiSk extends ElementSk {
         }
         if (elem.state.queries.length === 0) {
           elemsToRemove.push(elem);
-          return await Promise.resolve();
+          return Promise.resolve();
         }
 
         const elemTraceset = elem.getTraceset() as TraceSet;
         const elemHeader = elem.getHeader();
-        let updatedTraceset = traceSet as TraceSet;
+        // Default to filtering the global set by the element's existing keys (minus removed ones).
+        // This ensures we preserve the split state of the graph while getting fresh data.
+        let updatedTraceset = TraceSet({});
+        Object.keys(elemTraceset).forEach((key) => {
+          if (
+            traceSet[key] &&
+            !tracesToRemove.includes(key) &&
+            this.shouldKeepTrace(key, param, values)
+          ) {
+            updatedTraceset[key] = Trace(traceSet[key]);
+          }
+        });
         let headerToUse = this.getHeader();
 
         // We can compare the data length of a common trace to determine which set is "better".
@@ -699,7 +713,9 @@ export class ExploreMultiSk extends ElementSk {
           msg: '',
           skps: [],
         };
-        return await elem.UpdateWithFrameResponse(
+        this.allFrameResponses[index] = updatedResponse;
+        this.allFrameRequests[index] = updatedRequest;
+        return elem.UpdateWithFrameResponse(
           updatedResponse,
           updatedRequest,
           true,
@@ -708,7 +724,7 @@ export class ExploreMultiSk extends ElementSk {
           true
         );
       }
-      return await Promise.resolve();
+      return Promise.resolve();
     });
 
     await Promise.all(updatePromises);
@@ -1243,7 +1259,7 @@ export class ExploreMultiSk extends ElementSk {
       const checkTracesets = () => {
         const currentTracesets = this.getTracesets();
         if (
-          currentTracesets.length === this.currentPageExploreElements.length &&
+          currentTracesets.length === this.exploreElements.length &&
           currentTracesets.some((ts) => ts.length > 0)
         ) {
           resolve(currentTracesets);
@@ -1370,6 +1386,27 @@ export class ExploreMultiSk extends ElementSk {
     }
 
     const fragment = document.createDocumentFragment();
+
+    // Always render the main graph (index 0) if it exists, to ensure it's connected and can load
+    // data.
+    // In summary view (startIndex > 0), we hide it.
+    if (this.allGraphConfigs.length > 0 && startIndex > 0) {
+      let explore = this.exploreElements[0];
+      if (!explore) {
+        explore = this.createExploreSimpleSk();
+        this.exploreElements[0] = explore;
+      }
+      explore.style.display = 'none';
+
+      const graphConfig = this.allGraphConfigs[0];
+      const hasResponse = !!this.allFrameResponses[0];
+      // In summary view, manual_plot_mode is false, so we don't need the complex check.
+      const shouldQueryDataForThisGraph = !doNotQueryData && !hasResponse;
+
+      this.addStateToExplore(explore, graphConfig, !shouldQueryDataForThisGraph, 0);
+      fragment.appendChild(explore);
+    }
+
     for (let i = startIndex; i <= endIndex; i++) {
       const graphConfig = this.allGraphConfigs[i];
       if (!graphConfig) {
@@ -1381,18 +1418,20 @@ export class ExploreMultiSk extends ElementSk {
         explore = this.createExploreSimpleSk();
         this.exploreElements[i] = explore;
       }
+      explore.style.display = '';
 
-      let shouldQueryDataForThisGraph = !doNotQueryData;
-      // OPTIMIZATION: In Manual Mode, if doNotQueryData is true (context: adding a new graph),
-      // we strictly ONLY want to query the NEW graph (which is at global index 0).
-      if (this.state.manual_plot_mode && doNotQueryData) {
-        // If we are in manual mode and asked not to query data (e.g. preserving existing),
-        // we typically imply that we only want to query data for the *newly added* graph
-        // which is usually at index 0 (because we unshift).
-        if (i === 0) {
-          shouldQueryDataForThisGraph = true;
-        }
-      }
+      // If we already have a response for this graph, we don't need to query data.
+      const hasResponse = !!this.allFrameResponses[i];
+
+      // Logic:
+      // 1. Default: Query if we are allowed to (doNotQueryData is false) AND we don't have a
+      //    response yet.
+      // 2. Manual Mode Override: If we are adding a graph (doNotQueryData is true), we DO want to
+      //    query
+      //    for the main graph (i === 0) because it's the new one.
+      const shouldQueryDataForThisGraph =
+        (!doNotQueryData && !hasResponse) ||
+        (this.state.manual_plot_mode && doNotQueryData && i === 0);
 
       this.currentPageExploreElements.push(explore);
       this.addStateToExplore(explore, graphConfig, !shouldQueryDataForThisGraph, i);
@@ -1414,49 +1453,90 @@ export class ExploreMultiSk extends ElementSk {
     // and refs are populated.
     return await new Promise((resolve) => {
       window.requestAnimationFrame(async () => {
-        const updatePromises: Promise<void>[] = [];
-        for (let i = startIndex; i <= endIndex; i++) {
-          // Calculate the index in currentPageExploreElements (0-based for the current page)
-          const pageIndex = i - startIndex;
-          const explore = this.currentPageExploreElements[pageIndex];
-          const isDefaultResponse = !this.allFrameResponses[i];
+        try {
+          const updatePromises: Promise<void>[] = [];
 
-          // If we don't have a cached response and the graph is already fetching
-          // its own data, skip this update to avoid triggering "No data found" errors.
-          if (isDefaultResponse && !explore.state.doNotQueryData) {
-            continue;
+          // Update hidden accumulator if present (startIndex > 0)
+          if (this.allGraphConfigs.length > 0 && startIndex > 0) {
+            const i = 0;
+            const explore = this.exploreElements[0];
+            if (explore) {
+              const isDefaultResponse = !this.allFrameResponses[i];
+              const frameResponse = this.allFrameResponses[i] || this.createFrameResponse();
+              const frameRequest = this.allFrameRequests[i] || this.createFrameRequest();
+
+              if ((explore as any).updateComplete) {
+                await (explore as any).updateComplete;
+              }
+              updatePromises.push(
+                explore.UpdateWithFrameResponse(
+                  frameResponse,
+                  frameRequest,
+                  false,
+                  this.mainGraphSelectedRange,
+                  false,
+                  !isDefaultResponse
+                )
+              );
+            }
           }
 
-          const frameResponse = this.allFrameResponses[i] || this.createFrameResponse();
-          const frameRequest = this.allFrameRequests[i] || this.createFrameRequest();
+          for (let i = startIndex; i <= endIndex; i++) {
+            // Calculate the index in currentPageExploreElements (0-based for the current page)
+            const pageIndex = i - startIndex;
+            const explore = this.currentPageExploreElements[pageIndex];
+            if (!explore) {
+              continue;
+            }
+            const isDefaultResponse = !this.allFrameResponses[i];
+            // If we don't have a cached response and the graph is already fetching
+            // its own data, skip this update to avoid triggering "No data found" errors.
+            if (isDefaultResponse && !explore.state.doNotQueryData) {
+              continue;
+            }
+            const frameResponse = this.allFrameResponses[i] || this.createFrameResponse();
+            const frameRequest = this.allFrameRequests[i] || this.createFrameRequest();
 
-          // Wait for the element to be ready.
-          if ((explore as any).updateComplete) {
-            await (explore as any).updateComplete;
+            // Wait for the element to be ready.
+            if ((explore as any).updateComplete) {
+              await (explore as any).updateComplete;
+            }
+
+            updatePromises.push(
+              explore.UpdateWithFrameResponse(
+                frameResponse,
+                frameRequest,
+                false,
+                this.mainGraphSelectedRange,
+                false,
+                !isDefaultResponse
+              )
+            );
           }
-
-          updatePromises.push(
-            explore.UpdateWithFrameResponse(
-              frameResponse,
-              frameRequest,
-              false,
-              this.mainGraphSelectedRange,
-              true,
-              !isDefaultResponse
-            )
-          );
+          await Promise.all(updatePromises);
+        } catch (error) {
+          console.error('Error updating charts:', error);
+        } finally {
+          resolve();
         }
-        await Promise.all(updatePromises);
-        resolve();
       });
     });
   }
 
   private updateChartHeights(): void {
-    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
-    graphs.forEach((graph) => {
-      const height = graphs.length === 1 ? '500px' : '250px';
-      (graph as ExploreSimpleSk).updateChartHeight(height);
+    window.requestAnimationFrame(() => {
+      if (!this.isConnected || !this.graphDiv) {
+        return;
+      }
+      const graphs = this.graphDiv.querySelectorAll('explore-simple-sk');
+      const visibleGraphCount = Array.from(graphs).filter(
+        (g) => (g as HTMLElement).style.display !== 'none'
+      ).length;
+      const height = visibleGraphCount === 1 ? '500px' : '250px';
+
+      graphs.forEach((graph) => {
+        (graph as ExploreSimpleSk).updateChartHeight(height);
+      });
     });
   }
 
@@ -1505,6 +1585,9 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private async syncExtendRange(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
+    if (this._dataLoading) {
+      return;
+    }
     const graphs = this.exploreElements;
     const offset = e.detail.offsetInSeconds;
     const range = e.detail.value;
@@ -1528,6 +1611,9 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private async syncChartSelection(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
+    if (this._dataLoading) {
+      return;
+    }
     const graphs = this.exploreElements;
     if (!e.detail.value) {
       return;
@@ -1669,6 +1755,9 @@ export class ExploreMultiSk extends ElementSk {
     }
     explore.addEventListener('state_changed', () => {
       const elemState = explore.state;
+      if (!this.allGraphConfigs[elemState.graph_index]) {
+        return;
+      }
       let stateChanged = false;
       if (this.allGraphConfigs[elemState.graph_index].formulas !== elemState.formulas) {
         this.allGraphConfigs[elemState.graph_index].formulas = elemState.formulas || [];
@@ -1709,7 +1798,9 @@ export class ExploreMultiSk extends ElementSk {
     if (this.testPicker) {
       // CHANGE: Only sync graph state back to picker if NOT manual_plot_mode
       if (!this.state.manual_plot_mode) {
-        if (!this.testPicker.isLoaded() && this.exploreElements.length > 0) {
+        const triggeredByPicker =
+          this.loadTrigger === 'plot_button_clicked' || this.loadTrigger === 'picker_add_trace';
+        if (!this.testPicker.isLoaded() && this.exploreElements.length > 0 && !triggeredByPicker) {
           this.populateTestPicker(this.exploreElements[0].getParamSet());
         }
       }

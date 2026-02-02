@@ -147,6 +147,14 @@ explore-simple-sk {
     height: 600px; // will be overwritten by updateChartHeight() if multiple graphs
     width: 100%;
     padding-bottom: 10px; // introduce a gap between the main chart and the summary bar
+
+    &.small-height {
+      height: 250px;
+    }
+
+    &.medium-height {
+      height: 500px;
+    }
   }
 
   plot-simple-sk,
