@@ -1420,6 +1420,13 @@ export class ExploreMultiSk extends ElementSk {
           const pageIndex = i - startIndex;
           const explore = this.currentPageExploreElements[pageIndex];
           const isDefaultResponse = !this.allFrameResponses[i];
+
+          // If we don't have a cached response and the graph is already fetching
+          // its own data, skip this update to avoid triggering "No data found" errors.
+          if (isDefaultResponse && !explore.state.doNotQueryData) {
+            continue;
+          }
+
           const frameResponse = this.allFrameResponses[i] || this.createFrameResponse();
           const frameRequest = this.allFrameRequests[i] || this.createFrameRequest();
 
