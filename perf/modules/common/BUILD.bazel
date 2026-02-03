@@ -1,6 +1,16 @@
 load("//infra-sk:index.bzl", "karma_test", "ts_library")
 
 ts_library(
+    name = "graph-config_ts_lib",
+    srcs = ["graph-config.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/modules/data-service:data-service_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+    ],
+)
+
+ts_library(
     name = "plot-builder_ts_lib",
     srcs = ["plot-builder.ts"],
     visibility = ["//visibility:public"],

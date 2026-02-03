@@ -22,10 +22,9 @@ import {
   PointSelected,
   selectionToEvent,
   CommitRange,
-  GraphConfig,
-  updateShortcut,
   State,
 } from './explore-simple-sk';
+import { GraphConfig, updateShortcut } from '../common/graph-config';
 import { MdDialog } from '@material/web/dialog/dialog';
 import { MdSwitch } from '@material/web/switch/switch';
 import { PlotSummarySk } from '../plot-summary-sk/plot-summary-sk';

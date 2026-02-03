@@ -14,7 +14,7 @@ import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/checkbox-sk';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
-import { GraphConfig, updateShortcut } from '../explore-simple-sk/explore-simple-sk';
+import { GraphConfig, updateShortcut } from '../common/graph-config';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { errorMessage } from '../errorMessage';
 
@@ -70,7 +70,9 @@ export class RevisionInfoSk extends ElementSk {
     const url = await this.getMultiGraphUrl(selectedRevs);
 
     if (url === '') {
-      errorMessage(`Failed to view graph. Please file a bug at ${window.perf.feedback_url}`);
+      errorMessage(
+        `Failed to view graph. Please file a bug at ${(window as any).perf.feedback_url}`
+      );
       return;
     }
 

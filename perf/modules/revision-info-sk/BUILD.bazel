@@ -18,7 +18,6 @@ sk_element(
     sk_element_deps = [
         "//elements-sk/modules/spinner-sk",
         "//elements-sk/modules/checkbox-sk",
-        "//perf/modules/explore-simple-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",
@@ -29,6 +28,7 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        "//perf/modules/common:graph-config_ts_lib",
     ],
     ts_srcs = [
         "revision-info-sk.ts",

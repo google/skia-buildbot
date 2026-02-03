@@ -134,6 +134,8 @@ import { TryJobPreloadParams } from '../pinpoint-try-job-dialog-sk/pinpoint-try-
 import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
 import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
+import { GraphConfig, updateShortcut } from '../common/graph-config';
+export { GraphConfig, updateShortcut };
 import { DataService, DataServiceError } from '../data-service';
 
 const DOMAIN_DATE = 'date';
@@ -249,21 +251,10 @@ export const defaultPointSelected = (): PointSelected => ({
   tableCol: -1,
 });
 
-export class GraphConfig {
-  formulas: string[] = []; // Formulas
-
-  queries: string[] = []; // Queries
-
-  keys: string = ''; // Keys
-}
-
 /**
  * Creates a shortcut ID for the given Graph Configs.
  *
  */
-export const updateShortcut = async (graphConfigs: GraphConfig[]): Promise<string> => {
-  return await DataService.getInstance().updateShortcut(graphConfigs);
-};
 
 // State is reflected to the URL via stateReflector.
 export class State {

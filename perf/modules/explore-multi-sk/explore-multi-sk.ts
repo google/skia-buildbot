@@ -18,10 +18,10 @@ import {
   DEFAULT_RANGE_S,
   ExploreSimpleSk,
   State as ExploreState,
-  GraphConfig,
   LabelMode,
   updateShortcut,
 } from '../explore-simple-sk/explore-simple-sk';
+import { GraphConfig } from '../common/graph-config';
 import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { load } from '@google-web-components/google-chart/loader';
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
@@ -1557,6 +1557,18 @@ export class ExploreMultiSk extends ElementSk {
       const end = currentUrl.searchParams.get('end');
       if (end !== null && Number(end) !== this.state.end) {
         this.state.end = Number(end);
+      }
+      if (this.stateHasChanged) {
+        this.stateHasChanged();
+      }
+    } else if (!this.state.manual_plot_mode) {
+      // For single graph (not in manual mode), we need to ensure local state respects the selection
+      // so that it doesn't revert the URL when stateHasChanged is called later.
+      if (e.detail.value.begin !== this.state.begin) {
+        this.state.begin = e.detail.value.begin;
+      }
+      if (e.detail.value.end !== this.state.end) {
+        this.state.end = e.detail.value.end;
       }
       if (this.stateHasChanged) {
         this.stateHasChanged();
