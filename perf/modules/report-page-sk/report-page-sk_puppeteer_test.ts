@@ -1,6 +1,7 @@
 import { assert, expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { ReportPageSkPO } from './report-page-sk_po';
+import { poll } from '../common/puppeteer-test-util';
 
 describe('report-page-sk', () => {
   let testBed: TestBed;
@@ -129,11 +130,62 @@ describe('report-page-sk', () => {
       // Initial state should be 'commit'
       expect(await graph1PO.getXAxisDomain()).to.equal('commit');
     });
-  });
 
-  // TODO(b/479903517): There is no need to have '#open-trending-icon' to open
-  // anomalies table and intract with it. The removed tests will be replaced
-  // with new tests.
+    it('should draw graph for the pre-selected anomaly', async () => {
+      // Verify that the graph for the pre-selected item is displayed.
+      const graph = await reportPageSkPO.getGraph(0);
+      const googleChart = graph.googleChart;
+      expect(await googleChart.isEmpty()).to.be.false;
+
+      // Verify the anomaly icon exists on the graph.
+      const anomalyRect = await googleChart.applyFnToDOMNode((el) => {
+        const anomalyIcon = el.shadowRoot!.querySelector('div.anomaly > .anomaly');
+        if (!anomalyIcon) return null;
+        const rect = anomalyIcon.getBoundingClientRect();
+        return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+      });
+      expect(anomalyRect).to.not.be.null;
+
+      // Click the anomaly icon to open the tooltip window.
+      // https://screenshot.googleplex.com/5eFnaKGFVdnFWHp
+      await testBed.page.mouse.click(
+        anomalyRect!.x + anomalyRect!.width / 2,
+        anomalyRect!.y + anomalyRect!.height / 2
+      );
+
+      // Verify the anomaly tooltip window.
+      const chartTooltipPO = graph.chartTooltip;
+      const containerPO = chartTooltipPO.container;
+      await poll(async () => {
+        if (await containerPO.isEmpty()) return false;
+        const visible = await containerPO.applyFnToDOMNode(
+          (el) => (el as HTMLElement).style.display !== 'none'
+        );
+        if (!visible) return false;
+        return (await containerPO.innerText).includes('67130');
+      }, 'Tooltip was not visible or did not contain expected data');
+
+      const tooltipText = await containerPO.innerText;
+
+      expect(tooltipText).to.contain('Default [Anomaly]');
+      const lines = tooltipText.split('\n').filter((l) => l.trim() !== '');
+      const tooltipData: { [key: string]: string } = {};
+      lines.forEach((line) => {
+        const match = line.match(/^(Date|Value|Change|Anomaly|Median|Previous)\s+(.*)$/);
+        if (match) {
+          tooltipData[match[1]] = match[2].trim();
+        }
+      });
+      expect(tooltipData).to.deep.equal({
+        Date: 'Tue, 27 Jun 2023 13:32:43 GMT',
+        Value: '75.2',
+        Change: '67130',
+        Anomaly: 'Regression',
+        Median: '75.2',
+        Previous: '60.8302 [+23.6228%]',
+      });
+    });
+  });
 
   it('should be able to scroll up and down', async () => {
     // Scroll down by 1000px.
@@ -146,4 +198,53 @@ describe('report-page-sk', () => {
     const scrollYAfterScrollUp = await testBed.page.evaluate(() => window.scrollY);
     expect(scrollYAfterScrollUp).to.equal(0);
   });
+
+  describe('graph header', () => {
+    it('verify Load Test Picker header button in the graph', async () => {
+      const graph = await reportPageSkPO.getGraph(0);
+      const link = await graph.bySelector('#chartHeader > a');
+      expect(await link.isEmpty()).to.be.false;
+      const href = await link.getAttribute('href');
+      expect(href).to.not.be.null;
+      expect(href!).to.contain('/m/?begin=1687265456&end=1687961973');
+
+      const exploreButton = await link.bySelector('md-icon-button');
+      expect(await exploreButton.isEmpty()).to.be.false;
+      const title = await exploreButton.getAttribute('title');
+      expect(title?.toLowerCase()).to.equal('open in multigraph');
+    });
+
+    it('verify Show Zero on Axis header button in the graph', async () => {
+      const graph = await reportPageSkPO.getGraph(0);
+      const showZeroButton = await graph.bySelector(
+        '#chartHeader md-icon-button[title="Show Zero on Axis"]'
+      );
+      expect(await showZeroButton.isEmpty()).to.be.false;
+      const icon = await showZeroButton.bySelector('md-icon');
+      expect(await icon.innerText).to.equal('hide_source');
+    });
+
+    it('verify Add Chart to Favorites header button in the graph', async () => {
+      const graph = await reportPageSkPO.getGraph(0);
+      const favButton = await graph.bySelector(
+        '#chartHeader md-icon-button[title="Add Chart to Favorites"]'
+      );
+      expect(await favButton.isEmpty()).to.be.false;
+      const icon = await favButton.bySelector('md-icon');
+      expect(await icon.innerText).to.equal('favorite');
+    });
+
+    it('verify Show Settings Dialog header button in the graph', async () => {
+      const graph = await reportPageSkPO.getGraph(0);
+      const settingsButton = await graph.bySelector(
+        '#chartHeader md-icon-button[title="Show Settings Dialog"]'
+      );
+      expect(await settingsButton.isEmpty()).to.be.false;
+      const icon = await settingsButton.bySelector('md-icon');
+      expect(await icon.innerText).to.equal('settings');
+    });
+  });
+
+  // TODO(b/479903517): Set the test path and show the actual trace name
+  // instead of the default 'Multi-trace Graph' and add verification.
 });
