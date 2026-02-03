@@ -4,10 +4,7 @@ sk_element(
     name = "spinner-sk",
     sass_deps = ["//elements-sk/modules/themes:themes_sass_lib"],
     sass_srcs = ["spinner-sk.scss"],
-    ts_deps = [
-        "//elements-sk/modules:define_ts_lib",
-        "//elements-sk/modules:upgradeproperty_ts_lib",
-    ],
+    ts_deps = ["//:node_modules/lit"],
     ts_srcs = [
         "index.ts",
         "spinner-sk.ts",

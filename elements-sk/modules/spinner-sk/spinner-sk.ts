@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+
 /**
  * @module elements-sk/spinner-sk
- * @decription <h2><code>spinner-sk</code></h2>
+ * @description <h2><code>spinner-sk</code></h2>
  *
  * <p>
  *   An activity spinner.
@@ -23,27 +26,12 @@
  * @attr active - Boolean attribute, if present, spinner is active.
  *
  */
-import { define } from '../define';
-import { upgradeProperty } from '../upgradeProperty';
+@customElement('spinner-sk')
+export class SpinnerSk extends LitElement {
+  @property({ type: Boolean, reflect: true })
+  active: boolean = false;
 
-export class SpinnerSk extends HTMLElement {
-  // TODO(jcgregorio) What is ARIA for a spinner?
-  connectedCallback(): void {
-    upgradeProperty(this, 'active');
-  }
-
-  /** Mirrors the attribute 'active'. */
-  get active(): boolean {
-    return this.hasAttribute('active');
-  }
-
-  set active(val: boolean) {
-    if (val) {
-      this.setAttribute('active', '');
-    } else {
-      this.removeAttribute('active');
-    }
+  createRenderRoot() {
+    return this;
   }
 }
-
-define('spinner-sk', SpinnerSk);
