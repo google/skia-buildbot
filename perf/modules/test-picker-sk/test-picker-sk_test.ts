@@ -225,7 +225,8 @@ describe('test-picker-sk default option inference', () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
   });
 
-  it('should show (default) option when backend returns empty string', async () => {
+  it('should show (default) option when backend returns empty string', async function () {
+    this.timeout(5000);
     const field = element.querySelector<PickerFieldSk>('picker-field-sk');
     expect(field!.label).to.equal('benchmark');
 

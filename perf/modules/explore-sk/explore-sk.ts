@@ -87,7 +87,8 @@ export class ExploreSk extends ElementSk {
         this.exploreSimpleSk!.openQueryByDefault = true;
         this.exploreSimpleSk!.state = state;
         this.exploreSimpleSk!.useTestPicker = false;
-        if (state.use_test_picker_query) {
+        const isV2 = window.perf.enable_v2_ui && localStorage.getItem('v2_ui') !== 'false';
+        if (state.use_test_picker_query || isV2) {
           await this.initializeTestPicker();
         }
         this.exploreSimpleSk!.render();

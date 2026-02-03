@@ -13,7 +13,7 @@ describe('ExploreSk', () => {
   const newInstance = setUpElementUnderTest<ExploreSk>('explore-sk');
   let element: ExploreSk;
 
-  const setupWindowPerf = () => {
+  const setupWindowPerf = (enableV2: boolean = false) => {
     window.perf = {
       instance_url: '',
       commit_range_url: '',
@@ -48,15 +48,19 @@ describe('ExploreSk', () => {
       app_version: 'test-version',
       instance_name: 'chrome-perf-test',
       header_image_url: '',
-      enable_v2_ui: false,
+      enable_v2_ui: enableV2,
       dev_mode: false,
       extra_links: null,
     };
   };
 
-  const setupElement = async (mockDefaults: any = null, paramsMock: any = null) => {
+  const setupElement = async (
+    mockDefaults: any = null,
+    paramsMock: any = null,
+    enableV2: boolean = false
+  ) => {
     setUpExploreDemoEnv();
-    setupWindowPerf();
+    setupWindowPerf(enableV2);
 
     fetchMock.config.overwriteRoutes = true;
     const defaultsResponse = mockDefaults || {
@@ -212,5 +216,32 @@ describe('ExploreSk', () => {
 
     assert.equal((element as any).userEmail, 'user@google.com');
     assert.isTrue(exploreSimpleSk.state.enable_favorites);
+  });
+
+  describe('V2 UI Support', () => {
+    afterEach(() => {
+      window.localStorage.removeItem('v2_ui');
+    });
+
+    it('initializes test picker when enable_v2_ui is true', async () => {
+      // Setup with V2 UI enabled via localStorage and window.perf (via setupElement)
+      window.localStorage.setItem('v2_ui', 'true');
+
+      // Mock defaults WITHOUT use_test_picker_query, but pass enableV2=true
+      await setupElement(
+        {
+          include_params: ['config'],
+          default_url_values: { use_test_picker_query: 'false' },
+        },
+        null,
+        true
+      );
+
+      const testPicker = element.querySelector<any>('#test-picker')!;
+      assert.isFalse(
+        testPicker.classList.contains('hidden'),
+        'Test Picker should be visible in V2 UI'
+      );
+    });
   });
 });
