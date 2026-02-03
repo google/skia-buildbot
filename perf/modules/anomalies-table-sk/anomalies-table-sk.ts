@@ -936,6 +936,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       }
     });
 
+    this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
     this._render();
   }
 

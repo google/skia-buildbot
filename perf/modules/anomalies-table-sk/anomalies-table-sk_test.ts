@@ -639,6 +639,32 @@ describe('anomalies-table-sk', () => {
       assert.equal(checkedSet.length, 1);
       assert.strictEqual(checkedSet[0], originalAnomaly);
     });
+
+    it('calls toggleButtons on triageMenu with true when anomalies are selected', async () => {
+      const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
+      // Stub triageMenu to spy on toggleButtons.
+      const triageMenu = element.querySelector('triage-menu-sk') as any;
+      const toggleButtonsSpy = sinon.spy(triageMenu, 'toggleButtons');
+
+      await element.populateTable(anomalies);
+      await element.checkSelectedAnomalies(anomalies);
+
+      sinon.assert.calledWith(toggleButtonsSpy, true);
+      toggleButtonsSpy.restore(); // Clean up the spy.
+    });
+
+    it('calls toggleButtons on triageMenu with false when no anomalies are selected', async () => {
+      // Stub triageMenu to spy on toggleButtons.
+      const triageMenu = element.querySelector('triage-menu-sk') as any;
+      const toggleButtonsSpy = sinon.spy(triageMenu, 'toggleButtons');
+
+      await element.populateTable([]);
+      await element.checkSelectedAnomalies([]); // Should call with false
+
+      // We expect two calls, one with true and one with false.
+      sinon.assert.calledWith(toggleButtonsSpy, false);
+      toggleButtonsSpy.restore(); // Clean up the spy.
+    });
   });
 
   describe('toggle children checkboxes', () => {
