@@ -243,6 +243,32 @@ describe('report-page-sk', () => {
       const icon = await settingsButton.bySelector('md-icon');
       expect(await icon.innerText).to.equal('settings');
     });
+
+    it('verify graph title content', async () => {
+      // https://screenshot.googleplex.com/6JP5sC9Pnu8cJn8
+      const graph = await reportPageSkPO.getGraph(0);
+      const graphTitle = await graph.bySelector('#graphTitle');
+      expect(await graphTitle.isEmpty()).to.be.false;
+
+      const columns = await graphTitle.bySelectorAll('.column');
+      expect(await columns.length).to.equal(4);
+
+      const expectedData = [
+        { key: 'benchmark', value: 'jetstream2' },
+        { key: 'bot', value: 'mac-m1_mini_2020-perf' },
+        { key: 'master', value: 'ChromiumPerf' },
+        { key: 'test', value: 'Babylon.First' },
+      ];
+
+      for (let i = 0; i < expectedData.length; i++) {
+        const column = await columns.item(i);
+        const param = await column.bySelector('.param');
+        const value = await column.bySelector('.hover-to-show-text');
+
+        expect(await param.innerText).to.equal(expectedData[i].key);
+        expect(await value.innerText).to.equal(expectedData[i].value);
+      }
+    });
   });
 
   // TODO(b/479903517): Set the test path and show the actual trace name

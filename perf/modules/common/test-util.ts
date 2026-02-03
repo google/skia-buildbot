@@ -80,6 +80,9 @@ const GROUP_REPORT_RESPONSE: GetGroupReportResponse = {
 
 const STATUS_ID = 'd25fedcc-7e36-47e4-83d5-58ab76b2d3d1';
 
+export const MOCK_TRACE_KEY_1 = ',arch=arm,os=Android,';
+export const MOCK_TRACE_KEY_2 = ',arch=arm,os=Ubuntu,';
+
 export const normalTracesResponse = {
   status: 'Finished',
   messages: [
@@ -91,13 +94,13 @@ export const normalTracesResponse = {
   results: {
     dataframe: {
       traceset: {
-        ',arch=arm,os=Android,': [
+        [MOCK_TRACE_KEY_1]: [
           61.2075, 60.687603, 61.30078, 61.660313, 60.830208, 75.2, 74.9, 75.3, 75.1, 75.4, 75.0,
           75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3,
           75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3, 75.1, 75.4, 75.0,
           75.6, 75.2, 75.3, 75.1, 75.4, 75.0, 75.6, 75.2, 75.3,
         ],
-        ',arch=arm,os=Ubuntu,': [
+        [MOCK_TRACE_KEY_2]: [
           13.51672, 13.434168, 13.47146, 13.494012, 13.464116, 18.2, 17.9, 18.3, 18.1, 18.4, 18.0,
           18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3,
           18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4, 18.0,
@@ -319,15 +322,21 @@ export const normalTracesResponse = {
     msg: '',
     display_mode: 'display_plot',
     anomalymap: {
-      ',arch=arm,os=Android,': {
+      [MOCK_TRACE_KEY_1]: {
         67130: anomalyTable[0],
       },
-      ',arch=arm,os=Ubuntu,': {
+      [MOCK_TRACE_KEY_2]: {
         67130: anomalyTable[1],
       },
     },
   },
   url: `/_/status/${STATUS_ID}`,
+};
+
+export const defaultConfig: QueryConfig = {
+  default_param_selections: null,
+  default_url_values: null,
+  include_params: ['arch', 'os'],
 };
 
 export function setUpExploreDemoEnv() {
@@ -363,7 +372,7 @@ export function setUpExploreDemoEnv() {
     UserIssues: [
       {
         UserId: 'user@google.com',
-        TraceKey: ',arch=arm,os=Android,',
+        TraceKey: MOCK_TRACE_KEY_1,
         CommitPosition: 67130,
         IssueId: 2345,
       },
@@ -405,12 +414,6 @@ export function setUpExploreDemoEnv() {
       url: `/_/status/${STATUS_ID}`,
     };
   });
-
-  const defaultConfig: QueryConfig = {
-    default_param_selections: null,
-    default_url_values: null,
-    include_params: ['arch', 'os'],
-  };
 
   fetchMock.get('/_/defaults/', defaultConfig);
 

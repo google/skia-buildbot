@@ -2,7 +2,13 @@ import './index';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ReportPageSk } from './report-page-sk';
 import fetchMock from 'fetch-mock';
-import { setUpExploreDemoEnv, anomalyTable, normalTracesResponse } from '../common/test-util';
+import {
+  setUpExploreDemoEnv,
+  anomalyTable,
+  normalTracesResponse,
+  MOCK_TRACE_KEY_1,
+  defaultConfig,
+} from '../common/test-util';
 
 anomalyTable[0].test_path = 'ChromiumPerf/mac-m1_mini_2020-perf/jetstream2/Babylon.First';
 
@@ -10,17 +16,28 @@ setUpExploreDemoEnv();
 
 fetchMock.config.overwriteRoutes = true;
 
-const TRACE_KEY = ',arch=arm,os=Android,';
+// To avoid showing the generic graph title, at least 3 trace keys must match.
+// See `updateTitle()` in `perf/modules/explore-simple-sk/explore-simple-sk.ts`
+const TRACE_KEY =
+  ',benchmark=jetstream2,bot=mac-m1_mini_2020-perf,master=ChromiumPerf,test=Babylon.First,';
 
 const filteredResults = {
   dataframe: {
     ...normalTracesResponse.results.dataframe,
     traceset: {
-      [TRACE_KEY]: normalTracesResponse.results.dataframe.traceset[TRACE_KEY],
+      [TRACE_KEY]: normalTracesResponse.results.dataframe.traceset[MOCK_TRACE_KEY_1],
+    },
+    header: normalTracesResponse.results.dataframe.header,
+    paramset: {
+      benchmark: ['jetstream2'],
+      bot: ['mac-m1_mini_2020-perf'],
+      master: ['ChromiumPerf'],
+      subtest_1: ['JetStream2'],
+      test: ['Babylon.First'],
     },
   },
   anomalymap: {
-    [TRACE_KEY]: normalTracesResponse.results.anomalymap![TRACE_KEY],
+    [TRACE_KEY]: normalTracesResponse.results.anomalymap![MOCK_TRACE_KEY_1],
   },
   ticks: normalTracesResponse.results.ticks,
   skps: normalTracesResponse.results.skps,
@@ -34,6 +51,10 @@ fetchMock.post('/_/frame/start', {
   messages: [],
   url: '',
 });
+
+defaultConfig.include_params = ['benchmark', 'bot', 'master', 'test'];
+
+fetchMock.get('/_/defaults/', defaultConfig);
 
 window.perf = {
   instance_url: '',
