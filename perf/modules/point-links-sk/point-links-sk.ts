@@ -98,7 +98,7 @@ export class PointLinksSk extends ElementSk {
     const getHtml = async (key: string): Promise<TemplateResult> => {
       const link = this.displayUrls![key];
       // TODO(b/398878559): Strip after 'Git' string until json keys are ready.
-      const keyText: string = key.split(' Git')[0];
+      const keyText: string = key.replace(/ Git.*/i, '');
       let linkText = this.displayTexts![key] || 'Link';
       // This is a specific change for just v8.
       if (keyText === 'V8') {
@@ -306,7 +306,12 @@ export class PointLinksSk extends ElementSk {
       }
       // Extra links found, add them to the displayUrls.
       Object.keys(currentLinks).forEach((key) => {
-        if (keysForUsefulLinks && keysForUsefulLinks.includes(key)) {
+        // TODO(b/398878559): Strip after 'Git' string until json keys are ready.
+        const cleanKey = key.replace(/ Git.*/i, '');
+        if (
+          keysForUsefulLinks &&
+          (keysForUsefulLinks.includes(key) || keysForUsefulLinks.includes(cleanKey))
+        ) {
           displayUrls[key] = currentLinks[key];
         }
       });

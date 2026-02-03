@@ -276,5 +276,61 @@ describe('point-links-sk', () => {
       };
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
+
+    it('With useful links having Git suffix.', async () => {
+      const keysForCommitRange = [''];
+      const keysForUsefulLinks = ['My Key'];
+      const returnLinks = {
+        'My Key Git': 'https://link',
+      };
+      fetchMock.post('/_/links/', {
+        version: 1,
+        links: returnLinks,
+      });
+
+      const currentCommitId = CommitNumber(4);
+      const prevCommitId = CommitNumber(3);
+
+      const expectedLinks = {
+        'My Key Git': 'https://link',
+      };
+      await element.load(
+        currentCommitId,
+        prevCommitId,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks,
+        []
+      );
+      assert.deepEqual(expectedLinks, element.displayUrls);
+    });
+
+    it('With useful links having lowercase git suffix.', async () => {
+      const keysForCommitRange = [''];
+      const keysForUsefulLinks = ['My Key'];
+      const returnLinks = {
+        'My Key git': 'https://link',
+      };
+      fetchMock.post('/_/links/', {
+        version: 1,
+        links: returnLinks,
+      });
+
+      const currentCommitId = CommitNumber(4);
+      const prevCommitId = CommitNumber(3);
+
+      const expectedLinks = {
+        'My Key git': 'https://link',
+      };
+      await element.load(
+        currentCommitId,
+        prevCommitId,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks,
+        []
+      );
+      assert.deepEqual(expectedLinks, element.displayUrls);
+    });
   });
 });
