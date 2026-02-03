@@ -1187,7 +1187,7 @@ describe('ExploreMultiSk', () => {
       loadExtendedSpy = sinon.stub(mainGraph, 'loadExtendedRangeData').resolves();
       sinon.stub(mainGraph, 'getSelectedRange').returns({ begin: 0, end: 1 });
       // Ensure that awaiting 'requestComplete' doesn't hang the test.
-      sinon.stub(mainGraph, 'requestComplete').get(() => Promise.resolve());
+      sinon.stub(mainGraph, 'requestComplete').get(async () => await Promise.resolve());
 
       // We stub 'createExploreSimpleSk' to ensure it returns our controlled instance
       // of ExploreSimpleSk, allowing us to spy on its methods.

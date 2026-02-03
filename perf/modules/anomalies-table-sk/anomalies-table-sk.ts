@@ -18,14 +18,13 @@ import {
   RevisionGroupingMode,
   GroupingCriteria,
 } from './grouping';
-import { GraphConfig } from '../explore-simple-sk/explore-simple-sk';
+import { GraphConfig, updateShortcut } from '../common/graph-config';
 import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import '../window/window';
 import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
 import '@material/web/button/outlined-button.js';
 import { errorMessage } from '../errorMessage';
-import { updateShortcut } from '../explore-simple-sk/explore-simple-sk';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 import '../../../elements-sk/modules/spinner-sk';
 import { CountMetric, telemetry } from '../telemetry/telemetry';
@@ -521,62 +520,20 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     return null;
   }
 
-  private _updateCheckedState(
-    chkbox: HTMLInputElement,
-    a: Anomaly,
-    anomalyGroup: AnomalyGroup | null
-  ) {
-    if (chkbox.checked) {
-      this.checkedAnomaliesSet.add(a);
-    } else {
-      this.checkedAnomaliesSet.delete(a);
-    }
-
-    const group = anomalyGroup || this.findGroupForAnomaly(a);
-
-    // Update summary checkbox state.
-    if (group && group.anomalies.length > 1) {
-      const summaryRowCheckboxId = this.getGroupId(group);
-      const summaryCheckbox = this.querySelector<HTMLInputElement>(
-        `input[id="anomaly-row-${this.uniqueId}-${summaryRowCheckboxId}"]`
-      );
-      if (summaryCheckbox) {
-        let checkedCount = 0;
-        for (const anomaly of group.anomalies) {
-          if (this.checkedAnomaliesSet.has(anomaly)) {
-            checkedCount++;
-          }
-        }
-
-        if (checkedCount === 0) {
-          summaryCheckbox.indeterminate = false;
-          summaryCheckbox.checked = false;
-        } else if (checkedCount === group.anomalies.length) {
-          summaryCheckbox.checked = true;
-          summaryCheckbox.indeterminate = false;
-        } else {
-          summaryCheckbox.checked = false;
-          summaryCheckbox.indeterminate = true;
-        }
+  private _updateCheckedState(chkbox: HTMLInputElement | null, a: Anomaly) {
+    if (chkbox) {
+      if (chkbox.checked) {
+        this.checkedAnomaliesSet.add(a);
+      } else {
+        this.checkedAnomaliesSet.delete(a);
       }
-    }
-
-    if (this.checkedAnomaliesSet.size === 0) {
-      this.headerCheckbox!.indeterminate = false;
-      this.headerCheckbox!.checked = false;
-    } else if (this.checkedAnomaliesSet.size === this.anomalyList.length) {
-      this.headerCheckbox!.indeterminate = false;
-      this.headerCheckbox!.checked = true;
-    } else {
-      this.headerCheckbox!.checked = false;
-      this.headerCheckbox!.indeterminate = true;
     }
 
     this.dispatchEvent(
       new CustomEvent('anomalies_checked', {
         detail: {
-          anomaly: a,
-          checked: chkbox.checked,
+          anomalies: [a],
+          checked: this.checkedAnomaliesSet.has(a),
         },
         bubbles: true,
       })
@@ -585,8 +542,8 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
   }
 
-  private anomalyChecked(chkbox: HTMLInputElement, a: Anomaly, anomalyGroup: AnomalyGroup | null) {
-    this._updateCheckedState(chkbox, a, anomalyGroup);
+  private anomalyChecked(chkbox: HTMLInputElement | null, a: Anomaly) {
+    this._updateCheckedState(chkbox, a);
     this._render();
   }
 
@@ -617,7 +574,14 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     const length = anomalyGroup.anomalies.length;
     if (length > 1) {
       rows.push(this.generateSummaryRow(anomalyGroup, rowClass));
+      // optimization: if collapsed, do not render children
+      if (!anomalyGroup.expanded) {
+        return rows;
+      }
     }
+
+    // If it's a single item group, we always render it (it's not "expandable" in the same sense).
+    // If it's a multi-item group, we only reach here if it is expanded.
 
     for (let i = 0; i < anomalyGroup.anomalies.length; i++) {
       const anomalySortValues = this.getProcessedAnomaly(anomalyGroup.anomalies[i]);
@@ -633,17 +597,14 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
           data-testsuite="${anomalySortValues.testsuite}"
           data-test="${anomalySortValues.test}"
           data-delta="${anomalySortValues.delta}"
-          class="${this.getRowClass(i + 1, anomalyGroup)} ${rowClass}"
-          ?hidden=${!anomalyGroup.expanded &&
-          !this.isParentRow &&
-          anomalyGroup.anomalies.length > 1}>
+          class="${this.getRowClass(i + 1, anomalyGroup)} ${rowClass}">
           <td></td>
           <td>
             <label
               ><input
                 type="checkbox"
                 @change=${(e: Event) => {
-                  this.anomalyChecked(e.target as HTMLInputElement, anomaly, anomalyGroup);
+                  this.anomalyChecked(e.target as HTMLInputElement, anomaly);
                 }}
                 ?checked=${this.checkedAnomaliesSet.has(anomaly)}
                 id="anomaly-row-${this.uniqueId}-${anomaly.id}"
@@ -828,7 +789,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
   findLongestSubTestPath(anomalyList: Anomaly[]): string {
     // Check if this character exists at the same position in all other strings.
-    let longestCommonTestPath = anomalyList.at(0)!.test_path;
+    let longestCommonTestPath = anomalyList[0]!.test_path;
 
     for (let i = 1; i < anomalyList.length; i++) {
       const currentString = anomalyList[i].test_path;
@@ -846,12 +807,12 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
     // Return the common test path plus '' if the paths in the grouped rows are not the same.
     // '*' indicates where the test names differ in the collapsed rows.
-    if (longestCommonTestPath.length !== anomalyList.at(0)!.test_path.length) {
+    if (longestCommonTestPath.length !== anomalyList[0]!.test_path.length) {
       const testPath = longestCommonTestPath.split('/');
       return testPath.slice(3, testPath.length).join('/') + '*';
     }
     // else return the original test path.
-    return anomalyList.at(0)!.test_path;
+    return anomalyList[0]!.test_path;
   }
 
   getReportLinkForBugId(bug_id: number) {
@@ -941,13 +902,15 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
   }
 
   private checkAnomaly(checkedAnomaly: Anomaly) {
-    const checkbox = this.querySelector(
-      `input[id="anomaly-row-${this.uniqueId}-${checkedAnomaly.id}"]`
-    ) as HTMLInputElement;
-    if (checkbox !== null) {
-      checkbox.checked = true;
-      this.anomalyChecked(checkbox, checkedAnomaly, null);
-    }
+    this.checkedAnomaliesSet.add(checkedAnomaly);
+    // Trigger any necessary updates or events that happen when an anomaly is checked.
+    // For example, if anomalyChecked logic handles dispatching events or updating other state,
+    // call it here or replicate the necessary parts.
+    // Since anomalyChecked calls _render, we can just call it with a mock target if needed,
+    // or better, extract the logic.
+    // Assuming anomalyChecked handles the logic:
+    // We can simulate the checkbox being checked.
+    this.anomalyChecked(null, checkedAnomaly);
   }
 
   /**
@@ -961,28 +924,26 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     ) as HTMLInputElement;
     const checked = summaryRowCheckbox.checked;
 
-    anomalyGroup.anomalies.forEach((anomaly) => {
-      const checkbox = this.querySelector<HTMLInputElement>(
-        `input[id="anomaly-row-${this.uniqueId}-${anomaly.id}"]`
-      );
-      if (checkbox) {
-        checkbox.checked = checked;
-      }
+    const affectedAnomalies = anomalyGroup.anomalies;
+    affectedAnomalies.forEach((anomaly) => {
+      // We do not need to update individual checkboxes here because we are
+      // re-rendering the whole table at the end of this function.
       if (checked) {
         this.checkedAnomaliesSet.add(anomaly);
       } else {
         this.checkedAnomaliesSet.delete(anomaly);
       }
-      this.dispatchEvent(
-        new CustomEvent('anomalies_checked', {
-          detail: {
-            anomaly: anomaly,
-            checked: checked,
-          },
-          bubbles: true,
-        })
-      );
     });
+
+    this.dispatchEvent(
+      new CustomEvent('anomalies_checked', {
+        detail: {
+          anomalies: affectedAnomalies,
+          checked: checked,
+        },
+        bubbles: true,
+      })
+    );
 
     // Update header checkbox state.
     if (this.checkedAnomaliesSet.size === 0) {
@@ -1008,40 +969,22 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     const checked = this.headerCheckbox!.checked;
     this.headerCheckbox!.indeterminate = false;
 
-    this.anomalyGroups.forEach((group) => {
-      if (group.anomalies.length > 1) {
-        const summaryRowCheckbox = this.querySelector<HTMLInputElement>(
-          `input[id=anomaly-row-${this.uniqueId}-${this.getGroupId(group)}]`
-        );
-        if (summaryRowCheckbox) {
-          summaryRowCheckbox.indeterminate = false;
-          summaryRowCheckbox.checked = checked;
-        }
-      }
+    if (checked) {
+      this.anomalyList.forEach((a) => this.checkedAnomaliesSet.add(a));
+    } else {
+      this.checkedAnomaliesSet.clear();
+    }
 
-      group.anomalies.forEach((anomaly) => {
-        const checkbox = this.querySelector<HTMLInputElement>(
-          `input[id="anomaly-row-${this.uniqueId}-${anomaly.id}"]`
-        );
-        if (checkbox) {
-          checkbox.checked = checked;
-        }
-        if (checked) {
-          this.checkedAnomaliesSet.add(anomaly);
-        } else {
-          this.checkedAnomaliesSet.delete(anomaly);
-        }
-        this.dispatchEvent(
-          new CustomEvent('anomalies_checked', {
-            detail: {
-              anomaly: anomaly,
-              checked: checked,
-            },
-            bubbles: true,
-          })
-        );
-      });
-    });
+    this.dispatchEvent(
+      new CustomEvent('anomalies_checked', {
+        detail: {
+          anomalies: this.anomalyList,
+          checked: checked,
+        },
+        bubbles: true,
+      })
+    );
+
     this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
     this._render();
   }
@@ -1055,7 +998,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       this.getGroupReportResponse!.timerange_map!
     );
 
-    this.openAnomalyUrl(urlList.at(0), newTab);
+    this.openAnomalyUrl(urlList[0], newTab);
   }
 
   private openAnomalyUrl(url: string | undefined, newTab: Window | null): void {
@@ -1100,14 +1043,14 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
   ): Promise<string[]> {
     const shortcutUrlList: string[] = [];
     for (let i = 0; i < anomalies.length; i++) {
-      const timerange = this.calculateTimeRange(timerangeMap[anomalies.at(i)!.id]);
+      const timerange = this.calculateTimeRange(timerangeMap[anomalies[i]!.id]);
       const graphConfigs = [] as GraphConfig[];
       const config: GraphConfig = {
         keys: '',
         formulas: [],
         queries: [],
       };
-      config.queries = [this.traceFormatter!.formatQuery(anomalies.at(i)!.test_path)];
+      config.queries = [this.traceFormatter!.formatQuery(anomalies[i]!.test_path)];
       graphConfigs.push(config);
       await updateShortcut(graphConfigs)
         .then((shortcut) => {
@@ -1125,7 +1068,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
         `${window.location.protocol}//${window.location.host}` +
         `/m/?begin=${timerange[0]}&end=${timerange[1]}` +
         `&request_type=0&shortcut=${this.shortcutUrl}&totalGraphs=1`;
-      this.multiChartUrlToAnomalyMap.set(anomalies.at(i)!.id, url);
+      this.multiChartUrlToAnomalyMap.set(anomalies[i]!.id, url);
       shortcutUrlList.push(url);
     }
 

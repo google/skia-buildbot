@@ -21,7 +21,6 @@ sk_element(
         "//elements-sk/modules/spinner-sk",
         "//infra-sk/modules/sort-sk",
         "//perf/modules/anomaly-sk",
-        "//perf/modules/explore-simple-sk",
         "//perf/modules/keyboard-shortcuts-help-sk",
         "//perf/modules/triage-menu-sk",
     ],
@@ -39,6 +38,7 @@ sk_element(
         "//perf/modules/telemetry:telemetry_ts_lib",
         "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
         "//perf/modules/window:window_ts_lib",
+        "//perf/modules/common:graph-config_ts_lib",
         ":grouping_ts_lib",
     ],
     ts_srcs = [

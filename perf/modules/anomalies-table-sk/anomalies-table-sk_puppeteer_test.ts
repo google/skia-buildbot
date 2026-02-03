@@ -1,12 +1,7 @@
 import { expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { AnomaliesTableSkPO } from './anomalies-table-sk_po';
-import {
-  anomaly_table,
-  anomaly_table_for_grouping,
-  GROUP_REPORT_RESPONSE_WITH_SID,
-  GROUP_REPORT_RESPONSE,
-} from './test_data';
+import { anomaly_table, GROUP_REPORT_RESPONSE_WITH_SID, GROUP_REPORT_RESPONSE } from './test_data';
 import { ElementHandle } from 'puppeteer';
 import { Page } from 'puppeteer';
 import { assert } from 'chai';
@@ -50,6 +45,7 @@ describe('anomalies-table-sk', () => {
     afterEach(async () => {
       await testBed.page.setRequestInterception(false);
       testBed.page.removeAllListeners('request');
+      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk');
     });
 
     it('shows the default view', async () => {
@@ -86,7 +82,8 @@ describe('anomalies-table-sk', () => {
       const initialRowCount = await anomaliesTableSkPO.getRowCount();
       await anomaliesTableSkPO.clickExpandButton(0);
       const expandedRowCount = await anomaliesTableSkPO.getRowCount();
-      expect(expandedRowCount).to.be.equal(initialRowCount);
+      // Expect 2 additional rows (group size 2).
+      expect(expandedRowCount).to.be.equal(initialRowCount + 2);
     });
 
     it('should be able to click triage button once it clicks one row', async () => {
@@ -117,7 +114,7 @@ describe('anomalies-table-sk', () => {
 
     it('opens a new tab with the correct URL for the trending icon', async () => {
       await anomaliesTableSkPO.clickCheckbox(1);
-      const openMultiGraphUrl = () => testBed.page.click('#open-multi-graph');
+      const openMultiGraphUrl = async () => await testBed.page.click('#open-multi-graph');
 
       // Start waiting for the popup and click the link at the same time.
       const [popup] = await Promise.all([
@@ -171,8 +168,6 @@ describe('anomalies-table-sk', () => {
   });
 
   describe('grouping configuration', () => {
-    const TOTAL_ITEMS = anomaly_table_for_grouping.length; // 8 items
-
     beforeEach(async () => {
       testBed.page.removeAllListeners('request');
       await testBed.page.setRequestInterception(true);
@@ -199,53 +194,94 @@ describe('anomalies-table-sk', () => {
     afterEach(async () => {
       await testBed.page.setRequestInterception(false);
       testBed.page.removeAllListeners('request');
+      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk_grouping');
     });
 
     it('1. Revision: EXACT | GroupBy: NONE', async () => {
       await anomaliesTableSkPO.setRevisionMode('EXACT');
       await anomaliesTableSkPO.setGroupBy('BENCHMARK', false);
 
-      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-1');
-      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 2 + 1);
+      // Groups:
+      // 1. Bug 12345 (merged) -> 1 Group.
+      // 2. Rev A (3 items) -> 1 Group (Multi-item).
+      // 3. Rev B (1 item) -> 1 Group (Single).
+      // 4. Single 1 (1 item) -> 1 Group.
+      // 5. Single 2 (1 item) -> 1 Group.
+      // Total Groups = 5.
+      // Total Rows = 5 Groups + 1 Header Row (normalized by browser) = 6 Rows.
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(6);
     });
 
     it('2. Revision: OVERLAPPING | GroupBy: NONE', async () => {
+      await anomaliesTableSkPO.setRevisionMode('OVERLAPPING');
       await anomaliesTableSkPO.setGroupBy('BENCHMARK', false);
 
-      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-2');
-      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 2 + 1);
+      // Groups:
+      // 1. Bug 12345 (merged) -> 1 Group.
+      // 2. Rev A (3 items) -> 1 Group (Exclude from overlap check).
+      // 3. Rev B (1 item) -> 1 Group (Matches EXACT first, separate from Rev A).
+      // 4. Single 1 (1 item) -> 1 Group.
+      // 5. Single 2 (1 item) -> 1 Group.
+      // Total Groups = 5.
+      // Total Rows = 5 Groups + 1 Header Row = 6 Rows.
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(6);
     });
 
     it('3. Revision: ANY | GroupBy: NONE', async () => {
       await anomaliesTableSkPO.setRevisionMode('ANY');
       await anomaliesTableSkPO.setGroupBy('BENCHMARK', false);
 
-      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-3');
-      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 2 + 1);
+      // Groups:
+      // 1. Bug 12345 (merged) -> 1 Group.
+      // 2. All others (6 items) -> 1 Revision Group (due to ANY mode).
+      // Total Groups = 2.
+      // Total Rows = 2 Groups + 1 Header Row = 3 Rows.
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(3);
     });
 
     it('4. Revision: ANY | GroupBy: BOT', async () => {
       await anomaliesTableSkPO.setRevisionMode('ANY');
       await anomaliesTableSkPO.setGroupBy('BENCHMARK', false);
       await anomaliesTableSkPO.setGroupBy('BOT', true);
-
-      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-4');
-      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 2 + 1);
+      // Logic:
+      // 1. Bug 12345 Group (merged) -> 1 Row.
+      // 2. Revision Group (ANY) splits by BOT:
+      //    - BotA Group (5 items) -> 1 Row.
+      //    - BotB Group (1 item) -> 1 Row.
+      // Total = 1 Bug + 1 BotA + 1 BotB + 1 Header = 4 Rows.
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(4);
     });
 
     it('5. Revision: ANY | GroupBy: BENCHMARK', async () => {
       await anomaliesTableSkPO.setRevisionMode('ANY');
-
-      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-5');
-      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 3 + 1);
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(4);
+      // Logic:
+      // 1. Bug 12345 Group (merged) -> 1 Group.
+      // 2. Revision Group (ANY) contains 6 items.
+      //    Split by BENCHMARK:
+      //    - BenchX (Rev A 1,2,3; Rev B 1) -> 1 Group.
+      //    - BenchZ (Single 1,2) -> 1 Group.
+      // Total Groups = 3 (Bug + BenchX + BenchZ).
+      // Total Rows = 3 Groups + 1 Header Row = 4 Rows.
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(4);
     });
 
-    it('6. GroupSingles: TRUE | Revision: EXACT | GroupBy: BENCHMARK', async () => {
+    it('6. GroupSingles: TRUE', async () => {
       await anomaliesTableSkPO.setRevisionMode('EXACT');
       await anomaliesTableSkPO.setGroupSingles(true);
 
-      await takeScreenshot(testBed.page, 'perf', 'anomalies-table-sk-grouping-6');
-      expect(await anomaliesTableSkPO.getRowCount()).to.equal(TOTAL_ITEMS + 3 + 1);
+      // Groups:
+      // 1. Bug 12345 (merged) -> 1 Group.
+      // 2. Rev A (Multi-item) -> 1 Group.
+      // 3. Rev B (Single) matches BenchX.
+      // 4. Single 1 matches BenchZ.
+      // 5. Single 2 matches BenchZ.
+      // GroupSingles=TRUE (default criteria: BENCHMARK).
+      // - BenchX Group: Rev B (1 item).
+      // - BenchZ Group: Single 1 + Single 2 (2 items).
+      // Total Groups = 1 Bug + 1 Rev A + 1 RevB(BenchX) + 1 Singles(BenchZ) = 4 Groups.
+      // Total Rows = 4 Groups + 1 Header Row = 5 Rows.
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(5);
     });
   });
 

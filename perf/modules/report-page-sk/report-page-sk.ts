@@ -209,8 +209,11 @@ export class ReportPageSk extends ElementSk {
 
     this.addEventListener('anomalies_checked', (e) => {
       const detail = (e as CustomEvent).detail;
-      this.anomalyTracker.getAnomaly(detail.anomaly.id)!.checked = detail.checked;
-      this.updateGraphs(detail.anomaly, detail.checked);
+      const anomalies = detail.anomalies as Anomaly[];
+      anomalies.forEach((anomaly) => {
+        this.anomalyTracker.getAnomaly(anomaly.id)!.checked = detail.checked;
+        this.updateGraphs(anomaly, detail.checked);
+      });
     });
     this.stopTimerAndRecord(SummaryMetric.ReportPageLoadTime);
   }
@@ -339,8 +342,8 @@ export class ReportPageSk extends ElementSk {
   private async listAllCommits(anomalies: Anomaly[] | undefined) {
     if (anomalies !== undefined && anomalies.length > 0) {
       const commits: CommitNumber[] = [];
-      let start = anomalies.at(0)!.start_revision;
-      let end = anomalies.at(0)!.end_revision;
+      let start = anomalies[0]!.start_revision;
+      let end = anomalies[0]!.end_revision;
       anomalies.forEach((anomaly) => {
         if (anomaly.start_revision > start && anomaly.start_revision < end) {
           start = anomaly.start_revision;

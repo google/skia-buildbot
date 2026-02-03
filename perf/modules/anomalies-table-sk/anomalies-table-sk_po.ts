@@ -153,7 +153,7 @@ export class AnomaliesTableSkPO extends PageObject {
   async getDeltaCellColor(rowIndex: number): Promise<string> {
     const row = await this.rows.item(rowIndex);
     const deltaCell = await row.bySelector('td:nth-child(9)'); // 9th column is Delta %
-    return deltaCell.applyFnToDOMNode((el) => window.getComputedStyle(el).color);
+    return await deltaCell.applyFnToDOMNode((el) => window.getComputedStyle(el).color);
   }
 
   async getGroupedRowCount(index: number): Promise<number> {

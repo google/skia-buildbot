@@ -135,7 +135,6 @@ import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { CommitLinks } from '../point-links-sk/point-links-sk';
 import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
 import { GraphConfig, updateShortcut } from '../common/graph-config';
-export { GraphConfig, updateShortcut };
 import { DataService, DataServiceError } from '../data-service';
 
 const DOMAIN_DATE = 'date';

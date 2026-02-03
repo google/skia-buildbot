@@ -19,9 +19,8 @@ import {
   ExploreSimpleSk,
   State as ExploreState,
   LabelMode,
-  updateShortcut,
 } from '../explore-simple-sk/explore-simple-sk';
-import { GraphConfig } from '../common/graph-config';
+import { GraphConfig, updateShortcut } from '../common/graph-config';
 import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { load } from '@google-web-components/google-chart/loader';
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
@@ -581,7 +580,7 @@ export class ExploreMultiSk extends ElementSk {
     // Remove the traces from the current page explore elements.
     const elemsToRemove: ExploreSimpleSk[] = [];
 
-    const updatePromises = this.exploreElements.map((elem) => {
+    const updatePromises = this.exploreElements.map(async (elem) => {
       const hasQueryToRemove =
         elem.state.queries && queriesToRemove.some((qr) => elem.state.queries.includes(qr));
 
@@ -618,7 +617,7 @@ export class ExploreMultiSk extends ElementSk {
         }
         if (elem.state.queries.length === 0) {
           elemsToRemove.push(elem);
-          return Promise.resolve();
+          return await Promise.resolve();
         }
 
         const elemTraceset = elem.getTraceset() as TraceSet;
@@ -700,7 +699,7 @@ export class ExploreMultiSk extends ElementSk {
           msg: '',
           skps: [],
         };
-        return elem.UpdateWithFrameResponse(
+        return await elem.UpdateWithFrameResponse(
           updatedResponse,
           updatedRequest,
           true,
@@ -709,7 +708,7 @@ export class ExploreMultiSk extends ElementSk {
           true
         );
       }
-      return Promise.resolve();
+      return await Promise.resolve();
     });
 
     await Promise.all(updatePromises);
@@ -1413,7 +1412,7 @@ export class ExploreMultiSk extends ElementSk {
     // and thus the DataFrameRepository is not available.
     // We use requestAnimationFrame to ensure the lit-html render cycle has completed
     // and refs are populated.
-    return new Promise((resolve) => {
+    return await new Promise((resolve) => {
       window.requestAnimationFrame(async () => {
         const updatePromises: Promise<void>[] = [];
         for (let i = startIndex; i <= endIndex; i++) {
@@ -1913,11 +1912,11 @@ export class ExploreMultiSk extends ElementSk {
         this.state.shortcut = shortcut;
         this.stateHasChanged!();
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         if (err instanceof DataServiceError) {
           errorMessage(err.message);
         } else {
-          errorMessage(err);
+          errorMessage(err as string);
         }
       });
   }
