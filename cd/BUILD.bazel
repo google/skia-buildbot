@@ -23,5 +23,8 @@ skia_app_container(
         ],
     },
     empty_dirs = {"/cipd": "0777"},
+    env = {
+        "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
+    },
     repository = "skia-public/cd",
 )
