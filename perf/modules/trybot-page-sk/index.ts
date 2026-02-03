@@ -1,1 +1,0 @@
-import './trybot-page-sk';

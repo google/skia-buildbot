@@ -173,21 +173,6 @@ sk_page(
 )
 
 sk_page(
-    name = "trybot",
-    assets_serving_path = "/dist",
-    html_file = "trybot.html",
-    nonce = "{% .Nonce %}",
-    production_sourcemap = True,
-    sass_deps = [":body_sass_lib"],
-    scss_entry_point = "trybot.scss",
-    sk_element_deps = [
-        "//perf/modules/perf-scaffold-sk",
-        "//perf/modules/trybot-page-sk",
-    ],
-    ts_entry_point = "trybot.ts",
-)
-
-sk_page(
     name = "favorites",
     assets_serving_path = "/dist",
     html_file = "favorites.html",
@@ -279,7 +264,6 @@ karma_test(
         ":report_ts_lib",
         ":revisions_ts_lib",
         ":triage_ts_lib",
-        ":trybot_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
     ],

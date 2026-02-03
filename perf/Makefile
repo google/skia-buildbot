@@ -132,10 +132,6 @@ demo_triage2-sk:
 demo_tricon2-sk:
 	$(BAZEL) run --config=mayberemote //perf/modules/tricon2-sk:demo_page_server
 
-.PHONY: demo_trybot-page-sk
-demo_trybot-page-sk:
-	$(BAZEL) run --config=mayberemote //perf/modules/trybot-page-sk:demo_page_server
-
 .PHONY: demo_word-cloud-sk
 demo_word-cloud-sk:
 	$(BAZEL) run --config=mayberemote //perf/modules/word-cloud-sk:demo_page_server

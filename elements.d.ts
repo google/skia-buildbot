@@ -213,7 +213,6 @@ import { TriagePageSk } from './perf/modules/triage-page-sk/triage-page-sk';
 import { TriageSk } from './perf/modules/triage2-sk/triage2-sk';
 import { TriageStatusSk } from './perf/modules/triage-status-sk/triage-status-sk';
 import { TriconSk } from './perf/modules/tricon2-sk/tricon2-sk';
-import { TrybotPageSk } from './perf/modules/trybot-page-sk/trybot-page-sk';
 import { UniformColorSk } from './infra-sk/modules/uniform-color-sk/uniform-color-sk';
 import { UniformDimensionsSk } from './infra-sk/modules/uniform-dimensions-sk/uniform-dimensions-sk';
 import { UniformFpsSk } from './infra-sk/modules/uniform-fps-sk/uniform-fps-sk';
@@ -1424,7 +1423,6 @@ declare global {
     'triage2-sk': TriageSk;
     'triagelog-page-sk': TriagelogPageSk;
     'tricon2-sk': TriconSk;
-    'trybot-page-sk': TrybotPageSk;
     'uniform-color-sk': UniformColorSk;
     'uniform-dimensions-sk': UniformDimensionsSk;
     'uniform-fps-sk': UniformFpsSk;

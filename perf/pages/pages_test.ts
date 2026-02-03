@@ -11,7 +11,6 @@ import './regressions';
 import './report';
 import './revisions';
 import './triage';
-import './trybot';
 import { assert } from 'chai';
 
 describe('Perf Pages', () => {
@@ -28,7 +27,6 @@ describe('Perf Pages', () => {
     'report-page-sk',
     'revision-info-sk',
     'triage-page-sk',
-    'trybot-page-sk',
   ];
 
   beforeEach(() => {

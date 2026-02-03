@@ -234,7 +234,6 @@ var templateFilenames = []string{
 	"alerts.html",
 	"help.html",
 	"dryrunalert.html",
-	"trybot.html",
 	"favorites.html",
 	"extralinks.html",
 	"revisions.html",
@@ -1085,7 +1084,6 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.HandleFunc("/pg", f.templateHandler("playground.html"))
 	router.HandleFunc("/t", f.templateHandler("triage.html"))
 	router.HandleFunc("/d", f.templateHandler("dryrunalert.html"))
-	router.HandleFunc("/r", f.templateHandler("trybot.html"))
 	router.HandleFunc("/f", f.templateHandler("favorites.html"))
 	router.HandleFunc("/l", f.templateHandler("extralinks.html"))
 	router.HandleFunc("/v", f.templateHandler("revisions.html"))

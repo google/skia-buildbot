@@ -111,7 +111,6 @@ skia_app_container(
                 "multiexplore",
                 "newindex",
                 "triage",
-                "trybot",
                 "favorites",
                 "revisions",
                 "regressions",
