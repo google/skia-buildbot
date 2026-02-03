@@ -29,6 +29,7 @@ func NewGitSemVerChild(ctx context.Context, c *config.GitSemVerChildConfig, clie
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	c.Gitiles.Branch = "fakefakefake" // Unused but required below.
 	repo, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, client)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -78,10 +79,11 @@ func (c *gitSemVerChild) Update(ctx context.Context, lastRollRev *revision.Revis
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
-	tipRev, err := c.getRevision(ctx, tagToHash[versions[0].String()], hashToTags)
+	tipRev, err := c.getTipRevision(ctx, versions, tagToHash, hashToTags)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "failed to get details for tip revision %q", versions[0].String())
 	}
+
 	notRolledRevs, err := c.logRevisions(ctx, lastRollRev, tipRev, hashToTags)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "failed to log revisions")
@@ -114,6 +116,20 @@ func (c *gitSemVerChild) GetRevision(ctx context.Context, id string) (*revision.
 		return nil, skerr.Wrap(err)
 	}
 	return c.getRevision(ctx, id, hashToTags)
+}
+
+// GetTipRevision returns a revision.Revision instance associated with the
+// most recent version.
+func (c *gitSemVerChild) GetTipRevision(ctx context.Context) (*revision.Revision, error) {
+	versions, tagToHash, hashToTags, err := c.getVersions(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return c.getTipRevision(ctx, versions, tagToHash, hashToTags)
+}
+
+func (c *gitSemVerChild) getTipRevision(ctx context.Context, versions []*semver.Version, tagToHash map[string]string, hashToTags map[string][]*semver.Version) (*revision.Revision, error) {
+	return c.getRevision(ctx, tagToHash[versions[0].String()], hashToTags)
 }
 
 // Download implements Child.

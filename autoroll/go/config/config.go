@@ -723,6 +723,9 @@ func (c *ParentChildRepoManagerConfig) Validate() error {
 	if c.GetDockerChild() != nil {
 		children = append(children, c.GetDockerChild())
 	}
+	if c.GetGitSemverChild() != nil {
+		children = append(children, c.GetGitSemverChild())
+	}
 	if len(children) != 1 {
 		return skerr.Fmt("Exactly one Child is required, config has %d.", len(children))
 	}
@@ -1023,6 +1026,24 @@ func (c *GCSChildConfig) Validate() error {
 		return skerr.Fmt("GcsPath is required.")
 	}
 	return nil
+}
+
+// Validate implements util.Validator.
+func (c *GitSemVerChildConfig) Validate() error {
+	if c.VersionRegex == "" {
+		return skerr.Fmt("VersionRegex is required.")
+	}
+	// Gitiles.Validate() will check for the presence of the Branch field,
+	// which is not supplied for this Child. Ensure that it's empty and then
+	// insert a placeholder value before validating.
+	if c.Gitiles.Branch != "" {
+		return skerr.Fmt("GitSemverChildConfig.Gitiles.Branch should be empty")
+	}
+	c.Gitiles.Branch = "fakefakefake"
+	defer func() {
+		c.Gitiles.Branch = ""
+	}()
+	return skerr.Wrap(c.Gitiles.Validate())
 }
 
 // Validate implements util.Validator.

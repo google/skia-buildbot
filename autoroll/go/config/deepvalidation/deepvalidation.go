@@ -438,6 +438,8 @@ func (dv *deepvalidator) parentChildRepoManagerConfig(ctx context.Context, c *co
 		tipRev, err = dv.semVerGCSChildConfig(ctx, child.SemverGcsChild)
 	case *config.ParentChildRepoManagerConfig_DockerChild:
 		tipRev, err = dv.dockerChildConfig(ctx, child.DockerChild)
+	case *config.ParentChildRepoManagerConfig_GitSemverChild:
+		getFileChild, tipRev, err = dv.gitSemVerChildConfig(ctx, child.GitSemverChild)
 	default:
 		return nil, nil, skerr.Fmt("Unknown child type: %s", child)
 	}
@@ -504,6 +506,27 @@ func (dv *deepvalidator) gitCheckoutConfig(ctx context.Context, c *config.GitChe
 // making external network requests as needed.
 func (dv *deepvalidator) gitilesChildConfig(ctx context.Context, c *config.GitilesChildConfig) (version_file_common.GetFileFunc, *revision.Revision, error) {
 	child, err := child.NewGitiles(ctx, c, dv.client)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	tipRev, err := child.GetTipRevision(ctx)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	if _, _, err := child.Update(ctx, tipRev); err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	getFile, err := dv.makeGitilesGetFileFuncFromConfig(c.Gitiles)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	return getFile, tipRev, nil
+}
+
+// gitSemVerChildConfig performs validation of the GitSemVerChildConfig,
+// making external network requests as needed.
+func (dv *deepvalidator) gitSemVerChildConfig(ctx context.Context, c *config.GitSemVerChildConfig) (version_file_common.GetFileFunc, *revision.Revision, error) {
+	child, err := child.NewGitSemVerChild(ctx, c, dv.client)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
