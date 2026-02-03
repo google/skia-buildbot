@@ -131,6 +131,12 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       }
     });
     this.addEventListener('open-anomaly-chart', this.openAnomalyChartListener);
+    this.addEventListener('anomaly-changed', () => {
+      if (this.showPopup) {
+        this.togglePopup();
+        this._render();
+      }
+    });
     this._upgradeProperty('show_requested_groups_first');
     window.addEventListener('keydown', this.keyDown);
   }
