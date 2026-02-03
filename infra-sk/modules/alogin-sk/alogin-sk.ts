@@ -9,10 +9,9 @@
  *
  * @attr {string} url - The url that returns the JSON serialized alogin.Status response.
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { html, LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { ElementSk } from '../ElementSk';
 import { Status } from '../json';
 import { rootDomain } from '../url';
 
@@ -63,7 +62,8 @@ const fakeStatus: Status = {
   roles: ['viewer'],
 };
 
-export class AloginSk extends ElementSk {
+@customElement('alogin-sk')
+export class AloginSk extends LitElement {
   /**
    * A promise that resolves to the users logged in status.
    *
@@ -71,22 +71,26 @@ export class AloginSk extends ElementSk {
    */
   statusPromise: Promise<Status> = Promise.resolve(defaultStatus);
 
+  @property({ type: Boolean, attribute: 'testing_offline' })
+  testingOffline: boolean = false;
+
+  @property({ type: String })
+  url: string = '';
+
   private login: string = '';
 
   private logout: string = '';
 
+  @state()
   private status: Status = defaultStatus;
 
   constructor() {
-    super(AloginSk.template);
+    super();
   }
 
-  private static template = (ele: AloginSk) => html`
-    <span class="email"> ${ele.status.email} </span>
-    <a class="logInOut" href="${ele.status.email ? ele.logout : ele.login}">
-      ${ele.status.email ? 'Logout' : 'Login'}
-    </a>
-  `;
+  createRenderRoot() {
+    return this;
+  }
 
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
@@ -96,16 +100,21 @@ export class AloginSk extends ElementSk {
     this.login = `https://${domain}/login/`;
     this.logout = `https://${domain}/logout/`;
 
-    if (this.hasAttribute('testing_offline')) {
+    if (this.testingOffline) {
       this.statusPromise = Promise.resolve(fakeStatus);
       this.status = fakeStatus;
     } else {
-      this.statusPromise = LoggedIn(this.getAttribute('url') || undefined);
+      this.statusPromise = LoggedIn(this.url || undefined);
       this.status = await this.statusPromise;
     }
+  }
 
-    this._render();
+  render() {
+    return html`
+      <span class="email"> ${this.status.email} </span>
+      <a class="logInOut" href="${this.status.email ? this.logout : this.login}">
+        ${this.status.email ? 'Logout' : 'Login'}
+      </a>
+    `;
   }
 }
-
-define('alogin-sk', AloginSk);
