@@ -106,22 +106,18 @@ func (p Placeholders) Command(ctx context.Context, cmd []string, cwd string, env
 	}, nil
 }
 
-// PreUploadConfig substitutes the Placeholders into the PreUploadConfig.
-func (p Placeholders) PreUploadConfig(ctx context.Context, env []string, cfg *config.PreUploadConfig) ([]*cipd.Package, []*exec.Command, error) {
-	cipdPkgs, err := p.CIPDPackages(cfg.CipdPackage)
-	if err != nil {
-		return nil, nil, skerr.Wrap(err)
-	}
-	cmds := make([]*exec.Command, 0, len(cfg.Command))
-	for _, cmdCfg := range cfg.Command {
+// Commands substitutes the Placeholders into the Commands.
+func (p Placeholders) Commands(ctx context.Context, env []string, commands []*config.PreUploadCommandConfig) ([]*exec.Command, error) {
+	cmds := make([]*exec.Command, 0, len(commands))
+	for _, cmdCfg := range commands {
 		cmdEnv := exec.MergeEnv(env, cmdCfg.Env)
 		cmd, err := p.Command(ctx, strings.Fields(cmdCfg.Command), cmdCfg.Cwd, cmdEnv)
 		if err != nil {
-			return nil, nil, skerr.Wrap(err)
+			return nil, skerr.Wrap(err)
 		}
 		cmds = append(cmds, cmd)
 	}
-	return cipdPkgs, cmds, nil
+	return cmds, nil
 }
 
 // RunPreUploadStep runs a pre-upload step as specified by the given config.
@@ -154,7 +150,7 @@ func RunPreUploadStep(ctx context.Context, cfg *config.PreUploadConfig, env []st
 		RollingFromID: from.Id,
 		RollingToID:   to.Id,
 	}
-	cipdPkgs, cmds, err := p.PreUploadConfig(ctx, env, cfg)
+	cipdPkgs, err := p.CIPDPackages(cfg.CipdPackage)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -164,6 +160,7 @@ func RunPreUploadStep(ctx context.Context, cfg *config.PreUploadConfig, env []st
 			return skerr.Wrap(err)
 		}
 	}
+	cmds, err := p.Commands(ctx, env, cfg.Command)
 	for idx, cmd := range cmds {
 		sklog.Infof("Running command: %s %s", cmd.Name, strings.Join(cmd.Args, " "))
 		output, err := exec.RunCommand(ctx, cmd)

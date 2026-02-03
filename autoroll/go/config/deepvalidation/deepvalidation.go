@@ -376,7 +376,28 @@ func fakePlaceholders(tipRev *revision.Revision) parent.Placeholders {
 }
 
 func deepValidateCommand(ctx context.Context, cmd []string, cwd string, env []string, tipRev *revision.Revision, getFile version_file_common.GetFileFunc) error {
+	placeholders := fakePlaceholders(tipRev)
 	ctx = exec.WithOverrideExecutableExists(ctx, func(fp string) bool {
+		if path.Base(fp) == fp {
+			// We're expecting to find the executable in PATH. If any
+			// subdirectory of the CIPD root is in PATH, we can't confirm
+			// whether the executable exists without downloading the packages,
+			// so we have to assume it'll be present when the roller actually
+			// runs.
+			var pathVar string
+			for _, envVar := range env {
+				split := strings.Split(envVar, "=")
+				if len(split) == 2 && split[0] == "PATH" {
+					pathVar = split[1]
+					break
+				}
+			}
+			for _, entry := range strings.Split(pathVar, string(os.PathSeparator)) {
+				if strings.HasPrefix(entry, placeholders.CIPDRoot) {
+					return true
+				}
+			}
+		}
 		if !path.IsAbs(fp) {
 			// We're looking in the checkout dir.
 			fp = path.Join(cwd, fp)
@@ -386,10 +407,17 @@ func deepValidateCommand(ctx context.Context, cmd []string, cwd string, env []st
 			}
 			return err == nil
 		}
-		// We're looking elsewhere. Fall back to the default.
+		if strings.HasPrefix(fp, placeholders.CIPDRoot+"/") {
+			// The command is an absolute path within a CIPD package. We can't
+			// confirm whether the executable exists without downloading the
+			// packages, so we have to assume it'll be present when the roller
+			// actually runs.
+			return true
+		}
+		// Fall back to the default.
 		return exec.DefaultExecutableExists(fp) == nil
 	})
-	_, err := fakePlaceholders(tipRev).Command(ctx, cmd, cwd, env)
+	_, err := placeholders.Command(ctx, cmd, cwd, env)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -886,7 +914,10 @@ func (dv *deepvalidator) preUploadConfig(ctx context.Context, c *config.PreUploa
 		}
 	}
 	for _, cmd := range c.Command {
-		if err := deepValidateCommand(ctx, strings.Fields(cmd.Command), cmd.Cwd, cmd.Env, tipRev, getFile); err != nil {
+		// TODO(borenet): Callers generally pass in depot tools env to
+		// RunPreUploadStep.
+		cmdEnv := exec.MergeEnv(os.Environ(), cmd.Env)
+		if err := deepValidateCommand(ctx, strings.Fields(cmd.Command), cmd.Cwd, cmdEnv, tipRev, getFile); err != nil {
 			return skerr.Wrap(err)
 		}
 	}

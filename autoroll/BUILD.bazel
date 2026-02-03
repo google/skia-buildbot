@@ -38,7 +38,7 @@ skia_app_container(
         ],
     },
     env = {
-        "PATH": "/go/bin:$${PATH}",
+        "PATH": "/go/bin:${PATH}",
     },
     extra_tars = [
         "@autoroll-be-apt-install//:flat",

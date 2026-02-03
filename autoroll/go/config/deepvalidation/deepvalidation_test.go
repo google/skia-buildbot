@@ -1034,6 +1034,39 @@ func TestDeepValidator_preUploadConfig(t *testing.T) {
 	require.NoError(t, dv.preUploadConfig(t.Context(), cfg, tipRev, getFile))
 }
 
+func TestDeepValidator_preUploadConfig_executableInCIPD_PATH(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makePreUploadConfig()
+	cfg.Command[0].Command = "some-executable-from-cipd --some-flag"
+	cfg.Command[0].Env = []string{"PATH=${cipd_root}/bin:${PATH}"}
+
+	mocksForPreUploadConfig(t, dv, cfg)
+
+	getFile := makeGetFileFunc("", nil)
+	tipRev := &revision.Revision{
+		Id: "test-rev",
+	}
+	require.NoError(t, dv.preUploadConfig(t.Context(), cfg, tipRev, getFile))
+}
+
+func TestDeepValidator_preUploadConfig_executableInCIPD_AbsolutePath(t *testing.T) {
+	dv, urlMock := newTestDeepValidator(t)
+	defer urlMock.AssertExpectations(t)
+
+	cfg := makePreUploadConfig()
+	cfg.Command[0].Command = "${cipd_root}/bin/some-executable-from-cipd --some-flag"
+
+	mocksForPreUploadConfig(t, dv, cfg)
+
+	getFile := makeGetFileFunc("", nil)
+	tipRev := &revision.Revision{
+		Id: "test-rev",
+	}
+	require.NoError(t, dv.preUploadConfig(t.Context(), cfg, tipRev, getFile))
+}
+
 func TestDeepValidator_parentChildRepoManagerConfig(t *testing.T) {
 	// Shorthand for functions to set up mocks for parent and child,
 	// respectively.

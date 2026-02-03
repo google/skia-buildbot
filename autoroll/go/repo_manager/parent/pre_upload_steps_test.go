@@ -122,7 +122,7 @@ func TestPlaceholders_Command(t *testing.T) {
 	require.Equal(t, []string{"VAR=abc"}, cmd.Env)
 }
 
-func TestPlaceholders_PreUploadConfig(t *testing.T) {
+func TestPlaceholders_Combined(t *testing.T) {
 	p := Placeholders{
 		ParentRepoDir: "/path/to/repo",
 		RollingFromID: "abc",
@@ -144,10 +144,12 @@ func TestPlaceholders_PreUploadConfig(t *testing.T) {
 			},
 		},
 	}
-	cipdPkgs, cmds, err := p.PreUploadConfig(t.Context(), []string{}, cfg)
+	cipdPkgs, err := p.CIPDPackages(cfg.CipdPackage)
 	require.NoError(t, err)
 	require.Len(t, cipdPkgs, 1)
 	require.Equal(t, "some/package/def", cipdPkgs[0].Name)
+	cmds, err := p.Commands(t.Context(), []string{}, cfg.Command)
+	require.NoError(t, err)
 	require.Len(t, cmds, 1)
 	require.True(t, strings.HasSuffix(cmds[0].Name, "echo"))
 	require.Equal(t, []string{"hello", "def"}, cmds[0].Args)
