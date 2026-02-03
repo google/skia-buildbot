@@ -90,10 +90,8 @@ run_local_frontend_cdb:
 	$(BAZEL) build --config=mayberemote -c dbg //golden/...
 	go run ./go/local
 	../_bazel_bin/golden/cmd/gold_frontend/gold_frontend_/gold_frontend \
-		--common_instance_config=./k8s-instances/local/local.json5 \
+		--common_instance_config=./k8s-instances/local/local-cdb.json5 \
 		--config=./k8s-instances/local/local-frontend.json5
-
-run_local_frontend: run_spanner_emulator run_local_frontend_spanner
 
 run_local_periodictasks: run_spanner_emulator
 	$(BAZEL) build --config=mayberemote -c dbg //golden/...
@@ -152,3 +150,17 @@ run_local_diffcalculator_cdb:
 	GOLD_DIFFCALC_IMAGESOURCE_TYPE=LOCAL ../_bazel_bin/golden/cmd/diffcalculator/diffcalculator_/diffcalculator \
 		--common_instance_config=./k8s-instances/local/local-cdb.json5 \
 		--config=./k8s-instances/local/local-diffcalculator.json5
+
+run_pgadapter:
+	docker ps -q | xargs -r docker rm -vf
+	sudo docker run -d -p 127.0.0.1:5432:5432 \
+  		-v $(HOME)/.config/gcloud/application_default_credentials.json:/acct_credentials.json \
+		gcr.io/cloud-spanner-pg-adapter/pgadapter:latest \
+		-p skia-infra-corp -i tfgen-spanid-20250415224933743 -d ashwinpv_test -c /acct_credentials.json -x
+
+run_local_migrator: run_spanner_emulator
+	$(BAZEL) build --config=mayberemote -c dbg //golden/cmd/db_migrator/...
+	../_bazel_bin/golden/cmd/db_migrator/db_migrator_/db_migrator \
+		--cdb_url="postgresql://root@localhost:26257/gold?sslmode=disable" \
+		--spanner_url="postgresql://localhost:5432/gold?sslmode=disable" \
+		--continuous

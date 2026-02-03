@@ -139,6 +139,20 @@ skia_app_container(
     repository = "skia-public/gold-periodictasks",
 )
 
+skia_app_container(
+    name = "db_migrator",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//golden/cmd/db_migrator:db_migrator",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/db_migrator",
+    repository = "skia-public/gold-db-migrator",
+)
+
 # Runs a local Gold instance that mirrors http://gold.skia.org. It might have write access to the
 # production CockroachDB database, so please exercise caution.
 #

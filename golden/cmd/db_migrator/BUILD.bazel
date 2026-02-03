@@ -1,0 +1,35 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "db_migrator_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/golden/cmd/db_migrator",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//golden/go/sql/schema",
+        "//golden/go/sql/schema/spanner",
+        "//golden/go/sql/sqltest",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_binary(
+    name = "db_migrator",
+    embed = [":db_migrator_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "db_migrator_test",
+    srcs = ["main_test.go"],
+    embed = [":db_migrator_lib"],
+    deps = [
+        "//golden/go/sql/schema",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
