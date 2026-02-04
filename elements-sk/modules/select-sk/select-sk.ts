@@ -208,7 +208,7 @@ export class SelectSk extends HTMLElement {
     this._rationalize();
   }
 
-  attributeChangedCallback(name: string, oldValue: any, newValue: any): void {
+  attributeChangedCallback(_name: string, _oldValue: any, newValue: any): void {
     // Only handling 'disabled'.
     const hasValue = newValue !== null;
     this.setAttribute('aria-disabled', String(hasValue));

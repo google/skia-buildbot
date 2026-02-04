@@ -23,7 +23,6 @@ sk_element(
         "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
-        "//perf/modules/alert:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],

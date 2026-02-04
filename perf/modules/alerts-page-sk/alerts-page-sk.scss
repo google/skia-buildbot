@@ -20,9 +20,7 @@ alerts-page-sk {
       color: var(--primary);
     }
 
-    td > build-icon-sk,
     td > create-icon-sk,
-    td > a > build-icon-sk,
     td > delete-icon-sk {
       padding: 0.4em;
       cursor: pointer;
@@ -48,27 +46,19 @@ alerts-page-sk {
       cursor: pointer;
       font-weight: bold;
     }
-    td > build-icon-sk:hover,
     td > create-icon-sk:hover,
-    td > a > build-icon-sk:hover,
     td > delete-icon-sk:hover {
       background: var(--surface-1dp);
     }
   }
 
   create-icon-sk[disabled],
-  delete-icon-sk[disabled],
-  build-icon-sk[disabled],
-  button.fab[disabled] {
+  delete-icon-sk[disabled] {
     opacity: 0.2;
   }
 
   td > paramset-sk div {
     display: block;
-  }
-
-  td > error-icon-sk {
-    fill: var(--error);
   }
 
   .dialogButtons {
@@ -91,14 +81,6 @@ alerts-page-sk > {
   .warning {
     color: var(--error);
     font-weight: bold;
-  }
-
-  button.fab {
-    position: fixed;
-    right: 2em;
-    bottom: 2em;
-    width: 32px;
-    height: 32px;
   }
 
   table > tbody > tr > td {

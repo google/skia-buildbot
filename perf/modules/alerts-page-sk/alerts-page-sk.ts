@@ -18,7 +18,6 @@ import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
 import { FrameResponse, Alert, ConfigState, ReadOnlyParamSet } from '../json';
-import { validate } from '../alert';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status } from '../../../infra-sk/modules/json';
 
@@ -97,8 +96,15 @@ export class AlertsPageSk extends ElementSk {
       id="showDeletedConfigs"></checkbox-sk>
   `;
 
+  private static validate(alert: Alert): string {
+    if (!alert.query) {
+      return 'An alert must have a non-empty query.';
+    }
+    return '';
+  }
+
   private static displayIfAlertIsInvalid(item: Alert) {
-    const msg = validate(item);
+    const msg = AlertsPageSk.validate(item);
     if (msg === '') {
       return html``;
     }
@@ -286,11 +292,11 @@ export class AlertsPageSk extends ElementSk {
   }
 
   /** The Alert being edited. */
-  get cfg() {
+  private get cfg() {
     return this._cfg;
   }
 
-  set cfg(val) {
+  private set cfg(val) {
     this._cfg = structuredClone(val);
     if (this._cfg && !this._cfg.owner) {
       this._cfg.owner = this.email;

@@ -55,7 +55,7 @@ export class ErrorToastSk extends HTMLElement {
     this.span = this.toast!.firstElementChild as HTMLSpanElement;
 
     document.addEventListener('error-sk', this);
-    this.querySelector('button')!.addEventListener('click', (e) => this.clickHandler());
+    this.querySelector('button')!.addEventListener('click', () => this.clickHandler());
   }
 
   disconnectedCallback(): void {
