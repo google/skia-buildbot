@@ -3,9 +3,8 @@
  * @description <h2><code>anomaly-sk</code></h2>
  *
  */
-import { html, TemplateResult } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html, LitElement, TemplateResult } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { Anomaly, AnomalyMap, ColumnHeader, CommitNumber, TraceSet } from '../json';
 import { AnomalyData } from '../common/anomaly-data';
 import { lookupCids } from '../cid/cid';
@@ -104,15 +103,19 @@ const commitNumberToHashes = async (cids: CommitNumber[]): Promise<string[]> => 
   return [json.commitSlice![0].hash, json.commitSlice![1].hash];
 };
 
-export class AnomalySk extends ElementSk {
-  private _anomaly: Anomaly | null = null;
+@customElement('anomaly-sk')
+export class AnomalySk extends LitElement {
+  @property({ attribute: false })
+  anomaly: Anomaly | null = null;
 
-  private _bugHostUrl: string = 'https://bugs.chromium.org';
+  @property({ type: String })
+  bugHostUrl: string = 'https://bugs.chromium.org';
 
+  @state()
   private _revision: TemplateResult = html``;
 
-  constructor() {
-    super(AnomalySk.template);
+  createRenderRoot() {
+    return this;
   }
 
   static formatNumber = (num: number): string =>
@@ -152,8 +155,11 @@ export class AnomalySk extends ElementSk {
     url = url.replace('{end}', hashes[1]);
 
     this._revision = html`<a href="${url}" target=_blank>${start_rev} - ${end_rev}</td>`;
-    this._render();
   };
+
+  get revision(): TemplateResult {
+    return this._revision;
+  }
 
   static formatBug(bugHostUrl: string, bugId: number): TemplateResult {
     if (bugId === 0) {
@@ -165,14 +171,24 @@ export class AnomalySk extends ElementSk {
     if (bugId === -2) {
       return html`Ignored Alert`;
     }
+    // Trim the trailing '/' since we are adding it in the format.
+    if (bugHostUrl.endsWith('/')) {
+      bugHostUrl = bugHostUrl.substring(0, bugHostUrl.length - 1);
+    }
     return html`<a href="${`${bugHostUrl}/${bugId}`}" target="_blank">${bugId}</a>`;
   }
 
-  private static template = (ele: AnomalySk) => {
-    if (ele._anomaly === null) {
+  protected willUpdate(changedProperties: Map<string, unknown>) {
+    if (changedProperties.has('anomaly')) {
+      this.formatRevisionRange();
+    }
+  }
+
+  render() {
+    if (this.anomaly === null) {
       return html``;
     }
-    const anomaly = ele._anomaly!;
+    const anomaly = this.anomaly;
     return html`
       <div>
         <table>
@@ -203,7 +219,7 @@ export class AnomalySk extends ElementSk {
             </tr>
             <tr>
               <th>Revision Range</th>
-              <td>${ele.revision}</td>
+              <td>${this._revision}</td>
             </tr>
             <tr>
               <th>Improvement</th>
@@ -211,47 +227,11 @@ export class AnomalySk extends ElementSk {
             </tr>
             <tr>
               <th>Bug Id</th>
-              <td>${AnomalySk.formatBug(ele.bugHostUrl, anomaly.bug_id)}</td>
+              <td>${AnomalySk.formatBug(this.bugHostUrl, anomaly.bug_id)}</td>
             </tr>
           </tbody>
         </table>
       </div>
     `;
-  };
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._upgradeProperty('anomaly');
-    this._render();
-  }
-
-  get anomaly(): Anomaly | null {
-    return this._anomaly;
-  }
-
-  set anomaly(anomaly: Anomaly | null) {
-    this._anomaly = anomaly;
-    this.formatRevisionRange();
-    this._render();
-  }
-
-  get bugHostUrl(): string {
-    return this._bugHostUrl;
-  }
-
-  set bugHostUrl(url: string) {
-    if (url !== '') {
-      // Trim the trailing '/' since we are adding it in the format.
-      if (url.endsWith('/')) {
-        url = url.substring(0, url.length - 1);
-      }
-      this._bugHostUrl = url;
-    }
-  }
-
-  get revision(): TemplateResult {
-    return this._revision;
   }
 }
-
-define('anomaly-sk', AnomalySk);
