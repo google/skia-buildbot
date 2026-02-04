@@ -3752,9 +3752,11 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     // that means that they all share a value in common and we can add this to the title.
     params!.forEach((param) => {
       const uniqueValues = new Set(
-        Object.keys(traceset)
-          .map((traceId) => fromKey(traceId)[param])
-          .filter((v): v is string => v !== undefined)
+        Object.keys(traceset).map((traceId) => {
+          const val = fromKey(traceId)[param];
+          // If the value is missing or empty, map it to 'Default' so it is accounted for.
+          return val === undefined || val === '' ? 'Default' : val;
+        })
       );
       let value = uniqueValues.values().next().value;
       if (uniqueValues.size > 1) {

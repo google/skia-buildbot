@@ -239,8 +239,9 @@ func testCommitNumberFromTime_SuccessOnZeroTime(t *testing.T, ctx context.Contex
 }
 
 func testCommitNumberFromTime_ErrorOnTimeTooOld(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
-	_, err := g.CommitNumberFromTime(ctx, gittest.StartTime.Add(-1*time.Minute))
-	require.Error(t, err)
+	commitNumber, err := g.CommitNumberFromTime(ctx, gittest.StartTime.Add(-1*time.Minute))
+	require.NoError(t, err)
+	assert.Equal(t, types.BadCommitNumber, commitNumber)
 }
 
 func testCommitSliceFromTimeRange_Success(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {

@@ -96,6 +96,7 @@ INSTANCE=""
 RUN_PROXY=false
 USE_LOCAL_TO_PROD=true
 RUN_BREAKGLASS=false
+DISABLE_SHORTCUT_UPDATE=false
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
@@ -112,6 +113,9 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --breakglass)
             RUN_BREAKGLASS=true
+            ;;
+        --disable-shortcut|--disable_shortcut_update)
+            DISABLE_SHORTCUT_UPDATE=true
             ;;
         --help|-h)
             usage
@@ -262,9 +266,15 @@ start_server() {
       LOCAL_TO_PROD_FLAG="--localToProd"
   fi
 
+  DISABLE_SHORTCUT_UPDATE_FLAG=""
+  if [ "$DISABLE_SHORTCUT_UPDATE" = true ]; then
+      DISABLE_SHORTCUT_UPDATE_FLAG="--disable_shortcut_update"
+  fi
+
   _bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
       --dev_mode \
       $LOCAL_TO_PROD_FLAG \
+      $DISABLE_SHORTCUT_UPDATE_FLAG \
       --do_clustering=false \
       --port=:$PERF_PORT \
       --prom_port=:$PERF_PROM_PORT \

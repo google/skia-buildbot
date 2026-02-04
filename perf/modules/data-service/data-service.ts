@@ -66,6 +66,12 @@ export class DataService {
    * Creates a shortcut ID for the given Graph Configs.
    */
   async updateShortcut(graphConfigs: GraphConfig[]): Promise<string> {
+    // Skip this call when running locally to avoid 500 errors from the proxy/backend.
+    if ((window as any).perf && (window as any).perf.disable_shortcut_update) {
+      console.log('Skipping updateShortcut due to configuration');
+      return '';
+    }
+
     if (graphConfigs.length === 0) {
       return '';
     }
@@ -143,6 +149,12 @@ export class DataService {
    * Creates a shortcut for the keys.
    */
   async createShortcut(state: { keys: string[] }): Promise<{ id: string }> {
+    // Skip this call when running locally to avoid 500 errors from the proxy/backend.
+    if ((window as any).perf && (window as any).perf.disable_shortcut_update) {
+      console.log('Skipping createShortcut due to configuration');
+      return { id: '' };
+    }
+
     return await this.fetchJson('/_/keys/', {
       method: 'POST',
       body: JSON.stringify(state),

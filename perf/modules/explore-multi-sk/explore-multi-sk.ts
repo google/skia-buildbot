@@ -424,7 +424,7 @@ export class ExploreMultiSk extends ElementSk {
         for (let i = 0; i < groupdToLoadInChunks; ) {
           // The first chunk is always of size 1 - this is to avoid showing the primary
           // graph / "unsplit" mode.
-          const chunkSize = i === 0 ? 1 : CHUNK_SIZE;
+          const chunkSize = CHUNK_SIZE;
           const endGroupIndex = Math.min(i + chunkSize, groupdToLoadInChunks);
           const chunk = groups.slice(i, endGroupIndex);
           if (chunk.length === 0) {
@@ -1149,11 +1149,14 @@ export class ExploreMultiSk extends ElementSk {
 
     // Pre-calculate requests and responses for all groups BEFORE clearing graphs.
     // clearGraphs() wipes this.exploreElements, which createFrameResponse depends on for data.
-    const splitData = Array.from(groupedTraces.values()).map((traces) => ({
-      traces,
-      request: this.createFrameRequest(traces),
-      response: this.createFrameResponse(traces),
-    }));
+    const splitData =
+      this.state.splitByKeys.length === 0
+        ? []
+        : Array.from(groupedTraces.values()).map((traces) => ({
+            traces,
+            request: this.createFrameRequest(traces),
+            response: this.createFrameResponse(traces),
+          }));
 
     this.allFrameRequests = [mainRequest];
     this.allFrameResponses = [mainResponse];

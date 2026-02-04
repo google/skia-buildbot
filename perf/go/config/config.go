@@ -505,6 +505,7 @@ type FrontendFlags struct {
 	FeedbackURL                string
 	DisableMetricsUpdate       bool
 	VersionFile                string
+	DisableShortcutUpdate      bool
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -677,6 +678,12 @@ show up as a query option in the UI for the "test" key.
 			Name:        "disable_metrics_update",
 			Value:       false,
 			Usage:       "Disables updating of the database metrics",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.DisableShortcutUpdate,
+			Name:        "disable_shortcut_update",
+			Value:       false,
+			Usage:       "Disables updating of shortcuts.",
 		},
 		&cli.StringFlag{
 			Destination: &flags.VersionFile,

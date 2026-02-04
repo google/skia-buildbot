@@ -200,8 +200,18 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 	ctx, span := trace.StartSpan(ctx, "FrameRequestProcess.Run")
 	defer span.End()
 
-	begin := time.Unix(int64(p.request.Begin), 0).UTC()
-	end := time.Unix(int64(p.request.End), 0).UTC()
+	var begin time.Time
+	if p.request.Begin == 0 {
+		begin = time.Time{}
+	} else {
+		begin = time.Unix(int64(p.request.Begin), 0).UTC()
+	}
+	var end time.Time
+	if p.request.End == 0 {
+		end = time.Time{}
+	} else {
+		end = time.Unix(int64(p.request.End), 0).UTC()
+	}
 
 	// Results from all the queries and calcs will be accumulated in this dataframe.
 	df := dataframe.NewEmpty()

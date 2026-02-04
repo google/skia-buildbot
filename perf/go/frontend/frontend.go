@@ -310,6 +310,7 @@ type SkPerfConfig struct {
 	EnableV2UI                  bool               `json:"enable_v2_ui"`                    // True if V2 UI can be toggled.
 	DevMode                     bool               `json:"dev_mode"`
 	ExtraLinks                  *config.ExtraLinks `json:"extra_links"` // Extra links to be display on a dedicated page.
+	DisableShortcutUpdate       bool               `json:"disable_shortcut_update,omitempty"`
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -360,6 +361,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		EnableV2UI:                  config.Config.EnableV2UI,
 		DevMode:                     f.flags.DevMode,
 		ExtraLinks:                  config.Config.ExtraLinks,
+		DisableShortcutUpdate:       f.flags.DisableShortcutUpdate,
 	}
 
 	var buff bytes.Buffer

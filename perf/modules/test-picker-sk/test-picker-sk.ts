@@ -210,6 +210,10 @@ export class TestPickerSk extends ElementSk {
   private removeChildFields(index: number) {
     while (this._currentIndex > index) {
       const fieldInfo = this._fieldData[this._currentIndex];
+      if (!fieldInfo) {
+        this._currentIndex -= 1;
+        continue;
+      }
       // Remove split if it was previously enabled.
       if (fieldInfo.splitBy.length > 0) {
         fieldInfo.field!.split = false;
@@ -501,7 +505,7 @@ export class TestPickerSk extends ElementSk {
       const detail = {
         query: this.createQueryFromFieldData(),
         param: fieldInfo.param,
-        value: value.length > 0 ? mappedRemovedValue : mappedValue,
+        value: removedValue.length > 0 ? mappedRemovedValue : mappedValue,
       };
       this.dispatchEvent(
         new CustomEvent('remove-trace', {
@@ -526,7 +530,7 @@ export class TestPickerSk extends ElementSk {
       const detail = {
         query: this.createQueryFromFieldData(),
         param: fieldInfo.param,
-        value: value.length > 0 ? mappedRemovedValue : mappedValue,
+        value: removedValue.length > 0 ? mappedRemovedValue : mappedValue,
       };
       if (removedValue.length > 0) {
         // Remove item from chart, no need to requery.
@@ -581,7 +585,13 @@ export class TestPickerSk extends ElementSk {
       const value = (e as CustomEvent).detail.value as string[];
       const checkboxSelected = (e as CustomEvent).detail.checkboxSelected as boolean;
 
-      if (value === fieldInfo.field!.selectedItems && !checkboxSelected) {
+      // We must check if the value has actually changed.
+      // We cannot compare with fieldInfo.field!.selectedItems because the underlying
+      // Vaadin component may mutate the array in-place, making the reference equal.
+      // We also cannot use strict equality on fieldInfo.value because 'value' is a new
+      // array reference (or the same mutated one) but fieldInfo.value is the old state.
+      // We use JSON.stringify for a deep value comparison.
+      if (JSON.stringify(value) === JSON.stringify(fieldInfo.value) && !checkboxSelected) {
         return;
       }
 

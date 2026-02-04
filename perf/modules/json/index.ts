@@ -441,6 +441,7 @@ export interface SkPerfConfig {
 	enable_v2_ui: boolean;
 	dev_mode: boolean;
 	extra_links: ExtraLinks | null;
+	disable_shortcut_update?: boolean;
 }
 
 export interface TriageRequest {

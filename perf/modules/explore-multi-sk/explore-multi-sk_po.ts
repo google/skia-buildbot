@@ -36,10 +36,11 @@ export class ExploreMultiSkPO extends PageObject {
   /**
    * Waits until the specific number of graphs are present in the DOM.
    */
-  async waitForGraphCount(expectedCount: number): Promise<void> {
+  async waitForGraphCount(expectedCount: number, timeout = 5000): Promise<void> {
     await poll(
       async () => (await this.getGraphCount()) === expectedCount,
-      `Waiting for graph count to be ${expectedCount}`
+      `Waiting for graph count to be ${expectedCount}`,
+      timeout
     );
   }
 

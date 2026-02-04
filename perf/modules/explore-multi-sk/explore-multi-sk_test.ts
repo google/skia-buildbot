@@ -714,8 +714,10 @@ describe('ExploreMultiSk', () => {
       element['addEmptyGraph']();
       assert.equal(element['exploreElements'].length, 1);
 
-      // Mock grouping to always return 1 group to simulate steady state
-      sinon.stub(element, 'groupTracesBySplitKey' as any).returns(new Map([['key', ['trace1']]]));
+      // Mock grouping on the prototype to ensure it is picked up
+      sinon
+        .stub(ExploreMultiSk.prototype, 'groupTracesBySplitKey' as any)
+        .returns(new Map([['key', ['trace1']]]));
 
       // Mock methods called by splitGraphs
       sinon.stub(element, 'createFrameRequest' as any).returns({});
@@ -725,6 +727,7 @@ describe('ExploreMultiSk', () => {
 
       // Force totalGraphs to > 1 so splitGraphs doesn't return early
       element.state.totalGraphs = 2;
+      element.state.splitByKeys = ['key'];
 
       await element['splitGraphs'](false, true);
 
@@ -1223,13 +1226,12 @@ describe('ExploreMultiSk', () => {
 
       // --- Assertions ---
 
-      // With 7 groups and a CHUNK_SIZE of 5, we expect 3 calls to add traces:
-      // 1. The first graph (chunk size of 1)
-      // 2. The next 5 graphs (chunk size of 5)
-      // 3. The final graph
+      // With 7 groups and a CHUNK_SIZE of 5, we expect 2 calls to add traces:
+      // 1. The first 5 graphs (chunk size of 5)
+      // 2. The next 2 graphs (chunk size of 2)
       assert.equal(
         addFromQuerySpy.callCount,
-        3,
+        2,
         'addFromQueryOrFormula should be called for each chunk'
       );
 
@@ -1241,10 +1243,6 @@ describe('ExploreMultiSk', () => {
       assert.isFalse(
         addFromQuerySpy.secondCall.args[5],
         'loadExtendedRange should be false for the second chunk'
-      );
-      assert.isFalse(
-        addFromQuerySpy.thirdCall.args[5],
-        'loadExtendedRange should be false for the third chunk'
       );
 
       // Verify that `loadExtendedRangeData` was called exactly once, after all chunks were
@@ -1544,6 +1542,138 @@ describe('ExploreMultiSk', () => {
           assert.isFalse(updateSpies[i].called, `Graph ${i} should NOT be updated`);
         }
       }
+    });
+  });
+
+  describe('ParamSet Helpers', () => {
+    beforeEach(async () => {
+      await setupElement();
+    });
+
+    it('groupParamSetBySplitKey returns original ParamSet if split key is missing', () => {
+      const ps = { os: ['linux', 'windows'], arch: ['x86'] };
+      const result = element['groupParamSetBySplitKey'](ps, ['missing']);
+      assert.deepEqual(result, [ps]);
+    });
+
+    it('mergeParamSets handles empty input', () => {
+      const result = element['mergeParamSets']([]);
+      assert.deepEqual(result, {});
+    });
+  });
+
+  describe('ExploreMultiSk Split Behavior', () => {
+    beforeEach(async () => {
+      // Setup with splitting enabled
+      await setupElement({
+        default_param_selections: {},
+        default_url_values: { useTestPicker: 'true' },
+        include_params: ['config', 'subtest_2'],
+      });
+      element.state.useTestPicker = true;
+      await element['initializeTestPicker']();
+    });
+
+    it('splits graphs from URL state', async () => {
+      const state = new State();
+      state.splitByKeys = ['subtest_2'];
+      // GraphConfig uses queries
+      const graphConfig = new GraphConfig();
+      graphConfig.queries = ['config=8888&subtest_2=a', 'config=8888&subtest_2=b'];
+
+      // Mock getConfigsFromShortcut
+      sinon.stub(element, 'getConfigsFromShortcut' as any).resolves([graphConfig]);
+      state.shortcut = 'some-shortcut';
+
+      // We need to ensure the main graph (index 0) returns traceset so splitGraphs can work.
+      // Mock createExploreSimpleSk to return an element with data.
+      const exploreStub = sinon.stub(element, 'createExploreSimpleSk' as any).callsFake(() => {
+        const el = new ExploreSimpleSk();
+        // Mock getTraceset
+        el.getTraceset = () => ({
+          ',config=8888,subtest_2=a,': [1, 2],
+          ',config=8888,subtest_2=b,': [3, 4],
+        });
+        // Mock requestComplete
+        sinon.stub(el, 'requestComplete').get(() => Promise.resolve());
+        return el;
+      });
+
+      // Stub load() to avoid network
+      const loadStub = sinon.stub(loader, 'load').resolves();
+
+      // Call _onStateChangedInUrl
+      await element['_onStateChangedInUrl'](state as any);
+
+      // Check explore elements
+      // Should have 3 graphs: 1 hidden summary + 2 splits.
+      assert.equal(
+        element['exploreElements'].length,
+        3,
+        'Should have 3 graphs (1 summary + 2 splits)'
+      );
+
+      loadStub.restore();
+      exploreStub.restore();
+    });
+
+    it('splits graphs correctly on plot button click with split key', async () => {
+      await setupElement({
+        default_param_selections: {},
+        default_url_values: { useTestPicker: 'true' },
+        include_params: ['config', 'subtest_2'],
+      });
+      element.state.useTestPicker = true;
+      await element['initializeTestPicker']();
+
+      const testPicker = element.querySelector('test-picker-sk') as TestPickerSk;
+      // Mock createParamSetFromFieldData to return data for splitting
+      sinon.stub(testPicker, 'createParamSetFromFieldData').returns({
+        subtest_2: ['hash-map', 'navier-stokes'],
+        benchmark: ['v8'],
+      });
+      sinon
+        .stub(testPicker, 'createQueryFromFieldData')
+        .returns('benchmark=v8&subtest_2=hash-map&subtest_2=navier-stokes');
+
+      element.state.splitByKeys = ['subtest_2'];
+
+      // Mock graph creation to return data.
+      sinon.stub(element, 'createExploreSimpleSk' as any).callsFake(() => {
+        const el = new ExploreSimpleSk();
+        // Mock getTraceset to return data corresponding to the split.
+        el.getTraceset = () => ({
+          ',benchmark=v8,subtest_2=hash-map,': [1],
+          ',benchmark=v8,subtest_2=navier-stokes,': [2],
+        });
+
+        // Mock requestComplete
+        sinon.stub(el, 'requestComplete').get(() => Promise.resolve());
+
+        // Mock methods used during load
+        sinon.stub(el, 'addFromQueryOrFormula').resolves();
+        sinon.stub(el, 'loadExtendedRangeData').resolves();
+        sinon.stub(el, 'getSelectedRange').returns({ begin: 0, end: 100 });
+        sinon.stub(el, 'updateChartHeight');
+
+        return el;
+      });
+
+      // Mock loader
+      sinon.stub(loader, 'load').resolves();
+
+      const event = new CustomEvent('plot-button-clicked', { bubbles: true });
+      element.dispatchEvent(event);
+
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Should have 3 graphs (1 master + 2 splits)
+      assert.equal(
+        element['exploreElements'].length,
+        3,
+        'Should have 3 graphs (1 summary + 2 splits)'
+      );
     });
   });
 });

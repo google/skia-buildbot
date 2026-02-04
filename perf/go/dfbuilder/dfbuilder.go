@@ -386,6 +386,9 @@ func (b *builder) newNFromQuery(ctx context.Context, end time.Time, q *query.Que
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find end index: %s", err)
 	}
+	if endIndex == types.BadCommitNumber {
+		return dataframe.NewEmpty(), nil
+	}
 
 	// beginIndex is the index of the first commit in the tile that endIndex is
 	// in. We are OK if beginIndex == endIndex because fromIndexRange returns
@@ -516,6 +519,9 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	endIndex, err := b.findIndexForTime(ctx, end)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find end index: %s", err)
+	}
+	if endIndex == types.BadCommitNumber {
+		return dataframe.NewEmpty(), nil
 	}
 	beginIndex := endIndex.Add(-(b.tileSize - 1))
 	if beginIndex < 0 {

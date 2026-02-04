@@ -335,8 +335,8 @@ func TestNewDataFrameIterator_MultipleDataframes_ErrIfWeSearchBeforeFirstCommit(
 	q := "arch=x86"
 	pc := &progressCapture{}
 	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, q, domain, alert, defaultAnomalyConfig, nil)
-	require.Contains(t, err.Error(), "Failed to build dataframe iterator")
-	require.Equal(t, "Failed querying the data due to an internal error.", pc.message)
+	require.Contains(t, err.Error(), "insufficient data")
+	require.Contains(t, pc.message, "Query didn't return enough data points")
 }
 
 func TestNewDataFrameIterator_MultipleDataframesWithSettlingTime_OneFramesOfLengthThree(t *testing.T) {

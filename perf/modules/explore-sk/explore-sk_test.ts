@@ -181,6 +181,25 @@ describe('ExploreSk', () => {
     assert.isFalse(testPicker.classList.contains('hidden'));
   });
 
+  it('populate-query event calls testPicker.populateFieldDataFromQuery', async () => {
+    await setupElement({
+      include_params: ['config'],
+      default_url_values: { use_test_picker_query: 'true' },
+    });
+    const testPicker = element.querySelector<TestPickerSk>('#test-picker')!;
+    const populateSpy = sinon.spy(testPicker, 'populateFieldDataFromQuery');
+
+    element.dispatchEvent(
+      new CustomEvent('populate-query', {
+        detail: { key: ',config=8888,' },
+      })
+    );
+
+    assert.isTrue(populateSpy.calledOnce);
+    // check args: query string, params, defaultParams
+    assert.equal(populateSpy.firstCall.args[0], 'config=8888');
+  });
+
   it('calls reset on remove-explore event', async () => {
     const exploreSimpleSk = element.querySelector<ExploreSimpleSk>('explore-simple-sk')!;
     const resetSpy = sinon.spy(exploreSimpleSk, 'reset');

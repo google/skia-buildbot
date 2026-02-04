@@ -497,6 +497,9 @@ func (g *Impl) CommitNumberFromTime(ctx context.Context, t time.Time) (types.Com
 	}
 
 	if err := g.db.QueryRow(ctx, statements[getCommitNumberFromTime], t.Unix()).Scan(&ret); err != nil {
+		if err == pgx.ErrNoRows {
+			return types.BadCommitNumber, nil
+		}
 		return ret, skerr.Wrapf(err, "Failed get for time: %q", t)
 	}
 	return ret, nil

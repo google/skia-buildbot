@@ -7,6 +7,9 @@ import {
   waitForElementNotHidden,
 } from '../common/puppeteer-test-util';
 
+const LONG_TIMEOUT_MS = 30000;
+const GRAPH_LOAD_TIMEOUT_MS = 20000;
+
 describe('Anomalies and Traces', () => {
   let testBed: TestBed;
   before(async () => {
@@ -505,9 +508,7 @@ describe('Split Graph Functionality', function () {
     await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
   });
 
-  // TODO(b/385002932): This test is flaky in CI (times out waiting for graph to load)
-  // despite the logic being correct and working manually. Skipping to unblock submission.
-  it.skip('splits graph when split-by checkbox is checked', async () => {
+  it('splits graph when split-by checkbox is checked', async () => {
     const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
     const testPickerPO = explorePO.testPicker;
 
@@ -539,33 +540,34 @@ describe('Split Graph Functionality', function () {
 
     await osField.checkSplit();
 
-    // 5. Wait for 2 graphs
-    await explorePO.waitForGraphCount(2);
+    // 5. Wait for 3 graphs (1 hidden summary + 2 splits)
+    await explorePO.waitForGraphCount(3, LONG_TIMEOUT_MS);
 
     // 6. Verify contents
-    const graph0 = explorePO.getGraph(0);
-    // Wait for data to load in the first graph
-    await explorePO.waitForGraph(0, 20000);
-    const traces0 = await graph0.getTraceKeys();
-
+    // Index 0 is hidden summary, check indices 1 and 2.
     const graph1 = explorePO.getGraph(1);
-    // Wait for data to load in the second graph
-    await explorePO.waitForGraph(1, 20000);
+    // Wait for data to load in the first split graph
+    await explorePO.waitForGraph(1, GRAPH_LOAD_TIMEOUT_MS);
     const traces1 = await graph1.getTraceKeys();
 
-    // Collect all traces from all graphs
-    const allTraces = [...traces0, ...traces1];
+    const graph2 = explorePO.getGraph(2);
+    // Wait for data to load in the second split graph
+    await explorePO.waitForGraph(2, GRAPH_LOAD_TIMEOUT_MS);
+    const traces2 = await graph2.getTraceKeys();
+
+    // Collect all traces from all visible graphs
+    const allTraces = [...traces1, ...traces2];
     expect(allTraces).to.include(',arch=arm,os=Android,');
     expect(allTraces).to.include(',arch=arm,os=Ubuntu,');
-    expect(traces0.length).to.equal(1);
     expect(traces1.length).to.equal(1);
-    expect(traces0[0]).to.not.equal(traces1[0]); // Ensure they are different
+    expect(traces2.length).to.equal(1);
+    expect(traces1[0]).to.not.equal(traces2[0]); // Ensure they are different
 
     // 7. Uncheck "Split" checkbox to merge back
     await osField.uncheckSplit();
 
     // 8. Wait for graph count to be 1
-    await explorePO.waitForGraphCount(1);
+    await explorePO.waitForGraphCount(1, LONG_TIMEOUT_MS);
     const mergedGraph = explorePO.getGraph(0);
     await explorePO.waitForGraph(0);
 
