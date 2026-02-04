@@ -65,7 +65,7 @@ describe('json-source-sk', () => {
         () =>
           !document
             .querySelector('json-source-sk')!
-            .querySelector('#controls')!
+            .querySelector('.controls')!
             .hasAttribute('hidden')
       );
     });

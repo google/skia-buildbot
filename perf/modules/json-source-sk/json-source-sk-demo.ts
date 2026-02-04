@@ -13,6 +13,6 @@ void window.customElements.whenDefined('json-source-sk').then(() => {
   sources.forEach((source) => {
     source.traceid = ',foo=bar,';
     source.cid = CommitNumber(12);
-    source.querySelector<HTMLButtonElement>('#controls button')!.click();
+    source.querySelector<HTMLButtonElement>('.controls button')!.click();
   });
 });

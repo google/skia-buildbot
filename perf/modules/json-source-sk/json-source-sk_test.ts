@@ -20,14 +20,16 @@ describe('json-source-sk', () => {
 
   it('is hidden when traceid is invalid', () => {
     element.traceid = '';
-    const controls = element.querySelector('#controls')!;
-    assert.isTrue(controls.hasAttribute('hidden'));
+    const controls = element.querySelector('.controls');
+    assert.isNotNull(controls);
+    assert.isTrue(controls!.hasAttribute('hidden'));
   });
 
   it('is visible when traceid is valid', () => {
     element.traceid = ',config=8888,';
-    const controls = element.querySelector('#controls')!;
-    assert.isFalse(controls.hasAttribute('hidden'));
+    const controls = element.querySelector('.controls');
+    assert.isNotNull(controls);
+    assert.isFalse(controls!.hasAttribute('hidden'));
   });
 
   it('loads source when "View Json File" is clicked', async () => {

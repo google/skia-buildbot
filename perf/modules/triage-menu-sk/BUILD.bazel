@@ -7,6 +7,7 @@ sk_demo_page_server(
 
 sk_element(
     name = "triage-menu-sk",
+    sass_deps = ["//perf/modules/common:buttons_sass_lib"],
     sass_srcs = ["triage-menu-sk.scss"],
     sk_element_deps = [
         "//perf/modules/new-bug-dialog-sk",

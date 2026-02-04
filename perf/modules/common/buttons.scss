@@ -1,0 +1,45 @@
+// Common button styles for Perf UI to ensure visual consistency across components.
+// !important is used here to ensure a unified look even when applied to
+// components that might have their own internal button styles or when
+// used within other complex layouts.
+
+:root {
+  --perf-button-height: 24px;
+  --perf-button-min-width: 50px;
+  --perf-button-padding: 0 8px;
+  --perf-button-font-size: 11px;
+  --perf-button-border-radius: 4px;
+  --perf-button-margin: 0;
+}
+
+// We use !important to strictly enforce the unified design system, effectively
+// resetting any legacy or browser-default styles. This is a deliberate
+// choice to ensure consistency across both Shadow DOM and Light DOM components,
+// specifically overriding potential conflicts from 'elements-sk' global styles
+// or other generic button selectors that might have higher specificity or order.
+
+@mixin perf-button {
+  height: var(--perf-button-height) !important;
+  min-width: var(--perf-button-min-width) !important;
+  padding: var(--perf-button-padding) !important;
+  font-size: var(--perf-button-font-size) !important;
+  text-transform: none !important;
+  border-radius: var(--perf-button-border-radius) !important;
+  border: solid 1px var(--outline) !important;
+  background: var(--surface) !important;
+  color: var(--primary) !important;
+  font-family: var(--font) !important;
+  cursor: pointer !important;
+  margin: var(--perf-button-margin) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  line-height: normal !important;
+
+  &:hover {
+    background-color: var(--surface-1dp) !important;
+  }
+}

@@ -1,4 +1,5 @@
-@import '../../../elements-sk/modules/styles/buttons';
+@use '../common/buttons.scss';
+
 json-source-sk {
   spinner-sk {
     width: 16px;
@@ -6,32 +7,17 @@ json-source-sk {
     border-width: 4px;
   }
 
-  button {
+  .controls {
     display: flex;
-    text-align: center;
-    /* Ensure it can behave like a block or inline-block for text-align */
-    display: inline-block;
-    align-items: baseline;
-    width: auto;
-    align-content: center;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: space-evenly;
+    gap: 8px;
+    align-items: center;
+
+    button {
+      @include buttons.perf-button;
+    }
   }
 
-  #controls {
-    display: inline-flex;
-    text-align: center;
-    /* Ensure it can behave like a block or inline-block for text-align */
-    display: inline-block;
-    align-items: baseline;
-    width: auto;
-    align-content: center;
-    flex-direction: row;
-    flex-wrap: nowrap;
-  }
-
-  #controls[hidden] {
+  .controls[hidden] {
     display: none;
   }
 
@@ -42,18 +28,21 @@ json-source-sk {
 
   #json-dialog {
     position: relative;
-    border: solid var(--on-background) 1px;
+    border: solid 1px var(--on-background);
     color: var(--on-background);
     background: var(--background);
 
     #closeIcon {
       position: sticky;
-      display: block;
-      z-index: 2; /* Ensure it's above the content*/
-      float: right;
-      padding: 0;
+      top: 0;
+      right: 0;
+      float: right; // for positioning in older browsers
       border: none;
+      background: transparent;
+      padding: 0;
       cursor: pointer;
+      fill: var(--primary);
+      z-index: 2;
     }
 
     #json-source {

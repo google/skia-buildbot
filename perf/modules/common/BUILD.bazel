@@ -1,4 +1,10 @@
-load("//infra-sk:index.bzl", "karma_test", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "sass_library", "ts_library")
+
+sass_library(
+    name = "buttons_sass_lib",
+    srcs = ["buttons.scss"],
+    visibility = ["//visibility:public"],
+)
 
 ts_library(
     name = "graph-config_ts_lib",
