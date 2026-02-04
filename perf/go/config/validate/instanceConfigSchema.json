@@ -448,6 +448,9 @@
         "show_bisect_btn": {
           "type": "boolean"
         },
+        "allow_multiple_regressions_per_alert_id": {
+          "type": "boolean"
+        },
         "enable_v2_ui": {
           "type": "boolean"
         }

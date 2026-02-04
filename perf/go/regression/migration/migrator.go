@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression/sqlregression2store"
 	"go.skia.org/infra/perf/go/regression/sqlregressionstore"
 )
@@ -22,7 +23,7 @@ type RegressionMigrator struct {
 }
 
 // New returns a new instance of RegressionMigrator.
-func New(ctx context.Context, db pool.Pool) (*RegressionMigrator, error) {
+func New(ctx context.Context, db pool.Pool, instanceConfig *config.InstanceConfig) (*RegressionMigrator, error) {
 	legacyStore, err := sqlregressionstore.New(db)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create a new legacy store.")
@@ -35,7 +36,7 @@ func New(ctx context.Context, db pool.Pool) (*RegressionMigrator, error) {
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create a new alerts provider.")
 	}
-	newStore, err := sqlregression2store.New(db, alertConfigProvider)
+	newStore, err := sqlregression2store.New(db, alertConfigProvider, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create a new regression2 store.")
 	}

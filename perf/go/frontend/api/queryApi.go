@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -81,7 +82,7 @@ func (api *queryApi) PreflightQuery(ctx context.Context, w http.ResponseWriter, 
 	} else {
 		count, ps, err := api.paramsetRefresher.GetParamSetForQuery(ctx, q, u)
 		if err != nil {
-			httputils.ReportError(w, err, "Failed to Preflight the query, too many key-value pairs selected. Limit is 200.", http.StatusBadRequest)
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to Preflight the query: %s", err), http.StatusBadRequest)
 			return 0, nil, err
 		}
 		return int(count), filterParamSetIfNeeded(ps.Freeze()), nil

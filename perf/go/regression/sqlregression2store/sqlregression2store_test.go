@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	alerts_mock "go.skia.org/infra/perf/go/alerts/mock"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/sql/sqltest"
@@ -27,7 +28,10 @@ const alertId int64 = 1111
 
 func setupStore(t *testing.T, alertsProvider alerts.ConfigProvider) *SQLRegression2Store {
 	db := sqltest.NewSpannerDBForTests(t, "regstore")
-	store, _ := New(db, alertsProvider)
+	instanceConfig := &config.InstanceConfig{
+		AllowMultipleRegressionsPerAlertId: true,
+	}
+	store, _ := New(db, alertsProvider, instanceConfig)
 	return store
 }
 
@@ -87,6 +91,21 @@ func assertRegression(t *testing.T, expected *regression.Regression, actual *reg
 	assert.Equal(t, expected.MedianBefore, actual.MedianBefore)
 	assert.Equal(t, expected.MedianAfter, actual.MedianAfter)
 	assert.Equal(t, expected.Frame, actual.Frame)
+}
+
+func skipTestIfSpannerEmulatorNotSupported(t *testing.T, err error) bool {
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if strings.Contains(pgErr.Message, "Postgres function jsonb_exists_any(jsonb, text[]) is not supported") || strings.Contains(pgErr.Message, "Postgres function jsonb_exists(jsonb, text) is not supported") {
+				// TODO(ansid): this can be removed when Spanner emulator image in gcloudsdk is updated.
+				// To test if it can be removed already, remove and run tests with "--config=remote".
+				t.Skip("Skiped test unsupported by Spanner emulator")
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // TestWriteRead_Success writes a regression to the database
@@ -374,16 +393,8 @@ func TestRangeFiltered(t *testing.T) {
 
 	// Filter by trace key 1.
 	regressionsFromDb, err := store.RangeFiltered(ctx, r1.CommitNumber, r1.CommitNumber, []string{traceKey1})
-	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			if strings.Contains(pgErr.Message, "Postgres function jsonb_exists_any(jsonb, text[]) is not supported") {
-				// TODO(ansid): this can be removed when Spanner emulator image in gcloudsdk is updated.
-				// To test if it can be removed already, remove and run tests with "--config=remote".
-				t.Skip("Skiped test unsupported by Spanner emulator")
-				return
-			}
-		}
+	if skipTestIfSpannerEmulatorNotSupported(t, err) {
+		return
 	}
 	assert.Nil(t, err)
 	assert.NotNil(t, regressionsFromDb)
@@ -448,7 +459,9 @@ func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool, alertsP
 		// Set a low regression.
 		success, _, err = store.SetLow(ctx, r.CommitNumber, alertIdStr, frameResponse, clusterSummary)
 	}
-
+	if skipTestIfSpannerEmulatorNotSupported(t, err) {
+		return
+	}
 	assert.Nil(t, err)
 	assert.True(t, success)
 	// Read the regression and verify that High value was set correctly.
@@ -1303,4 +1316,127 @@ func TestGetIdsByManualTriageBugID(t *testing.T) {
 			assert.ElementsMatch(t, tc.expectedIDs, actualIDs)
 		})
 	}
+}
+
+func TestAllowMultipleRegressionsPerAlertId(t *testing.T) {
+	const (
+		commitNumber = types.CommitNumber(12345)
+		traceKey1    = ",test=trace1,"
+		traceKey2    = ",test=trace2,"
+	)
+	alertIdStr := alerts.IDToString(alertId)
+	clusterSummary1 := &clustering2.ClusterSummary{
+		Centroid: []float32{1.0, 2.0, 3.0},
+		StepFit: &stepfit.StepFit{
+			TurningPoint: 1,
+		},
+	}
+	clusterSummary2 := &clustering2.ClusterSummary{
+		Centroid: []float32{4.0, 5.0, 6.0},
+		StepFit: &stepfit.StepFit{
+			TurningPoint: 1,
+		},
+	}
+	frameResponse1 := &frame.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			Header: []*dataframe.ColumnHeader{
+				{Offset: 1}, {Offset: 2}, {Offset: 3},
+			},
+			TraceSet: types.TraceSet{traceKey1: {}},
+		},
+	}
+	frameResponse2 := &frame.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			Header: []*dataframe.ColumnHeader{
+				{Offset: 1}, {Offset: 2}, {Offset: 3},
+			},
+			TraceSet: types.TraceSet{traceKey2: {}},
+		},
+	}
+
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	alertsProvider.On("GetAlertConfig", alertId).Return(&alerts.Alert{
+		IDAsString:  alertIdStr,
+		DisplayName: "Test Alert Config",
+		Algo:        types.StepFitGrouping,
+	}, nil)
+
+	ctx := context.Background()
+
+	t.Run("AllowMultipleRegressionsPerAlertId is true", func(t *testing.T) {
+		db := sqltest.NewSpannerDBForTests(t, "regstore_multi_true")
+		instanceConfig := &config.InstanceConfig{
+			AllowMultipleRegressionsPerAlertId: true,
+		}
+		store, err := New(db, alertsProvider, instanceConfig)
+		require.NoError(t, err)
+
+		// Set first regression.
+		success, _, err := store.SetHigh(ctx, commitNumber, alertIdStr, frameResponse1, clusterSummary1)
+		if skipTestIfSpannerEmulatorNotSupported(t, err) {
+			return
+		}
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Set second regression for the same alert id but different trace.
+		success, _, err = store.SetHigh(ctx, commitNumber, alertIdStr, frameResponse2, clusterSummary2)
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify both regressions are stored.
+		regressionsFromDb, err := store.RangeFiltered(ctx, commitNumber, commitNumber, []string{traceKey1, traceKey2})
+		if skipTestIfSpannerEmulatorNotSupported(t, err) {
+			return
+		}
+		assert.NoError(t, err)
+		assert.Len(t, regressionsFromDb, 2)
+
+		// Check that we have one for each trace.
+		var foundTrace1, foundTrace2 bool
+		for _, reg := range regressionsFromDb {
+			if _, ok := reg.Frame.DataFrame.TraceSet[traceKey1]; ok {
+				foundTrace1 = true
+			}
+			if _, ok := reg.Frame.DataFrame.TraceSet[traceKey2]; ok {
+				foundTrace2 = true
+			}
+		}
+		assert.True(t, foundTrace1, "Did not find regression for trace1")
+		assert.True(t, foundTrace2, "Did not find regression for trace2")
+	})
+
+	t.Run("AllowMultipleRegressionsPerAlertId is false", func(t *testing.T) {
+		db := sqltest.NewSpannerDBForTests(t, "regstore_multi_false")
+		instanceConfig := &config.InstanceConfig{
+			AllowMultipleRegressionsPerAlertId: false,
+		}
+		store, err := New(db, alertsProvider, instanceConfig)
+		require.NoError(t, err)
+
+		// Set first regression.
+		success, _, err := store.SetHigh(ctx, commitNumber, alertIdStr, frameResponse1, clusterSummary1)
+		if skipTestIfSpannerEmulatorNotSupported(t, err) {
+			return
+		}
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Set second regression for the same alert id should fail to add a new one.
+		success, _, err = store.SetHigh(ctx, commitNumber, alertIdStr, frameResponse2, clusterSummary2)
+		assert.NoError(t, err)
+		assert.False(t, success, "A new regression should not have been created.")
+
+		// Verify only one regression is stored.
+		regressionsFromDb, err := store.RangeFiltered(ctx, commitNumber, commitNumber, []string{traceKey1, traceKey2})
+		if skipTestIfSpannerEmulatorNotSupported(t, err) {
+			return
+		}
+		assert.NoError(t, err)
+		assert.Len(t, regressionsFromDb, 1)
+
+		_, ok := regressionsFromDb[0].Frame.DataFrame.TraceSet[traceKey1]
+		assert.True(t, ok)
+		assert.Equal(t, clusterSummary1, regressionsFromDb[0].High)
+	})
 }

@@ -220,7 +220,7 @@ func NewRegressionStoreFromConfig(ctx context.Context, instanceConfig *config.In
 	}
 
 	if instanceConfig.UseRegression2 {
-		return sqlregression2store.New(db, alertsConfigProvider)
+		return sqlregression2store.New(db, alertsConfigProvider, instanceConfig)
 	} else {
 		return sqlregressionstore.New(db)
 	}

@@ -82,7 +82,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 
 	// Migrate regression schema if specified.
 	if flags.MigrateRegressions {
-		migrator, err := migration.New(ctx, db)
+		migrator, err := migration.New(ctx, db, instanceConfig)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to build regression schema migrator.")
 		}

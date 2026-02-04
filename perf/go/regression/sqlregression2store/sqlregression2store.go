@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/sql/spanner"
 	"go.skia.org/infra/perf/go/stepfit"
@@ -39,6 +40,7 @@ type SQLRegression2Store struct {
 	db                         pool.Pool
 	statements                 map[statementFormat]string
 	alertConfigProvider        alerts.ConfigProvider
+	instanceConfig             *config.InstanceConfig
 	regressionFoundCounterLow  metrics2.Counter
 	regressionFoundCounterHigh metrics2.Counter
 }
@@ -50,6 +52,7 @@ const (
 	// The identifiers for all the SQL statements used.
 	write statementFormat = iota
 	readCompat
+	readRegressionsByCommitAlertAndTraceName
 	readOldest
 	readRange
 	readByRev
@@ -84,6 +87,16 @@ var statementFormats = map[statementFormat]string{
 			Regressions2
 		WHERE
 			commit_number=$1 AND alert_id=$2
+		`,
+	readRegressionsByCommitAlertAndTraceName: `
+		SELECT
+			{{ .Columns }}
+		FROM
+			Regressions2
+		WHERE
+			commit_number=$1
+			AND alert_id=$2
+			AND (frame->'dataframe'->'traceset') ? $3
 		`,
 	readOldest: `
 		SELECT
@@ -238,7 +251,7 @@ var statementFormats = map[statementFormat]string{
 }
 
 // New returns a new instance of SQLRegression2Store
-func New(db pool.Pool, alertConfigProvider alerts.ConfigProvider) (*SQLRegression2Store, error) {
+func New(db pool.Pool, alertConfigProvider alerts.ConfigProvider, instanceConfig *config.InstanceConfig) (*SQLRegression2Store, error) {
 	templates := map[statementFormat]string{}
 	context := statementContext{
 		Columns:            strings.Join(spanner.Regressions2, ","),
@@ -260,6 +273,7 @@ func New(db pool.Pool, alertConfigProvider alerts.ConfigProvider) (*SQLRegressio
 		db:                         db,
 		statements:                 templates,
 		alertConfigProvider:        alertConfigProvider,
+		instanceConfig:             instanceConfig,
 		regressionFoundCounterLow:  metrics2.GetCounter("perf_regression2_store_found", map[string]string{"direction": "low"}),
 		regressionFoundCounterHigh: metrics2.GetCounter("perf_regression2_store_found", map[string]string{"direction": "high"}),
 	}, nil
@@ -368,7 +382,7 @@ func (s *SQLRegression2Store) TriageLow(ctx context.Context, commitNumber types.
 	// TODO(ashwinpv): This code will update all regressions with the <commit_id, alert_id> pair.
 	// Once we move all the data to the new db, this will need to be updated to take in a specific
 	// regression id and update only that.
-	_, err := s.readModifyWriteCompat(ctx, commitNumber, alertID, true, func(r *regression.Regression) bool {
+	_, err := s.readModifyWriteCompat(ctx, commitNumber, alertID, "", true, func(r *regression.Regression) bool {
 		r.LowStatus = tr
 		return true
 	})
@@ -380,7 +394,7 @@ func (s *SQLRegression2Store) TriageHigh(ctx context.Context, commitNumber types
 	// TODO(ashwinpv): This code will update all regressions with the <commit_id, alert_id> pair.
 	// Once we move all the data to the new db, this will need to be updated to take in a specific
 	// regression id and update only that.
-	_, err := s.readModifyWriteCompat(ctx, commitNumber, alertID, true, func(r *regression.Regression) bool {
+	_, err := s.readModifyWriteCompat(ctx, commitNumber, alertID, "", true, func(r *regression.Regression) bool {
 		r.HighStatus = tr
 		return true
 	})
@@ -750,13 +764,22 @@ func (s *SQLRegression2Store) updateBasedOnAlertAlgo(ctx context.Context, commit
 	if err != nil {
 		return "", err
 	}
+
 	if alertConfig.Algo == types.KMeansGrouping {
-		regressionID, err = s.readModifyWriteCompat(ctx, commitNumber, alertID, mustExist /* mustExist*/, func(r *regression.Regression) bool {
+		regressionID, err = s.readModifyWriteCompat(ctx, commitNumber, alertID, "", mustExist /* mustExist*/, func(r *regression.Regression) bool {
 			updateFunc(r)
 			return true
 		})
 	} else {
-		regressionID, err = s.readModifyWriteCompat(ctx, commitNumber, alertID, mustExist /* mustExist*/, func(r *regression.Regression) bool {
+		traceName := ""
+		for key := range df.DataFrame.TraceSet {
+			traceName = key
+			break
+		}
+		if traceName == "" {
+			sklog.Errorf("An empty trace name is not expected when running stepfit grouping.")
+		}
+		regressionID, err = s.readModifyWriteCompat(ctx, commitNumber, alertID, traceName, mustExist /* mustExist*/, func(r *regression.Regression) bool {
 			if r.Frame != nil {
 				// Do not update existing regressions when the algo is stepfit.
 				return false
@@ -783,12 +806,11 @@ func (s *SQLRegression2Store) updateBasedOnAlertAlgo(ctx context.Context, commit
 // If mustExist is true then the read must be successful, otherwise a new
 // default Regression will be used and stored back to the database after the
 // callback is called.
-func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitNumber types.CommitNumber, alertIDString string, mustExist bool, cb func(r *regression.Regression) bool) (string, error) {
+func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitNumber types.CommitNumber, alertIDString string, traceName string, mustExist bool, cb func(r *regression.Regression) bool) (string, error) {
 	alertID := alerts.IDAsStringToInt(alertIDString)
 	if alertID == alerts.BadAlertID {
 		return "", skerr.Fmt("Failed to convert alertIDString %q to an int.", alertIDString)
 	}
-
 	// Do everything in a transaction so we don't have any lost updates.
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -796,8 +818,15 @@ func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitN
 	}
 
 	var r *regression.Regression
+	var rows pgx.Rows
 
-	rows, err := tx.Query(ctx, s.statements[readCompat], commitNumber, alertID)
+	// An empty trace_name indicates that we are processing a k-means alert, which requires a query without a trace name filter.
+	if s.instanceConfig.AllowMultipleRegressionsPerAlertId && traceName != "" {
+		rows, err = tx.Query(ctx, s.statements[readRegressionsByCommitAlertAndTraceName], commitNumber, alertID, traceName)
+	} else {
+		rows, err = tx.Query(ctx, s.statements[readCompat], commitNumber, alertID)
+	}
+
 	if err != nil {
 		rollbackTransaction(ctx, tx)
 		return "", err

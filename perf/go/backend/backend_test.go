@@ -28,7 +28,10 @@ func setupTestApp(t *testing.T) *Backend {
 	anomalygroupStore, _ := ag_store.New(db)
 	culpritStore, _ := culprit_store.New(db)
 	subscriptionStore, _ := subscription_store.New(db)
-	regressionStore, _ := sqlregression2store.New(db, configProvider)
+	instanceConfig := &config.InstanceConfig{
+		AllowMultipleRegressionsPerAlertId: true,
+	}
+	regressionStore, _ := sqlregression2store.New(db, configProvider, instanceConfig)
 	configFile := testutils.TestDataFilename(t, "demo.json")
 	sklog.Infof("Config file: %s", configFile)
 	flags := &config.BackendFlags{

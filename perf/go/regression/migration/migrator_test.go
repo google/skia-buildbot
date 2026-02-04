@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/sqlregression2store"
@@ -21,9 +22,12 @@ import (
 func setup(t *testing.T) (context.Context, *RegressionMigrator, *sqlregressionstore.SQLRegressionStore, *sqlregression2store.SQLRegression2Store) {
 	ctx := context.Background()
 	db := sqltest.NewSpannerDBForTests(t, "regstore")
-	migrator, _ := New(ctx, db)
+	instanceConfig := &config.InstanceConfig{
+		AllowMultipleRegressionsPerAlertId: true,
+	}
+	migrator, _ := New(ctx, db, instanceConfig)
 	legacyStore, _ := sqlregressionstore.New(db)
-	newStore, _ := sqlregression2store.New(db, nil)
+	newStore, _ := sqlregression2store.New(db, nil, instanceConfig)
 	return ctx, migrator, legacyStore, newStore
 }
 
