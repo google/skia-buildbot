@@ -83,7 +83,7 @@ func NewSemVerGCS(ctx context.Context, c *config.SemVerGCSChildConfig, client *h
 	getGCSVersion := func(rev *revision.Revision) (gcsVersion, error) {
 		semVer, err := parser.Parse(rev.Id)
 		if err != nil {
-			return nil, skerr.Wrap(err)
+			return nil, skerr.Wrapf(errInvalidGCSVersion, "failed parsing version from %q with regex %q: %s", rev.Id, c.VersionRegex, err)
 		}
 		return (*gcsSemVersion)(semVer), nil
 	}
