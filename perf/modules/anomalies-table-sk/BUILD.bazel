@@ -85,6 +85,8 @@ sk_element_puppeteer_test(
         "//:node_modules/chai",
         "//:node_modules/puppeteer",
         "//perf/modules/bug-tooltip-sk:bug-tooltip-sk_po_ts_lib",
+        "//perf/modules/existing-bug-dialog-sk:existing-bug-dialog-sk_po_ts_lib",
+        "//perf/modules/triage-menu-sk:triage-menu-sk_po_ts_lib",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

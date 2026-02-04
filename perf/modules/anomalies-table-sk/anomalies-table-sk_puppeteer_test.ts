@@ -2,10 +2,12 @@ import { BugTooltipSkPO } from '../bug-tooltip-sk/bug-tooltip-sk_po';
 import { expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { AnomaliesTableSkPO } from './anomalies-table-sk_po';
-import { anomaly_table } from './test_data';
+import { anomaly_table, GROUP_REPORT_RESPONSE_WITH_SID, associatedBugs } from './test_data';
 import { ElementHandle } from 'puppeteer';
 import { Page } from 'puppeteer';
 import { assert } from 'chai';
+import { TriageMenuSkPO } from '../triage-menu-sk/triage-menu-sk_po';
+import { ExistingBugDialogSkPO } from '../existing-bug-dialog-sk/existing-bug-dialog-sk_po';
 
 describe('anomalies-table-sk', () => {
   let testBed: TestBed;
@@ -28,7 +30,26 @@ describe('anomalies-table-sk', () => {
 
   describe('with anomalies', () => {
     beforeEach(async () => {
-      testBed.page.removeAllListeners('request');
+      await testBed.page.setRequestInterception(true);
+      testBed.page.on('request', (request) => {
+        if (request.url().endsWith('/_/anomalies/group_report') && request.method() === 'POST') {
+          request.respond({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(GROUP_REPORT_RESPONSE_WITH_SID),
+          });
+        } else if (request.url().endsWith('/_/triage/list_issues') && request.method() === 'POST') {
+          request.respond({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              issues: [{ issueId: '67351', issueState: { title: 'Test Bug Title' } }],
+            }),
+          });
+        } else {
+          request.continue();
+        }
+      });
       await testBed.page.click('#populate-tables');
     });
 
@@ -75,6 +96,70 @@ describe('anomalies-table-sk', () => {
       await anomaliesTableSkPO.clickTriageButton();
       const triageMenu = await testBed.page.$('triage-menu-sk');
       assert.isNotNull(triageMenu);
+    });
+
+    it('should be able to click New Bug button after one row checkbox is selected', async () => {
+      await anomaliesTableSkPO.clickCheckbox(0);
+      await anomaliesTableSkPO.clickTriageButton();
+      const triageMenuSk = await testBed.page.$('triage-menu-sk');
+      assert.isNotNull(triageMenuSk);
+
+      const triageMenuSkPO = new TriageMenuSkPO(triageMenuSk!);
+      await triageMenuSkPO.newBugButton.click();
+      const newBugDialog = await testBed.page.$('new-bug-dialog-sk');
+      assert.isNotNull(newBugDialog);
+    });
+
+    it('should be able to click Existing Bug button after one checkbox is selected', async () => {
+      await anomaliesTableSkPO.clickCheckbox(0);
+      await anomaliesTableSkPO.clickTriageButton();
+      const triageMenuSk = await testBed.page.$('triage-menu-sk');
+      assert.isNotNull(triageMenuSk);
+
+      const triageMenuSkPO = new TriageMenuSkPO(triageMenuSk!);
+      await triageMenuSkPO.existingBugButton.click();
+      const existingBugDialog = await testBed.page.$('existing-bug-dialog-sk');
+      assert.isNotNull(existingBugDialog);
+    });
+
+    it('should be able to click Existing Bug button and display mock data', async () => {
+      await anomaliesTableSkPO.clickCheckbox(0);
+      await anomaliesTableSkPO.clickTriageButton();
+      const triageMenu = await testBed.page.$('triage-menu-sk');
+      const triageMenuSkPO = new TriageMenuSkPO(triageMenu!);
+      await triageMenuSkPO.existingBugButton.click();
+
+      const existingBugDialog = await testBed.page.$('existing-bug-dialog-sk');
+      assert.isNotNull(existingBugDialog);
+
+      const existingBugDialogSkPO = new ExistingBugDialogSkPO(existingBugDialog!);
+      // Assert that the mocked bug ID and title are displayed
+      const associatedBugLinks = existingBugDialogSkPO.associatedBugLinks;
+
+      for (let i = 0; i < (await associatedBugLinks.length); i++) {
+        expect(await (await associatedBugLinks.item(i)).innerText).to.include('12345');
+      }
+      const itemSelectorUrls = '#associated-bugs-table li a';
+      testBed.page.$$eval(itemSelectorUrls, (items) => {
+        const bugUrls = items.map((item) => {
+          const linkElement = item.querySelector('a');
+          const titleElement = item.querySelector('#bug-title');
+          return {
+            id: linkElement ? linkElement.textContent || '' : '',
+            url: linkElement ? (linkElement as HTMLAnchorElement).href : '',
+            title: titleElement ? titleElement.textContent || '' : '',
+          };
+        });
+
+        expect(bugUrls.length).to.equal(2);
+        for (let i = 0; i < bugUrls.length; i++) {
+          const expected = associatedBugs[i];
+          const actual = bugUrls[i];
+          expect(actual.id).equals(expected.id);
+          expect(actual.url).equals(expected.url);
+          expect(actual.title).equals(expected.title);
+        }
+      });
     });
 
     it('should be able to click expand checkbox', async () => {

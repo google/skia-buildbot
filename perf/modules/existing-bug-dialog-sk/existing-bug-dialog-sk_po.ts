@@ -1,5 +1,8 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
-import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
+import {
+  PageObjectElement,
+  PageObjectElementList,
+} from '../../../infra-sk/modules/page_object/page_object_element';
 
 /** A page object for the ExistingBugDialogSk component. */
 export class ExistingBugDialogSkPO extends PageObject {
@@ -17,6 +20,10 @@ export class ExistingBugDialogSkPO extends PageObject {
 
   private get closeBtn(): PageObjectElement {
     return this.bySelector('button.close');
+  }
+
+  get associatedBugLinks(): PageObjectElementList {
+    return this.bySelectorAll('#associated-bugs-table li a');
   }
 
   async isDialogOpen() {
