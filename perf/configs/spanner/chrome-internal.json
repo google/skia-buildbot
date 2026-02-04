@@ -171,5 +171,6 @@
     "optimize_sqltracestore": true,
     "new_alerts_page": true,
     "show_triage_link": false,
-    "show_bisect_btn": true
+    "show_bisect_btn": true,
+    "allow_multiple_regressions_per_alert_id": true
 }
