@@ -22,3 +22,5 @@ _bazel*/**
 *.json5
 *.json
 *.html
+**/*.bazel
+**/*.bzl

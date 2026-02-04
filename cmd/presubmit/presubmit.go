@@ -767,11 +767,25 @@ func runESLint(ctx context.Context, files []fileWithChanges, workspaceRoot, bran
 	return true
 }
 
+func filterPnpmLock(files []fileWithChanges) []fileWithChanges {
+	var out []fileWithChanges
+	for _, f := range files {
+		if filepath.Base(f.fileName) != "pnpm-lock.yaml" {
+			out = append(out, f)
+		}
+	}
+	return out
+}
+
 // runPrettier runs prettier --write on any changed files. It returns false if
 // prettier returns a non-zero error code.
 func runPrettier(ctx context.Context, files []fileWithChanges, workspaceRoot, branchBaseCommit string) bool {
 	args := []string{"run", "--config=mayberemote", "//:npx", "--", "prettier", "--write", "--ignore-unknown"}
 	for _, f := range files {
+		if filepath.Ext(f.fileName) == ".bazel" || filepath.Ext(f.fileName) == ".bzl" || filepath.Ext(f.fileName) == ".go" {
+			logf(ctx, "Skipping Prettier for %s\n", f.fileName)
+			continue
+		}
 		args = append(args, f.fileName)
 	}
 
@@ -783,7 +797,12 @@ func runPrettier(ctx context.Context, files []fileWithChanges, workspaceRoot, br
 		return false
 	}
 
-	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
+	changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit)
+	// Ignore pnpm-lock.yaml changes as they are side effects of running npx
+	files = filterPnpmLock(files)
+	changedFiles = filterPnpmLock(changedFiles)
+
+	if !deepequal.DeepEqual(files, changedFiles) {
 		logf(ctx, "Prettier caused additional changes. %+v \n", changedFiles)
 		return false
 	}
