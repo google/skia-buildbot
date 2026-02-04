@@ -185,6 +185,64 @@ describe('report-page-sk', () => {
         Previous: '60.8302 [+23.6228%]',
       });
     });
+
+    it('verify params are displayed when collapse button is clicked', async () => {
+      // https://screenshot.googleplex.com/HepzKN63UYWfnzf
+      const graph = await reportPageSkPO.getGraph(0);
+      const collapseButton = graph.collapseButton;
+      await collapseButton.click();
+
+      const paramsTab = graph.paramsTab;
+      expect(await paramsTab.innerText).to.equal('Params');
+
+      const paramset = graph.paramsetSk;
+      expect(await paramset.isEmpty()).to.be.false;
+
+      const expectedParams = [
+        { key: 'benchmark', value: 'jetstream2' },
+        { key: 'bot', value: 'mac-m1_mini_2020-perf' },
+        { key: 'master', value: 'ChromiumPerf' },
+        { key: 'subtest_1', value: 'JetStream2' },
+        { key: 'test', value: 'Babylon.First' },
+      ];
+
+      for (const param of expectedParams) {
+        const keyElem = await paramset.bySelector(`th[data-key="${param.key}"]`);
+        expect(await keyElem.isEmpty()).to.be.false;
+        const valElem = await paramset.bySelector(
+          `div[data-key="${param.key}"][data-value="${param.value}"]`
+        );
+        expect(await valElem.isEmpty()).to.be.false;
+      }
+    });
+
+    it('removes graph when anomaly is unchecked', async () => {
+      // https://screenshot.googleplex.com/7gcAgBMLxcqH8dB
+      const graphs = await reportPageSkPO.graphs;
+      expect(await graphs.length).to.equal(1);
+
+      const anomaliesTablePO = reportPageSkPO.anomaliesTable;
+      await anomaliesTablePO.clickCheckbox(1);
+
+      await poll(async () => {
+        const currentGraphs = await reportPageSkPO.graphs;
+        return (await currentGraphs.length) === 0;
+      }, 'Graph should be removed');
+    });
+
+    it('select all anomalies to show graphs', async () => {
+      // https://screenshot.googleplex.com/68yTUQ45kAiQeHD
+      const graphs = await reportPageSkPO.graphs;
+      expect(await graphs.length).to.equal(1);
+
+      const anomaliesTablePO = reportPageSkPO.anomaliesTable;
+      await anomaliesTablePO.clickCheckbox(0);
+
+      await poll(async () => {
+        const currentGraphs = await reportPageSkPO.graphs;
+        return (await currentGraphs.length) === 2;
+      }, 'Two graphs should be displayed');
+    });
   });
 
   it('should be able to scroll up and down', async () => {
