@@ -27,7 +27,6 @@ go_library(
         "//perf/go/regression",
         "//perf/go/stepfit",
         "//perf/go/subscription/proto/v1",
-        "//perf/go/trybot/results",
         "//perf/go/types",
         "//perf/go/ui/frame",
     ],

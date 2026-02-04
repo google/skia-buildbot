@@ -712,29 +712,6 @@ export interface RegressionDetectionResponse {
 	frame: FrameResponse | null;
 }
 
-export interface TryBotRequest {
-	kind: TryBotRequestKind;
-	cl: CL;
-	patch_number: number;
-	commit_number: CommitNumber;
-	query: string;
-}
-
-export interface TryBotResult {
-	params: Params;
-	median: number;
-	lower: number;
-	upper: number;
-	stddevRatio: number;
-	values: number[] | null;
-}
-
-export interface TryBotResponse {
-	header: (ColumnHeader | null)[] | null;
-	results: TryBotResult[] | null;
-	paramset: ReadOnlyParamSet;
-}
-
 export namespace progress {
 	export interface Message {
 		key: string;
@@ -771,7 +748,7 @@ export namespace ingest {
 	export interface Format {
 		version: number;
 		git_hash: string;
-		issue?: CL;
+		issue?: ingest.CL;
 		patchset?: string;
 		key?: { [key: string]: string } | null;
 		results: ingest.Result[] | null;
@@ -953,24 +930,24 @@ export type Int64s = number[] | null;
 
 export type Header = { [key: string]: string[] | null } | null;
 
-export type TryBotRequestKind = 'trybot' | 'commit';
-
-export type CL = string & {
-	/**
-	* WARNING: Do not reference this field from application code.
-	*
-	* This field exists solely to provide nominal typing. For reference, see
-	* https://www.typescriptlang.org/play#example/nominal-typing.
-	*/
-	_cLBrand: 'type alias for string'
-};
-
-export function CL(v: string): CL {
-	return v as CL;
-};
-
 export type ProcessState = 'Running' | 'Success' | 'Error';
 
 export type ProjectId = 'chromium';
 
 export namespace progress { export type Status = 'Running' | 'Finished' | 'Error'; }
+
+export namespace ingest {
+    export type CL = string & {
+		/**
+		* WARNING: Do not reference this field from application code.
+		*
+		* This field exists solely to provide nominal typing. For reference, see
+		* https://www.typescriptlang.org/play#example/nominal-typing.
+		*/
+        _cLbrand: 'type alias for string'
+    };
+
+    export function CL(v: string): CL {
+        return v as CL;
+    };
+}

@@ -125,9 +125,6 @@ var SubTests = map[string]struct {
 	"parse_OnlyOneMeasurementInfile":              {parse_OnlyOneMeasurementInfile, "one_measurement.json"},
 	"parse_OnlyOneMeasurementWithValueZeroInfile": {parse_OnlyOneMeasurementWithValueZeroInfile, "zero_measurement.json"},
 	"parse_ReadErr":                               {parse_ReadErr, "success.json"},
-	"parseTryBot_Success":                         {parseTryBot_Success, "success.json"},
-	"parseTryBot_MalformedJSONError":              {parseTryBot_MalformedJSONError, "invalid.json"},
-	"parseTryBot_ReadErr":                         {parseTryBot_ReadErr, "success.json"},
 }
 
 func parse_Success(t *testing.T, p *Parser, f file.File) {
@@ -138,15 +135,6 @@ func parse_Success(t *testing.T, p *Parser, f file.File) {
 	assert.Len(t, params, 4)
 	assert.Contains(t, values, float32(858))
 	assert.Contains(t, params, expectedGoodParams)
-	assert.Equal(t, int64(1), p.parseCounter.Get())
-	assert.Equal(t, int64(0), p.parseFailCounter.Get())
-}
-
-func parseTryBot_Success(t *testing.T, p *Parser, f file.File) {
-	cl, patch, err := p.ParseTryBot(f)
-	require.NoError(t, err)
-	assert.Equal(t, types.CL("327697"), cl)
-	assert.Equal(t, "1", patch)
 	assert.Equal(t, int64(1), p.parseCounter.Get())
 	assert.Equal(t, int64(0), p.parseFailCounter.Get())
 }
@@ -168,13 +156,6 @@ func parse_MalformedJSONError(t *testing.T, p *Parser, f file.File) {
 	_, _, _, _, err := p.Parse(context.Background(), f)
 	require.Error(t, err)
 	assert.NotEqual(t, ErrFileShouldBeSkipped, err)
-	assert.Equal(t, int64(1), p.parseCounter.Get())
-	assert.Equal(t, int64(1), p.parseFailCounter.Get())
-}
-
-func parseTryBot_MalformedJSONError(t *testing.T, p *Parser, f file.File) {
-	_, _, err := p.ParseTryBot(f)
-	require.Error(t, err)
 	assert.Equal(t, int64(1), p.parseCounter.Get())
 	assert.Equal(t, int64(1), p.parseFailCounter.Get())
 }
@@ -213,14 +194,6 @@ type alwaysErrReader struct{}
 
 func (a alwaysErrReader) Read(p []byte) (n int, err error) {
 	return 0, fmt.Errorf("Error reading.")
-}
-
-func parseTryBot_ReadErr(t *testing.T, p *Parser, f file.File) {
-	f.Contents = io.NopCloser(alwaysErrReader{})
-	_, _, err := p.ParseTryBot(f)
-	require.Error(t, err)
-	assert.Equal(t, int64(1), p.parseCounter.Get())
-	assert.Equal(t, int64(1), p.parseFailCounter.Get())
 }
 
 func parse_ReadErr(t *testing.T, p *Parser, f file.File) {

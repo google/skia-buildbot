@@ -32,23 +32,13 @@ const (
 	inputFilenameFlagName    = "in"
 	localFlagName            = "local"
 	loggingFlagName          = "logging"
-	numTilesListFlagName     = "num"
 	outputFilenameFlagName   = "out"
 	queryFlagName            = "query"
 	startTimeFlagName        = "start"
 	stopTimeFlagName         = "stop"
 	tileNumberFlagName       = "tile"
-	trybotFilenameFlagName   = "filename"
-	trybotNumCommitsFlagName = "num"
 	verboseFlagName          = "verbose"
 )
-
-// flags
-var trybotFilenameFlag = &cli.StringFlag{
-	Name:  trybotFilenameFlagName,
-	Value: "",
-	Usage: "The full URL of a nanobench trybot results files, e.g.: 'gs://skia-perf/...foo.json'",
-}
 
 var connectionStringFlag = &cli.StringFlag{
 	Name:    connectionStringFlagName,
@@ -108,19 +98,6 @@ var tileNumberFlag = &cli.Int64Flag{
 	Name:  tileNumberFlagName,
 	Value: int64(types.BadTileNumber),
 	Usage: "The tile to query.",
-}
-
-var numTilesListFlag = &cli.IntFlag{
-	Name:    numTilesListFlagName,
-	Value:   10,
-	Usage:   "The number of tiles to display.",
-	EnvVars: []string{"PERF_CONFIG_FILENAME"},
-}
-
-var trybotNumCommitsFlag = &cli.IntFlag{
-	Name:  trybotNumCommitsFlagName,
-	Value: 5,
-	Usage: "The number of ingestion files to load.",
 }
 
 var beginCommitFlag = &cli.Int64Flag{

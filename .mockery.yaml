@@ -365,9 +365,6 @@ packages:
     interfaces:
       TraceStore:
       MetadataStore:
-  go.skia.org/infra/perf/go/trybot/store:
-    interfaces:
-      TryBotStore:
   go.skia.org/infra/perf/go/userissue:
     config:
       dir: "{{.InterfaceDir}}/mocks"

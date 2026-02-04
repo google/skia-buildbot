@@ -67,8 +67,6 @@ import (
 	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracing"
-	"go.skia.org/infra/perf/go/trybot/results"
-	"go.skia.org/infra/perf/go/trybot/results/dfloader"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/urlprovider"
 	"go.skia.org/infra/perf/go/userissue"
@@ -167,8 +165,6 @@ type Frontend struct {
 	dfBuilder dataframe.DataFrameBuilder
 
 	traceCache *tracecache.TraceCache
-
-	trybotResultsLoader results.Loader
 
 	// distFileSystem is the ./dist directory of files produced by Bazel.
 	distFileSystem http.FileSystem
@@ -567,9 +563,6 @@ func (f *Frontend) initialize() {
 
 	f.urlProvider = urlprovider.New(f.perfGit)
 
-	// TODO(jcgregorio) Implement store.TryBotStore and add a reference to it here.
-	f.trybotResultsLoader = dfloader.New(f.dfBuilder, nil, f.perfGit)
-
 	alerts.DefaultSparse = f.flags.DefaultSparse
 
 	sklog.Info("About to build alertStore.")
@@ -767,36 +760,6 @@ func (f *Frontend) liveness(h http.Handler) http.Handler {
 		h.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(s)
-}
-
-func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	var req results.TryBotRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
-		return
-	}
-	prog := progress.New()
-	f.progressTracker.Add(prog)
-	go func() {
-		ctx, span := trace.StartSpan(context.Background(), "trybotLoadHandler")
-		defer span.End()
-
-		ctx, cancel := context.WithTimeout(ctx, longRunningRequestTimeout)
-		defer cancel()
-
-		resp, err := f.trybotResultsLoader.Load(ctx, req, nil)
-		if err != nil {
-			prog.Error("Failed to load results.")
-			sklog.Errorf("trybot failed to load results: %s", err)
-			return
-		}
-		prog.FinishedWithResults(resp)
-	}()
-	if err := prog.JSON(w); err != nil {
-		sklog.Errorf("Failed to encode trybot results: %s", err)
-	}
 }
 
 // gotoHandler handles redirecting from a git hash to either the explore,
@@ -1118,9 +1081,6 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	if f.progressTracker != nil {
 		router.Get("/_/status/{id:[a-zA-Z0-9-]+}", f.progressTracker.Handler)
 	}
-
-	// TODO(ashwinpv): The trybot page looks to be unused. Confirm and delete if that's the case.
-	router.Post("/_/trybot/load", f.trybotLoadHandler)
 
 	apis := f.getFrontendApis()
 

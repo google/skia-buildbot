@@ -57,8 +57,6 @@ go_library(
         "//perf/go/tracecache",
         "//perf/go/tracestore",
         "//perf/go/tracing",
-        "//perf/go/trybot/results",
-        "//perf/go/trybot/results/dfloader",
         "//perf/go/types",
         "//perf/go/urlprovider",
         "//perf/go/userissue:store",

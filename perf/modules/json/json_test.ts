@@ -6,7 +6,7 @@ import {
   CommitNumber,
   TimestampSeconds,
   SerializesToString,
-  CL,
+  ingest,
   Trace,
   TraceSet,
 } from './index';
@@ -44,7 +44,7 @@ describe('json/nominal_types', () => {
 
   it('CL constructor returns the string', () => {
     const v = 'abc';
-    assert.strictEqual(CL(v), v as any);
+    assert.strictEqual(ingest.CL(v), v as any);
   });
 
   it('Trace constructor returns the array', () => {

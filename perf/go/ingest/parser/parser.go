@@ -296,41 +296,6 @@ func (p *Parser) Parse(ctx context.Context, file file.File) ([]paramtools.Params
 	return params, values, hash, links, nil
 }
 
-// ParseTryBot extracts the issue and patch identifiers from the file.File.
-//
-// The issue and patch values are returned as strings. If either can be further
-// parsed as integers that will be done at a higher level.
-func (p *Parser) ParseTryBot(file file.File) (types.CL, string, error) {
-	defer util.Close(file.Contents)
-	p.parseCounter.Inc(1)
-
-	// Read the whole content into bytes.Reader since we may take more than one
-	// pass at the data.
-	b, err := io.ReadAll(file.Contents)
-	if err != nil {
-		p.parseFailCounter.Inc(1)
-		return "", "", skerr.Wrap(err)
-	}
-	r := bytes.NewReader(b)
-
-	parsed, err := format.Parse(r)
-	if err != nil {
-		// Fallback to legacy format.
-		if _, err := r.Seek(0, io.SeekStart); err != nil {
-			p.parseFailCounter.Inc(1)
-			return "", "", skerr.Wrap(err)
-		}
-		benchData, err := format.ParseLegacyFormat(r)
-		if err != nil {
-			p.parseFailCounter.Inc(1)
-			return "", "", skerr.Wrap(err)
-		}
-		return types.CL(benchData.Issue), benchData.PatchSet, nil
-	}
-	return parsed.Issue, parsed.Patchset, nil
-
-}
-
 // ParseCommitNumberFromGitHash parse commit number from git hash.
 // this method will be used to get integer commit number from string git hash.
 // For example: "git_hash": "CP:727901", the commit number will be 727901
