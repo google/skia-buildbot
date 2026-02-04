@@ -195,8 +195,8 @@ func TestNotifyUserOfAnomaly_WithConfig_NoSub_NotNotify(t *testing.T) {
 		BugComponent: "1325852",
 		BugPriority:  2,
 		BugSeverity:  3,
-		BugCcEmails:  []string{"mordeckimarcin@google.com"},
-		ContactEmail: "mordeckimarcin@google.com",
+		BugCcEmails:  []string{""},
+		ContactEmail: "",
 	}
 	subscriptionStore.On("GetSubscription", mock.Anything,
 		subscriptionName, subscriptionRevision).Return(nil, nil)
@@ -244,8 +244,8 @@ func TestNotifyUserOfAnomaly_WithConfig_NotAllowedSub_NotNotify(t *testing.T) {
 		BugLabels:    []string{"Mocked Sub Label - overwrite"},
 		Hotlists:     []string{"5141966"},
 		BugComponent: "1325852",
-		BugCcEmails:  []string{"mordeckimarcin@google.com"},
-		ContactEmail: "mordeckimarcin@google.com",
+		BugCcEmails:  []string{""},
+		ContactEmail: "",
 	}
 	subscriptionStore.On("GetSubscription", mock.Anything,
 		subscriptionName, subscriptionRevision).Return(subscription, nil)

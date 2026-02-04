@@ -153,8 +153,8 @@ func PrepareSubscription(sub *sub_pb.Subscription, ag *v1.AnomalyGroup, config *
 			BugComponent: "1325852",
 			BugPriority:  2,
 			BugSeverity:  3,
-			BugCcEmails:  []string{"mordeckimarcin@google.com"},
-			ContactEmail: "mordeckimarcin@google.com",
+			BugCcEmails:  []string{""},
+			ContactEmail: "",
 		}
 	} else if config != nil && !slices.Contains(config.SheriffConfigsToNotify, sub.Name) {
 		// If a subscription is loaded, but it is not in the allowlist, update the fields to avoid notifing end users.
@@ -162,8 +162,8 @@ func PrepareSubscription(sub *sub_pb.Subscription, ag *v1.AnomalyGroup, config *
 		sub.BugLabels = []string{"Mocked Sub Label - overwrite"}
 		sub.Hotlists = []string{"5141966"}
 		sub.BugComponent = "1325852"
-		sub.BugCcEmails = []string{"mordeckimarcin@google.com"}
-		sub.ContactEmail = "mordeckimarcin@google.com"
+		sub.BugCcEmails = []string{""}
+		sub.ContactEmail = ""
 
 	}
 
