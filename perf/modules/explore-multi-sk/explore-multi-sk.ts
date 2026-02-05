@@ -759,8 +759,8 @@ export class ExploreMultiSk extends ElementSk {
   // Event listener for when the "Query Highlighted" button is clicked.
   // It will populate the Test Picker with the keys from the highlighted
   // trace.
-  private _onPopulateQuery = (e: Event) => {
-    this.populateTestPicker((e as CustomEvent).detail);
+  private _onPopulateQuery = async (e: Event) => {
+    await this.populateTestPicker((e as CustomEvent).detail);
   };
 
   // Event listener for when the "Even X Axis Spacing" toggle is clicked.
@@ -1298,7 +1298,7 @@ export class ExploreMultiSk extends ElementSk {
       });
     }
 
-    this.testPicker!.populateFieldDataFromParamSet(paramSets, paramSet);
+    await this.testPicker!.populateFieldDataFromParamSet(paramSets, paramSet);
     this.testPicker!.setReadOnly(false);
     this.currentPageExploreElements[0].useBrowserURL(false);
     this.testPicker!.scrollIntoView();

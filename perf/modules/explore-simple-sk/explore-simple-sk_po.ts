@@ -143,6 +143,10 @@ export class ExploreSimpleSkPO extends PageObject {
     return this.bySelector('#removeAll');
   }
 
+  get populateQueryButton(): PageObjectElement {
+    return this.bySelector('md-icon-button[title="Load Test Picker with current Query"]');
+  }
+
   async clickRemoveAllButton(): Promise<void> {
     await this.removeAllButton.click();
   }

@@ -6,6 +6,29 @@ import {
   poll,
   waitForElementNotHidden,
 } from '../common/puppeteer-test-util';
+import { TestPickerSkPO } from '../test-picker-sk/test-picker-sk_po';
+
+const addGraph = async (
+  testPickerPO: TestPickerSkPO,
+  explorePO: ExploreMultiSkPO,
+  selections: { [index: number]: string[] },
+  expectedGraphCount?: number
+) => {
+  for (const [indexStr, options] of Object.entries(selections)) {
+    const index = parseInt(indexStr);
+    await testPickerPO.waitForPickerField(index);
+    const field = await testPickerPO.getPickerField(index);
+    for (const option of options) {
+      await field.select(option);
+      await testPickerPO.waitForSpinnerInactive();
+    }
+  }
+  await testPickerPO.clickPlotButton();
+  if (expectedGraphCount !== undefined) {
+    await explorePO.waitForGraphCount(expectedGraphCount);
+  }
+  await explorePO.waitForGraph(0);
+};
 
 const LONG_TIMEOUT_MS = 30000;
 const GRAPH_LOAD_TIMEOUT_MS = 20000;
@@ -28,25 +51,9 @@ describe('Anomalies and Traces', () => {
     const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
     const testPickerPO = explorePO.testPicker;
 
-    // Wait for the test picker to populate.
-    // Order based on include_params: ['arch', 'os']
-    // 1. Arch
-    await testPickerPO.waitForPickerField(0);
-    const archField = await testPickerPO.getPickerField(0);
-    await archField.select('arm');
-    await testPickerPO.waitForSpinnerInactive();
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android', 'Ubuntu'] });
 
-    // 2. OS
-    await testPickerPO.waitForPickerField(1);
     const osField = await testPickerPO.getPickerField(1);
-    await osField.select('Android');
-    await testPickerPO.waitForSpinnerInactive();
-    await osField.select('Ubuntu');
-    await testPickerPO.waitForSpinnerInactive();
-
-    // Click Plot
-    await testPickerPO.clickPlotButton();
-    await explorePO.waitForGraph();
 
     // Verify anomalies are present (should be 2 as we selected both traces)
     const exploreSimplePO = explorePO.exploreSimpleSk;
@@ -106,21 +113,7 @@ describe('Anomalies and Traces', () => {
     const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
     const testPickerPO = explorePO.testPicker;
 
-    // 1. Arch
-    await testPickerPO.waitForPickerField(0);
-    const archField = await testPickerPO.getPickerField(0);
-    await archField.select('arm');
-    await testPickerPO.waitForSpinnerInactive();
-
-    // 2. OS
-    await testPickerPO.waitForPickerField(1);
-    const osField = await testPickerPO.getPickerField(1);
-    await osField.select('Android');
-    await testPickerPO.waitForSpinnerInactive();
-
-    // Click Plot
-    await testPickerPO.clickPlotButton();
-    await explorePO.waitForGraph();
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
 
     const exploreSimplePO = explorePO.exploreSimpleSk;
 
@@ -206,21 +199,8 @@ describe('Manual Plot Mode', () => {
     const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
     const testPickerPO = explorePO.testPicker;
 
-    // ==========================================
-    // 1. ADD FIRST GRAPH (Selection: Android)
-    // ==========================================
-    await testPickerPO.waitForPickerField(0);
-    const archField = await testPickerPO.getPickerField(0);
-    await archField.select('arm');
-    await testPickerPO.waitForSpinnerInactive();
-
-    await testPickerPO.waitForPickerField(1);
-    const osField = await testPickerPO.getPickerField(1);
-    await osField.select('Android');
-    await testPickerPO.waitForSpinnerInactive();
-
-    await testPickerPO.clickPlotButton();
-    await explorePO.waitForGraph(0);
+    // Add first graph.
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
 
     // Verify First Graph (Index 0)
     expect(await explorePO.getGraphCount()).to.equal(1);
@@ -231,27 +211,19 @@ describe('Manual Plot Mode', () => {
     let currentUrl = new URL(await testBed.page.url());
     expect(currentUrl.searchParams.get('totalGraphs')).to.equal('1');
 
-    // ==========================================
-    // 2. ADD SECOND GRAPH (Selection: Android + Ubuntu)
-    // ==========================================
+    // Add second graph.
     // We select 'Ubuntu'. In this mode, 'Android' remains selected in the picker.
     // The picker state is now: { arch: 'arm', os: ['Android', 'Ubuntu'] }
-    await osField.select('Ubuntu');
-    await testPickerPO.waitForSpinnerInactive();
+    await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
 
-    await testPickerPO.clickPlotButton();
-
-    await explorePO.waitForGraphCount(2);
-    await explorePO.waitForGraph(0);
-
-    // --- VERIFY TOP GRAPH (Index 0) ---
+    // Verify Top Graph (Index 0)
     // Should reflect the CURRENT picker state (Android + Ubuntu)
     const graphTopPO = explorePO.getGraph(0);
     const tracesTop = await graphTopPO.getTraceKeys();
     expect(tracesTop).to.include(',arch=arm,os=Ubuntu,');
     expect(tracesTop).to.include(',arch=arm,os=Android,');
 
-    // --- VERIFY BOTTOM GRAPH (Index 1) ---
+    // Verify Bottom Graph (Index 1)
     // Should remain a snapshot of the PAST state (Only Android)
     // This proves the old graph wasn't mutated by the new plot action
     const graphBottomPO = explorePO.getGraph(1);
@@ -264,53 +236,57 @@ describe('Manual Plot Mode', () => {
     expect(currentUrl.searchParams.get('totalGraphs')).to.equal('2');
   });
 
+  it('populates test picker with query from different graphs', async () => {
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    // Plot first graph with 1 trace (arm, Android)
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
+
+    // Plot second graph with 2 traces (arm, Android, Ubuntu)
+    await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
+
+    const traces0 = await explorePO.getGraph(0).getTraceKeys();
+    expect(traces0).to.have.lengthOf(2);
+    const traces1 = await explorePO.getGraph(1).getTraceKeys();
+    expect(traces1).to.have.lengthOf(1);
+
+    // Click Populate Query on Graph 1
+    await explorePO.getGraph(1).populateQueryButton.click();
+    await testPickerPO.waitForSpinnerInactive();
+
+    expect(await testPickerPO.getSelectedItems(0)).to.deep.equal(['arm']);
+    expect(await testPickerPO.getSelectedItems(1)).to.deep.equal(['Android']);
+
+    // Click Populate Query on Graph 0
+    await explorePO.getGraph(0).populateQueryButton.click();
+    await testPickerPO.waitForSpinnerInactive();
+
+    expect(await testPickerPO.getSelectedItems(0)).to.deep.equal(['arm']);
+    expect((await testPickerPO.getSelectedItems(1)).sort()).to.deep.equal(
+      ['Android', 'Ubuntu'].sort()
+    );
+  });
+
   it('adds three graphs and removes them in specific order (middle, first, last)', async () => {
     const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
     const testPickerPO = explorePO.testPicker;
 
-    // SETUP: CREATE 3 DISTINCT GRAPHS
     // Graph 1: Arch=arm, OS=Android
-    await testPickerPO.waitForPickerField(0);
-    let archField = await testPickerPO.getPickerField(0);
-    await archField.select('arm');
-    await testPickerPO.waitForSpinnerInactive();
-
-    await testPickerPO.waitForPickerField(1);
-    let osField = await testPickerPO.getPickerField(1);
-    await osField.select('Android');
-    await testPickerPO.waitForSpinnerInactive();
-
-    await testPickerPO.clickPlotButton();
-    await explorePO.waitForGraph(0);
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
 
     // Graph 2: Arch=arm, OS=Ubuntu
-    // Re-fetch fields as they might be detached after render
-    osField = await testPickerPO.getPickerField(1);
+    const osField = await testPickerPO.getPickerField(1);
     await osField.clear();
-    await osField.select('Ubuntu');
-    await testPickerPO.waitForSpinnerInactive();
-    await testPickerPO.clickPlotButton();
-    await explorePO.waitForGraphCount(2);
-    await explorePO.waitForGraph(0);
+    await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
 
     // Graph 3: Arch=arm, OS=Android
-    // Create a graph identical to Graph 1 to test re-indexing after removal.
-    // Re-fetch fields
-    archField = await testPickerPO.getPickerField(0);
+    const archField = await testPickerPO.getPickerField(0);
     await archField.clear();
-    await archField.select('arm');
-    await testPickerPO.waitForSpinnerInactive();
-
-    osField = await testPickerPO.getPickerField(1);
     await osField.clear();
-    await osField.select('Android');
-    await testPickerPO.waitForSpinnerInactive();
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] }, 3);
 
-    await testPickerPO.clickPlotButton();
-    await explorePO.waitForGraphCount(3);
-    await explorePO.waitForGraph(0);
-
-    // VERIFY INITIAL STATE
+    // Verify initial state.
     // Index 0 (Newest): Android (Graph 3)
     // Index 1 (Middle): Ubuntu (Graph 2)
     // Index 2 (Oldest): Android (Graph 1)
@@ -386,28 +362,14 @@ describe('Manual Plot Mode', () => {
       const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
       const testPickerPO = explorePO.testPicker;
 
-      await testPickerPO.waitForPickerField(0);
-      const archField = await testPickerPO.getPickerField(0);
-      await archField.select('arm');
-      await testPickerPO.waitForSpinnerInactive();
-
-      await testPickerPO.waitForPickerField(1);
-      const osField = await testPickerPO.getPickerField(1);
-      await osField.select('Android');
-      await testPickerPO.waitForSpinnerInactive();
-
-      await testPickerPO.clickPlotButton();
-      await explorePO.waitForGraph(0);
+      await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
       const graph0 = explorePO.getGraph(0);
       const plotSummaryPO0 = graph0.plotSummary;
       await plotSummaryPO0.waitForPlotSummaryToLoad();
 
+      const osField = await testPickerPO.getPickerField(1);
       await osField.clear();
-      await osField.select('Ubuntu');
-      await testPickerPO.waitForSpinnerInactive();
-      await testPickerPO.clickPlotButton();
-      await explorePO.waitForGraphCount(2);
-      await explorePO.waitForGraph(0);
+      await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
       const graph1 = explorePO.getGraph(0);
       const plotSummaryPO1 = graph1.plotSummary;
       await plotSummaryPO1.waitForPlotSummaryToLoad();
@@ -460,18 +422,7 @@ describe('Explore Multi Sk with plotSummary', () => {
     const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
     const testPickerPO = explorePO.testPicker;
 
-    await testPickerPO.waitForPickerField(0);
-    const archField = await testPickerPO.getPickerField(0);
-    await archField.select('arm');
-    await testPickerPO.waitForSpinnerInactive();
-
-    await testPickerPO.waitForPickerField(1);
-    const osField = await testPickerPO.getPickerField(1);
-    await osField.select('Android');
-    await testPickerPO.waitForSpinnerInactive();
-
-    await testPickerPO.clickPlotButton();
-    await explorePO.waitForGraph(0);
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
 
     const simpleGraphPO = explorePO.getGraph(0);
     const plotSummaryPO = simpleGraphPO.plotSummary;
@@ -512,38 +463,25 @@ describe('Split Graph Functionality', function () {
     const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
     const testPickerPO = explorePO.testPicker;
 
-    // 1. Select Arch = arm
-    await testPickerPO.waitForPickerField(0);
-    const archField = await testPickerPO.getPickerField(0);
-    await archField.select('arm');
-    await testPickerPO.waitForSpinnerInactive();
-
-    // 2. Select OS = Android, Ubuntu
-    await testPickerPO.waitForPickerField(1);
+    // Plot first (Merged) to ensure two traces appear on one chart
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android', 'Ubuntu'] });
     const osField = await testPickerPO.getPickerField(1);
-    await osField.select('Android');
-    await testPickerPO.waitForSpinnerInactive();
-    await osField.select('Ubuntu');
-    await testPickerPO.waitForSpinnerInactive();
 
-    // 3. Plot first (Merged) to ensure two traces appear on one chart
-    await testPickerPO.clickPlotButton();
-    await explorePO.waitForGraph(0);
     const mergedGraphInitial = explorePO.getGraph(0);
     const tracesMergedInitial = await mergedGraphInitial.getTraceKeys();
     expect(tracesMergedInitial).to.have.lengthOf(2);
 
-    // 4. Click "Split" checkbox on OS field
+    // Click "Split" checkbox on OS field
     const splitCheckbox = osField.splitByCheckbox;
     // Ensure it is visible (poll until not hidden)
     await waitForElementNotHidden(splitCheckbox);
 
     await osField.checkSplit();
 
-    // 5. Wait for 3 graphs (1 hidden summary + 2 splits)
+    // Wait for 3 graphs (1 hidden summary + 2 splits)
     await explorePO.waitForGraphCount(3, LONG_TIMEOUT_MS);
 
-    // 6. Verify contents
+    // Verify contents
     // Index 0 is hidden summary, check indices 1 and 2.
     const graph1 = explorePO.getGraph(1);
     // Wait for data to load in the first split graph
@@ -563,24 +501,24 @@ describe('Split Graph Functionality', function () {
     expect(traces2.length).to.equal(1);
     expect(traces1[0]).to.not.equal(traces2[0]); // Ensure they are different
 
-    // 7. Uncheck "Split" checkbox to merge back
+    // Uncheck "Split" checkbox to merge back
     await osField.uncheckSplit();
 
-    // 8. Wait for graph count to be 1
+    // Wait for graph count to be 1
     await explorePO.waitForGraphCount(1, LONG_TIMEOUT_MS);
     const mergedGraph = explorePO.getGraph(0);
     await explorePO.waitForGraph(0);
 
-    // 9. Verify merged content
+    // Verify merged content
     const mergedTraces = await mergedGraph.getTraceKeys();
     expect(mergedTraces).to.have.lengthOf(2);
     expect(mergedTraces).to.include(',arch=arm,os=Android,');
     expect(mergedTraces).to.include(',arch=arm,os=Ubuntu,');
 
-    // 10. Verify anomalies are present
+    // Verify anomalies are present
     await mergedGraph.verifyAnomaliesPresent();
 
-    // 11. Interact with anomaly tooltip
+    // Interact with anomaly tooltip
     await mergedGraph.clickFirstAnomaly(testBed.page);
     await mergedGraph.waitForAnomalyTooltip();
   });

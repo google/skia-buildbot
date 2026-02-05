@@ -406,7 +406,7 @@ export class TestPickerSk extends ElementSk {
    * @param paramSet - A ParamSet object containing available options for each
    * parameter.
    */
-  populateFieldDataFromParamSet(paramSets: ParamSet, paramSet: ParamSet) {
+  async populateFieldDataFromParamSet(paramSets: ParamSet, paramSet: ParamSet): Promise<void> {
     const uniqueParamKeys = [...new Set([...Object.keys(paramSets), ...Object.keys(paramSet)])];
     this.initializeFieldData(uniqueParamKeys);
     this._currentIndex = 0; // Reset current index for proper field initialization
@@ -415,6 +415,7 @@ export class TestPickerSk extends ElementSk {
       this.autoAddTrace = true;
     }
 
+    const promises: Promise<void>[] = [];
     for (let i = 0; i < this._fieldData.length; i++) {
       const fieldInfo = this._fieldData[i];
       const param = fieldInfo.param;
@@ -435,9 +436,10 @@ export class TestPickerSk extends ElementSk {
         fieldInfo.field.index = i;
         fieldInfo.value = value;
       }
-      this.fetchExtraOptions(i);
+      promises.push(this.fetchExtraOptions(i));
       this._containerDiv!.appendChild(fieldInfo.field);
     }
+    await Promise.all(promises);
   }
 
   /**

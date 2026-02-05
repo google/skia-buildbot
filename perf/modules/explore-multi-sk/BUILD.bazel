@@ -112,6 +112,7 @@ sk_element_puppeteer_test(
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//perf/modules/common:puppeteer-test-util_ts_lib",
+        "//perf/modules/test-picker-sk:test-picker-sk_po_ts_lib",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

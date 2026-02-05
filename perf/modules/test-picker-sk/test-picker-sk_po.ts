@@ -23,6 +23,11 @@ export class TestPickerSkPO extends PageObject {
     return new PickerFieldSkPO(await fields.item(index));
   }
 
+  async getSelectedItems(index: number): Promise<string[]> {
+    const field = await this.getPickerField(index);
+    return field.getSelectedItems();
+  }
+
   async waitForPickerField(index: number): Promise<void> {
     const selector = `picker-field-sk:nth-of-type(${index + 1})`;
     await this.poll(
