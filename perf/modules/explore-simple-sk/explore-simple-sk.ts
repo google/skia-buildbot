@@ -42,7 +42,6 @@ import '../../../elements-sk/modules/toast-sk';
 import '../../../infra-sk/modules/query-sk';
 import '../../../infra-sk/modules/paramset-sk';
 
-import '../anomaly-sk';
 import '../commit-detail-panel-sk';
 import '../commit-range-sk';
 import '../domain-picker-sk';

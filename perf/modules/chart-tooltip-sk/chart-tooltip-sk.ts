@@ -14,7 +14,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { Anomaly, ColumnHeader, CommitNumber } from '../json';
-import { AnomalySk } from '../anomaly-sk/anomaly-sk';
+import { formatBug, formatNumber, formatPercentage, getPercentChange } from '../common/anomaly';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import '../window/window';
 import { TriageMenuSk, NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
@@ -326,15 +326,13 @@ export class ChartTooltipSk extends ElementSk {
         <li>
           <span id="tooltip-key">Median</span>
           <span id="tooltip-text">
-            ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)}
-            ${this.unit_type.split(' ')[0]}
+            ${formatNumber(this.anomaly!.median_after_anomaly)} ${this.unit_type.split(' ')[0]}
           </span>
         </li>
         <li>
           <span id="tooltip-key">Previous</span>
           <span id="tooltip-text">
-            ${AnomalySk.formatNumber(this.anomaly!.median_before_anomaly)}
-            [${this.anomalyChange()}%]
+            ${formatNumber(this.anomaly!.median_before_anomaly)} [${this.anomalyChange()}%]
           </span>
         </li>
         ${this.anomaly!.multiplicity
@@ -348,9 +346,7 @@ export class ChartTooltipSk extends ElementSk {
         ${this.anomaly!.bug_id
           ? html` <li>
               <span id="tooltip-key">Bug ID</span>
-              <span id="tooltip-text"
-                >${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)}</span
-              >
+              <span id="tooltip-text">${formatBug(this.bug_host_url, this.anomaly!.bug_id)}</span>
               <close-icon-sk
                 id="unassociate-bug-button"
                 @click=${this.unassociateBug}
@@ -417,11 +413,8 @@ export class ChartTooltipSk extends ElementSk {
 
   private anomalyChange() {
     let divClass: string = 'regression';
-    const change = AnomalySk.formatPercentage(
-      AnomalySk.getPercentChange(
-        this.anomaly!.median_before_anomaly,
-        this.anomaly!.median_after_anomaly
-      )
+    const change = formatPercentage(
+      getPercentChange(this.anomaly!.median_before_anomaly, this.anomaly!.median_after_anomaly)
     );
     if (this.anomaly!.is_improvement) {
       divClass = 'improvement';

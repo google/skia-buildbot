@@ -20,12 +20,12 @@ sk_element(
         "//elements-sk/modules/icons/help-icon-sk",
         "//elements-sk/modules/spinner-sk",
         "//infra-sk/modules/sort-sk",
-        "//perf/modules/anomaly-sk",
         "//perf/modules/keyboard-shortcuts-help-sk",
         "//perf/modules/triage-menu-sk",
         "//perf/modules/bug-tooltip-sk",
     ],
     ts_deps = [
+        "//perf/modules/common:anomaly_ts_lib",
         "//:node_modules/@material/web",
         "//:node_modules/@types/google.visualization",  # keep
         "//:node_modules/lit",

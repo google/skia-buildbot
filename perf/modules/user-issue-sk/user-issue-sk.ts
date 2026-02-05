@@ -1,7 +1,8 @@
 import { LitElement, TemplateResult, css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
-import { AnomalySk } from '../anomaly-sk/anomaly-sk';
+import { formatBug } from '../common/anomaly';
+import '../window/window';
 import { errorMessage } from '../errorMessage';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import '../../../elements-sk/modules/icons/close-icon-sk';
@@ -170,9 +171,7 @@ export class UserIssueSk extends LitElement {
       return html`
         <div class="showLinkContainer">
           <span class="label">Bug:</span>
-          <span class="linkContainer">
-            ${AnomalySk.formatBug(window.perf.bug_host_url, this.bug_id)}
-          </span>
+          <span class="linkContainer"> ${formatBug(window.perf.bug_host_url, this.bug_id)} </span>
         </div>
       `;
     }
@@ -181,7 +180,7 @@ export class UserIssueSk extends LitElement {
       <div class="showLinkContainer">
         <span class="label">Bug:</span>
         <span class="linkContainer">
-          ${AnomalySk.formatBug(window.perf.bug_host_url, this.bug_id)}
+          ${formatBug(window.perf.bug_host_url, this.bug_id)}
           <close-icon-sk @click=${this.removeIssue} ?hidden=${this.bug_id === 0}> </close-icon-sk>
         </span>
       </div>

@@ -7,7 +7,6 @@ import { AlgoSelectSk } from './perf/modules/algo-select-sk/algo-select-sk';
 import { AloginSk } from './infra-sk/modules/alogin-sk/alogin-sk';
 import { AndroidLayersSk } from './debugger-app/modules/android-layers-sk/android-layers-sk';
 import { AnomaliesTableSk } from './perf/modules/anomalies-table-sk/anomalies-table-sk';
-import { AnomalySk } from './perf/modules/anomaly-sk/anomaly-sk';
 import { AppSk } from './infra-sk/modules/app-sk/app-sk';
 import { ARBConfigSk } from './autoroll/modules/arb-config-sk/arb-config-sk';
 import { ARBModeHistorySk } from './autoroll/modules/arb-mode-history-sk/arb-mode-history-sk';
@@ -1199,7 +1198,6 @@ declare global {
     'alogin-sk': AloginSk;
     'android-layers-sk': AndroidLayersSk;
     'anomalies-table-sk': AnomaliesTableSk;
-    'anomaly-sk': AnomalySk;
     'app-sk': AppSk;
     'arb-config-sk': ARBConfigSk;
     'arb-mode-history-sk': ARBModeHistorySk;

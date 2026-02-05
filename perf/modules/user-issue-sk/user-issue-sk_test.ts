@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { UserIssueSk } from './user-issue-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import fetchMock from 'fetch-mock';
-import { AnomalySk } from '../anomaly-sk/anomaly-sk';
+import { formatBug } from '../common/anomaly';
 import { render } from 'lit-html';
 
 describe('user-issue-sk', () => {
@@ -178,7 +178,7 @@ describe('user-issue-sk', () => {
   describe('showLinkTemplate', () => {
     it('formats bug correctly', () => {
       const bugId = 12345;
-      const formattedBug = AnomalySk.formatBug(window.perf.bug_host_url, bugId);
+      const formattedBug = formatBug(window.perf.bug_host_url, bugId);
 
       const div = document.createElement('div');
       render(formattedBug, div);

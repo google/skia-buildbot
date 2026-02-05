@@ -3,18 +3,19 @@ load("//infra-sk:index.bzl", "karma_test", "sk_element")
 sk_element(
     name = "user-issue-sk",
     sk_element_deps = [
-        "//perf/modules/anomaly-sk",
         "//infra-sk/modules/alogin-sk",
         "//elements-sk/modules/icons/close-icon-sk",
         "//elements-sk/modules/icons/check-icon-sk",
     ],
     ts_deps = [
+        "//perf/modules/common:anomaly_ts_lib",
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
         "//infra-sk/modules/json:index_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        "//perf/modules/window:window_ts_lib",
     ],
     ts_srcs = [
         "user-issue-sk.ts",
@@ -33,6 +34,6 @@ karma_test(
         "//:node_modules/fetch-mock",
         "//:node_modules/lit-html",
         "//infra-sk/modules:test_util_ts_lib",
-        "//perf/modules/anomaly-sk",
+        "//perf/modules/common:anomaly_ts_lib",
     ],
 )

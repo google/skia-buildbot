@@ -29,7 +29,6 @@ sk_element(
         "//elements-sk/modules/tabs-panel-sk",
         "//elements-sk/modules/tabs-sk",
         "//elements-sk/modules/toast-sk",
-        "//perf/modules/anomaly-sk",
         "//perf/modules/plot-summary-sk",
         "//perf/modules/picker-field-sk",
         "//perf/modules/chart-tooltip-sk",

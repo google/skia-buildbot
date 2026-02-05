@@ -20,7 +20,6 @@ sk_element(
     ],
     sass_srcs = ["chart-tooltip-sk.scss"],
     sk_element_deps = [
-        "//perf/modules/anomaly-sk",
         "//perf/modules/commit-range-sk",
         "//perf/modules/triage-menu-sk",
         "//perf/modules/user-issue-sk",
@@ -32,6 +31,7 @@ sk_element(
         "//perf/modules/json-source-sk",
     ],
     ts_deps = [
+        "//perf/modules/common:anomaly_ts_lib",
         "//:node_modules/@material/web",
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep

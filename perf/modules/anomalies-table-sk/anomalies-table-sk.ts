@@ -19,7 +19,7 @@ import {
   GroupingCriteria,
 } from './grouping';
 import { GraphConfig, updateShortcut } from '../common/graph-config';
-import { AnomalySk } from '../anomaly-sk/anomaly-sk';
+import { formatPercentage, getPercentChange } from '../common/anomaly';
 import '../window/window';
 import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
@@ -537,10 +537,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     const testsuite = testPathPieces[2];
     const test = testPathPieces.slice(3, testPathPieces.length).join('/');
     const revision = anomaly.start_revision;
-    const delta = AnomalySk.getPercentChange(
-      anomaly.median_before_anomaly,
-      anomaly.median_after_anomaly
-    );
+    const delta = getPercentChange(anomaly.median_before_anomaly, anomaly.median_after_anomaly);
     return {
       bugId,
       revision,
@@ -636,7 +633,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
           <td>${processedAnomaly.bot}</td>
           <td>${processedAnomaly.testsuite}</td>
           <td>${processedAnomaly.test}</td>
-          <td class=${anomalyClass}>${AnomalySk.formatPercentage(processedAnomaly.delta)}%</td>
+          <td class=${anomalyClass}>${formatPercentage(processedAnomaly.delta)}%</td>
         </tr>
       `);
     }
@@ -653,15 +650,15 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
     const biggestChangeAnomaly = targetAnomalies.reduce((prev, current) => {
       const prevDelta = Math.abs(
-        AnomalySk.getPercentChange(prev.median_before_anomaly, prev.median_after_anomaly)
+        getPercentChange(prev.median_before_anomaly, prev.median_after_anomaly)
       );
       const currentDelta = Math.abs(
-        AnomalySk.getPercentChange(current.median_before_anomaly, current.median_after_anomaly)
+        getPercentChange(current.median_before_anomaly, current.median_after_anomaly)
       );
       return prevDelta > currentDelta ? prev : current;
     });
     return [
-      AnomalySk.getPercentChange(
+      getPercentChange(
         biggestChangeAnomaly.median_before_anomaly,
         biggestChangeAnomaly.median_after_anomaly
       ),
@@ -770,7 +767,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
         <td>${summaryData.bot}</td>
         <td>${summaryData.testsuite}</td>
         <td>${summaryData.test}</td>
-        <td class=${summaryClass}>${AnomalySk.formatPercentage(summaryData.delta)}%</td>
+        <td class=${summaryClass}>${formatPercentage(summaryData.delta)}%</td>
       </tr>
     `;
   }

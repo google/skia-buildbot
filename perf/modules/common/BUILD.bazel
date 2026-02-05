@@ -51,6 +51,13 @@ ts_library(
 )
 
 ts_library(
+    name = "anomaly_ts_lib",
+    srcs = ["anomaly.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//:node_modules/lit"],
+)
+
+ts_library(
     name = "anomaly-data_ts_lib",
     srcs = ["anomaly-data.ts"],
     visibility = ["//visibility:public"],
@@ -71,6 +78,16 @@ ts_library(
     name = "keyboard-shortcuts_ts_lib",
     srcs = ["keyboard-shortcuts.ts"],
     visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "anomaly_test",
+    src = "anomaly_test.ts",
+    deps = [
+        ":anomaly_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+    ],
 )
 
 karma_test(
