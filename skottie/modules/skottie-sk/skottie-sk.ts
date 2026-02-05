@@ -1129,13 +1129,20 @@ export class SkottieSk extends ElementSk {
         );
       };
 
+      const fontName = (name: string) => {
+        // Normalize font names for the "Flex" variable font families (GoogleSansFlex, RobotoFlex).
+        // This drops the style suffixes (e.g. "-ThinItalic").
+        const regex = new RegExp('Flex-.*');
+        return name.replace(regex, 'Flex');
+      };
+
       // We have a mirror of google web fonts with a flattened directory structure which
       // makes them easier to find. Additionally, we can host the full .ttf
       // font, instead of the .woff2 font which is served by Google due to
       // it's smaller size by being a subset based on what glyphs are rendered.
       // Since we don't know all the glyphs we need up front, it's easiest
       // to just get the full font as a .ttf file.
-      fetchFont(`${GOOGLE_WEB_FONTS_HOST}/${font.fName}.ttf`);
+      fetchFont(`${GOOGLE_WEB_FONTS_HOST}/${fontName(font.fName)}.ttf`);
 
       // Also try using uploaded assets.
       // We may end up with two different blobs for the same font name, in which case
