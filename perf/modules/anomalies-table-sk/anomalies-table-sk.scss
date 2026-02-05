@@ -45,16 +45,6 @@ anomalies-table-sk {
       cursor: pointer;
       font-weight: bold;
     }
-    #group,
-    #checkbox,
-    #graph_header,
-    #change_direction {
-      width: 50px;
-    }
-
-    #bug_id {
-      width: 130px;
-    }
 
     .improvement {
       color: rgb(0, 128, 0);
@@ -63,15 +53,11 @@ anomalies-table-sk {
       color: rgb(255, 0, 0);
     }
 
-    #change_direction {
-      text-align: center;
-      width: var(--percent-changed-width, 50px);
-    }
     .center-content {
       justify-content: center;
       align-items: center;
     }
-    #trendingicon-link {
+    .trendingicon-link {
       color: rgb(87, 120, 211);
       cursor: pointer;
       text-align: center;
@@ -84,16 +70,8 @@ anomalies-table-sk {
     cursor: pointer;
   }
 
-  header {
-    display: flex;
-  }
-
   details {
     display: inline-block;
-  }
-
-  details table {
-    margin: 1em;
   }
 
   summary {
@@ -103,10 +81,6 @@ anomalies-table-sk {
   table {
     border-collapse: collapse;
     border-spacing: 0;
-  }
-
-  .cluster {
-    text-align: center;
   }
 
   a {

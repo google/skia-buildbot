@@ -83,12 +83,6 @@ $$('#populate-tables-it2')?.addEventListener('click', async () => {
   });
 });
 
-$$('#get-checked')?.addEventListener('click', () => {
-  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((table) => {
-    console.log(table.getCheckedAnomalies());
-  });
-});
-
 $$('#open-multi-graph')?.addEventListener('click', () => {
   document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((table) => {
     table.shortcutUrl = `test_shortcut`;

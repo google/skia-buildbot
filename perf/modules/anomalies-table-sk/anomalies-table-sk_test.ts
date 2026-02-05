@@ -635,9 +635,9 @@ describe('anomalies-table-sk', () => {
       assert.isTrue(checkbox.checked);
 
       // Verify internal state matches the original object, not the requested copy
-      const checkedSet = element.getCheckedAnomalies();
-      assert.equal(checkedSet.length, 1);
-      assert.strictEqual(checkedSet[0], originalAnomaly);
+      const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
+      assert.equal(checkedAnomalies.length, 1);
+      assert.strictEqual(checkedAnomalies[0], originalAnomaly);
     });
 
     it('calls toggleButtons on triageMenu with true when anomalies are selected', async () => {
@@ -686,7 +686,7 @@ describe('anomalies-table-sk', () => {
       element.toggleChildrenCheckboxes(group);
       element.expandGroup(group);
 
-      const checkedAnomalies = element.getCheckedAnomalies();
+      const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
       assert.lengthOf(checkedAnomalies, 2);
       assert.isTrue(checkedAnomalies.some((a) => a.id === '1'));
       assert.isTrue(checkedAnomalies.some((a) => a.id === '2'));
@@ -718,7 +718,7 @@ describe('anomalies-table-sk', () => {
       const group = element.anomalyGroups[0];
       element.expandGroup(group);
 
-      const checkedAnomalies = element.getCheckedAnomalies();
+      const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
       assert.lengthOf(checkedAnomalies, 2);
       assert.isTrue(checkedAnomalies.some((a) => a.id === '1'));
       assert.isTrue(checkedAnomalies.some((a) => a.id === '2'));
@@ -873,16 +873,6 @@ describe('anomalies-table-sk', () => {
     });
   });
 
-  describe('get checked anomalies', () => {
-    it('returns the currently checked anomalies', async () => {
-      const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
-      await element.populateTable(anomalies);
-      element.checkSelectedAnomalies(anomalies);
-      const checked = element.getCheckedAnomalies();
-      assert.deepEqual(checked, anomalies);
-    });
-  });
-
   describe('fetch group report api', () => {
     it('fetches the group report', async () => {
       fetchMock.post('begin:/_/anomalies/group_report', { sid: 'test_sid' });
@@ -921,7 +911,7 @@ describe('anomalies-table-sk', () => {
       element.initialCheckAllCheckbox();
       element.anomalyGroups.forEach((g) => element.expandGroup(g));
 
-      const checkedAnomalies = element.getCheckedAnomalies();
+      const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
       assert.lengthOf(checkedAnomalies, 2);
 
       const checkbox1 = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
@@ -997,7 +987,7 @@ describe('anomalies-table-sk', () => {
       checkbox1.click();
 
       assert.isTrue(checkbox1.checked, 'Checkbox should be checked after one click.');
-      const checkedAnomalies = element.getCheckedAnomalies();
+      const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
       assert.deepEqual(checkedAnomalies, [anomalies[0]]);
     });
   });

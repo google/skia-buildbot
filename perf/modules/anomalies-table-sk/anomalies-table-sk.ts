@@ -78,10 +78,6 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
   private loadingGraphForAnomaly: Map<string, boolean> = new Map<string, boolean>();
 
-  multiChartUrlToAnomalyMap: Map<string, string> = new Map<string, string>();
-
-  private isParentRow = false;
-
   private uniqueId =
     'anomalies-table-sk-' + new Date().getTime() + '-' + Math.floor(Math.random() * 1000);
 
@@ -93,10 +89,6 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
   constructor() {
     super(AnomaliesTableSk.template);
-  }
-
-  static get observedAttributes() {
-    return ['show-requested-groups-first'];
   }
 
   public openAnomalyChartListener = async (e: Event) => {
@@ -131,7 +123,6 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
         this._render();
       }
     });
-    this.addEventListener('open-anomaly-chart', this.openAnomalyChartListener);
     this.addEventListener('anomaly-changed', () => {
       if (this.showPopup) {
         this.togglePopup();
@@ -144,7 +135,6 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener('open-anomaly-chart', this.openAnomalyChartListener);
     window.removeEventListener('keydown', this.keyDown);
   }
 
@@ -473,10 +463,6 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     return group.anomalies.some((anomaly) => this.initiallyRequestedAnomalyIDs.has(anomaly.id));
   }
 
-  private isGroupSelected(group: AnomalyGroup): boolean {
-    return group.anomalies.some((anomaly) => this.checkedAnomaliesSet.has(anomaly));
-  }
-
   private generateGroups() {
     if (!this.show_requested_groups_first || this.initiallyRequestedAnomalyIDs.size === 0) {
       return this.anomalyGroups.map((group) => this.generateRows(group));
@@ -515,15 +501,6 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     `;
 
     return [...renderedRequested, [separatorRow], ...renderedOthers];
-  }
-
-  private findGroupForAnomaly(anomaly: Anomaly): AnomalyGroup | null {
-    for (const group of this.anomalyGroups) {
-      if (group.anomalies.find((a) => a.id === anomaly.id)) {
-        return group;
-      }
-    }
-    return null;
   }
 
   private _updateCheckedState(chkbox: HTMLInputElement | null, a: Anomaly) {
@@ -854,10 +831,8 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
   getRowClass(index: number, anomalyGroup: AnomalyGroup) {
     if (anomalyGroup.expanded === true) {
       if (index === 0) {
-        this.isParentRow = true;
         return 'parent-expanded-row';
       } else {
-        this.isParentRow = false;
         return 'child-expanded-row';
       }
     }
@@ -926,18 +901,6 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
     this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
     this._render();
-  }
-
-  private checkAnomaly(checkedAnomaly: Anomaly) {
-    this.checkedAnomaliesSet.add(checkedAnomaly);
-    // Trigger any necessary updates or events that happen when an anomaly is checked.
-    // For example, if anomalyChecked logic handles dispatching events or updating other state,
-    // call it here or replicate the necessary parts.
-    // Since anomalyChecked calls _render, we can just call it with a mock target if needed,
-    // or better, extract the logic.
-    // Assuming anomalyChecked handles the logic:
-    // We can simulate the checkbox being checked.
-    this.anomalyChecked(null, checkedAnomaly);
   }
 
   /**
@@ -1039,10 +1002,6 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     newTab.location.href = url;
   }
 
-  getCheckedAnomalies(): Anomaly[] {
-    return Array.from(this.checkedAnomaliesSet);
-  }
-
   async fetchGroupReportApi(idString: string): Promise<any> {
     await fetch('/_/anomalies/group_report', {
       method: 'POST',
@@ -1095,7 +1054,6 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
         `${window.location.protocol}//${window.location.host}` +
         `/m/?begin=${timerange[0]}&end=${timerange[1]}` +
         `&request_type=0&shortcut=${this.shortcutUrl}&totalGraphs=1`;
-      this.multiChartUrlToAnomalyMap.set(anomalies[i]!.id, url);
       shortcutUrlList.push(url);
     }
 
