@@ -60,6 +60,8 @@ export class PickerFieldSk extends ElementSk {
 
   private _splitDisabled: boolean = false;
 
+  private _splitCheckboxDisabled: boolean = false;
+
   /**
    * Creates an instance of PickerFieldSk.
    * @param label The label for the picker field.
@@ -82,6 +84,7 @@ export class PickerFieldSk extends ElementSk {
           label="Split"
           @change=${ele.splitOnValue}
           ?checked=${ele.split}
+          ?disabled=${ele._splitCheckboxDisabled}
           ?hidden=${!ele.showSplit}>
         </checkbox-sk>
         <checkbox-sk
@@ -297,9 +300,7 @@ export class PickerFieldSk extends ElementSk {
    * Enables the split checkbox.
    */
   enableSplit() {
-    if (this._splitBox !== null) {
-      this._splitBox.removeAttribute('disabled');
-    }
+    this._splitCheckboxDisabled = false;
     this._render();
   }
 
@@ -307,11 +308,8 @@ export class PickerFieldSk extends ElementSk {
    * Disables the split checkbox and sets the split property to false.
    */
   disableSplit() {
-    if (this._splitBox !== null) {
-      this._split = false;
-      this._splitBox.setAttribute('disabled', '');
-      this._splitBox.setAttribute('hidden', '');
-    }
+    this._split = false;
+    this._splitCheckboxDisabled = true;
     this._render();
   }
 

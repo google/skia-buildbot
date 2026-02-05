@@ -1676,4 +1676,132 @@ describe('ExploreMultiSk', () => {
       );
     });
   });
+
+  describe('Graph Removal Scenarios', () => {
+    it('removes the correct graph when an item is removed from a split field', async () => {
+      // Setup: Split by 'test'. 3 Items: A, B, C.
+      element.state.splitByKeys = ['test'];
+      const mockExploreA = {
+        state: { queries: ['test=A'] },
+        getTraceset: () => ({ ',test=A,': [1] }),
+        getHeader: () => [],
+        getCommitLinks: () => [],
+        getAnomalyMap: () => ({}),
+        UpdateWithFrameResponse: () => Promise.resolve(),
+        removeKeys: () => {},
+        requestComplete: Promise.resolve(),
+      } as any;
+      const mockExploreB = {
+        state: { queries: ['test=B'] },
+        getTraceset: () => ({ ',test=B,': [1] }),
+        getHeader: () => [],
+        getCommitLinks: () => [],
+        getAnomalyMap: () => ({}),
+        UpdateWithFrameResponse: () => Promise.resolve(),
+        removeKeys: () => {},
+        requestComplete: Promise.resolve(),
+      } as any;
+      const mockExploreC = {
+        state: { queries: ['test=C'] },
+        getTraceset: () => ({ ',test=C,': [1] }),
+        getHeader: () => [],
+        getCommitLinks: () => [],
+        getAnomalyMap: () => ({}),
+        UpdateWithFrameResponse: () => Promise.resolve(),
+        removeKeys: () => {},
+        requestComplete: Promise.resolve(),
+      } as any;
+
+      element['exploreElements'] = [
+        // Main graph (accumulator)
+        {
+          state: { queries: ['main=1'] },
+          getTraceset: () => ({}),
+          getHeader: () => [],
+          getCommitLinks: () => [],
+          getAnomalyMap: () => ({}),
+          UpdateWithFrameResponse: () => Promise.resolve(),
+          removeKeys: () => {},
+          getSelectedRange: () => ({ begin: 0, end: 0 }),
+        } as any,
+        mockExploreA,
+        mockExploreB,
+        mockExploreC,
+      ];
+      element['allGraphConfigs'] = [
+        new GraphConfig(),
+        new GraphConfig(),
+        new GraphConfig(),
+        new GraphConfig(),
+      ];
+
+      // Mock helpers
+      element['checkDataLoaded'] = () => {};
+      element['updateShortcutMultiview'] = () => {};
+      element['renderCurrentPage'] = () => Promise.resolve();
+      element['getCompleteTraceset'] = () => ({
+        ',test=A,': [1],
+        ',test=B,': [1],
+        ',test=C,': [1],
+      });
+
+      // Spy on removeExplore
+      const removeSpy = sinon.spy(element as any, 'removeExplore');
+
+      // Trigger remove-trace for 'B'
+      const event = new CustomEvent('remove-trace', {
+        detail: { param: 'test', value: ['B'], query: 'test=A&test=C', isSplit: true },
+      });
+
+      await element['_onRemoveTrace'](event);
+
+      // Verify removeExplore was called with Graph B
+      assert.isTrue(removeSpy.calledOnceWith(mockExploreB), 'Should remove Graph B');
+    });
+
+    it('removes a graph when the remove-explore event (trash button) is triggered', async () => {
+      const mockExplore = { state: { queries: ['test=A'] } } as any;
+      element['exploreElements'] = [mockExplore];
+      element['allGraphConfigs'] = [new GraphConfig()];
+
+      // Mock helpers
+      element['checkDataLoaded'] = () => {};
+      element['updateShortcutMultiview'] = () => {};
+      element['renderCurrentPage'] = () => Promise.resolve();
+      element['testPicker'] = {
+        removeItemFromChart: sinon.spy(),
+        setReadOnly: () => {},
+        autoAddTrace: false,
+      } as any;
+
+      // Case 1: Length 1 (Independent Mode / Last Graph) -> Direct Removal
+      const removeSpy = sinon.spy(element as any, 'removeExplore');
+
+      // Trigger event
+      const event = new CustomEvent('remove-explore', { detail: { elem: mockExplore } });
+      element['_onRemoveExplore'](event); // Call handler directly to simulate event
+
+      assert.isTrue(
+        removeSpy.calledWith(mockExplore),
+        'Should call removeExplore directly for last graph'
+      );
+
+      // Case 2: Length > 1 (Split Mode) -> Delegate to Picker
+      element['exploreElements'] = [mockExplore, { state: { queries: ['test=B'] } } as any];
+      element.state.splitByKeys = ['test'];
+
+      // Reset spy
+      removeSpy.resetHistory();
+
+      // Trigger event for A
+      element['_onRemoveExplore'](event);
+
+      // Verify it called picker removal instead of direct removal
+      assert.isFalse(removeSpy.called, 'Should NOT call removeExplore directly in split mode');
+      assert.isTrue(
+        (element['testPicker']!.removeItemFromChart as sinon.SinonSpy).calledWith('test', ['A']),
+        'Should delegate to picker'
+      );
+    });
+  });
 });

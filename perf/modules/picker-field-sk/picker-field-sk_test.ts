@@ -114,6 +114,39 @@ describe('picker-field-sk', () => {
     });
   });
 
+  describe('split checkbox', () => {
+    beforeEach(async () => {
+      // Must set index > 0 and multiple selection for split to be visible
+      element.index = 1;
+      element.options = ['A', 'B'];
+      element.selectedItems = ['A', 'B'];
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    it('is visible and enabled by default when criteria met', () => {
+      const splitCheckbox = element.querySelector<CheckOrRadio>('#split-by');
+      expect(splitCheckbox!.hasAttribute('hidden')).to.be.false;
+      expect(splitCheckbox!.hasAttribute('disabled')).to.be.false;
+    });
+
+    it('is disabled but visible when disableSplit() is called', async () => {
+      element.disableSplit();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const splitCheckbox = element.querySelector<CheckOrRadio>('#split-by');
+      expect(splitCheckbox!.hasAttribute('hidden')).to.be.false;
+      expect(splitCheckbox!.hasAttribute('disabled')).to.be.true;
+    });
+
+    it('is re-enabled when enableSplit() is called', async () => {
+      element.disableSplit();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      element.enableSplit();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const splitCheckbox = element.querySelector<CheckOrRadio>('#split-by');
+      expect(splitCheckbox!.hasAttribute('disabled')).to.be.false;
+    });
+  });
+
   describe('vaadin-multi-select-combo-box', () => {
     it('is visible when rendered', async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));

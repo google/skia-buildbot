@@ -523,6 +523,9 @@ export class ExploreMultiSk extends ElementSk {
       // Ensure the main graph is in the DOM so it can process data.
       await this.renderCurrentPage(false);
       explore = this.currentPageExploreElements[0];
+      if (!explore) {
+        return;
+      }
       explore.state.doNotQueryData = false;
     }
     await explore.addFromQueryOrFormula(true, 'query', query, '', '', false);
@@ -530,218 +533,277 @@ export class ExploreMultiSk extends ElementSk {
   };
 
   private _onRemoveTrace = async (e: Event) => {
-    const param = (e as CustomEvent).detail.param as string;
-    const values = (e as CustomEvent).detail.value as string[];
-    const query = (e as CustomEvent).detail.query as string[];
+    try {
+      const param = (e as CustomEvent).detail.param as string;
+      const values = (e as CustomEvent).detail.value as string[];
+      const query = (e as CustomEvent).detail.query as string[];
 
-    if (values.length === 0) {
-      this.resetGraphs();
-      this.checkDataLoaded();
-      return;
-    }
-    this._dataLoading = true;
-    this.testPicker?.setReadOnly(true);
-
-    // Yield to the browser to update the UI
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    const traceSet = this.getCompleteTraceset();
-    const tracesToRemove: string[] = [];
-    const queriesToRemove: string[] = [];
-
-    // Check through all existing TraceSets and find matches.
-    Object.keys(traceSet).forEach((trace) => {
-      const traceParams = fromKey(trace);
-      const traceVal = traceParams[param] || MISSING_VALUE_SENTINEL;
-      if (values.includes(traceVal)) {
-        // Load remove array and delete from existing traceSet.
-        tracesToRemove.push(trace);
-        let query = queryFromKey(trace);
-        if (this.defaults?.include_params) {
-          const paramSet = toParamSet(query);
-          const filteredParamSet = ParamSet({});
-          const includeParams = this.defaults.include_params;
-          for (const key in paramSet) {
-            if (includeParams.includes(key)) {
-              filteredParamSet[key] = paramSet[key];
-            }
-          }
-          query = fromParamSet(filteredParamSet);
-        }
-        queriesToRemove.push(query);
-        delete traceSet[trace];
+      if (values.length === 0) {
+        this.resetGraphs();
+        this.checkDataLoaded();
+        return;
       }
-    });
+      this._dataLoading = true;
+      this.testPicker?.setReadOnly(true);
 
-    if (Object.keys(traceSet).length === 0) {
-      this.emptyCurrentPage();
-      await this.checkDataLoaded(); // Ensure readonly is reset
-      return;
-    }
+      // Capture the split state before yielding, as a subsequent split-by-changed event
+      // (triggered by the same action) might update the state while we are yielded.
+      const currentSplitByKeys = [...this.state.splitByKeys];
 
-    // Remove the traces from the current page explore elements.
-    const elemsToRemove: ExploreSimpleSk[] = [];
+      // Yield to the browser to update the UI
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const updatePromises = this.exploreElements.map((elem, index) => {
-      const hasQueryToRemove =
-        elem.state.queries && queriesToRemove.some((qr) => elem.state.queries.includes(qr));
+      const traceSet = this.getCompleteTraceset();
+      const tracesToRemove: string[] = [];
+      const queriesToRemove: string[] = [];
 
-      // Only proceed with updates if the element is affected.
-      if (hasQueryToRemove || (elem.state.queries?.length && query !== undefined)) {
-        const traceset = elem.getTraceset() as TraceSet;
-        elem.state.doNotQueryData = true;
-        let keysWereRemoved = false;
-        if (elem.state.queries.length > 0 && queriesToRemove.length > 0) {
-          const queryCount = elem.state.queries.length;
-          // Remove any queries that match queriesToRemove.
-          elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
-          // If queries were removed, we definitely need to remove keys.
-          if (elem.state.queries.length !== queryCount) {
-            keysWereRemoved = true;
-          }
-        }
-        // When one query exists, check if param/value matches and replace with new query.
-        if (elem.state.queries.length === 1 && !keysWereRemoved) {
-          const queryToRemove = Array.isArray(query) ? query[0] : query;
-          values.forEach((v) => {
-            if (
-              elem.state.queries[0].includes(`${param}=${v}`) ||
-              elem.state.queries[0] === queryToRemove
-            ) {
-              elem.state.queries = [queryToRemove];
-              keysWereRemoved = true;
+      // Check through all existing TraceSets and find matches.
+      Object.keys(traceSet).forEach((trace) => {
+        const traceParams = fromKey(trace);
+        const traceVal = traceParams[param] || MISSING_VALUE_SENTINEL;
+        if (values.includes(traceVal)) {
+          // Load remove array and delete from existing traceSet.
+          tracesToRemove.push(trace);
+          let query = queryFromKey(trace);
+          if (this.defaults?.include_params) {
+            const paramSet = toParamSet(query);
+            const filteredParamSet = ParamSet({});
+            const includeParams = this.defaults.include_params;
+            for (const key in paramSet) {
+              if (includeParams.includes(key)) {
+                filteredParamSet[key] = paramSet[key];
+              }
             }
-          });
+            query = fromParamSet(filteredParamSet);
+          }
+          queriesToRemove.push(query);
+          delete traceSet[trace];
         }
+      });
 
-        if (keysWereRemoved || tracesToRemove.some((key) => traceset[key])) {
-          elem.removeKeys(tracesToRemove, true);
-        }
-        if (elem.state.queries.length === 0) {
+      if (Object.keys(traceSet).length === 0) {
+        this.emptyCurrentPage();
+        await this.checkDataLoaded(); // Ensure readonly is reset
+        return;
+      }
+
+      // Remove the traces from the current page explore elements.
+      const elemsToRemove: ExploreSimpleSk[] = [];
+
+      const updatePromises = this.exploreElements.map((elem, index) => {
+        // If the graph has no queries AND no data, it is a zombie and should be removed.
+        // We only remove split graphs (index > 0). The main graph (index 0) should persist.
+        const hasTraces = elem.getTraceset() && Object.keys(elem.getTraceset()!).length > 0;
+        if (index > 0 && (!elem.state.queries || elem.state.queries.length === 0) && !hasTraces) {
           elemsToRemove.push(elem);
           return Promise.resolve();
         }
 
-        const elemTraceset = elem.getTraceset() as TraceSet;
-        const elemHeader = elem.getHeader();
-        // Default to filtering the global set by the element's existing keys (minus removed ones).
-        // This ensures we preserve the split state of the graph while getting fresh data.
-        let updatedTraceset = TraceSet({});
-        Object.keys(elemTraceset).forEach((key) => {
-          if (
-            traceSet[key] &&
-            !tracesToRemove.includes(key) &&
-            this.shouldKeepTrace(key, param, values)
-          ) {
-            updatedTraceset[key] = Trace(traceSet[key]);
+        const hasQueryToRemove =
+          elem.state.queries && queriesToRemove.some((qr) => elem.state.queries.includes(qr));
+
+        const traceset = elem.getTraceset() as TraceSet;
+        const hasTraceToRemove = traceset && tracesToRemove.some((key) => traceset[key]);
+
+        // Only proceed with updates if the element is affected.
+        if (
+          hasQueryToRemove ||
+          (elem.state.queries?.length && query !== undefined) ||
+          hasTraceToRemove
+        ) {
+          elem.state.doNotQueryData = true;
+          let keysWereRemoved = false;
+          if (elem.state.queries.length > 0 && queriesToRemove.length > 0) {
+            const queryCount = elem.state.queries.length;
+            // Remove any queries that match queriesToRemove.
+            elem.state.queries = elem.state.queries.filter((q) => !queriesToRemove.includes(q));
+            // If queries were removed, we definitely need to remove keys.
+            if (elem.state.queries.length !== queryCount) {
+              keysWereRemoved = true;
+            }
           }
-        });
-        let headerToUse = this.getHeader();
+          let shouldRemoveGraph = false;
 
-        // We can compare the data length of a common trace to determine which set is "better".
-        // We pick the first key from the local traceset that isn't being removed.
-        const commonKey = Object.keys(elemTraceset).find((key) =>
-          this.shouldKeepTrace(key, param, values)
-        );
+          // When one query exists, check if param/value matches and replace with new query.
+          if (elem.state.queries.length === 1 && !keysWereRemoved) {
+            const queryToRemove = Array.isArray(query) ? query[0] : query;
+            // If we are splitting by this param, we should remove the graph (clear queries)
+            // instead of updating it to the new master query.
+            // Prioritize the state passed from the event (source of truth).
+            let isSplitParam = (e as CustomEvent).detail.isSplit;
 
-        if (commonKey && traceSet[commonKey] && elemTraceset[commonKey]) {
-          if (elemTraceset[commonKey].length > traceSet[commonKey].length) {
-            // Local data is better. Filter out the removed trace from the local set.
-            const filteredLocalTraceset = TraceSet({});
-            Object.keys(elemTraceset).forEach((key) => {
-              if (this.shouldKeepTrace(key, param, values)) {
-                filteredLocalTraceset[key] = elemTraceset[key];
+            if (isSplitParam === undefined) {
+              isSplitParam = currentSplitByKeys.includes(param);
+            }
+
+            values.forEach((v) => {
+              const queryStr = elem.state.queries[0];
+              let match = false;
+              if (queryStr) {
+                match = queryStr.includes(`${param}=${v}`);
+                if (!match) {
+                  const p = new URLSearchParams(queryStr);
+                  if (p.get(param) === v) {
+                    match = true;
+                  }
+                }
+              }
+
+              if (match || queryStr === queryToRemove || !queryStr) {
+                if (isSplitParam) {
+                  shouldRemoveGraph = true;
+
+                  elem.state.queries = [];
+                } else {
+                  elem.state.queries = [queryToRemove];
+                }
+                keysWereRemoved = true;
               }
             });
-            updatedTraceset = filteredLocalTraceset;
-            headerToUse = elemHeader;
           }
-        }
 
-        const params: ParamSet = ParamSet({});
-        Object.keys(updatedTraceset).forEach((trace) => {
-          addParamsToParamSet(params, fromKey(trace));
-        });
+          if (
+            !shouldRemoveGraph &&
+            (keysWereRemoved || tracesToRemove.some((key) => traceset[key]))
+          ) {
+            elem.removeKeys(tracesToRemove, true);
+            const newTraceset = elem.getTraceset();
+            if (!newTraceset || Object.keys(newTraceset).length === 0) {
+              elem.state.queries = [];
+            }
+          }
+          if (index > 0 && (elem.state.queries.length === 0 || shouldRemoveGraph)) {
+            elemsToRemove.push(elem);
+            return Promise.resolve();
+          }
+          const elemTraceset = elem.getTraceset() as TraceSet;
+          const elemHeader = elem.getHeader();
+          // Default to filtering the global set by the element's existing keys (minus
+          // removed ones). This ensures we preserve the split state of the graph while
+          // getting fresh data.
+          let updatedTraceset = TraceSet({});
+          Object.keys(elemTraceset).forEach((key) => {
+            if (
+              traceSet[key] &&
+              !tracesToRemove.includes(key) &&
+              this.shouldKeepTrace(key, param, values)
+            ) {
+              updatedTraceset[key] = Trace(traceSet[key]);
+            }
+          });
+          let headerToUse = this.getHeader();
 
-        // If we filtered the traceset but didn't update the queries (because the removal logic didn't match),
-        // we should update the queries to reflect the remaining data. This prevents future fetches from
-        // bringing back the removed trace and ensures consistency.
-        // We only do this if we are not clearing the graph.
-        if (Object.keys(updatedTraceset).length > 0) {
-          // We construct a new query from the remaining params.
-          // However, we should respect the include_params defaults if possible, to avoid over-specifying.
-          // But here we want to be safe and match the data.
-          // Let's use the params derived from the traceset.
-          const newQuery = fromParamSet(params);
-          elem.state.queries = [newQuery];
-        }
+          // We can compare the data length of a common trace to determine which set is "better".
+          // We pick the first key from the local traceset that isn't being removed.
+          const commonKey = Object.keys(elemTraceset).find((key) =>
+            this.shouldKeepTrace(key, param, values)
+          );
 
-        // Check if any remaining trace is missing the parameter or has an empty value.
-        // If so, we need to disable parent trace filtering on the backend.
-        const hasMissingParam = Object.keys(updatedTraceset).some((key) => {
-          const p = fromKey(key);
-          return !p[param] || p[param] === '';
-        });
+          if (commonKey && traceSet[commonKey] && elemTraceset[commonKey]) {
+            if (elemTraceset[commonKey].length > traceSet[commonKey].length) {
+              // Local data is better. Filter out the removed trace from the local set.
+              const filteredLocalTraceset = TraceSet({});
+              Object.keys(elemTraceset).forEach((key) => {
+                if (this.shouldKeepTrace(key, param, values)) {
+                  filteredLocalTraceset[key] = elemTraceset[key];
+                }
+              });
+              updatedTraceset = filteredLocalTraceset;
+              headerToUse = elemHeader;
+            }
+          }
 
-        // Update the graph with the new traceSet and params.
-        const updatedRequest: FrameRequest = {
-          queries: elem.state.queries,
-          request_type: this.state.request_type,
-          begin: this.state.begin,
-          end: this.state.end,
-          tz: '',
-          disable_filter_parent_traces:
-            elem.state.queries.some((q) => q.includes(MISSING_VALUE_SENTINEL)) || hasMissingParam,
-        };
-        const updatedResponse: FrameResponse = {
-          dataframe: {
-            traceset: updatedTraceset,
-            header: headerToUse ? [...headerToUse] : null,
-            paramset: ReadOnlyParamSet(params),
-            skip: 0,
-            traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(
-              Object.keys(updatedTraceset),
-              elem.getCommitLinks()
+          const params: ParamSet = ParamSet({});
+          Object.keys(updatedTraceset).forEach((trace) => {
+            addParamsToParamSet(params, fromKey(trace));
+          });
+
+          // If we filtered the traceset but didn't update the queries (because the
+          // removal logic didn't match), we should update the queries to reflect the
+          // remaining data. This prevents future fetches from bringing back the
+          // removed trace and ensures consistency.
+          // We only do this if we are not clearing the graph.
+          if (Object.keys(updatedTraceset).length > 0) {
+            // We construct a new query from the remaining params.
+            // However, we should respect the include_params defaults if possible, to
+            // avoid over-specifying. But here we want to be safe and match the data.
+            // Let's use the params derived from the traceset.
+            const newQuery = fromParamSet(params);
+            elem.state.queries = [newQuery];
+          }
+
+          // Check if any remaining trace is missing the parameter or has an empty value.
+          // If so, we need to disable parent trace filtering on the backend.
+          const hasMissingParam = Object.keys(updatedTraceset).some((key) => {
+            const p = fromKey(key);
+            return !p[param] || p[param] === '';
+          });
+
+          // Update the graph with the new traceSet and params.
+          const updatedRequest: FrameRequest = {
+            queries: elem.state.queries,
+            request_type: this.state.request_type,
+            begin: this.state.begin,
+            end: this.state.end,
+            tz: '',
+            disable_filter_parent_traces:
+              elem.state.queries.some((q) => q.includes(MISSING_VALUE_SENTINEL)) || hasMissingParam,
+          };
+          const updatedResponse: FrameResponse = {
+            dataframe: {
+              traceset: updatedTraceset,
+              header: headerToUse ? [...headerToUse] : null,
+              paramset: ReadOnlyParamSet(params),
+              skip: 0,
+              traceMetadata: ExploreSimpleSk.getTraceMetadataFromCommitLinks(
+                Object.keys(updatedTraceset),
+                elem.getCommitLinks()
+              ),
+            },
+            anomalymap: this.getAnomalyMapForTraces(
+              this.getFullAnomalyMap(),
+              Object.keys(updatedTraceset)
             ),
-          },
-          anomalymap: this.getAnomalyMapForTraces(
-            this.getFullAnomalyMap(),
-            Object.keys(updatedTraceset)
-          ),
-          display_mode: 'display_plot',
-          msg: '',
-          skps: [],
-        };
-        this.allFrameResponses[index] = updatedResponse;
-        this.allFrameRequests[index] = updatedRequest;
-        return elem.UpdateWithFrameResponse(
-          updatedResponse,
-          updatedRequest,
-          true,
-          this.exploreElements[0].getSelectedRange(),
-          false,
-          true
-        );
-      }
-      return Promise.resolve();
-    });
+            display_mode: 'display_plot',
+            msg: '',
+            skps: [],
+          };
+          this.allFrameResponses[index] = updatedResponse;
+          this.allFrameRequests[index] = updatedRequest;
+          return elem.UpdateWithFrameResponse(
+            updatedResponse,
+            updatedRequest,
+            true,
+            this.exploreElements[0].getSelectedRange(),
+            false,
+            true
+          );
+        }
+        return Promise.resolve();
+      });
 
-    await Promise.all(updatePromises);
+      await Promise.all(updatePromises);
 
-    // This should be outside the map, so it always runs after promises.
-    elemsToRemove.forEach((elem) => {
-      this.removeExplore(elem);
-    });
+      // This should be outside the map, so it always runs after promises.
+      elemsToRemove.forEach((elem) => {
+        this.removeExplore(elem);
+      });
 
-    this.exploreElements.forEach((elem, i) => {
-      if (this.allGraphConfigs[i]) {
-        // Add check to prevent error
-        this.allGraphConfigs[i].queries = elem.state.queries ?? [];
-      }
-    });
+      this.exploreElements.forEach((elem, i) => {
+        if (this.allGraphConfigs[i]) {
+          // Add check to prevent error
+          this.allGraphConfigs[i].queries = elem.state.queries ?? [];
+        }
+      });
 
-    this.updateShortcutMultiview();
-    await this.checkDataLoaded();
+      this.updateShortcutMultiview();
+      await this.checkDataLoaded();
+    } catch (error) {
+      console.error(error);
+      // Ensure we reset loading state on error
+      this._dataLoading = false;
+      this.testPicker?.setReadOnly(false);
+    }
   };
 
   /**
@@ -1110,7 +1172,9 @@ export class ExploreMultiSk extends ElementSk {
     splitIfOnlyOneGraph: boolean = false
   ): Promise<void> {
     const groupedTraces = this.groupTracesBySplitKey();
-    if (groupedTraces.size === 0) {
+    // If no traces, we usually return. But if we are unsplitting (keys empty),
+    // we must proceed to clear the split graphs and show the single main graph.
+    if (groupedTraces.size === 0 && this.state.splitByKeys.length > 0) {
       this.checkDataLoaded();
       return;
     }
@@ -1121,7 +1185,9 @@ export class ExploreMultiSk extends ElementSk {
         (sum, v) => sum + v.length,
         0
       );
-      if (this.state.splitByKeys.length === 0 || (!splitIfOnlyOneGraph && groupedLength === 1)) {
+      // We removed 'this.state.splitByKeys.length === 0' because if we are transitioning
+      // to Unsplit (length 0), we MUST proceed to clear the split graph (totalGraphs=1).
+      if (!splitIfOnlyOneGraph && groupedLength === 1) {
         await this.checkDataLoaded();
         return;
       }
@@ -1295,7 +1361,7 @@ export class ExploreMultiSk extends ElementSk {
 
     await this.testPicker!.populateFieldDataFromParamSet(paramSets, paramSet);
     this.testPicker!.setReadOnly(false);
-    this.currentPageExploreElements[0].useBrowserURL(false);
+    this.currentPageExploreElements[0]?.useBrowserURL(false);
     this.testPicker!.scrollIntoView();
   }
 

@@ -708,4 +708,128 @@ describe('Comprehensive Interaction Scenarios', () => {
     expect(splitEvent!.detail.param).to.equal('config');
     expect(splitEvent!.detail.split).to.be.true;
   });
+
+  it('rejects enabling split on a second field if one is already active', async () => {
+    // Manually setup two fields
+    const field1 = new PickerFieldSk('field1');
+    const field2 = new PickerFieldSk('field2');
+
+    // Inject them into the private _fieldData structure (using any to bypass private)
+    element['_fieldData'] = [
+      {
+        param: 'field1',
+        field: field1,
+        value: ['a', 'b'],
+        splitBy: [],
+        index: 0,
+        onValueChanged: null,
+        onSplitByChanged: null,
+      },
+      {
+        param: 'field2',
+        field: field2,
+        value: ['c', 'd'],
+        splitBy: [],
+        index: 1,
+        onValueChanged: null,
+        onSplitByChanged: null,
+      },
+    ];
+    element['_containerDiv']?.appendChild(field1);
+    element['_containerDiv']?.appendChild(field2);
+
+    // Enable split on field1
+    element['setSplitFields']('field1', true);
+    expect(field1.split).to.be.true;
+    expect(element['_fieldData'][0].splitBy).to.deep.equal(['field1']);
+
+    // Try to enable split on field2 (simulating a programmatic or race event)
+    field2.split = true; // Set UI state first (as the checkbox would)
+    element['setSplitFields']('field2', true);
+
+    // Should be rejected
+    expect(element['_fieldData'][1].splitBy).to.deep.equal(
+      [],
+      'Field2 splitBy should remain empty'
+    );
+    expect(field2.split).to.be.false, 'Field2 UI should be unchecked';
+    expect(field1.split).to.be.true, 'Field1 should remain split';
+  });
+});
+
+describe('Auto Add Trace Logic', () => {
+  const newInstance = setUpElementUnderTest<TestPickerSk>('test-picker-sk');
+  let element: TestPickerSk;
+  let fetchMock: any;
+  let graphContainer: HTMLDivElement;
+  let mockCount = 10;
+
+  beforeEach(async () => {
+    mockCount = 10;
+    if (!document.getElementById('graphContainer')) {
+      graphContainer = document.createElement('div');
+      graphContainer.id = 'graphContainer';
+      graphContainer.appendChild(document.createElement('div'));
+      document.body.appendChild(graphContainer);
+    } else {
+      graphContainer = document.getElementById('graphContainer') as HTMLDivElement;
+    }
+
+    fetchMock = (_url: RequestInfo | URL, _request: RequestInit | undefined) => {
+      const response: NextParamListHandlerResponse = {
+        paramset: { benchmark: ['b1', 'b2'] } as any,
+        count: mockCount,
+      };
+      return Promise.resolve(new Response(JSON.stringify(response)));
+    };
+    window.fetch = fetchMock;
+
+    element = newInstance((_el: TestPickerSk) => {});
+    await element.initializeTestPicker(['benchmark'], {}, false);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  });
+
+  afterEach(() => {
+    if (graphContainer && document.body.contains(graphContainer)) {
+      document.body.removeChild(graphContainer);
+    }
+  });
+
+  it('does not dispatch add-to-graph if autoAddTrace is false', async () => {
+    element.autoAddTrace = false;
+    const field = element.querySelector<PickerFieldSk>('picker-field-sk');
+
+    let eventFired = false;
+    element.addEventListener('add-to-graph', () => {
+      eventFired = true;
+    });
+
+    field!.dispatchEvent(new CustomEvent('value-changed', { detail: { value: ['b1'] } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(eventFired).to.be.false;
+  });
+
+  it('dispatches remove-trace even if autoAddTrace is false', async () => {
+    mockCount = 1000;
+    // Setup initial state (select b1)
+    element.autoAddTrace = true;
+    const field = element.querySelector<PickerFieldSk>('picker-field-sk');
+    field!.dispatchEvent(new CustomEvent('value-changed', { detail: { value: ['b1'] } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Now disable autoAddTrace
+    element.autoAddTrace = false;
+
+    let eventFired = false;
+    element.addEventListener('remove-trace', () => {
+      eventFired = true;
+    });
+
+    // Deselect b1
+    field!.dispatchEvent(new CustomEvent('value-changed', { detail: { value: [] } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(eventFired).to.be.true;
+  });
 });

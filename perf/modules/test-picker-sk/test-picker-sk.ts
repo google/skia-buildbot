@@ -462,12 +462,17 @@ export class TestPickerSk extends ElementSk {
       v === DEFAULT_OPTION_LABEL ? MISSING_VALUE_SENTINEL : v
     );
 
+    const isOverLimit = this._count > PLOT_MAXIMUM;
+
     // No valid data, so remove entire graph.
-    if (fieldInfo.index === 0 && value.length === 0) {
+    // We only force removal if we are over the limit. If we are under the limit,
+    // we allow "Implicit All" (empty selection) to be plotted.
+    if (fieldInfo.index === 0 && value.length === 0 && isOverLimit) {
       const detail = {
         query: this.createQueryFromFieldData(),
         param: fieldInfo.param,
         value: removedValue.length > 0 ? mappedRemovedValue : mappedValue,
+        isSplit: fieldInfo.field!.split,
       };
       this.dispatchEvent(
         new CustomEvent('remove-trace', {
@@ -478,24 +483,39 @@ export class TestPickerSk extends ElementSk {
       );
       return;
     }
-    // Only update when autoAdd is ready and chart is active.
-    if (!this.autoAddTrace) {
-      return;
-    }
-    if (this._count > PLOT_MAXIMUM) {
-      // Show error message if there are too many traces.
-      errorMessage(MAX_MESSAGE);
-      return;
-    }
-    this.setReadOnly(true);
+
     if (this._graphDiv !== null && this._graphDiv.children.length > 0) {
+      // Only update when autoAdd is ready and chart is active.
+      // Exception: Allow removal even if autoAddTrace is false (e.g. over limit).
+      if (!this.autoAddTrace && removedValue.length === 0) {
+        return;
+      }
+
+      this.setReadOnly(true);
       const detail = {
         query: this.createQueryFromFieldData(),
         param: fieldInfo.param,
         value: removedValue.length > 0 ? mappedRemovedValue : mappedValue,
+        isSplit: fieldInfo.field!.split,
       };
-      if (removedValue.length > 0) {
+
+      const isImplicitAll = value.length === 0;
+      const willDispatchAdd =
+        !isOverLimit && (removedValue.length === 0 || isImplicitAll) && this.autoAddTrace;
+
+      if (!willDispatchAdd && removedValue.length === 0) {
+        this.setReadOnly(false);
+        if (isOverLimit) {
+          errorMessage(MAX_MESSAGE);
+        }
+        return;
+      }
+
+      // Always allow removal, even if over limit.
+      if (removedValue.length > 0 && !willDispatchAdd) {
         // Remove item from chart, no need to requery.
+        // We allow removal even if over limit or autoAddTrace is false, to ensure
+        // the graph can be cleared/reduced.
         this.dispatchEvent(
           new CustomEvent('remove-trace', {
             detail: detail,
@@ -503,7 +523,6 @@ export class TestPickerSk extends ElementSk {
             composed: true,
           })
         );
-        return;
       }
       // Field was split, but not enough values so remove split.
       if (fieldInfo.field!.split && value.length < 2) {
@@ -520,12 +539,14 @@ export class TestPickerSk extends ElementSk {
         );
         return;
       }
-      this.dispatchEvent(
-        new CustomEvent('add-to-graph', {
-          detail: detail,
-          bubbles: true,
-        })
-      );
+      if (willDispatchAdd) {
+        this.dispatchEvent(
+          new CustomEvent('add-to-graph', {
+            detail: detail,
+            bubbles: true,
+          })
+        );
+      }
     }
   }
 
@@ -588,8 +609,10 @@ export class TestPickerSk extends ElementSk {
       if (value.length > 1) {
         this.setReadOnly(true);
       }
-      this.updateGraph(value, fieldInfo, removed);
+      // Fetch extra options first to update count.
       await this.fetchExtraOptions(index);
+      // Then update graph with the new count available.
+      this.updateGraph(value, fieldInfo, removed);
       await this.applyConditionalDefaults(fieldInfo.param, value);
     };
 
@@ -648,6 +671,19 @@ export class TestPickerSk extends ElementSk {
    * @param split A boolean indicating whether to split or not.
    */
   private setSplitFields(param: string, split: boolean) {
+    // If trying to enable split, check if another field is already split.
+    if (split) {
+      const alreadySplit = this._fieldData.find((f) => f.splitBy.length > 0 && f.param !== param);
+      if (alreadySplit) {
+        // Force uncheck the field that tried to split.
+        const currentField = this._fieldData.find((f) => f.param === param);
+        if (currentField && currentField.field) {
+          currentField.field.split = false;
+        }
+        return;
+      }
+    }
+
     this.setReadOnly(true);
     for (let i = 0; i < this._fieldData.length; i++) {
       if (this._fieldData[i].param === param) {
@@ -868,6 +904,14 @@ export class TestPickerSk extends ElementSk {
     return this._autoAddTrace;
   }
 
+  /**
+   * Returns true if the first field is loaded.
+   *
+   * This is used to determine if the test picker is ready to be used.
+   * If the first field is not loaded, then we are not ready.
+   *
+   * @returns true if the first field is loaded, false otherwise.
+   */
   isLoaded(): boolean {
     // If the first field is not loaded, then we are not ready.
     return (
