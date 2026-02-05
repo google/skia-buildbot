@@ -145,19 +145,6 @@ func initSpannerSchema(ctx context.Context, db *pgxpool.Pool) error {
 	return err
 }
 
-func checkColumnExists(ctx context.Context, db *pgxpool.Pool, tableName, columnName string) (bool, error) {
-	var exists bool
-	// We use strings.ToLower because CockroachDB's information_schema stores names in lowercase usually,
-	// but it depends on how they were created. Standard SQL is case-insensitive for unquoted names.
-	query := `SELECT EXISTS (
-		SELECT 1
-		FROM information_schema.columns
-		WHERE table_name = $1 AND column_name = $2
-	)`
-	err := db.QueryRow(ctx, query, strings.ToLower(tableName), strings.ToLower(columnName)).Scan(&exists)
-	return exists, err
-}
-
 func migrateTable(ctx context.Context, src, dst *pgxpool.Pool, tableName string, batchSize int) (bool, error) {
 	sklog.Infof("Migrating table %s", tableName)
 	rowType := getRowType(tableName)
@@ -169,22 +156,14 @@ func migrateTable(ctx context.Context, src, dst *pgxpool.Pool, tableName string,
 	rowInstance := reflect.New(rowType).Interface().(sqltest.SQLExporter)
 	pkCols := rowInstance.GetPrimaryKeyCols()
 
-	hasCreatedAt, err := checkColumnExists(ctx, src, tableName, "createdat")
-	if err != nil {
-		return false, err
-	}
-
 	orderByCols := pkCols
-	if hasCreatedAt {
-		orderByCols = append([]string{"createdat"}, pkCols...)
-	}
 
 	lastValues, err := getProgress(ctx, dst, tableName)
 	if err != nil {
 		return false, err
 	}
 
-	query := buildQuery(tableName, hasCreatedAt, orderByCols, lastValues, batchSize)
+	query := buildQuery(tableName, orderByCols, lastValues, batchSize)
 	rows, err := src.Query(ctx, query, lastValues...)
 	if err != nil {
 		return false, err
@@ -225,7 +204,7 @@ func migrateTable(ctx context.Context, src, dst *pgxpool.Pool, tableName string,
 	return len(batch) < batchSize, nil
 }
 
-func buildQuery(tableName string, hasCreatedAt bool, orderByCols []string, lastValues []interface{}, batchSize int) string {
+func buildQuery(tableName string, orderByCols []string, lastValues []interface{}, batchSize int) string {
 	var sb strings.Builder
 	sb.WriteString("SELECT ")
 	cols := tableColumns[tableName]
@@ -236,19 +215,6 @@ func buildQuery(tableName string, hasCreatedAt bool, orderByCols []string, lastV
 		sb.WriteString(strings.Join(cols, ", "))
 	}
 
-	if hasCreatedAt {
-		if len(cols) > 0 {
-			sb.WriteString(", ")
-		}
-		sb.WriteString("createdat")
-	} else {
-		// If the source doesn't have createdat, we provide a dummy value so ScanFrom works,
-		// but we don't order by it (orderByCols will only contain PKs).
-		if len(cols) > 0 {
-			sb.WriteString(", ")
-		}
-		sb.WriteString("'0001-01-01 00:00:00+00'::TIMESTAMPTZ as createdat")
-	}
 	sb.WriteString(" FROM ")
 	sb.WriteString(strings.ToLower(tableName))
 	if len(lastValues) > 0 {
@@ -271,14 +237,9 @@ func buildQuery(tableName string, hasCreatedAt bool, orderByCols []string, lastV
 
 func extractProgressValues(exporter sqltest.SQLExporter, orderByCols []string) []interface{} {
 	colNames, allValues := exporter.ToSQLRow()
-	v := reflect.Indirect(reflect.ValueOf(exporter))
 
 	var res []interface{}
 	for _, col := range orderByCols {
-		if col == "createdat" {
-			res = append(res, v.FieldByName("CreatedAt").Interface().(time.Time))
-			continue
-		}
 		found := false
 		for i, name := range colNames {
 			if strings.EqualFold(name, col) {
@@ -342,13 +303,6 @@ func writeBatch(ctx context.Context, db *pgxpool.Pool, tableName string, batch [
 	colNames, _ := batch[0].ToSQLRow()
 	pkCols := batch[0].GetPrimaryKeyCols()
 
-	// Add createdat if it's in the first row. We assume it's there for all or none.
-	v := reflect.Indirect(reflect.ValueOf(batch[0]))
-	hasCreatedAt := v.FieldByName("CreatedAt").IsValid()
-	if hasCreatedAt {
-		colNames = append(colNames, "createdat")
-	}
-
 	numCols := len(colNames)
 	vp := "("
 	for i := 0; i < numCols; i++ {
@@ -369,10 +323,6 @@ func writeBatch(ctx context.Context, db *pgxpool.Pool, tableName string, batch [
 
 	for _, row := range batch {
 		_, values := row.ToSQLRow()
-		if hasCreatedAt {
-			v := reflect.Indirect(reflect.ValueOf(row))
-			values = append(values, v.FieldByName("CreatedAt").Interface().(time.Time))
-		}
 		if _, err := db.Exec(ctx, query, values...); err != nil {
 			return skerr.Wrapf(err, "writing row to %s", tableName)
 		}
