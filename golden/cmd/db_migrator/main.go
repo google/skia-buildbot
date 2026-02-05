@@ -103,6 +103,35 @@ func main() {
 	sklog.Info("Migration completed")
 }
 
+var tableColumns = map[string][]string{
+	"Changelists":                        {"changelist_id", "system", "status", "owner_email", "subject", "last_ingested_data"},
+	"Patchsets":                          {"patchset_id", "system", "changelist_id", "ps_order", "git_hash", "commented_on_cl", "created_ts"},
+	"Tryjobs":                            {"tryjob_id", "system", "changelist_id", "patchset_id", "display_name", "last_ingested_data"},
+	"ExpectationRecords":                 {"expectation_record_id", "branch_name", "user_name", "triage_time", "num_changes"},
+	"ExpectationDeltas":                  {"expectation_record_id", "grouping_id", "digest", "label_before", "label_after"},
+	"Expectations":                       {"grouping_id", "digest", "label", "expectation_record_id"},
+	"Groupings":                          {"grouping_id", "keys"},
+	"Options":                            {"options_id", "keys"},
+	"SourceFiles":                        {"source_file_id", "source_file", "last_ingested"},
+	"Traces":                             {"trace_id", "corpus", "grouping_id", "keys", "matches_any_ignore_rule"},
+	"CommitsWithData":                    {"commit_id", "tile_id"},
+	"GitCommits":                         {"git_hash", "commit_id", "commit_time", "author_email", "subject"},
+	"MetadataCommits":                    {"commit_id", "commit_metadata"},
+	"TrackingCommits":                    {"repo", "last_git_hash"},
+	"TraceValues":                        {"shard", "trace_id", "commit_id", "digest", "grouping_id", "options_id", "source_file_id"},
+	"ValuesAtHead":                       {"trace_id", "most_recent_commit_id", "digest", "options_id", "grouping_id", "corpus", "keys", "matches_any_ignore_rule"},
+	"PrimaryBranchParams":                {"tile_id", "key", "value"},
+	"TiledTraceDigests":                  {"trace_id", "tile_id", "digest", "grouping_id"},
+	"DiffMetrics":                        {"left_digest", "right_digest", "num_pixels_diff", "percent_pixels_diff", "max_rgba_diffs", "max_channel_diff", "combined_metric", "dimensions_differ", "ts"},
+	"IgnoreRules":                        {"ignore_rule_id", "creator_email", "updated_email", "expires", "note", "query"},
+	"ProblemImages":                      {"digest", "num_errors", "latest_error", "error_ts"},
+	"PrimaryBranchDiffCalculationWork":   {"grouping_id", "last_calculated_ts", "calculation_lease_ends"},
+	"SecondaryBranchDiffCalculationWork": {"branch_name", "grouping_id", "last_updated_ts", "digests", "last_calculated_ts", "calculation_lease_ends"},
+	"SecondaryBranchExpectations":        {"branch_name", "grouping_id", "digest", "label", "expectation_record_id"},
+	"SecondaryBranchParams":              {"branch_name", "version_name", "key", "value"},
+	"SecondaryBranchValues":              {"branch_name", "version_name", "secondary_branch_trace_id", "digest", "grouping_id", "options_id", "source_file_id", "tryjob_id"},
+}
+
 func initSpannerSchema(ctx context.Context, db *pgxpool.Pool) error {
 	sklog.Info("Initializing Spanner schema...")
 	if _, err := db.Exec(ctx, spanner.Schema); err != nil {
@@ -198,11 +227,27 @@ func migrateTable(ctx context.Context, src, dst *pgxpool.Pool, tableName string,
 
 func buildQuery(tableName string, hasCreatedAt bool, orderByCols []string, lastValues []interface{}, batchSize int) string {
 	var sb strings.Builder
-	sb.WriteString("SELECT *")
-	if !hasCreatedAt {
+	sb.WriteString("SELECT ")
+	cols := tableColumns[tableName]
+	if len(cols) == 0 {
+		// Fallback to * if columns are not defined, though they should be.
+		sb.WriteString("*")
+	} else {
+		sb.WriteString(strings.Join(cols, ", "))
+	}
+
+	if hasCreatedAt {
+		if len(cols) > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString("createdat")
+	} else {
 		// If the source doesn't have createdat, we provide a dummy value so ScanFrom works,
 		// but we don't order by it (orderByCols will only contain PKs).
-		sb.WriteString(", '0001-01-01 00:00:00+00'::TIMESTAMPTZ as createdat")
+		if len(cols) > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString("'0001-01-01 00:00:00+00'::TIMESTAMPTZ as createdat")
 	}
 	sb.WriteString(" FROM ")
 	sb.WriteString(strings.ToLower(tableName))
@@ -294,37 +339,44 @@ func writeBatch(ctx context.Context, db *pgxpool.Pool, tableName string, batch [
 		return nil
 	}
 
-	fullColNames := getFullColNames(batch[0])
+	colNames, _ := batch[0].ToSQLRow()
+	pkCols := batch[0].GetPrimaryKeyCols()
 
-	copySource := &batchCopySource{
-		batch: batch,
-		idx:   -1,
+	// Add createdat if it's in the first row. We assume it's there for all or none.
+	v := reflect.Indirect(reflect.ValueOf(batch[0]))
+	hasCreatedAt := v.FieldByName("CreatedAt").IsValid()
+	if hasCreatedAt {
+		colNames = append(colNames, "createdat")
 	}
 
-	_, err := db.CopyFrom(ctx, pgx.Identifier{strings.ToLower(tableName)}, fullColNames, copySource)
-	return err
-}
+	numCols := len(colNames)
+	vp := "("
+	for i := 0; i < numCols; i++ {
+		if i > 0 {
+			vp += ", "
+		}
+		vp += fmt.Sprintf("$%d", i+1)
+	}
+	vp += ")"
 
-func getFullColNames(exporter sqltest.SQLExporter) []string {
-	colNames, _ := exporter.ToSQLRow()
-	return colNames
-}
+	// We use INSERT ... ON CONFLICT DO NOTHING to be idempotent.
+	// Note: Spanner PG interface supports this.
+	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s ON CONFLICT (%s) DO NOTHING",
+		strings.ToLower(tableName),
+		strings.Join(colNames, ", "),
+		vp,
+		strings.Join(pkCols, ", "))
 
-type batchCopySource struct {
-	batch []sqltest.SQLExporter
-	idx   int
-}
+	for _, row := range batch {
+		_, values := row.ToSQLRow()
+		if hasCreatedAt {
+			v := reflect.Indirect(reflect.ValueOf(row))
+			values = append(values, v.FieldByName("CreatedAt").Interface().(time.Time))
+		}
+		if _, err := db.Exec(ctx, query, values...); err != nil {
+			return skerr.Wrapf(err, "writing row to %s", tableName)
+		}
+	}
 
-func (s *batchCopySource) Next() bool {
-	s.idx++
-	return s.idx < len(s.batch)
-}
-
-func (s *batchCopySource) Values() ([]interface{}, error) {
-	_, values := s.batch[s.idx].ToSQLRow()
-	return values, nil
-}
-
-func (s *batchCopySource) Err() error {
 	return nil
 }

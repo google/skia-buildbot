@@ -12,24 +12,25 @@ import (
 func TestBuildQuery(t *testing.T) {
 	tableName := "Changelists"
 	batchSize := 10
+	expectedCols := "changelist_id, system, status, owner_email, subject, last_ingested_data"
 
 	t.Run("no progress, with createdat", func(t *testing.T) {
 		orderByCols := []string{"createdat", "changelist_id"}
 		q := buildQuery(tableName, true, orderByCols, nil, batchSize)
-		assert.Equal(t, "SELECT * FROM changelists ORDER BY createdat, changelist_id LIMIT 10", q)
+		assert.Equal(t, "SELECT "+expectedCols+", createdat FROM changelists ORDER BY createdat, changelist_id LIMIT 10", q)
 	})
 
 	t.Run("no progress, without createdat", func(t *testing.T) {
 		orderByCols := []string{"changelist_id"}
 		q := buildQuery(tableName, false, orderByCols, nil, batchSize)
-		assert.Equal(t, "SELECT *, '0001-01-01 00:00:00+00'::TIMESTAMPTZ as createdat FROM changelists ORDER BY changelist_id LIMIT 10", q)
+		assert.Equal(t, "SELECT "+expectedCols+", '0001-01-01 00:00:00+00'::TIMESTAMPTZ as createdat FROM changelists ORDER BY changelist_id LIMIT 10", q)
 	})
 
 	t.Run("with progress", func(t *testing.T) {
 		orderByCols := []string{"createdat", "changelist_id"}
 		lastValues := []interface{}{time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC), "gerrit_123"}
 		q := buildQuery(tableName, true, orderByCols, lastValues, batchSize)
-		assert.Equal(t, "SELECT * FROM changelists WHERE (createdat, changelist_id) > ($1, $2) ORDER BY createdat, changelist_id LIMIT 10", q)
+		assert.Equal(t, "SELECT "+expectedCols+", createdat FROM changelists WHERE (createdat, changelist_id) > ($1, $2) ORDER BY createdat, changelist_id LIMIT 10", q)
 	})
 }
 
