@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { loadCachedTestBed, TestBed } from '../../../puppeteer-tests/util';
 import { ElementHandle } from 'puppeteer';
 import { ExploreSimpleSkPO } from './explore-simple-sk_po';
-import { CLIPBOARD_READ_TIMEOUT_MS, DEFAULT_VIEWPORT } from '../common/puppeteer-test-util';
-import { paramSet1 } from './test_data';
+import { CLIPBOARD_READ_TIMEOUT_MS, DEFAULT_VIEWPORT, poll } from '../common/puppeteer-test-util';
+import { default_container_title, expected_trace_key, paramSet1 } from './test_data';
 import { paramSet } from '../common/test-util';
 
 const EXPECTED_QUERY_COUNT = 117;
@@ -300,6 +300,59 @@ describe('explore-simple-sk', () => {
       await simplePageSkPO.clickEvenXAxisSpacingSwitch();
       // After click, should be true
       expect(await simplePageSkPO.getEvenXAxisSpacing()).to.be.true;
+    });
+
+    it('displays a tooltip when clicking on a data point', async () => {
+      // Set a query and plot the graph.
+      await testBed.page.click('#demo-show-query-dialog');
+      const querySkPO = simplePageSkPO.querySk;
+      await querySkPO.setCurrentQuery(paramSet1);
+      await simplePageSkPO.clickPlotButton();
+
+      // Wait for the chart to be visible.
+      const plotPO = simplePageSkPO.plotGoogleChartSk;
+      await plotPO.waitForChartVisible({ timeout: CLIPBOARD_READ_TIMEOUT_MS });
+
+      // Poll for the traces to appear.
+      await poll(async () => {
+        const traceKeys = await simplePageSkPO.getTraceKeys();
+        return traceKeys.length === 1;
+      }, 'timed out waiting for 1 trace to load');
+
+      // Get the trace keys and coordinates of the first data point.
+      const traceKeys = await simplePageSkPO.getTraceKeys();
+      expect(traceKeys.length).deep.equal(1);
+      const traceKey = traceKeys[0];
+      const coords = await simplePageSkPO.getTraceCoordinates(traceKey, 0);
+      // Click on the data point.
+      await testBed.page.mouse.click(coords!.x + coords!.width / 2, coords!.y + coords!.height / 2);
+
+      // Wait for the tooltip to be visible.
+      await poll(
+        async () => {
+          // First, check if the container is visible.
+          const isContainerVisible = await simplePageSkPO.chartTooltip.container.applyFnToDOMNode(
+            (el) => {
+              const style = window.getComputedStyle(el);
+              return (
+                style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0'
+              );
+            }
+          );
+          if (!isContainerVisible) {
+            console.log('Tooltip container not visible yet.');
+            return false;
+          }
+
+          const tooltipTitle = await simplePageSkPO.chartTooltip.title.innerText;
+          return tooltipTitle.includes(default_container_title);
+        },
+        'timed out waiting for tooltip to be visible',
+        10000
+      );
+
+      // Verify the tooltip tracekey.
+      expect(traceKey).to.include(expected_trace_key);
     });
   });
 

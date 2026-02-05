@@ -259,24 +259,13 @@ export class ExploreSimpleSkPO extends PageObject {
   async getTraceCoordinates(
     traceKey: string,
     pointIndex: number
-  ): Promise<{ x: number; y: number }> {
+  ): Promise<{ x: number; y: number; width: number; height: number } | null> {
     return await this.googleChart.applyFnToDOMNode(
-      (el: any, args: any) => {
-        const data = el.data;
-        let foundCol = -1;
-        // The first two columns are reserved for 'Commit Position' and 'Date',
-        // so we start iterating from index 2 to find the trace data.
-        for (let i = 2; i < data.getNumberOfColumns(); i++) {
-          if (data.getColumnLabel(i) === args.traceKey) {
-            foundCol = i;
-            break;
-          }
-        }
-        if (foundCol === -1) throw new Error(`Trace ${args.traceKey} not found`);
-
-        const pos = el.getPositionByIndex({ tableRow: args.pointIndex, tableCol: foundCol });
-        const rect = el.getBoundingClientRect();
-        return { x: rect.left + pos.x, y: rect.top + pos.y };
+      (el) => {
+        const anomalyIcon = el.shadowRoot!.querySelector('div.anomaly > .anomaly');
+        if (!anomalyIcon) return null;
+        const rect = anomalyIcon.getBoundingClientRect();
+        return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
       },
       { traceKey, pointIndex }
     );

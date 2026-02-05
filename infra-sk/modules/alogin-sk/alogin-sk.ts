@@ -84,10 +84,6 @@ export class AloginSk extends LitElement {
   @state()
   private status: Status = defaultStatus;
 
-  constructor() {
-    super();
-  }
-
   createRenderRoot() {
     return this;
   }

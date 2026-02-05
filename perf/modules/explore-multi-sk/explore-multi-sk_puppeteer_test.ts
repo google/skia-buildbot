@@ -92,7 +92,7 @@ describe('Anomalies and Traces', () => {
     const ubuntuKey = ',arch=arm,os=Ubuntu,';
     const pointIndex = 10; // Arbitrary point
     const coords = await exploreSimplePO.getTraceCoordinates(ubuntuKey, pointIndex);
-    await testBed.page.mouse.move(coords.x, coords.y);
+    await testBed.page.mouse.move(coords!.x, coords!.y);
 
     // Verify hover indicator is visible
     const isHoverVisible = await exploreSimplePO.googleChart.applyFnToDOMNode((el) => {
