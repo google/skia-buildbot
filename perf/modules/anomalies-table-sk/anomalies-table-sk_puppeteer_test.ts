@@ -2,7 +2,7 @@ import { BugTooltipSkPO } from '../bug-tooltip-sk/bug-tooltip-sk_po';
 import { expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { AnomaliesTableSkPO } from './anomalies-table-sk_po';
-import { anomaly_table, GROUP_REPORT_RESPONSE_WITH_SID, associatedBugs } from './test_data';
+import { anomaly_table, associatedBugs } from './test_data';
 import { ElementHandle } from 'puppeteer';
 import { Page } from 'puppeteer';
 import { assert } from 'chai';
@@ -30,26 +30,6 @@ describe('anomalies-table-sk', () => {
 
   describe('with anomalies', () => {
     beforeEach(async () => {
-      await testBed.page.setRequestInterception(true);
-      testBed.page.on('request', (request) => {
-        if (request.url().endsWith('/_/anomalies/group_report') && request.method() === 'POST') {
-          request.respond({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(GROUP_REPORT_RESPONSE_WITH_SID),
-          });
-        } else if (request.url().endsWith('/_/triage/list_issues') && request.method() === 'POST') {
-          request.respond({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-              issues: [{ issueId: '67351', issueState: { title: 'Test Bug Title' } }],
-            }),
-          });
-        } else {
-          request.continue();
-        }
-      });
       await testBed.page.click('#populate-tables');
     });
 
