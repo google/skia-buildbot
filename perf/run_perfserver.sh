@@ -271,7 +271,21 @@ start_server() {
       DISABLE_SHORTCUT_UPDATE_FLAG="--disable_shortcut_update"
   fi
 
-  _bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
+  # Determine bazel output directory
+  BAZEL_BIN="_bazel_bin"
+  if [ -d "bazel-bin" ]; then
+      BAZEL_BIN="bazel-bin"
+  fi
+
+  # Verify critical resource existence to avoid crash-on-request
+  REQUIRED_RESOURCE="$BAZEL_BIN/perf/pages/development/newindex.html"
+  if [ ! -f "$REQUIRED_RESOURCE" ]; then
+      echo "Error: Required resource not found: $REQUIRED_RESOURCE"
+      echo "The build might be incomplete. Please check 'bazelisk build //perf/...' output."
+      return 1
+  fi
+
+  $BAZEL_BIN/perf/go/perfserver/perfserver_/perfserver frontend \
       --dev_mode \
       $LOCAL_TO_PROD_FLAG \
       $DISABLE_SHORTCUT_UPDATE_FLAG \
@@ -282,7 +296,7 @@ start_server() {
       --config_filename="$TEMP_CONFIG" \
       --display_group_by=false \
       --disable_metrics_update=true \
-      --resources_dir=_bazel_bin/perf/pages/development/ \
+      --resources_dir=$BAZEL_BIN/perf/pages/development/ \
       --connection_string="postgresql://root@127.0.0.1:$PG_PORT/${DATABASE}?sslmode=disable" \
       --commit_range_url="https://${DOMAIN}/${REPO}/+log/{begin}..{end}" > "$LOG_FILE" 2>&1 &
   SERVER_PID=$!
