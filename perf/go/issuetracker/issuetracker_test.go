@@ -7,14 +7,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/api/option"
 
 	issuetracker "go.skia.org/infra/go/issuetracker/v1"
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/regression"
 	regMocks "go.skia.org/infra/perf/go/regression/mocks"
 	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
+	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 func createIssueTrackerForTest(t *testing.T) (*issueTrackerImpl, *regMocks.Store, *httptest.Server) {
@@ -47,6 +53,7 @@ func TestFileBug_Success(t *testing.T) {
 			BugComponent: "1235",
 		},
 	}, nil)
+	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return([]*regression.Regression{}, nil)
 
 	req := &FileBugRequest{
 		Title:       "Test Bug",
@@ -78,6 +85,7 @@ func TestFileBug_InvalidComponent(t *testing.T) {
 			BugComponent: "-1",
 		},
 	}, nil)
+	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return([]*regression.Regression{}, nil)
 
 	req := &FileBugRequest{
 		Component: "invalid",
@@ -109,6 +117,7 @@ func TestFileBug_APIError(t *testing.T) {
 			BugComponent: "1325852",
 		},
 	}, nil)
+	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return([]*regression.Regression{}, nil)
 
 	req := &FileBugRequest{
 		Title:       "Test Bug",
@@ -124,11 +133,18 @@ func TestFileBug_APIError(t *testing.T) {
 
 func TestFileBug_RequestBody(t *testing.T) {
 	var receivedReq issuetracker.Issue
+	var receivedCommentReq issuetracker.IssueComment
+	var counter int
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
-		err = json.Unmarshal(body, &receivedReq)
+		if counter == 0 {
+			err = json.Unmarshal(body, &receivedReq)
+		} else {
+			err = json.Unmarshal(body, &receivedCommentReq)
+		}
+		counter += 1
 		require.NoError(t, err)
 
 		w.Header().Set("Content-Type", "application/json")
@@ -148,11 +164,44 @@ func TestFileBug_RequestBody(t *testing.T) {
 		client:                c,
 		FetchAnomaliesFromSql: true,
 		regStore:              regStore,
+		urlBase:               "http://test.com",
 	}
 
 	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
 		{
 			BugComponent: "8765",
+		},
+	}, nil)
+
+	paramset_map := map[string]string{
+		"bot":         "bot",
+		"benchmark":   "benchmark",
+		"story":       "story",
+		"measurement": "measurement",
+		"stat":        "stat",
+	}
+	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return([]*regression.Regression{
+		{
+			Low:  nil,
+			High: nil,
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					ParamSet: paramtools.NewReadOnlyParamSet(paramset_map),
+				},
+			},
+			LowStatus:        regression.TriageStatus{},
+			HighStatus:       regression.TriageStatus{},
+			Id:               "1",
+			CommitNumber:     12345,
+			PrevCommitNumber: 12333,
+			AlertId:          321,
+			Bugs:             []types.RegressionBug{},
+			AllBugsFetched:   false,
+			CreationTime:     time.Time{},
+			MedianBefore:     0,
+			MedianAfter:      0,
+			IsImprovement:    false,
+			ClusterType:      "",
 		},
 	}, nil)
 
@@ -169,7 +218,10 @@ func TestFileBug_RequestBody(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, "Test Bug Title", receivedReq.IssueState.Title)
-	require.Equal(t, "Test Bug Description", receivedReq.IssueComment.Comment)
+	// Description is overriden.
+	require.Contains(t, receivedReq.Description.Comment, "Link to graph with regressions")
+	require.Contains(t, receivedCommentReq.Comment, "Link to graph by bugID")
+	require.Contains(t, receivedCommentReq.Comment, "12345")
 	// TODO(b/454614028) Change it to regStore value once migration is done.
 	defaultComponentId := int64(1325852)
 	// Note that componentID is overriden by the default value
@@ -182,11 +234,18 @@ func TestFileBug_RequestBody(t *testing.T) {
 
 func TestFileBug_EmptyDescription(t *testing.T) {
 	var receivedReq issuetracker.Issue
+	var receivedCommentReq issuetracker.IssueComment
+	var counter int
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
-		err = json.Unmarshal(body, &receivedReq)
+		if counter == 0 {
+			err = json.Unmarshal(body, &receivedReq)
+		} else {
+			err = json.Unmarshal(body, &receivedCommentReq)
+		}
+		counter += 1
 		require.NoError(t, err)
 
 		w.Header().Set("Content-Type", "application/json")
@@ -224,20 +283,29 @@ func TestFileBug_EmptyDescription(t *testing.T) {
 			BugComponent: "8765",
 		},
 	}, nil)
+	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return([]*regression.Regression{}, nil)
 
 	_, err = s.FileBug(context.Background(), req)
 	require.NoError(t, err)
 
-	require.Equal(t, "Link to graph with regressions: http://test.com/u?anomalyIDs=key1,key2", receivedReq.IssueComment.Comment)
+	require.Contains(t, receivedReq.Description.Comment, "http://test.com/u?anomalyIDs=key1,key2")
+	require.Contains(t, receivedCommentReq.Comment, "12345")
 }
 
 func TestFileBug_EmptyDescriptionTooManyKeys(t *testing.T) {
 	var receivedReq issuetracker.Issue
+	var receivedCommentReq issuetracker.IssueComment
+	var counter int
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
-		err = json.Unmarshal(body, &receivedReq)
+		if counter == 0 {
+			err = json.Unmarshal(body, &receivedReq)
+		} else {
+			err = json.Unmarshal(body, &receivedCommentReq)
+		}
+		counter += 1
 		require.NoError(t, err)
 
 		w.Header().Set("Content-Type", "application/json")
@@ -279,9 +347,11 @@ func TestFileBug_EmptyDescriptionTooManyKeys(t *testing.T) {
 			BugComponent: "8765",
 		},
 	}, nil)
+	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return([]*regression.Regression{}, nil)
 
 	_, err = s.FileBug(context.Background(), req)
 	require.NoError(t, err)
 
-	require.Contains(t, receivedReq.IssueComment.Comment, "The link to a graph with all regressions would be too long.")
+	require.Contains(t, receivedReq.Description.Comment, "The link to a graph with all regressions would be too long.")
+	require.Contains(t, receivedCommentReq.Comment, "12345")
 }

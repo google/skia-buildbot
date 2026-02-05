@@ -20,7 +20,12 @@ import (
 
 	issuetracker "go.skia.org/infra/go/issuetracker/v1"
 	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
+
+	v1 "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
+	ags "go.skia.org/infra/perf/go/anomalygroup/service"
 )
+
+var TOP_ANOMALIES_COUNT = 10
 
 // IssueTracker defines an interface for accessing issuetracker v1 api.
 type IssueTracker interface {
@@ -187,15 +192,30 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		return 0, skerr.Fmt("this implementation is supposed to use the DB. Please contact BERF engineers at go/berf-skia-chat.")
 	}
 
+	if req.Description != "" {
+		sklog.Warningf("ignoring description provided, creating our own.\nOld description: %s", req.Description)
+	}
+
 	regressionIds := req.Keys
 	regressionIdsFromSql, alertsIds, subscriptions, err := s.regStore.GetSubscriptionsForRegressions(ctx, regressionIds)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "failed to get alert ids for regressions.")
 	}
-
 	if len(regressionIdsFromSql) != len(regressionIds) {
 		return 0, skerr.Fmt("could not find alert configurations or subscriptions for some regressions")
 	}
+	regData, err := s.regStore.GetByIDs(ctx, regressionIds)
+	if err != nil {
+		return 0, skerr.Wrapf(err, "failed to get regressions for regression ids")
+	}
+
+	topAnomalies, err := ags.TopAnomaliesMedianCmp(regData, int64(TOP_ANOMALIES_COUNT))
+
+	description := "```<br>"
+
+	// TODO(b/464211673) Make sure the links lead to correct graphs.
+	description += s.generateLinkToGraph(req.Keys)
+	description += s.describeTopAnomalies(topAnomalies)
 
 	// TODO(b/454614028) Not sure alertsIds will be useful.
 	_ = alertsIds
@@ -210,21 +230,22 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		sklog.Warningf("we ignore componentID: %s passed by fe and use data from the db: %d", req.Component, componentID)
 	}
 
+	descriptionDebugSection := "## DEBUG BELOW\n"
 	// TODO(b/454614028) remove this assignment after migration is done.
 	// This is to prevent spamming other teams while testing.
 	sklog.Warningf("File Bug would use the following component: %d. Using a default component until migration is done.", componentID)
+	descriptionDebugSection += fmt.Sprintf("component %d should be used.<br>Until migration is done, we use the default one.<br>", componentID)
 	componentID = 1325852
+
+	description += "<br><br><br>" + descriptionDebugSection + "<br>```"
 
 	var ccs []*issuetracker.User
 	for _, cc := range req.Ccs {
 		ccs = append(ccs, &issuetracker.User{EmailAddress: cc})
 	}
 
-	// TODO(b/464211673) Make sure the links lead to correct graphs.
-	description := s.createDescription(req.Description, req.Keys)
-
 	newIssue := &issuetracker.Issue{
-		IssueComment: &issuetracker.IssueComment{
+		Description: &issuetracker.IssueComment{
 			Comment:        description,
 			FormattingMode: "MARKDOWN",
 		},
@@ -250,7 +271,17 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 			newIssue.IssueState.ComponentId,
 		)
 	}
-	return int(resp.IssueId), nil
+
+	issueId := resp.IssueId
+
+	_, err = s.client.Issues.Comments.Create(issueId, &issuetracker.IssueComment{
+		Comment:        fmt.Sprintf("Link to graph by bugID: %s/u?bugID=%d", s.urlBase, issueId),
+		FormattingMode: "MARKDOWN",
+	}).Do()
+	if err != nil {
+		sklog.Errorf("failed to post comment with bugID due to err: %s", err)
+	}
+	return int(issueId), nil
 }
 
 func (s *issueTrackerImpl) getComponentID(subscriptions []*pb.Subscription) (int64, error) {
@@ -274,31 +305,48 @@ func (s *issueTrackerImpl) getComponentID(subscriptions []*pb.Subscription) (int
 	return componentID, nil
 }
 
-func (s *issueTrackerImpl) createDescription(reqDescription string, keys []string) string {
-	if reqDescription != "" {
-		return reqDescription
-	}
-
+func (s *issueTrackerImpl) generateLinkToGraph(keys []string) string {
 	anomalyIdsLink := "anomalyIDs"
 	graphLink := fmt.Sprintf("%s/u?%s=", s.urlBase, anomalyIdsLink)
-	description := fmt.Sprintf("Link to graph with regressions: %s", graphLink)
+	// Markdown doesn't seem to support the > marker in the code mode, so we leave 2 spaces.
+	link := fmt.Sprintf("Link to graph with regressions:<br>  %s", graphLink)
 
-	// TODO(b/454277955) Links longer than 2k might be problematic. We should use SID instead.
+	BAN_LONG_URLS := true
+	// Links longer than 2k might be problematic. We will rely on report by bugID.
 	MAX_LEN := 2000
-	urlLength := len(graphLink)
+	urlLength := len(link)
 
 	for _, key := range keys {
-		if urlLength+len(key)+1 >= MAX_LEN {
-			sklog.Warningf("URL is too long, need to use SID - there are %d regressions", len(keys))
+		if BAN_LONG_URLS && urlLength+len(key)+1 >= MAX_LEN {
+			sklog.Warningf("URL is too long, need to use link by bug id - there are %d regressions", len(keys))
 			prefix := "The link to a graph with all regressions would be too long.\n"
-			prefix += "Please contact BERF engineers at go/berf-skia-chat.\n"
-			prefix += "The graph will not contain all regressions!"
-			description = prefix + description
+			prefix += "Please check the first comment for an alternative link to the graph"
+			link = prefix
 			break
 		}
-		description += key + ","
+		link += key + ","
 		urlLength += len(key) + 1
 	}
-	// Trim the last comma.
-	return strings.TrimSuffix(description, ",")
+
+	return strings.TrimSuffix(link, ",") + "<br><br>"
+}
+
+func (s *issueTrackerImpl) describeTopAnomalies(anom []*v1.Anomaly) (desc string) {
+	desc = fmt.Sprintf("Top %d anomalies in this report:<br>", len(anom))
+	for _, a := range anom {
+		desc += describeAnomaly(a)
+	}
+	return
+}
+
+func describeAnomaly(a *v1.Anomaly) string {
+	// Markdown doesn't seem to support the > marker in the code mode, so we leave 2 spaces.
+	return fmt.Sprintf("- Bot: %s, Benchmark: %s, Measurement: %s, Story: %s<br>  Change: %.4f -> %.4f (%.2f%%); Commit range: %d -> %d<br><br>",
+		a.Paramset["bot"], a.Paramset["benchmark"], a.Paramset["measurement"], a.Paramset["story"],
+		a.MedianBefore, a.MedianAfter, calcChange(a.MedianBefore, a.MedianAfter), a.StartCommit, a.EndCommit,
+	)
+}
+
+func calcChange(before, after float32) float32 {
+	return (after - before) / before * 100.0
 }

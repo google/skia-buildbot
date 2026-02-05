@@ -183,6 +183,17 @@ func (s *anomalygroupService) FindTopAnomalies(
 		return nil, skerr.Wrapf(err, "failed to load regressions from group: %s", group_id)
 	}
 
+	top_regressions, err := TopAnomaliesMedianCmp(anomalies, req.Limit)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return &ag.FindTopAnomaliesResponse{
+		Anomalies: top_regressions,
+	}, nil
+}
+
+func TopAnomaliesMedianCmp(anomalies []*reg.Regression, limit int64) ([]*ag.Anomaly, error) {
 	sort.Slice(anomalies, func(i, j int) bool {
 		// sort anomalies by the percentage changed from median_before to median_after
 		diff_i := (anomalies[i].MedianAfter - anomalies[i].MedianBefore) / anomalies[i].MedianBefore
@@ -192,8 +203,8 @@ func (s *anomalygroupService) FindTopAnomalies(
 
 	var count int
 	// If the request is 0 or is larger then the total of the group's anomalies, return all the anomalies.
-	if req.Limit > 0 && int(req.Limit) < len(anomalies) {
-		count = int(req.Limit)
+	if limit > 0 && int(limit) < len(anomalies) {
+		count = int(limit)
 	} else {
 		count = len(anomalies)
 	}
@@ -247,9 +258,7 @@ func (s *anomalygroupService) FindTopAnomalies(
 		})
 	}
 
-	return &ag.FindTopAnomaliesResponse{
-		Anomalies: top_regressions,
-	}, nil
+	return top_regressions, nil
 }
 
 // Given the group id, return the issues correlated to the group via the detected culprits.
