@@ -30,7 +30,6 @@ import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ParamSet, fromParamSet, toParamSet } from '../../../infra-sk/modules/query';
-import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 
 import { NextParamListHandlerRequest, NextParamListHandlerResponse } from '../json';
 import '../picker-field-sk';
@@ -327,33 +326,6 @@ export class TestPickerSk extends ElementSk {
   }
 
   /**
-   * Fetches the available options for a given field from the backend.
-   * After fetching, it populates the field's dropdown, updates the match count,
-   * focuses the field, and opens its overlay if it's not the first field.
-   * @param index - The index of the field in the `_fieldData` array.
-   */
-  private fetchOptions(index: number) {
-    const fieldInfo = this._fieldData[index];
-    const field = fieldInfo.field;
-    const param = fieldInfo.param;
-
-    const handler = (json: NextParamListHandlerResponse) => {
-      if (param in json.paramset && json.paramset[param] !== null) {
-        let options = json.paramset[param].filter((option: string) => !option.includes('.'));
-        options = options.map((o) => (o === '' ? DEFAULT_OPTION_LABEL : o));
-        field!.options = options;
-        this.updateCount(json.count);
-        field!.focus();
-        if (index !== 0) {
-          field!.openOverlay();
-        }
-        this._render();
-      }
-    };
-    this.callNextParamList(handler, index);
-  }
-
-  /**
    * Handles the click event on the Plot button.
    * Dispatches a 'plot-button-clicked' custom event with the current query.
    */
@@ -466,18 +438,6 @@ export class TestPickerSk extends ElementSk {
       this.fetchExtraOptions(i);
       this._containerDiv!.appendChild(fieldInfo.field);
     }
-  }
-
-  /**
-   * Handles the toggle event of the auto-add trace checkbox.
-   * Sets the `autoAddTrace` property based on the checkbox's checked state.
-   * @param e The event object from the checkbox toggle.
-   */
-  private onToggleCheckboxClick(e: Event): void {
-    this.autoAddTrace = (e.target as CheckOrRadio).checked;
-    // This prevents a double event from happening.
-    e.preventDefault();
-    this._render();
   }
 
   /**
@@ -832,44 +792,6 @@ export class TestPickerSk extends ElementSk {
   }
 
   /**
-   * Generates a query string from the selected field values up to a specified
-   * index.
-   * Includes default parameter values if they are not already specified in the
-   * selected fields.
-   * @param index - The maximum index of the field to include in the query
-   * string.
-   * @returns A query string representing the selected field values up to the
-   * specified index.
-   */
-  createQueryFromIndex(index: number): string {
-    const paramSet: ParamSet = {};
-
-    for (let i = 0; i <= index; i++) {
-      const fieldInfo = this._fieldData[i];
-      if (fieldInfo.value !== null) {
-        paramSet[fieldInfo.param] = fieldInfo.value.map((v) =>
-          v === DEFAULT_OPTION_LABEL ? MISSING_VALUE_SENTINEL : v
-        );
-      }
-    }
-
-    // If all fields are empty, don't add any defaults, which can potentially
-    // make the query slow. An empty query should be a fast retrieval.
-    if (Object.keys(paramSet).length === 0) {
-      return '';
-    }
-
-    // Apply default values.
-    for (const defaultParamKey in this._defaultParams) {
-      if (!(defaultParamKey in paramSet)) {
-        paramSet[defaultParamKey] = this._defaultParams![defaultParamKey]!;
-      }
-    }
-
-    return fromParamSet(paramSet);
-  }
-
-  /**
    * Updates the count of matching traces and controls the state of the Plot
    * button.
    * If `count` is -1, it indicates loading, disabling the plot button and
@@ -942,18 +864,6 @@ export class TestPickerSk extends ElementSk {
    */
   get autoAddTrace(): boolean {
     return this._autoAddTrace;
-  }
-
-  /**
-   * Returns true if the first field is loaded.
-   *
-   * This is used to determine if the test picker is ready to be used.
-   * If the first field is not loaded, then we are not ready.
-   *
-   * @returns true if the first field is loaded, false otherwise.
-   */
-  getFieldData(): FieldInfo[] {
-    return this._fieldData;
   }
 
   isLoaded(): boolean {

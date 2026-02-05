@@ -345,15 +345,15 @@ describe('removeItemFromChart', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Verify it is set
-    expect(element.getFieldData()[0].value).to.deep.equal(['b1']);
+    expect(element.createParamSetFromFieldData()['benchmark']).to.deep.equal(['b1']);
 
     element.removeItemFromChart('benchmark', ['b1']);
 
     // Wait for async update from removeItemFromChart
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const fieldData = element.getFieldData();
-    expect(fieldData[0].value).to.be.empty;
+    const paramSet = element.createParamSetFromFieldData();
+    expect(paramSet['benchmark'] || []).to.be.empty;
   });
 });
 

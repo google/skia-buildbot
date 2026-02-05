@@ -22,7 +22,6 @@ sk_element(
     sk_element_deps = [
         "//perf/modules/picker-field-sk",
         "//elements-sk/modules/spinner-sk",
-        "//elements-sk/modules/checkbox-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",
