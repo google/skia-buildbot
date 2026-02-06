@@ -588,3 +588,70 @@ describe('Split Graph Functionality', function () {
     await mergedGraph.waitForAnomalyTooltip();
   });
 });
+
+describe('Test Picker Interactions', () => {
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed();
+  });
+
+  beforeEach(async () => {
+    const queryParams = '?begin=1687855198&end=1687961973';
+    await testBed.page.goto(testBed.baseUrl + queryParams);
+    await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
+  });
+
+  it('checks All then plots graph', async () => {
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    await testPickerPO.waitForPickerField(0);
+    const archField = await testPickerPO.getPickerField(0);
+    await archField.select('arm');
+    await testPickerPO.waitForSpinnerInactive();
+
+    await testPickerPO.waitForPickerField(1);
+    const osField = await testPickerPO.getPickerField(1);
+
+    await waitForElementNotHidden(osField.selectAllCheckbox);
+    await osField.checkAll();
+    await testPickerPO.waitForSpinnerInactive();
+
+    await testPickerPO.clickPlotButton();
+    await explorePO.waitForGraphCount(1);
+    await explorePO.waitForGraph(0);
+
+    expect(await explorePO.getGraph(0).getTraceKeys()).to.have.lengthOf(2);
+  });
+
+  it('splits before plotting and plots multiple graphs', async () => {
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    await testPickerPO.waitForPickerField(0);
+    await (await testPickerPO.getPickerField(0)).select('arm');
+    await testPickerPO.waitForSpinnerInactive();
+
+    await testPickerPO.waitForPickerField(1);
+    const osField = await testPickerPO.getPickerField(1);
+    await osField.select('Android');
+    await testPickerPO.waitForSpinnerInactive();
+    await osField.select('Ubuntu');
+    await testPickerPO.waitForSpinnerInactive();
+
+    await waitForElementNotHidden(osField.splitByCheckbox);
+    await osField.checkSplit();
+
+    await testPickerPO.clickPlotButton();
+
+    await explorePO.waitForGraphCount(3, LONG_TIMEOUT_MS);
+
+    const traces1 = await explorePO.getGraph(1).getTraceKeys();
+    const traces2 = await explorePO.getGraph(2).getTraceKeys();
+
+    expect(traces1).to.have.lengthOf(1);
+    expect(traces2).to.have.lengthOf(1);
+    expect([...traces1, ...traces2]).to.include(',arch=arm,os=Android,');
+    expect([...traces1, ...traces2]).to.include(',arch=arm,os=Ubuntu,');
+  });
+});

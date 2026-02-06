@@ -35,6 +35,16 @@ export class PickerFieldSkPO extends PageObject {
     return this.bySelector('checkbox-sk#select-all');
   }
 
+  async isAllChecked(): Promise<boolean> {
+    return this.selectAllCheckbox.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
+  }
+
+  async checkAll(): Promise<void> {
+    if (!(await this.isAllChecked())) {
+      await this.selectAllCheckbox.click();
+    }
+  }
+
   async getLabel(): Promise<string> {
     const label = await this.comboBox.getAttribute('label');
     return label || '';
