@@ -1,8 +1,10 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "topicstore",
     srcs = [
+        "in_memory.go",
         "topic_data.go",
         "topicstore.go",
     ],
@@ -13,5 +15,15 @@ go_library(
         "//go/skerr",
         "@com_google_cloud_go_spanner//:spanner",
         "@io_opencensus_go//trace",
+    ],
+)
+
+go_test(
+    name = "topicstore_test",
+    srcs = ["in_memory_test.go"],
+    embed = [":topicstore"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )

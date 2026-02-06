@@ -1,0 +1,27 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "eval",
+    srcs = ["eval.go"],
+    importpath = "go.skia.org/infra/rag/go/eval",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//rag/go/genai",
+        "//rag/go/topicstore",
+    ],
+)
+
+go_test(
+    name = "eval_test",
+    srcs = ["eval_test.go"],
+    embed = [":eval"],
+    deps = [
+        "//rag/go/genai/mocks",
+        "//rag/go/topicstore",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

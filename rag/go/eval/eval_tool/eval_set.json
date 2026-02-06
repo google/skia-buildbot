@@ -1,0 +1,20 @@
+    {
+      "test_cases": [
+        {
+          "query": "What is GLIC?",
+          "expected_topic_names": [
+            "GLIC Feature and UI Enhancements",
+            "GLIC Feature Enhancements and Bug Fixes"
+          ]
+        },
+        {
+          "query": "How do I access user profile in IOS?",
+          "expected_topic_names": [
+            "iOS UI and Profile Management Enhancements",
+            "iOS Account Management and Profile Separation",
+            "iOS Signin and Multi-Profile Enhancements"
+          ]
+       }
+     ]
+   }
+

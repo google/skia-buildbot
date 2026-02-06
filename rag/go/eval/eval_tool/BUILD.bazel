@@ -1,0 +1,25 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "eval_tool_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/rag/go/eval/eval_tool",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//go/sklog/sklogimpl",
+        "//go/sklog/stdlogging",
+        "//rag/go/config",
+        "//rag/go/eval",
+        "//rag/go/filereaders/zip",
+        "//rag/go/genai",
+        "//rag/go/ingest/history",
+        "//rag/go/topicstore",
+    ],
+)
+
+go_binary(
+    name = "eval_tool",
+    embed = [":eval_tool_lib"],
+    visibility = ["//visibility:public"],
+)
