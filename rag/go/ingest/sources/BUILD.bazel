@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "sources",
@@ -13,11 +14,24 @@ go_library(
         "//go/httputils",
         "//go/skerr",
         "//go/sklog",
+        "//rag/go/eval",
         "//rag/go/filereaders/zip",
+        "//rag/go/genai",
         "//rag/go/ingest/history",
+        "//rag/go/topicstore",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
         "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "sources_test",
+    srcs = ["pubsub_source_test.go"],
+    embed = [":sources"],
+    deps = [
+        "//rag/go/genai/mocks",
+        "@com_github_stretchr_testify//assert",
     ],
 )

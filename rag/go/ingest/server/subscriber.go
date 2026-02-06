@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/rag/go/blamestore"
 	"go.skia.org/infra/rag/go/config"
+	"go.skia.org/infra/rag/go/genai"
 	"go.skia.org/infra/rag/go/ingest/history"
 	"go.skia.org/infra/rag/go/ingest/sources"
 	"go.skia.org/infra/rag/go/topicstore"
@@ -19,12 +20,16 @@ import (
 
 // IngestionSubscriber provides a struct to manage ingestion from pubsub notifications.
 type IngestionSubscriber struct {
-	subscription    *pubsub.Subscription
-	historyIngestor *history.HistoryIngester
+	subscription        *pubsub.Subscription
+	historyIngestor     *history.HistoryIngester
+	genAiClient         genai.GenAIClient
+	evalSetPath         string
+	queryEmbeddingModel string
+	dimensionality      int32
 }
 
-// NewingestionSubscriber returns a new instance of the IngestionSubscriber.
-func NewIngestionSubscriber(ctx context.Context, config config.ApiServerConfig) (*IngestionSubscriber, error) {
+// NewIngestionSubscriber returns a new instance of the IngestionSubscriber.
+func NewIngestionSubscriber(ctx context.Context, config config.ApiServerConfig, genAiClient genai.GenAIClient) (*IngestionSubscriber, error) {
 	// Generate the database identifier string and create the spanner client.
 	databaseName := fmt.Sprintf("projects/%s/instances/%s/databases/%s", config.SpannerConfig.ProjectID, config.SpannerConfig.InstanceID, config.SpannerConfig.DatabaseID)
 	spannerClient, err := spanner.NewClient(ctx, databaseName)
@@ -45,8 +50,12 @@ func NewIngestionSubscriber(ctx context.Context, config config.ApiServerConfig) 
 	}
 
 	return &IngestionSubscriber{
-		subscription:    sub,
-		historyIngestor: ingester,
+		subscription:        sub,
+		historyIngestor:     ingester,
+		genAiClient:         genAiClient,
+		evalSetPath:         config.IngestionConfig.EvalSetPath,
+		queryEmbeddingModel: config.QueryEmbeddingModel,
+		dimensionality:      int32(config.OutputDimensionality),
 	}, nil
 }
 
@@ -68,7 +77,7 @@ func (subscriber *IngestionSubscriber) Start(ctx context.Context, wg *sync.WaitG
 // processPubSubMessage handles a single pubsub message.
 func (s *IngestionSubscriber) processPubSubMessage(ctx context.Context, msg *pubsub.Message) {
 	sklog.Infof("Received pubsub message: %v", msg)
-	pubsubSource, err := sources.NewPubSubSource(ctx, msg, s.historyIngestor)
+	pubsubSource, err := sources.NewPubSubSource(ctx, msg, s.historyIngestor, s.genAiClient, s.evalSetPath, s.queryEmbeddingModel, s.dimensionality)
 	if err != nil {
 		sklog.Errorf("Error creating pubsub source: %v", err)
 	}

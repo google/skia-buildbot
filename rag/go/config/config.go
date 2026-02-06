@@ -48,6 +48,7 @@ type IngestionConfig struct {
 	Topic        string `json:"topic"`
 	Subscription string `json:"subscription"`
 	Project      string `json:"project"`
+	EvalSetPath  string `json:"eval_set_path"`
 }
 
 // NewApiServerConfigFromFile returns a new config object based on the file content.

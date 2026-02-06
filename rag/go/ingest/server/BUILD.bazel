@@ -18,6 +18,7 @@ go_library(
         "//go/urfavecli",
         "//rag/go/blamestore",
         "//rag/go/config",
+        "//rag/go/genai",
         "//rag/go/ingest/history",
         "//rag/go/ingest/sources",
         "//rag/go/topicstore",

@@ -12,7 +12,14 @@ import (
 	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/urfavecli"
 	"go.skia.org/infra/rag/go/config"
+	"go.skia.org/infra/rag/go/genai"
 	"go.skia.org/infra/rag/go/tracing"
+)
+
+const (
+	geminiApiKeyEnvVar   = "GEMINI_API_KEY"
+	geminiProjectEnvVar  = "GEMINI_PROJECT"
+	geminiLocationEnvVar = "GEMINI_LOCATION"
 )
 
 // IngesterFlags defines the commandline flags to start the ingester.
@@ -78,7 +85,26 @@ func main() {
 						sklog.Errorf("Error reading config file %s: %v", flags.ConfigFilename, err)
 						return err
 					}
-					subscriber, err := NewIngestionSubscriber(c.Context, *config)
+
+					var genAiClient genai.GenAIClient
+					apiKey := os.Getenv(geminiApiKeyEnvVar)
+					if apiKey != "" {
+						sklog.Infof("Gemini api key specified in the environment, creating a local client.")
+						genAiClient, err = genai.NewLocalGeminiClient(c.Context, apiKey)
+					} else {
+						projectId := os.Getenv(geminiProjectEnvVar)
+						location := os.Getenv(geminiLocationEnvVar)
+						if projectId != "" && location != "" {
+							sklog.Infof("Creating a new Gemini client for project %s and location %s", projectId, location)
+							genAiClient, err = genai.NewGeminiClient(c.Context, projectId, location)
+						}
+					}
+					// Exit if there was an error setting up the gemini client.
+					if err != nil {
+						sklog.Fatalf("Error creating new gemini client: %v", err)
+					}
+
+					subscriber, err := NewIngestionSubscriber(c.Context, *config, genAiClient)
 					if err != nil {
 						return err
 					}
