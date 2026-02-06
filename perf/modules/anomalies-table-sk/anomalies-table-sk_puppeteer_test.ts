@@ -142,6 +142,32 @@ describe('anomalies-table-sk', () => {
       });
     });
 
+    it('should redirect to Buganizer when New Bug button is clicked', async () => {
+      await anomaliesTableSkPO.clickCheckbox(0);
+      await anomaliesTableSkPO.clickTriageButton();
+      const triageMenuSk = await testBed.page.$('triage-menu-sk');
+      assert.isNotNull(triageMenuSk);
+
+      const triageMenuSkPO = new TriageMenuSkPO(triageMenuSk!);
+      await triageMenuSkPO.newBugButton.click(); // Open the new bug dialog
+
+      const newBugDialog = await testBed.page.$('new-bug-dialog-sk');
+      assert.isNotNull(newBugDialog);
+
+      // Fill a required input in the new bug dialog
+      await testBed.page.type('new-bug-dialog-sk #title', 'Test Bug Title');
+
+      // Start waiting for the popup and call fileNewBug() on the element
+      const [buganizerPage] = await Promise.all([
+        new Promise<Page>((resolve) => testBed.page.once('popup', resolve)),
+        testBed.page.evaluate((el: any) => el.fileNewBug(), newBugDialog),
+      ]);
+
+      assert.isNotNull(buganizerPage);
+      expect(buganizerPage.url()).to.include('https://issues.chromium.org/issues/358011161'); // Check for the mocked bug_id
+      await buganizerPage.close(); // Close the new tab
+    });
+
     it('should be able to click expand checkbox', async () => {
       await anomaliesTableSkPO.clickExpandButton(0);
       const summaryRowCount: number = await anomaliesTableSkPO.getParentExpandRowCount();

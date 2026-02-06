@@ -9,7 +9,34 @@ import {
   anomaly_table_for_tooltip,
   GROUP_REPORT_RESPONSE,
   GROUP_REPORT_RESPONSE_WITH_SID,
+  mockAssociatedIssues,
 } from './test_data';
+
+function delay(time: number) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+fetchMock.post('/_/triage/file_bug', async () => {
+  await delay(1000);
+  return {
+    bug_id: 358011161,
+  };
+});
+
+fetchMock.post('/_/triage/list_issues', async () => {
+  return {
+    body: JSON.stringify({
+      issues: mockAssociatedIssues,
+    }),
+  };
+});
+
+fetchMock.post('/_/triage/associate_alerts', async () => {
+  delay(1000);
+  return {
+    bug_id: 474535097,
+  };
+});
 
 window.perf = {
   dev_mode: false,
@@ -33,7 +60,7 @@ window.perf = {
   help_url_override: '',
   trace_format: '',
   need_alert_action: false,
-  bug_host_url: 'b',
+  bug_host_url: 'http://bug_host',
   git_repo_url: '',
   keys_for_commit_range: [],
   keys_for_useful_links: [],

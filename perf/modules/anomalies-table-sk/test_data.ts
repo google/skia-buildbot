@@ -346,3 +346,10 @@ export const associatedBugs = [
   { id: '474535097', url: 'http://bug_host/474535097', title: 'Title for 474535097' },
   { id: '469076395', url: 'http://bug_host/469076395', title: 'Title for 469076395' },
 ];
+
+export const mockAssociatedIssues = associatedBugs.map((b) => ({
+  issueId: b.id,
+  issueState: {
+    title: b.title,
+  },
+}));
