@@ -219,7 +219,7 @@ func TestFileBug_RequestBody(t *testing.T) {
 
 	require.Equal(t, "Test Bug Title", receivedReq.IssueState.Title)
 	// Description is overriden.
-	require.Contains(t, receivedReq.Description.Comment, "Link to graph with regressions")
+	require.Contains(t, receivedReq.IssueComment.Comment, "Link to graph with regressions")
 	require.Contains(t, receivedCommentReq.Comment, "Link to graph by bugID")
 	require.Contains(t, receivedCommentReq.Comment, "12345")
 	// TODO(b/454614028) Change it to regStore value once migration is done.
@@ -288,7 +288,7 @@ func TestFileBug_EmptyDescription(t *testing.T) {
 	_, err = s.FileBug(context.Background(), req)
 	require.NoError(t, err)
 
-	require.Contains(t, receivedReq.Description.Comment, "http://test.com/u?anomalyIDs=key1,key2")
+	require.Contains(t, receivedReq.IssueComment.Comment, "http://test.com/u?anomalyIDs=key1,key2")
 	require.Contains(t, receivedCommentReq.Comment, "12345")
 }
 
@@ -352,6 +352,6 @@ func TestFileBug_EmptyDescriptionTooManyKeys(t *testing.T) {
 	_, err = s.FileBug(context.Background(), req)
 	require.NoError(t, err)
 
-	require.Contains(t, receivedReq.Description.Comment, "The link to a graph with all regressions would be too long.")
+	require.Contains(t, receivedReq.IssueComment.Comment, "The link to a graph with all regressions would be too long.")
 	require.Contains(t, receivedCommentReq.Comment, "12345")
 }

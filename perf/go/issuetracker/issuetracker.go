@@ -245,7 +245,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 	}
 
 	newIssue := &issuetracker.Issue{
-		Description: &issuetracker.IssueComment{
+		IssueComment: &issuetracker.IssueComment{
 			Comment:        description,
 			FormattingMode: "MARKDOWN",
 		},
