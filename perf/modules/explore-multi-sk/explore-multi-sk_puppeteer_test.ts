@@ -446,6 +446,71 @@ describe('Explore Multi Sk with plotSummary', () => {
   });
 });
 
+describe('Even X-Axis Spacing', () => {
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed();
+  });
+
+  beforeEach(async () => {
+    await testBed.page.goto(testBed.baseUrl);
+    await testBed.page.evaluate(() => localStorage.clear());
+    await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
+  });
+
+  it('syncs even x-axis spacing across all graphs', async () => {
+    await testBed.page.goto(`${testBed.baseUrl}?manual_plot_mode=true`);
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
+
+    await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
+
+    const graph0 = explorePO.getGraph(0);
+    const graph1 = explorePO.getGraph(1);
+
+    expect(await graph0.getEvenXAxisSpacing()).to.be.false;
+    expect(await graph1.getEvenXAxisSpacing()).to.be.false;
+
+    await graph0.clickEvenXAxisSpacingSwitch();
+
+    await poll(
+      async () => await graph0.getEvenXAxisSpacing(),
+      'Graph 0 did not update to even spacing'
+    );
+    await poll(
+      async () => await graph1.getEvenXAxisSpacing(),
+      'Graph 1 did not update to even spacing'
+    );
+
+    await graph0.clickEvenXAxisSpacingSwitch();
+    await poll(
+      async () => !(await graph0.getEvenXAxisSpacing()),
+      'Graph 0 did not update to normal spacing'
+    );
+    await poll(
+      async () => !(await graph1.getEvenXAxisSpacing()),
+      'Graph 1 did not update to normal spacing'
+    );
+  });
+
+  it('sets even x-axis spacing from URL parameter', async () => {
+    await testBed.page.goto(`${testBed.baseUrl}?evenXAxisSpacing=true&manual_plot_mode=true`);
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
+    await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
+
+    const graph0 = explorePO.getGraph(0);
+    const graph1 = explorePO.getGraph(1);
+
+    expect(await graph0.getEvenXAxisSpacing()).to.be.true;
+    expect(await graph1.getEvenXAxisSpacing()).to.be.true;
+  });
+});
+
 describe('Split Graph Functionality', function () {
   this.timeout(60000);
   let testBed: TestBed;
