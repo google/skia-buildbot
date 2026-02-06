@@ -27,7 +27,7 @@ const weekInSeconds = 7 * 24 * 60 * 60;
 // * whether it's been checked.
 // * the graph generated for it.
 // * beginning and end time ranges.
-export interface AnomalyDataPoint {
+interface AnomalyDataPoint {
   // The anomaly object that this tracker is maintaining
   anomaly: Anomaly;
   // Boolean field to track whether the given anomaly has been selected
@@ -40,7 +40,7 @@ export interface AnomalyDataPoint {
   timerange: Timerange;
 }
 
-export class AnomalyTracker {
+class AnomalyTracker {
   // Internal map for anomalies
   private tracker: { [key: string]: AnomalyDataPoint };
 
@@ -100,14 +100,6 @@ export class AnomalyTracker {
 
     return ret;
   }
-
-  getTimerangeMap(): { [key: string]: Timerange } {
-    const map: { [key: string]: Timerange } = {};
-    for (const anomalyId in this.tracker) {
-      map[anomalyId] = this.tracker[anomalyId].timerange;
-    }
-    return map;
-  }
 }
 
 export class ReportPageSk extends ElementSk {
@@ -159,9 +151,7 @@ export class ReportPageSk extends ElementSk {
       @x-axis-toggled=${ele.syncXAxisLabel}
       @range-changing-in-multi=${ele.syncExtendRangeOnSummaryBar}
       @selection-changing-in-multi=${ele.syncChartSelection}
-      @even-x-axis-spacing-changed=${ele.syncEvenXAxisSpacing}
-      @open-anomaly-chart=${(e: CustomEvent<Anomaly>) =>
-        ele.anomaliesTable!.openAnomalyChartListener(e)}></div>
+      @even-x-axis-spacing-changed=${ele.syncEvenXAxisSpacing}></div>
     <div id="bottom-spacer"></div>
   `;
 

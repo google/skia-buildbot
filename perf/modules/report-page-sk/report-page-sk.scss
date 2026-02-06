@@ -12,34 +12,6 @@ report-page-sk {
       margin-left: 0.5em;
     }
   }
-  #commits-dialog {
-    overflow: auto;
-    width: 45%;
-    padding: 16px;
-    border: solid var(--on-background) 1px;
-    color: var(--on-background);
-    background: var(--background);
-
-    #closeIcon {
-      position: absolute;
-      right: 0;
-      top: 0;
-      margin: 0;
-      margin-right: 11px;
-      border: none;
-      padding: 5px;
-      cursor: pointer;
-    }
-
-    .footer {
-      display: flex;
-      justify-content: right;
-    }
-
-    li {
-      margin-top: 5px;
-    }
-  }
 
   .common-commits {
     padding-bottom: 16px;

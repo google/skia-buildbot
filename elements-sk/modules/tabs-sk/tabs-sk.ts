@@ -108,7 +108,7 @@ export class TabsSk extends HTMLElement {
     }
   }
 
-  attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+  attributeChangedCallback(_name: string, oldValue: any, newValue: any) {
     if (oldValue === newValue) {
       return;
     }
