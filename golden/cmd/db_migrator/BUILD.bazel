@@ -9,9 +9,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/sklog",
-        "//golden/go/sql/schema",
         "//golden/go/sql/schema/spanner",
-        "//golden/go/sql/sqltest",
         "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",
     ],
@@ -28,7 +26,6 @@ go_test(
     srcs = ["main_test.go"],
     embed = [":db_migrator_lib"],
     deps = [
-        "//golden/go/sql/schema",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

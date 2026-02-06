@@ -2,11 +2,9 @@ package main
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/golden/go/sql/schema"
 )
 
 func TestBuildQuery(t *testing.T) {
@@ -29,22 +27,21 @@ func TestBuildQuery(t *testing.T) {
 }
 
 func TestExtractProgressValues(t *testing.T) {
-	row := schema.ChangelistRow{
-		ChangelistID: "gerrit_123",
-		System:       "gerrit",
-		CreatedAt:    time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-	}
+	cols := []string{"changelist_id", "system", "status"}
+	row := []interface{}{"gerrit_123", "gerrit", "open"}
 
 	t.Run("basic", func(t *testing.T) {
 		orderByCols := []string{"changelist_id"}
-		vals := extractProgressValues(row, orderByCols)
+		vals := extractProgressValues(row, cols, orderByCols)
 		require.Len(t, vals, 1)
-		assert.Equal(t, row.ChangelistID, vals[0])
+		assert.Equal(t, "gerrit_123", vals[0])
 	})
-}
 
-func TestGetRowType(t *testing.T) {
-	assert.NotNil(t, getRowType("Changelists"))
-	assert.NotNil(t, getRowType("TiledTraceDigests"))
-	assert.Nil(t, getRowType("NonExistentTable"))
+	t.Run("multiple", func(t *testing.T) {
+		orderByCols := []string{"system", "changelist_id"}
+		vals := extractProgressValues(row, cols, orderByCols)
+		require.Len(t, vals, 2)
+		assert.Equal(t, "gerrit", vals[0])
+		assert.Equal(t, "gerrit_123", vals[1])
+	})
 }

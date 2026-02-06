@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"reflect"
 	"strings"
 	"time"
 
@@ -13,9 +12,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/schema/spanner"
-	"go.skia.org/infra/golden/go/sql/sqltest"
 )
 
 func main() {
@@ -132,6 +129,35 @@ var tableColumns = map[string][]string{
 	"SecondaryBranchValues":              {"branch_name", "version_name", "secondary_branch_trace_id", "digest", "grouping_id", "options_id", "source_file_id", "tryjob_id"},
 }
 
+var tablePrimaryKeys = map[string][]string{
+	"Changelists":                        {"changelist_id"},
+	"Patchsets":                          {"patchset_id"},
+	"Tryjobs":                            {"tryjob_id"},
+	"ExpectationRecords":                 {"expectation_record_id"},
+	"ExpectationDeltas":                  {"expectation_record_id", "grouping_id", "digest"},
+	"Expectations":                       {"grouping_id", "digest"},
+	"Groupings":                          {"grouping_id"},
+	"Options":                            {"options_id"},
+	"SourceFiles":                        {"source_file_id"},
+	"Traces":                             {"trace_id"},
+	"CommitsWithData":                    {"commit_id"},
+	"GitCommits":                         {"git_hash"},
+	"MetadataCommits":                    {"commit_id"},
+	"TrackingCommits":                    {"repo"},
+	"TraceValues":                        {"shard", "trace_id", "commit_id"},
+	"ValuesAtHead":                       {"trace_id"},
+	"PrimaryBranchParams":                {"tile_id", "key", "value"},
+	"TiledTraceDigests":                  {"trace_id", "tile_id", "digest"},
+	"DiffMetrics":                        {"left_digest", "right_digest"},
+	"IgnoreRules":                        {"ignore_rule_id"},
+	"ProblemImages":                      {"digest"},
+	"PrimaryBranchDiffCalculationWork":   {"grouping_id"},
+	"SecondaryBranchDiffCalculationWork": {"branch_name", "grouping_id"},
+	"SecondaryBranchExpectations":        {"branch_name", "grouping_id", "digest"},
+	"SecondaryBranchParams":              {"branch_name", "version_name", "key", "value"},
+	"SecondaryBranchValues":              {"branch_name", "version_name", "secondary_branch_trace_id", "source_file_id"},
+}
+
 func initSpannerSchema(ctx context.Context, db *pgxpool.Pool) error {
 	sklog.Info("Initializing Spanner schema...")
 	if _, err := db.Exec(ctx, spanner.Schema); err != nil {
@@ -147,14 +173,11 @@ func initSpannerSchema(ctx context.Context, db *pgxpool.Pool) error {
 
 func migrateTable(ctx context.Context, src, dst *pgxpool.Pool, tableName string, batchSize int) (bool, error) {
 	sklog.Infof("Migrating table %s", tableName)
-	rowType := getRowType(tableName)
-	if rowType == nil {
+	cols := tableColumns[tableName]
+	pkCols := tablePrimaryKeys[tableName]
+	if len(cols) == 0 || len(pkCols) == 0 {
 		return true, skerr.Fmt("Unknown table %s", tableName)
 	}
-
-	// Instantiate a row to get PK columns
-	rowInstance := reflect.New(rowType).Interface().(sqltest.SQLExporter)
-	pkCols := rowInstance.GetPrimaryKeyCols()
 
 	orderByCols := pkCols
 
@@ -170,17 +193,13 @@ func migrateTable(ctx context.Context, src, dst *pgxpool.Pool, tableName string,
 	}
 	defer rows.Close()
 
-	var batch []sqltest.SQLExporter
-	var lastRowValues []interface{}
-
+	var batch [][]interface{}
 	for rows.Next() {
-		newVal := reflect.New(rowType)
-		s := newVal.Interface().(sqltest.SQLScanner)
-		if err := s.ScanFrom(rows.Scan); err != nil {
+		values, err := rows.Values()
+		if err != nil {
 			return false, err
 		}
-		exporter := newVal.Interface().(sqltest.SQLExporter)
-		batch = append(batch, exporter)
+		batch = append(batch, values)
 	}
 
 	if len(batch) == 0 {
@@ -188,13 +207,13 @@ func migrateTable(ctx context.Context, src, dst *pgxpool.Pool, tableName string,
 	}
 
 	// Process the batch
-	if err := writeBatch(ctx, dst, tableName, batch); err != nil {
+	if err := writeBatch(ctx, dst, tableName, cols, pkCols, batch); err != nil {
 		return false, err
 	}
 
 	// Get progress values from the last row
 	lastRow := batch[len(batch)-1]
-	lastRowValues = extractProgressValues(lastRow, orderByCols)
+	lastRowValues := extractProgressValues(lastRow, cols, orderByCols)
 
 	if err := saveProgress(ctx, dst, tableName, lastRowValues); err != nil {
 		return false, err
@@ -208,12 +227,7 @@ func buildQuery(tableName string, orderByCols []string, lastValues []interface{}
 	var sb strings.Builder
 	sb.WriteString("SELECT ")
 	cols := tableColumns[tableName]
-	if len(cols) == 0 {
-		// Fallback to * if columns are not defined, though they should be.
-		sb.WriteString("*")
-	} else {
-		sb.WriteString(strings.Join(cols, ", "))
-	}
+	sb.WriteString(strings.Join(cols, ", "))
 
 	sb.WriteString(" FROM ")
 	sb.WriteString(strings.ToLower(tableName))
@@ -235,21 +249,19 @@ func buildQuery(tableName string, orderByCols []string, lastValues []interface{}
 	return sb.String()
 }
 
-func extractProgressValues(exporter sqltest.SQLExporter, orderByCols []string) []interface{} {
-	colNames, allValues := exporter.ToSQLRow()
-
+func extractProgressValues(row []interface{}, cols []string, orderByCols []string) []interface{} {
 	var res []interface{}
 	for _, col := range orderByCols {
 		found := false
-		for i, name := range colNames {
+		for i, name := range cols {
 			if strings.EqualFold(name, col) {
-				res = append(res, allValues[i])
+				res = append(res, row[i])
 				found = true
 				break
 			}
 		}
 		if !found {
-			panic(fmt.Sprintf("Column %s not found in ToSQLRow for table", col))
+			panic(fmt.Sprintf("Column %s not found in selected columns for table", col))
 		}
 	}
 	return res
@@ -268,9 +280,6 @@ func getProgress(ctx context.Context, db *pgxpool.Pool, tableName string) ([]int
 	if err := json.Unmarshal(data, &values); err != nil {
 		return nil, err
 	}
-	// JSON unmarshaling might turn timestamps into strings and bytes into base64 strings.
-	// However, CockroachDB driver might handle them if passed as strings, but it's safer to have right types.
-	// For simplicity in this script, we'll try as is, or we could refine based on table schema.
 	return values, nil
 }
 
@@ -281,27 +290,15 @@ func saveProgress(ctx context.Context, db *pgxpool.Pool, tableName string, value
 	}
 	_, err = db.Exec(ctx, `INSERT INTO migration_progress (table_name, last_processed_values, updated_at)
 		VALUES ($1, $2, CURRENT_TIMESTAMP)
-		ON CONFLICT (table_name) DO UPDATE SET table_name = EXCLUDED.table_name, last_processed_values = EXCLUDED.last_processed_values, updated_at = EXCLUDED.updated_at`,
+		ON CONFLICT (table_name) DO UPDATE SET last_processed_values = EXCLUDED.last_processed_values, updated_at = EXCLUDED.updated_at`,
 		tableName, data)
 	return err
 }
 
-func getRowType(tableName string) reflect.Type {
-	t := reflect.TypeOf(schema.Tables{})
-	f, ok := t.FieldByName(tableName)
-	if !ok {
-		return nil
-	}
-	return f.Type.Elem()
-}
-
-func writeBatch(ctx context.Context, db *pgxpool.Pool, tableName string, batch []sqltest.SQLExporter) error {
+func writeBatch(ctx context.Context, db *pgxpool.Pool, tableName string, colNames []string, pkCols []string, batch [][]interface{}) error {
 	if len(batch) == 0 {
 		return nil
 	}
-
-	colNames, _ := batch[0].ToSQLRow()
-	pkCols := batch[0].GetPrimaryKeyCols()
 
 	numCols := len(colNames)
 	vp := "("
@@ -314,15 +311,13 @@ func writeBatch(ctx context.Context, db *pgxpool.Pool, tableName string, batch [
 	vp += ")"
 
 	// We use INSERT ... ON CONFLICT DO NOTHING to be idempotent.
-	// Note: Spanner PG interface supports this.
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s ON CONFLICT (%s) DO NOTHING",
 		strings.ToLower(tableName),
 		strings.Join(colNames, ", "),
 		vp,
 		strings.Join(pkCols, ", "))
 
-	for _, row := range batch {
-		_, values := row.ToSQLRow()
+	for _, values := range batch {
 		if _, err := db.Exec(ctx, query, values...); err != nil {
 			return skerr.Wrapf(err, "writing row to %s", tableName)
 		}
