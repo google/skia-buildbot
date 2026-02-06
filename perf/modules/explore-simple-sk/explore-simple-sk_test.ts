@@ -1625,4 +1625,103 @@ describe('Domain Picker Interaction', () => {
       assert.isTrue(dataServiceStub.calledOnce);
     });
   });
+
+  describe('Hover Debouncing', () => {
+    let explore: ExploreSimpleSk;
+    let clock: sinon.SinonFakeTimers;
+    let enableTooltipStub: sinon.SinonStub;
+
+    beforeEach(async () => {
+      fetchMock.get(/.*\/_\/initpage\/.*/, {
+        dataframe: { paramset: {} },
+      });
+      fetchMock.get('/_/login/status', {
+        email: 'someone@example.org',
+        roles: ['editor'],
+      });
+
+      explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      await fetchMock.flush(true);
+
+      clock = sinon.useFakeTimers();
+      enableTooltipStub = sinon.stub(explore, 'enableTooltip');
+
+      (explore as any).googleChartPlot = {
+        value: {
+          getTraceName: () => 'trace1',
+          getCommitPosition: () => 100,
+          getPositionByIndex: () => ({ x: 10, y: 20 }),
+          getYValue: () => 15,
+        },
+      };
+      (explore as any).getCommitDetails = () => ({});
+      (explore as any).getPreviousCommit = () => null;
+    });
+
+    afterEach(() => {
+      clock.restore();
+      sinon.restore();
+    });
+
+    it('debounces rapid hover events', () => {
+      const event = new CustomEvent('plot-data-mouseover', {
+        detail: { tableRow: 1, tableCol: 1 },
+      });
+
+      // Trigger multiple hovers
+      explore['onChartOver'](event as any);
+      clock.tick(50);
+      explore['onChartOver'](event as any);
+      clock.tick(50);
+      explore['onChartOver'](event as any);
+
+      assert.isFalse(enableTooltipStub.called, 'Should not be called before 100ms delay');
+
+      clock.tick(100);
+      assert.isTrue(enableTooltipStub.calledOnce, 'Should be called once after delay');
+    });
+
+    it('cancels pending hover on mouseOut', () => {
+      const event = new CustomEvent('plot-data-mouseover', {
+        detail: { tableRow: 1, tableCol: 1 },
+      });
+
+      explore['onChartOver'](event as any);
+      clock.tick(50);
+
+      explore['onChartMouseOut']();
+      clock.tick(100);
+
+      assert.isFalse(enableTooltipStub.called, 'Pending hover should be cancelled');
+    });
+
+    it('cancels pending hover on mouseDown', () => {
+      const event = new CustomEvent('plot-data-mouseover', {
+        detail: { tableRow: 1, tableCol: 1 },
+      });
+
+      explore['onChartOver'](event as any);
+      clock.tick(50);
+
+      explore['onChartMouseDown']();
+      clock.tick(100);
+
+      assert.isFalse(enableTooltipStub.called, 'Pending hover should be cancelled');
+    });
+
+    it('does not trigger hover if tooltip is already selected', () => {
+      const event = new CustomEvent('plot-data-mouseover', {
+        detail: { tableRow: 1, tableCol: 1 },
+      });
+
+      (explore as any).tooltipSelected = true;
+      explore['onChartOver'](event as any);
+      clock.tick(150);
+
+      assert.isFalse(
+        enableTooltipStub.called,
+        'Should not trigger hover logic when tooltip is selected'
+      );
+    });
+  });
 });

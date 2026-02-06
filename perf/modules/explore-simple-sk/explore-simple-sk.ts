@@ -179,6 +179,8 @@ const monthInSec = 30 * 24 * 60 * 60;
 // max number of charts to show on a page
 const chartsPerPage = 11;
 
+const HOVER_DEBOUNCE_MS = 100;
+
 export interface ZoomWithDelta {
   zoom: CommitRange;
   delta: CommitNumber;
@@ -596,6 +598,8 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   private userIssueMap: UserIssueMap = {};
 
   private selectedAnomaly: Anomaly | null = null;
+
+  private hoverTimeout: number = -1;
 
   // material UI
   private settingsDialog: MdDialog | null = null;
@@ -1152,12 +1156,14 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   // This action is treated as onChartMouseDown and not as
   // onChartSelect so the tooltip only closes.
   private onChartMouseDown(): void {
+    window.clearTimeout(this.hoverTimeout);
     this.closeTooltip();
   }
 
   // Close the tooltip when moving away while hovering.
   // Tooltip stays if the data point has been selected (clicked-on)
   private onChartMouseOut(): void {
+    window.clearTimeout(this.hoverTimeout);
     if (!this.tooltipSelected) {
       this.closeTooltip();
     }
@@ -1165,34 +1171,35 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
   // onChartOver shows the tooltip whenever a user hovers their mouse
   // over a data point in the google chart
-  private async onChartOver({ detail }: CustomEvent<PlotShowTooltipEventDetails>): Promise<void> {
+  private onChartOver({ detail }: CustomEvent<PlotShowTooltipEventDetails>): void {
+    window.clearTimeout(this.hoverTimeout);
     const chart = this.googleChartPlot!.value!;
-    // Highlight the paramset corresponding to the trace being hovered on.
     if (this.paramset) {
       this.paramset!.highlight = fromKey(chart.getTraceName(detail.tableCol));
     }
 
-    // do not show tooltip if tooltip is selected
     if (this.tooltipSelected) {
       return;
     }
-    const index = detail;
-    const commitPos = chart.getCommitPosition(index.tableRow);
-    const position = chart.getPositionByIndex(index);
-    const traceName = chart.getTraceName(index.tableCol);
-    const currentCommit = this.getCommitDetails(commitPos);
-    const prevCommit = this.getCommitDetails(this.getPreviousCommit(index.tableRow!, traceName));
-    this.enableTooltip(
-      {
-        x: index.tableRow - (this.selectedRange?.begin || 0),
-        y: chart.getYValue(index),
-        xPos: position.x,
-        yPos: position.y,
-        name: chart.getTraceName(index.tableCol),
-      },
-      [prevCommit, currentCommit],
-      false
-    );
+
+    this.hoverTimeout = window.setTimeout(() => {
+      const commitPos = chart.getCommitPosition(detail.tableRow);
+      const position = chart.getPositionByIndex(detail);
+      const traceName = chart.getTraceName(detail.tableCol);
+      const currentCommit = this.getCommitDetails(commitPos);
+      const prevCommit = this.getCommitDetails(this.getPreviousCommit(detail.tableRow!, traceName));
+      this.enableTooltip(
+        {
+          x: detail.tableRow - (this.selectedRange?.begin || 0),
+          y: chart.getYValue(detail),
+          xPos: position.x,
+          yPos: position.y,
+          name: chart.getTraceName(detail.tableCol),
+        },
+        [prevCommit, currentCommit],
+        false
+      );
+    }, HOVER_DEBOUNCE_MS);
   }
 
   connectedCallback(): void {
