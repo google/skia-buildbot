@@ -20,8 +20,6 @@ import (
 )
 
 const (
-	pinpointURL = "https://chromeperf.appspot.com/pinpoint/new/bisect"
-	// use the legacy endpoint to run A/B Try jobs (pairwise jobs)
 	pinpointLegacyURL    = "https://pinpoint-dot-chromeperf.appspot.com/api/new"
 	contentType          = "application/json"
 	tryJobComparisonMode = "try"
@@ -262,9 +260,6 @@ func buildBisectRequestURL(createBisectRequest CreateBisectRequest) string {
 	}
 	if createBisectRequest.BugId != "" {
 		params.Set("bug_id", createBisectRequest.BugId)
-	} else {
-		// Pinpoint requires the presence of bug_id param.
-		params.Set("bug_id", "null")
 	}
 	if createBisectRequest.User != "" {
 		params.Set("user", createBisectRequest.User)
@@ -294,5 +289,5 @@ func buildBisectRequestURL(createBisectRequest CreateBisectRequest) string {
 	}
 	params.Set("test_path", strings.Join(test_path_parts, "/"))
 
-	return fmt.Sprintf("%s?%s", pinpointURL, params.Encode())
+	return fmt.Sprintf("%s?%s", pinpointLegacyURL, params.Encode())
 }
