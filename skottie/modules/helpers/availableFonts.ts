@@ -483,6 +483,90 @@ const availableFonts = [
     fStyle: 'Regular',
     fFamily: 'GochiHand',
   },
+
+  // These are manually curated GSF named variation instances.
+  // They all map to the same TTF (GoogleSansFlex.ttf) at load time.
+  {
+    fName: 'GoogleSansFlex-Thin',
+    fStyle: 'Thin',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-ThinItalic',
+    fStyle: 'Thin Italic',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-ExtraLight',
+    fStyle: 'ExtraLight',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-ExtraLightItalic',
+    fStyle: 'ExtraLight Italic',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-Light',
+    fStyle: 'Light',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-LightItalic',
+    fStyle: 'Light Italic',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-Medium',
+    fStyle: 'Medium',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-MediumItalic',
+    fStyle: 'Medium Italic',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-SemiBold',
+    fStyle: 'SemiBold',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-SemiBoldItalic',
+    fStyle: 'SemiBold Italic',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-Bold',
+    fStyle: 'Bold',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-BoldItalic',
+    fStyle: 'Bold Italic',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-ExtraBold',
+    fStyle: 'ExtraBold',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-ExtraBoldItalic',
+    fStyle: 'ExtraBold Italic',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-Black',
+    fStyle: 'Black',
+    fFamily: 'GoogleSansFlex',
+  },
+  {
+    fName: 'GoogleSansFlex-BlackItalic',
+    fStyle: 'Black Italic',
+    fFamily: 'GoogleSansFlex',
+  },
+
   {
     fName: 'GowunDodum-Regular',
     fStyle: 'Regular',
