@@ -51,7 +51,9 @@ karma_test(
     deps = [
         ":commit-range-sk",
         "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
         "//:node_modules/chai",
+        "//:node_modules/sinon",
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",

@@ -40,16 +40,29 @@ export class CommitRangeSk extends ElementSk {
 
   private _autoload: boolean = true;
 
+  private currentRequestId: number = 0;
+
+  private hashCache: Map<string, string[]> = new Map();
+
   // commitNumberToHashes can be replaced to make testing easier.
   private commitNumberToHashes: commitNumberToHashes = async (
     cids: CommitNumber[]
   ): Promise<string[]> => {
-    if (this._autoload) {
-      const hashes = await defaultcommitNumberToHashes(cids);
-      return hashes;
+    const cacheKey = cids.join(',');
+    if (this.hashCache.has(cacheKey)) {
+      return this.hashCache.get(cacheKey)!;
     }
 
-    return [];
+    let hashes: string[] = [];
+    if (this._autoload) {
+      const hashesResult = await defaultcommitNumberToHashes(cids);
+      hashes = hashesResult;
+    }
+
+    if (hashes.length > 0) {
+      this.hashCache.set(cacheKey, hashes);
+    }
+    return hashes;
   };
 
   constructor() {
@@ -136,6 +149,9 @@ export class CommitRangeSk extends ElementSk {
     }
     this._commitIds = newCommitIds;
 
+    this.currentRequestId++;
+    const requestId = this.currentRequestId;
+
     try {
       let text = `${this._commitIds[1]}`;
       // Check if there are no points between start and end.
@@ -145,11 +161,15 @@ export class CommitRangeSk extends ElementSk {
         // Add +1 to the previous commit to only show commits after previous.
         text = `${this._commitIds[0] + 1} - ${this._commitIds[1]}`;
       }
-      this.htmlTemplate = html`${text}`;
+      this.htmlTemplate = html`<a href="javascript:void(0)" style="cursor: default;">${text}</a>`;
 
       if (!this.hashes) {
         // Run the commit numbers through cid lookup to get the hashes.
-        this.hashes = await this.commitNumberToHashes(this._commitIds);
+        const hashes = await this.commitNumberToHashes(this._commitIds);
+        if (requestId !== this.currentRequestId) {
+          return;
+        }
+        this.hashes = hashes;
       }
 
       // If we have the hashes, then we can build the link.
@@ -181,6 +201,11 @@ export class CommitRangeSk extends ElementSk {
             }
           }
         }
+
+        if (requestId !== this.currentRequestId) {
+          return;
+        }
+
         this.htmlTemplate = html`<a href="${url}" target="_blank">${text}</a>`;
         // Ensure element is connected to tooltip before dispatching event.
         if (this._connected) {
