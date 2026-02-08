@@ -105,7 +105,7 @@ window.customElements.whenDefined('new-bug-dialog-sk').then(() => {
   ele.setAnomalies(anomalies, ['']);
 });
 
-$$('#demo-open')?.addEventListener('click', () => {
+$$('#file-bug')?.addEventListener('click', () => {
   const ele = document.querySelector('new-bug-dialog-sk') as NewBugDialogSk;
-  ele.open();
+  ele.fileNewBug();
 });
