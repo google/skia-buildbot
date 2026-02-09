@@ -18,9 +18,7 @@ sk_element(
     ],
     ts_deps = [
         "//:node_modules/lit",
-        "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:query_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
     ts_srcs = [

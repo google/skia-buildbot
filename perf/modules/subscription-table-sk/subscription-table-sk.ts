@@ -7,53 +7,60 @@
  * @example
  */
 import '../../../infra-sk/modules/paramset-sk';
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
 import { Alert, Subscription } from '../json';
 import { toParamSet } from '../../../infra-sk/modules/query';
 
-export class SubscriptionTableSk extends ElementSk {
+@customElement('subscription-table-sk')
+export class SubscriptionTableSk extends LitElement {
   // The currently loaded subscription.
+  @state()
   private subscription: Subscription | null = null;
 
   // The alerts associated with the current subscription.
+  @state()
   private alerts: Alert[] | null = null;
 
   // Controls the visibility of the alerts table.
+  @state()
   private showAlerts: boolean = false;
 
   constructor() {
-    super(SubscriptionTableSk.template);
+    super();
   }
 
-  private static template = (ele: SubscriptionTableSk) =>
-    html`${ele.subscription
+  createRenderRoot() {
+    return this;
+  }
+
+  render() {
+    return html`${this.subscription
       ? html`
           <div class="subscription-details">
-            <h2>${ele.subscription.name} (${ele.alerts?.length || 0} Alert(s) Configured)</h2>
-            <p><strong>Contact Email:</strong> ${ele.subscription.contact_email || ''}</p>
-            <p><strong>Revision:</strong> ${ele.formatRevision(ele.subscription.revision!)}</p>
+            <h2>${this.subscription.name} (${this.alerts?.length || 0} Alert(s) Configured)</h2>
+            <p><strong>Contact Email:</strong> ${this.subscription.contact_email || ''}</p>
+            <p><strong>Revision:</strong> ${this.formatRevision(this.subscription.revision!)}</p>
             <p>
-              <strong>Component:</strong> ${ele.formatBugComponent(
-                ele.subscription.bug_component || ''
+              <strong>Component:</strong> ${this.formatBugComponent(
+                this.subscription.bug_component || ''
               )}
             </p>
-            <p><strong>Hotlists:</strong> ${ele.subscription.hotlists?.join(', ') || ''}</p>
+            <p><strong>Hotlists:</strong> ${this.subscription.hotlists?.join(', ') || ''}</p>
             <p>
-              <strong>Priority:</strong> ${ele.subscription.bug_priority},
-              <strong>Severity:</strong> ${ele.subscription.bug_severity}
+              <strong>Priority:</strong> ${this.subscription.bug_priority},
+              <strong>Severity:</strong> ${this.subscription.bug_severity}
             </p>
-            <p><strong>CC's:</strong> ${ele.subscription.bug_cc_emails?.join(', ') || ''}</p>
+            <p><strong>CC's:</strong> ${this.subscription.bug_cc_emails?.join(', ') || ''}</p>
           </div>
-          <button id="btn-toggle-alerts" @click=${() => ele.toggleAlerts()}>
-            ${ele.showAlerts
+          <button id="btn-toggle-alerts" @click=${() => this.toggleAlerts()}>
+            ${this.showAlerts
               ? 'Hide Alert Configuration(s) '
-              : `Show ${ele.alerts?.length || 0} Alert Configuration(s)`}
+              : `Show ${this.alerts?.length || 0} Alert Configuration(s)`}
           </button>
         `
       : html``}
-    ${ele.showAlerts
+    ${this.showAlerts
       ? html`
           <table id="alerts-table">
             <thead>
@@ -70,8 +77,8 @@ export class SubscriptionTableSk extends ElementSk {
               </tr>
             </thead>
             <tbody>
-              ${ele.alerts && ele.alerts.length > 0
-                ? ele.alerts.map(
+              ${this.alerts && this.alerts.length > 0
+                ? this.alerts.map(
                     (alert) => html`
                       <tr>
                         <td>
@@ -93,10 +100,6 @@ export class SubscriptionTableSk extends ElementSk {
           </table>
         `
       : html``} `;
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._render();
   }
 
   /**
@@ -108,13 +111,11 @@ export class SubscriptionTableSk extends ElementSk {
     this.subscription = subscription;
     this.alerts = alerts;
     this.showAlerts = false;
-    this._render();
   }
 
   /** Toggles the visibility of the alerts table. */
   toggleAlerts() {
     this.showAlerts = !this.showAlerts;
-    this._render();
   }
 
   /** Formats the revision string as a link to the config file.
@@ -142,5 +143,3 @@ export class SubscriptionTableSk extends ElementSk {
     return html`<a href="${url}" target="_blank" rel="noopener noreferrer">${component}</a>`;
   }
 }
-
-define('subscription-table-sk', SubscriptionTableSk);

@@ -38,11 +38,11 @@ describe('SubscriptionTableSk', () => {
     });
   });
 
-  it('renders nothing when no subscription is loaded', () => {
+  it('renders nothing when no subscription is loaded', async () => {
     assert.equal(element.textContent!.trim(), '');
   });
 
-  it('renders subscription details when loaded', () => {
+  it('renders subscription details when loaded', async () => {
     const subscription = {
       name: 'V8 JavaScript Perf',
       contact_email: 'v8-perf@google.com',
@@ -56,6 +56,7 @@ describe('SubscriptionTableSk', () => {
     const alerts: any[] = [{ query: 'config=8888', step: 'original', radius: 10 }];
 
     element.load(subscription, alerts);
+    await element.updateComplete;
 
     assert.include(element.textContent, 'V8 JavaScript Perf (1 Alert(s) Configured)');
     assert.include(element.textContent, 'v8-perf@google.com');
@@ -69,15 +70,17 @@ describe('SubscriptionTableSk', () => {
     assert.isNull(element.querySelector('#alerts-table'));
   });
 
-  it('toggles alerts table', () => {
+  it('toggles alerts table', async () => {
     const subscription = { name: 'Test' };
     const alerts: any[] = [{ query: 'config=8888', step: 'original' }];
     element.load(subscription, alerts);
+    await element.updateComplete;
 
     const toggleButton = element.querySelector<HTMLButtonElement>('#btn-toggle-alerts')!;
     assert.include(toggleButton.textContent, 'Show 1 Alert Configuration(s)');
 
     toggleButton.click();
+    await element.updateComplete;
     assert.include(toggleButton.textContent, 'Hide Alert Configuration(s)');
     assert.isNotNull(element.querySelector('#alerts-table'));
 
@@ -85,6 +88,7 @@ describe('SubscriptionTableSk', () => {
     assert.equal(rows.length, 1);
 
     toggleButton.click();
+    await element.updateComplete;
     assert.include(toggleButton.textContent, 'Show 1 Alert Configuration(s)');
     assert.isNull(element.querySelector('#alerts-table'));
   });
