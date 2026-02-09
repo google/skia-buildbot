@@ -26,10 +26,6 @@ export class SubscriptionTableSk extends LitElement {
   @state()
   private showAlerts: boolean = false;
 
-  constructor() {
-    super();
-  }
-
   createRenderRoot() {
     return this;
   }
