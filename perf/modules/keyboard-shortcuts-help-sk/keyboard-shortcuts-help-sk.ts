@@ -2,35 +2,38 @@
  * @module modules/keyboard-shortcuts-help-sk
  * @description A dialog that displays registered keyboard shortcuts.
  */
-import { html, TemplateResult } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html, TemplateResult, LitElement } from 'lit';
+import { customElement, property, query } from 'lit/decorators.js';
 import { KeyboardShortcutHandler, ShortcutRegistry } from '../common/keyboard-shortcuts';
 import '@material/web/dialog/dialog.js';
 import { MdDialog } from '@material/web/dialog/dialog.js';
 
-export class KeyboardShortcutsHelpSk extends ElementSk {
-  private dialog: MdDialog | null = null;
+@customElement('keyboard-shortcuts-help-sk')
+export class KeyboardShortcutsHelpSk extends LitElement {
+  @query('#help-dialog') dialog!: MdDialog;
 
-  public handler: KeyboardShortcutHandler | null = null;
+  @property({ attribute: false })
+  handler: KeyboardShortcutHandler | null = null;
 
-  constructor() {
-    super(KeyboardShortcutsHelpSk.template);
+  createRenderRoot() {
+    return this;
   }
 
-  private static template = (ele: KeyboardShortcutsHelpSk) => html`
-    <md-dialog id="help-dialog">
-      <div slot="headline">Keyboard Shortcuts</div>
-      <div slot="content">
-        <table class="shortcuts-table">
-          ${ele.renderShortcuts()}
-        </table>
-      </div>
-      <div slot="actions">
-        <button @click=${() => ele.close()}>Close</button>
-      </div>
-    </md-dialog>
-  `;
+  render() {
+    return html`
+      <md-dialog id="help-dialog">
+        <div slot="headline">Keyboard Shortcuts</div>
+        <div slot="content">
+          <table class="shortcuts-table">
+            ${this.renderShortcuts()}
+          </table>
+        </div>
+        <div slot="actions">
+          <button @click=${() => this.close()}>Close</button>
+        </div>
+      </md-dialog>
+    `;
+  }
 
   private renderShortcuts() {
     const registry = ShortcutRegistry.getInstance();
@@ -65,14 +68,8 @@ export class KeyboardShortcutsHelpSk extends ElementSk {
     return rows;
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    this._render();
-    this.dialog = this.querySelector('#help-dialog');
-  }
-
   open() {
-    this._render(); // Re-render to pick up any new shortcuts
+    this.requestUpdate();
     this.dialog?.show();
   }
 
@@ -80,5 +77,3 @@ export class KeyboardShortcutsHelpSk extends ElementSk {
     this.dialog?.close();
   }
 }
-
-define('keyboard-shortcuts-help-sk', KeyboardShortcutsHelpSk);

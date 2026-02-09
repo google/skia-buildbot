@@ -17,8 +17,9 @@ describe('keyboard-shortcuts-help-sk', () => {
     element = newInstance();
   });
 
-  it('renders correctly', () => {
+  it('renders correctly', async () => {
     assert.isNotNull(element);
+    await element.updateComplete;
     assert.include(element.innerHTML, 'Test Category');
     assert.include(element.innerHTML, 'Description A');
     assert.include(element.innerHTML, 'a');
