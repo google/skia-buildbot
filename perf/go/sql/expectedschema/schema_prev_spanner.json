@@ -64,6 +64,7 @@
     "regressions.regression": "character varying def: nullable:YES",
     "regressions.regression_id": "character varying def: nullable:YES",
     "regressions2.alert_id": "bigint def: nullable:YES",
+    "regressions2.bug_id": "bigint def: nullable:YES",
     "regressions2.cluster_summary": "jsonb def: nullable:YES",
     "regressions2.cluster_type": "character varying def: nullable:YES",
     "regressions2.commit_number": "bigint def: nullable:YES",

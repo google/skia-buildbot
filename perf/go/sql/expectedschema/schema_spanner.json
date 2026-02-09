@@ -126,6 +126,7 @@
     "userissues.user_id": "character varying def: nullable:NO"
   },
   "IndexNames": [
+    "alerts.idx_alerts_subname",
     "alerts.PRIMARY_KEY",
     "anomalygroups.PRIMARY_KEY",
     "commits.PRIMARY_KEY",

@@ -23,4 +23,7 @@ type AlertSchema struct {
 
 	// Revision of the associated subscription. Used to query the Subscriptions table.
 	SubscriptionRevision string `sql:"sub_revision STRING"`
+
+	// Index used to query alerts by subscription name
+	bySubNameIndex struct{} `sql:"INDEX idx_alerts_subname (sub_name)"`
 }

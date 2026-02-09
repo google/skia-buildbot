@@ -27,6 +27,7 @@ func Test_NoMigrationNeeded_Spanner(t *testing.T) {
 }
 
 const CreateInvalidTableSpanner = `
+DROP INDEX IF EXISTS idx_alerts_subname;
 DROP TABLE IF EXISTS Alerts;
 CREATE TABLE IF NOT EXISTS Alerts (
 	alert TEXT PRIMARY KEY

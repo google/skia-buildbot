@@ -49,6 +49,7 @@ const DropSpannerIndices = `
   DROP INDEX IF EXISTS by_source_file_id;
   DROP INDEX IF EXISTS by_trace_id_tv2;
   DROP INDEX IF EXISTS by_commit_and_prev_commit;
+  DROP INDEX IF EXISTS idx_alerts_subname;
 `
 
 // LiveSchemaSpanner has to reflect what's live in prod right now in spanner
@@ -147,6 +148,7 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
   commit_number INT,
   prev_commit_number INT,
   alert_id INT,
+  bug_id INT,
   creation_time TIMESTAMPTZ DEFAULT now(),
   median_before REAL,
   median_after REAL,

@@ -41,13 +41,13 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNextSpanner = `
-	ALTER TABLE Regressions2 ADD COLUMN bug_id INT;
+	CREATE INDEX idx_alerts_subname ON Alerts(sub_name);
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLiveSpanner = `
-	ALTER TABLE Regressions2 DROP COLUMN bug_id;
+	DROP INDEX IF EXISTS idx_alerts_subname;
 `
 
 // This function will check whether there's a new schema checked-in,
