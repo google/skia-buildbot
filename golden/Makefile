@@ -10,6 +10,14 @@ run_spanner_emulator:
 	docker ps -q | xargs -r docker rm -vf
 	docker run -d -p 5432:5432 gcr.io/cloud-spanner-pg-adapter/pgadapter-emulator:latest
 
+run_pgadapter_infra:
+	docker ps -q | xargs -r docker rm -vf
+	sudo docker run -d -p 127.0.0.1:5432:5432 \
+		-v $(HOME)/.config/gcloud/application_default_credentials.json:/acct_credentials.json \
+		gcr.io/cloud-spanner-pg-adapter/pgadapter:latest \
+		-p <Add GCP Project> -i <Add instance Id> -d <Add DB name> -c /acct_credentials.json -x
+
+
 run_cockroachdb_emulators:
 	../scripts/run_emulators/run_emulators start
 
@@ -163,4 +171,11 @@ run_local_migrator: run_spanner_emulator
 	../_bazel_bin/golden/cmd/db_migrator/db_migrator_/db_migrator \
 		--cdb_url="postgresql://root@localhost:26257/gold?sslmode=disable" \
 		--spanner_url="postgresql://localhost:5432/gold?sslmode=disable" \
+		--continuous
+
+run_migrator_infra: run_pgadapter_infra
+	$(BAZEL) build --config=mayberemote -c dbg //golden/cmd/db_migrator/...
+	../_bazel_bin/golden/cmd/db_migrator/db_migrator_/db_migrator \
+		--cdb_url="postgresql://root@localhost:26235/skiainfra?sslmode=disable" \
+		--spanner_url="postgresql://localhost:5432/skia-infra?sslmode=disable" \
 		--continuous
