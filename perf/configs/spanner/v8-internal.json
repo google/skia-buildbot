@@ -98,7 +98,5 @@
   "optimize_sqltracestore": true,
   "enable_sheriff_config": true,
   "show_triage_link": false,
-  "show_bisect_btn": false,
-  "use_regression2_schema": true,
-  "allow_multiple_regressions_per_alert_id": true
+  "show_bisect_btn": false
 }
