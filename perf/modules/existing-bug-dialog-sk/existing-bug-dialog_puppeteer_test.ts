@@ -35,13 +35,14 @@ describe('existing-bug-dialog-sk', () => {
 
   it('should show associated bugs', async () => {
     await existingBugDialogSk.evaluate((el: any, anomalies: any) => {
-      el.setAnomalies(anomalies, ['trace1', 'trace2']);
+      el.anomalies = anomalies;
+      el.traceNames = ['trace1', 'trace2'];
       el.fetch_associated_bugs();
     }, anomalies);
 
-    await existingBugDialogSk.evaluate((el: any, bugIdTitleMap: any) => {
+    await existingBugDialogSk.evaluate(async (el: any, bugIdTitleMap: any) => {
       el.bugIdTitleMap = bugIdTitleMap;
-      el._render();
+      await el.updateComplete;
     }, bugIdTitleMap);
 
     await existingBugDialogSk.evaluate((el: any) => {

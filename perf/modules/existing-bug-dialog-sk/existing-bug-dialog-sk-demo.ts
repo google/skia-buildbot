@@ -10,8 +10,8 @@ fetchMock.get('/_/login/status', {
   roles: ['editor'],
 });
 
-function delay(time: number) {
-  return new Promise((resolve) => setTimeout(resolve, time));
+async function delay(time: number) {
+  return await new Promise((resolve) => setTimeout(resolve, time));
 }
 
 fetchMock.post('/_/triage/associate_alerts', async () => {
@@ -29,7 +29,8 @@ fetchMock.post('/_/anomalies/group_report', async () => {
 
 window.customElements.whenDefined('existing-bug-dialog-sk').then(() => {
   const ele = document.querySelector('existing-bug-dialog-sk') as ExistingBugDialogSk;
-  ele.setAnomalies(anomalies, []);
+  ele.anomalies = anomalies;
+  ele.traceNames = [];
 });
 
 $$('#demo-open')?.addEventListener('click', () => {

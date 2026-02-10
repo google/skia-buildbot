@@ -20,13 +20,11 @@
  */
 
 import '../../../elements-sk/modules/select-sk';
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { html, LitElement, PropertyValues } from 'lit';
+import { customElement, property, state, query } from 'lit/decorators.js';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { Anomaly, Issue } from '../json';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ProjectId } from '../json';
-import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 
@@ -35,58 +33,87 @@ import '../../../elements-sk/modules/spinner-sk';
 import '../window/window';
 import { CountMetric, telemetry } from '../telemetry/telemetry';
 
-export class ExistingBugDialogSk extends ElementSk {
-  _dialog: HTMLDialogElement | null = null;
+@customElement('existing-bug-dialog-sk')
+export class ExistingBugDialogSk extends LitElement {
+  @query('#existing-bug-dialog')
+  private _dialog!: HTMLDialogElement;
 
-  private _spinner: SpinnerSk | null = null;
+  @query('#loading-spinner')
+  private _spinner!: SpinnerSk;
 
-  _projectId: ProjectId;
+  @query('#existing-bug-form')
+  private _form!: HTMLFormElement;
 
-  private _form: HTMLFormElement | null = null;
+  @query('#bug_id')
+  private _bugIdInput!: HTMLInputElement;
 
-  _anomalies: Anomaly[] = [];
+  @state()
+  private _projectId: ProjectId = 'chromium';
 
-  _traceNames: string[] = [];
+  @property({ attribute: false })
+  anomalies: Anomaly[] = [];
 
-  private allProjectIdOptions: ProjectId[] = [];
+  @property({ attribute: false })
+  traceNames: string[] = [];
+
+  setAnomalies(anomalies: Anomaly[], traceNames: string[]): void {
+    this.anomalies = anomalies;
+    this.traceNames = traceNames;
+  }
+
+  updated(changedProperties: PropertyValues) {
+    if (changedProperties.has('anomalies') || changedProperties.has('traceNames')) {
+      if (this._form) {
+        this._form.reset();
+      }
+    }
+  }
+
+  private allProjectIdOptions: ProjectId[] = ['chromium'];
 
   private bug_url: string = '';
 
+  @state()
   private _active: boolean = false;
 
   private bug_id: number | undefined;
 
+  @state()
   _associatedBugIds = new Set<number>();
 
   // maintain a map which maps each bug id associates with its title
+  @state()
   bugIdTitleMap: { [key: number]: string } = {};
 
   // Host bug url, usually from window.perf.bug_host_url.
+  @state()
   private _bug_host_url: string = window.perf ? window.perf.bug_host_url : '';
+
+  @state()
+  private _busy: boolean = false;
+
+  createRenderRoot() {
+    // Render to the component itself to preserve existing styling mechanisms.
+    return this;
+  }
 
   private static allProjectIds = (ele: ExistingBugDialogSk) =>
     ele.allProjectIdOptions.map(
-      (p) => html`
-        <option
-          ?selected=${ele.innerText === p.toString()}
-          value=${p.toString()}
-          title=${p.toString()}>
-          ${p.toString()}
-        </option>
-      `
+      (p) => html` <option ?selected=${ele._projectId === p} value=${p} title=${p}>${p}</option> `
     );
 
-  private static template = (ele: ExistingBugDialogSk) => html`
+  render() {
+    return html`
     <dialog id="existing-bug-dialog">
       <h2>Existing Bug</h2>
       <div id="add-to-existing-bug">
-        <button id="closeIcon" @click=${ele.closeDialog} type="close">
+        <button id="closeIcon" @click=${this.closeDialog} type="close">
           <close-icon-sk></close-icon-sk>
         </button>
-        <form id="existing-bug-form">
+        <form id="existing-bug-form" @submit=${this._onSubmit} @close=${this._onClose}>
           <label for="existing-bug-dialog-select-project">Project</label>
-          <select id="existing-bug-dialog-select-project" @input=${ele.projectIdToggle}>
-            ${ExistingBugDialogSk.allProjectIds(ele)}
+          <select id="existing-bug-dialog-select-project" @input=${this.projectIdToggle}>
+            ${ExistingBugDialogSk.allProjectIds(this)}
           </select>
           <label for="bug_id">Bug ID</label>
           <input type="text"
@@ -97,75 +124,59 @@ export class ExistingBugDialogSk extends ElementSk {
             required autocomplete="off"></input>
           <br></br>
           <div>
-            <spinner-sk id="loading-spinner"></spinner-sk>
+            <spinner-sk id="loading-spinner" ?active=${this._busy}></spinner-sk>
           </div>
-          <div class="bug-list">${ele.associatedBugListTemplate()}<div>
+          <div class="bug-list">${this.associatedBugListTemplate()}<div>
           <div class="footer">
             <button id="file-button" class="submit" @click=${
-              ele.addAnomalyWithExistingBug
-            } type="submit">Submit</button>
+              this.addAnomalyWithExistingBug
+            } type="submit" ?disabled=${this._busy}>Submit</button>
             <button id="close-button" class="close" @click=${
-              ele.closeDialog
-            } type="close">Close</button>
+              this.closeDialog
+            } type="close" ?disabled=${this._busy}>Close</button>
           </div>
         </form>
       </div>
     </dialog>
   `;
-
-  constructor() {
-    super(ExistingBugDialogSk.template);
-    this._projectId = 'chromium';
-    this.allProjectIdOptions.push('chromium');
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    upgradeProperty(this, '_anomalies');
-    upgradeProperty(this, '_associatedBugIds');
-    upgradeProperty(this, '_bug_host_url');
-    upgradeProperty(this, 'bugIdTitleMap');
-    this._render();
+  private _onSubmit(e: Event) {
+    e.preventDefault();
+    this.addAnomalyWithExistingBug();
+  }
 
-    this._spinner = this.querySelector('#loading-spinner');
-    this._dialog = this.querySelector('#existing-bug-dialog');
-    this._form = this.querySelector('#existing-bug-form');
-    this._form!.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.addAnomalyWithExistingBug();
-    });
-    this._form!.addEventListener('close', (e) => {
-      e.preventDefault();
-      this._associatedBugIds.clear();
-    });
+  private _onClose(e: Event) {
+    e.preventDefault();
+    this._associatedBugIds.clear();
   }
 
   closeDialog(): void {
     this._active = false;
-    this._spinner!.active = false;
-    this._render();
-    this._dialog!.close();
+    this._busy = false;
+    if (this._dialog) {
+      this._dialog.close();
+    }
   }
 
-  private projectIdToggle() {}
+  private projectIdToggle(e: Event) {
+    const select = e.target as HTMLSelectElement;
+    this._projectId = select.value as ProjectId;
+  }
 
   /**
    * Read the form for choosing an existing bug number for an anomaly alert.
    * Upon success, we redirect the user in a new tab to the existing bug.
    * Upon failure, we keep the dialog open and show an error toast.
    */
-  addAnomalyWithExistingBug(): void {
-    this._spinner!.active = true;
-    // Disable submit and close button
-    this.querySelector('#file-button')!.setAttribute('disabled', 'true');
-    this.querySelector('#close-button')!.setAttribute('disabled', 'true');
 
-    this._render();
+  async addAnomalyWithExistingBug() {
+    this._busy = true;
 
     // Extract bug_id.
-    const bugId = (this.querySelector('#bug_id')! as HTMLInputElement)?.value;
+    const bugId = this._bugIdInput?.value;
     this.bug_id = +bugId as number;
-    let anomalyKeys: string[] = this._anomalies.map((a) => a.id);
+    let anomalyKeys: string[] = this.anomalies.map((a) => a.id);
     if (anomalyKeys.length === 0) {
       telemetry.increaseCounter(CountMetric.ExistingBugDialogSkBugIdUsedAsAnomalyKey, {
         module: 'existing-bug-dialog-sk',
@@ -177,7 +188,7 @@ export class ExistingBugDialogSk extends ElementSk {
     const requestBody = {
       bug_id: this.bug_id,
       keys: anomalyKeys,
-      trace_names: this._traceNames,
+      trace_names: this.traceNames,
     };
 
     fetch('/_/triage/associate_alerts', {
@@ -189,20 +200,16 @@ export class ExistingBugDialogSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then(() => {
-        this._spinner!.active = false;
-        this.querySelector('#file-button')!.removeAttribute('disabled');
-        this.querySelector('#close-button')!.removeAttribute('disabled');
+        this._busy = false;
         this.closeDialog();
 
         // Open the bug page in new window.
         this.bug_url = `https://issues.chromium.org/issues/${this.bug_id as number}`;
         window.open(this.bug_url, '_blank');
-        this._render();
 
         // Update anomalies to reflected the existing Bug Id.
-        for (let i = 0; i < this._anomalies.length; i++) {
-          this._anomalies[i].bug_id = this.bug_id as number;
-        }
+        const newAnomalies = this.anomalies.map((a) => ({ ...a, bug_id: this.bug_id as number }));
+        this.anomalies = newAnomalies; // Triggers update if we were open
 
         // Let explore-simple-sk and chart-tooltip-sk that anomalies have changed and we need to re-render.
         this.dispatchEvent(
@@ -210,31 +217,28 @@ export class ExistingBugDialogSk extends ElementSk {
             bubbles: true,
             composed: true,
             detail: {
-              traceNames: this._traceNames,
-              anomalies: this._anomalies,
+              traceNames: this.traceNames,
+              anomalies: this.anomalies,
               bugId: this.bug_id,
             },
           })
         );
       })
       .catch(() => {
-        this._spinner!.active = false;
-        this.querySelector('#file-button')!.removeAttribute('disabled');
-        this.querySelector('#close-button')!.removeAttribute('disabled');
+        this._busy = false;
         errorMessage(
           'Associate alerts request failed due to an internal server error. Please try again.'
         );
-        this._render();
       });
   }
 
   async fetch_associated_bugs() {
-    this._spinner!.active = true;
+    this._busy = true;
 
     await fetch('/_/anomalies/group_report', {
       method: 'POST',
       body: JSON.stringify({
-        anomalyIDs: String(this._anomalies.map((a) => a.id)),
+        anomalyIDs: String(this.anomalies.map((a) => a.id)),
       }),
       headers: {
         'Content-Type': 'application/json',
@@ -259,8 +263,7 @@ export class ExistingBugDialogSk extends ElementSk {
           await this.fetch_bug_titles(); // Await the fetch_bug_titles() call
         }
       });
-    this._spinner!.active = false;
-    this._render();
+    this._busy = false;
   }
 
   private async fetch_associated_bugs_withSid(sid: string) {
@@ -295,30 +298,32 @@ export class ExistingBugDialogSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json) => {
         const issueList: Issue[] = json.issues;
-        this.bugIdTitleMap = {};
+        const newMap: { [key: number]: string } = {};
         console.info('Issue list length ' + issueList.length);
         issueList.forEach((issue) => {
           const issueid = issue.issueId ? Number(issue.issueId) : 0;
           console.info('Issue id: ' + issueid);
           console.log('issue title: ' + issue.issueState?.title);
           if (this._associatedBugIds.has(issueid)) {
-            this.bugIdTitleMap[issueid] = issue.issueState?.title ? issue.issueState!.title : '';
+            newMap[issueid] = issue.issueState?.title ? issue.issueState!.title : '';
           }
         });
+        this.bugIdTitleMap = newMap;
       });
   }
 
   getAssociatedBugList(anomalies: Anomaly[]) {
-    this._associatedBugIds.clear();
+    const newSet = new Set<number>();
     anomalies.forEach((anomaly) => {
       if (anomaly.bug_id && anomaly.bug_id !== 0) {
-        this._associatedBugIds.add(anomaly.bug_id);
+        newSet.add(anomaly.bug_id);
       }
     });
+    this._associatedBugIds = newSet;
   }
 
   private associatedBugListTemplate() {
-    if (this._anomalies) {
+    if (this.anomalies) {
       if (this._associatedBugIds.size === 0) {
         return html``;
       }
@@ -338,16 +343,10 @@ export class ExistingBugDialogSk extends ElementSk {
     return html``;
   }
 
-  setAnomalies(anomalies: Anomaly[], traceNames: string[]): void {
-    this._anomalies = anomalies;
-    this._traceNames = traceNames;
-    this._form!.reset();
-    this._render();
-  }
-
   open(): void {
-    this._render();
-    this._dialog!.showModal();
+    if (this._dialog) {
+      this._dialog.showModal();
+    }
     this._active = true;
   }
 
@@ -355,5 +354,3 @@ export class ExistingBugDialogSk extends ElementSk {
     return this._active;
   }
 }
-
-define('existing-bug-dialog-sk', ExistingBugDialogSk);

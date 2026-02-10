@@ -12,7 +12,7 @@ describe('existing-bug-dialog-sk', () => {
 
   fetchMock.config.overwriteRoutes = false;
   let element: ExistingBugDialogSk;
-  beforeEach(() => {
+  beforeEach(async () => {
     window.perf = {
       dev_mode: false,
       instance_url: '',
@@ -54,6 +54,7 @@ describe('existing-bug-dialog-sk', () => {
     };
 
     element = newInstance();
+    await element.updateComplete;
   });
 
   afterEach(() => {
@@ -99,9 +100,10 @@ describe('existing-bug-dialog-sk', () => {
     it('sets the anomalies and trace names', () => {
       const anomalies = [dummyAnomaly(12345)];
       const traceNames = ['trace1', 'trace2'];
-      element.setAnomalies(anomalies, traceNames);
-      assert.deepEqual(element._anomalies, anomalies);
-      assert.deepEqual(element._traceNames, traceNames);
+      element.anomalies = anomalies;
+      element.traceNames = traceNames;
+      assert.deepEqual(element.anomalies, anomalies);
+      assert.deepEqual(element.traceNames, traceNames);
     });
   });
 
@@ -109,7 +111,8 @@ describe('existing-bug-dialog-sk', () => {
     it('successfully adds anomaly to existing bug', async () => {
       const bugId = 12345;
       const anomalies = [dummyAnomaly(bugId)];
-      element.setAnomalies(anomalies, []);
+      element.anomalies = anomalies;
+      element.traceNames = [];
       element.querySelector<HTMLInputElement>('#bug_id')!.value = bugId.toString();
 
       fetchMock.post('/_/triage/associate_alerts', {
@@ -125,7 +128,8 @@ describe('existing-bug-dialog-sk', () => {
     it('handles error when adding anomaly to existing bug', async () => {
       const bugId = 12345;
       const anomalies = [dummyAnomaly(bugId)];
-      element.setAnomalies(anomalies, []);
+      element.anomalies = anomalies;
+      element.traceNames = [];
       element.querySelector<HTMLInputElement>('#bug_id')!.value = bugId.toString();
 
       fetchMock.post('/_/triage/associate_alerts', 500);
@@ -146,7 +150,8 @@ describe('existing-bug-dialog-sk', () => {
     it('uses bug id as anomaly key if anomalies list is empty', async () => {
       const bugId = 12345;
       // Empty anomalies list
-      element.setAnomalies([], []);
+      element.anomalies = [];
+      element.traceNames = [];
       element.querySelector<HTMLInputElement>('#bug_id')!.value = bugId.toString();
 
       fetchMock.post('/_/triage/associate_alerts', (_url, opts) => {
@@ -165,7 +170,8 @@ describe('existing-bug-dialog-sk', () => {
   describe('fetch associated bugs', () => {
     it('successfully fetches associated bugs', async () => {
       const anomalies = [dummyAnomaly(12345), dummyAnomaly(67890)];
-      element.setAnomalies(anomalies, []);
+      element.anomalies = anomalies;
+      element.traceNames = [];
 
       fetchMock.post('/_/anomalies/group_report', (_url, opts) => {
         const body = JSON.parse(opts.body as string);
@@ -191,7 +197,8 @@ describe('existing-bug-dialog-sk', () => {
 
     it('successfully fetches associated bugs with sid', async () => {
       const anomalies = [dummyAnomaly(12345)];
-      element.setAnomalies(anomalies, []);
+      element.anomalies = anomalies;
+      element.traceNames = [];
 
       fetchMock.post('/_/anomalies/group_report', (_url, opts) => {
         const body = JSON.parse(opts.body as string);
@@ -261,7 +268,7 @@ describe('existing-bug-dialog-sk', () => {
       )!;
       select.value = 'chromium';
       select.dispatchEvent(new Event('input'));
-      assert.equal(element._projectId, 'chromium');
+      assert.equal((element as any)._projectId, 'chromium');
     });
   });
 

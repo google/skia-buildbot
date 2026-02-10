@@ -20,7 +20,7 @@ export class ExistingBugDialogSkPO extends PageObject {
   }
 
   async isDialogOpen() {
-    return this.dialog.applyFnToDOMNode((d) => (d as HTMLDialogElement).open);
+    return await this.dialog.applyFnToDOMNode((d) => (d as HTMLDialogElement).open);
   }
 
   async setBugId(bugId: string): Promise<void> {
@@ -29,7 +29,7 @@ export class ExistingBugDialogSkPO extends PageObject {
   }
 
   async getBugId(): Promise<string> {
-    return this.bugIdInput.value;
+    return await this.bugIdInput.value;
   }
 
   async clickOkBtn() {
