@@ -1,16 +1,26 @@
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
 sk_element(
     name = "toast-sk",
     sass_deps = ["//elements-sk/modules/themes:themes_sass_lib"],
     sass_srcs = ["toast-sk.scss"],
-    ts_deps = [
-        "//elements-sk/modules:define_ts_lib",
-        "//elements-sk/modules:upgradeproperty_ts_lib",
-    ],
+    ts_deps = ["//:node_modules/lit"],
     ts_srcs = [
         "index.ts",
         "toast-sk.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "toast-sk_test",
+    src = "toast-sk_test.ts",
+    deps = [
+        ":toast-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/sinon",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
 )

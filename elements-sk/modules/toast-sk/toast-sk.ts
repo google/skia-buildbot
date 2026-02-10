@@ -25,36 +25,32 @@
  * @attr duration - The duration, in ms, to display the notification. Defaults
  *               to 5000. A value of 0 means to display forever.
  */
-import { define } from '../define';
-import { upgradeProperty } from '../upgradeProperty';
+import { noChange, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
-export class ToastSk extends HTMLElement {
-  private _timer: number | null;
+@customElement('toast-sk')
+export class ToastSk extends LitElement {
+  @property({ type: Number, reflect: true })
+  duration: number = 5000;
 
-  constructor() {
-    super();
-    this._timer = null;
+  @property({ type: Boolean, reflect: true })
+  shown: boolean = false;
+
+  private _timer: number | null = null;
+
+  createRenderRoot() {
+    return this;
   }
 
-  connectedCallback(): void {
-    if (!this.hasAttribute('duration')) {
-      this.duration = 5000;
-    }
-    upgradeProperty(this, 'duration');
-  }
-
-  /** Mirrors the duration attribute. */
-  get duration(): number {
-    return +(this.getAttribute('duration') || '');
-  }
-
-  set duration(val: number) {
-    this.setAttribute('duration', val.toString());
+  render() {
+    // We use Light DOM and want to preserve existing children (like error-toast-sk's content),
+    // so we return noChange to prevent Lit from modifying the child list.
+    return noChange;
   }
 
   /** Displays the contents of the toast. */
   show(): void {
-    this.setAttribute('shown', '');
+    this.shown = true;
     if (this.duration > 0 && !this._timer) {
       this._timer = window.setTimeout(() => {
         this._timer = null;
@@ -65,12 +61,10 @@ export class ToastSk extends HTMLElement {
 
   /** Hides the contents of the toast. */
   hide(): void {
-    this.removeAttribute('shown');
+    this.shown = false;
     if (this._timer) {
       window.clearTimeout(this._timer);
       this._timer = null;
     }
   }
 }
-
-define('toast-sk', ToastSk);

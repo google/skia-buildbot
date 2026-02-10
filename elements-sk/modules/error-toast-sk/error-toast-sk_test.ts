@@ -28,15 +28,17 @@ describe('error-toast-sk', () => {
     errorToastSk = newInstance();
   });
 
-  it('can be cancelled by clicking on the close button', () => {
+  it('can be cancelled by clicking on the close button', async () => {
     const childToast = errorToastSk.querySelector('toast-sk') as ToastSk;
 
     // Display the error toast and confirm it is displayed.
     errorMessage('This is an error message which should display forever', 0);
+    await childToast.updateComplete;
     assert.isTrue(childToast.hasAttribute('shown'));
 
     // Click the close button.
     errorToastSk.querySelector('button')!.click();
+    await childToast.updateComplete;
     assert.isFalse(childToast.hasAttribute('shown'));
   });
 });
