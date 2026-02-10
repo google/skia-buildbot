@@ -236,6 +236,47 @@ describe('Manual Plot Mode', () => {
     expect(currentUrl.searchParams.get('totalGraphs')).to.equal('2');
   });
 
+  it('selects multiple values in the first field and plots all combinations', async () => {
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    // Select 'arm' in arch field.
+    await testPickerPO.waitForPickerField(0);
+    const archField = await testPickerPO.getPickerField(0);
+    await archField.select('arm');
+    await testPickerPO.waitForSpinnerInactive();
+
+    // Select 'x86_64' in arch field.
+    await archField.select('x86_64');
+    await testPickerPO.waitForSpinnerInactive();
+
+    // Verify 'os' field is now visible and has options.
+    await testPickerPO.waitForPickerField(1);
+    const osField = await testPickerPO.getPickerField(1);
+    expect(await osField.getLabel()).to.equal('os');
+
+    // Select 'Android', 'Ubuntu', and 'Debian11' in os field.
+    await osField.select('Android');
+    await testPickerPO.waitForSpinnerInactive();
+    await osField.select('Ubuntu');
+    await testPickerPO.waitForSpinnerInactive();
+    await osField.select('Debian11');
+    await testPickerPO.waitForSpinnerInactive();
+
+    // Click Plot.
+    await testPickerPO.clickPlotButton();
+    await explorePO.waitForGraphCount(1);
+    await explorePO.waitForGraph(0);
+
+    // Verify trace keys.
+    const traces = await explorePO.getGraph(0).getTraceKeys();
+    // Combinations that match mock data: arm/Android, arm/Ubuntu, x86_64/Debian11.
+    expect(traces).to.have.lengthOf(3);
+    expect(traces).to.include(',arch=arm,os=Android,');
+    expect(traces).to.include(',arch=arm,os=Ubuntu,');
+    expect(traces).to.include(',arch=x86_64,os=Debian11,');
+  });
+
   it('populates test picker with query from different graphs', async () => {
     const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
     const testPickerPO = explorePO.testPicker;

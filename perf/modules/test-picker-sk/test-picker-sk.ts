@@ -589,6 +589,7 @@ export class TestPickerSk extends ElementSk {
       // Don't update graph if the first field is changed as it can overload
       // the graph.
       if (
+        !this._forceManualPlot &&
         this._fieldData[0].param === fieldInfo.param &&
         this._fieldData[0].field!.selectedItems.length > 0 &&
         removed.length === 0
