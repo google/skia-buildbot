@@ -66,7 +66,8 @@ func (api pinpointApi) createTryJobHandler(w http.ResponseWriter, r *http.Reques
 
 	resp, err := api.pinpointClient.CreateTryJob(ctx, cbr)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to create try job.", http.StatusInternalServerError)
+		// TODO(b/483368236): Pass the correct HTTP error code.
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -102,7 +103,8 @@ func (api pinpointApi) createBisectHandler(w http.ResponseWriter, r *http.Reques
 
 	resp, err := api.pinpointClient.CreateBisect(ctx, cbr)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to create bisect job.", http.StatusInternalServerError)
+		// TODO(b/483368236): Pass the correct HTTP error code.
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

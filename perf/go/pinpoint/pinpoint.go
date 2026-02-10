@@ -113,10 +113,12 @@ func (pc *Client) CreateTryJob(ctx context.Context, req CreateLegacyTryRequest) 
 		return nil, skerr.Wrapf(err, "Failed to read body from pinpoint response.")
 	}
 	if httpResponse.StatusCode != http.StatusOK {
-		errMsg := fmt.Sprintf("The try job request failed with status code %d and body: %s", httpResponse.StatusCode, string(respBody))
+		requestErrorMessage := extractErrorMessage(respBody)
+		errMsg := fmt.Sprintf("Try job request failed with status code %d and error: %s", httpResponse.StatusCode, requestErrorMessage)
 		err = errors.New(errMsg)
 		pc.createTryJobFailed.Inc(1)
-		return nil, skerr.Wrapf(err, "Pinpoint request failed.")
+		// TODO(b/483366834): Refactor other error messages displaying to the user.
+		return nil, err
 	}
 
 	resp := CreatePinpointResponse{}
@@ -201,10 +203,12 @@ func (pc *Client) CreateBisect(ctx context.Context, createBisectRequest CreateBi
 		return nil, skerr.Wrapf(err, "Failed to read body from pinpoint response.")
 	}
 	if httpResponse.StatusCode != http.StatusOK {
-		errMsg := fmt.Sprintf("The bisect request failed with status code %d and body: %s", httpResponse.StatusCode, string(respBody))
+		requestErrorMessage := extractErrorMessage(respBody)
+		errMsg := fmt.Sprintf("Bisect request failed with status code %d and error: %s", httpResponse.StatusCode, requestErrorMessage)
 		err = errors.New(errMsg)
 		pc.createBisectFailed.Inc(1)
-		return nil, skerr.Wrapf(err, "Pinpoint request failed.")
+		// TODO(b/483366834): Refactor other error messages displaying to the user.
+		return nil, err
 	}
 
 	resp := CreatePinpointResponse{}
@@ -284,4 +288,15 @@ func buildBisectRequestURL(createBisectRequest CreateBisectRequest) string {
 	params.Set("test_path", strings.Join(test_path_parts, "/"))
 
 	return fmt.Sprintf("%s?%s", pinpointLegacyURL, params.Encode())
+}
+
+func extractErrorMessage(responseBody []byte) string {
+	var errorResponse struct {
+		Error string `json:"error"`
+	}
+	err := json.Unmarshal(responseBody, &errorResponse)
+	if err == nil && errorResponse.Error != "" {
+		return errorResponse.Error
+	}
+	return string(responseBody)
 }

@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "pinpoint",
@@ -13,4 +14,11 @@ go_library(
         "//go/sklog",
         "@org_golang_x_oauth2//google",
     ],
+)
+
+go_test(
+    name = "pinpoint_test",
+    srcs = ["pinpoint_test.go"],
+    embed = [":pinpoint"],
+    deps = ["@com_github_stretchr_testify//assert"],
 )
