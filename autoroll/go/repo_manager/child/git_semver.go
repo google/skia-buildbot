@@ -50,7 +50,7 @@ func (c *gitSemVerChild) getVersions(ctx context.Context) ([]*semver.Version, ma
 	// Find all semantic versions matching the given regex.
 	// Create a reverse mapping of commit hash to tag(s).
 	versions := make([]*semver.Version, 0, len(tagToHash))
-	hashToTags := make(map[string][]*semver.Version, len(tagToHash))
+	hashToVersions := make(map[string][]*semver.Version, len(tagToHash))
 	for tag, hash := range tagToHash {
 		ver, err := c.semVerParser.Parse(tag)
 		if err == semver.ErrNoMatch {
@@ -63,73 +63,73 @@ func (c *gitSemVerChild) getVersions(ctx context.Context) ([]*semver.Version, ma
 			return nil, nil, nil, skerr.Wrapf(err, "version %q matches regex %q but parsing semantic version failed. The regex is probably incorrect.", tag, c.semVerParser.Regex().String())
 		}
 		versions = append(versions, ver)
-		hashToTags[hash] = append(hashToTags[hash], ver)
+		hashToVersions[hash] = append(hashToVersions[hash], ver)
 	}
 	sort.Sort(sort.Reverse(semver.VersionSlice(versions)))
-	for hash := range hashToTags {
-		sort.Sort(sort.Reverse(semver.VersionSlice(hashToTags[hash])))
+	for hash := range hashToVersions {
+		sort.Sort(sort.Reverse(semver.VersionSlice(hashToVersions[hash])))
 	}
 
-	return versions, tagToHash, hashToTags, nil
+	return versions, tagToHash, hashToVersions, nil
 }
 
 // Update implements Child.
 func (c *gitSemVerChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
-	versions, tagToHash, hashToTags, err := c.getVersions(ctx)
+	versions, tagToHash, hashToVersions, err := c.getVersions(ctx)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
-	tipRev, err := c.getTipRevision(ctx, versions, tagToHash, hashToTags)
+	tipRev, err := c.getTipRevision(ctx, versions, tagToHash, hashToVersions)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "failed to get details for tip revision %q", versions[0].String())
 	}
 
-	notRolledRevs, err := c.logRevisions(ctx, lastRollRev, tipRev, hashToTags)
+	notRolledRevs, err := c.logRevisions(ctx, lastRollRev, tipRev, hashToVersions)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "failed to log revisions")
 	}
 	return tipRev, notRolledRevs, nil
 }
 
-func (c *gitSemVerChild) fixupRevision(rev *revision.Revision, hashToTags map[string][]*semver.Version) {
-	if tags, ok := hashToTags[rev.Id]; ok {
+func (c *gitSemVerChild) fixupRevision(rev *revision.Revision, hashToVersions map[string][]*semver.Version) {
+	if versions, ok := hashToVersions[rev.Id]; ok {
 		// If there are multiple tags pointing to this commit, use the latest.
-		rev.Release = tags[0].String()
+		rev.Release = versions[0].String()
 	} else {
 		rev.InvalidReason = "No associated tag matching the configured regex."
 	}
 }
 
-func (c *gitSemVerChild) getRevision(ctx context.Context, id string, hashToTags map[string][]*semver.Version) (*revision.Revision, error) {
+func (c *gitSemVerChild) getRevision(ctx context.Context, id string, hashToVersions map[string][]*semver.Version) (*revision.Revision, error) {
 	rev, err := c.repo.GetRevision(ctx, id)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	c.fixupRevision(rev, hashToTags)
+	c.fixupRevision(rev, hashToVersions)
 	return rev, nil
 }
 
 // GetRevision implements Child.
 func (c *gitSemVerChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	_, _, hashToTags, err := c.getVersions(ctx)
+	_, _, hashToVersions, err := c.getVersions(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return c.getRevision(ctx, id, hashToTags)
+	return c.getRevision(ctx, id, hashToVersions)
 }
 
 // GetTipRevision returns a revision.Revision instance associated with the
 // most recent version.
 func (c *gitSemVerChild) GetTipRevision(ctx context.Context) (*revision.Revision, error) {
-	versions, tagToHash, hashToTags, err := c.getVersions(ctx)
+	versions, tagToHash, hashToVersions, err := c.getVersions(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return c.getTipRevision(ctx, versions, tagToHash, hashToTags)
+	return c.getTipRevision(ctx, versions, tagToHash, hashToVersions)
 }
 
-func (c *gitSemVerChild) getTipRevision(ctx context.Context, versions []*semver.Version, tagToHash map[string]string, hashToTags map[string][]*semver.Version) (*revision.Revision, error) {
-	return c.getRevision(ctx, tagToHash[versions[0].String()], hashToTags)
+func (c *gitSemVerChild) getTipRevision(ctx context.Context, versions []*semver.Version, tagToHash map[string]string, hashToVersions map[string][]*semver.Version) (*revision.Revision, error) {
+	return c.getRevision(ctx, tagToHash[versions[0].String()], hashToVersions)
 }
 
 // Download implements Child.
@@ -137,24 +137,24 @@ func (c *gitSemVerChild) Download(ctx context.Context, rev *revision.Revision, d
 	return git_common.Clone(ctx, c.repo.URL(), dest, rev)
 }
 
-func (c *gitSemVerChild) logRevisions(ctx context.Context, from, to *revision.Revision, hashToTags map[string][]*semver.Version) ([]*revision.Revision, error) {
+func (c *gitSemVerChild) logRevisions(ctx context.Context, from, to *revision.Revision, hashToVersions map[string][]*semver.Version) ([]*revision.Revision, error) {
 	revs, err := c.repo.LogRevisions(ctx, from, to)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	for _, rev := range revs {
-		c.fixupRevision(rev, hashToTags)
+		c.fixupRevision(rev, hashToVersions)
 	}
 	return revs, nil
 }
 
 // LogRevisions implements Child.
 func (c *gitSemVerChild) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
-	_, _, hashToTags, err := c.getVersions(ctx)
+	_, _, hashToVersions, err := c.getVersions(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return c.logRevisions(ctx, from, to, hashToTags)
+	return c.logRevisions(ctx, from, to, hashToVersions)
 }
 
 // GetNotSubmittedReason implements Child.

@@ -42,26 +42,32 @@ func (v *Version) Compare(other *Version) int {
 	}
 }
 
-// String returns the original version string.
+// String returns the full version string.
 func (v *Version) String() string {
 	return v.asString
 }
 
 // parseVersion parses a sequence of integers from the given version.
-func parseVersion(regex *regexp.Regexp, version string) ([]int, error) {
+func parseVersion(regex *regexp.Regexp, version string) ([]int, string, error) {
 	matches := regex.FindStringSubmatch(version)
 	if len(matches) > 1 {
-		matchInts := make([]int, len(matches)-1)
+		version = matches[0]
+		matchInts := make([]int, 0, len(matches)-1)
 		for idx, a := range matches[1:] {
 			i, err := strconv.Atoi(a)
-			if err != nil {
-				return nil, skerr.Wrapf(err, "failed to parse int from regex match string; is the regex incorrect?")
+			if err != nil && idx == 0 {
+				// Allow the first capture group to be a substring used for the
+				// version
+				version = a
+			} else if err != nil {
+				return nil, "", skerr.Wrapf(err, "failed to parse int from regex match string; is the regex incorrect?")
+			} else {
+				matchInts = append(matchInts, i)
 			}
-			matchInts[idx] = i
 		}
-		return matchInts, nil
+		return matchInts, version, nil
 	}
-	return nil, ErrNoMatch
+	return nil, "", ErrNoMatch
 }
 
 // VersionSlice implements sort.Interface.
@@ -103,12 +109,12 @@ func NewParser(regex string) (*Parser, error) {
 
 // Parse and return a new semantic Version.
 func (p *Parser) Parse(version string) (*Version, error) {
-	ints, err := parseVersion(p.regex, version)
+	ints, parsedVersion, err := parseVersion(p.regex, version)
 	if err != nil {
 		return nil, err
 	}
 	return &Version{
-		asString: version,
+		asString: parsedVersion,
 		version:  ints,
 	}, nil
 }
