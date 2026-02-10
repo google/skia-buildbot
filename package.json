@@ -17,6 +17,7 @@
     "@google-web-components/google-chart": "^4.0.2",
     "@google/generative-ai": "^0.24.1",
     "@lit/context": "^1.1.2",
+    "@lit/task": "^1.0.0",
     "@lottie-animation-community/lottie-specs": "^0.3.1",
     "@material/material-color-utilities": "^0.2.7",
     "@material/web": "^2.1.0",
