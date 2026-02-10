@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"golang.org/x/oauth2/google"
 )
 
@@ -137,10 +136,6 @@ func buildTryJobRequestURL(req CreateLegacyTryRequest) (string, error) {
 	if req.Configuration == "" {
 		return "", skerr.Fmt("Configuration must be specified but is empty.")
 	}
-	target, err := bot_configs.GetIsolateTarget(req.Configuration, req.Benchmark)
-	if err != nil {
-		return "", skerr.Wrapf(err, "Could not find target of bot %s and benchmark %s", req.Configuration, req.Benchmark)
-	}
 
 	params := url.Values{}
 	// Pinpoint try jobs always use comparison mode try
@@ -181,7 +176,6 @@ func buildTryJobRequestURL(req CreateLegacyTryRequest) (string, error) {
 	if req.User != "" {
 		params.Set("user", req.User)
 	}
-	params.Set("target", target)
 	params.Set("tags", "{\"origin\":\"skia_perf\"}")
 
 	return fmt.Sprintf("%s?%s", pinpointLegacyURL, params.Encode()), nil
