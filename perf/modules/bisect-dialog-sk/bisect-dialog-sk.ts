@@ -95,7 +95,7 @@ export class BisectDialogSk extends ElementSk {
         <spinner-sk id="dialog-spinner"></spinner-sk>
         ${
           ele.jobUrl
-            ? html`<a href="${ele.jobUrl}" target="_blank">
+            ? html`<a id="pinpoint-job-url" href="${ele.jobUrl}" target="_blank">
                 Pinpoint Job Created<md-icon id="icon">open_in_new</md-icon>
               </a>`
             : ''

@@ -170,6 +170,30 @@ describe('bisect-dialog-sk', () => {
       assert.isDefined(errEvent);
       assert.isNotNull(errMessage);
     });
+
+    it('displays a link to the pinpoint job after creation', async () => {
+      const params: BisectPreloadParams = {
+        testPath: 'ChromiumPerf/MacM1/Blazor/test_suite/test/subtest',
+        startCommit: 'c1',
+        endCommit: 'c2',
+        bugId: '123',
+        story: 'story',
+        anomalyId: 'a1',
+      };
+      await element.setBisectInputParams(params);
+      element.user = 'test@example.com';
+
+      const jobUrl = 'https://pinpoint-dot-chromeperf.appspot.com/job/12345';
+      fetchMock.post('/_/bisect/create', { jobId: '12345', jobUrl: jobUrl });
+
+      await element.postBisect();
+      await fetchMock.flush(true);
+
+      const link = element.querySelector('#pinpoint-job-url') as HTMLAnchorElement;
+      assert.isNotNull(link);
+      assert.equal(link!.href, jobUrl);
+      assert.include(link!.textContent, 'Pinpoint Job Created');
+    });
   });
 
   describe('request parameter validation', async () => {
