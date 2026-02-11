@@ -170,17 +170,15 @@ var statementFormats = map[statementFormat]string{
 		`,
 	readBySubName: `
 		SELECT
-			r.id, commit_number, prev_commit_number, alert_id, r.sub_name, bug_id, creation_time, median_before, median_after, is_improvement, cluster_type, cluster_summary, frame, triage_status, triage_message
+			{{ .Columns }}
 		FROM
-			Regressions2 r
-		INNER JOIN
-			Alerts a ON r.alert_id=a.id
+			Regressions2
 		WHERE
-			a.sub_name = $1 and
-			(r.is_improvement = $2 OR r.is_improvement = false) AND -- toggle improvements on the flag, show regressions always
-			(r.triage_status = 'untriaged' OR (r.triage_status != '' AND $3 = true)) -- show untriaged always, and show all statuses except for NONE if showTriaged is true
+			sub_name = $1 and
+			(is_improvement = $2 OR is_improvement = false) AND -- toggle improvements on the flag, show regressions always
+			(triage_status = 'untriaged' OR (triage_status != '' AND $3 = true)) -- show untriaged always, and show all statuses except for NONE if showTriaged is true
 		ORDER BY
-  		r.creation_time DESC
+  		creation_time DESC
 		LIMIT
 			$4
 		OFFSET
@@ -774,6 +772,9 @@ func (s *SQLRegression2Store) updateBasedOnAlertAlgo(ctx context.Context, commit
 
 	if alertConfig.Algo == types.KMeansGrouping {
 		regressionID, err = s.readModifyWriteCompat(ctx, commitNumber, alertID, "", mustExist /* mustExist*/, func(r *regression.Regression) bool {
+			if r.SubscriptionName == "" {
+				r.SubscriptionName = alertConfig.SubscriptionName
+			}
 			updateFunc(r)
 			return true
 		})
@@ -792,6 +793,9 @@ func (s *SQLRegression2Store) updateBasedOnAlertAlgo(ctx context.Context, commit
 				return false
 			}
 
+			if r.SubscriptionName == "" {
+				r.SubscriptionName = alertConfig.SubscriptionName
+			}
 			// At this point r is a newly created regression. This should get updated in the database.
 			updateFunc(r)
 			return true

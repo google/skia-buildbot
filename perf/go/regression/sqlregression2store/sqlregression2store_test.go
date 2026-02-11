@@ -24,7 +24,10 @@ import (
 	"go.skia.org/infra/perf/go/ui/frame"
 )
 
-const alertId int64 = 1111
+const (
+	alertId int64 = 1111
+	subName       = "my-sub"
+)
 
 func setupStore(t *testing.T, alertsProvider alerts.ConfigProvider) *SQLRegression2Store {
 	db := sqltest.NewSpannerDBForTests(t, "regstore")
@@ -42,7 +45,7 @@ func readSpecificRegressionFromDb(ctx context.Context, t *testing.T, store *SQLR
 	return reg
 }
 
-func generateNewRegression() *regression.Regression {
+func generateNewRegression(subname string) *regression.Regression {
 	r := regression.NewRegression()
 	r.Id = uuid.NewString()
 	r.CommitNumber = 12345
@@ -52,6 +55,7 @@ func generateNewRegression() *regression.Regression {
 	r.IsImprovement = false
 	r.MedianBefore = 1.0
 	r.MedianAfter = 2.0
+	r.SubscriptionName = subname
 
 	r.PrevCommitNumber = 12340
 	df := &frame.FrameResponse{
@@ -80,8 +84,8 @@ func generateNewRegression() *regression.Regression {
 	return r
 }
 
-func generateAndStoreNewRegression(ctx context.Context, t *testing.T, store *SQLRegression2Store) *regression.Regression {
-	r := generateNewRegression()
+func generateAndStoreNewRegression(ctx context.Context, t *testing.T, store *SQLRegression2Store, subname string) *regression.Regression {
+	r := generateNewRegression(subname)
 	_, err := store.WriteRegression(ctx, r, nil)
 	assert.Nil(t, err)
 	return r
@@ -119,7 +123,7 @@ func TestWriteRead_Success(t *testing.T) {
 
 	store := setupStore(t, alertsProvider)
 	ctx := context.Background()
-	r := generateAndStoreNewRegression(ctx, t, store)
+	r := generateAndStoreNewRegression(ctx, t, store, subName)
 
 	regressionsFromDb, err := store.Range(ctx, r.CommitNumber, r.CommitNumber)
 	assert.Nil(t, err)
@@ -144,7 +148,7 @@ func TestRead_Empty(t *testing.T) {
 	assert.Empty(t, regressionsFromDb)
 
 	// Now let's add an item and try to read non-existent items.
-	r := generateAndStoreNewRegression(ctx, t, store)
+	r := generateAndStoreNewRegression(ctx, t, store, subName)
 
 	regressionsFromDb, err = store.Range(ctx, r.CommitNumber+1, r.CommitNumber+2)
 	assert.Nil(t, err)
@@ -158,11 +162,11 @@ func TestGetByIDs_Success(t *testing.T) {
 
 	store := setupStore(t, alertsProvider)
 	ctx := context.Background()
-	r := generateAndStoreNewRegression(ctx, t, store)
-	r2 := generateAndStoreNewRegression(ctx, t, store)
+	r := generateAndStoreNewRegression(ctx, t, store, subName)
+	r2 := generateAndStoreNewRegression(ctx, t, store, subName)
 
 	// Improvements are anomalies, and they are stored, too.
-	rImprovement := generateNewRegression()
+	rImprovement := generateNewRegression(subName)
 	populateRegression2Fields(rImprovement)
 	rImprovement.IsImprovement = true
 	err := store.writeSingleRegression(ctx, rImprovement, nil)
@@ -227,7 +231,7 @@ func TestGetByRevision_Success(t *testing.T) {
 	ctx := context.Background()
 
 	generateRegression := func(previousCommit int64, commit int64) (r *regression.Regression) {
-		r = generateNewRegression()
+		r = generateNewRegression(subName)
 		populateRegression2Fields(r)
 		r.PrevCommitNumber = types.CommitNumber(previousCommit)
 		r.CommitNumber = types.CommitNumber(commit)
@@ -357,7 +361,7 @@ func TestMixedRegressionWrite(t *testing.T) {
 	ctx := context.Background()
 
 	// Add an item to the database.
-	r := generateNewRegression()
+	r := generateNewRegression(subName)
 	r.Id = ""
 
 	// Add another cluster summary to the same regression.
@@ -382,14 +386,14 @@ func TestRangeFiltered(t *testing.T) {
 	ctx := context.Background()
 
 	// Add a regression with trace key 1.
-	r1 := generateNewRegression()
+	r1 := generateNewRegression(subName)
 	r1.CommitNumber = 12345
 	r1.Frame.DataFrame.TraceSet = types.TraceSet{traceKey1: {}}
 	_, err := store.WriteRegression(ctx, r1, nil)
 	assert.Nil(t, err)
 
 	// Add a regression with trace key 2.
-	r2 := generateNewRegression()
+	r2 := generateNewRegression(subName)
 	r2.CommitNumber = 12346
 	r2.Frame.DataFrame.TraceSet = types.TraceSet{traceKey2: {}}
 	_, err = store.WriteRegression(ctx, r2, nil)
@@ -429,7 +433,7 @@ func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool, alertsP
 	ctx := context.Background()
 
 	// Add an item to the database.
-	r := generateNewRegression()
+	r := generateNewRegression(subName)
 
 	alertIdStr := alerts.IDToString(r.AlertId)
 	clusterSummary := &clustering2.ClusterSummary{
@@ -515,9 +519,10 @@ func TestGetRegressionsBySubName(t *testing.T) {
 	ctx := context.Background()
 
 	// 1. Setup: Insert two regressions to test sorting and pagination.
-	r1 := generateAndStoreNewRegression(ctx, t, store)
-	r2 := generateAndStoreNewRegression(ctx, t, store)
-	rImp := generateNewRegression()
+	r1 := generateAndStoreNewRegression(ctx, t, store, subName)
+	r2 := generateAndStoreNewRegression(ctx, t, store, subName)
+	rImp := generateNewRegression(subName)
+	populateRegression2Fields(rImp)
 	rImp.Frame.DataFrame.ParamSet = map[string][]string{
 		"improvement_direction": {"down"},
 	}
@@ -647,19 +652,19 @@ func TestGetRegressionsBySubName_ShowHideTriaged(t *testing.T) {
 	ctx := context.Background()
 
 	// Untriaged anomaly
-	rUntriaged := generateAndStoreNewRegression(ctx, t, store)
+	rUntriaged := generateAndStoreNewRegression(ctx, t, store, subName)
 	// Both FileBug and AssociateAlerts just executes SetBugID (consider integration testing)
-	rBugAssociated := generateAndStoreNewRegression(ctx, t, store)
+	rBugAssociated := generateAndStoreNewRegression(ctx, t, store, subName)
 	err := store.SetBugID(ctx, []string{rBugAssociated.Id}, 1)
 	require.NoError(t, err)
 	// First associate a bug, then reset
-	rReset := generateAndStoreNewRegression(ctx, t, store)
+	rReset := generateAndStoreNewRegression(ctx, t, store, subName)
 	err = store.SetBugID(ctx, []string{rReset.Id}, 1)
 	require.NoError(t, err)
 	err = store.ResetAnomalies(ctx, []string{rReset.Id})
 	require.NoError(t, err)
 	// Ignore anomaly
-	rIgnore := generateAndStoreNewRegression(ctx, t, store)
+	rIgnore := generateAndStoreNewRegression(ctx, t, store, subName)
 	err = store.IgnoreAnomalies(ctx, []string{rIgnore.Id})
 	require.NoError(t, err)
 
@@ -677,11 +682,10 @@ func TestGetRegressionsBySubName_ShowHideTriaged(t *testing.T) {
 		_, err := store.db.Exec(ctx, query, alertID, subName)
 		require.NoError(t, err)
 	}
-	commonSubname := "my-sub"
-	setupAlertSubName(rUntriaged.AlertId, commonSubname)
-	setupAlertSubName(rBugAssociated.AlertId, commonSubname)
-	setupAlertSubName(rIgnore.AlertId, commonSubname)
-	setupAlertSubName(rReset.AlertId, commonSubname)
+	setupAlertSubName(rUntriaged.AlertId, subName)
+	setupAlertSubName(rBugAssociated.AlertId, subName)
+	setupAlertSubName(rIgnore.AlertId, subName)
+	setupAlertSubName(rReset.AlertId, subName)
 
 	// 3. Test cases.
 	tests := []struct {
@@ -705,7 +709,7 @@ func TestGetRegressionsBySubName_ShowHideTriaged(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			req := regression.GetAnomalyListRequest{
-				SubName:             commonSubname,
+				SubName:             subName,
 				IncludeImprovements: false,
 				IncludeTriaged:      tc.showTriaged,
 			}
@@ -731,9 +735,9 @@ func TestSetBugID_Success(t *testing.T) {
 	ctx := context.Background()
 	// Insert some regressions to update.
 	regressions := []*regression.Regression{
-		generateNewRegression(),
-		generateNewRegression(),
-		generateNewRegression(),
+		generateNewRegression(subName),
+		generateNewRegression(subName),
+		generateNewRegression(subName),
 	}
 	regIDs := []string{}
 	for _, reg := range regressions {
@@ -781,9 +785,9 @@ func TestResetAnomalies_Success(t *testing.T) {
 	ctx := context.Background()
 	// Insert some regressions to update.
 	regressions := []*regression.Regression{
-		generateNewRegression(),
-		generateNewRegression(),
-		generateNewRegression(),
+		generateNewRegression(subName),
+		generateNewRegression(subName),
+		generateNewRegression(subName),
 	}
 
 	bugIdDefault := int64(1)
@@ -834,9 +838,9 @@ func TestIgnoreAnomalies_Success(t *testing.T) {
 	ctx := context.Background()
 	// Insert some regressions to update.
 	regressions := []*regression.Regression{
-		generateNewRegression(),
-		generateNewRegression(),
-		generateNewRegression(),
+		generateNewRegression(subName),
+		generateNewRegression(subName),
+		generateNewRegression(subName),
 	}
 	regIDs := []string{}
 	for _, reg := range regressions {
@@ -873,9 +877,9 @@ func TestNudgeAndResetAnomalies_ResetsStatus(t *testing.T) {
 	ctx := context.Background()
 	// Insert some regressions to update.
 	regressions := []*regression.Regression{
-		generateNewRegression(),
-		generateNewRegression(),
-		generateNewRegression(),
+		generateNewRegression(subName),
+		generateNewRegression(subName),
+		generateNewRegression(subName),
 	}
 	// store.TriageHigh sets status and message on all regressions with the same commit number and alert id.
 	// That's why we change this regression to be on a different commit number.
@@ -943,17 +947,17 @@ func TestGetSubscriptionsForRegressions(t *testing.T) {
 	component2 := "123467"
 
 	// 1. Setup: Insert regressions, alerts, and subscriptions.
-	reg1 := generateNewRegression()
+	reg1 := generateNewRegression(subName)
 	reg1.AlertId = alertId1
 	_, err := store.WriteRegression(ctx, reg1, nil)
 	assert.Nil(t, err)
 
-	reg2 := generateNewRegression()
+	reg2 := generateNewRegression(subName)
 	reg2.AlertId = alertId2
 	_, err = store.WriteRegression(ctx, reg2, nil)
 	assert.Nil(t, err)
 
-	reg3WithoutSubscription := generateNewRegression()
+	reg3WithoutSubscription := generateNewRegression(subName)
 	reg3WithoutSubscription.AlertId = alertId3
 	_, err = store.WriteRegression(ctx, reg3WithoutSubscription, nil)
 	assert.Nil(t, err)
@@ -1079,7 +1083,7 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 
 	// Test case 1: No bugs.
 	t.Run("No bugs", func(t *testing.T) {
-		r := generateAndStoreNewRegression(ctx, t, store)
+		r := generateAndStoreNewRegression(ctx, t, store, subName)
 		regressions, err := store.GetBugIdsForRegressions(ctx, []*regression.Regression{r})
 		require.NoError(t, err)
 		require.Len(t, regressions, 1)
@@ -1089,7 +1093,7 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 
 	// Test case 2: Manual bug only.
 	t.Run("Manual bug only", func(t *testing.T) {
-		r := generateNewRegression()
+		r := generateNewRegression(subName)
 		manualBug := types.RegressionBug{BugId: "12345", Type: types.ManualTriage}
 		r.Bugs = []types.RegressionBug{manualBug}
 		_, err := store.WriteRegression(ctx, r, nil)
@@ -1109,7 +1113,7 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 
 	// Test case 3: Auto-triaged bug.
 	t.Run("Auto-triaged bug", func(t *testing.T) {
-		r := generateAndStoreNewRegression(ctx, t, store)
+		r := generateAndStoreNewRegression(ctx, t, store, subName)
 		agID := uuid.NewString()
 		reportedIssueID := "123456"
 		_, err := store.db.Exec(ctx, `
@@ -1131,7 +1135,7 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 	// Test case 4: Auto-triaged bug with invalid (start > end) groups.
 	// We have to filter out groups with start > end revisions as they are incorrect.
 	t.Run("Auto-triaged bug with invalid groups", func(t *testing.T) {
-		r := generateAndStoreNewRegression(ctx, t, store)
+		r := generateAndStoreNewRegression(ctx, t, store, subName)
 		agID := uuid.NewString()
 		reportedIssueID := "123456"
 		_, err := store.db.Exec(ctx, `
@@ -1160,8 +1164,8 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 
 	// Test case 5: Auto-bisect bug from culprit (group_issue_map).
 	t.Run("Auto-bisect bug from group_issue_map", func(t *testing.T) {
-		r := generateAndStoreNewRegression(ctx, t, store)
-		r2 := generateAndStoreNewRegression(ctx, t, store)
+		r := generateAndStoreNewRegression(ctx, t, store, subName)
+		r2 := generateAndStoreNewRegression(ctx, t, store, subName)
 		agID := uuid.NewString()
 		agID2 := uuid.NewString()
 		culpritID := uuid.NewString()
@@ -1198,7 +1202,7 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 
 	// Test case 6: All bug types together.
 	t.Run("All bug types together", func(t *testing.T) {
-		r := generateNewRegression()
+		r := generateNewRegression(subName)
 		manualBug := types.RegressionBug{BugId: "123", Type: types.ManualTriage}
 		r.Bugs = []types.RegressionBug{manualBug}
 		_, err := store.WriteRegression(ctx, r, nil)
@@ -1248,8 +1252,8 @@ func TestGetBugIdsForRegressions(t *testing.T) {
 
 	// Test case 7: Sorting order of bugs (manual, autotriage, autobisect, then by ID).
 	t.Run("Bug sorting order", func(t *testing.T) {
-		r := generateNewRegression()
-		r1 := generateNewRegression()
+		r := generateNewRegression(subName)
+		r1 := generateNewRegression(subName)
 		if r.Id > r1.Id {
 			r.Id, r1.Id = r1.Id, r.Id
 		}
@@ -1349,9 +1353,9 @@ func TestGetIdsByManualTriageBugID(t *testing.T) {
 	ctx := context.Background()
 
 	// 1. Setup: Insert some regressions and assign manual triage bug IDs.
-	r1 := generateAndStoreNewRegression(ctx, t, store)
-	r2 := generateAndStoreNewRegression(ctx, t, store)
-	r3 := generateAndStoreNewRegression(ctx, t, store)
+	r1 := generateAndStoreNewRegression(ctx, t, store, subName)
+	r2 := generateAndStoreNewRegression(ctx, t, store, subName)
+	r3 := generateAndStoreNewRegression(ctx, t, store, subName)
 
 	bugID1 := 10001
 	bugID2 := 10002
@@ -1530,4 +1534,52 @@ func TestAllowMultipleRegressionsPerAlertId(t *testing.T) {
 		assert.True(t, ok)
 		assert.Equal(t, clusterSummary1, regressionsFromDb[0].High)
 	})
+}
+
+// TestUpdateBasedOnAlertAlgo_WithSubscriptionName verifies that when an alert has an associated
+// subscription name, any new regressions created for that alert will also have the same
+// subscription name.
+func TestUpdateBasedOnAlertAlgo_WithSubscriptionName(t *testing.T) {
+	const subName = "test-subscription"
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	alertsProvider.On("GetAlertConfig", alertId).Return(&alerts.Alert{
+		IDAsString:       fmt.Sprintf("%d", alertId),
+		DisplayName:      "Test Alert Config",
+		Algo:             types.KMeansGrouping,
+		SubscriptionName: subName,
+	}, nil)
+
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+
+	// Add an item to the database.
+	r := generateNewRegression(subName)
+
+	alertIdStr := alerts.IDToString(r.AlertId)
+	clusterSummary := &clustering2.ClusterSummary{
+		Centroid: []float32{1.0, 2.0, 3.0},
+		StepFit: &stepfit.StepFit{
+			TurningPoint: 1,
+		},
+	}
+	frameResponse := &frame.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			Header: []*dataframe.ColumnHeader{
+				{Offset: 1}, {Offset: 2}, {Offset: 3},
+			},
+		},
+	}
+
+	// Set a high regression.
+	success, _, err := store.SetHigh(ctx, r.CommitNumber, alertIdStr, frameResponse, clusterSummary)
+	if skipTestIfSpannerEmulatorNotSupported(t, err) {
+		return
+	}
+	assert.Nil(t, err)
+	assert.True(t, success)
+
+	// Read the regression and verify that SubscriptionName was set correctly.
+	reg := readSpecificRegressionFromDb(ctx, t, store, r.CommitNumber, alertIdStr)
+	assert.NotNil(t, reg)
+	assert.Equal(t, subName, reg.SubscriptionName)
 }
