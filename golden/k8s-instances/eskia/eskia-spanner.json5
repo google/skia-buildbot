@@ -1,0 +1,35 @@
+{
+  code_review_systems: [
+    {
+      id: "gerrit",
+      flavor: "gerrit",
+      gerrit_url: "https://skia-review.googlesource.com",
+      url_template: "https://skia-review.googlesource.com/%s"
+    },
+  ],
+  gcs_bucket: "skia-gold-eskia",
+  git_repo_branch: "main",
+  git_repo_url: "https://skia.googlesource.com/eskia.git",
+  pubsub_project_id: "skia-public",
+  site_url: "https://eskia-gold.skia.org",
+  sql_database_type: "spanner",
+  sql_connection: "root@localhost:5432",
+  sql_database: "eskia",
+  known_hashes_gcs_path: "skia-gold-eskia/hash_files/gold-eskia-hashes.txt",
+  window_size: 200,
+
+  grouping_param_keys_by_corpus: {
+    "eskia": ["name", "source_type"],
+  },
+
+  cache_type: "redis",
+  redis_config: {
+    "project": "skia-public",
+    "zone": "us-central1",
+    "instance": "gold-eskia",
+    "cache_expiration_minutes": 30
+  },
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  INCLUDE_GITHUB_CREDS: false
+}

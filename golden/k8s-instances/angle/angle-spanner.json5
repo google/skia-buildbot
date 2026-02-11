@@ -1,0 +1,35 @@
+{
+  code_review_systems: [
+    {
+      id: "gerrit",
+      flavor: "gerrit",
+      gerrit_url: "https://chromium-review.googlesource.com",
+      url_template: "https://chromium-review.googlesource.com/%s"
+    },
+  ],
+  gcs_bucket: "skia-gold-angle",
+  git_repo_branch: "main",
+  git_repo_url: "https://chromium.googlesource.com/angle/angle",
+  pubsub_project_id: "skia-public",
+  site_url: "https://angle-gold.skia.org",
+  sql_database_type: "spanner",
+  sql_connection: "root@localhost:5432",
+  sql_database: "angle",
+  known_hashes_gcs_path: "skia-gold-angle/hash_files/gold-angle-hashes.txt",
+  window_size: 512,
+
+  grouping_param_keys_by_corpus: {
+    "angle": ["name", "source_type"],
+  },
+
+  cache_type: "redis",
+  redis_config: {
+    "project": "skia-public",
+    "zone": "us-central1",
+    "instance": "gold-angle",
+    "cache_expiration_minutes": 30
+  },
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  INCLUDE_GITHUB_CREDS: false
+}

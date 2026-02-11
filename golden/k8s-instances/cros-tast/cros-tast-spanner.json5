@@ -1,0 +1,42 @@
+{
+  code_review_systems: [
+    {
+      id: "gerrit",
+      flavor: "gerrit",
+      gerrit_url: "https://chromium-review.googlesource.com",
+      url_template: "https://chromium-review.googlesource.com/%s"
+    },
+  ],
+  gcs_bucket: "skia-gold-cros-tast",
+  git_repo_branch: "main",
+  git_repo_url: "https://chromium.googlesource.com/chromiumos/platform/tast-tests",
+  pubsub_project_id: "skia-public",
+  site_url: "https://cros-tast-gold.skia.org",
+  sql_database_type: "spanner",
+  sql_connection: "root@localhost:5432",
+  sql_database: "crostast",
+  known_hashes_gcs_path: "skia-gold-cros-tast/hash_files/gold-cros-tast-hashes.txt",
+  window_size: 512,
+
+  grouping_param_keys_by_corpus: {
+    "crostini": ["name", "source_type"],
+    "videoconferencing": ["name", "source_type"],
+    "screenshot": ["name", "source_type"],
+    "camera": ["name", "source_type"],
+    "ui": ["name", "source_type"],
+    "filemanager": ["name", "source_type"],
+    "lacros": ["name", "source_type"],
+    "power": ["name", "source_type"],
+  },
+
+  cache_type: "redis",
+  redis_config: {
+    "project": "skia-public",
+    "zone": "us-central1",
+    "instance": "gold-cros",
+    "cache_expiration_minutes": 30
+  },
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  INCLUDE_GITHUB_CREDS: false
+}

@@ -1,0 +1,45 @@
+{
+  code_review_systems: [
+    {
+      id: "gerrit", // public reviews
+      flavor: "gerrit",
+      gerrit_url: "https://chromium-review.googlesource.com",
+      url_template: "https://chromium-review.googlesource.com/%s"
+    }, {
+      id: "gerrit-internal", // internal reviews
+      flavor: "gerrit",
+      gerrit_url: "https://chrome-internal-review.googlesource.com",
+      url_template: "https://chrome-internal-review.googlesource.com/%s"
+    }
+  ],
+  gcs_bucket: "skia-gold-chrome",
+  git_repo_branch: "master",
+  git_repo_url: "https://chromium.googlesource.com/chromium/src",
+  pubsub_project_id: "skia-public",
+  site_url: "https://chrome-gold.skia.org",
+  sql_database_type: "spanner",
+  sql_connection: "root@localhost:5432",
+  sql_database: "chrome",
+  known_hashes_gcs_path: "skia-gold-chrome/hash_files/gold-chrome-hashes.txt",
+  window_size: 1024,
+
+  grouping_param_keys_by_corpus: {
+    "android-render-tests": ["name", "source_type"],
+    "android-render-tests-internal": ["name", "source_type"],
+    "chrome-gpu": ["name", "source_type"],
+    "chrome-gpu-gtest": ["name", "source_type"],
+    "finch-smoke-tests": ["name", "source_type"],
+    "gtest-pixeltests": ["name", "source_type"],
+  },
+
+  cache_type: "redis",
+  redis_config: {
+    "project": "skia-public",
+    "zone": "us-central1",
+    "instance": "gold-chrome",
+    "cache_expiration_minutes": 30
+  },
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  INCLUDE_GITHUB_CREDS: false
+}

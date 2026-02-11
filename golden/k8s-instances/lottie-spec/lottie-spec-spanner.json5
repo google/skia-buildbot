@@ -1,0 +1,36 @@
+{
+  code_review_systems: [
+    {
+      id: "github",
+      flavor: "github",
+      github_cred_path: "/var/secrets/github/github_token",
+      github_repo: "lottie-animation-community/tests",
+      url_template: "https://github.com/lottie-animation-community/tests/pull/%s"
+    }
+  ],
+  gcs_bucket: "lottie-animation-community-tests",
+  git_repo_branch: "main",
+  git_repo_url: "https://github.com/lottie-animation-community/tests.git",
+  pubsub_project_id: "skia-public",
+  site_url: "https://lottie-animation-community-gold.skia.org",
+  sql_database_type: "spanner",
+  sql_connection: "root@localhost:5432",
+  sql_database: "lottiespec",
+  known_hashes_gcs_path: "lottie-animation-community-tests/hash_files/gold-lottie-spec-hashes.txt",
+  window_size: 200,
+
+  grouping_param_keys_by_corpus: {
+    "lottie-animation-community": ["name", "source_type"],
+  },
+
+  cache_type: "redis",
+  redis_config: {
+    "project": "skia-public",
+    "zone": "us-central1",
+    "instance": "gold-lottie-spec",
+    "cache_expiration_minutes": 30
+  },
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  INCLUDE_GITHUB_CREDS: true,
+}

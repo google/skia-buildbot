@@ -1,0 +1,17 @@
+{
+  code_review_systems: [],
+  gcs_bucket: "skia-gold-koru",
+  git_repo_branch: "main",
+  git_repo_url: "https://googleplex-android.googlesource.com/platform/vendor/google_shared/libs/koru",
+  pubsub_project_id: "skia-public",
+  site_url: "https://koru-gold.skia.org",
+  sql_database_type: "spanner",
+  sql_connection: "root@localhost:5432",
+  sql_database: "koru",
+  known_hashes_gcs_path: "skia-gold-koru/hash_files/gold-koru-hashes.txt",
+  window_size: 100,
+
+  grouping_param_keys_by_corpus: {
+    "koru": ["name", "source_type"],
+  },
+}

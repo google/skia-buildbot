@@ -15,6 +15,7 @@ def config_files(server, instances):
     for instance in instances:
         files += [
             "//golden/k8s-instances:" + instance + "/" + instance + ".json5",
+            "//golden/k8s-instances:" + instance + "/" + instance + "-spanner.json5",
             "//golden/k8s-instances:" + instance + "/" + instance + "-" + server + ".json5",
         ]
     return files
