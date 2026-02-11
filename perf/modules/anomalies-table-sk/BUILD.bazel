@@ -38,6 +38,7 @@ sk_element(
         "//perf/modules/window:window_ts_lib",
         "//perf/modules/common:graph-config_ts_lib",
         ":grouping_ts_lib",
+        ":selection-controller_ts_lib",
     ],
     ts_srcs = [
         "anomalies-table-sk.ts",
@@ -104,6 +105,17 @@ karma_test(
     ],
 )
 
+karma_test(
+    name = "selection-controller_test",
+    src = "selection-controller_test.ts",
+    deps = [
+        ":selection-controller_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/lit",
+    ],
+)
+
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":anomalies-table-sk-demo",
@@ -121,4 +133,11 @@ ts_library(
     srcs = ["test_data.ts"],
     visibility = ["//visibility:public"],
     deps = ["//perf/modules/json:index_ts_lib"],
+)
+
+ts_library(
+    name = "selection-controller_ts_lib",
+    srcs = ["selection-controller.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//:node_modules/lit"],
 )

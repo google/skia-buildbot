@@ -643,8 +643,7 @@ describe('anomalies-table-sk', () => {
       const checkbox = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
       assert.isTrue(checkbox.checked);
 
-      // Verify internal state matches the original object, not the requested copy
-      const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
+      const checkedAnomalies = element.getCheckedAnomalies();
       assert.equal(checkedAnomalies.length, 1);
       assert.strictEqual(checkedAnomalies[0], originalAnomaly);
     });
@@ -701,10 +700,10 @@ describe('anomalies-table-sk', () => {
       element.expandGroup(group);
       await element.updateComplete;
 
-      const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
+      const checkedAnomalies = element.getCheckedAnomalies();
       assert.lengthOf(checkedAnomalies, 2);
-      assert.isTrue(checkedAnomalies.some((a) => a.id === '1'));
-      assert.isTrue(checkedAnomalies.some((a) => a.id === '2'));
+      assert.isTrue(checkedAnomalies.some((a: Anomaly) => a.id === '1'));
+      assert.isTrue(checkedAnomalies.some((a: Anomaly) => a.id === '2'));
 
       const checkbox1 = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
       const checkbox2 = element.querySelector('[id^="anomaly-row-"][id$="-2"]') as HTMLInputElement;
@@ -735,10 +734,10 @@ describe('anomalies-table-sk', () => {
       element.expandGroup(group);
       await element.updateComplete;
 
-      const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
+      const checkedAnomalies = element.getCheckedAnomalies();
       assert.lengthOf(checkedAnomalies, 2);
-      assert.isTrue(checkedAnomalies.some((a) => a.id === '1'));
-      assert.isTrue(checkedAnomalies.some((a) => a.id === '2'));
+      assert.isTrue(checkedAnomalies.some((a: Anomaly) => a.id === '1'));
+      assert.isTrue(checkedAnomalies.some((a: Anomaly) => a.id === '2'));
 
       const checkbox1 = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
       const checkbox2 = element.querySelector('[id^="anomaly-row-"][id$="-2"]') as HTMLInputElement;
@@ -948,7 +947,7 @@ describe('anomalies-table-sk', () => {
       element.anomalyGroups.forEach((g) => element.expandGroup(g));
       await element.updateComplete;
 
-      const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
+      const checkedAnomalies = element.getCheckedAnomalies();
       assert.lengthOf(checkedAnomalies, 2);
 
       const checkbox1 = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
@@ -1029,7 +1028,7 @@ describe('anomalies-table-sk', () => {
       await element.updateComplete;
 
       assert.isTrue(checkbox1.checked, 'Checkbox should be checked after one click.');
-      const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
+      const checkedAnomalies = element.getCheckedAnomalies();
       assert.deepEqual(checkedAnomalies, [anomalies[0]]);
     });
   });

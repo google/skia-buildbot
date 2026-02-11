@@ -31,6 +31,7 @@ import '../../../elements-sk/modules/icons/help-icon-sk';
 import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
 import '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
 import { KeyboardShortcutsHelpSk } from '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
+import { SelectionController } from './selection-controller';
 import '../bug-tooltip-sk/bug-tooltip-sk';
 
 // Just below the 2000 limit - we need to leave some space for the instance address.
@@ -65,7 +66,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   @state()
   showPopup: boolean = false;
 
-  private checkedAnomaliesSet: Set<Anomaly> = new Set<Anomaly>();
+  private selectionController = new SelectionController<Anomaly>(this);
 
   private initiallyRequestedAnomalyIDs: Set<string> = new Set<string>();
 
@@ -134,7 +135,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     this.triageMenu = this.querySelector(`#triage-menu-${this.uniqueId}`);
     if (this.triageMenu) {
       this.triageMenu.disableNudge();
-      this.triageMenu.toggleButtons(this.checkedAnomaliesSet.size > 0);
+      this.triageMenu.toggleButtons(this.selectionController.size > 0);
     }
     this.headerCheckbox = this.querySelector(
       `#header-checkbox-${this.uniqueId}`
@@ -148,7 +149,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   private keyDown = (e: KeyboardEvent) => {
     // Ignore if no anomalies selected
-    if (this.checkedAnomaliesSet.size === 0) {
+    if (this.selectionController.size === 0) {
       return;
     }
 
@@ -162,7 +163,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
-    this.triageMenu!.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
+    this.triageMenu!.setAnomalies(this.selectionController.items, [], []);
     this.triageMenu!.fileBug();
   }
 
@@ -171,7 +172,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
-    this.triageMenu!.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
+    this.triageMenu!.setAnomalies(this.selectionController.items, [], []);
     this.triageMenu!.ignoreAnomaly();
   }
 
@@ -180,7 +181,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
-    this.triageMenu!.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
+    this.triageMenu!.setAnomalies(this.selectionController.items, [], []);
     this.triageMenu!.openExistingBugDialog();
   }
 
@@ -320,7 +321,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   render() {
     const totalCount = this.anomalyList.length;
-    const selectedCount = this.checkedAnomaliesSet.size;
+    const selectedCount = this.selectionController.size;
 
     // Checked only if ALL are selected
     const isAllSelected = totalCount > 0 && selectedCount === totalCount;
@@ -332,19 +333,19 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         <button
           id="triage-button-${this.uniqueId}"
           @click="${this.togglePopup}"
-          ?disabled="${this.checkedAnomaliesSet.size === 0}">
+          ?disabled="${this.selectionController.size === 0}">
           Triage Selected
         </button>
         <button
           id="graph-button-${this.uniqueId}"
           @click="${this.openReport}"
-          ?disabled="${this.checkedAnomaliesSet.size === 0}">
+          ?disabled="${this.selectionController.size === 0}">
           Graph Selected
         </button>
         <button
           id="open-group-button-${this.uniqueId}"
           @click="${this.openAnomalyGroupReportPage}"
-          ?disabled="${this.checkedAnomaliesSet.size === 0}">
+          ?disabled="${this.selectionController.size === 0}">
           Graph Selected by Group
         </button>
         ${this.groupingSettingsTemplate()}
@@ -447,12 +448,12 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   }
 
   async openReport() {
-    await this.openReportForAnomalyIds(Array.from(this.checkedAnomaliesSet));
+    await this.openReportForAnomalyIds(this.selectionController.items);
   }
 
   async openAnomalyGroupReportPage() {
     for (const group of this.anomalyGroups) {
-      const isGroupSelected = group.anomalies.some((a) => this.checkedAnomaliesSet.has(a));
+      const isGroupSelected = group.anomalies.some((a) => this.selectionController.has(a));
       if (isGroupSelected) {
         await this.openReportForAnomalyIds(group.anomalies);
       }
@@ -464,7 +465,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     if (this.showPopup) {
       const triageMenu = this.querySelector(`#triage-menu-${this.uniqueId}`) as TriageMenuSk;
       if (triageMenu) {
-        triageMenu.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
+        triageMenu.setAnomalies(this.selectionController.items, [], []);
       }
     }
     // this.render();
@@ -472,6 +473,10 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   private isGroupInitiallyRequested(group: AnomalyGroup): boolean {
     return group.anomalies.some((anomaly) => this.initiallyRequestedAnomalyIDs.has(anomaly.id));
+  }
+
+  private isGroupSelected(group: AnomalyGroup): boolean {
+    return group.anomalies.some((anomaly) => this.selectionController.has(anomaly));
   }
 
   private generateGroups() {
@@ -517,35 +522,26 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   private _updateCheckedState(chkbox: HTMLInputElement | null, a: Anomaly) {
     if (chkbox) {
       if (chkbox.checked) {
-        this.checkedAnomaliesSet.add(a);
+        this.selectionController.select(a);
       } else {
-        this.checkedAnomaliesSet.delete(a);
+        this.selectionController.deselect(a);
       }
     } else {
-      // If checkbox isn't passed (e.g. from tests or logic), toggle or ensure logic is right.
-      // But typically we rely on set logic.
-      if (this.checkedAnomaliesSet.has(a)) {
-        // If we are unchecking
-        this.checkedAnomaliesSet.delete(a);
-      } else {
-        this.checkedAnomaliesSet.add(a);
-      }
+      this.selectionController.toggle(a);
     }
-    // Need to trigger update because Set is not observed
-    this.requestUpdate();
 
     this.dispatchEvent(
       new CustomEvent('anomalies_checked', {
         detail: {
           anomalies: [a],
-          checked: this.checkedAnomaliesSet.has(a),
+          checked: this.selectionController.has(a),
         },
         bubbles: true,
       })
     );
 
     if (this.triageMenu) {
-      this.triageMenu.toggleButtons(this.checkedAnomaliesSet.size > 0);
+      this.triageMenu.toggleButtons(this.selectionController.size > 0);
     }
   }
 
@@ -610,7 +606,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
                 @change=${(e: Event) => {
                   this.anomalyChecked(e.target as HTMLInputElement, anomaly);
                 }}
-                .checked=${this.checkedAnomaliesSet.has(anomaly)}
+                .checked=${this.selectionController.has(anomaly)}
                 id="anomaly-row-${this.uniqueId}-${anomaly.id}"
             /></label>
           </td>
@@ -698,7 +694,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     const improvements = anomalyGroup.anomalies.filter((a) => a.is_improvement).length;
     const regressions = anomalyGroup.anomalies.length - improvements;
     const selectedCount = anomalyGroup.anomalies.filter((a) =>
-      this.checkedAnomaliesSet.has(a)
+      this.selectionController.has(a)
     ).length;
     const totalCount = anomalyGroup.anomalies.length;
 
@@ -893,7 +889,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   async populateTable(anomalyList: Anomaly[]): Promise<void> {
     this.initiallyRequestedAnomalyIDs.clear();
-    this.checkedAnomaliesSet.clear();
+    this.selectionController.clear();
 
     // We update state, Lit handles DOM updates.
     // However, if anomalyList is empty, we show clear-msg and hide table.
@@ -915,16 +911,16 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     this.initiallyRequestedAnomalyIDs = new Set<string>(anomalyList.map((a) => a.id));
     this.anomalyList.forEach((anomaly) => {
       if (this.initiallyRequestedAnomalyIDs.has(anomaly.id)) {
-        this.checkedAnomaliesSet.add(anomaly);
+        this.selectionController.select(anomaly);
       }
     });
 
-    this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
+    this.triageMenu!.toggleButtons(this.selectionController.items.length > 0);
     this.requestUpdate();
   }
 
   private checkAnomaly(checkedAnomaly: Anomaly) {
-    this.checkedAnomaliesSet.add(checkedAnomaly);
+    this.selectionController.select(checkedAnomaly);
 
     this.anomalyChecked(null, checkedAnomaly);
   }
@@ -945,9 +941,9 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
       // We do not need to update individual checkboxes here because we are
       // re-rendering the whole table at the end of this function.
       if (checked) {
-        this.checkedAnomaliesSet.add(anomaly);
+        this.selectionController.select(anomaly);
       } else {
-        this.checkedAnomaliesSet.delete(anomaly);
+        this.selectionController.deselect(anomaly);
       }
     });
 
@@ -962,13 +958,13 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     );
 
     // Header checkbox logic is now in the template (auto-calculated) or we update it?
-    // The template calculates isAllSelected/isIndeterminate for the header based on checkedAnomaliesSet.
-    // So if checkedAnomaliesSet is correct, header checkbox will render correctly.
-    // BUT we need to notify Lit that checkedAnomaliesSet changed.
+    // The template calculates isAllSelected/isIndeterminate for the header based on selectionController.
+    // So if selectionController is correct, header checkbox will render correctly.
+    // BUT we need to notify Lit that selectionController changed.
 
     // Also triage menu button state.
     if (this.triageMenu) {
-      this.triageMenu.toggleButtons(this.checkedAnomaliesSet.size > 0);
+      this.triageMenu.toggleButtons(this.selectionController.size > 0);
     }
     this.requestUpdate();
   }
@@ -993,9 +989,9 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     // Actually, if we use @change, the element.checked is already updated by browser.
 
     if (checked) {
-      this.anomalyList.forEach((a) => this.checkedAnomaliesSet.add(a));
+      this.anomalyList.forEach((a) => this.selectionController.select(a));
     } else {
-      this.checkedAnomaliesSet.clear();
+      this.selectionController.clear();
     }
 
     this.dispatchEvent(
@@ -1009,7 +1005,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     );
 
     if (this.triageMenu) {
-      this.triageMenu.toggleButtons(this.checkedAnomaliesSet.size > 0);
+      this.triageMenu.toggleButtons(this.selectionController.size > 0);
     }
     this.requestUpdate();
   }
@@ -1035,6 +1031,10 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
     // Navigate the already-opened tab to the final destination.
     newTab.location.href = url;
+  }
+
+  getCheckedAnomalies(): Anomaly[] {
+    return this.selectionController.items;
   }
 
   async fetchGroupReportApi(idString: string): Promise<any> {
@@ -1133,9 +1133,5 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
       .map((a) => a.id)
       .sort()
       .join('-')}`;
-  }
-
-  getCheckedAnomalies(): Anomaly[] {
-    return Array.from(this.checkedAnomaliesSet);
   }
 }
