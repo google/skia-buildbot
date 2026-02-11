@@ -27,4 +27,8 @@ export class TriageMenuSkPO extends PageObject {
   get ignoreToast(): PageObjectElement {
     return this.bySelector('#ignore_toast');
   }
+
+  get nudgeSelectedButton(): PageObjectElement {
+    return this.bySelector('.buttons > button.selected');
+  }
 }

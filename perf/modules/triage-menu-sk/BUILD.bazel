@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -34,6 +34,10 @@ sk_page(
     html_file = "triage-menu-sk-demo.html",
     scss_entry_point = "triage-menu-sk-demo.scss",
     sk_element_deps = [":triage-menu-sk"],
+    ts_deps = [
+        "//:node_modules/fetch-mock",
+        "//perf/modules/anomalies-table-sk:test_data_ts_lib",
+    ],
     ts_entry_point = "triage-menu-sk-demo.ts",
 )
 
@@ -46,6 +50,20 @@ ts_library(
         "//infra-sk/modules/page_object:page_object_ts_lib",
         "//perf/modules/existing-bug-dialog-sk:existing-bug-dialog-sk_po_ts_lib",
         "//perf/modules/new-bug-dialog-sk:new-bug-dialog-sk_po_ts_lib",
+    ],
+)
+
+sk_element_puppeteer_test(
+    name = "triage-menu-sk_puppeteer_test",
+    src = "triage-menu-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":triage-menu-sk_po_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/puppeteer",
+        "//perf/modules/common:puppeteer-test-util_ts_lib",
+        "//puppeteer-tests:util_ts_lib",
     ],
 )
 

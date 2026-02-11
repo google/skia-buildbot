@@ -6,7 +6,7 @@ import {
 
 /** A page object for the ExistingBugDialogSk component. */
 export class ExistingBugDialogSkPO extends PageObject {
-  private get dialog(): PageObjectElement {
+  get dialog(): PageObjectElement {
     return this.bySelector('dialog');
   }
 
