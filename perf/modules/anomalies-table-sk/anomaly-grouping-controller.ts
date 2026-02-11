@@ -32,6 +32,14 @@ export class AnomalyGroupingController implements ReactiveController {
     this.loadGroupingConfig();
   }
 
+  setConfig(config: AnomalyGroupingConfig) {
+    this.config = { ...config };
+    if (this.config.groupBy && Array.isArray(this.config.groupBy)) {
+      this.config.groupBy = new Set(this.config.groupBy);
+    }
+    this.refreshGrouping();
+  }
+
   setAnomalies(anomalies: Anomaly[]) {
     this.anomalyList = anomalies;
     this.refreshGrouping();

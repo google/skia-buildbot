@@ -10,7 +10,12 @@ import { customElement, property, state } from 'lit/decorators.js';
 
 import '../../../infra-sk/modules/sort-sk';
 import { Anomaly, RegressionBug } from '../json';
-import { AnomalyGroup, RevisionGroupingMode, GroupingCriteria } from './grouping';
+import {
+  AnomalyGroup,
+  RevisionGroupingMode,
+  GroupingCriteria,
+  AnomalyGroupingConfig,
+} from './grouping';
 
 import { formatPercentage, getPercentChange } from '../common/anomaly';
 import '../window/window';
@@ -55,6 +60,15 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   showPopup: boolean = false;
 
   private selectionController = new SelectionController<Anomaly>(this);
+
+  @property({ attribute: false })
+  set config(val: AnomalyGroupingConfig) {
+    this.groupingController.setConfig(val);
+  }
+
+  get config(): AnomalyGroupingConfig {
+    return this.groupingController.config;
+  }
 
   private reportNavigationController = new ReportNavigationController(this);
 
