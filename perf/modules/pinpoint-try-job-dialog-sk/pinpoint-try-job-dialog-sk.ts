@@ -75,7 +75,7 @@ export class PinpointTryJobDialogSk extends ElementSk {
 
   private static template = (ele: PinpointTryJobDialogSk) => html`
     <dialog id='pinpoint-try-job-dialog'>
-      <h2>Request Debug Trace</h2>
+      <h2>Debug Traces</h2>
       <button id="pinpoint-try-job-dialog-close" @click=${ele.closeDialog}>
         <close-icon-sk></close-icon-sk>
       </button>
@@ -92,7 +92,7 @@ export class PinpointTryJobDialogSk extends ElementSk {
       <p>
       <input id="trace-args" type="text" value=${ele.traceArgs}></input>
       <div class=footer>
-        <button id="pinpoint-try-job-dialog-submit" type="Submit">Send to Pinpoint</button>
+        <button id="pinpoint-try-job-dialog-submit" type="Submit">Generate</button>
         <spinner-sk id="dialog-spinner"></spinner-sk>
         ${
           ele.jobUrl

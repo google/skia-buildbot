@@ -27,8 +27,12 @@ bisect-dialog-sk {
     }
     .footer {
       display: flex;
-      justify-content: right;
+      justify-content: left;
     }
+  }
+
+  #icon {
+    font-family: 'Material Icons';
   }
 
   .iron-selected {

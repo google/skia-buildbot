@@ -109,8 +109,4 @@ export class BisectDialogSkPO extends PageObject {
   async clickBisectBtn(): Promise<void> {
     await this.bisectButton.click();
   }
-
-  async clickCloseBtn(): Promise<void> {
-    await this.closeButton.click();
-  }
 }

@@ -101,11 +101,6 @@ describe('bisect-dialog-sk', () => {
       assert.isTrue(await bisectDialogSkPO.isDialogOpen());
       await takeScreenshot(testBed.page, 'perf', 'bisect-dialog-sk-open');
     });
-
-    it('closes the dialog', async () => {
-      await bisectDialogSkPO.clickCloseBtn();
-      assert.isFalse(await bisectDialogSkPO.isDialogOpen());
-    });
   });
 
   describe('when not logged in', () => {

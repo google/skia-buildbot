@@ -13,9 +13,8 @@
  *   end_revision: end revision time from input
  *   story: the last sub_test name from test path
  * Once a validated user submits this dialog, there'll be an attempt to post a bisect
- * request. If succesful, user will see the alert dialog popup at the bottom left of the page
- * and close the dialog. If unsuccesful, an error message toast will appear.
- *
+ * request. If succesful, user will see a pinpoint job URL. If unsuccesful, an
+ * error message popup will appear.
  */
 
 import '../../../elements-sk/modules/select-sk';
@@ -28,13 +27,13 @@ import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 
+import '@material/web/icon/icon.js';
+
 import '../../../elements-sk/modules/icons/close-icon-sk';
-import '../../../elements-sk/modules/toast-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import '../../../infra-sk/modules/alogin-sk/alogin-sk';
-import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 
 const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
 
@@ -70,19 +69,11 @@ export class BisectDialogSk extends ElementSk {
 
   private bisectButton: HTMLButtonElement | null = null;
 
-  private jobId: string = '';
-
-  private _opened: boolean = false;
-
   private jobUrl: string = '';
-
-  private closeBisectToastButton: HTMLButtonElement | null = null;
-
-  private bisectJobToast: ToastSk | null = null;
 
   private static template = (ele: BisectDialogSk) => html`
     <dialog id='bisect-dialog'>
-      <h2>Bisect</h2>
+      <h2>Bisection</h2>
       <button id="bisectCloseIcon" @click=${ele.closeBisectDialog}>
         <close-icon-sk></close-icon-sk>
       </button>
@@ -97,23 +88,21 @@ export class BisectDialogSk extends ElementSk {
       <input id="end-commit" type="text" value=${ele.endCommit}></input>
       <h3>Story</h3>
       <input id="story" type="text" value=${ele.story}></input>
-      <h3>Patch to apply to the entire job(optional)</h3>
+      <h3>Patch to apply to the entire job (optional)</h3>
       <input id="patch" type="text"></input>
       <div class=footer>
-        <spinner-sk id="dialog-spinner"></spinner-sk>
         <button id="submit-button" type="submit" @click=${ele.postBisect}>Bisect</button>
-        <button id="close-btn" @click=${ele.closeBisectDialog} type="button">Close</button>
+        <spinner-sk id="dialog-spinner"></spinner-sk>
+        ${
+          ele.jobUrl
+            ? html`<a href="${ele.jobUrl}" target="_blank">
+                Pinpoint Job Created<md-icon id="icon">open_in_new</md-icon>
+              </a>`
+            : ''
+        }
       </div>
       </form>
     </dialog>
-    <toast-sk id="bisect_toast" duration="5000">
-      <div id="bisect-url">
-        <a href=${ele.jobUrl} target="_blank">Bisect job created: ${ele.jobId}</a>
-      </div>
-      <div class="close-bisect">
-        <button id="hide-bisect-toast" class="action" type="button">Close</button>
-      </div>
-    </toast-sk>
     `;
 
   constructor() {
@@ -134,9 +123,6 @@ export class BisectDialogSk extends ElementSk {
     this.spinner = this.querySelector('#dialog-spinner');
     this.bisectButton = this.querySelector('#submit-button');
     this._form = this.querySelector('#bisect-form');
-    this.closeBisectToastButton = this.querySelector('#hide-bisect-toast');
-    this.bisectJobToast = this.querySelector('#bisect_toast');
-    this.closeBisectToastButton!.addEventListener('click', () => this.bisectJobToast?.hide());
 
     LoggedIn()
       .then((status: LoginStatus) => {
@@ -159,13 +145,11 @@ export class BisectDialogSk extends ElementSk {
   }
 
   open(): void {
-    this._opened = true;
     this._dialog!.showModal();
     this.bisectButton!.disabled = false;
   }
 
   private closeBisectDialog(): void {
-    this._opened = false;
     this._dialog!.close();
   }
 
@@ -249,10 +233,7 @@ export class BisectDialogSk extends ElementSk {
       .then(async (json) => {
         this.bisectButton!.disabled = false;
         this.spinner!.active = false;
-        this.jobId = json.jobId;
         this.jobUrl = json.jobUrl;
-        this.closeBisectDialog();
-        this.bisectJobToast?.show();
         this._render();
       })
       .catch((msg: any) => {

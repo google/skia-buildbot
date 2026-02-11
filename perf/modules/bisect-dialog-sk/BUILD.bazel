@@ -12,10 +12,10 @@ sk_element(
         "//elements-sk/modules/icons/close-icon-sk",
         "//elements-sk/modules/spinner-sk",
         "//elements-sk/modules/select-sk",
-        "//elements-sk/modules/toast-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",
+        "//:node_modules/@material/web",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//elements-sk/modules:upgradeproperty_ts_lib",
