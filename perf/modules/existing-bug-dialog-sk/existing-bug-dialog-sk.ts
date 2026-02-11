@@ -92,6 +92,9 @@ export class ExistingBugDialogSk extends LitElement {
   @state()
   private _busy: boolean = false;
 
+  @state()
+  private _fetchingSuggestions: boolean = false;
+
   createRenderRoot() {
     // Render to the component itself to preserve existing styling mechanisms.
     return this;
@@ -124,7 +127,9 @@ export class ExistingBugDialogSk extends LitElement {
             required autocomplete="off"></input>
           <br></br>
           <div>
-            <spinner-sk id="loading-spinner" ?active=${this._busy}></spinner-sk>
+            <spinner-sk id="loading-spinner" ?active=${
+              this._busy || this._fetchingSuggestions
+            }></spinner-sk>
           </div>
           <div class="bug-list">${this.associatedBugListTemplate()}<div>
           <div class="footer">
@@ -233,7 +238,7 @@ export class ExistingBugDialogSk extends LitElement {
   }
 
   async fetch_associated_bugs() {
-    this._busy = true;
+    this._fetchingSuggestions = true;
 
     await fetch('/_/anomalies/group_report', {
       method: 'POST',
@@ -263,7 +268,7 @@ export class ExistingBugDialogSk extends LitElement {
           await this.fetch_bug_titles(); // Await the fetch_bug_titles() call
         }
       });
-    this._busy = false;
+    this._fetchingSuggestions = false;
   }
 
   private async fetch_associated_bugs_withSid(sid: string) {

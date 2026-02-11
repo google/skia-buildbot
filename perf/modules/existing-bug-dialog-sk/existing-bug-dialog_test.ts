@@ -123,6 +123,8 @@ describe('existing-bug-dialog-sk', () => {
       await fetchMock.flush(true);
       // Assert that the dialog closed on success.
       assert.isFalse(element.isActive);
+      const spinner = element.querySelector('#loading-spinner');
+      assert.isFalse(spinner?.hasAttribute('active'));
     });
 
     it('handles error when adding anomaly to existing bug', async () => {
@@ -145,6 +147,12 @@ describe('existing-bug-dialog-sk', () => {
         errMessage,
         'Associate alerts request failed due to an internal server error. Please try again.'
       );
+
+      // Verify that the dialog is ready for another attempt
+      const spinner = element.querySelector('#loading-spinner');
+      assert.isFalse(spinner?.hasAttribute('active'));
+      const submitButton = element.querySelector('#file-button');
+      assert.isFalse(submitButton?.hasAttribute('disabled'));
     });
 
     it('uses bug id as anomaly key if anomalies list is empty', async () => {
@@ -168,6 +176,37 @@ describe('existing-bug-dialog-sk', () => {
   });
 
   describe('fetch associated bugs', () => {
+    it('does not disable submit button while fetching', async () => {
+      const anomalies = [dummyAnomaly(12345)];
+      element.anomalies = anomalies;
+      element.traceNames = [];
+
+      let resolveFetch: (value: any) => void;
+      const fetchPromise = new Promise((resolve) => {
+        resolveFetch = resolve;
+      });
+
+      fetchMock.post('/_/anomalies/group_report', fetchPromise);
+      fetchMock.post('/_/triage/list_issues', { issues: [] });
+
+      const fetchCall = element.fetch_associated_bugs();
+      await element.updateComplete;
+
+      // Spinner should be active
+      const spinner = element.querySelector('#loading-spinner');
+      assert.isTrue(spinner?.hasAttribute('active'));
+
+      // Submit button should NOT be disabled
+      const submitButton = element.querySelector('#file-button');
+      assert.isFalse(submitButton?.hasAttribute('disabled'));
+
+      resolveFetch!({ anomaly_list: anomalies });
+      await fetchCall;
+
+      // Spinner should be inactive
+      assert.isFalse(spinner?.hasAttribute('active'));
+    });
+
     it('successfully fetches associated bugs', async () => {
       const anomalies = [dummyAnomaly(12345), dummyAnomaly(67890)];
       element.anomalies = anomalies;
