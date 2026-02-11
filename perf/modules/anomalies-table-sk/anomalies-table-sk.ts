@@ -5,9 +5,8 @@
  * Display table of anomalies
  */
 
-import { html, TemplateResult } from 'lit/html.js';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { define } from '../../../elements-sk/modules/define';
+import { html, TemplateResult, LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import '../../../infra-sk/modules/sort-sk';
 import { Anomaly, GetGroupReportResponse, RegressionBug, Timerange } from '../json';
@@ -50,16 +49,20 @@ interface ProcessedAnomaly {
   isImprovement: boolean;
 }
 
-export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandler {
+@customElement('anomalies-table-sk')
+export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHandler {
   onOpenHelp(): void {
     const help = this.querySelector('keyboard-shortcuts-help-sk') as KeyboardShortcutsHelpSk;
     help.open();
   }
 
+  @state()
   anomalyList: Anomaly[] = [];
 
+  @state()
   anomalyGroups: AnomalyGroup[] = [];
 
+  @state()
   showPopup: boolean = false;
 
   private checkedAnomaliesSet: Set<Anomaly> = new Set<Anomaly>();
@@ -76,19 +79,24 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
   getGroupReportResponse: GetGroupReportResponse | null = null;
 
+  @state()
   private loadingGraphForAnomaly: Map<string, boolean> = new Map<string, boolean>();
 
   private uniqueId =
     'anomalies-table-sk-' + new Date().getTime() + '-' + Math.floor(Math.random() * 1000);
 
+  @state()
   currentConfig: AnomalyGroupingConfig = {
     revisionMode: 'OVERLAPPING',
     groupBy: new Set(['BENCHMARK']),
     groupSingles: true,
   };
 
-  constructor() {
-    super(AnomaliesTableSk.template);
+  @property({ type: Boolean, attribute: 'show-requested-groups-first', reflect: true })
+  show_requested_groups_first: boolean = false;
+
+  createRenderRoot() {
+    return this;
   }
 
   public openAnomalyChartListener = async (e: Event) => {
@@ -106,31 +114,31 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
   async connectedCallback() {
     super.connectedCallback();
     this.loadGroupingConfig();
-    this._render();
+    // this.render(); // LitElement handles initial render
 
-    this.triageMenu = this.querySelector(`#triage-menu-${this.uniqueId}`);
-    this.triageMenu!.disableNudge();
-    this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
-    this.headerCheckbox = this.querySelector(
-      `#header-checkbox-${this.uniqueId}`
-    ) as HTMLInputElement;
+    // Move queries to firstUpdated or check for existence
     this.traceFormatter = new ChromeTraceFormatter();
     this.addEventListener('click', (e: Event) => {
       const triageButton = this.querySelector(`#triage-button-${this.uniqueId}`);
       const popup = this.querySelector('.popup');
       if (this.showPopup && !popup!.contains(e.target as Node) && e.target !== triageButton) {
         this.showPopup = false;
-        this._render();
+        // this.render();
       }
     });
-    this.addEventListener('anomaly-changed', () => {
-      if (this.showPopup) {
-        this.togglePopup();
-        this._render();
-      }
-    });
-    this._upgradeProperty('show_requested_groups_first');
+    this.addEventListener('open-anomaly-chart', this.openAnomalyChartListener);
     window.addEventListener('keydown', this.keyDown);
+  }
+
+  protected firstUpdated() {
+    this.triageMenu = this.querySelector(`#triage-menu-${this.uniqueId}`);
+    if (this.triageMenu) {
+      this.triageMenu.disableNudge();
+      this.triageMenu.toggleButtons(this.checkedAnomaliesSet.size > 0);
+    }
+    this.headerCheckbox = this.querySelector(
+      `#header-checkbox-${this.uniqueId}`
+    ) as HTMLInputElement;
   }
 
   disconnectedCallback() {
@@ -151,7 +159,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
   onTriagePositive(): void {
     this.showPopup = true;
-    this._render();
+    // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
     this.triageMenu!.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
@@ -160,7 +168,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
   onTriageNegative(): void {
     this.showPopup = true;
-    this._render();
+    // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
     this.triageMenu!.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
@@ -169,7 +177,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
   onTriageExisting(): void {
     this.showPopup = true;
-    this._render();
+    // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
     this.triageMenu!.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
@@ -281,7 +289,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
   private refreshGrouping() {
     this.saveGroupingConfig();
     this.anomalyGroups = groupAnomalies(this.anomalyList, this.currentConfig);
-    this._render();
+    // this.render();
   }
 
   private loadGroupingConfig() {
@@ -310,36 +318,84 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     localStorage.setItem(GROUPING_CONFIG_STORAGE_KEY, JSON.stringify(configToStore));
   }
 
-  private static template = (ele: AnomaliesTableSk) => html`
-    <div class="filter-buttons" ?hidden="${ele.anomalyList.length === 0}">
-      <button
-        id="triage-button-${ele.uniqueId}"
-        @click="${ele.togglePopup}"
-        ?disabled="${ele.checkedAnomaliesSet.size === 0}">
-        Triage Selected
-      </button>
-      <button
-        id="graph-button-${ele.uniqueId}"
-        @click="${ele.openReport}"
-        ?disabled="${ele.checkedAnomaliesSet.size === 0}">
-        Graph Selected
-      </button>
-      <button
-        id="open-group-button-${ele.uniqueId}"
-        @click="${ele.openAnomalyGroupReportPage}"
-        ?disabled="${ele.checkedAnomaliesSet.size === 0}">
-        Graph Selected by Group
-      </button>
-      ${ele.groupingSettingsTemplate()}
-    </div>
-    <div class="popup-container" ?hidden="${!ele.showPopup}">
-      <div class="popup">
-        <triage-menu-sk id="triage-menu-${ele.uniqueId}"></triage-menu-sk>
+  render() {
+    const totalCount = this.anomalyList.length;
+    const selectedCount = this.checkedAnomaliesSet.size;
+
+    // Checked only if ALL are selected
+    const isAllSelected = totalCount > 0 && selectedCount === totalCount;
+    // Indeterminate if SOME (but not all) are selected
+    const isIndeterminate = selectedCount > 0 && selectedCount < totalCount;
+
+    return html`
+      <div class="filter-buttons" ?hidden="${this.anomalyList.length === 0}">
+        <button
+          id="triage-button-${this.uniqueId}"
+          @click="${this.togglePopup}"
+          ?disabled="${this.checkedAnomaliesSet.size === 0}">
+          Triage Selected
+        </button>
+        <button
+          id="graph-button-${this.uniqueId}"
+          @click="${this.openReport}"
+          ?disabled="${this.checkedAnomaliesSet.size === 0}">
+          Graph Selected
+        </button>
+        <button
+          id="open-group-button-${this.uniqueId}"
+          @click="${this.openAnomalyGroupReportPage}"
+          ?disabled="${this.checkedAnomaliesSet.size === 0}">
+          Graph Selected by Group
+        </button>
+        ${this.groupingSettingsTemplate()}
       </div>
-    </div>
-    ${ele.generateTable()}
-    <h1 id="clear-msg-${ele.uniqueId}" hidden>All anomalies are triaged!</h1>
-  `;
+      <div class="popup-container" ?hidden="${!this.showPopup}">
+        <div class="popup">
+          <triage-menu-sk id="triage-menu-${this.uniqueId}"></triage-menu-sk>
+        </div>
+      </div>
+      <sort-sk id="as_table-${this.uniqueId}" target="rows-${this.uniqueId}">
+        <table
+          id="anomalies-table-${this.uniqueId}"
+          class="anomalies-table"
+          ?hidden=${this.anomalyList.length === 0}>
+          <tr class="headers">
+            <th id="group-${this.uniqueId}"></th>
+            <th id="checkbox-${this.uniqueId}">
+              <label for="header-checkbox-${this.uniqueId}"
+                ><input
+                  type="checkbox"
+                  id="header-checkbox-${this.uniqueId}"
+                  .checked=${isAllSelected}
+                  .indeterminate=${isIndeterminate}
+                  @change=${() => {
+                    this.toggleAllCheckboxes();
+                  }}
+              /></label>
+            </th>
+            <th id="graph_header-${this.uniqueId}">Chart</th>
+            <th id="bug_id-${this.uniqueId}" data-key="bugid">Bug ID</th>
+            <th id="revision_range-${this.uniqueId}" data-key="revisions" data-default="down">
+              Revisions
+            </th>
+            <th id="bot-${this.uniqueId}" data-key="bot" data-sort-type="alpha">Bot</th>
+            <th id="testsuite-${this.uniqueId}" data-key="testsuite" data-sort-type="alpha">
+              Test Suite
+            </th>
+            <th id="test-${this.uniqueId}" data-key="test" data-sort-type="alpha">Test</th>
+            <th id="percent_changed-${this.uniqueId}" data-key="delta">Delta %</th>
+          </tr>
+          <tbody id="rows-${this.uniqueId}">
+            ${this.generateGroups()}
+          </tbody>
+        </table>
+      </sort-sk>
+      <keyboard-shortcuts-help-sk .handler=${this}></keyboard-shortcuts-help-sk>
+      <h1 id="clear-msg-${this.uniqueId}" ?hidden=${this.anomalyList.length > 0}>
+        All anomalies are triaged!
+      </h1>
+    `;
+  }
 
   async openReportForAnomalyIds(anomalies: Anomaly[]) {
     const idList = anomalies.map((a) => a.id);
@@ -407,56 +463,11 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     this.showPopup = !this.showPopup;
     if (this.showPopup) {
       const triageMenu = this.querySelector(`#triage-menu-${this.uniqueId}`) as TriageMenuSk;
-      triageMenu.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
+      if (triageMenu) {
+        triageMenu.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
+      }
     }
-    this._render();
-  }
-
-  private generateTable() {
-    const totalCount = this.anomalyList.length;
-    const selectedCount = this.checkedAnomaliesSet.size;
-
-    // Checked only if ALL are selected
-    const isAllSelected = totalCount > 0 && selectedCount === totalCount;
-    // Indeterminate if SOME (but not all) are selected
-    const isIndeterminate = selectedCount > 0 && selectedCount < totalCount;
-
-    return html`
-      <sort-sk id="as_table-${this.uniqueId}" target="rows-${this.uniqueId}">
-        <table id="anomalies-table-${this.uniqueId}" class="anomalies-table" hidden>
-          <tr class="headers">
-            <th id="group-${this.uniqueId}"></th>
-            <th id="checkbox-${this.uniqueId}">
-              <label for="header-checkbox-${this.uniqueId}"
-                ><input
-                  type="checkbox"
-                  id="header-checkbox-${this.uniqueId}"
-                  .checked=${isAllSelected}
-                  .indeterminate=${isIndeterminate}
-                  @change=${() => {
-                    this.toggleAllCheckboxes();
-                  }}
-              /></label>
-            </th>
-            <th id="graph_header-${this.uniqueId}">Chart</th>
-            <th id="bug_id-${this.uniqueId}" data-key="bugid">Bug ID</th>
-            <th id="revision_range-${this.uniqueId}" data-key="revisions" data-default="down">
-              Revisions
-            </th>
-            <th id="bot-${this.uniqueId}" data-key="bot" data-sort-type="alpha">Bot</th>
-            <th id="testsuite-${this.uniqueId}" data-key="testsuite" data-sort-type="alpha">
-              Test Suite
-            </th>
-            <th id="test-${this.uniqueId}" data-key="test" data-sort-type="alpha">Test</th>
-            <th id="percent_changed-${this.uniqueId}" data-key="delta">Delta %</th>
-          </tr>
-          <tbody id="rows-${this.uniqueId}">
-            ${this.generateGroups()}
-          </tbody>
-        </table>
-      </sort-sk>
-      <keyboard-shortcuts-help-sk .handler=${this}></keyboard-shortcuts-help-sk>
-    `;
+    // this.render();
   }
 
   private isGroupInitiallyRequested(group: AnomalyGroup): boolean {
@@ -510,7 +521,18 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       } else {
         this.checkedAnomaliesSet.delete(a);
       }
+    } else {
+      // If checkbox isn't passed (e.g. from tests or logic), toggle or ensure logic is right.
+      // But typically we rely on set logic.
+      if (this.checkedAnomaliesSet.has(a)) {
+        // If we are unchecking
+        this.checkedAnomaliesSet.delete(a);
+      } else {
+        this.checkedAnomaliesSet.add(a);
+      }
     }
+    // Need to trigger update because Set is not observed
+    this.requestUpdate();
 
     this.dispatchEvent(
       new CustomEvent('anomalies_checked', {
@@ -522,12 +544,14 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       })
     );
 
-    this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
+    if (this.triageMenu) {
+      this.triageMenu.toggleButtons(this.checkedAnomaliesSet.size > 0);
+    }
   }
 
   private anomalyChecked(chkbox: HTMLInputElement | null, a: Anomaly) {
     this._updateCheckedState(chkbox, a);
-    this._render();
+    // this.render();
   }
 
   private getProcessedAnomaly(anomaly: Anomaly): ProcessedAnomaly {
@@ -586,7 +610,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
                 @change=${(e: Event) => {
                   this.anomalyChecked(e.target as HTMLInputElement, anomaly);
                 }}
-                ?checked=${this.checkedAnomaliesSet.has(anomaly)}
+                .checked=${this.checkedAnomaliesSet.has(anomaly)}
                 id="anomaly-row-${this.uniqueId}-${anomaly.id}"
             /></label>
           </td>
@@ -603,12 +627,12 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
                       }
 
                       this.loadingGraphForAnomaly.set(anomaly.id, true);
-                      this._render();
+                      this.requestUpdate();
 
                       await this.openMultiGraphUrl(anomaly, newTab);
 
                       this.loadingGraphForAnomaly.set(anomaly.id, false);
-                      this._render();
+                      this.requestUpdate();
                     }}>
                     <trending-up-icon-sk></trending-up-icon-sk>
                   </button>
@@ -854,7 +878,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
 
   expandGroup(anomalyGroup: AnomalyGroup) {
     anomalyGroup.expanded = !anomalyGroup.expanded;
-    this._render();
+    this.requestUpdate();
   }
 
   computeRevisionRange(start: number | null, end: number | null): string {
@@ -870,18 +894,17 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
   async populateTable(anomalyList: Anomaly[]): Promise<void> {
     this.initiallyRequestedAnomalyIDs.clear();
     this.checkedAnomaliesSet.clear();
-    const msg = this.querySelector(`#clear-msg-${this.uniqueId}`) as HTMLHeadingElement;
-    const table = this.querySelector(`#anomalies-table-${this.uniqueId}`) as HTMLTableElement;
-    if (anomalyList.length > 0) {
-      msg.hidden = true;
-      table.hidden = false;
-      this.anomalyList = anomalyList;
+
+    // We update state, Lit handles DOM updates.
+    // However, if anomalyList is empty, we show clear-msg and hide table.
+    // In Render, we have logic for ?hidden.
+
+    // We must assign to this.anomalyList to trigger update.
+    this.anomalyList = anomalyList;
+    if (this.anomalyList.length > 0) {
       this.anomalyGroups = groupAnomalies(this.anomalyList, this.currentConfig);
-      this._render();
-    } else {
-      msg.hidden = false;
-      table.hidden = true;
     }
+    // this.render(); handled by state change
   }
 
   /**
@@ -897,7 +920,13 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
     });
 
     this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
-    this._render();
+    this.requestUpdate();
+  }
+
+  private checkAnomaly(checkedAnomaly: Anomaly) {
+    this.checkedAnomaliesSet.add(checkedAnomaly);
+
+    this.anomalyChecked(null, checkedAnomaly);
   }
 
   /**
@@ -932,19 +961,16 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       })
     );
 
-    // Update header checkbox state.
-    if (this.checkedAnomaliesSet.size === 0) {
-      this.headerCheckbox!.indeterminate = false;
-      this.headerCheckbox!.checked = false;
-    } else if (this.checkedAnomaliesSet.size === this.anomalyList.length) {
-      this.headerCheckbox!.indeterminate = false;
-      this.headerCheckbox!.checked = true;
-    } else {
-      this.headerCheckbox!.checked = false;
-    }
+    // Header checkbox logic is now in the template (auto-calculated) or we update it?
+    // The template calculates isAllSelected/isIndeterminate for the header based on checkedAnomaliesSet.
+    // So if checkedAnomaliesSet is correct, header checkbox will render correctly.
+    // BUT we need to notify Lit that checkedAnomaliesSet changed.
 
-    this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
-    this._render();
+    // Also triage menu button state.
+    if (this.triageMenu) {
+      this.triageMenu.toggleButtons(this.checkedAnomaliesSet.size > 0);
+    }
+    this.requestUpdate();
   }
 
   /**
@@ -953,8 +979,18 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
    * anomalies at once.
    */
   toggleAllCheckboxes() {
-    const checked = this.headerCheckbox!.checked;
-    this.headerCheckbox!.indeterminate = false;
+    // Header checkbox state is not automatically available if we use .checked=${...} property binding
+    // without also reading 'changed' event target.
+    // But inside the event handler in render(), we call this.
+    // We should look at headerCheckbox element or just toggle based on current state.
+
+    // Better: check the element state.
+    const headerCheckbox = this.querySelector(
+      `#header-checkbox-${this.uniqueId}`
+    ) as HTMLInputElement;
+    const checked = headerCheckbox.checked;
+
+    // Actually, if we use @change, the element.checked is already updated by browser.
 
     if (checked) {
       this.anomalyList.forEach((a) => this.checkedAnomaliesSet.add(a));
@@ -972,8 +1008,10 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       })
     );
 
-    this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
-    this._render();
+    if (this.triageMenu) {
+      this.triageMenu.toggleButtons(this.checkedAnomaliesSet.size > 0);
+    }
+    this.requestUpdate();
   }
 
   // openMultiGraphLink generates a multi-graph url for the given parameters
@@ -1073,8 +1111,15 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
   }
 
   initialCheckAllCheckbox() {
-    this.headerCheckbox!.checked = true;
-    this.toggleAllCheckboxes();
+    // This expects DOM to be ready.
+    // If called before render, headerCheckbox might be null.
+    // In legacy, it was called manually?
+    // It seems unused in the provided code snippet, but might be used by parent.
+    // Safe to check for null.
+    if (this.headerCheckbox) {
+      this.headerCheckbox.checked = true;
+      this.toggleAllCheckboxes();
+    }
   }
 
   /**
@@ -1090,17 +1135,7 @@ export class AnomaliesTableSk extends ElementSk implements KeyboardShortcutHandl
       .join('-')}`;
   }
 
-  get show_requested_groups_first(): boolean {
-    return this.hasAttribute('show_requested_groups_first');
-  }
-
-  set show_requested_groups_first(val: boolean) {
-    if (val) {
-      this.setAttribute('show_requested_groups_first', '');
-    } else {
-      this.removeAttribute('show_requested_groups_first');
-    }
+  getCheckedAnomalies(): Anomaly[] {
+    return Array.from(this.checkedAnomaliesSet);
   }
 }
-
-define('anomalies-table-sk', AnomaliesTableSk);

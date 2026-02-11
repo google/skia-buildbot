@@ -12,8 +12,8 @@ import {
   mockAssociatedIssues,
 } from './test_data';
 
-function delay(time: number) {
-  return new Promise((resolve) => setTimeout(resolve, time));
+async function delay(time: number) {
+  return await new Promise((resolve) => setTimeout(resolve, time));
 }
 
 fetchMock.post('/_/triage/file_bug', async () => {

@@ -120,6 +120,7 @@ describe('anomalies-table-sk', () => {
       // Mock shortcut update call to prevent console errors in test
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
       await element.populateTable(anomalies);
+      await element.updateComplete;
       assert.equal(element.anomalyList.length, 1);
     });
   });
@@ -131,6 +132,7 @@ describe('anomalies-table-sk', () => {
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
 
       await element.populateTable(anomalies);
+      await element.updateComplete;
       await element.checkSelectedAnomalies(anomalies);
       await element.openReport();
       sinon.assert.calledOnce(spy);
@@ -153,6 +155,7 @@ describe('anomalies-table-sk', () => {
       ];
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       element.checkSelectedAnomalies(anomalies);
 
@@ -178,6 +181,7 @@ describe('anomalies-table-sk', () => {
       ];
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       element.checkSelectedAnomalies(anomalies);
 
@@ -196,6 +200,7 @@ describe('anomalies-table-sk', () => {
       const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1')];
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       element.checkSelectedAnomalies(anomalies);
 
@@ -215,6 +220,7 @@ describe('anomalies-table-sk', () => {
       ];
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       element.checkSelectedAnomalies(anomalies);
 
@@ -236,6 +242,7 @@ describe('anomalies-table-sk', () => {
       ];
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       element.checkSelectedAnomalies(anomalies);
 
@@ -256,6 +263,7 @@ describe('anomalies-table-sk', () => {
       ];
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       // Check multi-anomaly group.
       element.checkSelectedAnomalies(anomalies);
@@ -280,6 +288,7 @@ describe('anomalies-table-sk', () => {
       ];
       element.anomalyList = anomalies;
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       // Check multi-anomaly group.
       element.checkSelectedAnomalies(anomalies);
@@ -642,6 +651,8 @@ describe('anomalies-table-sk', () => {
 
     it('calls toggleButtons on triageMenu with true when anomalies are selected', async () => {
       const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
+      // Wait for element to render so triage-menu-sk exists
+      await element.updateComplete;
       // Stub triageMenu to spy on toggleButtons.
       const triageMenu = element.querySelector('triage-menu-sk') as any;
       const toggleButtonsSpy = sinon.spy(triageMenu, 'toggleButtons');
@@ -654,6 +665,8 @@ describe('anomalies-table-sk', () => {
     });
 
     it('calls toggleButtons on triageMenu with false when no anomalies are selected', async () => {
+      // Wait for element to render so triage-menu-sk exists
+      await element.updateComplete;
       // Stub triageMenu to spy on toggleButtons.
       const triageMenu = element.querySelector('triage-menu-sk') as any;
       const toggleButtonsSpy = sinon.spy(triageMenu, 'toggleButtons');
@@ -677,6 +690,7 @@ describe('anomalies-table-sk', () => {
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
       await fetchMock.flush(true);
       await element.populateTable(anomalies);
+      await element.updateComplete;
       const group = element.anomalyGroups[0];
       const suummarycheckboxid = element.getGroupId(group);
       const summarycheckbox = element.querySelector(
@@ -685,6 +699,7 @@ describe('anomalies-table-sk', () => {
       summarycheckbox.checked = true;
       element.toggleChildrenCheckboxes(group);
       element.expandGroup(group);
+      await element.updateComplete;
 
       const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
       assert.lengthOf(checkedAnomalies, 2);
@@ -710,6 +725,7 @@ describe('anomalies-table-sk', () => {
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
       await fetchMock.flush(true);
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       const headerCheckbox = element.querySelector('[id^="header-checkbox-"]') as HTMLInputElement;
       headerCheckbox.checked = true;
@@ -717,6 +733,7 @@ describe('anomalies-table-sk', () => {
       // Expand the group so we can check the children checkboxes
       const group = element.anomalyGroups[0];
       element.expandGroup(group);
+      await element.updateComplete;
 
       const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
       assert.lengthOf(checkedAnomalies, 2);
@@ -739,9 +756,11 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
       ];
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       // Select only one anomaly (id: 1)
       await element.checkSelectedAnomalies([anomalies[0]]);
+      await element.updateComplete;
 
       const group = element.anomalyGroups[0];
       const summaryCheckboxId = element.getGroupId(group);
@@ -760,9 +779,11 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
       ];
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       // Select ALL anomalies
       await element.checkSelectedAnomalies(anomalies);
+      await element.updateComplete;
 
       const group = element.anomalyGroups[0];
       const summaryCheckboxId = element.getGroupId(group);
@@ -781,6 +802,7 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
       ];
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       // Select only one anomaly
       await element.checkSelectedAnomalies([anomalies[0]]);
@@ -797,6 +819,7 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
       ];
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       // Select all anomalies
       await element.checkSelectedAnomalies(anomalies);
@@ -860,6 +883,7 @@ describe('anomalies-table-sk', () => {
       anomalies[2].median_after_anomaly = 90; // -10% regression
 
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       const summaryRow = element.querySelector('tr[data-bugid="12345"]');
       assert.isNotNull(summaryRow);
@@ -870,6 +894,17 @@ describe('anomalies-table-sk', () => {
       assert.equal(cells[7].textContent?.trim(), 'test*');
       assert.equal(cells[8].textContent?.trim(), '-20%');
       assert.include(cells[8].className, 'regression');
+    });
+  });
+
+  describe('get checked anomalies', () => {
+    it('returns the currently checked anomalies', async () => {
+      const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
+      await element.populateTable(anomalies);
+      await element.updateComplete;
+      element.checkSelectedAnomalies(anomalies);
+      const checked = element.getCheckedAnomalies();
+      assert.deepEqual(checked, anomalies);
     });
   });
 
@@ -908,8 +943,10 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('2', 0, 100, 200, 'master/bot/suite/test2'),
       ];
       await element.populateTable(anomalies);
+      await element.updateComplete;
       element.initialCheckAllCheckbox();
       element.anomalyGroups.forEach((g) => element.expandGroup(g));
+      await element.updateComplete;
 
       const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
       assert.lengthOf(checkedAnomalies, 2);
@@ -930,8 +967,10 @@ describe('anomalies-table-sk', () => {
       ];
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
       await element.populateTable(anomalies);
+      await element.updateComplete;
       element.initialCheckAllCheckbox();
       element.anomalyGroups.forEach((g) => element.expandGroup(g));
+      await element.updateComplete;
 
       // Check individual anomaly checkboxes
       assert.isTrue(
@@ -974,10 +1013,12 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
       ];
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       // Expand the group to make individual anomaly rows visible.
       const group = element.anomalyGroups[0];
       element.expandGroup(group);
+      await element.updateComplete;
 
       const checkbox1 = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
       assert.isNotNull(checkbox1, 'Checkbox for anomaly 1 should exist.');
@@ -985,6 +1026,7 @@ describe('anomalies-table-sk', () => {
 
       // Simulate a single click.
       checkbox1.click();
+      await element.updateComplete;
 
       assert.isTrue(checkbox1.checked, 'Checkbox should be checked after one click.');
       const checkedAnomalies = Array.from((element as any).checkedAnomaliesSet as Set<Anomaly>);
@@ -1160,13 +1202,15 @@ describe('anomalies-table-sk', () => {
       const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       // Select an anomaly
       const checkbox = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
       checkbox.click();
+      await element.updateComplete;
 
       // Mock triage menu methods
-      const triageMenu = element.querySelector('triage-menu-sk') as HTMLElement & {
+      const triageMenu = element.querySelector('triage-menu-sk') as unknown as HTMLElement & {
         fileBug: sinon.SinonSpy;
         ignoreAnomaly: sinon.SinonSpy;
         openExistingBugDialog: sinon.SinonSpy;
@@ -1203,10 +1247,12 @@ describe('anomalies-table-sk', () => {
       const anomalies = [dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test')];
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       // Select an anomaly
       const checkbox = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
       checkbox.click();
+      await element.updateComplete;
 
       const openReportSpy = sinon.spy(element, 'openReport');
       const openGroupReportSpy = sinon.spy(element, 'openAnomalyGroupReportPage');
@@ -1226,14 +1272,17 @@ describe('anomalies-table-sk', () => {
       const anomalies = [anomaly1, anomaly2];
       fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
       await element.populateTable(anomalies);
+      await element.updateComplete;
 
       // Expand the group so child checkboxes are rendered
       const group = element.anomalyGroups[0];
       element.expandGroup(group);
+      await element.updateComplete;
 
       // Select only one anomaly in the group
       const checkbox = element.querySelector('[id^="anomaly-row-"][id$="-1"]') as HTMLInputElement;
       checkbox.click();
+      await element.updateComplete;
 
       const openGroupReportSpy = sinon.spy(element, 'openAnomalyGroupReportPage');
       const openReportForAnomalyIdsSpy = sinon.spy(element, 'openReportForAnomalyIds');

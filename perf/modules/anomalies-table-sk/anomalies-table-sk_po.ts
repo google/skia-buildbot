@@ -182,7 +182,7 @@ export class AnomaliesTableSkPO extends PageObject {
 
   async getBugTooltip(index: number): Promise<PageObjectElement> {
     const bugTooltips = await this.bugTooltips;
-    return bugTooltips.item(index);
+    return await bugTooltips.item(index);
   }
 
   async toggleGroupingSettings(shouldBeOpen: boolean): Promise<void> {
