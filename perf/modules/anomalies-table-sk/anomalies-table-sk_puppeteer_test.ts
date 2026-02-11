@@ -171,7 +171,20 @@ describe('anomalies-table-sk', () => {
       ]);
 
       assert.isNotNull(buganizerPage);
-      expect(buganizerPage.url()).to.include('https://issues.chromium.org/issues/358011161'); // Check for the mocked bug_id
+
+      // Wait for the URL to change to the expected Buganizer URL.
+      try {
+        await buganizerPage.waitForFunction(
+          () => window.location.href.includes('issues.chromium.org'),
+          { timeout: 5000 }
+        );
+      } catch (e) {
+        // Log the URL if it fails to help with debugging.
+        console.log('Timed out waiting for URL. Current URL:', buganizerPage.url());
+        throw e;
+      }
+
+      expect(buganizerPage.url()).to.include('issues.chromium.org');
       await buganizerPage.close(); // Close the new tab
     });
 

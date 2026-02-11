@@ -37,6 +37,7 @@ sk_element(
         ":selection-controller_ts_lib",
         ":report-navigation-controller_ts_lib",
         ":anomaly-grouping-controller_ts_lib",
+        ":anomalies-grouping-settings-sk_ts_lib",
     ],
     ts_srcs = [
         "anomalies-table-sk.ts",
@@ -193,5 +194,27 @@ ts_library(
         ":grouping_ts_lib",
         "//:node_modules/lit",
         "//perf/modules/json:index_ts_lib",
+    ],
+)
+
+ts_library(
+    name = "anomalies-grouping-settings-sk_ts_lib",
+    srcs = ["anomalies-grouping-settings-sk.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":grouping_ts_lib",
+        "//:node_modules/lit",
+    ],
+)
+
+karma_test(
+    name = "anomalies-grouping-settings-sk_test",
+    src = "anomalies-grouping-settings-sk_test.ts",
+    deps = [
+        ":anomalies-grouping-settings-sk_ts_lib",
+        ":grouping_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
     ],
 )

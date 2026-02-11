@@ -10,7 +10,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 
 import '../../../infra-sk/modules/sort-sk';
 import { Anomaly, RegressionBug } from '../json';
-import { AnomalyGroup, RevisionGroupingMode } from './grouping';
+import { AnomalyGroup, RevisionGroupingMode, GroupingCriteria } from './grouping';
 
 import { formatPercentage, getPercentChange } from '../common/anomaly';
 import '../window/window';
@@ -28,6 +28,7 @@ import { KeyboardShortcutsHelpSk } from '../keyboard-shortcuts-help-sk/keyboard-
 import { SelectionController } from './selection-controller';
 import { ReportNavigationController } from './report-navigation-controller';
 import { AnomalyGroupingController } from './anomaly-grouping-controller';
+import './anomalies-grouping-settings-sk';
 import '../bug-tooltip-sk/bug-tooltip-sk';
 
 interface ProcessedAnomaly {
@@ -176,95 +177,17 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   private groupingSettingsTemplate() {
     return html`
-      <details class="grouping-settings">
-        <summary>Grouping Settings</summary>
-        <div class="grouping-settings-panel">
-          <div class="grouping-setting-group">
-            <label class="grouping-setting-label">Commit Range Strategy</label>
-            <select
-              id="revision-mode-select-${this.uniqueId}"
-              @change=${(e: Event) =>
-                this.groupingController.setRevisionMode(
-                  (e.target as HTMLSelectElement).value as RevisionGroupingMode
-                )}>
-              <option
-                value="OVERLAPPING"
-                ?selected=${this.groupingController.config.revisionMode === 'OVERLAPPING'}>
-                Overlapping Ranges
-              </option>
-              <option
-                value="EXACT"
-                ?selected=${this.groupingController.config.revisionMode === 'EXACT'}>
-                Exact Range Only
-              </option>
-              <option
-                value="ANY"
-                ?selected=${this.groupingController.config.revisionMode === 'ANY'}>
-                Ignore Range (Group All)
-              </option>
-            </select>
-          </div>
-
-          <div class="grouping-setting-group">
-            <label class="grouping-setting-label">Single Anomalies Strategy</label>
-            <div class="checkbox-container">
-              <label title="If unchecked, single anomalies will not be forced into groups">
-                <input
-                  type="checkbox"
-                  ?checked=${this.groupingController.config.groupSingles}
-                  @change=${(e: Event) =>
-                    this.groupingController.setGroupSingles(
-                      (e.target as HTMLInputElement).checked
-                    )} />
-                Group remaining single anomalies by selected criteria (may lead to grouping of
-                unrelated anomalies!)
-              </label>
-            </div>
-          </div>
-
-          <div class="grouping-setting-group">
-            <label class="grouping-setting-label">Split Groups By</label>
-            <div class="checkbox-container">
-              <label>
-                <input
-                  type="checkbox"
-                  value="BENCHMARK"
-                  ?checked=${this.groupingController.config.groupBy.has('BENCHMARK')}
-                  @change=${(e: Event) =>
-                    this.groupingController.toggleGroupBy(
-                      'BENCHMARK',
-                      (e.target as HTMLInputElement).checked
-                    )} />
-                Benchmark
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  value="BOT"
-                  ?checked=${this.groupingController.config.groupBy.has('BOT')}
-                  @change=${(e: Event) =>
-                    this.groupingController.toggleGroupBy(
-                      'BOT',
-                      (e.target as HTMLInputElement).checked
-                    )} />
-                Bot
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  value="TEST"
-                  ?checked=${this.groupingController.config.groupBy.has('TEST')}
-                  @change=${(e: Event) =>
-                    this.groupingController.toggleGroupBy(
-                      'TEST',
-                      (e.target as HTMLInputElement).checked
-                    )} />
-                Test (without subtests)
-              </label>
-            </div>
-          </div>
-        </div>
-      </details>
+      <anomalies-grouping-settings-sk
+        .config=${{ ...this.groupingController.config }}
+        @revision-mode-change=${(e: CustomEvent<RevisionGroupingMode>) =>
+          this.groupingController.setRevisionMode(e.detail)}
+        @group-singles-change=${(e: CustomEvent<boolean>) =>
+          this.groupingController.setGroupSingles(e.detail)}
+        @group-by-change=${(e: CustomEvent<{ criteria: GroupingCriteria; enabled: boolean }>) =>
+          this.groupingController.toggleGroupBy(
+            e.detail.criteria,
+            e.detail.enabled
+          )}></anomalies-grouping-settings-sk>
     `;
   }
 

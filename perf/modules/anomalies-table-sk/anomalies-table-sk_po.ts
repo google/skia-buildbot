@@ -200,7 +200,7 @@ export class AnomaliesTableSkPO extends PageObject {
     await this.toggleGroupingSettings(true); // Open
 
     const select = await this.groupingSettingsDetails.bySelector(
-      'select[id^="revision-mode-select-"]'
+      'select[id^="revision-mode-select"]'
     );
 
     await select.applyFnToDOMNode((el, mode) => {
