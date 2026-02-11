@@ -11,7 +11,7 @@ describe('triage-menu-sk', () => {
   const newInstance = setUpElementUnderTest<TriageMenuSk>('triage-menu-sk');
   fetchMock.config.overwriteRoutes = false;
   let element: TriageMenuSk;
-  beforeEach(() => {
+  beforeEach(async () => {
     window.perf = {
       dev_mode: false,
       instance_url: '',
@@ -52,6 +52,7 @@ describe('triage-menu-sk', () => {
     };
 
     element = newInstance();
+    await element.updateComplete;
   });
 
   afterEach(() => {
@@ -92,9 +93,9 @@ describe('triage-menu-sk', () => {
       const traceNames = ['trace1', 'trace2'];
       const nudgeList: NudgeEntry[] = [];
       element.setAnomalies(anomalies, traceNames, nudgeList);
-      assert.deepEqual(element._anomalies, anomalies);
-      assert.deepEqual(element._trace_names, traceNames);
-      assert.deepEqual(element._nudgeList, nudgeList);
+      assert.deepEqual(element.anomalies, anomalies);
+      assert.deepEqual(element.traceNames, traceNames);
+      assert.deepEqual(element.nudgeList, nudgeList);
     });
   });
 
@@ -126,24 +127,26 @@ describe('triage-menu-sk', () => {
     it('calls makeEditAnomalyRequest with IGNORE action', () => {
       const spy = sinon.spy(element, 'makeEditAnomalyRequest');
       element.ignoreAnomaly();
-      assert.isTrue(spy.calledWith(element._anomalies, element._trace_names, 'IGNORE'));
+      assert.isTrue(spy.calledWith(element.anomalies, element.traceNames, 'IGNORE'));
     });
   });
 
   describe('disable nudge', () => {
-    it('sets _allowNudge to false', () => {
+    it('sets allowNudge to false', () => {
       element.disableNudge();
-      assert.isFalse(element._allowNudge);
+      assert.isFalse(element.allowNudge);
     });
   });
 
   describe('toggle buttons', () => {
-    it('disables and enables the buttons', () => {
+    it('disables and enables the buttons', async () => {
       element.toggleButtons(false);
+      await element.updateComplete;
       const newBugButton = element.querySelector('#new-bug')! as HTMLButtonElement;
       assert.isTrue(newBugButton.disabled);
 
       element.toggleButtons(true);
+      await element.updateComplete;
       assert.isFalse(newBugButton.disabled);
     });
   });
@@ -176,7 +179,7 @@ describe('triage-menu-sk', () => {
       const spy = sinon.spy(element, 'makeNudgeRequest');
       const entry = new NudgeEntry();
       element.nudgeAnomaly(entry);
-      assert.isTrue(spy.calledWith(element._anomalies, element._trace_names, entry));
+      assert.isTrue(spy.calledWith(element.anomalies, element.traceNames, entry));
     });
   });
 

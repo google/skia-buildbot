@@ -9,10 +9,9 @@
  *
  * @evt anomaly-changed Sent whenever an anomaly has been modified and needs to be re-rendered.
  */
-import { html, TemplateResult } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { html, TemplateResult, LitElement } from 'lit';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
@@ -50,68 +49,87 @@ export class NudgeEntry {
   y: number = 0;
 }
 
-export class TriageMenuSk extends ElementSk {
-  _trace_names: string[] = [];
+@customElement('triage-menu-sk')
+export class TriageMenuSk extends LitElement {
+  @property({ attribute: false })
+  traceNames: string[] = [];
 
-  _anomalies: Anomaly[] = [];
+  @property({ attribute: false })
+  anomalies: Anomaly[] = [];
 
-  _nudgeList: NudgeEntry[] | null = null;
+  @property({ attribute: false })
+  nudgeList: NudgeEntry[] | null = null;
 
-  _allowNudge: boolean = true;
+  @property({ type: Boolean })
+  allowNudge: boolean = true;
+
+  @state()
+  private buttonsEnabled = true;
 
   // New Bug Dialog.
-  newBugDialog: NewBugDialogSk | null = null;
+  @query('new-bug-dialog-sk')
+  newBugDialog!: NewBugDialogSk;
 
   // Existing Bug Dialog.
-  existingBugDialog: ExistingBugDialogSk | null = null;
+  @query('existing-bug-dialog-sk')
+  existingBugDialog!: ExistingBugDialogSk;
 
-  private closeIgnoreToastButton: HTMLButtonElement | null = null;
+  @query('#hide-ignore-triage')
+  private closeIgnoreToastButton!: HTMLButtonElement;
 
-  ignoreTriageToast: ToastSk | null = null;
+  @query('#ignore_toast')
+  ignoreTriageToast!: ToastSk;
 
-  constructor() {
-    super(TriageMenuSk.template);
+  createRenderRoot() {
+    return this;
   }
 
-  private static template = (ele: TriageMenuSk) =>
-    html`<div>
-      <new-bug-dialog-sk></new-bug-dialog-sk>
-      <existing-bug-dialog-sk></existing-bug-dialog-sk>
-      ${ele._anomalies.length === 0 ? '' : ele.generateNudgeButtons()}
+  render() {
+    return html`<div>
+      <new-bug-dialog-sk
+        .anomalies=${this.anomalies}
+        .traceNames=${this.traceNames}></new-bug-dialog-sk>
+      <existing-bug-dialog-sk
+        .anomalies=${this.anomalies}
+        .traceNames=${this.traceNames}></existing-bug-dialog-sk>
+      ${this.anomalies.length === 0 ? '' : this.generateNudgeButtons()}
       <div class="buttons">
-        <button id="new-bug" @click=${ele.fileBug}>New Bug</button>
-        <button id="existing-bug" @click=${ele.openExistingBugDialog}>Existing Bug</button>
-        <button id="ignore" ?hidden=${ele._anomalies.length === 0} @click=${ele.ignoreAnomaly}>
+        <button id="new-bug" ?disabled=${!this.buttonsEnabled} @click=${this.fileBug}>
+          New Bug
+        </button>
+        <button
+          id="existing-bug"
+          ?disabled=${!this.buttonsEnabled}
+          @click=${this.openExistingBugDialog}>
+          Existing Bug
+        </button>
+        <button
+          id="ignore"
+          ?hidden=${this.anomalies.length === 0}
+          ?disabled=${!this.buttonsEnabled}
+          @click=${this.ignoreAnomaly}>
           Ignore
         </button>
       </div>
       <toast-sk id="ignore_toast" duration="8000">
         <div>
-          <a> Anomaly has ignore with anomaly id: ${ele._anomalies.map((a) => a.id).join(', ')}</a>
+          <a> Anomaly has ignore with anomaly id: ${this.anomalies.map((a) => a.id).join(', ')}</a>
         </div>
         <div class="close-bisect">
-          <button id="hide-ignore-triage" class="action" type="button">Close</button>
+          <button
+            id="hide-ignore-triage"
+            class="action"
+            type="button"
+            @click=${() => this.ignoreTriageToast?.hide()}>
+            Close
+          </button>
         </div>
       </toast-sk>
     </div>`;
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._render();
-
-    this.existingBugDialog = this.querySelector('existing-bug-dialog-sk');
-    this.newBugDialog = this.querySelector('new-bug-dialog-sk');
-    this.closeIgnoreToastButton = this.querySelector('#hide-ignore-triage');
-    this.ignoreTriageToast = this.querySelector('#ignore_toast');
-    this.closeIgnoreToastButton!.addEventListener('click', () => this.ignoreTriageToast?.hide());
-
-    this.addEventListener('click', (e) => {
-      const existingBugButton = this.querySelector('#existing-bug');
-      if (e.target === existingBugButton) {
-        e.preventDefault();
-        this.existingBugDialog!.fetch_associated_bugs();
-      }
-    });
   }
 
   fileBug() {
@@ -125,39 +143,35 @@ export class TriageMenuSk extends ElementSk {
 
   openExistingBugDialog() {
     telemetry.increaseCounter(CountMetric.TriageActionTaken, { action: 'associate_bug' });
+    this.existingBugDialog!.fetch_associated_bugs();
     this.existingBugDialog!.open();
   }
 
   ignoreAnomaly() {
     telemetry.increaseCounter(CountMetric.TriageActionTaken, { action: 'ignore' });
-    this.makeEditAnomalyRequest(this._anomalies, this._trace_names, 'IGNORE');
+    this.makeEditAnomalyRequest(this.anomalies, this.traceNames, 'IGNORE');
   }
 
   disableNudge() {
-    this._allowNudge = false;
+    this.allowNudge = false;
   }
 
   toggleButtons(enable: boolean) {
-    const buttons = ['#new-bug', '#existing-bug', '#ignore'];
-    buttons.forEach((btn) => {
-      const b = this.querySelector(btn) as HTMLButtonElement;
-      b.disabled = !enable;
-    });
-    this._render();
+    this.buttonsEnabled = enable;
   }
 
   generateNudgeButtons(): TemplateResult {
-    if (this._allowNudge === false) {
+    if (this.allowNudge === false) {
       return html``;
     }
-    if (this._nudgeList === null) {
+    if (this.nudgeList === null) {
       return html``;
     }
 
     return html`
       <div class="buttons">
         <span id="tooltip-key">Nudge</span>
-        ${this._nudgeList!.map(
+        ${this.nudgeList!.map(
           (entry) => html`
             <button
               value=${entry.display_index}
@@ -173,7 +187,7 @@ export class TriageMenuSk extends ElementSk {
   }
 
   nudgeAnomaly(entry: NudgeEntry) {
-    this.makeNudgeRequest(this._anomalies, this._trace_names, entry);
+    this.makeNudgeRequest(this.anomalies, this.traceNames, entry);
   }
 
   /**
@@ -268,7 +282,7 @@ export class TriageMenuSk extends ElementSk {
           anomalies[i].end_revision = entry.end_revision;
         }
 
-        this._nudgeList!.forEach((entry) => {
+        this.nudgeList!.forEach((entry) => {
           entry.selected = false;
         });
 
@@ -294,13 +308,8 @@ export class TriageMenuSk extends ElementSk {
   }
 
   setAnomalies(anomalies: Anomaly[], traceNames: string[], nudgeList: NudgeEntry[] | null): void {
-    this._anomalies = anomalies;
-    this._trace_names = traceNames;
-    this._nudgeList = nudgeList;
-    this.newBugDialog!.setAnomalies(anomalies, traceNames);
-    this.existingBugDialog!.setAnomalies(anomalies, traceNames);
-    this._render();
+    this.anomalies = anomalies;
+    this.traceNames = traceNames;
+    this.nudgeList = nudgeList;
   }
 }
-
-define('triage-menu-sk', TriageMenuSk);
