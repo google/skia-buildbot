@@ -526,7 +526,8 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 	var triageStatus string
 	var triageMessage string
 	var bugId sql.NullInt64
-	err := rows.Scan(&r.Id, &r.CommitNumber, &r.PrevCommitNumber, &r.AlertId, &r.SubscriptionName, &bugId, &r.CreationTime, &r.MedianBefore, &r.MedianAfter, &r.IsImprovement, &clusterType, &clusterSummary, &r.Frame, &triageStatus, &triageMessage)
+	var subName sql.NullString
+	err := rows.Scan(&r.Id, &r.CommitNumber, &r.PrevCommitNumber, &r.AlertId, &subName, &bugId, &r.CreationTime, &r.MedianBefore, &r.MedianAfter, &r.IsImprovement, &clusterType, &clusterSummary, &r.Frame, &triageStatus, &triageMessage)
 	if err != nil {
 		return nil, err
 	}
@@ -534,6 +535,10 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 	// We are not storing bugId = 0 (which means no bug assigned) to save up some space and avoid deduplication.
 	if bugId.Valid && bugId.Int64 != int64(0) {
 		r.Bugs = []types.RegressionBug{{BugId: fmt.Sprint(bugId.Int64), Type: types.ManualTriage}}
+	}
+
+	if subName.Valid && subName.String != "" {
+		r.SubscriptionName = subName.String
 	}
 
 	r.ClusterType = string(clusterType)
