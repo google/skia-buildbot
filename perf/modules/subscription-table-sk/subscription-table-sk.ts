@@ -8,19 +8,19 @@
  */
 import '../../../infra-sk/modules/paramset-sk';
 import { html, LitElement } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, state, property } from 'lit/decorators.js';
 import { Alert, Subscription } from '../json';
 import { toParamSet } from '../../../infra-sk/modules/query';
 
 @customElement('subscription-table-sk')
 export class SubscriptionTableSk extends LitElement {
   // The currently loaded subscription.
-  @state()
-  private subscription: Subscription | null = null;
+  @property({ attribute: false })
+  subscription: Subscription | null = null;
 
   // The alerts associated with the current subscription.
-  @state()
-  private alerts: Alert[] | null = null;
+  @property({ attribute: false })
+  alerts: Alert[] | null = null;
 
   // Controls the visibility of the alerts table.
   @state()
@@ -98,10 +98,17 @@ export class SubscriptionTableSk extends LitElement {
       : html``} `;
   }
 
+  protected willUpdate(changedProperties: Map<string, any>): void {
+    if (changedProperties.has('subscription')) {
+      this.showAlerts = false;
+    }
+  }
+
   /**
    * Loads a subscription and its alerts into the table.
    * @param subscription The subscription to display.
    * @param alerts The alerts associated with the subscription.
+   * Deprecated: Use .subscription and .alerts properties instead.
    */
   load(subscription: Subscription, alerts: Alert[]) {
     this.subscription = subscription;

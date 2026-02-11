@@ -24,14 +24,13 @@ sk_element(
         "//:node_modules/@material/web",
         "//:node_modules/lit",
         "//:node_modules/lit-html",  # keep
-        "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
-        "//infra-sk/modules:statereflector_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/telemetry:telemetry_ts_lib",
+        "//infra-sk/modules:object_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
     ],
     ts_srcs = [
         "regressions-page-sk.ts",

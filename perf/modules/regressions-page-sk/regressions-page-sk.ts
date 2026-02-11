@@ -5,21 +5,27 @@
  * This module is a component that displays a list of regressions for a given
  * subscription.
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html, LitElement } from 'lit';
+import { customElement, state, query } from 'lit/decorators.js';
 import '../../../elements-sk/modules/spinner-sk';
 import '../anomalies-table-sk';
 import '../subscription-table-sk';
-import { stateReflector } from '../../../infra-sk/modules/stateReflector';
+import { toObject, fromObject } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
-import { Regression, GetSheriffListResponse, Anomaly, GetAnomaliesResponse } from '../json';
+import {
+  GetSheriffListResponse,
+  Anomaly,
+  GetAnomaliesResponse,
+  Subscription,
+  Alert,
+} from '../json';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 import { SubscriptionTableSk } from '../subscription-table-sk/subscription-table-sk';
 import '@material/web/button/outlined-button.js';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
 import { CountMetric, telemetry } from '../telemetry/telemetry';
+import { equals } from '../../../infra-sk/modules/object';
 
 // State is the local UI state of regressions-page-sk
 interface State {
@@ -41,12 +47,13 @@ const LAST_SELECTED_SHERIFF_KEY = 'perf-last-selected-sheriff';
  * RegressionsPageSk is a component that displays a list of regressions
  * for a given subscription.
  */
-export class RegressionsPageSk extends ElementSk {
+@customElement('regressions-page-sk')
+export class RegressionsPageSk extends LitElement {
   private static nextUniqueId = 0;
 
   private readonly uniqueId = `${RegressionsPageSk.nextUniqueId++}`;
 
-  // This is a test comment.
+  @state()
   state: State = {
     selectedSubscription: '',
     showTriaged: false,
@@ -54,85 +61,100 @@ export class RegressionsPageSk extends ElementSk {
     useSkia: false,
   };
 
+  @state()
   subscriptionList: string[] = [];
 
+  @state()
   cpAnomalies: Anomaly[] = [];
 
-  regressions: Regression[] = [];
+  @state()
+  private subscription: Subscription | null = null;
 
-  filter: HTMLSelectElement | null = null;
-
-  private stateHasChanged = () => {};
+  @state()
+  private alerts: Alert[] = [];
 
   // Anomalies table
-  anomaliesTable: AnomaliesTableSk | null = null;
+  @query('#anomaly-table')
+  anomaliesTable!: AnomaliesTableSk | null;
 
-  subscriptionTable: SubscriptionTableSk | null = null;
+  @query('#subscription-table')
+  subscriptionTable!: SubscriptionTableSk | null;
 
-  btnTriaged: HTMLButtonElement | null = null;
+  @state()
+  showMoreAnomalies = false;
 
-  btnImprovement: HTMLButtonElement | null = null;
+  private anomalyCursor: string | null = null;
 
-  showMoreAnomalies: boolean | null = null;
-
-  anomalyCursor: string | null = null;
-
+  @state()
   private anomaliesLoadingSpinner = false;
 
+  @state()
   private showMoreLoadingSpinner = false;
 
-  constructor() {
-    super(RegressionsPageSk.template);
+  createRenderRoot() {
+    return this;
   }
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._render();
 
-    this.btnTriaged = document.getElementById('btnTriaged') as HTMLButtonElement;
-    this.btnTriaged!.disabled = true;
-    this.btnImprovement = document.getElementById('btnImprovements') as HTMLButtonElement;
-    this.btnImprovement!.disabled = true;
+    window.addEventListener('popstate', this._popstate);
 
+    // Initial fetch from URL
+    this._popstate();
     this.state.useSkia = (window as any).perf.fetch_anomalies_from_sql;
+  }
 
-    // Set up the state reflector to update the selected subscription
-    // in the url as well as the sheriff dropdown.
-    this.stateHasChanged = stateReflector(
-      /* getState */ () => this.state as unknown as HintableObject,
-      /* setState */ async (newState) => {
-        const typedNewState = newState as unknown as State;
-        if (typedNewState.selectedSubscription) {
-          localStorage.setItem(LAST_SELECTED_SHERIFF_KEY, typedNewState.selectedSubscription);
-        }
-        // Merge the new state from the URL. Properties not in the URL
-        // will retain their current values.
-        this.state = { ...this.state, ...typedNewState };
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    window.removeEventListener('popstate', this._popstate);
+  }
 
-        // Ensure selectedSubscription is set, prioritizing URL, then localStorage, then empty.
-        this.state.selectedSubscription =
-          typedNewState.selectedSubscription ||
-          localStorage.getItem(LAST_SELECTED_SHERIFF_KEY) ||
-          '';
-        await this.init();
-        if (this.state.selectedSubscription !== '') {
-          this.btnTriaged!.disabled = false;
-          this.btnImprovement!.disabled = false;
-          this.cpAnomalies = [];
-          await this.fetchRegressions();
-          this._render();
-        }
-      }
-    );
-    this.anomaliesTable = this.querySelector('#anomaly-table') as AnomaliesTableSk;
-    this.subscriptionTable = this.querySelector('#subscription-table') as SubscriptionTableSk;
-
-    const showMoreClick = this.querySelector('#showMoreAnomalies') as HTMLElement;
-    showMoreClick!.onclick = () => {
-      this.anomaliesLoadingSpinner = false;
-      this.showMoreLoadingSpinner = true;
-      this._render();
+  private _popstate = async () => {
+    const defaultState: State = {
+      selectedSubscription: '',
+      showTriaged: false,
+      showImprovements: false,
+      useSkia: false,
     };
+
+    const delta = toObject(
+      window.location.search.slice(1),
+      defaultState as unknown as HintableObject
+    );
+    const newState = { ...defaultState, ...delta } as unknown as State;
+
+    if (newState.selectedSubscription) {
+      localStorage.setItem(LAST_SELECTED_SHERIFF_KEY, newState.selectedSubscription);
+    }
+
+    // Ensure selectedSubscription is set
+    newState.selectedSubscription =
+      newState.selectedSubscription || localStorage.getItem(LAST_SELECTED_SHERIFF_KEY) || '';
+
+    if (!equals(this.state as unknown as HintableObject, newState as unknown as HintableObject)) {
+      this.state = newState;
+    }
+
+    await this.init();
+    if (this.state.selectedSubscription !== '') {
+      this.cpAnomalies = [];
+      await this.fetchRegressions();
+    }
+  };
+
+  updated(changedProperties: Map<string, any>) {
+    if (changedProperties.has('cpAnomalies') || changedProperties.has('state')) {
+      this.updatePageTitle();
+    }
+  }
+
+  private stateHasChanged() {
+    const query = fromObject(this.state as unknown as HintableObject);
+    const url = window.location.origin + window.location.pathname + '?' + query;
+    if (url !== window.location.href) {
+      window.history.pushState(null, '', url);
+    }
   }
 
   async fetchRegressions(): Promise<void> {
@@ -174,43 +196,38 @@ export class RegressionsPageSk extends ElementSk {
     }
 
     this.anomaliesLoadingSpinner = true;
-    this._render();
-    await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then(async (response) => {
-        const json: GetAnomaliesResponse = response;
-        if (json.subscription) {
-          this.subscriptionTable!.load(json.subscription, json.alerts!);
-        }
-        const regs: Anomaly[] = json.anomaly_list || [];
-        if (json.anomaly_cursor) {
-          this.showMoreAnomalies = true;
-        } else {
-          this.showMoreAnomalies = false;
-        }
-        this.cpAnomalies = this.cpAnomalies.concat([...regs]);
-        this.anomalyCursor = json.anomaly_cursor;
-        await this.anomaliesTable!.populateTable(this.cpAnomalies);
-        this.updatePageTitle();
-      })
-      .catch((msg) => {
-        telemetry.increaseCounter(CountMetric.DataFetchFailure, {
-          page: 'regressions',
-          endpoint: '/_/anomalies/anomaly_list',
-        });
-        errorMessage(msg);
-        this.anomaliesLoadingSpinner = false;
-        this.showMoreLoadingSpinner = false;
-        this._render();
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-    this.anomaliesLoadingSpinner = false;
-    this.showMoreLoadingSpinner = false;
-    this._render();
+      const json: GetAnomaliesResponse = await jsonOrThrow(response);
+
+      if (json.subscription) {
+        this.subscription = json.subscription;
+        this.alerts = json.alerts || [];
+      }
+      const regs: Anomaly[] = json.anomaly_list || [];
+      this.showMoreAnomalies = !!json.anomaly_cursor;
+
+      this.cpAnomalies = [...this.cpAnomalies, ...regs];
+      this.anomalyCursor = json.anomaly_cursor;
+
+      this.updatePageTitle();
+    } catch (msg) {
+      telemetry.increaseCounter(CountMetric.DataFetchFailure, {
+        page: 'regressions',
+        endpoint: '/_/anomalies/anomaly_list',
+      });
+      errorMessage(msg as any);
+      this.anomaliesLoadingSpinner = false;
+      this.showMoreLoadingSpinner = false;
+    } finally {
+      this.anomaliesLoadingSpinner = false;
+      this.showMoreLoadingSpinner = false;
+    }
   }
 
   private async init() {
@@ -229,135 +246,91 @@ export class RegressionsPageSk extends ElementSk {
     );
 
     this.subscriptionList = [...sortedSubscriptions];
-    this.regressions = [];
-    this.cpAnomalies = [];
-    this.updatePageTitle();
-    this.showMoreAnomalies = false;
-    this.anomaliesLoadingSpinner = false;
-    this.stateHasChanged();
-    this._render();
+    // Don't reset everything here, rely on fetchRegressions logic or specific filter changes
   }
 
-  private static template = (ele: RegressionsPageSk) => html`
-    <label for="filter-${ele.uniqueId}">Sheriff:</label>
-    <select
-      id="filter-${ele.uniqueId}"
-      @input=${(e: InputEvent) => ele.filterChange((e.target as HTMLInputElement).value)}>
-      <option disabled selected value>-- select an option --</option>
-      ${RegressionsPageSk.allSubscriptions(ele)}]
-    </select>
-    <spinner-sk id="upper-spin" ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
-    <button id="btnTriaged" @click=${() => ele.triagedChange()}>Show Triaged</button>
-    <button id="btnImprovements" @click=${() => ele.improvementChange()}>Show Improvements</button>
-    <subscription-table-sk id="subscription-table"></subscription-table-sk>
-    <anomalies-table-sk
-      id="anomaly-table"
-      .loading=${ele.anomaliesLoadingSpinner}></anomalies-table-sk>
-    <div id="showmore" ?hidden=${!ele.showMoreAnomalies}>
-      <button id="showMoreAnomalies" @click=${() => ele.fetchRegressions()}>
-        <div>Show More</div>
+  render() {
+    return html`
+      <label for="filter-${this.uniqueId}">Sheriff:</label>
+      <select
+        id="filter-${this.uniqueId}"
+        @input=${(e: InputEvent) => this.filterChange((e.target as HTMLInputElement).value)}>
+        <option disabled ?selected=${!this.state.selectedSubscription} value>
+          -- select an option --
+        </option>
+        ${this.subscriptionList.map(
+          (s) => html`
+            <option ?selected=${this.state.selectedSubscription === s} value=${s} title=${s}>
+              ${s}
+            </option>
+          `
+        )}
+      </select>
+      <spinner-sk id="upper-spin" ?active=${this.anomaliesLoadingSpinner}></spinner-sk>
+      <button
+        id="btnTriaged"
+        @click=${() => this.triagedChange()}
+        ?disabled=${!this.state.selectedSubscription}>
+        ${this.state.showTriaged ? 'Hide Triaged' : 'Show Triaged'}
       </button>
-      <spinner-sk ?active=${ele.showMoreLoadingSpinner}></spinner-sk>
-    </div>
-    ${ele.regressions.length > 0
-      ? html` <div id="regressions_container">${ele.getRegTemplate(ele.regressions)}</div>`
-      : null}
-  `;
+      <button
+        id="btnImprovements"
+        @click=${() => this.improvementChange()}
+        ?disabled=${!this.state.selectedSubscription}>
+        ${this.state.showImprovements ? 'Hide Improvements' : 'Show Improvements'}
+      </button>
+      <subscription-table-sk
+        id="subscription-table"
+        .subscription=${this.subscription}
+        .alerts=${this.alerts}></subscription-table-sk>
+      <anomalies-table-sk
+        id="anomaly-table"
+        .anomalyList=${this.cpAnomalies}
+        .loading=${this.anomaliesLoadingSpinner}></anomalies-table-sk>
+      <div id="showmore" ?hidden=${!this.showMoreAnomalies}>
+        <button id="showMoreAnomalies" @click=${() => this.onShowMore()}>
+          <div>Show More</div>
+        </button>
+        <spinner-sk ?active=${this.showMoreLoadingSpinner}></spinner-sk>
+      </div>
+    `;
+  }
+
+  async onShowMore() {
+    this.anomaliesLoadingSpinner = false;
+    this.showMoreLoadingSpinner = true;
+    await this.fetchRegressions();
+  }
 
   async improvementChange(): Promise<void> {
-    this.state.showImprovements = !this.state.showImprovements;
-    if (this.state.showImprovements) {
-      this.btnImprovement!.textContent = 'Hide Improvements';
-    } else {
-      this.btnImprovement!.textContent = 'Show Improvements';
-    }
+    this.state = { ...this.state, showImprovements: !this.state.showImprovements };
     this.cpAnomalies = [];
     this.stateHasChanged();
+    // RESET for fresh fetch
+    this.cpAnomalies = [];
+    this.anomalyCursor = null;
     await this.fetchRegressions();
-    this._render();
   }
 
   async triagedChange(): Promise<void> {
-    this.state.showTriaged = !this.state.showTriaged;
-    if (this.state.showTriaged) {
-      this.btnTriaged!.textContent = 'Hide Triaged';
-    } else {
-      this.btnTriaged!.textContent = 'Show Triaged';
-    }
+    this.state = { ...this.state, showTriaged: !this.state.showTriaged };
     this.cpAnomalies = [];
     this.stateHasChanged();
+    // RESET for fresh fetch
+    this.cpAnomalies = [];
+    this.anomalyCursor = null;
     await this.fetchRegressions();
-    this._render();
   }
 
   async filterChange(sub: string): Promise<void> {
     localStorage.setItem(LAST_SELECTED_SHERIFF_KEY, sub);
-    this.state.selectedSubscription = sub;
-    this.btnTriaged!.disabled = false;
-    this.btnImprovement!.disabled = false;
+    this.state = { ...this.state, selectedSubscription: sub };
     this.cpAnomalies = [];
+    this.anomalyCursor = null;
     this.updatePageTitle();
     this.showMoreAnomalies = false;
-    this.anomalyCursor = null;
     this.stateHasChanged();
     await this.fetchRegressions();
-    this._render();
-  }
-
-  private static allSubscriptions = (ele: RegressionsPageSk) =>
-    ele.subscriptionList.map(
-      (s) => html`
-        <option ?selected=${ele.state.selectedSubscription === s} value=${s} title=${s}>
-          ${s}
-        </option>
-      `
-    );
-
-  static isRegressionImprovement = (reg: Regression): boolean => {
-    const improvementDirection = reg.frame?.dataframe?.paramset.improvement_direction[0];
-    const isDownImprovement =
-      improvementDirection === 'down' &&
-      reg.cluster_type === 'low' &&
-      reg.low?.step_fit?.status === 'Low';
-    const isUpImprovement =
-      improvementDirection === 'up' &&
-      reg.cluster_type === 'high' &&
-      reg.high?.step_fit?.status === 'High';
-
-    return isDownImprovement || isUpImprovement;
-  };
-
-  private static regRowTemplate = (regInfo: Regression) => html`
-    <tr>
-      <td>${regInfo.commit_number} - ${regInfo.prev_commit_number}</td>
-      <td>${regInfo.frame?.dataframe?.paramset.bot[0]}</td>
-      <td>${regInfo.frame?.dataframe?.paramset.benchmark[0]}</td>
-      <td>${regInfo.frame?.dataframe?.paramset.test[0]}</td>
-      <td class="${this.isRegressionImprovement(regInfo) ? 'green' : 'red'}">
-        ${regInfo.frame?.dataframe?.paramset.improvement_direction[0]}
-      </td>
-      <td class="${this.isRegressionImprovement(regInfo) ? 'green' : 'red'}">
-        ${((regInfo.median_after - regInfo.median_before) * 100) / regInfo.median_before}
-      </td>
-      <td class="${this.isRegressionImprovement(regInfo) ? 'green' : 'red'}">
-        ${regInfo.median_after - regInfo.median_before}
-      </td>
-    </tr>
-  `;
-
-  private getRegTemplate(regs: Regression[]) {
-    return html` <table class="sortable">
-      <tr>
-        <th>Revisions</th>
-        <th>Bot</th>
-        <th>Benchmark</th>
-        <th>Test</th>
-        <th>Change Direction</th>
-        <th>Delta</th>
-        <th>Delta Abs</th>
-      </tr>
-      ${regs.map((regression) => RegressionsPageSk.regRowTemplate(regression))}
-    </table>`;
   }
 
   private updatePageTitle(): void {
@@ -370,5 +343,3 @@ export class RegressionsPageSk extends ElementSk {
     document.title = title;
   }
 }
-
-define('regressions-page-sk', RegressionsPageSk);

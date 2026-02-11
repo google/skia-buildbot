@@ -44,7 +44,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     help.open();
   }
 
-  @state()
+  @property({ attribute: false })
   anomalyList: Anomaly[] = [];
 
   @state()
@@ -102,7 +102,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   connectedCallback() {
     super.connectedCallback();
-    // this.render(); // LitElement handles initial render
 
     // Move queries to firstUpdated or check for existence
     this.traceFormatter = new ChromeTraceFormatter();
@@ -111,7 +110,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
       const popup = this.querySelector('.popup');
       if (this.showPopup && !popup!.contains(e.target as Node) && e.target !== triageButton) {
         this.showPopup = false;
-        // this.render();
       }
     });
     this.addEventListener('open-anomaly-chart', this.openAnomalyChartListener);
@@ -133,6 +131,16 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     window.removeEventListener('keydown', this.keyDown);
   }
 
+  protected willUpdate(changedProperties: Map<string, any>): void {
+    if (changedProperties.has('anomalyList')) {
+      this.initiallyRequestedAnomalyIDs.clear();
+      this.selectionController.clear();
+      if (this.anomalyList.length > 0) {
+        this.groupingController.setAnomalies(this.anomalyList);
+      }
+    }
+  }
+
   private keyDown = (e: KeyboardEvent) => {
     // Ignore if no anomalies selected
     if (this.selectionController.size === 0) {
@@ -146,7 +154,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   onTriagePositive(): void {
     this.showPopup = true;
-    // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
     this.triageMenu!.fileBug();
@@ -154,7 +161,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   onTriageNegative(): void {
     this.showPopup = true;
-    // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
     this.triageMenu!.ignoreAnomaly();
@@ -162,7 +168,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   onTriageExisting(): void {
     this.showPopup = true;
-    // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
     this.triageMenu!.openExistingBugDialog();
@@ -296,7 +301,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   togglePopup() {
     this.showPopup = !this.showPopup;
-    // this.render();
   }
 
   private isGroupInitiallyRequested(group: AnomalyGroup): boolean {
@@ -380,7 +384,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   private anomalyChecked(chkbox: HTMLInputElement | null, a: Anomaly) {
     this._updateCheckedState(chkbox, a);
-    // this.render();
   }
 
   private generateRows(anomalyGroup: AnomalyGroup, rowClass: string = ''): TemplateResult[] {
@@ -648,25 +651,18 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     this.requestUpdate();
   }
 
+  /**
+   * Populates the table with the provided list of anomalies.
+   * Deprecated: Use .anomalyList property instead.
+   */
   async populateTable(anomalyList: Anomaly[]): Promise<void> {
-    this.initiallyRequestedAnomalyIDs.clear();
-    this.selectionController.clear();
-
-    // We update state, Lit handles DOM updates.
-    // However, if anomalyList is empty, we show clear-msg and hide table.
-    // In Render, we have logic for ?hidden.
-
-    // We must assign to this.anomalyList to trigger update.
     this.anomalyList = anomalyList;
-    if (this.anomalyList.length > 0) {
-      this.groupingController.setAnomalies(this.anomalyList);
-    }
-    // this.render(); handled by state change
   }
 
   /**
    * Set checkboxes to true for list of provided anomalies.
    * @param anomalyList
+
    */
   checkSelectedAnomalies(anomalyList: Anomaly[]): void {
     this.initiallyRequestedAnomalyIDs = new Set<string>(anomalyList.map((a) => a.id));

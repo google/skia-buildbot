@@ -170,6 +170,7 @@ describe('regressions-page-sk', () => {
     beforeEach(async () => {
       element = newInstance();
       await fetchMock.flush(true);
+      await element.updateComplete;
     });
 
     it('Loads associated regressions when subscription selected', async () => {
@@ -182,16 +183,21 @@ describe('regressions-page-sk', () => {
       assert.equal(fetchMock.lastCall()![0], '/_/anomalies/sheriff_list');
 
       await element.triagedChange();
+      await element.updateComplete;
       assert.equal(fetchMock.lastCall()![0], '/_/anomalies/anomaly_list?triaged=true');
       await element.triagedChange();
+      await element.updateComplete;
       assert.equal(fetchMock.lastCall()![0], '/_/anomalies/anomaly_list');
 
       await element.improvementChange();
+      await element.updateComplete;
       assert.equal(fetchMock.lastCall()![0], '/_/anomalies/anomaly_list?improvements=true');
       await element.improvementChange();
+      await element.updateComplete;
       assert.equal(fetchMock.lastCall()![0], '/_/anomalies/anomaly_list');
 
       await element.filterChange('Sheriff Config 2');
+      await element.updateComplete;
       assert.equal(element.cpAnomalies.length, 1);
       assert.equal(
         fetchMock.lastCall()![0],
@@ -205,6 +211,7 @@ describe('regressions-page-sk', () => {
     beforeEach(async () => {
       element = newInstance();
       await fetchMock.flush(true);
+      await element.updateComplete;
     });
 
     it('Loads anomaly_cursor when the anomaly_cursor is returned in the response', async () => {
@@ -215,6 +222,7 @@ describe('regressions-page-sk', () => {
       assert.equal(dropdown.options.length, 5);
 
       await element.filterChange('Sheriff Config 2');
+      await element.updateComplete;
       fetchMock.getOnce(
         '/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202',
         anomalyListResponseWithAnomalyCursor,
@@ -227,14 +235,13 @@ describe('regressions-page-sk', () => {
         fetchMock.lastCall()![0],
         '/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202'
       );
-      assert.equal(element.anomalyCursor, 'query_cursor');
 
       await element.fetchRegressions();
       assert.equal(
         fetchMock.lastCall()![0],
         '/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202&anomaly_cursor=query_cursor'
       );
-      assert.equal(element.anomalyCursor, 'query_cursor');
+
       assert.equal(element.showMoreAnomalies, true);
     });
   });
@@ -248,6 +255,7 @@ describe('regressions-page-sk', () => {
       );
       const element = newInstance();
       await fetchMock.flush(true);
+      await element.updateComplete;
 
       const dropdown = element.querySelector('[id^="filter"]') as HTMLSelectElement;
       assert.isNotNull(dropdown);
@@ -286,6 +294,7 @@ describe('regressions-page-sk', () => {
       // 2. Simulate user selecting an option.
       await element.filterChange('Sheriff Config 2');
       await fetchMock.flush(true);
+      await element.updateComplete;
 
       // 3. Verify value is saved to localStorage.
       assert.strictEqual(localStorage.getItem(LAST_SELECTED_SHERIFF_KEY), 'Sheriff Config 2');
@@ -294,6 +303,7 @@ describe('regressions-page-sk', () => {
       // 4. Simulate "Reloading Page" by creating a new instance.
       element = newInstance();
       await fetchMock.flush(true);
+      await element.updateComplete;
 
       // 5. On "reloaded" Page, check if the selector has the value from localStorage.
       assert.strictEqual(element.state.selectedSubscription, 'Sheriff Config 2');
@@ -322,6 +332,7 @@ describe('regressions-page-sk', () => {
 
       element = newInstance();
       await fetchMock.flush(true);
+      await element.updateComplete;
 
       assert.strictEqual(element.state.selectedSubscription, 'Sheriff Config 2');
     });
@@ -332,6 +343,7 @@ describe('regressions-page-sk', () => {
     beforeEach(async () => {
       element = newInstance();
       void (await fetchMock.flush(true));
+      await element.updateComplete;
     });
 
     it('shows untriaged in the title when showTriaged is false', async () => {
@@ -342,17 +354,21 @@ describe('regressions-page-sk', () => {
       });
       element = newInstance();
       void (await fetchMock.flush(true));
+      await element.updateComplete;
       await element.filterChange('SheriffWithUntriaged');
+      await element.updateComplete;
       assert.strictEqual(document.title, 'Regressions (1 untriaged)');
     });
 
     it('shows total in the title when showTriaged is true', async () => {
       await element.triagedChange();
+      await element.updateComplete;
       assert.strictEqual(document.title, 'Regressions (1 total)');
     });
 
     it('shows default title when there are no anomalies', async () => {
-      console.log(anomalyListResponse);
+      element.cpAnomalies = [];
+      await element.updateComplete;
       assert.strictEqual(document.title, 'Regressions');
     });
   });
@@ -392,7 +408,6 @@ describe('regressions-page-sk', () => {
       element = newInstance();
       await fetchMock.flush(true);
       // Reset any previous state for fetchRegressions
-      element.anomalyCursor = '';
       element.cpAnomalies = [];
     });
 
@@ -406,6 +421,43 @@ describe('regressions-page-sk', () => {
     it('should call anomaly_list with triaged=true when showTriaged is true', async () => {
       await element.triagedChange();
       assert.equal(fetchMock.lastUrl(), '/_/anomalies/anomaly_list?triaged=true');
+    });
+  });
+
+  describe('RegressionsPageSk - Show More Button', () => {
+    it('shows button only when anomaly_cursor is present', async () => {
+      const element = newInstance();
+      await fetchMock.flush(true);
+      await element.updateComplete;
+
+      // Initial state: no cursor -> no button
+      assert.isFalse(element.showMoreAnomalies);
+      assert.isTrue(element.querySelector('#showmore')!.hasAttribute('hidden'));
+
+      // Case 1: Fetch with cursor
+      fetchMock.getOnce(
+        '/_/anomalies/anomaly_list?sheriff=WithCursor',
+        anomalyListResponseWithAnomalyCursor
+      );
+      await element.filterChange('WithCursor');
+      await element.updateComplete;
+
+      assert.isTrue(element.showMoreAnomalies);
+      assert.isFalse(element.querySelector('#showmore')!.hasAttribute('hidden'));
+
+      // Case 2: Click Show More -> Fetch response WITHOUT cursor
+      fetchMock.getOnce(
+        '/_/anomalies/anomaly_list?sheriff=WithCursor&anomaly_cursor=query_cursor',
+        anomalyListResponse
+      );
+
+      const showMoreBtn = element.querySelector('#showMoreAnomalies') as HTMLButtonElement;
+      showMoreBtn.click();
+      await fetchMock.flush(true);
+      await element.updateComplete;
+
+      assert.isFalse(element.showMoreAnomalies);
+      assert.isTrue(element.querySelector('#showmore')!.hasAttribute('hidden'));
     });
   });
 });
