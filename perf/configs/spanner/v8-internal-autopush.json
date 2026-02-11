@@ -1,0 +1,102 @@
+{
+  "URL": "https://v8-perf-autopush.corp.goog",
+  "ga_measurement_id": "G-7016RCYYFV",
+  "landing_page_rel_path": "/m/",
+  "contact": "https://bugs.chromium.org/p/v8/issues/list?q=component%3ATools&can=2",
+  "trace_sample_proportion": 0.01,
+  "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+  "fetch_chrome_perf_anomalies": true,
+  "bug_host_url": "https://issues.chromium.org",
+  "feedback_url": "http://go/berf-skia-feedback",
+  "chat_url": "http://go/berf-skia-chat",
+  "instance_name": "V8 Perf",
+  "header_image_url": "/dist/images/v8.svg",
+  "notify_config": {
+    "notifications": "none"
+  },
+  "auth_config": {
+    "header_name": "X-WEBAUTH-USER"
+  },
+  "data_store_config": {
+    "datastore_type": "spanner",
+    "connection_string": "postgresql://root@localhost:5432/v8_int?sslmode=disable",
+    "tile_size": 256,
+    "min_db_connections": 5
+  },
+  "experiments": {
+  },
+  "ingestion_config": {
+    "source_config": {
+      "source_type": "gcs",
+      "project": "skia-public",
+      "topic": "perf-ingestion-v8-perf-spanner",
+      "subscription": "perf-ingestion-v8-perf-spanner-prod",
+      "sources": [
+        "gs://v8-perf-prod/ingest"
+      ]
+    },
+    "branches": [],
+    "file_ingestion_pubsub_topic_name": "perf-cluster-v8-non-public"
+  },
+  "git_repo_config": {
+    "provider": "gitiles",
+    "url": "https://chromium.googlesource.com/v8/v8.git",
+    "dir": "/tmp/v8",
+    "debounce_commit_url": false,
+    "file_change_marker": "",
+    "start_commit": "6ddb8445a89409bcbec87bf84e9caade9bf9088a",
+    "commit_number_regex": "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
+  },
+  "issue_tracker_config": {
+    "notification_type": "issuetracker",
+    "issue_tracker_api_key_secret_project": "skia-infra-public",
+    "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+  },
+  "query_config": {
+    "include_params": [
+      "benchmark",
+      "bot",
+      "test",
+      "subtest_1",
+      "subtest_2",
+      "subtest_3",
+      "subtest_4"
+    ],
+    "default_param_selections": {
+      "stat": ["value"]
+    },
+    "default_url_values": {
+      "plotSummary": "true",
+      "showZero": "false",
+      "useTestPicker": "true",
+      "enable_chart_tooltip": "true",
+      "use_test_picker_query": "true",
+      "use_titles": "true",
+      "show_google_plot": "true"
+    },
+    "default_range": 604800,
+    "query_commit_chunk_size": 10000,
+    "cache_config": {
+      "type": "redis",
+      "level1_cache_key": "benchmark",
+      "level2_cache_key": "bot",
+      "enabled": true
+    },
+    "redis_config": {
+      "project": "skia-infra-corp",
+      "zone": "us-central1",
+      "instance": "v8-internal",
+      "cache_expiration_minutes": 300
+    }
+  },
+  "data_point_config": {
+    "keys_for_commit_range": ["V8", "WebRTC", "V8 Git Hash", "WebRTC Git Hash"],
+    "keys_for_useful_links": ["Build Page"],
+    "show_json_file_display": false
+  },
+  "new_alerts_page": true,
+  "optimize_sqltracestore": true,
+  "enable_sheriff_config": true,
+  "show_triage_link": false,
+  "show_bisect_btn": false
+}
