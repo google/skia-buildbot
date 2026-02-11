@@ -17,7 +17,7 @@ import {
   AnomalyGroupingConfig,
 } from './grouping';
 
-import { formatPercentage, getPercentChange } from '../common/anomaly';
+import { formatPercentage } from '../common/anomaly';
 import '../window/window';
 import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
@@ -33,18 +33,9 @@ import { KeyboardShortcutsHelpSk } from '../keyboard-shortcuts-help-sk/keyboard-
 import { SelectionController } from './selection-controller';
 import { ReportNavigationController } from './report-navigation-controller';
 import { AnomalyGroupingController } from './anomaly-grouping-controller';
+import { AnomalyTransformer } from './anomaly-transformer';
 import './anomalies-grouping-settings-sk';
 import '../bug-tooltip-sk/bug-tooltip-sk';
-
-interface ProcessedAnomaly {
-  bugId: number;
-  revision: number;
-  bot: string;
-  testsuite: string;
-  test: string;
-  delta: number;
-  isImprovement: boolean;
-}
 
 @customElement('anomalies-table-sk')
 export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHandler {
@@ -131,7 +122,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     this.triageMenu = this.querySelector(`#triage-menu-${this.uniqueId}`);
     if (this.triageMenu) {
       this.triageMenu.disableNudge();
-      this.triageMenu.toggleButtons(this.selectionController.size > 0);
     }
     this.headerCheckbox = this.querySelector(
       `#header-checkbox-${this.uniqueId}`
@@ -159,7 +149,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
-    this.triageMenu!.setAnomalies(this.selectionController.items, [], []);
     this.triageMenu!.fileBug();
   }
 
@@ -168,7 +157,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
-    this.triageMenu!.setAnomalies(this.selectionController.items, [], []);
     this.triageMenu!.ignoreAnomaly();
   }
 
@@ -177,7 +165,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     // this.render();
     // The second and third arguments are empty arrays because we are only
     // triaging anomalies, not trace keys or graph configs.
-    this.triageMenu!.setAnomalies(this.selectionController.items, [], []);
     this.triageMenu!.openExistingBugDialog();
   }
 
@@ -238,7 +225,10 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
       </div>
       <div class="popup-container" ?hidden="${!this.showPopup}">
         <div class="popup">
-          <triage-menu-sk id="triage-menu-${this.uniqueId}"></triage-menu-sk>
+          <triage-menu-sk
+            id="triage-menu-${this.uniqueId}"
+            .anomalies=${this.selectionController.items}
+            .traceNames=${[]}></triage-menu-sk>
         </div>
       </div>
       <sort-sk id="as_table-${this.uniqueId}" target="rows-${this.uniqueId}">
@@ -278,11 +268,14 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         </table>
       </sort-sk>
       <keyboard-shortcuts-help-sk .handler=${this}></keyboard-shortcuts-help-sk>
-      <h1 id="clear-msg-${this.uniqueId}" ?hidden=${this.anomalyList.length > 0}>
+      <h1 id="clear-msg-${this.uniqueId}" ?hidden=${this.anomalyList.length > 0 || this.loading}>
         All anomalies are triaged!
       </h1>
     `;
   }
+
+  @property({ type: Boolean })
+  loading: boolean = false;
 
   async openReportForAnomalyIds(anomalies: Anomaly[]) {
     await this.reportNavigationController.openReportForAnomalyIds(anomalies);
@@ -303,12 +296,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   togglePopup() {
     this.showPopup = !this.showPopup;
-    if (this.showPopup) {
-      const triageMenu = this.querySelector(`#triage-menu-${this.uniqueId}`) as TriageMenuSk;
-      if (triageMenu) {
-        triageMenu.setAnomalies(this.selectionController.items, [], []);
-      }
-    }
     // this.render();
   }
 
@@ -389,34 +376,11 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         bubbles: true,
       })
     );
-
-    if (this.triageMenu) {
-      this.triageMenu.toggleButtons(this.selectionController.size > 0);
-    }
   }
 
   private anomalyChecked(chkbox: HTMLInputElement | null, a: Anomaly) {
     this._updateCheckedState(chkbox, a);
     // this.render();
-  }
-
-  private getProcessedAnomaly(anomaly: Anomaly): ProcessedAnomaly {
-    const bugId = anomaly.bug_id;
-    const testPathPieces = anomaly.test_path.split('/');
-    const bot = testPathPieces[1];
-    const testsuite = testPathPieces[2];
-    const test = testPathPieces.slice(3, testPathPieces.length).join('/');
-    const revision = anomaly.start_revision;
-    const delta = getPercentChange(anomaly.median_before_anomaly, anomaly.median_after_anomaly);
-    return {
-      bugId,
-      revision,
-      bot,
-      testsuite,
-      test,
-      delta,
-      isImprovement: anomaly.is_improvement,
-    };
   }
 
   private generateRows(anomalyGroup: AnomalyGroup, rowClass: string = ''): TemplateResult[] {
@@ -434,9 +398,9 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     // If it's a multi-item group, we only reach here if it is expanded.
 
     for (let i = 0; i < anomalyGroup.anomalies.length; i++) {
-      const anomalySortValues = this.getProcessedAnomaly(anomalyGroup.anomalies[i]);
+      const anomalySortValues = AnomalyTransformer.getProcessedAnomaly(anomalyGroup.anomalies[i]);
       const anomaly = anomalyGroup.anomalies[i];
-      const processedAnomaly = this.getProcessedAnomaly(anomaly);
+      const processedAnomaly = AnomalyTransformer.getProcessedAnomaly(anomaly);
       const anomalyClass = processedAnomaly.isImprovement ? 'improvement' : 'regression';
       const isLoading = this.loadingGraphForAnomaly.get(anomaly.id) || false;
       rows.push(html`
@@ -498,7 +462,12 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
               totalLabel="total"></bug-tooltip-sk>
           </td>
           <td>
-            <span>${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span>
+            <span
+              >${AnomalyTransformer.computeRevisionRange(
+                anomaly.start_revision,
+                anomaly.end_revision
+              )}</span
+            >
           </td>
           <td>${processedAnomaly.bot}</td>
           <td>${processedAnomaly.testsuite}</td>
@@ -508,32 +477,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
       `);
     }
     return rows;
-  }
-
-  private _determineSummaryDelta(anomalyGroup: AnomalyGroup): [number, boolean] {
-    const regressions = anomalyGroup.anomalies.filter((a) => !a.is_improvement);
-    let targetAnomalies = anomalyGroup.anomalies;
-    if (regressions.length > 0) {
-      // If there are regressions, find the one with the largest magnitude.
-      targetAnomalies = regressions;
-    }
-
-    const biggestChangeAnomaly = targetAnomalies.reduce((prev, current) => {
-      const prevDelta = Math.abs(
-        getPercentChange(prev.median_before_anomaly, prev.median_after_anomaly)
-      );
-      const currentDelta = Math.abs(
-        getPercentChange(current.median_before_anomaly, current.median_after_anomaly)
-      );
-      return prevDelta > currentDelta ? prev : current;
-    });
-    return [
-      getPercentChange(
-        biggestChangeAnomaly.median_before_anomaly,
-        biggestChangeAnomaly.median_after_anomaly
-      ),
-      regressions.length > 0,
-    ];
   }
 
   private generateSummaryRow(anomalyGroup: AnomalyGroup, rowClass: string = ''): TemplateResult {
@@ -553,11 +496,14 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     // It is indeterminate if SOME (but not all) are selected
     const isIndeterminate = selectedCount > 0 && selectedCount < totalCount;
 
-    const [deltaValue, isSummaryRegression] = this._determineSummaryDelta(anomalyGroup);
+    const [deltaValue, isSummaryRegression] =
+      AnomalyTransformer.determineSummaryDelta(anomalyGroup);
     const summaryClass = isSummaryRegression ? 'regression' : 'improvement';
 
     const firstAnomaly = anomalyGroup.anomalies[0];
-    const processedAnomalies = anomalyGroup.anomalies.map((a) => this.getProcessedAnomaly(a));
+    const processedAnomalies = anomalyGroup.anomalies.map((a) =>
+      AnomalyTransformer.getProcessedAnomaly(a)
+    );
     const firstProcessed = processedAnomalies[0];
 
     // Aggregate Revisions
@@ -575,7 +521,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
       endRevision: maxEndRevision,
       bot: allSameBot ? firstProcessed.bot : '*',
       testsuite: allSameTestSuite ? firstProcessed.testsuite : '*',
-      test: this.findLongestSubTestPath(anomalyGroup.anomalies),
+      test: AnomalyTransformer.findLongestSubTestPath(anomalyGroup.anomalies),
       delta: deltaValue,
     };
 
@@ -631,7 +577,10 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         </td>
         <td>
           <span
-            >${this.computeRevisionRange(summaryData.startRevision, summaryData.endRevision)}</span
+            >${AnomalyTransformer.computeRevisionRange(
+              summaryData.startRevision,
+              summaryData.endRevision
+            )}</span
           >
         </td>
         <td>${summaryData.bot}</td>
@@ -640,34 +589,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         <td class=${summaryClass}>${formatPercentage(summaryData.delta)}%</td>
       </tr>
     `;
-  }
-
-  findLongestSubTestPath(anomalyList: Anomaly[]): string {
-    // Check if this character exists at the same position in all other strings.
-    let longestCommonTestPath = anomalyList[0]!.test_path;
-
-    for (let i = 1; i < anomalyList.length; i++) {
-      const currentString = anomalyList[i].test_path;
-      while (currentString.indexOf(longestCommonTestPath) !== 0) {
-        longestCommonTestPath = longestCommonTestPath.substring(
-          0,
-          longestCommonTestPath.length - 1
-        );
-
-        if (longestCommonTestPath === '') {
-          return '*';
-        }
-      }
-    }
-
-    // Return the common test path plus '' if the paths in the grouped rows are not the same.
-    // '*' indicates where the test names differ in the collapsed rows.
-    if (longestCommonTestPath.length !== anomalyList[0]!.test_path.length) {
-      const testPath = longestCommonTestPath.split('/');
-      return testPath.slice(3, testPath.length).join('/') + '*';
-    }
-    // else return the original test path.
-    return anomalyList[0]!.test_path;
   }
 
   getReportLinkForBugId(bug_id: number) {
@@ -725,16 +646,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   expandGroup(anomalyGroup: AnomalyGroup) {
     anomalyGroup.expanded = !anomalyGroup.expanded;
     this.requestUpdate();
-  }
-
-  computeRevisionRange(start: number | null, end: number | null): string {
-    if (start === null || end === null) {
-      return '';
-    }
-    if (start === end) {
-      return '' + end;
-    }
-    return start + ' - ' + end;
   }
 
   async populateTable(anomalyList: Anomaly[]): Promise<void> {
@@ -808,14 +719,10 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     );
 
     // Header checkbox logic is now in the template (auto-calculated) or we update it?
-    // The template calculates isAllSelected/isIndeterminate for the header based on selectionController.
-    // So if selectionController is correct, header checkbox will render correctly.
-    // BUT we need to notify Lit that selectionController changed.
+    // The template calculates isAllSelected/isIndeterminate for the header based on checkedAnomaliesSet.
+    // So if checkedAnomaliesSet is correct, header checkbox will render correctly.
+    // BUT we need to notify Lit that checkedAnomaliesSet changed.
 
-    // Also triage menu button state.
-    if (this.triageMenu) {
-      this.triageMenu.toggleButtons(this.selectionController.size > 0);
-    }
     this.requestUpdate();
   }
 
@@ -854,9 +761,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
       })
     );
 
-    if (this.triageMenu) {
-      this.triageMenu.toggleButtons(this.selectionController.size > 0);
-    }
     this.requestUpdate();
   }
 

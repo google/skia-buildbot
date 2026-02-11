@@ -250,7 +250,9 @@ export class RegressionsPageSk extends ElementSk {
     <button id="btnTriaged" @click=${() => ele.triagedChange()}>Show Triaged</button>
     <button id="btnImprovements" @click=${() => ele.improvementChange()}>Show Improvements</button>
     <subscription-table-sk id="subscription-table"></subscription-table-sk>
-    <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
+    <anomalies-table-sk
+      id="anomaly-table"
+      .loading=${ele.anomaliesLoadingSpinner}></anomalies-table-sk>
     <div id="showmore" ?hidden=${!ele.showMoreAnomalies}>
       <button id="showMoreAnomalies" @click=${() => ele.fetchRegressions()}>
         <div>Show More</div>

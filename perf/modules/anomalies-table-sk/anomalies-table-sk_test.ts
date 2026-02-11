@@ -16,6 +16,7 @@ import {
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { Anomaly } from '../json';
 import fetchMock from 'fetch-mock';
+import { AnomalyTransformer } from './anomaly-transformer';
 
 describe('anomalies-table-sk', () => {
   const newInstance = setUpElementUnderTest<AnomaliesTableSk>('anomalies-table-sk');
@@ -521,7 +522,7 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('1', 0, 0, 0, 'master/bot/suite/test1/sub1'),
         dummyAnomaly('2', 0, 0, 0, 'master/bot/suite/test1/sub2'),
       ];
-      assert.equal(element.findLongestSubTestPath(anomalies), 'test1/sub*');
+      assert.equal(AnomalyTransformer.findLongestSubTestPath(anomalies), 'test1/sub*');
     });
   });
 
@@ -613,16 +614,16 @@ describe('anomalies-table-sk', () => {
 
   describe('compute revision range', () => {
     it('returns the correct range string', () => {
-      assert.equal(element.computeRevisionRange(100, 200), '100 - 200');
+      assert.equal(AnomalyTransformer.computeRevisionRange(100, 200), '100 - 200');
     });
 
     it('returns a single number if start and end are the same', () => {
-      assert.equal(element.computeRevisionRange(100, 100), '100');
+      assert.equal(AnomalyTransformer.computeRevisionRange(100, 100), '100');
     });
 
     it('returns an empty string if start or end is null', () => {
-      assert.equal(element.computeRevisionRange(null, 100), '');
-      assert.equal(element.computeRevisionRange(100, null), '');
+      assert.equal(AnomalyTransformer.computeRevisionRange(null, 100), '');
+      assert.equal(AnomalyTransformer.computeRevisionRange(100, null), '');
     });
   });
 
