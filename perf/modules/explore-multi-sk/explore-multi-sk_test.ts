@@ -660,6 +660,55 @@ describe('ExploreMultiSk', () => {
       assert.equal(updatedShortcut, 'new-shortcut-id', 'Shortcut param should be updated in URL');
     });
 
+    it('no re-fetch for remaining graphs when one is removed in manual plot mode', async () => {
+      element.state.manual_plot_mode = true;
+
+      // Add two graphs with some fake data
+      const graph1 = element['addEmptyGraph']()!;
+      graph1.state.queries = ['config=test1'];
+      // Mock that it has traces
+      sinon.stub(graph1, 'getTraceset').returns({ trace1: [] } as any);
+
+      const graph2 = element['addEmptyGraph']()!;
+      graph2.state.queries = ['config=test2'];
+      sinon.stub(graph2, 'getTraceset').returns({ trace2: [] } as any);
+
+      element['allGraphConfigs'] = [
+        { queries: ['config=test1'], formulas: [], keys: '' },
+        { queries: ['config=test2'], formulas: [], keys: '' },
+      ];
+
+      element['renderCurrentPage']();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Spy on addFromQueryOrFormula and rangeChangeImpl
+      const addSpy = sinon.spy(ExploreSimpleSk.prototype, 'addFromQueryOrFormula');
+      const rangeChangeSpy = sinon.spy(ExploreSimpleSk.prototype, 'rangeChangeImpl' as any);
+
+      // Remove the first graph. This will cause graph2 to shift to index 0.
+      const event = new CustomEvent('remove-explore', {
+        detail: { elem: graph1 },
+        bubbles: true,
+      });
+      element.dispatchEvent(event);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Verify no re-fetches were triggered on the remaining graph (graph2)
+      // which is now at index 0.
+      assert.isFalse(
+        addSpy.called,
+        'addFromQueryOrFormula should NOT be called during graph removal'
+      );
+      assert.isFalse(
+        rangeChangeSpy.called,
+        'rangeChangeImpl should NOT be called during graph removal'
+      );
+
+      assert.equal(element['exploreElements'].length, 1, 'Only one graph should remain');
+      assert.equal(element['exploreElements'][0], graph2, 'Graph 2 should be the remaining graph');
+      assert.equal(graph2.state.graph_index, 0, 'Graph 2 should now be at index 0');
+    });
+
     it('removes all graphs and updates URL in manual plot mode', async () => {
       element.state.manual_plot_mode = true;
       const updateShortcutSpy = sinon.spy(element, 'updateShortcutMultiview' as any);

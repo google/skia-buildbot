@@ -1463,7 +1463,9 @@ export class ExploreMultiSk extends ElementSk {
       explore.style.display = 'none';
 
       const graphConfig = this.allGraphConfigs[0];
-      const hasResponse = !!this.allFrameResponses[0];
+      const hasResponse =
+        !!this.allFrameResponses[0] ||
+        (explore && Object.keys(explore.getTraceset() || {}).length > 0);
       // In summary view, manual_plot_mode is false, so we don't need the complex check.
       const shouldQueryDataForThisGraph = !doNotQueryData && !hasResponse;
 
@@ -1485,17 +1487,19 @@ export class ExploreMultiSk extends ElementSk {
       explore.style.display = '';
 
       // If we already have a response for this graph, we don't need to query data.
-      const hasResponse = !!this.allFrameResponses[i];
+      const hasResponse =
+        !!this.allFrameResponses[i] ||
+        (explore && Object.keys(explore.getTraceset() || {}).length > 0);
 
       // Logic:
       // 1. Default: Query if we are allowed to (doNotQueryData is false) AND we don't have a
       //    response yet.
       // 2. Manual Mode Override: If we are adding a graph (doNotQueryData is true), we DO want to
       //    query
-      //    for the main graph (i === 0) because it's the new one.
+      //    for the main graph (i === 0) because it's the new one and has no response yet.
       const shouldQueryDataForThisGraph =
         (!doNotQueryData && !hasResponse) ||
-        (this.state.manual_plot_mode && doNotQueryData && i === 0);
+        (this.state.manual_plot_mode && doNotQueryData && i === 0 && !hasResponse);
 
       this.currentPageExploreElements.push(explore);
       this.addStateToExplore(explore, graphConfig, !shouldQueryDataForThisGraph, i);
