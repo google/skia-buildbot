@@ -77,9 +77,14 @@ func (c *gitSemVerChild) getVersions(ctx context.Context) ([]*semver.Version, ma
 	// Log the versions we found for debugging purposes.
 	versionsStr := "Found versions:\n"
 	for _, version := range versions {
-		versionsStr += fmt.Sprintf("  - %s\n", version)
+		versionsStr += fmt.Sprintf("  - %s -> %s\n", version, versionToHash[version.String()])
 	}
 	sklog.Info(versionsStr)
+	hashToVersionsStr := "Hash to version mapping:\n"
+	for hash, versions := range hashToVersions {
+		hashToVersionsStr += fmt.Sprintf("  - %s -> %v", hash, versions)
+	}
+	sklog.Info(hashToVersionsStr)
 
 	return versions, versionToHash, hashToVersions, nil
 }
