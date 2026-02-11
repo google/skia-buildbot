@@ -10,13 +10,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 
 import '../../../infra-sk/modules/sort-sk';
 import { Anomaly, RegressionBug } from '../json';
-import {
-  AnomalyGroup,
-  AnomalyGroupingConfig,
-  groupAnomalies,
-  RevisionGroupingMode,
-  GroupingCriteria,
-} from './grouping';
+import { AnomalyGroup, RevisionGroupingMode } from './grouping';
 
 import { formatPercentage, getPercentChange } from '../common/anomaly';
 import '../window/window';
@@ -33,9 +27,8 @@ import '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
 import { KeyboardShortcutsHelpSk } from '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
 import { SelectionController } from './selection-controller';
 import { ReportNavigationController } from './report-navigation-controller';
+import { AnomalyGroupingController } from './anomaly-grouping-controller';
 import '../bug-tooltip-sk/bug-tooltip-sk';
-
-const GROUPING_CONFIG_STORAGE_KEY = 'perf-grouping-config';
 
 interface ProcessedAnomaly {
   bugId: number;
@@ -58,14 +51,13 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   anomalyList: Anomaly[] = [];
 
   @state()
-  anomalyGroups: AnomalyGroup[] = [];
-
-  @state()
   showPopup: boolean = false;
 
   private selectionController = new SelectionController<Anomaly>(this);
 
   private reportNavigationController = new ReportNavigationController(this);
+
+  private groupingController = new AnomalyGroupingController(this);
 
   private initiallyRequestedAnomalyIDs: Set<string> = new Set<string>();
 
@@ -82,13 +74,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   private uniqueId =
     'anomalies-table-sk-' + new Date().getTime() + '-' + Math.floor(Math.random() * 1000);
-
-  @state()
-  currentConfig: AnomalyGroupingConfig = {
-    revisionMode: 'OVERLAPPING',
-    groupBy: new Set(['BENCHMARK']),
-    groupSingles: true,
-  };
 
   @property({ type: Boolean, attribute: 'show-requested-groups-first', reflect: true })
   show_requested_groups_first: boolean = false;
@@ -111,7 +96,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   connectedCallback() {
     super.connectedCallback();
-    this.loadGroupingConfig();
     // this.render(); // LitElement handles initial render
 
     // Move queries to firstUpdated or check for existence
@@ -199,16 +183,23 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
             <label class="grouping-setting-label">Commit Range Strategy</label>
             <select
               id="revision-mode-select-${this.uniqueId}"
-              @change=${(e: Event) => this.onRevisionModeChange(e)}>
+              @change=${(e: Event) =>
+                this.groupingController.setRevisionMode(
+                  (e.target as HTMLSelectElement).value as RevisionGroupingMode
+                )}>
               <option
                 value="OVERLAPPING"
-                ?selected=${this.currentConfig.revisionMode === 'OVERLAPPING'}>
+                ?selected=${this.groupingController.config.revisionMode === 'OVERLAPPING'}>
                 Overlapping Ranges
               </option>
-              <option value="EXACT" ?selected=${this.currentConfig.revisionMode === 'EXACT'}>
+              <option
+                value="EXACT"
+                ?selected=${this.groupingController.config.revisionMode === 'EXACT'}>
                 Exact Range Only
               </option>
-              <option value="ANY" ?selected=${this.currentConfig.revisionMode === 'ANY'}>
+              <option
+                value="ANY"
+                ?selected=${this.groupingController.config.revisionMode === 'ANY'}>
                 Ignore Range (Group All)
               </option>
             </select>
@@ -220,8 +211,11 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
               <label title="If unchecked, single anomalies will not be forced into groups">
                 <input
                   type="checkbox"
-                  ?checked=${this.currentConfig.groupSingles}
-                  @change=${(e: Event) => this.onGroupSinglesChange(e)} />
+                  ?checked=${this.groupingController.config.groupSingles}
+                  @change=${(e: Event) =>
+                    this.groupingController.setGroupSingles(
+                      (e.target as HTMLInputElement).checked
+                    )} />
                 Group remaining single anomalies by selected criteria (may lead to grouping of
                 unrelated anomalies!)
               </label>
@@ -235,24 +229,36 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
                 <input
                   type="checkbox"
                   value="BENCHMARK"
-                  ?checked=${this.currentConfig.groupBy.has('BENCHMARK')}
-                  @change=${(e: Event) => this.onGroupByChange(e, 'BENCHMARK')} />
+                  ?checked=${this.groupingController.config.groupBy.has('BENCHMARK')}
+                  @change=${(e: Event) =>
+                    this.groupingController.toggleGroupBy(
+                      'BENCHMARK',
+                      (e.target as HTMLInputElement).checked
+                    )} />
                 Benchmark
               </label>
               <label>
                 <input
                   type="checkbox"
                   value="BOT"
-                  ?checked=${this.currentConfig.groupBy.has('BOT')}
-                  @change=${(e: Event) => this.onGroupByChange(e, 'BOT')} />
+                  ?checked=${this.groupingController.config.groupBy.has('BOT')}
+                  @change=${(e: Event) =>
+                    this.groupingController.toggleGroupBy(
+                      'BOT',
+                      (e.target as HTMLInputElement).checked
+                    )} />
                 Bot
               </label>
               <label>
                 <input
                   type="checkbox"
                   value="TEST"
-                  ?checked=${this.currentConfig.groupBy.has('TEST')}
-                  @change=${(e: Event) => this.onGroupByChange(e, 'TEST')} />
+                  ?checked=${this.groupingController.config.groupBy.has('TEST')}
+                  @change=${(e: Event) =>
+                    this.groupingController.toggleGroupBy(
+                      'TEST',
+                      (e.target as HTMLInputElement).checked
+                    )} />
                 Test (without subtests)
               </label>
             </div>
@@ -260,60 +266,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         </div>
       </details>
     `;
-  }
-
-  private onRevisionModeChange(e: Event) {
-    const select = e.target as HTMLSelectElement;
-    this.currentConfig.revisionMode = select.value as RevisionGroupingMode;
-    this.refreshGrouping();
-  }
-
-  private onGroupByChange(e: Event, criteria: GroupingCriteria) {
-    const checkbox = e.target as HTMLInputElement;
-    if (checkbox.checked) {
-      this.currentConfig.groupBy.add(criteria);
-    } else {
-      this.currentConfig.groupBy.delete(criteria);
-    }
-    this.refreshGrouping();
-  }
-
-  private onGroupSinglesChange(e: Event) {
-    const checkbox = e.target as HTMLInputElement;
-    this.currentConfig.groupSingles = checkbox.checked;
-    this.refreshGrouping();
-  }
-
-  private refreshGrouping() {
-    this.saveGroupingConfig();
-    this.anomalyGroups = groupAnomalies(this.anomalyList, this.currentConfig);
-    // this.render();
-  }
-
-  private loadGroupingConfig() {
-    const storedConfig = localStorage.getItem(GROUPING_CONFIG_STORAGE_KEY);
-    if (storedConfig) {
-      try {
-        const parsed = JSON.parse(storedConfig);
-        // Need to convert groupBy from array to Set.
-        if (parsed.groupBy && Array.isArray(parsed.groupBy)) {
-          parsed.groupBy = new Set(parsed.groupBy);
-        }
-        this.currentConfig = { ...this.currentConfig, ...parsed };
-      } catch (e) {
-        console.error('Failed to parse grouping config from localStorage', e);
-        localStorage.removeItem(GROUPING_CONFIG_STORAGE_KEY);
-      }
-    }
-  }
-
-  private saveGroupingConfig() {
-    // Need to convert Set to array for JSON serialization.
-    const configToStore = {
-      ...this.currentConfig,
-      groupBy: Array.from(this.currentConfig.groupBy),
-    };
-    localStorage.setItem(GROUPING_CONFIG_STORAGE_KEY, JSON.stringify(configToStore));
   }
 
   render() {
@@ -404,7 +356,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   }
 
   async openAnomalyGroupReportPage() {
-    for (const group of this.anomalyGroups) {
+    for (const group of this.groupingController.groups) {
       const isGroupSelected = group.anomalies.some((a) => this.selectionController.has(a));
       if (isGroupSelected) {
         await this.reportNavigationController.openReportForAnomalyIds(group.anomalies);
@@ -433,13 +385,13 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   private generateGroups() {
     if (!this.show_requested_groups_first || this.initiallyRequestedAnomalyIDs.size === 0) {
-      return this.anomalyGroups.map((group) => this.generateRows(group));
+      return this.groupingController.groups.map((group) => this.generateRows(group));
     }
 
     const requestedGroups: AnomalyGroup[] = [];
     const otherGroups: AnomalyGroup[] = [];
 
-    for (const group of this.anomalyGroups) {
+    for (const group of this.groupingController.groups) {
       if (this.isGroupInitiallyRequested(group)) {
         requestedGroups.push(group);
       } else {
@@ -469,6 +421,15 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     `;
 
     return [...renderedRequested, [separatorRow], ...renderedOthers];
+  }
+
+  private findGroupForAnomaly(anomaly: Anomaly): AnomalyGroup | null {
+    for (const group of this.groupingController.groups) {
+      if (group.anomalies.find((a) => a.id === anomaly.id)) {
+        return group;
+      }
+    }
+    return null;
   }
 
   private _updateCheckedState(chkbox: HTMLInputElement | null, a: Anomaly) {
@@ -850,7 +811,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     // We must assign to this.anomalyList to trigger update.
     this.anomalyList = anomalyList;
     if (this.anomalyList.length > 0) {
-      this.anomalyGroups = groupAnomalies(this.anomalyList, this.currentConfig);
+      this.groupingController.setAnomalies(this.anomalyList);
     }
     // this.render(); handled by state change
   }

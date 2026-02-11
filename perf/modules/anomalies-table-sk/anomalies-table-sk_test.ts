@@ -10,6 +10,7 @@ import {
   isSameBot,
   isSameTest,
   AnomalyGroupingConfig,
+  AnomalyGroup,
 } from './grouping';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
@@ -690,7 +691,7 @@ describe('anomalies-table-sk', () => {
       await fetchMock.flush(true);
       await element.populateTable(anomalies);
       await element.updateComplete;
-      const group = element.anomalyGroups[0];
+      const group = (element as any).groupingController.groups[0];
       const suummarycheckboxid = element.getGroupId(group);
       const summarycheckbox = element.querySelector(
         `input[id^="anomaly-row-"][id$="-${suummarycheckboxid}"]`
@@ -730,7 +731,7 @@ describe('anomalies-table-sk', () => {
       headerCheckbox.checked = true;
       element.toggleAllCheckboxes();
       // Expand the group so we can check the children checkboxes
-      const group = element.anomalyGroups[0];
+      const group = (element as any).groupingController.groups[0];
       element.expandGroup(group);
       await element.updateComplete;
 
@@ -761,7 +762,7 @@ describe('anomalies-table-sk', () => {
       await element.checkSelectedAnomalies([anomalies[0]]);
       await element.updateComplete;
 
-      const group = element.anomalyGroups[0];
+      const group = (element as any).groupingController.groups[0];
       const summaryCheckboxId = element.getGroupId(group);
       const groupCheckbox = element.querySelector(
         `input[id^="anomaly-row-"][id$="-${summaryCheckboxId}"]`
@@ -784,7 +785,7 @@ describe('anomalies-table-sk', () => {
       await element.checkSelectedAnomalies(anomalies);
       await element.updateComplete;
 
-      const group = element.anomalyGroups[0];
+      const group = (element as any).groupingController.groups[0];
       const summaryCheckboxId = element.getGroupId(group);
       const groupCheckbox = element.querySelector(
         `input[id^="anomaly-row-"][id$="-${summaryCheckboxId}"]`
@@ -916,7 +917,9 @@ describe('anomalies-table-sk', () => {
       await element.populateTable(anomalies);
       await element.updateComplete;
       element.initialCheckAllCheckbox();
-      element.anomalyGroups.forEach((g) => element.expandGroup(g));
+      (element as any).groupingController.groups.forEach((g: AnomalyGroup) =>
+        element.expandGroup(g)
+      );
       await element.updateComplete;
 
       const checkedAnomalies = element.getCheckedAnomalies();
@@ -940,7 +943,9 @@ describe('anomalies-table-sk', () => {
       await element.populateTable(anomalies);
       await element.updateComplete;
       element.initialCheckAllCheckbox();
-      element.anomalyGroups.forEach((g) => element.expandGroup(g));
+      (element as any).groupingController.groups.forEach((g: AnomalyGroup) =>
+        element.expandGroup(g)
+      );
       await element.updateComplete;
 
       // Check individual anomaly checkboxes
@@ -956,7 +961,9 @@ describe('anomalies-table-sk', () => {
 
       // Check group summary checkboxes (assuming grouping logic creates groups)
       // Since we don't know exact grouping, we check if ANY group summary is checked if groups exist
-      if (element.anomalyGroups.some((g) => g.anomalies.length > 1)) {
+      if (
+        (element as any).groupingController.groups.some((g: AnomalyGroup) => g.anomalies.length > 1)
+      ) {
         const groupSummaries = element.querySelectorAll(
           '[id^="anomaly-row-"][id*="-group-"]'
         ) as NodeListOf<HTMLInputElement>;
@@ -987,7 +994,7 @@ describe('anomalies-table-sk', () => {
       await element.updateComplete;
 
       // Expand the group to make individual anomaly rows visible.
-      const group = element.anomalyGroups[0];
+      const group = (element as any).groupingController.groups[0];
       element.expandGroup(group);
       await element.updateComplete;
 
@@ -1079,7 +1086,7 @@ describe('anomalies-table-sk', () => {
       // Create a new element to trigger connectedCallback and load from storage.
       const newElement = newInstance();
 
-      assert.deepEqual(newElement.currentConfig, storedConfig);
+      assert.deepEqual((newElement as any).groupingController.config, storedConfig);
 
       // Clean up localStorage.
       localStorage.removeItem(GROUPING_CONFIG_STORAGE_KEY);
@@ -1246,7 +1253,7 @@ describe('anomalies-table-sk', () => {
       await element.updateComplete;
 
       // Expand the group so child checkboxes are rendered
-      const group = element.anomalyGroups[0];
+      const group = (element as any).groupingController.groups[0];
       element.expandGroup(group);
       await element.updateComplete;
 

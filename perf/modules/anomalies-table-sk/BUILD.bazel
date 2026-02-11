@@ -36,6 +36,7 @@ sk_element(
         ":grouping_ts_lib",
         ":selection-controller_ts_lib",
         ":report-navigation-controller_ts_lib",
+        ":anomaly-grouping-controller_ts_lib",
     ],
     ts_srcs = [
         "anomalies-table-sk.ts",
@@ -128,6 +129,21 @@ karma_test(
     ],
 )
 
+karma_test(
+    name = "anomaly-grouping-controller_test",
+    src = "anomaly-grouping-controller_test.ts",
+    deps = [
+        ":anomaly-grouping-controller_ts_lib",
+        ":grouping_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/lit",
+        "//:node_modules/sinon",
+        "//perf/modules/json:index_ts_lib",
+    ],
+)
+
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":anomalies-table-sk-demo",
@@ -166,5 +182,16 @@ ts_library(
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/telemetry:telemetry_ts_lib",
         "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
+    ],
+)
+
+ts_library(
+    name = "anomaly-grouping-controller_ts_lib",
+    srcs = ["anomaly-grouping-controller.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":grouping_ts_lib",
+        "//:node_modules/lit",
+        "//perf/modules/json:index_ts_lib",
     ],
 )
