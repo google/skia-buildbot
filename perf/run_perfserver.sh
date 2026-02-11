@@ -272,17 +272,37 @@ start_server() {
   fi
 
   # Determine bazel output directory
-  BAZEL_BIN="_bazel_bin"
-  if [ -d "bazel-bin" ]; then
-      BAZEL_BIN="bazel-bin"
+  find_bazel_bin() {
+    if [ -d "_bazel_bin/perf/pages/development" ]; then
+      echo "_bazel_bin"
+    elif [ -d "bazel-bin/perf/pages/development" ]; then
+      echo "bazel-bin"
+    fi
+  }
+
+  BAZEL_BIN=$(find_bazel_bin)
+
+  if [ -z "$BAZEL_BIN" ]; then
+    echo "Build artifacts not found. Running build..."
+    build_server
+    BAZEL_BIN=$(find_bazel_bin)
+    if [ -z "$BAZEL_BIN" ]; then
+      echo "Error: Could not find build artifacts after build."
+      return 1
+    fi
   fi
 
   # Verify critical resource existence to avoid crash-on-request
   REQUIRED_RESOURCE="$BAZEL_BIN/perf/pages/development/newindex.html"
   if [ ! -f "$REQUIRED_RESOURCE" ]; then
-      echo "Error: Required resource not found: $REQUIRED_RESOURCE"
-      echo "The build might be incomplete. Please check 'bazelisk build //perf/...' output."
+    echo "Required resource not found: $REQUIRED_RESOURCE"
+    echo "Running build..."
+    build_server
+    # Check again
+    if [ ! -f "$REQUIRED_RESOURCE" ]; then
+      echo "Error: Required resource still not found after build: $REQUIRED_RESOURCE"
       return 1
+    fi
   fi
 
   $BAZEL_BIN/perf/go/perfserver/perfserver_/perfserver frontend \
