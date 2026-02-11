@@ -907,34 +907,6 @@ describe('anomalies-table-sk', () => {
     });
   });
 
-  describe('fetch group report api', () => {
-    it('fetches the group report', async () => {
-      fetchMock.post('begin:/_/anomalies/group_report', { sid: 'test_sid' });
-      await element.fetchGroupReportApi('1,2,3');
-      assert.equal(element.getGroupReportResponse!.sid, 'test_sid');
-    });
-  });
-
-  describe('generate multi graph url', () => {
-    it('generates the correct multi graph url', async () => {
-      const anomalies = [dummyAnomaly('1', 0, 0, 0, 'master/bot/suite/test')];
-      const timerangeMap = { '1': { begin: 1, end: 2 } };
-      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
-      const urls = await element.generateMultiGraphUrl(anomalies, timerangeMap);
-      assert.isNotEmpty(urls);
-    });
-  });
-
-  describe('calculate time range', () => {
-    it('calculates the correct time range', () => {
-      const timerange = { begin: 1000, end: 2000 };
-      const newRange = element.calculateTimeRange(timerange);
-      const weekInSeconds = 7 * 24 * 60 * 60;
-      assert.equal(newRange[0], (1000 - weekInSeconds).toString());
-      assert.equal(newRange[1], (2000 + weekInSeconds).toString());
-    });
-  });
-
   describe('initial check all checkbox', () => {
     it('checks all checkboxes', async () => {
       const anomalies = [
@@ -1284,14 +1256,17 @@ describe('anomalies-table-sk', () => {
       await element.updateComplete;
 
       const openGroupReportSpy = sinon.spy(element, 'openAnomalyGroupReportPage');
-      const openReportForAnomalyIdsSpy = sinon.spy(element, 'openReportForAnomalyIds');
+      const openReportForAnomalyIdsSpy = sinon.spy(
+        (element as any).reportNavigationController,
+        'openReportForAnomalyIds'
+      );
 
       // Trigger 'G'
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'G' }));
-      assert.isTrue(openGroupReportSpy.calledOnce);
+      assert.isTrue(openGroupReportSpy.calledOnce, 'openAnomalyGroupReportPage not called');
 
       // Verify it tries to open report for BOTH anomalies in the group
-      assert.isTrue(openReportForAnomalyIdsSpy.calledOnce);
+      assert.isTrue(openReportForAnomalyIdsSpy.calledOnce, 'openReportForAnomalyIds not called');
       const args = openReportForAnomalyIdsSpy.firstCall.args[0];
       assert.equal(args.length, 2);
     });

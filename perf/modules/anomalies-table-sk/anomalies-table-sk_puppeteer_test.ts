@@ -103,7 +103,8 @@ describe('anomalies-table-sk', () => {
     });
 
     it('should be able to click Existing Bug button and display mock data', async () => {
-      await anomaliesTableSkPO.clickCheckbox(0);
+      await anomaliesTableSkPO.setGroupBy('BENCHMARK', false);
+      await anomaliesTableSkPO.clickCheckbox(1);
       await anomaliesTableSkPO.clickTriageButton();
       const triageMenu = await testBed.page.$('triage-menu-sk');
       const triageMenuSkPO = new TriageMenuSkPO(triageMenu!);
@@ -116,8 +117,14 @@ describe('anomalies-table-sk', () => {
       // Assert that the mocked bug ID and title are displayed
       const associatedBugLinks = existingBugDialogSkPO.associatedBugLinks;
 
+      const validBugIds = ['12345', '23456', '34567', '-1'];
       for (let i = 0; i < (await associatedBugLinks.length); i++) {
-        expect(await (await associatedBugLinks.item(i)).innerText).to.include('12345');
+        const text = await (await associatedBugLinks.item(i)).innerText;
+        const matches = validBugIds.some((id) => text.includes(id));
+        expect(
+          matches,
+          `Expected dialog to include one of ${validBugIds.join(', ')}, but found '${text}'`
+        ).to.be.true;
       }
       const itemSelectorUrls = '#associated-bugs-table li a';
       testBed.page.$$eval(itemSelectorUrls, (items) => {

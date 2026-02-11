@@ -7,9 +7,9 @@
 
 import { html, TemplateResult, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+
 import '../../../infra-sk/modules/sort-sk';
-import { Anomaly, GetGroupReportResponse, RegressionBug, Timerange } from '../json';
+import { Anomaly, RegressionBug } from '../json';
 import {
   AnomalyGroup,
   AnomalyGroupingConfig,
@@ -17,26 +17,23 @@ import {
   RevisionGroupingMode,
   GroupingCriteria,
 } from './grouping';
-import { GraphConfig, updateShortcut } from '../common/graph-config';
+
 import { formatPercentage, getPercentChange } from '../common/anomaly';
 import '../window/window';
 import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
 import '@material/web/button/outlined-button.js';
-import { errorMessage } from '../errorMessage';
+
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 import '../../../elements-sk/modules/spinner-sk';
-import { CountMetric, telemetry } from '../telemetry/telemetry';
+
 import '../../../elements-sk/modules/icons/help-icon-sk';
 import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
 import '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
 import { KeyboardShortcutsHelpSk } from '../keyboard-shortcuts-help-sk/keyboard-shortcuts-help-sk';
 import { SelectionController } from './selection-controller';
+import { ReportNavigationController } from './report-navigation-controller';
 import '../bug-tooltip-sk/bug-tooltip-sk';
-
-// Just below the 2000 limit - we need to leave some space for the instance address.
-const urlMaxLength = 1900;
-const weekInSeconds = 7 * 24 * 60 * 60;
 
 const GROUPING_CONFIG_STORAGE_KEY = 'perf-grouping-config';
 
@@ -68,6 +65,8 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   private selectionController = new SelectionController<Anomaly>(this);
 
+  private reportNavigationController = new ReportNavigationController(this);
+
   private initiallyRequestedAnomalyIDs: Set<string> = new Set<string>();
 
   private triageMenu: TriageMenuSk | null = null;
@@ -77,8 +76,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   private traceFormatter: ChromeTraceFormatter | null = null;
 
   shortcutUrl: string = '';
-
-  getGroupReportResponse: GetGroupReportResponse | null = null;
 
   @state()
   private loadingGraphForAnomaly: Map<string, boolean> = new Map<string, boolean>();
@@ -100,7 +97,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     return this;
   }
 
-  public openAnomalyChartListener = async (e: Event) => {
+  public openAnomalyChartListener = (e: Event) => {
     const anomaly = (e as CustomEvent<Anomaly>).detail;
     if (anomaly) {
       const newTab = window.open('', '_blank');
@@ -108,11 +105,11 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         newTab.document.write('Loading graph...');
       }
 
-      await this.openMultiGraphUrl(anomaly, newTab);
+      void this.reportNavigationController.openMultiGraphUrl(anomaly, newTab);
     }
   };
 
-  async connectedCallback() {
+  connectedCallback() {
     super.connectedCallback();
     this.loadGroupingConfig();
     // this.render(); // LitElement handles initial render
@@ -186,11 +183,11 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   }
 
   onOpenReport(): void {
-    this.openReport();
+    void this.openReport();
   }
 
   onOpenGroupReport(): void {
-    this.openAnomalyGroupReportPage();
+    void this.openAnomalyGroupReportPage();
   }
 
   private groupingSettingsTemplate() {
@@ -399,63 +396,18 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   }
 
   async openReportForAnomalyIds(anomalies: Anomaly[]) {
-    const idList = anomalies.map((a) => a.id);
-
-    // If only one anomaly is selected, open the report page using
-    // the anomaly id directly.
-    // TODO(b/384952008): offload the handling to backend.
-    if (idList.length === 1) {
-      const key = idList[0];
-      window.open(`/u/?anomalyIDs=${key}`, '_blank');
-      return;
-    }
-    // TODO(b/454590264) Remove the else condition after BE migration is done.
-    if (window.perf.fetch_anomalies_from_sql) {
-      const idString = idList.join(',');
-      const urlForAnomalyIDsList = `/u/?anomalyIDs=${encodeURIComponent(idString)}`;
-      if (urlForAnomalyIDsList.length < urlMaxLength) {
-        window.open(urlForAnomalyIDsList, '_blank');
-        return;
-      }
-      // TODO(b/454277955) We need to assess if anyone actually opens large groups.
-      // If not, SID might prove obsolete.
-      errorMessage(
-        'Tried to open a report page with too many anomalies. Please file a bug to request access.'
-      );
-      console.warn('anomalyIDs url would be too long, need to use SID');
-      telemetry.increaseCounter(CountMetric.SIDRequiringActionTaken, {
-        module: 'anomalies-table-sk',
-        function: 'openReportForAnomalyId',
-      });
-    } else {
-      const idString = idList.join(',');
-      // TODO(wenbinzhang): ideally, we should open the url:
-      //   /u/?keys=idString.
-      // Then from the report-page-sk.ts, we can call
-      //   /_anomalies/group_report?keys=idString.
-      // From the response, we can use the .anomaly_list to
-      // populate the tablem and use the .sid to update the url.
-      // As the report-page-sk.ts is not finalized yet, I'm puting
-      // the logic here to make the implementation more clear.
-      // Though, this will cause one extra call to Chromeperf, which
-      // will slow down the repsonse time.
-      // I will move this to report-page-sk when the page is ready.
-      await this.fetchGroupReportApi(idString);
-      const sid: string = this.getGroupReportResponse!.sid || '';
-      const url = `/u/?sid=${sid}`;
-      window.open(url, '_blank');
-    }
+    await this.reportNavigationController.openReportForAnomalyIds(anomalies);
   }
 
   async openReport() {
-    await this.openReportForAnomalyIds(this.selectionController.items);
+    await this.reportNavigationController.openReportForAnomalyIds(this.selectionController.items);
   }
 
   async openAnomalyGroupReportPage() {
     for (const group of this.anomalyGroups) {
       const isGroupSelected = group.anomalies.some((a) => this.selectionController.has(a));
       if (isGroupSelected) {
-        await this.openReportForAnomalyIds(group.anomalies);
+        await this.reportNavigationController.openReportForAnomalyIds(group.anomalies);
       }
     }
   }
@@ -625,7 +577,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
                       this.loadingGraphForAnomaly.set(anomaly.id, true);
                       this.requestUpdate();
 
-                      await this.openMultiGraphUrl(anomaly, newTab);
+                      await this.reportNavigationController.openMultiGraphUrl(anomaly, newTab);
 
                       this.loadingGraphForAnomaly.set(anomaly.id, false);
                       this.requestUpdate();
@@ -1010,104 +962,13 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     this.requestUpdate();
   }
 
-  // openMultiGraphLink generates a multi-graph url for the given parameters
   public async openMultiGraphUrl(anomaly: Anomaly, newTab: Window | null) {
-    await this.fetchGroupReportApi(String(anomaly.id));
-
-    const urlList = await this.generateMultiGraphUrl(
-      [anomaly],
-      this.getGroupReportResponse!.timerange_map!
-    );
-
-    this.openAnomalyUrl(urlList[0], newTab);
-  }
-
-  private openAnomalyUrl(url: string | undefined, newTab: Window | null): void {
-    if (!newTab || !url) {
-      console.warn('Multi chart URL not found or tab was blocked.');
-      if (newTab) newTab.close(); // Clean up the blank tab on failure.
-      return;
-    }
-
-    // Navigate the already-opened tab to the final destination.
-    newTab.location.href = url;
+    console.log('AnomaliesTableSk.openMultiGraphUrl called');
+    await this.reportNavigationController.openMultiGraphUrl(anomaly, newTab);
   }
 
   getCheckedAnomalies(): Anomaly[] {
     return this.selectionController.items;
-  }
-
-  async fetchGroupReportApi(idString: string): Promise<any> {
-    await fetch('/_/anomalies/group_report', {
-      method: 'POST',
-      body: JSON.stringify({
-        anomalyIDs: idString,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .catch((msg) => {
-        errorMessage(msg);
-      })
-      .then((response) => {
-        const json: GetGroupReportResponse = response;
-        this.getGroupReportResponse = json;
-      });
-  }
-
-  // openMultiGraphLink generates a multi-graph url for the given parameters
-  async generateMultiGraphUrl(
-    anomalies: Anomaly[],
-    timerangeMap: { [key: string]: Timerange }
-  ): Promise<string[]> {
-    const shortcutUrlList: string[] = [];
-    for (let i = 0; i < anomalies.length; i++) {
-      const timerange = this.calculateTimeRange(timerangeMap[anomalies[i]!.id]);
-      const graphConfigs = [] as GraphConfig[];
-      const config: GraphConfig = {
-        keys: '',
-        formulas: [],
-        queries: [],
-      };
-      config.queries = [this.traceFormatter!.formatQuery(anomalies[i]!.test_path)];
-      graphConfigs.push(config);
-      await updateShortcut(graphConfigs)
-        .then((shortcut) => {
-          if (shortcut === '') {
-            this.shortcutUrl = '';
-            return;
-          }
-          this.shortcutUrl = shortcut;
-        })
-        .catch(errorMessage);
-
-      // request_type=0 only selects data points for within the range
-      // rather than show 250 data points by default
-      const url =
-        `${window.location.protocol}//${window.location.host}` +
-        `/m/?begin=${timerange[0]}&end=${timerange[1]}` +
-        `&request_type=0&shortcut=${this.shortcutUrl}&totalGraphs=1`;
-      shortcutUrlList.push(url);
-    }
-
-    return shortcutUrlList;
-  }
-
-  calculateTimeRange(timerange: Timerange): string[] {
-    if (!timerange) {
-      return ['', ''];
-    }
-    const timerangeBegin = timerange.begin;
-    const timerangeEnd = timerange.end;
-
-    // generate data one week ahead and one week behind to make it easier
-    // for user to discern trends
-    const newTimerangeBegin = timerangeBegin ? (timerangeBegin - weekInSeconds).toString() : '';
-    const newTimerangeEnd = timerangeEnd ? (timerangeEnd + weekInSeconds).toString() : '';
-
-    return [newTimerangeBegin, newTimerangeEnd];
   }
 
   initialCheckAllCheckbox() {

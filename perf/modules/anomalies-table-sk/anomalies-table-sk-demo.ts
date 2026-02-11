@@ -127,17 +127,13 @@ fetchMock.post('/_/shortcut/update', () => ({
   id: 'test_shortcut',
 }));
 
-// Mock for Request 2 (e.g., body contains { type: 'B' })
-fetchMock.post(
-  {
-    url: '/_/anomalies/group_report',
-    body: { anomalyIDs: '1,2,3' },
-    matchPartialBody: true,
-  },
-  () => ({
-    GROUP_REPORT_RESPONSE_WITH_SID,
-  })
-);
-
-// Fallback mock for any other POST to this URL
-fetchMock.post('/_/anomalies/group_report', GROUP_REPORT_RESPONSE);
+// Generic mock for group_report that inspects body
+fetchMock.post('/_/anomalies/group_report', (_url, options) => {
+  if (options.body) {
+    const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+    if (body.anomalyIDs === '1,2,3' || body.anomalyIDs === '1,2') {
+      return GROUP_REPORT_RESPONSE_WITH_SID;
+    }
+  }
+  return GROUP_REPORT_RESPONSE;
+});
