@@ -2,6 +2,7 @@ package child
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sort"
 
@@ -12,6 +13,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/semver"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vfs"
 )
 
@@ -69,6 +71,13 @@ func (c *gitSemVerChild) getVersions(ctx context.Context) ([]*semver.Version, ma
 	for hash := range hashToVersions {
 		sort.Sort(sort.Reverse(semver.VersionSlice(hashToVersions[hash])))
 	}
+
+	// Log the versions we found for debugging purposes.
+	versionsStr := "Found versions:\n"
+	for _, version := range versions {
+		versionsStr += fmt.Sprintf("  - %s\n", version)
+	}
+	sklog.Info(versionsStr)
 
 	return versions, tagToHash, hashToVersions, nil
 }
