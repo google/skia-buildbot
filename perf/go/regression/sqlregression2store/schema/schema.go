@@ -20,6 +20,9 @@ type Regression2Schema struct {
 	// The id of an Alert, i.e. the id from the Alerts table.
 	AlertID int `sql:"alert_id INT"`
 
+	// Subscription name associated with the regression.
+	SubName string `sql:"sub_name TEXT"`
+
 	// Id of the bug created by manual triage.
 	BugID int `sql:"bug_id INT"`
 
@@ -52,6 +55,9 @@ type Regression2Schema struct {
 
 	// Index used to query regressions based on alert id
 	byAlertIdIndex struct{} `sql:"INDEX by_alert_id (alert_id)"`
+
+	// Index used to query regressions based on subscription name and creation time.
+	bySubNameAndCreationTime struct{} `sql:"INDEX by_sub_name_creation_time (sub_name, creation_time DESC)"`
 
 	// Index used to query regressions by commit and alert ids
 	byCommitAndAlertIndex struct{} `sql:"INDEX by_commit_alert (commit_number, alert_id)"`

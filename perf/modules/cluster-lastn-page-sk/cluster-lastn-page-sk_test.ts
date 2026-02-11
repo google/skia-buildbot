@@ -101,6 +101,7 @@ describe('cluster-lastn-page-sk', () => {
         body: '',
       },
       regression: {
+        sub_name: '',
         low: null,
         high: {
           centroid: [1.0, 2.0],

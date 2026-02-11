@@ -50,6 +50,7 @@ const DropSpannerIndices = `
   DROP INDEX IF EXISTS by_trace_id_tv2;
   DROP INDEX IF EXISTS by_commit_and_prev_commit;
   DROP INDEX IF EXISTS idx_alerts_subname;
+  DROP INDEX IF EXISTS by_sub_name_creation_time;
 `
 
 // LiveSchemaSpanner has to reflect what's live in prod right now in spanner
@@ -196,7 +197,7 @@ CREATE TABLE IF NOT EXISTS TraceParams (
   trace_id BYTEA PRIMARY KEY,
   params JSONB,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-) TTL INTERVAL '1095 days' ON createdat;
+);
 CREATE TABLE IF NOT EXISTS TraceValues (
   trace_id BYTEA,
   commit_number INT,
@@ -228,6 +229,7 @@ CREATE TABLE IF NOT EXISTS UserIssues (
   PRIMARY KEY(trace_key, commit_position),
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
+CREATE INDEX IF NOT EXISTS idx_alerts_subname on Alerts (sub_name);
 CREATE INDEX IF NOT EXISTS by_revision on Culprits (revision, host, project, ref);
 CREATE INDEX IF NOT EXISTS by_user_id on Favorites (user_id);
 CREATE INDEX IF NOT EXISTS by_tile_number on ParamSets (tile_number DESC);

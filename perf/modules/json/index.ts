@@ -246,6 +246,7 @@ export interface Regression {
 	median_after: number;
 	is_improvement: boolean;
 	cluster_type: string;
+	sub_name: string;
 }
 
 export interface RegressionAtCommit {

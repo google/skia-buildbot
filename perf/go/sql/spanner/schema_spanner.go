@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
   commit_number INT,
   prev_commit_number INT,
   alert_id INT,
+  sub_name TEXT,
   bug_id INT,
   creation_time TIMESTAMPTZ DEFAULT now(),
   median_before REAL,
@@ -185,6 +186,7 @@ CREATE INDEX IF NOT EXISTS by_trace_id on Postings (tile_number, trace_id, key_v
 CREATE INDEX IF NOT EXISTS by_trace_id2 on Postings (tile_number, trace_id);
 CREATE INDEX IF NOT EXISTS by_key_value on Postings (tile_number, key_value);
 CREATE INDEX IF NOT EXISTS by_alert_id on Regressions2 (alert_id);
+CREATE INDEX IF NOT EXISTS by_sub_name_creation_time on Regressions2 (sub_name, creation_time DESC);
 CREATE INDEX IF NOT EXISTS by_commit_alert on Regressions2 (commit_number, alert_id);
 CREATE INDEX IF NOT EXISTS by_commit_and_prev_commit on Regressions2 (commit_number, prev_commit_number);
 CREATE INDEX IF NOT EXISTS by_source_file on SourceFiles (source_file, source_file_id);
@@ -280,6 +282,7 @@ var Regressions2 = []string{
 	"commit_number",
 	"prev_commit_number",
 	"alert_id",
+	"sub_name",
 	"bug_id",
 	"creation_time",
 	"median_before",
