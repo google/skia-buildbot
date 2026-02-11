@@ -18,12 +18,11 @@
  *
  */
 
-import { html, TemplateResult } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { html, TemplateResult, LitElement, PropertyValues } from 'lit';
+import { customElement, property, state, query } from 'lit/decorators.js';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { Anomaly } from '../json';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
+
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status } from '../../../infra-sk/modules/json';
@@ -31,20 +30,39 @@ import { Status } from '../../../infra-sk/modules/json';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
 
-export class NewBugDialogSk extends ElementSk {
-  private _dialog: HTMLDialogElement | null = null;
+@customElement('new-bug-dialog-sk')
+export class NewBugDialogSk extends LitElement {
+  @query('#new-bug-dialog')
+  private _dialog!: HTMLDialogElement;
+
+  @query('#loading-popup')
+  private _loadingPopup!: HTMLDialogElement;
+
+  @query('#title')
+  private _titleInput!: HTMLInputElement;
+
+  @query('#description')
+  private _descriptionInput!: HTMLTextAreaElement;
+
+  @query('#assignee')
+  private _assigneeInput!: HTMLInputElement;
+
+  @query('#ccs')
+  private _ccsInput!: HTMLInputElement;
 
   private _bugUrl: string = '';
 
-  private _form: HTMLFormElement | null = null;
+  @query('#new-bug-form')
+  private _form!: HTMLFormElement;
 
-  _anomalies: Anomaly[] = [];
+  @property({ attribute: false })
+  anomalies: Anomaly[] = [];
 
-  _traceNames: string[] = [];
+  @property({ attribute: false })
+  traceNames: string[] = [];
 
+  @state()
   private _user: string = '';
-
-  private _opened: boolean = false;
 
   private INFINITY_PERCENT_CHANGE: string = 'zero-to-nonzero';
 
@@ -54,29 +72,34 @@ export class NewBugDialogSk extends ElementSk {
 
   private yOffset = 0;
 
-  private static template = (ele: NewBugDialogSk) => html`
+  createRenderRoot() {
+    return this;
+  }
+
+  render() {
+    return html`
     <dialog id="new-bug-dialog"
-    @mousedown=${ele.onmousedown}
-    @mousemove=${ele.onMouseMove}
-    @mouseup=${ele.onMouseUp}>
+    @mousedown=${this.onMousedown}
+    @mousemove=${this.onMouseMove}
+    @mouseup=${this.onMouseUp}>
       <h2>File New Bug</h2>
-      <button id="closeIcon" @click=${ele.closeDialog}>
+      <button id="closeIcon" @click=${this.closeDialog}>
         <close-icon-sk></close-icon-sk>
       </button>
-      <form id="new-bug-form">
+      <form id="new-bug-form" @submit=${this.onFormSubmit}>
         <label for="title">Title</label>
         <input
           id="title"
           type="text"
           required
-          value=${ele.getBugTitle()}>
+          value=${this.getBugTitle()}>
         </input>
         <label for="description">Description</label>
         <textarea id="description" rows="10"></textarea>
-        ${ele.hasLabels() ? html`<h3>Labels</h3>` : ''}
-        ${ele.getLabelCheckboxes()}
+        ${this.hasLabels() ? html`<h3>Labels</h3>` : ''}
+        ${this.getLabelCheckboxes()}
         <h3>Component</h3>
-        ${ele.getComponentRadios()}
+        ${this.getComponentRadios()}
         <label for="assignee">Assignee</label>
         <input
           id="assignee"
@@ -87,7 +110,7 @@ export class NewBugDialogSk extends ElementSk {
         <input
           id="ccs"
           type="text"
-          value=${ele._user}>
+          value=${this._user}>
         </input>
       </form>
     </dialog>
@@ -95,32 +118,28 @@ export class NewBugDialogSk extends ElementSk {
       <p>New bug creating in process. Waiting...</p>
     </dialog>
   `;
-
-  constructor() {
-    super(NewBugDialogSk.template);
   }
+
+  private onFormSubmit = (e: Event) => {
+    e.preventDefault();
+    this.fileNewBug();
+  };
 
   connectedCallback() {
     super.connectedCallback();
-    upgradeProperty(this, '_anomalies');
-    upgradeProperty(this, '_user');
-    this._render();
-
-    this._dialog = this.querySelector('#new-bug-dialog');
-    this._form = this.querySelector('#new-bug-form');
-    this._form!.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.fileNewBug();
-    });
-
     document.addEventListener('mousedown', this.onMousedown);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener('mousedown', this.onMousedown);
   }
 
   /**
    * Checks if any of the anomalies have labels.
    */
   hasLabels(): boolean {
-    return this._anomalies.some((anomaly) => anomaly.bug_labels && anomaly.bug_labels!.length > 0);
+    return this.anomalies.some((anomaly) => anomaly.bug_labels && anomaly.bug_labels!.length > 0);
   }
 
   /**
@@ -136,7 +155,7 @@ export class NewBugDialogSk extends ElementSk {
 
     // Use counter to set id of each checkbox to be unique.
     let counter = 0;
-    this._anomalies.forEach((anomaly) => {
+    this.anomalies.forEach((anomaly) => {
       anomaly.bug_labels?.forEach((label) => {
         if (!uniqueLabels.has(label)) {
           uniqueLabels.add(label);
@@ -176,7 +195,7 @@ export class NewBugDialogSk extends ElementSk {
     let isFirst = true;
     let counter = 0;
 
-    this._anomalies.forEach((anomaly) => {
+    this.anomalies.forEach((anomaly) => {
       const component = anomaly.bug_component;
       // Only add the radio button if the component is not already in the Set
       if (!uniqueComponents.has(component)) {
@@ -249,7 +268,7 @@ export class NewBugDialogSk extends ElementSk {
    * This tries to mimic the getBugTitleForAnomaly function in LegacyChromeperf UI.
    */
   getBugTitle() {
-    if (this._anomalies.length === 0) {
+    if (this.anomalies.length === 0) {
       return '';
     }
 
@@ -260,8 +279,8 @@ export class NewBugDialogSk extends ElementSk {
     let startRev = Infinity;
     let endRev = -Infinity;
 
-    for (let i = 0; i < this._anomalies.length; i++) {
-      const anomaly = this._anomalies[i];
+    for (let i = 0; i < this.anomalies.length; i++) {
+      const anomaly = this.anomalies[i];
       if (!anomaly.is_improvement) {
         type = 'regression';
       }
@@ -306,7 +325,7 @@ export class NewBugDialogSk extends ElementSk {
       minMax = `${percentMin}%`;
     }
 
-    const suiteTitle = this.getSuiteNameForAlert(this._anomalies[0]);
+    const suiteTitle = this.getSuiteNameForAlert(this.anomalies[0]);
     const summary = '{{range}} {{type}} in {{suite}} at {{start}}:{{end}}'
       .replace('{{range}}', minMax)
       .replace('{{type}}', type)
@@ -324,22 +343,21 @@ export class NewBugDialogSk extends ElementSk {
    * Upon success, we redirect the user in a new tab to the new bug.
    * Upon failure, we keep the dialog open and show an error toast.
    */
-  fileNewBug(): void {
-    const loadingPopup = this.querySelector('#loading-popup') as HTMLDialogElement;
-    loadingPopup.showModal();
-    this._render();
+  async fileNewBug(): Promise<void> {
+    await this.updateComplete;
+    this._loadingPopup.showModal();
 
     // Extract title.
-    const title = this.querySelector('#title')! as HTMLInputElement;
+    const title = this._titleInput;
 
     // Extract description.
-    const description = this.querySelector('#description')! as HTMLInputElement;
+    const description = this._descriptionInput;
 
     // Extract assignee
-    const assignee = this.querySelector('#assignee')! as HTMLInputElement;
+    const assignee = this._assigneeInput;
 
     //  Extract CCs
-    const ccs_value = (this.querySelector('#ccs')! as HTMLInputElement).value;
+    const ccs_value = this._ccsInput.value;
     const ccs = ccs_value.split(',').map((s: string) => s.trim());
 
     // Extract labels.
@@ -360,7 +378,7 @@ export class NewBugDialogSk extends ElementSk {
       }
     });
 
-    const keys: string[] = this._anomalies.map((a) => a.id);
+    const keys: string[] = this.anomalies.map((a) => a.id);
 
     const body = {
       title: title.value,
@@ -370,7 +388,7 @@ export class NewBugDialogSk extends ElementSk {
       labels: labels,
       component: component,
       keys: keys,
-      trace_names: this._traceNames,
+      trace_names: this.traceNames,
     };
 
     fetch('/_/triage/file_bug', {
@@ -382,17 +400,16 @@ export class NewBugDialogSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((json) => {
-        loadingPopup.close();
+        this._loadingPopup.close();
         this.closeDialog();
 
         // Open the bug page in new window.
         this._bugUrl = `https://issues.chromium.org/issues/${json.bug_id}`;
         window.open(this._bugUrl, '_blank');
-        this._render();
 
         // Update anomalies to reflected new Bug Id.
-        for (let i = 0; i < this._anomalies.length; i++) {
-          this._anomalies[i].bug_id = json.bug_id;
+        for (let i = 0; i < this.anomalies.length; i++) {
+          this.anomalies[i].bug_id = json.bug_id;
         }
 
         // Let explore-simple-sk and chart-tooltip-sk that anomalies have changed and we need to re-render.
@@ -401,56 +418,58 @@ export class NewBugDialogSk extends ElementSk {
             bubbles: true,
             composed: true,
             detail: {
-              traceNames: this._traceNames,
-              anomalies: this._anomalies,
+              traceNames: this.traceNames,
+              anomalies: this.anomalies,
               bugId: json.bug_id,
             },
           })
         );
       })
       .catch(() => {
-        loadingPopup.close();
+        this._loadingPopup.close();
         this.closeDialog();
         errorMessage(
           'File new bug request failed due to an internal server error. Please try again.'
         );
-        this._render();
       });
   }
 
   setAnomalies(anomalies: Anomaly[], traceNames: string[]): void {
-    this._anomalies = anomalies;
-    this._traceNames = traceNames;
-    this._form!.reset();
-    this._render();
+    this.anomalies = anomalies;
+    this.traceNames = traceNames;
   }
 
-  open(): void {
-    this._opened = true;
+  updated(changedProperties: PropertyValues) {
+    if (changedProperties.has('anomalies') || changedProperties.has('traceNames')) {
+      if (this._form) {
+        this._form.reset();
+      }
+    }
+  }
+
+  async open(): Promise<void> {
+    await this.updateComplete;
     // If user is logged in, automatically add the e-mail to CC.
     LoggedIn().then((loginstatus: Status) => {
       this._user = loginstatus.email;
-      this._render();
     });
-    this._render();
     this._dialog!.showModal();
   }
 
-  closeDialog(): void {
-    this._opened = false;
+  closeDialog = (): void => {
     this._dialog!.close();
-  }
+  };
 
   get opened() {
-    return this._opened;
+    return this._dialog ? this._dialog.open : false;
   }
 
-  private onMouseUp(e: MouseEvent) {
+  private onMouseUp = (e: MouseEvent) => {
     e.preventDefault();
     this.isDragging = false;
-  }
+  };
 
-  private onMouseMove(e: MouseEvent) {
+  private onMouseMove = (e: MouseEvent) => {
     if (!this.isDragging) {
       return;
     }
@@ -469,9 +488,9 @@ export class NewBugDialogSk extends ElementSk {
       this._dialog!.style.left = `${newLeft}px`;
       this._dialog!.style.top = `${newTop}px`;
     }
-  }
+  };
 
-  private onMousedown(e: MouseEvent) {
+  private onMousedown = (e: MouseEvent) => {
     if (e.target !== this._dialog) {
       return;
     }
@@ -481,7 +500,5 @@ export class NewBugDialogSk extends ElementSk {
     // Calculate the offset of the mouse click relative to the dialog's top-left
     this.xOffset = e.offsetX;
     this.yOffset = e.offsetY;
-  }
+  };
 }
-
-define('new-bug-dialog-sk', NewBugDialogSk);

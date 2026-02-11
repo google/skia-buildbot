@@ -102,7 +102,8 @@ window.customElements.whenDefined('new-bug-dialog-sk').then(() => {
     },
   ];
 
-  ele.setAnomalies(anomalies, ['']);
+  ele.anomalies = anomalies;
+  ele.traceNames = [''];
 });
 
 $$('#file-bug')?.addEventListener('click', () => {

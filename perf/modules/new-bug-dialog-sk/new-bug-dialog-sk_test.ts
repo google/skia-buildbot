@@ -12,8 +12,9 @@ describe('new-bug-dialog-sk', () => {
   fetchMock.config.overwriteRoutes = false;
 
   let element: NewBugDialogSk;
-  beforeEach(() => {
+  beforeEach(async () => {
     element = newInstance();
+    await element.updateComplete;
   });
 
   afterEach(() => {
@@ -64,16 +65,18 @@ describe('new-bug-dialog-sk', () => {
     it('sets the anomalies and trace names', () => {
       const anomalies = [dummyAnomaly(12345)];
       const traceNames = ['trace1', 'trace2'];
-      element.setAnomalies(anomalies, traceNames);
-      assert.deepEqual(element._anomalies, anomalies);
-      assert.deepEqual(element._traceNames, traceNames);
+      element.anomalies = anomalies;
+      element.traceNames = traceNames;
+      assert.deepEqual(element.anomalies, anomalies);
+      assert.deepEqual(element.traceNames, traceNames);
     });
   });
 
   describe('file new bug', () => {
     it('successfully files a new bug', async () => {
       const anomalies = [dummyAnomaly(0)];
-      element.setAnomalies(anomalies, []);
+      element.anomalies = anomalies;
+      element.traceNames = [];
 
       fetchMock.post('/_/triage/file_bug', (_url, opts) => {
         const body = JSON.parse(opts.body as string);
@@ -89,7 +92,8 @@ describe('new-bug-dialog-sk', () => {
 
     it('handles error when filing a new bug', async () => {
       const anomalies = [dummyAnomaly(0)];
-      element.setAnomalies(anomalies, []);
+      element.anomalies = anomalies;
+      element.traceNames = [];
       fetchMock.post('/_/triage/file_bug', 500);
       const event = eventPromise('error-sk');
 
@@ -108,7 +112,8 @@ describe('new-bug-dialog-sk', () => {
   describe('get bug title', () => {
     it('generates the correct bug title', () => {
       const anomalies = [dummyAnomaly(0)];
-      element.setAnomalies(anomalies, []);
+      element.anomalies = anomalies;
+      element.traceNames = [];
       assert.equal(element.getBugTitle(), '33.6% regression in suite at 1234:1239');
     });
   });
@@ -155,7 +160,8 @@ describe('new-bug-dialog-sk', () => {
   describe('get component radios', () => {
     it('generates the correct component radios', () => {
       const anomalies = [dummyAnomaly(0)];
-      element.setAnomalies(anomalies, []);
+      element.anomalies = anomalies;
+      element.traceNames = [];
       const radios = element.getComponentRadios();
       assert.lengthOf(radios, 1);
     });
@@ -164,7 +170,8 @@ describe('new-bug-dialog-sk', () => {
   describe('get label checkboxes', () => {
     it('generates the correct label checkboxes', () => {
       const anomalies = [dummyAnomaly(0)];
-      element.setAnomalies(anomalies, []);
+      element.anomalies = anomalies;
+      element.traceNames = [];
       const checkboxes = element.getLabelCheckboxes();
       assert.lengthOf(checkboxes, 2);
     });
@@ -173,7 +180,8 @@ describe('new-bug-dialog-sk', () => {
   describe('has labels', () => {
     it('returns true if there are labels', () => {
       const anomalies = [dummyAnomaly(0)];
-      element.setAnomalies(anomalies, []);
+      element.anomalies = anomalies;
+      element.traceNames = [];
       assert.isTrue(element.hasLabels());
     });
 
@@ -181,7 +189,8 @@ describe('new-bug-dialog-sk', () => {
       const anomaly = dummyAnomaly(0);
       anomaly.bug_labels = [];
       const anomalies = [anomaly];
-      element.setAnomalies(anomalies, []);
+      element.anomalies = anomalies;
+      element.traceNames = [];
       assert.isFalse(element.hasLabels());
     });
   });
