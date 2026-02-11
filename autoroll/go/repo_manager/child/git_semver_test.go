@@ -28,45 +28,50 @@ func setupGitSemVerChild(t *testing.T, regex string) (*gitSemVerChild, *mocks.Gi
 func TestGitSemVerChild_getVersions(t *testing.T) {
 	c, mockRepo := setupGitSemVerChild(t, `v(\d+)\.(\d+)\.(\d+)`)
 
-	ver100, err := c.semVerParser.Parse("v1.0.0")
-	require.NoError(t, err)
-	ver120, err := c.semVerParser.Parse("v1.2.0")
-	require.NoError(t, err)
-	ver1150, err := c.semVerParser.Parse("v1.15.0")
-	require.NoError(t, err)
+	const ver100 = "v1.0.0"
+	const ver120 = "v1.2.0"
+	const ver1150 = "v1.15.0"
+	const ver1150Tag = "upstream/v1.15.0"
 
 	const hashA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	const hashB = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 	const hashC = "0000000000000000000000000000000000000000"
 
-	expectVersions := []*semver.Version{ver1150, ver120, ver100}
-	expectHashToTags := map[string][]*semver.Version{
-		hashA: {ver100},
-		hashB: {ver1150, ver120},
-	}
-	expectTagToHash := map[string]string{
-		ver100.String():  hashA,
-		ver120.String():  hashB,
-		ver1150.String(): hashB,
-		"bogus":          hashC,
+	v := func(tag string) *semver.Version {
+		ver, err := c.semVerParser.Parse(tag)
+		require.NoError(t, err)
+		return ver
 	}
 
-	mockRepo.On("Tags", testutils.AnyContext).Return(expectTagToHash, nil)
+	expectVersions := []*semver.Version{v(ver1150), v(ver120), v(ver100)}
+	expectHashToVersions := map[string][]*semver.Version{
+		hashA: {v(ver100)},
+		hashB: {v(ver1150), v(ver120)},
+	}
+	expectVersionToHash := map[string]string{
+		ver100:  hashA,
+		ver120:  hashB,
+		ver1150: hashB,
+	}
 
-	versions, tagToHash, hashToTags, err := c.getVersions(t.Context())
+	mockRepo.On("Tags", testutils.AnyContext).Return(map[string]string{
+		ver100:     hashA,
+		ver120:     hashB,
+		ver1150Tag: hashB,
+	}, nil)
+
+	versions, versionToHash, hashToVersions, err := c.getVersions(t.Context())
 	require.NoError(t, err)
 	require.Equal(t, expectVersions, versions)
-	require.Equal(t, expectTagToHash, tagToHash)
-	require.Equal(t, expectHashToTags, hashToTags)
+	require.Equal(t, expectVersionToHash, versionToHash)
+	require.Equal(t, expectHashToVersions, hashToVersions)
 }
 
 func TestGitSemVerChild_Update(t *testing.T) {
 	c, mockRepo := setupGitSemVerChild(t, `v(\d+)\.(\d+)\.(\d+)`)
 
-	ver100, err := c.semVerParser.Parse("v1.0.0")
-	require.NoError(t, err)
-	ver110, err := c.semVerParser.Parse("v1.1.0")
-	require.NoError(t, err)
+	const ver100 = "v1.0.0"
+	const ver110 = "v1.1.0"
 
 	const hashA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	const hashB = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -76,8 +81,8 @@ func TestGitSemVerChild_Update(t *testing.T) {
 	}
 
 	mockRepo.On("Tags", testutils.AnyContext).Return(map[string]string{
-		ver100.String(): hashA,
-		ver110.String(): hashB,
+		ver100: hashA,
+		ver110: hashB,
 	}, nil)
 	mockRepo.On("URL").Return("https://github.com/google/skia")
 	tipCommit := &vcsinfo.LongCommit{
@@ -93,7 +98,7 @@ func TestGitSemVerChild_Update(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, hashB, tip.Id)
 	require.Equal(t, hashB, tip.Checksum)
-	require.Equal(t, ver110.String(), tip.Release)
+	require.Equal(t, "v1.1.0", tip.Release)
 	require.Len(t, notRolled, 1)
 	require.Equal(t, tip, notRolled[0])
 }
@@ -101,13 +106,11 @@ func TestGitSemVerChild_Update(t *testing.T) {
 func TestGitSemVerChild_GetRevision(t *testing.T) {
 	c, mockRepo := setupGitSemVerChild(t, `v(\d+)\.(\d+)\.(\d+)`)
 
-	ver100, err := c.semVerParser.Parse("v1.0.0")
-	require.NoError(t, err)
-
+	const ver100 = "v1.0.0"
 	const hashA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 	mockRepo.On("Tags", testutils.AnyContext).Return(map[string]string{
-		ver100.String(): hashA,
+		ver100: hashA,
 	}, nil)
 	mockRepo.On("URL").Return("https://github.com/google/skia")
 	mockCommit := &vcsinfo.LongCommit{
@@ -115,22 +118,20 @@ func TestGitSemVerChild_GetRevision(t *testing.T) {
 			Hash: hashA,
 		},
 	}
-	mockRepo.On("Details", testutils.AnyContext, ver100.String()).Return(mockCommit, nil)
+	mockRepo.On("Details", testutils.AnyContext, "v1.0.0").Return(mockCommit, nil)
 
-	rev, err := c.GetRevision(t.Context(), ver100.String())
+	rev, err := c.GetRevision(t.Context(), "v1.0.0")
 	require.NoError(t, err)
 	require.Equal(t, hashA, rev.Id)
 	require.Equal(t, hashA, rev.Checksum)
-	require.Equal(t, ver100.String(), rev.Release)
+	require.Equal(t, "v1.0.0", rev.Release)
 }
 
 func TestGitSemVerChild_LogRevisions(t *testing.T) {
 	c, mockRepo := setupGitSemVerChild(t, `v(\d+)\.(\d+)\.(\d+)`)
 
-	ver100, err := c.semVerParser.Parse("v1.0.0")
-	require.NoError(t, err)
-	ver110, err := c.semVerParser.Parse("v1.1.0")
-	require.NoError(t, err)
+	const ver100 = "v1.0.0"
+	const ver110 = "v1.1.0"
 
 	const hashA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	const hashB = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -139,8 +140,8 @@ func TestGitSemVerChild_LogRevisions(t *testing.T) {
 	toRev := &revision.Revision{Id: hashB}
 
 	mockRepo.On("Tags", testutils.AnyContext).Return(map[string]string{
-		ver100.String(): hashA,
-		ver110.String(): hashB,
+		ver100: hashA,
+		ver110: hashB,
 	}, nil)
 	mockRepo.On("URL").Return("https://github.com/google/skia")
 	returnedCommits := []*vcsinfo.LongCommit{
@@ -157,18 +158,15 @@ func TestGitSemVerChild_LogRevisions(t *testing.T) {
 	require.Len(t, revs, 1)
 	require.Equal(t, hashB, revs[0].Id)
 	require.Equal(t, hashB, revs[0].Checksum)
-	require.Equal(t, ver110.String(), revs[0].Release)
+	require.Equal(t, "v1.1.0", revs[0].Release)
 }
 
 func TestGitSemVerChild_Update_MultipleTags(t *testing.T) {
 	c, mockRepo := setupGitSemVerChild(t, `v(\d+)\.(\d+)\.(\d+)`)
 
-	ver100, err := c.semVerParser.Parse("v1.0.0")
-	require.NoError(t, err)
-	ver110, err := c.semVerParser.Parse("v1.1.0")
-	require.NoError(t, err)
-	ver120, err := c.semVerParser.Parse("v1.2.0")
-	require.NoError(t, err)
+	const ver100 = "v1.0.0"
+	const ver110 = "v1.1.0"
+	const ver120 = "v1.2.0"
 
 	const hashA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	const hashB = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -178,9 +176,9 @@ func TestGitSemVerChild_Update_MultipleTags(t *testing.T) {
 	}
 
 	mockRepo.On("Tags", testutils.AnyContext).Return(map[string]string{
-		ver100.String(): hashA,
-		ver110.String(): hashB,
-		ver120.String(): hashB,
+		ver100: hashA,
+		ver110: hashB,
+		ver120: hashB,
 	}, nil)
 	mockRepo.On("URL").Return("https://github.com/google/skia")
 	tipCommit := &vcsinfo.LongCommit{
@@ -196,7 +194,7 @@ func TestGitSemVerChild_Update_MultipleTags(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, hashB, tip.Id)
 	require.Equal(t, hashB, tip.Checksum)
-	require.Equal(t, ver120.String(), tip.Release)
+	require.Equal(t, "v1.2.0", tip.Release)
 	require.Len(t, notRolled, 1)
 	require.Equal(t, tip, notRolled[0])
 }
@@ -207,9 +205,9 @@ func TestGitSemVerChild_fixupRevision_NoTag(t *testing.T) {
 	rev := &revision.Revision{
 		Id: "cccccccccccccccccccccccccccccccccccccccc",
 	}
-	hashToTags := map[string][]*semver.Version{}
+	hashToVersions := map[string][]*semver.Version{}
 
-	c.fixupRevision(rev, hashToTags)
+	c.fixupRevision(rev, hashToVersions)
 	require.Equal(t, "cccccccccccccccccccccccccccccccccccccccc", rev.Id)
 	require.Empty(t, rev.Release)
 	require.Equal(t, "No associated tag matching the configured regex.", rev.InvalidReason)
