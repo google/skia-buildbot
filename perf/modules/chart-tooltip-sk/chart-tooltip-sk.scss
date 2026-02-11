@@ -5,6 +5,7 @@ chart-tooltip-sk {
   margin: 10px;
 
   > div.container {
+    display: none;
     opacity: 90%;
     font-size: 12px;
     font-family: var(--font-family);

@@ -53,6 +53,7 @@ describe('chart-tooltip-sk', () => {
     if (!chartTooltipSk) {
       throw new Error('chart-tooltip-sk not found');
     }
+    await chartTooltipSk.evaluate((el: any) => el.moveTo({ x: 100, y: 200 }));
 
     chartTooltipSkPO = new ChartTooltipSkPO(chartTooltipSk);
   });
