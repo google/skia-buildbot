@@ -2,6 +2,34 @@ import './chart-tooltip-sk';
 import { ChartTooltipSk } from './chart-tooltip-sk';
 import { commit_position, dummyAnomaly, new_test_name, test_name, y_value } from './test_data';
 import { $$ } from '../../../infra-sk/modules/dom';
+import fetchMock from 'fetch-mock';
+import { CIDHandlerResponse, CommitNumber } from '../json';
+
+const cidHandlerResponse: CIDHandlerResponse = {
+  commitSlice: [
+    {
+      offset: commit_position,
+      hash: '1234567890abcdef',
+      ts: 1676400000,
+      author: 'user@example.com',
+      message: 'Test commit message',
+      url: 'http://example.com/commit/12345',
+      body: 'Test commit body',
+    },
+    {
+      offset: CommitNumber(12346),
+      hash: 'fedcba0987654321',
+      ts: 1676400000,
+      author: 'user@example.com',
+      message: 'Test commit message 2',
+      url: 'http://example.com/commit/12346',
+      body: 'Test commit body 2',
+    },
+  ],
+  logEntry: 'Test log entry',
+};
+
+fetchMock.post('/_/cid/', cidHandlerResponse);
 
 // Mock data for the tooltip.
 window.perf = {
@@ -45,6 +73,7 @@ window.perf = {
 
 $$('#load-initial-data')?.addEventListener('click', () => {
   document.querySelectorAll<ChartTooltipSk>('chart-tooltip-sk').forEach((ele) => {
+    console.log('chart-tooltip-sk-demo.ts: load-initial-data');
     ele.load(
       1,
       test_name,
@@ -67,12 +96,14 @@ $$('#load-initial-data')?.addEventListener('click', () => {
 
 $$('#reset-tooltip')?.addEventListener('click', () => {
   document.querySelectorAll<ChartTooltipSk>('chart-tooltip-sk').forEach((ele) => {
+    console.log('chart-tooltip-sk-demo.ts: reset-tooltip');
     ele.reset();
   });
 });
 
 $$('#load-data-with-anomaly')?.addEventListener('click', () => {
   document.querySelectorAll<ChartTooltipSk>('chart-tooltip-sk').forEach((ele) => {
+    console.log('chart-tooltip-sk-demo.ts: load-data-with-anomaly');
     ele.load(
       1,
       new_test_name,
@@ -95,6 +126,7 @@ $$('#load-data-with-anomaly')?.addEventListener('click', () => {
 
 $$('#load-data-without-anomaly')?.addEventListener('click', () => {
   document.querySelectorAll<ChartTooltipSk>('chart-tooltip-sk').forEach((ele) => {
+    console.log('chart-tooltip-sk-demo.ts: load-data-without-anomaly');
     ele.load(
       1,
       new_test_name,

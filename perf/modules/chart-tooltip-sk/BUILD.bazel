@@ -52,12 +52,13 @@ sk_element(
 
 sk_page(
     name = "chart-tooltip-sk-demo",
-    assets_serving_path = "/dist",
     html_file = "chart-tooltip-sk-demo.html",
     sk_element_deps = [":chart-tooltip-sk"],
     ts_deps = [
         ":test_data_ts_lib",
+        "//:node_modules/fetch-mock",
         "//infra-sk/modules:dom_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_entry_point = "chart-tooltip-sk-demo.ts",
 )

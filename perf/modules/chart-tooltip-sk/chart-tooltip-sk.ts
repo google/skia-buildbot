@@ -15,6 +15,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { Anomaly, ColumnHeader, CommitNumber } from '../json';
 import { formatBug, formatNumber, formatPercentage, getPercentChange } from '../common/anomaly';
+import '../commit-range-sk/commit-range-sk';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import '../window/window';
 import { TriageMenuSk, NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
@@ -27,6 +28,7 @@ import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/check-icon-sk';
 import '@material/web/elevation/elevation.js';
 import { formatSpecialFunctions } from '../paramtools';
+import '../point-links-sk/point-links-sk';
 import { PointLinksSk, CommitLinks } from '../point-links-sk/point-links-sk';
 import { BisectDialogSk, BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
 import {
@@ -82,11 +84,10 @@ export class ChartTooltipSk extends ElementSk {
   // data point. bug_id > 0 means we have an existing buganizer issue.
   private _bug_id: number = 0;
 
-  _show_pinpoint_buttons = window.perf.git_repo_url.includes(
-    'https://chromium.googlesource.com/chromium/src'
-  );
+  _show_pinpoint_buttons =
+    window.perf?.git_repo_url?.includes('https://chromium.googlesource.com/chromium/src') || false;
 
-  show_bisect_button = window.perf.show_bisect_btn !== null ? window.perf.show_bisect_btn : false;
+  show_bisect_button = !!window.perf?.show_bisect_btn;
 
   private triageMenu: TriageMenuSk | null = null;
 
@@ -482,7 +483,7 @@ export class ChartTooltipSk extends ElementSk {
       this.commitRangeSk.commitIndex = commitRange.commitIndex;
     }
 
-    if (this.userIssueSk !== null) {
+    if (this.userIssueSk) {
       this.userIssueSk.user_id = user_id || '';
       this.userIssueSk.bug_id = bug_id;
       this.userIssueSk.trace_key = formatSpecialFunctions(this._trace_name);

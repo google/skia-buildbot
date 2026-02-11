@@ -77,6 +77,8 @@ describe('chart-tooltip-sk', () => {
     it('loads data without anomaly', async () => {
       await testBed.page.click('#load-data-without-anomaly');
       const anomalyDetails = await chartTooltipSkPO.anomalyDetails;
+      const content = await testBed.page.content();
+      assert.include(content, 'Change');
       assert.isTrue(await (await anomalyDetails).isEmpty());
       await takeScreenshot(testBed.page, 'perf', 'chart-tooltip-sk-load-without-anomaly');
     });
@@ -84,6 +86,8 @@ describe('chart-tooltip-sk', () => {
     it('loads anomaly data', async () => {
       await testBed.page.click('#load-data-with-anomaly');
       const anomalyDetails = await chartTooltipSkPO.anomalyDetails;
+      const content = await testBed.page.content();
+      assert.include(content, 'Anomaly');
       assert.isNotEmpty(await anomalyDetails);
       await takeScreenshot(testBed.page, 'perf', 'chart-tooltip-sk-load-anomaly-details');
     });
