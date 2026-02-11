@@ -133,6 +133,7 @@ export class ExistingBugDialogSk extends LitElement {
           </div>
           <div class="bug-list">${this.associatedBugListTemplate()}<div>
           <div class="footer">
+            ${this.bug_url ? html`<a href="${this.bug_url}" target="_blank">Bug added!</a>` : ''}
             <button id="file-button" class="submit" @click=${
               this.addAnomalyWithExistingBug
             } type="submit" ?disabled=${this._busy}>Submit</button>
@@ -206,11 +207,8 @@ export class ExistingBugDialogSk extends LitElement {
       .then(jsonOrThrow)
       .then(() => {
         this._busy = false;
-        this.closeDialog();
 
-        // Open the bug page in new window.
         this.bug_url = `https://issues.chromium.org/issues/${this.bug_id as number}`;
-        window.open(this.bug_url, '_blank');
 
         // Update anomalies to reflected the existing Bug Id.
         const newAnomalies = this.anomalies.map((a) => ({ ...a, bug_id: this.bug_id as number }));
