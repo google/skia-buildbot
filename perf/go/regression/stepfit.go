@@ -3,7 +3,6 @@ package regression
 import (
 	"context"
 
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
@@ -21,9 +20,6 @@ func StepFit(ctx context.Context, df *dataframe.DataFrame, k int, stddevThreshol
 	count := 0
 	for key, trace := range df.TraceSet {
 		count++
-		if count%10000 == 0 {
-			sklog.Infof("stepfit count: %d", count)
-		}
 		var sf *stepfit.StepFit
 		sf = stepfit.GetStepFitAtMid(trace, stddevThreshold, interesting, stepDetection)
 
@@ -55,7 +51,6 @@ func StepFit(ctx context.Context, df *dataframe.DataFrame, k int, stddevThreshol
 			}
 		}
 	}
-	sklog.Infof("Found LOW: %d HIGH: %d", low.Num, high.Num)
 	ret := &clustering2.ClusterSummaries{
 		Clusters:        []*clustering2.ClusterSummary{},
 		K:               k,

@@ -169,7 +169,6 @@ func ProcessRegressions(ctx context.Context,
 
 	allRequests := allRequestsFromBaseRequest(req, ps, expandBaseRequest)
 	span.AddAttributes(trace.Int64Attribute("num_requests", int64(len(allRequests))))
-	sklog.Infof("Single request expanded into %d requests.", len(allRequests))
 
 	metrics2.GetCounter("perf_regression_detection_requests").Inc(1)
 
@@ -180,7 +179,6 @@ func ProcessRegressions(ctx context.Context,
 		req.Progress.Message("Requests", fmt.Sprintf("Processing request %d/%d", index, len(allRequests)))
 		req.Progress.Message("Stage", "Loading data to analyze")
 		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-		sklog.Infof("Building DataFrameIterator for %q", req.Query())
 		req.Progress.Message("Query", req.Query())
 		iterErrorCallback := func(msg string) {
 			req.Progress.Message("Iteration", msg)
@@ -238,7 +236,6 @@ func allRequestsFromBaseRequest(req *RegressionDetectionRequest, ps paramtools.R
 			sklog.Errorf("Failed to build GroupBy combinations: %s", err)
 			return ret
 		}
-		sklog.Infof("Config expanded into %d queries.", len(queries))
 		for _, q := range queries {
 			reqCopy := *req
 			reqCopy.SetQuery(q)
@@ -319,7 +316,6 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 			return p.reportError(err, "Failed to get DataFrame from DataFrameIterator.")
 		}
 		p.request.Progress.Message("Gathering", fmt.Sprintf("Next dataframe: %d traces", len(df.TraceSet)))
-		sklog.Infof("Next dataframe: %d traces", len(df.TraceSet))
 		before := len(df.TraceSet)
 		// Filter out Traces with insufficient data. I.e. we need 50% or more data
 		// on either side of the target commit.
@@ -327,7 +323,6 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 		after := len(df.TraceSet)
 		message := fmt.Sprintf("Filtered Traces: Num Before: %d Num After: %d Delta: %d", before, after, before-after)
 		p.request.Progress.Message("Filtering", message)
-		sklog.Info(message)
 		if after == 0 {
 			continue
 		}
@@ -344,7 +339,6 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 			//
 			k = int(math.Floor((40.0/30000.0)*float64(n) + 10))
 		}
-		sklog.Infof("Clustering with K=%d", k)
 
 		var summary *clustering2.ClusterSummaries
 		switch p.request.Alert.Algo {

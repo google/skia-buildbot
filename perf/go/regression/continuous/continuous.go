@@ -216,12 +216,11 @@ func (c *Continuous) buildTraceConfigsMapChannelEventDriven(ctx context.Context)
 		go func() {
 			for {
 				if err := ctx.Err(); err != nil {
-					sklog.Info("Channel context error %s", err)
+					sklog.Errorf("Channel context error %s", err)
 					return
 				}
 				// Wait for PubSub events.
 				err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-					sklog.Info("Received incoming Ingestion event.")
 					// Set success to true if we should Ack the PubSub
 					// message, otherwise the message will be Nack'd, and
 					// PubSub will try to send the message again.
@@ -255,7 +254,6 @@ func (c *Continuous) buildTraceConfigsMapChannelEventDriven(ctx context.Context)
 					}
 					// If any configs match then emit the configsAndParamSet.
 					if len(matchingConfigs) > 0 {
-						sklog.Infof("Found %d matching configs for file %s", len(matchingConfigs), ie.Filename)
 						ret <- matchingConfigs
 					}
 					success = true
@@ -301,7 +299,6 @@ func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan c
 				time.Sleep(time.Minute)
 				continue
 			}
-			sklog.Infof("Found %d configs.", len(configs))
 			// Shuffle the order of the configs.
 			//
 			// If we are running parallel continuous regression detectors then
@@ -313,7 +310,6 @@ func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan c
 				configs[i], configs[j] = configs[j], configs[i]
 			})
 
-			sklog.Info("Configs shuffled")
 			ret <- configsAndParamSet{
 				configs:  configs,
 				paramset: c.paramsProvider(),
@@ -352,7 +348,6 @@ func (c *Continuous) updateStoreAndNotification(ctx context.Context, resp *regre
 			sklog.Errorf("Failed to save newly found cluster: %s", err)
 			return
 		}
-		sklog.Infof("Regression is detected! isLow:%s, regressionID: %s. IsNew: %s", isLow, regressionID, isNew)
 		if isNew {
 			c.regressionCounter.Inc(1)
 			notificationID, err = c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl, resp.Frame, regressionID)
@@ -371,15 +366,11 @@ func (c *Continuous) updateStoreAndNotification(ctx context.Context, resp *regre
 		}
 		if err != nil {
 			sklog.Errorf("Failed to save cluster with notification: %s", err)
-		} else {
-			sklog.Infof("Updated store! isLow:%s, NotificationID:%s, updateNotification:%b", isLow, notificationID, updateNotification)
 		}
 		if updateNotification {
 			err = c.notifier.UpdateNotification(ctx, details, previousCommitDetails, cfg, cl, resp.Frame, notificationID)
 			if err != nil {
 				sklog.Errorf("Error updating notification with id %s: %v", notificationID, err)
-			} else {
-				sklog.Infof("Notification updated! NotificationID:%s", notificationID)
 			}
 		}
 	}
@@ -507,9 +498,6 @@ func getConfigQueryForTrace(config *alerts.Alert, traceID string) (string, error
 //
 // Note that it never returns so it should be called as a Go routine.
 func (c *Continuous) Run(ctx context.Context) {
-	// TODO(jcgregorio) Add liveness metrics.
-	sklog.Infof("Continuous starting.")
-
 	if c.flags.EventDrivenRegressionDetection {
 		c.RunEventDrivenClustering(ctx)
 	} else {
@@ -548,7 +536,6 @@ func (c *Continuous) RunEventDrivenClustering(parentCtx context.Context) {
 			err := util.ChunkIterParallelPool(ctx, len(alertConfigs), 1, processAlertConfigsWorkerCount, func(ctx context.Context, startIdx, endIdx int) error {
 				config := alertConfigs[startIdx]
 				if traces, ok := traceConfigMap[config]; ok {
-					sklog.Infof("[ID: %s] Clustering over %d traces for config %s", correlationIdFromContext(ctx), len(traces), config.IDAsString)
 					// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
 					// we need to only query the paramset of the incoming data point instead of
 					// the entire query in the alert.
@@ -557,7 +544,6 @@ func (c *Continuous) RunEventDrivenClustering(parentCtx context.Context) {
 					} else {
 						c.ProcessAlertConfig(ctx, &config, doNotOverrideQuery, nil)
 					}
-					sklog.Infof("[ID: %s] Done with clustering over %d traces for config %s", correlationIdFromContext(ctx), len(traces), config.IDAsString)
 					return nil
 				} else {
 					return skerr.Fmt("[ID: %s] Alert config not found in traceConfigMap: %v", correlationIdFromContext(ctx), config)
@@ -588,7 +574,6 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 	// specific traceIds in dfbuilder instead of converting traceId to a query string.
 	err := util.ChunkIterParallelPool(ctx, len(traceIds), processAlertConfigForTracesChunkSize, processAlertConfigForTracesWorkerCount, func(ctx context.Context, startIdx, endIdx int) error {
 		if config.Config.Experiments.DfIterTraceSlicer {
-			sklog.Infof("[ID: %s] Trace Slicer enabled. Grouping traces into a single query.", correlationIdFromContext(ctx))
 			paramset := paramtools.NewParamSet()
 			// Group all traceIds into a single query for regression detection.
 			for _, traceId := range traceIds[startIdx:endIdx] {
@@ -599,7 +584,6 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 		} else {
 			// Convert each traceId into a query for regression detection.
 			for _, traceId := range traceIds[startIdx:endIdx] {
-				sklog.Debugf("[AG] Processing trace id: %s", traceId)
 				paramset := paramtools.NewParamSet()
 				paramset.AddParamsFromKey(traceId)
 				queryOverride := c.urlProvider.GetQueryStringFromParameters(paramset)
@@ -655,7 +639,6 @@ func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, 
 	defer alertConfigLatencyTimer.Stop()
 	// Smoketest the query, but only if we are not in event driven mode.
 	if cfg.GroupBy != "" && !c.flags.EventDrivenRegressionDetection {
-		sklog.Infof("Alert contains a GroupBy, doing a smoketest first: %q", cfg.DisplayName)
 		u, err := url.ParseQuery(cfg.Query)
 		if err != nil {
 			sklog.Warningf("Alert failed smoketest: Alert contains invalid query: %q: %s", cfg.Query, err)
@@ -679,7 +662,6 @@ func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, 
 			sklog.Warningf("Alert failed smoketest: %q Failed to get any traces for generic query.", cfg.DisplayName)
 			return
 		}
-		sklog.Infof("Alert %q passed smoketest.", cfg.DisplayName)
 	}
 
 	clusterResponseProcessor := func(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, message string) {
