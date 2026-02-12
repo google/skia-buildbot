@@ -111,6 +111,8 @@ func (c *gitSemVerChild) fixupRevision(rev *revision.Revision, hashToVersions ma
 	if versions, ok := hashToVersions[rev.Id]; ok {
 		// If there are multiple tags pointing to this commit, use the latest.
 		rev.Release = versions[0].String()
+		// Make the commit message show the version instead of the commit hash.
+		rev.Display = rev.Release
 		sklog.Infof("fixupRevision(%s): Chose version %s from %v", rev.Id, versions[0], versions)
 	} else {
 		rev.InvalidReason = "No associated tag matching the configured regex."
