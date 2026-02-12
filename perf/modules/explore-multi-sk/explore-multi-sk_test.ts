@@ -792,6 +792,8 @@ describe('ExploreMultiSk', () => {
   describe('Synchronization', () => {
     beforeEach(async () => {
       await setupElement();
+      // Ensure manual_plot_mode is false to prevent state leakage between tests
+      element.state.manual_plot_mode = false;
     });
 
     it('syncs the x-axis label across all graphs', () => {
@@ -821,6 +823,67 @@ describe('ExploreMultiSk', () => {
       // but the other one should be.
       assert.isTrue(spy1.notCalled);
       assert.isTrue(spy2.calledOnceWith('date'));
+    });
+
+    it('correctly transforms commit offsets to timestamps in URL state', async () => {
+      // Setup with commit domain
+      await setupElement({ default_xaxis_domain: 'commit' });
+      const graph1 = element['addEmptyGraph']()!;
+      // Wait for data to load so we have the header
+      await graph1.requestComplete;
+
+      // Simulate selection in commit domain (offsets 100 to 101)
+      // The header in setupElement has offsets 100, 101, 102 corresponding to timestamps 1000, 1001, 1002.
+      const detail: PlotSelectionEventDetails = {
+        value: { begin: 100, end: 101 },
+        domain: 'commit',
+        start: 0, // index in header
+        end: 1, // index in header
+      };
+
+      const event = new CustomEvent('selection-changing-in-multi', {
+        detail: detail,
+        bubbles: true,
+      });
+      // Explicitly set state to a known value (1000) to ensure we are testing the update logic.
+      // This defends against default initialization overwriting it asynchronously.
+      element.state.begin = 1234; // Arbitrary value different from 1000
+      element.state.end = 5678;
+
+      // Ensure at least one graph exists
+      if ((element as any).exploreElements.length === 0) {
+        await (element as any).addGraph();
+      }
+
+      // Mock getHeader on the first graph to return valid timestamps
+      const mockHeader = [
+        { offset: 100, timestamp: 1600000000 },
+        { offset: 101, timestamp: 1600000001 },
+      ];
+      const graph = (element as any).exploreElements[0];
+      sinon.stub(graph, 'getHeader').returns(mockHeader);
+
+      // Stub _onStateChangedInUrl to prevent it from resetting state based on URL
+      // This is necessary because in the test environment the URL might not update/reflect correctly
+      // or stateReflector might trigger a reset to default values (now - default range).
+      sinon.stub(element as any, '_onStateChangedInUrl');
+
+      element['graphDiv']!.dispatchEvent(event);
+
+      // Wait for any async event handlers to process
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // With the bug (URL state corruption on refresh), begin would be 100. Correct behavior is 1600000000.
+      assert.equal(
+        element.state.begin,
+        1600000000,
+        'Begin should be timestamp 1600000000, not offset 100'
+      );
+      assert.equal(
+        element.state.end,
+        1600000001,
+        'End should be timestamp 1600000001, not offset 101'
+      );
     });
 
     it('syncs extend range across all graphs', async () => {
@@ -989,8 +1052,9 @@ describe('ExploreMultiSk', () => {
       // Logic skips index 0 (main graph) when >1 graph exists.
       // If we added 3 graphs, and potentially one existed or behavior changed,
       // we just want to ensure it rendered *something* without crashing.
-      // The failure 'expected 3 to equal 2' suggests we have 3 graphs.
-      assert.equal(element['currentPageExploreElements'].length, 3);
+      // In standard view (manual_plot_mode=false), the first graph is the summary graph
+      // and is excluded from the paginated list, so we expect 2 graphs.
+      assert.equal(element['currentPageExploreElements'].length, 2);
     });
 
     it('createFrameRequest uses defaults when begin/end are -1', () => {

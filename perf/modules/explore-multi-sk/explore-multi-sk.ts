@@ -1672,10 +1672,6 @@ export class ExploreMultiSk extends ElementSk {
       }
     });
     await Promise.allSettled(promises);
-
-    if (this.stateHasChanged) {
-      this.stateHasChanged();
-    }
   }
 
   private async syncChartSelection(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
@@ -1701,7 +1697,7 @@ export class ExploreMultiSk extends ElementSk {
         );
       }
     });
-    //If in multigraph view, sync the plotSummary dfRepo on other graphs.
+    // If in multigraph view, sync the plotSummary dfRepo on other graphs.
     graphs.forEach(async (graph, i) => {
       if (i !== e.detail.graphNumber && e.detail.offsetInSeconds !== undefined)
         await graph.requestComplete; // Wait for load then update
@@ -1724,11 +1720,29 @@ export class ExploreMultiSk extends ElementSk {
     } else if (!this.state.manual_plot_mode) {
       // For single graph (not in manual mode), we need to ensure local state respects the selection
       // so that it doesn't revert the URL when stateHasChanged is called later.
-      if (e.detail.value.begin !== this.state.begin) {
-        this.state.begin = e.detail.value.begin;
+      let newBegin = e.detail.value.begin;
+      let newEnd = e.detail.value.end;
+
+      // If the domain is commit, the selection comes as offsets (e.g. 100, 101).
+      // We need to convert these to timestamps (e.g. 1687875573, 1687875574) because the state.begin
+      // and state.end (and thus the URL) always expect timestamps for request_type=0.
+      if (e.detail.domain === 'commit') {
+        const header = this.exploreElements[0].getHeader();
+        if (header) {
+          if (e.detail.start !== undefined && header[e.detail.start]) {
+            newBegin = header[e.detail.start]!.timestamp;
+          }
+          if (e.detail.end !== undefined && header[e.detail.end]) {
+            newEnd = header[e.detail.end]!.timestamp;
+          }
+        }
       }
-      if (e.detail.value.end !== this.state.end) {
-        this.state.end = e.detail.value.end;
+
+      if (newBegin !== this.state.begin) {
+        this.state.begin = newBegin;
+      }
+      if (newEnd !== this.state.end) {
+        this.state.end = newEnd;
       }
       if (this.stateHasChanged) {
         this.stateHasChanged();
