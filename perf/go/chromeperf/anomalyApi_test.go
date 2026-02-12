@@ -85,6 +85,7 @@ var subTests = map[string]struct {
 	"testTraceNameToTestPath_NoBot_Error":                      {testTraceNameToTestPath_NoBot_Error, ",stat=value,benchmark=Blazor,master=ChromiumPerf,test=timeToFirstContentfulPaint_avg,subtest_1=subtest111,subtest_2=subtest222,subtest_3=subtest333,subtest_4=subtest444,subtest_5=subtest555,subtest_6=subtest666,subtest_7=subtest777,unit=microsecond,improvement_direction=up,"},
 	"testTraceNameToTestPath_NoTest_Error":                     {testTraceNameToTestPath_NoTest_Error, ",stat=value,benchmark=Blazor,bot=MacM1,master=ChromiumPerf,subtest_1=subtest111,subtest_2=subtest222,subtest_3=subtest333,subtest_4=subtest444,subtest_5=subtest555,subtest_6=subtest666,subtest_7=subtest777,unit=microsecond,improvement_direction=up,"},
 	"testTraceNameToTestPath_InvalidTraceName_Error":           {testTraceNameToTestPath_InvalidTraceName_Error, "stat=value,benchmark=Blazor.bot=MacM1.master=ChromiumPerf.test=timeToFirstContentfulPaint_avg.subtest_1=subtest111.subtest_2=subtest222.subtest_3=subtest333.subtest_4=subtest444.subtest_5=subtest555.subtest_6=subtest666.subtest_7=subtest777.unit=microsecond.improvement_direction=up."},
+	"testTraceNameToTestPath_WithComma_Success":                {testTraceNameToTestPath_WithComma_Success, ",stat=value,benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=timeToFirstContentfulPaint_avg,subtest_1=Array.slice(200,700),unit=microsecond,improvement_direction=up,"},
 }
 
 func testTraceNameToTestPath_Success(t *testing.T, traceName string) {
@@ -121,6 +122,12 @@ func testTraceNameToTestPath_InvalidTraceName_Error(t *testing.T, traceName stri
 	testPath, err := TraceNameToTestPath(traceName, false)
 	require.Error(t, err)
 	assert.Equal(t, "", testPath)
+}
+
+func testTraceNameToTestPath_WithComma_Success(t *testing.T, traceName string) {
+	testPath, err := TraceNameToTestPath(traceName, false)
+	require.NoError(t, err)
+	assert.Equal(t, "ChromiumPerf/MacM1/Blazor/timeToFirstContentfulPaint_avg/Array.slice(200,700)", testPath)
 }
 
 func TestTraceNameToTestPath_WithStat(t *testing.T) {

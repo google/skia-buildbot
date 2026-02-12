@@ -487,10 +487,21 @@ func TraceNameToTestPath(traceName string, statToSuffixRequired bool) (string, e
 	}
 
 	paramKeyValueMap := map[string]string{}
+	currentKey := ""
 	for _, keyValueEquation := range keyValueEquations {
-		keyValueArray := strings.Split(keyValueEquation, "=")
+		// This handles the empty string from the trailing comma splitting
+		if keyValueEquation == "" {
+			continue
+		}
+
+		keyValueArray := strings.SplitN(keyValueEquation, "=", 2)
 		if len(keyValueArray) == 2 {
-			paramKeyValueMap[keyValueArray[0]] = keyValueArray[1]
+			currentKey = keyValueArray[0]
+			paramKeyValueMap[currentKey] = keyValueArray[1]
+		} else if currentKey != "" {
+			// If we don't have a key-value pair, it means the value contained a comma
+			// and was split. We append it to the previous value.
+			paramKeyValueMap[currentKey] += "," + keyValueEquation
 		}
 	}
 
