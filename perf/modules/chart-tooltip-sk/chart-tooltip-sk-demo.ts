@@ -1,14 +1,15 @@
 import './chart-tooltip-sk';
 import { ChartTooltipSk } from './chart-tooltip-sk';
+import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { commit_position, dummyAnomaly, new_test_name, test_name, y_value } from './test_data';
 import { $$ } from '../../../infra-sk/modules/dom';
 import fetchMock from 'fetch-mock';
-import { CIDHandlerResponse, CommitNumber } from '../json';
+import { CIDHandlerResponse, CommitNumber, TimestampSeconds } from '../json';
 
 const cidHandlerResponse: CIDHandlerResponse = {
   commitSlice: [
     {
-      offset: commit_position,
+      offset: CommitNumber(12345),
       hash: '1234567890abcdef',
       ts: 1676400000,
       author: 'user@example.com',
@@ -74,13 +75,14 @@ window.perf = {
 $$('#load-initial-data')?.addEventListener('click', () => {
   document.querySelectorAll<ChartTooltipSk>('chart-tooltip-sk').forEach((ele) => {
     console.log('chart-tooltip-sk-demo.ts: load-initial-data');
+    ele.moveTo({ x: 100, y: 200 });
     ele.load(
       1,
       test_name,
       ',arch=x86,config=8888,test=decode,units=kb,',
       'ms',
       y_value,
-      new Date(),
+      new Date(1678886400000), // use determenistic date for testing (Wed, 15 Mar 2023 13:20:00 GMT)
       commit_position,
       0,
       null,
@@ -97,52 +99,88 @@ $$('#load-initial-data')?.addEventListener('click', () => {
 $$('#reset-tooltip')?.addEventListener('click', () => {
   document.querySelectorAll<ChartTooltipSk>('chart-tooltip-sk').forEach((ele) => {
     console.log('chart-tooltip-sk-demo.ts: reset-tooltip');
+    // Move to null hides the tooltip.
+    ele.moveTo(null);
     ele.reset();
   });
 });
 
+const createCommitRangeSk = async () => {
+  const ele = new CommitRangeSk();
+  ele.trace = [12, 13];
+  ele.commitIndex = 1;
+  ele.header = [
+    {
+      offset: CommitNumber(12345),
+      timestamp: TimestampSeconds(0),
+      author: '',
+      hash: '',
+      message: '',
+      url: '',
+    },
+    {
+      offset: CommitNumber(12346),
+      timestamp: TimestampSeconds(0),
+      author: '',
+      hash: '',
+      message: '',
+      url: '',
+    },
+  ];
+  await ele.recalcLink();
+  return ele;
+};
+
 $$('#load-data-with-anomaly')?.addEventListener('click', () => {
-  document.querySelectorAll<ChartTooltipSk>('chart-tooltip-sk').forEach((ele) => {
+  document.querySelectorAll<ChartTooltipSk>('chart-tooltip-sk').forEach(async (ele) => {
     console.log('chart-tooltip-sk-demo.ts: load-data-with-anomaly');
+    // Move to a defined position to show the tooltip.
+    ele.moveTo({ x: 100, y: 100 });
+    const commitRange = await createCommitRangeSk();
     ele.load(
-      1,
-      new_test_name,
-      ',arch=x86,config=8888,test=decode,units=kb,',
-      'ms',
-      y_value,
-      new Date(),
-      commit_position,
-      12345,
-      dummyAnomaly(12345),
-      null,
-      null,
-      false,
-      null,
-      () => {},
-      undefined
+      /* index= */ 1,
+      /* test_name= */ new_test_name,
+      /* trace_name= */ ',arch=x86,config=8888,test=decode,units=kb,',
+      /* unit_type= */ 'ms',
+      /* y_value= */ y_value,
+      /* date_value= */ new Date(1678886400000), // March 15, 2023 00:00:00 UTC
+      /* commit_position= */ commit_position,
+      /* bug_id= */ 0,
+      /* anomaly= */ dummyAnomaly(12345),
+      /* nudgeList= */ null,
+      /* commit= */ null,
+      /* tooltipFixed= */ false,
+      /* commitRange= */ commitRange,
+      /* closeButtonAction= */ () => {},
+      /* color= */ undefined,
+      /* user_id= */ undefined
     );
   });
 });
 
 $$('#load-data-without-anomaly')?.addEventListener('click', () => {
-  document.querySelectorAll<ChartTooltipSk>('chart-tooltip-sk').forEach((ele) => {
+  document.querySelectorAll<ChartTooltipSk>('chart-tooltip-sk').forEach(async (ele) => {
     console.log('chart-tooltip-sk-demo.ts: load-data-without-anomaly');
+    // Move to a defined position to show the tooltip.
+    ele.moveTo({ x: 100, y: 100 });
+    const commitRange = await createCommitRangeSk();
     ele.load(
-      1,
-      new_test_name,
-      ',arch=x86,config=8888,test=decode,units=kb,',
-      'ms',
-      y_value,
-      new Date(),
-      commit_position,
-      0,
-      null,
-      null,
-      null,
-      false,
-      null,
-      () => {},
-      undefined
+      /* index= */ 1,
+      /* test_name= */ new_test_name,
+      /* trace_name= */ ',arch=x86,config=8888,test=decode,units=kb,',
+      /* unit_type= */ 'ms',
+      /* y_value= */ y_value,
+      /* date_value= */ new Date(1678886400000), // March 15, 2023 00:00:00 UTC
+      /* commit_position= */ commit_position,
+      /* bug_id= */ 0,
+      /* anomaly= */ null,
+      /* nudgeList= */ null,
+      /* commit= */ null,
+      /* tooltipFixed= */ false,
+      /* commitRange= */ commitRange,
+      /* closeButtonAction= */ () => {},
+      /* color= */ undefined,
+      /* user_id= */ undefined
     );
   });
 });

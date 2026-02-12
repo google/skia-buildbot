@@ -53,7 +53,10 @@ sk_element(
 sk_page(
     name = "chart-tooltip-sk-demo",
     html_file = "chart-tooltip-sk-demo.html",
-    sk_element_deps = [":chart-tooltip-sk"],
+    sk_element_deps = [
+        ":chart-tooltip-sk",
+        "//perf/modules/commit-range-sk",
+    ],
     ts_deps = [
         ":test_data_ts_lib",
         "//:node_modules/fetch-mock",
@@ -103,6 +106,6 @@ karma_test(
 ts_library(
     name = "test_data_ts_lib",
     srcs = ["test_data.ts"],
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
     deps = ["//perf/modules/json:index_ts_lib"],
 )

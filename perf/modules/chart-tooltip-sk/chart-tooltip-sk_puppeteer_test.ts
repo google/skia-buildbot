@@ -14,47 +14,12 @@ describe('chart-tooltip-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.evaluateOnNewDocument(() => {
-      (window as any).perf = {
-        instance_url: 'https://chrome-perf.corp.goog',
-        commit_range_url: 'https://chromium.googlesource.com/chromium/src/+log/{begin}..{end}',
-        key_order: ['config'],
-        demo: true,
-        radius: 7,
-        num_shift: 10,
-        interesting: 25,
-        step_up_only: false,
-        display_group_by: false,
-        hide_list_of_commits_on_explore: true,
-        notifications: 'none',
-        fetch_chrome_perf_anomalies: false,
-        feedback_url: '',
-        chat_url: '',
-        help_url_override: '',
-        trace_format: 'chrome',
-        need_alert_action: false,
-        bug_host_url: 'b',
-        git_repo_url: 'https://chromium.googlesource.com/chromium/src',
-        keys_for_commit_range: [],
-        keys_for_useful_links: [],
-        skip_commit_detail_display: false,
-        image_tag: 'fake-tag',
-        remove_default_stat_value: false,
-        enable_skia_bridge_aggregation: false,
-        show_json_file_display: true,
-        always_show_commit_info: false,
-        show_triage_link: false,
-        show_bisect_btn: true,
-      };
-    });
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 800, height: 600 });
     chartTooltipSk = (await testBed.page.$('chart-tooltip-sk'))!;
     if (!chartTooltipSk) {
       throw new Error('chart-tooltip-sk not found');
     }
-    await chartTooltipSk.evaluate((el: any) => el.moveTo({ x: 100, y: 200 }));
-
     chartTooltipSkPO = new ChartTooltipSkPO(chartTooltipSk);
   });
 
@@ -63,42 +28,73 @@ describe('chart-tooltip-sk', () => {
     expect(await testBed.page.$$('chart-tooltip-sk')).to.have.length(1);
   });
 
-  describe('screenshots', () => {
-    it('shows the default view', async () => {
-      await takeScreenshot(testBed.page, 'perf', 'chart-tooltip-sk');
-    });
-  });
-
-  describe('click events', () => {
-    it('resets the tooltip', async () => {
+  describe('populate data', () => {
+    beforeEach(async () => {
       await testBed.page.click('#reset-tooltip');
-      await takeScreenshot(testBed.page, 'perf', 'chart-tooltip-sk-reset');
     });
 
     it('loads data without anomaly', async () => {
       await testBed.page.click('#load-data-without-anomaly');
+
       const anomalyDetails = await chartTooltipSkPO.anomalyDetails;
-      const content = await testBed.page.content();
-      assert.include(content, 'Change');
       assert.isTrue(await (await anomalyDetails).isEmpty());
+
+      expect(await chartTooltipSkPO.title.innerText).to.contain(
+        'ChromiumPerf/win-10-perf/jetstream2/stanford-crypto-aes.Average/JetStream2'
+      );
+
+      const table = chartTooltipSkPO.table;
+      const rows = await table.bySelectorAll('li');
+      expect(await rows.length).to.equal(3);
+
+      const dateRow = await rows.item(0);
+      expect(await dateRow.innerText).to.contain('Date');
+      expect(await dateRow.innerText).to.contain('Wed, 15 Mar 2023 13:20:00 GMT');
+
+      const valueRow = await rows.item(1);
+      expect(await valueRow.innerText).to.contain('Value');
+      expect(await valueRow.innerText).to.contain('100 ms');
+
+      const pointRangeRow = await rows.item(2);
+      expect(await pointRangeRow.innerText).to.contain('Change');
+      expect(await pointRangeRow.innerText).to.contain('12346');
+
       await takeScreenshot(testBed.page, 'perf', 'chart-tooltip-sk-load-without-anomaly');
     });
 
     it('loads anomaly data', async () => {
       await testBed.page.click('#load-data-with-anomaly');
-      const anomalyDetails = await chartTooltipSkPO.anomalyDetails;
-      const content = await testBed.page.content();
-      assert.include(content, 'Anomaly');
-      assert.isNotEmpty(await anomalyDetails);
-      await takeScreenshot(testBed.page, 'perf', 'chart-tooltip-sk-load-anomaly-details');
-    });
 
-    it('loads commit range data', async () => {
-      await testBed.page.click('#load-initial-data');
-      const commitRangeLink = await chartTooltipSkPO.commitRangeLink;
-      assert.isNotEmpty(await commitRangeLink);
-      assert.isNotNull(await commitRangeLink.link);
-      await takeScreenshot(testBed.page, 'perf', 'chart-tooltip-sk-load-commit-range');
+      expect(await chartTooltipSkPO.title.innerText).to.contain(
+        'ChromiumPerf/win-10-perf/jetstream2/stanford-crypto-aes.Average/JetStream2 [Anomaly]'
+      );
+
+      // Don't check other point metadata, as it's tested by other tests cases.
+      // Only check the anomaly details.
+
+      const anomalyDetails = await chartTooltipSkPO.anomalyDetails;
+      assert.isNotEmpty(await anomalyDetails);
+
+      const rows = await anomalyDetails.bySelectorAll('li');
+      expect(await rows.length).to.equal(5);
+
+      const anomalyRow = await rows.item(0);
+      expect(await anomalyRow.innerText).to.contain('Anomaly');
+      expect(await anomalyRow.innerText).to.contain('Regression');
+
+      const medianRow = await rows.item(1);
+      expect(await medianRow.innerText).to.contain('Median');
+      expect(await medianRow.innerText).to.contain('100.5023 ms');
+
+      const previousRow = await rows.item(2);
+      expect(await previousRow.innerText).to.contain('Previous');
+      expect(await previousRow.innerText).to.contain('75.2091 [+33.6305%]');
+
+      const bugIdRow = await rows.item(3);
+      expect(await bugIdRow.innerText).to.contain('Bug ID');
+      expect(await bugIdRow.innerText).to.contain('12345');
+
+      await takeScreenshot(testBed.page, 'perf', 'chart-tooltip-sk-load-anomaly-details');
     });
   });
 });
