@@ -111,8 +111,10 @@ func (c *gitSemVerChild) fixupRevision(rev *revision.Revision, hashToVersions ma
 	if versions, ok := hashToVersions[rev.Id]; ok {
 		// If there are multiple tags pointing to this commit, use the latest.
 		rev.Release = versions[0].String()
+		sklog.Infof("fixupRevision(%s): Chose version %s from %v", rev.Id, versions[0], versions)
 	} else {
 		rev.InvalidReason = "No associated tag matching the configured regex."
+		sklog.Infof("fixupRevision(%s): No associated version tag", rev.Id)
 	}
 }
 
@@ -145,6 +147,7 @@ func (c *gitSemVerChild) GetTipRevision(ctx context.Context) (*revision.Revision
 }
 
 func (c *gitSemVerChild) getTipRevision(ctx context.Context, versions []*semver.Version, versionToHash map[string]string, hashToVersions map[string][]*semver.Version) (*revision.Revision, error) {
+	sklog.Infof("getTipRevision: versions[0] is %q -> %q", versions[0], versionToHash[versions[0].String()])
 	return c.getRevision(ctx, versionToHash[versions[0].String()], hashToVersions)
 }
 

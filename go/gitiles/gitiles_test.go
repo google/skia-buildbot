@@ -683,3 +683,44 @@ func TestParseURL(t *testing.T) {
 		"",
 	)
 }
+
+func TestTags(t *testing.T) {
+	urlMock := mockhttpclient.NewURLMock()
+	url := fmt.Sprintf(TagsURL, "fake.googlesource.com")
+	resp := `)]}'
+{
+  "upstream/v1.4.5": {
+    "value": "b706286adbba780006a47ef92df0ad7a785666b6"
+  },
+  "upstream/v1.4.7": {
+    "value": "645a2975c394dc115b57a652cf175cd4c2b59292"
+  },
+  "upstream/v1.4.8": {
+    "value": "97a3da1df009d4dc67251de0c4b1c9d7fe286fc1"
+  },
+  "upstream/v1.4.9": {
+    "value": "954413f8434ee2a044116188d22c15179de4cdb2",
+    "peeled": "e4558ffd1dc49399faf4ee5d85abed4386b4dcf5"
+  },
+  "upstream/v1.5.0": {
+    "value": "fe616643e0f17552025f50b84508ac5b286dd30f",
+    "peeled": "a488ba114ec17ea1054b9057c26a046fc122b3b6"
+  },
+  "upstream/v1.5.1": {
+    "value": "5ed64668796c553e8afc46e574faa26a7d51f824",
+    "peeled": "791626dfb92acf4a3d3ba0342636b0dd82848e01"
+  }
+}`
+	urlMock.MockOnce(url, mockhttpclient.MockGetDialogue([]byte(resp)))
+	r := NewRepo("fake.googlesource.com", urlMock.Client())
+	tags, err := r.Tags(t.Context())
+	require.NoError(t, err)
+	require.Equal(t, map[string]string{
+		"upstream/v1.4.5": "b706286adbba780006a47ef92df0ad7a785666b6",
+		"upstream/v1.4.7": "645a2975c394dc115b57a652cf175cd4c2b59292",
+		"upstream/v1.4.8": "97a3da1df009d4dc67251de0c4b1c9d7fe286fc1",
+		"upstream/v1.4.9": "e4558ffd1dc49399faf4ee5d85abed4386b4dcf5",
+		"upstream/v1.5.0": "a488ba114ec17ea1054b9057c26a046fc122b3b6",
+		"upstream/v1.5.1": "791626dfb92acf4a3d3ba0342636b0dd82848e01",
+	}, tags)
+}

@@ -833,7 +833,21 @@ func (r *Repo) Tags(ctx context.Context) (map[string]string, error) {
 	}
 	rv := make(map[string]string, len(tags))
 	for k, tag := range tags {
-		rv[k] = tag.Value
+		// We're looking for the hash of the commit that the tag points to. In
+		// the case of annotated tags, the tag is its own object; tag.Value is
+		// is the hash of that object, and tag.Peeled is the hash of the commit.
+		// In the case of lightweight tags, tag.Peeled is empty and tag.Value is
+		// the commit hash.
+		//
+		// Note: it's not totally unreasonable to think that we might want to
+		// retrieve the information about the tags themselves, but the gitiles
+		// API seems to return the commit information even when the tag hash is
+		// used.
+		if tag.Peeled != "" {
+			rv[k] = tag.Peeled
+		} else {
+			rv[k] = tag.Value
+		}
 	}
 	return rv, nil
 }
