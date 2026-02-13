@@ -174,6 +174,24 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 			}
 			regression = stepSize
 		}
+	} else if stepDetection == types.RatioStep {
+		// This is a modified version of Original Step, which uses 
+		// Root-Mean-Squared Error to calculate the fitness.
+		lse = float32(math.MaxFloat32)
+		if y0 != y1 {
+			d := vec32.SSE(trace[:i], y0) + vec32.SSE(trace[i:], y1)
+			if d < lse {
+				lse = d
+				stepSize = (y0 - y1)
+			}
+		}
+		// Calculate the Root-Mean-Squared Error to measure fit to step function
+		lse = float32(math.Sqrt(float64(lse) / float64(len(trace))))
+		if lse < stddevThreshold {
+			regression = stepSize / stddevThreshold
+		} else {
+			regression = stepSize / lse
+		}
 	} else /* types.MannWhitneyU  */ {
 		s1 := vec32.ToFloat64(trace[:i])
 		s2 := vec32.ToFloat64(trace[i:])
