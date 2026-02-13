@@ -77,6 +77,12 @@ skia_app_container(
                 "0644",
             ],
         ],
+        "/usr/local/share/evals": [
+            [
+                ":evals",
+                "0644",
+            ],
+        ],
     },
     entrypoint = "/usr/local/bin/server",
     repository = "skia-public/historyrag-ingester",
