@@ -26,7 +26,6 @@ import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { Anomaly, Issue } from '../json';
 import { ProjectId } from '../json';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
@@ -37,9 +36,6 @@ import { CountMetric, telemetry } from '../telemetry/telemetry';
 export class ExistingBugDialogSk extends LitElement {
   @query('#existing-bug-dialog')
   private _dialog!: HTMLDialogElement;
-
-  @query('#loading-spinner')
-  private _spinner!: SpinnerSk;
 
   @query('#existing-bug-form')
   private _form!: HTMLFormElement;

@@ -6,7 +6,7 @@
  * subscription.
  */
 import { html, LitElement } from 'lit';
-import { customElement, state, query } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 import '../../../elements-sk/modules/spinner-sk';
 import '../anomalies-table-sk';
 import '../subscription-table-sk';
@@ -19,8 +19,6 @@ import {
   Subscription,
   Alert,
 } from '../json';
-import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
-import { SubscriptionTableSk } from '../subscription-table-sk/subscription-table-sk';
 import '@material/web/button/outlined-button.js';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
@@ -72,13 +70,6 @@ export class RegressionsPageSk extends LitElement {
 
   @state()
   private alerts: Alert[] = [];
-
-  // Anomalies table
-  @query('#anomaly-table')
-  anomaliesTable!: AnomaliesTableSk | null;
-
-  @query('#subscription-table')
-  subscriptionTable!: SubscriptionTableSk | null;
 
   @state()
   showMoreAnomalies = false;

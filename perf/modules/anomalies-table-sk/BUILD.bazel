@@ -31,7 +31,6 @@ sk_element(
         "//:node_modules/lit",
         "//perf/modules/common:keyboard-shortcuts_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
         "//perf/modules/window:window_ts_lib",
         ":grouping_ts_lib",
         ":selection-controller_ts_lib",

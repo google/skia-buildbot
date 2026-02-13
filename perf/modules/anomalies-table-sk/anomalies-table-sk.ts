@@ -23,7 +23,6 @@ import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
 import '@material/web/button/outlined-button.js';
 
-import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 import '../../../elements-sk/modules/spinner-sk';
 
 import '../../../elements-sk/modules/icons/help-icon-sk';
@@ -71,8 +70,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   private headerCheckbox: HTMLInputElement | null = null;
 
-  private traceFormatter: ChromeTraceFormatter | null = null;
-
   shortcutUrl: string = '';
 
   @state()
@@ -104,7 +101,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     super.connectedCallback();
 
     // Move queries to firstUpdated or check for existence
-    this.traceFormatter = new ChromeTraceFormatter();
     this.addEventListener('click', (e: Event) => {
       const triageButton = this.querySelector(`#triage-button-${this.uniqueId}`);
       const popup = this.querySelector('.popup');
@@ -305,10 +301,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   private isGroupInitiallyRequested(group: AnomalyGroup): boolean {
     return group.anomalies.some((anomaly) => this.initiallyRequestedAnomalyIDs.has(anomaly.id));
-  }
-
-  private isGroupSelected(group: AnomalyGroup): boolean {
-    return group.anomalies.some((anomaly) => this.selectionController.has(anomaly));
   }
 
   private generateGroups() {

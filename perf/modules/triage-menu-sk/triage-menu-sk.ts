@@ -74,9 +74,6 @@ export class TriageMenuSk extends LitElement {
   @query('existing-bug-dialog-sk')
   existingBugDialog!: ExistingBugDialogSk;
 
-  @query('#hide-ignore-triage')
-  private closeIgnoreToastButton!: HTMLButtonElement;
-
   @query('#ignore_toast')
   ignoreTriageToast!: ToastSk;
 
