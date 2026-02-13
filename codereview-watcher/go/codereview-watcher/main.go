@@ -199,16 +199,17 @@ func startPoller(ctx context.Context, githubClient *github.GitHub, gerritClient 
 					isMerged = true
 				}
 
-				// Add informative comment before closing.
-				if err := githubClient.AddComment(prNumber, msg); err != nil {
-					sklog.Errorf("Error when adding comment to PR %s: %s", prReadableStr, err)
-					continue
-				}
-				// Close the PR and add it to the Datastore.
+				// Close the PR.
 				if _, err := githubClient.ClosePullRequest(prNumber); err != nil {
 					sklog.Errorf("Error when closing PR %s: %s", prReadableStr, err)
 					continue
 				}
+				// Add informative comment.
+				if err := githubClient.AddComment(prNumber, msg); err != nil {
+					sklog.Errorf("Error when adding comment to PR %s: %s", prReadableStr, err)
+					continue
+				}
+				// Update the PR in the DB.
 				if err := dbClient.UpdateDB(ctx, repo, prNumber, isMerged, isAbandoned); err != nil {
 					sklog.Errorf("Error updating PR %s in DB: %s", prReadableStr, err)
 					continue
