@@ -14,6 +14,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
+        "//go/httputils",
         "//go/sklog",
     ],
 )
