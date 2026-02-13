@@ -3,7 +3,13 @@ load("//bazel:skia_app_container.bzl", "skia_app_container")
 filegroup(
     name = "configs",
     srcs = glob(["configs/*.json"]),
-    visibility = ["//perf:__subpackages__"],
+    visibility = ["//rag:__subpackages__"],
+)
+
+filegroup(
+    name = "evals",
+    srcs = glob(["evals/*.json"]),
+    visibility = ["//rag:__subpackages__"],
 )
 
 skia_app_container(
@@ -19,6 +25,12 @@ skia_app_container(
         "/usr/local/share/configs": [
             [
                 ":configs",
+                "0644",
+            ],
+        ],
+        "/usr/local/share/evals": [
+            [
+                ":evals",
                 "0644",
             ],
         ],

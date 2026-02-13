@@ -7,7 +7,8 @@
     "ingestion_config": {
         "topic": "historyrag-ingest-chrome-internal-staging",
         "subscription": "historyrag-ingest-chrome-internal-staging-prod",
-        "project": "skia-infra-corp"
+        "project": "skia-infra-corp",
+        "eval_set_path": "/usr/local/share/evals/chrome_evals.json"
     },
         "query_embedding_model": "gemini-embedding-001",
         "output_dimensionality": 768,
