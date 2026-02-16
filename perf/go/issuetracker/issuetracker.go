@@ -5,7 +5,9 @@ package issuetracker
 import (
 	"context"
 	"fmt"
+	"maps"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -340,7 +342,7 @@ func (s *issueTrackerImpl) describeTopAnomalies(anom []*v1.Anomaly) (desc string
 }
 
 func describeAnomaly(a *v1.Anomaly) string {
-	return fmt.Sprintf("  - Bot: %s, Benchmark: %s, Measurement: %s, Story: %s.  \n    Change: %.4f -> %.4f (%.2f%%); Commit range: %d -> %d\n\n",
+	return fmt.Sprintf("  - Bot: %s, Benchmark: %s, Measurement: %s, Story: %s.  \n    Change: %.4f -> %.4f (%+.2f%%); Commit range: %d -> %d\n\n",
 		a.Paramset["bot"], a.Paramset["benchmark"], a.Paramset["measurement"], a.Paramset["story"],
 		a.MedianBefore, a.MedianAfter, calcChange(a.MedianBefore, a.MedianAfter), a.StartCommit, a.EndCommit,
 	)
@@ -357,8 +359,10 @@ func (s *issueTrackerImpl) describeBots(regs []*regression.Regression) string {
 			uniqueBots[b] = struct{}{}
 		}
 	}
+	sortedBots := slices.Collect(maps.Keys(uniqueBots))
+	slices.Sort(sortedBots)
 	desc := "  \nBots for regressions of this bug:  \n"
-	for b := range uniqueBots {
+	for _, b := range sortedBots {
 		desc += fmt.Sprintf("  - %s  \n", b)
 	}
 	return desc + "  \n\n"
