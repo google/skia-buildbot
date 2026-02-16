@@ -262,14 +262,6 @@ export class ChartTooltipSk extends ElementSk {
     div!.style.top = `${adjustedY}px`;
   }
 
-  private seeMoreText() {
-    if (!this.tooltip_fixed) {
-      return;
-    }
-
-    return html`<span class="see-more-text">Click for more details</span>`;
-  }
-
   private getCommitInfo() {
     // If commit info is a range and config is not set to always show,
     // then do not show the commit info.

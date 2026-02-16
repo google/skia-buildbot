@@ -351,15 +351,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     return [...renderedRequested, [separatorRow], ...renderedOthers];
   }
 
-  private findGroupForAnomaly(anomaly: Anomaly): AnomalyGroup | null {
-    for (const group of this.groupingController.groups) {
-      if (group.anomalies.find((a) => a.id === anomaly.id)) {
-        return group;
-      }
-    }
-    return null;
-  }
-
   private _updateCheckedState(chkbox: HTMLInputElement | null, a: Anomaly) {
     if (chkbox) {
       if (chkbox.checked) {
@@ -674,12 +665,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
     this.triageMenu!.toggleButtons(this.selectionController.items.length > 0);
     this.requestUpdate();
-  }
-
-  private checkAnomaly(checkedAnomaly: Anomaly) {
-    this.selectionController.select(checkedAnomaly);
-
-    this.anomalyChecked(null, checkedAnomaly);
   }
 
   /**

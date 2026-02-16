@@ -1608,50 +1608,6 @@ export class ExploreMultiSk extends ElementSk {
     });
   }
 
-  private async syncRange(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
-    const graphs = this.exploreElements;
-    const offset = e.detail.offsetInSeconds;
-    const range = e.detail.value;
-    // It is possible when loading split graphs on start that the first element
-    // hasnt selected a range yet.
-    const selectedRange = this.exploreElements.map((e) => e.getSelectedRange()).find((r) => !!r);
-
-    // Sets dataLoading state across all graphs since the main graph is only one doing work.
-    graphs.forEach((graph, i) => {
-      // Skip main graph as its loading state will be handled by extendRange.
-      if (i > 0) {
-        graph.dataLoading = true;
-      }
-    });
-
-    // Extend range of primary graph first, so that the other graphs can use
-    // the updated range when they are updated.
-    await this.exploreElements[0].extendRange(range, offset);
-
-    // Once extended, then update each split graph.
-    graphs.forEach((graph, i) => {
-      if (i > 0) {
-        const traces = graph.getTraceset();
-        const traceKeys = traces ? Object.keys(traces) : undefined;
-        if (traceKeys === undefined) {
-          return;
-        }
-        const frameRequest = this.createFrameRequest(traceKeys);
-        const frameResponse = this.createFrameResponse(traceKeys);
-
-        (graph as ExploreSimpleSk).UpdateWithFrameResponse(
-          frameResponse,
-          frameRequest,
-          true,
-          selectedRange,
-          true,
-          false
-        );
-        graph.dataLoading = false;
-      }
-    });
-  }
-
   private async syncExtendRange(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
     if (this._dataLoading) {
       return;

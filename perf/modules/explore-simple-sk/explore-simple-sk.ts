@@ -65,7 +65,6 @@ import {
   Anomaly,
   DataFrame,
   RequestType,
-  Params,
   ParamSet,
   FrameRequest,
   FrameResponse,
@@ -447,29 +446,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   private _csvBlobURL: string = '';
 
   private fromParamsKey: string = '';
-
-  private buildTestPath(params: Params) {
-    const parts = [];
-    if (params.test) {
-      parts.push(params.test);
-    }
-    // Only add subtests if they are not the same as story, up to 4.
-    if (params.subtest_1 && params.subtest_1 !== this.story) {
-      parts.push(params.subtest_1);
-    }
-    if (params.subtest_2 && params.subtest_2 !== this.story) {
-      parts.push(params.subtest_2);
-    }
-    if (params.subtest_3 && params.subtest_3 !== this.story) {
-      parts.push(params.subtest_3);
-    }
-    if (params.subtest_4 && params.subtest_4 !== this.story) {
-      parts.push(params.subtest_4);
-    }
-
-    parts.push(this.story);
-    this.testPath = parts.join('/');
-  }
 
   private testPath: string = '';
 
@@ -2785,17 +2761,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     if (shouldAddSummaryOptions) {
       this.addPlotSummaryOptions(df, dt);
     }
-  }
-
-  /**
-   * Returns the label for the selected plot summary trace.
-   */
-  private getPlotSummaryTraceLabel(): string {
-    if (this.traceKeyForSummary !== '') {
-      return this.traceFormatter!.formatTrace(fromKey(this.traceKeyForSummary));
-    }
-
-    return '';
   }
 
   private getTraces(dt: DataTable): string[] {
