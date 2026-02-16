@@ -211,7 +211,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 
 	topAnomalies, err := ags.TopAnomaliesMedianCmp(regData, int64(TOP_ANOMALIES_COUNT))
 
-	description := "```<br>"
+	description := ""
 
 	// TODO(b/464211673) Make sure the links lead to correct graphs.
 	description += s.generateLinkToGraph(req.Keys)
@@ -230,14 +230,14 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		sklog.Warningf("we ignore componentID: %s passed by fe and use data from the db: %d", req.Component, componentID)
 	}
 
-	descriptionDebugSection := "## DEBUG BELOW\n"
+	descriptionDebugSection := "\n\n\n\n\n\n## DEBUG BELOW\n\n"
 	// TODO(b/454614028) remove this assignment after migration is done.
 	// This is to prevent spamming other teams while testing.
 	sklog.Warningf("File Bug would use the following component: %d. Using a default component until migration is done.", componentID)
-	descriptionDebugSection += fmt.Sprintf("component %d should be used.<br>Until migration is done, we use the default one.<br>", componentID)
+	descriptionDebugSection += fmt.Sprintf("component %d should be used.\nUntil migration is done, we use the default one.\n", componentID)
 	componentID = 1325852
 
-	description += "<br><br><br>" + descriptionDebugSection + "<br>```"
+	description += descriptionDebugSection + "\n\n"
 
 	var ccs []*issuetracker.User
 	for _, cc := range req.Ccs {
@@ -261,6 +261,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 			Ccs: ccs,
 		},
 	}
+	sklog.Debugf("Description: %s", description)
 
 	resp, err := s.client.Issues.Create(newIssue).TemplateOptionsApplyTemplate(true).Do()
 	if err != nil {
@@ -308,8 +309,7 @@ func (s *issueTrackerImpl) getComponentID(subscriptions []*pb.Subscription) (int
 func (s *issueTrackerImpl) generateLinkToGraph(keys []string) string {
 	anomalyIdsLink := "anomalyIDs"
 	graphLink := fmt.Sprintf("%s/u?%s=", s.urlBase, anomalyIdsLink)
-	// Markdown doesn't seem to support the > marker in the code mode, so we leave 2 spaces.
-	link := fmt.Sprintf("Link to graph with regressions:<br>  %s", graphLink)
+	link := fmt.Sprintf("Link to graph with regressions:  \n  %s", graphLink)
 
 	BAN_LONG_URLS := true
 	// Links longer than 2k might be problematic. We will rely on report by bugID.
@@ -319,8 +319,8 @@ func (s *issueTrackerImpl) generateLinkToGraph(keys []string) string {
 	for _, key := range keys {
 		if BAN_LONG_URLS && urlLength+len(key)+1 >= MAX_LEN {
 			sklog.Warningf("URL is too long, need to use link by bug id - there are %d regressions", len(keys))
-			prefix := "The link to a graph with all regressions would be too long.\n"
-			prefix += "Please check the first comment for an alternative link to the graph"
+			prefix := "The link to a graph with all regressions would be too long.  \n"
+			prefix += "Please check the first comment for an alternative link to the graph\n\n"
 			link = prefix
 			break
 		}
@@ -328,11 +328,11 @@ func (s *issueTrackerImpl) generateLinkToGraph(keys []string) string {
 		urlLength += len(key) + 1
 	}
 
-	return strings.TrimSuffix(link, ",") + "<br><br>"
+	return fmt.Sprintf("%s\n\n", strings.TrimSuffix(link, ","))
 }
 
 func (s *issueTrackerImpl) describeTopAnomalies(anom []*v1.Anomaly) (desc string) {
-	desc = fmt.Sprintf("Top %d anomalies in this report:<br>", len(anom))
+	desc = fmt.Sprintf("Top %d anomalies in this report:  \n", len(anom))
 	for _, a := range anom {
 		desc += describeAnomaly(a)
 	}
@@ -340,8 +340,7 @@ func (s *issueTrackerImpl) describeTopAnomalies(anom []*v1.Anomaly) (desc string
 }
 
 func describeAnomaly(a *v1.Anomaly) string {
-	// Markdown doesn't seem to support the > marker in the code mode, so we leave 2 spaces.
-	return fmt.Sprintf("- Bot: %s, Benchmark: %s, Measurement: %s, Story: %s<br>  Change: %.4f -> %.4f (%.2f%%); Commit range: %d -> %d<br><br>",
+	return fmt.Sprintf("  - Bot: %s, Benchmark: %s, Measurement: %s, Story: %s. \n    Change: %.4f -> %.4f (%.2f%%); Commit range: %d -> %d\n\n",
 		a.Paramset["bot"], a.Paramset["benchmark"], a.Paramset["measurement"], a.Paramset["story"],
 		a.MedianBefore, a.MedianAfter, calcChange(a.MedianBefore, a.MedianAfter), a.StartCommit, a.EndCommit,
 	)
