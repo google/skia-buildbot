@@ -16,12 +16,12 @@ sk_element(
     sass_srcs = ["cluster-summary2-sk.scss"],
     sk_element_deps = [
         "//perf/modules/commit-detail-panel-sk",
-        "//perf/modules/plot-simple-sk",
         "//perf/modules/triage2-sk",
         "//perf/modules/word-cloud-sk",
         "//perf/modules/commit-range-sk",
         "//elements-sk/modules/collapse-sk",
         "//infra-sk/modules/alogin-sk",
+        "//perf/modules/plot-google-chart-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",
@@ -31,7 +31,6 @@ sk_element(
         "//perf/modules/cid:cid_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "//perf/modules/plot-simple-sk:ticks_ts_lib",
         "//perf/modules/window:window_ts_lib",
     ],
     ts_srcs = [

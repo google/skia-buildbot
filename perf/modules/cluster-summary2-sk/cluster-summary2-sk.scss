@@ -41,7 +41,7 @@ cluster-summary2-sk {
   }
 
   @media (max-width: 600px) {
-    plot-simple-sk {
+    plot-google-chart-sk {
       display: none;
     }
   }
@@ -111,12 +111,17 @@ cluster-summary2-sk {
     margin-left: 8px;
   }
 
-  .plot {
+  .plot-wrapper {
     grid-area: plot;
     margin: 1em;
-    display: block;
     width: 800px;
     height: 250px;
+    position: relative;
+
+    plot-google-chart-sk {
+      width: 100%;
+      height: 100%;
+    }
   }
 
   #status {

@@ -37,7 +37,7 @@ import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/collapse-sk';
 import '../commit-detail-panel-sk';
-import '../plot-simple-sk';
+import '../plot-google-chart-sk';
 import '../triage2-sk';
 import '../word-cloud-sk';
 import '../commit-range-sk';
@@ -55,13 +55,12 @@ import {
   Alert,
   StepDetection,
 } from '../json';
-import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
-import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
+import { PlotShowTooltipEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
+import { PlotGoogleChartSk } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import '../window/window';
 import { lookupCids } from '../cid/cid';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
-import { ticks } from '../plot-simple-sk/ticks';
 
 /** Defines a func that takes a number and formats it as a string. */
 type Formatter = (n: number) => string;
@@ -169,7 +168,7 @@ export class ClusterSummary2Sk extends ElementSk {
 
   private status: HTMLDivElement | null = null;
 
-  private graph: PlotSimpleSk | null = null;
+  private graph: PlotGoogleChartSk | null = null;
 
   private commits: CommitDetailPanelSk | null = null;
 
@@ -235,12 +234,11 @@ export class ClusterSummary2Sk extends ElementSk {
           </div>`
         : html``}
     </div>
-    <plot-simple-sk
-      class="plot"
-      width="800"
-      height="250"
-      specialevents
-      @trace_selected=${ele.traceSelected}></plot-simple-sk>
+    <div class="plot-wrapper">
+      <plot-google-chart-sk
+        specialevents
+        @plot-data-select=${ele.traceSelected}></plot-google-chart-sk>
+    </div>
     <div id="status" class=${ele.hiddenClass()}>
       <p class="disabledMessage">You must be logged in to change the status.</p>
       <triage2-sk
@@ -290,7 +288,7 @@ export class ClusterSummary2Sk extends ElementSk {
     this._render();
     this.wordCloud = this.querySelector('.wordCloudCollapse');
     this.status = this.querySelector('#status');
-    this.graph = this.querySelector('plot-simple-sk');
+    this.graph = this.querySelector('plot-google-chart-sk');
     this.commits = this.querySelector('#commits');
     LoggedIn()
       .then((status: LoginStatus) => {
@@ -333,8 +331,8 @@ export class ClusterSummary2Sk extends ElementSk {
     );
   }
 
-  private traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
-    const commitNumber = this.frame!.dataframe!.header![e.detail.x]?.offset;
+  private traceSelected(e: CustomEvent<PlotShowTooltipEventDetails>) {
+    const commitNumber = this.frame!.dataframe!.header![e.detail.tableRow]?.offset;
     ClusterSummary2Sk.lookupCids([commitNumber!])
       .then((json) => {
         this.commits!.details = json.commitSlice || [];
@@ -402,19 +400,27 @@ export class ClusterSummary2Sk extends ElementSk {
     }
     // We take in a ClusterSummary, but need to transform all that data
     // into a format that plot-sk can handle.
-    this.graph.removeAll();
-    const labels: Date[] = [];
+    this.graph.clear();
     const headers = this.frame.dataframe?.header;
-    if (headers) {
-      headers.forEach((header) => {
-        if (header) {
-          labels.push(new Date(header.timestamp * 1000));
-        }
-      });
-    }
 
-    if (this.summary.centroid) {
-      this.graph.addLines({ centroid: this.summary.centroid }, ticks(labels));
+    // Filter out null headers to create a clean data source.
+    const validHeaders = headers ? headers.filter((h): h is ColumnHeader => h !== null) : [];
+
+    if (
+      this.summary.centroid &&
+      this.summary.centroid.length > 0 &&
+      validHeaders.length === this.summary.centroid.length
+    ) {
+      const rows = this.summary.centroid.map((value, i) => {
+        const header = validHeaders[i];
+        const label = new Date(header.timestamp * 1000);
+        return [header.offset, label, value];
+      });
+
+      this.graph.data = google.visualization.arrayToDataTable([
+        ['Commit Position', 'Date', 'centroid'],
+        ...rows,
+      ]);
     }
 
     // Set the x-bar but only if status != uninteresting.
