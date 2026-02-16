@@ -14,3 +14,15 @@ sk_element_puppeteer_test(
         "//puppeteer-tests:util_ts_lib",
     ],
 )
+
+# gazelle dosn't like frontend_mock_server.
+# gazelle:ignore
+sk_element_puppeteer_test(
+    name = "initial_loading_test",
+    src = "initial_loading_puppeteer_test.ts",
+    sk_demo_page_server = "//perf/go/frontend/mock:frontend_mock_server",
+    deps = [
+        "//:node_modules/puppeteer",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
