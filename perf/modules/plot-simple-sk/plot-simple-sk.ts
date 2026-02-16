@@ -512,14 +512,6 @@ export class PlotSimpleSk extends ElementSk {
   private detailsZoomRangesStack: Rect[] = [];
 
   /**
-   * As we use the mouse wheel to move through zooms we store the ones we've
-   * popped off of detailsZoomRangesStack here.
-   *
-   * Zoom ranges are stored in domain units.
-   */
-  private inactiveDetailsZoomRangesStack: Rect[] = [];
-
-  /**
    * True if we are currently drag zooming, i.e. the mouse is pressed and moving
    * over the summary.
    */
@@ -776,7 +768,6 @@ export class PlotSimpleSk extends ElementSk {
 
         // Zooming via the summary area clears all details area zooms.
         this.detailsZoomRangesStack = [];
-        this.inactiveDetailsZoomRangesStack = [];
       }
       if (inRect(pt, this.detailArea.rect!)) {
         this.inZoomDrag = 'details';
@@ -952,7 +943,6 @@ export class PlotSimpleSk extends ElementSk {
     this._zoom = null;
     this.inZoomDrag = 'no-zoom';
     this.detailsZoomRangesStack = [];
-    this.inactiveDetailsZoomRangesStack = [];
     this.drawTracesCanvas();
   }
 
@@ -1422,7 +1412,6 @@ export class PlotSimpleSk extends ElementSk {
 
     // We added a new zoom range, which means all the inactive zoom ranges are
     // no longer valid.
-    this.inactiveDetailsZoomRangesStack = [];
     this.inZoomDrag = 'no-zoom';
     this._zoomImpl();
   }

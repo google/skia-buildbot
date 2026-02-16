@@ -76,7 +76,7 @@ describe('ExploreSk', () => {
 
     element = newInstance();
     // Wait for connectedCallback to finish, including initializeDefaults
-    const _ = await fetchMock.flush(true);
+    await fetchMock.flush(true);
     // Yield to let init() and initializeTestPicker() finish
     await new Promise((resolve) => setTimeout(resolve, 0));
   };
@@ -233,7 +233,6 @@ describe('ExploreSk', () => {
     // Let's re-setup with the mock.
     await setupElement();
 
-    assert.equal((element as any).userEmail, 'user@google.com');
     assert.isTrue(exploreSimpleSk.state.enable_favorites);
   });
 

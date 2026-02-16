@@ -442,11 +442,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   // is no pending request.
   private _requestId = '';
 
-  // All the data converted into a CVS blob to download.
-  private _csvBlobURL: string = '';
-
-  private fromParamsKey: string = '';
-
   private testPath: string = '';
 
   private startCommit: string = '';
@@ -495,8 +490,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
   private commitTime: HTMLSpanElement | null = null;
 
-  private csvDownload: HTMLAnchorElement | null = null;
-
   private pivotControl: PivotQuerySk | null = null;
 
   private pivotTable: PivotTableSk | null = null;
@@ -516,17 +509,11 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
   private closeTriageToastButton: HTMLButtonElement | null = null;
 
-  private bisectButton: HTMLButtonElement | null = null;
-
   private collapseButton: HTMLButtonElement | null = null;
 
   private traceFormatter: TraceFormatter | null = null;
 
-  private traceKeyForSummary: string = '';
-
   private testPickerUrl: string = '#';
-
-  private showPickerBox: boolean = false;
 
   private commitLinks: (CommitLinks | null)[] = [];
 
@@ -570,8 +557,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   private graphTitle: GraphTitleSk | null = null;
 
   tracesRendered = false;
-
-  private userIssueMap: UserIssueMap = {};
 
   private selectedAnomaly: Anomaly | null = null;
 
@@ -1219,14 +1204,12 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     this.spinner = this.querySelector('#spinner');
     this.summary = this.querySelector('#summary');
     this.commitTime = this.querySelector('#commit_time');
-    this.csvDownload = this.querySelector('#csv_download');
     this.queryDialog = this.querySelector('#query-dialog');
     this.helpDialog = this.querySelector('#help');
     this.pinpointJobToast = this.querySelector('#pinpoint-job-toast');
     this.closePinpointToastButton = this.querySelector('#hide-pinpoint-toast');
     this.triageResultToast = this.querySelector('#triage-result-toast');
     this.closeTriageToastButton = this.querySelector('#hide-triage-toast');
-    this.bisectButton = this.querySelector('#bisect-button');
     this.collapseButton = this.querySelector('#collapseButton');
     this.graphTitle = this.querySelector<GraphTitleSk>('#graphTitle');
     this.is_anomaly_table = document.querySelector('#anomaly-table') ? true : false;
@@ -3744,16 +3727,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     } else {
       this.graphTitle!.set(new Map(), numTraces);
     }
-  }
-
-  /** Common catch function for _requestFrame and _checkFrameRequestStatus. */
-  private catch(msg: unknown) {
-    this._requestId = '';
-    if (msg) {
-      errorMessage(msg as string);
-    }
-    this.percent!.textContent = '';
-    this.spinning = false;
   }
 
   /** @prop spinning - True if we are waiting to retrieve data from

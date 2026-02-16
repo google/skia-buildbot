@@ -45,7 +45,7 @@ export class TabsPanelSk extends HTMLElement {
     this._select(val);
   }
 
-  attributeChangedCallback(name: string, oldValue: any, newValue: any): void {
+  attributeChangedCallback(_name: string, _oldValue: any, newValue: any): void {
     this._select(+newValue);
   }
 

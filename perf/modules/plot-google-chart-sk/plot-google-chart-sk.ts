@@ -238,9 +238,6 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ attribute: false })
   traceColorMap = new Map<string, string>();
 
-  // Whether we are interacting with the chart that takes higher prioritiy than navigations.
-  private chartInteracting = false;
-
   // track whether the mouse has moved. Useful for determining if a user is clicking on
   // a data point or panning
   private isWindowMouseMove = false;
@@ -828,7 +825,6 @@ export class PlotGoogleChartSk extends LitElement {
     ) {
       return;
     }
-    this.chartInteracting = true;
     // The detail will contain the row and column values for the View, that
     // is the indices of the visible traces. If some traces are hidden, we need
     // to translate the visible indices to the actual table indices.
@@ -868,7 +864,6 @@ export class PlotGoogleChartSk extends LitElement {
     if (this.navigationMode === 'deltaY' || this.navigationMode === 'dragToZoom') {
       return;
     }
-    this.chartInteracting = true;
     const selection = e.detail.chart.getSelection()[0];
     let row: number, column: number;
     if (selection) {
@@ -935,7 +930,6 @@ export class PlotGoogleChartSk extends LitElement {
       this.updateBounds(zoominRange);
     }
     this.deltaRangeOn = false;
-    this.chartInteracting = false;
     this.navigationMode = null;
   }
 
@@ -949,7 +943,6 @@ export class PlotGoogleChartSk extends LitElement {
     if (this.hoverIndicatorDiv.value) {
       this.hoverIndicatorDiv.value.style.display = 'none';
     }
-    this.chartInteracting = this.navigationMode !== null;
     this.dispatchEvent(
       new CustomEvent('plot-chart-mouseout', {
         bubbles: true,
@@ -1035,7 +1028,6 @@ export class PlotGoogleChartSk extends LitElement {
     }
     this.isWindowMouseMove = false;
     this.navigationMode = null;
-    this.chartInteracting = false;
   }
 
   private drawAnomaly(chart: google.visualization.CoreChartBase) {

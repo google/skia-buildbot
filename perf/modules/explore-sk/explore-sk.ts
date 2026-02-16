@@ -36,8 +36,6 @@ export class ExploreSk extends ElementSk {
 
   private defaults: QueryConfig | null = null;
 
-  private userEmail: string = '';
-
   private testPicker: TestPickerSk | null = null;
 
   constructor() {
@@ -71,7 +69,6 @@ export class ExploreSk extends ElementSk {
 
     LoggedIn()
       .then((status: LoginStatus) => {
-        this.userEmail = status.email;
         this.exploreSimpleSk!.state.enable_favorites = status.email !== null && status.email !== '';
       })
       .catch(errorMessage);
