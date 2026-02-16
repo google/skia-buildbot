@@ -14,7 +14,6 @@ sk_element(
         "//perf/modules/commit-detail-panel-sk",
         "//perf/modules/domain-picker-sk",
         "//perf/modules/json-source-sk",
-        "//perf/modules/plot-simple-sk",
         "//perf/modules/query-count-sk",
         "//perf/modules/pivot-query-sk",
         "//perf/modules/pivot-table-sk",

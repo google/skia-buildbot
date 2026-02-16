@@ -60,8 +60,7 @@ void customElements.whenDefined('explore-sk').then(() => {
 
   // Some utility functions used later.
 
-  // TODO(b/450184956) Rewrite demo to plot-google-chart
-  // Clicks inside the canvas element inside the plot-simple-sk element.
+  // Clicks inside the canvas element inside the plot element.
   const clickOnPlot = () => {
     const rect = explore!.querySelector<HTMLCanvasElement>('canvas')!.getBoundingClientRect();
     // eslint-disable-next-line dot-notation
@@ -75,10 +74,8 @@ void customElements.whenDefined('explore-sk').then(() => {
     );
   };
 
-  // Calls itself via timeout until the plot-simple-sk element reports that it
+  // Calls itself via timeout until the plot element reports that it
   // has traces loaded, at which point it calls clickOnPlot.
-  // TODO(b/450184956) Rewrite demo to plot-google-chart
-
   const checkIfLoaded = () => {
     // eslint-disable-next-line dot-notation
     if (explore!['googleChartPlot'].value!.getAllTraces().length > 1) {

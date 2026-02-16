@@ -50,7 +50,6 @@ import '../picker-field-sk';
 import '../pivot-query-sk';
 import '../pivot-table-sk';
 import '../plot-google-chart-sk';
-import '../plot-simple-sk';
 import '../plot-summary-sk';
 import '../point-links-sk';
 import '../split-chart-menu-sk';
@@ -81,7 +80,6 @@ import {
   TraceMetadata,
   TraceCommitLink,
 } from '../json';
-import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import {
   ParamSetSk,
   ParamSetSkCheckboxClickEventDetail,
@@ -209,10 +207,21 @@ export enum LabelMode {
   CommitPosition = 1,
 }
 
+interface TraceEventDetails {
+  x: number;
+  y: number;
+  // DOM position of x in Pixels
+  xPos?: number;
+  // DOM position of y in Pixels
+  yPos?: number;
+  // The trace id.
+  name: string;
+}
+
 /** Returns true if the PointSelected is valid. */
 export const isValidSelection = (p: PointSelected): boolean => p.name !== '';
 
-/** Converts a PointSelected into a CustomEvent<PlotSimpleSkTraceEventDetails>,
+/** Converts a PointSelected into a CustomEvent<TraceEventDetails>,
  * so that it can be passed into traceSelected().
  *
  * Note that we need the _dataframe.header to convert the commit back into an
@@ -222,7 +231,7 @@ export const isValidSelection = (p: PointSelected): boolean => p.name !== '';
 export const selectionToEvent = (
   p: PointSelected,
   header: (ColumnHeader | null)[] | null
-): CustomEvent<PlotSimpleSkTraceEventDetails> => {
+): CustomEvent<TraceEventDetails> => {
   let x = -1;
   if (header !== null) {
     // Find the index of the ColumnHeader that matches the commit.
@@ -233,7 +242,7 @@ export const selectionToEvent = (
       return h.offset === p.commit;
     });
   }
-  return new CustomEvent<PlotSimpleSkTraceEventDetails>('', {
+  return new CustomEvent<TraceEventDetails>('', {
     detail: {
       x: x,
       y: 0,
@@ -2290,7 +2299,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   }
 
   enableTooltip(
-    pointDetails: PlotSimpleSkTraceEventDetails,
+    pointDetails: TraceEventDetails,
     commits: (ColumnHeader | null)[],
     fixTooltip: boolean
   ): void {
@@ -2512,9 +2521,9 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   }
 
   /** Highlight a trace when it is clicked on. */
-  // TODO(b/447094435) I suspect that all values changed here are later
-  // overwritten by respective calls to plot-google. Need to verify.
-  traceSelected({ detail }: CustomEvent<PlotSimpleSkTraceEventDetails>): void {
+  // TODO(b/447094435) I suspect this function has no effect due to rerendering
+  // and calls to google-chart. Need to verify.
+  traceSelected({ detail }: CustomEvent<TraceEventDetails>): void {
     // If traces are rendered and summary bar is enabled, show
     // summary for the trace clicked on the graph.
     if (this.summaryOptionsField.value) {
