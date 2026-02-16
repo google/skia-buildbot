@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -22,6 +23,14 @@ import (
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
+
+var sampleParamsetMap = map[string]string{
+	"bot":         "botxyz",
+	"benchmark":   "benchmark",
+	"story":       "story",
+	"measurement": "measurement",
+	"stat":        "stat",
+}
 
 func createIssueTrackerForTest(t *testing.T) (*issueTrackerImpl, *regMocks.Store, *httptest.Server) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +51,43 @@ func createIssueTrackerForTest(t *testing.T) (*issueTrackerImpl, *regMocks.Store
 		FetchAnomaliesFromSql: true,
 		regStore:              regStore,
 	}, regStore, ts
+}
+
+func createIssueTrackerForTestInterceptRequests(t *testing.T) (*issueTrackerImpl, *regMocks.Store, *httptest.Server, *issuetracker.Issue, *issuetracker.IssueComment) {
+	var receivedReq issuetracker.Issue
+	var receivedCommentReq issuetracker.IssueComment
+	var counter int
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		if counter == 0 {
+			err = json.Unmarshal(body, &receivedReq)
+		} else {
+			err = json.Unmarshal(body, &receivedCommentReq)
+		}
+		counter += 1
+		require.NoError(t, err)
+
+		w.Header().Set("Content-Type", "application/json")
+		resp := &issuetracker.Issue{
+			IssueId: 12345,
+		}
+		err = json.NewEncoder(w).Encode(resp)
+		require.NoError(t, err)
+	}))
+
+	c, err := issuetracker.NewService(context.Background(), option.WithEndpoint(ts.URL), option.WithoutAuthentication())
+	require.NoError(t, err)
+
+	regStore := &regMocks.Store{}
+	s := &issueTrackerImpl{
+		client:                c,
+		FetchAnomaliesFromSql: true,
+		regStore:              regStore,
+		urlBase:               "http://test.com",
+	}
+	return s, regStore, ts, &receivedReq, &receivedCommentReq
 }
 
 func TestFileBug_Success(t *testing.T) {
@@ -132,40 +178,8 @@ func TestFileBug_APIError(t *testing.T) {
 }
 
 func TestFileBug_RequestBody(t *testing.T) {
-	var receivedReq issuetracker.Issue
-	var receivedCommentReq issuetracker.IssueComment
-	var counter int
-
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
-		if counter == 0 {
-			err = json.Unmarshal(body, &receivedReq)
-		} else {
-			err = json.Unmarshal(body, &receivedCommentReq)
-		}
-		counter += 1
-		require.NoError(t, err)
-
-		w.Header().Set("Content-Type", "application/json")
-		resp := &issuetracker.Issue{
-			IssueId: 12345,
-		}
-		err = json.NewEncoder(w).Encode(resp)
-		require.NoError(t, err)
-	}))
+	s, regStore, ts, receivedReq, receivedCommentReq := createIssueTrackerForTestInterceptRequests(t)
 	defer ts.Close()
-
-	c, err := issuetracker.NewService(context.Background(), option.WithEndpoint(ts.URL), option.WithoutAuthentication())
-	require.NoError(t, err)
-
-	regStore := &regMocks.Store{}
-	s := &issueTrackerImpl{
-		client:                c,
-		FetchAnomaliesFromSql: true,
-		regStore:              regStore,
-		urlBase:               "http://test.com",
-	}
 
 	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
 		{
@@ -173,20 +187,13 @@ func TestFileBug_RequestBody(t *testing.T) {
 		},
 	}, nil)
 
-	paramset_map := map[string]string{
-		"bot":         "bot",
-		"benchmark":   "benchmark",
-		"story":       "story",
-		"measurement": "measurement",
-		"stat":        "stat",
-	}
 	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return([]*regression.Regression{
 		{
 			Low:  nil,
 			High: nil,
 			Frame: &frame.FrameResponse{
 				DataFrame: &dataframe.DataFrame{
-					ParamSet: paramtools.NewReadOnlyParamSet(paramset_map),
+					ParamSet: paramtools.NewReadOnlyParamSet(sampleParamsetMap),
 				},
 			},
 			LowStatus:        regression.TriageStatus{},
@@ -214,7 +221,7 @@ func TestFileBug_RequestBody(t *testing.T) {
 		Keys:        []string{"1"},
 	}
 
-	_, err = s.FileBug(context.Background(), req)
+	_, err := s.FileBug(context.Background(), req)
 	require.NoError(t, err)
 
 	require.Equal(t, "Test Bug Title", receivedReq.IssueState.Title)
@@ -233,40 +240,8 @@ func TestFileBug_RequestBody(t *testing.T) {
 }
 
 func TestFileBug_EmptyDescription(t *testing.T) {
-	var receivedReq issuetracker.Issue
-	var receivedCommentReq issuetracker.IssueComment
-	var counter int
-
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
-		if counter == 0 {
-			err = json.Unmarshal(body, &receivedReq)
-		} else {
-			err = json.Unmarshal(body, &receivedCommentReq)
-		}
-		counter += 1
-		require.NoError(t, err)
-
-		w.Header().Set("Content-Type", "application/json")
-		resp := &issuetracker.Issue{
-			IssueId: 12345,
-		}
-		err = json.NewEncoder(w).Encode(resp)
-		require.NoError(t, err)
-	}))
+	s, regStore, ts, receivedReq, receivedCommentReq := createIssueTrackerForTestInterceptRequests(t)
 	defer ts.Close()
-
-	c, err := issuetracker.NewService(context.Background(), option.WithEndpoint(ts.URL), option.WithoutAuthentication())
-	require.NoError(t, err)
-
-	regStore := &regMocks.Store{}
-	s := &issueTrackerImpl{
-		client:                c,
-		FetchAnomaliesFromSql: true,
-		regStore:              regStore,
-		urlBase:               "http://test.com",
-	}
 
 	req := &FileBugRequest{
 		Title:     "Test Bug Title",
@@ -285,7 +260,7 @@ func TestFileBug_EmptyDescription(t *testing.T) {
 	}, nil)
 	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return([]*regression.Regression{}, nil)
 
-	_, err = s.FileBug(context.Background(), req)
+	_, err := s.FileBug(context.Background(), req)
 	require.NoError(t, err)
 
 	require.Contains(t, receivedReq.IssueComment.Comment, "http://test.com/u?anomalyIDs=key1,key2")
@@ -293,40 +268,8 @@ func TestFileBug_EmptyDescription(t *testing.T) {
 }
 
 func TestFileBug_EmptyDescriptionTooManyKeys(t *testing.T) {
-	var receivedReq issuetracker.Issue
-	var receivedCommentReq issuetracker.IssueComment
-	var counter int
-
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
-		if counter == 0 {
-			err = json.Unmarshal(body, &receivedReq)
-		} else {
-			err = json.Unmarshal(body, &receivedCommentReq)
-		}
-		counter += 1
-		require.NoError(t, err)
-
-		w.Header().Set("Content-Type", "application/json")
-		resp := &issuetracker.Issue{
-			IssueId: 12345,
-		}
-		err = json.NewEncoder(w).Encode(resp)
-		require.NoError(t, err)
-	}))
+	s, regStore, ts, receivedReq, receivedCommentReq := createIssueTrackerForTestInterceptRequests(t)
 	defer ts.Close()
-
-	c, err := issuetracker.NewService(context.Background(), option.WithEndpoint(ts.URL), option.WithoutAuthentication())
-	require.NoError(t, err)
-
-	regStore := &regMocks.Store{}
-	s := &issueTrackerImpl{
-		client:                c,
-		FetchAnomaliesFromSql: true,
-		regStore:              regStore,
-		urlBase:               "http://test.com",
-	}
 
 	keys := []string{}
 	alertIDs := []int64{}
@@ -349,9 +292,61 @@ func TestFileBug_EmptyDescriptionTooManyKeys(t *testing.T) {
 	}, nil)
 	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return([]*regression.Regression{}, nil)
 
-	_, err = s.FileBug(context.Background(), req)
+	_, err := s.FileBug(context.Background(), req)
 	require.NoError(t, err)
 
 	require.Contains(t, receivedReq.IssueComment.Comment, "The link to a graph with all regressions would be too long.")
 	require.Contains(t, receivedCommentReq.Comment, "12345")
+}
+
+func TestFileBug_DeduplicateBots(t *testing.T) {
+	s, regStore, ts, receivedReq, _ := createIssueTrackerForTestInterceptRequests(t)
+	defer ts.Close()
+
+	r := &regression.Regression{
+		Low:  nil,
+		High: nil,
+		Frame: &frame.FrameResponse{
+			DataFrame: &dataframe.DataFrame{
+				ParamSet: paramtools.NewReadOnlyParamSet(sampleParamsetMap),
+			},
+		},
+		LowStatus:        regression.TriageStatus{},
+		HighStatus:       regression.TriageStatus{},
+		Id:               "1",
+		CommitNumber:     12345,
+		PrevCommitNumber: 12333,
+		AlertId:          321,
+		Bugs:             []types.RegressionBug{},
+		AllBugsFetched:   false,
+		CreationTime:     time.Time{},
+		MedianBefore:     0,
+		MedianAfter:      0,
+		IsImprovement:    false,
+		ClusterType:      "",
+	}
+	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return([]*regression.Regression{
+		r, r, // multiple regressions with the same bot
+	}, nil)
+
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
+		{
+			BugComponent: "8765",
+		},
+	}, nil)
+
+	req := &FileBugRequest{
+		Title:       "Test Bug",
+		Description: "This is a test bug.",
+		Component:   "1234",
+		Assignee:    "test@google.com",
+		Ccs:         []string{"test2@google.com"},
+		Keys:        []string{"1"},
+	}
+
+	_, err := s.FileBug(context.Background(), req)
+	require.NoError(t, err)
+	require.Contains(t, receivedReq.IssueComment.Comment, "Bots for regressions of this bug")
+	// Assert bots are deduplicated
+	require.True(t, strings.Count(receivedReq.IssueComment.Comment, sampleParamsetMap["bot"]) == 1)
 }

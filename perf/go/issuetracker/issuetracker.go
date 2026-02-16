@@ -216,6 +216,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 	// TODO(b/464211673) Make sure the links lead to correct graphs.
 	description += s.generateLinkToGraph(req.Keys)
 	description += s.describeTopAnomalies(topAnomalies)
+	description += s.describeBots(regData)
 
 	// TODO(b/454614028) Not sure alertsIds will be useful.
 	_ = alertsIds
@@ -230,7 +231,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		sklog.Warningf("we ignore componentID: %s passed by fe and use data from the db: %d", req.Component, componentID)
 	}
 
-	descriptionDebugSection := "\n\n\n\n\n\n## DEBUG BELOW\n\n"
+	descriptionDebugSection := "\n\n## DEBUG BELOW\n\n"
 	// TODO(b/454614028) remove this assignment after migration is done.
 	// This is to prevent spamming other teams while testing.
 	sklog.Warningf("File Bug would use the following component: %d. Using a default component until migration is done.", componentID)
@@ -261,7 +262,6 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 			Ccs: ccs,
 		},
 	}
-	sklog.Debugf("Description: %s", description)
 
 	resp, err := s.client.Issues.Create(newIssue).TemplateOptionsApplyTemplate(true).Do()
 	if err != nil {
@@ -340,7 +340,7 @@ func (s *issueTrackerImpl) describeTopAnomalies(anom []*v1.Anomaly) (desc string
 }
 
 func describeAnomaly(a *v1.Anomaly) string {
-	return fmt.Sprintf("  - Bot: %s, Benchmark: %s, Measurement: %s, Story: %s. \n    Change: %.4f -> %.4f (%.2f%%); Commit range: %d -> %d\n\n",
+	return fmt.Sprintf("  - Bot: %s, Benchmark: %s, Measurement: %s, Story: %s.  \n    Change: %.4f -> %.4f (%.2f%%); Commit range: %d -> %d\n\n",
 		a.Paramset["bot"], a.Paramset["benchmark"], a.Paramset["measurement"], a.Paramset["story"],
 		a.MedianBefore, a.MedianAfter, calcChange(a.MedianBefore, a.MedianAfter), a.StartCommit, a.EndCommit,
 	)
@@ -348,4 +348,18 @@ func describeAnomaly(a *v1.Anomaly) string {
 
 func calcChange(before, after float32) float32 {
 	return (after - before) / before * 100.0
+}
+
+func (s *issueTrackerImpl) describeBots(regs []*regression.Regression) string {
+	uniqueBots := make(map[string]struct{})
+	for _, r := range regs {
+		for _, b := range r.Frame.DataFrame.ParamSet["bot"] {
+			uniqueBots[b] = struct{}{}
+		}
+	}
+	desc := "  \nBots for regressions of this bug:  \n"
+	for b := range uniqueBots {
+		desc += fmt.Sprintf("  - %s  \n", b)
+	}
+	return desc + "  \n\n"
 }
