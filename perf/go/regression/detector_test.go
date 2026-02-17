@@ -6,11 +6,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dataframe/mocks"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/types"
@@ -87,7 +90,7 @@ func TestProcessRegressions_BadQueryValue_ReturnsError(t *testing.T) {
 	}
 
 	dfb := &mocks.DataFrameBuilder{}
-	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet(), ExpandBaseAlertByGroupBy, ReturnOnError, defaultAnomalyConfig, nil)
+	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet(), ExpandBaseAlertByGroupBy, ReturnOnError, defaultAnomalyConfig, nil, nil)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Invalid query")
 	assert.Equal(t, progress.Running, req.Progress.Status())
@@ -181,4 +184,92 @@ func TestRegressionDetectionRequestQuery_AlertAndSetQueryCalled_ReturnsTheSetQue
 	r.Alert.Query = "foo"
 	r.SetQuery("bar")
 	assert.Equal(t, "bar", r.Query())
+}
+
+func TestDetectRegressionsOnDataFrame_EmptyDataFrame_ReturnsNil(t *testing.T) {
+	ctx := context.Background()
+	df := &dataframe.DataFrame{
+		Header: []*dataframe.ColumnHeader{},
+	}
+
+	p := &regressionDetectionProcess{
+		request: &RegressionDetectionRequest{
+			Progress: progress.New(),
+			Alert: &alerts.Alert{
+				Radius: 5,
+			},
+		},
+	}
+
+	resp, err := p.detectRegressionsOnDataFrame(ctx, df)
+	assert.NoError(t, err)
+	assert.Nil(t, resp)
+}
+
+type mockRegressionRefiner struct {
+	mock.Mock
+}
+
+func (m *mockRegressionRefiner) Process(ctx context.Context, cfg *alerts.Alert, responses []*RegressionDetectionResponse) ([]*ConfirmedRegression, error) {
+	args := m.Called(ctx, cfg, responses)
+	var r0 []*ConfirmedRegression
+	if args.Get(0) != nil {
+		r0 = args.Get(0).([]*ConfirmedRegression)
+	}
+	return r0, args.Error(1)
+}
+
+func TestRefineAndReportRegressions_NoResponses_DoesNothing(t *testing.T) {
+	ctx := context.Background()
+	mockRefiner := &mockRegressionRefiner{}
+
+	cfg := &alerts.Alert{Radius: 5}
+	p := &regressionDetectionProcess{
+		request:           &RegressionDetectionRequest{Alert: cfg},
+		regressionRefiner: mockRefiner,
+	}
+
+	mockRefiner.On("Process", ctx, cfg, ([]*RegressionDetectionResponse)(nil)).Return(([]*ConfirmedRegression)(nil), nil)
+
+	err := p.refineAndReportRegressions(ctx, nil)
+	assert.NoError(t, err)
+}
+
+func refineAndReportRegressions(t *testing.T) {
+	ctx := context.Background()
+	mockRefiner := &mockRegressionRefiner{}
+
+	cfg := &alerts.Alert{Radius: 5}
+	p := &regressionDetectionProcess{
+		request:           &RegressionDetectionRequest{Alert: cfg},
+		regressionRefiner: mockRefiner,
+	}
+
+	responses := []*RegressionDetectionResponse{
+		{
+			Message: "test response",
+		},
+	}
+
+	confirmedRegressions := []*ConfirmedRegression{
+		{
+			Summary: &clustering2.ClusterSummaries{},
+			Message: "test response confirmed",
+		},
+	}
+
+	mockRefiner.On("Process", ctx, cfg, responses).Return(confirmedRegressions, nil)
+
+	var handlerCalled bool
+	var handledResponses []*ConfirmedRegression
+
+	p.confirmedRegressionHandler = func(ctx context.Context, req *RegressionDetectionRequest, resps []*ConfirmedRegression, message string) {
+		handlerCalled = true
+		handledResponses = resps
+	}
+
+	err := p.refineAndReportRegressions(ctx, responses)
+	assert.NoError(t, err)
+	assert.True(t, handlerCalled)
+	assert.Equal(t, confirmedRegressions, handledResponses)
 }

@@ -214,7 +214,7 @@ type allMocks struct {
 	configProvider   *alertconfigmocks.ConfigProvider
 }
 
-func createArgsForReportRegressions(t *testing.T) (*Continuous, *regression.RegressionDetectionRequest, []*regression.RegressionDetectionResponse, *alerts.Alert, allMocks) {
+func createArgsForReportRegressions(t *testing.T) (*Continuous, *regression.RegressionDetectionRequest, []*regression.ConfirmedRegression, *alerts.Alert, allMocks) {
 	pg := gitmocks.NewGit(t)
 	ss := shortcutmocks.NewStore(t)
 	rs := regressionmocks.NewStore(t)
@@ -228,7 +228,7 @@ func createArgsForReportRegressions(t *testing.T) (*Continuous, *regression.Regr
 	f := &config.FrontendFlags{}
 
 	req := &regression.RegressionDetectionRequest{}
-	resp := []*regression.RegressionDetectionResponse{}
+	resp := []*regression.ConfirmedRegression{}
 	cfg := &alerts.Alert{}
 
 	c := &Continuous{
@@ -270,7 +270,7 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneRegressionStoredAndN
 	c, req, resp, cfg, allMocks := createArgsForReportRegressions(t)
 
 	const regressionCommitNumber = types.CommitNumber(2)
-	resp = append(resp, &regression.RegressionDetectionResponse{
+	resp = append(resp, (*regression.ConfirmedRegression)(&regression.RegressionDetectionResponse{
 		Frame: &frame.FrameResponse{
 			DataFrame: &dataframe.DataFrame{
 				Header: []*dataframe.ColumnHeader{
@@ -300,7 +300,7 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneRegressionStoredAndN
 				},
 			},
 		},
-	})
+	}))
 
 	commitAtStep := provider.Commit{
 		Subject: "The subject of the commit where a regression occurred.",
@@ -389,7 +389,7 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneHighRegressionFoundA
 	c, req, resp, cfg, allMocks := createArgsForReportRegressions(t)
 
 	const regressionCommitNumber = types.CommitNumber(2)
-	resp = append(resp, &regression.RegressionDetectionResponse{
+	resp = append(resp, (*regression.ConfirmedRegression)(&regression.RegressionDetectionResponse{
 		Frame: &frame.FrameResponse{
 			DataFrame: &dataframe.DataFrame{
 				Header: []*dataframe.ColumnHeader{
@@ -419,7 +419,7 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneHighRegressionFoundA
 				},
 			},
 		},
-	}, &regression.RegressionDetectionResponse{
+	}), (*regression.ConfirmedRegression)(&regression.RegressionDetectionResponse{
 		Frame: &frame.FrameResponse{
 			DataFrame: &dataframe.DataFrame{
 				Header: []*dataframe.ColumnHeader{
@@ -449,7 +449,7 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneHighRegressionFoundA
 				},
 			},
 		},
-	})
+	}))
 
 	commitAtStep := provider.Commit{
 		Subject: "The subject of the commit where a regression occurred.",

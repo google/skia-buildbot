@@ -62,6 +62,7 @@ go_library(
         "//perf/go/progress",
         "//perf/go/psrefresh",
         "//perf/go/regression",
+        "//perf/go/regression/refiner",
         "//perf/go/sheriffconfig/service",
         "//perf/go/shortcut",
         "//perf/go/subscription:store",

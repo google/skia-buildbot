@@ -62,6 +62,7 @@ import (
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/continuous"
+	"go.skia.org/infra/perf/go/regression/refiner"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/subscription"
 	"go.skia.org/infra/perf/go/tracecache"
@@ -683,7 +684,9 @@ func (f *Frontend) initialize() {
 
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
-	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder, paramsProvider)
+	regressionRefiner := refiner.NewDefaultRegressionRefiner()
+
+	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder, paramsProvider, regressionRefiner)
 
 	if f.flags.DoClustering {
 		go func() {
@@ -691,7 +694,7 @@ func (f *Frontend) initialize() {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(startClusterDelay)
 				c := continuous.New(f.perfGit, f.shortcutStore, f.configProvider, f.regStore, f.notifier, paramsProvider, *f.urlProvider,
-					f.dfBuilder, cfg, f.flags)
+					f.dfBuilder, cfg, f.flags, regressionRefiner)
 				f.continuous = append(f.continuous, c)
 				go c.Run(context.Background())
 			}

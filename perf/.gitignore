@@ -1,2 +1,4 @@
 !go/dist
 cockroach-data
+# Jetski/Agent configuration and workflows (local helper scripts)
+.agents

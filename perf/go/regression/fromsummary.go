@@ -11,9 +11,9 @@ import (
 	"go.skia.org/infra/perf/go/stepfit"
 )
 
-// RegressionFromClusterResponse returns the commit for the regression along with
+// ConfirmedRegressionFromClusterResponse returns the commit for the regression along with
 // the *Regression.
-func RegressionFromClusterResponse(ctx context.Context, resp *RegressionDetectionResponse, cfg *alerts.Alert, perfGit perfgit.Git) (provider.Commit, *Regression, error) {
+func ConfirmedRegressionFromClusterResponse(ctx context.Context, resp *ConfirmedRegression, cfg *alerts.Alert, perfGit perfgit.Git) (provider.Commit, *Regression, error) {
 	ret := &Regression{}
 	headerLength := len(resp.Frame.DataFrame.Header)
 	midPoint := headerLength / 2
@@ -26,7 +26,7 @@ func RegressionFromClusterResponse(ctx context.Context, resp *RegressionDetectio
 	lastHighRegression := float64(-1.0)
 	for _, cl := range resp.Summary.Clusters {
 		if cl.StepPoint.Offset == commitNumber {
-			if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.DOWN || cfg.DirectionAsString == alerts.BOTH) {
+			if cl.StepFit.Status == stepfit.LOW {
 				if math.Abs(float64(cl.StepFit.Regression)) > lastLowRegression {
 					ret.Frame = resp.Frame
 					ret.Low = cl
@@ -36,7 +36,7 @@ func RegressionFromClusterResponse(ctx context.Context, resp *RegressionDetectio
 					lastLowRegression = math.Abs(float64(cl.StepFit.Regression))
 				}
 			}
-			if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.UP || cfg.DirectionAsString == alerts.BOTH) {
+			if cl.StepFit.Status == stepfit.HIGH {
 				if math.Abs(float64(cl.StepFit.Regression)) > lastHighRegression {
 					ret.Frame = resp.Frame
 					ret.High = cl

@@ -65,17 +65,18 @@ const (
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	perfGit        perfgit.Git
-	shortcutStore  shortcut.Store
-	store          regression.Store
-	provider       alerts.ConfigProvider
-	notifier       notify.Notifier
-	paramsProvider regression.ParamsetProvider
-	urlProvider    urlprovider.URLProvider
-	dfBuilder      dataframe.DataFrameBuilder
-	pollingDelay   time.Duration
-	instanceConfig *config.InstanceConfig
-	flags          *config.FrontendFlags
+	perfGit           perfgit.Git
+	shortcutStore     shortcut.Store
+	store             regression.Store
+	provider          alerts.ConfigProvider
+	notifier          notify.Notifier
+	paramsProvider    regression.ParamsetProvider
+	urlProvider       urlprovider.URLProvider
+	dfBuilder         dataframe.DataFrameBuilder
+	pollingDelay      time.Duration
+	instanceConfig    *config.InstanceConfig
+	flags             *config.FrontendFlags
+	regressionRefiner regression.RegressionRefiner
 
 	mutex             sync.Mutex // Protects current.
 	current           *alerts.Alert
@@ -97,7 +98,8 @@ func New(
 	urlProvider urlprovider.URLProvider,
 	dfBuilder dataframe.DataFrameBuilder,
 	instanceConfig *config.InstanceConfig,
-	flags *config.FrontendFlags) *Continuous {
+	flags *config.FrontendFlags,
+	regressionRefiner regression.RegressionRefiner) *Continuous {
 	return &Continuous{
 		perfGit:           perfGit,
 		store:             store,
@@ -112,10 +114,11 @@ func New(
 		instanceConfig:    instanceConfig,
 		flags:             flags,
 		regressionCounter: metrics2.GetCounter("continuous_regression_found"),
+		regressionRefiner: regressionRefiner,
 	}
 }
 
-func (c *Continuous) reportRegressions(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, cfg *alerts.Alert) {
+func (c *Continuous) reportRegressions(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.ConfirmedRegression, cfg *alerts.Alert) {
 	ctx, span := trace.StartSpan(ctx, "regression.continuous.reportRegressions")
 	defer span.End()
 
@@ -154,17 +157,10 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 			df.BuildParamSet()
 			resp.Frame.DataFrame = df
 
-			// Update database if regression at the midpoint is found.
-			if cl.StepPoint.Offset == commitNumber {
-				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.DOWN || cfg.DirectionAsString == alerts.BOTH) {
-					sklog.Infof("Found Low regression at %s. StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
-					c.updateStoreAndNotification(ctx, resp, cfg, commitNumber, cl, details, previousCommitDetails, key, true)
-				}
-				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.UP || cfg.DirectionAsString == alerts.BOTH) {
-					sklog.Infof("Found High regression at %s. StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
-					c.updateStoreAndNotification(ctx, resp, cfg, commitNumber, cl, details, previousCommitDetails, key, false)
-				}
-			}
+			// All clusters received here have already been vetted against the alert's thresholds.
+			isLow := cl.StepFit.Status == stepfit.LOW
+			sklog.Infof("Found regression at %s. StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
+			c.updateStoreAndNotification(ctx, resp, cfg, commitNumber, cl, details, previousCommitDetails, key, isLow)
 		}
 	}
 }
@@ -319,7 +315,7 @@ func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan c
 	return ret
 }
 
-func (c *Continuous) updateStoreAndNotification(ctx context.Context, resp *regression.RegressionDetectionResponse, cfg *alerts.Alert, commitNumber types.CommitNumber,
+func (c *Continuous) updateStoreAndNotification(ctx context.Context, resp *regression.ConfirmedRegression, cfg *alerts.Alert, commitNumber types.CommitNumber,
 	cl *clustering2.ClusterSummary, details provider.Commit, previousCommitDetails provider.Commit, key string, isLow bool) {
 	ctx, span := trace.StartSpan(ctx, "regression.continuous.updateStoreAndNotification")
 	defer span.End()
@@ -664,7 +660,7 @@ func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, 
 		}
 	}
 
-	clusterResponseProcessor := func(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, message string) {
+	confirmedRegressionHandler := func(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.ConfirmedRegression, message string) {
 		c.reportRegressions(ctx, req, resps, cfg)
 	}
 	if cfg.Radius == 0 {
@@ -693,7 +689,7 @@ func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, 
 
 	var err error
 	ctxutil.WithContextTimeout(ctx, config.QueryMaxRunTime, func(ctx context.Context) {
-		err = regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest, regression.ContinueOnError, c.instanceConfig.AnomalyConfig, dfProvider)
+		err = regression.ProcessRegressions(ctx, req, confirmedRegressionHandler, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest, regression.ContinueOnError, c.instanceConfig.AnomalyConfig, dfProvider, c.regressionRefiner)
 	})
 	if err != nil {
 		sklog.Warningf("Failed regression detection: Query: %q Error: %s", req.Query, err)

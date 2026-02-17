@@ -52,6 +52,7 @@ go_library(
         "//perf/go/psrefresh",
         "//perf/go/regression",
         "//perf/go/regression/continuous",
+        "//perf/go/regression/refiner",
         "//perf/go/shortcut",
         "//perf/go/subscription:store",
         "//perf/go/tracecache",

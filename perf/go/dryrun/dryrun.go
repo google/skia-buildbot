@@ -29,21 +29,23 @@ type RegressionAtCommit struct {
 
 // Requests handles HTTP request for doing dryruns.
 type Requests struct {
-	perfGit       perfgit.Git
-	shortcutStore shortcut.Store
-	dfBuilder     dataframe.DataFrameBuilder
-	tracker       progress.Tracker
-	paramsProvier regression.ParamsetProvider
+	perfGit           perfgit.Git
+	shortcutStore     shortcut.Store
+	dfBuilder         dataframe.DataFrameBuilder
+	tracker           progress.Tracker
+	paramsProvier     regression.ParamsetProvider
+	regressionRefiner regression.RegressionRefiner
 }
 
 // New create a new dryrun Request processor.
-func New(perfGit perfgit.Git, tracker progress.Tracker, shortcutStore shortcut.Store, dfBuilder dataframe.DataFrameBuilder, paramsProvider regression.ParamsetProvider) *Requests {
+func New(perfGit perfgit.Git, tracker progress.Tracker, shortcutStore shortcut.Store, dfBuilder dataframe.DataFrameBuilder, paramsProvider regression.ParamsetProvider, regressionRefiner regression.RegressionRefiner) *Requests {
 	ret := &Requests{
-		perfGit:       perfGit,
-		shortcutStore: shortcutStore,
-		dfBuilder:     dfBuilder,
-		tracker:       tracker,
-		paramsProvier: paramsProvider,
+		perfGit:           perfGit,
+		shortcutStore:     shortcutStore,
+		dfBuilder:         dfBuilder,
+		tracker:           tracker,
+		paramsProvier:     paramsProvider,
+		regressionRefiner: regressionRefiner,
 	}
 	return ret
 }
@@ -81,10 +83,10 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create a callback that will be passed each found Regression. It will
 	// update the Progress after each new regression is found.
-	detectorResponseProcessor := func(ctx context.Context, queryRequest *regression.RegressionDetectionRequest, clusterResponse []*regression.RegressionDetectionResponse, message string) {
-		// Loop over clusterResponse, convert each one to a regression, and merge with running.Regressions.
-		for _, cr := range clusterResponse {
-			c, reg, err := regression.RegressionFromClusterResponse(ctx, cr, req.Alert, d.perfGit)
+	detectorResponseProcessor := func(ctx context.Context, queryRequest *regression.RegressionDetectionRequest, allClusterResponses []*regression.ConfirmedRegression, summaryMessage string) {
+		// Loop over allClusterResponses, convert each one to a regression, and merge with running.Regressions.
+		for _, cr := range allClusterResponses {
+			c, reg, err := regression.ConfirmedRegressionFromClusterResponse(ctx, cr, req.Alert, d.perfGit)
 			if err != nil {
 				sklog.Errorf("Failed to convert to Regression: %s", err)
 				return
@@ -93,17 +95,13 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 			req.Progress.Message("Query", fmt.Sprintf("%q", queryRequest.Query()))
 			req.Progress.Message("Stage", "Looking for regressions in query results.")
 			req.Progress.Message("Commit", fmt.Sprintf("%d", c.CommitNumber))
-			req.Progress.Message("Details", message)
-			// We might not have found any regressions.
-			if reg.Low == nil && reg.High == nil {
-				continue
-			}
+			req.Progress.Message("Details", cr.Message)
+
 			if origReg, ok := foundRegressions[c.CommitNumber]; !ok {
 				foundRegressions[c.CommitNumber] = reg
 			} else {
 				foundRegressions[c.CommitNumber] = origReg.Merge(reg)
 			}
-
 		}
 
 		// Now update the Progress.
@@ -130,7 +128,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier(), regression.ExpandBaseAlertByGroupBy, regression.ContinueOnError, config.Config.AnomalyConfig, nil)
+		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier(), regression.ExpandBaseAlertByGroupBy, regression.ContinueOnError, config.Config.AnomalyConfig, nil, d.regressionRefiner)
 		if err != nil {
 			req.Progress.Error(err.Error())
 		} else {

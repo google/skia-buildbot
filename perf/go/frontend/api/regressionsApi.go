@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/regression/refiner"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/urlprovider"
@@ -66,6 +67,7 @@ func NewRegressionsApi(loginProvider alogin.Login, configProvider alerts.ConfigP
 		shortcutStore:       shortcutStore,
 		dfBuilder:           dfBuilder,
 		paramsetRefresher:   paramsetRefresher,
+		regressionRefiner:   refiner.NewDefaultRegressionRefiner(),
 	}
 }
 
@@ -84,6 +86,7 @@ type regressionsApi struct {
 	shortcutStore       shortcut.Store
 	dfBuilder           dataframe.DataFrameBuilder
 	paramsetRefresher   psrefresh.ParamSetRefresher
+	regressionRefiner   regression.RegressionRefiner
 }
 
 // RegisterHandlers registers the api handlers for their respective routes.
@@ -637,15 +640,15 @@ func (rApi regressionsApi) clusterStartHandler(w http.ResponseWriter, r *http.Re
 	}
 	auditlog.LogWithUser(r, rApi.loginProvider.LoggedInAs(r).String(), "cluster", req)
 
-	cb := func(ctx context.Context, _ *regression.RegressionDetectionRequest, clusterResponse []*regression.RegressionDetectionResponse, _ string) {
+	cb := func(ctx context.Context, _ *regression.RegressionDetectionRequest, clusterResponse []*regression.ConfirmedRegression, _ string) {
 		// We don't do GroupBy clustering, so there will only be one clusterResponse.
-		req.Progress.Results(clusterResponse[0])
+		req.Progress.Results((*regression.RegressionDetectionResponse)(clusterResponse[0]))
 	}
 	rApi.progressTracker.Add(req.Progress)
 
 	go func() {
 		// This intentionally does not use r.Context() because we want it to outlive this request.
-		err := regression.ProcessRegressions(context.Background(), req, cb, rApi.perfGit, rApi.shortcutStore, rApi.dfBuilder, rApi.paramsetRefresher.GetAll(), regression.ExpandBaseAlertByGroupBy, regression.ReturnOnError, config.Config.AnomalyConfig, nil)
+		err := regression.ProcessRegressions(context.Background(), req, cb, rApi.perfGit, rApi.shortcutStore, rApi.dfBuilder, rApi.paramsetRefresher.GetAll(), regression.ExpandBaseAlertByGroupBy, regression.ReturnOnError, config.Config.AnomalyConfig, nil, rApi.regressionRefiner)
 		if err != nil {
 			sklog.Errorf("ProcessRegressions returned: %s", err)
 			req.Progress.Error("Failed to load data.")
