@@ -21,7 +21,10 @@ run-local-instance: build
 .PHONY: run-with-custom
 run-with-custom:
 	echo "Using the debugger files in //debugger-app/wasm_libs/local_build"
-	$(BAZEL) build --config=mayberemote //debugger-app/... --with_local_debugger
+
+	$(BAZEL) build --config=mayberemote //debugger-app:debugger_container-base \
+	--no//debugger-app/wasm_libs:use_debugger_from_container
+
 	../_bazel_bin/debugger-app/go/debugger-app/debugger-app_/debugger-app \
         --resources_dir ../_bazel_bin/debugger-app/pages/development \
         --port ${DEBUGGER_LOCAL_PORT}

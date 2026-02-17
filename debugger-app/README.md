@@ -39,6 +39,26 @@ The port can be changed via an environment variable, e.g.
 DEBUGGER_LOCAL_PORT=:8123 make run-with-custom
 ```
 
+If there are docker issues, apply a diff like the the following to prevent the build from
+pulling a container
+
+```
+diff --git a/bazel/skia_app_container.bzl b/bazel/skia_app_container.bzl
+index 385443ea0a..8ed383da68 100644
+--- a/bazel/skia_app_container.bzl
++++ b/bazel/skia_app_container.bzl
+@@ -216,7 +216,9 @@ def skia_app_container(
+
+     oci_image(
+         name = image_name,
+-        base = base_image,
++        os = "linux",  # "darwin", "windows", etc
++        architecture = "amd64",  #" arm64", "arm", etc
+         entrypoint = entrypoint,
+         tars = pkg_tars,
+         user = default_user,
+```
+
 ## Production deployment
 
 There are two Louhi flows that work to build this application.
