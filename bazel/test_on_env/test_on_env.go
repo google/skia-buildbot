@@ -15,9 +15,10 @@ import (
 
 func main() {
 	var (
-		testBin    = flag.String("test_bin", "", "Path to the test binary")
-		envBin     = flag.String("env_bin", "", "Path to the environment binary")
-		readyCheck = flag.Duration("ready_check", 5*time.Second, "Wait up to this long for the environment to be ready")
+		testBin           = flag.String("test_bin", "", "Path to the test binary")
+		envBin            = flag.String("env_bin", "", "Path to the environment binary")
+		readyCheck        = flag.Duration("ready_check", 5*time.Second, "Wait up to this long for the environment to be ready")
+		forwardTestFilter = flag.Bool("forward_test_filter_as_grep", false, "If true, passes the TESTBRIDGE_TEST_ONLY environment variable as a --grep argument to the test binary.")
 	)
 	flag.Parse()
 	if *testBin == "" || *envBin == "" {
@@ -87,7 +88,14 @@ func main() {
 	// The environment is set up (and probably still running), we can finally run the tests
 	// If *testBin refers to a bash script, but does not have a shebang as the very first line,
 	// there will be a mysterious "fork/exec ... exec format error"
-	testCmd := exec.CommandContext(ctx, *testBin)
+	args := flag.Args()
+	if *forwardTestFilter {
+		if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {
+			args = append(args, "--grep", filter)
+		}
+	}
+
+	testCmd := exec.CommandContext(ctx, *testBin, args...)
 	testCmd.Env = env
 	testCmd.Stdout = os.Stdout
 	testCmd.Stderr = os.Stderr

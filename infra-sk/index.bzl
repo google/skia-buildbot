@@ -368,6 +368,7 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
                     "manual",  # Exclude it from wildcards, e.g. "bazel test //...".
                     "no-remote",  # Do not run on RBE.
                 ] if debug or headful else []),
+                forward_test_filter_as_grep = True,
             )
 
 def copy_file(name, src, dst, visibility = None):
