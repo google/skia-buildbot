@@ -206,9 +206,24 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 	if len(regressionIdsFromSql) != len(regressionIds) {
 		return 0, skerr.Fmt("could not find alert configurations or subscriptions for some regressions")
 	}
+	if len(subscriptions) < 1 {
+		return 0, skerr.Fmt("did not find any subscriptions linked to those regressions")
+	}
 	regData, err := s.regStore.GetByIDs(ctx, regressionIds)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "failed to get regressions for regression ids")
+	}
+
+	isTestRun := s.checkTestRun(subscriptions)
+	mostImpactedSub, subCcs := s.selectSub(subscriptions)
+	if req.Assignee != "" {
+		sklog.Warningf("ignoring assignee from request and using the one from the db")
+	}
+	assignee := mostImpactedSub.ContactEmail
+	componentID, err := strconv.Atoi(mostImpactedSub.BugComponent)
+	if err != nil {
+		sklog.Errorf("failed to convert bug component %s to int", mostImpactedSub.BugComponent)
+		return -1, err
 	}
 
 	topAnomalies, err := ags.TopAnomaliesMedianCmp(regData, int64(TOP_ANOMALIES_COUNT))
@@ -222,11 +237,6 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 
 	// TODO(b/454614028) Not sure alertsIds will be useful.
 	_ = alertsIds
-
-	componentID, err := s.getComponentID(subscriptions)
-	if err != nil {
-		return 0, err
-	}
 
 	// Most fields should be present in the DB
 	if req.Component != fmt.Sprintf("%d", componentID) {
@@ -247,21 +257,29 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		ccs = append(ccs, &issuetracker.User{EmailAddress: cc})
 	}
 
+	if !isTestRun {
+		sklog.Warningf("disable testrun flag in issuetracker.go to use real assignee and ccs")
+		assignee = ""
+		subCcs = []*issuetracker.User{}
+	}
+	ccs = append(ccs, subCcs...)
+
 	newIssue := &issuetracker.Issue{
 		IssueComment: &issuetracker.IssueComment{
 			Comment:        description,
 			FormattingMode: "MARKDOWN",
 		},
 		IssueState: &issuetracker.IssueState{
-			ComponentId: componentID,
-			Priority:    "P2",
-			Severity:    "S2",
+			ComponentId: int64(componentID),
+			Priority:    fmt.Sprintf("P%d", mostImpactedSub.BugPriority),
+			Severity:    fmt.Sprintf("S%d", mostImpactedSub.BugSeverity),
 			Status:      "NEW",
 			Title:       req.Title,
 			Assignee: &issuetracker.User{
-				EmailAddress: req.Assignee,
+				EmailAddress: assignee,
 			},
-			Ccs: ccs,
+			Ccs:  ccs,
+			Type: "BUG",
 		},
 	}
 
@@ -287,25 +305,41 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 	return int(issueId), nil
 }
 
-func (s *issueTrackerImpl) getComponentID(subscriptions []*pb.Subscription) (int64, error) {
-	componentID := int64(-1)
+// We run full impl against our test subscription
+func (s *issueTrackerImpl) checkTestRun(subscriptions []*pb.Subscription) bool {
 	for _, sub := range subscriptions {
-		id, err := strconv.ParseInt(sub.BugComponent, 10, 64)
-		if err != nil {
-			return -1, err
+		if len(sub.BugLabels) != 1 {
+			return false
 		}
-		if componentID == -1 {
-			componentID = id
-			continue
-		}
-		if componentID != id {
-			return -1, skerr.Fmt("cannot file a bug against multiple components at once")
+		if sub.BugLabels[0] != "BerfDevTest" {
+			return false
 		}
 	}
-	if componentID == -1 {
-		return -1, skerr.Fmt("failed to retrieve the bug component from a subscription list of length %d", len(subscriptions))
+	return true
+}
+
+func (s *issueTrackerImpl) describeBots(regs []*regression.Regression) string {
+	uniqueBots := make(map[string]struct{})
+	for _, r := range regs {
+		for _, b := range r.Frame.DataFrame.ParamSet["bot"] {
+			uniqueBots[b] = struct{}{}
+		}
 	}
-	return componentID, nil
+	sortedBots := slices.Collect(maps.Keys(uniqueBots))
+	slices.Sort(sortedBots)
+	desc := "  \nBots for regressions of this bug:  \n"
+	for _, b := range sortedBots {
+		desc += fmt.Sprintf("  - %s  \n", b)
+	}
+	return desc + "  \n\n"
+}
+
+func (s *issueTrackerImpl) describeTopAnomalies(anom []*v1.Anomaly) (desc string) {
+	desc = fmt.Sprintf("Top %d anomalies in this report:  \n", len(anom))
+	for _, a := range anom {
+		desc += describeAnomaly(a)
+	}
+	return
 }
 
 func (s *issueTrackerImpl) generateLinkToGraph(keys []string) string {
@@ -333,12 +367,23 @@ func (s *issueTrackerImpl) generateLinkToGraph(keys []string) string {
 	return fmt.Sprintf("%s\n\n", strings.TrimSuffix(link, ","))
 }
 
-func (s *issueTrackerImpl) describeTopAnomalies(anom []*v1.Anomaly) (desc string) {
-	desc = fmt.Sprintf("Top %d anomalies in this report:  \n", len(anom))
-	for _, a := range anom {
-		desc += describeAnomaly(a)
+// There may be several subscriptions
+// We will choose data from the sub which defines the highest <priority,severity> pair
+// Additionally, all sheriffs will be CCed on the bug
+// Non-emptiness of the subscriptions list here is ensured in the FileBug method.
+func (s *issueTrackerImpl) selectSub(nonEmptySubscriptions []*pb.Subscription) (topSub *pb.Subscription, allContactEmails []*issuetracker.User) {
+	topSub = nonEmptySubscriptions[0]
+	for _, sub := range nonEmptySubscriptions {
+		if sub.BugPriority < topSub.BugPriority || (sub.BugPriority == topSub.BugPriority && sub.BugSeverity < topSub.BugSeverity) {
+			topSub = sub
+		}
+		allContactEmails = append(allContactEmails, &issuetracker.User{EmailAddress: sub.ContactEmail})
 	}
 	return
+}
+
+func calcChange(before, after float32) float32 {
+	return (after - before) / before * 100.0
 }
 
 func describeAnomaly(a *v1.Anomaly) string {
@@ -346,24 +391,4 @@ func describeAnomaly(a *v1.Anomaly) string {
 		a.Paramset["bot"], a.Paramset["benchmark"], a.Paramset["measurement"], a.Paramset["story"],
 		a.MedianBefore, a.MedianAfter, calcChange(a.MedianBefore, a.MedianAfter), a.StartCommit, a.EndCommit,
 	)
-}
-
-func calcChange(before, after float32) float32 {
-	return (after - before) / before * 100.0
-}
-
-func (s *issueTrackerImpl) describeBots(regs []*regression.Regression) string {
-	uniqueBots := make(map[string]struct{})
-	for _, r := range regs {
-		for _, b := range r.Frame.DataFrame.ParamSet["bot"] {
-			uniqueBots[b] = struct{}{}
-		}
-	}
-	sortedBots := slices.Collect(maps.Keys(uniqueBots))
-	slices.Sort(sortedBots)
-	desc := "  \nBots for regressions of this bug:  \n"
-	for _, b := range sortedBots {
-		desc += fmt.Sprintf("  - %s  \n", b)
-	}
-	return desc + "  \n\n"
 }

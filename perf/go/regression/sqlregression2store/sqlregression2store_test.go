@@ -943,6 +943,7 @@ func TestGetSubscriptionsForRegressions(t *testing.T) {
 	alertId1 := int64(1)
 	alertId2 := int64(2)
 	alertId3 := int64(3)
+	alertId4 := int64(4)
 	component1 := "123456"
 	component2 := "123467"
 
@@ -962,6 +963,11 @@ func TestGetSubscriptionsForRegressions(t *testing.T) {
 	_, err = store.WriteRegression(ctx, reg3WithoutSubscription, nil)
 	assert.Nil(t, err)
 
+	reg4inactiveSub := generateNewRegression(subName)
+	reg4inactiveSub.AlertId = alertId4
+	_, err = store.WriteRegression(ctx, reg4inactiveSub, nil)
+	assert.Nil(t, err)
+
 	// Setup Alerts
 	setupAlert := func(alertID int64, subName string, subRevision string) {
 		query := `
@@ -978,22 +984,25 @@ func TestGetSubscriptionsForRegressions(t *testing.T) {
 	setupAlert(reg1.AlertId, "sub1", "1")
 	setupAlert(reg2.AlertId, "sub2", "1")
 	setupAlert(reg3WithoutSubscription.AlertId, "sub-without-subscription", "1")
+	setupAlert(reg4inactiveSub.AlertId, "sub_inactive", "1")
 
 	// Setup Subscriptions
-	setupSubscription := func(name string, revision string, component string) {
+	setupSubscription := func(name string, revision string, component string, active bool) {
 		query := `
-			INSERT INTO Subscriptions (name, revision, bug_component)
-			VALUES ($1, $2, $3)
+			INSERT INTO Subscriptions (name, revision, bug_component, is_active)
+			VALUES ($1, $2, $3, $4)
 			ON CONFLICT (name, revision)
 			DO UPDATE SET
 				name = EXCLUDED.name,
 				revision = EXCLUDED.revision,
-				bug_component = EXCLUDED.bug_component`
-		_, err := store.db.Exec(ctx, query, name, revision, component)
+				bug_component = EXCLUDED.bug_component,
+				is_active = EXCLUDED.is_active`
+		_, err := store.db.Exec(ctx, query, name, revision, component, active)
 		require.NoError(t, err)
 	}
-	setupSubscription("sub1", "1", component1)
-	setupSubscription("sub2", "1", component2)
+	setupSubscription("sub1", "1", component1, true)
+	setupSubscription("sub2", "1", component2, true)
+	setupSubscription("sub_inactive", "1", component2, false)
 
 	// 2. Test Cases
 	tests := []struct {
@@ -1046,6 +1055,13 @@ func TestGetSubscriptionsForRegressions(t *testing.T) {
 			expectedRegressionIDs: []string{reg1.Id},
 			expectedAlertIDs:      []int64{reg1.AlertId},
 			expectedBugComponents: []string{component1},
+		},
+		{
+			name:                  "inactive sub",
+			regressionIDs:         []string{reg4inactiveSub.Id},
+			expectedRegressionIDs: []string{},
+			expectedAlertIDs:      []int64{},
+			expectedBugComponents: []string{},
 		},
 	}
 
