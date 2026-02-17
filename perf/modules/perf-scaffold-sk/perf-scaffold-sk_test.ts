@@ -263,6 +263,20 @@ describe('perf-scaffold-sk', () => {
     assert.isTrue((element as any)._reload.called);
   });
 
+  describe('multigraphUrl', () => {
+    it('returns /m when default_to_manual_plot_mode is false', async () => {
+      window.perf.default_to_manual_plot_mode = false;
+      element = newInstance();
+      assert.equal((element as any).multigraphUrl, '/m');
+    });
+
+    it('returns /m?manual_plot_mode=true when default_to_manual_plot_mode is true', async () => {
+      window.perf.default_to_manual_plot_mode = true;
+      element = newInstance();
+      assert.equal((element as any).multigraphUrl, '/m?manual_plot_mode=true');
+    });
+  });
+
   describe('auto-refresh', () => {
     let clock: any;
 

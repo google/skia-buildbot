@@ -307,6 +307,7 @@ type SkPerfConfig struct {
 	DevMode                     bool               `json:"dev_mode"`
 	ExtraLinks                  *config.ExtraLinks `json:"extra_links"` // Extra links to be display on a dedicated page.
 	DisableShortcutUpdate       bool               `json:"disable_shortcut_update,omitempty"`
+	DefaultToManualPlotMode     bool               `json:"default_to_manual_plot_mode,omitempty"`
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -358,6 +359,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		DevMode:                     f.flags.DevMode,
 		ExtraLinks:                  config.Config.ExtraLinks,
 		DisableShortcutUpdate:       f.flags.DisableShortcutUpdate,
+		DefaultToManualPlotMode:     config.Config.DefaultToManualPlotMode,
 	}
 
 	var buff bytes.Buffer
@@ -977,6 +979,13 @@ func oldMainHandler(w http.ResponseWriter, r *http.Request) {
 	landingPath := instanceConf.LandingPageRelPath
 	if landingPath == "" {
 		landingPath = "/e"
+	}
+	if instanceConf.DefaultToManualPlotMode && strings.HasPrefix(landingPath, "/m") {
+		if strings.Contains(landingPath, "?") {
+			landingPath += "&manual_plot_mode=true"
+		} else {
+			landingPath += "?manual_plot_mode=true"
+		}
 	}
 	http.Redirect(w, r, landingPath, http.StatusMovedPermanently)
 }

@@ -84,5 +84,6 @@
     "show_bisect_btn": true,
     "fetch_anomalies_from_sql": true,
     "use_regression2_schema": true,
-    "trace_format": "chrome"
+    "trace_format": "chrome",
+    "default_to_manual_plot_mode": true
   }

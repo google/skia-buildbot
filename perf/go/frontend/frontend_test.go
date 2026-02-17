@@ -107,6 +107,21 @@ func TestFrontend_SpecifiedRedirectUrl_Redirects(t *testing.T) {
 	require.Equal(t, "/m", w.Result().Header.Get("Location"))
 }
 
+func TestFrontend_DefaultToManualPlotMode_Redirects(t *testing.T) {
+	configFileBytes := testutils.ReadFileBytes(t, "config.json")
+	err := json.Unmarshal(configFileBytes, &config.Config)
+	config.Config.LandingPageRelPath = "/m/"
+	config.Config.DefaultToManualPlotMode = true
+	require.NoError(t, err)
+
+	r := httptest.NewRequest("GET", "/", nil)
+	w := httptest.NewRecorder()
+	oldMainHandler(w, r)
+
+	require.Equal(t, http.StatusMovedPermanently, w.Result().StatusCode)
+	require.Equal(t, "/m/?manual_plot_mode=true", w.Result().Header.Get("Location"))
+}
+
 func TestFrontend_StripSlashes(t *testing.T) {
 	host := "localhost:8001"
 

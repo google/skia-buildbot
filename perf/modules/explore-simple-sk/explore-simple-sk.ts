@@ -1510,13 +1510,18 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
     updateShortcut([graphConfig])
       .then((shortcut) => {
-        const newUrl = shortcut
+        let newUrl = shortcut
           ? `/m/?begin=${currentState.begin}` +
             `&end=${currentState.end}` +
             `&request_type=${currentState.requestType}` +
             `&shortcut=${shortcut}` +
             `&totalGraphs=1`
           : '#';
+
+        if (newUrl !== '#' && window.perf.default_to_manual_plot_mode) {
+          newUrl += '&manual_plot_mode=true';
+        }
+
         if (this.testPickerUrl !== newUrl) {
           this.testPickerUrl = newUrl;
           this._render();

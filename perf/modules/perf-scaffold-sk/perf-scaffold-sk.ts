@@ -73,6 +73,13 @@ export class PerfScaffoldSk extends ElementSk {
 
   private _devVersion: number = 0;
 
+  private get multigraphUrl(): string {
+    if (window.perf.default_to_manual_plot_mode) {
+      return '/m?manual_plot_mode=true';
+    }
+    return '/m';
+  }
+
   constructor() {
     super(PerfScaffoldSk.template);
   }
@@ -117,7 +124,7 @@ export class PerfScaffoldSk extends ElementSk {
       <div id=links>
         <a href="/e" tab-index=0 ><home-icon-sk></home-icon-sk><span>New Query</span></a>
         <a href="/f" tab-index=0 ><favorite-icon-sk></favorite-icon-sk><span>Favorites</span></a>
-        <a href="/m" tab-index=0 >
+        <a href="${ele.multigraphUrl}" tab-index=0 >
           <multiline-chart-icon-sk></multiline-chart-icon-sk><span>MultiGraph</span>
         </a>
         <div ?hidden=${!window.perf.extra_links}>
@@ -172,7 +179,9 @@ export class PerfScaffoldSk extends ElementSk {
       </a>
       <nav id="header-nav-items">
         <a href="/e" tab-index=0 class="${ele.isPageActive('/e') ? 'active' : ''}">Explore</a>
-        <a href="/m" tab-index=0 class="${ele.isPageActive('/m') ? 'active' : ''}">MultiGraph</a>
+        <a href="${ele.multigraphUrl}" tab-index=0 class="${
+          ele.isPageActive('/m') ? 'active' : ''
+        }">MultiGraph</a>
         <div class="triage-link" ?hidden=${!ele.isHiddenTriage}>
           <a href="/t" tab-index=0 class="${ele.isPageActive('/t') ? 'active' : ''}">Triage</a>
         </div>

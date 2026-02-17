@@ -443,6 +443,7 @@ export interface SkPerfConfig {
 	dev_mode: boolean;
 	extra_links: ExtraLinks | null;
 	disable_shortcut_update?: boolean;
+	default_to_manual_plot_mode?: boolean;
 }
 
 export interface TriageRequest {

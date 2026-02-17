@@ -1111,6 +1111,9 @@ type InstanceConfig struct {
 
 	// EnableV2UI if true allows users to toggle the V2 UI.
 	EnableV2UI bool `json:"enable_v2_ui,omitempty"`
+
+	// DefaultToManualPlotMode if true will include manual_plot_mode=true in Multigraph link references.
+	DefaultToManualPlotMode bool `json:"default_to_manual_plot_mode,omitempty"`
 }
 
 // Config is the currently running config.

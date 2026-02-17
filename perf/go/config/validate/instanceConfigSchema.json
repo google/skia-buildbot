@@ -453,6 +453,9 @@
         },
         "enable_v2_ui": {
           "type": "boolean"
+        },
+        "default_to_manual_plot_mode": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
