@@ -661,6 +661,7 @@ export interface CreateBisectRequest {
 	bug_id: string;
 	user: string;
 	alert_ids: string;
+	test_path: string;
 }
 
 export interface CreateLegacyTryRequest {

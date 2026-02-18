@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
@@ -19,9 +18,10 @@ import (
 )
 
 const (
-	pinpointLegacyURL    = "https://pinpoint-dot-chromeperf.appspot.com/api/new"
-	contentType          = "application/json"
-	tryJobComparisonMode = "try"
+	pinpointLegacyURL         = "https://pinpoint-dot-chromeperf.appspot.com/api/new"
+	contentType               = "application/json"
+	tryJobComparisonMode      = "try"
+	chromeperfLegacyBisectURL = "https://chromeperf.appspot.com/pinpoint/new/bisect"
 )
 
 type CreateLegacyTryRequest struct {
@@ -57,6 +57,7 @@ type CreateBisectRequest struct {
 	BugId               string `json:"bug_id"`
 	User                string `json:"user"`
 	AlertIDs            string `json:"alert_ids"`
+	TestPath            string `json:"test_path"`
 }
 
 type CreatePinpointResponse struct {
@@ -256,38 +257,18 @@ func buildBisectRequestURL(createBisectRequest CreateBisectRequest) string {
 	if createBisectRequest.Project != "" {
 		params.Set("project", createBisectRequest.Project)
 	}
-	if createBisectRequest.BugId != "" {
-		params.Set("bug_id", createBisectRequest.BugId)
-	}
 	if createBisectRequest.User != "" {
 		params.Set("user", createBisectRequest.User)
 	}
 	if createBisectRequest.AlertIDs != "" {
 		params.Set("alert_ids", createBisectRequest.AlertIDs)
 	}
-
+	// Bug ID must present otherwise chromeperf returns an error.
+	params.Set("bug_id", createBisectRequest.BugId)
+	params.Set("test_path", createBisectRequest.TestPath)
 	params.Set("tags", "{\"origin\":\"skia_perf\"}")
 
-	// test_path is needed by the API, which is a legacy key from
-	// Chromeperf. The format is
-	// {master}/{bot}/{benchmark}/{chart}/{story}
-	// and will cut off at the lowest available piece.
-	test_path_parts := []string{"ChromiumPerf"}
-	required_pieces := []string{
-		createBisectRequest.Configuration,
-		createBisectRequest.Benchmark,
-		createBisectRequest.Chart,
-		createBisectRequest.Story,
-	}
-	for _, val := range required_pieces {
-		if val == "" {
-			break
-		}
-		test_path_parts = append(test_path_parts, val)
-	}
-	params.Set("test_path", strings.Join(test_path_parts, "/"))
-
-	return fmt.Sprintf("%s?%s", pinpointLegacyURL, params.Encode())
+	return fmt.Sprintf("%s?%s", chromeperfLegacyBisectURL, params.Encode())
 }
 
 func extractErrorMessage(responseBody []byte) string {

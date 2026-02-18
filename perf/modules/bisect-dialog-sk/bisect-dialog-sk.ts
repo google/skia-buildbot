@@ -184,7 +184,6 @@ export class BisectDialogSk extends ElementSk {
     // Replace ':' with '_' for reduce errors when querying test paths in the legacy table
     // TODO(jiaxindong) b/431213645 follow up with the team about data backfill
     this.story = parameters.pop()!.replace(/:/g, '_');
-    chart = chart.replace(/:/g, '_');
     const patch = document.getElementById('patch')! as HTMLInputElement;
     const req: CreateBisectRequest = {
       comparison_mode: 'performance',
@@ -201,6 +200,7 @@ export class BisectDialogSk extends ElementSk {
       bug_id: bugId.value,
       user: this.user,
       alert_ids: '[' + this.anomalyId + ']',
+      test_path: this.testPath,
     };
 
     const validations = [
@@ -211,6 +211,7 @@ export class BisectDialogSk extends ElementSk {
       { value: req.story, message: 'Story is missing in the request.' },
       { value: req.chart, message: 'Chart is missing in the request.' },
       { value: req.user, message: 'User is not logged in.' },
+      { value: req.test_path, message: 'Test path is missing in the request.' },
     ];
 
     for (const rule of validations) {

@@ -88,17 +88,24 @@ describe('bisect-dialog-sk', () => {
         bisectRequest!.body as unknown as string
       ) as CreateBisectRequest;
 
-      assert.equal(bisectBody.bug_id, '123');
-      assert.equal(bisectBody.start_git_hash, 'c1');
-      assert.equal(bisectBody.end_git_hash, 'c2');
-      assert.equal(bisectBody.chart, 'test_suite');
-      assert.equal(bisectBody.statistic, '');
-      assert.equal(bisectBody.story, 'subtest_avg');
-      assert.equal(bisectBody.alert_ids, '[a1]');
-      assert.equal(bisectBody.project, 'chromium');
-      assert.equal(bisectBody.comparison_mode, 'performance');
-      assert.equal(bisectBody.configuration, 'MacM1');
-      assert.equal(bisectBody.benchmark, 'Blazor');
+      const expected: CreateBisectRequest = {
+        bug_id: '123',
+        start_git_hash: 'c1',
+        end_git_hash: 'c2',
+        chart: 'test_suite',
+        statistic: '',
+        story: 'subtest_avg',
+        alert_ids: '[a1]',
+        project: 'chromium',
+        comparison_mode: 'performance',
+        configuration: 'MacM1',
+        benchmark: 'Blazor',
+        test_path: 'ChromiumPerf/MacM1/Blazor/test_suite/subtest:avg',
+        comparison_magnitude: '',
+        pin: '',
+        user: 'test@example.com',
+      };
+      assert.deepEqual(bisectBody, expected);
     });
 
     it('replaces colons in story', async () => {
@@ -124,7 +131,7 @@ describe('bisect-dialog-sk', () => {
       assert.equal(bisectBody.story, 'subtest_with_colons');
     });
 
-    it('replaces colons in chart', async () => {
+    it('does not replace colons in chart', async () => {
       const params: BisectPreloadParams = {
         testPath: 'ChromiumPerf/MacM1/Blazor/test:suite:with:colons/subtest',
         startCommit: 'c1',
@@ -144,7 +151,7 @@ describe('bisect-dialog-sk', () => {
         bisectRequest!.body as unknown as string
       ) as CreateBisectRequest;
 
-      assert.equal(bisectBody.chart, 'test_suite_with_colons');
+      assert.equal(bisectBody.chart, 'test:suite:with:colons');
     });
 
     it('shows an error message on failure', async () => {
@@ -240,6 +247,11 @@ describe('bisect-dialog-sk', () => {
         fieldToClear: 'chart',
         testName: 'chart',
         expectedError: 'Chart is required.',
+      },
+      {
+        fieldToClear: 'test_path',
+        testName: 'test path',
+        expectedError: 'Test path is required.',
       },
     ];
     it('shows an error message if a required parameter is missing', async () => {
