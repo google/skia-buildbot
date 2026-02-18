@@ -308,10 +308,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 // We run full impl against our test subscription
 func (s *issueTrackerImpl) checkTestRun(subscriptions []*pb.Subscription) bool {
 	for _, sub := range subscriptions {
-		if len(sub.BugLabels) != 1 {
-			return false
-		}
-		if sub.BugLabels[0] != "BerfDevTest" {
+		if sub.ContactEmail != "sergeirudenkov@google.com" {
 			return false
 		}
 	}
@@ -387,7 +384,7 @@ func calcChange(before, after float32) float32 {
 }
 
 func describeAnomaly(a *v1.Anomaly) string {
-	return fmt.Sprintf("  - Bot: %s, Benchmark: %s, Measurement: %s, Story: %s.  \n    Change: %.4f -> %.4f (%+.2f%%); Commit range: %d -> %d\n\n",
+	return fmt.Sprintf("  - Bot: %s, Benchmark: %s, Measurement: %s, Story: %s.  \n    Change: %.2f -> %.2f (%+.2f%%); Commit range: %d -> %d\n\n",
 		a.Paramset["bot"], a.Paramset["benchmark"], a.Paramset["measurement"], a.Paramset["story"],
 		a.MedianBefore, a.MedianAfter, calcChange(a.MedianBefore, a.MedianAfter), a.StartCommit, a.EndCommit,
 	)

@@ -243,8 +243,7 @@ var statementFormats = map[statementFormat]string{
 			regressions2 JOIN alerts
 			ON regressions2.alert_id = alerts.id
 			JOIN subscriptions
-			ON alerts.sub_name = subscriptions.name AND
-				alerts.sub_revision = subscriptions.revision
+			ON alerts.sub_name = subscriptions.name
 		WHERE regressions2.id=ANY($1) and subscriptions.is_active = TRUE
 		ORDER BY regressions2.id
 	`,

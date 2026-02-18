@@ -31,6 +31,7 @@ var sampleParamsetMap = map[string]string{
 	"measurement": "measurement",
 	"stat":        "stat",
 }
+var testSubEmail = "sergeirudenkov@google.com"
 
 func createIssueTrackerForTest(t *testing.T) (*issueTrackerImpl, *regMocks.Store, *httptest.Server) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -185,7 +186,7 @@ func TestFileBug_RequestBody(t *testing.T) {
 		{
 			BugComponent: "8765",
 			BugLabels:    []string{"BerfDevTest"},
-			ContactEmail: "assignee@google.com",
+			ContactEmail: testSubEmail,
 		},
 	}, nil)
 
@@ -234,11 +235,11 @@ func TestFileBug_RequestBody(t *testing.T) {
 	defaultComponentId := int64(1325852)
 	// Note that componentID is overriden by the default value
 	require.Equal(t, defaultComponentId, receivedReq.IssueState.ComponentId)
-	require.Equal(t, "assignee@google.com", receivedReq.IssueState.Assignee.EmailAddress)
+	require.Equal(t, testSubEmail, receivedReq.IssueState.Assignee.EmailAddress)
 	require.Len(t, receivedReq.IssueState.Ccs, 3)
 	require.Equal(t, "cc1@google.com", receivedReq.IssueState.Ccs[0].EmailAddress)
 	require.Equal(t, "cc2@google.com", receivedReq.IssueState.Ccs[1].EmailAddress)
-	require.Equal(t, "assignee@google.com", receivedReq.IssueState.Ccs[2].EmailAddress)
+	require.Equal(t, testSubEmail, receivedReq.IssueState.Ccs[2].EmailAddress)
 }
 
 func TestFileBug_EmptyDescription(t *testing.T) {
@@ -248,7 +249,7 @@ func TestFileBug_EmptyDescription(t *testing.T) {
 	req := &FileBugRequest{
 		Title:     "Test Bug Title",
 		Component: "5678",
-		Assignee:  "assignee@google.com",
+		Assignee:  testSubEmail,
 		Ccs:       []string{"cc1@google.com", "cc2@google.com"},
 		Keys:      []string{"key1", "key2"},
 	}
@@ -282,7 +283,7 @@ func TestFileBug_EmptyDescriptionTooManyKeys(t *testing.T) {
 	req := &FileBugRequest{
 		Title:     "Test Bug Title",
 		Component: "5678",
-		Assignee:  "assignee@google.com",
+		Assignee:  testSubEmail,
 		Ccs:       []string{"cc1@google.com", "cc2@google.com"},
 		Keys:      keys,
 	}
@@ -341,7 +342,7 @@ func TestFileBug_DeduplicateBots(t *testing.T) {
 		Title:       "Test Bug",
 		Description: "This is a test bug.",
 		Component:   "1234",
-		Assignee:    "test@google.com",
+		Assignee:    testSubEmail,
 		Ccs:         []string{"test2@google.com"},
 		Keys:        []string{"1"},
 	}
@@ -364,14 +365,14 @@ func TestFileBug_SelectSubscription(t *testing.T) {
 			BugComponent: "111",
 			BugPriority:  2,
 			BugSeverity:  2,
-			ContactEmail: "def@google.com",
+			ContactEmail: testSubEmail,
 			BugLabels:    []string{"BerfDevTest"},
 		},
 		{
 			BugComponent: "222",
 			BugPriority:  1,
 			BugSeverity:  2,
-			ContactEmail: "abc@google.com",
+			ContactEmail: testSubEmail,
 			BugLabels:    []string{"BerfDevTest"},
 		},
 	}, nil)
@@ -388,10 +389,10 @@ func TestFileBug_SelectSubscription(t *testing.T) {
 	require.Equal(t, defaultComponentId, receivedReq.IssueState.ComponentId)
 	require.Equal(t, "P1", receivedReq.IssueState.Priority)
 	require.Equal(t, "S2", receivedReq.IssueState.Severity)
-	require.Equal(t, "abc@google.com", receivedReq.IssueState.Assignee.EmailAddress)
+	require.Equal(t, testSubEmail, receivedReq.IssueState.Assignee.EmailAddress)
 	require.Len(t, receivedReq.IssueState.Ccs, 2)
-	require.Equal(t, "def@google.com", receivedReq.IssueState.Ccs[0].EmailAddress)
-	require.Equal(t, "abc@google.com", receivedReq.IssueState.Ccs[1].EmailAddress)
+	require.Equal(t, testSubEmail, receivedReq.IssueState.Ccs[0].EmailAddress)
+	require.Equal(t, testSubEmail, receivedReq.IssueState.Ccs[1].EmailAddress)
 }
 
 func TestFileBug_SelectSubscription_SamePrio(t *testing.T) {
@@ -405,14 +406,14 @@ func TestFileBug_SelectSubscription_SamePrio(t *testing.T) {
 			BugComponent: "111",
 			BugPriority:  2,
 			BugSeverity:  2,
-			ContactEmail: "def@google.com",
+			ContactEmail: testSubEmail,
 			BugLabels:    []string{"BerfDevTest"},
 		},
 		{
 			BugComponent: "222",
 			BugPriority:  2,
 			BugSeverity:  1,
-			ContactEmail: "abc@google.com",
+			ContactEmail: testSubEmail,
 			BugLabels:    []string{"BerfDevTest"},
 		},
 	}, nil)
@@ -429,51 +430,10 @@ func TestFileBug_SelectSubscription_SamePrio(t *testing.T) {
 	require.Equal(t, defaultComponentId, receivedReq.IssueState.ComponentId)
 	require.Equal(t, "P2", receivedReq.IssueState.Priority)
 	require.Equal(t, "S1", receivedReq.IssueState.Severity)
-	require.Equal(t, "abc@google.com", receivedReq.IssueState.Assignee.EmailAddress)
+	require.Equal(t, testSubEmail, receivedReq.IssueState.Assignee.EmailAddress)
 	require.Len(t, receivedReq.IssueState.Ccs, 2)
-	require.Equal(t, "def@google.com", receivedReq.IssueState.Ccs[0].EmailAddress)
-	require.Equal(t, "abc@google.com", receivedReq.IssueState.Ccs[1].EmailAddress)
-}
-
-func TestFileBug_SelectSubscription_BerfDevTest(t *testing.T) {
-	s, regStore, ts, receivedReq, _ := createIssueTrackerForTestInterceptRequests(t)
-	defer ts.Close()
-
-	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return([]*regression.Regression{}, nil)
-
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
-		{
-			BugComponent: "111",
-			BugPriority:  2,
-			BugSeverity:  2,
-			ContactEmail: "def@google.com",
-			BugLabels:    []string{"BerfDevTest"},
-		},
-		{
-			BugComponent: "222",
-			BugPriority:  1,
-			BugSeverity:  2,
-			ContactEmail: "abc@google.com",
-			BugLabels:    []string{"BerfDevTest"},
-		},
-	}, nil)
-
-	req := &FileBugRequest{
-		Keys: []string{"1"},
-	}
-
-	_, err := s.FileBug(context.Background(), req)
-	require.NoError(t, err)
-
-	// Note that componentID is overriden by the default value
-	defaultComponentId := int64(1325852)
-	require.Equal(t, defaultComponentId, receivedReq.IssueState.ComponentId)
-	require.Equal(t, "P1", receivedReq.IssueState.Priority)
-	require.Equal(t, "S2", receivedReq.IssueState.Severity)
-	require.Equal(t, "abc@google.com", receivedReq.IssueState.Assignee.EmailAddress)
-	require.Len(t, receivedReq.IssueState.Ccs, 2)
-	require.Equal(t, "def@google.com", receivedReq.IssueState.Ccs[0].EmailAddress)
-	require.Equal(t, "abc@google.com", receivedReq.IssueState.Ccs[1].EmailAddress)
+	require.Equal(t, testSubEmail, receivedReq.IssueState.Ccs[0].EmailAddress)
+	require.Equal(t, testSubEmail, receivedReq.IssueState.Ccs[1].EmailAddress)
 }
 
 // Remove this test after testRun check (bug label = BerfTest) is removed.
@@ -488,14 +448,14 @@ func TestFileBug_SelectSubscription_NotBerfDevTest(t *testing.T) {
 			BugComponent: "111",
 			BugPriority:  1,
 			BugSeverity:  1,
-			ContactEmail: "def@google.com",
+			ContactEmail: "otheremail@google.com",
 			BugLabels:    []string{"NotBerfDevTest"},
 		},
 		{
 			BugComponent: "222",
 			BugPriority:  1,
 			BugSeverity:  2,
-			ContactEmail: "abc@google.com",
+			ContactEmail: testSubEmail,
 			BugLabels:    []string{"BerfDevTest"},
 		},
 	}, nil)
