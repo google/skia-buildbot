@@ -168,7 +168,9 @@ describe('report-page-sk', () => {
       const lines = tooltipText.split('\n').filter((l) => l.trim() !== '');
       const tooltipData: { [key: string]: string } = {};
       lines.forEach((line) => {
-        const match = line.match(/^(Date|Value|Change|Anomaly|Median|Previous)\s+(.*)$/);
+        const match = line.match(
+          /^(Date|Value|Point Range|Anomaly Range|Anomaly|Median|Previous)\s+(.*)$/
+        );
         if (match) {
           tooltipData[match[1]] = match[2].trim();
         }
@@ -176,7 +178,8 @@ describe('report-page-sk', () => {
       expect(tooltipData).to.deep.equal({
         Date: 'Tue, 27 Jun 2023 13:32:43 GMT',
         Value: '75.2',
-        Change: '67130',
+        'Point Range': '67130',
+        'Anomaly Range': '67129 - 67130',
         Anomaly: 'Regression',
         Median: '75.2',
         Previous: '60.8302 [+23.6228%]',

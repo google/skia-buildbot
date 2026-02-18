@@ -177,7 +177,7 @@ export class ChartTooltipSk extends ElementSk {
           <span id="tooltip-text">${ele.y_value} ${ele.unit_type}</span>
         </li>
         <li>
-          <span id="tooltip-key">Change</span>
+          <span id="tooltip-key">Point Range</span>
           <commit-range-sk id="tooltip-commit-range-link"></commit-range-sk>
         </li>
       </ul>
@@ -310,6 +310,10 @@ export class ChartTooltipSk extends ElementSk {
         <li>
           <span id="tooltip-key">Anomaly</span>
           <span id="tooltip-text">${this.anomalyType()}</span>
+        </li>
+        <li>
+          <span id="tooltip-key">Anomaly Range</span>
+          <commit-range-sk id="anomaly-commit-range-link"></commit-range-sk>
         </li>
         <li>
           <span id="tooltip-key">Median</span>
@@ -477,7 +481,18 @@ export class ChartTooltipSk extends ElementSk {
       const commitPos = this.commit_position?.toString() || '';
       this.userIssueSk.commit_position = parseInt(commitPos);
     }
+
     this._render();
+
+    // Needs to be after _render().
+    if (this._anomaly) {
+      const anomalyRangeSk = this.querySelector('#anomaly-commit-range-link') as CommitRangeSk;
+      if (anomalyRangeSk) {
+        const prev_commit = (this._anomaly.start_revision - 1) as CommitNumber;
+        const commit = this._anomaly.end_revision as CommitNumber;
+        anomalyRangeSk.setRange(prev_commit, commit);
+      }
+    }
   }
 
   loadPointLinks(

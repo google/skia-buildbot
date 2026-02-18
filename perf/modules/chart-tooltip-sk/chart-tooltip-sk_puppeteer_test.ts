@@ -56,7 +56,7 @@ describe('chart-tooltip-sk', () => {
       expect(await valueRow.innerText).to.contain('100 ms');
 
       const pointRangeRow = await rows.item(2);
-      expect(await pointRangeRow.innerText).to.contain('Change');
+      expect(await pointRangeRow.innerText).to.contain('Point Range');
       expect(await pointRangeRow.innerText).to.contain('12346');
 
       await takeScreenshot(testBed.page, 'perf', 'chart-tooltip-sk-load-without-anomaly');
@@ -76,21 +76,25 @@ describe('chart-tooltip-sk', () => {
       assert.isNotEmpty(await anomalyDetails);
 
       const rows = await anomalyDetails.bySelectorAll('li');
-      expect(await rows.length).to.equal(5);
+      expect(await rows.length).to.equal(6);
 
       const anomalyRow = await rows.item(0);
       expect(await anomalyRow.innerText).to.contain('Anomaly');
       expect(await anomalyRow.innerText).to.contain('Regression');
 
-      const medianRow = await rows.item(1);
+      const anomalyCommitRangeRow = await rows.item(1);
+      expect(await anomalyCommitRangeRow.innerText).to.contain('Anomaly Range');
+      expect(await anomalyCommitRangeRow.innerText).to.contain('12345 - 12347');
+
+      const medianRow = await rows.item(2);
       expect(await medianRow.innerText).to.contain('Median');
       expect(await medianRow.innerText).to.contain('100.5023 ms');
 
-      const previousRow = await rows.item(2);
+      const previousRow = await rows.item(3);
       expect(await previousRow.innerText).to.contain('Previous');
       expect(await previousRow.innerText).to.contain('75.2091 [+33.6305%]');
 
-      const bugIdRow = await rows.item(3);
+      const bugIdRow = await rows.item(4);
       expect(await bugIdRow.innerText).to.contain('Bug ID');
       expect(await bugIdRow.innerText).to.contain('12345');
 

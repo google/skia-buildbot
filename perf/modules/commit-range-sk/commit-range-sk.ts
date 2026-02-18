@@ -115,6 +115,17 @@ export class CommitRangeSk extends ElementSk {
   }
 
   /**
+   * Sets the range explicitly.
+   * @param start The previous commit (exclusive).
+   * @param end The current commit (inclusive).
+   */
+  async setRange(start: CommitNumber, end: CommitNumber): Promise<void> {
+    this._commitIds = [start, end];
+    this._hashes = null;
+    await this.generateLink();
+  }
+
+  /**
    * Recalculates the link based on the current state of the object.
    * If there is not enough information to build the link, it clears the
    * current link.
@@ -148,11 +159,18 @@ export class CommitRangeSk extends ElementSk {
       this._hashes = null;
     }
     this._commitIds = newCommitIds;
+    await this.generateLink();
+  }
 
+  private async generateLink(): Promise<void> {
     this.currentRequestId++;
     const requestId = this.currentRequestId;
 
     try {
+      if (!this._commitIds || this._commitIds.length !== 2) {
+        this.clear();
+        return;
+      }
       let text = `${this._commitIds[1]}`;
       // Check if there are no points between start and end.
       const isRange = this.isRange();
