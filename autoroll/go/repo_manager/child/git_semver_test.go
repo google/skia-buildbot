@@ -132,33 +132,156 @@ func TestGitSemVerChild_LogRevisions(t *testing.T) {
 
 	const ver100 = "v1.0.0"
 	const ver110 = "v1.1.0"
+	const ver120 = "v1.2.0"
+	const ver130 = "v1.3.0"
 
-	const hashA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	const hashB = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-
-	fromRev := &revision.Revision{Id: hashA}
-	toRev := &revision.Revision{Id: hashB}
-
-	mockRepo.On("Tags", testutils.AnyContext).Return(map[string]string{
-		ver100: hashA,
-		ver110: hashB,
-	}, nil)
-	mockRepo.On("URL").Return("https://github.com/google/skia")
-	returnedCommits := []*vcsinfo.LongCommit{
-		{
-			ShortCommit: &vcsinfo.ShortCommit{
-				Hash: hashB,
-			},
-		},
-	}
-	mockRepo.On("LogFirstParent", testutils.AnyContext, fromRev.Id, toRev.Id).Return(returnedCommits, nil)
-
-	revs, err := c.LogRevisions(t.Context(), fromRev, toRev)
+	p, err := semver.NewParser(`v(\d+)\.(\d+)\.(\d+)`)
 	require.NoError(t, err)
-	require.Len(t, revs, 1)
-	require.Equal(t, hashB, revs[0].Id)
-	require.Equal(t, hashB, revs[0].Checksum)
-	require.Equal(t, "v1.1.0", revs[0].Release)
+	v100, err := p.Parse(ver100)
+	require.NoError(t, err)
+	v110, err := p.Parse(ver110)
+	require.NoError(t, err)
+	v120, err := p.Parse(ver120)
+	require.NoError(t, err)
+	v130, err := p.Parse(ver130)
+	require.NoError(t, err)
+
+	commitA := &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		},
+		Timestamp: time.Unix(000000100, 0),
+	}
+	commitB := &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		},
+		Timestamp: time.Unix(000000200, 0),
+	}
+	commitC := &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash: "cccccccccccccccccccccccccccccccccccccccc",
+		},
+		Timestamp: time.Unix(000000300, 0),
+	}
+	commitD := &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash: "dddddddddddddddddddddddddddddddddddddddd",
+		},
+		Timestamp: time.Unix(000000400, 0),
+	}
+
+	versionToHash := map[string]string{
+		ver100: commitA.Hash,
+		ver110: commitB.Hash,
+		ver120: commitC.Hash,
+		ver130: commitD.Hash,
+	}
+	hashToVersions := map[string][]*semver.Version{
+		commitA.Hash: {v100},
+		commitB.Hash: {v110},
+		commitC.Hash: {v120},
+		commitD.Hash: {v130},
+	}
+
+	const url = "https://github.com/google/skia"
+	const revLinkTmpl = url + "/+show/%s"
+	revA := revision.FromLongCommit(revLinkTmpl, "", commitA)
+	revB := revision.FromLongCommit(revLinkTmpl, "", commitB)
+	revC := revision.FromLongCommit(revLinkTmpl, "", commitC)
+	revD := revision.FromLongCommit(revLinkTmpl, "", commitD)
+	c.fixupRevision(revA, hashToVersions)
+	c.fixupRevision(revB, hashToVersions)
+	c.fixupRevision(revC, hashToVersions)
+	c.fixupRevision(revD, hashToVersions)
+
+	mockDetails := func(commits ...*vcsinfo.LongCommit) {
+		for _, commit := range commits {
+			mockRepo.On("Details", testutils.AnyContext, commit.Hash).Return(commit, nil).Once()
+		}
+	}
+
+	check := func(fromRev, toRev *revision.Revision, expect []*revision.Revision) {
+		actual, err := c.LogRevisions(t.Context(), fromRev, toRev)
+		require.NoError(t, err)
+		require.Equal(t, expect, actual)
+		mockRepo.AssertExpectations(t)
+	}
+
+	mockRepo.On("Tags", testutils.AnyContext).Return(versionToHash, nil)
+	mockRepo.On("URL").Return(url)
+
+	t.Run("A to D", func(t *testing.T) {
+		mockDetails(commitB, commitC, commitD)
+		check(revA, revD, []*revision.Revision{revD, revC, revB})
+	})
+	t.Run("B to D", func(t *testing.T) {
+		mockDetails(commitC, commitD)
+		check(revB, revD, []*revision.Revision{revD, revC})
+	})
+	t.Run("B to C", func(t *testing.T) {
+		mockDetails(commitC)
+		check(revB, revC, []*revision.Revision{revC})
+	})
+	t.Run("from is not a release", func(t *testing.T) {
+		fromRev := &revision.Revision{
+			Id:        "someotherhash",
+			Timestamp: time.Unix(000000150, 0), // Between A and B
+		}
+		mockDetails(commitA, commitB, commitC, commitD)
+		check(fromRev, revD, []*revision.Revision{revD, revC, revB})
+	})
+	t.Run("from is older than all releases", func(t *testing.T) {
+		fromRev := &revision.Revision{
+			Id:        "someotherhash",
+			Timestamp: time.Unix(000000050, 0), // Before A
+		}
+		mockDetails(commitA, commitB, commitC, commitD)
+		check(fromRev, revD, []*revision.Revision{revD, revC, revB, revA})
+	})
+	t.Run("to is not a release", func(t *testing.T) {
+		toRev := &revision.Revision{
+			Id:        "someotherhash",
+			Timestamp: time.Unix(000000350, 0), // Between C and D
+		}
+		mockDetails(commitB, commitC, commitD)
+		check(revA, toRev, []*revision.Revision{revC, revB})
+	})
+	t.Run("to is newer than all releases", func(t *testing.T) {
+		toRev := &revision.Revision{
+			Id:        "someotherhash",
+			Timestamp: time.Unix(000000450, 0), // After D
+		}
+		mockDetails(commitB, commitC, commitD)
+		check(revA, toRev, []*revision.Revision{revD, revC, revB})
+	})
+	t.Run("neither are releases", func(t *testing.T) {
+		fromRev := &revision.Revision{
+			Id:        "fromHash",
+			Timestamp: time.Unix(000000150, 0), // Between A and B.
+		}
+		toRev := &revision.Revision{
+			Id:        "toHash",
+			Timestamp: time.Unix(000000350, 0), // Between C and D.
+		}
+		mockDetails(commitA, commitB, commitC, commitD)
+		check(fromRev, toRev, []*revision.Revision{revC, revB})
+	})
+	t.Run("from is newer than to", func(t *testing.T) {
+		check(revC, revB, []*revision.Revision{})
+	})
+	t.Run("from is newer than to and neither are releases", func(t *testing.T) {
+		fromRev := &revision.Revision{
+			Id:        "fromHash",
+			Timestamp: time.Unix(000000350, 0), // Between C and D.
+		}
+		toRev := &revision.Revision{
+			Id:        "toHash",
+			Timestamp: time.Unix(000000150, 0), // Between A and B.
+		}
+		mockDetails(commitA, commitB, commitC, commitD)
+		check(fromRev, toRev, []*revision.Revision{})
+	})
 }
 
 func TestGitSemVerChild_Update_MultipleTags(t *testing.T) {
@@ -195,8 +318,11 @@ func TestGitSemVerChild_Update_MultipleTags(t *testing.T) {
 	require.Equal(t, hashB, tip.Id)
 	require.Equal(t, hashB, tip.Checksum)
 	require.Equal(t, "v1.2.0", tip.Release)
-	require.Len(t, notRolled, 1)
-	require.Equal(t, tip, notRolled[0])
+	// v1.1.0 points to the same revision as v1.2.0 (tip).
+	rev110 := tip.Copy()
+	rev110.Release = ver110
+	rev110.Display = ver110
+	require.Equal(t, []*revision.Revision{tip, rev110}, notRolled)
 }
 
 func TestGitSemVerChild_fixupRevision_NoTag(t *testing.T) {

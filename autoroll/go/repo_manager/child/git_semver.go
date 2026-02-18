@@ -100,7 +100,7 @@ func (c *gitSemVerChild) Update(ctx context.Context, lastRollRev *revision.Revis
 		return nil, nil, skerr.Wrapf(err, "failed to get details for tip revision %q", versions[0].String())
 	}
 
-	notRolledRevs, err := c.logRevisions(ctx, lastRollRev, tipRev, hashToVersions)
+	notRolledRevs, err := c.logRevisions(ctx, lastRollRev, tipRev, versions, versionToHash, hashToVersions)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "failed to log revisions")
 	}
@@ -158,24 +158,93 @@ func (c *gitSemVerChild) Download(ctx context.Context, rev *revision.Revision, d
 	return git_common.Clone(ctx, c.repo.URL(), dest, rev)
 }
 
-func (c *gitSemVerChild) logRevisions(ctx context.Context, from, to *revision.Revision, hashToVersions map[string][]*semver.Version) ([]*revision.Revision, error) {
-	revs, err := c.repo.LogRevisions(ctx, from, to)
+func (c *gitSemVerChild) logRevisions(ctx context.Context, from, to *revision.Revision, versions []*semver.Version, versionToHash map[string]string, hashToVersions map[string][]*semver.Version) ([]*revision.Revision, error) {
+	detailsCache := map[string]*revision.Revision{}
+
+	// getDetails retrieves commit details for the version, making use of a
+	// cache for efficiency.
+	getDetails := func(version *semver.Version) (*revision.Revision, error) {
+		hash := versionToHash[version.String()]
+		if details, ok := detailsCache[hash]; ok {
+			return details.Copy(), nil
+		}
+		rev, err := c.repo.GetRevision(ctx, hash)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		detailsCache[hash] = rev
+		return rev, nil
+	}
+
+	// findNearestVersion returns the version pointing to the given Revision, or
+	// the newest version older than it.
+	findNearestVersion := func(rev *revision.Revision) (*semver.Version, error) {
+		if versions, ok := hashToVersions[rev.Id]; ok {
+			return versions[0], nil
+		}
+		for _, version := range versions {
+			details, err := getDetails(version)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			if details.Timestamp.Before(rev.Timestamp) {
+				return version, nil
+			}
+		}
+		return nil, nil
+	}
+	fromVersion, err := findNearestVersion(from)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	for _, rev := range revs {
-		c.fixupRevision(rev, hashToVersions)
+	// Note: we allow fromVersion to be nil. This would happen if all tagged
+	// releases were newer than the from-revision. In that case, we'll just
+	// return all of the versions.
+
+	toVersion, err := findNearestVersion(to)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// On the other hand, we don't allow toVersion to be nil, because the log
+	// doesn't make sense in that case.
+	if toVersion == nil {
+		return nil, skerr.Fmt("unable to find a version associated with %q", to.Id)
+	}
+
+	// Scan the list of versions, return those between fromVersion and
+	// toVersion.
+	revs := make([]*revision.Revision, 0, len(versions))
+	collecting := false
+	for _, version := range versions {
+		// Don't include the from-version or anything before it in the results.
+		if fromVersion != nil && version.Compare(fromVersion) == 0 {
+			break
+		}
+		if version.Compare(toVersion) == 0 {
+			collecting = true
+		}
+		if collecting {
+			rev, err := getDetails(version)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			// TODO(borenet): This duplicates the contents of fixupRevision.
+			rev.Release = version.String()
+			rev.Display = rev.Release
+
+			revs = append(revs, rev)
+		}
 	}
 	return revs, nil
 }
 
 // LogRevisions implements Child.
 func (c *gitSemVerChild) LogRevisions(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
-	_, _, hashToVersions, err := c.getVersions(ctx)
+	versions, versionToHash, hashToVersions, err := c.getVersions(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return c.logRevisions(ctx, from, to, hashToVersions)
+	return c.logRevisions(ctx, from, to, versions, versionToHash, hashToVersions)
 }
 
 // GetNotSubmittedReason implements Child.
