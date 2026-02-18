@@ -8,12 +8,24 @@ import {
 } from '../common/puppeteer-test-util';
 import { TestPickerSkPO } from '../test-picker-sk/test-picker-sk_po';
 
+const clearSelections = async (testPickerPO: TestPickerSkPO) => {
+  // Clear all existing selections first, in reverse order.
+  const fields = await testPickerPO.pickerFields;
+  for (let i = (await fields.length) - 1; i >= 0; i--) {
+    const field = await testPickerPO.getPickerField(i);
+    await field.clear();
+    await testPickerPO.waitForSpinnerInactive();
+  }
+};
+
 const addGraph = async (
   testPickerPO: TestPickerSkPO,
   explorePO: ExploreMultiSkPO,
   selections: { [index: number]: string[] },
   expectedGraphCount?: number
 ) => {
+  await clearSelections(testPickerPO);
+
   for (const [indexStr, options] of Object.entries(selections)) {
     const index = parseInt(indexStr);
     await testPickerPO.waitForPickerField(index);
@@ -212,9 +224,9 @@ describe('Manual Plot Mode', () => {
     expect(currentUrl.searchParams.get('totalGraphs')).to.equal('1');
 
     // Add second graph.
-    // We select 'Ubuntu'. In this mode, 'Android' remains selected in the picker.
+    // In this mode, we select both 'Android' and 'Ubuntu'.
     // The picker state is now: { arch: 'arm', os: ['Android', 'Ubuntu'] }
-    await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android', 'Ubuntu'] }, 2);
 
     // Verify Top Graph (Index 0)
     // Should reflect the CURRENT picker state (Android + Ubuntu)
@@ -285,7 +297,7 @@ describe('Manual Plot Mode', () => {
     await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
 
     // Plot second graph with 2 traces (arm, Android, Ubuntu)
-    await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android', 'Ubuntu'] }, 2);
 
     const traces0 = await explorePO.getGraph(0).getTraceKeys();
     expect(traces0).to.have.lengthOf(2);
@@ -317,14 +329,9 @@ describe('Manual Plot Mode', () => {
     await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
 
     // Graph 2: Arch=arm, OS=Ubuntu
-    const osField = await testPickerPO.getPickerField(1);
-    await osField.clear();
-    await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Ubuntu'] }, 2);
 
     // Graph 3: Arch=arm, OS=Android
-    const archField = await testPickerPO.getPickerField(0);
-    await archField.clear();
-    await osField.clear();
     await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] }, 3);
 
     // Verify initial state.
@@ -404,14 +411,14 @@ describe('Manual Plot Mode', () => {
       const testPickerPO = explorePO.testPicker;
 
       await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
+
+      await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Ubuntu'] }, 2);
+
       const graph0 = explorePO.getGraph(0);
       const plotSummaryPO0 = graph0.plotSummary;
       await plotSummaryPO0.waitForPlotSummaryToLoad();
 
-      const osField = await testPickerPO.getPickerField(1);
-      await osField.clear();
-      await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
-      const graph1 = explorePO.getGraph(0);
+      const graph1 = explorePO.getGraph(1);
       const plotSummaryPO1 = graph1.plotSummary;
       await plotSummaryPO1.waitForPlotSummaryToLoad();
 
@@ -443,6 +450,36 @@ describe('Manual Plot Mode', () => {
       expect(finalWidth0).to.not.equal(width0);
       expect(finalWidth1).to.not.equal(width1);
       expect(finalWidth0).to.equal(finalWidth1);
+      // Use closeTo because the plot summary selection bounds don't exactly match the
+      // detail graph's displayed range due to pixel-to-value conversion discrepancies
+      // and automatic axis padding by Google Charts.
+      expect(finalRange0?.begin).to.be.closeTo(finalRange1!.begin!, 0.001);
+      expect(finalRange0?.end).to.be.closeTo(finalRange1!.end!, 0.001);
+
+      const checkRange = async (graph: any, name: string) => {
+        await poll(
+          async () => {
+            const range = await graph.getVisibleXAxisRange();
+            if (!range) return false;
+
+            const rangeWidth = finalRange0!.end - finalRange0!.begin;
+            // Use a 5% tolerance to account for pixel-to-value conversion discrepancies
+            // between the summary and main graphs, as well as automatic axis padding
+            // applied by Google Charts.
+            const tolerance = rangeWidth * 0.05;
+
+            return (
+              Math.abs(range.min - finalRange0!.begin) < tolerance &&
+              Math.abs(range.max - finalRange0!.end) < tolerance
+            );
+          },
+          `${name} range mismatch`,
+          5000
+        );
+      };
+
+      await checkRange(graph0, 'Graph 0');
+      await checkRange(graph1, 'Graph 1');
     });
   });
 });
@@ -506,7 +543,7 @@ describe('Even X-Axis Spacing', () => {
 
     await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
 
-    await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Ubuntu'] }, 2);
 
     const graph0 = explorePO.getGraph(0);
     const graph1 = explorePO.getGraph(1);
@@ -542,7 +579,7 @@ describe('Even X-Axis Spacing', () => {
     const testPickerPO = explorePO.testPicker;
 
     await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
-    await addGraph(testPickerPO, explorePO, { 1: ['Ubuntu'] }, 2);
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Ubuntu'] }, 2);
 
     const graph0 = explorePO.getGraph(0);
     const graph1 = explorePO.getGraph(1);

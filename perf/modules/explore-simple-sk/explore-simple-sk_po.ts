@@ -321,4 +321,11 @@ export class ExploreSimpleSkPO extends PageObject {
       });
     }, 'Tooltip did not show Anomaly or was not visible');
   }
+
+  /**
+   * Returns the current visible X-axis range of the main chart.
+   */
+  async getVisibleXAxisRange(): Promise<{ min: number; max: number } | null> {
+    return await this.plotGoogleChartSk.getXAxisRange();
+  }
 }
