@@ -262,6 +262,10 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		assignee = ""
 		subCcs = []*issuetracker.User{}
 	}
+	// Our test subscription has Sergei set as the contact point.
+	if assignee == "sergeirudenkov@google.com" {
+		assignee = "berf-issuetracker-testing@google.com"
+	}
 	ccs = append(ccs, subCcs...)
 
 	newIssue := &issuetracker.Issue{
@@ -273,7 +277,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 			ComponentId: int64(componentID),
 			Priority:    fmt.Sprintf("P%d", mostImpactedSub.BugPriority),
 			Severity:    fmt.Sprintf("S%d", mostImpactedSub.BugSeverity),
-			Status:      "NEW",
+			Status:      "ASSIGNED",
 			Title:       req.Title,
 			Assignee: &issuetracker.User{
 				EmailAddress: assignee,

@@ -31,7 +31,8 @@ var sampleParamsetMap = map[string]string{
 	"measurement": "measurement",
 	"stat":        "stat",
 }
-var testSubEmail = "sergeirudenkov@google.com"
+var testSubOwner = "sergeirudenkov@google.com"
+var testSubEmail = "berf-issuetracker-testing@google.com"
 
 func createIssueTrackerForTest(t *testing.T) (*issueTrackerImpl, *regMocks.Store, *httptest.Server) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -186,7 +187,7 @@ func TestFileBug_RequestBody(t *testing.T) {
 		{
 			BugComponent: "8765",
 			BugLabels:    []string{"BerfDevTest"},
-			ContactEmail: testSubEmail,
+			ContactEmail: testSubOwner,
 		},
 	}, nil)
 
@@ -239,7 +240,7 @@ func TestFileBug_RequestBody(t *testing.T) {
 	require.Len(t, receivedReq.IssueState.Ccs, 3)
 	require.Equal(t, "cc1@google.com", receivedReq.IssueState.Ccs[0].EmailAddress)
 	require.Equal(t, "cc2@google.com", receivedReq.IssueState.Ccs[1].EmailAddress)
-	require.Equal(t, testSubEmail, receivedReq.IssueState.Ccs[2].EmailAddress)
+	require.Equal(t, testSubOwner, receivedReq.IssueState.Ccs[2].EmailAddress)
 }
 
 func TestFileBug_EmptyDescription(t *testing.T) {
@@ -249,7 +250,7 @@ func TestFileBug_EmptyDescription(t *testing.T) {
 	req := &FileBugRequest{
 		Title:     "Test Bug Title",
 		Component: "5678",
-		Assignee:  testSubEmail,
+		Assignee:  testSubOwner,
 		Ccs:       []string{"cc1@google.com", "cc2@google.com"},
 		Keys:      []string{"key1", "key2"},
 	}
@@ -283,7 +284,7 @@ func TestFileBug_EmptyDescriptionTooManyKeys(t *testing.T) {
 	req := &FileBugRequest{
 		Title:     "Test Bug Title",
 		Component: "5678",
-		Assignee:  testSubEmail,
+		Assignee:  testSubOwner,
 		Ccs:       []string{"cc1@google.com", "cc2@google.com"},
 		Keys:      keys,
 	}
@@ -342,7 +343,7 @@ func TestFileBug_DeduplicateBots(t *testing.T) {
 		Title:       "Test Bug",
 		Description: "This is a test bug.",
 		Component:   "1234",
-		Assignee:    testSubEmail,
+		Assignee:    testSubOwner,
 		Ccs:         []string{"test2@google.com"},
 		Keys:        []string{"1"},
 	}
@@ -365,14 +366,14 @@ func TestFileBug_SelectSubscription(t *testing.T) {
 			BugComponent: "111",
 			BugPriority:  2,
 			BugSeverity:  2,
-			ContactEmail: testSubEmail,
+			ContactEmail: testSubOwner,
 			BugLabels:    []string{"BerfDevTest"},
 		},
 		{
 			BugComponent: "222",
 			BugPriority:  1,
 			BugSeverity:  2,
-			ContactEmail: testSubEmail,
+			ContactEmail: testSubOwner,
 			BugLabels:    []string{"BerfDevTest"},
 		},
 	}, nil)
@@ -391,8 +392,8 @@ func TestFileBug_SelectSubscription(t *testing.T) {
 	require.Equal(t, "S2", receivedReq.IssueState.Severity)
 	require.Equal(t, testSubEmail, receivedReq.IssueState.Assignee.EmailAddress)
 	require.Len(t, receivedReq.IssueState.Ccs, 2)
-	require.Equal(t, testSubEmail, receivedReq.IssueState.Ccs[0].EmailAddress)
-	require.Equal(t, testSubEmail, receivedReq.IssueState.Ccs[1].EmailAddress)
+	require.Equal(t, testSubOwner, receivedReq.IssueState.Ccs[0].EmailAddress)
+	require.Equal(t, testSubOwner, receivedReq.IssueState.Ccs[1].EmailAddress)
 }
 
 func TestFileBug_SelectSubscription_SamePrio(t *testing.T) {
@@ -406,14 +407,14 @@ func TestFileBug_SelectSubscription_SamePrio(t *testing.T) {
 			BugComponent: "111",
 			BugPriority:  2,
 			BugSeverity:  2,
-			ContactEmail: testSubEmail,
+			ContactEmail: testSubOwner,
 			BugLabels:    []string{"BerfDevTest"},
 		},
 		{
 			BugComponent: "222",
 			BugPriority:  2,
 			BugSeverity:  1,
-			ContactEmail: testSubEmail,
+			ContactEmail: testSubOwner,
 			BugLabels:    []string{"BerfDevTest"},
 		},
 	}, nil)
@@ -432,8 +433,8 @@ func TestFileBug_SelectSubscription_SamePrio(t *testing.T) {
 	require.Equal(t, "S1", receivedReq.IssueState.Severity)
 	require.Equal(t, testSubEmail, receivedReq.IssueState.Assignee.EmailAddress)
 	require.Len(t, receivedReq.IssueState.Ccs, 2)
-	require.Equal(t, testSubEmail, receivedReq.IssueState.Ccs[0].EmailAddress)
-	require.Equal(t, testSubEmail, receivedReq.IssueState.Ccs[1].EmailAddress)
+	require.Equal(t, testSubOwner, receivedReq.IssueState.Ccs[0].EmailAddress)
+	require.Equal(t, testSubOwner, receivedReq.IssueState.Ccs[1].EmailAddress)
 }
 
 // Remove this test after testRun check (bug label = BerfTest) is removed.
@@ -455,7 +456,7 @@ func TestFileBug_SelectSubscription_NotBerfDevTest(t *testing.T) {
 			BugComponent: "222",
 			BugPriority:  1,
 			BugSeverity:  2,
-			ContactEmail: testSubEmail,
+			ContactEmail: testSubOwner,
 			BugLabels:    []string{"BerfDevTest"},
 		},
 	}, nil)
