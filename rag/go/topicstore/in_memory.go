@@ -82,10 +82,11 @@ func (s *InMemoryTopicStore) SearchTopics(ctx context.Context, queryEmbedding []
 				continue
 			}
 			ft = &FoundTopic{
-				ID:       cd.topic.ID,
-				Title:    cd.topic.Title,
-				Distance: cd.distance,
-				Summary:  cd.topic.Summary,
+				ID:         cd.topic.ID,
+				Repository: cd.topic.Repository,
+				Title:      cd.topic.Title,
+				Distance:   cd.distance,
+				Summary:    cd.topic.Summary,
 			}
 			topicMap[cd.topic.ID] = ft
 			ret = append(ret, ft)

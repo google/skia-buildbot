@@ -16,10 +16,12 @@ import (
 
 // Collection of the tables in the SQL database.
 type Tables struct {
-	BlamedFiles []spanner.BlamedFiles
-	LineBlames  []spanner.LineBlames
-	Topics      []spanner.Topics
-	TopicChunks []spanner.TopicChunks
+	BlamedFiles           []spanner.BlamedFiles
+	LineBlames            []spanner.LineBlames
+	Topics                []spanner.Topics
+	TopicChunks           []spanner.TopicChunks
+	RepositoryTopics      []spanner.RepositoryTopics
+	RepositoryTopicChunks []spanner.RepositoryTopicChunks
 }
 
 func main() {
@@ -44,6 +46,8 @@ func main() {
 		"LineBlames",
 		"Topics",
 		"TopicChunks",
+		"RepositoryTopics",
+		"RepositoryTopicChunks",
 	}
 	spannerConverter.SkipCreatedAt = true
 	generatedText := exporter.GenerateSQL(Tables{}, packageName, exporter.SchemaAndColumnNames, schemaTargetDB, spannerConverter)

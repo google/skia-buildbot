@@ -41,6 +41,8 @@ type PubSubSource struct {
 	evalSetPath         string
 	queryEmbeddingModel string
 	dimensionality      int32
+	useRepositoryTopics bool
+	defaultRepoName     string
 }
 
 // pubSubEvent is used to deserialize the PubSub data.
@@ -119,7 +121,7 @@ func (source *PubSubSource) runEvaluation(ctx context.Context, topicsDirPath, em
 		return skerr.Fmt("genAiClient is nil, cannot run evaluation")
 	}
 	topicStore := topicstore.NewInMemoryTopicStore()
-	ingester := history.New(nil, topicStore, int(source.dimensionality))
+	ingester := history.New(nil, topicStore, int(source.dimensionality), source.useRepositoryTopics, source.defaultRepoName)
 	if err := ingester.IngestTopics(ctx, topicsDirPath, embeddingFilePath, indexFilePath); err != nil {
 		return skerr.Wrapf(err, "failed to ingest topics into the in-memory topicstore")
 	}
@@ -144,7 +146,7 @@ func (source *PubSubSource) runEvaluation(ctx context.Context, topicsDirPath, em
 }
 
 // NewPubSubSource returns a new instance of PubSubSource.
-func NewPubSubSource(ctx context.Context, message *pubsub.Message, ingester *history.HistoryIngester, genAiClient genai.GenAIClient, evalSetPath string, queryEmbeddingModel string, dimensionality int32) (*PubSubSource, error) {
+func NewPubSubSource(ctx context.Context, message *pubsub.Message, ingester *history.HistoryIngester, genAiClient genai.GenAIClient, evalSetPath string, queryEmbeddingModel string, dimensionality int32, useRepositoryTopics bool, defaultRepoName string) (*PubSubSource, error) {
 	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadOnly, pubsub.ScopePubSub)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -162,5 +164,7 @@ func NewPubSubSource(ctx context.Context, message *pubsub.Message, ingester *his
 		evalSetPath:         evalSetPath,
 		queryEmbeddingModel: queryEmbeddingModel,
 		dimensionality:      dimensionality,
+		useRepositoryTopics: useRepositoryTopics,
+		defaultRepoName:     defaultRepoName,
 	}, nil
 }

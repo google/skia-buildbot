@@ -100,6 +100,7 @@ type apiServer struct {
 	queryEmbeddingModel string
 	summaryModel        string
 	dimensionality      int32
+	useRepositoryTopics bool
 
 	// Grpc server objects
 	grpcServer *grpc.Server
@@ -141,6 +142,7 @@ func NewApiServer(flags *ApiServerFlags) (*apiServer, error) {
 		queryEmbeddingModel: config.QueryEmbeddingModel,
 		summaryModel:        config.SummaryModel,
 		dimensionality:      dimensionality,
+		useRepositoryTopics: config.UseRepositoryTopics,
 		grpcPort:            flags.GrpcPort,
 		httpPort:            flags.HttpPort,
 		resourcesDir:        flags.ResourcesDir,
@@ -163,7 +165,7 @@ func (server *apiServer) initialize(ctx context.Context, flags *ApiServerFlags) 
 	// Define the list of services to be hosted based on the "services" flag.
 	serviceList := []Service{}
 	var serviceMap = map[string]Service{
-		"history": history.NewApiService(ctx, server.dbClient, server.queryEmbeddingModel, server.summaryModel, server.dimensionality),
+		"history": history.NewApiService(ctx, server.dbClient, server.queryEmbeddingModel, server.summaryModel, server.dimensionality, server.useRepositoryTopics),
 	}
 	for _, serviceName := range flags.Services.Value() {
 		service, ok := serviceMap[serviceName]

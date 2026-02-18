@@ -35,8 +35,28 @@ CREATE TABLE IF NOT EXISTS TopicChunks (
   embedding ARRAY<FLOAT32>(vector_length=>768) NOT NULL
 ) PRIMARY KEY (topic_id, chunk_id),
   INTERLEAVE IN PARENT Topics ON DELETE CASCADE;
+CREATE TABLE IF NOT EXISTS RepositoryTopics (
+  repository STRING(256),
+  topic_id INT64,
+  title STRING(1024) NOT NULL,
+  topic_group STRING(256),
+  summary STRING(MAX) NOT NULL,
+  code_context STRING(MAX) NOT NULL,
+  code_context_lines INT64 NOT NULL,
+  commit_count INT64
+) PRIMARY KEY (repository, topic_id);
+CREATE TABLE IF NOT EXISTS RepositoryTopicChunks (
+  repository STRING(256),
+  topic_id INT64,
+  chunk_id INT64,
+  chunk_index INT64 NOT NULL,
+  chunk_content STRING(MAX) NOT NULL,
+  embedding ARRAY<FLOAT32>(vector_length=>768) NOT NULL
+) PRIMARY KEY (repository, topic_id, chunk_id),
+  INTERLEAVE IN PARENT RepositoryTopics ON DELETE CASCADE;
 CREATE UNIQUE INDEX IF NOT EXISTS by_file_path on BlamedFiles (file_path);
 CREATE VECTOR INDEX IF NOT EXISTS TopicChunksEmbeddingIndex on TopicChunks (embedding) OPTIONS (distance_type='COSINE');
+CREATE VECTOR INDEX IF NOT EXISTS RepositoryTopicChunksEmbeddingIndex on RepositoryTopicChunks (embedding) OPTIONS (distance_type='COSINE');
 `
 
 var BlamedFiles = []string{
@@ -68,6 +88,28 @@ var Topics = []string{
 }
 
 var TopicChunks = []string{
+	"topic_id",
+	"chunk_id",
+	"chunk_index",
+	"chunk_content",
+	"embedding",
+	"INTERLEAVE",
+	"VECTOR",
+}
+
+var RepositoryTopics = []string{
+	"repository",
+	"topic_id",
+	"title",
+	"topic_group",
+	"summary",
+	"code_context",
+	"code_context_lines",
+	"commit_count",
+}
+
+var RepositoryTopicChunks = []string{
+	"repository",
 	"topic_id",
 	"chunk_id",
 	"chunk_index",

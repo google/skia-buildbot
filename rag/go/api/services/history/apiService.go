@@ -61,7 +61,7 @@ type ApiService struct {
 }
 
 // NewApiService returns a new instance of the ApiService struct.
-func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbeddingModel, summaryModel string, dimensionality int32) *ApiService {
+func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbeddingModel, summaryModel string, dimensionality int32, useRepositoryTopics bool) *ApiService {
 	var genAiClient *genai.GeminiClient
 	var err error
 	// Get the api key from the env.
@@ -84,9 +84,15 @@ func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbedding
 		sklog.Errorf("Error creating new gemini client: %v", err)
 		return nil
 	}
+	var topicStore topicstore.TopicStore
+	if useRepositoryTopics {
+		topicStore = topicstore.NewRepositoryTopicStore(dbClient)
+	} else {
+		topicStore = topicstore.New(dbClient)
+	}
 	return &ApiService{
 		blameStore:          blamestore.New(dbClient),
-		topicStore:          topicstore.New(dbClient),
+		topicStore:          topicStore,
 		genAiClient:         genAiClient,
 		queryEmbeddingModel: queryEmbeddingModel,
 		summaryModel:        summaryModel,

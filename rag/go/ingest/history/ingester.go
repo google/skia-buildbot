@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
@@ -34,16 +35,24 @@ type HistoryIngester struct {
 	// The output dimensionality for the instance.
 	outputDimensionality int
 
+	// Whether to use repository topics.
+	useRepositoryTopics bool
+
+	// The default repository name to use.
+	defaultRepoName string
+
 	// Counter metric for no of topics ingested.
 	topicCounterMetric metrics2.Counter
 }
 
 // New returns a new instance of the history ingester.
-func New(blameStore blamestore.BlameStore, topicStore topicstore.TopicStore, dimensionality int) *HistoryIngester {
+func New(blameStore blamestore.BlameStore, topicStore topicstore.TopicStore, dimensionality int, useRepositoryTopics bool, defaultRepoName string) *HistoryIngester {
 	return &HistoryIngester{
 		blameStore:           blameStore,
 		topicStore:           topicStore,
 		outputDimensionality: dimensionality,
+		useRepositoryTopics:  useRepositoryTopics,
+		defaultRepoName:      defaultRepoName,
 
 		// Init the metric objects.
 		topicCounterMetric: metrics2.GetCounter("historyrag_ingestedTopics_count"),
@@ -127,7 +136,15 @@ func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath
 
 		sklog.Infof("Ingesting file: %s", path)
 		eg.Go(func() error {
-			err := ingester.ingestTopicFile(ctx, path, embeddings, indexEntries)
+			repoName := ingester.defaultRepoName
+			if ingester.useRepositoryTopics {
+				relPath, err := filepath.Rel(topicsDirPath, path)
+				if err != nil {
+					return err
+				}
+				repoName = strings.Split(relPath, string(filepath.Separator))[0]
+			}
+			err = ingester.ingestTopicFile(ctx, path, repoName, embeddings, indexEntries)
 			if err != nil {
 				// Let's catch the error but allow processing to continue.
 				sklog.Errorf("Error ingesting file %s: %v", path, err)
@@ -158,7 +175,7 @@ func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath
 }
 
 // ingestTopicFile performs topic ingestion for a single file.
-func (ingester *HistoryIngester) ingestTopicFile(ctx context.Context, filePath string, embeddings [][]float32, indexEntries map[int64]pickle.IndexEntry) error {
+func (ingester *HistoryIngester) ingestTopicFile(ctx context.Context, filePath, repoName string, embeddings [][]float32, indexEntries map[int64]pickle.IndexEntry) error {
 	ctx, span := trace.StartSpan(ctx, "historyrag.ingester.IngestTopicFile")
 	defer span.End()
 
@@ -182,6 +199,7 @@ func (ingester *HistoryIngester) ingestTopicFile(ctx context.Context, filePath s
 	}
 	topic := &topicstore.Topic{
 		ID:               topicJson.TopicID,
+		Repository:       repoName,
 		Title:            indexEntry.Title,
 		TopicGroup:       indexEntry.Group,
 		CommitCount:      indexEntry.CommitCount,

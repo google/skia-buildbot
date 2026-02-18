@@ -31,6 +31,12 @@ type ApiServerConfig struct {
 
 	// The URL of the image to display in the header.
 	HeaderIconUrl string `json:"header_icon_url"`
+
+	// Whether to use the RepositoryTopics table.
+	UseRepositoryTopics bool `json:"use_repository_topics"`
+
+	// The default repository name to use.
+	DefaultRepoName string `json:"default_repo_name"`
 }
 
 // SpannerConfig defines a struct to hold the spanner database configuration.

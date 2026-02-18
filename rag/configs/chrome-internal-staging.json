@@ -10,7 +10,10 @@
         "project": "skia-infra-corp",
         "eval_set_path": "/usr/local/share/evals/chrome_evals.json"
     },
-        "query_embedding_model": "gemini-embedding-001",
-        "output_dimensionality": 768,
-        "summary_model": "gemini-3-flash-preview"
-    }
+    "query_embedding_model": "gemini-embedding-001",
+    "output_dimensionality": 768,
+    "summary_model": "gemini-3-flash-preview",
+    "instance_name": "Chrome History RAG (Staging)",
+    "header_icon_url": "/dist/images/chrome-logo.svg",
+    "default_repo_name": "chrome"
+}

@@ -25,6 +25,11 @@ go_test(
     embed = [":history"],
     deps = [
         "//rag/go/blamestore",
+        "//rag/go/filereaders/pickle",
+        "//rag/go/topicstore",
+        "//rag/go/topicstore/mocks",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
     ],
 )

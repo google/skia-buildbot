@@ -32,7 +32,7 @@ func TestPubSubSource_RunEvaluation_InvalidEvalSetPath(t *testing.T) {
 
 func TestNewPubSubSource(t *testing.T) {
 	ctx := context.Background()
-	source, err := NewPubSubSource(ctx, nil, nil, nil, "eval_set.json", "model", 768)
+	source, err := NewPubSubSource(ctx, nil, nil, nil, "eval_set.json", "model", 768, false, "default-repo")
 	// This might fail if google.DefaultTokenSource fails in non-GCP environment.
 	if err != nil {
 		t.Skip("Skipping NewPubSubSource test as it requires GCP credentials")

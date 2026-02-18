@@ -96,9 +96,14 @@ func main() {
 
 					sklog.Infof("Creating a new blamestore instance")
 					blamestore := blamestore.New(spannerClient)
-					topicstore := topicstore.New(spannerClient)
+					var topicStore topicstore.TopicStore
+					if config.UseRepositoryTopics {
+						topicStore = topicstore.NewRepositoryTopicStore(spannerClient)
+					} else {
+						topicStore = topicstore.New(spannerClient)
+					}
 					sklog.Infof("Creating a new history ingester.")
-					ingester := history.New(blamestore, topicstore, config.OutputDimensionality)
+					ingester := history.New(blamestore, topicStore, config.OutputDimensionality, config.UseRepositoryTopics, config.DefaultRepoName)
 
 					return filepath.WalkDir(flags.DirectoryPath, func(path string, d fs.DirEntry, err error) error {
 						if err != nil {
@@ -166,9 +171,14 @@ func main() {
 
 					sklog.Infof("Creating a new blamestore instance")
 					blamestore := blamestore.New(spannerClient)
-					topicStore := topicstore.New(spannerClient)
+					var topicStore topicstore.TopicStore
+					if config.UseRepositoryTopics {
+						topicStore = topicstore.NewRepositoryTopicStore(spannerClient)
+					} else {
+						topicStore = topicstore.New(spannerClient)
+					}
 					sklog.Infof("Creating a new history ingester.")
-					ingester := history.New(blamestore, topicStore, config.OutputDimensionality)
+					ingester := history.New(blamestore, topicStore, config.OutputDimensionality, config.UseRepositoryTopics, config.DefaultRepoName)
 					embeddingFilePath := filepath.Join(directoryPath, embeddingFileName)
 					indexFilePath := filepath.Join(directoryPath, indexFileName)
 					topicsDirPath := filepath.Join(directoryPath, topicsDirName)

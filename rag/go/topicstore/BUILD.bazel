@@ -5,6 +5,7 @@ go_library(
     name = "topicstore",
     srcs = [
         "in_memory.go",
+        "repository_topicstore.go",
         "topic_data.go",
         "topicstore.go",
     ],
@@ -20,9 +21,13 @@ go_library(
 
 go_test(
     name = "topicstore_test",
-    srcs = ["in_memory_test.go"],
+    srcs = [
+        "in_memory_test.go",
+        "repository_topicstore_test.go",
+    ],
     embed = [":topicstore"],
     deps = [
+        "//rag/go/sqltest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

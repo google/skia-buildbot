@@ -47,7 +47,7 @@ func main() {
 	// 2. Setup stores and ingester
 	// Note: We don't need a real blamestore for topic evaluation.
 	topicStore := topicstore.NewInMemoryTopicStore()
-	ingester := history.New(nil, topicStore, cfg.OutputDimensionality)
+	ingester := history.New(nil, topicStore, cfg.OutputDimensionality, cfg.UseRepositoryTopics, cfg.DefaultRepoName)
 
 	// 3. Extract ZIP and Ingest
 	content, err := os.ReadFile(*zipPath)

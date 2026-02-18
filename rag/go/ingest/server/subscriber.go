@@ -26,6 +26,8 @@ type IngestionSubscriber struct {
 	evalSetPath         string
 	queryEmbeddingModel string
 	dimensionality      int32
+	useRepositoryTopics bool
+	defaultRepoName     string
 }
 
 // NewIngestionSubscriber returns a new instance of the IngestionSubscriber.
@@ -40,9 +42,14 @@ func NewIngestionSubscriber(ctx context.Context, config config.ApiServerConfig, 
 
 	sklog.Infof("Creating a new blamestore instance")
 	blamestore := blamestore.New(spannerClient)
-	topicStore := topicstore.New(spannerClient)
+	var topicStore topicstore.TopicStore
+	if config.UseRepositoryTopics {
+		topicStore = topicstore.NewRepositoryTopicStore(spannerClient)
+	} else {
+		topicStore = topicstore.New(spannerClient)
+	}
 	sklog.Infof("Creating a new history ingester.")
-	ingester := history.New(blamestore, topicStore, config.OutputDimensionality)
+	ingester := history.New(blamestore, topicStore, config.OutputDimensionality, config.UseRepositoryTopics, config.DefaultRepoName)
 
 	sub, err := sub.NewWithSubName(ctx, config.IngestionConfig.Project, config.IngestionConfig.Topic, config.IngestionConfig.Subscription, 1)
 	if err != nil {
@@ -56,6 +63,8 @@ func NewIngestionSubscriber(ctx context.Context, config config.ApiServerConfig, 
 		evalSetPath:         config.IngestionConfig.EvalSetPath,
 		queryEmbeddingModel: config.QueryEmbeddingModel,
 		dimensionality:      int32(config.OutputDimensionality),
+		useRepositoryTopics: config.UseRepositoryTopics,
+		defaultRepoName:     config.DefaultRepoName,
 	}, nil
 }
 
@@ -77,7 +86,7 @@ func (subscriber *IngestionSubscriber) Start(ctx context.Context, wg *sync.WaitG
 // processPubSubMessage handles a single pubsub message.
 func (s *IngestionSubscriber) processPubSubMessage(ctx context.Context, msg *pubsub.Message) {
 	sklog.Infof("Received pubsub message: %v", msg)
-	pubsubSource, err := sources.NewPubSubSource(ctx, msg, s.historyIngestor, s.genAiClient, s.evalSetPath, s.queryEmbeddingModel, s.dimensionality)
+	pubsubSource, err := sources.NewPubSubSource(ctx, msg, s.historyIngestor, s.genAiClient, s.evalSetPath, s.queryEmbeddingModel, s.dimensionality, s.useRepositoryTopics, s.defaultRepoName)
 	if err != nil {
 		sklog.Errorf("Error creating pubsub source: %v", err)
 	}

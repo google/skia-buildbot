@@ -76,3 +76,23 @@ func TestInMemoryTopicStore_SearchMultiple(t *testing.T) {
 	assert.Equal(t, int64(1), found[0].ID)
 	assert.Equal(t, int64(2), found[1].ID)
 }
+
+func TestInMemoryTopicStore_Repository(t *testing.T) {
+	ctx := context.Background()
+	store := NewInMemoryTopicStore()
+
+	err := store.WriteTopic(ctx, &Topic{
+		ID:         1,
+		Repository: "repo-x",
+		Title:      "Topic X",
+		Chunks: []*TopicChunk{
+			{ID: 101, Chunk: "Chunk X", Embedding: []float32{1.0}},
+		},
+	})
+	require.NoError(t, err)
+
+	found, err := store.SearchTopics(ctx, []float32{1.0}, 1)
+	require.NoError(t, err)
+	assert.Len(t, found, 1)
+	assert.Equal(t, "repo-x", found[0].Repository)
+}

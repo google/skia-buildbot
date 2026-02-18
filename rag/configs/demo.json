@@ -13,5 +13,6 @@
     "output_dimensionality": 768,
     "summary_model": "gemini-3-flash-preview",
     "instance_name": "Chrome History RAG (Demo)",
-    "header_icon_url": "/dist/images/chrome-logo.svg"
+    "header_icon_url": "/dist/images/chrome-logo.svg",
+    "default_repo_name": "chrome"
 }

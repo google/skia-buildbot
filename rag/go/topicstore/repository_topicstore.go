@@ -2,6 +2,7 @@ package topicstore
 
 import (
 	"context"
+	"fmt"
 
 	"cloud.google.com/go/spanner"
 	"go.opencensus.io/trace"
@@ -9,58 +10,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 )
 
-const (
-	// spannerMutationLimit is the maximum number of mutations per commit.
-	// From https://cloud.google.com/spanner/quotas#limits_for_creating_reading_updating_and_deleting_data
-	// The official limit is 20,000. We use a slightly smaller number to be safe.
-	spannerMutationLimit = 19000
-)
-
-// Topic represents a single topic.
-type Topic struct {
-	ID               int64
-	Repository       string
-	Title            string
-	TopicGroup       string
-	CommitCount      int
-	CodeContext      string
-	CodeContextLines int
-	Summary          string
-	Chunks           []*TopicChunk
-}
-
-// TopicChunk represents a chunk of a topic.
-type TopicChunk struct {
-	ID         int64
-	TopicID    int64
-	Chunk      string
-	ChunkIndex int64
-	Embedding  []float32
-}
-
-// TopicStore defines an interface for interacting with the database for any topic data.
-type TopicStore interface {
-	// WriteTopic writes the topic data into the database.
-	WriteTopic(ctx context.Context, topic *Topic) error
-
-	// ReadTopic reads the topic information for the given topic id.
-	ReadTopic(ctx context.Context, topicID int64) (*Topic, error)
-
-	// SearchTopics searches for the most relevant topics for the given query embedding.
-	SearchTopics(ctx context.Context, queryEmbedding []float32, topicCount int) ([]*FoundTopic, error)
-}
-
-// FoundTopic is a struct that contains the topic information that was found in a search.
-type FoundTopic struct {
-	ID         int64
-	Repository string
-	Title      string
-	Distance   float64
-	Summary    string
-	Chunks     []*TopicChunk
-}
-
-type topicStoreImpl struct {
+type repositoryTopicStoreImpl struct {
 	// spannerClient is used to insert data into Spanner.
 	spannerClient *spanner.Client
 
@@ -74,30 +24,32 @@ type topicStoreImpl struct {
 	searchMetrics metrics2.Timer
 }
 
-// New returns a new TopicStore instance.
-func New(spannerClient *spanner.Client) TopicStore {
-	return &topicStoreImpl{
+// NewRepositoryTopicStore returns a new TopicStore instance that uses the RepositoryTopics table.
+func NewRepositoryTopicStore(spannerClient *spanner.Client) TopicStore {
+	return &repositoryTopicStoreImpl{
 		spannerClient: spannerClient,
-		writeMetrics:  metrics2.NewTimer("history_rag_write_topic"),
-		readMetrics:   metrics2.NewTimer("history_rag_read_topic"),
-		searchMetrics: metrics2.NewTimer("history_rag_search_topics"),
+		writeMetrics:  metrics2.NewTimer("history_rag_write_repository_topic"),
+		readMetrics:   metrics2.NewTimer("history_rag_read_repository_topic"),
+		searchMetrics: metrics2.NewTimer("history_rag_search_repository_topics"),
 	}
 }
 
 // WriteTopic writes the topic data into the database.
-func (s *topicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
+func (s *repositoryTopicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
 	s.writeMetrics.Start()
 	defer s.writeMetrics.Stop()
 
-	ctx, span := trace.StartSpan(ctx, "historyrag.topicstore.WriteTopic")
+	ctx, span := trace.StartSpan(ctx, "historyrag.topicstore.RepositoryWriteTopic")
 	defer span.End()
 
+	span.AddAttributes(trace.StringAttribute("repository", topic.Repository))
 	span.AddAttributes(trace.Int64Attribute("topic_id", topic.ID))
 	span.AddAttributes(trace.Int64Attribute("chunk_count", int64(len(topic.Chunks))))
 
 	_, err := s.spannerClient.ReadWriteTransaction(ctx, func(ctx context.Context, rwt *spanner.ReadWriteTransaction) error {
 		// Check if the topic already exists.
-		stmt := spanner.NewStatement("SELECT topic_id FROM Topics WHERE topic_id = @topicID")
+		stmt := spanner.NewStatement("SELECT topic_id FROM RepositoryTopics WHERE repository = @repository AND topic_id = @topicID")
+		stmt.Params["repository"] = topic.Repository
 		stmt.Params["topicID"] = topic.ID
 		existingID := int64(-1)
 		err := rwt.Query(ctx, stmt).Do(func(r *spanner.Row) error {
@@ -106,12 +58,14 @@ func (s *topicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		var mutations []*spanner.Mutation
 		topicID := topic.ID
+		repository := topic.Repository
 
+		var mutations []*spanner.Mutation
 		if existingID == -1 {
 			// Not found, insert
-			m := spanner.InsertMap("Topics", map[string]interface{}{
+			m := spanner.InsertMap("RepositoryTopics", map[string]interface{}{
+				"repository":         repository,
 				"topic_id":           topicID,
 				"title":              topic.Title,
 				"topic_group":        topic.TopicGroup,
@@ -124,12 +78,13 @@ func (s *topicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
 		} else {
 			// Found, update.
 			// Delete old topic chunks.
-			mutations = append(mutations, spanner.Delete("TopicChunks", spanner.KeyRange{
-				Start: spanner.Key{topicID},
-				End:   spanner.Key{topicID},
+			mutations = append(mutations, spanner.Delete("RepositoryTopicChunks", spanner.KeyRange{
+				Start: spanner.Key{repository, topicID},
+				End:   spanner.Key{repository, topicID},
 				Kind:  spanner.ClosedClosed,
 			}))
-			m := spanner.UpdateMap("Topics", map[string]interface{}{
+			m := spanner.UpdateMap("RepositoryTopics", map[string]interface{}{
+				"repository":         repository,
 				"topic_id":           topicID,
 				"title":              topic.Title,
 				"topic_group":        topic.TopicGroup,
@@ -144,7 +99,8 @@ func (s *topicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
 		// Insert new topic chunks.
 		for _, chunk := range topic.Chunks {
 			chunkID := chunk.ID
-			m := spanner.InsertMap("TopicChunks", map[string]interface{}{
+			m := spanner.InsertMap("RepositoryTopicChunks", map[string]interface{}{
+				"repository":    repository,
 				"chunk_id":      chunkID,
 				"topic_id":      topicID,
 				"chunk_content": chunk.Chunk,
@@ -169,11 +125,11 @@ func (s *topicStoreImpl) WriteTopic(ctx context.Context, topic *Topic) error {
 }
 
 // ReadTopic returns the topic data for the topic id provided.
-func (s *topicStoreImpl) ReadTopic(ctx context.Context, topicID int64) (*Topic, error) {
+func (s *repositoryTopicStoreImpl) ReadTopic(ctx context.Context, topicID int64) (*Topic, error) {
 	s.readMetrics.Start()
 	defer s.readMetrics.Stop()
 
-	ctx, span := trace.StartSpan(ctx, "historyrag.topicstore.ReadTopic")
+	ctx, span := trace.StartSpan(ctx, "historyrag.topicstore.RepositoryReadTopic")
 	defer span.End()
 
 	span.AddAttributes(trace.Int64Attribute("topic_id", topicID))
@@ -183,18 +139,23 @@ func (s *topicStoreImpl) ReadTopic(ctx context.Context, topicID int64) (*Topic, 
 	}
 	stmt := spanner.NewStatement(`
 		SELECT
+			t1.repository,
 			t1.title,
 			t1.summary,
 			t1.code_context,
 			t1.code_context_lines,
 			t1.commit_count
-		FROM Topics AS t1
+		FROM RepositoryTopics AS t1
 		WHERE t1.topic_id = @topicID
+		LIMIT 1
 	`)
 	stmt.Params["topicID"] = topicID
 	var topicPopulated bool
 	err := s.spannerClient.Single().Query(ctx, stmt).Do(func(r *spanner.Row) error {
 		if !topicPopulated {
+			if err := r.ColumnByName("repository", &ret.Repository); err != nil {
+				return skerr.Wrap(err)
+			}
 			if err := r.ColumnByName("title", &ret.Title); err != nil {
 				return skerr.Wrap(err)
 			}
@@ -228,15 +189,16 @@ func (s *topicStoreImpl) ReadTopic(ctx context.Context, topicID int64) (*Topic, 
 }
 
 // SearchTopics searches for the most relevant topics for the given query embedding.
-func (s *topicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []float32, topicCount int) ([]*FoundTopic, error) {
+func (s *repositoryTopicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []float32, topicCount int) ([]*FoundTopic, error) {
 	s.searchMetrics.Start()
 	defer s.searchMetrics.Stop()
 
-	ctx, span := trace.StartSpan(ctx, "historyrag.topicstore.SearchTopics")
+	ctx, span := trace.StartSpan(ctx, "historyrag.topicstore.RepositorySearchTopics")
 	defer span.End()
 
 	stmt := spanner.NewStatement(`
 		SELECT
+			t.repository,
 			t.topic_id,
 			t.title,
 			t.summary,
@@ -245,9 +207,9 @@ func (s *topicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []floa
 			c.embedding,
 			COSINE_DISTANCE(c.embedding, @queryEmbedding) as distance
 		FROM
-			TopicChunks AS c
+			RepositoryTopicChunks AS c
 		JOIN
-			Topics AS t ON c.topic_id = t.topic_id
+			RepositoryTopics AS t ON c.topic_id = t.topic_id AND c.repository = t.repository
 		ORDER BY
 			distance
 		LIMIT @topicCount
@@ -255,8 +217,12 @@ func (s *topicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []floa
 	stmt.Params["queryEmbedding"] = queryEmbedding
 	stmt.Params["topicCount"] = topicCount
 	var ret []*FoundTopic
-	topicMap := make(map[int64]*FoundTopic)
+	topicMap := make(map[string]*FoundTopic) // Key is repository + topicID
 	err := s.spannerClient.Single().Query(ctx, stmt).Do(func(r *spanner.Row) error {
+		var repository string
+		if err := r.ColumnByName("repository", &repository); err != nil {
+			return skerr.Wrap(err)
+		}
 		var topicID int64
 		if err := r.ColumnByName("topic_id", &topicID); err != nil {
 			return skerr.Wrap(err)
@@ -286,18 +252,19 @@ func (s *topicStoreImpl) SearchTopics(ctx context.Context, queryEmbedding []floa
 			return skerr.Wrap(err)
 		}
 
-		if _, ok := topicMap[topicID]; !ok {
+		key := fmt.Sprintf("%s-%d", repository, topicID)
+		if _, ok := topicMap[key]; !ok {
 			ft := &FoundTopic{
 				ID:         topicID,
-				Repository: "",
+				Repository: repository,
 				Title:      title,
 				Distance:   distance,
 				Summary:    summary,
 			}
-			topicMap[topicID] = ft
+			topicMap[key] = ft
 			ret = append(ret, ft)
 		}
-		topicMap[topicID].Chunks = append(topicMap[topicID].Chunks, &TopicChunk{
+		topicMap[key].Chunks = append(topicMap[key].Chunks, &TopicChunk{
 			ID:        chunkID,
 			TopicID:   topicID,
 			Chunk:     chunk,
