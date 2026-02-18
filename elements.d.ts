@@ -128,7 +128,6 @@ import { PivotQuerySk } from './perf/modules/pivot-query-sk/pivot-query-sk';
 import { PivotTableSk } from './perf/modules/pivot-table-sk/pivot-table-sk';
 import { PlaySk } from './debugger-app/modules/play-sk/play-sk';
 import { PlotGoogleChartSk } from './perf/modules/plot-google-chart-sk/plot-google-chart-sk';
-import { PlotSimpleSk } from './perf/modules/plot-simple-sk/plot-simple-sk';
 import { PlotSummarySk } from './perf/modules/plot-summary-sk/plot-summary-sk';
 import { PointLinksSk } from './perf/modules/point-links-sk/point-links-sk';
 import { ProcessingTableSk } from './skcq/modules/processing-table-sk/processing-table-sk';
@@ -1331,7 +1330,6 @@ declare global {
     'pivot-table-sk': PivotTableSk;
     'play-sk': PlaySk;
     'plot-google-chart-sk': PlotGoogleChartSk;
-    'plot-simple-sk': PlotSimpleSk;
     'plot-summary-sk': PlotSummarySk;
     'point-links-sk': PointLinksSk;
     'processing-table-sk': ProcessingTableSk;
