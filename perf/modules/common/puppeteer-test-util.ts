@@ -85,3 +85,22 @@ export async function waitForElementVisible(
     timeout
   );
 }
+
+export function validateParamSet(actual: any[], expected: any): boolean {
+  const keys = Object.keys(expected);
+  for (const key of keys) {
+    if (!actual || actual.length === 0 || !actual[0][key]) {
+      return false;
+    }
+    const actualValues = actual[0][key].map((v: string) => v.trim().toLowerCase());
+    const expectedValues = expected[key].map((v: string) => v.trim().toLowerCase());
+
+    if (actualValues.length !== expectedValues.length) {
+      return false;
+    }
+    for (let i = 0; i < actualValues.length; i++) {
+      if (actualValues[i] !== expectedValues[i]) return false;
+    }
+  }
+  return true;
+}

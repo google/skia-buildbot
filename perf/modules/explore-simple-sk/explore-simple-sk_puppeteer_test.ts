@@ -6,11 +6,17 @@ import {
   CLIPBOARD_READ_TIMEOUT_MS,
   STANDARD_LAPTOP_VIEWPORT,
   poll,
+  validateParamSet,
 } from '../common/puppeteer-test-util';
 import { default_container_title, expected_trace_key, paramSet1 } from './test_data';
 import { paramSet } from '../common/test-util';
 
 const EXPECTED_QUERY_COUNT = 117;
+const paramSet2 = {
+  arch: ['arm64'],
+  os: ['Debian10'],
+};
+
 describe('explore-simple-sk', () => {
   let testBed: TestBed;
   let exploreSimpleSk: ElementHandle;
@@ -177,12 +183,13 @@ describe('explore-simple-sk', () => {
       await testBed.page.click('#demo-show-query-dialog');
       const querySkPO = simplePageSkPO.querySk;
 
-      await querySkPO.setCurrentQuery(paramSet);
-      const currentValue1 = await querySkPO.getCurrentQuery();
-      await querySkPO.clickClearSelections();
       await querySkPO.setCurrentQuery(paramSet1);
-      const currentValue2 = await querySkPO.getCurrentQuery();
-      expect(currentValue1).not.deep.equal(currentValue2);
+      const summaryParamSet1 = await simplePageSkPO.summaryParamsetSkPO.getParamSets();
+      expect(validateParamSet(summaryParamSet1, paramSet1)).to.be.true;
+      await querySkPO.clickClearSelections();
+      await querySkPO.setCurrentQuery(paramSet2);
+      const summaryParamSet2 = await simplePageSkPO.summaryParamsetSkPO.getParamSets();
+      expect(validateParamSet(summaryParamSet2, paramSet2)).to.be.true;
     });
 
     it('should display initial query from state', async () => {
