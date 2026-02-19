@@ -494,50 +494,201 @@ register_toolchains(
 
 cipd = use_extension("//bazel/external:cipd_install.bzl", "cipd")
 cipd.download_http(
-    name = "git_amd64_linux",
-    cipd_package = "infra/3pp/tools/git/linux-amd64",
+    name = "git",
+    cipd_package = "infra/3pp/tools/git/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "e05a68d6b6293e2288253bf0353291e2cdaa98b978af40cf725124daaa6b30f6",
+        "windows-amd64": "669c31c14d97e8a4be6f7c4dcd2de3d54b791782ec32586f25645497d20a66ca",
+    },
     postinstall_cmds_posix = [
         "mkdir etc",
         "bin/git config --system user.name \"Bazel Test User\"",
         "bin/git config --system user.email \"bazel-test-user@example.com\"",
     ],
-    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/version:2.29.2.chromium.6
-    sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
-    tag = "version:2.29.2.chromium.6",
-)
-use_repo(cipd, "git_amd64_linux")
-
-cipd.download_http(
-    name = "git_amd64_windows",
-    cipd_package = "infra/3pp/tools/git/windows-amd64",
     postinstall_cmds_win = [
         "mkdir etc",
         "bin/git.exe config --system user.name \"Bazel Test User\"",
         "bin/git.exe config --system user.email \"bazel-test-user@example.com\"",
     ],
-    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/windows-amd64/+/version:2.29.2.chromium.6
-    sha256 = "9caaf2c6066bdcfa94f917323c4031cf7e32572848f8621ecd0d328babee220a",
-    tag = "version:2.29.2.chromium.6",
+    tag = "version:3@2.51.2.chromium.11",
 )
-use_repo(cipd, "git_amd64_windows")
+use_repo(cipd, "git_linux-amd64", "git_windows-amd64")
 
 cipd.download_http(
-    name = "vpython_amd64_linux",
-    cipd_package = "infra/tools/luci/vpython/linux-amd64",
-    # From https://chrome-infra-packages.appspot.com/p/infra/tools/luci/vpython/linux-amd64/+/git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
-    sha256 = "ec210b3873665208c42e80883546d22d5f448f04e736f1e1fc015da7fc3003a3",
-    tag = "git_revision:31868238187077557113efa2bd4e2c7e3b3ec970",
+    name = "git_wrapper",
+    cipd_package = "infra/tools/git/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "32322eb1cf3b6bf94fde906eaf8807458ed4a84303bc9259e8376f678bf6280b",
+    },
+    tag = "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
 )
-use_repo(cipd, "vpython_amd64_linux")
+use_repo(cipd, "git_wrapper_linux-amd64")
 
 cipd.download_http(
-    name = "cpython3_amd64_linux",
-    cipd_package = "infra/3pp/tools/cpython3/linux-amd64",
-    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/cpython3/linux-amd64/+/version:2@3.11.7.chromium.31
-    sha256 = "0ff2955adf65e2921c4abd8e2848862d3c7731feeda5c506f44e796aa4af2dc7",
-    tag = "version:2@3.11.7.chromium.31",
+    name = "luci-auth",
+    cipd_package = "infra/tools/luci-auth/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "3235e857562d21e74c108477ecca8da9efc17d388559256d0a879233fe5c4293",
+    },
+    tag = "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
 )
-use_repo(cipd, "cpython3_amd64_linux")
+use_repo(cipd, "luci-auth_linux-amd64")
+
+cipd.download_http(
+    name = "docker-credential-luci",
+    cipd_package = "infra/tools/luci/docker-credential-luci/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "1ad5ccdfb711e7f468706aa2687da901723fcf2dc3faadead1546968475cf292",
+    },
+    tag = "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
+)
+use_repo(cipd, "docker-credential-luci_linux-amd64")
+
+cipd.download_http(
+    name = "git-credential-luci",
+    cipd_package = "infra/tools/luci/git-credential-luci/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "a3e3232c25af9309fd64c78808548d8cebb7e6d1809ae6081a6d0c8e1ef4c6dc",
+    },
+    tag = "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
+)
+use_repo(cipd, "git-credential-luci_linux-amd64")
+
+cipd.download_http(
+    name = "isolate",
+    cipd_package = "infra/tools/luci/isolate/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "2b80e444d8b43d59187914988bec06c44ba3a56fae69f77b24a062927d673646",
+    },
+    tag = "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
+)
+use_repo(cipd, "isolate_linux-amd64")
+
+cipd.download_http(
+    name = "lucicfg",
+    cipd_package = "infra/tools/luci/lucicfg/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "4726c92d69c0ff839b38f9d11556b3bed39e52aaf34f1e154b6993411e32a3da",
+    },
+    tag = "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
+)
+use_repo(cipd, "lucicfg_linux-amd64")
+
+cipd.download_http(
+    name = "swarming",
+    cipd_package = "infra/tools/luci/swarming/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "ccba6e61710ebfe51df235299d6605e3f9dbf421e35d9e4bef13b411c99e572a",
+    },
+    tag = "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
+)
+use_repo(cipd, "swarming_linux-amd64")
+
+cipd.download_http(
+    name = "vpython3",
+    cipd_package = "infra/tools/luci/vpython3/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "77a6ae4f9cdf9aefbc5b3756f3747822c9893ca534d15348dd231608c1639218",
+    },
+    tag = "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
+)
+use_repo(cipd, "vpython3_linux-amd64")
+
+cipd.download_http(
+    name = "gsutil",
+    cipd_package = "skia/bots/gsutil",
+    sha256 = "ce033513e57dae147ad2c87acb2c62e5766d8323e0f5b75de8c71cd64e390d9b",
+    tag = "version:6",
+)
+use_repo(cipd, "gsutil")
+
+cipd.download_http(
+    name = "patch_linux_amd64",
+    cipd_package = "skia/bots/patch_linux_amd64",
+    sha256 = "757fd36db06f291f77a91aa314b855af449665a606d627ce16c36813464e1df6",
+    tag = "version:0",
+)
+use_repo(cipd, "patch_linux_amd64")
+
+cipd.download_http(
+    name = "goldctl",
+    cipd_package = "skia/tools/goldctl/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "3e67aa936184f043da1472265c1e37b1b75d86cedba09dc547063d3107bcc58c",
+    },
+    tag = "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
+)
+use_repo(cipd, "goldctl_linux-amd64")
+
+cipd.download_http(
+    name = "cpython3",
+    cipd_package = "infra/3pp/tools/cpython3/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "a06bad297267859aad818d2d6c9cc2865f4b0087c71dbf020f6b8e0cb92746c2",
+    },
+    tag = "version:3@3.11.9.chromium.36",
+)
+use_repo(cipd, "cpython3_linux-amd64")
+
+cipd.download_http(
+    name = "bazel_build_all",
+    cipd_package = "skia/tools/bazel_build_all/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "bfa756c89e4be63756207edb12525d05fec76c777fdf431f4b1d455075ae77ca",
+    },
+    tag = "git_revision:1f820824dd5da21aac21c7d721441ec4ebab36f8",
+)
+use_repo(cipd, "bazel_build_all_linux-amd64")
+
+cipd.download_http(
+    name = "bazel_test_all",
+    cipd_package = "skia/tools/bazel_test_all/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "554c6459cb4924b3fd34d2604e4f1da3116881abe701dfd0a80fc7615c8c393d",
+    },
+    tag = "git_revision:1f820824dd5da21aac21c7d721441ec4ebab36f8",
+)
+use_repo(cipd, "bazel_test_all_linux-amd64")
+
+cipd.download_http(
+    name = "command_wrapper",
+    cipd_package = "skia/tools/command_wrapper/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "022b745812fb6e7e2763795d7edf5360f5ac86b6314f8f22937301abcd895cd6",
+    },
+    tag = "git_revision:1f820824dd5da21aac21c7d721441ec4ebab36f8",
+)
+use_repo(cipd, "command_wrapper_linux-amd64")
+
+cipd.download_http(
+    name = "presubmit",
+    cipd_package = "skia/tools/presubmit/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "ae748d0d016e6543b472bc73fd97da7bb55654884bce618470b748bd66afd5ec",
+    },
+    tag = "git_revision:1f820824dd5da21aac21c7d721441ec4ebab36f8",
+)
+use_repo(cipd, "presubmit_linux-amd64")
+
+cipd.download_http(
+    name = "cipd",
+    cipd_package = "infra/tools/cipd/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "73499b0cf6c75f9d51e0f09a3d4acba86b0b9ac6e552db9c1d7797ad23fed922",
+    },
+    tag = "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
+)
+use_repo(cipd, "cipd_linux-amd64")
+
+cipd.download_http(
+    name = "kitchen",
+    cipd_package = "infra/tools/luci/kitchen/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64": "3484b06700583f5a89e209b868c197580c48f5133681976cabad960a237b8c0b",
+    },
+    tag = "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
+)
+use_repo(cipd, "kitchen_linux-amd64")
 
 ####################################################################################################
 # protoc.

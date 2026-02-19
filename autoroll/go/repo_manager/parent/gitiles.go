@@ -7,16 +7,15 @@ package parent
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"sync"
 
-	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -45,7 +44,7 @@ type gitilesParent struct {
 }
 
 // newGitiles returns a base for implementations of Parent which use Gitiles.
-func newGitiles(ctx context.Context, c *config.GitilesParentConfig, client *http.Client, serverURL string, getChangesForRoll gitilesGetChangesForRollFunc) (*gitilesParent, error) {
+func newGitiles(ctx context.Context, c *config.GitilesParentConfig, repo gitiles.GitilesRepo, gerrit gerrit.GerritInterface, serverURL string, getChangesForRoll gitilesGetChangesForRollFunc) (*gitilesParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -56,22 +55,14 @@ func newGitiles(ctx context.Context, c *config.GitilesParentConfig, client *http
 	}
 	// TODO(borenet): No modification of passed-in configs!
 	c.Gitiles.Dependencies = deps
-	gr, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, client)
+	gr, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, repo)
 	if err != nil {
 		return nil, skerr.Wrap(err)
-	}
-	gc, ok := codereview.GerritConfigs[c.Gerrit.Config]
-	if !ok {
-		return nil, skerr.Fmt("Unknown Gerrit config %s", c.Gerrit.Config)
-	}
-	g, err := gerrit.NewGerritWithConfig(gc, c.Gerrit.Url, client)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create Gerrit client")
 	}
 	return &gitilesParent{
 		childID:           c.Dep.Primary.Id,
 		GitilesRepo:       gr,
-		gerrit:            g,
+		gerrit:            gerrit,
 		gerritConfig:      c.Gerrit,
 		getChangesForRoll: getChangesForRoll,
 	}, nil

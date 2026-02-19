@@ -522,6 +522,9 @@ message CIPDChildConfig {
   // to work. If provided, the revision ID will be of the form
   // `git_revision:<hash>` instead of using the CIPD package instance ID.
   GitilesConfig source_repo = 7;
+  // platform indicates which platforms must exist for a given package version.
+  // The package name must include ${platform} in order for this to work.
+  repeated string platform = 8;
 }
 
 // FuchsiaSDKChildConfig provides configuration for the Fuchsia SDK Child.

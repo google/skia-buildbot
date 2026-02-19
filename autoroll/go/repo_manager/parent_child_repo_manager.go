@@ -14,7 +14,9 @@ import (
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/docker"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -74,7 +76,17 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 	} else if c.GetGitCheckoutGithubFileParent() != nil {
 		parentRM, err = parent.NewGitCheckoutGithubFile(ctx, c.GetGitCheckoutGithubFileParent(), client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitilesParent() != nil {
-		parentRM, err = parent.NewGitilesFile(ctx, c.GetGitilesParent(), client, serverURL)
+		cfg := c.GetGitilesParent()
+		repo := gitiles.NewRepo(cfg.Gitiles.RepoUrl, client)
+		gc, ok := codereview.GerritConfigs[cfg.Gerrit.Config]
+		if !ok {
+			return nil, skerr.Fmt("Unknown Gerrit config %s", cfg.Gerrit.Config)
+		}
+		g, err := gerrit.NewGerritWithConfig(gc, cfg.Gerrit.Url, client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		parentRM, err = parent.NewGitilesFile(ctx, c.GetGitilesParent(), repo, g, serverURL)
 	} else if c.GetGoModGerritParent() != nil {
 		parentRM, err = parent.NewGoModGerritParent(ctx, c.GetGoModGerritParent(), client, workdir, cr)
 	}
@@ -84,13 +96,16 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 
 	// Create the Child.
 	if c.GetCipdChild() != nil {
-		childRM, err = child.NewCIPD(ctx, c.GetCipdChild(), client, cipdClient, workdir)
+		repo := gitiles.NewRepo(c.GetCipdChild().GitilesRepo, client)
+		childRM, err = child.NewCIPD(ctx, c.GetCipdChild(), cipdClient, repo, workdir)
 	} else if c.GetFuchsiaSdkChild() != nil {
 		childRM, err = child.NewFuchsiaSDK(ctx, c.GetFuchsiaSdkChild(), client)
 	} else if c.GetGitilesChild() != nil {
-		childRM, err = child.NewGitiles(ctx, c.GetGitilesChild(), client)
+		repo := gitiles.NewRepo(c.GetGitilesChild().Gitiles.RepoUrl, client)
+		childRM, err = child.NewGitiles(ctx, c.GetGitilesChild(), repo)
 	} else if c.GetGitSemverChild() != nil {
-		childRM, err = child.NewGitSemVerChild(ctx, c.GetGitSemverChild(), client)
+		repo := gitiles.NewRepo(c.GetGitilesChild().Gitiles.RepoUrl, client)
+		childRM, err = child.NewGitSemVerChild(ctx, c.GetGitSemverChild(), repo)
 	} else if c.GetGitCheckoutChild() != nil {
 		childRM, err = child.NewGitCheckout(ctx, c.GetGitCheckoutChild(), workdir, cr, childCheckout)
 	} else if c.GetGitCheckoutGithubChild() != nil {
@@ -113,7 +128,17 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 
 	// Some Parent implementations require a Child to be passed in.
 	if c.GetCopyParent() != nil {
-		parentRM, err = parent.NewCopy(ctx, c.GetCopyParent(), client, serverURL, childRM)
+		cfg := c.GetCopyParent().Gitiles
+		repo := gitiles.NewRepo(cfg.Gitiles.RepoUrl, client)
+		gc, ok := codereview.GerritConfigs[cfg.Gerrit.Config]
+		if !ok {
+			return nil, skerr.Fmt("Unknown Gerrit config %s", cfg.Gerrit.Config)
+		}
+		g, err := gerrit.NewGerritWithConfig(gc, cfg.Gerrit.Url, client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		parentRM, err = parent.NewCopy(ctx, c.GetCopyParent(), repo, g, serverURL, childRM)
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)

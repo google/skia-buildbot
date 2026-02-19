@@ -2803,7 +2803,10 @@ type CIPDChildConfig struct {
 	// CIPD package version must provide a git_revision tag in order for this
 	// to work. If provided, the revision ID will be of the form
 	// `git_revision:<hash>` instead of using the CIPD package instance ID.
-	SourceRepo    *GitilesConfig `protobuf:"bytes,7,opt,name=source_repo,json=sourceRepo,proto3" json:"source_repo,omitempty"`
+	SourceRepo *GitilesConfig `protobuf:"bytes,7,opt,name=source_repo,json=sourceRepo,proto3" json:"source_repo,omitempty"`
+	// platform indicates which platforms must exist for a given package version.
+	// The package name must include ${platform} in order for this to work.
+	Platform      []string `protobuf:"bytes,8,rep,name=platform,proto3" json:"platform,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2876,6 +2879,13 @@ func (x *CIPDChildConfig) GetRevisionIdTagStripKey() bool {
 func (x *CIPDChildConfig) GetSourceRepo() *GitilesConfig {
 	if x != nil {
 		return x.SourceRepo
+	}
+	return nil
+}
+
+func (x *CIPDChildConfig) GetPlatform() []string {
+	if x != nil {
+		return x.Platform
 	}
 	return nil
 }
@@ -5054,7 +5064,7 @@ const file_config_proto_rawDesc = "" +
 	"\fgit_checkout\x18\x01 \x01(\v2\".autoroll.config.GitCheckoutConfigR\vgitCheckout\x123\n" +
 	"\x03dep\x18\x02 \x01(\v2!.autoroll.config.DependencyConfigR\x03dep\"V\n" +
 	"\x14FreeTypeParentConfig\x12>\n" +
-	"\agitiles\x18\x01 \x01(\v2$.autoroll.config.GitilesParentConfigR\agitiles\"\xfd\x01\n" +
+	"\agitiles\x18\x01 \x01(\v2$.autoroll.config.GitilesParentConfigR\agitiles\"\x99\x02\n" +
 	"\x0fCIPDChildConfig\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x10\n" +
 	"\x03tag\x18\x02 \x01(\tR\x03tag\x12!\n" +
@@ -5062,7 +5072,8 @@ const file_config_proto_rawDesc = "" +
 	"\x0frevision_id_tag\x18\x05 \x01(\tR\rrevisionIdTag\x128\n" +
 	"\x19revision_id_tag_strip_key\x18\x06 \x01(\bR\x15revisionIdTagStripKey\x12?\n" +
 	"\vsource_repo\x18\a \x01(\v2\x1e.autoroll.config.GitilesConfigR\n" +
-	"sourceRepo\"\xe9\x01\n" +
+	"sourceRepo\x12\x1a\n" +
+	"\bplatform\x18\b \x03(\tR\bplatform\"\xe9\x01\n" +
 	"\x15FuchsiaSDKChildConfig\x12&\n" +
 	"\x0finclude_mac_sdk\x18\x01 \x01(\bR\rincludeMacSdk\x12\x1d\n" +
 	"\n" +

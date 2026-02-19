@@ -2,7 +2,6 @@ package parent
 
 import (
 	"context"
-	"net/http"
 	"os"
 	"strings"
 
@@ -10,6 +9,8 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vfs"
@@ -17,7 +18,7 @@ import (
 
 // NewCopy returns a Parent implementation which copies the Child into itself.
 // It uses a local git checkout and uploads changes to Gerrit.
-func NewCopy(ctx context.Context, cfg *config.CopyParentConfig, client *http.Client, serverURL string, dep child.Child) (*gitilesParent, error) {
+func NewCopy(ctx context.Context, cfg *config.CopyParentConfig, repo gitiles.GitilesRepo, gerrit gerrit.GerritInterface, serverURL string, dep child.Child) (*gitilesParent, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -48,7 +49,7 @@ func NewCopy(ctx context.Context, cfg *config.CopyParentConfig, client *http.Cli
 		return changes, nil
 	}
 	var err error
-	p, err = newGitiles(ctx, cfg.Gitiles, client, serverURL, getChangesForRoll)
+	p, err = newGitiles(ctx, cfg.Gitiles, repo, gerrit, serverURL, getChangesForRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

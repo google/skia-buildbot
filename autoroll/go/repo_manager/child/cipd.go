@@ -3,7 +3,6 @@ package child
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -19,6 +18,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -38,7 +38,7 @@ var (
 // NewCIPD returns an implementation of Child which deals with a CIPD package.
 // If the caller calls CIPDChild.Download, the destination must be a descendant of
 // the provided workdir.
-func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, client *http.Client, cipdClient cipd.CIPDClient, workdir string) (*CIPDChild, error) {
+func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, cipdClient cipd.CIPDClient, repo gitiles.GitilesRepo, workdir string) (*CIPDChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -52,7 +52,7 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, client *http.Client
 	var gitilesRepo *gitiles_common.GitilesRepo
 	var err error
 	if gitilesConfig != nil {
-		gitilesRepo, err = gitiles_common.NewGitilesRepo(ctx, gitilesConfig, client)
+		gitilesRepo, err = gitiles_common.NewGitilesRepo(ctx, gitilesConfig, repo)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -61,10 +61,11 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, client *http.Client
 		client:                cipdClient,
 		name:                  c.Name,
 		root:                  workdir,
-		tag:                   c.Tag,
+		ref:                   c.Tag,
 		gitRepo:               gitilesRepo,
 		revisionIdTag:         c.RevisionIdTag,
 		revisionIdTagStripKey: c.RevisionIdTagStripKey,
+		platforms:             c.Platform,
 	}, nil
 }
 
@@ -73,55 +74,100 @@ type CIPDChild struct {
 	client                cipd.CIPDClient
 	name                  string
 	root                  string
-	tag                   string
+	ref                   string
 	gitRepo               *gitiles_common.GitilesRepo
 	revisionIdTag         string
 	revisionIdTagStripKey bool
+	platforms             []string
 }
 
 // GetRevision implements Child.
 func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	instance, err := c.client.Describe(ctx, c.name, id, false)
-	if err != nil {
-		sklog.Warningf("Failed to Describe instance %q of package %q; falling back to search: %s", id, c.name, err)
-		tag := id
-		if c.revisionIdTag != "" && c.revisionIdTagStripKey {
-			tag = joinCIPDTag(c.revisionIdTag, id)
+	pkgNames := []string{c.name}
+	if len(c.platforms) > 0 {
+		pkgNames = make([]string, 0, len(c.platforms))
+		for _, platform := range c.platforms {
+			pkgNames = append(pkgNames, strings.ReplaceAll(c.name, cipd.PlatformPlaceholder, platform))
 		}
-		pins, err2 := c.client.SearchInstances(ctx, c.name, []string{tag})
-		if err2 != nil {
-			return nil, skerr.Wrapf(err, "failed to retrieve revision ID %q and failed to search by tag %q with: %s", id, tag, err2)
-		}
-		if len(pins) == 0 {
-			return nil, skerr.Wrapf(err, "failed to retrieve revision ID %q and found no matching instances by tag %q.", id, tag)
-		}
-		if len(pins) > 1 {
-			sklog.Errorf("Found more than one matching instance for tag %q; arbitrarily returning the first.", tag)
-		}
-		instance, err = c.client.Describe(ctx, c.name, pins[0].InstanceID, false)
+	}
+	instances := make([]*cipd_api.InstanceDescription, 0, len(pkgNames))
+	var invalidReason string
+	for _, pkgName := range pkgNames {
+		instance, err := c.findInstance(ctx, pkgName, id)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
+		if instance == nil {
+			invalidReason = fmt.Sprintf("no package instance exists for %q with version %q", pkgName, id)
+		}
+		// Always keep the instance, even if nil. This simplifies handling of
+		// Meta below.
+		instances = append(instances, instance)
 	}
-	rev, err := CIPDInstanceToRevision(c.name, instance, c.revisionIdTag, c.revisionIdTagStripKey)
+	if len(instances) == 0 {
+		return nil, skerr.Fmt("failed to find instances matching %q", id)
+	}
+	rev, err := CIPDInstanceToRevision(pkgNames[0], instances[0], c.revisionIdTag, c.revisionIdTagStripKey)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	if c.gitRepo != nil {
-		gitRevision := getGitRevisionFromCIPDInstance(instance)
+		gitRevision := getGitRevisionFromCIPDInstance(instances[0])
 		if gitRevision == "" {
 			rev.InvalidReason = "No git_revision tag"
 		} else {
-			gitRev, err := c.gitRepo.GetRevision(ctx, gitRevision)
+			oldChecksum := rev.Checksum
+			rev, err = c.gitRepo.GetRevision(ctx, gitRevision)
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
-			gitRev.Id = fmt.Sprintf("%s:%s", cipdGitRevisionTag, gitRevision)
-			gitRev.Checksum = rev.Checksum
-			return gitRev, nil
+			rev.Id = fmt.Sprintf("%s:%s", cipdGitRevisionTag, gitRevision)
+			rev.Checksum = oldChecksum
 		}
 	}
+
+	// Set the Meta field, if applicable.
+	if len(c.platforms) > 0 {
+		rev.Meta = make(map[string]string, len(instances))
+		for idx, platform := range c.platforms {
+			instance := instances[idx]
+			if instance != nil {
+				sha256, err := cipd.InstanceIDToSha256(instance.Pin.InstanceID)
+				if err != nil {
+					return nil, skerr.Wrap(err)
+				}
+				rev.Meta[platform] = sha256
+			}
+		}
+	}
+	rev.InvalidReason = invalidReason
 	return rev, nil
+}
+
+func (c *CIPDChild) findInstance(ctx context.Context, pkgName, id string) (*cipd_api.InstanceDescription, error) {
+	instance, err := c.client.Describe(ctx, pkgName, id, false)
+	if err == nil {
+		return instance, nil
+	}
+	sklog.Warningf("Failed to Describe instance %q of package %q; falling back to search: %s", id, pkgName, err)
+	tag := id
+	if c.revisionIdTag != "" && c.revisionIdTagStripKey {
+		tag = joinCIPDTag(c.revisionIdTag, id)
+	}
+	pins, err2 := c.client.SearchInstances(ctx, pkgName, []string{tag})
+	if err2 != nil {
+		return nil, skerr.Wrapf(err, "failed to retrieve revision ID %q and failed to search by tag %q with: %s", id, tag, err2)
+	}
+	if len(pins) == 0 {
+		return nil, nil
+	} else if len(pins) > 1 {
+		sklog.Errorf("Found more than one matching instance for tag %q; arbitrarily returning the first.", tag)
+	}
+	instance, err = c.client.Describe(ctx, pkgName, pins[0].InstanceID, false)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return instance, nil
 }
 
 // LogRevisions implements Child.
@@ -167,11 +213,7 @@ func (c *CIPDChild) LogRevisions(ctx context.Context, from, to *revision.Revisio
 // Update implements Child.
 // Note: that this just finds the newest version of the CIPD package.
 func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
-	head, err := c.client.ResolveVersion(ctx, c.name, c.tag)
-	if err != nil {
-		return nil, nil, skerr.Wrapf(err, "failed to resolve tag %q of %q", c.tag, c.name)
-	}
-	tipRev, err := c.GetRevision(ctx, head.InstanceID)
+	tipRev, err := c.GetRevision(ctx, c.ref)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}

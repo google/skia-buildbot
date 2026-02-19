@@ -16,6 +16,7 @@ import (
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/gitiles"
 	gitiles_mocks "go.skia.org/infra/go/gitiles/mocks"
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -88,7 +89,8 @@ func setupFreeType(t *testing.T) (context.Context, *config.FreeTypeRepoManagerCo
 	}
 
 	p, parentGitiles, parentGerrit, cleanup := parent.NewFreeTypeForTesting(t, cfg.Parent)
-	c, err := child.NewGitiles(ctx, cfg.Child, urlmock.Client())
+	repo := gitiles.NewRepo(cfg.Child.Gitiles.RepoUrl, urlmock.Client())
+	c, err := child.NewGitiles(ctx, cfg.Child, repo)
 	require.NoError(t, err)
 
 	// Create the RepoManager.

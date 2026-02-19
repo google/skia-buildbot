@@ -70,7 +70,7 @@ func (c *Checkout) GetRevision(ctx context.Context, id string) (*revision.Revisi
 	}
 	rev := revision.FromLongCommit(c.RevLinkTmpl, c.defaultBugProject, details)
 	if len(c.Dependencies) > 0 {
-		deps, err := version_file_common.GetPinnedRevs(ctx, c.Dependencies, func(ctx context.Context, path string) (string, error) {
+		deps, _, err := version_file_common.GetPinnedRevs(ctx, c.Dependencies, func(ctx context.Context, path string) (string, error) {
 			return c.GetFile(ctx, path, rev.Id)
 		})
 		if err != nil {

@@ -47,7 +47,7 @@ const (
 	PlatformPlaceholder = "${platform}"
 
 	// This is the CIPD package containing CIPD itself.
-	PkgNameCIPD = "infra/tools/cipd/${os}-${arch}"
+	PkgNameCIPD = "infra/tools/cipd/${platform}"
 )
 
 var (

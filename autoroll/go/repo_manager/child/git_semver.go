@@ -3,7 +3,6 @@ package child
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"sort"
 
 	"go.skia.org/infra/autoroll/go/config"
@@ -11,6 +10,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/semver"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -26,18 +26,18 @@ type gitSemVerChild struct {
 
 // NewGitSemVerChild returns an implementation of Child which rolls using
 // semantically-versioned git tags.
-func NewGitSemVerChild(ctx context.Context, c *config.GitSemVerChildConfig, client *http.Client) (*gitSemVerChild, error) {
+func NewGitSemVerChild(ctx context.Context, c *config.GitSemVerChildConfig, repo gitiles.GitilesRepo) (*gitSemVerChild, error) {
 	parser, err := semver.NewParser(c.VersionRegex)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	c.Gitiles.Branch = "fakefakefake" // Unused but required below.
-	repo, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, client)
+	gr, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, repo)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return &gitSemVerChild{
-		repo:         repo,
+		repo:         gr,
 		semVerParser: parser,
 	}, nil
 }

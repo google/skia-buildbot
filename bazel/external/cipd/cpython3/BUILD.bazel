@@ -6,7 +6,7 @@ gen_filename, data = generate_go_runfile_path(
     go_library_name = "cpython3",
     path = "bin/python3.11",
     platform_mapping = {
-        "@platforms//os:linux": "@cpython3_amd64_linux//:all_files",
+        "@platforms//os:linux": "@cpython3_linux-amd64//:all_files",
     },
 )
 

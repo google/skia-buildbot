@@ -4,6 +4,7 @@ load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@exec_properties//:constants.bzl", "NETWORK_ON")
 load("@gazelle//:def.bzl", "gazelle")
 load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load(":puppeteerrc.bzl", "puppeteerrc_js")
 
@@ -337,5 +338,31 @@ puppeteerrc_js(
     name = "puppeteerrc_js_expanded",
     template = "puppeteerrc.js.tpl",
     toolchains = ["@rules_browsers//browsers/chromium:toolchain_alias"],
+    visibility = ["//visibility:public"],
+)
+
+pkg_tar(
+    name = "all_cipd_pkgs_tar",
+    srcs = [
+        "@bazel_build_all_linux-amd64//:all_files",
+        "@bazel_test_all_linux-amd64//:all_files",
+        "@cipd_linux-amd64//:all_files",
+        "@command_wrapper_linux-amd64//:all_files",
+        "@cpython3_linux-amd64//:all_files",
+        "@docker-credential-luci_linux-amd64//:all_files",
+        "@git-credential-luci_linux-amd64//:all_files",
+        "@git_linux-amd64//:all_files",
+        "@git_wrapper_linux-amd64//:all_files",
+        "@goldctl_linux-amd64//:all_files",
+        "@gsutil//:all_files",
+        "@isolate_linux-amd64//:all_files",
+        "@kitchen_linux-amd64//:all_files",
+        "@luci-auth_linux-amd64//:all_files",
+        "@lucicfg_linux-amd64//:all_files",
+        "@patch_linux_amd64//:all_files",
+        "@presubmit_linux-amd64//:all_files",
+        "@swarming_linux-amd64//:all_files",
+        "@vpython3_linux-amd64//:all_files",
+    ],
     visibility = ["//visibility:public"],
 )

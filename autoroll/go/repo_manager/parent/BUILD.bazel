@@ -38,6 +38,7 @@ go_library(
         "//go/gerrit/mocks",
         "//go/git",
         "//go/github",
+        "//go/gitiles",
         "//go/gitiles/mocks",
         "//go/golang",
         "//go/metrics2",

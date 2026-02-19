@@ -27,17 +27,14 @@ const (
 	casEmpty           = "empty" // TODO(borenet): It'd be nice if this wasn't necessary.
 	casWholeRepo       = "whole-repo"
 
-	defaultOSLinux   = "Ubuntu-24.04"
-	defaultOSWindows = "Windows-Server-17763"
+	defaultOSLinux = "Ubuntu-24.04"
 
 	// machineTypeMedium refers to a 16-core machine
 	machineTypeMedium = "n1-standard-16"
 	// machineTypeLarge refers to a 64-core machine.
 	machineTypeLarge = "n1-highcpu-64"
 
-	cipdUploaderServiceAccount = "cipd-uploader@skia-swarming-bots.iam.gserviceaccount.com"
-	compileServiceAccount      = "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
-	recreateSKPsServiceAccount = "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
+	compileServiceAccount = "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
 )
 
 var (
@@ -97,12 +94,12 @@ func usesBazelisk(b *specs.TasksCfgBuilder, t *specs.TaskSpec) {
 }
 
 func usesDocker(t *specs.TaskSpec) {
-	t.CipdPackages = append(t.CipdPackages, cipd.MustGetPackage("infra/tools/luci/docker-credential-luci/${platform}"))
+	t.CipdPackages = append(t.CipdPackages, cipdBinPackage("infra/tools/luci/docker-credential-luci/${platform}"))
 	envPrefixes(t, "PATH", "cipd_bin_packages")
 }
 
 func usesLUCIAuth(t *specs.TaskSpec) {
-	t.CipdPackages = append(t.CipdPackages, cipd.MustGetPackage("infra/tools/luci-auth/${platform}"))
+	t.CipdPackages = append(t.CipdPackages, cipdBinPackage("infra/tools/luci-auth/${platform}"))
 	envPrefixes(t, "PATH", "cipd_bin_packages", "cipd_bin_packages/bin")
 	t.Command = append([]string{"luci-auth", "context"}, t.Command...)
 }
@@ -142,7 +139,7 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 
 // Run the presubmit.
 func presubmit(b *specs.TasksCfgBuilder, name string) string {
-	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
+	pkgs := cipdBinPackages(specs.CIPD_PKGS_GIT)
 
 	cmd := []string{
 		"./presubmit",
@@ -180,6 +177,30 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+func cipdBinPackage(name string) *cipd.Package {
+	pkg := cipd.MustGetPackage(name)
+	pkg.Path = "cipd_bin_packages"
+	return pkg
+}
+
+func cipdBinPackages(pkgs []*cipd.Package) []*cipd.Package {
+	rv := make([]*cipd.Package, 0, len(pkgs))
+	for _, pkg := range pkgs {
+		rv = append(rv, &cipd.Package{
+			Name:    pkg.Name,
+			Path:    "cipd_bin_packages",
+			Version: pkg.Version,
+		})
+	}
+	return rv
+}
+
+func taskDriverCIPD(tdName string) *cipd.Package {
+	pkg := cipd.MustGetPackage("skia/tools/" + tdName + "/${platform}")
+	pkg.Path = "task_drivers"
+	return pkg
+}
+
 // usesPreBuiltTaskDrivers changes the task to use pre-built task
 // drivers for efficiency. If you want to iterate on the task driver
 // itself, just comment out the line where this is called.
@@ -188,7 +209,7 @@ func usesPreBuiltTaskDrivers(t *specs.TaskSpec) {
 	tdName := path.Base(t.Command[0])
 
 	// Add the CIPD package for the task driver.
-	t.CipdPackages = append(t.CipdPackages, cipd.MustGetPackage("skia/tools/"+tdName+"/${platform}"))
+	t.CipdPackages = append(t.CipdPackages, taskDriverCIPD(tdName))
 
 	// Update the command to use the task driver from the CIPD package.
 	t.Command[0] = "./task_drivers/" + tdName
@@ -221,17 +242,14 @@ func usesWrapperTaskDriver(b *specs.TasksCfgBuilder, name string, isTaskDriver b
 	newCmd = append(newCmd, "--")
 	newCmd = append(newCmd, t.Command...)
 	t.Command = newCmd
-
 	t.CipdPackages = []*specs.CipdPackage{
-		cipd.MustGetPackage("skia/tools/command_wrapper/${platform}"),
+		taskDriverCIPD("command_wrapper"),
 	}
 }
 
 func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
-	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
-
+	pkgs := cipdBinPackages(specs.CIPD_PKGS_GIT)
 	bazelCacheDir := "/dev/shm/bazel_cache"
-
 	cmd := []string{
 		"./bazel_build_all",
 		"--project_id", "skia-swarming-bots",
@@ -270,8 +288,8 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
 }
 
 func bazelTest(b *specs.TasksCfgBuilder, name string) string {
-	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT...)
-	pkgs = append(pkgs, specs.CIPD_PKGS_ISOLATE...)
+	pkgs := append([]*specs.CipdPackage{}, cipdBinPackages(specs.CIPD_PKGS_GIT)...)
+	pkgs = append(pkgs, cipdBinPackages(specs.CIPD_PKGS_ISOLATE)...)
 
 	cmd := []string{
 		"./bazel_test_all",

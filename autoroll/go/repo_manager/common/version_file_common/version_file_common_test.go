@@ -15,11 +15,12 @@ import (
 )
 
 func TestGetPinnedRev(t *testing.T) {
-	test := func(name string, dep *config.VersionFileConfig, versionFileContents, expectRev string) {
+	test := func(name string, dep *config.VersionFileConfig, versionFileContents, expectRev string, expectMeta map[string]string) {
 		t.Run(name, func(t *testing.T) {
-			actual, err := getPinnedRevInFile(dep.Id, dep.File[0], versionFileContents)
+			actual, actualMeta, err := getPinnedRevInFile(dep.Id, dep.File[0], versionFileContents)
 			require.NoError(t, err)
 			require.Equal(t, expectRev, actual)
+			require.EqualExportedValues(t, expectMeta, actualMeta)
 		})
 	}
 
@@ -36,6 +37,7 @@ func TestGetPinnedRev(t *testing.T) {
 				"my-dep-path": "my-dep@my-rev",
 			}`,
 		"my-rev",
+		nil,
 	)
 	test("README.chromium",
 		&config.VersionFileConfig{
@@ -58,6 +60,7 @@ Security Critical: yes
 Shipped: yes
 `,
 		"0437a6d16a02455a07bb59da6f08ef01c6a20682",
+		nil,
 	)
 	test("PlainVersionFile",
 		&config.VersionFileConfig{
@@ -72,6 +75,7 @@ Shipped: yes
 
 			`,
 		"my-rev",
+		nil,
 	)
 	test("Regex",
 		&config.VersionFileConfig{
@@ -87,6 +91,7 @@ Shipped: yes
 				"my-dep-path": "my-dep@my-rev",
 			}`,
 		"my-rev",
+		nil,
 	)
 	// Verify that the regex takes precedence over DEPS parsing.
 	test(
@@ -108,6 +113,7 @@ Shipped: yes
 				"my-dep-path": "my-dep@my-rev",
 			}`,
 		"my-other-rev",
+		nil,
 	)
 	// Verify that we use the first match when multiple regex matches exist.
 	test(
@@ -128,6 +134,64 @@ Shipped: yes
   ]
 }`,
 		"abc123",
+		nil,
+	)
+	test(
+		"MODULE.bazel single",
+		&config.VersionFileConfig{
+			Id: "skia/tools/goldctl/linux-amd64",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: "MODULE.bazel",
+				},
+			},
+		},
+		`
+cipd.download_http(
+    name = "goldctl",
+    cipd_package = "skia/tools/goldctl/linux-amd64",
+    sha256 = "Vxy3fSLmQ7k5NqOhQUvsgu_GSH387Gp05UB0qd5tl6MC",
+    tag = "git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
+)
+use_repo(cipd, "goldctl_linux-amd64")
+`,
+		"git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
+		nil,
+	)
+
+	test(
+		"MODULE.bazel meta",
+		&config.VersionFileConfig{
+			Id: "skia/tools/goldctl/${platform}",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: "MODULE.bazel",
+				},
+			},
+		},
+		`
+cipd.download_http(
+    name = "goldctl",
+    cipd_package = "skia/tools/goldctl/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64":   "Vxy3fSLmQ7k5NqOhQUvsgu_GSH387Gp05UB0qd5tl6MC",
+        "linux-arm64":   "XhM6rCCaRV3DJ4DkjsSTEahG-w3Er_ulss6w9-GwgkwC",
+        "mac-amd64":     "1az5xiBG-ds55R4yd7fCkODv0xrApC5gC6iLb2SCig8C",
+        "mac-arm64":     "bfOh3y10stM2Fj7HG-dDsJpJfm-J8yELSuoY94ec9UQC",
+        "windows-amd64": "MeJ2G6pEJ4Vz3CvzoEf1QhrbEZqSzSh2uujaq7KwJtYC",
+    },
+    tag = "git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
+)
+use_repo(cipd, "goldctl_linux-amd64")
+`,
+		"git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
+		map[string]string{
+			"linux-amd64":   "Vxy3fSLmQ7k5NqOhQUvsgu_GSH387Gp05UB0qd5tl6MC",
+			"linux-arm64":   "XhM6rCCaRV3DJ4DkjsSTEahG-w3Er_ulss6w9-GwgkwC",
+			"mac-amd64":     "1az5xiBG-ds55R4yd7fCkODv0xrApC5gC6iLb2SCig8C",
+			"mac-arm64":     "bfOh3y10stM2Fj7HG-dDsJpJfm-J8yELSuoY94ec9UQC",
+			"windows-amd64": "MeJ2G6pEJ4Vz3CvzoEf1QhrbEZqSzSh2uujaq7KwJtYC",
+		},
 	)
 }
 
@@ -257,7 +321,7 @@ Shipped: yes
 		`new-rev
 `,
 	)
-	test("BazelFile",
+	test("MODULE.bazel single",
 		&config.VersionFileConfig{
 			Id: "infra/3pp/tools/git/linux-amd64",
 			File: []*config.VersionFileConfig_File{
@@ -289,6 +353,60 @@ cipd_install(
 )
 `,
 	)
+
+	test(
+		"MODULE.bazel meta",
+		&config.VersionFileConfig{
+			Id: "skia/tools/goldctl/${platform}",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: "MODULE.bazel",
+				},
+			},
+		},
+		`
+cipd.download_http(
+    name = "goldctl",
+    cipd_package = "skia/tools/goldctl/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64":   "Vxy3fSLmQ7k5NqOhQUvsgu_GSH387Gp05UB0qd5tl6MC",
+        "linux-arm64":   "XhM6rCCaRV3DJ4DkjsSTEahG-w3Er_ulss6w9-GwgkwC",
+        "mac-amd64":     "1az5xiBG-ds55R4yd7fCkODv0xrApC5gC6iLb2SCig8C",
+        "mac-arm64":     "bfOh3y10stM2Fj7HG-dDsJpJfm-J8yELSuoY94ec9UQC",
+        "windows-amd64": "MeJ2G6pEJ4Vz3CvzoEf1QhrbEZqSzSh2uujaq7KwJtYC",
+    },
+    tag = "git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
+)
+use_repo(cipd, "goldctl_linux-amd64")
+`,
+		&revision.Revision{
+			Id:       "git_revision:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			Checksum: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			Meta: map[string]string{
+				"linux-amd64":   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+				"linux-arm64":   "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+				"mac-amd64":     "cccccccccccccccccccccccccccccccccccccccccccc",
+				"mac-arm64":     "dddddddddddddddddddddddddddddddddddddddddddd",
+				"windows-amd64": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+			},
+		},
+		`
+cipd.download_http(
+    name = "goldctl",
+    cipd_package = "skia/tools/goldctl/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64":   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "linux-arm64":   "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "mac-amd64":     "cccccccccccccccccccccccccccccccccccccccccccc",
+        "mac-arm64":     "dddddddddddddddddddddddddddddddddddddddddddd",
+        "windows-amd64": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    },
+    tag = "git_revision:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+)
+use_repo(cipd, "goldctl_linux-amd64")
+`,
+	)
+
 	// Verify that we replace the first match when multiple regex matches exist.
 	test(
 		"Multiple Regex Matches Replace First",
@@ -717,7 +835,7 @@ func TestGetPinnedRev_ReadmeChromium_Multi(t *testing.T) {
 	test := func(id, expectRev string) {
 		name := path.Base(id)
 		t.Run(name, func(t *testing.T) {
-			actual, err := getPinnedRevInFile(id, file, exampleMulti)
+			actual, _, err := getPinnedRevInFile(id, file, exampleMulti)
 			require.NoError(t, err)
 			require.Equal(t, expectRev, actual)
 		})

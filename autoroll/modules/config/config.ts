@@ -517,6 +517,7 @@ export interface CIPDChildConfig {
   revisionIdTag: string;
   revisionIdTagStripKey: boolean;
   sourceRepo?: GitilesConfig;
+  platform?: string[];
 }
 
 interface CIPDChildConfigJSON {
@@ -526,6 +527,7 @@ interface CIPDChildConfigJSON {
   revision_id_tag?: string;
   revision_id_tag_strip_key?: boolean;
   source_repo?: GitilesConfigJSON;
+  platform?: string[];
 }
 
 export interface FuchsiaSDKChildConfig {

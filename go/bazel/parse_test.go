@@ -99,7 +99,7 @@ oci.pull(
     image = "index.docker.io/alpine",
 )
 
-cipd.package(
+cipd.download_http(
     name = "git_amd64_linux",
     cipd_package = "infra/3pp/tools/git/linux-amd64",
     postinstall_cmds_posix = [
@@ -111,6 +111,20 @@ cipd.package(
     sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
     tag = "version:2.29.2.chromium.6",
 )
+
+cipd.download_http(
+    name = "goldctl",
+    cipd_package = "skia/tools/goldctl/${platform}",
+    platform_to_sha256 = {
+        "linux-amd64":   "Vxy3fSLmQ7k5NqOhQUvsgu_GSH387Gp05UB0qd5tl6MC",
+        "linux-arm64":   "XhM6rCCaRV3DJ4DkjsSTEahG-w3Er_ulss6w9-GwgkwC",
+        "mac-amd64":     "1az5xiBG-ds55R4yd7fCkODv0xrApC5gC6iLb2SCig8C",
+        "mac-arm64":     "bfOh3y10stM2Fj7HG-dDsJpJfm-J8yELSuoY94ec9UQC",
+        "windows-amd64": "MeJ2G6pEJ4Vz3CvzoEf1QhrbEZqSzSh2uujaq7KwJtYC",
+    },
+    tag = "git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
+)
+use_repo(cipd, "goldctl_linux-amd64")
 `
 
 const fakeModule2 = `
@@ -149,7 +163,7 @@ func TestParseDeps_ReturnsMapOfAllDependencies_WORKSPACE(t *testing.T) {
 	actual, err := ParseDeps(fakeWorkspace)
 	require.NoError(t, err)
 	require.Equal(t, map[DependencyID]Dependency{
-		"gcr.io/skia-public/skia-wasm-release": {
+		"gcr.io/skia-public/skia-wasm-release": &SingleDependency{
 			ID:      "gcr.io/skia-public/skia-wasm-release",
 			Version: "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
 			versionPos: &ast.Pos{
@@ -161,8 +175,9 @@ func TestParseDeps_ReturnsMapOfAllDependencies_WORKSPACE(t *testing.T) {
 				Lineno:    44,
 				ColOffset: 13,
 			},
+			Function: "container_pull",
 		},
-		"index.docker.io/alpine": {
+		"index.docker.io/alpine": &SingleDependency{
 			ID:      "index.docker.io/alpine",
 			Version: "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
 			versionPos: &ast.Pos{
@@ -174,8 +189,9 @@ func TestParseDeps_ReturnsMapOfAllDependencies_WORKSPACE(t *testing.T) {
 				Lineno:    54,
 				ColOffset: 13,
 			},
+			Function: "container_pull",
 		},
-		"infra/3pp/tools/git/linux-amd64": {
+		"infra/3pp/tools/git/linux-amd64": &SingleDependency{
 			ID:      "infra/3pp/tools/git/linux-amd64",
 			Version: "version:2.29.2.chromium.6",
 			versionPos: &ast.Pos{
@@ -187,6 +203,7 @@ func TestParseDeps_ReturnsMapOfAllDependencies_WORKSPACE(t *testing.T) {
 				Lineno:    69,
 				ColOffset: 13,
 			},
+			Function: "cipd_install",
 		},
 	}, actual)
 }
@@ -195,7 +212,7 @@ func TestParseDeps_ReturnsMapOfAllDependencies_MODULE(t *testing.T) {
 	actual, err := ParseDeps(fakeModule)
 	require.NoError(t, err)
 	require.Equal(t, map[DependencyID]Dependency{
-		"gcr.io/skia-public/skia-wasm-release": {
+		"gcr.io/skia-public/skia-wasm-release": &SingleDependency{
 			ID:      "gcr.io/skia-public/skia-wasm-release",
 			Version: "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
 			versionPos: &ast.Pos{
@@ -207,8 +224,9 @@ func TestParseDeps_ReturnsMapOfAllDependencies_MODULE(t *testing.T) {
 				Lineno:    7,
 				ColOffset: 13,
 			},
+			Function: "oci.pull",
 		},
-		"index.docker.io/alpine": {
+		"index.docker.io/alpine": &SingleDependency{
 			ID:      "index.docker.io/alpine",
 			Version: "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
 			versionPos: &ast.Pos{
@@ -220,8 +238,9 @@ func TestParseDeps_ReturnsMapOfAllDependencies_MODULE(t *testing.T) {
 				Lineno:    16,
 				ColOffset: 13,
 			},
+			Function: "oci.pull",
 		},
-		"infra/3pp/tools/git/linux-amd64": {
+		"infra/3pp/tools/git/linux-amd64": &SingleDependency{
 			ID:      "infra/3pp/tools/git/linux-amd64",
 			Version: "version:2.29.2.chromium.6",
 			versionPos: &ast.Pos{
@@ -233,6 +252,45 @@ func TestParseDeps_ReturnsMapOfAllDependencies_MODULE(t *testing.T) {
 				Lineno:    29,
 				ColOffset: 13,
 			},
+			Function: "cipd.download_http",
+		},
+		"skia/tools/goldctl/${platform}": &MetaDependency{
+			ID:      "skia/tools/goldctl/${platform}",
+			Version: "git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
+			versionPos: &ast.Pos{
+				Lineno:    43,
+				ColOffset: 10,
+			},
+			SHA256: map[string]string{
+				"linux-amd64":   "Vxy3fSLmQ7k5NqOhQUvsgu_GSH387Gp05UB0qd5tl6MC",
+				"linux-arm64":   "XhM6rCCaRV3DJ4DkjsSTEahG-w3Er_ulss6w9-GwgkwC",
+				"mac-amd64":     "1az5xiBG-ds55R4yd7fCkODv0xrApC5gC6iLb2SCig8C",
+				"mac-arm64":     "bfOh3y10stM2Fj7HG-dDsJpJfm-J8yELSuoY94ec9UQC",
+				"windows-amd64": "MeJ2G6pEJ4Vz3CvzoEf1QhrbEZqSzSh2uujaq7KwJtYC",
+			},
+			sha256Pos: map[string]*ast.Pos{
+				"linux-amd64": {
+					Lineno:    37,
+					ColOffset: 25,
+				},
+				"linux-arm64": {
+					Lineno:    38,
+					ColOffset: 25,
+				},
+				"mac-amd64": {
+					Lineno:    39,
+					ColOffset: 25,
+				},
+				"mac-arm64": {
+					Lineno:    40,
+					ColOffset: 25,
+				},
+				"windows-amd64": {
+					Lineno:    41,
+					ColOffset: 25,
+				},
+			},
+			Function: "cipd.download_http",
 		},
 	}, actual)
 }
@@ -241,7 +299,7 @@ func TestParseDeps_ReturnsMapOfAllDependencies_MODULE2(t *testing.T) {
 	actual, err := ParseDeps(fakeModule2)
 	require.NoError(t, err)
 	require.Equal(t, map[DependencyID]Dependency{
-		"skia/tools/autoroll-config-generator/linux-amd64": {
+		"skia/tools/autoroll-config-generator/linux-amd64": &SingleDependency{
 			ID:      "skia/tools/autoroll-config-generator/linux-amd64",
 			Version: "git_revision:22e0531dac73e5a70136e50f84ce2e435a5060bf",
 			versionPos: &ast.Pos{
@@ -253,8 +311,9 @@ func TestParseDeps_ReturnsMapOfAllDependencies_MODULE2(t *testing.T) {
 				Lineno:    19,
 				ColOffset: 13,
 			},
+			Function: "cipd.download_http",
 		},
-		"skia/internal/third_party/via-cipd": {
+		"skia/internal/third_party/via-cipd": &SingleDependency{
 			ID:      "skia/internal/third_party/via-cipd",
 			Version: "version:2.2.1",
 			versionPos: &ast.Pos{
@@ -266,6 +325,7 @@ func TestParseDeps_ReturnsMapOfAllDependencies_MODULE2(t *testing.T) {
 				Lineno:    27,
 				ColOffset: 13,
 			},
+			Function: "cipd.download_cipd",
 		},
 	}, actual)
 }
@@ -570,7 +630,7 @@ func TestGetDep_ReturnsRequestedDependency_WORKSPACE(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expect, actual)
 	}
-	check("gcr.io/skia-public/skia-wasm-release", Dependency{
+	check("gcr.io/skia-public/skia-wasm-release", &SingleDependency{
 		ID:      "gcr.io/skia-public/skia-wasm-release",
 		Version: "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
 		versionPos: &ast.Pos{
@@ -582,8 +642,9 @@ func TestGetDep_ReturnsRequestedDependency_WORKSPACE(t *testing.T) {
 			Lineno:    44,
 			ColOffset: 13,
 		},
+		Function: "container_pull",
 	})
-	check("index.docker.io/alpine", Dependency{
+	check("index.docker.io/alpine", &SingleDependency{
 		ID:      "index.docker.io/alpine",
 		Version: "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
 		versionPos: &ast.Pos{
@@ -595,8 +656,9 @@ func TestGetDep_ReturnsRequestedDependency_WORKSPACE(t *testing.T) {
 			Lineno:    54,
 			ColOffset: 13,
 		},
+		Function: "container_pull",
 	})
-	check("infra/3pp/tools/git/linux-amd64", Dependency{
+	check("infra/3pp/tools/git/linux-amd64", &SingleDependency{
 		ID:      "infra/3pp/tools/git/linux-amd64",
 		Version: "version:2.29.2.chromium.6",
 		versionPos: &ast.Pos{
@@ -608,6 +670,7 @@ func TestGetDep_ReturnsRequestedDependency_WORKSPACE(t *testing.T) {
 			Lineno:    69,
 			ColOffset: 13,
 		},
+		Function: "cipd_install",
 	})
 }
 
@@ -617,7 +680,7 @@ func TestGetDep_ReturnsRequestedDependency_MODULE(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expect, actual)
 	}
-	check("gcr.io/skia-public/skia-wasm-release", Dependency{
+	check("gcr.io/skia-public/skia-wasm-release", &SingleDependency{
 		ID:      "gcr.io/skia-public/skia-wasm-release",
 		Version: "sha256:cdd850f28dcf58c93339a264ba63c87bb76694daac7d8bc5720e8f4ae71fb12d",
 		versionPos: &ast.Pos{
@@ -629,8 +692,9 @@ func TestGetDep_ReturnsRequestedDependency_MODULE(t *testing.T) {
 			Lineno:    7,
 			ColOffset: 13,
 		},
+		Function: "oci.pull",
 	})
-	check("index.docker.io/alpine", Dependency{
+	check("index.docker.io/alpine", &SingleDependency{
 		ID:      "index.docker.io/alpine",
 		Version: "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
 		versionPos: &ast.Pos{
@@ -642,8 +706,9 @@ func TestGetDep_ReturnsRequestedDependency_MODULE(t *testing.T) {
 			Lineno:    16,
 			ColOffset: 13,
 		},
+		Function: "oci.pull",
 	})
-	check("infra/3pp/tools/git/linux-amd64", Dependency{
+	check("infra/3pp/tools/git/linux-amd64", &SingleDependency{
 		ID:      "infra/3pp/tools/git/linux-amd64",
 		Version: "version:2.29.2.chromium.6",
 		versionPos: &ast.Pos{
@@ -655,6 +720,45 @@ func TestGetDep_ReturnsRequestedDependency_MODULE(t *testing.T) {
 			Lineno:    29,
 			ColOffset: 13,
 		},
+		Function: "cipd.download_http",
+	})
+	check("skia/tools/goldctl/${platform}", &MetaDependency{
+		ID:      "skia/tools/goldctl/${platform}",
+		Version: "git_revision:808a00437f24bb404c09608ad8bf3847a78de369",
+		versionPos: &ast.Pos{
+			Lineno:    43,
+			ColOffset: 10,
+		},
+		SHA256: map[string]string{
+			"linux-amd64":   "Vxy3fSLmQ7k5NqOhQUvsgu_GSH387Gp05UB0qd5tl6MC",
+			"linux-arm64":   "XhM6rCCaRV3DJ4DkjsSTEahG-w3Er_ulss6w9-GwgkwC",
+			"mac-amd64":     "1az5xiBG-ds55R4yd7fCkODv0xrApC5gC6iLb2SCig8C",
+			"mac-arm64":     "bfOh3y10stM2Fj7HG-dDsJpJfm-J8yELSuoY94ec9UQC",
+			"windows-amd64": "MeJ2G6pEJ4Vz3CvzoEf1QhrbEZqSzSh2uujaq7KwJtYC",
+		},
+		sha256Pos: map[string]*ast.Pos{
+			"linux-amd64": {
+				Lineno:    37,
+				ColOffset: 25,
+			},
+			"linux-arm64": {
+				Lineno:    38,
+				ColOffset: 25,
+			},
+			"mac-amd64": {
+				Lineno:    39,
+				ColOffset: 25,
+			},
+			"mac-arm64": {
+				Lineno:    40,
+				ColOffset: 25,
+			},
+			"windows-amd64": {
+				Lineno:    41,
+				ColOffset: 25,
+			},
+		},
+		Function: "cipd.download_http",
 	})
 }
 
@@ -682,13 +786,17 @@ func TestSetDep_RoundTripsContentWithGetDep_WORKSPACE(t *testing.T) {
 	const fakeNewVersion = "fake-new-version"
 	const fakeNewSHA256 = "fake-new-sha256"
 	check := func(id DependencyID, versionIsSHA256 bool) {
-		newContents, err := SetDep(fakeWorkspace, id, fakeNewVersion, fakeNewSHA256)
+		newContents, err := SetDep(fakeWorkspace, &SingleDependency{
+			ID:      id,
+			Version: fakeNewVersion,
+			SHA256:  fakeNewSHA256,
+		})
 		require.NoError(t, err)
 		actual, err := GetDep(newContents, id)
 		require.NoError(t, err)
-		require.Equal(t, fakeNewVersion, actual.Version)
+		require.Equal(t, fakeNewVersion, actual.GetVersion())
 		if !versionIsSHA256 {
-			require.Equal(t, fakeNewSHA256, actual.SHA256)
+			require.Equal(t, fakeNewSHA256, actual.(*SingleDependency).SHA256)
 		}
 	}
 	check("gcr.io/skia-public/skia-wasm-release", true)
@@ -696,22 +804,48 @@ func TestSetDep_RoundTripsContentWithGetDep_WORKSPACE(t *testing.T) {
 	check("infra/3pp/tools/git/linux-amd64", false)
 }
 
-func TestSetDep_RoundTripsContentWithGetDep_MODULE(t *testing.T) {
+func TestSetDep_RoundTripsContentWithGetDep_MODULE_Single(t *testing.T) {
 	const fakeNewVersion = "fake-new-version"
 	const fakeNewSHA256 = "fake-new-sha256"
 	check := func(id DependencyID, versionIsSHA256 bool) {
-		newContents, err := SetDep(fakeWorkspace, id, fakeNewVersion, fakeNewSHA256)
+		newContents, err := SetDep(fakeModule, &SingleDependency{
+			ID:      id,
+			Version: fakeNewVersion,
+			SHA256:  fakeNewSHA256,
+		})
 		require.NoError(t, err)
 		actual, err := GetDep(newContents, id)
 		require.NoError(t, err)
-		require.Equal(t, fakeNewVersion, actual.Version)
+		require.Equal(t, fakeNewVersion, actual.GetVersion())
 		if !versionIsSHA256 {
-			require.Equal(t, fakeNewSHA256, actual.SHA256)
+			require.Equal(t, fakeNewSHA256, actual.(*SingleDependency).SHA256)
 		}
 	}
 	check("gcr.io/skia-public/skia-wasm-release", true)
 	check("index.docker.io/alpine", true)
 	check("infra/3pp/tools/git/linux-amd64", false)
+}
+
+func TestSetDep_RoundTripsContentWithGetDep_MODULE_Meta(t *testing.T) {
+	const fakeNewVersion = "fake-new-version"
+	const fakeNewSHA256 = "fake-new-sha256"
+	dep := &MetaDependency{
+		ID:      "skia/tools/goldctl/${platform}",
+		Version: fakeNewVersion,
+		SHA256: map[string]string{
+			"linux-amd64":   fakeNewSHA256 + "_linux-amd64",
+			"linux-arm64":   fakeNewSHA256 + "_linux-arm64",
+			"mac-amd64":     fakeNewSHA256 + "_mac-amd64",
+			"mac-arm64":     fakeNewSHA256 + "_mac-arm64",
+			"windows-amd64": fakeNewSHA256 + "_windows-amd64",
+		},
+	}
+	newContents, err := SetDep(fakeModule, dep)
+	require.NoError(t, err)
+	actual, err := GetDep(newContents, dep.ID)
+	require.NoError(t, err)
+	require.Equal(t, fakeNewVersion, actual.GetVersion())
+	require.Equal(t, dep.SHA256, actual.(*MetaDependency).SHA256)
 }
 
 func TestSetDep_MatchesExpectedContent_WORKSPACE(t *testing.T) {
@@ -731,12 +865,16 @@ container_pull(
   repository = "alpine",
 )
 `
-	actual, err := SetDep(input, "index.docker.io/alpine", "fake-new-version", "fake-new-sha256")
+	actual, err := SetDep(input, &SingleDependency{
+		ID:      "index.docker.io/alpine",
+		Version: "fake-new-version",
+		SHA256:  "fake-new-sha256",
+	})
 	require.NoError(t, err)
 	require.Equal(t, expect, actual)
 }
 
-func TestSetDep_MatchesExpectedContent_MODULE(t *testing.T) {
+func TestSetDep_MatchesExpectedContent_MODULE_Single(t *testing.T) {
 	input := `
 oci.pull(
   name = "empty_container",
@@ -751,14 +889,46 @@ oci.pull(
   image = "index.docker.io/alpine",
 )
 `
-	actual, err := SetDep(input, "index.docker.io/alpine", "fake-new-version", "fake-new-sha256")
+	actual, err := SetDep(input, &SingleDependency{
+		ID:      "index.docker.io/alpine",
+		Version: "fake-new-version",
+		SHA256:  "fake-new-sha256",
+	})
+	require.NoError(t, err)
+	require.Equal(t, expect, actual)
+}
+
+func TestSetDep_MatchesExpectedContent_MODULE_Meta(t *testing.T) {
+	input := `
+oci.pull(
+  name = "empty_container",
+  digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
+  image = "index.docker.io/alpine",
+)
+`
+	expect := `
+oci.pull(
+  name = "empty_container",
+  digest = "fake-new-version",
+  image = "index.docker.io/alpine",
+)
+`
+	actual, err := SetDep(input, &SingleDependency{
+		ID:      "index.docker.io/alpine",
+		Version: "fake-new-version",
+		SHA256:  "fake-new-sha256",
+	})
 	require.NoError(t, err)
 	require.Equal(t, expect, actual)
 }
 
 func TestSetDep_ErrorForUnknownID_WORKSPACE(t *testing.T) {
 	check := func(id DependencyID) {
-		actual, err := SetDep(fakeWorkspace, id, "fake-new-version", "fake-new-sha256")
+		actual, err := SetDep(fakeWorkspace, &SingleDependency{
+			ID:      id,
+			Version: "fake-new-version",
+			SHA256:  "fake-new-sha256",
+		})
 		require.Empty(t, actual)
 		require.Error(t, err)
 	}
@@ -769,7 +939,11 @@ func TestSetDep_ErrorForUnknownID_WORKSPACE(t *testing.T) {
 
 func TestSetDep_ErrorForUnknownID_MODULE(t *testing.T) {
 	check := func(id DependencyID) {
-		actual, err := SetDep(fakeModule, id, "fake-new-version", "fake-new-sha256")
+		actual, err := SetDep(fakeModule, &SingleDependency{
+			ID:      id,
+			Version: "fake-new-version",
+			SHA256:  "fake-new-sha256",
+		})
 		require.Empty(t, actual)
 		require.Error(t, err)
 	}

@@ -44,6 +44,7 @@ go_test(
     size = "large",
     srcs = [
         "android_repo_manager_test.go",
+        "cipd_gitiles_repo_manager_test.go",
         "command_repo_manager_test.go",
         "copy_repo_manager_test.go",
         "deps_repo_manager_test.go",

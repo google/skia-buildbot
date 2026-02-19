@@ -3,7 +3,6 @@ package parent
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -13,7 +12,9 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vfs"
@@ -55,7 +56,7 @@ var (
 )
 
 // NewFreeTypeParent returns a Parent instance which rolls FreeType.
-func NewFreeTypeParent(ctx context.Context, c *config.FreeTypeParentConfig, workdir string, client *http.Client, serverURL string) (*gitilesParent, error) {
+func NewFreeTypeParent(ctx context.Context, c *config.FreeTypeParentConfig, workdir string, repo gitiles.GitilesRepo, gerrit gerrit.GerritInterface, serverURL string) (*gitilesParent, error) {
 	localChildRepo, err := git.NewRepo(ctx, c.Gitiles.Dep.Primary.Id, workdir)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -111,7 +112,7 @@ func NewFreeTypeParent(ctx context.Context, c *config.FreeTypeParentConfig, work
 		}
 		return changes, nil
 	}
-	return newGitiles(ctx, c.Gitiles, client, serverURL, getChangesForRoll)
+	return newGitiles(ctx, c.Gitiles, repo, gerrit, serverURL, getChangesForRoll)
 }
 
 // Perform a three-way merge for this header file in a temporary dir. Adds the

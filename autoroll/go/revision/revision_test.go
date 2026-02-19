@@ -28,6 +28,7 @@ func TestCopyRevision(t *testing.T) {
 		Timestamp:     time.Now(),
 		URL:           "www.best-commit.com",
 		Release:       "v1.2.3",
+		Meta:          map[string]string{"blah": "blah"},
 	}
 	assertdeep.Copy(t, v, v.Copy())
 }

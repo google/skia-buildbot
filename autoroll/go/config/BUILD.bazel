@@ -12,6 +12,7 @@ go_library(
     deps = [
         "//autoroll/go/strategy",
         "//autoroll/go/time_window",
+        "//go/cipd",
         "//go/deepequal",
         "//go/deepequal/assertdeep",
         "//go/skerr",

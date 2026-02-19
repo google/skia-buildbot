@@ -229,6 +229,31 @@ func AddParams(a map[string]string, b ...map[string]string) map[string]string {
 	return a
 }
 
+// Keys returns the keys of the map.
+func Keys(m map[string]string) []string {
+	rv := make([]string, 0, len(m))
+	for key := range m {
+		rv = append(rv, key)
+	}
+	return rv
+}
+
+// MapKeysEqual returns true if the two maps have the same keys.
+func MapKeysEqual(a, b map[string]string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	if len(a) == 0 {
+		return true
+	}
+	for key := range a {
+		if _, ok := b[key]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
 // CopyStringMap returns a copy of the provided map[string]string such that
 // reflect.DeepEqual returns true for the given map and the returned map. In
 // particular, preserves nil input.

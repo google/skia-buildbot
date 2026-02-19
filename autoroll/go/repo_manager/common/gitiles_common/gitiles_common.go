@@ -3,7 +3,6 @@ package gitiles_common
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
@@ -24,11 +23,10 @@ type GitilesRepo struct {
 }
 
 // NewGitilesRepo returns a GitilesRepo instance.
-func NewGitilesRepo(ctx context.Context, c *config.GitilesConfig, client *http.Client) (*GitilesRepo, error) {
+func NewGitilesRepo(ctx context.Context, c *config.GitilesConfig, repo gitiles.GitilesRepo) (*GitilesRepo, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	repo := gitiles.NewRepo(c.RepoUrl, client)
 	return &GitilesRepo{
 		GitilesRepo:       repo,
 		branch:            c.Branch,
@@ -68,9 +66,10 @@ func (r *GitilesRepo) getRevisionHelper(ctx context.Context, details *vcsinfo.Lo
 // configured. Otherwise returns nil.
 func (r *GitilesRepo) GetPinnedRevs(ctx context.Context, commit string) (map[string]string, error) {
 	if len(r.deps) > 0 {
-		return version_file_common.GetPinnedRevs(ctx, r.deps, func(ctx context.Context, path string) (string, error) {
+		rv, _, err := version_file_common.GetPinnedRevs(ctx, r.deps, func(ctx context.Context, path string) (string, error) {
 			return r.GetFile(ctx, path, commit)
 		})
+		return rv, skerr.Wrap(err)
 	}
 	return nil, nil
 }

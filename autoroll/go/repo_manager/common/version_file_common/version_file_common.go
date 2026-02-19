@@ -44,69 +44,76 @@ func getUsingRegex(dep *config.VersionFileConfig_File, contents string) ([]strin
 }
 
 // getPinnedRevInFile reads the given file contents to find the pinned revision.
-func getPinnedRevInFile(id string, file *config.VersionFileConfig_File, contents string) (string, error) {
+func getPinnedRevInFile(id string, file *config.VersionFileConfig_File, contents string) (string, map[string]string, error) {
 	if file.Regex != "" {
 		_, revisions, err := getUsingRegex(file, contents)
 		if err != nil {
-			return "", skerr.Wrap(err)
+			return "", nil, skerr.Wrap(err)
 		}
-		return revisions[0], nil
+		return revisions[0], nil, nil
 	} else if file.Path == deps_parser.DepsFileName {
 		depsEntry, err := deps_parser.GetDep(contents, id)
 		if err != nil {
-			return "", skerr.Wrap(err)
+			return "", nil, skerr.Wrap(err)
 		}
-		return depsEntry.Version, nil
+		return depsEntry.Version, nil, nil
 	} else if path.Base(file.Path) == readme_chromium.FileName {
 		files, err := readme_chromium.ParseMulti(contents)
 		if err != nil {
-			return "", skerr.Wrap(err)
+			return "", nil, skerr.Wrap(err)
 		}
 		rcf, err := findMatchingReadmeChromiumFile(id, file.Path, files)
 		if err != nil {
-			return "", skerr.Wrap(err)
+			return "", nil, skerr.Wrap(err)
 		}
-		return rcf.Revision, nil
+		return rcf.Revision, nil, nil
 	} else if strings.HasSuffix(file.Path, ".pyl") {
-		return pyl.Get(contents, id)
+		rv, err := pyl.Get(contents, id)
+		return rv, nil, skerr.Wrap(err)
 	} else if bazel.IsBazelFile(file.Path) {
 		entry, err := bazel.GetDep(contents, bazel.DependencyID(id))
 		if err != nil {
-			return "", skerr.Wrap(err)
+			return "", nil, skerr.Wrap(err)
 		}
-		return entry.Version, nil
+		var meta map[string]string
+		if metaDep, ok := entry.(*bazel.MetaDependency); ok {
+			meta = metaDep.SHA256
+		}
+		return entry.GetVersion(), meta, nil
 	} else {
-		return strings.TrimSpace(contents), nil
+		return strings.TrimSpace(contents), nil, nil
 	}
 }
 
 // GetPinnedRevs reads files using the given GetFileFunc to retrieve the given
 // pinned revisions. File retrievals are cached for efficiency.
-func GetPinnedRevs(ctx context.Context, deps []*config.VersionFileConfig, getFile GetFileFunc) (map[string]string, error) {
+func GetPinnedRevs(ctx context.Context, deps []*config.VersionFileConfig, getFile GetFileFunc) (map[string]string, map[string]map[string]string, error) {
 	rv := make(map[string]string, len(deps))
+	rvMeta := make(map[string]map[string]string, len(deps))
 	// Cache files in case multiple dependencies are versioned in
 	// the same file, eg. DEPS.
 	cache := map[string]string{}
 	for _, dep := range deps {
 		if len(dep.File) == 0 {
-			return nil, skerr.Fmt("no configured files to read from")
+			return nil, nil, skerr.Fmt("no configured files to read from")
 		}
 		contents, ok := cache[dep.File[0].Path]
 		if !ok {
 			var err error
 			contents, err = getFile(ctx, dep.File[0].Path)
 			if err != nil {
-				return nil, skerr.Wrap(err)
+				return nil, nil, skerr.Wrap(err)
 			}
 			cache[dep.File[0].Path] = contents
 		}
-		version, err := getPinnedRevInFile(dep.Id, dep.File[0], contents)
+		version, data, err := getPinnedRevInFile(dep.Id, dep.File[0], contents)
 		if err != nil {
-			return nil, skerr.Wrap(err)
+			return nil, nil, skerr.Wrap(err)
 		}
 		rv[dep.Id] = version
+		rvMeta[dep.Id] = data
 	}
-	return rv, nil
+	return rv, rvMeta, nil
 }
 
 // setPinnedRevInFile updates the given dependency pin in the given file, returning
@@ -160,7 +167,21 @@ func setPinnedRevInFile(id string, dep *config.VersionFileConfig_File, newRev *r
 	} else if strings.HasSuffix(dep.Path, ".pyl") {
 		return pyl.Set(oldContents, id, newRev.Id)
 	} else if bazel.IsBazelFile(dep.Path) {
-		newContents, err := bazel.SetDep(oldContents, bazel.DependencyID(id), newRev.Id, newRev.Checksum)
+		var dependency bazel.Dependency
+		if len(newRev.Meta) > 0 {
+			dependency = &bazel.MetaDependency{
+				ID:      bazel.DependencyID(id),
+				Version: newRev.Id,
+				SHA256:  newRev.Meta,
+			}
+		} else {
+			dependency = &bazel.SingleDependency{
+				ID:      bazel.DependencyID(id),
+				Version: newRev.Id,
+				SHA256:  newRev.Checksum,
+			}
+		}
+		newContents, err := bazel.SetDep(oldContents, dependency)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
@@ -192,7 +213,7 @@ func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newRev 
 		}
 
 		// Find the currently-pinned revision.
-		oldVersion, err := getPinnedRevInFile(dep.Id, file, oldContents)
+		oldVersion, _, err := getPinnedRevInFile(dep.Id, file, oldContents)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}

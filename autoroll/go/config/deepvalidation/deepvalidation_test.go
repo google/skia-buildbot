@@ -1743,14 +1743,15 @@ func mocksForCIPDChildConfig(t *testing.T, dv *deepvalidator, cfg *config.CIPDCh
 	for idx, tag := range tags {
 		tagInfos[idx].Tag = tag
 	}
-	client := dv.cipdClient.(*cipd_mocks.CIPDClient)
-	client.On("ResolveVersion", testutils.AnyContext, cfg.Name, cfg.Tag).Return(pin, nil)
-	client.On("Describe", testutils.AnyContext, cfg.Name, pin.InstanceID, false).Return(&luci_cipd.InstanceDescription{
+	inst := &luci_cipd.InstanceDescription{
 		InstanceInfo: luci_cipd.InstanceInfo{
 			Pin: pin,
 		},
 		Tags: tagInfos,
-	}, nil)
+	}
+	client := dv.cipdClient.(*cipd_mocks.CIPDClient)
+	client.On("Describe", testutils.AnyContext, cfg.Name, cfg.Tag, false).Return(inst, nil)
+	client.On("Describe", testutils.AnyContext, cfg.Name, pin.InstanceID, false).Return(inst, nil)
 }
 
 func mocksForGitCheckoutChildConfig(t *testing.T, urlMock *mockhttpclient.URLMock, cfg *config.GitCheckoutChildConfig) string {

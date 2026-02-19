@@ -12,6 +12,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/time_window"
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/skerr"
@@ -988,6 +989,9 @@ func (c *CIPDChildConfig) Validate() error {
 		if err := c.SourceRepo.Validate(); err != nil {
 			return skerr.Wrap(err)
 		}
+	}
+	if len(c.Platform) > 0 && !strings.Contains(c.Name, cipd.PlatformPlaceholder) {
+		return skerr.Fmt("Platforms provided but package name does not include %s", cipd.PlatformPlaceholder)
 	}
 	return nil
 }

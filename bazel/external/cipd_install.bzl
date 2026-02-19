@@ -22,7 +22,7 @@ directory. Example:
 ```
 # MODULE.bazel
 cipd.download_http(
-    name = "git_amd64_linux",
+    name = "git_linux-amd64",
     cipd_package = "infra/3pp/tools/git/linux-amd64",
     sha256 = "36cb96051827d6a3f6f59c5461996fe9490d997bcd2b351687d87dcd4a9b40fa",
     tag = "version:2.29.2.chromium.6",
@@ -32,7 +32,7 @@ cipd.download_http(
 go_library(
     name = "git_util.go",
     srcs = ["git_util.go"],
-    data = ["@git_amd64_linux//:all_files"],
+    data = ["@git_linux-amd64//:all_files"],
     ...
 )
 
@@ -237,6 +237,7 @@ _common_attrs = {
     "postinstall_cmds_posix": attr.string_list(),
     "postinstall_cmds_win": attr.string_list(),
     "sha256": attr.string(),
+    "platform_to_sha256": attr.string_dict(),
     "tag": attr.string(),
 }
 
@@ -275,28 +276,57 @@ def _cipd_impl(ctx):
     direct_deps = []
     for mod in ctx.modules:
         for package in mod.tags.download_http:
-            _download_package_http(
-                name = package.name,
-                cipd_package = package.cipd_package,
-                tag = package.tag,
-                build_file_content = package.build_file_content,
-                export_single_file = package.export_single_file,
-                postinstall_cmds_posix = package.postinstall_cmds_posix,
-                postinstall_cmds_win = package.postinstall_cmds_win,
-                sha256 = package.sha256,
-            )
-            direct_deps.append(package.name)
+            if package.platform_to_sha256:
+                for platform, sha256 in package.platform_to_sha256.items():
+                    name = package.name + "_" + platform
+                    _download_package_http(
+                        name = name,
+                        cipd_package = package.cipd_package.replace("${platform}", platform),
+                        tag = package.tag,
+                        build_file_content = package.build_file_content,
+                        export_single_file = package.export_single_file,
+                        postinstall_cmds_posix = package.postinstall_cmds_posix,
+                        postinstall_cmds_win = package.postinstall_cmds_win,
+                        sha256 = sha256,
+                    )
+                    direct_deps.append(name)
+            else:
+                _download_package_http(
+                    name = package.name,
+                    cipd_package = package.cipd_package,
+                    tag = package.tag,
+                    build_file_content = package.build_file_content,
+                    export_single_file = package.export_single_file,
+                    postinstall_cmds_posix = package.postinstall_cmds_posix,
+                    postinstall_cmds_win = package.postinstall_cmds_win,
+                    sha256 = package.sha256,
+                )
+                direct_deps.append(package.name)
         for package in mod.tags.download_cipd:
-            _cipd_install(
-                name = package.name,
-                package = package.cipd_package,
-                version = package.tag,
-                build_file_content = _get_build_file_content(package.build_file_content, package.export_single_file),
-                postinstall_cmds_posix = package.postinstall_cmds_posix,
-                postinstall_cmds_win = package.postinstall_cmds_win,
-                sha256 = package.sha256,
-            )
-            direct_deps.append(package.name)
+            if package.platform_to_sha256:
+                for platform, sha256 in package.platform_to_sha256.items():
+                    name = package.name + "_" + platform
+                    _cipd_install(
+                        name = name,
+                        package = package.cipd_package.replace("${platform}", platform),
+                        version = package.tag,
+                        build_file_content = _get_build_file_content(package.build_file_content, package.export_single_file),
+                        postinstall_cmds_posix = package.postinstall_cmds_posix,
+                        postinstall_cmds_win = package.postinstall_cmds_win,
+                        sha256 = sha256,
+                    )
+                    direct_deps.append(name)
+            else:
+                _cipd_install(
+                    name = package.name,
+                    package = package.cipd_package,
+                    version = package.tag,
+                    build_file_content = _get_build_file_content(package.build_file_content, package.export_single_file),
+                    postinstall_cmds_posix = package.postinstall_cmds_posix,
+                    postinstall_cmds_win = package.postinstall_cmds_win,
+                    sha256 = package.sha256,
+                )
+                direct_deps.append(package.name)
 
     # https://bazel.build/rules/lib/builtins/module_ctx#extension_metadata
     return ctx.extension_metadata(

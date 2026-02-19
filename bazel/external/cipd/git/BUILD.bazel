@@ -6,8 +6,8 @@ gen_filename, data = generate_go_runfile_path(
     go_library_name = "git",
     path = "bin/git",  # TODO(borenet): Windows??
     platform_mapping = {
-        "@platforms//os:linux": "@git_amd64_linux//:all_files",
-        "@platforms//os:windows": "@git_amd64_windows//:all_files",
+        "@platforms//os:linux": "@git_linux-amd64//:all_files",
+        "@platforms//os:windows": "@git_windows-amd64//:all_files",
     },
 )
 

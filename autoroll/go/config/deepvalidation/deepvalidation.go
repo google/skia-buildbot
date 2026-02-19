@@ -249,7 +249,7 @@ func (dv *deepvalidator) versionFileConfig(ctx context.Context, c *config.Versio
 	if getFile == nil {
 		return skerr.Fmt("failed to deep-validate VersionFileConfig: have no way to retrieve files!")
 	}
-	deps, err := version_file_common.GetPinnedRevs(ctx, []*config.VersionFileConfig{c}, getFile)
+	deps, _, err := version_file_common.GetPinnedRevs(ctx, []*config.VersionFileConfig{c}, getFile)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to deep-validate VersionFileConfig")
 	}
@@ -533,7 +533,8 @@ func (dv *deepvalidator) gitCheckoutConfig(ctx context.Context, c *config.GitChe
 // gitilesChildConfig performs validation of the GitilesChildConfig,
 // making external network requests as needed.
 func (dv *deepvalidator) gitilesChildConfig(ctx context.Context, c *config.GitilesChildConfig) (version_file_common.GetFileFunc, *revision.Revision, error) {
-	child, err := child.NewGitiles(ctx, c, dv.client)
+	repo := gitiles.NewRepo(c.Gitiles.RepoUrl, dv.client)
+	child, err := child.NewGitiles(ctx, c, repo)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
@@ -554,7 +555,8 @@ func (dv *deepvalidator) gitilesChildConfig(ctx context.Context, c *config.Gitil
 // gitSemVerChildConfig performs validation of the GitSemVerChildConfig,
 // making external network requests as needed.
 func (dv *deepvalidator) gitSemVerChildConfig(ctx context.Context, c *config.GitSemVerChildConfig) (version_file_common.GetFileFunc, *revision.Revision, error) {
-	child, err := child.NewGitSemVerChild(ctx, c, dv.client)
+	repo := gitiles.NewRepo(c.Gitiles.RepoUrl, dv.client)
+	child, err := child.NewGitSemVerChild(ctx, c, repo)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
@@ -583,7 +585,8 @@ func (dv *deepvalidator) freeTypeParentConfig(ctx context.Context, c *config.Fre
 // gitilesParentConfig performs validation of the GitilesParentConfig,
 // making external network requests as needed.
 func (dv *deepvalidator) gitilesParentConfig(ctx context.Context, c *config.GitilesParentConfig, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
-	p, err := parent.NewGitilesFile(ctx, c, dv.client, "")
+	repo := gitiles.NewRepo(c.Gitiles.RepoUrl, dv.client)
+	p, err := parent.NewGitilesFile(ctx, c, repo, nil, "")
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -666,19 +669,20 @@ func (dv *deepvalidator) fuchsiaSDKChildConfig(ctx context.Context, c *config.Fu
 // cipdChildConfig performs validation of the CIPDChildConfig, making
 // external network requests as needed.
 func (dv *deepvalidator) cipdChildConfig(ctx context.Context, c *config.CIPDChildConfig) (*revision.Revision, error) {
-	cipdChild, err := child.NewCIPD(ctx, c, dv.client, dv.cipdClient, "")
+	var repo gitiles.GitilesRepo
+	if c.GitilesRepo != "" {
+		repo = gitiles.NewRepo(c.GitilesRepo, dv.client)
+	} else if c.SourceRepo != nil {
+		repo = gitiles.NewRepo(c.SourceRepo.RepoUrl, dv.client)
+	}
+	cipdChild, err := child.NewCIPD(ctx, c, dv.cipdClient, repo, "")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create cipd child")
 	}
 	// Create a fake revision to pass into Update. We don't have a real
 	// last-rolled revision, but Update requires one.
 	fakeRev := makeFakeRevision()
-	if c.GitilesRepo != "" || c.SourceRepo != nil {
-		repoUrl := c.GitilesRepo
-		if c.SourceRepo != nil {
-			repoUrl = c.SourceRepo.RepoUrl
-		}
-		repo := gitiles.NewRepo(repoUrl, dv.client)
+	if repo != nil {
 		// TODO(borenet): Can we rely on main being present?
 		head, err := repo.Details(ctx, git.MainBranch)
 		if err != nil {
@@ -731,7 +735,8 @@ func (dv *deepvalidator) semVerGCSChildConfig(ctx context.Context, c *config.Sem
 // copyParentConfig performs validation of the CopyParentConfig, making
 // external network requests as needed.
 func (dv *deepvalidator) copyParentConfig(ctx context.Context, c *config.CopyParentConfig, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
-	p, err := parent.NewCopy(ctx, c, dv.client, "", nil)
+	repo := gitiles.NewRepo(c.Gitiles.Gitiles.RepoUrl, dv.client)
+	p, err := parent.NewCopy(ctx, c, repo, nil, "", nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

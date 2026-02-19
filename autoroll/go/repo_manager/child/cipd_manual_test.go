@@ -8,11 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cipd"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/vfs"
-	"golang.org/x/oauth2/google"
 )
 
 // TODO(borenet): Split up the tests in github_cipd_deps_repo_manager_test.go
@@ -35,14 +32,11 @@ func TestCIPDChild_VCS(t *testing.T) {
 		Name: pkgName,
 		Tag:  pkgTag,
 	}
-	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
-	require.NoError(t, err)
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	wd := t.TempDir()
 	cipdClient, err := cipd.NewClient(ctx, wd, cipd.DefaultServiceURL)
 	require.NoError(t, err)
 
-	c, err := NewCIPD(ctx, &cfg, client, cipdClient, wd)
+	c, err := NewCIPD(ctx, &cfg, cipdClient, nil, wd)
 	require.NoError(t, err)
 
 	// Download.

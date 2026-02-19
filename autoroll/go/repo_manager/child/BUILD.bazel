@@ -66,7 +66,6 @@ go_test(
         "//autoroll/go/config",
         "//autoroll/go/repo_manager/common/gitiles_common",
         "//autoroll/go/revision",
-        "//go/auth",
         "//go/cipd",
         "//go/cipd/mocks",
         "//go/docker",
@@ -75,7 +74,6 @@ go_test(
         "//go/git",
         "//go/gitiles",
         "//go/gitiles/mocks",
-        "//go/httputils",
         "//go/semver",
         "//go/testutils",
         "//go/vcsinfo",
@@ -85,6 +83,5 @@ go_test(
         "@com_google_cloud_go_storage//:storage",
         "@org_chromium_go_luci//cipd/client/cipd",
         "@org_chromium_go_luci//cipd/common",
-        "@org_golang_x_oauth2//google",
     ],
 )

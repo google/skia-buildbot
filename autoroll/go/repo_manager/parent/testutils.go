@@ -1,7 +1,6 @@
 package parent
 
 import (
-	"net/http"
 	"os"
 	"strings"
 
@@ -19,34 +18,31 @@ import (
 )
 
 func NewGitilesFileForTesting(t sktest.TestingT, cfg *config.GitilesParentConfig) (*gitilesParent, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface) {
-	p, err := NewGitilesFile(t.Context(), cfg, http.DefaultClient /* NewGerrit checks for nil client */, "")
-	require.NoError(t, err)
 	gitiles := &gitiles_mocks.GitilesRepo{}
-	p.GitilesRepo.GitilesRepo = gitiles
 	gerrit := &gerrit_mocks.GerritInterface{}
+	p, err := NewGitilesFile(t.Context(), cfg, gitiles, gerrit, "")
+	require.NoError(t, err)
+	p.GitilesRepo.GitilesRepo = gitiles
+
 	p.gerrit = gerrit
 	return p, gitiles, gerrit
 }
 
 func NewCopyForTesting(t sktest.TestingT, cfg *config.CopyParentConfig, child child.Child) (*gitilesParent, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface) {
-	p, err := NewCopy(t.Context(), cfg, http.DefaultClient /* NewGerrit checks for nil client */, "", child)
-	require.NoError(t, err)
 	gitiles := &gitiles_mocks.GitilesRepo{}
-	p.GitilesRepo.GitilesRepo = gitiles
 	gerrit := &gerrit_mocks.GerritInterface{}
-	p.gerrit = gerrit
+	p, err := NewCopy(t.Context(), cfg, gitiles, gerrit, "", child)
+	require.NoError(t, err)
 	return p, gitiles, gerrit
 }
 
 func NewFreeTypeForTesting(t sktest.TestingT, cfg *config.FreeTypeParentConfig) (*gitilesParent, *gitiles_mocks.GitilesRepo, *gerrit_mocks.GerritInterface, func()) {
+	gitiles := &gitiles_mocks.GitilesRepo{}
+	gerrit := &gerrit_mocks.GerritInterface{}
 	workdir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
-	p, err := NewFreeTypeParent(t.Context(), cfg, workdir, http.DefaultClient /* NewGerrit checks for nil client */, "")
+	p, err := NewFreeTypeParent(t.Context(), cfg, workdir, gitiles, gerrit, "")
 	require.NoError(t, err)
-	gitiles := &gitiles_mocks.GitilesRepo{}
-	p.GitilesRepo.GitilesRepo = gitiles
-	gerrit := &gerrit_mocks.GerritInterface{}
-	p.gerrit = gerrit
 	return p, gitiles, gerrit, func() { testutils.RemoveAll(t, workdir) }
 }
 

@@ -192,12 +192,12 @@ func (e *instanceEnumeratorImpl) Next(ctx context.Context, limit int) ([]cipd.In
 	return []cipd.InstanceInfo{instance2, instance1, instance0}, nil
 }
 
-func cipdMockDescribe(ctx context.Context, cipdClient *mocks.CIPDClient, ver string, tags []string) {
+func makeMockCIPDInstance(ver string, tags []string) *cipd_api.InstanceDescription {
 	tagInfos := make([]cipd.TagInfo, len(tags))
 	for idx, tag := range tags {
 		tagInfos[idx].Tag = tag
 	}
-	cipdClient.On("Describe", ctx, githubCIPDAssetName, ver, false).Return(&cipd_api.InstanceDescription{
+	return &cipd_api.InstanceDescription{
 		InstanceInfo: cipd_api.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: githubCIPDAssetName,
@@ -207,16 +207,16 @@ func cipdMockDescribe(ctx context.Context, cipdClient *mocks.CIPDClient, ver str
 			RegisteredTs: githubCIPDTs,
 		},
 		Tags: tagInfos,
-	}, nil).Once()
+	}
+}
+
+func cipdMockDescribe(ctx context.Context, cipdClient *mocks.CIPDClient, ver string, tags []string) {
+	cipdClient.On("Describe", ctx, githubCIPDAssetName, ver, false).Return(makeMockCIPDInstance(ver, tags), nil).Once()
 }
 
 func getCipdMock(ctx context.Context) *mocks.CIPDClient {
 	cipdClient := &mocks.CIPDClient{}
-	head := common.Pin{
-		PackageName: githubCIPDAssetName,
-		InstanceID:  githubCipdNotRolled1,
-	}
-	cipdClient.On("ResolveVersion", ctx, githubCIPDAssetName, githubCIPDAssetTag).Return(head, nil).Once()
+	cipdClient.On("Describe", ctx, githubCIPDAssetName, "latest", false).Return(makeMockCIPDInstance(githubCipdNotRolled1, nil), nil)
 	cipdMockDescribe(ctx, cipdClient, githubCipdNotRolled1, nil)
 	cipdMockDescribe(ctx, cipdClient, githubCipdNotRolled1, nil)
 	cipdClient.On("ListInstances", ctx, githubCIPDAssetName).Return(&instanceEnumeratorImpl{}, nil).Once()

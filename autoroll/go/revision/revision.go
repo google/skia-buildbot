@@ -80,6 +80,11 @@ type Revision struct {
 
 	// Release version associated with this Revision.
 	Release string `json:"release"`
+
+	// Meta indicates that this Revision represents multiple related
+	// dependencies sharing the same tagged versions. Their actual revsion IDs
+	// may differ. This maps concrete dependency IDs to actual revision IDs.
+	Meta map[string]string
 }
 
 // Copy the Revision.
@@ -106,6 +111,7 @@ func (r *Revision) Copy() *Revision {
 		Timestamp:        r.Timestamp,
 		URL:              r.URL,
 		Release:          r.Release,
+		Meta:             util.CopyStringMap(r.Meta),
 	}
 }
 
