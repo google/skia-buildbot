@@ -13,7 +13,7 @@ func TestPubSubSource_RunEvaluation_NoGenAi(t *testing.T) {
 		genAiClient: nil,
 		evalSetPath: "any",
 	}
-	err := source.runEvaluation(context.Background(), "a", "b", "c")
+	err := source.runEvaluation(context.Background(), "a", "b", "c", "my-repo")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "genAiClient is nil")
 }
@@ -25,7 +25,7 @@ func TestPubSubSource_RunEvaluation_InvalidEvalSetPath(t *testing.T) {
 		dimensionality: 768,
 	}
 	// IngestTopics will fail if files don't exist.
-	err := source.runEvaluation(context.Background(), "non-existent-dir", "non-existent-npy", "non-existent-pickle")
+	err := source.runEvaluation(context.Background(), "non-existent-dir", "non-existent-npy", "non-existent-pickle", "my-repo")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to ingest topics")
 }

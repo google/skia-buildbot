@@ -15,5 +15,6 @@
     "summary_model": "gemini-3-flash-preview",
     "instance_name": "Chrome History RAG (Staging)",
     "header_icon_url": "/dist/images/chrome-logo.svg",
-    "default_repo_name": "chrome"
+    "default_repo_name": "chrome",
+    "use_repository_topics": true
 }

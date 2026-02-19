@@ -2,6 +2,7 @@ package sources
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"os"
@@ -69,6 +70,25 @@ func (source *PubSubSource) Ingest(ctx context.Context) error {
 		sklog.Warningf("Invalid object name %s in the pubsub event", objectName)
 		return nil
 	}
+
+	repoName := ""
+	parts := strings.Split(event.Name, "/")
+	if len(parts) >= 2 {
+		// The parent folder of the topics.zip is the repo name candidate.
+		repoNameCandidate := parts[len(parts)-2]
+		// If the candidate is a 40 character hash, then the repo name folder does not exist.
+		if len(repoNameCandidate) == 40 {
+			_, err := hex.DecodeString(repoNameCandidate)
+			if err == nil {
+				sklog.Infof("Repo name was not present in the path %s. Using default repo name: %s", event.Name, source.defaultRepoName)
+			} else {
+				repoName = repoNameCandidate
+			}
+		} else {
+			repoName = repoNameCandidate
+		}
+	}
+
 	obj := source.storageClient.Bucket(event.Bucket).Object(event.Name)
 	reader, err := obj.NewReader(ctx)
 	if err != nil {
@@ -106,23 +126,23 @@ func (source *PubSubSource) Ingest(ctx context.Context) error {
 
 	if source.evalSetPath != "" {
 		sklog.Infof("Running evaluation before ingestion...")
-		if err := source.runEvaluation(ctx, topicsDirPath, embeddingFilePath, indexFilePath); err != nil {
+		if err := source.runEvaluation(ctx, topicsDirPath, embeddingFilePath, indexFilePath, repoName); err != nil {
 			// Let's log the error and allow ingestion to continue for now until we have full confidence.
 			sklog.Errorf("Evaluation failed: %v", err)
 		}
 	}
 
-	return source.ingester.IngestTopics(ctx, topicsDirPath, embeddingFilePath, indexFilePath)
+	return source.ingester.IngestTopics(ctx, topicsDirPath, embeddingFilePath, indexFilePath, repoName)
 }
 
 // runEvaluation runs the evals on the index.
-func (source *PubSubSource) runEvaluation(ctx context.Context, topicsDirPath, embeddingFilePath, indexFilePath string) error {
+func (source *PubSubSource) runEvaluation(ctx context.Context, topicsDirPath, embeddingFilePath, indexFilePath, repoName string) error {
 	if source.genAiClient == nil {
 		return skerr.Fmt("genAiClient is nil, cannot run evaluation")
 	}
 	topicStore := topicstore.NewInMemoryTopicStore()
 	ingester := history.New(nil, topicStore, int(source.dimensionality), source.useRepositoryTopics, source.defaultRepoName)
-	if err := ingester.IngestTopics(ctx, topicsDirPath, embeddingFilePath, indexFilePath); err != nil {
+	if err := ingester.IngestTopics(ctx, topicsDirPath, embeddingFilePath, indexFilePath, repoName); err != nil {
 		return skerr.Wrapf(err, "failed to ingest topics into the in-memory topicstore")
 	}
 

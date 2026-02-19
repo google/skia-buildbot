@@ -6,7 +6,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
@@ -92,7 +91,7 @@ func (ingester *HistoryIngester) IngestBlameFileData(ctx context.Context, filePa
 }
 
 // IngestTopics ingests the topic data from the provided paths to the configured database.
-func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath string, embeddingsFilePath string, indexPickleFilePath string) error {
+func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath string, embeddingsFilePath string, indexPickleFilePath string, repoName string) error {
 	ctx, span := trace.StartSpan(ctx, "historyrag.ingester.IngestTopics")
 	defer span.End()
 
@@ -136,13 +135,8 @@ func (ingester *HistoryIngester) IngestTopics(ctx context.Context, topicsDirPath
 
 		sklog.Infof("Ingesting file: %s", path)
 		eg.Go(func() error {
-			repoName := ingester.defaultRepoName
-			if ingester.useRepositoryTopics {
-				relPath, err := filepath.Rel(topicsDirPath, path)
-				if err != nil {
-					return err
-				}
-				repoName = strings.Split(relPath, string(filepath.Separator))[0]
+			if repoName == "" {
+				repoName = ingester.defaultRepoName
 			}
 			err = ingester.ingestTopicFile(ctx, path, repoName, embeddings, indexEntries)
 			if err != nil {

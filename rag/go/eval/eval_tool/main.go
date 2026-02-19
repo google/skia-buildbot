@@ -75,7 +75,7 @@ func main() {
 	topicsDirPath := filepath.Join(tempDir, topicsDirName)
 
 	sklog.Infof("Ingesting data into memory store...")
-	if err := ingester.IngestTopics(ctx, topicsDirPath, embeddingFilePath, indexFilePath); err != nil {
+	if err := ingester.IngestTopics(ctx, topicsDirPath, embeddingFilePath, indexFilePath, ""); err != nil {
 		sklog.Fatalf("Error ingesting topics: %v", err)
 	}
 

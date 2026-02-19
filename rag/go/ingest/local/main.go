@@ -182,7 +182,7 @@ func main() {
 					embeddingFilePath := filepath.Join(directoryPath, embeddingFileName)
 					indexFilePath := filepath.Join(directoryPath, indexFileName)
 					topicsDirPath := filepath.Join(directoryPath, topicsDirName)
-					return ingester.IngestTopics(c.Context, topicsDirPath, embeddingFilePath, indexFilePath)
+					return ingester.IngestTopics(c.Context, topicsDirPath, embeddingFilePath, indexFilePath, "")
 				},
 			},
 		},

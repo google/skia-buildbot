@@ -142,7 +142,7 @@ func TestHistoryIngester_IngestTopics_DefaultRepo(t *testing.T) {
 		return topic.ID == 1 && topic.Repository == "default-repo"
 	})).Return(nil)
 
-	err = ingester.IngestTopics(ctx, topicsDir, "fake", "fake") // Fake paths since we mock ReadFile in ingestTopicFile?
+	err = ingester.IngestTopics(ctx, topicsDir, "fake", "fake", "") // Fake paths since we mock ReadFile in ingestTopicFile?
 	// Wait, IngestTopics calls npyReader and pickleReader. I should test ingestTopicFile instead or mock readers.
 
 	err = ingester.ingestTopicFile(ctx, topicFilePath, "default-repo", embeddings, indexEntries)
