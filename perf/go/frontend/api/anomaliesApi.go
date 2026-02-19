@@ -194,6 +194,13 @@ func (api anomaliesApi) GetSheriffListLegacy(w http.ResponseWriter, r *http.Requ
 	sklog.Debugf("[SkiaTriage] sheriff config list is loaded: %v", getSheriffListResponse.SheriffList)
 }
 
+// getOverrideNonProdHost removes the specified suffixes from the host string if they are followed by .*.goog or .*.app.
+// This is to ensure that requests from different non-prod environments (autopush, lts, qa, staging) are routed to the main environment.
+func getOverrideNonProdHost(host string) string {
+	re := regexp.MustCompile(`(-autopush|-lts|-qa|-staging)(\..*\.(goog|app))`)
+	return re.ReplaceAllString(host, "$2")
+}
+
 func (api anomaliesApi) GetAnomalyListLegacy(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
 		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)
@@ -205,6 +212,8 @@ func (api anomaliesApi) GetAnomalyListLegacy(w http.ResponseWriter, r *http.Requ
 	if query_values.Get("host") == "" {
 		query_values["host"] = []string{config.Config.URL}
 	}
+	currentHost := query_values.Get("host")
+	query_values.Set("host", getOverrideNonProdHost(currentHost))
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -257,7 +266,7 @@ func (api anomaliesApi) GetGroupReportLegacy(w http.ResponseWriter, r *http.Requ
 	defer cancel()
 	groupReportResponse := &GetGroupReportResponse{}
 
-	host := config.Config.URL
+	host := getOverrideNonProdHost(config.Config.URL)
 	if groupReportRequest.AnomalyIDs != "" {
 		if len(strings.Split(groupReportRequest.AnomalyIDs, ",")) == 1 {
 			err = api.chromeperfClient.SendGetRequest(
