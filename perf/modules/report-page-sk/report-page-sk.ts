@@ -146,7 +146,7 @@ export class ReportPageSk extends ElementSk {
       : ''}
     <anomalies-table-sk
       id="anomaly-table"
-      show_requested_groups_first
+      show-requested-groups-first
       .loading=${!!ele._currentlyLoading}>
     </anomalies-table-sk>
     ${ele.showAllCommitsTemplate()}

@@ -43,7 +43,7 @@ describe('report-page-sk', () => {
     it('loads anomalies and creates a graph', async () => {
       const anomaliesTablePO = reportPageSkPO.anomaliesTable;
       const rowCount = await anomaliesTablePO.getRowCount();
-      expect(rowCount).to.equal(3);
+      expect(rowCount).to.equal(4);
       const expectedRows: any[] = [
         {
           bugId: 'Bug ID',
@@ -60,6 +60,9 @@ describe('report-page-sk', () => {
           testSuite: 'jetstream2',
           test: 'Babylon.First',
           delta: '+23.6228%',
+        },
+        {
+          separator: 'Other groups, related to requested ones (with overlapping commits range)',
         },
         {
           bugId: '',
