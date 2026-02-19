@@ -205,6 +205,19 @@ export class ExploreMultiSk extends ElementSk {
       } else if (!endProvided) {
         state.end = state.begin + defaultRangeS;
         if (state.end > now) state.end = now;
+      } else if (state.begin === state.end) {
+        // Scenario 1a: begin and end are provided but equal.
+        // This can happen if the user selected a single point in the UI and the URL
+        // invalidly persisted a zero-length range.
+        // We accept the "center" of the range as the intent and expand around it.
+        const halfRange = Math.floor(defaultRangeS / 2);
+        state.begin = state.begin - halfRange;
+        state.end = state.end + halfRange;
+        if (state.end > now) {
+          const shift = state.end - now;
+          state.end = now;
+          state.begin -= shift;
+        }
       }
     } else if (dayRangeProvided) {
       // Scenario 2: dayRange is provided, begin/end are NOT.

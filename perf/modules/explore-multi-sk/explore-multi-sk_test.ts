@@ -243,6 +243,22 @@ describe('ExploreMultiSk', () => {
       element.state = newState;
       assert.deepEqual(element.state, newState);
     });
+
+    it('expands the time range if begin equals end in the URL state', async () => {
+      const state = new State();
+      const now = Math.floor(Date.now() / 1000);
+      state.begin = now - 1000;
+      state.end = now - 1000; // Zero length range
+      // We need to use _onStateChangedInUrl to trigger the logic
+      await element['_onStateChangedInUrl'](state as any);
+
+      assert.notEqual(element.state.begin, element.state.end);
+      assert.isTrue(element.state.end > element.state.begin);
+      // It should have expanded by default range (defaults.default_range or DEFAULT_RANGE_S)
+      // Since we didn't provide defaults in setupElement for this specific test (it uses common setup),
+      // we can check if it expanded significantly.
+      assert.isTrue(element.state.end - element.state.begin > 0);
+    });
   });
 
   describe('Default Domain (X-Axis Scale)', () => {
