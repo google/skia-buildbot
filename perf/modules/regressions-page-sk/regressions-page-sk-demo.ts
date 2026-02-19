@@ -1,5 +1,6 @@
 import './index';
 import fetchMock from 'fetch-mock';
+import { MOCK_TRACE_KEY_1, MOCK_TRACE_KEY_2, normalTracesResponse } from '../common/test-util';
 
 window.perf = {
   dev_mode: false,
@@ -78,6 +79,20 @@ fetchMock.get('/_/subscriptions', () => [
 
 fetchMock.get('/_/anomalies/sheriff_list', {
   sheriff_list: ['Sheriff Config 1', 'Sheriff Config 2', 'Sheriff Config 3'],
+});
+
+fetchMock.get('/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%201', {
+  anomaly_list: [],
+});
+
+fetchMock.get('/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202', {
+  anomaly_list: Object.values(normalTracesResponse.results.anomalymap![MOCK_TRACE_KEY_1] || {}),
+});
+
+fetchMock.get('/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%203', {
+  anomaly_list: Object.values(normalTracesResponse.results.anomalymap![MOCK_TRACE_KEY_2] || {}).map(
+    (a) => ({ ...a, start_revision: 71321, end_revision: 71325 })
+  ),
 });
 
 fetchMock.get(`/_/regressions?sub_name=Sheriff%20Config%201&limit=10&offset=0`, [

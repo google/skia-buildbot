@@ -5,6 +5,7 @@ load(
     "sk_element",
     "sk_element_puppeteer_test",
     "sk_page",
+    "ts_library",
 )
 
 sk_demo_page_server(
@@ -49,8 +50,21 @@ sk_page(
     ],
     scss_entry_point = "regressions-page-sk-demo.scss",
     sk_element_deps = [":regressions-page-sk"],
-    ts_deps = ["//:node_modules/fetch-mock"],
+    ts_deps = [
+        "//:node_modules/fetch-mock",
+        "//perf/modules/common:test-util_ts_lib",
+    ],
     ts_entry_point = "regressions-page-sk-demo.ts",
+)
+
+ts_library(
+    name = "regressions-page-sk_po_ts_lib",
+    srcs = ["regressions-page-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+    ],
 )
 
 sk_element_puppeteer_test(
@@ -58,6 +72,7 @@ sk_element_puppeteer_test(
     src = "regressions-page-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        ":regressions-page-sk_po_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
