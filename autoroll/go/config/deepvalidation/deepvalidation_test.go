@@ -1750,7 +1750,7 @@ func mocksForCIPDChildConfig(t *testing.T, dv *deepvalidator, cfg *config.CIPDCh
 		Tags: tagInfos,
 	}
 	client := dv.cipdClient.(*cipd_mocks.CIPDClient)
-	client.On("Describe", testutils.AnyContext, cfg.Name, cfg.Tag, false).Return(inst, nil)
+	client.On("ResolveVersion", testutils.AnyContext, cfg.Name, cfg.Tag).Return(inst.Pin, nil)
 	client.On("Describe", testutils.AnyContext, cfg.Name, pin.InstanceID, false).Return(inst, nil)
 }
 

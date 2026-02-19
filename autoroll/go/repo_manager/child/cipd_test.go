@@ -691,6 +691,10 @@ func TestCIPDChild_Update(t *testing.T) {
 	}
 	ctx := context.Background()
 	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
+	mockCipdClient.On("ResolveVersion", testutils.AnyContext, c.name, c.ref).Return(common.Pin{
+		PackageName: c.name,
+		InstanceID:  instanceID,
+	}, nil)
 	mockCipdClient.On("Describe", testutils.AnyContext, c.name, c.ref, false).Return(nil, fmt.Errorf("no such instance"))
 	mockCipdClient.On("SearchInstances", testutils.AnyContext, c.name, []string{c.ref}).Return(common.PinSlice{
 		{
@@ -771,6 +775,10 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
 	instanceTag := CIPDGitRevisionTag(tipRevHash)
 
+	mockCipdClient.On("ResolveVersion", testutils.AnyContext, c.name, c.ref).Return(common.Pin{
+		PackageName: c.name,
+		InstanceID:  instanceID,
+	}, nil)
 	mockCipdClient.On("Describe", testutils.AnyContext, c.name, c.ref, false).Return(nil, fmt.Errorf("no such instance"))
 	mockCipdClient.On("SearchInstances", testutils.AnyContext, c.name, []string{c.ref}).Return(common.PinSlice{
 		{

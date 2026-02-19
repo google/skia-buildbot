@@ -145,6 +145,13 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 }
 
 func (c *CIPDChild) findInstance(ctx context.Context, pkgName, id string) (*cipd_api.InstanceDescription, error) {
+	if id == c.ref {
+		pin, err := c.client.ResolveVersion(ctx, pkgName, c.ref)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		id = pin.InstanceID
+	}
 	instance, err := c.client.Describe(ctx, pkgName, id, false)
 	if err == nil {
 		return instance, nil

@@ -216,7 +216,8 @@ func cipdMockDescribe(ctx context.Context, cipdClient *mocks.CIPDClient, ver str
 
 func getCipdMock(ctx context.Context) *mocks.CIPDClient {
 	cipdClient := &mocks.CIPDClient{}
-	cipdClient.On("Describe", ctx, githubCIPDAssetName, "latest", false).Return(makeMockCIPDInstance(githubCipdNotRolled1, nil), nil)
+	cipdClient.On("ResolveVersion", ctx, githubCIPDAssetName, "latest").Return(makeMockCIPDInstance(githubCipdNotRolled1, nil).Pin, nil)
+	cipdClient.On("Describe", ctx, githubCIPDAssetName, githubCipdNotRolled1, false).Return(makeMockCIPDInstance(githubCipdNotRolled1, nil), nil)
 	cipdMockDescribe(ctx, cipdClient, githubCipdNotRolled1, nil)
 	cipdMockDescribe(ctx, cipdClient, githubCipdNotRolled1, nil)
 	cipdClient.On("ListInstances", ctx, githubCIPDAssetName).Return(&instanceEnumeratorImpl{}, nil).Once()

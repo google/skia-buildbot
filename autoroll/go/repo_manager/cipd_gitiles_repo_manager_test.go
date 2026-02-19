@@ -131,8 +131,13 @@ use_repo(cipd, "some_package_linux-amd64")
 			},
 		}, nil)
 	}
+
 	for pkgName, instanceID := range newInstanceIDs {
-		mockCIPD.On("Describe", testutils.AnyContext, pkgName, childCfg.Tag, false).Return(&cipd.InstanceDescription{
+		mockCIPD.On("ResolveVersion", testutils.AnyContext, pkgName, childCfg.Tag).Return(common.Pin{
+			PackageName: pkgName,
+			InstanceID:  instanceID,
+		}, nil)
+		mockCIPD.On("Describe", testutils.AnyContext, pkgName, instanceID, false).Return(&cipd.InstanceDescription{
 			InstanceInfo: cipd.InstanceInfo{
 				Pin: common.Pin{
 					PackageName: pkgName,
