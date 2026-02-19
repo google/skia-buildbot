@@ -2,10 +2,8 @@ package main
 
 import (
 	"archive/zip"
-	"context"
 	"fmt"
 	"io"
-	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,10 +15,8 @@ import (
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/urfavecli"
-	"go.skia.org/infra/rag/go/blamestore"
 	"go.skia.org/infra/rag/go/config"
 	"go.skia.org/infra/rag/go/ingest/history"
-	"go.skia.org/infra/rag/go/ingest/sources"
 	"go.skia.org/infra/rag/go/topicstore"
 )
 
@@ -73,60 +69,6 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			{
-				Name:        "blames",
-				Usage:       "The rag api service",
-				Description: "Runs the process that hosts the RAG api service.",
-				Flags:       (&flags).AsCliFlags(),
-				Action: func(c *cli.Context) error {
-					urfavecli.LogFlags(c)
-					sklog.Infof("Ingesting directory %s with config %s", flags.DirectoryPath, flags.ConfigFilename)
-					config, err := config.NewApiServerConfigFromFile(flags.ConfigFilename)
-					if err != nil {
-						sklog.Errorf("Error reading config file %s: %v", flags.ConfigFilename, err)
-						return err
-					}
-
-					// Generate the database identifier string and create the spanner client.
-					databaseName := fmt.Sprintf("projects/%s/instances/%s/databases/%s", config.SpannerConfig.ProjectID, config.SpannerConfig.InstanceID, config.SpannerConfig.DatabaseID)
-					spannerClient, err := spanner.NewClient(c.Context, databaseName)
-					if err != nil {
-						sklog.Errorf("Error creating a spanner client")
-						return err
-					}
-
-					sklog.Infof("Creating a new blamestore instance")
-					blamestore := blamestore.New(spannerClient)
-					var topicStore topicstore.TopicStore
-					if config.UseRepositoryTopics {
-						topicStore = topicstore.NewRepositoryTopicStore(spannerClient)
-					} else {
-						topicStore = topicstore.New(spannerClient)
-					}
-					sklog.Infof("Creating a new history ingester.")
-					ingester := history.New(blamestore, topicStore, config.OutputDimensionality, config.UseRepositoryTopics, config.DefaultRepoName)
-
-					return filepath.WalkDir(flags.DirectoryPath, func(path string, d fs.DirEntry, err error) error {
-						if err != nil {
-							return err
-						}
-						if d.IsDir() {
-							return nil
-						}
-
-						fileInfo, err := d.Info()
-						if err != nil {
-							return err
-						}
-
-						extension := filepath.Ext(fileInfo.Name())
-						if extension != ".json" {
-							return nil
-						}
-						return ingestFile(c.Context, ingester, path)
-					})
-				},
-			},
-			{
 				Name:        "topics",
 				Usage:       "The rag api service",
 				Description: "Runs the topic ingestion",
@@ -169,8 +111,6 @@ func main() {
 						return err
 					}
 
-					sklog.Infof("Creating a new blamestore instance")
-					blamestore := blamestore.New(spannerClient)
 					var topicStore topicstore.TopicStore
 					if config.UseRepositoryTopics {
 						topicStore = topicstore.NewRepositoryTopicStore(spannerClient)
@@ -178,7 +118,7 @@ func main() {
 						topicStore = topicstore.New(spannerClient)
 					}
 					sklog.Infof("Creating a new history ingester.")
-					ingester := history.New(blamestore, topicStore, config.OutputDimensionality, config.UseRepositoryTopics, config.DefaultRepoName)
+					ingester := history.New(topicStore, config.OutputDimensionality, config.UseRepositoryTopics, config.DefaultRepoName)
 					embeddingFilePath := filepath.Join(directoryPath, embeddingFileName)
 					indexFilePath := filepath.Join(directoryPath, indexFileName)
 					topicsDirPath := filepath.Join(directoryPath, topicsDirName)
@@ -192,12 +132,6 @@ func main() {
 		fmt.Printf("\nError: %s\n", err.Error())
 		os.Exit(2)
 	}
-}
-
-func ingestFile(ctx context.Context, ingester *history.HistoryIngester, filePath string) error {
-	sklog.Infof("Ingesting file %s", filePath)
-	fileSource := sources.NewFileSource(filePath, ingester)
-	return fileSource.Ingest(ctx)
 }
 
 func extractZip(zipFile string, dest string) error {

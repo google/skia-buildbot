@@ -16,8 +16,6 @@ import (
 
 // Collection of the tables in the SQL database.
 type Tables struct {
-	BlamedFiles           []spanner.BlamedFiles
-	LineBlames            []spanner.LineBlames
 	Topics                []spanner.Topics
 	TopicChunks           []spanner.TopicChunks
 	RepositoryTopics      []spanner.RepositoryTopics

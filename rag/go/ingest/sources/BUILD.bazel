@@ -4,7 +4,6 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "sources",
     srcs = [
-        "file_source.go",
         "pubsub_source.go",
         "sources.go",
     ],

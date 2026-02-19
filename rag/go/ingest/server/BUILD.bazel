@@ -16,7 +16,6 @@ go_library(
         "//go/sklog/sklogimpl",
         "//go/sklog/stdlogging",
         "//go/urfavecli",
-        "//rag/go/blamestore",
         "//rag/go/config",
         "//rag/go/genai",
         "//rag/go/ingest/history",

@@ -141,7 +141,7 @@ func (source *PubSubSource) runEvaluation(ctx context.Context, topicsDirPath, em
 		return skerr.Fmt("genAiClient is nil, cannot run evaluation")
 	}
 	topicStore := topicstore.NewInMemoryTopicStore()
-	ingester := history.New(nil, topicStore, int(source.dimensionality), source.useRepositoryTopics, source.defaultRepoName)
+	ingester := history.New(topicStore, int(source.dimensionality), source.useRepositoryTopics, source.defaultRepoName)
 	if err := ingester.IngestTopics(ctx, topicsDirPath, embeddingFilePath, indexFilePath, repoName); err != nil {
 		return skerr.Wrapf(err, "failed to ingest topics into the in-memory topicstore")
 	}

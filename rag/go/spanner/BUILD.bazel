@@ -3,11 +3,9 @@ load("@rules_go//go:def.bzl", "go_library")
 go_library(
     name = "spanner",
     srcs = [
-        "blames.go",
         "repository_topics.go",
         "topics.go",
     ],
     importpath = "go.skia.org/infra/rag/go/spanner",
     visibility = ["//visibility:public"],
-    deps = ["@org_golang_google_genproto//googleapis/type/datetime"],
 )

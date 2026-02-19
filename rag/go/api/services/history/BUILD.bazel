@@ -10,7 +10,6 @@ go_library(
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
-        "//rag/go/blamestore",
         "//rag/go/genai",
         "//rag/go/topicstore",
         "//rag/proto/history/v1:proto",

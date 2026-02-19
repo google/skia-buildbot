@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/rag/go/blamestore"
 	"go.skia.org/infra/rag/go/genai"
 	"go.skia.org/infra/rag/go/topicstore"
 	pb "go.skia.org/infra/rag/proto/history/v1"
@@ -33,9 +32,6 @@ const (
 // ApiService provides a struct for the HistoryRag api implementation.
 type ApiService struct {
 	pb.UnimplementedHistoryRagApiServiceServer
-
-	// BlameStore instance.
-	blameStore blamestore.BlameStore
 
 	// TopicStore instance.
 	topicStore topicstore.TopicStore
@@ -91,7 +87,6 @@ func NewApiService(ctx context.Context, dbClient *spanner.Client, queryEmbedding
 		topicStore = topicstore.New(dbClient)
 	}
 	return &ApiService{
-		blameStore:          blamestore.New(dbClient),
 		topicStore:          topicStore,
 		genAiClient:         genAiClient,
 		queryEmbeddingModel: queryEmbeddingModel,
@@ -118,32 +113,6 @@ func (service *ApiService) RegisterHttp(ctx context.Context, mux *runtime.ServeM
 // GetServiceDescriptor returns the service descriptor.
 func (service *ApiService) GetServiceDescriptor() grpc.ServiceDesc {
 	return pb.HistoryRagApiService_ServiceDesc
-}
-
-// GetBlames implements the GetBlames api endpoint.
-func (service *ApiService) GetBlames(ctx context.Context, req *pb.GetBlamesRequest) (*pb.GetBlamesResponse, error) {
-	if req.GetFilePath() == "" {
-		return nil, skerr.Fmt("filePath cannot be empty.")
-	}
-	fileBlames, err := service.blameStore.ReadBlame(ctx, req.GetFilePath())
-	if err != nil {
-		sklog.Errorf("Error retrieving blame data for file %s: %v", req.GetFilePath(), err)
-		return nil, err
-	}
-
-	// Populate the response.
-	resp := &pb.GetBlamesResponse{
-		FilePath: fileBlames.FilePath,
-		FileHash: fileBlames.FileHash,
-		Version:  fileBlames.Version,
-	}
-	for _, lb := range fileBlames.LineBlames {
-		resp.LineBlames = append(resp.LineBlames, &pb.GetBlamesResponse_LineBlame{
-			LineNumber: lb.LineNumber,
-			CommitHash: lb.CommitHash,
-		})
-	}
-	return resp, nil
 }
 
 // GetTopics implements the GetTopics endpoint.

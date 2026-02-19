@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/pubsub/sub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/rag/go/blamestore"
 	"go.skia.org/infra/rag/go/config"
 	"go.skia.org/infra/rag/go/genai"
 	"go.skia.org/infra/rag/go/ingest/history"
@@ -40,8 +39,6 @@ func NewIngestionSubscriber(ctx context.Context, config config.ApiServerConfig, 
 		return nil, err
 	}
 
-	sklog.Infof("Creating a new blamestore instance")
-	blamestore := blamestore.New(spannerClient)
 	var topicStore topicstore.TopicStore
 	if config.UseRepositoryTopics {
 		topicStore = topicstore.NewRepositoryTopicStore(spannerClient)
@@ -49,7 +46,7 @@ func NewIngestionSubscriber(ctx context.Context, config config.ApiServerConfig, 
 		topicStore = topicstore.New(spannerClient)
 	}
 	sklog.Infof("Creating a new history ingester.")
-	ingester := history.New(blamestore, topicStore, config.OutputDimensionality, config.UseRepositoryTopics, config.DefaultRepoName)
+	ingester := history.New(topicStore, config.OutputDimensionality, config.UseRepositoryTopics, config.DefaultRepoName)
 
 	sub, err := sub.NewWithSubName(ctx, config.IngestionConfig.Project, config.IngestionConfig.Topic, config.IngestionConfig.Subscription, 1)
 	if err != nil {

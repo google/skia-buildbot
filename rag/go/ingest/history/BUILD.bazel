@@ -10,7 +10,6 @@ go_library(
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
-        "//rag/go/blamestore",
         "//rag/go/filereaders/npy",
         "//rag/go/filereaders/pickle",
         "//rag/go/topicstore",
@@ -24,7 +23,6 @@ go_test(
     srcs = ["ingester_test.go"],
     embed = [":history"],
     deps = [
-        "//rag/go/blamestore",
         "//rag/go/filereaders/pickle",
         "//rag/go/topicstore",
         "//rag/go/topicstore/mocks",
