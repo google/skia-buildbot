@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/config"
 	"golang.org/x/oauth2/google"
 )
 
@@ -188,7 +189,7 @@ func buildTryJobRequestURL(req CreateLegacyTryRequest) (string, error) {
 func (pc *Client) CreateBisect(ctx context.Context, createBisectRequest CreateBisectRequest) (*CreatePinpointResponse, error) {
 	pc.createBisectCalled.Inc(1)
 
-	requestURL := buildBisectRequestURL(createBisectRequest)
+	requestURL := getBisectRequestURL(createBisectRequest, config.Config.FetchAnomaliesFromSql)
 	sklog.Debugf("Preparing to call this Pinpoint service URL: %s", requestURL)
 
 	httpResponse, err := httputils.PostWithContext(ctx, pc.httpClient, requestURL, contentType, nil)
@@ -222,7 +223,28 @@ func (pc *Client) CreateBisect(ctx context.Context, createBisectRequest CreateBi
 	return &resp, nil
 }
 
-func buildBisectRequestURL(createBisectRequest CreateBisectRequest) string {
+func getBisectRequestURL(req CreateBisectRequest, isNewAnomaly bool) string {
+	if isNewAnomaly {
+		return buildPinpointBisectRequestURL(req)
+	}
+	return buildChromeperfBisectRequestURL(req)
+}
+
+func buildChromeperfBisectRequestURL(createBisectRequest CreateBisectRequest) string {
+	params := buildBisectRequestParams(createBisectRequest)
+	// Bug ID must present otherwise chromeperf returns an error.
+	params.Set("bug_id", createBisectRequest.BugId)
+	params.Set("test_path", createBisectRequest.TestPath)
+
+	return fmt.Sprintf("%s?%s", chromeperfLegacyBisectURL, params.Encode())
+}
+
+func buildPinpointBisectRequestURL(createBisectRequest CreateBisectRequest) string {
+	params := buildBisectRequestParams(createBisectRequest)
+	return fmt.Sprintf("%s?%s", pinpointLegacyURL, params.Encode())
+}
+
+func buildBisectRequestParams(createBisectRequest CreateBisectRequest) url.Values {
 	params := url.Values{}
 	if createBisectRequest.ComparisonMode != "" {
 		params.Set("comparison_mode", createBisectRequest.ComparisonMode)
@@ -263,12 +285,14 @@ func buildBisectRequestURL(createBisectRequest CreateBisectRequest) string {
 	if createBisectRequest.AlertIDs != "" {
 		params.Set("alert_ids", createBisectRequest.AlertIDs)
 	}
-	// Bug ID must present otherwise chromeperf returns an error.
-	params.Set("bug_id", createBisectRequest.BugId)
-	params.Set("test_path", createBisectRequest.TestPath)
+	if createBisectRequest.BugId != "" {
+		params.Set("bug_id", createBisectRequest.BugId)
+	}
+	if createBisectRequest.TestPath != "" {
+		params.Set("test_path", createBisectRequest.TestPath)
+	}
 	params.Set("tags", "{\"origin\":\"skia_perf\"}")
-
-	return fmt.Sprintf("%s?%s", chromeperfLegacyBisectURL, params.Encode())
+	return params
 }
 
 func extractErrorMessage(responseBody []byte) string {

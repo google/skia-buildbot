@@ -12,6 +12,7 @@ go_library(
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
+        "//perf/go/config",
         "@org_golang_x_oauth2//google",
     ],
 )

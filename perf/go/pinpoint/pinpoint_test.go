@@ -35,7 +35,7 @@ func TestExtractErrorMessageReturnsRawStringWhenNoError(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func TestBuildBisectRequestUrlPopulatesAllFields(t *testing.T) {
+func TestBuildChromeperfBisectRequestUrlPopulatesAllFields(t *testing.T) {
 	req := CreateBisectRequest{
 		ComparisonMode:      "performance",
 		StartGitHash:        "start_hash",
@@ -54,7 +54,7 @@ func TestBuildBisectRequestUrlPopulatesAllFields(t *testing.T) {
 		TestPath:            "test_path",
 	}
 
-	builtURL := buildBisectRequestURL(req)
+	builtURL := buildChromeperfBisectRequestURL(req)
 	assert.Contains(t, builtURL, chromeperfLegacyBisectURL)
 
 	parsedURL, err := url.Parse(builtURL)
@@ -81,9 +81,9 @@ func TestBuildBisectRequestUrlPopulatesAllFields(t *testing.T) {
 	assert.Equal(t, expected, parsedURL.Query())
 }
 
-func TestBuildBisectRequestUrlPopulatesRequiredFields(t *testing.T) {
+func TestBuildChromeperfBisectRequestUrlPopulatesRequiredFields(t *testing.T) {
 	req := CreateBisectRequest{}
-	builtURL := buildBisectRequestURL(req)
+	builtURL := buildChromeperfBisectRequestURL(req)
 	parsedURL, err := url.Parse(builtURL)
 	assert.NoError(t, err)
 
@@ -93,4 +93,71 @@ func TestBuildBisectRequestUrlPopulatesRequiredFields(t *testing.T) {
 		"tags":      []string{`{"origin":"skia_perf"}`},
 	}
 	assert.Equal(t, expected, parsedURL.Query())
+}
+
+func TestBuildPinpointBisectRequestUrlPopulatesAllFields(t *testing.T) {
+	req := CreateBisectRequest{
+		ComparisonMode:      "performance",
+		StartGitHash:        "start_hash",
+		EndGitHash:          "end_hash",
+		Configuration:       "config",
+		Benchmark:           "benchmark",
+		Story:               "story",
+		Chart:               "chart",
+		Statistic:           "statistic",
+		ComparisonMagnitude: "magnitude",
+		Pin:                 "pin",
+		Project:             "project",
+		BugId:               "123",
+		User:                "user",
+		AlertIDs:            "456",
+		TestPath:            "test_path",
+	}
+
+	builtURL := buildPinpointBisectRequestURL(req)
+	assert.Contains(t, builtURL, pinpointLegacyURL)
+
+	parsedURL, err := url.Parse(builtURL)
+	assert.NoError(t, err)
+
+	expected := url.Values{
+		"comparison_mode":      []string{"performance"},
+		"start_git_hash":       []string{"start_hash"},
+		"end_git_hash":         []string{"end_hash"},
+		"configuration":        []string{"config"},
+		"benchmark":            []string{"benchmark"},
+		"story":                []string{"story"},
+		"chart":                []string{"chart"},
+		"statistic":            []string{"statistic"},
+		"comparison_magnitude": []string{"magnitude"},
+		"pin":                  []string{"pin"},
+		"project":              []string{"project"},
+		"bug_id":               []string{"123"},
+		"user":                 []string{"user"},
+		"alert_ids":            []string{"456"},
+		"test_path":            []string{"test_path"},
+		"tags":                 []string{`{"origin":"skia_perf"}`},
+	}
+	assert.Equal(t, expected, parsedURL.Query())
+}
+
+func TestBuildPinpointBisectRequestUrlPopulatesRequiredFields(t *testing.T) {
+	builtURL := buildPinpointBisectRequestURL(CreateBisectRequest{})
+	assert.Contains(t, builtURL, pinpointLegacyURL)
+
+	parsedURL, err := url.Parse(builtURL)
+	assert.NoError(t, err)
+
+	expected := url.Values{"tags": []string{`{"origin":"skia_perf"}`}}
+	assert.Equal(t, expected, parsedURL.Query())
+}
+
+func TestGetBisectRequestUrlForNewAnomalies(t *testing.T) {
+	url := getBisectRequestURL(CreateBisectRequest{}, true)
+	assert.Contains(t, url, pinpointLegacyURL)
+}
+
+func TestGetBisectRequestUrlForOldAnomalies(t *testing.T) {
+	url := getBisectRequestURL(CreateBisectRequest{}, false)
+	assert.Contains(t, url, chromeperfLegacyBisectURL)
 }
