@@ -2,7 +2,11 @@ import { expect } from 'chai';
 import { loadCachedTestBed, TestBed } from '../../../puppeteer-tests/util';
 import { ElementHandle } from 'puppeteer';
 import { ExploreSimpleSkPO } from './explore-simple-sk_po';
-import { CLIPBOARD_READ_TIMEOUT_MS, DEFAULT_VIEWPORT, poll } from '../common/puppeteer-test-util';
+import {
+  CLIPBOARD_READ_TIMEOUT_MS,
+  STANDARD_LAPTOP_VIEWPORT,
+  poll,
+} from '../common/puppeteer-test-util';
 import { default_container_title, expected_trace_key, paramSet1 } from './test_data';
 import { paramSet } from '../common/test-util';
 
@@ -18,7 +22,7 @@ describe('explore-simple-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
-    await testBed.page.setViewport(DEFAULT_VIEWPORT);
+    await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
     try {
       await testBed.page.waitForFunction('window.customElements.get("explore-simple-sk")', {
         timeout: 10000,
@@ -375,6 +379,49 @@ describe('explore-simple-sk', () => {
       await testBed.page.evaluate(() => window.scrollTo(0, 0));
       newScrollY = await getScrollY();
       expect(newScrollY).to.equal(0);
+    });
+  });
+
+  describe('Summary bar', () => {
+    it('show the summary bar and verify the initial range', async () => {
+      // https://screenshot.googleplex.com/AmWdqZgvPYuvh9i
+      await testBed.page.goto(`${testBed.baseUrl}?manual_plot_mode=true&plotSummary=true`);
+
+      const element = await testBed.page.$('explore-simple-sk');
+      const simplePageSkPO = new ExploreSimpleSkPO(element!);
+
+      // Manually enable plotSummary as ExploreSimpleSk doesn't read URL params in demo mode
+      await testBed.page.evaluate((el: any) => {
+        el.state = { ...el.state, plotSummary: true };
+      }, element);
+
+      await testBed.page.click('#demo-show-query-dialog');
+      const querySkPO = simplePageSkPO.querySk;
+      await querySkPO.setCurrentQuery(paramSet1);
+
+      await simplePageSkPO.clickPlotButton();
+
+      // Wait for the chart to be visible.
+      const plotPO = simplePageSkPO.plotGoogleChartSk;
+      await plotPO.waitForChartVisible({ timeout: CLIPBOARD_READ_TIMEOUT_MS });
+
+      // Poll for the traces to appear.
+      await poll(async () => {
+        const traceKeys = await simplePageSkPO.getTraceKeys();
+        return traceKeys.length === 1;
+      }, 'timed out waiting for 1 trace to load');
+
+      const plotSummaryPO = simplePageSkPO.plotSummary;
+      await plotSummaryPO.waitForPlotSummaryToLoad();
+      const initialRange = await plotSummaryPO.getSelectedRange();
+
+      // Verify the begin and end of the selected area in the Summary bar.
+      const header = await testBed.page.evaluate((el: any) => el.getHeader(), element);
+      const start = header[0].offset;
+      const end = header[header.length - 1].offset;
+      // Selected range must be within the summary bar's start and end points.
+      expect(initialRange!.begin).to.be.at.least(start);
+      expect(initialRange!.end).to.be.at.most(end);
     });
   });
 });
