@@ -194,13 +194,6 @@ func (api anomaliesApi) GetSheriffListLegacy(w http.ResponseWriter, r *http.Requ
 	sklog.Debugf("[SkiaTriage] sheriff config list is loaded: %v", getSheriffListResponse.SheriffList)
 }
 
-// getOverrideNonProdHost removes the specified suffixes from the host string if they are followed by .*.goog or .*.app.
-// This is to ensure that requests from different non-prod environments (autopush, lts, qa, staging) are routed to the main environment.
-func getOverrideNonProdHost(host string) string {
-	re := regexp.MustCompile(`(-autopush|-lts|-qa|-staging)(\..*\.(goog|app))`)
-	return re.ReplaceAllString(host, "$2")
-}
-
 func (api anomaliesApi) GetAnomalyListLegacy(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
 		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)

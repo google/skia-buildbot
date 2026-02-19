@@ -111,6 +111,7 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 	if fileBugRequest.Host == "" {
 		fileBugRequest.Host = config.Config.URL
 	}
+	fileBugRequest.Host = getOverrideNonProdHost(fileBugRequest.Host)
 	sklog.Debugf("[SkiaTriage] File new bug request received from frontend: %s", fileBugRequest)
 
 	w.Header().Set("Content-Type", "application/json")
