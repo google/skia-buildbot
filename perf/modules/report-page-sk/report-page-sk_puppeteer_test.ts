@@ -33,6 +33,40 @@ describe('report-page-sk', () => {
     await testBed.page.setRequestInterception(false);
   });
 
+  const openTooltip = async (graphIndex: number) => {
+    // Verify that the graph for the pre-selected item is displayed.
+    const graph = await reportPageSkPO.getGraph(graphIndex);
+    const googleChart = graph.googleChart;
+    expect(await googleChart.isEmpty()).to.be.false;
+
+    // Verify the anomaly icon exists on the graph.
+    const anomalyRect = await googleChart.applyFnToDOMNode((el) => {
+      const anomalyIcon = el.shadowRoot!.querySelector('div.anomaly > .anomaly');
+      if (!anomalyIcon) return null;
+      const rect = anomalyIcon.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    });
+    expect(anomalyRect).to.not.be.null;
+
+    // Click the anomaly icon to open the tooltip window.
+    // https://screenshot.googleplex.com/5eFnaKGFVdnFWHp
+    await testBed.page.mouse.click(
+      anomalyRect!.x + anomalyRect!.width / 2,
+      anomalyRect!.y + anomalyRect!.height / 2
+    );
+
+    // Wait for the tooltip to become visible.
+    const containerPO = graph.chartTooltip.container;
+    await poll(async () => {
+      if (await containerPO.isEmpty()) return false;
+      return await containerPO.applyFnToDOMNode(
+        (el: any) => (el as HTMLElement).style.display !== 'none'
+      );
+    }, 'Tooltip was not visible');
+
+    return graph.chartTooltip;
+  };
+
   it('should render the demo page', async () => {
     await takeScreenshot(testBed.page, 'perf', 'report-page-sk');
     // Smoke test.
@@ -132,30 +166,9 @@ describe('report-page-sk', () => {
     });
 
     it('should draw graph for the pre-selected anomaly', async () => {
-      // Verify that the graph for the pre-selected item is displayed.
-      const graph = await reportPageSkPO.getGraph(0);
-      const googleChart = graph.googleChart;
-      expect(await googleChart.isEmpty()).to.be.false;
+      const tooltipPO = await openTooltip(0);
+      const containerPO = tooltipPO.container;
 
-      // Verify the anomaly icon exists on the graph.
-      const anomalyRect = await googleChart.applyFnToDOMNode((el) => {
-        const anomalyIcon = el.shadowRoot!.querySelector('div.anomaly > .anomaly');
-        if (!anomalyIcon) return null;
-        const rect = anomalyIcon.getBoundingClientRect();
-        return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
-      });
-      expect(anomalyRect).to.not.be.null;
-
-      // Click the anomaly icon to open the tooltip window.
-      // https://screenshot.googleplex.com/5eFnaKGFVdnFWHp
-      await testBed.page.mouse.click(
-        anomalyRect!.x + anomalyRect!.width / 2,
-        anomalyRect!.y + anomalyRect!.height / 2
-      );
-
-      // Verify the anomaly tooltip window.
-      const chartTooltipPO = graph.chartTooltip;
-      const containerPO = chartTooltipPO.container;
       await poll(async () => {
         if (await containerPO.isEmpty()) return false;
         const visible = await containerPO.applyFnToDOMNode(
@@ -332,6 +345,49 @@ describe('report-page-sk', () => {
     });
   });
 
-  // TODO(b/479903517): Set the test path and show the actual trace name
-  // instead of the default 'Multi-trace Graph' and add verification.
+  describe('tooltip actions', () => {
+    it('verify new bug button', async () => {
+      // https://screenshot.googleplex.com/577QkbXf2BVShas
+      const tooltipPO = await openTooltip(0);
+      const triageMenuSkPO = await tooltipPO.getTriageMenu;
+      await triageMenuSkPO.newBugButton.click();
+      await testBed.page.$('new-bug-dialog-sk');
+
+      // By mocking '/_/triage/file_bug', expecting '358011161' bug number.
+      await poll(async () => {
+        const link = await tooltipPO.container.bySelector('a[href="b/358011161"]');
+        return !(await link.isEmpty()) && (await link.innerText).includes('358011161');
+      }, 'Tooltip should show bug ID 358011161');
+
+      const unassociateBtn = await tooltipPO.container.bySelector('#unassociate-bug-button');
+      expect(await unassociateBtn.isEmpty()).to.be.false;
+
+      // TODO(b/483690789): Verify the anomaly color changes from yellow to red.
+    });
+
+    it('verify existing bug button', async () => {
+      // https://screenshot.googleplex.com/aiREmTYFPgQ54sB
+      const tooltipPO = await openTooltip(0);
+      const triageMenuSkPO = await tooltipPO.getTriageMenu;
+      await triageMenuSkPO.existingBugButton.click();
+
+      const existingBugDialogSk = await testBed.page.$('existing-bug-dialog-sk');
+      expect(existingBugDialogSk).to.not.be.null;
+
+      const dialog = await existingBugDialogSk!.$('dialog#existing-bug-dialog');
+      expect(dialog).to.not.be.null;
+
+      const form = await dialog!.$('form#existing-bug-form');
+      expect(form).to.not.be.null;
+
+      const input = await form!.$('input#bug_id');
+      expect(input).to.not.be.null;
+      await input!.evaluate((el) => ((el as HTMLInputElement).value = '358011161'));
+
+      const submitBtn = await form!.$('button#file-button');
+      expect(await (await submitBtn!.getProperty('innerText')).jsonValue()).to.equal('Submit');
+
+      // TODO(b/483690789): Verify the anomaly color changes from yellow to red.
+    });
+  });
 });

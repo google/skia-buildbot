@@ -52,6 +52,27 @@ fetchMock.post('/_/frame/start', {
   url: '',
 });
 
+fetchMock.post('/_/triage/file_bug', async () => {
+  return {
+    bug_id: 358011161,
+  };
+});
+
+fetchMock.post('/_/triage/list_issues', async () => {
+  return {
+    status: 200,
+    body: JSON.stringify({
+      issues: [{ issueId: '358011161', issueState: { title: 'Test Bug' } }],
+    }),
+  };
+});
+
+fetchMock.post('/_/triage/associate_alerts', async () => {
+  return {
+    bug_id: 358011161,
+  };
+});
+
 defaultConfig.include_params = ['benchmark', 'bot', 'master', 'test'];
 
 fetchMock.get('/_/defaults/', defaultConfig);
