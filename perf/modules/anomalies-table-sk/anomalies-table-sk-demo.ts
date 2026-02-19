@@ -38,6 +38,17 @@ fetchMock.post('/_/triage/associate_alerts', async () => {
   };
 });
 
+fetchMock.post('/_/triage/edit_anomalies', async (_url, opts: any) => {
+  const body = JSON.parse(opts.body);
+  return {
+    status: 200,
+    body: JSON.stringify({
+      keys: body.keys,
+      action: body.action,
+    }),
+  };
+});
+
 window.perf = {
   dev_mode: false,
   instance_url: '',

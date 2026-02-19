@@ -228,6 +228,23 @@ describe('anomalies-table-sk', () => {
       const reportPageUrl = await navigateTo(testBed.page, testBed.baseUrl, `/u/?sid=test-sid`);
       assert.exists(reportPageUrl);
     });
+
+    it('verify triage ignore button', async () => {
+      // https://screenshot.googleplex.com/AStZHVU8keztwpA
+      await testBed.page.click('#populate-tables-it2');
+      await anomaliesTableSkPO.clickCheckbox(1);
+      await anomaliesTableSkPO.clickTriageButton();
+      const triageMenuSk = await testBed.page.$('triage-menu-sk');
+      assert.isNotNull(triageMenuSk);
+
+      const triageMenuSkPO = new TriageMenuSkPO(triageMenuSk!);
+      await triageMenuSkPO.ignoreButton.click();
+      // Wait to get a response.
+      await new Promise((r) => setTimeout(r, 500));
+      await anomaliesTableSkPO.clickTriageButton();
+
+      await anomaliesTableSkPO.waitForBugIdStatus(1, 'Ignored Alert');
+    });
   });
 
   describe('bug tooltip', () => {

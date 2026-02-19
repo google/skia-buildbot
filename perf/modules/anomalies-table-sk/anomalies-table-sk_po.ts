@@ -3,6 +3,7 @@ import {
   PageObjectElement,
   PageObjectElementList,
 } from '../../../infra-sk/modules/page_object/page_object_element';
+import { poll } from '../common/puppeteer-test-util';
 
 export class AnomaliesTableSkPO extends PageObject {
   get rows(): PageObjectElementList {
@@ -238,5 +239,14 @@ export class AnomaliesTableSkPO extends PageObject {
     }
 
     await this.toggleGroupingSettings(false); // Close
+  }
+
+  async waitForBugIdStatus(rowIndex: number, status: string): Promise<void> {
+    await poll(async () => {
+      const rows = await this.rows;
+      const row = await rows.item(rowIndex);
+      const cell = await row.bySelector('td:nth-child(4)');
+      return (await cell.innerText).includes(status);
+    }, `Bug ID column should contain "${status}"`);
   }
 }
