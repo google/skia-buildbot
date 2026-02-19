@@ -68,16 +68,17 @@ type CreateCommentResponse struct {
 }
 
 // FileBugRequest is the request object for filing a bug.
+// A few fields seem to be unused, we will monitor those.
 type FileBugRequest struct {
 	Keys        []string `json:"keys"`
 	Title       string   `json:"title"`
-	Description string   `json:"description"`
+	Description string   `json:"description" unused:"true"`
 	Component   string   `json:"component"`
-	Assignee    string   `json:"assignee,omitempty"`
+	Assignee    string   `json:"assignee,omitempty" unused:"true"`
 	Ccs         []string `json:"ccs,omitempty"`
-	Labels      []string `json:"labels,omitempty"`
-	TraceNames  []string `json:"trace_names,omitempty"`
-	Host        string   `json:"host,omitempty"`
+	Labels      []string `json:"labels,omitempty" unused:"true"`
+	TraceNames  []string `json:"trace_names,omitempty" unused:"true"`
+	Host        string   `json:"host,omitempty" unused:"true"`
 }
 
 func setupSecretClient(ctx context.Context, cfg config.IssueTrackerConfig, options []option.ClientOption) (*http.Client, []option.ClientOption, error) {
@@ -179,24 +180,19 @@ func (s *issueTrackerImpl) ListIssues(ctx context.Context, requestObj ListIssues
 	return resp.Issues, nil
 }
 
-// TODO(b/454614028) Inspect filed bugs. Determine whether Keys, TraceNames, Host, or Label
-// should be included. In particular, labels will be missing in the new bugs.
+// Creates a buganizer issue based on the request and data in the DB.
+// Example format of a bug description can be found here: https://b.corp.google.com/issues/485727375
 func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (int, error) {
 	if req == nil {
 		return 0, skerr.Fmt("File bug request is null.")
 	}
-
 	if len(req.Keys) == 0 {
 		return 0, skerr.Fmt("File bug received an empty list of regression ids..")
 	}
-
 	if !s.FetchAnomaliesFromSql {
 		return 0, skerr.Fmt("this implementation is supposed to use the DB. Please contact BERF engineers at go/berf-skia-chat.")
 	}
-
-	if req.Description != "" {
-		sklog.Warningf("ignoring description provided, creating our own.\nOld description: %s", req.Description)
-	}
+	s.checkUnusedFieldsAreEmpty(req)
 
 	regressionIds := req.Keys
 	regressionIdsFromSql, alertsIds, subscriptions, err := s.regStore.GetSubscriptionsForRegressions(ctx, regressionIds)
@@ -209,6 +205,9 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 	if len(subscriptions) < 1 {
 		return 0, skerr.Fmt("did not find any subscriptions linked to those regressions")
 	}
+	// TODO(b/454614028) Not sure alertsIds will be useful.
+	_ = alertsIds
+
 	regData, err := s.regStore.GetByIDs(ctx, regressionIds)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "failed to get regressions for regression ids")
@@ -216,40 +215,30 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 
 	isTestRun := s.checkTestRun(subscriptions)
 	mostImpactedSub, subCcs := s.selectSub(subscriptions)
-	if req.Assignee != "" {
-		sklog.Warningf("ignoring assignee from request and using the one from the db")
-	}
-	assignee := mostImpactedSub.ContactEmail
+
 	componentID, err := strconv.Atoi(mostImpactedSub.BugComponent)
 	if err != nil {
 		sklog.Errorf("failed to convert bug component %s to int", mostImpactedSub.BugComponent)
 		return -1, err
 	}
+	// Most fields should be present in the DB
+	if req.Component != fmt.Sprintf("%d", componentID) {
+		sklog.Warningf("we ignore componentID: %s passed by fe and use data from the db: %d", req.Component, componentID)
+	}
+	// TODO(b/454614028) remove this assignment after migration is done.
+	// This is to prevent spamming other teams while testing.
+	componentID = 1325852
 
 	topAnomalies, err := ags.TopAnomaliesMedianCmp(regData, int64(TOP_ANOMALIES_COUNT))
-
 	description := ""
-
 	// TODO(b/464211673) Make sure the links lead to correct graphs.
 	description += s.generateLinkToGraph(req.Keys)
 	description += s.describeTopAnomalies(topAnomalies)
 	description += s.describeBots(regData)
 
-	// TODO(b/454614028) Not sure alertsIds will be useful.
-	_ = alertsIds
-
-	// Most fields should be present in the DB
-	if req.Component != fmt.Sprintf("%d", componentID) {
-		sklog.Warningf("we ignore componentID: %s passed by fe and use data from the db: %d", req.Component, componentID)
-	}
-
 	descriptionDebugSection := "\n\n## DEBUG BELOW\n\n"
-	// TODO(b/454614028) remove this assignment after migration is done.
-	// This is to prevent spamming other teams while testing.
 	sklog.Warningf("File Bug would use the following component: %d. Using a default component until migration is done.", componentID)
 	descriptionDebugSection += fmt.Sprintf("component %d should be used.\nUntil migration is done, we use the default one.\n", componentID)
-	componentID = 1325852
-
 	description += descriptionDebugSection + "\n\n"
 
 	var ccs []*issuetracker.User
@@ -257,9 +246,12 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		ccs = append(ccs, &issuetracker.User{EmailAddress: cc})
 	}
 
+	assignee := mostImpactedSub.ContactEmail
+	issueStatus := "ASSIGNED"
 	if !isTestRun {
 		sklog.Warningf("disable testrun flag in issuetracker.go to use real assignee and ccs")
 		assignee = ""
+		issueStatus = "NEW"
 		subCcs = []*issuetracker.User{}
 	}
 	// Our test subscription has Sergei set as the contact point.
@@ -267,6 +259,11 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		assignee = "berf-issuetracker-testing@google.com"
 	}
 	ccs = append(ccs, subCcs...)
+
+	err = s.validateAssigneeAndStatus(assignee, issueStatus)
+	if err != nil {
+		return 0, err
+	}
 
 	newIssue := &issuetracker.Issue{
 		IssueComment: &issuetracker.IssueComment{
@@ -277,7 +274,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 			ComponentId: int64(componentID),
 			Priority:    fmt.Sprintf("P%d", mostImpactedSub.BugPriority),
 			Severity:    fmt.Sprintf("S%d", mostImpactedSub.BugSeverity),
-			Status:      "ASSIGNED",
+			Status:      issueStatus,
 			Title:       req.Title,
 			Assignee: &issuetracker.User{
 				EmailAddress: assignee,
@@ -317,6 +314,24 @@ func (s *issueTrackerImpl) checkTestRun(subscriptions []*pb.Subscription) bool {
 		}
 	}
 	return true
+}
+
+func (s *issueTrackerImpl) checkUnusedFieldsAreEmpty(req *FileBugRequest) {
+	if req.Host != "" {
+		sklog.Warningf("file bug: host %s is ignored", req.Host)
+	}
+	if len(req.Labels) > 0 {
+		sklog.Warningf("file bug: labels are ignored")
+	}
+	if len(req.TraceNames) > 0 {
+		sklog.Warningf("file bug: tracenames are ignored")
+	}
+	if req.Assignee != "" {
+		sklog.Warningf("file bug: assignee %s is ignored, selecting from the DB", req.Assignee)
+	}
+	if req.Description != "" {
+		sklog.Warningf("file bug: ignoring description on the request, creating our own")
+	}
 }
 
 func (s *issueTrackerImpl) describeBots(regs []*regression.Regression) string {
@@ -381,6 +396,16 @@ func (s *issueTrackerImpl) selectSub(nonEmptySubscriptions []*pb.Subscription) (
 		allContactEmails = append(allContactEmails, &issuetracker.User{EmailAddress: sub.ContactEmail})
 	}
 	return
+}
+
+func (s *issueTrackerImpl) validateAssigneeAndStatus(assignee string, status string) error {
+	if assignee == "" && status != "NEW" {
+		return skerr.Fmt("assignee is empty, status cannot be %s", status)
+	}
+	if assignee != "" && status == "NEW" {
+		return skerr.Fmt("assignee is not empty, status must not be NEW")
+	}
+	return nil
 }
 
 func calcChange(before, after float32) float32 {
