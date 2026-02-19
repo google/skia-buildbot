@@ -67,3 +67,21 @@ export async function waitForElementNotHidden(
     timeout
   );
 }
+
+export async function waitForElementVisible(
+  element: PageObjectElement,
+  message: string,
+  timeout = 5000
+): Promise<void> {
+  await poll(
+    async () => {
+      if (await element.isEmpty()) return false;
+      return await element.applyFnToDOMNode((el) => {
+        const rect = el.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      });
+    },
+    message,
+    timeout
+  );
+}

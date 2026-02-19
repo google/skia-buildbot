@@ -3,10 +3,9 @@ import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_ob
 import { QuerySkPO } from '../../../infra-sk/modules/query-sk/query-sk_po';
 import { PlotGoogleChartSkPO } from '../plot-google-chart-sk/plot-google-chart-sk_po';
 import { PivotTableSkPO } from '../pivot-table-sk/pivot-table-sk_po';
-import { errorMessage } from '../errorMessage';
 import { ChartTooltipSkPO } from '../chart-tooltip-sk/chart-tooltip-sk_po';
 import { GraphTitleSkPO } from '../graph-title-sk/graph-title-sk_po';
-import { poll } from '../common/puppeteer-test-util';
+import { poll, waitForElementVisible } from '../common/puppeteer-test-util';
 import { PlotSummarySkPO } from '../plot-summary-sk/plot-summary-sk_po';
 import { QueryCountSkPO } from '../query-count-sk/query-count-sk_po';
 import { ParamSetSkPO } from '../../../infra-sk/modules/paramset-sk/paramset-sk_po';
@@ -100,7 +99,7 @@ export class ExploreSimpleSkPO extends PageObject {
     return this.bySelector('spinner-sk');
   }
 
-  get showSettingDialigButton(): PageObjectElement {
+  get showSettingDialogButton(): PageObjectElement {
     return this.bySelector('#showSettingsDialog');
   }
 
@@ -183,63 +182,29 @@ export class ExploreSimpleSkPO extends PageObject {
 
   async clickXAxisSwitch(): Promise<void> {
     await this.clickShowSettingsDialog();
-    try {
-      await this.bySelector(this.xAxisSwitchSelector);
-    } catch (e) {
-      await errorMessage(e as Error);
-    }
-
-    const switchEl = await this.getXAxisSwitch;
-    if (!switchEl) {
-      throw new Error('X-Axis switch element not found after visibility wait.');
-    }
-    try {
-      await switchEl.click();
-    } catch (e) {
-      await errorMessage(e as Error);
-    }
+    const switchEl = this.getXAxisSwitch;
+    await waitForElementVisible(switchEl, 'X-Axis switch not visible');
+    await switchEl.click();
   }
 
   async clickZoomDirectionSwitch(): Promise<void> {
     await this.clickShowSettingsDialog();
-    try {
-      await this.bySelector(this.zoomDirectionSwitchSelector);
-    } catch (e) {
-      await errorMessage(e as Error);
-    }
-
-    const switchEl = await this.getZoomDirectionSwitch;
-    if (!switchEl) {
-      throw new Error('Zoom direction switch element not found after visibility wait.');
-    }
-    try {
-      await switchEl.click();
-    } catch (e) {
-      await errorMessage(e as Error);
-    }
+    const switchEl = this.getZoomDirectionSwitch;
+    await waitForElementVisible(switchEl, 'Zoom direction switch not visible');
+    await switchEl.click();
   }
 
   async clickEvenXAxisSpacingSwitch(): Promise<void> {
     await this.clickShowSettingsDialog();
-    try {
-      await this.bySelector(this.evenXAxisSpacingSwitchSelector);
-    } catch (e) {
-      await errorMessage(e as Error);
-    }
-
-    const switchEl = await this.getEvenXAxisSpacingSwitch;
-    if (!switchEl) {
-      throw new Error('Even X-Axis spacing switch element not found after visibility wait.');
-    }
-    try {
-      await switchEl.click();
-    } catch (e) {
-      await errorMessage(e as Error);
-    }
+    const switchEl = this.getEvenXAxisSpacingSwitch;
+    await waitForElementVisible(switchEl, 'Even X-Axis spacing switch not visible');
+    await switchEl.click();
   }
 
   async clickShowSettingsDialog(): Promise<void> {
-    await this.showSettingDialigButton.click();
+    const btn = this.showSettingDialogButton;
+    await waitForElementVisible(btn, 'Settings button not visible');
+    await btn.click();
   }
 
   async getAnomalyMap(): Promise<any> {
