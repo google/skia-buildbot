@@ -125,6 +125,7 @@ describe('triage-menu-sk', () => {
 
   describe('ignore anomaly', () => {
     it('calls makeEditAnomalyRequest with IGNORE action', () => {
+      element.anomalies = [dummyAnomaly(123)];
       const spy = sinon.spy(element, 'makeEditAnomalyRequest');
       element.ignoreAnomaly();
       assert.isTrue(spy.calledWith(element.anomalies, element.traceNames, 'IGNORE'));

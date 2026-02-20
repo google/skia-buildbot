@@ -366,6 +366,9 @@ export class ChartTooltipSk extends ElementSk {
     upgradeProperty(this, 'preloadTryJobInputs');
     this._render();
 
+    // Ensure tooltip is hidden by default.
+    this.moveTo(null);
+
     this.commitRangeSk = this.querySelector('#tooltip-commit-range-link');
     this.userIssueSk = this.querySelector('#tooltip-user-issue-sk');
     this.triageMenu = this.querySelector('#triage-menu');

@@ -181,6 +181,7 @@ describe('ExploreMultiSk', () => {
       });
       element.dispatchEvent(event);
       // Wait for data to be loaded and traceset to be available.
+      await element['_addToGraphPromise'];
       // We rely on requestComplete which is consistent with other tests.
       await element['exploreElements'][0].requestComplete;
 
@@ -491,6 +492,8 @@ describe('ExploreMultiSk', () => {
       });
       element.dispatchEvent(event);
 
+      await element['_addToGraphPromise'];
+
       // The event handler synchronously adds a new graph to the front of the array.
       // We grab that new graph.
       const newGraph = element['exploreElements'][0];
@@ -509,6 +512,7 @@ describe('ExploreMultiSk', () => {
       });
       element.dispatchEvent(event);
 
+      await element['_addToGraphPromise'];
       await element['exploreElements'][0].requestComplete;
 
       assert.equal(element['exploreElements'].length, initialGraphCount + 1);
@@ -584,6 +588,7 @@ describe('ExploreMultiSk', () => {
       element.dispatchEvent(event);
 
       // Wait for async operations in the event handler
+      await element['_addToGraphPromise'];
       await new Promise((resolve) => setTimeout(resolve, 0));
       await fetchMock.flush(true);
       await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for updates
@@ -1149,8 +1154,8 @@ describe('ExploreMultiSk', () => {
     it('should always use the multi-sk state for begin and end', async () => {
       await setupElement();
       const multiSkState = new State();
-      multiSkState.begin = 1000;
-      multiSkState.end = 2000;
+      multiSkState.begin = 1600000000;
+      multiSkState.end = 1600001000;
       element.state = multiSkState;
 
       const simpleSk = new ExploreSimpleSk();
@@ -1193,8 +1198,8 @@ describe('ExploreMultiSk', () => {
 
       element['addStateToExplore'](simpleSk, new GraphConfig(), false, 0);
 
-      assert.equal(simpleSk.state.begin, 1000);
-      assert.equal(simpleSk.state.end, 2000);
+      assert.equal(simpleSk.state.begin, 1600000000);
+      assert.equal(simpleSk.state.end, 1600001000);
     });
   });
 
@@ -1345,11 +1350,17 @@ describe('ExploreMultiSk', () => {
     });
 
     it('loads graphs in chunks and fetches extended data once at the end', async () => {
+      // Enable splitting by 'os' so that we get 7 groups (one for each OS option).
+      // Without this, the ParamSet is treated as a single group, and chunking (batching)
+      // would not occur (loop runs once).
+      element.state.splitByKeys = ['os'];
+
       // Dispatch the event that triggers the chunking logic.
       const event = new CustomEvent('plot-button-clicked', { bubbles: true });
       element.dispatchEvent(event);
 
       // The event handler is async. We need to wait for it to complete.
+      await element['_addToGraphPromise'];
       // A small timeout allows the chain of promises in the handler to resolve.
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -1361,7 +1372,7 @@ describe('ExploreMultiSk', () => {
       assert.equal(
         addFromQuerySpy.callCount,
         2,
-        'addFromQueryOrFormula should be called for each chunk'
+        'addFromQueryOrFormula should be called twice (chunks of 5 and 2)'
       );
 
       // Verify that `loadExtendedRange` was correctly set to false for all chunk-loading calls.
@@ -1595,77 +1606,49 @@ describe('ExploreMultiSk', () => {
       await element['renderCurrentPage'](true);
 
       // Verify only pageSize elements are in the "current page" list
-
       assert.equal(element['currentPageExploreElements'].length, pageSize);
-
-      assert.equal(element['graphDiv']!.childElementCount, pageSize);
+      // graphDiv contains the hidden accumulator graph (index 0) plus pageSize visible graphs.
+      assert.equal(element['graphDiv']!.childElementCount, pageSize + 1);
     });
 
     it('only triggers data updates for visible graphs', async () => {
       // Setup 20 graphs, PageSize 5
-
       const total = 20;
-
       const pageSize = 5;
-
       element.state.pageSize = pageSize;
-
       element.state.manual_plot_mode = true; // Ensure index 0 is included
-
       element['allGraphConfigs'] = Array(total).fill({
         queries: ['config=test'],
-
         formulas: [],
-
         keys: '',
       });
-
       element['allFrameRequests'] = Array(total).fill({});
-
       element['allFrameResponses'] = Array(total).fill({});
 
       const updateSpies: sinon.SinonStub[] = [];
-
       const exploreMocks: ExploreSimpleSk[] = [];
 
       for (let i = 0; i < total; i++) {
         const el = document.createElement('div') as unknown as ExploreSimpleSk;
-
         (el as any).state = {};
-
         const stub = sinon.stub().resolves();
-
         (el as any).UpdateWithFrameResponse = stub;
-
         (el as any).updateComplete = Promise.resolve();
-
         (el as any).setUseDiscreteAxis = sinon.stub();
-
         (el as any).updateChartHeight = sinon.stub();
-
         updateSpies.push(stub);
-
         exploreMocks.push(el);
       }
-
       element['exploreElements'] = exploreMocks;
-
-      // Mock other dependencies
-
       sinon.stub(element, '_render' as any);
-
       sinon.stub(element, 'updateChartHeights' as any);
 
-      // Render page 0 (indices 0-4)
-
       element.state.pageOffset = 0;
+      await element['renderCurrentPage'](false);
 
-      await element['renderCurrentPage'](false); // false = query data
-
-      // Verify first 5 updated, others not
-
+      // Verify first 6 updated (Index 0-5), others not.
       for (let i = 0; i < total; i++) {
-        if (i < pageSize) {
+        if (i < pageSize + 1) {
           assert.isTrue(updateSpies[i].called, `Graph ${i} should be updated`);
         } else {
           assert.isFalse(updateSpies[i].called, `Graph ${i} should NOT be updated`);

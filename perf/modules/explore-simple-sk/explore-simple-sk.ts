@@ -971,7 +971,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   }
 
   reset() {
-    this.removeAll(false);
+    this.clearGraphData(false);
     if (this.openQueryByDefault) {
       this.openQuery();
     }
@@ -1076,6 +1076,9 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   // onChartSelect shows the tooltip whenever a user clicks on a data
   // point and the tooltip will lock in place until it is closed.
   private onChartSelect(e: CustomEvent) {
+    if (this.dataLoading) {
+      return;
+    }
     const chart = this.googleChartPlot!.value!;
     const index = e.detail;
     const commitPos: CommitNumber = chart.getCommitPosition(index.tableRow);
@@ -1142,6 +1145,9 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   // onChartOver shows the tooltip whenever a user hovers their mouse
   // over a data point in the google chart
   private onChartOver({ detail }: CustomEvent<PlotShowTooltipEventDetails>): void {
+    if (this.dataLoading) {
+      return;
+    }
     window.clearTimeout(this.hoverTimeout);
     const chart = this.googleChartPlot!.value!;
     if (this.paramset) {
@@ -2951,17 +2957,28 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     replaceAnomalies: boolean = false
   ): Promise<void> {
     this.render();
-    if (
-      frameResponse.dataframe?.traceset &&
-      Object.keys(frameResponse.dataframe.traceset).length === 0
-    ) {
-      errorMessage('No data found for the given query.');
-      return;
-    }
     const dfRepo = this.dfRepo.value;
     if (!dfRepo) {
       console.error('DataFrameRepository is not available.');
       return;
+    }
+    if (
+      frameResponse.dataframe?.traceset &&
+      Object.keys(frameResponse.dataframe.traceset).length === 0
+    ) {
+      // If the request explicitly has no queries/formulas/keys, allow clearing.
+      const hasRequest =
+        frameRequest &&
+        ((frameRequest.queries && frameRequest.queries.length > 0) ||
+          (frameRequest.formulas && frameRequest.formulas.length > 0) ||
+          (frameRequest.keys && frameRequest.keys !== ''));
+
+      if (hasRequest) {
+        if (Object.keys(dfRepo.dataframe.traceset).length === 0 && !this._state.doNotQueryData) {
+          errorMessage('No data found for the given query.');
+        }
+        return;
+      }
     }
     await this.dfRepo.value?.resetWithDataframeAndRequest(
       frameResponse.dataframe!,
@@ -3049,8 +3066,9 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     );
     // Normalize bands to be just offsets.
     const bands: number[] = [];
+    const skps = json.skps || [];
     header!.forEach((h, i) => {
-      if (json.skps!.indexOf(h!.offset) !== -1) {
+      if (skps.indexOf(h!.offset) !== -1) {
         bands.push(i);
       }
     });
@@ -3305,7 +3323,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       (this._state.formulas.length === 0 && this._state.queries.length === 0);
 
     if (createFromScratch) {
-      this.removeAll(true);
+      this.clearGraphData(true);
     }
 
     this._state.pivotRequest = defaultPivotRequest();
@@ -3524,7 +3542,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
    * in calls like _normalize() where this is just an intermediate state we
    * don't want in history.
    */
-  private removeAll(skipHistory: boolean) {
+  public clearGraphData(skipHistory: boolean) {
     this._state.formulas = [];
     this._state.queries = [];
     this._state.keys = '';
@@ -3683,11 +3701,12 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
     if (!this.hasData()) {
       this.displayMode = 'display_query_only';
-      this.render();
     }
     if (updateShortcut) {
       this.reShortCut(toShortcut);
     }
+    this._stateHasChanged();
+    this.render();
   }
 
   /**
@@ -3780,6 +3799,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       errorMessage(err.message);
       return null;
     }
+    this.closeTooltip();
     this._requestId = 'foo';
     this.spinning = true;
     this.dataLoading = true;

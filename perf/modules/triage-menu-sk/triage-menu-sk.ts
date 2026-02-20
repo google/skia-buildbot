@@ -145,6 +145,9 @@ export class TriageMenuSk extends LitElement {
   }
 
   ignoreAnomaly() {
+    if (this.anomalies.length === 0) {
+      return;
+    }
     telemetry.increaseCounter(CountMetric.TriageActionTaken, { action: 'ignore' });
     this.makeEditAnomalyRequest(this.anomalies, this.traceNames, 'IGNORE');
   }
@@ -188,10 +191,10 @@ export class TriageMenuSk extends LitElement {
   }
 
   /**
-   * Sends request to /_/triage/edit_anomalies API to edit anomaly data.
+   * Sends request to /_/triage/edit_anomalies to edit anomaly data.
    *
    * If edit action is IGNORE, the anomaly will be ignored.
-   * If edit action is RESET, the bug will be deassociated with the existing bug id.
+   * If edit action is RESET, the bug will be disassociated with the existing bug id.
    * If edit action is NUDGE, the anomaly will be nudged with a new time range.
    *
    * @param anomalies - The anomalies to modify.
@@ -250,7 +253,7 @@ export class TriageMenuSk extends LitElement {
   /**
    * Sends request to /_/triage/edit_anomalies API to nudge anomalies.
    *
-   * @param anomalies - Anomalies to edit, should usally be just 1.
+   * @param anomalies - Anomalies to edit, should usually be just 1.
    * @param traceNames - Trace IDs for modified anomalies. This tells the API to
    * invalidate these traces from the cache.
    * @param entry - NudgeEntry that is being edited. We want to update its x and y

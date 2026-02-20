@@ -685,7 +685,6 @@ export class TestPickerSk extends ElementSk {
       }
     }
 
-    this.setReadOnly(true);
     for (let i = 0; i < this._fieldData.length; i++) {
       if (this._fieldData[i].param === param) {
         (this._fieldData[i].field as PickerFieldSk).split = split;
@@ -789,6 +788,10 @@ export class TestPickerSk extends ElementSk {
 
   createParamSetFromFieldData(): ParamSet {
     const paramSet: ParamSet = {};
+    if (this._fieldData.length === 0 || !this._fieldData[0]) {
+      return {};
+    }
+
     if (this._fieldData[0].value === null) {
       return {};
     }

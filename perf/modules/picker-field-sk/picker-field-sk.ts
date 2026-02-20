@@ -83,7 +83,7 @@ export class PickerFieldSk extends ElementSk {
           id="split-by"
           label="Split"
           @change=${ele.splitOnValue}
-          ?checked=${ele.split}
+          .checked=${ele.split}
           ?disabled=${ele._splitCheckboxDisabled}
           ?hidden=${!ele.showSplit}>
         </checkbox-sk>
@@ -395,9 +395,6 @@ export class PickerFieldSk extends ElementSk {
    */
   set split(v: boolean) {
     this._split = v;
-    if (this._splitBox !== null) {
-      this._splitBox.checked = v;
-    }
     this._render();
   }
 

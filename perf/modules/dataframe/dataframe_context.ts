@@ -322,6 +322,15 @@ export class DataFrameRepository extends LitElement {
   }
 
   private async requestNewRange(range: range) {
+    // Avoid requesting data from the future.
+    const now = Math.floor(Date.now() / 1000);
+    if (range.begin > now) {
+      return {} as FrameResponse;
+    }
+    if (range.end > now) {
+      range = { ...range, end: now };
+    }
+
     if (!this._baseRequest) {
       this._baseRequest = this.generateFrameRequest(range);
     }

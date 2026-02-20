@@ -128,7 +128,16 @@ describe('report-page-sk', () => {
       const graphs = await reportPageSkPO.graphs;
       expect(await graphs.length).to.equal(1);
       // Wait for graphs to fully render
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const graph = await reportPageSkPO.getGraph(0);
+      await poll(
+        async () => {
+          const exploreDiv = await graph.bySelector('#explore');
+          const classes = await exploreDiv.getAttribute('class');
+          return classes?.includes('display_plot') || false;
+        },
+        'Graph did not switch to display_plot mode',
+        20000
+      );
       await takeScreenshot(testBed.page, 'perf', 'report-page-sk');
     });
 

@@ -1725,3 +1725,123 @@ describe('Domain Picker Interaction', () => {
     });
   });
 });
+
+describe('No Data Error Suppression', () => {
+  let explore: ExploreSimpleSk;
+  let errorEvents: any[] = [];
+
+  beforeEach(async () => {
+    fetchMock.get(/.*\/_\/initpage\/.*/, {
+      dataframe: { paramset: {} },
+    });
+    fetchMock.get('/_/login/status', {
+      email: 'someone@example.org',
+      roles: ['editor'],
+    });
+    fetchMock.post('/_/count/', {
+      count: 0,
+      paramset: {},
+    });
+
+    errorEvents = [];
+    document.addEventListener('error-sk', (e: any) => {
+      errorEvents.push(e.detail);
+    });
+
+    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    await fetchMock.flush(true);
+  });
+
+  afterEach(() => {
+    fetchMock.reset();
+  });
+
+  it('suppresses error if data exists and new fetch is empty', async () => {
+    const now = 1726081856;
+    const timeSpan = 89;
+    const initialTraceKey = ',config=test,';
+    const initialDataFrame = generateFullDataFrame(
+      { begin: 1, end: 100 },
+      now,
+      1,
+      [timeSpan],
+      [[10, 20]],
+      [initialTraceKey]
+    );
+    initialDataFrame.traceMetadata = [];
+
+    const dummyRequest: FrameRequest = {
+      queries: ['config=test'],
+      request_type: 0,
+      begin: 0,
+      end: 0,
+      tz: '',
+    };
+    const frameResponseWithData: FrameResponse = {
+      dataframe: initialDataFrame,
+      anomalymap: {},
+      skps: [],
+      msg: '',
+      display_mode: 'display_plot',
+    };
+    await explore.UpdateWithFrameResponse(frameResponseWithData, dummyRequest, true);
+
+    // Clear any errors from initial load (if any)
+    errorEvents = [];
+
+    // 2. Call with empty data
+    const emptyResponse: FrameResponse = {
+      dataframe: {
+        traceset: TraceSet({}),
+        header: [],
+        paramset: ReadOnlyParamSet({}),
+        skip: 0,
+        traceMetadata: [],
+      },
+      anomalymap: {},
+      skps: [],
+      msg: '',
+      display_mode: 'display_plot',
+    };
+
+    await explore.UpdateWithFrameResponse(emptyResponse, dummyRequest, true);
+
+    // Expect NO error
+    assert.isEmpty(errorEvents);
+  });
+
+  it('shows error if no data exists and new fetch is empty', async () => {
+    // 1. Ensure no data (fresh element)
+    // Clear errors
+    errorEvents = [];
+
+    const dummyRequest: FrameRequest = {
+      queries: ['config=test'],
+      request_type: 0,
+      begin: 0,
+      end: 0,
+      tz: '',
+    };
+
+    // 2. Call with empty data
+    const emptyResponse: FrameResponse = {
+      dataframe: {
+        traceset: TraceSet({}),
+        header: [],
+        paramset: ReadOnlyParamSet({}),
+        skip: 0,
+        traceMetadata: [],
+      },
+      anomalymap: {},
+      skps: [],
+      msg: '',
+      display_mode: 'display_plot',
+    };
+
+    await explore.UpdateWithFrameResponse(emptyResponse, dummyRequest, true);
+
+    // Expect error
+    assert.isNotEmpty(errorEvents);
+    assert.include(errorEvents[0].message, 'No data found');
+  });
+});
