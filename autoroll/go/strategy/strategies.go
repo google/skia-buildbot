@@ -13,7 +13,7 @@ const (
 	ROLL_STRATEGY_SINGLE  = "single"
 
 	// The number of Revisions to use in ROLL_STRATEGY_N_BATCH.
-	N_REVISIONS = 20
+	N_REVISIONS = 10
 )
 
 // NextRollStrategy is an interface for modules which determine what the next
