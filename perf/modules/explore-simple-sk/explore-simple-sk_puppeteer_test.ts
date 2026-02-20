@@ -121,20 +121,30 @@ describe('explore-simple-sk', () => {
       await testBed.page.click('#demo-show-query-dialog');
       const querySkPO = simplePageSkPO.querySk;
 
-      await querySkPO.setCurrentQuery(paramSet);
+      await querySkPO.setCurrentQuery(paramSet2);
       await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
 
-      const initialCount = await simplePageSkPO.queryCountSkPO.getCount();
-      expect(initialCount).to.be.greaterThan(0);
+      // Validate ParamSets before clearing the selections.
+      const paramSetBeforeClearing = await simplePageSkPO.summaryParamsetSkPO.getParamSets();
+      expect(validateParamSet(paramSetBeforeClearing, paramSet2)).to.be.true;
+      expect(await simplePageSkPO.queryCountText.innerText).to.equal(
+        EXPECTED_QUERY_COUNT.toString(),
+        'Initial count does not match with the expected query count'
+      );
 
       await querySkPO.clickClearSelections();
-
       await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
-      const updatedCount = await simplePageSkPO.queryCountSkPO.getCount();
 
-      // Assert that the updated query count is different.
-      expect(updatedCount).to.equal(0);
-      expect(updatedCount).to.not.equal(initialCount);
+      // Validate ParamSets after clearing the selections.
+      const paramSetAfterClearing = await simplePageSkPO.summaryParamsetSkPO.getParamSets();
+      expect(paramSetAfterClearing.length).to.equal(
+        0,
+        'ParamSets should be empty after clearing selections'
+      );
+      expect(await simplePageSkPO.queryCountText.innerText).to.equal(
+        '0',
+        'Query count should be 0'
+      );
     });
 
     it('should update matches count when a query is refined and then a parameter is removed from paramset-sk', async () => {
@@ -143,19 +153,21 @@ describe('explore-simple-sk', () => {
 
       const querySkPO = simplePageSkPO.querySk;
 
-      await querySkPO.setCurrentQuery(paramSet);
+      await querySkPO.setCurrentQuery(paramSet2);
       await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
       const initialKeys = await querySkPO.getKeys();
-      const initialCount = await simplePageSkPO.queryCountSkPO.getCount();
-      expect(initialKeys).to.have.length.greaterThan(0);
+      expect(await simplePageSkPO.queryCountText.innerText).to.equal(
+        EXPECTED_QUERY_COUNT.toString(),
+        'The initial count does not match with the expected query count'
+      );
 
       const keyToClick = initialKeys[0];
       await querySkPO.clickKey(keyToClick);
       await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
 
-      await querySkPO.clickValue(paramSet[keyToClick as keyof typeof paramSet][0]);
+      await querySkPO.clickValue(paramSet2[keyToClick as keyof typeof paramSet2][0]);
       await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
-      const refinedQuery = { ...paramSet, config: ['8888'] }; // Add a filter
+      const refinedQuery = { ...paramSet2, config: ['8888'] }; // Add a filter
       await querySkPO.setCurrentQuery(refinedQuery);
       await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
       const countAfterRefinement = await querySkPO.getKeys();
@@ -165,15 +177,13 @@ describe('explore-simple-sk', () => {
       );
 
       const keyToRemove = initialKeys[0];
-      const valueToRemove = paramSet[keyToClick as keyof typeof paramSet][0];
+      const valueToRemove = paramSet2[keyToClick as keyof typeof paramSet2][0];
       await simplePageSkPO.summaryParamsetSkPO.removeSelectedValue(keyToRemove, valueToRemove);
       await simplePageSkPO.queryCountSkPO.waitForSpinnerInactive();
 
-      const finalCount = await simplePageSkPO.queryCountSkPO.getCount();
-      // Expect the count to revert to the initial broad query's count.
-      expect(finalCount).to.equal(
-        initialCount,
-        'Count should revert to initial broad query count after removal'
+      expect(await simplePageSkPO.queryCountText.innerText).to.equal(
+        EXPECTED_QUERY_COUNT.toString(),
+        'The final count does not match with the expected query count'
       );
     });
   });
