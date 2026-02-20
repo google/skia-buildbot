@@ -6,9 +6,8 @@
  * uses the global `window.perf.commit_range_url`, which can be set on Perf via
  * the command line.
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html, LitElement, PropertyValues } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { lookupCids } from '../cid/cid';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { ColumnHeader, CommitNumber } from '../json';
@@ -25,20 +24,29 @@ const defaultcommitNumberToHashes = async (cids: CommitNumber[]): Promise<string
   return [json.commitSlice![0].hash, json.commitSlice![1].hash];
 };
 
-export class CommitRangeSk extends ElementSk {
-  private _trace: number[] = [];
+@customElement('commit-range-sk')
+export class CommitRangeSk extends LitElement {
+  @property({ attribute: false })
+  trace: number[] = [];
 
-  private _commitIndex: number = -1;
+  @property({ type: Number, attribute: 'commit-index' })
+  commitIndex: number = -1;
 
-  private _header: (ColumnHeader | null)[] | null = null;
+  @property({ attribute: false })
+  header: (ColumnHeader | null)[] | null = null;
 
-  private _htmlTemplate = html``;
+  @property({ attribute: false })
+  hashes: string[] | null = null;
 
-  private _commitIds: [CommitNumber, CommitNumber] | null = null;
+  @state()
+  private _text: string = '';
 
-  private _hashes: string[] | null = null;
+  @state()
+  private _url: string = '';
 
   private _autoload: boolean = true;
+
+  private _commitIds: [CommitNumber, CommitNumber] | null = null;
 
   private currentRequestId: number = 0;
 
@@ -55,43 +63,42 @@ export class CommitRangeSk extends ElementSk {
 
     let hashes: string[] = [];
     if (this._autoload) {
-      const hashesResult = await defaultcommitNumberToHashes(cids);
-      hashes = hashesResult;
+      hashes = await defaultcommitNumberToHashes(cids);
+      this.hashCache.set(cacheKey, hashes);
+      return hashes;
     }
 
-    if (hashes.length > 0) {
-      this.hashCache.set(cacheKey, hashes);
-    }
-    return hashes;
+    return [];
   };
 
-  constructor() {
-    super(CommitRangeSk.template);
+  createRenderRoot() {
+    return this;
   }
 
-  private static template = (ele: CommitRangeSk) => html`${ele.htmlTemplate}`;
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._upgradeProperty('trace');
-    this._upgradeProperty('commitIndex');
-    this._upgradeProperty('header');
-    this._render();
+  protected willUpdate(changedProperties: PropertyValues): void {
+    if (
+      changedProperties.has('trace') ||
+      changedProperties.has('commitIndex') ||
+      changedProperties.has('header') ||
+      changedProperties.has('hashes')
+    ) {
+      this.recalcLink(changedProperties);
+    }
   }
 
   reset(): void {
-    this._commitIndex = -1;
-    this._trace = [];
-    this._header = null;
-    this._htmlTemplate = html``;
+    this.commitIndex = -1;
+    this.trace = [];
+    this.header = null;
+    this.hashes = null;
+    this._text = '';
+    this._url = '';
     this._commitIds = null;
-    this._hashes = null;
-    this._render();
   }
 
   clear(): void {
-    this._htmlTemplate = html``;
-    this._render();
+    this._text = '';
+    this._url = '';
   }
 
   /** Check start and end commits and determines if delta is more than 1.
@@ -121,65 +128,57 @@ export class CommitRangeSk extends ElementSk {
    */
   async setRange(start: CommitNumber, end: CommitNumber): Promise<void> {
     this._commitIds = [start, end];
-    this._hashes = null;
-    await this.generateLink();
+    this.hashes = null;
+    this.updateText();
+    await this.recalcLink();
   }
 
   /**
    * Recalculates the link based on the current state of the object.
    * If there is not enough information to build the link, it clears the
    * current link.
-   *
-   * Supported URL formats for commit_range_url in k8s-config yaml files:
-   * https://<googlesource_repo>/+log/{begin}..{end}
-   * https://<github_repo>/commits/{end}
-   *
-   * GitHub does not support ranges in the URL.
-   * When only one commit is being referenced, the {begin}.. is removed
-   * from the URL.
    */
-  async recalcLink(): Promise<void> {
-    if (window.perf.commit_range_url === '' || this._commitIndex === -1) {
-      this.clear();
-      return;
-    }
-
-    const newCommitIds = this.setCommitIds(this._commitIndex);
-    if (!newCommitIds || newCommitIds.length !== 2) {
-      this.clear();
-      return;
-    }
-
-    // If the commit IDs have changed then the hashes are no longer valid.
-    if (
-      !this._commitIds ||
-      this._commitIds[0] !== newCommitIds[0] ||
-      this._commitIds[1] !== newCommitIds[1]
-    ) {
-      this._hashes = null;
-    }
-    this._commitIds = newCommitIds;
-    await this.generateLink();
-  }
-
-  private async generateLink(): Promise<void> {
+  async recalcLink(changedProperties?: PropertyValues): Promise<void> {
     this.currentRequestId++;
     const requestId = this.currentRequestId;
+
+    if (window.perf.commit_range_url === '') {
+      this.clear();
+      return;
+    }
+
+    if (this.commitIndex !== -1) {
+      const newCommitIds = this.setCommitIds(this.commitIndex);
+      if (!newCommitIds || newCommitIds.length !== 2) {
+        this.clear();
+        return;
+      }
+      // If the commit IDs have changed then the hashes are no longer valid.
+      if (
+        !this._commitIds ||
+        this._commitIds[0] !== newCommitIds[0] ||
+        this._commitIds[1] !== newCommitIds[1]
+      ) {
+        if (!changedProperties?.has('hashes')) {
+          this.hashes = null;
+        }
+      }
+      this._commitIds = newCommitIds;
+    } else if (!this._commitIds) {
+      // If commitIndex is -1 and no manual range set, clear.
+      this.clear();
+      return;
+    }
 
     try {
       if (!this._commitIds || this._commitIds.length !== 2) {
         this.clear();
         return;
       }
-      let text = `${this._commitIds[1]}`;
-      // Check if there are no points between start and end.
-      const isRange = this.isRange();
 
-      if (isRange) {
-        // Add +1 to the previous commit to only show commits after previous.
-        text = `${this._commitIds[0] + 1} - ${this._commitIds[1]}`;
-      }
-      this.htmlTemplate = html`<a href="javascript:void(0)" style="cursor: default;">${text}</a>`;
+      this.updateText();
+      // Clear URL while fetching new hashes or if irrelevant
+      this._url = '';
 
       if (!this.hashes) {
         // Run the commit numbers through cid lookup to get the hashes.
@@ -198,6 +197,7 @@ export class CommitRangeSk extends ElementSk {
         if (url.includes('{end}')) {
           url = url.replace('{end}', this.hashes[1]);
         }
+        const isRange = this.isRange();
         if (isRange) {
           // Handle range URLs (Googlesource)
           if (url.includes('{begin}')) {
@@ -215,7 +215,7 @@ export class CommitRangeSk extends ElementSk {
             }
             // If GitHub, show short hash instead of commit number.
             if (url.includes('github')) {
-              text = this.hashes[1].substring(0, 7);
+              this._text = this.hashes[1].substring(0, 7);
             }
           }
         }
@@ -224,9 +224,10 @@ export class CommitRangeSk extends ElementSk {
           return;
         }
 
-        this.htmlTemplate = html`<a href="${url}" target="_blank">${text}</a>`;
+        this._url = url;
+
         // Ensure element is connected to tooltip before dispatching event.
-        if (this._connected) {
+        if (this.isConnected) {
           this.dispatchEvent(
             new CustomEvent('commit-range-changed', {
               bubbles: true, // Allows parent elements to catch the event.
@@ -241,59 +242,19 @@ export class CommitRangeSk extends ElementSk {
     }
   }
 
-  /** A single trace. */
-  get trace(): number[] {
-    return this._trace;
-  }
-
-  set trace(val: number[]) {
-    this._trace = val;
-    this.recalcLink();
-  }
-
-  /** An index into trace, the location of the commit being referenced. */
-  get commitIndex(): number {
-    return this._commitIndex;
-  }
-
-  set commitIndex(val: number) {
-    this._commitIndex = val;
-    this.recalcLink();
-  }
-
-  /** The ColumnHeader of the DataFrame that contains the trace. */
-  get header(): (ColumnHeader | null)[] | null {
-    return this._header;
-  }
-
-  set header(val: (ColumnHeader | null)[] | null) {
-    this._header = val;
-    this.recalcLink();
-  }
-
-  /** The hashes of the commits. */
-  get hashes(): string[] | null {
-    return this._hashes;
-  }
-
-  set hashes(val: string[] | null) {
-    if (val !== null && val.length > 1) {
-      // Only set the hashes if there are two hashes.
-      this._hashes = val;
-      this.recalcLink();
+  private updateText(): void {
+    if (!this._commitIds || this._commitIds.length !== 2) {
+      return;
     }
-  }
+    let text = `${this._commitIds[1]}`;
+    // Check if there are no points between start and end.
+    const isRange = this.isRange();
 
-  set htmlTemplate(val: any) {
-    // If the template is the same, don't re-render.
-    if (this._htmlTemplate !== val) {
-      this._htmlTemplate = val;
-      this._render();
+    if (isRange) {
+      // Add +1 to the previous commit to only show commits after previous.
+      text = `${this._commitIds[0] + 1} - ${this._commitIds[1]}`;
     }
-  }
-
-  get htmlTemplate() {
-    return this._htmlTemplate;
+    this._text = text;
   }
 
   set autoload(val: boolean) {
@@ -301,14 +262,14 @@ export class CommitRangeSk extends ElementSk {
   }
 
   setCommitIds(commitIndex: number): [CommitNumber, CommitNumber] | null {
-    if (this._trace.length === 0 || this._header === null) {
+    if (this.trace.length === 0 || this.header === null) {
       this.clear();
       return null;
     }
     // First the previous commit that has data.
     let prevCommit = commitIndex - 1;
 
-    while (prevCommit > 0 && this._trace[prevCommit] === MISSING_DATA_SENTINEL) {
+    while (prevCommit > 0 && this.trace[prevCommit] === MISSING_DATA_SENTINEL) {
       prevCommit -= 1;
     }
 
@@ -318,14 +279,19 @@ export class CommitRangeSk extends ElementSk {
       return null;
     }
 
-    const startOffset = this._header[prevCommit]?.offset ?? null;
-    const endOffset = this._header[commitIndex]?.offset ?? null;
+    const startOffset = this.header[prevCommit]?.offset ?? null;
+    const endOffset = this.header[commitIndex]?.offset ?? null;
     if (startOffset === null || endOffset === null) {
       this.clear();
       return null;
     }
     return [startOffset, endOffset];
   }
-}
 
-define('commit-range-sk', CommitRangeSk);
+  render() {
+    if (this._url) {
+      return html`<a href="${this._url}" target="_blank">${this._text}</a>`;
+    }
+    return html`<span style="cursor: default">${this._text}</span>`;
+  }
+}

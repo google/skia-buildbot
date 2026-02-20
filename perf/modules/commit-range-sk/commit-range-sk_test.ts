@@ -95,6 +95,7 @@ describe('commit-range-sk', () => {
       // The MISSING_DATA_SENTINEL should be skipped.
       element.trace = [12, MISSING_DATA_SENTINEL, 13];
       await element.recalcLink();
+      await element.updateComplete;
       assert.equal(
         element.querySelector<HTMLAnchorElement>('a')!.href,
         'http://example.com/range/+log/11111111111111111111111111111..33333333333333333333333333333'
@@ -111,6 +112,7 @@ describe('commit-range-sk', () => {
     };
     element.trace = [11, 12, 13];
     await element.recalcLink();
+    await element.updateComplete;
     assert.equal(
       element.querySelector<HTMLAnchorElement>('a')!.href,
       'http://example.com/range/+/22222222222222222222222222222'
@@ -126,6 +128,7 @@ describe('commit-range-sk', () => {
     };
     element.trace = [11, 12, 13];
     await element.recalcLink();
+    await element.updateComplete;
     assert.equal(
       element.querySelector<HTMLAnchorElement>('a')!.href,
       'https://github.com/example/repo/commits/22222222222222222222222222222'
@@ -143,14 +146,17 @@ describe('commit-range-sk', () => {
 
       element.trace = [11, 12, 13];
       const recalcPromise = element.recalcLink();
+      await element.updateComplete;
 
-      const link = element.querySelector<HTMLAnchorElement>('a')!;
-      assert.equal(link.href, 'javascript:void(0)');
-      assert.equal(link.style.cursor, 'default');
-      assert.equal(link.textContent, '64811');
+      const span = element.querySelector<HTMLSpanElement>('span')!;
+      assert.isNotNull(span);
+      assert.isNull(element.querySelector('a'));
+      assert.equal(span.style.cursor, 'default');
+      assert.equal(span.textContent, '64811');
 
       resolveHashes!(['1111', '2222']);
       await recalcPromise;
+      await element.updateComplete;
 
       assert.equal(
         element.querySelector<HTMLAnchorElement>('a')!.href,
@@ -187,6 +193,7 @@ describe('commit-range-sk', () => {
 
       resolveSecond!(['2222', '3333']);
       await secondRecalc;
+      await element.updateComplete;
       const finalHref = element.querySelector<HTMLAnchorElement>('a')!.href;
       assert.include(finalHref, '3333');
 
@@ -216,9 +223,15 @@ describe('commit-range-sk', () => {
       await element.recalcLink();
       const countAfterFirst = fetchStub.callCount;
       assert.isAtLeast(countAfterFirst, 1);
+
+      // Wait for everything to settle
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
+
       assert.include(element.querySelector<HTMLAnchorElement>('a')!.href, 'hash-end');
 
       await element.recalcLink();
+      await element.updateComplete;
       assert.equal(fetchStub.callCount, countAfterFirst);
     });
   });

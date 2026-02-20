@@ -18,8 +18,6 @@ sk_element(
     sass_srcs = ["commit-range-sk.scss"],
     ts_deps = [
         "//:node_modules/lit",
-        "//elements-sk/modules:define_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/cid:cid_ts_lib",
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",

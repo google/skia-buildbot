@@ -6,7 +6,15 @@ export class CommitRangeSkPO extends PageObject {
     return this.bySelector('a');
   }
 
+  get text(): PageObjectElement {
+    return this.bySelector('a, span');
+  }
+
   async getHref(): Promise<string> {
     return (await this.link.getAttribute('href')) ?? '';
+  }
+
+  async getText(): Promise<string> {
+    return (await this.text.innerText) ?? '';
   }
 }
