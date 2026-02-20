@@ -22,46 +22,32 @@
  *
  * "test" is ignored as its value is empty, and "subtest_1"'s value is truncated.
  */
-import { html, TemplateResult } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html, TemplateResult, LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 
 const MAX_PARAMS = 8;
 
-export class GraphTitleSk extends ElementSk {
-  private _titleEntries: Map<string, string> | null = null;
+@customElement('graph-title-sk')
+export class GraphTitleSk extends LitElement {
+  @property({ attribute: false })
+  titleEntries: Map<string, string> | null = null;
 
-  private numTraces: number = 0;
+  @property({ type: Number })
+  numTraces: number = 0;
 
+  @state()
   private showShortTitle = true;
 
-  constructor() {
-    super(GraphTitleSk.template);
-  }
-
-  private static template = (ele: GraphTitleSk) => html`
-    <div id="container" ?hidden=${ele.numTraces === 0}>${ele.getTitleHtml()}</div>
-  `;
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._render();
+  createRenderRoot() {
+    return this;
   }
 
   /**
    * Public function to set title entries and render.
    */
   set(titleEntries: Map<string, string> | null, numTraces: number): void {
-    this._titleEntries = titleEntries;
+    this.titleEntries = titleEntries;
     this.numTraces = numTraces;
-    this._render();
-  }
-
-  /**
-   * Public function to set title entries and render.
-   */
-  get titleEntries(): Map<string, string> | null {
-    return this._titleEntries;
   }
 
   /**
@@ -72,20 +58,20 @@ export class GraphTitleSk extends ElementSk {
    * @returns - a list of HTML-formatted titleEntries.
    */
   private getTitleHtml(): TemplateResult[] {
-    if (this._titleEntries === null || this.numTraces === 0) {
+    if (this.titleEntries === null || this.numTraces === 0) {
       return [];
     }
 
-    if (this._titleEntries.size === 0 && this.numTraces > 0) {
+    if (this.titleEntries.size === 0 && this.numTraces > 0) {
       return [html`<h1>Multi-trace Graph (${this.numTraces} traces)</h1>`];
     }
 
     const elems: TemplateResult[] = [];
 
-    const showShort = this.showShortTitle && this._titleEntries.size > MAX_PARAMS;
+    const showShort = this.showShortTitle && this.titleEntries.size > MAX_PARAMS;
 
     let index = 0;
-    this._titleEntries!.forEach((value, key) => {
+    this.titleEntries.forEach((value, key) => {
       if (showShort && index >= MAX_PARAMS) {
         return;
       }
@@ -115,13 +101,13 @@ export class GraphTitleSk extends ElementSk {
 
   showFullTitle() {
     this.showShortTitle = false;
-    this._render();
   }
 
   showShortTitles() {
     this.showShortTitle = true;
-    this._render();
+  }
+
+  render() {
+    return html` <div id="container" ?hidden=${this.numTraces === 0}>${this.getTitleHtml()}</div> `;
   }
 }
-
-define('graph-title-sk', GraphTitleSk);
