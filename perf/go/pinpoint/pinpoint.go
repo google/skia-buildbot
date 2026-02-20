@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
@@ -166,7 +167,8 @@ func buildTryJobRequestURL(req CreateLegacyTryRequest) (string, error) {
 		params.Set("benchmark", req.Benchmark)
 	}
 	if req.Story != "" {
-		params.Set("story", req.Story)
+		// TODO(b/485841164): Replace with the unescaped name when it is available.
+		params.Set("story", dotify(req.Story))
 	}
 	if req.ExtraTestArgs != "" {
 		params.Set("extra_test_args", req.ExtraTestArgs)
@@ -262,7 +264,8 @@ func buildBisectRequestParams(createBisectRequest CreateBisectRequest) url.Value
 		params.Set("benchmark", createBisectRequest.Benchmark)
 	}
 	if createBisectRequest.Story != "" {
-		params.Set("story", createBisectRequest.Story)
+		// TODO(b/485841164): Replace with the unescaped name when it is available.
+		params.Set("story", dotify(createBisectRequest.Story))
 	}
 	if createBisectRequest.Chart != "" {
 		params.Set("chart", createBisectRequest.Chart)
@@ -304,4 +307,8 @@ func extractErrorMessage(responseBody []byte) string {
 		return errorResponse.Error
 	}
 	return string(responseBody)
+}
+
+func dotify(input string) string {
+	return strings.ReplaceAll(input, "_", ".")
 }

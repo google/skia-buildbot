@@ -95,6 +95,14 @@ func TestBuildChromeperfBisectRequestUrlPopulatesRequiredFields(t *testing.T) {
 	assert.Equal(t, expected, parsedURL.Query())
 }
 
+func TestBuildChromeperfBisectRequestUrlReplacesUnderscores(t *testing.T) {
+	req := CreateBisectRequest{Story: "qwe_asd"}
+	builtURL := buildChromeperfBisectRequestURL(req)
+	parsedURL, err := url.Parse(builtURL)
+	assert.NoError(t, err)
+	assert.Equal(t, "qwe.asd", parsedURL.Query().Get("story"))
+}
+
 func TestBuildPinpointBisectRequestUrlPopulatesAllFields(t *testing.T) {
 	req := CreateBisectRequest{
 		ComparisonMode:      "performance",
@@ -152,6 +160,14 @@ func TestBuildPinpointBisectRequestUrlPopulatesRequiredFields(t *testing.T) {
 	assert.Equal(t, expected, parsedURL.Query())
 }
 
+func TestBuildPinpointBisectRequestUrlReplacesUnderscores(t *testing.T) {
+	req := CreateBisectRequest{Story: "qwe_asd"}
+	builtURL := buildPinpointBisectRequestURL(req)
+	parsedURL, err := url.Parse(builtURL)
+	assert.NoError(t, err)
+	assert.Equal(t, "qwe.asd", parsedURL.Query().Get("story"))
+}
+
 func TestGetBisectRequestUrlForNewAnomalies(t *testing.T) {
 	url := getBisectRequestURL(CreateBisectRequest{}, true)
 	assert.Contains(t, url, pinpointLegacyURL)
@@ -160,4 +176,22 @@ func TestGetBisectRequestUrlForNewAnomalies(t *testing.T) {
 func TestGetBisectRequestUrlForOldAnomalies(t *testing.T) {
 	url := getBisectRequestURL(CreateBisectRequest{}, false)
 	assert.Contains(t, url, chromeperfLegacyBisectURL)
+}
+
+func TestDotify(t *testing.T) {
+	var tests = []struct {
+		name        string
+		input       string
+		expectation string
+	}{
+		{"Empty string", "", ""},
+		{"Nothing to replace", "asd", "asd"},
+		{"Multiple underscores", "__qwe_asd___zxc_", "..qwe.asd...zxc."},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.expectation, dotify(test.input))
+		})
+	}
 }
