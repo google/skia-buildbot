@@ -101,6 +101,34 @@ export class ZoomSk extends ElementDocSk {
           <tr>
             <td colspan="2">Click the image again to turn off keyboard navigation.</td>
           </tr>
+          <tr>
+            <th>Numpad8</th>
+            <td>CTM up</td>
+          </tr>
+          <tr>
+            <th>Numpad2</th>
+            <td>CTM down</td>
+          </tr>
+          <tr>
+            <th>Numpad4</th>
+            <td>CTM left</td>
+          </tr>
+          <tr>
+            <th>Numpad6</th>
+            <td>CTM right</td>
+          </tr>
+          <tr>
+            <th>NumpadPlus</th>
+            <td>Zoom in</td>
+          </tr>
+          <tr>
+            <th>NumpadMinus</th>
+            <td>Zoom out</td>
+          </tr>
+          <tr>
+            <th>Numpad0</th>
+            <td>Reset CTM</td>
+          </tr>
         </table>
       </details>`;
 

@@ -46,10 +46,7 @@ import '../../../infra-sk/modules/app-sk';
 
 // Types for the wasm bindings
 import type {
-  Canvas,
-  CanvasKit,
   CanvasKitInitOptions,
-  Paint,
   Surface,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -326,6 +323,10 @@ export class DebuggerPageSk extends ElementDocSk {
 
   private _showOrigin = false;
 
+  private _matrix: DOMMatrix = new DOMMatrix();
+
+  private _origin: Point = [0, 0];
+
   constructor() {
     super(DebuggerPageSk.template);
 
@@ -428,15 +429,21 @@ export class DebuggerPageSk extends ElementDocSk {
   // Updates the Jump button with the result.
   // Consider disabling this feature alltogether for CPU backed debugging, too slow.
   private _updateJumpButton(p: Point): void {
+    this._origin = p;
     if (!this._debugViewSk!.crosshairActive) {
       return; // Too slow to do this on every mouse move.
     }
+    const skcanvas = this._surface!.getCanvas();
+    skcanvas.save();
+    const m = this._matrix;
+    skcanvas.concat([m.a, m.b, m.e, m.c, m.d, m.f]);
     this._pointCommandIndex = this._fileContext!.player.findCommandByPixel(
       this._surface!,
       p[0],
       p[1],
       this._targetItem
     );
+    skcanvas.restore();
     this._render();
   }
 
@@ -479,7 +486,7 @@ export class DebuggerPageSk extends ElementDocSk {
     // MSKP files have a variable sized header before the internal SKP with the version
     // number we're looking for.
     const head = new Uint8Array(fileContents).subarray(0, 2000);
-    function isMagicWord(element: number, index: number, array: Uint8Array) {
+    function isMagicWord(_element: number, index: number, array: Uint8Array) {
       return utf8decoder.decode(array.subarray(index, index + 8)) === 'skiapict';
     }
     // Note that we want to locate the offset in a Uint8Array, not in a string that
@@ -665,11 +672,16 @@ export class DebuggerPageSk extends ElementDocSk {
       return; // Return early if no file. commands-sk tests load data to that
       // modules but not a whole file.
     }
+    const skcanvas = this._surface!.getCanvas();
+    skcanvas.save();
+    const m = this._matrix;
+    skcanvas.concat([m.a, m.b, m.e, m.c, m.d, m.f]);
     if (this._drawToEnd) {
       this._fileContext!.player!.draw(this._surface!);
     } else {
       this._fileContext!.player!.drawTo(this._surface!, this._targetItem);
     }
+    skcanvas.restore();
     if (!this._gpuMode) {
       this._surface!.flush();
     }
@@ -763,6 +775,43 @@ export class DebuggerPageSk extends ElementDocSk {
     }
     const [x, y] = this._zoom!.point;
     // If adding a case here, document it in the user-visible keyboard shortcuts area.
+    switch (e.code) {
+      case 'Numpad8':
+        this._matrix.translateSelf(0, 10);
+        this._updateDebuggerView();
+        e.preventDefault();
+        break;
+      case 'Numpad2':
+        this._matrix.translateSelf(0, -10);
+        this._updateDebuggerView();
+        e.preventDefault();
+        break;
+      case 'Numpad4':
+        this._matrix.translateSelf(10, 0);
+        this._updateDebuggerView();
+        e.preventDefault();
+        break;
+      case 'Numpad6':
+        this._matrix.translateSelf(-10, 0);
+        this._updateDebuggerView();
+        e.preventDefault();
+        break;
+      case 'NumpadAdd':
+        this._matrix.scaleSelf(1.25, 1.25, 1, this._origin[0], this._origin[1], 0);
+        this._updateDebuggerView();
+        e.preventDefault();
+        break;
+      case 'NumpadSubtract':
+        this._matrix.scaleSelf(1 / 1.25, 1 / 1.25, 1, this._origin[0], this._origin[1], 0);
+        this._updateDebuggerView();
+        e.preventDefault();
+        break;
+      case 'Numpad0':
+        this._matrix = new DOMMatrix();
+        this._updateDebuggerView();
+        e.preventDefault();
+        break;
+    }
     switch (e.keyCode) {
       case 74: // J
         this._updateCursor(x, y + 1);
