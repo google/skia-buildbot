@@ -451,26 +451,27 @@ export class ExploreMultiSk extends ElementSk {
         // split graphs.
         this.addEmptyGraph(true);
         this.renderCurrentPage(false);
-        const mainGraph = this.currentPageExploreElements[0];
-        if (!mainGraph) {
+        // Note: We use this.exploreElements[0] directly instead of a local variable
+        // because splitGraphs() recreates the graphs, invalidating any local reference.
+        if (!this.exploreElements[0]) {
           return;
         }
-        await mainGraph.requestComplete;
+        await this.exploreElements[0].requestComplete;
 
         const CHUNK_SIZE = 5;
-        const groupdToLoadInChunks = Math.min(this.state.pageSize, groups.length);
-        for (let i = 0; i < groupdToLoadInChunks; ) {
+        const groupedToLoadInChunks = Math.min(this.state.pageSize, groups.length);
+        for (let i = 0; i < groupedToLoadInChunks; ) {
           // The first chunk is always of size 1 - this is to avoid showing the primary
           // graph / "unsplit" mode.
           const chunkSize = CHUNK_SIZE;
-          const endGroupIndex = Math.min(i + chunkSize, groupdToLoadInChunks);
+          const endGroupIndex = Math.min(i + chunkSize, groupedToLoadInChunks);
           const chunk = groups.slice(i, endGroupIndex);
           if (chunk.length === 0) {
             break; // No more groups to process.
           }
 
           this.setProgress(`Loading graphs ${i + 1}-${endGroupIndex} of ${groups.length}`);
-          await mainGraph.addFromQueryOrFormula(
+          await this.exploreElements[0].addFromQueryOrFormula(
             /*replace=*/ false,
             'query',
             fromParamSet(this.mergeParamSets(chunk)),
@@ -480,7 +481,7 @@ export class ExploreMultiSk extends ElementSk {
             // queries fetching the same data + creates concurrency issues.
             /*loadExtendedRange=*/ false
           );
-          await mainGraph.requestComplete;
+          await this.exploreElements[0].requestComplete;
           await this.splitGraphs(/*showErrorIfLoading=*/ false, /*splitIfOnlyOneGraph=*/ true);
 
           i = endGroupIndex;
@@ -488,10 +489,10 @@ export class ExploreMultiSk extends ElementSk {
 
         // We were postponing loading more data until all the graphs are ready. Now it's time.
         this.setProgress(`Loading more data for all graphs...`);
-        if (groups.length > groupdToLoadInChunks) {
+        if (groups.length > groupedToLoadInChunks) {
           // Note that we load all the graphs, even if they don't fit in one page. It slows down
           // the initial load, but speeds up page navigation and "Load All Graphs".
-          await mainGraph.addFromQueryOrFormula(
+          await this.exploreElements[0].addFromQueryOrFormula(
             /*replace=*/ true,
             'query',
             fromParamSet(this.mergeParamSets(groups)),
@@ -500,9 +501,11 @@ export class ExploreMultiSk extends ElementSk {
             /*loadExtendedRange=*/ true
           );
         } else {
-          await mainGraph.loadExtendedRangeData(mainGraph.getSelectedRange()!);
+          await this.exploreElements[0].loadExtendedRangeData(
+            this.exploreElements[0].getSelectedRange()!
+          );
         }
-        await mainGraph.requestComplete;
+        await this.exploreElements[0].requestComplete;
         await this.splitGraphs();
       }
     } catch (err: unknown) {

@@ -64,14 +64,40 @@ export const anomalyTable = [
     bug_cc_emails: [],
     bisect_ids: [],
   },
+  {
+    id: '789',
+    test_path: ',arch=arm,os=Mac10.13,',
+    bug_id: 0,
+    start_revision: 67129,
+    end_revision: 67130,
+    is_improvement: false,
+    recovered: false,
+    state: 'untriaged',
+    statistic: 'avg',
+    units: 'ms',
+    degrees_of_freedom: 1,
+    median_before_anomaly: 38.0,
+    median_after_anomaly: 45.0,
+    p_value: 0.01,
+    segment_size_after: 10,
+    segment_size_before: 10,
+    std_dev_before_anomaly: 1,
+    t_statistic: 5,
+    subscription_name: 'test',
+    bug_component: '',
+    bug_labels: [],
+    bug_cc_emails: [],
+    bisect_ids: [],
+  },
 ];
 
 const GROUP_REPORT_RESPONSE: GetGroupReportResponse = {
   sid: '',
-  anomaly_list: anomalyTable,
+  anomaly_list: anomalyTable.slice(0, 2),
   timerange_map: {
     '123': { begin: 1687870256, end: 1687872763 },
     '456': { begin: 1687870256, end: 1687872763 },
+    '789': { begin: 1687870256, end: 1687872763 },
   },
   selected_keys: ['123'], // Pre-select the first anomaly
   error: '',
@@ -83,6 +109,12 @@ const STATUS_ID = 'd25fedcc-7e36-47e4-83d5-58ab76b2d3d1';
 export const MOCK_TRACE_KEY_1 = ',arch=arm,os=Android,';
 export const MOCK_TRACE_KEY_2 = ',arch=arm,os=Ubuntu,';
 export const MOCK_TRACE_KEY_3 = ',arch=x86_64,os=Debian11,';
+
+// New keys for existing OS options to ensure full coverage for arch=arm
+export const MOCK_TRACE_KEY_DEBIAN10 = ',arch=arm,os=Debian10,';
+export const MOCK_TRACE_KEY_DEBIAN11 = ',arch=arm,os=Debian11,';
+export const MOCK_TRACE_KEY_MAC = ',arch=arm,os=Mac10.13,';
+export const MOCK_TRACE_KEY_WIN = ',arch=arm,os=Win2019,';
 
 export const normalTracesResponse = {
   status: 'Finished',
@@ -108,6 +140,20 @@ export const normalTracesResponse = {
           18.6, 18.2, 18.3, 18.1, 18.4, 18.0, 18.6, 18.2, 18.3, 18.1, 18.4,
         ],
         [MOCK_TRACE_KEY_3]: [
+          10.51672, 10.434168, 10.47146, 10.494012, 10.464116, 15.2, 14.9, 15.3, 15.1, 15.4, 15.0,
+          15.6, 15.2, 15.3, 15.1, 15.4, 15.0, 15.6, 15.2, 15.3, 15.1, 15.4, 15.0, 15.6, 15.2, 15.3,
+          15.1, 15.4, 15.0, 15.6, 15.2, 15.3, 15.1, 15.4, 15.0, 15.6, 15.2, 15.3, 15.1, 15.4, 15.0,
+          15.6, 15.2, 15.3, 15.1, 15.4, 15.0, 15.6, 15.2, 15.3, 15.1, 15.4,
+        ],
+        [MOCK_TRACE_KEY_DEBIAN10]: new Array(50).fill(20.0),
+        [MOCK_TRACE_KEY_DEBIAN11]: new Array(50).fill(25.0),
+        [MOCK_TRACE_KEY_MAC]: [
+          10.51672, 10.434168, 10.47146, 10.494012, 10.464116, 15.2, 14.9, 15.3, 15.1, 15.4, 15.0,
+          15.6, 15.2, 15.3, 15.1, 15.4, 15.0, 15.6, 15.2, 15.3, 15.1, 15.4, 15.0, 15.6, 15.2, 15.3,
+          15.1, 15.4, 15.0, 15.6, 15.2, 15.3, 15.1, 15.4, 15.0, 15.6, 15.2, 15.3, 15.1, 15.4, 15.0,
+          15.6, 15.2, 15.3, 15.1, 15.4, 15.0, 15.6, 15.2, 15.3, 15.1, 15.4,
+        ],
+        [MOCK_TRACE_KEY_WIN]: [
           10.51672, 10.434168, 10.47146, 10.494012, 10.464116, 15.2, 14.9, 15.3, 15.1, 15.4, 15.0,
           15.6, 15.2, 15.3, 15.1, 15.4, 15.0, 15.6, 15.2, 15.3, 15.1, 15.4, 15.0, 15.6, 15.2, 15.3,
           15.1, 15.4, 15.0, 15.6, 15.2, 15.3, 15.1, 15.4, 15.0, 15.6, 15.2, 15.3, 15.1, 15.4, 15.0,
@@ -334,6 +380,9 @@ export const normalTracesResponse = {
       },
       [MOCK_TRACE_KEY_2]: {
         67130: anomalyTable[1],
+      },
+      [MOCK_TRACE_KEY_MAC]: {
+        67130: anomalyTable[2],
       },
     },
   },

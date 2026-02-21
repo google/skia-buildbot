@@ -5,6 +5,7 @@ import {
   STANDARD_LAPTOP_VIEWPORT,
   poll,
   waitForElementNotHidden,
+  scrollDownSlowly,
 } from '../common/puppeteer-test-util';
 import { TestPickerSkPO } from '../test-picker-sk/test-picker-sk_po';
 
@@ -282,10 +283,11 @@ describe('Manual Plot Mode', () => {
 
     // Verify trace keys.
     const traces = await explorePO.getGraph(0).getTraceKeys();
-    // Combinations that match mock data: arm/Android, arm/Ubuntu, x86_64/Debian11.
-    expect(traces).to.have.lengthOf(3);
+    // Combinations that match mock data: arm/Android, arm/Ubuntu, arm/Debian11, x86_64/Debian11.
+    expect(traces).to.have.lengthOf(4);
     expect(traces).to.include(',arch=arm,os=Android,');
     expect(traces).to.include(',arch=arm,os=Ubuntu,');
+    expect(traces).to.include(',arch=arm,os=Debian11,');
     expect(traces).to.include(',arch=x86_64,os=Debian11,');
   });
 
@@ -665,6 +667,61 @@ describe('Split Graph Functionality', function () {
     await mergedGraph.clickFirstAnomaly(testBed.page);
     await mergedGraph.waitForAnomalyTooltip();
   });
+
+  it('splits graph into more than 5 graphs and loads all of them (batch loading)', async () => {
+    // Navigate with plotSummary=true
+    const queryParams = '?begin=1687855198&end=1687961973&plotSummary=true';
+    await testBed.page.goto(testBed.baseUrl + queryParams);
+    await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
+
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    // Select 'arm' to filter down
+    await testPickerPO.waitForPickerField(0);
+    const archField = await testPickerPO.getPickerField(0);
+    await archField.select('arm');
+    await testPickerPO.waitForSpinnerInactive();
+
+    // Select All OS options
+    await testPickerPO.waitForPickerField(1);
+    const osField = await testPickerPO.getPickerField(1);
+    await waitForElementNotHidden(osField.selectAllCheckbox);
+    await osField.checkAll();
+    await testPickerPO.waitForSpinnerInactive();
+
+    // Check Split by OS
+    await waitForElementNotHidden(osField.splitByCheckbox);
+    await osField.checkSplit();
+
+    // Click Plot
+    await testPickerPO.clickPlotButton();
+
+    // Verify that the last graph (index 6) is loaded.
+    // getGraph(0) is Summary. getGraph(1)..getGraph(6) are split graphs.
+    await explorePO.waitForGraph(6, GRAPH_LOAD_TIMEOUT_MS);
+
+    // Check that the last graph has traces.
+    const lastGraph = explorePO.getGraph(6);
+    const traces = await lastGraph.getTraceKeys();
+    expect(traces.length).to.be.greaterThan(0);
+
+    // Scroll to the bottom of the page
+    await scrollDownSlowly(testBed.page);
+
+    const key = traces[0];
+    const pointIndex = 10;
+    const coords = await lastGraph.getTraceCoordinates(key, pointIndex);
+    await testBed.page.mouse.move(coords!.x, coords!.y);
+
+    // Verify hover indicator is visible
+    const isHoverVisible = await lastGraph.googleChart.applyFnToDOMNode((el) => {
+      const indicator = el.shadowRoot?.querySelector('.hover-indicator') as HTMLElement;
+      return indicator && indicator.style.display !== 'none';
+    });
+    // https://screenshot.googleplex.com/3cE5KtBTnZ3dyqF
+    expect(isHoverVisible).to.be.true;
+  });
 });
 
 describe('Test Picker Interactions', () => {
@@ -699,7 +756,7 @@ describe('Test Picker Interactions', () => {
     await explorePO.waitForGraphCount(1);
     await explorePO.waitForGraph(0);
 
-    expect(await explorePO.getGraph(0).getTraceKeys()).to.have.lengthOf(2);
+    expect(await explorePO.getGraph(0).getTraceKeys()).to.have.lengthOf(6);
   });
 
   it('splits before plotting and plots multiple graphs', async () => {

@@ -104,3 +104,27 @@ export function validateParamSet(actual: any[], expected: any): boolean {
   }
   return true;
 }
+
+/**
+ * Scrolls the page down slowly.
+ * This is primarily intended for visual inspection by a human observer during test execution,
+ * allowing them to see the content as it scrolls into view.
+ */
+export async function scrollDownSlowly(page: any): Promise<void> {
+  await page.evaluate(async () => {
+    await new Promise<void>((resolve) => {
+      let totalHeight = 0;
+      const distance = window.innerHeight / 2;
+      const timer = setInterval(() => {
+        const scrollHeight = document.body.scrollHeight;
+        window.scrollBy(0, distance);
+        totalHeight += distance;
+
+        if (totalHeight >= scrollHeight) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, 1000);
+    });
+  });
+}
