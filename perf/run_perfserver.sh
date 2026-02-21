@@ -273,21 +273,32 @@ start_server() {
 
   # Determine bazel output directory
   find_bazel_bin() {
-    if [ -d "_bazel_bin/perf/pages/development" ]; then
-      echo "_bazel_bin"
-    elif [ -d "bazel-bin/perf/pages/development" ]; then
-      echo "bazel-bin"
-    fi
+    for dir in _bazel_bin bazel-bin; do
+      if [ -d "$dir/perf/pages/development" ]; then
+        echo "$dir"
+        return
+      fi
+    done
   }
 
   BAZEL_BIN=$(find_bazel_bin)
+  NEEDS_BUILD=false
 
   if [ -z "$BAZEL_BIN" ]; then
-    echo "Build artifacts not found. Running build..."
+    NEEDS_BUILD=true
+  else
+    REQUIRED_RESOURCE="$BAZEL_BIN/perf/pages/development/newindex.html"
+    if [ ! -f "$REQUIRED_RESOURCE" ]; then
+      NEEDS_BUILD=true
+    fi
+  fi
+
+  if [ "$NEEDS_BUILD" = true ]; then
+    echo "Build artifacts not found or incomplete. Running build..."
     build_server
     BAZEL_BIN=$(find_bazel_bin)
     if [ -z "$BAZEL_BIN" ]; then
-      echo "Error: Could not find build artifacts after build."
+      echo "Error: Could not find build directory after build."
       return 1
     fi
   fi
@@ -295,14 +306,8 @@ start_server() {
   # Verify critical resource existence to avoid crash-on-request
   REQUIRED_RESOURCE="$BAZEL_BIN/perf/pages/development/newindex.html"
   if [ ! -f "$REQUIRED_RESOURCE" ]; then
-    echo "Required resource not found: $REQUIRED_RESOURCE"
-    echo "Running build..."
-    build_server
-    # Check again
-    if [ ! -f "$REQUIRED_RESOURCE" ]; then
-      echo "Error: Required resource still not found after build: $REQUIRED_RESOURCE"
+      echo "Error: Required resource not found after build: $REQUIRED_RESOURCE"
       return 1
-    fi
   fi
 
   $BAZEL_BIN/perf/go/perfserver/perfserver_/perfserver frontend \
