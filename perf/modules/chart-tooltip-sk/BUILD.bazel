@@ -24,7 +24,6 @@ sk_element(
         "//perf/modules/triage-menu-sk",
         "//perf/modules/user-issue-sk",
         "//elements-sk/modules/icons/close-icon-sk",
-        "//elements-sk/modules/icons/check-icon-sk",
         "//perf/modules/point-links-sk",
         "//perf/modules/bisect-dialog-sk",
         "//perf/modules/pinpoint-try-job-dialog-sk",

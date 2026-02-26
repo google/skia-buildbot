@@ -66,23 +66,9 @@ chart-tooltip-sk {
         color: var(--primary);
       }
     }
-    .revlink {
-      margin-bottom: 4px;
-    }
 
     button[hidden] {
       display: None;
-    }
-
-    #close {
-      float: right;
-    }
-
-    .see-more-text {
-      text-decoration: underline;
-      font-style: italic;
-      display: flex;
-      justify-content: center;
     }
 
     .buttons {
@@ -108,13 +94,6 @@ chart-tooltip-sk {
       min-width: 90px;
       max-width: 100px;
       text-shadow: 0px 1px var(--md-sys-color-background);
-    }
-    #tooltip-link {
-      font-weight: bold;
-      display: table-cell;
-      text-align: left;
-      min-width: 80px;
-      max-width: 200px;
     }
     #tooltip-text {
       display: table-cell;

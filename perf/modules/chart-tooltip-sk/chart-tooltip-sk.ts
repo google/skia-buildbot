@@ -25,7 +25,6 @@ import '../bisect-dialog-sk/bisect-dialog-sk';
 import '../pinpoint-try-job-dialog-sk/pinpoint-try-job-dialog-sk';
 import { UserIssueSk } from '../user-issue-sk/user-issue-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
-import '../../../elements-sk/modules/icons/check-icon-sk';
 import '@material/web/elevation/elevation.js';
 import { formatSpecialFunctions } from '../paramtools';
 import '../point-links-sk/point-links-sk';
@@ -90,10 +89,6 @@ export class ChartTooltipSk extends ElementSk {
   show_bisect_button = !!window.perf?.show_bisect_btn;
 
   private triageMenu: TriageMenuSk | null = null;
-
-  private preloadBisectInputs: BisectPreloadParams | null = null;
-
-  private preloadTryJobInputs: TryJobPreloadParams | null = null;
 
   private _is_tooltip_fixed: boolean = false;
 
@@ -354,16 +349,12 @@ export class ChartTooltipSk extends ElementSk {
   connectedCallback(): void {
     super.connectedCallback();
     upgradeProperty(this, 'test_name');
-    upgradeProperty(this, 'unit_value');
     upgradeProperty(this, 'y_value');
     upgradeProperty(this, 'commit_position');
-    upgradeProperty(this, 'commit');
     upgradeProperty(this, 'anomaly');
     upgradeProperty(this, 'bug_host_url');
     upgradeProperty(this, 'bug_id');
-    upgradeProperty(this, 'preloadBisectInputs');
     upgradeProperty(this, 'color');
-    upgradeProperty(this, 'preloadTryJobInputs');
     this._render();
 
     this.commitRangeSk = this.querySelector('#tooltip-commit-range-link');
@@ -550,14 +541,12 @@ export class ChartTooltipSk extends ElementSk {
   }
 
   setBisectInputParams(preloadInputs: BisectPreloadParams): void {
-    this.preloadBisectInputs = preloadInputs;
-    this.bisectDialog!.setBisectInputParams(this.preloadBisectInputs);
+    this.bisectDialog!.setBisectInputParams(preloadInputs);
     this._render();
   }
 
   setTryJobInputParams(preloadInputs: TryJobPreloadParams): void {
-    this.preloadTryJobInputs = preloadInputs;
-    this.tryJobDialog!.setTryJobInputParams(this.preloadTryJobInputs);
+    this.tryJobDialog!.setTryJobInputParams(preloadInputs);
     this._render();
   }
 
