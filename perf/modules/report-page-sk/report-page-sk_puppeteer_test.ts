@@ -346,6 +346,29 @@ describe('report-page-sk', () => {
   });
 
   describe('tooltip actions', () => {
+    it('verify Anomaly Regression in the tooltip', async () => {
+      const tooltipPO = await openTooltip(0);
+      await tooltipPO.getTriageMenu;
+
+      await poll(async () => {
+        return !(await tooltipPO.container.bySelector('#anomaly-details').isEmpty());
+      }, 'Anomaly details should be visible');
+
+      const anomalyDetails = await tooltipPO.container.bySelector('#anomaly-details');
+      expect(await anomalyDetails.isEmpty(), 'Anomaly details should be visible').to.be.false;
+
+      const keys = await anomalyDetails.bySelectorAll('#tooltip-key');
+      const keyTexts = await keys.map(async (el) => await el.innerText);
+      expect(keyTexts).to.include('Anomaly', 'Anomaly key should be visible');
+
+      const regressionSpan = await anomalyDetails.bySelector('span.regression');
+      expect(await regressionSpan.isEmpty(), 'Regression span should be visible').to.be.false;
+      expect(await regressionSpan.innerText).to.equal(
+        'Regression',
+        'Anomaly type should be Regression'
+      );
+    });
+
     it('verify new bug button', async () => {
       // https://screenshot.googleplex.com/577QkbXf2BVShas
       const tooltipPO = await openTooltip(0);
@@ -392,6 +415,7 @@ describe('report-page-sk', () => {
 
     it('verify Request Trace button', async () => {
       const tooltipPO = await openTooltip(0);
+      await tooltipPO.getTriageMenu;
       const tryJobBtn = await tooltipPO.container.bySelector('#try-job');
 
       await poll(async () => {
@@ -452,6 +476,56 @@ describe('report-page-sk', () => {
         initialRange!.end,
         'New summary end must be equal to the initial summary end'
       );
+    });
+
+    it('verify ignore anomaly button', async () => {
+      const tooltipPO = await openTooltip(0);
+      const triageMenuSkPO = await tooltipPO.getTriageMenu;
+
+      await triageMenuSkPO.ignoreButton.click();
+      // Wait to get a response.
+      await new Promise((r) => setTimeout(r, 500));
+
+      await poll(async () => {
+        const tooltipTexts = tooltipPO.container.bySelectorAll('#tooltip-text');
+        const texts = await tooltipTexts.map(async (el) => await el.innerText);
+        return texts.includes('Ignored Alert');
+      }, 'Tooltip should show "Ignored Alert"');
+    });
+
+    it('verify Nudge buttons in the tooltip', async () => {
+      const tooltipPO = await openTooltip(0);
+      await tooltipPO.getTriageMenu;
+
+      // Verify Nudge label is visible
+      await poll(async () => {
+        const keys = await tooltipPO.container.bySelectorAll('#tooltip-key');
+        const keyTexts = await keys.map((el) => el.innerText);
+        return keyTexts.includes('Nudge');
+      }, 'Nudge label should be visible');
+
+      // Verify Nudge buttons presence
+      const nudgeValues = ['-2', '-1', '0', '1', '2'];
+      for (const val of nudgeValues) {
+        const btn = await tooltipPO.container.bySelector(`button[value="${val}"]`);
+        expect(await btn.isEmpty(), 'Nudge button should be visible').to.be.false;
+
+        const expectedText = val === '0' ? '0' : parseInt(val) > 0 ? `+${val}` : val;
+        expect((await btn.innerText).trim()).to.equal(expectedText);
+      }
+    });
+
+    it('verify Bisect button in the tooltip', async () => {
+      const tooltipPO = await openTooltip(0);
+      await tooltipPO.getTriageMenu;
+
+      const bisectBtn = await tooltipPO.container.bySelector('#bisect');
+      expect(await bisectBtn.isEmpty()).to.be.false;
+      expect((await bisectBtn.innerText).trim()).to.equal('Bisect');
+
+      await bisectBtn.click();
+      const bisectDialog = await testBed.page.$('bisect-dialog-sk');
+      expect(bisectDialog).to.not.be.null;
     });
   });
 });

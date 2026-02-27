@@ -79,6 +79,17 @@ fetchMock.post('/_/try/', async () => {
   };
 });
 
+fetchMock.post('/_/triage/edit_anomalies', async (_url, opts: any) => {
+  const body = JSON.parse(opts.body);
+  return {
+    status: 200,
+    body: JSON.stringify({
+      keys: body.keys,
+      action: body.action,
+    }),
+  };
+});
+
 defaultConfig.include_params = ['benchmark', 'bot', 'master', 'test'];
 
 fetchMock.get('/_/defaults/', defaultConfig);
