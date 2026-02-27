@@ -107,14 +107,6 @@ describe('triage-menu-sk', () => {
     });
   });
 
-  describe('open new bug dialog', () => {
-    it('calls open on the new bug dialog', () => {
-      const spy = sinon.spy(element.newBugDialog!, 'open');
-      element.openNewBugDialog();
-      assert.isTrue(spy.calledOnce);
-    });
-  });
-
   describe('open existing bug dialog', () => {
     it('calls open on the existing bug dialog', () => {
       const spy = sinon.spy(element.existingBugDialog!, 'open');

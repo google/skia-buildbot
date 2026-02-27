@@ -125,17 +125,9 @@ export class TriageMenuSk extends LitElement {
     </div>`;
   }
 
-  connectedCallback(): void {
-    super.connectedCallback();
-  }
-
   fileBug() {
     telemetry.increaseCounter(CountMetric.TriageActionTaken, { action: 'file_bug' });
     this.newBugDialog!.fileNewBug();
-  }
-
-  openNewBugDialog() {
-    this.newBugDialog!.open();
   }
 
   openExistingBugDialog() {
