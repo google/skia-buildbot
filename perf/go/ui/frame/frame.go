@@ -720,8 +720,9 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 	return df, nil
 }
 
-// filterTraceSet filters the DataFrame in-memory based on the keysWithMissingSentinel map.
-// It keeps traces where the key is missing (or empty) OR the key's value matches one of the allowed values.
+// filterTraceSet filters the DataFrame in-memory. It removes traces with
+// invalid/unparseable keys and keeps traces where the key's parameters
+// are missing (or empty) OR match one of the allowed values in keysWithMissingSentinel.
 func filterTraceSet(df *dataframe.DataFrame, keysWithMissingSentinel map[string]map[string]bool) {
 	if len(keysWithMissingSentinel) == 0 {
 		return
@@ -729,6 +730,8 @@ func filterTraceSet(df *dataframe.DataFrame, keysWithMissingSentinel map[string]
 	for key := range df.TraceSet {
 		params, err := query.ParseKey(key)
 		if err != nil {
+			sklog.Errorf("Failed to parse key %q: %s", key, err)
+			delete(df.TraceSet, key)
 			continue
 		}
 		if !pqp.FilterParams(params, keysWithMissingSentinel) {

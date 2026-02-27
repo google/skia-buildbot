@@ -623,3 +623,26 @@ func buildResponse(t *testing.T) *FrameResponse {
 	require.NoError(t, err)
 	return resp
 }
+
+func TestFilterTraceSet_InvalidKey_LogAndRemove(t *testing.T) {
+	_, df, _ := frameRequestForTest(t)
+	// Add an invalid key to the trace set.
+	invalidKey := "invalid-key-no-commas"
+	df.TraceSet[invalidKey] = types.Trace{1, 2, 3}
+
+	// Add a valid key.
+	validKey := ",arch=x86,config=8888,"
+	df.TraceSet[validKey] = types.Trace{4, 5, 6}
+
+	// Prepare keysWithMissingSentinel (required for filterTraceSet to run).
+	keysWithMissingSentinel := map[string]map[string]bool{
+		"config": {"8888": true},
+	}
+
+	// Call filterTraceSet.
+	filterTraceSet(df, keysWithMissingSentinel)
+
+	// Verify invalid key is gone.
+	assert.NotContains(t, df.TraceSet, invalidKey, "Invalid key should be removed")
+	assert.Contains(t, df.TraceSet, validKey, "Valid key should be kept")
+}
