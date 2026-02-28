@@ -111,14 +111,9 @@ func main() {
 						return err
 					}
 
-					var topicStore topicstore.TopicStore
-					if config.UseRepositoryTopics {
-						topicStore = topicstore.NewRepositoryTopicStore(spannerClient)
-					} else {
-						topicStore = topicstore.New(spannerClient)
-					}
+					topicStore := topicstore.NewRepositoryTopicStore(spannerClient)
 					sklog.Infof("Creating a new history ingester.")
-					ingester := history.New(topicStore, config.OutputDimensionality, config.UseRepositoryTopics, config.DefaultRepoName)
+					ingester := history.New(topicStore, config.OutputDimensionality, config.DefaultRepoName)
 					embeddingFilePath := filepath.Join(directoryPath, embeddingFileName)
 					indexFilePath := filepath.Join(directoryPath, indexFileName)
 					topicsDirPath := filepath.Join(directoryPath, topicsDirName)

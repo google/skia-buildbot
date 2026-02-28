@@ -17,7 +17,7 @@ import (
 func TestHistoryIngester_IngestTopics_RepoExtraction(t *testing.T) {
 	ctx := context.Background()
 	mockTopicStore := mocks.NewTopicStore(t)
-	ingester := New(mockTopicStore, 768, true, "default-repo")
+	ingester := New(mockTopicStore, 768, "default-repo")
 
 	tempDir, err := os.MkdirTemp("", "ingester-test-*")
 	require.NoError(t, err)
@@ -70,7 +70,7 @@ func TestHistoryIngester_IngestTopics_RepoExtraction(t *testing.T) {
 func TestHistoryIngester_IngestTopics_DefaultRepo(t *testing.T) {
 	ctx := context.Background()
 	mockTopicStore := mocks.NewTopicStore(t)
-	ingester := New(mockTopicStore, 768, false, "default-repo")
+	ingester := New(mockTopicStore, 768, "default-repo")
 
 	tempDir, err := os.MkdirTemp("", "ingester-test-default-*")
 	require.NoError(t, err)

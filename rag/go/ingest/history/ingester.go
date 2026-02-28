@@ -30,9 +30,6 @@ type HistoryIngester struct {
 	// The output dimensionality for the instance.
 	outputDimensionality int
 
-	// Whether to use repository topics.
-	useRepositoryTopics bool
-
 	// The default repository name to use.
 	defaultRepoName string
 
@@ -41,11 +38,10 @@ type HistoryIngester struct {
 }
 
 // New returns a new instance of the history ingester.
-func New(topicStore topicstore.TopicStore, dimensionality int, useRepositoryTopics bool, defaultRepoName string) *HistoryIngester {
+func New(topicStore topicstore.TopicStore, dimensionality int, defaultRepoName string) *HistoryIngester {
 	return &HistoryIngester{
 		topicStore:           topicStore,
 		outputDimensionality: dimensionality,
-		useRepositoryTopics:  useRepositoryTopics,
 		defaultRepoName:      defaultRepoName,
 
 		// Init the metric objects.
