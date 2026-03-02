@@ -1,0 +1,156 @@
+{
+    "URL": "https://androidx2-perf-autopush.skia.org",
+    "instance_name": "AndroidX (Autopush)",
+    "header_image_url": "/dist/images/androidx.svg",
+    "contact": "http://go/androidx-discuss",
+    "ga_measurement_id": "G-YDQJ6YQGFM",
+    "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",
+    "trace_sample_proportion": 0.2,
+    "notify_config": {
+      "notifications": "markdown_issuetracker",
+      "data_provider": "android",
+      "issue_tracker_api_key_secret_project": "skia-infra-public",
+      "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey",
+      "subject": "{{ .Alert.DisplayName }} - Regression between {{ .PreviousCommit.Subject }} and {{ .RegressionCommit.Subject }}",
+      "body": [
+            "Perf Regression ({{ .Cluster.StepFit.Status }}) found, matching {{ .Cluster.Num }} tracked metrics from benchmarks.",
+            "",
+            "To triage this regression, see the guide at [go/androidx-bench-triage](http://go/androidx-bench-triage).",
+            "",
+            "* [Graph on dashboard]({{ .DashboardUrl }})",
+            "* [Alert details]({{ .URL }}/g/t/{{ .RegressionCommit.GitHash }})",
+            "* [CLs in range]({{ .GetBuildIdUrlDiff }})",
+            "* [{{ .Alert.DisplayName }} alert config]({{ .URL }}/a/?{{ .Alert.IDAsString }})",
+            "",
+            "Tests affected:",
+            "```",
+            "{{ range index .Tests }} {{ . }}",
+            "{{end}}```",
+            ""
+        ]
+    },
+    "auth_config": {
+      "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+      "datastore_type": "spanner",
+      "connection_string": "postgresql://root@localhost:5432/androidx?sslmode=disable",
+      "tile_size": 512,
+      "min_db_connections": 5
+    },
+    "experiments": {
+    },
+    "ingestion_config": {
+      "source_config": {
+        "source_type": "gcs",
+        "project": "skia-public",
+        "topic": "perf-ingestion-android2-spanner-production",
+        "subscription": "perf-ingestion-android2-spanner-production-prod",
+        "sources": [
+          "gs://android-perf-2/android2"
+        ]
+      },
+      "branches": [],
+      "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+      "provider": "gitiles",
+      "url": "https://android.googlesource.com/platform/superproject",
+      "dir": "/tmp/androidx",
+      "debounce_commit_url": false,
+      "branch": "androidx-main",
+      "start_commit": "5f8b9aa0feafff7548336998a17723cb792cdb53"
+    },
+    "anomaly_config": {
+      "settling_time": "5h"
+    },
+    "query_config": {
+      "include_params": [
+        "test_class",
+        "test_method",
+        "metric",
+        "stat",
+        "device_name",
+        "os_version"
+      ],
+      "default_param_selections": {
+        "branch_name": ["aosp-androidx-main"]
+      },
+      "default_url_values": {
+        "plotSummary": "true",
+        "useTestPicker": "true",
+        "showZero": "true",
+        "enable_chart_tooltip": "true",
+        "show_google_plot": "true",
+        "use_titles": "true"
+      },
+      "query_commit_chunk_size": 7000,
+      "default_xaxis_domain": "date",
+      "default_trigger_priority": {
+        "metric": ["timeNs", "timeToInitialDisplayMs", "frameDurationCpuMs"]
+      },
+      "conditional_defaults": [
+        {
+          "trigger": {
+            "param": "metric",
+            "values": ["timeNs"]
+          },
+          "apply": [
+            { "param": "stat", "values": ["min"], "select_only_first": true },
+            { "param": "device_name", "values": ["sargo", "mokey"], "select_only_first": true },
+            { "param": "os_version", "values": ["API_31_S", "API_34_U"], "select_only_first": true }
+          ]
+        },
+        {
+          "trigger": {
+            "param": "metric",
+            "values": ["timeToInitialDisplayMs"]
+          },
+          "apply": [
+            { "param": "stat", "values": ["median"], "select_only_first": true },
+            { "param": "device_name", "values": ["sargo", "mokey"], "select_only_first": true },
+            { "param": "os_version", "values": ["API_31_S", "API_34_U"], "select_only_first": true }
+          ]
+        },
+        {
+          "trigger": {
+            "param": "metric",
+            "values": ["frameDurationCpuMs"]
+          },
+          "apply": [
+            { "param": "stat", "values": ["P50", "P90", "P95", "P99"], "select_only_first": false },
+            { "param": "device_name", "values": ["sargo", "mokey"], "select_only_first": true },
+            { "param": "os_version", "values": ["API_31_S", "API_34_U"], "select_only_first": true }
+          ]
+        }
+      ]
+    },
+    "data_point_config": {
+      "keys_for_useful_links": [
+        "ART mainline version",
+        "ATI Page",
+        "Build ID",
+        "Device fingerprint",
+        "Profiling Traces and Test Artifacts",
+        "Trace",
+        "Trace Iteration 0",
+        "Trace Iteration 1",
+        "Trace Iteration 2",
+        "Trace Iteration 3",
+        "Trace Iteration 4",
+        "Trace Iteration 5",
+        "Trace Iteration 6",
+        "Trace Iteration 7",
+        "Trace Iteration 8",
+        "Trace Iteration 9",
+        "appApkSha256",
+        "testApkSha256"
+      ],
+      "enable_point_links": true,
+      "show_json_file_display": true,
+      "always_show_commit_info": true
+    },
+    "optimize_sqltracestore": true,
+    "show_triage_link": true,
+    "show_bisect_btn": false
+}
