@@ -3,7 +3,7 @@
 
 <head>
   {%- template "googleanalytics" . -%}
-  <title>{% if .InstanceName %}{% .InstanceName %} Perf{% else %}Performance Monitoring{% end %} | Help</title>
+  <title>Help ({% if .InstanceName %}{% .InstanceName %} Perf{% else %}Performance Monitoring{% end %})</title>
   <script type="text/javascript" charset="utf-8" nonce="{% .Nonce %}">
     window.perf = {% .Context %};
   </script>
