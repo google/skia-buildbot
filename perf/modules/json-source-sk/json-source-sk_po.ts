@@ -3,11 +3,11 @@ import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_ob
 
 export class JsonSourceSkPO extends PageObject {
   get viewJsonFileButton(): PageObjectElement {
-    return this.bySelector('#view-source');
+    return this.bySelector('.view-source');
   }
 
   get viewShortJsonFileButton(): PageObjectElement {
-    return this.bySelector('#load-source');
+    return this.bySelector('.load-source');
   }
 
   get pre(): PageObjectElement {
@@ -27,10 +27,10 @@ export class JsonSourceSkPO extends PageObject {
   }
 
   async getJsonFromDialog(): Promise<string> {
-    return await this.bySelector('#json-dialog pre').innerText;
+    return await this.bySelector('.json-dialog .json-source pre').innerText;
   }
 
   async isDialogVisible(): Promise<boolean> {
-    return await this.bySelector('#json-dialog').hasAttribute('open');
+    return await this.bySelector('.json-dialog').hasAttribute('open');
   }
 }

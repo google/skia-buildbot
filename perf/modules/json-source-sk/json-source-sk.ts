@@ -7,156 +7,147 @@
  * id.
  *
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { $$ } from '../../../infra-sk/modules/dom';
+import { html, LitElement, nothing } from 'lit';
+import { customElement, property, state, query } from 'lit/decorators.js';
+import { Task } from '@lit/task';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
-import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetailsRequest, CommitNumber } from '../json';
 
 import '../../../elements-sk/modules/spinner-sk';
 import { validKey } from '../paramtools';
 
-export class JSONSourceSk extends ElementSk {
-  private _json: string;
+import '@material/web/button/outlined-button.js';
 
-  private _cid: CommitNumber = CommitNumber(-1);
+@customElement('json-source-sk')
+export class JSONSourceSk extends LitElement {
+  @property({ type: Number })
+  cid: CommitNumber = CommitNumber(-1);
 
-  private _traceid: string;
+  @property({ type: String })
+  traceid: string = '';
 
-  private _spinner: SpinnerSk | null = null;
+  @state()
+  private _fetchParams: { isSmall: boolean } | null = null;
 
-  private showJsonDialog: HTMLDialogElement | null = null;
+  @state()
+  private _dialogOpen = false;
 
-  constructor() {
-    super(JSONSourceSk.template);
-    this._json = '';
-    this._traceid = '';
+  @query('.json-dialog')
+  private dialog!: HTMLDialogElement;
+
+  private _fetchCommitDetailsTask = new Task(this, {
+    task: async ([params], { signal }) => {
+      if (!params || !this.validTraceID() || this.cid === -1) {
+        // Return null or initial state if we shouldn't fetch yet
+        return null;
+      }
+
+      try {
+        const body: CommitDetailsRequest = {
+          cid: this.cid,
+          traceid: this.traceid,
+        };
+
+        let url = '/_/details/';
+        if (params.isSmall) {
+          url += '?results=false';
+        }
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+          signal,
+        });
+
+        const json = await jsonOrThrow(response);
+        return JSON.stringify(json, null, '  ');
+      } catch (e) {
+        errorMessage(e as any);
+        throw e;
+      }
+    },
+    args: () => [this._fetchParams] as const,
+  });
+
+  createRenderRoot() {
+    return this;
   }
 
-  private static template = (ele: JSONSourceSk) => html`
-    <div class="controls" ?hidden=${!ele.validTraceID()}>
-      <button id="view-source" @click=${ele._loadSource}>View Json File</button>
-
-      <button id="load-source" @click=${ele._loadSourceSmall}>View Short Json File</button>
-    </div>
-
-    <dialog id="json-dialog">
-      <button id="closeIcon" @click=${ele.closeJsonDialog}>
-        <close-icon-sk></close-icon-sk>
-      </button>
-
-      <spinner-sk id="spinner"></spinner-sk>
-
-      ${ele.jsonFile()}
-    </dialog>
-  `;
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._render();
-    this._spinner = $$('#spinner', this);
-    this.showJsonDialog = this.querySelector('#json-dialog');
+  // Handle opening/closing the modal dialog based on state changes.
+  updated(changedProperties: Map<string, any>) {
+    if (changedProperties.has('_dialogOpen')) {
+      if (this._dialogOpen) {
+        if (!this.dialog.open) {
+          this.dialog.showModal();
+        }
+      } else {
+        if (this.dialog.open) {
+          this.dialog.close();
+        }
+      }
+    }
   }
 
   private validTraceID(): boolean {
-    return validKey(this._traceid);
+    return validKey(this.traceid);
   }
 
-  /** @prop cid - The Commit ID. */
-  get cid(): CommitNumber {
-    return this._cid;
-  }
-
-  set cid(val: CommitNumber) {
-    this._cid = val;
-    this._json = '';
-    this._render();
-  }
-
-  /** @prop traceid - The ID of the trace. */
-  get traceid(): string {
-    return this._traceid;
-  }
-
-  set traceid(val: string) {
-    this._traceid = val;
-    this._json = '';
-    this._render();
-  }
-
-  private async _loadSource() {
-    if (await this._loadSourceImpl(false)) {
-      this.openJsonDialog();
+  private _loadSource() {
+    if (!this.validTraceID() || this.cid === -1) {
+      return;
     }
+    this._fetchParams = { isSmall: false };
+    this._dialogOpen = true;
   }
 
-  private async _loadSourceSmall() {
-    if (await this._loadSourceImpl(true)) {
-      this.openJsonDialog();
+  private _loadSourceSmall() {
+    if (!this.validTraceID() || this.cid === -1) {
+      return;
     }
+    this._fetchParams = { isSmall: true };
+    this._dialogOpen = true;
   }
 
-  private async _loadSourceImpl(isSmall: boolean) {
-    if (this._spinner!.active === true) {
-      return false;
-    }
-    if (!this.validTraceID()) {
-      return false;
-    }
-    if (this.cid === -1) {
-      return false;
-    }
-    const body: CommitDetailsRequest = {
-      cid: this.cid,
-      traceid: this.traceid,
-    };
-    this._spinner!.active = true;
-    let url = '/_/details/';
-    if (isSmall) {
-      url += '?results=false';
-    }
-    return await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
-      .then(jsonOrThrow)
-      .then(async (json) => {
-        this._json = JSON.stringify(json, null, '  ');
-        this._spinner!.active = false;
-        this._render();
-        return true;
-      })
-      .catch((e) => {
-        this._spinner!.active = false;
-        errorMessage(e);
-        return false;
-      });
+  private _closeJsonDialog() {
+    this._dialogOpen = false;
+    this._fetchParams = null;
   }
 
-  private jsonFile() {
-    if (this._json! !== '') {
-      return html` <div id="json-source">
-        <pre>${this._json}</pre>
-      </div>`;
-    }
-  }
+  render() {
+    return html`
+      <div class="controls" ?hidden=${!this.validTraceID()}>
+        <button class="view-source" @click=${this._loadSource}>View Json File</button>
+        <button class="load-source" @click=${this._loadSourceSmall}>View Short Json File</button>
+      </div>
+      <dialog class="json-dialog">
+        <button class="closeIcon" @click=${this._closeJsonDialog} aria-label="Close">
+          <close-icon-sk></close-icon-sk>
+        </button>
 
-  private openJsonDialog() {
-    this._render();
-    this.showJsonDialog!.showModal();
-  }
-
-  private closeJsonDialog(): void {
-    this._json = '';
-    this._render();
-    this.showJsonDialog!.close();
+        ${this._fetchCommitDetailsTask.render({
+          pending: () => html`<spinner-sk active class="spinner"></spinner-sk>`,
+          complete: (json) => {
+            if (json === null) return nothing;
+            return html`
+              <div class="json-source">
+                <pre>${json}</pre>
+              </div>
+            `;
+          },
+          error: () => html`<div class="error">Error loading JSON</div>`,
+        })}
+      </dialog>
+    `;
   }
 }
 
-define('json-source-sk', JSONSourceSk);
+// Global declaration for TS
+declare global {
+  interface HTMLElementTagNameMap {
+    'json-source-sk': JSONSourceSk;
+  }
+}

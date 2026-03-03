@@ -26,13 +26,13 @@ json-source-sk {
     padding: 8px;
   }
 
-  #json-dialog {
+  .json-dialog {
     position: relative;
     border: solid 1px var(--on-background);
     color: var(--on-background);
     background: var(--background);
 
-    #closeIcon {
+    .closeIcon {
       position: sticky;
       top: 0;
       right: 0;
@@ -45,7 +45,7 @@ json-source-sk {
       z-index: 2;
     }
 
-    #json-source {
+    .json-source {
       position: relative;
       overflow: auto;
       top: 12px;

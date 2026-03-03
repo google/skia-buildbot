@@ -45,8 +45,8 @@ describe('json-source-sk', () => {
       await testBed.page.evaluate(() => {
         document.querySelectorAll('json-source-sk').forEach((el) => {
           const root = el.shadowRoot || el;
-          const dialog = root.querySelector('#json-dialog');
-          const closeBtn = root.querySelector('#closeIcon');
+          const dialog = root.querySelector('.json-dialog');
+          const closeBtn = root.querySelector('.closeIcon');
           if (dialog && dialog.hasAttribute('open') && closeBtn) {
             (closeBtn as HTMLElement).click();
           }
@@ -90,8 +90,8 @@ describe('json-source-sk', () => {
       // Wait for the result
       await testBed.page.waitForFunction(
         (el) => {
-          const dialog = el.querySelector('#json-dialog');
-          return dialog?.hasAttribute('open');
+          const dialog = el.querySelector('.json-dialog');
+          return dialog?.hasAttribute('open') && !!el.querySelector('.json-dialog pre');
         },
         {},
         jsonSourceSk
@@ -117,8 +117,8 @@ describe('json-source-sk', () => {
       // Wait for the result
       await testBed.page.waitForFunction(
         (el) => {
-          const dialog = el.querySelector('#json-dialog');
-          return dialog?.hasAttribute('open');
+          const dialog = el.querySelector('.json-dialog');
+          return dialog?.hasAttribute('open') && !!el.querySelector('.json-dialog pre');
         },
         {},
         jsonSourceSk
@@ -145,9 +145,9 @@ describe('json-source-sk', () => {
       // Perform the action
       await jsonSourceSkPO.clickViewShortJsonFileButton();
 
-      // Check the results: error should be shown instead of modal.
+      // Check the results: error should be shown in the dialog.
       const isVisible = await jsonSourceSkPO.isDialogVisible();
-      expect(isVisible).to.equal(false);
+      expect(isVisible).to.equal(true);
       // Check the error message
       const toastSelector = 'error-toast-sk toast-sk[shown]';
       await testBed.page.waitForSelector(toastSelector);
