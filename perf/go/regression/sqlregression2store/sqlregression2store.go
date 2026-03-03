@@ -146,7 +146,7 @@ var statementFormats = map[statementFormat]string{
 		bug_id=EXCLUDED.bug_id, cluster_summary=EXCLUDED.cluster_summary, cluster_type=EXCLUDED.cluster_type,
 		commit_number=EXCLUDED.commit_number, creation_time=EXCLUDED.creation_time, id=EXCLUDED.id,
 		is_improvement=EXCLUDED.is_improvement, prev_commit_number=EXCLUDED.prev_commit_number,
-		sub_name=EXCLUDED.sub_name, trace_id=EXCLUDED.trace_id
+		sub_name=EXCLUDED.sub_name
 		`,
 	readByIDs: `
 		SELECT
@@ -524,8 +524,7 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 	var triageMessage string
 	var bugId sql.NullInt64
 	var subName sql.NullString
-	var traceIdAsBytes []byte
-	err := rows.Scan(&r.Id, &r.CommitNumber, &r.PrevCommitNumber, &r.AlertId, &subName, &bugId, &r.CreationTime, &r.MedianBefore, &r.MedianAfter, &r.IsImprovement, &clusterType, &clusterSummary, &r.Frame, &traceIdAsBytes, &triageStatus, &triageMessage)
+	err := rows.Scan(&r.Id, &r.CommitNumber, &r.PrevCommitNumber, &r.AlertId, &subName, &bugId, &r.CreationTime, &r.MedianBefore, &r.MedianAfter, &r.IsImprovement, &clusterType, &clusterSummary, &r.Frame, &triageStatus, &triageMessage)
 	if err != nil {
 		return nil, err
 	}
@@ -538,8 +537,6 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 	if subName.Valid && subName.String != "" {
 		r.SubscriptionName = subName.String
 	}
-
-	r.TraceID = traceIDForSQLFromTraceIDAsBytes(traceIdAsBytes)
 
 	r.ClusterType = string(clusterType)
 	switch clusterType {
@@ -723,9 +720,9 @@ func (s *SQLRegression2Store) writeSingleRegression(ctx context.Context, r *regr
 		return skerr.Wrap(err)
 	}
 	if tx == nil {
-		_, err = s.db.Exec(ctx, s.statements[write], r.Id, r.CommitNumber, r.PrevCommitNumber, r.AlertId, r.SubscriptionName, manualTriageBugId, r.CreationTime, r.MedianBefore, r.MedianAfter, r.IsImprovement, clusterType, clusterSummary, r.Frame, r.TraceID, triage.Status, triage.Message)
+		_, err = s.db.Exec(ctx, s.statements[write], r.Id, r.CommitNumber, r.PrevCommitNumber, r.AlertId, r.SubscriptionName, manualTriageBugId, r.CreationTime, r.MedianBefore, r.MedianAfter, r.IsImprovement, clusterType, clusterSummary, r.Frame, triage.Status, triage.Message)
 	} else {
-		_, err = tx.Exec(ctx, s.statements[write], r.Id, r.CommitNumber, r.PrevCommitNumber, r.AlertId, r.SubscriptionName, manualTriageBugId, r.CreationTime, r.MedianBefore, r.MedianAfter, r.IsImprovement, clusterType, clusterSummary, r.Frame, r.TraceID, triage.Status, triage.Message)
+		_, err = tx.Exec(ctx, s.statements[write], r.Id, r.CommitNumber, r.PrevCommitNumber, r.AlertId, r.SubscriptionName, manualTriageBugId, r.CreationTime, r.MedianBefore, r.MedianAfter, r.IsImprovement, clusterType, clusterSummary, r.Frame, triage.Status, triage.Message)
 	}
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to write single regression with id %s", r.Id)
@@ -1075,9 +1072,4 @@ func quotedSlice(a []string) string {
 		q[i] = fmt.Sprintf("'%s'", s)
 	}
 	return strings.Join(q, ", ")
-}
-
-// TODO(b/487966608) use sqltraceparamstore's function here.
-func traceIDForSQLFromTraceIDAsBytes(traceAsBytes []byte) string {
-	return fmt.Sprintf("\\x%x", traceAsBytes)
 }

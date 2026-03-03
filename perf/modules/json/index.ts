@@ -247,7 +247,6 @@ export interface Regression {
 	is_improvement: boolean;
 	cluster_type: string;
 	sub_name: string;
-	trace_id: string;
 }
 
 export interface RegressionAtCommit {
