@@ -1,0 +1,32 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
+
+sk_element(
+    name = "graph-list-sk",
+    sass_srcs = ["graph-list-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/spinner-sk",
+        "//perf/modules/explore-simple-sk",
+        "//perf/modules/plot-google-chart-sk",
+    ],
+    ts_deps = [
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+    ],
+    ts_srcs = [
+        "graph-list-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "graph-list-sk_test",
+    src = "graph-list-sk_test.ts",
+    deps = [
+        ":graph-list-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/explore-simple-sk",
+    ],
+)

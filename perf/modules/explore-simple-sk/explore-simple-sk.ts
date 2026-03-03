@@ -4008,6 +4008,27 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     this.dfRepo.value?.clearAnomalyMap();
     this.clearHighlightedCircles();
   }
+
+  public broadcastSelection() {
+    const range = this.getSelectedRange();
+    if (!range) return;
+
+    const detail: PlotSelectionEventDetails = {
+      graphNumber: this.state.graph_index,
+      value: range,
+      domain: this.state.domain as 'commit' | 'date',
+      start: this.getCommitIndex(range.begin, this.state.domain),
+      end: this.getCommitIndex(range.end, this.state.domain, true),
+    };
+
+    this.dispatchEvent(
+      new CustomEvent('selection-changing-in-multi', {
+        detail: detail,
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
 }
 
 define('explore-simple-sk', ExploreSimpleSk);

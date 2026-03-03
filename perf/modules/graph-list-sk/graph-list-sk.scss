@@ -1,0 +1,22 @@
+graph-list-sk {
+  display: block;
+
+  .load-more-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  .loading-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+
+    .loading-message {
+      margin-left: 10px;
+      font-weight: bold;
+    }
+  }
+}

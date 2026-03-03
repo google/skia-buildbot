@@ -14,10 +14,11 @@ import { errorMessage } from '../errorMessage';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import '../anomalies-table-sk/anomalies-table-sk';
+import '../graph-list-sk/graph-list-sk';
+import { GraphListSk } from '../graph-list-sk/graph-list-sk';
 import { lookupCids } from '../cid/cid';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import '../../../elements-sk/modules/icons/camera-roll-icon-sk';
-import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { CountMetric, SummaryMetric, telemetry } from '../telemetry/telemetry';
 
 const weekInSeconds = 7 * 24 * 60 * 60;
@@ -32,10 +33,6 @@ interface AnomalyDataPoint {
   anomaly: Anomaly;
   // Boolean field to track whether the given anomaly has been selected
   checked: boolean;
-  // The anomaly group this anomaly is associated with
-  // group: AnomalyGroup;
-  // The ExploreSimpleSk object this Anomaly has been graphed for
-  graph: ExploreSimpleSk | null;
   // Begin and end time ranges for the current Anomaly.
   timerange: Timerange;
 }
@@ -62,7 +59,6 @@ class AnomalyTracker {
         anomaly: anomaly,
         // When selectedKeys is null, includes() returns undefined.
         checked: Boolean(selectedKeys?.includes(anomaly.id)),
-        graph: null,
         timerange: timerangeMap[anomaly.id],
       };
     });
@@ -70,14 +66,6 @@ class AnomalyTracker {
 
   getAnomaly(id: string): AnomalyDataPoint | null {
     return this.tracker[id];
-  }
-
-  setGraph(id: string, graph: ExploreSimpleSk): void {
-    this.tracker[id].graph = graph;
-  }
-
-  unsetGraph(id: string): void {
-    this.tracker[id].graph = null;
   }
 
   // toAnomalyList returns a list of all anomaly objects being tracked.
@@ -115,7 +103,7 @@ export class ReportPageSk extends ElementSk {
   // Reference to anomalies table element.
   anomaliesTable: AnomaliesTableSk | null = null;
 
-  private graphDiv: Element | null = null;
+  private graphList: GraphListSk | null = null;
 
   private _currentlyLoading: string = '';
 
@@ -150,12 +138,7 @@ export class ReportPageSk extends ElementSk {
       .loading=${!!ele._currentlyLoading}>
     </anomalies-table-sk>
     ${ele.showAllCommitsTemplate()}
-    <div
-      id="graph-container"
-      @x-axis-toggled=${ele.syncXAxisLabel}
-      @range-changing-in-multi=${ele.syncExtendRangeOnSummaryBar}
-      @selection-changing-in-multi=${ele.syncChartSelection}
-      @even-x-axis-spacing-changed=${ele.syncEvenXAxisSpacing}></div>
+    <graph-list-sk id="graph-list"></graph-list-sk>
     <div id="bottom-spacer"></div>
   `;
 
@@ -193,7 +176,12 @@ export class ReportPageSk extends ElementSk {
     this._render();
 
     this.anomaliesTable = this.querySelector('#anomaly-table');
-    this.graphDiv = this.querySelector('#graph-container');
+    this.graphList = this.querySelector('#graph-list');
+    if (this.graphList) {
+      this.graphList.addEventListener('graphs-loaded', () => {
+        this._allGraphsLoaded = true;
+      });
+    }
 
     this.setCurrentlyLoading('Loading configuration...');
     await this.initializeDefaults();
@@ -248,8 +236,14 @@ export class ReportPageSk extends ElementSk {
 
         await Promise.all(loadingPromises);
 
-        this.setCurrentlyLoading('Loading graphs...');
-        await this.loadGraphsInChunks();
+        if (this.graphList) {
+          this.graphList.items = this.anomalyTracker
+            .getSelectedAnomalies()
+            .map((anomaly, index) => ({
+              id: anomaly.id,
+              generateGraph: () => this.addGraph(anomaly, index),
+            }));
+        }
         this.setCurrentlyLoading('');
       })
       .catch((msg: any) => {
@@ -257,47 +251,6 @@ export class ReportPageSk extends ElementSk {
         this.setCurrentlyLoading('');
         this._render();
       });
-  }
-
-  /**
-   * Loads graphs in parallel batches. The next batch will only start
-   * after all graphs in the current batch have finished loading.
-   */
-  private async loadGraphsInChunks() {
-    const anomaliesToLoad = this.anomalyTracker.getSelectedAnomalies();
-    // Chunk size is selected arbitrarily, feel free to tweak.
-    const chunkSize = 5;
-
-    let loadedCount = 0;
-    for (let i = 0; i < anomaliesToLoad.length; i += chunkSize) {
-      this.setCurrentlyLoading(`Loading graphs (${loadedCount}/${anomaliesToLoad.length})...`);
-      const chunk = anomaliesToLoad.slice(i, i + chunkSize);
-      const promises = chunk.map(
-        (anomaly) =>
-          new Promise<void>((resolve) => {
-            const dataPoint = this.anomalyTracker.getAnomaly(anomaly.id);
-
-            if (dataPoint && !dataPoint.graph) {
-              const graphElement = this.addGraph(anomaly);
-              this.anomalyTracker.setGraph(anomaly.id, graphElement);
-
-              const listener = () => {
-                graphElement.removeEventListener('data-loaded', listener);
-                loadedCount++;
-                resolve();
-              };
-              graphElement.addEventListener('data-loaded', listener);
-            } else {
-              // Graph is not needed, resolve immediately.
-              loadedCount++;
-              resolve();
-            }
-          })
-      );
-      await Promise.all(promises);
-    }
-
-    this._allGraphsLoaded = true;
   }
 
   private async initializePage() {
@@ -388,7 +341,7 @@ export class ReportPageSk extends ElementSk {
     return this.traceFormatter!.formatQuery(anomaly.test_path);
   }
 
-  private addGraph(anomaly: Anomaly) {
+  private addGraph(anomaly: Anomaly, index = -1) {
     const explore: ExploreSimpleSk = this.exploreSimpleSkFactory();
     explore.defaults = this.defaults;
     explore.openQueryByDefault = false;
@@ -398,8 +351,6 @@ export class ReportPageSk extends ElementSk {
     explore.state.plotSummary = true;
     explore.tracesRendered = true;
     explore.isReportPage = true;
-    const graphIndex = this.graphDiv!.children.length;
-    this.graphDiv!.append(explore);
 
     const query = this.getQueryFromAnomaly(anomaly);
     const state = new State();
@@ -419,102 +370,25 @@ export class ReportPageSk extends ElementSk {
       // 1 means to query State().numCommits number of data points
       // Set to 0 to promote symmetry.
       requestType: 0,
-      graph_index: graphIndex,
+      graph_index: index > -1 ? index : this.graphList ? this.graphList.items.length : 0,
     };
-    this.updateChartHeights();
-    this._render();
 
     return explore;
   }
 
   private updateGraphs(anomaly: Anomaly, checked: boolean) {
-    if (!this._allGraphsLoaded) {
-      return;
-    }
-    const dataPoint = this.anomalyTracker.getAnomaly(anomaly.id)!;
-    const graph = dataPoint.graph;
-
-    if (checked && !graph) {
-      // If checked and no graph exists, add it immediately.
-      this.anomalyTracker.setGraph(anomaly.id, this.addGraph(anomaly));
-    } else if (!checked && graph) {
-      // If unchecked and a graph exists, remove it.
-      this.anomalyTracker.unsetGraph(anomaly.id);
-      this.graphDiv!.removeChild(graph);
-    }
-
-    this.updateChartHeights();
-    this._render();
-  }
-
-  private updateChartHeights(): void {
-    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
-    graphs.forEach((graph) => {
-      const height = graphs.length === 1 ? '500px' : '250px';
-      (graph as ExploreSimpleSk).updateChartHeight(height);
-    });
-  }
-
-  private async syncExtendRangeOnSummaryBar(
-    e: CustomEvent<PlotSelectionEventDetails>
-  ): Promise<void> {
-    if (!this._allGraphsLoaded) {
-      return;
-    }
-    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
-    const offset = e.detail.offsetInSeconds;
-    const range = e.detail.value;
-
-    graphs.forEach(async (graph) => {
-      await (graph as ExploreSimpleSk).extendRange(range, offset);
-    });
-  }
-
-  private async syncChartSelection(e: CustomEvent<PlotSelectionEventDetails>): Promise<void> {
-    if (!this._allGraphsLoaded) {
-      return;
-    }
-    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
-    if (!e.detail.value) {
+    if (!this._allGraphsLoaded || !this.graphList) {
       return;
     }
 
-    if (graphs.length > 1 && e.detail.offsetInSeconds !== undefined) {
-      await (graphs[0] as ExploreSimpleSk).extendRange(e.detail.value, e.detail.offsetInSeconds);
+    if (checked) {
+      this.graphList.addGraph({
+        id: anomaly.id,
+        generateGraph: () => this.addGraph(anomaly),
+      });
+    } else {
+      this.graphList.removeGraph(anomaly.id);
     }
-    // Default behavior for non-split views or for pan/zoom actions.
-    graphs.forEach((graph, i) => {
-      // only update graph that isn't selected
-      if (i !== e.detail.graphNumber && e.detail.offsetInSeconds === undefined) {
-        (graph as ExploreSimpleSk).updateSelectedRangeWithPlotSummary(
-          e.detail.value,
-          e.detail.start ?? 0,
-          e.detail.end ?? 0
-        );
-      }
-    });
-  }
-
-  private syncXAxisLabel(e: CustomEvent): void {
-    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
-    graphs.forEach((graph) => {
-      (graph as ExploreSimpleSk).switchXAxis(e.detail);
-    });
-  }
-
-  // This ensures that all charts use the same x-axis type (continuous or discrete).
-  private syncEvenXAxisSpacing(e: CustomEvent): void {
-    const newValue = e.detail.value;
-    const graphs = this.graphDiv!.querySelectorAll('explore-simple-sk');
-    graphs.forEach((graphNode) => {
-      const graph = graphNode as ExploreSimpleSk;
-      // Skip graph that sent the event.
-      if (graph.state.graph_index !== e.detail.graph_index) {
-        graph.state.evenXAxisSpacing = newValue;
-        graph.setUseDiscreteAxis(newValue);
-        graph.render();
-      }
-    });
   }
 
   // findRequestedAnomalies returns a list of requested anomaly objects .

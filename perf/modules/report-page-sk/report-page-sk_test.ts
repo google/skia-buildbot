@@ -60,7 +60,37 @@ describe('ReportPageSk', () => {
     end: 1672617600, // Jan 2, 2023
   });
 
-  beforeEach(() => {
+  let factory: () => ReportPageSk;
+
+  const initializeElement = async () => {
+    element = factory();
+    element.exploreSimpleSkFactory = () => {
+      const mockInstance = document.createElement('div') as any;
+      mockInstance.updateChartHeight = sinon.spy();
+      mockInstance.state = {};
+      mockInstance.extendRange = sinon.spy(() => Promise.resolve());
+      mockInstance.updateSelectedRangeWithPlotSummary = sinon.spy();
+      mockInstance.setUseDiscreteAxis = sinon.spy();
+      mockInstance.render = sinon.spy();
+      mockExploreInstances.push(mockInstance);
+      return mockInstance;
+    };
+
+    // Stub methods on the child anomalies table to isolate the parent component.
+    const table = element.querySelector<AnomaliesTableSk>('#anomaly-table')!;
+    sinon.stub(table, 'populateTable').resolves();
+    sinon.stub(table, 'checkSelectedAnomalies');
+    sinon.stub(table, 'initialCheckAllCheckbox');
+
+    await (element.querySelector('graph-list-sk') as any).updateComplete;
+    const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
+    sinon
+      .stub(graphContainer, 'querySelectorAll')
+      .withArgs('explore-simple-sk')
+      .callsFake(() => mockExploreInstances as unknown as NodeListOf<Element>);
+  };
+
+  beforeEach(async () => {
     // Mock the window.perf global object.
     window.perf = {
       dev_mode: false,
@@ -116,31 +146,9 @@ describe('ReportPageSk', () => {
 
     // Mock lookupCids as it's called but not essential for this test's focus.
     fetchMock.post('/_/cid/', { commitSlice: [] });
+    fetchMock.post('/_/fe_telemetry', {});
 
-    element = setUpElementUnderTest<ReportPageSk>('report-page-sk')();
-    element.exploreSimpleSkFactory = () => {
-      const mockInstance = document.createElement('div') as any;
-      mockInstance.updateChartHeight = sinon.spy();
-      mockInstance.state = {};
-      mockInstance.extendRange = sinon.spy(() => Promise.resolve());
-      mockInstance.updateSelectedRangeWithPlotSummary = sinon.spy();
-      mockInstance.setUseDiscreteAxis = sinon.spy();
-      mockInstance.render = sinon.spy();
-      mockExploreInstances.push(mockInstance);
-      return mockInstance;
-    };
-
-    // Stub methods on the child anomalies table to isolate the parent component.
-    const table = element.querySelector<AnomaliesTableSk>('#anomaly-table')!;
-    sinon.stub(table, 'populateTable').resolves();
-    sinon.stub(table, 'checkSelectedAnomalies');
-    sinon.stub(table, 'initialCheckAllCheckbox');
-
-    const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
-    sinon
-      .stub(graphContainer, 'querySelectorAll')
-      .withArgs('explore-simple-sk')
-      .callsFake(() => mockExploreInstances as unknown as NodeListOf<Element>);
+    factory = setUpElementUnderTest<ReportPageSk>('report-page-sk');
   });
 
   afterEach(() => {
@@ -164,7 +172,8 @@ describe('ReportPageSk', () => {
         selected_keys: [],
       });
 
-      await element.connectedCallback();
+      await initializeElement();
+      await fetchMock.flush(true);
 
       assert.equal(document.title, `Report for bug: 12345`);
       window.history.replaceState({}, '', originalSearch);
@@ -190,14 +199,16 @@ describe('ReportPageSk', () => {
         selected_keys: anomalies.map((a) => a.id),
       });
 
+      await initializeElement();
       const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
-      const appendSpy = sinon.spy(graphContainer, 'append');
+      const appendSpy = sinon.spy(graphContainer, 'appendChild');
 
-      const connectedCallbackPromise = element.connectedCallback();
       await fetchMock.flush(true);
 
       // First chunk should start loading immediately.
-      await waitUntil(() => appendSpy.callCount === chunkSize);
+      await waitUntil(() => {
+        return appendSpy.callCount === chunkSize;
+      });
 
       // Simulate data-loaded events for the first chunk. Second chunk should
       // start loading.
@@ -212,7 +223,7 @@ describe('ReportPageSk', () => {
       }
 
       // This will be resolved only when all graphs are loaded.
-      await connectedCallbackPromise;
+      await waitUntil(() => element['_allGraphsLoaded']);
 
       assert.strictEqual(
         appendSpy.callCount,
@@ -241,9 +252,9 @@ describe('ReportPageSk', () => {
         selected_keys: anomalies.map((a) => a.id),
       });
 
+      await initializeElement();
       const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
-      const appendSpy = sinon.spy(graphContainer, 'append');
-      const connectedCallbackPromise = element.connectedCallback();
+      const appendSpy = sinon.spy(graphContainer, 'appendChild');
       await fetchMock.flush(true);
       await waitUntil(() => appendSpy.callCount === anomalyCount);
 
@@ -251,7 +262,6 @@ describe('ReportPageSk', () => {
       for (let i = 0; i < anomalyCount; i++) {
         mockExploreInstances[i].dispatchEvent(new CustomEvent('data-loaded'));
       }
-      await connectedCallbackPromise;
       await waitUntil(() => element['_allGraphsLoaded']);
 
       // URL should not be updated while graphs are still loading.
@@ -268,7 +278,7 @@ describe('ReportPageSk', () => {
           end: 999,
         },
       };
-      element['syncChartSelection'](eventDetails as any);
+      (element.querySelector('graph-list-sk') as any)['syncChartSelection'](eventDetails as any);
       assert.isTrue(mockExploreInstances[0].updateSelectedRangeWithPlotSummary.called);
     });
 
@@ -291,16 +301,14 @@ describe('ReportPageSk', () => {
         selected_keys: [],
       });
 
+      await initializeElement();
       const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
-      const appendSpy = sinon.spy(graphContainer, 'append');
+      const appendSpy = sinon.spy(graphContainer, 'appendChild');
 
-      const connectedCallbackPromise = element.connectedCallback();
       await fetchMock.flush(true);
 
       // We don't expect any graphs to be loaded, so no need to wait for appendSpy.
       // Instead, let the connectedCallbackPromise resolve.
-
-      await connectedCallbackPromise;
 
       assert.strictEqual(appendSpy.callCount, 0, 'Should load no graphs');
       assert.strictEqual(
@@ -331,18 +339,18 @@ describe('ReportPageSk', () => {
         selected_keys: [], // sid-based selection happens server-side
       });
 
+      await initializeElement();
       const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
-      const appendSpy = sinon.spy(graphContainer, 'append');
+      const appendSpy = sinon.spy(graphContainer, 'appendChild');
       const table = element.querySelector<AnomaliesTableSk>('#anomaly-table')!;
 
-      const connectedCallbackPromise = element.connectedCallback();
       await fetchMock.flush(true);
 
       await waitUntil(() => appendSpy.callCount === anomalies.length);
       mockExploreInstances.forEach((instance) =>
         instance.dispatchEvent(new CustomEvent('data-loaded'))
       );
-      await connectedCallbackPromise;
+      await waitUntil(() => element['_allGraphsLoaded']);
 
       assert.strictEqual(appendSpy.callCount, anomalies.length);
       assert.isTrue(
@@ -373,18 +381,18 @@ describe('ReportPageSk', () => {
         selected_keys: ['0', '1'],
       });
 
+      await initializeElement();
       const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
-      const appendSpy = sinon.spy(graphContainer, 'append');
+      const appendSpy = sinon.spy(graphContainer, 'appendChild');
       const table = element.querySelector<AnomaliesTableSk>('#anomaly-table')!;
 
-      const connectedCallbackPromise = element.connectedCallback();
       await fetchMock.flush(true);
 
       await waitUntil(() => appendSpy.callCount === anomalies.length);
       mockExploreInstances.forEach((instance) =>
         instance.dispatchEvent(new CustomEvent('data-loaded'))
       );
-      await connectedCallbackPromise;
+      await waitUntil(() => element['_allGraphsLoaded']);
 
       assert.strictEqual(appendSpy.callCount, anomalies.length);
       assert.isTrue(
@@ -415,7 +423,7 @@ describe('ReportPageSk', () => {
         selected_keys: anomalies.map((a) => a.id),
       });
 
-      const connectedCallbackPromise = element.connectedCallback();
+      await initializeElement();
       await fetchMock.flush(true);
 
       // Wait for all graphs to be appended
@@ -426,7 +434,7 @@ describe('ReportPageSk', () => {
       mockExploreInstances.forEach((instance) =>
         instance.dispatchEvent(new CustomEvent('data-loaded'))
       );
-      await connectedCallbackPromise;
+      await waitUntil(() => element['_allGraphsLoaded']);
     });
 
     it('syncs evenXAxisSpacing state to other graphs when event is received', async () => {
