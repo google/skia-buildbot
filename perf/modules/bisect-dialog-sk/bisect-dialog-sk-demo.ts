@@ -5,7 +5,7 @@ import { $$ } from '../../../infra-sk/modules/dom';
 import '../../../elements-sk/modules/error-toast-sk';
 import { anomalies } from '../existing-bug-dialog-sk/test_data';
 
-function delay(time: number) {
+async function delay(time: number) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 

@@ -55,11 +55,11 @@ export class BisectDialogSkPO extends PageObject {
   }
 
   async isDialogOpen(): Promise<boolean> {
-    return this.dialog.applyFnToDOMNode((el) => (el as HTMLDialogElement).open);
+    return await this.dialog.applyFnToDOMNode((el) => (el as HTMLDialogElement).open);
   }
 
   async getTestPath(): Promise<string> {
-    return this.testPathInput.value;
+    return await this.testPathInput.value;
   }
 
   async setTestPath(value: string): Promise<void> {
@@ -67,7 +67,7 @@ export class BisectDialogSkPO extends PageObject {
   }
 
   async getBugId(): Promise<string> {
-    return this.bugIdInput.value;
+    return await this.bugIdInput.value;
   }
 
   async setBugId(value: string): Promise<void> {
@@ -75,7 +75,7 @@ export class BisectDialogSkPO extends PageObject {
   }
 
   async getStartCommit(): Promise<string> {
-    return this.startCommitInput.value;
+    return await this.startCommitInput.value;
   }
 
   async setStartCommit(value: string): Promise<void> {
@@ -83,7 +83,7 @@ export class BisectDialogSkPO extends PageObject {
   }
 
   async getEndCommit(): Promise<string> {
-    return this.endCommitInput.value;
+    return await this.endCommitInput.value;
   }
 
   async setEndCommit(value: string): Promise<void> {
@@ -91,7 +91,7 @@ export class BisectDialogSkPO extends PageObject {
   }
 
   async getStory(): Promise<string> {
-    return this.storyInput.value;
+    return await this.storyInput.value;
   }
 
   async setStory(value: string): Promise<void> {
@@ -99,7 +99,7 @@ export class BisectDialogSkPO extends PageObject {
   }
 
   async getPatch(): Promise<string> {
-    return this.patchInput.value;
+    return await this.patchInput.value;
   }
 
   async setPatch(value: string): Promise<void> {

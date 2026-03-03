@@ -10,9 +10,13 @@ bisect-dialog-sk {
     color: var(--on-background);
     background: var(--background);
     textarea {
+      width: 100%;
+      box-sizing: border-box;
       background: var(--background);
       color: var(--on-surface);
       border: solid 1px var(--on-surface);
+      padding: 4px;
+      margin-bottom: 8px;
     }
     #bisectCloseIcon {
       position: absolute;

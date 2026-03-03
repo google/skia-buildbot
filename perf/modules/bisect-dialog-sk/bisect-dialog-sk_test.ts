@@ -12,10 +12,11 @@ describe('bisect-dialog-sk', () => {
   let element: BisectDialogSk;
   let dialog: HTMLDialogElement;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Mock LoggedIn() to return a test user.
     fetchMock.get('/_/login/status', { email: 'test@example.com' });
     element = newInstance();
+    await element.updateComplete;
     dialog = element.querySelector('#bisect-dialog')!;
   });
 
@@ -28,8 +29,8 @@ describe('bisect-dialog-sk', () => {
     it('sets the properties correctly', () => {
       const params: BisectPreloadParams = {
         testPath: 'master/bot/test_suite/test/subtest',
-        startCommit: 'c1',
-        endCommit: 'c2',
+        startCommit: '12345',
+        endCommit: '12346',
         bugId: '123',
         story: 'story',
         anomalyId: 'a1',
@@ -71,13 +72,16 @@ describe('bisect-dialog-sk', () => {
     it('sends a bisect request with statistic', async () => {
       const params: BisectPreloadParams = {
         testPath: 'ChromiumPerf/MacM1/Blazor/test_suite/subtest:avg',
-        startCommit: 'c1',
-        endCommit: 'c2',
+        startCommit: '12345',
+        endCommit: '12346',
         bugId: '123',
         anomalyId: 'a1',
       };
       await element.setBisectInputParams(params);
+      await element.updateComplete;
       element.user = 'test@example.com';
+      element.open();
+      await element.updateComplete;
 
       fetchMock.post('/_/bisect/create', { jobId: 'job1', jobUrl: '/job/1' });
 
@@ -90,8 +94,8 @@ describe('bisect-dialog-sk', () => {
 
       const expected: BisectJobCreateRequest = {
         bug_id: '123',
-        start_git_hash: 'c1',
-        end_git_hash: 'c2',
+        start_git_hash: '12345',
+        end_git_hash: '12346',
         chart: 'test_suite',
         statistic: '',
         story: 'subtest_avg',
@@ -111,13 +115,16 @@ describe('bisect-dialog-sk', () => {
     it('replaces colons in story', async () => {
       const params: BisectPreloadParams = {
         testPath: 'ChromiumPerf/MacM1/Blazor/test_suite/subtest:with:colons',
-        startCommit: 'c1',
-        endCommit: 'c2',
+        startCommit: '12345',
+        endCommit: '12346',
         bugId: '123',
         anomalyId: 'a1',
       };
       await element.setBisectInputParams(params);
+      await element.updateComplete;
       element.user = 'test@example.com';
+      element.open();
+      await element.updateComplete;
 
       fetchMock.post('/_/bisect/create', { jobId: 'job1', jobUrl: '/job/1' });
 
@@ -134,13 +141,16 @@ describe('bisect-dialog-sk', () => {
     it('does not replace colons in chart', async () => {
       const params: BisectPreloadParams = {
         testPath: 'ChromiumPerf/MacM1/Blazor/test:suite:with:colons/subtest',
-        startCommit: 'c1',
-        endCommit: 'c2',
+        startCommit: '12345',
+        endCommit: '12346',
         bugId: '123',
         anomalyId: 'a1',
       };
       await element.setBisectInputParams(params);
+      await element.updateComplete;
       element.user = 'test@example.com';
+      element.open();
+      await element.updateComplete;
 
       fetchMock.post('/_/bisect/create', { jobId: 'job1', jobUrl: '/job/1' });
 
@@ -157,14 +167,17 @@ describe('bisect-dialog-sk', () => {
     it('shows an error message on failure', async () => {
       const params: BisectPreloadParams = {
         testPath: 'ChromiumPerf/MacM1/Blazor/test_suite/test/subtest',
-        startCommit: 'c1',
-        endCommit: 'c2',
+        startCommit: '12345',
+        endCommit: '12346',
         bugId: '123',
         story: 'story',
         anomalyId: 'a1',
       };
       element.setBisectInputParams(params);
+      await element.updateComplete;
       element.user = 'test@example.com';
+      element.open();
+      await element.updateComplete;
 
       fetchMock.post('/_/bisect/create', 500);
       const event = eventPromise('error-sk');
@@ -181,14 +194,16 @@ describe('bisect-dialog-sk', () => {
     it('displays a link to the pinpoint job after creation', async () => {
       const params: BisectPreloadParams = {
         testPath: 'ChromiumPerf/MacM1/Blazor/test_suite/test/subtest',
-        startCommit: 'c1',
-        endCommit: 'c2',
+        startCommit: '12345',
+        endCommit: '12346',
         bugId: '123',
         story: 'story',
         anomalyId: 'a1',
       };
       await element.setBisectInputParams(params);
       element.user = 'test@example.com';
+      element.open();
+      await element.updateComplete;
 
       const jobUrl = 'https://pinpoint-dot-chromeperf.appspot.com/job/12345';
       fetchMock.post('/_/bisect/create', { jobId: '12345', jobUrl: jobUrl });
@@ -199,78 +214,88 @@ describe('bisect-dialog-sk', () => {
       const link = element.querySelector('#pinpoint-job-url') as HTMLAnchorElement;
       assert.isNotNull(link);
       assert.equal(link!.href, jobUrl);
-      assert.include(link!.textContent, 'Pinpoint Job Created');
+      assert.include(link!.textContent, 'Bisect job created');
     });
   });
 
   describe('request parameter validation', async () => {
     const validParams: BisectPreloadParams = {
-      testPath: '',
-      startCommit: '',
-      endCommit: '',
-      bugId: '',
-      story: '',
+      testPath: 'ChromiumPerf/MacM1/Blazor/test_suite/test/subtest',
+      startCommit: '12345',
+      endCommit: '12346',
+      bugId: '123',
+      story: 'story',
       anomalyId: 'a1',
     };
 
     const testCases: {
-      fieldToClear: keyof BisectJobCreateRequest;
+      paramsOverride: Partial<BisectPreloadParams>;
       expectedError: string;
       testName: string;
     }[] = [
       {
-        fieldToClear: 'start_git_hash',
+        paramsOverride: { startCommit: '' },
         testName: 'start commit',
         expectedError: 'Start commit is required.',
       },
       {
-        fieldToClear: 'end_git_hash',
+        paramsOverride: { endCommit: '' },
         testName: 'end commit',
         expectedError: 'End commit is required.',
       },
       {
-        fieldToClear: 'configuration',
+        // 'src//bench/test/story'. [1] is ''.
+        paramsOverride: { testPath: 'src//bench/test/story' },
         testName: 'configuration',
-        expectedError: 'Configuration is required.',
+        expectedError: 'Configuration is missing in the request.',
       },
       {
-        fieldToClear: 'benchmark',
+        // 'src/cfg//test/story'. [2] is ''.
+        paramsOverride: { testPath: 'src/cfg//test/story' },
         testName: 'benchmark',
-        expectedError: 'Benchmark is required.',
+        expectedError: 'Benchmark is missing in the request.',
       },
       {
-        fieldToClear: 'story',
+        // 'src/cfg/bench/test/'. pop() is ''.
+        paramsOverride: { testPath: 'src/cfg/bench/test/' },
         testName: 'story',
-        expectedError: 'Story is required.',
+        expectedError: 'Story is missing in the request.',
       },
       {
-        fieldToClear: 'chart',
+        // 'src/cfg/bench//story'. at(3) is ''.
+        paramsOverride: { testPath: 'src/cfg/bench//story' },
         testName: 'chart',
-        expectedError: 'Chart is required.',
+        expectedError: 'Chart is missing in the request.',
       },
       {
-        fieldToClear: 'test_path',
+        paramsOverride: { testPath: '' },
         testName: 'test path',
-        expectedError: 'Test path is required.',
+        expectedError: 'Test path is missing in the request.',
       },
     ];
-    it('shows an error message if a required parameter is missing', async () => {
-      testCases.forEach(async ({ fieldToClear, expectedError }) => {
+
+    it('shows an error message if a required parameter is missing', async function () {
+      this.timeout(10000);
+      for (const { paramsOverride, expectedError, testName } of testCases) {
         const params: BisectPreloadParams = {
           ...validParams,
-          [fieldToClear]: '',
+          ...paramsOverride,
         };
 
         await element.setBisectInputParams(params);
+        await element.updateComplete;
+        element.open();
+        await element.updateComplete;
         const event = eventPromise('error-sk');
         await element.postBisect();
 
         const errEvent = await event;
         const errMessage = (errEvent as CustomEvent).detail.message as string;
 
-        assert.isFalse(fetchMock.called());
-        assert.equal(errMessage, expectedError);
-      });
+        assert.isFalse(fetchMock.called(), `Fetch called for ${testName}`);
+        assert.equal(errMessage, expectedError, `Wrong error for ${testName}`);
+        dialog.close();
+      }
     });
   });
 
@@ -278,8 +303,8 @@ describe('bisect-dialog-sk', () => {
     it('clears the properties', () => {
       const params: BisectPreloadParams = {
         testPath: 'master/bot/test_suite/test/subtest',
-        startCommit: 'c1',
-        endCommit: 'c2',
+        startCommit: '12345',
+        endCommit: '12346',
         bugId: '123',
         story: 'story',
         anomalyId: 'a1',
@@ -294,6 +319,7 @@ describe('bisect-dialog-sk', () => {
       assert.equal(element.bugId, '123'); // bugId is not cleared in reset()
       assert.equal(element.story, '');
       assert.equal(element.anomalyId, '');
+      assert.equal((element as any).patch, '');
     });
   });
 });

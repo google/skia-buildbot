@@ -17,20 +17,19 @@
  * error message popup will appear.
  */
 
-import '../../../elements-sk/modules/select-sk';
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { html, LitElement } from 'lit';
+import { customElement, property, state, query } from 'lit/decorators.js';
+import { live } from 'lit/directives/live.js';
+import { Task, TaskStatus } from '@lit/task';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { BisectJobCreateRequest } from '../json';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 
 import '@material/web/icon/icon.js';
 
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
+import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import '../../../infra-sk/modules/alogin-sk/alogin-sk';
@@ -46,88 +45,56 @@ export interface BisectPreloadParams {
   anomalyId: string | '';
 }
 
-export class BisectDialogSk extends ElementSk {
+@customElement('bisect-dialog-sk')
+export class BisectDialogSk extends LitElement {
+  @property({ type: String })
   bugId: string = '';
 
+  @property({ type: String })
   startCommit: string = '';
 
+  @property({ type: String })
   endCommit: string = '';
 
+  @property({ type: String })
   story: string = '';
 
+  @state()
   user: string = '';
 
+  @property({ type: String })
   testPath: string = '';
 
+  @property({ type: String })
   anomalyId: string = '';
 
-  private _dialog: HTMLDialogElement | null = null;
+  @query('#bisect-dialog')
+  private _dialog!: HTMLDialogElement;
 
-  private spinner: SpinnerSk | null = null;
+  @state()
+  private jobId: string = '';
 
-  private _form: HTMLFormElement | null = null;
+  @state()
+  private patch: string = '';
 
-  private bisectButton: HTMLButtonElement | null = null;
+  @state()
+  private _opened: boolean = false;
 
+  @state()
   private jobUrl: string = '';
 
-  private static template = (ele: BisectDialogSk) => html`
-    <dialog id='bisect-dialog'>
-      <h2>Bisection</h2>
-      <button id="bisectCloseIcon" @click=${ele.closeBisectDialog}>
-        <close-icon-sk></close-icon-sk>
-      </button>
-      <form id="bisect-form">
-      <h3>Test Path</h3>
-      <input id="testpath" type="text" value=${ele.testPath}></input>
-      <h3>Bug ID</h3>
-      <input id="bug-id" type="text" value=${ele.bugId}></input>
-      <h3>Start Commit</h3>
-      <input id="start-commit" type="text" value=${ele.startCommit}></input>
-      <h3>End Commit</h3>
-      <input id="end-commit" type="text" value=${ele.endCommit}></input>
-      <h3>Story</h3>
-      <input id="story" type="text" value=${ele.story}></input>
-      <h3>Patch to apply to the entire job (optional)</h3>
-      <input id="patch" type="text"></input>
-      <div class=footer>
-        <button id="submit-button" type="submit" @click=${ele.postBisect}>Bisect</button>
-        <spinner-sk id="dialog-spinner"></spinner-sk>
-        ${
-          ele.jobUrl
-            ? html`<a id="pinpoint-job-url" href="${ele.jobUrl}" target="_blank">
-                Pinpoint Job Created<md-icon id="icon">open_in_new</md-icon>
-              </a>`
-            : ''
-        }
-      </div>
-      </form>
-    </dialog>
-    `;
+  @query('#bisect_toast')
+  private bisectJobToast!: ToastSk;
 
-  constructor() {
-    super(BisectDialogSk.template);
+  createRenderRoot() {
+    return this;
   }
 
   connectedCallback() {
     super.connectedCallback();
-    upgradeProperty(this, 'preloadInputParameters');
-    upgradeProperty(this, 'testPath');
-    upgradeProperty(this, 'startCommit');
-    upgradeProperty(this, 'endCommit');
-    upgradeProperty(this, 'bugId');
-    upgradeProperty(this, 'story');
-    this._render();
-
-    this._dialog = this.querySelector('#bisect-dialog');
-    this.spinner = this.querySelector('#dialog-spinner');
-    this.bisectButton = this.querySelector('#submit-button');
-    this._form = this.querySelector('#bisect-form');
-
     LoggedIn()
       .then((status: LoginStatus) => {
         this.user = status.email;
-        this._render();
       })
       .catch(errorMessage);
   }
@@ -139,71 +106,117 @@ export class BisectDialogSk extends ElementSk {
     this.bugId = preloadBisectInputs.bugId!;
     this.story = preloadBisectInputs.story!;
     this.anomalyId = preloadBisectInputs.anomalyId!;
-
-    this._form!.reset();
-    this._render();
+    this.patch = '';
   }
 
   open(): void {
-    this._dialog!.showModal();
-    this.bisectButton!.disabled = false;
+    this._opened = true;
+    this.patch = '';
+    this._dialog?.showModal();
   }
 
   private closeBisectDialog(): void {
-    this._dialog!.close();
+    this._opened = false;
+    this._dialog?.close();
+  }
+
+  @state()
+  private _toastShown: boolean = false;
+
+  private _toastTimer: number | null = null;
+
+  private _postBisectTask = new Task(this, {
+    task: async ([req]: readonly [BisectJobCreateRequest], { signal }: { signal: AbortSignal }) => {
+      try {
+        const response = await fetch('/_/bisect/create', {
+          method: 'POST',
+          signal,
+          body: JSON.stringify(req),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const json = await jsonOrThrow(response);
+        this.jobId = json.jobId;
+        this.jobUrl = json.jobUrl;
+        this.closeBisectDialog();
+        this._showToast();
+      } catch (msg: any) {
+        if (msg.name === 'AbortError') {
+          throw msg;
+        }
+        errorMessage(msg);
+        throw msg;
+      }
+    },
+    autoRun: false,
+  });
+
+  private _showToast() {
+    this._toastShown = true;
+    if (this._toastTimer) window.clearTimeout(this._toastTimer);
+    this._toastTimer = window.setTimeout(() => {
+      this._toastShown = false;
+      this._toastTimer = null;
+    }, 5000);
+  }
+
+  private _hideToast() {
+    this._toastShown = false;
+    if (this._toastTimer) {
+      window.clearTimeout(this._toastTimer);
+      this._toastTimer = null;
+    }
   }
 
   get opened() {
-    return this._dialog!.open;
+    return this._dialog?.open;
   }
 
   postBisect(): void {
-    this.spinner!.active = true;
-    this.bisectButton!.disabled = true;
-    if (this.testPath === '') {
-      this._render();
+    if (!this.opened) {
       return;
     }
+
     const parameters = this.testPath.split('/');
 
-    const test = parameters!.at(3)!;
+    const test = parameters.at(3) || '';
 
-    const parts: string[] = test!.split(':');
+    const parts: string[] = test.split(':');
     // Pop up the last element from the array if exists
     const tail = parts.pop();
 
-    let chart: string = test!;
+    let chart: string = test;
     let statistic: string = '';
     if (tail !== undefined) {
-      chart = STATISTIC_VALUES.includes(tail) ? parts!.join('_') : test!;
+      chart = STATISTIC_VALUES.includes(tail) ? parts.join('_') : test;
       statistic = STATISTIC_VALUES.includes(tail) ? tail : '';
     }
-    const bugId = document.getElementById('bug-id')! as HTMLInputElement;
-    const startCommit = document.getElementById('start-commit')! as HTMLInputElement;
-    const endCommit = document.getElementById('end-commit')! as HTMLInputElement;
+
     // Replace ':' with '_' for reduce errors when querying test paths in the legacy table
     // TODO(jiaxindong) b/431213645 follow up with the team about data backfill
-    this.story = parameters.pop()!.replace(/:/g, '_');
-    const patch = document.getElementById('patch')! as HTMLInputElement;
+    this.story = (parameters.pop() || '').replace(/:/g, '_');
+
     const req: BisectJobCreateRequest = {
       comparison_mode: 'performance',
-      start_git_hash: startCommit.value === '' ? this.startCommit : startCommit.value,
-      end_git_hash: endCommit.value === '' ? this.endCommit : endCommit.value,
+      start_git_hash: this.startCommit,
+      end_git_hash: this.endCommit,
       configuration: this.testPath.split('/')[1],
       benchmark: this.testPath.split('/')[2],
       story: this.story,
       chart: chart,
       statistic: statistic,
       comparison_magnitude: '',
-      pin: patch.value,
+      pin: this.patch,
       project: 'chromium',
-      bug_id: bugId.value,
+      bug_id: this.bugId,
       user: this.user,
       alert_ids: '[' + this.anomalyId + ']',
       test_path: this.testPath,
     };
 
     const validations = [
+      { value: req.test_path, message: 'Test path is missing in the request.' },
       { value: req.start_git_hash, message: 'Start commit is required.' },
       { value: req.end_git_hash, message: 'End commit is required.' },
       { value: req.configuration, message: 'Configuration is missing in the request.' },
@@ -211,37 +224,16 @@ export class BisectDialogSk extends ElementSk {
       { value: req.story, message: 'Story is missing in the request.' },
       { value: req.chart, message: 'Chart is missing in the request.' },
       { value: req.user, message: 'User is not logged in.' },
-      { value: req.test_path, message: 'Test path is missing in the request.' },
     ];
 
     for (const rule of validations) {
       if (!rule.value) {
         errorMessage(rule.message);
-        this.spinner!.active = false;
-        this.bisectButton!.disabled = false;
         return;
       }
     }
 
-    fetch('/_/bisect/create', {
-      method: 'POST',
-      body: JSON.stringify(req),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then(async (json) => {
-        this.bisectButton!.disabled = false;
-        this.spinner!.active = false;
-        this.jobUrl = json.jobUrl;
-        this._render();
-      })
-      .catch((msg: any) => {
-        errorMessage(msg);
-        this.spinner!.active = false;
-        this._render();
-      });
+    this._postBisectTask.run([req]);
   }
 
   /** Clear Bisect Dialog fields */
@@ -251,7 +243,92 @@ export class BisectDialogSk extends ElementSk {
     this.story = '';
     this.testPath = '';
     this.anomalyId = '';
-    this._render();
+    this.patch = '';
+    this._hideToast();
+  }
+
+  render() {
+    const isLoading = this._postBisectTask.status === TaskStatus.PENDING;
+    return html`
+      <dialog id="bisect-dialog">
+        <h2>Bisect</h2>
+        <button id="bisectCloseIcon" @click=${this.closeBisectDialog}>
+          <close-icon-sk></close-icon-sk>
+        </button>
+        <form id="bisect-form" @submit=${(e: Event) => e.preventDefault()}>
+          <h3>Test Path</h3>
+          <input
+            id="testpath"
+            type="text"
+            .value=${live(this.testPath)}
+            @input=${(e: Event) => {
+              this.testPath = (e.target as HTMLInputElement).value;
+            }} />
+          <h3>Bug ID</h3>
+          <input
+            id="bug-id"
+            type="text"
+            .value=${live(this.bugId)}
+            @input=${(e: Event) => {
+              this.bugId = (e.target as HTMLInputElement).value;
+            }} />
+          <h3>Start Commit</h3>
+          <input
+            id="start-commit"
+            type="text"
+            .value=${live(this.startCommit)}
+            @input=${(e: Event) => {
+              this.startCommit = (e.target as HTMLInputElement).value;
+            }} />
+          <h3>End Commit</h3>
+          <input
+            id="end-commit"
+            type="text"
+            .value=${live(this.endCommit)}
+            @input=${(e: Event) => {
+              this.endCommit = (e.target as HTMLInputElement).value;
+            }} />
+          <h3>Story</h3>
+          <input
+            id="story"
+            type="text"
+            .value=${live(this.story)}
+            @input=${(e: Event) => {
+              this.story = (e.target as HTMLInputElement).value;
+            }} />
+          <h3>Patch to apply to the entire job (optional)</h3>
+          <input
+            id="patch"
+            type="text"
+            .value=${live(this.patch)}
+            @input=${(e: Event) => {
+              this.patch = (e.target as HTMLInputElement).value;
+            }} />
+          <div class="footer">
+            <spinner-sk id="dialog-spinner" ?active=${isLoading}></spinner-sk>
+            <button
+              id="submit-button"
+              type="submit"
+              @click=${this.postBisect}
+              ?disabled=${isLoading}>
+              Bisect
+            </button>
+            <button id="close-btn" @click=${this.closeBisectDialog} type="button">Close</button>
+          </div>
+        </form>
+      </dialog>
+      <toast-sk id="bisect_toast" duration="0" .shown=${this._toastShown}>
+        <div id="bisect-url">
+          <a href=${this.jobUrl} target="_blank" id="pinpoint-job-url"
+            >Bisect job created: ${this.jobId}</a
+          >
+        </div>
+        <div class="close-bisect">
+          <button id="hide-bisect-toast" class="action" type="button" @click=${this._hideToast}>
+            Close
+          </button>
+        </div>
+      </toast-sk>
+    `;
   }
 }
-define('bisect-dialog-sk', BisectDialogSk);
