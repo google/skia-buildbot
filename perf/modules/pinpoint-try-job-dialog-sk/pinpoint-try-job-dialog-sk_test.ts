@@ -26,13 +26,14 @@ describe('pinpoint-try-job-dialog-sk', () => {
     assert.equal(baseCommitInput.value, '');
   });
 
-  it('sets parameters correctly', () => {
+  it('sets parameters correctly', async () => {
     element.setTryJobInputParams({
       testPath: 'master/bot/benchmark/test/story',
       baseCommit: 'abc',
       endCommit: 'def',
       story: 'story',
     });
+    await element.updateComplete;
 
     assert.equal((element.querySelector('#base-commit') as HTMLInputElement).value, 'abc');
     assert.equal((element.querySelector('#exp-commit') as HTMLInputElement).value, 'def');
@@ -45,6 +46,7 @@ describe('pinpoint-try-job-dialog-sk', () => {
       endCommit: 'def',
       story: 'story',
     });
+    await element.updateComplete;
 
     fetchMock.post('/_/try/', { jobUrl: 'http://pinpoint/123' });
 
@@ -54,6 +56,7 @@ describe('pinpoint-try-job-dialog-sk', () => {
 
     // Wait for fetch to complete and for lit-html to render.
     await fetchMock.flush(true);
+    await element.updateComplete;
 
     assert.isTrue(fetchMock.called('/_/try/'));
     const lastCall = fetchMock.lastCall('/_/try/');

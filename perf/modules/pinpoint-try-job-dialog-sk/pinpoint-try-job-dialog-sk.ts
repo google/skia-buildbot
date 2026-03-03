@@ -20,14 +20,13 @@
  */
 
 import '../../../elements-sk/modules/select-sk';
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { html, LitElement } from 'lit';
+import { property, state, query, customElement } from 'lit/decorators.js';
+import { live } from 'lit/directives/live.js';
+import { Task, TaskStatus } from '@lit/task';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { TryJobCreateRequest, CreatePinpointResponse } from '../json';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 
 import '@material/web/icon/icon.js';
 
@@ -44,179 +43,198 @@ export interface TryJobPreloadParams {
   story?: string | '';
 }
 
-export class PinpointTryJobDialogSk extends ElementSk {
+@customElement('pinpoint-try-job-dialog-sk')
+export class PinpointTryJobDialogSk extends LitElement {
+  @state()
   private jobUrl: string = '';
 
-  private testPath: string = '';
+  @property({ type: String })
+  testPath: string = '';
 
-  private baseCommit: string = '';
+  @property({ type: String })
+  baseCommit: string = '';
 
-  private endCommit: string = '';
+  @property({ type: String })
+  endCommit: string = '';
 
+  @state()
   private traceArgs: string = 'toplevel,toplevel.flow,disabled-by-default-toplevel.flow';
 
-  // This link is from legacy perf. It links to some other trace arguments you can use
-  // but does not explain the feature too well.
+  @state()
   private traceHelpLink: string =
     'https://source.chromium.org/chromium/chromium/src/+/main:base/trace_event/trace_config.h;' +
     'l=167;drc=04e98bf9e13012fda48001096174a4500ff27866;bpv=1';
 
-  private story: string = '';
+  @property({ type: String })
+  story: string = '';
 
+  @state()
   private user: string = '';
 
-  private _dialog: HTMLDialogElement | null = null;
+  @query('#pinpoint-try-job-dialog')
+  private dialog!: HTMLDialogElement;
 
-  private _spinner: SpinnerSk | null = null;
+  @query('#pinpoint-try-job-form')
+  private form!: HTMLFormElement;
 
-  private _form: HTMLFormElement | null = null;
+  @state()
+  private _request: TryJobCreateRequest | null = null;
 
-  private submitButton: HTMLButtonElement | null = null;
-
-  private static template = (ele: PinpointTryJobDialogSk) => html`
-    <dialog id='pinpoint-try-job-dialog'>
-      <h2>Debug Traces</h2>
-      <button id="pinpoint-try-job-dialog-close" @click=${ele.closeDialog}>
-        <close-icon-sk></close-icon-sk>
-      </button>
-      <form id="pinpoint-try-job-form">
-      <h3>Base Commit</h3>
-      <input id="base-commit" type="text" value=${ele.baseCommit}></input>
-      <h3>Experiment Commit</h3>
-      <input id="exp-commit" type="text" value=${ele.endCommit}></input>
-      <h3>Tracing arguments</h3>
-      <p>Learn more about
-        <a href="${ele.traceHelpLink}" target="_blank">
-          filter strings<md-icon id="icon">open_in_new</md-icon>
-        </a>
-      <p>
-      <input id="trace-args" type="text" value=${ele.traceArgs}></input>
-      <div class=footer>
-        <button id="pinpoint-try-job-dialog-submit" type="Submit">Generate</button>
-        <spinner-sk id="dialog-spinner"></spinner-sk>
-        ${
-          ele.jobUrl
-            ? html`<a href="${ele.jobUrl}" target="_blank">
-                Pinpoint Job Created<md-icon id="icon">open_in_new</md-icon>
-              </a>`
-            : ''
-        }
-      </div>
-      </form>
-    </dialog>
-    `;
-
-  constructor() {
-    super(PinpointTryJobDialogSk.template);
-  }
+  private _tryJobTask = new Task(this, {
+    task: async (
+      [req]: [TryJobCreateRequest | null | undefined],
+      { signal }: { signal: AbortSignal }
+    ) => {
+      if (!req) {
+        return null;
+      }
+      const response = await fetch('/_/try/', {
+        method: 'POST',
+        body: JSON.stringify(req),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal,
+      });
+      const json = await jsonOrThrow(response);
+      return json as CreatePinpointResponse;
+    },
+    args: (): [TryJobCreateRequest | null] => [this._request],
+  });
 
   connectedCallback() {
     super.connectedCallback();
-
-    upgradeProperty(this, 'preloadInputParameters');
-    upgradeProperty(this, 'testPath');
-    upgradeProperty(this, 'startCommit');
-    upgradeProperty(this, 'endCommit');
-    upgradeProperty(this, 'story');
-
-    this._render();
-
-    this._dialog = this.querySelector('#pinpoint-try-job-dialog');
-    this._spinner = this.querySelector('#dialog-spinner');
-    this.submitButton = this.querySelector('#pinpoint-try-job-dialog-submit');
-    this._form = this.querySelector('#pinpoint-try-job-form');
-    this._form!.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.postTryJob();
-    });
-
     LoggedIn()
       .then((status: LoginStatus) => {
         this.user = status.email;
       })
       .catch(errorMessage);
+  }
 
-    // close the dialog if mouse click outside of the dialog
-    this._dialog!.addEventListener('click', (event) => {
-      const rect = this._dialog!.getBoundingClientRect();
-      if (
-        event.clientX < rect.left ||
-        event.clientX > rect.right ||
-        event.clientY < rect.top ||
-        event.clientY > rect.bottom
-      ) {
-        this.closeDialog();
-      }
-    });
+  createRenderRoot() {
+    return this;
   }
 
   setTryJobInputParams(params: TryJobPreloadParams): void {
-    this.testPath = params.testPath!;
-    this.baseCommit = params.baseCommit!;
-    this.endCommit = params.endCommit!;
-    this.story = params.story!;
+    this.testPath = params.testPath || '';
+    this.baseCommit = params.baseCommit || '';
+    this.endCommit = params.endCommit || '';
+    this.story = params.story || '';
     this.jobUrl = '';
-
-    this._form!.reset();
-    this._render();
+    // Reset task state
+    this._request = null;
   }
 
-  open(): void {
-    this._render();
-    this._dialog!.showModal();
-    this.submitButton!.disabled = false;
+  async open(): Promise<void> {
+    await this.updateComplete;
+    this.dialog.showModal();
   }
 
   private closeDialog(): void {
-    this._dialog!.close();
+    this.dialog.close();
   }
 
-  private postTryJob(): void {
-    this._spinner!.active = true;
-    this.submitButton!.disabled = true;
-    this.jobUrl = ''; // reset the job URL
-    this._render();
+  private onDialogClick(event: MouseEvent) {
+    const rect = this.dialog.getBoundingClientRect();
+    if (
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom
+    ) {
+      this.closeDialog();
+    }
+  }
 
-    const baseCommit = document.getElementById('base-commit')! as HTMLInputElement;
-    const endCommit = document.getElementById('exp-commit')! as HTMLInputElement;
-    const traceArgs = document.getElementById('trace-args')! as HTMLInputElement;
-
+  private onSubmit(e: Event) {
+    e.preventDefault();
     const req: TryJobCreateRequest = {
       name: 'Tracing Debug',
-      base_git_hash: baseCommit.value,
-      end_git_hash: endCommit.value,
+      base_git_hash: this.baseCommit,
+      end_git_hash: this.endCommit,
       base_patch: '',
       experiment_patch: '',
-      configuration: this.testPath.split('/')[1],
-      benchmark: this.testPath.split('/')[2],
+      configuration: this.testPath.split('/')[1] || '',
+      benchmark: this.testPath.split('/')[2] || '',
       story: this.story,
       repository: 'chromium',
       bug_id: '',
       user: this.user,
-      extra_test_args: `["--extra-chrome-categories","${traceArgs.value}"]`,
+      extra_test_args: `["--extra-chrome-categories","${this.traceArgs}"]`,
     };
     req.name = `${req.name} on ${req.configuration}/${req.benchmark}/${req.story}`;
-    console.log('here is the request', req);
-    fetch('/_/try/', {
-      method: 'POST',
-      body: JSON.stringify(req),
-      headers: {
-        'Content-Type': 'application/json',
+
+    this._request = req;
+  }
+
+  render() {
+    return html`
+      <dialog id='pinpoint-try-job-dialog' @click=${this.onDialogClick}>
+        <h2>Debug Traces</h2>
+        <button id="pinpoint-try-job-dialog-close" @click=${this.closeDialog}>
+          <close-icon-sk></close-icon-sk>
+        </button>
+        <form id="pinpoint-try-job-form" @submit=${this.onSubmit}>
+          <h3>Base Commit</h3>
+          <input
+            id="base-commit"
+            type="text"
+            .value=${live(this.baseCommit)}
+            @input=${(e: InputEvent) => (this.baseCommit = (e.target as HTMLInputElement).value)}
+          ></input>
+          <h3>Experiment Commit</h3>
+          <input
+            id="exp-commit"
+            type="text"
+            .value=${live(this.endCommit)}
+            @input=${(e: InputEvent) => (this.endCommit = (e.target as HTMLInputElement).value)}
+          ></input>
+          <h3>Tracing arguments</h3>
+          <p>Learn more about
+            <a href="${this.traceHelpLink}" target="_blank">
+              filter strings<md-icon id="icon">open_in_new</md-icon>
+            </a>
+          <p>
+          <input
+            id="trace-args"
+            type="text"
+            .value=${live(this.traceArgs)}
+            @input=${(e: InputEvent) => (this.traceArgs = (e.target as HTMLInputElement).value)}
+          ></input>
+          <div class=footer>
+            <button
+              id="pinpoint-try-job-dialog-submit"
+              type="Submit"
+              .disabled=${this._tryJobTask.status === TaskStatus.PENDING}
+            >Generate</button>
+            <spinner-sk
+              id="dialog-spinner"
+              .active=${this._tryJobTask.status === TaskStatus.PENDING}
+            ></spinner-sk>
+            ${this._renderTaskStatus()}
+          </div>
+        </form>
+      </dialog>
+    `;
+  }
+
+  private _renderTaskStatus() {
+    return this._tryJobTask.render({
+      pending: () => html``,
+      complete: (json) => {
+        console.log('Task completed with:', json);
+        if (!json) return html``;
+        const url = (json as CreatePinpointResponse).jobUrl;
+        return html`<a href="${url}" target="_blank">
+          Pinpoint Job Created<md-icon id="icon">open_in_new</md-icon>
+        </a>`;
       },
-    })
-      .then(jsonOrThrow)
-      .then((json: CreatePinpointResponse) => {
-        this.submitButton!.disabled = false;
-        this._spinner!.active = false;
-        this.jobUrl = json.jobUrl;
-        this._render();
-      })
-      .catch((msg: any) => {
-        errorMessage(msg);
-        this._spinner!.active = false;
-        this._render();
-      });
+      error: (e: any) => {
+        console.error('Task error:', e);
+        errorMessage(e);
+        return html``;
+      },
+      initial: () => html``,
+    });
   }
 }
-
-define('pinpoint-try-job-dialog-sk', PinpointTryJobDialogSk);
