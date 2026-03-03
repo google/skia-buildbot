@@ -86,7 +86,7 @@ func Parse(content string) (*ReadmeChromiumFile, error) {
 		if field.Kind() == reflect.String {
 			field.SetString(strVal)
 		} else if field.Kind() == reflect.Bool {
-			field.SetBool(strVal == "yes")
+			field.SetBool(strings.ToLower(strVal) == "yes")
 		}
 	}
 	return rv, nil

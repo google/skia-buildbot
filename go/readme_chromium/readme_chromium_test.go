@@ -896,3 +896,54 @@ repository does not include a LICENSE file.
 `
 	require.Equal(t, expect, actual)
 }
+
+func TestRewrite_Capitalization(t *testing.T) {
+	// There was a bug which resulted in rewriting `Security Critical: Yes` as
+	// `Security Critical: no` due to the capitalization of the 'y'. Ensure that
+	// We retain the original value, even if the capitalization is changed.
+	f, err := Parse(`
+Name: cpu_features
+Short Name: cpu_features
+URL: https://github.com/google/cpu_features
+Version: v0.8.0
+Revision: 936b9ab5515dead115606559502e3864958f7f6e
+Date: 2023-05-17
+Update Mechanism: Manual
+License: BSD-2-Clause, Apache-2.0
+License File: src/LICENSE
+Security Critical: Yes
+Shipped: yes
+
+Description:
+cpu_features is a library to retrieve CPU features at runtime. It is used to
+make decisions about performance optimization and features a drop-in replacement
+for Android's cpu-features.h. It is Android's recommended replacement for libraries
+that utilize cpu-features.h.
+`)
+	require.NoError(t, err)
+	f.Version = "v0.10.1"
+	f.Revision = "d3b2440fcfc25fe8e6d0d4a85f06d68e98312f5b"
+	f.Date = "2025-05-13"
+	f.UpdateMechanism = UpdateMechanism_Autoroll
+	actual, err := f.NewContent()
+	require.NoError(t, err)
+	require.Equal(t, `
+Name: cpu_features
+Short Name: cpu_features
+URL: https://github.com/google/cpu_features
+Version: v0.10.1
+Revision: d3b2440fcfc25fe8e6d0d4a85f06d68e98312f5b
+Date: 2025-05-13
+Update Mechanism: Autoroll
+License: BSD-2-Clause, Apache-2.0
+License File: src/LICENSE
+Security Critical: yes
+Shipped: yes
+
+Description:
+cpu_features is a library to retrieve CPU features at runtime. It is used to
+make decisions about performance optimization and features a drop-in replacement
+for Android's cpu-features.h. It is Android's recommended replacement for libraries
+that utilize cpu-features.h.
+`, actual)
+}
