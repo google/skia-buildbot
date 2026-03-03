@@ -19,6 +19,8 @@ describe('ExploreMultiSk', () => {
 
   // Common setup for most tests
   const setupElement = async (mockDefaults: any = null, paramsMock: any = null) => {
+    // Clear URL search parameters to avoid state leakage between tests.
+    window.history.replaceState(null, '', window.location.pathname);
     setUpExploreDemoEnv();
     window.perf = {
       dev_mode: false,

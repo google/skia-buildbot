@@ -20,7 +20,6 @@ import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { errorMessage, errorMessageWithTelemetry } from '../errorMessage';
 import { StatusCodes } from 'http-status-codes';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 
 import '@material/web/button/outlined-button.js';
 import '@material/web/icon/icon.js';
@@ -171,9 +170,6 @@ const MIN_ZOOM_RANGE = 0.1;
 
 // The max number of points a user can nudge an anomaly by.
 const NUDGE_RANGE = 2;
-
-// Minimum amount of points to display on a graph.
-const MIN_POINTS = 100;
 
 const monthInSec = 30 * 24 * 60 * 60;
 
@@ -931,7 +927,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     return html` <plot-summary-sk
       .domain=${this._state.domain}
       ${ref(this.plotSummary)}
-      @summary_selected=${this.summarySelected}
+      @summary_selected=${this.onSummarySelected}
       selectionType=${!this._state.disableMaterial ? 'material' : 'canvas'}
       ?hasControl=${!this._state.disableMaterial}
       class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
@@ -1108,7 +1104,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       true
     );
     this.tooltipSelected = true;
-    this.updateBrowserURL();
+    this._stateHasChanged();
 
     // If traces are rendered and summary bar is enabled, show
     // summary for the trace clicked on the graph.
@@ -1917,16 +1913,12 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
     // Apply visual update
     plotSummary.selectedValueRange = { begin: newBegin, end: newEnd };
-    this.summarySelected(
-      new CustomEvent('summary_selected', {
-        detail: {
-          value: { begin: newBegin, end: newEnd },
-          domain: this._state.domain as 'commit' | 'date',
-          start: 0,
-          end: 0,
-        },
-      })
-    );
+    this.summarySelected({
+      value: { begin: newBegin, end: newEnd },
+      domain: this._state.domain as 'commit' | 'date',
+      start: 0,
+      end: 0,
+    });
   }
 
   /**  Returns true if we have any traces to be displayed. */
@@ -1996,7 +1988,11 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
    * React to the summary_selected event.
    * @param e Event object.
    */
-  summarySelected({ detail }: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
+  private onSummarySelected(e: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
+    this.summarySelected(e.detail);
+  }
+
+  summarySelected(detail: PlotSummarySkSelectionEventDetails): void {
     this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
     // When summary selection is changed, fetch the comments for the new range
     // and update the plot.
@@ -2029,7 +2025,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     if (detail.start === 0) {
       this.closeTooltip();
     }
-    this.updateBrowserURL();
   }
 
   async extendRange(range: range, offset?: number): Promise<void> {
@@ -2065,7 +2060,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     if (this.plotSummary.value) {
       this.plotSummary.value.selectedValueRange = detail.value;
     }
-    this.updateBrowserURL();
+    this._stateHasChanged();
     this.closeTooltip();
     // If in multi-graph view, sync all graphs.
     // This event listener will not work on the alerts page
@@ -2077,170 +2072,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       })
     );
     this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
-  }
-
-  private clearTooltipDataFromURL(): void {
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.delete('graph');
-    currentUrl.searchParams.delete('commit');
-    currentUrl.searchParams.delete('trace');
-    window.history.pushState(null, '', currentUrl.toString());
-  }
-
-  /**
-   * Reads parameters from the browser URL and applies them to the chart.
-   * This is used to restore the state of the chart from a shared URL.
-   *
-   * It handles three main pieces of state from the URL:
-   * 1. Time Range (begin/end): Sets the visible range of the chart. It converts
-   *    the 'begin' and 'end' timestamp URL params to commit offsets and updates
-   *    the plot summary's selection.
-   * 2. Point Selection (graph/commit/trace): If the URL specifies a 'graph' that
-   *    matches this component's index, it will select the specific 'commit' and
-   *    'trace' (column) on the chart.
-   * 3. Split by Key (splitByKey): If the 'splitByKey' param is present, it will
-   *    trigger the action to split the chart by that parameter key.
-   * 4. JSON (json): If the 'json' param is present, it will parse it and load the graph.
-   *
-   * @param selection - If true, it will select the commit and trace specified in the URL.
-   *                    This is needed when popping the selection too early.
-   * @param url - Optional URL to use instead of window.location.href. Useful for testing.
-   */
-  useBrowserURL(selection: boolean = true, url: URL = new URL(window.location.href)): void {
-    if (this.isReportPage) {
-      return;
-    }
-    const currentUrl = url;
-    const json = currentUrl.searchParams.get('json');
-    if (json) {
-      if (this.json) {
-        this.json.value = json;
-      }
-      this.add(true, 'json');
-      return;
-    }
-
-    const commit: number = parseInt(
-      currentUrl.searchParams.get('commit') ?? String(this._state.selected.commit)
-    );
-    const column: number = parseInt(
-      currentUrl.searchParams.get('trace') ?? String(this._state.selected.tableCol)
-    );
-    const graph: number = parseInt(currentUrl.searchParams.get('graph') ?? '0');
-
-    const begin = parseInt(currentUrl.searchParams.get('begin') ?? this.state.begin.toString());
-    const end = parseInt(currentUrl.searchParams.get('end') ?? this.state.end.toString());
-    if (isNaN(begin) || isNaN(end)) {
-      // When no value is found in the URL, then use the first graph to update it.
-      if (this.state.graph_index === 0) {
-        this.updateBrowserURL();
-      }
-    }
-    // Pull from URL which is always a timestamp.
-    const beginIndex = this.getCommitIndex(begin, 'timestamp');
-    const endIndex = this.getCommitIndex(end, 'timestamp', true);
-    if (beginIndex === -1 || endIndex === -1) {
-      // When no commit is found in the dataframe, return.
-      // Only message if not anomaly table where graphs are not synced.
-      if (!this.is_anomaly_table) {
-        console.error(`Timestamp(s) not found in the dataframe: ${begin}, ${end}`);
-      }
-      return;
-    }
-
-    if (this.state.graph_index === 0 || this.is_anomaly_table) {
-      const beginCommit = this.dfRepo.value?.header[beginIndex];
-      const endCommit = this.dfRepo.value?.header[endIndex];
-      if (beginCommit === undefined || endCommit === undefined) {
-        console.error(`Begin or end commit offset not found in the dataframe.`);
-        return;
-      }
-
-      let beginValue: number = beginCommit!.offset;
-      let endValue: number = endCommit!.offset;
-      if (this.state.domain === DOMAIN_DATE) {
-        beginValue = beginCommit!.timestamp;
-        endValue = endCommit!.timestamp;
-      }
-      if (this.parentNode) {
-        const graphNumber = Array.from(this.parentNode!.children).indexOf(this);
-        const detail: PlotSummarySkSelectionEventDetails = {
-          graphNumber: graphNumber,
-          value: { begin: beginValue, end: endValue },
-          domain: this.state.domain as 'commit' | 'date',
-          start: 0,
-          end: 0,
-        };
-        if (this.plotSummary.value) {
-          this.plotSummary.value!.selectedValueRange = detail.value;
-          this.summarySelected(new CustomEvent('summary_selected', { detail: detail }));
-        }
-      }
-    }
-
-    if (this.state.graph_index === graph && commit && !isNaN(commit)) {
-      // If the commit is specified, we need to select it in the chart.
-      const commitIndex = this.getCommitIndex(commit, this.state.domain);
-      if (commitIndex === null) {
-        errorMessage(`Commit not found in the dataframe: ${commit}`);
-        return;
-      }
-      const googlePlot = this.googleChartPlot.value;
-      if (googlePlot && selection) {
-        googlePlot.selectCommit(commitIndex, column);
-      }
-    }
-
-    // When loading the chart, look if SplitByKey is in the URL.
-    const splitKey = currentUrl.searchParams.get('splitByKeys');
-    if (this.state.graph_index === 0 && splitKey) {
-      const checkbox = document.querySelector(`checkbox-sk[name="${splitKey}"]`) as CheckOrRadio;
-      // If not checked and present, then split the loaded data.
-      if (checkbox && !checkbox.checked) {
-        checkbox.checked = true;
-        // Dispatch the event to split the chart by the given key.
-        this.dispatchEvent(
-          new CustomEvent('split-by-changed', {
-            detail: {
-              param: splitKey,
-              split: true,
-            },
-            bubbles: true,
-            composed: true,
-          })
-        );
-      }
-    }
-  }
-
-  /**
-   * Updates the browser URL with the new begin and end values.
-   * This is used to reflect the current state of the graph in the URL.
-   */
-  private updateBrowserURL(): void {
-    if (this.isReportPage) {
-      return;
-    }
-    const currentUrl = new URL(window.location.href);
-    // The tooltip is opened to a commit, so we need to update the URL to match.
-    if (this._state.selected.tableCol && this._state.selected.tableCol !== -1) {
-      currentUrl.searchParams.set('graph', this.state.graph_index.toString());
-      currentUrl.searchParams.set('commit', this.state.selected.commit.toString());
-      currentUrl.searchParams.set('trace', this._state.selected.tableCol.toString());
-    }
-    try {
-      // Update the URL with the current range.
-      if (this.state.graph_index === 0) {
-        currentUrl.searchParams.set('request_type', '0');
-        currentUrl.searchParams.set('begin', this.state.begin.toString());
-        currentUrl.searchParams.set('end', this.state.end.toString());
-      }
-      if (currentUrl.toString() !== new URL(window.location.href).toString()) {
-        window.history.pushState(null, '', currentUrl.toString());
-      }
-    } catch (error) {
-      console.error('Failed to update state to URL:', error);
-    }
   }
 
   // updateSelectedRangeWithPlotSummary is used to synchronize
@@ -2259,7 +2090,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       this.state.end = parseInt((end ?? this.state.end).toString());
     }
     this.plotSummary.value.selectedValueRange = range;
-    this.updateBrowserURL();
     this.closeTooltip();
   }
 
@@ -2288,8 +2118,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       errorMessage('Unable to find requested data range.');
       return;
     }
-    this.state.begin = subDataframe.header![0]!.timestamp;
-    this.state.end = subDataframe.header![subDataframe.header!.length - 1]!.timestamp;
 
     // Update the current dataframe to reflect the selection.
     this._dataframe.traceset = subDataframe.traceset;
@@ -2497,7 +2325,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     tooltipElem!.moveTo(null);
     if (this.tooltipSelected) {
       this.clearSelectedState();
-      this.clearTooltipDataFromURL();
     }
     this.tooltipSelected = false;
     tooltipElem?.reset();
@@ -2964,6 +2791,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       frameRequest!,
       replaceAnomalies
     );
+
     // Code previously in .then() now runs after await.
     const loadingMore: Promise<void> = this.addTraces(
       frameResponse,
@@ -3034,8 +2862,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
     const header = dataframe.header;
     if (selectedRange === null) {
-      const prop = this._state.domain === 'date' ? 'timestamp' : 'offset';
-      selectedRange = range(header![0]![prop], header![header!.length - 1]![prop]);
+      selectedRange = this.calculateSelectionFromState();
     }
 
     this.updateSelectedRangeWithUpdatedDataframe(
@@ -3084,41 +2911,39 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         this.render();
         // The data is supposed to be already loaded.
         // Let's simply make the selection on the summary.
-        const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
-        this.plotSummary.value?.SelectRange(updatedRange);
+        this.plotSummary.value?.SelectRange(selectedRange!);
       } else {
-        return await this.loadExtendedRangeData(selectedRange);
+        return await this.loadExtendedRangeData();
       }
     }
   }
 
-  // Extend the selected range to include at least the minimum number of points.
-  // Checks to ensure enough points exist, if not, then extends the range to the
-  // total MIN_POINTS points in the header.
-  private extendRangeToMinimumAllowed(
-    header: string | (ColumnHeader | null)[] | null,
-    selectedRange: { begin: number; end: number }
-  ) {
-    // Ensure at least the Minimum Points are displayed.
-    if (header && header.length < MIN_POINTS) {
-      const repoHeader = this.dfRepo.value?.header;
-      // Check to ensure enough point exist.
-      if (repoHeader && repoHeader.length > MIN_POINTS) {
-        selectedRange = range(
-          repoHeader[repoHeader.length - MIN_POINTS]!.offset,
-          repoHeader[repoHeader.length - 1]!.offset
-        );
-      }
+  private calculateSelectionFromState(): range {
+    if (this._state.domain === 'date') {
+      return range(this._state.begin, this._state.end);
     }
-    return selectedRange;
+    const header = this.dfRepo.value?.header || [];
+    const beginIndex = this.getCommitIndex(this._state.begin, 'timestamp');
+    const endIndex = this.getCommitIndex(this._state.end, 'timestamp', true);
+
+    let beginOffset = header && header.length > 0 ? header[0]!.offset : (0 as CommitNumber);
+    let endOffset =
+      header && header.length > 0 ? header[header.length - 1]!.offset : (0 as CommitNumber);
+
+    if (beginIndex !== -1 && this.dfRepo.value?.header[beginIndex]) {
+      beginOffset = this.dfRepo.value.header[beginIndex]!.offset;
+    }
+    if (endIndex !== -1 && this.dfRepo.value?.header[endIndex]) {
+      endOffset = this.dfRepo.value.header[endIndex]!.offset;
+    }
+    return range(beginOffset, endOffset);
   }
 
   /**
    * Loads extended range data for the plot summary.
-   * @param selectedRange The currently selected range.
    * @returns A Promise that resolves when the extended range data is loaded.
    */
-  async loadExtendedRangeData(selectedRange: range): Promise<void> {
+  async loadExtendedRangeData(): Promise<void> {
     const header = this.dfRepo.value?.header;
     if (!header) {
       return;
@@ -3130,25 +2955,30 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     }
     const promises = [
       this.dfRepo.value?.extendRange(-extendRange).then(() => {
-        const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
+        const currentRange = this.calculateSelectionFromState();
         // Already plotted, just need to update the data.
         this.updateSelectedRangeWithUpdatedDataframe(
-          updatedRange,
+          currentRange,
           this.state.domain as 'date' | 'commit',
           false
         );
-        this.plotSummary.value?.SelectRange(updatedRange);
+        this.plotSummary.value?.SelectRange(currentRange);
       }),
       this.dfRepo.value?.extendRange(extendRange).then(() => {
-        const updatedRange = this.extendRangeToMinimumAllowed(header, selectedRange!);
+        const currentRange = this.calculateSelectionFromState();
+        // Only fetch data in the background. We force the graph and the summary
+        // box to respect the exact range the user originally requested.
         this.updateSelectedRangeWithUpdatedDataframe(
-          updatedRange,
+          currentRange,
           this.state.domain as 'date' | 'commit',
           false
         );
-        this.plotSummary.value?.SelectRange(updatedRange);
-        // Modify the Range if URL contains different values.
-        this.useBrowserURL();
+
+        // Ensure the plot summary's selection box reflects the EXACT requested range,
+        // not the artificially expanded 100-point range.
+        if (this.plotSummary.value) {
+          this.plotSummary.value.selectedValueRange = currentRange;
+        }
       }),
     ];
     await Promise.allSettled(promises);
@@ -3359,7 +3189,8 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
           // Merge new data with the existing state.
           const frameResponse = json as FrameResponse;
           const newDf = frameResponse.dataframe!;
-          const mergedDataFrame = joinDataframes(this._dataframe, newDf);
+          const fullDf = this.dfRepo.value?.dataframe || this._dataframe;
+          const mergedDataFrame = joinDataframes(fullDf, newDf);
           frameResponse.dataframe = mergedDataFrame;
           // Don't merge anomalies because DataFrameRepository already does that.
           return await this.UpdateWithFrameResponse(
@@ -3673,6 +3504,11 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       }
       if (this.dfRepo.value?.dataframe.traceset[key] !== undefined) {
         delete this.dfRepo.value?.dataframe.traceset[key];
+        if (this.dfRepo.value?.anomaly) {
+          const newAnomalyMap = { ...this.dfRepo.value.anomaly };
+          delete newAnomalyMap[key];
+          this.dfRepo.value.anomaly = newAnomalyMap;
+        }
       }
     });
 

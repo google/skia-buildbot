@@ -117,6 +117,9 @@ export class State {
 
   evenXAxisSpacing: 'true' | 'false' | 'use_cache' = 'use_cache';
 
+  // TODO(eduardoyap): Add support for secondary URL parameters (commit, trace, graph, json)
+  // via stateReflector to fully consolidate URL management in ExploreMultiSk.
+
   // TODO(eduardoyap): Handle browser history changes correctly in manual_plot_mode.
   // TODO(eduardoyap): Ensure new graphs in manual_plot_mode sync time ranges.
   manual_plot_mode: boolean = false;
@@ -175,7 +178,8 @@ export class ExploreMultiSk extends ElementSk {
       // TODO(seawardt): Enable multiple splits
       this.state.splitByKeys = [splitByParamKey];
     }
-    this.splitGraphs();
+    await this.splitGraphs();
+    this.updateShortcutMultiview();
   };
 
   private _onStateChangedInUrl = async (hintableState: HintableObject) => {
@@ -314,12 +318,25 @@ export class ExploreMultiSk extends ElementSk {
     if (this.state.splitByKeys.length > 0 && this.exploreElements.length > 0) {
       this.setProgress('Loading graphs...');
       this._dataLoading = true;
-      // Wait for the graph to start loading and then finish.
-      // We use requestComplete which is more robust.
-      await this.exploreElements[0].requestComplete;
 
-      // Now that the data is loaded, we can split.
+      const explore0 = this.exploreElements[0];
+
+      // We must wait for the component to fully render and fetch its initial data
+      // before we can split. We poll the loading state to avoid race conditions
+      // with the data-loaded event.
+      while (explore0.spinning || explore0.dataLoading) {
+        await new Promise((resolve) => window.requestAnimationFrame(resolve));
+      }
+
+      // Now that the component is hydrated and the initial data is loaded,
+      // dfRepo is guaranteed to exist. We now await the actual requestComplete
+      // promise to ensure any background "extended range" queries finish before
+      // we rip the graph apart.
+      await explore0.requestComplete;
+
+      // Now that ALL data is loaded, we can split.
       await this.splitGraphs(false); // showErrorIfLoading = false
+
       this.setProgress('');
       this.checkDataLoaded();
     }
@@ -402,6 +419,12 @@ export class ExploreMultiSk extends ElementSk {
         // Since we unshifted (true), it should be at index 0 of the current page.
         const newExplore = this.currentPageExploreElements[0];
         const query = this.testPicker!.createQueryFromFieldData();
+
+        // Explicitly update the parent configuration with the query being plotted.
+        if (this.allGraphConfigs.length > 0) {
+          this.allGraphConfigs[0].queries = [query];
+        }
+
         await newExplore.addFromQueryOrFormula(true, 'query', query, '');
       } else {
         // Load multiple graphs, split by the selected split key.
@@ -475,9 +498,7 @@ export class ExploreMultiSk extends ElementSk {
             /*loadExtendedRange=*/ true
           );
         } else {
-          await this.exploreElements[0].loadExtendedRangeData(
-            this.exploreElements[0].getSelectedRange()!
-          );
+          await this.exploreElements[0].loadExtendedRangeData();
         }
         await this.exploreElements[0].requestComplete;
         await this.splitGraphs();
@@ -544,8 +565,20 @@ export class ExploreMultiSk extends ElementSk {
       }
       explore.state.doNotQueryData = false;
     }
-    await explore.addFromQueryOrFormula(true, 'query', query, '', '', false);
-    await this.splitGraphs();
+    await explore.addFromQueryOrFormula(true, 'query', query, '', '', true);
+
+    if (this.state.splitByKeys.length > 0) {
+      await this.splitGraphs();
+    }
+
+    // Ensure the master config explicitly has the query before we save,
+    // protecting us from any race conditions where splitGraphs might have
+    // cleared it due to pending DOM updates.
+    if (this.allGraphConfigs.length > 0) {
+      this.allGraphConfigs[0].queries = [query];
+    }
+
+    this.updateShortcutMultiview();
   };
 
   private _onRemoveTrace = async (e: Event) => {
@@ -925,7 +958,6 @@ export class ExploreMultiSk extends ElementSk {
 
       <div
         id="graphContainer"
-        @remove-explore=${ele.removeExploreEvent}
         @range-changing-in-multi=${ele.syncExtendRange}
         @selection-changing-in-multi=${ele.syncChartSelection}
         @x-axis-toggled=${ele.syncXAxisLabel}
@@ -1263,9 +1295,6 @@ export class ExploreMultiSk extends ElementSk {
     // Now add the graphs that have been configured to the page.
     this.renderCurrentPage();
 
-    if (this.stateHasChanged) {
-      this.stateHasChanged();
-    }
     await this.checkDataLoaded();
   }
 
@@ -1375,9 +1404,12 @@ export class ExploreMultiSk extends ElementSk {
       });
     }
 
-    await this.testPicker!.populateFieldDataFromParamSet(paramSets, paramSet);
+    await this.testPicker!.populateFieldDataFromParamSet(
+      paramSets,
+      paramSet,
+      this.state.splitByKeys
+    );
     this.testPicker!.setReadOnly(false);
-    this.currentPageExploreElements[0]?.useBrowserURL(false);
     this.testPicker!.scrollIntoView();
   }
 
@@ -1675,50 +1707,35 @@ export class ExploreMultiSk extends ElementSk {
         await graph.requestComplete; // Wait for load then update
     });
 
-    // Ensure that the multichart state is updated when multiple charts are available.
-    if (graphs.length > 1) {
-      const currentUrl = new URL(window.location.href);
-      const begin = currentUrl.searchParams.get('begin');
-      if (begin !== null && Number(begin) !== this.state.begin) {
-        this.state.begin = Number(begin);
-      }
-      const end = currentUrl.searchParams.get('end');
-      if (end !== null && Number(end) !== this.state.end) {
-        this.state.end = Number(end);
-      }
-      if (this.stateHasChanged) {
-        this.stateHasChanged();
-      }
-    } else if (!this.state.manual_plot_mode) {
-      // For single graph (not in manual mode), we need to ensure local state respects the selection
-      // so that it doesn't revert the URL when stateHasChanged is called later.
-      let newBegin = e.detail.value.begin;
-      let newEnd = e.detail.value.end;
+    // Unconditionally update the parent state from the event payload.
+    // This makes ExploreMultiSk the single source of truth for the URL
+    // via stateReflector, working across split, single, manual, and non-manual modes.
+    let newBegin = e.detail.value.begin;
+    let newEnd = e.detail.value.end;
 
-      // If the domain is commit, the selection comes as offsets (e.g. 100, 101).
-      // We need to convert these to timestamps (e.g. 1687875573, 1687875574) because the state.begin
-      // and state.end (and thus the URL) always expect timestamps for request_type=0.
-      if (e.detail.domain === 'commit') {
-        const header = this.exploreElements[0].getHeader();
-        if (header) {
-          if (e.detail.start !== undefined && header[e.detail.start]) {
-            newBegin = header[e.detail.start]!.timestamp;
-          }
-          if (e.detail.end !== undefined && header[e.detail.end]) {
-            newEnd = header[e.detail.end]!.timestamp;
-          }
+    // If the domain is commit, the selection comes as offsets (e.g. 100, 101).
+    // We need to convert these to timestamps (e.g. 1687875573, 1687875574) because the state.begin
+    // and state.end (and thus the URL) always expect timestamps for request_type=0.
+    if (e.detail.domain === 'commit') {
+      const header = this.exploreElements[0].getHeader();
+      if (header) {
+        if (e.detail.start !== undefined && header[e.detail.start]) {
+          newBegin = header[e.detail.start]!.timestamp;
+        }
+        if (e.detail.end !== undefined && header[e.detail.end]) {
+          newEnd = header[e.detail.end]!.timestamp;
         }
       }
+    }
 
-      if (newBegin !== this.state.begin) {
-        this.state.begin = newBegin;
-      }
-      if (newEnd !== this.state.end) {
-        this.state.end = newEnd;
-      }
-      if (this.stateHasChanged) {
-        this.stateHasChanged();
-      }
+    if (newBegin !== this.state.begin) {
+      this.state.begin = newBegin;
+    }
+    if (newEnd !== this.state.end) {
+      this.state.end = newEnd;
+    }
+    if (this.stateHasChanged) {
+      this.stateHasChanged();
     }
   }
 
@@ -1807,31 +1824,6 @@ export class ExploreMultiSk extends ElementSk {
     if (this.userEmail) {
       explore.user = this.userEmail;
     }
-    explore.addEventListener('state_changed', () => {
-      const elemState = explore.state;
-      if (!this.allGraphConfigs[elemState.graph_index]) {
-        return;
-      }
-      let stateChanged = false;
-      if (this.allGraphConfigs[elemState.graph_index].formulas !== elemState.formulas) {
-        this.allGraphConfigs[elemState.graph_index].formulas = elemState.formulas || [];
-        stateChanged = true;
-      }
-
-      if (this.allGraphConfigs[elemState.graph_index].queries[0] !== elemState.queries[0]) {
-        this.allGraphConfigs[elemState.graph_index].queries = elemState.queries || [];
-        stateChanged = true;
-      }
-
-      if (this.allGraphConfigs[elemState.graph_index].keys !== elemState.keys) {
-        this.allGraphConfigs[elemState.graph_index].keys = elemState.keys || '';
-        stateChanged = true;
-      }
-
-      if (stateChanged) {
-        this.updateShortcutMultiview();
-      }
-    });
     explore.addEventListener('data-loaded', () => {
       this.checkDataLoaded();
     });
@@ -1884,9 +1876,6 @@ export class ExploreMultiSk extends ElementSk {
         this._dataLoading = false;
         this.testPicker.setReadOnly(false);
       }
-    }
-    if (this.stateHasChanged) {
-      this.stateHasChanged();
     }
   }
 

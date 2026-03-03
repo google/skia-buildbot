@@ -188,8 +188,8 @@ describe('zoomKey', () => {
     element.onZoomIn();
 
     assert.isTrue((element.summarySelected as sinon.SinonStub).calledOnce);
-    const event = (element.summarySelected as sinon.SinonStub).firstCall.args[0] as CustomEvent;
-    assert.deepEqual(event.detail.value, { begin: 110, end: 190 });
+    const detail = (element.summarySelected as sinon.SinonStub).firstCall.args[0];
+    assert.deepEqual(detail.value, { begin: 110, end: 190 });
     assert.deepEqual((element as any).plotSummary.value.selectedValueRange, {
       begin: 110,
       end: 190,
@@ -202,8 +202,8 @@ describe('zoomKey', () => {
     element.onZoomOut();
 
     assert.isTrue((element.summarySelected as sinon.SinonStub).calledOnce);
-    const event = (element.summarySelected as sinon.SinonStub).firstCall.args[0] as CustomEvent;
-    assert.deepEqual(event.detail.value, { begin: 90, end: 210 });
+    const detail = (element.summarySelected as sinon.SinonStub).firstCall.args[0];
+    assert.deepEqual(detail.value, { begin: 90, end: 210 });
     assert.deepEqual((element as any).plotSummary.value.selectedValueRange, {
       begin: 90,
       end: 210,
@@ -216,8 +216,8 @@ describe('zoomKey', () => {
     element.onPanLeft();
 
     assert.isTrue((element.summarySelected as sinon.SinonStub).calledOnce);
-    const event = (element.summarySelected as sinon.SinonStub).firstCall.args[0] as CustomEvent;
-    assert.deepEqual(event.detail.value, { begin: 90, end: 190 });
+    const detail = (element.summarySelected as sinon.SinonStub).firstCall.args[0];
+    assert.deepEqual(detail.value, { begin: 90, end: 190 });
     assert.deepEqual((element as any).plotSummary.value.selectedValueRange, {
       begin: 90,
       end: 190,
@@ -230,8 +230,8 @@ describe('zoomKey', () => {
     element.onPanRight();
 
     assert.isTrue((element.summarySelected as sinon.SinonStub).calledOnce);
-    const event = (element.summarySelected as sinon.SinonStub).firstCall.args[0] as CustomEvent;
-    assert.deepEqual(event.detail.value, { begin: 110, end: 210 });
+    const detail = (element.summarySelected as sinon.SinonStub).firstCall.args[0];
+    assert.deepEqual(detail.value, { begin: 110, end: 210 });
     assert.deepEqual((element as any).plotSummary.value.selectedValueRange, {
       begin: 110,
       end: 210,
@@ -541,28 +541,6 @@ describe('plotSummary', () => {
   });
 });
 
-describe('updateBrowserURL', () => {
-  let explore: ExploreSimpleSk;
-
-  beforeEach(() => {
-    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-  });
-
-  afterEach(() => {
-    fetchMock.reset(); // Reset fetch mocks
-  });
-
-  it('should add begin, end, and request_type=0 params when none exist', () => {
-    explore.state.begin = 100;
-    explore.state.end = 200;
-    explore['updateBrowserURL']();
-    const pushedUrl = new URL(window.location.href as string);
-    assert.equal(pushedUrl.searchParams.get('begin'), '100');
-    assert.equal(pushedUrl.searchParams.get('end'), '200');
-    assert.equal(pushedUrl.searchParams.get('request_type'), '0');
-  });
-});
-
 describe('rationalizeTimeRange', () => {
   let explore: ExploreSimpleSk;
   let clock: sinon.SinonFakeTimers;
@@ -710,24 +688,6 @@ describe('updateTestPickerUrl', () => {
     it('handles invalid JSON gracefully', async () => {
       await explore.addFromQueryOrFormula(true, 'json', '', '', '{invalid');
       // Should catch error and return.
-    });
-
-    it('reads JSON from URL param', async () => {
-      const json = JSON.stringify({
-        graphs: [
-          {
-            queries: ['config=url'],
-          },
-        ],
-      });
-      const url = new URL(window.location.href);
-      url.searchParams.set('json', json);
-      window.history.pushState({}, 'Test', url.toString());
-
-      const spy = sinon.spy(explore, 'addFromQueryOrFormula');
-      explore.useBrowserURL();
-
-      assert.isTrue(spy.calledWith(true, 'json'));
     });
   });
 
@@ -1261,27 +1221,6 @@ describe('updateTestPickerUrl', () => {
       afterEach(() => {
         pushStateStub.restore();
       });
-
-      it('reads JSON from URL param', async () => {
-        const json = JSON.stringify({
-          graphs: [
-            {
-              queries: ['config=url'],
-              formulas: [],
-              keys: '',
-            },
-          ],
-        });
-        const url = new URL(window.location.href);
-        url.searchParams.set('json', json);
-
-        const stub = sinon.stub(explore, 'addFromQueryOrFormula').callsFake(() => {
-          return Promise.resolve();
-        });
-        explore.useBrowserURL(true, url);
-
-        assert.isTrue(stub.calledWith(true, 'json'));
-      });
     });
   });
 });
@@ -1416,45 +1355,6 @@ describe('Even X-Axis Spacing toggle', () => {
 
     assert.equal(event.type, 'even-x-axis-spacing-changed');
     assert.deepEqual(event.detail, { value: false, graph_index: 0 });
-  });
-});
-
-describe('clearTooltipDataFromURL', () => {
-  let explore: ExploreSimpleSk;
-  let pushStateStub: sinon.SinonStub;
-
-  beforeEach(async () => {
-    explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-    await fetchMock.flush(true);
-  });
-
-  afterEach(() => {
-    if (pushStateStub) {
-      pushStateStub.restore();
-    }
-  });
-
-  it('removes graph, commit, and trace params from URL', () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('graph', '1');
-    url.searchParams.set('commit', '123');
-    url.searchParams.set('trace', '456');
-    url.searchParams.set('sid', '12345');
-
-    window.history.pushState(null, '', url.toString());
-
-    pushStateStub = sinon.stub(window.history, 'pushState');
-
-    (explore as any).clearTooltipDataFromURL();
-
-    assert.isTrue(pushStateStub.calledOnce);
-    // history.pushState(state, title, url)
-    const urlPositionIndex = 2;
-    const newUrl = new URL(pushStateStub.firstCall.args[urlPositionIndex] as string);
-    assert.isNull(newUrl.searchParams.get('graph'));
-    assert.isNull(newUrl.searchParams.get('commit'));
-    assert.isNull(newUrl.searchParams.get('trace'));
-    assert.equal(newUrl.searchParams.get('sid'), '12345');
   });
 });
 

@@ -406,7 +406,11 @@ export class TestPickerSk extends ElementSk {
    * @param paramSet - A ParamSet object containing available options for each
    * parameter.
    */
-  async populateFieldDataFromParamSet(paramSets: ParamSet, paramSet: ParamSet): Promise<void> {
+  async populateFieldDataFromParamSet(
+    paramSets: ParamSet,
+    paramSet: ParamSet,
+    splitByKeys: string[] = []
+  ): Promise<void> {
     const uniqueParamKeys = [...new Set([...Object.keys(paramSets), ...Object.keys(paramSet)])];
     this.initializeFieldData(uniqueParamKeys);
     this._currentIndex = 0; // Reset current index for proper field initialization
@@ -420,6 +424,10 @@ export class TestPickerSk extends ElementSk {
       const fieldInfo = this._fieldData[i];
       const param = fieldInfo.param;
       fieldInfo.field = new PickerFieldSk(param, this._forceManualPlot);
+      // Apply the split state immediately upon creation
+      if (splitByKeys.includes(param)) {
+        fieldInfo.field.split = true;
+      }
       // Combine options from both paramSets and paramSet for the current param.
       let value = paramSets[param] || [];
       value = value.map((v) =>

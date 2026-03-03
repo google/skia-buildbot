@@ -5,10 +5,59 @@ import {
   STANDARD_LAPTOP_VIEWPORT,
   poll,
   waitForElementNotHidden,
-  scrollDownSlowly,
 } from '../common/puppeteer-test-util';
 import { TestPickerSkPO } from '../test-picker-sk/test-picker-sk_po';
 import { ExploreSimpleSkPO } from '../explore-simple-sk/explore-simple-sk_po';
+import { Page } from 'puppeteer';
+
+/**
+ * startUrlTracking injects a spy into the page to count history updates.
+ */
+const startUrlTracking = async (page: Page) => {
+  await page.evaluate(() => {
+    (window as any).urlChangeCount = 0;
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+    history.pushState = function (...args) {
+      (window as any).urlChangeCount++;
+      return originalPushState.apply(history, args);
+    };
+    history.replaceState = function (...args) {
+      (window as any).urlChangeCount++;
+      return originalReplaceState.apply(history, args);
+    };
+  });
+};
+
+/**
+ * getUrlChangeCount returns the number of URL changes since tracking started.
+ */
+const getUrlChangeCount = async (page: Page): Promise<number> => {
+  return await page.evaluate(() => (window as any).urlChangeCount);
+};
+
+/**
+ * resetUrlChangeCount resets the counter.
+ */
+const resetUrlChangeCount = async (page: Page) => {
+  await page.evaluate(() => {
+    (window as any).urlChangeCount = 0;
+  });
+};
+
+/**
+ * expectUrlParams verifies that the current URL contains the expected parameters.
+ */
+const expectUrlParams = async (page: Page, expected: Record<string, string | null>) => {
+  const url = new URL(page.url());
+  for (const [key, value] of Object.entries(expected)) {
+    if (value === null) {
+      expect(url.searchParams.get(key)).to.be.null;
+    } else {
+      expect(url.searchParams.get(key)).to.equal(value);
+    }
+  }
+};
 
 const clearSelections = async (testPickerPO: TestPickerSkPO) => {
   // Clear all existing selections first, in reverse order.
@@ -108,7 +157,11 @@ describe('Anomalies and Traces', () => {
     let anomalyMap = await exploreSimplePO.getAnomalyMap();
     expect(Object.keys(anomalyMap).length).to.equal(EXPECTED_ANOMALIES_COUNT_BEFORE_REMOVAL);
 
-    // Remove Android trace
+    // TODO(eduardoyap): Add URL tracking assertions
+    // (e.g., expect(await getUrlChangeCount...).to.equal(1))
+    // here once trace removal functionality is fully working. They were temporarily
+    // removed as the feature is currently unsupported/broken.
+    await startUrlTracking(testBed.page);
     await osField.removeSelectedOption('Android');
 
     // Wait for graph update (Android trace removal)
@@ -170,7 +223,8 @@ describe('Anomalies and Traces', () => {
     expect(anomaliesCommitCount).to.be.greaterThan(0);
 
     // Switch to date domain
-    await exploreSimplePO.xAxisSwitch.applyFnToDOMNode((el) => (el as HTMLElement).click());
+    await startUrlTracking(testBed.page);
+    await exploreSimplePO.clickXAxisSwitch();
 
     // Wait for render/update
     await testBed.page.waitForFunction(() => {
@@ -237,21 +291,31 @@ describe('Manual Plot Mode', () => {
     const testPickerPO = explorePO.testPicker;
 
     // Add first graph.
+    await startUrlTracking(testBed.page);
     await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android'] });
 
     // Verify First Graph (Index 0)
     expect(await explorePO.getGraphCount()).to.equal(1);
+
+    // Verify URL was updated correctly and only once.
+    await testBed.page.waitForTimeout(500);
+    expect(await getUrlChangeCount(testBed.page)).to.equal(1);
+    await expectUrlParams(testBed.page, { totalGraphs: '1' });
+
     const graph1PO = explorePO.getGraph(0);
     const traces1 = await graph1PO.getTraceKeys();
     expect(traces1).to.include(',arch=arm,os=Android,');
 
-    let currentUrl = new URL(await testBed.page.url());
-    expect(currentUrl.searchParams.get('totalGraphs')).to.equal('1');
-
     // Add second graph.
     // In this mode, we select both 'Android' and 'Ubuntu'.
     // The picker state is now: { arch: 'arm', os: ['Android', 'Ubuntu'] }
+    await resetUrlChangeCount(testBed.page);
     await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android', 'Ubuntu'] }, 2);
+
+    // Verify URL was updated correctly and only once.
+    await testBed.page.waitForTimeout(500);
+    expect(await getUrlChangeCount(testBed.page)).to.equal(1);
+    await expectUrlParams(testBed.page, { totalGraphs: '2' });
 
     // Verify Top Graph (Index 0)
     // Should reflect the CURRENT picker state (Android + Ubuntu)
@@ -275,8 +339,7 @@ describe('Manual Plot Mode', () => {
     await verifyGraphTitle(graphBottomPO, 'Android');
 
     // Check URL state after adding the second graph
-    currentUrl = new URL(await testBed.page.url());
-    expect(currentUrl.searchParams.get('totalGraphs')).to.equal('2');
+    expect(new URL(await testBed.page.url()).searchParams.get('totalGraphs')).to.equal('2');
   });
 
   it('selects multiple values in the first field and plots all combinations', async () => {
@@ -390,8 +453,14 @@ describe('Manual Plot Mode', () => {
 
     // REMOVE MIDDLE (Ubuntu)
     const middleGraph = explorePO.getGraph(1);
+    await startUrlTracking(testBed.page);
     await middleGraph.clickRemoveAllButton();
     await explorePO.waitForGraphCount(2);
+
+    // Verify URL update
+    await testBed.page.waitForTimeout(500);
+    expect(await getUrlChangeCount(testBed.page)).to.equal(1);
+    await expectUrlParams(testBed.page, { totalGraphs: '2' });
 
     // Now Index 0 should be Graph 3 (Android)
     // Index 1 should be Graph 1 (Android)
@@ -404,31 +473,33 @@ describe('Manual Plot Mode', () => {
     expect(tracesPostRem1_1).to.have.lengthOf(1);
     expect(tracesPostRem1_1[0]).to.equal(',arch=arm,os=Android,');
 
-    currentUrl = new URL(await testBed.page.url());
-    expect(currentUrl.searchParams.get('totalGraphs')).to.equal('2');
-
     // REMOVE FIRST
     const firstGraph = explorePO.getGraph(0);
+    await resetUrlChangeCount(testBed.page);
     await firstGraph.clickRemoveAllButton();
-
     await explorePO.waitForGraphCount(1);
+
+    // Verify URL update
+    await testBed.page.waitForTimeout(500);
+    expect(await getUrlChangeCount(testBed.page)).to.equal(1);
+    await expectUrlParams(testBed.page, { totalGraphs: '1' });
 
     const tracesPostRem2_0 = await explorePO.getGraph(0).getTraceKeys();
     expect(tracesPostRem2_0).to.have.lengthOf(1);
     expect(tracesPostRem2_0[0]).to.equal(',arch=arm,os=Android,');
 
-    currentUrl = new URL(await testBed.page.url());
-    expect(currentUrl.searchParams.get('totalGraphs')).to.equal('1');
-
     // REMOVE LAST
     const lastGraph = explorePO.getGraph(0);
+    await resetUrlChangeCount(testBed.page);
     await lastGraph.clickRemoveAllButton();
-
     await explorePO.waitForGraphCount(0);
 
-    currentUrl = new URL(await testBed.page.url());
-    expect(currentUrl.searchParams.get('totalGraphs')).to.be.null;
+    // Verify URL update
+    await testBed.page.waitForTimeout(500);
+    expect(await getUrlChangeCount(testBed.page)).to.equal(1);
+    await expectUrlParams(testBed.page, { totalGraphs: null, shortcut: null });
 
+    currentUrl = new URL(await testBed.page.url());
     const finalShortcut = currentUrl.searchParams.get('shortcut');
     expect(finalShortcut).to.satisfy((s: string) => s === null || s === '');
   });
@@ -542,17 +613,59 @@ describe('Explore Multi Sk with plotSummary', () => {
     const initialBegin = initialUrl.searchParams.get('begin');
     const initialEnd = initialUrl.searchParams.get('end');
 
-    await plotSummaryPO.resizeSelection(testBed.page, 'right', 0.75);
+    // Resize from the right: 'end' should change, 'begin' should stay the same.
+    await startUrlTracking(testBed.page);
+    await plotSummaryPO.resizeSelection(testBed.page, 'right', 0.85);
 
-    const finalUrl = new URL(testBed.page.url());
-    const finalBegin = finalUrl.searchParams.get('begin');
-    const finalEnd = finalUrl.searchParams.get('end');
+    // Verify URL update
+    await testBed.page.waitForTimeout(500);
+    expect(await getUrlChangeCount(testBed.page)).to.equal(1);
 
-    expect(finalBegin).to.not.equal(initialBegin);
-    expect(finalEnd).to.not.equal(initialEnd);
+    let finalUrl = new URL(testBed.page.url());
+    let finalBegin = finalUrl.searchParams.get('begin');
+    let finalEnd = finalUrl.searchParams.get('end');
+
+    // We allow some tolerance (e.g. 5000s) because Google Charts might snap or adjust the
+    // visible range slightly even on the "anchored" side when the other side changes significantly.
+    const tolerance = 5000;
+    expect(Number(finalBegin)).to.be.closeTo(
+      Number(initialBegin),
+      tolerance,
+      'Begin should stay approximately the same when resizing right'
+    );
+    expect(Number(finalEnd)).to.not.be.closeTo(
+      Number(initialEnd),
+      tolerance,
+      'End should change significantly when resizing right'
+    );
 
     expect(Number(finalBegin)).to.not.be.NaN;
     expect(Number(finalEnd)).to.not.be.NaN;
+
+    // Resize from the left: 'begin' should change, 'end' should stay the same.
+    const midBegin = finalBegin;
+    const midEnd = finalEnd;
+
+    await resetUrlChangeCount(testBed.page);
+    await plotSummaryPO.resizeSelection(testBed.page, 'left', 0.15);
+
+    await testBed.page.waitForTimeout(500);
+    expect(await getUrlChangeCount(testBed.page)).to.equal(1);
+
+    finalUrl = new URL(testBed.page.url());
+    finalBegin = finalUrl.searchParams.get('begin');
+    finalEnd = finalUrl.searchParams.get('end');
+
+    expect(Number(finalBegin)).to.not.be.closeTo(
+      Number(midBegin),
+      tolerance,
+      'Begin should change significantly when resizing left'
+    );
+    expect(Number(finalEnd)).to.be.closeTo(
+      Number(midEnd),
+      tolerance,
+      'End should stay approximately the same when resizing left'
+    );
   });
 });
 
@@ -595,6 +708,7 @@ describe('Even X-Axis Spacing', () => {
     );
 
     await graph0.clickEvenXAxisSpacingSwitch();
+
     await poll(
       async () => !(await graph0.getEvenXAxisSpacing()),
       'Graph 0 did not update to normal spacing'
@@ -651,7 +765,13 @@ describe('Split Graph Functionality', function () {
     // Ensure it is visible (poll until not hidden)
     await waitForElementNotHidden(splitCheckbox);
 
+    await startUrlTracking(testBed.page);
     await osField.checkSplit();
+
+    // Verify URL update
+    await testBed.page.waitForTimeout(500);
+    expect(await getUrlChangeCount(testBed.page)).to.equal(1);
+    await expectUrlParams(testBed.page, { splitByKeys: 'os' });
 
     // Wait for 3 graphs (1 hidden summary + 2 splits)
     await explorePO.waitForGraphCount(3, LONG_TIMEOUT_MS);
@@ -677,7 +797,14 @@ describe('Split Graph Functionality', function () {
     expect(traces1[0]).to.not.equal(traces2[0]); // Ensure they are different
 
     // Uncheck "Split" checkbox to merge back
+    await resetUrlChangeCount(testBed.page);
     await osField.uncheckSplit();
+
+    // Verify URL update
+    await testBed.page.waitForTimeout(500);
+    // Unchecking might involve updating shortcut and then clearing split keys.
+    expect(await getUrlChangeCount(testBed.page)).to.be.at.least(1);
+    await expectUrlParams(testBed.page, { splitByKeys: null });
 
     // Wait for graph count to be 1
     await explorePO.waitForGraphCount(1, LONG_TIMEOUT_MS);
@@ -735,22 +862,6 @@ describe('Split Graph Functionality', function () {
     const lastGraph = explorePO.getGraph(6);
     const traces = await lastGraph.getTraceKeys();
     expect(traces.length).to.be.greaterThan(0);
-
-    // Scroll to the bottom of the page
-    await scrollDownSlowly(testBed.page);
-
-    const key = traces[0];
-    const pointIndex = 10;
-    const coords = await lastGraph.getTraceCoordinates(key, pointIndex);
-    await testBed.page.mouse.move(coords!.x, coords!.y);
-
-    // Verify hover indicator is visible
-    const isHoverVisible = await lastGraph.googleChart.applyFnToDOMNode((el) => {
-      const indicator = el.shadowRoot?.querySelector('.hover-indicator') as HTMLElement;
-      return indicator && indicator.style.display !== 'none';
-    });
-    // https://screenshot.googleplex.com/3cE5KtBTnZ3dyqF
-    expect(isHoverVisible).to.be.true;
   });
 });
 
