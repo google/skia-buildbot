@@ -52,32 +52,33 @@ const frames = [
 
 window.customElements
   .whenDefined('plot-summary-sk')
-  .then(() => {
+  .then(async () => {
     const plots = document.querySelectorAll<PlotSummarySk>('plot-summary-sk');
     const readys: Promise<boolean>[] = [];
     plots.forEach((plot) => {
       readys.push(plot.updateComplete);
     });
-    return load().then(() => Promise.all(readys).then(() => Array.from(plots)));
+    return await load().then(async () => await Promise.all(readys).then(() => Array.from(plots)));
   })
-  .then((plots) =>
-    Promise.all(
-      Array.from(plots).map((plot, idx) => {
-        const chartReady = new Promise<PlotSummarySk>((resolve) => {
-          const el = plot;
-          el.addEventListener('google-chart-ready', () => {
-            resolve(el);
+  .then(
+    async (plots) =>
+      await Promise.all(
+        Array.from(plots).map(async (plot, idx) => {
+          const chartReady = new Promise<PlotSummarySk>((resolve) => {
+            const el = plot;
+            el.addEventListener('google-chart-ready', () => {
+              resolve(el);
+            });
+          }).then(async (el) => {
+            return await el.updateComplete;
           });
-        }).then((el) => {
-          return el.updateComplete;
-        });
-        plot.selectedTrace = ',key=0';
-        plot.data = google.visualization.arrayToDataTable(
-          convertFromDataframe(frames[idx % frames.length], 'both')!
-        );
-        return chartReady;
-      })
-    )
+          plot.selectedTrace = ',key=0';
+          plot.data = google.visualization.arrayToDataTable(
+            convertFromDataframe(frames[idx % frames.length], 'both')!
+          );
+          return await chartReady;
+        })
+      )
   )
   .then(() => {
     console.log('chart fully loaded.');

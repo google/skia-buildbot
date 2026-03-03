@@ -13,7 +13,7 @@
 import { range } from '../dataframe/index';
 
 import { css, html, LitElement } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { ref, createRef } from 'lit/directives/ref.js';
 
 // clamps the value in between min and max. This helps to compute
@@ -92,42 +92,11 @@ export class HResizableBoxSk extends LitElement {
 
   private startX = 0;
 
-  // set and draw the selection box. hidden if null.
-  // the range is relative to the element itself.
-  set selectionRange(range: range | null) {
-    const box = this.selection.value!;
-    if (!box) {
-      return;
-    }
-    if (!range) {
-      box.style.display = 'none';
-      box.style.width = '0px';
-      return;
-    } else {
-      box.style.display = 'block';
-    }
+  @property({ attribute: false })
+  selectionRange: range | null = null;
 
-    const parentRt = this.getBoundingClientRect();
-    box.style.left = clamp(range.begin, 0, parentRt.width) + 'px';
-    box.style.width =
-      clamp(range.end - range.begin, this.minWidth, parentRt.width - range.begin) + 'px';
-  }
-
-  // current selection box range.
-  // the range is relative to the element itself.
-  get selectionRange() {
-    const box = this.selection.value;
-    if (!box || box.style.display === 'none') {
-      return null;
-    }
-
-    const parentRt = this.getBoundingClientRect();
-    const rect = box.getBoundingClientRect();
-    return {
-      begin: rect.left - parentRt.left,
-      end: rect.right - parentRt.left,
-    } as range;
-  }
+  // We no longer need the setter to manually update styles.
+  // The render method will handle it.
 
   private onMouseDown(e: MouseEvent) {
     // If the mouseDown is starting from our component, then we takes it over.
@@ -203,14 +172,49 @@ export class HResizableBoxSk extends LitElement {
     this.action = null;
     this.dispatchEvent(
       new CustomEvent('selection-changed', {
-        detail: this.selectionRange,
+        detail: this.computeSelectionFromDOM(),
       })
     );
   }
 
+  private computeSelectionFromDOM(): range | null {
+    const box = this.selection.value;
+    if (!box || box.style.display === 'none') {
+      return null;
+    }
+
+    const parentRt = this.getBoundingClientRect();
+    const rect = box.getBoundingClientRect();
+    return {
+      begin: rect.left - parentRt.left,
+      end: rect.right - parentRt.left,
+    } as range;
+  }
+
   protected render() {
+    // If no selectionRange, hide the box.
+    const display = this.selectionRange ? 'block' : 'none';
+
+    // Calculate styles if visible
+    let left = '0px';
+    let width = '0px';
+
+    if (this.selectionRange) {
+      // access the host element's width safely
+      const parentWidth = this.offsetWidth || 0;
+      const range = this.selectionRange;
+      const w = clamp(range.end - range.begin, this.minWidth, parentWidth - range.begin);
+      const l = clamp(range.begin, 0, parentWidth);
+
+      left = l + 'px';
+      width = w + 'px';
+    }
+
     return html`<div class="container" @mousedown=${(e: MouseEvent) => this.onMouseDown(e)}>
-      <div class="surface" ${ref(this.selection)}>
+      <div
+        class="surface"
+        style="display: ${display}; left: ${left}; width: ${width};"
+        ${ref(this.selection)}>
         <md-elevation></md-elevation>
       </div>
     </div>`;

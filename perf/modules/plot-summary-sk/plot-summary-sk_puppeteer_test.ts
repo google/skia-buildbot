@@ -16,16 +16,16 @@ describe('plot-summary-sk', () => {
     await testBed.page.goto(testBed.baseUrl);
     // Show the four summary bars. Don't show the events as they might be flaky.
     await testBed.page.setViewport({ width: 400, height: 1000 });
-    return testBed.page.waitForFunction(
+    return await testBed.page.waitForFunction(
       () => document.querySelector('#events')?.textContent === 'ready',
       { timeout: 5000 }
     );
   });
 
-  const waitPlotSummary = (sel: string) =>
-    testBed.page.$eval(sel, (plot) => (plot as LitElement).updateComplete);
+  const waitPlotSummary = async (sel: string) =>
+    await testBed.page.$eval(sel, async (plot) => await (plot as LitElement).updateComplete);
 
-  const getEventText = () => testBed.page.$eval('#events', (node) => node.textContent);
+  const getEventText = async () => await testBed.page.$eval('#events', (node) => node.textContent);
 
   // The timestamp tolerance from UI selection, this is 120 second in
   // the span of 3 days, the tolerance here should be negligible.

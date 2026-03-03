@@ -27,14 +27,14 @@ describe('plot-summary-sk', () => {
     dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
   });
 
-  const chartReady = (cb: () => LitElement) =>
-    new Promise<LitElement>((resolve) => {
+  const chartReady = async (cb: () => LitElement) =>
+    await new Promise<LitElement>((resolve) => {
       const el = cb();
       el.addEventListener('google-chart-ready', () => {
         resolve(el);
       });
-    }).then((el) => {
-      return el.updateComplete;
+    }).then(async (el) => {
+      return await el.updateComplete;
     });
 
   describe('trace colors', () => {
@@ -62,8 +62,8 @@ describe('plot-summary-sk', () => {
     beforeEach(() => {
       fetchStub = sinon.stub(window, 'fetch').resolves({
         ok: true,
-        text: () => Promise.resolve(''),
-        json: () => Promise.resolve({}),
+        text: async () => await Promise.resolve(''),
+        json: async () => await Promise.resolve({}),
       } as Response);
     });
 

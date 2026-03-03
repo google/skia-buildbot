@@ -17,7 +17,7 @@ import { MdIconButton } from '@material/web/iconbutton/icon-button.js';
 import { consume } from '@lit/context';
 import { html, LitElement, PropertyValues } from 'lit';
 import { ref, createRef } from 'lit/directives/ref.js';
-import { property } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { PlotSelectionEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 
@@ -75,6 +75,9 @@ export class PlotSummarySk extends LitElement {
 
   @property({ type: Boolean })
   hasControl: boolean = false;
+
+  @state()
+  selection: range | null = null;
 
   // Maps a trace to a color.
   private traceColorMap = new Map<string, string>();
@@ -207,13 +210,16 @@ export class PlotSummarySk extends LitElement {
   // The div element that will host the plot on the summary.
   private plotElement = createRef<GoogleChart>();
 
+  @state()
+  selectionCoords: range | null = null;
+
   // The resizable selection box to draw the selection.
   private selectionBox = createRef<HResizableBoxSk>();
 
   // The current selected value saved for re-adjusting selection box.
   // The google chart reloads and redraws themselves asynchronously, we need to
   // save the selection range and apply it after we received the `ready` event.
-  private cachedSelectedValueRange: range | null = null;
+  // private cachedSelectedValueRange: range | null = null; // Replaced by this.selection (keeping usage commented out for incremental refactor steps if needed, but actually I will just remove it now to avoid confusion)
 
   private controlTemplate(side: 'right' | 'left') {
     const chunk = this.loadingChunk;
@@ -272,6 +278,7 @@ export class PlotSummarySk extends LitElement {
         </google-chart>
         <h-resizable-box-sk
           ${ref(this.selectionBox)}
+          .selectionRange=${this.selectionCoords}
           @selection-changed=${this.onSelectionChanged}></h-resizable-box-sk>
         ${when(
           this.loading,
@@ -283,6 +290,14 @@ export class PlotSummarySk extends LitElement {
       </div>
       ${this.controlTemplate('right')}
     `;
+  }
+
+  private domainChanged = false;
+
+  protected willUpdate(changedProperties: PropertyValues) {
+    if (changedProperties.has('domain')) {
+      this.domainChanged = true;
+    }
   }
 
   connectedCallback() {
@@ -298,22 +313,53 @@ export class PlotSummarySk extends LitElement {
   }
 
   private onGoogleChartReady() {
-    // Update the selectionBox because the chart might get updated.
-    if (!this.cachedSelectedValueRange) {
-      return;
+    if (this.domainChanged) {
+      this.domainChanged = false;
+      if (this.selectionCoords) {
+        const newValue = this.convertToValueRange(this.selectionCoords, this.domain);
+
+        if (newValue) {
+          this.selection = newValue;
+          this.dispatchEvent(
+            new CustomEvent<PlotSummarySkSelectionEventDetails>('summary_selected', {
+              detail: { start: 0, end: 0, value: newValue, domain: this.domain },
+              bubbles: true,
+            })
+          );
+          return;
+        }
+      }
     }
-    this.selectedValueRange = this.cachedSelectedValueRange;
+    this.updateSelectionCoords();
   }
 
   private onSelectionChanged(e: CustomEvent) {
-    const valueRange = this.convertToValueRange(e.detail, this.domain) || range(0, 0);
-    this.cachedSelectedValueRange = valueRange;
+    // The h-resizable-box-sk emits the NEW coords range.
+    const coordsRange = e.detail as range;
+    this.selectionCoords = coordsRange; // Optimistic update
+
+    // Convert back to value for external consumers
+    const valueRange = this.convertToValueRange(coordsRange, this.domain) || range(0, 0);
+    this.selection = valueRange; // Source of truth update
+
     this.dispatchEvent(
       new CustomEvent<PlotSummarySkSelectionEventDetails>('summary_selected', {
         detail: { start: 0, end: 0, value: valueRange, domain: this.domain },
         bubbles: true,
       })
     );
+  }
+
+  // Helper to sync coords from value
+  private updateSelectionCoords() {
+    if (this.selection) {
+      const coords = this.convertToCoordsRange(this.selection, this.domain);
+      if (coords) {
+        this.selectionCoords = coords;
+      }
+    } else {
+      this.selectionCoords = null;
+    }
   }
 
   // Converts from the value range to the coordinates range.
@@ -353,32 +399,18 @@ export class PlotSummarySk extends LitElement {
 
   // Get the current selected value range.
   get selectedValueRange(): range | null {
-    if (this.cachedSelectedValueRange) {
-      return this.cachedSelectedValueRange;
+    if (this.selection) {
+      return this.selection;
     }
-    const chart = this.chartLayout;
-    if (!chart) {
-      return { begin: 0, end: 0 };
-    }
-
-    const coordsRange = this.selectionBox.value?.selectionRange || null;
-    const valueRange = this.convertToValueRange(coordsRange, this.domain);
-    if (valueRange) {
-      return valueRange;
-    } else {
-      return null;
-    }
+    // If no selection state, we shouldn't rely on the box's value or chart layout directly
+    // because we should be driven by state.
+    return { begin: 0, end: 0 };
   }
 
   // Set the current selected value range.
   set selectedValueRange(range: range | null) {
-    this.cachedSelectedValueRange = range;
-
-    const chartRange = this.convertToCoordsRange(range, this.domain);
-    const box = this.selectionBox.value;
-    if (box) {
-      box.selectionRange = chartRange;
-    }
+    this.selection = range;
+    this.updateSelectionCoords();
   }
 
   // SelectRange sets the selection range on the plot summary bar.
