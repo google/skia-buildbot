@@ -12,7 +12,7 @@ export class PickerFieldSkPO extends PageObject {
   }
 
   async isSplitChecked(): Promise<boolean> {
-    return this.splitByCheckbox.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
+    return await this.splitByCheckbox.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
   }
 
   async checkSplit(): Promise<void> {
@@ -51,7 +51,7 @@ export class PickerFieldSkPO extends PageObject {
   }
 
   async getSelectedItems(): Promise<string[]> {
-    return this.comboBox.applyFnToDOMNode((n) => (n as any).selectedItems);
+    return await this.comboBox.applyFnToDOMNode((n) => (n as any).selectedItems);
   }
 
   async openOverlay(): Promise<void> {
@@ -111,6 +111,6 @@ export class PickerFieldSkPO extends PageObject {
   }
 
   async isDisabled(): Promise<boolean> {
-    return this.comboBox.hasAttribute('readonly');
+    return await this.comboBox.hasAttribute('readonly');
   }
 }

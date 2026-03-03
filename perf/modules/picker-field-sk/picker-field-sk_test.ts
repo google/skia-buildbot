@@ -16,9 +16,10 @@ describe('picker-field-sk', () => {
   });
 
   describe('options setter', () => {
-    it('sets options and filters primary options', () => {
+    it('sets options and filters primary options', async () => {
       const allOptions = ['option1', 'option.with.period', 'option2', 'another.period'];
       element.options = allOptions;
+      await element.updateComplete;
 
       expect(element.options).to.deep.equal(allOptions);
       expect(element.primaryOptions).to.deep.equal(['option1', 'option2']);
@@ -27,7 +28,7 @@ describe('picker-field-sk', () => {
     it('hides the primary checkbox if there are no primary options', async () => {
       element.index = 1;
       element.options = ['option.with.period', 'another.period'];
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
       const checkbox = element.querySelector<CheckOrRadio>('#select-primary');
       expect(checkbox!.hasAttribute('hidden')).to.equal(true);
     });
@@ -35,7 +36,7 @@ describe('picker-field-sk', () => {
     it('shows the primary checkbox if there are primary options', async () => {
       element.index = 1;
       element.options = ['option1', 'option.with.period'];
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
       const checkbox = element.querySelector<CheckOrRadio>('#select-primary');
       expect(checkbox!.hasAttribute('hidden')).to.equal(false);
     });
@@ -44,26 +45,26 @@ describe('picker-field-sk', () => {
   describe('selectAll checkbox', () => {
     beforeEach(async () => {
       element.options = ['A', 'B', 'C'];
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
     });
 
     it('selects all items when checked', async () => {
       const selectAllCheckbox = element.querySelector<CheckOrRadio>('#select-all')!;
       selectAllCheckbox.checked = true;
       selectAllCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
 
       expect(element.selectedItems).to.deep.equal(['A', 'B', 'C']);
     });
 
     it('leaves the first item selected when unchecked', async () => {
       element.selectedItems = ['A', 'B', 'C'];
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
 
       const selectAllCheckbox = element.querySelector<CheckOrRadio>('#select-all')!;
       selectAllCheckbox.checked = false;
       selectAllCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
 
       expect(element.selectedItems).to.deep.equal(['A']);
     });
@@ -72,18 +73,18 @@ describe('picker-field-sk', () => {
   describe('selectPrimary checkbox', () => {
     beforeEach(async () => {
       element.options = ['A', 'B.period', 'C', 'D.period'];
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
       // primaryOptions will be ['A', 'C']
     });
 
     it('adds primary items to selection when checked', async () => {
       element.selectedItems = ['B.period'];
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
 
       const selectPrimaryCheckbox = element.querySelector<CheckOrRadio>('#select-primary')!;
       selectPrimaryCheckbox.checked = true;
       selectPrimaryCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
 
       // sort for consistent comparison
       expect(element.selectedItems.sort()).to.deep.equal(['A', 'B.period', 'C'].sort());
@@ -91,24 +92,24 @@ describe('picker-field-sk', () => {
 
     it('leaves only the first item selected when unchecked', async () => {
       element.selectedItems = ['A', 'B.period', 'C'];
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
 
       const selectPrimaryCheckbox = element.querySelector<CheckOrRadio>('#select-primary')!;
       selectPrimaryCheckbox.checked = false;
       selectPrimaryCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
 
       expect(element.selectedItems).to.deep.equal(['A']);
     });
 
     it('selects only primary items when all items were previously selected', async () => {
       element.selectedItems = ['A', 'B.period', 'C', 'D.period'];
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
 
       const selectPrimaryCheckbox = element.querySelector<CheckOrRadio>('#select-primary')!;
       selectPrimaryCheckbox.checked = true;
       selectPrimaryCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
 
       expect(element.selectedItems.sort()).to.deep.equal(['A', 'C'].sort());
     });
@@ -120,7 +121,7 @@ describe('picker-field-sk', () => {
       element.index = 1;
       element.options = ['A', 'B'];
       element.selectedItems = ['A', 'B'];
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
     });
 
     it('is visible and enabled by default when criteria met', () => {
@@ -131,7 +132,7 @@ describe('picker-field-sk', () => {
 
     it('is disabled but visible when disableSplit() is called', async () => {
       element.disableSplit();
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
       const splitCheckbox = element.querySelector<CheckOrRadio>('#split-by');
       expect(splitCheckbox!.hasAttribute('hidden')).to.be.false;
       expect(splitCheckbox!.hasAttribute('disabled')).to.be.true;
@@ -139,9 +140,9 @@ describe('picker-field-sk', () => {
 
     it('is re-enabled when enableSplit() is called', async () => {
       element.disableSplit();
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
       element.enableSplit();
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
       const splitCheckbox = element.querySelector<CheckOrRadio>('#split-by');
       expect(splitCheckbox!.hasAttribute('disabled')).to.be.false;
     });
@@ -149,7 +150,7 @@ describe('picker-field-sk', () => {
 
   describe('vaadin-multi-select-combo-box', () => {
     it('is visible when rendered', async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await element.updateComplete;
       const comboBox = element.querySelector('vaadin-multi-select-combo-box');
       expect(comboBox).to.not.equal(null);
       expect(comboBox!.offsetWidth).to.be.greaterThan(0);
