@@ -47,6 +47,10 @@ type Regression2Schema struct {
 	// A frame.FrameResponse serialized as json.
 	Frame interface{} `sql:"frame JSONB"`
 
+	// Id of the trace this regression has been detected on.
+	// Equal to ID of frame->'dataframe'->'traceset' (for new anomalies with individual detection).
+	TraceID []byte `sql:"trace_id BYTES"`
+
 	// Triage status for the regression.
 	TriageStatus string `sql:"triage_status TEXT"`
 

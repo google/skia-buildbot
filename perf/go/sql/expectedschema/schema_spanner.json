@@ -77,6 +77,7 @@
     "regressions2.median_before": "real def: nullable:YES",
     "regressions2.prev_commit_number": "bigint def: nullable:YES",
     "regressions2.sub_name": "character varying def: nullable:YES",
+    "regressions2.trace_id": "bytea def: nullable:YES",
     "regressions2.triage_message": "character varying def: nullable:YES",
     "regressions2.triage_status": "character varying def: nullable:YES",
     "reversekeymap.createdat": "timestamp with time zone def:CURRENT_TIMESTAMP nullable:YES",
