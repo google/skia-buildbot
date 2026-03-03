@@ -5,6 +5,7 @@ import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import fetchMock from 'fetch-mock';
 import { formatBug } from '../common/anomaly';
 import { render } from 'lit-html';
+import sinon from 'sinon';
 
 describe('user-issue-sk', () => {
   const newInstance = setUpElementUnderTest<UserIssueSk>('user-issue-sk');
@@ -70,12 +71,14 @@ describe('user-issue-sk', () => {
       expect(element.shadowRoot!.childElementCount).to.equal(0);
     });
 
-    it('renders add issue button when logged in and no issue exists', async () => {
+    it('renders add issue buttons when logged in and no issue exists', async () => {
       element.bug_id = 0;
       element.user_id = 'test@example.com';
       await element.updateComplete;
-      const addIssue = element.shadowRoot!.querySelector('.add-issue') as HTMLElement;
-      expect(addIssue).to.not.equal(null);
+      const buttons = element.shadowRoot!.querySelectorAll('.add-issue');
+      expect(buttons.length).to.equal(2);
+      expect(buttons[0].textContent).to.equal('Add Existing Issue');
+      expect(buttons[1].textContent).to.equal('Add New Bug');
     });
 
     it('renders bug link with delete when logged in and issue exists', async () => {
@@ -110,8 +113,10 @@ describe('user-issue-sk', () => {
       element.user_id = 'test@example.com';
       element.issueExists = false;
       await element.updateComplete;
-      const addIssueBtn = element.shadowRoot!.querySelector('.add-issue') as HTMLButtonElement;
-      addIssueBtn.click();
+      const addExistingIssueBtn = element.shadowRoot!.querySelector(
+        '.add-issue'
+      ) as HTMLButtonElement;
+      addExistingIssueBtn.click();
       element._input_val = 12345;
       await element.updateComplete;
 
@@ -132,8 +137,10 @@ describe('user-issue-sk', () => {
       element.bug_id = 0;
 
       await element.updateComplete;
-      const addIssueBtn = element.shadowRoot!.querySelector('.add-issue') as HTMLButtonElement;
-      addIssueBtn.click();
+      const addExistingIssueBtn = element.shadowRoot!.querySelector(
+        '.add-issue'
+      ) as HTMLButtonElement;
+      addExistingIssueBtn.click();
       expect(element._text_input_active).to.equal(true);
 
       element._input_val = 12345;
@@ -142,7 +149,7 @@ describe('user-issue-sk', () => {
       expect(checkIcon).to.not.equal(null);
 
       fetchMock.post('/_/user_issues', { UserIssues: [{ IssueId: 11111 }] });
-      fetchMock.post('/_/triage/file_bug', { bug_id: 54321 });
+      fetchMock.post('/_/user_issue/create', { bug_id: 54321 });
       fetchMock.post('/_/user_issue/save', {});
       checkIcon.click();
       await fetchMock.flush(true);
@@ -150,7 +157,31 @@ describe('user-issue-sk', () => {
 
       const bugLink = element.shadowRoot!.querySelector('a');
       expect(bugLink).to.not.equal(null);
-      expect(bugLink).to.not.equal(null);
+    });
+  });
+
+  describe('createNewBug', () => {
+    it('shows loading popup, calls create endpoint and redirects', async () => {
+      element.user_id = 'test@example.com';
+      element.bug_id = 0;
+      await element.updateComplete;
+
+      const addNewBugBtn = element.shadowRoot!.querySelectorAll(
+        '.add-issue'
+      )[1] as HTMLButtonElement;
+
+      fetchMock.post('/_/user_issue/create', { bug_id: 67890 });
+
+      const windowOpenStub = sinon.stub(window, 'open');
+
+      addNewBugBtn.click();
+
+      await fetchMock.flush(true);
+
+      expect(element.bug_id).to.equal(67890);
+      expect(windowOpenStub.calledWith('https://issues.chromium.org/issues/67890', '_blank')).to.be
+        .true;
+      windowOpenStub.restore();
     });
   });
 
@@ -170,8 +201,8 @@ describe('user-issue-sk', () => {
       expect(element.issueExists).to.equal(false);
 
       await element.updateComplete;
-      const addIssue = element.shadowRoot!.querySelector('.add-issue') as HTMLElement;
-      expect(addIssue).to.not.equal(null);
+      const buttons = element.shadowRoot!.querySelectorAll('.add-issue');
+      expect(buttons.length).to.be.greaterThan(0);
     });
   });
 

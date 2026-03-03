@@ -1,5 +1,5 @@
 import { LitElement, TemplateResult, css, html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, query } from 'lit/decorators.js';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { formatBug } from '../common/anomaly';
 import '../window/window';
@@ -141,9 +141,8 @@ export class UserIssueSk extends LitElement {
   @property({ attribute: false })
   _text_input_active: boolean = false;
 
-  // TODO(jiaxindong): b/452636637 Add a variable bugcompoent to assign different value
-  // based on instance url.
-  private bugComponent = 'Blink>javascript';
+  @query('#loading-popup')
+  private _loadingPopup!: HTMLDialogElement;
 
   connectedCallback() {
     super.connectedCallback();
@@ -158,10 +157,17 @@ export class UserIssueSk extends LitElement {
     if (this.bug_id === -1) {
       return html``;
     }
-    if (this.issueExists && this.user_id !== '') {
-      return html`${this.showLinkTemplate()}`;
+    const template =
+      this.issueExists && this.user_id !== '' ? this.showLinkTemplate() : this.addIssueTemplate();
+    if (this.user_id === '') {
+      return template;
     }
-    return html`${this.addIssueTemplate()}`;
+    return html`
+      ${template}
+      <dialog id="loading-popup">
+        <p>Creating a new bug. Waiting...</p>
+      </dialog>
+    `;
   }
 
   // If a bug is already associated with the data point show them the link.
@@ -236,49 +242,56 @@ export class UserIssueSk extends LitElement {
 
     return html`
       <div>
-        <button class="add-issue" @click=${this.activateTextInput}>Add Issue</button>
+        <button class="add-issue" @click=${this.activateTextInput}>Add Existing Issue</button>
+        <button class="add-issue" @click=${this.createNewBug}>Add New Bug</button>
       </div>
     `;
   }
 
-  // Makes an api call to save a buganizer issue
-  // Also emits an event to refresh the existing list of user issues
-  // with the newly added object.
-  private async saveIssue() {
-    const traceKey = this.trace_key;
-    const commitPosition = this.commit_position;
-    const saveIssueRequest = {
-      trace_key: traceKey,
-      commit_position: commitPosition,
-      issue_id: this.bug_id,
+  /* API CALLS */
+  // Makes an api call to create a new buganizer issue if the bug not exists for the trace key
+  private async createNewBug() {
+    this._loadingPopup.showModal();
+    const body = {
+      trace_names: [this.trace_key],
+      commit_position: this.commit_position,
     };
-    const saveUserIssueResp = await fetch('/_/user_issue/save', {
-      method: 'POST',
-      body: JSON.stringify(saveIssueRequest),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
 
-    if (!saveUserIssueResp.ok) {
-      const msg = await saveUserIssueResp.text();
-      errorMessage(`${saveUserIssueResp.statusText}: ${msg}`);
-      return;
-    }
-
-    this._input_val = 0;
-    this._text_input_active = false;
-
-    this.dispatchEvent(
-      new CustomEvent('user-issue-changed', {
-        detail: {
-          trace_key: this.trace_key,
-          commit_position: this.commit_position,
-          bug_id: this.bug_id,
+    try {
+      const resp = await fetch('/_/user_issue/create', {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json',
         },
-        bubbles: true,
-      })
-    );
+      });
+      const json = await jsonOrThrow(resp);
+      this._loadingPopup.close();
+
+      // Open the bug page in new window.
+      const bugUrl = `https://issues.chromium.org/issues/${json.bug_id}`;
+      window.open(bugUrl, '_blank');
+
+      this.bug_id = json.bug_id;
+      this.issueExists = true;
+
+      this.dispatchEvent(
+        new CustomEvent('user-issue-changed', {
+          detail: {
+            trace_key: this.trace_key,
+            commit_position: this.commit_position,
+            bug_id: this.bug_id,
+          },
+          bubbles: true,
+        })
+      );
+    } catch (e) {
+      this._loadingPopup.close();
+      errorMessage(
+        'File new bug request failed due to an internal server error. Please try again.'
+      );
+      throw e;
+    }
   }
 
   // Makes an api call to delete a buganizer issue
@@ -325,37 +338,6 @@ export class UserIssueSk extends LitElement {
     );
   }
 
-  /* API CALLS */
-  // Makes an api call to create a new buganizer issue if the bug not exists for the trace key
-  private async fileNewBug() {
-    const bugTitle = this.trace_key + 'at commit position: ' + this.commit_position;
-
-    const body = {
-      trace_names: [this.trace_key],
-      title: bugTitle,
-      ccs: [this.user_id],
-      bug_component: this.bugComponent,
-      assignee: this.user_id,
-    };
-
-    await fetch('/_/triage/file_bug', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((json) => {
-        this.bug_id = json.bug_id;
-      })
-      .catch(() => {
-        errorMessage(
-          'File new bug request failed due to an internal server error. Please try again.'
-        );
-      });
-  }
-
   private async findOrAddIssue() {
     const traceKey = this.trace_key;
     const commitPosition = this.commit_position;
@@ -390,11 +372,8 @@ export class UserIssueSk extends LitElement {
       if (issueFound) {
         this.issueExists = true;
       } else {
-        await this.fileNewBug();
+        await this.createNewBug();
         this.issueExists = true;
-      }
-      if (this.issueExists) {
-        await this.saveIssue();
       }
     } catch (json) {
       const msg = await (json as Response).text();
