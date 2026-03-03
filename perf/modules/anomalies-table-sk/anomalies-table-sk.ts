@@ -16,6 +16,7 @@ import {
   GroupingCriteria,
   AnomalyGroupingConfig,
 } from './grouping';
+import { errorMessage } from '../errorMessage';
 
 import { formatPercentage } from '../common/anomaly';
 import '../window/window';
@@ -285,11 +286,14 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   }
 
   async openAnomalyGroupReportPage() {
-    for (const group of this.groupingController.groups) {
-      const isGroupSelected = group.anomalies.some((a) => this.selectionController.has(a));
-      if (isGroupSelected) {
-        await this.reportNavigationController.openReportForAnomalyIds(group.anomalies);
-      }
+    const reportPromises = this.groupingController.groups
+      .filter((group) => group.anomalies.some((a) => this.selectionController.has(a)))
+      .map((group) => this.reportNavigationController.openReportForAnomalyIds(group.anomalies));
+
+    const results = await Promise.all(reportPromises);
+
+    if (results.some((success) => !success)) {
+      errorMessage('Popups blocked. Allow them (in the address bar) and retry');
     }
   }
 

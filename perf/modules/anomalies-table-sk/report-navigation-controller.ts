@@ -26,23 +26,24 @@ export class ReportNavigationController implements ReactiveController {
 
   hostConnected() {}
 
-  async openReportForAnomalyIds(anomalies: Anomaly[]) {
+  async openReportForAnomalyIds(anomalies: Anomaly[]): Promise<boolean> {
     const idList = anomalies.map((a) => a.id);
+    let newTab: Window | null = null;
 
     // If only one anomaly is selected, open the report page using
     // the anomaly id directly.
     if (idList.length === 1) {
       const key = idList[0];
-      window.open(`/u/?anomalyIDs=${key}`, '_blank');
-      return;
+      newTab = window.open(`/u/?anomalyIDs=${key}`, '_blank');
+      return !!newTab;
     }
 
     if (window.perf.fetch_anomalies_from_sql) {
       const idString = idList.join(',');
       const urlForAnomalyIDsList = `/u/?anomalyIDs=${encodeURIComponent(idString)}`;
       if (urlForAnomalyIDsList.length < urlMaxLength) {
-        window.open(urlForAnomalyIDsList, '_blank');
-        return;
+        newTab = window.open(urlForAnomalyIDsList, '_blank');
+        return !!newTab;
       }
 
       errorMessage(
@@ -53,15 +54,17 @@ export class ReportNavigationController implements ReactiveController {
         module: 'anomalies-table-sk',
         function: 'openReportForAnomalyId',
       });
+      return true;
     } else {
       const idString = idList.join(',');
       const response = await this.fetchGroupReportApi(idString);
       if (!response) {
-        return;
+        return true;
       }
       const sid: string = response.sid || '';
       const url = `/u/?sid=${sid}`;
-      window.open(url, '_blank');
+      newTab = window.open(url, '_blank');
+      return !!newTab;
     }
   }
 

@@ -38,6 +38,7 @@ sk_element(
         ":anomaly-grouping-controller_ts_lib",
         ":anomalies-grouping-settings-sk_ts_lib",
         ":anomaly-transformer_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
     ],
     ts_srcs = [
         "anomalies-table-sk.ts",
