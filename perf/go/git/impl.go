@@ -253,7 +253,7 @@ func New(ctx context.Context, localToProd bool, db pool.Pool, instanceConfig *co
 	// to do any git updates.
 	if !localToProd {
 		if err := ret.Update(ctx); err != nil {
-			return nil, skerr.Wrapf(err, "Failed first update step for config %v", *instanceConfig)
+			sklog.Errorf("Failed first update step, but continuing startup. Will retry in background. Error: %s", err)
 		}
 	}
 
