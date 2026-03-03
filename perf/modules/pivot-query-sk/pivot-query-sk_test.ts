@@ -14,7 +14,7 @@ describe('pivot-query-sk', () => {
   const newInstance = setUpElementUnderTest<PivotQuerySk>('pivot-query-sk');
 
   let element: PivotQuerySk;
-  beforeEach(() => {
+  beforeEach(async () => {
     element = newInstance((el: PivotQuerySk) => {
       const validPivotRequest: pivot.Request = {
         group_by: ['config', 'os'],
@@ -31,6 +31,7 @@ describe('pivot-query-sk', () => {
       el.pivotRequest = validPivotRequest;
       el.paramset = paramSet;
     });
+    await element.updateComplete;
   });
 
   describe('click group_by option', () => {
@@ -68,8 +69,9 @@ describe('pivot-query-sk', () => {
       assert.equal(summary.getAttribute('aria-labelledby'), summaryLabel.id);
     });
 
-    it('has unique IDs across instances', () => {
+    it('has unique IDs across instances', async () => {
       const other = newInstance();
+      await other.updateComplete;
       const groupBy1 = element.querySelector('[id^="group_by-"]')!;
       const groupBy2 = other.querySelector('[id^="group_by-"]')!;
       assert.notEqual(groupBy1.id, groupBy2.id);

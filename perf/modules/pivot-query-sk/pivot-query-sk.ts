@@ -5,10 +5,9 @@
  * @evt pivot-changed - Emitted every time the control is changed by the user.
  * See PivotQueryChangedEventDetail.
  */
-import { html, TemplateResult } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { html, TemplateResult, LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { MultiSelectSkSelectionChangedEventDetail } from '../../../elements-sk/modules/multi-select-sk/multi-select-sk';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ParamSet, pivot } from '../json';
 import '../../../elements-sk/modules/multi-select-sk';
 import '../../../elements-sk/modules/select-sk';
@@ -28,49 +27,49 @@ export const PivotQueryChangedEventName = 'pivot-changed';
  * A ParamSet is also needed to list the allowable choices
  * for the pivot.Request.group_by.
  */
-export class PivotQuerySk extends ElementSk {
+@customElement('pivot-query-sk')
+export class PivotQuerySk extends LitElement {
   private static nextUniqueId = 0;
 
   private readonly uniqueId = `${PivotQuerySk.nextUniqueId++}`;
 
-  private _paramset = ParamSet({});
+  @property({ attribute: false })
+  paramset: ParamSet = ParamSet({});
 
+  @state()
   private _pivotRequest: pivot.Request | null = null;
 
-  constructor() {
-    super(PivotQuerySk.template);
+  createRenderRoot() {
+    return this;
   }
 
-  private static template = (ele: PivotQuerySk) => html`
-    <p id="group_by_label-${ele.uniqueId}">Which keys should traces be grouped by:</p>
-    <multi-select-sk
-      id="group_by-${ele.uniqueId}"
-      aria-labelledby="group_by_label-${ele.uniqueId}"
-      @selection-changed=${ele.groupByChanged}>
-      ${ele.groupByOptions()}
-    </multi-select-sk>
+  render() {
+    return html`
+      <p id="group_by_label-${this.uniqueId}">Which keys should traces be grouped by:</p>
+      <multi-select-sk
+        id="group_by-${this.uniqueId}"
+        aria-labelledby="group_by_label-${this.uniqueId}"
+        @selection-changed=${this.groupByChanged}>
+        ${this.groupByOptions()}
+      </multi-select-sk>
 
-    <label for="operation-${ele.uniqueId}">
-      <p>What operation should be applied:</p>
-      <select id="operation-${ele.uniqueId}" @change=${ele.operationChanged}>
-        ${ele.operationOptions()}
-      </select>
-    </label>
+      <label for="operation-${this.uniqueId}">
+        <p>What operation should be applied:</p>
+        <select id="operation-${this.uniqueId}" @change=${this.operationChanged}>
+          ${this.operationOptions()}
+        </select>
+      </label>
 
-    <p id="summary_label-${ele.uniqueId}">
-      Optional: Choose summary statistics to calculate for each group:
-    </p>
-    <multi-select-sk
-      id="summary-${ele.uniqueId}"
-      aria-labelledby="summary_label-${ele.uniqueId}"
-      @selection-changed=${ele.summaryChanged}>
-      ${ele.summaryOptions()}
-    </multi-select-sk>
-  `;
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._render();
+      <p id="summary_label-${this.uniqueId}">
+        Optional: Choose summary statistics to calculate for each group:
+      </p>
+      <multi-select-sk
+        id="summary-${this.uniqueId}"
+        aria-labelledby="summary_label-${this.uniqueId}"
+        @selection-changed=${this.summaryChanged}>
+        ${this.summaryOptions()}
+      </multi-select-sk>
+    `;
   }
 
   private createDefaultPivotRequestIfNull(): void {
@@ -84,7 +83,7 @@ export class PivotQuerySk extends ElementSk {
   }
 
   private allGroupByOptions(): string[] {
-    const psKeys = Object.keys(this._paramset);
+    const psKeys = Object.keys(this.paramset);
     const selectedKeys = this._pivotRequest?.group_by || [];
     // An empty ParamSet could wipe out the users selection, which would be
     // unfortunate, so we always display the values in the current pivotRequest
@@ -134,19 +133,28 @@ export class PivotQuerySk extends ElementSk {
   private groupByChanged(e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>): void {
     this.createDefaultPivotRequestIfNull();
     const allOptions = this.allGroupByOptions();
-    this._pivotRequest!.group_by = e.detail.selection.map((index: number) => allOptions[index]);
+    this._pivotRequest = {
+      ...this._pivotRequest!,
+      group_by: e.detail.selection.map((index: number) => allOptions[index]),
+    };
     this.emitChangeEvent();
   }
 
   private operationChanged(e: Event & { target: HTMLSelectElement }): void {
     this.createDefaultPivotRequestIfNull();
-    this._pivotRequest!.operation = sortedOps[e.target.selectedIndex];
+    this._pivotRequest = {
+      ...this._pivotRequest!,
+      operation: sortedOps[e.target.selectedIndex],
+    };
     this.emitChangeEvent();
   }
 
   private summaryChanged(e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>): void {
     this.createDefaultPivotRequestIfNull();
-    this._pivotRequest!.summary = e.detail.selection.map((index: number) => sortedOps[index]);
+    this._pivotRequest = {
+      ...this._pivotRequest!,
+      summary: e.detail.selection.map((index: number) => sortedOps[index]),
+    };
     this.emitChangeEvent();
   }
 
@@ -167,19 +175,8 @@ export class PivotQuerySk extends ElementSk {
     return this._pivotRequest;
   }
 
+  @property({ attribute: false })
   public set pivotRequest(v: pivot.Request | null) {
     this._pivotRequest = v;
-    this._render();
-  }
-
-  public get paramset(): ParamSet {
-    return this._paramset;
-  }
-
-  public set paramset(v: ParamSet) {
-    this._paramset = v;
-    this._render();
   }
 }
-
-define('pivot-query-sk', PivotQuerySk);

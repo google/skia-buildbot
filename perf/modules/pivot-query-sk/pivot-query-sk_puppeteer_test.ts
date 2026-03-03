@@ -19,9 +19,10 @@ describe('pivot-query-sk', () => {
 
   it('has unique IDs across multiple instances', async () => {
     // Add a second instance
-    await testBed.page.evaluate(() => {
+    await testBed.page.evaluate(async () => {
       const second = document.createElement('pivot-query-sk');
       document.body.appendChild(second);
+      await (second as any).updateComplete;
     });
 
     // Get IDs of group_by elements
