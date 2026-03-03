@@ -1,0 +1,46 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "toggle-freeze_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/cd/go/toggle-freeze",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/exec",
+        "//go/gerrit",
+        "//go/gerrit/rubberstamper",
+        "//go/git",
+        "//go/gitauth",
+        "//go/httputils",
+        "//go/skerr",
+        "//task_driver/go/lib/git_steps",
+        "//task_driver/go/td",
+        "@com_github_urfave_cli_v2//:cli",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_binary(
+    name = "toggle-freeze",
+    embed = [":toggle-freeze_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "toggle-freeze_test",
+    srcs = ["main_test.go"],
+    embed = [":toggle-freeze_lib"],
+    deps = [
+        "//go/exec",
+        "//go/exec/testutils",
+        "//go/gerrit",
+        "//go/git/git_common",
+        "//task_driver/go/lib/auth_steps",
+        "//task_driver/go/td",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)

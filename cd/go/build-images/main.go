@@ -3,6 +3,11 @@ package main
 /*
 	build-images is used for building Skia Infrastructure Docker images using
 	Bazel. It is intended to run inside of Louhi as part of a CD pipeline.
+
+	It also enforces automated freeze procedures: it checks for the existence
+	of a specified freeze file (--freeze-file) in the locally checked-out
+	repository. If the freeze file is present, the build safely aborts early
+	before processing any targets or performing Docker pushes.
 */
 
 import (
@@ -33,6 +38,8 @@ func main() {
 		flagCommit             = "commit"
 		flagCommitSubject      = "commit-subject"
 		flagEmail              = "email"
+		flagExtraBazelArg      = "extra-bazel-arg"
+		flagFreezeFile         = "freeze-file"
 		flagLouhiExecutionID   = "louhi-execution-id"
 		flagLouhiPubSubProject = "louhi-pubsub-project"
 		flagRepo               = "repo"
@@ -41,7 +48,6 @@ func main() {
 		flagTarget             = "target"
 		flagUser               = "user"
 		flagWorkspace          = "workspace"
-		flagExtraBazelArg      = "extra-bazel-arg"
 	)
 	app := &cli.App{
 		Name:        "build-images",
@@ -56,6 +62,11 @@ func main() {
 						Name:     flagCommit,
 						Usage:    "Commit at which to build the image(s).",
 						Required: true,
+					},
+					&cli.StringFlag{
+						Name:     flagFreezeFile,
+						Usage:    "File path in Gitiles to check. If it exists at the commit, the build aborts.",
+						Required: false,
 					},
 					&cli.StringFlag{
 						Name:     flagRepo,
@@ -100,7 +111,7 @@ func main() {
 					},
 				},
 				Action: func(ctx *cli.Context) error {
-					return build(ctx.Context, ctx.String(flagCommit), ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.StringSlice(flagTarget), ctx.StringSlice(flagExtraBazelArg))
+					return build(ctx.Context, ctx.String(flagCommit), ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.StringSlice(flagTarget), ctx.StringSlice(flagExtraBazelArg), ctx.String(flagFreezeFile))
 				},
 			},
 			{

@@ -33,7 +33,7 @@ func TestBuild_SingleTarget_OutputJSONFileCreated(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		extraArgs := []string{"--config=extra"}
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs, "")
 		assert.NoError(t, err)
 		if err != nil {
 			return err
@@ -87,7 +87,7 @@ func TestBuild_SingleTarget_InvalidTargetCausesFailure(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "This is an invalid target"
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs, "")
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Invalid target")
 
@@ -128,7 +128,7 @@ func TestBuild_SingleTarget_GitFetchErrorCausesFailure(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs, "")
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Host unreachable")
 
@@ -173,7 +173,7 @@ func TestBuild_SingleTarget_DockerErrorCausesFailure(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs, "")
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "fail whale")
 
@@ -222,7 +222,7 @@ func TestBuild_SingleTarget_BazelErrorCausesFailure(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs, "")
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "reflect thy")
 
@@ -265,7 +265,7 @@ func TestBuild_MultipleTarget_OutputJSONFileCreated(t *testing.T) {
 		const target1 = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		const target2 = "//prober:proberk_container:gcr.io/skia-public/proberk"
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target1, target2}, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target1, target2}, extraArgs, "")
 		assert.NoError(t, err)
 		if err != nil {
 			return err
@@ -327,7 +327,7 @@ func TestBuild_SingleTargetMultipleTimes_Deduplicated(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		var extraArgs []string
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target, target, target}, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target, target, target}, extraArgs, "")
 		assert.NoError(t, err)
 		if err != nil {
 			return err
@@ -371,6 +371,58 @@ func assertFileDoesNotExist(t *testing.T, f string) {
 	assert.True(t, os.IsNotExist(err))
 }
 
+func TestBuild_SingleTarget_FreezeFileExists_ExitsEarly(t *testing.T) {
+	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
+		// Use a fixed, arbitrary time for one of the Docker tags
+		ctx = context.WithValue(ctx, now.ContextKey, time.Date(2023, time.July, 1, 2, 3, 4, 0, time.UTC))
+		ctx = auth_steps.WithTokenSource(ctx, FakeTokenSource(time.Date(2023, time.July, 1, 2, 33, 4, 0, time.UTC)))
+
+		const freezeFileName = "freeze.txt"
+		mock, ctx := commandCollectorWithStubbedGit(ctx, gitMatcher(func(cmd *exec.Command) error {
+			if len(cmd.Args) > 0 && cmd.Args[0] == "checkout" {
+				// write the freeze file to simulate its existence
+				if err := os.WriteFile(filepath.Join(cmd.Dir, freezeFileName), []byte("frozen"), 0644); err != nil {
+					return err
+				}
+			}
+			return nil
+		}))
+		ctx = td.WithExecRunFn(ctx, mock.Run)
+
+		// Arbitrary data that closely mirrors reality
+		const gitRepo = "https://skia.googlesource.com/buildbot.git"
+		const gitCommit = "aabbccddeeff00112233445566778899aabbccdd"
+		workspace := t.TempDir()
+		const username = "louhi"
+		const email = "louhi-service-account@example.com"
+		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
+		var extraArgs []string
+
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs, freezeFileName)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Freeze file exists: "+freezeFileName)
+
+		executedCommands := mock.Commands()
+		testutils.AssertCommandsMatch(t, [][]string{
+			{fakeGitPath, "--version"},
+			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
+			{fakeGitPath, "config", "--global", "user.email", email},
+			{fakeGitPath, "config", "--global", "user.name", "louhi-service-account"},
+			{fakeGitPath, "config", "--list", "--show-origin"},
+			{fakeGitPath, "--version"},
+			{fakeGitPath, "init"},
+			{fakeGitPath, "remote", "add", "origin", gitRepo},
+			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
+			{fakeGitPath, "checkout", "FETCH_HEAD"},
+		}, executedCommands)
+
+		assertFileDoesNotExist(t, filepath.Join(workspace, "build-images.json"))
+		return nil
+	})
+	require.Empty(t, res.Errors)
+	require.Empty(t, res.Exceptions)
+}
+
 func TestBuild_MultipleExtraArgs_PreservedInOrder(t *testing.T) {
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
 		// Use a fixed, arbitrary time for one of the Docker tags
@@ -387,7 +439,7 @@ func TestBuild_MultipleExtraArgs_PreservedInOrder(t *testing.T) {
 		const email = "louhi-service-account@example.com"
 		const target = "//skfe:skfe_container:gcr.io/skia-public/envoy_skia_org"
 		extraArgs := []string{"--config=one", "--config=two", "--verbose"}
-		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs)
+		err := build(ctx, gitCommit, gitRepo, workspace, username, email, []string{target}, extraArgs, "")
 		assert.NoError(t, err)
 		if err != nil {
 			return err

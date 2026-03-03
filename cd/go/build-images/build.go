@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/go/exec"
@@ -18,7 +20,7 @@ type containerToBuild struct {
 	imageURI    string
 }
 
-func build(ctx context.Context, commit, repo, workspace, username, email string, targets []string, extraArgs []string) error {
+func build(ctx context.Context, commit, repo, workspace, username, email string, targets []string, extraArgs []string, freezeFile string) error {
 	ctx = td.StartStep(ctx, td.Props("Build Images"))
 	defer td.EndStep(ctx)
 
@@ -60,6 +62,18 @@ nextTarget:
 	// Create the timestamped Docker image tag.
 	timestamp := now.Now(ctx).UTC().Format("2006-01-02T15_04_05Z")
 	imageTag := fmt.Sprintf("%s-%s-%s-%s", timestamp, username, commit[:7], "clean")
+
+	if freezeFile != "" {
+		err := td.Do(ctx, td.Props("Check Freeze File"), func(ctx context.Context) error {
+			if _, err := os.Stat(filepath.Join(checkoutDir, freezeFile)); err == nil {
+				return skerr.Fmt("Freeze file exists: %s", freezeFile)
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
 
 	// Perform the builds.
 	imageInfo := &buildImagesJSON{
