@@ -16,6 +16,9 @@ karma_test(
     deps = [
         ":index_ts_lib",
         "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
         "//:node_modules/chai",
+        "//:node_modules/sinon",
+        "//perf/modules/telemetry:telemetry_ts_lib",
     ],
 )

@@ -20,14 +20,36 @@ export const errorMessageWithTelemetry = (
   duration: number = 0,
   options: TelemetryErrorOptions = {}
 ): void => {
+  let errorCode = options.errorCode;
+
+  if (!errorCode && isMessageWithResponse(message)) {
+    errorCode = message.resp.status.toString();
+  }
+
+  if (!errorCode) {
+    errorCode = '500';
+  }
+
   if (options.countMetricSource) {
     telemetry.increaseCounter(options.countMetricSource, {
       source: options.source || 'default',
-      errorCode: options.errorCode || '500',
+      errorCode: errorCode,
     });
   }
   elementsErrorMessage(message, duration);
 };
+
+/**
+ * Type guard to check if an unknown object contains a valid Fetch API Response.
+ */
+function isMessageWithResponse(msg: unknown): msg is { resp: Response } {
+  return (
+    typeof msg === 'object' &&
+    msg !== null &&
+    'resp' in msg &&
+    (msg as Record<string, unknown>).resp instanceof Response
+  );
+}
 
 /**
  * This is the same function as element-sk errorMessage, but defaults to a 0s
