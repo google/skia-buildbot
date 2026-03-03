@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
   cluster_type TEXT,
   cluster_summary JSONB,
   frame JSONB,
+  trace_id BYTEA,
   triage_status TEXT,
   triage_message TEXT,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -291,6 +292,7 @@ var Regressions2 = []string{
 	"cluster_type",
 	"cluster_summary",
 	"frame",
+	"trace_id",
 	"triage_status",
 	"triage_message",
 }

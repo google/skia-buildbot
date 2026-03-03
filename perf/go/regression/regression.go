@@ -93,6 +93,7 @@ type Regression struct {
 	IsImprovement    bool                  `json:"is_improvement"`
 	ClusterType      string                `json:"cluster_type"`
 	SubscriptionName string                `json:"sub_name"`
+	TraceID          string                `json:"trace_id"`
 }
 
 // NewRegression returns a new *Regression.
