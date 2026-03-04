@@ -138,7 +138,6 @@ describe('cluster-lastn-page-sk', () => {
         median_after: 20,
         is_improvement: false,
         cluster_type: 'high',
-        trace_id: '',
       },
     };
 
