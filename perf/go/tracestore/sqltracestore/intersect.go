@@ -2,6 +2,8 @@ package sqltracestore
 
 import (
 	"context"
+
+	"go.skia.org/infra/perf/go/types"
 )
 
 const channelSize = 1000
@@ -19,11 +21,11 @@ const channelSize = 1000
 // arrives from a channel the channels you are passing to relect.Select needs
 // to change so you need to do slice operations one every string that arrives
 // from a channel, which is also slow.
-func newIntersect(ctx context.Context, inputs []<-chan traceIDForSQL) <-chan traceIDForSQL {
+func newIntersect(ctx context.Context, inputs []<-chan types.TraceIDForSQL) <-chan types.TraceIDForSQL {
 	// Build a binary tree of channels by calling NewIntersect recursively.
 	switch len(inputs) {
 	case 0:
-		ret := make(chan traceIDForSQL)
+		ret := make(chan types.TraceIDForSQL)
 		close(ret)
 		return ret
 	case 1:
@@ -32,7 +34,7 @@ func newIntersect(ctx context.Context, inputs []<-chan traceIDForSQL) <-chan tra
 		return newIntersect2(ctx, inputs[0], inputs[1])
 	default:
 		m := len(inputs) / 2
-		return newIntersect(ctx, []<-chan traceIDForSQL{
+		return newIntersect(ctx, []<-chan types.TraceIDForSQL{
 			newIntersect(ctx, inputs[:m]),
 			newIntersect(ctx, inputs[m:]),
 		})
@@ -43,13 +45,13 @@ func newIntersect(ctx context.Context, inputs []<-chan traceIDForSQL) <-chan tra
 // intersection of the two ordered channels a and b.
 //
 // The context is cancellable and cancelling will close the returned output channel.
-func newIntersect2(ctx context.Context, a, b <-chan traceIDForSQL) <-chan traceIDForSQL {
-	out := make(chan traceIDForSQL, channelSize)
+func newIntersect2(ctx context.Context, a, b <-chan types.TraceIDForSQL) <-chan types.TraceIDForSQL {
+	out := make(chan types.TraceIDForSQL, channelSize)
 	go func() {
 		defer close(out)
 
-		var aValue traceIDForSQL = ""
-		var bValue traceIDForSQL = ""
+		var aValue types.TraceIDForSQL = ""
+		var bValue types.TraceIDForSQL = ""
 		cancel := ctx.Done()
 		ok := false
 		for {
@@ -89,13 +91,13 @@ func newIntersect2(ctx context.Context, a, b <-chan traceIDForSQL) <-chan traceI
 				}
 			}
 			if aValue < bValue {
-				aValue = traceIDForSQL("")
+				aValue = types.TraceIDForSQL("")
 			} else if bValue < aValue {
 				bValue = ""
 			} else if aValue == bValue {
 				out <- aValue
-				aValue = traceIDForSQL("")
-				bValue = traceIDForSQL("")
+				aValue = types.TraceIDForSQL("")
+				bValue = types.TraceIDForSQL("")
 			}
 		}
 	}()

@@ -97,7 +97,6 @@ package sqltracestore
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
 	"fmt"
 	"strings"
 	"sync"
@@ -164,30 +163,7 @@ type orderedParamSetCacheEntry struct {
 	paramSet paramtools.ReadOnlyParamSet
 }
 
-// traceIDForSQL is the type of the IDs that are used in the SQL queries,
-// they are hex encoded md5 hashes of a trace name, e.g. "\x00112233...".
-// Note the \x prefix which tells the database that this is hex encoded.
-type traceIDForSQL string
-
-var badTraceIDFromSQL traceIDForSQL = ""
-
-// traceIDForSQLInBytes is the md5 hash of a trace name.
-type traceIDForSQLInBytes [md5.Size]byte
-
-// Calculates the traceIDForSQL for the given trace name, e.g. "\x00112233...".
-// Note the \x prefix which tells the database that this is hex encoded.
-func traceIDForSQLFromTraceName(traceName string) traceIDForSQL {
-	b := md5.Sum([]byte(traceName))
-	return traceIDForSQL(fmt.Sprintf("\\x%x", b))
-}
-
-func traceIDForSQLInBytesFromTraceName(traceName string) traceIDForSQLInBytes {
-	return md5.Sum([]byte(traceName))
-}
-
-func traceIDForSQLFromTraceIDAsBytes(b []byte) traceIDForSQL {
-	return traceIDForSQL(fmt.Sprintf("\\x%x", b))
-}
+var badTraceIDFromSQL types.TraceIDForSQL = ""
 
 // sourceFileIDFromSQL is the type of the IDs that are used in the SQL database
 // for source files.
@@ -290,7 +266,7 @@ type insertIntoTraceValuesContext struct {
 	// The MD5 sum of the trace name as a hex string, i.e.
 	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
 	// the database will use to know the string is in hex.
-	MD5HexTraceID traceIDForSQL
+	MD5HexTraceID types.TraceIDForSQL
 
 	CommitNumber types.CommitNumber
 	Val          float32
@@ -301,7 +277,7 @@ type insertIntoTraceValuesContext struct {
 type readTracesContext struct {
 	BeginCommitNumber types.CommitNumber
 	EndCommitNumber   types.CommitNumber
-	TraceIDs          []traceIDForSQL
+	TraceIDs          []types.TraceIDForSQL
 	AsOf              string
 }
 
@@ -312,7 +288,7 @@ type getSourceContext struct {
 	// The MD5 sum of the trace name as a hex string, i.e.
 	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
 	// the database will use to know the string is in hex.
-	MD5HexTraceID traceIDForSQL
+	MD5HexTraceID types.TraceIDForSQL
 }
 
 // getSourcesContext is the context for the getSourceIds template.
@@ -320,7 +296,7 @@ type getSourcesContext struct {
 	// The MD5 sum of the trace name as a hex string, i.e.
 	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
 	// query will use to know the string is in hex.
-	MD5HexTraceID traceIDForSQL
+	MD5HexTraceID types.TraceIDForSQL
 }
 
 // insertIntoParamSetsContext is the context for the insertIntoParamSets template.
@@ -628,7 +604,7 @@ func (s *SQLTraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNu
 // GetSource implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetSource(ctx context.Context, commitNumber types.CommitNumber, traceName string) (string, error) {
 	var filename string
-	traceID := traceIDForSQLFromTraceName(traceName)
+	traceID := types.TraceIDForSQLFromTraceName(traceName)
 
 	sourceContext := getSourceContext{
 		MD5HexTraceID: traceID,
@@ -664,7 +640,7 @@ func (s *SQLTraceStore) GetSourceIds(ctx context.Context, commitNumbers []types.
 
 // GetSources returns the source files for a given trace and list of commits.
 func (s *SQLTraceStore) GetSources(ctx context.Context, traceName string, commits []types.CommitNumber) (map[types.CommitNumber]string, error) {
-	traceID := traceIDForSQLFromTraceName(traceName)
+	traceID := types.TraceIDForSQLFromTraceName(traceName)
 
 	sourceContext := getSourcesContext{
 		MD5HexTraceID: traceID,
@@ -706,7 +682,7 @@ func (s *SQLTraceStore) GetLastNSources(ctx context.Context, traceID string, n i
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetLastNSources")
 	defer span.End()
 
-	traceIDAsBytes := traceIDForSQLInBytesFromTraceName(traceID)
+	traceIDAsBytes := types.TraceIDForSQLInBytesFromTraceName(traceID)
 	rows, err := s.db.Query(ctx, s.statements[getLastNSources], traceIDAsBytes[:], n)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed for traceID=%q and n=%d", traceID, n)
@@ -878,17 +854,17 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	// Map from the [md5.Size]byte representation of a trace id to the trace name.
 	//
 	// Protected by mutex.
-	traceNameMap := map[traceIDForSQLInBytes]string{}
+	traceNameMap := map[types.TraceIDForSQLInBytes]string{}
 
 	// Protects traceNameMap and ret.
 	var mutex sync.Mutex
 	traceNames := []string{}
-	var traceIDsForQuery []traceIDForSQL
+	var traceIDsForQuery []types.TraceIDForSQL
 	for traceName := range traceNamesChan {
 		traceNames = append(traceNames, traceName)
-		traceIDBytes := traceIDForSQLInBytesFromTraceName(traceName)
+		traceIDBytes := types.TraceIDForSQLInBytesFromTraceName(traceName)
 		traceNameMap[traceIDBytes] = traceName
-		traceIDsForQuery = append(traceIDsForQuery, traceIDForSQLFromTraceName(traceName))
+		traceIDsForQuery = append(traceIDsForQuery, types.TraceIDForSQLFromTraceName(traceName))
 	}
 
 	if len(traceNames) == 0 {
@@ -931,7 +907,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 // the given slice of trace ids.
 //
 // The mutex protects 'ret' and 'traceNameMap'.
-func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.CommitNumber, endCommit types.CommitNumber, commits []provider.Commit, chunk []traceIDForSQL, mutex *sync.Mutex, traceNameMap map[traceIDForSQLInBytes]string, ret *types.TraceSet, sourceFileMap map[string]*types.TraceSourceInfo) error {
+func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.CommitNumber, endCommit types.CommitNumber, commits []provider.Commit, chunk []types.TraceIDForSQL, mutex *sync.Mutex, traceNameMap map[types.TraceIDForSQLInBytes]string, ret *types.TraceSet, sourceFileMap map[string]*types.TraceSourceInfo) error {
 	if len(chunk) == 0 {
 		return nil
 	}
@@ -965,7 +941,7 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 	// Create a local map to store results from this chunk. This avoids
 	// holding the main lock while iterating over every row.
 	localTraces := types.TraceSet{}
-	var traceIDArray traceIDForSQLInBytes
+	var traceIDArray types.TraceIDForSQLInBytes
 	commitToIndexMap := map[types.CommitNumber]int{}
 	localSourceFileMap := map[string]*types.TraceSourceInfo{}
 	for i, commit := range commits {
@@ -1146,7 +1122,7 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 			sklog.Errorf("Somehow still invalid: %v", p)
 			continue
 		}
-		traceID := traceIDForSQLFromTraceName(traceName)
+		traceID := types.TraceIDForSQLFromTraceName(traceName)
 		traceIDKey := string(traceID)
 		if _, exists := traceParams[traceIDKey]; exists {
 			sklog.Warningf("Many values for the same trace name found, skipping all but the first: %s", traceName)

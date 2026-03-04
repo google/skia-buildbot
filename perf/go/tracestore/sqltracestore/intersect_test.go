@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // asChan create a channel supplied by the given slice of strings 's'.
-func asChan(s []traceIDForSQL) <-chan traceIDForSQL {
-	ret := make(chan traceIDForSQL)
+func asChan(s []types.TraceIDForSQL) <-chan types.TraceIDForSQL {
+	ret := make(chan types.TraceIDForSQL)
 	if len(s) == 0 {
 		close(ret)
 		return ret
@@ -25,8 +26,8 @@ func asChan(s []traceIDForSQL) <-chan traceIDForSQL {
 }
 
 // fromChan returns a slice of all the strings produced by the channel 'ch'.
-func fromChan(ch <-chan traceIDForSQL) []traceIDForSQL {
-	ret := []traceIDForSQL{}
+func fromChan(ch <-chan types.TraceIDForSQL) []types.TraceIDForSQL {
+	ret := []types.TraceIDForSQL{}
 	for v := range ch {
 		ret = append(ret, v)
 	}
@@ -34,15 +35,15 @@ func fromChan(ch <-chan traceIDForSQL) []traceIDForSQL {
 }
 
 func TestIntersect2Cancel(t *testing.T) {
-	a := make(chan traceIDForSQL)
-	b := make(chan traceIDForSQL)
+	a := make(chan types.TraceIDForSQL)
+	b := make(chan types.TraceIDForSQL)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		s := fromChan(newIntersect2(ctx, a, b))
-		assert.Equal(t, []traceIDForSQL{}, s)
+		assert.Equal(t, []types.TraceIDForSQL{}, s)
 		wg.Done()
 	}()
 	cancel()
@@ -52,39 +53,39 @@ func TestIntersect2Cancel(t *testing.T) {
 
 func TestIntersect2(t *testing.T) {
 	testCases := []struct {
-		a    []traceIDForSQL
-		b    []traceIDForSQL
-		exp  []traceIDForSQL
+		a    []types.TraceIDForSQL
+		b    []types.TraceIDForSQL
+		exp  []types.TraceIDForSQL
 		desc string
 	}{
 		{
-			a:    []traceIDForSQL{},
-			b:    []traceIDForSQL{"2", "4", "6", "8"},
-			exp:  []traceIDForSQL{},
+			a:    []types.TraceIDForSQL{},
+			b:    []types.TraceIDForSQL{"2", "4", "6", "8"},
+			exp:  []types.TraceIDForSQL{},
 			desc: "One empy",
 		},
 		{
-			a:    []traceIDForSQL{},
-			b:    []traceIDForSQL{},
-			exp:  []traceIDForSQL{},
+			a:    []types.TraceIDForSQL{},
+			b:    []types.TraceIDForSQL{},
+			exp:  []types.TraceIDForSQL{},
 			desc: "Both empy",
 		},
 		{
-			a:    []traceIDForSQL{"1", "2", "5", "7"},
-			b:    []traceIDForSQL{"2", "4", "6", "8"},
-			exp:  []traceIDForSQL{"2"},
+			a:    []types.TraceIDForSQL{"1", "2", "5", "7"},
+			b:    []types.TraceIDForSQL{"2", "4", "6", "8"},
+			exp:  []types.TraceIDForSQL{"2"},
 			desc: "Same length",
 		},
 		{
-			a:    []traceIDForSQL{"1", "2", "3"},
-			b:    []traceIDForSQL{"1", "2", "3", "4"},
-			exp:  []traceIDForSQL{"1", "2", "3"},
+			a:    []types.TraceIDForSQL{"1", "2", "3"},
+			b:    []types.TraceIDForSQL{"1", "2", "3", "4"},
+			exp:  []types.TraceIDForSQL{"1", "2", "3"},
 			desc: "Most match",
 		},
 		{
-			a:    []traceIDForSQL{"1", "2", "3"},
-			b:    []traceIDForSQL{"1", "2", "3"},
-			exp:  []traceIDForSQL{"1", "2", "3"},
+			a:    []types.TraceIDForSQL{"1", "2", "3"},
+			b:    []types.TraceIDForSQL{"1", "2", "3"},
+			exp:  []types.TraceIDForSQL{"1", "2", "3"},
 			desc: "All match",
 		},
 	}
@@ -98,48 +99,48 @@ func TestIntersect2(t *testing.T) {
 
 func TestIntersect(t *testing.T) {
 	testCases := []struct {
-		inputs [][]traceIDForSQL
-		exp    []traceIDForSQL
+		inputs [][]types.TraceIDForSQL
+		exp    []types.TraceIDForSQL
 		desc   string
 	}{
 		{
-			inputs: [][]traceIDForSQL{
+			inputs: [][]types.TraceIDForSQL{
 				{},
 				{"2", "4", "6", "8"},
 			},
-			exp:  []traceIDForSQL{},
+			exp:  []types.TraceIDForSQL{},
 			desc: "One empy",
 		},
 		{
-			inputs: [][]traceIDForSQL{
+			inputs: [][]types.TraceIDForSQL{
 				{"2", "4", "6", "8"},
 			},
-			exp:  []traceIDForSQL{"2", "4", "6", "8"},
+			exp:  []types.TraceIDForSQL{"2", "4", "6", "8"},
 			desc: "One",
 		},
 		{
-			inputs: [][]traceIDForSQL{
+			inputs: [][]types.TraceIDForSQL{
 				{"1", "2", "5"},
 				{"2", "5", "7"},
 				{"4", "5", "8"},
 			},
-			exp:  []traceIDForSQL{"5"},
+			exp:  []types.TraceIDForSQL{"5"},
 			desc: "Three",
 		},
 		{
-			inputs: [][]traceIDForSQL{
+			inputs: [][]types.TraceIDForSQL{
 				{"1", "2", "3", "4"},
 				{"1", "2", "3", "5"},
 				{"2", "3", "4", "5"},
 				{"1", "2", "3", "6"},
 			},
-			exp:  []traceIDForSQL{"2", "3"},
+			exp:  []types.TraceIDForSQL{"2", "3"},
 			desc: "Four",
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			inputs := make([]<-chan traceIDForSQL, len(tc.inputs))
+			inputs := make([]<-chan types.TraceIDForSQL, len(tc.inputs))
 			for i, arr := range tc.inputs {
 				inputs[i] = asChan(arr)
 			}

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"crypto/md5"
 	"fmt"
 	"sync"
 	"time"
@@ -83,6 +84,29 @@ type TraceCommitLink struct {
 
 	// Href is the target url for the link.
 	Href string
+}
+
+// TraceIDForSQL is the type of the IDs that are used in the SQL queries,
+// they are hex encoded md5 hashes of a trace name, e.g. "\x00112233...".
+// Note the \x prefix which tells the database that this is hex encoded.
+type TraceIDForSQL string
+
+// TraceIDForSQLInBytes is the md5 hash of a trace name.
+type TraceIDForSQLInBytes [md5.Size]byte
+
+// Calculates the traceIDForSQL for the given trace name, e.g. "\x00112233...".
+// Note the \x prefix which tells the database that this is hex encoded.
+func TraceIDForSQLFromTraceName(traceName string) TraceIDForSQL {
+	b := md5.Sum([]byte(traceName))
+	return TraceIDForSQL(fmt.Sprintf("\\x%x", b))
+}
+
+func TraceIDForSQLInBytesFromTraceName(traceName string) TraceIDForSQLInBytes {
+	return md5.Sum([]byte(traceName))
+}
+
+func TraceIDForSQLFromTraceIDAsBytes(b []byte) TraceIDForSQL {
+	return TraceIDForSQL(fmt.Sprintf("\\x%x", b))
 }
 
 // TraceMetadata is a struct to define metadata for a trace.

@@ -547,7 +547,7 @@ func Test_traceIDForSQLFromTraceName_Success(t *testing.T) {
 	   >>> hashlib.md5(b",arch=x86,config=8888,").hexdigest()
 	   'fe385b159ff55dca481069805e5ff050'
 	*/
-	assert.Equal(t, traceIDForSQL(`\xfe385b159ff55dca481069805e5ff050`), traceIDForSQLFromTraceName(",arch=x86,config=8888,"))
+	assert.Equal(t, types.TraceIDForSQL(`\xfe385b159ff55dca481069805e5ff050`), types.TraceIDForSQLFromTraceName(",arch=x86,config=8888,"))
 }
 
 func TestGetLsatNSources_MoreCommitsMatchThanAreAskedFor_Success(t *testing.T) {

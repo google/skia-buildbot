@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/perf/go/sql/sqltest"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func outParamsToSlice(outParams chan paramtools.Params) []paramtools.Params {
@@ -65,11 +66,11 @@ func TestQueryTraceIDs_SimpleQueryOneResult_Success(t *testing.T) {
 
 	traceStore := NewTraceParamStore(db)
 	traceParamMap := map[string]paramtools.Params{
-		string(traceIDForSQLFromTraceName(",a=b,c=d,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=b,c=d,")): {
 			"a": "b",
 			"c": "d",
 		},
-		string(traceIDForSQLFromTraceName(",a=notb,c=notd,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=notb,c=notd,")): {
 			"a": "notb",
 			"c": "notd",
 		},
@@ -109,11 +110,11 @@ func TestQueryTraceIDs_SimpleQueryNoMatches_Success(t *testing.T) {
 
 	traceStore := NewTraceParamStore(db)
 	traceParamMap := map[string]paramtools.Params{
-		string(traceIDForSQLFromTraceName(",a=b,c=d,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=b,c=d,")): {
 			"a": "b",
 			"c": "d",
 		},
-		string(traceIDForSQLFromTraceName(",a=notb,c=notd,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=notb,c=notd,")): {
 			"a": "notb",
 			"c": "notd",
 		},
@@ -153,15 +154,15 @@ func TestQueryTraceIDs_NegativeMatch_Success(t *testing.T) {
 
 	traceStore := NewTraceParamStore(db)
 	traceParamMap := map[string]paramtools.Params{
-		string(traceIDForSQLFromTraceName(",a=b,c=d,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=b,c=d,")): {
 			"a": "b",
 			"c": "d",
 		},
-		string(traceIDForSQLFromTraceName(",a=notb,c=notd,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=notb,c=notd,")): {
 			"a": "notb",
 			"c": "notd",
 		},
-		string(traceIDForSQLFromTraceName(",a=c,c=d,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=c,c=d,")): {
 			"a": "c",
 			"c": "d",
 		},
@@ -203,15 +204,15 @@ func TestQueryTraceIDs_NegativeRegexMatch_Success(t *testing.T) {
 
 	traceStore := NewTraceParamStore(db)
 	traceParamMap := map[string]paramtools.Params{
-		string(traceIDForSQLFromTraceName(",a=b,c=d,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=b,c=d,")): {
 			"a": "b",
 			"c": "d",
 		},
-		string(traceIDForSQLFromTraceName(",a=notb,c=notd,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=notb,c=notd,")): {
 			"a": "notb",
 			"c": "notd",
 		},
-		string(traceIDForSQLFromTraceName(",a=c,c=d,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=c,c=d,")): {
 			"a": "c",
 			"c": "d",
 		},
@@ -250,7 +251,7 @@ func TestQueryTraceIDs_NonExistentKey_Success(t *testing.T) {
 
 	traceStore := NewTraceParamStore(db)
 	traceParamMap := map[string]paramtools.Params{
-		string(traceIDForSQLFromTraceName(",a=b,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=b,")): {
 			"a": "b",
 		},
 	}

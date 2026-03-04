@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/perf/go/sql/sqltest"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func createTraceParamStoreForTests(t *testing.T) *SQLTraceParamStore {
@@ -21,7 +22,7 @@ func createTraceParamStoreForTests(t *testing.T) *SQLTraceParamStore {
 func TestWriteRead_Success(t *testing.T) {
 	traceStore := createTraceParamStoreForTests(t)
 	traceParamMap := map[string]paramtools.Params{
-		string(traceIDForSQLFromTraceName(",a=b,c=d,")): {
+		string(types.TraceIDForSQLFromTraceName(",a=b,c=d,")): {
 			"a": "b",
 			"c": "d",
 		},
@@ -32,7 +33,7 @@ func TestWriteRead_Success(t *testing.T) {
 
 	// Let's try to read now.
 	traceParamsFromDb, err := traceStore.ReadParams(ctx, []string{
-		string(traceIDForSQLFromTraceName(",a=b,c=d,")),
+		string(types.TraceIDForSQLFromTraceName(",a=b,c=d,")),
 	})
 	assert.NoError(t, err)
 	assert.NotNil(t, traceParamsFromDb)
@@ -45,7 +46,7 @@ func TestWriteLargeNumber_Success(t *testing.T) {
 	traceIds := []string{}
 	// Make the trace count larger than chunk size to make it run in parallel.
 	for i := range 2 * traceParamInsertChunkSize {
-		traceId := string(traceIDForSQLFromTraceName(fmt.Sprintf(",num=%d,", i)))
+		traceId := string(types.TraceIDForSQLFromTraceName(fmt.Sprintf(",num=%d,", i)))
 		traceParamMap[traceId] = paramtools.Params{
 			"num": strconv.Itoa(i),
 		}
@@ -67,7 +68,7 @@ func TestRead_NoRows_Success(t *testing.T) {
 
 	// Let's try to read where no rows exist.
 	traceParamsFromDb, err := traceStore.ReadParams(ctx, []string{
-		string(traceIDForSQLFromTraceName(",a=b,c=d,")),
+		string(types.TraceIDForSQLFromTraceName(",a=b,c=d,")),
 	})
 	assert.NoError(t, err)
 	// Expect an empty map.
@@ -89,7 +90,7 @@ func TestTraceIdFromBytesBackToBytesConversion(t *testing.T) {
 
 	testDataForSql := make([]string, testDataLen)
 	for i := range testDataLen {
-		testDataForSql[i] = string(traceIDForSQLFromTraceIDAsBytes(testData[i]))
+		testDataForSql[i] = string(types.TraceIDForSQLFromTraceIDAsBytes(testData[i]))
 	}
 
 	testDataResults, err := convertTraceIDsToBytes(testDataForSql)

@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -83,7 +84,7 @@ func (s *SQLTraceParamStore) ReadParams(ctx context.Context, traceIds []string) 
 			return nil, err
 		}
 
-		traceIdString := traceIDForSQLFromTraceIDAsBytes(trace_id)
+		traceIdString := types.TraceIDForSQLFromTraceIDAsBytes(trace_id)
 		traceParams[string(traceIdString)] = params
 	}
 
