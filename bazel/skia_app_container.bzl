@@ -1,6 +1,6 @@
 """This module defines the skia_app_container macro."""
 
-load("@rules_distroless//distroless:defs.bzl", "group", "home", "passwd")
+load("@rules_distroless//distroless:defs.bzl", "cacerts", "group", "home", "passwd")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load(
@@ -27,7 +27,8 @@ def skia_app_container(
         extra_tars = None,
         owners = None,
         workdir = None,
-        visibility = None):
+        visibility = None,
+        ca_certs = False):
     """Builds a Docker container for a Skia app, and generates a target to push it to GCR.
 
     This macro produces the following:
@@ -111,6 +112,7 @@ def skia_app_container(
         subdirectories (created via 'dirs') have the specified ownership.
       workdir: Optional. Default working directory within the image.
       visibility: Optional. Visibility of the default rule.
+      ca_certs: Whether or not to include the ca-certificates package contents.
     """
 
     if type(entrypoint) == "string":
@@ -208,6 +210,13 @@ def skia_app_container(
                 ),
             ],
         )
+
+    if ca_certs:
+        cacerts(
+            name = "ca-certs",
+            package = "@ca-certificates//:data.tar.xz",
+        )
+        pkg_tars.append(":ca-certs")
 
     if extra_tars:
         pkg_tars.extend(extra_tars)

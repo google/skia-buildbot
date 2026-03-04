@@ -114,6 +114,7 @@ use_repo(
     "com_github_masterminds_semver",
     "com_github_masterminds_sprig",
     "com_github_miekg_dns",
+    "com_github_mikefarah_yq_v4",
     "com_github_nfnt_resize",
     "com_github_nlpodyssey_gopickle",
     "com_github_olekukonko_tablewriter",
@@ -308,21 +309,28 @@ apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
 # These are sets of packages installed in various images.
 apt.install(
     name = "autoroll-be-apt-install",
-    lock = "//autoroll:autoroll-be.lock.json",
+    lock = "@@//autoroll:autoroll-be.lock.json",
     manifest = "//autoroll:autoroll-be.yaml",
 )
 use_repo(apt, "autoroll-be-apt-install")
 
 apt.install(
     name = "base-cipd-apt-install",
-    lock = "//kube/base-cipd:base-cipd.lock.json",
+    lock = "@@//kube/base-cipd:base-cipd.lock.json",
     manifest = "//kube/base-cipd:base-cipd.yaml",
 )
 use_repo(apt, "base-cipd-apt-install")
 
 apt.install(
+    name = "cd-apt-install",
+    lock = "@@//cd:cd.lock.json",
+    manifest = "//cd:cd.yaml",
+)
+use_repo(apt, "cd-apt-install")
+
+apt.install(
     name = "task-scheduler-jc-apt-install",
-    lock = "//task_scheduler:task-scheduler-jc.lock.json",
+    lock = "@@//task_scheduler:task-scheduler-jc.lock.json",
     manifest = "//task_scheduler:task-scheduler-jc.yaml",
 )
 use_repo(apt, "task-scheduler-jc-apt-install")
@@ -408,15 +416,6 @@ oci.pull(
     image = "gcr.io/skia-public/base-cipd",
 )
 use_repo(oci, "base-cipd")
-
-# Pulls the gcr.io/skia-public/cd-base container, needed by some apps that use the
-# skia_app_container macro.
-oci.pull(
-    name = "cd-base",
-    digest = "sha256:59412eeaf3336f14a8fef1b0b02134c9877bf5aba16549e8c59d5e4de29719b8",
-    image = "gcr.io/skia-public/cd-base",
-)
-use_repo(oci, "cd-base")
 
 # Pulls the gcr.io/skia-public/docsyserver-base container, needed by docsyserver.
 oci.pull(

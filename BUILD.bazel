@@ -321,6 +321,15 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+######
+# yq #
+######
+alias(
+    name = "yq",
+    actual = "@com_github_mikefarah_yq_v4//:v4",
+    visibility = ["//visibility:public"],
+)
+
 ################################################
 # rbe_configs_gen  #
 ################################################

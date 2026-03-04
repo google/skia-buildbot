@@ -1,8 +1,18 @@
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+pkg_tar(
+    name = "python-symlink",
+    symlinks = {
+        "/usr/bin/python": "/usr/bin/python3",
+    },
+)
 
 skia_app_container(
     name = "cd_container",
-    base_image = "@cd-base",
+    base_image = "@debian-testing-slim",
+    ca_certs = True,
+    create_skia_user = False,
     default_user = "root",
     dirs = {
         "/usr/local/bin": [
@@ -18,6 +28,10 @@ skia_app_container(
                 "//cd/go/toggle-freeze:toggle-freeze",
                 "0755",
             ],
+            [
+                "//:yq",
+                "0755",
+            ],
         ],
         "/cipd": [
             [
@@ -29,6 +43,15 @@ skia_app_container(
     empty_dirs = {"/cipd": "0777"},
     env = {
         "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
+        "CC": "clang-19",
+        "PATH": "/go/bin:/cipd:/cipd/cipd_bin_packages/bin:${PATH}",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
     },
+    extra_tars = [
+        "@cd-apt-install//:flat",
+        "//bazel/external/cipd:git_tar",
+        "//bazel/go:go_toolchain_tar",
+        ":python-symlink",
+    ],
     repository = "skia-public/cd",
 )

@@ -1,135 +1,9 @@
-load("@rules_distroless//distroless:defs.bzl", "cacerts")
-load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
-
-pkg_tar(
-    name = "cipd_tar",
-    srcs = ["@cipd_linux-amd64//:all_files"],
-    package_dir = "/cipd",
-    remap_paths = {"external/+cipd+cipd_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "kitchen_tar",
-    srcs = ["@kitchen_linux-amd64//:all_files"],
-    package_dir = "/cipd",
-    remap_paths = {"external/+cipd+kitchen_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "git_tar",
-    srcs = ["@git_linux-amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+git_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "git_wrapper_tar",
-    srcs = ["@git_wrapper_linux-amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+git_wrapper_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "luci_auth_tar",
-    srcs = ["@luci-auth_linux-amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+luci-auth_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "docker_credential_luci_tar",
-    srcs = ["@docker-credential-luci_linux-amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+docker-credential-luci_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "git_credential_luci_tar",
-    srcs = ["@git-credential-luci_linux-amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+git-credential-luci_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "isolate_tar",
-    srcs = ["@isolate_linux-amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+isolate_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "lucicfg_tar",
-    srcs = ["@lucicfg_linux-amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+lucicfg_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "swarming_tar",
-    srcs = ["@swarming_linux-amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+swarming_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "vpython3_tar",
-    srcs = ["@vpython3_linux-amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+vpython3_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "patch_tar",
-    srcs = ["@patch_linux_amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+patch_linux_amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "goldctl_tar",
-    srcs = ["@goldctl_linux-amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+goldctl_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "cpython3_tar",
-    srcs = ["@cpython3_linux-amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages/cpython3",
-    remap_paths = {"external/+cipd+cpython3_linux-amd64/": ""},
-    strip_prefix = ".",
-)
-
-pkg_tar(
-    name = "gsutil_tar",
-    srcs = ["@gsutil//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages/gsutil",
-    remap_paths = {"external/+cipd+gsutil/gsutil/": ""},
-    strip_prefix = ".",
-)
-
-cacerts(
-    name = "ca-certs",
-    package = "@ca-certificates//:data.tar.xz",
-)
 
 skia_app_container(
     name = "base-cipd",
     base_image = "@debian-testing-slim",
+    ca_certs = True,
     create_skia_user = True,
     dirs = {},
     env = {
@@ -139,22 +13,21 @@ skia_app_container(
     },
     extra_tars = [
         "@base-cipd-apt-install//:flat",
-        ":cipd_tar",
-        ":cpython3_tar",
-        ":docker_credential_luci_tar",
-        ":git_credential_luci_tar",
-        ":git_tar",
-        ":git_wrapper_tar",
-        ":goldctl_tar",
-        ":gsutil_tar",
-        ":isolate_tar",
-        ":kitchen_tar",
-        ":luci_auth_tar",
-        ":lucicfg_tar",
-        ":patch_tar",
-        ":swarming_tar",
-        ":vpython3_tar",
-        ":ca-certs",
+        "//bazel/external/cipd:cipd_tar",
+        "//bazel/external/cipd:cpython3_tar",
+        "//bazel/external/cipd:docker_credential_luci_tar",
+        "//bazel/external/cipd:git_credential_luci_tar",
+        "//bazel/external/cipd:git_tar",
+        "//bazel/external/cipd:git_wrapper_tar",
+        "//bazel/external/cipd:goldctl_tar",
+        "//bazel/external/cipd:gsutil_tar",
+        "//bazel/external/cipd:isolate_tar",
+        "//bazel/external/cipd:kitchen_tar",
+        "//bazel/external/cipd:luci_auth_tar",
+        "//bazel/external/cipd:lucicfg_tar",
+        "//bazel/external/cipd:patch_tar",
+        "//bazel/external/cipd:swarming_tar",
+        "//bazel/external/cipd:vpython3_tar",
     ],
     repository = "skia-public/base-cipd",
     visibility = ["//visibility:public"],

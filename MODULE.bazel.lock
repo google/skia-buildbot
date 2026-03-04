@@ -1441,7 +1441,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "Wyt49KpUrKGCLLX5KU+nM62/eLS0FiE3m6Zvkv5U1j4=",
+        "usagesDigest": "yBxisDUaKJQEwu5CNsziGBnRXn2mYugwc0tNxJu9umI=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1607,33 +1607,6 @@
               "platforms": {},
               "platform": "@@rules_oci+//oci:base-cipd_single",
               "bzlmod_repository": "base-cipd",
-              "reproducible": true
-            }
-          },
-          "cd-base_single": {
-            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
-            "attributes": {
-              "www_authenticate_challenges": {},
-              "scheme": "https",
-              "registry": "gcr.io",
-              "repository": "skia-public/cd-base",
-              "identifier": "sha256:59412eeaf3336f14a8fef1b0b02134c9877bf5aba16549e8c59d5e4de29719b8",
-              "target_name": "cd-base_single",
-              "bazel_tags": []
-            }
-          },
-          "cd-base": {
-            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_alias",
-            "attributes": {
-              "target_name": "cd-base",
-              "www_authenticate_challenges": {},
-              "scheme": "https",
-              "registry": "gcr.io",
-              "repository": "skia-public/cd-base",
-              "identifier": "sha256:59412eeaf3336f14a8fef1b0b02134c9877bf5aba16549e8c59d5e4de29719b8",
-              "platforms": {},
-              "platform": "@@rules_oci+//oci:cd-base_single",
-              "bzlmod_repository": "cd-base",
               "reproducible": true
             }
           },
@@ -2007,7 +1980,6 @@
             "debian-testing-slim",
             "debian-testing-slim_linux_amd64",
             "base-cipd",
-            "cd-base",
             "docsyserver-base",
             "envoy_alpine",
             "node_alpine",

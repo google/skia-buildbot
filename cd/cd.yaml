@@ -1,0 +1,22 @@
+version: 1
+
+sources:
+  - channel: testing main
+    # Note: this version must be compatible with the version of the
+    # debian:testing-slim base image pinned in MODULE.bazel.
+    url: https://snapshot-cloudflare.debian.org/archive/debian/20260201T022025Z
+  - channel: trixie stable
+    url: https://download.docker.com/linux/debian
+archs:
+  - amd64
+
+packages:
+  - apt-transport-https
+  - clang-19
+  - curl
+  - docker-ce
+  - gnupg2
+  - make
+  - patch
+  - python3
+  - unzip
