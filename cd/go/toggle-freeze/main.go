@@ -14,14 +14,13 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/urfave/cli/v2"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
@@ -37,36 +36,9 @@ import (
 )
 
 func main() {
-	const (
-		flagAction     = "action"
-		flagFreezeFile = "freeze-file"
-		flagEmail      = "email"
-	)
-	app := &cli.App{
-		Name:        "toggle-freeze",
-		Description: "Toggles a freeze lock file, creates a CL, and waits for it to merge.",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     flagAction,
-				Usage:    "Action to perform: 'freeze', 'unfreeze', or 'toggle'.",
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:     flagFreezeFile,
-				Usage:    "Path to the freeze lock file.",
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:     flagEmail,
-				Usage:    "Email address for Git authentication.",
-				Required: false,
-				Value:    "louhi-service-account@example.com",
-			},
-		},
-		Action: func(ctx *cli.Context) error {
-			return run(ctx.Context, ctx.String(flagAction), ctx.String(flagFreezeFile), ctx.String(flagEmail), nil)
-		},
-	}
+	action := flag.String("action", "", "Action to perform: 'freeze', 'unfreeze', or 'toggle'. (Required)")
+	freezeFile := flag.String("freeze-file", "", "Path to the freeze lock file. (Required)")
+	email := flag.String("email", "louhi-service-account@example.com", "Email address for Git authentication.")
 
 	fakeProjectId := ""
 	fakeTaskId := ""
@@ -76,7 +48,19 @@ func main() {
 	ctx := td.StartRun(&fakeProjectId, &fakeTaskId, &fakeTaskName, &output, &local)
 	defer td.EndRun(ctx)
 
-	if err := app.RunContext(ctx, os.Args); err != nil {
+	if *action == "" {
+		err := skerr.Fmt("--action is required")
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		td.Fatal(ctx, err)
+	}
+	if *freezeFile == "" {
+		err := skerr.Fmt("--freeze-file is required")
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		td.Fatal(ctx, err)
+	}
+
+	if err := run(ctx, *action, *freezeFile, *email, nil); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		td.Fatal(ctx, err)
 	}
 }
