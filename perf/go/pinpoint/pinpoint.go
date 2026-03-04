@@ -144,7 +144,7 @@ func buildTryJobRequestURL(req TryJobCreateRequest) (string, error) {
 func (pc *Client) CreateBisect(ctx context.Context, req BisectJobCreateRequest) (*CreatePinpointResponse, error) {
 	pc.createBisectCalled.Inc(1)
 
-	requestURL := getBisectRequestURL(req, config.Config.FetchAnomaliesFromSql)
+	requestURL := buildBisectJobRequestURL(req, config.Config.FetchAnomaliesFromSql)
 	sklog.Debugf("Preparing to call this Pinpoint service URL: %s", requestURL)
 
 	resp, err := pc.doPostRequest(ctx, requestURL)
@@ -155,47 +155,28 @@ func (pc *Client) CreateBisect(ctx context.Context, req BisectJobCreateRequest) 
 	return resp, nil
 }
 
-func getBisectRequestURL(req BisectJobCreateRequest, isNewAnomaly bool) string {
-	if isNewAnomaly {
-		return buildPinpointBisectRequestURL(req)
-	}
-	return buildChromeperfBisectRequestURL(req)
-}
-
-func buildChromeperfBisectRequestURL(req BisectJobCreateRequest) string {
-	params := buildBisectRequestParams(req)
-	// Bug ID must present otherwise chromeperf returns an error.
-	params.Set("bug_id", req.BugId)
-	params.Set("test_path", req.TestPath)
-
-	return fmt.Sprintf("%s?%s", chromeperfLegacyBisectURL, params.Encode())
-}
-
-func buildPinpointBisectRequestURL(req BisectJobCreateRequest) string {
-	params := buildBisectRequestParams(req)
-	return fmt.Sprintf("%s?%s", pinpointLegacyURL, params.Encode())
-}
-
-func buildBisectRequestParams(req BisectJobCreateRequest) url.Values {
+func buildBisectJobRequestURL(req BisectJobCreateRequest, isNewAnomaly bool) string {
 	params := url.Values{}
 	setIfNotEmpty(params, "comparison_mode", req.ComparisonMode)
 	setIfNotEmpty(params, "start_git_hash", req.StartGitHash)
 	setIfNotEmpty(params, "end_git_hash", req.EndGitHash)
 	setIfNotEmpty(params, "configuration", req.Configuration)
 	setIfNotEmpty(params, "benchmark", req.Benchmark)
-	// TODO(b/485841164): Replace with the unescaped name when it is available.
-	setIfNotEmpty(params, "story", dotify(req.Story))
+	setIfNotEmpty(params, "story", req.Story)
 	setIfNotEmpty(params, "chart", req.Chart)
 	setIfNotEmpty(params, "statistic", req.Statistic)
 	setIfNotEmpty(params, "comparison_magnitude", req.ComparisonMagnitude)
 	setIfNotEmpty(params, "pin", req.Pin)
 	setIfNotEmpty(params, "project", req.Project)
 	setIfNotEmpty(params, "user", req.User)
-	setIfNotEmpty(params, "alert_ids", req.AlertIDs)
 	setIfNotEmpty(params, "bug_id", req.BugId)
-	setIfNotEmpty(params, "test_path", req.TestPath)
-	params.Set("tags", "{\"origin\":\"skia_perf\"}")
-	return params
+	if !isNewAnomaly {
+		setIfNotEmpty(params, "alert_ids", req.AlertIDs)
+	}
+	// Bug ID must present otherwise chromeperf returns an error.
+	params.Set("bug_id", req.BugId)
+	params.Set("test_path", req.TestPath)
+	return fmt.Sprintf("%s?%s", chromeperfLegacyBisectURL, params.Encode())
 }
 
 func extractErrorMessage(responseBody []byte) string {
