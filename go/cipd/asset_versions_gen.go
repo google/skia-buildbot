@@ -26,7 +26,7 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/luci-auth/${platform}": {
 		Path:    ".",
 		Name:    "infra/tools/luci-auth/${platform}",
-		Version: "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
+		Version: "git_revision:7d251a3398c8173d9b97a5e7ec7d4d75eae910a1",
 	},
 	"infra/tools/luci/docker-credential-luci/${platform}": {
 		Path:    ".",
