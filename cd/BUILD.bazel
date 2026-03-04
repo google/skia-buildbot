@@ -44,6 +44,7 @@ skia_app_container(
     env = {
         "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
         "CC": "clang-19",
+        "DOCKER_API_VERSION": "1.41",
         "PATH": "/go/bin:/cipd:/cipd/cipd_bin_packages/bin:${PATH}",
         "USE_BAZEL_FALLBACK_VERSION": "error",
     },
