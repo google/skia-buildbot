@@ -16,7 +16,7 @@ skia_app_container(
 
 skia_app_container(
     name = "task_scheduler_jc_container",
-    base_image = "@base-cipd",
+    base_image = "//kube/base-cipd:base-cipd",
     dirs = {
         "/usr/local/bin": [
             [
