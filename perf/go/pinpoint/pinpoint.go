@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
@@ -129,8 +128,7 @@ func buildTryJobRequestURL(req TryJobCreateRequest) (string, error) {
 	setIfNotEmpty(params, "experiment_patch", req.ExperimentPatch)
 	setIfNotEmpty(params, "configuration", req.Configuration)
 	setIfNotEmpty(params, "benchmark", req.Benchmark)
-	// TODO(b/485841164): Replace with the unescaped name when it is available.
-	setIfNotEmpty(params, "story", dotify(req.Story))
+	setIfNotEmpty(params, "story", req.Story)
 	setIfNotEmpty(params, "extra_test_args", req.ExtraTestArgs)
 	setIfNotEmpty(params, "repository", req.Repository)
 	setIfNotEmpty(params, "bug_id", req.BugId)
@@ -169,7 +167,6 @@ func buildBisectJobRequestURL(req BisectJobCreateRequest, isNewAnomaly bool) str
 	setIfNotEmpty(params, "pin", req.Pin)
 	setIfNotEmpty(params, "project", req.Project)
 	setIfNotEmpty(params, "user", req.User)
-	setIfNotEmpty(params, "bug_id", req.BugId)
 	if !isNewAnomaly {
 		setIfNotEmpty(params, "alert_ids", req.AlertIDs)
 	}
@@ -188,10 +185,6 @@ func extractErrorMessage(responseBody []byte) string {
 		return errorResponse.Error
 	}
 	return string(responseBody)
-}
-
-func dotify(input string) string {
-	return strings.ReplaceAll(input, "_", ".")
 }
 
 func setIfNotEmpty(params url.Values, key, value string) {

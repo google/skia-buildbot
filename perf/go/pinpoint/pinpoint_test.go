@@ -109,7 +109,7 @@ func TestBuildBisectJobRequestUrlPopulatesAllFieldsForNewAnomaly(t *testing.T) {
 	parsedURL, err := url.Parse(builtURL)
 	assert.NoError(t, err)
 
-	// Alert IDs should not present.
+	// Alert IDs should not be present.
 	expected := url.Values{
 		"comparison_mode":      []string{"performance"},
 		"start_git_hash":       []string{"start_hash"},
@@ -140,24 +140,6 @@ func TestBuildBisectJobRequestUrlPopulatesRequiredFields(t *testing.T) {
 		"test_path": []string{""},
 	}
 	assert.Equal(t, expected, parsedURL.Query())
-}
-
-func TestDotify(t *testing.T) {
-	var tests = []struct {
-		name        string
-		input       string
-		expectation string
-	}{
-		{"Empty string", "", ""},
-		{"Nothing to replace", "asd", "asd"},
-		{"Multiple underscores", "__qwe_asd___zxc_", "..qwe.asd...zxc."},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			assert.Equal(t, test.expectation, dotify(test.input))
-		})
-	}
 }
 
 type mockTransport struct {
@@ -221,4 +203,63 @@ func TestDoPostRequest(t *testing.T) {
 		assert.Contains(t, err.Error(), "Failed to parse pinpoint response body")
 		assert.Nil(t, resp)
 	})
+}
+
+func TestBuildTryJobRequestUrlPopulatesRequiredFields(t *testing.T) {
+	req := TryJobCreateRequest{
+		Name:            "test-job",
+		BaseGitHash:     "base_hash",
+		EndGitHash:      "end_hash",
+		BasePatch:       "base_patch",
+		ExperimentPatch: "experiment_patch",
+		Configuration:   "config",
+		Benchmark:       "benchmark",
+		Story:           "story",
+		ExtraTestArgs:   "args",
+		Repository:      "repo",
+		BugId:           "123",
+		User:            "user",
+	}
+
+	urlStr, err := buildTryJobRequestURL(req)
+	assert.NoError(t, err)
+
+	parsedURL, err := url.Parse(urlStr)
+	assert.NoError(t, err)
+
+	expected := url.Values{
+		"comparison_mode":  []string{tryJobComparisonMode},
+		"name":             []string{"test-job"},
+		"base_git_hash":    []string{"base_hash"},
+		"end_git_hash":     []string{"end_hash"},
+		"base_patch":       []string{"base_patch"},
+		"experiment_patch": []string{"experiment_patch"},
+		"configuration":    []string{"config"},
+		"benchmark":        []string{"benchmark"},
+		"story":            []string{"story"},
+		"extra_test_args":  []string{"args"},
+		"repository":       []string{"repo"},
+		"bug_id":           []string{"123"},
+		"user":             []string{"user"},
+		"tags":             []string{"{\"origin\":\"skia_perf\"}"},
+	}
+	assert.Equal(t, expected, parsedURL.Query())
+}
+
+func TestBuildTryJobRequestUrlVerifiesMissingBenchmark(t *testing.T) {
+	req := TryJobCreateRequest{
+		Configuration: "config",
+	}
+	_, err := buildTryJobRequestURL(req)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Benchmark must be specified")
+}
+
+func TestBuildTryJobRequestUrlVerifiesMissingConfiguration(t *testing.T) {
+	req := TryJobCreateRequest{
+		Benchmark: "benchmark",
+	}
+	_, err := buildTryJobRequestURL(req)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Configuration must be specified")
 }
