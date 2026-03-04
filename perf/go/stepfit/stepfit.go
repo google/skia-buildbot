@@ -105,85 +105,36 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 	stepSize := float32(-1.0)
 	i := len(trace) / 2
 
-	// Now do different work based on stepDetection
 	y0 := vec32.Mean(trace[:i])
 	y1 := vec32.Mean(trace[i:])
+	s1 := vec32.StdDev(trace[:i], y0)
+	s2 := vec32.StdDev(trace[i:], y1)
+	n1 := i
+	n2 := len(trace) - i
 
+	// Now do different work based on stepDetection
 	if stepDetection == types.OriginalStep {
-		// This is the original recipe step detection as described at
-		// https://bitworking.org/news/2014/11/detecting-benchmark-regressions
-		lse = float32(math.MaxFloat32)
-		if y0 != y1 {
-			d := vec32.SSE(trace[:i], y0) + vec32.SSE(trace[i:], y1)
-			if d < lse {
-				lse = d
-				stepSize = (y0 - y1)
-			}
-		}
-		// The next line of code should actually be math.Sqrt(lse/len(trace))
-		// instead it is math.Sqrt(lse)/len(trace), which does not give the stddev.
-		lse = float32(math.Sqrt(float64(lse))) / float32(len(trace))
-		if lse < stddevThreshold {
-			regression = stepSize / stddevThreshold
-		} else {
-			regression = stepSize / lse
-		}
+		sse1 := vec32.SSE(trace[:i], y0)
+		sse2 := vec32.SSE(trace[i:], y1)
+		stepSize, regression, lse = CalcOriginalStep(y0, y1, sse1, sse2, len(trace), stddevThreshold)
 	} else if stepDetection == types.AbsoluteStep {
-		// A simple check if the step size is greater than some absolute value.
-		stepSize = (y0 - y1)
-		regression = stepSize
+		stepSize, regression = CalcAbsoluteStep(y0, y1)
 	} else if stepDetection == types.Const {
-		// For this calculation we only look at the trace value at 'i', and only
-		// its absolute value.
-		absTraceValue := float32(math.Abs(float64(trace[i])))
-		stepSize = absTraceValue - interesting
-		regression = -1 * absTraceValue // * -1 So that regressions get flagged as HIGH.
+		// Const uses the value at the turning point.
+		val := trace[i]
+		stepSize, regression = CalcConstStep(val, interesting)
 	} else if stepDetection == types.PercentStep {
-		// A simple check if the step size is greater than some percentage of
-		// the mean of the first half of the trace.
-		if len(trace) > 0 {
-			stepSize = (y0 - y1) / (y0) // The division can produce +/-Inf or NaN.
-			if math.IsInf(float64(stepSize), 0) {
-				stepSize = math.MaxFloat32
-				if y0 < y1 {
-					stepSize *= -1
-				}
-			}
-			if math.IsNaN(float64(stepSize)) {
-				stepSize = 0
-			}
-			regression = stepSize
-		} else {
-			stepSize = 0
-			regression = stepSize
-		}
+		stepSize, regression = CalcPercentStep(y0, y1)
 	} else if stepDetection == types.CohenStep {
-		// https://en.wikipedia.org/wiki/Effect_size#Cohen's_d
-		if len(trace) < 4 {
-			// The math for Cohen's d only makes sense for len(trace) >= 4.
-			stepSize = 0
-			regression = stepSize
-		} else {
-			s1 := vec32.StdDev(trace[:i], y0)
-			s2 := vec32.StdDev(trace[i:], y1)
-			s := (s1 + s2) / 2.0
-			if math.IsNaN(float64(s)) || s < stddevThreshold {
-				stepSize = (y0 - y1) / stddevThreshold
-			} else {
-				stepSize = (y0 - y1) / s
-			}
-			regression = stepSize
-		}
+		stepSize, regression = CalcCohenStep(y0, y1, s1, s2, n1, n2, stddevThreshold)
 	} else /* types.MannWhitneyU  */ {
-		s1 := vec32.ToFloat64(trace[:i])
-		s2 := vec32.ToFloat64(trace[i:])
-		mwResults, err := stats.MannWhitneyUTest(s1, s2, stats.LocationDiffers)
+		var err error
+		sample1 := vec32.ToFloat64(trace[:i])
+		sample2 := vec32.ToFloat64(trace[i:])
+		stepSize, regression, lse, err = CalcMannWhitneyStep(y0, y1, sample1, sample2)
 		if err != nil {
 			return ret
 		}
-		stepSize = (y0 - y1)
-		regression = float32(mwResults.P)
-		lse = float32(mwResults.U)
 	}
 
 	status := UNINTERESTING
@@ -214,4 +165,94 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 	ret.TurningPoint = i
 	ret.Regression = regression
 	return ret
+}
+
+// CalcOriginalStep calculates step size, regression, and LSE for OriginalStep detection.
+// sse1 and sse2 are the sum squared errors of the left and right sides respectively.
+// totalN is the total length of the trace (used for LSE normalization).
+// This is the original recipe step detection as described at
+// https://bitworking.org/news/2014/11/detecting-benchmark-regressions
+func CalcOriginalStep(y0, y1, sse1, sse2 float32, totalN int, stddevThreshold float32) (float32, float32, float32) {
+	lse := float32(math.MaxFloat32)
+	stepSize := float32(-1.0)
+
+	if y0 != y1 {
+		d := sse1 + sse2
+		if d < lse {
+			lse = d
+			stepSize = (y0 - y1)
+		}
+	}
+	// The next line of code should actually be math.Sqrt(lse/len(trace))
+	// instead it is math.Sqrt(lse)/len(trace), which does not give the stddev.
+	lse = float32(math.Sqrt(float64(lse))) / float32(totalN)
+
+	var regression float32
+	if lse < stddevThreshold {
+		regression = stepSize / stddevThreshold
+	} else {
+		regression = stepSize / lse
+	}
+	return stepSize, regression, lse
+}
+
+// CalcAbsoluteStep calculates step size and regression for AbsoluteStep detection.
+// A simple check if the step size is greater than some absolute value.
+func CalcAbsoluteStep(y0, y1 float32) (float32, float32) {
+	stepSize := (y0 - y1)
+	return stepSize, stepSize
+}
+
+// CalcConstStep calculates step size and regression for Const detection.
+// A simple check if the absolute value of the trace is greater than some constant value.
+func CalcConstStep(val float32, interesting float32) (float32, float32) {
+	absTraceValue := float32(math.Abs(float64(val)))
+	stepSize := absTraceValue - interesting
+	regression := -1 * absTraceValue // * -1 So that regressions get flagged as HIGH.
+	return stepSize, regression
+}
+
+// CalcPercentStep calculates step size and regression for PercentStep detection.
+// It checks the percentage difference between two means (y0 and y1) relative to y0.
+func CalcPercentStep(y0, y1 float32) (float32, float32) {
+	stepSize := (y0 - y1) / y0 // The division can produce +/-Inf or NaN.
+	if math.IsInf(float64(stepSize), 0) {
+		stepSize = math.MaxFloat32
+		if y0 < y1 {
+			stepSize *= -1
+		}
+	}
+	if math.IsNaN(float64(stepSize)) {
+		stepSize = 0
+	}
+	return stepSize, stepSize
+}
+
+// CalcCohenStep calculates step size and regression for CohenStep detection.
+// https://en.wikipedia.org/wiki/Effect_size#Cohen's_d
+func CalcCohenStep(y0, y1, s1, s2 float32, n1, n2 int, stddevThreshold float32) (float32, float32) {
+	if n1+n2 < 4 {
+		return 0, 0
+	}
+	s := (s1 + s2) / 2.0
+
+	var stepSize float32
+	if math.IsNaN(float64(s)) || s < stddevThreshold {
+		stepSize = (y0 - y1) / stddevThreshold
+	} else {
+		stepSize = (y0 - y1) / s
+	}
+	return stepSize, stepSize
+}
+
+// CalcMannWhitneyStep calculates step size, regression (p-value), and LSE (U-statistic) for MannWhitneyU detection.
+func CalcMannWhitneyStep(y0, y1 float32, sample1, sample2 []float64) (float32, float32, float32, error) {
+	mwResults, err := stats.MannWhitneyUTest(sample1, sample2, stats.LocationDiffers)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	stepSize := (y0 - y1)
+	regression := float32(mwResults.P)
+	lse := float32(mwResults.U)
+	return stepSize, regression, lse, nil
 }
