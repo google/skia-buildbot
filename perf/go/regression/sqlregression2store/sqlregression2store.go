@@ -349,7 +349,7 @@ func (s *SQLRegression2Store) SetHigh(ctx context.Context, commitNumber types.Co
 		if r.HighStatus.Status == regression.None {
 			r.HighStatus.Status = regression.Untriaged
 		}
-		return populateRegression2Fields(r)
+		return s.populateRegression2Fields(r)
 	})
 	s.regressionFoundCounterHigh.Inc(1)
 	return ret, regressionID, err
@@ -370,7 +370,7 @@ func (s *SQLRegression2Store) SetLow(ctx context.Context, commitNumber types.Com
 		if r.LowStatus.Status == regression.None {
 			r.LowStatus.Status = regression.Untriaged
 		}
-		return populateRegression2Fields(r)
+		return s.populateRegression2Fields(r)
 	})
 	s.regressionFoundCounterLow.Inc(1)
 	return ret, regressionID, err
@@ -513,7 +513,7 @@ func (s *SQLRegression2Store) GetByRevision(ctx context.Context, rev string) ([]
 // convertRowToRegression converts the content of the row retrieved from the database
 // into a regression object. This will return an error if either there is no data
 // in the row, or if the data is invalid (eg: failed data conversion).
-func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
+func (s *SQLRegression2Store) convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 	r := regression.NewRegression()
 
 	// Once we are fully migrated to regression2 schema, the variables below
@@ -539,7 +539,9 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 		r.SubscriptionName = subName.String
 	}
 
-	r.TraceID = traceIDForSQLFromTraceIDAsBytes(traceIdAsBytes)
+	if s.instanceConfig.Experiments.RegressionsTraceIdField {
+		r.TraceID = string(types.TraceIDForSQLFromTraceIDAsBytes(traceIdAsBytes))
+	}
 
 	r.ClusterType = string(clusterType)
 	switch clusterType {
@@ -703,7 +705,7 @@ func sortBugs(bugs []types.RegressionBug) []types.RegressionBug {
 func (s *SQLRegression2Store) convertRowsIntoRegressions(rows pgx.Rows) ([]*regression.Regression, error) {
 	var regressions []*regression.Regression
 	for rows.Next() {
-		r, err := convertRowToRegression(rows)
+		r, err := s.convertRowToRegression(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -847,7 +849,7 @@ func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitN
 	existingRows := false
 	for rows.Next() {
 		existingRows = true
-		r, err = convertRowToRegression(rows)
+		r, err = s.convertRowToRegression(rows)
 		if err != nil {
 			if mustExist {
 				var errorMsg string
@@ -913,10 +915,10 @@ func (s *SQLRegression2Store) WriteRegression(ctx context.Context, regression *r
 		lowRegression.High = nil
 
 		// First, check if we can populate fields in both regressions.
-		if err := populateRegression2Fields(&highRegression); err != nil {
+		if err := s.populateRegression2Fields(&highRegression); err != nil {
 			return "", skerr.Wrap(err)
 		}
-		if err := populateRegression2Fields(&lowRegression); err != nil {
+		if err := s.populateRegression2Fields(&lowRegression); err != nil {
 			return "", skerr.Wrap(err)
 		}
 
@@ -930,7 +932,7 @@ func (s *SQLRegression2Store) WriteRegression(ctx context.Context, regression *r
 		}
 		return highRegression.Id, nil
 	} else {
-		if err := populateRegression2Fields(regression); err != nil {
+		if err := s.populateRegression2Fields(regression); err != nil {
 			return "", skerr.Wrap(err)
 		}
 		err := s.writeSingleRegression(ctx, regression, tx)
@@ -943,9 +945,21 @@ func (s *SQLRegression2Store) WriteRegression(ctx context.Context, regression *r
 
 // populateRegression2Fields populates the fields in the regression object
 // which are specific to the regression2 schema.
-func populateRegression2Fields(regression *regression.Regression) error {
+func (s *SQLRegression2Store) populateRegression2Fields(regression *regression.Regression) error {
 	if regression.Id == "" {
 		regression.Id = uuid.NewString()
+	}
+
+	if s.instanceConfig.Experiments.RegressionsTraceIdField {
+		traceID, err := getTraceIdFromTraceSet(regression.Frame.DataFrame.TraceSet)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		if regression.TraceID == "" {
+			regression.TraceID = traceID
+		} else if regression.TraceID != traceID {
+			sklog.Errorf("trace id on regression is equal to %s but should be %s", regression.TraceID, traceID)
+		}
 	}
 
 	_, clusterSummary, _ := regression.GetClusterTypeAndSummaryAndTriageStatus()
@@ -965,6 +979,20 @@ func populateRegression2Fields(regression *regression.Regression) error {
 
 	regression.IsImprovement = isRegressionImprovement(regression.Frame.DataFrame.ParamSet, clusterSummary.StepFit.Status)
 	return nil
+}
+
+func getTraceIdFromTraceSet(traceset types.TraceSet) (string, error) {
+	if len(traceset) > 1 {
+		return "", skerr.Fmt("Modern regression detection uses just single-trace detection, but traceset has len %d", len(traceset))
+	}
+	if len(traceset) == 0 {
+		return "", skerr.Fmt("Regression requires to be detected on some trace, but the traceset is empty?")
+	}
+	var traceName string
+	for name := range traceset {
+		traceName = name
+	}
+	return string(types.TraceIDForSQLFromTraceName(traceName)), nil
 }
 
 // isRegressionImprovement returns true if the metric has moved towards the improvement direction.
@@ -1096,9 +1124,4 @@ func quotedSlice(a []string) string {
 		q[i] = fmt.Sprintf("'%s'", s)
 	}
 	return strings.Join(q, ", ")
-}
-
-// TODO(b/487966608) use sqltraceparamstore's function here.
-func traceIDForSQLFromTraceIDAsBytes(traceAsBytes []byte) string {
-	return fmt.Sprintf("\\x%x", traceAsBytes)
 }

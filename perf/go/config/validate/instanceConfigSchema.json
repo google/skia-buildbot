@@ -172,6 +172,9 @@
         "progress_use_redis_cache": {
           "type": "boolean"
         },
+        "regressions_trace_id_field": {
+          "type": "boolean"
+        },
         "df_iter_trace_slicer": {
           "type": "boolean"
         }

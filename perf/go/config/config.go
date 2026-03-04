@@ -964,6 +964,8 @@ type Experiments struct {
 	PreflightSubqueriesForExistingKeys bool `json:"preflight_subqueries_for_existing_keys,omitempty"`
 	// Flag specifying whether to use redis or local cache for Progress package.
 	ProgressUseRedisCache bool `json:"progress_use_redis_cache,omitempty"`
+	// Flag specifying whether regressions2.trace_id field should be used
+	RegressionsTraceIdField bool `json:"regressions_trace_id_field,omitempty"`
 	// Flag specifying whether to use the trace slicer for dfiter.
 	DfIterTraceSlicer bool `json:"df_iter_trace_slicer,omitempty"`
 }

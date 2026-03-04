@@ -33,6 +33,7 @@ func setupStore(t *testing.T, alertsProvider alerts.ConfigProvider) *SQLRegressi
 	db := sqltest.NewSpannerDBForTests(t, "regstore")
 	instanceConfig := &config.InstanceConfig{
 		AllowMultipleRegressionsPerAlertId: true,
+		Experiments:                        config.Experiments{RegressionsTraceIdField: false},
 	}
 	store, _ := New(db, alertsProvider, instanceConfig)
 	return store
@@ -65,6 +66,7 @@ func generateNewRegression(subname string) *regression.Regression {
 				{Offset: 2},
 				{Offset: 3},
 			},
+			TraceSet: types.TraceSet{"test_trace_id": {}},
 		},
 	}
 	clusterSummary := &clustering2.ClusterSummary{
@@ -167,7 +169,7 @@ func TestGetByIDs_Success(t *testing.T) {
 
 	// Improvements are anomalies, and they are stored, too.
 	rImprovement := generateNewRegression(subName)
-	err := populateRegression2Fields(rImprovement)
+	err := store.populateRegression2Fields(rImprovement)
 	require.NoError(t, err)
 	rImprovement.IsImprovement = true
 	err = store.writeSingleRegression(ctx, rImprovement, nil)
@@ -233,7 +235,7 @@ func TestGetByRevision_Success(t *testing.T) {
 
 	generateRegression := func(previousCommit int64, commit int64) (r *regression.Regression) {
 		r = generateNewRegression(subName)
-		err := populateRegression2Fields(r)
+		err := store.populateRegression2Fields(r)
 		require.NoError(t, err)
 		r.PrevCommitNumber = types.CommitNumber(previousCommit)
 		r.CommitNumber = types.CommitNumber(commit)
@@ -524,7 +526,7 @@ func TestGetRegressionsBySubName(t *testing.T) {
 	r1 := generateAndStoreNewRegression(ctx, t, store, subName)
 	r2 := generateAndStoreNewRegression(ctx, t, store, subName)
 	rImp := generateNewRegression(subName)
-	err := populateRegression2Fields(rImp)
+	err := store.populateRegression2Fields(rImp)
 	require.NoError(t, err)
 	rImp.Frame.DataFrame.ParamSet = map[string][]string{
 		"improvement_direction": {"down"},
@@ -1601,4 +1603,100 @@ func TestUpdateBasedOnAlertAlgo_WithSubscriptionName(t *testing.T) {
 	reg := readSpecificRegressionFromDb(ctx, t, store, r.CommitNumber, alertIdStr)
 	assert.NotNil(t, reg)
 	assert.Equal(t, subName, reg.SubscriptionName)
+}
+
+func TestPopulateRegression2Fields_RegressionsTraceIdField(t *testing.T) {
+	// Equal to frame->'dataframe'->traceset.key for this test.
+	const testTraceID = "test_trace_id"
+	testTraceIDMd5 := string(types.TraceIDForSQLFromTraceName(testTraceID))
+
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+
+	tests := []struct {
+		name                 string
+		regressionsTraceId   bool
+		initialRegression    *regression.Regression
+		expectedTraceID      string
+		expectedTraceIDError string
+	}{
+		{
+			name:               "RegressionsTraceIdField true, initial TraceID empty",
+			regressionsTraceId: true,
+			initialRegression: func() *regression.Regression {
+				r := generateNewRegression(subName)
+				r.TraceID = "" // Ensure it's empty
+				return r
+			}(),
+			expectedTraceID: testTraceIDMd5,
+		},
+		{
+			name:               "RegressionsTraceIdField true, initial TraceID matches",
+			regressionsTraceId: true,
+			initialRegression: func() *regression.Regression {
+				r := generateNewRegression(subName)
+				r.TraceID = testTraceIDMd5 // Already set and matches
+				return r
+			}(),
+			expectedTraceID: testTraceIDMd5,
+		},
+		{
+			name:               "RegressionsTraceIdField true, initial TraceID mismatch",
+			regressionsTraceId: true,
+			initialRegression: func() *regression.Regression {
+				r := generateNewRegression(subName)
+				r.TraceID = "mismatched_trace_id" // Already set and does not match
+				return r
+			}(),
+			expectedTraceID: "mismatched_trace_id", // Should not be overwritten
+		},
+		{
+			name:               "RegressionsTraceIdField false, initial TraceID empty",
+			regressionsTraceId: false,
+			initialRegression: func() *regression.Regression {
+				r := generateNewRegression(subName)
+				r.TraceID = ""
+				return r
+			}(),
+			expectedTraceID: "",
+		},
+		{
+			name:               "RegressionsTraceIdField false, initial TraceID set",
+			regressionsTraceId: false,
+			initialRegression: func() *regression.Regression {
+				r := generateNewRegression(subName)
+				r.TraceID = testTraceID
+				return r
+			}(),
+			expectedTraceID: testTraceID,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			store := setupStore(t, alertsProvider)
+			store.instanceConfig.Experiments.RegressionsTraceIdField = tc.regressionsTraceId
+
+			// The generateNewRegression function already sets a traceset
+			// which will result in 'test_trace_id' if RegressionsTraceIdField is true.
+			// We'll directly modify the traceset for cases where we want a different generated ID.
+			if tc.initialRegression.Frame != nil && tc.initialRegression.Frame.DataFrame != nil {
+				tc.initialRegression.Frame.DataFrame.TraceSet = types.TraceSet{testTraceID: {}}
+			}
+
+			err := store.populateRegression2Fields(tc.initialRegression)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expectedTraceID, tc.initialRegression.TraceID)
+		})
+	}
+}
+
+func TestPopulateRegression2Fields_RegressionsTraceIdField_MultipleTraces(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	store := setupStore(t, alertsProvider)
+	store.instanceConfig.Experiments.RegressionsTraceIdField = true
+	r := generateNewRegression(subName)
+	r.Frame.DataFrame.TraceSet = types.TraceSet{"a": {}, "b": {}}
+	err := store.populateRegression2Fields(r)
+	require.Error(t, err)
 }
