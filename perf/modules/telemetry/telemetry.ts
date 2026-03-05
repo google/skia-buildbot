@@ -1,3 +1,5 @@
+import { reportErrorToServer } from './reportErrorToServer';
+
 /**
  * @fileoverview This file defines a Telemetry class for sending frontend metrics.
  * A singleton instance is exported for application-wide use. These metrics are
@@ -50,6 +52,8 @@ export enum SummaryMetric {
   // go/keep-sorted end
 }
 
+export { reportErrorToServer };
+
 class Telemetry {
   private static readonly BUFFER_FLUSH_INTERVAL_MS = 5000; // 5 seconds
 
@@ -83,13 +87,17 @@ class Telemetry {
     this.metricsBuffer.length = 0;
 
     try {
-      await fetch('/_/fe_telemetry', {
+      const response = await fetch('/_/fe_telemetry', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(metricsToSend),
       });
+      if (!response.ok) {
+        // If the request fails, we log it and queue the metrics back.
+        this.queueMetrics(metricsToSend);
+      }
     } catch (e) {
       console.error(e, 'Failed to send frontend metrics:', metricsToSend);
       this.queueMetrics(metricsToSend);
@@ -133,6 +141,14 @@ class Telemetry {
       tags: tags,
       metric_type: 'summary',
     });
+  }
+
+  /**
+   * Reports an error message to the server.
+   * This is a pass-through to the reportErrorToServer function.
+   */
+  reportErrorToServer(errorBody: string, errorSource: string) {
+    return reportErrorToServer(errorBody, errorSource);
   }
 
   // The following are exposed for testing purposes.

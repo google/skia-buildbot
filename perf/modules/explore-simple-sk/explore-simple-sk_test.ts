@@ -37,6 +37,7 @@ import './explore-simple-sk';
 import { DataService } from '../data-service';
 
 fetchMock.config.overwriteRoutes = true;
+fetchMock.post(/.*\/_\/fe_telemetry/, 200);
 
 const now = 1726081856; // an arbitrary UNIX time;
 const timeSpan = 89; // an arbitrary prime number for time span between commits .

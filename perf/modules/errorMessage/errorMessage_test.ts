@@ -1,4 +1,4 @@
-import { errorMessage, errorMessageWithTelemetry } from './index';
+import { errorMessage, errorMessageWithTelemetry, logErrorMessage } from './index';
 import { assert } from 'chai';
 import sinon from 'sinon';
 import { telemetry, CountMetric } from '../telemetry/telemetry';
@@ -83,5 +83,41 @@ describe('errorMessageWithTelemetry', () => {
         errorCode: 'CUSTOM_ERROR',
       })
     );
+  });
+});
+
+describe('logErrorMessage', () => {
+  let logErrorStub: sinon.SinonStub;
+
+  beforeEach(() => {
+    logErrorStub = sinon.stub(telemetry, 'reportErrorToServer');
+  });
+
+  afterEach(() => {
+    logErrorStub.restore();
+  });
+
+  it('calls reportErrorToServer with message string', () => {
+    const errorBody = 'test error';
+    const errorSource = 'test source';
+    logErrorMessage(errorBody, errorSource);
+    assert.isTrue(logErrorStub.calledWith(errorBody, errorSource));
+  });
+
+  it('calls reportErrorToServer with object containing message', () => {
+    const errorObj = { message: 'object error' };
+    const errorSource = 'test source';
+
+    logErrorMessage(errorObj, errorSource);
+    assert.isTrue(logErrorStub.calledWith(errorObj.message, errorSource));
+  });
+
+  it('calls reportErrorToServer with response object (statusText)', () => {
+    const errorBody = {
+      resp: new Response(null, { statusText: 'Not Found' }),
+    };
+    const errorSource = 'test source';
+    logErrorMessage(errorBody, errorSource);
+    assert.isTrue(logErrorStub.calledWith('Not Found', errorSource));
   });
 });

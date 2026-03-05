@@ -943,6 +943,22 @@ type feMetric struct {
 	MetricType  string            `json:"metric_type"`
 }
 
+// feErrorLog is the structure of the JSON we receive from the frontend when it sends error logs.
+type feErrorLog struct {
+	Message string `json:"message"`
+	Source  string `json:"source"`
+}
+
+func (f *Frontend) feErrorLogHandler(w http.ResponseWriter, r *http.Request) {
+	var errorLog feErrorLog
+	if err := json.NewDecoder(r.Body).Decode(&errorLog); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusBadRequest)
+		sklog.Warningf("Failed to decode JSON: %v", err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func (f *Frontend) feTelemetryHandler(w http.ResponseWriter, r *http.Request) {
 	var metrics []feMetric
 	if err := json.NewDecoder(r.Body).Decode(&metrics); err != nil {
@@ -1101,6 +1117,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	}
 	router.Get("/_/login/status", f.loginStatus)
 	router.Post("/_/fe_telemetry", f.feTelemetryHandler)
+	router.Post("/_/fe_error_log", f.feErrorLogHandler)
 	router.Get("/_/defaults", f.defaultsHandler)
 	router.Get("/_/revision", f.revisionHandler)
 	router.Post("/_/playground/anomaly/v1/detect", anomaly.Handler)

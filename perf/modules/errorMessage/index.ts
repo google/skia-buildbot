@@ -8,6 +8,30 @@ export interface TelemetryErrorOptions {
 }
 
 /**
+ * Helper method to convert different error body types into a string.
+ */
+export const convertToErrorString = (
+  errorBody: string | { message: string } | { resp: Response } | object
+): string => {
+  if (typeof errorBody === 'string') {
+    return errorBody;
+  }
+  if (typeof errorBody === 'object' && errorBody !== null) {
+    if ('message' in errorBody) {
+      return (errorBody as { message: string }).message;
+    }
+    if ('resp' in errorBody && (errorBody as { resp: Response }).resp instanceof window.Response) {
+      return (errorBody as { resp: Response }).resp.statusText;
+    }
+  }
+  try {
+    return JSON.stringify(errorBody);
+  } catch (e) {
+    return `Failed to report log message from frontend: ${(e as Error).message}`;
+  }
+};
+
+/**
  * This is the same function as element-sk errorMessage, but also
  * track error occurrences via a telemetry system.
  * duration default to 0, which means the toast doesn't close automatically.
@@ -60,4 +84,14 @@ export const errorMessage = (
   duration: number = 0
 ): void => {
   elementsErrorMessage(message, duration);
+};
+
+/**
+ * logErrorMessage logs the error message to the server.
+ */
+export const logErrorMessage = (
+  errorBody: string | { message: string } | { resp: Response } | object,
+  errorSource: string
+): void => {
+  telemetry.reportErrorToServer(convertToErrorString(errorBody), errorSource);
 };

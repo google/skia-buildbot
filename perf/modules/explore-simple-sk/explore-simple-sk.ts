@@ -17,7 +17,7 @@ import { TabsSk } from '../../../elements-sk/modules/tabs-sk/tabs-sk';
 import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 import { ParamSet as CommonSkParamSet } from '../../../infra-sk/modules/query';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
-import { errorMessage, errorMessageWithTelemetry } from '../errorMessage';
+import { errorMessage, errorMessageWithTelemetry, logErrorMessage } from '../errorMessage';
 import { StatusCodes } from 'http-status-codes';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -1245,6 +1245,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         })
         .catch(errorMessage);
     }
+
     if (this.state.graph_index === 0) {
       this.dataService
         .getInitPage(tz)
@@ -2777,6 +2778,10 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         source: EXPLORE_SIMPLE_PAGE_SOURCE,
         errorCode: StatusCodes.BAD_REQUEST.toString(),
       });
+      logErrorMessage(
+        `No data found for the given query: ${frameResponse.dataframe.traceset}`,
+        EXPLORE_SIMPLE_PAGE_SOURCE
+      );
       return;
     }
     const dfRepo = this.dfRepo.value;

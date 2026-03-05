@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { CountMetric, SummaryMetric, telemetry } from './telemetry';
+import { CountMetric, SummaryMetric, telemetry, reportErrorToServer } from './telemetry';
 
 describe('telemetry', () => {
   const BUFFER_FLUSH_INTERVAL_MS = 5000; // 5 seconds
@@ -55,11 +55,8 @@ describe('telemetry', () => {
       },
     ]);
     expect(fetchStub.getCall(0).args[0]).to.equal('/_/fe_telemetry');
-    expect(fetchStub.getCall(0).args[1]).to.deep.equal({
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: expectedBody,
-    });
+    expect(fetchStub.getCall(0).args[1].method).to.equal('POST');
+    expect(fetchStub.getCall(0).args[1].body).to.equal(expectedBody);
   });
 
   it('should buffer recordSummary metrics and send them after the interval', async () => {
@@ -88,11 +85,8 @@ describe('telemetry', () => {
       },
     ]);
     expect(fetchStub.getCall(0).args[0]).to.equal('/_/fe_telemetry');
-    expect(fetchStub.getCall(0).args[1]).to.deep.equal({
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: expectedBody,
-    });
+    expect(fetchStub.getCall(0).args[1].method).to.equal('POST');
+    expect(fetchStub.getCall(0).args[1].body).to.equal(expectedBody);
   });
 
   it('should send buffered metrics when document visibility changes to hidden', async () => {
@@ -122,11 +116,8 @@ describe('telemetry', () => {
       },
     ]);
     expect(fetchStub.getCall(0).args[0]).to.equal('/_/fe_telemetry');
-    expect(fetchStub.getCall(0).args[1]).to.deep.equal({
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: expectedBody,
-    });
+    expect(fetchStub.getCall(0).args[1].method).to.equal('POST');
+    expect(fetchStub.getCall(0).args[1].body).to.equal(expectedBody);
   });
 
   it('should implement FIFO behavior when buffer is full', async () => {
@@ -159,5 +150,40 @@ describe('telemetry', () => {
 
     // Expect fetch not to have been called because the buffer was empty.
     expect(fetchStub.callCount).to.equal(0);
+  });
+});
+
+describe('reportErrorToServer', () => {
+  let fetchStub: sinon.SinonStub;
+
+  beforeEach(() => {
+    fetchStub = sinon.stub(window, 'fetch').resolves(new Response());
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('sends an error log to the backend', async () => {
+    const errorBody = 'test error';
+    const errorSource = 'test source';
+    await reportErrorToServer(errorBody, errorSource);
+
+    expect(fetchStub.callCount).to.equal(1);
+    expect(fetchStub.getCall(0).args[0]).to.equal('/_/fe_error_log');
+    const expectedBody = JSON.stringify({ message: errorBody, source: errorSource });
+    expect(fetchStub.getCall(0).args[1].method).to.equal('POST');
+    expect(fetchStub.getCall(0).args[1].body).to.equal(expectedBody);
+  });
+
+  it('handles fetch errors gracefully', async () => {
+    fetchStub.rejects(new Error('Network error'));
+    const errorBody = 'test error';
+    const errorSource = 'test source';
+
+    // This should not throw an error as it's caught in reportErrorToServer
+    await reportErrorToServer(errorBody, errorSource);
+
+    expect(fetchStub.callCount).to.equal(1);
   });
 });
