@@ -14,7 +14,7 @@ filegroup(
 
 skia_app_container(
     name = "apiserver",
-    base_image = "@base-cipd",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin": [
             [
