@@ -214,7 +214,7 @@ describe('bisect-dialog-sk', () => {
       const link = element.querySelector('#pinpoint-job-url') as HTMLAnchorElement;
       assert.isNotNull(link);
       assert.equal(link!.href, jobUrl);
-      assert.include(link!.textContent, 'Bisect job created');
+      assert.include(link!.textContent, 'Pinpoint Job Created');
     });
   });
 

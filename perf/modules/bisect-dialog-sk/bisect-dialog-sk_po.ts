@@ -38,20 +38,12 @@ export class BisectDialogSkPO extends PageObject {
     return this.bySelector('#submit-button');
   }
 
-  get closeButton(): PageObjectElement {
-    return this.bySelector('#close-btn');
-  }
-
   get spinner(): PageObjectElement {
     return this.bySelector('#dialog-spinner');
   }
 
-  get bisectJobToast(): PageObjectElement {
-    return this.bySelector('#bisect_toast');
-  }
-
   get bisectJobUrl(): PageObjectElement {
-    return this.bySelector('#bisect-url a');
+    return this.bySelector('#pinpoint-job-url');
   }
 
   async isDialogOpen(): Promise<boolean> {

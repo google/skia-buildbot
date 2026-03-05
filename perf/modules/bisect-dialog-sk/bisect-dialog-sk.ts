@@ -29,7 +29,6 @@ import '@material/web/icon/icon.js';
 
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
-import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import '../../../infra-sk/modules/alogin-sk/alogin-sk';
@@ -83,9 +82,6 @@ export class BisectDialogSk extends LitElement {
   @state()
   private jobUrl: string = '';
 
-  @query('#bisect_toast')
-  private bisectJobToast!: ToastSk;
-
   createRenderRoot() {
     return this;
   }
@@ -112,6 +108,7 @@ export class BisectDialogSk extends LitElement {
   open(): void {
     this._opened = true;
     this.patch = '';
+    this.jobUrl = '';
     this._dialog?.showModal();
   }
 
@@ -119,11 +116,6 @@ export class BisectDialogSk extends LitElement {
     this._opened = false;
     this._dialog?.close();
   }
-
-  @state()
-  private _toastShown: boolean = false;
-
-  private _toastTimer: number | null = null;
 
   private _postBisectTask = new Task(this, {
     task: async ([req]: readonly [BisectJobCreateRequest], { signal }: { signal: AbortSignal }) => {
@@ -139,8 +131,6 @@ export class BisectDialogSk extends LitElement {
         const json = await jsonOrThrow(response);
         this.jobId = json.jobId;
         this.jobUrl = json.jobUrl;
-        this.closeBisectDialog();
-        this._showToast();
       } catch (msg: any) {
         if (msg.name === 'AbortError') {
           throw msg;
@@ -151,23 +141,6 @@ export class BisectDialogSk extends LitElement {
     },
     autoRun: false,
   });
-
-  private _showToast() {
-    this._toastShown = true;
-    if (this._toastTimer) window.clearTimeout(this._toastTimer);
-    this._toastTimer = window.setTimeout(() => {
-      this._toastShown = false;
-      this._toastTimer = null;
-    }, 5000);
-  }
-
-  private _hideToast() {
-    this._toastShown = false;
-    if (this._toastTimer) {
-      window.clearTimeout(this._toastTimer);
-      this._toastTimer = null;
-    }
-  }
 
   get opened() {
     return this._dialog?.open;
@@ -244,14 +217,14 @@ export class BisectDialogSk extends LitElement {
     this.testPath = '';
     this.anomalyId = '';
     this.patch = '';
-    this._hideToast();
+    this.jobUrl = '';
   }
 
   render() {
     const isLoading = this._postBisectTask.status === TaskStatus.PENDING;
     return html`
       <dialog id="bisect-dialog">
-        <h2>Bisect</h2>
+        <h2>Bisection</h2>
         <button id="bisectCloseIcon" @click=${this.closeBisectDialog}>
           <close-icon-sk></close-icon-sk>
         </button>
@@ -305,7 +278,6 @@ export class BisectDialogSk extends LitElement {
               this.patch = (e.target as HTMLInputElement).value;
             }} />
           <div class="footer">
-            <spinner-sk id="dialog-spinner" ?active=${isLoading}></spinner-sk>
             <button
               id="submit-button"
               type="submit"
@@ -313,22 +285,15 @@ export class BisectDialogSk extends LitElement {
               ?disabled=${isLoading}>
               Bisect
             </button>
-            <button id="close-btn" @click=${this.closeBisectDialog} type="button">Close</button>
+            <spinner-sk id="dialog-spinner" ?active=${isLoading}></spinner-sk>
+            ${this.jobUrl
+              ? html`<a id="pinpoint-job-url" href="${this.jobUrl}" target="_blank">
+                  Pinpoint Job Created<md-icon id="icon">open_in_new</md-icon>
+                </a>`
+              : ''}
           </div>
         </form>
       </dialog>
-      <toast-sk id="bisect_toast" duration="0" .shown=${this._toastShown}>
-        <div id="bisect-url">
-          <a href=${this.jobUrl} target="_blank" id="pinpoint-job-url"
-            >Bisect job created: ${this.jobId}</a
-          >
-        </div>
-        <div class="close-bisect">
-          <button id="hide-bisect-toast" class="action" type="button" @click=${this._hideToast}>
-            Close
-          </button>
-        </div>
-      </toast-sk>
     `;
   }
 }
