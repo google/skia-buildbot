@@ -23,7 +23,7 @@ filegroup(
 
 skia_app_container(
     name = "perfserver",
-    base_image = "@base-cipd",
+    base_image = "//kube/base-cipd:base-cipd",
     dirs = {
         "/usr/local/bin": [
             [
@@ -138,7 +138,7 @@ skia_app_container(
 
 skia_app_container(
     name = "backendserver",
-    base_image = "@base-cipd",
+    base_image = "//kube/base-cipd:base-cipd",
     dirs = {
         "/usr/local/bin/backendserver": [
             [
@@ -165,7 +165,7 @@ skia_app_container(
 
 skia_app_container(
     name = "perf_e2e_test_runner",
-    base_image = "@base-cipd",
+    base_image = "//kube/base-cipd:base-cipd",
     dirs = {
         "/usr/local/bin/e2e": [
             [
