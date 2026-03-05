@@ -9,7 +9,7 @@ js_library(
 
 skia_app_container(
     name = "shaders_container-base",
-    base_image = "@base-cipd",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin": [
             [
