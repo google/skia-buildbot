@@ -1133,7 +1133,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewRegressionsApi(f.loginProvider, f.configProvider, f.alertStore, f.regStore, f.perfGit, f.anomalyApiClient, f.urlProvider, f.graphsShortcutStore, f.alertGroupClient, f.progressTracker, f.shortcutStore, f.dfBuilder, f.paramsetRefresher),
 		api.NewQueryApi(f.paramsetRefresher),
 		api.NewShortCutsApi(f.shortcutStore, f.graphsShortcutStore),
-		api.NewGraphApi(f.flags.NumParamSetsForQueries, config.Config.QueryConfig.CommitChunkSize, config.Config.QueryConfig.MaxEmptyTilesForQuery, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.metadataStore, f.traceCache, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
+		api.NewGraphApi(f.flags.NumParamSetsForQueries, config.Config.QueryConfig.CommitChunkSize, config.Config.QueryConfig.MaxEmptyTilesForQuery, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.metadataStore, f.traceCache, f.shortcutStore, f.graphsShortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
 		api.NewPinpointApi(f.loginProvider, f.pinpoint),
 		api.NewSheriffConfigApi(f.loginProvider),
 		api.NewTriageApi(f.loginProvider, triageClient, f.issuetracker),

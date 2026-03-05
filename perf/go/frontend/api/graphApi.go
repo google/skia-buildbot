@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	"go.skia.org/infra/perf/go/dfbuilder"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/graphsshortcut"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
@@ -37,14 +39,15 @@ import (
 
 // graphApi provides a struct to handle api requests related to graph plots.
 type graphApi struct {
-	loginProvider alogin.Login
-	traceCache    *tracecache.TraceCache
-	dfBuilder     dataframe.DataFrameBuilder
-	perfGit       perfgit.Git
-	traceStore    tracestore.TraceStore
-	metadataStore tracestore.MetadataStore
-	shortcutStore shortcut.Store
-	anomalyStore  anomalies.Store
+	loginProvider       alogin.Login
+	traceCache          *tracecache.TraceCache
+	dfBuilder           dataframe.DataFrameBuilder
+	perfGit             perfgit.Git
+	traceStore          tracestore.TraceStore
+	metadataStore       tracestore.MetadataStore
+	shortcutStore       shortcut.Store
+	graphsShortcutStore graphsshortcut.Store
+	anomalyStore        anomalies.Store
 	// progressTracker tracks long running web requests.
 	progressTracker progress.Tracker
 	// provides access to the ingested files.
@@ -83,10 +86,11 @@ func (api graphApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/links", api.linksHandler)
 	router.Post("/_/shift", api.shiftHandler)
 	router.Post("/_/cidRange", api.cidRangeHandler)
+	router.Get("/_/shortcut/graphs", api.getGraphsShortcutDataHandler)
 }
 
 // NewGraphApi returns a new instance of the graphApi struct.
-func NewGraphApi(numParamSetsForQueries int, queryCommitChunkSize int, maxEmptyTiles int, loginProvider alogin.Login, dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, traceStore tracestore.TraceStore, metadataStore tracestore.MetadataStore, traceCache *tracecache.TraceCache, shortcutStore shortcut.Store, anomalyStore anomalies.Store, progressTracker progress.Tracker, ingestedFS fs.FS) graphApi {
+func NewGraphApi(numParamSetsForQueries int, queryCommitChunkSize int, maxEmptyTiles int, loginProvider alogin.Login, dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, traceStore tracestore.TraceStore, metadataStore tracestore.MetadataStore, traceCache *tracecache.TraceCache, shortcutStore shortcut.Store, graphsShortcutStore graphsshortcut.Store, anomalyStore anomalies.Store, progressTracker progress.Tracker, ingestedFS fs.FS) graphApi {
 	return graphApi{
 		numParamSetsForQueries:      numParamSetsForQueries,
 		queryCommitChunkSize:        queryCommitChunkSize,
@@ -98,6 +102,7 @@ func NewGraphApi(numParamSetsForQueries int, queryCommitChunkSize int, maxEmptyT
 		metadataStore:               metadataStore,
 		traceCache:                  traceCache,
 		shortcutStore:               shortcutStore,
+		graphsShortcutStore:         graphsShortcutStore,
 		anomalyStore:                anomalyStore,
 		progressTracker:             progressTracker,
 		ingestedFS:                  ingestedFS,
@@ -477,5 +482,137 @@ func (api graphApi) cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(ret); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+// GetGraphsShortcutDataResponse is the response for the /_/shortcut/get_graphs endpoint.
+type GetGraphsShortcutDataResponse struct {
+	Graphs []*frame.FrameResponse `json:"graphs"`
+}
+
+// getGraphsShortcutDataHandler handles the request for fetching data for all graphs in a shortcut.
+func (api graphApi) getGraphsShortcutDataHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), config.QueryMaxRunTime)
+	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
+	qParams := r.URL.Query()
+	id := qParams.Get("id")
+	if id == "" {
+		httputils.ReportError(w, fmt.Errorf("id is required"), "Missing id parameter", http.StatusBadRequest)
+		return
+	}
+
+	begin := 0
+	if bStr := qParams.Get("begin"); bStr != "" {
+		if b, err := strconv.Atoi(bStr); err == nil {
+			begin = b
+		}
+	}
+
+	end := 0
+	if eStr := qParams.Get("end"); eStr != "" {
+		if e, err := strconv.Atoi(eStr); err == nil {
+			end = e
+		}
+	}
+
+	numCommits := int32(0)
+	if ncStr := qParams.Get("num_commits"); ncStr != "" {
+		if nc, err := strconv.ParseInt(ncStr, 10, 32); err == nil {
+			numCommits = int32(nc)
+		}
+	}
+
+	requestType := frame.REQUEST_TIME_RANGE
+	if rtStr := qParams.Get("request_type"); rtStr != "" {
+		if rt, err := strconv.Atoi(rtStr); err == nil {
+			requestType = frame.RequestType(rt)
+		}
+	}
+
+	includeMetadata := false
+	if imStr := qParams.Get("include_metadata"); imStr != "" {
+		if im, err := strconv.ParseBool(imStr); err == nil {
+			includeMetadata = im
+		}
+	}
+
+	auditlog.LogWithUser(r, api.loginProvider.LoggedInAs(r).String(), "get_graphs_shortcut", id)
+
+	if begin == 0 || end == 0 {
+		latestTile, err := api.traceStore.GetLatestTile(ctx)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to get latest tile.", http.StatusInternalServerError)
+			return
+		}
+		// Go back two tiles.
+		var tileToStart types.TileNumber
+		prevTile := latestTile.Prev()
+		if prevTile == types.BadTileNumber {
+			tileToStart = 0
+		} else {
+			tileToStart = prevTile.Prev()
+			if tileToStart == types.BadTileNumber {
+				tileToStart = 0
+			}
+		}
+
+		commitStart := api.traceStore.CommitNumberOfTileStart(types.CommitNumber(int32(tileToStart) * api.traceStore.TileSize()))
+		commitDetails, err := api.perfGit.CommitFromCommitNumber(ctx, commitStart)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to get start commit details.", http.StatusInternalServerError)
+			return
+		}
+		if begin == 0 {
+			begin = int(commitDetails.Timestamp)
+		}
+		if end == 0 {
+			end = int(time.Now().Unix())
+		}
+	}
+
+	sc, err := api.graphsShortcutStore.GetShortcut(ctx, id)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get graphs shortcut.", http.StatusInternalServerError)
+		return
+	}
+
+	resp := GetGraphsShortcutDataResponse{
+		Graphs: make([]*frame.FrameResponse, len(sc.Graphs)),
+	}
+
+	var metadataStore tracestore.MetadataStore
+	if includeMetadata {
+		metadataStore = api.metadataStore
+	}
+
+	for i, g := range sc.Graphs {
+		fr := frame.NewFrameRequest()
+		fr.Begin = begin
+		fr.End = end
+		fr.NumCommits = numCommits
+		fr.RequestType = requestType
+		fr.Queries = g.Queries
+		fr.Formulas = g.Formulas
+		fr.Keys = g.Keys
+
+		err := frame.ProcessFrameRequest(ctx, fr, api.perfGit, api.dfBuilder, api.traceStore, metadataStore, api.shortcutStore, api.anomalyStore, config.Config.GitRepoConfig.CommitNumberRegex == "")
+		if err != nil {
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to process frame request for graph %d", i), http.StatusInternalServerError)
+			return
+		}
+
+		if res, ok := fr.Progress.State().Results.(*frame.FrameResponse); ok {
+			resp.Graphs[i] = res
+		} else {
+			sklog.Errorf("Unexpected results type in Progress state for graph %d: %T", i, fr.Progress.State().Results)
+			httputils.ReportError(w, fmt.Errorf("Unexpected results type"), "Internal error processing graph data", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
