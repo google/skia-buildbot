@@ -43,3 +43,28 @@ func GetHourlyDirs(prefixDir string, start, end time.Time) []string {
 	}
 	return ret
 }
+
+// GetDailyDirs generates paths with the given prefix for all the paths of the
+// form 'prefix/<year>/<month>/<day>'. All path segments are padded with zeros
+// where necessary, e.g. prefix/2018/01/02. This is intended to enumerate the
+// directories that should be polled when ingesting data.
+func GetDailyDirs(prefixDir string, start, end time.Time) []string {
+	if end.Before(start) {
+		return []string{}
+	}
+	if len(prefixDir) != 0 && !strings.HasSuffix(prefixDir, "/") {
+		prefixDir += "/"
+	}
+
+	// The result will be roughly the number of days in the range.
+	ret := make([]string, 0, int(end.Sub(start).Hours()/24)+1)
+	currTime := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, time.UTC)
+	endTime := time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, time.UTC)
+
+	for !currTime.After(endTime) {
+		year, month, day := currTime.Date()
+		ret = append(ret, fmt.Sprintf("%s%04d/%02d/%02d", prefixDir, year, month, day))
+		currTime = currTime.AddDate(0, 0, 1)
+	}
+	return ret
+}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/skerr"
@@ -308,12 +309,23 @@ func actualMain(app application.Application) {
 								return skerr.Wrap(err)
 							}
 
+							isDryRun := c.Bool(dryrunFlagName)
+							if !isDryRun {
+								fmt.Print("Did you get the skia-infra-breakglass-policy role from grants/? [y/N]: ")
+								var response string
+								_, _ = fmt.Scanln(&response)
+								response = strings.ToLower(strings.TrimSpace(response))
+								if response != "y" && response != "yes" {
+									return fmt.Errorf("Please get the skia-infra-breakglass-policy role from grants/ first before running this command without --dryrun.")
+								}
+							}
+
 							return app.IngestForceReingest(
 								c.Bool(localFlagName),
 								instanceConfig,
 								c.String(startTimeFlagName),
 								c.String(stopTimeFlagName),
-								c.Bool(dryrunFlagName),
+								isDryRun,
 								c.String(pathFilterFlagName))
 						},
 					},

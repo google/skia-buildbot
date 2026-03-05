@@ -713,7 +713,33 @@ func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig
 			return skerr.Wrap(err)
 		}
 
-		dirs := fileutil.GetHourlyDirs(u.Path[1:], startTime, stopTime)
+		dailyDirs := fileutil.GetDailyDirs(u.Path[1:], startTime, stopTime)
+
+		var dirs []string
+		for _, dDir := range dailyDirs {
+			it := gcsClient.Bucket(u.Host).Objects(ctx, &storage.Query{
+				Prefix:    dDir,
+				Delimiter: "/",
+			})
+			hasSubdirs := false
+			for {
+				attrs, err := it.Next()
+				if err == iterator.Done {
+					break
+				}
+				if err != nil {
+					sklog.Errorf("Error discovering subdirectories for %s: %s", dDir, err)
+					break
+				}
+				if attrs.Prefix != "" {
+					dirs = append(dirs, attrs.Prefix)
+					hasSubdirs = true
+				}
+			}
+			if !hasSubdirs {
+				dirs = append(dirs, dDir)
+			}
+		}
 
 		for _, dir := range dirs {
 			sklog.Infof("Directory: %q", dir)

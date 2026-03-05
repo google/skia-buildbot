@@ -53,3 +53,45 @@ func TestGetHourlyDirs_PrefixEmpty_ReturnValueDoesNotStartWithSlash(t *testing.T
 		"2022/06/01/04",
 	}, folders)
 }
+
+func TestGetDailyDirs_LargeTimeSpan_ReturnsSortedList(t *testing.T) {
+	startTS := time.Date(1972, time.November, 29, 13, 45, 20, 67, time.UTC)
+	endTS := time.Date(1982, time.February, 2, 3, 45, 20, 67, time.UTC)
+	folders := GetDailyDirs("prefix", startTS, endTS)
+	assert.IsIncreasing(t, folders)
+	assert.Len(t, folders, 3353) // rough count of days
+	assert.Equal(t, folders[0], "prefix/1972/11/29")
+	assert.Equal(t, folders[len(folders)-1], "prefix/1982/02/02")
+}
+
+func TestGetDailyDirs_ExactlyOnTheDay_Success(t *testing.T) {
+	startTS := time.Date(1985, time.November, 20, 00, 00, 00, 00, time.UTC)
+	endTS := time.Date(1985, time.November, 22, 00, 00, 00, 00, time.UTC)
+	folders := GetDailyDirs("prefix", startTS, endTS)
+	assert.Equal(t, []string{
+		"prefix/1985/11/20", "prefix/1985/11/21", "prefix/1985/11/22",
+	}, folders)
+}
+
+func TestGetDailyDirs_LessThanOneDayApart_ReturnsOneFolder(t *testing.T) {
+	startTS := time.Date(1985, time.November, 20, 13, 00, 00, 00, time.UTC)
+	endTS := time.Date(1985, time.November, 20, 18, 01, 00, 00, time.UTC)
+	folders := GetDailyDirs("prefix", startTS, endTS)
+	assert.Equal(t, []string{"prefix/1985/11/20"}, folders)
+}
+
+func TestGetDailyDirs_StartAfterEnd_ReturnsNothing(t *testing.T) {
+	startTS := time.Date(2014, time.November, 20, 13, 00, 00, 00, time.UTC)
+	endTS := time.Date(1985, time.November, 20, 13, 01, 00, 00, time.UTC)
+	folders := GetDailyDirs("prefix", startTS, endTS)
+	assert.Empty(t, folders)
+}
+
+func TestGetDailyDirs_PrefixEmpty_ReturnValueDoesNotStartWithSlash(t *testing.T) {
+	startTS := time.Date(2022, time.May, 31, 13, 01, 00, 00, time.UTC)
+	endTS := time.Date(2022, time.June, 2, 4, 01, 00, 00, time.UTC)
+	folders := GetDailyDirs("", startTS, endTS)
+	assert.Equal(t, []string{
+		"2022/05/31", "2022/06/01", "2022/06/02",
+	}, folders)
+}
