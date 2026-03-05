@@ -30,7 +30,7 @@ go_library(
 
 skia_app_container(
     name = "coverageserver_container",
-    base_image = "@base-cipd",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin/coverageserver": [
             [
