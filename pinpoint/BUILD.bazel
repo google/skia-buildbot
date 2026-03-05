@@ -17,7 +17,7 @@ skia_app_container(
 
 skia_app_container(
     name = "pinpoint_webui",
-    base_image = "@base-cipd",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin": [
             [
