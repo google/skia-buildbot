@@ -234,9 +234,6 @@ export class PickerFieldSk extends LitElement {
         // Leave the first item selected.
         this.selectedItems = this.options.slice(0, 1);
       }
-      // Note: Updating this.selectedItems triggers render and updates combobox.
-      // We manually dispatch value-changed to ensure the parent is notified.
-      this.dispatchValueChanged();
     }
   }
 
@@ -273,7 +270,6 @@ export class PickerFieldSk extends LitElement {
         // Leave the first item selected.
         this.selectedItems = this.options.slice(0, 1);
       }
-      this.dispatchValueChanged();
     }
   }
 

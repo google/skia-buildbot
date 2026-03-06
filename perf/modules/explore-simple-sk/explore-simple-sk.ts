@@ -2959,34 +2959,27 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       extendRange = monthInSec as CommitNumber;
     }
     const promises = [
-      this.dfRepo.value?.extendRange(-extendRange).then(() => {
-        const currentRange = this.calculateSelectionFromState();
-        // Already plotted, just need to update the data.
-        this.updateSelectedRangeWithUpdatedDataframe(
-          currentRange,
-          this.state.domain as 'date' | 'commit',
-          false
-        );
-        this.plotSummary.value?.SelectRange(currentRange);
-      }),
-      this.dfRepo.value?.extendRange(extendRange).then(() => {
-        const currentRange = this.calculateSelectionFromState();
-        // Only fetch data in the background. We force the graph and the summary
-        // box to respect the exact range the user originally requested.
-        this.updateSelectedRangeWithUpdatedDataframe(
-          currentRange,
-          this.state.domain as 'date' | 'commit',
-          false
-        );
-
-        // Ensure the plot summary's selection box reflects the EXACT requested range,
-        // not the artificially expanded 100-point range.
-        if (this.plotSummary.value) {
-          this.plotSummary.value.selectedValueRange = currentRange;
-        }
-      }),
+      this.dfRepo.value?.extendRange(-extendRange),
+      this.dfRepo.value?.extendRange(extendRange),
     ];
     await Promise.allSettled(promises);
+
+    const currentRange = this.calculateSelectionFromState();
+    // Only fetch data in the background. We force the graph and the summary
+    // box to respect the exact range the user originally requested.
+    this.updateSelectedRangeWithUpdatedDataframe(
+      currentRange,
+      this.state.domain as 'date' | 'commit',
+      false
+    );
+
+    // Ensure the plot summary's selection box reflects the EXACT requested range,
+    // not the artificially expanded 100-point range.
+    if (this.plotSummary.value) {
+      this.plotSummary.value.SelectRange(currentRange);
+      this.plotSummary.value.selectedValueRange = currentRange;
+    }
+
     this.dataLoading = false;
   }
 

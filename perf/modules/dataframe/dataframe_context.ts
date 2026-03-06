@@ -260,17 +260,13 @@ export class DataFrameRepository extends LitElement {
 
     if (this._header.length > MAX_DATAPOINTS) {
       const excess = this._header.length - MAX_DATAPOINTS;
-      if (isAfter) {
-        this._header.splice(0, excess);
-        Object.keys(this._traceset).forEach((key) => {
-          (this._traceset[key] as number[]).splice(0, excess);
-        });
-      } else {
-        this._header.splice(MAX_DATAPOINTS);
-        Object.keys(this._traceset).forEach((key) => {
-          (this._traceset[key] as number[]).splice(MAX_DATAPOINTS);
-        });
-      }
+
+      // We always discard the oldest data (from the beginning of the array)
+      // to prioritize preserving the most recent data and the current view.
+      this._header.splice(0, excess);
+      Object.keys(this._traceset).forEach((key) => {
+        (this._traceset[key] as number[]).splice(0, excess);
+      });
     }
 
     if (traceMetadata !== null) {
@@ -486,9 +482,6 @@ export class DataFrameRepository extends LitElement {
    *  the request completes.
    */
   async extendRange(offsetInSeconds: number) {
-    if (offsetInSeconds === this.chunkSize) {
-      return;
-    }
     let totalTraces = 0;
     let resolver = emptyResolver;
     const curRequest = this._requestComplete;
@@ -500,6 +493,7 @@ export class DataFrameRepository extends LitElement {
       this.loading = true;
       const range = deltaRange(this.timeRange, offsetInSeconds);
       const ranges = sliceRange(range, this.chunkSize);
+
       const allResponses: Promise<FrameResponse>[] = [];
       for (let slice = 0; slice < ranges.length; slice++) {
         allResponses.push(this.requestNewRange(ranges[slice]));
