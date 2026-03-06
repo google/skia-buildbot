@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -26,19 +27,24 @@ func main() {
 	)
 
 	ctx := context.Background()
-	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
-	if err != nil {
-		sklog.Fatalf("Failed to create token source: %s", err)
+	tokenSource, tokenSourceErr := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
+	var client *http.Client
+	if tokenSourceErr != nil {
+		sklog.Errorf("Failed to create token source: %s", tokenSourceErr)
+	} else {
+		client = httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 	}
 
-	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
-
+	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if client == nil {
+			http.Error(w, fmt.Sprintf("Service not fully initialized: %s", tokenSourceErr), http.StatusInternalServerError)
+			return
+		}
 		ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
 		defer cancel()
 		resp, err := httputils.GetWithContext(ctx, client, "https://pinpoint-dot-chromeperf.appspot.com/api/jobs")
 		if err != nil {
-			sklog.Errorf("Failed to fetch jobs: %s", err)
 			http.Error(w, "Failed to fetch jobs", http.StatusInternalServerError)
 			return
 		}
@@ -46,7 +52,6 @@ func main() {
 
 		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
 		if _, err := io.Copy(w, resp.Body); err != nil {
-			sklog.Errorf("Failed to write response: %s", err)
 			http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		}
 	})
