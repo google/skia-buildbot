@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	mock_crs "go.skia.org/infra/golden/go/code_review/mocks"
+	"go.skia.org/infra/golden/go/config"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mock_cis "go.skia.org/infra/golden/go/continuous_integration/mocks"
 	"go.skia.org/infra/golden/go/continuous_integration/simple_cis"
@@ -40,7 +41,7 @@ func TestTryjobSQL_SingleCRSAndCIS_Success(t *testing.T) {
 		continuousIntegrationSystemsParam: "buildbucket",
 	}
 	ctx := gerrit_crs.TestContext(context.Background())
-	p, err := TryjobSQL(ctx, nil, configParams, httputils.NewTimeoutClient(), nil)
+	p, err := TryjobSQL(ctx, nil, configParams, httputils.NewTimeoutClient(), nil, config.CockroachDB)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -63,7 +64,7 @@ func TestTryjobSQL_SingleCRSDoubleCIS_Success(t *testing.T) {
 	}
 
 	ctx := gerrit_crs.TestContext(context.Background())
-	p, err := TryjobSQL(ctx, nil, configParams, httputils.NewTimeoutClient(), nil)
+	p, err := TryjobSQL(ctx, nil, configParams, httputils.NewTimeoutClient(), nil, config.CockroachDB)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -87,7 +88,7 @@ func TestTryjobSQL_LookupCRS_Success(t *testing.T) {
 	}
 
 	ctx := gerrit_crs.TestContext(context.Background())
-	p, err := TryjobSQL(ctx, nil, configParams, httputils.NewTimeoutClient(), nil)
+	p, err := TryjobSQL(ctx, nil, configParams, httputils.NewTimeoutClient(), nil, config.CockroachDB)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 

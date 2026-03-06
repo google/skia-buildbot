@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	"go.skia.org/infra/golden/go/code_review/github_crs"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
 	"go.skia.org/infra/golden/go/continuous_integration/simple_cis"
@@ -70,6 +71,7 @@ type goldTryjobProcessor struct {
 	lookupSystem  LookupSystem
 	source        ingestion.Source
 	db            *pgxpool.Pool
+	dbType        config.DatabaseType
 
 	clCache             *lru.Cache
 	optionGroupingCache *lru.Cache
@@ -80,7 +82,7 @@ type goldTryjobProcessor struct {
 // TryjobSQL returns an ingestion.Processor which is modular and can support
 // different CodeReviewSystems (e.g. "Gerrit", "GitHub") and different ContinuousIntegrationSystems
 // (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in SQL.
-func TryjobSQL(ctx context.Context, src ingestion.Source, configParams map[string]string, client *http.Client, db *pgxpool.Pool) (ingestion.Processor, error) {
+func TryjobSQL(ctx context.Context, src ingestion.Source, configParams map[string]string, client *http.Client, db *pgxpool.Pool, dbType config.DatabaseType) (ingestion.Processor, error) {
 	cisNames := strings.Split(configParams[continuousIntegrationSystemsParam], ",")
 	if len(cisNames) == 0 {
 		return nil, skerr.Fmt("missing CI system (e.g. 'buildbucket')")
@@ -144,6 +146,7 @@ func TryjobSQL(ctx context.Context, src ingestion.Source, configParams map[strin
 		source:        src,
 
 		db:                  db,
+		dbType:              dbType,
 		clCache:             clCache,
 		optionGroupingCache: ogCache,
 		paramsCache:         paramsCache,
@@ -632,13 +635,13 @@ func (g *goldTryjobProcessor) writeData(ctx context.Context, gr *jsonio.GoldResu
 
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
-		return skerr.Wrap(batchCreateGroupings(ctx, g.db, groupingsToCreate, g.optionGroupingCache))
+		return skerr.Wrap(g.batchCreateGroupings(ctx, groupingsToCreate))
 	})
 	eg.Go(func() error {
-		return skerr.Wrap(batchCreateOptions(ctx, g.db, optionsToCreate, g.optionGroupingCache))
+		return skerr.Wrap(g.batchCreateOptions(ctx, optionsToCreate))
 	})
 	eg.Go(func() error {
-		return skerr.Wrap(batchCreateTraces(ctx, g.db, tracesToCreate, g.traceCache))
+		return skerr.Wrap(g.batchCreateTraces(ctx, tracesToCreate))
 	})
 	eg.Go(func() error {
 		return skerr.Wrap(g.batchUpdateSecondaryBranchValues(ctx, traceValuesToUpdate))
@@ -647,6 +650,144 @@ func (g *goldTryjobProcessor) writeData(ctx context.Context, gr *jsonio.GoldResu
 		return skerr.Wrap(g.batchCreateSecondaryBranchParams(ctx, paramset, clID, psID))
 	})
 	return skerr.Wrap(eg.Wait())
+}
+
+func (g *goldTryjobProcessor) batchCreateGroupings(ctx context.Context, rows []schema.GroupingRow) error {
+	if len(rows) == 0 {
+		return nil
+	}
+	ctx, span := trace.StartSpan(ctx, "batchCreateGroupings")
+	span.AddAttributes(trace.Int64Attribute("groupings", int64(len(rows))))
+	defer span.End()
+	chunkSize := 200 // Arbitrarily picked
+	if g.dbType == config.Spanner {
+		chunkSize = 50
+	}
+	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		batch := rows[startIdx:endIdx]
+		if len(batch) == 0 {
+			return nil
+		}
+		statement := `INSERT INTO Groupings (grouping_id, keys) VALUES `
+		const valuesPerRow = 2
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
+		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
+		for _, row := range batch {
+			arguments = append(arguments, row.GroupingID, row.Keys)
+		}
+		// ON CONFLICT DO NOTHING because if the rows already exist, then the data we are writing
+		// is immutable.
+		statement += ` ON CONFLICT (grouping_id) DO NOTHING;`
+
+		err := crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
+		return skerr.Wrap(err)
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "storing %d groupings", len(rows))
+	}
+	// We've successfully written them to the DB, add them to the cache.
+	for _, r := range rows {
+		g.optionGroupingCache.Add(string(r.GroupingID), struct{}{})
+	}
+	return nil
+}
+
+func (g *goldTryjobProcessor) batchCreateOptions(ctx context.Context, rows []schema.OptionsRow) error {
+	if len(rows) == 0 {
+		return nil
+	}
+	ctx, span := trace.StartSpan(ctx, "batchCreateOptions")
+	span.AddAttributes(trace.Int64Attribute("options", int64(len(rows))))
+	defer span.End()
+	chunkSize := 200 // Arbitrarily picked
+	if g.dbType == config.Spanner {
+		chunkSize = 50
+	}
+	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		batch := rows[startIdx:endIdx]
+		if len(batch) == 0 {
+			return nil
+		}
+		statement := `INSERT INTO Options (options_id, keys) VALUES `
+		const valuesPerRow = 2
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
+		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
+		for _, row := range batch {
+			arguments = append(arguments, row.OptionsID, row.Keys)
+		}
+		// ON CONFLICT DO NOTHING because if the rows already exist, then the data we are writing
+		// is immutable.
+		statement += ` ON CONFLICT (options_id) DO NOTHING;`
+
+		err := crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
+		return skerr.Wrap(err)
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "storing %d options", len(rows))
+	}
+	// We've successfully written them to the DB, add them to the cache.
+	for _, r := range rows {
+		g.optionGroupingCache.Add(string(r.OptionsID), struct{}{})
+	}
+	return nil
+}
+
+func (g *goldTryjobProcessor) batchCreateTraces(ctx context.Context, rows []schema.TraceRow) error {
+	if len(rows) == 0 {
+		return nil
+	}
+	ctx, span := trace.StartSpan(ctx, "batchCreateTraces")
+	span.AddAttributes(trace.Int64Attribute("traces", int64(len(rows))))
+	defer span.End()
+	chunkSize := 200 // Arbitrarily picked
+	if g.dbType == config.Spanner {
+		chunkSize = 50
+	}
+	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		batch := rows[startIdx:endIdx]
+		if len(batch) == 0 {
+			return nil
+		}
+		statement := `INSERT INTO Traces (trace_id, grouping_id, keys) VALUES `
+		const valuesPerRow = 3
+		statement += sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
+		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
+		for _, row := range batch {
+			arguments = append(arguments, row.TraceID, row.GroupingID, row.Keys)
+		}
+		// ON CONFLICT DO NOTHING because if the rows already exist, then the data we are writing
+		// is immutable.
+		statement += ` ON CONFLICT (trace_id) DO NOTHING;`
+
+		err := crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
+		return skerr.Wrap(err)
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "storing %d traces", len(rows))
+	}
+	// We've successfully written them to the DB, add them to the cache.
+	for _, r := range rows {
+		g.traceCache.Add(string(r.TraceID), struct{}{})
+	}
+	return nil
 }
 
 // batchUpdateSecondaryBranchValues writes the given data points to the DB.
@@ -660,7 +801,10 @@ func (g *goldTryjobProcessor) batchUpdateSecondaryBranchValues(ctx context.Conte
 
 	// Start at this chunk size for now. This table will likely receive a fair amount of data
 	// and smaller batch sizes can reduce the contention/retries.
-	const chunkSize = 300
+	chunkSize := 300
+	if g.dbType == config.Spanner {
+		chunkSize = 50
+	}
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
 		batch := rows[startIdx:endIdx]
 		if len(batch) == 0 {
@@ -668,22 +812,44 @@ func (g *goldTryjobProcessor) batchUpdateSecondaryBranchValues(ctx context.Conte
 		}
 		const valuesPerRow = 8
 		valuesPlaceholders := sqlutil.ValuesPlaceholders(valuesPerRow, len(batch))
-		statement := fmt.Sprintf(`INSERT INTO SecondaryBranchValues
-		(branch_name, version_name, secondary_branch_trace_id, digest,
-		grouping_id, options_id, source_file_id, tryjob_id)
-		VALUES %s
-		ON CONFLICT (
-			branch_name, version_name,
-			secondary_branch_trace_id, source_file_id
-		)
-		DO UPDATE SET
-		(branch_name, version_name, secondary_branch_trace_id, digest,
-		grouping_id, options_id, source_file_id, tryjob_id) =
-		(excluded.branch_name, excluded.version_name,
-		excluded.secondary_branch_trace_id, excluded.digest,
-		excluded.grouping_id, excluded.options_id, excluded.source_file_id,
-		excluded.tryjob_id)
-		`, valuesPlaceholders)
+		var statement string
+		if g.dbType == config.Spanner {
+			statement = fmt.Sprintf(`INSERT INTO SecondaryBranchValues
+			(branch_name, version_name, secondary_branch_trace_id, digest,
+			grouping_id, options_id, source_file_id, tryjob_id)
+			VALUES %s
+			ON CONFLICT (
+				branch_name, version_name,
+				secondary_branch_trace_id, source_file_id
+			)
+			DO UPDATE SET
+				branch_name = excluded.branch_name,
+				version_name = excluded.version_name,
+				secondary_branch_trace_id = excluded.secondary_branch_trace_id,
+				digest = excluded.digest,
+				grouping_id = excluded.grouping_id,
+				options_id = excluded.options_id,
+				source_file_id = excluded.source_file_id,
+				tryjob_id = excluded.tryjob_id
+			`, valuesPlaceholders)
+		} else {
+			statement = fmt.Sprintf(`INSERT INTO SecondaryBranchValues
+			(branch_name, version_name, secondary_branch_trace_id, digest,
+			grouping_id, options_id, source_file_id, tryjob_id)
+			VALUES %s
+			ON CONFLICT (
+				branch_name, version_name,
+				secondary_branch_trace_id, source_file_id
+			)
+			DO UPDATE SET
+			(branch_name, version_name, secondary_branch_trace_id, digest,
+			grouping_id, options_id, source_file_id, tryjob_id) =
+			(excluded.branch_name, excluded.version_name,
+			excluded.secondary_branch_trace_id, excluded.digest,
+			excluded.grouping_id, excluded.options_id, excluded.source_file_id,
+			excluded.tryjob_id)
+			`, valuesPlaceholders)
+		}
 
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, value := range batch {
@@ -732,7 +898,10 @@ func (g *goldTryjobProcessor) batchCreateSecondaryBranchParams(ctx context.Conte
 	}
 	span.AddAttributes(trace.Int64Attribute("key_value_pairs", int64(len(rows))))
 
-	const chunkSize = 200 // Arbitrarily picked
+	chunkSize := 200 // Arbitrarily picked
+	if g.dbType == config.Spanner {
+		chunkSize = 50
+	}
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
 		if err := ctx.Err(); err != nil {
 			return err

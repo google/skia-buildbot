@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/sql/databuilder"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -44,7 +45,7 @@ func TestPrimarySQL_Process_AllNewData_Success_cdb(t *testing.T) {
 	const circleTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"circle","os":"Windows10.2","source_type":"round"}`
 	const expectedCommitID = "0000000100"
 	src := fakeGCSSourceFromFile(t, "primary1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 	totalMetricBefore := s.filesProcessed.Get()
 	successMetricBefore := s.filesSuccess.Get()
 	resultsMetricBefore := s.resultsIngested.Get()
@@ -262,7 +263,7 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 	const circleTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"circle","os":"Windows10.2","source_type":"round"}`
 	const expectedCommitID = "0000000100"
 	src := fakeGCSSourceFromFile(t, "primary1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 	totalMetricBefore := s.filesProcessed.Get()
 	successMetricBefore := s.filesSuccess.Get()
 	resultsMetricBefore := s.resultsIngested.Get()
@@ -476,7 +477,7 @@ func TestPrimarySQL_Process_CommitIDSpecified_Success_cdb(t *testing.T) {
 	const circleTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"circle","os":"Windows10.2","source_type":"round"}`
 	const expectedCommitID = "0000000100"
 	src := fakeGCSSourceFromFile(t, "has_metadata.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 	totalMetricBefore := s.filesProcessed.Get()
 	successMetricBefore := s.filesSuccess.Get()
 	resultsMetricBefore := s.resultsIngested.Get()
@@ -696,7 +697,7 @@ func TestPrimarySQL_Process_CommitIDSpecified_Success(t *testing.T) {
 	const circleTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"circle","os":"Windows10.2","source_type":"round"}`
 	const expectedCommitID = "0000000100"
 	src := fakeGCSSourceFromFile(t, "has_metadata.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 	totalMetricBefore := s.filesProcessed.Get()
 	successMetricBefore := s.filesSuccess.Get()
 	resultsMetricBefore := s.resultsIngested.Get()
@@ -918,7 +919,7 @@ func TestPrimarySQL_Process_TileAlreadyComputed_Success_cdb(t *testing.T) {
 
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "use_existing_commit_in_tile1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db, config.CockroachDB)
 	require.NoError(t, s.Process(ctx, "use_existing_commit_in_tile1.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -1016,7 +1017,7 @@ func TestPrimarySQL_Process_TileAlreadyComputed_Success(t *testing.T) {
 
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "use_existing_commit_in_tile1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db, config.Spanner)
 	require.NoError(t, s.Process(ctx, "use_existing_commit_in_tile1.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -1114,7 +1115,7 @@ func TestPrimarySQL_Process_PreviousTilesAreFull_NewTileCreated_cdb(t *testing.T
 	existingData := makeDataForTileTests()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "should_start_tile_2.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db, config.CockroachDB)
 	require.NoError(t, s.Process(ctx, "should_start_tile_2.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -1218,7 +1219,7 @@ func TestPrimarySQL_Process_PreviousTilesAreFull_NewTileCreated(t *testing.T) {
 	existingData := makeDataForTileTests()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "should_start_tile_2.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db, config.Spanner)
 	require.NoError(t, s.Process(ctx, "should_start_tile_2.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -1320,7 +1321,7 @@ func TestPrimarySQL_Process_BetweenTwoTiles_UseHigherTile_cdb(t *testing.T) {
 	existingData := makeDataForTileTests()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "between_tile_1_and_2.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db, config.CockroachDB)
 	require.NoError(t, s.Process(ctx, "between_tile_1_and_2.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -1370,7 +1371,7 @@ func TestPrimarySQL_Process_BetweenTwoTiles_UseHigherTile(t *testing.T) {
 	existingData := makeDataForTileTests()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "between_tile_1_and_2.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db, config.Spanner)
 	require.NoError(t, s.Process(ctx, "between_tile_1_and_2.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -1420,7 +1421,7 @@ func TestPrimarySQL_Process_SurroundingCommitsHaveSameTile_UseThatTile_cdb(t *te
 	existingData := makeDataForTileTests()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "should_create_in_tile_1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db, config.CockroachDB)
 	require.NoError(t, s.Process(ctx, "should_create_in_tile_1.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -1470,7 +1471,7 @@ func TestPrimarySQL_Process_SurroundingCommitsHaveSameTile_UseThatTile(t *testin
 	existingData := makeDataForTileTests()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "should_create_in_tile_1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db, config.Spanner)
 	require.NoError(t, s.Process(ctx, "should_create_in_tile_1.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -1522,7 +1523,7 @@ func TestPrimarySQL_Process_AtEndTileNotFull_UseThatTile_cdb(t *testing.T) {
 	existingData.CommitsWithData = existingData.CommitsWithData[:len(existingData.CommitsWithData)-3]
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "should_create_in_tile_1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db, config.CockroachDB)
 	require.NoError(t, s.Process(ctx, "should_create_in_tile_1.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -1571,7 +1572,7 @@ func TestPrimarySQL_Process_AtEndTileNotFull_UseThatTile(t *testing.T) {
 	existingData.CommitsWithData = existingData.CommitsWithData[:len(existingData.CommitsWithData)-3]
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "should_create_in_tile_1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db, config.Spanner)
 	require.NoError(t, s.Process(ctx, "should_create_in_tile_1.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -1619,7 +1620,7 @@ func TestPrimarySQL_Process_SameFileMultipleTimesInParallel_Success_cdb(t *testi
 		go func() {
 			defer wg.Done()
 			src := fakeGCSSourceFromFile(t, "primary2.json")
-			s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+			s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 
 			for j := 0; j < 10; j++ {
 				if err := ctx.Err(); err != nil {
@@ -1678,7 +1679,7 @@ TODO(b/415382324): Uncomment one pgx bug is resolved.
 			go func() {
 				defer wg.Done()
 				src := fakeGCSSourceFromFile(t, "primary2.json")
-				s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+				s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 
 				for j := 0; j < 10; j++ {
 					if err := ctx.Err(); err != nil {
@@ -1729,7 +1730,7 @@ func TestPrimarySQL_Process_UnknownGitHash_ReturnsError_cdb(t *testing.T) {
 	// GitCommits table is empty, meaning all commits are unknown.
 
 	src := fakeGCSSourceFromFile(t, "primary1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 
 	err := s.Process(ctx, "whatever")
 	require.Error(t, err)
@@ -1742,7 +1743,7 @@ func TestPrimarySQL_Process_UnknownGitHash_ReturnsError(t *testing.T) {
 	// GitCommits table is empty, meaning all commits are unknown.
 
 	src := fakeGCSSourceFromFile(t, "primary1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 
 	err := s.Process(ctx, "whatever")
 	require.Error(t, err)
@@ -1754,7 +1755,7 @@ func TestPrimarySQL_Process_MissingGitHash_ReturnsError_cdb(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
 	src := fakeGCSSourceFromFile(t, "missing_git_hash.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 
 	err := s.Process(ctx, "whatever")
 	require.Error(t, err)
@@ -1766,7 +1767,7 @@ func TestPrimarySQL_Process_MissingGitHash_ReturnsError(t *testing.T) {
 	db := sqltest.NewSpannerDBForTestsWithProductionSchema(ctx, t)
 
 	src := fakeGCSSourceFromFile(t, "missing_git_hash.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 
 	err := s.Process(ctx, "whatever")
 	require.Error(t, err)
@@ -1782,7 +1783,7 @@ func TestPrimarySQL_Process_NoResults_NoDataWritten_cdb(t *testing.T) {
 	}))
 
 	src := fakeGCSSourceFromFile(t, "no_results.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 	totalMetricBefore := s.filesProcessed.Get()
 	successMetricBefore := s.filesSuccess.Get()
 	resultsMetricBefore := s.resultsIngested.Get()
@@ -1810,7 +1811,7 @@ func TestPrimarySQL_Process_NoResults_NoDataWritten(t *testing.T) {
 	}))
 
 	src := fakeGCSSourceFromFile(t, "no_results.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 	totalMetricBefore := s.filesProcessed.Get()
 	successMetricBefore := s.filesSuccess.Get()
 	resultsMetricBefore := s.resultsIngested.Get()
@@ -1851,7 +1852,7 @@ func TestPrimarySQL_Process_MoreRecentData_ValuesAtHeadUpdated_cdb(t *testing.T)
 	}
 
 	src := fakeGCSSourceFromFile(t, "values_at_head1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 	require.NoError(t, s.Process(ctx, "values_at_head1.json"))
 
 	// Spot check the created or updated data due to the ingested file.
@@ -1947,7 +1948,7 @@ TODO(b/415382324): Uncomment one pgx bug is resolved.
 		const expectedCommitID = "0000000111"
 
 		src := fakeGCSSourceFromFile(t, "values_at_head1.json")
-		s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+		s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 		require.NoError(t, s.Process(ctx, "values_at_head1.json"))
 
 		// Spot check the created or updated data due to the ingested file.
@@ -2034,7 +2035,7 @@ func TestPrimarySQL_Process_MoreRecentDataWithCaches_ValuesAtHeadUpdated_cdb(t *
 	const roundRectTraceKeys = `{"color mode":"GREY","device":"taimen","name":"round rect","os":"Android","source_type":"round"}`
 	const expectedCommitID = "0000000111"
 	src := fakeGCSSourceFromFile(t, "values_at_head1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 	addToTraceCache(s, circleTraceKeys)
 	addToExpectationsCache(s, circleGrouping, dks.DigestC05Unt)
 	addToOptionGroupingCache(s, circleGrouping)
@@ -2127,7 +2128,7 @@ func TestPrimarySQL_Process_MoreRecentDataWithCaches_ValuesAtHeadUpdated(t *test
 	const roundRectTraceKeys = `{"color mode":"GREY","device":"taimen","name":"round rect","os":"Android","source_type":"round"}`
 	const expectedCommitID = "0000000111"
 	src := fakeGCSSourceFromFile(t, "values_at_head1.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 	addToTraceCache(s, circleTraceKeys)
 	addToExpectationsCache(s, circleGrouping, dks.DigestC05Unt)
 	addToOptionGroupingCache(s, circleGrouping)
@@ -2218,7 +2219,7 @@ func TestPrimarySQL_Process_DataFromSameTraceWithDifferentOptions_ValuesAtHeadUp
 	const newOptions = `{"build_system":"bazel","ext":"png"}`
 	const expectedCommitID = "0000000110"
 	src := fakeGCSSourceFromFile(t, "trace_with_new_option.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 	require.NoError(t, s.Process(ctx, "trace_with_new_option.json"))
 
 	// Spot check the created or updated data due to the ingested file.
@@ -2281,7 +2282,7 @@ TODO(b/415382324): Uncomment one pgx bug is resolved.
 		const newOptions = `{"build_system":"bazel","ext":"png"}`
 		const expectedCommitID = "0000000110"
 		src := fakeGCSSourceFromFile(t, "trace_with_new_option.json")
-		s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+		s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 		require.NoError(t, s.Process(ctx, "trace_with_new_option.json"))
 
 		// Spot check the created or updated data due to the ingested file.
@@ -2341,7 +2342,7 @@ func TestPrimarySQL_Process_OlderData_SomeValuesAtHeadUpdated_cdb(t *testing.T) 
 	const roundRectTraceKeys = `{"color mode":"GREY","device":"taimen","name":"round rect","os":"Android","source_type":"round"}`
 	const expectedCommitID = "0000000107"
 	src := fakeGCSSourceFromFile(t, "values_at_head2.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 	require.NoError(t, s.Process(ctx, "values_at_head2.json"))
 
 	// Spot check the created or updated data due to the ingested file.
@@ -2423,7 +2424,7 @@ func TestPrimarySQL_Process_OlderData_SomeValuesAtHeadUpdated(t *testing.T) {
 	const roundRectTraceKeys = `{"color mode":"GREY","device":"taimen","name":"round rect","os":"Android","source_type":"round"}`
 	const expectedCommitID = "0000000107"
 	src := fakeGCSSourceFromFile(t, "values_at_head2.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 	require.NoError(t, s.Process(ctx, "values_at_head2.json"))
 
 	// Spot check the created or updated data due to the ingested file.
@@ -2505,7 +2506,7 @@ func TestPrimarySQL_Process_OlderDataWithCaches_SomeValuesAtHeadUpdated_cdb(t *t
 	const roundRectTraceKeys = `{"color mode":"GREY","device":"taimen","name":"round rect","os":"Android","source_type":"round"}`
 	const expectedCommitID = "0000000107"
 	src := fakeGCSSourceFromFile(t, "values_at_head2.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 	addToTraceCache(s, circleTraceKeys)
 	addToExpectationsCache(s, circleGrouping, dks.DigestC05Unt)
 	addToOptionGroupingCache(s, circleGrouping)
@@ -2589,7 +2590,7 @@ func TestPrimarySQL_Process_OlderDataWithCaches_SomeValuesAtHeadUpdated(t *testi
 	const roundRectTraceKeys = `{"color mode":"GREY","device":"taimen","name":"round rect","os":"Android","source_type":"round"}`
 	const expectedCommitID = "0000000107"
 	src := fakeGCSSourceFromFile(t, "values_at_head2.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 	addToTraceCache(s, circleTraceKeys)
 	addToExpectationsCache(s, circleGrouping, dks.DigestC05Unt)
 	addToOptionGroupingCache(s, circleGrouping)
@@ -2675,7 +2676,7 @@ func TestPrimarySQL_Process_DuplicateTraces_Success_cdb(t *testing.T) {
 	const squareTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"square","os":"Windows10.2","source_type":"corners"}`
 	const triangleTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"triangle","os":"Windows10.2","source_type":"corners"}`
 	src := fakeGCSSourceFromFile(t, "duplicate_traces.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.CockroachDB)
 	resultsMetricBefore := s.resultsIngested.Get()
 
 	ctx = overwriteNow(ctx, fakeIngestionTime)
@@ -2736,7 +2737,7 @@ func TestPrimarySQL_Process_DuplicateTraces_Success(t *testing.T) {
 	const squareTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"square","os":"Windows10.2","source_type":"corners"}`
 	const triangleTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"triangle","os":"Windows10.2","source_type":"corners"}`
 	src := fakeGCSSourceFromFile(t, "duplicate_traces.json")
-	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db, config.Spanner)
 	resultsMetricBefore := s.resultsIngested.Get()
 
 	ctx = overwriteNow(ctx, fakeIngestionTime)
@@ -2787,7 +2788,7 @@ func TestPrimarySQL_Process_DuplicateTraces_Success(t *testing.T) {
 }
 
 func TestPrimarySQL_MonitorCacheMetrics_Success(t *testing.T) {
-	s := PrimaryBranchSQL(nil, nil, nil)
+	s := PrimaryBranchSQL(nil, nil, nil, config.CockroachDB)
 	addToOptionGroupingCache(s, pngOptions)
 	addToExpectationsCache(s, "whatever", dks.DigestBlank)
 	addToExpectationsCache(s, "whatever2", dks.DigestBlank)

@@ -81,10 +81,8 @@ run_auth_proxy_before_local_instance:
 		--authtype=mocked \
 		--mock_user=$(USER)@google.com \
 		--port=:8003 \
-		--target_port=http://127.0.0.1:8000 \
+		--target_port=http://127.0.0.1:7000 \
 		--local
-
-
 
 
 run_local_frontend: run-spanner-emulator
@@ -179,3 +177,9 @@ run_migrator_infra: run_pgadapter_infra
 		--cdb_url="postgresql://root@localhost:26235/skiainfra?sslmode=disable" \
 		--spanner_url="postgresql://localhost:5432/skia-infra?sslmode=disable" \
 		--continuous
+
+run_fe_infra: run_pgadapter_infra
+	$(BAZEL) build --config=mayberemote -c dbg //golden/...
+	../_bazel_bin/golden/cmd/gold_frontend/gold_frontend_/gold_frontend \
+			--common_instance_config=./k8s-instances/skia-infra/skia-infra-spanner.json5 \
+			--config=./k8s-instances/skia-infra/skia-infra-frontend.json5

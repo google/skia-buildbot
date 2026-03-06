@@ -169,14 +169,14 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Could not create GCS Client")
 	}
-	primaryBranchProcessor, src, err := getPrimaryBranchIngester(ctx, isc.PrimaryBranchConfig, gcsClient, sqlDB)
+	primaryBranchProcessor, src, err := getPrimaryBranchIngester(ctx, isc.PrimaryBranchConfig, gcsClient, sqlDB, isc.SQLDatabaseType)
 	if err != nil {
 		sklog.Fatalf("Setting up primary branch ingestion: %s", err)
 	}
 	sourcesToScan := []ingestion.FileSearcher{src}
 
 	var secondaryBranchLiveness metrics2.Liveness
-	tryjobProcessor, src, err := getSecondaryBranchIngester(ctx, isc.SecondaryBranchConfig, gcsClient, client, sqlDB)
+	tryjobProcessor, src, err := getSecondaryBranchIngester(ctx, isc.SecondaryBranchConfig, gcsClient, client, sqlDB, isc.SQLDatabaseType)
 	if err != nil {
 		sklog.Fatalf("Setting up secondary branch ingestion: %s", err)
 	}
@@ -215,7 +215,7 @@ func main() {
 	sklog.Fatalf("Listening for files to ingest %s", listen(ctx, isc, pss))
 }
 
-func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClient *storage.Client, db *pgxpool.Pool) (ingestion.Processor, ingestion.FileSearcher, error) {
+func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClient *storage.Client, db *pgxpool.Pool, dbType config.DatabaseType) (ingestion.Processor, ingestion.FileSearcher, error) {
 	src := &ingestion.GCSSource{
 		Client: gcsClient,
 		Bucket: conf.Source.Bucket,
@@ -227,7 +227,7 @@ func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClien
 
 	var primaryBranchProcessor ingestion.Processor
 	if conf.Type == ingestion_processors.SQLPrimaryBranch {
-		sqlProcessor := ingestion_processors.PrimaryBranchSQL(src, conf.ExtraParams, db)
+		sqlProcessor := ingestion_processors.PrimaryBranchSQL(src, conf.ExtraParams, db, dbType)
 		sqlProcessor.MonitorCacheMetrics(ctx)
 		primaryBranchProcessor = sqlProcessor
 		sklog.Infof("Configured SQL primary branch ingestion")
@@ -237,7 +237,7 @@ func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClien
 	return primaryBranchProcessor, src, nil
 }
 
-func getSecondaryBranchIngester(ctx context.Context, conf *ingesterConfig, gcsClient *storage.Client, hClient *http.Client, db *pgxpool.Pool) (ingestion.Processor, ingestion.FileSearcher, error) {
+func getSecondaryBranchIngester(ctx context.Context, conf *ingesterConfig, gcsClient *storage.Client, hClient *http.Client, db *pgxpool.Pool, dbType config.DatabaseType) (ingestion.Processor, ingestion.FileSearcher, error) {
 	if conf == nil { // not configured for secondary branch (e.g. tryjob) ingestion.
 		return nil, nil, nil
 	}
@@ -252,7 +252,7 @@ func getSecondaryBranchIngester(ctx context.Context, conf *ingesterConfig, gcsCl
 	var sbProcessor ingestion.Processor
 	var err error
 	if conf.Type == ingestion_processors.SQLSecondaryBranch {
-		sbProcessor, err = ingestion_processors.TryjobSQL(ctx, src, conf.ExtraParams, hClient, db)
+		sbProcessor, err = ingestion_processors.TryjobSQL(ctx, src, conf.ExtraParams, hClient, db, dbType)
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
