@@ -17,6 +17,19 @@ fetchMock.config.overwriteRoutes = true;
 describe('ExploreMultiSk', () => {
   let element: ExploreMultiSk;
 
+  const waitForDataLoaded = async (ele: ExploreMultiSk) => {
+    await new Promise<void>((resolve) => {
+      const check = () => {
+        if (!(ele as any)._dataLoading) {
+          resolve();
+        } else {
+          setTimeout(check, 20);
+        }
+      };
+      check();
+    });
+  };
+
   // Common setup for most tests
   const setupElement = async (mockDefaults: any = null, paramsMock: any = null) => {
     // Clear URL search parameters to avoid state leakage between tests.
@@ -550,7 +563,7 @@ describe('ExploreMultiSk', () => {
       await element['_onStateChangedInUrl'](state as any);
 
       await fetchMock.flush(true);
-      await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for updates
+      await waitForDataLoaded(element);
 
       assert.equal(element['exploreElements'].length, 2, 'Should have 2 graphs');
       element['exploreElements'].forEach((graph: ExploreSimpleSk, index: number) => {
@@ -586,9 +599,7 @@ describe('ExploreMultiSk', () => {
       element.dispatchEvent(event);
 
       // Wait for async operations in the event handler
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      await fetchMock.flush(true);
-      await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for updates
+      await waitForDataLoaded(element);
 
       assert.equal(
         element['exploreElements'].length,
@@ -1352,8 +1363,7 @@ describe('ExploreMultiSk', () => {
       element.dispatchEvent(event);
 
       // The event handler is async. We need to wait for it to complete.
-      // A small timeout allows the chain of promises in the handler to resolve.
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitForDataLoaded(element);
 
       // --- Assertions ---
 
@@ -1412,7 +1422,7 @@ describe('ExploreMultiSk', () => {
       element.dispatchEvent(event);
 
       // Wait for the async handler to complete.
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitForDataLoaded(element);
 
       // After the initial chunked load, the `exploreElements` array is populated.
       // Let's simulate the state after `_onPlotButtonClicked` has run.
@@ -1796,8 +1806,8 @@ describe('ExploreMultiSk', () => {
       const event = new CustomEvent('plot-button-clicked', { bubbles: true });
       element.dispatchEvent(event);
 
-      // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      // Wait for async operations to complete (graph splitting)
+      await waitForDataLoaded(element);
 
       // Should have 3 graphs (1 master + 2 splits)
       assert.equal(
