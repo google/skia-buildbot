@@ -313,6 +313,50 @@ describe('dataframe-repository', () => {
     assert.isNull(dfRepo.userIssues);
   });
 
+  it('bypasses truncation when explicitly requested', async () => {
+    // 1. Initial request: Load 100 commits (the "anchor").
+    // 2. Extend past explicitly: Mock the response to return 6000 commits, passing truncate=false.
+    // 3. Verify: We should have exactly 6100 commits, keeping everything.
+
+    const initialDf = generateFullDataFrame(range(7000, 7100), now + 7000 * timeSpan, 1, [
+      timeSpan,
+    ]);
+    mockFrameStart(initialDf, paramset);
+
+    const dfRepo = newEl();
+    await dfRepo.resetTraces(
+      {
+        begin: now + timeSpan * 7000,
+        end: now + timeSpan * 7099,
+      },
+      paramset
+    );
+
+    assert.lengthOf(dfRepo.header, 100);
+    const anchorLastCommit = dfRepo.header[99]!.offset; // 7099
+
+    // Reset mock to return a massive 6000-point dataframe from the past
+    fetchMock.reset();
+    const massivePastDf = generateFullDataFrame(range(1000, 7000), now + 1000 * timeSpan, 1, [
+      timeSpan,
+    ]);
+    mockFrameStart(massivePastDf, paramset);
+
+    // This extendRange call will NOT trigger the truncation logic
+    await dfRepo.extendRange(-timeSpan * 6000, false);
+
+    // Array should NOT be capped.
+    assert.lengthOf(dfRepo.header, 6100);
+
+    // Verify everything was preserved.
+    const newFirstCommit = dfRepo.header[0]!.offset;
+    const newLastCommit = dfRepo.header[6099]!.offset;
+
+    assert.equal(newLastCommit, anchorLastCommit, 'The newest anchor commit was not preserved!');
+    assert.equal(newFirstCommit, 1000, 'The oldest data was incorrectly dropped!');
+    assert.lengthOf(dfRepo.traces[',key=0'], 6100);
+  });
+
   it('truncation preserves newest data when extending past', async () => {
     // MAX_DATAPOINTS is 5000.
     // 1. Initial request: Load 100 commits (the "anchor").

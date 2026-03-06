@@ -1625,4 +1625,68 @@ describe('Domain Picker Interaction', () => {
       );
     });
   });
+
+  describe('Truncation logic in DataFrameRepository interaction', () => {
+    let explore: ExploreSimpleSk;
+    let extendRangeSpy: sinon.SinonStub;
+
+    beforeEach(async () => {
+      explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      await waitForRender(explore);
+
+      // Create a robust mock for the repository
+      const mockRepo = {
+        extendRange: sinon.stub().resolves(),
+        dataframe: {
+          header: [{ offset: 100 }, { offset: 200 }],
+        },
+        header: [{ offset: 100 }, { offset: 200 }],
+        traces: { a: [] },
+      };
+
+      // Force the component to use our mock
+      (explore as any).dfRepo = { value: mockRepo };
+      extendRangeSpy = mockRepo.extendRange;
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('passes truncate=false for explicit extendRange calls', async () => {
+      // Calling the public UI method
+      await explore.extendRange({ begin: 0, end: 50 }, 100);
+      assert.isTrue(extendRangeSpy.calledOnce, 'extendRange should have been called');
+      // The second argument should be `false` (truncate=false)
+      assert.isFalse(
+        extendRangeSpy.firstCall.args[1],
+        'Expected truncate=false for explicit UI action'
+      );
+    });
+
+    it('uses default truncate=true for implicit loadExtendedRangeData', async () => {
+      // Mock enough traces to trigger the branch if needed, though default is true anyway
+      (explore as any).dfRepo.value.traces = { t1: [], t2: [] };
+
+      // Stub private methods
+      sinon.stub(explore as any, 'calculateSelectionFromState').returns({ begin: 0, end: 100 });
+      sinon.stub(explore as any, 'updateSelectedRangeWithUpdatedDataframe').returns(undefined);
+
+      await explore.loadExtendedRangeData();
+
+      assert.isTrue(
+        extendRangeSpy.calledTwice,
+        'extendRange should have been called twice (past and future)'
+      );
+      // The second argument should be undefined/true (truncate=true is the default)
+      assert.isNotFalse(
+        extendRangeSpy.firstCall.args[1],
+        'Expected default truncate behavior (true or undefined) for first call'
+      );
+      assert.isNotFalse(
+        extendRangeSpy.secondCall.args[1],
+        'Expected default truncate behavior (true or undefined) for second call'
+      );
+    });
+  });
 });

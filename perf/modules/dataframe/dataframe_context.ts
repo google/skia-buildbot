@@ -230,7 +230,8 @@ export class DataFrameRepository extends LitElement {
   private addTraceInfo(
     header: (ColumnHeader | null)[],
     traceset: TraceSet,
-    traceMetadata: TraceMetadata[] | null
+    traceMetadata: TraceMetadata[] | null,
+    truncate: boolean = true
   ) {
     if (header.length <= 0) {
       return;
@@ -258,7 +259,7 @@ export class DataFrameRepository extends LitElement {
         .concat(traceTail[key] || []) as Trace;
     });
 
-    if (this._header.length > MAX_DATAPOINTS) {
+    if (truncate && this._header.length > MAX_DATAPOINTS) {
       const excess = this._header.length - MAX_DATAPOINTS;
 
       // We always discard the oldest data (from the beginning of the array)
@@ -481,7 +482,7 @@ export class DataFrameRepository extends LitElement {
    * @returns The promise that resolves to the length of additional traces when
    *  the request completes.
    */
-  async extendRange(offsetInSeconds: number) {
+  async extendRange(offsetInSeconds: number, truncate: boolean = true) {
     let totalTraces = 0;
     let resolver = emptyResolver;
     const curRequest = this._requestComplete;
@@ -548,7 +549,7 @@ export class DataFrameRepository extends LitElement {
           traceMetadata.push(...resp.dataframe.traceMetadata);
         }
       });
-      this.addTraceInfo(header, traceset, traceMetadata);
+      this.addTraceInfo(header, traceset, traceMetadata, truncate);
 
       const anomaly = sortedResponses.reduce((pre, cur) => mergeAnomaly(pre, cur.anomalymap), {});
       await this.setDataFrame({

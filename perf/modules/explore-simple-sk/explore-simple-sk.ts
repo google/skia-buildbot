@@ -2035,7 +2035,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       return;
     }
     if (offset) {
-      await dfRepo.extendRange(offset);
+      await dfRepo.extendRange(offset, false);
       return;
     }
 
@@ -2046,7 +2046,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       extendDirection = 1;
     }
     if (extendDirection !== 0 || offset !== undefined) {
-      await dfRepo.extendRange(extendDirection * monthInSec);
+      await dfRepo.extendRange(extendDirection * monthInSec, false);
     }
   }
 
