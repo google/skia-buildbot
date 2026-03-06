@@ -77,7 +77,36 @@ chart-tooltip-sk {
       align-items: center;
       flex-direction: row;
       flex-wrap: nowrap;
-      justify-content: space-evenly;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 8px;
+
+      button {
+        align-items: center;
+        background: transparent;
+        border-radius: 4px;
+        border: solid 1px var(--outline);
+        box-shadow: none;
+        color: var(--primary);
+        display: inline-flex;
+        fill: var(--primary);
+        font-size: 11px;
+        height: 24px;
+        justify-content: center;
+        padding: 0 4px;
+        text-align: center;
+        text-transform: none;
+        white-space: nowrap;
+        cursor: pointer;
+
+        &:hover {
+          background: var(--surface-1dp);
+        }
+      }
+
+      user-issue-sk {
+        display: inline-block;
+      }
     }
 
     #bisect {

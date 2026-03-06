@@ -94,14 +94,20 @@ export class UserIssueSk extends LitElement {
       color: var(--primary);
       display: inline-flex;
       fill: var(--primary);
-      font-size: 16px;
+      font-size: 11px;
       height: 24px;
       justify-content: center;
-      margin: 4px 2px;
+      margin: 0 2px;
       min-width: auto;
       padding: 0 4px;
       text-align: center;
       text-transform: none;
+      white-space: nowrap;
+      cursor: pointer;
+
+      &:hover {
+        background: var(--surface-1dp);
+      }
 
       .icon-sk {
         font-size: 20px;
@@ -111,6 +117,14 @@ export class UserIssueSk extends LitElement {
         width: 20px;
         height: 20px;
       }
+    }
+
+    .add-issue-container {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 4px;
     }
   `;
 
@@ -241,8 +255,8 @@ export class UserIssueSk extends LitElement {
     }
 
     return html`
-      <div>
-        <button class="add-issue" @click=${this.activateTextInput}>Add Existing Issue</button>
+      <div class="add-issue-container">
+        <button class="add-issue" @click=${this.activateTextInput}>Add Existing Bug</button>
         <button class="add-issue" @click=${this.createNewBug}>Add New Bug</button>
       </div>
     `;

@@ -77,7 +77,7 @@ describe('user-issue-sk', () => {
       await element.updateComplete;
       const buttons = element.shadowRoot!.querySelectorAll('.add-issue');
       expect(buttons.length).to.equal(2);
-      expect(buttons[0].textContent).to.equal('Add Existing Issue');
+      expect(buttons[0].textContent).to.equal('Add Existing Bug');
       expect(buttons[1].textContent).to.equal('Add New Bug');
     });
 
