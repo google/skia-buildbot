@@ -167,9 +167,10 @@ func TestGetByIDs_Success(t *testing.T) {
 
 	// Improvements are anomalies, and they are stored, too.
 	rImprovement := generateNewRegression(subName)
-	populateRegression2Fields(rImprovement)
+	err := populateRegression2Fields(rImprovement)
+	require.NoError(t, err)
 	rImprovement.IsImprovement = true
-	err := store.writeSingleRegression(ctx, rImprovement, nil)
+	err = store.writeSingleRegression(ctx, rImprovement, nil)
 	assert.Nil(t, err)
 
 	tests := []struct {
@@ -232,10 +233,11 @@ func TestGetByRevision_Success(t *testing.T) {
 
 	generateRegression := func(previousCommit int64, commit int64) (r *regression.Regression) {
 		r = generateNewRegression(subName)
-		populateRegression2Fields(r)
+		err := populateRegression2Fields(r)
+		require.NoError(t, err)
 		r.PrevCommitNumber = types.CommitNumber(previousCommit)
 		r.CommitNumber = types.CommitNumber(commit)
-		err := store.writeSingleRegression(ctx, r, nil)
+		err = store.writeSingleRegression(ctx, r, nil)
 		require.NoError(t, err)
 		return
 	}
@@ -522,14 +524,15 @@ func TestGetRegressionsBySubName(t *testing.T) {
 	r1 := generateAndStoreNewRegression(ctx, t, store, subName)
 	r2 := generateAndStoreNewRegression(ctx, t, store, subName)
 	rImp := generateNewRegression(subName)
-	populateRegression2Fields(rImp)
+	err := populateRegression2Fields(rImp)
+	require.NoError(t, err)
 	rImp.Frame.DataFrame.ParamSet = map[string][]string{
 		"improvement_direction": {"down"},
 	}
 	if rImp.High != nil && rImp.High.StepFit != nil {
 		rImp.High.StepFit.Status = stepfit.LOW
 	}
-	_, err := store.WriteRegression(ctx, rImp, nil)
+	_, err = store.WriteRegression(ctx, rImp, nil)
 	assert.Nil(t, err)
 
 	// Ensure r1 is older than r2.
