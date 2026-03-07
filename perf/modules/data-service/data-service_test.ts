@@ -151,17 +151,6 @@ describe('DataService', () => {
     });
   });
 
-  describe('createShortcut', () => {
-    it('sends POST request', async () => {
-      const state = { keys: ['k1', 'k2'] };
-      const response = { id: 'new-id' };
-      fetchMock.post('/_/keys/', response);
-
-      const result = await dataService.createShortcut(state);
-      assert.deepEqual(result, response);
-    });
-  });
-
   describe('sendFrameRequest', () => {
     it('sends POST request and returns results when finished', async () => {
       const body: any = {

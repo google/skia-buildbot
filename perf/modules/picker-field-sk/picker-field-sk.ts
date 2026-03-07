@@ -178,7 +178,6 @@ export class PickerFieldSk extends LitElement {
    */
   private onValueChanged(e: Event) {
     const selectedItems = (e as CustomEvent).detail.value as string[];
-
     this.dispatchEvent(
       new CustomEvent('value-changed', {
         detail: {

@@ -360,6 +360,7 @@ export class ExploreMultiSk extends ElementSk {
 
     if (this.state.manual_plot_mode) {
       this.removeExplore(exploreElemToRemove);
+      this.updateShortcutMultiview();
       e.stopPropagation();
       return;
     }
@@ -369,6 +370,7 @@ export class ExploreMultiSk extends ElementSk {
 
     if (this.exploreElements.length === 1) {
       this.removeExplore(exploreElemToRemove);
+      this.updateShortcutMultiview();
       e.stopPropagation();
     } else {
       const param = this.state.splitByKeys[0];
@@ -715,7 +717,7 @@ export class ExploreMultiSk extends ElementSk {
             !shouldRemoveGraph &&
             (keysWereRemoved || tracesToRemove.some((key) => traceset[key]))
           ) {
-            elem.removeKeys(tracesToRemove, true);
+            elem.removeKeys(tracesToRemove, false);
             const newTraceset = elem.getTraceset();
             if (!newTraceset || Object.keys(newTraceset).length === 0) {
               elem.state.queries = [];
@@ -772,7 +774,7 @@ export class ExploreMultiSk extends ElementSk {
           // remaining data. This prevents future fetches from bringing back the
           // removed trace and ensures consistency.
           // We only do this if we are not clearing the graph.
-          if (Object.keys(updatedTraceset).length > 0) {
+          if (Object.keys(updatedTraceset).length > 0 && !keysWereRemoved) {
             // We construct a new query from the remaining params.
             // However, we should respect the include_params defaults if possible, to
             // avoid over-specifying. But here we want to be safe and match the data.
@@ -823,7 +825,7 @@ export class ExploreMultiSk extends ElementSk {
             updatedResponse,
             updatedRequest,
             true,
-            this.exploreElements[0].getSelectedRange(),
+            null, // Force dynamic recalculation using correct timestamps for this specific graph's header
             false,
             true
           );
@@ -833,19 +835,23 @@ export class ExploreMultiSk extends ElementSk {
 
       await Promise.all(updatePromises);
 
+      // Update the configs BEFORE removing any graphs, because removeExplore()
+      // triggers a re-render that relies on allGraphConfigs having the latest queries.
+      // If we don't update this first, removeExplore -> renderCurrentPage will overwrite
+      // the correctly updated elem.state.queries with the old ones from allGraphConfigs.
+      this.exploreElements.forEach((elem, i) => {
+        if (this.allGraphConfigs[i]) {
+          this.allGraphConfigs[i].queries = elem.state.queries ?? [];
+        }
+      });
+
       // This should be outside the map, so it always runs after promises.
       elemsToRemove.forEach((elem) => {
         this.removeExplore(elem);
       });
 
-      this.exploreElements.forEach((elem, i) => {
-        if (this.allGraphConfigs[i]) {
-          // Add check to prevent error
-          this.allGraphConfigs[i].queries = elem.state.queries ?? [];
-        }
-      });
-
       this.updateShortcutMultiview();
+
       await this.checkDataLoaded();
     } catch (error) {
       console.error(error);
@@ -1415,6 +1421,7 @@ export class ExploreMultiSk extends ElementSk {
 
   private removeExploreEvent = (e: Event) => {
     this.removeExplore((e as CustomEvent).detail as ExploreSimpleSk);
+    this.updateShortcutMultiview();
   };
 
   private removeExplore(elem: ExploreSimpleSk | null = null): void {
@@ -1450,7 +1457,6 @@ export class ExploreMultiSk extends ElementSk {
         this.state.pageOffset = Math.min(this.state.pageOffset, maxValidPageOffset);
         this.renderCurrentPage();
       }
-      this.updateShortcutMultiview();
     } else {
       if (this.stateHasChanged) this.stateHasChanged();
       this.renderCurrentPage();

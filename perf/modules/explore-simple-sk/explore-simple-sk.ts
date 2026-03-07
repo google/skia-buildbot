@@ -3382,44 +3382,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     this.updateTestPickerUrl();
   }
 
-  /**
-   * When Remove Highlighted or Highlighted Only are pressed then create a
-   * shortcut for just the traces that are displayed.
-   *
-   * Note that removing a trace doesn't work if the trace came from a
-   * formula that returns multiple traces. This is a known issue that
-   * isn't currently worth solving.
-   *
-   * Returns the Promise that's creating the shortcut, or undefined if
-   * there isn't a shortcut to create.
-   */
-  private reShortCut(keys: string[]): Promise<void> | undefined {
-    if (keys.length === 0) {
-      this._state.keys = '';
-      this._state.queries = [];
-      return undefined;
-    }
-    const state = {
-      keys,
-    };
-    return this.dataService
-      .createShortcut(state)
-      .then((json) => {
-        this._state.keys = json.id;
-        this._state.queries = [];
-        this.clearSelectedState();
-        this._stateHasChanged();
-        this.render();
-      })
-      .catch((msg) => {
-        if (msg instanceof DataServiceError) {
-          errorMessage(msg.message);
-        } else {
-          errorMessage(msg);
-        }
-      });
-  }
-
   public createGraphConfigs(traceSet: TraceSet, attribute?: string): GraphConfig[] {
     const graphConfigs = [] as GraphConfig[];
     Object.keys(traceSet).forEach((key) => {
@@ -3513,9 +3475,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     if (!this.hasData()) {
       this.displayMode = 'display_query_only';
       this.render();
-    }
-    if (updateShortcut) {
-      this.reShortCut(toShortcut);
     }
   }
 

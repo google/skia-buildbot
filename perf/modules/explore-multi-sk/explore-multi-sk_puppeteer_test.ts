@@ -931,3 +931,108 @@ describe('Test Picker Interactions', () => {
     expect([...traces1, ...traces2]).to.include(',arch=arm,os=Ubuntu,');
   });
 });
+
+describe('Trace Removal State Retention', () => {
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed();
+  });
+
+  beforeEach(async () => {
+    // Start with a specific time range to verify it doesn't shift
+    const queryParams = '?begin=1687855198&end=1687961973';
+    await testBed.page.goto(testBed.baseUrl + queryParams);
+    await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
+  });
+
+  it('maintains state while removing traces one by one (merged mode)', async () => {
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    // Plot a single graph with 3 traces
+    await addGraph(testPickerPO, explorePO, { 0: ['arm'], 1: ['Android', 'Ubuntu', 'Debian11'] });
+
+    // Graph 0 should have 3 traces
+    await explorePO.waitForGraphCount(1, LONG_TIMEOUT_MS);
+    const graphPO = explorePO.getGraph(0);
+
+    await poll(async () => (await graphPO.getTraceKeys()).length === 3, 'Waiting for 3 traces');
+
+    const osField = await testPickerPO.getPickerField(1);
+
+    // Save initial URL state to verify range doesn't shift
+    let url = new URL(testBed.page.url());
+    const initialBegin = url.searchParams.get('begin');
+    const initialEnd = url.searchParams.get('end');
+    expect(initialBegin).to.not.be.null;
+
+    // Remove Android
+    await osField.removeSelectedOption('Android');
+
+    // Verify trace removed from the plot
+    await poll(async () => (await graphPO.getTraceKeys()).length === 2, 'Waiting for 2 traces');
+    const tracesAfterAndroid = await graphPO.getTraceKeys();
+    expect(tracesAfterAndroid).to.not.include(',arch=arm,os=Android,');
+
+    // Verify URL range remains unchanged
+    url = new URL(testBed.page.url());
+    expect(url.searchParams.get('begin')).to.equal(initialBegin);
+    expect(url.searchParams.get('end')).to.equal(initialEnd);
+
+    // Remove Ubuntu
+    await osField.removeSelectedOption('Ubuntu');
+
+    await poll(async () => (await graphPO.getTraceKeys()).length === 1, 'Waiting for 1 trace');
+    const tracesAfterUbuntu = await graphPO.getTraceKeys();
+    expect(tracesAfterUbuntu).to.not.include(',arch=arm,os=Ubuntu,');
+
+    // TODO(eduardoyap): Add test for final trace removal down to 0 traces
+  });
+
+  it('maintains state while removing traces one by one (split mode)', async () => {
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    // Select 3 traces
+    await testPickerPO.waitForPickerField(0);
+    const archField = await testPickerPO.getPickerField(0);
+    await archField.select('arm');
+    await testPickerPO.waitForSpinnerInactive();
+
+    await testPickerPO.waitForPickerField(1);
+    const osField = await testPickerPO.getPickerField(1);
+    await osField.select('Android');
+    await testPickerPO.waitForSpinnerInactive();
+    await osField.select('Ubuntu');
+    await testPickerPO.waitForSpinnerInactive();
+    await osField.select('Debian11');
+    await testPickerPO.waitForSpinnerInactive();
+
+    // Split it
+    await waitForElementNotHidden(osField.splitByCheckbox);
+    await osField.checkSplit();
+    await testPickerPO.clickPlotButton();
+
+    // Wait for 4 graphs (1 hidden summary + 3 split data graphs: Android, Ubuntu, Debian11)
+    await explorePO.waitForGraphCount(4, LONG_TIMEOUT_MS);
+
+    // Save initial URL state
+    let url = new URL(testBed.page.url());
+    const initialBegin = url.searchParams.get('begin');
+    const initialEnd = url.searchParams.get('end');
+    expect(initialBegin).to.not.be.null;
+
+    // Remove Android
+    await osField.removeSelectedOption('Android');
+
+    // Verify graph count dropped to 3 (Summary + 2 splits: Ubuntu, Debian11)
+    await explorePO.waitForGraphCount(3, LONG_TIMEOUT_MS);
+    // Verify URL range
+    url = new URL(testBed.page.url());
+    expect(url.searchParams.get('begin')).to.equal(initialBegin);
+    expect(url.searchParams.get('end')).to.equal(initialEnd);
+
+    // TODO(eduardoyap): Add tests for removing the final traces (e.g., removing Ubuntu and Debian11)
+    // once the bug in ExploreMultiSk._onRemoveTrace (which incorrectly clears the summary graph query during split mode) is fixed.
+  });
+});

@@ -119,7 +119,6 @@ describe('ExploreMultiSk', () => {
       bisect_ids: [],
     };
     fetchMock.post('/_/fe_telemetry', {});
-    fetchMock.post('/_/keys/', { id: 'test-key-id' });
     fetchMock.post('/_/shortcut/update', { id: 'test-shortcut-id' });
     fetchMock.post('/_/frame/start', {
       status: 'Finished',

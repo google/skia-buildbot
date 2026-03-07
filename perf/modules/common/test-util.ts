@@ -664,7 +664,5 @@ export function setUpExploreDemoEnv() {
     },
   });
 
-  fetchMock.post('/_/keys/', { id: 'test-key-id' });
-
   fetchMock.post('/_/fe_telemetry', 200);
 }

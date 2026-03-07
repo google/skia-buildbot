@@ -156,25 +156,6 @@ export class DataService {
   }
 
   /**
-   * Creates a shortcut for the keys.
-   */
-  async createShortcut(state: { keys: string[] }): Promise<{ id: string }> {
-    // Skip this call when running locally to avoid 500 errors from the proxy/backend.
-    if ((window as any).perf && (window as any).perf.disable_shortcut_update) {
-      console.log('Skipping createShortcut due to configuration');
-      return { id: '' };
-    }
-
-    return await this.fetchJson('/_/keys/', {
-      method: 'POST',
-      body: JSON.stringify(state),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-  }
-
-  /**
    * Starts the frame request and returns the resulting data.
    *
    * @param body - The frame request body.
