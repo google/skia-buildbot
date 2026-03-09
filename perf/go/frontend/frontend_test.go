@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -316,4 +317,40 @@ func TestFrontend_devVersionHandler_ReturnsVersion(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
 	require.JSONEq(t, `{"version": "test-version-123"}`, w.Body.String())
+}
+
+func TestFrontend_feErrorLogHandler_Success(t *testing.T) {
+	f := &Frontend{}
+
+	// Test case 1: Successful decoding with a non-empty message.
+	body := `{"message": "Test error message", "source": "test-source"}`
+	r := httptest.NewRequest("POST", "/_/fe_error_log", strings.NewReader(body))
+	w := httptest.NewRecorder()
+
+	f.feErrorLogHandler(w, r)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+	// Test case 2: Successful decoding with an empty message.
+	body = `{"message": "", "source": "test-source"}`
+	r = httptest.NewRequest("POST", "/_/fe_error_log", strings.NewReader(body))
+	w = httptest.NewRecorder()
+
+	f.feErrorLogHandler(w, r)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+}
+
+func TestFrontend_feErrorLogHandler_DecodeError(t *testing.T) {
+	f := &Frontend{}
+
+	// Test case: Decoding error (bad JSON).
+	body := `{"message": "Test error message", "source": "test-source"` // Missing closing brace
+	r := httptest.NewRequest("POST", "/_/fe_error_log", strings.NewReader(body))
+	w := httptest.NewRecorder()
+
+	f.feErrorLogHandler(w, r)
+
+	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	require.Contains(t, w.Body.String(), "Failed to decode JSON.")
 }

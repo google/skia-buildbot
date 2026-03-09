@@ -953,6 +953,9 @@ func (f *Frontend) feErrorLogHandler(w http.ResponseWriter, r *http.Request) {
 		sklog.Warningf("Failed to decode JSON: %v", err)
 		return
 	}
+	if errorLog.Message != "" {
+		sklog.Errorf("Frontend Error Log: %v in %v", errorLog.Message, errorLog.Source)
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
