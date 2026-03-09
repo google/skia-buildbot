@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "refiner",
-    srcs = ["default_regression_refiner.go"],
+    srcs = [
+        "anomaly_peaks.go",
+        "default_regression_refiner.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/regression/refiner",
     visibility = ["//visibility:public"],
     deps = [
@@ -16,7 +19,10 @@ go_library(
 
 go_test(
     name = "refiner_test",
-    srcs = ["default_regression_refiner_test.go"],
+    srcs = [
+        "anomaly_peaks_test.go",
+        "default_regression_refiner_test.go",
+    ],
     embed = [":refiner"],
     deps = [
         "//perf/go/alerts",
