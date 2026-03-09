@@ -593,6 +593,25 @@
         ]
       }
     },
+    "//bazel/external/docsy:docsy.bzl%docsy": {
+      "general": {
+        "bzlTransitiveDigest": "LQMzInJ2Mr/y/0GMi7rGbhXlD1IRGRKE/YqKuAYV6Ag=",
+        "usagesDigest": "Q0Sc62Vr94uqCAGrAtyhPJVcOpOpfr2/nHX9Cj4RNxM=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "docsy": {
+            "repoRuleId": "@@//bazel/external/docsy:docsy.bzl%_clone_and_npm_install",
+            "attributes": {
+              "remote": "https://github.com/google/docsy-example",
+              "commit": "70e301f7861122ab129d2c46ee5ed625e92c04d0"
+            }
+          }
+        },
+        "recordedRepoMappingEntries": []
+      }
+    },
     "@@aspect_rules_esbuild+//esbuild:extensions.bzl%esbuild": {
       "general": {
         "bzlTransitiveDigest": "baGfyvbL/iABcHYAdl2s6288pZBM66+IrH5mvsBeUwA=",

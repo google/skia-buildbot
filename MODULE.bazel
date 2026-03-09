@@ -329,6 +329,13 @@ apt.install(
 use_repo(apt, "cd-apt-install")
 
 apt.install(
+    name = "docsyserver-apt-install",
+    lock = "@@//docsyserver:docsyserver.lock.json",
+    manifest = "//docsyserver:docsyserver.yaml",
+)
+use_repo(apt, "docsyserver-apt-install")
+
+apt.install(
     name = "task-scheduler-jc-apt-install",
     lock = "@@//task_scheduler:task-scheduler-jc.lock.json",
     manifest = "//task_scheduler:task-scheduler-jc.yaml",
@@ -918,3 +925,24 @@ pkg_tar(
     url = "https://github.com/temporalio/temporal/archive/refs/tags/v1.23.1.tar.gz",
 )
 use_repo(gcs_mirror, "com_github_temporal")
+
+#########
+# docsy #
+#########
+
+docsy = use_extension("//bazel/external/docsy:docsy.bzl", "docsy")
+use_repo(docsy, "docsy")
+
+# Docsy is a Hugo module.
+http_archive(
+    name = "hugo",
+    build_file_content = """
+filegroup(
+    name = "file",
+    srcs = ["hugo"],
+    visibility = ["//visibility:public"]
+)
+""",
+    sha256 = "9f57338fc76f4ac363b0ac35f393294a26522bb179fb4c3f19855a68ab55476a",
+    url = "https://github.com/gohugoio/hugo/releases/download/v0.91.0/hugo_extended_0.91.0_Linux-64bit.tar.gz",
+)

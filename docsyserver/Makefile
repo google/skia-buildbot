@@ -3,28 +3,25 @@ include ../make/bazel.mk
 build:
 	$(BAZEL) build --config=mayberemote //docsyserver/go/...
 
-build-local-image: build
-	$(BAZEL) run --config=mayberemote //docsyserver:docsyserver_container
+build-local-image:
+	$(BAZEL) run --config=mayberemote //docsyserver:load_docsyserver_container
 
 test:
 	go test -cover ./go/...
-
-release: build
-	$(BAZEL) run --config=mayberemote //docsyserver:push_docsyserver_container
 
 # The docker image has two scripts that allow seeing what docs would look like
 # when rendered with Hugo/Docsy.
 #
 # The second renders the docs to an output directory.
-render-using-docker-image:
-	docker run --entrypoint=/build.sh  -ti -v ~/projects/skia/site:/input -v /tmp/output/:/output bazel/docsyserver:docsyserver_container
+render-using-docker-image: build-local-image
+	docker run --entrypoint=/build.sh  -ti -v ~/projects/skia/site:/input -v /tmp/output/:/output gcr.io/skia-public/docsyserver:latest
 
 # The second shows a live preview using 'hugo serve'.
-preview-using-docker-image:
-	docker run --entrypoint=/serve.sh -ti -p 1313:1313 -v ~/projects/skia/site:/input bazel/docsyserver:docsyserver_container
+preview-using-docker-image: build-local-image
+	docker run --entrypoint=/serve.sh -ti -p 1313:1313 -v ~/projects/skia/site:/input gcr.io/skia-public/docsyserver:latest
 
-run-local-instance:
-	docker run -ti --entrypoint=/usr/local/bin/docsyserver -p 8000:8000 -p 20000:20000 --user root -eGOOGLE_APPLICATION_CREDENTIALS=/creds.json -v $(GOOGLE_APPLICATION_CREDENTIALS):/creds.json bazel/docsyserver:docsyserver_container \
+run-local-instance: build-local-image
+	docker run -ti --entrypoint=/usr/local/bin/docsyserver -p 8000:8000 -p 20000:20000 --user root -eGOOGLE_APPLICATION_CREDENTIALS=/creds.json -v $(GOOGLE_APPLICATION_CREDENTIALS):/creds.json gcr.io/skia-public/docsyserver:latest \
         --work_dir=/tmp \
         --port=:8000 \
         --prom_port=:20000 \

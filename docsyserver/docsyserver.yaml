@@ -1,0 +1,23 @@
+version: 1
+
+sources:
+  - channel: testing main
+    # Note: this version must be compatible with the version of the
+    # debian:testing-slim base image pinned in MODULE.bazel.
+    url: https://snapshot-cloudflare.debian.org/archive/debian/20260201T022025Z
+
+archs:
+  - amd64
+
+packages:
+  - wget
+  - openssh-client
+  - procps
+  - unzip
+  - vim
+  - less
+  - build-essential
+  - gcc
+  - gcc-12
+  - gcc-12-base
+  - libgcc-12-dev
