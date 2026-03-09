@@ -415,15 +415,6 @@ oci.pull(
 )
 use_repo(oci, "debian-testing-slim")
 
-# Pulls the gcr.io/skia-public/base-cipd container, needed by some apps that use the
-# skia_app_container macro.
-oci.pull(
-    name = "base-cipd",
-    digest = "sha256:119fcb1381e046c1168131f3c5db88cf72555876eaf220cd6ecfd0c854f6ea5c",
-    image = "gcr.io/skia-public/base-cipd",
-)
-use_repo(oci, "base-cipd")
-
 # Pulls the gcr.io/skia-public/docsyserver-base container, needed by docsyserver.
 oci.pull(
     name = "docsyserver-base",

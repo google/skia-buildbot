@@ -1460,7 +1460,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "WFi0eEbwfNj/E0T10NNJ0gxjX7WQPd4IQNC7EVEbm9c=",
+        "usagesDigest": "aYkr9i7N9Nkdy4EtNTHMiIuyS9t2MOgmCNTetskdd5E=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1599,33 +1599,6 @@
                 "@@platforms//cpu:x86_64": "@debian-testing-slim_linux_amd64"
               },
               "bzlmod_repository": "debian-testing-slim",
-              "reproducible": true
-            }
-          },
-          "base-cipd_single": {
-            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
-            "attributes": {
-              "www_authenticate_challenges": {},
-              "scheme": "https",
-              "registry": "gcr.io",
-              "repository": "skia-public/base-cipd",
-              "identifier": "sha256:119fcb1381e046c1168131f3c5db88cf72555876eaf220cd6ecfd0c854f6ea5c",
-              "target_name": "base-cipd_single",
-              "bazel_tags": []
-            }
-          },
-          "base-cipd": {
-            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_alias",
-            "attributes": {
-              "target_name": "base-cipd",
-              "www_authenticate_challenges": {},
-              "scheme": "https",
-              "registry": "gcr.io",
-              "repository": "skia-public/base-cipd",
-              "identifier": "sha256:119fcb1381e046c1168131f3c5db88cf72555876eaf220cd6ecfd0c854f6ea5c",
-              "platforms": {},
-              "platform": "@@rules_oci+//oci:base-cipd_single",
-              "bzlmod_repository": "base-cipd",
               "reproducible": true
             }
           },
@@ -1998,7 +1971,6 @@
             "basealpine",
             "debian-testing-slim",
             "debian-testing-slim_linux_amd64",
-            "base-cipd",
             "docsyserver-base",
             "envoy_alpine",
             "node_alpine",
