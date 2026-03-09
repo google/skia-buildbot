@@ -15,16 +15,19 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/progress"
+	"go.skia.org/infra/perf/go/tracestore"
 )
 
 type mcpApi struct {
-	dfBuilder dataframe.DataFrameBuilder
+	dfBuilder     dataframe.DataFrameBuilder
+	metadataStore tracestore.MetadataStore
 }
 
 // NewMcpApi creates a new McpApi.
-func NewMcpApi(dfBuilder dataframe.DataFrameBuilder) *mcpApi {
+func NewMcpApi(dfBuilder dataframe.DataFrameBuilder, metadataStore tracestore.MetadataStore) *mcpApi {
 	return &mcpApi{
-		dfBuilder: dfBuilder,
+		dfBuilder:     dfBuilder,
+		metadataStore: metadataStore,
 	}
 }
 
@@ -33,8 +36,9 @@ func (m mcpApi) RegisterHandlers(router *chi.Mux) {
 }
 
 // getTraceDataHandler handles a request for trace data within a given time range and query.
-// It parses the 'query', 'begin', and 'end' parameters from the request URL.
+// It parses the 'query', 'begin', 'end', and 'metadata' parameters from the request URL.
 // The 'begin' and 'end' parameters are Unix timestamps.
+// If the optional 'metadata' parameter has value "1" or "true", return metadata with the results.
 // It uses the DataFrameBuilder to construct a DataFrame and writes it as a JSON response.
 func (m mcpApi) getTraceDataHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -45,6 +49,8 @@ func (m mcpApi) getTraceDataHandler(w http.ResponseWriter, r *http.Request) {
 	queryString := q.Get("query")
 	beginStr := q.Get("begin")
 	endStr := q.Get("end")
+	metadataParam := q.Get("metadata")
+	withMetadata := metadataParam == "true" || metadataParam == "1"
 
 	if queryString == "" || beginStr == "" || endStr == "" {
 		httputils.ReportError(w, fmt.Errorf("missing required parameters"), "query, begin, and end are required", http.StatusBadRequest)
@@ -82,6 +88,15 @@ func (m mcpApi) getTraceDataHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to build dataframe.", http.StatusInternalServerError)
 		return
+	}
+
+	if withMetadata && m.metadataStore != nil {
+		traceMetadata, err := dataframe.GetMetadataForTraces(ctx, df, m.metadataStore)
+		if err != nil {
+			sklog.Errorf("Failed to get metadata: %s", err)
+		} else {
+			df.TraceMetadata = traceMetadata
+		}
 	}
 
 	if err := json.NewEncoder(w).Encode(df); err != nil {

@@ -1152,7 +1152,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewSheriffConfigApi(f.loginProvider),
 		api.NewTriageApi(f.loginProvider, triageClient, f.issuetracker),
 		api.NewUserIssueApi(f.loginProvider, f.userIssueStore, f.issuetracker),
-		api.NewMcpApi(f.dfBuilder),
+		api.NewMcpApi(f.dfBuilder, f.metadataStore),
 	}
 }
 

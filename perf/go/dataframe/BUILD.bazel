@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "dataframe",
-    srcs = ["dataframe.go"],
+    srcs = [
+        "dataframe.go",
+        "metadata.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/dataframe",
     visibility = ["//visibility:public"],
     deps = [
@@ -12,24 +15,32 @@ go_library(
         "//go/skerr",
         "//go/timer",
         "//go/vec32",
+        "//perf/go/config",
         "//perf/go/git",
         "//perf/go/progress",
+        "//perf/go/tracestore",
         "//perf/go/types",
     ],
 )
 
 go_test(
     name = "dataframe_test",
-    srcs = ["dataframe_test.go"],
+    srcs = [
+        "dataframe_test.go",
+        "metadata_test.go",
+    ],
     embed = [":dataframe"],
     deps = [
         "//go/deepequal/assertdeep",
         "//go/paramtools",
         "//go/vec32",
+        "//perf/go/config",
         "//perf/go/git",
         "//perf/go/git/gittest",
+        "//perf/go/tracestore/mocks",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],
 )
