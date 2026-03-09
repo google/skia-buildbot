@@ -143,6 +143,15 @@ func (service *ApiService) GetTopics(ctx context.Context, req *pb.GetTopicsReque
 		return nil, err
 	}
 
+	sklog.Infof("Embedding for query %q has length %d", query, len(queryEmbedding))
+	if len(queryEmbedding) > 0 {
+		var sumSq float32
+		for _, v := range queryEmbedding {
+			sumSq += v * v
+		}
+		sklog.Infof("Embedding magnitude squared: %f", sumSq)
+	}
+
 	// Search the relevant topics for the given query embedding.
 	topicCount := defaultTopicCount
 	if req.GetTopicCount() > 0 {
@@ -152,6 +161,9 @@ func (service *ApiService) GetTopics(ctx context.Context, req *pb.GetTopicsReque
 	if err != nil {
 		sklog.Errorf("Error searching for topics: %v", err)
 		return nil, err
+	}
+	if len(topics) == 0 {
+		sklog.Warningf("SearchTopics returned 0 topics for query %q", query)
 	}
 
 	// Generate the response.

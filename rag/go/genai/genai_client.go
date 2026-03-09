@@ -76,7 +76,28 @@ func (c *GeminiClient) GetEmbedding(ctx context.Context, model string, dimension
 		sklog.Errorf("Error getting embedding: %v", err)
 		return nil, err
 	}
-	return resp.Embeddings[0].Values, nil
+
+	if len(resp.Embeddings) == 0 {
+		sklog.Errorf("Gemini returned 0 embeddings for input: %s", input)
+	}
+
+	values := resp.Embeddings[0].Values
+	if len(values) == 0 {
+		sklog.Errorf("Gemini returned an empty embedding vector for input: %s", input)
+	}
+
+	isAllZero := true
+	for _, v := range values {
+		if v != 0 {
+			isAllZero = false
+			break
+		}
+	}
+	if isAllZero {
+		sklog.Warningf("Gemini returned an all-zero embedding vector for input: %s", input)
+	}
+
+	return values, nil
 }
 
 // GetSummary returns the summary for the input using the supplied model.
