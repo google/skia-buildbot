@@ -57,7 +57,9 @@ const (
 	// the incoming event.
 	processAlertConfigsWorkerCount = 20
 
-	timeoutForProcessAlertConfigPerTrace time.Duration = time.Minute
+	// Timeout is very large because k-means sometimes requires more time and resources to finish the alert config.
+	// This large value is used because we can have child context that use a 10-minute timeout.
+	timeoutForProcessAlertConfigPerTrace time.Duration = 10 * time.Minute
 
 	correlationIdKey = "correlationId"
 )
