@@ -28,7 +28,7 @@
     },
     "data_store_config": {
         "datastore_type": "spanner",
-        "connection_string": "postgresql://root@localhost:5432/chrome_int?sslmode=disable",
+        "connection_string": "postgresql://root@localhost:5432/chrome_int_autopush?sslmode=disable",
         "tile_size": 8192,
         "enable_follower_reads": true,
         "min_db_connections": 5
@@ -41,16 +41,14 @@
         "source_config": {
             "source_type": "gcs",
             "project": "skia-public",
-            "topic": "perf-ingestion-chrome-internal-spanner",
-            "subscription": "perf-ingestion-chrome-internal-spanner-prod",
-            "dl_topic": "perf-ingestion-chrome-non-public-dl",
-            "dl_subscription": "perf-ingestion-chrome-non-public-dl-prod",
+            "topic": "perf-ingestion-chrome-internal-autopush",
+            "subscription": "perf-ingestion-chrome-internal-autopush",
             "sources": [
-                "gs://chrome-perf-non-public/ingest"
+                "gs://chrome-perf-autopush-non-public/ingest"
             ]
         },
         "branches": [],
-        "file_ingestion_pubsub_topic_name": "perf-cluster-chrome-non-public"
+        "file_ingestion_pubsub_topic_name": ""
     },
     "git_repo_config": {
         "provider": "gitiles",
