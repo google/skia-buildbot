@@ -451,6 +451,9 @@
         "show_bisect_btn": {
           "type": "boolean"
         },
+        "show_hash_ranges_in_tooltip": {
+          "type": "boolean"
+        },
         "allow_multiple_regressions_per_alert_id": {
           "type": "boolean"
         },

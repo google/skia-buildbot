@@ -135,6 +135,68 @@ describe('commit-range-sk', () => {
     );
   });
 
+  it('handles hash range commit URL format with gaps in data', async () => {
+    window.perf.commit_range_url = 'https://github.com/example/repo/commits/{end}';
+    window.perf.show_hash_ranges_in_tooltip = true;
+    // eslint-disable-next-line dot-notation
+    element['commitNumberToHashes'] = async (cids: CommitNumber[]) => {
+      assert.equal(cids.length, 2);
+      if (cids[0] === CommitNumber(64809) && cids[1] === CommitNumber(64811)) {
+        return ['11111111111111111111111111111', '22222222222222222222222222222'];
+      }
+      if (cids[0] === CommitNumber(64810) && cids[1] === CommitNumber(64811)) {
+        return ['15151515151515151515151515151', '22222222222222222222222222222'];
+      }
+      assert(false);
+      return [];
+    };
+    element.trace = [11, MISSING_DATA_SENTINEL, 13];
+    // Recalc link first sets the text to loading, and then updates the text correctly
+    // after fetching data for the commit after previous.
+    await element.recalcLink();
+    await element.updateComplete;
+    assert.equal(element.querySelector<HTMLAnchorElement>('a')!.text, 'loading...');
+    await element.updateComplete;
+    assert.equal(
+      element.querySelector<HTMLAnchorElement>('a')!.href,
+      'https://github.com/example/repo/commits/22222222222222222222222222222'
+    );
+    assert.equal(
+      element.querySelector<HTMLAnchorElement>('a')!.text,
+      '1515151 - 2222222 (2 commits in this range)'
+    );
+  });
+
+  it('handles hash range failure gracefully when there are gaps in data', async () => {
+    window.perf.commit_range_url = 'https://github.com/example/repo/commits/{end}';
+    window.perf.show_hash_ranges_in_tooltip = true;
+    // eslint-disable-next-line dot-notation
+    element['commitNumberToHashes'] = async (cids: CommitNumber[]) => {
+      assert.equal(cids.length, 2);
+      if (cids[0] === CommitNumber(64809) && cids[1] === CommitNumber(64811)) {
+        return ['11111111111111111111111111111', '22222222222222222222222222222'];
+      }
+      if (cids[0] === CommitNumber(64810) && cids[1] === CommitNumber(64811)) {
+        // Simulate a failure.
+        return [];
+      }
+      assert(false);
+      return [];
+    };
+    element.trace = [11, MISSING_DATA_SENTINEL, 13];
+    // Recalc link first sets the text to loading, and then updates the text correctly
+    // after fetching data for the commit after previous.
+    await element.recalcLink();
+    await element.updateComplete;
+    assert.equal(element.querySelector<HTMLAnchorElement>('a')!.text, 'loading...');
+    await element.updateComplete;
+    assert.equal(
+      element.querySelector<HTMLAnchorElement>('a')!.href,
+      'https://github.com/example/repo/commits/22222222222222222222222222222'
+    );
+    assert.equal(element.querySelector<HTMLAnchorElement>('a')!.text, '64810 - 64811');
+  });
+
   describe('placeholder link, concurrency and caching', () => {
     it('sets a placeholder link while loading', async () => {
       let resolveHashes: (value: string[]) => void;

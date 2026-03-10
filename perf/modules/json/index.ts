@@ -451,6 +451,7 @@ export interface SkPerfConfig {
 	show_json_file_display: boolean;
 	show_triage_link: boolean;
 	show_bisect_btn: boolean;
+	show_hash_ranges_in_tooltip?: boolean;
 	always_show_commit_info: boolean;
 	app_version: string;
 	enable_v2_ui: boolean;

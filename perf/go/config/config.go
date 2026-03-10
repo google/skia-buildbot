@@ -1107,6 +1107,9 @@ type InstanceConfig struct {
 	// wheter or not to show Bisect button in the chart-tooltip
 	ShowBisectBtn bool `json:"show_bisect_btn,omitempty"`
 
+	// Whether to show commit range as hashes instead of positions.
+	ShowHashRangesInTooltip bool `json:"show_hash_ranges_in_tooltip,omitempty"`
+
 	// AllowMultipleRegressionsPerAlertId indicates if the given alert can have multiple regressions.
 	// This is to support the case where the same alert config can be used to detect regressions across different traces.
 	AllowMultipleRegressionsPerAlertId bool `json:"allow_multiple_regressions_per_alert_id,omitempty"`

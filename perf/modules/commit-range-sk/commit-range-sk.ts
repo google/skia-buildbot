@@ -202,6 +202,12 @@ export class CommitRangeSk extends LitElement {
           // Handle range URLs (Googlesource)
           if (url.includes('{begin}')) {
             url = url.replace('{begin}', this.hashes[0]);
+          } else {
+            // We expect a single commit range, but there are gaps in data.
+            // We display hashes instead of commit positions not to confuse users.
+            if (window.perf.show_hash_ranges_in_tooltip ?? false) {
+              this._handleHashRange();
+            }
           }
         } else {
           // Handle single commit scenarios
@@ -240,6 +246,30 @@ export class CommitRangeSk extends LitElement {
       console.log(error);
       this.clear();
     }
+  }
+
+  private async _handleHashRange(): Promise<void> {
+    const oldText = this._text;
+    this._text = 'loading...';
+    const hash1 = this.hashes![1].substring(0, 7);
+    const numberOfCommitsInRangeText = `(${
+      this._commitIds![1] - this._commitIds![0]
+    } commits in this range)`;
+    // defaultcommitNumberToHashes expects exactly two hashes.
+    // We only care about the first one. For the other one, we grab whatever.
+    // This solution makes this branch compatible with the caching mechanic used
+    // in this.commitNumberToHashes.
+    const hashAfter0UntrimmedList = await this.commitNumberToHashes([
+      CommitNumber(this._commitIds![0] + 1),
+      CommitNumber(this._commitIds![1]),
+    ]);
+    if (hashAfter0UntrimmedList.length < 1) {
+      console.log('failed to handle fetch commit info for beginning of the range.');
+      this._text = oldText;
+      return;
+    }
+    const hashAfter0 = hashAfter0UntrimmedList[0].substring(0, 7);
+    this._text = `${hashAfter0} - ${hash1} ${numberOfCommitsInRangeText}`;
   }
 
   private updateText(): void {
