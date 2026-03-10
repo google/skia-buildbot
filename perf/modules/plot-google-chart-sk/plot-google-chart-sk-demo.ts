@@ -16,10 +16,6 @@ import { html, LitElement, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { DataFrameRepository } from '../dataframe/dataframe_context';
 
-document.querySelector('plot-google-chart-sk')!.addEventListener('some-event-name', (e) => {
-  document.querySelector('#events')!.textContent = JSON.stringify(e, null, '  ');
-});
-
 const dummyAnomaly = (): Anomaly => ({
   id: '0',
   test_path: '',

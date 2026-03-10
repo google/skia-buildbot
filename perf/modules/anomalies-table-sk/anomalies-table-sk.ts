@@ -86,18 +86,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     return this;
   }
 
-  public openAnomalyChartListener = (e: Event) => {
-    const anomaly = (e as CustomEvent<Anomaly>).detail;
-    if (anomaly) {
-      const newTab = window.open('', '_blank');
-      if (newTab) {
-        newTab.document.write('Loading graph...');
-      }
-
-      void this.reportNavigationController.openMultiGraphUrl(anomaly, newTab);
-    }
-  };
-
   connectedCallback() {
     super.connectedCallback();
 
@@ -109,7 +97,6 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         this.showPopup = false;
       }
     });
-    this.addEventListener('open-anomaly-chart', this.openAnomalyChartListener);
     window.addEventListener('keydown', this.keyDown);
   }
 

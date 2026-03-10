@@ -1834,11 +1834,6 @@ export class ExploreMultiSk extends ElementSk {
       this.checkDataLoaded();
     });
 
-    explore.addEventListener('data-loading', () => {
-      this._dataLoading = true;
-      this.testPicker?.setReadOnly(true);
-    });
-
     return explore;
   }
 

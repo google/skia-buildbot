@@ -732,7 +732,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
           .useDiscreteAxis=${ele._state.evenXAxisSpacing}
           @plot-data-select=${ele.onChartSelect}
           @plot-data-mouseover=${ele.onChartOver}
-          @plot-data-mousedown=${ele.onChartMouseDown}
           @selection-changing=${ele.OnSelectionRange}
           @selection-changed=${ele.OnSelectionRange}>
           <md-icon slot="untriage">help</md-icon>
