@@ -53,6 +53,7 @@ const (
 	write statementFormat = iota
 	readCompat
 	readRegressionsByCommitAlertAndTraceName
+	readRegressionsByCommitAlertAndTraceId
 	readOldest
 	readRange
 	readByRev
@@ -61,6 +62,7 @@ const (
 	readBySubName
 	deleteByCommit
 	readRangeFiltered
+	readRangeFilteredByTraceId
 	setBugID
 	ignoreAnomalies
 	resetAnomalies
@@ -98,6 +100,16 @@ var statementFormats = map[statementFormat]string{
 			AND alert_id=$2
 			AND (frame->'dataframe'->'traceset') ? $3
 		`,
+	readRegressionsByCommitAlertAndTraceId: `
+		SELECT
+			{{ .Columns }}
+		FROM
+			Regressions2
+		WHERE
+			commit_number=$1
+			AND alert_id=$2
+			AND trace_id=$3
+		`,
 	readOldest: `
 		SELECT
 			commit_number
@@ -134,6 +146,16 @@ var statementFormats = map[statementFormat]string{
 			commit_number >= $1
 			AND commit_number <= $2
 			AND (frame->'dataframe'->'traceset') ?| $3
+	`,
+	readRangeFilteredByTraceId: `
+		SELECT
+			{{ .Columns }}
+		FROM
+			Regressions2
+		WHERE
+			commit_number >= $1
+			AND commit_number <= $2
+			AND trace_id = ANY($3)
 	`,
 	write: `
 		INSERT INTO
@@ -319,7 +341,34 @@ func (s *SQLRegression2Store) Range(ctx context.Context, begin, end types.Commit
 
 // RangeFiltered gets all regressions in the given commit range and trace names.
 func (s *SQLRegression2Store) RangeFiltered(ctx context.Context, begin, end types.CommitNumber, traceNames []string) ([]*regression.Regression, error) {
+	if s.instanceConfig.Experiments.RegressionsTraceIdField {
+		return s.rangeFilteredByTraceId(ctx, begin, end, traceNames)
+	}
 	rows, err := s.db.Query(ctx, s.statements[readRangeFiltered], begin, end, traceNames)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			return nil, skerr.Wrapf(err, "Failed to read regressions in range [%d; %d] for %d traces. PgError %s: %s", begin, end, len(traceNames), pgErr.Code, pgErr.Message)
+		}
+		return nil, skerr.Wrapf(err, "Failed to read regressions in range [%d; %d] for %d traces.", begin, end, len(traceNames))
+	}
+	defer rows.Close()
+	regressions, err := s.convertRowsIntoRegressions(rows)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to convert rows into regressions")
+	}
+	return regressions, nil
+}
+
+// RangeFiltered gets all regressions in the given commit range and trace names.
+func (s *SQLRegression2Store) rangeFilteredByTraceId(ctx context.Context, begin, end types.CommitNumber, traceNames []string) ([]*regression.Regression, error) {
+	traceIds := make([][]byte, len(traceNames))
+	for i, name := range traceNames {
+		traceId := types.TraceIDForSQLInBytesFromTraceName(name)
+		traceIds[i] = traceId[:]
+	}
+	rows, err := s.db.Query(ctx, s.statements[readRangeFilteredByTraceId], begin, end, traceIds)
+
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -835,7 +884,13 @@ func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitN
 
 	// An empty trace_name indicates that we are processing a k-means alert, which requires a query without a trace name filter.
 	if s.instanceConfig.AllowMultipleRegressionsPerAlertId && traceName != "" {
-		rows, err = tx.Query(ctx, s.statements[readRegressionsByCommitAlertAndTraceName], commitNumber, alertID, traceName)
+		if s.instanceConfig.Experiments.RegressionsTraceIdField {
+			traceId := types.TraceIDForSQLInBytesFromTraceName(traceName)
+			traceIdAsBytes := traceId[:]
+			rows, err = tx.Query(ctx, s.statements[readRegressionsByCommitAlertAndTraceId], commitNumber, alertID, traceIdAsBytes)
+		} else {
+			rows, err = tx.Query(ctx, s.statements[readRegressionsByCommitAlertAndTraceName], commitNumber, alertID, traceName)
+		}
 	} else {
 		rows, err = tx.Query(ctx, s.statements[readCompat], commitNumber, alertID)
 	}

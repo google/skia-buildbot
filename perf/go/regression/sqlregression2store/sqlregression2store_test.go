@@ -316,7 +316,7 @@ func TestHighRegression_KMeans_Triage(t *testing.T) {
 		DisplayName: "Test Alert Config",
 		Algo:        types.KMeansGrouping,
 	}, nil)
-	runClusterSummaryAndTriageTest(t, true, alertsProvider)
+	runClusterSummaryAndTriageTestNoTraceIdField(t, true, alertsProvider)
 }
 
 // TestLowRegression_KMeans_Triage sets a Low regression into the database, triages it
@@ -328,7 +328,7 @@ func TestLowRegression_KMeans_Triage(t *testing.T) {
 		DisplayName: "Test Alert Config",
 		Algo:        types.KMeansGrouping,
 	}, nil)
-	runClusterSummaryAndTriageTest(t, false, alertsProvider)
+	runClusterSummaryAndTriageTestNoTraceIdField(t, true, alertsProvider)
 }
 
 // TestHighRegression_Ind_Triage sets a High regression into the database, triages it
@@ -341,7 +341,13 @@ func TestHighRegression_Ind_Triage(t *testing.T) {
 		DisplayName: "Test Alert Config",
 		Algo:        types.StepFitGrouping,
 	}, nil)
-	runClusterSummaryAndTriageTest(t, true, alertsProvider)
+
+	t.Run("no trace id field", func(t *testing.T) {
+		runClusterSummaryAndTriageTestNoTraceIdField(t, true, alertsProvider)
+	})
+	t.Run("with trace id field", func(t *testing.T) {
+		runClusterSummaryAndTriageTestWithTraceIdField(t, true, alertsProvider)
+	})
 }
 
 // TestLowRegression_Ind_Triage sets a Low regression into the database, triages it
@@ -354,7 +360,13 @@ func TestLowRegression_Ind_Triage(t *testing.T) {
 		DisplayName: "Test Alert Config",
 		Algo:        types.StepFitGrouping,
 	}, nil)
-	runClusterSummaryAndTriageTest(t, false, alertsProvider)
+
+	t.Run("no trace id field", func(t *testing.T) {
+		runClusterSummaryAndTriageTestNoTraceIdField(t, true, alertsProvider)
+	})
+	t.Run("with trace id field", func(t *testing.T) {
+		runClusterSummaryAndTriageTestWithTraceIdField(t, true, alertsProvider)
+	})
 }
 
 func TestMixedRegressionWrite(t *testing.T) {
@@ -432,8 +444,18 @@ func TestRangeFiltered(t *testing.T) {
 	assert.Empty(t, regressionsFromDb)
 }
 
-func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool, alertsProvider alerts.ConfigProvider) {
+func runClusterSummaryAndTriageTestNoTraceIdField(t *testing.T, isHighRegression bool, alertsProvider alerts.ConfigProvider) {
 	store := setupStore(t, alertsProvider)
+	runClusterSummaryAndTriageTest(t, isHighRegression, alertsProvider, store)
+}
+
+func runClusterSummaryAndTriageTestWithTraceIdField(t *testing.T, isHighRegression bool, alertsProvider alerts.ConfigProvider) {
+	store := setupStore(t, alertsProvider)
+	store.instanceConfig.Experiments.RegressionsTraceIdField = true
+	runClusterSummaryAndTriageTest(t, isHighRegression, alertsProvider, store)
+}
+
+func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool, alertsProvider alerts.ConfigProvider, store *SQLRegression2Store) {
 	ctx := context.Background()
 
 	// Add an item to the database.
@@ -462,6 +484,7 @@ func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool, alertsP
 					Offset: 3,
 				},
 			},
+			TraceSet: types.TraceSet{"test_trace_id": {}},
 		},
 	}
 	if isHighRegression {
@@ -1699,4 +1722,60 @@ func TestPopulateRegression2Fields_RegressionsTraceIdField_MultipleTraces(t *tes
 	r.Frame.DataFrame.TraceSet = types.TraceSet{"a": {}, "b": {}}
 	err := store.populateRegression2Fields(r)
 	require.Error(t, err)
+}
+
+func TestRangeFilteredByTraceId(t *testing.T) {
+	const (
+		traceKey1           = ",benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=test1,"
+		traceKey2           = ",benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=test2,"
+		nonExistentTraceKey = "non-existent-trace"
+	)
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+
+	store := setupStore(t, alertsProvider)
+	store.instanceConfig.Experiments.RegressionsTraceIdField = true
+
+	ctx := context.Background()
+
+	// Add a regression with trace key 1.
+	r1 := generateNewRegression(subName)
+	r1.CommitNumber = 12345
+	r1.Frame.DataFrame.TraceSet = types.TraceSet{traceKey1: {}}
+	_, err := store.WriteRegression(ctx, r1, nil)
+	assert.Nil(t, err)
+
+	// Add a regression with trace key 2.
+	r2 := generateNewRegression(subName)
+	r2.CommitNumber = 12346
+	r2.Frame.DataFrame.TraceSet = types.TraceSet{traceKey2: {}}
+	_, err = store.WriteRegression(ctx, r2, nil)
+	assert.Nil(t, err)
+
+	// Filter by trace key 1.
+	regressionsFromDb, err := store.RangeFiltered(ctx, r1.CommitNumber, r1.CommitNumber, []string{traceKey1})
+	if skipTestIfSpannerEmulatorNotSupported(t, err) {
+		return
+	}
+	assert.Nil(t, err)
+	assert.NotNil(t, regressionsFromDb)
+	assert.Len(t, regressionsFromDb, 1)
+	assertRegression(t, r1, regressionsFromDb[0])
+
+	// Filter by trace key 2.
+	regressionsFromDb, err = store.RangeFiltered(ctx, r2.CommitNumber, r2.CommitNumber, []string{traceKey2})
+	assert.Nil(t, err)
+	assert.NotNil(t, regressionsFromDb)
+	assert.Len(t, regressionsFromDb, 1)
+	assertRegression(t, r2, regressionsFromDb[0])
+
+	// Filter by both trace keys.
+	regressionsFromDb, err = store.RangeFiltered(ctx, r1.CommitNumber, r2.CommitNumber, []string{traceKey1, traceKey2})
+	assert.Nil(t, err)
+	assert.NotNil(t, regressionsFromDb)
+	assert.Len(t, regressionsFromDb, 2)
+
+	// Filter by a non-existent trace key.
+	regressionsFromDb, err = store.RangeFiltered(ctx, r1.CommitNumber, r2.CommitNumber, []string{nonExistentTraceKey})
+	assert.Nil(t, err)
+	assert.Empty(t, regressionsFromDb)
 }
