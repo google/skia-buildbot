@@ -37,6 +37,7 @@ func main() {
 	}
 	spannerConverter := exporter.DefaultSpannerConverter()
 	spannerConverter.TtlExcludeTables = ttlExcludeTables
+	spannerConverter.PostgresUUID = true
 	generatedText := exporter.GenerateSQL(sql.Tables{}, packageName, exporter.SchemaAndColumnNames, schemaTargetDB, spannerConverter)
 	out := filepath.Join(packagePath, outputFileName)
 	err = os.WriteFile(out, []byte(generatedText), 0666)

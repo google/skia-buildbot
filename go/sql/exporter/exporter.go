@@ -35,6 +35,7 @@ type SpannerConverter struct {
 	SkipCreatedAt    bool // If true, doesn't add a createdat column to the table.
 	GoogleSQL        bool
 	interleaves      map[string]string
+	PostgresUUID     bool // Whether to keep UUID in PSQL dialect. If false, translates it to TEXT.
 }
 
 func DefaultSpannerConverter() *SpannerConverter {
@@ -45,6 +46,7 @@ func DefaultSpannerConverter() *SpannerConverter {
 		TtlExcludeTables: []string{},
 		primaryKeys:      map[string]string{},
 		interleaves:      map[string]string{},
+		PostgresUUID:     false,
 	}
 }
 
@@ -105,6 +107,9 @@ func (sc *SpannerConverter) updateColumnTypesForSpanner(sqlColumnText string, ta
 			"gen_random_uuid()": "spanner.generate_uuid()",
 			"UNIQUE":            "",
 			"SERIAL":            "INT8",
+		}
+		if sc.PostgresUUID {
+			delete(typeReplacements, "UUID")
 		}
 
 		// unique_rowid() generates a unique integer identifier for int columns. This does not work in spanner.

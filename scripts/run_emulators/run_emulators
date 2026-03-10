@@ -15,7 +15,7 @@ if [ "$cmd" == "start" ]; then
   if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
     echo "Starting PGAdapter..."
     sudo docker ps -q | xargs -r sudo docker rm -vf
-    sudo docker run -d -p 5432:5432 gcr.io/cloud-spanner-pg-adapter/pgadapter-emulator
+    sudo docker run -d -p 5432:5432 gcr.io/cloud-spanner-pg-adapter/pgadapter-emulator:latest
   fi
 
   # The ports below should be kept in sync with run_emulators.go.
