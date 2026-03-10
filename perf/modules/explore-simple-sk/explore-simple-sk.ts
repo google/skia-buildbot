@@ -149,7 +149,7 @@ const ZERO_NAME = 'special_zero';
 const SPECIAL_TRACE_NAMES = [ZERO_NAME];
 
 // Amount of datapoints that is expected to begin affecting performance.
-const DATAPOINT_THRESHOLD = 10000;
+const DATAPOINT_THRESHOLD = 100000;
 
 // The default query range in seconds.
 export const DEFAULT_RANGE_S = 24 * 60 * 60; // 2 days in seconds.
