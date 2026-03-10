@@ -648,9 +648,13 @@ export function setUpExploreDemoEnv() {
   });
 
   fetchMock.post('/_/shortcut/get', {
-    GraphConfig: {
-      queries: ['arch=arm64&bench_type=skandroidcodec'],
-    },
+    graphs: [
+      {
+        queries: ['arch=arm'],
+        formulas: [],
+        keys: '',
+      },
+    ],
   });
 
   fetchMock.post('/_/shortcut/update', {

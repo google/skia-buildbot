@@ -587,6 +587,76 @@ describe('Manual Plot Mode', () => {
   });
 });
 
+describe('Direct Linking', () => {
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed();
+  });
+
+  beforeEach(async () => {
+    // Navigate to the base URL first to load the page context (including fetchMock)
+    await testBed.page.goto(testBed.baseUrl);
+    await testBed.page.setViewport(STANDARD_LAPTOP_VIEWPORT);
+  });
+
+  it('restores multiple split graphs and populates the test picker correctly from a shortcut ID', async () => {
+    // We use the shortcut ID 'aaab78c9711cb79197d47f448ba51338' mocked in `test-util.ts`.
+    // We updated the mock to return `queries: ['arch=arm']`.
+    // By passing `splitByKeys=os` in the URL, the component should fetch all data for `arch=arm`,
+    // and split it into multiple graphs based on the distinct 'os' values found in the data.
+    // The mocked data for `arch=arm` returns 6 distinct OSes: Android, Debian10, Debian11, Mac10.13, Ubuntu, Win2019.
+    await testBed.page.goto(
+      `${testBed.baseUrl}?shortcut=aaab78c9711cb79197d47f448ba51338&splitByKeys=os`
+    );
+
+    const explorePO = new ExploreMultiSkPO((await testBed.page.$('explore-multi-sk'))!);
+    const testPickerPO = explorePO.testPicker;
+
+    // Check if exactly 7 graphs are loaded (1 hidden summary + 6 split graphs).
+    // Use a slightly longer timeout as parsing 7 graphs might take a moment.
+    await explorePO.waitForGraphCount(7, LONG_TIMEOUT_MS);
+
+    // Verify the test picker fields are populated with the union of the split data
+    await testPickerPO.waitForSpinnerInactive();
+
+    // Check that 'arch' field has 'arm' selected
+    const selectedArch = await testPickerPO.getSelectedItems(0);
+    expect(selectedArch).to.deep.equal(['arm']);
+
+    // Check that 'os' field has the split values selected
+    const selectedOs = await testPickerPO.getSelectedItems(1);
+    const expectedOses = ['Android', 'Debian10', 'Debian11', 'Mac10.13', 'Ubuntu', 'Win2019'];
+    expect(selectedOs.sort()).to.deep.equal(expectedOses.sort());
+
+    // Verify the "Split By" checkbox for 'os' is checked
+    const osField = await testPickerPO.getPickerField(1);
+    await poll(
+      async () => await osField.isSplitChecked(),
+      "Waiting for 'os' split checkbox to be checked",
+      LONG_TIMEOUT_MS
+    );
+
+    // Verify the graphs are actually split by checking traces of the visible graphs (indices 1 through 6)
+    const splitTraces = new Set<string>();
+    for (let i = 1; i <= 6; i++) {
+      const graphPO = explorePO.getGraph(i);
+      await explorePO.waitForGraph(i); // Ensure graph data has painted
+      const traces = await graphPO.getTraceKeys();
+      expect(traces.length).to.equal(1); // Each split graph should have exactly 1 trace for its OS
+      splitTraces.add(traces[0]);
+    }
+
+    // Ensure we have 6 unique traces across the 6 split graphs
+    expect(splitTraces.size).to.equal(6);
+    expect(splitTraces.has(',arch=arm,os=Android,')).to.be.true;
+    expect(splitTraces.has(',arch=arm,os=Ubuntu,')).to.be.true;
+    expect(splitTraces.has(',arch=arm,os=Debian10,')).to.be.true;
+    expect(splitTraces.has(',arch=arm,os=Debian11,')).to.be.true;
+    expect(splitTraces.has(',arch=arm,os=Mac10.13,')).to.be.true;
+    expect(splitTraces.has(',arch=arm,os=Win2019,')).to.be.true;
+  });
+});
+
 describe('Explore Multi Sk with plotSummary', () => {
   let testBed: TestBed;
   before(async () => {
