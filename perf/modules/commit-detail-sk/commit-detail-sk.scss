@@ -1,7 +1,6 @@
 @import '../../../elements-sk/modules/colors';
 
 commit-detail-sk {
-  a,
   .linkish {
     color: var(--blue);
     display: flex;
@@ -26,16 +25,11 @@ commit-detail-sk {
     margin: 0.6em;
     display: flex;
   }
-
-  .hidden {
-    display: none;
-  }
 }
 
 @import '../themes/themes.scss';
 
 .body-sk commit-detail-sk {
-  a,
   .linkish {
     color: var(--primary);
   }

@@ -61,53 +61,8 @@ explore-simple-sk {
     }
   }
 
-  #bottomButtons {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-  }
-
   checkbox-sk {
     display: inline-block;
-  }
-
-  #commits {
-    margin: 1em 0;
-    display: inline-block;
-    overflow-y: auto;
-  }
-
-  #simple_paramset {
-    margin: 8px 8px 8px 0;
-  }
-
-  #params_and_logentry {
-    code,
-    #logEntry {
-      white-space: pre-wrap;
-      width: 50em;
-    }
-
-    paramset-sk {
-      flex: 1;
-
-      tr {
-        th:first-child {
-          width: 30%;
-        }
-
-        th:nth-child(2) {
-          width: 70%;
-          min-width: 200px;
-        }
-      }
-    }
-
-    code {
-      flex: 1;
-    }
-
-    display: flex;
   }
 
   #percent {
@@ -160,17 +115,9 @@ explore-simple-sk {
     height: 80px;
   }
 
-  #selectSummaryTrace[hidden] {
-    display: none;
-  }
-
   #spin-overlay {
     position: relative;
     display: block;
-  }
-
-  md-outlined-button {
-    --md-outlined-button-container-shape: 4px;
   }
 
   md-dialog {
@@ -205,9 +152,7 @@ explore-simple-sk {
     }
   }
 
-  #buttons,
-  #traceButtons,
-  #calcButtons {
+  #buttons {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -252,13 +197,6 @@ explore-simple-sk {
     margin: 0px;
   }
 
-  #traceButtons {
-    checkbox-sk {
-      display: flex;
-      align-items: center;
-    }
-  }
-
   #spinner[aria-hidden='true'] {
     display: none;
   }
@@ -267,10 +205,6 @@ explore-simple-sk {
     width: 128px;
     height: 128px;
     border-width: 4px;
-  }
-
-  #spin-container {
-    display: none;
   }
 
   #spin-container {
@@ -384,61 +318,6 @@ explore-simple-sk {
     }
   }
 
-  #bisect-dialog {
-    overflow: auto;
-    width: 45%;
-
-    #bisectCloseIcon {
-      position: absolute;
-      right: 0;
-      top: 0;
-      margin: 0;
-      margin-top: 10px;
-      margin-right: 11px;
-      border: none;
-      padding: 5px;
-      cursor: pointer;
-    }
-
-    paramset-sk {
-      display: inline-block;
-
-      div {
-        display: block;
-      }
-    }
-
-    #testpath {
-      width: 90%;
-    }
-
-    #patch {
-      width: 90%;
-    }
-
-    tabs-panel-sk {
-      margin-top: 0;
-      border-top: solid 1px var(--on-surface);
-      background: var(--surface);
-    }
-
-    tabs-sk {
-      display: block;
-      border-bottom: solid 1px;
-      margin-top: 8px;
-
-      button {
-        margin: 0;
-        padding: 4px 4px 0 4px;
-      }
-    }
-
-    .footer {
-      display: flex;
-      justify-content: right;
-    }
-  }
-
   textarea {
     background: var(--surface);
     color: var(--on-surface);
@@ -459,32 +338,6 @@ explore-simple-sk {
     // We don't want icons interferring with the button click.
     * {
       pointer-events: none;
-    }
-  }
-
-  #traceDetails {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
-    color: var(--on-surface);
-    white-space: break-spaces;
-    word-wrap: break-word;
-    width: 90%;
-  }
-
-  button.navigation {
-    padding: 0 4px;
-  }
-
-  #summaryPicker {
-    display: flex;
-    flex-direction: row;
-    align-items: end;
-    padding-bottom: 16px;
-    box-sizing: content-box;
-
-    label {
-      margin-bottom: 5px;
-      margin-left: 10px;
     }
   }
 }

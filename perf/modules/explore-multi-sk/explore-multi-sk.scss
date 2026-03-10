@@ -1,11 +1,6 @@
 @import '../themes/themes.scss';
 
 explore-multi-sk {
-  explore-simple-sk {
-    #plot {
-      height: 300px;
-    }
-  }
   #menu {
     margin: 1em;
   }
@@ -25,9 +20,6 @@ explore-multi-sk {
     width: 64px;
   }
   #test-picker.hidden {
-    display: none;
-  }
-  #add-graph-button.hidden {
     display: none;
   }
   .progress-container {
