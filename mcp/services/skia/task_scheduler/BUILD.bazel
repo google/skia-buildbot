@@ -1,0 +1,21 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "task_scheduler",
+    srcs = [
+        "client.go",
+        "tools.go",
+    ],
+    importpath = "go.skia.org/infra/mcp/services/skia/task_scheduler",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//mcp/common",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/db/firestore",
+        "//task_scheduler/go/types",
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_x_oauth2//google",
+    ],
+)

@@ -22,6 +22,7 @@ go_library(
         "//mcp/services/helloworld",
         "//mcp/services/perf",
         "//mcp/services/releaseinfra",
+        "//mcp/services/skia",
         "@com_github_go_chi_chi_v5//:chi",
         "@com_github_mark3labs_mcp_go//mcp",
         "@com_github_mark3labs_mcp_go//server",

@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "skia",
+    srcs = ["service.go"],
+    importpath = "go.skia.org/infra/mcp/services/skia",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//mcp/common",
+        "//mcp/services/skia/task_scheduler",
+    ],
+)

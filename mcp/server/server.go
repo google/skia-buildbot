@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/mcp/services/helloworld"
 	"go.skia.org/infra/mcp/services/perf"
 	"go.skia.org/infra/mcp/services/releaseinfra"
+	"go.skia.org/infra/mcp/services/skia"
 )
 
 type mcpservice string
@@ -34,6 +35,7 @@ const (
 	HelloWorld      mcpservice = "helloworld"
 	Perf            mcpservice = "perf"
 	ReleaseInfra    mcpservice = "releaseinfra"
+	Skia            mcpservice = "skia"
 )
 
 // serviceFactory defines a function that creates a McpService instance.
@@ -47,6 +49,7 @@ var serviceRegistry = map[mcpservice]serviceFactory{
 	HelloWorld:      func() common.McpService { return &helloworld.HelloWorldService{} },
 	Perf:            func() common.McpService { return &perf.PerfService{} },
 	ReleaseInfra:    func() common.McpService { return &releaseinfra.ReleaseInfraService{} },
+	Skia:            func() common.McpService { return &skia.SkiaService{} },
 }
 
 // mcpFlags provides a struct to hold data required by mcp services provided
