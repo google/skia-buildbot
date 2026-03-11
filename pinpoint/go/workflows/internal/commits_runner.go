@@ -7,6 +7,7 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/read_values"
@@ -183,12 +184,11 @@ func runBenchmark(ctx workflow.Context, cc *common.CombinedCommit, cas *apipb.CA
 		return nil, err
 	}
 
-	switch s := tr.Status; {
-	case s.IsTaskTerminalFailure():
+	if !tr.Status.IsTaskSuccessful() {
 		// TODO(b/327224992): Handle retry logic for non-terminal benchmark failures
 		// For now, assume all retryable errors are terminal
-		return nil, skerr.Fmt("test run (%v) terminally failed with status (%v)", tr.TaskID, tr.Status)
-	case s.IsTaskBenchmarkFailure(), s.IsTaskTimedOut():
+		// We hide the error from caller until proper error-handling is implemented in high-level workflows.
+		sklog.Errorf("test run (%v) failed with status (%v)", tr.TaskID, tr.Status)
 		return tr, nil
 	}
 
