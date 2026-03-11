@@ -17,7 +17,7 @@ import { TabsSk } from '../../../elements-sk/modules/tabs-sk/tabs-sk';
 import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 import { ParamSet as CommonSkParamSet } from '../../../infra-sk/modules/query';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
-import { errorMessage, errorMessageWithTelemetry, logErrorMessage } from '../errorMessage';
+import { errorMessage, logErrorMessage } from '../errorMessage';
 import { StatusCodes } from 'http-status-codes';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -2772,7 +2772,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       frameResponse.dataframe?.traceset &&
       Object.keys(frameResponse.dataframe.traceset).length === 0
     ) {
-      errorMessageWithTelemetry('No data found for the given query.', 0, {
+      errorMessage('No data found for the given query.', 0, {
         countMetricSource: CountMetric.FrontendErrorReported,
         source: EXPLORE_SIMPLE_PAGE_SOURCE,
         errorCode: StatusCodes.BAD_REQUEST.toString(),

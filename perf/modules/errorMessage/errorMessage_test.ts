@@ -1,4 +1,4 @@
-import { errorMessage, errorMessageWithTelemetry, logErrorMessage } from './index';
+import { errorMessage, logErrorMessage } from './index';
 import { assert } from 'chai';
 import sinon from 'sinon';
 import { telemetry, CountMetric } from '../telemetry/telemetry';
@@ -53,12 +53,12 @@ describe('errorMessageWithTelemetry', () => {
       done();
     };
     document.addEventListener('error-sk', onErrorMessage);
-    errorMessageWithTelemetry(message);
+    errorMessage(message);
   });
 
   it('extracts errorCode from Response object', () => {
     const resp = new Response('error', { status: 404, statusText: 'Not Found' });
-    errorMessageWithTelemetry({ resp: resp }, 0, {
+    errorMessage({ resp: resp }, 0, {
       countMetricSource: CountMetric.FrontendErrorReported,
     });
 
@@ -72,7 +72,7 @@ describe('errorMessageWithTelemetry', () => {
 
   it('uses provided errorCode even if Response is present', () => {
     const resp = new Response('error', { status: 404, statusText: 'Not Found' });
-    errorMessageWithTelemetry({ resp: resp }, 0, {
+    errorMessage({ resp: resp }, 0, {
       countMetricSource: CountMetric.FrontendErrorReported,
       errorCode: 'CUSTOM_ERROR',
     });

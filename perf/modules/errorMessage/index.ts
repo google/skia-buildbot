@@ -32,35 +32,47 @@ export const convertToErrorString = (
 };
 
 /**
- * This is the same function as element-sk errorMessage, but also
- * track error occurrences via a telemetry system.
+ * errorMessage dispatches an event with the error message in it.
+ * It also optionally tracks error occurrences via a telemetry system
+ * and logs the error to the server if a source is provided.
+ *
  * duration default to 0, which means the toast doesn't close automatically.
- * countMetricSource is to identify the metric name.
- * source indicating the origin of the error, defaulting to 'default'.
- * errorCode representing the error code, defaulting to '500'.
  */
-export const errorMessageWithTelemetry = (
+export const errorMessage = (
   message: string | { message: string } | { resp: Response } | object,
   duration: number = 0,
   options: TelemetryErrorOptions = {}
 ): void => {
-  let errorCode = options.errorCode;
-
-  if (!errorCode && isMessageWithResponse(message)) {
-    errorCode = message.resp.status.toString();
-  }
-
-  if (!errorCode) {
-    errorCode = '500';
+  if (options.source) {
+    logErrorMessage(message, options.source);
   }
 
   if (options.countMetricSource) {
+    let errorCode = options.errorCode;
+
+    if (!errorCode && isMessageWithResponse(message)) {
+      errorCode = message.resp.status.toString();
+    }
+
+    if (!errorCode) {
+      errorCode = '500';
+    }
     telemetry.increaseCounter(options.countMetricSource, {
       source: options.source || 'default',
       errorCode: errorCode,
     });
   }
   elementsErrorMessage(message, duration);
+};
+
+/**
+ * logErrorMessage logs the error message to the server.
+ */
+export const logErrorMessage = (
+  errorBody: string | { message: string } | { resp: Response } | object,
+  errorSource: string
+): void => {
+  telemetry.reportErrorToServer(convertToErrorString(errorBody), errorSource);
 };
 
 /**
@@ -74,24 +86,3 @@ function isMessageWithResponse(msg: unknown): msg is { resp: Response } {
     (msg as Record<string, unknown>).resp instanceof Response
   );
 }
-
-/**
- * This is the same function as element-sk errorMessage, but defaults to a 0s
- * delay, which means the toast doesn't close automatically.
- */
-export const errorMessage = (
-  message: string | { message: string } | { resp: Response } | object,
-  duration: number = 0
-): void => {
-  elementsErrorMessage(message, duration);
-};
-
-/**
- * logErrorMessage logs the error message to the server.
- */
-export const logErrorMessage = (
-  errorBody: string | { message: string } | { resp: Response } | object,
-  errorSource: string
-): void => {
-  telemetry.reportErrorToServer(convertToErrorString(errorBody), errorSource);
-};
