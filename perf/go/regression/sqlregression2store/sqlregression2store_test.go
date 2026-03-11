@@ -1611,6 +1611,7 @@ func TestUpdateBasedOnAlertAlgo_WithSubscriptionName(t *testing.T) {
 			Header: []*dataframe.ColumnHeader{
 				{Offset: 1}, {Offset: 2}, {Offset: 3},
 			},
+			TraceSet: types.TraceSet{"a": {}},
 		},
 	}
 
@@ -1680,7 +1681,7 @@ func TestPopulateRegression2Fields_RegressionsTraceIdField(t *testing.T) {
 				r.TraceID = ""
 				return r
 			}(),
-			expectedTraceID: "",
+			expectedTraceID: testTraceIDMd5, // Populate it anyway.
 		},
 		{
 			name:               "RegressionsTraceIdField false, initial TraceID set",
@@ -1714,14 +1715,18 @@ func TestPopulateRegression2Fields_RegressionsTraceIdField(t *testing.T) {
 	}
 }
 
-func TestPopulateRegression2Fields_RegressionsTraceIdField_MultipleTraces(t *testing.T) {
+func TestPopulateRegression2Fields_RegressionsTraceIdField_MultipleTracesSelectsOneTrace(t *testing.T) {
 	alertsProvider := alerts_mock.NewConfigProvider(t)
 	store := setupStore(t, alertsProvider)
 	store.instanceConfig.Experiments.RegressionsTraceIdField = true
 	r := generateNewRegression(subName)
 	r.Frame.DataFrame.TraceSet = types.TraceSet{"a": {}, "b": {}}
+	hashA := string(types.TraceIDForSQLFromTraceName("a"))
+	hashB := string(types.TraceIDForSQLFromTraceName("b"))
+
 	err := store.populateRegression2Fields(r)
-	require.Error(t, err)
+	require.NoError(t, err)
+	assert.True(t, r.TraceID == hashA || r.TraceID == hashB)
 }
 
 func TestRangeFilteredByTraceId(t *testing.T) {

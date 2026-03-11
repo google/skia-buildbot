@@ -39,6 +39,7 @@ func createLegacyRegressions(ctx context.Context, count int, commitNumber types.
 				{Offset: 2},
 				{Offset: 3},
 			},
+			TraceSet: types.TraceSet{"a": {}},
 		},
 	}
 	clusterSummary := &clustering2.ClusterSummary{
@@ -252,6 +253,7 @@ func Test_Migrate_Mixed_Regression(t *testing.T) {
 				{Offset: 2},
 				{Offset: 3},
 			},
+			TraceSet: types.TraceSet{"a": {}},
 		},
 	}
 	clusterSummary := &clustering2.ClusterSummary{

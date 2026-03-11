@@ -25,6 +25,7 @@
     "min_db_connections": 5
   },
   "experiments": {
+    "regressions_trace_id_field": true
   },
   "ingestion_config": {
     "source_config": {

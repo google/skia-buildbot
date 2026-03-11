@@ -588,7 +588,7 @@ func (s *SQLRegression2Store) convertRowToRegression(rows pgx.Row) (*regression.
 		r.SubscriptionName = subName.String
 	}
 
-	if s.instanceConfig.Experiments.RegressionsTraceIdField {
+	if s.instanceConfig.UseRegression2 {
 		r.TraceID = string(types.TraceIDForSQLFromTraceIDAsBytes(traceIdAsBytes))
 	}
 
@@ -1005,16 +1005,15 @@ func (s *SQLRegression2Store) populateRegression2Fields(regression *regression.R
 		regression.Id = uuid.NewString()
 	}
 
-	if s.instanceConfig.Experiments.RegressionsTraceIdField {
-		traceID, err := getTraceIdFromTraceSet(regression.Frame.DataFrame.TraceSet)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		if regression.TraceID == "" {
-			regression.TraceID = traceID
-		} else if regression.TraceID != traceID {
-			sklog.Errorf("trace id on regression is equal to %s but should be %s", regression.TraceID, traceID)
-		}
+	// Note for K-means detection, traceID doesn't make sense (since there are multiple traces).
+	traceID, err := getTraceIdFromTraceSet(regression.Frame.DataFrame.TraceSet)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if regression.TraceID == "" {
+		regression.TraceID = traceID
+	} else if regression.TraceID != traceID {
+		sklog.Errorf("trace id on regression is equal to %s but should be %s", regression.TraceID, traceID)
 	}
 
 	_, clusterSummary, _ := regression.GetClusterTypeAndSummaryAndTriageStatus()
@@ -1038,7 +1037,9 @@ func (s *SQLRegression2Store) populateRegression2Fields(regression *regression.R
 
 func getTraceIdFromTraceSet(traceset types.TraceSet) (string, error) {
 	if len(traceset) > 1 {
-		return "", skerr.Fmt("Modern regression detection uses just single-trace detection, but traceset has len %d", len(traceset))
+		text := "Modern regression detection uses just single-trace detection, but traceset has len %d. " +
+			"Selecting just one traceset for the trace_id field."
+		sklog.Warningf(text, len(traceset))
 	}
 	if len(traceset) == 0 {
 		return "", skerr.Fmt("Regression requires to be detected on some trace, but the traceset is empty?")
@@ -1046,6 +1047,10 @@ func getTraceIdFromTraceSet(traceset types.TraceSet) (string, error) {
 	var traceName string
 	for name := range traceset {
 		traceName = name
+		// One tracename is present in case of single-trace detection.
+		// For K-means, we select just one trace, but the flag should not be enabled anyway -
+		// - we have to stick with the old query.
+		break
 	}
 	return string(types.TraceIDForSQLFromTraceName(traceName)), nil
 }
