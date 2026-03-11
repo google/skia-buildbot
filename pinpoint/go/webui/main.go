@@ -9,11 +9,16 @@ import (
 	"net/url"
 	"time"
 
+	"html/template"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/oauth2/google"
+
+	"go.skia.org/infra/go/alogin/proxylogin"
+	"go.skia.org/infra/kube/go/authproxy"
 )
 
 var (
@@ -25,7 +30,10 @@ const indexHTML = `
 <!DOCTYPE html>
 <html>
 <body>
-    <button id="test-job-btn">Test Job</button>
+		<div>
+				Welcome, {{.Email}}
+		</div>
+		<button id="test-job-btn">Test Job</button>
     <div id="jobs-container">Loading jobs...</div>
     <script>
         document.getElementById('test-job-btn').addEventListener('click', async () => {
@@ -57,6 +65,16 @@ func main() {
 		common.PrometheusOpt(promPort),
 	)
 
+	loginProvider, err := proxylogin.New(authproxy.WebAuthHeaderName, "")
+	if err != nil {
+		sklog.Fatalf("Failed to initialize login provider: %s", err)
+	}
+
+	tmpl, err := template.New("index").Parse(indexHTML)
+	if err != nil {
+		sklog.Fatalf("Failed to parse template: %s", err)
+	}
+
 	ctx := context.Background()
 	tokenSource, tokenSourceErr := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	var client *http.Client
@@ -70,8 +88,9 @@ func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		if _, err := w.Write([]byte(indexHTML)); err != nil {
-			http.Error(w, fmt.Sprintf("Failed to write response: %s", err), http.StatusInternalServerError)
+		email := loginProvider.LoggedInAs(r)
+		if err := tmpl.Execute(w, struct{ Email string }{Email: string(email)}); err != nil {
+			http.Error(w, fmt.Sprintf("Failed to expand template: %s", err), http.StatusInternalServerError)
 		}
 	})
 
@@ -117,6 +136,11 @@ func main() {
 		params.Set("story", "default")
 		params.Set("base_git_hash", "-HEAD")
 		params.Set("end_git_hash", "-HEAD")
+
+		email := loginProvider.LoggedInAs(r)
+		if email != "" {
+			params.Set("user", string(email))
+		}
 		testJobUrl := fmt.Sprintf("%s?%s", "https://pinpoint-dot-chromeperf.appspot.com/api/new", params.Encode())
 
 		resp, err := httputils.PostWithContext(ctx, client, testJobUrl, "application/json", nil)
