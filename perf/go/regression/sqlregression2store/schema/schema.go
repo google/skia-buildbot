@@ -9,7 +9,8 @@ import (
 // RegressionSchema is the SQL schema for storing regression.Regression's.
 type Regression2Schema struct {
 	// The id for the regression.
-	ID string `sql:"id UUID PRIMARY KEY DEFAULT gen_random_uuid()"`
+	// Changed from UUID to Text in https://b.corp.google.com/issues/492077374
+	ID string `sql:"id TEXT PRIMARY KEY DEFAULT gen_random_uuid()"`
 
 	// The commit_number where the regression occurred.
 	CommitNumber types.CommitNumber `sql:"commit_number INT"`

@@ -4,7 +4,8 @@ package schema
 // TODO(wenbinzhang): remove anomaly group ids and issue ids as we have
 // the info needed the group issue map
 type CulpritSchema struct {
-	Id string `sql:"id UUID PRIMARY KEY DEFAULT gen_random_uuid()"`
+	// Changed from UUID to Text in https://b.corp.google.com/issues/492077374
+	Id string `sql:"id TEXT PRIMARY KEY DEFAULT gen_random_uuid()"`
 
 	// Repo this change belongs to e.g. chromium.googlesource.com
 	Host string `sql:"host STRING"`

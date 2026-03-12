@@ -4,13 +4,15 @@ import "time"
 
 // AnomalyGroupSchemaSchema represents the SQL schema of the AnomalyGroups table.
 type AnomalyGroupSchema struct {
-	ID string `sql:"id UUID PRIMARY KEY DEFAULT gen_random_uuid()"`
+	// Changed from UUID to Text in https://b.corp.google.com/issues/492077374
+	ID string `sql:"id TEXT PRIMARY KEY DEFAULT gen_random_uuid()"`
 
 	// The timestamp when the anomaly group is created.
 	CreationTime time.Time `sql:"creation_time TIMESTAMPTZ DEFAULT now()"`
 
 	// The LIST of metadata for each anomaly
-	AnomalyIDs []string `sql:"anomaly_ids UUID ARRAY"`
+	// Changed from UUID to Text in https://b.corp.google.com/issues/492077374
+	AnomalyIDs []string `sql:"anomaly_ids TEXT ARRAY"`
 
 	// The meta data from the first grouped anomaly.
 	// Currently we should expect the followings:
@@ -41,7 +43,8 @@ type AnomalyGroupSchema struct {
 	ReportedIssueID string `sql:"reported_issue_id TEXT"`
 
 	// The list of culprits found related to this group
-	CulpritIDs []string `sql:"culprit_ids UUID ARRAY"`
+	// Changed from UUID to Text in https://b.corp.google.com/issues/492077374
+	CulpritIDs []string `sql:"culprit_ids TEXT ARRAY"`
 
 	// The timestamp of the last update
 	LastModifiedTime time.Time `sql:"last_modified_time TIMESTAMPTZ"`
