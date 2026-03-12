@@ -586,6 +586,15 @@ describe('rationalizeTimeRange', () => {
     const rationalizedState = explore['rationalizeTimeRange'](state);
     assert.equal(rationalizedState.end, now);
   });
+
+  it('rounds begin and end to integers', () => {
+    const state = new State();
+    state.begin = 12345.67;
+    state.end = 67890.12;
+    const rationalizedState = explore['rationalizeTimeRange'](state);
+    assert.equal(rationalizedState.begin, 12346);
+    assert.equal(rationalizedState.end, 67890);
+  });
 });
 
 describe('updateTestPickerUrl', () => {

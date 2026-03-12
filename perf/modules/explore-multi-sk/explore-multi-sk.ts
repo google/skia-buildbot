@@ -232,6 +232,10 @@ export class ExploreMultiSk extends ElementSk {
       state.begin = now - defaultRangeS;
       state.end = now;
     }
+
+    state.begin = Math.round(state.begin);
+    state.end = Math.round(state.end);
+
     const numElements = this.exploreElements.length;
     let graphConfigs: GraphConfig[] = [];
     if (state.shortcut !== '') {

@@ -273,6 +273,16 @@ describe('ExploreMultiSk', () => {
       // we can check if it expanded significantly.
       assert.isTrue(element.state.end - element.state.begin > 0);
     });
+
+    it('rounds begin and end to integers in the state', async () => {
+      const state = new State();
+      state.begin = 12345.67;
+      state.end = 67890.12;
+      await element['_onStateChangedInUrl'](state as any);
+
+      assert.equal(element.state.begin, 12346);
+      assert.equal(element.state.end, 67890);
+    });
   });
 
   describe('Default Domain (X-Axis Scale)', () => {

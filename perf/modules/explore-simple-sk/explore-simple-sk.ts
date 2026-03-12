@@ -2459,8 +2459,8 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   private rationalizeTimeRange(state: State): State {
     const defaultRangeS = this.getDefaultRange();
     const now = Math.floor(Date.now() / 1000);
-    let currentBegin = state.begin;
-    let currentEnd = state.end;
+    let currentBegin = Math.round(state.begin);
+    let currentEnd = Math.round(state.end);
 
     // Default application should only happen if the state is uninitialized.
     // In the ExploreMultiSk context, begin and end should always be > -1.
