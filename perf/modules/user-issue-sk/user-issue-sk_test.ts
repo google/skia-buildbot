@@ -121,7 +121,6 @@ describe('user-issue-sk', () => {
       await element.updateComplete;
 
       const checkIcon = element.shadowRoot!.querySelector('#check-icon') as HTMLButtonElement;
-      fetchMock.post('/_/user_issues', { UserIssues: [{ IssueId: 12345 }] });
       fetchMock.post('/_/user_issue/save', {});
       checkIcon.click();
       await fetchMock.flush(true);
@@ -130,33 +129,6 @@ describe('user-issue-sk', () => {
       const bugLink = element.shadowRoot!.querySelector('a');
       expect(bugLink).to.not.equal(null);
       expect(bugLink!.href).to.equal('http://test.com/p/skia/issues/detail/12345');
-    });
-
-    it('If the bug not exists, files a new bug and displays the link', async () => {
-      element.user_id = 'test@example.com';
-      element.bug_id = 0;
-
-      await element.updateComplete;
-      const addExistingIssueBtn = element.shadowRoot!.querySelector(
-        '.add-issue'
-      ) as HTMLButtonElement;
-      addExistingIssueBtn.click();
-      expect(element._text_input_active).to.equal(true);
-
-      element._input_val = 12345;
-      await element.updateComplete;
-      const checkIcon = element.shadowRoot!.querySelector('#check-icon') as HTMLButtonElement;
-      expect(checkIcon).to.not.equal(null);
-
-      fetchMock.post('/_/user_issues', { UserIssues: [{ IssueId: 11111 }] });
-      fetchMock.post('/_/user_issue/create', { bug_id: 54321 });
-      fetchMock.post('/_/user_issue/save', {});
-      checkIcon.click();
-      await fetchMock.flush(true);
-      expect(element.bug_id).to.equal(54321);
-
-      const bugLink = element.shadowRoot!.querySelector('a');
-      expect(bugLink).to.not.equal(null);
     });
   });
 

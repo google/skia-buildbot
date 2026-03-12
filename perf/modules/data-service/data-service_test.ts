@@ -122,14 +122,14 @@ describe('DataService', () => {
       assert.deepEqual(JSON.parse(options!.body as unknown as string), req);
     });
   });
-
   describe('getUserIssues', () => {
-    it('sends POST request', async () => {
+    it('calls getUserIssues', async () => {
       const req = {
         trace_keys: ['k1', 'k2'],
         begin_commit_position: 100,
         end_commit_position: 200,
       };
+
       const response = {
         UserIssues: [
           {
@@ -140,14 +140,17 @@ describe('DataService', () => {
           },
         ],
       };
-      fetchMock.post('/_/user_issues/', response);
+      fetchMock.post(
+        {
+          url: '/_/user_issues/',
+          body: req,
+        },
+        response
+      );
 
-      const result = await dataService.getUserIssues(req);
+      const result = await dataService.getUserIssues(req as any);
       assert.deepEqual(result, response);
-      const options = fetchMock.lastOptions('/_/user_issues/');
-      assert.isDefined(options);
-      assert.equal(options!.method, 'POST');
-      assert.deepEqual(JSON.parse(options!.body as unknown as string), req);
+      assert.isTrue(fetchMock.called('/_/user_issues/'));
     });
   });
 

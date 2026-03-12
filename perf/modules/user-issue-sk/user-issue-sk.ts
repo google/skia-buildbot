@@ -7,7 +7,6 @@ import { errorMessage } from '../errorMessage';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/check-icon-sk';
-import { GetUserIssuesForTraceKeysResponse, UserIssue } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
 @customElement('user-issue-sk')
@@ -246,7 +245,7 @@ export class UserIssueSk extends LitElement {
             <check-icon-sk
               id="check-icon"
               @click=${() => {
-                this.findOrAddIssue();
+                this.saveExistingIssue();
               }}></check-icon-sk>
             <close-icon-sk @click=${this.hideTextInput}></close-icon-sk>
           </span>
@@ -353,46 +352,49 @@ export class UserIssueSk extends LitElement {
     );
   }
 
-  private async findOrAddIssue() {
+  // Makes an api call to save a buganizer issue
+  // Also emits an event to refresh the existing list of user issues
+  // with the newly added object.
+  private async saveIssue() {
     const traceKey = this.trace_key;
     const commitPosition = this.commit_position;
-
-    //check if the issue already exists in the database. If it does not exist, create a
-    // new bug issue first, then add it to the bug issue list for the trace key
-    const getIssueRequest = {
-      trace_keys: [traceKey],
-      begin_commit_position: commitPosition,
-      end_commit_position: commitPosition,
+    const saveIssueRequest = {
+      trace_key: traceKey,
+      commit_position: commitPosition,
+      issue_id: this.bug_id,
     };
-    try {
-      const json: GetUserIssuesForTraceKeysResponse = await fetch('/_/user_issues', {
-        method: 'POST',
-        body: JSON.stringify(getIssueRequest),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }).then(jsonOrThrow);
+    const saveUserIssueResp = await fetch('/_/user_issue/save', {
+      method: 'POST',
+      body: JSON.stringify(saveIssueRequest),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-      const userIssues: UserIssue[] = json.UserIssues || [];
-      let issueFound = false;
-      if (userIssues.length !== 0) {
-        userIssues.forEach((userIssue) => {
-          if (userIssue.IssueId === this._input_val) {
-            this.bug_id = this._input_val;
-            issueFound = true;
-          }
-        });
-      }
-
-      if (issueFound) {
-        this.issueExists = true;
-      } else {
-        await this.createNewBug();
-        this.issueExists = true;
-      }
-    } catch (json) {
-      const msg = await (json as Response).text();
-      errorMessage(`${(json as Response).statusText}: ${msg}`);
+    if (!saveUserIssueResp.ok) {
+      const msg = await saveUserIssueResp.text();
+      errorMessage(`${saveUserIssueResp.statusText}: ${msg}`);
+      return;
     }
+
+    this._input_val = 0;
+    this._text_input_active = false;
+
+    this.dispatchEvent(
+      new CustomEvent('user-issue-changed', {
+        detail: {
+          trace_key: this.trace_key,
+          commit_position: this.commit_position,
+          bug_id: this.bug_id,
+        },
+        bubbles: true,
+      })
+    );
+  }
+
+  private async saveExistingIssue() {
+    this.bug_id = this._input_val;
+    this.issueExists = true;
+    await this.saveIssue();
   }
 }
