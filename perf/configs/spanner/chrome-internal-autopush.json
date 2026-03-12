@@ -44,7 +44,7 @@
             "topic": "perf-ingestion-chrome-internal-autopush",
             "subscription": "perf-ingestion-chrome-internal-autopush",
             "sources": [
-                "gs://chrome-perf-autopush-non-public/ingest"
+                "gs://chrome-perf-non-public/ingest"
             ]
         },
         "branches": [],
