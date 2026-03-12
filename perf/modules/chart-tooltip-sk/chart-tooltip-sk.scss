@@ -67,10 +67,6 @@ chart-tooltip-sk {
       }
     }
 
-    button[hidden] {
-      display: None;
-    }
-
     .buttons {
       display: flex;
       width: 100%;
@@ -107,6 +103,10 @@ chart-tooltip-sk {
       user-issue-sk {
         display: inline-block;
       }
+    }
+
+    button[hidden] {
+      display: none !important;
     }
 
     #bisect {

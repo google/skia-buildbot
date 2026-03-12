@@ -166,5 +166,33 @@ describe('chart-tooltip-sk', () => {
       assert.equal(element.jsonSourceDialog!.cid, commit_position);
       assert.equal(element.jsonSourceDialog!.traceid, test_name);
     });
+
+    it('should hide pinpoint buttons when show_bisect_btn is false', () => {
+      window.perf.show_bisect_btn = false;
+      element = newInstance();
+      element.load(
+        1,
+        test_name,
+        '',
+        'ms',
+        y_value,
+        new Date(),
+        commit_position,
+        0,
+        null,
+        null,
+        null,
+        false,
+        null,
+        () => {},
+        undefined
+      );
+
+      const bisectButton = element.querySelector('#bisect') as HTMLButtonElement;
+      assert.isTrue(bisectButton.hidden);
+
+      const tryJobButton = element.querySelector('#try-job') as HTMLButtonElement;
+      assert.isTrue(tryJobButton.hidden);
+    });
   });
 });
