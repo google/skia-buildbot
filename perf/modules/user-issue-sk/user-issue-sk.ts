@@ -267,8 +267,9 @@ export class UserIssueSk extends LitElement {
   private async createNewBug() {
     this._loadingPopup.showModal();
     const body = {
-      trace_names: [this.trace_key],
+      trace_key: this.trace_key,
       commit_position: this.commit_position,
+      assignee: this.user_id,
     };
 
     try {

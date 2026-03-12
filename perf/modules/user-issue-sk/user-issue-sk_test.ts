@@ -108,7 +108,7 @@ describe('user-issue-sk', () => {
     });
   });
 
-  describe('addOrFindIssue', () => {
+  describe('saveissue', () => {
     it('finds an existing issue and displays the link', async () => {
       element.user_id = 'test@example.com';
       element.issueExists = false;
@@ -164,13 +164,21 @@ describe('user-issue-sk', () => {
     it('shows loading popup, calls create endpoint and redirects', async () => {
       element.user_id = 'test@example.com';
       element.bug_id = 0;
+      element.trace_key = 'test-trace';
+      element.commit_position = 100;
       await element.updateComplete;
 
       const addNewBugBtn = element.shadowRoot!.querySelectorAll(
         '.add-issue'
       )[1] as HTMLButtonElement;
 
-      fetchMock.post('/_/user_issue/create', { bug_id: 67890 });
+      fetchMock.post('/_/user_issue/create', (_, opts) => {
+        const body = JSON.parse(opts.body as string);
+        expect(body.trace_key).to.equal('test-trace');
+        expect(body.commit_position).to.equal(100);
+        expect(body.assignee).to.equal('test@example.com');
+        return { bug_id: 67890 };
+      });
 
       const windowOpenStub = sinon.stub(window, 'open');
 
@@ -179,9 +187,59 @@ describe('user-issue-sk', () => {
       await fetchMock.flush(true);
 
       expect(element.bug_id).to.equal(67890);
+      expect(element.issueExists).to.be.true;
       expect(windowOpenStub.calledWith('https://issues.chromium.org/issues/67890', '_blank')).to.be
         .true;
       windowOpenStub.restore();
+    });
+
+    it('dispatches user-issue-changed event on success', async () => {
+      element.user_id = 'test@example.com';
+      element.trace_key = 'test-trace';
+      element.commit_position = 100;
+      await element.updateComplete;
+
+      fetchMock.post('/_/user_issue/create', { bug_id: 67890 });
+      sinon.stub(window, 'open');
+
+      const eventPromise = new Promise<CustomEvent>((resolve) => {
+        element.addEventListener('user-issue-changed', (e) => {
+          resolve(e as CustomEvent);
+        });
+      });
+
+      const addNewBugBtn = element.shadowRoot!.querySelectorAll(
+        '.add-issue'
+      )[1] as HTMLButtonElement;
+      addNewBugBtn.click();
+
+      const event = await eventPromise;
+      expect(event.detail.bug_id).to.equal(67890);
+      expect(event.detail.trace_key).to.equal('test-trace');
+      expect(event.detail.commit_position).to.equal(100);
+
+      (window.open as sinon.SinonStub).restore();
+    });
+
+    it('handles errors during creation', async () => {
+      element.user_id = 'test@example.com';
+      await element.updateComplete;
+
+      fetchMock.post('/_/user_issue/create', 500);
+
+      const addNewBugBtn = element.shadowRoot!.querySelectorAll(
+        '.add-issue'
+      )[1] as HTMLButtonElement;
+
+      // We expect the error to be thrown and an error message to be shown.
+      const dialog = element.shadowRoot!.querySelector('#loading-popup') as HTMLDialogElement;
+      const closeSpy = sinon.spy(dialog, 'close');
+
+      addNewBugBtn.click();
+      await fetchMock.flush(true);
+
+      expect(closeSpy.called).to.be.true;
+      expect(element.issueExists).to.be.false;
     });
   });
 
