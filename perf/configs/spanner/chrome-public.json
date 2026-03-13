@@ -32,8 +32,9 @@
         "min_db_connections": 5
     },
     "experiments": {
-	"remove_default_stat_value": true,
-	"enable_skia_bridge_aggregation": true
+        "remove_default_stat_value": true,
+        "enable_skia_bridge_aggregation": true,
+        "regressions_trace_id_field": true
     },
     "ingestion_config": {
         "source_config": {

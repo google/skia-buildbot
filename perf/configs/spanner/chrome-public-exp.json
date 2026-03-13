@@ -30,6 +30,7 @@
         "tile_size": 8192
     },
     "experiments": {
+      "regressions_trace_id_field": true
     },
     "ingestion_config": {
         "source_config": {

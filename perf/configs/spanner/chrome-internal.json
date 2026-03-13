@@ -35,7 +35,8 @@
     },
     "experiments": {
         "enable_skia_bridge_aggregation": true,
-        "df_iter_trace_slicer": true
+        "df_iter_trace_slicer": true,
+        "regressions_trace_id_field": true
     },
     "ingestion_config": {
         "source_config": {

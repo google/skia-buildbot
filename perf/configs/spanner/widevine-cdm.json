@@ -28,6 +28,7 @@
         "enable_follower_reads": true
     },
     "experiments": {
+      "regressions_trace_id_field": true
     },
     "ingestion_config": {
         "source_config": {

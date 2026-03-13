@@ -33,7 +33,8 @@
         "traceparams_param_indexes": ["test", "subtest_1", "subtest_2", "benchmark", "bot", "stat"]
     },
     "experiments": {
-        "enable_skia_bridge_aggregation": true
+        "enable_skia_bridge_aggregation": true,
+        "regressions_trace_id_field": true
     },
     "ingestion_config": {
         "source_config": {
