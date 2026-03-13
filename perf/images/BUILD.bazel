@@ -11,4 +11,6 @@ exports_files([
     "germanium.webp",
     "alpine.png",
     "alpine_transparent.png",
+    "multigraph-sidebar.png",
+    "test-picker.png",
 ])

@@ -383,6 +383,7 @@ stack, with the goal of eventually deprecating the older system.
 
 | File                                                | Description                                                      |
 | --------------------------------------------------- | ---------------------------------------------------------------- |
+| [`multigraph-guide.md`](./multigraph-guide.md)      | User guide for the Multigraph feature.                           |
 | [`ai_generated_doc.md`](./docs/ai_generated_doc.md) | Overview of the system by Gemini                                 |
 | [`API.md`](./API.md)                                | How to use the HTTP/JSON API for alerts.                         |
 | [`BACKUPS.md`](./BACKUPS.md)                        | Instructions for backing up regression and alert data.           |
