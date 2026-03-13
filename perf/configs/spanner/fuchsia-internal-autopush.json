@@ -20,7 +20,7 @@
     },
     "data_store_config": {
       "datastore_type": "spanner",
-      "connection_string": "postgresql://root@localhost:5432/fuchsia_int?sslmode=disable",
+      "connection_string": "postgresql://root@localhost:5432/fuchsia_int_autopush?sslmode=disable",
       "tile_size": 256
     },
     "experiments": {
@@ -30,8 +30,8 @@
       "source_config": {
         "source_type": "gcs",
         "project": "skia-public",
-        "topic": "perf-ingestion-fuchsia-internal-spanner",
-        "subscription": "perf-ingestion-fuchsia-internal-spanner-prod",
+        "topic": "perf-ingestion-fuchsia-internal-autopush",
+        "subscription": "perf-ingestion-fuchsia-internal-autopush",
         "sources": [
           "gs://fuchsia-perf-non-public/ingest"
         ]

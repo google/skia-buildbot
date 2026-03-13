@@ -34,7 +34,7 @@
     },
     "data_store_config": {
       "datastore_type": "spanner",
-      "connection_string": "postgresql://root@localhost:5432/androidx?sslmode=disable",
+      "connection_string": "postgresql://root@localhost:5432/androidx_autopush?sslmode=disable",
       "tile_size": 512,
       "min_db_connections": 5
     },
@@ -44,8 +44,8 @@
       "source_config": {
         "source_type": "gcs",
         "project": "skia-public",
-        "topic": "perf-ingestion-android2-spanner-production",
-        "subscription": "perf-ingestion-android2-spanner-production-prod",
+        "topic": "perf-ingestion-android2-autopush",
+        "subscription": "perf-ingestion-android2-autopush",
         "sources": [
           "gs://android-perf-2/android2"
         ]
