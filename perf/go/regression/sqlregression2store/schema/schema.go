@@ -10,7 +10,7 @@ import (
 type Regression2Schema struct {
 	// The id for the regression.
 	// Changed from UUID to Text in https://b.corp.google.com/issues/492077374
-	ID string `sql:"id TEXT PRIMARY KEY DEFAULT gen_random_uuid()"`
+	ID string `sql:"id TEXT PRIMARY KEY DEFAULT spanner.generate_uuid()"`
 
 	// The commit_number where the regression occurred.
 	CommitNumber types.CommitNumber `sql:"commit_number INT"`

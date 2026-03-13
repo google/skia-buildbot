@@ -5,7 +5,7 @@ import "time"
 // AnomalyGroupSchemaSchema represents the SQL schema of the AnomalyGroups table.
 type AnomalyGroupSchema struct {
 	// Changed from UUID to Text in https://b.corp.google.com/issues/492077374
-	ID string `sql:"id TEXT PRIMARY KEY DEFAULT gen_random_uuid()"`
+	ID string `sql:"id TEXT PRIMARY KEY DEFAULT spanner.generate_uuid()"`
 
 	// The timestamp when the anomaly group is created.
 	CreationTime time.Time `sql:"creation_time TIMESTAMPTZ DEFAULT now()"`

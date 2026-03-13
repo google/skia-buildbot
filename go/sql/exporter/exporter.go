@@ -110,6 +110,7 @@ func (sc *SpannerConverter) updateColumnTypesForSpanner(sqlColumnText string, ta
 		}
 		if sc.PostgresUUID {
 			delete(typeReplacements, "UUID")
+			delete(typeReplacements, "gen_random_uuid()")
 		}
 
 		// unique_rowid() generates a unique integer identifier for int columns. This does not work in spanner.

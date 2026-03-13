@@ -5,7 +5,7 @@ package schema
 // the info needed the group issue map
 type CulpritSchema struct {
 	// Changed from UUID to Text in https://b.corp.google.com/issues/492077374
-	Id string `sql:"id TEXT PRIMARY KEY DEFAULT gen_random_uuid()"`
+	Id string `sql:"id TEXT PRIMARY KEY DEFAULT spanner.generate_uuid()"`
 
 	// Repo this change belongs to e.g. chromium.googlesource.com
 	Host string `sql:"host STRING"`
