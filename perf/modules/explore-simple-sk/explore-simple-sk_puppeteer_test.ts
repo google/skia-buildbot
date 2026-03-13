@@ -394,7 +394,7 @@ describe('explore-simple-sk', () => {
     it('verify <Existing bug> action in the tooltip', async () => {
       const { triageMenuPO } = await OpenTooltip();
 
-      await triageMenuPO.ignoreButton.click();
+      await triageMenuPO.existingBugButton.click();
       // Wait to get a response.
       await new Promise((r) => setTimeout(r, 500));
     });

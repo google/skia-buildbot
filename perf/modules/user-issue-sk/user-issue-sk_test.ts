@@ -77,8 +77,8 @@ describe('user-issue-sk', () => {
       await element.updateComplete;
       const buttons = element.shadowRoot!.querySelectorAll('.add-issue');
       expect(buttons.length).to.equal(2);
-      expect(buttons[0].textContent).to.equal('Add Existing Bug');
-      expect(buttons[1].textContent).to.equal('Add New Bug');
+      expect(buttons[0].textContent).to.equal('Existing issue');
+      expect(buttons[1].textContent).to.equal('New Issue');
     });
 
     it('renders bug link with delete when logged in and issue exists', async () => {

@@ -180,15 +180,30 @@ export class ChartTooltipSk extends ElementSk {
       ${ele.getCommitInfo()} ${ele.anomalyTemplate()}
       <triage-menu-sk id="triage-menu" ?hidden=${!(ele.anomaly && ele.anomaly!.bug_id === 0)}>
       </triage-menu-sk>
-      <div class="buttons">
-        <button id="bisect" @click=${ele.openBisectDialog} ?hidden=${!ele.show_bisect_button}>
-          Bisect
-        </button>
-        <button id="try-job" @click=${ele.openTryJobDialog} ?hidden=${!ele._show_pinpoint_buttons}>
-          Request Trace
-        </button>
-        <user-issue-sk id="tooltip-user-issue-sk" ?hidden=${ele.anomaly}></user-issue-sk>
-      </div>
+      <ul class="table" ?hidden=${!ele.show_bisect_button && !ele._show_pinpoint_buttons}>
+        <li>
+          <span id="tooltip-key">Pinpoint</span>
+          <div class="buttons">
+            <button id="bisect" @click=${ele.openBisectDialog} ?hidden=${!ele.show_bisect_button}>
+              Bisect
+            </button>
+            <button
+              id="try-job"
+              @click=${ele.openTryJobDialog}
+              ?hidden=${!ele._show_pinpoint_buttons}>
+              Request Trace
+            </button>
+          </div>
+        </li>
+      </ul>
+      <ul class="table" ?hidden=${!!ele.anomaly}>
+        <li>
+          <span id="tooltip-key">User Issues</span>
+          <div class="buttons">
+            <user-issue-sk id="tooltip-user-issue-sk"></user-issue-sk>
+          </div>
+        </li>
+      </ul>
       <div id="json-source-dialog" ?hidden=${!ele._show_json_source}>
         <json-source-sk id="json-source-sk"></json-source-sk>
       </div>

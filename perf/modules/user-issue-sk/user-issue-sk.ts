@@ -255,8 +255,8 @@ export class UserIssueSk extends LitElement {
 
     return html`
       <div class="add-issue-container">
-        <button class="add-issue" @click=${this.activateTextInput}>Add Existing Bug</button>
-        <button class="add-issue" @click=${this.createNewBug}>Add New Bug</button>
+        <button class="add-issue" @click=${this.activateTextInput}>Existing issue</button>
+        <button class="add-issue" @click=${this.createNewBug}>New Issue</button>
       </div>
     `;
   }

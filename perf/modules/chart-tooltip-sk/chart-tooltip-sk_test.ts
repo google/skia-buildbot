@@ -194,5 +194,70 @@ describe('chart-tooltip-sk', () => {
       const tryJobButton = element.querySelector('#try-job') as HTMLButtonElement;
       assert.isTrue(tryJobButton.hidden);
     });
+
+    it('should hide Pinpoint text when no pinpoint buttons are shown', () => {
+      window.perf.show_bisect_btn = false;
+      window.perf.git_repo_url = ''; // to ensure _show_pinpoint_buttons is false
+      element = newInstance();
+
+      element.load(
+        1,
+        test_name,
+        '',
+        'ms',
+        y_value,
+        new Date(),
+        commit_position,
+        0,
+        null,
+        null,
+        null,
+        false,
+        null,
+        () => {},
+        undefined
+      );
+
+      const tooltipKeys = element.querySelectorAll('#tooltip-key');
+      let pinpointKey: HTMLElement | null = null;
+      tooltipKeys.forEach((el) => {
+        if (el.textContent === 'Pinpoint') {
+          pinpointKey = el as HTMLElement;
+        }
+      });
+      assert.isNotNull(pinpointKey);
+      assert.isTrue(pinpointKey!.parentElement!.parentElement!.hidden);
+    });
+
+    it('should hide User Issues text when anomaly is present', () => {
+      element = newInstance();
+      element.load(
+        1,
+        test_name,
+        '',
+        'ms',
+        y_value,
+        new Date(),
+        commit_position,
+        0,
+        dummyAnomaly(12345),
+        null,
+        null,
+        false,
+        null,
+        () => {},
+        undefined
+      );
+
+      const tooltipKeys = element.querySelectorAll('#tooltip-key');
+      let userIssuesKey: HTMLElement | null = null;
+      tooltipKeys.forEach((el) => {
+        if (el.textContent === 'User Issues') {
+          userIssuesKey = el as HTMLElement;
+        }
+      });
+      assert.isNotNull(userIssuesKey);
+      assert.isTrue(userIssuesKey!.parentElement!.parentElement!.hidden);
+    });
   });
 });

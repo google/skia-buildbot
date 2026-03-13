@@ -66,6 +66,9 @@ chart-tooltip-sk {
         color: var(--primary);
       }
     }
+    ul.table[hidden] {
+      display: none !important;
+    }
 
     .buttons {
       display: flex;
