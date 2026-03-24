@@ -14,9 +14,8 @@
  * @attr {Number} end - The end of the time range in seconds since the epoch.
  *
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html, LitElement } from 'lit';
+import { property, customElement } from 'lit/decorators.js';
 import '../calendar-input-sk';
 
 export interface DayRangeSkChangeDetail {
@@ -32,42 +31,33 @@ function dateFromTimestamp(timestamp: number) {
   return new Date(timestamp * 1000);
 }
 
-export class DayRangeSk extends ElementSk {
-  constructor() {
-    super(DayRangeSk.template);
+@customElement('day-range-sk')
+export class DayRangeSk extends LitElement {
+  @property({ type: Number })
+  begin = Math.floor(Date.now() / 1000) - 24 * 60 * 60;
+
+  @property({ type: Number })
+  end = Math.floor(Date.now() / 1000);
+
+  createRenderRoot() {
+    return this;
   }
 
-  private static template = (ele: DayRangeSk) => html`
-    <label class="begin">
-      Begin
-      <calendar-input-sk
-        @input=${ele._beginChanged}
-        .displayDate=${dateFromTimestamp(ele.begin)}></calendar-input-sk>
-    </label>
-    <label class="end">
-      End
-      <calendar-input-sk
-        @input=${ele._endChanged}
-        .displayDate=${dateFromTimestamp(ele.end)}></calendar-input-sk>
-    </label>
-  `;
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._upgradeProperty('begin');
-    this._upgradeProperty('end');
-    const now = Date.now();
-    if (!this.begin) {
-      this.begin = now / 1000 - 24 * 60 * 60;
-    }
-    if (!this.end) {
-      this.end = now / 1000;
-    }
-    this._render();
-  }
-
-  attributeChangedCallback(): void {
-    this._render();
+  protected render() {
+    return html`
+      <label class="begin">
+        Begin
+        <calendar-input-sk
+          @input=${this._beginChanged}
+          .displayDate=${dateFromTimestamp(this.begin)}></calendar-input-sk>
+      </label>
+      <label class="end">
+        End
+        <calendar-input-sk
+          @input=${this._endChanged}
+          .displayDate=${dateFromTimestamp(this.end)}></calendar-input-sk>
+      </label>
+    `;
   }
 
   private _sendEvent() {
@@ -92,28 +82,4 @@ export class DayRangeSk extends ElementSk {
     this.end = Math.floor(e.detail.valueOf() / 1000);
     this._sendEvent();
   }
-
-  static get observedAttributes(): string[] {
-    return ['begin', 'end'];
-  }
-
-  /** Mirrors the 'begin' attribute. */
-  get begin(): number {
-    return +(this.getAttribute('begin') || '0');
-  }
-
-  set begin(val: number) {
-    this.setAttribute('begin', `${val}`);
-  }
-
-  /** @prop end - Mirrors the 'end' attribute. */
-  get end(): number {
-    return +(this.getAttribute('end') || '0');
-  }
-
-  set end(val: number) {
-    this.setAttribute('end', `${val}`);
-  }
 }
-
-define('day-range-sk', DayRangeSk);

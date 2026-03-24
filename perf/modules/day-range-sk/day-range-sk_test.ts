@@ -10,10 +10,11 @@ describe('day-range-sk', () => {
   let element: DayRangeSk;
   let clock: sinon.SinonFakeTimers;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Set a fixed time: 2026-01-12T12:00:00Z
     clock = sinon.useFakeTimers(new Date('2026-01-12T12:00:00Z').getTime());
     element = newInstance();
+    await element.updateComplete;
   });
 
   afterEach(() => {
