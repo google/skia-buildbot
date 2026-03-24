@@ -36,16 +36,19 @@ describe('calendar-sk', () => {
   });
   describe('year', () => {
     it('decrements when button is clicked', () =>
-      window.customElements.whenDefined('calendar-sk').then(() => {
+      window.customElements.whenDefined('calendar-sk').then(async () => {
         calendarSk.querySelector<HTMLButtonElement>('#previous-year')!.click();
+        await calendarSk.updateComplete;
 
         const year = calendarSk.querySelector<HTMLHeadingElement>('#calendar-year')!.innerText;
         assert.equal(year, '2019', 'Year has changed.');
         assert.equal(getSelectedDate(), 21, 'Selected date has not changed.');
       }));
+
     it('increments when button is clicked', () =>
-      window.customElements.whenDefined('calendar-sk').then(() => {
+      window.customElements.whenDefined('calendar-sk').then(async () => {
         calendarSk.querySelector<HTMLButtonElement>('#next-year')!.click();
+        await calendarSk.updateComplete;
 
         const year = calendarSk.querySelector<HTMLHeadingElement>('#calendar-year')!.innerText;
         assert.equal(year, '2021', 'Year has changed.');
@@ -54,16 +57,19 @@ describe('calendar-sk', () => {
   });
   describe('month', () => {
     it('decrements when button is clicked', () =>
-      window.customElements.whenDefined('calendar-sk').then(() => {
+      window.customElements.whenDefined('calendar-sk').then(async () => {
         calendarSk.querySelector<HTMLButtonElement>('#previous-month')!.click();
+        await calendarSk.updateComplete;
 
         const year = calendarSk.querySelector<HTMLHeadingElement>('#calendar-month')!.innerText;
         assert.equal(year, 'April', 'Month has changed.');
         assert.equal(getSelectedDate(), 21, 'Selected date has not changed.');
       }));
+
     it('increments when button is clicked', () =>
-      window.customElements.whenDefined('calendar-sk').then(() => {
+      window.customElements.whenDefined('calendar-sk').then(async () => {
         calendarSk.querySelector<HTMLButtonElement>('#next-month')!.click();
+        await calendarSk.updateComplete;
 
         const year = calendarSk.querySelector<HTMLHeadingElement>('#calendar-month')!.innerText;
         assert.equal(year, 'June', 'Month has changed.');
@@ -72,8 +78,9 @@ describe('calendar-sk', () => {
   });
   describe('keyboard', () => {
     it('moves to next day when ArrowRight is pressed', () =>
-      window.customElements.whenDefined('calendar-sk').then(() => {
+      window.customElements.whenDefined('calendar-sk').then(async () => {
         calendarSk.keyboardHandler(new KeyboardEvent('keydown', { code: 'ArrowRight' }));
+        await calendarSk.updateComplete;
 
         assert.equal(
           new Date(2020, 4, 22).toDateString(),
@@ -82,9 +89,11 @@ describe('calendar-sk', () => {
         );
         assert.equal(getSelectedDate(), 22, 'Selected date has changed.');
       }));
+
     it('moves to previous day when ArrowLeft is pressed', () =>
-      window.customElements.whenDefined('calendar-sk').then(() => {
+      window.customElements.whenDefined('calendar-sk').then(async () => {
         calendarSk.keyboardHandler(new KeyboardEvent('keydown', { code: 'ArrowLeft' }));
+        await calendarSk.updateComplete;
 
         assert.equal(
           new Date(2020, 4, 20).toDateString(),
@@ -93,9 +102,11 @@ describe('calendar-sk', () => {
         );
         assert.equal(getSelectedDate(), 20, 'Selected date has changed.');
       }));
+
     it('moves to previous week when ArrowUp is pressed', () =>
-      window.customElements.whenDefined('calendar-sk').then(() => {
+      window.customElements.whenDefined('calendar-sk').then(async () => {
         calendarSk.keyboardHandler(new KeyboardEvent('keydown', { code: 'ArrowUp' }));
+        await calendarSk.updateComplete;
 
         assert.equal(
           new Date(2020, 4, 14).toDateString(),
@@ -104,9 +115,11 @@ describe('calendar-sk', () => {
         );
         assert.equal(getSelectedDate(), 14, 'Selected date has changed.');
       }));
+
     it('moves to next week when ArrowDown is pressed', () =>
-      window.customElements.whenDefined('calendar-sk').then(() => {
+      window.customElements.whenDefined('calendar-sk').then(async () => {
         calendarSk.keyboardHandler(new KeyboardEvent('keydown', { code: 'ArrowDown' }));
+        await calendarSk.updateComplete;
 
         assert.equal(
           new Date(2020, 4, 28).toDateString(),
@@ -117,8 +130,9 @@ describe('calendar-sk', () => {
       }));
 
     it('moves to previous month when PageUp is pressed', () =>
-      window.customElements.whenDefined('calendar-sk').then(() => {
+      window.customElements.whenDefined('calendar-sk').then(async () => {
         calendarSk.keyboardHandler(new KeyboardEvent('keydown', { code: 'PageUp' }));
+        await calendarSk.updateComplete;
 
         assert.equal(
           new Date(2020, 3, 21).toDateString(),
@@ -127,9 +141,11 @@ describe('calendar-sk', () => {
         );
         assert.equal(getSelectedDate(), 21, 'Selected date has not changed.');
       }));
+
     it('moves to next month when PageDown is pressed', () =>
-      window.customElements.whenDefined('calendar-sk').then(() => {
+      window.customElements.whenDefined('calendar-sk').then(async () => {
         calendarSk.keyboardHandler(new KeyboardEvent('keydown', { code: 'PageDown' }));
+        await calendarSk.updateComplete;
 
         assert.equal(
           new Date(2020, 5, 21).toDateString(),

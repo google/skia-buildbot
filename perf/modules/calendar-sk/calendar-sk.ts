@@ -21,9 +21,8 @@
  * detached to/from the appropriate containing element when it is used, for
  * example, a containing 'dialog' element.
  */
-import { html, TemplateResult } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html, TemplateResult, LitElement } from 'lit';
+import { property, state, customElement } from 'lit/decorators.js';
 import '../../../elements-sk/modules/icons/navigate-before-icon-sk';
 import '../../../elements-sk/modules/icons/navigate-next-icon-sk';
 
@@ -77,89 +76,91 @@ class CalendarDate {
   }
 }
 
-export class CalendarSk extends ElementSk {
+@customElement('calendar-sk')
+export class CalendarSk extends LitElement {
+  @state()
   private _displayDate: Date = new Date();
 
-  private _weekDayHeader: TemplateResult = html``;
+  @property()
+  public locale: string | string[] | undefined = undefined;
 
-  private _locale: string | string[] | undefined = undefined;
-
-  constructor() {
-    super(CalendarSk.template);
+  createRenderRoot() {
+    return this;
   }
 
-  private static template = (ele: CalendarSk) => html`
-    <table class="calendar">
-      <tr>
-        <th>
-          <button
-            @click=${ele.decYear}
-            aria-label="Previous year"
-            title="Previous year"
-            id="previous-year">
-            <navigate-before-icon-sk></navigate-before-icon-sk>
-          </button>
-        </th>
-        <th colspan="5">
-          <h2 aria-live="polite" id="calendar-year">
-            ${new Intl.DateTimeFormat(ele._locale, { year: 'numeric' }).format(ele._displayDate)}
-          </h2>
-        </th>
-        <th>
-          <button @click=${ele.incYear} aria-label="Next year" title="Next year" id="next-year">
-            <navigate-next-icon-sk></navigate-next-icon-sk>
-          </button>
-        </th>
-      </tr>
-      <tr>
-        <th>
-          <button
-            @click=${ele.decMonth}
-            aria-label="Previous month"
-            title="Previous month"
-            id="previous-month">
-            <navigate-before-icon-sk></navigate-before-icon-sk>
-          </button>
-        </th>
-        <th colspan="5">
-          <h2 aria-live="polite" id="calendar-month">
-            ${new Intl.DateTimeFormat(ele._locale, { month: 'long' }).format(ele._displayDate)}
-          </h2>
-        </th>
-        <th>
-          <button @click=${ele.incMonth} aria-label="Next month" title="Next month" id="next-month">
-            <navigate-next-icon-sk></navigate-next-icon-sk>
-          </button>
-        </th>
-      </tr>
-      ${ele._weekDayHeader} ${sixWeeks.map((i) => CalendarSk.rowTemplate(ele, i))}
-    </table>
-  `;
+  protected render() {
+    return html`
+      <table class="calendar">
+        <tr>
+          <th>
+            <button
+              @click=${this.decYear}
+              aria-label="Previous year"
+              title="Previous year"
+              id="previous-year">
+              <navigate-before-icon-sk></navigate-before-icon-sk>
+            </button>
+          </th>
+          <th colspan="5">
+            <h2 aria-live="polite" id="calendar-year">
+              ${new Intl.DateTimeFormat(this.locale, { year: 'numeric' }).format(this._displayDate)}
+            </h2>
+          </th>
+          <th>
+            <button @click=${this.incYear} aria-label="Next year" title="Next year" id="next-year">
+              <navigate-next-icon-sk></navigate-next-icon-sk>
+            </button>
+          </th>
+        </tr>
+        <tr>
+          <th>
+            <button
+              @click=${this.decMonth}
+              aria-label="Previous month"
+              title="Previous month"
+              id="previous-month">
+              <navigate-before-icon-sk></navigate-before-icon-sk>
+            </button>
+          </th>
+          <th colspan="5">
+            <h2 aria-live="polite" id="calendar-month">
+              ${new Intl.DateTimeFormat(this.locale, { month: 'long' }).format(this._displayDate)}
+            </h2>
+          </th>
+          <th>
+            <button
+              @click=${this.incMonth}
+              aria-label="Next month"
+              title="Next month"
+              id="next-month">
+              <navigate-next-icon-sk></navigate-next-icon-sk>
+            </button>
+          </th>
+        </tr>
+        ${this.weekDayHeaderTemplate()} ${sixWeeks.map((i) => this.rowTemplate(i))}
+      </table>
+    `;
+  }
 
-  private static buttonForDateTemplate = (
-    ele: CalendarSk,
-    date: number,
-    daysInMonth: number,
-    selected: boolean
-  ) => {
+  private buttonForDateTemplate(date: number, daysInMonth: number, selected: boolean) {
     if (date < 1 || date > daysInMonth) {
       return html``;
     }
     return html`
       <button
         class="action"
-        @click=${ele.dateClick}
+        @click=${this.dateClick}
         data-date=${date}
         tabindex=${selected ? 0 : -1}
         aria-selected=${selected}>
         ${date}
       </button>
     `;
-  };
+  }
 
-  private static rowTemplate = (ele: CalendarSk, weekIndex: number) => {
-    const year = ele.displayYear();
-    const monthIndex = ele.displayMonthIndex();
+  private rowTemplate(weekIndex: number) {
+    const year = this.displayYear();
+    const monthIndex = this.displayMonthIndex();
     const today = new CalendarDate(new Date());
 
     // If June starts on a Tuesday then IndexOfTheFirstDayOfTheMonth = 2,
@@ -167,8 +168,8 @@ export class CalendarSk extends ElementSk {
     // two days (Sunday and Monday) blank.
     const firstDayOfTheMonthIndex = firstDayIndexOfMonth(year, monthIndex);
     const daysInMonth = getNumberOfDaysInMonth(year, monthIndex);
-    const selectedDate = ele._displayDate.getDate();
-    const currentDate = new CalendarDate(ele._displayDate);
+    const selectedDate = this._displayDate.getDate();
+    const currentDate = new CalendarDate(this._displayDate);
     return html`
       <tr>
         ${sevenDaysInAWeek.map((i) => {
@@ -181,18 +182,34 @@ export class CalendarSk extends ElementSk {
             ${currentDate.equal(today) ? 'today' : ''}
             ${selected ? 'selected' : ''}
           ">
-              ${CalendarSk.buttonForDateTemplate(ele, date, daysInMonth, selected)}
+              ${this.buttonForDateTemplate(date, daysInMonth, selected)}
             </td>
           `;
         })}
       </tr>
     `;
-  };
+  }
 
-  connectedCallback(): void {
-    super.connectedCallback();
-    this.buildWeekDayHeader();
-    this._render();
+  private weekDayHeaderTemplate(): TemplateResult {
+    const narrowFormatter = new Intl.DateTimeFormat(this.locale, {
+      weekday: 'narrow',
+    });
+    const longFormatter = new Intl.DateTimeFormat(this.locale, {
+      weekday: 'long',
+    });
+    return html`
+      <tr class="weekdayHeader">
+        ${sevenDaysInAWeek.map(
+          (i) => html`
+            <td>
+              <span abbr="${longFormatter.format(new Date(2020, 2, i + 1))}">
+                ${narrowFormatter.format(new Date(2020, 2, i + 1))}
+              </span>
+            </td>
+          `
+        )}
+      </tr>
+    `;
   }
 
   /**
@@ -240,29 +257,6 @@ export class CalendarSk extends ElementSk {
     }
   }
 
-  private buildWeekDayHeader() {
-    // March 1, 2020 falls on a Sunday, use that to generate the week day headers.
-    const narrowFormatter = new Intl.DateTimeFormat(this._locale, {
-      weekday: 'narrow',
-    });
-    const longFormatter = new Intl.DateTimeFormat(this._locale, {
-      weekday: 'long',
-    });
-    this._weekDayHeader = html`
-      <tr class="weekdayHeader">
-        ${sevenDaysInAWeek.map(
-          (i) => html`
-            <td>
-              <span abbr="${longFormatter.format(new Date(2020, 2, i + 1))}">
-                ${narrowFormatter.format(new Date(2020, 2, i + 1))}
-              </span>
-            </td>
-          `
-        )}
-      </tr>
-    `;
-  }
-
   private dateClick(e: MouseEvent) {
     const d = new Date(this._displayDate);
     d.setDate(+(e.target as HTMLButtonElement).dataset.date!);
@@ -273,7 +267,6 @@ export class CalendarSk extends ElementSk {
       })
     );
     this._displayDate = d;
-    this._render();
   }
 
   private displayYear(): number {
@@ -293,7 +286,6 @@ export class CalendarSk extends ElementSk {
       date = daysInMonth;
     }
     this._displayDate = new Date(year + 1, monthIndex, date);
-    this._render();
   }
 
   private decYear() {
@@ -305,7 +297,6 @@ export class CalendarSk extends ElementSk {
       date = daysInMonth;
     }
     this._displayDate = new Date(year - 1, monthIndex, date);
-    this._render();
   }
 
   private incMonth() {
@@ -325,7 +316,6 @@ export class CalendarSk extends ElementSk {
     }
 
     this._displayDate = new Date(year, monthIndex, date);
-    this._render();
   }
 
   private decMonth() {
@@ -345,7 +335,6 @@ export class CalendarSk extends ElementSk {
     }
 
     this._displayDate = new Date(year, monthIndex, date);
-    this._render();
   }
 
   private incDay() {
@@ -353,7 +342,6 @@ export class CalendarSk extends ElementSk {
     const monthIndex = this.displayMonthIndex();
     const date = this._displayDate.getDate();
     this._displayDate = new Date(year, monthIndex, date + 1);
-    this._render();
   }
 
   private decDay() {
@@ -361,7 +349,6 @@ export class CalendarSk extends ElementSk {
     const monthIndex = this.displayMonthIndex();
     const date = this._displayDate.getDate();
     this._displayDate = new Date(year, monthIndex, date - 1);
-    this._render();
   }
 
   private incWeek() {
@@ -369,7 +356,6 @@ export class CalendarSk extends ElementSk {
     const monthIndex = this.displayMonthIndex();
     const date = this._displayDate.getDate();
     this._displayDate = new Date(year, monthIndex, date + 7);
-    this._render();
   }
 
   private decWeek() {
@@ -377,7 +363,6 @@ export class CalendarSk extends ElementSk {
     const monthIndex = this.displayMonthIndex();
     const date = this._displayDate.getDate();
     this._displayDate = new Date(year, monthIndex, date - 7);
-    this._render();
   }
 
   /** The date to display on the calendar. */
@@ -387,22 +372,5 @@ export class CalendarSk extends ElementSk {
 
   set displayDate(v: Date) {
     this._displayDate = v;
-    this._render();
-  }
-
-  /**
-   * Leave as undefined to use the browser settings. Only really used for
-   * testing.
-   */
-  public get locale(): string | string[] | undefined {
-    return this._locale;
-  }
-
-  public set locale(v: string | string[] | undefined) {
-    this._locale = v;
-    this.buildWeekDayHeader();
-    this._render();
   }
 }
-
-define('calendar-sk', CalendarSk);

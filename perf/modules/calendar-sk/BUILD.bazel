@@ -11,11 +11,7 @@ sk_element(
         "//elements-sk/modules/icons/navigate-before-icon-sk",
         "//elements-sk/modules/icons/navigate-next-icon-sk",
     ],
-    ts_deps = [
-        "//:node_modules/lit",
-        "//elements-sk/modules:define_ts_lib",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
-    ],
+    ts_deps = ["//:node_modules/lit"],
     ts_srcs = [
         "calendar-sk.ts",
         "index.ts",
