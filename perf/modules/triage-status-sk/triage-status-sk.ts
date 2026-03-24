@@ -10,10 +10,9 @@
  *    alert, cluster_type, full_summary, and triage.
  *
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import '../tricon2-sk';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { FullSummary, TriageStatus, Alert } from '../json';
 
 export type ClusterType = 'high' | 'low';
@@ -27,43 +26,37 @@ export interface TriageStatusSkStartTriageEventDetails {
   element: TriageStatusSk;
 }
 
-export class TriageStatusSk extends ElementSk {
-  private _triage: TriageStatus;
+@customElement('triage-status-sk')
+export class TriageStatusSk extends LitElement {
+  @property({ type: Object })
+  triage: TriageStatus = {
+    status: 'untriaged',
+    message: '(none)',
+  };
 
-  private _full_summary: FullSummary | null;
+  @property({ type: Object })
+  full_summary: FullSummary | null = null;
 
-  private _alert: Alert | null;
+  @property({ type: Object })
+  alert: Alert | null = null;
 
-  private _cluster_type: ClusterType;
+  @property({ type: String })
+  cluster_type: ClusterType = 'low';
 
-  constructor() {
-    super(TriageStatusSk.template);
-    this._triage = {
-      status: 'untriaged',
-      message: '(none)',
-    };
-    this._full_summary = null;
-    this._alert = null;
-    this._cluster_type = 'low';
+  createRenderRoot() {
+    return this;
   }
 
-  private static template = (ele: TriageStatusSk) => html`
-    <button title=${ele.triage.message} @click=${ele._start_triage} class=${ele.triage.status}>
-      <tricon2-sk class="inside_status" value=${ele.triage.status}></tricon2-sk>
-    </button>
-  `;
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._render();
-    this._upgradeProperty('alert');
-    this._upgradeProperty('cluster_type');
-    this._upgradeProperty('full_summary');
-    this._upgradeProperty('triage');
+  render() {
+    return html`
+      <button title=${this.triage.message} @click=${this._start_triage} class=${this.triage.status}>
+        <tricon2-sk class="inside_status" value=${this.triage.status}></tricon2-sk>
+      </button>
+    `;
   }
 
   private _start_triage() {
-    const detail = {
+    const detail: TriageStatusSkStartTriageEventDetails = {
       full_summary: this.full_summary,
       triage: this.triage,
       alert: this.alert,
@@ -77,43 +70,4 @@ export class TriageStatusSk extends ElementSk {
       })
     );
   }
-
-  /** The config this cluster is associated with. */
-  get alert(): Alert | null {
-    return this._alert;
-  }
-
-  set alert(val: Alert | null) {
-    this._alert = val;
-  }
-
-  /** The type of cluster. */
-  get cluster_type(): ClusterType {
-    return this._cluster_type;
-  }
-
-  set cluster_type(val: ClusterType) {
-    this._cluster_type = val;
-  }
-
-  /** A serialized ClusterSummary and FrameResponse. */
-  get full_summary(): FullSummary | null {
-    return this._full_summary;
-  }
-
-  set full_summary(val: FullSummary | null) {
-    this._full_summary = val;
-  }
-
-  /** The triage status of the cluster. */
-  get triage(): TriageStatus {
-    return this._triage;
-  }
-
-  set triage(val: TriageStatus) {
-    this._triage = val;
-    this._render();
-  }
 }
-
-define('triage-status-sk', TriageStatusSk);

@@ -7,8 +7,9 @@ describe('triage-status-sk', () => {
   const newInstance = setUpElementUnderTest<TriageStatusSk>('triage-status-sk');
 
   let element: TriageStatusSk;
-  beforeEach(() => {
+  beforeEach(async () => {
     element = newInstance();
+    await element.updateComplete;
   });
 
   it('renders initial status', () => {
@@ -17,8 +18,9 @@ describe('triage-status-sk', () => {
     assert.equal(button.title, '(none)');
   });
 
-  it('updates when triage property is set', () => {
+  it('updates when triage property is set', async () => {
     element.triage = { status: 'positive', message: 'Confirmed regression' };
+    await element.updateComplete;
     const button = element.querySelector('button')!;
     assert.equal(button.className, 'positive');
     assert.equal(button.title, 'Confirmed regression');
@@ -36,6 +38,7 @@ describe('triage-status-sk', () => {
     element.full_summary = fullSummary;
     element.alert = alert;
     element.cluster_type = 'high';
+    await element.updateComplete;
 
     const eventPromise = new Promise<CustomEvent<TriageStatusSkStartTriageEventDetails>>(
       (resolve) => {
