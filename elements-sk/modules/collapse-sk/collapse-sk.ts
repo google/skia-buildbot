@@ -25,26 +25,15 @@
  *     collapse, i.e., transition to display: none.
  *
  */
-import { define } from '../define';
-import { upgradeProperty } from '../upgradeProperty';
+import { LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
-export class CollapseSk extends HTMLElement {
-  connectedCallback(): void {
-    upgradeProperty(this, 'closed');
-  }
+@customElement('collapse-sk')
+export class CollapseSk extends LitElement {
+  @property({ type: Boolean, reflect: true })
+  closed = false;
 
-  /** Mirrors the closed attribute. */
-  get closed(): boolean {
-    return this.hasAttribute('closed');
-  }
-
-  set closed(val: boolean) {
-    if (val) {
-      this.setAttribute('closed', '');
-    } else {
-      this.removeAttribute('closed');
-    }
+  createRenderRoot() {
+    return this;
   }
 }
-
-define('collapse-sk', CollapseSk);
