@@ -9,13 +9,12 @@ import '../../../elements-sk/modules/icons/delete-icon-sk';
 import '../../../elements-sk/modules/icons/create-icon-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import '../alert-config-sk';
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
 import { fromObject, toParamSet } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
 import { FrameResponse, Alert, ConfigState, ReadOnlyParamSet } from '../json';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
@@ -28,18 +27,28 @@ const okOrThrow = async (resp: Response) => {
   }
 };
 
-export class AlertsPageSk extends ElementSk {
+@customElement('alerts-page-sk')
+export class AlertsPageSk extends LitElement {
+  @state()
   private _cfg: Alert | null = null;
 
+  @state()
   private paramset = ReadOnlyParamSet({});
 
+  @state()
   private alerts: Alert[] = [];
 
+  @state()
   private showDeleted: boolean = false;
 
+  @state()
   private isEditor: boolean = false;
 
+  @state()
   private email: string = '';
+
+  @state()
+  private isDataLoaded: boolean = false;
 
   private origCfg: Alert | null = null;
 
@@ -48,53 +57,62 @@ export class AlertsPageSk extends ElementSk {
   private alertconfig: AlertConfigSk | null = null;
 
   constructor() {
-    super(AlertsPageSk.template);
+    super();
     void LoggedIn().then((value: Status) => {
       if (!value.roles) {
         return;
       }
       this.isEditor = value.roles.includes('editor');
       this.email = value.email;
-      this._render();
     });
   }
 
-  private static template = (ele: AlertsPageSk) => html`
-    <dialog>
-      <alert-config-sk
-        id="alertconfig"
-        .paramset=${ele.paramset}
-        .config=${ele.cfg}></alert-config-sk>
-      <div class="dialogButtons">
-        <button class="cancel" @click=${ele.cancel}>Cancel</button>
-        <button class="accept" @click=${ele.accept}>Accept</button>
-      </div>
-    </dialog>
-    <button class="action" @click=${ele.add} ?disabled=${!ele.isEditor} title="Create a new alert.">
-      New
-    </button>
-    <table id="alerts-table">
-      <tr>
-        <th></th>
-        <th>Name</th>
-        <th>Query</th>
-        <th>${AlertsPageSk.alertOrComponentHeader()}</th>
-        ${window.perf.need_alert_action === true ? html` <th>Action</th> ` : html``}
-        <th>Owner</th>
-        <th></th>
-        <th></th>
-        <th></th>
-        <th></th>
-      </tr>
-      ${AlertsPageSk.rows(ele)}
-    </table>
-    <div class="warning" ?hidden=${!!ele.alerts.length}>No alerts have been configured.</div>
-    <checkbox-sk
-      ?checked=${ele.showDeleted}
-      @change=${ele.showChanged}
-      label="Show deleted configs."
-      id="showDeletedConfigs"></checkbox-sk>
-  `;
+  createRenderRoot() {
+    return this;
+  }
+
+  render() {
+    return html`
+      <dialog>
+        <alert-config-sk
+          id="alertconfig"
+          .paramset=${this.paramset}
+          .config=${this.cfg}></alert-config-sk>
+        <div class="dialogButtons">
+          <button class="cancel" @click=${this.cancel}>Cancel</button>
+          <button class="accept" @click=${this.accept}>Accept</button>
+        </div>
+      </dialog>
+      <button
+        class="action"
+        @click=${this.add}
+        ?disabled=${!this.isEditor}
+        title="Create a new alert.">
+        New
+      </button>
+      <table id="alerts-table">
+        <tr>
+          <th></th>
+          <th>Name</th>
+          <th>Query</th>
+          <th>${this.alertOrComponentHeader()}</th>
+          ${window.perf.need_alert_action === true ? html` <th>Action</th> ` : html``}
+          <th>Owner</th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+        ${this.rows()}
+      </table>
+      <div class="warning" ?hidden=${!!this.alerts.length}>No alerts have been configured.</div>
+      <checkbox-sk
+        ?checked=${this.showDeleted}
+        @change=${this.showChanged}
+        label="Show deleted configs."
+        id="showDeletedConfigs"></checkbox-sk>
+    `;
+  }
 
   private static validate(alert: Alert): string {
     if (!alert.query) {
@@ -103,7 +121,7 @@ export class AlertsPageSk extends ElementSk {
     return '';
   }
 
-  private static displayIfAlertIsInvalid(item: Alert) {
+  private displayIfAlertIsInvalid(item: Alert) {
     const msg = AlertsPageSk.validate(item);
     if (msg === '') {
       return html``;
@@ -111,41 +129,42 @@ export class AlertsPageSk extends ElementSk {
     return html`${msg}`;
   }
 
-  private static rows = (ele: AlertsPageSk) =>
-    ele.alerts.map(
+  private rows() {
+    return this.alerts.map(
       (item) => html`
         <tr>
           <td>
             <create-icon-sk
               title="Edit"
-              @click=${ele.edit}
+              @click=${this.edit}
               .__config=${item}
-              ?disabled=${!ele.isEditor}></create-icon-sk>
+              ?disabled=${!this.isEditor}></create-icon-sk>
           </td>
           <td>${item.display_name}</td>
           <td>
             <paramset-sk .paramsets=${[toParamSet(item.query)]}></paramset-sk>
           </td>
-          <td>${AlertsPageSk.alertOrComponent(item)}</td>
+          <td>${this.alertOrComponent(item)}</td>
           ${window.perf.need_alert_action === true
             ? html` <td>${item.action ?? 'noaction'}</td> `
             : html``}
           <td>${item.owner}</td>
-          <td>${AlertsPageSk.displayIfAlertIsInvalid(item)}</td>
+          <td>${this.displayIfAlertIsInvalid(item)}</td>
           <td>
             <delete-icon-sk
               title="Delete"
-              @click=${ele.delete}
+              @click=${this.delete}
               .__config=${item}
-              ?disabled=${!ele.isEditor}></delete-icon-sk>
+              ?disabled=${!this.isEditor}></delete-icon-sk>
           </td>
-          <td><a href=${AlertsPageSk.dryrunUrl(item)}> Dry Run </a></td>
-          <td>${AlertsPageSk.ifNotActive(item.state)}</td>
+          <td><a href=${this.dryrunUrl(item)}> Dry Run </a></td>
+          <td>${this.ifNotActive(item.state)}</td>
         </tr>
       `
     );
+  }
 
-  private static alertOrComponent(item: Alert) {
+  private alertOrComponent(item: Alert) {
     if (window.perf.notifications !== 'markdown_issuetracker') {
       return item.alert;
     }
@@ -155,38 +174,52 @@ export class AlertsPageSk extends ElementSk {
     >`;
   }
 
-  private static alertOrComponentHeader() {
+  private alertOrComponentHeader() {
     if (window.perf.notifications !== 'markdown_issuetracker') {
       return 'Alert';
     }
     return 'Component';
   }
 
-  private static dryrunUrl = (config: Alert) =>
-    `/d/?${fromObject(config as unknown as HintableObject)}`;
+  private dryrunUrl(config: Alert) {
+    return `/d/?${fromObject(config as unknown as HintableObject)}`;
+  }
 
-  private static ifNotActive(s: ConfigState) {
+  private ifNotActive(s: ConfigState) {
     return s === 'ACTIVE' ? '' : 'Archived';
   }
 
-  connectedCallback(): void {
+  connectedCallback() {
     super.connectedCallback();
-    const pInit = fetch('/_/initpage/')
-      .then(jsonOrThrow)
-      .then((json: FrameResponse) => {
-        this.paramset = json.dataframe!.paramset;
+    this.loadData();
+  }
+
+  private async loadData() {
+    try {
+      const pInit = fetch('/_/initpage/')
+        .then(jsonOrThrow)
+        .then((json: FrameResponse) => {
+          this.paramset = json.dataframe!.paramset;
+        });
+      const pList = this.listPromise().then((json: Alert[]) => {
+        this.alerts = json;
       });
-    const pList = this.listPromise().then((json) => {
-      this.alerts = json;
-    });
-    Promise.all([pInit, pList])
-      .then(() => {
-        this._render();
-        this.dialog = this.querySelector<HTMLDialogElement>('dialog');
-        this.alertconfig = this.querySelector<AlertConfigSk>('#alertconfig');
-        this.openOnLoad();
-      })
-      .catch(errorMessage);
+      await Promise.all([pInit, pList]);
+      this.isDataLoaded = true;
+    } catch (e) {
+      errorMessage(e as any);
+    }
+  }
+
+  firstUpdated() {
+    this.dialog = this.querySelector<HTMLDialogElement>('dialog');
+    this.alertconfig = this.querySelector<AlertConfigSk>('#alertconfig');
+  }
+
+  updated(changedProperties: Map<string | symbol, unknown>) {
+    if (changedProperties.has('isDataLoaded') && this.isDataLoaded) {
+      this.openOnLoad();
+    }
   }
 
   private showChanged(e: InputEvent) {
@@ -194,31 +227,19 @@ export class AlertsPageSk extends ElementSk {
     this.list();
   }
 
-  /**
-   * Start a request to get all the alerts.
-   *
-   * @returns {Promise} The started fetch().
-   */
   private async listPromise() {
     return await fetch(`/_/alert/list/${this.showDeleted}`).then(jsonOrThrow);
   }
 
-  /**
-   * Load all the alerts from the server.
-   */
   private list() {
     this.listPromise()
       .then((json: Alert[]) => {
         this.alerts = json;
-        this._render();
         this.openOnLoad();
       })
       .catch(errorMessage);
   }
 
-  /**
-   * Display the modal dialog box for a specific alert if part of the URL.
-   */
   private openOnLoad() {
     if (window.location.search.length === 0) {
       return;
@@ -232,7 +253,6 @@ export class AlertsPageSk extends ElementSk {
   }
 
   private add() {
-    // Load an new Config from the server.
     fetch('/_/alert/new')
       .then(jsonOrThrow)
       .then((json: Alert) => {
@@ -252,6 +272,9 @@ export class AlertsPageSk extends ElementSk {
   private startEditing(cfg: Alert) {
     this.origCfg = structuredClone(this._cfg);
     this.cfg = cfg;
+    if (this.alertconfig) {
+      this.alertconfig.config = cfg;
+    }
     this.dialog!.showModal();
   }
 
@@ -265,7 +288,6 @@ export class AlertsPageSk extends ElementSk {
     if (JSON.stringify(this.cfg) === JSON.stringify(this.origCfg)) {
       return;
     }
-    // Post the config.
     fetch('/_/alert/update', {
       method: 'POST',
       body: JSON.stringify(this.cfg),
@@ -291,7 +313,6 @@ export class AlertsPageSk extends ElementSk {
       .catch(errorMessage);
   }
 
-  /** The Alert being edited. */
   private get cfg() {
     return this._cfg;
   }
@@ -301,8 +322,5 @@ export class AlertsPageSk extends ElementSk {
     if (this._cfg && !this._cfg.owner) {
       this._cfg.owner = this.email;
     }
-    this._render();
   }
 }
-
-define('alerts-page-sk', AlertsPageSk);
