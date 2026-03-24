@@ -373,7 +373,7 @@ export class TriagePageSk extends ElementSk implements KeyboardShortcutHandler {
     const clusterSummary = this.querySelector('cluster-summary2-sk') as ClusterSummary2Sk;
     if (clusterSummary) {
       clusterSummary.triage = { ...clusterSummary.triage, status: 'positive' };
-      clusterSummary.update();
+      clusterSummary.updateStatus();
     }
   }
 
@@ -381,7 +381,7 @@ export class TriagePageSk extends ElementSk implements KeyboardShortcutHandler {
     const clusterSummary = this.querySelector('cluster-summary2-sk') as ClusterSummary2Sk;
     if (clusterSummary) {
       clusterSummary.triage = { ...clusterSummary.triage, status: 'negative' };
-      clusterSummary.update();
+      clusterSummary.updateStatus();
     }
   }
 

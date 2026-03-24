@@ -140,7 +140,7 @@ describe('triage-page-sk', () => {
 
     it('sets status to positive on "p" key', () => {
       let updateCalled = false;
-      clusterSummary.update = () => {
+      clusterSummary.updateStatus = () => {
         updateCalled = true;
       };
 
@@ -152,7 +152,7 @@ describe('triage-page-sk', () => {
 
     it('sets status to negative on "n" key', () => {
       let updateCalled = false;
-      clusterSummary.update = () => {
+      clusterSummary.updateStatus = () => {
         updateCalled = true;
       };
 
@@ -188,7 +188,7 @@ describe('triage-page-sk', () => {
     it('does not trigger if dialog is closed', () => {
       dialog.close();
       let updateCalled = false;
-      clusterSummary.update = () => {
+      clusterSummary.updateStatus = () => {
         updateCalled = true;
       };
 

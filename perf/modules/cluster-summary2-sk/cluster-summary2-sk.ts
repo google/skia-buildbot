@@ -33,17 +33,15 @@
  *
  * @example
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { html, LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import '../../../elements-sk/modules/collapse-sk';
 import '../commit-detail-panel-sk';
 import '../plot-google-chart-sk';
 import '../triage2-sk';
 import '../word-cloud-sk';
 import '../commit-range-sk';
-import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { errorMessage } from '../errorMessage';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import {
   FullSummary,
@@ -56,8 +54,6 @@ import {
   StepDetection,
 } from '../json';
 import { PlotShowTooltipEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
-import { PlotGoogleChartSk } from '../plot-google-chart-sk/plot-google-chart-sk';
-import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import '../window/window';
 import { lookupCids } from '../cid/cid';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
@@ -159,18 +155,28 @@ export interface ClusterSummary2SkOpenKeysEventDetail {
   xbar: ColumnHeader;
 }
 
-export class ClusterSummary2Sk extends ElementSk {
+@customElement('cluster-summary2-sk')
+export class ClusterSummary2Sk extends LitElement {
+  @state()
   private summary: ClusterSummary;
 
+  @state()
   private triageStatus: TriageStatus;
 
-  private wordCloud: CollapseSk | null = null;
+  @state()
+  private graphData: google.visualization.DataTable | null = null;
 
-  private status: HTMLDivElement | null = null;
+  @state()
+  private xbarValue: number = -1;
 
-  private graph: PlotGoogleChartSk | null = null;
+  @state()
+  private commitsDetails: any[] = [];
 
-  private commits: CommitDetailPanelSk | null = null;
+  @state()
+  private wordCloudClosedValue: boolean = true;
+
+  @state()
+  private isEditor: boolean = false;
 
   private frame: FrameResponse | null = null;
 
@@ -181,7 +187,7 @@ export class ClusterSummary2Sk extends ElementSk {
   private labels: LabelsAndFormatters = labelsForStepDetection[''];
 
   constructor() {
-    super(ClusterSummary2Sk.template);
+    super();
     this.summary = {
       centroid: null,
       shortcut: '',
@@ -212,105 +218,167 @@ export class ClusterSummary2Sk extends ElementSk {
    */
   static lookupCids = lookupCids;
 
-  private static template = (ele: ClusterSummary2Sk) => html`
-    <div class="regression ${ele.statusClass()}">
-      ${ele.labels.regression}
-      <span>${ele.labels.regressionFormatter(ele.summary.step_fit?.regression || 0)}</span>
-    </div>
-    <div class="stats">
-      <div class="labelled">
-        Cluster Size:
-        <span>${ele.summary.num}</span>
-      </div>
-      ${ClusterSummary2Sk.leastSquares(ele)}
-      <div class="labelled">
-        ${ele.labels.stepSize}
-        <span>${ele.labels.stepSizeFormatter(ele.summary.step_fit?.step_size || 0)}</span>
-      </div>
-      ${ele.summary.notification_id
-        ? html` <div>
-            Bug:
-            <a href="http://b/${ele.summary.notification_id}">b/${ele.summary.notification_id}</a>
-          </div>`
-        : html``}
-    </div>
-    <div class="plot-wrapper">
-      <plot-google-chart-sk
-        specialevents
-        @plot-data-select=${ele.traceSelected}></plot-google-chart-sk>
-    </div>
-    <div id="status" class=${ele.hiddenClass()}>
-      <p class="disabledMessage">You must be logged in to change the status.</p>
-      <triage2-sk
-        value=${ele.triageStatus.status}
-        @change=${(e: CustomEvent<Status>) => {
-          ele.triageStatus.status = e.detail;
-        }}></triage2-sk>
-      <input
-        type="text"
-        .value=${ele.triageStatus.message}
-        @change=${(e: InputEvent) => {
-          ele.triageStatus.message = (e.currentTarget! as HTMLInputElement).value;
-        }}
-        label="Message" />
-      <button class="action" @click=${ele.update}>Update</button>
-    </div>
-    <commit-detail-panel-sk
-      id="commits"
-      selectable
-      .trace_id=${ele.summary.shortcut}></commit-detail-panel-sk>
-    <div class="actions">
-      <button id="shortcut" @click=${ele.openShortcut}>View on dashboard</button>
-      <button @click=${ele.toggleWordCloud}>Word Cloud</button>
-      <a id="permalink" class=${ele.hiddenClass()} href=${ele.permaLink()}> Permlink </a>
-      <commit-range-sk
-        .trace=${ele.summary.centroid || []}
-        .commitIndex=${ele.graph?.xbar || -1}
-        .header=${ele.frame?.dataframe?.header || null}></commit-range-sk>
-    </div>
-    <collapse-sk class="wordCloudCollapse" closed>
-      <word-cloud-sk .items=${ele.summary.param_summaries2}></word-cloud-sk>
-    </collapse-sk>
-  `;
+  createRenderRoot() {
+    return this;
+  }
 
-  private static leastSquares = (ele: ClusterSummary2Sk) => html`
-    <div class="labelled">
-      ${ele.labels.lse}
-      <span>${ele.labels.lseFormatter(ele.summary.step_fit?.least_squares || 0)}</span>
-    </div>
-  `;
+  render() {
+    return html`
+      <div class="regression ${this.statusClass()}">
+        ${this.labels.regression}
+        <span>${this.labels.regressionFormatter(this.summary.step_fit?.regression || 0)}</span>
+      </div>
+      <div class="stats">
+        <div class="labelled">
+          Cluster Size:
+          <span>${this.summary.num}</span>
+        </div>
+        ${this.leastSquares()}
+        <div class="labelled">
+          ${this.labels.stepSize}
+          <span>${this.labels.stepSizeFormatter(this.summary.step_fit?.step_size || 0)}</span>
+        </div>
+        ${this.summary.notification_id
+          ? html` <div>
+              Bug:
+              <a href="http://b/${this.summary.notification_id}"
+                >b/${this.summary.notification_id}</a
+              >
+            </div>`
+          : html``}
+      </div>
+      <div class="plot-wrapper">
+        <plot-google-chart-sk
+          specialevents
+          .data=${this.graphData}
+          .xbar=${this.xbarValue}
+          @plot-data-select=${this.traceSelected}></plot-google-chart-sk>
+      </div>
+      <div id="status" class="${this.hiddenClass()} ${this.isEditor ? '' : 'disabled'}">
+        <p class="disabledMessage">You must be logged in to change the status.</p>
+        <triage2-sk
+          .value=${this.triageStatus.status}
+          @change=${(e: CustomEvent<Status>) => {
+            this.triageStatus = { ...this.triageStatus, status: e.detail };
+          }}></triage2-sk>
+        <input
+          type="text"
+          .value=${this.triageStatus.message}
+          @change=${(e: InputEvent) => {
+            this.triageStatus = {
+              ...this.triageStatus,
+              message: (e.currentTarget! as HTMLInputElement).value,
+            };
+          }}
+          label="Message" />
+        <button class="action" @click=${this.updateStatus}>Update</button>
+      </div>
+      <commit-detail-panel-sk
+        selectable
+        .trace_id=${this.summary.shortcut}
+        .details=${this.commitsDetails}></commit-detail-panel-sk>
+      <div class="actions">
+        <button id="shortcut" @click=${this.openShortcut}>View on dashboard</button>
+        <button @click=${this.toggleWordCloud}>Word Cloud</button>
+        <a id="permalink" class=${this.hiddenClass()} href=${this.permaLink()}> Permlink </a>
+        <commit-range-sk
+          .trace=${this.summary.centroid || []}
+          .commitIndex=${this.xbarValue}
+          .header=${this.frame?.dataframe?.header || null}></commit-range-sk>
+      </div>
+      <collapse-sk class="wordCloudCollapse" .closed=${this.wordCloudClosedValue}>
+        <word-cloud-sk .items=${this.summary.param_summaries2}></word-cloud-sk>
+      </collapse-sk>
+    `;
+  }
+
+  private leastSquares() {
+    return html`
+      <div class="labelled">
+        ${this.labels.lse}
+        <span>${this.labels.lseFormatter(this.summary.step_fit?.least_squares || 0)}</span>
+      </div>
+    `;
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._upgradeProperty('full_summary');
-    this._upgradeProperty('triage');
-    this._upgradeProperty('alert');
-    this._render();
-    this.wordCloud = this.querySelector('.wordCloudCollapse');
-    this.status = this.querySelector('#status');
-    this.graph = this.querySelector('plot-google-chart-sk');
-    this.commits = this.querySelector('#commits');
     LoggedIn()
       .then((status: LoginStatus) => {
-        this.status!.classList.toggle('disabled', !(status.roles || []).includes('editor'));
+        this.isEditor = (status.roles || []).includes('editor');
       })
       .catch(errorMessage);
-
-    // eslint-disable-next-line no-self-assign
-    this.full_summary = this.full_summary;
-    // eslint-disable-next-line no-self-assign
-    this.triage = this.triage;
   }
 
-  update() {
+  protected updated(changedProperties: Map<string | number | symbol, unknown>) {
+    super.updated(changedProperties);
+    if (changedProperties.has('fullSummary') && this.fullSummary) {
+      this.updateGraphData();
+    }
+  }
+
+  private updateGraphData() {
+    this.dataset.clustersize = this.summary.num.toString();
+    const step_fit = this.summary.step_fit;
+    if (step_fit) {
+      this.dataset.steplse = step_fit.least_squares.toPrecision(2);
+      this.dataset.stepsize = step_fit.step_size.toPrecision(2);
+      this.dataset.stepregression = step_fit.regression.toPrecision(2);
+    }
+
+    const headers = this.frame?.dataframe?.header;
+    const validHeaders = headers ? headers.filter((h): h is ColumnHeader => h !== null) : [];
+
+    if (
+      this.summary.centroid &&
+      this.summary.centroid.length > 0 &&
+      validHeaders.length === this.summary.centroid.length
+    ) {
+      const rows = this.summary.centroid.map((value, i) => {
+        const header = validHeaders[i];
+        const label = new Date(header.timestamp * 1000);
+        return [header.offset, label, value];
+      });
+
+      this.graphData = google.visualization.arrayToDataTable([
+        ['Commit Position', 'Date', 'centroid'],
+        ...rows,
+      ]);
+    }
+
+    if (step_fit && step_fit.status !== 'Uninteresting') {
+      const step = this.summary.step_point;
+      if (step && headers) {
+        let xbar = -1;
+        headers.forEach((h, i) => {
+          if (h && h.offset === step.offset) {
+            xbar = i;
+          }
+        });
+        if (xbar !== -1) {
+          this.xbarValue = xbar;
+        }
+
+        if (step.offset > 0) {
+          ClusterSummary2Sk.lookupCids([step.offset])
+            .then((json) => {
+              this.commitsDetails = json.commitSlice || [];
+            })
+            .catch(errorMessage);
+        }
+      }
+    }
+  }
+
+  updateStatus() {
     const columnHeader = this.summary.step_point!;
-    const detail: ClusterSummary2SkTriagedEventDetail = {
-      columnHeader,
-      triage: this.triage,
-    };
+    // Let's use standard CustomEvent constructor.
     this.dispatchEvent(
       new CustomEvent<ClusterSummary2SkTriagedEventDetail>('triaged', {
-        detail,
+        detail: {
+          columnHeader,
+          triage: this.triage,
+        },
         bubbles: true,
       })
     );
@@ -335,13 +403,13 @@ export class ClusterSummary2Sk extends ElementSk {
     const commitNumber = this.frame!.dataframe!.header![e.detail.tableRow]?.offset;
     ClusterSummary2Sk.lookupCids([commitNumber!])
       .then((json) => {
-        this.commits!.details = json.commitSlice || [];
+        this.commitsDetails = json.commitSlice || [];
       })
       .catch(errorMessage);
   }
 
   private toggleWordCloud() {
-    this.wordCloud!.closed = !this.wordCloud!.closed;
+    this.wordCloudClosedValue = !this.wordCloudClosedValue;
   }
 
   private hiddenClass() {
@@ -375,6 +443,7 @@ export class ClusterSummary2Sk extends ElementSk {
    *  }
    *
    */
+  @property({ type: Object, noAccessor: true })
   get full_summary(): FullSummary | null {
     return this.fullSummary;
   }
@@ -383,75 +452,11 @@ export class ClusterSummary2Sk extends ElementSk {
     if (!val || !val.frame) {
       return;
     }
+    const oldVal = this.fullSummary;
     this.fullSummary = val;
     this.summary = val.summary;
     this.frame = val.frame;
-    if (!this.graph) {
-      return;
-    }
-
-    // Set the data- attributes used for sorting cluster summaries.
-    this.dataset.clustersize = this.summary.num.toString();
-    const step_fit = this.summary.step_fit;
-    if (step_fit) {
-      this.dataset.steplse = step_fit.least_squares.toPrecision(2);
-      this.dataset.stepsize = step_fit.step_size.toPrecision(2);
-      this.dataset.stepregression = step_fit.regression.toPrecision(2);
-    }
-    // We take in a ClusterSummary, but need to transform all that data
-    // into a format that plot-sk can handle.
-    this.graph.clear();
-    const headers = this.frame.dataframe?.header;
-
-    // Filter out null headers to create a clean data source.
-    const validHeaders = headers ? headers.filter((h): h is ColumnHeader => h !== null) : [];
-
-    if (
-      this.summary.centroid &&
-      this.summary.centroid.length > 0 &&
-      validHeaders.length === this.summary.centroid.length
-    ) {
-      const rows = this.summary.centroid.map((value, i) => {
-        const header = validHeaders[i];
-        const label = new Date(header.timestamp * 1000);
-        return [header.offset, label, value];
-      });
-
-      this.graph.data = google.visualization.arrayToDataTable([
-        ['Commit Position', 'Date', 'centroid'],
-        ...rows,
-      ]);
-    }
-
-    // Set the x-bar but only if status != uninteresting.
-    if (step_fit && step_fit.status !== 'Uninteresting') {
-      // Loop through the dataframe header to find the location we should
-      // place the x-bar at.
-      const step = this.summary.step_point;
-      if (step && headers) {
-        let xbar = -1;
-        headers.forEach((h, i) => {
-          if (h && h.offset === step.offset) {
-            xbar = i;
-          }
-        });
-        if (xbar !== -1) {
-          this.graph.xbar = xbar;
-        }
-
-        // If step_point is set then display the commit
-        // details for the xbar location.
-        if (step.offset > 0) {
-          ClusterSummary2Sk.lookupCids([step.offset])
-            .then((json) => {
-              this.commits!.details = json.commitSlice || [];
-            })
-            .catch(errorMessage);
-        }
-      }
-    }
-
-    this._render();
+    this.requestUpdate('full_summary', oldVal);
   }
 
   /** @prop triage {string} The triage status of the cluster.
@@ -463,6 +468,7 @@ export class ClusterSummary2Sk extends ElementSk {
    *    }
    *
    */
+  @property({ type: Object, noAccessor: true })
   get triage(): TriageStatus {
     return this.triageStatus;
   }
@@ -471,11 +477,12 @@ export class ClusterSummary2Sk extends ElementSk {
     if (!val) {
       return;
     }
+    const oldVal = this.triageStatus;
     this.triageStatus = val;
-    this._render();
+    this.requestUpdate('triage', oldVal);
   }
 
-  /** The configured Alert that found this regression. */
+  @property({ type: Object, noAccessor: true })
   get alert(): Alert | null {
     return this._alert;
   }
@@ -484,10 +491,9 @@ export class ClusterSummary2Sk extends ElementSk {
     if (!val) {
       return;
     }
+    const oldVal = this._alert;
     this._alert = val;
     this.labels = labelsForStepDetection[val!.step] || labelsForStepDetection[''];
-    this._render();
+    this.requestUpdate('alert', oldVal);
   }
 }
-
-define('cluster-summary2-sk', ClusterSummary2Sk);

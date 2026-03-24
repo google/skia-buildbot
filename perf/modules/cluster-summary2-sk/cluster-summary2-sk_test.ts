@@ -134,6 +134,7 @@ describe('cluster-summary2-sk', () => {
   it('renders correctly with data', async () => {
     element.full_summary = fullSummary;
     element.alert = alert;
+    await (element as any).updateComplete;
 
     assert.include(element.innerHTML, 'Cluster Size');
     assert.include(element.innerHTML, '10'); // summary.num
@@ -143,6 +144,7 @@ describe('cluster-summary2-sk', () => {
   it('displays bug link if notification_id is present', async () => {
     element.full_summary = fullSummary;
     element.alert = alert;
+    await (element as any).updateComplete;
 
     const bugLink = element.querySelector('a[href="http://b/123"]');
     assert.isNotNull(bugLink);
@@ -152,6 +154,7 @@ describe('cluster-summary2-sk', () => {
   it('fires open-keys event on shortcut click', async () => {
     element.full_summary = fullSummary;
     element.alert = alert;
+    await (element as any).updateComplete;
 
     let eventCaught = false;
     element.addEventListener('open-keys', (e: any) => {
@@ -167,6 +170,7 @@ describe('cluster-summary2-sk', () => {
   it('fires triaged event on update click', async () => {
     element.full_summary = fullSummary;
     element.alert = alert;
+    await (element as any).updateComplete;
 
     let eventCaught = false;
     element.addEventListener('triaged', (e: any) => {
@@ -190,6 +194,7 @@ describe('cluster-summary2-sk', () => {
     };
 
     element.full_summary = fullSummaryNoStepFit;
+    await (element as any).updateComplete;
 
     // Should render without errors, but might be missing data.
     // Check that we didn't crash and rendered something.
