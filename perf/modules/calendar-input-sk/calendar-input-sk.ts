@@ -8,72 +8,69 @@
  * @evt input - A CustomEvent<Date> with the new date.
  *
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html, LitElement } from 'lit';
+import { state, query, customElement } from 'lit/decorators.js';
+import { live } from 'lit/directives/live.js';
 import '../../../elements-sk/modules/icons/date-range-icon-sk';
 import '../calendar-sk';
 import { CalendarSk } from '../calendar-sk/calendar-sk';
 
-export class CalendarInputSk extends ElementSk {
+@customElement('calendar-input-sk')
+export class CalendarInputSk extends LitElement {
   private static nextUniqueId = 0;
 
   private readonly uniqueId = `${CalendarInputSk.nextUniqueId++}`;
 
-  private dialog: HTMLDialogElement | null = null;
+  @query('dialog')
+  private dialog!: HTMLDialogElement;
 
-  private calendar: CalendarSk | null = null;
+  @query('calendar-sk')
+  private calendar!: CalendarSk;
 
-  private input: HTMLInputElement | null = null;
+  @query('input')
+  private input!: HTMLInputElement;
 
+  @state()
   private _displayDate: Date = new Date();
 
-  // These two functions store the callbacks from a Promise, which allows the
-  // openHandler() function to be a nice linear function.
-  private resolve: ((value?: any) => void) | null = null;
+  private keyboardForwarder = (e: KeyboardEvent) => this.calendar.keyboardHandler(e);
 
-  private reject: ((reason?: any) => void) | null = null;
-
-  constructor() {
-    super(CalendarInputSk.template);
+  createRenderRoot() {
+    return this;
   }
 
-  private static template = (ele: CalendarInputSk) => html`
-    <label for="date-${ele.uniqueId}">
-      <input
-        id="date-${ele.uniqueId}"
-        name="date-${ele.uniqueId}"
-        @input=${ele.inputChangeHandler}
-        type="text"
-        pattern="[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}"
-        title="Date in YYYY-MM-DD format."
-        placeholder="yyyy-mm-dd"
-        .value="${ele._displayDate.getFullYear()}-${ele._displayDate.getMonth() +
-        1}-${ele._displayDate.getDate()}" />
-      <span class="invalid" aria-live="polite" title="Date is invalid."> &cross; </span>
-    </label>
-    <button
-      id="cal-button-${ele.uniqueId}"
-      class="action"
-      @click=${ele.openHandler}
-      title="Open calendar dialog to choose the date.">
-      <date-range-icon-sk></date-range-icon-sk>
-    </button>
-    <dialog @cancel=${ele.dialogCancelHandler}>
-      <calendar-sk
-        @change=${ele.calendarChangeHandler}
-        .displayDate=${ele.displayDate}></calendar-sk>
-      <button @click=${ele.dialogCancelHandler}>Cancel</button>
-    </dialog>
-  `;
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._render();
-
-    this.dialog = this.querySelector('dialog')!;
-    this.calendar = this.querySelector<CalendarSk>('calendar-sk');
-    this.input = this.querySelector('input');
+  protected render() {
+    return html`
+      <label for="date-${this.uniqueId}">
+        <input
+          id="date-${this.uniqueId}"
+          name="date-${this.uniqueId}"
+          @input=${this.inputChangeHandler}
+          type="text"
+          pattern="[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}"
+          title="Date in YYYY-MM-DD format."
+          placeholder="yyyy-mm-dd"
+          .value="${live(
+            `${this._displayDate.getFullYear()}-${
+              this._displayDate.getMonth() + 1
+            }-${this._displayDate.getDate()}`
+          )}" />
+        <span class="invalid" aria-live="polite" title="Date is invalid."> &cross; </span>
+      </label>
+      <button
+        id="cal-button-${this.uniqueId}"
+        class="action"
+        @click=${this.openHandler}
+        title="Open calendar dialog to choose the date.">
+        <date-range-icon-sk></date-range-icon-sk>
+      </button>
+      <dialog @cancel=${this.dialogCancelHandler}>
+        <calendar-sk
+          @change=${this.calendarChangeHandler}
+          .displayDate=${this.displayDate}></calendar-sk>
+        <button @click=${this.dialogCancelHandler}>Cancel</button>
+      </dialog>
+    `;
   }
 
   private inputChangeHandler(e: InputEvent) {
@@ -99,23 +96,9 @@ export class CalendarInputSk extends ElementSk {
     this.sendEvent();
   }
 
-  private async openHandler() {
-    const keyboardHandler = (e: KeyboardEvent) => this.calendar!.keyboardHandler(e);
-    try {
-      this.dialog!.showModal();
-      this.dialog!.addEventListener('keydown', keyboardHandler);
-      const date = await new Promise<Date>((resolve, reject) => {
-        this.resolve = resolve;
-        this.reject = reject;
-      });
-      this.displayDate = date;
-      this.sendEvent();
-      this.input!.focus();
-    } catch (_) {
-      // Cancel button was pressed.
-    } finally {
-      this.dialog!.removeEventListener('keydown', keyboardHandler);
-    }
+  private openHandler() {
+    this.dialog.showModal();
+    this.dialog.addEventListener('keydown', this.keyboardForwarder);
   }
 
   private sendEvent() {
@@ -128,17 +111,16 @@ export class CalendarInputSk extends ElementSk {
   }
 
   private calendarChangeHandler(e: CustomEvent<Date>) {
-    this.dialog!.close();
-    if (this.resolve) {
-      this.resolve(e.detail);
-    }
+    this.displayDate = e.detail;
+    this.sendEvent();
+    this.dialog.close();
+    this.dialog.removeEventListener('keydown', this.keyboardForwarder);
+    this.input.focus();
   }
 
   private dialogCancelHandler() {
-    this.dialog!.close();
-    if (this.reject) {
-      this.reject();
-    }
+    this.dialog.close();
+    this.dialog.removeEventListener('keydown', this.keyboardForwarder);
   }
 
   /** The default date, if not set defaults to today. */
@@ -148,7 +130,6 @@ export class CalendarInputSk extends ElementSk {
 
   set displayDate(val: Date) {
     this._displayDate = val;
-    this._render();
   }
 
   /** @prop locale - The locale, used just for testing. */
@@ -160,5 +141,3 @@ export class CalendarInputSk extends ElementSk {
     this.calendar!.locale = val;
   }
 }
-
-define('calendar-input-sk', CalendarInputSk);

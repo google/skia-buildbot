@@ -13,9 +13,10 @@ afterEach(() => {
 describe('calendar-input-sk', () => {
   const newInstance = setUpElementUnderTest<CalendarInputSk>('calendar-input-sk');
   let calendarInputSk: CalendarInputSk;
-  beforeEach(() => {
+  beforeEach(async () => {
     calendarInputSk = newInstance();
     calendarInputSk.displayDate = new Date(2020, 4, 21);
+    await calendarInputSk.updateComplete;
   });
 
   describe('input control', () => {
