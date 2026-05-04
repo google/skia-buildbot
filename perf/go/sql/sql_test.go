@@ -21,6 +21,7 @@ const DropTables = `
 	DROP TABLE IF EXISTS Culprits;
 	DROP TABLE IF EXISTS Favorites;
 	DROP TABLE IF EXISTS GraphsShortcuts;
+	DROP TABLE IF EXISTS PublicTraceRules;
   DROP TABLE IF EXISTS Metadata;
 	DROP TABLE IF EXISTS ParamSets;
 	DROP TABLE IF EXISTS Postings;
@@ -151,6 +152,7 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
   id TEXT PRIMARY KEY DEFAULT spanner.generate_uuid(),
   commit_number INT,
   prev_commit_number INT,
+  display_commit_number INT,
   alert_id INT,
   bug_id INT,
   creation_time TIMESTAMPTZ DEFAULT now(),

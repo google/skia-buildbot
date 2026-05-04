@@ -107,9 +107,9 @@ func GetDescription(ctx context.Context, db pool.Pool, tables interface{}, datab
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
-			// Temporarily exclude TraceParams generated columns
+			// Temporarily exclude TraceParams generated columns.
 			if tableName == "traceparams" && colName != "trace_id" &&
-				colName != "params" && colName != "createdat" {
+				colName != "params" && colName != "createdat" && colName != "is_public" {
 				continue
 			}
 			colNameAndType[tableName+"."+colName] = colType

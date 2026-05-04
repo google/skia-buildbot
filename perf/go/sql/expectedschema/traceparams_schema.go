@@ -58,7 +58,7 @@ func GetTraceParamsGeneratedColsAndIdxs(ctx context.Context, db pool.Pool, datab
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
-		if colName == "trace_id" || colName == "params" || colName == "createdat" {
+		if colName == "trace_id" || colName == "params" || colName == "createdat" || colName == "is_public" {
 			continue
 		}
 		columnNames = append(columnNames, colName)

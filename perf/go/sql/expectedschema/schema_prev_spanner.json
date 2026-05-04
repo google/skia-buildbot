@@ -70,6 +70,7 @@
     "regressions2.commit_number": "bigint def: nullable:YES",
     "regressions2.createdat": "timestamp with time zone def:CURRENT_TIMESTAMP nullable:YES",
     "regressions2.creation_time": "timestamp with time zone def:now() nullable:YES",
+    "regressions2.display_commit_number": "bigint def: nullable:YES",
     "regressions2.frame": "jsonb def: nullable:YES",
     "regressions2.id": "character varying def:spanner.generate_uuid() nullable:NO",
     "regressions2.is_improvement": "boolean def: nullable:YES",

@@ -1,0 +1,25 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sqlconfigstore",
+    srcs = ["sqlconfigstore.go"],
+    importpath = "go.skia.org/infra/perf/go/trace_visibility/sqlconfigstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sql/pool",
+        "//perf/go/trace_visibility/sqlconfigstore/schema",
+    ],
+)
+
+go_test(
+    name = "sqlconfigstore_test",
+    srcs = ["sqlconfigstore_test.go"],
+    embed = [":sqlconfigstore"],
+    deps = [
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -41,13 +41,18 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNextSpanner = `
-	ALTER TABLE Regressions2 ADD COLUMN display_commit_number bigint;
+	CREATE TABLE IF NOT EXISTS PublicTraceRules (
+		public_rule_expr TEXT PRIMARY KEY,
+		createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+	);
+	ALTER TABLE TraceParams ADD COLUMN is_public BOOL DEFAULT FALSE;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLiveSpanner = `
-	ALTER TABLE Regressions2 DROP COLUMN display_commit_number;
+	DROP TABLE IF EXISTS PublicTraceRules;
+	ALTER TABLE TraceParams DROP COLUMN is_public;
 `
 
 // This function will check whether there's a new schema checked-in,

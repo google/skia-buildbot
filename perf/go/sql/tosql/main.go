@@ -32,6 +32,7 @@ func main() {
 	ttlExcludeTables := []string{
 		"Alerts",
 		"Favorites",
+		"PublicTraceRules",
 		"Subscriptions",
 		"TraceParams",
 	}

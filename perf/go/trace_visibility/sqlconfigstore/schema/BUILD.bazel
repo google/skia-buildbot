@@ -1,0 +1,8 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "schema",
+    srcs = ["schema.go"],
+    importpath = "go.skia.org/infra/perf/go/trace_visibility/sqlconfigstore/schema",
+    visibility = ["//visibility:public"],
+)
