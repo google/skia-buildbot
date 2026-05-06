@@ -371,6 +371,12 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       Store:
+  go.skia.org/infra/perf/go/trace_visibility/checker:
+    interfaces:
+      Provider:
+  go.skia.org/infra/perf/go/trace_visibility/store:
+    interfaces:
+      Store:
   go.skia.org/infra/perf/go/favorites:
     config:
       dir: "{{.InterfaceDir}}/mocks"
