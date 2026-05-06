@@ -136,7 +136,7 @@ describe('query-bar-sk', () => {
     element.optionsByKey = { bot: [{ value: 'linux', count: 1 }] };
     await element.updateComplete;
 
-    const multiSelect = element.shadowRoot!.querySelector('multi-select-sk');
+    const multiSelect = element.shadowRoot!.querySelector('explore-multi-v2-select-sk');
     expect(multiSelect).to.not.be.null;
 
     (element as any)['_isOpen'] = false;
@@ -154,7 +154,7 @@ describe('query-bar-sk', () => {
     element.optionsByKey = { bot: [{ value: 'linux', count: 1 }] };
     await element.updateComplete;
 
-    const multiSelect = element.shadowRoot!.querySelector('multi-select-sk');
+    const multiSelect = element.shadowRoot!.querySelector('explore-multi-v2-select-sk');
     expect(multiSelect).to.not.be.null;
 
     (element as any)['_isOpen'] = true;
@@ -171,7 +171,7 @@ describe('query-bar-sk', () => {
     element.optionsByKey = { bot: [{ value: 'linux', count: 1 }] };
     await element.updateComplete;
 
-    const multiSelect = element.shadowRoot!.querySelector('multi-select-sk');
+    const multiSelect = element.shadowRoot!.querySelector('explore-multi-v2-select-sk');
     expect(multiSelect).to.not.be.null;
 
     let eventDetail: any = null;

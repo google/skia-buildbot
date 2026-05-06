@@ -635,7 +635,7 @@ export class QueryBarSk extends LitElement {
               const options = this.optionsByKey[key] || [];
               const sortedOptions = this._sortOptions(options, values);
               return html`
-                <multi-select-sk
+                <explore-multi-v2-select-sk
                   @click=${(e: Event) => e.stopPropagation()}
                   .label=${key}
                   .variant=${'pill'}
@@ -661,7 +661,7 @@ export class QueryBarSk extends LitElement {
                   @diff-base=${(e: CustomEvent) => {
                     e.stopPropagation();
                     this._dispatchEvent('diff-base', e.detail);
-                  }}></multi-select-sk>
+                  }}></explore-multi-v2-select-sk>
               `;
             }
           )}

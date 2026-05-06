@@ -18,7 +18,7 @@ export interface MultiSelectReplaceEventDetail {
   value: string;
 }
 
-@customElement('multi-select-sk')
+@customElement('explore-multi-v2-select-sk')
 export class MultiSelectSk extends LitElement {
   @property({ type: String }) label = '';
 

@@ -73,7 +73,7 @@ export class ExploreMultiV2SkPO extends PageObject {
   async clickDiffButtonOnFirstQueryBarPill(): Promise<void> {
     return await this.element.applyFnToDOMNode(async (el: any) => {
       const queryBar = el.shadowRoot.querySelector('query-bar-sk') as any;
-      const multiSelect = queryBar.shadowRoot.querySelector('multi-select-sk') as any;
+      const multiSelect = queryBar.shadowRoot.querySelector('explore-multi-v2-select-sk') as any;
       multiSelect._isOpen = true;
       await multiSelect.updateComplete;
       const diffBtn = multiSelect.shadowRoot.querySelector('.ms-diff-btn') as HTMLElement;

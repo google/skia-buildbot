@@ -6,7 +6,7 @@ describe('multi-select-sk', () => {
   let element: MultiSelectSk;
 
   beforeEach(async () => {
-    element = document.createElement('multi-select-sk') as unknown as MultiSelectSk;
+    element = document.createElement('explore-multi-v2-select-sk') as unknown as MultiSelectSk;
     document.body.appendChild(element);
     await element.updateComplete;
   });
