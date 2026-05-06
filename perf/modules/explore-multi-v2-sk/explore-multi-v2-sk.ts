@@ -142,6 +142,10 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _showAllTraces = false;
 
+  @state() private _begin: number = -1;
+
+  @state() private _end: number = -1;
+
   private _workerController: ExploreWorkerController | null = null;
 
   private _latestActiveFacets: string[] = [];
@@ -181,6 +185,8 @@ export class ExploreMultiV2Sk extends LitElement {
           tooltipDiffs: this._tooltipDiffs,
           loadedBounds: this._showLoadedBounds,
           evenXAxisSpacing: this._evenXAxisSpacing,
+          begin: this._begin,
+          end: this._end,
         };
       },
       (o: any) => {
@@ -217,7 +223,10 @@ export class ExploreMultiV2Sk extends LitElement {
         if (stateObj.loadedBounds !== undefined) this._showLoadedBounds = stateObj.loadedBounds;
         if (stateObj.evenXAxisSpacing !== undefined)
           this._evenXAxisSpacing = stateObj.evenXAxisSpacing;
-      }
+        if (stateObj.begin !== undefined) this._begin = Number(stateObj.begin);
+        if (stateObj.end !== undefined) this._end = Number(stateObj.end);
+      },
+      true
     );
 
     this._initWorker();
@@ -546,7 +555,11 @@ export class ExploreMultiV2Sk extends LitElement {
     }
   `;
 
-  protected firstUpdated() {
+  protected async firstUpdated() {
+    // Yield a macro-tick to guarantee stateReflector's initial stateFromURL microtask
+    // completes first and sets loaded=true. This ensures resolved default/partial bounds
+    // are successfully written back to the URL rather than being ignored and overwritten.
+    await new Promise((resolve) => setTimeout(resolve, 0));
     void this._fetchMetadata();
   }
 
@@ -554,20 +567,16 @@ export class ExploreMultiV2Sk extends LitElement {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     try {
       const json = await DataService.getInstance().getInitPage(tz);
-      try {
-        const defaults = await DataService.getInstance().getDefaults();
-        this._defaults = defaults;
-        this._includeParams = defaults.include_params || [];
-        this._defaultParamSelections =
-          (defaults.default_param_selections as Record<string, string[]>) || {};
-        this._conditionalDefaults = defaults.conditional_defaults || [];
+      const defaults = await DataService.getInstance().getDefaults();
+      this._defaults = defaults;
+      this._includeParams = defaults.include_params || [];
+      this._defaultParamSelections =
+        (defaults.default_param_selections as Record<string, string[]>) || {};
+      this._conditionalDefaults = defaults.conditional_defaults || [];
 
-        // Apply defaults to initial query if empty
-        if (this._queries.length === 1 && Object.keys(this._queries[0]).length === 0) {
-          this._queries = [{ ...this._defaultParamSelections }];
-        }
-      } catch (e) {
-        console.error('Failed to fetch defaults:', e);
+      // Apply defaults to initial query if empty
+      if (this._queries.length === 1 && Object.keys(this._queries[0]).length === 0) {
+        this._queries = [{ ...this._defaultParamSelections }];
       }
 
       if (json && json.dataframe && json.dataframe.paramset) {
@@ -587,6 +596,8 @@ export class ExploreMultiV2Sk extends LitElement {
       }
     } catch (e) {
       console.error('Metadata fetch error:', e);
+    } finally {
+      this._resolveTimeRange();
     }
   }
 
@@ -631,7 +642,9 @@ export class ExploreMultiV2Sk extends LitElement {
       changedProperties.has('_showRegressions') ||
       changedProperties.has('_tooltipDiffs') ||
       changedProperties.has('_showLoadedBounds') ||
-      changedProperties.has('_evenXAxisSpacing')
+      changedProperties.has('_evenXAxisSpacing') ||
+      changedProperties.has('_begin') ||
+      changedProperties.has('_end')
     ) {
       this._stateHasChanged();
     }
@@ -701,8 +714,83 @@ export class ExploreMultiV2Sk extends LitElement {
     }
   }
 
-  private async _fetchData(retryCount = 0): Promise<void> {
-    console.log('[_fetchData] called, retryCount:', retryCount);
+  /**
+   * Resolves and calculates the final begin and end Unix timestamps for data fetching.
+   *
+   * Calculations performed:
+   * 1. Both begin & end provided (begin !== -1 && end !== -1):
+   *    - Uses them exactly as-is.
+   * 2. Only begin provided (begin !== -1):
+   *    - Calculates `end = begin + defaultRange`. If in future, caps at `now`.
+   * 3. Only end provided (end !== -1):
+   *    - Calculates `begin = end - defaultRange`.
+   * 4. Neither provided (initial load):
+   *    - Calculates `end = now` and `begin = now - defaultRange`.
+   * 5. If both are equal (begin === end):
+   *    - Centers range: `begin = begin - halfRange`, `end = end + halfRange`.
+   *    - If `end` extends into the future, shifts the entire range backward so `end = now`.
+   *
+   * Side Effects:
+   * - Instantly writes resolved default/partial timestamps back to `this._begin` and `this._end`
+   *   so `stateReflector` serializes them directly to the browser URL on load.
+   *
+   * @returns Calculated begin and end timestamps.
+   */
+  private _resolveTimeRange(): { begin: number; end: number } {
+    let now = Math.floor(Date.now() / 1000);
+    if ((window as any).perf?.demo) {
+      // The demo dataset resides on March 22, 2020. Lock now anchor to April 1, 2020
+      // so the standard 150-day lookback window correctly encompasses the historical files.
+      now = Math.floor(new Date('2020-04-01T00:00:00Z').getTime() / 1000);
+    }
+    const defaultRangeS = this._defaults?.default_range || 150 * 24 * 3600;
+
+    let begin = this._begin;
+    let end = this._end;
+
+    const beginProvided = begin !== -1;
+    const endProvided = end !== -1;
+
+    if (beginProvided || endProvided) {
+      if (!beginProvided) {
+        begin = end - defaultRangeS;
+      } else if (!endProvided) {
+        end = begin + defaultRangeS;
+        if (end > now) end = now;
+      } else if (begin === end) {
+        const halfRange = Math.floor(defaultRangeS / 2);
+        begin = begin - halfRange;
+        end = end + halfRange;
+        if (end > now) {
+          const shift = end - now;
+          end = now;
+          begin -= shift;
+        }
+      }
+    } else {
+      begin = now - defaultRangeS;
+      end = now;
+    }
+
+    const resolvedBegin = Math.round(begin);
+    const resolvedEnd = Math.round(end);
+
+    // Write back defaults/partials to keep the URL deterministic
+    if (!beginProvided) {
+      this._begin = resolvedBegin;
+    }
+    if (!endProvided) {
+      this._end = resolvedEnd;
+    }
+
+    return {
+      begin: resolvedBegin,
+      end: resolvedEnd,
+    };
+  }
+
+  private async _fetchData(): Promise<void> {
+    console.log('[_fetchData] called');
     const startIdx = this._tracePage * this._pageSize;
     const endIdx = startIdx + this._pageSize;
     const visibleIds = this._showAllTraces
@@ -716,15 +804,9 @@ export class ExploreMultiV2Sk extends LitElement {
 
     this._loading = true;
     try {
-      let now = Math.floor(Date.now() / 1000);
-      if ((window as any).perf?.demo) {
-        // The demo dataset resides on March 22, 2020. Lock now anchor to April 1, 2020
-        // so the standard 150-day lookback window correctly encompasses the historical files.
-        now = Math.floor(new Date('2020-04-01T00:00:00Z').getTime() / 1000);
-      }
-      const quantizedNow = Math.floor(now / 3600) * 3600;
-      const duration = 150 * 24 * 3600 * Math.pow(2, retryCount);
-      const quantizedBegin = quantizedNow - duration;
+      const { begin, end } = this._resolveTimeRange();
+      const quantizedNow = Math.floor(end / 3600) * 3600;
+      const quantizedBegin = Math.floor(begin / 3600) * 3600;
 
       let reqTraceIds = [...visibleIds];
       const addStatKeys = (statName: string) => {
@@ -843,14 +925,7 @@ export class ExploreMultiV2Sk extends LitElement {
       if (response && response.dataframe) {
         const newSeries = this._translateDataFrame(response.dataframe);
 
-        if (newSeries.length === 0 && retryCount < 6) {
-          console.log(
-            'Out of bounds empty traceset detected. Widening duration bounds retry:',
-            retryCount + 1
-          );
-          return await this._fetchData(retryCount + 1);
-        }
-
+        // If traceset is empty, render empty chart.
         this._seriesData = this._mergeSeriesWithStats(this._seriesData, newSeries);
         this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
         await db.set(cacheKey, response);
@@ -869,6 +944,8 @@ export class ExploreMultiV2Sk extends LitElement {
   private _onResetZoom() {
     this._viewportMinX = null;
     this._viewportMaxX = null;
+    this._begin = -1;
+    this._end = -1;
     this.requestUpdate();
   }
 
@@ -918,6 +995,53 @@ export class ExploreMultiV2Sk extends LitElement {
     return title;
   }
 
+  /**
+   * Translates a commit number to its closest corresponding Unix timestamp (createdat)
+   * using a high-performance Binary Search closest-match lookup on the sorted series data.
+   * Reduces time complexity from O(N) to O(log N).
+   *
+   * @param commitNumber - The commit number to translate.
+   * @returns The resolved Unix timestamp in epoch seconds, or -1 if series data is empty.
+   */
+  private _translateCommitToTimestamp(commitNumber: number): number {
+    if (!this._seriesData || this._seriesData.length === 0) {
+      return -1;
+    }
+    // Scan first non-empty series since all series share identical commit header offsets
+    const series = this._seriesData.find((s) => s.rows && s.rows.length > 0);
+    if (!series) {
+      return -1;
+    }
+    const rows = series.rows;
+    let low = 0;
+    let high = rows.length - 1;
+
+    // Perform O(log N) Binary Search closest match
+    while (low < high) {
+      const mid = Math.floor((low + high) / 2);
+      if (rows[mid].commit_number === commitNumber) {
+        return rows[mid].createdat;
+      }
+      if (rows[mid].commit_number < commitNumber) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
+    }
+
+    // Low represents index closest to, or immediately after target commit number.
+    // Refine closest idx between low and low - 1.
+    let closestIdx = low;
+    if (low > 0) {
+      const diff1 = Math.abs(rows[low].commit_number - commitNumber);
+      const diff2 = Math.abs(rows[low - 1].commit_number - commitNumber);
+      if (diff2 < diff1) {
+        closestIdx = low - 1;
+      }
+    }
+    return rows[closestIdx].createdat;
+  }
+
   private _handleViewportChanged(e: any) {
     const detail = e.detail as { minCommit: number; maxCommit: number };
     const { minCommit, maxCommit } = detail;
@@ -925,6 +1049,27 @@ export class ExploreMultiV2Sk extends LitElement {
     // Update viewport instantly for visual sync
     this._viewportMinX = minCommit;
     this._viewportMaxX = maxCommit;
+
+    if (this._dateMode) {
+      this._begin = Math.floor(minCommit);
+      this._end = Math.ceil(maxCommit);
+      this._stateHasChanged();
+    } else {
+      const beginTime = this._translateCommitToTimestamp(Math.floor(minCommit));
+      const endTime = this._translateCommitToTimestamp(Math.ceil(maxCommit));
+      let changed = false;
+      if (beginTime !== -1 && beginTime !== this._begin) {
+        this._begin = beginTime;
+        changed = true;
+      }
+      if (endTime !== -1 && endTime !== this._end) {
+        this._end = endTime;
+        changed = true;
+      }
+      if (changed) {
+        this._stateHasChanged();
+      }
+    }
 
     if (this._viewportChangeTimeout) {
       clearTimeout(this._viewportChangeTimeout);
@@ -1118,6 +1263,10 @@ export class ExploreMultiV2Sk extends LitElement {
     if (!this._rangeSelection) return;
     this._viewportMinX = this._rangeSelection.minCommit;
     this._viewportMaxX = this._rangeSelection.maxCommit;
+    if (this._dateMode) {
+      this._begin = Math.floor(this._rangeSelection.minCommit);
+      this._end = Math.ceil(this._rangeSelection.maxCommit);
+    }
     this._rangeSelection = null;
     this.requestUpdate();
   }

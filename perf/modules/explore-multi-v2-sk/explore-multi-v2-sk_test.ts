@@ -15,6 +15,7 @@ describe('explore-multi-v2-sk', () => {
     (window as any).WORKER_URL =
       'data:application/javascript,self.postMessage({ type: "LOADED" }); self.onmessage = (e) => { if (e.data.type === "INIT") { self.postMessage({ type: "READY" }); } };';
     element = document.createElement('explore-multi-v2-sk') as ExploreMultiV2Sk;
+    (element as any)._fetchMetadata = async () => {};
     document.body.appendChild(element);
     await element.updateComplete;
 
@@ -116,6 +117,37 @@ describe('explore-multi-v2-sk', () => {
     expect(url.searchParams.get('regressions')).to.equal('false');
     expect(url.searchParams.get('tooltipDiffs')).to.equal('true');
     expect(url.searchParams.get('loadedBounds')).to.equal('true');
+  });
+
+  it('syncs begin and end to URL', async () => {
+    (element as any)._begin = 1680000000;
+    (element as any)._end = 1680100000;
+
+    (element as any)._stateHasChanged();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const url = new URL(window.location.href);
+    expect(url.searchParams.get('begin')).to.equal('1680000000');
+    expect(url.searchParams.get('end')).to.equal('1680100000');
+  });
+
+  it('resolves time range correctly using explicit bounds', () => {
+    (element as any)._begin = 1680000000;
+    (element as any)._end = 1680100000;
+    const range1 = (element as any)._resolveTimeRange();
+    expect(range1.begin).to.equal(1680000000);
+    expect(range1.end).to.equal(1680100000);
+  });
+
+  it('immediately writes back resolved default bounds to keep state deterministic', () => {
+    (element as any)._begin = -1;
+    (element as any)._end = -1;
+
+    const range = (element as any)._resolveTimeRange();
+    expect((element as any)._begin).to.equal(range.begin);
+    expect((element as any)._end).to.equal(range.end);
+    expect((element as any)._begin).to.not.equal(-1);
+    expect((element as any)._end).to.not.equal(-1);
   });
 
   it('sends all queries to worker', async () => {

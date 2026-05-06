@@ -43,11 +43,23 @@ describe('explore-multi-v2-sk', () => {
           fm.get('glob:*/dist/explore-multi-v2-sk/filter.wasm*', new ArrayBuffer(0), {
             overwriteRoutes: true,
           });
-          fm.get('/_/initpage/', {
-            dataframe: {
-              paramset: { arch: ['arm', 'x86'], os: ['windows', 'linux'] },
+          fm.get(
+            'glob:*/_/initpage*',
+            {
+              dataframe: {
+                paramset: { arch: ['arm', 'x86'], os: ['windows', 'linux'] },
+              },
             },
-          });
+            { overwriteRoutes: true }
+          );
+          fm.get(
+            'glob:*/_/defaults*',
+            {
+              default_range: 12960000,
+              include_params: [],
+            },
+            { overwriteRoutes: true }
+          );
         },
         configurable: true,
       });
@@ -265,5 +277,150 @@ describe('explore-multi-v2-sk', () => {
     });
 
     expect(query).to.deep.equal({ test: ['A'], stat: ['value'] });
+  });
+
+  it('should update URL with default begin and end on load if not present', async () => {
+    const page = testBed.page;
+
+    // Poll until begin parameter populates on page load
+    await poll(async () => {
+      const urlStr = await page.evaluate(() => window.location.href);
+      const url = new URL(urlStr);
+      return url.searchParams.get('begin') !== null;
+    }, 'Deterministic URL begin parameter did not populate on page load');
+
+    const urlStr = await page.evaluate(() => window.location.href);
+    const url = new URL(urlStr);
+    expect(url.searchParams.get('begin')).to.not.be.null;
+    expect(url.searchParams.get('end')).to.not.be.null;
+    expect(Number(url.searchParams.get('begin'))).to.be.greaterThan(0);
+    expect(Number(url.searchParams.get('end'))).to.be.greaterThan(0);
+  });
+
+  it('resolves partial bounds deterministically in URL on load', async () => {
+    const page = testBed.page;
+
+    // Navigate with only begin (relative past to demo date anchor 1585699200)
+    await page.goto(`${testBed.baseUrl}?begin=1570000000`);
+    await page.waitForSelector('explore-multi-v2-sk');
+
+    // Poll until end parameter resolves deterministically
+    await poll(async () => {
+      const urlStr = await page.evaluate(() => window.location.href);
+      const url = new URL(urlStr);
+      return url.searchParams.get('end') !== null;
+    }, 'Deterministic URL end parameter did not resolve on page load');
+
+    const urlStr = await page.evaluate(() => window.location.href);
+    const url = new URL(urlStr);
+    expect(url.searchParams.get('begin')).to.equal('1570000000');
+
+    const beginVal = Number(url.searchParams.get('begin'));
+    const endVal = Number(url.searchParams.get('end'));
+    // Expect end bound to match resolved defaults (150 days or backend defaults)
+    expect(endVal - beginVal).to.be.within(7000000, 13000000);
+  });
+
+  it('should update URL begin and end when viewport is changed in Date Mode', async () => {
+    const page = testBed.page;
+
+    // Mock /_/trace_values and toggle Date Mode with viewport change
+    await page.evaluate(() => {
+      (window as any).fetchMock.post(
+        '/_/trace_values',
+        { results: { 'test-trace': [{ x: 1700000000, y: 10 }] } },
+        { overwriteRoutes: true }
+      );
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      explore._matchingTraceIds = ['test-trace'];
+      explore._pageSize = 10;
+      explore._tracePage = 0;
+      explore._dateMode = true;
+      explore._handleViewportChanged({
+        detail: { minCommit: 1700000000, maxCommit: 1700086400 },
+      });
+    });
+
+    // Wait a bit for state reflection
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const urlStr = await page.evaluate(() => window.location.href);
+    const url = new URL(urlStr);
+    expect(url.searchParams.get('begin')).to.equal('1700000000');
+    expect(url.searchParams.get('end')).to.equal('1700086400');
+
+    // Poll to verify panned database fetch was successfully triggered
+    await poll(async () => {
+      const calls = await page.evaluate(() => (window as any).fetchMock.calls('/_/trace_values'));
+      return calls.length > 0;
+    }, 'Data-fetching query to /_/trace_values did not fire');
+  });
+
+  it('should translate commit numbers to timestamps in Commit Mode panning', async () => {
+    const page = testBed.page;
+
+    // Mock /_/trace_values, set mock series data, disable Date Mode, and trigger viewport change
+    await page.evaluate(() => {
+      (window as any).fetchMock.post(
+        '/_/trace_values',
+        { results: { 'test-trace': [{ x: 100, y: 10 }] } },
+        { overwriteRoutes: true }
+      );
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      explore._matchingTraceIds = ['test-trace'];
+      explore._pageSize = 10;
+      explore._tracePage = 0;
+      explore._dateMode = false;
+      explore._seriesData = [
+        {
+          id: 'test-trace',
+          rows: [
+            { commit_number: 100, createdat: 1710000000 },
+            { commit_number: 200, createdat: 1720000000 },
+          ],
+        },
+      ];
+      explore._handleViewportChanged({
+        detail: { minCommit: 100, maxCommit: 200 },
+      });
+    });
+
+    // Wait for state reflection
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const urlStr = await page.evaluate(() => window.location.href);
+    const url = new URL(urlStr);
+    expect(url.searchParams.get('begin')).to.equal('1710000000');
+    expect(url.searchParams.get('end')).to.equal('1720000000');
+
+    // Poll to verify panned database fetch was successfully triggered
+    await poll(async () => {
+      const calls = await page.evaluate(() => (window as any).fetchMock.calls('/_/trace_values'));
+      return calls.length > 0;
+    }, 'Data-fetching query to /_/trace_values did not fire');
+  });
+
+  it('should reset begin and end URL params when zoom is reset', async () => {
+    const page = testBed.page;
+
+    // Set explicit begin/end, then trigger reset zoom
+    await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      explore._begin = 1680000000;
+      explore._end = 1680100000;
+      explore._onResetZoom();
+    });
+
+    // Wait for state reflection
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const urlStr = await page.evaluate(() => window.location.href);
+    const url = new URL(urlStr);
+    expect(url.searchParams.get('begin')).to.satisfy(
+      (val: string | null) => val === null || val === '-1'
+    );
+    expect(url.searchParams.get('end')).to.satisfy(
+      (val: string | null) => val === null || val === '-1'
+    );
   });
 });
