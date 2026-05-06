@@ -129,6 +129,9 @@ type BackfillRequest struct {
 
 	// Whether to load all traces in a single data frame (true) or in chunks (false).
 	LoadAllTracesTogether bool `json:"load_all_traces_together"`
+
+	// Specific trace IDs to process. If provided, only these traces will be processed.
+	TraceIDs []string `json:"trace_ids,omitempty"`
 }
 
 // RegressionDetectionRequest is all the info needed to start a clustering run,

@@ -1,19 +1,22 @@
 #!/bin/bash
 
 usage() {
-  echo "Usage: $0 [-n] [-a] [-i <request_id>] <project> <topic> <start_date> <finish_date> <alert_id1> [<alert_id2> ...]"
+  echo "Usage: $0 [-n] [-a] [-i <request_id>] [-f <trace_file>] <project> <topic> <start_date> <finish_date> <alert_id1> [<alert_id2> ...]"
   echo "  -n: Send notifications (default: false)"
   echo "  -a: Load all traces together (default: false)"
   echo "  -i <request_id>: Use a custom request ID (default: auto-generated UUID)"
+  echo "  -f <trace_file>: File containing trace IDs (one per line). Use '-' to read from stdin."
   echo "  Example: $0 -n -a skia-public perf-anomaly-backfill-v8-perf-autopush 2026-01-01 2026-01-05 12345 67890"
+  echo "  Example with pipe: cat traces.txt | $0 -f - skia-public perf-anomaly-backfill-v8-perf-autopush 2026-01-01 2026-01-05 12345"
   exit 1
 }
 
 SEND_NOTIFICATIONS=false
 LOAD_ALL_TRACES_TOGETHER=false
 CUSTOM_REQUEST_ID=""
+TRACE_FILE=""
 
-while getopts "nai:" opt; do
+while getopts "nai:f:" opt; do
   case ${opt} in
     n )
       SEND_NOTIFICATIONS=true
@@ -24,12 +27,41 @@ while getopts "nai:" opt; do
     i )
       CUSTOM_REQUEST_ID="${OPTARG}"
       ;;
+    f )
+      TRACE_FILE="${OPTARG}"
+      ;;
     \? )
       usage
       ;;
   esac
 done
 shift $((OPTIND -1))
+
+TRACE_ARRAY=()
+if [ -n "$TRACE_FILE" ]; then
+    if [ "$TRACE_FILE" = "-" ]; then
+        echo "Reading trace IDs from stdin..."
+        mapfile -t TRACE_ARRAY
+    else
+        if [ ! -f "$TRACE_FILE" ]; then
+            echo "Error: File '$TRACE_FILE' not found."
+            exit 1
+        fi
+        mapfile -t TRACE_ARRAY < "$TRACE_FILE"
+    fi
+fi
+
+JSON_TRACE_ARRAY="[]"
+if [ ${#TRACE_ARRAY[@]} -gt 0 ]; then
+    JSON_TRACE_ARRAY="["
+    for i in "${!TRACE_ARRAY[@]}"; do
+        JSON_TRACE_ARRAY+="\"${TRACE_ARRAY[$i]}\""
+        if [ $i -lt $(( ${#TRACE_ARRAY[@]} - 1 )) ]; then
+            JSON_TRACE_ARRAY+=","
+        fi
+    done
+    JSON_TRACE_ARRAY+="]"
+fi
 
 if [ "$#" -lt 5 ]; then
     usage
@@ -65,7 +97,11 @@ for ALERT_ID in "${ALERT_IDS[@]}"; do
         fi
 
         # Construct the JSON payload
-        MESSAGE="{\"request_id\":\"${REQUEST_ID}\",\"alert_id\":${ALERT_ID},\"end\":${END_TIMESTAMP},\"load_all_traces_together\":${LOAD_ALL_TRACES_TOGETHER},\"send_notifications\":${SEND_NOTIFICATIONS}}"
+        if [ ${#TRACE_ARRAY[@]} -gt 0 ]; then
+            MESSAGE="{\"request_id\":\"${REQUEST_ID}\",\"alert_id\":${ALERT_ID},\"end\":${END_TIMESTAMP},\"load_all_traces_together\":${LOAD_ALL_TRACES_TOGETHER},\"send_notifications\":${SEND_NOTIFICATIONS},\"trace_ids\":${JSON_TRACE_ARRAY}}"
+        else
+            MESSAGE="{\"request_id\":\"${REQUEST_ID}\",\"alert_id\":${ALERT_ID},\"end\":${END_TIMESTAMP},\"load_all_traces_together\":${LOAD_ALL_TRACES_TOGETHER},\"send_notifications\":${SEND_NOTIFICATIONS}}"
+        fi
 
         echo "Publishing backfill request for alert ${ALERT_ID} date ${current_date} (timestamp: ${END_TIMESTAMP}, request_id: ${REQUEST_ID})..."
         echo "Payload: ${MESSAGE}"

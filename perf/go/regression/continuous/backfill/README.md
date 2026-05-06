@@ -15,6 +15,7 @@ When a message is received, the listener:
 
 1.  Loads the alert configuration.
 2.  Depending on the request:
+    - **Trace ID filtering mode**: If a list of `TraceIDs` is provided in the request, it filters out traces that do not match the alert's query and only processes the matching ones.
     - **Chunked mode** (default): Queries for all trace IDs matching the alert and processes them in batches.
     - **All-traces mode** (if `LoadAllTracesTogether` is true): Loads and processes all traces in a single data frame.
 3.  Runs the regression detection pipeline for the specified time range.
@@ -50,7 +51,7 @@ You can use the [trigger_backfill.sh](buildbot/perf/go/regression/continuous/bac
 Usage:
 
 ```bash
-./trigger_backfill.sh [-n] [-a] [-i <request_id>] <project> <topic> <start_date> <finish_date> <alert_id1> [<alert_id2> ...]
+./trigger_backfill.sh [-n] [-a] [-i <request_id>] [-f <trace_file>] <project> <topic> <start_date> <finish_date> <alert_id1> [<alert_id2> ...]
 ```
 
 Options:
@@ -58,6 +59,7 @@ Options:
 - `-n`: Enable sending notifications (default: false).
 - `-a`: Load all traces together (default: false).
 - `-i <request_id>`: Use a custom request ID (default: auto-generated UUID).
+- `-f <trace_file>`: File containing trace IDs (one per line). Use `-` to read from stdin.
 
 Examples:
 
@@ -71,6 +73,18 @@ Backfill all traces together with a custom request ID:
 
 ```bash
 ./trigger_backfill.sh -a -i "my-custom-batch-id" skia-public perf-anomaly-backfill-v8-perf-autopush 2026-01-01 2026-01-05 12345 67890
+```
+
+Backfill specific traces from a file:
+
+```bash
+./trigger_backfill.sh -f traces.txt skia-public perf-anomaly-backfill-v8-perf-autopush 2026-01-01 2026-01-05 12345
+```
+
+Backfill specific traces via pipe:
+
+```bash
+cat traces.txt | ./trigger_backfill.sh -f - skia-public perf-anomaly-backfill-v8-perf-autopush 2026-01-01 2026-01-05 12345
 ```
 
 ## Manual Backfill Procedure
@@ -90,13 +104,25 @@ Find the IDs of the alerts you want to backfill by querying the `alerts` table i
 Use the `trigger_backfill.sh` script to publish requests for the desired date range and alert IDs.
 
 ```bash
-./trigger_backfill.sh [-n] [-a] [-i <request_id>] <project> <topic> <start_date> <finish_date> <alert_id1> [<alert_id2> ...]
+./trigger_backfill.sh [-n] [-a] [-i <request_id>] [-f <trace_file>] <project> <topic> <start_date> <finish_date> <alert_id1> [<alert_id2> ...]
 ```
 
 #### Example backfill request:
 
 ```bash
 ./trigger_backfill.sh -a -n -i "my-custom-batch-id" skia-public perf-anomaly-backfill-v8-perf-autopush 2026-01-01 2026-01-05 12345 67890
+```
+
+#### Example backfill for specific traces:
+
+```bash
+./trigger_backfill.sh -f traces.txt skia-public perf-anomaly-backfill-v8-perf-autopush 2026-01-01 2026-01-05 12345
+```
+
+#### Example backfill for specific traces via pipe:
+
+```bash
+cat traces.txt | ./trigger_backfill.sh -f - skia-public perf-anomaly-backfill-v8-perf-autopush 2026-01-01 2026-01-05 12345
 ```
 
 ### 3. Monitor Metrics

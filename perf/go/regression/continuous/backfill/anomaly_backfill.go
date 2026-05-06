@@ -153,10 +153,6 @@ func (l *Listener) processSingleAlertBackfill(ctx context.Context, cfg *alerts.A
 		End: time.Unix(req.End, 0),
 	}
 
-	if req.LoadAllTracesTogether {
-		return l.processor.ProcessAlertConfig(ctx, cfg, "", nil, &domain, !req.SendNotifications)
-	}
-
 	u, err := url.ParseQuery(cfg.Query)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to parse query for alert")
@@ -164,6 +160,26 @@ func (l *Listener) processSingleAlertBackfill(ctx context.Context, cfg *alerts.A
 	q, err := query.New(u)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create query for alert")
+	}
+
+	if len(req.TraceIDs) > 0 {
+		var filteredTraceIDs []string
+		for _, traceID := range req.TraceIDs {
+			if q.Matches(traceID) {
+				filteredTraceIDs = append(filteredTraceIDs, traceID)
+			} else {
+				sklog.Infof("Skipping trace %s as it does not match alert query %q for Alert ID: %d", traceID, cfg.Query, req.AlertID)
+			}
+		}
+		if len(filteredTraceIDs) == 0 {
+			sklog.Infof("No provided traces matched the alert query %q for Alert ID: %d. Skipping backfill.", cfg.Query, req.AlertID)
+			return nil
+		}
+		return l.processor.ProcessAlertConfigForTraces(ctx, *cfg, filteredTraceIDs, nil, &domain, !req.SendNotifications, true)
+	}
+
+	if req.LoadAllTracesTogether {
+		return l.processor.ProcessAlertConfig(ctx, cfg, "", nil, &domain, !req.SendNotifications)
 	}
 
 	df, err := l.dfBuilder.NewNFromQuery(ctx, domain.End, q, domain.N, prog)
