@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // PeakIndexes holds the indices of a peak in a regression group.
@@ -32,7 +33,7 @@ type PeakIndexes struct {
 //     is strictly greater than its immediate neighbors (or a flat region of equal magnitudes > neighbors).
 //  2. Global Max: The point with the highest StepFit regression magnitude in the group.
 //     If there's a flat region of max values, the center index of that flat region is returned.
-func findPeaks(group []*regression.RegressionDetectionResponse) PeakIndexes {
+func findPeaks(group []*regression.RegressionDetectionResponse, algo types.StepDetection) PeakIndexes {
 	n := len(group)
 	if n == 0 {
 		return PeakIndexes{}
@@ -43,7 +44,13 @@ func findPeaks(group []*regression.RegressionDetectionResponse) PeakIndexes {
 			return -1.0 // Implicitly smaller than any valid magnitude (>=0)
 		}
 		// Validated in validateInput to have Summary/Clusters/StepFit
-		return math.Abs(float64(group[i].Summary.Clusters[0].StepFit.Regression))
+		mag := math.Abs(float64(group[i].Summary.Clusters[0].StepFit.Regression))
+		if algo == types.MannWhitneyU {
+			// For Mann-Whitney, smaller P-value is better.
+			// Invert it so that smaller P-values give larger magnitudes.
+			return 1.0 - mag
+		}
+		return mag
 	}
 
 	localPeaks := findLocalPeaks(n, getMag)

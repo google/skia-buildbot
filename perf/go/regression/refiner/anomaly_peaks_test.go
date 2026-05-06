@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/stepfit"
+	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
 
@@ -110,7 +111,62 @@ func TestFindPeaks_ReturnsStructuredPeaks(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, findPeaks(tc.input))
+			assert.Equal(t, tc.expected, findPeaks(tc.input, types.AbsoluteStep))
+		})
+	}
+}
+
+func TestFindPeaks_MannWhitney_ReturnsStructuredPeaks(t *testing.T) {
+	// Helper to create a response with a specific regression value (P-value)
+	r := func(val float64) *regression.RegressionDetectionResponse {
+		return &regression.RegressionDetectionResponse{
+			Frame: &frame.FrameResponse{DataFrame: &dataframe.DataFrame{}},
+			Summary: &clustering2.ClusterSummaries{
+				Clusters: []*clustering2.ClusterSummary{
+					{
+						StepFit: &stepfit.StepFit{
+							Regression: float32(val),
+							Status:     stepfit.LOW,
+						},
+						StepPoint: &dataframe.ColumnHeader{Offset: 100},
+						Keys:      []string{"k"},
+					},
+				},
+			},
+		}
+	}
+
+	tests := []struct {
+		name     string
+		input    []*regression.RegressionDetectionResponse
+		expected PeakIndexes
+	}{
+		{
+			name:  "Single Peak (Smallest P-value is peak)",
+			input: []*regression.RegressionDetectionResponse{r(0.05), r(0.01), r(0.05)},
+			expected: PeakIndexes{
+				LeftIndex: 1, RightIndex: 1, MaxIndex: 1,
+			},
+		},
+		{
+			name:  "Flat Peak",
+			input: []*regression.RegressionDetectionResponse{r(0.05), r(0.01), r(0.01), r(0.05)},
+			expected: PeakIndexes{
+				LeftIndex: 1, RightIndex: 2, MaxIndex: 2,
+			},
+		},
+		{
+			name:  "Multiple Peaks - Global Max Middle",
+			input: []*regression.RegressionDetectionResponse{r(0.05), r(0.03), r(0.05), r(0.001), r(0.05), r(0.03), r(0.05)},
+			expected: PeakIndexes{
+				LeftIndex: 1, RightIndex: 5, MaxIndex: 3,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, findPeaks(tc.input, types.MannWhitneyU))
 		})
 	}
 }

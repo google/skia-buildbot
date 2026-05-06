@@ -115,7 +115,7 @@ func (r *AnomalyBoundsRefiner) validateKeys(responses []*regression.RegressionDe
 // and delegates to refineGroup to determine the true boundaries of the anomaly. It returns a single
 // ConfirmedRegression that encompasses the refined anomalous range.
 func (r *AnomalyBoundsRefiner) mergeArea(cfg *alerts.Alert, area []*regression.RegressionDetectionResponse) *regression.ConfirmedRegression {
-	peakIdx := findPeaks(area)
+	peakIdx := findPeaks(area, cfg.Step)
 	return r.refineGroup(area, peakIdx, cfg)
 }
 
