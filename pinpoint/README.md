@@ -154,13 +154,18 @@ temporal workflow show \
 
 ### C. Via Go Pinpoint REST Query API
 
-Once the workflow completes, retrieve the Wilcoxon Signed-Rank test
-statistical results (p-values, control/treatment medians, and swarming task
-logs) programmatically:
+Once the bisection workflow completes, retrieve the statistical results programmatically:
 
 ```bash
 curl -i -X GET "http://localhost:8080/pinpoint/v1/query?job_id=[your-job-id]"
 ```
 
-_Note: If `QueryBisection` shows unimplemented, use the Temporal CLI or Web
-UI to fetch outcomes natively._
+### D. Via Go Pinpoint REST QueryPairwise API (New)
+
+Once a **Pairwise/Try Job** completes, retrieve the Wilcoxon Signed-Rank
+test statistical results, control/treatment medians, p-values, and all
+swarming task IDs:
+
+```bash
+curl -i -X GET "http://localhost:8080/pinpoint/v1/query-pairwise?job_id=[your-job-id]"
+```

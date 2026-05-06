@@ -28,6 +28,7 @@ const (
 	Pinpoint_QueryBisection_FullMethodName        = "/pinpoint.v1.Pinpoint/QueryBisection"
 	Pinpoint_LegacyJobQuery_FullMethodName        = "/pinpoint.v1.Pinpoint/LegacyJobQuery"
 	Pinpoint_SchedulePairwise_FullMethodName      = "/pinpoint.v1.Pinpoint/SchedulePairwise"
+	Pinpoint_QueryPairwise_FullMethodName         = "/pinpoint.v1.Pinpoint/QueryPairwise"
 	Pinpoint_ScheduleCulpritFinder_FullMethodName = "/pinpoint.v1.Pinpoint/ScheduleCulpritFinder"
 )
 
@@ -40,6 +41,7 @@ type PinpointClient interface {
 	QueryBisection(ctx context.Context, in *QueryBisectRequest, opts ...grpc.CallOption) (*BisectExecution, error)
 	LegacyJobQuery(ctx context.Context, in *LegacyJobRequest, opts ...grpc.CallOption) (*LegacyJobResponse, error)
 	SchedulePairwise(ctx context.Context, in *SchedulePairwiseRequest, opts ...grpc.CallOption) (*PairwiseExecution, error)
+	QueryPairwise(ctx context.Context, in *QueryPairwiseRequest, opts ...grpc.CallOption) (*QueryPairwiseResponse, error)
 	// culprit-finder (a.k.a) sandwich verification
 	ScheduleCulpritFinder(ctx context.Context, in *ScheduleCulpritFinderRequest, opts ...grpc.CallOption) (*CulpritFinderExecution, error)
 }
@@ -102,6 +104,16 @@ func (c *pinpointClient) SchedulePairwise(ctx context.Context, in *SchedulePairw
 	return out, nil
 }
 
+func (c *pinpointClient) QueryPairwise(ctx context.Context, in *QueryPairwiseRequest, opts ...grpc.CallOption) (*QueryPairwiseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryPairwiseResponse)
+	err := c.cc.Invoke(ctx, Pinpoint_QueryPairwise_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *pinpointClient) ScheduleCulpritFinder(ctx context.Context, in *ScheduleCulpritFinderRequest, opts ...grpc.CallOption) (*CulpritFinderExecution, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CulpritFinderExecution)
@@ -121,6 +133,7 @@ type PinpointServer interface {
 	QueryBisection(context.Context, *QueryBisectRequest) (*BisectExecution, error)
 	LegacyJobQuery(context.Context, *LegacyJobRequest) (*LegacyJobResponse, error)
 	SchedulePairwise(context.Context, *SchedulePairwiseRequest) (*PairwiseExecution, error)
+	QueryPairwise(context.Context, *QueryPairwiseRequest) (*QueryPairwiseResponse, error)
 	// culprit-finder (a.k.a) sandwich verification
 	ScheduleCulpritFinder(context.Context, *ScheduleCulpritFinderRequest) (*CulpritFinderExecution, error)
 	mustEmbedUnimplementedPinpointServer()
@@ -147,6 +160,9 @@ func (UnimplementedPinpointServer) LegacyJobQuery(context.Context, *LegacyJobReq
 }
 func (UnimplementedPinpointServer) SchedulePairwise(context.Context, *SchedulePairwiseRequest) (*PairwiseExecution, error) {
 	return nil, status.Error(codes.Unimplemented, "method SchedulePairwise not implemented")
+}
+func (UnimplementedPinpointServer) QueryPairwise(context.Context, *QueryPairwiseRequest) (*QueryPairwiseResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method QueryPairwise not implemented")
 }
 func (UnimplementedPinpointServer) ScheduleCulpritFinder(context.Context, *ScheduleCulpritFinderRequest) (*CulpritFinderExecution, error) {
 	return nil, status.Error(codes.Unimplemented, "method ScheduleCulpritFinder not implemented")
@@ -262,6 +278,24 @@ func _Pinpoint_SchedulePairwise_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Pinpoint_QueryPairwise_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPairwiseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PinpointServer).QueryPairwise(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Pinpoint_QueryPairwise_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PinpointServer).QueryPairwise(ctx, req.(*QueryPairwiseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Pinpoint_ScheduleCulpritFinder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ScheduleCulpritFinderRequest)
 	if err := dec(in); err != nil {
@@ -306,6 +340,10 @@ var Pinpoint_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SchedulePairwise",
 			Handler:    _Pinpoint_SchedulePairwise_Handler,
+		},
+		{
+			MethodName: "QueryPairwise",
+			Handler:    _Pinpoint_QueryPairwise_Handler,
 		},
 		{
 			MethodName: "ScheduleCulpritFinder",

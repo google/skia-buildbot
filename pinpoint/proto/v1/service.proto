@@ -540,6 +540,12 @@ service Pinpoint {
 		};
 	}
 
+	rpc QueryPairwise(QueryPairwiseRequest) returns (QueryPairwiseResponse) {
+		option (google.api.http) = {
+			get: "/pinpoint/v1/query-pairwise"
+		};
+	}
+
 	// culprit-finder (a.k.a) sandwich verification
 	rpc ScheduleCulpritFinder(ScheduleCulpritFinderRequest) returns (CulpritFinderExecution) {
 		option (google.api.http) = {
