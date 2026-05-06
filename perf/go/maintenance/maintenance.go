@@ -5,8 +5,11 @@ import (
 	"context"
 	"time"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/pool"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dfbuilder"
@@ -15,6 +18,10 @@ import (
 	"go.skia.org/infra/perf/go/regression/migration"
 	sheriffconfig "go.skia.org/infra/perf/go/sheriffconfig/service"
 	"go.skia.org/infra/perf/go/sql/expectedschema"
+	"go.skia.org/infra/perf/go/trace_visibility/checker"
+	"go.skia.org/infra/perf/go/trace_visibility/provider"
+	"go.skia.org/infra/perf/go/trace_visibility/provider/chrome"
+	"go.skia.org/infra/perf/go/trace_visibility/sqlconfigstore"
 	"go.skia.org/infra/perf/go/tracing"
 )
 
@@ -58,6 +65,8 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to migrate schema.")
 	}
+
+	startVisibilityChecker(ctx, instanceConfig, db)
 
 	if flags.GenerateTraceParamsAdditions {
 		var traceParamsIndexes []string
@@ -160,4 +169,37 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	}
 
 	select {}
+}
+
+func startVisibilityChecker(ctx context.Context, instanceConfig *config.InstanceConfig, db pool.Pool) {
+	if instanceConfig.VisibilityConfig == nil {
+		sklog.Info("Skipping visibility check: config missing.")
+		return
+	}
+
+	client := httputils.NewTimeoutClient()
+
+	var provider provider.Provider
+	var err error
+	switch instanceConfig.VisibilityConfig.ProviderName {
+	case "chrome":
+		provider, err = chrome.ChromeProvider(*instanceConfig.VisibilityConfig, client)
+	default:
+		sklog.Errorf("Unknown visibility provider: %q", instanceConfig.VisibilityConfig.ProviderName)
+		return
+	}
+
+	if err != nil {
+		sklog.Errorf("Failed to initialize %q provider: %s", instanceConfig.VisibilityConfig.ProviderName, err)
+		return
+	}
+
+	checkPeriod := time.Hour
+
+	visibilityChecker := checker.NewChecker(sqlconfigstore.New(db), provider)
+	go util.RepeatCtx(ctx, checkPeriod, func(ctx context.Context) {
+		if err := visibilityChecker.Check(ctx); err != nil {
+			sklog.Errorf("Failed to run visibility checker: %s", err)
+		}
+	})
 }

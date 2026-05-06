@@ -126,5 +126,15 @@
             }
         ]
     },
+    "visibility_config": {
+        "provider_name": "chrome",
+        "sources": {
+            "chrome_bot": {
+                "git_repo": "https://chromium.googlesource.com/chromium/src",
+                "path": "tools/perf/public_builders.json",
+                "rule_prefix": "bot="
+            }
+        }
+    },
     "need_alert_action": true
 }

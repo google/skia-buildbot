@@ -1,0 +1,29 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "chrome",
+    srcs = ["chrome.go"],
+    importpath = "go.skia.org/infra/perf/go/trace_visibility/provider/chrome",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gitiles",
+        "//go/skerr",
+        "//perf/go/config",
+        "//perf/go/trace_visibility/provider",
+    ],
+)
+
+go_test(
+    name = "chrome_test",
+    srcs = ["chrome_test.go"],
+    embed = [":chrome"],
+    deps = [
+        "//go/git",
+        "//go/gitiles/testutils",
+        "//go/mockhttpclient",
+        "//go/vfs",
+        "//perf/go/config",
+        "@com_github_stretchr_testify//require",
+    ],
+)
