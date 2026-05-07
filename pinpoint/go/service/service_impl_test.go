@@ -314,7 +314,7 @@ func TestQueryPairwise_InvalidRequest_ReturnsInternalError(t *testing.T) {
 	st, ok := status.FromError(err)
 	assert.True(t, ok)
 	assert.Equal(t, codes.InvalidArgument, st.Code())
-	assert.Contains(t, st.Message(), "invalid request")
+	assert.Contains(t, st.Message(), "Job ID is undefined")
 }
 
 func TestQueryPairwise_TemporalClientError_ReturnsClientError(t *testing.T) {
@@ -500,4 +500,38 @@ func TestQueryPairwise_TemporalWorkflowStatusIsUnspecified_ReturnsInternalError(
 	assert.True(t, ok)
 	assert.Equal(t, codes.Internal, st.Code())
 	assert.Contains(t, st.Message(), "Pairwise workflow execution returned unknown status")
+}
+
+func TestSchedulePairwise_ValidRequest_ReturnJobID(t *testing.T) {
+	tpm, tcm := newTemporalMock(t)
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil).Once()
+
+	const fakeID = "fake-job-id"
+	wfm := newWorkflowRunMock(t, fakeID)
+	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.PairwiseWorkflow, mock.Anything).Return(wfm, nil)
+
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+	resp, err := svc.SchedulePairwise(ctx, &pb.SchedulePairwiseRequest{
+		StartCommit: &pb.CombinedCommit{
+			Main: &pb.Commit{
+				GitHash:    "fake-start",
+				Repository: "chromium",
+			},
+		},
+		EndCommit: &pb.CombinedCommit{
+			Main: &pb.Commit{
+				GitHash:    "fake-end",
+				Repository: "chromium",
+			},
+		},
+		Benchmark:           "speedometer3",
+		Story:               "Speedometer3",
+		Configuration:       "mac-m1_mini_2020-perf",
+		BaseExtraArgs:       "--enable-features=MyFeature",
+		ExperimentExtraArgs: "--enable-features=MyFeature",
+	})
+	assert.Equal(t, fakeID, resp.JobId)
+	assert.NoError(t, err)
 }

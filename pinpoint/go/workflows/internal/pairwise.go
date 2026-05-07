@@ -3,6 +3,7 @@ package internal
 import (
 	"time"
 
+	"github.com/google/shlex"
 	"github.com/google/uuid"
 	swarming_pb "go.chromium.org/luci/swarming/proto/api_v2"
 
@@ -85,6 +86,15 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (
 		p.Request.AggregationMethod = "mean"
 	}
 
+	leftExtraArgs, err := splitExtraArgs(p.Request.BaseExtraArgs)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	rightExtraArgs, err := splitExtraArgs(p.Request.ExperimentExtraArgs)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	pairwiseRunnerParams := PairwiseCommitsRunnerParams{
 		SingleCommitRunnerParams: SingleCommitRunnerParams{
 			PinpointJobID:     jobID,
@@ -96,10 +106,12 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (
 			AggregationMethod: p.Request.AggregationMethod,
 			Iterations:        p.GetInitialAttempt(),
 		},
-		LeftCAS:     leftCas,
-		RightCAS:    rightCas,
-		LeftCommit:  (*common.CombinedCommit)(p.Request.StartCommit),
-		RightCommit: (*common.CombinedCommit)(p.Request.EndCommit),
+		LeftCAS:        leftCas,
+		RightCAS:       rightCas,
+		LeftCommit:     (*common.CombinedCommit)(p.Request.StartCommit),
+		RightCommit:    (*common.CombinedCommit)(p.Request.EndCommit),
+		LeftExtraArgs:  leftExtraArgs,
+		RightExtraArgs: rightExtraArgs,
 	}
 
 	mh := workflow.GetMetricsHandler(ctx).WithTags(map[string]string{
@@ -225,4 +237,15 @@ func convertCas(pinpointCas *pinpoint_proto.CASReference) (*swarming_pb.CASRefer
 			SizeBytes: pinpointCas.Digest.SizeBytes,
 		},
 	}, nil
+}
+
+func splitExtraArgs(args string) ([]string, error) {
+	if args == "" {
+		return nil, nil
+	}
+	parsed, err := shlex.Split(args)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to parse extra arguments %q", args)
+	}
+	return parsed, nil
 }

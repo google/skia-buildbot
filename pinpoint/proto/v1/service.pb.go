@@ -1019,9 +1019,13 @@ type SchedulePairwiseRequest struct {
 	// The user email who triggers the job.
 	UserEmail string `protobuf:"bytes,16,opt,name=user_email,json=userEmail,proto3" json:"user_email,omitempty"`
 	// The name for a Pinpoint job specified by the user.
-	JobName       string `protobuf:"bytes,17,opt,name=job_name,json=jobName,proto3" json:"job_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	JobName string `protobuf:"bytes,17,opt,name=job_name,json=jobName,proto3" json:"job_name,omitempty"`
+	// Specific arguments applied strictly to the control (base) runs.
+	BaseExtraArgs string `protobuf:"bytes,18,opt,name=base_extra_args,json=baseExtraArgs,proto3" json:"base_extra_args,omitempty"`
+	// Specific arguments applied strictly to the experiment (exp) runs.
+	ExperimentExtraArgs string `protobuf:"bytes,19,opt,name=experiment_extra_args,json=experimentExtraArgs,proto3" json:"experiment_extra_args,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *SchedulePairwiseRequest) Reset() {
@@ -1169,6 +1173,20 @@ func (x *SchedulePairwiseRequest) GetUserEmail() string {
 func (x *SchedulePairwiseRequest) GetJobName() string {
 	if x != nil {
 		return x.JobName
+	}
+	return ""
+}
+
+func (x *SchedulePairwiseRequest) GetBaseExtraArgs() string {
+	if x != nil {
+		return x.BaseExtraArgs
+	}
+	return ""
+}
+
+func (x *SchedulePairwiseRequest) GetExperimentExtraArgs() string {
+	if x != nil {
+		return x.ExperimentExtraArgs
 	}
 	return ""
 }
@@ -2631,7 +2649,7 @@ const file_service_proto_rawDesc = "" +
 	"\x0fBisectExecution\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x127\n" +
 	"\bculprits\x18\x02 \x03(\v2\x1b.pinpoint.v1.CombinedCommitR\bculprits\x12A\n" +
-	"\x11detailed_culprits\x18\x03 \x03(\v2\x14.pinpoint.v1.CulpritR\x10detailedCulprits\"\xaf\x05\n" +
+	"\x11detailed_culprits\x18\x03 \x03(\v2\x14.pinpoint.v1.CulpritR\x10detailedCulprits\"\x8b\x06\n" +
 	"\x17SchedulePairwiseRequest\x12>\n" +
 	"\fstart_commit\x18\x01 \x01(\v2\x1b.pinpoint.v1.CombinedCommitR\vstartCommit\x12:\n" +
 	"\n" +
@@ -2654,7 +2672,9 @@ const file_service_proto_rawDesc = "" +
 	"story_tags\x18\x0f \x01(\tR\tstoryTags\x12\x1d\n" +
 	"\n" +
 	"user_email\x18\x10 \x01(\tR\tuserEmail\x12\x19\n" +
-	"\bjob_name\x18\x11 \x01(\tR\ajobName\"-\n" +
+	"\bjob_name\x18\x11 \x01(\tR\ajobName\x12&\n" +
+	"\x0fbase_extra_args\x18\x12 \x01(\tR\rbaseExtraArgs\x122\n" +
+	"\x15experiment_extra_args\x18\x13 \x01(\tR\x13experimentExtraArgs\"-\n" +
 	"\x14QueryPairwiseRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"\x8d\x01\n" +
 	"\x15QueryPairwiseResponse\x126\n" +

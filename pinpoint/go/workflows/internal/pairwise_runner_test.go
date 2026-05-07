@@ -434,9 +434,11 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 			AggregationMethod: "mean",
 			Iterations:        30,
 		},
-		Seed:        seed,
-		LeftCommit:  common.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
-		RightCommit: common.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
+		Seed:           seed,
+		LeftCommit:     common.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
+		RightCommit:    common.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
+		LeftExtraArgs:  []string{"--js-flags=--max-opt=0"},
+		RightExtraArgs: []string{"--js-flags=--max-opt=1"},
 	}
 	target, err := bot_configs.GetIsolateTarget(p.BotConfig, p.Benchmark)
 	require.NoError(t, err)
@@ -497,6 +499,13 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	env.OnActivity(FindAvailableBotsActivity, mock.Anything, p.BotConfig, p.Seed).Return(freeBots, nil).Once()
 
 	env.OnWorkflow(workflows.RunBenchmarkPairwise, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(func(ctx workflow.Context, firstP, secondP *RunBenchmarkParams, first workflows.PairwiseOrder) (*workflows.PairwiseTestRun, error) {
+		if first == workflows.LeftThenRight {
+			assert.Equal(t, []string{"--js-flags=--max-opt=0"}, firstP.ExtraArgs)
+			assert.Equal(t, []string{"--js-flags=--max-opt=1"}, secondP.ExtraArgs)
+		} else {
+			assert.Equal(t, []string{"--js-flags=--max-opt=1"}, firstP.ExtraArgs)
+			assert.Equal(t, []string{"--js-flags=--max-opt=0"}, secondP.ExtraArgs)
+		}
 		// return the channel with all of the data
 		return <-rc, nil
 	}).Times(int(p.Iterations))

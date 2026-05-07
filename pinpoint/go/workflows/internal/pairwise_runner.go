@@ -32,6 +32,12 @@ type PairwiseCommitsRunnerParams struct {
 
 	// The random seed used to generate pairs.
 	Seed int64
+
+	// Specific arguments applied strictly to the left (control) runs.
+	LeftExtraArgs []string
+
+	// Specific arguments applied strictly to the right (experiment) runs.
+	RightExtraArgs []string
 }
 
 // PairwiseRun is the output of the PairwiseCommitsRunnerWorkflow
@@ -201,7 +207,7 @@ func generatePairOrderIndices(seed int64, count int) []workflows.PairwiseOrder {
 	return lt
 }
 
-func generatePairwiseBenchmarkParams(p SingleCommitRunnerParams, builds []*workflows.Build, botDimension map[string]string, iteration int32, order workflows.PairwiseOrder) (firstRBP, secondRBP *RunBenchmarkParams) {
+func generatePairwiseBenchmarkParams(p PairwiseCommitsRunnerParams, builds []*workflows.Build, botDimension map[string]string, iteration int32, order workflows.PairwiseOrder) (firstRBP, secondRBP *RunBenchmarkParams) {
 	left := &RunBenchmarkParams{
 		JobID:             p.PinpointJobID,
 		Commit:            builds[0].Commit,
@@ -214,6 +220,7 @@ func generatePairwiseBenchmarkParams(p SingleCommitRunnerParams, builds []*workf
 		IterationIdx:      iteration,
 		Chart:             p.Chart,
 		AggregationMethod: p.AggregationMethod,
+		ExtraArgs:         p.LeftExtraArgs,
 	}
 	right := &RunBenchmarkParams{
 		JobID:             p.PinpointJobID,
@@ -227,6 +234,7 @@ func generatePairwiseBenchmarkParams(p SingleCommitRunnerParams, builds []*workf
 		IterationIdx:      iteration,
 		Chart:             p.Chart,
 		AggregationMethod: p.AggregationMethod,
+		ExtraArgs:         p.RightExtraArgs,
 	}
 	switch order {
 	case workflows.LeftThenRight:
@@ -302,7 +310,7 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 		// copy every closure will point to it's own copy of i rather than pointing to
 		// the same variable.
 		iteration := int32(i)
-		firstRBP, secondRBP := generatePairwiseBenchmarkParams(pc.SingleCommitRunnerParams, builds, botDimension, iteration, first)
+		firstRBP, secondRBP := generatePairwiseBenchmarkParams(pc, builds, botDimension, iteration, first)
 
 		workflow.Go(ctx, func(gCtx workflow.Context) {
 			defer wg.Done()
