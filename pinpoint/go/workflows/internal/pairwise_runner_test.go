@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -9,6 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.temporal.io/sdk/testsuite"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
@@ -16,8 +20,6 @@ import (
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
-	"go.temporal.io/sdk/testsuite"
-	"go.temporal.io/sdk/workflow"
 )
 
 // generateValuesByChart generate mock values for TestRun
@@ -142,7 +144,7 @@ func TestPairwiseRun_isPairMissingData_GivenPairWithData_ReturnsFalse(t *testing
 		},
 	}
 	for i := range pr.Left.Runs {
-		assert.False(t, pr.isPairMissingData(i, mockChart), fmt.Sprintf("iteration %d", i))
+		assert.False(t, pr.isPairMissingData(i, mockChart), "iteration %d", i)
 	}
 }
 
@@ -512,25 +514,25 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	assert.Equal(t, pr.Order, pairwiseOrder)
 	for i, first := range pr.Order {
 		if first == 0 { // left is first
-			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Left.Runs[i], fmt.Sprintf("[%v], left first", i))
-			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Right.Runs[i], fmt.Sprintf("[%v], left first", i))
+			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Left.Runs[i], "[%v], left first", i)
+			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Right.Runs[i], "[%v], left first", i)
 		} else { // right is first
-			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Right.Runs[i], fmt.Sprintf("[%v], right first", i))
-			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Left.Runs[i], fmt.Sprintf("[%v], right first", i))
+			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Right.Runs[i], "[%v], right first", i)
+			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Left.Runs[i], "[%v], right first", i)
 		}
 	}
 	env.AssertExpectations(t)
 }
 
 func TestPairwiseCommitRunner_GivenCASInputs_ShouldSkipBuildStep(t *testing.T) {
-	var leftCas = &apipb.CASReference{
+	leftCas := &apipb.CASReference{
 		CasInstance: "projects/chrome-swarming/instances/default_instance",
 		Digest: &apipb.Digest{
 			Hash:      "062ccf0a30a362d8e4df3c9b82172a78e3d62c2990eb30927f5863a6b08e80bb",
 			SizeBytes: 810,
 		},
 	}
-	var rightCas = &apipb.CASReference{
+	rightCas := &apipb.CASReference{
 		CasInstance: "projects/chrome-swarming/instances/default_instance",
 		Digest: &apipb.Digest{
 			Hash:      "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6",
@@ -590,11 +592,193 @@ func TestPairwiseCommitRunner_GivenCASInputs_ShouldSkipBuildStep(t *testing.T) {
 	assert.Equal(t, pr.Order, pairwiseOrder)
 	for i, first := range pr.Order {
 		if first == 0 { // left is first
-			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Left.Runs[i], fmt.Sprintf("[%v], left first", i))
-			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Right.Runs[i], fmt.Sprintf("[%v], left first", i))
+			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Left.Runs[i], "[%v], left first", i)
+			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Right.Runs[i], "[%v], left first", i)
 		} else { // right is first
-			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Right.Runs[i], fmt.Sprintf("[%v], right first", i))
-			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Left.Runs[i], fmt.Sprintf("[%v], right first", i))
+			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Right.Runs[i], "[%v], right first", i)
+			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Left.Runs[i], "[%v], right first", i)
+		}
+	}
+	env.AssertExpectations(t)
+}
+
+func TestPairwiseCommitRunner_GivenMismatchedValueLengths_ShouldTruncateArrays(t *testing.T) {
+	leftCas := &apipb.CASReference{
+		CasInstance: "projects/chrome-swarming/instances/default_instance",
+		Digest: &apipb.Digest{
+			Hash:      "062ccf0a30a362d8e4df3c9b82172a78e3d62c2990eb30927f5863a6b08e80bb",
+			SizeBytes: 810,
+		},
+	}
+	rightCas := &apipb.CASReference{
+		CasInstance: "projects/chrome-swarming/instances/default_instance",
+		Digest: &apipb.Digest{
+			Hash:      "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6",
+			SizeBytes: 810,
+		},
+	}
+	const seed = int64(12312)
+	p := PairwiseCommitsRunnerParams{
+		SingleCommitRunnerParams: SingleCommitRunnerParams{
+			PinpointJobID:     "179a34b2be0000",
+			BotConfig:         "linux-r350-perf",
+			Benchmark:         "blink-perf.css",
+			Story:             "gc-mini-tree.html",
+			Chart:             "gc-mini-tree",
+			AggregationMethod: "mean",
+			Iterations:        30,
+		},
+		Seed:     seed,
+		LeftCAS:  leftCas,
+		RightCAS: rightCas,
+	}
+	freeBots := []string{
+		"lin-1-h516--device1",
+		"build60-h7--device2",
+		"lin-2-h516--device1",
+		"build65-h7--device4",
+		"build59-h7--device2",
+	}
+
+	fakeChartValues := &workflows.TestResults{
+		Values: map[string][]float64{
+			p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+		},
+	}
+	pairwiseOrder := generatePairOrderIndices(seed, int(p.Iterations))
+	_, rc := generatePairwiseTestRuns(fakeChartValues, pairwiseOrder)
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	env.RegisterWorkflowWithOptions(RunBenchmarkPairwiseWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmarkPairwise})
+
+	env.OnActivity(FindAvailableBotsActivity, mock.Anything, p.BotConfig, p.Seed).Return(freeBots, nil).Once()
+	env.OnWorkflow(workflows.RunBenchmarkPairwise, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(func(ctx workflow.Context, firstP, secondP *RunBenchmarkParams, first workflows.PairwiseOrder) (*workflows.PairwiseTestRun, error) {
+		return <-rc, nil
+	}).Times(int(p.Iterations))
+
+	env.OnActivity(CollectAllValuesActivity, mock.Anything, mock.Anything, p.Benchmark, p.AggregationMethod).Return(func(ctx context.Context, run *workflows.TestRun, benchmark, aggMethod string) (*workflows.TestResults, error) {
+		if run.CAS.Digest.Hash == "3f2f2f849ece00d5df0d03871c8d1a14df2c1b75edd3888d7c34db12e7461c76" {
+			return &workflows.TestResults{
+				Values: map[string][]float64{
+					p.SingleCommitRunnerParams.Chart: {1, 2, 3},
+				},
+			}, nil
+		}
+		return &workflows.TestResults{
+			Values: map[string][]float64{
+				p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4, 5},
+			},
+		}, nil
+	}).Times(2 * (int(p.Iterations) - 1))
+
+	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, p)
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+
+	var pr *PairwiseRun
+	require.NoError(t, env.GetWorkflowResult(&pr))
+	require.NotNil(t, pr)
+
+	for i := 0; i < int(p.Iterations); i++ {
+		if pr.Left.Runs[i].CAS == nil || pr.Right.Runs[i].CAS == nil {
+			continue
+		}
+		assert.Len(t, pr.Left.Runs[i].Values[p.SingleCommitRunnerParams.Chart], 3)
+		assert.Len(t, pr.Right.Runs[i].Values[p.SingleCommitRunnerParams.Chart], 3)
+	}
+	env.AssertExpectations(t)
+}
+
+func TestPairwiseCommitRunner_GivenEdgeCaseValues_ShouldHandleGracefully(t *testing.T) {
+	leftCas := &apipb.CASReference{
+		CasInstance: "projects/chrome-swarming/instances/default_instance",
+		Digest: &apipb.Digest{
+			Hash:      "062ccf0a30a362d8e4df3c9b82172a78e3d62c2990eb30927f5863a6b08e80bb",
+			SizeBytes: 810,
+		},
+	}
+	rightCas := &apipb.CASReference{
+		CasInstance: "projects/chrome-swarming/instances/default_instance",
+		Digest: &apipb.Digest{
+			Hash:      "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6",
+			SizeBytes: 810,
+		},
+	}
+	const seed = int64(12312)
+	p := PairwiseCommitsRunnerParams{
+		SingleCommitRunnerParams: SingleCommitRunnerParams{
+			PinpointJobID:     "179a34b2be0000",
+			BotConfig:         "linux-r350-perf",
+			Benchmark:         "blink-perf.css",
+			Story:             "gc-mini-tree.html",
+			Chart:             "gc-mini-tree",
+			AggregationMethod: "mean",
+			Iterations:        30,
+		},
+		Seed:     seed,
+		LeftCAS:  leftCas,
+		RightCAS: rightCas,
+	}
+	freeBots := []string{
+		"lin-1-h516--device1",
+		"build60-h7--device2",
+		"lin-2-h516--device1",
+		"build65-h7--device4",
+		"build59-h7--device2",
+	}
+
+	fakeChartValues := &workflows.TestResults{
+		Values: map[string][]float64{
+			p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+		},
+	}
+	pairwiseOrder := generatePairOrderIndices(seed, int(p.Iterations))
+	_, rc := generatePairwiseTestRuns(fakeChartValues, pairwiseOrder)
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	env.RegisterWorkflowWithOptions(RunBenchmarkPairwiseWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmarkPairwise})
+
+	env.OnActivity(FindAvailableBotsActivity, mock.Anything, p.BotConfig, p.Seed).Return(freeBots, nil).Once()
+	env.OnWorkflow(workflows.RunBenchmarkPairwise, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(func(ctx workflow.Context, firstP, secondP *RunBenchmarkParams, first workflows.PairwiseOrder) (*workflows.PairwiseTestRun, error) {
+		return <-rc, nil
+	}).Times(int(p.Iterations))
+
+	env.OnActivity(CollectAllValuesActivity, mock.Anything, mock.Anything, p.Benchmark, p.AggregationMethod).Return(func(ctx context.Context, run *workflows.TestRun, benchmark, aggMethod string) (*workflows.TestResults, error) {
+		if run.CAS.Digest.Hash == "3f2f2f849ece00d5df0d03871c8d1a14df2c1b75edd3888d7c34db12e7461c76" {
+			// Return nil values to simulate complete lack of values
+			return &workflows.TestResults{
+				Values: nil,
+			}, nil
+		}
+		// Return empty array
+		return &workflows.TestResults{
+			Values: map[string][]float64{
+				p.SingleCommitRunnerParams.Chart: {},
+			},
+		}, nil
+	}).Times(2 * (int(p.Iterations) - 1))
+
+	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, p)
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+
+	var pr *PairwiseRun
+	require.NoError(t, env.GetWorkflowResult(&pr))
+	require.NotNil(t, pr)
+
+	for i := 0; i < int(p.Iterations); i++ {
+		if pr.Left.Runs[i].CAS == nil || pr.Right.Runs[i].CAS == nil {
+			continue
+		}
+		// Verify that we handled the edge cases gracefully and did not crash
+		if pr.Left.Runs[i].Values == nil {
+			assert.Nil(t, pr.Left.Runs[i].Values[p.SingleCommitRunnerParams.Chart])
+		} else {
+			assert.Empty(t, pr.Left.Runs[i].Values[p.SingleCommitRunnerParams.Chart])
 		}
 	}
 	env.AssertExpectations(t)

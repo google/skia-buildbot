@@ -7,6 +7,7 @@ import (
 	"slices"
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/backends"
@@ -362,6 +363,14 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 		rightRuns[i].OSName = rr.OSName
 		rightRuns[i].Values = rr.Values
 		rightRuns[i].Units = rr.Units
+
+		for chart, leftVals := range leftRuns[i].Values {
+			if rightVals, ok := rightRuns[i].Values[chart]; ok {
+				minLen := min(len(leftVals), len(rightVals))
+				leftRuns[i].Values[chart] = leftVals[:minLen]
+				rightRuns[i].Values[chart] = rightVals[:minLen]
+			}
+		}
 	}
 
 	return &PairwiseRun{
