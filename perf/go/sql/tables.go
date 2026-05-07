@@ -15,7 +15,6 @@ import (
 	regrshortcutschema "go.skia.org/infra/perf/go/regrshortcut/regrshortcutstore/schema"
 	shortcutschema "go.skia.org/infra/perf/go/shortcut/sqlshortcutstore/schema"
 	subscriptionschema "go.skia.org/infra/perf/go/subscription/sqlsubscriptionstore/schema"
-	configschema "go.skia.org/infra/perf/go/trace_visibility/sqlconfigstore/schema"
 	traceschema "go.skia.org/infra/perf/go/tracestore/sqltracestore/schema"
 	userissuesschema "go.skia.org/infra/perf/go/userissue/sqluserissuestore/schema"
 )
@@ -28,7 +27,6 @@ type Tables struct {
 	Culprits             []culpritschema.CulpritSchema
 	Favorites            []favoriteschema.FavoriteSchema
 	GraphsShortcuts      []graphsshortcutschema.GraphsShortcutSchema
-	PublicTraceRules     []configschema.PublicTraceRulesSchema
 	Metadata             []traceschema.MetadataSchema
 	ParamSets            []traceschema.ParamSetsSchema
 	Postings             []traceschema.PostingsSchema

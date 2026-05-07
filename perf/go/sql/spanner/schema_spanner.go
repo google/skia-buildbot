@@ -64,10 +64,6 @@ CREATE TABLE IF NOT EXISTS GraphsShortcuts (
   graphs TEXT,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
-CREATE TABLE IF NOT EXISTS PublicTraceRules (
-  public_rule_expr TEXT PRIMARY KEY,
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
 CREATE TABLE IF NOT EXISTS Metadata (
   source_file_id INT PRIMARY KEY,
   links JSONB,
@@ -156,7 +152,6 @@ CREATE TABLE IF NOT EXISTS Subscriptions (
 CREATE TABLE IF NOT EXISTS TraceParams (
   trace_id BYTEA PRIMARY KEY,
   params JSONB,
-  is_public BOOL DEFAULT FALSE,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS TraceValues (
@@ -266,10 +261,6 @@ var GraphsShortcuts = []string{
 	"graphs",
 }
 
-var PublicTraceRules = []string{
-	"public_rule_expr",
-}
-
 var Metadata = []string{
 	"source_file_id",
 	"links",
@@ -352,7 +343,6 @@ var Subscriptions = []string{
 var TraceParams = []string{
 	"trace_id",
 	"params",
-	"is_public",
 }
 
 var TraceValues = []string{

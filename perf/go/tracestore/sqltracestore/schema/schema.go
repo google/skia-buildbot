@@ -60,7 +60,6 @@ type MetadataSchema struct {
 }
 
 type TraceParamsSchema struct {
-	TraceID  []byte            `sql:"trace_id BYTES PRIMARY KEY"`
-	Params   paramtools.Params `sql:"params JSONB"`
-	IsPublic bool              `sql:"is_public BOOL DEFAULT FALSE"`
+	TraceID []byte            `sql:"trace_id BYTES PRIMARY KEY"`
+	Params  paramtools.Params `sql:"params JSONB"`
 }
