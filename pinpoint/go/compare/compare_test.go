@@ -1,12 +1,14 @@
 package compare
 
 import (
+	"encoding/json"
 	"math"
 	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/pinpoint/go/compare/stats"
 	"go.skia.org/infra/pinpoint/go/compare/thresholds"
 )
@@ -310,8 +312,94 @@ func TestComparePairwise_SameValues_ReturnsEstimate(t *testing.T) {
 
 	valuesB = handlePairwiseEdgeCase(valuesA, valuesB)
 	expected, err := stats.PairwiseWilcoxonSignedRankedTest(valuesB, valuesA, stats.TwoSided, transform)
+	require.NoError(t, err)
 
 	result, err := ComparePairwise(valuesA, valuesB, UnknownDir)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result.PairwiseWilcoxonSignedRankedTestResult)
+}
+
+func TestComparePairwise_NaNAndInfInputs_SuccessfullySanitizes(t *testing.T) {
+	t.Run("Verify identical arrays do not return NaN or Inf and are JSON serializable", func(t *testing.T) {
+		// identical values inside each array usually produce NaN inside stats.PairwiseWilcoxonSignedRankedTest
+		valuesA := []float64{3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0}
+		valuesB := []float64{8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0}
+
+		result, err := ComparePairwise(valuesA, valuesB, UnknownDir)
+		require.NoError(t, err)
+
+		// assert returned floats are completely valid and finite (no NaN/Inf)
+		assert.False(t, math.IsNaN(result.PValue))
+		assert.False(t, math.IsNaN(result.Estimate))
+		assert.False(t, math.IsNaN(result.LowerCi))
+		assert.False(t, math.IsNaN(result.UpperCi))
+
+		assert.False(t, math.IsInf(result.PValue, 0))
+		assert.False(t, math.IsInf(result.Estimate, 0))
+		assert.False(t, math.IsInf(result.LowerCi, 0))
+		assert.False(t, math.IsInf(result.UpperCi, 0))
+
+		// Verify Go JSON marshaller succeeds with zero errors
+		_, jsonErr := json.Marshal(result)
+		assert.NoError(t, jsonErr)
+	})
+}
+
+func TestJSONMarshal_WithNaNAndInfValues_CrashesWithoutSanitization(t *testing.T) {
+	t.Run("Prove that raw NaN confidence intervals return JSON marshalling errors", func(t *testing.T) {
+		valuesA := []float64{3, 3, 3, 3, 3, 3, 3, 3}
+		valuesB := []float64{8, 8, 8, 8, 8, 8, 8, 8}
+
+		transform := stats.LogTransform
+		// Calling Wilcoxon directly on un-nudged identical arrays produces NaN LowerCi and UpperCi
+		edgeResult, err := stats.PairwiseWilcoxonSignedRankedTest(valuesB, valuesA, stats.TwoSided, transform)
+		require.NoError(t, err)
+		require.True(t, math.IsNaN(edgeResult.LowerCi))
+		require.True(t, math.IsNaN(edgeResult.UpperCi))
+
+		res := &ComparePairwiseResult{
+			Verdict:                                Same,
+			PairwiseWilcoxonSignedRankedTestResult: edgeResult,
+		}
+
+		// Verify that marshalling this un-sanitized result crashes with JSON error
+		_, jsonErr := json.Marshal(res)
+		require.Error(t, jsonErr)
+		assert.Contains(t, jsonErr.Error(), "json: unsupported value: NaN")
+	})
+}
+
+func TestSanitizeFloat_WithVariousInputs_CorrectlySanitizes(t *testing.T) {
+	t.Run("NaN is converted to 0.0", func(t *testing.T) {
+		assert.InDelta(t, 0.0, sanitizeFloat(math.NaN()), 0.0001)
+	})
+
+	t.Run("+Inf is converted to 0.0", func(t *testing.T) {
+		assert.InDelta(t, 0.0, sanitizeFloat(math.Inf(1)), 0.0001)
+	})
+
+	t.Run("-Inf is converted to 0.0", func(t *testing.T) {
+		assert.InDelta(t, 0.0, sanitizeFloat(math.Inf(-1)), 0.0001)
+	})
+
+	t.Run("Normal finite float is preserved unchanged", func(t *testing.T) {
+		assert.InDelta(t, 0.05, sanitizeFloat(0.05), 0.0001)
+		assert.InDelta(t, -1.23, sanitizeFloat(-1.23), 0.0001)
+	})
+}
+
+func TestComparePairwise_TiedNormalizedDifferences_FailsFastWithoutSanitization(t *testing.T) {
+	t.Run("Verify tied normalized differences produce NaN and fail-fast when sanitization is disabled", func(t *testing.T) {
+		// These arrays contain 0.0 (forces NormalizeResult) and are not internally identical
+		// but their differences have ties that natively produce NaN LowerCi and UpperCi inside Wilcoxon
+		valuesA := []float64{0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0}
+		valuesB := []float64{0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0}
+
+		result, err := ComparePairwise(valuesA, valuesB, UnknownDir)
+		require.NoError(t, err)
+
+		// If sanitization is enabled, these MUST be safely mapped to 0.0
+		assert.InDelta(t, 0.0, result.LowerCi, 0.0001)
+		assert.InDelta(t, 0.0, result.UpperCi, 0.0001)
+	})
 }

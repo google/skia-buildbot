@@ -17,7 +17,7 @@
 // a test fails during experimentation and if a CL can be attributed to an increase
 // in the failure rate. i.e., how functional is the measurement at that build of Chrome.
 //
-// Functional bisection is not explictly implemented, due to its low demand. However,
+// Functional bisection is not explicitly implemented, due to its low demand. However,
 // the analysis used in functional bisection is built into performance bisection.
 // Sometimes a test will fail and rather than throw out the data, performance
 // bisection backdoors into a functional bisection by using the functional
@@ -188,6 +188,10 @@ func ComparePairwise(valuesA, valuesB []float64, dir ImprovementDir) (*ComparePa
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	result.PValue = sanitizeFloat(result.PValue)
+	result.Estimate = sanitizeFloat(result.Estimate)
+	result.LowerCi = sanitizeFloat(result.LowerCi)
+	result.UpperCi = sanitizeFloat(result.UpperCi)
 	// return same if improvement
 	if (dir == Up && result.LowerCi > 0) || (dir == Down && result.UpperCi < 0) {
 		return &ComparePairwiseResult{
@@ -370,7 +374,7 @@ func compare(valuesA, valuesB []float64, LowThreshold, HighThreshold float64, di
 	}, nil
 }
 
-// if every value in valuesA is identicial and every value in valuesB is identical,
+// if every value in valuesA is identical and every value in valuesB is identical,
 // pairwise comparison will fail to return a confidence interval because the
 // wilcoxon_signed_rank.go runs into an error:
 // "cannot compute confidence interval when all observations are zero or tied"
@@ -395,4 +399,11 @@ func allSameValues(values []float64) bool {
 		}
 	}
 	return true
+}
+
+func sanitizeFloat(f float64) float64 {
+	if math.IsNaN(f) || math.IsInf(f, 0) {
+		return 0.0
+	}
+	return f
 }
