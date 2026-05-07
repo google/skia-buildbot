@@ -11,6 +11,9 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/chromeperf"
+	"go.skia.org/infra/perf/go/chromeperf/compat"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
@@ -104,6 +107,57 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 						sklog.Errorf("Failed to convert to Regression: %s", err)
 						return err
 					}
+
+					reg.PrevCommitNumber = cr.PrevCommitNumber
+					reg.CommitNumber = cr.CommitNumber
+					reg.DisplayCommitNumber = cr.DisplayCommitNumber
+
+					calcMedian := func(centroid []float32, tp int) (float32, float32) {
+						if tp < 0 || tp >= len(centroid) {
+							return 0, 0
+						}
+						var before, after []float64
+						for _, v := range centroid[:tp] {
+							if v < 1e20 && v > -1e20 {
+								before = append(before, float64(v))
+							}
+						}
+						for _, v := range centroid[tp:] {
+							if v < 1e20 && v > -1e20 {
+								after = append(after, float64(v))
+							}
+						}
+						mb, ma := float32(0), float32(0)
+						if len(before) > 0 {
+							sort.Float64s(before)
+							mb = float32(before[len(before)/2])
+						}
+						if len(after) > 0 {
+							sort.Float64s(after)
+							ma = float32(after[len(after)/2])
+						}
+						return mb, ma
+					}
+
+					reg.Id = fmt.Sprintf("%d", cr.CommitNumber)
+					if reg.Low != nil {
+						reg.IsImprovement = (alertReq.Alert.DirectionAsString == alerts.DOWN)
+						if reg.Low.Shortcut != "" {
+							reg.Id = reg.Low.Shortcut
+						}
+						if reg.Low.StepFit != nil {
+							reg.MedianBefore, reg.MedianAfter = calcMedian(reg.Low.Centroid, reg.Low.StepFit.TurningPoint)
+						}
+					} else if reg.High != nil {
+						reg.IsImprovement = (alertReq.Alert.DirectionAsString == alerts.UP)
+						if reg.High.Shortcut != "" {
+							reg.Id = reg.High.Shortcut
+						}
+						if reg.High.StepFit != nil {
+							reg.MedianBefore, reg.MedianAfter = calcMedian(reg.High.Centroid, reg.High.StepFit.TurningPoint)
+						}
+					}
+
 					req.Progress.Message("Step", fmt.Sprintf("%d/%d", queryRequest.Step+1, queryRequest.TotalQueries))
 					req.Progress.Message("Query", fmt.Sprintf("%q", queryRequest.Query()))
 					req.Progress.Message("Stage", "Looking for regressions in query results.")
@@ -126,7 +180,7 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 			}
 		}
 
-		regressions := []*RegressionAtCommit{}
+		anomalies := []chromeperf.Anomaly{}
 		commitNumbers := []types.CommitNumber{}
 		for id := range allRegressions {
 			commitNumbers = append(commitNumbers, id)
@@ -139,12 +193,36 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 				sklog.Errorf("Failed to look up commit %d: %s", commitNumber, err)
 				continue
 			}
-			regressions = append(regressions, &RegressionAtCommit{
-				CID:        details,
-				Regression: allRegressions[commitNumber],
-			})
+
+			reg := allRegressions[commitNumber]
+			if reg != nil && reg.Frame != nil && reg.Frame.DataFrame != nil && len(reg.Frame.DataFrame.TraceSet) == 0 {
+				reg.Frame.DataFrame.TraceSet = types.TraceSet{}
+				if reg.Low != nil && len(reg.Low.Keys) > 0 {
+					for _, key := range reg.Low.Keys {
+						reg.Frame.DataFrame.TraceSet[key] = nil
+					}
+				}
+				if reg.High != nil && len(reg.High.Keys) > 0 {
+					for _, key := range reg.High.Keys {
+						reg.Frame.DataFrame.TraceSet[key] = nil
+					}
+				}
+			}
+
+			anomalyMap, err := compat.ConvertRegressionToAnomalies(reg)
+			if err != nil {
+				sklog.Errorf("Failed to convert regression: %v", err)
+				continue
+			}
+
+			for _, commitMap := range anomalyMap {
+				for _, anomaly := range commitMap {
+					anomaly.Timestamp = fmt.Sprintf("%d", details.Timestamp)
+					anomalies = append(anomalies, anomaly)
+				}
+			}
 		}
-		req.Progress.Results(regressions)
+		req.Progress.Results(anomalies)
 	}()
 
 	if err := req.Progress.JSON(w); err != nil {

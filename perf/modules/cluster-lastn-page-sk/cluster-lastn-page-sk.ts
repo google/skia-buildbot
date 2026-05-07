@@ -22,8 +22,10 @@ import '../triage-status-sk';
 import '../alert-config-sk';
 import '../domain-picker-sk';
 import '../sheriff-configs-dry-run-sk';
+import '../anomalies-table-sk';
 import { SheriffConfigsDryRunSk } from '../sheriff-configs-dry-run-sk/sheriff-configs-dry-run-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
+import { Anomaly } from '../json';
 import {
   Alert,
   FrameResponse,
@@ -71,6 +73,8 @@ export class ClusterLastNPageSk extends ElementSk {
 
   // The regressions detected from the dryrun.
   private regressions: (RegressionAtCommit | null)[] = [];
+
+  private detectedAnomalies: Anomaly[] = [];
 
   private get alertDialog() {
     return this.querySelector<HTMLDialogElement>('#alert-config-dialog');
@@ -214,7 +218,14 @@ ${ele.runningStatus}</pre
       </div>
     </dialog>
 
-    ${ClusterLastNPageSk.table(ele)}
+    ${ele.mode === 'legacy'
+      ? ClusterLastNPageSk.table(ele)
+      : html`
+          <div style="margin-top: 2em;" ?hidden=${!!ele.requestId || !ele.detectedAnomalies.length}>
+            <h3>Anomalies found: ${ele.detectedAnomalies.length}</h3>
+            <anomalies-table-sk .anomalyList=${ele.detectedAnomalies}></anomalies-table-sk>
+          </div>
+        `}
   `;
 
   /** The classname to add to an element if an error has occurred. */
@@ -505,7 +516,11 @@ ${ele.runningStatus}</pre
         pollingIntervalMs: 300,
         onProgressUpdate: (prog: progress.SerializedProgress) => {
           if (prog.results) {
-            this.regressions = prog.results;
+            if (this.mode === 'sheriff') {
+              this.detectedAnomalies = prog.results;
+            } else {
+              this.regressions = prog.results;
+            }
           }
           this.runningStatus = prog.messages.map((msg) => `${msg.key}: ${msg.value}`).join('\n');
           this._render();
@@ -516,7 +531,11 @@ ${ele.runningStatus}</pre
       if (finalProg.status !== 'Finished') {
         throw new Error(messagesToErrorString(finalProg.messages));
       }
-      this.regressions = finalProg.results;
+      if (this.mode === 'sheriff') {
+        this.detectedAnomalies = finalProg.results;
+      } else {
+        this.regressions = finalProg.results;
+      }
       this.runningStatus = '';
     } catch (error) {
       this.catch(error as Error);
