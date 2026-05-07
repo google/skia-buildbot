@@ -1,8 +1,0 @@
-load("@rules_go//go:def.bzl", "go_library")
-
-go_library(
-    name = "provider",
-    srcs = ["provider.go"],
-    importpath = "go.skia.org/infra/perf/go/trace_visibility/provider",
-    visibility = ["//visibility:public"],
-)

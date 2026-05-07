@@ -451,9 +451,6 @@
         "data_point_config": {
           "$ref": "#/$defs/DataPointConfig"
         },
-        "visibility_config": {
-          "$ref": "#/$defs/VisibilityConfig"
-        },
         "enable_sheriff_config": {
           "type": "boolean"
         },
@@ -799,47 +796,6 @@
       "required": [
         "param",
         "values"
-      ]
-    },
-    "VisibilityConfig": {
-      "properties": {
-        "provider_name": {
-          "type": "string"
-        },
-        "sources": {
-          "patternProperties": {
-            ".*": {
-              "$ref": "#/$defs/VisibilitySourceConfig"
-            }
-          },
-          "type": "object"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "provider_name",
-        "sources"
-      ]
-    },
-    "VisibilitySourceConfig": {
-      "properties": {
-        "git_repo": {
-          "type": "string"
-        },
-        "path": {
-          "type": "string"
-        },
-        "rule_prefix": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "git_repo",
-        "path",
-        "rule_prefix"
       ]
     }
   }

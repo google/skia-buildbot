@@ -927,19 +927,6 @@ type DataPointConfig struct {
 	AlwaysShowCommitInfo bool `json:"always_show_commit_info,omitempty"`
 }
 
-// VisibilityConfig contains settings for fetching external visibility rules.
-type VisibilityConfig struct {
-	ProviderName string                            `json:"provider_name"`
-	Sources      map[string]VisibilitySourceConfig `json:"sources"`
-}
-
-// VisibilitySourceConfig defines the configuration for a single visibility source.
-type VisibilitySourceConfig struct {
-	GitRepo    string `json:"git_repo"`
-	Path       string `json:"path"`
-	RulePrefix string `json:"rule_prefix"`
-}
-
 // QueryConfig contains query customization info for the instance.
 type QueryConfig struct {
 	// IncludedParams defines the params that should be displayed in the query dialog.
@@ -1131,20 +1118,20 @@ type InstanceConfig struct {
 
 	UseRegression2 bool `json:"use_regression2_schema,omitempty"`
 
-	AuthConfig             AuthConfig         `json:"auth_config,omitempty"`
-	DataStoreConfig        DataStoreConfig    `json:"data_store_config"`
-	IngestionConfig        IngestionConfig    `json:"ingestion_config"`
-	GitRepoConfig          GitRepoConfig      `json:"git_repo_config"`
-	NotifyConfig           NotifyConfig       `json:"notify_config"`
-	IssueTrackerConfig     IssueTrackerConfig `json:"issue_tracker_config,omitempty"`
-	AnomalyConfig          AnomalyConfig      `json:"anomaly_config,omitempty"`
-	QueryConfig            QueryConfig        `json:"query_config,omitempty"`
-	TemporalConfig         TemporalConfig     `json:"temporal_config,omitempty"`
-	DataPointConfig        DataPointConfig    `json:"data_point_config,omitempty"`
-	VisibilityConfig       *VisibilityConfig  `json:"visibility_config,omitempty"`
-	EnableSheriffConfig    bool               `json:"enable_sheriff_config,omitempty"`
-	SheriffConfigsToNotify []string           `json:"sheriff_configs_to_notify,omitempty"`
-	MaintenanceConfig      MaintenanceConfig  `json:"maintenance_config,omitempty"`
+	AuthConfig         AuthConfig         `json:"auth_config,omitempty"`
+	DataStoreConfig    DataStoreConfig    `json:"data_store_config"`
+	IngestionConfig    IngestionConfig    `json:"ingestion_config"`
+	GitRepoConfig      GitRepoConfig      `json:"git_repo_config"`
+	NotifyConfig       NotifyConfig       `json:"notify_config"`
+	IssueTrackerConfig IssueTrackerConfig `json:"issue_tracker_config,omitempty"`
+	AnomalyConfig      AnomalyConfig      `json:"anomaly_config,omitempty"`
+	QueryConfig        QueryConfig        `json:"query_config,omitempty"`
+	TemporalConfig     TemporalConfig     `json:"temporal_config,omitempty"`
+	DataPointConfig    DataPointConfig    `json:"data_point_config,omitempty"`
+
+	EnableSheriffConfig    bool              `json:"enable_sheriff_config,omitempty"`
+	SheriffConfigsToNotify []string          `json:"sheriff_configs_to_notify,omitempty"`
+	MaintenanceConfig      MaintenanceConfig `json:"maintenance_config,omitempty"`
 
 	// Measurement ID to use when tracking user metrics with Google Analytics.
 	GoogleAnalyticsMeasurementID string `json:"ga_measurement_id,omitempty"`
