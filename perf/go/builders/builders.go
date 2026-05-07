@@ -230,9 +230,11 @@ func NewRegressionStoreFromConfig(ctx context.Context, instanceConfig *config.In
 
 // NewRegressionsShortcutStoreFromConfig creates a new regrShortcutStore.RegressionsShortcutStore from
 // the InstanceConfig.
+// If localToProd is true then we use a local cache instead of writing the
+// database - required when running locally against prod without writing access.
 func NewRegressionsShortcutStoreFromConfig(ctx context.Context, localToProd bool, instanceConfig *config.InstanceConfig) (regrshortcut.Store, error) {
 	if localToProd {
-		cacheClient, err := local.New(100)
+		cacheClient, err := local.New(1000)
 		if err != nil {
 			return nil, err
 		}
@@ -247,7 +249,16 @@ func NewRegressionsShortcutStoreFromConfig(ctx context.Context, localToProd bool
 
 // NewShortcutStoreFromConfig creates a new shortcut.Store from the
 // InstanceConfig.
-func NewShortcutStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (shortcut.Store, error) {
+// If localToProd is true then we use a local cache instead of writing the
+// database - required when running locally against prod without writing access.
+func NewShortcutStoreFromConfig(ctx context.Context, localToProd bool, instanceConfig *config.InstanceConfig) (shortcut.Store, error) {
+	if localToProd {
+		cacheClient, err := local.New(100000)
+		if err != nil {
+			return nil, err
+		}
+		return sqlshortcutstore.NewCacheShortcutStore(cacheClient), nil
+	}
 	db, err := getDBPool(ctx, instanceConfig)
 	if err != nil {
 		return nil, err
@@ -257,9 +268,11 @@ func NewShortcutStoreFromConfig(ctx context.Context, instanceConfig *config.Inst
 
 // NewShortcutStoreFromConfig creates a new shortcut.Store from the
 // InstanceConfig.
+// If localToProd is true then we use a local cache instead of writing the
+// database - required when running locally against prod without writing access.
 func NewGraphsShortcutStoreFromConfig(ctx context.Context, localToProd bool, instanceConfig *config.InstanceConfig) (graphsshortcut.Store, error) {
 	if localToProd {
-		cache, err := local.New(100)
+		cache, err := local.New(1000)
 		if err != nil {
 			return nil, err
 		}

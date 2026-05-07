@@ -612,7 +612,7 @@ func (f *Frontend) initialize() {
 	if err != nil {
 		sklog.Fatalf("Fail to NewAlertStoreFromConfig: %v", err)
 	}
-	f.shortcutStore, err = builders.NewShortcutStoreFromConfig(ctx, config.Config)
+	f.shortcutStore, err = builders.NewShortcutStoreFromConfig(ctx, f.flags.LocalToProd, config.Config)
 	if err != nil {
 		sklog.Fatalf("Fail to NewShortcutStoreFromConfig: %v", err)
 	}

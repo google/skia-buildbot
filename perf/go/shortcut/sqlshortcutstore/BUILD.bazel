@@ -3,10 +3,14 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "sqlshortcutstore",
-    srcs = ["sqlshortcutstore.go"],
+    srcs = [
+        "cacheshortcutstore.go",
+        "sqlshortcutstore.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/shortcut/sqlshortcutstore",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/cache",
         "//go/query",
         "//go/skerr",
         "//go/sklog",

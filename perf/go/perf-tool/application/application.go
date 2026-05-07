@@ -232,7 +232,7 @@ func (app) DatabaseBackupShortcuts(instanceConfig *config.InstanceConfig, output
 	}
 	shortcutsEncoder := gob.NewEncoder(shortcutsZipWriter)
 
-	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, instanceConfig)
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, false, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -376,7 +376,7 @@ func (app) DatabaseBackupRegressions(local bool, instanceConfig *config.Instance
 		return skerr.Wrap(err)
 	}
 	shortcutsEncoder := gob.NewEncoder(shortcutsZipWriter)
-	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, instanceConfig)
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, false, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -476,7 +476,7 @@ func (app) DatabaseRestoreShortcuts(instanceConfig *config.InstanceConfig, input
 	defer util.Close(z)
 
 	// Restore shortcuts.
-	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, instanceConfig)
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, false, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -530,7 +530,7 @@ func (app) DatabaseRestoreRegressions(instanceConfig *config.InstanceConfig, inp
 	}
 
 	// Also re-create the shortcuts in each regression.
-	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, instanceConfig)
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, false, instanceConfig)
 	if err != nil {
 		return err
 	}

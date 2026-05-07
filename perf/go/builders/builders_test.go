@@ -105,7 +105,7 @@ func TestNewRegressionStoreFromConfig_Success(t *testing.T) {
 func TestNewShortcutStoreFromConfig_Success(t *testing.T) {
 	ctx, instanceConfig := newDBConfigForTest(t)
 
-	store, err := NewShortcutStoreFromConfig(ctx, instanceConfig)
+	store, err := NewShortcutStoreFromConfig(ctx, false, instanceConfig)
 	require.NoError(t, err)
 
 	shortcuttest.InsertGet(t, store)
