@@ -160,7 +160,7 @@ export class ExploreWorkerController {
     });
   }
 
-  public suggest(query: string, currentQuery: any, idx: number) {
+  public suggest(query: string, currentQuery: any, idx: number, availableParams?: any[]) {
     if (!this.worker || !this.ready) {
       console.warn('WorkerController: Worker not ready for suggestions');
       return;
@@ -172,6 +172,7 @@ export class ExploreWorkerController {
       currentQuery: currentQuery,
       requestId: this.workerRequestId,
       idx: idx,
+      availableParams: availableParams,
     });
   }
 

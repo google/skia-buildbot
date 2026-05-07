@@ -1028,4 +1028,30 @@ describe('explore-multi-v2-sk', () => {
       DataService.prototype.getShortcut = originalGetShortcut;
     }
   });
+
+  it('populates optionsByKeyPerQuery[0] with overridden options for active facets', async () => {
+    element['_queries'] = [{ benchmark: ['v8'] }];
+    element['_latestActiveFacets'] = ['benchmark'];
+
+    const payload = {
+      queryResults: [
+        { paramsByKey: { benchmark: [{ value: 'v8', count: 10 }] } }, // result for full query
+        {
+          paramsByKey: {
+            benchmark: [
+              { value: 'v8', count: 10 },
+              { value: 'v8.infra', count: 5 },
+            ],
+          },
+        }, // result for query with benchmark removed
+      ],
+    };
+
+    element['_handleFilterResult'](payload);
+
+    expect(element['_optionsByKeyPerQuery'][0]['benchmark']).to.deep.equal([
+      { value: 'v8', count: 10 },
+      { value: 'v8.infra', count: 5 },
+    ]);
+  });
 });

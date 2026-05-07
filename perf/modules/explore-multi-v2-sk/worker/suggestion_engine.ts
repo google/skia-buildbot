@@ -20,6 +20,7 @@ export async function computeSuggestions(
   queryInput: string,
   currentQuery: Query,
   params: Param[],
+  availableParams: Param[] | null,
   traceData: TraceData | null,
   wasmFilter: WasmExports | null,
   searchCache: SearchCache,
@@ -48,13 +49,19 @@ export async function computeSuggestions(
   }
 
   let pool: Param[] = [];
-  if (traceData) {
+  const currentQueryKeys = Object.keys(currentQuery);
+  const queryKeySet = new Set(currentQueryKeys);
+
+  if (availableParams) {
+    for (const p of availableParams) {
+      if (queryKeySet.has(p.key)) continue; // Exclude existing keys
+      pool.push(p);
+    }
+  } else if (traceData) {
     const { matchingParams, bitsetSize } = traceData;
-    const currentQueryKeys = Object.keys(currentQuery);
     const keyToIndex = new Map<string, number>();
     currentQueryKeys.forEach((k, i) => keyToIndex.set(k, i));
     const isQueryEmpty = currentQueryKeys.length === 0;
-    const queryKeySet = new Set(currentQueryKeys);
 
     for (const p of params) {
       if (queryKeySet.has(p.key)) continue; // Exclude existing keys

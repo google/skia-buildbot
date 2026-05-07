@@ -65,6 +65,10 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _optionsByKey: Record<string, { value: string; count: number }[]> = {};
 
+  @state() private _availableParamsPerQuery: { key: string; value: string; count: number }[][] = [];
+
+  @state() private _optionsByKeyPerQuery: Record<string, { value: string; count: number }[]>[] = [];
+
   @state() private _suggestionsForQueryBar: Suggestion[][] = [];
 
   @state() private _splitKeys: Set<string> = new Set();
@@ -332,6 +336,24 @@ export class ExploreMultiV2Sk extends LitElement {
       }
 
       this._optionsByKey = mergedOptionsByKey;
+
+      // Store independent params and options for each query bar
+      const availableParamsPerQuery: { key: string; value: string; count: number }[][] = [];
+      const optionsByKeyPerQuery: Record<string, { value: string; count: number }[]>[] = [];
+
+      payload.queryResults.forEach((result: any, idx: number) => {
+        if (idx < this._queries.length) {
+          availableParamsPerQuery.push(result.availableParams || []);
+          if (idx === 0) {
+            optionsByKeyPerQuery.push(mergedOptionsByKey);
+          } else {
+            optionsByKeyPerQuery.push(result.paramsByKey || {});
+          }
+        }
+      });
+
+      this._availableParamsPerQuery = availableParamsPerQuery;
+      this._optionsByKeyPerQuery = optionsByKeyPerQuery;
     }
   }
 
@@ -1487,8 +1509,9 @@ export class ExploreMultiV2Sk extends LitElement {
   private _handleSuggest(idx: number, e: CustomEvent<{ query: string }>) {
     const queryInput = e.detail.query;
     const currentQuery = this._queries[idx] || {};
+    const availableParams = this._availableParamsPerQuery[idx] || this._availableParams;
 
-    this._workerController?.suggest(queryInput, currentQuery, idx);
+    this._workerController?.suggest(queryInput, currentQuery, idx, availableParams);
   }
 
   private _handleAddQuery(idx: number, e: CustomEvent<{ key: string; value: string }>) {
@@ -1721,8 +1744,8 @@ export class ExploreMultiV2Sk extends LitElement {
               <query-bar-sk
                 style="flex: 1;"
                 .query=${q}
-                .availableParams=${this._availableParams}
-                .optionsByKey=${this._optionsByKey}
+                .availableParams=${this._availableParamsPerQuery[idx] || this._availableParams}
+                .optionsByKey=${this._optionsByKeyPerQuery[idx] || this._optionsByKey}
                 .splitKeys=${this._splitKeys}
                 .includeParams=${this._includeParams}
                 .defaults=${this._defaults}

@@ -20,7 +20,7 @@ const MAX_KEYS = 50;
 const QUERY_BUFFER_SIZE = 512 * 1024; // Increased to accommodate bitmask array
 
 // Cache State
-let searchCache: SearchCache = { query: '', contextStr: '', indices: null };
+const searchCaches: Record<number, SearchCache> = {};
 
 // State for Interruptibility
 let latestFilterRequestId = 0;
@@ -422,7 +422,8 @@ async function handleSuggest(
   queryInput: string,
   currentQuery: Query,
   requestId: number,
-  idx: number
+  idx: number,
+  availableParams?: Param[]
 ) {
   if (requestId !== latestSuggestRequestId) return;
 
@@ -433,11 +434,12 @@ async function handleSuggest(
     queryInput,
     currentQuery,
     params,
+    availableParams || null,
     loadedData?.traceData ?? null,
     loadedData?.wasmFilter ?? null,
-    searchCache,
-    (cache) => {
-      searchCache = cache;
+    searchCaches[idx] || { query: '', contextStr: '', indices: null },
+    (cache: SearchCache) => {
+      searchCaches[idx] = cache;
     },
     yieldToMain,
     () => requestId !== latestSuggestRequestId,
@@ -460,7 +462,13 @@ self.onmessage = (e: MessageEvent) => {
     void handleFilter(queries, e.data.requestId || 0, e.data.numUserQueries || 1);
   } else if (e.data.type === 'SUGGEST') {
     latestSuggestRequestId = e.data.requestId;
-    void handleSuggest(e.data.query, e.data.currentQuery, e.data.requestId, e.data.idx);
+    void handleSuggest(
+      e.data.query,
+      e.data.currentQuery,
+      e.data.requestId,
+      e.data.idx,
+      e.data.availableParams
+    );
   }
 };
 
