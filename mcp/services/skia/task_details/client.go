@@ -169,7 +169,7 @@ func (c *TaskDetailsClient) GetTaskDriverLogsHandler(ctx context.Context, req mc
 	cursor := req.GetString(argCursor, "")
 	limit := req.GetInt(argLimit, 0)
 
-	logs, cursor, err := c.tdLogs.Search(ctx, taskID, stepID, logID, cursor, limit)
+	logs, cursor, err := c.tdLogs.Search(ctx, taskID, stepID, logID, cursor, limit, false)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

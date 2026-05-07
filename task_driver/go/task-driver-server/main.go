@@ -69,7 +69,7 @@ func logsHandler(w http.ResponseWriter, r *http.Request, taskId, stepId, logId s
 	// retrieve the run and then limit our search to its duration. That
 	// might speed up the search quite a bit.
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	entries, _, err := lm.Search(r.Context(), taskId, stepId, logId, "", 0)
+	entries, _, err := lm.Search(r.Context(), taskId, stepId, logId, "", 0, false)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to search log entries.", http.StatusInternalServerError)
 		return
@@ -77,7 +77,7 @@ func logsHandler(w http.ResponseWriter, r *http.Request, taskId, stepId, logId s
 	if len(entries) == 0 {
 		// TODO(borenet): Maybe an empty log is not the same as a
 		// missing log?
-		http.Error(w, fmt.Sprintf("No matching log entries were found."), http.StatusNotFound)
+		http.Error(w, "No matching log entries were found.", http.StatusNotFound)
 		return
 	}
 	for _, e := range entries {

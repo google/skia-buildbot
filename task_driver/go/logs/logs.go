@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -157,7 +158,9 @@ func (m *LogsManager) Insert(ctx context.Context, e *Entry) error {
 // Search returns Entries matching the given search terms.
 // If limit is provided, the results are paginated: a cursor will be returned
 // which, if non-empty, can be passed to the next call to Search.
-func (m *LogsManager) Search(ctx context.Context, taskId, stepId, logId, cursor string, limit int) ([]*Entry, string, error) {
+// If reverse is true, pages are loaded from the end of the stream but each page
+// contains entries in chronological order.
+func (m *LogsManager) Search(ctx context.Context, taskId, stepId, logId, cursor string, limit int, reverse bool) ([]*Entry, string, error) {
 	ctx, span := trace.StartSpan(ctx, "LogsManager_Search")
 	defer span.End()
 	prefix := rowKey(taskId, stepId, logId, time.Time{}, "")
@@ -169,18 +172,33 @@ func (m *LogsManager) Search(ctx context.Context, taskId, stepId, logId, cursor 
 
 	var rr bigtable.RowRange
 	if cursor != "" {
-		// We'll perform a prefix check in ReadRows.
-		rr = bigtable.InfiniteRange(cursor)
+		// We'll perform a prefix check in ReadRows, so these unbounded ranges
+		// are okay.
+		if reverse {
+			// BigTable's NewRange(start, limit) uses an exclusive upper bound:
+			// [start, limit). During pagination, our cursor is the row key of
+			// the first item on the *next* page, meaning we MUST include it in
+			// this query. By appending a null byte (\x00) to the cursor, we
+			// push the exclusive upper bound just past our target row key,
+			// effectively making the range inclusive of the cursor.
+			rr = bigtable.NewRange("", cursor+"\x00")
+		} else {
+			// InfiniteRange(start) is inclusive of the start key:
+			// [start, infinity).
+			rr = bigtable.InfiniteRange(cursor)
+		}
 	} else {
 		rr = bigtable.PrefixRange(prefix)
 	}
-
 	opts := []bigtable.ReadOption{
 		bigtable.RowFilter(bigtable.LatestNFilter(1)),
 	}
 	if limit > 0 {
-		// Fetch one more than the limit so we know the next row key
+		// Fetch one more than the limit so we know the next row key.
 		opts = append(opts, bigtable.LimitRows(int64(limit+1)))
+	}
+	if reverse {
+		opts = append(opts, bigtable.ReverseScan())
 	}
 
 	nextCursor := ""
@@ -210,6 +228,9 @@ func (m *LogsManager) Search(ctx context.Context, taskId, stepId, logId, cursor 
 	}
 	if decodeErr != nil {
 		return nil, "", skerr.Wrapf(decodeErr, "failed to gob-decode entry")
+	}
+	if reverse {
+		slices.Reverse(entries)
 	}
 	return entries, nextCursor, nil
 }
