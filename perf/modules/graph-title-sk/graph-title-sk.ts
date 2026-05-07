@@ -61,8 +61,8 @@ export class GraphTitleSk extends LitElement {
     this.rawTitleEntries = rawTitleEntries;
   }
 
-  private toggleRawTitle() {
-    this.showRawTitle = !this.showRawTitle;
+  private showRaw() {
+    this.showRawTitle = true;
   }
 
   /**
@@ -131,12 +131,15 @@ export class GraphTitleSk extends LitElement {
   }
 
   render() {
-    const canToggle = this.rawTitleEntries !== null && this.rawTitleEntries !== this.titleEntries;
+    const canToggle =
+      this.rawTitleEntries !== null &&
+      this.rawTitleEntries !== this.titleEntries &&
+      !this.showRawTitle;
     return html`
       <div
         id="container"
         ?hidden=${this.numTraces === 0}
-        @click=${canToggle ? this.toggleRawTitle : undefined}
+        @click=${canToggle ? this.showRaw : undefined}
         style=${canToggle ? 'cursor: pointer;' : ''}>
         ${this.getTitleHtml()}
       </div>

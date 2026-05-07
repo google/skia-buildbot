@@ -110,7 +110,7 @@ describe('graph-title-sk', () => {
     assert.isNotNull(element.querySelector('md-text-button.showMore'));
   });
 
-  it('toggles to raw title entries when container is clicked', async () => {
+  it('shows raw title entries when container is clicked once', async () => {
     const titleEntries = new Map([['benchmark', 'Speedometer2']]);
     const rawTitleEntries = new Map([
       ['benchmark', 'Speedometer2'],
@@ -124,7 +124,7 @@ describe('graph-title-sk', () => {
     assert.equal(params.length, 1);
     assert.equal(params[0].textContent, 'benchmark');
 
-    // Click to toggle
+    // Click to show raw title
     const container = element.querySelector<HTMLElement>('#container')!;
     container.click();
     await element.updateComplete;
@@ -135,12 +135,12 @@ describe('graph-title-sk', () => {
     assert.equal(params[0].textContent, 'benchmark');
     assert.equal(params[1].textContent, 'bot');
 
-    // Click to toggle back
+    // Clicking again should not revert back
     container.click();
     await element.updateComplete;
 
     params = element.querySelectorAll('.param');
-    assert.equal(params.length, 1);
+    assert.equal(params.length, 2);
   });
 
   it('does not toggle when rawTitleEntries is not provided or is the same', async () => {
