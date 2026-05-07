@@ -89,6 +89,15 @@ export class PerfScaffoldSk extends ElementSk {
       window.perf.fetch_anomalies_from_sql = fetchAnomaliesFromSqlStr === 'true';
       window.perf.fetch_chrome_perf_anomalies = !window.perf.fetch_anomalies_from_sql;
     }
+    // Show legacy anomalies by default. We have to explicitly set that on the first visit.
+    if (
+      window.perf.both_anomaly_sources &&
+      window.perf.fetch_anomalies_from_sql &&
+      window.perf.fetch_chrome_perf_anomalies
+    ) {
+      // sql and chromeperf are exclusive, and we rely on both_sources flag later.
+      window.perf.fetch_anomalies_from_sql = false;
+    }
     // Set cookie for backend processing
     const cookie = `fetch_anomalies_from_sql=${window.perf.fetch_anomalies_from_sql}`;
     document.cookie = `${cookie}; ${COOKIE_MISC}`;
@@ -106,7 +115,10 @@ export class PerfScaffoldSk extends ElementSk {
   };
 
   private get anomalySourceText(): string {
-    return window.perf.fetch_anomalies_from_sql ? 'New anomalies' : 'Legacy (Chromeperf) anomalies';
+    return (
+      'Currently showing: ' +
+      (window.perf.fetch_anomalies_from_sql ? 'New anomalies' : 'Legacy (Chromeperf) anomalies')
+    );
   }
 
   private fallbackLogo(e: Event) {
