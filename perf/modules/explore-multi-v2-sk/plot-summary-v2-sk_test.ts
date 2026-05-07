@@ -1,7 +1,7 @@
 import './plot-summary-v2-sk';
 import { PlotSummaryV2Sk } from './plot-summary-v2-sk';
 import { expect } from 'chai';
-import { TraceSeries } from './trace-chart-sk';
+import { TraceSeries } from './trace-types';
 
 describe('plot-summary-v2-sk', () => {
   let element: PlotSummaryV2Sk;

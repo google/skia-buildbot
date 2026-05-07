@@ -3,7 +3,7 @@ import { property } from 'lit/decorators.js';
 import { createRef, ref } from 'lit/directives/ref.js';
 import { define } from '../../../elements-sk/modules/define';
 import { HResizableBoxSk } from '../plot-summary-sk/h_resizable_box_sk';
-import { TraceSeries, TraceRow } from './trace-chart-sk';
+import { TraceSeries, TraceRow } from './trace-types';
 
 // Ensure HResizableBoxSk is registered
 if (!customElements.get('h-resizable-box-sk')) {
