@@ -2,9 +2,11 @@ package task_details
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"cloud.google.com/go/bigtable"
@@ -12,8 +14,6 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"go.chromium.org/luci/grpc/prpc"
 	"go.chromium.org/luci/logdog/client/coordinator"
-	"go.chromium.org/luci/logdog/common/fetcher"
-	"go.chromium.org/luci/logdog/common/types"
 	annopb "go.chromium.org/luci/luciexe/legacy/annotee/proto"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
@@ -26,7 +26,6 @@ import (
 	ts_db "go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -42,7 +41,7 @@ type TaskDetailsClient struct {
 	td     td_db.DB
 	tdLogs *logs.LogsManager
 	ts     ts_db.DBCloser
-	logdog *coordinator.Client
+	logdog LogDogClient
 }
 
 func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance string) (*TaskDetailsClient, error) {
@@ -78,7 +77,7 @@ func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance str
 		td:     tdDB,
 		tdLogs: tdLogs,
 		ts:     tsDB,
-		logdog: coord,
+		logdog: &logDogClientImpl{coord},
 	}, nil
 }
 
@@ -109,7 +108,10 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	step, err := c.fetchLogDogSteps(ctx, task.SwarmingTaskId)
+	if task == nil {
+		return nil, skerr.Fmt("No such task with ID %s", taskID)
+	}
+	step, err := c.logdog.GetBuildSteps(ctx, logdogProject, fixupSwarmingTaskID(taskID))
 	if err == nil {
 		res.Recipe = step
 		// Populate SwarmingTaskID in case it's needed for log retrieval.
@@ -134,23 +136,85 @@ func (c *TaskDetailsClient) GetRecipeStepLogsHandler(ctx context.Context, req mc
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	logPath, err := req.RequireString(argLogPath)
+	path, err := req.RequireString(argLogPath)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	startIndex, err := req.RequireInt(argStartIndex)
+	limit := req.GetInt(argLimit, defaultLogLimit)
+	if limit < 0 {
+		return nil, skerr.Fmt("limit must be non-negative")
+	}
+	if limit > maxLogLimit {
+		return nil, skerr.Fmt("limit must be 500 or less")
+	}
+	reverse := req.GetBool(argReverse, false)
+
+	logPath := fmt.Sprintf(logdogPathTmplStepLogs, fixupSwarmingTaskID(swarmingTaskID), path)
+
+	// Decode the cursor to a starting index.
+	// Note: in the reverse case, we use the last startIndex as the cursor, so
+	// we derive the current startIndex from the cursor by subtracting the limit
+	// and clamping at zero, adjusting the limit if needed.
+	startIndex := 0
+	if cursor := req.GetString(argCursor, ""); cursor != "" {
+		startIndex, err = b64DecodeCursor(cursor)
+	} else if reverse {
+		// No starting index was provided, and we're loading in reverse. Use the
+		// index of the last entry of the stream, plus one to account for the
+		// fact that the index range is non-inclusive.
+		lastEntry, err := c.logdog.GetLastEntry(ctx, logdogProject, logPath)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		startIndex = int(lastEntry.StreamIndex) + 1
+	}
+	if reverse {
+		if startIndex < limit {
+			limit = startIndex
+			startIndex = 0
+		} else {
+			startIndex = startIndex - limit
+		}
+	}
+
+	// Retrieve the log lines.
+	lines, done, err := c.fetchLogDogStepLogs(ctx, logPath, startIndex, limit)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	limit, err := req.RequireInt(argLimit)
-	if err != nil {
-		return nil, skerr.Wrap(err)
+
+	// Find the next cursor.
+	nextCursor := ""
+	if reverse {
+		// In the reverse case, we use the last startIndex as the cursor, but if
+		// startIndex is zero, we're done.
+		if startIndex > 0 {
+			nextCursor = b64EncodeCursor(startIndex)
+		}
+	} else if !done {
+		nextCursor = b64EncodeCursor(startIndex + limit)
 	}
-	lines, err := c.fetchLogDogStepLogs(ctx, swarmingTaskID, logPath, startIndex, limit)
+
+	return &GetLogsResponse{
+		Cursor: nextCursor,
+		Logs:   lines,
+	}, nil
+}
+
+func b64EncodeCursor(index int) string {
+	return base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(index)))
+}
+
+func b64DecodeCursor(cursor string) (int, error) {
+	cursorBytes, err := base64.StdEncoding.DecodeString(cursor)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return 0, skerr.Wrapf(err, "invalid cursor %q", cursor)
 	}
-	return LogLines(lines), nil
+	startIndex, err := strconv.Atoi(string(cursorBytes))
+	if err != nil {
+		return 0, skerr.Wrapf(err, "invalid cursor %q", cursor)
+	}
+	return startIndex, nil
 }
 
 func (c *TaskDetailsClient) GetTaskDriverLogsHandler(ctx context.Context, req mcp.CallToolRequest) (fmt.Stringer, error) {
@@ -167,14 +231,19 @@ func (c *TaskDetailsClient) GetTaskDriverLogsHandler(ctx context.Context, req mc
 		return nil, skerr.Wrap(err)
 	}
 	cursor := req.GetString(argCursor, "")
-	limit := req.GetInt(argLimit, 0)
-
-	logs, cursor, err := c.tdLogs.Search(ctx, taskID, stepID, logID, cursor, limit, false)
+	limit := req.GetInt(argLimit, defaultLogLimit)
+	if limit < 0 {
+		return nil, skerr.Fmt("limit must be non-negative")
+	}
+	if limit > maxLogLimit {
+		return nil, skerr.Fmt("limit must be 500 or less")
+	}
+	logs, cursor, err := c.tdLogs.Search(ctx, taskID, stepID, logID, cursor, limit, req.GetBool(argReverse, false))
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
-	response := TaskDriverLogsResponse{
+	response := GetLogsResponse{
 		Cursor: cursor,
 	}
 	for _, entry := range logs {
@@ -195,56 +264,20 @@ func (c *TaskDetailsClient) GetTaskDriverLogsHandler(ctx context.Context, req mc
 	return &response, nil
 }
 
-func (c *TaskDetailsClient) fetchLogDogSteps(ctx context.Context, taskID string) (*annopb.Step, error) {
-	path := fmt.Sprintf(logdogPathTmplRun, fixupSwarmingTaskID(taskID))
-	stream := c.logdog.Stream(logdogProject, types.StreamPath(path))
-	var state coordinator.LogStream
-	le, err := stream.Tail(ctx, coordinator.WithState(&state), coordinator.Complete())
+func (c *TaskDetailsClient) fetchLogDogStepLogs(ctx context.Context, logPath string, index, limit int) ([]string, bool, error) {
+	entries, err := c.logdog.FetchLogEntries(ctx, logdogProject, logPath, index, limit)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to tail stream")
+		return nil, false, skerr.Wrap(err)
 	}
-	if le == nil {
-		return nil, skerr.Fmt("no annotation entries found in stream")
-	}
-
-	if state.Desc.ContentType != annopb.ContentTypeAnnotations {
-		return nil, skerr.Fmt("expected annotations but found %s", state.Desc.ContentType)
-	}
-	dg := le.GetDatagram()
-	if dg == nil {
-		return nil, skerr.Fmt("no datagram found for step!")
-	}
-	var step annopb.Step
-	if err := proto.Unmarshal(dg.Data, &step); err != nil {
-		return nil, skerr.Wrapf(err, "failed to unmarshal datagram data")
-	}
-	return &step, nil
-}
-
-func (c *TaskDetailsClient) fetchLogDogStepLogs(ctx context.Context, taskID, logPath string, index, count int) ([]string, error) {
-	path := fmt.Sprintf(logdogPathTmplStepLogs, fixupSwarmingTaskID(taskID), logPath)
-	f := c.logdog.Stream(logdogProject, types.StreamPath(path)).Fetcher(ctx, &fetcher.Options{
-		Index: types.MessageIndex(index),
-		Count: int64(count),
-	})
-
-	var logLines []string
-	for {
-		le, err := f.NextLogEntry()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, skerr.Wrapf(err, "failed to fetch log entry")
-		}
-		if text := le.GetText(); text != nil {
+	logLines := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if text := entry.GetText(); text != nil {
 			for _, line := range text.Lines {
 				logLines = append(logLines, string(line.Value))
 			}
 		}
 	}
-
-	return logLines, nil
+	return logLines, len(entries) < limit, nil
 }
 
 // fixupSwarmingTaskID ensures that the given Swarming task ID is a *run* ID as
@@ -301,21 +334,15 @@ func printRecipeStep(w io.Writer, step *annopb.Step, depth int) {
 	}
 }
 
-type LogLines []string
-
-func (l LogLines) String() string {
-	return strings.Join(l, "\n")
-}
-
-type TaskDriverLogsResponse struct {
+type GetLogsResponse struct {
 	Logs   []string `json:"log_lines"`
 	Cursor string   `json:"cursor"`
 }
 
-func (r TaskDriverLogsResponse) String() string {
+func (r GetLogsResponse) String() string {
 	str := ""
 	if r.Cursor != "" {
-		str = fmt.Sprintf("# Cursor:\n\n%s\n\n", r.Cursor)
+		str = fmt.Sprintf("**Cursor:**\n\n%s\n\n", r.Cursor)
 	}
-	return str + fmt.Sprintf("# Logs:\n\n%s", strings.Join(r.Logs, "\n"))
+	return str + fmt.Sprintf("**Logs:**\n\n```\n%s\n```", strings.Join(r.Logs, "\n"))
 }

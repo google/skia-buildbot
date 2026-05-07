@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = ["LogDogClient.go"],
+    importpath = "go.skia.org/infra/mcp/services/skia/task_details/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_stretchr_testify//mock",
+        "@org_chromium_go_luci//logdog/api/logpb",
+        "@org_chromium_go_luci//luciexe/legacy/annotee/proto",
+    ],
+)

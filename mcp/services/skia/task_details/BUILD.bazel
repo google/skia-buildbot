@@ -5,6 +5,7 @@ go_library(
     name = "task_details",
     srcs = [
         "client.go",
+        "logdog.go",
         "tools.go",
     ],
     importpath = "go.skia.org/infra/mcp/services/skia/task_details",
@@ -26,8 +27,8 @@ go_library(
         "@com_google_cloud_go_bigtable//:bigtable",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_chromium_go_luci//grpc/prpc",
+        "@org_chromium_go_luci//logdog/api/logpb",
         "@org_chromium_go_luci//logdog/client/coordinator",
-        "@org_chromium_go_luci//logdog/common/fetcher",
         "@org_chromium_go_luci//logdog/common/types",
         "@org_chromium_go_luci//luciexe/legacy/annotee/proto",
         "@org_golang_google_protobuf//proto",
@@ -40,9 +41,12 @@ go_test(
     srcs = ["client_test.go"],
     embed = [":task_details"],
     deps = [
+        "//mcp/services/skia/task_details/mocks",
         "//task_driver/go/display",
         "//task_driver/go/td",
-        "@com_github_stretchr_testify//assert",
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//logdog/api/logpb",
         "@org_chromium_go_luci//luciexe/legacy/annotee/proto",
     ],
 )

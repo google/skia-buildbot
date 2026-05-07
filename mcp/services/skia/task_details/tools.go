@@ -1,6 +1,8 @@
 package task_details
 
 import (
+	"fmt"
+
 	"go.skia.org/infra/mcp/common"
 	"go.skia.org/infra/mcp/services/skia/format"
 )
@@ -14,6 +16,10 @@ const (
 	argStartIndex     = "start_index"
 	argLimit          = "limit"
 	argCursor         = "cursor"
+	argReverse        = "reverse"
+
+	defaultLogLimit = 500
+	maxLogLimit     = 500
 )
 
 func GetTools(c *TaskDetailsClient) []common.Tool {
@@ -50,6 +56,18 @@ func GetTools(c *TaskDetailsClient) []common.Tool {
 					Description: "ID of the log.",
 					Required:    true,
 				},
+				{
+					Name:        argLimit,
+					Description: fmt.Sprintf("Maximum number of entries to load. Default %d, maximum %d.", defaultLogLimit, maxLogLimit),
+				},
+				{
+					Name:        argCursor,
+					Description: "Set this to retrieve the next page of results when paginating.",
+				},
+				{
+					Name:        argReverse,
+					Description: "If true, pages are loaded from the end of the stream but each page contains entries in chronological order.",
+				},
 				format.FormatToolArgument(),
 			},
 			Handler: format.FormatResponseWrapper(c.GetTaskDriverLogsHandler),
@@ -69,17 +87,16 @@ func GetTools(c *TaskDetailsClient) []common.Tool {
 					Required:    true,
 				},
 				{
-					Name:        argStartIndex,
-					Description: "Starting log message index.",
-					Required:    true,
-				},
-				{
 					Name:        argLimit,
-					Description: "Maximum number of entries to load. Logs may be very large, so providing a limit is recommended.",
+					Description: fmt.Sprintf("Maximum number of entries to load. Default %d, maximum %d.", defaultLogLimit, maxLogLimit),
 				},
 				{
 					Name:        argCursor,
-					Description: "Starting point for the next page of results, when paginating.",
+					Description: "Set this to retrieve the next page of results when paginating.",
+				},
+				{
+					Name:        argReverse,
+					Description: "If true, pages are loaded from the end of the stream but each page contains entries in chronological order.",
 				},
 				format.FormatToolArgument(),
 			},

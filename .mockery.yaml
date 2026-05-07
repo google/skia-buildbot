@@ -238,6 +238,9 @@ packages:
   go.skia.org/infra/machine/go/machine/store:
     interfaces:
       Store:
+  go.skia.org/infra/mcp/services/skia/task_details:
+    interfaces:
+      LogDogClient:
   go.skia.org/infra/npm-audit-mirror/go/types:
     interfaces:
       Check:
