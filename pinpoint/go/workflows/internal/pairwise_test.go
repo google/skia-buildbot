@@ -7,18 +7,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/sql/schema"
 
+	"go.skia.org/infra/pinpoint/go/workflows"
+	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
-
-	"go.skia.org/infra/pinpoint/go/workflows"
-	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 const mockChart = "chart"
@@ -26,7 +24,6 @@ const mockChart = "chart"
 var mockCommit = pinpoint_proto.CombinedCommit{
 	Main: common.NewChromiumCommit("fake-commit"),
 }
-
 var mockBuild = pinpoint_proto.CASReference{
 	CasInstance: "projects/chromium-swarm/instances/default_instance",
 	Digest: &pinpoint_proto.CASReference_Digest{
@@ -265,52 +262,4 @@ func TestPairwiseWorkflow_GivenBadCas_ReturnsError(t *testing.T) {
 	require.Error(t, env.GetWorkflowResult(&pe))
 	assert.Nil(t, pe)
 	env.AssertExpectations(t)
-}
-
-func TestSplitExtraArgs_GivenComplexArgs_CorrectlyParses(t *testing.T) {
-	testCases := []struct {
-		name      string
-		input     string
-		expected  []string
-		expectErr bool
-	}{
-		{
-			name:     "empty string",
-			input:    "",
-			expected: nil,
-		},
-		{
-			name:     "standard space separated",
-			input:    "--flag1 --flag2",
-			expected: []string{"--flag1", "--flag2"},
-		},
-		{
-			name:     "comma separated feature flag",
-			input:    "--enable-features=featureA,featureB",
-			expected: []string{"--enable-features=featureA,featureB"},
-		},
-		{
-			name:     "mixed comma and space separated",
-			input:    "--enable-features=featureA,featureB --js-flags=turbolev",
-			expected: []string{"--enable-features=featureA,featureB", "--js-flags=turbolev"},
-		},
-		{
-			name:      "unbalanced quotes error",
-			input:     `--flag="unbalanced`,
-			expectErr: true,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			res, err := splitExtraArgs(tc.input)
-			if tc.expectErr {
-				require.Error(t, err)
-				assert.Nil(t, res)
-			} else {
-				require.NoError(t, err)
-				assert.Equal(t, tc.expected, res)
-			}
-		})
-	}
 }

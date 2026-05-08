@@ -288,12 +288,6 @@ message SchedulePairwiseRequest {
 
 	// The name for a Pinpoint job specified by the user.
 	string job_name = 17;
-
-	// Specific arguments applied strictly to the control (base) runs.
-	string base_extra_args = 18;
-
-	// Specific arguments applied strictly to the experiment (exp) runs.
-	string experiment_extra_args = 19;
 }
 
 enum PairwiseJobStatus {

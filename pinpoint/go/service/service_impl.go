@@ -212,7 +212,7 @@ func (s *server) SchedulePairwise(ctx context.Context, req *pb.SchedulePairwiseR
 	}
 
 	if err := validatePairwiseRequest(req); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "%s", err)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid request")
 	}
 
 	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
@@ -252,7 +252,7 @@ func (s *server) QueryPairwise(ctx context.Context, req *pb.QueryPairwiseRequest
 	sklog.Infof("Query Pairwise (try) request received: %v", req)
 
 	if err := validateQueryPairwiseRequest(req); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "%s", err)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid request")
 	}
 
 	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
