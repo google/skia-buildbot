@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
@@ -46,6 +47,7 @@ func (c *TaskSchedulerClient) Close() error {
 }
 
 func (c *TaskSchedulerClient) SearchTasksHandler(ctx context.Context, req mcp.CallToolRequest) (fmt.Stringer, error) {
+	defer timer.New("SearchTasksHandler").Stop()
 	startTime, err := parseTimeOrNil(req, argStartTime)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -86,6 +88,7 @@ func (c *TaskSchedulerClient) SearchTasksHandler(ctx context.Context, req mcp.Ca
 }
 
 func (c *TaskSchedulerClient) GetTaskHealthReportHandler(ctx context.Context, req mcp.CallToolRequest) (fmt.Stringer, error) {
+	defer timer.New("GetTaskHealthReportHandler").Stop()
 	repoUrl, err := req.RequireString(argRepo)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -115,6 +118,7 @@ func (c *TaskSchedulerClient) GetTaskHealthReportHandler(ctx context.Context, re
 		resp.Commits = append(resp.Commits, c.ShortCommit)
 	}
 
+	// map[taskName]map[commitHash]*types.Task
 	resp.Tasks = map[string]map[string]*types.Task{}
 	searchResultsLimit := 0
 	empty := ""
@@ -156,13 +160,12 @@ func (c *TaskSchedulerClient) GetTaskHealthReportHandler(ctx context.Context, re
 	if taskName == "" {
 		for taskName, tasksByCommit := range resp.Tasks {
 			stable := true
-			successful := false
+			succeededLatestRun := false
 			var firstStatus types.TaskStatus = "(unset)"
 			for _, task := range tasksByCommit {
 				if firstStatus == "(unset)" {
 					if task.Status == types.TASK_STATUS_SUCCESS {
-						successful = true
-						break
+						succeededLatestRun = true
 					}
 					firstStatus = task.Status
 				}
@@ -173,7 +176,7 @@ func (c *TaskSchedulerClient) GetTaskHealthReportHandler(ctx context.Context, re
 			}
 			if !includeStable && stable {
 				delete(resp.Tasks, taskName)
-			} else if !includeSuccessful && successful {
+			} else if !includeSuccessful && succeededLatestRun {
 				delete(resp.Tasks, taskName)
 			}
 		}
@@ -182,6 +185,7 @@ func (c *TaskSchedulerClient) GetTaskHealthReportHandler(ctx context.Context, re
 	return &resp, nil
 }
 func (c *TaskSchedulerClient) GetTaskHandler(ctx context.Context, req mcp.CallToolRequest) (fmt.Stringer, error) {
+	defer timer.New("GetTaskHandler").Stop()
 	taskID, err := req.RequireString(argTaskId)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -189,6 +193,9 @@ func (c *TaskSchedulerClient) GetTaskHandler(ctx context.Context, req mcp.CallTo
 	task, err := c.db.GetTaskById(ctx, taskID)
 	if err != nil {
 		return nil, skerr.Wrap(err)
+	}
+	if task == nil {
+		return nil, skerr.Fmt("No such task with ID %q", taskID)
 	}
 	return &TaskWrapper{task}, nil
 }

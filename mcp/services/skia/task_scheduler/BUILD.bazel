@@ -13,6 +13,7 @@ go_library(
         "//go/gitiles",
         "//go/httputils",
         "//go/skerr",
+        "//go/timer",
         "//go/vcsinfo",
         "//mcp/common",
         "//mcp/services/skia/format",

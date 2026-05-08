@@ -15,10 +15,13 @@ import (
 	"go.chromium.org/luci/grpc/prpc"
 	"go.chromium.org/luci/logdog/client/coordinator"
 	annopb "go.chromium.org/luci/luciexe/legacy/annotee/proto"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
+	"go.skia.org/infra/go/timer"
 	td_db "go.skia.org/infra/task_driver/go/db"
 	td_bigtable "go.skia.org/infra/task_driver/go/db/bigtable"
 	"go.skia.org/infra/task_driver/go/display"
@@ -37,7 +40,7 @@ const (
 )
 
 type TaskDetailsClient struct {
-	swarm  swarming.ApiClient
+	swarm  swarmingv2.SwarmingV2Client
 	td     td_db.DB
 	tdLogs *logs.LogsManager
 	ts     ts_db.DBCloser
@@ -57,11 +60,8 @@ func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance str
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+
 	c := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	swarm, err := swarming.NewApiClient(c, swarming.SWARMING_SERVER)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
 	prpcClient := prpc.Client{
 		C:       c,
 		Host:    logdogHost,
@@ -72,6 +72,10 @@ func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance str
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+
+	swarmHttpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	swarm := swarmingv2.NewDefaultClient(swarmHttpClient, swarming.SWARMING_SERVER)
+
 	return &TaskDetailsClient{
 		swarm:  swarm,
 		td:     tdDB,
@@ -82,6 +86,7 @@ func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance str
 }
 
 func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.CallToolRequest) (fmt.Stringer, error) {
+	defer timer.New("GetTaskStepsHandler").Stop()
 	taskID, err := req.RequireString(argTaskID)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -122,16 +127,25 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 	}
 
 	// If we couldn't find recipe steps, just return the Swarming task logs.
-	swarmOutput, err := c.swarm.GetStdoutOfTask(ctx, task.SwarmingTaskId)
+	swarmTask, err := c.swarm.GetResult(ctx, &apipb.TaskIdWithPerfRequest{TaskId: task.SwarmingTaskId})
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	res.SwarmingTaskState = swarmOutput.State
-	res.SwarmingTaskLogs = swarmOutput.Output
+	res.SwarmingTaskState = apipb.TaskState_name[int32(swarmTask.State)]
+	swarmOutput, err := c.swarm.GetStdout(ctx, &apipb.TaskIdWithOffsetRequest{TaskId: task.SwarmingTaskId})
+	if err != nil {
+		if strings.Contains(err.Error(), "404 page not found") {
+			res.SwarmingTaskLogs = "(no log output)"
+		}
+		return nil, skerr.Wrap(err)
+	} else {
+		res.SwarmingTaskLogs = string(swarmOutput.Output)
+	}
 	return &res, nil
 }
 
 func (c *TaskDetailsClient) GetRecipeStepLogsHandler(ctx context.Context, req mcp.CallToolRequest) (fmt.Stringer, error) {
+	defer timer.New("GetRecipeStepLogsHandler").Stop()
 	swarmingTaskID, err := req.RequireString(argSwarmingTaskID)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -218,6 +232,7 @@ func b64DecodeCursor(cursor string) (int, error) {
 }
 
 func (c *TaskDetailsClient) GetTaskDriverLogsHandler(ctx context.Context, req mcp.CallToolRequest) (fmt.Stringer, error) {
+	defer timer.New("GetTaskDriverLogsHandler").Stop()
 	taskID, err := req.RequireString(argTaskID)
 	if err != nil {
 		return nil, skerr.Wrap(err)
