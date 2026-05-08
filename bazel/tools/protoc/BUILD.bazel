@@ -92,6 +92,7 @@ sh_binary(
         "@com_github_skia_dev_protoc_gen_twirp_typescript//:protoc-gen-twirp_typescript",
         "@com_github_twitchtv_twirp//protoc-gen-twirp",
         "@googleapis//google/api:annotations_proto",
+        "@protoc-gen-validate//validate:validate_proto",
         "@org_golang_google_protobuf//cmd/protoc-gen-go",
         "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
     ],

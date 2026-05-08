@@ -3,6 +3,7 @@ load("@rules_go//go:def.bzl", "go_library")
 go_library(
     name = "pinpoint",
     srcs = [
+        "gateway.go",
         "pinpoint.go",
         "types.go",
     ],
@@ -11,5 +12,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//pinpoint/go/pinpoint/internal",
+        "//pinpoint/proto/v1:proto",
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
     ],
 )

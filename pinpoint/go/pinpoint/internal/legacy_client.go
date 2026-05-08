@@ -8,21 +8,30 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
+	"time"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 
-	"go.skia.org/infra/go/auth"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"go.skia.org/infra/go/auth"
+	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 const (
-	pinpointLegacyURL         = "https://pinpoint-dot-chromeperf.appspot.com/api/new"
+	pinpointLegacyBaseURL     = "https://pinpoint-dot-chromeperf.appspot.com"
+	pinpointLegacyURL         = pinpointLegacyBaseURL + "/api/new"
+	pinpointLegacyJobsURL     = pinpointLegacyBaseURL + "/api/jobs"
+	pinpointLegacyJobStateURL = pinpointLegacyBaseURL + "/api/job"
 	contentType               = "application/json"
 	tryJobComparisonMode      = "try"
 	chromeperfLegacyBisectURL = "https://chromeperf.appspot.com/pinpoint/new/bisect"
+	legacyCreatedTimeLayout   = "2006-01-02T15:04:05.999999" // Layout used to parse legacy Pinpoint job creation time.
 )
 
 type LegacyClient struct {
@@ -33,6 +42,8 @@ type LegacyClient struct {
 	createTryJobFailed  metrics2.Counter
 	fetchJobStateCalled metrics2.Counter
 	fetchJobStateFailed metrics2.Counter
+	queryJobListCalled  metrics2.Counter
+	queryJobListFailed  metrics2.Counter
 }
 
 // New returns a new LegacyClient instance.
@@ -51,13 +62,15 @@ func NewLegacyClient(ctx context.Context) (*LegacyClient, error) {
 		createTryJobFailed:  metrics2.GetCounter("pinpoint_create_try_job_failed"),
 		fetchJobStateCalled: metrics2.GetCounter("pinpoint_fetch_job_state_called"),
 		fetchJobStateFailed: metrics2.GetCounter("pinpoint_fetch_job_state_failed"),
+		queryJobListCalled:  metrics2.GetCounter("pinpoint_query_job_list_called"),
+		queryJobListFailed:  metrics2.GetCounter("pinpoint_query_job_list_failed"),
 	}, nil
 }
 
 // CreateTryJob calls the legacy pinpoint API to create a try job.
 func (pc *LegacyClient) CreateTryJob(
 	ctx context.Context,
-	req TryJobCreateRequest,
+	req *TryJobCreateRequest,
 ) (resp *CreatePinpointResponse, err error) {
 	pc.createTryJobCalled.Inc(1)
 	defer func() { trackError(pc.createTryJobFailed, err) }()
@@ -86,7 +99,7 @@ func (pc *LegacyClient) CreateTryJob(
 // CreateBisect calls pinpoint API to create bisect job.
 func (pc *LegacyClient) CreateBisect(
 	ctx context.Context,
-	req BisectJobCreateRequest,
+	req *BisectJobCreateRequest,
 	isNewAnomaly bool,
 ) (resp *CreatePinpointResponse, err error) {
 	pc.createBisectCalled.Inc(1)
@@ -118,7 +131,8 @@ func (pc *LegacyClient) FetchJobState(
 	defer func() { trackError(pc.fetchJobStateFailed, err) }()
 
 	requestURL := fmt.Sprintf(
-		"https://pinpoint-dot-chromeperf.appspot.com/api/job/%s?o=STATE",
+		"%s/%s?o=STATE",
+		pinpointLegacyJobStateURL,
 		url.PathEscape(req.JobID),
 	)
 	httpResp, err := pc.doGetRequest(ctx, requestURL)
@@ -137,13 +151,187 @@ func (pc *LegacyClient) FetchJobState(
 	return resp, err
 }
 
+// QueryJobList queries the legacy Pinpoint API to retrieve jobs matching
+// filters and pagination.
+func (pc *LegacyClient) QueryJobList(
+	ctx context.Context,
+	req *pb.QueryJobListRequest,
+) (resp *pb.QueryJobListResponse, err error) {
+	pc.queryJobListCalled.Inc(1)
+	defer func() { trackError(pc.queryJobListFailed, err) }()
+
+	requestURL := buildQueryJobListRequestURL(req)
+
+	httpResp, err := pc.doGetRequest(ctx, requestURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	body, err := pc.readResponseBody(httpResp)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	legacyResp := &LegacyQueryJobListResponse{}
+	if err = json.Unmarshal(body, legacyResp); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse pinpoint response body.")
+	}
+
+	return parseQueryJobListResponse(legacyResp), nil
+}
+
+// extractField returns the field from the top-level struct if populated,
+// otherwise falls back to the arguments map.
+func extractField(job *LegacyJobSummary, fieldName string) string {
+	fieldName = strings.ToLower(strings.TrimSpace(fieldName))
+	switch fieldName {
+	case "job_id":
+		if job.JobID != "" {
+			return job.JobID
+		}
+	case "name":
+		if job.Name != "" {
+			return job.Name
+		}
+	case "benchmark":
+		if job.Benchmark != "" {
+			return job.Benchmark
+		}
+	case "configuration":
+		if job.Configuration != "" {
+			return job.Configuration
+		}
+	case "story":
+		if job.Story != "" {
+			return job.Story
+		}
+	case "user":
+		if job.User != "" {
+			return job.User
+		}
+	case "comparison_mode":
+		if job.ComparisonMode != "" {
+			return job.ComparisonMode
+		}
+	}
+
+	if job.Arguments != nil {
+		if val, ok := job.Arguments[fieldName]; ok && val != "" {
+			return val
+		}
+	}
+	return ""
+}
+
 func trackError(counter metrics2.Counter, err error) {
 	if err != nil {
 		counter.Inc(1)
 	}
 }
 
-func buildTryJobRequestURL(req TryJobCreateRequest) (string, error) {
+func parseJobStatus(status string) pb.JobStatus {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "queued":
+		return pb.JobStatus_JOB_STATUS_QUEUED
+	case "running":
+		return pb.JobStatus_JOB_STATUS_RUNNING
+	case "completed":
+		return pb.JobStatus_JOB_STATUS_COMPLETED
+	case "failed":
+		return pb.JobStatus_JOB_STATUS_FAILED
+	case "cancelled":
+		return pb.JobStatus_JOB_STATUS_CANCELLED
+	default:
+		return pb.JobStatus_JOB_STATUS_UNSPECIFIED
+	}
+}
+
+func parseJobType(comparisonMode string) pb.JobType {
+	switch strings.ToLower(strings.TrimSpace(comparisonMode)) {
+	case "try":
+		return pb.JobType_JOB_TYPE_TRY
+	case "performance", "functional":
+		return pb.JobType_JOB_TYPE_BISECT
+	default:
+		return pb.JobType_JOB_TYPE_UNSPECIFIED
+	}
+}
+
+func parseQueryJobListResponse(legacyResp *LegacyQueryJobListResponse) *pb.QueryJobListResponse {
+	resp := &pb.QueryJobListResponse{
+		Jobs: make([]*pb.JobSummary, len(legacyResp.Jobs)),
+		Pagination: &pb.Pagination{
+			PrevCursor: legacyResp.PrevCursor,
+			NextCursor: legacyResp.NextCursor,
+		},
+	}
+
+	for i := range legacyResp.Jobs {
+		legacyJob := &legacyResp.Jobs[i]
+		var createdTime *timestamppb.Timestamp
+		if legacyJob.Created != "" {
+			t, err := time.Parse(legacyCreatedTimeLayout, legacyJob.Created)
+			if err == nil {
+				createdTime = timestamppb.New(t)
+			}
+		}
+
+		jobStatus := parseJobStatus(legacyJob.Status)
+		jobType := parseJobType(extractField(legacyJob, "comparison_mode"))
+
+		resp.Jobs[i] = &pb.JobSummary{
+			JobId:         extractField(legacyJob, "job_id"),
+			Name:          extractField(legacyJob, "name"),
+			Benchmark:     extractField(legacyJob, "benchmark"),
+			Configuration: extractField(legacyJob, "configuration"),
+			Story:         extractField(legacyJob, "story"),
+			JobType:       jobType,
+			User:          extractField(legacyJob, "user"),
+			Created:       createdTime,
+			JobStatus:     jobStatus,
+		}
+	}
+
+	return resp
+}
+
+func buildQueryJobListParams(req *pb.QueryJobListRequest) url.Values {
+	params := url.Values{}
+	if req.User != "" {
+		params.Add("filter", "user="+req.User)
+	}
+	if req.Configuration != "" {
+		params.Add("filter", "configuration="+req.Configuration)
+	}
+	if req.JobType != pb.JobType_JOB_TYPE_UNSPECIFIED {
+		switch req.JobType {
+		case pb.JobType_JOB_TYPE_TRY:
+			params.Add("filter", "comparison_mode=try")
+		case pb.JobType_JOB_TYPE_BISECT:
+			params.Add("filter", "comparison_mode=performance")
+		}
+	}
+	if req.Pagination != nil {
+		if req.Pagination.PrevCursor != "" {
+			params.Set("prev_cursor", req.Pagination.PrevCursor)
+		}
+		if req.Pagination.NextCursor != "" {
+			params.Set("next_cursor", req.Pagination.NextCursor)
+		}
+	}
+	return params
+}
+
+func buildQueryJobListRequestURL(req *pb.QueryJobListRequest) string {
+	params := buildQueryJobListParams(req)
+	requestURL := pinpointLegacyJobsURL
+	if len(params) > 0 {
+		requestURL = fmt.Sprintf("%s?%s", requestURL, params.Encode())
+	}
+	return requestURL
+}
+
+func buildTryJobRequestURL(req *TryJobCreateRequest) (string, error) {
 	if req.Benchmark == "" {
 		return "", skerr.Fmt("Benchmark must be specified but is empty.")
 	}
@@ -171,7 +359,7 @@ func buildTryJobRequestURL(req TryJobCreateRequest) (string, error) {
 	return fmt.Sprintf("%s?%s", pinpointLegacyURL, params.Encode()), nil
 }
 
-func buildBisectJobRequestURL(req BisectJobCreateRequest, isNewAnomaly bool) string {
+func buildBisectJobRequestURL(req *BisectJobCreateRequest, isNewAnomaly bool) string {
 	params := url.Values{}
 	setIfNotEmpty(params, "comparison_mode", req.ComparisonMode)
 	setIfNotEmpty(params, "start_git_hash", req.StartGitHash)

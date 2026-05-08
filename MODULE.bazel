@@ -40,6 +40,7 @@ bazel_dep(name = "abseil-cpp", version = "20250814.1")
 bazel_dep(name = "rules_cc", version = "0.2.15")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "xds", version = "0.0.0-20251210-ee656c7")
+bazel_dep(name = "protoc-gen-validate", version = "1.2.1.bcr.2")
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 

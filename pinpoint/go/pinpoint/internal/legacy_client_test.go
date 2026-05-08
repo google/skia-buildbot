@@ -6,10 +6,15 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 func TestExtractErrorMessageReturnsErrorMessage(t *testing.T) {
@@ -59,11 +64,11 @@ func TestBuildBisectJobRequestUrlPopulatesAllFieldsForOldAnomaly(t *testing.T) {
 		TestPath:            "test_path",
 	}
 
-	builtURL := buildBisectJobRequestURL(req, false)
+	builtURL := buildBisectJobRequestURL(&req, false)
 	assert.Contains(t, builtURL, chromeperfLegacyBisectURL)
 
 	parsedURL, err := url.Parse(builtURL)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expected := url.Values{
 		"comparison_mode":      []string{"performance"},
@@ -104,11 +109,11 @@ func TestBuildBisectJobRequestUrlPopulatesAllFieldsForNewAnomaly(t *testing.T) {
 		TestPath:            "test_path",
 	}
 
-	builtURL := buildBisectJobRequestURL(req, true)
+	builtURL := buildBisectJobRequestURL(&req, true)
 	assert.Contains(t, builtURL, chromeperfLegacyBisectURL)
 
 	parsedURL, err := url.Parse(builtURL)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Alert IDs should not be present.
 	expected := url.Values{
@@ -132,9 +137,9 @@ func TestBuildBisectJobRequestUrlPopulatesAllFieldsForNewAnomaly(t *testing.T) {
 
 func TestBuildBisectJobRequestUrlPopulatesRequiredFields(t *testing.T) {
 	req := BisectJobCreateRequest{}
-	builtURL := buildBisectJobRequestURL(req, false)
+	builtURL := buildBisectJobRequestURL(&req, false)
 	parsedURL, err := url.Parse(builtURL)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expected := url.Values{
 		"bug_id":    []string{""},
@@ -167,6 +172,8 @@ func setupTestMocks(t *testing.T, handler http.HandlerFunc) *LegacyClient {
 		createTryJobFailed:  metrics2.GetCounter("pinpoint_create_try_job_failed"),
 		fetchJobStateCalled: metrics2.GetCounter("pinpoint_fetch_job_state_called"),
 		fetchJobStateFailed: metrics2.GetCounter("pinpoint_fetch_job_state_failed"),
+		queryJobListCalled:  metrics2.GetCounter("pinpoint_query_job_list_called"),
+		queryJobListFailed:  metrics2.GetCounter("pinpoint_query_job_list_failed"),
 	}
 
 	return pc
@@ -184,9 +191,9 @@ func TestDoPostRequest(t *testing.T) {
 		})
 
 		resp, err := pc.doPostRequest(context.Background(), pinpointLegacyURL)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		body, err := pc.readResponseBody(resp)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, expectedResponseBody, body)
 	})
 
@@ -197,9 +204,9 @@ func TestDoPostRequest(t *testing.T) {
 		})
 
 		resp, err := pc.doPostRequest(context.Background(), pinpointLegacyURL)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		body, err := pc.readResponseBody(resp)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Internal Server Error")
 		assert.Nil(t, body)
 	})
@@ -218,9 +225,9 @@ func TestDoGetRequest(t *testing.T) {
 		})
 
 		resp, err := pc.doGetRequest(context.Background(), testURL)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		body, err := pc.readResponseBody(resp)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, expectedResponseBody, body)
 	})
 
@@ -232,9 +239,9 @@ func TestDoGetRequest(t *testing.T) {
 		})
 
 		resp, err := pc.doGetRequest(context.Background(), testURL)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		body, err := pc.readResponseBody(resp)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Internal Server Error")
 		assert.Nil(t, body)
 	})
@@ -256,11 +263,11 @@ func TestBuildTryJobRequestUrlPopulatesRequiredFields(t *testing.T) {
 		User:            "user",
 	}
 
-	urlStr, err := buildTryJobRequestURL(req)
-	assert.NoError(t, err)
+	urlStr, err := buildTryJobRequestURL(&req)
+	require.NoError(t, err)
 
 	parsedURL, err := url.Parse(urlStr)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expected := url.Values{
 		"comparison_mode":  []string{tryJobComparisonMode},
@@ -285,8 +292,8 @@ func TestBuildTryJobRequestUrlVerifiesMissingBenchmark(t *testing.T) {
 	req := TryJobCreateRequest{
 		Configuration: "config",
 	}
-	_, err := buildTryJobRequestURL(req)
-	assert.Error(t, err)
+	_, err := buildTryJobRequestURL(&req)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Benchmark must be specified")
 }
 
@@ -294,8 +301,8 @@ func TestBuildTryJobRequestUrlVerifiesMissingConfiguration(t *testing.T) {
 	req := TryJobCreateRequest{
 		Benchmark: "benchmark",
 	}
-	_, err := buildTryJobRequestURL(req)
-	assert.Error(t, err)
+	_, err := buildTryJobRequestURL(&req)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Configuration must be specified")
 }
 
@@ -309,14 +316,13 @@ func TestFetchJobState(t *testing.T) {
 		})
 
 		resp, err := pc.FetchJobState(context.Background(), FetchJobStateRequest{JobID: "12345"})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(
 			t,
-			resp,
 			&FetchJobStateResponse{
 				JobID:  "12345",
 				Status: "completed",
-			},
+			}, resp,
 		)
 	})
 
@@ -327,7 +333,398 @@ func TestFetchJobState(t *testing.T) {
 		})
 
 		resp, err := pc.FetchJobState(context.Background(), FetchJobStateRequest{JobID: "12345"})
-		assert.Error(t, err)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Internal Server Error")
+		assert.Nil(t, resp)
+	})
+}
+
+func TestExtractField(t *testing.T) {
+	job := LegacyJobSummary{
+		JobID:         "12345",
+		Name:          "test_job_name",
+		Benchmark:     "rendering.desktop",
+		Configuration: "linux-perf",
+		Story:         "loading_story",
+		User:          "test-user@google.com",
+		Status:        "completed",
+		Arguments: map[string]string{
+			"custom_arg": "custom_value",
+			"story":      "story_in_args",
+		},
+	}
+
+	t.Run("Extracts top-level struct fields successfully", func(t *testing.T) {
+		assert.Equal(t, "12345", extractField(&job, "job_id"))
+		assert.Equal(t, "test_job_name", extractField(&job, "name"))
+		assert.Equal(t, "rendering.desktop", extractField(&job, "benchmark"))
+		assert.Equal(t, "linux-perf", extractField(&job, "configuration"))
+		assert.Equal(t, "loading_story", extractField(&job, "story"))
+		assert.Equal(t, "test-user@google.com", extractField(&job, "user"))
+	})
+
+	t.Run("Case insensitive and trims spaces from input fieldName", func(t *testing.T) {
+		assert.Equal(t, "12345", extractField(&job, "  JOB_ID  "))
+		assert.Equal(t, "12345", extractField(&job, "Job_Id"))
+	})
+
+	t.Run("Falls back to arguments map if field is not at top-level", func(t *testing.T) {
+		assert.Equal(t, "custom_value", extractField(&job, "custom_arg"))
+	})
+
+	t.Run("Falls back to arguments map if top-level field is empty", func(t *testing.T) {
+		jobWithEmptyStory := LegacyJobSummary{
+			Arguments: map[string]string{
+				"story": "story_in_args",
+			},
+		}
+		assert.Equal(t, "story_in_args", extractField(&jobWithEmptyStory, "story"))
+	})
+
+	t.Run("Returns empty string if field is not found", func(t *testing.T) {
+		assert.Equal(t, "", extractField(&job, "non_existent_field"))
+	})
+}
+
+func TestParseJobStatus(t *testing.T) {
+	assert.Equal(t, pb.JobStatus_JOB_STATUS_QUEUED, parseJobStatus("queued"))
+	assert.Equal(t, pb.JobStatus_JOB_STATUS_QUEUED, parseJobStatus("  Queued  "))
+	assert.Equal(t, pb.JobStatus_JOB_STATUS_RUNNING, parseJobStatus("running"))
+	assert.Equal(t, pb.JobStatus_JOB_STATUS_COMPLETED, parseJobStatus("completed"))
+	assert.Equal(t, pb.JobStatus_JOB_STATUS_FAILED, parseJobStatus("failed"))
+	assert.Equal(t, pb.JobStatus_JOB_STATUS_CANCELLED, parseJobStatus("cancelled"))
+	assert.Equal(t, pb.JobStatus_JOB_STATUS_UNSPECIFIED, parseJobStatus("unknown"))
+	assert.Equal(t, pb.JobStatus_JOB_STATUS_UNSPECIFIED, parseJobStatus(""))
+}
+
+func TestParseJobType(t *testing.T) {
+	assert.Equal(t, pb.JobType_JOB_TYPE_TRY, parseJobType("try"))
+	assert.Equal(t, pb.JobType_JOB_TYPE_TRY, parseJobType("  Try  "))
+	assert.Equal(t, pb.JobType_JOB_TYPE_BISECT, parseJobType("performance"))
+	assert.Equal(t, pb.JobType_JOB_TYPE_BISECT, parseJobType("functional"))
+	assert.Equal(t, pb.JobType_JOB_TYPE_UNSPECIFIED, parseJobType("unknown"))
+	assert.Equal(t, pb.JobType_JOB_TYPE_UNSPECIFIED, parseJobType(""))
+}
+
+func TestBuildQueryJobListParams(t *testing.T) {
+	t.Run("Empty Request", func(t *testing.T) {
+		req := &pb.QueryJobListRequest{}
+		params := buildQueryJobListParams(req)
+		assert.Empty(t, params)
+	})
+
+	t.Run("All fields populated", func(t *testing.T) {
+		req := &pb.QueryJobListRequest{
+			User:          "test-user@google.com",
+			Configuration: "linux-perf",
+			JobType:       pb.JobType_JOB_TYPE_TRY,
+			Pagination: &pb.Pagination{
+				PrevCursor: "prev_token",
+				NextCursor: "next_token",
+			},
+		}
+		params := buildQueryJobListParams(req)
+		assert.Equal(
+			t,
+			[]string{
+				"user=test-user@google.com",
+				"configuration=linux-perf",
+				"comparison_mode=try",
+			},
+			params["filter"],
+		)
+		assert.Equal(t, "prev_token", params.Get("prev_cursor"))
+		assert.Equal(t, "next_token", params.Get("next_cursor"))
+	})
+
+	t.Run("Bisect JobType filter", func(t *testing.T) {
+		req := &pb.QueryJobListRequest{
+			JobType: pb.JobType_JOB_TYPE_BISECT,
+		}
+		params := buildQueryJobListParams(req)
+		assert.Equal(t, []string{"comparison_mode=performance"}, params["filter"])
+	})
+}
+
+func TestBuildQueryJobListRequestURL(t *testing.T) {
+	t.Run("No params", func(t *testing.T) {
+		req := &pb.QueryJobListRequest{}
+		urlStr := buildQueryJobListRequestURL(req)
+		assert.Equal(t, pinpointLegacyJobsURL, urlStr)
+	})
+
+	t.Run("With params", func(t *testing.T) {
+		req := &pb.QueryJobListRequest{
+			User: "test-user@google.com",
+		}
+		urlStr := buildQueryJobListRequestURL(req)
+		parsedURL, err := url.Parse(urlStr)
+		require.NoError(t, err)
+		assert.Equal(t, "user=test-user@google.com", parsedURL.Query().Get("filter"))
+	})
+}
+
+func TestParseQueryJobListResponse(t *testing.T) {
+	t.Run("Successfully parses response with valid values and pagination", func(t *testing.T) {
+		legacyResp := &LegacyQueryJobListResponse{
+			Jobs: []LegacyJobSummary{
+				{
+					JobID:          "11111",
+					Name:           "Job 1",
+					Benchmark:      "blink_perf",
+					Configuration:  "mac-m1",
+					Story:          "scroll_story",
+					User:           "user1@google.com",
+					Created:        "2026-05-05T12:30:45.123456",
+					Status:         "completed",
+					ComparisonMode: "try",
+				},
+			},
+			PrevCursor: "prev_cursor_token",
+			NextCursor: "next_cursor_token",
+		}
+
+		parsed := parseQueryJobListResponse(legacyResp)
+
+		assert.NotNil(t, parsed)
+		assert.Equal(t, "prev_cursor_token", parsed.Pagination.PrevCursor)
+		assert.Equal(t, "next_cursor_token", parsed.Pagination.NextCursor)
+
+		assert.Len(t, parsed.Jobs, 1)
+		j1 := parsed.Jobs[0]
+		assert.Equal(t, "11111", j1.JobId)
+		assert.Equal(t, "Job 1", j1.Name)
+		assert.Equal(t, "blink_perf", j1.Benchmark)
+		assert.Equal(t, "mac-m1", j1.Configuration)
+		assert.Equal(t, "scroll_story", j1.Story)
+		assert.Equal(t, "user1@google.com", j1.User)
+		assert.Equal(t, pb.JobStatus_JOB_STATUS_COMPLETED, j1.JobStatus)
+		assert.Equal(t, pb.JobType_JOB_TYPE_TRY, j1.JobType)
+
+		expectedTime, err := time.Parse(legacyCreatedTimeLayout, "2026-05-05T12:30:45.123456")
+		require.NoError(t, err)
+		assert.Equal(t, timestamppb.New(expectedTime).AsTime(), j1.Created.AsTime())
+	})
+
+	t.Run("Handles invalid date format and fallback fields gracefully", func(t *testing.T) {
+		legacyResp := &LegacyQueryJobListResponse{
+			Jobs: []LegacyJobSummary{
+				{
+					JobID:          "22222",
+					Status:         "running",
+					ComparisonMode: "performance",
+					Created:        "invalid-date-format",
+				},
+			},
+		}
+
+		parsed := parseQueryJobListResponse(legacyResp)
+
+		assert.NotNil(t, parsed)
+		assert.Len(t, parsed.Jobs, 1)
+		j2 := parsed.Jobs[0]
+		assert.Equal(t, "22222", j2.JobId)
+		assert.Equal(t, pb.JobStatus_JOB_STATUS_RUNNING, j2.JobStatus)
+		assert.Equal(t, pb.JobType_JOB_TYPE_BISECT, j2.JobType)
+		assert.Nil(t, j2.Created) // invalid-date-format should be parsed as nil
+	})
+}
+
+func TestQueryJobList(t *testing.T) {
+	t.Run("Returns parsed bisect job on success", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodGet, r.Method)
+			assert.Equal(t, "/api/jobs", r.URL.Path)
+			assert.Equal(t, "user=test-user@google.com", r.URL.Query().Get("filter"))
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{
+			  "jobs": [
+			    {
+			      "job_id": "10cbda9e890000",
+			      "configuration": "win-10-perf",
+			      "results_url": "/api/results2-serve/10cbda9e890000",
+			      "improvement_direction": 1,
+			      "arguments": {
+				"comparison_mode": "performance",
+				"target": "performance_test_suite",
+				"start_git_hash": "1609167",
+				"end_git_hash": "1609170",
+				"grouping_label": "browse_news",
+				"trace": "browse:news:reddit:2020",
+				"tags": "{\"test_path\": \"ChromiumPerf/...\"}",
+				"performance": "on",
+				"initial_attempt_count": "20",
+				"configuration": "win-10-perf",
+				"benchmark": "v8.browsing_desktop",
+				"story": "browse:news:reddit:2020",
+				"story_tags": "",
+				"chart": "Optimize:duration",
+				"statistic": "avg",
+				"comparison_magnitude": "71.93350000000001",
+				"extra_test_args": "",
+				"commit": "on,on",
+				"pin": "",
+				"project": "chromium",
+				"bug_id": "503855894",
+				"batch_id": ""
+			      },
+			      "bug_id": 503855894,
+			      "project": "chromium",
+			      "comparison_mode": "performance",
+			      "name": "Performance bisect on win-10-perf/v8.browsing_desktop",
+			      "user": "maximsheshukov@google.com",
+			      "created": "2026-04-22T13:24:39.368547",
+			      "updated": "2026-04-25T16:40:34.513983",
+			      "started_time": "2026-04-24T15:04:08.027027",
+			      "difference_count": 2,
+			      "exception": null,
+			      "status": "Completed",
+			      "cancel_reason": null,
+			      "batch_id": "b7d84490-b89c-4dcf-aa5f-bc14417e419c",
+			      "bots": [
+				"win-187-e504"
+			      ]
+			    }
+			  ],
+			  "count": 10,
+			  "max_count": 1000,
+			  "prev_cursor": "",
+			  "next_cursor": "CjwKFAoHY3JlYXRlZBIJCNzq3t68_JMDEiBqDHN-Y2hyb21lcGVyZnIQCxIDSm9iGICApIz3pLEIDBgAIAE=",
+			  "prev": false,
+			  "next": true
+			}`))
+		})
+
+		resp, err := pc.QueryJobList(context.Background(), &pb.QueryJobListRequest{
+			User: "test-user@google.com",
+		})
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+		assert.Equal(t, "", resp.Pagination.PrevCursor)
+		assert.Equal(
+			t,
+			"CjwKFAoHY3JlYXRlZBIJCNzq3t68_JMDEiBqDHN-Y2hyb21lcGVyZnIQCxIDSm9iGICApIz3pLEIDBgAIAE=",
+			resp.Pagination.NextCursor,
+		)
+		assert.Len(t, resp.Jobs, 1)
+
+		j1 := resp.Jobs[0]
+		assert.Equal(t, "10cbda9e890000", j1.JobId)
+		assert.Equal(t, "Performance bisect on win-10-perf/v8.browsing_desktop", j1.Name)
+		assert.Equal(t, "v8.browsing_desktop", j1.Benchmark)
+		assert.Equal(t, "win-10-perf", j1.Configuration)
+		assert.Equal(t, "browse:news:reddit:2020", j1.Story)
+		assert.Equal(t, pb.JobType_JOB_TYPE_BISECT, j1.JobType)
+		assert.Equal(t, "maximsheshukov@google.com", j1.User)
+		assert.Equal(t, pb.JobStatus_JOB_STATUS_COMPLETED, j1.JobStatus)
+
+		expectedTime1, err := time.Parse(legacyCreatedTimeLayout, "2026-04-22T13:24:39.368547")
+		require.NoError(t, err)
+		assert.Equal(t, timestamppb.New(expectedTime1).AsTime(), j1.Created.AsTime())
+	})
+
+	t.Run("Returns parsed try job on success", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodGet, r.Method)
+			assert.Equal(t, "/api/jobs", r.URL.Path)
+			assert.Equal(t, "user=test-user@google.com", r.URL.Query().Get("filter"))
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{
+			  "jobs": [
+			    {
+			      "job_id": "161bd991890000",
+			      "configuration": "linux-perf",
+			      "results_url": "/api/results2-serve/161bd991890000",
+			      "improvement_direction": 1,
+			      "arguments": {
+				"comparison_mode": "try",
+				"target": "performance_test_suite",
+				"base_git_hash": "HEAD",
+				"end_git_hash": "HEAD",
+				"trace": "mail-client-read.html",
+				"tags": "{\"test_path\": \"ChromiumPerf/...\"}",
+				"try": "on",
+				"initial_attempt_count": "50",
+				"configuration": "linux-perf",
+				"benchmark": "blink_perf.owp_storage",
+				"story": "",
+				"story_tags": "all",
+				"chart": "",
+				"statistic": "",
+				"comparison_magnitude": "0.7795000000000005",
+				"extra_test_args": "",
+				"commit": "on,on",
+				"base_patch": "",
+				"experiment_patch": "",
+				"base_extra_args": "",
+				"experiment_extra_args": "",
+				"project": "chromium",
+				"bug_id": "496947065",
+				"batch_id": ""
+			      },
+			      "bug_id": 496947065,
+			      "project": "chromium",
+			      "comparison_mode": "try",
+			      "name": "Try job on linux-perf/blink_perf.owp_storage",
+			      "user": "maximsheshukov@google.com",
+			      "created": "2026-04-21T11:36:08.294707",
+			      "updated": "2026-04-21T13:06:23.766768",
+			      "started_time": "2026-04-21T11:37:04.296004",
+			      "difference_count": null,
+			      "exception": null,
+			      "status": "Cancelled",
+			      "cancel_reason": "maximsheshukov@google.com: 123",
+			      "batch_id": "e34d8438-fa2e-4746-a0ac-b82d98c67da2",
+			      "bots": [
+				"lin-15-g582"
+			      ]
+			    }
+			  ],
+			  "count": 10,
+			  "max_count": 1000,
+			  "prev_cursor": "",
+			  "next_cursor": "CjwKFAoHY3JlYXRlZBIJCNzq3t68_JMDEiBqDHN-Y2hyb21lcGVyZnIQCxIDSm9iGICApIz3pLEIDBgAIAE=",
+			  "prev": false,
+			  "next": true
+			}`))
+		})
+
+		resp, err := pc.QueryJobList(context.Background(), &pb.QueryJobListRequest{
+			User: "test-user@google.com",
+		})
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+		assert.Equal(t, "", resp.Pagination.PrevCursor)
+		assert.Equal(
+			t,
+			"CjwKFAoHY3JlYXRlZBIJCNzq3t68_JMDEiBqDHN-Y2hyb21lcGVyZnIQCxIDSm9iGICApIz3pLEIDBgAIAE=",
+			resp.Pagination.NextCursor,
+		)
+		assert.Len(t, resp.Jobs, 1)
+
+		j2 := resp.Jobs[0]
+		assert.Equal(t, "161bd991890000", j2.JobId)
+		assert.Equal(t, "Try job on linux-perf/blink_perf.owp_storage", j2.Name)
+		assert.Equal(t, "blink_perf.owp_storage", j2.Benchmark)
+		assert.Equal(t, "linux-perf", j2.Configuration)
+		assert.Equal(t, "", j2.Story)
+		assert.Equal(t, pb.JobType_JOB_TYPE_TRY, j2.JobType)
+		assert.Equal(t, "maximsheshukov@google.com", j2.User)
+		assert.Equal(t, pb.JobStatus_JOB_STATUS_CANCELLED, j2.JobStatus)
+
+		expectedTime2, err := time.Parse(legacyCreatedTimeLayout, "2026-04-21T11:36:08.294707")
+		require.NoError(t, err)
+		assert.Equal(t, timestamppb.New(expectedTime2).AsTime(), j2.Created.AsTime())
+	})
+
+	t.Run("Returns error if non-200 status code", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"error": "Internal Server Error"}`))
+		})
+
+		resp, err := pc.QueryJobList(context.Background(), &pb.QueryJobListRequest{})
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Internal Server Error")
 		assert.Nil(t, resp)
 	})

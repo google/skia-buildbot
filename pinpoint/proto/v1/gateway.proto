@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package pinpoint.v1;
+
+option go_package = "go.skia.org/infra/pinpoint/proto/v1;pinpointpb";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+// Supported types of Pinpoint jobs.
+enum JobType {
+  JOB_TYPE_UNSPECIFIED = 0;
+  // Try jobs run on a specific Gerrit patch to measure performance differences.
+  JOB_TYPE_TRY = 1;
+  // Bisect jobs search for the culprit commit that introduced a performance regression.
+  JOB_TYPE_BISECT = 2;
+}
+
+// Cursor-based pagination for navigating through the list of jobs page by page.
+message Pagination {
+  // Cursor pointing to the next page of results.
+  string next_cursor = 2;
+  // Cursor pointing to the previous page of results.
+  string prev_cursor = 1;
+}
+
+// Request message to query a list of jobs with filters and pagination.
+message QueryJobListRequest {
+  // Query jobs created by the provided user email. If empty, returns jobs
+  // created by any user. Must be a valid email address if set.
+  string user = 1 [(validate.rules).string = {email: true, ignore_empty: true}];
+
+  // Query jobs with the given bot/builder configuration. If empty, returns jobs
+  // with any configuration. Must be a non-empty string if set.
+  string configuration = 2 [(validate.rules).string = {min_len: 1, ignore_empty: true}];
+
+  // Filter by the specific type of Pinpoint job.
+  JobType job_type = 3 [(validate.rules).enum.defined_only = true];
+
+  // Pagination options for the query.
+  Pagination pagination = 4;
+}
+
+// Response message containing the queried list of jobs.
+message QueryJobListResponse {
+  // The list of job summaries matching the query filters.
+  repeated JobSummary jobs = 1;
+  // Pagination parameters for the next or previous page.
+  Pagination pagination = 2;
+}
+
+// High-level status of a Pinpoint job.
+enum JobStatus {
+  JOB_STATUS_UNSPECIFIED = 0;
+  // Job is queued and waiting for an available worker.
+  JOB_STATUS_QUEUED = 1;
+  // Job is currently running.
+  JOB_STATUS_RUNNING = 2;
+  // Job completed successfully.
+  JOB_STATUS_COMPLETED = 3;
+  // Job completed with a failure.
+  JOB_STATUS_FAILED = 4;
+  // Job was cancelled by a user or system action.
+  JOB_STATUS_CANCELLED = 5;
+}
+
+// Summary of a Pinpoint job containing high-level metadata.
+message JobSummary {
+  // The unique identifier of the Pinpoint job.
+  string job_id = 1;
+  // The name of the job.
+  string name = 2;
+  // The Chrome performance benchmark name.
+  string benchmark = 3;
+  // The bot/builder configuration name used for the job (e.g. "win-11-perf").
+  string configuration = 4;
+  // The specific story or test case run by the job.
+  string story = 5;
+  // The type of Pinpoint job.
+  JobType job_type = 6;
+  // The email of the user who triggered the job.
+  string user = 7;
+  // The creation timestamp of the job.
+  google.protobuf.Timestamp created = 8;
+  // The current status of the job.
+  JobStatus job_status = 9;
+}
+
+// Service definition for Pinpoint Gateway API.
+service PinpointGateway {
+  // Queries a list of jobs based on filters and pagination options.
+  rpc QueryJobList(QueryJobListRequest) returns (QueryJobListResponse) {
+    option (google.api.http) = {
+      get: "/pinpoint/v1/jobs"
+    };
+  }
+}

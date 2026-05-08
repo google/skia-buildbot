@@ -64,7 +64,7 @@ func (api pinpointApi) createTryJobHandler(w http.ResponseWriter, r *http.Reques
 	}
 	sklog.Debugf("Got request of creating bisect job: %+v", cbr)
 
-	resp, err := api.pinpointClient.CreateTryJob(ctx, cbr)
+	resp, err := api.pinpointClient.CreateTryJob(ctx, &cbr)
 	if err != nil {
 		// TODO(b/483368236): Pass the correct HTTP error code.
 		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
@@ -102,7 +102,7 @@ func (api pinpointApi) createBisectHandler(w http.ResponseWriter, r *http.Reques
 	sklog.Debugf("Got request of creating bisect job: %+v", cbr)
 
 	isNewAnomaly := !preferLegacy(r)
-	resp, err := api.pinpointClient.CreateBisect(ctx, cbr, isNewAnomaly)
+	resp, err := api.pinpointClient.CreateBisect(ctx, &cbr, isNewAnomaly)
 	if err != nil {
 		// TODO(b/483368236): Pass the correct HTTP error code.
 		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)

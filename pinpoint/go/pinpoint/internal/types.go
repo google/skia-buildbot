@@ -133,3 +133,22 @@ type FetchJobStateResponse struct {
 	Quests []string    `json:"quests"`
 	State  []StateItem `json:"state"`
 }
+
+type LegacyJobSummary struct {
+	JobID          string            `json:"job_id"`
+	Name           string            `json:"name"`
+	Benchmark      string            `json:"benchmark"`
+	Configuration  string            `json:"configuration"`
+	Story          string            `json:"story"`
+	User           string            `json:"user"`
+	Created        string            `json:"created"`
+	Status         string            `json:"status"`
+	ComparisonMode string            `json:"comparison_mode"`
+	Arguments      map[string]string `json:"arguments"`
+}
+
+type LegacyQueryJobListResponse struct {
+	Jobs       []LegacyJobSummary `json:"jobs"`
+	PrevCursor string             `json:"prev_cursor"`
+	NextCursor string             `json:"next_cursor"`
+}

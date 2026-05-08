@@ -522,7 +522,7 @@ func TestCreateLegacyBisectJob(t *testing.T) {
 		TestPath:       "ChromiumPerf/linux-perf/speedometer/runsperminute/speedometer",
 	}
 
-	env.OnActivity((&pinpoint.Client{}).CreateBisect, mock.Anything, *expectedReq, true).
+	env.OnActivity((&pinpoint.Client{}).CreateBisect, mock.Anything, expectedReq, true).
 		Return(&pinpoint.CreatePinpointResponse{JobID: "legacyBisectionId"}, nil).
 		Once()
 
@@ -579,7 +579,7 @@ func TestCreateLegacyBisectJob_EmptyJobID(t *testing.T) {
 		TestPath:       "ChromiumPerf/linux-perf/speedometer/runsperminute/speedometer",
 	}
 
-	env.OnActivity((&pinpoint.Client{}).CreateBisect, mock.Anything, *expectedReq, true).
+	env.OnActivity((&pinpoint.Client{}).CreateBisect, mock.Anything, expectedReq, true).
 		Return(&pinpoint.CreatePinpointResponse{JobID: ""}, nil).
 		Once()
 

@@ -19,6 +19,7 @@ go_library(
         "//go/httputils",
         "//go/sklog",
         "//kube/go/authproxy",
+        "//pinpoint/go/pinpoint",
         "@org_golang_x_oauth2//google",
     ],
 )

@@ -4,6 +4,7 @@ load("@rules_proto//proto:defs.bzl", "proto_library")
 proto_library(
     name = "service",
     srcs = [
+        "gateway.proto",
         "service.proto",
     ],
     visibility = ["//visibility:public"],
@@ -11,12 +12,16 @@ proto_library(
         "//cabe/proto/v1:spec_proto",
         "@com_google_protobuf//:timestamp_proto",
         "@googleapis//google/api:annotations_proto",
+        "@protoc-gen-validate//validate:validate_proto",
     ],
 )
 
 go_library(
     name = "proto",
     srcs = [
+        "gateway.pb.go",
+        "gateway.pb.gw.go",
+        "gateway_grpc.pb.go",
         "generate.go",
         "service.pb.go",
         "service.pb.gw.go",
@@ -38,5 +43,6 @@ go_library(
         "@org_golang_google_protobuf//reflect/protoreflect",
         "@org_golang_google_protobuf//runtime/protoimpl",
         "@org_golang_google_protobuf//types/known/timestamppb",
+        "@protoc-gen-validate//validate",
     ],
 )

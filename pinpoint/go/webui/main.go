@@ -4,26 +4,32 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
 
-	"html/template"
+	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
-	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/kube/go/authproxy"
+	"go.skia.org/infra/pinpoint/go/pinpoint"
 )
 
 var (
 	port     = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+)
+
+const (
+	pinpointBaseURL = "https://pinpoint-dot-chromeperf.appspot.com"
+	pinpointNewURL  = pinpointBaseURL + "/api/new"
 )
 
 const indexHTML = `
@@ -34,7 +40,7 @@ const indexHTML = `
 				Welcome, {{.Email}}
 		</div>
 		<button id="test-job-btn">Test Job</button>
-    <div id="jobs-container">Loading jobs...</div>
+    <pre id="jobs-container">Loading jobs...</pre>
     <script>
         document.getElementById('test-job-btn').addEventListener('click', async () => {
             try {
@@ -46,10 +52,10 @@ const indexHTML = `
         });
 
         var jobsContainer = document.getElementById('jobs-container');
-        fetch('/api/jobs')
-            .then(response => response.text())
-            .then(text => {
-                jobsContainer.textContent = text;
+        fetch('/pinpoint/v1/jobs')
+            .then(response => response.json())
+            .then(json => {
+                jobsContainer.textContent = JSON.stringify(json, null, 2);
             })
             .catch(err => {
                 jobsContainer.textContent = 'Failed to load jobs: ' + err;
@@ -84,41 +90,37 @@ func main() {
 		client = httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 	}
 
+	pinpointClient, err := pinpoint.New(ctx)
+	if err != nil {
+		sklog.Fatalf("Failed to create pinpoint client: %s", err)
+	}
+	handler, err := pinpoint.NewGatewayJSONHandler(ctx, pinpointClient)
+	if err != nil {
+		sklog.Fatalf("Failed to create JSON handler: %s", err)
+	}
+	http.Handle("/pinpoint/", handler)
+
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		email := loginProvider.LoggedInAs(r)
 		if err := tmpl.Execute(w, struct{ Email string }{Email: string(email)}); err != nil {
-			http.Error(w, fmt.Sprintf("Failed to expand template: %s", err), http.StatusInternalServerError)
-		}
-	})
-
-	http.HandleFunc("/api/jobs", func(w http.ResponseWriter, r *http.Request) {
-		if client == nil {
-			http.Error(w, fmt.Sprintf("Service not fully initialized: %s", tokenSourceErr), http.StatusInternalServerError)
-			return
-		}
-
-		ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
-		defer cancel()
-
-		resp, err := httputils.GetWithContext(ctx, client, "https://pinpoint-dot-chromeperf.appspot.com/api/jobs")
-		if err != nil {
-			http.Error(w, "Failed to fetch jobs", http.StatusInternalServerError)
-			return
-		}
-		defer resp.Body.Close()
-
-		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
-		if _, err := io.Copy(w, resp.Body); err != nil {
-			http.Error(w, fmt.Sprintf("Failed to write response: %s", err), http.StatusInternalServerError)
+			http.Error(
+				w,
+				fmt.Sprintf("Failed to expand template: %s", err),
+				http.StatusInternalServerError,
+			)
 		}
 	})
 
 	http.HandleFunc("/api/testjob", func(w http.ResponseWriter, r *http.Request) {
 		if client == nil {
-			http.Error(w, fmt.Sprintf("Service not fully initialized: %s", tokenSourceErr), http.StatusInternalServerError)
+			http.Error(
+				w,
+				fmt.Sprintf("Service not fully initialized: %s", tokenSourceErr),
+				http.StatusInternalServerError,
+			)
 			return
 		}
 		if r.Method != http.MethodPost {
@@ -141,7 +143,7 @@ func main() {
 		if email != "" {
 			params.Set("user", string(email))
 		}
-		testJobUrl := fmt.Sprintf("%s?%s", "https://pinpoint-dot-chromeperf.appspot.com/api/new", params.Encode())
+		testJobUrl := fmt.Sprintf("%s?%s", pinpointNewURL, params.Encode())
 
 		resp, err := httputils.PostWithContext(ctx, client, testJobUrl, "application/json", nil)
 		if err != nil {
@@ -153,9 +155,18 @@ func main() {
 		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
 		w.WriteHeader(resp.StatusCode)
 		if _, err := io.Copy(w, resp.Body); err != nil {
-			http.Error(w, fmt.Sprintf("Failed to write response: %s", err), http.StatusInternalServerError)
+			http.Error(
+				w,
+				fmt.Sprintf("Failed to write response: %s", err),
+				http.StatusInternalServerError,
+			)
 		}
 	})
 
-	sklog.Fatal(http.ListenAndServe(*port, nil))
+	server := &http.Server{
+		Addr:         *port,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+	sklog.Fatal(server.ListenAndServe())
 }
