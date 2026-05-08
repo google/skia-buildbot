@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -50,6 +51,19 @@ type CbbRunnerParams struct {
 
 	// Name of the Google cloud storage bucket to upload results to.
 	Bucket string
+}
+
+// CbbRunnerError is a custom error type for CbbRunnerWorkflow.
+type CbbRunnerError struct {
+	Err                 string
+	WorkflowLink        string
+	TotalBenchmarkCount int
+	// SwarmingLinks maps benchmark names to their corresponding swarming task list links.
+	SwarmingLinks map[string]string
+}
+
+func (e *CbbRunnerError) Error() string {
+	return e.Err
 }
 
 // Configuration for a particular benchmark.
@@ -281,9 +295,13 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 	results := map[string]*format.Format{}
 
 	var errs []error
+	jobIds := map[string]string{}
 	for _, b := range benchmarks {
+		jobId := genJobId(bi, cbb, b.Benchmark)
+		jobIds[b.Benchmark] = jobId
+
 		p := &SingleCommitRunnerParams{
-			PinpointJobID:  genJobId(bi, cbb, b.Benchmark),
+			PinpointJobID:  jobId,
 			BotConfig:      cbb.BotConfig,
 			Benchmark:      b.Benchmark,
 			Story:          "default",
@@ -344,7 +362,20 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 	}
 
 	if len(errs) > 0 {
-		return nil, skerr.Wrap(errors.Join(errs...))
+		swarmingLinks := map[string]string{}
+		for benchmark, jobId := range jobIds {
+			swarmingLinks[benchmark] = getSwarmingLink(ctx, startTime, jobId)
+		}
+
+		err := CbbRunnerError{
+			Err:                 errors.Join(errs...).Error(),
+			WorkflowLink:        getWorkflowLink(ctx),
+			TotalBenchmarkCount: len(benchmarks),
+			SwarmingLinks:       swarmingLinks,
+		}
+		// The CbbRunnerError object must be wrapped in an ApplicationError in
+		// order to be successfully passed back to the parent workflow.
+		return nil, temporal.NewApplicationError(err.Err, "CbbRuntimeError", err)
 	}
 
 	return &results, nil
@@ -364,11 +395,7 @@ func (StringWriterCloser) Close() error {
 	return nil
 }
 
-// Taking all swarming task results for one benchmark on one bot config,
-// and convert the results into the format required by the perf dashboard.
-func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark string, bi *browserInfo, skipFinch bool, startTime time.Time, jobId string) *format.Format {
-	// Create a link to the Temporal workflow that is currently running.
-	// This link will be included in the pop-up for the result, to help debugging.
+func getWorkflowLink(ctx workflow.Context) string {
 	isDev := strings.HasPrefix(workflow.GetActivityOptions(ctx).TaskQueue, "localhost.")
 	var temporalHost string
 	if isDev {
@@ -377,11 +404,13 @@ func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark str
 		temporalHost = "skia-temporal-ui.corp.goog"
 	}
 	exec := workflow.GetInfo(ctx).WorkflowExecution
-	workflowLink := fmt.Sprintf(
+	return fmt.Sprintf(
 		"https://%s/namespaces/perf-internal/workflows/%s/%s/history",
 		temporalHost, exec.ID, exec.RunID)
+}
 
-	// Create a link to all swarming tasks associated with these results.
+func getSwarmingLink(ctx workflow.Context, startTime time.Time, jobId string) string {
+	// Create a link to all swarming tasks associated with a CBB benchmark run.
 	// The link has these parameters:
 	// * c=... selects the columns to display.
 	// * st=%d Start time of the display.
@@ -393,9 +422,20 @@ func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark str
 	//   up retrieving the task list.
 	// * n=false Sets the "Now" flag to false. Without this, the end time would be ignored.
 	// * f=... Filter to select the tasks with the expected Pinpoint job ID.
-	swarmingLink := fmt.Sprintf(
+	return fmt.Sprintf(
 		"https://chrome-swarming.appspot.com/tasklist?c=name&c=duration&c=bot&c=state&st=%d&et=%d&n=false&f=pinpoint_job_id-tag%%3A%s",
 		startTime.UnixMilli(), workflow.Now(ctx).UnixMilli(), url.PathEscape(jobId))
+}
+
+// Taking all swarming task results for one benchmark on one bot config,
+// and convert the results into the format required by the perf dashboard.
+func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark string, bi *browserInfo, skipFinch bool, startTime time.Time, jobId string) *format.Format {
+	// Create a link to the Temporal workflow that is currently running.
+	// This link will be included in the pop-up for the result, to help debugging.
+	workflowLink := getWorkflowLink(ctx)
+
+	// Create a link to all swarming tasks associated with these results.
+	swarmingLink := getSwarmingLink(ctx, startTime, jobId)
 
 	data := format.Format{
 		Version: 1,

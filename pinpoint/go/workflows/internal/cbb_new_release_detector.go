@@ -29,6 +29,7 @@ package internal
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html"
 	"log"
@@ -360,28 +361,124 @@ func callCbbRunner(ctx workflow.Context, p *CbbRunnerParams, workflowID string) 
 	var cr *CommitRun
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbRunner, p).Get(ctx, &cr); err != nil {
 		sklog.Errorf("Error in CBB runner %#v: %v", p, err)
+		// Check if we have received a custom error object (CbbRunnerError) with additional details
+		// of what went wrong. The custom error has been wrapped by Temporal, and needs to be unwrapped.
+		var workflowErr *temporal.ChildWorkflowExecutionError
+		if errors.As(err, &workflowErr) {
+			err = workflowErr.Unwrap()
+			var appErr *temporal.ApplicationError
+			if errors.As(err, &appErr) && appErr.Type() == "CbbRuntimeError" {
+				sklog.Error("Found a CbbRuntimeError inside ApplicationError, trying to retrieve it")
+				var cbbErr CbbRunnerError
+				err2 := appErr.Details(&cbbErr)
+				if err2 == nil {
+					err = &cbbErr
+				} else {
+					sklog.Errorf("Unable to retrieve CbbRunnerError: %v", err2)
+				}
+			}
+		}
 		sendCbbRunnerErrorEmail(ctx, options.WorkflowID, p, err)
 	}
 }
 
 func sendCbbRunnerErrorEmail(ctx workflow.Context, id string, p *CbbRunnerParams, err error) {
+	var cbbErr *CbbRunnerError
+	hasCbbErr := errors.As(err, &cbbErr)
+
 	subject := fmt.Sprintf("CBB runner \"%s\" failed", id)
-	body := fmt.Sprintf(`CBB runner "%s" failed:
-<ul>
-<li> Bot: %s</li>
+	body := fmt.Sprintf("CBB runner \"%s\" failed:\n<ul>\n", html.EscapeString(id))
+	if hasCbbErr {
+		body += fmt.Sprintf("<li> Failed workflow details: <a href=\"%s\">%s</a></li>\n", cbbErr.WorkflowLink, cbbErr.WorkflowLink)
+	}
+	body += fmt.Sprintf(
+		`<li> Bot: %s</li>
 <li> Browser: %s</li>
 <li> Channel: %s</li>
 <li> Commit: %s</li>
 <li> Skip Finch: %v</li>
 <li> Error: %v</li>
 </ul>`,
-		html.EscapeString(id),
 		html.EscapeString(p.BotConfig),
 		html.EscapeString(p.Browser),
 		html.EscapeString(p.Channel),
 		html.EscapeString(p.Commit.GetMainGitHash()),
 		p.SkipFinch,
 		html.EscapeString(err.Error()))
+
+	if hasCbbErr && len(cbbErr.SwarmingLinks) > 0 {
+		if len(cbbErr.SwarmingLinks) == cbbErr.TotalBenchmarkCount {
+			body += fmt.Sprintf("<p>All %d benchmarks have failed</p>\n", cbbErr.TotalBenchmarkCount)
+		} else {
+			body += fmt.Sprintf("<p>%d benchmarks have failed (out of a total of %d)</p>\n", len(cbbErr.SwarmingLinks), cbbErr.TotalBenchmarkCount)
+		}
+
+		body += "<p>Failed benchmarks:</p>\n<ul>\n"
+		for b, l := range cbbErr.SwarmingLinks {
+			body += fmt.Sprintf("<li> %s: <a href=\"%s\">swarming tasks</a> </li>\n", html.EscapeString(b), l)
+		}
+		body += "</ul>\n"
+
+		isDev := strings.HasPrefix(workflow.GetActivityOptions(ctx).TaskQueue, "localhost.")
+		var temporalHost, monitorLink string
+		if isDev {
+			temporalHost = "temporal-ui-dev.corp.goog"
+			monitorUrl := fmt.Sprintf(
+				"https://%s/namespaces/perf-internal/workflows?query=%%60WorkflowType%%60%%3D%%22perf.cbb_runner%%22",
+				temporalHost)
+			monitorLink = fmt.Sprintf("<a href=\"%s\">this page</a>", monitorUrl)
+		} else {
+			temporalHost = "skia-temporal-ui.corp.goog"
+			monitorLink = "<a href=\"http://go/cbb-runner\">go/cbb-runner</a>"
+		}
+
+		inputJson, _ := json.MarshalIndent(p, "", "  ")
+
+		body += fmt.Sprintf(`
+<p> Please use the information provided above to investigate the failures.
+After you have corrected any underlying issues, follow these steps to rerun the failed benchmarks: </p>
+<ul>
+  <li> Go to the <a href="https://%s/namespaces/perf-internal/schedules/create">Create Schedule</a> page
+       on Temporal UI, and enter the following entries: </li>
+  <ul>
+    <li> <b>Name</b>: <code>%s</code> </li>
+	<li> <b>Workflow Type</b>: <code>%s</code> </li>
+	<li> <b>Workflow Id</b>: <code>%s</code> </li>
+	<li> <b>Task Queue</b>: <code>perf.perf-chrome-public.bisect</code> </li>
+  </ul>
+  <li> Copy and paste the following jSON into the <b>Input</b> field:
+<pre>
+%s
+</pre>
+  </li>
+  <li> Under <b>Schedule Spec</b>, select the date/time you want to rerun the benchmarks.
+       It is recommended that you select the <b>Days of the Month</b> tab,
+	   and then select either today or another day in the near future.
+	   Select a convenient time to run the benchmarks, keeping in mind that you are
+	   entering UTC time. Also keep in mind that CBB automatcailly runs at 22:00 UTC time
+	   on each weekday, and it is best not to schedule your rerun too close to that time. </li>
+  <li> Double check your entries, and then click the <b>Create Schedule</b>
+</ul>
+<p> After the scheduled time, go to %s to monitor the status of the rerun,
+look for Workflow ID %s among the list. </p>
+<p> After your scheduled rerun has finished, please delete your schedule by going to the
+<a href="https://%s/namespaces/perf-internal/schedules/%s">schedule page</a>,
+Click on the down arrow inside the Pause button at the upper-right corner of the page,
+and then select the Delete command. Be sure you clicked on the right link,
+and don't delete the wrong schedule.
+`,
+			temporalHost,
+			html.EscapeString(id),
+			workflows.CbbRunner,
+			html.EscapeString(id),
+			string(inputJson),
+			monitorLink,
+			html.EscapeString(id),
+			temporalHost,
+			html.EscapeString(id),
+		)
+	}
+
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 1 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
