@@ -67,6 +67,10 @@
           "version": "1.1.4"
         },
         {
+          "name": "firebase",
+          "version": "*"
+        },
+        {
           "name": "react",
           "version": "19.2.1"
         }
