@@ -100,8 +100,7 @@ const (
 	browserVersionsFilename  = "browser_versions.json"
 
 	// Email address to send notification when a CBB job fails.
-	// TODO(b/485974383): Change to "chrome-cbb@google.com" when ready.
-	errorNotificationEmail = "zhanliang@google.com"
+	errorNotificationEmail = "chrome-cbb@google.com"
 )
 
 // All Mac bot config names, with the number of devices in each config.
