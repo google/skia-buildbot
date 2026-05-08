@@ -82,7 +82,7 @@ export class PlotGoogleChartSk extends LitElement {
       md-icon {
         transform: translate(-50%, -50%);
         border-radius: 50%;
-        pointer-events: none;
+        cursor: pointer;
         color: darkblue;
         width: 16px;
         height: 16px;
@@ -815,9 +815,8 @@ export class PlotGoogleChartSk extends LitElement {
     );
   }
 
-  // When a point is hovered, return row and column values from
-  // underlying data table.
-  private onChartMouseOver(e: CustomEvent) {
+  // Triggers hover actions for a data point.
+  private handleMouseOver(tableRowIndex: number, tableColumnIndex: number) {
     if (
       this.navigationMode === 'deltaY' ||
       this.navigationMode === 'dragToZoom' ||
@@ -825,13 +824,6 @@ export class PlotGoogleChartSk extends LitElement {
     ) {
       return;
     }
-    // The detail will contain the row and column values for the View, that
-    // is the indices of the visible traces. If some traces are hidden, we need
-    // to translate the visible indices to the actual table indices.
-    // These are the indices that should be used when using the methods in this.data.
-    const plot = this.plotElement.value;
-    const tableRowIndex = plot!.view!.getTableRowIndex(e.detail.data.row);
-    const tableColumnIndex = plot!.view!.getTableColumnIndex(e.detail.data.column);
 
     if (this.hoverIndicatorDiv.value) {
       const pos = this.getPositionByIndex({
@@ -858,25 +850,11 @@ export class PlotGoogleChartSk extends LitElement {
     );
   }
 
-  // When a point is selected, return row and column values from
-  // underlying data table.
-  private onChartSelect(e: CustomEvent) {
+  // Triggers selection actions for a data point.
+  private handleSelect(tableRowIndex: number, tableColumnIndex: number) {
     if (this.navigationMode === 'deltaY' || this.navigationMode === 'dragToZoom') {
       return;
     }
-    const selection = e.detail.chart.getSelection()[0];
-    let row: number, column: number;
-    if (selection) {
-      row = selection.row;
-      column = selection.column;
-    } else {
-      return;
-    }
-
-    const plot = this.plotElement.value;
-
-    const tableRowIndex = plot!.view!.getTableRowIndex(row);
-    const tableColumnIndex = plot!.view!.getTableColumnIndex(column);
 
     // Subtract 2 from the table column index since the first two columns
     // are commit position and date.
@@ -891,6 +869,59 @@ export class PlotGoogleChartSk extends LitElement {
         },
       })
     );
+  }
+
+  // When a point is hovered, return row and column values from
+  // underlying data table.
+  private onChartMouseOver(e: CustomEvent) {
+    if (!this.plotElement.value) {
+      return;
+    }
+    // The detail will contain the row and column values for the View, that
+    // is the indices of the visible traces. If some traces are hidden, we need
+    // to translate the visible indices to the actual table indices.
+    // These are the indices that should be used when using the methods in this.data.
+    const plot = this.plotElement.value;
+    const tableRowIndex = plot!.view!.getTableRowIndex(e.detail.data.row);
+    const tableColumnIndex = plot!.view!.getTableColumnIndex(e.detail.data.column);
+
+    this.handleMouseOver(tableRowIndex, tableColumnIndex);
+  }
+
+  // When the mouse leaves a data point, clear the hover actions.
+  private onChartMouseOut() {
+    if (this.hoverIndicatorDiv.value) {
+      this.hoverIndicatorDiv.value.style.display = 'none';
+    }
+    this.dispatchEvent(
+      new CustomEvent('plot-chart-mouseout', {
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+  // When a point is selected, return row and column values from
+  // underlying data table.
+  private onChartSelect(e: CustomEvent) {
+    const selection = e.detail.chart.getSelection()[0];
+    let row: number, column: number;
+    if (selection) {
+      row = selection.row;
+      column = selection.column;
+    } else {
+      return;
+    }
+
+    const plot = this.plotElement.value;
+    if (!plot) {
+      return;
+    }
+
+    const tableRowIndex = plot!.view!.getTableRowIndex(row);
+    const tableColumnIndex = plot!.view!.getTableColumnIndex(column);
+
+    this.handleSelect(tableRowIndex, tableColumnIndex);
   }
 
   private onChartMouseUp(e: MouseEvent) {
@@ -931,24 +962,6 @@ export class PlotGoogleChartSk extends LitElement {
     }
     this.deltaRangeOn = false;
     this.navigationMode = null;
-  }
-
-  // this interaction triggers when mousing off of a data point
-  // this event listener is to turn off the tooltip after hovering away
-  // from a data point
-  // this interaction can mess with continuous mousing journeys
-  // like deltaRange and zoom so need to ensure they will continue
-  // to work even past data points
-  private onChartMouseOut() {
-    if (this.hoverIndicatorDiv.value) {
-      this.hoverIndicatorDiv.value.style.display = 'none';
-    }
-    this.dispatchEvent(
-      new CustomEvent('plot-chart-mouseout', {
-        bubbles: true,
-        composed: true,
-      })
-    );
   }
 
   private onWindowMouseMove(e: MouseEvent) {
@@ -1164,6 +1177,18 @@ export class PlotGoogleChartSk extends LitElement {
           if (cloned) {
             cloned.style.top = `${y}px`;
             cloned.style.left = `${x}px`;
+            cloned.addEventListener('mouseover', (event) => {
+              event.stopPropagation();
+              this.handleMouseOver(rowIndex, traceCol);
+            });
+            cloned.addEventListener('mouseout', (event) => {
+              event.stopPropagation();
+              this.onChartMouseOut();
+            });
+            cloned.addEventListener('click', (event) => {
+              event.stopPropagation();
+              this.handleSelect(rowIndex, traceCol);
+            });
             allDivs.push(cloned);
           }
         }
