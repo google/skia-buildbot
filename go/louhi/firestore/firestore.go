@@ -8,6 +8,7 @@ import (
 	fs "cloud.google.com/go/firestore"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/louhi"
@@ -34,7 +35,7 @@ func NewDB(ctx context.Context, project, app, instance string) (*FirestoreDB, er
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create TokenSource")
 	}
-	client, err := firestore.NewClient(ctx, project, app, instance, ts)
+	client, err := firestore.NewClient(ctx, project, app, instance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create firestore client")
 	}

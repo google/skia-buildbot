@@ -9,6 +9,7 @@ import (
 	firestore_api "cloud.google.com/go/firestore"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -37,7 +38,7 @@ type FirestoreDB struct {
 // New returns an instance of FirestoreDB.
 func New(ctx context.Context, ts oauth2.TokenSource, fsNamespace, fsProjectId string) (types.BugsDB, error) {
 	// Instantiate firestore.
-	fsClient, err := firestore.NewClient(ctx, fsProjectId, "bugs-central", fsNamespace, ts)
+	fsClient, err := firestore.NewClient(ctx, fsProjectId, "bugs-central", fsNamespace, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "could not init firestore")
 	}

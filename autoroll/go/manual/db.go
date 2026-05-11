@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -232,7 +233,7 @@ func NewDB(ctx context.Context, client *firestore.Client) (DB, error) {
 
 // NewDB returns a DB instance backed by Firestore, using the given params.
 func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource) (DB, error) {
-	client, err := firestore.NewClient(ctx, project, FS_APP, instance, ts)
+	client, err := firestore.NewClient(ctx, project, FS_APP, instance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}

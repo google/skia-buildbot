@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -27,7 +28,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	c, err := firestore.NewClient(ctx, firestore.FIRESTORE_PROJECT, firestore.APP_TASK_SCHEDULER, *fsInstance, ts)
+	c, err := firestore.NewClient(ctx, firestore.FIRESTORE_PROJECT, firestore.APP_TASK_SCHEDULER, *fsInstance, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(err)
 	}

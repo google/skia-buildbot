@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -47,7 +48,7 @@ type DB struct {
 
 // NewWithParams returns a DB instance backed by Firestore, using the given params.
 func NewWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*DB, error) {
-	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
+	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}

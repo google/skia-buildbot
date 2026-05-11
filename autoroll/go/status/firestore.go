@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -32,7 +33,7 @@ type FirestoreDB struct {
 
 // NewFirestoreDBWithParams returns a FirestoreDB instance using the given params.
 func NewFirestoreDBWithParams(ctx context.Context, project, namespace, instance string, ts oauth2.TokenSource) (*FirestoreDB, error) {
-	client, err := firestore.NewClient(ctx, project, namespace, instance, ts)
+	client, err := firestore.NewClient(ctx, project, namespace, instance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

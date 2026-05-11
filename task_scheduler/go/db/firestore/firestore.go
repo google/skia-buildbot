@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -56,7 +57,7 @@ type firestoreDB struct {
 
 // NewDB returns a db.DB which uses Cloud Firestore for storage, using the given params.
 func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource) (db.DBCloser, error) {
-	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
+	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}

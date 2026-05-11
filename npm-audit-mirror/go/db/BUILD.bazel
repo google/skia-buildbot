@@ -10,6 +10,7 @@ go_library(
         "//go/firestore",
         "//go/skerr",
         "//npm-audit-mirror/go/types",
+        "@org_golang_google_api//option",
         "@org_golang_google_grpc//codes",
         "@org_golang_google_grpc//status",
         "@org_golang_x_oauth2//:oauth2",

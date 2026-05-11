@@ -20,7 +20,7 @@ func TestGetAllDescendants(t *testing.T) {
 	project := "skia-firestore"
 	app := "firestore_pkg_tests"
 	instance := fmt.Sprintf("test-%s", uuid.New())
-	c, err := NewClient(context.Background(), project, app, instance, nil)
+	c, err := NewClient(context.Background(), project, app, instance)
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, c.RecursiveDelete(context.Background(), c.ParentDoc, 5, 30*time.Second))

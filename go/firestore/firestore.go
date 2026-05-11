@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/oauth2"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
@@ -154,7 +153,7 @@ type counterKey struct {
 // instance data via separate collections and documents. All references to
 // collections and documents are automatically prefixed with the app name as the
 // top-level collection and instance name as the parent document.
-func NewClient(ctx context.Context, project, app, instance string, ts oauth2.TokenSource) (*Client, error) {
+func NewClient(ctx context.Context, project, app, instance string, opts ...option.ClientOption) (*Client, error) {
 	if project == "" {
 		return nil, errors.New("Project name is required.")
 	}
@@ -164,7 +163,8 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 	if instance == "" {
 		return nil, errors.New("Instance name is required.")
 	}
-	client, err := firestore.NewClient(ctx, project, option.WithTokenSource(ts))
+
+	client, err := firestore.NewClient(ctx, project, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func NewClientForTesting(ctx context.Context, t sktest.TestingT) (*Client, util.
 	app := "NewClientForTesting"
 	instance := fmt.Sprintf("test-%s", uuid.New())
 	ctx, cancel := context.WithCancel(ctx)
-	c, err := NewClient(ctx, project, app, instance, nil)
+	c, err := NewClient(ctx, project, app, instance)
 	if err != nil {
 		cancel()
 		t.Fatalf("Error creating test firestore.Client: %s", err)
