@@ -662,7 +662,7 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 
 // RunContinuousClustering runs the regression detection on a continuous basis.
 func (c *Continuous) RunContinuousClustering(ctx context.Context) {
-	runsCounter := metrics2.GetCounter("perf_clustering_runs_total", nil)
+	runsCounter := metrics2.GetCounter("perf_clustering_iterations_total", nil)
 	clusteringLatency := metrics2.NewTimer("perf_clustering_latency", nil)
 	configsCounter := metrics2.GetCounter("perf_clustering_configs_total", nil)
 
