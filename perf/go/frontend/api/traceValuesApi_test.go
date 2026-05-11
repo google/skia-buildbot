@@ -40,6 +40,7 @@ func TestTraceValuesHandler_Success(t *testing.T) {
 	api := NewTraceValuesApi(dfBuilder, perfGit, nil)
 
 	// Mock Git calls
+	perfGit.On("CommitNumberFromTime", mock.Anything, time.Time{}).Return(types.CommitNumber(200), nil)
 	perfGit.On("CommitFromCommitNumber", mock.MatchedBy(func(ctx context.Context) bool {
 		_, ok := ctx.Deadline()
 		return ok
@@ -162,4 +163,54 @@ func TestTraceValuesHandler_WithAnomalies(t *testing.T) {
 	require.Len(t, resp.Results, 1)
 	require.NotNil(t, resp.AnomalyMap)
 	require.Equal(t, "anomaly1", resp.AnomalyMap["trace1"][100].Id)
+}
+
+func TestTraceValuesHandler_CappedMaxCommit(t *testing.T) {
+	config.Config = &config.InstanceConfig{}
+	w := httptest.NewRecorder()
+	req := TraceValuesRequest{
+		Ids:       []string{"trace1"},
+		MinCommit: 100,
+		MaxCommit: 200,
+	}
+	body, _ := json.Marshal(req)
+	r := httptest.NewRequest("POST", "/_/trace_values", bytes.NewReader(body))
+
+	dfBuilder := dataframeMocks.NewDataFrameBuilder(t)
+	perfGit := gitMocks.NewGit(t)
+
+	api := NewTraceValuesApi(dfBuilder, perfGit, nil)
+
+	// Mock Git calls
+	perfGit.On("CommitFromCommitNumber", mock.Anything, types.CommitNumber(100)).Return(provider.Commit{Timestamp: 1000}, nil)
+
+	// Mock CommitNumberFromTime to return 150 as most recent
+	perfGit.On("CommitNumberFromTime", mock.Anything, time.Time{}).Return(types.CommitNumber(150), nil)
+
+	// Mock CommitFromCommitNumber for the capped value 150
+	perfGit.On("CommitFromCommitNumber", mock.Anything, types.CommitNumber(150)).Return(provider.Commit{Timestamp: 1500}, nil)
+
+	// Mock DataFrameBuilder calls
+	fakeDf := &dataframe.DataFrame{
+		Header: []*dataframe.ColumnHeader{
+			{Offset: 100, Timestamp: 1000},
+			{Offset: 150, Timestamp: 1500},
+		},
+		TraceSet: types.TraceSet{
+			"trace1": []float32{1.0, 1.5},
+		},
+	}
+	dfBuilder.On("NewFromKeysAndRange", mock.Anything, []string{"trace1"}, time.Unix(1000, 0), time.Unix(1500, 0), mock.Anything).Return(fakeDf, nil)
+
+	api.traceValuesHandler(w, r)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+	var resp TraceValuesResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+
+	require.Len(t, resp.Results, 1)
+	require.Len(t, resp.Results["trace1"], 2)
+	require.Equal(t, int64(150), resp.Results["trace1"][1].CommitNumber)
 }

@@ -87,7 +87,19 @@ func (api *TraceValuesApi) traceValuesHandler(w http.ResponseWriter, r *http.Req
 	if req.End > 0 {
 		endTime = time.Unix(req.End, 0)
 	} else if req.MaxCommit > 0 {
-		c, err := api.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(req.MaxCommit))
+		mostRecentCommit, err := api.perfGit.CommitNumberFromTime(ctx, time.Time{})
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to get most recent commit", http.StatusInternalServerError)
+			return
+		}
+
+		effectiveMaxCommit := types.CommitNumber(req.MaxCommit)
+		if effectiveMaxCommit > mostRecentCommit {
+			sklog.Warningf("Requested max_commit %d is beyond most recent commit %d. Capping to %d.", req.MaxCommit, mostRecentCommit, mostRecentCommit)
+			effectiveMaxCommit = mostRecentCommit
+		}
+
+		c, err := api.perfGit.CommitFromCommitNumber(ctx, effectiveMaxCommit)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to get commit for max_commit", http.StatusInternalServerError)
 			return
