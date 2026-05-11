@@ -629,7 +629,9 @@ export class QueryBarSk extends LitElement {
       <div class="query-bar-container" @click=${() => this._inputElement?.focus()}>
         <div class="query-pills">
           ${repeat(
-            Object.entries(this.query),
+            this._sortKeys(Object.keys(this.query)).map(
+              (key) => [key, this.query[key]] as [string, string[]]
+            ),
             ([key]) => key,
             ([key, values]) => {
               const options = this.optionsByKey[key] || [];

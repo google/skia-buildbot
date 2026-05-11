@@ -25,7 +25,7 @@ describe('trace-chart-sk', () => {
     };
     await element.updateComplete;
 
-    const tooltip = element.shadowRoot!.querySelector('.hover-tooltip');
+    const tooltip = element.shadowRoot!.querySelector('trace-chart-tooltip-sk');
     expect(tooltip).to.not.be.null;
   });
 

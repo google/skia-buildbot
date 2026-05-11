@@ -811,6 +811,8 @@ describe('explore-multi-v2-sk', () => {
                 state: 'untriaged',
                 bug_id: 0,
                 recovered: false,
+                median_before_anomaly: 5.0,
+                median_after_anomaly: 10.0,
               },
             },
           },
@@ -858,6 +860,8 @@ describe('explore-multi-v2-sk', () => {
       expect(reg[100]).to.not.be.undefined;
       expect(reg[100].is_improvement).to.be.true;
       expect((reg[100] as any).status).to.equal('untriaged');
+      expect((reg[100] as any).median_before).to.equal(5.0);
+      expect((reg[100] as any).median_after).to.equal(10.0);
     } finally {
       (DataService as any).instance = oldInstance;
       TraceDatabase.prototype.get = oldGet;
@@ -967,6 +971,7 @@ describe('explore-multi-v2-sk', () => {
       element['_loadedBounds'] = { ',benchmark=A,test=B,': { min: 100, max: 200 } };
       element['_globalBounds'] = {};
       element['_activeStats'] = [];
+      element['_defaultParamSelections'] = { stat: ['median'] };
 
       await element['_doHandleViewportChanged']({
         detail: { minCommit: 50, maxCommit: 150 },

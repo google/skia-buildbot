@@ -3,6 +3,7 @@ import { loadCachedTestBed, TestBed } from '../../../puppeteer-tests/util';
 import { poll } from '../common/puppeteer-test-util';
 import { ExploreMultiV2SkPO } from './explore-multi-v2-sk_po';
 import { ElementHandle } from 'puppeteer';
+import { ScreencastRecorder } from '../../../puppeteer-tests/screencast';
 
 describe('explore-multi-v2-sk', () => {
   let testBed: TestBed;
@@ -15,56 +16,6 @@ describe('explore-multi-v2-sk', () => {
   beforeEach(async () => {
     const page = testBed.page;
     page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
-
-    await page.evaluateOnNewDocument(() => {
-      (window as any).WORKER_URL =
-        'data:application/javascript,self.postMessage({ type: "LOADED" }); self.onmessage = (e) => { if (e.data.type === "INIT") { self.postMessage({ type: "READY" }); } else if (e.data.type === "SUGGEST") { self.postMessage({ type: "SUGGEST_RESULT", idx: e.data.idx, payload: [{ params: [{ key: "test", value: "Score" }], count: 42, score: 100 }] }); } };';
-
-      // Trap fetchMock when it is assigned to window
-      let fm: any;
-      Object.defineProperty(window, 'fetchMock', {
-        get() {
-          return fm;
-        },
-        set(v) {
-          fm = v;
-          console.log('MOCK LOG: fetchMock trapped!');
-          // Allow falling back to network or original fetch
-          if (fm.config) {
-            fm.config.fallbackToNetwork = true;
-          }
-          // Register wasm mocks immediately
-          fm.get(
-            'glob:*/_/wasm/meta.json*',
-            { version: 'test-version' },
-            { overwriteRoutes: true }
-          );
-          fm.get('glob:*/_/wasm/params.json*', {}, { overwriteRoutes: true });
-          fm.get('glob:*/dist/explore-multi-v2-sk/filter.wasm*', new ArrayBuffer(0), {
-            overwriteRoutes: true,
-          });
-          fm.get(
-            'glob:*/_/initpage*',
-            {
-              dataframe: {
-                paramset: { arch: ['arm', 'x86'], os: ['windows', 'linux'] },
-              },
-            },
-            { overwriteRoutes: true }
-          );
-          fm.get(
-            'glob:*/_/defaults*',
-            {
-              default_range: 12960000,
-              include_params: [],
-            },
-            { overwriteRoutes: true }
-          );
-        },
-        configurable: true,
-      });
-    });
-
     await page.goto(testBed.baseUrl);
     const exploreMultiV2Sk = (await page.waitForSelector(
       'explore-multi-v2-sk'
@@ -87,12 +38,33 @@ describe('explore-multi-v2-sk', () => {
   it('should trigger fetch when panning in Date Mode', async () => {
     const page = testBed.page;
 
-    // Mock /_/trace_values
-    await page.evaluate(() => {
-      (window as any).fetchMock.post(
-        '/_/trace_values',
-        { results: { 'test-trace': [{ x: 1000, y: 10 }] } },
-        { overwriteRoutes: true }
+    // Clear cache to force network fetch
+    await page.evaluate(async () => {
+      return await new Promise((resolve) => {
+        const req = indexedDB.open('TraceCache', 1);
+        req.onsuccess = () => {
+          const db = req.result;
+          if (db.objectStoreNames.contains('frames')) {
+            const tx = db.transaction(['frames'], 'readwrite');
+            const store = tx.objectStore('frames');
+            store.clear();
+            tx.oncomplete = () => resolve(true);
+          } else {
+            resolve(true);
+          }
+        };
+        req.onerror = () => resolve(false);
+      });
+    });
+
+    // Wait for worker to be ready and initial filter to finish
+    await page.waitForFunction(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      return (
+        explore &&
+        explore._workerController &&
+        explore._workerController.isReady() &&
+        Object.keys(explore._optionsByKey).length > 0
       );
     });
 
@@ -110,11 +82,16 @@ describe('explore-multi-v2-sk', () => {
       exploreEl._viewportMaxX = null;
     });
 
-    // Simulate panning by calling _handleViewportChanged directly
+    // Mock fetch for /_/trace_values
     await page.evaluate(() => {
+      (window as any).fetchMock.post('/_/trace_values', 200);
+    });
+
+    // Simulate panning by calling _handleViewportChanged directly
+    await page.evaluate(async () => {
       const explore = document.querySelector('explore-multi-v2-sk') as any;
       if (explore) {
-        explore._handleViewportChanged({
+        await explore._doHandleViewportChanged({
           detail: { minCommit: 500, maxCommit: 1500 },
         });
       }
@@ -142,12 +119,11 @@ describe('explore-multi-v2-sk', () => {
   it('should update suggestion counts when typing', async () => {
     const page = testBed.page;
 
-    // Set availableParams on query-bar-sk
-    await page.evaluate(() => {
-      const explore = document.querySelector('explore-multi-v2-sk') as any;
-      const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
-      queryBar.availableParams = [{ id: 1, key: 'test', value: 'Score', count: 0 }];
-      queryBar.query = {};
+    // Wait for availableParams to be populated from worker
+    await page.waitForFunction(() => {
+      const explore = document.querySelector('explore-multi-v2-sk');
+      const queryBar = explore?.shadowRoot?.querySelector('query-bar-sk') as any;
+      return queryBar && queryBar.availableParams.length > 0;
     });
 
     // Type in the query bar and trigger input event
@@ -155,20 +131,26 @@ describe('explore-multi-v2-sk', () => {
       const explore = document.querySelector('explore-multi-v2-sk') as any;
       const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
       const input = queryBar.shadowRoot.querySelector('md-outlined-text-field');
-      input.value = 'Sc';
+      input.value = 'An';
       input.dispatchEvent(new Event('input'));
       await queryBar.updateComplete;
     });
 
-    // Wait for the count to be updated to (42)
-    await poll(
-      async () => (await exploreMultiV2SkPO.getSuggestionCountText()) === '(42)',
-      'Suggestion count did not update to (42)'
+    // Wait for the count to be updated to (5) for Android
+    await page.waitForFunction(
+      () => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
+        const countEl = queryBar.shadowRoot.querySelector('.s-count.right');
+        const text = countEl ? countEl.textContent.trim() : 'null';
+        return text === '(5)';
+      },
+      { timeout: 10000 }
     );
 
     const countText = await exploreMultiV2SkPO.getSuggestionCountText();
 
-    expect(countText).to.equal('(42)');
+    expect(countText.trim()).to.equal('(5)');
   });
 
   it('should load worker and become ready', async () => {
@@ -180,13 +162,24 @@ describe('explore-multi-v2-sk', () => {
   it('should set diffBase when Diff button is clicked', async () => {
     const page = testBed.page;
 
-    // Set availableParams and query to make options appear
-    await page.evaluate(() => {
+    // Set availableParams and query on the parent to make options appear
+    await page.evaluate(async () => {
       const explore = document.querySelector('explore-multi-v2-sk') as any;
+      if (!explore) throw new Error('explore-multi-v2-sk not found');
+      await explore.updateComplete;
+
+      await customElements.whenDefined('query-bar-sk');
+
       const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
-      queryBar.availableParams = [{ key: 'test', value: 'Score', count: 1 }];
-      queryBar.optionsByKey = { test: [{ value: 'Score', count: 1 }] };
-      queryBar.query = { test: ['Score'] }; // So it appears as a pill
+      if (!queryBar) throw new Error('query-bar-sk not found');
+
+      explore._queries = [{ test: ['Score'] }];
+      explore._availableParams = [{ key: 'test', value: 'Score', count: 1 }];
+      explore._optionsByKey = { test: [{ value: 'Score', count: 1 }] };
+      explore._optionsByKeyPerQuery = [{ test: [{ value: 'Score', count: 1 }] }];
+      explore.requestUpdate();
+      await explore.updateComplete;
+      await queryBar.updateComplete;
     });
 
     await exploreMultiV2SkPO.clickDiffButtonOnFirstQueryBarPill();
@@ -201,13 +194,22 @@ describe('explore-multi-v2-sk', () => {
     const page = testBed.page;
 
     // Set diffBase directly
-    await page.evaluate(() => {
+    await page.evaluate(async () => {
       const explore = document.querySelector('explore-multi-v2-sk') as any;
       explore._diffBase = { key: 'test', value: 'Score' };
       explore.requestUpdate();
+      await explore.updateComplete;
     });
 
-    exploreMultiV2SkPO.waitForDiffBaseChip();
+    await page.waitForFunction(
+      () => {
+        const explore = document.querySelector('explore-multi-v2-sk');
+        const chip = explore?.shadowRoot?.querySelector('.config-pill.diff-base');
+        const text = chip?.textContent || '';
+        return text.includes('Diff Base:');
+      },
+      { timeout: 10000 }
+    );
 
     const chipText = await page.evaluate(() => {
       const explore = document.querySelector('explore-multi-v2-sk');
@@ -278,7 +280,6 @@ describe('explore-multi-v2-sk', () => {
 
     expect(query).to.deep.equal({ test: ['A'], stat: ['value'] });
   });
-
   it('should update URL with default begin and end on load if not present', async () => {
     const page = testBed.page;
 
@@ -324,18 +325,35 @@ describe('explore-multi-v2-sk', () => {
   it('should update URL begin and end when viewport is changed in Date Mode', async () => {
     const page = testBed.page;
 
+    // Wait for worker to be ready and initial filter to finish
+    await page.waitForFunction(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      return (
+        explore &&
+        explore._workerController &&
+        explore._workerController.isReady() &&
+        Object.keys(explore._optionsByKey).length > 0
+      );
+    });
+
     // Mock /_/trace_values and toggle Date Mode with viewport change
     await page.evaluate(() => {
       (window as any).fetchMock.post(
         '/_/trace_values',
-        { results: { 'test-trace': [{ x: 1700000000, y: 10 }] } },
+        {
+          results: { ',arch=arm,config=8888,os=Android,project=Skia,': [{ x: 1700000000, y: 10 }] },
+        },
         { overwriteRoutes: true }
       );
       const explore = document.querySelector('explore-multi-v2-sk') as any;
-      explore._matchingTraceIds = ['test-trace'];
+      explore._matchingTraceIds = [',arch=arm,config=8888,os=Android,project=Skia,'];
       explore._pageSize = 10;
       explore._tracePage = 0;
       explore._dateMode = true;
+      explore._loadedBounds = {};
+      explore._globalBounds = {};
+      explore._viewportMinX = null;
+      explore._viewportMaxX = null;
       explore._handleViewportChanged({
         detail: { minCommit: 1700000000, maxCommit: 1700086400 },
       });
@@ -359,21 +377,36 @@ describe('explore-multi-v2-sk', () => {
   it('should translate commit numbers to timestamps in Commit Mode panning', async () => {
     const page = testBed.page;
 
+    // Wait for worker to be ready and initial filter to finish
+    await page.waitForFunction(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      return (
+        explore &&
+        explore._workerController &&
+        explore._workerController.isReady() &&
+        Object.keys(explore._optionsByKey).length > 0
+      );
+    });
+
     // Mock /_/trace_values, set mock series data, disable Date Mode, and trigger viewport change
     await page.evaluate(() => {
       (window as any).fetchMock.post(
         '/_/trace_values',
-        { results: { 'test-trace': [{ x: 100, y: 10 }] } },
+        { results: { ',arch=arm,config=8888,os=Android,project=Skia,': [{ x: 100, y: 10 }] } },
         { overwriteRoutes: true }
       );
       const explore = document.querySelector('explore-multi-v2-sk') as any;
-      explore._matchingTraceIds = ['test-trace'];
+      explore._matchingTraceIds = [',arch=arm,config=8888,os=Android,project=Skia,'];
       explore._pageSize = 10;
       explore._tracePage = 0;
       explore._dateMode = false;
+      explore._loadedBounds = {};
+      explore._globalBounds = {};
+      explore._viewportMinX = null;
+      explore._viewportMaxX = null;
       explore._seriesData = [
         {
-          id: 'test-trace',
+          id: 'dummy-id-for-translation',
           rows: [
             { commit_number: 100, createdat: 1710000000 },
             { commit_number: 200, createdat: 1720000000 },
@@ -422,5 +455,305 @@ describe('explore-multi-v2-sk', () => {
     expect(url.searchParams.get('end')).to.satisfy(
       (val: string | null) => val === null || val === '-1'
     );
+  });
+
+  it('should display tooltip when searching and hovering', async function () {
+    this.timeout(60000);
+    const page = testBed.page;
+
+    // Wait for worker to be ready and initial filter to finish
+    await page.waitForFunction(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      return (
+        explore &&
+        explore._workerController &&
+        explore._workerController.isReady() &&
+        Object.keys(explore._optionsByKey).length > 0
+      );
+    });
+
+    await page.setViewport({ width: 1200, height: 1000 });
+
+    // Mock network requests using Puppeteer's request interception
+    await page.setRequestInterception(true);
+    const requestHandler = (request: any) => {
+      (async () => {
+        const url = request.url();
+        if (url.endsWith('/_/frame/start')) {
+          await request.respond({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              dataframe: {
+                traceset: {
+                  ',arch=arm,config=8888,os=Ubuntu,project=Skia,': [10, 20, 30, 40, 50],
+                },
+                header: [
+                  {
+                    offset: 100,
+                    timestamp: 1234567890,
+                    hash: 'abc100',
+                    author: 'alice',
+                    message: 'commit 100',
+                    url: 'http://git',
+                  },
+                  {
+                    offset: 101,
+                    timestamp: 1234567891,
+                    hash: 'abc101',
+                    author: 'bob',
+                    message: 'commit 101',
+                    url: 'http://git',
+                  },
+                  {
+                    offset: 102,
+                    timestamp: 1234567892,
+                    hash: 'abc102',
+                    author: 'charlie',
+                    message: 'commit 102',
+                    url: 'http://git',
+                  },
+                  {
+                    offset: 103,
+                    timestamp: 1234567893,
+                    hash: 'abc103',
+                    author: 'david',
+                    message: 'commit 103',
+                    url: 'http://git',
+                  },
+                  {
+                    offset: 104,
+                    timestamp: 1234567894,
+                    hash: 'abc104',
+                    author: 'eve',
+                    message: 'commit 104',
+                    url: 'http://git',
+                  },
+                ],
+                paramset: { arch: ['arm'], config: ['8888'], os: ['Ubuntu'], project: ['Skia'] },
+                skip: 0,
+              },
+              msg: '',
+              display_mode: 'display_plot',
+              anomalymap: {},
+            }),
+          });
+        } else if (url.endsWith('/_/links_batch')) {
+          await request.respond({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({}),
+          });
+        } else if (url.endsWith('/_/login/status')) {
+          await request.respond({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ email: 'test@google.com' }),
+          });
+        } else {
+          await request.continue();
+        }
+      })().catch(console.error);
+    };
+    page.on('request', requestHandler);
+
+    const recorder = new ScreencastRecorder('explore_multi_v2_tooltip');
+    await recorder.start(page);
+
+    try {
+      // Inject styles to fix white-on-white visibility issue in test environment
+      await page.evaluate(() => {
+        const style = document.createElement('style');
+        style.textContent = `
+          :root {
+            --md-sys-color-surface: #3c4043 !important;
+            --on-surface: white !important;
+          }
+          .query-bar-container {
+            background-color: #3c4043 !important;
+            color: white !important;
+          }
+        `;
+        document.head.appendChild(style);
+      });
+
+      // Set query directly to trigger search
+      await page.evaluate(() => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        explore._queries = [{ arch: ['arm'] }];
+        explore._fetchData();
+      });
+
+      // Take a screenshot after setting query
+      let screenshotBuffer = await page.screenshot();
+      console.log('SCREENSHOT_AFTER_SET_QUERY_BASE64:', screenshotBuffer.toString('base64'));
+
+      // Wait for trace-chart-sk to be rendered and filled with data
+      await page.waitForFunction(
+        () => {
+          const explore = document.querySelector('explore-multi-v2-sk');
+          const chart = explore?.shadowRoot?.querySelector('trace-chart-sk') as any;
+          return (
+            chart !== null &&
+            chart._processedSeries &&
+            chart._processedSeries.length > 0 &&
+            chart._processedSeries[0].rows &&
+            chart._processedSeries[0].rows.length > 0
+          );
+        },
+        { timeout: 60000 }
+      );
+
+      // Set regressions AFTER chart is rendered to avoid being cleared by _fetchData
+      await page.evaluate(() => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        const chart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+        const series = chart._processedSeries[0];
+        const row = series.rows[0];
+        explore._regressions = {
+          [series.id]: {
+            [row.commit_number]: {
+              id: 'test-anomaly-id',
+              bugs: [],
+              is_improvement: false,
+              commit_number: row.commit_number,
+              median_after: 20.0,
+              median_before: 10.0,
+            },
+          },
+        };
+        explore._showRegressions = true;
+        explore.requestUpdate();
+      });
+
+      // Take a screenshot after chart rendered and regressions set
+      screenshotBuffer = await page.screenshot();
+      console.log('SCREENSHOT_AFTER_CHART_RENDERED_BASE64:', screenshotBuffer.toString('base64'));
+
+      // Mock hovered point to trigger tooltip
+      const tooltipFound = await page.evaluate(() => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        const chart = explore?.shadowRoot?.querySelector('trace-chart-sk') as any;
+        if (chart && chart._processedSeries && chart._processedSeries.length > 0) {
+          const series = chart._processedSeries[0];
+          const row = series.rows[0];
+          if (row) {
+            chart._hoveredPoint = { series: series, row: row, x: 500, y: 200 };
+            chart.requestUpdate();
+            return true;
+          }
+        }
+        return false;
+      });
+
+      expect(tooltipFound).to.be.true;
+
+      // Verify Bisect button is present
+      const hasBisectBtn = await page.evaluate(async () => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        await explore.updateComplete;
+        const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+        await traceChart.updateComplete;
+        const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk');
+        const bisectBtn = tooltip ? tooltip.shadowRoot.querySelector('#bisect') : null;
+        return bisectBtn !== null;
+      });
+      expect(hasBisectBtn).to.be.true;
+
+      // Verify triage-menu-sk is present
+      const hasTriageMenu = await page.evaluate(async () => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        await explore.updateComplete;
+        const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+        await traceChart.updateComplete;
+        const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk');
+        const triageMenu = tooltip
+          ? tooltip.shadowRoot.querySelector('#tooltip-triage-menu')
+          : null;
+        return triageMenu !== null;
+      });
+      expect(hasTriageMenu).to.be.true;
+
+      const hasNewBugBtn = await page.evaluate(async () => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        await explore.updateComplete;
+        const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+        await traceChart.updateComplete;
+        const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk');
+        const triageMenu = tooltip
+          ? (tooltip.shadowRoot.querySelector('#tooltip-triage-menu') as any)
+          : null;
+        if (!triageMenu) {
+          return false;
+        }
+        await triageMenu.updateComplete;
+        const buttons = triageMenu.getElementsByTagName('button');
+        let found = false;
+        for (let i = 0; i < buttons.length; i++) {
+          if (buttons[i].id === 'new-bug') {
+            found = true;
+            break;
+          }
+        }
+        return found;
+      });
+      expect(hasNewBugBtn).to.be.true;
+
+      // Verify Commit Range link is present
+      const hasCommitRangeLink = await page.evaluate(async () => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        await explore.updateComplete;
+        const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+        await traceChart.updateComplete;
+        const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk');
+        const link = tooltip
+          ? tooltip.shadowRoot.querySelector('#tooltip-commit-range-link')
+          : null;
+        return link !== null;
+      });
+      expect(hasCommitRangeLink).to.be.true;
+
+      // Take a screenshot of the tooltip
+      const screenshot = await page.screenshot();
+      console.log('SCREENSHOT_TOOLTIP_BASE64:', screenshot.toString('base64'));
+
+      // Click Bisect button
+      await page.evaluate(() => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+        const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk');
+        const bisectBtn = tooltip ? (tooltip.shadowRoot.querySelector('#bisect') as any) : null;
+        if (bisectBtn) {
+          bisectBtn.click();
+        }
+      });
+
+      // Wait for Bisect dialog to be visible
+      await page.waitForFunction(
+        () => {
+          const explore = document.querySelector('explore-multi-v2-sk') as any;
+          if (!explore) return false;
+          const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+          if (!traceChart) return false;
+          const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk') as any;
+          if (!tooltip) return false;
+          const bisectDialogSk = tooltip.shadowRoot.querySelector('#bisect-dialog-sk') as any;
+          if (!bisectDialogSk) return false;
+          const dialog = bisectDialogSk.querySelector('#bisect-dialog');
+          if (!dialog) return false;
+          const dialogRect = dialog.getBoundingClientRect();
+          return dialogRect.width > 0 && dialogRect.height > 0;
+        },
+        { timeout: 5000 }
+      );
+
+      // Take a screenshot of the dialog
+      const screenshotDialog = await page.screenshot();
+      console.log('SCREENSHOT_DIALOG_BASE64:', screenshotDialog.toString('base64'));
+    } finally {
+      await recorder.stop();
+      page.off('request', requestHandler);
+      await page.setRequestInterception(false);
+    }
   });
 });

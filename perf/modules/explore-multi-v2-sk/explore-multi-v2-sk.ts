@@ -2,7 +2,9 @@ import { LitElement, css, html, PropertyValues } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { DataService, TraceValuesRequest, TraceValuesResponse } from '../data-service';
 import { FrameRequest, Regression } from '../json';
-import { TraceSeries } from './trace-chart-sk';
+import { TraceSeries } from './trace-types';
+import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
+import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { computeTraceDiffs, computeSplitGroups, calculateLoadedBounds } from './chart-logic';
 import { calculateFetchRequests } from './fetch-logic';
 import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
@@ -146,6 +148,8 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _end: number = -1;
 
+  @state() private _user = '';
+
   private _workerController: ExploreWorkerController | null = null;
 
   private _latestActiveFacets: string[] = [];
@@ -162,6 +166,12 @@ export class ExploreMultiV2Sk extends LitElement {
     super.connectedCallback();
 
     telemetry.increaseCounter(CountMetric.ExploreMultiV2Visit);
+
+    LoggedIn()
+      .then((status: LoginStatus) => {
+        this._user = status.email;
+      })
+      .catch((e) => console.error('Failed to check login status', e));
 
     const db = new TraceDatabase();
     db.evictOlderThan(30).catch((e: any) => console.error('Eviction failed:', e));
@@ -626,8 +636,12 @@ export class ExploreMultiV2Sk extends LitElement {
         (defaults.default_param_selections as Record<string, string[]>) || {};
       this._conditionalDefaults = defaults.conditional_defaults || [];
 
-      // Apply defaults to initial query if empty
-      if (this._queries.length === 1 && Object.keys(this._queries[0]).length === 0) {
+      // Apply defaults to initial query if empty and no shortcut is present
+      if (
+        this._queries.length === 1 &&
+        Object.keys(this._queries[0]).length === 0 &&
+        !this._shortcut
+      ) {
         this._queries = [{ ...this._defaultParamSelections }];
       }
 
@@ -923,10 +937,14 @@ export class ExploreMultiV2Sk extends LitElement {
             }
             for (const [commit, anomaly] of Object.entries(commitMap)) {
               nextRegressions[primaryKey][Number(commit)] = {
+                ...anomaly,
                 is_improvement: anomaly.is_improvement,
                 bug_id: anomaly.bug_id,
                 recovered: anomaly.recovered,
                 status: anomaly.state,
+                median_before: anomaly.median_before_anomaly,
+                median_after: anomaly.median_after_anomaly,
+                test_path: anomaly.test_path || (anomaly as any).TestPath,
               } as any;
             }
           }
@@ -965,10 +983,14 @@ export class ExploreMultiV2Sk extends LitElement {
           }
           for (const [commit, anomaly] of Object.entries(commitMap)) {
             nextRegressions[primaryKey][Number(commit)] = {
+              ...anomaly,
               is_improvement: anomaly.is_improvement,
               bug_id: anomaly.bug_id,
               recovered: anomaly.recovered,
               status: anomaly.state,
+              median_before: anomaly.median_before_anomaly,
+              median_after: anomaly.median_after_anomaly,
+              test_path: anomaly.test_path || (anomaly as any).TestPath,
             } as any;
           }
         }
@@ -1217,10 +1239,14 @@ export class ExploreMultiV2Sk extends LitElement {
             }
             for (const [commit, anomaly] of Object.entries(commitMap)) {
               nextRegressions[primaryKey][Number(commit)] = {
+                ...anomaly,
                 is_improvement: anomaly.is_improvement,
                 bug_id: anomaly.bug_id,
                 recovered: anomaly.recovered,
                 status: anomaly.state,
+                median_before: anomaly.median_before_anomaly,
+                median_after: anomaly.median_after_anomaly,
+                test_path: anomaly.test_path || (anomaly as any).TestPath,
               } as any;
             }
           }
@@ -1247,6 +1273,11 @@ export class ExploreMultiV2Sk extends LitElement {
               s = { id: primaryKey, rows: [], color: '', allStats: {} };
               convertedSeries.push(s);
             }
+            const defaultStats = this._defaultParamSelections['stat'] || [];
+            const isDefaultStat = (stat && defaultStats.includes(stat)) || !stat;
+            if (!s.originalId && isDefaultStat) {
+              s.originalId = id;
+            }
 
             const mappedRows = rows.map((r) => ({
               commit_number: r.commit_number,
@@ -1255,7 +1286,7 @@ export class ExploreMultiV2Sk extends LitElement {
               smoothedVal: r.val,
             }));
 
-            if (!stat || stat === 'value' || stat === 'median') {
+            if (isDefaultStat) {
               s.rows = mappedRows;
             }
 
@@ -1356,6 +1387,9 @@ export class ExploreMultiV2Sk extends LitElement {
     olderSeries.forEach((os) => {
       const existing = map.get(os.id);
       if (existing) {
+        if (os.originalId) {
+          existing.originalId = os.originalId;
+        }
         // Merge rows
         const allRows = [...existing.rows, ...os.rows];
         const unique = new Map<number, any>();
@@ -1410,6 +1444,8 @@ export class ExploreMultiV2Sk extends LitElement {
             createdat: header.timestamp,
             hash: header.hash,
             url: header.url,
+            author: header.author,
+            message: header.message,
           });
         }
       });
@@ -1434,11 +1470,15 @@ export class ExploreMultiV2Sk extends LitElement {
           color: '', // Will assign color later
           rows: [],
           allStats: {},
+          originalId: key,
         };
         seriesMap.set(primaryKey, s);
       }
 
-      if (!stat || stat === 'value' || stat === 'median') {
+      const defaultStats = this._defaultParamSelections['stat'] || [];
+      const isDefaultStat = (stat && defaultStats.includes(stat)) || !stat;
+      if (isDefaultStat) {
+        s.originalId = key;
         s.rows = rows;
       }
 
@@ -1496,6 +1536,9 @@ export class ExploreMultiV2Sk extends LitElement {
     newSeries.forEach((s) => {
       const existingSeries = existingMap.get(s.id);
       if (existingSeries) {
+        if (s.originalId) {
+          existingSeries.originalId = s.originalId;
+        }
         if (s.rows && s.rows.length > 0) {
           existingSeries.rows = s.rows;
         }
@@ -1634,12 +1677,35 @@ export class ExploreMultiV2Sk extends LitElement {
 
     const startIdx = this._tracePage * this._pageSize;
     const endIdx = startIdx + this._pageSize;
-    const currentVisibleIds = new Set(this._matchingTraceIds.slice(startIdx, endIdx));
+    const currentVisibleIds = new Set(
+      this._matchingTraceIds.slice(startIdx, endIdx).map((id) => this._getPrimaryKey(id))
+    );
 
     const visibleSeries = this._seriesData.filter((s) => currentVisibleIds.has(s.id));
     if (visibleSeries.length === 0) return;
 
-    const traceIds = visibleSeries.map((s) => s.id);
+    const traceIdToOriginalId = new Map<string, string>();
+    const traceIds = visibleSeries.map((s) => {
+      let tId = s.id;
+      if (s.originalId) {
+        tId = s.originalId;
+      } else {
+        const params = this._parseTraceKey(s.id);
+        if (Object.keys(params).length > 0) {
+          const defaultStats = this._defaultParamSelections['stat'] || [];
+          if (defaultStats.length > 0) {
+            params['stat'] = defaultStats[0];
+          }
+          try {
+            tId = makeKey(params);
+          } catch (e) {
+            console.error('makeKey failed in _fetchMetadataForVisibleTraces', e);
+          }
+        }
+      }
+      traceIdToOriginalId.set(s.id, tId);
+      return tId;
+    });
     const commitNumbersSet = new Set<number>();
 
     visibleSeries.forEach((s) => {
@@ -1682,9 +1748,28 @@ export class ExploreMultiV2Sk extends LitElement {
         if (currentVisibleIds.has(s.id)) {
           const nextRows = [...s.rows];
           let rowChanged = false;
+          const requestedId = traceIdToOriginalId.get(s.id) || s.id;
           nextRows.forEach((r, rowIdx) => {
             if (commitNumbersSet.has(r.commit_number) && r.metadata === undefined) {
-              const commitMetadata = metadataResp?.[r.commit_number.toString()]?.[s.id] || null;
+              const commitMetadataMap = metadataResp?.[r.commit_number.toString()] || {};
+              let commitMetadata: any = null;
+              for (const [respTraceId, links] of Object.entries(commitMetadataMap)) {
+                if (
+                  this._getPrimaryKey(respTraceId) === this._getPrimaryKey(requestedId) ||
+                  this._getPrimaryKey(respTraceId) === this._getPrimaryKey(s.id) ||
+                  this._getPrimaryKey(respTraceId) === this._getPrimaryKey(s.originalId || '')
+                ) {
+                  commitMetadata = links;
+                  break;
+                }
+              }
+              if (!commitMetadata) {
+                commitMetadata =
+                  commitMetadataMap[requestedId] ||
+                  commitMetadataMap[s.id] ||
+                  commitMetadataMap[s.originalId || ''] ||
+                  null;
+              }
               nextRows[rowIdx] = { ...r, metadata: commitMetadata };
               rowChanged = true;
               updatedCount++;
@@ -1935,6 +2020,7 @@ export class ExploreMultiV2Sk extends LitElement {
                 .tooltipDiffs=${this._tooltipDiffs}
                 .selectedSubrepo=${this._selectedSubrepo}
                 .activeSplitKeys=${Array.from(this._splitKeys)}
+                .user_id=${this._user}
                 .yAxisLabel=${this._determineYAxisTitle(g.series.map((s) => s.id))}
                 @viewport-changed=${this._handleViewportChanged}
                 @range-selected=${this._handleRangeSelected}

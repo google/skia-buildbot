@@ -10,6 +10,7 @@ load(
 
 sk_element(
     name = "explore-multi-v2-sk",
+    sk_element_deps = ["//infra-sk/modules/alogin-sk"],
     ts_deps = [
         "//:node_modules/lit",
         ":query-bar-sk_ts_lib",
@@ -28,6 +29,8 @@ sk_element(
         ":explore-worker-controller_ts_lib",
         "//perf/modules/telemetry:telemetry_ts_lib",
         "//perf/modules/telemetry:types_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
+        ":trace-types_ts_lib",
     ],
     ts_srcs = [
         "explore-multi-v2-sk.ts",
@@ -104,12 +107,35 @@ ts_library(
 )
 
 ts_library(
+    name = "trace-chart-tooltip-sk_ts_lib",
+    srcs = ["trace-chart-tooltip-sk.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":trace-types_ts_lib",
+        "//:node_modules/lit",
+        "//perf/modules/bisect-dialog-sk",
+        "//perf/modules/cid:cid_ts_lib",
+        "//perf/modules/commit-range-sk",
+        "//perf/modules/common:anomaly-data_ts_lib",
+        "//perf/modules/common:anomaly_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/json-source-sk",
+        "//perf/modules/paramtools:index_ts_lib",
+        "//perf/modules/pinpoint-try-job-dialog-sk",
+        "//perf/modules/point-links-sk",
+        "//perf/modules/triage-menu-sk",
+        "//perf/modules/user-issue-sk",
+    ],
+)
+
+ts_library(
     name = "trace-chart-sk_ts_lib",
     srcs = ["trace-chart-sk.ts"],
     visibility = ["//visibility:public"],
     deps = [
         ":chart-logic_ts_lib",
         ":smoothing_ts_lib",
+        ":trace-chart-tooltip-sk_ts_lib",
         "//:node_modules/lit",
         "//perf/modules/common:commit_ts_lib",
         "//perf/modules/json:index_ts_lib",
@@ -153,6 +179,16 @@ karma_test(
     src = "trace-chart-sk_test.ts",
     deps = [
         ":trace-chart-sk_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+    ],
+)
+
+karma_test(
+    name = "trace-chart-tooltip-sk_test",
+    src = "trace-chart-tooltip-sk_test.ts",
+    deps = [
+        ":trace-chart-tooltip-sk_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
     ],
@@ -210,6 +246,12 @@ ts_library(
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":explore-multi-v2-sk-demo",
+    static_assets = {
+        "/dist/explore-multi-v2-sk": [
+            "//perf/modules/explore-multi-v2-sk/worker:filter.worker_js_dev",
+            "//perf/modules/explore-multi-v2-sk/wasm:compile_wasm_filter",
+        ],
+    },
 )
 
 sk_page(
@@ -247,6 +289,7 @@ sk_element_puppeteer_test(
         "//:node_modules/chai",
         "//:node_modules/puppeteer",
         "//perf/modules/common:puppeteer-test-util_ts_lib",
+        "//puppeteer-tests:screencast_ts_lib",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

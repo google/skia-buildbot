@@ -5,6 +5,125 @@ import fetchMock from 'fetch-mock';
 
 setUpExploreDemoEnv();
 (window as any).fetchMock = fetchMock;
+fetchMock.config.fallbackToNetwork = true;
+(window as any).WORKER_URL = '/dist/explore-multi-v2-sk/filter.worker.bundle.js';
+
+const numTraces = 10;
+const numPoints = 100;
+const stride = 10;
+
+const params = [
+  { id: 1, key: 'os', value: 'Android' },
+  { id: 2, key: 'os', value: 'Ubuntu' },
+  { id: 3, key: 'arch', value: 'arm' },
+  { id: 4, key: 'arch', value: 'x86' },
+  { id: 5, key: 'config', value: '8888' },
+  { id: 6, key: 'config', value: 'gpu' },
+];
+
+const tracesBuffer = new Uint16Array(numTraces * stride);
+for (let i = 0; i < numTraces; i++) {
+  const offset = i * stride;
+  tracesBuffer[offset] = (i % 2) + 1; // os
+  tracesBuffer[offset + 1] = ((i >> 1) % 2) + 3; // arch
+  tracesBuffer[offset + 2] = ((i >> 2) % 2) + 5; // config
+}
+
+const header = [];
+for (let i = 0; i < numPoints; i++) {
+  header.push({
+    offset: 100 + i,
+    timestamp: 1687855198 + i,
+    hash: `abc${i}`,
+    author: 'a',
+    message: 'm',
+    url: 'u',
+  });
+}
+
+const traceset: Record<string, number[]> = {};
+for (let i = 0; i < numTraces; i++) {
+  const os = i % 2 === 0 ? 'Android' : 'Ubuntu';
+  const arch = (i >> 1) % 2 === 0 ? 'arm' : 'x86';
+  const config = (i >> 2) % 2 === 0 ? '8888' : 'gpu';
+  const key = `,arch=${arch},config=${config},os=${os},project=Skia,`;
+  traceset[key] = [];
+  for (let j = 0; j < numPoints; j++) {
+    traceset[key].push(10 + i + Math.sin(j / 10) * 2);
+  }
+}
+
+const anomalymap: Record<string, Record<string, any>> = {};
+const keys = Object.keys(traceset);
+
+const firstKey = keys[0];
+traceset[firstKey][50] = 30; // Regression
+anomalymap[firstKey] = {
+  '150': {
+    id: '123',
+    bug_id: 456,
+    is_improvement: false,
+    median_before_anomaly: 10.0,
+    median_after_anomaly: 30.0,
+  },
+};
+
+const secondKey = keys[1];
+traceset[secondKey][50] = 5; // Improvement
+anomalymap[secondKey] = {
+  '150': {
+    id: '124',
+    bug_id: 0,
+    is_improvement: true,
+    median_before_anomaly: 15.0,
+    median_after_anomaly: 5.0,
+  },
+};
+
+const thirdKey = keys[2];
+traceset[thirdKey][50] = 25; // Untriaged Regression
+anomalymap[thirdKey] = {
+  '150': {
+    id: '125',
+    bug_id: 0,
+    is_improvement: false,
+    median_before_anomaly: 15.0,
+    median_after_anomaly: 25.0,
+  },
+};
+
+fetchMock.get(
+  'glob:*/_/wasm/meta.json*',
+  { version: 'test-version', count: numTraces, stride: stride, commonParams: { project: 'Skia' } },
+  { overwriteRoutes: true }
+);
+fetchMock.get('glob:*/_/wasm/params.json*', params, { overwriteRoutes: true });
+fetchMock.get('glob:*/_/wasm/traces.bin*', new Response(tracesBuffer.buffer), {
+  overwriteRoutes: true,
+});
+
+fetchMock.post(
+  '/_/frame/start',
+  {
+    status: 'Finished',
+    results: {
+      dataframe: {
+        traceset: traceset,
+        header: header,
+        paramset: {
+          os: ['Android', 'Ubuntu'],
+          arch: ['arm', 'x86'],
+          config: ['8888', 'gpu'],
+          project: ['Skia'],
+        },
+        skip: 0,
+        traceMetadata: null,
+      },
+      anomalymap: anomalymap,
+    },
+  },
+  { overwriteRoutes: true }
+);
 
 // Override defaults to enable test picker, which is required to attach the add-to-graph listener.
 fetchMock.get(

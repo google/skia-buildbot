@@ -10,6 +10,7 @@ import {
 import { smoothPoints } from './smoothing';
 import { Regression } from '../json';
 import { TrimHash } from '../common/commit';
+import './trace-chart-tooltip-sk';
 
 export interface TraceRow {
   commit_number: number;
@@ -125,6 +126,14 @@ export class TraceChartSk extends LitElement {
   private _sortedXValues: number[] = [];
 
   @property({ type: String }) selectedSubrepo: string = 'none';
+
+  @property({ type: String }) user_id = '';
+
+  @state() show_bisect_button = !!(window as any).perf?.show_bisect_btn;
+
+  @state() private _show_pinpoint_buttons = !!(window as any).perf?.show_bisect_btn;
+
+  @state() private _isMouseOverTooltip = false;
 
   @property({ type: Array, attribute: false }) activeSplitKeys: string[] = [];
 
@@ -1741,6 +1750,9 @@ export class TraceChartSk extends LitElement {
   }
 
   private _handlePointerLeave() {
+    if (this._isMouseOverTooltip) {
+      return;
+    }
     this._hoveredPoint = null;
     this._mousePos = null;
   }
@@ -1844,7 +1856,6 @@ export class TraceChartSk extends LitElement {
       justify-content: center;
       color: var(--on-surface, #64748b);
       font-size: 13px;
-      overflow: hidden;
     }
 
     .reset-zoom-btn {
@@ -1880,37 +1891,6 @@ export class TraceChartSk extends LitElement {
       display: block;
       width: 100%;
       height: 100%;
-    }
-
-    .hover-tooltip {
-      position: absolute;
-      background: rgba(15, 23, 42, 0.9);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
-      color: var(--on-background, #fff);
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 12px;
-      pointer-events: none;
-      z-index: 10;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-      max-width: 320px;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .tooltip-row {
-      margin-bottom: 4px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      display: flex;
-      gap: 8px;
-    }
-
-    .tooltip-row strong {
-      color: var(--on-surface, #94a3b8);
-      font-weight: 600;
-      min-width: 60px;
     }
 
     .footer {
@@ -2054,135 +2034,25 @@ export class TraceChartSk extends LitElement {
           : ''}
         ${this._hoveredPoint && !this._dragCtx.isDragging && !this._selectedRange
           ? html`
-              <div
-                class="hover-tooltip"
-                style="${this._hoveredPoint.y > this.canvasHeight / 2
-                  ? `bottom: ${this.canvasHeight - this._hoveredPoint.y + 10}px;`
-                  : `top: ${this._hoveredPoint.y + 10}px;`} ${this._canvasWidth > 0 &&
-                this._hoveredPoint.x > this._canvasWidth / 2
-                  ? `right: ${this._canvasWidth - this._hoveredPoint.x + 10}px;`
-                  : `left: ${this._hoveredPoint.x + 10}px;`}">
-                <div class="tooltip-row">
-                  <strong>Series:</strong>${this._diffNamesMap.get(this._hoveredPoint.series.id) ||
-                  this._hoveredPoint.series.id}
-                </div>
-                <div class="tooltip-row">
-                  <strong>${this.dateMode ? 'Date' : 'Offset'}:</strong>${this.dateMode
-                    ? this._formatDate(this._hoveredPoint.row.createdat)
-                    : this._hoveredPoint.row.commit_number}
-                </div>
-                <div class="tooltip-row">
-                  <strong>Value:</strong>${this._formatTooltipValue(this._hoveredPoint.row.val)}
-                </div>
-                ${this.tooltipDiffs && this._processedSeries.length > 1
-                  ? (() => {
-                      const targetX = this._xAccessor(this._hoveredPoint.row);
-                      return html`
-                        <div
-                          style="margin-bottom: 8px; font-size: 13px; border-top: 1px solid #eee; padding-top: 6px;">
-                          <div style="color: #666; margin-bottom: 4px; font-weight: 500;">
-                            Diff vs other traces:
-                          </div>
-                          ${this._processedSeries.map((s) => {
-                            if (s.id === this._hoveredPoint!.series.id) return '';
-
-                            let otherVal: number | null = null;
-                            let commitDistance = 0;
-
-                            let exactRow = null;
-                            let minDist = Infinity;
-                            for (const r of s.rows) {
-                              const dist = Math.abs(this._xAccessor(r) - targetX);
-                              if (dist < minDist) {
-                                minDist = dist;
-                                exactRow = r;
-                              } else if (this._xAccessor(r) > targetX) {
-                                break;
-                              }
-                            }
-                            if (exactRow) {
-                              otherVal = exactRow.val;
-                            } else {
-                              let closest: any = null;
-                              let minDiff = Infinity;
-                              for (const r of s.rows) {
-                                const diff = Math.abs(this._xAccessor(r) - targetX);
-                                if (diff < minDiff) {
-                                  minDiff = diff;
-                                  closest = r;
-                                }
-                              }
-                              if (closest) {
-                                otherVal = closest.val;
-                                commitDistance = minDiff;
-                              }
-                            }
-
-                            if (otherVal !== null && otherVal !== 0) {
-                              const myVal = this._hoveredPoint!.row.val;
-                              const diffY = myVal - otherVal;
-                              const pctY = (diffY / Math.abs(otherVal)) * 100;
-
-                              const color = diffY >= 0 ? '#4caf50' : '#e53935';
-
-                              return html`
-                                <div
-                                  style="display: flex; align-items: center; margin-bottom: 2px; justify-content: space-between;">
-                                  <div
-                                    style="display: flex; align-items: center; overflow: hidden; margin-right: 8px;">
-                                    <span
-                                      style="background-color: ${s.color}; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; flex-shrink: 0;"></span>
-                                    <span
-                                      style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                                      title="${this._diffNamesMap.get(s.id) || s.id}">
-                                      ${this._diffNamesMap.get(s.id) || s.id}
-                                    </span>
-                                  </div>
-                                  <div style="display: flex; align-items: center;">
-                                    <span
-                                      style="color: ${color}; font-weight: 500; flex-shrink: 0;">
-                                      ${diffY > 0 ? '+' : ''}${pctY.toFixed(1)}%
-                                    </span>
-                                    ${commitDistance > 0
-                                      ? html`
-                                          <span
-                                            style="color: #999; font-size: 11px; margin-left: 6px; white-space: nowrap;"
-                                            title="${commitDistance} units away">
-                                            (±${commitDistance})
-                                          </span>
-                                        `
-                                      : ''}
-                                  </div>
-                                </div>
-                              `;
-                            }
-                            return '';
-                          })}
-                        </div>
-                      `;
-                    })()
-                  : ''}
-                ${this._hoveredPoint.row.url
-                  ? html`
-                      <div class="tooltip-row">
-                        <strong>Revision:</strong>
-                        <a
-                          href="${this._hoveredPoint.row.url}"
-                          target="_blank"
-                          style="color: #1a73e8;">
-                          ${this._hoveredPoint.row.hash
-                            ? TrimHash(this._hoveredPoint.row.hash)
-                            : 'Link'}
-                        </a>
-                      </div>
-                    `
-                  : ''}
-                ${this._hoveredPoint.row.metadata
-                  ? html`<div class="tooltip-row">
-                      <strong>Meta:</strong>${JSON.stringify(this._hoveredPoint.row.metadata)}
-                    </div>`
-                  : ''}
-              </div>
+              <trace-chart-tooltip-sk
+                .hoveredPoint=${this._hoveredPoint}
+                .dateMode=${this.dateMode}
+                .yAxisLabel=${this.yAxisLabel}
+                .regressions=${this.regressions}
+                .diffNamesMap=${this._diffNamesMap}
+                .tooltipDiffs=${this.tooltipDiffs}
+                .processedSeries=${this._processedSeries}
+                .showBisectButton=${this.show_bisect_button}
+                .showPinpointButtons=${this._show_pinpoint_buttons}
+                .canvasWidth=${this._canvasWidth}
+                .canvasHeight=${this.canvasHeight}
+                .user_id=${this.user_id}
+                @pointerenter=${() => {
+                  this._isMouseOverTooltip = true;
+                }}
+                @pointerleave=${() => {
+                  this._isMouseOverTooltip = false;
+                }}></trace-chart-tooltip-sk>
             `
           : ''}
       </div>
