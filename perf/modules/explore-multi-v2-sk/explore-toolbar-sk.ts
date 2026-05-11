@@ -21,11 +21,15 @@ export class ExploreToolbarSk extends LitElement {
 
   @property({ type: Boolean }) showSparklines = false;
 
-  @property({ type: Boolean }) showMinMax = true;
+  @property({ type: Array }) availableSplitKeys: string[] = [];
 
-  @property({ type: Boolean }) showStd = false;
+  @property({ type: Array }) activeSplitKeys: string[] = [];
 
-  @property({ type: Boolean }) showCount = false;
+  @property({ type: Array }) availableStats: string[] = [];
+
+  @property({ type: Array }) activeStats: string[] = [];
+
+  @property({ type: Number }) pageSize = 30;
 
   @property({ type: Boolean }) showRegressions = true;
 
@@ -280,6 +284,47 @@ export class ExploreToolbarSk extends LitElement {
             Show Loaded Bounds
           </label>
 
+          <details class="custom-select" style="position: relative;">
+            <summary style="cursor: pointer;">Y-axis Splitter</summary>
+            <div
+              style="position: absolute; background: var(--surface, #1e293b); border: 1px solid var(--outline, rgba(255, 255, 255, 0.1)); padding: 8px; border-radius: 4px; z-index: 10; display: flex; flex-direction: column; gap: 4px; min-width: 150px;">
+              ${this.availableSplitKeys.length === 0
+                ? html`<span style="color: var(--on-surface, #64748b);">No options</span>`
+                : this.availableSplitKeys.map(
+                    (key) => html`
+                      <label class="custom-checkbox">
+                        <input
+                          type="checkbox"
+                          .checked=${this.activeSplitKeys.includes(key)}
+                          @change=${() => {
+                            this.dispatchEvent(
+                              new CustomEvent('split', {
+                                detail: { key },
+                                bubbles: true,
+                                composed: true,
+                              })
+                            );
+                          }} />
+                        <span class="checkmark"></span>
+                        ${key}
+                      </label>
+                    `
+                  )}
+            </div>
+          </details>
+
+          <div class="toolbar-group">
+            <span class="label">Traces/Page:</span>
+            <input
+              class="custom-select"
+              type="number"
+              min="1"
+              max="500"
+              .value=${this.pageSize.toString()}
+              @change=${(e: any) => this._emitChange('pageSize', parseInt(e.target.value, 10))}
+              style="width: 50px;" />
+          </div>
+
           <!-- Pagination -->
           <div class="toolbar-group" style="margin-left: auto;">
             <button
@@ -336,32 +381,23 @@ export class ExploreToolbarSk extends LitElement {
             Sparklines
           </label>
 
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.showMinMax}
-              @change=${(e: any) => this._emitChange('showMinMax', e.target.checked)} />
-            <span class="checkmark"></span>
-            Show Min/Max
-          </label>
-
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.showStd}
-              @change=${(e: any) => this._emitChange('showStd', e.target.checked)} />
-            <span class="checkmark"></span>
-            Show Std
-          </label>
-
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.showCount}
-              @change=${(e: any) => this._emitChange('showCount', e.target.checked)} />
-            <span class="checkmark"></span>
-            Show Count
-          </label>
+          ${this.availableStats.map(
+            (stat) => html`
+              <label class="custom-checkbox">
+                <input
+                  type="checkbox"
+                  .checked=${this.activeStats.includes(stat)}
+                  @change=${(e: any) => {
+                    const newActiveStats = e.target.checked
+                      ? [...this.activeStats, stat]
+                      : this.activeStats.filter((s) => s !== stat);
+                    this._emitChange('activeStats', newActiveStats);
+                  }} />
+                <span class="checkmark"></span>
+                Show ${stat}
+              </label>
+            `
+          )}
 
           <label class="custom-checkbox">
             <input
@@ -402,7 +438,7 @@ export class ExploreToolbarSk extends LitElement {
                     class="custom-slider"
                     type="range"
                     min="1"
-                    max="50"
+                    max="100"
                     .value=${this.smoothingRadius.toString()}
                     @input=${(e: any) =>
                       this._emitChange('smoothingRadius', parseInt(e.target.value, 10))} />

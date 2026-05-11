@@ -297,15 +297,13 @@ export function computeTraceDiffs(
   return diffs;
 }
 
-const IMPLICIT_SPLIT_KEYS = ['unit', 'improvement_direction'];
-
 export function computeSplitGroups(
   series: { id: string; rows: any[] }[],
   splitKeys: Set<string>
 ): { id: string; title: string; series: { id: string; rows: any[] }[] }[] {
   if (series.length === 0) return [];
 
-  const effectiveKeys = Array.from(new Set([...splitKeys, ...IMPLICIT_SPLIT_KEYS]));
+  const effectiveKeys = Array.from(splitKeys);
 
   const groups: Record<string, { id: string; rows: any[] }[]> = {};
   const keyValues: Record<string, Set<string>> = {};

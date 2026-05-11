@@ -179,7 +179,7 @@ describe('trace-chart-sk', () => {
   });
 
   it('synthesizes stdMin and stdMax when showStd is enabled', async () => {
-    element.showStd = true;
+    element.activeStats = new Set(['std']);
     element.series = [
       {
         id: 'test',
@@ -203,7 +203,7 @@ describe('trace-chart-sk', () => {
   });
 
   it('calculates countMaxY when showCount is enabled', async () => {
-    element.showCount = true;
+    element.activeStats = new Set(['count']);
     (element as any)['_processedSeries'] = [
       {
         id: 'test',
@@ -231,7 +231,7 @@ describe('trace-chart-sk', () => {
     };
 
     try {
-      element.showStd = true;
+      element.activeStats = new Set(['std']);
       await element.updateComplete;
       expect(redrawCalled).to.be.true;
     } finally {

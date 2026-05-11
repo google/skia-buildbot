@@ -5,6 +5,7 @@ import {
   calculateLoadedBounds,
   computeLeftPadding,
   calculateSharedBounds,
+  computeSplitGroups,
 } from './chart-logic';
 
 describe('calculateLoadedBounds', () => {
@@ -88,5 +89,17 @@ describe('calculateSharedBounds', () => {
     expect(bounds).to.deep.equal({
       chrome: { min: 10, max: 40 },
     });
+  });
+});
+
+describe('computeSplitGroups', () => {
+  it('should not split by unit by default if not in splitKeys', () => {
+    const series = [
+      { id: 'benchmark=A,unit=ms', rows: [] },
+      { id: 'benchmark=A,unit=s', rows: [] },
+    ];
+    const groups = computeSplitGroups(series as any, new Set());
+    expect(groups.length).to.equal(1);
+    expect(groups[0].title).to.equal('benchmark=A');
   });
 });

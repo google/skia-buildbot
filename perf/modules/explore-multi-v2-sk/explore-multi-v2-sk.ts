@@ -119,11 +119,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _evenXAxisSpacing = false;
 
-  @state() private _showMinMax = true;
-
-  @state() private _showStd = false;
-
-  @state() private _showCount = false;
+  @state() private _activeStats: string[] = ['min', 'max'];
 
   @state() private _tooltipDiffs = false;
 
@@ -182,13 +178,18 @@ export class ExploreMultiV2Sk extends LitElement {
           split: Array.from(this._splitKeys).join(','),
           diff_base: this._diffBase ? `${this._diffBase.key}=${this._diffBase.value}` : '',
           sparklines: this._showSparklines,
-          minmax: this._showMinMax,
-          std: this._showStd,
-          count: this._showCount,
+          activeStats: this._activeStats.join(','),
           regressions: this._showRegressions,
           tooltipDiffs: this._tooltipDiffs,
           loadedBounds: this._showLoadedBounds,
           evenXAxisSpacing: this._evenXAxisSpacing,
+          dateMode: this._dateMode,
+          page: this._tracePage,
+          pageSize: this._pageSize,
+          showAll: this._showAllTraces,
+          subrepo: this._selectedSubrepo,
+          edgeFactor: this._edgeDetectionFactor,
+          outlier: this._edgeLookahead,
           begin: this._begin,
           end: this._end,
         };
@@ -219,14 +220,43 @@ export class ExploreMultiV2Sk extends LitElement {
           this._diffBase = null;
         }
         if (stateObj.sparklines !== undefined) this._showSparklines = stateObj.sparklines;
-        if (stateObj.minmax !== undefined) this._showMinMax = stateObj.minmax;
-        if (stateObj.std !== undefined) this._showStd = stateObj.std;
-        if (stateObj.count !== undefined) this._showCount = stateObj.count;
+
+        const activeStats: string[] = [];
+        if (stateObj.activeStats !== undefined) {
+          activeStats.push(...(stateObj.activeStats ? stateObj.activeStats.split(',') : []));
+        } else if (
+          stateObj.minmax !== undefined ||
+          stateObj.std !== undefined ||
+          stateObj.count !== undefined
+        ) {
+          // Fallback for old URLs
+          if (stateObj.minmax) {
+            activeStats.push('min', 'max');
+          }
+          if (stateObj.std) {
+            activeStats.push('std');
+          }
+          if (stateObj.count) {
+            activeStats.push('count');
+          }
+        } else {
+          // No stat info in URL, use defaults!
+          activeStats.push('min', 'max');
+        }
+        this._activeStats = activeStats;
+
         if (stateObj.regressions !== undefined) this._showRegressions = stateObj.regressions;
         if (stateObj.tooltipDiffs !== undefined) this._tooltipDiffs = stateObj.tooltipDiffs;
         if (stateObj.loadedBounds !== undefined) this._showLoadedBounds = stateObj.loadedBounds;
         if (stateObj.evenXAxisSpacing !== undefined)
           this._evenXAxisSpacing = stateObj.evenXAxisSpacing;
+        if (stateObj.dateMode !== undefined) this._dateMode = stateObj.dateMode;
+        if (stateObj.page !== undefined) this._tracePage = stateObj.page;
+        if (stateObj.pageSize !== undefined) this._pageSize = stateObj.pageSize;
+        if (stateObj.showAll !== undefined) this._showAllTraces = stateObj.showAll;
+        if (stateObj.subrepo !== undefined) this._selectedSubrepo = stateObj.subrepo;
+        if (stateObj.edgeFactor !== undefined) this._edgeDetectionFactor = stateObj.edgeFactor;
+        if (stateObj.outlier !== undefined) this._edgeLookahead = stateObj.outlier;
         if (stateObj.begin !== undefined) this._begin = Number(stateObj.begin);
         if (stateObj.end !== undefined) this._end = Number(stateObj.end);
       },
@@ -632,19 +662,23 @@ export class ExploreMultiV2Sk extends LitElement {
       void this._updateShortcut();
     }
 
-    if (changedProperties.has('_tracePage') || changedProperties.has('_showAllTraces')) {
-      void this._fetchData();
-    }
-
     if (
-      changedProperties.has('_showMinMax') ||
-      changedProperties.has('_showStd') ||
-      changedProperties.has('_showCount')
+      changedProperties.has('_tracePage') ||
+      changedProperties.has('_pageSize') ||
+      changedProperties.has('_showAllTraces')
     ) {
       void this._fetchData();
     }
 
-    if (changedProperties.has('_seriesData') || changedProperties.has('_tracePage')) {
+    if (changedProperties.has('_activeStats')) {
+      void this._fetchData();
+    }
+
+    if (
+      changedProperties.has('_seriesData') ||
+      changedProperties.has('_tracePage') ||
+      changedProperties.has('_pageSize')
+    ) {
       void this._fetchMetadataForVisibleTraces();
     }
 
@@ -658,9 +692,14 @@ export class ExploreMultiV2Sk extends LitElement {
       changedProperties.has('_splitKeys') ||
       changedProperties.has('_diffBase') ||
       changedProperties.has('_showSparklines') ||
-      changedProperties.has('_showMinMax') ||
-      changedProperties.has('_showStd') ||
-      changedProperties.has('_showCount') ||
+      changedProperties.has('_activeStats') ||
+      changedProperties.has('_dateMode') ||
+      changedProperties.has('_tracePage') ||
+      changedProperties.has('_pageSize') ||
+      changedProperties.has('_showAllTraces') ||
+      changedProperties.has('_selectedSubrepo') ||
+      changedProperties.has('_edgeDetectionFactor') ||
+      changedProperties.has('_edgeLookahead') ||
       changedProperties.has('_showRegressions') ||
       changedProperties.has('_tooltipDiffs') ||
       changedProperties.has('_showLoadedBounds') ||
@@ -831,27 +870,19 @@ export class ExploreMultiV2Sk extends LitElement {
       const quantizedBegin = Math.floor(begin / 3600) * 3600;
 
       let reqTraceIds = [...visibleIds];
-      const addStatKeys = (statName: string) => {
+
+      // Auto-fetch traces for active stats
+      this._activeStats.forEach((stat) => {
         visibleIds.forEach((id) => {
           const params = this._parseTraceKey(id);
+          params['stat'] = stat;
           try {
-            reqTraceIds.push(makeKey({ ...params, stat: statName }));
+            reqTraceIds.push(makeKey(params));
           } catch (e) {
-            console.error(`Failed to make key for stat ${statName}`, e);
+            console.error('makeKey failed for stat in _fetchData', e);
           }
         });
-      };
-
-      if (this._showMinMax) {
-        addStatKeys('min');
-        addStatKeys('max');
-      }
-      if (this._showStd) {
-        addStatKeys('error');
-      }
-      if (this._showCount) {
-        addStatKeys('count');
-      }
+      });
 
       reqTraceIds = Array.from(new Set(reqTraceIds));
       console.log('[_fetchData] reqTraceIds:', reqTraceIds);
@@ -1113,27 +1144,18 @@ export class ExploreMultiV2Sk extends LitElement {
     const loadedIds = new Set(this._seriesData.map((s) => s.id));
 
     const allVisibleIds = [...visibleIds];
-    const addStatKeysToVisible = (statName: string) => {
+    // Auto-append stat keys dynamically
+    this._activeStats.forEach((stat) => {
       visibleIds.forEach((id) => {
         const params = this._parseTraceKey(id);
+        params['stat'] = stat;
         try {
-          allVisibleIds.push(makeKey({ ...params, stat: statName }));
+          allVisibleIds.push(makeKey(params));
         } catch (err) {
-          console.error(`Failed to make key for stat ${statName}`, err);
+          console.error(`Failed to make key for stat ${stat}`, err);
         }
       });
-    };
-
-    if (this._showMinMax) {
-      addStatKeysToVisible('min');
-      addStatKeysToVisible('max');
-    }
-    if (this._showStd) {
-      addStatKeysToVisible('error');
-    }
-    if (this._showCount) {
-      addStatKeysToVisible('count');
-    }
+    });
 
     const requests = calculateFetchRequests(
       Array.from(new Set(allVisibleIds)),
@@ -1708,6 +1730,26 @@ export class ExploreMultiV2Sk extends LitElement {
     }
   }
 
+  private get _availableStats(): string[] {
+    const stats = new Set<string>(['min', 'max', 'count']);
+    this._seriesData.forEach((s) => {
+      if (s.allStats) {
+        Object.keys(s.allStats).forEach((k) => stats.add(k));
+      }
+    });
+
+    // Remove default stats as they don't need toggles
+    const defaultStats = this._defaultParamSelections['stat'] || [];
+    defaultStats.forEach((v) => stats.delete(v));
+
+    return Array.from(stats);
+  }
+
+  private get _availableSplitKeys(): string[] {
+    const allKeys = Object.keys(this._optionsByKey);
+    return allKeys.filter((k) => !this._includeParams.includes(k));
+  }
+
   render() {
     const displaySeries = this._diffBase
       ? computeTraceDiffs(this._seriesData, this._diffBase)
@@ -1822,10 +1864,9 @@ export class ExploreMultiV2Sk extends LitElement {
           .smooth=${this._smooth}
           .showDots=${this._showDots}
           .showSparklines=${this._showSparklines}
-          .showMinMax=${this._showMinMax}
           .evenXAxisSpacing=${this._evenXAxisSpacing}
-          .showStd=${this._showStd}
-          .showCount=${this._showCount}
+          .availableStats=${this._availableStats}
+          .activeStats=${this._activeStats}
           .showRegressions=${this._showRegressions}
           .tooltipDiffs=${this._tooltipDiffs}
           .showLoadedBounds=${this._showLoadedBounds}
@@ -1834,7 +1875,11 @@ export class ExploreMultiV2Sk extends LitElement {
           .smoothingRadius=${this._smoothingRadius}
           .edgeDetectionFactor=${this._edgeDetectionFactor}
           .edgeLookahead=${this._edgeLookahead}
+          .availableSplitKeys=${this._availableSplitKeys}
+          .activeSplitKeys=${Array.from(this._splitKeys)}
+          .pageSize=${this._pageSize}
           @control-change=${this._handleControlChange}
+          @split=${this._handleSplit}
           @reset-zoom=${this._onResetZoom}></explore-toolbar-sk>
 
         <div class="section-title">Visualizations</div>
@@ -1866,10 +1911,8 @@ export class ExploreMultiV2Sk extends LitElement {
                 .edgeDetectionFactor=${this._edgeDetectionFactor}
                 .edgeLookahead=${this._edgeLookahead}
                 .showDots=${this._showDots}
-                .showVariance=${this._showMinMax}
                 .evenXAxisSpacing=${this._evenXAxisSpacing}
-                .showStd=${this._showStd}
-                .showCount=${this._showCount}
+                .activeStats=${new Set(this._activeStats)}
                 .viewportMinX=${this._viewportMinX}
                 .viewportMaxX=${this._viewportMaxX}
                 .globalHoverX=${this._globalHoverX}

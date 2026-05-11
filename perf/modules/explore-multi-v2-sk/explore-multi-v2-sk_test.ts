@@ -60,6 +60,27 @@ describe('explore-multi-v2-sk', () => {
     expect(checkboxes.length).to.be.greaterThan(0);
   });
 
+  it('renders dynamic checkboxes for available stats', async () => {
+    (element as any)._seriesData = [
+      {
+        id: 't1',
+        rows: [],
+        allStats: {
+          min: [{ commit_number: 10, val: 0.5 }],
+          max: [{ commit_number: 10, val: 1.5 }],
+        },
+      },
+    ];
+    await element.updateComplete;
+    const toolbar = element.shadowRoot!.querySelector('explore-toolbar-sk');
+    await (toolbar as any).updateComplete;
+    const labels = Array.from(toolbar!.shadowRoot!.querySelectorAll('.custom-checkbox')).map(
+      (l) => l.textContent?.trim()
+    );
+    expect(labels).to.include('Show min');
+    expect(labels).to.include('Show max');
+  });
+
   it('uses custom sliders for numeric inputs', async () => {
     element['_hoverMode'] = 'smoothed';
     await element.updateComplete;
@@ -99,24 +120,80 @@ describe('explore-multi-v2-sk', () => {
 
   it('syncs all toolbar checkboxes to URL', async () => {
     (element as any)._showSparklines = true;
-    (element as any)._showMinMax = false;
-    (element as any)._showStd = true;
-    (element as any)._showCount = true;
+    (element as any)._activeStats = ['std', 'count'];
     (element as any)._showRegressions = false;
     (element as any)._tooltipDiffs = true;
     (element as any)._showLoadedBounds = true;
+    (element as any)._dateMode = true;
+    (element as any)._tracePage = 3;
+    (element as any)._pageSize = 25;
+    (element as any)._showAllTraces = true;
+    (element as any)._selectedSubrepo = 'Skia';
+    (element as any)._edgeDetectionFactor = 0.75;
+    (element as any)._edgeLookahead = 4;
 
     (element as any)._stateHasChanged();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     const url = new URL(window.location.href);
     expect(url.searchParams.get('sparklines')).to.equal('true');
-    expect(url.searchParams.get('minmax')).to.equal('false');
-    expect(url.searchParams.get('std')).to.equal('true');
-    expect(url.searchParams.get('count')).to.equal('true');
+    expect(url.searchParams.get('activeStats')).to.equal('std,count');
     expect(url.searchParams.get('regressions')).to.equal('false');
     expect(url.searchParams.get('tooltipDiffs')).to.equal('true');
     expect(url.searchParams.get('loadedBounds')).to.equal('true');
+    expect(url.searchParams.get('dateMode')).to.equal('true');
+    expect(url.searchParams.get('page')).to.equal('3');
+    expect(url.searchParams.get('pageSize')).to.equal('25');
+    expect(url.searchParams.get('showAll')).to.equal('true');
+    expect(url.searchParams.get('subrepo')).to.equal('Skia');
+    expect(url.searchParams.get('edgeFactor')).to.equal('0.75');
+    expect(url.searchParams.get('outlier')).to.equal('4');
+  });
+
+  it('triggers state update on activeStats, dateMode, page, pageSize, showAll, subrepo, edgeFactor or outlier changes', async () => {
+    let stateChangedCalled = false;
+    (element as any)._stateHasChanged = () => {
+      stateChangedCalled = true;
+    };
+
+    element['_activeStats'] = ['std'];
+    await element.updateComplete;
+    expect(stateChangedCalled).to.be.true;
+
+    stateChangedCalled = false;
+    element['_dateMode'] = true;
+    await element.updateComplete;
+    expect(stateChangedCalled).to.be.true;
+
+    stateChangedCalled = false;
+    element['_tracePage'] = 2;
+    await element.updateComplete;
+    expect(stateChangedCalled).to.be.true;
+
+    stateChangedCalled = false;
+    element['_pageSize'] = 50;
+    await element.updateComplete;
+    expect(stateChangedCalled).to.be.true;
+
+    stateChangedCalled = false;
+    element['_showAllTraces'] = true;
+    await element.updateComplete;
+    expect(stateChangedCalled).to.be.true;
+
+    stateChangedCalled = false;
+    element['_selectedSubrepo'] = 'V8';
+    await element.updateComplete;
+    expect(stateChangedCalled).to.be.true;
+
+    stateChangedCalled = false;
+    element['_edgeDetectionFactor'] = 0.8;
+    await element.updateComplete;
+    expect(stateChangedCalled).to.be.true;
+
+    stateChangedCalled = false;
+    element['_edgeLookahead'] = 2;
+    await element.updateComplete;
+    expect(stateChangedCalled).to.be.true;
   });
 
   it('syncs begin and end to URL', async () => {
@@ -308,9 +385,7 @@ describe('explore-multi-v2-sk', () => {
       ];
       element['_loadedBounds'] = { t1: { min: 1000, max: 2000 } };
       element['_globalBounds'] = {}; // Empty global bounds
-      element['_showMinMax'] = false;
-      element['_showStd'] = false;
-      element['_showCount'] = false;
+      element['_activeStats'] = [];
 
       // Trigger viewport change that requires left fetch
       await element['_doHandleViewportChanged']({
@@ -517,9 +592,7 @@ describe('explore-multi-v2-sk', () => {
       element['_tracePage'] = 0;
       element['_pageSize'] = 10;
       element['_seriesData'] = [];
-      element['_showMinMax'] = false;
-      element['_showStd'] = false;
-      element['_showCount'] = false;
+      element['_activeStats'] = [];
 
       await element.updateComplete;
 
@@ -893,9 +966,7 @@ describe('explore-multi-v2-sk', () => {
       element['_seriesData'] = [{ id: ',benchmark=A,test=B,', rows: [], color: '#fff' }];
       element['_loadedBounds'] = { ',benchmark=A,test=B,': { min: 100, max: 200 } };
       element['_globalBounds'] = {};
-      element['_showMinMax'] = false;
-      element['_showStd'] = false;
-      element['_showCount'] = false;
+      element['_activeStats'] = [];
 
       await element['_doHandleViewportChanged']({
         detail: { minCommit: 50, maxCommit: 150 },
@@ -931,6 +1002,47 @@ describe('explore-multi-v2-sk', () => {
     const splitPill = Array.from(pills).find((p) => p.textContent?.includes('Split by:'));
     expect(splitPill).to.not.be.undefined;
     expect(splitPill!.textContent).to.include('bot');
+  });
+
+  it('adds and removes split keys when split event is fired', async () => {
+    expect(element['_splitKeys'].has('bot')).to.be.false;
+
+    const toolbar = element.shadowRoot!.querySelector('explore-toolbar-sk');
+    expect(toolbar).to.not.be.null;
+
+    // Fire split event to add 'bot'
+    toolbar!.dispatchEvent(
+      new CustomEvent('split', { detail: { key: 'bot' }, bubbles: true, composed: true })
+    );
+    await element.updateComplete;
+
+    expect(element['_splitKeys'].has('bot')).to.be.true;
+
+    // Fire split event to remove 'bot'
+    toolbar!.dispatchEvent(
+      new CustomEvent('split', { detail: { key: 'bot' }, bubbles: true, composed: true })
+    );
+    await element.updateComplete;
+
+    expect(element['_splitKeys'].has('bot')).to.be.false;
+  });
+
+  it('removes split keys when clicking remove button on the config pill', async () => {
+    element['_splitKeys'] = new Set(['bot']);
+    await element.updateComplete;
+
+    const splitPill = Array.from(element.shadowRoot!.querySelectorAll('.config-pill')).find(
+      (p) => p.textContent?.includes('Split by:')
+    );
+    expect(splitPill).to.not.be.undefined;
+
+    const removeBtn = splitPill!.querySelector('.config-pill-remove') as HTMLButtonElement;
+    expect(removeBtn).to.not.be.null;
+
+    removeBtn.click();
+    await element.updateComplete;
+
+    expect(element['_splitKeys'].has('bot')).to.be.false;
   });
 
   it('loads queries from a shortcut ID', async () => {

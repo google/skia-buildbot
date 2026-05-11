@@ -79,11 +79,7 @@ export class TraceChartSk extends LitElement {
 
   @property({ type: String }) normalizeCentre: 'none' | 'first' | 'average' | 'median' = 'none';
 
-  @property({ type: Boolean }) showVariance = true;
-
-  @property({ type: Boolean }) showStd = false;
-
-  @property({ type: Boolean }) showCount = false;
+  @property({ type: Object }) activeStats: Set<string> = new Set(['min', 'max']);
 
   @property({ type: Boolean }) dateMode = false;
 
@@ -316,14 +312,15 @@ export class TraceChartSk extends LitElement {
         }
 
         const allStats = s.allStats ? { ...s.allStats } : {};
-        if (allStats['error']) {
+        const errRows = allStats['err'] || allStats['error'];
+        if (errRows) {
           const yValsByCommit = new Map<number, number>();
           s.rows.forEach((r) => yValsByCommit.set(r.commit_number, r.val));
 
           const stdMinRows: TraceRow[] = [];
           const stdMaxRows: TraceRow[] = [];
 
-          allStats['error'].forEach((r) => {
+          errRows.forEach((r) => {
             const yVal = yValsByCommit.get(r.commit_number);
             if (yVal !== undefined) {
               stdMinRows.push({ ...r, val: yVal - r.val });
@@ -390,9 +387,7 @@ export class TraceChartSk extends LitElement {
       changedProperties.has('viewportMaxX') ||
       changedProperties.has('_viewportMinX') ||
       changedProperties.has('_viewportMaxX') ||
-      changedProperties.has('showVariance') ||
-      changedProperties.has('showStd') ||
-      changedProperties.has('showCount') ||
+      changedProperties.has('activeStats') ||
       changedProperties.has('selectedSubrepo') ||
       changedProperties.has('evenXAxisSpacing')
     ) {
@@ -719,21 +714,17 @@ export class TraceChartSk extends LitElement {
       ctx.restore();
     }
 
-    // Draw Variance Ribbons
-    if (this.showVariance) {
-      this._processedSeries.forEach((s) => {
-        if (s.allStats && s.allStats['min'] && s.allStats['max']) {
-          const minRows = s.allStats['min'];
-          const maxRows = s.allStats['max'];
-          console.log(
-            'Drawing variance ribbon for',
-            s.id,
-            'minRows:',
-            minRows.length,
-            'maxRows:',
-            maxRows.length
-          );
+    // Draw Variance Ribbons and Lines
+    const showMin = this.activeStats.has('min');
+    const showMax = this.activeStats.has('max');
 
+    if (showMin || showMax) {
+      this._processedSeries.forEach((s) => {
+        const minRows = s.allStats ? s.allStats['min'] : null;
+        const maxRows = s.allStats ? s.allStats['max'] : null;
+
+        // Draw ribbon if both active and available
+        if (showMin && showMax && minRows && maxRows) {
           ctx.beginPath();
           ctx.fillStyle = s.color || '#1a73e8';
           ctx.globalAlpha = 0.2;
@@ -761,11 +752,51 @@ export class TraceChartSk extends LitElement {
           ctx.fill();
           ctx.globalAlpha = 1.0;
         }
+
+        // Draw individual lines if only one is active
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+
+        if (showMin && minRows && !showMax) {
+          ctx.beginPath();
+          ctx.strokeStyle = s.color || '#1a73e8';
+          let first = true;
+          minRows.forEach((r) => {
+            const px = mapX(this._xAccessor(r));
+            const py = mapY(r.val);
+            if (first) {
+              ctx.moveTo(px, py);
+              first = false;
+            } else {
+              ctx.lineTo(px, py);
+            }
+          });
+          ctx.stroke();
+        }
+
+        if (showMax && maxRows && !showMin) {
+          ctx.beginPath();
+          ctx.strokeStyle = s.color || '#1a73e8';
+          let first = true;
+          maxRows.forEach((r) => {
+            const px = mapX(this._xAccessor(r));
+            const py = mapY(r.val);
+            if (first) {
+              ctx.moveTo(px, py);
+              first = false;
+            } else {
+              ctx.lineTo(px, py);
+            }
+          });
+          ctx.stroke();
+        }
+
+        ctx.setLineDash([]);
       });
     }
 
     // Draw Std Ribbons
-    if (this.showStd) {
+    if (this.activeStats.has('err') || this.activeStats.has('error')) {
       this._processedSeries.forEach((s) => {
         if (s.allStats && s.allStats['stdMin'] && s.allStats['stdMax']) {
           const minRows = s.allStats['stdMin'];
@@ -810,7 +841,7 @@ export class TraceChartSk extends LitElement {
     }
 
     // Draw Count Lines
-    if (this.showCount && countMaxY > 0) {
+    if (this.activeStats.has('count') && countMaxY > 0) {
       ctx.lineWidth = 1.5;
       this._processedSeries.forEach((s) => {
         const statRows = s.allStats ? s.allStats['count'] : null;
@@ -1263,7 +1294,7 @@ export class TraceChartSk extends LitElement {
         if (valY > maxY) maxY = valY;
       });
 
-      if (s.allStats && this.showVariance) {
+      if (s.allStats && this.activeStats.has('min') && this.activeStats.has('max')) {
         ['min', 'max'].forEach((statKey) => {
           const rows = s.allStats![statKey];
           if (rows) {
@@ -1286,7 +1317,7 @@ export class TraceChartSk extends LitElement {
         });
       }
 
-      if (s.allStats && this.showCount) {
+      if (s.allStats && this.activeStats.has('count')) {
         const countRows = s.allStats['count'];
         if (countRows) {
           countRows.forEach((r) => {
