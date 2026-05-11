@@ -1,0 +1,19 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "db",
+    srcs = [
+        "db.go",
+        "firestore.go",
+    ],
+    importpath = "go.skia.org/infra/autogardener/go/db",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autogardener/go/types",
+        "//go/firestore",
+        "//go/skerr",
+        "@org_golang_google_api//option",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+    ],
+)

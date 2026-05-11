@@ -11,6 +11,9 @@ packages:
   go.skia.org/infra/attest/go/types:
     interfaces:
       Client:
+  go.skia.org/infra/autogardener/go/db:
+    interfaces:
+      AutoGardenerDB:
   go.skia.org/infra/autoroll/go/config/db:
     interfaces:
       DB:
