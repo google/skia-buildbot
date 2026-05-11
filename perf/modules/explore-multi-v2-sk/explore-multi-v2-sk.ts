@@ -1661,7 +1661,19 @@ export class ExploreMultiV2Sk extends LitElement {
       console.log(
         `Fetching metadata for ${traceIds.length} traces and ${commitNumbers.length} commits.`
       );
-      const metadataResp = await DataService.getInstance().getLinksBatch(commitNumbers, traceIds);
+
+      const db = new TraceDatabase();
+      const cacheKey = await hashRequest({ commitNumbers, traceIds });
+      const cached = await db.get(cacheKey);
+
+      let metadataResp: any;
+      if (cached) {
+        console.log('Serving metadata from cache:', cacheKey);
+        metadataResp = cached;
+      } else {
+        metadataResp = await DataService.getInstance().getLinksBatch(commitNumbers, traceIds);
+        await db.set(cacheKey, metadataResp);
+      }
 
       const nextSeriesData = [...this._seriesData];
       let updatedCount = 0;

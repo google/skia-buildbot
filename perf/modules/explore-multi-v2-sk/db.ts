@@ -5,8 +5,8 @@ export class TraceDatabase {
 
   private version = 1;
 
-  private openDB(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
+  private async openDB(): Promise<IDBDatabase> {
+    return await new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.version);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result);
@@ -21,34 +21,49 @@ export class TraceDatabase {
 
   async get(id: string): Promise<any | null> {
     const db = await this.openDB();
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       const transaction = db.transaction([this.storeName], 'readonly');
       const store = transaction.objectStore(this.storeName);
       const request = store.get(id);
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve(request.result ? request.result.data : null);
+      request.onerror = () => {
+        db.close();
+        reject(request.error);
+      };
+      request.onsuccess = () => {
+        db.close();
+        resolve(request.result ? request.result.data : null);
+      };
     });
   }
 
   async set(id: string, data: any): Promise<void> {
     const db = await this.openDB();
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       const transaction = db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
       const request = store.put({ id, data, timestamp: Date.now() });
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve();
+      request.onerror = () => {
+        db.close();
+        reject(request.error);
+      };
+      request.onsuccess = () => {
+        db.close();
+        resolve();
+      };
     });
   }
 
   async evictOlderThan(days: number): Promise<void> {
     const db = await this.openDB();
     const cutoff = Date.now() - days * 24 * 3600 * 1000;
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       const transaction = db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
       const request = store.openCursor();
-      request.onerror = () => reject(request.error);
+      request.onerror = () => {
+        db.close();
+        reject(request.error);
+      };
       request.onsuccess = (e: any) => {
         const cursor = e.target.result;
         if (cursor) {
@@ -57,6 +72,7 @@ export class TraceDatabase {
           }
           cursor.continue();
         } else {
+          db.close();
           resolve();
         }
       };
