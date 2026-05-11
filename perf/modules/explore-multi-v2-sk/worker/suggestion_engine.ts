@@ -53,9 +53,23 @@ export async function computeSuggestions(
   const queryKeySet = new Set(currentQueryKeys);
 
   if (availableParams) {
-    for (const p of availableParams) {
-      if (queryKeySet.has(p.key)) continue; // Exclude existing keys
-      pool.push(p);
+    // Build a fast lookup map for global params: "key=value" -> id
+    const paramLookup = new Map<string, number>();
+    for (const p of params) {
+      paramLookup.set(`${p.key}=${p.value}`, p.id);
+    }
+
+    for (const ap of availableParams) {
+      if (queryKeySet.has(ap.key)) continue; // Exclude existing keys
+
+      const id = paramLookup.get(`${ap.key}=${ap.value}`);
+      if (id !== undefined) {
+        pool.push({
+          id: id,
+          key: ap.key,
+          value: ap.value,
+        });
+      }
     }
   } else if (traceData) {
     const { matchingParams, bitsetSize } = traceData;

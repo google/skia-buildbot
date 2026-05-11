@@ -17,7 +17,7 @@ let paramsOnlyData: { params: Param[] } | null = null;
 // Constants
 const OUTPUT_LIMIT = 10000;
 const MAX_KEYS = 50;
-const QUERY_BUFFER_SIZE = 512 * 1024; // Increased to accommodate bitmask array
+const QUERY_BUFFER_SIZE = 4 * 1024 * 1024; // Increased to 4MB to accommodate large bitsetSize and prevent Wasm overflow
 
 // Cache State
 const searchCaches: Record<number, SearchCache> = {};
@@ -57,6 +57,15 @@ async function loadData(
     for (const p of params) {
       if (p.id > maxParamId) maxParamId = p.id;
     }
+
+    console.log(
+      'Worker loadData: maxParamId =',
+      maxParamId,
+      'bitsetSize =',
+      maxParamId + 1,
+      'QUERY_BUFFER_SIZE =',
+      QUERY_BUFFER_SIZE
+    );
 
     paramsOnlyData = { params };
 

@@ -54,6 +54,17 @@ karma_test(
     ],
 )
 
+karma_test(
+    name = "suggestion_engine_test",
+    src = "suggestion_engine_test.ts",
+    deps = [
+        ":suggestion_engine_ts_lib",
+        ":worker-types_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+    ],
+)
+
 esbuild_dev_bundle(
     name = "filter.worker_js_dev",
     entry_point = "filter.worker.ts",
