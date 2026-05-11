@@ -28,10 +28,14 @@ element.repo = 'skia';
 document.addEventListener('click', async (e) => {
   switch ((<HTMLElement>e.target).id) {
     case 'taskButton':
+      fetchMock.getOnce('path:/json/task-summary/999990', 404);
+      fetchMock.getOnce('path:/json/td/999990', 404);
       element.displayTask(task, [comment], commitsByHash);
+      await fetchMock.flush(true);
       return;
     case 'taskDriverButton':
       fetchMock.getOnce('path:/json/td/999990', taskDriverData);
+      fetchMock.getOnce('path:/json/task-summary/999990', 404);
       element.displayTask(task, [comment], commitsByHash);
       await fetchMock.flush(true);
       return;

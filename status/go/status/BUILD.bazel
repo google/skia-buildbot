@@ -9,6 +9,7 @@ go_library(
     importpath = "go.skia.org/infra/status/go/status",
     visibility = ["//visibility:private"],
     deps = [
+        "//autogardener/go/db",
         "//autoroll/go/status",
         "//go/alogin",
         "//go/alogin/proxylogin",

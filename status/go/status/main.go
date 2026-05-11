@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -25,6 +26,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	autogardener_db "go.skia.org/infra/autogardener/go/db"
 	"go.skia.org/infra/autoroll/go/status"
 	autoroll_status "go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/alogin"
@@ -64,6 +66,7 @@ const (
 )
 
 var (
+	autogardenerDB      autogardener_db.AutoGardenerDB = nil
 	autorollMtx         sync.RWMutex
 	autorollStatusTwirp *rpc.GetAutorollerStatusesResponse = nil
 	capacityClient      *capacity.CapacityClientImpl       = nil
@@ -99,7 +102,6 @@ var (
 
 // flags
 var (
-	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "Path to a local file, or name of a GCP secret, containing the JWT key for the service account that has access to chrome infra auth.")
 	// TODO(borenet): Combine btInstance and firestoreInstance.
 	btInstance                  = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject                   = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
@@ -280,6 +282,31 @@ func getAutorollerStatusesTwirp() *rpc.GetAutorollerStatusesResponse {
 	return autorollStatusTwirp
 }
 
+func taskSummaryHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	w.Header().Set("Content-Type", "application/json")
+
+	taskID := chi.URLParam(r, "taskId")
+	if taskID == "" {
+		httputils.ReportError(w, skerr.Fmt("Missing Task ID in request path"), "Missing Task ID in request path", http.StatusBadRequest)
+		return
+	}
+
+	summary, err := autogardenerDB.GetTaskSummary(r.Context(), taskID)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to retrieve task summary.", http.StatusInternalServerError)
+		return
+	}
+	if summary == nil {
+		httputils.ReportError(w, skerr.Fmt("no task summary for %s", taskID), "no task summary for task", http.StatusNotFound)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(summary); err != nil {
+		httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
+		return
+	}
+}
+
 // Note: srv already has the twirp handlers on it when passed into this function.
 func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter := chi.NewRouter()
@@ -293,6 +320,7 @@ func runServer(serverURL string, srv http.Handler) {
 		r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
 		r.HandleFunc("/dist/*", httputils.MakeResourceHandler(*resourcesDir))
 		handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
+		r.HandleFunc("/json/task-summary/{taskId}", taskSummaryHandler)
 	})
 	var h http.Handler = topLevelRouter
 	if !*testing {
@@ -472,6 +500,12 @@ func main() {
 		sklog.Fatal(err)
 	}
 	taskDriverLogs, err = logs.NewLogsManager(ctx, *btProject, taskDriverBtInstance, ts)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	// Create the AutoGardener DB.
+	autogardenerDB, err = autogardener_db.NewFirestoreDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(err)
 	}

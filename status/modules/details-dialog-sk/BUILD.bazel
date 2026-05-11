@@ -16,6 +16,7 @@ sk_element(
         "//elements-sk/modules/icons/content-copy-icon-sk",
         "//elements-sk/modules/icons/launch-icon-sk",
         "//infra-sk/modules/alogin-sk",
+        "//infra-sk/modules/task-summary-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",
@@ -77,6 +78,7 @@ karma_test(
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "//infra-sk/modules/task-driver-sk:test_data_ts_lib",
+        "//infra-sk/modules/task-summary-sk:test_data_ts_lib",
         "//status/modules:settings_ts_lib",
     ],
 )

@@ -24,6 +24,7 @@ import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/content-copy-icon-sk';
 import '../../../elements-sk/modules/icons/launch-icon-sk';
 import '../../../infra-sk/modules/task-driver-sk';
+import '../../../infra-sk/modules/task-summary-sk';
 import { Status } from '../../../infra-sk/modules/json';
 
 // Type defining the text and action of the upper-right button of the dialog.
@@ -142,6 +143,9 @@ export class DetailsDialogSk extends ElementSk {
       taskSpec: '',
       repo: this.repo,
     };
+    const summary = fetch(`/json/task-summary/${task.id}`)
+      .then(jsonOrThrow)
+      .then((summary) => html`<br /><task-summary-sk .data=${summary}></task-summary-sk>`);
     const td = fetch(`/json/td/${task.id}`)
       .then(jsonOrThrow)
       .then(
@@ -150,6 +154,7 @@ export class DetailsDialogSk extends ElementSk {
     // We don't catch failures, since we don't want the promise to resolve (and be used below)
     // unless the task-driver-sk has data.
     this.titleSection = html`${until(
+      summary,
       td,
       html`
         <h3>

@@ -15,5 +15,24 @@ testjs:
 build:
 	$(BAZEL) build --config=mayberemote //status/...
 
-release: build
-	$(BAZEL) run --config=mayberemote //status:push_status_container
+build-image:
+	$(BAZEL) run --config=mayberemote //status:load_status_container
+
+.PHONY: run-local
+run-local: build-image
+	docker run \
+		-p 8090:8090 \
+		--user $$(id -u):$$(id -g) \
+		-v ~/.config/gcloud:/tmp/gcloud \
+		-e CLOUDSDK_CONFIG=/tmp/gcloud \
+		-e GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json \
+		gcr.io/skia-public/status:latest \
+		/usr/local/bin/status \
+		--resources_dir=/usr/local/share/status \
+		--host=localhost \
+		--port=:8090 \
+		--firestore_instance=production \
+		--bigtable_project=skia-public \
+		--bigtable_instance=production \
+		--repo=https://skia.googlesource.com/skia.git \
+		--testing
