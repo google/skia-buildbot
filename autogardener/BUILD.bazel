@@ -1,0 +1,15 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "autogardener_container",
+    base_image = "//kube/basealpine:basealpine",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//autogardener/go/autogardener:autogardener",
+                "0755",
+            ],
+        ],
+    },
+    repository = "skia-public/autogardener",
+)
