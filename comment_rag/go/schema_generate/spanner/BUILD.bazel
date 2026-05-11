@@ -1,0 +1,8 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "spanner",
+    srcs = ["schema.go"],
+    importpath = "go.skia.org/infra/comment_rag/go/schema_generate/spanner",
+    visibility = ["//visibility:public"],
+)

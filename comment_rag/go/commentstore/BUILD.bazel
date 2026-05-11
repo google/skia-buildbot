@@ -1,0 +1,38 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "commentstore",
+    srcs = ["commentstore.go"],
+    importpath = "go.skia.org/infra/comment_rag/go/commentstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//comment_rag/go/spanner",
+        "//go/metrics2",
+        "//go/skerr",
+        "@com_google_cloud_go_spanner//:spanner",
+        "@io_opencensus_go//trace",
+    ],
+)
+
+go_test(
+    name = "commentstore_test",
+    srcs = ["commentstore_test.go"],
+    embed = [":commentstore"],
+    deps = [
+        "//comment_rag/go/schema_generate/spanner",
+        "//comment_rag/go/spanner",
+        "//go/emulators/gcp_emulator",
+        "//go/sklog",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_spanner//:spanner",
+        "@com_google_cloud_go_spanner//admin/database/apiv1",
+        "@com_google_cloud_go_spanner//admin/database/apiv1/databasepb",
+        "@com_google_cloud_go_spanner//admin/instance/apiv1",
+        "@com_google_cloud_go_spanner//admin/instance/apiv1/instancepb",
+        "@org_golang_google_api//option",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+    ],
+)

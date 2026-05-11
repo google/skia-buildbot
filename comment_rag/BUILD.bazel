@@ -1,0 +1,28 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+filegroup(
+    name = "configs",
+    srcs = glob(["configs/*.json"]),
+    visibility = ["//comment_rag:__subpackages__"],
+)
+
+skia_app_container(
+    name = "apiserver",
+    base_image = "//kube/basealpine:basealpine",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//comment_rag/go/api/server:server",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/configs": [
+            [
+                ":configs",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/server",
+    repository = "skia-public/comment-rag-apiserver",
+)

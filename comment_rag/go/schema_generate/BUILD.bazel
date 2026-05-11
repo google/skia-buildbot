@@ -1,0 +1,19 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "schema_generate_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/comment_rag/go/schema_generate",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//comment_rag/go/spanner",
+        "//go/sklog",
+        "//go/sql/exporter",
+    ],
+)
+
+go_binary(
+    name = "schema_generate",
+    embed = [":schema_generate_lib"],
+    visibility = ["//visibility:public"],
+)

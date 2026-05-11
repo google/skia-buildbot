@@ -1,0 +1,10 @@
+{
+    "spanner_config": {
+        "project_id": "skia-infra-public",
+        "instance_id": "tfgen-spanid-20260508175001696",
+        "database_id": "comment_rag"
+    },
+    "query_embedding_model": "text-embedding-005",
+    "output_dimensionality": 768,
+    "instance_name": "Gerrit Code Review Comment RAG (Production)"
+}

@@ -1,0 +1,36 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "comment",
+    srcs = ["apiService.go"],
+    importpath = "go.skia.org/infra/comment_rag/go/api/services/comment",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//comment_rag/go/commentstore",
+        "//comment_rag/go/spanner",
+        "//comment_rag/proto/comment/v1:proto",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//rag/go/genai",
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
+        "@io_opencensus_go//trace",
+        "@org_golang_google_grpc//:grpc",
+    ],
+)
+
+go_test(
+    name = "comment_test",
+    srcs = ["apiService_test.go"],
+    embed = [":comment"],
+    deps = [
+        "//comment_rag/go/commentstore",
+        "//comment_rag/go/spanner",
+        "//comment_rag/proto/comment/v1:proto",
+        "//go/metrics2",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

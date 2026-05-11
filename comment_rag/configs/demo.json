@@ -1,0 +1,10 @@
+{
+    "spanner_config": {
+        "project_id": "pasthana-pd-ai-keys",
+        "instance_id": "pasthana-pd-ai-keys",
+        "database_id": "ipcreviewindex"
+    },
+    "query_embedding_model": "text-embedding-005",
+    "output_dimensionality": 768,
+    "instance_name": "Gerrit Code Review Comment RAG"
+}

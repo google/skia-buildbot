@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package commentrag.v1;
+
+option go_package = "go.skia.org/infra/comment_rag/proto/comment/v1";
+
+import "google/api/annotations.proto";
+
+service CommentRagApiService {
+    // Searches for past comments semantically matching a query.
+    rpc SearchComments(SearchCommentsRequest) returns (SearchCommentsResponse) {
+        option (google.api.http) = {
+            get: "/commentrag/v1/comments"
+        };
+    }
+
+    // Lists all valid review categories supported by the RAG service.
+    rpc ListValidCategories(ListValidCategoriesRequest) returns (ListValidCategoriesResponse) {
+        option (google.api.http) = {
+            get: "/commentrag/v1/valid_categories"
+        };
+    }
+}
+
+message ListValidCategoriesRequest {}
+
+message ListValidCategoriesResponse {
+    repeated string categories = 1;
+}
+
+message SearchCommentsRequest {
+    // Required. Gerrit instance GoB project (e.g., 'chromium').
+    string project = 1;
+
+    // Required. Git repository path within the project (e.g., 'chromium/src').
+    string repo = 2;
+
+    string query = 3;
+    // The maximum number of comment records to return. If not specified or <= 0, defaults to 10.
+    int64 max_comments = 4;
+
+    // Required. At least one category must be specified (e.g., 'IPC_SECURITY').
+    repeated string categories = 5;
+}
+
+message SearchCommentsResponse {
+    message CommentRecord {
+        string id = 1;
+        string project = 2;
+        string repo = 3;
+        int64 change_id = 4;
+        string category = 5;
+        string file_path = 6;
+        string comment_text = 7;
+        string code_snippet = 8;
+        string cl_subject = 9;
+        string cl_description = 10;
+        string analysis = 11;
+        float cosine_distance = 12;
+    }
+    repeated CommentRecord comments = 1;
+}
