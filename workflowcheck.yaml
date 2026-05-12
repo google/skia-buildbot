@@ -1,0 +1,5 @@
+decls:
+  github.com/google/uuid.New: true
+  github.com/google/uuid.NewString: true
+  github.com/google/uuid.NewRandom: true
+  github.com/google/uuid.NewUUID: true

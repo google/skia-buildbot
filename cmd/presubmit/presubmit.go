@@ -12,7 +12,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -29,7 +31,10 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-const golangci = "github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8"
+const (
+	golangci      = "github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8"
+	workflowCheck = "go.temporal.io/sdk/contrib/tools/workflowcheck@v0.4.0"
+)
 
 func main() {
 	var (
@@ -135,6 +140,7 @@ func main() {
 	trackErrors(checkJSDebugging(ctx, changedFiles))
 	if !*commit {
 		trackErrors(runGolangCILintForPinpoint(ctx, changedFiles, branchBaseCommit, *fix))
+		trackErrors(runWorkflowCheck(ctx, changedFiles, *repoDir))
 
 		// Long lines are sometimes inevitable. Ideally we would add these long line files to
 		// the excluded list, but sometimes that is hard to do precisely.
@@ -461,6 +467,108 @@ func runGolangCILintForPinpoint(ctx context.Context, files []fileWithChanges, br
 		log(ctx, "golangci-lint failed!\n")
 		log(ctx, "To apply fixes automatically (if possible) run:\n")
 		log(ctx, "    bazelisk run //cmd/presubmit -- --fix\n")
+		return false
+	}
+
+	return true
+}
+
+type workflowcheckIssue struct {
+	Posn    string `json:"posn"`
+	Message string `json:"message"`
+}
+
+type workflowcheckResult struct {
+	Issues []workflowcheckIssue `json:"workflowcheck"`
+}
+
+// workflowCheckFormatPosn takes a compiler-formatted position string and converts
+// the absolute path to a relative path from repoRoot, keeping line/col suffixes intact.
+func workflowCheckFormatPosn(posn, repoRoot string) string {
+	relPosn, err := filepath.Rel(repoRoot, posn)
+	if err != nil {
+		return posn
+	}
+	return relPosn
+}
+
+// workflowCheckFormatMessage formats workflow check error messages for better readability.
+func workflowCheckFormatMessage(message string) string {
+	return strings.ReplaceAll(message, " -> ", "\n-> ")
+}
+
+// runWorkflowCheck runs the official Temporal workflowcheck linter on workflow package directories.
+func runWorkflowCheck(ctx context.Context, changedFiles []fileWithChanges, repoRoot string) bool {
+	var dirs []string
+	for _, f := range changedFiles {
+		ext := filepath.Ext(f.fileName)
+		dir := "./" + filepath.Dir(f.fileName)
+		if strings.ToLower(ext) == ".go" && !contains(dirs, dir) {
+			dirs = append(dirs, dir)
+		}
+	}
+
+	if len(dirs) == 0 {
+		return true
+	}
+
+	args := []string{
+		"run",
+		"--config=mayberemote",
+		"//:go",
+		"--",
+		"run",
+		workflowCheck,
+		"--config=workflowcheck.yaml",
+		"--json",
+		"--single-line",
+	}
+	args = append(args, dirs...)
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd := exec.CommandContext(ctx, "bazelisk", args...)
+	cmd.Stdout = &stdoutBuf
+	cmd.Stderr = &stderrBuf
+
+	if err := cmd.Run(); err != nil {
+		log(ctx, stderrBuf.String())
+		logf(ctx, "\nworkflowcheck failed to run: %s\n", err)
+		return false
+	}
+
+	stdoutBytes := stdoutBuf.Bytes()
+	var results map[string]workflowcheckResult
+	if unmarshalErr := json.Unmarshal(stdoutBytes, &results); unmarshalErr != nil {
+		logf(
+			ctx,
+			"workflowcheck returned invalid JSON: %s\nOutput: %s\n",
+			unmarshalErr,
+			string(stdoutBytes),
+		)
+		return false
+	}
+
+	var issues []string
+	for _, pkgResult := range results {
+		for _, issue := range pkgResult.Issues {
+			relPosn := workflowCheckFormatPosn(issue.Posn, repoRoot)
+			// Append only issues relevant for modified files.
+			for _, f := range changedFiles {
+				if strings.HasPrefix(relPosn, f.fileName) {
+					message := workflowCheckFormatMessage(issue.Message)
+					issues = append(
+						issues,
+						fmt.Sprintf("workflowcheck: %s: %s\n\n", relPosn, message),
+					)
+				}
+			}
+		}
+	}
+
+	if len(issues) > 0 {
+		log(ctx, strings.Join(issues, ""))
+		logf(ctx, "workflowcheck: found %d determinism issues.\n", len(issues))
+		log(ctx, "Temporal workflows must be deterministic. Use //workflowcheck:ignore to ignore.\n")
 		return false
 	}
 

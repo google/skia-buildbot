@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -880,5 +881,132 @@ func TestRunGolangCILintForPinpoint(t *testing.T) {
 		assert.False(t, ok)
 		assert.Contains(t, logs.String(), "lint error")
 		assert.Contains(t, logs.String(), "golangci-lint failed!")
+	})
+}
+
+func TestWorkflowCheckFormatPosn(t *testing.T) {
+	repoRoot := "/path/to/repo"
+	assert.Equal(t, "a/b.go:1:2", workflowCheckFormatPosn("/path/to/repo/a/b.go:1:2", repoRoot))
+}
+
+func TestWorkflowCheckFormatMessage(t *testing.T) {
+	assert.Equal(t, "A\n-> B", workflowCheckFormatMessage("A -> B"))
+}
+
+func TestRunWorkflowCheck(t *testing.T) {
+	t.Run("No files - skips execution", func(t *testing.T) {
+		ctx, _ := captureLogs()
+		ok := runWorkflowCheck(ctx, nil, "/path/to/repo")
+		assert.True(t, ok)
+	})
+
+	t.Run("Success - no issues", func(t *testing.T) {
+		tempDir := t.TempDir()
+		mockBazelisk := filepath.Join(tempDir, "bazelisk")
+		script := "#!/bin/sh\necho '{}' >&1\nexit 0\n"
+		err := os.WriteFile(mockBazelisk, []byte(script), 0755)
+		assert.NoError(t, err)
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, _ := captureLogs()
+		files := []fileWithChanges{{fileName: "a/b.go"}}
+		ok := runWorkflowCheck(ctx, files, "/path/to/repo")
+		assert.True(t, ok)
+	})
+
+	t.Run("Failure - matching workflowcheck issues", func(t *testing.T) {
+		tempDir := t.TempDir()
+		mockBazelisk := filepath.Join(tempDir, "bazelisk")
+		stdoutJSON := `{
+			"testpkg": {
+				"workflowcheck": [
+					{
+						"posn": "/path/to/repo/a/b.go:1:2",
+						"message": "some-determinism-issue"
+					}
+				]
+			}
+		}`
+		script := fmt.Sprintf("#!/bin/sh\ncat << 'EOF'\n%s\nEOF\nexit 0\n", stdoutJSON)
+		err := os.WriteFile(mockBazelisk, []byte(script), 0755)
+		assert.NoError(t, err)
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, logs := captureLogs()
+		files := []fileWithChanges{{fileName: "a/b.go"}}
+		ok := runWorkflowCheck(ctx, files, "/path/to/repo")
+		assert.False(t, ok)
+
+		assert.Contains(t, logs.String(), "workflowcheck: a/b.go:1:2: some-determinism-issue")
+		assert.Contains(t, logs.String(), "workflowcheck: found 1 determinism issues.")
+	})
+
+	t.Run("Success - issues do not match changed files", func(t *testing.T) {
+		tempDir := t.TempDir()
+		mockBazelisk := filepath.Join(tempDir, "bazelisk")
+		stdoutJSON := `{
+			"testpkg": {
+				"workflowcheck": [
+					{
+						"posn": "/path/to/repo/a/c.go:1:2",
+						"message": "some-determinism-issue"
+					}
+				]
+			}
+		}`
+		script := fmt.Sprintf("#!/bin/sh\ncat << 'EOF'\n%s\nEOF\nexit 0\n", stdoutJSON)
+		err := os.WriteFile(mockBazelisk, []byte(script), 0755)
+		assert.NoError(t, err)
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, logs := captureLogs()
+		files := []fileWithChanges{{fileName: "a/b.go"}}
+		ok := runWorkflowCheck(ctx, files, "/path/to/repo")
+		assert.True(t, ok)
+		assert.Empty(t, logs.String())
+	})
+
+	t.Run("Failure - command execution fails", func(t *testing.T) {
+		tempDir := t.TempDir()
+		mockBazelisk := filepath.Join(tempDir, "bazelisk")
+		script := "#!/bin/sh\necho 'bazel errors' >&2\nexit 1\n"
+		err := os.WriteFile(mockBazelisk, []byte(script), 0755)
+		assert.NoError(t, err)
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, logs := captureLogs()
+		files := []fileWithChanges{{fileName: "a/b.go"}}
+		ok := runWorkflowCheck(ctx, files, "/path/to/repo")
+		assert.False(t, ok)
+
+		assert.Contains(t, logs.String(), "bazel errors")
+		assert.Contains(t, logs.String(), "workflowcheck failed to run")
+	})
+
+	t.Run("Failure - invalid JSON", func(t *testing.T) {
+		tempDir := t.TempDir()
+		mockBazelisk := filepath.Join(tempDir, "bazelisk")
+		script := "#!/bin/sh\necho 'not-json-output'\nexit 0\n"
+		err := os.WriteFile(mockBazelisk, []byte(script), 0755)
+		assert.NoError(t, err)
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, logs := captureLogs()
+		files := []fileWithChanges{{fileName: "a/b.go"}}
+		ok := runWorkflowCheck(ctx, files, "/path/to/repo")
+		assert.False(t, ok)
+
+		assert.Contains(t, logs.String(), "workflowcheck returned invalid JSON")
+		assert.Contains(t, logs.String(), "not-json-output")
 	})
 }
