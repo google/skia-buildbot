@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/mark3labs/mcp-go/client"
@@ -57,14 +58,7 @@ func NewMCPClientWithClient(ctx context.Context, mcpServer string, httpClient *h
 
 // init (re)initializes the underlying MCP client.
 func (c *MCPClient) init(ctx context.Context) error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-	c.initCount++
-
 	sklog.Infof("initializing MCP server connection")
-	if c.client != nil {
-		_ = c.client.Close()
-	}
 
 	mcpClient, err := client.NewSSEMCPClient(c.mcpServer, transport.WithHTTPClient(c.httpClient))
 	if err != nil {
@@ -99,9 +93,18 @@ func (c *MCPClient) init(ctx context.Context) error {
 			},
 		})
 	}
-	c.tools = genAiTools
+
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	oldClient := c.client
 	c.client = mcpClient
+	c.tools = genAiTools
 	c.initializing = false
+	c.initCount++
+	if oldClient != nil {
+		_ = oldClient.Close()
+	}
+	sklog.Infof("Init complete")
 	return nil
 }
 
@@ -112,11 +115,13 @@ func (c *MCPClient) maybeReInit(ctx context.Context) {
 		return
 	}
 	c.initializing = true
-
-	// Release the lock so that other goroutines can see c.initializing.
 	c.mtx.Unlock()
+
 	if err := c.init(ctx); err != nil {
 		sklog.Errorf("Failed to re-initialize client: %s", err)
+		c.mtx.Lock()
+		c.initializing = false
+		c.mtx.Unlock()
 	}
 }
 
@@ -167,8 +172,12 @@ func (c *MCPClient) callTool(ctx context.Context, toolName string, args map[stri
 		c.mtx.RLock()
 		defer c.mtx.RUnlock()
 
+		// Use a timeout to prevent permanent hangs.
+		tCtx, cancel := context.WithTimeout(ctx, time.Minute)
+		defer cancel()
+
 		var err error
-		res, err = c.client.CallTool(ctx, mcp.CallToolRequest{
+		res, err = c.client.CallTool(tCtx, mcp.CallToolRequest{
 			Params: mcp.CallToolParams{
 				Name:      toolName,
 				Arguments: args,

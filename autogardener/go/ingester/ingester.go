@@ -91,7 +91,9 @@ func (i *Ingester) IngestTaskSummariesForRepo(ctx context.Context, repoURL, bran
 			// If we already have a summary for this task, skip it.
 			taskSummary, err := i.db.GetTaskSummary(ctx, task.Id)
 			if err != nil {
+				mtx.Lock()
 				errs = append(errs, err)
+				mtx.Unlock()
 				return
 			}
 			if taskSummary == nil {
@@ -99,11 +101,15 @@ func (i *Ingester) IngestTaskSummariesForRepo(ctx context.Context, repoURL, bran
 				// into the DB.
 				taskSummary, err = i.gemini.GetTaskSummary(ctx, task)
 				if err != nil {
+					mtx.Lock()
 					errs = append(errs, err)
+					mtx.Unlock()
 					return
 				}
 				if err := i.db.PutTaskSummary(ctx, task.Id, taskSummary); err != nil {
+					mtx.Lock()
 					errs = append(errs, err)
+					mtx.Unlock()
 					return
 				}
 			}
