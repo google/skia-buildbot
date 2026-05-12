@@ -147,7 +147,7 @@ func (i *Ingester) getFailedTasks(ctx context.Context, repoURL, branch string, n
 	var tasks []*ts_types.Task
 	for _, commit := range commits {
 		eg.Go(func() error {
-			t, err := i.getFailedTasksForCommit(ctx, repoURL, commit)
+			t, err := i.getFailedTasksForCommit(ctx, commit)
 			if err != nil {
 				return skerr.Wrap(err)
 			}
@@ -164,13 +164,12 @@ func (i *Ingester) getFailedTasks(ctx context.Context, repoURL, branch string, n
 	return tasks, nil
 }
 
-func (i *Ingester) getFailedTasksForCommit(ctx context.Context, repoURL string, commit *vcsinfo.LongCommit) ([]*ts_types.Task, error) {
+func (i *Ingester) getFailedTasksForCommit(ctx context.Context, commit *vcsinfo.LongCommit) ([]*ts_types.Task, error) {
 	var results []*ts_types.Task
 	searchResultsLimit := 0
 	empty := ""
-	for _, status := range []ts_types.TaskStatus{ts_types.TASK_STATUS_FAILURE /*, ts_types.TASK_STATUS_MISHAP*/} {
+	for _, status := range []ts_types.TaskStatus{ts_types.TASK_STATUS_FAILURE, ts_types.TASK_STATUS_MISHAP} {
 		params := &ts_db.TaskSearchParams{
-			Repo:      &repoURL,
 			Revision:  &commit.Hash,
 			Status:    &status,
 			Issue:     &empty, // Exclude try jobs.
