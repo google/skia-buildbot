@@ -202,7 +202,12 @@ export class ExistingBugDialogSk extends LitElement {
       },
     })
       .then(jsonOrThrow)
-      .then(() => {
+      .then((json: { error?: string }) => {
+        if (json && json.error) {
+          this._busy = false;
+          errorMessage(json.error);
+          return;
+        }
         this._busy = false;
 
         this.bug_url = `https://issues.chromium.org/issues/${this.bug_id as number}`;
@@ -224,11 +229,23 @@ export class ExistingBugDialogSk extends LitElement {
           })
         );
       })
-      .catch(() => {
+      .catch(async (err: { resp?: Response }) => {
         this._busy = false;
-        errorMessage(
-          'Associate alerts request failed due to an internal server error. Please try again.'
-        );
+        let msg =
+          'Associate alerts request failed due to an internal server error. Please try again.';
+        if (err && err.resp) {
+          try {
+            const text = await err.resp.text();
+            if (text) {
+              msg = text;
+            }
+          } catch (_e) {
+            // If reading the response stream fails (e.g., stream was already consumed,
+            // connection severed mid-transfer, or body is empty), we gracefully fall back
+            // to the default internal server error message defined above.
+          }
+        }
+        errorMessage(msg);
       });
   }
 

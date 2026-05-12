@@ -49,12 +49,14 @@ type SkiaAssociateBugRequest struct {
 
 // Response object for Skia UI.
 type SkiaFileBugResponse struct {
-	BugId int `json:"bug_id,omitempty"`
+	BugId int    `json:"bug_id,omitempty"`
+	Error string `json:"error,omitempty"`
 }
 
 // Existing bug response object for Skia UI.
 type SkiaAssociateBugResponse struct {
-	BugId int `json:"bug_id,omitempty"`
+	BugId int    `json:"bug_id,omitempty"`
+	Error string `json:"error,omitempty"`
 }
 
 // Response object from the chromeperf associate alerts to existing bug response.
@@ -108,6 +110,15 @@ func NewTriageApi(loginProvider alogin.Login, cpTriageBackend TriageBackend, sql
 	}
 }
 
+func cleanErrorMsg(err error) string {
+	if wrapper, ok := err.(*skerr.ErrorWithContext); ok {
+		if len(wrapper.Context) > 0 {
+			return wrapper.Context[len(wrapper.Context)-1]
+		}
+	}
+	return err.Error()
+}
+
 func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
 		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)
@@ -137,17 +148,18 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 	}
 	resp, err := triageBackend.FileBug(ctx, &fileBugRequest)
 	if err != nil {
-		httputils.ReportError(w, err, "File new bug request failed due to an internal server error. Please try again.", http.StatusInternalServerError)
-		return
+		sklog.Error("File new bug request failed.", err)
+		cleanMsg := cleanErrorMsg(err)
+		resp = &SkiaFileBugResponse{Error: cleanMsg}
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		httputils.ReportError(w, err, "Failed to write bug id to SkiaFileBugResponse.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to encode JSON on file bug response.", http.StatusInternalServerError)
 		return
 	}
-	sklog.Debugf("[SkiaTriage] b/%d is created.", resp.BugId)
-
-	return
+	if resp.Error == "" {
+		sklog.Debugf("[SkiaTriage] b/%d is created.", resp.BugId)
+	}
 }
 
 // EditAnomalies updates data about an anomaly by forwarding the request to Chromeperf's
@@ -198,22 +210,19 @@ func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 	}
 	resp, err := triageBackend.EditAnomalies(ctx, &editAnomaliesRequest)
 	if err != nil {
-		httputils.ReportError(
-			w,
-			err,
-			"Chromeperf edit anomalies request failed.",
-			http.StatusInternalServerError)
+		sklog.Error("Edit anomalies request failed.", err)
+		cleanMsg := cleanErrorMsg(err)
+		resp = &EditAnomaliesResponse{Error: cleanMsg}
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		httputils.ReportError(w, err, "Failed to encode JSON on edit anomalies response.", http.StatusInternalServerError)
 		return
 	}
 
-	if error := json.NewEncoder(w).Encode(resp); error != nil {
-		httputils.ReportError(w, error, "Failed to enode JSON on edit anomalies response.", http.StatusInternalServerError)
-		return
+	if resp.Error == "" {
+		sklog.Debugf("[SkiaTriage] Anomalies (%d) are updated with: action: %s, start_revision: %d, end_revision: %d", editAnomaliesRequest.Keys, editAnomaliesRequest.Action, editAnomaliesRequest.StartRevision, editAnomaliesRequest.EndRevision)
 	}
-
-	sklog.Debugf("[SkiaTriage] Anomalies (%d) are updated with: action: %s, start_revision: %d, end_revision: %d", editAnomaliesRequest.Keys, editAnomaliesRequest.Action, editAnomaliesRequest.StartRevision, editAnomaliesRequest.EndRevision)
-
-	return
 }
 
 func (api triageApi) AssociateAlerts(w http.ResponseWriter, r *http.Request) {
@@ -241,18 +250,17 @@ func (api triageApi) AssociateAlerts(w http.ResponseWriter, r *http.Request) {
 	}
 	resp, err := triageBackend.AssociateAlerts(ctx, &associateBugRequest)
 	if err != nil {
-		httputils.ReportError(
-			w,
-			err,
-			"Associate request failed.",
-			http.StatusInternalServerError)
+		sklog.Error("Associate alerts request failed.", err)
+		cleanMsg := cleanErrorMsg(err)
+		resp = &SkiaAssociateBugResponse{Error: cleanMsg}
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		httputils.ReportError(w, err, "Failed to encode JSON on associate bug response.", http.StatusInternalServerError)
 		return
 	}
-	if error := json.NewEncoder(w).Encode(resp); error != nil {
-		httputils.ReportError(w, error, "Failed to enode JSON on associate bug response.", http.StatusInternalServerError)
-		return
+	if resp.Error == "" {
+		sklog.Debugf("[SkiaTriage] Alerts are associated with existing bug.")
 	}
-	sklog.Debugf("[SkiaTriage] Alerts are associated with existing bug.")
 }
 
 func (api triageApi) ListIssues(w http.ResponseWriter, r *http.Request) {

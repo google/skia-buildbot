@@ -30,10 +30,9 @@ func NewTriageBackend(issueTracker perf_issuetracker.IssueTracker, regStore regr
 }
 
 func (t *triageBackend) FileBug(ctx context.Context, req *perf_issuetracker.FileBugRequest) (*SkiaFileBugResponse, error) {
-	// TODO(b/455571922) Perform integration tests when Associate Alerts is done.
 	bugId, err := t.issueTracker.FileBug(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "Issuetracker failed to create a bug")
 	}
 	// We have successfully created a bug, so there's no need to check if the bug id is correct.
 	// Also, executing ListIssues call to query issuetracker if the issue was created could have some delays,
@@ -76,22 +75,22 @@ func (t *triageBackend) AssociateAlerts(ctx context.Context, req *SkiaAssociateB
 	// Verify the issue exists
 	issue, err := t.issueTracker.ListIssues(ctx, perf_issuetracker.ListIssuesRequest{IssueIds: []int{req.BugId}})
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to list issue with bug_id = %d", req.BugId)
+		return nil, skerr.Wrapf(err, "Issuetracker failed to list issue with bug_id = %d", req.BugId)
 	}
 	if len(issue) == 0 {
-		return nil, skerr.Fmt("Issue with bug_id = %d does not exist", req.BugId)
+		return nil, skerr.Fmt("Issue with bug_id = %d does not exist. Have you selected the right project?", req.BugId)
 	}
 
 	if err := t.regStore.SetBugID(ctx, req.Keys, req.BugId); err != nil {
-		return nil, skerr.Wrapf(err, "failed to associate alerts with bug id %d", req.BugId)
+		return nil, skerr.Wrapf(err, "DB failed to associate alerts with bug id %d", req.BugId)
 	}
 
-	return &SkiaAssociateBugResponse{req.BugId}, nil
+	return &SkiaAssociateBugResponse{BugId: req.BugId}, nil
 }
 
 func (t *triageBackend) ignoreAnomalies(ctx context.Context, req *EditAnomaliesRequest) (*EditAnomaliesResponse, error) {
 	if err := t.regStore.IgnoreAnomalies(ctx, req.Keys); err != nil {
-		return nil, skerr.Wrapf(err, "failed to ignore anomalies")
+		return nil, skerr.Wrapf(err, "DB failed to ignore anomalies")
 	}
 	return &EditAnomaliesResponse{}, nil
 }

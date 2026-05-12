@@ -104,8 +104,11 @@ func TestFileNewBug_BackendError(t *testing.T) {
 
 	api.FileNewBug(w, r)
 
-	require.Equal(http.StatusInternalServerError, w.Code)
-	require.Contains(w.Body.String(), "File new bug request failed due to an internal server error. Please try again.")
+	require.Equal(http.StatusOK, w.Code)
+	var resp SkiaFileBugResponse
+	err := json.NewDecoder(w.Body).Decode(&resp)
+	require.NoError(err)
+	require.Equal("backend error", resp.Error)
 	login.AssertExpectations(t)
 	mockBackend.AssertExpectations(t)
 }
@@ -254,8 +257,11 @@ func TestEditAnomalies_BackendError(t *testing.T) {
 
 	api.EditAnomalies(w, r)
 
-	require.Equal(http.StatusInternalServerError, w.Code)
-	require.Contains(w.Body.String(), "Chromeperf edit anomalies request failed.")
+	require.Equal(http.StatusOK, w.Code)
+	var resp EditAnomaliesResponse
+	err := json.NewDecoder(w.Body).Decode(&resp)
+	require.NoError(err)
+	require.Equal("backend error", resp.Error)
 	login.AssertExpectations(t)
 	mockBackend.AssertExpectations(t)
 }
@@ -345,8 +351,11 @@ func TestAssociateAlerts_BackendError(t *testing.T) {
 
 	api.AssociateAlerts(w, r)
 
-	require.Equal(http.StatusInternalServerError, w.Code)
-	require.Contains(w.Body.String(), "Associate request failed.")
+	require.Equal(http.StatusOK, w.Code)
+	var resp SkiaAssociateBugResponse
+	err := json.NewDecoder(w.Body).Decode(&resp)
+	require.NoError(err)
+	require.Equal("backend error", resp.Error)
 	login.AssertExpectations(t)
 	mockBackend.AssertExpectations(t)
 }

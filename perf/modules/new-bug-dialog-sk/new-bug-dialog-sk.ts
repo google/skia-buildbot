@@ -423,7 +423,13 @@ export class NewBugDialogSk extends LitElement {
       },
     })
       .then(jsonOrThrow)
-      .then((json) => {
+      .then((json: { error?: string; bug_id?: number }) => {
+        if (json && json.error) {
+          this._loadingPopup.close();
+          this.closeDialog();
+          errorMessage(json.error);
+          return;
+        }
         this._loadingPopup.close();
         this.closeDialog();
 
@@ -433,7 +439,7 @@ export class NewBugDialogSk extends LitElement {
 
         // Update anomalies to reflected new Bug Id.
         for (let i = 0; i < this.anomalies.length; i++) {
-          this.anomalies[i].bug_id = json.bug_id;
+          this.anomalies[i].bug_id = json.bug_id as number;
         }
 
         // Let explore-simple-sk and chart-tooltip-sk that anomalies have changed and we need to re-render.
@@ -449,12 +455,21 @@ export class NewBugDialogSk extends LitElement {
           })
         );
       })
-      .catch(() => {
+      .catch(async (err: { resp?: Response }) => {
         this._loadingPopup.close();
         this.closeDialog();
-        errorMessage(
-          'File new bug request failed due to an internal server error. Please try again.'
-        );
+        let msg = 'File new bug request failed due to an internal server error. Please try again.';
+        if (err && err.resp) {
+          try {
+            const text = await err.resp.text();
+            if (text) {
+              msg = text;
+            }
+          } catch (_e) {
+            // If reading the response stream fails, gracefully fall back to default message.
+          }
+        }
+        errorMessage(msg);
       });
   }
 

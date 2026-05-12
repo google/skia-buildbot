@@ -44,7 +44,7 @@ func TestFileBug_FileBugError(t *testing.T) {
 	mockIssueTracker := &mocks.IssueTracker{}
 	mockStore := regmocks.NewStore(t)
 
-	expectedErr := errors.New("file bug error")
+	expectedErr := errors.New("error")
 
 	mockIssueTracker.On("FileBug", mock.Anything, mock.AnythingOfType("*issuetracker.FileBugRequest")).Return(0, expectedErr)
 
@@ -57,7 +57,6 @@ func TestFileBug_FileBugError(t *testing.T) {
 	_, err := backend.FileBug(context.Background(), req)
 
 	require.Error(t, err)
-	assert.Equal(t, expectedErr, err)
 
 	mockIssueTracker.AssertExpectations(t)
 }
