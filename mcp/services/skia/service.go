@@ -5,6 +5,7 @@ import (
 	"flag"
 	"strings"
 
+	"github.com/google/shlex"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/mcp/common"
 	"go.skia.org/infra/mcp/services/skia/task_details"
@@ -24,7 +25,14 @@ func (s *SkiaService) Init(serviceArgs string) error {
 	firestoreInstance := fs.String("firestore_instance", "production", "Firestore DB instance to use.")
 	btProject := fs.String("bigtable_project", "", "BigTable project to use.")
 	btInstance := fs.String("bigtable_instance", "", "BigTable instance to use.")
-	if err := fs.Parse(strings.Fields(serviceArgs)); err != nil {
+
+	// Args are passed in as a quoted string.
+	args, err := shlex.Split(strings.Trim(serviceArgs, "\"'"))
+	if err != nil {
+		return skerr.Wrapf(err, "invalid service args: %q", serviceArgs)
+	}
+
+	if err := fs.Parse(args); err != nil {
 		return skerr.Wrap(err)
 	}
 

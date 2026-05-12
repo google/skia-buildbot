@@ -10,5 +10,6 @@ go_library(
         "//mcp/common",
         "//mcp/services/skia/task_details",
         "//mcp/services/skia/task_scheduler",
+        "@com_github_google_shlex//:shlex",
     ],
 )
