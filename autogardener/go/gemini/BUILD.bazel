@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "gemini",
@@ -29,5 +30,16 @@ go_library(
         "@org_golang_google_genai//:genai",
         "@org_golang_x_oauth2//google",
         "@org_golang_x_time//rate",
+    ],
+)
+
+go_test(
+    name = "gemini_test",
+    srcs = ["mcp_test.go"],
+    embed = [":gemini"],
+    deps = [
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@com_github_mark3labs_mcp_go//server",
+        "@com_github_stretchr_testify//require",
     ],
 )

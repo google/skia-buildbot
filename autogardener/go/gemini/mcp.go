@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/mark3labs/mcp-go/client"
@@ -14,13 +16,23 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/mcp/services/skia/format"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/genai"
 )
 
 type MCPClient struct {
-	client *client.Client
+	client     *client.Client
+	httpClient *http.Client
+	mcpServer  string
+	mtx        sync.RWMutex
+	tools      []*genai.Tool
+
+	initializing bool
+	// initCount is used in testing to verify that we re-initialize the
+	// connection when it is broken.
+	initCount int
 }
 
 func NewMCPClient(ctx context.Context, mcpServer string) (*MCPClient, error) {
@@ -28,30 +40,50 @@ func NewMCPClient(ctx context.Context, mcpServer string) (*MCPClient, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	c := httputils.ClientConfig{}.WithTokenSource(ts).Client()
-	mcpClient, err := client.NewSSEMCPClient(mcpServer, transport.WithHTTPClient(c))
-	if err != nil {
+	httpClient := httputils.ClientConfig{}.WithTokenSource(ts).Client()
+	return NewMCPClientWithClient(ctx, mcpServer, httpClient)
+}
+
+func NewMCPClientWithClient(ctx context.Context, mcpServer string, httpClient *http.Client) (*MCPClient, error) {
+	rv := &MCPClient{
+		httpClient: httpClient,
+		mcpServer:  mcpServer,
+	}
+	if err := rv.init(ctx); err != nil {
 		return nil, skerr.Wrap(err)
+	}
+	return rv, nil
+}
+
+// init (re)initializes the underlying MCP client.
+func (c *MCPClient) init(ctx context.Context) error {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	c.initCount++
+
+	sklog.Infof("initializing MCP server connection")
+	if c.client != nil {
+		_ = c.client.Close()
 	}
 
-	if err := mcpClient.Start(ctx); err != nil {
-		return nil, skerr.Wrap(err)
+	mcpClient, err := client.NewSSEMCPClient(c.mcpServer, transport.WithHTTPClient(c.httpClient))
+	if err != nil {
+		return skerr.Wrap(err)
 	}
-	_, err = mcpClient.Initialize(ctx, mcp.InitializeRequest{
+	if err := mcpClient.Start(ctx); err != nil {
+		return skerr.Wrapf(err, "failed to start MCP client")
+	}
+	if _, err := mcpClient.Initialize(ctx, mcp.InitializeRequest{
 		Params: mcp.InitializeParams{
 			ProtocolVersion: mcp.LATEST_PROTOCOL_VERSION,
 		},
-	})
-	if err != nil {
-		return nil, skerr.Wrap(err)
+	}); err != nil {
+		return skerr.Wrapf(err, "failed to initialize MCP client")
 	}
-	return &MCPClient{client: mcpClient}, nil
-}
 
-func (c *MCPClient) ListTools(ctx context.Context) ([]*genai.Tool, error) {
-	tools, err := c.client.ListTools(ctx, mcp.ListToolsRequest{})
+	tools, err := mcpClient.ListTools(ctx, mcp.ListToolsRequest{})
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return skerr.Wrapf(err, "failed to list MCP server tools")
 	}
 
 	genAiTools := []*genai.Tool{}
@@ -67,8 +99,31 @@ func (c *MCPClient) ListTools(ctx context.Context) ([]*genai.Tool, error) {
 			},
 		})
 	}
+	c.tools = genAiTools
+	c.client = mcpClient
+	c.initializing = false
+	return nil
+}
 
-	return genAiTools, nil
+func (c *MCPClient) maybeReInit(ctx context.Context) {
+	c.mtx.Lock()
+	if c.initializing {
+		c.mtx.Unlock()
+		return
+	}
+	c.initializing = true
+
+	// Release the lock so that other goroutines can see c.initializing.
+	c.mtx.Unlock()
+	if err := c.init(ctx); err != nil {
+		sklog.Errorf("Failed to re-initialize client: %s", err)
+	}
+}
+
+func (c *MCPClient) Tools() []*genai.Tool {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	return c.tools
 }
 
 func convertSchema(s mcp.ToolInputSchema) *genai.Schema {
@@ -109,6 +164,9 @@ func convertProperty(prop any) *genai.Schema {
 func (c *MCPClient) callTool(ctx context.Context, toolName string, args map[string]interface{}) (*mcp.CallToolResult, error) {
 	var res *mcp.CallToolResult
 	err := doBackoff(toolName, func() error {
+		c.mtx.RLock()
+		defer c.mtx.RUnlock()
+
 		var err error
 		res, err = c.client.CallTool(ctx, mcp.CallToolRequest{
 			Params: mcp.CallToolParams{
@@ -117,6 +175,13 @@ func (c *MCPClient) callTool(ctx context.Context, toolName string, args map[stri
 			},
 		})
 		if err != nil {
+			if strings.Contains(err.Error(), "Invalid session ID") {
+				// Something has gone wrong between client and server. Try re-
+				// initializing the connection.
+				go c.maybeReInit(ctx)
+				return err
+			}
+
 			// Any error from the MCP server itself is included in its JSON
 			// response. If we failed to parse the JSON, then we failed to
 			// communicate with the server in some way. We'll retry in that

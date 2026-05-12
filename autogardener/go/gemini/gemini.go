@@ -31,7 +31,6 @@ type Client struct {
 	model     string
 	mcpClient *MCPClient
 	project   string
-	tools     []*genai.Tool
 }
 
 func NewClient(ctx context.Context, project, location, model, apiKey, mcpServer string) (*Client, error) {
@@ -46,10 +45,6 @@ func NewClient(ctx context.Context, project, location, model, apiKey, mcpServer 
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	tools, err := mcpClient.ListTools(ctx)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
 	perSecondLimit := (float64(maxRequestsPerMinute) / float64(time.Minute)) * float64(time.Second)
 	return &Client{
 		client:    genaiClient,
@@ -58,7 +53,6 @@ func NewClient(ctx context.Context, project, location, model, apiKey, mcpServer 
 		model:     model,
 		mcpClient: mcpClient,
 		project:   project,
-		tools:     tools,
 	}, nil
 }
 
@@ -162,7 +156,7 @@ func (c *Client) generate(ctx context.Context, prompt string, allowTools []strin
 		ResponseMIMEType:   "application/json",
 		ResponseJsonSchema: jsonschema.Reflect(result),
 	}
-	for _, tool := range c.tools {
+	for _, tool := range c.mcpClient.Tools() {
 		if util.In(tool.FunctionDeclarations[0].Name, allowTools) {
 			config.Tools = append(config.Tools, tool)
 		}
