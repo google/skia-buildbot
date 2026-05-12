@@ -26,6 +26,10 @@ build --workspace_status_command=bazel/get_workspace_status.sh
 # https://github.com/bazelbuild/bazel/issues/8830.
 build --incompatible_allow_tags_propagation
 
+# Use a strict environment for all actions. This prevents PATH changes on the
+# host machine from invalidating the C++ toolchain and triggering full rebuilds.
+build --incompatible_strict_action_env=true
+
 # Required for newer versions of abseil-cpp.
 build --action_env=BAZEL_CXXOPTS="-std=c++17"
 # This appears to have no effect because of the generated toolchain.
