@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
   cluster_type TEXT,
   cluster_summary JSONB,
   frame JSONB,
+  legacy_key TEXT,
   trace_id BYTEA,
   triage_status TEXT,
   triage_message TEXT,
@@ -119,6 +120,7 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
 CREATE TABLE IF NOT EXISTS RegressionsShortcuts (
   sid TEXT PRIMARY KEY,
   anomaly_ids TEXT ARRAY,
+  is_legacy BOOLEAN DEFAULT FALSE,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS ReverseKeyMap (
@@ -203,6 +205,7 @@ CREATE INDEX IF NOT EXISTS by_sub_name_triage_status_creation_time_asc on Regres
 CREATE INDEX IF NOT EXISTS by_commit_alert on Regressions2 (commit_number, alert_id);
 CREATE INDEX IF NOT EXISTS by_commit_and_prev_commit on Regressions2 (commit_number, prev_commit_number);
 CREATE INDEX IF NOT EXISTS by_trace_id_and_commit on Regressions2 (trace_id, commit_number);
+CREATE INDEX IF NOT EXISTS by_legacy_key on Regressions2 (legacy_key);
 CREATE INDEX IF NOT EXISTS by_source_file on SourceFiles (source_file, source_file_id);
 CREATE INDEX IF NOT EXISTS by_source_file_id on TraceValues (source_file_id, trace_id);
 CREATE INDEX IF NOT EXISTS by_trace_id_tv2 on TraceValues2 (trace_id, benchmark, bot, test, subtest_1, subtest_2, subtest_3);
@@ -310,6 +313,7 @@ var Regressions2 = []string{
 	"cluster_type",
 	"cluster_summary",
 	"frame",
+	"legacy_key",
 	"trace_id",
 	"triage_status",
 	"triage_message",
@@ -318,6 +322,7 @@ var Regressions2 = []string{
 var RegressionsShortcuts = []string{
 	"sid",
 	"anomaly_ids",
+	"is_legacy",
 }
 
 var ReverseKeyMap = []string{

@@ -56,6 +56,9 @@ type Regression2Schema struct {
 	// A frame.FrameResponse serialized as json.
 	Frame interface{} `sql:"frame JSONB"`
 
+	// Chromeperf ID in case this anomaly is a migrated one. Otherwise 0.
+	LegacyKey string `sql:"legacy_key TEXT"`
+
 	// Id of the trace this regression has been detected on.
 	// Equal to ID of frame->'dataframe'->'traceset' (for new anomalies with individual detection).
 	TraceID []byte `sql:"trace_id BYTES"`
@@ -83,4 +86,7 @@ type Regression2Schema struct {
 
 	// Tailored for ReadRangeFiltered - by TraceId.
 	byTraceIdAndCommit struct{} `sql:"INDEX by_trace_id_and_commit (trace_id, commit_number)"`
+
+	// Matching against legacy keys (in particular, to speedup legacy SID)
+	byLegacyKey struct{} `sql:"INDEX by_legacy_key (legacy_key)"`
 }

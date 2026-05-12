@@ -140,6 +140,7 @@ describe('cluster-lastn-page-sk', () => {
         is_improvement: false,
         cluster_type: 'high',
         trace_id: '',
+        legacy_key: '',
       },
     };
 

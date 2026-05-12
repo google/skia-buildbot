@@ -249,6 +249,7 @@ export interface Regression {
 	median_after: number;
 	is_improvement: boolean;
 	cluster_type: string;
+	legacy_key: string;
 	sub_name: string;
 	trace_id: string;
 }

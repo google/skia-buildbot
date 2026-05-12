@@ -55,6 +55,7 @@ const DropSpannerIndices = `
   DROP INDEX IF EXISTS idx_alerts_subname;
   DROP INDEX IF EXISTS by_sub_name_creation_time;
 	DROP INDEX IF EXISTS by_sub_name_triage_status_creation_time_asc;
+	DROP INDEX IF EXISTS by_legacy_key;
 `
 
 // LiveSchemaSpanner has to reflect what's live in prod right now in spanner
@@ -139,6 +140,10 @@ CREATE TABLE IF NOT EXISTS Postings (
   PRIMARY KEY (tile_number, key_value, trace_id),
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
+CREATE TABLE IF NOT EXISTS PublicTraceRules (
+	public_rule_expr TEXT PRIMARY KEY,
+	createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
 CREATE TABLE IF NOT EXISTS Regressions (
   commit_number INT,
   alert_id INT,
@@ -208,6 +213,7 @@ CREATE TABLE IF NOT EXISTS Subscriptions (
 CREATE TABLE IF NOT EXISTS TraceParams (
   trace_id BYTEA PRIMARY KEY,
   params JSONB,
+	is_public BOOL DEFAULT FALSE,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS TraceValues (

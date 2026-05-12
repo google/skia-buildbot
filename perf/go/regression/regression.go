@@ -93,6 +93,7 @@ type Regression struct {
 	MedianAfter         float32               `json:"median_after"`
 	IsImprovement       bool                  `json:"is_improvement"`
 	ClusterType         string                `json:"cluster_type"`
+	LegacyKey           string                `json:"legacy_key"`
 	SubscriptionName    string                `json:"sub_name"`
 	TraceID             string                `json:"trace_id"`
 }

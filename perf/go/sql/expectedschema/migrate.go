@@ -41,18 +41,17 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNextSpanner = `
-	CREATE TABLE IF NOT EXISTS PublicTraceRules (
-		public_rule_expr TEXT PRIMARY KEY,
-		createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-	);
-	ALTER TABLE TraceParams ADD COLUMN is_public BOOL DEFAULT FALSE;
+	ALTER TABLE Regressions2 ADD COLUMN legacy_key TEXT;
+	CREATE INDEX IF NOT EXISTS by_legacy_key ON Regressions2(legacy_key);
+	ALTER TABLE RegressionsShortcuts ADD COLUMN is_legacy BOOLEAN DEFAULT FALSE;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLiveSpanner = `
-	DROP TABLE IF EXISTS PublicTraceRules;
-	ALTER TABLE TraceParams DROP COLUMN is_public;
+	ALTER TABLE RegressionsShortcuts DROP COLUMN is_legacy;
+	DROP INDEX IF EXISTS by_legacy_key;
+	ALTER TABLE Regressions2 DROP COLUMN legacy_key;
 `
 
 // This function will check whether there's a new schema checked-in,

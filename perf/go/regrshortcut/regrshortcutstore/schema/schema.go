@@ -7,4 +7,6 @@ type RegressionsShortcutSchema struct {
 
 	// IDs of regressions this shortcut is leading to
 	AnomalyIDs []string `sql:"anomaly_ids TEXT ARRAY"`
+
+	IsLegacy bool `sql:"is_legacy BOOLEAN DEFAULT FALSE"`
 }
