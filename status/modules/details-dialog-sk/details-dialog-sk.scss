@@ -66,12 +66,10 @@ details-dialog-sk {
   }
 
   .task-success {
-    background-color: var(--success);
-    color: var(--on-success);
+    border-left: 5px solid var(--success);
   }
 
   .task-failure {
-    background-color: var(--failure);
-    color: var(--on-failure);
+    border-left: 5px solid var(--failure);
   }
 }

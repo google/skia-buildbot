@@ -8,7 +8,6 @@ import { expectLinks, setUpElementUnderTest } from '../../../infra-sk/modules/te
 import { comment, commit, commitsByHash, task, taskWithCustomExecutor } from './test_data';
 import { SetTestSettings } from '../settings';
 import { taskDriverData } from '../../../infra-sk/modules/task-driver-sk/test_data';
-import { taskSummaryData } from '../../../infra-sk/modules/task-summary-sk/test_data';
 
 describe('details-dialog-sk', () => {
   const newInstance = setUpElementUnderTest<DetailsDialogSk>('details-dialog-sk');
@@ -65,15 +64,21 @@ describe('details-dialog-sk', () => {
   });
 
   it('displays tasks with task summary', async () => {
-    fetchMock.getOnce('path:/json/task-summary/999990', taskSummaryData);
-    fetchMock.getOnce('path:/json/td/999990', taskDriverData);
+    fetchMock.getOnce('path:/json/task-summary/999990', {
+      analysis: 'task failed due to an error!',
+      errorMessage: 'test XYZ failed',
+    });
+    fetchMock.getOnce('path:/json/td/999990', {
+      status: 404,
+      body: { error: 'Not Found' },
+    });
     element.displayTask(task, [comment], commitsByHash);
     await fetchMock.flush(true);
 
     expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
-    // No simple title with status, we have the task-summary-sk instead.
-    expect($('.task-failure', element)).to.have.length(0);
-    expect($('task-summary-sk', element)).to.have.length(1);
+    // The task summary has an error message which, in addition to the task
+    // status row, gives us two elements with class `task-failure`.
+    expect($('.task-failure', element)).to.have.length(2);
     expect($('task-driver-sk', element)).to.have.length(0); // No task driver displayed.
     // 3 sections, seperated by lines.
     expect($('hr', element)).to.have.length(1);
@@ -85,6 +90,25 @@ describe('details-dialog-sk', () => {
     fetchMock.getOnce('path:/json/task-summary/999990', {
       status: 404,
       body: { error: 'Not Found' },
+    });
+    fetchMock.getOnce('path:/json/td/999990', taskDriverData);
+    element.displayTask(task, [comment], commitsByHash);
+    await fetchMock.flush(true);
+
+    expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
+    // No simple title with status, we have the task-driver-sk instead.
+    expect($('.task-failure', element)).to.have.length(0);
+    expect($('task-driver-sk', element)).to.have.length(1);
+    // 3 sections, seperated by lines.
+    expect($('hr', element)).to.have.length(1);
+    expect($('table.blamelist tr', element)).to.have.length(2);
+    expect($('table.comments tr.comment', element)).to.have.length(1);
+  });
+
+  it('displays tasks with summary and taskdriver', async () => {
+    fetchMock.getOnce('path:/json/task-summary/999990', {
+      analysis: 'task failed due to an error!',
+      errorMessage: 'test XYZ failed',
     });
     fetchMock.getOnce('path:/json/td/999990', taskDriverData);
     element.displayTask(task, [comment], commitsByHash);

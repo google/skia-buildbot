@@ -24,8 +24,13 @@ import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/content-copy-icon-sk';
 import '../../../elements-sk/modules/icons/launch-icon-sk';
 import '../../../infra-sk/modules/task-driver-sk';
-import '../../../infra-sk/modules/task-summary-sk';
 import { Status } from '../../../infra-sk/modules/json';
+
+// TODO(borenet): Consider using go2ts to generate this and other types.
+export interface TaskSummary {
+  analysis?: string;
+  errorMessage?: string;
+}
 
 // Type defining the text and action of the upper-right button of the dialog.
 // For reverts of commits and re-running of tasks.
@@ -145,7 +150,24 @@ export class DetailsDialogSk extends ElementSk {
     };
     const summary = fetch(`/json/task-summary/${task.id}`)
       .then(jsonOrThrow)
-      .then((summary) => html`<br /><task-summary-sk .data=${summary}></task-summary-sk>`);
+      .then(
+        (s: TaskSummary) => html`
+          ${s.errorMessage
+            ? html`<tr>
+                <td><b>Error Message:</b></td>
+                <td class="${`task-${(task.status || 'PENDING').toLowerCase()}`}">
+                  <code> ${s.errorMessage} </code>
+                </td>
+              </tr>`
+            : html``}
+          ${s.analysis
+            ? html`<tr>
+                <td>Analysis:</td>
+                <td>${s.analysis}</td>
+              </tr>`
+            : html``}
+        `
+      );
     const td = fetch(`/json/td/${task.id}`)
       .then(jsonOrThrow)
       .then(
@@ -154,7 +176,6 @@ export class DetailsDialogSk extends ElementSk {
     // We don't catch failures, since we don't want the promise to resolve (and be used below)
     // unless the task-driver-sk has data.
     this.titleSection = html`${until(
-      summary,
       td,
       html`
         <h3>
@@ -172,6 +193,7 @@ export class DetailsDialogSk extends ElementSk {
               <td>Status:</td>
               <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>${task.status}</td>
             </tr>
+            ${until(summary, html``)}
             <tr>
               <td>Context:</td>
               <td>
