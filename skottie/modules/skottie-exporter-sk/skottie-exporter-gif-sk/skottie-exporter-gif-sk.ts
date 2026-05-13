@@ -250,7 +250,7 @@ export class SkottieExporterGifSk extends SkottieExporterBaseSk {
     await this._frameCollector.start();
     this.updateProgress({ ratio: 0.01, message: '' });
     const data = await this.generateGIF(player, ffmpeg);
-    this.complete(data ? URL.createObjectURL(new Blob([data])) : '');
+    this.complete(data ? URL.createObjectURL(new Blob([data as Uint8Array<ArrayBuffer>])) : '');
   }
 
   get renderState() {

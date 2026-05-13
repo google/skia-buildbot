@@ -227,7 +227,7 @@ export class DebuggerAppSk extends ElementSk {
       this.resetBreakpointGutter();
       this._render();
     } catch (ex) {
-      if (reportErrors ?? ErrorReporting.Yes) {
+      if (reportErrors !== ErrorReporting.No) {
         this.codeMirror!.setValue(ex instanceof Error ? ex.message : String(ex));
       }
     }

@@ -85,6 +85,7 @@ rules_ts_ext = use_extension(
     dev_dependency = True,
 )
 rules_ts_ext.deps(
+    ts_integrity = "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
     ts_version_from = "//:package.json",
 )
 use_repo(rules_ts_ext, "npm_typescript")
