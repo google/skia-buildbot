@@ -111,10 +111,13 @@ func NewTriageApi(loginProvider alogin.Login, cpTriageBackend TriageBackend, sql
 }
 
 func cleanErrorMsg(err error) string {
+	// For some reason, errors.As doesn't work with the type below.
 	if wrapper, ok := err.(*skerr.ErrorWithContext); ok {
 		if len(wrapper.Context) > 0 {
 			return wrapper.Context[len(wrapper.Context)-1]
 		}
+		// This extracts error message WITHOUT stacktrace from skerr.Fmt
+		return wrapper.Wrapped.Error()
 	}
 	return err.Error()
 }
