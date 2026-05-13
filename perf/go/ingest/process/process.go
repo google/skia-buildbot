@@ -223,7 +223,6 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 	writeFailed := false
 	for {
 		// Write data to the trace store.
-		var err error = nil
 		err = w.store.WriteTraces(ctx, commitNumber, params, values, ps, f.Name, time.Now())
 		if err == nil {
 			break
@@ -238,6 +237,7 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 			// The timeout is already significantly high. If the write traces timed out,
 			// it will likely timeout on a retry. Let's error out early in that case.
 			sklog.Errorf("Timed out while writing traces from %q", f.Name)
+			writeFailed = true
 			break
 		}
 	}

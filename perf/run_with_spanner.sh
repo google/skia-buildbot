@@ -30,6 +30,7 @@ fi
 echo "Using the following params: -p=$p -i=$i -d=$d -config=$config -domain=$domain -repo=$repo"
 # Now let's run pgadapter connected to the supplied spanner database.
 sudo docker run -d -p 127.0.0.1:5432:5432 \
+  -e JAVA_TOOL_OPTIONS="-Xms2g -Xmx2g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError" \
   -v $HOME/.config/gcloud/application_default_credentials.json:/acct_credentials.json \
   gcr.io/cloud-spanner-pg-adapter/pgadapter:latest \
   -p $p -i $i -d $d -c /acct_credentials.json -x

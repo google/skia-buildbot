@@ -432,6 +432,7 @@ echo "Starting pgadapter on port $PG_PORT..."
 $DOCKER_CMD run -d --rm --name "$CONTAINER_NAME" -p 127.0.0.1:$PG_PORT:5432 \
   -e GOOGLE_CLOUD_PROJECT="$PROJECT" \
   -e GOOGLE_CLOUD_QUOTA_PROJECT="$PROJECT" \
+  -e JAVA_TOOL_OPTIONS="-Xms2g -Xmx2g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError" \
   -v "$ADC_FILE":/acct_credentials.json \
   gcr.io/cloud-spanner-pg-adapter/pgadapter:latest \
   -p "$PROJECT" -i "$SPANNER_INSTANCE" -d "$DATABASE" \
