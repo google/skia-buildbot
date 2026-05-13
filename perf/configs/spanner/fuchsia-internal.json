@@ -24,7 +24,8 @@
       "tile_size": 256
     },
     "experiments": {
-      "regressions_trace_id_field": true
+      "regressions_trace_id_field": true,
+      "override_bug_component": true
     },
     "ingestion_config": {
       "source_config": {
@@ -43,6 +44,14 @@
       "notification_type": "issuetracker",
       "issue_tracker_api_key_secret_project": "skia-infra-public",
       "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    },
+    "maintenance_config": {
+      "gitiles_repo_url": "https://chrome-internal.googlesource.com/infra/infra_internal",
+      "sheriff_config_path": "infra/config/generated/skia-sheriff-configs.cfg",
+      "fallback_to_lucicfg": true
+    },
+    "anomaly_config": {
+      "use_anomaly_localization": true
     },
     "git_repo_config": {
       "provider": "gitiles",
@@ -78,11 +87,15 @@
       "skip_commit_detail_display": true,
       "show_json_file_display": true
     },
+    "enable_sheriff_config": true,
     "optimize_sqltracestore": true,
     "show_triage_link": true,
     "new_alerts_page": true,
     "show_bisect_btn": true,
+    "fetch_anomalies_from_sql": true,
+    "switch_between_anomaly_sources": true,
     "use_regression2_schema": true,
     "trace_format": "chrome",
-    "default_to_manual_plot_mode": true
+    "default_to_manual_plot_mode": true,
+    "allow_multiple_regressions_per_alert_id": true
   }
