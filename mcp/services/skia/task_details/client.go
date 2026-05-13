@@ -116,7 +116,7 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 	if task == nil {
 		return nil, skerr.Fmt("No such task with ID %s", taskID)
 	}
-	step, err := c.logdog.GetBuildSteps(ctx, logdogProject, fixupSwarmingTaskID(taskID))
+	step, err := c.logdog.GetBuildSteps(ctx, logdogProject, fixupSwarmingTaskID(task.SwarmingTaskId))
 	if err == nil {
 		res.Recipe = step
 		// Populate SwarmingTaskID in case it's needed for log retrieval.
