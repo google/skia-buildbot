@@ -45,8 +45,8 @@ export class DetailsDialogSk extends ElementSk {
   // before rendering.
   private static template = (el: DetailsDialogSk) => html`
     <div class="dialog" @click=${(e: Event) => e.stopPropagation()}>
-      <header>
-        <div>${el.titleSection}</div>
+      <div class="header-line ${until(el.headerClass as any, '')}">
+        <div class="titleContainer">${el.titleSection}</div>
         <div class="spacer"></div>
         ${el.actionButton
           ? html`<button class="action" @click=${el.actionButton.handler}>
@@ -56,7 +56,7 @@ export class DetailsDialogSk extends ElementSk {
         <button class="close" @click=${() => el.close()}>
           <close-icon-sk></close-icon-sk>
         </button>
-      </header>
+      </div>
       ${el.detailsSection
         ? [
             el.detailsSection,
@@ -93,6 +93,8 @@ export class DetailsDialogSk extends ElementSk {
   private _repo: string = '';
 
   private commentData?: CommentData;
+
+  private headerClass: string | Promise<string> = '';
 
   constructor() {
     super(DetailsDialogSk.template);
@@ -133,6 +135,7 @@ export class DetailsDialogSk extends ElementSk {
     this.detailsSection = null;
     this.showCommentsFlaky = false;
     this.showCommentsIgnoreFailure = false;
+    this.headerClass = '';
     const commentInput = $$('comments-sk input-sk', this) as HTMLInputElement;
     if (commentInput) {
       commentInput.value = '';
@@ -141,6 +144,12 @@ export class DetailsDialogSk extends ElementSk {
 
   displayTask(task: Task, comments: Array<Comment>, commitsByHash: Map<string, Commit>) {
     this.reset();
+    if (task.status !== 'SUCCESS') {
+      this.actionButton = {
+        buttonText: 'Re-run Job',
+        handler: () => this.rerunJob(task),
+      };
+    }
     this.commentData = {
       comments: comments,
       taskId: task.id,
@@ -155,28 +164,29 @@ export class DetailsDialogSk extends ElementSk {
           ${s.errorMessage
             ? html`<tr>
                 <td><b>Error Message:</b></td>
-                <td class="${`task-${(task.status || 'PENDING').toLowerCase()}`}">
-                  <code> ${s.errorMessage} </code>
+                <td class="pre ${`task-${(task.status || 'PENDING').toLowerCase()}`}">
+                  <code>${s.errorMessage}</code>
                 </td>
               </tr>`
             : html``}
           ${s.analysis
             ? html`<tr>
                 <td>Analysis:</td>
-                <td>${s.analysis}</td>
+                <td class="pre">${s.analysis}</td>
               </tr>`
             : html``}
         `
-      );
+      )
+      .catch(() => html``);
     const td = fetch(`/json/td/${task.id}`)
       .then(jsonOrThrow)
       .then(
         (td) => html`<br /><task-driver-sk id="tdStatus" .data=${td} embedded></task-driver-sk>`
       );
-    // We don't catch failures, since we don't want the promise to resolve (and be used below)
-    // unless the task-driver-sk has data.
+
+    this.headerClass = td.then(() => 'floating').catch(() => '');
     this.titleSection = html`${until(
-      td,
+      td.then(() => html``),
       html`
         <h3>
           <span>${task.name}</span
@@ -187,49 +197,54 @@ export class DetailsDialogSk extends ElementSk {
             ><launch-icon-sk></launch-icon-sk>
           </a>
         </h3>
-        <div>
-          <table>
-            <tr>
-              <td>Status:</td>
-              <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>${task.status}</td>
-            </tr>
-            ${until(summary, html``)}
-            <tr>
-              <td>Context:</td>
-              <td>
-                <a href=${this.taskUrl(task)} target="_blank" rel="noopener noreferrer">
-                  View on Task Scheduler
-                </a>
-              </td>
-            </tr>
-            <tr>
-              <td>This Task:</td>
-              <td>
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href="${this.swarmingTaskUrl(task.taskExecutor, task.swarmingTaskId)}">
-                  View on Swarming
-                </a>
-              </td>
-            </tr>
-            <tr>
-              <td>Other Tasks Like This:</td>
-              <td>
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href=${this.swarmingTaskListUrl(task.taskExecutor, task.name)}>
-                  View on Swarming
-                </a>
-              </td>
-            </tr>
-          </table>
-        </div>
       `
     )}`;
 
     this.detailsSection = html`
+      ${until(
+        td,
+        html`
+          <div>
+            <table class="task-info">
+              <tr>
+                <td>Status:</td>
+                <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>${task.status}</td>
+              </tr>
+              ${until(summary, html``)}
+              <tr>
+                <td>Context:</td>
+                <td>
+                  <a href=${this.taskUrl(task)} target="_blank" rel="noopener noreferrer">
+                    View on Task Scheduler
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td>This Task:</td>
+                <td>
+                  <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href="${this.swarmingTaskUrl(task.taskExecutor, task.swarmingTaskId)}">
+                    View on Swarming
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td>Other Tasks Like This:</td>
+                <td>
+                  <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href=${this.swarmingTaskListUrl(task.taskExecutor, task.name)}>
+                    View on Swarming
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </div>
+        `
+      )}
       <h3>Blamelist</h3>
       <table class="blamelist">
         ${task.commits?.map((hash: string) => {
@@ -246,11 +261,6 @@ export class DetailsDialogSk extends ElementSk {
         })}
       </table>
     `;
-
-    this.actionButton = {
-      buttonText: 'Re-run Job',
-      handler: () => this.rerunJob(task),
-    };
     this.open();
   }
 
@@ -265,19 +275,27 @@ export class DetailsDialogSk extends ElementSk {
       taskSpec: taskspec,
       repo: this.repo,
     };
-    this.titleSection = html` <h3>
-      <a
-        href="${this.swarmingTaskListUrl(taskExecutor, taskspec)}"
-        target="_blank"
-        rel="noopener noreferrer">
-        ${taskspec}
-      </a>
-    </h3>`;
+    this.titleSection = html`
+      <h3>
+        <a
+          href="${this.swarmingTaskListUrl(taskExecutor, taskspec)}"
+          target="_blank"
+          rel="noopener noreferrer">
+          ${taskspec}
+        </a>
+      </h3>
+    `;
     this.open();
   }
 
   displayCommit(commit: Commit, comments: Array<Comment>) {
     this.reset();
+    if (commit.issue) {
+      this.actionButton = {
+        buttonText: 'Revert',
+        handler: () => this.revertCommit(commit),
+      };
+    }
     this.showCommentsIgnoreFailure = true;
     this.commentData = {
       comments: comments,
@@ -310,12 +328,6 @@ export class DetailsDialogSk extends ElementSk {
       <h3>${escapeAndLinkify(commit.subject)}</h3>
       <p>${escapeAndLinkify(commit.body)}</p>
     `;
-    if (commit.issue) {
-      this.actionButton = {
-        buttonText: 'Revert',
-        handler: () => this.revertCommit(commit),
-      };
-    }
     this.open();
   }
 

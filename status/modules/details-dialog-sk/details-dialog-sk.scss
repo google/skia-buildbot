@@ -56,6 +56,43 @@ details-dialog-sk {
     cursor: pointer;
   }
 
+  .pre {
+    white-space: pre-wrap;
+  }
+
+  .header-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px;
+
+    &.floating {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      z-index: 10;
+      width: auto;
+      pointer-events: none;
+      > * {
+        pointer-events: auto;
+      }
+    }
+
+    > * {
+      margin: 0;
+    }
+
+    .spacer {
+      flex-grow: 1;
+    }
+
+    button.action {
+      padding: 10px 4px;
+    }
+  }
+
   // The title container is sometimes wide due to child elements farther down the dialog being wide
   // (i.e. task-driver-sk). Don't let it get in the way of the close button.
   .titleContainer {
@@ -71,5 +108,20 @@ details-dialog-sk {
 
   .task-failure {
     border-left: 5px solid var(--failure);
+  }
+
+  table.task-info,
+  table.blamelist {
+    width: 100%;
+
+    td:first-child {
+      white-space: nowrap;
+      width: 0.1%;
+    }
+
+    td:last-child {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
   }
 }
