@@ -961,7 +961,7 @@
         "bzlTransitiveDigest": "CeK+NldP1nUPjYpJZMVsvmIIJKmHgNzDaZXR4tV8UcM=",
         "usagesDigest": "ELk2NwCdsNRciFj9dVciSXkk0k6usD+KefHwmcxQHPg=",
         "recordedFileInputs": {
-          "@@//package.json": "a2894a2fbbd526581df0bd9dd2ae0669f04c51339b07646e53448c09e1d4765d",
+          "@@//package.json": "9a4cfea187a6ddb076a4a02e351e6fb0c62e9ac6dc73cd442cd74898b7ebfb02",
           "@@rules_browsers+//package.json": "0d8cc69cc2c9ecf0eff677fa86843ad9146eca22462aace022a09c3adcb979f8"
         },
         "recordedDirentsInputs": {},
@@ -1642,7 +1642,7 @@
     "@@rules_nodejs+//nodejs:extensions.bzl%node": {
       "general": {
         "bzlTransitiveDigest": "hdICB1K7PX7oWtO8oksVTBDNt6xxiNERpcO4Yxoa0Gc=",
-        "usagesDigest": "DXPQIRoser96RS1IlW/lkwIO2Odof1gxjl6eNf6j42M=",
+        "usagesDigest": "1rEcTEZEwev+3snBgwUbdFDtmr8idu3ijo6S7kCEPw0=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1655,7 +1655,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.15.0",
+              "node_version": "20.19.0",
               "include_headers": false,
               "platform": "linux_amd64"
             }
@@ -1668,7 +1668,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.15.0",
+              "node_version": "20.19.0",
               "include_headers": false,
               "platform": "linux_arm64"
             }
@@ -1681,7 +1681,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.15.0",
+              "node_version": "20.19.0",
               "include_headers": false,
               "platform": "linux_s390x"
             }
@@ -1694,7 +1694,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.15.0",
+              "node_version": "20.19.0",
               "include_headers": false,
               "platform": "linux_ppc64le"
             }
@@ -1707,7 +1707,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.15.0",
+              "node_version": "20.19.0",
               "include_headers": false,
               "platform": "darwin_amd64"
             }
@@ -1720,7 +1720,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.15.0",
+              "node_version": "20.19.0",
               "include_headers": false,
               "platform": "darwin_arm64"
             }
@@ -1733,7 +1733,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.15.0",
+              "node_version": "20.19.0",
               "include_headers": false,
               "platform": "windows_amd64"
             }
@@ -1746,7 +1746,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.15.0",
+              "node_version": "20.19.0",
               "include_headers": false,
               "platform": "windows_arm64"
             }
