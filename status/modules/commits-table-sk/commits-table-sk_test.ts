@@ -170,6 +170,34 @@ describe('commits-table-sk', () => {
     ]);
   });
 
+  it('sorts columns alphabetically', async () => {
+    const resp = JSON.parse(JSON.stringify(incrementalResponse0));
+    resp.update.tasks = [
+      { name: 'Z-Category-Task', status: 'SUCCESS', commits: ['abc123'], id: 'taskZ' },
+      { name: 'A-Category-Task', status: 'SUCCESS', commits: ['abc123'], id: 'taskA' },
+      { name: 'M-Category-Task', status: 'SUCCESS', commits: ['abc123'], id: 'taskM' },
+    ];
+    const table = await setupWithResponse(resp);
+    const taskSpecs = $('.task-spec', table).map((el) => el.getAttribute('title'));
+    expect(taskSpecs).to.deep.equal(['A-Category-Task', 'M-Category-Task', 'Z-Category-Task']);
+
+    const categories = $('.category:not(.task-spec)', table).map((el) =>
+      (el as HTMLElement).innerText.trim()
+    );
+    // Categories and subcategories should also be sorted.
+    // Based on split('-'), 'A-Category-Task' has category 'A', subcategory 'Category'.
+    expect(categories).to.include('A');
+    expect(categories).to.include('M');
+    expect(categories).to.include('Z');
+
+    // Verify the relative order of categories in the DOM.
+    // They are rendered in the order they appear in the categories map.
+    const categoryDivs = $('.category:not(.task-spec)', table)
+      .filter((el) => !(el as HTMLElement).innerText.includes('Category')) // Filter out subcategories
+      .map((el) => (el as HTMLElement).innerText.trim());
+    expect(categoryDivs).to.deep.equal(['A', 'M', 'Z']);
+  });
+
   it('incorporates incremental update', async () => {
     const mocker = SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
     const ep = eventPromise('end-task');

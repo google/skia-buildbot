@@ -973,43 +973,48 @@ export class CommitsTableSk extends ElementSk {
     const searchRegex = this._filter === 'Search' ? new RegExp(this._search, 'i') : undefined;
     // We walk category/subcategory/taskspec info 'depth-first' so filtered out taskspecs can
     // correctly filter out unnecessary subcategories, etc.
-    this.data.categories.forEach((categoryDetails: CategorySpec, categoryName: string) => {
+    const sortedCategoryNames = Array.from(this.data.categories.keys()).sort();
+    sortedCategoryNames.forEach((categoryName: string) => {
+      const categoryDetails = this.data.categories.get(categoryName)!;
       let subcategoryStartCol = categoryStartCol;
-      categoryDetails.taskSpecsBySubCategory.forEach(
-        (taskSpecs: Array<string>, subcategoryName: string) => {
-          let taskSpecStartCol = subcategoryStartCol;
-          taskSpecs
-            .filter((ts) => this.includeTaskSpec(ts, searchRegex))
-            .forEach((taskSpec: string) => {
-              taskSpecStartCols.set(taskSpec, taskSpecStartCol);
-              res.push(
-                html`<div
-                  class="category task-spec"
-                  style=${this.gridLocation(TASKSPEC_START_ROW, taskSpecStartCol++)}
-                  title=${taskSpec}>
-                  ${this.taskSpecIcons(taskSpec)}
-                </div>`
-              );
-            });
-          if (taskSpecStartCol !== subcategoryStartCol) {
-            // Added at least one TaskSpec in this subcategory, so add a Subcategory header.
-            const subcategoryEndCol = taskSpecStartCol;
+      const sortedSubcategoryNames = Array.from(
+        categoryDetails.taskSpecsBySubCategory.keys()
+      ).sort();
+      sortedSubcategoryNames.forEach((subcategoryName: string) => {
+        const taskSpecs = categoryDetails.taskSpecsBySubCategory.get(subcategoryName)!;
+        let taskSpecStartCol = subcategoryStartCol;
+        taskSpecs
+          .sort()
+          .filter((ts) => this.includeTaskSpec(ts, searchRegex))
+          .forEach((taskSpec: string) => {
+            taskSpecStartCols.set(taskSpec, taskSpecStartCol);
             res.push(
               html`<div
-                class="category"
-                style=${this.gridLocation(
-                  SUBCATEGORY_START_ROW,
-                  subcategoryStartCol,
-                  SUBCATEGORY_START_ROW + 1,
-                  subcategoryEndCol
-                )}>
-                ${subcategoryName}
+                class="category task-spec"
+                style=${this.gridLocation(TASKSPEC_START_ROW, taskSpecStartCol++)}
+                title=${taskSpec}>
+                ${this.taskSpecIcons(taskSpec)}
               </div>`
             );
-            subcategoryStartCol = subcategoryEndCol;
-          }
+          });
+        if (taskSpecStartCol !== subcategoryStartCol) {
+          // Added at least one TaskSpec in this subcategory, so add a Subcategory header.
+          const subcategoryEndCol = taskSpecStartCol;
+          res.push(
+            html`<div
+              class="category"
+              style=${this.gridLocation(
+                SUBCATEGORY_START_ROW,
+                subcategoryStartCol,
+                SUBCATEGORY_START_ROW + 1,
+                subcategoryEndCol
+              )}>
+              ${subcategoryName}
+            </div>`
+          );
+          subcategoryStartCol = subcategoryEndCol;
         }
-      );
+      });
       if (subcategoryStartCol !== categoryStartCol) {
         // Added at least one Subcategory in this category, so add a Category header.
         const categoryEndCol = subcategoryStartCol;
