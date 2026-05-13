@@ -77,7 +77,7 @@ func TestGetCommand_CrossbenchWithExtraArgs_TestCommand(t *testing.T) {
 }
 
 func TestReplaceNonAlphaNumeric_WorksAsIntended(t *testing.T) {
-	test := func(name, story string, expected string) {
+	test := func(name, story, expected string) {
 		t.Run(story, func(t *testing.T) {
 			storyRegex := replaceNonAlphaNumeric(story)
 			assert.Equal(t, expected, storyRegex)
@@ -101,4 +101,40 @@ func TestReplaceNonAlphaNumeric_WorksAsIntended(t *testing.T) {
 	story = "!@#$%^&*()-=+[]{}./,`~_:?"
 	expected = "........................."
 	test("random non alpha numberic characters are covered", story, expected)
+}
+
+func TestGetCommand_TelemetryWithBrowserSpecificExtraArgs_AutoWraps(t *testing.T) {
+	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
+	b, err := NewBenchmarkTest(c, "win-11-perf", "release", "speedometer3.crossbench", "default", "", []string{
+		"-v",
+		"--enable-features=IdbSqliteOnDiskRollout:stage/UseLevelDbOnly",
+		"--js-flags=--max-opt=0",
+	})
+	assert.NoError(t, err)
+
+	cmd := b.GetCommand()
+
+	assert.Contains(t, cmd, "-v")
+	assert.Contains(t, cmd, "--extra-browser-args=--enable-features=IdbSqliteOnDiskRollout:stage/UseLevelDbOnly --js-flags=--max-opt=0")
+}
+
+func TestGetCommand_CBBRunnerExtraArgs_NotWrapped(t *testing.T) {
+	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
+	b, err := NewBenchmarkTest(c, "win-11-perf", "release", "speedometer3.crossbench", "default", "", []string{
+		"--reinstall",
+		"--variations-test-seed-path",
+		"seed.json",
+		"--disable-field-trial-config",
+	})
+	assert.NoError(t, err)
+
+	cmd := b.GetCommand()
+
+	assert.Contains(t, cmd, "--reinstall")
+	assert.Contains(t, cmd, "--variations-test-seed-path")
+	assert.Contains(t, cmd, "seed.json")
+	assert.Contains(t, cmd, "--disable-field-trial-config")
+	for _, arg := range cmd {
+		assert.NotContains(t, arg, "--extra-browser-args")
+	}
 }

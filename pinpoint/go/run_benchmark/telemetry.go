@@ -3,6 +3,7 @@ package run_benchmark
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"go.skia.org/infra/go/util"
 )
@@ -146,7 +147,7 @@ func (t *telemetryTest) GetTelemetryExtraArgs() []string {
 		cmd = append(cmd, "--results-label", t.commit[:7])
 	}
 
-	cmd = append(cmd, t.extraArgs...)
+	cmd = append(cmd, formatExtraArgs(t.extraArgs)...)
 
 	return cmd
 }
@@ -158,7 +159,7 @@ func (t *telemetryTest) GetCrossbenchExtraArgs(benchmark string) []string {
 	cmd = append(cmd, "--browser="+t.browser)
 	cmd = append(cmd, "-v")
 	cmd = append(cmd, "--isolated-script-test-output", "${ISOLATED_OUTDIR}/output.json")
-	cmd = append(cmd, t.extraArgs...)
+	cmd = append(cmd, formatExtraArgs(t.extraArgs)...)
 
 	return cmd
 }
@@ -170,6 +171,73 @@ func (t *telemetryTest) GetCrossbenchExtraArgs(benchmark string) []string {
 // browse_media so this removes this ambiguity.
 // This replacement matches behavior in legacy Pinpoint
 func replaceNonAlphaNumeric(s string) string {
-	var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]`)
+	nonAlphanumericRegex := regexp.MustCompile(`[^a-zA-Z0-9 ]`)
 	return nonAlphanumericRegex.ReplaceAllString(s, ".")
+}
+
+var knownTelemetryOptions = []string{
+	"-v",
+	"--upload-results",
+	"--output-format",
+	"--isolated-script-test-output",
+	"--benchmarks",
+	"--story-filter",
+	"--story-tag-filter",
+	"--pageset-repeat",
+	"--browser",
+	"--results-label",
+	"--non-telemetry",
+	"--gtest-benchmark-name",
+	"--test-launcher-jobs",
+	"--test-launcher-retry-limit",
+	"--xvfb",
+	"--full-performance-run",
+	"--ui-test-action-timeout",
+	"--ui-test-action-max-timeout",
+	"--test-launcher-timeout",
+	"--gtest_filter",
+	"-d",
+	"--official-browser",
+	"--variations-test-seed-path",
+	"--reinstall",
+	"--disable-field-trial-config",
+	"--enable-field-trial-config",
+}
+
+func formatExtraArgs(extraArgs []string) []string {
+	if len(extraArgs) == 0 {
+		return nil
+	}
+
+	telemetryArgs := []string{}
+	browserArgs := []string{}
+
+	isKnown := func(arg string) bool {
+		for _, opt := range knownTelemetryOptions {
+			if arg == opt || strings.HasPrefix(arg, opt+"=") {
+				return true
+			}
+		}
+		return false
+	}
+
+	for i := 0; i < len(extraArgs); i++ {
+		arg := extraArgs[i]
+		if isKnown(arg) {
+			telemetryArgs = append(telemetryArgs, arg)
+			if !strings.Contains(arg, "=") && i+1 < len(extraArgs) && !strings.HasPrefix(extraArgs[i+1], "-") {
+				telemetryArgs = append(telemetryArgs, extraArgs[i+1])
+				i++
+			}
+		} else {
+			browserArgs = append(browserArgs, arg)
+		}
+	}
+
+	if len(browserArgs) > 0 {
+		combinedBrowserArgs := strings.Join(browserArgs, " ")
+		telemetryArgs = append(telemetryArgs, fmt.Sprintf("--extra-browser-args=%s", combinedBrowserArgs))
+	}
+
+	return telemetryArgs
 }
