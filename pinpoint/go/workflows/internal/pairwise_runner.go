@@ -256,16 +256,17 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	rightRunCh := workflow.NewBufferedChannel(ctx, int(pc.Iterations))
 	ec := workflow.NewBufferedChannel(ctx, int(pc.Iterations))
 	wg := workflow.NewWaitGroup(ctx)
-	wg.Add(int(pc.Iterations))
 
 	var leftBuild, rightBuild *workflows.Build
-	var err error
-	// TODO(b/332391612): Build leftBuild and rightBuild in parallel to save time.
+	var leftErr, rightErr error
+
 	if pc.LeftCAS == nil {
-		leftBuild, err = buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.LeftCommit)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.LeftCommit.Main.String())
-		}
+		wg.Add(1)
+		workflow.Go(ctx, func(gCtx workflow.Context) {
+			defer wg.Done()
+			bctx := workflow.WithChildOptions(gCtx, buildWorkflowOptions)
+			leftBuild, leftErr = buildChrome(bctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.LeftCommit)
+		})
 	} else {
 		leftBuild = &workflows.Build{
 			CAS: pc.LeftCAS,
@@ -273,14 +274,25 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	}
 
 	if pc.RightCAS == nil {
-		rightBuild, err = buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.RightCommit)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.RightCommit.Main.String())
-		}
+		wg.Add(1)
+		workflow.Go(ctx, func(gCtx workflow.Context) {
+			defer wg.Done()
+			bctx := workflow.WithChildOptions(gCtx, buildWorkflowOptions)
+			rightBuild, rightErr = buildChrome(bctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.RightCommit)
+		})
 	} else {
 		rightBuild = &workflows.Build{
 			CAS: pc.RightCAS,
 		}
+	}
+
+	wg.Wait(ctx)
+
+	if leftErr != nil {
+		return nil, skerr.Wrapf(leftErr, "unable to build chrome for commit %s", pc.LeftCommit.Main.String())
+	}
+	if rightErr != nil {
+		return nil, skerr.Wrapf(rightErr, "unable to build chrome for commit %s", pc.RightCommit.Main.String())
 	}
 
 	// Pairwise workflow compares the performance of two versions of Chrome against each other.
@@ -290,6 +302,7 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	builds := []*workflows.Build{leftBuild, rightBuild}
 	runs := []workflow.Channel{leftRunCh, rightRunCh}
 
+	wg.Add(int(pc.Iterations))
 	for i := 0; i < int(pc.Iterations); i++ {
 		first := workflows.PairwiseOrder(pairOrder[i])
 		// TODO(b/327020123): Consider defining these maps directly using the key/value

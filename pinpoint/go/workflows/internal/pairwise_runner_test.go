@@ -783,3 +783,69 @@ func TestPairwiseCommitRunner_GivenEdgeCaseValues_ShouldHandleGracefully(t *test
 	}
 	env.AssertExpectations(t)
 }
+
+func TestPairwiseCommitRunner_BuildFails_ReturnsError(t *testing.T) {
+	const leftCommit = "573a50658f4301465569c3faf00a145093a1fe9b"
+	const rightCommit = "a633e198b79b2e0c83c72a3006cdffe642871e22"
+	const seed = int64(12312)
+	p := PairwiseCommitsRunnerParams{
+		SingleCommitRunnerParams: SingleCommitRunnerParams{
+			PinpointJobID:     "179a34b2be0000",
+			BotConfig:         "linux-r350-perf",
+			Benchmark:         "blink-perf.css",
+			Story:             "gc-mini-tree.html",
+			Chart:             "gc-mini-tree",
+			AggregationMethod: "mean",
+			Iterations:        30,
+		},
+		Seed:        seed,
+		LeftCommit:  common.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
+		RightCommit: common.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
+	}
+	target, err := bot_configs.GetIsolateTarget(p.BotConfig, p.Benchmark)
+	require.NoError(t, err)
+
+	leftBuildChromeParams := workflows.BuildParams{
+		WorkflowID: p.PinpointJobID,
+		Device:     p.BotConfig,
+		Target:     target,
+		Commit:     p.LeftCommit,
+		Project:    "chromium",
+	}
+	rightBuildChromeParams := workflows.BuildParams{
+		WorkflowID: p.PinpointJobID,
+		Device:     p.BotConfig,
+		Target:     target,
+		Commit:     p.RightCommit,
+		Project:    "chromium",
+	}
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	env.RegisterWorkflowWithOptions(BuildWorkflow, workflow.RegisterOptions{Name: workflows.BuildChrome})
+
+	// Simulate Left build failure
+	env.OnWorkflow(workflows.BuildChrome, mock.Anything, leftBuildChromeParams).Return(nil, fmt.Errorf("failed to build Left chrome")).Once()
+	// Right build still runs since they are scheduled in parallel!
+	rightBuild := &workflows.Build{
+		BuildParams: workflows.BuildParams{
+			Commit: common.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
+		},
+		Status: buildbucketpb.Status_SUCCESS,
+		CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6", SizeBytes: 810}},
+	}
+	env.OnWorkflow(workflows.BuildChrome, mock.Anything, rightBuildChromeParams).Return(rightBuild, nil).Once()
+
+	freeBots := []string{"lin-1-h516--device1"}
+	env.OnActivity(FindAvailableBotsActivity, mock.Anything, p.BotConfig, p.Seed).Return(freeBots, nil).Once()
+
+	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, p)
+	require.True(t, env.IsWorkflowCompleted())
+
+	err = env.GetWorkflowError()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unable to build chrome for commit git_hash:\"573a506")
+
+	env.AssertExpectations(t)
+}
