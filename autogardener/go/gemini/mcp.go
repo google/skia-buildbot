@@ -59,7 +59,7 @@ func NewMCPClientWithClient(ctx context.Context, mcpServer string, httpClient *h
 
 // init (re)initializes the underlying MCP client.
 func (c *MCPClient) init(ctx context.Context) error {
-	metrics2.GetCounter("autogardener_reinit_count")
+	metrics2.GetCounter("autogardener_reinit_count").Inc(1)
 	sklog.Infof("initializing MCP server connection")
 
 	mcpClient, err := client.NewSSEMCPClient(c.mcpServer, transport.WithHTTPClient(c.httpClient))
