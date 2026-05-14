@@ -132,7 +132,7 @@ func (i *Ingester) ingestTask(ctx context.Context, task *ts_types.Task) error {
 	// If we already have a summary for this task, skip it.
 	taskSummary, err := i.db.GetTaskSummary(ctx, task.Id)
 	if err != nil {
-		return skerr.Wrap(err)
+		return skerr.Wrapf(err, "failed to ingest task %s", task.Id)
 	}
 	if taskSummary != nil {
 		return nil
@@ -141,10 +141,10 @@ func (i *Ingester) ingestTask(ctx context.Context, task *ts_types.Task) error {
 	// into the DB.
 	taskSummary, err = i.gemini.GetTaskSummary(ctx, task)
 	if err != nil {
-		return skerr.Wrap(err)
+		return skerr.Wrapf(err, "failed to ingest task %s", task.Id)
 	}
 	if err := i.db.PutTaskSummary(ctx, task.Id, taskSummary); err != nil {
-		return skerr.Wrap(err)
+		return skerr.Wrapf(err, "failed to ingest task %s", task.Id)
 	}
 	sklog.Infof("Ingested task %s", task.Id)
 	return nil
