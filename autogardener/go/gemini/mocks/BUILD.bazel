@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = ["Client.go"],
+    importpath = "go.skia.org/infra/autogardener/go/gemini/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autogardener/go/types",
+        "//task_scheduler/go/types",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

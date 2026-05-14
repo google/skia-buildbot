@@ -13,11 +13,15 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	ts_firestore "go.skia.org/infra/task_scheduler/go/db/firestore"
+	"go.skia.org/infra/task_scheduler/go/window"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
@@ -26,6 +30,9 @@ import (
 
 var (
 	// Flags
+	btInstance        = flag.String("bigtable-instance", "", "BigTable instance to use.")
+	btProject         = flag.String("bigtable-project", "", "GCE project to use for BigTable.")
+	gitstoreTable     = flag.String("gitstore-bt-table", "git-repos2", "BigTable table used for GitStore.")
 	port              = flag.String("port", ":8000", "HTTP service port.")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	gcpProject        = flag.String("project", "skia-infra-public", "GCP project to use for Gemini API billing")
@@ -46,9 +53,11 @@ var (
 )
 
 func main() {
+	const appName = "autogardener"
 	common.InitWithMust(
-		"autogardener",
+		appName,
 		common.PrometheusOpt(promPort),
+		common.StructuredLogging(local),
 	)
 
 	ctx := context.Background()
@@ -92,27 +101,62 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+
+	// Git repo setup.
+	btConf := &bt_gitstore.BTConfig{
+		ProjectID:  *btProject,
+		InstanceID: *btInstance,
+		TableID:    *gitstoreTable,
+		AppProfile: "status", // TODO(borenet): Using "autogardener" here results in a "Not Found" error.
+	}
+	repos, err := bt_gitstore.NewBTGitStoreMap(ctx, *repoURLs, btConf)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	// Task DB and Cache.
 	tsDB, err := ts_firestore.NewDBWithParams(ctx, *firestoreProject, *firestoreInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	ing, err := ingester.New(ctx, db, geminiClient, tsDB)
+	w, err := window.New(ctx, 4*24*time.Hour, *numCommits, repos)
+	if err != nil {
+		sklog.Fatalf("Failed to create time window: %s", err)
+	}
+	tCache, err := cache.NewTaskCache(ctx, tsDB, w, nil)
+	if err != nil {
+		sklog.Fatalf("Failed to create task cache: %s", err)
+	}
+	lv := metrics2.NewLiveness("autogardener_update")
+	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
+		failed := false
+		if err := repos.Update(ctx); err != nil {
+			sklog.Errorf("Failed to update repos: %s", err)
+			failed = true
+		}
+		if err := w.Update(ctx); err != nil {
+			sklog.Errorf("Failed to update window: %s", err)
+			failed = true
+		}
+		if err := tCache.Update(ctx); err != nil {
+			sklog.Errorf("Failed to update task cache")
+			failed = true
+		}
+		if !failed {
+			lv.Reset()
+		}
+
+	})
+
+	ing, err := ingester.New(ctx, db, geminiClient, repos, tCache, tsDB)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
 	sklog.Infof("Setup complete. Starting loop.")
+	for _, repoURL := range *repoURLs {
+		ing.StartIngestingTaskSummariesForRepo(ctx, repoURL, git.MainBranch, *numCommits)
+	}
 
-	// TODO(borenet): Once the initial ingestion is complete, it would be much
-	// better to maintain a queue and trigger task summary ingestion for each
-	// task as soon as it fails.
-	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
-		sklog.Infof("Ingesting tasks for %d repos.", len(*repoURLs))
-		for _, repoURL := range *repoURLs {
-			if err := ing.IngestTaskSummariesForRepo(ctx, repoURL, git.MainBranch, *numCommits); err != nil {
-				sklog.Errorf("failed ingesting tasks for repo %s: %s", repoURL, err)
-			}
-		}
-	})
 	httputils.RunHealthCheckServer(*port)
 }

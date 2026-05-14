@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/invopop/jsonschema"
@@ -19,8 +20,13 @@ import (
 	"google.golang.org/genai"
 )
 
-// Client provides high-level interactions with Gemini.
-type Client struct {
+// Client is an interface for the Gemini client, used for testing.
+type Client interface {
+	GetTaskSummary(ctx context.Context, task *ts_types.Task) (*types.TaskSummary, error)
+}
+
+// clientImpl provides high-level interactions with Gemini.
+type clientImpl struct {
 	client           *genai.Client
 	location         string
 	cheapModel       string
@@ -31,7 +37,8 @@ type Client struct {
 	project          string
 }
 
-func NewClient(ctx context.Context, project, location, cheapModel, expensiveModel, apiKey, mcpServer string, cheapRPM, cheapTPM, expensiveRPM, expensiveTPM int) (*Client, error) {
+// NewClient returns a Client instance.
+func NewClient(ctx context.Context, project, location, cheapModel, expensiveModel, apiKey, mcpServer string, cheapRPM, cheapTPM, expensiveRPM, expensiveTPM int) (Client, error) {
 	mcpClient, err := NewMCPClient(ctx, mcpServer)
 	if err != nil {
 		sklog.Fatal(err)
@@ -67,7 +74,7 @@ func NewClient(ctx context.Context, project, location, cheapModel, expensiveMode
 		return nil, skerr.Fmt("Expensive model %q not found.", expensiveModel)
 	}
 
-	return &Client{
+	return &clientImpl{
 		client:           genaiClient,
 		location:         location,
 		cheapModel:       cheapModel,
@@ -107,7 +114,7 @@ definitive report to developers.
 # Current Task
 `
 
-func (c *Client) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*types.TaskSummary, error) {
+func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*types.TaskSummary, error) {
 	// Retrieve the task steps so that the agent doesn't have to.
 	var taskSteps task_details.GetTaskStepsResult
 	if err := c.mcpClient.callToolJSON(ctx, "get_task_steps", map[string]interface{}{"task_id": task.Id}, &taskSteps); err != nil {
@@ -168,7 +175,7 @@ about any other tasks.
 	return &res, nil
 }
 
-func (c *Client) generate(ctx context.Context, prompt, model string, rl *rateLimiter, allowTools []string, result interface{}) error {
+func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rateLimiter, allowTools []string, result interface{}) error {
 	// Gemini doesn't use MCP tools directly. Rather, it returns requests to use
 	// tools as part of its response, expecting to see the results of those tool
 	// calls in our next message. Therefore, we need to repeatedly send messages
@@ -264,7 +271,7 @@ func (c *Client) generate(ctx context.Context, prompt, model string, rl *rateLim
 	}
 
 	// Only the first part of the first candidate seems to be relevant.
-	if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
+	if len(resp.Candidates) > 0 && resp.Candidates[0].Content != nil && len(resp.Candidates[0].Content.Parts) > 0 {
 		r := bytes.NewReader([]byte(resp.Candidates[0].Content.Parts[0].Text))
 		return skerr.Wrap(json.NewDecoder(r).Decode(result))
 	}
@@ -294,6 +301,7 @@ func listModels(ctx context.Context, client *genai.Client) ([]string, error) {
 			return nil, skerr.Wrap(err)
 		}
 	}
+	sort.Strings(models)
 	return models, nil
 }
 

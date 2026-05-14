@@ -27,7 +27,7 @@ func doBackoff(opName string, fn func() error) error {
 }
 
 func extractErrorMessage(err error) string {
-	if apiError, ok := err.(*genai.APIError); ok {
+	if apiError, ok := err.(genai.APIError); ok {
 		return fmt.Sprintf("Error %d %s; Message: %s", apiError.Code, apiError.Status, apiError.Message)
 	}
 	return err.Error()

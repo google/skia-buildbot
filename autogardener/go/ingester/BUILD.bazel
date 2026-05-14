@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "ingester",
@@ -10,16 +11,30 @@ go_library(
         "//autogardener/go/gemini",
         "//autogardener/go/types",
         "//go/auth",
-        "//go/gitiles",
+        "//go/git/repograph",
         "//go/httputils",
+        "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
-        "//go/vcsinfo",
-        "//go/workerpool",
+        "//go/util",
         "//task_scheduler/go/db",
+        "//task_scheduler/go/db/cache",
         "//task_scheduler/go/types",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_x_oauth2//google",
         "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_test(
+    name = "ingester_test",
+    srcs = ["ingester_test.go"],
+    embed = [":ingester"],
+    deps = [
+        "//autogardener/go/db/mocks",
+        "//autogardener/go/gemini/mocks",
+        "//autogardener/go/types",
+        "//task_scheduler/go/types",
+        "@com_github_stretchr_testify//require",
     ],
 )

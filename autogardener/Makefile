@@ -16,5 +16,7 @@ run-local: build-image
 		gcr.io/skia-public/autogardener:latest \
 		autogardener \
 		--firestore-instance=production \
+		--bigtable-project=skia-public \
+		--bigtable-instance=production \
 		--repo=https://skia.googlesource.com/skia.git \
 		--local

@@ -627,7 +627,7 @@ func (b *BigTableGitStore) loadRepoInfo(ctx context.Context, create bool) (*gits
 	rowName := getRepoInfoRowName(b.RepoURL)
 	row, err := b.readRow(ctx, rowName, bigtable.RowFilter(bigtable.LatestNFilter(1)))
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	if row != nil {
@@ -644,7 +644,7 @@ func (b *BigTableGitStore) loadRepoInfo(ctx context.Context, create bool) (*gits
 	rmw.Increment(cfMeta, colMetaIDCounter, 1)
 	row, err = b.applyReadModifyWrite(ctx, unshardedRowName(typMeta, metaVarIDCounter), rmw)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	// encID contains the big-endian encoded ID
@@ -653,7 +653,7 @@ func (b *BigTableGitStore) loadRepoInfo(ctx context.Context, create bool) (*gits
 	mut := bigtable.NewMutation()
 	mut.Set(cfMeta, colMetaID, bigtable.ServerTime, encID)
 	if err := b.apply(ctx, rowName, mut); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	b.RepoID = id
