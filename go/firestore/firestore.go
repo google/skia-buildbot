@@ -180,7 +180,7 @@ func NewClient(ctx context.Context, project, app, instance string, opts ...optio
 		})
 	}
 
-	c := &Client{
+	return &Client{
 		Client:         client,
 		ParentDoc:      client.Collection(app).Doc(instance),
 		activeOps:      map[int64]string{},
@@ -188,22 +188,7 @@ func NewClient(ctx context.Context, project, app, instance string, opts ...optio
 		counters:       map[counterKey]metrics2.Counter{},
 		errorMetrics:   errorMetrics,
 		metricTags:     metricTags,
-	}
-	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
-		c.activeOpsMtx.RLock()
-		ids := make([]int64, 0, len(c.activeOps))
-		for id := range c.activeOps {
-			ids = append(ids, id)
-		}
-		sort.Sort(util.Int64Slice(ids))
-		ops := strings.Builder{}
-		for _, id := range ids {
-			_, _ = fmt.Fprintf(&ops, "\n%d\t%s", id, c.activeOps[id])
-		}
-		c.activeOpsMtx.RUnlock()
-		sklog.Debugf("Active operations (%d): %s", len(ids), ops.String())
-	})
-	return c, nil
+	}, nil
 }
 
 // NewClientForTesting returns a Client and ensures that it will connect to the

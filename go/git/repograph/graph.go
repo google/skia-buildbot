@@ -943,7 +943,6 @@ func (m Map) update(ctx context.Context, cb func(string, *Graph) error) (map[str
 		r.updateMtx.Lock()
 		defer r.updateMtx.Unlock()
 		newGraph := r.shallowCopy()
-		sklog.Info("Updating RepoImpl...")
 		if err := r.repoImpl.Update(ctx); err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
