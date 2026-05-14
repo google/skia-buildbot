@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "sample_lib",
@@ -7,6 +8,8 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//cabe/go/proto:go_proto_lib",
+        "//go/auth",
+        "//go/httputils",
         "//go/skerr",
         "//go/sklog",
         "//pinpoint/go/backends",
@@ -21,6 +24,7 @@ go_library(
         "@io_temporal_go_sdk//client",
         "@io_temporal_go_sdk//temporal",
         "@org_chromium_go_luci//swarming/proto/api_v2",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
@@ -28,4 +32,14 @@ go_binary(
     name = "sample",
     embed = [":sample_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "sample_test",
+    srcs = ["main_test.go"],
+    embed = [":sample_lib"],
+    deps = [
+        "//cabe/go/proto:go_proto_lib",
+        "@com_github_stretchr_testify//assert",
+    ],
 )

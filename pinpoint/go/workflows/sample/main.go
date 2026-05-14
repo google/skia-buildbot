@@ -6,14 +6,21 @@ import (
 	"flag"
 	"fmt"
 	"os/user"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"encoding/json"
+	"io"
+	"net/http"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/cabe/go/proto"
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/backends"
@@ -23,6 +30,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
+	"golang.org/x/oauth2/google"
 
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -68,6 +76,7 @@ var (
 	skipFinch      = flag.Bool("skip-finch", false, "Skip Finch config (used by CBB on desktop Chrome only)")
 	bucket         = flag.String("bucket", "prod", "GS bucket to upload results to (prod, exp, or none; used by CBB only)")
 	noWait         = flag.Bool("no-wait", false, "if true, don't wait for workflow to finish (used by CBB only)")
+	mimicLegacyJob = flag.String("mimic-legacy-job", "", "Catapult legacy Pinpoint job ID to fetch and trigger locally.")
 )
 
 func defaultWorkflowOptions() client.StartWorkflowOptions {
@@ -499,6 +508,272 @@ func triggerCbbGetBrowserVersions(c client.Client) ([]internal.BuildInfo, error)
 	return buildInfos, nil
 }
 
+var gerritURLRegex = regexp.MustCompile(`^https?://([^/]+)/c/(.+)/\+/([0-9]+)(?:/([0-9]+))?/?$`)
+
+func parseGerritURL(gerritURL string) (*proto.GerritChange, error) {
+	matches := gerritURLRegex.FindStringSubmatch(gerritURL)
+	if matches == nil {
+		return nil, fmt.Errorf("invalid gerrit URL format: %s", gerritURL)
+	}
+
+	host := matches[1]
+	project := matches[2]
+	changeID, err := strconv.ParseInt(matches[3], 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse change ID: %v", err)
+	}
+
+	var patchset int64 = 1
+	if len(matches) > 4 && matches[4] != "" {
+		ps, err := strconv.ParseInt(matches[4], 10, 64)
+		if err == nil {
+			patchset = ps
+		}
+	}
+
+	return &proto.GerritChange{
+		Host:     host,
+		Project:  project,
+		Change:   changeID,
+		Patchset: patchset,
+	}, nil
+}
+
+type catapultJobResponse struct {
+	JobID          string `json:"job_id"`
+	ComparisonMode string `json:"comparison_mode"`
+	Arguments      struct {
+		ComparisonMode      string      `json:"comparison_mode"`
+		Target              string      `json:"target"`
+		StartGitHash        string      `json:"start_git_hash"`
+		BaseGitHash         string      `json:"base_git_hash"`
+		EndGitHash          string      `json:"end_git_hash"`
+		Trace               string      `json:"trace"`
+		Pin                 string      `json:"pin"`
+		Configuration       string      `json:"configuration"`
+		Benchmark           string      `json:"benchmark"`
+		Story               string      `json:"story"`
+		StoryTags           string      `json:"story_tags"`
+		Chart               string      `json:"chart"`
+		Statistic           string      `json:"statistic"`
+		ComparisonMagnitude interface{} `json:"comparison_magnitude"`
+		InitialAttemptCount interface{} `json:"initial_attempt_count"`
+		Tags                interface{} `json:"tags"`
+	} `json:"arguments"`
+}
+
+func getAttemptCount(val interface{}) string {
+	if val == nil {
+		return "30"
+	}
+	switch v := val.(type) {
+	case string:
+		return v
+	case float64:
+		return strconv.Itoa(int(v))
+	case int:
+		return strconv.Itoa(v)
+	default:
+		return "30"
+	}
+}
+
+func getComparisonMagnitude(val interface{}) string {
+	if val == nil {
+		return "0.1"
+	}
+	switch v := val.(type) {
+	case string:
+		return v
+	case float64:
+		return fmt.Sprintf("%f", v)
+	default:
+		return "0.1"
+	}
+}
+
+func parseTags(val interface{}) map[string]string {
+	res := make(map[string]string)
+	if val == nil {
+		return res
+	}
+	switch v := val.(type) {
+	case string:
+		_ = json.Unmarshal([]byte(v), &res)
+	case map[string]interface{}:
+		for k, val := range v {
+			if str, ok := val.(string); ok {
+				res[k] = str
+			}
+		}
+	}
+	return res
+}
+
+func triggerMimicLegacyJob(c client.Client, legacyJobID string) (interface{}, error) {
+	ctx := context.Background()
+
+	url := fmt.Sprintf("https://pinpoint-dot-chromeperf.appspot.com/api/job/%s", legacyJobID)
+	sklog.Infof("Fetching legacy Pinpoint job from: %s", url)
+
+	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create token source")
+	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
+
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to fetch legacy Pinpoint job")
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch legacy job, status code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to read response body")
+	}
+
+	var jobResp catapultJobResponse
+	if err := json.Unmarshal(body, &jobResp); err != nil {
+		return nil, skerr.Wrapf(err, "failed to unmarshal legacy job response")
+	}
+
+	args := jobResp.Arguments
+
+	comparisonMode := args.ComparisonMode
+	if comparisonMode == "" {
+		comparisonMode = jobResp.ComparisonMode
+	}
+	comparisonMode = strings.ToLower(comparisonMode)
+
+	sklog.Infof("Detected legacy job comparison mode: %s", comparisonMode)
+
+	if comparisonMode == "try" {
+		startHash := args.StartGitHash
+		if startHash == "" {
+			startHash = args.BaseGitHash
+		}
+		endHash := args.EndGitHash
+		if startHash == "" {
+			return nil, fmt.Errorf("missing start_git_hash or base_git_hash in legacy job arguments")
+		}
+		if endHash == "" {
+			endHash = startHash
+		}
+
+		var patch *proto.GerritChange
+		if strings.Contains(args.Pin, "review.googlesource.com") {
+			p, err := parseGerritURL(args.Pin)
+			if err == nil {
+				patch = p
+				sklog.Infof("Successfully parsed Gerrit patch from 'pin': %+v", patch)
+			}
+		}
+
+		parsedTags := parseTags(args.Tags)
+		if patch == nil && len(parsedTags) > 0 {
+			if patchURL, ok := parsedTags["patch"]; ok {
+				p, err := parseGerritURL(patchURL)
+				if err == nil {
+					patch = p
+					sklog.Infof("Successfully parsed Gerrit patch from tag 'patch': %+v", patch)
+				}
+			}
+		}
+
+		req := &pb.SchedulePairwiseRequest{
+			StartCommit: &pb.CombinedCommit{
+				Main: common.NewChromiumCommit(startHash),
+			},
+			EndCommit: &pb.CombinedCommit{
+				Main: common.NewChromiumCommit(endHash),
+			},
+			Configuration:        args.Configuration,
+			Benchmark:            args.Benchmark,
+			Story:                args.Story,
+			Chart:                args.Chart,
+			AggregationMethod:    args.Statistic,
+			InitialAttemptCount:  getAttemptCount(args.InitialAttemptCount),
+			ImprovementDirection: "UNKNOWN",
+		}
+
+		if req.Chart == "" {
+			req.Chart = args.Trace
+		}
+
+		if patch != nil {
+			req.EndCommit.Patch = patch
+		}
+
+		p := &workflows.PairwiseParams{
+			Request: req,
+		}
+
+		var pe *pb.PairwiseExecution
+		we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.PairwiseWorkflow, p)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to execute pairwise workflow")
+		}
+		sklog.Infof("Started Mimicked Pairwise TryJob Workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+		if err := we.Get(ctx, &pe); err != nil {
+			return nil, skerr.Wrapf(err, "failed to get pairwise workflow result")
+		}
+		return pe, nil
+	}
+
+	if comparisonMode == "performance" || comparisonMode == "functional" || comparisonMode == "bisection" {
+		startHash := args.StartGitHash
+		if startHash == "" {
+			startHash = args.BaseGitHash
+		}
+		endHash := args.EndGitHash
+		if startHash == "" || endHash == "" {
+			return nil, fmt.Errorf("missing start_git_hash/base_git_hash or end_git_hash in legacy job arguments")
+		}
+
+		req := &pb.ScheduleBisectRequest{
+			ComparisonMode:       comparisonMode,
+			StartGitHash:         startHash,
+			EndGitHash:           endHash,
+			Configuration:        args.Configuration,
+			Benchmark:            args.Benchmark,
+			Story:                args.Story,
+			Chart:                args.Chart,
+			ComparisonMagnitude:  getComparisonMagnitude(args.ComparisonMagnitude),
+			AggregationMethod:    args.Statistic,
+			Project:              "chromium",
+			ImprovementDirection: "UNKNOWN",
+		}
+
+		if req.Chart == "" {
+			req.Chart = args.Trace
+		}
+
+		p := &workflows.BisectParams{
+			Request: req,
+		}
+
+		var be *pb.BisectExecution
+		we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), catapult.CatapultBisectWorkflow, p)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to execute bisect workflow")
+		}
+		sklog.Infof("Started Mimicked Bisect Workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+		if err := we.Get(ctx, &be); err != nil {
+			return nil, skerr.Wrapf(err, "failed to get bisect workflow result")
+		}
+		return be, nil
+	}
+
+	return nil, fmt.Errorf("unsupported comparison mode for mimicking legacy job: %s", comparisonMode)
+}
+
 // Sample client to trigger a BuildChrome workflow.
 func main() {
 	flag.Parse()
@@ -552,6 +827,9 @@ func main() {
 	}
 	if *triggerCbbGetVersionsFlag {
 		result, err = triggerCbbGetBrowserVersions(c)
+	}
+	if *mimicLegacyJob != "" {
+		result, err = triggerMimicLegacyJob(c, *mimicLegacyJob)
 	}
 
 	if err != nil {

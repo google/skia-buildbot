@@ -125,6 +125,26 @@ bazelisk run //pinpoint/go/workflows/sample -- \
   --end-git-hash=95b3180e9724995eb6d5a85ac3c93140e4506f7e
 ```
 
+### Approach C: Mimicking a Legacy Pinpoint Job (Recommended for Local Testing)
+
+You can fetch an existing legacy Pinpoint job from production (e.g., from the Chromeperf dashboard), parse its exact configuration, and trigger an identical localized workflow on your local Temporal instance with a single command:
+
+```bash
+bazelisk run //pinpoint/go/workflows/sample -- \
+  --taskQueue=perf.perf-chrome-public.bisect \
+  --namespace=perf-internal \
+  --mimic-legacy-job=[legacy-job-id]
+```
+
+**How it works:**
+
+1. Connects securely using your corporate Google login tokens.
+2. Fetches and parses the legacy job JSON description from Chromeperf's API (`https://pinpoint-dot-chromeperf.appspot.com/api/job/[legacy-job-id]`).
+3. Decodes the comparison mode and dynamically schedules:
+   - **Pairwise A/B TryJob** (`workflows.PairwiseWorkflow`) if the legacy job is a try job.
+   - **Chromeperf Bisection** (`catapult.CatapultBisectWorkflow`) if the legacy job is a performance bisection.
+4. Automatically extracts and translates Gerrit patch URLs from `pin` or `tags` into native `GerritChange` protobuf messages on your local treatment commit.
+
 ---
 
 ## 5. Query Job Status & View Results
