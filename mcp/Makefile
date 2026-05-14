@@ -18,4 +18,9 @@ MAKEFLAGS += -j2
 run-perf-mcp-auth: run-auth-proxy run-perf-mcp
 
 run-skia-mcp:
-	bazelisk run --config=remote //mcp/server -- run --service=skia --baseurl=http://localhost:8080 --args="--firestore_instance=production --bigtable_project=skia-public --bigtable_instance=staging"
+	bazelisk run --config=mayberemote //mcp/server -- \
+		run \
+		--service=skia \
+		--port=8001 \
+		--baseurl=http://localhost:8001 \
+		--args="--firestore_instance=production --bigtable_project=skia-public --bigtable_instance=staging"

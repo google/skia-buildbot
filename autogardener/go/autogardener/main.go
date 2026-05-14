@@ -30,7 +30,12 @@ var (
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	gcpProject        = flag.String("project", "skia-infra-public", "GCP project to use for Gemini API billing")
 	location          = flag.String("location", "us-central1", "GCP location to use for Gemini API")
-	model             = flag.String("model", "gemini-flash-latest", "Gemini model name to use")
+	cheapModel        = flag.String("cheap-model", "gemini-2.5-flash-lite", "Gemini model name to use for less-intensive tasks")
+	cheapTPM          = flag.Int("cheap-tpm", 4000000, "Maximum tokens per minute for the cheap model")
+	cheapRPM          = flag.Int("cheap-rpm", 1000, "Maximum requests per minute for the cheap model")
+	expensiveModel    = flag.String("expensive-model", "gemini-flash-latest", "Gemini model name to use for more-intensive tasks")
+	expensiveTPM      = flag.Int("expensive-tpm", 1000000, "Maximum tokens per minute for the expensive model")
+	expensiveRPM      = flag.Int("expensive-rpm", 1000, "Maximum requests per minute for the expensive model")
 	mcpServer         = flag.String("mcp-server", "https://mcp-skia.luci.app/sse", "MCP server to use.")
 	firestoreProject  = flag.String("firestore-project", firestore.FIRESTORE_PROJECT, "Project to use for firestore.")
 	firestoreInstance = flag.String("firestore-instance", "production", "Firestore instance to use.")
@@ -83,7 +88,7 @@ func main() {
 			sklog.Fatal(err)
 		}
 	}
-	geminiClient, err := gemini.NewClient(ctx, *gcpProject, *location, *model, geminiAPIKey, *mcpServer)
+	geminiClient, err := gemini.NewClient(ctx, *gcpProject, *location, *cheapModel, *expensiveModel, geminiAPIKey, *mcpServer, *cheapRPM, *cheapTPM, *expensiveRPM, *expensiveTPM)
 	if err != nil {
 		sklog.Fatal(err)
 	}

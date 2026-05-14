@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/invopop/jsonschema"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -17,23 +16,22 @@ import (
 	"go.skia.org/infra/mcp/services/skia/task_details"
 	"go.skia.org/infra/mcp/services/skia/task_scheduler"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
-	"golang.org/x/time/rate"
 	"google.golang.org/genai"
 )
 
-const maxRequestsPerMinute = 20
-
 // Client provides high-level interactions with Gemini.
 type Client struct {
-	client    *genai.Client
-	lim       *rate.Limiter
-	location  string
-	model     string
-	mcpClient *MCPClient
-	project   string
+	client           *genai.Client
+	location         string
+	cheapModel       string
+	cheapModelRL     *rateLimiter
+	expensiveModel   string
+	expensiveModelRL *rateLimiter
+	mcpClient        *MCPClient
+	project          string
 }
 
-func NewClient(ctx context.Context, project, location, model, apiKey, mcpServer string) (*Client, error) {
+func NewClient(ctx context.Context, project, location, cheapModel, expensiveModel, apiKey, mcpServer string, cheapRPM, cheapTPM, expensiveRPM, expensiveTPM int) (*Client, error) {
 	mcpClient, err := NewMCPClient(ctx, mcpServer)
 	if err != nil {
 		sklog.Fatal(err)
@@ -45,14 +43,39 @@ func NewClient(ctx context.Context, project, location, model, apiKey, mcpServer 
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	perSecondLimit := (float64(maxRequestsPerMinute) / float64(time.Minute)) * float64(time.Second)
+
+	// Validate models.
+	models, err := listModels(ctx, genaiClient)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to list available models")
+	}
+	sklog.Infof("Available models:\n%s", strings.Join(models, "\n"))
+	foundCheap := false
+	foundExpensive := false
+	for _, model := range models {
+		if model == cheapModel {
+			foundCheap = true
+		}
+		if model == expensiveModel {
+			foundExpensive = true
+		}
+	}
+	if !foundCheap {
+		return nil, skerr.Fmt("Cheap model %q not found.", cheapModel)
+	}
+	if !foundExpensive {
+		return nil, skerr.Fmt("Expensive model %q not found.", expensiveModel)
+	}
+
 	return &Client{
-		client:    genaiClient,
-		lim:       rate.NewLimiter(rate.Limit(perSecondLimit), maxRequestsPerMinute),
-		location:  location,
-		model:     model,
-		mcpClient: mcpClient,
-		project:   project,
+		client:           genaiClient,
+		location:         location,
+		cheapModel:       cheapModel,
+		expensiveModel:   expensiveModel,
+		cheapModelRL:     newRateLimiter(cheapRPM, cheapTPM),
+		expensiveModelRL: newRateLimiter(expensiveRPM, expensiveTPM),
+		mcpClient:        mcpClient,
+		project:          project,
 	}, nil
 }
 
@@ -139,39 +162,41 @@ about any other tasks.
 		"get_recipe_step_logs",
 	}
 	var res types.TaskSummary
-	if err := c.generate(ctx, prompt, allowedTools, &res); err != nil {
+	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, allowedTools, &res); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return &res, nil
 }
 
-func (c *Client) generate(ctx context.Context, prompt string, allowTools []string, result interface{}) error {
+func (c *Client) generate(ctx context.Context, prompt, model string, rl *rateLimiter, allowTools []string, result interface{}) error {
 	// Gemini doesn't use MCP tools directly. Rather, it returns requests to use
 	// tools as part of its response, expecting to see the results of those tool
 	// calls in our next message. Therefore, we need to repeatedly send messages
 	// in a loop, starting with our initial prompt and continuing to run tools
 	// and present their results until Gemini returns its ultimate response.
 
-	config := &genai.GenerateContentConfig{
-		ResponseMIMEType:   "application/json",
-		ResponseJsonSchema: jsonschema.Reflect(result),
-	}
+	// Some models (e.g. Gemini 2.5) do not support function calling and JSON
+	// mode simultaneously. Therefore, we run the tool-calling loop without
+	// JSON mode, and then do one final request with JSON mode to get the
+	// result.
+	toolConfig := &genai.GenerateContentConfig{}
 	for _, tool := range c.mcpClient.Tools() {
 		if util.In(tool.FunctionDeclarations[0].Name, allowTools) {
-			config.Tools = append(config.Tools, tool)
+			toolConfig.Tools = append(toolConfig.Tools, tool)
 		}
 	}
-
-	chat, err := c.client.Chats.Create(ctx, c.model, config, nil)
+	chat, err := c.client.Chats.Create(ctx, model, toolConfig, nil)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+
 	var resp *genai.GenerateContentResponse
 	if err := doBackoff("SendMessage", func() error {
-		if err := c.lim.Wait(ctx); err != nil {
+		parts := []genai.Part{{Text: prompt}}
+		if err := rl.Wait(ctx, model, c.client, chat.History(false), parts); err != nil {
 			return skerr.Wrap(err)
 		}
-		resp, err = chat.SendMessage(ctx, genai.Part{Text: prompt})
+		resp, err = chat.SendMessage(ctx, parts...)
 		return err
 	}); err != nil {
 		return skerr.Wrap(err)
@@ -208,7 +233,7 @@ func (c *Client) generate(ctx context.Context, prompt string, allowTools []strin
 			})
 		}
 		if err := doBackoff("SendMessage", func() error {
-			if err := c.lim.Wait(ctx); err != nil {
+			if err := rl.Wait(ctx, model, c.client, chat.History(false), toolResponses); err != nil {
 				return skerr.Wrap(err)
 			}
 			resp, err = chat.SendMessage(ctx, toolResponses...)
@@ -218,12 +243,58 @@ func (c *Client) generate(ctx context.Context, prompt string, allowTools []strin
 		}
 	}
 
+	// Now that the tool-calling loop is finished, we request the final result
+	// using JSON mode.
+	finalConfig := &genai.GenerateContentConfig{
+		ResponseMIMEType:   "application/json",
+		ResponseJsonSchema: jsonschema.Reflect(result),
+	}
+	if err := doBackoff("GenerateContent", func() error {
+		// We use the history from the chat but perform a new GenerateContent
+		// call with the JSON config.
+		history := chat.History(false)
+		// No new parts, just asking for the final structured output based on history.
+		if err := rl.Wait(ctx, model, c.client, history, nil); err != nil {
+			return skerr.Wrap(err)
+		}
+		resp, err = c.client.Models.GenerateContent(ctx, model, history, finalConfig)
+		return err
+	}); err != nil {
+		return skerr.Wrap(err)
+	}
+
 	// Only the first part of the first candidate seems to be relevant.
 	if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
 		r := bytes.NewReader([]byte(resp.Candidates[0].Content.Parts[0].Text))
 		return skerr.Wrap(json.NewDecoder(r).Decode(result))
 	}
 	return skerr.Fmt("no output generated")
+}
+
+func listModels(ctx context.Context, client *genai.Client) ([]string, error) {
+	page, err := client.Models.List(ctx, nil)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	models := []string{}
+	for {
+		for _, m := range page.Items {
+			if !strings.Contains(m.Name, "gemini") {
+				continue
+			}
+			// The model names returned by the API might be prefixed with "models/".
+			name := strings.TrimPrefix(m.Name, "models/")
+			models = append(models, name)
+		}
+		if page.NextPageToken == "" {
+			break
+		}
+		page, err = page.Next(ctx)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+	return models, nil
 }
 
 type summaryForTasksWithinTaskName struct {
