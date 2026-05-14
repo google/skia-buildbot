@@ -45,7 +45,7 @@ export class DetailsDialogSk extends ElementSk {
   // before rendering.
   private static template = (el: DetailsDialogSk) => html`
     <div class="dialog" @click=${(e: Event) => e.stopPropagation()}>
-      <div class="header-line ${until(el.headerClass as any, '')}">
+      <div class="header-line">
         <div class="titleContainer">${el.titleSection}</div>
         <div class="spacer"></div>
         ${el.actionButton
@@ -94,8 +94,6 @@ export class DetailsDialogSk extends ElementSk {
 
   private commentData?: CommentData;
 
-  private headerClass: string | Promise<string> = '';
-
   constructor() {
     super(DetailsDialogSk.template);
     this._upgradeProperty('repo');
@@ -135,7 +133,6 @@ export class DetailsDialogSk extends ElementSk {
     this.detailsSection = null;
     this.showCommentsFlaky = false;
     this.showCommentsIgnoreFailure = false;
-    this.headerClass = '';
     const commentInput = $$('comments-sk input-sk', this) as HTMLInputElement;
     if (commentInput) {
       commentInput.value = '';
@@ -157,48 +154,56 @@ export class DetailsDialogSk extends ElementSk {
       taskSpec: '',
       repo: this.repo,
     };
-    const summary = fetch(`/json/task-summary/${task.id}`)
+    const summaryData = fetch(`/json/task-summary/${task.id}`)
       .then(jsonOrThrow)
-      .then(
-        (s: TaskSummary) => html`
-          ${s.errorMessage
-            ? html`<tr>
-                <td><b>Error Message:</b></td>
-                <td class="pre ${`task-${(task.status || 'PENDING').toLowerCase()}`}">
-                  <code>${s.errorMessage}</code>
-                </td>
-              </tr>`
-            : html``}
-          ${s.analysis
-            ? html`<tr>
-                <td>Analysis:</td>
-                <td class="pre">${s.analysis}</td>
-              </tr>`
-            : html``}
-        `
-      )
-      .catch(() => html``);
+      .catch(() => null);
+
+    const summaryRows = (s: TaskSummary | null) => html`
+      ${s?.errorMessage
+        ? html`<tr>
+            <td><b>Error Message:</b></td>
+            <td class="pre ${`task-${(task.status || 'PENDING').toLowerCase()}`}">
+              <code>${s.errorMessage}</code>
+            </td>
+          </tr>`
+        : html``}
+      ${s?.analysis
+        ? html`<tr>
+            <td>Analysis:</td>
+            <td class="pre">${s.analysis}</td>
+          </tr>`
+        : html``}
+    `;
+
     const td = fetch(`/json/td/${task.id}`)
       .then(jsonOrThrow)
       .then(
-        (td) => html`<br /><task-driver-sk id="tdStatus" .data=${td} embedded></task-driver-sk>`
+        (td) => html`
+          ${until(
+            summaryData.then((s) =>
+              s && (s.errorMessage || s.analysis)
+                ? html`<table class="task-info">
+                    ${summaryRows(s)}
+                  </table>`
+                : html``
+            ),
+            html``
+          )}
+          <br /><task-driver-sk id="tdStatus" .data=${td} embedded></task-driver-sk>
+        `
       );
 
-    this.headerClass = td.then(() => 'floating').catch(() => '');
-    this.titleSection = html`${until(
-      td.then(() => html``),
-      html`
-        <h3>
-          <span>${task.name}</span
-          ><a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="${logsUrl(this.repo, task.swarmingTaskId)}"
-            ><launch-icon-sk></launch-icon-sk>
-          </a>
-        </h3>
-      `
-    )}`;
+    this.titleSection = html`
+      <h3>
+        <span>${task.name}</span
+        ><a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="${logsUrl(this.repo, task.swarmingTaskId)}"
+          ><launch-icon-sk></launch-icon-sk>
+        </a>
+      </h3>
+    `;
 
     this.detailsSection = html`
       ${until(
@@ -210,7 +215,7 @@ export class DetailsDialogSk extends ElementSk {
                 <td>Status:</td>
                 <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>${task.status}</td>
               </tr>
-              ${until(summary, html``)}
+              ${until(summaryData.then(summaryRows), html``)}
               <tr>
                 <td>Context:</td>
                 <td>

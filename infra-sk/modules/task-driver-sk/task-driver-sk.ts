@@ -174,27 +174,38 @@ export class TaskDriverSk extends HTMLElement {
     ${s.steps && s.steps.length > 0 ? TaskDriverSk.stepChildren(ele, s) : ''}
   `;
 
-  private static step = (ele: TaskDriverSk, s: RunOrStepDisplay): unknown => html`
-    <div class="${ele.stepClass(s)}">
-      <div class="vert">
-        <a class="horiz" id="button_props_${s.id}" @click=${() => ele.toggleProps(s)}>
-          ${expando(s.expandProps)}
-        </a>
-        <div class="${ele.stepNameClass(s)}">${s.name}</div>
-        <div class="horiz duration">${ele.duration(s.started, s.finished)}</div>
-        ${!s.parent && ele.hasAttribute('embedded')
-          ? html`
-              <div class="horiz">
-                <a href="https://task-driver.skia.org/td/${s.id}" target="_blank">
-                  <launch-icon-sk></launch-icon-sk>
-                </a>
-              </div>
-            `
-          : ''}
+  private static step = (ele: TaskDriverSk, s: RunOrStepDisplay): unknown => {
+    const isRoot = s === ele.data;
+    const isEmbedded = ele.hasAttribute('embedded');
+    const showHeader = !isRoot || !isEmbedded;
+    const showLaunch = isRoot && !isEmbedded;
+
+    return html`
+      <div class="${ele.stepClass(s)}">
+        <div class="vert">
+          <a class="horiz" id="button_props_${s.id}" @click=${() => ele.toggleProps(s)}>
+            ${expando(s.expandProps)}
+          </a>
+          ${showHeader
+            ? html`
+                <div class="${ele.stepNameClass(s)}">${s.name}</div>
+                <div class="horiz duration">${ele.duration(s.started, s.finished)}</div>
+              `
+            : ''}
+          ${showLaunch
+            ? html`
+                <div class="horiz">
+                  <a href="https://task-driver.skia.org/td/${s.id}" target="_blank">
+                    <launch-icon-sk></launch-icon-sk>
+                  </a>
+                </div>
+              `
+            : ''}
+        </div>
+        ${TaskDriverSk.stepInner(ele, s)}
       </div>
-      ${TaskDriverSk.stepInner(ele, s)}
-    </div>
-  `;
+    `;
+  };
 
   private static template = (ele: TaskDriverSk) => TaskDriverSk.step(ele, ele.data);
 
@@ -215,7 +226,7 @@ export class TaskDriverSk extends HTMLElement {
         return null;
       }
       return d;
-    } catch (e) {
+    } catch {
       return null;
     }
   }

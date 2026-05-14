@@ -115,8 +115,9 @@ describe('details-dialog-sk', () => {
     await fetchMock.flush(true);
 
     expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
-    // No simple title with status, we have the task-driver-sk instead.
-    expect($('.task-failure', element)).to.have.length(0);
+    // The task summary has an error message which gives us one element with
+    // class `task-failure`, since there is no task status row.
+    expect($('.task-failure', element)).to.have.length(1);
     expect($('task-driver-sk', element)).to.have.length(1);
     // 3 sections, seperated by lines.
     expect($('hr', element)).to.have.length(1);

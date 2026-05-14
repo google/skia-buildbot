@@ -68,18 +68,6 @@ details-dialog-sk {
     width: 100%;
     margin-bottom: 10px;
 
-    &.floating {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      z-index: 10;
-      width: auto;
-      pointer-events: none;
-      > * {
-        pointer-events: auto;
-      }
-    }
-
     > * {
       margin: 0;
     }
@@ -90,15 +78,6 @@ details-dialog-sk {
 
     button.action {
       padding: 10px 4px;
-    }
-  }
-
-  // The title container is sometimes wide due to child elements farther down the dialog being wide
-  // (i.e. task-driver-sk). Don't let it get in the way of the close button.
-  .titleContainer {
-    pointer-events: none;
-    * {
-      pointer-events: auto;
     }
   }
 
