@@ -16,6 +16,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/mcp/services/skia/format"
@@ -58,6 +59,7 @@ func NewMCPClientWithClient(ctx context.Context, mcpServer string, httpClient *h
 
 // init (re)initializes the underlying MCP client.
 func (c *MCPClient) init(ctx context.Context) error {
+	metrics2.GetCounter("autogardener_reinit_count")
 	sklog.Infof("initializing MCP server connection")
 
 	mcpClient, err := client.NewSSEMCPClient(c.mcpServer, transport.WithHTTPClient(c.httpClient))
@@ -167,6 +169,7 @@ func convertProperty(prop any) *genai.Schema {
 }
 
 func (c *MCPClient) callTool(ctx context.Context, toolName string, args map[string]interface{}) (*mcp.CallToolResult, error) {
+	defer metrics2.FuncTimer().Stop()
 	var res *mcp.CallToolResult
 	err := doBackoff(toolName, func() error {
 		c.mtx.RLock()

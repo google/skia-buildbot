@@ -11,6 +11,7 @@ import (
 	"github.com/invopop/jsonschema"
 	"github.com/mark3labs/mcp-go/mcp"
 	"go.skia.org/infra/autogardener/go/types"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -115,6 +116,8 @@ definitive report to developers.
 `
 
 func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*types.TaskSummary, error) {
+	defer metrics2.FuncTimer().Stop()
+
 	// Retrieve the task steps so that the agent doesn't have to.
 	var taskSteps task_details.GetTaskStepsResult
 	if err := c.mcpClient.callToolJSON(ctx, "get_task_steps", map[string]interface{}{"task_id": task.Id}, &taskSteps); err != nil {

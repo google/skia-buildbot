@@ -146,6 +146,7 @@ func (i *Ingester) ingestTask(ctx context.Context, task *ts_types.Task) error {
 	if err := i.db.PutTaskSummary(ctx, task.Id, taskSummary); err != nil {
 		return skerr.Wrapf(err, "failed to ingest task %s", task.Id)
 	}
+	metrics2.GetFloat64SummaryMetric("autogardener_task_ingest_latency").Observe(float64(time.Since(task.Finished).Seconds()))
 	sklog.Infof("Ingested task %s", task.Id)
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/time/rate"
@@ -22,6 +23,7 @@ func doBackoff(opName string, fn func() error) error {
 	b.MaxInterval = 60 * time.Second
 	b.MaxElapsedTime = 15 * time.Minute
 	return backoff.RetryNotify(fn, b, func(err error, d time.Duration) {
+		metrics2.GetCounter("autogardener_gemini_backoff_retry", map[string]string{"op": opName})
 		sklog.Warningf("%s failed; retrying in %s: %s", opName, d, extractErrorMessage(err))
 	})
 }
