@@ -202,6 +202,8 @@ message Anomaly {
     float median_before = 5;
     // the median from the current data point
     float median_after = 6;
+    // anomaly id
+    string id = 7;
 }
 
 

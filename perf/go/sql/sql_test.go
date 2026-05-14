@@ -17,6 +17,7 @@ import (
 const DropTables = `
 	DROP TABLE IF EXISTS Alerts;
 	DROP TABLE IF EXISTS AnomalyGroups;
+	DROP TABLE IF EXISTS Autobisections;
 	DROP TABLE IF EXISTS Commits;
 	DROP TABLE IF EXISTS Culprits;
 	DROP TABLE IF EXISTS Favorites;
@@ -167,6 +168,7 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
   cluster_type TEXT,
   cluster_summary JSONB,
   frame JSONB,
+	legacy_key TEXT,
   sub_name TEXT,
 	trace_id BYTEA,
   triage_status TEXT,
@@ -176,6 +178,7 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
 CREATE TABLE RegressionsShortcuts (
 	sid TEXT PRIMARY KEY,
 	anomaly_ids TEXT ARRAY,
+	is_legacy BOOL DEFAULT FALSE,
 	createdat timestamp WITH time zone DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS ReverseKeyMap (
@@ -257,6 +260,7 @@ CREATE INDEX IF NOT EXISTS by_key_value on Postings (tile_number, key_value);
 CREATE INDEX IF NOT EXISTS by_alert_id on Regressions2 (alert_id);
 CREATE INDEX IF NOT EXISTS by_commit_alert on Regressions2 (commit_number, alert_id);
 CREATE INDEX IF NOT EXISTS by_commit_and_prev_commit on Regressions2 (commit_number, prev_commit_number);
+CREATE INDEX IF NOT EXISTS by_legacy_key on Regressions2 (legacy_key);
 CREATE INDEX IF NOT EXISTS by_sub_name_creation_time on Regressions2 (sub_name, creation_time DESC);
 CREATE INDEX IF NOT EXISTS by_sub_name_triage_status_creation_time_asc on Regressions2 (sub_name, triage_status, creation_time ASC);
 CREATE INDEX IF NOT EXISTS by_trace_id_and_commit on Regressions2 (trace_id, commit_number);

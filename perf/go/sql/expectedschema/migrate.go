@@ -41,17 +41,19 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNextSpanner = `
-	ALTER TABLE Regressions2 ADD COLUMN legacy_key TEXT;
-	CREATE INDEX IF NOT EXISTS by_legacy_key ON Regressions2(legacy_key);
-	ALTER TABLE RegressionsShortcuts ADD COLUMN is_legacy BOOLEAN DEFAULT FALSE;
+	CREATE TABLE IF NOT EXISTS Autobisections (
+		job_id TEXT PRIMARY KEY,
+		anomaly_group_id TEXT,
+		anomaly_id TEXT,
+		is_real_regression BOOL,
+		createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+	);
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLiveSpanner = `
-	ALTER TABLE RegressionsShortcuts DROP COLUMN is_legacy;
-	DROP INDEX IF EXISTS by_legacy_key;
-	ALTER TABLE Regressions2 DROP COLUMN legacy_key;
+	DROP TABLE IF EXISTS Autobisections;
 `
 
 // This function will check whether there's a new schema checked-in,

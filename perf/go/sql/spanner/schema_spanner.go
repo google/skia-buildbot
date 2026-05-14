@@ -30,6 +30,13 @@ CREATE TABLE IF NOT EXISTS AnomalyGroups (
   last_modified_time TIMESTAMPTZ,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
+CREATE TABLE IF NOT EXISTS Autobisections (
+  job_id TEXT PRIMARY KEY,
+  anomaly_group_id TEXT,
+  anomaly_id TEXT,
+  is_real_regression BOOL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Commits (
   commit_number INT PRIMARY KEY,
   git_hash TEXT  NOT NULL,
@@ -233,6 +240,13 @@ var AnomalyGroups = []string{
 	"reported_issue_id",
 	"culprit_ids",
 	"last_modified_time",
+}
+
+var Autobisections = []string{
+	"job_id",
+	"anomaly_group_id",
+	"anomaly_id",
+	"is_real_regression",
 }
 
 var Commits = []string{

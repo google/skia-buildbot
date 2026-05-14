@@ -5,6 +5,7 @@ package sql
 import (
 	alertschema "go.skia.org/infra/perf/go/alerts/sqlalertstore/schema"
 	anomalygroupschema "go.skia.org/infra/perf/go/anomalygroup/sqlanomalygroupstore/schema"
+	autobisectionschema "go.skia.org/infra/perf/go/autobisection/sqlautobisectionstore/schema"
 	reversekeymapschema "go.skia.org/infra/perf/go/chromeperf/sqlreversekeymapstore/schema"
 	culpritschema "go.skia.org/infra/perf/go/culprit/sqlculpritstore/schema"
 	favoriteschema "go.skia.org/infra/perf/go/favorites/sqlfavoritestore/schema"
@@ -24,6 +25,7 @@ import (
 type Tables struct {
 	Alerts               []alertschema.AlertSchema
 	AnomalyGroups        []anomalygroupschema.AnomalyGroupSchema
+	Autobisections       []autobisectionschema.AutobisectionSchema
 	Commits              []gitschema.Commit
 	Culprits             []culpritschema.CulpritSchema
 	Favorites            []favoriteschema.FavoriteSchema

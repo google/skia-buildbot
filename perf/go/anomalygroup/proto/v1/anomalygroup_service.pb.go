@@ -912,7 +912,9 @@ type Anomaly struct {
 	// the median from the previous data point
 	MedianBefore float32 `protobuf:"fixed32,5,opt,name=median_before,json=medianBefore,proto3" json:"median_before,omitempty"`
 	// the median from the current data point
-	MedianAfter   float32 `protobuf:"fixed32,6,opt,name=median_after,json=medianAfter,proto3" json:"median_after,omitempty"`
+	MedianAfter float32 `protobuf:"fixed32,6,opt,name=median_after,json=medianAfter,proto3" json:"median_after,omitempty"`
+	// anomaly id
+	Id            string `protobuf:"bytes,7,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -989,6 +991,13 @@ func (x *Anomaly) GetMedianAfter() float32 {
 	return 0
 }
 
+func (x *Anomaly) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
 var File_anomalygroup_service_proto protoreflect.FileDescriptor
 
 const file_anomalygroup_service_proto_rawDesc = "" +
@@ -1047,7 +1056,7 @@ const file_anomalygroup_service_proto_rawDesc = "" +
 	"\x11reported_issue_id\x18\x05 \x01(\x03R\x0freportedIssueId\x12)\n" +
 	"\x10subsciption_name\x18\x06 \x01(\tR\x0fsubsciptionName\x123\n" +
 	"\x15subscription_revision\x18\a \x01(\tR\x14subscriptionRevision\x12%\n" +
-	"\x0ebenchmark_name\x18\b \x01(\tR\rbenchmarkName\"\xc9\x02\n" +
+	"\x0ebenchmark_name\x18\b \x01(\tR\rbenchmarkName\"\xd9\x02\n" +
 	"\aAnomaly\x12!\n" +
 	"\fstart_commit\x18\x01 \x01(\x03R\vstartCommit\x12\x1d\n" +
 	"\n" +
@@ -1055,7 +1064,8 @@ const file_anomalygroup_service_proto_rawDesc = "" +
 	"\bparamset\x18\x03 \x03(\v2&.anomalygroup.v1.Anomaly.ParamsetEntryR\bparamset\x123\n" +
 	"\x15improvement_direction\x18\x04 \x01(\tR\x14improvementDirection\x12#\n" +
 	"\rmedian_before\x18\x05 \x01(\x02R\fmedianBefore\x12!\n" +
-	"\fmedian_after\x18\x06 \x01(\x02R\vmedianAfter\x1a;\n" +
+	"\fmedian_after\x18\x06 \x01(\x02R\vmedianAfter\x12\x0e\n" +
+	"\x02id\x18\a \x01(\tR\x02id\x1a;\n" +
 	"\rParamsetEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*7\n" +
