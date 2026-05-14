@@ -121,8 +121,7 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 		return nil, skerr.Wrap(err)
 	}
 
-	const promptTmpl = generalPromptHeader + `
-Deeply investigate the failed task with ID "%s".
+	const promptTmpl = `# Extract the error message for failed task "%s"
 
 **CRITICAL:** This is strictly a log analysis and data extraction workflow. You
 MUST NOT attempt to read source code, debug the failure, or formulate a code
@@ -134,8 +133,15 @@ about any other tasks.
 1. Find the relevant failed step(s). Note that some step failures may be
    expected, for example a step which tests file existence via some command
    that exits with a non-zero code when it does not exist.
-2. If the task is a Task Driver or Recipe, retrieve the logs for the failed
-   step via the "get_task_driver_step_logs" or "get_recipe_step_logs" tool.
+2. If the task is a Task Driver or Recipe, you MUST retrieve the logs for the
+   failed step.
+   - Use the "get_task_driver_step_logs" or "get_recipe_step_logs", depending on
+     whether this task is a Task Driver or Recipe.
+   - These tools are *paginated* and will return a cursor if additional log
+     lines remain which were not included in the response. Pass the cursor back
+     to the tool as an argument to retrieve the next page of logs. When the tool
+     returns an empty cursor, you've seen all of the log lines.
+   - Use the "reverse" argument to load log lines starting from the end.
 3. Scan the logs and extract a digestible snippet.
    - **WARNING:** Skia tasks (especially "dm" and "nanobench") sometimes
      produce massive amounts of log spam (e.g., graphics API warnings, compiler
@@ -145,9 +151,11 @@ about any other tasks.
    - To find the _actual_ cause of failure, always check the **end** of the logs
      first. Specifically, look for a "Failures:" section or explicit test
      failure messages right before the step exits.
-   - Be sure to include the entire error message or stack trace, unless it is
-     excessively long (>100 lines).
+   - If the error is not extremely obvious, continue requesting log pages until
+     you've either found an obvious error or you've seen all of the logs.
 4. Analyze the error(s) and present a report to the user.
+   - Be sure to include the entire error message or stack trace, unless it is
+     excessively long (>100 lines). You can deduplicate lines as appropriate.
    - Be concise. Only include relevant information and avoid repeating or
      restating your conclusion. The error message will be included in the
      "ErrorMessage" section of the response, so do not include it in your
@@ -155,11 +163,7 @@ about any other tasks.
    - If you suspect a problem with the machine which ran the task, include the
      bot ID in your analysis.
 
-## Task Details
-
 %s
-
-## Task Steps
 
 %s
 `

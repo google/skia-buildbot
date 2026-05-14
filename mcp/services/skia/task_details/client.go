@@ -108,7 +108,7 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 		return &res, nil
 	}
 
-	// Fall back to Recipe steps via LogDog.
+	// Retrieve the Swarming task state, as it'll be needed.
 	task, err := c.ts.GetTaskById(ctx, taskID)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -116,6 +116,13 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 	if task == nil {
 		return nil, skerr.Fmt("No such task with ID %s", taskID)
 	}
+	swarmTask, err := c.swarm.GetResult(ctx, &apipb.TaskIdWithPerfRequest{TaskId: task.SwarmingTaskId})
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	res.SwarmingTaskState = apipb.TaskState_name[int32(swarmTask.State)]
+
+	// Fall back to Recipe steps via LogDog.
 	step, err := c.logdog.GetBuildSteps(ctx, logdogProject, fixupSwarmingTaskID(task.SwarmingTaskId))
 	if err == nil {
 		res.Recipe = toRecipeStep(step)
@@ -127,11 +134,6 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 	}
 
 	// If we couldn't find recipe steps, just return the Swarming task logs.
-	swarmTask, err := c.swarm.GetResult(ctx, &apipb.TaskIdWithPerfRequest{TaskId: task.SwarmingTaskId})
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	res.SwarmingTaskState = apipb.TaskState_name[int32(swarmTask.State)]
 	swarmOutput, err := c.swarm.GetStdout(ctx, &apipb.TaskIdWithOffsetRequest{TaskId: task.SwarmingTaskId})
 	if err != nil {
 		if strings.Contains(err.Error(), "404 page not found") {
@@ -353,6 +355,7 @@ func (r GetTaskStepsResult) String() string {
 	} else if r.Recipe != nil {
 		_, _ = fmt.Fprintf(&sb, "# Recipe\n\n")
 		_, _ = fmt.Fprintf(&sb, "**Swarming Task ID:** %s\n", r.SwarmingTaskID)
+		_, _ = fmt.Fprintf(&sb, "**Swarming Task State:** %s\n", r.SwarmingTaskState)
 		_, _ = fmt.Fprintf(&sb, "**Steps:**\n")
 		printRecipeStep(&sb, r.Recipe, 0)
 	} else {

@@ -85,12 +85,14 @@ func TestGetTaskStepsResult_String_Recipe(t *testing.T) {
 				},
 			},
 		},
-		SwarmingTaskID: "abc123",
+		SwarmingTaskID:    "abc123",
+		SwarmingTaskState: "FAILURE",
 	}
 
 	expected := `# Recipe
 
 **Swarming Task ID:** abc123
+**Swarming Task State:** FAILURE
 **Steps:**
 - "Root Step" (SUCCESS)
   - "Sub Step 1" (SUCCESS)
