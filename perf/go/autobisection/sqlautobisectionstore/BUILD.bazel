@@ -1,0 +1,29 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sqlautobisectionstore",
+    srcs = ["sqlautobisectionstore.go"],
+    importpath = "go.skia.org/infra/perf/go/autobisection/sqlautobisectionstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sql/pool",
+        "//perf/go/autobisection",
+        "//perf/go/autobisection/sqlautobisectionstore/schema",
+    ],
+)
+
+go_test(
+    name = "sqlautobisectionstore_test",
+    srcs = ["sqlautobisectionstore_test.go"],
+    embed = [":sqlautobisectionstore"],
+    deps = [
+        "//go/sql/pool",
+        "//perf/go/autobisection",
+        "//perf/go/autobisection/sqlautobisectionstore/schema",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
