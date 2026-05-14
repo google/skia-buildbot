@@ -7,7 +7,6 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/logdog/api/logpb"
-	annopb "go.chromium.org/luci/luciexe/legacy/annotee/proto"
 	"go.skia.org/infra/mcp/services/skia/task_details/mocks"
 	"go.skia.org/infra/task_driver/go/display"
 	"go.skia.org/infra/task_driver/go/td"
@@ -17,22 +16,34 @@ func TestGetTaskStepsResult_String_TaskDriver(t *testing.T) {
 	res := GetTaskStepsResult{
 		TaskDriver: &display.TaskDriverRunDisplay{
 			StepDisplay: &display.StepDisplay{
-				StepProperties: &td.StepProperties{Name: "Root Step"},
-				Result:         td.StepResultSuccess,
+				StepProperties: &td.StepProperties{
+					Id:   "root",
+					Name: "Root Step",
+				},
+				Result: td.StepResultSuccess,
 				Steps: []*display.StepDisplay{
 					{
-						StepProperties: &td.StepProperties{Name: "Sub Step 1"},
-						Result:         td.StepResultSuccess,
+						StepProperties: &td.StepProperties{
+							Id:   "sub-1",
+							Name: "Sub Step 1",
+						},
+						Result: td.StepResultSuccess,
 						Steps: []*display.StepDisplay{
 							{
-								StepProperties: &td.StepProperties{Name: "Sub-sub Step 1"},
-								Result:         td.StepResultSuccess,
+								StepProperties: &td.StepProperties{
+									Id:   "sub-sub-1",
+									Name: "Sub-sub Step 1",
+								},
+								Result: td.StepResultSuccess,
 							},
 						},
 					},
 					{
-						StepProperties: &td.StepProperties{Name: "Sub Step 2"},
-						Result:         td.StepResultFailure,
+						StepProperties: &td.StepProperties{
+							Id:   "sub-2",
+							Name: "Sub Step 2",
+						},
+						Result: td.StepResultFailure,
 					},
 				},
 			},
@@ -41,45 +52,36 @@ func TestGetTaskStepsResult_String_TaskDriver(t *testing.T) {
 
 	expected := `# Task Driver
 
-- Root Step (SUCCESS)
-  - Sub Step 1 (SUCCESS)
-    - Sub-sub Step 1 (SUCCESS)
-  - Sub Step 2 (FAILURE)
+- id=root name="Root Step" (SUCCESS)
+  - id=sub-1 name="Sub Step 1" (SUCCESS)
+    - id=sub-sub-1 name="Sub-sub Step 1" (SUCCESS)
+  - id=sub-2 name="Sub Step 2" (FAILURE)
 `
 	require.Equal(t, expected, res.String())
 }
 
 func TestGetTaskStepsResult_String_Recipe(t *testing.T) {
 	res := GetTaskStepsResult{
-		Recipe: &annopb.Step{
+		Recipe: &RecipeStep{
 			Name:   "Root Step",
-			Status: annopb.Status_SUCCESS,
-			Substep: []*annopb.Step_Substep{
+			Status: "SUCCESS",
+			Substeps: []*RecipeStep{
 				{
-					Substep: &annopb.Step_Substep_Step{
-						Step: &annopb.Step{
-							Name:   "Sub Step 1",
-							Status: annopb.Status_SUCCESS,
-							Substep: []*annopb.Step_Substep{
-								{
-									Substep: &annopb.Step_Substep_Step{
-										Step: &annopb.Step{
-											Name:   "Sub-sub Step 1",
-											Status: annopb.Status_SUCCESS,
-										},
-									},
-								},
-							},
+					Name:   "Sub Step 1",
+					Status: "SUCCESS",
+					Substeps: []*RecipeStep{
+						{
+							Name:         "Sub-sub Step 1",
+							Status:       "SUCCESS",
+							StdoutStream: "steps/sub-sub-step-1/stdout",
 						},
 					},
 				},
 				{
-					Substep: &annopb.Step_Substep_Step{
-						Step: &annopb.Step{
-							Name:   "Sub Step 2",
-							Status: annopb.Status_FAILURE,
-						},
-					},
+					Name:         "Sub Step 2",
+					Status:       "FAILURE",
+					StdoutStream: "steps/sub-step-2/stdout",
+					StderrStream: "steps/sub-step-2/stderr",
 				},
 			},
 		},
@@ -90,10 +92,13 @@ func TestGetTaskStepsResult_String_Recipe(t *testing.T) {
 
 **Swarming Task ID:** abc123
 **Steps:**
-- Root Step (SUCCESS)
-  - Sub Step 1 (SUCCESS)
-    - Sub-sub Step 1 (SUCCESS)
-  - Sub Step 2 (FAILURE)
+- "Root Step" (SUCCESS)
+  - "Sub Step 1" (SUCCESS)
+    - "Sub-sub Step 1" (SUCCESS)
+      stdout log path: steps/sub-sub-step-1/stdout
+  - "Sub Step 2" (FAILURE)
+    stdout log path: steps/sub-step-2/stdout
+    stderr log path: steps/sub-step-2/stderr
 `
 	require.Equal(t, expected, res.String())
 }

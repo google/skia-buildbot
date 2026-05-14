@@ -52,11 +52,6 @@ func GetTools(c *TaskDetailsClient) []common.Tool {
 					Required:    true,
 				},
 				{
-					Name:        argLogID,
-					Description: "ID of the log.",
-					Required:    true,
-				},
-				{
 					Name:        argLimit,
 					Description: fmt.Sprintf("Maximum number of entries to load. Default %d, maximum %d.", defaultLogLimit, maxLogLimit),
 				},

@@ -118,7 +118,7 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 	}
 	step, err := c.logdog.GetBuildSteps(ctx, logdogProject, fixupSwarmingTaskID(task.SwarmingTaskId))
 	if err == nil {
-		res.Recipe = step
+		res.Recipe = toRecipeStep(step)
 		// Populate SwarmingTaskID in case it's needed for log retrieval.
 		res.SwarmingTaskID = task.SwarmingTaskId
 		return &res, nil
@@ -241,10 +241,6 @@ func (c *TaskDetailsClient) GetTaskDriverLogsHandler(ctx context.Context, req mc
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	logID, err := req.RequireString(argLogID)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
 	cursor := req.GetString(argCursor, "")
 	limit := req.GetInt(argLimit, defaultLogLimit)
 	if limit < 0 {
@@ -253,7 +249,7 @@ func (c *TaskDetailsClient) GetTaskDriverLogsHandler(ctx context.Context, req mc
 	if limit > maxLogLimit {
 		return nil, skerr.Fmt("limit must be 500 or less")
 	}
-	logs, cursor, err := c.tdLogs.Search(ctx, taskID, stepID, logID, cursor, limit, req.GetBool(argReverse, false))
+	logs, cursor, err := c.tdLogs.Search(ctx, taskID, stepID, "", cursor, limit, req.GetBool(argReverse, false))
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -305,10 +301,44 @@ func fixupSwarmingTaskID(taskID string) string {
 	return taskID
 }
 
+type RecipeStep struct {
+	Name         string        `json:"name"`
+	Status       string        `json:"status"`
+	StdoutStream string        `json:"stdout_stream,omitempty"`
+	StderrStream string        `json:"stderr_stream,omitempty"`
+	Substeps     []*RecipeStep `json:"substeps,omitempty"`
+}
+
+type RecipeLog struct {
+	Name string `json:"name"`
+}
+
+func toRecipeStep(step *annopb.Step) *RecipeStep {
+	if step == nil {
+		return nil
+	}
+	res := &RecipeStep{
+		Name:   step.Name,
+		Status: step.Status.String(),
+	}
+	if step.StdoutStream != nil {
+		res.StdoutStream = step.StdoutStream.Name
+	}
+	if step.StderrStream != nil {
+		res.StderrStream = step.StderrStream.Name
+	}
+	for _, sub := range step.Substep {
+		if s := sub.GetStep(); s != nil {
+			res.Substeps = append(res.Substeps, toRecipeStep(s))
+		}
+	}
+	return res
+}
+
 type GetTaskStepsResult struct {
 	TaskDriver *display.TaskDriverRunDisplay `json:"task_driver,omitempty"`
 
-	Recipe *annopb.Step `json:"recipe,omitempty"`
+	Recipe *RecipeStep `json:"recipe,omitempty"`
 
 	SwarmingTaskID    string `json:"swarming_task_id,omitempty"`
 	SwarmingTaskState string `json:"swarming_task_state,omitempty"`
@@ -336,16 +366,23 @@ func (r GetTaskStepsResult) String() string {
 }
 
 func printTaskDriverStep(w io.Writer, step *display.StepDisplay, depth int) {
-	_, _ = fmt.Fprintf(w, "%s- %s (%s)\n", strings.Repeat("  ", depth), step.Name, step.Result)
+	_, _ = fmt.Fprintf(w, "%s- id=%s name=%q (%s)\n", strings.Repeat("  ", depth), step.Id, step.Name, step.Result)
 	for _, subStep := range step.Steps {
 		printTaskDriverStep(w, subStep, depth+1)
 	}
 }
 
-func printRecipeStep(w io.Writer, step *annopb.Step, depth int) {
-	_, _ = fmt.Fprintf(w, "%s- %s (%s)\n", strings.Repeat("  ", depth), step.Name, step.Status)
-	for _, subStep := range step.Substep {
-		printRecipeStep(w, subStep.GetStep(), depth+1)
+func printRecipeStep(w io.Writer, step *RecipeStep, depth int) {
+	indent := strings.Repeat("  ", depth)
+	_, _ = fmt.Fprintf(w, "%s- %q (%s)\n", indent, step.Name, step.Status)
+	if step.StdoutStream != "" {
+		_, _ = fmt.Fprintf(w, "%s  stdout log path: %s\n", indent, step.StdoutStream)
+	}
+	if step.StderrStream != "" {
+		_, _ = fmt.Fprintf(w, "%s  stderr log path: %s\n", indent, step.StderrStream)
+	}
+	for _, subStep := range step.Substeps {
+		printRecipeStep(w, subStep, depth+1)
 	}
 }
 

@@ -50,6 +50,5 @@ go_test(
         "@com_github_mark3labs_mcp_go//mcp",
         "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//logdog/api/logpb",
-        "@org_chromium_go_luci//luciexe/legacy/annotee/proto",
     ],
 )
