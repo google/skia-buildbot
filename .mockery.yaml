@@ -296,6 +296,9 @@ packages:
   #     dir: "{{.InterfaceDir}}/mocks"
   #   interfaces:
   #     AutobisectionServiceServer:
+  go.skia.org/infra/perf/go/autobisection:
+    interfaces:
+      Store:
   go.skia.org/infra/go/cache:
     config:
       dir: "{{.InterfaceDir}}/mock"
