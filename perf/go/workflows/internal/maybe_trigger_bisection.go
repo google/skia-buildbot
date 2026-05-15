@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	ag_pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
+	b_pb "go.skia.org/infra/perf/go/autobisection/proto/v1"
 	c_pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 
 	"go.skia.org/infra/perf/go/types"
@@ -32,6 +33,10 @@ func gsaToken() *GerritServiceActivity {
 
 func csaToken() *CulpritServiceActivity {
 	return &CulpritServiceActivity{}
+}
+
+func bsaToken() *AutobisectionServiceActivity {
+	return &AutobisectionServiceActivity{}
 }
 
 // MaybeTriggerBisectionWorkflow is the entry point for the workflow which handles anomaly group
@@ -149,7 +154,7 @@ func processAnomaliesAsBisection(
 		return nil, skerr.Wrap(err)
 	}
 
-	if err := processBisectJobResultsPlaceholder(ctx, jobState); err != nil {
+	if err := processBisectJobResults(ctx, jobState, topAnomaly, input.AnomalyGroupId, input.AutobisectionServiceUrl); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
@@ -475,14 +480,25 @@ func executeFetchJobStateActivity(
 	return resp, nil
 }
 
-func processBisectJobResultsPlaceholder(
+func processBisectJobResults(
 	ctx workflow.Context,
 	jobState *pinpoint.FetchJobStateResponse,
+	anomaly *ag_pb.Anomaly,
+	anomalyGroupId string,
+	autobisectionServiceUrl string,
 ) error {
 	culprits, err := extractCulprits(jobState)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+
+	autobisectionReq := &b_pb.SaveAutobisectionRequest{
+		JobId:            jobState.JobID,
+		AnomalyGroupId:   anomalyGroupId,
+		AnomalyId:        anomaly.Id,
+		IsRealRegression: isRealRegression(jobState),
+	}
+
 	workflow.GetLogger(ctx).Info(
 		"processBisectJobResults",
 		"WorkflowID",
@@ -494,8 +510,13 @@ func processBisectJobResultsPlaceholder(
 		"Culprits",
 		culprits,
 		"Real regression",
-		isRealRegression(jobState),
+		autobisectionReq.IsRealRegression,
 	)
+
+	// Save the autobisection results to the database.
+	if err := workflow.ExecuteActivity(ctx, bsaToken().SaveAutobisection, autobisectionServiceUrl, autobisectionReq).Get(ctx, nil); err != nil {
+		return skerr.Wrap(err)
+	}
 
 	return nil
 }

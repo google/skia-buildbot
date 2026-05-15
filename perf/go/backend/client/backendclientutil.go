@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	anomalygroup "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
+	autobisection "go.skia.org/infra/perf/go/autobisection/proto/v1"
 	"go.skia.org/infra/perf/go/config"
 	culprit "go.skia.org/infra/perf/go/culprit/proto/v1"
 	pinpoint "go.skia.org/infra/pinpoint/proto/v1"
@@ -103,6 +104,20 @@ func NewAnomalyGroupServiceClient(backendServiceUrlOverride string, insecure_con
 	}
 
 	return anomalygroup.NewAnomalyGroupServiceClient(conn), nil
+}
+
+// NewAutobisectionServiceClient returns a new instance of a client for the autobisection service.
+func NewAutobisectionServiceClient(backendServiceUrlOverride string, insecure_conn bool) (autobisection.AutobisectionServiceClient, error) {
+	if !isBackendEnabled(backendServiceUrlOverride) {
+		return nil, skerr.Fmt("Backend service is not enabled for this instance.")
+	}
+
+	conn, err := getGrpcConnection(backendServiceUrlOverride, insecure_conn)
+	if err != nil {
+		return nil, err
+	}
+
+	return autobisection.NewAutobisectionServiceClient(conn), nil
 }
 
 // NewCulpritServiceClient returns a new instance of a client for the culprit service.

@@ -62,6 +62,10 @@ func main() {
 
 	agsa := internal.NewAnomalyGroupServiceActivity()
 	w.RegisterActivity(agsa)
+
+	bsa := internal.NewAutobisectionServiceActivity()
+	w.RegisterActivity(bsa)
+
 	w.RegisterWorkflowWithOptions(
 		internal.MaybeTriggerBisectionWorkflow,
 		workflow.RegisterOptions{Name: workflows.MaybeTriggerBisection},

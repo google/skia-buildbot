@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 	anomalygroup_proto "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	anomalygroup_mock "go.skia.org/infra/perf/go/anomalygroup/proto/v1/mocks"
+	autobisection_proto "go.skia.org/infra/perf/go/autobisection/proto/v1"
+	autobisection_mock "go.skia.org/infra/perf/go/autobisection/proto/v1/mocks"
 	culprit_proto "go.skia.org/infra/perf/go/culprit/proto/v1"
 
 	"go.skia.org/infra/perf/go/workflows"
@@ -35,9 +37,27 @@ func setupAnomalyGroupService(
 	}
 }
 
+func setupAutobisectionService(
+	t *testing.T,
+) (string, *autobisection_mock.AutobisectionServiceServer, func()) {
+	lis, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	s := grpc.NewServer()
+	service := autobisection_mock.NewAutobisectionServiceServer(t)
+	autobisection_proto.RegisterAutobisectionServiceServer(s, service)
+	go func() {
+		require.NoError(t, s.Serve(lis))
+	}()
+	return lis.Addr().String(), service, func() {
+		s.Stop()
+	}
+}
+
 func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
-	addr, server, cleanup := setupAnomalyGroupService(t)
-	defer cleanup()
+	ag_addr, ag_server, ag_cleanup := setupAnomalyGroupService(t)
+	defer ag_cleanup()
+	b_addr, b_server, b_cleanup := setupAutobisectionService(t)
+	defer b_cleanup()
 	c_addr, _, c_cleanup := setupCulpritService(t)
 	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -45,9 +65,11 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
 	gsa := &GerritServiceActivity{insecure_conn: true}
 	csa := &CulpritServiceActivity{insecure_conn: true}
+	bsa := &AutobisectionServiceActivity{insecure_conn: true}
 	env.RegisterActivity(agsa)
 	env.RegisterActivity(gsa)
 	env.RegisterActivity(csa)
+	env.RegisterActivity(bsa)
 
 	anomalyGroupId := "group_id1"
 	mockAnomalyIds := []string{"anomaly1"}
@@ -65,7 +87,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 		},
 		ImprovementDirection: "UP",
 	}
-	server.On("LoadAnomalyGroupByID", mock.Anything, &anomalygroup_proto.LoadAnomalyGroupByIDRequest{
+	ag_server.On("LoadAnomalyGroupByID", mock.Anything, &anomalygroup_proto.LoadAnomalyGroupByIDRequest{
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
 			&anomalygroup_proto.LoadAnomalyGroupByIDResponse{
@@ -75,7 +97,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 					AnomalyIds:  mockAnomalyIds,
 				},
 			}, nil)
-	server.On("FindTopAnomalies", mock.Anything, &anomalygroup_proto.FindTopAnomaliesRequest{
+	ag_server.On("FindTopAnomalies", mock.Anything, &anomalygroup_proto.FindTopAnomaliesRequest{
 		AnomalyGroupId: anomalyGroupId,
 		Limit:          1}).
 		Return(
@@ -98,13 +120,17 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	env.OnActivity((&pinpoint.Client{}).FetchJobState, mock.Anything, mock.Anything).
 		Return(&pinpoint.FetchJobStateResponse{Status: "completed"}, nil).
 		Once()
-	server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
+	ag_server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
 		Return(
 			&anomalygroup_proto.UpdateAnomalyGroupResponse{}, nil)
+
+	b_server.On("SaveAutobisection", mock.Anything, mock.Anything).Return(&autobisection_proto.SaveAutobisectionResponse{}, nil)
+
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
-		AnomalyGroupServiceUrl: addr,
-		AnomalyGroupId:         anomalyGroupId,
-		CulpritServiceUrl:      c_addr,
+		AnomalyGroupServiceUrl:  ag_addr,
+		AutobisectionServiceUrl: b_addr,
+		AnomalyGroupId:          anomalyGroupId,
+		CulpritServiceUrl:       c_addr,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -115,16 +141,22 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 }
 
 func TestMaybeTriggerBisection_GroupActionBisect_ParseChartStat(t *testing.T) {
-	addr, server, cleanup := setupAnomalyGroupService(t)
-	defer cleanup()
+	ag_addr, ag_server, ag_cleanup := setupAnomalyGroupService(t)
+	defer ag_cleanup()
+	b_addr, _, b_cleanup := setupAutobisectionService(t)
+	defer b_cleanup()
+	c_addr, _, c_cleanup := setupCulpritService(t)
+	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
 	gsa := &GerritServiceActivity{insecure_conn: true}
 	csa := &CulpritServiceActivity{insecure_conn: true}
+	bsa := &AutobisectionServiceActivity{insecure_conn: true}
 	env.RegisterActivity(agsa)
 	env.RegisterActivity(gsa)
 	env.RegisterActivity(csa)
+	env.RegisterActivity(bsa)
 
 	anomalyGroupId := "group_id1"
 	mockAnomalyIds := []string{"anomaly1"}
@@ -142,7 +174,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_ParseChartStat(t *testing.T) {
 		},
 		ImprovementDirection: "UP",
 	}
-	server.On("LoadAnomalyGroupByID", mock.Anything, &anomalygroup_proto.LoadAnomalyGroupByIDRequest{
+	ag_server.On("LoadAnomalyGroupByID", mock.Anything, &anomalygroup_proto.LoadAnomalyGroupByIDRequest{
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
 			&anomalygroup_proto.LoadAnomalyGroupByIDResponse{
@@ -152,7 +184,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_ParseChartStat(t *testing.T) {
 					AnomalyIds:  mockAnomalyIds,
 				},
 			}, nil)
-	server.On("FindTopAnomalies", mock.Anything, &anomalygroup_proto.FindTopAnomaliesRequest{
+	ag_server.On("FindTopAnomalies", mock.Anything, &anomalygroup_proto.FindTopAnomaliesRequest{
 		AnomalyGroupId: anomalyGroupId,
 		Limit:          1}).
 		Return(
@@ -175,12 +207,17 @@ func TestMaybeTriggerBisection_GroupActionBisect_ParseChartStat(t *testing.T) {
 	env.OnActivity((&pinpoint.Client{}).FetchJobState, mock.Anything, mock.Anything).
 		Return(&pinpoint.FetchJobStateResponse{Status: "completed"}, nil).
 		Once()
-	server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
+	ag_server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
 		Return(
 			&anomalygroup_proto.UpdateAnomalyGroupResponse{}, nil)
+
+	env.OnActivity(bsa.SaveAutobisection, mock.Anything, mock.Anything, mock.Anything).Return(&autobisection_proto.SaveAutobisectionResponse{}, nil).Maybe()
+
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
-		AnomalyGroupServiceUrl: addr,
-		AnomalyGroupId:         anomalyGroupId,
+		AnomalyGroupServiceUrl:  ag_addr,
+		AutobisectionServiceUrl: b_addr,
+		CulpritServiceUrl:       c_addr,
+		AnomalyGroupId:          anomalyGroupId,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -193,6 +230,8 @@ func TestMaybeTriggerBisection_GroupActionBisect_ParseChartStat(t *testing.T) {
 func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 	ag_addr, ag_server, ag_cleanup := setupAnomalyGroupService(t)
 	defer ag_cleanup()
+	b_addr, _, b_cleanup := setupAutobisectionService(t)
+	defer b_cleanup()
 	c_addr, c_server, c_cleanup := setupCulpritService(t)
 	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -200,9 +239,11 @@ func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
 	gsa := &GerritServiceActivity{insecure_conn: true}
 	csa := &CulpritServiceActivity{insecure_conn: true}
+	bsa := &AutobisectionServiceActivity{insecure_conn: true}
 	env.RegisterActivity(agsa)
 	env.RegisterActivity(gsa)
 	env.RegisterActivity(csa)
+	env.RegisterActivity(bsa)
 
 	anomalyGroupId := "group_id1"
 	mockAnomalyIds := []string{"anomaly1"}
@@ -286,10 +327,13 @@ func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 	}).Return(
 		&anomalygroup_proto.UpdateAnomalyGroupResponse{}, nil)
 
+	env.OnActivity(bsa.SaveAutobisection, mock.Anything, mock.Anything, mock.Anything).Return(&autobisection_proto.SaveAutobisectionResponse{}, nil).Maybe()
+
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
-		AnomalyGroupServiceUrl: ag_addr,
-		CulpritServiceUrl:      c_addr,
-		AnomalyGroupId:         anomalyGroupId,
+		AnomalyGroupServiceUrl:  ag_addr,
+		AutobisectionServiceUrl: b_addr,
+		CulpritServiceUrl:       c_addr,
+		AnomalyGroupId:          anomalyGroupId,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -302,6 +346,8 @@ func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 func TestMaybeTriggerBisection_GroupActionBisect_BisectionNotAllowed(t *testing.T) {
 	ag_addr, ag_server, ag_cleanup := setupAnomalyGroupService(t)
 	defer ag_cleanup()
+	b_addr, _, b_cleanup := setupAutobisectionService(t)
+	defer b_cleanup()
 	c_addr, c_server, c_cleanup := setupCulpritService(t)
 	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -309,9 +355,11 @@ func TestMaybeTriggerBisection_GroupActionBisect_BisectionNotAllowed(t *testing.
 	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
 	gsa := &GerritServiceActivity{insecure_conn: true}
 	csa := &CulpritServiceActivity{insecure_conn: true}
+	bsa := &AutobisectionServiceActivity{insecure_conn: true}
 	env.RegisterActivity(agsa)
 	env.RegisterActivity(gsa)
 	env.RegisterActivity(csa)
+	env.RegisterActivity(bsa)
 
 	anomalyGroupId := "group_id1"
 	mockAnomalyIds := []string{"anomaly1"}
@@ -396,10 +444,13 @@ func TestMaybeTriggerBisection_GroupActionBisect_BisectionNotAllowed(t *testing.
 	}).Return(
 		&anomalygroup_proto.UpdateAnomalyGroupResponse{}, nil)
 
+	env.OnActivity(bsa.SaveAutobisection, mock.Anything, mock.Anything, mock.Anything).Return(&autobisection_proto.SaveAutobisectionResponse{}, nil).Maybe()
+
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
-		AnomalyGroupServiceUrl: ag_addr,
-		CulpritServiceUrl:      c_addr,
-		AnomalyGroupId:         anomalyGroupId,
+		AnomalyGroupServiceUrl:  ag_addr,
+		AutobisectionServiceUrl: b_addr,
+		CulpritServiceUrl:       c_addr,
+		AnomalyGroupId:          anomalyGroupId,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -410,8 +461,10 @@ func TestMaybeTriggerBisection_GroupActionBisect_BisectionNotAllowed(t *testing.
 }
 
 func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *testing.T) {
-	addr, server, cleanup := setupAnomalyGroupService(t)
-	defer cleanup()
+	ag_addr, ag_server, ag_cleanup := setupAnomalyGroupService(t)
+	defer ag_cleanup()
+	b_addr, _, b_cleanup := setupAutobisectionService(t)
+	defer b_cleanup()
 	c_addr, _, c_cleanup := setupCulpritService(t)
 	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -419,9 +472,11 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
 	gsa := &GerritServiceActivity{insecure_conn: true}
 	csa := &CulpritServiceActivity{insecure_conn: true}
+	bsa := &AutobisectionServiceActivity{insecure_conn: true}
 	env.RegisterActivity(agsa)
 	env.RegisterActivity(gsa)
 	env.RegisterActivity(csa)
+	env.RegisterActivity(bsa)
 
 	anomalyGroupId := "group_id1"
 	mockAnomalyIds := []string{"anomaly1"}
@@ -439,7 +494,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 		},
 		ImprovementDirection: "UP",
 	}
-	server.On("LoadAnomalyGroupByID", mock.Anything, &anomalygroup_proto.LoadAnomalyGroupByIDRequest{
+	ag_server.On("LoadAnomalyGroupByID", mock.Anything, &anomalygroup_proto.LoadAnomalyGroupByIDRequest{
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
 			&anomalygroup_proto.LoadAnomalyGroupByIDResponse{
@@ -449,7 +504,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 					AnomalyIds:  mockAnomalyIds,
 				},
 			}, nil)
-	server.On("FindTopAnomalies", mock.Anything, &anomalygroup_proto.FindTopAnomaliesRequest{
+	ag_server.On("FindTopAnomalies", mock.Anything, &anomalygroup_proto.FindTopAnomaliesRequest{
 		AnomalyGroupId: anomalyGroupId,
 		Limit:          1}).
 		Return(
@@ -472,13 +527,17 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 	env.OnActivity((&pinpoint.Client{}).FetchJobState, mock.Anything, mock.Anything).
 		Return(&pinpoint.FetchJobStateResponse{Status: "completed"}, nil).
 		Once()
-	server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
+	ag_server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
 		Return(
 			&anomalygroup_proto.UpdateAnomalyGroupResponse{}, nil)
+
+	env.OnActivity(bsa.SaveAutobisection, mock.Anything, mock.Anything, mock.Anything).Return(&autobisection_proto.SaveAutobisectionResponse{}, nil).Maybe()
+
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
-		AnomalyGroupServiceUrl: addr,
-		AnomalyGroupId:         anomalyGroupId,
-		CulpritServiceUrl:      c_addr,
+		AnomalyGroupServiceUrl:  ag_addr,
+		AutobisectionServiceUrl: b_addr,
+		AnomalyGroupId:          anomalyGroupId,
+		CulpritServiceUrl:       c_addr,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())

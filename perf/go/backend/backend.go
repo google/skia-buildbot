@@ -14,6 +14,8 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/anomalygroup"
 	ag_service "go.skia.org/infra/perf/go/anomalygroup/service"
+	"go.skia.org/infra/perf/go/autobisection"
+	autobisection_service "go.skia.org/infra/perf/go/autobisection/service"
 	"go.skia.org/infra/perf/go/backend/shared"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
@@ -57,6 +59,7 @@ type BackendService interface {
 // initialize initializes the Backend application.
 func (b *Backend) initialize(
 	anomalygroupStore anomalygroup.Store,
+	autobisectionStore autobisection.Store,
 	culpritStore culprit.Store,
 	subscriptionStore subscription.Store,
 	regressionStore regression.Store,
@@ -132,6 +135,15 @@ func (b *Backend) initialize(
 		}
 	}
 
+	sklog.Debug("Creating autobisection store.")
+	if autobisectionStore == nil {
+		autobisectionStore, err = builders.NewAutobisectionStoreFromConfig(ctx, config.Config)
+		if err != nil {
+			sklog.Errorf("Error creating autobisection store. %s", err)
+			return err
+		}
+	}
+
 	var temporalClient client.Client
 	if config.Config.NotifyConfig.Notifications == notifytypes.AnomalyGrouper {
 		// Temporal client needs to setup when grouping is in use.
@@ -154,6 +166,7 @@ func (b *Backend) initialize(
 	services := []BackendService{
 		NewPinpointService(nil, nil),
 		ag_service.New(anomalygroupStore, culpritStore, regressionStore, temporalClient),
+		autobisection_service.New(autobisectionStore),
 		culprit_service.New(anomalygroupStore, culpritStore, subscriptionStore, notifier, config.Config),
 	}
 	err = b.configureServices(services)
@@ -240,6 +253,7 @@ func (b *Backend) ServeGRPC() error {
 // New creates a new instance of Backend application.
 func New(flags *config.BackendFlags,
 	anomalygroupStore anomalygroup.Store,
+	autobisectionStore autobisection.Store,
 	culpritStore culprit.Store,
 	subscriptionStore subscription.Store,
 	regressionStore regression.Store,
@@ -253,7 +267,7 @@ func New(flags *config.BackendFlags,
 		flags:            flags,
 	}
 
-	err := b.initialize(anomalygroupStore, culpritStore, subscriptionStore, regressionStore, notifier)
+	err := b.initialize(anomalygroupStore, autobisectionStore, culpritStore, subscriptionStore, regressionStore, notifier)
 	return b, err
 }
 

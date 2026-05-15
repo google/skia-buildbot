@@ -263,6 +263,7 @@ func TopAnomaliesMedianCmp(anomalies []*reg.Regression, limit int64) ([]*ag.Anom
 			ImprovementDirection: paramset["improvement_direction"][0],
 			MedianBefore:         anomaly.MedianBefore,
 			MedianAfter:          anomaly.MedianAfter,
+			Id:                   anomaly.Id,
 		})
 	}
 

@@ -23,6 +23,8 @@ import (
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
 	"go.skia.org/infra/perf/go/anomalygroup"
 	ag_store "go.skia.org/infra/perf/go/anomalygroup/sqlanomalygroupstore"
+	"go.skia.org/infra/perf/go/autobisection"
+	"go.skia.org/infra/perf/go/autobisection/sqlautobisectionstore"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/culprit"
 	culprit_store "go.skia.org/infra/perf/go/culprit/sqlculpritstore"
@@ -327,6 +329,16 @@ func NewAnomalyGroupStoreFromConfig(ctx context.Context, instanceConfig *config.
 		return nil, err
 	}
 	return ag_store.New(db)
+}
+
+// NewAutobisectionStoreFromConfig creates a new autobisection.Store from the
+// InstanceConfig which provides access to the autobisection data.
+func NewAutobisectionStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (autobisection.Store, error) {
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
+	}
+	return sqlautobisectionstore.New(db)
 }
 
 // NewCulpritStoreFromConfig creates a new culprit.Store from the

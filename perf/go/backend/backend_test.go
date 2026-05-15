@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	alert_store "go.skia.org/infra/perf/go/alerts/sqlalertstore"
 	ag_store "go.skia.org/infra/perf/go/anomalygroup/sqlanomalygroupstore"
+	"go.skia.org/infra/perf/go/autobisection/sqlautobisectionstore"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/culprit/notify"
 	culprit_store "go.skia.org/infra/perf/go/culprit/sqlculpritstore"
@@ -25,6 +26,7 @@ func setupTestApp(t *testing.T) *Backend {
 	db := sqltest.NewSpannerDBForTests(t, "backend")
 	alertStore, _ := alert_store.New(db)
 	configProvider, _ := alerts.NewConfigProvider(context.Background(), alertStore, 600)
+	autobisectionStore, _ := sqlautobisectionstore.New(db)
 	anomalygroupStore, _ := ag_store.New(db)
 	culpritStore, _ := culprit_store.New(db)
 	subscriptionStore, _ := subscription_store.New(db)
@@ -39,7 +41,7 @@ func setupTestApp(t *testing.T) *Backend {
 		PromPort:       ":0",
 		ConfigFilename: configFile,
 	}
-	b, err := New(flags, anomalygroupStore, culpritStore, subscriptionStore, regressionStore, &notify.DefaultCulpritNotifier{})
+	b, err := New(flags, anomalygroupStore, autobisectionStore, culpritStore, subscriptionStore, regressionStore, &notify.DefaultCulpritNotifier{})
 	require.NoError(t, err)
 	ch := make(chan interface{})
 	go func() {

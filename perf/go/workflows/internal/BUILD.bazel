@@ -5,6 +5,7 @@ go_library(
     name = "internal",
     srcs = [
         "anomalygroup_service_activity.go",
+        "autobisection_service_activity.go",
         "culprit_service_activity.go",
         "gerrit_service_activity.go",
         "maybe_trigger_bisection.go",
@@ -18,6 +19,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//perf/go/anomalygroup/proto/v1",
+        "//perf/go/autobisection/proto/v1:proto",
         "//perf/go/backend/client",
         "//perf/go/culprit/proto/v1",
         "//perf/go/types",
@@ -41,6 +43,8 @@ go_test(
     deps = [
         "//perf/go/anomalygroup/proto/v1",
         "//perf/go/anomalygroup/proto/v1/mocks",
+        "//perf/go/autobisection/proto/v1:proto",
+        "//perf/go/autobisection/proto/v1/mocks",
         "//perf/go/culprit/proto/v1",
         "//perf/go/culprit/proto/v1/mocks",
         "//perf/go/workflows",
