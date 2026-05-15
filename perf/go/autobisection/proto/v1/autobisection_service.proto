@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package autobisection.v1;
+option go_package = "go.skia.org/infra/perf/go/autobisection/proto/v1";
+
+// AutobisectionService provides an interface for interacting with the Autobisection store.
+service AutobisectionService {
+  // SaveAutobisection saves the result of a autobisection.
+  rpc SaveAutobisection(SaveAutobisectionRequest) returns (SaveAutobisectionResponse) {}
+}
+
+// Request object for SaveAutobisection rpc.
+message SaveAutobisectionRequest {
+  string job_id = 1;
+  string anomaly_group_id = 2;
+  string anomaly_id = 3;
+  bool is_real_regression = 4;
+}
+
+// Response object for SaveAutobisection rpc.
+message SaveAutobisectionResponse {}

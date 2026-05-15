@@ -289,6 +289,13 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       AnomalyGrouper:
+# Uncomment if changes are made to autobisectionservice. This would require some changes to the
+  # generate mocks. See comments in the mock file before generating this.
+  # go.skia.org/infra/perf/go/autobisection/proto/v1:
+  #   config:
+  #     dir: "{{.InterfaceDir}}/mocks"
+  #   interfaces:
+  #     AutobisectionServiceServer:
   go.skia.org/infra/go/cache:
     config:
       dir: "{{.InterfaceDir}}/mock"
