@@ -103,6 +103,36 @@ func (_m *Store) GetByIDs(ctx context.Context, ids []string) ([]*regression.Regr
 	return r0, r1
 }
 
+// GetByLegacyKeys provides a mock function with given fields: ctx, legacyKeys
+func (_m *Store) GetByLegacyKeys(ctx context.Context, legacyKeys []string) ([]*regression.Regression, error) {
+	ret := _m.Called(ctx, legacyKeys)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByLegacyKeys")
+	}
+
+	var r0 []*regression.Regression
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*regression.Regression, error)); ok {
+		return rf(ctx, legacyKeys)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []*regression.Regression); ok {
+		r0 = rf(ctx, legacyKeys)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*regression.Regression)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, legacyKeys)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByRevision provides a mock function with given fields: ctx, rev
 func (_m *Store) GetByRevision(ctx context.Context, rev string) ([]*regression.Regression, error) {
 	ret := _m.Called(ctx, rev)

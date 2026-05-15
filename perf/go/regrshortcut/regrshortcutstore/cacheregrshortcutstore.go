@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"database/sql"
 	"encoding/json"
 	"slices"
 	"strings"
@@ -30,6 +31,11 @@ func NewCacheRegressionsShortcutStore(cacheClient cache.Cache) *cacheRegressions
 	}
 }
 
+type cacheKey struct {
+	RegrIdList []string
+	IsLegacy   bool
+}
+
 // Create implements the regrshortcut.Store interface.
 func (c *cacheRegressionsShortcutStore) Create(ctx context.Context, regrIdList []string) (string, error) {
 	if len(regrIdList) == 0 {
@@ -40,7 +46,8 @@ func (c *cacheRegressionsShortcutStore) Create(ctx context.Context, regrIdList [
 	shortcut := c.calcHash(regrIdList)
 
 	var buff bytes.Buffer
-	err := json.NewEncoder(&buff).Encode(regrIdList)
+	ck := cacheKey{RegrIdList: regrIdList, IsLegacy: true}
+	err := json.NewEncoder(&buff).Encode(ck)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to encode regression id list")
 	}
@@ -54,21 +61,24 @@ func (c *cacheRegressionsShortcutStore) Create(ctx context.Context, regrIdList [
 }
 
 // Get implements the regrshortcut.Store interface.
-func (c *cacheRegressionsShortcutStore) Get(ctx context.Context, shortcut string) ([]string, error) {
+func (c *cacheRegressionsShortcutStore) Get(ctx context.Context, shortcut string) (sql.NullBool, []string, error) {
 	if !strings.HasPrefix(shortcut, "\\x") {
 		shortcut = "\\x" + shortcut
 	}
+	if !c.cacheClient.Exists(shortcut) {
+		return sql.NullBool{}, []string{}, nil
+	}
 	value, err := c.cacheClient.GetValue(ctx, shortcut)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to get value from cache")
+		return sql.NullBool{}, nil, skerr.Wrapf(err, "Failed to get value from cache")
 	}
 
-	var regrIdList []string
-	if err := json.Unmarshal([]byte(value), &regrIdList); err != nil {
-		return nil, skerr.Wrapf(err, "Failed to decode regression id list")
+	var ck cacheKey
+	if err := json.Unmarshal([]byte(value), &ck); err != nil {
+		return sql.NullBool{}, nil, skerr.Wrapf(err, "Failed to decode regression id list")
 	}
 
-	return regrIdList, nil
+	return sql.NullBool{Valid: true, Bool: ck.IsLegacy}, ck.RegrIdList, nil
 }
 
 func (c *cacheRegressionsShortcutStore) calcHash(regrIdList []string) string {

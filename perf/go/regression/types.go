@@ -54,6 +54,10 @@ type Store interface {
 	// return a list of regressions.
 	GetByIDs(ctx context.Context, ids []string) ([]*Regression, error)
 
+	// Given a list of regression legacy keys (only in the regression2store),
+	// return a list of regressions.
+	GetByLegacyKeys(ctx context.Context, legacyKeys []string) ([]*Regression, error)
+
 	// GetIdsByManualTriageBugID returns a list of distinct regression ids with given manual triage bug id.
 	GetIdsByManualTriageBugID(ctx context.Context, bugID int) ([]string, error)
 

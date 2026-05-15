@@ -225,6 +225,72 @@ func TestGetByIDs_Success(t *testing.T) {
 	}
 }
 
+// TestGetByLegacyKeys_Success reads the database using the
+// legacy keys of the created regressions.
+func TestGetByLegacyKeys_Success(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+
+	rLegacy1 := generateNewRegression(subName)
+	err := store.populateRegression2Fields(rLegacy1)
+	require.NoError(t, err)
+	rLegacy1.LegacyKey = "legacy_key_1"
+	err = store.writeSingleRegression(ctx, rLegacy1, nil)
+	assert.Nil(t, err)
+
+	rLegacy2 := generateNewRegression(subName)
+	err = store.populateRegression2Fields(rLegacy2)
+	require.NoError(t, err)
+	rLegacy2.LegacyKey = "legacy_key_2"
+	err = store.writeSingleRegression(ctx, rLegacy2, nil)
+	assert.Nil(t, err)
+
+	tests := []struct {
+		name             string
+		legacyKeys       []string
+		expectedLen      int
+		shouldContainIDs []string
+	}{
+		{
+			name:             "two legacy keys",
+			legacyKeys:       []string{"legacy_key_1", "legacy_key_2"},
+			expectedLen:      2,
+			shouldContainIDs: []string{rLegacy1.Id, rLegacy2.Id},
+		},
+		{
+			name:             "one legacy key",
+			legacyKeys:       []string{"legacy_key_1"},
+			expectedLen:      1,
+			shouldContainIDs: []string{rLegacy1.Id},
+		},
+		{
+			name:             "empty legacy keys list",
+			legacyKeys:       []string{},
+			expectedLen:      0,
+			shouldContainIDs: []string{},
+		},
+		{
+			name:             "non-existent legacy key",
+			legacyKeys:       []string{"legacy_key_unknown"},
+			expectedLen:      0,
+			shouldContainIDs: []string{},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			regressions, err := store.GetByLegacyKeys(ctx, tc.legacyKeys)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expectedLen, len(regressions))
+			for _, r := range regressions {
+				assert.Contains(t, tc.shouldContainIDs, r.Id)
+			}
+		})
+	}
+}
+
 // TestGetByIDs_Success reads the database using the
 // ids of the created regressions.
 func TestGetByRevision_Success(t *testing.T) {

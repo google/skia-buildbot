@@ -62,6 +62,7 @@ const (
 	readByRev
 	readBySid
 	readByIDs
+	readByLegacyKeys
 	readIdsByManualTriageBugId
 	readBySubNameUntriagedOnly
 	readBySubNameIncludeTriaged
@@ -235,6 +236,16 @@ var statementFormats = map[statementFormat]string{
 			Regressions2
 		WHERE
 			id IN (%s)
+		ORDER BY
+			id
+		`,
+	readByLegacyKeys: `
+		SELECT
+			{{ .Columns }}
+		FROM
+			Regressions2
+		WHERE
+			legacy_key = ANY($1)
 		ORDER BY
 			id
 		`,
@@ -564,6 +575,27 @@ func (s *SQLRegression2Store) GetRegressionsBySubName(ctx context.Context, req r
 	rows, err := s.db.Query(ctx, statement, req.SubName, req.IncludeImprovements, limit, req.PaginationOffset)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get regressions. Query: %s", statement)
+	}
+	defer rows.Close()
+
+	regressions, err := s.convertRowsIntoRegressions(rows)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to convert rows into regressions")
+	}
+
+	return regressions, nil
+}
+
+// Get a list of regressions given a list of legacy keys.
+func (s *SQLRegression2Store) GetByLegacyKeys(ctx context.Context, legacyKeys []string) ([]*regression.Regression, error) {
+	if len(legacyKeys) == 0 {
+		sklog.Warning("GetByLegacyKeys received an empty ids list.")
+		return []*regression.Regression{}, nil
+	}
+	statement := s.statements[readByLegacyKeys]
+	rows, err := s.db.Query(ctx, statement, legacyKeys)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get regressions by legacy_key list %s", legacyKeys)
 	}
 	defer rows.Close()
 

@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -178,7 +179,7 @@ func TestGetGroupReportBySid(t *testing.T) {
 			},
 		},
 	}
-	regrShortcutStore.On("Get", ctx, "\\x"+sid).Return([]string{"regression1"}, nil).Once()
+	regrShortcutStore.On("Get", ctx, "\\x"+sid).Return(sql.NullBool{Valid: true, Bool: false}, []string{"regression1"}, nil).Once()
 	regStore.On("GetByIDs", ctx, []string{"regression1"}).Return(regressions, nil).Once()
 	regStore.On("GetBugIdsForRegressions", mock.Anything, regressions).Return(regressions, nil)
 
@@ -192,6 +193,62 @@ func TestGetGroupReportBySid(t *testing.T) {
 	require.NotNil(t, resp)
 	assert.Len(t, resp.Anomalies, 1)
 	assert.Equal(t, "anomaly-id-1", resp.Anomalies[0].Id)
+
+	regStore.AssertExpectations(t)
+}
+
+func TestGetGroupReportBySid_LegacyKeys(t *testing.T) {
+	api, _, _, regStore, regrShortcutStore := setupAnomaliesApiWithMocks(t)
+
+	ctx := context.Background()
+	sid := "test-sid-legacy"
+	traceset := ",arch=x86,bot=linux,benchmark=jetstream2,test=score,config=default,master=main,"
+
+	regressions := []*regression.Regression{
+		{
+			Id: "anomaly-id-legacy",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						traceset: []float32{1.0},
+					},
+				},
+			},
+		},
+	}
+	regrShortcutStore.On("Get", ctx, "\\x"+sid).Return(sql.NullBool{Valid: true, Bool: true}, []string{"legacy_key_1"}, nil).Once()
+	regStore.On("GetByLegacyKeys", ctx, []string{"legacy_key_1"}).Return(regressions, nil).Once()
+	regStore.On("GetBugIdsForRegressions", mock.Anything, regressions).Return(regressions, nil)
+
+	req := GetGroupReportRequest{
+		Sid: sid,
+	}
+
+	resp, err := api.getGroupReportBySid(ctx, req)
+
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Len(t, resp.Anomalies, 1)
+	assert.Equal(t, "anomaly-id-legacy", resp.Anomalies[0].Id)
+
+	regStore.AssertExpectations(t)
+}
+
+func TestGetGroupReportBySid_NotFound(t *testing.T) {
+	api, _, _, regStore, regrShortcutStore := setupAnomaliesApiWithMocks(t)
+
+	ctx := context.Background()
+	sid := "test-sid-legacy"
+
+	regrShortcutStore.On("Get", ctx, "\\x"+sid).Return(sql.NullBool{Valid: false}, []string{}, nil).Once()
+
+	req := GetGroupReportRequest{
+		Sid: sid,
+	}
+
+	_, err := api.getGroupReportBySid(ctx, req)
+
+	require.Error(t, err)
 
 	regStore.AssertExpectations(t)
 }

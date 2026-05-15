@@ -117,11 +117,31 @@ func (api anomaliesApi) getGroupReportBySid(ctx context.Context, groupReportRequ
 	if !strings.HasPrefix(sid, "\\x") {
 		sid = "\\x" + sid
 	}
-	anomalyIds, err := api.regrShortcutStore.Get(ctx, sid)
+	isLegacy, anomalyIds, err := api.regrShortcutStore.Get(ctx, sid)
 	if err != nil {
-		return nil, skerr.Fmt("failed to get anomalyIds from Regressions Shortcut Store by Sid: %s", err)
+		return nil, skerr.Wrapf(err, "DB failed to get anomalyIds from Regressions Shortcut Store by Sid")
+	}
+	// A few legacy anomalies are not covered by SIDs
+	if !isLegacy.Valid && len(anomalyIds) == 0 {
+		return nil, skerr.Fmt("Shortcut not found! If this is a legacy shortcut and you think it should be found, please contact BERF team.")
+	}
+	if isLegacy.Valid && isLegacy.Bool {
+		return api.getGroupReportByAnomalyLegacyKeyList(ctx, &anomalyIds)
 	}
 	return api.getGroupReportByAnomalyIdList(ctx, &anomalyIds)
+}
+
+// Given a list of anomaly legacy keys, fill GetGroupReportResponse Anomalies list.
+func (api anomaliesApi) getGroupReportByAnomalyLegacyKeyList(ctx context.Context, anomalyLegacyKeys *[]string) (*GetGroupReportResponse, error) {
+	regressions, err := api.regStore.GetByLegacyKeys(ctx, *anomalyLegacyKeys)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "DB failed to get regressions by legacy keys list")
+	}
+	regressionsWithAllBugs, err := api.regStore.GetBugIdsForRegressions(ctx, regressions)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to add bug ids to %d regressions", len(regressions))
+	}
+	return api.prepareResponseFromRegressions(ctx, regressionsWithAllBugs)
 }
 
 // Given a list of anomaly IDs, fill GetGroupReportResponse Anomalies list.

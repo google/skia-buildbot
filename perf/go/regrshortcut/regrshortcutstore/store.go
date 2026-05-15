@@ -3,12 +3,14 @@ package regrshortcutstore
 import (
 	"context"
 	"crypto/md5"
+	"database/sql"
 	"errors"
 	"slices"
 	"strings"
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/types"
@@ -45,15 +47,19 @@ func (rss *RegressionsShortcutStore) Create(ctx context.Context, regrIdList []st
 }
 
 // Get implements the regrshortcut.Store interface.
-func (rss *RegressionsShortcutStore) Get(ctx context.Context, shortcut string) ([]string, error) {
+func (rss *RegressionsShortcutStore) Get(ctx context.Context, shortcut string) (sql.NullBool, []string, error) {
 	if !strings.HasPrefix(shortcut, "\\x") {
 		shortcut = "\\x" + shortcut
 	}
+	var isLegacy sql.NullBool
 	var regrIdList []string
-	if err := rss.db.QueryRow(ctx, `SELECT anomaly_ids FROM RegressionsShortcuts WHERE sid = $1`, shortcut).Scan(&regrIdList); err != nil {
-		return nil, skerr.Wrapf(err, "failed to get regressions shortcut: %s", shortcut)
+	if err := rss.db.QueryRow(ctx, `SELECT is_legacy, anomaly_ids FROM RegressionsShortcuts WHERE sid = $1`, shortcut).Scan(&isLegacy, &regrIdList); err != nil {
+		if err == pgx.ErrNoRows {
+			return sql.NullBool{}, []string{}, nil
+		}
+		return sql.NullBool{}, nil, skerr.Wrapf(err, "failed to get regressions shortcut: %s", shortcut)
 	}
-	return regrIdList, nil
+	return isLegacy, regrIdList, nil
 }
 
 func (rss *RegressionsShortcutStore) calcHash(regrIdList []string) string {

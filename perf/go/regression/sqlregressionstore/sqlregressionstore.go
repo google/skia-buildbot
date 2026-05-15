@@ -451,3 +451,7 @@ func (s *SQLRegressionStore) NudgeAndResetAnomalies(ctx context.Context, regress
 func (s *SQLRegressionStore) GetSubscriptionsForRegressions(ctx context.Context, regressionIDs []string) ([]string, []int64, []*pb.Subscription, error) {
 	return nil, nil, nil, skerr.Fmt("GetSubscriptionsForRegressions not implemented for SQLRegressionStore")
 }
+
+func (s *SQLRegressionStore) GetByLegacyKeys(ctx context.Context, legacyKeys []string) ([]*regression.Regression, error) {
+	return nil, skerr.Fmt("GetByLegacyKeys not implemented for SQLRegressionStore")
+}

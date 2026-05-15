@@ -1,6 +1,9 @@
 package regrshortcut
 
-import "context"
+import (
+	"context"
+	"database/sql"
+)
 
 // Store persists regression shortcuts
 type Store interface {
@@ -9,5 +12,5 @@ type Store interface {
 	Create(ctx context.Context, regressionIdList []string) (string, error)
 
 	// Get returns a list of regression IDs associated with a shortcut.
-	Get(ctx context.Context, shortcut string) ([]string, error)
+	Get(ctx context.Context, shortcut string) (sql.NullBool, []string, error)
 }

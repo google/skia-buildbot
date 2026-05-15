@@ -51,8 +51,10 @@ func TestGet_Success(t *testing.T) {
 	shortcut, err := store.Create(ctx, regrIds)
 	require.NoError(t, err)
 
-	fetchedIds, err := store.Get(ctx, shortcut)
+	isLegacy, fetchedIds, err := store.Get(ctx, shortcut)
 	require.NoError(t, err)
+	assert.True(t, isLegacy.Valid)
+	assert.False(t, isLegacy.Bool)
 	assert.ElementsMatch(t, regrIds, fetchedIds)
 }
 
@@ -61,8 +63,10 @@ func TestGet_NotFound(t *testing.T) {
 	store := New(db)
 	ctx := context.Background()
 
-	_, err := store.Get(ctx, "nonexistent")
-	require.Error(t, err)
+	isLegacy, fetchedIds, err := store.Get(ctx, "nonexistent")
+	require.NoError(t, err)
+	assert.False(t, isLegacy.Valid)
+	assert.Empty(t, fetchedIds)
 }
 
 func TestCreate_EmptyListFails(t *testing.T) {
