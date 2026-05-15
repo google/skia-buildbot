@@ -1,0 +1,23 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "download-debug-info_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/autogardener/go/download-debug-info",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//autogardener/go/gemini",
+        "//go/auth",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_binary(
+    name = "download-debug-info",
+    embed = [":download-debug-info_lib"],
+    visibility = ["//visibility:public"],
+)
