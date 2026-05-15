@@ -175,23 +175,77 @@ export class DetailsDialogSk extends ElementSk {
         : html``}
     `;
 
-    const td = fetch(`/json/td/${task.id}`)
+    const tdData = fetch(`/json/td/${task.id}`)
       .then(jsonOrThrow)
-      .then(
-        (td) => html`
-          ${until(
-            summaryData.then((s) =>
-              s && (s.errorMessage || s.analysis)
-                ? html`<table class="task-info">
-                    ${summaryRows(s)}
-                  </table>`
-                : html``
-            ),
-            html``
-          )}
-          <br /><task-driver-sk id="tdStatus" .data=${td} embedded></task-driver-sk>
-        `
-      );
+      .catch(() => null);
+
+    const detailsTable = html`
+      <div>
+        <table class="task-info">
+          <tr>
+            <td>Status:</td>
+            <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>${task.status}</td>
+          </tr>
+          ${until(summaryData.then(summaryRows), html``)}
+          <tr>
+            <td>Context:</td>
+            <td>
+              <a href=${this.taskUrl(task)} target="_blank" rel="noopener noreferrer">
+                View on Task Scheduler
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>This Task:</td>
+            <td>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="${this.swarmingTaskUrl(task.taskExecutor, task.swarmingTaskId)}">
+                View on Swarming
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>Other Tasks Like This:</td>
+            <td>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href=${this.swarmingTaskListUrl(task.taskExecutor, task.name)}>
+                View on Swarming
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
+    `;
+
+    const td = tdData.then((data) => {
+      if (!data) {
+        return detailsTable;
+      }
+      return html`
+        ${until(
+          summaryData.then((s) =>
+            s && (s.errorMessage || s.analysis)
+              ? html`<table class="task-info">
+                  ${summaryRows(s)}
+                </table>`
+              : html``
+          ),
+          html``
+        )}
+        <br /><task-driver-sk id="tdStatus" .data=${data} embedded></task-driver-sk>
+      `;
+    });
+
+    const launchUrl = tdData.then((data) => {
+      if (data) {
+        return `https://task-driver.skia.org/td/${task.id}`;
+      }
+      return logsUrl(this.repo, task.swarmingTaskId);
+    });
 
     this.titleSection = html`
       <h3>
@@ -199,57 +253,14 @@ export class DetailsDialogSk extends ElementSk {
         ><a
           target="_blank"
           rel="noopener noreferrer"
-          href="${logsUrl(this.repo, task.swarmingTaskId)}"
+          href="${until(launchUrl, logsUrl(this.repo, task.swarmingTaskId))}"
           ><launch-icon-sk></launch-icon-sk>
         </a>
       </h3>
     `;
 
     this.detailsSection = html`
-      ${until(
-        td,
-        html`
-          <div>
-            <table class="task-info">
-              <tr>
-                <td>Status:</td>
-                <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>${task.status}</td>
-              </tr>
-              ${until(summaryData.then(summaryRows), html``)}
-              <tr>
-                <td>Context:</td>
-                <td>
-                  <a href=${this.taskUrl(task)} target="_blank" rel="noopener noreferrer">
-                    View on Task Scheduler
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td>This Task:</td>
-                <td>
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href="${this.swarmingTaskUrl(task.taskExecutor, task.swarmingTaskId)}">
-                    View on Swarming
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td>Other Tasks Like This:</td>
-                <td>
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href=${this.swarmingTaskListUrl(task.taskExecutor, task.name)}>
-                    View on Swarming
-                  </a>
-                </td>
-              </tr>
-            </table>
-          </div>
-        `
-      )}
+      ${until(td, detailsTable)}
       <h3>Blamelist</h3>
       <table class="blamelist">
         ${task.commits?.map((hash: string) => {

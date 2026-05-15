@@ -74,6 +74,7 @@ describe('details-dialog-sk', () => {
     });
     element.displayTask(task, [comment], commitsByHash);
     await fetchMock.flush(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
     // The task summary has an error message which, in addition to the task
@@ -94,6 +95,7 @@ describe('details-dialog-sk', () => {
     fetchMock.getOnce('path:/json/td/999990', taskDriverData);
     element.displayTask(task, [comment], commitsByHash);
     await fetchMock.flush(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
     // No simple title with status, we have the task-driver-sk instead.
@@ -103,6 +105,8 @@ describe('details-dialog-sk', () => {
     expect($('hr', element)).to.have.length(1);
     expect($('table.blamelist tr', element)).to.have.length(2);
     expect($('table.comments tr.comment', element)).to.have.length(1);
+
+    expect($$('h3 a', element)).to.have.property('href', 'https://task-driver.skia.org/td/999990');
   });
 
   it('displays tasks with summary and taskdriver', async () => {
@@ -113,6 +117,7 @@ describe('details-dialog-sk', () => {
     fetchMock.getOnce('path:/json/td/999990', taskDriverData);
     element.displayTask(task, [comment], commitsByHash);
     await fetchMock.flush(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
     // The task summary has an error message which gives us one element with
@@ -123,6 +128,8 @@ describe('details-dialog-sk', () => {
     expect($('hr', element)).to.have.length(1);
     expect($('table.blamelist tr', element)).to.have.length(2);
     expect($('table.comments tr.comment', element)).to.have.length(1);
+
+    expect($$('h3 a', element)).to.have.property('href', 'https://task-driver.skia.org/td/999990');
   });
 
   it('displays taskspec', () => {
