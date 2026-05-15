@@ -50,6 +50,7 @@ var (
 	numCommits        = flag.Int("num-commits", 35, "Number of commits to load for each repo.")
 	local             = flag.Bool("local", false, "True if running locally. Uses an emulator for writing to the DB.")
 	apiKeySecret      = flag.String("api-key-secret", "autogardener-gemini-api-key", "GCP secret containing the Gemini API key.")
+	gcsBucketDebug    = flag.String("gcs-bucket-debug", "", "Optional, GCS bucket name to upload debug information.")
 )
 
 func main() {
@@ -97,7 +98,7 @@ func main() {
 			sklog.Fatal(err)
 		}
 	}
-	geminiClient, err := gemini.NewClient(ctx, *gcpProject, *location, *cheapModel, *expensiveModel, geminiAPIKey, *mcpServer, *cheapRPM, *cheapTPM, *expensiveRPM, *expensiveTPM)
+	geminiClient, err := gemini.NewClient(ctx, *gcpProject, *location, *cheapModel, *expensiveModel, geminiAPIKey, *mcpServer, *gcsBucketDebug, *cheapRPM, *cheapTPM, *expensiveRPM, *expensiveTPM)
 	if err != nil {
 		sklog.Fatal(err)
 	}

@@ -5,12 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
 	"sort"
 	"strings"
 
+	"cloud.google.com/go/storage"
 	"github.com/invopop/jsonschema"
 	"github.com/mark3labs/mcp-go/mcp"
 	"go.skia.org/infra/autogardener/go/types"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -18,6 +21,8 @@ import (
 	"go.skia.org/infra/mcp/services/skia/task_details"
 	"go.skia.org/infra/mcp/services/skia/task_scheduler"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 	"google.golang.org/genai"
 )
 
@@ -36,10 +41,12 @@ type clientImpl struct {
 	expensiveModelRL *rateLimiter
 	mcpClient        *MCPClient
 	project          string
+	gcs              *storage.Client
+	gcsBucketDebug   string
 }
 
 // NewClient returns a Client instance.
-func NewClient(ctx context.Context, project, location, cheapModel, expensiveModel, apiKey, mcpServer string, cheapRPM, cheapTPM, expensiveRPM, expensiveTPM int) (Client, error) {
+func NewClient(ctx context.Context, project, location, cheapModel, expensiveModel, apiKey, mcpServer, gcsBucketDebug string, cheapRPM, cheapTPM, expensiveRPM, expensiveTPM int) (Client, error) {
 	mcpClient, err := NewMCPClient(ctx, mcpServer)
 	if err != nil {
 		sklog.Fatal(err)
@@ -75,6 +82,15 @@ func NewClient(ctx context.Context, project, location, cheapModel, expensiveMode
 		return nil, skerr.Fmt("Expensive model %q not found.", expensiveModel)
 	}
 
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeReadWrite)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	gcs, err := storage.NewClient(ctx, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	return &clientImpl{
 		client:           genaiClient,
 		location:         location,
@@ -84,6 +100,8 @@ func NewClient(ctx context.Context, project, location, cheapModel, expensiveMode
 		expensiveModelRL: newRateLimiter(expensiveRPM, expensiveTPM),
 		mcpClient:        mcpClient,
 		project:          project,
+		gcs:              gcs,
+		gcsBucketDebug:   gcsBucketDebug,
 	}, nil
 }
 
@@ -176,13 +194,20 @@ about any other tasks.
 		"get_recipe_step_logs",
 	}
 	var res types.TaskSummary
-	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, allowedTools, &res); err != nil {
+	debugInfo, err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, allowedTools, &res)
+	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	go c.uploadDebugInfo(ctx, debugInfo, "GetTaskSummary", task.Id)
 	return &res, nil
 }
 
-func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rateLimiter, allowTools []string, result interface{}) error {
+func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rateLimiter, allowTools []string, result interface{}) (*DebugInfo, error) {
+	debug := &DebugInfo{
+		Prompt: prompt,
+		Model:  model,
+	}
+
 	// Gemini doesn't use MCP tools directly. Rather, it returns requests to use
 	// tools as part of its response, expecting to see the results of those tool
 	// calls in our next message. Therefore, we need to repeatedly send messages
@@ -201,7 +226,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rat
 	}
 	chat, err := c.client.Chats.Create(ctx, model, toolConfig, nil)
 	if err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 
 	var resp *genai.GenerateContentResponse
@@ -213,7 +238,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rat
 		resp, err = chat.SendMessage(ctx, parts...)
 		return err
 	}); err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 
 	for {
@@ -226,7 +251,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rat
 		for _, fc := range functionCalls {
 			toolRes, err := c.mcpClient.callTool(ctx, fc.Name, fc.Args)
 			if err != nil {
-				return skerr.Wrapf(err, "tool call %s failed", fc.Name)
+				return nil, skerr.Wrapf(err, "tool call %s failed", fc.Name)
 			}
 
 			var sb strings.Builder
@@ -245,6 +270,11 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rat
 					},
 				},
 			})
+			debug.ToolCalls = append(debug.ToolCalls, DebugInfo_ToolCall{
+				Tool:   fc.Name,
+				Args:   fc.Args,
+				Result: sb.String(),
+			})
 		}
 		if err := doBackoff("SendMessage", func() error {
 			if err := rl.Wait(ctx, model, c.client, chat.History(false), toolResponses); err != nil {
@@ -253,7 +283,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rat
 			resp, err = chat.SendMessage(ctx, toolResponses...)
 			return err
 		}); err != nil {
-			return skerr.Wrap(err)
+			return nil, skerr.Wrap(err)
 		}
 	}
 
@@ -274,15 +304,28 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rat
 		resp, err = c.client.Models.GenerateContent(ctx, model, history, finalConfig)
 		return err
 	}); err != nil {
-		return skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 
 	// Only the first part of the first candidate seems to be relevant.
 	if len(resp.Candidates) > 0 && resp.Candidates[0].Content != nil && len(resp.Candidates[0].Content.Parts) > 0 {
 		r := bytes.NewReader([]byte(resp.Candidates[0].Content.Parts[0].Text))
-		return skerr.Wrap(json.NewDecoder(r).Decode(result))
+		debug.Result = resp.Candidates[0].Content.Parts[0].Text
+		return debug, skerr.Wrap(json.NewDecoder(r).Decode(result))
 	}
-	return skerr.Fmt("no output generated")
+	return nil, skerr.Fmt("no output generated")
+}
+
+func (c *clientImpl) uploadDebugInfo(ctx context.Context, debug *DebugInfo, parts ...string) {
+	if c.gcsBucketDebug == "" {
+		return
+	}
+	object := path.Join(parts...)
+	w := c.gcs.Bucket(c.gcsBucketDebug).Object(object).NewWriter(ctx)
+	defer util.Close(w)
+	if err := json.NewEncoder(w).Encode(debug); err != nil {
+		sklog.Errorf("failed uploading debug info: %s", err)
+	}
 }
 
 func listModels(ctx context.Context, client *genai.Client) ([]string, error) {
@@ -322,4 +365,17 @@ func (r summaryForTasksWithinTaskName) String() string {
 **Error:** %s
 **Analysis:** %s
 `, strings.Join(r.TaskIDs, ", "), r.ErrorMessage, r.Analysis)
+}
+
+type DebugInfo struct {
+	Prompt    string               `json:"prompt"`
+	Model     string               `json:"model"`
+	ToolCalls []DebugInfo_ToolCall `json:"toolCalls"`
+	Result    string               `json:"result"`
+}
+
+type DebugInfo_ToolCall struct {
+	Tool   string                 `json:"tool"`
+	Args   map[string]interface{} `json:"args"`
+	Result string                 `json:"result"`
 }

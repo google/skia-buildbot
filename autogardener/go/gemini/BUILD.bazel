@@ -28,6 +28,8 @@ go_library(
         "@com_github_mark3labs_mcp_go//client",
         "@com_github_mark3labs_mcp_go//client/transport",
         "@com_github_mark3labs_mcp_go//mcp",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
         "@org_golang_google_genai//:genai",
         "@org_golang_x_oauth2//google",
         "@org_golang_x_time//rate",
