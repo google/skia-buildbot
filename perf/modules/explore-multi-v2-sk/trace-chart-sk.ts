@@ -121,6 +121,8 @@ export class TraceChartSk extends LitElement {
 
   private _canvasWidth: number = 0;
 
+  private _resizeObserver: ResizeObserver | null = null;
+
   private _xValueToIndex: Map<number, number> = new Map();
 
   private _sortedXValues: number[] = [];
@@ -227,6 +229,22 @@ export class TraceChartSk extends LitElement {
       });
     });
     return rolls;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._resizeObserver = new ResizeObserver(() => {
+      this._drawBackground();
+      this._drawForeground();
+    });
+    this._resizeObserver.observe(this);
+  }
+
+  disconnectedCallback() {
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+    }
+    super.disconnectedCallback();
   }
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {

@@ -36,6 +36,9 @@ export class PlotSummaryV2Sk extends LitElement {
   @property({ type: Boolean })
   evenXAxisSpacing = false;
 
+  @property({ type: Boolean })
+  loading = false;
+
   static styles = css`
     :host {
       display: block;
@@ -66,12 +69,41 @@ export class PlotSummaryV2Sk extends LitElement {
       left: 0;
       width: 100%;
     }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 15, 25, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--primary, #1a73e8);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
   `;
 
   connectedCallback() {
     super.connectedCallback();
     this.resizeObserver = new ResizeObserver(() => {
       this.drawSummary();
+      this.requestUpdate();
     });
     this.resizeObserver.observe(this);
   }
@@ -123,6 +155,74 @@ export class PlotSummaryV2Sk extends LitElement {
       }
     }
     return decimated;
+  }
+
+  private getSeriesBounds(): { min: number; max: number } {
+    const isDate = this.domain === 'date';
+    const getX = (r: TraceRow) => (isDate ? r.createdat : r.commit_number);
+
+    if (this.evenXAxisSpacing) {
+      const uniqueX = new Set<number>();
+      this.series.forEach((s) => {
+        if (s.rows) {
+          s.rows.forEach((r) => {
+            const x = getX(r);
+            if (x !== undefined) uniqueX.add(x);
+          });
+        }
+      });
+      const uniqueCount = uniqueX.size;
+      return {
+        min: 0,
+        max: uniqueCount > 1 ? uniqueCount - 1 : 0,
+      };
+    }
+
+    let minX = Infinity;
+    let maxX = -Infinity;
+    this.series.forEach((s) => {
+      if (s.rows) {
+        s.rows.forEach((r) => {
+          const xVal = getX(r);
+          if (xVal !== undefined) {
+            if (xVal < minX) minX = xVal;
+            if (xVal > maxX) maxX = xVal;
+          }
+        });
+      }
+    });
+
+    return { min: minX, max: maxX };
+  }
+
+  private convertToCoordsRange(
+    beginVal: number,
+    endVal: number,
+    width: number
+  ): { begin: number; end: number } | null {
+    const { min: minX, max: maxX } = this.getSeriesBounds();
+    if (minX === Infinity || maxX === -Infinity || maxX === minX || width === 0) return null;
+
+    const mapVal = (v: number) => ((v - minX) / (maxX - minX)) * width;
+    return {
+      begin: mapVal(beginVal),
+      end: mapVal(endVal),
+    };
+  }
+
+  private convertToValueRange(
+    beginPx: number,
+    endPx: number,
+    width: number
+  ): { begin: number; end: number } | null {
+    const { min: minX, max: maxX } = this.getSeriesBounds();
+    if (minX === Infinity || maxX === -Infinity || maxX === minX || width === 0) return null;
+
+    const mapPx = (px: number) => minX + (px / width) * (maxX - minX);
+    return {
+      begin: mapPx(beginPx),
+      end: mapPx(endPx),
+    };
   }
 
   public drawSummary() {
@@ -224,29 +324,62 @@ export class PlotSummaryV2Sk extends LitElement {
   }
 
   protected render() {
+    const parentWidth = this.offsetWidth || 0;
+    let selectionRange = null;
+    if (this.viewportMinX !== null && this.viewportMaxX !== null) {
+      const coords = this.convertToCoordsRange(this.viewportMinX, this.viewportMaxX, parentWidth);
+      if (coords) {
+        selectionRange = { begin: coords.begin, end: coords.end };
+      }
+    }
+
     return html`
       <div class="summary-container">
         <canvas ${ref(this.canvasRef)}></canvas>
-        <h-resizable-box-sk ${ref(this.boxRef)} @box-changed=${this.handleBoxChanged}>
+        <h-resizable-box-sk
+          ${ref(this.boxRef)}
+          .selectionRange=${selectionRange}
+          @selection-changed=${this.handleBoxChanged}>
         </h-resizable-box-sk>
+        ${this.loading
+          ? html`
+              <div class="overlay">
+                <div class="spinner"></div>
+              </div>
+            `
+          : ''}
       </div>
     `;
   }
 
-  private handleBoxChanged(e: any) {
-    // Skeletal mock event handler for drag/zoom selection
-    console.log('box selection dragging:', e.detail);
-    // Dispatches skeletal mock event
-    this.dispatchEvent(
-      new CustomEvent('summary-range-selected', {
-        detail: {
-          begin: 0,
-          end: 0,
-        },
-        bubbles: true,
-        composed: true,
-      })
-    );
+  private handleBoxChanged(e: CustomEvent<{ begin: number; end: number } | null>) {
+    const detail = e.detail;
+    if (!detail) {
+      const { min: minX, max: maxX } = this.getSeriesBounds();
+      this.dispatchEvent(
+        new CustomEvent('summary-range-selected', {
+          detail: { begin: minX, end: maxX },
+          bubbles: true,
+          composed: true,
+        })
+      );
+      return;
+    }
+
+    const parentWidth = this.offsetWidth || 0;
+    const valueRange = this.convertToValueRange(detail.begin, detail.end, parentWidth);
+    if (valueRange) {
+      this.dispatchEvent(
+        new CustomEvent('summary-range-selected', {
+          detail: {
+            begin: valueRange.begin,
+            end: valueRange.end,
+          },
+          bubbles: true,
+          composed: true,
+        })
+      );
+    }
   }
 
   /**

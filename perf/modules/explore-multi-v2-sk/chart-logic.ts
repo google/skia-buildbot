@@ -427,7 +427,7 @@ export function computeLeftPadding(maxY: number, minY: number): number {
 
 export function calculateSharedBounds(
   series: { id: string; source?: string; rows: any[] }[],
-  globalBounds: Record<string, Record<string, { min: number; max: number }>> | null,
+  globalBounds: Record<string, { min: number; max: number }> | null,
   isDateMode: boolean = false,
   xAccessor: (r: any) => number = (r) => r.commit_number
 ): Record<string, { min: number; max: number }> | null {
@@ -454,7 +454,7 @@ export function calculateSharedBounds(
         series
           .filter((s) => (s.source || 'chrome') === source)
           .forEach((s) => {
-            const gb = globalBounds?.[source]?.[s.id];
+            const gb = globalBounds?.[s.id];
             if (gb) {
               if (gb.min < boundsBySource[source].min) boundsBySource[source].min = gb.min;
               if (gb.max > boundsBySource[source].max) boundsBySource[source].max = gb.max;

@@ -5,7 +5,12 @@ import { FrameRequest, Regression } from '../json';
 import { TraceSeries } from './trace-types';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
-import { computeTraceDiffs, computeSplitGroups, calculateLoadedBounds } from './chart-logic';
+import {
+  computeTraceDiffs,
+  computeSplitGroups,
+  calculateLoadedBounds,
+  calculateSharedBounds,
+} from './chart-logic';
 import { calculateFetchRequests } from './fetch-logic';
 import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { GraphConfig, updateShortcut } from '../common/graph-config';
@@ -118,6 +123,10 @@ export class ExploreMultiV2Sk extends LitElement {
   @state() private _showRegressions = true;
 
   @state() private _showSparklines = false;
+
+  @state() private _summaryLoading = false;
+
+  private _prefetchAbortController: AbortController | null = null;
 
   @state() private _evenXAxisSpacing = false;
 
@@ -277,6 +286,9 @@ export class ExploreMultiV2Sk extends LitElement {
   }
 
   disconnectedCallback() {
+    if (this._prefetchAbortController) {
+      this._prefetchAbortController.abort();
+    }
     if (this._workerController) {
       this._workerController.terminate();
     }
@@ -955,6 +967,19 @@ export class ExploreMultiV2Sk extends LitElement {
           const newSeries = this._translateDataFrame(cached.dataframe);
           this._seriesData = this._mergeSeriesWithStats(this._seriesData, newSeries);
           this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
+          if (this._viewportMinX === null || this._viewportMaxX === null) {
+            const sharedBounds = calculateSharedBounds(
+              this._seriesData,
+              this._globalBounds,
+              this._dateMode
+            );
+            if (sharedBounds) {
+              const source = Object.keys(sharedBounds)[0];
+              this._viewportMinX = sharedBounds[source].min;
+              this._viewportMaxX = sharedBounds[source].max;
+            }
+          }
+          void this._prefetchHistory();
         }
         return;
       }
@@ -1003,12 +1028,112 @@ export class ExploreMultiV2Sk extends LitElement {
         // If traceset is empty, render empty chart.
         this._seriesData = this._mergeSeriesWithStats(this._seriesData, newSeries);
         this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
+        if (this._viewportMinX === null || this._viewportMaxX === null) {
+          const sharedBounds = calculateSharedBounds(
+            this._seriesData,
+            this._globalBounds,
+            this._dateMode
+          );
+          if (sharedBounds) {
+            const source = Object.keys(sharedBounds)[0];
+            this._viewportMinX = sharedBounds[source].min;
+            this._viewportMaxX = sharedBounds[source].max;
+          }
+        }
         await db.set(cacheKey, response);
+        void this._prefetchHistory();
       }
     } catch (e) {
       console.error('Fetch error:', e);
     } finally {
       this._loading = false;
+    }
+  }
+
+  private async _prefetchHistory(): Promise<void> {
+    console.log('[_prefetchHistory] initiating background prefetch for 90 days');
+    if (this._prefetchAbortController) {
+      this._prefetchAbortController.abort();
+    }
+    this._prefetchAbortController = new AbortController();
+    const signal = this._prefetchAbortController.signal;
+
+    const startIdx = this._tracePage * this._pageSize;
+    const endIdx = startIdx + this._pageSize;
+    const visibleIds = this._showAllTraces
+      ? this._matchingTraceIds.slice(0, 500)
+      : this._matchingTraceIds.slice(startIdx, endIdx);
+
+    if (visibleIds.length === 0) return;
+
+    const { end } = this._resolveTimeRange();
+    const daysInSeconds = 24 * 3600;
+    const prefetchBegin = end - 90 * daysInSeconds;
+    const prefetchEnd = end;
+
+    const quantizedBegin = Math.floor(prefetchBegin / 3600) * 3600;
+    const quantizedEnd = Math.floor(prefetchEnd / 3600) * 3600;
+
+    let reqTraceIds = [...visibleIds];
+    this._activeStats.forEach((stat) => {
+      visibleIds.forEach((id) => {
+        const params = this._parseTraceKey(id);
+        params['stat'] = stat;
+        try {
+          reqTraceIds.push(makeKey(params));
+        } catch (e) {
+          console.error('makeKey failed for stat in prefetch', e);
+        }
+      });
+    });
+    reqTraceIds = Array.from(new Set(reqTraceIds));
+
+    const req: FrameRequest = {
+      begin: quantizedBegin,
+      end: quantizedEnd,
+      trace_ids: reqTraceIds,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
+
+    const cacheKey = await hashRequest(req);
+    const db = new TraceDatabase();
+
+    this._summaryLoading = true;
+    try {
+      const cached = await db.get(cacheKey);
+      if (cached) {
+        if (signal.aborted) return;
+        console.log('Prefetch serving from cache:', cacheKey);
+        if (cached.dataframe) {
+          const newSeries = this._translateDataFrame(cached.dataframe);
+          this._seriesData = this._mergeSeriesWithStats(this._seriesData, newSeries);
+          this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
+        }
+        return;
+      }
+
+      const response = await DataService.getInstance().sendFrameRequest(req, {
+        onProgress: (prog: string) => console.log('Prefetch Progress:', prog),
+        onMessage: (msg: string) => console.error('Prefetch Message:', msg),
+      });
+
+      if (signal.aborted) {
+        console.log('Prefetch aborted');
+        return;
+      }
+
+      if (response && response.dataframe) {
+        const newSeries = this._translateDataFrame(response.dataframe);
+        this._seriesData = this._mergeSeriesWithStats(this._seriesData, newSeries);
+        this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
+        await db.set(cacheKey, response);
+      }
+    } catch (e) {
+      console.error('Prefetch error:', e);
+    } finally {
+      if (!signal.aborted) {
+        this._summaryLoading = false;
+      }
     }
   }
 
@@ -1154,6 +1279,37 @@ export class ExploreMultiV2Sk extends LitElement {
         console.error('Failed to handle viewport change:', err);
       });
     }, 300);
+  }
+
+  private _handleSummaryRangeSelected(e: CustomEvent<{ begin: number; end: number }>) {
+    const { begin, end } = e.detail;
+    if (this._viewportMinX === begin && this._viewportMaxX === end) {
+      return;
+    }
+
+    this._viewportMinX = begin;
+    this._viewportMaxX = end;
+
+    if (this._dateMode) {
+      this._begin = Math.floor(begin);
+      this._end = Math.ceil(end);
+      this._stateHasChanged();
+    } else {
+      const beginTime = this._translateCommitToTimestamp(Math.floor(begin));
+      const endTime = this._translateCommitToTimestamp(Math.ceil(end));
+      let changed = false;
+      if (beginTime !== -1 && beginTime !== this._begin) {
+        this._begin = beginTime;
+        changed = true;
+      }
+      if (endTime !== -1 && endTime !== this._end) {
+        this._end = endTime;
+        changed = true;
+      }
+      if (changed) {
+        this._stateHasChanged();
+      }
+    }
   }
 
   private async _doHandleViewportChanged(e: any) {
@@ -2040,9 +2196,8 @@ export class ExploreMultiV2Sk extends LitElement {
                   .viewportMinX=${this._viewportMinX}
                   .viewportMaxX=${this._viewportMaxX}
                   .evenXAxisSpacing=${this._evenXAxisSpacing}
-                  @summary-range-selected=${(e: CustomEvent<{ begin: number; end: number }>) => {
-                    console.log('Summary range selected (skeletal hook):', e.detail);
-                  }}>
+                  .loading=${this._summaryLoading}
+                  @summary-range-selected=${this._handleSummaryRangeSelected}>
                 </plot-summary-v2-sk>
               </trace-chart-sk>
             `
