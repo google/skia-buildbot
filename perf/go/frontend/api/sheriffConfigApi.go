@@ -103,15 +103,20 @@ type ValidateConfigResponse struct {
 func (api sheriffConfigApi) validateConfigHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	if !api.loginProvider.HasRole(r, roles.LuciConfig) {
+	if !api.loginProvider.HasRole(r, roles.Viewer) {
 		sklog.Infof("User is not authorized: %s", api.loginProvider.LoggedInAs(r).String())
 		httputils.ReportError(w, nil, "Permission denied", http.StatusForbidden)
 		return
 	}
 
+	// Limit the request body size to prevent memory exhaustion (DoS) vulnerabilities
+	// when decoding the JSON and Base64 content.
+	const maxBodySize = 1 * 1024 * 1024 // 1 MB
+	r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
+
 	vcr := ValidateConfigRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&vcr); err != nil {
-		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusBadRequest)
 		return
 	}
 
