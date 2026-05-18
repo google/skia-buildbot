@@ -3153,6 +3153,16 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 	// Make sure the Test is set, even if the digest wasn't seen in the current window
 	// The frontend relies on this field to be able to triage the results.
 	result.Test = types.TestName(grouping[types.PrimaryKeyField])
+
+	if result.ParamSet == nil {
+		result.ParamSet = paramtools.ParamSet{}
+	}
+	for k, v := range grouping {
+		if len(result.ParamSet[k]) == 0 {
+			result.ParamSet[k] = []string{v}
+		}
+	}
+
 	return frontend.DigestDetails{
 		Commits: commits,
 		Result:  result,

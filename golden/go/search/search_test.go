@@ -6727,10 +6727,13 @@ func TestGetDigestDetails_InvalidDigestAndGroupingOnPrimary_ReturnsPartialResult
 	require.NoError(t, err)
 	assert.Equal(t, frontend.DigestDetails{
 		Result: frontend.SearchResult{
-			Digest:   dks.DigestE03Unt_CL,
-			Test:     dks.CircleTest,
-			Status:   expectations.Untriaged,
-			ParamSet: paramtools.ParamSet{},
+			Digest: dks.DigestE03Unt_CL,
+			Test:   dks.CircleTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				types.CorpusField:     []string{dks.RoundCorpus},
+			},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "00000000000000000000000000000000",

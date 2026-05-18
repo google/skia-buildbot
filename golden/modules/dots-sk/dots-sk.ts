@@ -187,9 +187,8 @@ export class DotsSk extends ElementSk {
         }
       }
       if (firstNonMissingDot < 0 || lastNonMissingDot < 0) {
-        // Trace was all missing data, so nothing to draw. This should never happen, such a trace
-        // would not be included in search results.
-        console.warn(`trace with id ${trace.label} was unexpectedly empty`);
+        // Trace was all missing data, so nothing to draw. This can happen for traces
+        // that only have CL data but no history in the primary branch sliding window.
         return;
       }
       this.ctx!.moveTo(dotToCanvasX(firstNonMissingDot), dotToCanvasY(traceIndex));
