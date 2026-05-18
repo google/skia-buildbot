@@ -43,6 +43,16 @@ linters:
     - gosec
     # Finds commonly misspelled words
     - misspell
+    # Checks the error naming convention https://go.dev/wiki/Errors#naming
+    - errname
+    # Finds where a function returns nil instead of an actual err variable
+    - nilerr
+    # Checks that errors returned from external packages are wrapped with additional context
+    - wrapcheck
+    # Finds slice declarations that could potentially be preallocated
+    - prealloc
+    # Detects when you hardcode values instead of using the standard library constants
+    - usestdlibvars
 
     # Formatters
     # Stricter gofmt
@@ -51,6 +61,9 @@ linters:
     - goimports
 
 linters-settings:
+  govet:
+    enable-all: true
+
   gofumpt:
     # Module path which contains the source code being formatted.
     module-path: go.skia.org/infra
