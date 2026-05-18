@@ -70,6 +70,9 @@ describe('cluster-lastn-page-sk', () => {
     const _ = await fetchMock.flush(true);
     // Wait for Promise.all in connectedCallback to finish.
     await new Promise((resolve) => setTimeout(resolve, 100));
+    (element as any).mode = 'legacy';
+    (element as any)._render();
+    await new Promise((resolve) => setTimeout(resolve, 100));
   };
 
   it('renders initial state', async () => {
@@ -143,6 +146,20 @@ describe('cluster-lastn-page-sk', () => {
         legacy_key: '',
       },
     };
+
+    fetchMock.post(
+      '/_/dryrun/start_sheriff_config',
+      (_url, _opts) => {
+        return {
+          id: 'request-123',
+          url: '/_/progress/request-123',
+          status: 'Finished',
+          messages: [{ key: 'Status', value: 'Finished' }],
+          results: [regression],
+        };
+      },
+      { overwriteRoutes: true }
+    );
 
     fetchMock.post(
       '/_/dryrun/start',

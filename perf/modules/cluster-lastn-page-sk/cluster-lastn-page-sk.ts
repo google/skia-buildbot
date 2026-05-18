@@ -21,6 +21,8 @@ import '../commit-detail-sk';
 import '../triage-status-sk';
 import '../alert-config-sk';
 import '../domain-picker-sk';
+import '../sheriff-configs-dry-run-sk';
+import { SheriffConfigsDryRunSk } from '../sheriff-configs-dry-run-sk/sheriff-configs-dry-run-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import {
   Alert,
@@ -28,7 +30,6 @@ import {
   RegressionAtCommit,
   Direction,
   ClusterSummary,
-  RegressionDetectionRequest,
   AlertUpdateResponse,
   progress,
   ReadOnlyParamSet,
@@ -52,6 +53,9 @@ export class ClusterLastNPageSk extends ElementSk {
 
   // True if the Alert is being saved to the database.
   private writingAlert: boolean = false;
+
+  // Mode for dry run: 'legacy' or 'sheriff'
+  private mode: 'legacy' | 'sheriff' = 'sheriff';
 
   // The paramsets for the alert config.
   private paramset = ReadOnlyParamSet({});
@@ -78,6 +82,10 @@ export class ClusterLastNPageSk extends ElementSk {
 
   private get alertConfig() {
     return this.querySelector<AlertConfigSk>('alert-config-sk');
+  }
+
+  private get sheriffConfig() {
+    return this.querySelector<SheriffConfigsDryRunSk>('sheriff-configs-dry-run-sk');
   }
 
   private get runSpinner() {
@@ -118,13 +126,45 @@ export class ClusterLastNPageSk extends ElementSk {
       </div>
     </dialog>
     <div class="controls">
-      <p>
-        Use this page to test out an Alert configuration. Configure the Alert by pressing the button
-        below.
-      </p>
-      <button id="config-button" @click=${ele.alertEdit}>
-        ${ClusterLastNPageSk.configTitle(ele)}
-      </button>
+      <div style="margin-bottom: 2em;">
+        <label>
+          <input
+            type="radio"
+            name="mode"
+            value="sheriff"
+            ?checked=${ele.mode === 'sheriff'}
+            @change=${() => {
+              ele.mode = 'sheriff';
+              ele._render();
+            }} />
+          Sheriff Config
+        </label>
+        <label style="margin-left: 1em;">
+          <input
+            type="radio"
+            name="mode"
+            value="legacy"
+            ?checked=${ele.mode === 'legacy'}
+            @change=${() => {
+              ele.mode = 'legacy';
+              ele._render();
+            }} />
+          Legacy Alert Config
+        </label>
+      </div>
+
+      ${ele.mode === 'legacy'
+        ? html`
+            <p>
+              Use this page to test out an Alert configuration. Configure the Alert by pressing the
+              button below.
+            </p>
+            <button id="config-button" @click=${ele.alertEdit}>
+              ${ClusterLastNPageSk.configTitle(ele)}
+            </button>
+          `
+        : html` <sheriff-configs-dry-run-sk></sheriff-configs-dry-run-sk> `}
+
       <p>You can optionally change the range of commits over which the Alert is run:</p>
       <details>
         <summary>Range</summary>
@@ -138,7 +178,9 @@ export class ClusterLastNPageSk extends ElementSk {
         <button
           id="run-button"
           class="action"
-          ?disabled=${!ele.state!.query || !!ele.requestId}
+          ?disabled=${ele.mode === 'legacy'
+            ? !ele.state!.query || !!ele.requestId
+            : !!ele.requestId}
           @click=${ele.run}>
           Run
         </button>
@@ -147,13 +189,17 @@ export class ClusterLastNPageSk extends ElementSk {
 ${ele.runningStatus}</pre
         >
       </div>
-      <div class="saving">
-        <p>Once satisfied with the Alert you can save it to be run periodically.</p>
-        <button @click=${ele.writeAlert} class="action" ?disabled=${!ele.state!.query}>
-          ${ClusterLastNPageSk.writeAlertTitle(ele)}
-        </button>
-        <spinner-sk ?active=${ele.writingAlert}></spinner-sk>
-      </div>
+      ${ele.mode === 'legacy'
+        ? html`
+            <div class="saving">
+              <p>Once satisfied with the Alert you can save it to be run periodically.</p>
+              <button @click=${ele.writeAlert} class="action" ?disabled=${!ele.state!.query}>
+                ${ClusterLastNPageSk.writeAlertTitle(ele)}
+              </button>
+              <spinner-sk ?active=${ele.writingAlert}></spinner-sk>
+            </div>
+          `
+        : ''}
     </div>
     <hr />
 
@@ -430,7 +476,9 @@ ${ele.runningStatus}</pre
       return;
     }
     this.domain = this.querySelector<DomainPickerSk>('#range')!.state;
-    const body: RegressionDetectionRequest = {
+
+    let endpoint = '/_/dryrun/start';
+    let requestBody: any = {
       domain: {
         n: this.domain.num_commits,
         offset: 0,
@@ -441,9 +489,19 @@ ${ele.runningStatus}</pre
       total_queries: 1,
     };
 
+    if (this.mode === 'sheriff') {
+      const configObj = this.sheriffConfig!.getConfig();
+      if (!configObj) {
+        errorMessage('Failed to generate Sheriff config.');
+        return;
+      }
+      endpoint = '/_/dryrun/start_sheriff_config';
+      requestBody = { config: configObj, domain: requestBody.domain };
+    }
+
     try {
       this.requestId = 'running';
-      const finalProg = await startRequest('/_/dryrun/start', body, {
+      const finalProg = await startRequest(endpoint, requestBody, {
         pollingIntervalMs: 300,
         onProgressUpdate: (prog: progress.SerializedProgress) => {
           if (prog.results) {

@@ -53,6 +53,7 @@ func (a alertsApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/alert/notify/try", a.alertNotifyTryHandler)
 	router.Get("/_/subscriptions", a.subscriptionsHandler)
 	router.Post("/_/dryrun/start", a.dryrunRequests.StartHandler)
+	router.Post("/_/dryrun/start_sheriff_config", a.dryrunRequests.StartSheriffConfigHandler)
 }
 
 // alertListHandler returns a list of alert configs in the database.

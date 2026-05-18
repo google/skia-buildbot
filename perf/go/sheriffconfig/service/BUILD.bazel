@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "service",
-    srcs = ["service.go"],
+    srcs = [
+        "export.go",
+        "service.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/sheriffconfig/service",
     visibility = ["//visibility:public"],
     deps = [

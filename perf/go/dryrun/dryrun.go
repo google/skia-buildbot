@@ -33,7 +33,7 @@ type Requests struct {
 	shortcutStore     shortcut.Store
 	dfBuilder         dataframe.DataFrameBuilder
 	tracker           progress.Tracker
-	paramsProvier     regression.ParamsetProvider
+	paramsProvider    regression.ParamsetProvider
 	regressionRefiner regression.RegressionRefiner
 }
 
@@ -44,7 +44,7 @@ func New(perfGit perfgit.Git, tracker progress.Tracker, shortcutStore shortcut.S
 		shortcutStore:     shortcutStore,
 		dfBuilder:         dfBuilder,
 		tracker:           tracker,
-		paramsProvier:     paramsProvider,
+		paramsProvider:    paramsProvider,
 		regressionRefiner: regressionRefiner,
 	}
 	return ret
@@ -129,7 +129,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier(), regression.ExpandBaseAlertByGroupBy, regression.ContinueOnError, config.Config.AnomalyConfig, nil, d.regressionRefiner)
+		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvider(), regression.ExpandBaseAlertByGroupBy, regression.ContinueOnError, config.Config.AnomalyConfig, nil, d.regressionRefiner)
 		if err != nil {
 			req.Progress.Error(err.Error())
 		} else {

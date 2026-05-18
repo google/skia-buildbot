@@ -1,0 +1,51 @@
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_page",
+)
+
+sk_element(
+    name = "sheriff-configs-dry-run-sk",
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+    ],
+    sass_srcs = ["sheriff-configs-dry-run-sk.scss"],
+    ts_deps = [
+        "//:node_modules/lit",
+        "//:node_modules/@material/web",
+    ],
+    ts_srcs = [
+        "sheriff-configs-dry-run-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "sheriff-configs-dry-run-sk_test",
+    src = "sheriff-configs-dry-run-sk_test.ts",
+    deps = [
+        ":sheriff-configs-dry-run-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
+)
+
+sk_page(
+    name = "sheriff-configs-dry-run-sk-demo",
+    html_file = "sheriff-configs-dry-run-sk-demo.html",
+    sk_element_deps = [
+        ":sheriff-configs-dry-run-sk",
+        "//elements-sk/modules/error-toast-sk",
+    ],
+    ts_entry_point = "sheriff-configs-dry-run-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":sheriff-configs-dry-run-sk-demo",
+)
