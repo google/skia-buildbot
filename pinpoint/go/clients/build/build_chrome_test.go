@@ -71,7 +71,7 @@ func TestFindBuild_UnsupportedBotConfig_Error(t *testing.T) {
 
 func TestFindBuild_ValidReq_BuildNotFound(t *testing.T) {
 	ctx := context.Background()
-	device := "linux-r350-perf"
+	device := "linux-perf"
 	params := workflows.BuildParams{
 		Device: device,
 		Commit: common.NewCombinedCommit(common.NewChromiumCommit("random_hash")),
@@ -94,7 +94,7 @@ func TestFindBuild_ValidReq_BuildNotFound(t *testing.T) {
 
 func TestFindBuild_ValidReqWithPatch_BuildNotFound(t *testing.T) {
 	ctx := context.Background()
-	device := "linux-r350-perf"
+	device := "linux-perf"
 	params := workflows.BuildParams{
 		Device: device,
 		Commit: common.NewCombinedCommit(common.NewChromiumCommit("random_hash")),
@@ -123,7 +123,7 @@ func TestFindBuild_ValidReqWithPatch_BuildNotFound(t *testing.T) {
 
 func TestFindBuild_ValidReq_BuildFound(t *testing.T) {
 	ctx := context.Background()
-	device := "linux-r350-perf"
+	device := "linux-perf"
 	params := workflows.BuildParams{
 		Device: device,
 		Commit: common.NewCombinedCommit(common.NewChromiumCommit("random_hash")),
@@ -149,7 +149,7 @@ func TestFindBuild_ValidReq_BuildFound(t *testing.T) {
 
 func TestFindBuild_ValidReq_BuildbucketFailure(t *testing.T) {
 	ctx := context.Background()
-	device := "linux-r350-perf"
+	device := "linux-perf"
 	params := workflows.BuildParams{
 		Device: device,
 		Commit: common.NewCombinedCommit(common.NewChromiumCommit("random_hash")),
@@ -199,7 +199,7 @@ func TestCreateStartBuildRequest_UnsupportedBotConfig_Error(t *testing.T) {
 }
 
 func TestCreateStartBuildRequest_NoDeps_ValidResponse(t *testing.T) {
-	device := "linux-r350-perf"
+	device := "linux-perf"
 	workflowId := uuid.New().String()
 	params := workflows.BuildParams{
 		Device:     device,
@@ -220,7 +220,7 @@ func TestCreateStartBuildRequest_NoDeps_ValidResponse(t *testing.T) {
 }
 
 func TestCreateStartBuildRequest_WithPatch_ValidResponse(t *testing.T) {
-	device := "linux-r350-perf"
+	device := "linux-perf"
 	workflowId := uuid.New().String()
 	params := workflows.BuildParams{
 		Device: device,
@@ -251,7 +251,7 @@ func TestCreateStartBuildRequest_WithPatch_ValidResponse(t *testing.T) {
 
 func TestStartBuild_ValidReq_NoError(t *testing.T) {
 	ctx := context.Background()
-	device := "linux-r350-perf"
+	device := "linux-perf"
 	workflowId := uuid.New().String()
 	params := workflows.BuildParams{
 		Device:     device,

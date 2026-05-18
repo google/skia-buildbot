@@ -68,6 +68,7 @@ func TestPairwiseWorkflow_GivenUnsuccessfulWorkflow_ReturnsError(t *testing.T) {
 	env.OnWorkflow(workflows.PairwiseCommitsRunner, mock.Anything, mock.Anything).Return(nil, skerr.Fmt("some error")).Once()
 	env.OnActivity(AddInitialJob, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 	env.OnActivity(SetErrors, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+	env.OnActivity(UpdateJobStatus, mock.Anything, mock.Anything, running, mock.Anything).Return(nil).Once()
 	env.OnActivity(UpdateJobStatus, mock.Anything, mock.Anything, failed, mock.Anything).Return(nil).Once()
 
 	env.ExecuteWorkflow(PairwiseWorkflow, &workflows.PairwiseParams{
@@ -121,6 +122,7 @@ func TestPairwiseWorkflow_GivenSuccessfulWorkflow_ReturnsCorrectPValues(t *testi
 	env.OnActivity(ComparePairwiseActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(statResults, nil).Once()
 	env.OnActivity(AddInitialJob, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 	env.OnActivity(AddCommitRuns, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+	env.OnActivity(UpdateJobStatus, mock.Anything, mock.Anything, running, mock.Anything).Return(nil).Once()
 	env.OnActivity(UpdateJobStatus, mock.Anything, mock.Anything, completed, mock.Anything).Return(nil).Once()
 	env.OnActivity(AddResults, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
@@ -178,6 +180,7 @@ func TestPairwiseWorkflow_GivenSuccessfulWorkflowWithCulprit_ReturnsCulprit(t *t
 	env.OnActivity(ComparePairwiseActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(statResults, nil).Once()
 	env.OnActivity(AddInitialJob, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 	env.OnActivity(AddCommitRuns, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+	env.OnActivity(UpdateJobStatus, mock.Anything, mock.Anything, running, mock.Anything).Return(nil).Once()
 	env.OnActivity(UpdateJobStatus, mock.Anything, mock.Anything, completed, mock.Anything).Return(nil).Once()
 	env.OnActivity(AddResults, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 

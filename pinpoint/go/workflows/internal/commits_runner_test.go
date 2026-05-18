@@ -72,7 +72,7 @@ func TestSingleCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	env.OnActivity(CollectValuesActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(fakeChartValues, nil).Times(iterations - 1)
 
 	env.ExecuteWorkflow(SingleCommitRunner, &SingleCommitRunnerParams{
-		BotConfig:      "linux-r350-perf",
+		BotConfig:      "linux-perf",
 		Iterations:     int32(iterations),
 		Chart:          chart,
 		CombinedCommit: &common.CombinedCommit{},

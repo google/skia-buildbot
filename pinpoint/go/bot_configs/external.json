@@ -52,6 +52,27 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
+  "android-pixel-fold-perf": {
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "bucket": "luci.chrome.try",
+    "builder": "Android arm64 High End Compile Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "device_type",
+        "value": "felix"
+      },
+      {
+        "key": "device_os_flavor",
+        "value": "google"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
   "android-pixel-tangor-perf": {
     "browser": "android-trichrome-chrome-google-64-32-bundle",
     "bucket": "luci.chrome.try",
@@ -116,6 +137,48 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel4_webview-perf": {
+    "browser": "android-webview-standalone-google",
+    "bucket": "luci.chrome.try",
+    "builder": "Android arm64 Compile Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "device_type",
+        "value": "flame"
+      },
+      {
+        "key": "device_os",
+        "value": "R"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "android-pixel4_webview-perf-pgo": {
+    "browser": "android-webview-standalone-google",
+    "bucket": "luci.chrome.try",
+    "builder": "Android arm64 High End Compile Perf PGO",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "device_type",
+        "value": "flame"
+      },
+      {
+        "key": "device_os",
+        "value": "R"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "android-pixel4_webview-perf-trichrome": {
     "browser": "android-webview-trichrome-google-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 Compile Perf",
@@ -286,150 +349,50 @@
   "chromium-rel-win10": {
     "alias": "win-10-perf"
   },
-  "fuchsia-perf-ast": {
-    "browser": "web-engine-shell",
+  "linux-perf": {
+    "browser": "release",
     "bucket": "luci.chrome.try",
-    "builder": "Fuchsia Builder Perf",
+    "builder": "Linux Builder Perf",
     "dimensions": [
       {
-        "key": "device_type",
-        "value": "Astro"
-      },
-      {
-        "key": "os",
-        "value": "Fuchsia"
+        "key": "gpu",
+        "value": "10de:2184"
       },
       {
         "key": "pool",
         "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "os",
+        "value": "Ubuntu-22.04"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "Precision 3930 Rack (Dell Inc.)"
       }
     ],
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
-  "fuchsia-perf-atlas-fyi": {
-    "browser": "fuchsia-chrome",
+  "linux-perf-cq": {
+    "browser": "release",
     "bucket": "luci.chrome.try",
-    "builder": "Fuchsia Builder Perf x64",
+    "builder": "Linux Builder Perf",
     "dimensions": [
       {
-        "key": "device_type",
-        "value": "Atlas"
+        "key": "pool",
+        "value": "chrome.tests.pinpoint-cq"
       },
       {
         "key": "os",
-        "value": "Fuchsia"
+        "value": "Ubuntu-22.04"
       },
       {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
+        "key": "synthetic_product_name",
+        "value": "PowerEdge R230 (Dell Inc.)"
       }
     ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "fuchsia-perf-fyi": {
-    "browser": "web-engine-shell",
-    "bucket": "luci.chrome.try",
-    "builder": "Fuchsia Builder Perf",
-    "dimensions": [
-      {
-        "key": "device_type",
-        "value": "Astro"
-      },
-      {
-        "key": "os",
-        "value": "Fuchsia"
-      },
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "fuchsia-perf-nsn": {
-    "browser": "web-engine-shell",
-    "bucket": "luci.chrome.try",
-    "builder": "Fuchsia Builder Perf",
-    "dimensions": [
-      {
-        "key": "device_type",
-        "value": "Nelson"
-      },
-      {
-        "key": "os",
-        "value": "Fuchsia"
-      },
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "fuchsia-perf-nuc-fyi": {
-    "browser": "fuchsia-chrome",
-    "bucket": "luci.chrome.try",
-    "builder": "Fuchsia Builder Perf x64",
-    "dimensions": [
-      {
-        "key": "device_type",
-        "value": "Intel NUC Kit NUC7i5DNHE"
-      },
-      {
-        "key": "os",
-        "value": "Fuchsia"
-      },
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "fuchsia-perf-sherlock-fyi": {
-    "browser": "web-engine-shell",
-    "bucket": "luci.chrome.try",
-    "builder": "Fuchsia Builder Perf",
-    "dimensions": [
-      {
-        "key": "device_type",
-        "value": "Sherlock"
-      },
-      {
-        "key": "os",
-        "value": "Fuchsia"
-      },
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "fuchsia-perf-shk": {
-    "browser": "web-engine-shell",
-    "bucket": "luci.chrome.try",
-    "builder": "Fuchsia Builder Perf",
-    "dimensions": [
-      {
-        "key": "device_type",
-        "value": "Sherlock"
-      },
-      {
-        "key": "os",
-        "value": "Fuchsia"
-      },
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      }
-    ],
+    "extra_test_args": "--extra-browser-args=--disable-gpu-shader-disk-cache",
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
@@ -458,6 +421,7 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
+
   "mac-intel-perf": {
     "browser": "release",
     "bucket": "luci.chrome.try",
@@ -591,6 +555,93 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
+  "mac-m3-pro-perf": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Mac arm Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "mac_model",
+        "value": "Mac15,3"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "Mac15,3_arm64-64-Apple_M3_apple m3_8192_APPLE SSD AP0512Z"
+      },
+      {
+        "key": "os",
+        "value": "Mac"
+      },
+      {
+        "key": "cpu",
+        "value": "arm"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "mac-m4-mini-perf": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Mac arm Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "mac_model",
+        "value": "Mac16,10"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "Mac16,10_arm64-64-Apple_M4_apple m4_32768_APPLE SSD AP2048Z"
+      },
+      {
+        "key": "os",
+        "value": "Mac"
+      },
+      {
+        "key": "cpu",
+        "value": "arm"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "mac-m4-pro-perf": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Mac arm Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "mac_model",
+        "value": "Mac16,8"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "Mac16,8_arm64-64-Apple_M4_Pro_apple m4 pro_24576_APPLE SSD AP0512Z"
+      },
+      {
+        "key": "os",
+        "value": "Mac"
+      },
+      {
+        "key": "cpu",
+        "value": "arm"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
   "win-10-perf": {
     "browser": "release",
     "bucket": "luci.chrome.try",
@@ -607,6 +658,31 @@
       {
         "key": "os",
         "value": "Windows-10"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "win-10-perf-cq": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Win x64 Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint-cq"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "HP Laptop 15-bs1xx [Type1ProductConfigId] (HP)"
+      },
+      {
+        "key": "gpu",
+        "value": "8086:1616-20.19.15.5171"
+      },
+      {
+        "key": "os",
+        "value": "Windows-10-19045"
       }
     ],
     "repository": "chromium",
@@ -700,6 +776,31 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
+  "win-11-perf-cq": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Win x64 Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint-cq"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "Dell Pro 16 PC16250 (Dell Inc.)"
+      },
+      {
+        "key": "gpu",
+        "value": "8086:7d41-32.0.101.7028"
+      },
+      {
+        "key": "os",
+        "value": "Windows-11-26200"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
   "win-11-perf-pgo": {
     "browser": "release",
     "bucket": "luci.chrome.try",
@@ -741,5 +842,8 @@
     ],
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "win-perf-cq": {
+    "alias": "win-11-perf"
   }
 }

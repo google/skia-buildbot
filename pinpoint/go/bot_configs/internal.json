@@ -20,7 +20,7 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
-  "linux-r350-perf": {
+  "linux-falcon-rak-5070-perf": {
     "browser": "release",
     "bucket": "luci.chrome.try",
     "builder": "Linux Builder Perf",
@@ -31,11 +31,11 @@
       },
       {
         "key": "os",
-        "value": "Ubuntu-22"
+        "value": "Ubuntu-22.04.5"
       },
       {
         "key": "synthetic_product_name",
-        "value": "PowerEdge R350 (Dell Inc.)"
+        "value": "System Product Name [System Version] (Falcon Northwest)"
       }
     ],
     "repository": "chromium",
@@ -86,6 +86,35 @@
       {
         "key": "synthetic_product_name",
         "value": "Mac16,10_arm64-64-Apple_M4_apple m4_32768_APPLE SSD AP2048Z"
+      },
+      {
+        "key": "os",
+        "value": "Mac"
+      },
+      {
+        "key": "cpu",
+        "value": "arm"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "mac-m5-pro-perf": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Mac arm Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "mac_model",
+        "value": "Mac17,9"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "Mac17,9_arm64-64-Apple_M5_Pro_apple m5 pro_24576_APPLE SSD AP1024Z"
       },
       {
         "key": "os",
@@ -169,6 +198,27 @@
       {
         "key": "os",
         "value": "Windows-11"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "win-falcon-rak-5070-perf": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Win x64 Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "os",
+        "value": "Windows-11-26100.1742"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "System Product Name [System Version] (Falcon Northwest)"
       }
     ],
     "repository": "chromium",

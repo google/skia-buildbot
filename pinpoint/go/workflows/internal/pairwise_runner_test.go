@@ -427,7 +427,7 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	p := PairwiseCommitsRunnerParams{
 		SingleCommitRunnerParams: SingleCommitRunnerParams{
 			PinpointJobID:     "179a34b2be0000",
-			BotConfig:         "linux-r350-perf",
+			BotConfig:         "linux-perf",
 			Benchmark:         "blink-perf.css",
 			Story:             "gc-mini-tree.html",
 			Chart:             "gc-mini-tree",
@@ -552,7 +552,7 @@ func TestPairwiseCommitRunner_GivenCASInputs_ShouldSkipBuildStep(t *testing.T) {
 	p := PairwiseCommitsRunnerParams{
 		SingleCommitRunnerParams: SingleCommitRunnerParams{
 			PinpointJobID:     "179a34b2be0000",
-			BotConfig:         "linux-r350-perf",
+			BotConfig:         "linux-perf",
 			Benchmark:         "blink-perf.css",
 			Story:             "gc-mini-tree.html",
 			Chart:             "gc-mini-tree",
@@ -630,7 +630,7 @@ func TestPairwiseCommitRunner_GivenMismatchedValueLengths_ShouldTruncateArrays(t
 	p := PairwiseCommitsRunnerParams{
 		SingleCommitRunnerParams: SingleCommitRunnerParams{
 			PinpointJobID:     "179a34b2be0000",
-			BotConfig:         "linux-r350-perf",
+			BotConfig:         "linux-perf",
 			Benchmark:         "blink-perf.css",
 			Story:             "gc-mini-tree.html",
 			Chart:             "gc-mini-tree",
@@ -719,7 +719,7 @@ func TestPairwiseCommitRunner_GivenEdgeCaseValues_ShouldHandleGracefully(t *test
 	p := PairwiseCommitsRunnerParams{
 		SingleCommitRunnerParams: SingleCommitRunnerParams{
 			PinpointJobID:     "179a34b2be0000",
-			BotConfig:         "linux-r350-perf",
+			BotConfig:         "linux-perf",
 			Benchmark:         "blink-perf.css",
 			Story:             "gc-mini-tree.html",
 			Chart:             "gc-mini-tree",
@@ -800,7 +800,7 @@ func TestPairwiseCommitRunner_BuildFails_ReturnsError(t *testing.T) {
 	p := PairwiseCommitsRunnerParams{
 		SingleCommitRunnerParams: SingleCommitRunnerParams{
 			PinpointJobID:     "179a34b2be0000",
-			BotConfig:         "linux-r350-perf",
+			BotConfig:         "linux-perf",
 			Benchmark:         "blink-perf.css",
 			Story:             "gc-mini-tree.html",
 			Chart:             "gc-mini-tree",
