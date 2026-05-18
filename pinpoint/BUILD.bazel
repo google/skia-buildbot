@@ -26,6 +26,11 @@ skia_app_container(
             ],
         ],
     },
-    entrypoint = "/usr/local/bin/webui",
+    entrypoint = [
+        "/usr/local/bin/webui",
+        "--resources_dir",
+        "/usr/local/share/pinpoint-webui/dist/browser",
+    ],
+    extra_tars = ["//pinpoint/webui:pkg"],
     repository = "skia-public/pinpoint_webui",
 )

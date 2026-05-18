@@ -68,6 +68,8 @@
     "./new_element/templates",
     "node_modules",
     "dist",
-    "build"
+    "build",
+    // Pinpoint Web UI uses its own TypeScript configuration.
+    "./pinpoint/webui"
   ]
 }

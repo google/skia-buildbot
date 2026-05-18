@@ -1,0 +1,37 @@
+load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
+load("//infra-sk:index.bzl", "ts_library")
+
+copy_to_bin(
+    name = "srcs",
+    srcs = [
+        "app.component.html",
+        "app.component.ts",
+        "app.config.ts",
+    ],
+    visibility = ["//pinpoint/webui:__pkg__"],
+)
+
+ts_library(
+    name = "app.component_ts_lib",
+    srcs = ["app.component.ts"],
+    tsconfig = "//pinpoint/webui:ts_config_lib",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:node_modules/@angular/core",
+        "//:node_modules/@angular/router",
+    ],
+)
+
+ts_library(
+    name = "app.config_ts_lib",
+    srcs = ["app.config.ts"],
+    tsconfig = "//pinpoint/webui:ts_config_lib",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:node_modules/@angular/common",
+        "//:node_modules/@angular/core",
+        "//:node_modules/@angular/router",
+        "//pinpoint/webui/app/job-list:job-list.component_ts_lib",
+        "//pinpoint/webui/app/new-job:new-job.component_ts_lib",
+    ],
+)

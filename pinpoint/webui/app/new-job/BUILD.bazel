@@ -1,0 +1,22 @@
+load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
+load("//infra-sk:index.bzl", "ts_library")
+
+copy_to_bin(
+    name = "srcs",
+    srcs = [
+        "new-job.component.html",
+        "new-job.component.ts",
+    ],
+    visibility = ["//pinpoint/webui:__pkg__"],
+)
+
+ts_library(
+    name = "new-job.component_ts_lib",
+    srcs = ["new-job.component.ts"],
+    tsconfig = "//pinpoint/webui:ts_config_lib",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:node_modules/@angular/core",
+        "//:node_modules/@angular/router",
+    ],
+)

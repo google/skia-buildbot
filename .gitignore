@@ -125,3 +125,6 @@ GEMINI.md
 .env
 perf/coverage-reports/
 stryker-tmp/
+
+# Pinpoint Web UI local development
+**/.angular

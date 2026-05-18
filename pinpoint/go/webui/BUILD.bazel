@@ -2,6 +2,7 @@ load("@rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_binary(
     name = "webui",
+    data = ["//pinpoint/webui:bundle"],
     embed = [":webui_lib"],
     importpath = "go.skia.org/infra/pinpoint/go/webui",
     visibility = ["//pinpoint:__subpackages__"],
@@ -13,13 +14,9 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/webui",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/alogin/proxylogin",
-        "//go/auth",
         "//go/common",
         "//go/httputils",
         "//go/sklog",
-        "//kube/go/authproxy",
         "//pinpoint/go/pinpoint",
-        "@org_golang_x_oauth2//google",
     ],
 )

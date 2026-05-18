@@ -37,7 +37,8 @@ def ts_library(name, srcs, deps = [], **kwargs):
         name = name,
         srcs = srcs,
         deps = deps + [dep for dep in ambient_types if dep not in deps],
-        tsconfig = "//:ts_config",
+        # Pinpoint Web UI provides it's own `tsconfig`.
+        tsconfig = kwargs.pop("tsconfig", "//:ts_config"),
         declaration = True,
         transpiler = "tsc",
         allow_js = True,

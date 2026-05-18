@@ -1,0 +1,68 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_config(
+    name = "ts_config_lib",
+    src = "tsconfig.lib.json",
+    visibility = ["//visibility:public"],
+)
+
+js_binary(
+    name = "ng",
+    data = [
+        "//:node_modules/@angular-devkit/build-angular",
+        "//:node_modules/@angular/cli",
+        "//:node_modules/@angular/compiler-cli",
+        "//:node_modules/typescript",
+    ],
+    entry_point = "ng-wrapper.js",
+)
+
+js_run_binary(
+    name = "bundle",
+    srcs = [
+        "angular.json",
+        "index.html",
+        "main.ts",
+        "tsconfig.app.json",
+        "//:node_modules/@angular/common",
+        "//:node_modules/@angular/compiler",
+        "//:node_modules/@angular/core",
+        "//:node_modules/@angular/platform-browser",
+        "//:node_modules/@angular/router",
+        "//:node_modules/rxjs",
+        "//:node_modules/tslib",
+        "//pinpoint/webui/app:srcs",
+        "//pinpoint/webui/app/job-list:srcs",
+        "//pinpoint/webui/app/new-job:srcs",
+    ],
+    args = [
+        "build",
+        "pinpoint-webui",
+    ],
+    chdir = "pinpoint/webui",
+    out_dirs = ["dist"],
+    tool = ":ng",
+    visibility = ["//visibility:public"],
+)
+
+pkg_tar(
+    name = "pkg",
+    srcs = [":bundle"],
+    package_dir = "/usr/local/share/pinpoint-webui",
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "main_ts_lib",
+    srcs = ["main.ts"],
+    tsconfig = ":ts_config_lib",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:node_modules/@angular/platform-browser",
+        "//pinpoint/webui/app:app.component_ts_lib",
+        "//pinpoint/webui/app:app.config_ts_lib",
+    ],
+)
