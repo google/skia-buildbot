@@ -1,9 +1,10 @@
+load("@npm//:ts-proto/package_json.bzl", "bin")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 # Non-predefined variables must be escaped with "$$" (e.g. "$$FOO"); see
 # https://bazel.build/reference/be/make-variables#predefined_label_variables.
 _SCRIPT_TEMPLATE = """
-# Find the directories where each of the four binaries are located.
+# Find the directories where each of the binaries are located.
 PROTOC_PATH=$$(realpath $$(dirname $(rootpath {protoc_label})))
 PROTOC_GEN_GO_GRPC_GATEWAY_PATH=$$(realpath $$(dirname \\
     $(rootpath @com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway)))
@@ -15,6 +16,8 @@ PROTOC_GEN_TWIRP_PATH=$$(realpath $$(dirname \\
     $(rootpath @com_github_twitchtv_twirp//protoc-gen-twirp)))
 PROTOC_GEN_TWIRP_TYPESCRIPT_PATH=$$(realpath $$(dirname \\
     $(rootpath @com_github_skia_dev_protoc_gen_twirp_typescript//:protoc-gen-twirp_typescript)))
+PROTOC_GEN_TS_PROTO_PATH=$$(realpath $$(dirname \\
+    $(rootpath :protoc-gen-ts_proto)))
 
 # Add binaries to PATH.
 export PATH=$$PROTOC_PATH:$$PATH
@@ -24,12 +27,20 @@ export PATH=$$PROTOC_GEN_GO_GRPC_PATH:$$PATH
 export PATH=$$PROTOC_GEN_GO_PATH:$$PATH
 export PATH=$$PROTOC_GEN_TWIRP_PATH:$$PATH
 export PATH=$$PROTOC_GEN_TWIRP_TYPESCRIPT_PATH:$$PATH
+export PATH=$$PROTOC_GEN_TS_PROTO_PATH:$$PATH
+
+# Set BAZEL_BINDIR=. to satisfy aspect_rules_js binary requirements outside build actions.
+export BAZEL_BINDIR=.
 
 # Change into the directory where Bazel was invoked.
 cd $$BUILD_WORKING_DIRECTORY
 
 protoc $$@
 """
+
+bin.protoc_gen_ts_proto_binary(
+    name = "protoc-gen-ts_proto",
+)
 
 [
     genrule(
@@ -40,6 +51,7 @@ protoc $$@
         ),
         tools = [
             protoc_label,
+            ":protoc-gen-ts_proto",
             "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway",
             "@com_github_skia_dev_protoc_gen_twirp_typescript//:protoc-gen-twirp_typescript",
             "@com_github_twitchtv_twirp//protoc-gen-twirp",
@@ -95,6 +107,7 @@ sh_binary(
         "@protoc-gen-validate//validate:validate_proto",
         "@org_golang_google_protobuf//cmd/protoc-gen-go",
         "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
+        ":protoc-gen-ts_proto",
     ],
     visibility = ["//visibility:public"],
 )

@@ -1,0 +1,31 @@
+load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
+load("//infra-sk:index.bzl", "ts_library")
+
+copy_to_bin(
+    name = "srcs",
+    srcs = [
+        "gateway.service.ts",
+        "gateway.ts",
+    ],
+    visibility = ["//pinpoint/webui:__pkg__"],
+)
+
+ts_library(
+    name = "gateway_ts_lib",
+    srcs = ["gateway.ts"],
+    tsconfig = "//pinpoint/webui:ts_config_lib",
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "gateway.service_ts_lib",
+    srcs = ["gateway.service.ts"],
+    tsconfig = "//pinpoint/webui:ts_config_lib",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gateway_ts_lib",
+        "//:node_modules/@angular/common",
+        "//:node_modules/@angular/core",
+        "//:node_modules/rxjs",
+    ],
+)

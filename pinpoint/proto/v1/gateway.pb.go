@@ -444,6 +444,88 @@ func (x *JobSummary) GetJobStatus() JobStatus {
 	return JobStatus_JOB_STATUS_UNSPECIFIED
 }
 
+// Request message to get information about the logged in user.
+type GetUserInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserInfoRequest) Reset() {
+	*x = GetUserInfoRequest{}
+	mi := &file_gateway_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserInfoRequest) ProtoMessage() {}
+
+func (x *GetUserInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetUserInfoRequest) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{4}
+}
+
+// Response message with information about the logged in user.
+type GetUserInfoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserInfoResponse) Reset() {
+	*x = GetUserInfoResponse{}
+	mi := &file_gateway_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserInfoResponse) ProtoMessage() {}
+
+func (x *GetUserInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserInfoResponse.ProtoReflect.Descriptor instead.
+func (*GetUserInfoResponse) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetUserInfoResponse) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
 var File_gateway_proto protoreflect.FileDescriptor
 
 const file_gateway_proto_rawDesc = "" +
@@ -480,7 +562,10 @@ const file_gateway_proto_rawDesc = "" +
 	"\x04user\x18\a \x01(\tR\x04user\x124\n" +
 	"\acreated\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\acreated\x125\n" +
 	"\n" +
-	"job_status\x18\t \x01(\x0e2\x16.pinpoint.v1.JobStatusR\tjobStatus*J\n" +
+	"job_status\x18\t \x01(\x0e2\x16.pinpoint.v1.JobStatusR\tjobStatus\"\x14\n" +
+	"\x12GetUserInfoRequest\"+\n" +
+	"\x13GetUserInfoResponse\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email*J\n" +
 	"\aJobType\x12\x18\n" +
 	"\x14JOB_TYPE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fJOB_TYPE_TRY\x10\x01\x12\x13\n" +
@@ -491,9 +576,10 @@ const file_gateway_proto_rawDesc = "" +
 	"\x12JOB_STATUS_RUNNING\x10\x02\x12\x18\n" +
 	"\x14JOB_STATUS_COMPLETED\x10\x03\x12\x15\n" +
 	"\x11JOB_STATUS_FAILED\x10\x04\x12\x18\n" +
-	"\x14JOB_STATUS_CANCELLED\x10\x052\x81\x01\n" +
+	"\x14JOB_STATUS_CANCELLED\x10\x052\xee\x01\n" +
 	"\x0fPinpointGateway\x12n\n" +
-	"\fQueryJobList\x12 .pinpoint.v1.QueryJobListRequest\x1a!.pinpoint.v1.QueryJobListResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/jobsB0Z.go.skia.org/infra/pinpoint/proto/v1;pinpointpbb\x06proto3"
+	"\fQueryJobList\x12 .pinpoint.v1.QueryJobListRequest\x1a!.pinpoint.v1.QueryJobListResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/jobs\x12k\n" +
+	"\vGetUserInfo\x12\x1f.pinpoint.v1.GetUserInfoRequest\x1a .pinpoint.v1.GetUserInfoResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/userB0Z.go.skia.org/infra/pinpoint/proto/v1;pinpointpbb\x06proto3"
 
 var (
 	file_gateway_proto_rawDescOnce sync.Once
@@ -508,7 +594,7 @@ func file_gateway_proto_rawDescGZIP() []byte {
 }
 
 var file_gateway_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_gateway_proto_goTypes = []any{
 	(JobType)(0),                  // 0: pinpoint.v1.JobType
 	(JobStatus)(0),                // 1: pinpoint.v1.JobStatus
@@ -516,7 +602,9 @@ var file_gateway_proto_goTypes = []any{
 	(*QueryJobListRequest)(nil),   // 3: pinpoint.v1.QueryJobListRequest
 	(*QueryJobListResponse)(nil),  // 4: pinpoint.v1.QueryJobListResponse
 	(*JobSummary)(nil),            // 5: pinpoint.v1.JobSummary
-	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(*GetUserInfoRequest)(nil),    // 6: pinpoint.v1.GetUserInfoRequest
+	(*GetUserInfoResponse)(nil),   // 7: pinpoint.v1.GetUserInfoResponse
+	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
 }
 var file_gateway_proto_depIdxs = []int32{
 	0, // 0: pinpoint.v1.QueryJobListRequest.job_type:type_name -> pinpoint.v1.JobType
@@ -524,12 +612,14 @@ var file_gateway_proto_depIdxs = []int32{
 	5, // 2: pinpoint.v1.QueryJobListResponse.jobs:type_name -> pinpoint.v1.JobSummary
 	2, // 3: pinpoint.v1.QueryJobListResponse.pagination:type_name -> pinpoint.v1.Pagination
 	0, // 4: pinpoint.v1.JobSummary.job_type:type_name -> pinpoint.v1.JobType
-	6, // 5: pinpoint.v1.JobSummary.created:type_name -> google.protobuf.Timestamp
+	8, // 5: pinpoint.v1.JobSummary.created:type_name -> google.protobuf.Timestamp
 	1, // 6: pinpoint.v1.JobSummary.job_status:type_name -> pinpoint.v1.JobStatus
 	3, // 7: pinpoint.v1.PinpointGateway.QueryJobList:input_type -> pinpoint.v1.QueryJobListRequest
-	4, // 8: pinpoint.v1.PinpointGateway.QueryJobList:output_type -> pinpoint.v1.QueryJobListResponse
-	8, // [8:9] is the sub-list for method output_type
-	7, // [7:8] is the sub-list for method input_type
+	6, // 8: pinpoint.v1.PinpointGateway.GetUserInfo:input_type -> pinpoint.v1.GetUserInfoRequest
+	4, // 9: pinpoint.v1.PinpointGateway.QueryJobList:output_type -> pinpoint.v1.QueryJobListResponse
+	7, // 10: pinpoint.v1.PinpointGateway.GetUserInfo:output_type -> pinpoint.v1.GetUserInfoResponse
+	9, // [9:11] is the sub-list for method output_type
+	7, // [7:9] is the sub-list for method input_type
 	7, // [7:7] is the sub-list for extension type_name
 	7, // [7:7] is the sub-list for extension extendee
 	0, // [0:7] is the sub-list for field type_name
@@ -546,7 +636,7 @@ func file_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_proto_rawDesc), len(file_gateway_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -83,3 +83,55 @@ Open your browser to `http://localhost:4200`.
 - The Angular CLI uses `proxy.local.json` to route requests starting with
   `/pinpoint` and `/api` to the Go server on port 8000.
 - Changes to `.ts` or `.html` files update the browser immediately.
+
+### Local User Testing (Fake Auth)
+
+When developing locally, the Google auth headers (like `X-Webauth-User`) are not
+present. To simulate a logged-in user (e.g. for testing the header element or
+profile popup), the Angular CLI dev-server proxy is configured in
+`proxy.local.json` to inject a fake user header:
+
+```json
+"headers": {
+  "Grpc-Metadata-X-Webauth-User": "test-user@google.com"
+}
+```
+
+- **Default User**: The default user is `test-user@google.com`.
+- **Changing User**: To test with a different email address, edit the value of
+  `"Grpc-Metadata-X-Webauth-User"` in `pinpoint/webui/proxy.local.json` and
+  restart the dev server.
+- **Anonymous Mode**: To test the application as an anonymous/logged-out user,
+  remove the `"headers"` block or the `"Grpc-Metadata-X-Webauth-User"` entry
+  from `pinpoint/webui/proxy.local.json` and restart the dev server.
+
+Note: if you modify `test-user@google.com`, revert it before merging.
+
+## Running Unit Tests
+
+Unit tests for the Web UI components are built and executed in a headless
+browser via Karma + Mocha under Bazel.
+
+To run all Web UI tests:
+
+```bash
+bazelisk test //pinpoint/webui/...
+```
+
+To run a specific component's tests (e.g., the Header Component):
+
+```bash
+bazelisk test //pinpoint/webui/app/header:header.component_test
+```
+
+## Regenerating TypeScript Types from Protobuf
+
+The Gateway TypeScript types and service interfaces are automatically generated
+from `pinpoint/proto/v1/gateway.proto`.
+
+To re-generate the `pinpoint/webui/app/gateway/gateway.ts` definitions, run the
+following command from the root of the `buildbot` repository:
+
+```bash
+BUILD_WORKSPACE_DIRECTORY=$PWD go generate ./pinpoint/proto/v1/...
+```

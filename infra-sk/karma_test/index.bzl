@@ -9,7 +9,8 @@ def karma_test(
         src,
         deps = [],
         karma_config_file = "//infra-sk/karma_test:karma_config",
-        static_karma_files = []):
+        static_karma_files = [],
+        tsconfig = None):
     """Runs TypeScript unit tests in a browser with Karma, using Mocha as the test runner.
 
     When invoked via `bazel test`, a headless Chrome browser will be used. This supports testing
@@ -34,6 +35,7 @@ def karma_test(
          be served statically for karma tests. If this is provided, a custom karma_config_file
          should also be supplied to make use of the absolute file paths which are appended to the
          karma "start" command.
+      tsconfig: Optional path to a tsconfig file.
     """
 
     # Enforce test naming conventions. The Gazelle extension for front-end code relies on these.
@@ -43,11 +45,15 @@ def karma_test(
         if src.endswith(suffix):
             fail("Karma tests cannot end with \"%s\"." % suffix)
 
-    ts_library(
-        name = name + "_lib",
-        srcs = [src],
-        deps = deps,
-    )
+    ts_library_args = {
+        "name": name + "_lib",
+        "srcs": [src],
+        "deps": deps,
+    }
+    if tsconfig:
+        ts_library_args["tsconfig"] = tsconfig
+
+    ts_library(**ts_library_args)
 
     esbuild_dev_bundle(
         name = name + "_bundle",

@@ -1,5 +1,5 @@
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
 
 copy_to_bin(
     name = "srcs",
@@ -18,5 +18,22 @@ ts_library(
     deps = [
         "//:node_modules/@angular/core",
         "//:node_modules/@angular/material",
+        "//pinpoint/webui/app/gateway:gateway.service_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "header.component_test",
+    src = "header.component_test.ts",
+    tsconfig = "//pinpoint/webui:ts_config_test",
+    deps = [
+        ":header.component_ts_lib",
+        "//:node_modules/@angular/compiler",
+        "//:node_modules/@angular/core",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/sinon",
+        "//pinpoint/webui/app/gateway:gateway.service_ts_lib",
     ],
 )

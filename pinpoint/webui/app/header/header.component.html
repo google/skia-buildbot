@@ -7,7 +7,17 @@
   <button mat-icon-button (click)="onBugClick()" aria-label="File a bug">
     <mat-icon>bug_report</mat-icon>
   </button>
-  <button mat-icon-button (click)="onAvatarClick()" aria-label="User avatar">
+  <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User menu">
     <mat-icon>account_circle</mat-icon>
   </button>
 </mat-toolbar>
+
+<mat-menu #userMenu="matMenu" xPosition="before">
+  <button mat-menu-item disabled>
+    <span>{{ userEmail() }}</span>
+  </button>
+  <button mat-menu-item (click)="onSignOutClick()">
+    <mat-icon>exit_to_app</mat-icon>
+    <span>Sign out</span>
+  </button>
+</mat-menu>

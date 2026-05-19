@@ -1,6 +1,9 @@
 {
   "/pinpoint": {
     "target": "http://localhost:8000",
-    "secure": false
+    "secure": false,
+    "headers": {
+      "Grpc-Metadata-X-Webauth-User": "test-user@google.com"
+    }
   }
 }

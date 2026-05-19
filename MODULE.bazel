@@ -266,7 +266,11 @@ npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
 npm.npm_translate_lock(
     name = "npm",
     additional_file_contents = {},
-    bins = {},
+    bins = {
+        "ts-proto": [
+            "protoc-gen-ts_proto=./protoc-gen-ts_proto",
+        ],
+    },
     custom_postinstalls = {},
     data = [
         "//:package.json",

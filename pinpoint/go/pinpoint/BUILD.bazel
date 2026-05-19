@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "pinpoint",
@@ -14,5 +15,18 @@ go_library(
         "//pinpoint/go/pinpoint/internal",
         "//pinpoint/proto/v1:proto",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
+        "@org_golang_google_grpc//metadata",
+    ],
+)
+
+go_test(
+    name = "pinpoint_test",
+    srcs = ["gateway_test.go"],
+    embed = [":pinpoint"],
+    deps = [
+        "//pinpoint/proto/v1:proto",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_google_grpc//metadata",
     ],
 )

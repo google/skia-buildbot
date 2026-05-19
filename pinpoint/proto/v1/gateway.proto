@@ -87,12 +87,27 @@ message JobSummary {
   JobStatus job_status = 9;
 }
 
+// Request message to get information about the logged in user.
+message GetUserInfoRequest {}
+
+// Response message with information about the logged in user.
+message GetUserInfoResponse {
+  string email = 1;
+}
+
 // Service definition for Pinpoint Gateway API.
 service PinpointGateway {
   // Queries a list of jobs based on filters and pagination options.
   rpc QueryJobList(QueryJobListRequest) returns (QueryJobListResponse) {
     option (google.api.http) = {
       get: "/pinpoint/v1/jobs"
+    };
+  }
+
+  // Retrieves information about the currently logged-in user.
+  rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse) {
+    option (google.api.http) = {
+      get: "/pinpoint/v1/user"
     };
   }
 }

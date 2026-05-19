@@ -10,5 +10,6 @@
 //go:generate bazelisk run --config=mayberemote //:goimports "--run_under=cd $PWD &&" -- -w gateway.pb.go
 //go:generate bazelisk run --config=mayberemote //:goimports "--run_under=cd $PWD &&" -- -w gateway.pb.gw.go
 //go:generate bazelisk run --config=mayberemote //:goimports "--run_under=cd $PWD &&" -- -w gateway_grpc.pb.go
+//go:generate bazelisk run --config=mayberemote //:protoc -- -I . -I "${BUILD_WORKSPACE_DIRECTORY}" --descriptor_set_in=$BUILD_WORKSPACE_DIRECTORY/_bazel_bin/external/googleapis+/google/api/annotations_proto-descriptor-set.proto.bin:$BUILD_WORKSPACE_DIRECTORY/_bazel_bin/external/googleapis+/google/api/http_proto-descriptor-set.proto.bin:$BUILD_WORKSPACE_DIRECTORY/_bazel_bin/external/protoc-gen-validate+/validate/validate_proto-descriptor-set.proto.bin --ts_proto_out=$BUILD_WORKSPACE_DIRECTORY/pinpoint/webui/app/gateway --ts_proto_opt=onlyTypes=true --ts_proto_opt=useJsonWireFormat=true --ts_proto_opt=emitImportedFiles=false ./gateway.proto
 
 package pinpointpb
