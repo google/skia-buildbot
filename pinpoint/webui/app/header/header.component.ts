@@ -40,6 +40,11 @@ export class HeaderComponent implements OnInit {
   }
 
   onSignOutClick() {
-    alert('Not implemented: Sign out');
+    const redirectUrl = encodeURIComponent(window.location.origin);
+    this.redirect(`/logout/?redirect=${redirectUrl}`);
+  }
+
+  redirect(url: string) {
+    window.location.href = url;
   }
 }

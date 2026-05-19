@@ -70,4 +70,27 @@ describe('HeaderComponent', () => {
     assert.equal(component.userEmail(), 'Error loading user');
     assert.isTrue(stubConsoleError.calledOnceWithExactly('Failed to load user info:', testError));
   });
+
+  it('should redirect to the proxy logout URL on sign out click', () => {
+    const mockGateway = {
+      GetUserInfo: async () => ({ email: 'somebody@google.com' }),
+    };
+
+    const injector = Injector.create({
+      providers: [{ provide: GatewayService, useValue: mockGateway }],
+    });
+
+    let component!: HeaderComponent;
+    runInInjectionContext(injector, () => {
+      component = new HeaderComponent();
+    });
+
+    let redirectedUrl = '';
+    component.redirect = (url: string) => {
+      redirectedUrl = url;
+    };
+
+    component.onSignOutClick();
+    assert.equal(redirectedUrl, `/logout/?redirect=${encodeURIComponent(window.location.origin)}`);
+  });
 });
