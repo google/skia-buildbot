@@ -13,7 +13,7 @@
     "fetch_chrome_perf_anomalies": true,
     "instance_name": "fuchsia-internal",
     "notify_config": {
-      "notifications": "html_email"
+      "notifications": "anomalygroup"
     },
     "auth_config": {
       "header_name": "X-WEBAUTH-USER"
