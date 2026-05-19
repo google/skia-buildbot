@@ -22,38 +22,87 @@ type Status string
 // ClusterType is used to denote type of cluster in regression2 schema.
 type ClusterType string
 
-// Status constants.
+// To learn more about statuses allowed in Regressions2 anomalies,
+// see go/perf-chrome-anom-mig [1], section "Regression states".
+// For a more detailed explanation behind those, see go/perf-ag-statuses [2].
+
+// Status constants used by both (Legacy) Regressions and Regressions2.
 const (
-	// None means there is no regression.
-	None Status = ""
+	// Ignored means the regression has been ignored by sheriff,
+	// or that autobisection thinks the anomaly is insignificant and sheriff doesn't want to
+	// investigate. By default, the latter will end up in the Untriaged state, and we will implement
+	// "auto-ignore" only on demand. But too large volume of such anomalies likely means that
+	// our detection algos are too sensitive, and we can save some resources by investigating.
+	Ignored Status = "ignored"
+)
 
-	// Positive means this change in performance is OK/expected.
-	Positive Status = "positive"
+// Regressions2 Status constants.
+const (
+	// Anomaly hasn't yet been grouped, group still can grow, or autobisection is in progress.
+	Pending Status = "pending"
 
-	// Negative means this regression is a bug.
-	Negative Status = "negative"
-
-	// Untriaged means the regression has not been triaged.
+	// Untriaged means that Sheriff should triage it.
+	// This corresponds to "Sheriff's attention required" section in [1].
+	// There are a few cases:
+	// - anomaly grouping is not enabled,
+	// - action: IGNORE defined in sheriff config,
+	// - autobisection failed (i.e. timeout or no bots),
+	// - autobisection finished with INSIGNIFICANT status - by default, we do not ignore them,
+	// but rather let Sheriffs change thresholds so fewer bisect jobs are kicked off. We need to mark
+	// such regressions differently, let's use Triage Message: autobisection - insignificant.
 	Untriaged Status = "untriaged"
 
-	// Ignored means the regression has been ignored.
-	Ignored Status = "ignored"
+	// Triaged means one of the following:
+	// - Action: IGNORE - sheriff manually filed a bug against this anomaly (or assigned)
+	// - Action: REPORT - a bug has been created automatically
+	// - Action: BISECT - autobisection found a culprit (and filed a bug automatically), or no culprit
+	// was found and a bug has been filed against sheriff to investigate - regression is there, still.
+	// We mark the latter with Triage Message: autobisection - no culprit found.
+	Triaged Status = "triaged"
+)
 
+// (Legacy) Regressions Status constants
+const (
+	// None means there is no regression. This seems to be unused outside initialization,
+	// and perhaps should be removed.
+	// TODO(b/481616822) remove
+	None Status = ""
+
+	// Positive means this change in performance is OK/expected. Used only by Regressions store.
+	// Unused by Regressions2 - we use is_improvement field instead.
+	Positive Status = "positive"
+
+	// Negative means this regression is a bug. Used only by Regressions store.
+	// Unused by Regressions2 - we use is_improvement field instead.
+	Negative Status = "negative"
+)
+
+// Cluster types
+const (
 	// Available cluster types in regression2
 	HighClusterType ClusterType = "high"
 	LowClusterType  ClusterType = "low"
 	NoneClusterType ClusterType = "none"
+)
 
+// Triage messages
+const (
 	// IgnoredMessage is the message used when a regression is ignored via the triage menu.
 	IgnoredMessage = "Ignored via Triage Menu"
 	// NudgedMessage is the message used when a regression is nudged.
 	NudgedMessage = "Nudged"
 	// ResetMessage is the message used when a regression triage status is reset.
 	ResetMessage = ""
+	// ABInsignificantMessage is the message used when a regression was found
+	// insignificant by autobisection.
+	ABInsignificantMessage = "Autobisection - insignificant"
+	// ABNoCulpritFoundMessage is the message used when autobisection found no culprit against this
+	// regression.
+	ABNoCulpritFoundMessage = "Autobisection - no culprit found"
 )
 
 // AllStatus is a slice of all values of type Status.
-var AllStatus = []Status{None, Positive, Negative, Untriaged, Ignored}
+var AllStatus = []Status{None, Positive, Negative, Untriaged, Ignored, Pending, Triaged}
 
 // AllRegressionsForCommit is a map[alertid]Regression.
 type AllRegressionsForCommit struct {
