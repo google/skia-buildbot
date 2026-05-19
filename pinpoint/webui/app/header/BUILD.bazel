@@ -18,6 +18,7 @@ ts_library(
     deps = [
         "//:node_modules/@angular/core",
         "//:node_modules/@angular/material",
+        "//:node_modules/@angular/router",
         "//pinpoint/webui/app/gateway:gateway.service_ts_lib",
     ],
 )

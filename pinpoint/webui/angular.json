@@ -19,7 +19,9 @@
             "polyfills": [],
             "preserveSymlinks": true,
             "tsConfig": "tsconfig.app.json",
-            "assets": [],
+            "assets": [
+              "app/static/logo.svg"
+            ],
             "styles": [
               "@angular/material/prebuilt-themes/azure-blue.css",
               "styles.css"
