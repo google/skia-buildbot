@@ -20,7 +20,10 @@
             "preserveSymlinks": true,
             "tsConfig": "tsconfig.app.json",
             "assets": [],
-            "styles": [],
+            "styles": [
+              "@angular/material/prebuilt-themes/azure-blue.css",
+              "styles.css"
+            ],
             "scripts": []
           },
           "configurations": {

@@ -19,6 +19,7 @@ ts_library(
     deps = [
         "//:node_modules/@angular/core",
         "//:node_modules/@angular/router",
+        "//pinpoint/webui/app/header:header.component_ts_lib",
     ],
 )
 
@@ -30,6 +31,7 @@ ts_library(
     deps = [
         "//:node_modules/@angular/common",
         "//:node_modules/@angular/core",
+        "//:node_modules/@angular/platform-browser",
         "//:node_modules/@angular/router",
         "//pinpoint/webui/app/job-list:job-list.component_ts_lib",
         "//pinpoint/webui/app/new-job:new-job.component_ts_lib",
