@@ -1,16 +1,16 @@
 <mat-toolbar color="primary">
-  <button mat-icon-button routerLink="/" aria-label="Home Page">
+  <button mat-icon-button routerLink="/" aria-label="Home Page" matTooltip="Pinpoint Home">
     <img src="assets/logo.svg" alt="Home Page" style="width: 24px; height: 24px;">
   </button>
   <span>Pinpoint</span>
   <span class="spacer"></span>
-  <button mat-icon-button (click)="onHelpClick()" aria-label="Help">
+  <button mat-icon-button (click)="onHelpClick()" aria-label="Help" matTooltip="View Pinpoint documentation">
     <mat-icon>help</mat-icon>
   </button>
-  <button mat-icon-button (click)="onBugClick()" aria-label="File a bug">
+  <button mat-icon-button (click)="onBugClick()" aria-label="File a bug" matTooltip="File a bug report">
     <mat-icon>bug_report</mat-icon>
   </button>
-  <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User menu">
+  <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User menu" matTooltip="User options">
     <mat-icon>account_circle</mat-icon>
   </button>
 </mat-toolbar>
