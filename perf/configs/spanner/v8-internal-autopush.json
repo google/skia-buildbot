@@ -44,8 +44,8 @@
   },
   "maintenance_config": {
     "gitiles_repo_url": "https://chrome-internal.googlesource.com/infra/infra_internal",
-    "sheriff_config_path": "infra/config/generated/skia-sheriff-configs.cfg",
-    "fallback_to_lucicfg": true
+    "sheriff_config_path": "infra/config/subprojects/skiaperf/v8-perf-autopush.textpb",
+    "fallback_to_lucicfg": false
   },
   "git_repo_config": {
     "provider": "gitiles",
