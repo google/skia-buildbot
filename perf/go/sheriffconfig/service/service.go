@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -168,8 +169,35 @@ func (m *migrationConfigProvider) GetProjectConfigs(ctx context.Context, path st
 	return configs, nil
 }
 
+type localFileConfigProvider struct {
+	path string
+}
+
+func (l *localFileConfigProvider) GetProjectConfigs(ctx context.Context, path string) ([]*luciconfig.ProjectConfig, error) {
+	b, err := os.ReadFile(l.path)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	content := string(b)
+	if err := ValidateContent(content); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	sklog.Infof("Validation passed for local file: %s", l.path)
+	return []*luciconfig.ProjectConfig{
+		{
+			Content:  content,
+			Revision: "local-file-revision",
+		},
+	}, nil
+}
+
 // CreateConfigProvider creates a ConfigProvider based on the given configuration.
 func CreateConfigProvider(ctx context.Context, isLocal bool, gitilesRepoUrl string, sheriffConfigPath string, fallbackToLucicfg bool) (ConfigProvider, error) {
+	if isLocal && gitilesRepoUrl == "" && sheriffConfigPath != "" {
+		sklog.Infof("Using local file for Sheriff Configs: %s", sheriffConfigPath)
+		return &localFileConfigProvider{path: sheriffConfigPath}, nil
+	}
+
 	var primaryClient ConfigProvider
 	var fallbackClient ConfigProvider
 	var primaryErr error
