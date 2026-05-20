@@ -7,8 +7,20 @@
     <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script>
+      // Synchronously check localStorage and apply the dark-theme class to the <html> tag
+      // before the browser starts rendering the body. This prevents a visual flash/flicker
+      // on page loads when dark mode is selected.
+      try {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.classList.add('dark-theme');
+        }
+      } catch (e) {
+        console.error('Failed to pre-load saved theme from localStorage:', e);
+      }
+    </script>
   </head>
-  <body>
+  <body class="mat-typography mat-app-background">
     <app-root></app-root>
   </body>
 </html>

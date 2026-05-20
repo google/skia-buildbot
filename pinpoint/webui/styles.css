@@ -1,9 +1,0 @@
-body {
-  /* Set no gap between the header and the page borders. */
-  margin: 0;
-}
-
-/* A reusable spacer class to push elements to opposite ends of a container. */
-.spacer {
-  flex: 1 1 auto;
-}

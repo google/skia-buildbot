@@ -20,6 +20,7 @@ ts_library(
         "//:node_modules/@angular/material",
         "//:node_modules/@angular/router",
         "//pinpoint/webui/app/gateway:gateway.service_ts_lib",
+        "//pinpoint/webui/app/theme:theme.service_ts_lib",
     ],
 )
 
@@ -36,5 +37,6 @@ karma_test(
         "//:node_modules/chai",
         "//:node_modules/sinon",
         "//pinpoint/webui/app/gateway:gateway.service_ts_lib",
+        "//pinpoint/webui/app/theme:theme.service_ts_lib",
     ],
 )

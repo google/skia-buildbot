@@ -1,0 +1,32 @@
+load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
+
+copy_to_bin(
+    name = "srcs",
+    srcs = [
+        "theme.service.ts",
+    ],
+    visibility = ["//pinpoint/webui:__pkg__"],
+)
+
+ts_library(
+    name = "theme.service_ts_lib",
+    srcs = ["theme.service.ts"],
+    tsconfig = "//pinpoint/webui:ts_config_lib",
+    visibility = ["//visibility:public"],
+    deps = ["//:node_modules/@angular/core"],
+)
+
+karma_test(
+    name = "theme.service_test",
+    src = "theme.service_test.ts",
+    tsconfig = "//pinpoint/webui:ts_config_test",
+    deps = [
+        ":theme.service_ts_lib",
+        "//:node_modules/@angular/compiler",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/sinon",
+    ],
+)

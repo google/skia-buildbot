@@ -6,6 +6,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { GatewayService } from '../gateway/gateway.service';
+import { ThemeService } from '../theme/theme.service';
 
 // TODO(b/514573802): Update the link to show the new Pinpoint documentation.
 export const DOCUMENTATION_URL =
@@ -29,10 +30,18 @@ export const BUG_REPORT_URL =
 export class HeaderComponent implements OnInit {
   private gatewayService = inject(GatewayService);
 
+  private themeService = inject(ThemeService);
+
   userEmail = signal<string>('Loading...');
+
+  isDarkMode = this.themeService.isDarkMode;
 
   ngOnInit() {
     this.loadUserInfo();
+  }
+
+  toggleTheme() {
+    this.themeService.toggleTheme();
   }
 
   private async loadUserInfo() {

@@ -1,7 +1,7 @@
 load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
 
 ts_config(
     name = "ts_config_lib",
@@ -34,7 +34,7 @@ js_run_binary(
         "assets/logo.svg",
         "index.html",
         "main.ts",
-        "styles.css",
+        "styles.scss",
         "tsconfig.app.json",
         "//:node_modules/@angular/animations",
         "//:node_modules/@angular/cdk",
@@ -51,6 +51,7 @@ js_run_binary(
         "//pinpoint/webui/app/header:srcs",
         "//pinpoint/webui/app/job-list:srcs",
         "//pinpoint/webui/app/new-job:srcs",
+        "//pinpoint/webui/app/theme:srcs",
     ],
     args = [
         "build",
@@ -79,4 +80,10 @@ ts_library(
         "//pinpoint/webui/app:app.component_ts_lib",
         "//pinpoint/webui/app:app.config_ts_lib",
     ],
+)
+
+sass_library(
+    name = "styles_sass_lib",
+    srcs = ["styles.scss"],
+    visibility = ["//visibility:public"],
 )

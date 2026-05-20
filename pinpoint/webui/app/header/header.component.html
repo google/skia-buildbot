@@ -19,6 +19,10 @@
   <button mat-menu-item disabled>
     <span>{{ userEmail() }}</span>
   </button>
+  <button mat-menu-item (click)="toggleTheme()">
+    <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    <span>{{ isDarkMode() ? 'Light theme' : 'Dark theme' }}</span>
+  </button>
   <button mat-menu-item (click)="onSignOutClick()">
     <mat-icon>exit_to_app</mat-icon>
     <span>Sign out</span>

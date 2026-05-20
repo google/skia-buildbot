@@ -15,8 +15,5 @@ ts_library(
     srcs = ["new-job.component.ts"],
     tsconfig = "//pinpoint/webui:ts_config_lib",
     visibility = ["//visibility:public"],
-    deps = [
-        "//:node_modules/@angular/core",
-        "//:node_modules/@angular/router",
-    ],
+    deps = ["//:node_modules/@angular/core"],
 )

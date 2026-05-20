@@ -2,6 +2,7 @@ import '@angular/compiler';
 import { Injector, runInInjectionContext } from '@angular/core';
 import { HeaderComponent, DOCUMENTATION_URL, BUG_REPORT_URL } from './header.component';
 import { GatewayService } from '../gateway/gateway.service';
+import { ThemeService } from '../theme/theme.service';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
 
@@ -24,7 +25,7 @@ describe('HeaderComponent', () => {
       GetUserInfo: async () => ({ email: 'somebody@google.com' }),
     };
     const injector = Injector.create({
-      providers: [{ provide: GatewayService, useValue: gateway }],
+      providers: [{ provide: GatewayService, useValue: gateway }, ThemeService],
     });
     let component!: HeaderComponent;
     runInInjectionContext(injector, () => {
@@ -79,5 +80,62 @@ describe('HeaderComponent', () => {
     const component = createHeaderComponent();
     component.onBugClick();
     assert.isTrue(openStub.calledOnceWithExactly(BUG_REPORT_URL, '_blank'));
+  });
+
+  describe('theme toggle', () => {
+    let localStorageGetStub: sinon.SinonStub;
+    let localStorageSetStub: sinon.SinonStub;
+    let initialClasses: string[];
+
+    beforeEach(() => {
+      localStorageGetStub = sinon.stub(localStorage, 'getItem');
+      localStorageSetStub = sinon.stub(localStorage, 'setItem');
+      initialClasses = Array.from(document.documentElement.classList);
+      document.documentElement.className = '';
+    });
+
+    afterEach(() => {
+      localStorageGetStub.restore();
+      localStorageSetStub.restore();
+      document.documentElement.className = initialClasses.join(' ');
+    });
+
+    it('should initialize to light theme by default when no saved theme', async () => {
+      localStorageGetStub.returns(null);
+
+      const component = createHeaderComponent();
+      await component.ngOnInit();
+
+      assert.isFalse(component.isDarkMode());
+      assert.isFalse(document.documentElement.classList.contains('dark-theme'));
+    });
+
+    it('should initialize to dark theme when saved theme is dark', async () => {
+      localStorageGetStub.withArgs('theme').returns('dark');
+
+      const component = createHeaderComponent();
+      await component.ngOnInit();
+
+      assert.isTrue(component.isDarkMode());
+      assert.isTrue(document.documentElement.classList.contains('dark-theme'));
+    });
+
+    it('should toggle theme and save to localStorage', async () => {
+      localStorageGetStub.returns(null);
+
+      const component = createHeaderComponent();
+      await component.ngOnInit(); // isDarkMode = false
+      assert.isFalse(document.documentElement.classList.contains('dark-theme'));
+
+      component.toggleTheme();
+      assert.isTrue(component.isDarkMode());
+      assert.isTrue(localStorageSetStub.calledWith('theme', 'dark'));
+      assert.isTrue(document.documentElement.classList.contains('dark-theme'));
+
+      component.toggleTheme();
+      assert.isFalse(component.isDarkMode());
+      assert.isTrue(localStorageSetStub.calledWith('theme', 'light'));
+      assert.isFalse(document.documentElement.classList.contains('dark-theme'));
+    });
   });
 });
