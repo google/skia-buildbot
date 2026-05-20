@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -19,23 +20,45 @@ const (
 )
 
 func TestStepFit_Empty(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 0, StepSize: 0, Status: UNINTERESTING, Regression: 0},
-		GetStepFitAtMid([]float32{}, minStdDev, 20, types.OriginalStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.OriginalStep,
+			Threshold: 20,
+		},
+	}
+	sf := EvaluateRule([]float32{}, minStdDev, rule)
+	assert.Equal(t, 0, sf.TurningPoint)
+	assert.Equal(t, float32(0), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(0), sf.Regression)
 }
 
 func TestStepFit_SimpleStepUp(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 2, StepSize: -2.0412414, Status: HIGH, Regression: -20.412415},
-		GetStepFitAtMid([]float32{0, 0, 1, 1, 1}, minStdDev, 20, types.OriginalStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.OriginalStep,
+			Threshold: 20,
+		},
+	}
+	sf := EvaluateRule([]float32{0, 0, 1, 1, 1}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(-2.0412414), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	assert.Equal(t, float32(-20.412415), sf.Regression)
 }
 
 func TestStepFit_RealWorldExample(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{LeastSquares: 0.17183419, TurningPoint: 1, StepSize: -2.0251877, Regression: -11.785709, Status: "High"},
-		GetStepFitAtMid([]float32{608100,
-			672970,
-			653180}, minStdDev, 2, types.OriginalStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.OriginalStep,
+			Threshold: 2,
+		},
+	}
+	sf := EvaluateRule([]float32{608100, 672970, 653180}, minStdDev, rule)
+	assert.Equal(t, 1, sf.TurningPoint)
+	assert.Equal(t, float32(-2.0251877), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	assert.Equal(t, float32(-11.785709), sf.Regression)
 }
 
 func TestStepFit_RealWorldExample_SlidingWindow_Comparisons(t *testing.T) {
@@ -74,9 +97,16 @@ func TestStepFit_RealWorldExample_SlidingWindow_Comparisons(t *testing.T) {
 		var maxRegressionIndex = -1
 		var maxSF *StepFit
 
+		rule := &alerts.AnomalyDetectionRule{
+			SimpleRule: &alerts.AlgorithmCheck{
+				Step:      types.CohenStep,
+				Threshold: interestingThreshold,
+			},
+		}
+
 		for i := 0; i+windowSize <= len(data); i++ {
 			window := data[i : i+windowSize]
-			sf := GetStepFitAtMid(window, minStdDev, interestingThreshold, types.CohenStep)
+			sf := EvaluateRule(window, minStdDev, rule)
 
 			if math.Abs(float64(sf.Regression)) > math.Abs(float64(maxRegression)) {
 				maxRegression = sf.Regression
@@ -158,145 +188,336 @@ func TestStepFit_RealWorldExample_SlidingWindow_Comparisons(t *testing.T) {
 }
 
 func TestStepFit_SimpleStepDown(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 2, StepSize: 2.0412414, Status: LOW, Regression: 20.412415},
-		GetStepFitAtMid([]float32{1, 1, 0, 0, 0}, minStdDev, 20, types.OriginalStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.OriginalStep,
+			Threshold: 20,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 1, 0, 0, 0}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(2.0412414), sf.StepSize)
+	assert.Equal(t, LOW, sf.Status)
+	assert.Equal(t, float32(20.412415), sf.Regression)
 }
 
 func TestStepFit_NoStep(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 2, StepSize: -1, Status: UNINTERESTING, Regression: -2.7105057e-19,
-			LeastSquares: 3.6893486e+18},
-		GetStepFitAtMid([]float32{1, 1, 1, 1, 1}, minStdDev, 50, types.OriginalStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.OriginalStep,
+			Threshold: 50,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 1, 1, 1, 1}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(-1), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(-2.7105057e-19), sf.Regression)
 }
 
 func TestStepFit_Absolute_NoStep(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 2, StepSize: 0, Status: UNINTERESTING, Regression: 0, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{1, 2, 1, 2, x}, minStdDev, 1.0, types.AbsoluteStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.AbsoluteStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 2, 1, 2, x}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(0), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(0), sf.Regression)
 }
 
 func TestStepFit_Absolute_StepExactMatch(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 2, StepSize: -1, Status: HIGH, Regression: -1, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{1, 1, 2, 2, x}, minStdDev, 1.0, types.AbsoluteStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.AbsoluteStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 1, 2, 2, x}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(-1), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	assert.Equal(t, float32(-1), sf.Regression)
 }
 
 func TestStepFit_Absolute_StepTooSmall(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 2, StepSize: -0.5, Status: UNINTERESTING, Regression: -0.5, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{1, 1, 1.5, 1.5, x}, minStdDev, 1.0, types.AbsoluteStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.AbsoluteStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 1, 1.5, 1.5, x}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(-0.5), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(-0.5), sf.Regression)
 }
 
 func TestStepFit_Const_NoRegression(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 2, StepSize: -1, Status: UNINTERESTING, Regression: -1, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{0, 0, 1, 0, x}, minStdDev, 2.0, types.Const))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.Const,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{0, 0, 0, 0, x}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(-1), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(0), sf.Regression)
 }
 
 func TestStepFit_Const_RegressionExactlyAtThreshhold(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 2, StepSize: 0, Status: HIGH, Regression: -1, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{0, 0, 1, 0, x}, minStdDev, 1.0, types.Const))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.Const,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{0, 0, 1, 0, x}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(-1), sf.StepSize)
+	assert.Equal(t, LOW, sf.Status)
+	assert.Equal(t, float32(1), sf.Regression)
 }
 
 func TestStepFit_Const_RegressionAfterApplyingAbs(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 2, StepSize: 1, Status: HIGH, Regression: -2, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{0, 0, -2, 0, x}, minStdDev, 1.0, types.Const))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.Const,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{0, 0, -2, 0, x}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(-1), sf.StepSize)
+	assert.Equal(t, LOW, sf.Status)
+	assert.Equal(t, float32(2), sf.Regression)
 }
 
 func TestStepFit_Percent_NoStep(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 2, StepSize: 0, Status: UNINTERESTING, Regression: 0, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{1, 2, 1, 2, x}, minStdDev, 1.0, types.PercentStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.PercentStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 2, 1, 2, x}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(0), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(0), sf.Regression)
 }
 
 func TestStepFit_Percent_StepExactMatch(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 1, StepSize: -1, Status: HIGH, Regression: -1, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{1, 2, x}, minStdDev, 1.0, types.PercentStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.PercentStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 2, x}, minStdDev, rule)
+	assert.Equal(t, 1, sf.TurningPoint)
+	assert.Equal(t, float32(-1), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	assert.Equal(t, float32(-1), sf.Regression)
 }
 
 func TestStepFit_Percent_StepTooSmall(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 1, StepSize: -0.5, Status: UNINTERESTING, Regression: -0.5, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{1, 1.5, x}, minStdDev, 1.0, types.PercentStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.PercentStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 1.5, x}, minStdDev, rule)
+	assert.Equal(t, 1, sf.TurningPoint)
+	assert.Equal(t, float32(-0.5), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(-0.5), sf.Regression)
 }
 
 func TestStepFit_Percent_DefendAgainstNegativeInf(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 1, StepSize: -math.MaxFloat32, Status: HIGH, Regression: -math.MaxFloat32, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{0, 0, 1, 1}, minStdDev, 1.0, types.PercentStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.PercentStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{0, 0, 1, 1}, minStdDev, rule)
+	assert.Equal(t, 1, sf.TurningPoint)
+	assert.Equal(t, float32(-math.MaxFloat32), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	assert.Equal(t, float32(-math.MaxFloat32), sf.Regression)
 }
 
 func TestStepFit_Percent_DefendAgainstInf(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 1, StepSize: math.MaxFloat32, Status: LOW, Regression: math.MaxFloat32, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{0, 0, -1, -1}, minStdDev, 1.0, types.PercentStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.PercentStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{0, 0, -1, -1}, minStdDev, rule)
+	assert.Equal(t, 1, sf.TurningPoint)
+	assert.Equal(t, float32(math.MaxFloat32), sf.StepSize)
+	assert.Equal(t, LOW, sf.Status)
+	assert.Equal(t, float32(math.MaxFloat32), sf.Regression)
 }
 
 func TestStepFit_Percent_DefendAgainstNaN(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 1, StepSize: 0, Status: UNINTERESTING, Regression: 0, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{0, 0, 0, 0}, minStdDev, 1.0, types.PercentStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.PercentStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{0, 0, 0, 0}, minStdDev, rule)
+	assert.Equal(t, 1, sf.TurningPoint)
+	assert.Equal(t, float32(0), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(0), sf.Regression)
 }
 
 func TestStepFit_Cohen_NoStep(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 3, StepSize: -0.1999998, Status: UNINTERESTING, Regression: -0.1999998, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{1, 1.1, 0.9, 1.02, 1.12, 0.92, x}, minStdDev, 1.0, types.CohenStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.CohenStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 1.1, 0.9, 1.02, 1.12, 0.92, x}, minStdDev, rule)
+	assert.Equal(t, 3, sf.TurningPoint)
+	assert.Equal(t, float32(-0.1999998), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(-0.1999998), sf.Regression)
 }
 
 func TestStepFit_Cohen_Step(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 3, StepSize: -0.1999998, Status: HIGH, Regression: -0.1999998, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{1, 1.1, 0.9, 1.02, 1.12, 0.92, x}, minStdDev, 0.1, types.CohenStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.CohenStep,
+			Threshold: 0.1,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 1.1, 0.9, 1.02, 1.12, 0.92, x}, minStdDev, rule)
+	assert.Equal(t, 3, sf.TurningPoint)
+	assert.Equal(t, float32(-0.1999998), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	assert.Equal(t, float32(-0.1999998), sf.Regression)
 }
 
 func TestStepFit_Cohen_StepWithZeroStandardDeviation(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{TurningPoint: 2, StepSize: -10, Status: HIGH, Regression: -10, LeastSquares: InvalidLeastSquaresError},
-		GetStepFitAtMid([]float32{1, 1, 2, 2, x}, minStdDev, 0.2, types.CohenStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.CohenStep,
+			Threshold: 0.2,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 1, 2, 2, x}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(-10), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	assert.Equal(t, float32(-10), sf.Regression)
 }
 func TestStepFit_Cohen_StepWithLargeStandardDeviation(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{LeastSquares: InvalidLeastSquaresError, TurningPoint: 2, StepSize: -2.828427, Regression: -2.828427, Status: "High"},
-		GetStepFitAtMid([]float32{1, 2, 3, 4, x}, minStdDev, 0.2, types.CohenStep))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.CohenStep,
+			Threshold: 0.2,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 2, 3, 4, x}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(-2.828427), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	assert.Equal(t, float32(-2.828427), sf.Regression)
 }
 
 func TestStepFit_MannWhitneyU_StepHigh(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{LeastSquares: 0, TurningPoint: 4, StepSize: -10, Regression: -0.028571428571428577 /* value copied from stats/utest_test.go:49 */, Status: "High"},
-		GetStepFitAtMid([]float32{2, 1, 3, 5, 12, 11, 13, 15, x}, minStdDev, 0.05, types.MannWhitneyU))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.MannWhitneyU,
+			Threshold: 0.05,
+		},
+	}
+	sf := EvaluateRule([]float32{2, 1, 3, 5, 12, 11, 13, 15, x}, minStdDev, rule)
+	assert.Equal(t, 4, sf.TurningPoint)
+	assert.Equal(t, float32(-10), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	assert.Equal(t, float32(-0.028571428571428577), sf.Regression)
 }
 
 func TestStepFit_MannWhitneyU_StepLow(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{LeastSquares: 16, TurningPoint: 4, StepSize: 10, Regression: 0.028571428571428577 /* value copied from stats/utest_test.go:49 */, Status: "Low"},
-		GetStepFitAtMid([]float32{12, 11, 13, 15, 2, 1, 3, 5, x}, minStdDev, 0.05, types.MannWhitneyU))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.MannWhitneyU,
+			Threshold: 0.05,
+		},
+	}
+	sf := EvaluateRule([]float32{12, 11, 13, 15, 2, 1, 3, 5, x}, minStdDev, rule)
+	assert.Equal(t, 4, sf.TurningPoint)
+	assert.Equal(t, float32(10), sf.StepSize)
+	assert.Equal(t, LOW, sf.Status)
+	assert.Equal(t, float32(0.028571428571428577), sf.Regression)
 }
 
 func TestStepFit_MannWhitneyU_UninterestingBecauseInterestingThreshholdTooLow(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{LeastSquares: 16, TurningPoint: 4, StepSize: 10, Regression: 0.028571428571428577 /* value copied from stats/utest_test.go:49 */, Status: "Uninteresting"},
-		GetStepFitAtMid([]float32{12, 11, 13, 15, 2, 1, 3, 5, x}, minStdDev, 0.01, types.MannWhitneyU))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.MannWhitneyU,
+			Threshold: 0.01,
+		},
+	}
+	sf := EvaluateRule([]float32{12, 11, 13, 15, 2, 1, 3, 5, x}, minStdDev, rule)
+	assert.Equal(t, 4, sf.TurningPoint)
+	assert.Equal(t, float32(10), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(0.028571428571428577), sf.Regression)
 }
 
 func TestStepFit_MannWhitneyU_UninterestingBecauseBothSidesAreEqual(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{LeastSquares: 8, TurningPoint: 4, StepSize: 0, Regression: 1, Status: "Uninteresting"},
-		GetStepFitAtMid([]float32{2, 1, 3, 5, 2, 1, 3, 5, x}, minStdDev, 0.01, types.MannWhitneyU))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.MannWhitneyU,
+			Threshold: 0.01,
+		},
+	}
+	sf := EvaluateRule([]float32{2, 1, 3, 5, 2, 1, 3, 5, x}, minStdDev, rule)
+	assert.Equal(t, 4, sf.TurningPoint)
+	assert.Equal(t, float32(0), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(1), sf.Regression)
 }
 
 func TestStepFit_MannWhitneyU_UninterestingBecauseBothSidesAreConstant(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{LeastSquares: 0, TurningPoint: 0, StepSize: 0, Regression: 0, Status: "Uninteresting"},
-		GetStepFitAtMid([]float32{1, 1, 1, 1, 1, 1, 1, 1, x}, minStdDev, 0.01, types.MannWhitneyU))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.MannWhitneyU,
+			Threshold: 0.01,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 1, 1, 1, 1, 1, 1, 1, x}, minStdDev, rule)
+	assert.Equal(t, 0, sf.TurningPoint)
+	assert.Equal(t, float32(0), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(0), sf.Regression)
 }
 
 func TestStepFit_MannWhitneyU_UninterestingBecauseNotEnoughData(t *testing.T) {
-	assert.Equal(t,
-		&StepFit{LeastSquares: 0, TurningPoint: 0, StepSize: 0, Regression: 0, Status: "Uninteresting"},
-		GetStepFitAtMid([]float32{2, 2, x}, minStdDev, 0.01, types.MannWhitneyU))
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.MannWhitneyU,
+			Threshold: 0.01,
+		},
+	}
+	sf := EvaluateRule([]float32{2, 2, x}, minStdDev, rule)
+	assert.Equal(t, 0, sf.TurningPoint)
+	assert.Equal(t, float32(0), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(0), sf.Regression)
 }

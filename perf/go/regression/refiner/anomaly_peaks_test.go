@@ -23,6 +23,13 @@ func TestFindPeaks_ReturnsStructuredPeaks(t *testing.T) {
 						StepFit: &stepfit.StepFit{
 							Regression: float32(val),
 							Status:     stepfit.LOW,
+							RuleEvaluations: []stepfit.AnomalyResult{
+								{
+									AlgoName:  string(types.AbsoluteStep),
+									Value:     float32(val),
+									IsAnomaly: true,
+								},
+							},
 						},
 						StepPoint: &dataframe.ColumnHeader{Offset: 100},
 						Keys:      []string{"k"},
@@ -111,7 +118,7 @@ func TestFindPeaks_ReturnsStructuredPeaks(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, findPeaks(tc.input, types.AbsoluteStep))
+			assert.Equal(t, tc.expected, findPeaks(tc.input))
 		})
 	}
 }
@@ -127,6 +134,13 @@ func TestFindPeaks_MannWhitney_ReturnsStructuredPeaks(t *testing.T) {
 						StepFit: &stepfit.StepFit{
 							Regression: float32(val),
 							Status:     stepfit.LOW,
+							RuleEvaluations: []stepfit.AnomalyResult{
+								{
+									AlgoName:  string(types.MannWhitneyU),
+									Value:     float32(val),
+									IsAnomaly: true,
+								},
+							},
 						},
 						StepPoint: &dataframe.ColumnHeader{Offset: 100},
 						Keys:      []string{"k"},
@@ -166,7 +180,62 @@ func TestFindPeaks_MannWhitney_ReturnsStructuredPeaks(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, findPeaks(tc.input, types.MannWhitneyU))
+			assert.Equal(t, tc.expected, findPeaks(tc.input))
 		})
 	}
+}
+
+func TestSelectAlgorithmForPeakDetection(t *testing.T) {
+	r := func(evals []stepfit.AnomalyResult) *regression.RegressionDetectionResponse {
+		return &regression.RegressionDetectionResponse{
+			Summary: &clustering2.ClusterSummaries{
+				Clusters: []*clustering2.ClusterSummary{
+					{
+						StepFit: &stepfit.StepFit{
+							RuleEvaluations: evals,
+						},
+					},
+				},
+			},
+		}
+	}
+
+	// Common triggered algorithm
+	group1 := []*regression.RegressionDetectionResponse{
+		r([]stepfit.AnomalyResult{
+			{AlgoName: string(types.AbsoluteStep), IsAnomaly: true},
+			{AlgoName: string(types.OriginalStep), IsAnomaly: false},
+		}),
+		r([]stepfit.AnomalyResult{
+			{AlgoName: string(types.AbsoluteStep), IsAnomaly: true},
+			{AlgoName: string(types.OriginalStep), IsAnomaly: true},
+		}),
+	}
+	assert.Equal(t, string(types.AbsoluteStep), selectAlgorithmForPeakDetection(group1))
+
+	// Multiple common triggered, select by priority
+	group2 := []*regression.RegressionDetectionResponse{
+		r([]stepfit.AnomalyResult{
+			{AlgoName: string(types.AbsoluteStep), IsAnomaly: true},
+			{AlgoName: string(types.CohenStep), IsAnomaly: true},
+		}),
+		r([]stepfit.AnomalyResult{
+			{AlgoName: string(types.AbsoluteStep), IsAnomaly: true},
+			{AlgoName: string(types.CohenStep), IsAnomaly: true},
+		}),
+	}
+	assert.Equal(t, string(types.CohenStep), selectAlgorithmForPeakDetection(group2))
+
+	// No common triggered, fallback to highest priority in rule
+	group3 := []*regression.RegressionDetectionResponse{
+		r([]stepfit.AnomalyResult{
+			{AlgoName: string(types.AbsoluteStep), IsAnomaly: true},
+			{AlgoName: string(types.CohenStep), IsAnomaly: false},
+		}),
+		r([]stepfit.AnomalyResult{
+			{AlgoName: string(types.AbsoluteStep), IsAnomaly: false},
+			{AlgoName: string(types.CohenStep), IsAnomaly: true},
+		}),
+	}
+	assert.Equal(t, string(types.CohenStep), selectAlgorithmForPeakDetection(group3))
 }

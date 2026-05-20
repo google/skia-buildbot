@@ -42,6 +42,30 @@ message Rules {
   repeated string exclude = 2;
 }
 
+// AlgorithmCheck represents a single algorithm and its specific threshold.
+message AlgorithmCheck {
+  AnomalyConfig.Step step = 1;
+  float threshold = 2;
+}
+
+// ComplexRule allows for combining rules with logical AND/OR operators.
+message ComplexRule {
+  enum LogicalOperator {
+    AND = 0;
+    OR = 1;
+  }
+  LogicalOperator op = 1;
+  repeated AnomalyDetectionRule rules = 2;
+}
+
+// A rule can be either a simple check or a complex combination of other rules.
+message AnomalyDetectionRule {
+  oneof rule {
+    ComplexRule complex_rule = 1;
+    AlgorithmCheck simple_rule = 2;
+  }
+}
+
 // An AnomalyConfig defines the bounds for which a change in a matching metric
 // can be considered "anomalous". For metrics that are matched, we apply the
 // anomaly config to determine whether we should create an alert.
@@ -137,6 +161,11 @@ message AnomalyConfig {
 
   // Which metrics should be captured by this AnomalyConfig.
   Rules rules = 11;
+
+  // The compound anomaly detection rule.
+  // This is a replacement for step and threshold.
+  // Specifying both step/threshold and detection_rule is a config validation error.
+  AnomalyDetectionRule detection_rule = 12;
 }
 
 // A Subscription describes a configuration through which we determine:

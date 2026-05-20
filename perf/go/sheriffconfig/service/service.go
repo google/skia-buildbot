@@ -437,6 +437,8 @@ func createAlert(query string, anomalyConfig *pb.AnomalyConfig, subscription *pb
 		Algo:        clusterAlgoMap[anomalyConfig.Algo.String()],
 		Step:        stepAlgoMap[anomalyConfig.Step.String()],
 
+		DetectionRule: parseAnomalyDetectionRule(anomalyConfig.DetectionRule),
+
 		StateAsString: alerts.ACTIVE,
 		Owner:         subscription.ContactEmail,
 		StepUpOnly:    defaultStepUpOnly,
@@ -454,6 +456,32 @@ func createAlert(query string, anomalyConfig *pb.AnomalyConfig, subscription *pb
 		SubscriptionRevision: revision,
 	}
 	return cfg
+}
+
+// parseAnomalyDetectionRule converts the protobuf AnomalyDetectionRule to the alerts.AnomalyDetectionRule domain model.
+func parseAnomalyDetectionRule(rule *pb.AnomalyDetectionRule) *alerts.AnomalyDetectionRule {
+	if rule == nil {
+		return nil
+	}
+
+	ret := &alerts.AnomalyDetectionRule{}
+	if cr := rule.GetComplexRule(); cr != nil {
+		alertsRules := make([]*alerts.AnomalyDetectionRule, 0, len(cr.Rules))
+		for _, r := range cr.Rules {
+			alertsRules = append(alertsRules, parseAnomalyDetectionRule(r))
+		}
+		ret.ComplexRule = &alerts.ComplexRule{
+			Op:    cr.Op.String(),
+			Rules: alertsRules,
+		}
+	} else if sr := rule.GetSimpleRule(); sr != nil {
+		ret.SimpleRule = &alerts.AlgorithmCheck{
+			Step:      stepAlgoMap[sr.Step.String()],
+			Threshold: sr.Threshold,
+		}
+	}
+
+	return ret
 }
 
 // buildQueryFromRules creates query based on Sheriff Config rules.

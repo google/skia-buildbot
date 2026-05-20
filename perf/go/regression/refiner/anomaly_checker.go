@@ -18,7 +18,7 @@ const (
 // Note: It is safe to use this only when you want to improve the accuracy of an anomaly range (refinement).
 // Otherwise, it is typically not recommended to use this logic, as a single data point is usually not enough
 // to make a decision about whether an anomaly happened or not.
-func isAnomaly(val float32, baseline []float32, cfg *alerts.Alert, stdDevThreshold float32) bool {
+func isAnomaly(val float32, baseline []float32, algo string, threshold float32, stdDevThreshold float32) bool {
 
 	// 1. Prepare data
 	baseline_mean := vec32.Mean(baseline)
@@ -37,29 +37,36 @@ func isAnomaly(val float32, baseline []float32, cfg *alerts.Alert, stdDevThresho
 	baseline_stddev := vec32.StdDev(baseline, baseline_mean)
 	treatment_stddev := baseline_stddev
 
-	algo := cfg.Step
-	interesting := cfg.Interesting
-
 	var regression float32
 
 	switch algo {
-	case types.AbsoluteStep:
+	case string(types.AbsoluteStep):
 		_, regression = stepfit.CalcAbsoluteStep(baseline_mean, treatment_mean)
-	case types.Const:
-		_, regression = stepfit.CalcConstStep(val, interesting)
-	case types.PercentStep:
+	case string(types.Const):
+		_, regression = stepfit.CalcConstStep(val, threshold)
+	case string(types.PercentStep):
 		_, regression = stepfit.CalcPercentStep(baseline_mean, treatment_mean)
-	case types.CohenStep:
+	case string(types.CohenStep):
 		_, regression = stepfit.CalcCohenStep(baseline_mean, treatment_mean, baseline_stddev, treatment_stddev, baseline_len, treatment_len, stdDevThreshold)
 	default:
-		// Other algorithms
+		// If we still end up with an unsupported algorithm here, we use Cohen as a safe default.
 		_, regression = stepfit.CalcCohenStep(baseline_mean, treatment_mean, baseline_stddev, treatment_stddev, baseline_len, treatment_len, stdDevThreshold)
-		interesting = defaultCohenDThreshold
+		threshold = defaultCohenDThreshold
 	}
 
-	// Check against interesting threshold
-	if math.Abs(float64(regression)) >= float64(interesting) {
-		return true
-	}
-	return false
+	// Check against threshold
+	return math.Abs(float64(regression)) >= float64(threshold)
+}
+
+// evaluateRuleForRefinement evaluates a complex or simple rule for a single point vs baseline.
+func evaluateRuleForRefinement(val float32, baseline []float32, rule *alerts.AnomalyDetectionRule, stdDevThreshold float32) bool {
+	return stepfit.TraverseRule(rule,
+		// 1. How to evaluate a simple rule (leaf node)
+		func(check *alerts.AlgorithmCheck) bool {
+			return isAnomaly(val, baseline, string(check.Step), check.Threshold, stdDevThreshold)
+		},
+		// 2. How to combine results (AND/OR)
+		func(results []bool, op string) bool {
+			return stepfit.CombineBooleans(results, op)
+		})
 }

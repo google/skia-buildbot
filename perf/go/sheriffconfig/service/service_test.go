@@ -18,9 +18,11 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/alerts"
 	alert_mocks "go.skia.org/infra/perf/go/alerts/mock"
+	pb "go.skia.org/infra/perf/go/sheriffconfig/proto/v1"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	subscription_mocks "go.skia.org/infra/perf/go/subscription/mocks"
 	subscription_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
+	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
@@ -789,4 +791,110 @@ func TestMigrationConfigProvider_GetProjectConfigs_PrimaryFailsFallbackSuccess(t
 	assert.Equal(t, expectedConfigs, configs)
 	primary.AssertExpectations(t)
 	fallback.AssertExpectations(t)
+}
+
+func TestParseAnomalyDetectionRule(t *testing.T) {
+	// Test case: Nil rule
+	assert.Nil(t, parseAnomalyDetectionRule(nil))
+
+	// Test case: Simple rule
+	simpleProto := &pb.AnomalyDetectionRule{
+		Rule: &pb.AnomalyDetectionRule_SimpleRule{
+			SimpleRule: &pb.AlgorithmCheck{
+				Step:      pb.AnomalyConfig_ABSOLUTE_STEP,
+				Threshold: 10.0,
+			},
+		},
+	}
+	expectedSimple := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.AbsoluteStep,
+			Threshold: 10.0,
+		},
+	}
+	assert.Equal(t, expectedSimple, parseAnomalyDetectionRule(simpleProto))
+
+	// Test case: Complex rule (OR)
+	complexProto := &pb.AnomalyDetectionRule{
+		Rule: &pb.AnomalyDetectionRule_ComplexRule{
+			ComplexRule: &pb.ComplexRule{
+				Op: pb.ComplexRule_OR,
+				Rules: []*pb.AnomalyDetectionRule{
+					simpleProto,
+					{
+						Rule: &pb.AnomalyDetectionRule_SimpleRule{
+							SimpleRule: &pb.AlgorithmCheck{
+								Step:      pb.AnomalyConfig_COHEN_STEP,
+								Threshold: 2.5,
+							},
+						},
+					},
+					{
+						Rule: &pb.AnomalyDetectionRule_SimpleRule{
+							SimpleRule: &pb.AlgorithmCheck{
+								Step:      pb.AnomalyConfig_MANN_WHITNEY_U,
+								Threshold: 0.01,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	expectedComplex := &alerts.AnomalyDetectionRule{
+		ComplexRule: &alerts.ComplexRule{
+			Op: "OR",
+			Rules: []*alerts.AnomalyDetectionRule{
+				expectedSimple,
+				{
+					SimpleRule: &alerts.AlgorithmCheck{
+						Step:      types.CohenStep,
+						Threshold: 2.5,
+					},
+				},
+				{
+					SimpleRule: &alerts.AlgorithmCheck{
+						Step:      types.MannWhitneyU,
+						Threshold: 0.01,
+					},
+				},
+			},
+		},
+	}
+	assert.Equal(t, expectedComplex, parseAnomalyDetectionRule(complexProto))
+
+	// Test case: Complex rule (AND)
+	complexProtoAnd := &pb.AnomalyDetectionRule{
+		Rule: &pb.AnomalyDetectionRule_ComplexRule{
+			ComplexRule: &pb.ComplexRule{
+				Op: pb.ComplexRule_AND,
+				Rules: []*pb.AnomalyDetectionRule{
+					simpleProto,
+					{
+						Rule: &pb.AnomalyDetectionRule_SimpleRule{
+							SimpleRule: &pb.AlgorithmCheck{
+								Step:      pb.AnomalyConfig_COHEN_STEP,
+								Threshold: 2.5,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	expectedComplexAnd := &alerts.AnomalyDetectionRule{
+		ComplexRule: &alerts.ComplexRule{
+			Op: "AND",
+			Rules: []*alerts.AnomalyDetectionRule{
+				expectedSimple,
+				{
+					SimpleRule: &alerts.AlgorithmCheck{
+						Step:      types.CohenStep,
+						Threshold: 2.5,
+					},
+				},
+			},
+		},
+	}
+	assert.Equal(t, expectedComplexAnd, parseAnomalyDetectionRule(complexProtoAnd))
 }

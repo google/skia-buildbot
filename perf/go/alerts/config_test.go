@@ -222,3 +222,95 @@ func TestIDAsStringToInt_InvalidID_Success(t *testing.T) {
 
 	assert.Equal(t, BadAlertID, IDAsStringToInt("not-a-number"))
 }
+
+func TestValidate_DetectionRule(t *testing.T) {
+	a := NewConfig()
+
+	// Empty rule is invalid
+	a.DetectionRule = &AnomalyDetectionRule{}
+	assert.Error(t, a.Validate())
+
+	// Both simple and complex is invalid
+	a.DetectionRule = &AnomalyDetectionRule{
+		SimpleRule: &AlgorithmCheck{
+			Step:      "percent",
+			Threshold: 0.05,
+		},
+		ComplexRule: &ComplexRule{
+			Op: "AND",
+			Rules: []*AnomalyDetectionRule{
+				{
+					SimpleRule: &AlgorithmCheck{
+						Step:      "percent",
+						Threshold: 0.05,
+					},
+				},
+			},
+		},
+	}
+	assert.Error(t, a.Validate())
+
+	// Valid simple rule
+	a.DetectionRule = &AnomalyDetectionRule{
+		SimpleRule: &AlgorithmCheck{
+			Step:      "percent",
+			Threshold: 0.05,
+		},
+	}
+	assert.NoError(t, a.Validate())
+
+	// Invalid step detection algo in simple rule
+	a.DetectionRule = &AnomalyDetectionRule{
+		SimpleRule: &AlgorithmCheck{
+			Step:      "invalid-algo",
+			Threshold: 0.05,
+		},
+	}
+	assert.Error(t, a.Validate())
+
+	// Valid complex rule
+	a.DetectionRule = &AnomalyDetectionRule{
+		ComplexRule: &ComplexRule{
+			Op: "AND",
+			Rules: []*AnomalyDetectionRule{
+				{
+					SimpleRule: &AlgorithmCheck{
+						Step:      "percent",
+						Threshold: 0.05,
+					},
+				},
+				{
+					SimpleRule: &AlgorithmCheck{
+						Step:      "cohen",
+						Threshold: 1.2,
+					},
+				},
+			},
+		},
+	}
+	assert.NoError(t, a.Validate())
+
+	// Complex rule with invalid op
+	a.DetectionRule.ComplexRule.Op = "INVALID_OP"
+	assert.Error(t, a.Validate())
+
+	// Complex rule with empty list of rules
+	a.DetectionRule.ComplexRule.Op = "AND"
+	a.DetectionRule.ComplexRule.Rules = []*AnomalyDetectionRule{}
+	assert.Error(t, a.Validate())
+
+	// Complex rule with nil rule in list
+	a.DetectionRule.ComplexRule.Rules = []*AnomalyDetectionRule{nil}
+	assert.Error(t, a.Validate())
+
+	// Complex rule containing an invalid sub-rule
+	a.DetectionRule.ComplexRule.Rules = []*AnomalyDetectionRule{
+		{
+			SimpleRule: &AlgorithmCheck{
+				Step:      "invalid-algo",
+				Threshold: 0.05,
+			},
+		},
+	}
+	assert.Error(t, a.Validate())
+}

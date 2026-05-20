@@ -56,7 +56,7 @@ func TestStepFit(t *testing.T) {
 	ps.Normalize()
 	df.ParamSet = ps.Freeze()
 
-	sum, err := StepFit(ctx, df, 4, 0.01, nil, 50, types.OriginalStep)
+	sum, err := StepFit(ctx, df, 4, 0.01, nil, 50, types.OriginalStep, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, sum)
 	assert.Equal(t, 1, len(sum.Clusters))

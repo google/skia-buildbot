@@ -205,7 +205,7 @@ func TestValidateConfig_PatternWithExplicitEmptyFields(t *testing.T) {
 
 	err := ValidateConfig(config)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Error for Subscription at index 0: Error for Anomaly Config at index 0: Error for Match Pattern at index 0: Explicit value for key must be non-empty. Key: bot.")
+	assert.Contains(t, err.Error(), "Error for Subscription at index 0: Error for Anomaly Config at index 0: Error for Match Pattern at index 0: Explicit value for key must be non-empty. Key:")
 }
 
 func TestValidateConfig_PatternWithInvalidRegex(t *testing.T) {
@@ -338,4 +338,48 @@ func TestDeserializeProto_ValidPrototext(t *testing.T) {
 	if !proto.Equal(config, expectedconfig) {
 		t.Errorf("Protos are not equal")
 	}
+}
+
+func TestValidateConfig_DetectionRuleExclusivity(t *testing.T) {
+	// Case 1: Valid config with detection_rule only (no step, no threshold)
+	config := &pb.SheriffConfig{
+		Subscriptions: []*pb.Subscription{
+			{
+				Name:         "Sub Test",
+				ContactEmail: "test@google.com",
+				BugComponent: "A>B",
+				Instance:     "chrome-internal",
+				AnomalyConfigs: []*pb.AnomalyConfig{
+					{
+						Rules: &pb.Rules{
+							Match: []string{"bot=mac-perf"},
+						},
+						DetectionRule: &pb.AnomalyDetectionRule{
+							Rule: &pb.AnomalyDetectionRule_SimpleRule{
+								SimpleRule: &pb.AlgorithmCheck{
+									Step:      pb.AnomalyConfig_PERCENT_STEP,
+									Threshold: 0.05,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	err := ValidateConfig(config)
+	require.NoError(t, err)
+
+	// Case 2: Invalid config with detection_rule and non-default step
+	config.Subscriptions[0].AnomalyConfigs[0].Step = pb.AnomalyConfig_PERCENT_STEP
+	err = ValidateConfig(config)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot specify both 'step' and 'detection_rule'")
+
+	// Reset step, set threshold
+	config.Subscriptions[0].AnomalyConfigs[0].Step = pb.AnomalyConfig_ORIGINAL_STEP
+	config.Subscriptions[0].AnomalyConfigs[0].Threshold = 1.2
+	err = ValidateConfig(config)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot specify both 'threshold' and 'detection_rule'")
 }

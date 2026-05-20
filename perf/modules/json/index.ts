@@ -12,6 +12,21 @@ export interface Go2TS {
 	GenerateNominalTypes: boolean;
 }
 
+export interface ComplexRule {
+	op?: string;
+	rules?: (AnomalyDetectionRule | null)[] | null;
+}
+
+export interface AlgorithmCheck {
+	step?: StepDetection;
+	threshold?: number;
+}
+
+export interface AnomalyDetectionRule {
+	complex_rule?: ComplexRule | null;
+	simple_rule?: AlgorithmCheck | null;
+}
+
 export interface Alert {
 	id_as_string: string;
 	display_name: string;
@@ -22,6 +37,7 @@ export interface Alert {
 	bug_uri_template: string;
 	algo: ClusterAlgo;
 	step: StepDetection;
+	detection_rule?: AnomalyDetectionRule | null;
 	state: ConfigState;
 	owner: string;
 	step_up_only: boolean;
@@ -62,12 +78,25 @@ export interface ValuePercent {
 	percent: number;
 }
 
+export interface AnomalyResult {
+	algo: string;
+	value: number;
+	threshold: number;
+	is_anomaly: boolean;
+	step_size: number;
+	least_squares: number;
+	status: StepFitStatus;
+	raw_regression: number;
+	turning_point: number;
+}
+
 export interface StepFit {
 	least_squares: number;
 	turning_point: number;
 	step_size: number;
 	regression: number;
 	status: StepFitStatus;
+	rule_evaluation?: AnomalyResult[] | null;
 }
 
 export interface ColumnHeader {

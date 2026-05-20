@@ -178,6 +178,24 @@ var (
 	}
 )
 
+// Priority returns the priority of the StepDetection algorithm.
+func (s StepDetection) Priority() int {
+	switch s {
+	case CohenStep:
+		return 5
+	case PercentStep:
+		return 4
+	case AbsoluteStep, Const:
+		return 3
+	case MannWhitneyU:
+		return 2
+	case OriginalStep:
+		return 1
+	default:
+		return 0 // 0 means priority is not defined
+	}
+}
+
 // ToClusterAlgo converts a string to a RegressionDetectionGrouping
 func ToClusterAlgo(s string) (RegressionDetectionGrouping, error) {
 	ret := RegressionDetectionGrouping(s)

@@ -68,6 +68,13 @@ func createResponseV2(data types.Trace, key string, status stepfit.StepFitStatus
 					Regression:   reg, // Default
 					Status:       status,
 					TurningPoint: len(data) / 2,
+					RuleEvaluations: []stepfit.AnomalyResult{
+						{
+							AlgoName:  string(types.AbsoluteStep),
+							Value:     reg,
+							IsAnomaly: status != stepfit.UNINTERESTING,
+						},
+					},
 				},
 				Centroid: []float32(data),
 			},

@@ -22,6 +22,52 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ComplexRule_LogicalOperator int32
+
+const (
+	ComplexRule_AND ComplexRule_LogicalOperator = 0
+	ComplexRule_OR  ComplexRule_LogicalOperator = 1
+)
+
+// Enum value maps for ComplexRule_LogicalOperator.
+var (
+	ComplexRule_LogicalOperator_name = map[int32]string{
+		0: "AND",
+		1: "OR",
+	}
+	ComplexRule_LogicalOperator_value = map[string]int32{
+		"AND": 0,
+		"OR":  1,
+	}
+)
+
+func (x ComplexRule_LogicalOperator) Enum() *ComplexRule_LogicalOperator {
+	p := new(ComplexRule_LogicalOperator)
+	*p = x
+	return p
+}
+
+func (x ComplexRule_LogicalOperator) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ComplexRule_LogicalOperator) Descriptor() protoreflect.EnumDescriptor {
+	return file_sheriff_config_proto_enumTypes[0].Descriptor()
+}
+
+func (ComplexRule_LogicalOperator) Type() protoreflect.EnumType {
+	return &file_sheriff_config_proto_enumTypes[0]
+}
+
+func (x ComplexRule_LogicalOperator) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ComplexRule_LogicalOperator.Descriptor instead.
+func (ComplexRule_LogicalOperator) EnumDescriptor() ([]byte, []int) {
+	return file_sheriff_config_proto_rawDescGZIP(), []int{2, 0}
+}
+
 type AnomalyConfig_Step int32
 
 const (
@@ -73,11 +119,11 @@ func (x AnomalyConfig_Step) String() string {
 }
 
 func (AnomalyConfig_Step) Descriptor() protoreflect.EnumDescriptor {
-	return file_sheriff_config_proto_enumTypes[0].Descriptor()
+	return file_sheriff_config_proto_enumTypes[1].Descriptor()
 }
 
 func (AnomalyConfig_Step) Type() protoreflect.EnumType {
-	return &file_sheriff_config_proto_enumTypes[0]
+	return &file_sheriff_config_proto_enumTypes[1]
 }
 
 func (x AnomalyConfig_Step) Number() protoreflect.EnumNumber {
@@ -86,7 +132,7 @@ func (x AnomalyConfig_Step) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AnomalyConfig_Step.Descriptor instead.
 func (AnomalyConfig_Step) EnumDescriptor() ([]byte, []int) {
-	return file_sheriff_config_proto_rawDescGZIP(), []int{1, 0}
+	return file_sheriff_config_proto_rawDescGZIP(), []int{4, 0}
 }
 
 // Which direction will trigger an alert.
@@ -123,11 +169,11 @@ func (x AnomalyConfig_Direction) String() string {
 }
 
 func (AnomalyConfig_Direction) Descriptor() protoreflect.EnumDescriptor {
-	return file_sheriff_config_proto_enumTypes[1].Descriptor()
+	return file_sheriff_config_proto_enumTypes[2].Descriptor()
 }
 
 func (AnomalyConfig_Direction) Type() protoreflect.EnumType {
-	return &file_sheriff_config_proto_enumTypes[1]
+	return &file_sheriff_config_proto_enumTypes[2]
 }
 
 func (x AnomalyConfig_Direction) Number() protoreflect.EnumNumber {
@@ -136,7 +182,7 @@ func (x AnomalyConfig_Direction) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AnomalyConfig_Direction.Descriptor instead.
 func (AnomalyConfig_Direction) EnumDescriptor() ([]byte, []int) {
-	return file_sheriff_config_proto_rawDescGZIP(), []int{1, 1}
+	return file_sheriff_config_proto_rawDescGZIP(), []int{4, 1}
 }
 
 // What actions should be taken for detected anomalies.
@@ -176,11 +222,11 @@ func (x AnomalyConfig_Action) String() string {
 }
 
 func (AnomalyConfig_Action) Descriptor() protoreflect.EnumDescriptor {
-	return file_sheriff_config_proto_enumTypes[2].Descriptor()
+	return file_sheriff_config_proto_enumTypes[3].Descriptor()
 }
 
 func (AnomalyConfig_Action) Type() protoreflect.EnumType {
-	return &file_sheriff_config_proto_enumTypes[2]
+	return &file_sheriff_config_proto_enumTypes[3]
 }
 
 func (x AnomalyConfig_Action) Number() protoreflect.EnumNumber {
@@ -189,7 +235,7 @@ func (x AnomalyConfig_Action) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AnomalyConfig_Action.Descriptor instead.
 func (AnomalyConfig_Action) EnumDescriptor() ([]byte, []int) {
-	return file_sheriff_config_proto_rawDescGZIP(), []int{1, 2}
+	return file_sheriff_config_proto_rawDescGZIP(), []int{4, 2}
 }
 
 // What Clustering Algorithm to use.
@@ -225,11 +271,11 @@ func (x AnomalyConfig_Algo) String() string {
 }
 
 func (AnomalyConfig_Algo) Descriptor() protoreflect.EnumDescriptor {
-	return file_sheriff_config_proto_enumTypes[3].Descriptor()
+	return file_sheriff_config_proto_enumTypes[4].Descriptor()
 }
 
 func (AnomalyConfig_Algo) Type() protoreflect.EnumType {
-	return &file_sheriff_config_proto_enumTypes[3]
+	return &file_sheriff_config_proto_enumTypes[4]
 }
 
 func (x AnomalyConfig_Algo) Number() protoreflect.EnumNumber {
@@ -238,7 +284,7 @@ func (x AnomalyConfig_Algo) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AnomalyConfig_Algo.Descriptor instead.
 func (AnomalyConfig_Algo) EnumDescriptor() ([]byte, []int) {
-	return file_sheriff_config_proto_rawDescGZIP(), []int{1, 3}
+	return file_sheriff_config_proto_rawDescGZIP(), []int{4, 3}
 }
 
 type Subscription_Priority int32
@@ -284,11 +330,11 @@ func (x Subscription_Priority) String() string {
 }
 
 func (Subscription_Priority) Descriptor() protoreflect.EnumDescriptor {
-	return file_sheriff_config_proto_enumTypes[4].Descriptor()
+	return file_sheriff_config_proto_enumTypes[5].Descriptor()
 }
 
 func (Subscription_Priority) Type() protoreflect.EnumType {
-	return &file_sheriff_config_proto_enumTypes[4]
+	return &file_sheriff_config_proto_enumTypes[5]
 }
 
 func (x Subscription_Priority) Number() protoreflect.EnumNumber {
@@ -297,7 +343,7 @@ func (x Subscription_Priority) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Subscription_Priority.Descriptor instead.
 func (Subscription_Priority) EnumDescriptor() ([]byte, []int) {
-	return file_sheriff_config_proto_rawDescGZIP(), []int{2, 0}
+	return file_sheriff_config_proto_rawDescGZIP(), []int{5, 0}
 }
 
 type Subscription_Severity int32
@@ -343,11 +389,11 @@ func (x Subscription_Severity) String() string {
 }
 
 func (Subscription_Severity) Descriptor() protoreflect.EnumDescriptor {
-	return file_sheriff_config_proto_enumTypes[5].Descriptor()
+	return file_sheriff_config_proto_enumTypes[6].Descriptor()
 }
 
 func (Subscription_Severity) Type() protoreflect.EnumType {
-	return &file_sheriff_config_proto_enumTypes[5]
+	return &file_sheriff_config_proto_enumTypes[6]
 }
 
 func (x Subscription_Severity) Number() protoreflect.EnumNumber {
@@ -356,7 +402,7 @@ func (x Subscription_Severity) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Subscription_Severity.Descriptor instead.
 func (Subscription_Severity) EnumDescriptor() ([]byte, []int) {
-	return file_sheriff_config_proto_rawDescGZIP(), []int{2, 1}
+	return file_sheriff_config_proto_rawDescGZIP(), []int{5, 1}
 }
 
 // Rules specify how to capture traces for Anomaly Detection.
@@ -445,6 +491,195 @@ func (x *Rules) GetExclude() []string {
 	return nil
 }
 
+// AlgorithmCheck represents a single algorithm and its specific threshold.
+type AlgorithmCheck struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Step          AnomalyConfig_Step     `protobuf:"varint,1,opt,name=step,proto3,enum=sheriff_config.v1.AnomalyConfig_Step" json:"step,omitempty"`
+	Threshold     float32                `protobuf:"fixed32,2,opt,name=threshold,proto3" json:"threshold,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AlgorithmCheck) Reset() {
+	*x = AlgorithmCheck{}
+	mi := &file_sheriff_config_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AlgorithmCheck) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AlgorithmCheck) ProtoMessage() {}
+
+func (x *AlgorithmCheck) ProtoReflect() protoreflect.Message {
+	mi := &file_sheriff_config_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AlgorithmCheck.ProtoReflect.Descriptor instead.
+func (*AlgorithmCheck) Descriptor() ([]byte, []int) {
+	return file_sheriff_config_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *AlgorithmCheck) GetStep() AnomalyConfig_Step {
+	if x != nil {
+		return x.Step
+	}
+	return AnomalyConfig_ORIGINAL_STEP
+}
+
+func (x *AlgorithmCheck) GetThreshold() float32 {
+	if x != nil {
+		return x.Threshold
+	}
+	return 0
+}
+
+// ComplexRule allows for combining rules with logical AND/OR operators.
+type ComplexRule struct {
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	Op            ComplexRule_LogicalOperator `protobuf:"varint,1,opt,name=op,proto3,enum=sheriff_config.v1.ComplexRule_LogicalOperator" json:"op,omitempty"`
+	Rules         []*AnomalyDetectionRule     `protobuf:"bytes,2,rep,name=rules,proto3" json:"rules,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ComplexRule) Reset() {
+	*x = ComplexRule{}
+	mi := &file_sheriff_config_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ComplexRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ComplexRule) ProtoMessage() {}
+
+func (x *ComplexRule) ProtoReflect() protoreflect.Message {
+	mi := &file_sheriff_config_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ComplexRule.ProtoReflect.Descriptor instead.
+func (*ComplexRule) Descriptor() ([]byte, []int) {
+	return file_sheriff_config_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ComplexRule) GetOp() ComplexRule_LogicalOperator {
+	if x != nil {
+		return x.Op
+	}
+	return ComplexRule_AND
+}
+
+func (x *ComplexRule) GetRules() []*AnomalyDetectionRule {
+	if x != nil {
+		return x.Rules
+	}
+	return nil
+}
+
+// A rule can be either a simple check or a complex combination of other rules.
+type AnomalyDetectionRule struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Rule:
+	//
+	//	*AnomalyDetectionRule_ComplexRule
+	//	*AnomalyDetectionRule_SimpleRule
+	Rule          isAnomalyDetectionRule_Rule `protobuf_oneof:"rule"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnomalyDetectionRule) Reset() {
+	*x = AnomalyDetectionRule{}
+	mi := &file_sheriff_config_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnomalyDetectionRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnomalyDetectionRule) ProtoMessage() {}
+
+func (x *AnomalyDetectionRule) ProtoReflect() protoreflect.Message {
+	mi := &file_sheriff_config_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnomalyDetectionRule.ProtoReflect.Descriptor instead.
+func (*AnomalyDetectionRule) Descriptor() ([]byte, []int) {
+	return file_sheriff_config_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *AnomalyDetectionRule) GetRule() isAnomalyDetectionRule_Rule {
+	if x != nil {
+		return x.Rule
+	}
+	return nil
+}
+
+func (x *AnomalyDetectionRule) GetComplexRule() *ComplexRule {
+	if x != nil {
+		if x, ok := x.Rule.(*AnomalyDetectionRule_ComplexRule); ok {
+			return x.ComplexRule
+		}
+	}
+	return nil
+}
+
+func (x *AnomalyDetectionRule) GetSimpleRule() *AlgorithmCheck {
+	if x != nil {
+		if x, ok := x.Rule.(*AnomalyDetectionRule_SimpleRule); ok {
+			return x.SimpleRule
+		}
+	}
+	return nil
+}
+
+type isAnomalyDetectionRule_Rule interface {
+	isAnomalyDetectionRule_Rule()
+}
+
+type AnomalyDetectionRule_ComplexRule struct {
+	ComplexRule *ComplexRule `protobuf:"bytes,1,opt,name=complex_rule,json=complexRule,proto3,oneof"`
+}
+
+type AnomalyDetectionRule_SimpleRule struct {
+	SimpleRule *AlgorithmCheck `protobuf:"bytes,2,opt,name=simple_rule,json=simpleRule,proto3,oneof"`
+}
+
+func (*AnomalyDetectionRule_ComplexRule) isAnomalyDetectionRule_Rule() {}
+
+func (*AnomalyDetectionRule_SimpleRule) isAnomalyDetectionRule_Rule() {}
+
 // An AnomalyConfig defines the bounds for which a change in a matching metric
 // can be considered "anomalous". For metrics that are matched, we apply the
 // anomaly config to determine whether we should create an alert.
@@ -484,14 +719,18 @@ type AnomalyConfig struct {
 	// Default: Step Fit Grouping
 	Algo AnomalyConfig_Algo `protobuf:"varint,10,opt,name=algo,proto3,enum=sheriff_config.v1.AnomalyConfig_Algo" json:"algo,omitempty"`
 	// Which metrics should be captured by this AnomalyConfig.
-	Rules         *Rules `protobuf:"bytes,11,opt,name=rules,proto3" json:"rules,omitempty"`
+	Rules *Rules `protobuf:"bytes,11,opt,name=rules,proto3" json:"rules,omitempty"`
+	// The compound anomaly detection rule.
+	// This is a replacement for step and threshold.
+	// Specifying both step/threshold and detection_rule is a config validation error.
+	DetectionRule *AnomalyDetectionRule `protobuf:"bytes,12,opt,name=detection_rule,json=detectionRule,proto3" json:"detection_rule,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AnomalyConfig) Reset() {
 	*x = AnomalyConfig{}
-	mi := &file_sheriff_config_proto_msgTypes[1]
+	mi := &file_sheriff_config_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -503,7 +742,7 @@ func (x *AnomalyConfig) String() string {
 func (*AnomalyConfig) ProtoMessage() {}
 
 func (x *AnomalyConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_sheriff_config_proto_msgTypes[1]
+	mi := &file_sheriff_config_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -516,7 +755,7 @@ func (x *AnomalyConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnomalyConfig.ProtoReflect.Descriptor instead.
 func (*AnomalyConfig) Descriptor() ([]byte, []int) {
-	return file_sheriff_config_proto_rawDescGZIP(), []int{1}
+	return file_sheriff_config_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AnomalyConfig) GetStep() AnomalyConfig_Step {
@@ -596,6 +835,13 @@ func (x *AnomalyConfig) GetRules() *Rules {
 	return nil
 }
 
+func (x *AnomalyConfig) GetDetectionRule() *AnomalyDetectionRule {
+	if x != nil {
+		return x.DetectionRule
+	}
+	return nil
+}
+
 // A Subscription describes a configuration through which we determine:
 //   - A set of metrics a group of users are interested in alert monitoring.
 //     These anomalies are grouped together into anomaly groups if they
@@ -641,7 +887,7 @@ type Subscription struct {
 
 func (x *Subscription) Reset() {
 	*x = Subscription{}
-	mi := &file_sheriff_config_proto_msgTypes[2]
+	mi := &file_sheriff_config_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -653,7 +899,7 @@ func (x *Subscription) String() string {
 func (*Subscription) ProtoMessage() {}
 
 func (x *Subscription) ProtoReflect() protoreflect.Message {
-	mi := &file_sheriff_config_proto_msgTypes[2]
+	mi := &file_sheriff_config_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -666,7 +912,7 @@ func (x *Subscription) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Subscription.ProtoReflect.Descriptor instead.
 func (*Subscription) Descriptor() ([]byte, []int) {
-	return file_sheriff_config_proto_rawDescGZIP(), []int{2}
+	return file_sheriff_config_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Subscription) GetName() string {
@@ -751,7 +997,7 @@ type SheriffConfig struct {
 
 func (x *SheriffConfig) Reset() {
 	*x = SheriffConfig{}
-	mi := &file_sheriff_config_proto_msgTypes[3]
+	mi := &file_sheriff_config_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -763,7 +1009,7 @@ func (x *SheriffConfig) String() string {
 func (*SheriffConfig) ProtoMessage() {}
 
 func (x *SheriffConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_sheriff_config_proto_msgTypes[3]
+	mi := &file_sheriff_config_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -776,7 +1022,7 @@ func (x *SheriffConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SheriffConfig.ProtoReflect.Descriptor instead.
 func (*SheriffConfig) Descriptor() ([]byte, []int) {
-	return file_sheriff_config_proto_rawDescGZIP(), []int{3}
+	return file_sheriff_config_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SheriffConfig) GetSubscriptions() []*Subscription {
@@ -793,7 +1039,21 @@ const file_sheriff_config_proto_rawDesc = "" +
 	"\x14sheriff_config.proto\x12\x11sheriff_config.v1\"7\n" +
 	"\x05Rules\x12\x14\n" +
 	"\x05match\x18\x01 \x03(\tR\x05match\x12\x18\n" +
-	"\aexclude\x18\x02 \x03(\tR\aexclude\"\x98\x06\n" +
+	"\aexclude\x18\x02 \x03(\tR\aexclude\"i\n" +
+	"\x0eAlgorithmCheck\x129\n" +
+	"\x04step\x18\x01 \x01(\x0e2%.sheriff_config.v1.AnomalyConfig.StepR\x04step\x12\x1c\n" +
+	"\tthreshold\x18\x02 \x01(\x02R\tthreshold\"\xb0\x01\n" +
+	"\vComplexRule\x12>\n" +
+	"\x02op\x18\x01 \x01(\x0e2..sheriff_config.v1.ComplexRule.LogicalOperatorR\x02op\x12=\n" +
+	"\x05rules\x18\x02 \x03(\v2'.sheriff_config.v1.AnomalyDetectionRuleR\x05rules\"\"\n" +
+	"\x0fLogicalOperator\x12\a\n" +
+	"\x03AND\x10\x00\x12\x06\n" +
+	"\x02OR\x10\x01\"\xa9\x01\n" +
+	"\x14AnomalyDetectionRule\x12C\n" +
+	"\fcomplex_rule\x18\x01 \x01(\v2\x1e.sheriff_config.v1.ComplexRuleH\x00R\vcomplexRule\x12D\n" +
+	"\vsimple_rule\x18\x02 \x01(\v2!.sheriff_config.v1.AlgorithmCheckH\x00R\n" +
+	"simpleRuleB\x06\n" +
+	"\x04rule\"\xe8\x06\n" +
 	"\rAnomalyConfig\x129\n" +
 	"\x04step\x18\x01 \x01(\x0e2%.sheriff_config.v1.AnomalyConfig.StepR\x04step\x12\x1b\n" +
 	"\x06radius\x18\x02 \x01(\x05H\x00R\x06radius\x88\x01\x01\x12\x1c\n" +
@@ -807,7 +1067,8 @@ const file_sheriff_config_proto_rawDesc = "" +
 	"\x06action\x18\t \x01(\x0e2'.sheriff_config.v1.AnomalyConfig.ActionR\x06action\x129\n" +
 	"\x04algo\x18\n" +
 	" \x01(\x0e2%.sheriff_config.v1.AnomalyConfig.AlgoR\x04algo\x12.\n" +
-	"\x05rules\x18\v \x01(\v2\x18.sheriff_config.v1.RulesR\x05rules\"r\n" +
+	"\x05rules\x18\v \x01(\v2\x18.sheriff_config.v1.RulesR\x05rules\x12N\n" +
+	"\x0edetection_rule\x18\f \x01(\v2'.sheriff_config.v1.AnomalyDetectionRuleR\rdetectionRule\"r\n" +
 	"\x04Step\x12\x11\n" +
 	"\rORIGINAL_STEP\x10\x00\x12\x11\n" +
 	"\rABSOLUTE_STEP\x10\x01\x12\x0e\n" +
@@ -878,35 +1139,45 @@ func file_sheriff_config_proto_rawDescGZIP() []byte {
 	return file_sheriff_config_proto_rawDescData
 }
 
-var file_sheriff_config_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_sheriff_config_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_sheriff_config_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
+var file_sheriff_config_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_sheriff_config_proto_goTypes = []any{
-	(AnomalyConfig_Step)(0),      // 0: sheriff_config.v1.AnomalyConfig.Step
-	(AnomalyConfig_Direction)(0), // 1: sheriff_config.v1.AnomalyConfig.Direction
-	(AnomalyConfig_Action)(0),    // 2: sheriff_config.v1.AnomalyConfig.Action
-	(AnomalyConfig_Algo)(0),      // 3: sheriff_config.v1.AnomalyConfig.Algo
-	(Subscription_Priority)(0),   // 4: sheriff_config.v1.Subscription.Priority
-	(Subscription_Severity)(0),   // 5: sheriff_config.v1.Subscription.Severity
-	(*Rules)(nil),                // 6: sheriff_config.v1.Rules
-	(*AnomalyConfig)(nil),        // 7: sheriff_config.v1.AnomalyConfig
-	(*Subscription)(nil),         // 8: sheriff_config.v1.Subscription
-	(*SheriffConfig)(nil),        // 9: sheriff_config.v1.SheriffConfig
+	(ComplexRule_LogicalOperator)(0), // 0: sheriff_config.v1.ComplexRule.LogicalOperator
+	(AnomalyConfig_Step)(0),          // 1: sheriff_config.v1.AnomalyConfig.Step
+	(AnomalyConfig_Direction)(0),     // 2: sheriff_config.v1.AnomalyConfig.Direction
+	(AnomalyConfig_Action)(0),        // 3: sheriff_config.v1.AnomalyConfig.Action
+	(AnomalyConfig_Algo)(0),          // 4: sheriff_config.v1.AnomalyConfig.Algo
+	(Subscription_Priority)(0),       // 5: sheriff_config.v1.Subscription.Priority
+	(Subscription_Severity)(0),       // 6: sheriff_config.v1.Subscription.Severity
+	(*Rules)(nil),                    // 7: sheriff_config.v1.Rules
+	(*AlgorithmCheck)(nil),           // 8: sheriff_config.v1.AlgorithmCheck
+	(*ComplexRule)(nil),              // 9: sheriff_config.v1.ComplexRule
+	(*AnomalyDetectionRule)(nil),     // 10: sheriff_config.v1.AnomalyDetectionRule
+	(*AnomalyConfig)(nil),            // 11: sheriff_config.v1.AnomalyConfig
+	(*Subscription)(nil),             // 12: sheriff_config.v1.Subscription
+	(*SheriffConfig)(nil),            // 13: sheriff_config.v1.SheriffConfig
 }
 var file_sheriff_config_proto_depIdxs = []int32{
-	0, // 0: sheriff_config.v1.AnomalyConfig.step:type_name -> sheriff_config.v1.AnomalyConfig.Step
-	1, // 1: sheriff_config.v1.AnomalyConfig.direction:type_name -> sheriff_config.v1.AnomalyConfig.Direction
-	2, // 2: sheriff_config.v1.AnomalyConfig.action:type_name -> sheriff_config.v1.AnomalyConfig.Action
-	3, // 3: sheriff_config.v1.AnomalyConfig.algo:type_name -> sheriff_config.v1.AnomalyConfig.Algo
-	6, // 4: sheriff_config.v1.AnomalyConfig.rules:type_name -> sheriff_config.v1.Rules
-	4, // 5: sheriff_config.v1.Subscription.bug_priority:type_name -> sheriff_config.v1.Subscription.Priority
-	5, // 6: sheriff_config.v1.Subscription.bug_severity:type_name -> sheriff_config.v1.Subscription.Severity
-	7, // 7: sheriff_config.v1.Subscription.anomaly_configs:type_name -> sheriff_config.v1.AnomalyConfig
-	8, // 8: sheriff_config.v1.SheriffConfig.subscriptions:type_name -> sheriff_config.v1.Subscription
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	1,  // 0: sheriff_config.v1.AlgorithmCheck.step:type_name -> sheriff_config.v1.AnomalyConfig.Step
+	0,  // 1: sheriff_config.v1.ComplexRule.op:type_name -> sheriff_config.v1.ComplexRule.LogicalOperator
+	10, // 2: sheriff_config.v1.ComplexRule.rules:type_name -> sheriff_config.v1.AnomalyDetectionRule
+	9,  // 3: sheriff_config.v1.AnomalyDetectionRule.complex_rule:type_name -> sheriff_config.v1.ComplexRule
+	8,  // 4: sheriff_config.v1.AnomalyDetectionRule.simple_rule:type_name -> sheriff_config.v1.AlgorithmCheck
+	1,  // 5: sheriff_config.v1.AnomalyConfig.step:type_name -> sheriff_config.v1.AnomalyConfig.Step
+	2,  // 6: sheriff_config.v1.AnomalyConfig.direction:type_name -> sheriff_config.v1.AnomalyConfig.Direction
+	3,  // 7: sheriff_config.v1.AnomalyConfig.action:type_name -> sheriff_config.v1.AnomalyConfig.Action
+	4,  // 8: sheriff_config.v1.AnomalyConfig.algo:type_name -> sheriff_config.v1.AnomalyConfig.Algo
+	7,  // 9: sheriff_config.v1.AnomalyConfig.rules:type_name -> sheriff_config.v1.Rules
+	10, // 10: sheriff_config.v1.AnomalyConfig.detection_rule:type_name -> sheriff_config.v1.AnomalyDetectionRule
+	5,  // 11: sheriff_config.v1.Subscription.bug_priority:type_name -> sheriff_config.v1.Subscription.Priority
+	6,  // 12: sheriff_config.v1.Subscription.bug_severity:type_name -> sheriff_config.v1.Subscription.Severity
+	11, // 13: sheriff_config.v1.Subscription.anomaly_configs:type_name -> sheriff_config.v1.AnomalyConfig
+	12, // 14: sheriff_config.v1.SheriffConfig.subscriptions:type_name -> sheriff_config.v1.Subscription
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_sheriff_config_proto_init() }
@@ -914,14 +1185,18 @@ func file_sheriff_config_proto_init() {
 	if File_sheriff_config_proto != nil {
 		return
 	}
-	file_sheriff_config_proto_msgTypes[1].OneofWrappers = []any{}
+	file_sheriff_config_proto_msgTypes[3].OneofWrappers = []any{
+		(*AnomalyDetectionRule_ComplexRule)(nil),
+		(*AnomalyDetectionRule_SimpleRule)(nil),
+	}
+	file_sheriff_config_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_sheriff_config_proto_rawDesc), len(file_sheriff_config_proto_rawDesc)),
-			NumEnums:      6,
-			NumMessages:   4,
+			NumEnums:      7,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

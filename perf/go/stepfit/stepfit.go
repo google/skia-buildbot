@@ -5,6 +5,7 @@ import (
 
 	"github.com/aclements/go-moremath/stats"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -23,12 +24,25 @@ const (
 	// UNINTERESTING means no step occurred.
 	UNINTERESTING StepFitStatus = "Uninteresting"
 
-	// minTraceSize is the smallest trace length we can analyze.
-	minTraceSize = 3
+	// MinTraceSize is the smallest trace length we can analyze.
+	MinTraceSize = 3
 )
 
 // AllStepFitStatus is the list of all StepFitStatus values.
 var AllStepFitStatus = []StepFitStatus{LOW, HIGH, UNINTERESTING}
+
+// AnomalyResult represents the evaluation of a single algorithm against a threshold.
+type AnomalyResult struct {
+	AlgoName      string        `json:"algo"`
+	Value         float32       `json:"value"`
+	Threshold     float32       `json:"threshold"`
+	IsAnomaly     bool          `json:"is_anomaly"`
+	StepSize      float32       `json:"step_size"`
+	LeastSquares  float32       `json:"least_squares"`
+	Status        StepFitStatus `json:"status"`
+	RawRegression float32       `json:"raw_regression"`
+	TurningPoint  int           `json:"turning_point"`
+}
 
 // StepFit stores information on the best Step Function fit on a trace.
 //
@@ -59,6 +73,9 @@ type StepFit struct {
 	//
 	// Values can be "High", "Low", and "Uninteresting"
 	Status StepFitStatus `json:"status"`
+
+	// RuleEvaluations is the flat list of evaluated anomaly rules, sorted by anomaly status and algorithm priority.
+	RuleEvaluations []AnomalyResult `json:"rule_evaluation,omitempty"`
 }
 
 // InvalidLeastSquaresError signals that the value of StepFit.LeastSquares is
@@ -72,47 +89,24 @@ func NewStepFit() *StepFit {
 	}
 }
 
-// GetStepFitAtMid takes one []float32 trace and calculates and returns a
-// *StepFit.
-//
-// stddevThreshold is the minimum standard deviation allowed when normalizing
-// traces to a standard deviation of 1.
-//
-// interesting is the threshold for a particular step to be flagged as a
-// regression.
-//
-// stepDetection is the algorithm to use to test for a regression.
-//
-// See StepFit for a description of the values being calculated.
-func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float32, stepDetection types.StepDetection) *StepFit {
-	ret := NewStepFit()
-	if len(trace) < minTraceSize {
-		return ret
-	}
-	// Only normalize the trace if doing ORIGINAL_STEP.
-	if stepDetection == types.OriginalStep {
-		trace = vec32.Dup(trace)
-		vec32.Norm(trace, stddevThreshold)
-	} else {
-		// For all non-ORIGINAL_STEP regression types we use a symmetric (2*N)
-		// trace, while in ORIGINAL_STEP uses the 2*N+1 length trace supplied.
-		trace = trace[0 : len(trace)-1]
-	}
-
-	var lse float32 = InvalidLeastSquaresError
-
-	var regression float32
-	stepSize := float32(-1.0)
+// CalculateStepFitValues calculates the core values for a step fit, returning an AnomalyResult.
+func CalculateStepFitValues(trace []float32, stddevThreshold float32, simpleRule *alerts.AlgorithmCheck) (bool, AnomalyResult) {
 	i := len(trace) / 2
-
 	y0 := vec32.Mean(trace[:i])
 	y1 := vec32.Mean(trace[i:])
+
+	var lse float32 = InvalidLeastSquaresError
+	var regression float32
+	stepSize := float32(-1.0)
+	status := UNINTERESTING
+
 	s1 := vec32.StdDev(trace[:i], y0)
 	s2 := vec32.StdDev(trace[i:], y1)
 	n1 := i
 	n2 := len(trace) - i
+	stepDetection := simpleRule.Step
+	interesting := simpleRule.Threshold
 
-	// Now do different work based on stepDetection
 	if stepDetection == types.OriginalStep {
 		sse1 := vec32.SSE(trace[:i], y0)
 		sse2 := vec32.SSE(trace[i:], y1)
@@ -133,11 +127,10 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 		sample2 := vec32.ToFloat64(trace[i:])
 		stepSize, regression, lse, err = CalcMannWhitneyStep(y0, y1, sample1, sample2)
 		if err != nil {
-			return ret
+			return false, AnomalyResult{}
 		}
 	}
 
-	status := UNINTERESTING
 	if stepDetection == types.MannWhitneyU {
 		// There is a different interpretation of regression for MannWhitneyU,
 		// where regression = p. That is, when doing a hypothesis test we want
@@ -159,12 +152,23 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 			status = HIGH
 		}
 	}
-	ret.Status = status
-	ret.LeastSquares = lse
-	ret.StepSize = stepSize
-	ret.TurningPoint = i
-	ret.Regression = regression
-	return ret
+
+	actualValue := float32(math.Abs(float64(regression)))
+	isTriggered := status != UNINTERESTING
+
+	result := AnomalyResult{
+		AlgoName:      string(simpleRule.Step),
+		Value:         actualValue,
+		Threshold:     simpleRule.Threshold,
+		IsAnomaly:     isTriggered,
+		StepSize:      stepSize,
+		LeastSquares:  lse,
+		Status:        status,
+		RawRegression: regression,
+		TurningPoint:  i,
+	}
+
+	return true, result
 }
 
 // CalcOriginalStep calculates step size, regression, and LSE for OriginalStep detection.
@@ -206,9 +210,11 @@ func CalcAbsoluteStep(y0, y1 float32) (float32, float32) {
 // CalcConstStep calculates step size and regression for Const detection.
 // A simple check if the absolute value of the trace is greater than some constant value.
 func CalcConstStep(val float32, interesting float32) (float32, float32) {
-	absTraceValue := float32(math.Abs(float64(val)))
-	stepSize := absTraceValue - interesting
-	regression := -1 * absTraceValue // * -1 So that regressions get flagged as HIGH.
+	stepSize := float32(-1.0)
+	regression := val
+	if val < 0 {
+		regression = -val
+	}
 	return stepSize, regression
 }
 

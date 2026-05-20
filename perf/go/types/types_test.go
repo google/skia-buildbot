@@ -45,3 +45,10 @@ func TestCommitNumber_Add(t *testing.T) {
 	assert.Equal(t, BadCommitNumber, CommitNumber(1).Add(-2))
 	assert.Equal(t, BadCommitNumber, CommitNumber(1).Add(-100))
 }
+
+func TestStepDetection_Priority_AllHavePriority(t *testing.T) {
+	for _, algo := range AllStepDetections {
+		priority := algo.Priority()
+		assert.Greater(t, priority, 0, "Algorithm %q is missing a priority in Priority() method", algo)
+	}
+}

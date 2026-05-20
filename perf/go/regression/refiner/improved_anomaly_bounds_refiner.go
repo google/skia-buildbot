@@ -109,7 +109,12 @@ func (r *ImprovedAnomalyBoundsRefiner) applyImprovedLogic(ctx context.Context, c
 	}
 
 	// Re-verify the regression against the historical baseline (data between previous and current regression) to confirm it is statistically significant.
-	regressionVal, stepSize, interestingThreshold, isConfirmed := r.calculateStepAndConfirm(leftData, rightData, cfg.Step, cfg.Interesting)
+	rule := cfg.DetectionRule
+	if rule == nil {
+		rule = stepfit.NewSimpleRule(cfg.Step, cfg.Interesting)
+	}
+
+	regressionVal, stepSize, interestingThreshold, isConfirmed := r.calculateStepAndConfirm(leftData, rightData, rule)
 
 	// Filter out if not confirmed.
 	if !isConfirmed {
@@ -133,7 +138,12 @@ func (r *ImprovedAnomalyBoundsRefiner) applyImprovedLogic(ctx context.Context, c
 		}
 		cl.Metadata["improved_refiner_left_part"] = leftData
 		cl.Metadata["improved_refiner_right_part"] = rightData
-		cl.Metadata["improved_refiner_algo"] = string(cfg.Step)
+
+		algo := string(cfg.Step)
+		if len(cl.StepFit.RuleEvaluations) > 0 {
+			algo = cl.StepFit.RuleEvaluations[0].AlgoName
+		}
+		cl.Metadata["improved_refiner_algo"] = algo
 		cl.Metadata["improved_refiner_threshold"] = interestingThreshold
 	}
 
@@ -255,7 +265,14 @@ func extractRightData(cr *regression.ConfirmedRegression, step types.StepDetecti
 
 // calculateStepAndConfirm runs the selected step detection algorithm on the extracted
 // left and right data, and checks if the result exceeds the interestingness threshold.
-func (r *ImprovedAnomalyBoundsRefiner) calculateStepAndConfirm(leftData, rightData []float32, step types.StepDetection, alertInteresting float32) (float32, float32, float32, bool) {
+type improvedResult struct {
+	isConfirmed   bool
+	regressionVal float32
+	stepSize      float32
+	interesting   float32
+}
+
+func (r *ImprovedAnomalyBoundsRefiner) calculateStepAndConfirm(leftData, rightData []float32, rule *alerts.AnomalyDetectionRule) (float32, float32, float32, bool) {
 	y0 := vec32.Mean(leftData)
 	y1 := vec32.Mean(rightData)
 	s1 := vec32.StdDev(leftData, y0)
@@ -263,37 +280,57 @@ func (r *ImprovedAnomalyBoundsRefiner) calculateStepAndConfirm(leftData, rightDa
 	n1 := len(leftData)
 	n2 := len(rightData)
 
-	// CohenDVeryLarge represents a "very large" effect size in Cohen's d.
-	// Selection: 1.2 is the standard threshold proposed by Sawilowsky (2009) for a "very large" effect.
-	// See https://en.wikipedia.org/wiki/Effect_size for context on effect size rules of thumb.
-	// Effect on result: Regressions must have an effect size of at least 1.2 to be considered "interesting"
-	// unless the alert configuration specifies a smaller threshold.
-	// Safety to change: Safe to change, but will affect sensitivity. Higher values reduce false positives
-	// but may miss real regressions. Lower values increase sensitivity but may introduce more noise.
 	const CohenDVeryLarge = 1.2
 
-	var regressionVal float32
-	var stepSize float32
-	var interesting float32
+	res := stepfit.TraverseRule(rule,
+		// 1. Leaf node evaluation (Simple Rule)
+		func(check *alerts.AlgorithmCheck) improvedResult {
+			var regressionVal float32
+			var stepSize float32
+			var interesting float32
 
-	switch step {
-	case types.AbsoluteStep:
-		stepSize, regressionVal = stepfit.CalcAbsoluteStep(y0, y1)
-		interesting = alertInteresting
-	case types.PercentStep:
-		stepSize, regressionVal = stepfit.CalcPercentStep(y0, y1)
-		interesting = alertInteresting
-	case types.CohenStep:
-		stepSize, regressionVal = stepfit.CalcValidCohenStep(y0, y1, s1, s2, n1, n2, r.stdDevThreshold)
-		interesting = min(alertInteresting, float32(CohenDVeryLarge))
-	default:
-		stepSize, regressionVal = stepfit.CalcValidCohenStep(y0, y1, s1, s2, n1, n2, r.stdDevThreshold)
-		interesting = CohenDVeryLarge
-	}
+			algo := string(check.Step)
+			threshold := check.Threshold
 
-	isConfirmed := math.Abs(float64(regressionVal)) >= float64(interesting)
+			switch algo {
+			case string(types.AbsoluteStep):
+				stepSize, regressionVal = stepfit.CalcAbsoluteStep(y0, y1)
+				interesting = threshold
+			case string(types.PercentStep):
+				stepSize, regressionVal = stepfit.CalcPercentStep(y0, y1)
+				interesting = threshold
+			case string(types.CohenStep):
+				stepSize, regressionVal = stepfit.CalcValidCohenStep(y0, y1, s1, s2, n1, n2, r.stdDevThreshold)
+				interesting = min(threshold, float32(CohenDVeryLarge))
+			default:
+				// Fallback for algorithms that need different handling or are unsupported here
+				stepSize, regressionVal = stepfit.CalcValidCohenStep(y0, y1, s1, s2, n1, n2, r.stdDevThreshold)
+				interesting = CohenDVeryLarge
+			}
 
-	return regressionVal, stepSize, interesting, isConfirmed
+			isConfirmed := math.Abs(float64(regressionVal)) >= float64(interesting)
+
+			return improvedResult{isConfirmed, regressionVal, stepSize, interesting}
+		},
+		// 2. Combination logic (AND/OR)
+		func(results []improvedResult, op string) improvedResult {
+			var bools []bool
+			for _, r := range results {
+				bools = append(bools, r.isConfirmed)
+			}
+
+			isConfirmed := stepfit.CombineBooleans(bools, op)
+
+			if len(results) == 0 {
+				sklog.Warningf("[ImprovedAnomalyBoundsRefiner] Empty results slice in combine logic for operation: %q", op)
+				return improvedResult{isConfirmed: isConfirmed}
+			}
+
+			// For regressionVal and stepSize (used for logging/metadata), we just pick the first one for simplicity.
+			return improvedResult{isConfirmed, results[0].regressionVal, results[0].stepSize, results[0].interesting}
+		})
+
+	return res.regressionVal, res.stepSize, res.interesting, res.isConfirmed
 }
 
 // extractData extracts both the left and right side data points needed for the improved check.
@@ -310,7 +347,11 @@ func (r *ImprovedAnomalyBoundsRefiner) extractData(ctx context.Context, cr *regr
 		return nil, nil, nil, nil, nil // Return nil to signal caller to fallback to original regression
 	}
 
-	rightData, rightCommits := extractRightData(cr, cfg.Step)
+	algo := cfg.Step
+	if len(cr.Summary.Clusters[0].StepFit.RuleEvaluations) > 0 {
+		algo = types.StepDetection(cr.Summary.Clusters[0].StepFit.RuleEvaluations[0].AlgoName)
+	}
+	rightData, rightCommits := extractRightData(cr, algo)
 	if len(rightData) < 3 {
 		return nil, nil, nil, nil, nil // Return nil to signal caller to fallback to original regression
 	}

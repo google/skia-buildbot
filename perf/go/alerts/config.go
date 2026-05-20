@@ -116,6 +116,24 @@ func (s SerializesToString) MarshalJSON() ([]byte, error) {
 // been set.
 const InvalidIssueTrackerComponent = 0
 
+// AlgorithmCheck represents a single algorithm and its threshold.
+type AlgorithmCheck struct {
+	Step      types.StepDetection `json:"step,omitempty"`
+	Threshold float32             `json:"threshold,omitempty"`
+}
+
+// ComplexRule allows combining rules.
+type ComplexRule struct {
+	Op    string                  `json:"op,omitempty"` // "AND" or "OR"
+	Rules []*AnomalyDetectionRule `json:"rules,omitempty"`
+}
+
+// AnomalyDetectionRule is a recursive rule for anomaly detection.
+type AnomalyDetectionRule struct {
+	ComplexRule *ComplexRule    `json:"complex_rule,omitempty"`
+	SimpleRule  *AlgorithmCheck `json:"simple_rule,omitempty"`
+}
+
 // Alert represents the configuration for one alert.
 type Alert struct {
 	// We need to keep the int64 version of the ID around to support Cloud
@@ -130,6 +148,9 @@ type Alert struct {
 	BugURITemplate        string                            `json:"bug_uri_template"`                       // URI Template used for reporting bugs. Format TBD.
 	Algo                  types.RegressionDetectionGrouping `json:"algo"            `                       // Which clustering algorithm to use.
 	Step                  types.StepDetection               `json:"step"            `
+
+	// The compound anomaly detection rule. If specified, this is used in place of Interesting/Step.
+	DetectionRule *AnomalyDetectionRule `json:"detection_rule,omitempty"`
 
 	// Which algorithm to use to detect steps.
 	StateAsString ConfigState `json:"state"       ` // The state of the config.
@@ -310,6 +331,53 @@ func (c *Alert) Validate() error {
 		c.StepUpOnly = false
 		c.DirectionAsString = UP
 	}
+	if c.DetectionRule != nil {
+		if err := c.DetectionRule.Validate(); err != nil {
+			return skerr.Wrapf(err, "Invalid Config: Invalid DetectionRule")
+		}
+	}
+	return nil
+}
+
+// Validate returns an error if the AnomalyDetectionRule is invalid.
+func (r *AnomalyDetectionRule) Validate() error {
+	if r == nil {
+		return fmt.Errorf("AnomalyDetectionRule cannot be nil")
+	}
+	if r.ComplexRule != nil && r.SimpleRule != nil {
+		return fmt.Errorf("AnomalyDetectionRule cannot have both ComplexRule and SimpleRule")
+	}
+	if r.ComplexRule == nil && r.SimpleRule == nil {
+		return fmt.Errorf("AnomalyDetectionRule must have either ComplexRule or SimpleRule")
+	}
+
+	if r.ComplexRule != nil {
+		if r.ComplexRule.Op != "AND" && r.ComplexRule.Op != "OR" {
+			return fmt.Errorf("ComplexRule Op must be either 'AND' or 'OR', got %q", r.ComplexRule.Op)
+		}
+		if len(r.ComplexRule.Rules) == 0 {
+			return fmt.Errorf("ComplexRule must have at least one rule in Rules list")
+		}
+		for i, subRule := range r.ComplexRule.Rules {
+			if err := subRule.Validate(); err != nil {
+				return skerr.Wrapf(err, "invalid sub-rule at index %d", i)
+			}
+		}
+	}
+
+	if r.SimpleRule != nil {
+		validAlgo := false
+		for _, algo := range types.AllStepDetections {
+			if algo == r.SimpleRule.Step {
+				validAlgo = true
+				break
+			}
+		}
+		if !validAlgo {
+			return fmt.Errorf("SimpleRule Step must be a valid StepDetection, got %q", r.SimpleRule.Step)
+		}
+	}
+
 	return nil
 }
 

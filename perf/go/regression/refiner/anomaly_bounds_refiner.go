@@ -6,6 +6,7 @@ import (
 
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -115,7 +116,7 @@ func (r *AnomalyBoundsRefiner) validateKeys(responses []*regression.RegressionDe
 // and delegates to refineGroup to determine the true boundaries of the anomaly. It returns a single
 // ConfirmedRegression that encompasses the refined anomalous range.
 func (r *AnomalyBoundsRefiner) mergeArea(cfg *alerts.Alert, area []*regression.RegressionDetectionResponse) *regression.ConfirmedRegression {
-	peakIdx := findPeaks(area, cfg.Step)
+	peakIdx := findPeaks(area)
 	return r.refineGroup(area, peakIdx, cfg)
 }
 
@@ -175,7 +176,12 @@ func (r *AnomalyBoundsRefiner) expandRangeToLeft(baseline []float32, startIndex 
 		tpIndex := group[i].Summary.Clusters[0].StepFit.TurningPoint
 		regressionCandidate := group[i].Summary.Clusters[0].Centroid[tpIndex]
 
-		isInteresting := isAnomaly(regressionCandidate, baseline, cfg, r.stdDevThreshold)
+		rule := cfg.DetectionRule
+		if rule == nil {
+			rule = stepfit.NewSimpleRule(cfg.Step, cfg.Interesting)
+		}
+
+		isInteresting := evaluateRuleForRefinement(regressionCandidate, baseline, rule, r.stdDevThreshold)
 
 		if isInteresting {
 			regressionStart = i
@@ -206,7 +212,12 @@ func (r *AnomalyBoundsRefiner) expandRangeToRight(baseline []float32, startIndex
 		// point represents where the regression area ends.
 		regressionCandidate := group[i-1].Summary.Clusters[0].Centroid[tpIndex]
 
-		isInteresting := isAnomaly(regressionCandidate, baseline, cfg, r.stdDevThreshold)
+		rule := cfg.DetectionRule
+		if rule == nil {
+			rule = stepfit.NewSimpleRule(cfg.Step, cfg.Interesting)
+		}
+
+		isInteresting := evaluateRuleForRefinement(regressionCandidate, baseline, rule, r.stdDevThreshold)
 
 		if isInteresting {
 			regressionStart = i

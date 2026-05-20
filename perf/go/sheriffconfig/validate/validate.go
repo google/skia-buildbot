@@ -52,7 +52,21 @@ func validatePattern(pattern string, singleField bool) error {
 
 // Does the following checks at Anomaly Config level:
 // - At least 1 matching pattern exists.
+// - Cannot specify both 'detection_rule' and legacy 'step'/'threshold' fields.
 func validateAnomalyConfig(ac *sheriff_configpb.AnomalyConfig) error {
+	if ac.DetectionRule != nil {
+		// 'Step' is a non-nullable enum in proto3 that defaults to ORIGINAL_STEP (0).
+		// We check if it was explicitly set to any other algorithm.
+		if ac.Step != sheriff_configpb.AnomalyConfig_ORIGINAL_STEP {
+			return skerr.Fmt("Anomaly config cannot specify both 'step' and 'detection_rule'. 'detection_rule' is a replacement for 'step' and 'threshold'.")
+		}
+		// 'Threshold' is a non-nullable float in proto3 that defaults to 0.0.
+		// We check if it was explicitly set to a non-zero value.
+		if ac.Threshold != 0.0 {
+			return skerr.Fmt("Anomaly config cannot specify both 'threshold' and 'detection_rule'. 'detection_rule' is a replacement for 'step' and 'threshold'.")
+		}
+	}
+
 	if len(ac.Rules.Match) == 0 {
 		return skerr.Fmt("Anomaly config must have at least one match pattern.")
 	}

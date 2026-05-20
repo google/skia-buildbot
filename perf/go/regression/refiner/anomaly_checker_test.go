@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -103,12 +102,7 @@ func TestIsAnomaly(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := &alerts.Alert{
-				Algo:        types.StepFitGrouping,
-				Step:        tc.algo,
-				Interesting: tc.interest,
-			}
-			got := isAnomaly(tc.val, tc.baseline, cfg, stdDevThreshold)
+			got := isAnomaly(tc.val, tc.baseline, string(tc.algo), tc.interest, stdDevThreshold)
 			assert.Equal(t, tc.want, got)
 		})
 	}

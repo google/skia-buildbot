@@ -89,7 +89,7 @@ func slidingWindowStepFit(ctx context.Context, trace []float32, radius int, inte
 		df.Header = dummyHeader
 
 		// k=0 since this is not "k-mean", but "individual" computation
-		summaries, err := regression.StepFit(ctx, df, 0, config.MinStdDev, nil, interesting, stepDetection)
+		summaries, err := regression.StepFit(ctx, df, 0, config.MinStdDev, nil, interesting, stepDetection, nil)
 		if err != nil {
 			continue
 		}

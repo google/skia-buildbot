@@ -13,6 +13,7 @@ go_library(
         "//go/now",
         "//go/query",
         "//go/sklog",
+        "//perf/go/alerts",
         "//perf/go/config",
         "//perf/go/ctrace2",
         "//perf/go/dataframe",

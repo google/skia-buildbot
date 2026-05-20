@@ -3,11 +3,15 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "stepfit",
-    srcs = ["stepfit.go"],
+    srcs = [
+        "rules.go",
+        "stepfit.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/stepfit",
     visibility = ["//visibility:public"],
     deps = [
         "//go/vec32",
+        "//perf/go/alerts",
         "//perf/go/types",
         "@com_github_aclements_go_moremath//stats",
     ],
@@ -15,10 +19,14 @@ go_library(
 
 go_test(
     name = "stepfit_test",
-    srcs = ["stepfit_test.go"],
+    srcs = [
+        "rules_test.go",
+        "stepfit_test.go",
+    ],
     embed = [":stepfit"],
     deps = [
         "//go/vec32",
+        "//perf/go/alerts",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

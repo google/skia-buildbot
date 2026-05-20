@@ -14,6 +14,63 @@ type PeakIndexes struct {
 	MaxIndex   int // Center index (or peak index)
 }
 
+// selectAlgorithmForPeakDetection selects the common algorithm to use for comparing signal magnitudes
+// across points in a regression area.
+//
+// Purpose:
+// When an anomaly detection rule involves multiple algorithms (e.g., Cohen's D AND Percent Change),
+// points in a regression area might have different dominant algorithms. To find a single representative
+// "peak" for the area, we need a common metric (common denominator) to compare all points fairly.
+//
+// Heuristic:
+//  1. Count how many times each algorithm triggered across all points in the group.
+//  2. If any algorithm triggered for ALL points, we select the one with the highest priority.
+//  3. If no algorithm triggered for all points, we fall back to the highest priority algorithm
+//     defined in the rule (which is guaranteed to be present in all points since they evaluated the same rule).
+func selectAlgorithmForPeakDetection(group []*regression.RegressionDetectionResponse) string {
+	n := len(group)
+	if n == 0 {
+		return ""
+	}
+
+	// 1. Count how many times each algorithm triggered.
+	algoCounts := make(map[string]int)
+	for i := 0; i < n; i++ {
+		for _, eval := range group[i].Summary.Clusters[0].StepFit.RuleEvaluations {
+			if eval.IsAnomaly {
+				algoCounts[eval.AlgoName]++
+			}
+		}
+	}
+
+	// 2. Find the highest priority algorithm that triggered for ALL points.
+	selectedAlgo := ""
+	maxPriority := -1
+	for algoName, count := range algoCounts {
+		if count == n {
+			priority := types.StepDetection(algoName).Priority()
+			if priority > 0 && priority > maxPriority {
+				maxPriority = priority
+				selectedAlgo = algoName
+			}
+		}
+	}
+
+	// 3. Fallback: just use the highest priority algorithm present in the rule.
+	if selectedAlgo == "" {
+		sf := group[0].Summary.Clusters[0].StepFit
+		for _, eval := range sf.RuleEvaluations {
+			priority := types.StepDetection(eval.AlgoName).Priority()
+			if priority > 0 && priority > maxPriority {
+				maxPriority = priority
+				selectedAlgo = eval.AlgoName
+			}
+		}
+	}
+
+	return selectedAlgo
+}
+
 // findPeaks identifies the "peak" structure of a regression group.
 // The input `group` represents a contiguous sequence of regression responses where each regression exceeds a threshold.
 // It returns a PeakIndexes struct containing:
@@ -33,21 +90,30 @@ type PeakIndexes struct {
 //     is strictly greater than its immediate neighbors (or a flat region of equal magnitudes > neighbors).
 //  2. Global Max: The point with the highest StepFit regression magnitude in the group.
 //     If there's a flat region of max values, the center index of that flat region is returned.
-func findPeaks(group []*regression.RegressionDetectionResponse, algo types.StepDetection) PeakIndexes {
+func findPeaks(group []*regression.RegressionDetectionResponse) PeakIndexes {
 	n := len(group)
 	if n == 0 {
 		return PeakIndexes{}
 	}
 
+	selectedAlgo := selectAlgorithmForPeakDetection(group)
+
 	getMag := func(i int) float64 {
 		if i < 0 || i >= n {
-			return -1.0 // Implicitly smaller than any valid magnitude (>=0)
+			return -1.0
 		}
-		// Validated in validateInput to have Summary/Clusters/StepFit
-		mag := math.Abs(float64(group[i].Summary.Clusters[0].StepFit.Regression))
-		if algo == types.MannWhitneyU {
-			// For Mann-Whitney, smaller P-value is better.
-			// Invert it so that smaller P-values give larger magnitudes.
+		sf := group[i].Summary.Clusters[0].StepFit
+
+		var val float32
+		for _, eval := range sf.RuleEvaluations {
+			if eval.AlgoName == selectedAlgo {
+				val = eval.Value
+				break
+			}
+		}
+
+		mag := math.Abs(float64(val))
+		if selectedAlgo == string(types.MannWhitneyU) {
 			return 1.0 - mag
 		}
 		return mag
