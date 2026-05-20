@@ -7,7 +7,6 @@ copy_to_bin(
         "app.component.html",
         "app.component.ts",
         "app.config.ts",
-        "static/logo.svg",
     ],
     visibility = ["//pinpoint/webui:__pkg__"],
 )

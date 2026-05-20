@@ -31,6 +31,7 @@ js_run_binary(
     name = "bundle",
     srcs = [
         "angular.json",
+        "assets/logo.svg",
         "index.html",
         "main.ts",
         "styles.css",

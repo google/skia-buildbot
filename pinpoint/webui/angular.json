@@ -20,7 +20,7 @@
             "preserveSymlinks": true,
             "tsConfig": "tsconfig.app.json",
             "assets": [
-              "app/static/logo.svg"
+              "assets/logo.svg"
             ],
             "styles": [
               "@angular/material/prebuilt-themes/azure-blue.css",
