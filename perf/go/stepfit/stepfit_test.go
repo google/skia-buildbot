@@ -521,3 +521,57 @@ func TestStepFit_MannWhitneyU_UninterestingBecauseNotEnoughData(t *testing.T) {
 	assert.Equal(t, UNINTERESTING, sf.Status)
 	assert.Equal(t, float32(0), sf.Regression)
 }
+
+func TestStepFit_Stepiness_StepUp(t *testing.T) {
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.Stepiness,
+			Threshold: 0.5,
+		},
+	}
+	// A clear step up
+	sf := EvaluateRule([]float32{1, 1, 1, 10, 10, 10, x}, minStdDev, rule)
+	assert.Equal(t, 3, sf.TurningPoint)
+	assert.Equal(t, float32(-9), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	// steppiness should be exactly 1.0 since sse1 and sse2 are 0
+	assert.Equal(t, float32(-1.0), sf.Regression)
+}
+
+func TestStepFit_Stepiness_StepDown(t *testing.T) {
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.Stepiness,
+			Threshold: 0.5,
+		},
+	}
+	// A clear step down
+	sf := EvaluateRule([]float32{10, 10, 10, 1, 1, 1, x}, minStdDev, rule)
+	assert.Equal(t, 3, sf.TurningPoint)
+	assert.Equal(t, float32(9), sf.StepSize)
+	assert.Equal(t, LOW, sf.Status)
+	assert.Equal(t, float32(1.0), sf.Regression)
+}
+
+func TestStepFit_Stepiness_Uninteresting(t *testing.T) {
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.Stepiness,
+			Threshold: 0.9,
+		},
+	}
+	// Gradual increase, maybe not steppy enough for 0.9 threshold
+	// mean of [1 2 3] is 2, sse1 is 2
+	// mean of [4 5 6] is 5, sse2 is 2
+	// mean total is 3.5
+	// sseTotal = 2.5^2 + 1.5^2 + 0.5^2 + 0.5^2 + 1.5^2 + 2.5^2 = 6.25 + 2.25 + 0.25 + 0.25 + 2.25 + 6.25 = 17.5
+	// steppiness = 1 - sqrt((2+2)/17.5) = 1 - sqrt(4/17.5) = 1 - sqrt(0.22857) = 1 - 0.478 = 0.522
+	// regression = -0.522
+	// threshold is 0.9, so UNINTERESTING
+	sf := EvaluateRule([]float32{1, 2, 3, 4, 5, 6, x}, minStdDev, rule)
+	assert.Equal(t, 3, sf.TurningPoint)
+	assert.Equal(t, float32(-3), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	// We just want to check it's uninteresting. Let's not hardcode exact regression float value in case of float math slight differences.
+	assert.InDelta(t, -0.5219, sf.Regression, 0.001)
+}

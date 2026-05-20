@@ -158,6 +158,10 @@ const (
 
 	// MannWhitneyU uses the Mann-Whitney U test to detect a change. https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
 	MannWhitneyU StepDetection = "mannwhitneyu"
+
+	// Stepiness is a check that returns a number between 0 and 1 that indicates
+	// how step-like the trace is.
+	Stepiness StepDetection = "stepiness"
 )
 
 var (
@@ -175,12 +179,15 @@ var (
 		PercentStep,
 		CohenStep,
 		MannWhitneyU,
+		Stepiness,
 	}
 )
 
 // Priority returns the priority of the StepDetection algorithm.
 func (s StepDetection) Priority() int {
 	switch s {
+	case Stepiness:
+		return 6
 	case CohenStep:
 		return 5
 	case PercentStep:

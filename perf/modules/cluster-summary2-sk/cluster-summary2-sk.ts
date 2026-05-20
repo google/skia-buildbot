@@ -141,6 +141,14 @@ const labelsForStepDetection: Record<StepDetection, LabelsAndFormatters> = {
     lse: 'U:',
     lseFormatter: decimalFormatter,
   },
+  stepiness: {
+    regression: 'Stepiness:',
+    regressionFormatter: decimalFormatter,
+    stepSize: 'Step Size:',
+    stepSizeFormatter: decimalFormatter,
+    lse: '',
+    lseFormatter: emptyFormatter,
+  },
 };
 
 export interface ClusterSummary2SkTriagedEventDetail {

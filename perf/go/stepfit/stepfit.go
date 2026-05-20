@@ -121,6 +121,12 @@ func CalculateStepFitValues(trace []float32, stddevThreshold float32, simpleRule
 		stepSize, regression = CalcPercentStep(y0, y1)
 	} else if stepDetection == types.CohenStep {
 		stepSize, regression = CalcCohenStep(y0, y1, s1, s2, n1, n2, stddevThreshold)
+	} else if stepDetection == types.Stepiness {
+		sse1 := vec32.SSE(trace[:i], y0)
+		sse2 := vec32.SSE(trace[i:], y1)
+		meanTotal := vec32.Mean(trace)
+		sseTotal := vec32.SSE(trace, meanTotal)
+		stepSize, regression = CalcStepinessStep(y0, y1, sse1, sse2, sseTotal)
 	} else /* types.MannWhitneyU  */ {
 		var err error
 		sample1 := vec32.ToFloat64(trace[:i])
@@ -286,4 +292,38 @@ func CalcMannWhitneyStep(y0, y1 float32, sample1, sample2 []float64) (float32, f
 	regression := float32(mwResults.P)
 	lse := float32(mwResults.U)
 	return stepSize, regression, lse, nil
+}
+
+// CalcStepinessStep calculates step size and regression for Stepiness detection.
+// It returns a number between 0 and 1 that indicates how step-like the trace is.
+//
+// This is mathematically equivalent to the legacy Python catapult implementation:
+//
+//	normalized = (values - mean) / stddev
+//	step_values = [mean(normalized[:i])..., mean(normalized[i:])...]
+//	RMSD = sqrt(sum((normalized - step_values)^2) / N)
+//	steppiness = 1.0 - RMSD
+//
+// Proof of equivalence:
+//
+//	RMSD = sqrt( (SSE_left / stddev^2 + SSE_right / stddev^2) / N )
+//	RMSD = sqrt( (SSE_left + SSE_right) / (stddev^2 * N) )
+//
+// Since stddev^2 * N = SSE_total:
+//
+//	RMSD = sqrt( (SSE_left + SSE_right) / SSE_total )
+func CalcStepinessStep(y0, y1, sse1, sse2, sseTotal float32) (float32, float32) {
+	stepSize := y0 - y1
+	var steppiness float32
+	if sseTotal > 0 {
+		steppiness = 1.0 - float32(math.Sqrt(float64((sse1+sse2)/sseTotal)))
+	}
+
+	// Regression needs a sign to indicate direction (step up vs step down)
+	// to be compatible with CalculateStepFitValues threshold logic.
+	regression := steppiness
+	if stepSize < 0 {
+		regression = -steppiness
+	}
+	return stepSize, regression
 }

@@ -99,6 +99,10 @@ const thresholdDescriptors: Record<StepDetection, ThresholdDescriptor> = {
     units: 'alpha (α)',
     label: 'Consider change significant if p < α. A typical value is 0.05.',
   },
+  stepiness: {
+    units: 'stepiness',
+    label: 'Consider change significant if stepiness > threshold. A typical value is 0.5.',
+  },
 };
 
 @customElement('alert-config-sk')
@@ -225,6 +229,7 @@ export class AlertConfigSk extends LitElement {
         <div value="percent">Percent</div>
         <div value="cohen">Cohen's d</div>
         <div value="mannwhitneyu">Mann-Whitney U (Wilcoxon rank-sum)</div>
+        <div value="stepiness">Stepiness</div>
       </select-sk>
       <h4>Threshold</h4>
       <label for="threshold"> ${thresholdDescriptors[this.config.step].label} </label>

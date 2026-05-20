@@ -143,6 +143,9 @@ export class SheriffConfigsDryRunSk extends LitElement {
                     <md-select-option value="MANNWHITNEYU_STEP"
                       ><div slot="headline">MANNWHITNEYU_STEP</div></md-select-option
                     >
+                    <md-select-option value="STEPINESS"
+                      ><div slot="headline">STEPINESS</div></md-select-option
+                    >
                   </md-outlined-select>
 
                   <label class="checkbox-label">
@@ -275,6 +278,7 @@ export class SheriffConfigsDryRunSk extends LitElement {
       PERCENT_STEP: 3,
       COHEN_STEP: 4,
       MANN_WHITNEY_U: 5,
+      STEPINESS: 6,
     };
 
     const actionMap: Record<string, number> = {

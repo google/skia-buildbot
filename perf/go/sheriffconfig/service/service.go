@@ -56,6 +56,7 @@ var stepAlgoMap = map[string]types.StepDetection{
 	"PERCENT_STEP":   types.PercentStep,
 	"COHEN_STEP":     types.CohenStep,
 	"MANN_WHITNEY_U": types.MannWhitneyU,
+	"STEPINESS":      types.Stepiness,
 }
 
 var actionMap = map[string]types.AlertAction{

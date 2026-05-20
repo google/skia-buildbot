@@ -48,6 +48,14 @@ func isAnomaly(val float32, baseline []float32, algo string, threshold float32, 
 		_, regression = stepfit.CalcPercentStep(baseline_mean, treatment_mean)
 	case string(types.CohenStep):
 		_, regression = stepfit.CalcCohenStep(baseline_mean, treatment_mean, baseline_stddev, treatment_stddev, baseline_len, treatment_len, stdDevThreshold)
+	case string(types.Stepiness):
+		sse1 := vec32.SSE(baseline, baseline_mean)
+		// Assuming treatment has no variation (single point)
+		sse2 := float32(0)
+		trace := append(append([]float32(nil), baseline...), val)
+		meanTotal := vec32.Mean(trace)
+		sseTotal := vec32.SSE(trace, meanTotal)
+		_, regression = stepfit.CalcStepinessStep(baseline_mean, treatment_mean, sse1, sse2, sseTotal)
 	default:
 		// If we still end up with an unsupported algorithm here, we use Cohen as a safe default.
 		_, regression = stepfit.CalcCohenStep(baseline_mean, treatment_mean, baseline_stddev, treatment_stddev, baseline_len, treatment_len, stdDevThreshold)

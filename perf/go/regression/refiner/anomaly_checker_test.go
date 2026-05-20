@@ -91,6 +91,22 @@ func TestIsAnomaly(t *testing.T) {
 			want:     true, // 10 >= 5
 		},
 		{
+			name:     "Stepiness - Anomaly",
+			val:      100.0,
+			baseline: []float32{10.0, 10.1, 9.9},
+			algo:     types.Stepiness,
+			interest: 0.5,
+			want:     true,
+		},
+		{
+			name:     "Stepiness - Normal",
+			val:      10.05,
+			baseline: []float32{10.0, 10.1, 9.9},
+			algo:     types.Stepiness,
+			interest: 0.5,
+			want:     false,
+		},
+		{
 			name:     "Unknown Algo - Defaults to Cohen",
 			val:      100.0,
 			baseline: []float32{10.0, 10.1, 9.9},

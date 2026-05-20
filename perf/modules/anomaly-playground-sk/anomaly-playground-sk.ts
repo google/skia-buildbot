@@ -36,7 +36,15 @@ import '@material/web/checkbox/checkbox';
 import '../explore-simple-sk';
 import '../dataframe/dataframe_context';
 
-const StepDetectionValues = ['', 'absolute', 'const', 'percent', 'cohen', 'mannwhitneyu'] as const;
+const StepDetectionValues = [
+  '',
+  'absolute',
+  'const',
+  'percent',
+  'cohen',
+  'mannwhitneyu',
+  'stepiness',
+] as const;
 
 export class AnomalyPlaygroundSk extends ElementSk {
   private exploreSimpleSkFactory = () => new ExploreSimpleSk(false);
