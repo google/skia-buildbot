@@ -193,4 +193,18 @@ describe('query-bar-sk', () => {
     expect(eventCount).to.equal(1);
     expect(eventDetail).to.deep.equal({ key: 'bot', value: 'linux' });
   });
+
+  it('dispatches clone-query event when clone button is clicked', async () => {
+    let cloneClicked = false;
+    element.addEventListener('clone-query', () => {
+      cloneClicked = true;
+    });
+
+    await element.updateComplete;
+    const cloneBtn = element.shadowRoot!.querySelector('.qb-clone-query-btn') as HTMLElement;
+    expect(cloneBtn).to.not.be.null;
+
+    cloneBtn.click();
+    expect(cloneClicked).to.be.true;
+  });
 });

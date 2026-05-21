@@ -220,6 +220,14 @@ export class QueryBarSk extends LitElement {
       font-size: 10px;
     }
 
+    .query-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .qb-clone-query-btn,
     .qb-remove-query-btn {
       background: none;
       border: none;
@@ -227,7 +235,6 @@ export class QueryBarSk extends LitElement {
       font-size: 16px;
       cursor: pointer;
       padding: 0 4px;
-      margin-left: auto;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -237,6 +244,7 @@ export class QueryBarSk extends LitElement {
       transition: background-color 0.2s;
     }
 
+    .qb-clone-query-btn:hover,
     .qb-remove-query-btn:hover {
       background-color: var(--md-sys-color-surface-container-highest, rgba(0, 0, 0, 0.05));
     }
@@ -715,20 +723,33 @@ export class QueryBarSk extends LitElement {
           </div>
         </div>
 
-        ${this.showRemoveQueryButton
-          ? html`
-              <md-icon-button
-                class="qb-remove-query-btn"
-                @click=${(e: Event) => {
-                  e.stopPropagation();
-                  this._dispatchEvent('clear-query', {});
-                }}
-                title="Remove this query"
-                aria-label="Remove this query">
-                <md-icon>close</md-icon>
-              </md-icon-button>
-            `
-          : ''}
+        <div class="query-actions">
+          <md-icon-button
+            class="qb-clone-query-btn"
+            @click=${(e: Event) => {
+              e.stopPropagation();
+              this._dispatchEvent('clone-query', {});
+            }}
+            title="Duplicate this query"
+            aria-label="Duplicate this query">
+            <md-icon>content_copy</md-icon>
+          </md-icon-button>
+
+          ${this.showRemoveQueryButton
+            ? html`
+                <md-icon-button
+                  class="qb-remove-query-btn"
+                  @click=${(e: Event) => {
+                    e.stopPropagation();
+                    this._dispatchEvent('clear-query', {});
+                  }}
+                  title="Remove this query"
+                  aria-label="Remove this query">
+                  <md-icon>close</md-icon>
+                </md-icon-button>
+              `
+            : ''}
+        </div>
       </div>
     `;
   }

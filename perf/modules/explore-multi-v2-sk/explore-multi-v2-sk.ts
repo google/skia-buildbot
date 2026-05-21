@@ -1847,6 +1847,22 @@ export class ExploreMultiV2Sk extends LitElement {
     }
   }
 
+  private _onCloneQueryBar(idx: number) {
+    const queryToClone = this.queries[idx];
+    const clonedQuery: Record<string, string[]> = {};
+    for (const [k, v] of Object.entries(queryToClone)) {
+      clonedQuery[k] = [...v];
+    }
+
+    const newQueries = [...this.queries];
+    newQueries.splice(idx + 1, 0, clonedQuery);
+    this.queries = newQueries;
+
+    if (this.queries.length > 3) {
+      this._queriesExpanded = true;
+    }
+  }
+
   private _handleSuggest(idx: number, e: CustomEvent<{ query: string }>) {
     const queryInput = e.detail.query;
     const currentQuery = this.queries[idx] || {};
@@ -2207,7 +2223,8 @@ export class ExploreMultiV2Sk extends LitElement {
                 @remove-key=${(e: CustomEvent) => this._handleRemoveKey(idx, e)}
                 @split=${(e: CustomEvent) => this._handleSplit(e)}
                 @diff-base=${(e: CustomEvent) => this._handleDiffBase(e)}
-                @clear-query=${() => this._onRemoveQueryBar(idx)}></query-bar-sk>
+                @clear-query=${() => this._onRemoveQueryBar(idx)}
+                @clone-query=${() => this._onCloneQueryBar(idx)}></query-bar-sk>
             </div>
           `;
         })}

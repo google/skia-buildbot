@@ -1262,4 +1262,37 @@ describe('explore-multi-v2-sk', () => {
       expect(queryBars.length).to.equal(4);
     });
   });
+
+  describe('cloning query bars', () => {
+    it('duplicates query parameters and inserts the new query next to the cloned one', async () => {
+      element.queries = [{ benchmark: ['blink_perf'] }, { device: ['m1'] }];
+      await element.updateComplete;
+
+      // Simulate clone-query event on the first query bar
+      const firstQueryBar = element.shadowRoot!.querySelectorAll('query-bar-sk')[0];
+      expect(firstQueryBar).to.not.be.undefined;
+
+      firstQueryBar.dispatchEvent(new CustomEvent('clone-query', { bubbles: true }));
+      await element.updateComplete;
+
+      expect(element.queries.length).to.equal(3);
+      expect(element.queries[0]).to.deep.equal({ benchmark: ['blink_perf'] });
+      expect(element.queries[1]).to.deep.equal({ benchmark: ['blink_perf'] }); // inserted copy next to it
+      expect(element.queries[2]).to.deep.equal({ device: ['m1'] });
+    });
+
+    it('auto-expands query bars if total count becomes > 3 after cloning', async () => {
+      element.queries = [{ benchmark: ['blink_perf'] }, { device: ['m1'] }, { arch: ['x86'] }];
+      (element as any)._queriesExpanded = false;
+      await element.updateComplete;
+
+      const firstQueryBar = element.shadowRoot!.querySelectorAll('query-bar-sk')[0];
+      firstQueryBar.dispatchEvent(new CustomEvent('clone-query', { bubbles: true }));
+      await element.updateComplete;
+
+      expect((element as any)._queriesExpanded).to.be.true;
+      const queryBars = element.shadowRoot!.querySelectorAll('query-bar-sk');
+      expect(queryBars.length).to.equal(4);
+    });
+  });
 });
