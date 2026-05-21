@@ -1608,7 +1608,7 @@ export class TraceChartSk extends LitElement {
       let high = s.rows.length - 1;
       while (low <= high) {
         const mid = Math.floor((low + high) / 2);
-        if (s.rows[mid].commit_number < targetDataX) {
+        if (this._xAccessor(s.rows[mid]) < targetDataX) {
           low = mid + 1;
         } else {
           high = mid - 1;

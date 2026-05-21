@@ -482,4 +482,88 @@ describe('trace-chart-sk', () => {
 
     expect(spacing2).to.equal(spacing1);
   });
+
+  it('finds closest point correctly in dateMode', async () => {
+    element.dateMode = true;
+    element.series = [
+      {
+        id: 'test',
+        color: '#fff',
+        rows: [
+          { commit_number: 1, val: 10.0, createdat: 1000 },
+          { commit_number: 2, val: 20.0, createdat: 2000 },
+          { commit_number: 3, val: 30.0, createdat: 3000 },
+        ],
+      },
+    ];
+    await element.updateComplete;
+
+    const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 400 }) as DOMRect;
+
+    const oldGetMapping = (element as any)['_getChartBoundsAndMapping'];
+    (element as any)['_getChartBoundsAndMapping'] = () => ({
+      minX: 1000,
+      maxX: 3000,
+      padding: { left: 0, top: 0, right: 0, bottom: 0 },
+      graphWidth: 1000,
+      graphHeight: 400,
+      mapX: (val: number) => (val - 1000) / 2,
+      unmapX: (px: number) => 1000 + px * 2,
+      mapY: (val: number) => 400 - val * 10,
+      unmapY: (py: number) => (400 - py) / 10,
+    });
+
+    try {
+      const moveEvent = new PointerEvent('pointermove', { clientX: 500, clientY: 200 });
+      (element as any)['_handlePointerMove'](moveEvent);
+
+      expect((element as any)['_hoveredPoint']).to.not.be.null;
+      expect((element as any)['_hoveredPoint']!.row.commit_number).to.equal(2);
+    } finally {
+      (element as any)['_getChartBoundsAndMapping'] = oldGetMapping;
+    }
+  });
+
+  it('finds closest point correctly in dateMode with non-monotonic data', async () => {
+    element.dateMode = true;
+    element.series = [
+      {
+        id: 'test',
+        color: '#fff',
+        rows: [
+          { commit_number: 1, val: 10.0, createdat: 1000 },
+          { commit_number: 2, val: 20.0, createdat: 3000 },
+          { commit_number: 3, val: 30.0, createdat: 2000 },
+        ],
+      },
+    ];
+    await element.updateComplete;
+
+    const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 400 }) as DOMRect;
+
+    const oldGetMapping = (element as any)['_getChartBoundsAndMapping'];
+    (element as any)['_getChartBoundsAndMapping'] = () => ({
+      minX: 1000,
+      maxX: 3000,
+      padding: { left: 0, top: 0, right: 0, bottom: 0 },
+      graphWidth: 1000,
+      graphHeight: 400,
+      mapX: (val: number) => (val - 1000) * 0.5,
+      unmapX: (px: number) => 1000 + px * 2,
+      mapY: (val: number) => 400 - val * 10,
+      unmapY: (py: number) => (400 - py) / 10,
+    });
+
+    try {
+      const moveEvent = new PointerEvent('pointermove', { clientX: 0, clientY: 300 });
+      (element as any)['_handlePointerMove'](moveEvent);
+
+      expect((element as any)['_hoveredPoint']).to.not.be.null;
+      expect((element as any)['_hoveredPoint']!.row.commit_number).to.equal(1);
+    } finally {
+      (element as any)['_getChartBoundsAndMapping'] = oldGetMapping;
+    }
+  });
 });
