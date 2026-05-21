@@ -124,7 +124,7 @@ describe('explore-multi-v2-sk', () => {
     (element as any)._showRegressions = false;
     (element as any)._tooltipDiffs = true;
     (element as any)._showLoadedBounds = true;
-    (element as any)._dateMode = true;
+    (element as any).dateMode = true;
     (element as any)._tracePage = 3;
     (element as any)._pageSize = 25;
     (element as any)._showAllTraces = true;
@@ -161,7 +161,7 @@ describe('explore-multi-v2-sk', () => {
     expect(stateChangedCalled).to.be.true;
 
     stateChangedCalled = false;
-    element['_dateMode'] = true;
+    element['dateMode'] = true;
     await element.updateComplete;
     expect(stateChangedCalled).to.be.true;
 
@@ -197,8 +197,8 @@ describe('explore-multi-v2-sk', () => {
   });
 
   it('syncs begin and end to URL', async () => {
-    (element as any)._begin = 1680000000;
-    (element as any)._end = 1680100000;
+    (element as any).begin = 1680000000;
+    (element as any).end = 1680100000;
 
     (element as any)._stateHasChanged();
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -209,24 +209,51 @@ describe('explore-multi-v2-sk', () => {
   });
 
   it('resolves time range correctly using explicit bounds', () => {
-    (element as any)._begin = 1680000000;
-    (element as any)._end = 1680100000;
+    (element as any).begin = 1680000000;
+    (element as any).end = 1680100000;
     const range1 = (element as any)._resolveTimeRange();
     expect(range1.begin).to.equal(1680000000);
     expect(range1.end).to.equal(1680100000);
   });
 
   it('immediately writes back resolved default bounds to keep state deterministic', () => {
-    (element as any)._begin = -1;
-    (element as any)._end = -1;
+    (element as any).begin = -1;
+    (element as any).end = -1;
 
     const range = (element as any)._resolveTimeRange();
-    expect((element as any)._begin).to.equal(range.begin);
-    expect((element as any)._end).to.equal(range.end);
-    expect((element as any)._begin).to.not.equal(-1);
-    expect((element as any)._end).to.not.equal(-1);
+    expect((element as any).begin).to.equal(range.begin);
+    expect((element as any).end).to.equal(range.end);
+    expect((element as any).begin).to.not.equal(-1);
+    expect((element as any).end).to.not.equal(-1);
   });
 
+  it('syncs dateMode to URL', async () => {
+    (element as any).dateMode = true;
+
+    (element as any)._stateHasChanged();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const url = new URL(window.location.href);
+    expect(url.searchParams.get('dateMode')).to.equal('true');
+  });
+
+  it('deserializes dateMode from URL', async () => {
+    // Clear state
+    window.history.replaceState(null, '', window.location.pathname);
+
+    // Set dateMode in URL
+    const url = new URL(window.location.href);
+    url.searchParams.set('dateMode', 'true');
+    window.history.pushState({}, '', url.toString());
+
+    // Create a new element to see if it picks up the state from URL
+    const newElement = document.createElement('explore-multi-v2-sk') as ExploreMultiV2Sk;
+    document.body.appendChild(newElement);
+    await newElement.updateComplete;
+
+    expect((newElement as any).dateMode).to.be.true;
+    document.body.removeChild(newElement);
+  });
   it('sends all queries to worker', async () => {
     let filterArgs: any = null;
     const mockController = {
@@ -238,7 +265,7 @@ describe('explore-multi-v2-sk', () => {
     };
     (element as any)['_workerController'] = mockController;
 
-    element['_queries'] = [{ bot: ['linux32'], test: ['binary_size'] }, { bot: ['mac64'] }];
+    element['queries'] = [{ bot: ['linux32'], test: ['binary_size'] }, { bot: ['mac64'] }];
 
     element['_triggerWorkerFilter']();
 
@@ -344,7 +371,7 @@ describe('explore-multi-v2-sk', () => {
       element['_seriesData'] = [];
       element['_loadedBounds'] = {};
       element['_globalBounds'] = {};
-      element['_dateMode'] = true;
+      element['dateMode'] = true;
 
       await element['_doHandleViewportChanged']({
         detail: { minCommit: 1700000000.5, maxCommit: 1700005000.7 },
@@ -527,8 +554,8 @@ describe('explore-multi-v2-sk', () => {
     zoomBtn.click();
     await element.updateComplete;
 
-    expect(element['_viewportMinX']).to.equal(100);
-    expect(element['_viewportMaxX']).to.equal(200);
+    expect(element['viewportMinX']).to.equal(100);
+    expect(element['viewportMaxX']).to.equal(200);
     expect(element['_rangeSelection']).to.be.null;
   });
 
@@ -767,8 +794,8 @@ describe('explore-multi-v2-sk', () => {
       // Wait for _fetchMetadata to complete!
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      expect((newElement as any)._queries.length).to.equal(1);
-      expect((newElement as any)._queries[0]['branch_name']).to.deep.equal(['aosp-androidx-main']);
+      expect((newElement as any).queries.length).to.equal(1);
+      expect((newElement as any).queries[0]['branch_name']).to.deep.equal(['aosp-androidx-main']);
 
       document.body.removeChild(newElement);
     } finally {
@@ -783,7 +810,7 @@ describe('explore-multi-v2-sk', () => {
         apply: [{ param: 'stat', values: ['min'], select_only_first: true }],
       },
     ];
-    (element as any)._queries = [{ metric: [] }];
+    (element as any).queries = [{ metric: [] }];
 
     (element as any)._handleSetSelected(
       0,
@@ -792,7 +819,7 @@ describe('explore-multi-v2-sk', () => {
       })
     );
 
-    expect((element as any)._queries[0]['stat']).to.deep.equal(['min']);
+    expect((element as any).queries[0]['stat']).to.deep.equal(['min']);
   });
 
   it('merges anomalymap from fetchTraceValues response correctly stripping stat', async () => {
@@ -994,7 +1021,7 @@ describe('explore-multi-v2-sk', () => {
   });
   it('renders config pills when diffBase or splitKeys is set', async () => {
     element['_diffBase'] = { key: 'test', value: 'Score' };
-    element['_splitKeys'] = new Set(['bot']);
+    element['splitKeys'] = new Set(['bot']);
     await element.updateComplete;
 
     const pills = element.shadowRoot!.querySelectorAll('.config-pill');
@@ -1010,7 +1037,7 @@ describe('explore-multi-v2-sk', () => {
   });
 
   it('adds and removes split keys when split event is fired', async () => {
-    expect(element['_splitKeys'].has('bot')).to.be.false;
+    expect(element['splitKeys'].has('bot')).to.be.false;
 
     const toolbar = element.shadowRoot!.querySelector('explore-toolbar-sk');
     expect(toolbar).to.not.be.null;
@@ -1021,7 +1048,7 @@ describe('explore-multi-v2-sk', () => {
     );
     await element.updateComplete;
 
-    expect(element['_splitKeys'].has('bot')).to.be.true;
+    expect(element['splitKeys'].has('bot')).to.be.true;
 
     // Fire split event to remove 'bot'
     toolbar!.dispatchEvent(
@@ -1029,11 +1056,11 @@ describe('explore-multi-v2-sk', () => {
     );
     await element.updateComplete;
 
-    expect(element['_splitKeys'].has('bot')).to.be.false;
+    expect(element['splitKeys'].has('bot')).to.be.false;
   });
 
   it('removes split keys when clicking remove button on the config pill', async () => {
-    element['_splitKeys'] = new Set(['bot']);
+    element['splitKeys'] = new Set(['bot']);
     await element.updateComplete;
 
     const splitPill = Array.from(element.shadowRoot!.querySelectorAll('.config-pill')).find(
@@ -1047,7 +1074,7 @@ describe('explore-multi-v2-sk', () => {
     removeBtn.click();
     await element.updateComplete;
 
-    expect(element['_splitKeys'].has('bot')).to.be.false;
+    expect(element['splitKeys'].has('bot')).to.be.false;
   });
 
   it('loads queries from a shortcut ID', async () => {
@@ -1066,9 +1093,9 @@ describe('explore-multi-v2-sk', () => {
       await element['_loadShortcut']('mock-shortcut-123');
 
       expect(getShortcutId).to.equal('mock-shortcut-123');
-      expect(element['_queries'].length).to.equal(2);
-      expect(element['_queries'][0]).to.deep.equal({ test: ['A'], stat: ['value'] });
-      expect(element['_queries'][1]).to.deep.equal({ benchmark: ['B'] });
+      expect(element['queries'].length).to.equal(2);
+      expect(element['queries'][0]).to.deep.equal({ test: ['A'], stat: ['value'] });
+      expect(element['queries'][1]).to.deep.equal({ benchmark: ['B'] });
       expect(element['_lastLoadedShortcut']).to.equal('mock-shortcut-123');
     } finally {
       DataService.prototype.getShortcut = originalGetShortcut;
@@ -1084,7 +1111,7 @@ describe('explore-multi-v2-sk', () => {
     };
 
     try {
-      element['_queries'] = [{ test: ['X'] }];
+      element['queries'] = [{ test: ['X'] }];
       await element['_updateShortcut']();
 
       expect(updateConfigs).to.not.be.null;
@@ -1109,12 +1136,12 @@ describe('explore-multi-v2-sk', () => {
 
     try {
       // Start with a valid query and shortcut
-      element['_queries'] = [{ test: ['Z'] }];
+      element['queries'] = [{ test: ['Z'] }];
       element['_shortcut'] = 'some-existing-id';
       element['_lastQueriesJson'] = JSON.stringify([{ test: ['Z'] }]);
 
       // Now clear the query
-      element['_queries'] = [{}];
+      element['queries'] = [{}];
       await element['_updateShortcut']();
 
       expect(updateCalled).to.be.false; // Should not call updateShortcut when empty
@@ -1134,20 +1161,20 @@ describe('explore-multi-v2-sk', () => {
     };
 
     try {
-      element['_queries'] = [{ existing: ['true'] }];
+      element['queries'] = [{ existing: ['true'] }];
       element['_lastLoadedShortcut'] = '';
 
       await element['_loadShortcut']('bad-shortcut-id');
 
       // Queries should remain unchanged from the existing queries
-      expect(element['_queries']).to.deep.equal([{ existing: ['true'] }]);
+      expect(element['queries']).to.deep.equal([{ existing: ['true'] }]);
     } finally {
       DataService.prototype.getShortcut = originalGetShortcut;
     }
   });
 
   it('populates optionsByKeyPerQuery[0] with overridden options for active facets', async () => {
-    element['_queries'] = [{ benchmark: ['v8'] }];
+    element['queries'] = [{ benchmark: ['v8'] }];
     element['_latestActiveFacets'] = ['benchmark'];
 
     const payload = {

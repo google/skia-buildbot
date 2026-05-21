@@ -1,5 +1,5 @@
 import { LitElement, css, html, PropertyValues } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { DataService, TraceValuesRequest, TraceValuesResponse } from '../data-service';
 import { FrameRequest, Regression } from '../json';
 import { TraceSeries } from './trace-types';
@@ -52,7 +52,9 @@ export const SUBREPO_CONFIG: Record<string, { logUrl: string; repoUrl: string }>
 
 @customElement('explore-multi-v2-sk')
 export class ExploreMultiV2Sk extends LitElement {
-  @state() private _queries: Record<string, string[]>[] = [{}];
+  @property({ attribute: false }) queries: Record<string, string[]>[] = [{}];
+
+  @property({ type: Boolean }) embedded = false;
 
   @state() private _shortcut = '';
 
@@ -78,7 +80,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _suggestionsForQueryBar: Suggestion[][] = [];
 
-  @state() private _splitKeys: Set<string> = new Set();
+  @property({ attribute: false }) splitKeys: Set<string> = new Set();
 
   @state() private _includeParams: string[] = [];
 
@@ -90,7 +92,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _smoothingRadius = 20;
 
-  @state() private _dateMode = false;
+  @property({ type: Boolean }) dateMode = false;
 
   @state() private _edgeDetectionFactor = 1.0;
 
@@ -100,9 +102,9 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _seriesData: TraceSeries[] = [];
 
-  @state() private _viewportMinX: number | null = null;
+  @property({ type: Number, reflect: true }) viewportMinX: number | null = null;
 
-  @state() private _viewportMaxX: number | null = null;
+  @property({ type: Number, reflect: true }) viewportMaxX: number | null = null;
 
   @state() private _globalHoverX: number | null = null;
 
@@ -153,9 +155,9 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _showAllTraces = false;
 
-  @state() private _begin: number = -1;
+  @property({ type: Number }) begin = -1;
 
-  @state() private _end: number = -1;
+  @property({ type: Number }) end = -1;
 
   @state() private _user = '';
 
@@ -185,16 +187,17 @@ export class ExploreMultiV2Sk extends LitElement {
     const db = new TraceDatabase();
     db.evictOlderThan(30).catch((e: any) => console.error('Eviction failed:', e));
 
+    let isInitialGetState = true;
     this._stateHasChanged = stateReflector(
       () => {
-        return {
+        const stateObj: Record<string, any> = {
           shortcut: this._shortcut,
           centre: this._normalizeCentre,
           scale: this._normalizeScale,
           hoverMode: this._hoverMode,
           radius: this._smoothingRadius,
           dots: this._showDots,
-          split: Array.from(this._splitKeys).join(','),
+          split: Array.from(this.splitKeys).join(','),
           diff_base: this._diffBase ? `${this._diffBase.key}=${this._diffBase.value}` : '',
           sparklines: this._showSparklines,
           activeStats: this._activeStats.join(','),
@@ -202,22 +205,65 @@ export class ExploreMultiV2Sk extends LitElement {
           tooltipDiffs: this._tooltipDiffs,
           loadedBounds: this._showLoadedBounds,
           evenXAxisSpacing: this._evenXAxisSpacing,
-          dateMode: this._dateMode,
+          dateMode: this.dateMode,
           page: this._tracePage,
           pageSize: this._pageSize,
           showAll: this._showAllTraces,
           subrepo: this._selectedSubrepo,
           edgeFactor: this._edgeDetectionFactor,
           outlier: this._edgeLookahead,
-          begin: this._begin,
-          end: this._end,
+          begin: this.begin,
+          end: this.end,
         };
+
+        // Dynamically preserve all non-managed query parameters from the URL (e.g., from report-page or other elements)
+        const urlParams = new URLSearchParams(window.location.search);
+        const managedKeys = new Set(Object.keys(stateObj));
+        urlParams.forEach((value, key) => {
+          if (!managedKeys.has(key)) {
+            stateObj[key] = value;
+          }
+        });
+
+        if (isInitialGetState) {
+          isInitialGetState = false;
+          // Exclude non-managed keys on the very first capture so stateReflector registers them as dirty/always-serialize
+          urlParams.forEach((_, key) => {
+            if (!managedKeys.has(key)) {
+              delete stateObj[key];
+            }
+          });
+        }
+
+        return stateObj;
       },
       (o: any) => {
         const stateObj = o as any;
-        if (stateObj.shortcut !== undefined) {
+        if (stateObj.shortcut) {
           this._shortcut = stateObj.shortcut;
           void this._loadShortcut(this._shortcut);
+        } else {
+          this._shortcut = stateObj.shortcut || '';
+          if (stateObj.qs !== undefined) {
+            console.log('explore-multi-v2-sk: Raw qs from URL:', stateObj.qs);
+            try {
+              const parsed = JSON.parse(stateObj.qs);
+              if (Array.isArray(parsed)) {
+                this.queries = parsed;
+              } else if (typeof parsed === 'object' && parsed !== null) {
+                console.log('explore-multi-v2-sk: Wrapping object query in array');
+                this.queries = [parsed];
+              } else {
+                console.log('explore-multi-v2-sk: Invalid qs type:', typeof parsed);
+                this.queries = [{}];
+              }
+            } catch (e) {
+              console.error('explore-multi-v2-sk: Failed to parse qs from URL:', e);
+              this.queries = [{}];
+            }
+          } else if (stateObj.q !== undefined) {
+            this.queries = [toParamSet(stateObj.q)];
+          }
         }
         if (stateObj.centre !== undefined) this._normalizeCentre = stateObj.centre;
         if (stateObj.scale !== undefined) this._normalizeScale = stateObj.scale;
@@ -228,7 +274,7 @@ export class ExploreMultiV2Sk extends LitElement {
         if (stateObj.radius !== undefined) this._smoothingRadius = stateObj.radius;
         if (stateObj.dots !== undefined) this._showDots = stateObj.dots;
         if (stateObj.split !== undefined) {
-          this._splitKeys = new Set(stateObj.split ? stateObj.split.split(',') : []);
+          this.splitKeys = new Set(stateObj.split ? stateObj.split.split(',') : []);
         }
         if (stateObj.diff_base) {
           const parts = stateObj.diff_base.split('=');
@@ -269,15 +315,15 @@ export class ExploreMultiV2Sk extends LitElement {
         if (stateObj.loadedBounds !== undefined) this._showLoadedBounds = stateObj.loadedBounds;
         if (stateObj.evenXAxisSpacing !== undefined)
           this._evenXAxisSpacing = stateObj.evenXAxisSpacing;
-        if (stateObj.dateMode !== undefined) this._dateMode = stateObj.dateMode;
+        if (stateObj.dateMode !== undefined) this.dateMode = stateObj.dateMode;
         if (stateObj.page !== undefined) this._tracePage = stateObj.page;
         if (stateObj.pageSize !== undefined) this._pageSize = stateObj.pageSize;
         if (stateObj.showAll !== undefined) this._showAllTraces = stateObj.showAll;
         if (stateObj.subrepo !== undefined) this._selectedSubrepo = stateObj.subrepo;
         if (stateObj.edgeFactor !== undefined) this._edgeDetectionFactor = stateObj.edgeFactor;
         if (stateObj.outlier !== undefined) this._edgeLookahead = stateObj.outlier;
-        if (stateObj.begin !== undefined) this._begin = Number(stateObj.begin);
-        if (stateObj.end !== undefined) this._end = Number(stateObj.end);
+        if (stateObj.begin !== undefined) this.begin = Number(stateObj.begin);
+        if (stateObj.end !== undefined) this.end = Number(stateObj.end);
       },
       true
     );
@@ -349,7 +395,7 @@ export class ExploreMultiV2Sk extends LitElement {
         }
       });
     }
-    const queryObj = this._queries[0];
+    const queryObj = this.queries[0];
     const hasFilters = queryObj
       ? Object.values(queryObj).some((arr) => arr && arr.length > 0)
       : false;
@@ -377,7 +423,7 @@ export class ExploreMultiV2Sk extends LitElement {
       // Override counts for active facets with data from corresponding results
       if (payload.queryResults.length > 1 && this._latestActiveFacets.length > 0) {
         this._latestActiveFacets.forEach((key, index) => {
-          const resultIdx = index + this._queries.length;
+          const resultIdx = index + this.queries.length;
           if (payload.queryResults[resultIdx]) {
             const facetResult = payload.queryResults[resultIdx];
             if (facetResult.paramsByKey && facetResult.paramsByKey[key]) {
@@ -394,7 +440,7 @@ export class ExploreMultiV2Sk extends LitElement {
       const optionsByKeyPerQuery: Record<string, { value: string; count: number }[]>[] = [];
 
       payload.queryResults.forEach((result: any, idx: number) => {
-        if (idx < this._queries.length) {
+        if (idx < this.queries.length) {
           availableParamsPerQuery.push(result.availableParams || []);
           if (idx === 0) {
             optionsByKeyPerQuery.push(mergedOptionsByKey);
@@ -412,14 +458,14 @@ export class ExploreMultiV2Sk extends LitElement {
   private _triggerWorkerFilter() {
     if (!this._workerController?.isReady()) return;
 
-    const queries: Record<string, string[]>[] = [...this._queries];
+    const queries: Record<string, string[]>[] = [...this.queries];
     const activeFacets: string[] = [];
 
     // Add one query per selected facet, with that facet removed
-    for (const key of Object.keys(this._queries[0])) {
-      if (this._queries[0][key] && this._queries[0][key].length > 0) {
+    for (const key of Object.keys(this.queries[0])) {
+      if (this.queries[0][key] && this.queries[0][key].length > 0) {
         activeFacets.push(key);
-        const queryCopy = { ...this._queries[0] };
+        const queryCopy = { ...this.queries[0] };
         delete queryCopy[key];
         queries.push(queryCopy);
       }
@@ -427,7 +473,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
     this._latestActiveFacets = activeFacets;
 
-    this._workerController.filter(queries, this._queries.length);
+    this._workerController.filter(queries, this.queries.length);
   }
 
   static styles = css`
@@ -496,6 +542,9 @@ export class ExploreMultiV2Sk extends LitElement {
 
     .header {
       margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     h1 {
@@ -629,12 +678,13 @@ export class ExploreMultiV2Sk extends LitElement {
     }
   `;
 
-  protected async firstUpdated() {
+  protected firstUpdated() {
     // Yield a macro-tick to guarantee stateReflector's initial stateFromURL microtask
     // completes first and sets loaded=true. This ensures resolved default/partial bounds
     // are successfully written back to the URL rather than being ignored and overwritten.
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    void this._fetchMetadata();
+    setTimeout(() => {
+      void this._fetchMetadata();
+    }, 0);
   }
 
   private async _fetchMetadata() {
@@ -650,11 +700,11 @@ export class ExploreMultiV2Sk extends LitElement {
 
       // Apply defaults to initial query if empty and no shortcut is present
       if (
-        this._queries.length === 1 &&
-        Object.keys(this._queries[0]).length === 0 &&
+        this.queries.length === 1 &&
+        Object.keys(this.queries[0]).length === 0 &&
         !this._shortcut
       ) {
-        this._queries = [{ ...this._defaultParamSelections }];
+        this.queries = [{ ...this._defaultParamSelections }];
       }
 
       if (json && json.dataframe && json.dataframe.paramset) {
@@ -680,7 +730,7 @@ export class ExploreMultiV2Sk extends LitElement {
   }
 
   protected updated(changedProperties: PropertyValues) {
-    if (changedProperties.has('_queries')) {
+    if (changedProperties.has('queries')) {
       this._tracePage = 0;
       if (this._workerController?.isReady()) {
         this._triggerWorkerFilter();
@@ -709,17 +759,17 @@ export class ExploreMultiV2Sk extends LitElement {
     }
 
     if (
-      changedProperties.has('_queries') ||
+      changedProperties.has('queries') ||
       changedProperties.has('_normalizeCentre') ||
       changedProperties.has('_normalizeScale') ||
       changedProperties.has('_hoverMode') ||
       changedProperties.has('_smoothingRadius') ||
       changedProperties.has('_showDots') ||
-      changedProperties.has('_splitKeys') ||
+      changedProperties.has('splitKeys') ||
       changedProperties.has('_diffBase') ||
       changedProperties.has('_showSparklines') ||
       changedProperties.has('_activeStats') ||
-      changedProperties.has('_dateMode') ||
+      changedProperties.has('dateMode') ||
       changedProperties.has('_tracePage') ||
       changedProperties.has('_pageSize') ||
       changedProperties.has('_showAllTraces') ||
@@ -730,8 +780,8 @@ export class ExploreMultiV2Sk extends LitElement {
       changedProperties.has('_tooltipDiffs') ||
       changedProperties.has('_showLoadedBounds') ||
       changedProperties.has('_evenXAxisSpacing') ||
-      changedProperties.has('_begin') ||
-      changedProperties.has('_end')
+      changedProperties.has('begin') ||
+      changedProperties.has('end')
     ) {
       this._stateHasChanged();
     }
@@ -754,7 +804,7 @@ export class ExploreMultiV2Sk extends LitElement {
         }
         if (queries.length > 0) {
           this._lastQueriesJson = JSON.stringify(queries);
-          this._queries = queries;
+          this.queries = queries;
         }
       }
     } catch (e) {
@@ -768,13 +818,13 @@ export class ExploreMultiV2Sk extends LitElement {
     if ((window as any).perf && (window as any).perf.disable_shortcut_update) {
       return;
     }
-    const currentJson = JSON.stringify(this._queries);
+    const currentJson = JSON.stringify(this.queries);
     if (currentJson === this._lastQueriesJson) {
       return;
     }
     this._lastQueriesJson = currentJson;
 
-    const graphConfigs = this._queries
+    const graphConfigs = this.queries
       .filter((q) => Object.keys(q).length > 0)
       .map((q) => {
         const config = new GraphConfig();
@@ -832,8 +882,8 @@ export class ExploreMultiV2Sk extends LitElement {
     }
     const defaultRangeS = this._defaults?.default_range || 150 * 24 * 3600;
 
-    let begin = this._begin;
-    let end = this._end;
+    let begin = this.begin;
+    let end = this.end;
 
     const beginProvided = begin !== -1;
     const endProvided = end !== -1;
@@ -864,10 +914,10 @@ export class ExploreMultiV2Sk extends LitElement {
 
     // Write back defaults/partials to keep the URL deterministic
     if (!beginProvided) {
-      this._begin = resolvedBegin;
+      this.begin = resolvedBegin;
     }
     if (!endProvided) {
-      this._end = resolvedEnd;
+      this.end = resolvedEnd;
     }
 
     return {
@@ -876,8 +926,8 @@ export class ExploreMultiV2Sk extends LitElement {
     };
   }
 
-  private async _fetchData(): Promise<void> {
-    console.log('[_fetchData] called');
+  private async _fetchData(retryCount = 0): Promise<void> {
+    console.log('[_fetchData] called, retryCount:', retryCount);
     const startIdx = this._tracePage * this._pageSize;
     const endIdx = startIdx + this._pageSize;
     const visibleIds = this._showAllTraces
@@ -893,7 +943,11 @@ export class ExploreMultiV2Sk extends LitElement {
     try {
       const { begin, end } = this._resolveTimeRange();
       const quantizedNow = Math.floor(end / 3600) * 3600;
-      const quantizedBegin = Math.floor(begin / 3600) * 3600;
+      let quantizedBegin = Math.floor(begin / 3600) * 3600;
+      if (retryCount > 0) {
+        const duration = (end - begin) * Math.pow(2, retryCount);
+        quantizedBegin = quantizedNow - duration;
+      }
 
       let reqTraceIds = [...visibleIds];
 
@@ -965,20 +1019,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
         if (cached.dataframe) {
           const newSeries = this._translateDataFrame(cached.dataframe);
-          this._seriesData = this._mergeSeriesWithStats(this._seriesData, newSeries);
-          this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
-          if (this._viewportMinX === null || this._viewportMaxX === null) {
-            const sharedBounds = calculateSharedBounds(
-              this._seriesData,
-              this._globalBounds,
-              this._dateMode
-            );
-            if (sharedBounds) {
-              const source = Object.keys(sharedBounds)[0];
-              this._viewportMinX = sharedBounds[source].min;
-              this._viewportMaxX = sharedBounds[source].max;
-            }
-          }
+          this._processNewSeries(newSeries, true);
           void this._prefetchHistory();
         }
         return;
@@ -1025,21 +1066,16 @@ export class ExploreMultiV2Sk extends LitElement {
       if (response && response.dataframe) {
         const newSeries = this._translateDataFrame(response.dataframe);
 
-        // If traceset is empty, render empty chart.
-        this._seriesData = this._mergeSeriesWithStats(this._seriesData, newSeries);
-        this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
-        if (this._viewportMinX === null || this._viewportMaxX === null) {
-          const sharedBounds = calculateSharedBounds(
-            this._seriesData,
-            this._globalBounds,
-            this._dateMode
+        if (newSeries.length === 0 && retryCount < 6) {
+          console.log(
+            'Out of bounds empty traceset detected. Widening duration bounds retry:',
+            retryCount + 1
           );
-          if (sharedBounds) {
-            const source = Object.keys(sharedBounds)[0];
-            this._viewportMinX = sharedBounds[source].min;
-            this._viewportMaxX = sharedBounds[source].max;
-          }
+          return await this._fetchData(retryCount + 1);
         }
+
+        // If traceset is empty, render empty chart.
+        this._processNewSeries(newSeries, true);
         await db.set(cacheKey, response);
         void this._prefetchHistory();
       }
@@ -1106,8 +1142,7 @@ export class ExploreMultiV2Sk extends LitElement {
         console.log('Prefetch serving from cache:', cacheKey);
         if (cached.dataframe) {
           const newSeries = this._translateDataFrame(cached.dataframe);
-          this._seriesData = this._mergeSeriesWithStats(this._seriesData, newSeries);
-          this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
+          this._processNewSeries(newSeries, false);
         }
         return;
       }
@@ -1124,8 +1159,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
       if (response && response.dataframe) {
         const newSeries = this._translateDataFrame(response.dataframe);
-        this._seriesData = this._mergeSeriesWithStats(this._seriesData, newSeries);
-        this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
+        this._processNewSeries(newSeries, false);
         await db.set(cacheKey, response);
       }
     } catch (e) {
@@ -1142,10 +1176,11 @@ export class ExploreMultiV2Sk extends LitElement {
   }
 
   private _onResetZoom() {
-    this._viewportMinX = null;
-    this._viewportMaxX = null;
-    this._begin = -1;
-    this._end = -1;
+    this.viewportMinX = null;
+    this.viewportMaxX = null;
+    this.begin = -1;
+    this.end = -1;
+    this._resolveTimeRange();
     this.requestUpdate();
   }
 
@@ -1247,23 +1282,23 @@ export class ExploreMultiV2Sk extends LitElement {
     const { minCommit, maxCommit } = detail;
 
     // Update viewport instantly for visual sync
-    this._viewportMinX = minCommit;
-    this._viewportMaxX = maxCommit;
+    this.viewportMinX = minCommit;
+    this.viewportMaxX = maxCommit;
 
-    if (this._dateMode) {
-      this._begin = Math.floor(minCommit);
-      this._end = Math.ceil(maxCommit);
+    if (this.dateMode) {
+      this.begin = Math.floor(minCommit);
+      this.end = Math.ceil(maxCommit);
       this._stateHasChanged();
     } else {
       const beginTime = this._translateCommitToTimestamp(Math.floor(minCommit));
       const endTime = this._translateCommitToTimestamp(Math.ceil(maxCommit));
       let changed = false;
-      if (beginTime !== -1 && beginTime !== this._begin) {
-        this._begin = beginTime;
+      if (beginTime !== -1 && beginTime !== this.begin) {
+        this.begin = beginTime;
         changed = true;
       }
-      if (endTime !== -1 && endTime !== this._end) {
-        this._end = endTime;
+      if (endTime !== -1 && endTime !== this.end) {
+        this.end = endTime;
         changed = true;
       }
       if (changed) {
@@ -1283,27 +1318,27 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _handleSummaryRangeSelected(e: CustomEvent<{ begin: number; end: number }>) {
     const { begin, end } = e.detail;
-    if (this._viewportMinX === begin && this._viewportMaxX === end) {
+    if (this.viewportMinX === begin && this.viewportMaxX === end) {
       return;
     }
 
-    this._viewportMinX = begin;
-    this._viewportMaxX = end;
+    this.viewportMinX = begin;
+    this.viewportMaxX = end;
 
-    if (this._dateMode) {
-      this._begin = Math.floor(begin);
-      this._end = Math.ceil(end);
+    if (this.dateMode) {
+      this.begin = Math.floor(begin);
+      this.end = Math.ceil(end);
       this._stateHasChanged();
     } else {
       const beginTime = this._translateCommitToTimestamp(Math.floor(begin));
       const endTime = this._translateCommitToTimestamp(Math.ceil(end));
       let changed = false;
-      if (beginTime !== -1 && beginTime !== this._begin) {
-        this._begin = beginTime;
+      if (beginTime !== -1 && beginTime !== this.begin) {
+        this.begin = beginTime;
         changed = true;
       }
-      if (endTime !== -1 && endTime !== this._end) {
-        this._end = endTime;
+      if (endTime !== -1 && endTime !== this.end) {
+        this.end = endTime;
         changed = true;
       }
       if (changed) {
@@ -1342,7 +1377,7 @@ export class ExploreMultiV2Sk extends LitElement {
       this._loadedBounds,
       this._globalBounds,
       this._getPrimaryKey.bind(this),
-      this._dateMode
+      this.dateMode
     );
     console.log('[_doHandleViewportChanged] requests:', requests);
 
@@ -1353,7 +1388,7 @@ export class ExploreMultiV2Sk extends LitElement {
           min_commit: 0,
           max_commit: 0,
         };
-        if (this._dateMode) {
+        if (this.dateMode) {
           fetchReq.begin = Math.floor(req.min || 0);
           fetchReq.end = Math.ceil(req.max || 0);
         } else {
@@ -1492,11 +1527,11 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _zoomToRange() {
     if (!this._rangeSelection) return;
-    this._viewportMinX = this._rangeSelection.minCommit;
-    this._viewportMaxX = this._rangeSelection.maxCommit;
-    if (this._dateMode) {
-      this._begin = Math.floor(this._rangeSelection.minCommit);
-      this._end = Math.ceil(this._rangeSelection.maxCommit);
+    this.viewportMinX = this._rangeSelection.minCommit;
+    this.viewportMaxX = this._rangeSelection.maxCommit;
+    if (this.dateMode) {
+      this.begin = Math.floor(this._rangeSelection.minCommit);
+      this.end = Math.ceil(this._rangeSelection.maxCommit);
     }
     this._rangeSelection = null;
     this.requestUpdate();
@@ -1522,7 +1557,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _handleRemoveTrace(id: string) {
     this._seriesData = this._seriesData.filter((s) => s.id !== id);
-    this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
+    this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
     delete this._globalBounds[id];
     this.requestUpdate();
   }
@@ -1530,7 +1565,7 @@ export class ExploreMultiV2Sk extends LitElement {
   private _handleCloseChart(ids: string[]) {
     const idSet = new Set(ids);
     this._seriesData = this._seriesData.filter((s) => !idSet.has(s.id));
-    this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
+    this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
     ids.forEach((id) => delete this._globalBounds[id]);
     this.requestUpdate();
   }
@@ -1573,7 +1608,7 @@ export class ExploreMultiV2Sk extends LitElement {
     });
 
     this._seriesData = newSeries;
-    this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
+    this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
   }
 
   private _translateDataFrame(df: any): TraceSeries[] {
@@ -1686,6 +1721,38 @@ export class ExploreMultiV2Sk extends LitElement {
     return key;
   }
 
+  private async _toggleV2Mode() {
+    const graphConfigs = this.queries.map((q) => {
+      const config = new GraphConfig();
+      config.queries = [fromParamSet(q)];
+      return config;
+    });
+
+    const urlParams = new URLSearchParams();
+    if (graphConfigs.length > 0) {
+      const shortcutId = await updateShortcut(graphConfigs);
+      if (shortcutId) {
+        urlParams.set('shortcut', shortcutId);
+      }
+    }
+    if (this.splitKeys.size > 0) {
+      urlParams.set('splitByKeys', Array.from(this.splitKeys).join(','));
+    }
+    if (this.dateMode) {
+      urlParams.set('dateAxis', 'true');
+    }
+    const currentParams = new URLSearchParams(window.location.search);
+    const preserveParams = ['bugID', 'anomalyIDs', 'anomalyGroupID', 'sid', 'rev'];
+    preserveParams.forEach((param) => {
+      if (currentParams.has(param)) {
+        urlParams.set(param, currentParams.get(param)!);
+      }
+    });
+
+    const nextSearch = urlParams.toString();
+    window.location.href = `/m${nextSearch ? `?${nextSearch}` : ''}`;
+  }
+
   private _mergeSeriesWithStats(existing: TraceSeries[], newSeries: TraceSeries[]): TraceSeries[] {
     const existingMap = new Map(existing.map((s) => [s.id, s]));
 
@@ -1709,6 +1776,27 @@ export class ExploreMultiV2Sk extends LitElement {
     return Array.from(existingMap.values());
   }
 
+  /**
+   * Merges new series into state, calculates loaded bounds, and initializes
+   * viewport bounds if they are currently unset.
+   */
+  private _processNewSeries(newSeries: TraceSeries[], updateViewport = true) {
+    this._seriesData = this._mergeSeriesWithStats(this._seriesData, newSeries);
+    this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
+    if (updateViewport && (this.viewportMinX === null || this.viewportMaxX === null)) {
+      const sharedBounds = calculateSharedBounds(
+        this._seriesData,
+        this._globalBounds,
+        this.dateMode
+      );
+      if (sharedBounds) {
+        const source = Object.keys(sharedBounds)[0];
+        this.viewportMinX = sharedBounds[source].min;
+        this.viewportMaxX = sharedBounds[source].max;
+      }
+    }
+  }
+
   private _handleHoverChanged(e: CustomEvent<{ dataX: number | null }>) {
     this._globalHoverX = e.detail.dataX;
   }
@@ -1718,18 +1806,18 @@ export class ExploreMultiV2Sk extends LitElement {
   }
 
   private _onAddQuery() {
-    this._queries = [...this._queries, { ...this._defaultParamSelections }];
+    this.queries = [...this.queries, { ...this._defaultParamSelections }];
   }
 
   private _onRemoveQueryBar(idx: number) {
-    if (this._queries.length > 1) {
-      this._queries = this._queries.filter((_, i) => i !== idx);
+    if (this.queries.length > 1) {
+      this.queries = this.queries.filter((_, i) => i !== idx);
     }
   }
 
   private _handleSuggest(idx: number, e: CustomEvent<{ query: string }>) {
     const queryInput = e.detail.query;
-    const currentQuery = this._queries[idx] || {};
+    const currentQuery = this.queries[idx] || {};
     const availableParams = this._availableParamsPerQuery[idx] || this._availableParams;
 
     this._workerController?.suggest(queryInput, currentQuery, idx, availableParams);
@@ -1737,17 +1825,17 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _handleAddQuery(idx: number, e: CustomEvent<{ key: string; value: string }>) {
     const { key, value } = e.detail;
-    const queries = [...this._queries];
+    const queries = [...this.queries];
     const current = queries[idx][key] || [];
     if (!current.includes(value)) {
       queries[idx] = { ...queries[idx], [key]: [...current, value] };
-      this._queries = queries;
+      this.queries = queries;
     }
   }
 
   private _handleRemoveQuery(idx: number, e: CustomEvent<{ key: string; value: string }>) {
     const { key, value } = e.detail;
-    const queries = [...this._queries];
+    const queries = [...this.queries];
     const current = queries[idx][key] || [];
     const updated = current.filter((v) => v !== value);
     if (updated.length === 0) {
@@ -1757,12 +1845,12 @@ export class ExploreMultiV2Sk extends LitElement {
     } else {
       queries[idx] = { ...queries[idx], [key]: updated };
     }
-    this._queries = queries;
+    this.queries = queries;
   }
 
   private _handleSetSelected(idx: number, e: CustomEvent<{ key: string; values: string[] }>) {
     const { key, values } = e.detail;
-    const queries = [...this._queries];
+    const queries = [...this.queries];
     queries[idx] = { ...queries[idx], [key]: values };
 
     // Apply conditional defaults
@@ -1783,37 +1871,37 @@ export class ExploreMultiV2Sk extends LitElement {
       }
     }
 
-    this._queries = queries;
+    this.queries = queries;
   }
 
   private _handleRemoveKey(idx: number, e: CustomEvent<{ key: string }>) {
     if (!e.detail) {
-      const queries = [...this._queries];
+      const queries = [...this.queries];
       queries[idx] = {};
-      this._queries = queries;
+      this.queries = queries;
       return;
     }
     const { key } = e.detail;
-    const queries = [...this._queries];
+    const queries = [...this.queries];
     const nextQuery = { ...queries[idx] };
     delete nextQuery[key];
     queries[idx] = nextQuery;
-    this._queries = queries;
+    this.queries = queries;
   }
 
   private _handleSplit(e: CustomEvent<{ key: string }>) {
     const { key } = e.detail;
-    const nextSplit = new Set(this._splitKeys);
+    const nextSplit = new Set(this.splitKeys);
     if (nextSplit.has(key)) {
       nextSplit.delete(key);
     } else {
       nextSplit.add(key);
     }
-    this._splitKeys = nextSplit;
+    this.splitKeys = nextSplit;
   }
 
   private _handleReorderSplitKeys(e: CustomEvent<{ keys: string[] }>) {
-    this._splitKeys = new Set(e.detail.keys);
+    this.splitKeys = new Set(e.detail.keys);
   }
 
   private _handleDiffBase(e: CustomEvent<{ key: string; value: string }>) {
@@ -1970,14 +2058,18 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _handleControlChange(e: CustomEvent<{ name: string; value: any }>) {
     const { name, value } = e.detail;
-    (this as any)[`_${name}`] = value;
+    if (name in this) {
+      (this as any)[name] = value;
+    } else {
+      (this as any)[`_${name}`] = value;
+    }
 
     // Handle side effects
     if (name === 'dateMode') {
       this._globalBounds = {};
-      this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this._dateMode);
-      this._viewportMinX = null;
-      this._viewportMaxX = null;
+      this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
+      this.viewportMinX = null;
+      this.viewportMaxX = null;
     } else if (name === 'smooth') {
       this._hoverMode = value ? 'both' : 'original';
     }
@@ -2023,28 +2115,55 @@ export class ExploreMultiV2Sk extends LitElement {
         );
 
     const currentPageTraces = displaySeries.filter((s) => currentVisibleIds.has(s.id));
-    const groups = computeSplitGroups(currentPageTraces, this._splitKeys);
+    const groups = computeSplitGroups(currentPageTraces, this.splitKeys);
 
     return html`
-      <div class="header">
-        <h1>Explore Multi V2</h1>
-        <p class="subtitle">High-performance custom dimension analysis (Work in Progress)</p>
-      </div>
+      ${this.embedded
+        ? ''
+        : html`
+            <div class="header">
+              <div>
+                <h1>Explore Multi V2</h1>
+                <p class="subtitle">
+                  High-performance custom dimension analysis (Work in Progress)
+                </p>
+              </div>
+              <div
+                class="v2-toggle-container"
+                style="display: inline-flex; align-items: center; gap: 12px; border-radius: 8px; padding: 8px 16px; border: 1px solid var(--outline, rgba(255,255,255,0.1)); background-color: rgba(128,128,128,0.05);">
+                <span
+                  style="font-size: 12px; font-weight: 600; color: var(--on-background, #cbd5e1);"
+                  >Explore Multi V2:</span
+                >
+                <button
+                  @click=${this._toggleV2Mode}
+                  style="background: var(--primary, #1a73e8); color: white; border: none; padding: 4px 16px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+                  ACTIVE (Switch to Legacy)
+                </button>
+              </div>
+            </div>
+          `}
 
       <div class="workspace">
         <div class="section-title">Faceted Search Bar</div>
-        ${this._queries.map(
+        ${this.queries.map(
           (q, idx) => html`
             <div class="query-row" style="display: flex; align-items: center; gap: 8px;">
               <query-bar-sk
                 style="flex: 1;"
                 .query=${q}
-                .availableParams=${this._availableParamsPerQuery[idx] || this._availableParams}
-                .optionsByKey=${this._optionsByKeyPerQuery[idx] || this._optionsByKey}
-                .splitKeys=${this._splitKeys}
+                .availableParams=${this._availableParamsPerQuery[idx] &&
+                this._availableParamsPerQuery[idx].length > 0
+                  ? this._availableParamsPerQuery[idx]
+                  : this._availableParams}
+                .optionsByKey=${this._optionsByKeyPerQuery[idx] &&
+                Object.keys(this._optionsByKeyPerQuery[idx]).length > 0
+                  ? this._optionsByKeyPerQuery[idx]
+                  : this._optionsByKey}
+                .splitKeys=${this.splitKeys}
                 .includeParams=${this._includeParams}
                 .defaults=${this._defaults}
-                .showRemoveQueryButton=${this._queries.length > 1}
+                .showRemoveQueryButton=${this.queries.length > 1}
                 .externalSuggestions=${this._suggestionsForQueryBar[idx] || null}
                 @suggest=${(e: CustomEvent) => this._handleSuggest(idx, e)}
                 @add-query=${(e: CustomEvent) => this._handleAddQuery(idx, e)}
@@ -2064,10 +2183,10 @@ export class ExploreMultiV2Sk extends LitElement {
           </button>
         </div>
 
-        ${this._diffBase || this._splitKeys.size > 0
+        ${this._diffBase || this.splitKeys.size > 0
           ? html`
               <div class="config-pills">
-                ${Array.from(this._splitKeys).map(
+                ${Array.from(this.splitKeys).map(
                   (key) => html`
                     <div class="config-pill">
                       <span class="config-pill-label">Split by:</span>
@@ -2123,13 +2242,13 @@ export class ExploreMultiV2Sk extends LitElement {
           .showRegressions=${this._showRegressions}
           .tooltipDiffs=${this._tooltipDiffs}
           .showLoadedBounds=${this._showLoadedBounds}
-          .dateMode=${this._dateMode}
+          .dateMode=${this.dateMode}
           .hoverMode=${this._hoverMode}
           .smoothingRadius=${this._smoothingRadius}
           .edgeDetectionFactor=${this._edgeDetectionFactor}
           .edgeLookahead=${this._edgeLookahead}
           .availableSplitKeys=${this._availableSplitKeys}
-          .activeSplitKeys=${Array.from(this._splitKeys)}
+          .activeSplitKeys=${Array.from(this.splitKeys)}
           .pageSize=${this._pageSize}
           @control-change=${this._handleControlChange}
           @split=${this._handleSplit}
@@ -2155,7 +2274,7 @@ export class ExploreMultiV2Sk extends LitElement {
                 .isSparkline=${this._showSparklines}
                 .loading=${this._loading}
                 .series=${g.series}
-                .dateMode=${this._dateMode}
+                .dateMode=${this.dateMode}
                 .regressions=${this._showRegressions ? this._regressions : {}}
                 .normalizeCentre=${this._normalizeCentre}
                 .normalizeScale=${this._normalizeScale}
@@ -2166,8 +2285,8 @@ export class ExploreMultiV2Sk extends LitElement {
                 .showDots=${this._showDots}
                 .evenXAxisSpacing=${this._evenXAxisSpacing}
                 .activeStats=${new Set(this._activeStats)}
-                .viewportMinX=${this._viewportMinX}
-                .viewportMaxX=${this._viewportMaxX}
+                .viewportMinX=${this.viewportMinX}
+                .viewportMaxX=${this.viewportMaxX}
                 .globalHoverX=${this._globalHoverX}
                 .globalPinnedX=${this._globalPinnedX}
                 .loadedBounds=${this._loadedBounds}
@@ -2175,7 +2294,7 @@ export class ExploreMultiV2Sk extends LitElement {
                 .showLoadedBounds=${this._showLoadedBounds}
                 .tooltipDiffs=${this._tooltipDiffs}
                 .selectedSubrepo=${this._selectedSubrepo}
-                .activeSplitKeys=${Array.from(this._splitKeys)}
+                .activeSplitKeys=${Array.from(this.splitKeys)}
                 .user_id=${this._user}
                 .yAxisLabel=${this._determineYAxisTitle(g.series.map((s) => s.id))}
                 @viewport-changed=${this._handleViewportChanged}
@@ -2192,9 +2311,9 @@ export class ExploreMultiV2Sk extends LitElement {
                   slot="summary"
                   ?hidden=${!this._showSummaryBar}
                   .series=${g.series}
-                  .domain=${this._dateMode ? 'date' : 'commit'}
-                  .viewportMinX=${this._viewportMinX}
-                  .viewportMaxX=${this._viewportMaxX}
+                  .domain=${this.dateMode ? 'date' : 'commit'}
+                  .viewportMinX=${this.viewportMinX}
+                  .viewportMaxX=${this.viewportMaxX}
                   .evenXAxisSpacing=${this._evenXAxisSpacing}
                   .loading=${this._summaryLoading}
                   @summary-range-selected=${this._handleSummaryRangeSelected}>

@@ -482,4 +482,163 @@ describe('ReportPageSk', () => {
       assert.isTrue(graph2.setUseDiscreteAxis.notCalled, 'graph2 should not be updated by handler');
     });
   });
+
+  describe('V2 Dashboard Integration', () => {
+    it('renders explore-multi-v2-sk when the v2 url flag is present', async () => {
+      const originalSearch = window.location.search;
+      window.history.replaceState({}, '', '?sid=abc&v2=true');
+
+      // Mock the Web Worker and its static assets to avoid real network fetch requests
+      (window as any).WORKER_URL =
+        'data:application/javascript,self.postMessage({ type: "LOADED" }); self.onmessage = (e) => { if (e.data.type === "INIT") { self.postMessage({ type: "READY" }); } };';
+      fetchMock.get('glob:*/filter.worker.js', 'self.postMessage({ type: "LOADED" });');
+      fetchMock.get('glob:*/meta.json', { version: 'test-version' });
+      fetchMock.get('glob:*/filter.wasm', new ArrayBuffer(0));
+      fetchMock.get('glob:*/params.json', {});
+      fetchMock.get('glob:*/traces.json', new ArrayBuffer(0));
+
+      const anomalies = [createMockAnomaly(0)];
+      const timerangeMap = { '0': createMockTimerange() };
+
+      // Stub the feature flag property to guarantee opt-in path activation in the test runner
+      const isV2Stub = sinon.stub(ReportPageSk.prototype as any, 'isV2Enabled').get(() => true);
+
+      fetchMock.post('/_/anomalies/group_report', {
+        anomaly_list: anomalies,
+        timerange_map: timerangeMap,
+        selected_keys: ['0'],
+      });
+
+      element = factory();
+      const table = element.querySelector<AnomaliesTableSk>('#anomaly-table')!;
+      sinon.stub(table, 'populateTable').resolves();
+      sinon.stub(table, 'checkSelectedAnomalies');
+
+      await fetchMock.flush(true);
+      // Wait for async fetch anomalies promise chain to resolve and render the child
+      await waitUntil(() => element.querySelector('explore-multi-v2-sk') !== null, 5000);
+
+      const multiExplore = element.querySelector('explore-multi-v2-sk');
+      assert.isNotNull(multiExplore, 'explore-multi-v2-sk should be rendered');
+      assert.isNull(element.querySelector('graph-list-sk'), 'graph-list-sk should NOT be rendered');
+
+      window.history.replaceState({}, '', originalSearch);
+      isV2Stub.restore();
+    });
+
+    describe('Split keys logic for V2 Dashboard', () => {
+      beforeEach(async () => {
+        fetchMock.post('/_/anomalies/group_report', {
+          anomaly_list: [],
+          timerange_map: {},
+          selected_keys: [],
+        });
+        await initializeElement();
+        await fetchMock.flush(true);
+
+        sinon.stub(element as any, 'isV2Enabled').get(() => true);
+      });
+
+      it('splits only by specific subtest keys when they vary, and ignores base keys', () => {
+        const anomaly1 = createMockAnomaly(0);
+        anomaly1.test_path = ',master=m1,bot=b1,benchmark=bench1,test=t1,subtest_1=s1';
+        const anomaly2 = createMockAnomaly(1);
+        anomaly2.test_path = ',master=m2,bot=b1,benchmark=bench1,test=t1,subtest_1=s2';
+
+        const timerangeMap = {
+          '0': createMockTimerange(),
+          '1': createMockTimerange(),
+        };
+
+        element['anomalyTracker'].load([anomaly1, anomaly2], timerangeMap, ['0', '1']);
+
+        element['updateMultiExploreStateV2']();
+
+        assert.deepEqual(element['_splitKeysV2'], new Set(['subtest_1']));
+      });
+
+      it('falls back to varying base keys when no subtest keys vary', () => {
+        const anomaly1 = createMockAnomaly(0);
+        anomaly1.test_path = ',master=m1,bot=b1,benchmark=bench1,test=t1';
+        const anomaly2 = createMockAnomaly(1);
+        anomaly2.test_path = ',master=m2,bot=b1,benchmark=bench1,test=t1';
+
+        const timerangeMap = {
+          '0': createMockTimerange(),
+          '1': createMockTimerange(),
+        };
+
+        element['anomalyTracker'].load([anomaly1, anomaly2], timerangeMap, ['0', '1']);
+
+        element['updateMultiExploreStateV2']();
+
+        assert.deepEqual(element['_splitKeysV2'], new Set(['master']));
+      });
+
+      it('never splits by unit, stat, or improvement_dir', () => {
+        const anomaly1 = createMockAnomaly(0);
+        anomaly1.test_path = ',unit=u1,stat=s1,improvement_dir=d1,bot=b1';
+        const anomaly2 = createMockAnomaly(1);
+        anomaly2.test_path = ',unit=u2,stat=s2,improvement_dir=d2,bot=b1';
+
+        const timerangeMap = {
+          '0': createMockTimerange(),
+          '1': createMockTimerange(),
+        };
+
+        element['anomalyTracker'].load([anomaly1, anomaly2], timerangeMap, ['0', '1']);
+
+        element['updateMultiExploreStateV2']();
+
+        assert.deepEqual(element['_splitKeysV2'], new Set<string>());
+      });
+    });
+
+    describe('Bounding box and timestamp calculations for V2 Dashboard', () => {
+      beforeEach(async () => {
+        fetchMock.post('/_/anomalies/group_report', {
+          anomaly_list: [],
+          timerange_map: {},
+          selected_keys: [],
+        });
+        await initializeElement();
+        await fetchMock.flush(true);
+
+        sinon.stub(element as any, 'isV2Enabled').get(() => true);
+      });
+
+      it('calculates the correct viewport and timestamp range bounds', () => {
+        const anomaly1 = createMockAnomaly(0);
+        anomaly1.start_revision = 1000;
+        anomaly1.end_revision = 1100;
+        anomaly1.test_path = ',master=m1,bot=b1,benchmark=bench1,test=t1';
+
+        const anomaly2 = createMockAnomaly(1);
+        anomaly2.start_revision = 950;
+        anomaly2.end_revision = 1250;
+        anomaly2.test_path = ',master=m1,bot=b1,benchmark=bench1,test=t1';
+
+        const timerangeMap = {
+          '0': { begin: 2000, end: 3000 },
+          '1': { begin: 1500, end: 3500 },
+        };
+
+        element['anomalyTracker'].load([anomaly1, anomaly2], timerangeMap, ['0', '1']);
+
+        element['updateMultiExploreStateV2']();
+
+        // minCommit = 950, maxCommit = 1250
+        // viewportMinX = Math.max(0, 950 - 100) = 850
+        // viewportMaxX = 1250 + 100 = 1350
+        assert.strictEqual(element['_viewportMinXV2'], 850);
+        assert.strictEqual(element['_viewportMaxXV2'], 1350);
+
+        // minBegin = 1500, maxEnd = 3500
+        // beginV2 = 1500 - 7 * 24 * 60 * 60
+        // endV2 = 3500 + 7 * 24 * 60 * 60
+        assert.strictEqual(element['_beginV2'], 1500 - 7 * 24 * 60 * 60);
+        assert.strictEqual(element['_endV2'], 3500 + 7 * 24 * 60 * 60);
+      });
+    });
+  });
 });

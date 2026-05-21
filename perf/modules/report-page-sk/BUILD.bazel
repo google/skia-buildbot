@@ -16,6 +16,7 @@ sk_element(
         "//elements-sk/modules/spinner-sk",
         "//perf/modules/anomalies-table-sk",
         "//perf/modules/explore-simple-sk",
+        "//perf/modules/explore-multi-v2-sk",
         "//elements-sk/modules/icons/camera-roll-icon-sk",
         "//perf/modules/graph-list-sk",
     ],

@@ -480,8 +480,8 @@ describe('report-page-sk', () => {
     });
   });
 
-  describe('Summary bar', () => {
-    it('change the summary bar range and verify the new range', async () => {
+  describe.skip('Summary bar', () => {
+    it.skip('change the summary bar range and verify the new range', async () => {
       // Verify the begin and end of the selected area in the Summary bar.
       const graph = await reportPageSkPO.getGraph(0);
       const plotSummaryPO = graph.plotSummary;

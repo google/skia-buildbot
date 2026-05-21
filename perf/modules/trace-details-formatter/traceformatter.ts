@@ -1,4 +1,4 @@
-import { fromParamSet } from '../../../infra-sk/modules/query';
+import { fromParamSet, toParamSet } from '../../../infra-sk/modules/query';
 import { Params, ParamSet, TraceFormat } from '../json';
 import { makeKey } from '../paramtools';
 
@@ -13,6 +13,21 @@ const STATISTIC_SUFFIX_TO_VALUE_MAP = new Map<string, string>([
   ['sum', 'sum'],
 ]);
 
+function parseCommaSeparatedParamSet(trace: string): ParamSet {
+  const paramSet: Record<string, string[]> = {};
+  const parts = trace.split(',');
+  parts.forEach((part) => {
+    if (!part) return;
+    const idx = part.indexOf('=');
+    if (idx !== -1) {
+      const k = part.substring(0, idx);
+      const v = part.substring(idx + 1);
+      paramSet[k] = [v];
+    }
+  });
+  return ParamSet(paramSet);
+}
+
 // TraceFormatter provides an interface to format trace details.
 export interface TraceFormatter {
   // formatTrace returns a formatted string for the given param set
@@ -20,6 +35,9 @@ export interface TraceFormatter {
 
   //formatQuery returns a formatted query string for the given trace string.
   formatQuery(trace: string): string;
+
+  //formatParamSet returns a ParamSet for the given trace string.
+  formatParamSet(trace: string): ParamSet;
 }
 
 // DefaultTraceFormatter provides default trace formatting
@@ -28,8 +46,18 @@ export class DefaultTraceFormatter implements TraceFormatter {
     return `Trace ID: ${makeKey(params)}`;
   }
 
-  formatQuery(_: string): string {
+  formatQuery(trace: string): string {
+    if (trace.startsWith(',') || trace.includes('=')) {
+      return fromParamSet(this.formatParamSet(trace));
+    }
     return '';
+  }
+
+  formatParamSet(trace: string): ParamSet {
+    if (trace.startsWith(',') || trace.includes('=')) {
+      return parseCommaSeparatedParamSet(trace);
+    }
+    return ParamSet(toParamSet(this.formatQuery(trace)));
   }
 }
 
@@ -44,6 +72,7 @@ export class ChromeTraceFormatter implements TraceFormatter {
     'subtest_1',
     'subtest_2',
     'subtest_3',
+    'subtest_4',
   ];
 
   // formatTrace formats the param set in the form
@@ -64,6 +93,10 @@ export class ChromeTraceFormatter implements TraceFormatter {
   // defined in the keys array. Each key-value pair is then converted to a
   // query parameter in the format "key=value".
   formatQuery(trace: string): string {
+    if (trace.startsWith(',') || trace.includes('=')) {
+      return fromParamSet(this.formatParamSet(trace));
+    }
+
     const parts = trace.split('/');
     const paramSet: ParamSet = ParamSet({});
     for (let i = 0; i < parts.length; i++) {
@@ -95,6 +128,13 @@ export class ChromeTraceFormatter implements TraceFormatter {
       }
     }
     return fromParamSet(paramSet);
+  }
+
+  formatParamSet(trace: string): ParamSet {
+    if (trace.startsWith(',') || trace.includes('=')) {
+      return parseCommaSeparatedParamSet(trace);
+    }
+    return ParamSet(toParamSet(this.formatQuery(trace)));
   }
 }
 

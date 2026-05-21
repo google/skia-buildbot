@@ -7,6 +7,7 @@ import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { State, ExploreSimpleSk } from '../explore-simple-sk/explore-simple-sk';
+import '../explore-multi-v2-sk/explore-multi-v2-sk';
 import { Anomaly, Commit, CommitNumber, QueryConfig, Timerange } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
@@ -124,6 +125,23 @@ export class ReportPageSk extends ElementSk {
 
   private commitBodyPrefix = 'Body ';
 
+  private _queriesV2: Record<string, string[]>[] = [{}];
+
+  private _viewportMinXV2: number | null = null;
+
+  private _viewportMaxXV2: number | null = null;
+
+  private _splitKeysV2: Set<string> = new Set();
+
+  private _beginV2: number | null = null;
+
+  private _endV2: number | null = null;
+
+  private get isV2Enabled(): boolean {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.has('v2') || urlParams.get('explore') === 'v2';
+  }
+
   private static template = (ele: ReportPageSk) => html`
     ${ele._currentlyLoading
       ? html`
@@ -139,7 +157,39 @@ export class ReportPageSk extends ElementSk {
       .loading=${!!ele._currentlyLoading}>
     </anomalies-table-sk>
     ${ele.showAllCommitsTemplate()}
-    <graph-list-sk id="graph-list"></graph-list-sk>
+    ${ele._currentlyLoading
+      ? ''
+      : html`
+          <div
+            class="v2-toggle-container"
+            style="display: flex; align-items: center; justify-content: flex-end; padding: 8px 16px; gap: 12px; border-radius: 8px; margin: 12px 0; border: 1px solid var(--outline, rgba(255,255,255,0.1)); background-color: rgba(128,128,128,0.05);">
+            <span style="font-size: 12px; font-weight: 600; color: var(--on-background, #cbd5e1);"
+              >Multi-Trace Anomaly Dashboard V2 (Prototype):</span
+            >
+            <button
+              @click=${ele.toggleV2Mode}
+              style="background: ${ele.isV2Enabled
+                ? 'var(--primary, #1a73e8)'
+                : '#475569'}; color: white; border: none; padding: 4px 16px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+              ${ele.isV2Enabled ? 'ACTIVE (Click to Disable)' : 'OPT-IN (Click to Enable)'}
+            </button>
+          </div>
+        `}
+    ${ele.isV2Enabled
+      ? html`
+          <explore-multi-v2-sk
+            id="multi-explore"
+            .queries=${ele._queriesV2}
+            .splitKeys=${ele._splitKeysV2}
+            .dateMode=${false}
+            .viewportMinX=${ele._viewportMinXV2}
+            .viewportMaxX=${ele._viewportMaxXV2}
+            .begin=${ele._beginV2}
+            .end=${ele._endV2}
+            .embedded=${true}>
+          </explore-multi-v2-sk>
+        `
+      : html`<graph-list-sk id="graph-list"></graph-list-sk>`}
     <div id="bottom-spacer"></div>
   `;
 
@@ -195,8 +245,14 @@ export class ReportPageSk extends ElementSk {
       const anomalies = detail.anomalies as Anomaly[];
       anomalies.forEach((anomaly) => {
         this.anomalyTracker.getAnomaly(anomaly.id)!.checked = detail.checked;
-        this.updateGraphs(anomaly, detail.checked);
       });
+      if (this.isV2Enabled) {
+        this.updateMultiExploreStateV2(anomalies, detail.checked);
+      } else {
+        anomalies.forEach((anomaly) => {
+          this.updateGraphs(anomaly, detail.checked);
+        });
+      }
     });
     this.stopTimerAndRecord(SummaryMetric.ReportPageLoadTime);
   }
@@ -237,7 +293,9 @@ export class ReportPageSk extends ElementSk {
 
         await Promise.all(loadingPromises);
 
-        if (this.graphList) {
+        if (this.isV2Enabled) {
+          this.updateMultiExploreStateV2();
+        } else if (this.graphList) {
           this.graphList.items = this.anomalyTracker
             .getSelectedAnomalies()
             .map((anomaly, index) => ({
@@ -338,6 +396,27 @@ export class ReportPageSk extends ElementSk {
     document.title = title;
   }
 
+  public toggleV2Mode = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const newUrl = new URL(window.location.href);
+    if (this.isV2Enabled) {
+      // Opting out of V2: keep only standard report-page parameters
+      const reportParams = ['sid', 'bugID', 'anomalyIDs', 'anomalyGroupID', 'rev'];
+      const newParams = new URLSearchParams();
+      reportParams.forEach((param) => {
+        if (urlParams.has(param)) {
+          newParams.set(param, urlParams.get(param)!);
+        }
+      });
+      newUrl.search = newParams.toString();
+    } else {
+      // Opting in to V2: keep existing params and set v2=true
+      urlParams.set('v2', 'true');
+      newUrl.search = urlParams.toString();
+    }
+    window.location.href = newUrl.toString();
+  };
+
   private getQueryFromAnomaly(anomaly: Anomaly) {
     return this.traceFormatter!.formatQuery(anomaly.test_path);
   }
@@ -390,6 +469,145 @@ export class ReportPageSk extends ElementSk {
     } else {
       this.graphList.removeGraph(anomaly.id);
     }
+  }
+
+  private parseAnomalyPathToParamSet(path: string): Record<string, string[]> {
+    return this.traceFormatter!.formatParamSet(path);
+  }
+
+  private updateMultiExploreStateV2(toggledAnomalies?: Anomaly[], checked?: boolean): void {
+    if (!this.isV2Enabled) return;
+
+    const selectedAnomalies = this.anomalyTracker.getSelectedAnomalies();
+    if (selectedAnomalies.length === 0) {
+      this._queriesV2 = [{}];
+      this._splitKeysV2 = new Set();
+      this._viewportMinXV2 = null;
+      this._viewportMaxXV2 = null;
+      this._beginV2 = null;
+      this._endV2 = null;
+      this._render();
+      return;
+    }
+
+    const multiExplore = this.querySelector<any>('#multi-explore');
+
+    // --- Update _queriesV2 ---
+    if (toggledAnomalies !== undefined && checked !== undefined) {
+      let currentQueries = multiExplore ? multiExplore.queries || [{}] : this._queriesV2;
+      toggledAnomalies.forEach((toggledAnomaly) => {
+        const anomalyQuery = this.parseAnomalyPathToParamSet(toggledAnomaly.test_path);
+        const anomalyQueryStr = JSON.stringify(anomalyQuery);
+
+        if (checked) {
+          // Append if not already exists
+          const exists = currentQueries.some(
+            (q: Record<string, string[]>) => JSON.stringify(q) === anomalyQueryStr
+          );
+          if (!exists) {
+            if (currentQueries.length === 1 && Object.keys(currentQueries[0]).length === 0) {
+              currentQueries = [anomalyQuery];
+            } else {
+              currentQueries = [...currentQueries, anomalyQuery];
+            }
+          }
+        } else {
+          // Remove matching query
+          currentQueries = currentQueries.filter(
+            (q: Record<string, string[]>) => JSON.stringify(q) !== anomalyQueryStr
+          );
+        }
+      });
+      if (currentQueries.length === 0) {
+        currentQueries = [{}];
+      }
+      this._queriesV2 = currentQueries;
+    } else {
+      // Full regeneration (initial load or when no specific toggled anomalies are provided)
+      this._queriesV2 = selectedAnomalies.map((anomaly) => {
+        return this.parseAnomalyPathToParamSet(anomaly.test_path);
+      });
+    }
+
+    // --- Update _splitKeysV2, _viewportMinXV2, _viewportMaxXV2, _beginV2, _endV2 ---
+    // If the multi-explore component is already rendered and has a meaningful viewport/split state,
+    // we preserve that state.
+    const shouldPreserveMultiExploreState =
+      multiExplore &&
+      multiExplore.splitKeys &&
+      multiExplore.splitKeys.size > 0 &&
+      multiExplore.viewportMinX !== null;
+
+    if (shouldPreserveMultiExploreState) {
+      this._splitKeysV2 = multiExplore.splitKeys;
+      this._viewportMinXV2 = multiExplore.viewportMinX;
+      this._viewportMaxXV2 = multiExplore.viewportMaxX;
+      this._beginV2 = multiExplore.begin;
+      this._endV2 = multiExplore.end;
+    } else {
+      // Automatically split the charts grid by ALL parameter dimensions that vary across selected anomalies,
+      // and compute global bounding box / bounding timestamps for V2 data loading in the same iteration.
+      const mergedParamSet: Record<string, string[]> = {};
+      let minCommit = Infinity;
+      let maxCommit = -Infinity;
+      let minBegin = Infinity;
+      let maxEnd = -Infinity;
+
+      selectedAnomalies.forEach((anomaly) => {
+        // Process parameters for split keys
+        const paramSet = this.parseAnomalyPathToParamSet(anomaly.test_path);
+        Object.keys(paramSet).forEach((key) => {
+          if (!mergedParamSet[key]) {
+            mergedParamSet[key] = [];
+          }
+          paramSet[key].forEach((val) => {
+            if (!mergedParamSet[key].includes(val)) {
+              mergedParamSet[key].push(val);
+            }
+          });
+        });
+
+        // Compute min/max commit numbers
+        if (anomaly.start_revision < minCommit) minCommit = anomaly.start_revision;
+        if (anomaly.end_revision > maxCommit) maxCommit = anomaly.end_revision;
+
+        // Calculate min/max begin/end timestamps
+        const timerange = this.anomalyTracker.getAnomaly(anomaly.id)!.timerange;
+        if (timerange.begin < minBegin) minBegin = timerange.begin;
+        if (timerange.end > maxEnd) maxEnd = timerange.end;
+      });
+
+      const specificKeys = new Set<string>();
+      const fallbackKeys = new Set<string>();
+
+      Object.keys(mergedParamSet).forEach((key) => {
+        if (mergedParamSet[key].length > 1) {
+          if (['unit', 'stat', 'improvement_dir'].includes(key)) {
+            // Exclude generic/structural tags
+            return;
+          }
+          if (['master', 'bot', 'benchmark'].includes(key)) {
+            fallbackKeys.add(key);
+          } else {
+            specificKeys.add(key);
+          }
+        }
+      });
+
+      this._splitKeysV2 = specificKeys.size > 0 ? specificKeys : fallbackKeys;
+
+      this._viewportMinXV2 = Math.max(0, minCommit - 100);
+      this._viewportMaxXV2 = maxCommit + 100;
+
+      if (minBegin !== Infinity) {
+        this._beginV2 = minBegin - weekInSeconds;
+      }
+      if (maxEnd !== -Infinity) {
+        this._endV2 = maxEnd + weekInSeconds;
+      }
+    }
+
+    this._render();
   }
 
   // findRequestedAnomalies returns a list of requested anomaly objects .

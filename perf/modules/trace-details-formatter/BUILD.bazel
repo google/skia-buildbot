@@ -19,5 +19,6 @@ karma_test(
         ":traceformatter_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//perf/modules/json:index_ts_lib",
     ],
 )

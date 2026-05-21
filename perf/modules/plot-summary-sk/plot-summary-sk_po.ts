@@ -77,6 +77,7 @@ export class PlotSummarySkPO extends PageObject {
    */
   async selectRange(page: Page, startRatio: number, endRatio: number): Promise<void> {
     const rect = await this.element.applyFnToDOMNode((el) => {
+      el.scrollIntoView();
       const r = el.getBoundingClientRect();
       return { x: r.left, y: r.top, width: r.width, height: r.height };
     });
@@ -100,6 +101,7 @@ export class PlotSummarySkPO extends PageObject {
    */
   async resizeSelection(page: Page, edge: 'left' | 'right', targetRatio: number): Promise<void> {
     const containerRect = await this.resizableBox.applyFnToDOMNode((el) => {
+      el.scrollIntoView();
       const r = el.getBoundingClientRect();
       return { x: r.left, y: r.top, width: r.width, height: r.height };
     });

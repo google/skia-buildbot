@@ -1,5 +1,6 @@
 import { ChromeTraceFormatter } from './traceformatter';
 import { assert } from 'chai';
+import { ParamSet } from '../json';
 
 describe('traceformatter', () => {
   beforeEach(() => {
@@ -66,6 +67,40 @@ describe('traceformatter', () => {
     assert.deepEqual(
       tf.formatQuery('masder/pot/pench/dest_max/subddest_1'),
       'benchmark=pench&bot=pot&master=masder&stat=max&subtest_1=subddest_1&test=dest'
+    );
+  });
+
+  it('format query with comma-separated path', () => {
+    const tf = new ChromeTraceFormatter();
+    assert.deepEqual(
+      tf.formatQuery(',benchmark=v8,bot=Pixel4-arm32,master=chrome,'),
+      'benchmark=v8&bot=Pixel4-arm32&master=chrome'
+    );
+  });
+
+  it('format paramset with legacy path', () => {
+    const tf = new ChromeTraceFormatter();
+    assert.deepEqual(
+      tf.formatParamSet('masder/pot/pench/dest_max/subddest_1'),
+      ParamSet({
+        benchmark: ['pench'],
+        bot: ['pot'],
+        master: ['masder'],
+        subtest_1: ['subddest_1'],
+        test: ['dest_max'],
+      })
+    );
+  });
+
+  it('format paramset with comma-separated path', () => {
+    const tf = new ChromeTraceFormatter();
+    assert.deepEqual(
+      tf.formatParamSet(',benchmark=v8,bot=Pixel4-arm32,master=chrome,'),
+      ParamSet({
+        benchmark: ['v8'],
+        bot: ['Pixel4-arm32'],
+        master: ['chrome'],
+      })
     );
   });
 });

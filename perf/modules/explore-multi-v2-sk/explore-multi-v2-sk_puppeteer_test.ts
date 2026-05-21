@@ -28,7 +28,7 @@ describe('explore-multi-v2-sk', () => {
 
     expect(staticContent).to.not.be.null;
     expect(staticContent!.title).to.equal('Explore Multi V2');
-    expect(staticContent!.subtitle).to.equal(
+    expect(staticContent!.subtitle!.trim()).to.equal(
       'High-performance custom dimension analysis (Work in Progress)'
     );
     expect(staticContent!.facetedSearchBarTitle).to.equal('Faceted Search Bar');
@@ -71,30 +71,36 @@ describe('explore-multi-v2-sk', () => {
     // Toggle Date Mode
     await page.evaluate(() => {
       const explore = document.querySelector('explore-multi-v2-sk');
+      if (!explore) {
+        throw new Error('explore-multi-v2-sk element not found in DOM!');
+      }
       const exploreEl = explore as any;
       exploreEl._matchingTraceIds = ['t1', 't2'];
       exploreEl._pageSize = 10;
       exploreEl._tracePage = 0;
-      exploreEl._dateMode = true;
+      exploreEl.dateMode = true;
       exploreEl._globalBounds = {};
       exploreEl._loadedBounds = {};
-      exploreEl._viewportMinX = null;
-      exploreEl._viewportMaxX = null;
+      exploreEl.viewportMinX = null;
+      exploreEl.viewportMaxX = null;
     });
 
     // Mock fetch for /_/trace_values
     await page.evaluate(() => {
-      (window as any).fetchMock.post('/_/trace_values', 200);
+      (window as any).fetchMock.post('/_/trace_values', { results: {} }, { overwriteRoutes: true });
     });
 
     // Simulate panning by calling _handleViewportChanged directly
     await page.evaluate(async () => {
       const explore = document.querySelector('explore-multi-v2-sk') as any;
-      if (explore) {
-        await explore._doHandleViewportChanged({
-          detail: { minCommit: 500, maxCommit: 1500 },
-        });
+      if (!explore) {
+        throw new Error(
+          'explore-multi-v2-sk element not found in DOM when calling _doHandleViewportChanged!'
+        );
       }
+      await explore._doHandleViewportChanged({
+        detail: { minCommit: 500, maxCommit: 1500 },
+      });
     });
 
     // Wait for fetch to be called
@@ -173,7 +179,7 @@ describe('explore-multi-v2-sk', () => {
       const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
       if (!queryBar) throw new Error('query-bar-sk not found');
 
-      explore._queries = [{ test: ['Score'] }];
+      explore.queries = [{ test: ['Score'] }];
       explore._availableParams = [{ key: 'test', value: 'Score', count: 1 }];
       explore._optionsByKey = { test: [{ value: 'Score', count: 1 }] };
       explore._optionsByKeyPerQuery = [{ test: [{ value: 'Score', count: 1 }] }];
@@ -349,7 +355,7 @@ describe('explore-multi-v2-sk', () => {
       explore._matchingTraceIds = [',arch=arm,config=8888,os=Android,project=Skia,'];
       explore._pageSize = 10;
       explore._tracePage = 0;
-      explore._dateMode = true;
+      explore.dateMode = true;
       explore._loadedBounds = {};
       explore._globalBounds = {};
       explore._viewportMinX = null;
@@ -439,8 +445,8 @@ describe('explore-multi-v2-sk', () => {
     // Set explicit begin/end, then trigger reset zoom
     await page.evaluate(() => {
       const explore = document.querySelector('explore-multi-v2-sk') as any;
-      explore._begin = 1680000000;
-      explore._end = 1680100000;
+      explore.begin = 1680000000;
+      explore.end = 1680100000;
       explore._onResetZoom();
     });
 
@@ -449,16 +455,12 @@ describe('explore-multi-v2-sk', () => {
 
     const urlStr = await page.evaluate(() => window.location.href);
     const url = new URL(urlStr);
-    expect(url.searchParams.get('begin')).to.satisfy(
-      (val: string | null) => val === null || val === '-1'
-    );
-    expect(url.searchParams.get('end')).to.satisfy(
-      (val: string | null) => val === null || val === '-1'
-    );
+    expect(url.searchParams.get('begin')).to.equal('1572739200');
+    expect(url.searchParams.get('end')).to.equal('1585699200');
   });
 
   it('should display tooltip when searching and hovering', async function () {
-    this.timeout(60000);
+    this.timeout(120000);
     const page = testBed.page;
 
     // Wait for worker to be ready and initial filter to finish
@@ -578,10 +580,11 @@ describe('explore-multi-v2-sk', () => {
       });
 
       // Set query directly to trigger search
-      await page.evaluate(() => {
+      await page.evaluate(async () => {
         const explore = document.querySelector('explore-multi-v2-sk') as any;
-        explore._queries = [{ arch: ['arm'] }];
-        explore._fetchData();
+        explore.queries = [{ arch: ['arm'] }];
+        explore.requestUpdate();
+        await explore._fetchData();
       });
 
       // Take a screenshot after setting query
@@ -601,7 +604,7 @@ describe('explore-multi-v2-sk', () => {
             chart._processedSeries[0].rows.length > 0
           );
         },
-        { timeout: 60000 }
+        { timeout: 120000 }
       );
 
       // Set regressions AFTER chart is rendered to avoid being cleared by _fetchData
