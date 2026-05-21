@@ -7,6 +7,13 @@ explore-multi-sk {
     .title-container {
       align-items: center;
       display: flex;
+      justify-content: space-between;
+      width: 100%;
+
+      .title-left {
+        display: flex;
+        align-items: center;
+      }
 
       h1 {
         margin-right: 0.25em;

@@ -941,16 +941,65 @@ export class ExploreMultiSk extends ElementSk {
     return this.userEmail !== null && this.userEmail !== '';
   }
 
+  public async toggleV2Mode(): Promise<void> {
+    let shortcut = '';
+    if (this.allGraphConfigs.length > 0) {
+      this.setProgress('Creating shortcut...');
+      try {
+        shortcut = await updateShortcut(this.allGraphConfigs);
+        if (shortcut) {
+          this.state.shortcut = shortcut;
+          this.stateHasChanged!();
+        }
+      } catch (e) {
+        console.error('Failed to create shortcut for toggleV2Mode:', e);
+      } finally {
+        this.setProgress('');
+      }
+    }
+
+    const urlParams = new URLSearchParams();
+    if (shortcut) {
+      urlParams.set('shortcut', shortcut);
+    }
+    if (this.state.splitByKeys && this.state.splitByKeys.length > 0) {
+      urlParams.set('split', this.state.splitByKeys.join(','));
+    }
+    if (this.state.begin && this.state.begin !== -1) {
+      urlParams.set('begin', this.state.begin.toString());
+    }
+    if (this.state.end && this.state.end !== -1) {
+      urlParams.set('end', this.state.end.toString());
+    }
+
+    const nextSearch = urlParams.toString();
+    window.location.href = `/e2${nextSearch ? `?${nextSearch}` : ''}`;
+  }
+
   private static template = (ele: ExploreMultiSk) => html`
     <div id="menu">
       <div class="title-container">
-        <h1>MultiGraph Menu</h1>
-        <a
-          href="https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/multigraph-guide.md"
-          target="_blank"
-          title="MultiGraph Guide">
-          <help-icon-sk></help-icon-sk>
-        </a>
+        <div class="title-left">
+          <h1>MultiGraph Menu</h1>
+          <a
+            href="https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/multigraph-guide.md"
+            target="_blank"
+            title="MultiGraph Guide">
+            <help-icon-sk></help-icon-sk>
+          </a>
+        </div>
+        <div
+          class="v2-toggle-container"
+          style="display: inline-flex; align-items: center; gap: 12px; border-radius: 8px; padding: 8px 16px; border: 1px solid var(--outline, rgba(255,255,255,0.1)); background-color: rgba(128,128,128,0.05);">
+          <span style="font-size: 12px; font-weight: 600; color: var(--on-background, #cbd5e1);"
+            >Explore Multi V2 (Prototype):</span
+          >
+          <button
+            @click=${ele.toggleV2Mode}
+            style="background: #475569; color: white; border: none; padding: 4px 16px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+            OPT-IN (Switch to V2)
+          </button>
+        </div>
       </div>
       <spinner-sk id="spinner"></spinner-sk>
       <test-picker-sk id="test-picker" class="hidden"></test-picker-sk>

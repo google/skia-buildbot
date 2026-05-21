@@ -1766,13 +1766,12 @@ export class ExploreMultiV2Sk extends LitElement {
     if (this.dateMode) {
       urlParams.set('dateAxis', 'true');
     }
-    const currentParams = new URLSearchParams(window.location.search);
-    const preserveParams = ['bugID', 'anomalyIDs', 'anomalyGroupID', 'sid', 'rev'];
-    preserveParams.forEach((param) => {
-      if (currentParams.has(param)) {
-        urlParams.set(param, currentParams.get(param)!);
-      }
-    });
+    if (this.begin && this.begin !== -1) {
+      urlParams.set('begin', this.begin.toString());
+    }
+    if (this.end && this.end !== -1) {
+      urlParams.set('end', this.end.toString());
+    }
 
     const nextSearch = urlParams.toString();
     window.location.href = `/m${nextSearch ? `?${nextSearch}` : ''}`;
