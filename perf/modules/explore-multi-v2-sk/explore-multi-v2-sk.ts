@@ -56,6 +56,8 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @property({ type: Boolean }) embedded = false;
 
+  @state() private _queriesExpanded = false;
+
   @state() private _shortcut = '';
 
   private _lastQueriesJson = '';
@@ -675,6 +677,29 @@ export class ExploreMultiV2Sk extends LitElement {
 
     .config-pill-remove:hover {
       color: var(--on-background, #fff);
+    }
+
+    .expand-queries-btn {
+      background: var(--surface, #1e293b);
+      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      color: var(--on-surface, #f8fafc);
+      border-radius: 16px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .expand-queries-btn:hover {
+      background: var(--surface-hover, #334155);
+      border-color: var(--primary, #818cf8);
+      color: var(--on-background, #fff);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
     }
   `;
 
@@ -1807,6 +1832,13 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _onAddQuery() {
     this.queries = [...this.queries, { ...this._defaultParamSelections }];
+    if (this.queries.length > 3) {
+      this._queriesExpanded = true;
+    }
+  }
+
+  private _toggleQueriesExpand() {
+    this._queriesExpanded = !this._queriesExpanded;
   }
 
   private _onRemoveQueryBar(idx: number) {
@@ -2146,8 +2178,11 @@ export class ExploreMultiV2Sk extends LitElement {
 
       <div class="workspace">
         <div class="section-title">Faceted Search Bar</div>
-        ${this.queries.map(
-          (q, idx) => html`
+        ${this.queries.map((q, idx) => {
+          if (!this._queriesExpanded && idx >= 3) {
+            return '';
+          }
+          return html`
             <div class="query-row" style="display: flex; align-items: center; gap: 8px;">
               <query-bar-sk
                 style="flex: 1;"
@@ -2174,13 +2209,25 @@ export class ExploreMultiV2Sk extends LitElement {
                 @diff-base=${(e: CustomEvent) => this._handleDiffBase(e)}
                 @clear-query=${() => this._onRemoveQueryBar(idx)}></query-bar-sk>
             </div>
-          `
-        )}
+          `;
+        })}
         <div
-          style="display: flex; justify-content: center; margin-top: -6px; position: relative; z-index: 1;">
+          style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: -6px; position: relative; z-index: 1;">
           <button class="add-query-circle-btn" @click=${this._onAddQuery} title="Add Query">
             +
           </button>
+          ${this.queries.length > 3
+            ? html`
+                <button
+                  class="expand-queries-btn"
+                  @click=${this._toggleQueriesExpand}
+                  title="${this._queriesExpanded
+                    ? 'Hide extra search bars'
+                    : 'Show all search bars'}">
+                  ${this._queriesExpanded ? 'Collapse' : `Expand (${this.queries.length - 3} more)`}
+                </button>
+              `
+            : ''}
         </div>
 
         ${this._diffBase || this.splitKeys.size > 0

@@ -1198,4 +1198,68 @@ describe('explore-multi-v2-sk', () => {
       { value: 'v8.infra', count: 5 },
     ]);
   });
+
+  describe('expand/collapse query bars', () => {
+    it('collapses query bars to first 3 by default when there are more than 3', async () => {
+      element.queries = [{}, {}, {}, {}, {}];
+      await element.updateComplete;
+
+      const queryBars = element.shadowRoot!.querySelectorAll('query-bar-sk');
+      expect(queryBars.length).to.equal(3);
+
+      const expandBtn = element.shadowRoot!.querySelector(
+        '.expand-queries-btn'
+      ) as HTMLButtonElement;
+      expect(expandBtn).to.not.be.null;
+      expect(expandBtn.textContent?.trim()).to.equal('Expand (2 more)');
+    });
+
+    it('expands query bars and changes label when expand button clicked', async () => {
+      element.queries = [{}, {}, {}, {}, {}];
+      await element.updateComplete;
+
+      const expandBtn = element.shadowRoot!.querySelector(
+        '.expand-queries-btn'
+      ) as HTMLButtonElement;
+      expandBtn.click();
+      await element.updateComplete;
+
+      const queryBars = element.shadowRoot!.querySelectorAll('query-bar-sk');
+      expect(queryBars.length).to.equal(5);
+      expect(expandBtn.textContent?.trim()).to.equal('Collapse');
+    });
+
+    it('collapses query bars back to 3 when collapse button clicked', async () => {
+      element.queries = [{}, {}, {}, {}, {}];
+      (element as any)._queriesExpanded = true;
+      await element.updateComplete;
+
+      const expandBtn = element.shadowRoot!.querySelector(
+        '.expand-queries-btn'
+      ) as HTMLButtonElement;
+      expect(expandBtn.textContent?.trim()).to.equal('Collapse');
+
+      expandBtn.click();
+      await element.updateComplete;
+
+      const queryBars = element.shadowRoot!.querySelectorAll('query-bar-sk');
+      expect(queryBars.length).to.equal(3);
+      expect(expandBtn.textContent?.trim()).to.equal('Expand (2 more)');
+    });
+
+    it('auto-expands query bars when add query button is clicked and total becomes > 3', async () => {
+      element.queries = [{}, {}, {}];
+      await element.updateComplete;
+
+      const addBtn = element.shadowRoot!.querySelector(
+        '.add-query-circle-btn'
+      ) as HTMLButtonElement;
+      addBtn.click();
+      await element.updateComplete;
+
+      expect((element as any)._queriesExpanded).to.be.true;
+      const queryBars = element.shadowRoot!.querySelectorAll('query-bar-sk');
+      expect(queryBars.length).to.equal(4);
+    });
+  });
 });
