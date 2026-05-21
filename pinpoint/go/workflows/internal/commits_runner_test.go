@@ -88,6 +88,48 @@ func TestSingleCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	env.AssertExpectations(t)
 }
 
+func TestSingleCommitRunner_WithExtraArgs_ShouldPassToRunBenchmark(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	b := &workflows.Build{
+		ID:     int64(1234),
+		Status: buildbucketpb.Status_SUCCESS,
+	}
+	const iterations, chart = 2, "fake-chart"
+	fakeChartValues := &workflows.TestResults{
+		Values: map[string][]float64{
+			chart: {1, 2},
+		},
+	}
+	_, rc := generateTestRuns(chart, iterations, fakeChartValues)
+
+	env.RegisterWorkflowWithOptions(BuildWorkflow, workflow.RegisterOptions{Name: workflows.BuildChrome})
+	env.RegisterWorkflowWithOptions(RunBenchmarkWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmark})
+
+	env.OnWorkflow(workflows.BuildChrome, mock.Anything, mock.Anything).Return(b, nil).Once()
+
+	// Assert that the mock RunBenchmark child workflow is called with the expected ExtraArgs
+	env.OnWorkflow(workflows.RunBenchmark, mock.Anything, mock.MatchedBy(func(params *RunBenchmarkParams) bool {
+		return len(params.ExtraArgs) == 2 && params.ExtraArgs[0] == "--custom-arg" && params.ExtraArgs[1] == "value"
+	})).Return(func(ctx workflow.Context, b *RunBenchmarkParams) (*workflows.TestRun, error) {
+		return <-rc, nil
+	}).Times(iterations)
+
+	env.OnActivity(CollectValuesActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(fakeChartValues, nil).Times(iterations - 1)
+
+	env.ExecuteWorkflow(SingleCommitRunner, &SingleCommitRunnerParams{
+		BotConfig:      "linux-perf",
+		Iterations:     int32(iterations),
+		Chart:          chart,
+		CombinedCommit: &common.CombinedCommit{},
+		ExtraArgs:      []string{"--custom-arg", "value"},
+	})
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	env.AssertExpectations(t)
+}
+
 func TestAllValues_GivenNilValues_ReturnsNonNilValues(t *testing.T) {
 	const chart = "chart"
 	cr := &CommitRun{

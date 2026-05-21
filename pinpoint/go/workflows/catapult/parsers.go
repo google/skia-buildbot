@@ -37,7 +37,7 @@ type commitFooters struct {
 
 // parseArguments parses a bisect request into a legacy reponse argument
 func parseArguments(request *pinpoint_proto.ScheduleBisectRequest) (*pinpoint_proto.LegacyJobResponse_Argument, error) {
-	// Unsupported: ExtraTestArgs, Pin, BatchId, Trace
+	// Unsupported: Pin, BatchId, Trace
 	args := &pinpoint_proto.LegacyJobResponse_Argument{
 		ComparisonMode: request.GetComparisonMode(),
 		StartGitHash:   request.GetStartGitHash(),
@@ -50,6 +50,7 @@ func parseArguments(request *pinpoint_proto.ScheduleBisectRequest) (*pinpoint_pr
 		Statistic:      request.GetStatistic(),
 		Project:        request.GetProject(),
 		BugId:          request.GetBugId(),
+		ExtraTestArgs:  request.GetExtraArgs(),
 	}
 
 	if request.GetBenchmark() != "" && request.GetConfiguration() != "" {

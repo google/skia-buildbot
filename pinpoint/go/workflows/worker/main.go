@@ -69,9 +69,14 @@ func main() {
 		sklog.Fatalf("Failed to init interceptor: %s", err)
 	}
 
+	var metricsHandler client.MetricsHandler
+	if !*local {
+		metricsHandler = metrics.NewMetricsHandler(map[string]string{}, nil)
+	}
+
 	// The client and worker are heavyweight objects that should be created once per process.
 	c, err := client.Dial(client.Options{
-		MetricsHandler: metrics.NewMetricsHandler(map[string]string{}, nil),
+		MetricsHandler: metricsHandler,
 		HostPort:       *hostPort,
 		Namespace:      *namespace,
 		Interceptors: []tempinter.ClientInterceptor{

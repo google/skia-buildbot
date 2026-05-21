@@ -209,8 +209,10 @@ type ScheduleBisectRequest struct {
 	// The improvement direction of the measurement.
 	// Is either Up, Down, or Unknown.
 	ImprovementDirection string `protobuf:"bytes,18,opt,name=improvement_direction,json=improvementDirection,proto3" json:"improvement_direction,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// Custom extra arguments to be passed to the test execution.
+	ExtraArgs     string `protobuf:"bytes,19,opt,name=extra_args,json=extraArgs,proto3" json:"extra_args,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ScheduleBisectRequest) Reset() {
@@ -365,6 +367,13 @@ func (x *ScheduleBisectRequest) GetTags() string {
 func (x *ScheduleBisectRequest) GetImprovementDirection() string {
 	if x != nil {
 		return x.ImprovementDirection
+	}
+	return ""
+}
+
+func (x *ScheduleBisectRequest) GetExtraArgs() string {
+	if x != nil {
+		return x.ExtraArgs
 	}
 	return ""
 }
@@ -2582,7 +2591,7 @@ var File_service_proto protoreflect.FileDescriptor
 
 const file_service_proto_rawDesc = "" +
 	"\n" +
-	"\rservice.proto\x12\vpinpoint.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18cabe/proto/v1/spec.proto\"\xeb\x04\n" +
+	"\rservice.proto\x12\vpinpoint.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18cabe/proto/v1/spec.proto\"\x8a\x05\n" +
 	"\x15ScheduleBisectRequest\x12'\n" +
 	"\x0fcomparison_mode\x18\x01 \x01(\tR\x0ecomparisonMode\x12$\n" +
 	"\x0estart_git_hash\x18\x02 \x01(\tR\fstartGitHash\x12 \n" +
@@ -2604,7 +2613,9 @@ const file_service_proto_rawDesc = "" +
 	"story_tags\x18\x0f \x01(\tR\tstoryTags\x122\n" +
 	"\x15initial_attempt_count\x18\x10 \x01(\tR\x13initialAttemptCount\x12\x12\n" +
 	"\x04tags\x18\x11 \x01(\tR\x04tags\x123\n" +
-	"\x15improvement_direction\x18\x12 \x01(\tR\x14improvementDirection\"+\n" +
+	"\x15improvement_direction\x18\x12 \x01(\tR\x14improvementDirection\x12\x1d\n" +
+	"\n" +
+	"extra_args\x18\x13 \x01(\tR\textraArgs\"+\n" +
 	"\x12QueryBisectRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"A\n" +
 	"\x10CancelJobRequest\x12\x15\n" +

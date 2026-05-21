@@ -163,6 +163,8 @@ type BisectParams struct {
 	Production bool
 	// JobID for the bisect run
 	JobID string
+	// ExtraArgs is populated internally after pre-parsing Request.ExtraTestArgs.
+	ExtraArgs []string
 }
 
 // GetMagnitude returns the magnitude as float64.

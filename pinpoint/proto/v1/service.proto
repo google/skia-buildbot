@@ -72,6 +72,9 @@ message ScheduleBisectRequest {
 	// The improvement direction of the measurement.
 	// Is either Up, Down, or Unknown.
 	string improvement_direction = 18;
+
+	// Custom extra arguments to be passed to the test execution.
+	string extra_args = 19;
 }
 
 message QueryBisectRequest {

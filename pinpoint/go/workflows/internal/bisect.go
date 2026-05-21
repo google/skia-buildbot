@@ -85,6 +85,7 @@ func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *pinpo
 		Iterations:        it,
 		FinishedIteration: finishedIteration,
 		BotIds:            p.BotIds,
+		ExtraArgs:         p.ExtraArgs,
 	}
 }
 
@@ -154,6 +155,13 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 			mh.Counter("bisect_found_culprit_count").Inc(1)
 		}
 	}()
+
+	// Parse and validate extra test arguments early
+	extraArgs, err := splitExtraArgs(p.Request.GetExtraArgs())
+	if err != nil {
+		return nil, skerr.Wrapf(err, "invalid extra_args format")
+	}
+	p.ExtraArgs = extraArgs
 
 	// Find the available bot list
 	if err := workflow.ExecuteActivity(ctx, FindAvailableBotsActivity, p.Request.Configuration, time.Now().UnixNano()).Get(ctx, &p.BotIds); err != nil {

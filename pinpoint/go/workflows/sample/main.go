@@ -138,6 +138,7 @@ func triggerBisectWorkflow(c client.Client) (*pb.BisectExecution, error) {
 			AggregationMethod:    *aggregationMethod,
 			Project:              "chromium",
 			ImprovementDirection: *improvementDirection,
+			ExtraArgs:            *extraArg,
 		},
 	}
 	var be *pb.BisectExecution

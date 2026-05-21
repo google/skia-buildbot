@@ -202,6 +202,7 @@ func TestParseArguments(t *testing.T) {
 		Project:              "chromium",
 		InitialAttemptCount:  "20",
 		ImprovementDirection: "DOWN",
+		ExtraArgs:            "--enable-features=Foo",
 	}
 
 	arguments, err := parseArguments(request)
@@ -209,6 +210,7 @@ func TestParseArguments(t *testing.T) {
 	assert.Equal(t, "performance_test_suite", arguments.Target)
 	assert.Equal(t, float64(21.9925), arguments.ComparisonMagnitude)
 	assert.Equal(t, int32(20), arguments.InitialAttemptCount)
+	assert.Equal(t, "--enable-features=Foo", arguments.ExtraTestArgs)
 	assert.Nil(t, arguments.Tags)
 }
 

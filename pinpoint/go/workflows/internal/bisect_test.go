@@ -115,3 +115,51 @@ func TestBisectWorkflow_ReplayEvents_ShouldAlwaysPass(t *testing.T) {
 	err := replayer.ReplayWorkflowHistoryFromJSONFile(nil, "testdata/bisect_event_history_20240627.json")
 	assert.NoError(t, err)
 }
+
+func TestBisectWorkflow_WithExtraArgs_ShouldPassToSingleCommitRunner(t *testing.T) {
+	mockResult := &CombinedResults{
+		Result: &compare.CompareResults{
+			Verdict: compare.Different,
+		},
+	}
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	freeBots := []string{"bot1", "bot2"}
+
+	env.RegisterWorkflowWithOptions(SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
+
+	// Assert that the mock SingleCommitRunner is invoked with the expected ExtraArgs
+	env.OnWorkflow(workflows.SingleCommitRunner, mock.Anything, mock.MatchedBy(func(p *SingleCommitRunnerParams) bool {
+		return len(p.ExtraArgs) == 2 && p.ExtraArgs[0] == "--custom-arg" && p.ExtraArgs[1] == "value"
+	})).Return(mockedSingleCommitRun).Times(2)
+
+	env.OnActivity(GetAllDataForCompareLocalActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mockedGetAllDataForCompareLocalActivity).Once()
+	env.OnActivity(CompareActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mockResult, nil).Once()
+	env.OnActivity(FindAvailableBotsActivity, mock.Anything, mock.Anything, mock.Anything).Return(freeBots, nil).Once()
+
+	env.ExecuteWorkflow(BisectWorkflow, &workflows.BisectParams{
+		Request: &pb.ScheduleBisectRequest{
+			ComparisonMagnitude: "1",
+			ExtraArgs:           "--custom-arg value",
+		},
+	})
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	env.AssertExpectations(t)
+}
+
+func TestBisectWorkflow_WithInvalidExtraArgs_ShouldFailEarly(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	env.ExecuteWorkflow(BisectWorkflow, &workflows.BisectParams{
+		Request: &pb.ScheduleBisectRequest{
+			ComparisonMagnitude: "1",
+			ExtraArgs:           "--custom-arg='value", // Mismatched quote
+		},
+	})
+	require.True(t, env.IsWorkflowCompleted())
+	err := env.GetWorkflowError()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid extra_args format")
+}

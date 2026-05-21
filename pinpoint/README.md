@@ -73,11 +73,59 @@ writes to facilitate smooth local testing)._
 
 ---
 
-## 4. Trigger a Pairwise A/B Job Natively
+## 4. Trigger a Performance Bisection Job Natively
+
+Bisection jobs compare a range of commits using binary search to identify the specific culprit commit causing a performance regression.
 
 ### Approach A: Via cURL REST HTTP API
 
-Make a `POST` request directly to the local Go Pinpoint API endpoint:
+Make a `POST` request directly to the local Go Pinpoint REST API:
+
+```bash
+curl -i -X POST "http://localhost:8080/pinpoint/v1/bisection" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "start_git_hash": "c73e059a2ac54302b2951e4b4f1f7d94d92a707a",
+    "end_git_hash": "979c9324d3c6474c15335e676ac7123312d5df82",
+    "configuration": "mac-m2-pro-perf",
+    "benchmark": "speedometer3.crossbench",
+    "story": "default",
+    "chart": "Score",
+    "comparison_magnitude": "0.1",
+    "aggregation_method": "mean",
+    "improvement_direction": "UP",
+    "user": "your_email@google.com",
+    "extra_args": "--enable-features=Foo"
+  }'
+```
+
+### Approach B: Via Bazel CLI Sample Utility
+
+Alternatively, bypass HTTP APIs entirely and trigger bisection workflows directly using the Go sample tool:
+
+```bash
+bazelisk run //pinpoint/go/workflows/sample -- \
+  --taskQueue=perf.perf-chrome-public.bisect \
+  --namespace=perf-internal \
+  --bisect \
+  --configuration=mac-m2-pro-perf \
+  --benchmark=speedometer3.crossbench \
+  --story=default \
+  --chart=Score \
+  --start-git-hash=c73e059a2ac54302b2951e4b4f1f7d94d92a707a \
+  --end-git-hash=979c9324d3c6474c15335e676ac7123312d5df82 \
+  --extra-arg="--enable-features=Foo"
+```
+
+---
+
+## 5. Trigger a Pairwise A/B Try Job Natively
+
+Pairwise try jobs run back-to-back benchmark iterations on the same Swarming bots in randomized order to evaluate performance differences between a baseline and an experimental change (often a Gerrit patch).
+
+### Approach A: Via cURL REST HTTP API
+
+Make a `POST` request directly to the local Go Pinpoint REST API:
 
 ```bash
 curl -i -X POST "http://localhost:8080/pinpoint/v1/pairwise" \
@@ -105,13 +153,9 @@ curl -i -X POST "http://localhost:8080/pinpoint/v1/pairwise" \
   }'
 ```
 
-_Successfully returns a JSON payload containing your `"jobId"` (the Temporal
-Workflow UUID)._
-
 ### Approach B: Via Bazel CLI Sample Utility
 
-Alternatively, you can bypass HTTP APIs entirely and trigger workflows
-directly using the Go sample tool:
+Alternatively, bypass HTTP APIs entirely and trigger pairwise workflows directly using the Go sample tool:
 
 ```bash
 bazelisk run //pinpoint/go/workflows/sample -- \
@@ -125,7 +169,9 @@ bazelisk run //pinpoint/go/workflows/sample -- \
   --end-git-hash=95b3180e9724995eb6d5a85ac3c93140e4506f7e
 ```
 
-### Approach C: Mimicking a Legacy Pinpoint Job (Recommended for Local Testing)
+---
+
+## 6. Mimic a Legacy Pinpoint Job (Recommended for Local Testing)
 
 You can fetch an existing legacy Pinpoint job from production (e.g., from the Chromeperf dashboard), parse its exact configuration, and trigger an identical localized workflow on your local Temporal instance with a single command:
 
@@ -147,7 +193,7 @@ bazelisk run //pinpoint/go/workflows/sample -- \
 
 ---
 
-## 5. Query Job Status & View Results
+## 7. Query Job Status & View Results
 
 Once triggered, you can monitor progress and fetch results using three methods:
 
@@ -164,7 +210,8 @@ forwarding._
 
 ### B. Via Temporal CLI (Command Line)
 
-Fetch the active workflow progress and state details natively in your terminal:
+Fetch the active workflow progress and state details natively in your
+terminal:
 
 ```bash
 temporal workflow show \
@@ -174,13 +221,14 @@ temporal workflow show \
 
 ### C. Via Go Pinpoint REST Query API
 
-Once the bisection workflow completes, retrieve the statistical results programmatically:
+Once the bisection workflow completes, retrieve the bisection results
+programmatically:
 
 ```bash
 curl -i -X GET "http://localhost:8080/pinpoint/v1/query?job_id=[your-job-id]"
 ```
 
-### D. Via Go Pinpoint REST QueryPairwise API (New)
+### D. Via Go Pinpoint REST QueryPairwise API
 
 Once a **Pairwise/Try Job** completes, retrieve the Wilcoxon Signed-Rank
 test statistical results, control/treatment medians, p-values, and all
