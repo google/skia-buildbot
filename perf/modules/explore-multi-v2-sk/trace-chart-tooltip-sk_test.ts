@@ -329,4 +329,34 @@ describe('trace-chart-tooltip-sk', () => {
     expect(nudgeList[1].display_index).to.equal(0);
     expect(nudgeList[2].display_index).to.equal(1);
   });
+
+  it('renders skeleton loaders when author/message are missing', async () => {
+    const rows = [{ commit_number: 100, val: 10.0, createdat: 1000, hash: 'hash100' }];
+    element.hoveredPoint = {
+      series: { id: 'test', color: '#fff', rows: rows },
+      row: rows[0],
+      x: 100,
+      y: 100,
+    };
+    await element.updateComplete;
+
+    const skeleton = element.shadowRoot!.querySelector('.skeleton');
+    expect(skeleton).to.not.be.null;
+  });
+
+  it('renders subrepo skeleton when loading', async () => {
+    const rows = [{ commit_number: 100, val: 10.0, createdat: 1000, hash: 'hash100' }];
+    element.hoveredPoint = {
+      series: { id: 'test', color: '#fff', rows: rows },
+      row: rows[0],
+      x: 100,
+      y: 100,
+    };
+    // Simulate loading state
+    (element as any)._linksLoading = true;
+    await element.updateComplete;
+
+    const subrepoSkeleton = element.shadowRoot!.querySelector('.subrepo-skeleton');
+    expect(subrepoSkeleton).to.not.be.null;
+  });
 });

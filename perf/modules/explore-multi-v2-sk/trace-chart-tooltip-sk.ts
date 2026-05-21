@@ -61,6 +61,9 @@ export class TraceChartTooltipSk extends LitElement {
   private _tooltipHashes: string[] | null = null;
 
   @state()
+  private _linksLoading = false;
+
+  @state()
   private _nudgeList: NudgeEntry[] | null = null;
 
   private _linksTimeout: number | null = null;
@@ -202,6 +205,25 @@ export class TraceChartTooltipSk extends LitElement {
       font-size: 11px;
       margin-left: 6px;
       white-space: nowrap;
+    }
+
+    .skeleton {
+      display: inline-block;
+      background: var(--outline, #334155);
+      border-radius: 4px;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 0.6;
+      }
+      50% {
+        opacity: 0.3;
+      }
+      100% {
+        opacity: 0.6;
+      }
     }
   `;
 
@@ -357,30 +379,39 @@ export class TraceChartTooltipSk extends LitElement {
           pointLinks.displayTexts = {};
           pointLinks.commitPosition = commit;
         } else {
+          this._linksLoading = true;
           this._linksTimeout = window.setTimeout(() => {
             if (!this.hoveredPoint) return;
             const cleanTraceName = this.hoveredPoint.series.originalId || traceName;
             const prevCommitPos = i > 0 ? s.rows[i - 1].commit_number : null;
 
-            pointLinks.load(
-              commit,
-              prevCommitPos,
-              cleanTraceName,
-              (window as any).perf?.keys_for_commit_range || [
-                'V8',
-                'WebRTC',
-                'V8 Git Hash',
-                'WebRTC Git Hash',
-              ],
-              (window as any).perf?.keys_for_useful_links || [
-                'Build Page',
-                'Tracing uri',
-                'Browser Version',
-                'Workflow',
-                'Swarming Tasks',
-              ],
-              []
-            );
+            pointLinks
+              .load(
+                commit,
+                prevCommitPos,
+                cleanTraceName,
+                (window as any).perf?.keys_for_commit_range || [
+                  'V8',
+                  'WebRTC',
+                  'V8 Git Hash',
+                  'WebRTC Git Hash',
+                ],
+                (window as any).perf?.keys_for_useful_links || [
+                  'Build Page',
+                  'Tracing uri',
+                  'Browser Version',
+                  'Workflow',
+                  'Swarming Tasks',
+                ],
+                []
+              )
+              .then(() => {
+                this._linksLoading = false;
+              })
+              .catch((err: any) => {
+                console.error(err);
+                this._linksLoading = false;
+              });
           }, 100);
         }
       }
@@ -609,22 +640,18 @@ export class TraceChartTooltipSk extends LitElement {
 
         <!-- Section 2: Commit Info -->
         <div class="tooltip-section">
-          ${r.author
-            ? html`
-                <div class="tooltip-row">
-                  <strong>Author:</strong>
-                  <span class="truncate">${r.author.split('(')[0]}</span>
-                </div>
-              `
-            : ''}
-          ${r.message
-            ? html`
-                <div class="tooltip-row">
-                  <strong>Message:</strong>
-                  <span class="wrap">${r.message}</span>
-                </div>
-              `
-            : ''}
+          <div class="tooltip-row">
+            <strong>Author:</strong>
+            ${r.author
+              ? html`<span class="truncate">${r.author.split('(')[0]}</span>`
+              : html`<span class="skeleton" style="width: 80px; height: 12px;"></span>`}
+          </div>
+          <div class="tooltip-row">
+            <strong>Message:</strong>
+            ${r.message
+              ? html`<span class="wrap">${r.message}</span>`
+              : html`<span class="skeleton" style="width: 180px; height: 12px;"></span>`}
+          </div>
           ${r.hash
             ? html`
                 <div class="tooltip-row">
@@ -748,6 +775,22 @@ export class TraceChartTooltipSk extends LitElement {
         </div>
         <div class="tooltip-row">
           <point-links-sk id="tooltip-point-links"></point-links-sk>
+          ${this._linksLoading
+            ? html`
+                <div
+                  class="subrepo-skeleton"
+                  style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px; width: 100%;">
+                  <div class="tooltip-row">
+                    <strong>V8:</strong>
+                    <span class="skeleton" style="width: 120px; height: 12px;"></span>
+                  </div>
+                  <div class="tooltip-row">
+                    <strong>WebRTC:</strong>
+                    <span class="skeleton" style="width: 120px; height: 12px;"></span>
+                  </div>
+                </div>
+              `
+            : ''}
         </div>
         ${(window as any).perf?.show_json_file_display
           ? html`
