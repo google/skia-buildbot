@@ -448,10 +448,17 @@ describe('explore-multi-v2-sk', () => {
       explore.begin = 1680000000;
       explore.end = 1680100000;
       explore._onResetZoom();
+      explore._resolveTimeRange();
     });
 
     // Wait for state reflection
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await page.waitForFunction(() => {
+      const url = new URL(window.location.href);
+      return (
+        url.searchParams.get('begin') === '1572739200' &&
+        url.searchParams.get('end') === '1585699200'
+      );
+    });
 
     const urlStr = await page.evaluate(() => window.location.href);
     const url = new URL(urlStr);

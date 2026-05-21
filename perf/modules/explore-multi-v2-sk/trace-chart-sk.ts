@@ -66,6 +66,17 @@ function getXFromVirtualIndex(arr: number[], vIdx: number): number {
   return arr[i] + frac * (arr[i + 1] - arr[i]);
 }
 
+// Styling and layout constants for subrepo update rollout drawing
+const ROLLOUT_COLOR = 'rgba(99, 102, 241, 0.8)'; // Indigo indicator line and label box background
+const ROLLOUT_LINE_WIDTH = 1.5;
+const ROLLOUT_LABEL_FONT = '10px sans-serif';
+const ROLLOUT_TEXT_COLOR = '#fff'; // White text color for readability against the dark box
+const ROLLOUT_LABEL_TOP_OFFSET = 5; // Pixels down from padding.top for the label stack start
+const ROLLOUT_LABEL_STAGGER_OFFSET = 15; // Vertical distance between staggered labels to prevent overlaps
+const ROLLOUT_BOX_PADDING_X = 4; // Horizontal padding around text inside the label box
+const ROLLOUT_BOX_PADDING_Y = 2; // Vertical padding around text inside the label box
+const ROLLOUT_BOX_HEIGHT = 14; // Total height of the label background box
+
 @customElement('trace-chart-sk')
 export class TraceChartSk extends LitElement {
   @property({ type: String }) title = '';
@@ -904,8 +915,8 @@ export class TraceChartSk extends LitElement {
     // Draw Subrepo Updates
     if (this._subrepoRolls.length > 0) {
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(99, 102, 241, 0.8)'; // More visible indigo
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = ROLLOUT_COLOR;
+      ctx.lineWidth = ROLLOUT_LINE_WIDTH;
 
       this._subrepoRolls.forEach((roll) => {
         const px = mapX(roll.dataX);
@@ -917,15 +928,29 @@ export class TraceChartSk extends LitElement {
       ctx.stroke();
 
       // Draw labels for rollouts
-      ctx.font = '10px sans-serif';
+      ctx.font = ROLLOUT_LABEL_FONT;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillStyle = '#6366f1';
-      this._subrepoRolls.forEach((roll) => {
+      this._subrepoRolls.forEach((roll, index) => {
         const px = mapX(roll.dataX);
         if (px >= padding.left && px <= width - padding.right) {
           const label = `${TrimHash(roll.oldVer)}..${TrimHash(roll.newVer)}`;
-          ctx.fillText(label, px, padding.top + 5);
+          const textWidth = ctx.measureText(label).width;
+          const py =
+            padding.top + ROLLOUT_LABEL_TOP_OFFSET + (index % 2) * ROLLOUT_LABEL_STAGGER_OFFSET;
+
+          // Draw background box
+          ctx.fillStyle = ROLLOUT_COLOR;
+          ctx.fillRect(
+            px - textWidth / 2 - ROLLOUT_BOX_PADDING_X,
+            py - ROLLOUT_BOX_PADDING_Y,
+            textWidth + 2 * ROLLOUT_BOX_PADDING_X,
+            ROLLOUT_BOX_HEIGHT
+          );
+
+          // Draw text
+          ctx.fillStyle = ROLLOUT_TEXT_COLOR;
+          ctx.fillText(label, px, py);
         }
       });
     }
