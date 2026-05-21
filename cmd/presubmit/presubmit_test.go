@@ -246,6 +246,155 @@ index f3265464e3..9ef1be7dba 100644
 	})
 }
 
+func TestExtractBranchBaseCitc(t *testing.T) {
+	test := func(name, input, expectedOutput string) {
+		t.Run(name, func(t *testing.T) {
+			ctx, _ := captureLogs()
+			actualOutput := extractBranchBaseCitc(input, ctx)
+			assert.Equal(t, expectedOutput, actualOutput)
+		})
+	}
+
+	const noLocalCommits = `Repo root: skia/buildbot
+@  @ me 2026-05-21 12:56:09 @
+│  (no description set)
+◆  1741c3e27daf me 2026-05-21 08:45:10 1741c3e2
+│  Reland "[public's a subset] fetch logic"
+◆  c41986669719 Wenbin Zhang 2026-05-16 01:36:47 c4198666
+│  [perf] support summary bar interaction with the graph`
+	test("no local commits returns immediate parent", noLocalCommits, "@-")
+
+	const oneLocalCommit = `Repo root: skia/buildbot
+@  @ me 2026-05-21 12:56:09 @
+│  (no description set)
+○  9d6d5a8c29c3 me 2026-05-21 12:46:55 9d6d5a8c
+│  Make presubmit work from Cider-G
+◆  1741c3e27daf me 2026-05-21 08:45:10 1741c3e2
+│  Reland "[public's a subset] fetch logic"
+◆  c41986669719 Wenbin Zhang 2026-05-16 01:36:47 c4198666
+│  [perf] support summary bar interaction with the graph`
+	test("one local commit returns grandparent", oneLocalCommit, "@--")
+
+	const manyLocalCommits = `Repo root: skia/buildbot
+@  @ me 2026-05-21 12:56:09 @
+│  (no description set)
+○  9d6d5a8c29c3 me 2026-05-21 12:46:55 9d6d5a8c
+│  Commit 3
+○  8d6d5a8c29c3 me 2026-05-21 12:46:50 8d6d5a8c
+│  Commit 2
+○  7d6d5a8c29c3 me 2026-05-21 12:46:40 7d6d5a8c
+│  Commit 1
+◆  1741c3e27daf me 2026-05-21 08:45:10 1741c3e2
+│  Reland "[public's a subset] fetch logic"`
+	test("multiple local commits returns remote base", manyLocalCommits, "@----")
+
+	test("unrecognized format falls back to immediate parent", "unexpected format\n...", "@-")
+}
+
+func TestExtractChangedAndDeletedFilesCitc(t *testing.T) {
+	const input = `Repo root: skia/buildbot
+Diffing 1741c3e27dafd251ea8c1bd107d6b967cc5481af..@
+--- /dev/null
++++ b/bazel/copts2.bzl
+@@ -0,0 +1,7 @@
++"""
++THIS IS THE EXTERNAL-ONLY VERSION OF THIS FILE. G3 HAS ITS OWN.
++
++This file contains flags for the C++ compiler, referred to by Bazel as copts.
++
++This is a new file
++"""
+--- a/bazel/defines.bzl
++++ /dev/null
+@@ -1,9 +0,0 @@
+-"""
+-THIS IS THE EXTERNAL-ONLY VERSION OF THIS FILE. G3 HAS ITS OWN.
+-
+-This file contains customizable C++ defines.
+-
+-The file was deleted
+-"""
+-
+-EXTRA_DEFINES = []  # This should always be empty externally. Add new defines in //bazel/BUILD.bazel
+--- a/src/pathops/SkPathOpsDebug.h
++++ b/src/pathops/SkPathOpsDebug.h
+@@ -12,0 +13,3 @@
++#include "src/core/SkGeometry.h"
++#include "src/pathops/SkPathOpsPoint.h"
++#include "src/pathops/SkPathOpsTypes.h"
+@@ -25,5 +27,0 @@ class SkPath;
+-struct SkDConic;
+-struct SkDCubic;
+-struct SkDLine;
+-struct SkDPoint;
+-struct SkDQuad;
+@@ -62 +60 @@ enum class SkOpPhase : char;
+-#if FORCE_RELEASE
++#if FORCE_RELEASE_FOR_REAL
+@@ -348,4 +348,4 @@
+-const SkOpPtT* AnglePtT(const SkOpAngle*, int id);
+-const SkOpSegment* AngleSegment(const SkOpAngle*, int id);
+-const SkOpSpanBase* AngleSpan(const SkOpAngle*, int id);
++const SkOpPtT* AnglePtT2(const SkOpAngle*, int id);
++const SkOpSegment* AngleSegment3(const SkOpAngle*, int id);
++const SkOpSpanBase* AngleSpan4(const SkOpAngle*, int id);
+`
+	changedFiles, deletedFiles := extractChangedAndDeletedFilesCitc(input)
+	assert.Equal(t, []string{"bazel/defines.bzl"}, deletedFiles)
+	assert.Equal(t, []fileWithChanges{
+		{
+			fileName: "bazel/copts2.bzl",
+			touchedLines: []lineOfCode{{
+				contents: `"""`,
+				num:      1,
+			}, {
+				contents: `THIS IS THE EXTERNAL-ONLY VERSION OF THIS FILE. G3 HAS ITS OWN.`,
+				num:      2,
+			}, {
+				contents: ``,
+				num:      3,
+			}, {
+				contents: `This file contains flags for the C++ compiler, referred to by Bazel as copts.`,
+				num:      4,
+			}, {
+				contents: ``,
+				num:      5,
+			}, {
+				contents: `This is a new file`,
+				num:      6,
+			}, {
+				contents: `"""`,
+				num:      7,
+			}},
+		},
+		{
+			fileName: "src/pathops/SkPathOpsDebug.h",
+			touchedLines: []lineOfCode{{
+				contents: `#include "src/core/SkGeometry.h"`,
+				num:      13,
+			}, {
+				contents: `#include "src/pathops/SkPathOpsPoint.h"`,
+				num:      14,
+			}, {
+				contents: `#include "src/pathops/SkPathOpsTypes.h"`,
+				num:      15,
+			}, {
+				contents: `#if FORCE_RELEASE_FOR_REAL`,
+				num:      60,
+			}, {
+				contents: `const SkOpPtT* AnglePtT2(const SkOpAngle*, int id);`,
+				num:      348,
+			}, {
+				contents: `const SkOpSegment* AngleSegment3(const SkOpAngle*, int id);`,
+				num:      349,
+			}, {
+				contents: `const SkOpSpanBase* AngleSpan4(const SkOpAngle*, int id);`,
+				num:      350,
+			}},
+		},
+	}, changedFiles)
+}
+
 func TestExtractChangedAndDeletedFiles_WhitespaceChange_WholeLineCaptured(t *testing.T) {
 	const input = `:100644 100644 464e32a3b8bc1f4e4238b6c089926d35febf3265 0000000000000000000000000000000000000000 M	bulk-triage-sk.ts
 

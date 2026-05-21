@@ -48,6 +48,7 @@ func main() {
 	)
 	flag.Parse()
 	ctx := withOutputWriter(context.Background(), os.Stdout)
+	ctx = withVerbose(ctx, *verbose)
 	if *repoDir == "" {
 		logf(ctx, "Must set --repo_dir\n")
 		flag.PrintDefaults()
@@ -98,58 +99,49 @@ func main() {
 	}
 
 	// Run checks and keep track of errors.
-	//
-	// We run the code-mutating checks first (gofmt, gazelle, etc.), followed by those that do not
-	// mutate code (line length, stray whitespace, etc.). This prevents us from reporting errors that
-	// might go away after running a code-mutating check, e.g. a line length error that goes away
-	// after running Prettier.
-	//
-	// We compute a new Git diff after each code-mutating check so that subsequent code-mutating
-	// checks can compare against the last check, rather than against the whole CL. This allows
-	// code-mutating checks to only fail due to their own diffs, rather than due to diffs from
-	// a previous check.
 	anyErrors := false
-	trackErrors := func(ok bool) { anyErrors = anyErrors || !ok }
-	trackErrors(runBuildifier(ctx, changedFiles, branchBaseCommit))
-	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
-	trackErrors(runGoimports(ctx, changedFiles, *repoDir, branchBaseCommit))
-	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
-	trackErrors(runGofmt(ctx, changedFiles, branchBaseCommit))
-	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
-	trackErrors(runGoVet(ctx, changedFiles, branchBaseCommit))
-	if *commit {
-		// When running the presubmit checks on CI, we must manually ensure that the node_modules
-		// directory exists because Bazel no longer manages that directory for us. Running "npm ci"
-		// accomplishes this. If the node_modules directory does not exist, the prettier step below
-		// will fail.
-		//
-		// When running the presubmit checks as part of the "git cl upload" command, it is the
-		// developer's responsibility to keep their node_modules directory up-to-date.
-		trackErrors(runNpmCi(ctx))
+	runCheck := func(name string, checkFn func() bool) {
+		if *verbose {
+			logf(ctx, "[presubmit] Running %s...\n", name)
+		}
+		ok := checkFn()
+		if *verbose {
+			if !ok {
+				logf(ctx, "[presubmit] %s failed.\n", name)
+			} else {
+				logf(ctx, "[presubmit] %s passed.\n", name)
+			}
+		}
+		anyErrors = anyErrors || !ok
 	}
-	trackErrors(runPrettier(ctx, changedFiles, *repoDir, branchBaseCommit))
+
+	runCheck("Buildifier", func() bool { return runBuildifier(ctx, changedFiles, branchBaseCommit) })
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
-	trackErrors(runESLint(ctx, changedFiles, *repoDir, branchBaseCommit))
+	runCheck("Goimports", func() bool { return runGoimports(ctx, changedFiles, *repoDir, branchBaseCommit) })
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
-	trackErrors(runGazelle(ctx, changedFiles, deletedFiles, branchBaseCommit))
+	runCheck("Gofmt", func() bool { return runGofmt(ctx, changedFiles, branchBaseCommit) })
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
-	trackErrors(checkTODOHasOwner(ctx, changedFiles))
-	trackErrors(checkForStrayWhitespace(ctx, changedFiles))
-	trackErrors(checkPythonFilesHaveNoTabs(ctx, changedFiles))
-	trackErrors(checkBannedGoAPIs(ctx, changedFiles))
-	trackErrors(checkJSDebugging(ctx, changedFiles))
+	runCheck("GoVet", func() bool { return runGoVet(ctx, changedFiles, branchBaseCommit) })
+	if *commit {
+		runCheck("NpmCi", func() bool { return runNpmCi(ctx) })
+	}
+	runCheck("Prettier", func() bool { return runPrettier(ctx, changedFiles, *repoDir, branchBaseCommit) })
+	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	runCheck("ESLint", func() bool { return runESLint(ctx, changedFiles, *repoDir, branchBaseCommit) })
+	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	runCheck("Gazelle", func() bool { return runGazelle(ctx, changedFiles, deletedFiles, branchBaseCommit) })
+	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	runCheck("TODOHasOwner", func() bool { return checkTODOHasOwner(ctx, changedFiles) })
+	runCheck("StrayWhitespace", func() bool { return checkForStrayWhitespace(ctx, changedFiles) })
+	runCheck("PythonFilesHaveNoTabs", func() bool { return checkPythonFilesHaveNoTabs(ctx, changedFiles) })
+	runCheck("BannedGoAPIs", func() bool { return checkBannedGoAPIs(ctx, changedFiles) })
+	runCheck("JSDebugging", func() bool { return checkJSDebugging(ctx, changedFiles) })
 	if !*commit {
-		trackErrors(runGolangCILintForPinpoint(ctx, changedFiles, branchBaseCommit, *fix))
-		trackErrors(runWorkflowCheck(ctx, changedFiles, *repoDir))
-
-		// Long lines are sometimes inevitable. Ideally we would add these long line files to
-		// the excluded list, but sometimes that is hard to do precisely.
-		trackErrors(checkLongLines(ctx, changedFiles))
-		// Give warnings for non-ASCII characters on upload but not commit, since they may
-		// be intentional.
-		trackErrors(checkNonASCII(ctx, changedFiles))
-
-		trackErrors(runAutoreview(ctx, branchBaseCommit))
+		runCheck("GolangCILintForPinpoint", func() bool { return runGolangCILintForPinpoint(ctx, changedFiles, branchBaseCommit, *fix) })
+		runCheck("WorkflowCheck", func() bool { return runWorkflowCheck(ctx, changedFiles, *repoDir) })
+		runCheck("LongLines", func() bool { return checkLongLines(ctx, changedFiles) })
+		runCheck("NonASCII", func() bool { return checkNonASCII(ctx, changedFiles) })
+		runCheck("Autoreview", func() bool { return runAutoreview(ctx, branchBaseCommit) })
 	}
 
 	if anyErrors {
@@ -168,8 +160,18 @@ bazel run //cmd/presubmit --run_under="cd $PWD &&"
 	refSeperator = "$|" // Some string we hope that no users start their branch names with
 )
 
+func isCitcWorkspace() bool {
+	_, err := os.Stat(".git")
+	return os.IsNotExist(err)
+}
+
 // findUncommittedChanges returns a list of files that git says have changed (compared to HEAD).
 func findUncommittedChanges(ctx context.Context) []string {
+	if isCitcWorkspace() {
+		// In a CitC workspace, changes are tracked directly in the working copy commit (@),
+		// so there are no "uncommitted" changes in the Git sense.
+		return nil
+	}
 	// diff-index is one of the git "plumbing" commands and the output should be relatively stable.
 	// https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git.html#_low_level_commands_plumbing
 	cmd := exec.CommandContext(ctx, "git", "diff-index", "HEAD")
@@ -201,6 +203,10 @@ func extractFilesWithDiffs(output string) []string {
 
 // findUntrackedFiles returns a list of files untracked and unignored by Git.
 func findUntrackedFiles(ctx context.Context) []string {
+	if isCitcWorkspace() {
+		// CitC automatically tracks files in the working copy commit, so we don't use this.
+		return nil
+	}
 	// https://stackoverflow.com/a/2659808/1447621
 	// This will list all untracked, unignored files on their own lines
 	cmd := exec.CommandContext(ctx, "git", "ls-files", "--others", "--exclude-standard")
@@ -219,6 +225,24 @@ func findUntrackedFiles(ctx context.Context) []string {
 // upstream branch where branching occurred. It shells out to git, which is presumed to be on
 // PATH in order to find this information.
 func findBranchBase(ctx context.Context, upstream string) string {
+	if isCitcWorkspace() {
+		// In a CitC/jj workspace, the current working commit is '@'.
+		// Its parent is '@-', its grandparent is '@--', and so on.
+		// A user can have multiple local commits (e.g., '○' nodes in `jj log`).
+		// We want to find the first remote/immutable commit (e.g., '◆' node in `jj log`),
+		// which represents the base of the local stack.
+
+		// Run `git citc cli.log` to fetch the commit history.
+		cmd := exec.CommandContext(ctx, "git", "citc", "cli.log", "-n", "100")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			log(ctx, string(output)+"\n")
+			log(ctx, err.Error()+"\n")
+			panic(gitErrorMessage)
+		}
+
+		return extractBranchBaseCitc(string(output), ctx)
+	}
 	// rev-list is one of the git "plumbing" commands and the output should be relatively stable.
 	// https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git.html#_low_level_commands_plumbing
 	cmd := exec.CommandContext(ctx, "git", "rev-list", "HEAD", "^"+upstream,
@@ -232,6 +256,45 @@ func findBranchBase(ctx context.Context, upstream string) string {
 		panic(gitErrorMessage)
 	}
 	return extractBranchBase(string(output))
+}
+
+func extractBranchBaseCitc(output string, ctx context.Context) string {
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+
+	// We count backwards through the parents. The working copy '@' is level 0.
+	// Its parent '@-' is level 1, its grandparent '@--' is level 2, etc.
+	// `jj log` outputs commits from top to bottom (newest to oldest).
+	// We want to find the first commit marked with '◆' (immutable/remote base).
+
+	level := -1
+	for _, line := range lines {
+		// The first character usually denotes the type of commit node.
+		// '◆' denotes an immutable commit (the base we want).
+		// '○' denotes a local commit.
+		// '@' denotes the working copy commit.
+		if strings.HasPrefix(line, "@ ") {
+			level++
+		} else if strings.HasPrefix(line, "○ ") {
+			level++
+		} else if strings.HasPrefix(line, "◆ ") {
+			level++
+			// We found the immutable base. We return the relative jj notation for it.
+			if level == 0 {
+				return "@" // Should rarely happen, but means the working copy is the remote commit
+			}
+			base := "@" + strings.Repeat("-", level)
+			if isVerbose(ctx) {
+				logf(ctx, "[presubmit] CitC workspace detected. Found base commit at %s: %s\n", base, line)
+			}
+			return base
+		}
+	}
+
+	// Fallback to immediate parent if we can't parse correctly.
+	if isVerbose(ctx) {
+		logf(ctx, "[presubmit] CitC workspace detected, but failed to parse base from log. Falling back to '@-'.\n")
+	}
+	return "@-"
 }
 
 type revEntry struct {
@@ -316,6 +379,9 @@ func extractBranchBase(output string) string {
 // and a slice of deleted files. It shells out to git, which is presumed to be on PATH in order
 // to find this information.
 func computeDiffFiles(ctx context.Context, branchBase string) ([]fileWithChanges, []string) {
+	if isCitcWorkspace() {
+		return computeDiffFilesCitc(ctx, branchBase)
+	}
 	// git diff-index is considered to be a "git plumbing" API, so its output should be pretty
 	// stable across git version (unlike ordinary git diff, which can do things like show
 	// tabs as multiple spaces).
@@ -331,6 +397,20 @@ func computeDiffFiles(ctx context.Context, branchBase string) ([]fileWithChanges
 		panic(gitErrorMessage)
 	}
 	return extractChangedAndDeletedFiles(string(output))
+}
+
+func computeDiffFilesCitc(ctx context.Context, branchBase string) ([]fileWithChanges, []string) {
+	if isVerbose(ctx) {
+		logf(ctx, "[presubmit] Executing: git citc cli.diff %s @\n", branchBase)
+	}
+	cmd := exec.CommandContext(ctx, "git", "citc", "cli.diff", branchBase, "@")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log(ctx, string(output)+"\n")
+		log(ctx, err.Error()+"\n")
+		panic(gitErrorMessage)
+	}
+	return extractChangedAndDeletedFilesCitc(string(output))
 }
 
 var (
@@ -415,6 +495,75 @@ func extractChangedAndDeletedFiles(diffOutput string) ([]fileWithChanges, []stri
 				contents: strings.TrimPrefix(line, addedLinePrefix),
 				num:      lastLineIndex,
 			})
+			lastLineIndex++
+		}
+	}
+
+	return changed, deleted
+}
+
+func extractChangedAndDeletedFilesCitc(diffOutput string) ([]fileWithChanges, []string) {
+	var changed []fileWithChanges
+	var deleted []string
+	lines := strings.Split(diffOutput, "\n")
+	currFileDeleted := false
+	lastLineIndex := -1
+
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+		if strings.HasPrefix(line, "--- ") {
+			if i+1 < len(lines) && strings.HasPrefix(lines[i+1], "+++ ") {
+				minusLine := line
+				plusLine := lines[i+1]
+				i++ // skip +++ line
+
+				currFileDeleted = false
+				lastLineIndex = -1
+
+				if strings.HasPrefix(plusLine, "+++ /dev/null") {
+					fileName := strings.TrimPrefix(minusLine, "--- ")
+					if strings.HasPrefix(fileName, "a/") || strings.HasPrefix(fileName, "b/") {
+						fileName = fileName[2:]
+					}
+					deleted = append(deleted, fileName)
+					currFileDeleted = true
+				} else {
+					fileName := strings.TrimPrefix(plusLine, "+++ ")
+					if strings.HasPrefix(fileName, "a/") || strings.HasPrefix(fileName, "b/") {
+						fileName = fileName[2:]
+					}
+					var newFile fileWithChanges
+					newFile.fileName = fileName
+					changed = append(changed, newFile)
+				}
+			}
+			continue
+		}
+		if currFileDeleted || len(changed) == 0 {
+			continue
+		}
+		currFile := &changed[len(changed)-1]
+		if match := lineAnchor.FindStringSubmatch(line); len(match) > 0 {
+			var err error
+			lastLineIndex, err = strconv.Atoi(match[3])
+			if err != nil {
+				panic("Got an integer where none was expected: " + line + "\n" + err.Error())
+			}
+			continue
+		}
+		if lastLineIndex < 0 {
+			continue
+		}
+		if strings.HasPrefix(line, "+") {
+			currFile.touchedLines = append(currFile.touchedLines, lineOfCode{
+				contents: strings.TrimPrefix(line, "+"),
+				num:      lastLineIndex,
+			})
+			lastLineIndex++
+		} else if strings.HasPrefix(line, "-") || strings.HasPrefix(line, "\\") {
+			// Do nothing for removed lines and "No newline at end of file" comments
+		} else if strings.HasPrefix(line, " ") {
+			// Context line
 			lastLineIndex++
 		}
 	}
@@ -526,6 +675,9 @@ func runWorkflowCheck(ctx context.Context, changedFiles []fileWithChanges, repoR
 	args = append(args, dirs...)
 
 	var stdoutBuf, stderrBuf bytes.Buffer
+	if isVerbose(ctx) {
+		logf(ctx, "[presubmit] Executing bazelisk %s\n", strings.Join(args, " "))
+	}
 	cmd := exec.CommandContext(ctx, "bazelisk", args...)
 	cmd.Stdout = &stdoutBuf
 	cmd.Stderr = &stderrBuf
@@ -1141,6 +1293,18 @@ func contains[T string](a []T, s T) bool {
 type contextKeyType string
 
 const outputWriterKey contextKeyType = "outputWriter"
+const verboseKey contextKeyType = "verbose"
+
+// withVerbose sets the verbose flag in the context.
+func withVerbose(ctx context.Context, v bool) context.Context {
+	return context.WithValue(ctx, verboseKey, v)
+}
+
+// isVerbose returns true if the verbose flag is set in the context.
+func isVerbose(ctx context.Context) bool {
+	v, ok := ctx.Value(verboseKey).(bool)
+	return ok && v
+}
 
 // withOutputWriter registers the given writer to the context. See also logf.
 func withOutputWriter(ctx context.Context, w io.Writer) context.Context {
