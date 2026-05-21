@@ -150,6 +150,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":trace-types_ts_lib",
+        "//:node_modules/@material/web",
         "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
         "//perf/modules/plot-summary-sk:h_resizable_box_sk_ts_lib",

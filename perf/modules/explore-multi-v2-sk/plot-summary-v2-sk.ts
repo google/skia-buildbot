@@ -4,6 +4,8 @@ import { createRef, ref } from 'lit/directives/ref.js';
 import { define } from '../../../elements-sk/modules/define';
 import { HResizableBoxSk } from '../plot-summary-sk/h_resizable_box_sk';
 import { TraceSeries, TraceRow } from './trace-types';
+import '@material/web/iconbutton/outlined-icon-button.js';
+import '@material/web/icon/icon.js';
 
 // Ensure HResizableBoxSk is registered
 if (!customElements.get('h-resizable-box-sk')) {
@@ -18,6 +20,8 @@ export class PlotSummaryV2Sk extends LitElement {
   private canvasRef = createRef<HTMLCanvasElement>();
 
   private boxRef = createRef<HResizableBoxSk>();
+
+  private containerRef = createRef<HTMLDivElement>();
 
   private resizeObserver: ResizeObserver | null = null;
 
@@ -45,15 +49,29 @@ export class PlotSummaryV2Sk extends LitElement {
       margin-top: 12px;
     }
 
+    .plot-summary-layout {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      width: 100%;
+      gap: 8px;
+    }
+
     .summary-container {
       position: relative;
-      width: 100%;
+      flex: 1;
       height: 45px;
       border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
       border-radius: 6px;
       background: var(--background, #0b0f19);
       box-sizing: border-box;
       overflow: hidden;
+    }
+
+    md-outlined-icon-button {
+      --md-outlined-icon-button-container-width: 32px;
+      --md-outlined-icon-button-container-height: 32px;
+      --md-outlined-icon-button-icon-size: 20px;
     }
 
     canvas {
@@ -324,7 +342,7 @@ export class PlotSummaryV2Sk extends LitElement {
   }
 
   protected render() {
-    const parentWidth = this.offsetWidth || 0;
+    const parentWidth = this.containerRef.value?.offsetWidth || 0;
     let selectionRange = null;
     if (this.viewportMinX !== null && this.viewportMaxX !== null) {
       const coords = this.convertToCoordsRange(this.viewportMinX, this.viewportMaxX, parentWidth);
@@ -334,22 +352,40 @@ export class PlotSummaryV2Sk extends LitElement {
     }
 
     return html`
-      <div class="summary-container">
-        <canvas ${ref(this.canvasRef)}></canvas>
-        <h-resizable-box-sk
-          ${ref(this.boxRef)}
-          .selectionRange=${selectionRange}
-          @selection-changed=${this.handleBoxChanged}>
-        </h-resizable-box-sk>
-        ${this.loading
-          ? html`
-              <div class="overlay">
-                <div class="spinner"></div>
-              </div>
-            `
-          : ''}
+      <div class="plot-summary-layout">
+        <md-outlined-icon-button ?disabled=${this.loading} @click=${() => this.loadMore('left')}>
+          <md-icon>chevron_left</md-icon>
+        </md-outlined-icon-button>
+        <div class="summary-container" ${ref(this.containerRef)}>
+          <canvas ${ref(this.canvasRef)}></canvas>
+          <h-resizable-box-sk
+            ${ref(this.boxRef)}
+            .selectionRange=${selectionRange}
+            @selection-changed=${this.handleBoxChanged}>
+          </h-resizable-box-sk>
+          ${this.loading
+            ? html`
+                <div class="overlay">
+                  <div class="spinner"></div>
+                </div>
+              `
+            : ''}
+        </div>
+        <md-outlined-icon-button ?disabled=${this.loading} @click=${() => this.loadMore('right')}>
+          <md-icon>chevron_right</md-icon>
+        </md-outlined-icon-button>
       </div>
     `;
+  }
+
+  private loadMore(side: 'left' | 'right') {
+    this.dispatchEvent(
+      new CustomEvent('load-more-click', {
+        detail: side,
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   private handleBoxChanged(e: CustomEvent<{ begin: number; end: number } | null>) {
@@ -366,7 +402,7 @@ export class PlotSummaryV2Sk extends LitElement {
       return;
     }
 
-    const parentWidth = this.offsetWidth || 0;
+    const parentWidth = this.containerRef.value?.offsetWidth || 0;
     const valueRange = this.convertToValueRange(detail.begin, detail.end, parentWidth);
     if (valueRange) {
       this.dispatchEvent(

@@ -53,6 +53,9 @@ export const SUBREPO_CONFIG: Record<string, { logUrl: string; repoUrl: string }>
   },
 };
 
+const DEFAULT_SUMMARY_RANGE_SEC = 90 * 24 * 3600; // 90 days
+const SUMMARY_INCREMENT_SEC = 90 * 24 * 3600; // 90 days
+
 @customElement('explore-multi-v2-sk')
 export class ExploreMultiV2Sk extends LitElement {
   @property({ attribute: false }) queries: Record<string, string[]>[] = [{}];
@@ -64,6 +67,10 @@ export class ExploreMultiV2Sk extends LitElement {
   @state() private _shortcut = '';
 
   private _lastQueriesJson = '';
+
+  private _summaryBeginOffsetSec = DEFAULT_SUMMARY_RANGE_SEC;
+
+  private _summaryEndOffsetSec = 0;
 
   private _lastLoadedShortcut = '';
 
@@ -831,6 +838,8 @@ export class ExploreMultiV2Sk extends LitElement {
   protected updated(changedProperties: PropertyValues) {
     if (changedProperties.has('queries')) {
       this._tracePage = 0;
+      this._summaryBeginOffsetSec = DEFAULT_SUMMARY_RANGE_SEC;
+      this._summaryEndOffsetSec = 0;
       if (this._workerController?.isReady()) {
         this._triggerWorkerFilter();
       }
@@ -1185,8 +1194,29 @@ export class ExploreMultiV2Sk extends LitElement {
     }
   }
 
+  private _getLoadedRowsRange(): { min: number; max: number } | null {
+    let min = Infinity;
+    let max = -Infinity;
+    for (const s of this._seriesData) {
+      if (s.rows) {
+        for (const r of s.rows) {
+          if (r.createdat !== undefined && r.createdat > 0) {
+            if (r.createdat < min) min = r.createdat;
+            if (r.createdat > max) max = r.createdat;
+          }
+        }
+      }
+    }
+    if (min === Infinity || max === -Infinity) {
+      return null;
+    }
+    return { min, max };
+  }
+
   private async _prefetchHistory(): Promise<void> {
-    console.log('[_prefetchHistory] initiating background prefetch for 90 days');
+    console.log(
+      `[_prefetchHistory] initiating background prefetch from -${this._summaryBeginOffsetSec}s to +${this._summaryEndOffsetSec}s`
+    );
     if (this._prefetchAbortController) {
       this._prefetchAbortController.abort();
     }
@@ -1202,9 +1232,18 @@ export class ExploreMultiV2Sk extends LitElement {
     if (visibleIds.length === 0) return;
 
     const { end } = this._resolveTimeRange();
-    const daysInSeconds = 24 * 3600;
-    const prefetchBegin = end - 90 * daysInSeconds;
-    const prefetchEnd = end;
+    let prefetchBegin = end - this._summaryBeginOffsetSec;
+    let prefetchEnd = end + this._summaryEndOffsetSec;
+
+    const existingRange = this._getLoadedRowsRange();
+    if (existingRange) {
+      if (prefetchBegin > existingRange.min) {
+        prefetchBegin = existingRange.min;
+      }
+      if (prefetchEnd < existingRange.max) {
+        prefetchEnd = existingRange.max;
+      }
+    }
 
     const quantizedBegin = Math.floor(prefetchBegin / 3600) * 3600;
     const quantizedEnd = Math.floor(prefetchEnd / 3600) * 3600;
@@ -1339,18 +1378,36 @@ export class ExploreMultiV2Sk extends LitElement {
    */
   private _translateCommitToTimestamp(commitNumber: number): number {
     if (!this._seriesData || this._seriesData.length === 0) {
+      console.log('[_translateCommitToTimestamp] Series data is empty');
       return -1;
     }
-    // Scan first non-empty series since all series share identical commit header offsets
-    const series = this._seriesData.find((s) => s.rows && s.rows.length > 0);
+
+    // Find the series with the maximum number of rows (most complete history)
+    let series = null;
+    let maxRows = 0;
+    for (const s of this._seriesData) {
+      if (s.rows && s.rows.length > maxRows) {
+        maxRows = s.rows.length;
+        series = s;
+      }
+    }
+
     if (!series) {
+      console.log('[_translateCommitToTimestamp] No series with rows found');
       return -1;
     }
+
     const rows = series.rows;
+    if (this._evenXAxisSpacing) {
+      if (commitNumber >= 0 && commitNumber < rows.length) {
+        return rows[commitNumber].createdat;
+      }
+      return -1;
+    }
+
     let low = 0;
     let high = rows.length - 1;
 
-    // Perform O(log N) Binary Search closest match
     while (low < high) {
       const mid = Math.floor((low + high) / 2);
       if (rows[mid].commit_number === commitNumber) {
@@ -1363,8 +1420,6 @@ export class ExploreMultiV2Sk extends LitElement {
       }
     }
 
-    // Low represents index closest to, or immediately after target commit number.
-    // Refine closest idx between low and low - 1.
     let closestIdx = low;
     if (low > 0) {
       const diff1 = Math.abs(rows[low].commit_number - commitNumber);
@@ -1418,6 +1473,7 @@ export class ExploreMultiV2Sk extends LitElement {
   private _handleSummaryRangeSelected(e: CustomEvent<{ begin: number; end: number }>) {
     const { begin, end } = e.detail;
     if (this.viewportMinX === begin && this.viewportMaxX === end) {
+      console.log('[_handleSummaryRangeSelected] Viewport matches exactly. Skipped.');
       return;
     }
 
@@ -1427,6 +1483,9 @@ export class ExploreMultiV2Sk extends LitElement {
     if (this.dateMode) {
       this.begin = Math.floor(begin);
       this.end = Math.ceil(end);
+      console.log(
+        `[_handleSummaryRangeSelected] DateMode true. New bounds: begin ${this.begin}, end ${this.end}`
+      );
       this._stateHasChanged();
     } else {
       const beginTime = this._translateCommitToTimestamp(Math.floor(begin));
@@ -1444,6 +1503,16 @@ export class ExploreMultiV2Sk extends LitElement {
         this._stateHasChanged();
       }
     }
+  }
+
+  private _handleLoadMore(e: CustomEvent<'left' | 'right'>) {
+    const side = e.detail;
+    if (side === 'left') {
+      this._summaryBeginOffsetSec += SUMMARY_INCREMENT_SEC;
+    } else {
+      this._summaryEndOffsetSec += SUMMARY_INCREMENT_SEC;
+    }
+    void this._prefetchHistory();
   }
 
   private async _doHandleViewportChanged(e: any) {
@@ -2591,7 +2660,8 @@ export class ExploreMultiV2Sk extends LitElement {
                   .viewportMaxX=${this.viewportMaxX}
                   .evenXAxisSpacing=${this._evenXAxisSpacing}
                   .loading=${this._summaryLoading}
-                  @summary-range-selected=${this._handleSummaryRangeSelected}>
+                  @summary-range-selected=${this._handleSummaryRangeSelected}
+                  @load-more-click=${this._handleLoadMore}>
                 </plot-summary-v2-sk>
               </trace-chart-sk>
             `
