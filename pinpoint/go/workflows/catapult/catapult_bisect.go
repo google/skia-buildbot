@@ -169,10 +169,13 @@ func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*p
 	// See WriteBisectToCatapultActivity in README.md.
 	var dsResp *DatastoreResponse
 	if err := workflow.ExecuteActivity(ctx, WriteBisectToCatapultActivity, &resp, p.Production).Get(ctx, &dsResp); err != nil {
-		return nil, skerr.Wrap(err)
+		if p.Production {
+			return nil, skerr.Wrap(err)
+		}
+		logger.Warn("Failed to write bisect results back to legacy Catapult database. Ignoring error in non-production environment.", "error", err)
+	} else {
+		logger.Info(fmt.Sprintf("Datastore information for this job: %v", dsResp))
 	}
-
-	logger.Info(fmt.Sprintf("Datastore information for this job: %v", dsResp))
 
 	return &pinpoint_proto.BisectExecution{
 		JobId:            bisectExecution.JobId,

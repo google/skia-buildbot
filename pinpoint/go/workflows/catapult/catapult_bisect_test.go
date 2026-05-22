@@ -10,6 +10,7 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
@@ -100,4 +101,55 @@ func TestCatapultBisectWorkflow_ReplayEvents_ShouldAlwaysPass(t *testing.T) {
 
 	err := replayer.ReplayWorkflowHistoryFromJSONFile(nil, "testdata/catapult_bisect_event_history_20240627.json")
 	assert.NoError(t, err)
+}
+
+func TestCatapultBisectWorkflow_WriteBackFailureInNonProd_Success(t *testing.T) {
+	mockBisectExecution := &internal.BisectExecution{
+		JobId: mockJobId,
+	}
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	env.RegisterWorkflowWithOptions(internal.BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
+	env.RegisterWorkflowWithOptions(ConvertToCatapultResponseWorkflow, workflow.RegisterOptions{Name: workflows.ConvertToCatapultResponseWorkflow})
+
+	env.OnWorkflow(workflows.Bisect, mock.Anything, mock.Anything).Return(mockBisectExecution, nil).Once()
+	env.OnWorkflow(workflows.ConvertToCatapultResponseWorkflow, mock.Anything, mock.Anything, mockBisectExecution).Return(mockPinpointLegacyJobResp, nil).Once()
+	env.OnActivity(WriteBisectToCatapultActivity, mock.Anything, mockPinpointLegacyJobResp, false).Return(nil, skerr.Fmt("mock write-back failure")).Once()
+
+	env.ExecuteWorkflow(CatapultBisectWorkflow, &workflows.BisectParams{
+		Request:    &pinpoint_proto.ScheduleBisectRequest{},
+		Production: false,
+	})
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+
+	var actual *pinpoint_proto.BisectExecution
+	require.NoError(t, env.GetWorkflowResult(&actual))
+	assert.NotNil(t, actual)
+	assert.Equal(t, mockJobId, actual.JobId)
+	env.AssertExpectations(t)
+}
+
+func TestCatapultBisectWorkflow_WriteBackFailureInProd_Error(t *testing.T) {
+	mockBisectExecution := &internal.BisectExecution{
+		JobId: mockJobId,
+	}
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	env.RegisterWorkflowWithOptions(internal.BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
+	env.RegisterWorkflowWithOptions(ConvertToCatapultResponseWorkflow, workflow.RegisterOptions{Name: workflows.ConvertToCatapultResponseWorkflow})
+
+	env.OnWorkflow(workflows.Bisect, mock.Anything, mock.Anything).Return(mockBisectExecution, nil).Once()
+	env.OnWorkflow(workflows.ConvertToCatapultResponseWorkflow, mock.Anything, mock.Anything, mockBisectExecution).Return(mockPinpointLegacyJobResp, nil).Once()
+	env.OnActivity(WriteBisectToCatapultActivity, mock.Anything, mockPinpointLegacyJobResp, true).Return(nil, skerr.Fmt("mock write-back failure")).Once()
+
+	env.ExecuteWorkflow(CatapultBisectWorkflow, &workflows.BisectParams{
+		Request:    &pinpoint_proto.ScheduleBisectRequest{},
+		Production: true,
+	})
+	require.True(t, env.IsWorkflowCompleted())
+	require.Error(t, env.GetWorkflowError())
+	env.AssertExpectations(t)
 }
