@@ -26,6 +26,7 @@ export const BUG_REPORT_URL =
     MatTooltipModule,
   ],
   templateUrl: './header.component.html',
+  styleUrls: ['./header.component.css'],
 })
 export class HeaderComponent implements OnInit {
   private gatewayService = inject(GatewayService);

@@ -37,6 +37,8 @@ html,
 body {
   height: 100%;
   margin: 0;
+  background-color: var(--mat-app-background-color);
+  color: var(--mat-app-text-color);
 }
 
 /* A reusable spacer class to push elements to opposite ends of a container. */

@@ -1,3 +1,19 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.table-container {
+  flex: 1;
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+}
+
 .error-message {
   display: flex;
   justify-content: center;

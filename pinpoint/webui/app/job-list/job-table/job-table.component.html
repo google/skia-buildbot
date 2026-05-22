@@ -1,4 +1,4 @@
-<div>
+<div class="table-container">
   <table mat-table [dataSource]="dataSource">
 
     <!-- Job Name Column -->
@@ -73,13 +73,12 @@
       </td>
     </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
 
     @if (!loading() && !error()) {
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     }
   </table>
-
   @if (loading()) {
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
   }
@@ -90,10 +89,10 @@
       <span>{{ error() }}</span>
     </mat-error>
   }
-
-  <mat-paginator
-    [pageSizeOptions]="[10, 25, 50, 100]"
-    pageSize="25"
-    showFirstLastButtons>
-  </mat-paginator>
 </div>
+
+<mat-paginator
+  [pageSizeOptions]="[10, 25, 50, 100]"
+  pageSize="25"
+  showFirstLastButtons>
+</mat-paginator>

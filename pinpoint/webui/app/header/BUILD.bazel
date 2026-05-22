@@ -4,6 +4,7 @@ load("//infra-sk:index.bzl", "karma_test", "ts_library")
 copy_to_bin(
     name = "srcs",
     srcs = [
+        "header.component.css",
         "header.component.html",
         "header.component.ts",
     ],
