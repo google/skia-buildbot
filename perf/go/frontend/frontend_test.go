@@ -394,6 +394,17 @@ func TestFrontend_CSPHeaders_AllowsWASM(t *testing.T) {
 	csp1 := w1.Result().Header.Get("Content-Security-Policy")
 	require.Contains(t, csp1, "'unsafe-eval'")
 
+	// Check /u (should allow WASM)
+	w3 := httptest.NewRecorder()
+	req3 := httptest.NewRequest("GET", "/u", nil)
+	req3.Host = host
+	req3.TLS = &tls.ConnectionState{}
+	r.ServeHTTP(w3, req3)
+
+	require.Equal(t, http.StatusOK, w3.Result().StatusCode)
+	csp3 := w3.Result().Header.Get("Content-Security-Policy")
+	require.Contains(t, csp3, "'unsafe-eval'")
+
 	// Check /m (should NOT allow WASM)
 	w2 := httptest.NewRecorder()
 	req2 := httptest.NewRequest("GET", "/m", nil)

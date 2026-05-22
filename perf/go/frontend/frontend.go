@@ -1173,6 +1173,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.Group(func(r chi.Router) {
 		r.Use(baseapp.SecurityMiddleware(ah, local, []baseapp.Option{baseapp.AllowWASM{}}))
 		r.HandleFunc("/e2", f.templateHandler("multiexplore-v2.html"))
+		r.HandleFunc("/u", f.templateHandler("report.html"))
 	})
 	router.HandleFunc("/c", f.templateHandler("clusters2.html"))
 	router.HandleFunc("/pg", f.templateHandler("playground.html"))
@@ -1181,7 +1182,6 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.HandleFunc("/f", f.templateHandler("favorites.html"))
 	router.HandleFunc("/l", f.templateHandler("extralinks.html"))
 	router.HandleFunc("/v", f.templateHandler("revisions.html"))
-	router.HandleFunc("/u", f.templateHandler("report.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help", f.helpHandler)
 
