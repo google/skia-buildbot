@@ -1,0 +1,99 @@
+<div>
+  <table mat-table [dataSource]="dataSource">
+
+    <!-- Job Name Column -->
+    <ng-container [matColumnDef]="JobTableColumn.Name">
+      <th mat-header-cell *matHeaderCellDef>Job Name</th>
+      <td mat-cell *matCellDef="let job">
+        <a
+          color="primary"
+          href="https://pinpoint-dot-chromeperf.appspot.com/job/{{ job.jobId }}"
+          target="_blank"
+          rel="noopener noreferrer">
+          {{ job.name || job.jobId }}
+        </a>
+      </td>
+    </ng-container>
+
+    <!-- Benchmark Column -->
+    <ng-container [matColumnDef]="JobTableColumn.Benchmark">
+      <th mat-header-cell *matHeaderCellDef>Benchmark</th>
+      <td mat-cell *matCellDef="let job">{{ job.benchmark }}</td>
+    </ng-container>
+
+    <!-- Configuration Column -->
+    <ng-container [matColumnDef]="JobTableColumn.Configuration">
+      <th mat-header-cell *matHeaderCellDef>Bot</th>
+      <td mat-cell *matCellDef="let job">
+        <a
+          color="primary"
+          href="https://pinpoint-dot-chromeperf.appspot.com/queue-stats/{{ job.configuration }}"
+          target="_blank"
+          rel="noopener noreferrer">
+          {{ job.configuration }}
+        </a>
+      </td>
+    </ng-container>
+
+    <!-- Story Column -->
+    <ng-container [matColumnDef]="JobTableColumn.Story">
+      <th mat-header-cell *matHeaderCellDef>Story</th>
+      <td mat-cell *matCellDef="let job">{{ job.story || '-' }}</td>
+    </ng-container>
+
+    <!-- Job Type Column -->
+    <ng-container [matColumnDef]="JobTableColumn.JobType">
+      <th mat-header-cell *matHeaderCellDef>Type</th>
+      <td mat-cell *matCellDef="let job">
+        <span>
+          {{ getJobTypeLabel(job.jobType) }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- User Column -->
+    <ng-container [matColumnDef]="JobTableColumn.User">
+      <th mat-header-cell *matHeaderCellDef>User</th>
+      <td mat-cell *matCellDef="let job">{{ job.user }}</td>
+    </ng-container>
+
+    <!-- Created Column -->
+    <ng-container [matColumnDef]="JobTableColumn.Created">
+      <th mat-header-cell *matHeaderCellDef>Created</th>
+      <td mat-cell *matCellDef="let job">
+        {{ job.created ? (job.created | date:'MMM d, y, h:mm a') : '-' }}
+      </td>
+    </ng-container>
+
+    <!-- Status Column -->
+    <ng-container [matColumnDef]="JobTableColumn.JobStatus">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let job">
+        {{ jobStatusToLabel(job.jobStatus) }}
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+
+    @if (!loading() && !error()) {
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    }
+  </table>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+
+  @if (error()) {
+    <mat-error class="error-message">
+      <mat-icon>error</mat-icon>
+      <span>{{ error() }}</span>
+    </mat-error>
+  }
+
+  <mat-paginator
+    [pageSizeOptions]="[10, 25, 50, 100]"
+    pageSize="25"
+    showFirstLastButtons>
+  </mat-paginator>
+</div>

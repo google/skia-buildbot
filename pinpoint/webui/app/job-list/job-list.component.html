@@ -1,7 +1,9 @@
-<div class="content">
-  <div>
-    <h1>Recent Jobs</h1>
-    <a routerLink="/new">Create</a>
+<div>
+  <div class="header-row">
+    <a mat-flat-button color="primary" routerLink="/new">
+      <mat-icon>add</mat-icon>
+      Create Job
+    </a>
   </div>
-  <pre class="json-view">{{ jobsText() }}</pre>
+  <app-job-table></app-job-table>
 </div>
