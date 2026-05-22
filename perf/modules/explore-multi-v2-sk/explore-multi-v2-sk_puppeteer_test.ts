@@ -23,6 +23,11 @@ describe('explore-multi-v2-sk', () => {
     exploreMultiV2SkPO = new ExploreMultiV2SkPO(exploreMultiV2Sk);
   });
 
+  afterEach(async () => {
+    const page = testBed.page;
+    page.removeAllListeners('console');
+  });
+
   it('should display the correct static content', async () => {
     const staticContent = await exploreMultiV2SkPO.staticContent;
 
@@ -37,6 +42,13 @@ describe('explore-multi-v2-sk', () => {
 
   it('should trigger fetch when panning in Date Mode', async () => {
     const page = testBed.page;
+
+    // Wait for worker to be ready first to avoid asynchronous initialization races
+    await page.waitForFunction(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore?.shadowRoot?.querySelector('query-bar-sk') as any;
+      return queryBar && queryBar.availableParams.length > 0;
+    });
 
     // Clear cache to force network fetch
     await page.evaluate(async () => {
@@ -76,6 +88,7 @@ describe('explore-multi-v2-sk', () => {
       }
       const exploreEl = explore as any;
       exploreEl._matchingTraceIds = ['t1', 't2'];
+      exploreEl._seriesData = [];
       exploreEl._pageSize = 10;
       exploreEl._tracePage = 0;
       exploreEl.dateMode = true;
@@ -172,6 +185,9 @@ describe('explore-multi-v2-sk', () => {
     await page.evaluate(async () => {
       const explore = document.querySelector('explore-multi-v2-sk') as any;
       if (!explore) throw new Error('explore-multi-v2-sk not found');
+
+      explore.queries = [{ test: ['Score'] }];
+      explore._optionsByKeyPerQuery = [{ test: [{ value: 'Score', count: 1 }] }];
       await explore.updateComplete;
 
       await customElements.whenDefined('query-bar-sk');
@@ -179,12 +195,10 @@ describe('explore-multi-v2-sk', () => {
       const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
       if (!queryBar) throw new Error('query-bar-sk not found');
 
-      explore.queries = [{ test: ['Score'] }];
-      explore._availableParams = [{ key: 'test', value: 'Score', count: 1 }];
-      explore._optionsByKey = { test: [{ value: 'Score', count: 1 }] };
-      explore._optionsByKeyPerQuery = [{ test: [{ value: 'Score', count: 1 }] }];
-      explore.requestUpdate();
-      await explore.updateComplete;
+      // Ensure shadowRoot is available
+      if (!queryBar.shadowRoot) throw new Error('query-bar-sk shadowRoot is null');
+
+      queryBar.availableParams = [{ key: 'test', value: 'Score', count: 1 }];
       await queryBar.updateComplete;
     });
 
@@ -765,5 +779,54 @@ describe('explore-multi-v2-sk', () => {
       page.off('request', requestHandler);
       await page.setRequestInterception(false);
     }
+  });
+
+  it('should render the floating help button and trigger the walkthrough tour', async () => {
+    const page = testBed.page;
+    await page.goto(testBed.baseUrl);
+    await page.waitForSelector('explore-multi-v2-sk');
+
+    // Wait for the custom elements to be defined and fully updated
+    await page.evaluate(async () => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      await explore.updateComplete;
+
+      await customElements.whenDefined('help-hub-sk');
+      const helpHub = explore.shadowRoot.querySelector('help-hub-sk') as any;
+      await helpHub.updateComplete;
+
+      await customElements.whenDefined('interactive-tour-sk');
+      const tour = explore.shadowRoot.querySelector('interactive-tour-sk') as any;
+      await tour.updateComplete;
+    });
+
+    // Click the FAB to open the Help Hub Panel
+    await page.evaluate(async () => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const helpHub = explore.shadowRoot.querySelector('help-hub-sk') as any;
+      const fab = helpHub.shadowRoot.querySelector('.help-fab') as HTMLElement;
+      fab.click();
+      await helpHub.updateComplete;
+    });
+
+    // Click 'Start Tour' trigger button
+    await page.evaluate(async () => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const helpHub = explore.shadowRoot.querySelector('help-hub-sk') as any;
+      const tourBtn = helpHub.shadowRoot.querySelector('.tour-trigger-btn') as HTMLElement;
+      tourBtn.click();
+      await explore.updateComplete;
+    });
+
+    // Verify Tour Overlay has spawned and first step title is correct
+    const tourTitle = await page.evaluate(async () => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const tour = explore.shadowRoot.querySelector('interactive-tour-sk') as any;
+      await tour.updateComplete;
+      const titleEl = tour.shadowRoot.querySelector('.bubble-title');
+      return titleEl ? titleEl.textContent.trim() : null;
+    });
+
+    expect(tourTitle).to.equal('Faceted Search Bar 🔍');
   });
 });

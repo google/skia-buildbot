@@ -31,6 +31,8 @@ sk_element(
         "//perf/modules/telemetry:types_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
         ":trace-types_ts_lib",
+        ":help-hub-sk_ts_lib",
+        ":interactive-tour-sk_ts_lib",
     ],
     ts_srcs = [
         "explore-multi-v2-sk.ts",
@@ -291,5 +293,43 @@ sk_element_puppeteer_test(
         "//perf/modules/common:puppeteer-test-util_ts_lib",
         "//puppeteer-tests:screencast_ts_lib",
         "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+ts_library(
+    name = "interactive-tour-sk_ts_lib",
+    srcs = ["interactive-tour-sk.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:node_modules/lit",
+    ],
+)
+
+ts_library(
+    name = "help-hub-sk_ts_lib",
+    srcs = ["help-hub-sk.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:node_modules/lit",
+    ],
+)
+
+karma_test(
+    name = "interactive-tour-sk_test",
+    src = "interactive-tour-sk_test.ts",
+    deps = [
+        ":interactive-tour-sk_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+    ],
+)
+
+karma_test(
+    name = "help-hub-sk_test",
+    src = "help-hub-sk_test.ts",
+    deps = [
+        ":help-hub-sk_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
     ],
 )

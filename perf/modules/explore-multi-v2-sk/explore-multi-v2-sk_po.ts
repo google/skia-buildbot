@@ -20,8 +20,8 @@ export class ExploreMultiV2SkPO extends PageObject {
       );
 
       return {
-        title: h1 ? h1.textContent : null,
-        subtitle: p ? p.textContent : null,
+        title: h1 ? h1.textContent?.trim() : null,
+        subtitle: p ? p.textContent?.trim() : null,
         facetedSearchBarTitle: sectionTitles[0] || null,
         visualizationsTitle: sectionTitles[1] || null,
       };
@@ -80,9 +80,19 @@ export class ExploreMultiV2SkPO extends PageObject {
       }
       if (!multiSelect) throw new Error('explore-multi-v2-select-sk not found');
       multiSelect._isOpen = true;
-      await multiSelect.updateComplete;
-      const diffBtn = multiSelect.shadowRoot.querySelector('.ms-diff-btn') as HTMLElement;
-      diffBtn.click();
+
+      // Wait for options to be populated and the button to render
+      const maxAttempts = 20;
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        await multiSelect.updateComplete;
+        const diffBtn = multiSelect.shadowRoot.querySelector('.ms-diff-btn') as HTMLElement;
+        if (diffBtn) {
+          diffBtn.click();
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      throw new Error('Diff button (.ms-diff-btn) did not appear in the multi-select dropdown!');
     });
   }
 

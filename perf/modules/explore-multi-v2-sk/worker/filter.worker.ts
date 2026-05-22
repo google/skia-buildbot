@@ -469,6 +469,118 @@ self.onmessage = (e: MessageEvent) => {
     latestFilterRequestId = e.data.requestId || latestFilterRequestId;
     const queries = e.data.queries || [e.data.query];
     void handleFilter(queries, e.data.requestId || 0, e.data.numUserQueries || 1);
+  } else if (e.data.type === 'GET_RANDOM_TRACE') {
+    if (!loadedData) {
+      self.postMessage({ type: 'RANDOM_TRACE_RESULT', payload: null });
+      return;
+    }
+    const { traceData, params, wasmFilter, globalCounts, commonParams } = loadedData;
+    const query: Record<string, string[]> = {};
+    let currentMatchCount = traceData.numTraces;
+    const selectedKeys = new Set<string>();
+
+    for (let iter = 0; iter < 10; iter++) {
+      if (currentMatchCount <= 1) {
+        break;
+      }
+
+      let counts: Int32Array;
+      let bitsetOffset = 0;
+
+      if (selectedKeys.size === 0) {
+        counts = globalCounts;
+        bitsetOffset = 0;
+      } else {
+        const serializedQuery: number[] = [];
+        serializedQuery.push(selectedKeys.size);
+
+        const queryEntries = Object.entries(query);
+        for (const [key, values] of queryEntries) {
+          const ids: number[] = [];
+          for (const v of values) {
+            const foundParam = params.find((param) => param.key === key && param.value === v);
+            if (foundParam) ids.push(foundParam.id);
+          }
+          serializedQuery.push(ids.length);
+          serializedQuery.push(...ids);
+        }
+
+        const queryPtr = getQueryPtr(traceData);
+        const queryView = new Int32Array(traceData.memory.buffer, queryPtr, serializedQuery.length);
+        queryView.set(serializedQuery);
+
+        traceData.matchingParams.fill(0);
+
+        const count = wasmFilter.filterTraces(
+          traceData.numTraces,
+          0,
+          traceData.stride,
+          queryPtr,
+          serializedQuery.length,
+          traceData.dataPtr,
+          traceData.outPtr,
+          0,
+          OUTPUT_LIMIT,
+          traceData.matchingParamsPtr,
+          traceData.bitsetSize
+        );
+
+        if (count <= 0) {
+          break;
+        }
+        currentMatchCount = count;
+        if (currentMatchCount <= 1) {
+          break;
+        }
+
+        counts = traceData.matchingParams;
+        bitsetOffset = selectedKeys.size * traceData.bitsetSize;
+      }
+
+      // Find the parameter with the highest trace count that narrows it down.
+      let bestParam: Param | null = null;
+      let maxCount = 0;
+
+      for (let i = 0; i < params.length; i++) {
+        const p = params[i];
+        if (selectedKeys.has(p.key)) continue;
+
+        const pCount = counts[bitsetOffset + p.id];
+        if (pCount > 0 && pCount < currentMatchCount) {
+          if (pCount > maxCount) {
+            maxCount = pCount;
+            bestParam = p;
+          }
+        }
+      }
+
+      if (bestParam) {
+        query[bestParam.key] = [bestParam.value];
+        selectedKeys.add(bestParam.key);
+        currentMatchCount = maxCount;
+      } else {
+        // Narrow down to 1 trace using the first matched trace!
+        const matchedTraceIndex = traceData.filteredTraceIndices[0];
+        const offset = matchedTraceIndex * traceData.stride;
+        for (let j = 0; j < traceData.stride; j++) {
+          const pid = traceData.paramSets[offset + j];
+          if (pid === 0) break;
+          const p = params[pid - 1];
+          if (p && !selectedKeys.has(p.key)) {
+            query[p.key] = [p.value];
+            selectedKeys.add(p.key);
+          }
+        }
+        break;
+      }
+    }
+
+    if (commonParams) {
+      for (const [key, value] of Object.entries(commonParams)) {
+        query[key] = [value as string];
+      }
+    }
+    self.postMessage({ type: 'RANDOM_TRACE_RESULT', payload: query });
   } else if (e.data.type === 'SUGGEST') {
     latestSuggestRequestId = e.data.requestId;
     void handleSuggest(

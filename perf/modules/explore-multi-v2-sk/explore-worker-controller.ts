@@ -176,6 +176,21 @@ export class ExploreWorkerController {
     });
   }
 
+  public getRandomTrace(callback: (query: any) => void) {
+    if (!this.worker || !this.ready) {
+      callback(null);
+      return;
+    }
+    const handler = (e: MessageEvent) => {
+      if (e.data.type === 'RANDOM_TRACE_RESULT') {
+        this.worker!.removeEventListener('message', handler);
+        callback(e.data.payload);
+      }
+    };
+    this.worker.addEventListener('message', handler);
+    this.worker.postMessage({ type: 'GET_RANDOM_TRACE' });
+  }
+
   public isReady(): boolean {
     return this.ready;
   }

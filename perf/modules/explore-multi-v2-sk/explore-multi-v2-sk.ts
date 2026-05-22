@@ -26,6 +26,9 @@ import { CountMetric } from '../telemetry/types';
 import { TraceDatabase, hashRequest } from './db';
 import './explore-toolbar-sk';
 import { ExploreWorkerController } from './explore-worker-controller';
+import './help-hub-sk';
+import './interactive-tour-sk';
+import { TourStep } from './interactive-tour-sk';
 
 export const SUBREPO_CONFIG: Record<string, { logUrl: string; repoUrl: string }> = {
   V8: {
@@ -63,6 +66,35 @@ export class ExploreMultiV2Sk extends LitElement {
   private _lastQueriesJson = '';
 
   private _lastLoadedShortcut = '';
+
+  @state() private _tourActive = false;
+
+  private _tourSteps: TourStep[] = [
+    {
+      selector: 'query-bar-sk',
+      title: 'Faceted Search Bar 🔍',
+      text: 'Build search filters using dimensions. Type words and look at the auto-complete list to choose facets and build trace queries.',
+      placement: 'bottom',
+    },
+    {
+      selector: '.add-query-circle-btn',
+      title: 'Add Multiple Query Rows ➕',
+      text: 'Click this button to add additional query search bars, which lets you compare distinct sets of traces alongside each other.',
+      placement: 'bottom',
+    },
+    {
+      selector: 'explore-toolbar-sk',
+      title: 'Visualizations Controls ⚙️',
+      text: 'Enable Split Chart (splits lines into individual graphs by bot/device), toggle Date Mode, adjust smoothing, or filter by subrepos.',
+      placement: 'bottom',
+    },
+    {
+      selector: 'trace-chart-sk',
+      title: 'Interactive Trace Charts 📈',
+      text: 'Interact with visual graphs. Zoom in on anomalies by clicking and dragging a bounding range box over a timeline, or click a point to pin a commit.',
+      placement: 'top',
+    },
+  ];
 
   @state() private _defaultParamSelections: Record<string, string[]> = {};
 
@@ -1829,6 +1861,71 @@ export class ExploreMultiV2Sk extends LitElement {
     this._globalPinnedX = e.detail.dataX;
   }
 
+  private _onStartTour() {
+    this._tourActive = true;
+  }
+
+  private _onApplyRandomPreset() {
+    if (!this._workerController) return;
+    this._workerController.getRandomTrace((randomQuery) => {
+      if (randomQuery) {
+        this.queries = [randomQuery];
+        void this._fetchData();
+      }
+    });
+  }
+
+  private _onApplyComparisonPreset() {
+    if (!this._workerController) return;
+    this._workerController.getRandomTrace((randomQuery) => {
+      if (!randomQuery) return;
+
+      const keys = Object.keys(randomQuery);
+      if (keys.length === 0) return;
+
+      // Start from the last key (the most specific parameter from our greedy builder)
+      let chosenKey = keys[keys.length - 1];
+      let opts = this._optionsByKey[chosenKey] || [];
+
+      // Search backwards to find the most specific parameter that has multiple options to compare
+      if (opts.length < 2) {
+        for (let i = keys.length - 2; i >= 0; i--) {
+          const key = keys[i];
+          const options = this._optionsByKey[key] || [];
+          if (options.length >= 2) {
+            chosenKey = key;
+            opts = options;
+            break;
+          }
+        }
+      }
+
+      // Fall back to a single trace if no parameter can be compared
+      if (opts.length < 2) {
+        this.queries = [randomQuery];
+        void this._fetchData();
+        return;
+      }
+
+      const val1 = randomQuery[chosenKey][0];
+      const otherOpts = opts.filter((o) => o.value !== val1);
+
+      if (otherOpts.length === 0) {
+        this.queries = [randomQuery];
+        void this._fetchData();
+        return;
+      }
+
+      const val2 = otherOpts[Math.floor(Math.random() * otherOpts.length)].value;
+
+      this.queries = [
+        { ...randomQuery, [chosenKey]: [val1] },
+        { ...randomQuery, [chosenKey]: [val2] },
+      ];
+      void this._fetchData();
+    });
+  }
+
   private _onAddQuery() {
     this.queries = [...this.queries, { ...this._defaultParamSelections }];
     if (this.queries.length > 3) {
@@ -2400,6 +2497,18 @@ export class ExploreMultiV2Sk extends LitElement {
             `
           : ''}
       </div>
+
+      <help-hub-sk
+        @start-tour=${this._onStartTour}
+        @request-random-preset=${this._onApplyRandomPreset}
+        @request-comparison-preset=${this._onApplyComparisonPreset}></help-hub-sk>
+
+      <interactive-tour-sk
+        .active=${this._tourActive}
+        .steps=${this._tourSteps}
+        @tour-finished=${() => {
+          this._tourActive = false;
+        }}></interactive-tour-sk>
     `;
   }
 }
