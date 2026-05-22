@@ -827,6 +827,6 @@ describe('explore-multi-v2-sk', () => {
       return titleEl ? titleEl.textContent.trim() : null;
     });
 
-    expect(tourTitle).to.equal('Faceted Search Bar 🔍');
+    expect(tourTitle).to.equal('Dynamic Setup');
   });
 });

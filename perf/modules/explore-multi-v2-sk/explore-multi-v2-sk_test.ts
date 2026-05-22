@@ -803,6 +803,11 @@ describe('explore-multi-v2-sk', () => {
     }
   });
 
+  it('has sophisticated tour steps', () => {
+    expect((element as any)._tourSteps.length).to.equal(11);
+    expect((element as any)._tourSteps[0].title).to.equal('Dynamic Setup');
+  });
+
   it('applies conditional defaults on selection', async () => {
     (element as any)._conditionalDefaults = [
       {

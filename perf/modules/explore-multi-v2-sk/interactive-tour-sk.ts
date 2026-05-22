@@ -32,7 +32,7 @@ export class InteractiveTourSk extends LitElement {
     }
 
     .tour-spotlight {
-      position: absolute;
+      position: fixed;
       box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55);
       border-radius: 8px;
       border: 2px solid var(--primary, #6366f1);
@@ -41,7 +41,7 @@ export class InteractiveTourSk extends LitElement {
     }
 
     .tour-bubble {
-      position: absolute;
+      position: fixed;
       width: 280px;
       background: #1e293b;
       border: 1px solid #334155;
@@ -115,17 +115,38 @@ export class InteractiveTourSk extends LitElement {
     }
   `;
 
+  private _scrollListener = () => this._updatePosition();
+
   protected updated(changedProperties: PropertyValues) {
+    if (changedProperties.has('active')) {
+      if (this.active) {
+        window.addEventListener('scroll', this._scrollListener, { capture: true, passive: true });
+      } else {
+        window.removeEventListener('scroll', this._scrollListener, { capture: true });
+      }
+    }
     if (changedProperties.has('active') && this.active) {
       this._currentIndex = 0;
       this._updatePosition();
+      this._dispatchStepChanged();
     }
     if (changedProperties.has('_currentIndex') && this.active) {
       this._updatePosition();
+      this._dispatchStepChanged();
     }
   }
 
-  private _updatePosition() {
+  private _dispatchStepChanged() {
+    this.dispatchEvent(
+      new CustomEvent('step-changed', {
+        detail: { index: this._currentIndex },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+  private _updatePosition(isRetry = false) {
     if (!this.active || this.steps.length === 0) return;
     const step = this.steps[this._currentIndex];
 
@@ -135,17 +156,19 @@ export class InteractiveTourSk extends LitElement {
       console.warn(`Tour target not found: ${step.selector}`);
       this._spotlightStyle = 'display: none;';
       this._bubbleStyle = 'top: 50%; left: 50%; transform: translate(-50%, -50%);';
+
+      if (!isRetry) {
+        setTimeout(() => this._updatePosition(true), 200);
+      }
       return;
     }
 
     const rect = target.getBoundingClientRect();
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
 
     // Position spotlight cutout
     this._spotlightStyle = `
-      top: ${rect.top + scrollTop - 4}px;
-      left: ${rect.left + scrollLeft - 4}px;
+      top: ${rect.top - 4}px;
+      left: ${rect.left - 4}px;
       width: ${rect.width + 8}px;
       height: ${rect.height + 8}px;
     `;
@@ -157,14 +180,16 @@ export class InteractiveTourSk extends LitElement {
     const bubbleWidth = 280;
 
     if (step.placement === 'bottom') {
-      bubbleTop = rect.bottom + scrollTop + margin;
-      bubbleLeft = rect.left + scrollLeft + rect.width / 2 - bubbleWidth / 2;
+      bubbleTop = rect.bottom + margin;
+      bubbleLeft = rect.left + rect.width / 2 - bubbleWidth / 2;
     } else if (step.placement === 'top') {
-      bubbleTop = rect.top + scrollTop - 160 - margin; // approximate bubble height
-      bubbleLeft = rect.left + scrollLeft + rect.width / 2 - bubbleWidth / 2;
+      bubbleTop = rect.top - 160 - margin; // approximate bubble height
+      bubbleLeft = rect.left + rect.width / 2 - bubbleWidth / 2;
     }
 
     // Bound checks to keep on screen
+    const bubbleHeight = 180; // approximate height
+    bubbleTop = Math.max(10, Math.min(window.innerHeight - bubbleHeight - 10, bubbleTop));
     bubbleLeft = Math.max(10, Math.min(window.innerWidth - bubbleWidth - 10, bubbleLeft));
 
     this._bubbleStyle = `top: ${bubbleTop}px; left: ${bubbleLeft}px;`;

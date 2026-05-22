@@ -51,4 +51,36 @@ describe('interactive-tour-sk', () => {
 
     assert.isTrue(finishedFired);
   });
+
+  it('fires step-changed event when next is clicked', async () => {
+    element.steps = mockSteps;
+    element.active = true;
+    await element.updateComplete;
+
+    let eventDetail: any = null;
+    element.addEventListener('step-changed', (e: any) => {
+      eventDetail = e.detail;
+    });
+
+    const nextButton = element.shadowRoot!.querySelector('.tour-btn-primary') as HTMLButtonElement;
+    nextButton.click();
+    await element.updateComplete;
+
+    assert.isTrue(eventDetail !== null);
+    assert.equal(eventDetail.index, 1);
+  });
+
+  it('fires step-changed event when started', async () => {
+    element.steps = mockSteps;
+    let eventDetail: any = null;
+    element.addEventListener('step-changed', (e: any) => {
+      eventDetail = e.detail;
+    });
+
+    element.active = true;
+    await element.updateComplete;
+
+    assert.isTrue(eventDetail !== null);
+    assert.equal(eventDetail.index, 0);
+  });
 });

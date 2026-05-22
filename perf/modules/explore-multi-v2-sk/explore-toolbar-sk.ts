@@ -236,7 +236,7 @@ export class ExploreToolbarSk extends LitElement {
           <div class="toolbar-group">
             <span class="label">Rollouts:</span>
             <select
-              class="custom-select"
+              class="custom-select subrepo-select"
               .value=${this.selectedSubrepo}
               @change=${(e: any) => this._emitChange('selectedSubrepo', e.target.value)}>
               <option value="none">None</option>
@@ -257,7 +257,7 @@ export class ExploreToolbarSk extends LitElement {
             </select>
           </div>
 
-          <label class="custom-checkbox">
+          <label class="custom-checkbox date-mode-checkbox">
             <input
               type="checkbox"
               .checked=${this.dateMode}
@@ -284,7 +284,10 @@ export class ExploreToolbarSk extends LitElement {
             Show Loaded Bounds
           </label>
 
-          <details class="custom-select" style="position: relative;">
+          <details
+            id="yaxis-splitter"
+            class="custom-select yaxis-splitter-details"
+            style="position: relative;">
             <summary style="cursor: pointer;">Y-axis Splitter</summary>
             <div
               style="position: absolute; background: var(--surface, #1e293b); border: 1px solid var(--outline, rgba(255, 255, 255, 0.1)); padding: 8px; border-radius: 4px; z-index: 10; display: flex; flex-direction: column; gap: 4px; min-width: 150px;">
@@ -351,7 +354,7 @@ export class ExploreToolbarSk extends LitElement {
 
         <!-- Section 2: Visualization Options -->
         <div class="toolbar-section">
-          <label class="custom-checkbox">
+          <label class="custom-checkbox smooth-checkbox">
             <input
               type="checkbox"
               .checked=${this.smooth}
@@ -435,7 +438,7 @@ export class ExploreToolbarSk extends LitElement {
                 <div class="toolbar-group">
                   <span class="label">Rad:</span>
                   <input
-                    class="custom-slider"
+                    class="custom-slider rad-slider"
                     type="range"
                     min="1"
                     max="100"

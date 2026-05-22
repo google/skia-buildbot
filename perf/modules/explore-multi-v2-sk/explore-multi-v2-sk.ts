@@ -71,27 +71,69 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _tourSteps: TourStep[] = [
     {
+      selector: '.workspace',
+      title: 'Dynamic Setup',
+      text: "Let's start by loading some comparison data.",
+      placement: 'bottom',
+    },
+    {
       selector: 'query-bar-sk',
-      title: 'Faceted Search Bar 🔍',
-      text: 'Build search filters using dimensions. Type words and look at the auto-complete list to choose facets and build trace queries.',
+      title: 'Faceted Search Bar',
+      text: 'Type here to search. It supports fuzzy matching.',
+      placement: 'bottom',
+    },
+    {
+      selector: '.suggestions-dropdown',
+      title: 'Suggestions List',
+      text: 'Here you can see the auto-complete suggestions.',
+      placement: 'bottom',
+    },
+    {
+      selector: '.multiselect-trigger',
+      title: 'Multi-select Chips',
+      text: 'Click a chip to see multi-select options.',
+      placement: 'bottom',
+    },
+    {
+      selector: '.multiselect-dropdown',
+      title: 'Multi-select Dropdown',
+      text: 'Here you can select multiple values.',
       placement: 'bottom',
     },
     {
       selector: '.add-query-circle-btn',
-      title: 'Add Multiple Query Rows ➕',
-      text: 'Click this button to add additional query search bars, which lets you compare distinct sets of traces alongside each other.',
+      title: 'Multiple Query Rows',
+      text: 'Add more rows to compare completely different queries.',
       placement: 'bottom',
     },
     {
-      selector: 'explore-toolbar-sk',
-      title: 'Visualizations Controls ⚙️',
-      text: 'Enable Split Chart (splits lines into individual graphs by bot/device), toggle Date Mode, adjust smoothing, or filter by subrepos.',
+      selector: '.config-pill',
+      title: 'Toolbar - Split Chart',
+      text: 'Split lines into individual graphs.',
+      placement: 'bottom',
+    },
+    {
+      selector: '.date-mode-checkbox',
+      title: 'Toolbar - Date Mode',
+      text: 'Toggle between commit and date axis.',
+      placement: 'bottom',
+    },
+    {
+      selector: '.smooth-checkbox',
+      title: 'Toolbar - Smoothing',
+      text: 'Adjust curve smoothing.',
+      placement: 'bottom',
+    },
+    {
+      selector: '.subrepo-select',
+      title: 'Toolbar - Subrepos',
+      text: 'Filter traces by sub-repository.',
       placement: 'bottom',
     },
     {
       selector: 'trace-chart-sk',
-      title: 'Interactive Trace Charts 📈',
-      text: 'Interact with visual graphs. Zoom in on anomalies by clicking and dragging a bounding range box over a timeline, or click a point to pin a commit.',
+      title: 'Chart Tooltip',
+      text: 'Hover over points to see specific values.',
       placement: 'top',
     },
   ];
@@ -1865,6 +1907,79 @@ export class ExploreMultiV2Sk extends LitElement {
     this._tourActive = true;
   }
 
+  private _handleTourStepChanged(e: CustomEvent<{ index: number }>) {
+    const idx = e.detail.index;
+    switch (idx) {
+      case 0:
+        this._onApplyComparisonPreset();
+        break;
+      case 1:
+        const queryBar = this.shadowRoot!.querySelector('query-bar-sk') as any;
+        if (queryBar) {
+          const textField = queryBar.shadowRoot.querySelector('.query-input');
+          if (textField) {
+            textField.dispatchEvent(new Event('focus'));
+            textField.value = 'test';
+            textField.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+        break;
+      case 2:
+        const queryBarForSug = this.shadowRoot!.querySelector('query-bar-sk') as any;
+        if (queryBarForSug) {
+          const textField = queryBarForSug.shadowRoot.querySelector('.query-input');
+          if (textField) {
+            textField.dispatchEvent(new Event('focus'));
+            textField.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+        break;
+      case 3:
+        const qb = this.shadowRoot!.querySelector('query-bar-sk');
+        if (qb) {
+          const chip = qb.shadowRoot!.querySelector('explore-multi-v2-select-sk');
+          if (chip) {
+            const trigger = chip.shadowRoot!.querySelector('.multiselect-trigger') as HTMLElement;
+            if (trigger) {
+              trigger.click();
+            }
+          }
+        }
+        break;
+      case 4:
+        const qb2 = this.shadowRoot!.querySelector('query-bar-sk');
+        if (qb2) {
+          const chip = qb2.shadowRoot!.querySelector('explore-multi-v2-select-sk');
+          if (chip) {
+            const trigger = chip.shadowRoot!.querySelector('.multiselect-trigger') as HTMLElement;
+            if (trigger) {
+              trigger.click();
+            }
+          }
+        }
+        break;
+      case 6:
+        this._handleSplit(new CustomEvent('split', { detail: { key: 'bot' } }));
+        break;
+      case 7:
+        this.dateMode = !this.dateMode;
+        this._stateHasChanged();
+        break;
+      case 8:
+        this._smooth = true;
+        this._hoverMode = 'both';
+        this._smoothingRadius = 50;
+        this.requestUpdate();
+        break;
+      case 10:
+        if (this._seriesData.length > 0 && this._seriesData[0].rows.length > 0) {
+          this._globalHoverX = this._seriesData[0].rows[0].commit_number;
+        }
+        this.requestUpdate();
+        break;
+    }
+  }
+
   private _onApplyRandomPreset() {
     if (!this._workerController) return;
     this._workerController.getRandomTrace((randomQuery) => {
@@ -2506,6 +2621,7 @@ export class ExploreMultiV2Sk extends LitElement {
       <interactive-tour-sk
         .active=${this._tourActive}
         .steps=${this._tourSteps}
+        @step-changed=${this._handleTourStepChanged}
         @tour-finished=${() => {
           this._tourActive = false;
         }}></interactive-tour-sk>
