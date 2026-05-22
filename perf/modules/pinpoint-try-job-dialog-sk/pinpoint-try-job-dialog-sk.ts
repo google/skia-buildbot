@@ -41,6 +41,8 @@ export interface TryJobPreloadParams {
   baseCommit?: string | '';
   endCommit?: string | '';
   story?: string | '';
+  configuration?: string | '';
+  benchmark?: string | '';
 }
 
 @customElement('pinpoint-try-job-dialog-sk')
@@ -56,6 +58,12 @@ export class PinpointTryJobDialogSk extends LitElement {
 
   @property({ type: String })
   endCommit: string = '';
+
+  @property({ type: String })
+  configuration: string = '';
+
+  @property({ type: String })
+  benchmark: string = '';
 
   @state()
   private traceArgs: string = 'toplevel,toplevel.flow,disabled-by-default-toplevel.flow';
@@ -120,6 +128,8 @@ export class PinpointTryJobDialogSk extends LitElement {
     this.baseCommit = params.baseCommit || '';
     this.endCommit = params.endCommit || '';
     this.story = params.story || '';
+    this.configuration = params.configuration || '';
+    this.benchmark = params.benchmark || '';
     this.jobUrl = '';
     // Reset task state
     this._request = null;
@@ -154,8 +164,8 @@ export class PinpointTryJobDialogSk extends LitElement {
       end_git_hash: this.endCommit,
       base_patch: '',
       experiment_patch: '',
-      configuration: this.testPath.split('/')[1] || '',
-      benchmark: this.testPath.split('/')[2] || '',
+      configuration: this.configuration || this.testPath.split('/')[1] || '',
+      benchmark: this.benchmark || this.testPath.split('/')[2] || '',
       story: this.story,
       repository: 'chromium',
       bug_id: '',

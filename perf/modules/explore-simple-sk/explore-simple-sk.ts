@@ -2321,11 +2321,14 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       anomalyId: this.selectedAnomaly ? String(this.selectedAnomaly.id) : '',
       story: this.story ? this.story : '',
     };
+    const params = fromKey(traceName);
     const preloadTryJobInputs: TryJobPreloadParams = {
       testPath: this.testPath,
       baseCommit: this.startCommit,
       endCommit: this.endCommit,
       story: this.story ? this.story : '',
+      configuration: params.bot || '',
+      benchmark: params.benchmark || '',
     };
 
     tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });

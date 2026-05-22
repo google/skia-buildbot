@@ -587,11 +587,14 @@ export class TraceChartTooltipSk extends LitElement {
     const i = s.rows.indexOf(r);
     const prevCommit = i > 0 ? s.rows[i - 1].commit_number : r.commit_number;
 
+    const params = fromKey(traceName);
     const preloadTryJobInputs = {
       testPath: testPath,
       baseCommit: String(prevCommit),
       endCommit: String(r.commit_number),
       story: story,
+      configuration: params.bot || '',
+      benchmark: params.benchmark || '',
     };
 
     const tryJobDialog = this.shadowRoot?.querySelector('#pinpoint-try-job-dialog-sk') as any;
