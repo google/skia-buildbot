@@ -1,3 +1,8 @@
+/*
+ * Sets the Angular host <app-job-table> to occupy 100% of its parent's boundary
+ * height. Uses flexbox column layout and hides overflow to create a fixed
+ * viewport boundary for the table and its sticky elements (header, paginator).
+ */
 :host {
   display: flex;
   flex-direction: column;
@@ -5,17 +10,86 @@
   overflow: hidden;
 }
 
+/*
+ * Makes the table container to occupy all remaining vertical space inside the
+ * host wrapper, pushing the paginator to the bottom of the screen. Displays
+ * local scrollbars when the table exceeds viewport.
+ */
 .table-container {
   flex: 1;
   overflow: auto;
 }
 
-table {
-  width: 100%;
-}
-
+/*
+ * Displays an error message in the center of the table.
+ */
 .error-message {
   display: flex;
   justify-content: center;
   padding: 8px;
+}
+
+/*
+ * Makes the jobs table cells content to occupy max allowed width.
+ */
+table.mat-mdc-table {
+  width: max-content;
+}
+
+/*
+ * Limits the cell content is <span> tags to occupy maximum 2 lines of text. If
+ * the content needs more space, it is clamped and ends with "...". Also, makes
+ * line breaks to be on spaces, or special symbols.
+ */
+.mat-mdc-cell span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+/*
+ * Limits the width of potentially lengthy columns.
+ */
+td.mat-column-name {
+  max-width: 750px;
+}
+td.mat-column-benchmark {
+  max-width: 350px;
+}
+td.mat-column-configuration {
+  max-width: 250px;
+}
+td.mat-column-story {
+  max-width: 250px;
+}
+td.mat-column-user {
+  max-width: 250px;
+}
+
+/*
+ * Job Type badge styles.
+ */
+.job-type-badge {
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+}
+
+.badge-try {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  border-color: var(--mat-sys-primary);
+}
+
+.badge-bisect {
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+  border-color: var(--mat-sys-tertiary);
 }

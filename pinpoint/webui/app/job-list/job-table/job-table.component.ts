@@ -81,15 +81,15 @@ export class JobTableComponent implements OnInit, AfterViewInit {
   jobStatusToLabel(status: JobStatus): string {
     switch (status) {
       case JobStatus.JOB_STATUS_QUEUED:
-        return 'Queued';
+        return '⏳ Queued';
       case JobStatus.JOB_STATUS_RUNNING:
-        return 'Running';
+        return '🔄 Running';
       case JobStatus.JOB_STATUS_COMPLETED:
-        return 'Completed';
+        return '✅ Completed';
       case JobStatus.JOB_STATUS_FAILED:
-        return 'Failed';
+        return '❌ Failed';
       case JobStatus.JOB_STATUS_CANCELLED:
-        return 'Cancelled';
+        return '🚫 Cancelled';
       case JobStatus.JOB_STATUS_UNSPECIFIED:
       case JobStatus.UNRECOGNIZED:
       default:

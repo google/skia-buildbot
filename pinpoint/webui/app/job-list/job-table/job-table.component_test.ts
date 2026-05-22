@@ -91,11 +91,11 @@ describe('JobTableComponent', () => {
   describe('jobStatusToLabel', () => {
     it('should map job status constants to user friendly names', () => {
       const component = createComponent();
-      assert.equal(component.jobStatusToLabel(JobStatus.JOB_STATUS_QUEUED), 'Queued');
-      assert.equal(component.jobStatusToLabel(JobStatus.JOB_STATUS_RUNNING), 'Running');
-      assert.equal(component.jobStatusToLabel(JobStatus.JOB_STATUS_COMPLETED), 'Completed');
-      assert.equal(component.jobStatusToLabel(JobStatus.JOB_STATUS_FAILED), 'Failed');
-      assert.equal(component.jobStatusToLabel(JobStatus.JOB_STATUS_CANCELLED), 'Cancelled');
+      assert.equal(component.jobStatusToLabel(JobStatus.JOB_STATUS_QUEUED), '⏳ Queued');
+      assert.equal(component.jobStatusToLabel(JobStatus.JOB_STATUS_RUNNING), '🔄 Running');
+      assert.equal(component.jobStatusToLabel(JobStatus.JOB_STATUS_COMPLETED), '✅ Completed');
+      assert.equal(component.jobStatusToLabel(JobStatus.JOB_STATUS_FAILED), '❌ Failed');
+      assert.equal(component.jobStatusToLabel(JobStatus.JOB_STATUS_CANCELLED), '🚫 Cancelled');
       assert.equal(component.jobStatusToLabel('JOB_STATUS_UNKNOWN' as any), '-');
       assert.isTrue(
         stubConsoleError.calledOnceWithExactly('Unknown job status:', 'JOB_STATUS_UNKNOWN')

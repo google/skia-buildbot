@@ -1,44 +1,28 @@
 @use '@angular/material' as mat;
 
-@include mat.core();
-
-$light-theme: mat.define-theme(
-  (
-    color: (
-      theme-type: light,
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
-    ),
-  )
-);
-
-$dark-theme: mat.define-theme(
-  (
-    color: (
-      theme-type: dark,
-      primary: mat.$magenta-palette,
-      tertiary: mat.$violet-palette,
-    ),
-  )
-);
-
 html {
-  @include mat.all-component-themes($light-theme);
-  @include mat.typography-hierarchy($light-theme);
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$orange-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
   color-scheme: light;
 }
 
 html.dark-theme {
-  @include mat.all-component-colors($dark-theme);
   color-scheme: dark;
 }
 
-html,
 body {
   height: 100%;
   margin: 0;
-  background-color: var(--mat-app-background-color);
-  color: var(--mat-app-text-color);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
 }
 
 /* A reusable spacer class to push elements to opposite ends of a container. */
