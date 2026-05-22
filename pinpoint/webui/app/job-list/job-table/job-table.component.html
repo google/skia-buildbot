@@ -82,15 +82,18 @@
       </td>
     </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <!-- Loading Progress Bar Column -->
+    <ng-container matColumnDef="loading">
+      <th mat-header-cell *matHeaderCellDef [attr.colspan]="displayedColumns.length" class="loading-header-cell">
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      </th>
+    </ng-container>
 
-    @if (!loading() && !error()) {
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    }
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-header-row *matHeaderRowDef="['loading']; sticky: true" class="loading-header-row" [hidden]="!loading()"></tr>
+
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
-  @if (loading()) {
-    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-  }
 
   @if (error()) {
     <mat-error class="error-message">
@@ -103,5 +106,6 @@
 <mat-paginator
   [pageSizeOptions]="[10, 25, 50, 100]"
   pageSize="25"
-  showFirstLastButtons>
+  showFirstLastButtons
+  (page)="onPageChange($event)">
 </mat-paginator>

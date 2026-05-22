@@ -33,6 +33,7 @@ karma_test(
         ":job-table.component_ts_lib",
         "//:node_modules/@angular/compiler",
         "//:node_modules/@angular/core",
+        "//:node_modules/@angular/platform-browser",
         "//:node_modules/@types/chai",
         "//:node_modules/@types/sinon",
         "//:node_modules/chai",

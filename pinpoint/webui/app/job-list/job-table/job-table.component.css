@@ -93,3 +93,17 @@ td.mat-column-user {
   color: var(--mat-sys-on-tertiary-container);
   border-color: var(--mat-sys-tertiary);
 }
+
+/*
+ * Style the loading header cell to have no padding so the progress bar
+ * spans the full width of the table header.
+ */
+.loading-header-cell.mat-mdc-header-cell {
+  padding: 0;
+  height: auto;
+  border: none;
+}
+
+.loading-header-row.mat-mdc-header-row {
+  height: auto;
+}

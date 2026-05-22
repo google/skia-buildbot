@@ -1,5 +1,6 @@
 import '@angular/compiler';
-import { Injector, runInInjectionContext } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { JobTableComponent, JobTableColumn } from './job-table.component';
 import { GatewayService } from '../../gateway/gateway.service';
 import { JobType, JobStatus } from '../../gateway/gateway';
@@ -10,12 +11,18 @@ import * as sinon from 'sinon';
 describe('JobTableComponent', () => {
   let stubConsoleError: sinon.SinonStub;
 
+  before(() => {
+    TestBed.resetTestEnvironment();
+    TestBed.initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
+  });
+
   beforeEach(() => {
     stubConsoleError = sinon.stub(console, 'error');
   });
 
   afterEach(() => {
     stubConsoleError.restore();
+    TestBed.resetTestingModule();
   });
 
   function createComponent(mockGateway?: Partial<GatewayService>): JobTableComponent {
@@ -34,17 +41,13 @@ describe('JobTableComponent', () => {
             jobStatus: JobStatus.JOB_STATUS_COMPLETED,
           },
         ],
-        pagination: { nextCursor: 'next_123', prevCursor: '' },
+        pagination: { nextCursor: '', prevCursor: '' },
       }),
     };
-    const injector = Injector.create({
+    TestBed.configureTestingModule({
       providers: [{ provide: GatewayService, useValue: gateway }, JobsService],
     });
-    let component!: JobTableComponent;
-    runInInjectionContext(injector, () => {
-      component = new JobTableComponent();
-    });
-    return component;
+    return TestBed.runInInjectionContext(() => new JobTableComponent());
   }
 
   it('should load jobs on init successfully', async () => {
@@ -55,7 +58,6 @@ describe('JobTableComponent', () => {
     assert.isNull(component.error());
     assert.equal(component.jobs().length, 1);
     assert.equal(component.jobs()[0].jobId, '123456');
-    assert.equal(component.pagination()?.nextCursor, 'next_123');
   });
 
   it('should handle query failures and set error signal', async () => {

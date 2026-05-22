@@ -1,11 +1,11 @@
-import { Component, OnInit, AfterViewInit, inject, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, ViewChild, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { JobSummary, JobType, JobStatus } from '../../gateway/gateway';
 import { JobsService } from '../jobs.service';
@@ -48,8 +48,6 @@ export class JobTableComponent implements OnInit, AfterViewInit {
 
   error = this.jobsService.error;
 
-  pagination = this.jobsService.pagination;
-
   dataSource = new MatTableDataSource<JobSummary>([]);
 
   displayedColumns: string[] = [
@@ -65,17 +63,25 @@ export class JobTableComponent implements OnInit, AfterViewInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+  constructor() {
+    effect(() => {
+      if (this.dataSource.data !== this.jobs()) {
+        this.dataSource.data = this.jobs();
+      }
+    });
+  }
+
   ngOnInit() {
-    this.loadJobs();
+    this.jobsService.loadJobs();
   }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+    this.jobsService.maybeFetchMore(this.paginator.pageIndex, this.paginator.pageSize);
   }
 
-  async loadJobs(nextCursor?: string, prevCursor?: string) {
-    await this.jobsService.loadJobs(nextCursor, prevCursor);
-    this.dataSource.data = this.jobs();
+  onPageChange(event: PageEvent) {
+    this.jobsService.maybeFetchMore(event.pageIndex, event.pageSize);
   }
 
   jobStatusToLabel(status: JobStatus): string {
