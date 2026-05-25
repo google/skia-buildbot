@@ -1156,7 +1156,9 @@ func TestGetSubscriptionsForRegressions(t *testing.T) {
 	store := setupStore(t, alertsProvider)
 	ctx := context.Background()
 
-	alertId1 := int64(1)
+	// Anomalies imported from legacy don't have an alert.
+	alertMissingBecauseLegacyRegression := int64(-1)
+
 	alertId2 := int64(2)
 	alertId3 := int64(3)
 	alertId4 := int64(4)
@@ -1164,22 +1166,22 @@ func TestGetSubscriptionsForRegressions(t *testing.T) {
 	component2 := "123467"
 
 	// 1. Setup: Insert regressions, alerts, and subscriptions.
-	reg1 := generateNewRegression(subName)
-	reg1.AlertId = alertId1
+	reg1 := generateNewRegression("sub1")
+	reg1.AlertId = alertMissingBecauseLegacyRegression
 	_, err := store.WriteRegression(ctx, reg1, nil)
 	assert.Nil(t, err)
 
-	reg2 := generateNewRegression(subName)
+	reg2 := generateNewRegression("sub2")
 	reg2.AlertId = alertId2
 	_, err = store.WriteRegression(ctx, reg2, nil)
 	assert.Nil(t, err)
 
-	reg3WithoutSubscription := generateNewRegression(subName)
+	reg3WithoutSubscription := generateNewRegression("sub-without-subscription")
 	reg3WithoutSubscription.AlertId = alertId3
 	_, err = store.WriteRegression(ctx, reg3WithoutSubscription, nil)
 	assert.Nil(t, err)
 
-	reg4inactiveSub := generateNewRegression(subName)
+	reg4inactiveSub := generateNewRegression("sub_inactive")
 	reg4inactiveSub.AlertId = alertId4
 	_, err = store.WriteRegression(ctx, reg4inactiveSub, nil)
 	assert.Nil(t, err)
@@ -1225,7 +1227,6 @@ func TestGetSubscriptionsForRegressions(t *testing.T) {
 		name                  string
 		regressionIDs         []string
 		expectedRegressionIDs []string
-		expectedAlertIDs      []int64
 		expectedBugComponents []string
 		expectError           bool
 		expectedErrorContains string
@@ -1234,56 +1235,49 @@ func TestGetSubscriptionsForRegressions(t *testing.T) {
 			name:                  "happy path - get multiple subscriptions",
 			regressionIDs:         []string{reg1.Id, reg2.Id},
 			expectedRegressionIDs: []string{reg1.Id, reg2.Id},
-			expectedAlertIDs:      []int64{reg1.AlertId, reg2.AlertId},
 			expectedBugComponents: []string{component1, component2},
 		},
 		{
 			name:                  "single regression",
 			regressionIDs:         []string{reg1.Id},
 			expectedRegressionIDs: []string{reg1.Id},
-			expectedAlertIDs:      []int64{reg1.AlertId},
 			expectedBugComponents: []string{component1},
 		},
 		{
 			name:                  "regression without subscription",
 			regressionIDs:         []string{reg3WithoutSubscription.Id},
 			expectedRegressionIDs: nil,
-			expectedAlertIDs:      nil,
 			expectedBugComponents: nil,
 		},
 		{
 			name:                  "non-existent regression ID",
 			regressionIDs:         []string{"non-existent-id"},
 			expectedRegressionIDs: nil,
-			expectedAlertIDs:      nil,
 			expectedBugComponents: nil,
 		},
 		{
 			name:                  "empty regression IDs",
 			regressionIDs:         []string{},
 			expectedRegressionIDs: nil,
-			expectedAlertIDs:      nil,
 			expectedBugComponents: nil,
 		},
 		{
 			name:                  "mixed existent and non-existent",
 			regressionIDs:         []string{reg1.Id, "non-existent-id"},
 			expectedRegressionIDs: []string{reg1.Id},
-			expectedAlertIDs:      []int64{reg1.AlertId},
 			expectedBugComponents: []string{component1},
 		},
 		{
 			name:                  "inactive sub",
 			regressionIDs:         []string{reg4inactiveSub.Id},
 			expectedRegressionIDs: []string{},
-			expectedAlertIDs:      []int64{},
 			expectedBugComponents: []string{},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			regressionIDs, alertIDs, subs, err := store.GetSubscriptionsForRegressions(ctx, tc.regressionIDs)
+			regressionIDs, subs, err := store.GetSubscriptionsForRegressions(ctx, tc.regressionIDs)
 
 			if tc.expectError {
 				require.Error(t, err)
@@ -1293,7 +1287,6 @@ func TestGetSubscriptionsForRegressions(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.ElementsMatch(t, tc.expectedRegressionIDs, regressionIDs)
-			assert.ElementsMatch(t, tc.expectedAlertIDs, alertIDs)
 
 			if len(tc.expectedBugComponents) > 0 {
 				bugComponents := []string{}

@@ -93,8 +93,8 @@ type Store interface {
 	// GetBugIdsForRegressions queries all bugs from regressions2, culprits and anomalygroups for given regressions.
 	GetBugIdsForRegressions(ctx context.Context, regressions []*Regression) ([]*Regression, error)
 
-	// GetSubscriptionsForRegressions returns a subset of subscription fields for given regressions, together with regression and alert ids.
-	GetSubscriptionsForRegressions(ctx context.Context, regressionIDs []string) ([]string, []int64, []*pb.Subscription, error)
+	// GetSubscriptionsForRegressions returns a subset of subscription fields for given regressions, together with regression ids.
+	GetSubscriptionsForRegressions(ctx context.Context, regressionIDs []string) ([]string, []*pb.Subscription, error)
 }
 
 // FullSummary describes a single regression.

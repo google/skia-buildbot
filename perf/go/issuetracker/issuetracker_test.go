@@ -125,7 +125,7 @@ func TestFileBug_Success(t *testing.T) {
 	s, regStore, _, ts := createIssueTrackerForTest(t)
 	defer ts.Close()
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []*pb.Subscription{
 		{
 			BugComponent: "1235",
 		},
@@ -157,7 +157,7 @@ func TestFileBug_InvalidComponent(t *testing.T) {
 	s, regStore, _, ts := createIssueTrackerForTest(t)
 	defer ts.Close()
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []*pb.Subscription{
 		{
 			BugComponent: "invalid",
 		},
@@ -189,7 +189,7 @@ func TestFileBug_APIError(t *testing.T) {
 		regStore:              regStore,
 	}
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []*pb.Subscription{
 		{
 			BugComponent: "1325852",
 		},
@@ -212,7 +212,7 @@ func TestFileBug_RequestBody(t *testing.T) {
 	s, regStore, _, _, ts, receivedReq, receivedCommentReq := createIssueTrackerForTestInterceptRequests(t)
 	defer ts.Close()
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []*pb.Subscription{
 		{
 			BugComponent: "8765",
 			BugLabels:    []string{"BerfDevTest"},
@@ -282,9 +282,7 @@ func TestFileBug_EmptyDescription(t *testing.T) {
 		Keys:      []string{"key1", "key2"},
 	}
 
-	alertIDs := make([]int64, len(req.Keys))
-
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return(req.Keys, alertIDs, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return(req.Keys, []*pb.Subscription{
 		{
 			BugComponent: "8765",
 		},
@@ -304,10 +302,8 @@ func TestFileBug_EmptyDescriptionTooManyKeys(t *testing.T) {
 	defer ts.Close()
 
 	keys := []string{}
-	alertIDs := []int64{}
 	for i := 0; i < 200; i++ {
 		keys = append(keys, "aLongKeyThatWillMakeTheUrlExceedTheMaximumLength")
-		alertIDs = append(alertIDs, int64(i))
 	}
 	req := &FileBugRequest{
 		Title:     "Test Bug Title",
@@ -317,7 +313,7 @@ func TestFileBug_EmptyDescriptionTooManyKeys(t *testing.T) {
 		Keys:      keys,
 	}
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return(req.Keys, alertIDs, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return(req.Keys, []*pb.Subscription{
 		{
 			BugComponent: "8765",
 		},
@@ -338,7 +334,7 @@ func TestFileBug_SelectSubscription(t *testing.T) {
 
 	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return(getMockRegressions(1), nil)
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []*pb.Subscription{
 		{
 			BugComponent: "111",
 			BugPriority:  2,
@@ -378,7 +374,7 @@ func TestFileBug_SelectSubscription_SamePrio(t *testing.T) {
 
 	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return(getMockRegressions(1), nil)
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []*pb.Subscription{
 		{
 			BugComponent: "111",
 			BugPriority:  2,
@@ -419,7 +415,7 @@ func TestFileBug_SelectSubscription_NotBerfDevTest(t *testing.T) {
 
 	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return(getMockRegressions(1), nil)
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []*pb.Subscription{
 		{
 			BugComponent: "111",
 			BugPriority:  1,
@@ -457,7 +453,7 @@ func TestFileBug_EmptySubscriptionsList(t *testing.T) {
 	s, regStore, _, ts := createIssueTrackerForTest(t)
 	defer ts.Close()
 
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{}, nil)
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []*pb.Subscription{}, nil)
 	regStore.On("GetByIDs", mock.Anything, mock.AnythingOfType("[]string")).Return(getMockRegressions(1), nil)
 
 	req := &FileBugRequest{
@@ -585,7 +581,7 @@ func TestNewIssueTracker_FileBug_Success(t *testing.T) {
 	userIssueStore := &userissueMocks.Store{}
 
 	// Mocking regression store
-	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []int64{1}, []*pb.Subscription{
+	regStore.On("GetSubscriptionsForRegressions", mock.Anything, mock.AnythingOfType("[]string")).Return([]string{"1"}, []*pb.Subscription{
 		{
 			BugComponent: "1235",
 		},

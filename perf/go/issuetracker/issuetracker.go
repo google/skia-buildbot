@@ -231,18 +231,16 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 	s.checkUnusedFieldsAreEmpty(req)
 
 	regressionIds := req.Keys
-	regressionIdsFromSql, alertsIds, subscriptions, err := s.regStore.GetSubscriptionsForRegressions(ctx, regressionIds)
+	regressionIdsFromSql, subscriptions, err := s.regStore.GetSubscriptionsForRegressions(ctx, regressionIds)
 	if err != nil {
-		return 0, skerr.Wrapf(err, "failed to get alert ids for regressions.")
+		return 0, skerr.Wrapf(err, "DB failed to get subscriptions for regressions.")
 	}
 	if len(regressionIdsFromSql) != len(regressionIds) {
-		return 0, skerr.Fmt("could not find alert configurations or subscriptions for some regressions")
+		return 0, skerr.Fmt("could not find subscriptions for some regressions")
 	}
 	if len(subscriptions) < 1 {
 		return 0, skerr.Fmt("did not find any subscriptions linked to those regressions")
 	}
-	// TODO(b/454614028) Not sure alertsIds will be useful.
-	_ = alertsIds
 
 	regData, err := s.regStore.GetByIDs(ctx, regressionIds)
 	if err != nil {

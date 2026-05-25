@@ -314,7 +314,7 @@ func (_m *Store) GetRegressionsBySubName(ctx context.Context, req regression.Get
 }
 
 // GetSubscriptionsForRegressions provides a mock function with given fields: ctx, regressionIDs
-func (_m *Store) GetSubscriptionsForRegressions(ctx context.Context, regressionIDs []string) ([]string, []int64, []*v1.Subscription, error) {
+func (_m *Store) GetSubscriptionsForRegressions(ctx context.Context, regressionIDs []string) ([]string, []*v1.Subscription, error) {
 	ret := _m.Called(ctx, regressionIDs)
 
 	if len(ret) == 0 {
@@ -322,10 +322,9 @@ func (_m *Store) GetSubscriptionsForRegressions(ctx context.Context, regressionI
 	}
 
 	var r0 []string
-	var r1 []int64
-	var r2 []*v1.Subscription
-	var r3 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]string, []int64, []*v1.Subscription, error)); ok {
+	var r1 []*v1.Subscription
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]string, []*v1.Subscription, error)); ok {
 		return rf(ctx, regressionIDs)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, []string) []string); ok {
@@ -336,29 +335,21 @@ func (_m *Store) GetSubscriptionsForRegressions(ctx context.Context, regressionI
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []string) []int64); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, []string) []*v1.Subscription); ok {
 		r1 = rf(ctx, regressionIDs)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]int64)
+			r1 = ret.Get(1).([]*v1.Subscription)
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, []string) []*v1.Subscription); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, []string) error); ok {
 		r2 = rf(ctx, regressionIDs)
 	} else {
-		if ret.Get(2) != nil {
-			r2 = ret.Get(2).([]*v1.Subscription)
-		}
+		r2 = ret.Error(2)
 	}
 
-	if rf, ok := ret.Get(3).(func(context.Context, []string) error); ok {
-		r3 = rf(ctx, regressionIDs)
-	} else {
-		r3 = ret.Error(3)
-	}
-
-	return r0, r1, r2, r3
+	return r0, r1, r2
 }
 
 // IgnoreAnomalies provides a mock function with given fields: ctx, regressionIDs

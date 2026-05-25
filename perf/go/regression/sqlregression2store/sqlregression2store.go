@@ -340,17 +340,15 @@ var statementFormats = map[statementFormat]string{
 	getSubscriptionsForRegressions: `
 		SELECT
 			regressions2.id AS regression2_id,
-			alerts.id AS alert_id,
 			COALESCE(subscriptions.bug_component, ''),
 			subscriptions.bug_priority,
 			subscriptions.bug_severity,
 			COALESCE(subscriptions.bug_cc_emails, '{}'::TEXT[]),
 			COALESCE(subscriptions.contact_email, '')
 		FROM
-			regressions2 JOIN alerts
-			ON regressions2.alert_id = alerts.id
+			regressions2
 			JOIN subscriptions
-			ON alerts.sub_name = subscriptions.name
+			ON regressions2.sub_name = subscriptions.name
 		WHERE regressions2.id=ANY($1) and subscriptions.is_active = TRUE
 		ORDER BY regressions2.id
 	`,
@@ -1334,29 +1332,27 @@ func (s *SQLRegression2Store) NudgeAndResetAnomalies(ctx context.Context, regres
 }
 
 // GetAlertIDsFromRegressionIDs retrieves all distinct alert_ids for the given regression IDs.
-func (s *SQLRegression2Store) GetSubscriptionsForRegressions(ctx context.Context, regressionIDs []string) ([]string, []int64, []*pb.Subscription, error) {
+func (s *SQLRegression2Store) GetSubscriptionsForRegressions(ctx context.Context, regressionIDs []string) ([]string, []*pb.Subscription, error) {
 	if len(regressionIDs) == 0 {
-		return nil, nil, nil, nil
+		return nil, nil, nil
 	}
 
 	rows, err := s.db.Query(ctx, s.statements[getSubscriptionsForRegressions], regressionIDs)
 	if err != nil {
-		return nil, nil, nil, skerr.Wrapf(err, "failed to get alert_ids for regressions")
+		return nil, nil, skerr.Wrapf(err, "failed to get alert_ids for regressions")
 	}
 	defer rows.Close()
 
 	var regressionIDsFromSql []string
-	var alertIDs []int64
 	var subscriptions []*pb.Subscription
 	for rows.Next() {
 		var regressionID string
-		var alertID int64
 		var subscription pb.Subscription
 		var bugPriority sql.NullInt64
 		var bugSeverity sql.NullInt64
 
-		if err := rows.Scan(&regressionID, &alertID, &subscription.BugComponent, &bugPriority, &bugSeverity, &subscription.BugCcEmails, &subscription.ContactEmail); err != nil {
-			return nil, nil, nil, skerr.Wrap(err)
+		if err := rows.Scan(&regressionID, &subscription.BugComponent, &bugPriority, &bugSeverity, &subscription.BugCcEmails, &subscription.ContactEmail); err != nil {
+			return nil, nil, skerr.Wrap(err)
 		}
 
 		if bugPriority.Valid {
@@ -1367,11 +1363,10 @@ func (s *SQLRegression2Store) GetSubscriptionsForRegressions(ctx context.Context
 		}
 
 		regressionIDsFromSql = append(regressionIDsFromSql, regressionID)
-		alertIDs = append(alertIDs, alertID)
 		subscriptions = append(subscriptions, &subscription)
 	}
 
-	return regressionIDsFromSql, alertIDs, subscriptions, nil
+	return regressionIDsFromSql, subscriptions, nil
 }
 
 // Confirm that SQLRegressionStore implements regression.Store.
