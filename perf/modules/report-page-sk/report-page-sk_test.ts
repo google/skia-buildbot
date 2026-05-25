@@ -181,6 +181,22 @@ describe('ReportPageSk', () => {
     });
   });
 
+  describe('Guide Link', () => {
+    it('renders the guide link with the correct URL and attributes', async () => {
+      await initializeElement();
+      const guideLink = element.querySelector<HTMLAnchorElement>('.title-container a');
+      assert.isNotNull(guideLink, 'Guide link should be rendered');
+      assert.strictEqual(
+        guideLink!.getAttribute('href'),
+        'https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/report-page-guide.md'
+      );
+      assert.strictEqual(guideLink!.getAttribute('target'), '_blank');
+      assert.strictEqual(guideLink!.getAttribute('rel'), 'noopener');
+      assert.strictEqual(guideLink!.getAttribute('title'), 'Report Page Guide');
+      assert.isNotNull(guideLink!.querySelector('help-icon-sk'), 'Should contain a help icon');
+    });
+  });
+
   describe('Graph Loading Functionality', () => {
     it('loads selected graphs in chunks and appends them to the bottom', async () => {
       const anomalyCount = 7;

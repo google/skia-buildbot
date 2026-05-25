@@ -74,6 +74,17 @@ describe('report-page-sk', () => {
     expect(await testBed.page.$$('report-page-sk')).to.have.length(1);
   });
 
+  it('should render the guide link pointing to report-page-guide.md', async () => {
+    const guideLink = await reportPageSkPO.guideLink;
+    expect(await guideLink.isEmpty()).to.be.false;
+    expect(await guideLink.getAttribute('href')).to.equal(
+      'https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/report-page-guide.md'
+    );
+    expect(await guideLink.getAttribute('target')).to.equal('_blank');
+    expect(await guideLink.getAttribute('rel')).to.equal('noopener');
+    expect(await guideLink.getAttribute('title')).to.equal('Report Page Guide');
+  });
+
   describe('anomalies list and commits', () => {
     it('loads anomalies, creates a graph, and loads commits container', async () => {
       const anomaliesTablePO = reportPageSkPO.anomaliesTable;

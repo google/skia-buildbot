@@ -20,6 +20,7 @@ import { GraphListSk } from '../graph-list-sk/graph-list-sk';
 import { lookupCids } from '../cid/cid';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import '../../../elements-sk/modules/icons/camera-roll-icon-sk';
+import '../../../elements-sk/modules/icons/help-icon-sk';
 import { CountMetric, SummaryMetric, telemetry } from '../telemetry/telemetry';
 import { TrimHash } from '../common/commit';
 
@@ -143,6 +144,18 @@ export class ReportPageSk extends ElementSk {
   }
 
   private static template = (ele: ReportPageSk) => html`
+    <div class="title-container">
+      <div class="title-left">
+        <h1>Anomaly Report</h1>
+        <a
+          href="https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/report-page-guide.md"
+          target="_blank"
+          rel="noopener"
+          title="Report Page Guide">
+          <help-icon-sk></help-icon-sk>
+        </a>
+      </div>
+    </div>
     ${ele._currentlyLoading
       ? html`
           <div class="loading-status">

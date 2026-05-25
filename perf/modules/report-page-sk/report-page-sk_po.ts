@@ -31,4 +31,8 @@ export class ReportPageSkPO extends PageObject {
   get commonCommitLinks(): PageObjectElementList {
     return this.bySelectorAll('.common-commits a');
   }
+
+  get guideLink(): PageObjectElement {
+    return this.bySelector('.title-container a');
+  }
 }

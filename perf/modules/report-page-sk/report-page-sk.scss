@@ -2,6 +2,27 @@
 @import '../themes/themes.scss';
 
 report-page-sk {
+  .title-container {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 0.25em;
+
+    .title-left {
+      display: flex;
+      align-items: center;
+
+      h1 {
+        margin-right: 0.4em;
+      }
+    }
+
+    a {
+      fill: var(--primary);
+    }
+  }
+
   .loading-status {
     align-items: center;
     display: flex;
