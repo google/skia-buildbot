@@ -1,8 +1,19 @@
 # Multigraph User Guide
 
-This guide explains how to effectively search and filter multiple performance graphs within the Browser Performance Infrastructure. While the **Explore** (`/e`) view is designed for deep-diving into a single, comprehensive graph, **Multigraph** (`/m`) is optimized for viewing and synchronizing multiple metrics simultaneously.
+> **Bug Filing & Feedback**: Found an issue with the Perf Multigraph Page,
+> or have a feature request? File a ticket in the
+> [Perf 2.0 Buganizer Component](https://b.corp.google.com/issues/new?component=1989668).
 
-Note: All examples and links in this guide use the Chrome Perf instance ([https://chrome-perf.corp.goog/m/](https://chrome-perf.corp.goog/m/)), but the concepts and instructions apply to all Performance Dashboard instances.
+This guide explains how to effectively search and filter multiple performance graphs within
+the Browser Performance Infrastructure. While the **Explore** (`/e`) view is designed for
+deep-diving into a single, comprehensive graph, and **Multigraph** (`/m`) is optimized
+for viewing and synchronizing multiple metrics simultaneously, the **Report Page** (`/u`) is the
+dedicated workspace for triaging anomalies and regressions. (See the
+[Report Page Triage & Analysis Guide](./report-page-guide.md) for full details).
+
+Note: All examples and links in this guide use the Chrome Perf instance
+([https://chrome-perf.corp.goog/m/](https://chrome-perf.corp.goog/m/)), but the
+concepts and instructions apply to all **Perf 2.0** dashboard instances.
 
 # Table of Contents
 

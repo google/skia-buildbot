@@ -1,4 +1,4 @@
-# SkiaPerf Server
+# Perf Server
 
 The Performance Dashboard reads performance data from databases and serves
 interactive dashboards to highlight how a commit impacts performance, allowing
@@ -381,17 +381,16 @@ stack, with the goal of eventually deprecating the older system.
 
 # Other Documentation
 
-| File                                                | Description                                                      |
-| --------------------------------------------------- | ---------------------------------------------------------------- |
-| [`multigraph-guide.md`](./multigraph-guide.md)      | User guide for the Multigraph feature.                           |
-| [`ai_generated_doc.md`](./docs/ai_generated_doc.md) | Overview of the system by Gemini                                 |
-| [`API.md`](./API.md)                                | How to use the HTTP/JSON API for alerts.                         |
-| [`BACKUPS.md`](./BACKUPS.md)                        | Instructions for backing up regression and alert data.           |
-| [`CHECKLIST.md`](./CHECKLIST.md)                    | A checklist for launching a new Perf instance.                   |
-| [`DESIGN.md`](./DESIGN.md)                          | The design documentation for Perf.                               |
-| [`FORMAT.md`](./FORMAT.md)                          | Details on the Skia Perf JSON data format.                       |
-| [`PERFSERVER.md`](./PERFSERVER.md)                  | Documentation for the `perfserver` command-line tool.            |
-| [`PERFTOOL.md`](./PERFTOOL.md)                      | Documentation for the `perf-tool` command-line tool.             |
-| [`PROD.md`](./PROD.md)                              | A manual for operating Perf in a production environment.         |
-| [`Spanner.md`](./Spanner.md)                        | Information on the Spanner integration and running the emulator. |
-| [`TRIAGE.md`](./TRIAGE.md)                          | Design for the regression triage page.                           |
+- [`multigraph-guide.md`](./multigraph-guide.md): User guide for the Multigraph feature.
+- [`report-page-guide.md`](./report-page-guide.md): User guide for the Report Page (`/u`).
+- [`ai_generated_doc.md`](./docs/ai_generated_doc.md): Overview of the system by Gemini.
+- [`API.md`](./API.md): How to use the HTTP/JSON API for alerts.
+- [`BACKUPS.md`](./BACKUPS.md): Instructions for backing up regression and alert data.
+- [`CHECKLIST.md`](./CHECKLIST.md): A checklist for launching a new Perf instance.
+- [`DESIGN.md`](./DESIGN.md): The design documentation for Perf.
+- [`FORMAT.md`](./FORMAT.md): Details on the Perf JSON data format.
+- [`PERFSERVER.md`](./PERFSERVER.md): Documentation for the `perfserver` command-line tool.
+- [`PERFTOOL.md`](./PERFTOOL.md): Documentation for the `perf-tool` command-line tool.
+- [`PROD.md`](./PROD.md): A manual for operating Perf in a production environment.
+- [`Spanner.md`](./Spanner.md): Information on the Spanner integration and running the emulator.
+- [`TRIAGE.md`](./TRIAGE.md): Design for the regression triage page.
