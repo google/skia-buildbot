@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
-	"go.skia.org/infra/cabe/go/backends"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/perfresults"
+	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/workflows"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"

@@ -31,7 +31,6 @@ go_library(
         "//pinpoint/go/workflows:__subpackages__",
     ],
     deps = [
-        "//cabe/go/backends",
         "//go/auth",
         "//go/cipd",
         "//go/email",

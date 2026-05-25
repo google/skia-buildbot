@@ -7,10 +7,10 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/read_values",
     visibility = ["//visibility:public"],
     deps = [
-        "//cabe/go/backends",
         "//go/skerr",
         "//go/sklog",
         "//perf/go/perfresults",
+        "//pinpoint/go/backends",
         "//pinpoint/go/workflows",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
         "@org_chromium_go_luci//swarming/proto/api_v2",

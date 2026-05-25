@@ -7,7 +7,6 @@ option go_package = "go.skia.org/infra/pinpoint/proto/v1;pinpointpb";
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
-import "cabe/proto/v1/spec.proto";
 
 // The direct mirror of the existing bisect request in catapult.
 // https://chromium.googlesource.com/catapult.git/+/09398d/
@@ -137,6 +136,20 @@ message Commit {
 	string change_id = 11;
 }
 
+// A Gerrit patchset.
+message GerritChange {
+	// Gerrit hostname, e.g. "chromium-review.googlesource.com".
+	string host = 1;
+	// Gerrit project, e.g. "chromium/src".
+	string project = 2;
+	// Change number, e.g. 12345.
+	int64 change = 3;
+	// Patch set number, e.g. 1.
+	int64 patchset = 4;
+	// Git hash for patchset
+	string patchset_hash = 5;
+}
+
 // A commit definition used by Pinpoint that allows flexibility for modification
 // on DEPS or patches.
 message CombinedCommit {
@@ -148,7 +161,7 @@ message CombinedCommit {
 
 	// A gerrit patch applied on to the main commit. This information is also
 	// used to add the results of a Pinpoint job as a comment.
-	cabe.v1.GerritChange patch = 3;
+	GerritChange patch = 3;
 }
 
 // Culprit contains the culprit commit and also the commit prior to the culprit.

@@ -53,7 +53,7 @@ export interface Commit {
 export interface CombinedCommit {
   main: Commit | null;
   modified_deps?: Commit[];
-  patch?: any | null; // This corresponds to *cabe.v1.GerritChange
+  patch?: any | null; // This corresponds to *pinpointpb.GerritChange
 }
 
 export interface Build {

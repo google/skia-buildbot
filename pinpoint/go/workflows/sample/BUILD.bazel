@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/workflows/sample",
     visibility = ["//visibility:private"],
     deps = [
-        "//cabe/go/proto:go_proto_lib",
         "//go/auth",
         "//go/httputils",
         "//go/skerr",
@@ -39,7 +38,7 @@ go_test(
     srcs = ["main_test.go"],
     embed = [":sample_lib"],
     deps = [
-        "//cabe/go/proto:go_proto_lib",
+        "//pinpoint/proto/v1:proto",
         "@com_github_stretchr_testify//assert",
     ],
 )

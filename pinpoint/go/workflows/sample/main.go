@@ -18,7 +18,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
-	"go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -238,7 +237,7 @@ func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 		if *patchSet == 0 {
 			return nil, errors.New("--patch-set is required when --patch-id is used")
 		}
-		p.CombinedCommit.Patch = &proto.GerritChange{
+		p.CombinedCommit.Patch = &pb.GerritChange{
 			Host:     *patchHost,
 			Project:  *patchProject,
 			Change:   int64(*patchId),
@@ -398,7 +397,7 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 		if *patchSet == 0 {
 			return nil, errors.New("--patch-set is required when --patch-id is used")
 		}
-		p.Commit.Patch = &proto.GerritChange{
+		p.Commit.Patch = &pb.GerritChange{
 			Host:     *patchHost,
 			Project:  *patchProject,
 			Change:   int64(*patchId),
@@ -511,7 +510,7 @@ func triggerCbbGetBrowserVersions(c client.Client) ([]internal.BuildInfo, error)
 
 var gerritURLRegex = regexp.MustCompile(`^https?://([^/]+)/c/(.+)/\+/([0-9]+)(?:/([0-9]+))?/?$`)
 
-func parseGerritURL(gerritURL string) (*proto.GerritChange, error) {
+func parseGerritURL(gerritURL string) (*pb.GerritChange, error) {
 	matches := gerritURLRegex.FindStringSubmatch(gerritURL)
 	if matches == nil {
 		return nil, fmt.Errorf("invalid gerrit URL format: %s", gerritURL)
@@ -532,7 +531,7 @@ func parseGerritURL(gerritURL string) (*proto.GerritChange, error) {
 		}
 	}
 
-	return &proto.GerritChange{
+	return &pb.GerritChange{
 		Host:     host,
 		Project:  project,
 		Change:   changeID,
@@ -666,7 +665,7 @@ func triggerMimicLegacyJob(c client.Client, legacyJobID string) (interface{}, er
 			endHash = startHash
 		}
 
-		var patch *proto.GerritChange
+		var patch *pb.GerritChange
 		if strings.Contains(args.Pin, "review.googlesource.com") {
 			p, err := parseGerritURL(args.Pin)
 			if err == nil {
