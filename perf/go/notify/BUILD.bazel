@@ -35,6 +35,7 @@ go_library(
         "//perf/go/clustering2",
         "//perf/go/config",
         "//perf/go/dataframe",
+        "//perf/go/git/formatter",
         "//perf/go/git/provider",
         "//perf/go/ingest/format",
         "//perf/go/issuetracker",

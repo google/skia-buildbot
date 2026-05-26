@@ -3,12 +3,12 @@ package formatter
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/provider"
-	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -40,7 +40,7 @@ func NewCommitHashRangeFormatter(perfGit git.Git) types.CommitHashRangeFormatter
 			sklog.Errorf("unknown git provider %s", config.Config.GitRepoConfig.Provider)
 			return fmt.Sprintf("(%s..%s]", startDisplayed, endDisplayed)
 		}
-		commitUrl := notify.URLFromCommitRange(
+		commitUrl := URLFromCommitRange(
 			provider.Commit{GitHash: endHash},
 			provider.Commit{GitHash: startHash},
 			urlTemplate,
@@ -51,4 +51,19 @@ func NewCommitHashRangeFormatter(perfGit git.Git) types.CommitHashRangeFormatter
 		}
 		return fmt.Sprintf("[\\(%s..%s\\]](%s)", startDisplayed, endDisplayed, commitUrl)
 	}
+}
+
+// URLFromCommitRange returns a URL that points to commit.URL or the expansion
+// of the commitRangeURLTemplate if appropriate.
+func URLFromCommitRange(commit, previousCommit provider.Commit, commitRangeURLTemplate string) string {
+	if commit.GitHash == previousCommit.GitHash {
+		return commit.URL
+	}
+	if commitRangeURLTemplate == "" {
+		return commit.URL
+	}
+	// Do template expansion.
+	commitRangeURLTemplate = strings.ReplaceAll(commitRangeURLTemplate, "{begin}", previousCommit.GitHash)
+	commitRangeURLTemplate = strings.ReplaceAll(commitRangeURLTemplate, "{end}", commit.GitHash)
+	return commitRangeURLTemplate
 }
