@@ -238,6 +238,8 @@ func getShortBotName(bot string) string {
 	switch bot {
 	case "android-pixel-tangor-perf-cbb":
 		return "tang"
+	case "android-pixel10-perf-cbb":
+		return "p10"
 	case "mac-m3-pro-perf-cbb":
 		return "m3"
 	case "mac-m4-mini-perf-cbb":
@@ -287,8 +289,8 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 	}
 
 	// Due to b/433537961, we need to reinstall browser APK before each
-	// benchmark run on Pixel Tablet.
-	if cbb.BotConfig == "android-pixel-tangor-perf-cbb" {
+	// benchmark run on Pixel devices.
+	if strings.HasPrefix(cbb.BotConfig, "android-pixel") {
 		extra_args = append(extra_args, "--reinstall")
 	}
 

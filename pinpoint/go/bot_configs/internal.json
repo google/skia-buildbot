@@ -20,6 +20,27 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
+  "android-pixel10-perf-cbb": {
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "bucket": "luci.chrome.try",
+    "builder": "Android arm64 High End Compile Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint-cbb"
+      },
+      {
+        "key": "device_type",
+        "value": "frankel"
+      },
+      {
+        "key": "device_os",
+        "value": "B"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
   "linux-falcon-rak-5070-perf": {
     "browser": "release",
     "bucket": "luci.chrome.try",

@@ -11,6 +11,7 @@ BotExactTargets:
   android-pixel-fold-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel-tangor-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel-tangor-perf-cbb: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
+  android-pixel10-perf-cbb: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel4-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel4-perf-pgo: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel6-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle

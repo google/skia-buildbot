@@ -13,6 +13,12 @@ func TestGetIsolateTarget_WithConfigDefinedBot_ReturnsTarget(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestGetIsolateTarget_WithPixel10CbbBot_ReturnsTarget(t *testing.T) {
+	target, err := GetIsolateTarget("android-pixel10-perf-cbb", "benchmark")
+	assert.Equal(t, target, "performance_test_suite_android_trichrome_chrome_google_64_32_bundle")
+	assert.NoError(t, err)
+}
+
 func TestGetIsolateTarget_WithRegexMatching_ReturnsTarget(t *testing.T) {
 	target, err := GetIsolateTarget("android-pixel4_webview-perf", "benchmark")
 	assert.Equal(t, target, "performance_webview_test_suite")
