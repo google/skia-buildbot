@@ -26,6 +26,7 @@ go_library(
         "//perf/go/stepfit",
         "//perf/go/tracestore",
         "//perf/go/types",
+        "@org_golang_x_sync//errgroup",
     ],
 )
 

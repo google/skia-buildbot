@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"sort"
+	"sync"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -15,6 +17,7 @@ import (
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
+	"golang.org/x/sync/errgroup"
 )
 
 // ImprovedAnomalyBoundsRefiner implements regression.RegressionRefiner.
@@ -28,10 +31,11 @@ type ImprovedAnomalyBoundsRefiner struct {
 	traceStore      tracestore.TraceStore
 	perfGit         git.Git
 	stdDevThreshold float32
+	dryRun          bool
 }
 
 // NewImprovedAnomalyBoundsRefiner returns a new instance of ImprovedAnomalyBoundsRefiner.
-func NewImprovedAnomalyBoundsRefiner(anomalyStore anomalies.Store, store regression.Store, traceStore tracestore.TraceStore, perfGit git.Git, stdDevThreshold float32) *ImprovedAnomalyBoundsRefiner {
+func NewImprovedAnomalyBoundsRefiner(anomalyStore anomalies.Store, store regression.Store, traceStore tracestore.TraceStore, perfGit git.Git, stdDevThreshold float32, dryRun bool) *ImprovedAnomalyBoundsRefiner {
 	return &ImprovedAnomalyBoundsRefiner{
 		base:            &AnomalyBoundsRefiner{stdDevThreshold: stdDevThreshold},
 		anomalyStore:    anomalyStore,
@@ -39,6 +43,7 @@ func NewImprovedAnomalyBoundsRefiner(anomalyStore anomalies.Store, store regress
 		traceStore:      traceStore,
 		perfGit:         perfGit,
 		stdDevThreshold: stdDevThreshold,
+		dryRun:          dryRun,
 	}
 }
 
@@ -59,24 +64,79 @@ func (r *ImprovedAnomalyBoundsRefiner) Process(ctx context.Context, cfg *alerts.
 		return confirmed, nil
 	}
 
-	var refined []*regression.ConfirmedRegression
-	latestRefined := map[string]*regression.ConfirmedRegression{}
+	byTrace := groupRegressionsByTrace(confirmed)
 
+	traceNames := make([]string, 0, len(byTrace))
+	for name := range byTrace {
+		traceNames = append(traceNames, name)
+	}
+	sort.Strings(traceNames)
+
+	var mu sync.Mutex
+	var refined []*regression.ConfirmedRegression
+
+	g, ctx := errgroup.WithContext(ctx)
+	// In case we are running a dry run, we can use a larger group.
+	// Otherwise, the DB is under heavy load anyway, so we have to limit the parallelism.
+	groupLimit := 1
+	if r.dryRun {
+		groupLimit = 20
+	}
+	g.SetLimit(groupLimit)
+
+	for _, traceName := range traceNames {
+		traceName := traceName
+		group := byTrace[traceName]
+		g.Go(func() error {
+			sort.Slice(group, func(i, j int) bool {
+				return group[i].CommitNumber < group[j].CommitNumber
+			})
+			localRefined, err := r.processTraceGroup(ctx, group, cfg)
+			if err != nil {
+				return err
+			}
+			if len(localRefined) > 0 {
+				mu.Lock()
+				refined = append(refined, localRefined...)
+				mu.Unlock()
+			}
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	return refined, nil
+}
+
+// groupRegressionsByTrace groups a slice of confirmed regressions by their trace name.
+func groupRegressionsByTrace(confirmed []*regression.ConfirmedRegression) map[string][]*regression.ConfirmedRegression {
+	byTrace := make(map[string][]*regression.ConfirmedRegression)
 	for _, cr := range confirmed {
 		traceName := cr.Summary.Clusters[0].Keys[0]
-		prevRefined := latestRefined[traceName]
+		byTrace[traceName] = append(byTrace[traceName], cr)
+	}
+	return byTrace
+}
 
-		newCr, err := r.applyImprovedLogic(ctx, cr, cfg, prevRefined)
+// processTraceGroup processes a list of regressions for a single trace sequentially,
+// tracking and utilizing the previous refined regression in chronological order.
+func (r *ImprovedAnomalyBoundsRefiner) processTraceGroup(ctx context.Context, group []*regression.ConfirmedRegression, cfg *alerts.Alert) ([]*regression.ConfirmedRegression, error) {
+	var localRefined []*regression.ConfirmedRegression
+	var lastRefined *regression.ConfirmedRegression
+	for _, cr := range group {
+		newCr, err := r.applyImprovedLogic(ctx, cr, cfg, lastRefined)
 		if err != nil {
 			return nil, err
 		}
 		if newCr != nil {
-			refined = append(refined, newCr)
-			latestRefined[traceName] = newCr
+			localRefined = append(localRefined, newCr)
+			lastRefined = newCr
 		}
 	}
-
-	return refined, nil
+	return localRefined, nil
 }
 
 func (r *ImprovedAnomalyBoundsRefiner) applyImprovedLogic(ctx context.Context, cr *regression.ConfirmedRegression, cfg *alerts.Alert, latestRefined *regression.ConfirmedRegression) (*regression.ConfirmedRegression, error) {

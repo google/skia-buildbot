@@ -768,14 +768,20 @@ func (f *Frontend) initialize() {
 
 	var regressionRefiner regression.RegressionRefiner
 	if config.Config.AnomalyConfig.UseImprovedAnomalyBoundsRefiner {
-		regressionRefiner = refiner.NewImprovedAnomalyBoundsRefiner(f.anomalyStore, f.regStore, f.traceStore, f.perfGit, config.MinStdDev)
+		regressionRefiner = refiner.NewImprovedAnomalyBoundsRefiner(f.anomalyStore, f.regStore, f.traceStore, f.perfGit, config.MinStdDev, false)
 	} else if config.Config.AnomalyConfig.UseAnomalyLocalization {
 		regressionRefiner = refiner.NewAnomalyBoundsRefiner(config.MinStdDev)
 	} else {
 		regressionRefiner = refiner.NewDefaultRegressionRefiner()
 	}
 
-	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder, paramsProvider, regressionRefiner)
+	var dryRunRefiner regression.RegressionRefiner
+	dryRunRefiner = regressionRefiner
+	if config.Config.AnomalyConfig.UseImprovedAnomalyBoundsRefiner {
+		dryRunRefiner = refiner.NewImprovedAnomalyBoundsRefiner(f.anomalyStore, f.regStore, f.traceStore, f.perfGit, config.MinStdDev, true)
+	}
+
+	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder, paramsProvider, dryRunRefiner)
 
 	if f.flags.DoClustering {
 		go func() {
