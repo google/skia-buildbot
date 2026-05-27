@@ -51,13 +51,14 @@ var clusterAlgoMap = map[string]types.RegressionDetectionGrouping{
 }
 
 var stepAlgoMap = map[string]types.StepDetection{
-	"ORIGINAL_STEP":  types.OriginalStep,
-	"ABSOLUTE_STEP":  types.AbsoluteStep,
-	"CONST_STEP":     types.Const,
-	"PERCENT_STEP":   types.PercentStep,
-	"COHEN_STEP":     types.CohenStep,
-	"MANN_WHITNEY_U": types.MannWhitneyU,
-	"STEPINESS":      types.Stepiness,
+	"ORIGINAL_STEP":       types.OriginalStep,
+	"ABSOLUTE_STEP":       types.AbsoluteStep,
+	"CONST_STEP":          types.Const,
+	"PERCENT_STEP":        types.PercentStep,
+	"PERCENT_MEDIAN_STEP": types.PercentMedianStep,
+	"COHEN_STEP":          types.CohenStep,
+	"MANN_WHITNEY_U":      types.MannWhitneyU,
+	"STEPINESS":           types.Stepiness,
 }
 
 var actionMap = map[string]types.AlertAction{

@@ -575,3 +575,45 @@ func TestStepFit_Stepiness_Uninteresting(t *testing.T) {
 	// We just want to check it's uninteresting. Let's not hardcode exact regression float value in case of float math slight differences.
 	assert.InDelta(t, -0.5219, sf.Regression, 0.001)
 }
+
+func TestStepFit_PercentMedian_NoStep(t *testing.T) {
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.PercentMedianStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 2, 1, 2, x}, minStdDev, rule)
+	assert.Equal(t, 2, sf.TurningPoint)
+	assert.Equal(t, float32(0), sf.StepSize)
+	assert.Equal(t, UNINTERESTING, sf.Status)
+	assert.Equal(t, float32(0), sf.Regression)
+}
+
+func TestStepFit_PercentMedian_StepExactMatch(t *testing.T) {
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.PercentMedianStep,
+			Threshold: 1.0,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 2, x}, minStdDev, rule)
+	assert.Equal(t, 1, sf.TurningPoint)
+	assert.Equal(t, float32(-1), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	assert.Equal(t, float32(-1), sf.Regression)
+}
+
+func TestStepFit_PercentMedian_RobustToOutlier(t *testing.T) {
+	rule := &alerts.AnomalyDetectionRule{
+		SimpleRule: &alerts.AlgorithmCheck{
+			Step:      types.PercentMedianStep,
+			Threshold: 0.5,
+		},
+	}
+	sf := EvaluateRule([]float32{1, 1, 10, 1, 1, 2, 2, 2, 2, 2}, minStdDev, rule)
+	assert.Equal(t, 4, sf.TurningPoint)
+	assert.Equal(t, float32(-1.0), sf.StepSize)
+	assert.Equal(t, HIGH, sf.Status)
+	assert.Equal(t, float32(-1.0), sf.Regression)
+}

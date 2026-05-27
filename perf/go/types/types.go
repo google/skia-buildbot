@@ -153,6 +153,10 @@ const (
 	// percentage of the mean of the first half of the trace.
 	PercentStep StepDetection = "percent"
 
+	// PercentMedianStep is a simple check if the step size is greater than some
+	// percentage of the median of the first half of the trace.
+	PercentMedianStep StepDetection = "percent_median"
+
 	// CohenStep uses Cohen's d method to detect a change. https://en.wikipedia.org/wiki/Effect_size#Cohen's_d
 	CohenStep StepDetection = "cohen"
 
@@ -177,6 +181,7 @@ var (
 		AbsoluteStep,
 		Const,
 		PercentStep,
+		PercentMedianStep,
 		CohenStep,
 		MannWhitneyU,
 		Stepiness,
@@ -190,7 +195,7 @@ func (s StepDetection) Priority() int {
 		return 6
 	case CohenStep:
 		return 5
-	case PercentStep:
+	case PercentStep, PercentMedianStep:
 		return 4
 	case AbsoluteStep, Const:
 		return 3

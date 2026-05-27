@@ -101,6 +101,10 @@ message AnomalyConfig {
     // Stepiness is a check that returns a number between 0 and 1 that indicates
     // how step-like the trace is.
     STEPINESS = 6;
+
+    // Step detection that checks if step size is greater than some
+    // percentage of the median of the first half of the trace.
+    PERCENT_MEDIAN_STEP = 7;
   }
 
   // Anomaly detection algorithm.

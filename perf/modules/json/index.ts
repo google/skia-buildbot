@@ -909,7 +909,7 @@ export function SerializesToString(v: string): SerializesToString {
 
 export type ClusterAlgo = 'kmeans' | 'stepfit';
 
-export type StepDetection = '' | 'absolute' | 'const' | 'percent' | 'cohen' | 'mannwhitneyu' | 'stepiness';
+export type StepDetection = '' | 'absolute' | 'const' | 'percent' | 'percent_median' | 'cohen' | 'mannwhitneyu' | 'stepiness';
 
 export type ConfigState = 'ACTIVE' | 'DELETED';
 

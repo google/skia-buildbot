@@ -80,6 +80,11 @@ const thresholdDescriptors: Record<StepDetection, ThresholdDescriptor> = {
     label: `Consider change significant if |(x-y)/x| > percent.
       Values between 0.1 and 1.0 work well.`,
   },
+  percent_median: {
+    units: 'percent',
+    label: `Consider change significant if |(x-y)/median| > percent.
+      Values between 0.1 and 1.0 work well.`,
+  },
   const: {
     units: 'magnitude',
     label: 'Consider change significant if |x| > magnitude',
@@ -227,6 +232,7 @@ export class AlertConfigSk extends LitElement {
         <div value="absolute">Absolute</div>
         <div value="const">Const</div>
         <div value="percent">Percent</div>
+        <div value="percent_median">Percent Median</div>
         <div value="cohen">Cohen's d</div>
         <div value="mannwhitneyu">Mann-Whitney U (Wilcoxon rank-sum)</div>
         <div value="stepiness">Stepiness</div>

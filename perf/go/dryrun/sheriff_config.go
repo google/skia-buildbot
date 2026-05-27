@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/chromeperf/compat"
@@ -116,26 +117,8 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 						if tp < 0 || tp >= len(centroid) {
 							return 0, 0
 						}
-						var before, after []float64
-						for _, v := range centroid[:tp] {
-							if v < 1e20 && v > -1e20 {
-								before = append(before, float64(v))
-							}
-						}
-						for _, v := range centroid[tp:] {
-							if v < 1e20 && v > -1e20 {
-								after = append(after, float64(v))
-							}
-						}
-						mb, ma := float32(0), float32(0)
-						if len(before) > 0 {
-							sort.Float64s(before)
-							mb = float32(before[len(before)/2])
-						}
-						if len(after) > 0 {
-							sort.Float64s(after)
-							ma = float32(after[len(after)/2])
-						}
+						mb := vec32.Median(centroid[:tp])
+						ma := vec32.Median(centroid[tp:])
 						return mb, ma
 					}
 

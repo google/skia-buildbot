@@ -730,3 +730,11 @@ func TestMax(t *testing.T) {
 	assert.Equal(t, float32(2), Max([]float32{2}))
 	assert.Equal(t, float32(5), Max([]float32{5, e, 3}))
 }
+
+func TestMedian(t *testing.T) {
+	assert.Equal(t, float32(0), Median([]float32{}))
+	assert.Equal(t, float32(0), Median([]float32{e}))
+	assert.Equal(t, float32(3), Median([]float32{1, 3, 5}))
+	assert.Equal(t, float32(3.5), Median([]float32{1, 3, 4, 5}))
+	assert.Equal(t, float32(3), Median([]float32{e, 1, 5, 3, e}))
+}

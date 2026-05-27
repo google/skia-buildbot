@@ -89,6 +89,9 @@ const (
 	// Stepiness is a check that returns a number between 0 and 1 that indicates
 	// how step-like the trace is.
 	AnomalyConfig_STEPINESS AnomalyConfig_Step = 6
+	// Step detection that checks if step size is greater than some
+	// percentage of the median of the first half of the trace.
+	AnomalyConfig_PERCENT_MEDIAN_STEP AnomalyConfig_Step = 7
 )
 
 // Enum value maps for AnomalyConfig_Step.
@@ -101,15 +104,17 @@ var (
 		4: "COHEN_STEP",
 		5: "MANN_WHITNEY_U",
 		6: "STEPINESS",
+		7: "PERCENT_MEDIAN_STEP",
 	}
 	AnomalyConfig_Step_value = map[string]int32{
-		"ORIGINAL_STEP":  0,
-		"ABSOLUTE_STEP":  1,
-		"CONST_STEP":     2,
-		"PERCENT_STEP":   3,
-		"COHEN_STEP":     4,
-		"MANN_WHITNEY_U": 5,
-		"STEPINESS":      6,
+		"ORIGINAL_STEP":       0,
+		"ABSOLUTE_STEP":       1,
+		"CONST_STEP":          2,
+		"PERCENT_STEP":        3,
+		"COHEN_STEP":          4,
+		"MANN_WHITNEY_U":      5,
+		"STEPINESS":           6,
+		"PERCENT_MEDIAN_STEP": 7,
 	}
 )
 
@@ -1058,7 +1063,7 @@ const file_sheriff_config_proto_rawDesc = "" +
 	"\fcomplex_rule\x18\x01 \x01(\v2\x1e.sheriff_config.v1.ComplexRuleH\x00R\vcomplexRule\x12D\n" +
 	"\vsimple_rule\x18\x02 \x01(\v2!.sheriff_config.v1.AlgorithmCheckH\x00R\n" +
 	"simpleRuleB\x06\n" +
-	"\x04rule\"\xf8\x06\n" +
+	"\x04rule\"\x91\a\n" +
 	"\rAnomalyConfig\x129\n" +
 	"\x04step\x18\x01 \x01(\x0e2%.sheriff_config.v1.AnomalyConfig.StepR\x04step\x12\x1b\n" +
 	"\x06radius\x18\x02 \x01(\x05H\x00R\x06radius\x88\x01\x01\x12\x1c\n" +
@@ -1073,7 +1078,7 @@ const file_sheriff_config_proto_rawDesc = "" +
 	"\x04algo\x18\n" +
 	" \x01(\x0e2%.sheriff_config.v1.AnomalyConfig.AlgoR\x04algo\x12.\n" +
 	"\x05rules\x18\v \x01(\v2\x18.sheriff_config.v1.RulesR\x05rules\x12N\n" +
-	"\x0edetection_rule\x18\f \x01(\v2'.sheriff_config.v1.AnomalyDetectionRuleR\rdetectionRule\"\x81\x01\n" +
+	"\x0edetection_rule\x18\f \x01(\v2'.sheriff_config.v1.AnomalyDetectionRuleR\rdetectionRule\"\x9a\x01\n" +
 	"\x04Step\x12\x11\n" +
 	"\rORIGINAL_STEP\x10\x00\x12\x11\n" +
 	"\rABSOLUTE_STEP\x10\x01\x12\x0e\n" +
@@ -1083,7 +1088,8 @@ const file_sheriff_config_proto_rawDesc = "" +
 	"\n" +
 	"COHEN_STEP\x10\x04\x12\x12\n" +
 	"\x0eMANN_WHITNEY_U\x10\x05\x12\r\n" +
-	"\tSTEPINESS\x10\x06\"'\n" +
+	"\tSTEPINESS\x10\x06\x12\x17\n" +
+	"\x13PERCENT_MEDIAN_STEP\x10\a\"'\n" +
 	"\tDirection\x12\b\n" +
 	"\x04BOTH\x10\x00\x12\x06\n" +
 	"\x02UP\x10\x01\x12\b\n" +

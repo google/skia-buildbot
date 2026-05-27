@@ -21,7 +21,7 @@ const (
 )
 
 // New creates a new []float32 of the given size pre-populated
-// with MissingDataSentinenl.
+// with MissingDataSentinel.
 func New(size int) []float32 {
 	ret := make([]float32, size)
 	for i := range ret {
@@ -31,7 +31,7 @@ func New(size int) []float32 {
 }
 
 // MeanAndStdDev returns the mean, stddev, and if an error occurred while doing
-// the calculation. MissingDataSentinenls are ignored.
+// the calculation. MissingDataSentinels are ignored.
 func MeanAndStdDev(a []float32) (float32, float32, error) {
 	count := 0
 	sum := float32(0.0)
@@ -89,7 +89,7 @@ func (p float32Slice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // value of 0. This implies that the distribution of samples from a benchmark
 // are skewed.
 //
-// MissingDataSentinenls are ignored.
+// MissingDataSentinels are ignored.
 //
 // The median is chosen as the midpoint instead of the mean because that ensures
 // that both sides have the same number of points (+/- 1).
@@ -282,7 +282,7 @@ func Fill(a []float32) {
 }
 
 // FillAt returns the value at the given index of a vector, using non-sentinel
-// values with nearby points if the original is MissingDataSentinenl.
+// values with nearby points if the original is MissingDataSentinel.
 //
 // Note that the input vector is unchanged.
 //
@@ -305,9 +305,26 @@ func Dup(a []float32) []float32 {
 	return ret
 }
 
+// Median calculates and returns the Median value of the given []float32.
+//
+// Returns 0 for an array with no non-MissingDataSentinel values.
+func Median(xs []float32) float32 {
+	// Filter out missing data sentinel
+	validValues := RemoveMissingDataSentinel(xs)
+	if len(validValues) == 0 {
+		return 0
+	}
+	sort.Sort(float32Slice(validValues))
+	n := len(validValues)
+	if n%2 == 1 {
+		return validValues[n/2]
+	}
+	return (validValues[n/2-1] + validValues[n/2]) / 2.0
+}
+
 // Mean calculates and returns the Mean value of the given []float32.
 //
-// Returns 0 for an array with no non-MissingDataSentinenl values.
+// Returns 0 for an array with no non-MissingDataSentinel values.
 func Mean(xs []float32) float32 {
 	ret := MeanE(xs)
 	if ret == MissingDataSentinel {
@@ -318,7 +335,7 @@ func Mean(xs []float32) float32 {
 
 // MeanE calculates and returns the Mean value of the given []float32.
 //
-// Returns MissingDataSentinenl for an array with no non-MissingDataSentinenl values.
+// Returns MissingDataSentinel for an array with no non-MissingDataSentinel values.
 func MeanE(xs []float32) float32 {
 	total := float32(0.0)
 	n := 0
@@ -336,7 +353,7 @@ func MeanE(xs []float32) float32 {
 
 // Sum calculates and returns the sum of the given []float32.
 //
-// Returns 0 for an array with no non-MissingDataSentinenl values.
+// Returns 0 for an array with no non-MissingDataSentinel values.
 func Sum(xs []float32) float32 {
 	total := SumE(xs)
 	if total == MissingDataSentinel {
@@ -347,7 +364,7 @@ func Sum(xs []float32) float32 {
 
 // SumE calculates and returns the sum of the given []float32.
 //
-// Returns MissingDataSentinenl for an array with no non-MissingDataSentinenl values.
+// Returns MissingDataSentinel for an array with no non-MissingDataSentinel values.
 func SumE(xs []float32) float32 {
 	total := float32(0)
 	count := 0
@@ -366,7 +383,7 @@ func SumE(xs []float32) float32 {
 
 // MeanMissing calculates and returns the Mean value of the given []float32.
 //
-// Returns MissingDataSentinenl for an array with all MissingDataSentinenl values.
+// Returns MissingDataSentinel for an array with all MissingDataSentinel values.
 func MeanMissing(xs []float32) float32 {
 	total := float32(0.0)
 	n := 0
@@ -394,8 +411,8 @@ func FillMeanMissing(a []float32) {
 
 // FillStdDev fills the slice with the Standard Deviation of the values in the slice.
 //
-// If slice is filled with only MissingDataSentinenl then the slice will be
-// filled with MissingDataSentinenl.
+// If slice is filled with only MissingDataSentinel then the slice will be
+// filled with MissingDataSentinel.
 func FillStdDev(a []float32) {
 	_, stddev, err := MeanAndStdDev(a)
 	if err != nil {
@@ -409,8 +426,8 @@ func FillStdDev(a []float32) {
 
 // FillCov fills the slice with the Coefficient of Variation of the values in the slice.
 //
-// If the mean is 0 or the slice is filled with only MissingDataSentinenl then
-// the slice will be filled with MissingDataSentinenl.
+// If the mean is 0 or the slice is filled with only MissingDataSentinel then
+// the slice will be filled with MissingDataSentinel.
 func FillCov(a []float32) {
 	mean, stddev, err := MeanAndStdDev(a)
 	cov := MissingDataSentinel
@@ -428,7 +445,7 @@ func FillCov(a []float32) {
 
 // ssen calculates and returns the sum squared error from the given base of []float32.
 //
-// Returns 0 for an array with no non-MissingDataSentinenl values.
+// Returns 0 for an array with no non-MissingDataSentinel values.
 func ssen(xs []float32, base float32) (float32, int) {
 	total := float32(0.0)
 	n := 0
@@ -443,7 +460,7 @@ func ssen(xs []float32, base float32) (float32, int) {
 
 // SSE calculates and returns the sum squared error from the given base of []float32.
 //
-// Returns 0 for an array with no non-MissingDataSentinenl values.
+// Returns 0 for an array with no non-MissingDataSentinel values.
 func SSE(xs []float32, base float32) float32 {
 	total, _ := ssen(xs, base)
 	return total
@@ -463,8 +480,8 @@ func StdDev(xs []float32, base float32) float32 {
 // the ave of the first half of the trace values divided by the ave of the
 // second half of the trace values.
 //
-// If the second mean is 0 or the slice is filled with only MissingDataSentinenl then
-// the slice will be filled with MissingDataSentinenl.
+// If the second mean is 0 or the slice is filled with only MissingDataSentinel then
+// the slice will be filled with MissingDataSentinel.
 func FillStep(a []float32) {
 	mid := len(a) / 2
 

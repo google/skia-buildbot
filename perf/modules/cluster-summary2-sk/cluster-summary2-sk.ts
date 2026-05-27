@@ -125,6 +125,14 @@ const labelsForStepDetection: Record<StepDetection, LabelsAndFormatters> = {
     lse: '',
     lseFormatter: emptyFormatter,
   },
+  percent_median: {
+    regression: 'Percentage Change (Median):',
+    regressionFormatter: percentFormatter,
+    stepSize: '',
+    stepSizeFormatter: emptyFormatter,
+    lse: '',
+    lseFormatter: emptyFormatter,
+  },
   cohen: {
     regression: 'Standard Deviations:',
     regressionFormatter: decimalFormatter,

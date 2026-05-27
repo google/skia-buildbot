@@ -92,8 +92,16 @@ func NewStepFit() *StepFit {
 // CalculateStepFitValues calculates the core values for a step fit, returning an AnomalyResult.
 func CalculateStepFitValues(trace []float32, stddevThreshold float32, simpleRule *alerts.AlgorithmCheck) (bool, AnomalyResult) {
 	i := len(trace) / 2
-	y0 := vec32.Mean(trace[:i])
-	y1 := vec32.Mean(trace[i:])
+	stepDetection := simpleRule.Step
+
+	var y0, y1 float32
+	if stepDetection == types.PercentMedianStep {
+		y0 = vec32.Median(trace[:i])
+		y1 = vec32.Median(trace[i:])
+	} else {
+		y0 = vec32.Mean(trace[:i])
+		y1 = vec32.Mean(trace[i:])
+	}
 
 	var lse float32 = InvalidLeastSquaresError
 	var regression float32
@@ -104,7 +112,6 @@ func CalculateStepFitValues(trace []float32, stddevThreshold float32, simpleRule
 	s2 := vec32.StdDev(trace[i:], y1)
 	n1 := i
 	n2 := len(trace) - i
-	stepDetection := simpleRule.Step
 	interesting := simpleRule.Threshold
 
 	if stepDetection == types.OriginalStep {
@@ -117,7 +124,7 @@ func CalculateStepFitValues(trace []float32, stddevThreshold float32, simpleRule
 		// Const uses the value at the turning point.
 		val := trace[i]
 		stepSize, regression = CalcConstStep(val, interesting)
-	} else if stepDetection == types.PercentStep {
+	} else if stepDetection == types.PercentStep || stepDetection == types.PercentMedianStep {
 		stepSize, regression = CalcPercentStep(y0, y1)
 	} else if stepDetection == types.CohenStep {
 		stepSize, regression = CalcCohenStep(y0, y1, s1, s2, n1, n2, stddevThreshold)
@@ -225,7 +232,7 @@ func CalcConstStep(val float32, interesting float32) (float32, float32) {
 }
 
 // CalcPercentStep calculates step size and regression for PercentStep detection.
-// It checks the percentage difference between two means (y0 and y1) relative to y0.
+// It checks the percentage difference between two representative values (y0 and y1, e.g., means or medians) relative to y0.
 func CalcPercentStep(y0, y1 float32) (float32, float32) {
 	stepSize := (y0 - y1) / y0 // The division can produce +/-Inf or NaN.
 	if math.IsInf(float64(stepSize), 0) {
