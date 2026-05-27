@@ -89,7 +89,10 @@ var platformBots = map[string][]string{
 		"win-victus-perf-cbb",
 		"win-arm64-snapdragon-elite-perf-cbb",
 	},
-	"android": {"android-pixel-tangor-perf-cbb"},
+	"android": {
+		"android-pixel-tangor-perf-cbb",
+		"android-pixel10-perf-cbb",
+	},
 }
 
 const (
