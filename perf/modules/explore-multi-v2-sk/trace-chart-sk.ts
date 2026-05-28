@@ -1313,7 +1313,6 @@ export class TraceChartSk extends LitElement {
     this._processedSeries.forEach((s) => {
       s.rows.forEach((r) => {
         const valX = this._xAccessor(r);
-        const valY = Number(r.val);
         if (valX < minX) {
           minX = valX;
           minTimestamp = r.createdat;
@@ -1322,8 +1321,6 @@ export class TraceChartSk extends LitElement {
           maxX = valX;
           maxTimestamp = r.createdat;
         }
-        if (valY < minY) minY = valY;
-        if (valY > maxY) maxY = valY;
       });
 
       if (s.allStats && this.activeStats.has('min') && this.activeStats.has('max')) {
@@ -1362,6 +1359,29 @@ export class TraceChartSk extends LitElement {
 
     const displayMinX = this._viewportMinX ?? minX;
     const displayMaxX = this._viewportMaxX ?? maxX;
+
+    // Calculate Y-axis range based on visible data points only
+    this._processedSeries.forEach((s) => {
+      s.rows.forEach((r) => {
+        const valX = this._xAccessor(r);
+        if (valX >= displayMinX && valX <= displayMaxX) {
+          const valY = Number(r.val);
+          if (valY < minY) minY = valY;
+          if (valY > maxY) maxY = valY;
+        }
+      });
+    });
+
+    // Fallback if no visible points are found inside the viewport range
+    if (minY === Infinity || maxY === -Infinity) {
+      this._processedSeries.forEach((s) => {
+        s.rows.forEach((r) => {
+          const valY = Number(r.val);
+          if (valY < minY) minY = valY;
+          if (valY > maxY) maxY = valY;
+        });
+      });
+    }
 
     const padding = this.isSparkline
       ? { top: 5, right: 5, bottom: 5, left: 5 }
