@@ -135,3 +135,27 @@ following command from the root of the `buildbot` repository:
 ```bash
 BUILD_WORKSPACE_DIRECTORY=$PWD go generate ./pinpoint/proto/v1/...
 ```
+
+## Running with Local Auth-Proxy
+
+To debug or test actual production-like authentication/login flows
+locally (such as validating user email parsing), you can run Skia's
+`auth-proxy` in front of your local Pinpoint server.
+
+Start the `auth-proxy` in a new terminal targeting your local Pinpoint
+instance (assuming it runs on `http://127.0.0.1:8000`):
+
+```bash
+bazelisk run //kube/cmd/auth-proxy -- \
+    --prom-port=:20003 \
+    --role=editor=google.com \
+    --authtype=mocked \
+    --mock_user=$USER@google.com \
+    --port=:8003 \
+    --target_port=http://127.0.0.1:8000 \
+    --local
+```
+
+You can then access the web application through the proxy at
+`http://localhost:8003`, which automatically authenticates you as
+`$USER@google.com`.

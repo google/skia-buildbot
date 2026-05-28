@@ -2,6 +2,8 @@ package pinpoint
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,4 +49,19 @@ func TestGetUserInfo(t *testing.T) {
 			assert.Equal(t, tc.expectedEmail, resp.Email)
 		})
 	}
+}
+
+func TestNewGatewayJSONHandler_GetUserInfo(t *testing.T) {
+	ctx := context.Background()
+	handler, err := NewGatewayJSONHandler(ctx, nil)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodGet, "/pinpoint/v1/user", http.NoBody)
+	req.Header.Set("X-WEBAUTH-USER", "user@google.com")
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Contains(t, rr.Body.String(), `"email":"user@google.com"`)
 }

@@ -3,6 +3,7 @@ package pinpoint
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc/metadata"
@@ -22,7 +23,14 @@ func NewGatewayJSONHandler(ctx context.Context, client *Client) (http.Handler, e
 	srv := &gatewayServer{
 		client: client,
 	}
-	m := runtime.NewServeMux()
+	m := runtime.NewServeMux(
+		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
+			if strings.EqualFold(key, "x-webauth-user") {
+				return "x-webauth-user", true
+			}
+			return runtime.DefaultHeaderMatcher(key)
+		}),
+	)
 	if err := pb.RegisterPinpointGatewayHandlerServer(ctx, m, srv); err != nil {
 		return nil, skerr.Wrapf(err, "unable to register pinpoint gateway handler")
 	}
