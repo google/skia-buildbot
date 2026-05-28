@@ -1,0 +1,13 @@
+.column-selector-container {
+  padding: 4px 8px 0px 8px;
+}
+
+.columns-list {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.no-results {
+  padding: 16px;
+  text-align: center;
+}

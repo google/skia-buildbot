@@ -1,7 +1,8 @@
 import '@angular/compiler';
 import { TestBed } from '@angular/core/testing';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
-import { JobTableComponent, JobTableColumn } from './job-table.component';
+import { JobTableComponent } from './job-table.component';
+import { JobTableColumnsService, JobTableColumn } from '../job-table-columns.service';
 import { GatewayService } from '../../gateway/gateway.service';
 import { JobType, JobStatus } from '../../gateway/gateway';
 import { JobsService } from '../jobs.service';
@@ -77,19 +78,28 @@ describe('JobTableComponent', () => {
     assert.isTrue(stubConsoleError.calledOnceWithExactly('Failed to load jobs:', testError));
   });
 
-  it('should initialize displayedColumns correctly', () => {
+  it('should dynamically retrieve displayedColumns from JobTableColumnsService', () => {
     const component = createComponent();
-    assert.deepEqual(component.displayedColumns, [
-      JobTableColumn.Name,
-      JobTableColumn.Benchmark,
-      JobTableColumn.Configuration,
-      JobTableColumn.Story,
-      JobTableColumn.JobType,
-      JobTableColumn.Bug,
-      JobTableColumn.User,
-      JobTableColumn.Created,
-      JobTableColumn.JobStatus,
-    ]);
+    const service = TestBed.inject(JobTableColumnsService);
+
+    // Initial: All columns
+    assert.equal(component.displayedColumns.length, service.allColumns.length);
+
+    // Select only one column
+    service.updateSelection(new Set([JobTableColumn.Name]));
+    assert.deepEqual(component.displayedColumns, [JobTableColumn.Name]);
+
+    // Reset selection
+    service.updateSelection(new Set(service.allColumns.map((c) => c.id)));
+    assert.equal(component.displayedColumns.length, service.allColumns.length);
+  });
+
+  it('should dynamically retrieve column labels from JobTableColumnsService', () => {
+    const component = createComponent();
+    assert.equal(component.getColumnLabel(JobTableColumn.Name), 'Job Name');
+    assert.equal(component.getColumnLabel(JobTableColumn.Configuration), 'Bot');
+    assert.equal(component.getColumnLabel(JobTableColumn.JobStatus), 'Status');
+    assert.equal(component.getColumnLabel('unknown' as any), 'unknown');
   });
 
   describe('jobStatusToLabel', () => {

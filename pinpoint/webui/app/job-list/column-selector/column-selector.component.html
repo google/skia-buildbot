@@ -1,0 +1,50 @@
+<button
+  mat-stroked-button
+  [matMenuTriggerFor]="columnMenu">
+  <mat-icon>view_column</mat-icon>
+  Columns
+  <mat-icon>arrow_drop_down</mat-icon>
+</button>
+
+<mat-menu #columnMenu="matMenu" xPosition="before">
+  <div class="column-selector-container" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+    <!-- Search input -->
+    <div>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          placeholder="Search columns..."
+          [(ngModel)]="columnSearchQuery"
+          autocomplete="off" />
+      </mat-form-field>
+    </div>
+
+    <!-- Scrollable list of columns -->
+    <div class="columns-list">
+      @for (col of filteredColumns; track col.id) {
+        <div>
+          <mat-checkbox
+            [checked]="selectedColumns.has(col.id)"
+            (change)="toggleColumn(col.id, $event.checked)">
+            {{ col.label }}
+          </mat-checkbox>
+        </div>
+      } @empty {
+        <div class="no-results">No columns found</div>
+      }
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Show/Hide All -->
+    <div>
+      <mat-checkbox
+        [checked]="allSelected"
+        [indeterminate]="someSelected"
+        (change)="toggleAll($event.checked)">
+        Show/Hide All
+      </mat-checkbox>
+    </div>
+  </div>
+</mat-menu>

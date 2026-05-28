@@ -4,44 +4,37 @@ load("//infra-sk:index.bzl", "karma_test", "ts_library")
 copy_to_bin(
     name = "srcs",
     srcs = [
-        "job-table.component.css",
-        "job-table.component.html",
-        "job-table.component.ts",
+        "column-selector.component.css",
+        "column-selector.component.html",
+        "column-selector.component.ts",
     ],
     visibility = ["//pinpoint/webui:__pkg__"],
 )
 
 ts_library(
-    name = "job-table.component_ts_lib",
-    srcs = ["job-table.component.ts"],
+    name = "column-selector.component_ts_lib",
+    srcs = ["column-selector.component.ts"],
     tsconfig = "//pinpoint/webui:ts_config_lib",
     visibility = ["//visibility:public"],
     deps = [
-        "//:node_modules/@angular/common",
         "//:node_modules/@angular/core",
+        "//:node_modules/@angular/forms",
         "//:node_modules/@angular/material",
-        "//pinpoint/webui/app/gateway:gateway_ts_lib",
         "//pinpoint/webui/app/job-list:job-table-columns.service_ts_lib",
-        "//pinpoint/webui/app/job-list:jobs.service_ts_lib",
     ],
 )
 
 karma_test(
-    name = "job-table.component_test",
-    src = "job-table.component_test.ts",
+    name = "column-selector.component_test",
+    src = "column-selector.component_test.ts",
     tsconfig = "//pinpoint/webui:ts_config_test",
     deps = [
-        ":job-table.component_ts_lib",
+        ":column-selector.component_ts_lib",
         "//:node_modules/@angular/compiler",
         "//:node_modules/@angular/core",
         "//:node_modules/@angular/platform-browser",
         "//:node_modules/@types/chai",
-        "//:node_modules/@types/sinon",
         "//:node_modules/chai",
-        "//:node_modules/sinon",
-        "//pinpoint/webui/app/gateway:gateway.service_ts_lib",
-        "//pinpoint/webui/app/gateway:gateway_ts_lib",
         "//pinpoint/webui/app/job-list:job-table-columns.service_ts_lib",
-        "//pinpoint/webui/app/job-list:jobs.service_ts_lib",
     ],
 )

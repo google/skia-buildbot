@@ -7,20 +7,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { JobTableColumnsService, JobTableColumn } from '../job-table-columns.service';
 import { JobSummary, JobType, JobStatus } from '../../gateway/gateway';
 import { JobsService } from '../jobs.service';
-
-export enum JobTableColumn {
-  Name = 'name',
-  Benchmark = 'benchmark',
-  Configuration = 'configuration',
-  Story = 'story',
-  JobType = 'jobType',
-  Bug = 'bug',
-  User = 'user',
-  Created = 'created',
-  JobStatus = 'jobStatus',
-}
 
 @Component({
   selector: 'app-job-table',
@@ -51,17 +40,15 @@ export class JobTableComponent implements OnInit, AfterViewInit {
 
   dataSource = new MatTableDataSource<JobSummary>([]);
 
-  displayedColumns: string[] = [
-    JobTableColumn.Name,
-    JobTableColumn.Benchmark,
-    JobTableColumn.Configuration,
-    JobTableColumn.Story,
-    JobTableColumn.JobType,
-    JobTableColumn.Bug,
-    JobTableColumn.User,
-    JobTableColumn.Created,
-    JobTableColumn.JobStatus,
-  ];
+  private columnsService = inject(JobTableColumnsService);
+
+  get displayedColumns(): string[] {
+    return this.columnsService.displayedColumns();
+  }
+
+  getColumnLabel(columnId: JobTableColumn): string {
+    return this.columnsService.allColumns.find((c) => c.id === columnId)?.label || columnId;
+  }
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
