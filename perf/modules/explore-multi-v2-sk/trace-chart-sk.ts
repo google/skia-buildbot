@@ -116,8 +116,6 @@ export class TraceChartSk extends LitElement {
 
   @property({ type: Boolean }) showDots = true;
 
-  @property({ type: Boolean }) showLoadedBounds = false;
-
   @property({ type: Boolean }) tooltipDiffs = false;
 
   @property({ type: Number }) viewportMinX: number | null = null;
@@ -733,24 +731,6 @@ export class TraceChartSk extends LitElement {
     ctx.beginPath();
     ctx.rect(padding.left, padding.top, graphWidth, graphHeight);
     ctx.clip();
-
-    // Draw loaded bounds if enabled
-    if (this.showLoadedBounds && this.loadedBounds && this.globalBounds) {
-      ctx.save();
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-      this._processedSeries.forEach((s) => {
-        const lBounds = this.loadedBounds[s.id];
-        const gBounds = this.globalBounds[s.id];
-        if (lBounds && gBounds) {
-          const startX = Math.max(lBounds.min, gBounds.min, minX);
-          const endX = Math.min(lBounds.max, gBounds.max, maxX);
-          if (startX <= endX) {
-            ctx.fillRect(mapX(startX), padding.top, mapX(endX) - mapX(startX), graphHeight);
-          }
-        }
-      });
-      ctx.restore();
-    }
 
     // Draw Variance Ribbons and Lines
     const showMin = this.activeStats.has('min');

@@ -123,7 +123,6 @@ describe('explore-multi-v2-sk', () => {
     (element as any)._activeStats = ['std', 'count'];
     (element as any)._showRegressions = false;
     (element as any)._tooltipDiffs = true;
-    (element as any)._showLoadedBounds = true;
     (element as any).dateMode = true;
     (element as any)._tracePage = 3;
     (element as any)._pageSize = 25;
@@ -140,7 +139,6 @@ describe('explore-multi-v2-sk', () => {
     expect(url.searchParams.get('activeStats')).to.equal('std,count');
     expect(url.searchParams.get('regressions')).to.equal('false');
     expect(url.searchParams.get('tooltipDiffs')).to.equal('true');
-    expect(url.searchParams.get('loadedBounds')).to.equal('true');
     expect(url.searchParams.get('dateMode')).to.equal('true');
     expect(url.searchParams.get('page')).to.equal('3');
     expect(url.searchParams.get('pageSize')).to.equal('25');

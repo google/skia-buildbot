@@ -219,8 +219,6 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _tooltipDiffs = false;
 
-  @state() private _showLoadedBounds = false;
-
   @state() private _smooth = false;
 
   @state() private _regressions: { [trace_id: string]: { [commit: number]: Regression } } = {};
@@ -286,7 +284,6 @@ export class ExploreMultiV2Sk extends LitElement {
           activeStats: this._activeStats.join(','),
           regressions: this._showRegressions,
           tooltipDiffs: this._tooltipDiffs,
-          loadedBounds: this._showLoadedBounds,
           evenXAxisSpacing: this._evenXAxisSpacing,
           dateMode: this.dateMode,
           page: this._tracePage,
@@ -395,7 +392,6 @@ export class ExploreMultiV2Sk extends LitElement {
 
         if (stateObj.regressions !== undefined) this._showRegressions = stateObj.regressions;
         if (stateObj.tooltipDiffs !== undefined) this._tooltipDiffs = stateObj.tooltipDiffs;
-        if (stateObj.loadedBounds !== undefined) this._showLoadedBounds = stateObj.loadedBounds;
         if (stateObj.evenXAxisSpacing !== undefined)
           this._evenXAxisSpacing = stateObj.evenXAxisSpacing;
         if (stateObj.dateMode !== undefined) this.dateMode = stateObj.dateMode;
@@ -886,7 +882,6 @@ export class ExploreMultiV2Sk extends LitElement {
       changedProperties.has('_edgeLookahead') ||
       changedProperties.has('_showRegressions') ||
       changedProperties.has('_tooltipDiffs') ||
-      changedProperties.has('_showLoadedBounds') ||
       changedProperties.has('_evenXAxisSpacing') ||
       changedProperties.has('begin') ||
       changedProperties.has('end')
@@ -2594,7 +2589,6 @@ export class ExploreMultiV2Sk extends LitElement {
           .activeStats=${this._activeStats}
           .showRegressions=${this._showRegressions}
           .tooltipDiffs=${this._tooltipDiffs}
-          .showLoadedBounds=${this._showLoadedBounds}
           .dateMode=${this.dateMode}
           .hoverMode=${this._hoverMode}
           .smoothingRadius=${this._smoothingRadius}
@@ -2644,7 +2638,6 @@ export class ExploreMultiV2Sk extends LitElement {
                 .globalPinnedX=${this._globalPinnedX}
                 .loadedBounds=${this._loadedBounds}
                 .globalBounds=${this._globalBounds}
-                .showLoadedBounds=${this._showLoadedBounds}
                 .tooltipDiffs=${this._tooltipDiffs}
                 .selectedSubrepo=${this._selectedSubrepo}
                 .activeSplitKeys=${Array.from(this.splitKeys)}

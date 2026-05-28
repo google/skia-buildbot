@@ -35,8 +35,6 @@ export class ExploreToolbarSk extends LitElement {
 
   @property({ type: Boolean }) tooltipDiffs = false;
 
-  @property({ type: Boolean }) showLoadedBounds = false;
-
   @property({ type: Boolean }) dateMode = false;
 
   @property({ type: Boolean }) evenXAxisSpacing = false;
@@ -273,15 +271,6 @@ export class ExploreToolbarSk extends LitElement {
               @change=${(e: any) => this._emitChange('evenXAxisSpacing', e.target.checked)} />
             <span class="checkmark"></span>
             Even X-Axis Spacing
-          </label>
-
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.showLoadedBounds}
-              @change=${(e: any) => this._emitChange('showLoadedBounds', e.target.checked)} />
-            <span class="checkmark"></span>
-            Show Loaded Bounds
           </label>
 
           <details
