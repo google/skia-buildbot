@@ -35,39 +35,23 @@ export class JobsService {
     this._error.set(null);
 
     try {
-      while (true) {
-        const nextCursor = this.pagination?.nextCursor || '';
-        const preFetchLength = this._jobs().length;
-        const lastVisibleJobIndex = (this.pageIndex + 1) * this.pageSize - 1;
-
-        const jobsToReserve = 100;
-        const needJobs = preFetchLength - lastVisibleJobIndex < jobsToReserve;
-        const validNextCursor = preFetchLength === 0 || nextCursor;
-        if (!needJobs || !validNextCursor) {
-          break;
-        }
-
+      while (this.needMoreJobs()) {
         // TODO(b/511988008): Make "user", "configuration", "jobType" fields optional.
         const response = await this.gatewayService.QueryJobList({
           user: '',
           configuration: '',
           jobType: JobType.JOB_TYPE_UNSPECIFIED,
           pagination: {
-            nextCursor: nextCursor,
+            nextCursor: this.pagination?.nextCursor || '',
             prevCursor: '',
           },
         });
         this.pagination = response.pagination;
 
-        const responseJobs = response.jobs || [];
-        if (preFetchLength === 0) {
-          this._jobs.set(responseJobs);
+        if (this._jobs().length === 0) {
+          this._jobs.set(response.jobs);
         } else {
-          this._jobs.update((existing) => [...existing, ...responseJobs]);
-        }
-
-        if (this._jobs().length === preFetchLength) {
-          break;
+          this._jobs.update((existing) => [...existing, ...response.jobs]);
         }
       }
     } catch (err: any) {
@@ -76,6 +60,16 @@ export class JobsService {
     } finally {
       this._loading.set(false);
     }
+  }
+
+  private needMoreJobs(): boolean {
+    const lastVisibleJobIndex = (this.pageIndex + 1) * this.pageSize - 1;
+    const jobsBuffer = this._jobs().length - lastVisibleJobIndex;
+    const jobsToReserve = 100;
+    const needJobs = jobsBuffer < jobsToReserve;
+
+    const hasNext = this._jobs().length === 0 || this.pagination?.hasNext === true;
+    return needJobs && hasNext;
   }
 
   async maybeFetchMore(pageIndex: number, pageSize: number) {

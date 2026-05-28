@@ -148,7 +148,7 @@ func (pc *LegacyClient) FetchJobState(
 	if err = json.Unmarshal(body, &resp); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to parse pinpoint response body.")
 	}
-	return resp, err
+	return resp, skerr.Wrap(err)
 }
 
 // QueryJobList queries the legacy Pinpoint API to retrieve jobs matching
@@ -263,6 +263,8 @@ func parseQueryJobListResponse(legacyResp *LegacyQueryJobListResponse) *pb.Query
 		Pagination: &pb.Pagination{
 			PrevCursor: legacyResp.PrevCursor,
 			NextCursor: legacyResp.NextCursor,
+			HasPrev:    &legacyResp.Prev,
+			HasNext:    &legacyResp.Next,
 		},
 	}
 
@@ -450,5 +452,5 @@ func (pc *LegacyClient) readResponseBody(
 		return nil, skerr.Wrap(errors.New(errMsg))
 	}
 
-	return body, err
+	return body, nil
 }

@@ -19,10 +19,14 @@ enum JobType {
 
 // Cursor-based pagination for navigating through the list of jobs page by page.
 message Pagination {
-  // Cursor pointing to the next page of results.
-  string next_cursor = 2;
   // Cursor pointing to the previous page of results.
   string prev_cursor = 1;
+  // Cursor pointing to the next page of results.
+  string next_cursor = 2;
+  // Indicates if there is a previous page of results.
+  optional bool has_prev = 3;
+  // Indicates if there is a next page of results.
+  optional bool has_next = 4;
 }
 
 // Request message to query a list of jobs with filters and pagination.

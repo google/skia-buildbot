@@ -33,7 +33,7 @@ describe('JobsService', () => {
             jobStatus: 'JOB_STATUS_COMPLETED',
           },
         ],
-        pagination: { nextCursor: '', prevCursor: '' },
+        pagination: { nextCursor: '', prevCursor: '', hasPrev: false, hasNext: false },
       }),
     };
     const injector = Injector.create({
@@ -80,17 +80,17 @@ describe('JobsService', () => {
         if (cursor === '') {
           return {
             jobs: [{ jobId: 'job_1', name: 'job_1', jobType: JobType.JOB_TYPE_TRY } as any],
-            pagination: { nextCursor: 'c1', prevCursor: '' },
+            pagination: { nextCursor: 'c1', prevCursor: '', hasPrev: false, hasNext: true },
           };
         } else if (cursor === 'c1') {
           return {
             jobs: [{ jobId: 'job_2', name: 'job_2', jobType: JobType.JOB_TYPE_TRY } as any],
-            pagination: { nextCursor: 'c2', prevCursor: 'c1' },
+            pagination: { nextCursor: 'c2', prevCursor: 'c1', hasPrev: true, hasNext: true },
           };
         } else if (cursor === 'c2') {
           return {
             jobs: [{ jobId: 'job_3', name: 'job_3', jobType: JobType.JOB_TYPE_TRY } as any],
-            pagination: { nextCursor: '', prevCursor: 'c2' },
+            pagination: { nextCursor: '', prevCursor: 'c2', hasPrev: true, hasNext: false },
           };
         }
         return { jobs: [], pagination: undefined };
@@ -116,7 +116,7 @@ describe('JobsService', () => {
     const gateway = {
       QueryJobList: async () => ({
         jobs: [{ jobId: 'job_1', name: 'job_1', jobType: JobType.JOB_TYPE_TRY } as any],
-        pagination: { nextCursor: '', prevCursor: '' },
+        pagination: { nextCursor: '', prevCursor: '', hasPrev: false, hasNext: false },
       }),
     };
     const service = createService(gateway);
@@ -127,6 +127,26 @@ describe('JobsService', () => {
     assert.equal(service.jobs().length, 1);
   });
 
+  it('should stop querying when hasNext is false or not present', async () => {
+    let queryCount1 = 0;
+    const gateway = {
+      QueryJobList: async () => {
+        queryCount1++;
+        return {
+          jobs: [{ jobId: 'job_1', name: 'job_1', jobType: JobType.JOB_TYPE_TRY } as any],
+          pagination: { nextCursor: 'next', prevCursor: '', hasNext: false },
+        };
+      },
+    };
+    const service = createService(gateway);
+
+    await service.maybeFetchMore(0, 1);
+
+    assert.equal(queryCount1, 1);
+    assert.equal(service.jobs().length, 1);
+    assert.isFalse(service.loading());
+  });
+
   it('should do nothing if maybeFetchMore is called while loading is true', async () => {
     let queryCount = 0;
     const gateway = {
@@ -134,7 +154,7 @@ describe('JobsService', () => {
         queryCount++;
         return {
           jobs: [{ jobId: 'job_1', name: 'job_1', jobType: JobType.JOB_TYPE_TRY } as any],
-          pagination: { nextCursor: '', prevCursor: '' },
+          pagination: { nextCursor: '', prevCursor: '', hasPrev: false, hasNext: false },
         };
       },
     };

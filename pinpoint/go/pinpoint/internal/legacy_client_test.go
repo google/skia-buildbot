@@ -482,6 +482,8 @@ func TestParseQueryJobListResponse(t *testing.T) {
 			},
 			PrevCursor: "prev_cursor_token",
 			NextCursor: "next_cursor_token",
+			Prev:       true,
+			Next:       false,
 		}
 
 		parsed := parseQueryJobListResponse(legacyResp)
@@ -489,6 +491,8 @@ func TestParseQueryJobListResponse(t *testing.T) {
 		assert.NotNil(t, parsed)
 		assert.Equal(t, "prev_cursor_token", parsed.Pagination.PrevCursor)
 		assert.Equal(t, "next_cursor_token", parsed.Pagination.NextCursor)
+		assert.True(t, *parsed.Pagination.HasPrev)
+		assert.False(t, *parsed.Pagination.HasNext)
 
 		assert.Len(t, parsed.Jobs, 1)
 		j1 := parsed.Jobs[0]
@@ -606,6 +610,8 @@ func TestQueryJobList(t *testing.T) {
 			"CjwKFAoHY3JlYXRlZBIJCNzq3t68_JMDEiBqDHN-Y2hyb21lcGVyZnIQCxIDSm9iGICApIz3pLEIDBgAIAE=",
 			resp.Pagination.NextCursor,
 		)
+		assert.False(t, *resp.Pagination.HasPrev)
+		assert.True(t, *resp.Pagination.HasNext)
 		assert.Len(t, resp.Jobs, 1)
 
 		j1 := resp.Jobs[0]
@@ -700,6 +706,8 @@ func TestQueryJobList(t *testing.T) {
 			"CjwKFAoHY3JlYXRlZBIJCNzq3t68_JMDEiBqDHN-Y2hyb21lcGVyZnIQCxIDSm9iGICApIz3pLEIDBgAIAE=",
 			resp.Pagination.NextCursor,
 		)
+		assert.False(t, *resp.Pagination.HasPrev)
+		assert.True(t, *resp.Pagination.HasNext)
 		assert.Len(t, resp.Jobs, 1)
 
 		j2 := resp.Jobs[0]

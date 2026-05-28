@@ -144,10 +144,14 @@ func (JobStatus) EnumDescriptor() ([]byte, []int) {
 // Cursor-based pagination for navigating through the list of jobs page by page.
 type Pagination struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// Cursor pointing to the previous page of results.
+	PrevCursor string `protobuf:"bytes,1,opt,name=prev_cursor,json=prevCursor,proto3" json:"prev_cursor,omitempty"`
 	// Cursor pointing to the next page of results.
 	NextCursor string `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
-	// Cursor pointing to the previous page of results.
-	PrevCursor    string `protobuf:"bytes,1,opt,name=prev_cursor,json=prevCursor,proto3" json:"prev_cursor,omitempty"`
+	// Indicates if there is a previous page of results.
+	HasPrev *bool `protobuf:"varint,3,opt,name=has_prev,json=hasPrev,proto3,oneof" json:"has_prev,omitempty"`
+	// Indicates if there is a next page of results.
+	HasNext       *bool `protobuf:"varint,4,opt,name=has_next,json=hasNext,proto3,oneof" json:"has_next,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -182,6 +186,13 @@ func (*Pagination) Descriptor() ([]byte, []int) {
 	return file_gateway_proto_rawDescGZIP(), []int{0}
 }
 
+func (x *Pagination) GetPrevCursor() string {
+	if x != nil {
+		return x.PrevCursor
+	}
+	return ""
+}
+
 func (x *Pagination) GetNextCursor() string {
 	if x != nil {
 		return x.NextCursor
@@ -189,11 +200,18 @@ func (x *Pagination) GetNextCursor() string {
 	return ""
 }
 
-func (x *Pagination) GetPrevCursor() string {
-	if x != nil {
-		return x.PrevCursor
+func (x *Pagination) GetHasPrev() bool {
+	if x != nil && x.HasPrev != nil {
+		return *x.HasPrev
 	}
-	return ""
+	return false
+}
+
+func (x *Pagination) GetHasNext() bool {
+	if x != nil && x.HasNext != nil {
+		return *x.HasNext
+	}
+	return false
 }
 
 // Request message to query a list of jobs with filters and pagination.
@@ -530,13 +548,17 @@ var File_gateway_proto protoreflect.FileDescriptor
 
 const file_gateway_proto_rawDesc = "" +
 	"\n" +
-	"\rgateway.proto\x12\vpinpoint.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\"N\n" +
+	"\rgateway.proto\x12\vpinpoint.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\"\xa8\x01\n" +
 	"\n" +
 	"Pagination\x12\x1f\n" +
-	"\vnext_cursor\x18\x02 \x01(\tR\n" +
-	"nextCursor\x12\x1f\n" +
 	"\vprev_cursor\x18\x01 \x01(\tR\n" +
-	"prevCursor\"\xdb\x01\n" +
+	"prevCursor\x12\x1f\n" +
+	"\vnext_cursor\x18\x02 \x01(\tR\n" +
+	"nextCursor\x12\x1e\n" +
+	"\bhas_prev\x18\x03 \x01(\bH\x00R\ahasPrev\x88\x01\x01\x12\x1e\n" +
+	"\bhas_next\x18\x04 \x01(\bH\x01R\ahasNext\x88\x01\x01B\v\n" +
+	"\t_has_prevB\v\n" +
+	"\t_has_next\"\xdb\x01\n" +
 	"\x13QueryJobListRequest\x12\x1e\n" +
 	"\x04user\x18\x01 \x01(\tB\n" +
 	"\xfaB\ar\x05\xd0\x01\x01`\x01R\x04user\x120\n" +
@@ -630,6 +652,7 @@ func file_gateway_proto_init() {
 	if File_gateway_proto != nil {
 		return
 	}
+	file_gateway_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -92,6 +92,14 @@ linters-settings:
   testifylint:
     enable-all: true
 
+  wrapcheck:
+    ignoreSigs:
+      - go.skia.org/infra/go/skerr.Fmt(
+      - go.skia.org/infra/go/skerr.Wrap(
+      - go.skia.org/infra/go/skerr.Wrapf(
+    ignorePackageGlobs:
+      - go.skia.org/infra/go/skerr
+
 issues:
   # Do not limit the number of issues per linter (default is 50).
   max-issues-per-linter: 0

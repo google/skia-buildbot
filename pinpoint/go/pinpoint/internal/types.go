@@ -47,6 +47,10 @@ type FetchJobStateRequest struct {
 }
 
 type Commit struct {
+	CommitBranch   *string `json:"commit_branch,omitempty"`
+	CommitPosition *int    `json:"commit_position,omitempty"`
+	ReviewURL      *string `json:"review_url,omitempty"`
+	ChangeID       *string `json:"change_id,omitempty"`
 	Repository     string  `json:"repository"`
 	GitHash        string  `json:"git_hash"`
 	URL            string  `json:"url,omitempty"`
@@ -54,10 +58,6 @@ type Commit struct {
 	Created        string  `json:"created,omitempty"`
 	Subject        string  `json:"subject,omitempty"`
 	Message        string  `json:"message,omitempty"`
-	CommitBranch   *string `json:"commit_branch,omitempty"`
-	CommitPosition *int    `json:"commit_position,omitempty"`
-	ReviewURL      *string `json:"review_url,omitempty"`
-	ChangeID       *string `json:"change_id,omitempty"`
 }
 
 type Patch struct {
@@ -72,11 +72,11 @@ type Patch struct {
 }
 
 type Change struct {
-	Commits []Commit    `json:"commits"`
-	Patch   *Patch      `json:"patch,omitempty"`
 	Args    interface{} `json:"args,omitempty"` // Can be a string or an array of strings.
-	Label   string      `json:"label,omitempty"`
+	Patch   *Patch      `json:"patch,omitempty"`
 	Variant *int        `json:"variant,omitempty"`
+	Label   string      `json:"label,omitempty"`
+	Commits []Commit    `json:"commits"`
 }
 
 type ExecutionDetail struct {
@@ -91,9 +91,9 @@ type Exception struct {
 }
 
 type Execution struct {
-	Completed bool              `json:"completed"`
 	Exception *Exception        `json:"exception,omitempty"`
 	Details   []ExecutionDetail `json:"details"`
+	Completed bool              `json:"completed"`
 }
 
 type Attempt struct {
@@ -135,6 +135,7 @@ type FetchJobStateResponse struct {
 }
 
 type LegacyJobSummary struct {
+	Arguments      map[string]string `json:"arguments"`
 	JobID          string            `json:"job_id"`
 	Name           string            `json:"name"`
 	Benchmark      string            `json:"benchmark"`
@@ -144,11 +145,12 @@ type LegacyJobSummary struct {
 	Created        string            `json:"created"`
 	Status         string            `json:"status"`
 	ComparisonMode string            `json:"comparison_mode"`
-	Arguments      map[string]string `json:"arguments"`
 }
 
 type LegacyQueryJobListResponse struct {
-	Jobs       []LegacyJobSummary `json:"jobs"`
 	PrevCursor string             `json:"prev_cursor"`
 	NextCursor string             `json:"next_cursor"`
+	Jobs       []LegacyJobSummary `json:"jobs"`
+	Prev       bool               `json:"prev"`
+	Next       bool               `json:"next"`
 }

@@ -36,10 +36,16 @@ export enum JobStatus {
 
 /** Cursor-based pagination for navigating through the list of jobs page by page. */
 export interface Pagination {
-  /** Cursor pointing to the next page of results. */
-  nextCursor: string;
   /** Cursor pointing to the previous page of results. */
   prevCursor: string;
+  /** Cursor pointing to the next page of results. */
+  nextCursor: string;
+  /** Indicates if there is a previous page of results. */
+  hasPrev?:
+    | boolean
+    | undefined;
+  /** Indicates if there is a next page of results. */
+  hasNext?: boolean | undefined;
 }
 
 /** Request message to query a list of jobs with filters and pagination. */
