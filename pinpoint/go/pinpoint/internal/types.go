@@ -136,6 +136,7 @@ type FetchJobStateResponse struct {
 
 type LegacyJobSummary struct {
 	Arguments      map[string]string `json:"arguments"`
+	BugID          *int64            `json:"bug_id"`
 	JobID          string            `json:"job_id"`
 	Name           string            `json:"name"`
 	Benchmark      string            `json:"benchmark"`

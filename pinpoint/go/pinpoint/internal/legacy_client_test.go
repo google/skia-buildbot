@@ -531,6 +531,50 @@ func TestParseQueryJobListResponse(t *testing.T) {
 		assert.Equal(t, pb.JobStatus_JOB_STATUS_RUNNING, j2.JobStatus)
 		assert.Equal(t, pb.JobType_JOB_TYPE_BISECT, j2.JobType)
 		assert.Nil(t, j2.Created) // invalid-date-format should be parsed as nil
+		assert.Nil(t, j2.BugId)
+	})
+
+	t.Run("Parses bug_id correctly from different types", func(t *testing.T) {
+		bugIDInput := int64(12345)
+		expectedBugID := int64(12345)
+
+		testCases := []struct {
+			bugID    *int64
+			expected *int64
+			name     string
+		}{
+			{
+				bugID:    &bugIDInput,
+				expected: &expectedBugID,
+				name:     "integer bug_id",
+			},
+			{
+				bugID:    nil,
+				expected: nil,
+				name:     "nil bug_id",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				legacyResp := &LegacyQueryJobListResponse{
+					Jobs: []LegacyJobSummary{
+						{
+							JobID: "1",
+							BugID: tc.bugID,
+						},
+					},
+				}
+				parsed := parseQueryJobListResponse(legacyResp)
+				assert.Len(t, parsed.Jobs, 1)
+				if tc.expected == nil {
+					assert.Nil(t, parsed.Jobs[0].BugId)
+				} else {
+					assert.NotNil(t, parsed.Jobs[0].BugId)
+					assert.Equal(t, *tc.expected, *parsed.Jobs[0].BugId)
+				}
+			})
+		}
 	})
 }
 

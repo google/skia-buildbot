@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -213,6 +214,10 @@ func extractField(job *LegacyJobSummary, fieldName string) string {
 		if job.ComparisonMode != "" {
 			return job.ComparisonMode
 		}
+	case "bug_id":
+		if job.BugID != nil {
+			return strconv.FormatInt(*job.BugID, 10)
+		}
 	}
 
 	if job.Arguments != nil {
@@ -281,6 +286,13 @@ func parseQueryJobListResponse(legacyResp *LegacyQueryJobListResponse) *pb.Query
 		jobStatus := parseJobStatus(legacyJob.Status)
 		jobType := parseJobType(extractField(legacyJob, "comparison_mode"))
 
+		var bugId *int64
+		if bugIdStr := extractField(legacyJob, "bug_id"); bugIdStr != "" {
+			if bid, err := strconv.ParseInt(bugIdStr, 10, 64); err == nil {
+				bugId = &bid
+			}
+		}
+
 		resp.Jobs[i] = &pb.JobSummary{
 			JobId:         extractField(legacyJob, "job_id"),
 			Name:          extractField(legacyJob, "name"),
@@ -291,6 +303,7 @@ func parseQueryJobListResponse(legacyResp *LegacyQueryJobListResponse) *pb.Query
 			User:          extractField(legacyJob, "user"),
 			Created:       createdTime,
 			JobStatus:     jobStatus,
+			BugId:         bugId,
 		}
 	}
 

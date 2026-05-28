@@ -7,7 +7,6 @@
       <td mat-cell *matCellDef="let job">
         <span>
           <a
-            color="primary"
             href="https://pinpoint-dot-chromeperf.appspot.com/job/{{ job.jobId }}"
             target="_blank"
             rel="noopener noreferrer">
@@ -29,7 +28,6 @@
       <td mat-cell *matCellDef="let job">
         <span>
           <a
-            color="primary"
             href="https://pinpoint-dot-chromeperf.appspot.com/queue-stats/{{ job.configuration }}"
             target="_blank"
             rel="noopener noreferrer">
@@ -42,7 +40,7 @@
     <!-- Story Column -->
     <ng-container [matColumnDef]="JobTableColumn.Story">
       <th mat-header-cell *matHeaderCellDef>Story</th>
-      <td mat-cell *matCellDef="let job"><span>{{ job.story || '-' }}</span></td>
+      <td mat-cell *matCellDef="let job"><span>{{ job.story  }}</span></td>
     </ng-container>
 
     <!-- Job Type Column -->
@@ -54,6 +52,23 @@
           [class.badge-bisect]="job.jobType === 'JOB_TYPE_BISECT'"
           [class.badge-try]="job.jobType === 'JOB_TYPE_TRY'">
           {{ getJobTypeLabel(job.jobType) }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Bug Column -->
+    <ng-container [matColumnDef]="JobTableColumn.Bug">
+      <th mat-header-cell *matHeaderCellDef>Bug</th>
+      <td mat-cell *matCellDef="let job">
+        <span>
+          @if (job.bugId) {
+            <a
+              href="https://b.corp.google.com/issues/{{ job.bugId }}"
+              target="_blank"
+              rel="noopener noreferrer">
+              {{ job.bugId }}
+            </a>
+          }
         </span>
       </td>
     </ng-container>
@@ -70,7 +85,7 @@
     <ng-container [matColumnDef]="JobTableColumn.Created">
       <th mat-header-cell *matHeaderCellDef>Created</th>
       <td mat-cell *matCellDef="let job">
-        {{ job.created ? (job.created | date:'MMM d, y, h:mm a') : '-' }}
+        {{ job.created | date:'MMM d, y, h:mm a' }}
       </td>
     </ng-container>
 

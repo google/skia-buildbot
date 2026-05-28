@@ -89,6 +89,8 @@ message JobSummary {
   google.protobuf.Timestamp created = 8;
   // The current status of the job.
   JobStatus job_status = 9;
+  // The bug ID associated with the job.
+  optional int64 bug_id = 10;
 }
 
 // Request message to get information about the logged in user.

@@ -364,7 +364,9 @@ type JobSummary struct {
 	// The creation timestamp of the job.
 	Created *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created,proto3" json:"created,omitempty"`
 	// The current status of the job.
-	JobStatus     JobStatus `protobuf:"varint,9,opt,name=job_status,json=jobStatus,proto3,enum=pinpoint.v1.JobStatus" json:"job_status,omitempty"`
+	JobStatus JobStatus `protobuf:"varint,9,opt,name=job_status,json=jobStatus,proto3,enum=pinpoint.v1.JobStatus" json:"job_status,omitempty"`
+	// The bug ID associated with the job.
+	BugId         *int64 `protobuf:"varint,10,opt,name=bug_id,json=bugId,proto3,oneof" json:"bug_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -460,6 +462,13 @@ func (x *JobSummary) GetJobStatus() JobStatus {
 		return x.JobStatus
 	}
 	return JobStatus_JOB_STATUS_UNSPECIFIED
+}
+
+func (x *JobSummary) GetBugId() int64 {
+	if x != nil && x.BugId != nil {
+		return *x.BugId
+	}
+	return 0
 }
 
 // Request message to get information about the logged in user.
@@ -572,7 +581,7 @@ const file_gateway_proto_rawDesc = "" +
 	"\x04jobs\x18\x01 \x03(\v2\x17.pinpoint.v1.JobSummaryR\x04jobs\x127\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x17.pinpoint.v1.PaginationR\n" +
-	"pagination\"\xc3\x02\n" +
+	"pagination\"\xea\x02\n" +
 	"\n" +
 	"JobSummary\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x12\n" +
@@ -584,7 +593,10 @@ const file_gateway_proto_rawDesc = "" +
 	"\x04user\x18\a \x01(\tR\x04user\x124\n" +
 	"\acreated\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\acreated\x125\n" +
 	"\n" +
-	"job_status\x18\t \x01(\x0e2\x16.pinpoint.v1.JobStatusR\tjobStatus\"\x14\n" +
+	"job_status\x18\t \x01(\x0e2\x16.pinpoint.v1.JobStatusR\tjobStatus\x12\x1a\n" +
+	"\x06bug_id\x18\n" +
+	" \x01(\x03H\x00R\x05bugId\x88\x01\x01B\t\n" +
+	"\a_bug_id\"\x14\n" +
 	"\x12GetUserInfoRequest\"+\n" +
 	"\x13GetUserInfoResponse\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email*J\n" +
@@ -653,6 +665,7 @@ func file_gateway_proto_init() {
 		return
 	}
 	file_gateway_proto_msgTypes[0].OneofWrappers = []any{}
+	file_gateway_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

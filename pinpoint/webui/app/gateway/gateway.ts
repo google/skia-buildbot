@@ -96,6 +96,8 @@ export interface JobSummary {
     | undefined;
   /** The current status of the job. */
   jobStatus: JobStatus;
+  /** The bug ID associated with the job. */
+  bugId?: number | undefined;
 }
 
 /** Request message to get information about the logged in user. */
