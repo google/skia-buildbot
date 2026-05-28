@@ -1319,7 +1319,11 @@ export class ExploreMultiV2Sk extends LitElement {
     this.begin = -1;
     this.end = -1;
     this._resolveTimeRange();
-    this.requestUpdate();
+    this._seriesData = [];
+    this._loadedBounds = {};
+    this._globalBounds = {};
+    this._regressions = {};
+    void this._fetchData();
   }
 
   private _determineYAxisTitle(traceNames: string[]): string {
@@ -1432,8 +1436,13 @@ export class ExploreMultiV2Sk extends LitElement {
   }
 
   private _handleViewportChanged(e: any) {
-    const detail = e.detail as { minCommit: number; maxCommit: number };
+    const detail = e.detail as { minCommit: number | null; maxCommit: number | null };
     const { minCommit, maxCommit } = detail;
+
+    if (minCommit === null || maxCommit === null) {
+      this._onResetZoom();
+      return;
+    }
 
     // Update viewport instantly for visual sync
     this.viewportMinX = minCommit;

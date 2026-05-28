@@ -1906,9 +1906,9 @@ export class TraceChartSk extends LitElement {
       top: 12px;
       right: 12px;
       z-index: 10;
-      background: rgba(15, 23, 42, 0.8);
+      background: var(--surface, rgba(15, 23, 42, 0.8));
       backdrop-filter: blur(4px);
-      color: var(--on-background, #fff);
+      color: var(--on-surface, #fff);
       border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
       border-radius: 6px;
       padding: 6px 12px;
@@ -1919,7 +1919,7 @@ export class TraceChartSk extends LitElement {
     }
 
     .reset-zoom-btn:hover {
-      background: rgba(30, 41, 59, 0.9);
+      background: var(--surface-1dp, rgba(30, 41, 59, 0.9));
       border-color: var(--primary, #6366f1);
     }
 
