@@ -146,4 +146,57 @@ describe('JobTableComponent', () => {
       assert.isTrue(stubConsoleError.calledOnceWithExactly('Unknown job type:', 'JOB_TYPE_OTHER'));
     });
   });
+
+  describe('sortingDataAccessor', () => {
+    it('should return bugId for Bug column', () => {
+      const component = createComponent();
+      const job = {
+        jobId: '1',
+        name: 'job_1',
+        benchmark: 'b',
+        configuration: 'c',
+        story: 's',
+        jobType: JobType.JOB_TYPE_TRY,
+        user: 'u',
+        created: '2026-05-20T12:00:00Z',
+        jobStatus: JobStatus.JOB_STATUS_COMPLETED,
+        bugId: 123,
+      };
+      assert.equal(component.dataSource.sortingDataAccessor(job, JobTableColumn.Bug), 123);
+    });
+
+    it('should return 0 for Bug column if bugId is missing', () => {
+      const component = createComponent();
+      const job = {
+        jobId: '1',
+        name: 'job_1',
+        benchmark: 'b',
+        configuration: 'c',
+        story: 's',
+        jobType: JobType.JOB_TYPE_TRY,
+        user: 'u',
+        created: '2026-05-20T12:00:00Z',
+        jobStatus: JobStatus.JOB_STATUS_COMPLETED,
+      };
+      assert.equal(component.dataSource.sortingDataAccessor(job, JobTableColumn.Bug), 0);
+    });
+
+    it('should return the property value for other columns', () => {
+      const component = createComponent();
+      const job = {
+        jobId: '1',
+        name: 'job_1',
+        benchmark: 'b',
+        configuration: 'c',
+        story: 's',
+        jobType: JobType.JOB_TYPE_TRY,
+        user: 'u',
+        created: '2026-05-20T12:00:00Z',
+        jobStatus: JobStatus.JOB_STATUS_COMPLETED,
+        bugId: 123,
+      };
+      assert.equal(component.dataSource.sortingDataAccessor(job, JobTableColumn.Name), 'job_1');
+      assert.equal(component.dataSource.sortingDataAccessor(job, JobTableColumn.Benchmark), 'b');
+    });
+  });
 });

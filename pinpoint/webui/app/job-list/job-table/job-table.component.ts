@@ -7,6 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { JobTableColumnsService, JobTableColumn } from '../job-table-columns.service';
 import { JobSummary, JobType, JobStatus } from '../../gateway/gateway';
 import { JobsService } from '../jobs.service';
@@ -22,6 +23,7 @@ import { JobsService } from '../jobs.service';
     MatProgressBarModule,
     MatPaginatorModule,
     MatFormFieldModule,
+    MatSortModule,
     DatePipe,
   ],
   templateUrl: './job-table.component.html',
@@ -52,7 +54,17 @@ export class JobTableComponent implements OnInit, AfterViewInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+  @ViewChild(MatSort) sort!: MatSort;
+
   constructor() {
+    this.dataSource.sortingDataAccessor = (item: JobSummary, property: string): string | number => {
+      if (property === JobTableColumn.Bug) {
+        return item.bugId ?? 0;
+      }
+      const value = item[property as keyof JobSummary];
+      return (value ?? '') as string | number;
+    };
+
     // Update jobs table data source when fetched jobs are updated.
     effect(() => {
       if (this.dataSource.data !== this.jobs()) {
@@ -75,6 +87,7 @@ export class JobTableComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
     this.jobsService.maybeFetchMore(this.paginator.pageIndex, this.paginator.pageSize);
   }
 
