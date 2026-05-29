@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { GatewayService } from '../gateway/gateway.service';
-import { JobSummary, Pagination, JobType } from '../gateway/gateway';
+import { JobSummary, Pagination, JobType, GetUserInfoResponse } from '../gateway/gateway';
 
 @Injectable({
   providedIn: 'root',
@@ -16,6 +16,10 @@ export class JobsService {
 
   readonly jobs = this._jobs.asReadonly();
 
+  private _showOnlyUserJobs = signal<boolean>(true);
+
+  readonly showOnlyUserJobs = this._showOnlyUserJobs.asReadonly();
+
   private _loading = signal<boolean>(false);
 
   readonly loading = this._loading.asReadonly();
@@ -26,6 +30,35 @@ export class JobsService {
 
   private pagination: Pagination | undefined = undefined;
 
+  private userEmail = '';
+
+  async setShowOnlyUserJobs(showOnlyUserJobs: boolean) {
+    if (this._showOnlyUserJobs() === showOnlyUserJobs) {
+      return;
+    }
+    this._showOnlyUserJobs.set(showOnlyUserJobs);
+    this._jobs.set([]);
+    this.pagination = undefined;
+    this.pageIndex = 0;
+    await this.loadJobs();
+  }
+
+  private async updateUserEmail(): Promise<void> {
+    if (this.userEmail) {
+      return;
+    }
+
+    const userInfoFuture = this.gatewayService.GetUserInfo({});
+    if (this._showOnlyUserJobs()) {
+      const response = await userInfoFuture;
+      this.userEmail = response.email;
+    } else {
+      userInfoFuture.then((response: GetUserInfoResponse) => {
+        this.userEmail = response.email;
+      });
+    }
+  }
+
   async loadJobs() {
     if (this._loading()) {
       return;
@@ -35,10 +68,12 @@ export class JobsService {
     this._error.set(null);
 
     try {
+      await this.updateUserEmail();
+
       while (this.needMoreJobs()) {
         // TODO(b/511988008): Make "user", "configuration", "jobType" fields optional.
         const response = await this.gatewayService.QueryJobList({
-          user: '',
+          user: this._showOnlyUserJobs() ? this.userEmail : '',
           configuration: '',
           jobType: JobType.JOB_TYPE_UNSPECIFIED,
           pagination: {

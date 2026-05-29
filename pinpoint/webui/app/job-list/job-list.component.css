@@ -10,3 +10,8 @@
   /* Fills the remaining screen height below the header and the button row. */
   height: calc(100vh - 148px);
 }
+
+.jobs-table-controls {
+  display: flex;
+  gap: 16px;
+}

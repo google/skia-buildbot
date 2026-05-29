@@ -53,9 +53,18 @@ export class JobTableComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor() {
+    // Update jobs table data source when fetched jobs are updated.
     effect(() => {
       if (this.dataSource.data !== this.jobs()) {
         this.dataSource.data = this.jobs();
+      }
+    });
+
+    // Reset page index after switching between "all jobs" and "my jobs".
+    effect(() => {
+      this.jobsService.showOnlyUserJobs();
+      if (this.paginator) {
+        this.paginator.pageIndex = 0;
       }
     });
   }

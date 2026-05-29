@@ -58,6 +58,7 @@ ts_library(
     tsconfig = "//pinpoint/webui:ts_config_lib",
     visibility = ["//visibility:public"],
     deps = [
+        ":jobs.service_ts_lib",
         "//:node_modules/@angular/core",
         "//:node_modules/@angular/material",
         "//:node_modules/@angular/router",

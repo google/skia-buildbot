@@ -9,6 +9,8 @@ import { JobsService } from '../jobs.service';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
 
+const flushEffects = () => new Promise((resolve) => setTimeout(resolve));
+
 describe('JobTableComponent', () => {
   let stubConsoleError: sinon.SinonStub;
 
@@ -27,7 +29,7 @@ describe('JobTableComponent', () => {
   });
 
   function createComponent(mockGateway?: Partial<GatewayService>): JobTableComponent {
-    const gateway = mockGateway || {
+    const defaultGateway: Partial<GatewayService> = {
       QueryJobList: async () => ({
         jobs: [
           {
@@ -45,7 +47,11 @@ describe('JobTableComponent', () => {
         ],
         pagination: { nextCursor: '', prevCursor: '' },
       }),
+      GetUserInfo: async () => ({
+        email: 'test@google.com',
+      }),
     };
+    const gateway = { ...defaultGateway, ...mockGateway };
     TestBed.configureTestingModule({
       providers: [{ provide: GatewayService, useValue: gateway }, JobsService],
     });
@@ -54,7 +60,8 @@ describe('JobTableComponent', () => {
 
   it('should load jobs on init successfully', async () => {
     const component = createComponent();
-    await component.ngOnInit();
+    component.ngOnInit();
+    await flushEffects();
 
     assert.isFalse(component.loading());
     assert.isNull(component.error());
@@ -70,12 +77,25 @@ describe('JobTableComponent', () => {
       },
     });
 
-    await component.ngOnInit();
+    component.ngOnInit();
+    await flushEffects();
 
     assert.isFalse(component.loading());
     assert.equal(component.error(), 'Failed to query');
     assert.equal(component.jobs().length, 0);
     assert.isTrue(stubConsoleError.calledOnceWithExactly('Failed to load jobs:', testError));
+  });
+
+  it('should reset paginator pageIndex to 0 when showOnlyUserJobs filter changes', async () => {
+    const component = createComponent();
+    const service = TestBed.inject(JobsService);
+
+    component.paginator = { pageIndex: 3 } as any;
+
+    await service.setShowOnlyUserJobs(false);
+    await flushEffects();
+
+    assert.equal(component.paginator.pageIndex, 0);
   });
 
   it('should dynamically retrieve displayedColumns from JobTableColumnsService', () => {

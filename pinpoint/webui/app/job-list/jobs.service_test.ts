@@ -2,7 +2,7 @@ import '@angular/compiler';
 import { Injector, runInInjectionContext } from '@angular/core';
 import { JobsService } from './jobs.service';
 import { GatewayService } from '../gateway/gateway.service';
-import { JobType } from '../gateway/gateway';
+import { JobType, JobStatus } from '../gateway/gateway';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
 
@@ -18,7 +18,7 @@ describe('JobsService', () => {
   });
 
   function createService(mockGateway?: Partial<GatewayService>): JobsService {
-    const gateway = mockGateway || {
+    const defaultGateway: Partial<GatewayService> = {
       QueryJobList: async () => ({
         jobs: [
           {
@@ -30,12 +30,16 @@ describe('JobsService', () => {
             jobType: JobType.JOB_TYPE_TRY,
             user: 'test@google.com',
             created: '2026-05-20T12:00:00Z',
-            jobStatus: 'JOB_STATUS_COMPLETED',
+            jobStatus: JobStatus.JOB_STATUS_COMPLETED,
           },
         ],
         pagination: { nextCursor: '', prevCursor: '', hasPrev: false, hasNext: false },
       }),
+      GetUserInfo: async () => ({
+        email: 'test@google.com',
+      }),
     };
+    const gateway = { ...defaultGateway, ...mockGateway };
     const injector = Injector.create({
       providers: [{ provide: GatewayService, useValue: gateway }, JobsService],
     });
@@ -167,5 +171,62 @@ describe('JobsService', () => {
     await service.maybeFetchMore(0, 2);
 
     assert.equal(queryCount, 0);
+  });
+
+  describe('showOnlyUserJobs filtering', () => {
+    it('should be true by default', () => {
+      const service = createService();
+      assert.isTrue(service.showOnlyUserJobs());
+    });
+
+    it('should query for user jobs by default using the retrieved email address', async () => {
+      let queriedUser = '';
+      let getUserInfoCalled = 0;
+      const gateway = {
+        QueryJobList: async (req: any) => {
+          queriedUser = req.user;
+          return {
+            jobs: [{ jobId: '123' } as any],
+            pagination: { nextCursor: '', prevCursor: '', hasPrev: false, hasNext: false },
+          };
+        },
+        GetUserInfo: async () => {
+          getUserInfoCalled++;
+          return { email: 'somebody@google.com' };
+        },
+      };
+      const service = createService(gateway);
+
+      await service.loadJobs();
+
+      assert.equal(getUserInfoCalled, 1);
+      assert.equal(queriedUser, 'somebody@google.com');
+    });
+
+    it('should switch to all jobs when showOnlyUserJobs(false) is called', async () => {
+      let queriedUser = 'not-empty';
+      const gateway = {
+        QueryJobList: async (req: any) => {
+          queriedUser = req.user;
+          return {
+            jobs: [{ jobId: '123' } as any],
+            pagination: { nextCursor: '', prevCursor: '', hasPrev: false, hasNext: false },
+          };
+        },
+        GetUserInfo: async () => ({ email: 'somebody@google.com' }),
+      };
+      const service = createService(gateway);
+
+      // Initial load (my jobs by default)
+      await service.loadJobs();
+      assert.equal(queriedUser, 'somebody@google.com');
+      assert.equal(service.jobs().length, 1);
+
+      // Toggle to all jobs
+      await service.setShowOnlyUserJobs(false);
+      assert.isFalse(service.showOnlyUserJobs());
+      // The jobs should be cleared and reloaded with no user filter
+      assert.equal(queriedUser, '');
+    });
   });
 });

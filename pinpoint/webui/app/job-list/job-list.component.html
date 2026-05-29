@@ -1,6 +1,14 @@
 <div>
   <div class="header-row">
-    <app-column-selector></app-column-selector>
+    <div class="jobs-table-controls">
+      <app-column-selector></app-column-selector>
+      <mat-button-toggle-group
+        [value]="showOnlyUserJobs()"
+        (change)="onToggleChange($event.value)">
+        <mat-button-toggle [value]="true">My Jobs</mat-button-toggle>
+        <mat-button-toggle [value]="false">All Jobs</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
     <a mat-flat-button color="primary" routerLink="/new">
       <mat-icon>add</mat-icon>
       Create Job
