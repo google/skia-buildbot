@@ -137,8 +137,8 @@ func isSafeRedirect(r *http.Request, target string) bool {
 	if err != nil {
 		return false
 	}
-	// Relative URLs are safe.
-	if u.Host == "" {
+	// Relative URLs must start with a single "/" and contain no backslashes.
+	if strings.HasPrefix(target, "/") && !strings.HasPrefix(target, "//") && !strings.Contains(target, "\\") {
 		return true
 	}
 	// Same host is safe.

@@ -92,19 +92,33 @@ func TestProxyServeHTTP_LogoutWithSafeRedirect_RedirectsToTarget(t *testing.T) {
 }
 
 func TestProxyServeHTTP_LogoutWithUnsafeRedirect_FallsBackToRoot(t *testing.T) {
-	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {})
-	r.Method = "GET"
-	r.URL.Path = "/logout/"
-	r.URL.RawQuery = "redirect=https://evil.com"
+	unsafeRedirects := []string{
+		"https://evil.com",
+		"/\\evil.com",
+		"\\\\evil.com",
+		"//evil.com",
+		"javascript:alert(1)",
+		"data:text/html,hax",
+		"http:evil.com",
+	}
 
-	authMock := mocks.NewAuth(t)
+	for _, redirect := range unsafeRedirects {
+		t.Run(redirect, func(t *testing.T) {
+			u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {})
+			r.Method = "GET"
+			r.URL.Path = "/logout/"
+			r.URL.RawQuery = "redirect=" + url.QueryEscape(redirect)
 
-	proxy := newProxy(u, authMock, false, false, false, false, true)
+			authMock := mocks.NewAuth(t)
 
-	proxy.ServeHTTP(w, r)
-	require.False(t, *called) // Should not have called the target server
-	require.Equal(t, http.StatusSeeOther, w.Result().StatusCode)
-	require.Equal(t, "/", w.Result().Header.Get("Location"))
+			proxy := newProxy(u, authMock, false, false, false, false, true)
+
+			proxy.ServeHTTP(w, r)
+			require.False(t, *called) // Should not have called the target server
+			require.Equal(t, http.StatusSeeOther, w.Result().StatusCode)
+			require.Equal(t, "/", w.Result().Header.Get("Location"))
+		})
+	}
 }
 
 func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequest(t *testing.T) {
