@@ -116,7 +116,7 @@ After the server starts, navigate to http://localhost:8002.
 ### Running against a production database
 
 For backend changes, you may want to run your local instance against a copy of a
-production database.
+production database. The startup script will automatically check for valid Google Cloud Application Default Credentials (ADC) and prompt you to log in if they are missing or expired. It also automatically spins up the local authentication proxy in the background.
 
 ```
 ./run_with_spanner.sh p=<project> i=<instance> d=<database> config=<config_path>
@@ -143,6 +143,8 @@ or internal v8 perf instance (loads faster):
 - `config`: Path to the instance configuration file. See `perf/configs/` for
   examples.
 
+After the server starts, navigate to http://localhost:8003.
+
 ### Rebuilding frontend only (for faster development)
 
 You don't need to restart the Go server each time you made a change to web pages.
@@ -151,21 +153,6 @@ Rebuild them on the fly with
 ```
 bazelisk build --config=mayberemote -c dbg //perf/pages/...
 ```
-
-### Running with authentication
-
-If you are working on features that require login, you can run a local
-authentication proxy. This proxy will sit in front of the Perf server and handle
-authentication before forwarding requests to it. To start this setup:
-
-```
-make run-auth-proxy-before-demo-instance
-```
-
-Keep it running. In a separate terminal run the server
-[as described above](#running-against-a-production-database).
-
-After the server starts, navigate to http://localhost:8003.
 
 ### Running individual component demos
 
@@ -182,13 +169,13 @@ server will forward APIs under `/_/` to the remote backend
 (`ENV_REMOTE_ENDPOINT`)
 
 ```
-ENV_REMOTE_ENDPOINT='https://v8-perf.skia.org' ./demopage.sh perf/modules/day-range-sk
+ENV_REMOTE_ENDPOINT='[https://v8-perf.skia.org](https://v8-perf.skia.org)' ./demopage.sh perf/modules/day-range-sk
 ```
 
 or
 
 ```
-ENV_REMOTE_ENDPOINT='https://v8-perf.skia.org' bazelisk run //perf/modules/plot-summary-sk:demo_page_server
+ENV_REMOTE_ENDPOINT='[https://v8-perf.skia.org](https://v8-perf.skia.org)' bazelisk run //perf/modules/plot-summary-sk:demo_page_server
 ```
 
 This will allow the demo page to fetch the real data.
@@ -207,17 +194,14 @@ sudo apt install entr
   echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
   ```
 
-- If you get `INVALID_ARGUMENT: Invalid credentials path specified:
-/acct_credentials.json`, check your gcloud configuration and make sure you
-  are logged in:
+- **Google Cloud Credentials (ADC) Issues:**
+  The `run_with_spanner.sh` script automatically checks for valid credentials and will prompt you to log in if they are missing or expired. However, if you still encounter errors like `INVALID_ARGUMENT: Invalid credentials path specified: /acct_credentials.json`, you can manually force a new login:
 
   ```
   gcloud auth application-default login
   ```
 
-  (don't confuse this with `gcloud auth login` - it generates credentials to be used solely by
-  gcloud. `gcloud auth application-default login` generates credentials to be used by Client
-  Libraries in general).
+  _(Note: don't confuse this with `gcloud auth login` - that generates credentials solely for the gcloud CLI. `gcloud auth application-default login` generates credentials used by Client Libraries.)_
 
 ## Adding External Dependencies
 

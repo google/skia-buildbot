@@ -1,14 +1,32 @@
 #!/bin/bash
 # Runs a perf instance against the given spanner database.
-# Prerequisite:
-# gcloud auth application-default login
 
 # Example Command:
 # ./run_with_spanner.sh p=skia-infra-corp i=tfgen-spanid-20241205020733610
-# d=v8_int config=configs/spanner/v8-internal.json repo=v8/v8
+# d=v8_int_autopush config=./configs/spanner/v8-internal-autopush.json
+
+# Ensure background processes (like auth-proxy) are cleaned up when the script exits
+trap 'echo -e "\nStopping background processes..."; kill $(jobs -p) 2>/dev/null' EXIT
+
+# --- Credential check ---
+echo "Checking Google Cloud credentials for apps (ADC)..."
+if ! gcloud auth application-default print-access-token &>/dev/null; then
+  echo "ADC credentials missing or expired. Launching login flow..."
+  gcloud auth application-default login
+
+  # Double check if the login succeeded
+  if ! gcloud auth application-default print-access-token &>/dev/null; then
+    echo "ERROR: Login failed or was cancelled. Exiting."
+    exit 1
+  fi
+else
+  echo "ADC credentials are valid."
+fi
+# --------------------------------------
 
 # First delete any existing docker containers to start clean.
 sudo docker ps -q | xargs -r sudo docker rm -vf
+
 # Now let's get all the arguments passed in.
 for arg in "$@"
 do
@@ -28,18 +46,35 @@ if [[ -z "${repo}" ]]; then
 fi
 
 echo "Using the following params: -p=$p -i=$i -d=$d -config=$config -domain=$domain -repo=$repo"
+
 # Now let's run pgadapter connected to the supplied spanner database.
 sudo docker run -d -p 127.0.0.1:5432:5432 \
   -e JAVA_TOOL_OPTIONS="-Xms2g -Xmx2g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError" \
   -v $HOME/.config/gcloud/application_default_credentials.json:/acct_credentials.json \
   gcr.io/cloud-spanner-pg-adapter/pgadapter:latest \
   -p $p -i $i -d $d -c /acct_credentials.json -x
-# Now that pgadapter is connected to the spanner instance, let's run the local frontend
-# pointed to pgadapter using the supplied config file. First, build the perfserver.
-bazelisk build --config=mayberemote -c dbg //perf/go/perfserver //perf/pages/... || {
-  echo "Build failed, exiting (not trying to run outdated perfserver)."
+
+# Build the perfserver, frontend pages, and auth-proxy.
+bazelisk build --config=mayberemote -c dbg //perf/go/perfserver //perf/pages/... //kube/cmd/auth-proxy || {
+  echo "ERROR: Build failed, exiting (not trying to run outdated version)."
   exit 1
 }
+
+# Start the auth-proxy in the background (&)
+echo "Starting auth-proxy in the background..."
+bazelisk run //kube/cmd/auth-proxy -- \
+  --prom-port=:20003 \
+  --role=editor=google.com \
+  --authtype=mocked \
+  --mock_user="${USER}@google.com" \
+  --port=:8003 \
+  --target_port=http://127.0.0.1:8002 \
+  --local &
+
+echo "Auth-proxy started on port :8003 - access this instead of :8002 to access anomalies."
+
+# Now that pgadapter and auth-proxy are up, let's run the local frontend
+echo "Starting perfserver..."
 ../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
   --dev_mode \
   --localToProd \
