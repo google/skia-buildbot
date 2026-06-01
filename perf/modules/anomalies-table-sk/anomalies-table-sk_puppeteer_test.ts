@@ -404,13 +404,12 @@ describe('anomalies-table-sk', () => {
 
       // Groups:
       // 1. Bug 12345 (merged) -> 1 Group.
-      // 2. Rev A (3 items) -> 1 Group (Exclude from overlap check).
-      // 3. Rev B (1 item) -> 1 Group (Matches EXACT first, separate from Rev A).
-      // 4. Single 1 (1 item) -> 1 Group.
-      // 5. Single 2 (1 item) -> 1 Group.
-      // Total Groups = 5.
-      // Total Rows = 5 Groups + 1 Header Row = 6 Rows.
-      expect(await anomaliesTableSkPO.getRowCount()).to.equal(6);
+      // 2. Rev A (3 items) and Rev B (1 item) overlap -> 1 Group.
+      // 3. Single 1 (1 item) -> 1 Group.
+      // 4. Single 2 (1 item) -> 1 Group.
+      // Total Groups = 4.
+      // Total Rows = 4 Groups + 1 Header Row = 5 Rows.
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(5);
     });
 
     it('3. Revision: ANY | GroupBy: NONE', async () => {

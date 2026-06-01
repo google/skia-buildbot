@@ -180,16 +180,8 @@ export function groupAnomalies(
       break;
     }
     case 'OVERLAPPING': {
-      // Pass A: Group by Exact Match first
-      const exactResult = groupAndPartition(withoutBugId, (a, b) => isSameRevision(a, b));
-
-      // Pass B: Group remaining singles by Overlapping Range
-      const overlapResult = groupAndPartition(exactResult.singleAnomalies, (a, b) =>
-        doRangesOverlap(a, b)
-      );
-
-      // Combine both sets of groups
-      revisionGroups = [...exactResult.multiItemGroups, ...overlapResult.multiItemGroups];
+      const overlapResult = groupAndPartition(withoutBugId, (a, b) => doRangesOverlap(a, b));
+      revisionGroups = overlapResult.multiItemGroups;
       singlesPool = overlapResult.singleAnomalies;
       break;
     }

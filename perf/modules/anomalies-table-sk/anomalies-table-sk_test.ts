@@ -418,7 +418,9 @@ describe('anomalies-table-sk', () => {
         dummyAnomaly('4', 0, 350, 450, 'master/bot1/suite1/test2'),
         dummyAnomaly('5', 0, 500, 600, 'master/bot2/suite2/test3'),
         dummyAnomaly('6', 0, 500, 600, 'master/bot2/suite2/test3'),
-        dummyAnomaly('7', 0, 700, 800, 'master/bot1/suite2/test4'),
+        dummyAnomaly('7', 0, 550, 650, 'master/bot2/suite2/test3'),
+        dummyAnomaly('8', 0, 550, 650, 'master/bot2/suite2/test3'),
+        dummyAnomaly('9', 0, 800, 900, 'master/bot1/suite2/test4'),
       ];
     });
 
@@ -439,13 +441,18 @@ describe('anomalies-table-sk', () => {
         groupBy: new Set(),
       };
       const groups = groupAnomalies(anomalies, config);
-      // anoms 5 and 6 should be in a group.
-      const exactGroup = groups.find((g) => g.anomalies.some((a) => a.id === '5' || a.id === '6'));
-      assert.isDefined(exactGroup);
-      assert.lengthOf(exactGroup!.anomalies, 2);
-      // check that 3 and 4 are not grouped.
-      const anom3group = groups.find((g) => g.anomalies.some((a) => a.id === '3'));
-      assert.lengthOf(anom3group!.anomalies, 1);
+
+      const exactGroup1 = groups.find((g) => g.anomalies.some((a) => a.id === '5'));
+      assert.isDefined(exactGroup1);
+      assert.deepEqual(exactGroup1!.anomalies.map((a) => a.id).sort(), ['5', '6']);
+
+      const exactGroup2 = groups.find((g) => g.anomalies.some((a) => a.id === '7'));
+      assert.isDefined(exactGroup2);
+      assert.deepEqual(exactGroup2!.anomalies.map((a) => a.id).sort(), ['7', '8']);
+
+      const singleGroup = groups.find((g) => g.anomalies.some((a) => a.id === '3'));
+      assert.isDefined(singleGroup);
+      assert.lengthOf(singleGroup!.anomalies, 1);
     });
 
     it('handles revisionMode: OVERLAPPING', () => {
@@ -454,12 +461,23 @@ describe('anomalies-table-sk', () => {
         groupBy: new Set(),
       };
       const groups = groupAnomalies(anomalies, config);
-      // anoms 3 and 4 should be in a group.
-      const overlapGroup = groups.find((g) =>
-        g.anomalies.some((a) => a.id === '3' || a.id === '4')
+
+      const overlapGroup1 = groups.find((g) => g.anomalies.some((a) => a.id === '3'));
+      assert.isDefined(overlapGroup1);
+      assert.deepEqual(overlapGroup1!.anomalies.map((a) => a.id).sort(), ['3', '4']);
+
+      // In Overlapping mode, exact matches (5,6 and 7,8) that overlap each other
+      // will form a single group instead of being isolated exact-match groups like
+      // in EXACT mode.
+      const overlapGroup2 = groups.find((g) => g.anomalies.some((a) => a.id === '5'));
+      assert.isDefined(overlapGroup2, 'Group containing anomaly 5 should exist');
+
+      // Strict assertion to ensure 5, 6, 7, and 8 are grouped together.
+      assert.deepEqual(
+        overlapGroup2!.anomalies.map((a) => a.id).sort(),
+        ['5', '6', '7', '8'],
+        'Overlapping exact-match groups should be merged into a single overlapping group'
       );
-      assert.isDefined(overlapGroup);
-      assert.lengthOf(overlapGroup!.anomalies, 2);
     });
 
     it('handles revisionMode: ANY', () => {
@@ -468,9 +486,9 @@ describe('anomalies-table-sk', () => {
         groupBy: new Set(),
       };
       const groups = groupAnomalies(anomalies, config);
-      // all non-bug anomalies are grouped
-      const anyGroup = groups.find((g) => g.anomalies.length === 5); // 7 total - 2 with bug_id
-      assert.isDefined(anyGroup);
+      // all 7 non-bug anomalies (3 through 9) are grouped together
+      const anyGroup = groups.find((g) => g.anomalies.length === 7);
+      assert.isDefined(anyGroup, 'All non-bug anomalies should be in a single group');
     });
 
     it('splits revision groups by BOT', () => {
