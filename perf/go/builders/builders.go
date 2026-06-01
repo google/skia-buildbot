@@ -177,7 +177,11 @@ func NewTraceStoreFromConfig(ctx context.Context, instanceConfig *config.Instanc
 		return nil, err
 	}
 	var inMemoryTraceParams *sqltracestore.InMemoryTraceParams = nil
-	inMemoryTraceParams, err = sqltracestore.NewInMemoryTraceParams(ctx, db, 12*60*60 /*12hr*/)
+	showOnlyPublicTraces := false
+	if instanceConfig.VisibilityConfig != nil {
+		showOnlyPublicTraces = instanceConfig.VisibilityConfig.ShowOnlyPublicTraces
+	}
+	inMemoryTraceParams, err = sqltracestore.NewInMemoryTraceParams(ctx, db, 12*60*60 /*12hr*/, showOnlyPublicTraces)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

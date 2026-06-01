@@ -22,6 +22,7 @@ import (
 type InMemoryTraceParams struct {
 	db                       pool.Pool
 	refreshIntervalInSeconds float32
+	showOnlyPublicTraces     bool
 
 	// Array of column data. Each column is an array containing integer encodings
 	// of strings for a single param in the original traceparams table. The column
@@ -47,6 +48,13 @@ type InMemoryTraceParams struct {
 	// Lock around "in-memory" data. Querying takes RLock (non-exclusive),
 	// refreshing takes Lock (exclusive).
 	dataLock sync.RWMutex
+
+	// publicTraceIDs is a pointer-free map containing raw trace ID MD5 bytes.
+	// It is only allocated and populated when showOnlyPublicTraces is true to prevent GC/memory waste.
+	publicTraceIDs map[types.TraceIDForSQLInBytes]struct{}
+
+	// publicParamSet holds the pre-computed ReadOnlyParamSet when showOnlyPublicTraces is true.
+	publicParamSet paramtools.ReadOnlyParamSet
 }
 
 type ContextKey string
@@ -116,9 +124,14 @@ func (tp *InMemoryTraceParams) Refresh(ctx context.Context) error {
 	}
 
 	// Get traceparams row data
-	traceparams, encoding, rEncoding, err := tp.readAllTraceParams(ctx, traceparams, paramCols)
+	traceparams, publicTraceIDs, encoding, rEncoding, err := tp.readAllTraceParams(ctx, traceparams, paramCols)
 	if err != nil {
 		return skerr.Wrap(err)
+	}
+
+	var publicParamSet paramtools.ReadOnlyParamSet
+	if tp.showOnlyPublicTraces {
+		publicParamSet = buildParamSet(traceparams, paramCols, rEncoding).Freeze()
 	}
 
 	invertIndex := buildInvertedIndex(paramCols, traceparams)
@@ -131,6 +144,8 @@ func (tp *InMemoryTraceParams) Refresh(ctx context.Context) error {
 	tp.encoding = encoding
 	tp.rEncoding = rEncoding
 	tp.invertIndex = invertIndex
+	tp.publicTraceIDs = publicTraceIDs
+	tp.publicParamSet = publicParamSet
 	return nil
 }
 
@@ -151,7 +166,7 @@ type TraceParam struct {
 // We partition the table data based on the hex representation of the traceId and provide each
 // worker with a unique partition (i.e range of traceIds or rows) to read. This helps speed up
 // the reading of the entire table by running it in parallel without workers overlapping each other.
-func (tp *InMemoryTraceParams) readAllTraceParams(ctx context.Context, traceparams [][]int32, paramCols map[string]int32) ([][]int32, map[string]int32, map[int32]string, error) {
+func (tp *InMemoryTraceParams) readAllTraceParams(ctx context.Context, traceparams [][]int32, paramCols map[string]int32) ([][]int32, map[types.TraceIDForSQLInBytes]struct{}, map[string]int32, map[int32]string, error) {
 	var wg sync.WaitGroup
 	var traceParamReadWg sync.WaitGroup
 	totalRows := int64(0)
@@ -159,6 +174,10 @@ func (tp *InMemoryTraceParams) readAllTraceParams(ctx context.Context, tracepara
 	traceParamsChan := make(chan TraceParam, 10000)
 	encoding := map[string]int32{}
 	rEncoding := map[int32]string{}
+	var publicTraceIDs map[types.TraceIDForSQLInBytes]struct{}
+	if tp.showOnlyPublicTraces {
+		publicTraceIDs = map[types.TraceIDForSQLInBytes]struct{}{}
+	}
 
 	var traceIdCount int = 0
 	var eCount int32 = 0
@@ -170,6 +189,12 @@ func (tp *InMemoryTraceParams) readAllTraceParams(ctx context.Context, tracepara
 	go func() {
 		defer traceParamReadWg.Done()
 		for traceParam := range traceParamsChan {
+			if tp.showOnlyPublicTraces {
+				var traceIDArray types.TraceIDForSQLInBytes
+				copy(traceIDArray[:], traceParam.TraceID)
+				publicTraceIDs[traceIDArray] = struct{}{}
+			}
+
 			for param, paramCol := range paramCols {
 				var valueE int32 = -1
 				value, ok := traceParam.Params[param]
@@ -219,6 +244,9 @@ func (tp *InMemoryTraceParams) readAllTraceParams(ctx context.Context, tracepara
 				FROM TraceParams
 				WHERE trace_id >= $1 AND trace_id <= $2
 			`
+			if tp.showOnlyPublicTraces {
+				sqlQuery += " AND is_public = TRUE"
+			}
 
 			workerCtx, cancel := context.WithTimeout(ctx, traceParamsWorkerTimeout)
 			defer cancel()
@@ -269,11 +297,11 @@ func (tp *InMemoryTraceParams) readAllTraceParams(ctx context.Context, tracepara
 
 	// Check for any errors
 	for err := range errors {
-		return nil, nil, nil, err // Return the first error encountered
+		return nil, nil, nil, nil, err // Return the first error encountered
 	}
 
 	sklog.Infof("TraceParams Partitioned Read complete. Total estimated rows processed: %d", totalRows)
-	return traceparams, encoding, rEncoding, nil
+	return traceparams, publicTraceIDs, encoding, rEncoding, nil
 }
 
 func (tp *InMemoryTraceParams) startRefresher(ctx context.Context) error {
@@ -299,13 +327,14 @@ func (tp *InMemoryTraceParams) startRefresher(ctx context.Context) error {
 }
 
 // Create a new InMemoryTraceParams and populate it with data from traceparams table in db
-func NewInMemoryTraceParams(ctx context.Context, db pool.Pool, refreshIntervalInSeconds float32) (*InMemoryTraceParams, error) {
+func NewInMemoryTraceParams(ctx context.Context, db pool.Pool, refreshIntervalInSeconds float32, showOnlyPublicTraces bool) (*InMemoryTraceParams, error) {
 	ctx, span := trace.StartSpan(ctx, "InMemoryTraceParams.NewInMemoryTraceParams")
 	defer span.End()
 
 	ret := InMemoryTraceParams{
 		db:                       db,
 		refreshIntervalInSeconds: refreshIntervalInSeconds,
+		showOnlyPublicTraces:     showOnlyPublicTraces,
 	}
 	err := ret.startRefresher(ctx)
 	if err != nil {
@@ -313,6 +342,21 @@ func NewInMemoryTraceParams(ctx context.Context, db pool.Pool, refreshIntervalIn
 	}
 
 	return &ret, nil
+}
+
+// TraceAccessAllowed returns true if the traceName is public or visibility filtering is disabled.
+func (tp *InMemoryTraceParams) TraceAccessAllowed(traceName string) bool {
+	if !tp.showOnlyPublicTraces {
+		return true
+	}
+	tp.dataLock.RLock()
+	defer tp.dataLock.RUnlock()
+	if tp.publicTraceIDs == nil {
+		return false
+	}
+	traceIDBytes := types.TraceIDForSQLInBytesFromTraceName(traceName)
+	_, ok := tp.publicTraceIDs[traceIDBytes]
+	return ok
 }
 
 // Query for paramsets in (in-memory version of) traceparams table matching query input
@@ -674,4 +718,44 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// ShowOnlyPublicTraces returns true if the instance is configured in showOnlyPublicTraces mode.
+func (tp *InMemoryTraceParams) ShowOnlyPublicTraces() bool {
+	return tp.showOnlyPublicTraces
+}
+
+// GetParamSet returns the pre-computed public parameters in O(1) time under a read lock.
+func (tp *InMemoryTraceParams) GetParamSet() paramtools.ReadOnlyParamSet {
+	tp.dataLock.RLock()
+	defer tp.dataLock.RUnlock()
+	return tp.publicParamSet
+}
+
+// buildParamSet compiles unique parameters from the encoded trace rows.
+func buildParamSet(traceparams [][]int32, paramCols map[string]int32, rEncoding map[int32]string) paramtools.ParamSet {
+	ret := paramtools.NewParamSet()
+	if len(traceparams) == 0 {
+		return ret
+	}
+	numTraces := len(traceparams[0])
+	for key, colIndex := range paramCols {
+		column := traceparams[colIndex]
+		uniqueValues := map[int32]bool{}
+		for i := 0; i < numTraces; i++ {
+			val := column[i]
+			if val >= 0 {
+				uniqueValues[val] = true
+			}
+		}
+		if len(uniqueValues) > 0 {
+			valuesList := make([]string, 0, len(uniqueValues))
+			for val := range uniqueValues {
+				valuesList = append(valuesList, rEncoding[val])
+			}
+			ret[key] = valuesList
+		}
+	}
+	ret.Normalize()
+	return ret
 }

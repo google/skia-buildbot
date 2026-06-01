@@ -2,6 +2,7 @@ package builders
 
 import (
 	"context"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file/dirsource"
 	"go.skia.org/infra/perf/go/git/gittest"
@@ -127,4 +129,71 @@ func TestNewPerfGitFromConfig_Success(t *testing.T) {
 	gitHash, err := g.GitHashFromCommitNumber(ctx, types.CommitNumber(2))
 	require.NoError(t, err)
 	assert.Equal(t, hashes[2], gitHash)
+}
+
+func TestNewTraceStoreFromConfig_ShowOnlyPublicTraces_Success(t *testing.T) {
+	ctx, instanceConfig := newDBConfigForTest(t)
+
+	// Configure the instance as ShowOnlyPublicTraces inside VisibilityConfig:
+	instanceConfig.VisibilityConfig = &config.VisibilityConfig{
+		ShowOnlyPublicTraces: true,
+	}
+
+	// Get a raw pool connection to populate our test database first!
+	db, err := NewDBPoolFromConfig(ctx, instanceConfig, false)
+	require.NoError(t, err)
+
+	// Write public and private trace parameters into DB:
+	publicTraceName := ",arch=x86,config=8888,"
+	privateTraceName := ",arch=x86,config=565,"
+
+	// Populate TraceParams table manually:
+	insertTraceParams := `
+	INSERT INTO TraceParams (trace_id, params, is_public) VALUES
+		($1, CAST($2 AS JSONB), TRUE),
+		($3, CAST($4 AS JSONB), FALSE)
+	`
+	publicBytes := types.TraceIDForSQLInBytesFromTraceName(publicTraceName)
+	privateBytes := types.TraceIDForSQLInBytesFromTraceName(privateTraceName)
+
+	_, err = db.Exec(ctx, insertTraceParams, publicBytes[:], `{"arch": "x86", "config": "8888"}`, privateBytes[:], `{"arch": "x86", "config": "565"}`)
+	require.NoError(t, err)
+
+	// Insert paramsets to cover index fields:
+	insertIntoParamSets := `
+	INSERT INTO ParamSets (tile_number, param_key, param_value) VALUES
+		(0, 'arch', 'x86'),
+		(0, 'config', '8888'),
+		(0, 'config', '565')
+	`
+	_, err = db.Exec(ctx, insertIntoParamSets)
+	require.NoError(t, err)
+
+	// Now build the real SQLTraceStore through our config-builder API!
+	store, err := NewTraceStoreFromConfig(ctx, instanceConfig)
+	require.NoError(t, err)
+
+	// 1. Verify that the initial GetParamSet options contain ONLY the public trace settings!
+	ps, err := store.GetParamSet(ctx, 0)
+	require.NoError(t, err)
+	expectedParamSet := paramtools.ReadOnlyParamSet{
+		"arch":   []string{"x86"},
+		"config": []string{"8888"},
+	}
+	assert.Equal(t, expectedParamSet, ps)
+
+	// 2. Verify that general QueryTracesIDOnly queries strictly return only public trace items!
+	u, err := url.ParseQuery("arch=x86")
+	require.NoError(t, err)
+	q, err := query.New(u)
+	require.NoError(t, err)
+
+	outParams, err := store.QueryTracesIDOnly(ctx, 0, q)
+	require.NoError(t, err)
+	var results []paramtools.Params
+	for p := range outParams {
+		results = append(results, p)
+	}
+	assert.Equal(t, 1, len(results))
+	assert.Equal(t, "8888", results[0]["config"])
 }

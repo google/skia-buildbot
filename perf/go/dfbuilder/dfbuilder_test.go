@@ -43,7 +43,7 @@ const preflightSubqueriesForExistingKeysFeatureFlag = false
 
 func getSqlTraceStore(t *testing.T, db pool.Pool, cfg config.DataStoreConfig) (*sqltracestore.SQLTraceStore, *sqltracestore.InMemoryTraceParams) {
 	traceParamStore := sqltracestore.NewTraceParamStore(db)
-	inMemoryTraceParams, err := sqltracestore.NewInMemoryTraceParams(context.Background(), db, 1)
+	inMemoryTraceParams, err := sqltracestore.NewInMemoryTraceParams(context.Background(), db, 1, false)
 	assert.NoError(t, err)
 	store, err := sqltracestore.New(db, cfg, traceParamStore, inMemoryTraceParams)
 	require.NoError(t, err)

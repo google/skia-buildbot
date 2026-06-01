@@ -929,8 +929,9 @@ type DataPointConfig struct {
 
 // VisibilityConfig contains settings for fetching external visibility rules.
 type VisibilityConfig struct {
-	ProviderName string                            `json:"provider_name"`
-	Sources      map[string]VisibilitySourceConfig `json:"sources"`
+	ProviderName         string                            `json:"provider_name"`
+	Sources              map[string]VisibilitySourceConfig `json:"sources"`
+	ShowOnlyPublicTraces bool                              `json:"show_only_public_traces,omitempty"`
 }
 
 // VisibilitySourceConfig defines the configuration for a single visibility source.

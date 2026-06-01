@@ -44,7 +44,7 @@ func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTr
 	ctx := context.Background()
 	db := sqltest.NewSpannerDBForTests(t, "tracestore")
 	traceParamStore := NewTraceParamStore(db)
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	require.NoError(t, err)
 	store, err := New(db, cfg, traceParamStore, inMemoryTraceParams)
 	require.NoError(t, err)
@@ -64,7 +64,7 @@ func commonTestSetupWithCommits(t *testing.T) (context.Context, *SQLTraceStore) 
 	require.NoError(t, err)
 
 	traceParamStore := NewTraceParamStore(db)
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	require.NoError(t, err)
 	store, err := New(db, cfg, traceParamStore, inMemoryTraceParams)
 	require.NoError(t, err)
@@ -764,5 +764,133 @@ func TestGetSourceIds_Success(t *testing.T) {
 		assert.True(t, ok)
 		assert.NotNil(t, sourceIdsForTrace)
 		assert.True(t, len(sourceIdsForTrace) > 0)
+	}
+}
+
+func TestGetParamSet_ShowOnlyPublicTraces_Success(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewSpannerDBForTests(t, "tracestore")
+	traceStore := NewTraceParamStore(db)
+
+	publicTraceName := ",arch=x86,config=8888,"
+	privateTraceName := ",arch=x86,config=565,"
+	publicTraceID := types.TraceIDForSQLFromTraceName(publicTraceName)
+	privateTraceID := types.TraceIDForSQLFromTraceName(privateTraceName)
+
+	traceParamMap := map[string]paramtools.Params{
+		string(publicTraceID): {
+			"arch":   "x86",
+			"config": "8888",
+		},
+		string(privateTraceID): {
+			"arch":   "x86",
+			"config": "565",
+		},
+	}
+	err := traceStore.WriteTraceParams(ctx, traceParamMap)
+	assert.NoError(t, err)
+
+	// Since WriteTraceParams does not handle is_public, we manually execute raw SQL updates.
+	publicBytes := types.TraceIDForSQLInBytesFromTraceName(publicTraceName)
+	_, err = db.Exec(ctx, "UPDATE TraceParams SET is_public = TRUE WHERE trace_id = $1", publicBytes[:])
+	assert.NoError(t, err)
+
+	// Let's insert the ParamSets records
+	insertIntoParamSets := `
+	INSERT INTO
+		ParamSets (tile_number, param_key, param_value)
+	VALUES
+			( 176, 'arch', 'x86' ),
+			( 176, 'config', '8888' ),
+			( 176, 'config', '565' )
+	ON CONFLICT (tile_number, param_key, param_value)
+	DO NOTHING`
+	_, err = db.Exec(ctx, insertIntoParamSets)
+	assert.NoError(t, err)
+
+	// Instantiate in showOnlyPublicTraces mode:
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, true)
+	assert.NoError(t, err)
+
+	store, err := New(db, cfg, traceStore, inMemoryTraceParams)
+	assert.NoError(t, err)
+
+	// GetParamSet should return only the public trace parameter options!
+	ps, err := store.GetParamSet(ctx, 176)
+	assert.NoError(t, err)
+	expected := paramtools.ReadOnlyParamSet{
+		"arch":   []string{"x86"},
+		"config": []string{"8888"},
+	}
+	assert.Equal(t, expected, ps)
+}
+
+func TestVisibilityDirectLookup_ShowOnlyPublicTraces_BypassesBlocked(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewSpannerDBForTests(t, "tracestore")
+	traceStore := NewTraceParamStore(db)
+
+	publicTraceName := ",arch=x86,config=8888,"
+	privateTraceName := ",arch=x86,config=565,"
+	publicTraceID := types.TraceIDForSQLFromTraceName(publicTraceName)
+	privateTraceID := types.TraceIDForSQLFromTraceName(privateTraceName)
+
+	traceParamMap := map[string]paramtools.Params{
+		string(publicTraceID): {
+			"arch":   "x86",
+			"config": "8888",
+		},
+		string(privateTraceID): {
+			"arch":   "x86",
+			"config": "565",
+		},
+	}
+	err := traceStore.WriteTraceParams(ctx, traceParamMap)
+	assert.NoError(t, err)
+
+	// Let's insert the ParamSets records so that Refresh does not short-circuit
+	insertIntoParamSets := `
+	INSERT INTO
+		ParamSets (tile_number, param_key, param_value)
+	VALUES
+			( 176, 'arch', 'x86' ),
+			( 176, 'config', '8888' ),
+			( 176, 'config', '565' )
+	ON CONFLICT (tile_number, param_key, param_value)
+	DO NOTHING`
+	_, err = db.Exec(ctx, insertIntoParamSets)
+	assert.NoError(t, err)
+
+	// Since WriteTraceParams does not handle is_public, we manually execute raw SQL updates.
+	publicBytes := types.TraceIDForSQLInBytesFromTraceName(publicTraceName)
+	_, err = db.Exec(ctx, "UPDATE TraceParams SET is_public = TRUE WHERE trace_id = $1", publicBytes[:])
+	assert.NoError(t, err)
+
+	// Instantiate in showOnlyPublicTraces mode:
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, true)
+	assert.NoError(t, err)
+
+	store, err := New(db, cfg, traceStore, inMemoryTraceParams)
+	assert.NoError(t, err)
+
+	// 1. GetSource should return an error for the private trace name!
+	_, err = store.GetSource(ctx, types.CommitNumber(1), privateTraceName)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Unauthorized or invalid trace key")
+
+	// 2. GetSources should return an error for the private trace name!
+	_, err = store.GetSources(ctx, privateTraceName, []types.CommitNumber{1})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Unauthorized or invalid trace key")
+
+	// 3. GetLastNSources should return an error for the private trace name!
+	_, err = store.GetLastNSources(ctx, privateTraceName, 1)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Unauthorized or invalid trace key")
+
+	// 4. They should succeed/not return unauthorized errors for the public trace name
+	_, err = store.GetSource(ctx, types.CommitNumber(1), publicTraceName)
+	if err != nil {
+		assert.NotContains(t, err.Error(), "Unauthorized or invalid trace key")
 	}
 }

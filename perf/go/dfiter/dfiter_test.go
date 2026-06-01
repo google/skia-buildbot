@@ -60,7 +60,7 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, perf
 	}
 
 	traceParamStore := sqltracestore.NewTraceParamStore(db)
-	inMemoryTraceParams, err := sqltracestore.NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := sqltracestore.NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 	store, err := sqltracestore.New(db, cfg, traceParamStore, inMemoryTraceParams)
 	require.NoError(t, err)

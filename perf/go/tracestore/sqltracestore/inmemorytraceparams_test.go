@@ -34,7 +34,7 @@ func TestQueryTraceIDs_NoRows_Success(t *testing.T) {
 	_, err := db.Exec(ctx, insertIntoParamSets)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -78,7 +78,7 @@ func TestQueryTraceIDs_SimpleQueryOneResult_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -122,7 +122,7 @@ func TestQueryTraceIDs_SimpleQueryNoMatches_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -170,7 +170,7 @@ func TestQueryTraceIDs_NegativeMatch_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -220,7 +220,7 @@ func TestQueryTraceIDs_NegativeRegexMatch_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -258,7 +258,7 @@ func TestQueryTraceIDs_NonExistentKey_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -301,7 +301,7 @@ func TestQueryTraceIDs_KeyOnlyInOlderTile_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -347,7 +347,7 @@ func TestQueryTraceIDs_PositiveRegexMatch_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -390,7 +390,7 @@ func TestQueryTraceIDs_EmptyQuery_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -431,7 +431,7 @@ func TestQueryTraceIDs_IntersectionEmpty_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -473,7 +473,7 @@ func TestQueryTraceIDs_OnlyNegativeMatch_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -521,7 +521,7 @@ func TestQueryTraceIDs_OrLogic_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -568,7 +568,7 @@ func TestQueryTraceIDs_MultipleNegativeMatch_Success(t *testing.T) {
 	err = traceStore.WriteTraceParams(ctx, traceParamMap)
 	assert.NoError(t, err)
 
-	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60)
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	assert.NoError(t, err)
 
 	outParams := make(chan paramtools.Params, 10000)
@@ -581,4 +581,115 @@ func TestQueryTraceIDs_MultipleNegativeMatch_Success(t *testing.T) {
 	// Expect one result: a=d
 	assert.Equal(t, 1, len(queryResult))
 	assert.Equal(t, "d", queryResult[0]["a"])
+}
+
+func TestInMemoryTraceParams_ShowOnlyPublicTraces_Success(t *testing.T) {
+	db := sqltest.NewSpannerDBForTests(t, "tracestore")
+	ctx := context.Background()
+
+	// Insert paramsets to cover key/values in the index:
+	insertIntoParamSets := `
+	INSERT INTO
+		ParamSets (tile_number, param_key, param_value)
+	VALUES
+			( 176, 'a', 'b' ),
+			( 176, 'a', 'notb' )
+	ON CONFLICT (tile_number, param_key, param_value)
+	DO NOTHING`
+	_, err := db.Exec(ctx, insertIntoParamSets)
+	assert.NoError(t, err)
+
+	traceStore := NewTraceParamStore(db)
+	publicTraceName := ",a=b,"
+	privateTraceName := ",a=notb,"
+	publicTraceID := types.TraceIDForSQLFromTraceName(publicTraceName)
+	privateTraceID := types.TraceIDForSQLFromTraceName(privateTraceName)
+
+	traceParamMap := map[string]paramtools.Params{
+		string(publicTraceID): {
+			"a": "b",
+		},
+		string(privateTraceID): {
+			"a": "notb",
+		},
+	}
+	err = traceStore.WriteTraceParams(ctx, traceParamMap)
+	assert.NoError(t, err)
+
+	// Since WriteTraceParams does not handle is_public, we manually execute raw SQL updates.
+	publicBytes := types.TraceIDForSQLInBytesFromTraceName(publicTraceName)
+	_, err = db.Exec(ctx, "UPDATE TraceParams SET is_public = TRUE WHERE trace_id = $1", publicBytes[:])
+	assert.NoError(t, err)
+
+	// Instantiate InMemoryTraceParams with showOnlyPublicTraces = true
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, true)
+	assert.NoError(t, err)
+
+	// Verify TraceAccessAllowed behaviors
+	assert.True(t, inMemoryTraceParams.TraceAccessAllowed(publicTraceName))
+	assert.False(t, inMemoryTraceParams.TraceAccessAllowed(privateTraceName))
+	assert.False(t, inMemoryTraceParams.TraceAccessAllowed(",a=nonexistent,"))
+
+	// Verify Query results exclude the private trace
+	outParams := make(chan paramtools.Params, 10)
+	q := &query.Query{}
+	inMemoryTraceParams.QueryTraceIDs(ctx, 176, q, outParams)
+	queryResult := outParamsToSlice(outParams)
+	assert.Equal(t, 1, len(queryResult))
+	assert.Equal(t, "b", queryResult[0]["a"])
+}
+
+func TestInMemoryTraceParams_GetParamSet_Success(t *testing.T) {
+	db := sqltest.NewSpannerDBForTests(t, "tracestore")
+	ctx := context.Background()
+
+	traceStore := NewTraceParamStore(db)
+	publicTraceName := ",a=b,c=d,"
+	privateTraceName := ",a=notb,c=notd,"
+	publicTraceID := types.TraceIDForSQLFromTraceName(publicTraceName)
+	privateTraceID := types.TraceIDForSQLFromTraceName(privateTraceName)
+
+	traceParamMap := map[string]paramtools.Params{
+		string(publicTraceID): {
+			"a": "b",
+			"c": "d",
+		},
+		string(privateTraceID): {
+			"a": "notb",
+			"c": "notd",
+		},
+	}
+	err := traceStore.WriteTraceParams(ctx, traceParamMap)
+	assert.NoError(t, err)
+
+	// Since WriteTraceParams does not handle is_public, we manually execute raw SQL updates.
+	publicBytes := types.TraceIDForSQLInBytesFromTraceName(publicTraceName)
+	_, err = db.Exec(ctx, "UPDATE TraceParams SET is_public = TRUE WHERE trace_id = $1", publicBytes[:])
+	assert.NoError(t, err)
+
+	// Let's insert the ParamSets record to ensure paramCols are generated correctly
+	insertIntoParamSets := `
+	INSERT INTO
+		ParamSets (tile_number, param_key, param_value)
+	VALUES
+			( 176, 'a', 'b' ),
+			( 176, 'a', 'notb' ),
+			( 176, 'c', 'd' ),
+			( 176, 'c', 'notd' )
+	ON CONFLICT (tile_number, param_key, param_value)
+	DO NOTHING`
+	_, err = db.Exec(ctx, insertIntoParamSets)
+	assert.NoError(t, err)
+
+	// Instantiate InMemoryTraceParams with showOnlyPublicTraces = true
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, true)
+	assert.NoError(t, err)
+
+	// Check the public in-memory parameter set output
+	ps := inMemoryTraceParams.GetParamSet()
+	expected := paramtools.ParamSet{
+		"a": []string{"b"},
+		"c": []string{"d"},
+	}
+	assert.Equal(t, expected.Freeze(), ps)
 }

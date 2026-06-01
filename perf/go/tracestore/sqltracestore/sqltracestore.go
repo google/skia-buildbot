@@ -597,6 +597,10 @@ func (s *SQLTraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNu
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetParamSet")
 	defer span.End()
 
+	if s.inMemoryTraceParams.ShowOnlyPublicTraces() {
+		return s.inMemoryTraceParams.GetParamSet(), nil
+	}
+
 	now := now.Now(ctx)
 	iEntry, ok := s.orderedParamSetCache.Get(tileNumber)
 	if ok {
@@ -618,8 +622,16 @@ func (s *SQLTraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNu
 	return ps, nil
 }
 
+// TraceAccessAllowed returns true if the traceName is public or visibility filtering is disabled.
+func (s *SQLTraceStore) TraceAccessAllowed(traceName string) bool {
+	return s.inMemoryTraceParams.TraceAccessAllowed(traceName)
+}
+
 // GetSource implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetSource(ctx context.Context, commitNumber types.CommitNumber, traceName string) (string, error) {
+	if s.inMemoryTraceParams.ShowOnlyPublicTraces() && !s.inMemoryTraceParams.TraceAccessAllowed(traceName) {
+		return "", skerr.Fmt("Unauthorized or invalid trace key: %q", traceName)
+	}
 	var filename string
 	traceID := types.TraceIDForSQLFromTraceName(traceName)
 
@@ -657,6 +669,9 @@ func (s *SQLTraceStore) GetSourceIds(ctx context.Context, commitNumbers []types.
 
 // GetSources returns the source files for a given trace and list of commits.
 func (s *SQLTraceStore) GetSources(ctx context.Context, traceName string, commits []types.CommitNumber) (map[types.CommitNumber]string, error) {
+	if s.inMemoryTraceParams.ShowOnlyPublicTraces() && !s.inMemoryTraceParams.TraceAccessAllowed(traceName) {
+		return nil, skerr.Fmt("Unauthorized or invalid trace key: %q", traceName)
+	}
 	traceID := types.TraceIDForSQLFromTraceName(traceName)
 
 	sourceContext := getSourcesContext{
@@ -696,6 +711,9 @@ func (s *SQLTraceStore) GetSources(ctx context.Context, traceName string, commit
 
 // GetLastNSources implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetLastNSources(ctx context.Context, traceID string, n int) ([]tracestore.Source, error) {
+	if s.inMemoryTraceParams.ShowOnlyPublicTraces() && !s.inMemoryTraceParams.TraceAccessAllowed(traceID) {
+		return nil, skerr.Fmt("Unauthorized or invalid trace key: %q", traceID)
+	}
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetLastNSources")
 	defer span.End()
 
@@ -883,6 +901,9 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	traceNames := []string{}
 	var traceIDsForQuery []types.TraceIDForSQL
 	for traceName := range traceNamesChan {
+		if s.inMemoryTraceParams.ShowOnlyPublicTraces() && !s.inMemoryTraceParams.TraceAccessAllowed(traceName) {
+			continue
+		}
 		traceNames = append(traceNames, traceName)
 		traceIDBytes := types.TraceIDForSQLInBytesFromTraceName(traceName)
 		traceNameMap[traceIDBytes] = traceName

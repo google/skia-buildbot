@@ -63,6 +63,7 @@ go_test(
     embed = [":builders"],
     deps = [
         "//go/paramtools",
+        "//go/query",
         "//perf/go/config",
         "//perf/go/file/dirsource",
         "//perf/go/git/gittest",

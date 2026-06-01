@@ -813,6 +813,9 @@
             }
           },
           "type": "object"
+        },
+        "show_only_public_traces": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
