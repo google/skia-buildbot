@@ -62,7 +62,7 @@ bazelisk build --config=mayberemote -c dbg //perf/go/perfserver //perf/pages/...
 
 # Start the auth-proxy in the background (&)
 echo "Starting auth-proxy in the background..."
-bazelisk run //kube/cmd/auth-proxy -- \
+../_bazel_bin/kube/cmd/auth-proxy/auth-proxy_/auth-proxy \
   --prom-port=:20003 \
   --role=editor=google.com \
   --authtype=mocked \
