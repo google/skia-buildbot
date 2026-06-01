@@ -20,6 +20,7 @@ sk_element(
         "//:node_modules/lit",
         "//infra-sk/modules:query_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        "//perf/modules/window:window_ts_lib",
     ],
     ts_srcs = [
         "subscription-table-sk.ts",

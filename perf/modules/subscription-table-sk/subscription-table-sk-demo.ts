@@ -65,6 +65,8 @@ const alerts: Alert[] = [
 
 $$('#populate-tables')?.addEventListener('click', () => {
   document.querySelectorAll<SubscriptionTableSk>('subscription-table-sk').forEach((ele) => {
+    ele.configUrl =
+      'https://chrome-internal.googlesource.com/infra/infra_internal/+/{revision}/infra/config/generated/skia-sheriff-configs.cfg';
     ele.load(subscription, alerts);
   });
 });

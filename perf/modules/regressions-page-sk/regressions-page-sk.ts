@@ -284,7 +284,8 @@ export class RegressionsPageSk extends LitElement {
       <subscription-table-sk
         id="subscription-table"
         .subscription=${this.subscription}
-        .alerts=${this.alerts}></subscription-table-sk>
+        .alerts=${this.alerts}
+        .configUrl=${(window as any).perf?.sheriff_config_url || ''}></subscription-table-sk>
       <anomalies-table-sk
         id="anomaly-table"
         .anomalyList=${this.cpAnomalies}

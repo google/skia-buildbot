@@ -9,14 +9,19 @@
 import '../../../infra-sk/modules/paramset-sk';
 import { html, LitElement } from 'lit';
 import { customElement, state, property } from 'lit/decorators.js';
-import { Alert, Subscription } from '../json';
+import { Alert, Subscription, AnomalyDetectionRule } from '../json';
 import { toParamSet } from '../../../infra-sk/modules/query';
+import '../window/window';
 
 @customElement('subscription-table-sk')
 export class SubscriptionTableSk extends LitElement {
   // The currently loaded subscription.
   @property({ attribute: false })
   subscription: Subscription | null = null;
+
+  // The config url.
+  @property({ type: String })
+  configUrl: string = '';
 
   // The alerts associated with the current subscription.
   @property({ attribute: false })
@@ -34,66 +39,104 @@ export class SubscriptionTableSk extends LitElement {
     return html`${this.subscription
       ? html`
           <div class="subscription-details">
-            <h2>${this.subscription.name} (${this.alerts?.length || 0} Alert(s) Configured)</h2>
-            <p><strong>Contact Email:</strong> ${this.subscription.contact_email || ''}</p>
+            <h2>${this.subscription.name}</h2>
+            <p>
+              <strong>Config:</strong>
+              ${this.formatConfigUrl(this.subscription.revision!)}
+            </p>
             <p><strong>Revision:</strong> ${this.formatRevision(this.subscription.revision!)}</p>
-            <p>
-              <strong>Component:</strong> ${this.formatBugComponent(
-                this.subscription.bug_component || ''
-              )}
-            </p>
-            <p><strong>Hotlists:</strong> ${this.subscription.hotlists?.join(', ') || ''}</p>
-            <p>
-              <strong>Priority:</strong> ${this.subscription.bug_priority},
-              <strong>Severity:</strong> ${this.subscription.bug_severity}
-            </p>
-            <p><strong>CC's:</strong> ${this.subscription.bug_cc_emails?.join(', ') || ''}</p>
-          </div>
-          <button id="btn-toggle-alerts" @click=${() => this.toggleAlerts()}>
+            <p><strong>Contact email:</strong> ${this.subscription.contact_email || ''}</p>
+            <div class="bug-config">
+              <h3>Bugs configuration</h3>
+              <p>
+                <strong>Component:</strong> ${this.formatBugComponent(
+                  this.subscription.bug_component || ''
+                )}
+              </p>
+              <p>
+                <strong>Priority:</strong> ${this.subscription.bug_priority},
+                <strong>Severity:</strong> ${this.subscription.bug_severity}
+              </p>
+              <p>
+                <strong>Hotlists:</strong> ${this.subscription.hotlists?.length
+                  ? this.subscription.hotlists.join(', ')
+                  : html`<em>(not set)</em>`}
+              </p>
+              <p>
+                <strong>CC's:</strong> ${this.subscription.bug_cc_emails?.length
+                  ? this.subscription.bug_cc_emails.join(', ')
+                  : html`<em>(not set)</em>`}
+              </p>
+            </div>
+            <button id="btn-toggle-alerts" @click=${() => this.toggleAlerts()}>
+              ${this.showAlerts
+                ? 'Hide alerts configuration'
+                : `Show alerts configuration (${this.alerts?.length || 0})`}
+            </button>
             ${this.showAlerts
-              ? 'Hide Alert Configuration(s) '
-              : `Show ${this.alerts?.length || 0} Alert Configuration(s)`}
-          </button>
-        `
-      : html``}
-    ${this.showAlerts
-      ? html`
-          <table id="alerts-table">
-            <thead>
-              <tr>
-                <th id="configuration">Configuration(s)</th>
-                <th id="algorithm">Step Algorithm</th>
-                <th id="radius">Radius</th>
-                <th id="k">K</th>
-                <th id="interesting">Interesting</th>
-                <th id="minimum-num">Minimum Number</th>
-                <th id="sparse">Sparse</th>
-                <th id="direction">Direction</th>
-                <th id="action">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${this.alerts && this.alerts.length > 0
-                ? this.alerts.map(
-                    (alert) => html`
+              ? html`
+                  <table id="alerts-table">
+                    <thead>
                       <tr>
-                        <td>
-                          <paramset-sk .paramsets=${[toParamSet(alert.query)]}></paramset-sk>
-                        </td>
-                        <td>${alert.step}</td>
-                        <td>${alert.radius}</td>
-                        <td>${alert.k}</td>
-                        <td>${alert.interesting}</td>
-                        <td>${alert.minimum_num}</td>
-                        <td>${alert.sparse ? 'Sparse' : 'Dense'}</td>
-                        <td>${alert.direction}</td>
-                        <td>${alert.action}</td>
+                        <th
+                          id="matching-rules"
+                          title="Rules how to select traces to apply anomaly detection algorithms. ! for negation, ~ for regex matching.">
+                          Trace matching rules
+                        </th>
+                        <th id="algorithm" title="Anomaly detection algorithm">Algorithm</th>
+                        <th id="other">Params</th>
+                        <th
+                          id="action"
+                          title="What actions should be taken for detected anomalies: NOACTION (for manual triage), TRIAGE (files a bug), or BISECT (triggers culprit finding workflow).">
+                          Action
+                        </th>
                       </tr>
-                    `
-                  )
-                : html``}
-            </tbody>
-          </table>
+                    </thead>
+                    <tbody>
+                      ${this.alerts && this.alerts.length > 0
+                        ? this.alerts.map(
+                            (alert) => html`
+                              <tr>
+                                <td>
+                                  <paramset-sk
+                                    .paramsets=${[toParamSet(alert.query)]}></paramset-sk>
+                                </td>
+                                <td>${this.formatStepAlgorithm(alert)}</td>
+                                <td class="other-config">
+                                  <span
+                                    title="How many commits to each side of a commit to consider when looking for a step."
+                                    >Radius: ${alert.radius}</span
+                                  ><br />
+                                  <span
+                                    title="If algo is set to K-means, this determines the K in K-means clustering, otherwise this value is ignored."
+                                    >K: ${alert.k}</span
+                                  ><br />
+                                  <span
+                                    title="The threshold value beyond which values become interesting (indicates a real regression)."
+                                    >Interesting: ${alert.interesting}</span
+                                  ><br />
+                                  <span
+                                    title="How many traces need to be found interesting before an alert is fired."
+                                    >Minimum number: ${alert.minimum_num}</span
+                                  ><br />
+                                  <span title="If true, only include commits that have data."
+                                    >Sparse: ${alert.sparse ? 'True' : 'False'}</span
+                                  ><br />
+                                  <span
+                                    title="Which direction of change is detected as an anomaly ('UP', 'DOWN', or 'BOTH'). The trace's 'improvement_direction' parameter determines whether the anomaly is treated as a regression (e.g., to trigger bug filing or bisection) or an improvement. Using 'BOTH' is useful for getting 'FYI' detections for improvements without triggering regression workflows."
+                                    >Direction: ${alert.direction}</span
+                                  >
+                                </td>
+                                <td>${this.formatAction(alert.action)}</td>
+                              </tr>
+                            `
+                          )
+                        : html``}
+                    </tbody>
+                  </table>
+                `
+              : html``}
+          </div>
         `
       : html``} `;
   }
@@ -121,15 +164,82 @@ export class SubscriptionTableSk extends LitElement {
     this.showAlerts = !this.showAlerts;
   }
 
+  /** Formats the step algorithm display. */
+  private formatStepAlgorithm(alert: Alert): string {
+    if (alert.detection_rule) {
+      return this.formatDetectionRule(alert.detection_rule);
+    }
+    return alert.step;
+  }
+
+  private formatDetectionRule(rule: AnomalyDetectionRule | null): string {
+    if (!rule) return '';
+    if (rule.simple_rule) {
+      return `${rule.simple_rule.step} (th: ${rule.simple_rule.threshold})`;
+    }
+    if (rule.complex_rule) {
+      const op = rule.complex_rule.op || '';
+      const rules = rule.complex_rule.rules || [];
+      const formattedRules = rules.map((r) => this.formatDetectionRule(r)).join(` ${op} `);
+      return `(${formattedRules})`;
+    }
+    return '';
+  }
+
+  private formatConfigUrl(revision: string) {
+    const url = this.getConfigUrl(revision);
+    if (!url) {
+      return html`<em>(not set)</em>`;
+    }
+    const urlText = url.split(':').pop() || '';
+    return html`<a href="${url}" target="_blank" rel="noopener noreferrer">${urlText}</a>`;
+  }
+
+  private getConfigUrl(revision: string) {
+    let url = this.configUrl;
+    if (!url) {
+      return '';
+    }
+    if (url.startsWith('https://chrome-internal.googlesource.com/')) {
+      // Open internal codesearch for faster editing.
+      url = url.replace(
+        'https://chrome-internal.googlesource.com/',
+        'https://source.corp.google.com/h/chrome-internal/'
+      );
+      url = url.replace('/+/{revision}/', '/+/{revision}:');
+    }
+    return url.replace('{revision}', revision);
+  }
+
   /** Formats the revision string as a link to the config file.
    * @param revision The revision string.
    * @returns A lit/html TemplateResult representing the link.
    */
   private formatRevision(revision: string) {
-    return html`<a
-      href="https://chrome-internal.googlesource.com/infra/infra_internal/+/${revision}/infra/config/generated/skia-sheriff-configs.cfg"
-      >${revision}</a
-    >`;
+    const url = this.getConfigUrl(revision);
+    if (!url) {
+      return html`${revision}`;
+    }
+    return html`<a href="${url}" target="_blank" rel="noopener noreferrer">${revision}</a>`;
+  }
+
+  /** Formats the alert action with a tooltip explaining its meaning. */
+  private formatAction(action?: string) {
+    let title = '';
+    switch (action?.toUpperCase()) {
+      case 'NOACTION':
+        title = 'For manual triage';
+        break;
+      case 'TRIAGE':
+        title = 'Files a bug';
+        break;
+      case 'BISECT':
+        title = 'Triggers culprit finding workflow';
+        break;
+      default:
+        return html`${action}`;
+    }
+    return html`<span title="${title}">${action}</span>`;
   }
 
   /** * Formats the bug component string as a link to the issue tracker.

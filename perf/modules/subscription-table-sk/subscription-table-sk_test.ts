@@ -13,6 +13,47 @@ describe('SubscriptionTableSk', () => {
     element = newInstance();
   });
 
+  describe('getConfigUrl', () => {
+    it('returns empty string if configUrl is not set', () => {
+      assert.equal(element['getConfigUrl']('123'), '');
+    });
+
+    it('formats normal urls correctly', () => {
+      element.configUrl = 'https://example.com/{revision}/config.json';
+      assert.equal(element['getConfigUrl']('123'), 'https://example.com/123/config.json');
+    });
+
+    it('formats chrome-internal urls correctly', () => {
+      element.configUrl = 'https://chrome-internal.googlesource.com/foo/+/{revision}/bar';
+      assert.equal(
+        element['getConfigUrl']('123'),
+        'https://source.corp.google.com/h/chrome-internal/foo/+/123:bar'
+      );
+    });
+  });
+
+  describe('formatConfigUrl', () => {
+    it('should return an empty string if configUrl is not provided', () => {
+      const result = element['formatConfigUrl']('123');
+      const container = document.createElement('div');
+      render(result, container);
+      const anchor = container.querySelector('a');
+      assert.isNull(anchor);
+    });
+
+    it('should return a link with the correct URL', () => {
+      element.configUrl = 'https://example.com/{revision}/config.json';
+      const result = element['formatConfigUrl']('123');
+      const container = document.createElement('div');
+      render(result, container);
+      const anchor = container.querySelector('a');
+      assert.isNotNull(anchor);
+      assert.equal(anchor!.href, 'https://example.com/123/config.json');
+      // //example.com/123/config.json is the result of split(':').pop() on https://example.com/123/config.json
+      assert.equal(anchor!.textContent, '//example.com/123/config.json');
+    });
+  });
+
   describe('formatBugComponent', () => {
     it('should return an empty string if component is not provided', () => {
       const result = element['formatBugComponent']('');
@@ -43,6 +84,7 @@ describe('SubscriptionTableSk', () => {
   });
 
   it('renders subscription details when loaded', async () => {
+    element.configUrl = 'https://example.com/{revision}/config.json';
     const subscription = {
       name: 'V8 JavaScript Perf',
       contact_email: 'v8-perf@google.com',
@@ -58,7 +100,7 @@ describe('SubscriptionTableSk', () => {
     element.load(subscription, alerts);
     await element.updateComplete;
 
-    assert.include(element.textContent, 'V8 JavaScript Perf (1 Alert(s) Configured)');
+    assert.include(element.textContent, 'V8 JavaScript Perf');
     assert.include(element.textContent, 'v8-perf@google.com');
     assert.include(element.textContent, 'abcdef123');
     assert.include(element.textContent, '12345');
@@ -66,6 +108,16 @@ describe('SubscriptionTableSk', () => {
     assert.include(element.textContent, 'Priority: 1');
     assert.include(element.textContent, 'Severity: 2');
     assert.include(element.textContent, 'cc1@google.com');
+
+    // Check for config URL.
+    const anchors = element.querySelectorAll('a');
+    let configLinkFound = false;
+    anchors.forEach((a) => {
+      if (a.href === 'https://example.com/abcdef123/config.json') {
+        configLinkFound = true;
+      }
+    });
+    assert.isTrue(configLinkFound, 'Config URL link was not found');
 
     assert.isNull(element.querySelector('#alerts-table'));
   });
@@ -77,11 +129,11 @@ describe('SubscriptionTableSk', () => {
     await element.updateComplete;
 
     const toggleButton = element.querySelector<HTMLButtonElement>('#btn-toggle-alerts')!;
-    assert.include(toggleButton.textContent, 'Show 1 Alert Configuration(s)');
+    assert.include(toggleButton.textContent, 'Show alerts configuration (1)');
 
     toggleButton.click();
     await element.updateComplete;
-    assert.include(toggleButton.textContent, 'Hide Alert Configuration(s)');
+    assert.include(toggleButton.textContent, 'Hide alerts configuration');
     assert.isNotNull(element.querySelector('#alerts-table'));
 
     const rows = element.querySelectorAll('table#alerts-table > tbody > tr');
@@ -89,7 +141,7 @@ describe('SubscriptionTableSk', () => {
 
     toggleButton.click();
     await element.updateComplete;
-    assert.include(toggleButton.textContent, 'Show 1 Alert Configuration(s)');
+    assert.include(toggleButton.textContent, 'Show alerts configuration (1)');
     assert.isNull(element.querySelector('#alerts-table'));
   });
 });

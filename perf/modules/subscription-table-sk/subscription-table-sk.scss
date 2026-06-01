@@ -7,23 +7,39 @@ subscription-table-sk {
   margin-bottom: 20px;
 
   .subscription-details {
-    background-color: #f9f9f9;
-    border: 1px solid #e0e0e0;
+    background-color: var(--surface);
+    border: 1px solid var(--surface-2dp);
     padding: 12px; // Reduced padding
     margin-bottom: 16px;
     border-radius: 4px;
+    color: var(--on-surface);
   }
 
   .subscription-details h2 {
     margin-top: 0;
     margin-bottom: 10px; // Reduced margin
-    color: #333;
+    color: var(--on-surface);
   }
 
   .subscription-details p {
     margin: 4px 0; // Reduced margin
     line-height: 1.4; // Reduced line-height
-    color: #555;
+    color: var(--on-surface);
+  }
+
+  .bug-config {
+    margin: 12px 0;
+    padding: 10px;
+    background-color: var(--surface-1dp);
+    border: 1px solid var(--surface-2dp);
+    border-radius: 4px;
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1.1em;
+      color: var(--on-surface);
+    }
   }
 
   #alerts-table {
@@ -31,22 +47,80 @@ subscription-table-sk {
     font-size: small;
     width: 100%;
     border-collapse: collapse;
-    margin: 20px;
+    margin-top: 16px;
+    border: 1px solid var(--surface-2dp);
+    border-radius: 4px;
+    overflow: hidden;
 
-    th,
-    td {
-      text-align: center;
+    > thead > tr,
+    > thead > tr:hover {
+      background-color: var(--surface-1dp);
     }
 
-    #interesting,
-    #minimum-num,
-    #k,
-    #radius {
-      width: 50px;
+    > thead > tr > th,
+    > tbody > tr > td {
+      padding: 8px 12px;
+      text-align: center;
+      border-bottom: 1px solid var(--surface-2dp);
+    }
+
+    > thead > tr > th {
+      font-weight: 600;
+    }
+
+    > tbody > tr:last-child > td {
+      border-bottom: none;
+    }
+
+    // Disable inherited hover effects that could be misleading for all nested tables
+    tbody tr,
+    tbody tr:hover {
+      background-color: transparent;
+    }
+
+    > tbody > tr:nth-child(even),
+    > tbody > tr:nth-child(even):hover {
+      background-color: var(--background);
+    }
+
+    > tbody > tr > td:first-child {
+      text-align: left;
+      width: 50%;
+    }
+
+    > thead > tr > th:first-child {
+      width: 50%;
+    }
+
+    paramset-sk {
+      table {
+        width: 100%;
+        table-layout: fixed;
+
+        th:first-child {
+          width: 20%;
+        }
+      }
+
+      div[data-value^='!'] {
+        color: var(--failure);
+        font-weight: bold;
+      }
+
+      div[data-value]:not([data-value^='!']) {
+        color: var(--success);
+        font-weight: bold;
+      }
+    }
+
+    > tbody > tr > td.other-config {
+      text-align: left;
+      line-height: 1.5;
     }
   }
 
   #btn-toggle-alerts {
-    margin-left: 20px;
+    margin-top: 8px;
+    margin-left: 0;
   }
 }

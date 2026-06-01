@@ -322,6 +322,7 @@ type SkPerfConfig struct {
 	ExtraLinks                  *config.ExtraLinks `json:"extra_links"` // Extra links to be display on a dedicated page.
 	DisableShortcutUpdate       bool               `json:"disable_shortcut_update,omitempty"`
 	DefaultToManualPlotMode     bool               `json:"default_to_manual_plot_mode,omitempty"`
+	SheriffConfigUrl            string             `json:"sheriff_config_url,omitempty"`
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -377,6 +378,10 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		ExtraLinks:                  config.Config.ExtraLinks,
 		DisableShortcutUpdate:       f.flags.DisableShortcutUpdate,
 		DefaultToManualPlotMode:     config.Config.DefaultToManualPlotMode,
+	}
+
+	if config.Config.MaintenanceConfig.GitilesRepoUrl != "" && config.Config.MaintenanceConfig.SheriffConfigPath != "" {
+		pc.SheriffConfigUrl = fmt.Sprintf("%s/+/{revision}/%s", config.Config.MaintenanceConfig.GitilesRepoUrl, config.Config.MaintenanceConfig.SheriffConfigPath)
 	}
 
 	var buff bytes.Buffer

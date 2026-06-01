@@ -503,6 +503,7 @@ export interface SkPerfConfig {
 	extra_links: ExtraLinks | null;
 	disable_shortcut_update?: boolean;
 	default_to_manual_plot_mode?: boolean;
+	sheriff_config_url?: string;
 }
 
 export interface TriageRequest {
