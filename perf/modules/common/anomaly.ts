@@ -13,7 +13,8 @@ export const formatNumber = (num: number): string =>
 
 export const formatPercentage = (num: number): string =>
   num.toLocaleString('en-US', {
-    maximumFractionDigits: 4,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
     signDisplay: 'exceptZero',
   });
 

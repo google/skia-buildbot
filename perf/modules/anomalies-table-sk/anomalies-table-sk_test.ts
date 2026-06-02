@@ -1213,7 +1213,7 @@ describe('anomalies-table-sk', () => {
       assert.equal(cells[5].textContent?.trim(), 'bot');
       assert.equal(cells[6].textContent?.trim(), 'suite');
       assert.equal(cells[7].textContent?.trim(), '*');
-      assert.equal(cells[8].textContent?.trim(), '-20%');
+      assert.equal(cells[8].textContent?.trim(), '-20.00%');
       assert.include(cells[8].className, 'regression');
     });
   });
@@ -1372,19 +1372,19 @@ describe('anomalies-table-sk', () => {
     };
 
     it('correctly styles a regression where lower is better', async () => {
-      await createAndTestAnomaly('1', false, 100, 120, 'regression', '+20%');
+      await createAndTestAnomaly('1', false, 100, 120, 'regression', '+20.00%');
     });
 
     it('correctly styles an improvement where lower is better', async () => {
-      await createAndTestAnomaly('2', true, 100, 80, 'improvement', '-20%');
+      await createAndTestAnomaly('2', true, 100, 80, 'improvement', '-20.00%');
     });
 
     it('correctly styles a regression where greater is better', async () => {
-      await createAndTestAnomaly('3', false, 100, 80, 'regression', '-20%');
+      await createAndTestAnomaly('3', false, 100, 80, 'regression', '-20.00%');
     });
 
     it('correctly styles an improvement where greater is better', async () => {
-      await createAndTestAnomaly('4', true, 100, 120, 'improvement', '+20%');
+      await createAndTestAnomaly('4', true, 100, 120, 'improvement', '+20.00%');
     });
   });
 
@@ -1440,7 +1440,7 @@ describe('anomalies-table-sk', () => {
       assert.isNotNull(summaryCell);
       assert.include(summaryCell!.className, 'improvement');
       assert.notInclude(summaryCell!.className, 'regression');
-      assert.equal(summaryCell!.textContent?.trim(), '+50%');
+      assert.equal(summaryCell!.textContent?.trim(), '+50.00%');
     });
 
     it('shows largest regression when there are only regressions', async () => {
@@ -1455,7 +1455,7 @@ describe('anomalies-table-sk', () => {
       assert.isNotNull(summaryCell);
       assert.include(summaryCell!.className, 'regression');
       assert.notInclude(summaryCell!.className, 'improvement');
-      assert.equal(summaryCell!.textContent?.trim(), '-20%');
+      assert.equal(summaryCell!.textContent?.trim(), '-20.00%');
     });
 
     it('shows largest regression in a mixed group', async () => {
@@ -1471,7 +1471,7 @@ describe('anomalies-table-sk', () => {
       assert.isNotNull(summaryCell);
       assert.include(summaryCell!.className, 'regression');
       assert.notInclude(summaryCell!.className, 'improvement');
-      assert.equal(summaryCell!.textContent?.trim(), '-20%');
+      assert.equal(summaryCell!.textContent?.trim(), '-20.00%');
     });
 
     it('shows largest positive regression in a mixed group when lower is better', async () => {
@@ -1492,7 +1492,7 @@ describe('anomalies-table-sk', () => {
       assert.notInclude(summaryCell!.className, 'improvement');
 
       // The value should be the largest regression by magnitude, which is +20%.
-      assert.equal(summaryCell!.textContent?.trim(), '+20%');
+      assert.equal(summaryCell!.textContent?.trim(), '+20.00%');
     });
   });
 

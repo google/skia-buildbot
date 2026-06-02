@@ -92,7 +92,7 @@ describe('chart-tooltip-sk', () => {
 
       const previousRow = await rows.item(3);
       expect(await previousRow.innerText).to.contain('Previous');
-      expect(await previousRow.innerText).to.contain('75.2091 [+33.6305%]');
+      expect(await previousRow.innerText).to.contain('75.2091 [+33.63%]');
 
       const bugIdRow = await rows.item(4);
       expect(await bugIdRow.innerText).to.contain('Bug ID');

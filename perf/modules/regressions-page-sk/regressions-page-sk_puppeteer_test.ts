@@ -103,7 +103,7 @@ describe('regressions-page-sk', () => {
       // Verify specific row content
       const deltaCell = await anomaliesTable!.$('tbody[id^="rows-"] tr td.regression');
       expect(deltaCell).to.not.be.null;
-      expect(await (await deltaCell!.getProperty('innerText')).jsonValue()).to.contain('+23.6228%');
+      expect(await (await deltaCell!.getProperty('innerText')).jsonValue()).to.contain('+23.62%');
     });
 
     it('sheriff config 3: displays different anomalies table and clicks Show More', async () => {
@@ -149,7 +149,7 @@ describe('regressions-page-sk', () => {
       const texts = await Promise.all(
         deltaCells.map((cell) => cell.evaluate((el) => el.textContent))
       );
-      const hasRegression = texts.some((text) => text!.includes('+23.6228%'));
+      const hasRegression = texts.some((text) => text!.includes('+23.62%'));
       expect(hasRegression).to.be.true;
     });
   });

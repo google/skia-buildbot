@@ -24,6 +24,8 @@ sk_element(
         "//perf/modules/bug-tooltip-sk",
         "//elements-sk/modules/icons/arrow-drop-down-icon-sk",
         "//elements-sk/modules/icons/arrow-drop-up-icon-sk",
+        "//elements-sk/modules/icons/expand-less-icon-sk",
+        "//elements-sk/modules/icons/expand-more-icon-sk",
     ],
     ts_deps = [
         "//perf/modules/common:anomaly_ts_lib",

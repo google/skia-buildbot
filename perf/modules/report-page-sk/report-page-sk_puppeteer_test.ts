@@ -105,7 +105,7 @@ describe('report-page-sk', () => {
           bot: 'mac-m1_mini_2020-perf',
           testSuite: 'jetstream2',
           test: 'Babylon.First',
-          delta: '+23.6228%',
+          delta: '+23.62%',
         },
         {
           separator: 'Other groups, related to requested ones (with overlapping commits range)',
@@ -116,7 +116,7 @@ describe('report-page-sk', () => {
           bot: '',
           testSuite: '',
           test: '',
-          delta: '+35.1741%',
+          delta: '+35.17%',
         },
       ];
       const rows = await anomaliesTablePO.rows;
@@ -214,7 +214,7 @@ describe('report-page-sk', () => {
         'Anomaly Range': '67129 - 67130',
         Anomaly: 'Regression',
         Median: '75.2',
-        Previous: '60.8302 [+23.6228%]',
+        Previous: '60.8302 [+23.62%]',
       });
     });
 

@@ -31,6 +31,8 @@ import '@material/web/button/outlined-button.js';
 import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/icons/arrow-drop-down-icon-sk';
 import '../../../elements-sk/modules/icons/arrow-drop-up-icon-sk';
+import '../../../elements-sk/modules/icons/expand-less-icon-sk';
+import '../../../elements-sk/modules/icons/expand-more-icon-sk';
 
 import '../../../elements-sk/modules/icons/help-icon-sk';
 import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
@@ -646,8 +648,11 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         <td>
           <button
             class="expand-button"
+            title="${regressions} regressions, ${improvements} improvements"
             @click=${() => this.expandGroup(anomalyGroup)}
             ?hidden=${anomalyGroup.anomalies.length === 1}>
+            <expand-less-icon-sk ?hidden=${!anomalyGroup.expanded}></expand-less-icon-sk>
+            <expand-more-icon-sk ?hidden=${anomalyGroup.expanded}></expand-more-icon-sk>
             <span class="regression">${regressions}</span> |
             <span class="improvement">${improvements}</span>
           </button>

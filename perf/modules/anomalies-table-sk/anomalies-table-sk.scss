@@ -12,6 +12,12 @@ anomalies-table-sk {
   }
 
   .anomalies-table {
+    th[id^='group-'],
+    td:first-child {
+      width: 1%;
+      white-space: nowrap;
+    }
+
     spinner-sk {
       width: 24px;
       height: 24px;
@@ -54,6 +60,8 @@ anomalies-table-sk {
       padding: 0;
       display: flex;
       align-items: center;
+      justify-content: flex-start;
+      text-align: left;
       width: 100%;
 
       &:focus {
@@ -63,10 +71,10 @@ anomalies-table-sk {
     }
 
     .improvement {
-      color: rgb(0, 128, 0);
+      color: var(--positive);
     }
     .regression {
-      color: rgb(255, 0, 0);
+      color: var(--negative);
     }
 
     .center-content {
@@ -74,7 +82,7 @@ anomalies-table-sk {
       align-items: center;
     }
     .trendingicon-link {
-      color: rgb(87, 120, 211);
+      color: var(--primary);
       cursor: pointer;
       text-align: center;
       display: contents;
@@ -114,7 +122,7 @@ anomalies-table-sk {
 
   tr:has(input[type='checkbox']:checked) > td,
   .child-expanded-row:has(input[type='checkbox']:checked) > td:not(:first-child) {
-    background-color: rgba(63, 81, 181, 0.1);
+    background-color: var(--surface-2dp);
   }
   .child-expanded-row:has(input[type='checkbox']:checked) > td:first-child {
     background-color: var(--background);
@@ -276,4 +284,13 @@ details.grouping-settings summary {
 
 .anomalies-table td {
   position: relative;
+}
+
+input[type='checkbox'] {
+  accent-color: var(--primary);
+}
+
+.body-sk.darkmode anomalies-table-sk,
+.body-sk .darkmode anomalies-table-sk {
+  color-scheme: dark;
 }
