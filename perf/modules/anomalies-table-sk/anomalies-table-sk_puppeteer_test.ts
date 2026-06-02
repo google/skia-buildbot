@@ -207,14 +207,45 @@ describe('anomalies-table-sk', () => {
       expect(link).to.equal(`http://b/${anomaly_table[0].bug_id}`);
     });
 
-    it('opens a new tab with the correct URL for the trending icon', async () => {
-      await anomaliesTableSkPO.clickCheckbox(1);
-      const openMultiGraphUrl = async () => await testBed.page.click('#open-multi-graph');
+    it('opens a new tab with the correct URL for the trending icon (group row, left click)', async () => {
+      const trendingIcons = await anomaliesTableSkPO.trendingIconLink;
+      const icon0 = await trendingIcons.item(0); // This is the group row icon
 
-      // Start waiting for the popup and click the link at the same time.
       const [popup] = await Promise.all([
         new Promise<Page>((resolve) => testBed.page.once('popup', resolve)),
-        openMultiGraphUrl(),
+        icon0.applyFnToDOMNode((el) => (el as HTMLElement).click()),
+      ]);
+      assert.isNotNull(popup);
+    });
+
+    it('opens a new tab with the correct URL for the trending icon (group row, middle click)', async () => {
+      const trendingIcons = await anomaliesTableSkPO.trendingIconLink;
+      const icon0 = await trendingIcons.item(0);
+
+      const [popup] = await Promise.all([
+        new Promise<Page>((resolve) => testBed.page.once('popup', resolve)),
+        icon0.applyFnToDOMNode((el) => {
+          const event = new MouseEvent('auxclick', { button: 1, bubbles: true, cancelable: true });
+          (el as HTMLElement).dispatchEvent(event);
+        }),
+      ]);
+      assert.isNotNull(popup);
+    });
+
+    it('opens a new tab with the correct URL for the trending icon (single row, middle click)', async () => {
+      // Expand the first group to show individual anomalies
+      await anomaliesTableSkPO.clickExpandButton(0);
+
+      const trendingIcons = await anomaliesTableSkPO.trendingIconLink;
+      // Index 1 should be the first child row if 0 is the group row
+      const icon1 = await trendingIcons.item(1);
+
+      const [popup] = await Promise.all([
+        new Promise<Page>((resolve) => testBed.page.once('popup', resolve)),
+        icon1.applyFnToDOMNode((el) => {
+          const event = new MouseEvent('auxclick', { button: 1, bubbles: true, cancelable: true });
+          (el as HTMLElement).dispatchEvent(event);
+        }),
       ]);
       assert.isNotNull(popup);
     });

@@ -1152,6 +1152,122 @@ describe('anomalies-table-sk', () => {
     });
   });
 
+  describe('chart button click', () => {
+    let openStub: sinon.SinonStub;
+    let mockTab: any;
+
+    beforeEach(() => {
+      mockTab = {
+        document: { write: () => {}, close: () => {} },
+        location: { href: '' },
+        close: () => {},
+      };
+      openStub = sinon.stub(window, 'open').returns(mockTab as unknown as Window);
+    });
+
+    afterEach(() => {
+      openStub.restore();
+    });
+
+    it('handles left click on single anomaly chart button', async () => {
+      const anomalies = [dummyAnomaly('123', 0, 0, 0, 'master/bot/suite/test')];
+      await element.populateTable(anomalies);
+      await element.updateComplete;
+
+      const button = element.querySelector('.trendingicon-link') as HTMLButtonElement;
+      assert.isNotNull(button);
+
+      const openMultiGraphUrlSpy = sinon.spy(
+        (element as any).reportNavigationController,
+        'openMultiGraphUrl'
+      );
+
+      // Simulate left click
+      const event = new MouseEvent('click', { button: 0, cancelable: true });
+      button.dispatchEvent(event);
+      await element.updateComplete;
+
+      assert.isTrue(openStub.calledOnce);
+      assert.isTrue(openMultiGraphUrlSpy.calledOnce);
+      assert.isTrue(event.defaultPrevented);
+    });
+
+    it('handles middle click on single anomaly chart button', async () => {
+      const anomalies = [dummyAnomaly('123', 0, 0, 0, 'master/bot/suite/test')];
+      await element.populateTable(anomalies);
+      await element.updateComplete;
+
+      const button = element.querySelector('.trendingicon-link') as HTMLButtonElement;
+      assert.isNotNull(button);
+
+      const openMultiGraphUrlSpy = sinon.spy(
+        (element as any).reportNavigationController,
+        'openMultiGraphUrl'
+      );
+
+      // Simulate middle click
+      const event = new MouseEvent('auxclick', { button: 1, cancelable: true });
+      button.dispatchEvent(event);
+      await element.updateComplete;
+
+      assert.isTrue(openStub.calledOnce);
+      assert.isTrue(openMultiGraphUrlSpy.calledOnce);
+      assert.isTrue(event.defaultPrevented);
+    });
+
+    it('handles left click on group anomaly chart button', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
+      ];
+      await element.populateTable(anomalies);
+      await element.updateComplete;
+
+      const button = element.querySelector('.trendingicon-link') as HTMLButtonElement;
+      assert.isNotNull(button);
+
+      const openReportForAnomalyIdsSpy = sinon.spy(
+        (element as any).reportNavigationController,
+        'openReportForAnomalyIds'
+      );
+
+      // Simulate left click
+      const event = new MouseEvent('click', { button: 0, cancelable: true });
+      button.dispatchEvent(event);
+      await element.updateComplete;
+
+      assert.isTrue(openStub.calledOnce);
+      assert.isTrue(openReportForAnomalyIdsSpy.calledOnce);
+      assert.isTrue(event.defaultPrevented);
+    });
+
+    it('handles middle click on group anomaly chart button', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot/suite/test2'),
+      ];
+      await element.populateTable(anomalies);
+      await element.updateComplete;
+
+      const button = element.querySelector('.trendingicon-link') as HTMLButtonElement;
+      assert.isNotNull(button);
+
+      const openReportForAnomalyIdsSpy = sinon.spy(
+        (element as any).reportNavigationController,
+        'openReportForAnomalyIds'
+      );
+
+      // Simulate middle click
+      const event = new MouseEvent('auxclick', { button: 1, cancelable: true });
+      button.dispatchEvent(event);
+      await element.updateComplete;
+
+      assert.isTrue(openStub.calledOnce);
+      assert.isTrue(openReportForAnomalyIdsSpy.calledOnce);
+      assert.isTrue(event.defaultPrevented);
+    });
+  });
+
   describe('open multi graph url', () => {
     it('fetches the url if it does not exist in the map', async () => {
       // A stub is better here because we can control the return value.

@@ -378,6 +378,37 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     await this.reportNavigationController.openReportForAnomalyIds(this.selectionController.items);
   }
 
+  private async handleAnomalyChartClick(e: MouseEvent, anomaly: Anomaly) {
+    if (e.type === 'click' && e.button !== 0) return;
+    if (e.type === 'auxclick' && e.button !== 1) return;
+    e.preventDefault();
+    const newTab = window.open('', '_blank');
+    if (newTab) {
+      newTab.document.write('<title>Loading...</title>Loading graph...');
+      newTab.document.close();
+    }
+
+    this.loadingGraphForAnomaly.set(anomaly.id, true);
+    this.requestUpdate();
+
+    await this.reportNavigationController.openMultiGraphUrl(anomaly, newTab);
+
+    this.loadingGraphForAnomaly.set(anomaly.id, false);
+    this.requestUpdate();
+  }
+
+  private async handleGroupChartClick(e: MouseEvent, anomalyGroup: AnomalyGroup) {
+    if (e.type === 'click' && e.button !== 0) return;
+    if (e.type === 'auxclick' && e.button !== 1) return;
+    e.preventDefault();
+    const newTab = window.open('', '_blank');
+    if (newTab) {
+      newTab.document.write('<title>Loading...</title>Loading graph...');
+      newTab.document.close();
+    }
+    await this.reportNavigationController.openReportForAnomalyIds(anomalyGroup.anomalies, newTab);
+  }
+
   async openAnomalyGroupReportPage() {
     const reportPromises = this.groupingController.groups
       .filter((group) => group.anomalies.some((a) => this.selectionController.has(a)))
@@ -519,20 +550,8 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
               : html`
                   <button
                     class="trendingicon-link"
-                    @click=${async () => {
-                      const newTab = window.open('', '_blank');
-                      if (newTab) {
-                        newTab.document.write('Loading graph...');
-                      }
-
-                      this.loadingGraphForAnomaly.set(anomaly.id, true);
-                      this.requestUpdate();
-
-                      await this.reportNavigationController.openMultiGraphUrl(anomaly, newTab);
-
-                      this.loadingGraphForAnomaly.set(anomaly.id, false);
-                      this.requestUpdate();
-                    }}>
+                    @click=${(e: MouseEvent) => this.handleAnomalyChartClick(e, anomaly)}
+                    @auxclick=${(e: MouseEvent) => this.handleAnomalyChartClick(e, anomaly)}>
                     <trending-up-icon-sk></trending-up-icon-sk>
                   </button>
                 `}
@@ -669,7 +688,14 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
               id="anomaly-row-${this.uniqueId}-${this.getGroupId(anomalyGroup)}" />
           </label>
         </td>
-        <td class="center-content"></td>
+        <td class="center-content">
+          <button
+            class="trendingicon-link"
+            @click=${(e: MouseEvent) => this.handleGroupChartClick(e, anomalyGroup)}
+            @auxclick=${(e: MouseEvent) => this.handleGroupChartClick(e, anomalyGroup)}>
+            <trending-up-icon-sk></trending-up-icon-sk>
+          </button>
+        </td>
         <td class="tooltip-cell">
           ${this.getReportLinkForBugId(summaryData.bug)}
           <close-icon-sk

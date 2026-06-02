@@ -23,15 +23,22 @@ export class ReportNavigationController implements ReactiveController {
 
   hostConnected() {}
 
-  async openReportForAnomalyIds(anomalies: Anomaly[]): Promise<boolean> {
+  async openReportForAnomalyIds(anomalies: Anomaly[], newTab?: Window | null): Promise<boolean> {
     const idList = anomalies.map((a) => a.id);
-    let newTab: Window | null = null;
+    if (newTab === undefined) {
+      newTab = null;
+    }
 
     // If only one anomaly is selected, open the report page using
     // the anomaly id directly.
     if (idList.length === 1) {
       const key = idList[0];
-      newTab = window.open(`/u/?anomalyIDs=${key}`, '_blank');
+      const url = `/u/?anomalyIDs=${key}`;
+      if (newTab) {
+        newTab.location.href = url;
+      } else {
+        newTab = window.open(url, '_blank');
+      }
       return !!newTab;
     }
 
@@ -40,11 +47,18 @@ export class ReportNavigationController implements ReactiveController {
       ? await this.fetchCreateShortcutApi(idString)
       : await this.fetchGroupReportApi(idString);
     if (!response) {
+      if (newTab) newTab.close();
+      // Return true to avoid triggering the "Popups blocked" error in the caller,
+      // as the error was due to an API failure, not a blocked popup.
       return true;
     }
     const sid: string = response.sid || '';
     const url = `/u/?sid=${sid}`;
-    newTab = window.open(url, '_blank');
+    if (newTab) {
+      newTab.location.href = url;
+    } else {
+      newTab = window.open(url, '_blank');
+    }
     return !!newTab;
   }
 
