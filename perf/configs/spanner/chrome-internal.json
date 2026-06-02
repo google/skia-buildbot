@@ -100,33 +100,38 @@
                 "description": "CBB results on Pixel Tablet (Tangor)"
             },
             {
+                "text": "Pixel 10 (go/cbb-pixel10)",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=35&shortcut=27c7605dc23576d7c1ab9a392be48cc3&splitByKeys=benchmark",
+                "description": "CBB results on Pixel 10"
+            },
+            {
                 "text": "Speedometer3 (go/cbb-sp3)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=c356c8f9923592a3c4ca13c9a910efa3&splitByKeys=bot",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=e39a17d6ae347b06ae734285397b6c1b&splitByKeys=bot",
                 "description": "CBB Speedometer3 results"
             },
             {
                 "text": "JetStream2 (go/cbb-js2)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=a5ee01abf18568a7638262f3ef4a5c75&splitByKeys=bot",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=f1df8324435ebae1114029bd50e0bc33&splitByKeys=bot",
                 "description": "CBB JetStream2 results"
             },
             {
                 "text": "JetStream3 (go/cbb-js3)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=dd57dc2db697e8ea1d5413a05d23607f&splitByKeys=bot",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=795e1fa20382486a43de0975c2185855&splitByKeys=bot",
                 "description": "CBB JetStream3 results"
             },
             {
                 "text": "MotionMark (go/cbb-mm)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=0e44129ba57dc3a19b2de7cebd3b5aad&splitByKeys=bot",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=95ef2325b3d33a0babd031062de6ffcd&splitByKeys=bot",
                 "description": "CBB MotionMark results"
             },
             {
                 "text": "Loadline 2 (go/cbb-ll)",
-                "href": "https://chrome-perf.corp.goog/m/?begin=1752000000&end=1798761600&numCommits=20&shortcut=3d5e9ef84f6673ca273c3cabb4297113",
+                "href": "https://chrome-perf.corp.goog/m/?begin=1752000000&end=1798761600&numCommits=20&shortcut=00b2f3a6c365150c327dec898d1a0c50&splitByKeys=bot",
                 "description": "CBB Loadline 2 results (Android only)"
             },
             {
                 "text": "Overall results (go/cbb-all)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=d7bcc58e5275b37f28f06082355bef65&splitByKeys=benchmark",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=880ace70acb132e35be7a6f197a1fc00&splitByKeys=benchmark",
                 "description": "CBB results for all benchmarks and platforms"
             }
         ]
