@@ -7,7 +7,7 @@ anomalies-table-sk {
   padding-top: 16px;
   padding-bottom: 10px;
 
-  .expand-button[hidden] {
+  .expand-indicator[hidden] {
     display: none;
   }
 
@@ -87,6 +87,26 @@ anomalies-table-sk {
       text-align: center;
       display: contents;
     }
+
+    tr {
+      border-bottom: 1px solid var(--surface-1dp);
+    }
+
+    tr.parent-expanded-row {
+      border-bottom: none;
+    }
+
+    tr.child-expanded-row {
+      border-bottom: 1px solid var(--surface-1dp);
+
+      > td:nth-child(2) {
+        box-shadow: inset 3px 0 0 0 var(--primary);
+      }
+    }
+
+    tr.child-expanded-row:last-of-type {
+      border-bottom: 1px solid var(--surface-1dp);
+    }
   }
 
   close-icon-sk#btnUnassociate {
@@ -114,6 +134,32 @@ anomalies-table-sk {
   .parent-expanded-row,
   .child-expanded-row > td:not(:first-child) {
     background-color: var(--surface-2dp);
+  }
+
+  tr.parent-expanded-row:hover > td {
+    background-color: color-mix(in srgb, var(--surface-2dp) 90%, var(--primary) 10%);
+  }
+
+  tr.child-expanded-row:hover > td:not(:first-child) {
+    background-color: color-mix(in srgb, var(--surface-2dp) 90%, var(--primary) 10%);
+  }
+
+  .summary-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+      background-color: var(--surface-1dp);
+      outline: none;
+    }
+  }
+
+  .expand-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    pointer-events: none;
   }
 
   .child-expanded-row > td:first-child {

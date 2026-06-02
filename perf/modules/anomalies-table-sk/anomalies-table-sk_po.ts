@@ -39,7 +39,7 @@ export class AnomaliesTableSkPO extends PageObject {
   }
 
   get expandButton(): PageObjectElementList {
-    return this.bySelectorAll('button.expand-button');
+    return this.bySelectorAll('.summary-row');
   }
 
   get headerCheckbox(): PageObjectElement {
@@ -116,14 +116,10 @@ export class AnomaliesTableSkPO extends PageObject {
         // Traverse backwards to find the summary row with the expand button.
         let sibling = row.previousElementSibling;
         while (sibling) {
-          const expandBtn = sibling.querySelector('button.expand-button');
-          if (expandBtn) {
-            (expandBtn as HTMLElement).click();
+          if (sibling.classList.contains('summary-row')) {
+            (sibling as HTMLElement).click();
             return;
           }
-          // If we hit another child row (no expand button), keep going back.
-          // If we hit a summary row (has expand button), we clicked it and stopped.
-          // If we hit start of table, we stop.
           sibling = sibling.previousElementSibling;
         }
       }
@@ -170,7 +166,8 @@ export class AnomaliesTableSkPO extends PageObject {
   async getGroupedRowCount(index: number): Promise<number> {
     const expandButtons = await this.expandButton;
     const expandButton = await expandButtons.item(index);
-    const text = await expandButton.innerText;
+    const indicator = await expandButton.bySelector('.expand-indicator');
+    const text = await indicator.innerText;
     const parts = text.split(' | ');
     if (parts.length === 2) {
       const regressions = parseInt(parts[0], 10) || 0;

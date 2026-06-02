@@ -657,30 +657,41 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
     return html`
       <tr
+        role="button"
+        tabindex="0"
+        aria-expanded="${anomalyGroup.expanded}"
+        @click=${() => this.expandGroup(anomalyGroup)}
+        @keydown=${(e: KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.expandGroup(anomalyGroup);
+          }
+        }}
         data-bugid="${summaryData.bug}"
         data-revisions="${summaryData.endRevision}"
         data-bot="${summaryData.bot}"
         data-testsuite="${summaryData.testsuite}"
         data-test="${summaryData.test}"
         data-delta="${summaryData.delta}"
-        class="${this.getRowClass(0, anomalyGroup)} ${rowClass}">
+        class="${this.getRowClass(0, anomalyGroup)} ${rowClass} summary-row">
         <td>
-          <button
-            class="expand-button"
+          <span
+            class="expand-indicator"
             title="${regressions} regressions, ${improvements} improvements"
-            @click=${() => this.expandGroup(anomalyGroup)}
             ?hidden=${anomalyGroup.anomalies.length === 1}>
             <expand-less-icon-sk ?hidden=${!anomalyGroup.expanded}></expand-less-icon-sk>
             <expand-more-icon-sk ?hidden=${anomalyGroup.expanded}></expand-more-icon-sk>
             <span class="regression">${regressions}</span> |
             <span class="improvement">${improvements}</span>
-          </button>
+          </span>
         </td>
         <td>
           <label>
             <input
               type="checkbox"
-              @change="${() => {
+              @click=${(e: Event) => e.stopPropagation()}
+              @change="${(e: Event) => {
+                e.stopPropagation();
                 this.toggleChildrenCheckboxes(anomalyGroup);
               }}"
               .checked=${isChecked}
@@ -691,8 +702,14 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         <td class="center-content">
           <button
             class="trendingicon-link"
-            @click=${(e: MouseEvent) => this.handleGroupChartClick(e, anomalyGroup)}
-            @auxclick=${(e: MouseEvent) => this.handleGroupChartClick(e, anomalyGroup)}>
+            @click=${(e: MouseEvent) => {
+              e.stopPropagation();
+              this.handleGroupChartClick(e, anomalyGroup);
+            }}
+            @auxclick=${(e: MouseEvent) => {
+              e.stopPropagation();
+              this.handleGroupChartClick(e, anomalyGroup);
+            }}>
             <trending-up-icon-sk></trending-up-icon-sk>
           </button>
         </td>
@@ -700,7 +717,8 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
           ${this.getReportLinkForBugId(summaryData.bug)}
           <close-icon-sk
             id="btnUnassociate"
-            @click=${() => {
+            @click=${(e: Event) => {
+              e.stopPropagation();
               this.triageMenu!.makeEditAnomalyRequest(
                 [anomalyForBugReportLink || firstAnomaly],
                 [],
@@ -709,7 +727,10 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
             }}
             ?hidden=${!anomalyForBugReportLink}>
           </close-icon-sk>
-          <bug-tooltip-sk .bugs=${summaryBugs || []} totalLabel="distinct total"></bug-tooltip-sk>
+          <bug-tooltip-sk
+            @click=${(e: Event) => e.stopPropagation()}
+            .bugs=${summaryBugs || []}
+            totalLabel="distinct total"></bug-tooltip-sk>
         </td>
         <td>
           <span
@@ -737,7 +758,12 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     if (bug_id === -2) {
       return html`Ignored Alert`;
     }
-    return html`<a href="http://b/${bug_id}" target="_blank">${bug_id}</a>`;
+    return html`<a
+      href="http://b/${bug_id}"
+      target="_blank"
+      @click=${(e: Event) => e.stopPropagation()}
+      >${bug_id}</a
+    >`;
   }
 
   getReportLinkForSummaryRowBugId(anomalyGroup: AnomalyGroup): Anomaly | undefined {
