@@ -272,6 +272,27 @@ sk_page(
     ts_entry_point = "report.ts",
 )
 
+filegroup(
+    name = "dev_pages",
+    srcs = [
+        ":alerts_dev",
+        ":clusters2_dev",
+        ":dryrunalert_dev",
+        ":extralinks_dev",
+        ":favorites_dev",
+        ":help_dev",
+        ":multiexplore-v2_dev",
+        ":multiexplore_dev",
+        ":newindex_dev",
+        ":playground_dev",
+        ":regressions_dev",
+        ":report_dev",
+        ":revisions_dev",
+        ":triage_dev",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 karma_test(
     name = "pages_test",
     src = "pages_test.ts",

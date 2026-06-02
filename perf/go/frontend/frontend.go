@@ -204,14 +204,124 @@ type Frontend struct {
 	appVersion               string
 	buildDate                string
 	commitHashRangeFormatter types.CommitHashRangeFormatter
+
+	// Channels used for the DevMode UI live-reload feature.
+	uiLiveReloadTriggerChan chan string
+	uiLiveReloadClients     map[chan string]bool
+	uiLiveReloadClientsMu   sync.Mutex
+}
+
+// triggerReloadHandler is an endpoint used by the local development script (e.g., hot-reload.sh)
+// to signal that a file has changed and the frontend needs to be refreshed.
+func (f *Frontend) triggerReloadHandler(w http.ResponseWriter, r *http.Request) {
+	reloadType := r.URL.Query().Get("type")
+	if reloadType == "" {
+		reloadType = "full"
+	}
+	select {
+	case f.uiLiveReloadTriggerChan <- reloadType:
+	default:
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// liveReloadHandler is a Server-Sent Events (SSE) endpoint that the browser connects to
+// when running in DevMode. It keeps a persistent connection open and listens for reload
+// signals. When a signal is received, it pushes an event to the browser, prompting it
+// to update the UI.
+func (f *Frontend) liveReloadHandler(w http.ResponseWriter, r *http.Request) {
+	// Set headers for SSE (Server-Sent Events) streaming.
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	// Send initial response to establish the connection.
+	if flusher, ok := w.(http.Flusher); ok {
+		flusher.Flush()
+	} else if fl, ok := w.(interface{ Flush() }); ok {
+		fl.Flush()
+	}
+
+	sklog.Infof("Live reload handler connected")
+
+	clientChan := make(chan string, 1)
+	f.uiLiveReloadClientsMu.Lock()
+	f.uiLiveReloadClients[clientChan] = true
+	f.uiLiveReloadClientsMu.Unlock()
+
+	defer func() {
+		f.uiLiveReloadClientsMu.Lock()
+		delete(f.uiLiveReloadClients, clientChan)
+		f.uiLiveReloadClientsMu.Unlock()
+	}()
+
+	for {
+		select {
+		case reloadType := <-clientChan:
+			// Reload event sent to the browser.
+			if _, err := fmt.Fprintf(w, "data: %s\n\n", reloadType); err != nil {
+				sklog.Errorf("Failed to send live reload event: %s", err)
+				return
+			}
+			if flusher, ok := w.(http.Flusher); ok {
+				flusher.Flush()
+			} else if fl, ok := w.(interface{ Flush() }); ok {
+				fl.Flush()
+			}
+		case <-r.Context().Done():
+			return
+		}
+	}
+}
+
+// Accumulates updates to be sent to clients by liveReloadHandler to prevent too
+// many reloads. Note that this introduces a small delay in the loop - feel free
+// to reduce if the rest of the loop is fast enough.
+func (f *Frontend) uiLiveReloadDebouncer() {
+	var pendingType string
+	timer := time.NewTimer(0)
+	if !timer.Stop() {
+		<-timer.C
+	}
+
+	for {
+		select {
+		case t := <-f.uiLiveReloadTriggerChan:
+			if pendingType == "" || t == "full" {
+				pendingType = t
+			}
+			timer.Reset(100 * time.Millisecond)
+
+		case <-timer.C:
+			if pendingType != "" {
+				f.uiLiveReloadClientsMu.Lock()
+				for clientChan := range f.uiLiveReloadClients {
+					select {
+					case clientChan <- pendingType:
+						sklog.Infof("Sending %s reload trigger to a client", pendingType)
+					default:
+						sklog.Infof("Dropped %s reload trigger", pendingType)
+					}
+				}
+				f.uiLiveReloadClientsMu.Unlock()
+				pendingType = ""
+			}
+		}
+	}
 }
 
 // New returns a new Frontend instance.
 func New(flags *config.FrontendFlags) (*Frontend, error) {
 	f := &Frontend{
-		flags: flags,
+		flags:                   flags,
+		uiLiveReloadTriggerChan: make(chan string, 50),
+		uiLiveReloadClients:     make(map[chan string]bool),
 	}
 	f.initialize()
+
+	if flags.DevMode {
+		go f.uiLiveReloadDebouncer()
+	}
 
 	return f, nil
 }
@@ -1171,6 +1281,10 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	// and there are no redirects issued.
 	router.Use(middleware.StripSlashes)
 
+	if f.flags.DevMode {
+		router.HandleFunc("/__trigger_reload", f.triggerReloadHandler)
+	}
+
 	router.HandleFunc("/dist/*", f.makeDistHandler())
 
 	// Redirects for the old Perf URLs.
@@ -1294,6 +1408,7 @@ func (f *Frontend) Serve() {
 
 	var h http.Handler = f.GetHandler(config.Config.AllowedHosts)
 	h = httputils.LoggingGzipRequestResponse(h)
+
 	if !f.flags.DevMode {
 		h = httputils.HealthzAndHTTPS(h)
 		// add liveness and readiness handlers after https routing since these are applied in
@@ -1301,7 +1416,15 @@ func (f *Frontend) Serve() {
 		// 301 moved permanently status
 		h = f.liveness(h)
 		h = f.readiness(h)
+	} else {
+		// Special handling for live-reloading in dev mode (bypass gzip middleware,
+		// it buffers Server-Sent Events).
+		mux := http.NewServeMux()
+		mux.HandleFunc("/__livereload", f.liveReloadHandler)
+		mux.Handle("/", h)
+		h = mux
 	}
+
 	http.Handle("/", h)
 
 	sklog.Info("Ready to serve.")

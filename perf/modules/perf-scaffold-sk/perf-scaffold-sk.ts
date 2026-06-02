@@ -475,6 +475,26 @@ export class PerfScaffoldSk extends ElementSk {
 
     if (window.perf.dev_mode) {
       this.checkDevVersion();
+
+      if (window.EventSource) {
+        const source = new EventSource('/__livereload');
+        source.onerror = function (e) {
+          console.debug('livereload connection error', e);
+        };
+        source.onmessage = function (e) {
+          if (e.data === 'css') {
+            document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
+              const url = new URL((link as HTMLLinkElement).href, window.location.origin);
+              url.searchParams.set('v', new Date().getTime().toString());
+              (link as HTMLLinkElement).href = url.href;
+            });
+            console.log('Styles hot-swapped');
+          } else {
+            console.log('Code changed. Full reload...');
+            window.location.reload();
+          }
+        };
+      }
     }
 
     this._render();

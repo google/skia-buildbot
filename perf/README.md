@@ -154,6 +154,22 @@ Rebuild them on the fly with
 bazelisk build --config=mayberemote -c dbg //perf/pages/...
 ```
 
+#### Hot Reloading
+
+To automatically rebuild the frontend and refresh your browser when files change, you can use the hot-reload script. First, ensure you have `entr` installed (`sudo apt install entr`), then run:
+
+```
+./perf/hot-reload.sh
+```
+
+When you edit a file in `perf/modules`, the script will automatically rebuild the pages and trigger either a CSS hot-swap or a full page reload in the DevMode browser.
+
+If `entr` does not work in your environment (e.g. over NFS or within some VMs, or inside a Cider-G workspace), the script will automatically fallback to polling mode. You can also explicitly run the script in polling mode by providing the `--poll` or `-p` argument:
+
+```
+./perf/hot-reload.sh --poll
+```
+
 ### Running individual component demos
 
 You can view demo/test pages of a web components by running `demopage.sh` from
