@@ -350,7 +350,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
           ${this.renderSortableHeader('bugid', 'Bug ID')}
           ${this.renderSortableHeader('revisions', 'Revisions')}
           ${this.renderSortableHeader('bot', 'Bot')}
-          ${this.renderSortableHeader('testsuite', 'Test Suite')}
+          ${this.renderSortableHeader('testsuite', 'Benchmark')}
           ${this.renderSortableHeader('test', 'Test')}
           ${this.renderSortableHeader('delta', 'Delta %')}
         </tr>

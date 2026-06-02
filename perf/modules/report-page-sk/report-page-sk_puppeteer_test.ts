@@ -95,7 +95,7 @@ describe('report-page-sk', () => {
           bugId: 'Bug ID',
           revisions: 'Revisions',
           bot: 'Bot',
-          testSuite: 'Test Suite',
+          testSuite: 'Benchmark',
           test: 'Test',
           delta: 'Delta %',
         },
