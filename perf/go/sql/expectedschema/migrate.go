@@ -17,7 +17,11 @@ package expectedschema
 import (
 	"bytes"
 	"context"
+	"path"
 	"slices"
+	"sort"
+	"strconv"
+	"strings"
 	"text/template"
 
 	"go.skia.org/infra/go/deepequal/assertdeep"
@@ -29,67 +33,182 @@ import (
 	"go.skia.org/infra/perf/go/sql"
 )
 
-// The two vars below should be updated everytime there's a schema change:
-//   - FromLiveToNext tells the SQL to execute to apply the change
-//   - FromNextToLive tells the SQL to revert the change
-//
-// Also we need to update LiveSchema schema and DropTables in sql_test.go:
-//   - DropTables deletes all tables *including* the new one in the change.
-//   - LiveSchema creates all existing tables *without* the new one in the
-//     change.
-//
-// DO NOT DROP TABLES IN VAR BELOW.
-// FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
-var FromLiveToNextSpanner = `
-	CREATE TABLE IF NOT EXISTS Autobisections (
-		job_id TEXT PRIMARY KEY,
-		anomaly_group_id TEXT,
-		anomaly_id TEXT,
-		is_real_regression BOOL,
-		createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-	);
-`
+type migration struct {
+	version int
+	name    string
+	sql     string
+}
 
-// ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
-// FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
-var FromNextToLiveSpanner = `
-	DROP TABLE IF EXISTS Autobisections;
-`
+func getMigrations() ([]migration, error) {
+	entries, err := MigrationsFS.ReadDir("migrations")
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to read migrations directory")
+	}
 
-// This function will check whether there's a new schema checked-in,
-// and if so, migrate the schema in the given Spanner instance.
+	var migrations []migration
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") {
+			continue
+		}
+		// Expected file format: migrations/<version>_<name>.sql, e.g. migrations/0002_test.sql
+		name := strings.TrimSuffix(entry.Name(), ".sql")
+		verStr, _, found := strings.Cut(name, "_")
+		if !found {
+			return nil, skerr.Fmt("invalid migration filename format: %s", entry.Name())
+		}
+		version, err := strconv.Atoi(verStr)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to parse version from filename: %s", entry.Name())
+		}
+		content, err := MigrationsFS.ReadFile(path.Join("migrations", entry.Name()))
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to read migration file: %s", entry.Name())
+		}
+		migrations = append(migrations, migration{
+			version: version,
+			name:    entry.Name(),
+			sql:     string(content),
+		})
+	}
+
+	// Sort migrations by version
+	sort.Slice(migrations, func(i, j int) bool {
+		return migrations[i].version < migrations[j].version
+	})
+
+	// Validate sequentiality starting from 1
+	for i, m := range migrations {
+		if m.version != i+1 {
+			return nil, skerr.Fmt("migrations are not sequential: expected version %d, got %d", i+1, m.version)
+		}
+	}
+
+	return migrations, nil
+}
+
+func tableExists(ctx context.Context, db pool.Pool, tableName string) (bool, error) {
+	var exists bool
+	query := `
+		SELECT EXISTS (
+			SELECT 1 FROM information_schema.tables
+			WHERE table_name = $1
+		);
+	`
+	err := db.QueryRow(ctx, query, tableName).Scan(&exists)
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	return exists, nil
+}
+
+// isInitCompleted detects if the database initialization has already been
+// completed before the schema_migrations tracking was introduced.
+func isInitCompleted(ctx context.Context, db pool.Pool) (bool, error) {
+	// If autobisections table exists, the database was already fully initialized
+	// prior to version tracking.
+	return tableExists(ctx, db, "autobisections")
+}
+
+// getCurrentVersion returns the currently applied schema version.
+// If the schema_migrations table is empty, it attempts bootstrapping.
+func getCurrentVersion(ctx context.Context, db pool.Pool) (int, error) {
+	// 1. Query the maximum applied version from the table.
+	var currentVersion int
+	query := `SELECT COALESCE(MAX(version), 0) FROM schema_migrations`
+	row := db.QueryRow(ctx, query)
+	if err := row.Scan(&currentVersion); err != nil {
+		return 0, skerr.Wrapf(err, "failed to query current schema version")
+	}
+
+	// 2. If the table is empty, check if the database was already initialized
+	// before version tracking was introduced, and bootstrap version 1.
+	if currentVersion == 0 {
+		sklog.Infof("Table 'schema_migrations' is empty. Checking if database is already initialized...")
+		initCompleted, err := isInitCompleted(ctx, db)
+		if err != nil {
+			return 0, skerr.Wrapf(err, "failed to check if database is initialized")
+		}
+		if initCompleted {
+			sklog.Infof("Database was already initialized. Bootstrapping version 1 in migrations history.")
+			_, err = db.Exec(ctx, `INSERT INTO schema_migrations (version) VALUES (1) ON CONFLICT (version) DO NOTHING`)
+			if err != nil {
+				return 0, skerr.Wrapf(err, "failed to bootstrap migration version 1")
+			}
+			return 1, nil
+		}
+	}
+
+	return currentVersion, nil
+}
+
+// ValidateAndMigrateNewSchema will check whether there's new schemas checked-in,
+// and if so, migrate the schema in the given Spanner instance using versioned SQL scripts.
 func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool) error {
-	sklog.Debugf("Starting validate and migrate.")
-	next, err := Load()
+	sklog.Infof("Starting ValidateAndMigrateNewSchema. Ready to inspect schema transitions.")
+
+	// 1. Ensure the schema_migrations table exists in the database.
+	_, err := db.Exec(ctx, `
+		CREATE TABLE IF NOT EXISTS schema_migrations (
+			version INT PRIMARY KEY,
+			applied_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+		);
+	`)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to create schema_migrations table")
+	}
+	sklog.Infof("Successfully checked or created 'schema_migrations' logging table.")
+
+	// 2. Retrieve the currently applied version from the database (supporting bootstrapping).
+	currentVersion, err := getCurrentVersion(ctx, db)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to get current or legacy schema version")
+	}
+
+	// 3. Load, parse, sort, and validate all migration files from embed.FS.
+	migrations, err := getMigrations()
+	if err != nil {
+		return skerr.Wrapf(err, "failed to load migrations")
+	}
+	sklog.Infof("Loaded %d total embedded migration scripts from migrations/ package path.", len(migrations))
+
+	// 4. Run the pending migrations step-by-step.
+	appliedAny := false
+	for _, m := range migrations {
+		if m.version > currentVersion {
+			sklog.Infof("Applying pending database migration script: Version=%d, File=%s", m.version, m.name)
+			sklog.Infof("Executing SQL DDL content for migration %s:\n%s", m.name, m.sql)
+			_, err = db.Exec(ctx, m.sql)
+			if err != nil {
+				return skerr.Wrapf(err, "failed to apply migration version %d (%s)", m.version, m.name)
+			}
+			_, err = db.Exec(ctx, `INSERT INTO schema_migrations (version) VALUES ($1)`, m.version)
+			if err != nil {
+				return skerr.Wrapf(err, "failed to record migration version %d as applied", m.version)
+			}
+			currentVersion = m.version
+			sklog.Infof("Successfully upgraded database schema to version %d.", currentVersion)
+			appliedAny = true
+		}
+	}
+
+	if !appliedAny {
+		sklog.Infof("Database schema is already up to date at version %d. No pending migrations to execute.", currentVersion)
+	}
+
+	// 5. Perform final schema check to ensure the actual schema description matches the targets.
+	sklog.Infof("Verifying final database schema description matches expected target 'schema_spanner.json'...")
+	expectedSchema, err := Load()
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-
-	prev, err := LoadPrev()
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-
 	actual, err := schema.GetDescription(ctx, db, sql.Tables{}, "spanner")
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-
-	diffPrevActual := assertdeep.Diff(prev, *actual)
-	diffNextActual := assertdeep.Diff(next, *actual)
-
-	if diffNextActual != "" && diffPrevActual == "" {
-		sklog.Debugf("Next is different from live schema. Will migrate. diffNextActual: %s", diffNextActual)
-
-		_, err = db.Exec(ctx, FromLiveToNextSpanner)
-		if err != nil {
-			sklog.Errorf("Failed to migrate Schema from prev to next. Prev: %s, Next: %s.", prev, next)
-			return skerr.Wrapf(err, "Failed to migrate Schema")
-		}
-	} else if diffNextActual != "" && diffPrevActual != "" {
-		sklog.Errorf("Live schema doesn't match next or previous checked-in schema. diffNextActual: %s, diffPrevActual: %s.", diffNextActual, diffPrevActual)
-		return skerr.Fmt("Live schema doesn't match next or previous checked-in schema.")
+	if diff := assertdeep.Diff(expectedSchema, *actual); diff != "" {
+		return skerr.Fmt("after migration, schema description does not match schema_spanner.json: %s", diff)
 	}
+	sklog.Infof("Success! Verified that the live database catalog layout matches expected target.")
 
 	return nil
 }
@@ -176,6 +295,35 @@ func UpdateTraceParamsSchema(ctx context.Context, db pool.Pool, datastoreType co
 	if err != nil {
 		sklog.Errorf("Failed to update traceparams schema (statement='%s')", traceParamsUpdateStatement)
 		return skerr.Wrapf(err, "Failed to migrate Schema")
+	}
+
+	return nil
+}
+
+// VerifySchemaVersion checks if the database schema version matches the expected version.
+func VerifySchemaVersion(ctx context.Context, db pool.Pool) error {
+	// 1. Get maximum embedded version from migrations directory.
+	migrations, err := getMigrations()
+	if err != nil {
+		return skerr.Wrapf(err, "failed to load migrations")
+	}
+	if len(migrations) == 0 {
+		return skerr.Fmt("no embedded migration files found")
+	}
+	expectedVersion := migrations[len(migrations)-1].version
+
+	// 2. Retrieve the currently applied version from the DB.
+	var currentVersion int
+	query := `SELECT COALESCE(MAX(version), 0) FROM schema_migrations`
+	row := db.QueryRow(ctx, query)
+	if err := row.Scan(&currentVersion); err != nil {
+		return skerr.Wrapf(err, "failed to query current schema version (is the database initialized?)")
+	}
+
+	// 3. Compare version numbers.
+	if currentVersion < expectedVersion {
+		sklog.Infof("Readiness Check: Waiting for database schema migration from version %d to %d...", currentVersion, expectedVersion)
+		return skerr.Fmt("schema needs to be updated: current version %d is behind expected version %d", currentVersion, expectedVersion)
 	}
 
 	return nil

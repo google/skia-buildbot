@@ -15,7 +15,7 @@ import (
 	"go.skia.org/infra/go/emulators/pgadapter"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/pool/wrapper/timeout"
-	"go.skia.org/infra/perf/go/sql/spanner"
+	"go.skia.org/infra/perf/go/sql/expectedschema"
 )
 
 // NewSpannerDBForTests returns a connection to a local spanner emulator database to
@@ -39,7 +39,7 @@ func NewSpannerDBForTests(t *testing.T, databaseNamePrefix string) pool.Pool {
 
 	// Apply the db schema so that the tables are ready for the tests.
 	require.Eventually(t, func() bool {
-		_, err := rawConn.Exec(ctx, spanner.Schema)
+		err := expectedschema.ValidateAndMigrateNewSchema(ctx, rawConn)
 		if err != nil {
 			fmt.Printf("Error while applying database migration: %v", err)
 		}

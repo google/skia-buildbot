@@ -8,9 +8,8 @@ go_library(
         "migrate.go",
         "traceparams_schema.go",
     ],
-    embedsrcs = [
+    embedsrcs = glob(["migrations/*.sql"]) + [
         "schema_spanner.json",
-        "schema_prev_spanner.json",
     ],
     importpath = "go.skia.org/infra/perf/go/sql/expectedschema",
     visibility = ["//visibility:public"],
@@ -33,6 +32,7 @@ go_test(
     deps = [
         ":expectedschema",
         "//go/deepequal/assertdeep",
+        "//go/sql/pool",
         "//go/sql/schema",
         "//perf/go/config",
         "//perf/go/sql",

@@ -7,18 +7,17 @@ package builders
 import (
 	"context"
 	"io/fs"
+	"os"
 	"sync"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/jackc/pgx/v4/stdlib" // pgx Go sql
 	"go.skia.org/infra/go/cache"
-	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/pool/wrapper/timeout"
-	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
 	"go.skia.org/infra/perf/go/anomalygroup"
@@ -45,7 +44,6 @@ import (
 	"go.skia.org/infra/perf/go/regrshortcut/regrshortcutstore"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/shortcut/sqlshortcutstore"
-	"go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/expectedschema"
 	"go.skia.org/infra/perf/go/subscription"
 	subscription_store "go.skia.org/infra/perf/go/subscription/sqlsubscriptionstore"
@@ -124,18 +122,9 @@ func NewDBPoolFromConfig(ctx context.Context, instanceConfig *config.InstanceCon
 	singletonPool = timeout.New(rawPool)
 
 	if checkSchema {
-		// Confirm the database has the right schema.
-		expectedSchema, err := expectedschema.Load()
-		if err != nil {
+		// Confirm the database has the right schema version.
+		if err := expectedschema.VerifySchemaVersion(ctx, singletonPool); err != nil {
 			return nil, skerr.Wrap(err)
-		}
-
-		actual, err := schema.GetDescription(ctx, singletonPool, sql.Tables{}, string(instanceConfig.DataStoreConfig.DataStoreType))
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		if diff := assertdeep.Diff(expectedSchema, *actual); diff != "" {
-			return nil, skerr.Fmt("Schema needs to be updated: %s.", diff)
 		}
 	}
 
@@ -412,9 +401,13 @@ func GetCacheFromConfig(ctx context.Context, instanceConfig config.InstanceConfi
 	return cache, err
 }
 
-// getDBPool returns a pool.Pool object based on the target database configured.
 func getDBPool(ctx context.Context, instanceConfig *config.InstanceConfig) (pool.Pool, error) {
-	db, err := NewDBPoolFromConfig(ctx, instanceConfig, true)
+	// Check if running in a Kubernetes environment.
+	// If NOT in Kubernetes, this is a local/dev machine run, so we want to fail-fast on startup.
+	isK8s := os.Getenv("KUBERNETES_SERVICE_HOST") != ""
+	isLocal := !isK8s
+
+	db, err := NewDBPoolFromConfig(ctx, instanceConfig, isLocal)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

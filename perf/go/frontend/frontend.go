@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/sklogimpl"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/anomalies"
 	anomalies_impl "go.skia.org/infra/perf/go/anomalies/impl"
@@ -66,6 +67,7 @@ import (
 	"go.skia.org/infra/perf/go/regression/refiner"
 	"go.skia.org/infra/perf/go/regrshortcut"
 	"go.skia.org/infra/perf/go/shortcut"
+	"go.skia.org/infra/perf/go/sql/expectedschema"
 	"go.skia.org/infra/perf/go/subscription"
 	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -126,6 +128,8 @@ var (
 // Frontend is the server for the Perf web UI.
 type Frontend struct {
 	perfGit perfgit.Git
+
+	db pool.Pool
 
 	templates *template.Template
 
@@ -676,6 +680,32 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
 	}
 
+	f.db, err = builders.NewDBPoolFromConfig(ctx, config.Config, false)
+	if err != nil {
+		sklog.Fatalf("Failed to obtain database pool: %s", err)
+	}
+
+	// Start a background goroutine to periodically log if the database schema needs a migration.
+	// This ensures container logs are informative and active while waiting in GKE/Kubernetes.
+	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				sklog.Infof("Context canceled, stopping schema readiness logging.")
+				return
+			case <-ticker.C:
+				err := expectedschema.VerifySchemaVersion(ctx, f.db)
+				if err == nil {
+					sklog.Info("Database schema is fully up-to-date! Ready to serve traffic.")
+					return
+				}
+				sklog.Infof("Database schema is not ready yet: %s. Waiting for migration job to complete...", err)
+			}
+		}
+	}()
+
 	// If running locally, lets force the service to use a local cache since
 	// redis cannot be used outside GCP.
 	if f.flags.DevMode && config.Config.QueryConfig.CacheConfig.Enabled {
@@ -947,7 +977,13 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 func (f *Frontend) readiness(h http.Handler) http.Handler {
 	s := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/readiness" {
-			w.WriteHeader(http.StatusOK)
+			ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+			defer cancel()
+			if err := expectedschema.VerifySchemaVersion(ctx, f.db); err != nil {
+				httputils.ReportError(w, err, "Database schema needs migration.", http.StatusServiceUnavailable)
+			} else {
+				w.WriteHeader(http.StatusOK)
+			}
 			return
 		}
 		h.ServeHTTP(w, r)
