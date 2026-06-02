@@ -9,7 +9,7 @@ import (
 var deps = deps_parser.DepsEntries{
 	"chromium.googlesource.com/chromium/tools/depot_tools": {
 		Id:      "chromium.googlesource.com/chromium/tools/depot_tools",
-		Version: "f3f28514e02fcf7bb9a7062e287758ee821741eb",
+		Version: "298c36eea8d80d6969214503f5c2d20f0debf960",
 		Path:    "depot_tools",
 	},
 }
