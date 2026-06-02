@@ -114,7 +114,18 @@ func setupBenchmarks(cbb *CbbRunnerParams) []BenchmarkRunConfig {
 		// Loadline2 is only available on Android. It also takes considerably
 		// longer than other benchmarks, having 50 iterations built-in,
 		// so give it a lower repetition count here.
-		benchmarks = append(benchmarks, BenchmarkRunConfig{"loadline2_tablet", 8})
+		switch botConfig {
+		case "android-pixel-tangor-perf-cbb":
+			// CBB has 4 Tangor devices. Run 2 iterations on each device, for a total of 8.
+			benchmarks = append(benchmarks, BenchmarkRunConfig{"loadline2_tablet", 8})
+		case "android-pixel10-perf-cbb":
+			// CBB has 21 Pixel 10 devices. Use two-thirds of these, so that each device
+			// only needs to run a single iteration, even when some devices are dead.
+			benchmarks = append(benchmarks, BenchmarkRunConfig{"loadline2_phone", 14})
+		default:
+			// Don't know whether to run loadline2_tablet or loadline2_phone.
+			sklog.Errorf("Unknown Android config %s, please add it to setupBenchmarks function in cbb_runner.go", botConfig)
+		}
 	}
 
 	return benchmarks
