@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"testing/fstest"
 
@@ -289,6 +290,7 @@ func TestFrontend_GetPageContext_InstanceName(t *testing.T) {
 	ctx, err := f.getPageContext()
 	require.NoError(t, err)
 	require.Contains(t, string(ctx), "\"instance_name\": \"\"")
+	require.NotContains(t, string(ctx), "\"schema_version\"")
 
 	// Case 2: With instance_name
 	config.Config.InstanceName = "chrome-perf-test"
@@ -303,6 +305,12 @@ func TestFrontend_GetPageContext_InstanceName(t *testing.T) {
 	// It should NOT be truncated in the JSON context, only in the UI display if needed.
 	// The backend just passes it through.
 	require.Contains(t, string(ctx), "\"instance_name\": \"this-is-a-long-instance-name-that-exceeds-the-limit-of-64-chars-by-a-bit\"")
+
+	// Case 4: With non-zero schema version
+	atomic.StoreInt32(&f.schemaVersion, 42)
+	ctx, err = f.getPageContext()
+	require.NoError(t, err)
+	require.Contains(t, string(ctx), "\"schema_version\": 42")
 }
 
 func TestFrontend_devVersionHandler_ReturnsVersion(t *testing.T) {

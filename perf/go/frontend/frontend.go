@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -205,8 +206,10 @@ type Frontend struct {
 
 	issuetracker issuetracker.IssueTracker
 
-	appVersion               string
-	buildDate                string
+	appVersion string
+	buildDate  string
+	// schemaVersion is the currently running database schema version.
+	schemaVersion            int32
 	commitHashRangeFormatter types.CommitHashRangeFormatter
 
 	// Channels used for the DevMode UI live-reload feature.
@@ -431,6 +434,7 @@ type SkPerfConfig struct {
 	AlwaysShowCommitInfo        bool               `json:"always_show_commit_info"`               // Boolean to display commit author and hash.
 	AppVersion                  string             `json:"app_version"`                           // The git revision of the buildbot repo this instance was built from.
 	BuildDate                   string             `json:"build_date,omitempty"`                  // The date the build was created.
+	SchemaVersion               int                `json:"schema_version,omitempty"`              // The current SQL database schema version.
 	EnableV2UI                  bool               `json:"enable_v2_ui"`                          // True if V2 UI can be toggled.
 	DevMode                     bool               `json:"dev_mode"`
 	ExtraLinks                  *config.ExtraLinks `json:"extra_links"` // Extra links to be display on a dedicated page.
@@ -487,6 +491,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		ShowHashRangesInTooltip:     config.Config.ShowHashRangesInTooltip,
 		AppVersion:                  f.appVersion,
 		BuildDate:                   f.buildDate,
+		SchemaVersion:               int(atomic.LoadInt32(&f.schemaVersion)),
 		EnableV2UI:                  config.Config.EnableV2UI,
 		DevMode:                     f.flags.DevMode,
 		ExtraLinks:                  config.Config.ExtraLinks,
@@ -567,6 +572,21 @@ func (f *Frontend) loadBuildDate() {
 		}
 	}
 	sklog.Infof("Build date: %s", f.buildDate)
+}
+
+// loadSchemaVersion queries the database to retrieve the currently applied SQL schema version.
+func (f *Frontend) loadSchemaVersion(ctx context.Context) {
+	if f.db == nil {
+		return
+	}
+	ver, err := expectedschema.GetCurrentVersion(ctx, f.db)
+	if err != nil {
+		sklog.Errorf("Failed to load current schema version from DB: %s", err)
+		atomic.StoreInt32(&f.schemaVersion, 0)
+	} else {
+		atomic.StoreInt32(&f.schemaVersion, int32(ver))
+	}
+	sklog.Infof("Currently running on schema version: %d", atomic.LoadInt32(&f.schemaVersion))
 }
 
 // initialize the application.
@@ -685,6 +705,8 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to obtain database pool: %s", err)
 	}
 
+	f.loadSchemaVersion(ctx)
+
 	// Start a background goroutine to periodically log if the database schema needs a migration.
 	// This ensures container logs are informative and active while waiting in GKE/Kubernetes.
 	go func() {
@@ -699,6 +721,7 @@ func (f *Frontend) initialize() {
 				err := expectedschema.VerifySchemaVersion(ctx, f.db)
 				if err == nil {
 					sklog.Info("Database schema is fully up-to-date! Ready to serve traffic.")
+					f.loadSchemaVersion(ctx)
 					return
 				}
 				sklog.Infof("Database schema is not ready yet: %s. Waiting for migration job to complete...", err)

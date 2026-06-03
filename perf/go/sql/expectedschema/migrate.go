@@ -109,9 +109,9 @@ func isInitCompleted(ctx context.Context, db pool.Pool) (bool, error) {
 	return tableExists(ctx, db, "autobisections")
 }
 
-// getCurrentVersion returns the currently applied schema version.
+// GetCurrentVersion returns the currently applied schema version.
 // If the schema_migrations table is empty, it attempts bootstrapping.
-func getCurrentVersion(ctx context.Context, db pool.Pool) (int, error) {
+func GetCurrentVersion(ctx context.Context, db pool.Pool) (int, error) {
 	// 1. Query the maximum applied version from the table.
 	var currentVersion int
 	query := `SELECT COALESCE(MAX(version), 0) FROM schema_migrations`
@@ -159,7 +159,7 @@ func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool) error {
 	sklog.Infof("Successfully checked or created 'schema_migrations' logging table.")
 
 	// 2. Retrieve the currently applied version from the database (supporting bootstrapping).
-	currentVersion, err := getCurrentVersion(ctx, db)
+	currentVersion, err := GetCurrentVersion(ctx, db)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to get current or legacy schema version")
 	}

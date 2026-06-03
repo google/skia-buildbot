@@ -6,7 +6,7 @@
  * every Perf page should be a child of this element.
  *
  */
-import { html } from 'lit/html.js';
+import { html, nothing, TemplateResult } from 'lit/html.js';
 import { choose } from 'lit/directives/choose.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -329,10 +329,20 @@ export class PerfScaffoldSk extends ElementSk {
     const dateStr = appVersion.startsWith('dev-') ? appVersion.substring(4) : appVersion;
     const date = new Date(dateStr);
 
-    let buildDateTemplate = html``;
+    let buildDateTemplate: TemplateResult | typeof nothing = nothing;
     if (buildDate) {
       buildDateTemplate = html`<div class="build-date" title="Build Date">
         Build: ${buildDate}
+      </div>`;
+    }
+
+    const schemaVersion = window.perf.schema_version;
+    let schemaVersionTemplate: TemplateResult | typeof nothing = nothing;
+    if (schemaVersion) {
+      schemaVersionTemplate = html`<div
+        class="schema-version"
+        title="Currently applied database schema version">
+        Schema: v${schemaVersion}
       </div>`;
     }
 
@@ -348,6 +358,7 @@ export class PerfScaffoldSk extends ElementSk {
           <a class="version" title="${appVersion}">
             <span>dev-build (${formattedDate})</span>
           </a>
+          ${schemaVersionTemplate}
         </div>
       `;
     }
@@ -365,7 +376,7 @@ export class PerfScaffoldSk extends ElementSk {
           title="${appVersion}">
           <span>Ver: ${shortHash}</span>
         </a>
-        ${buildDateTemplate}
+        ${buildDateTemplate} ${schemaVersionTemplate}
       </div>
     `;
   }

@@ -498,6 +498,7 @@ export interface SkPerfConfig {
 	always_show_commit_info: boolean;
 	app_version: string;
 	build_date?: string;
+	schema_version?: number;
 	enable_v2_ui: boolean;
 	dev_mode: boolean;
 	extra_links: ExtraLinks | null;
