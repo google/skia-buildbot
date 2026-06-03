@@ -10,8 +10,8 @@ source ../kube/config.sh
 BUCKET=gs://skia-codesize
 TOPIC=skia-codesize-files
 
-gsutil notification create \
-  -f json \
-  -e OBJECT_FINALIZE \
-  -t projects/${PROJECT_ID}/topics/${TOPIC} \
+gcloud storage buckets notifications create \
+  --payload-format json \
+  --event-types OBJECT_FINALIZE \
+  --topic projects/${PROJECT_ID}/topics/${TOPIC} \
   ${BUCKET}

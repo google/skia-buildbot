@@ -16,5 +16,5 @@ for secret in $(kubectl get secrets -o json | jq -r '.items[].metadata.name'); d
       --key=${KEY} \
       --location=global \
       --plaintext-file=- \
-      --ciphertext-file=- | gsutil cp - gs://${BUCKET}/secrets/$(date +%Y-%m-%d)/${secret}.enc
+      --ciphertext-file=- | gcloud storage cp - gs://${BUCKET}/secrets/$(date +%Y-%m-%d)/${secret}.enc
 done

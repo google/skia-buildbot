@@ -15,7 +15,7 @@ if [ "$#" -ne 1 ]; then
   exit 1
 fi
 
-gsutil cp $1 - | gcloud kms decrypt \
+gcloud storage cp $1 - | gcloud kms decrypt \
   --ciphertext-file=- \
   --plaintext-file=- \
   --location=global \

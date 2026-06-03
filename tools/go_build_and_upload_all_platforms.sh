@@ -18,6 +18,6 @@ mkdir -p "${workdir}"
 
 $(dirname ${0})/go_build_all_platforms.sh "${path}" "${workdir}"
 
-gsutil cp -r ${workdir} gs://skia-public-binaries
+gcloud storage cp --recursive ${workdir} gs://skia-public-binaries
 
 rm -rf ${workdir}
