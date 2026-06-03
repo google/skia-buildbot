@@ -18,27 +18,39 @@ import (
 const (
 	writeTraceParams int = iota
 	readTraceParams
+	updateVisibility
+	getInternalTraceIDsForParam
+	getPublicTraces
 )
 
 const traceParamInsertChunkSize = 100
 const traceParamInsertParallelPoolSize = 5
+const traceParamUpdateChunkSize = 1000
 
 var stmts = map[int]string{
-
 	readTraceParams: `SELECT trace_id, params
-        FROM TraceParams
-   			WHERE
-      	trace_id = ANY($1);
-		`,
-	writeTraceParams: `INSERT INTO
-        TraceParams (trace_id, params)
-        VALUES
-            {{ range $index, $trace_id  :=  .MD5HexTraceIDs -}}
-                {{ if $index }},{{end}}
-                ( '{{ $trace_id }}', {{ print "$"}}{{ increment $index }} )
-            {{ end }}
-        ON CONFLICT (trace_id) DO NOTHING
-        `,
+	FROM TraceParams
+	WHERE trace_id = ANY($1);`,
+
+	writeTraceParams: `INSERT INTO TraceParams (trace_id, params)
+	VALUES
+		{{ range $index, $trace_id  :=  .MD5HexTraceIDs -}}
+		{{ if $index }},{{end}}
+		( '{{ $trace_id }}', {{ print "$"}}{{ increment $index }} )
+		{{ end }}
+	ON CONFLICT (trace_id) DO NOTHING`,
+
+	updateVisibility: `UPDATE TraceParams
+	SET is_public = $1
+	WHERE trace_id = ANY($2);`,
+
+	getInternalTraceIDsForParam: `SELECT trace_id
+	FROM TraceParams
+	WHERE params ->> $1 = $2 AND COALESCE(is_public, false) = false;`,
+
+	getPublicTraces: `SELECT trace_id, params
+	FROM TraceParams
+	WHERE is_public = true;`,
 }
 
 // traceParamsContext provides a context struct to execute the query template.
@@ -57,6 +69,30 @@ func NewTraceParamStore(db pool.Pool) *SQLTraceParamStore {
 	return &SQLTraceParamStore{
 		db: db,
 	}
+}
+
+// GetInternalTraceIDsForParam returns a list of trace IDs that match a given parameter key and value, and are currently marked private (is_public = false).
+func (s *SQLTraceParamStore) GetInternalTraceIDsForParam(ctx context.Context, paramName string, paramValue string) ([]string, error) {
+	rows, err := s.db.Query(ctx, stmts[getInternalTraceIDsForParam], paramName, paramValue)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to query TraceParams for internal %s=%s", paramName, paramValue)
+	}
+	defer rows.Close()
+
+	var traceIds []string
+	for rows.Next() {
+		var traceId []byte
+		if err := rows.Scan(&traceId); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to scan trace_id")
+		}
+		traceIds = append(traceIds, string(types.TraceIDForSQLFromTraceIDAsBytes(traceId)))
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, skerr.Wrapf(err, "Error after scanning rows")
+	}
+
+	return traceIds, nil
 }
 
 // ReadParams reads the parameters for the given set of traceIds.
@@ -120,6 +156,52 @@ func (s *SQLTraceParamStore) WriteTraceParams(ctx context.Context, traceParams m
 	})
 
 	return err
+}
+
+// UpdateVisibility implements tracestore.TraceParamStore.
+func (s *SQLTraceParamStore) UpdateVisibility(ctx context.Context, traceIds []string, isPublic bool) error {
+	if len(traceIds) == 0 {
+		return nil
+	}
+
+	return util.ChunkIterParallelPool(ctx, len(traceIds), traceParamUpdateChunkSize, traceParamInsertParallelPoolSize, func(ctx context.Context, startIdx, endIdx int) error {
+		chunkTraceIds := traceIds[startIdx:endIdx]
+		traceIdsAsBytes, err := convertTraceIDsToBytes(chunkTraceIds)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+
+		if _, err := s.db.Exec(ctx, stmts[updateVisibility], isPublic, traceIdsAsBytes); err != nil {
+			return skerr.Wrapf(err, "Failed to update trace visibility")
+		}
+		return nil
+	})
+}
+
+// GetPublicTraces returns all currently public traces and their params.
+func (s *SQLTraceParamStore) GetPublicTraces(ctx context.Context) (map[string]paramtools.Params, error) {
+	rows, err := s.db.Query(ctx, stmts[getPublicTraces])
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to query public TraceParams")
+	}
+	defer rows.Close()
+
+	publicTraces := map[string]paramtools.Params{}
+	for rows.Next() {
+		var traceId []byte
+		var params paramtools.Params
+		if err := rows.Scan(&traceId, &params); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to scan public trace")
+		}
+		traceIdString := types.TraceIDForSQLFromTraceIDAsBytes(traceId)
+		publicTraces[string(traceIdString)] = params
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, skerr.Wrapf(err, "Error scanning public traces rows")
+	}
+
+	return publicTraces, nil
 }
 
 // writeTraceParamsChunk writes the given chunk of traceParams to the traceparams table.

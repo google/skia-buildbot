@@ -30,6 +30,8 @@ import (
 	"go.skia.org/infra/perf/go/ingest/parser"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
+	"go.skia.org/infra/perf/go/trace_visibility/promoter"
+	"go.skia.org/infra/perf/go/trace_visibility/sqlconfigstore"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/oauth2/google"
@@ -50,6 +52,7 @@ type Application interface {
 	TracesExport(store tracestore.TraceStore, queryString string, begin, end types.CommitNumber, outputFile string) error
 	IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool, pathFilter string) error
 	IngestValidate(inputFile string, verbose bool) error
+	VisibilityPromote(ctx context.Context, instanceConfig *config.InstanceConfig, timeout time.Duration) error
 }
 
 // app implements Application.
@@ -884,6 +887,26 @@ func getRegressionStore(ctx context.Context, instanceConfig *config.InstanceConf
 	}
 
 	return regressionStore, nil
+}
+
+// VisibilityPromote runs one-shot dynamic trace promotions in database.
+func (app) VisibilityPromote(ctx context.Context, instanceConfig *config.InstanceConfig, timeout time.Duration) error {
+	if instanceConfig.VisibilityConfig == nil {
+		fmt.Println("Skipping visibility promoter: visibility config missing in instance config.")
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	db, err := builders.NewDBPoolFromConfig(ctx, instanceConfig, false)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to create database connection pool")
+	}
+
+	configStore := sqlconfigstore.New(db)
+	backgroundPromoter := promoter.New(db, configStore)
+	return backgroundPromoter.Promote(ctx)
 }
 
 // Confirm app implements App.

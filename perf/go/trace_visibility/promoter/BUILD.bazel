@@ -1,0 +1,30 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "promoter",
+    srcs = ["promoter.go"],
+    importpath = "go.skia.org/infra/perf/go/trace_visibility/promoter",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//go/sql/pool",
+        "//go/util",
+        "//perf/go/trace_visibility/sqlconfigstore/schema",
+        "//perf/go/trace_visibility/store",
+    ],
+)
+
+go_test(
+    name = "promoter_test",
+    srcs = ["promoter_test.go"],
+    embed = [":promoter"],
+    deps = [
+        "//perf/go/sql/sqltest",
+        "//perf/go/trace_visibility/sqlconfigstore",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

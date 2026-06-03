@@ -519,7 +519,7 @@ func ChunkIterParallelPool(ctx context.Context, length, chunkSize, poolSize int,
 				if err := eCtx.Err(); err != nil {
 					return skerr.Wrap(err)
 				}
-				if err := fn(ctx, chunk.start, chunk.end); err != nil {
+				if err := fn(eCtx, chunk.start, chunk.end); err != nil {
 					// Drain the channel before returning the err.
 					for range chunkChannel {
 					}

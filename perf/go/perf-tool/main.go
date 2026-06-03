@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/skerr"
@@ -39,7 +40,14 @@ const (
 	stopTimeFlagName         = "stop"
 	tileNumberFlagName       = "tile"
 	verboseFlagName          = "verbose"
+	timeoutFlagName          = "timeout"
 )
+
+var timeoutFlag = &cli.StringFlag{
+	Name:  timeoutFlagName,
+	Value: "30m",
+	Usage: "The overall execution timeout duration (e.g. '30m' or '2h').",
+}
 
 var connectionStringFlag = &cli.StringFlag{
 	Name:    connectionStringFlagName,
@@ -469,6 +477,32 @@ using the same input file for both restores.
 									return app.DatabaseRestoreRegressions(instanceConfig, c.String(inputFilenameFlagName))
 								},
 							},
+						},
+					},
+				},
+			},
+			{
+				Name:  "visibility",
+				Usage: "Visibility management utilities",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "promote",
+						Usage: "Runs one-shot visibility promoter for historical traces.",
+						Flags: []cli.Flag{
+							configFilenameFlag,
+							connectionStringFlag,
+							timeoutFlag,
+						},
+						Action: func(c *cli.Context) error {
+							instanceConfig, err := instanceConfigFromFlags(c)
+							if err != nil {
+								return skerr.Wrap(err)
+							}
+							timeout, err := time.ParseDuration(c.String(timeoutFlagName))
+							if err != nil {
+								return skerr.Wrapf(err, "invalid timeout duration")
+							}
+							return app.VisibilityPromote(c.Context, instanceConfig, timeout)
 						},
 					},
 				},

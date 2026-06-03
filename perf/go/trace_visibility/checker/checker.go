@@ -33,9 +33,10 @@ func extractRulePrefix(rule string) string {
 	return rule[:idx+1]
 }
 
-// Check fetches visibility config and compares them to the database.
+// Check fetches visibility config and compares them to the database,
+// auto-remediating any discrepancies.
 func (c *Checker) Check(ctx context.Context) error {
-	sklog.Info("Starting check of visibility rules...")
+	sklog.Info("Starting check and sync of visibility rules...")
 
 	dbConfigs, err := c.store.GetAll(ctx)
 	if err != nil {
@@ -52,55 +53,49 @@ func (c *Checker) Check(ctx context.Context) error {
 		return skerr.Wrapf(err, "failed to fetch expected rules")
 	}
 
-	missingByRule := make(map[string][]string)
-	extraByRule := make(map[string][]string)
-
+	var missingRules []string
 	for rule := range expectedRules {
 		if !dbRules[rule] {
-			rulePrefix := extractRulePrefix(rule)
-			missingByRule[rulePrefix] = append(missingByRule[rulePrefix], rule)
+			missingRules = append(missingRules, rule)
 		}
 	}
 
-	for rule := range dbRules {
-		if !expectedRules[rule] {
-			rulePrefix := extractRulePrefix(rule)
-			extraByRule[rulePrefix] = append(extraByRule[rulePrefix], rule)
+	missingByPrefixCount := make(map[string]int)
+	if len(missingRules) > 0 {
+		sklog.Infof("Auto-remediation: Saving %d missing expected rules to DB: %s", len(missingRules), strings.Join(missingRules, ", "))
+		for _, rule := range missingRules {
+			if err := c.store.Set(ctx, rule); err != nil {
+				sklog.Errorf("Failed to save expected rule %q: %s", rule, err)
+				missingByPrefixCount[extractRulePrefix(rule)]++
+			}
 		}
 	}
 
-	allRules := make(map[string]bool)
+	extraByPrefixCount := make(map[string]int)
+	allPrefixes := make(map[string]bool)
 	for rule := range expectedRules {
-		allRules[extractRulePrefix(rule)] = true
+		allPrefixes[extractRulePrefix(rule)] = true
 	}
+
 	for rule := range dbRules {
-		allRules[extractRulePrefix(rule)] = true
+		rulePrefix := extractRulePrefix(rule)
+		allPrefixes[rulePrefix] = true
+
+		if !expectedRules[rule] {
+			// Auto-remediate extra rule
+			// TODO(sergeirudenkov): The promoter does not yet know how to demote/revert public traces
+			// when their rule is deleted. This will be handled in a separate CL.
+			sklog.Warningf("Outdated extra rule %q found in database that is not in expected provider configs", rule)
+			extraByPrefixCount[rulePrefix]++
+		}
 	}
 
-	for rulePrefix := range allRules {
-		missing := missingByRule[rulePrefix]
-		extra := extraByRule[rulePrefix]
-		if len(missing) > 0 || len(extra) > 0 {
-			sklog.Infof(
-				"Visibility rules diff found for source %q. Missing in DB: %v, Extra in DB: %v",
-				rulePrefix,
-				missing,
-				extra,
-			)
-		} else {
-			sklog.Infof(
-				"Successfully verified visibility rules for source %q. No differences found.",
-				rulePrefix,
-			)
-		}
+	for prefix := range allPrefixes {
+		tagsExtra := map[string]string{"type": "extra", "source": prefix}
+		metrics2.GetInt64Metric("perf_visibility_rules_diff", tagsExtra).Update(int64(extraByPrefixCount[prefix]))
 
-		tagsMissing := map[string]string{"type": "missing", "source": rulePrefix}
-		metrics2.GetInt64Metric(
-			"perf_visibility_rules_diff",
-			tagsMissing).Update(int64(len(missing)))
-
-		tagsExtra := map[string]string{"type": "extra", "source": rulePrefix}
-		metrics2.GetInt64Metric("perf_visibility_rules_diff", tagsExtra).Update(int64(len(extra)))
+		tagsMissing := map[string]string{"type": "missing", "source": prefix}
+		metrics2.GetInt64Metric("perf_visibility_rules_diff", tagsMissing).Update(int64(missingByPrefixCount[prefix]))
 	}
 
 	return nil

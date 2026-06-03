@@ -20,6 +20,8 @@ go_library(
         "//perf/go/ingest/parser",
         "//perf/go/regression",
         "//perf/go/shortcut",
+        "//perf/go/trace_visibility/promoter",
+        "//perf/go/trace_visibility/sqlconfigstore",
         "//perf/go/tracestore",
         "//perf/go/types",
         "@com_google_cloud_go_pubsub//:pubsub",

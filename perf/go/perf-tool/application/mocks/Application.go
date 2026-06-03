@@ -3,8 +3,13 @@
 package mocks
 
 import (
-	mock "github.com/stretchr/testify/mock"
+	context "context"
+
 	config "go.skia.org/infra/perf/go/config"
+
+	mock "github.com/stretchr/testify/mock"
+
+	time "time"
 
 	tracestore "go.skia.org/infra/perf/go/tracestore"
 
@@ -207,6 +212,24 @@ func (_m *Application) TracesList(store tracestore.TraceStore, queryString strin
 	var r0 error
 	if rf, ok := ret.Get(0).(func(tracestore.TraceStore, string, types.TileNumber) error); ok {
 		r0 = rf(store, queryString, tileNumber)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// VisibilityPromote provides a mock function with given fields: ctx, instanceConfig, timeout
+func (_m *Application) VisibilityPromote(ctx context.Context, instanceConfig *config.InstanceConfig, timeout time.Duration) error {
+	ret := _m.Called(ctx, instanceConfig, timeout)
+
+	if len(ret) == 0 {
+		panic("no return value specified for VisibilityPromote")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *config.InstanceConfig, time.Duration) error); ok {
+		r0 = rf(ctx, instanceConfig, timeout)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -396,6 +396,7 @@ packages:
     interfaces:
       TraceStore:
       MetadataStore:
+      TraceParamStore:
   go.skia.org/infra/perf/go/userissue:
     config:
       dir: "{{.InterfaceDir}}/mocks"

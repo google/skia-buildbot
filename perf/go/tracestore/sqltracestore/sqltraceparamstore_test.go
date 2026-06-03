@@ -97,3 +97,67 @@ func TestTraceIdFromBytesBackToBytesConversion(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, testData, testDataResults)
 }
+
+func TestGetInternalTraceIDsForParam_Success(t *testing.T) {
+	traceStore := createTraceParamStoreForTests(t)
+	ctx := context.Background()
+
+	// Write two traces with the same param key "bot" but different values.
+	// By default, they will have is_public = NULL (which is treated as false).
+	traceIdsMap := map[string]paramtools.Params{
+		string(types.TraceIDForSQLFromTraceName(",bot=public_bot,")): {
+			"bot": "public_bot",
+		},
+		string(types.TraceIDForSQLFromTraceName(",bot=private_bot,")): {
+			"bot": "private_bot",
+		},
+	}
+	err := traceStore.WriteTraceParams(ctx, traceIdsMap)
+	assert.NoError(t, err)
+
+	// Promote the public_bot trace to is_public = true
+	publicId := string(types.TraceIDForSQLFromTraceName(",bot=public_bot,"))
+	err = traceStore.UpdateVisibility(ctx, []string{publicId}, true)
+	assert.NoError(t, err)
+
+	// Test 1: Query for internal traces using public bot name. Should return nothing (as it is public).
+	ids, err := traceStore.GetInternalTraceIDsForParam(ctx, "bot", "public_bot")
+	assert.NoError(t, err)
+	assert.Empty(t, ids)
+
+	// Test 2: Query for internal traces using private bot name. Should return private_bot trace.
+	// This tests that NULL is correctly treated as false by the COALESCE logic.
+	privateId := string(types.TraceIDForSQLFromTraceName(",bot=private_bot,"))
+	ids, err = traceStore.GetInternalTraceIDsForParam(ctx, "bot", "private_bot")
+	assert.NoError(t, err)
+	assert.Equal(t, []string{privateId}, ids)
+}
+
+func TestGetPublicTraces_Success(t *testing.T) {
+	traceStore := createTraceParamStoreForTests(t)
+	ctx := context.Background()
+
+	traceIdsMap := map[string]paramtools.Params{
+		string(types.TraceIDForSQLFromTraceName(",bot=public_bot,")): {
+			"bot": "public_bot",
+		},
+		string(types.TraceIDForSQLFromTraceName(",bot=private_bot,")): {
+			"bot": "private_bot",
+		},
+	}
+	err := traceStore.WriteTraceParams(ctx, traceIdsMap)
+	assert.NoError(t, err)
+
+	// Promote one trace to public
+	publicId := string(types.TraceIDForSQLFromTraceName(",bot=public_bot,"))
+	err = traceStore.UpdateVisibility(ctx, []string{publicId}, true)
+	assert.NoError(t, err)
+
+	// Fetch all public traces
+	publicTraces, err := traceStore.GetPublicTraces(ctx)
+	assert.NoError(t, err)
+	assert.Len(t, publicTraces, 1)
+
+	assert.Contains(t, publicTraces, publicId)
+	assert.Equal(t, "public_bot", publicTraces[publicId]["bot"])
+}

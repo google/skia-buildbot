@@ -4,6 +4,7 @@ go_library(
     name = "mocks",
     srcs = [
         "MetadataStore.go",
+        "TraceParamStore.go",
         "TraceStore.go",
     ],
     importpath = "go.skia.org/infra/perf/go/tracestore/mocks",

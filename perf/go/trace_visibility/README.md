@@ -1,58 +1,114 @@
-# Trace Visibility
+# Trace Visibility & Promotion Architecture
 
-Manages trace visibility rules (e.g., determining which traces/bots are public vs. internal) using a `Checker -> Provider` architecture.
+Manages trace visibility rules (e.g., determining which traces/bots are public
+vs. internal) using a `Checker` background loop and a standalone `perf-tool`
+promotion utility.
 
-## Architecture Overview
+---
+
+## 1. Unified Database Architecture
+
+To streamline detection and analysis, both public and internal frontends share
+a single database. Traces are marked as public or internal via the `is_public`
+column in the `TraceParams` table.
 
 ```text
-                               +----------------------------------------+
-                               |              Provider                  |
-+-------------------+          | (e.g., ChromeProvider)                 |
-|     Database      |          |                                        |
-| (PublicTraceRules)|          | 1. Connect to Config Sources           |
-+-------------------+          |    (e.g., Gitiles repo, Gerrit)        |
-        ^                      | 2. Parse domain-specific configs       |
-        | (1) Read             |    (e.g., public_builders.json)        |
-        v                      | 3. Format as standard rule expressions |
-+-------------------+          |    (e.g., "bot=Mac", "bot=Linux")      |
-|                   |          +----------------------------------------+
-|      Checker      |                                |
-|                   |  (2) GetExpectedRules()        |
-|  - Compare Rules  |<-------------------------------+
-|  - Extract Source |
-|    (e.g., "bot=") |
-|  - Group Diffs    |
-+-------------------+
-        | (3) Emit
-        v
-+-------------------+
-|  Logs & Metrics   |
-| (per source tag)  |
-+-------------------+
+               +--------------------------------------------+
+               |              Unified Database              |
+               |             (Spanner)                      |
+               +--------------------------------------------+
+                                      |
+                      +---------------+---------------+
+                      |                               |
+       is_public = TRUE                               is_public = FALSE/NULL
+                      v                               v
+         +--------------------------+    +--------------------------+
+         |     Public Frontend      |    |    Internal Frontend     |
+         |    (perf.luci.app)       |    |  (chrome-perf.corp.goog) |
+         +--------------------------+    +--------------------------+
+         | Only loads public traces |    | Loads ALL traces into    |
+         | into InMemoryTraceParams |    | memory cache             |
+         +--------------------------+    +--------------------------+
 ```
 
-### Components
+---
 
-- **Checker (`perf/go/trace_visibility/checker`)**: The data-agnostic orchestrator responsible for verification.
+## 2. Dynamic Promotion Components
 
-  - **Responsibilities**:
-    - Fetches the current set of visibility rules stored in the SQL database.
-    - Queries the registered `Provider` to get the actual _expected_ rules.
-    - Compares the two sets to find discrepancies (missing in DB, or extra in DB).
-    - Parses the rule expressions to extract the "source" (typically the rule prefix, such as `bot=`).
-    - Groups the discrepancies by their source and emits tagged metrics (`perf_visibility_rules_diff`) and alerts/logs per source.
+To promote large historical private trace sets without triggering full table
+scans on millions of records, the architecture uses a synced hourly `Checker`
+loop in the background and a robust standalone `perf-tool` command for
+promotion sweeps.
 
-- **Provider (`perf/go/trace_visibility/provider.Provider`)**: Encapsulates the domain-specific logic required to determine what the visibility rules _should_ be.
-  - **Responsibilities**:
-    - Understands how to interact with external systems (like Gitiles, a custom API, etc.) to fetch raw configuration files.
-    - Parses these configurations and translates them from their domain-specific format into standard database rule expressions (e.g., converting a list of public builder names into `["bot=Builder1", "bot=Builder2"]`).
-    - Returns a flat map of these expected rules to the `Checker`.
+```text
+                                    +----------------------------------------+
+                                    |              Provider                  |
+     +-------------------+          | (e.g., ChromeProvider)                 |
+     |     Database      |          |                                        |
+     | (PublicTraceRules)|          | 1. Connect to Config Sources           |
+     +-------------------+          |    (e.g., Gitiles repo, Gerrit)        |
+             ^                      | 2. Parse domain-specific configs       |
+             | (1) Sync             |    (e.g., public_builders.json)        |
+             v                      | 3. Format as standard rule expressions |
+     +-------------------+          |    (e.g., "bot=Mac", "bot=Linux")      |
+     |                   |          +----------------------------------------+
+     |      Checker      |                                |
+     | (Hourly singleton)|  (2) GetExpectedRules()        |
+     |  - Compare Rules  |<-------------------------------+
+     |  - Sync DB rules  |
+     +-------------------+
+             |
+             | (3) Updates rules table
+             v
+     +-------------------+
+     |     Database      |
+     | (PublicTraceRules)|
+     +-------------------+
+             ^
+             | (4) Run manually or via cron/orchestrator
+             v
+     +-------------------+
+     |     perf-tool     |
+     |  (CLI promotion)  |
+     +-------------------+
+             |
+             | (5) Direct index-free JSONB queries & safe updates
+             v
+     +-------------------+
+     |    TraceParams    |
+     |  - Promote new    |
+     +-------------------+
+```
 
-## Configuration
+### 2.1 The Checker (`perf/go/trace_visibility/checker`)
 
-The visibility provider is instantiated in `maintenance.go` based on the `visibility_config` object in the instance's JSON configuration. It specifies the `provider_name` and contains a map of named sources.
+An hourly background routine running in the maintenance daemon that:
 
-For example:
+- Queries a `Provider` (e.g., `ChromeProvider` reading builder configs from
+  Gitiles) for expected public rules.
+- Syncs these rules to the local `PublicTraceRules` table.
+
+### 2.2 The Promoter (`perf/go/trace_visibility/promoter`)
+
+A stateful batch promotion utility executed via the
+`perf-tool visibility promote` CLI command that:
+
+- Pulls active public rules from the database.
+- Queries private traces matching those rules and batch promotes them to public
+  (`is_public = true`) state using fast parallel chunk updates.
+
+### 2.3 The Provider (`perf/go/trace_visibility/provider.Provider`)
+
+Retrieves domain-specific configurations (like raw builder lists from
+repository files) and formats them into standard rule tags (e.g.,
+`bot=android-pixel6-perf`).
+
+---
+
+## 3. Configuration
+
+The visibility components are initialized when `visibility_config` is
+defined in the instance's configuration:
 
 ```json
 "visibility_config": {
@@ -67,4 +123,4 @@ For example:
 }
 ```
 
-If the `visibility_config` object is missing, no provider is instantiated.
+If `visibility_config` is omitted, no checkers or promoters are run.
