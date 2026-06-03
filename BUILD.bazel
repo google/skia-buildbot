@@ -72,6 +72,7 @@ gazelle(
 
 exports_files(
     [
+        ".swcrc",
         "package.json",
         "package-lock.json",
         "tsconfig.json",

@@ -1,6 +1,8 @@
 """This module provides a wrapper around the ts_project rule from the rules_ts repository."""
 
+load("@aspect_rules_swc//swc:defs.bzl", "swc")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@bazel_skylib//lib:partial.bzl", "partial")
 
 def ts_library(name, srcs, deps = [], **kwargs):
     """Wraps rules_ts's ts_project rule with common settings for our code.
@@ -33,6 +35,17 @@ def ts_library(name, srcs, deps = [], **kwargs):
         "//:node_modules/@types/node",
     ]
 
+    # This produces:
+    # [name] - the default target which can be included in the deps of downstream rules.
+    #    It does not do type-checking.
+    # [name]_types - provides typings (.d.ts files) as the default outputs.
+    # [name]_typecheck - provides default outputs asserting type-checking has been run.
+    #    Building this target always causes the typechecker to run.
+    # [name]_typecheck_test - a build_test target which simply depends on the [name]_typecheck
+    #    target. This ensures that typechecking will be run under bazel test with
+    #    --build_tests_only.
+    # See https://github.com/aspect-build/rules_ts/blob/main/docs/transpiler.md#macro-expansion
+    # for more details.
     ts_project(
         name = name,
         srcs = srcs,
@@ -40,7 +53,7 @@ def ts_library(name, srcs, deps = [], **kwargs):
         # Pinpoint Web UI provides it's own `tsconfig`.
         tsconfig = kwargs.pop("tsconfig", "//:ts_config"),
         declaration = True,
-        transpiler = "tsc",
+        transpiler = partial.make(swc, swcrc = "//:.swcrc"),
         allow_js = True,
         **kwargs
     )
