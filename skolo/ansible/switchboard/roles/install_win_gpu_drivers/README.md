@@ -35,7 +35,7 @@ Next upload the newly created ZIP archive to the GCS bucket described in
 For example:
 
 ```console
-$ gsutil cp whql-amd-software-adrenalin-edition-23.5.2-win10-win11-may31.zip \
+$ gcloud storage cp whql-amd-software-adrenalin-edition-23.5.2-win10-win11-may31.zip \
     gs://skia-buildbots/skolo/win/win_package_src
 ```
 
@@ -58,7 +58,7 @@ Upload the drivers to the GCS bucket. For example:
 For example:
 
 ```console
-$ gsutil cp 536.40-desktop-win10-win11-64bit-international-dch-whql.exe \
+$ gcloud storage cp 536.40-desktop-win10-win11-64bit-international-dch-whql.exe \
     "gs://skia-buildbots/skolo/win/win_package_src/NVIDIA Graphics 536.40-desktop-win10-win11-64bit-international-dch-whql.exe"
 ```
 
@@ -90,7 +90,7 @@ once and to pass the path to the downloaded drivers to the ansible script.
 These can be downloaded as so:
 
 ```console
-$ gsutil cp -r gs://skia-buildbots/skolo/win/win_package_src ~/
+$ gcloud storage cp --recursive gs://skia-buildbots/skolo/win/win_package_src ~/
 ```
 
 Then run the playbooks as so:

@@ -13,7 +13,7 @@ There are things that are not backed up:
 To make the system as simple as possible a single script runs once a day that
 uses `perf-tool database backup` and then copies those gzipped backups to GCS.
 
-We use a docker image that contains `perf-tool` and `gsutil`.
+We use a docker image that contains `perf-tool` and `gcloud storage`.
 
 ## Adding a new database to backup.
 

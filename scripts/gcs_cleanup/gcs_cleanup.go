@@ -55,7 +55,7 @@ func main() {
 		go deleteHelper(files, &wg)
 	}
 
-	cmd := os_exec.Command("gsutil", "ls", "-r", "-l", search)
+	cmd := os_exec.Command("gcloud", "storage", "ls", "--recursive", "--long", search)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -101,8 +101,8 @@ func deleteHelper(files chan string, wg *sync.WaitGroup) {
 			fmt.Printf("dry deleted %s\n", toDelete)
 		} else {
 			err := exec.Run(context.Background(), &exec.Command{
-				Name: "gsutil",
-				Args: []string{"rm", toDelete},
+				Name: "gcloud",
+				Args: []string{"storage", "rm", toDelete},
 			})
 			if err != nil {
 				fmt.Printf("Could not delete %s: %s\n", toDelete, err)

@@ -195,13 +195,13 @@ then
     DIRTY=true
   fi
   gsutil \
-    -h x-goog-meta-appname:${APPNAME} \
-    -h x-goog-meta-userid:${USERID} \
-    -h x-goog-meta-hash:${HASH} \
-    -h x-goog-meta-datetime:${DATETIME} \
-    -h x-goog-meta-dirty:${DIRTY} \
-    -h "x-goog-meta-note:$1" \
-    -h "x-goog-meta-services:$SYSTEMD" \
+    --custom-metadata=appname:${APPNAME} \
+    --custom-metadata=userid:${USERID} \
+    --custom-metadata=hash:${HASH} \
+    --custom-metadata=datetime:${DATETIME} \
+    --custom-metadata=dirty:${DIRTY} \
+    --custom-metadata="note:$1" \
+    --custom-metadata="services:$SYSTEMD" \
     cp ${OUT}/${APPNAME}.deb \
     gs://skia-push/debs/${APPNAME}/${APPNAME}:${USERID}:${DATETIME}:${HASH}.deb
 else

@@ -14,7 +14,7 @@
 //   Then review these JSON files to make sure they were generated correctly.
 // * Elevate to breakglass permission.
 // * Run the following command to upload the JSON files to pers dashboard.
-//		gsutil -m cp ~/cbb/*.json gs://chrome-perf-non-public/ingest/YYYY/MM/DD/ChromiumPerf/cbb-backfill
+//		gcloud storage cp ~/cbb/*.json gs://chrome-perf-non-public/ingest/YYYY/MM/DD/ChromiumPerf/cbb-backfill
 
 package main
 
