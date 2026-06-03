@@ -1,0 +1,66 @@
+/* Centers the container on the page, constrains the maximum width, and adds side padding. */
+.new-job-container {
+  max-width: 1200px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+
+/* Uses a vertical flexbox layout for the form with a consistent gap between all cards. */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Stretches material cards to the full width of the parent container. */
+mat-card {
+  width: 100%;
+}
+
+/* Adds vertical space between card headers and card content. */
+mat-card-header {
+  padding-bottom: 16px;
+}
+
+/* Aligns action buttons (e.g. Create Job) to the bottom right corner. */
+.actions-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Stretches form fields to the full width of the form container. */
+mat-form-field {
+  width: 100%;
+}
+
+/* Formats adjacent form fields in a horizontal row. */
+.fields-row {
+  display: flex;
+  gap: 16px;
+}
+
+/*
+ * Makes expansion panes to not stand out and look like a part of the card.
+ * Overrides expansion panel backgrounds inside cards to blend in seamlessly.
+ */
+mat-expansion-panel {
+  background: transparent;
+}
+
+/*
+ * Makes expansion panes to not stand out and look like a part of the card.
+ * Removes default margins and styling of expansion panel headers.
+ * Set right padding to 4px to make sure the collapse icon is fully visible.
+ */
+mat-expansion-panel-header {
+  padding: 0 4px 0 0;
+  background: transparent !important;
+}
+
+/*
+ * Makes expansion panes to not stand out and look like a part of the card.
+ * Overrides default material expansion panels padding to align with the form controls.
+ */
+::ng-deep .mat-expansion-panel-body {
+  padding: 0 !important;
+}

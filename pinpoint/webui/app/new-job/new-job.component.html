@@ -1,18 +1,220 @@
-<div class="content">
-  <h1 class="title">Create New Job</h1>
-  <div class="card">
-    <p class="desc">Form for a new Try job.</p>
+<div class="new-job-container">
+  <form [formGroup]="jobForm" (ngSubmit)="submitJob()">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>New Job</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div>
+          <mat-form-field matTooltip="A descriptive name for this job to help identify it later.
+          If left blank, a name will be automatically generated based on the job configuration.">
+            <mat-label>Job name (optional)</mat-label>
+            <textarea matInput rows="1" formControlName="jobName" placeholder="e.g. Try job on win-11-perf/jetstream2"></textarea>
+            <mat-error>Job name cannot exceed 1000 characters</mat-error>
+          </mat-form-field>
+        </div>
 
-    <div class="form-group">
-      <label class="label">Configuration</label>
-      <input class="input" type="text" value="win-11-perf"/>
+        <div class="fields-row">
+          <mat-form-field matTooltip="The number of times the benchmark will run on each commit.
+          A higher number increases statistical confidence but takes longer.">
+            <mat-label>Attempts</mat-label>
+            <input matInput pattern="[0-9]*" inputmode="numeric" formControlName="attempts" placeholder="e.g. 30" min="1" max="150" required />
+            <mat-error>Attempts must be > 0 and <= 150 </mat-error>
+          </mat-form-field>
+
+          <mat-form-field matTooltip="The Issue Tracker bug ID associated with this job.">
+            <mat-label>Bug ID (optional)</mat-label>
+            <input matInput pattern="[0-9]*" inputmode="numeric" formControlName="bugId" placeholder="e.g. 1234567" min="1" />
+            <mat-error>Bug ID must be a positive number</mat-error>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Benchmark Configuration</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div>
+          <mat-form-field matTooltip="The swarming bot configuration on which the benchmark will be executed.">
+            <mat-label>Bot</mat-label>
+            <input matInput formControlName="bot" placeholder="e.g. win-11-perf" required />
+            <mat-error>Bot is required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field matTooltip="The performance benchmark suite to execute (e.g. speedometer3, jetstream2).">
+            <mat-label>Benchmark</mat-label>
+            <input matInput formControlName="benchmark" placeholder="e.g. speedometer3.1.crossbench" required />
+            <mat-error>Benchmark is required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field matTooltip="The specific story or sub-test within the benchmark suite to execute.">
+            <mat-label>Story</mat-label>
+            <input matInput formControlName="story" placeholder="e.g. Speedometer3" required />
+            <mat-error>Story is required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field matTooltip="A comma-separated list of tags to filter and run a subset of benchmark stories.">
+            <mat-label>Story tags (optional)</mat-label>
+            <input matInput formControlName="storyTags" placeholder="e.g. all, infinite_scroll" />
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Baseline</mat-card-title>
+      </mat-card-header>
+      <mat-card-content formGroupName="baseline">
+        <div>
+          <mat-form-field matTooltip="The git commit hash, revision, or HEAD to use as the baseline.">
+            <mat-label>Commit</mat-label>
+            <input matInput formControlName="commit" placeholder="e.g. abcd1234 or HEAD" required />
+            <mat-error>Commit is required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-expansion-panel class="mat-elevation-z0">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Advanced Options</mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div>
+            <mat-form-field matTooltip="An optional Gerrit change ID or
+            review URL to apply as a patch to the baseline build.">
+              <mat-label>Patch (optional)</mat-label>
+              <input matInput formControlName="patch"
+              placeholder="e.g. 12345, crrev.com/c/12345, or https://chromium-review.git.corp.google.com/c/chromium/src/+/12345" />
+            </mat-form-field>
+          </div>
+
+          <div>
+            <mat-form-field matTooltip="Extra command line arguments to pass directly to the benchmark runner execution.">
+              <mat-label>Benchmark runner arguments (optional)</mat-label>
+              <textarea matInput rows="1" formControlName="benchmarkRunnerArgs"
+              placeholder="e.g. --wpr=crossbench_android_embedder_000.wprgo"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div>
+            <mat-form-field matTooltip="Additional command line flags to pass to the Chrome browser on launch.
+            These flags will be wrapped inside --extra-browser-args.">
+              <mat-label>Extra browser arguments (optional)</mat-label>
+              <textarea matInput rows="1" formControlName="extraBrowserArgs"
+              placeholder="e.g. --disable-skia-graphite"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div>
+            <mat-form-field matTooltip="V8 JavaScript engine flags to pass to Chrome.
+            These flags will be wrapped inside --js-flags.">
+              <mat-label>--js-flags (optional)</mat-label>
+              <textarea matInput rows="1" formControlName="jsFlags" placeholder="e.g. --turbolev-future"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div>
+            <mat-form-field matTooltip="Chrome features to enable on launch.
+            These features will be wrapped inside --enable-features.">
+              <mat-label>--enable-features (optional)</mat-label>
+              <textarea matInput rows="1" formControlName="enableFeatures" placeholder="e.g. CADisplayLinkInBrowser"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div>
+            <mat-form-field matTooltip="Chrome features to disable on launch.
+            These features will be wrapped inside --disable-features.">
+              <mat-label>--disable-features (optional)</mat-label>
+              <textarea matInput rows="1" formControlName="disableFeatures" placeholder="e.g. EnableDrDc"></textarea>
+            </mat-form-field>
+          </div>
+        </mat-expansion-panel>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Experiment</mat-card-title>
+      </mat-card-header>
+      <mat-card-content formGroupName="experiment">
+        <div>
+          <mat-form-field matTooltip="The Gerrit change ID or review URL
+          containing the experiment changes to test against the baseline.">
+            <mat-label>Patch (optional)</mat-label>
+            <input matInput formControlName="patch"
+            placeholder="e.g. 12345, crrev.com/c/12345, or https://chromium-review.git.corp.google.com/c/chromium/src/+/12345" />
+          </mat-form-field>
+        </div>
+
+        <mat-expansion-panel class="mat-elevation-z0">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Advanced Options</mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div>
+            <mat-form-field matTooltip="The git commit hash, revision, or HEAD to use as the experiment base.
+            If left blank, it defaults to the baseline commit.">
+              <mat-label>Commit (optional)</mat-label>
+              <input matInput formControlName="commit" placeholder="e.g. abcd1234 or HEAD" />
+            </mat-form-field>
+          </div>
+
+          <div>
+            <mat-form-field matTooltip="Extra command line arguments to pass directly to the benchmark runner execution.">
+              <mat-label>Benchmark runner arguments (optional)</mat-label>
+              <textarea matInput rows="1" formControlName="benchmarkRunnerArgs"
+              placeholder="e.g. --wpr=crossbench_android_embedder_000.wprgo"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div>
+            <mat-form-field matTooltip="Additional command line flags to pass to the Chrome browser on launch.
+            These flags will be wrapped inside --extra-browser-args.">
+              <mat-label>Extra browser arguments (optional)</mat-label>
+              <textarea matInput rows="1" formControlName="extraBrowserArgs"
+              placeholder="e.g. --disable-skia-graphite"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div>
+            <mat-form-field matTooltip="V8 JavaScript engine flags to pass to Chrome.
+            These flags will be wrapped inside --js-flags.">
+              <mat-label>--js-flags (optional)</mat-label>
+              <textarea matInput rows="1" formControlName="jsFlags" placeholder="e.g. --turbolev-future"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div>
+            <mat-form-field matTooltip="Chrome features to enable on launch.
+            These features will be wrapped inside --enable-features.">
+              <mat-label>--enable-features (optional)</mat-label>
+              <textarea matInput rows="1" formControlName="enableFeatures" placeholder="e.g. CADisplayLinkInBrowser"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div>
+            <mat-form-field matTooltip="Chrome features to disable on launch.
+             These features will be wrapped inside --disable-features.">
+              <mat-label>--disable-features (optional)</mat-label>
+              <textarea matInput rows="1" formControlName="disableFeatures" placeholder="e.g. EnableDrDc"></textarea>
+            </mat-form-field>
+          </div>
+        </mat-expansion-panel>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="actions-container">
+      <button mat-raised-button color="primary" type="submit" [disabled]="jobForm.invalid">
+        Create Job
+      </button>
     </div>
-
-    <div class="form-group">
-      <label class="label">Benchmark</label>
-      <input class="input" type="text" value="speedometer3.1.crossbench"/>
-    </div>
-
-    <button class="btn" (click)="submitJob()">Submit Job</button>
-  </div>
+  </form>
 </div>
