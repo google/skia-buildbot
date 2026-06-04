@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Shell script to manually trigger production CBB runs.
+# For usage instructions, see http://go/cbb-op#heading=h.p7deu7kfu42x
+
 # Before running this script, please finish steps 1 through 3 given at
 # https://skia.googlesource.com/buildbot/+/HEAD/temporal/README.md#locally-trigger-production-workflow-follow-these-steps-with-care
 # For step 2, use `./kube/attach.sh skia-infra-corp`.
@@ -23,6 +25,40 @@ else
     BENCHMARK="full"
 fi
 
+# Map platform argument to full name
+case "$PLATFORM" in
+    m3)
+        PLATFORM="mac-m3-pro-perf-cbb"
+        ;;
+    m4)
+        PLATFORM="mac-m4-mini-perf-cbb"
+        ;;
+    victus)
+        PLATFORM="win-victus-perf-cbb"
+        ;;
+    elite)
+        PLATFORM="win-arm64-snapdragon-elite-perf-cbb"
+        ;;
+    p10)
+        PLATFORM="android-pixel10-perf-cbb"
+        ;;
+    tangor)
+        PLATFORM="android-pixel-tangor-perf-cbb"
+        ;;
+esac
+
+# Validate platform argument
+VALID_PLATFORMS=(\
+    "mac-m3-pro-perf-cbb" "mac-m4-mini-perf-cbb" \
+    "win-victus-perf-cbb" "win-arm64-snapdragon-elite-perf-cbb" \
+    "android-pixel10-perf-cbb" "android-pixel-tangor-perf-cbb" \
+)
+if ! [[ " ${VALID_PLATFORMS[*]} " =~ " ${PLATFORM} " ]]; then
+    echo "Error: Invalid platform '$PLATFORM'."
+    echo "Valid platforms are: ${VALID_PLATFORMS[*]}"
+    exit 1
+fi
+
 # Map benchmark argument to full name
 case "$BENCHMARK" in
     sp|sp3)
@@ -34,40 +70,31 @@ case "$BENCHMARK" in
     mm|mm13|mm1.3)
         BENCHMARK="motionmark1.3"
         ;;
+    ll|ll2)
+        BENCHMARK="loadline2"
+        ;;
 esac
 
-# Validate benchmark argument
-VALID_BENCHMARKS=("speedometer3" "jetstream2" "motionmark1.3" "full")
-if ! [[ " ${VALID_BENCHMARKS[*]} " =~ " ${BENCHMARK} " ]]; then
-    echo "Error: Invalid benchmark '$BENCHMARK'."
-    echo "Valid benchmarks are: speedometer3, jetstream2, motionmark1.3, full (or aliases sp, js, mm)."
-    exit 1
+if [[ "$BENCHMARK" == "loadline2" ]]; then
+    case "$PLATFORM" in
+        android-pixel10-perf-cbb)
+            BENCHMARK=loadline2_phone
+            ;;
+        android-pixel-tangor-perf-cbb)
+            BENCHMARK=loadline2_tablet
+            ;;
+        *)
+            echo "Error: don't know which flavor of $BENCHMARK to run on $PLATFORM"
+            exit 1
+            ;;
+    esac
 fi
 
-# Map platform argument to full name
-case "$PLATFORM" in
-    m3)
-        PLATFORM="mac-m3-pro-perf-cbb"
-        ;;
-    victus)
-        PLATFORM="win-victus-perf-cbb"
-        ;;
-    plus)
-        PLATFORM="win-arm64-snapdragon-plus-perf-cbb"
-        ;;
-    elite)
-        PLATFORM="win-arm64-snapdragon-elite-perf-cbb"
-        ;;
-    tangor)
-        PLATFORM="android-pixel-tangor-perf-cbb"
-        ;;
-esac
-
-# Validate platform argument
-VALID_PLATFORMS=("mac-m3-pro-perf-cbb" "win-victus-perf-cbb" "win-arm64-snapdragon-plus-perf-cbb" "win-arm64-snapdragon-elite-perf-cbb" "android-pixel-tangor-perf-cbb")
-if ! [[ " ${VALID_PLATFORMS[*]} " =~ " ${PLATFORM} " ]]; then
-    echo "Error: Invalid platform '$PLATFORM'."
-    echo "Valid platforms are: ${VALID_PLATFORMS[*]}"
+# Validate benchmark argument
+VALID_BENCHMARKS=("speedometer3" "jetstream2" "motionmark1.3" "loadline2_phone" "loadline2_tablet" "full")
+if ! [[ " ${VALID_BENCHMARKS[*]} " =~ " ${BENCHMARK} " ]]; then
+    echo "Error: Invalid benchmark '$BENCHMARK'."
+    echo "Valid benchmarks are: speedometer3, jetstream2, motionmark1.3, full (or aliases sp, js, mm, ll)."
     exit 1
 fi
 
@@ -93,12 +120,41 @@ if ! [[ "$COMMIT_POSITION" =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
+# Set the number of iterations to use. These number should match those used in
+# setupBenchmarks function in pinpoint/go/workflows/internal/cbb_runner.go.
+# At some point, we should figure out how to have a single source of truth of
+# the number of iterations to use.
+ITERATIONS=0
+case "$BENCHMARK" in
+    speedometer3)
+        if [[ "$PLATFORM" =~ ^mac- ]]; then
+            ITERATIONS=150
+        else
+            ITERATIONS=22
+        fi
+        ;;
+    jetstream2)
+        ITERATIONS=22
+        ;;
+    motionmark1.3)
+        ITERATIONS=22
+        ;;
+    loadline2_phone)
+        ITERATIONS=14
+        ;;
+    loadline2_tablet)
+        ITERATIONS=8
+        ;;
+esac
+
+
 echo "Arguments validated successfully:"
 echo "Platform: $PLATFORM"
 echo "Browser: $BROWSER"
 echo "Channel: $CHANNEL"
 echo "Commit Position: $COMMIT_POSITION"
 echo "Benchmark: $BENCHMARK"
+echo "Iterations: $ITERATIONS"
 
 # Check for running processes
 if ! pgrep -f "./kube/attach.sh skia-infra-corp" > /dev/null; then
@@ -117,4 +173,5 @@ bazelisk run //pinpoint/go/workflows/sample -- \
     --namespace=perf-internal --taskQueue=perf.perf-chrome-public.bisect \
     --cbb-runner=true --no-wait=true \
     --configuration=$PLATFORM --browser=$BROWSER \
-    --channel=$CHANNEL --commit-position=$COMMIT_POSITION --benchmark=$BENCHMARK
+    --channel=$CHANNEL --commit-position=$COMMIT_POSITION --benchmark=$BENCHMARK \
+    --iterations=$ITERATIONS
