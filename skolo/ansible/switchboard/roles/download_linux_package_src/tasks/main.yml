@@ -14,8 +14,8 @@
       delegate_to: 127.0.0.1
       command:
         argv:
-          - gsutil
-          - -m
+          - gcloud
+          - storage
           - rsync
           - gs://skia-buildbots/skolo/linux/linux_package_src
           - '{{ linux_package_src_dir.path }}'
