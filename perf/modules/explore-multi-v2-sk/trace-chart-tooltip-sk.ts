@@ -225,6 +225,62 @@ export class TraceChartTooltipSk extends LitElement {
         opacity: 0.6;
       }
     }
+
+    triage-menu-sk button {
+      height: var(--perf-button-height, 24px);
+      min-width: var(--perf-button-min-width, 50px);
+      padding: var(--perf-button-padding, 0 8px);
+      font-size: var(--perf-button-font-size, 11px);
+      text-transform: none;
+      border-radius: var(--perf-button-border-radius, 4px);
+      border: solid 1px var(--outline);
+      background: var(--surface);
+      color: var(--primary);
+      font-family: var(--font);
+      cursor: pointer;
+      margin: var(--perf-button-margin, 0);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      box-shadow: none;
+      text-decoration: none;
+      line-height: normal;
+    }
+
+    triage-menu-sk button:hover {
+      background-color: var(--surface-1dp);
+    }
+
+    toast-sk {
+      display: flex;
+      visibility: hidden;
+      position: fixed;
+      left: auto;
+      bottom: 0;
+      color: var(--on-background, #fff);
+      background: var(--background, #000);
+      fill: var(--on-background, #fff);
+      padding: 10px 15px;
+      opacity: 0;
+      z-index: 20;
+    }
+
+    toast-sk[shown] {
+      visibility: visible;
+      opacity: 1;
+      bottom: 30px;
+      color: var(--on-background, #fff);
+      background: var(--background, #000);
+      fill: var(--background, #000);
+      width: auto;
+      max-width: 1000px;
+    }
+
+    triage-menu-sk #ignore_toast {
+      background-color: var(--background, #000);
+      color: var(--on-background, #fff);
+    }
   `;
 
   private _formatDate(ts: number): string {
