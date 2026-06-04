@@ -209,6 +209,10 @@ func (s *StructuredLogger) emit(ctx context.Context, depth int, severity sklogim
 	var strMsg string
 	if m, ok := msg.(string); ok {
 		strMsg = m
+	} else if err, ok := msg.(error); ok {
+		strMsg = err.Error()
+	} else if s, ok := msg.(fmt.Stringer); ok {
+		strMsg = s.String()
 	} else {
 		v := reflect.ValueOf(msg)
 		if v.IsValid() {

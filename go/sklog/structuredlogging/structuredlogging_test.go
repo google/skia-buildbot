@@ -8,6 +8,7 @@ import (
 	"cloud.google.com/go/logging"
 	"cloud.google.com/go/logging/apiv2/loggingpb"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/go/sklog/structuredlogging/mocks"
 	"go.skia.org/infra/go/util"
@@ -108,7 +109,7 @@ func TestLogCtx_WithTemplate(t *testing.T) {
 		// TODO(borenet): This will be very brittle.
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File:     "structuredlogging_test.go",
-			Line:     119,
+			Line:     120,
 			Function: "",
 		},
 		Labels: map[string]string{
@@ -142,7 +143,7 @@ func TestLogCtx_NoTemplate_SingleArg(t *testing.T) {
 		// TODO(borenet): This will be very brittle.
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File:     "structuredlogging_test.go",
-			Line:     153,
+			Line:     154,
 			Function: "",
 		},
 		Labels: map[string]string{
@@ -169,7 +170,7 @@ func TestLogCtx_NoTemplate_MultiArg(t *testing.T) {
 		// TODO(borenet): This will be very brittle.
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File:     "structuredlogging_test.go",
-			Line:     180,
+			Line:     181,
 			Function: "",
 		},
 		Labels: map[string]string{
@@ -193,7 +194,7 @@ func TestLogCtx_NoTemplate_NamedString(t *testing.T) {
 		Severity: logging.Info,
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File: "structuredlogging_test.go",
-			Line: 200,
+			Line: 201,
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()
@@ -211,9 +212,53 @@ func TestLogCtx_NoTemplate_Int(t *testing.T) {
 		Severity: logging.Info,
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File: "structuredlogging_test.go",
-			Line: 218,
+			Line: 219,
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()
 	logger.LogCtx(ctx, 0, sklogimpl.Info, "", 123)
+}
+
+func TestLogCtx_NoTemplate_Error(t *testing.T) {
+	ctx := context.Background()
+	cloudLogger := &mocks.CloudLogger{}
+	logger := &StructuredLogger{
+		logger: cloudLogger,
+	}
+	err := skerr.Fmt("my error")
+	expectedLogEntry := logging.Entry{
+		Payload:  err.Error(),
+		Severity: logging.Info,
+		SourceLocation: &loggingpb.LogEntrySourceLocation{
+			File: "structuredlogging_test.go",
+			Line: 238,
+		},
+	}
+	cloudLogger.On("Log", expectedLogEntry).Return()
+	logger.LogCtx(ctx, 0, sklogimpl.Info, "", err)
+}
+
+type myStringer struct{}
+
+func (s myStringer) String() string {
+	return "my stringer"
+}
+
+func TestLogCtx_NoTemplate_Stringer(t *testing.T) {
+	ctx := context.Background()
+	cloudLogger := &mocks.CloudLogger{}
+	logger := &StructuredLogger{
+		logger: cloudLogger,
+	}
+	s := myStringer{}
+	expectedLogEntry := logging.Entry{
+		Payload:  "my stringer",
+		Severity: logging.Info,
+		SourceLocation: &loggingpb.LogEntrySourceLocation{
+			File: "structuredlogging_test.go",
+			Line: 263,
+		},
+	}
+	cloudLogger.On("Log", expectedLogEntry).Return()
+	logger.LogCtx(ctx, 0, sklogimpl.Info, "", s)
 }

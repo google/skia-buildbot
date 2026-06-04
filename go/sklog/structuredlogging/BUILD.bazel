@@ -19,6 +19,7 @@ go_test(
     srcs = ["structuredlogging_test.go"],
     embed = [":structuredlogging"],
     deps = [
+        "//go/skerr",
         "//go/sklog/sklogimpl",
         "//go/sklog/structuredlogging/mocks",
         "//go/util",
